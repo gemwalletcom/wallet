@@ -43,7 +43,7 @@ struct FastMctpBuildContext {
 
 impl FastMctpBuildContext {
     fn new(quote: &Quote, route: &MayanFastMctpQuote) -> Result<Self, SwapperError> {
-        if route.to_chain == WormholeChain::Solana.name() || route.to_chain == WormholeChain::Sui.name() {
+        if route.to_chain == WormholeChain::Solana.name() {
             return Err(SwapperError::InvalidRoute);
         }
 

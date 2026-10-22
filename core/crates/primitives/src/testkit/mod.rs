@@ -6,6 +6,7 @@ pub mod address_name_mock;
 pub mod application_metadata_mock;
 pub mod asset_data_mock;
 pub mod asset_details_mock;
+pub mod asset_fiat_value_mock;
 pub mod asset_market_mock;
 pub mod asset_metadata_mock;
 pub mod asset_mock;

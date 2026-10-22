@@ -891,6 +891,7 @@ pub struct AssetData {
 
 #[uniffi::remote(Record)]
 pub struct AssetFiatValue {
+    pub asset_id: primitives::AssetId,
     pub amount: f64,
     pub price: f64,
     pub price_change_percentage_24h: f64,

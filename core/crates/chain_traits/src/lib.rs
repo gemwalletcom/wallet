@@ -244,7 +244,7 @@ pub trait ChainPerpetual: Send + Sync {
         Err("Chain does not support perpetual trading".into())
     }
 
-    async fn get_perpetual_portfolio(&self, _address: String) -> Result<PerpetualPortfolio, Box<dyn Error + Sync + Send>> {
+    async fn get_perpetual_portfolio(&self, _address: String, _mode: PerpetualAccountMode) -> Result<PerpetualPortfolio, Box<dyn Error + Sync + Send>> {
         Err("Chain does not support perpetual portfolio".into())
     }
 

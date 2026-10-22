@@ -23,7 +23,7 @@ import com.wallet.core.primitives.PerpetualProvider
             onUpdate = ForeignKey.CASCADE,
         ),
     ],
-    indices = [Index(name = "perpetuals_asset_id_idx", value = ["assetId"])],
+    indices = [Index(name = "perpetuals_asset_id_idx", value = ["assetId"]), Index(value = ["name"])],
 )
 data class DbPerpetual(
     @PrimaryKey val id: PerpetualId,

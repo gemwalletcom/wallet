@@ -1053,12 +1053,14 @@ fun com.wallet.core.primitives.AssetData.toGem(): uniffi.gemstone.AssetData = un
 )
 
 fun uniffi.gemstone.AssetFiatValue.toPrimitives(): com.wallet.core.primitives.AssetFiatValue = com.wallet.core.primitives.AssetFiatValue(
+    assetId = com.wallet.core.primitives.AssetId(assetId),
     amount = amount,
     price = price,
     priceChangePercentage24h = priceChangePercentage24h,
 )
 
 fun com.wallet.core.primitives.AssetFiatValue.toGem(): uniffi.gemstone.AssetFiatValue = uniffi.gemstone.AssetFiatValue(
+    assetId = assetId.toIdentifier(),
     amount = amount,
     price = price,
     priceChangePercentage24h = priceChangePercentage24h,

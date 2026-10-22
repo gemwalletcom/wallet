@@ -4,6 +4,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.gemwallet.android.data.services.store.database.di.Migration_102_103
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -38,6 +39,18 @@ class Migration_102_103Test {
             database.query("SELECT isEnabled FROM perpetuals WHERE id = 'hypercore_BTC'").use { cursor ->
                 cursor.moveToFirst()
                 assertEquals(1, cursor.getInt(0))
+            }
+        }
+    }
+
+    @Test
+    fun aPriceWriteFindsItsMarketThroughTheNameIndex() {
+        helper.createDatabase(testDb, 102).close()
+
+        helper.runMigrationsAndValidate(testDb, 103, true, Migration_102_103).use { database ->
+            database.query("EXPLAIN QUERY PLAN UPDATE perpetuals SET price = 1.0 WHERE name = 'BTC'").use { cursor ->
+                val plan = buildList { while (cursor.moveToNext()) add(cursor.getString(cursor.getColumnIndexOrThrow("detail"))) }
+                assertTrue(plan.toString(), plan.any { it.contains("index_perpetuals_name") })
             }
         }
     }

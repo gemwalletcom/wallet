@@ -13,7 +13,7 @@ use crate::services::localization::GemLocalizedText;
 use chrono::{DateTime, Utc};
 use primitives::chart::{ChartCandleStick, ChartCandleUpdate};
 use primitives::perpetual::{PerpetualBalance, PerpetualData, PerpetualPositionData};
-use primitives::{Asset, AssetId, PerpetualAccountMode, PerpetualDirection, PerpetualId, PerpetualMarginType, PerpetualPosition, PerpetualProvider, PerpetualType, WalletType};
+use primitives::{Asset, AssetId, PerpetualDirection, PerpetualId, PerpetualMarginType, PerpetualPosition, PerpetualProvider, PerpetualType, WalletType};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq)]
@@ -63,12 +63,6 @@ pub struct GemPerpetualCloseInput {
     pub entry_price: f64,
     pub margin_amount: f64,
     pub slippage: Option<f64>,
-}
-
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemPerpetualConnection {
-    pub address: String,
-    pub mode: PerpetualAccountMode,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

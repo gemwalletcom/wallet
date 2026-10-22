@@ -359,6 +359,7 @@ struct ServicesFactory {
                 price: priceService,
                 assets: assetsService,
                 transactionStatus: GemstoneTransactionStatusService(service: transactionStateService),
+                walletPreferences: walletPreferencesService,
             ),
             explorer: explorerService,
             names: nameService,

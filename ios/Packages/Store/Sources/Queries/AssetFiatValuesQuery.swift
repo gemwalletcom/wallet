@@ -22,6 +22,7 @@ public struct AssetFiatValuesQuery: DatabaseQueryable, Equatable {
             .fetchAll(db)
             .map {
                 AssetFiatValue(
+                    assetId: $0.asset.mapToAsset().id,
                     amount: $0.balance.totalAmount,
                     price: $0.price?.price ?? 0,
                     priceChangePercentage24h: $0.price?.priceChangePercentage24h ?? 0,

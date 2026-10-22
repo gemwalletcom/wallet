@@ -88,6 +88,9 @@ impl GemPerpetualStore for MemoryPerpetualStore {
                 msg: "FOREIGN KEY constraint failed".to_string(),
             });
         }
+        let mut stored = self.positions.lock().unwrap();
+        stored.retain(|position| !delete_ids.contains(&position.id) && !positions.iter().any(|written| written.id == position.id));
+        stored.extend(positions.clone());
         self.position_writes.lock().unwrap().push((positions, delete_ids));
         Ok(())
     }
@@ -96,6 +99,12 @@ impl GemPerpetualStore for MemoryPerpetualStore {
         Ok(())
     }
     async fn update_prices(&self, prices: Vec<PerpetualPrice>) -> Result<(), GemServiceError> {
+        for perpetual in self.stored.lock().unwrap().iter_mut() {
+            if let Some(price) = prices.iter().find(|price| price.coin == perpetual.name) {
+                perpetual.price = price.price;
+                perpetual.price_percent_change_24h = price.price_percent_change_24h;
+            }
+        }
         self.price_writes.lock().unwrap().push(prices);
         Ok(())
     }

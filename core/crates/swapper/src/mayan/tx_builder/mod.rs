@@ -8,4 +8,5 @@ pub(super) mod mctp;
 pub(super) mod mono_chain;
 mod route;
 mod solana;
+mod sui;
 pub(super) mod swift;

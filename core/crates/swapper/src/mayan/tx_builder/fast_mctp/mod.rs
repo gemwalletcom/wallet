@@ -1,5 +1,6 @@
 pub(in crate::mayan) mod evm;
 pub(in crate::mayan) mod solana;
+pub(in crate::mayan) mod sui;
 
 use crate::{
     SwapperError,
@@ -13,16 +14,12 @@ use crate::{
 };
 use gem_evm::EVM_ZERO_ADDRESS;
 use gem_solana::SYSTEM_PROGRAM_ID;
-use primitives::Chain;
 
 const FAST_MCTP_PAYLOAD_TYPE_DEFAULT: u8 = 1;
 const FAST_MCTP_PAYLOAD_TYPE_ORDER: u8 = 3;
 
 fn destination_referrer_address(route: &MayanFastMctpQuote) -> Result<Option<String>, SwapperError> {
     let chain = wormhole_chain::chain_for_name(&route.to_chain)?;
-    if chain == Chain::Sui {
-        return Ok(None);
-    }
     let address = default_referral_address(chain);
     Ok((!address.is_empty()).then_some(address))
 }
@@ -63,7 +60,32 @@ fn token_out(route: &MayanFastMctpQuote) -> Result<[u8; 32], SwapperError> {
         return native_address_to_bytes32(SYSTEM_PROGRAM_ID, wormhole_chain_id(WormholeChain::Solana.name())?);
     }
     if route.to_chain == WormholeChain::Sui.name() {
-        return token_address_to_bytes32(route.to_token.verified_address.as_deref().ok_or(SwapperError::InvalidRoute)?, WormholeChain::Sui.name());
+        return token_address_to_bytes32(route.to_token.currency_id.as_deref().ok_or(SwapperError::InvalidRoute)?, WormholeChain::Sui.name());
     }
     native_address_to_bytes32(&route.to_token.contract, route.to_token.w_chain_id)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::mayan::tx_builder::address::native_address_to_bytes32;
+    use primitives::{Chain, hex};
+
+    #[test]
+    fn test_token_out() {
+        let route = MayanFastMctpQuote::mock_evm_to_sui();
+        assert_eq!(hex::encode_with_0x(&token_out(&route).unwrap()), "0x75cfbbf8c962d542e99a1d15731e6069f60a00db895407785b15d14f606f2b4a");
+
+        let route = MayanFastMctpQuote::mock_evm();
+        assert_eq!(token_out(&route).unwrap(), native_address_to_bytes32(&route.to_token.contract, route.to_token.w_chain_id).unwrap());
+    }
+
+    #[test]
+    fn test_referrer_bytes() {
+        let route = MayanFastMctpQuote::mock_evm_to_sui();
+        assert_eq!(
+            referrer_bytes(&route).unwrap(),
+            native_address_to_bytes32(&default_referral_address(Chain::Sui), wormhole_chain_id(WormholeChain::Sui.name()).unwrap()).unwrap()
+        );
+    }
 }

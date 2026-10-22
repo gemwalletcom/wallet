@@ -1,4 +1,4 @@
-use primitives::PerpetualAccountMode;
+use primitives::{PerpetualAccountMode, UnifiedAccountSwitch};
 use serde::{Deserialize, Serialize};
 use serde_serializers::f64::deserialize_f64_from_str;
 
@@ -10,6 +10,16 @@ pub enum UserAbstractionMode {
     DexAbstraction,
     UnifiedAccount,
     PortfolioMargin,
+}
+
+impl UserAbstractionMode {
+    pub fn unified_account_switch(self) -> Option<UnifiedAccountSwitch> {
+        match self {
+            Self::Default | Self::Disabled => Some(UnifiedAccountSwitch::Agent),
+            Self::DexAbstraction => Some(UnifiedAccountSwitch::User),
+            Self::UnifiedAccount | Self::PortfolioMargin => None,
+        }
+    }
 }
 
 impl From<UserAbstractionMode> for PerpetualAccountMode {

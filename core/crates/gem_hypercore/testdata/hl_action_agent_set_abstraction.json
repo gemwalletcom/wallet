@@ -1,0 +1,13 @@
+{
+  "action": {
+    "type": "agentSetAbstraction",
+    "abstraction": "u"
+  },
+  "isFrontend": true,
+  "nonce": 1759100000000,
+  "signature": {
+    "r": "0x086c2c295292b604680fa6acd9be5d00d0f0fb1d4dd9c0a96f86085ed6f00497",
+    "s": "0x35950140b7e20e262b8bd38cc09219efef14fe3903ea616ab58a132b692bad2b",
+    "v": 28
+  }
+}

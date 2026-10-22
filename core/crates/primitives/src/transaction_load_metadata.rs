@@ -21,11 +21,18 @@ impl Debug for AgentPrivateKey {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum UnifiedAccountSwitch {
+    Agent,
+    User,
+}
+
 #[derive(Debug, Clone)]
 pub struct HyperliquidOrder {
     pub approve_agent_required: bool,
     pub approve_referral_required: bool,
     pub approve_builder_required: bool,
+    pub unified_account_switch: Option<UnifiedAccountSwitch>,
     pub builder_fee_bps: u32,
     pub agent_name: String,
     pub agent_address: String,
@@ -260,6 +267,7 @@ mod tests {
                 approve_agent_required: true,
                 approve_referral_required: false,
                 approve_builder_required: true,
+                unified_account_switch: None,
                 builder_fee_bps: 10,
                 agent_name: "gemwallet_agent".into(),
                 agent_address: "0xagent".into(),

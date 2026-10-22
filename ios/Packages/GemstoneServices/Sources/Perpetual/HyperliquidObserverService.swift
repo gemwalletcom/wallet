@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import struct Gemstone.GemPerpetualConnection
 import protocol Gemstone.GemPerpetualServiceProtocol
 import protocol Gemstone.GemPerpetualStreamServiceProtocol
 import enum Gemstone.GemPerpetualSubscription
@@ -100,45 +99,44 @@ public actor HyperliquidObserverService: PerpetualObservable {
 
     private func observeConnection(wallet: Wallet) async {
         let events = await webSocket.connect()
-        let connection: GemPerpetualConnection?
+        let address: String?
         do {
-            connection = try await perpetualService.connection(wallet: wallet.toGem())
+            address = try await perpetualService.connectionAddress(wallet: wallet.toGem())
         } catch {
             debugLog("HyperliquidObserver: connection failed: \(error)")
-            connection = nil
+            address = nil
         }
         guard !Task.isCancelled else { return }
-        guard let connection else {
+        guard let address else {
             await closeConnection()
             return
         }
-        let mode = connection.mode.toPrimitives()
 
         for await event in events {
             guard !Task.isCancelled else { break }
 
             switch event {
             case .connected:
-                await onConnected(address: connection.address, mode: mode)
+                await onConnected(address: address)
             case let .message(data):
-                await onMessage(data, walletId: wallet.id, mode: mode)
+                await onMessage(data, walletId: wallet.id)
             case .disconnected:
                 await streamService.disconnected()
             }
         }
     }
 
-    private func onConnected(address: String, mode: PerpetualAccountMode) async {
+    private func onConnected(address: String) async {
         do {
-            try await streamService.connected(address: address, mode: mode.toGem())
+            try await streamService.connected(address: address)
         } catch {
             debugLog("HyperliquidObserver: subscribe failed: \(error)")
         }
     }
 
-    private func onMessage(_ data: Data, walletId: WalletId, mode: PerpetualAccountMode) async {
+    private func onMessage(_ data: Data, walletId: WalletId) async {
         do {
-            guard let candle = try await streamService.candleUpdate(walletId: walletId, mode: mode.toGem(), data: data) else { return }
+            guard let candle = try await streamService.candleUpdate(walletId: walletId, data: data) else { return }
             await chartService.yield(candle.toPrimitives())
         } catch {
             debugLog("HyperliquidObserver: handle message failed: \(error)")

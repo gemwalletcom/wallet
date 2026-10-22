@@ -25,7 +25,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: ["actions", "rust"]
+        language: ${{ fromJSON(github.event_name == 'push' && '["actions", "rust"]' || '["actions"]') }}
 
     steps:
       - name: Checkout

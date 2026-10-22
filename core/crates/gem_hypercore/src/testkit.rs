@@ -108,7 +108,7 @@ impl HyperliquidSubscription {
     }
 
     pub fn mock_account_state() -> Self {
-        Self::AccountState { address: "0xabc".to_string() }
+        Self::AccountState { address: "0xabc".to_string(), dex: None }
     }
 }
 

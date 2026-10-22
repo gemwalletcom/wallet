@@ -113,28 +113,12 @@ impl<C: Client> HyperCoreClient<C> {
         self.info(InfoRequest::UserFillsByTime { user: user.to_string(), start_time }).await
     }
 
-    pub async fn get_clearinghouse_state(&self, user: &str) -> Result<AssetPositions, Box<dyn Error + Send + Sync>> {
-        self.info(InfoRequest::ClearinghouseState { user: user.to_string(), dex: None }).await
+    pub async fn get_clearinghouse_state(&self, user: &str, dex: PerpDex) -> Result<AssetPositions, Box<dyn Error + Send + Sync>> {
+        self.info(InfoRequest::ClearinghouseState { user: user.to_string(), dex: dex.name() }).await
     }
 
-    pub async fn get_clearinghouse_state_with_dex(&self, user: &str, dex: &str) -> Result<AssetPositions, Box<dyn Error + Send + Sync>> {
-        self.info(InfoRequest::ClearinghouseState {
-            user: user.to_string(),
-            dex: Some(dex.to_string()),
-        })
-        .await
-    }
-
-    pub async fn get_metadata(&self) -> Result<HypercoreMetadataResponse, Box<dyn Error + Send + Sync>> {
-        self.info(InfoRequest::MetaAndAssetCtxs { dex: None }).await
-    }
-
-    pub async fn get_metadata_with_dex(&self, dex: &str) -> Result<HypercoreMetadataResponse, Box<dyn Error + Send + Sync>> {
-        self.info(InfoRequest::MetaAndAssetCtxs { dex: Some(dex.to_string()) }).await
-    }
-
-    pub async fn get_perp_dexs(&self) -> Result<Vec<Option<PerpDex>>, Box<dyn Error + Send + Sync>> {
-        self.info(InfoRequest::PerpDexs).await
+    pub async fn get_metadata(&self, dex: PerpDex) -> Result<HypercoreMetadataResponse, Box<dyn Error + Send + Sync>> {
+        self.info(InfoRequest::MetaAndAssetCtxs { dex: dex.name() }).await
     }
 
     pub async fn get_spot_meta(&self) -> Result<SpotMeta, Box<dyn Error + Send + Sync>> {
@@ -193,28 +177,12 @@ impl<C: Client> HyperCoreClient<C> {
         self.info(InfoRequest::DelegatorHistory { user: user.to_string() }).await
     }
 
-    pub async fn get_open_orders(&self, user: &str) -> Result<Vec<OpenOrder>, Box<dyn Error + Send + Sync>> {
-        self.info(InfoRequest::FrontendOpenOrders { user: user.to_string(), dex: None }).await
-    }
-
-    pub async fn get_open_orders_with_dex(&self, user: &str, dex: &str) -> Result<Vec<OpenOrder>, Box<dyn Error + Send + Sync>> {
-        self.info(InfoRequest::FrontendOpenOrders {
-            user: user.to_string(),
-            dex: Some(dex.to_string()),
-        })
-        .await
+    pub async fn get_open_orders(&self, user: &str, dex: PerpDex) -> Result<Vec<OpenOrder>, Box<dyn Error + Send + Sync>> {
+        self.info(InfoRequest::FrontendOpenOrders { user: user.to_string(), dex: dex.name() }).await
     }
 
     pub async fn get_perpetual_portfolio(&self, user: &str) -> Result<HypercorePortfolioResponse, Box<dyn Error + Send + Sync>> {
-        self.info(InfoRequest::Portfolio { user: user.to_string(), dex: None }).await
-    }
-
-    pub async fn get_perpetual_portfolio_with_dex(&self, user: &str, dex: &str) -> Result<HypercorePortfolioResponse, Box<dyn Error + Send + Sync>> {
-        self.info(InfoRequest::Portfolio {
-            user: user.to_string(),
-            dex: Some(dex.to_string()),
-        })
-        .await
+        self.info(InfoRequest::Portfolio { user: user.to_string() }).await
     }
 }
 

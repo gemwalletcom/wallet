@@ -166,7 +166,7 @@ extension PerpetualsSceneViewModel {
     func onPinPerpetual(_ perpetualData: PerpetualData) {
         Task {
             do {
-                let toast = try await service.setPinned(perpetualId: perpetualData.perpetual.id, name: perpetualData.perpetual.name, pinned: !perpetualData.metadata.isPinned)
+                let toast = try await service.setPinned(perpetualId: perpetualData.perpetual.id, name: perpetualData.asset.symbol, pinned: !perpetualData.metadata.isPinned)
                 isPresentingToastMessage = ToastMessage(toast: toast)
             } catch {
                 debugLog("PerpetualsSceneViewModel pin perpetual error: \(error)")

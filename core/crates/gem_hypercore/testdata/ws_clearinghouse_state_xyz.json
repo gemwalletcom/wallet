@@ -1,0 +1,47 @@
+{
+  "channel": "clearinghouseState",
+  "data": {
+    "dex": "xyz",
+    "user": "0xc64cc00b46150e2681a6c0e57b4b12fd2b68fbc4",
+    "clearinghouseState": {
+      "assetPositions": [
+        {
+          "type": "oneWay",
+          "position": {
+            "coin": "xyz:NVDA",
+            "szi": "2.5",
+            "leverage": {
+              "type": "cross",
+              "value": 10
+            },
+            "entryPx": "3200.0",
+            "positionValue": "8305.0",
+            "unrealizedPnl": "305.0",
+            "returnOnEquity": "0.0366",
+            "liquidationPx": "2850.5",
+            "marginUsed": "830.5",
+            "maxLeverage": 50,
+            "cumFunding": {
+              "allTime": "12.35",
+              "sinceOpen": "1.82"
+            }
+          }
+        }
+      ],
+      "marginSummary": {
+        "accountValue": "1000.0",
+        "totalNtlPos": "8305.0",
+        "totalRawUsd": "6925.5",
+        "totalMarginUsed": "100.0"
+      },
+      "crossMarginSummary": {
+        "accountValue": "1000.0",
+        "totalNtlPos": "8305.0",
+        "totalRawUsd": "6925.5",
+        "totalMarginUsed": "100.0"
+      },
+      "crossMaintenanceMarginUsed": "415.25",
+      "withdrawable": "900.0"
+    }
+  }
+}

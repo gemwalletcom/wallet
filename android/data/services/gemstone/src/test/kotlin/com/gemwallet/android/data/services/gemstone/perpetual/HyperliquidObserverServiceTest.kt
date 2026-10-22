@@ -18,12 +18,10 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import uniffi.gemstone.GemPerpetualConnection
 import uniffi.gemstone.GemPerpetualServiceInterface
 import uniffi.gemstone.GemPerpetualStreamServiceInterface
 import uniffi.gemstone.GemPerpetualSubscription
 import uniffi.gemstone.GemServiceException
-import uniffi.gemstone.PerpetualAccountMode
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -39,35 +37,35 @@ class HyperliquidObserverServiceTest {
 
     @Test
     fun opensTheSocketWhileTheAccountModeLoads() = runTest {
-        val account = CompletableDeferred<GemPerpetualConnection>()
-        coEvery { perpetualService.connection(any()) } coAnswers { account.await() }
+        val address = CompletableDeferred<String?>()
+        coEvery { perpetualService.connectionAddress(any()) } coAnswers { address.await() }
         observer().start()
         runCurrent()
 
         assertEquals(1, connection.activeConnections.get())
-        coVerify(exactly = 0) { streamService.connected(any(), any()) }
+        coVerify(exactly = 0) { streamService.connected(any()) }
 
-        account.complete(GemPerpetualConnection(address = "0x1", mode = PerpetualAccountMode.UNIFIED))
+        address.complete("0x1")
         runCurrent()
 
-        coVerify(exactly = 1) { streamService.connected("0x1", PerpetualAccountMode.UNIFIED) }
+        coVerify(exactly = 1) { streamService.connected("0x1") }
     }
 
     @Test
     fun closesTheSocketWhenTheAccountCannotBeLoaded() = runTest {
-        coEvery { perpetualService.connection(any()) } throws GemServiceException.Store("disk")
+        coEvery { perpetualService.connectionAddress(any()) } throws GemServiceException.Store("disk")
         observer().start()
         runCurrent()
 
         assertEquals(1, connection.connectCount.get())
         assertEquals(0, connection.activeConnections.get())
-        coVerify(exactly = 0) { streamService.connected(any(), any()) }
+        coVerify(exactly = 0) { streamService.connected(any()) }
     }
 
     @Test
     fun checksEnablementAgainWhenTheAppReturnsToTheForeground() = runTest {
         every { observePerpetualWallet() } returnsMany listOf(flowOf(null), flowOf(mockWallet()))
-        coEvery { perpetualService.connection(any()) } returns GemPerpetualConnection(address = "0x1", mode = PerpetualAccountMode.STANDARD)
+        coEvery { perpetualService.connectionAddress(any()) } returns "0x1"
         val subject = observer()
         subject.start()
         runCurrent()
@@ -84,11 +82,11 @@ class HyperliquidObserverServiceTest {
 
     @Test
     fun tellsCoreTheConnectionEndedWhenTheAppLeavesTheForeground() = runTest {
-        coEvery { perpetualService.connection(any()) } returns GemPerpetualConnection(address = "0x1", mode = PerpetualAccountMode.STANDARD)
+        coEvery { perpetualService.connectionAddress(any()) } returns "0x1"
         val subject = observer()
         subject.start()
         runCurrent()
-        coVerify(exactly = 1) { streamService.connected("0x1", PerpetualAccountMode.STANDARD) }
+        coVerify(exactly = 1) { streamService.connected("0x1") }
 
         subject.stop()
         runCurrent()

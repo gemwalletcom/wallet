@@ -36,7 +36,6 @@ use std::collections::{HashMap, HashSet};
 
 use crate::models::asset::wallet_default_assets;
 use crate::services::balance::{GemBalanceUpdate, GemBalanceUpdateType};
-use crate::services::collections::stale;
 
 pub use gem_hypercore::provider::perpetual::candle_interval;
 
@@ -366,10 +365,10 @@ fn order_amounts(usd_amount: f64, leverage: u8, price: f64) -> (f64, f64, f64) {
     (size, fiat_value, margin_amount)
 }
 
-pub fn includes_perpetual_collateral(mode: PerpetualAccountMode) -> bool {
+pub fn spot_is_perpetual_collateral(mode: PerpetualAccountMode) -> bool {
     match mode {
-        PerpetualAccountMode::Standard => true,
-        PerpetualAccountMode::Unified => false,
+        PerpetualAccountMode::Standard => false,
+        PerpetualAccountMode::Unified => true,
     }
 }
 
@@ -416,10 +415,6 @@ pub fn display_price(asset: &Asset, price: f64) -> GemFormattedNumber {
         Some(provider) => GemPerpetual::new(provider).display_price(price, asset.decimals),
         None => GemFormattedNumber::usd(price),
     }
-}
-
-pub fn stale_position_ids(existing_ids: Vec<String>, positions: &[PerpetualPosition]) -> Vec<String> {
-    stale(existing_ids, positions.iter().map(|position| position.id.clone()))
 }
 
 pub fn collateral_asset_id(chain: Chain) -> Option<AssetId> {
@@ -718,10 +713,7 @@ pub fn market_row(perpetual: &Perpetual, asset: &Asset) -> PerpetualMarketLine {
     PerpetualMarketLine {
         icon: crate::services::assets::icon::asset_icon(&asset.id),
         asset_id: perpetual.asset_id.clone(),
-        title: match perpetual.name.is_empty() {
-            true => asset.symbol.clone(),
-            false => perpetual.name.clone(),
-        },
+        title: title(perpetual, asset),
         price: GemPriceRow {
             price: row.price.map(|price| display_price(asset, price.value)),
             ..row
@@ -729,6 +721,13 @@ pub fn market_row(perpetual: &Perpetual, asset: &Asset) -> PerpetualMarketLine {
         volume_24h: GemFormattedNumber::usd_abbreviated(perpetual.volume_24h),
         open_interest: GemFormattedNumber::usd_abbreviated(perpetual.open_interest),
         funding_apr: GemFormattedNumber::percentage(funding_apr(perpetual.funding), GemPercentageStyle::Signed),
+    }
+}
+
+fn title(perpetual: &Perpetual, asset: &Asset) -> String {
+    match asset.symbol.is_empty() {
+        true => perpetual.name.clone(),
+        false => asset.symbol.clone(),
     }
 }
 
@@ -750,10 +749,7 @@ fn position_line(perpetual: &Perpetual, asset: &Asset, position: &PerpetualPosit
         icon: crate::services::assets::icon::asset_icon(&asset.id),
         id: position.id.clone(),
         asset_id: perpetual.asset_id.clone(),
-        title: match asset.symbol.is_empty() {
-            true => perpetual.name.clone(),
-            false => asset.symbol.clone(),
-        },
+        title: title(perpetual, asset),
         position: position_text(&position.direction, position.leverage),
         direction_tone: direction_tone(&position.direction),
         margin: GemFormattedNumber::currency(position.margin_amount, Currency::USD, GemCurrencyStyle::Fiat),
@@ -1235,8 +1231,8 @@ mod tests {
 
     #[test]
     fn test_perpetual_collateral_counts_only_in_standard_mode() {
-        assert!(includes_perpetual_collateral(PerpetualAccountMode::Standard));
-        assert!(!includes_perpetual_collateral(PerpetualAccountMode::Unified));
+        assert!(!spot_is_perpetual_collateral(PerpetualAccountMode::Standard));
+        assert!(spot_is_perpetual_collateral(PerpetualAccountMode::Unified));
     }
 
     #[test]
@@ -1399,7 +1395,7 @@ mod tests {
 
         let asset = Asset::mock_perpetual();
 
-        assert_eq!(market_row(&priced, &asset).title, "BTC");
+        assert_eq!(market_row(&priced, &asset).title, asset.symbol);
         assert_eq!(
             market_row(&priced, &asset).price,
             GemPriceRow {
@@ -1452,14 +1448,18 @@ mod tests {
     }
 
     #[test]
-    fn test_a_market_row_titles_an_unnamed_market_with_its_asset_symbol() {
-        let unnamed = Perpetual { name: String::new(), ..Perpetual::mock() };
+    fn test_a_market_row_titles_the_market_with_its_asset_symbol() {
+        let market = Perpetual {
+            name: "xyz:NVDA".to_string(),
+            ..Perpetual::mock()
+        };
         let asset = Asset {
-            symbol: "HYPE".to_string(),
+            symbol: "NVDA".to_string(),
             ..Asset::from_chain(Chain::HyperCore)
         };
 
-        assert_eq!(market_row(&unnamed, &asset).title, "HYPE");
+        assert_eq!(market_row(&market, &asset).title, "NVDA", "a HIP-3 market reads as its ticker, not its dex coin");
+        assert_eq!(market_row(&market, &Asset { symbol: String::new(), ..asset }).title, "xyz:NVDA");
     }
 
     #[test]
@@ -1727,16 +1727,6 @@ mod tests {
                 "the collateral a transfer carries and the one the chain answers for must stay the same asset: the confirm load reads the balance row of the first and the price of the second"
             );
         }
-    }
-
-    #[test]
-    fn test_stale_position_ids_keeps_only_positions_that_disappeared() {
-        let stale = stale_position_ids(
-            vec!["a".into(), "b".into()],
-            &[PerpetualPosition { id: "b".into(), ..PerpetualPosition::mock() }, PerpetualPosition { id: "c".into(), ..PerpetualPosition::mock() }],
-        );
-
-        assert_eq!(stale, vec!["a".to_string()]);
     }
 
     #[test]

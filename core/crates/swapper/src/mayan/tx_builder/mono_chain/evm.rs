@@ -111,12 +111,14 @@ mod tests {
                     w_chain_id: 47,
                     decimals: 6,
                     verified_address: None,
+                    currency_id: None,
                 },
                 to_token: MayanToken {
                     contract: crate::mayan::constants::HYPERCORE_SPOT_USDC_CONTRACT.to_string(),
                     w_chain_id: 65000,
                     decimals: 6,
                     verified_address: Some(HYPERCORE_SPOT_USDC_TOKEN_ID.to_string()),
+                    currency_id: None,
                 },
                 referrer_bps: Some(50),
                 ..Default::default()

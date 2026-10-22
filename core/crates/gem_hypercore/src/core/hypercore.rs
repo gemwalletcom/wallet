@@ -37,6 +37,11 @@ pub fn update_leverage_typed_data(update_leverage: UpdateLeverage, nonce: u64) -
     l1_action_typed_data(action_value, nonce)
 }
 
+pub fn agent_set_abstraction_typed_data(abstraction: AgentSetAbstraction, nonce: u64) -> Result<String, String> {
+    let action_value = serde_json::to_value(&abstraction).map_err(|error| error.to_string())?;
+    l1_action_typed_data(action_value, nonce)
+}
+
 // L1 payload
 pub fn cancel_order_typed_data(cancel: Cancel, nonce: u64) -> Result<String, String> {
     let action_value = serde_json::to_value(&cancel).map_err(|error| error.to_string())?;
@@ -53,6 +58,11 @@ pub fn withdrawal_request_typed_data(request: WithdrawalRequest) -> Result<Strin
 pub fn approve_agent_typed_data(agent: ApproveAgent) -> Result<String, String> {
     let action_value = serde_json::to_value(&agent).map_err(|error| error.to_string())?;
     eip712::create_user_signed_eip712_json(&action_value, "HyperliquidTransaction:ApproveAgent", eip712::approve_agent_types())
+}
+
+pub fn user_set_abstraction_typed_data(abstraction: UserSetAbstraction) -> Result<String, String> {
+    let action_value = serde_json::to_value(&abstraction).map_err(|error| error.to_string())?;
+    eip712::create_user_signed_eip712_json(&action_value, "HyperliquidTransaction:UserSetAbstraction", eip712::user_set_abstraction_types())
 }
 
 // User signed payload

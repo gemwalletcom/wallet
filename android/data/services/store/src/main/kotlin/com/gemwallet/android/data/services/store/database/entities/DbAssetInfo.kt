@@ -130,4 +130,4 @@ fun DbAssetInfo.toDTO(): AssetData? {
     )
 }
 
-data class DbAssetFiatValue(val amount: Double, val price: Double, val priceChangePercentage24h: Double)
+data class DbAssetFiatValue(val assetId: String, val amount: Double, val price: Double, val priceChangePercentage24h: Double)

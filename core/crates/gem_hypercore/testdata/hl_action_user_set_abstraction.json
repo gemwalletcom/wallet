@@ -1,0 +1,17 @@
+{
+  "action": {
+    "abstraction": "unifiedAccount",
+    "hyperliquidChain": "Mainnet",
+    "nonce": 1759100000000,
+    "signatureChainId": "0xa4b1",
+    "type": "userSetAbstraction",
+    "user": "0x1a642f0e3c3af545e7acbd38b07251b3990914f1"
+  },
+  "isFrontend": true,
+  "nonce": 1759100000000,
+  "signature": {
+    "r": "0xa2f2cecc5de6a991af7ff8035abf090e0ccb26e575fd1abed32f66a92c0f97ac",
+    "s": "0x77e6a15fe342c35cb43876bdb508a8fa4a1fb369194e205e7412b0f0fc601b49",
+    "v": 27
+  }
+}

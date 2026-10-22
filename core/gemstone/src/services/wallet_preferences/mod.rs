@@ -43,10 +43,6 @@ impl GemWalletPreferencesService {
 }
 
 impl GemWalletPreferencesService {
-    pub fn includes_perpetual_collateral(&self, wallet_id: WalletId) -> bool {
-        crate::services::perpetual::rules::includes_perpetual_collateral(self.get_perpetual_account_mode(wallet_id))
-    }
-
     pub fn get_perpetual_account_mode(&self, wallet_id: WalletId) -> PerpetualAccountMode {
         match self.store.get(wallet_id, WalletPreferenceKey::PerpetualAccountMode.as_ref().to_string()).as_deref() {
             Some("unified") => PerpetualAccountMode::Unified,

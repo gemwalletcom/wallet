@@ -160,4 +160,25 @@ struct MigrationsTests {
         #expect(!indexes.contains([walletId]))
         #expect(!indexes.contains([date]))
     }
+
+    @Test
+    func perpetualsAreIndexedByName() throws {
+        let table = PerpetualRecord.databaseTableName
+        let name = PerpetualRecord.Columns.name.name
+        let dbQueue = try DatabaseQueue()
+        var migrations = Migrations()
+        try migrations.run(dbQueue: dbQueue)
+        try migrations.runChanges(dbQueue: dbQueue)
+        #expect(try dbQueue.read { try $0.indexes(on: table).map(\.columns) }.contains([name]))
+
+        try dbQueue.write { db in
+            try db.drop(indexOn: table, columns: [name])
+            try db.execute(sql: "DELETE FROM grdb_migrations WHERE identifier = ?", arguments: ["Add isEnabled and the name index to \(table)"])
+        }
+        var upgrade = Migrations()
+        try upgrade.run(dbQueue: dbQueue)
+        try upgrade.runChanges(dbQueue: dbQueue)
+
+        #expect(try dbQueue.read { try $0.indexes(on: table).map(\.columns) }.contains([name]))
+    }
 }

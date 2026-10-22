@@ -6,6 +6,7 @@ pub mod cancel_order;
 pub mod send_asset;
 pub mod token_delegate;
 pub mod usd_class_transfer;
+pub mod user_set_abstraction;
 pub mod withdrawal;
 
 pub use approve_agent::*;
@@ -16,4 +17,5 @@ pub use cancel_order::*;
 pub use send_asset::*;
 pub use token_delegate::*;
 pub use usd_class_transfer::*;
+pub use user_set_abstraction::*;
 pub use withdrawal::*;

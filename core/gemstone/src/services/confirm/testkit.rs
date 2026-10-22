@@ -34,6 +34,7 @@ use crate::services::transaction_state::testkit::{MemoryTransactionStateStore, R
 use crate::services::transfer::{GemRecentActivityService, testkit::MemoryRecentActivityStore};
 use crate::services::transfer::{GemRecipient, GemTransferData};
 use crate::services::wallet::testkit::{MemoryAddressStore, MemoryKeystorePassword, MemoryWalletStore, TEST_PASSWORD};
+use crate::services::wallet_preferences::{GemWalletPreferencesService, testkit::MemoryWalletPreferencesStore};
 use crate::services::wallet_session::{GemWalletSessionService, testkit::MemoryWalletSessionStore};
 use crate::services::{GemScanService, GemSimulationService};
 use crate::testkit::{EmptyPreferences, TestAlienProvider};
@@ -51,6 +52,7 @@ pub struct ConfirmTestkit {
     pub status: Arc<RecordingTransactionStatus>,
     pub keystore: Arc<GemKeystore>,
     pub passwords: Arc<MemoryKeystorePassword>,
+    pub wallet_preferences: Arc<GemWalletPreferencesService>,
     pub _directory: TempDir,
 }
 
@@ -112,6 +114,7 @@ impl ConfirmTestkit {
         let transaction_store = Arc::new(MemoryTransactionStateStore::default());
         let status = Arc::new(RecordingTransactionStatus::default());
         let transactions = Arc::new(GemTransactionStateService::new(gateway.clone(), transaction_store.clone(), balance.clone(), stake, nft, payment.clone()));
+        let wallet_preferences = Arc::new(GemWalletPreferencesService::new(Arc::new(MemoryWalletPreferencesStore::default())));
         let confirm = Arc::new(GemConfirmService::new(
             gateway,
             Arc::new(GemSimulationService::new(provider, Arc::new(GemNodeService::mock()))),
@@ -121,6 +124,7 @@ impl ConfirmTestkit {
             price,
             assets,
             status.clone(),
+            wallet_preferences.clone(),
         ));
         let directory = TempDir::new().unwrap();
         let keystore = GemKeystore::new(directory.path().to_string_lossy().to_string()).unwrap();
@@ -144,6 +148,7 @@ impl ConfirmTestkit {
             status,
             keystore,
             passwords,
+            wallet_preferences,
             _directory: directory,
         }
     }

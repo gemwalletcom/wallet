@@ -3,11 +3,13 @@
 import Foundation
 
 public struct AssetFiatValue: Codable, Equatable, Sendable {
+	public let assetId: AssetId
 	public let amount: Double
 	public let price: Double
 	public let priceChangePercentage24h: Double
 
-	public init(amount: Double, price: Double, priceChangePercentage24h: Double) {
+	public init(assetId: AssetId, amount: Double, price: Double, priceChangePercentage24h: Double) {
+		self.assetId = assetId
 		self.amount = amount
 		self.price = price
 		self.priceChangePercentage24h = priceChangePercentage24h

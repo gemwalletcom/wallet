@@ -148,8 +148,8 @@ impl GemWalletHomeService {
 
 impl GemWalletHomeService {
     fn total_fiat_value(&self, wallet_id: WalletId, balances: Vec<AssetFiatValue>, collateral: Option<GemPerpetualCollateral>) -> TotalFiatValue {
-        let collateral = collateral.filter(|_| self.wallet_preferences.includes_perpetual_collateral(wallet_id));
-        balance_rules::total_fiat_value(&rules::wallet_balances(balances, collateral))
+        let mode = self.wallet_preferences.get_perpetual_account_mode(wallet_id);
+        balance_rules::total_fiat_value(&rules::wallet_balances(balances, collateral, mode))
     }
 }
 
@@ -209,11 +209,7 @@ mod tests {
             asset: None,
             ..Banner::mock(BannerEvent::Onboarding, BannerState::Active)
         };
-        let value = |amount: f64| AssetFiatValue {
-            amount,
-            price: 1.0,
-            price_change_percentage_24h: 0.0,
-        };
+        let value = |amount: f64| AssetFiatValue::mock(amount, 1.0, 0.0);
         let shown = |balances: Vec<AssetFiatValue>| testkit.service.view_state(Wallet::mock(), balances, None, vec![onboarding.clone()], vec![], vec![]).banner.is_some();
 
         assert!(shown(vec![value(0.0)]));

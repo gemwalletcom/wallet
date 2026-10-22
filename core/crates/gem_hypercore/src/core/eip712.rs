@@ -160,6 +160,27 @@ pub fn approve_builder_fee_types() -> Vec<EIP712Type> {
     ]
 }
 
+pub fn user_set_abstraction_types() -> Vec<EIP712Type> {
+    vec![
+        EIP712Type {
+            name: "hyperliquidChain".to_string(),
+            r#type: "string".to_string(),
+        },
+        EIP712Type {
+            name: "user".to_string(),
+            r#type: "address".to_string(),
+        },
+        EIP712Type {
+            name: "abstraction".to_string(),
+            r#type: "string".to_string(),
+        },
+        EIP712Type {
+            name: "nonce".to_string(),
+            r#type: "uint64".to_string(),
+        },
+    ]
+}
+
 pub fn send_asset_types() -> Vec<EIP712Type> {
     vec![
         EIP712Type {

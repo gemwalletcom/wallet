@@ -199,7 +199,7 @@ class PerpetualsViewModel @Inject constructor(
 
     fun onTogglePin(perpetualId: PerpetualId) = viewModelScope.launch(ioDispatcher) {
         val item = (pinnedPerpetuals.value + unpinnedPerpetuals.value).firstOrNull { it.data.perpetual.id == perpetualId.toIdentifier() } ?: return@launch
-        runCatchingCancellable { service.setPinned(perpetualId.toIdentifier(), item.data.perpetual.name, !item.data.metadata.isPinned) }
+        runCatchingCancellable { service.setPinned(perpetualId.toIdentifier(), item.data.asset.symbol, !item.data.metadata.isPinned) }
             .onSuccess { emitToast(it.message(context)) }
             .onFailure { Log.e(TAG, "pinning perpetual ${perpetualId.toIdentifier()} failed", it) }
     }

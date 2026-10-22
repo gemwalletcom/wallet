@@ -194,6 +194,7 @@ pub struct MayanFastMctpQuote {
     pub cheaper_chain: Option<String>,
     pub fast_mctp_mayan_contract: Option<String>,
     pub fast_mctp_input_contract: Option<String>,
+    pub fast_mctp_input_currency_id: Option<String>,
     pub fast_mctp_min_finality: Option<u32>,
     pub circle_max_fee64: Option<String>,
     pub solana_relayer_fee64: Option<String>,
@@ -249,6 +250,7 @@ pub struct MayanToken {
     pub w_chain_id: u16,
     pub decimals: u32,
     pub verified_address: Option<String>,
+    pub currency_id: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -362,6 +364,22 @@ pub struct GetSwapSuiParams {
     pub slippage_bps: u32,
     pub chain_name: String,
     pub sdk_version: &'static str,
+}
+
+impl GetSwapSuiParams {
+    pub fn new(route: &MayanQuoteCommon, user_wallet: String, middle_coin_type: String, with_wh_fee: bool, referrer_address: Option<String>) -> Self {
+        Self {
+            amount_in64: route.effective_amount_in64.clone(),
+            input_coin_type: route.from_token.contract.clone(),
+            middle_coin_type,
+            user_wallet,
+            with_wh_fee,
+            referrer_address,
+            slippage_bps: route.slippage_bps,
+            chain_name: route.from_chain.clone(),
+            sdk_version: SDK_VERSION,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -551,6 +569,10 @@ mod tests {
         assert_eq!(route.fast_mctp_min_finality, Some(1000));
         assert_eq!(route.circle_max_fee64.as_deref(), Some("500"));
         assert_eq!(route.redeem_relayer_fee64.as_deref(), Some("100000"));
+
+        let route = MayanFastMctpQuote::mock_sui();
+        assert_eq!(route.from_token.currency_id.as_deref(), Some("0xf256d3fb6a50eaa748d94335b34f2982fbc3b63ceec78cafaa29ebc9ebaf2bbc"));
+        assert_eq!(route.fast_mctp_input_currency_id.as_deref(), Some("0x75cfbbf8c962d542e99a1d15731e6069f60a00db895407785b15d14f606f2b4a"));
     }
 
     #[test]

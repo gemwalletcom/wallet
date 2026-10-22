@@ -1,6 +1,6 @@
 [
   {
-    "coin": "ETH",
+    "coin": "xyz:NVDA",
     "oid": 2,
     "triggerPx": "90.0",
     "limitPx": null,

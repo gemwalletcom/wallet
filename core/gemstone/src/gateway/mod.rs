@@ -156,8 +156,8 @@ impl GemGateway {
         self.with_provider(chain, |provider| async move { provider.get_perpetual_candlesticks(symbol, chart_period).await }).await
     }
 
-    pub async fn get_perpetual_portfolio(&self, chain: Chain, address: String) -> Result<primitives::portfolio::PerpetualPortfolio, GatewayError> {
-        self.with_provider(chain, |provider| async move { provider.get_perpetual_portfolio(address).await }).await
+    pub async fn get_perpetual_portfolio(&self, chain: Chain, address: String, mode: GemPerpetualAccountMode) -> Result<primitives::portfolio::PerpetualPortfolio, GatewayError> {
+        self.with_provider(chain, |provider| async move { provider.get_perpetual_portfolio(address, mode).await }).await
     }
 }
 

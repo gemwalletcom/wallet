@@ -63,5 +63,6 @@ extension PerpetualRecord: CreateTable {
             $0.column(Columns.isEnabled.name, .boolean).notNull()
             $0.column(Columns.isPinned.name, .boolean).notNull().defaults(to: false)
         }
+        try db.create(indexOn: databaseTableName, columns: [Columns.name.name])
     }
 }

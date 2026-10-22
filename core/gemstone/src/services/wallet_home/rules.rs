@@ -1,6 +1,8 @@
-use primitives::{AssetFiatValue, BannerEvent, Chain, PerpetualBalance, WalletType};
+use primitives::asset_constants::{HYPERCORE_PERPETUAL_USDC_ASSET_ID, HYPERCORE_SPOT_USDC_ASSET_ID};
+use primitives::{AssetFiatValue, BannerEvent, Chain, PerpetualAccountMode, PerpetualBalance, WalletType};
 
 use crate::services::banner::GemBannerRow;
+use crate::services::perpetual::rules::spot_is_perpetual_collateral;
 
 use crate::services::assets::model::{GemHeaderActions, GemHeaderButton, GemHeaderButtonAction};
 
@@ -14,14 +16,20 @@ pub fn shows_initial_loading(initial_load_completed: bool, assets_timestamp: u64
     !initial_load_completed && assets_timestamp == 0
 }
 
-pub fn wallet_balances(balances: Vec<AssetFiatValue>, collateral: Option<GemPerpetualCollateral>) -> Vec<AssetFiatValue> {
+pub fn wallet_balances(balances: Vec<AssetFiatValue>, collateral: Option<GemPerpetualCollateral>, mode: PerpetualAccountMode) -> Vec<AssetFiatValue> {
+    let Some(collateral) = collateral else {
+        return balances;
+    };
+    let spot_is_collateral = spot_is_perpetual_collateral(mode);
     balances
         .into_iter()
-        .chain(collateral.map(|collateral| AssetFiatValue {
+        .filter(|balance| !(spot_is_collateral && balance.asset_id == *HYPERCORE_SPOT_USDC_ASSET_ID))
+        .chain([AssetFiatValue {
+            asset_id: HYPERCORE_PERPETUAL_USDC_ASSET_ID.clone(),
             amount: collateral.balance.available + collateral.balance.reserved,
             price: collateral.price,
             price_change_percentage_24h: 0.0,
-        }))
+        }])
         .collect()
 }
 
@@ -77,38 +85,57 @@ mod tests {
 
     #[test]
     fn test_wallet_balances_count_perpetual_collateral_at_par_without_a_day_change() {
-        let eth = AssetFiatValue {
-            amount: 2.0,
-            price: 10.0,
-            price_change_percentage_24h: 5.0,
+        let eth = AssetFiatValue::mock(2.0, 10.0, 5.0);
+        let collateral = GemPerpetualCollateral {
+            balance: PerpetualBalance {
+                available: 30.0,
+                reserved: 20.0,
+                withdrawable: 25.0,
+            },
+            price: 0.92,
         };
-        let collateral = PerpetualBalance {
-            available: 30.0,
-            reserved: 20.0,
-            withdrawable: 25.0,
-        };
-        assert_eq!(wallet_balances(vec![eth], None), vec![eth]);
+
+        assert_eq!(wallet_balances(vec![eth.clone()], None, PerpetualAccountMode::Standard), vec![eth.clone()]);
         assert_eq!(
-            wallet_balances(vec![eth], Some(GemPerpetualCollateral { balance: collateral.clone(), price: 1.0 })),
+            wallet_balances(vec![eth.clone()], Some(collateral), PerpetualAccountMode::Standard),
             vec![
                 eth,
                 AssetFiatValue {
-                    amount: 50.0,
-                    price: 1.0,
-                    price_change_percentage_24h: 0.0
+                    asset_id: HYPERCORE_PERPETUAL_USDC_ASSET_ID.clone(),
+                    ..AssetFiatValue::mock(50.0, 0.92, 0.0)
                 }
             ],
-            "collateral is what is available plus what positions hold, not what can be withdrawn"
+            "collateral is what is available plus what positions hold, priced like every other entry"
+        );
+    }
+
+    #[test]
+    fn test_wallet_balances_count_a_unified_account_spot_usdc_once() {
+        let spot_usdc = AssetFiatValue {
+            asset_id: HYPERCORE_SPOT_USDC_ASSET_ID.clone(),
+            ..AssetFiatValue::mock(30.0, 1.0, 0.0)
+        };
+        let collateral = || GemPerpetualCollateral {
+            balance: PerpetualBalance {
+                available: 30.0,
+                reserved: 20.0,
+                withdrawable: 30.0,
+            },
+            price: 1.0,
+        };
+        let total = |balances: Vec<AssetFiatValue>| balances.iter().map(|balance| balance.amount * balance.price).sum::<f64>();
+
+        assert_eq!(
+            total(wallet_balances(vec![spot_usdc.clone()], Some(collateral()), PerpetualAccountMode::Standard)),
+            80.0,
+            "a standard account's spot USDC is its own money"
         );
         assert_eq!(
-            wallet_balances(Vec::new(), Some(GemPerpetualCollateral { balance: collateral, price: 0.92 })),
-            vec![AssetFiatValue {
-                amount: 50.0,
-                price: 0.92,
-                price_change_percentage_24h: 0.0
-            }],
-            "collateral is priced like every other entry"
+            total(wallet_balances(vec![spot_usdc.clone()], Some(collateral()), PerpetualAccountMode::Unified)),
+            50.0,
+            "a unified account's spot USDC is the perpetual balance, margin included"
         );
+        assert_eq!(total(wallet_balances(vec![spot_usdc], None, PerpetualAccountMode::Unified)), 30.0, "without a perpetual balance the spot USDC still counts");
     }
 
     #[test]

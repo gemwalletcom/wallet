@@ -1,6 +1,6 @@
 use super::{
     add_publish_wormhole_message, deposit_for_burn_with_auth,
-    fees::{bridge_amount, bridge_fee, redeem_fee},
+    fees::{bridge_fee, redeem_fee},
     sui_error,
 };
 use crate::{
@@ -12,6 +12,7 @@ use crate::{
         tx_builder::{
             address::native_address_to_bytes32,
             amount::{gas_drop_amount, min_amount_out, optional_bps_u8},
+            sui::{bridge_amount, sui_package_address},
             swift::{referrer_bytes, swift_to_token},
         },
         wormhole_chain::id_for_name as wormhole_chain_id,
@@ -41,8 +42,8 @@ pub(super) fn add_init_order_move_calls(
     let amount_out_min = min_amount_out(&route.min_amount_out, route.to_token.decimals, &route.to_chain, &QuoteType::Mctp)?;
     let gas_drop = gas_drop_amount(&route.gas_drop, &route.to_chain, &QuoteType::Mctp, false)?;
     let cctp_domain = domain_for_wormhole_chain(&route.to_chain)?.id();
-    let fee_manager_package = Address::from(SuiAddress::parse(fee_manager_package_id).map_err(sui_error)?);
-    let mctp_package = Address::from(SuiAddress::parse(&prefetched.mctp_package_id).map_err(sui_error)?);
+    let fee_manager_package = sui_package_address(fee_manager_package_id)?;
+    let mctp_package = sui_package_address(&prefetched.mctp_package_id)?;
 
     let common_arguments = vec![
         txb.object(prefetched.objects[&prefetched.mctp_verified_input_address].input(false)),
@@ -65,7 +66,7 @@ pub(super) fn add_init_order_move_calls(
 
     let mut init_arguments = common_arguments[1..].to_vec();
     init_arguments.push(txb.pure(&cctp_domain));
-    init_arguments.push(txb.pure(&bridge_amount(route, mctp_input_contract)?));
+    init_arguments.push(txb.pure(&bridge_amount(route, route.min_middle_amount.as_ref(), mctp_input_contract)?));
     let init_ticket = move_call(txb, mctp_package, "init_order", "prepare_initialize_order", &[mctp_input_contract], init_arguments).map_err(sui_error)?;
     let mctp_state = txb.object(prefetched.objects[SUI_MCTP_STATE].input(true));
     let cctp_core_state = txb.object(prefetched.objects[SUI_CCTP_CORE_STATE].input(true));

@@ -8,7 +8,6 @@ import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.wallet.core.primitives.ChartCandleUpdate
-import com.wallet.core.primitives.PerpetualAccountMode
 import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.CoroutineScope
@@ -63,14 +62,14 @@ class HyperliquidObserverService(
                     wallet ?: return@collectLatest
                     coroutineScope {
                         val events = connection.connect().produceIn(this)
-                        val account = runCatchingCancellable { perpetualService.connection(wallet.toGem()) }
+                        val address = runCatchingCancellable { perpetualService.connectionAddress(wallet.toGem()) }
                             .onFailure { Log.e(TAG, "Perpetual connection failed", it) }
                             .getOrNull()
-                        if (account == null) {
+                        if (address == null) {
                             events.cancel()
                             return@coroutineScope
                         }
-                        observeConnection(events, wallet.id, account.address, account.mode.toPrimitives())
+                        observeConnection(events, wallet.id, address)
                     }
                 }
         }
@@ -92,12 +91,12 @@ class HyperliquidObserverService(
         send { streamService.unsubscribe(subscription) }
     }
 
-    private suspend fun observeConnection(events: ReceiveChannel<WebSocketEvent>, walletId: WalletId, address: String, mode: PerpetualAccountMode) {
+    private suspend fun observeConnection(events: ReceiveChannel<WebSocketEvent>, walletId: WalletId, address: String) {
         try {
             for (event in events) {
                 when (event) {
-                    WebSocketEvent.Connected -> send { streamService.connected(address, mode.toGem()) }
-                    is WebSocketEvent.Message -> onMessage(walletId, mode, event.text)
+                    WebSocketEvent.Connected -> send { streamService.connected(address) }
+                    is WebSocketEvent.Message -> onMessage(walletId, event.text)
                     WebSocketEvent.Disconnected -> streamService.disconnected()
                 }
             }
@@ -106,8 +105,8 @@ class HyperliquidObserverService(
         }
     }
 
-    private suspend fun onMessage(walletId: WalletId, mode: PerpetualAccountMode, text: String) {
-        runCatchingCancellable { streamService.candleUpdate(walletId.id, mode.toGem(), text.encodeToByteArray()) }
+    private suspend fun onMessage(walletId: WalletId, text: String) {
+        runCatchingCancellable { streamService.candleUpdate(walletId.id, text.encodeToByteArray()) }
             .onSuccess { candle -> candle?.toPrimitives()?.let { chartFlow.emit(it) } }
             .onFailure { Log.e(TAG, "Socket message error: ${text.take(MESSAGE_LOG_LIMIT)}", it) }
     }

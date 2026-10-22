@@ -1,9 +1,9 @@
 use crate::config::HypercoreConfig;
 use crate::models::referral::Referral;
-use crate::models::user::{AgentApproval, AgentSession, UserFee};
+use crate::models::user::{AgentApproval, AgentSession, UserAbstractionMode, UserFee};
 use crate::rpc::client::agent_owner_cache_key;
 use primitives::unix_seconds;
-use primitives::{Preferences, PreferencesExt};
+use primitives::{Preferences, PreferencesExt, UnifiedAccountSwitch};
 use std::error::Error;
 use std::future::Future;
 use std::sync::Arc;
@@ -45,6 +45,7 @@ impl HyperCoreCache {
     const MAX_NAMED_AGENT_SESSIONS: usize = 3;
     const REFERRAL_APPROVED_KEY: &'static str = "referral_approved";
     const BUILDER_FEE_APPROVED_KEY: &'static str = "builder_fee_approved";
+    const UNIFIED_ACCOUNT_KEY: &'static str = "unified_account";
     const AGENT_VALID_UNTIL_KEY: &'static str = "agent_valid_until";
     const USER_PERPETUAL_FEE_RATE_KEY: &'static str = "user_perpetual_fee_rate";
     const USER_SPOT_FEE_RATE_KEY: &'static str = "user_spot_fee_rate";
@@ -120,6 +121,25 @@ impl HyperCoreCache {
         }
 
         Ok(needs_approval)
+    }
+
+    pub(crate) async fn needs_unified_account_switch<F>(&self, address: &str, checker: F) -> Result<Option<UnifiedAccountSwitch>, Box<dyn Error + Send + Sync>>
+    where
+        F: Future<Output = Result<UserAbstractionMode, Box<dyn Error + Send + Sync>>>,
+    {
+        let cache_key = self.cache_key(address, Self::UNIFIED_ACCOUNT_KEY);
+
+        if let Some(true) = self.preferences.get_bool(&cache_key)? {
+            return Ok(None);
+        }
+
+        let switch = checker.await?.unified_account_switch();
+
+        if switch.is_none() {
+            self.preferences.set_bool(&cache_key, true)?;
+        }
+
+        Ok(switch)
     }
 
     fn get_cached_fee_rates(&self, address: &str, perpetual_key: &str, spot_key: &str) -> Result<Option<UserFeeRates>, Box<dyn Error + Send + Sync>> {
@@ -251,6 +271,22 @@ mod tests {
         let cached_fee_rates = cache.get_user_fee_rates("0xsender", async { Err::<UserFee, Box<dyn Error + Send + Sync>>("must use cached fee rates".into()) }).await.unwrap();
         assert_eq!(cached_fee_rates.current().perpetual_cross, 0.000432);
         assert_eq!(cached_fee_rates.current().spot_cross, 0.000672);
+    }
+
+    #[tokio::test]
+    async fn test_needs_unified_account_switch_until_the_account_is_unified() {
+        let cache = HyperCoreCache::mock();
+        let mode = |mode: UserAbstractionMode| async move { Ok::<_, Box<dyn Error + Send + Sync>>(mode) };
+
+        assert_eq!(cache.needs_unified_account_switch("0xsender", mode(UserAbstractionMode::Default)).await.unwrap(), Some(UnifiedAccountSwitch::Agent));
+        assert_eq!(cache.needs_unified_account_switch("0xsender", mode(UserAbstractionMode::Disabled)).await.unwrap(), Some(UnifiedAccountSwitch::Agent));
+        assert_eq!(cache.needs_unified_account_switch("0xsender", mode(UserAbstractionMode::DexAbstraction)).await.unwrap(), Some(UnifiedAccountSwitch::User));
+        assert_eq!(cache.needs_unified_account_switch("0xsender", mode(UserAbstractionMode::PortfolioMargin)).await.unwrap(), None);
+
+        let cached = cache
+            .needs_unified_account_switch("0xsender", async { Err::<UserAbstractionMode, Box<dyn Error + Send + Sync>>("must use the cached mode".into()) })
+            .await;
+        assert_eq!(cached.unwrap(), None, "a unified account is never asked again, even if it later switches back");
     }
 
     #[tokio::test]

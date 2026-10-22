@@ -9,6 +9,7 @@ import com.gemwallet.android.data.services.store.database.entities.DbWallet
 import com.gemwallet.android.data.services.store.database.mockGemDatabase
 import com.gemwallet.android.data.services.store.queries.AssetFiatValuesQuery
 import com.wallet.core.primitives.AssetFiatValue
+import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
@@ -71,9 +72,9 @@ class AssetFiatValuesQueryTest {
     fun theWalletsVisibleRankedAssetsGiveTheirAmountPriceAndChange() = runBlocking(Dispatchers.IO) {
         assertEquals(
             setOf(
-                AssetFiatValue(amount = 2.0, price = 2000.0, priceChangePercentage24h = 1.5),
-                AssetFiatValue(amount = 0.1, price = 60000.0, priceChangePercentage24h = -2.0),
-                AssetFiatValue(amount = 30.0, price = 0.0, priceChangePercentage24h = 0.0),
+                AssetFiatValue(assetId = AssetId(Chain.Ethereum), amount = 2.0, price = 2000.0, priceChangePercentage24h = 1.5),
+                AssetFiatValue(assetId = AssetId(Chain.Bitcoin), amount = 0.1, price = 60000.0, priceChangePercentage24h = -2.0),
+                AssetFiatValue(assetId = AssetId(Chain.Tron), amount = 30.0, price = 0.0, priceChangePercentage24h = 0.0),
             ),
             query(WalletId("wallet-1")).first().toSet(),
         )
@@ -81,6 +82,6 @@ class AssetFiatValuesQueryTest {
 
     @Test
     fun anotherWalletGivesOnlyItsOwnBalances() = runBlocking(Dispatchers.IO) {
-        assertEquals(listOf(AssetFiatValue(amount = 7.0, price = 2000.0, priceChangePercentage24h = 1.5)), query(WalletId("wallet-2")).first())
+        assertEquals(listOf(AssetFiatValue(assetId = AssetId(Chain.Ethereum), amount = 7.0, price = 2000.0, priceChangePercentage24h = 1.5)), query(WalletId("wallet-2")).first())
     }
 }

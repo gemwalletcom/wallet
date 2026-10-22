@@ -27,7 +27,6 @@ pub enum InfoRequest {
         #[serde(skip_serializing_if = "Option::is_none")]
         dex: Option<String>,
     },
-    PerpDexs,
     SpotMeta,
     L2Book {
         coin: String,
@@ -68,8 +67,6 @@ pub enum InfoRequest {
     },
     Portfolio {
         user: String,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        dex: Option<String>,
     },
 }
 

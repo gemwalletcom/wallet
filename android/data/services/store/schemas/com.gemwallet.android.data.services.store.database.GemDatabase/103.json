@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 103,
-    "identityHash": "d961183b707bf1af96094c81a7a6ec86",
+    "identityHash": "8a2c1f3158f1433ec77832269fd279d5",
     "entities": [
       {
         "tableName": "wallets",
@@ -2329,6 +2329,15 @@
             ],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `perpetuals_asset_id_idx` ON `${TABLE_NAME}` (`assetId`)"
+          },
+          {
+            "name": "index_perpetuals_name",
+            "unique": false,
+            "columnNames": [
+              "name"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_perpetuals_name` ON `${TABLE_NAME}` (`name`)"
           }
         ],
         "foreignKeys": [
@@ -2675,7 +2684,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'd961183b707bf1af96094c81a7a6ec86')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '8a2c1f3158f1433ec77832269fd279d5')"
     ]
   }
 }

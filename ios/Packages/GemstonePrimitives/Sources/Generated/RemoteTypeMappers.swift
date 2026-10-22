@@ -1553,6 +1553,7 @@ public extension Primitives.AssetData {
 public extension Gemstone.AssetFiatValue {
     func toPrimitives() -> Primitives.AssetFiatValue {
         Primitives.AssetFiatValue(
+            assetId: assetId,
             amount: amount,
             price: price,
             priceChangePercentage24h: priceChangePercentage24h,
@@ -1563,6 +1564,7 @@ public extension Gemstone.AssetFiatValue {
 public extension Primitives.AssetFiatValue {
     func toGem() -> Gemstone.AssetFiatValue {
         Gemstone.AssetFiatValue(
+            assetId: assetId,
             amount: amount,
             price: price,
             priceChangePercentage24h: priceChangePercentage24h,

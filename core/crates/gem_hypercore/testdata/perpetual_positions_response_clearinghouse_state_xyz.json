@@ -3,7 +3,7 @@
     {
       "type": "oneWay",
       "position": {
-        "coin": "ETH",
+        "coin": "xyz:NVDA",
         "szi": "1.0",
         "leverage": {
           "type": "cross",

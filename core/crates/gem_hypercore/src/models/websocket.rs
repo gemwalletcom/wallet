@@ -9,6 +9,7 @@ use serde_serializers::{deserialize_f64_from_str, deserialize_option_f64_from_st
 use super::balance::Balances;
 use super::candlestick::Candlestick;
 use super::order::OpenOrder;
+use super::perp_dex::PerpDex;
 use super::position::AssetPositions;
 
 #[derive(Debug, Clone, Deserialize)]
@@ -56,6 +57,8 @@ pub enum HyperliquidSubscription {
     AccountState {
         #[serde(rename = "user")]
         address: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        dex: Option<String>,
     },
 
     #[serde(rename = "spotState")]
@@ -68,6 +71,8 @@ pub enum HyperliquidSubscription {
     OpenOrders {
         #[serde(rename = "user")]
         address: String,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        dex: Option<String>,
     },
 
     #[serde(rename = "candle")]
@@ -84,7 +89,10 @@ pub enum HyperliquidSubscription {
     },
 
     #[serde(rename = "allMids")]
-    MarketPrices,
+    MarketPrices {
+        #[serde(skip_serializing_if = "Option::is_none")]
+        dex: Option<String>,
+    },
 }
 
 #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
@@ -125,6 +133,7 @@ pub struct ActiveAssetCtx {
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AccountStateData {
+    pub dex: PerpDex,
     pub clearinghouse_state: AssetPositions,
     #[serde(rename = "user")]
     pub address: String,
@@ -138,6 +147,7 @@ pub struct SpotStateData {
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct OpenOrdersData {
+    pub dex: PerpDex,
     #[serde(rename = "user")]
     pub address: String,
     pub orders: Vec<OpenOrder>,
@@ -162,9 +172,9 @@ pub struct PositionsDiff {
 
 #[derive(Debug)]
 pub enum HyperliquidSocketMessage {
-    AccountState { balance: Option<PerpetualBalance>, positions: Vec<PerpetualPosition> },
+    AccountState { dex: PerpDex, balance: PerpetualBalance, positions: Vec<PerpetualPosition> },
     SpotState { balance: PerpetualBalance },
-    OpenOrders { orders: Vec<OpenOrder> },
+    OpenOrders { dex: PerpDex, orders: Vec<OpenOrder> },
     Candle { candle: ChartCandleUpdate },
     MarketData { market: PerpetualMarketData },
     MarketPrices { prices: HashMap<String, f64> },

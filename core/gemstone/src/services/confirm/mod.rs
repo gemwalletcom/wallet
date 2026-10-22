@@ -36,11 +36,12 @@ use crate::services::simulation::payload_rows;
 use crate::services::simulation::{GemSimulationFormatter, GemSimulationService};
 use crate::services::transaction_state::{GemTransactionStateService, GemTransactionStatusService};
 use crate::services::transfer::rules::TransferInput;
+use crate::services::wallet_preferences::GemWalletPreferencesService;
 use crate::signer::GemSignerError;
 use num_bigint::BigInt;
 use primitives::TransactionInputType;
 use primitives::currency::Currency;
-use primitives::{Asset, AssetId, BlockExplorerLink, Chain, SimulationPayloadFieldDisplay, SimulationResult, Transaction, TransactionFee, WalletId};
+use primitives::{Asset, AssetId, BlockExplorerLink, Chain, PerpetualAccountMode, SimulationPayloadFieldDisplay, SimulationResult, Transaction, TransactionFee, WalletId};
 
 #[derive(uniffi::Object)]
 pub struct GemConfirmService {
@@ -52,6 +53,7 @@ pub struct GemConfirmService {
     price: Arc<GemPriceService>,
     assets: Arc<GemAssetsService>,
     transaction_status: Arc<dyn GemTransactionStatusService>,
+    wallet_preferences: Arc<GemWalletPreferencesService>,
     simulation_formatter: GemSimulationFormatter,
 }
 
@@ -67,6 +69,7 @@ impl GemConfirmService {
         price: Arc<GemPriceService>,
         assets: Arc<GemAssetsService>,
         transaction_status: Arc<dyn GemTransactionStatusService>,
+        wallet_preferences: Arc<GemWalletPreferencesService>,
     ) -> Self {
         Self {
             gateway,
@@ -77,6 +80,7 @@ impl GemConfirmService {
             price,
             assets,
             transaction_status,
+            wallet_preferences,
             simulation_formatter: GemSimulationFormatter::new(),
         }
     }
@@ -235,7 +239,18 @@ impl GemConfirmService {
 
 impl GemConfirmService {
     async fn send(&self, input: &SendInput, signed: Vec<GemSignedTransaction>) -> Result<Vec<String>, GemConfirmError> {
-        match self.broadcast(&input.confirm.input.transfer.input_type, &signed).await {
+        let switches_account = input.confirm.metadata.get_hyperliquid_order().is_ok_and(|order| order.unified_account_switch.is_some());
+        if switches_account {
+            self.store_account_mode(input, PerpetualAccountMode::Unified);
+        }
+        let result = self.broadcast(&input.confirm.input.transfer.input_type, &signed).await;
+        if switches_account
+            && result.is_err()
+            && let Ok(mode) = self.gateway.get_perpetual_account_mode(Chain::HyperCore, input.confirm.input.from.address.clone()).await
+        {
+            self.store_account_mode(input, mode);
+        }
+        match result {
             Ok(hashes) => {
                 self.store_pending(input, &hashes, &signed).await;
                 Ok(hashes)
@@ -246,6 +261,10 @@ impl GemConfirmService {
             }
             Err(error) => Err(error),
         }
+    }
+
+    fn store_account_mode(&self, input: &SendInput, mode: PerpetualAccountMode) {
+        let _ = self.wallet_preferences.set_perpetual_account_mode(input.wallet.id.clone(), mode);
     }
 
     async fn store_pending(&self, input: &SendInput, hashes: &[String], signed: &[GemSignedTransaction]) {
@@ -315,8 +334,8 @@ mod tests {
 
     use futures::executor::block_on;
     use primitives::{
-        Account, Asset, AssetId, Chain, FeePriority, PerpetualConfirmData, PerpetualDirection, PerpetualType, TransactionInputType, TransactionType, Wallet, asset_constants::HYPERCORE_SPOT_USDC_ASSET_ID,
-        known_assets::HYPERCORE_PERPETUAL_USDC, swap::SwapData,
+        Account, Asset, AssetId, Chain, FeePriority, PerpetualAccountMode, PerpetualConfirmData, PerpetualDirection, PerpetualType, TransactionInputType, TransactionLoadMetadata, TransactionType, UnifiedAccountSwitch, Wallet,
+        asset_constants::HYPERCORE_SPOT_USDC_ASSET_ID, known_assets::HYPERCORE_PERPETUAL_USDC, swap::SwapData,
     };
 
     use num_bigint::BigInt;
@@ -407,6 +426,45 @@ mod tests {
 
         assert!(testkit.transaction_store.added.lock().unwrap().is_empty());
         assert!(testkit.status.tracked.lock().unwrap().concat().is_empty(), "nothing unstored is tracked");
+    }
+
+    fn send_unified_account_switch(exchange: &str, user_abstraction: &str, transactions: &[&str]) -> (Result<Vec<String>, GemConfirmError>, PerpetualAccountMode, Vec<String>) {
+        let provider = Arc::new(TestAlienProvider::with_json_by_path(200, &[("exchange", exchange), ("info", user_abstraction)]));
+        block_on(async {
+            let mut input = SendInput::mock(Chain::HyperCore, TransactionInputType::Transfer { asset: Asset::from_chain(Chain::HyperCore) });
+            input.confirm.metadata = TransactionLoadMetadata::mock_hyperliquid(Some(UnifiedAccountSwitch::Agent));
+            let testkit = ConfirmTestkit::with_provider(input.wallet.clone(), input.wallet.clone(), provider.clone());
+            let signed = transactions
+                .iter()
+                .map(|data| GemSignedTransaction {
+                    data: data.to_string(),
+                    ..GemSignedTransaction::mock(TransactionType::PerpetualOpenPosition)
+                })
+                .collect();
+
+            let result = testkit.confirm.send(&input, signed).await;
+            (result, testkit.wallet_preferences.get_perpetual_account_mode(input.wallet.id.clone()), provider.requested_paths())
+        })
+    }
+
+    #[test]
+    fn test_a_sent_unified_account_switch_is_stored_as_the_account_mode() {
+        let accepted = r#"{"status":"ok","response":{"type":"default"}}"#;
+        let switch = r#"{"action":{"type":"agentSetAbstraction","abstraction":"u"},"nonce":1}"#;
+        let info = "https://gemnodes.com/hypercore/info".to_string();
+
+        let (sent, mode, paths) = send_unified_account_switch(accepted, r#""default""#, &[switch]);
+        assert!(sent.is_ok());
+        assert_eq!(mode, PerpetualAccountMode::Unified, "the socket reads the balance from spot from the next message on");
+        assert!(!paths.contains(&info), "a sent switch is stored without asking");
+
+        let (failed, mode, _) = send_unified_account_switch(accepted, r#""unifiedAccount""#, &[switch, "unsigned order"]);
+        assert!(matches!(failed, Err(GemConfirmError::Broadcast { ref hashes, .. }) if hashes.len() == 1));
+        assert_eq!(mode, PerpetualAccountMode::Unified, "a switch that landed before its order failed is still stored");
+
+        let (failed, mode, _) = send_unified_account_switch(r#"{"status":"err","response":"User or API Wallet does not exist."}"#, r#""default""#, &[switch]);
+        assert!(failed.is_err());
+        assert_eq!(mode, PerpetualAccountMode::Standard, "a switch Hyperliquid rejected leaves the account standard");
     }
 
     #[test]

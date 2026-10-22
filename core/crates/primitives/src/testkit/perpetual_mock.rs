@@ -49,6 +49,15 @@ impl PerpetualPosition {
             funding: None,
         }
     }
+
+    pub fn mock_with_coin(coin: &str) -> Self {
+        Self {
+            id: coin.to_string(),
+            perpetual_id: PerpetualId::new(PerpetualProvider::Hypercore, coin),
+            asset_id: AssetId::from_token(Chain::HyperCore, &format!("perpetual::{coin}")),
+            ..Self::mock()
+        }
+    }
 }
 
 impl Perpetual {

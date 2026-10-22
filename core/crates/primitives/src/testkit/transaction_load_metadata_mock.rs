@@ -1,6 +1,33 @@
-use crate::{SolanaNftStandard, SolanaTokenProgramId, TransactionLoadMetadata, stake_type::TronStakeData};
+use std::sync::Arc;
+
+use crate::transaction_load_metadata::AgentPrivateKey;
+use crate::{HyperliquidOrder, SolanaNftStandard, SolanaTokenProgramId, TransactionLoadMetadata, UnifiedAccountSwitch, stake_type::TronStakeData};
+
+impl HyperliquidOrder {
+    pub fn mock() -> Self {
+        HyperliquidOrder {
+            approve_agent_required: false,
+            approve_referral_required: false,
+            approve_builder_required: false,
+            unified_account_switch: None,
+            builder_fee_bps: 45,
+            agent_name: "gemwallet_agent".to_string(),
+            agent_address: "0xbec81216a5edeaed508709d8526078c750e307ad".to_string(),
+            agent_private_key: Arc::new(AgentPrivateKey::new(String::new())),
+        }
+    }
+}
 
 impl TransactionLoadMetadata {
+    pub fn mock_hyperliquid(unified_account_switch: Option<UnifiedAccountSwitch>) -> Self {
+        TransactionLoadMetadata::Hyperliquid {
+            order: Some(HyperliquidOrder {
+                unified_account_switch,
+                ..HyperliquidOrder::mock()
+            }),
+        }
+    }
+
     pub fn mock_osmosis() -> Self {
         TransactionLoadMetadata::Cosmos {
             account_number: 2_913_388,

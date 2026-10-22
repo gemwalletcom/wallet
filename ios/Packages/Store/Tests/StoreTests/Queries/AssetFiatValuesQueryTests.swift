@@ -40,7 +40,7 @@ struct AssetFiatValuesQueryTests {
         try db.dbQueue.read { db in
             let result = try AssetFiatValuesQuery(walletId: .mock()).fetch(db)
 
-            #expect(result.contains(AssetFiatValue(amount: 3, price: 1100, priceChangePercentage24h: 10)))
+            #expect(result.contains(AssetFiatValue(assetId: AssetId(chain: .ethereum), amount: 3, price: 1100, priceChangePercentage24h: 10)))
             #expect(result.filter { $0.price == 0 }.map(\.amount).sorted() == [0, 1, 2, 4])
         }
     }
@@ -70,7 +70,7 @@ struct AssetFiatValuesQueryTests {
         try db.dbQueue.read { db in
             let result = try AssetFiatValuesQuery(walletId: .mock()).fetch(db)
 
-            #expect(result == [AssetFiatValue(amount: 3, price: 100, priceChangePercentage24h: 0)])
+            #expect(result == [AssetFiatValue(assetId: ethereum.id, amount: 3, price: 100, priceChangePercentage24h: 0)])
         }
     }
 

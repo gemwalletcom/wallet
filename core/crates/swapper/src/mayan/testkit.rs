@@ -15,6 +15,7 @@ impl MayanMctpQuote {
                     w_chain_id: 21,
                     decimals: 6,
                     verified_address: Some("0x0000000000000000000000000000000000000000000000000000000000000001".to_string()),
+                    currency_id: None,
                 },
                 from_chain: "sui".to_string(),
                 ..Default::default()
@@ -38,12 +39,14 @@ impl MayanMctpQuote {
                     w_chain_id: 1,
                     decimals: 6,
                     verified_address: None,
+                    currency_id: None,
                 },
                 to_token: MayanToken {
                     contract: SUI_USDC_TOKEN_ID.to_string(),
                     w_chain_id: 21,
                     decimals: 6,
                     verified_address: Some("0x69b7a7c3c200439c1b5f3b19d7d495d5966d5f08de66c69276152f8db3992ec6".to_string()),
+                    currency_id: None,
                 },
                 from_chain: WormholeChain::Solana.name().to_string(),
                 to_chain: WormholeChain::Sui.name().to_string(),
@@ -82,12 +85,14 @@ impl MayanFastMctpQuote {
                     w_chain_id: 1,
                     decimals: 6,
                     verified_address: None,
+                    currency_id: None,
                 },
                 to_token: MayanToken {
                     contract: BASE_USDC_TOKEN_ID.to_string(),
                     w_chain_id: 30,
                     decimals: 6,
                     verified_address: None,
+                    currency_id: None,
                 },
                 from_chain: "solana".to_string(),
                 to_chain: "base".to_string(),
@@ -118,10 +123,29 @@ impl MayanFastMctpQuote {
             w_chain_id: 2,
             decimals: 6,
             verified_address: None,
+            currency_id: None,
         };
         route.common.from_chain = "ethereum".to_string();
         route.fast_mctp_input_contract = Some(ETHEREUM_USDC_TOKEN_ID.to_string());
         route
+    }
+
+    pub fn mock_evm_to_sui() -> Self {
+        let mut route = Self::mock_evm();
+        route.common.to_token = MayanToken {
+            contract: SUI_USDC_TOKEN_ID.to_string(),
+            w_chain_id: 21,
+            decimals: 6,
+            verified_address: Some("0x69b7a7c3c200439c1b5f3b19d7d495d5966d5f08de66c69276152f8db3992ec6".to_string()),
+            currency_id: Some("0x75cfbbf8c962d542e99a1d15731e6069f60a00db895407785b15d14f606f2b4a".to_string()),
+        };
+        route.common.to_chain = WormholeChain::Sui.name().to_string();
+        route
+    }
+
+    pub fn mock_sui() -> Self {
+        let route: MayanQuote = serde_json::from_str(include_str!("test/sui_to_base_fast_mctp.json")).unwrap();
+        route.as_fast_mctp().unwrap().clone()
     }
 }
 

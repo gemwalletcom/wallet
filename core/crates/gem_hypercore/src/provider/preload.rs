@@ -8,7 +8,7 @@ use std::sync::Arc;
 use gem_client::Client;
 use primitives::transaction_load_metadata::AgentPrivateKey;
 use primitives::{
-    FeeOption, FeePriority, FeeRate, GasPriceType, HyperliquidOrder, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput,
+    FeeOption, FeePriority, FeeRate, GasPriceType, HyperliquidOrder, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput, UnifiedAccountSwitch,
     asset_constants::HYPERCORE_SPOT_USDC_ASSET_ID, perpetual::PerpetualType,
 };
 
@@ -35,6 +35,7 @@ impl<C: Client> HyperCoreClient<C> {
                 approve_agent_required: agent.approval_required,
                 approve_referral_required: referral_required,
                 approve_builder_required: builder_required,
+                unified_account_switch: None,
                 builder_fee_bps: self.config.max_builder_fee_bps,
                 agent_name: agent.name,
                 agent_address: agent.address,
@@ -42,6 +43,14 @@ impl<C: Client> HyperCoreClient<C> {
             },
             fee_rates,
         ))
+    }
+
+    async fn get_unified_account_switch(&self, sender_address: &str, perpetual_type: &PerpetualType) -> Result<Option<UnifiedAccountSwitch>, Box<dyn Error + Sync + Send>> {
+        if !perpetual_type.adds_exposure() {
+            return Ok(None);
+        }
+        let cache = HyperCoreCache::new(self.preferences.clone(), self.config.clone());
+        cache.needs_unified_account_switch(sender_address, self.get_user_abstraction(sender_address)).await
     }
 }
 
@@ -105,12 +114,14 @@ impl<C: Client> ChainTransactionLoad for HyperCoreClient<C> {
             TransactionInputType::Perpetual { perpetual_type, .. } => {
                 let fiat_value = perpetual_fee_fiat_value(perpetual_type)?;
                 let fee_asset = perpetual_type.base_asset().id.clone();
-                let (order, fee_rates) = self.get_order(&input.sender_address).await?;
+                let ((order, fee_rates), unified_account_switch) = try_join!(self.get_order(&input.sender_address), self.get_unified_account_switch(&input.sender_address, perpetual_type))?;
                 let fee_amount = calculate_perpetual_fee_amount(fiat_value, fee_rates.perpetual_cross, order.builder_fee_bps);
 
                 Ok(TransactionLoadData {
                     fee: TransactionFee::new_from_fee(fee_amount, fee_asset),
-                    metadata: TransactionLoadMetadata::Hyperliquid { order: Some(order) },
+                    metadata: TransactionLoadMetadata::Hyperliquid {
+                        order: Some(HyperliquidOrder { unified_account_switch, ..order }),
+                    },
                 })
             }
             _ => Err("Unsupported input type".to_string().into()),
@@ -152,6 +163,21 @@ mod tests {
         let existing = transfer_fee(&UserRole::Other);
         assert_eq!(existing.fee, BigInt::from(0));
         assert!(existing.options.is_empty());
+    }
+
+    #[tokio::test]
+    async fn test_only_an_order_that_adds_exposure_switches_to_unified() {
+        let client = HyperCoreClient::mock_with_responses_by_request_type(vec![("userAbstraction", br#""default""#.to_vec())]);
+        let data = PerpetualConfirmData::mock(PerpetualDirection::Long, 0, None, None);
+
+        assert_eq!(client.get_unified_account_switch("0x123", &PerpetualType::Open { data: data.clone() }).await.unwrap(), Some(UnifiedAccountSwitch::Agent));
+
+        let offline = HyperCoreClient::mock_with_responses_by_request_type(vec![]);
+        assert_eq!(
+            offline.get_unified_account_switch("0x123", &PerpetualType::Close { data }).await.unwrap(),
+            None,
+            "closing never waits on the account mode, so a switch can never block it"
+        );
     }
 
     #[tokio::test]

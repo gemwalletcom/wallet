@@ -4,7 +4,7 @@ use gem_evm::eip712::hash_typed_data;
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
 use primitives::{
-    ChainSigner, HyperliquidOrder, NumberIncrementer, PerpetualConfirmData, PerpetualDirection, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualType, SignerError, SignerInput, TransactionInputType,
+    ChainSigner, HyperliquidOrder, NumberIncrementer, PerpetualConfirmData, PerpetualDirection, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualType, SignerError, SignerInput, TransactionInputType, UnifiedAccountSwitch,
     asset_constants::HYPERCORE_CORE_HYPE_TOKEN_ID,
     decode_hex,
     known_assets::{HYPERCORE_PERPETUAL_USDC, HYPERCORE_SPOT_USDC},
@@ -19,11 +19,12 @@ use crate::{
     constants::{BUILDER_ADDRESS, REFERRAL_CODE},
     core::{
         actions::{
-            ApproveAgent, ApproveBuilderFee, Builder, CDeposit, CWithdraw, Cancel, CancelOrder, PlaceOrder, SendAsset, SetReferrer, TokenDelegate, UpdateLeverage, UsdClassTransfer, WithdrawalRequest, make_market_order, make_position_tp_sl,
+            AgentSetAbstraction, ApproveAgent, ApproveBuilderFee, Builder, CDeposit, CWithdraw, Cancel, CancelOrder, PlaceOrder, SendAsset, SetReferrer, TokenDelegate, UpdateLeverage, UsdClassTransfer, UserSetAbstraction,
+            WithdrawalRequest, make_market_order, make_position_tp_sl,
         },
         hypercore::{
-            approve_agent_typed_data, approve_builder_fee_typed_data, c_deposit_typed_data, c_withdraw_typed_data, cancel_order_typed_data, place_order_typed_data, send_asset_typed_data, set_referrer_typed_data, token_delegate_typed_data,
-            update_leverage_typed_data, usd_class_transfer_typed_data, withdrawal_request_typed_data,
+            agent_set_abstraction_typed_data, approve_agent_typed_data, approve_builder_fee_typed_data, c_deposit_typed_data, c_withdraw_typed_data, cancel_order_typed_data, place_order_typed_data, send_asset_typed_data,
+            set_referrer_typed_data, token_delegate_typed_data, update_leverage_typed_data, usd_class_transfer_typed_data, user_set_abstraction_typed_data, withdrawal_request_typed_data,
         },
     },
     is_spot_swap,
@@ -41,7 +42,7 @@ impl HyperCoreSigner {
         self.sign_send_asset(&amount, &input.destination_address, HYPERCORE_CORE_HYPE_TOKEN_ID, private_key)
     }
 
-    fn sign_approval_transactions(&self, order: &HyperliquidOrder, private_key: &[u8], timestamp_incrementer: &mut NumberIncrementer) -> SignerResult<Vec<String>> {
+    fn sign_approval_transactions(&self, order: &HyperliquidOrder, sender_address: &str, private_key: &[u8], agent_key: &[u8], timestamp_incrementer: &mut NumberIncrementer) -> SignerResult<Vec<String>> {
         let mut transactions = Vec::new();
 
         if order.approve_referral_required {
@@ -53,8 +54,18 @@ impl HyperCoreSigner {
         if order.approve_builder_required {
             transactions.push(self.sign_approve_builder_address(private_key, BUILDER_ADDRESS, order.builder_fee_bps, timestamp_incrementer.next_val())?);
         }
+        if let Some(switch) = order.unified_account_switch {
+            transactions.push(self.sign_unified_account_switch(switch, sender_address, private_key, agent_key, timestamp_incrementer.next_val())?);
+        }
 
         Ok(transactions)
+    }
+
+    fn sign_unified_account_switch(&self, switch: UnifiedAccountSwitch, sender_address: &str, private_key: &[u8], agent_key: &[u8], nonce: u64) -> SignerResult<String> {
+        match switch {
+            UnifiedAccountSwitch::Agent => self.sign_serialized_action(AgentSetAbstraction::unified_account(), nonce, agent_key, |value| agent_set_abstraction_typed_data(value, nonce), "agent set abstraction"),
+            UnifiedAccountSwitch::User => self.sign_serialized_action(UserSetAbstraction::unified_account(sender_address, nonce), nonce, private_key, user_set_abstraction_typed_data, "user set abstraction"),
+        }
     }
 
     fn sign_token_transfer_action(&self, input: &SignerInput, private_key: &[u8]) -> SignerResult<String> {
@@ -78,7 +89,7 @@ impl HyperCoreSigner {
             order.builder = builder;
 
             let mut timestamp_incrementer = NumberIncrementer::new(Self::timestamp_ms());
-            let mut transactions = self.sign_approval_transactions(hl_order, private_key, &mut timestamp_incrementer)?;
+            let mut transactions = self.sign_approval_transactions(hl_order, &input.sender_address, private_key, agent_key.as_slice(), &mut timestamp_incrementer)?;
 
             transactions.push(self.sign_place_order(order, timestamp_incrementer.next_val(), agent_key.as_slice())?);
             return Ok(transactions);
@@ -125,7 +136,7 @@ impl HyperCoreSigner {
         let builder = get_builder(BUILDER_ADDRESS, order.builder_fee_bps as i32).ok();
         let mut timestamp_incrementer = NumberIncrementer::new(Self::timestamp_ms());
 
-        let mut transactions = self.sign_approval_transactions(order, private_key, &mut timestamp_incrementer)?;
+        let mut transactions = self.sign_approval_transactions(order, &input.sender_address, private_key, agent_key.as_slice(), &mut timestamp_incrementer)?;
         transactions.extend(self.sign_market_message(perpetual_type, agent_key.as_slice(), builder.as_ref(), &mut timestamp_incrementer)?);
 
         Ok(transactions)
@@ -147,15 +158,15 @@ impl HyperCoreSigner {
         self.sign_serialized_action(agent, timestamp, private_key, approve_agent_typed_data, "approve agent")
     }
 
-    fn sign_approve_builder_address(&self, agent_key: &[u8], builder_address: &str, rate_bps: u32, timestamp: u64) -> SignerResult<String> {
+    fn sign_approve_builder_address(&self, private_key: &[u8], builder_address: &str, rate_bps: u32, timestamp: u64) -> SignerResult<String> {
         let max_fee_rate = fee_rate(rate_bps);
         let request = ApproveBuilderFee::new(max_fee_rate, builder_address.to_string(), timestamp);
-        self.sign_serialized_action(request, timestamp, agent_key, approve_builder_fee_typed_data, "approve builder fee")
+        self.sign_serialized_action(request, timestamp, private_key, approve_builder_fee_typed_data, "approve builder fee")
     }
 
-    fn sign_set_referrer(&self, agent_key: &[u8], code: &str, timestamp: u64) -> SignerResult<String> {
+    fn sign_set_referrer(&self, private_key: &[u8], code: &str, timestamp: u64) -> SignerResult<String> {
         let referrer = SetReferrer::new(code.to_string());
-        self.sign_serialized_action(referrer, timestamp, agent_key, |value| set_referrer_typed_data(value, timestamp), "set referrer")
+        self.sign_serialized_action(referrer, timestamp, private_key, |value| set_referrer_typed_data(value, timestamp), "set referrer")
     }
 
     fn sign_send_asset(&self, amount: &str, destination: &str, token: &str, private_key: &[u8]) -> SignerResult<String> {
@@ -403,6 +414,7 @@ mod tests {
                 approve_agent_required: false,
                 approve_referral_required: false,
                 approve_builder_required: false,
+                unified_account_switch: None,
                 builder_fee_bps: 10,
                 agent_name: "gemwallet_agent".into(),
                 agent_address: "0x7e5f4552091a69125d5dfcb7b8c2659029395bdf".into(),
@@ -536,17 +548,15 @@ mod tests {
         let signer = HyperCoreSigner;
         let order = HyperliquidOrder {
             approve_agent_required: true,
-            approve_referral_required: false,
-            approve_builder_required: false,
-            builder_fee_bps: 45,
             agent_name: "oldest".to_string(),
-            agent_address: "0xbec81216a5edeaed508709d8526078c750e307ad".to_string(),
-            agent_private_key: Arc::new(AgentPrivateKey::new(String::new())),
+            ..HyperliquidOrder::mock()
         };
         let private_key = [1u8; 32];
         let mut timestamp_incrementer = NumberIncrementer::new(1753576844319);
 
-        let responses = signer.sign_approval_transactions(&order, &private_key, &mut timestamp_incrementer).unwrap();
+        let responses = signer
+            .sign_approval_transactions(&order, "0x1085c5f70f7f7591d97da281a64688385455c2bd", &private_key, &private_key, &mut timestamp_incrementer)
+            .unwrap();
         let request: serde_json::Value = serde_json::from_str(&responses[0]).unwrap();
 
         assert_eq!(responses.len(), 1);
@@ -588,6 +598,43 @@ mod tests {
         let expected: serde_json::Value = serde_json::from_str(include_str!("../../testdata/hl_action_usd_class_transfer.json")).unwrap();
 
         assert_eq!(serde_json::from_str::<serde_json::Value>(&signed).unwrap(), expected);
+    }
+
+    #[test]
+    fn test_unified_account_switch_signatures() {
+        let nonce = 1759100000000;
+        let agent_key = [2u8; 32];
+        let switches = [
+            (UnifiedAccountSwitch::Agent, include_str!("../../testdata/hl_action_agent_set_abstraction.json")),
+            (UnifiedAccountSwitch::User, include_str!("../../testdata/hl_action_user_set_abstraction.json")),
+        ];
+
+        for (switch, expected) in switches {
+            let signed = HyperCoreSigner.sign_unified_account_switch(switch, TEST_PRIVATE_KEY_ETHEREUM_ADDRESS, &TEST_PRIVATE_KEY, &agent_key, nonce).unwrap();
+
+            assert_eq!(serde_json::from_str::<serde_json::Value>(&signed).unwrap(), serde_json::from_str::<serde_json::Value>(expected).unwrap(), "{switch:?}");
+        }
+    }
+
+    #[test]
+    fn test_unified_account_switch_follows_the_one_time_approvals() {
+        let order = HyperliquidOrder {
+            approve_agent_required: true,
+            approve_builder_required: true,
+            unified_account_switch: Some(UnifiedAccountSwitch::Agent),
+            ..HyperliquidOrder::mock()
+        };
+        let mut timestamp_incrementer = NumberIncrementer::new(1753576844319);
+
+        let responses = HyperCoreSigner
+            .sign_approval_transactions(&order, TEST_PRIVATE_KEY_ETHEREUM_ADDRESS, &TEST_PRIVATE_KEY, &[2u8; 32], &mut timestamp_incrementer)
+            .unwrap();
+        let types: Vec<String> = responses
+            .iter()
+            .map(|response| serde_json::from_str::<serde_json::Value>(response).unwrap()["action"]["type"].as_str().unwrap().to_string())
+            .collect();
+
+        assert_eq!(types, ["approveAgent", "approveBuilderFee", "agentSetAbstraction"], "the agent signs the switch only once it is approved");
     }
 
     #[test]

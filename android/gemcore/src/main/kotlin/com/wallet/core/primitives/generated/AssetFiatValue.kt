@@ -7,6 +7,7 @@ import kotlinx.serialization.SerialName
 
 @Serializable
 data class AssetFiatValue (
+	val assetId: AssetId,
 	val amount: Double,
 	val price: Double,
 	val priceChangePercentage24h: Double

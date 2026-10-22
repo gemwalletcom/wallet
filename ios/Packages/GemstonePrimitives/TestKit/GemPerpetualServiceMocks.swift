@@ -152,18 +152,14 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
         return []
     }
 
-    public func connection(wallet: Gemstone.Wallet) async throws -> Gemstone.GemPerpetualConnection? {
+    public func connectionAddress(wallet: Gemstone.Wallet) async throws -> String? {
         connectionCount += 1
         await connectionGate?(wallet)
         if connectionFailures > 0 {
             connectionFailures -= 1
             throw AnyError("connection unavailable")
         }
-        guard let account = wallet.toPrimitives().hyperliquidAccount else { return nil }
-        return Gemstone.GemPerpetualConnection(
-            address: account.address,
-            mode: Primitives.PerpetualAccountMode.standard.toGem(),
-        )
+        return wallet.toPrimitives().hyperliquidAccount?.address
     }
 
     public func setPinned(perpetualId _: PerpetualId, name: String, pinned: Bool) async throws -> GemToast {
@@ -254,13 +250,13 @@ public final class GemPerpetualStreamServiceMock: GemPerpetualStreamServiceProto
     public var addresses: [String] { lock.withLock { connectedAddresses } }
     public var subscriptionChanges: [String] { lock.withLock { changes } }
 
-    public func connected(address: String, mode _: Gemstone.PerpetualAccountMode) async throws {
+    public func connected(address: String) async throws {
         lock.withLock { connectedAddresses.append(address) }
     }
 
     public func disconnected() async {}
 
-    public func candleUpdate(walletId _: Gemstone.WalletId, mode _: Gemstone.PerpetualAccountMode, data _: Data) async throws -> Gemstone.ChartCandleUpdate? {
+    public func candleUpdate(walletId _: Gemstone.WalletId, data _: Data) async throws -> Gemstone.ChartCandleUpdate? {
         nil
     }
 

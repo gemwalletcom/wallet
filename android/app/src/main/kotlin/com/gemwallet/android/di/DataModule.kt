@@ -33,6 +33,7 @@ import uniffi.gemstone.GemSearchService
 import uniffi.gemstone.GemSimulationService
 import uniffi.gemstone.GemSwapService
 import uniffi.gemstone.GemTransactionStateService
+import uniffi.gemstone.GemWalletPreferencesService
 import uniffi.gemstone.GemWalletSessionService
 import javax.inject.Singleton
 
@@ -51,7 +52,8 @@ object DataModule {
         priceService: GemPriceService,
         assetsService: GemAssetsService,
         transactionStatusService: TransactionStatusService,
-    ): GemConfirmServiceInterface = GemConfirmService(gateway, simulationService, scanService, transactionStateService, balanceService, priceService, assetsService, transactionStatusService)
+        walletPreferencesService: GemWalletPreferencesService,
+    ): GemConfirmServiceInterface = GemConfirmService(gateway, simulationService, scanService, transactionStateService, balanceService, priceService, assetsService, transactionStatusService, walletPreferencesService)
 
     @Provides
     @Singleton

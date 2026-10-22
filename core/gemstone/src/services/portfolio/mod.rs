@@ -58,7 +58,7 @@ impl GemPortfolioService {
                 let account = hyperliquid_account(&wallet.accounts).ok_or_else(|| GemServiceError::NotFound {
                     msg: "wallet has no perpetual account".to_string(),
                 })?;
-                Ok(rules::perpetual_portfolio_data(self.perpetual.get_portfolio(Chain::HyperCore, account.address.clone()).await?, period))
+                Ok(rules::perpetual_portfolio_data(self.perpetual.get_portfolio(wallet.id.clone(), Chain::HyperCore, account.address.clone()).await?, period))
             }
         }
     }

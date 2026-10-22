@@ -12,36 +12,10 @@ use primitives::{
 };
 
 use crate::{
-    models::{order::OpenOrder, perp_dex::PerpDex, position::AssetPositions},
-    provider::perpetual_mapper::{map_account_summary_aggregate, map_candlesticks, map_perpetual_addresses, map_perpetual_balance_from_spot, map_perpetual_portfolio, map_perpetuals_data, map_positions, merge_perpetual_portfolios},
+    models::{perp_dex::PerpDex, position::AssetPositions},
+    provider::perpetual_mapper::{map_candlesticks, map_perpetual_addresses, map_perpetual_balance, map_perpetual_balance_from_spot, map_perpetual_portfolio, map_perpetuals_data, map_positions},
     rpc::client::HyperCoreClient,
 };
-
-fn filter_active_dex(perp_dexs: &[Option<PerpDex>], enabled_hip3_markets: &[String]) -> Vec<(u32, Option<String>)> {
-    perp_dexs
-        .iter()
-        .enumerate()
-        .filter_map(|(index, entry)| {
-            if index == 0 {
-                return Some((0, None));
-            }
-            let dex = entry.as_ref()?;
-            if dex.is_active == Some(false) {
-                return None;
-            }
-            if dex.name.is_empty() {
-                return None;
-            }
-            if enabled_hip3_markets.is_empty() {
-                return None;
-            }
-            if !enabled_hip3_markets.iter().any(|market| market == &dex.name) {
-                return None;
-            }
-            Some((index as u32, Some(dex.name.clone())))
-        })
-        .collect()
-}
 
 pub fn candle_interval(period: &ChartPeriod) -> &'static str {
     match period {
@@ -55,80 +29,41 @@ pub fn candle_interval(period: &ChartPeriod) -> &'static str {
 }
 
 impl<C: Client> HyperCoreClient<C> {
-    async fn get_active_dex_entries(&self) -> Vec<(u32, Option<String>)> {
-        if self.config.enabled_hip3_markets.is_empty() {
-            return vec![(0, None)];
+    async fn get_clearinghouse_states(&self, address: &str) -> Result<Vec<(PerpDex, AssetPositions)>, Box<dyn Error + Sync + Send>> {
+        let dexes = &self.config.perp_dexes;
+        let states = try_join_all(dexes.iter().map(|dex| self.get_clearinghouse_state(address, *dex))).await?;
+        Ok(dexes.iter().copied().zip(states).collect())
+    }
+
+    async fn get_position_summaries(&self, address: &str, states: Vec<(PerpDex, AssetPositions)>) -> Result<Vec<PerpetualPositionsSummary>, Box<dyn Error + Sync + Send>> {
+        try_join_all(states.into_iter().map(|(dex, positions)| async move {
+            let orders = match positions.asset_positions.is_empty() {
+                true => Vec::new(),
+                false => self.get_open_orders(address, dex).await?,
+            };
+            Ok::<_, Box<dyn Error + Sync + Send>>(map_positions(positions, address.to_string(), &orders))
+        }))
+        .await
+    }
+
+    async fn get_spot_collateral(&self, address: &str, mode: PerpetualAccountMode) -> Result<Option<PerpetualBalance>, Box<dyn Error + Sync + Send>> {
+        match mode {
+            PerpetualAccountMode::Unified => Ok(Some(map_perpetual_balance_from_spot(&self.get_spot_balances(address).await?))),
+            PerpetualAccountMode::Standard => Ok(None),
         }
-
-        self.get_perp_dexs().await.map(|dexs| filter_active_dex(&dexs, &self.config.enabled_hip3_markets)).unwrap_or_else(|_| vec![(0, None)])
-    }
-
-    async fn get_positions_for_dex(&self, address: String, dex: Option<String>) -> Result<AssetPositions, Box<dyn Error + Sync + Send>> {
-        match dex.as_deref() {
-            Some(dex) => self.get_clearinghouse_state_with_dex(&address, dex).await,
-            None => self.get_clearinghouse_state(&address).await,
-        }
-    }
-
-    async fn get_open_orders_for_dex(&self, address: String, dex: Option<String>) -> Result<Vec<OpenOrder>, Box<dyn Error + Sync + Send>> {
-        match dex.as_deref() {
-            Some(dex) => self.get_open_orders_with_dex(&address, dex).await,
-            None => self.get_open_orders(&address).await,
-        }
-    }
-
-    async fn get_position_summary_for_dex(&self, address: String, dex: Option<String>) -> Result<PerpetualPositionsSummary, Box<dyn Error + Sync + Send>> {
-        let positions = self.get_positions_for_dex(address.clone(), dex.clone()).await?;
-        let orders = if positions.asset_positions.is_empty() {
-            Vec::new()
-        } else {
-            self.get_open_orders_for_dex(address.clone(), dex).await?
-        };
-        Ok(map_positions(positions, address, &orders))
-    }
-
-    async fn get_portfolio_for_dex(&self, address: String, dex: Option<String>) -> Result<(PerpetualPortfolio, AssetPositions), Box<dyn Error + Sync + Send>> {
-        let (response, positions) = match dex.as_deref() {
-            Some(dex) => try_join!(self.get_perpetual_portfolio_with_dex(&address, dex), self.get_clearinghouse_state_with_dex(&address, dex))?,
-            None => try_join!(self.get_perpetual_portfolio(&address), self.get_clearinghouse_state(&address))?,
-        };
-        Ok((map_perpetual_portfolio(response, &positions), positions))
     }
 }
 
 #[async_trait]
 impl<C: Client> ChainPerpetual for HyperCoreClient<C> {
     async fn get_positions(&self, address: String) -> Result<PerpetualAccountPositions, Box<dyn Error + Sync + Send>> {
-        let (mode, dex_entries) = futures::join!(self.get_user_abstraction(&address), self.get_active_dex_entries());
-        let mode = PerpetualAccountMode::from(mode?);
-        let summaries = try_join_all(dex_entries.into_iter().map(|(_, dex)| {
-            let address = address.clone();
-            async move { self.get_position_summary_for_dex(address, dex).await }
-        }))
-        .await?;
+        let (mode, states) = try_join!(self.get_user_abstraction(&address), self.get_clearinghouse_states(&address))?;
+        let mode = PerpetualAccountMode::from(mode);
+        let (summaries, spot_collateral) = try_join!(self.get_position_summaries(&address, states), self.get_spot_collateral(&address, mode))?;
 
-        let (positions, balance) = summaries.into_iter().fold(
-            (
-                Vec::new(),
-                PerpetualBalance {
-                    available: 0.0,
-                    reserved: 0.0,
-                    withdrawable: 0.0,
-                },
-            ),
-            |(mut acc_pos, mut acc_bal), summary| {
-                acc_pos.extend(summary.positions);
-                acc_bal.available += summary.balance.available;
-                acc_bal.reserved += summary.balance.reserved;
-                acc_bal.withdrawable += summary.balance.withdrawable;
-                (acc_pos, acc_bal)
-            },
-        );
-
-        let balance = match mode {
-            PerpetualAccountMode::Unified => map_perpetual_balance_from_spot(&self.get_spot_balances(&address).await?),
-            PerpetualAccountMode::Standard => balance,
-        };
+        let (positions, balances): (Vec<_>, Vec<_>) = summaries.into_iter().map(|summary| (summary.positions, summary.balance)).unzip();
+        let balance = spot_collateral.unwrap_or_else(|| balances.into_iter().sum());
+        let positions = positions.into_iter().flatten().collect();
 
         Ok(PerpetualAccountPositions {
             mode,
@@ -137,13 +72,8 @@ impl<C: Client> ChainPerpetual for HyperCoreClient<C> {
     }
 
     async fn get_positions_for_classification(&self, address: String) -> Result<Vec<PerpetualPosition>, Box<dyn Error + Sync + Send>> {
-        let dex_entries = self.get_active_dex_entries().await;
-        let summaries = try_join_all(dex_entries.into_iter().map(|(_, dex)| {
-            let address = address.clone();
-            async move { self.get_position_summary_for_dex(address, dex).await }
-        }))
-        .await?;
-
+        let states = self.get_clearinghouse_states(&address).await?;
+        let summaries = self.get_position_summaries(&address, states).await?;
         Ok(summaries.into_iter().flat_map(|summary| summary.positions).collect())
     }
 
@@ -152,19 +82,9 @@ impl<C: Client> ChainPerpetual for HyperCoreClient<C> {
     }
 
     async fn get_perpetuals_data(&self) -> Result<Vec<PerpetualData>, Box<dyn Error + Sync + Send>> {
-        let dex_entries = self.get_active_dex_entries().await;
-        let requests: Vec<_> = dex_entries
-            .iter()
-            .map(|(_, dex)| async move {
-                match dex.as_deref() {
-                    Some(dex) => self.get_metadata_with_dex(dex).await,
-                    None => self.get_metadata().await,
-                }
-            })
-            .collect();
-        let metadata = try_join_all(requests).await?;
-
-        Ok(dex_entries.iter().zip(metadata).flat_map(|((index, _), meta)| map_perpetuals_data(meta, *index)).collect())
+        let dexes = &self.config.perp_dexes;
+        let metadata = try_join_all(dexes.iter().map(|dex| self.get_metadata(*dex))).await?;
+        Ok(dexes.iter().zip(metadata).flat_map(|(dex, metadata)| map_perpetuals_data(metadata, *dex)).collect())
     }
 
     async fn get_perpetual_candlesticks(&self, symbol: String, period: ChartPeriod) -> Result<Vec<ChartCandleStick>, Box<dyn Error + Sync + Send>> {
@@ -184,13 +104,11 @@ impl<C: Client> ChainPerpetual for HyperCoreClient<C> {
         Ok(map_candlesticks(candlesticks))
     }
 
-    async fn get_perpetual_portfolio(&self, address: String) -> Result<PerpetualPortfolio, Box<dyn Error + Sync + Send>> {
-        let dex_entries = self.get_active_dex_entries().await;
-        let requests: Vec<_> = dex_entries.iter().map(|(_, dex)| self.get_portfolio_for_dex(address.clone(), dex.clone())).collect();
-        let results = try_join_all(requests).await?;
-        let (portfolios, positions): (Vec<_>, Vec<_>) = results.into_iter().unzip();
-        let account_summary = Some(map_account_summary_aggregate(&positions));
-        Ok(merge_perpetual_portfolios(portfolios, account_summary))
+    async fn get_perpetual_portfolio(&self, address: String, mode: PerpetualAccountMode) -> Result<PerpetualPortfolio, Box<dyn Error + Sync + Send>> {
+        let (response, states, spot_collateral) = try_join!(self.get_perpetual_portfolio(&address), self.get_clearinghouse_states(&address), self.get_spot_collateral(&address, mode))?;
+        let positions: Vec<AssetPositions> = states.into_iter().map(|(_, positions)| positions).collect();
+        let balance = spot_collateral.unwrap_or_else(|| positions.iter().map(map_perpetual_balance).sum());
+        Ok(map_perpetual_portfolio(response, mode, &positions, &balance))
     }
 
     async fn get_perpetual_addresses(&self) -> Result<Vec<PerpetualAddress>, Box<dyn Error + Sync + Send>> {
@@ -223,115 +141,6 @@ mod tests {
 
         assert_eq!(*seen_requests.lock().unwrap(), vec![request]);
         assert_eq!(addresses.len(), 2);
-    }
-
-    #[test]
-    fn test_filter_active_dex_filters_inactive() {
-        let dexs = vec![
-            None,
-            Some(PerpDex {
-                name: "dex1".to_string(),
-                is_active: Some(true),
-            }),
-            Some(PerpDex {
-                name: "dex2".to_string(),
-                is_active: Some(false),
-            }),
-            Some(PerpDex { name: "dex3".to_string(), is_active: None }),
-        ];
-
-        let enabled_hip3_markets = vec!["dex1".to_string(), "dex3".to_string()];
-        let entries = filter_active_dex(&dexs, &enabled_hip3_markets);
-        assert_eq!(entries.len(), 3);
-        assert_eq!(entries[0], (0, None));
-        assert_eq!(entries[1], (1, Some("dex1".to_string())));
-        assert_eq!(entries[2], (3, Some("dex3".to_string())));
-    }
-
-    #[test]
-    fn test_filter_active_dex_skips_empty_names() {
-        let dexs = vec![None, Some(PerpDex { name: String::new(), is_active: Some(true) })];
-
-        let enabled_hip3_markets = vec!["dex1".to_string()];
-        let entries = filter_active_dex(&dexs, &enabled_hip3_markets);
-        assert_eq!(entries.len(), 1);
-        assert_eq!(entries[0], (0, None));
-    }
-
-    #[test]
-    fn test_filter_active_dex_limits_to_enabled_market() {
-        let dexs = vec![
-            None,
-            Some(PerpDex {
-                name: "dex1".to_string(),
-                is_active: Some(true),
-            }),
-            Some(PerpDex {
-                name: "xyz".to_string(),
-                is_active: Some(true),
-            }),
-        ];
-
-        let enabled_hip3_markets = vec!["xyz".to_string()];
-        let entries = filter_active_dex(&dexs, &enabled_hip3_markets);
-        assert_eq!(entries, vec![(0, None), (2, Some("xyz".to_string()))]);
-    }
-
-    #[test]
-    fn test_filter_active_dex_skips_hip3_when_enabled_markets_empty() {
-        let dexs = vec![
-            None,
-            Some(PerpDex {
-                name: "xyz".to_string(),
-                is_active: Some(true),
-            }),
-        ];
-
-        let enabled_hip3_markets = Vec::new();
-        let entries = filter_active_dex(&dexs, &enabled_hip3_markets);
-        assert_eq!(entries, vec![(0, None)]);
-    }
-
-    #[tokio::test]
-    async fn test_get_positions_skips_open_orders_for_dexes_without_positions() {
-        let perp_dexs_request: Value = load_testdata("perpetual_positions_request_perp_dexs.json");
-        let clearinghouse_state_request: Value = load_testdata("perpetual_positions_request_clearinghouse_state.json");
-        let clearinghouse_state_dex1_request: Value = load_testdata("perpetual_positions_request_clearinghouse_state_dex1.json");
-        let clearinghouse_state_dex2_request: Value = load_testdata("perpetual_positions_request_clearinghouse_state_dex2.json");
-        let open_orders_request: Value = load_testdata("perpetual_positions_request_open_orders.json");
-        let open_orders_dex1_request: Value = load_testdata("perpetual_positions_request_open_orders_dex1.json");
-        let open_orders_dex2_request: Value = load_testdata("perpetual_positions_request_open_orders_dex2.json");
-
-        let seen_requests = Arc::new(Mutex::new(Vec::new()));
-        let mut client = HyperCoreClient::mock_with_responses_by_request(
-            vec![
-                (
-                    serde_json::json!({"type": "userAbstraction", "user": "0x123"}),
-                    include_bytes!("../../testdata/perpetual_positions_response_user_abstraction_default.json").to_vec(),
-                ),
-                (perp_dexs_request, include_bytes!("../../testdata/perpetual_positions_response_perp_dexs.json").to_vec()),
-                (clearinghouse_state_request, include_bytes!("../../testdata/perpetual_positions_response_clearinghouse_state.json").to_vec()),
-                (clearinghouse_state_dex1_request, include_bytes!("../../testdata/perpetual_positions_response_clearinghouse_state_dex1.json").to_vec()),
-                (clearinghouse_state_dex2_request, include_bytes!("../../testdata/perpetual_positions_response_clearinghouse_state_dex2.json").to_vec()),
-                (open_orders_request.clone(), include_bytes!("../../testdata/perpetual_positions_response_open_orders.json").to_vec()),
-                (open_orders_dex1_request.clone(), include_bytes!("../../testdata/perpetual_positions_response_open_orders_dex1.json").to_vec()),
-            ],
-            Arc::clone(&seen_requests),
-        );
-        client.config.enabled_hip3_markets = vec!["dex1".to_string(), "dex2".to_string()];
-
-        let summary = client.get_positions("0x123".to_string()).await.unwrap().summary;
-        let seen_requests = seen_requests.lock().unwrap().clone();
-
-        let btc = summary.positions.iter().find(|position| position.perpetual_id == PerpetualId::new(PerpetualProvider::Hypercore, "BTC")).unwrap();
-        let eth = summary.positions.iter().find(|position| position.perpetual_id == PerpetualId::new(PerpetualProvider::Hypercore, "ETH")).unwrap();
-
-        assert!(seen_requests.contains(&open_orders_request));
-        assert!(seen_requests.contains(&open_orders_dex1_request));
-        assert!(!seen_requests.contains(&open_orders_dex2_request));
-        assert_eq!(summary.positions.len(), 2);
-        assert_eq!(btc.take_profit.as_ref().map(|order| order.price), Some(110.0));
-        assert_eq!(eth.stop_loss.as_ref().map(|order| order.price), Some(90.0));
     }
 
     #[tokio::test]
@@ -386,15 +195,50 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_get_positions_skips_hip3_requests_when_enabled_markets_empty() {
-        let perp_dexs_request: Value = load_testdata("perpetual_positions_request_perp_dexs.json");
-        let clearinghouse_state_request: Value = load_testdata("perpetual_positions_request_clearinghouse_state.json");
-        let clearinghouse_state_dex1_request: Value = load_testdata("perpetual_positions_request_clearinghouse_state_dex1.json");
-        let clearinghouse_state_dex2_request: Value = load_testdata("perpetual_positions_request_clearinghouse_state_dex2.json");
-        let open_orders_request: Value = load_testdata("perpetual_positions_request_open_orders.json");
-        let open_orders_dex1_request: Value = load_testdata("perpetual_positions_request_open_orders_dex1.json");
-        let open_orders_dex2_request: Value = load_testdata("perpetual_positions_request_open_orders_dex2.json");
+    async fn test_get_positions() {
+        let seen_requests = Arc::new(Mutex::new(Vec::new()));
+        let mut client = HyperCoreClient::mock_with_responses_by_request(
+            vec![
+                (
+                    serde_json::json!({"type": "userAbstraction", "user": "0x123"}),
+                    include_bytes!("../../testdata/perpetual_positions_response_user_abstraction_default.json").to_vec(),
+                ),
+                (
+                    load_testdata("perpetual_positions_request_clearinghouse_state.json"),
+                    include_bytes!("../../testdata/perpetual_positions_response_clearinghouse_state_empty.json").to_vec(),
+                ),
+                (
+                    load_testdata("perpetual_positions_request_clearinghouse_state_xyz.json"),
+                    include_bytes!("../../testdata/perpetual_positions_response_clearinghouse_state_xyz.json").to_vec(),
+                ),
+                (
+                    load_testdata("perpetual_positions_request_open_orders_xyz.json"),
+                    include_bytes!("../../testdata/perpetual_positions_response_open_orders_xyz.json").to_vec(),
+                ),
+            ],
+            Arc::clone(&seen_requests),
+        );
+        client.config.perp_dexes = vec![PerpDex::Main, PerpDex::Xyz];
 
+        let summary = client.get_positions("0x123".to_string()).await.unwrap().summary;
+
+        assert_eq!(
+            summary
+                .positions
+                .iter()
+                .map(|position| (position.perpetual_id.clone(), position.stop_loss.as_ref().map(|order| order.price)))
+                .collect::<Vec<_>>(),
+            vec![(PerpetualId::new(PerpetualProvider::Hypercore, "xyz:NVDA"), Some(90.0))]
+        );
+        assert_eq!(
+            sorted_types(&seen_requests),
+            vec!["clearinghouseState", "clearinghouseState:xyz", "frontendOpenOrders:xyz", "userAbstraction"],
+            "a dex without positions asks for no open orders, and a standard account for no spot balance"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_get_positions_requests_only_the_main_dex_by_default() {
         let seen_requests = Arc::new(Mutex::new(Vec::new()));
         let client = HyperCoreClient::mock_with_responses_by_request(
             vec![
@@ -402,43 +246,111 @@ mod tests {
                     serde_json::json!({"type": "userAbstraction", "user": "0x123"}),
                     include_bytes!("../../testdata/perpetual_positions_response_user_abstraction_default.json").to_vec(),
                 ),
-                (clearinghouse_state_request.clone(), include_bytes!("../../testdata/perpetual_positions_response_clearinghouse_state.json").to_vec()),
-                (open_orders_request.clone(), include_bytes!("../../testdata/perpetual_positions_response_open_orders.json").to_vec()),
+                (
+                    load_testdata("perpetual_positions_request_clearinghouse_state.json"),
+                    include_bytes!("../../testdata/perpetual_positions_response_clearinghouse_state.json").to_vec(),
+                ),
+                (
+                    load_testdata("perpetual_positions_request_open_orders.json"),
+                    include_bytes!("../../testdata/perpetual_positions_response_open_orders.json").to_vec(),
+                ),
             ],
             Arc::clone(&seen_requests),
         );
 
         let summary = client.get_positions("0x123".to_string()).await.unwrap().summary;
-        let seen_requests = seen_requests.lock().unwrap().clone();
 
-        assert_eq!(summary.positions.len(), 1);
-        assert!(!seen_requests.contains(&perp_dexs_request));
-        assert!(seen_requests.contains(&clearinghouse_state_request));
-        assert!(seen_requests.contains(&open_orders_request));
-        assert!(!seen_requests.contains(&clearinghouse_state_dex1_request));
-        assert!(!seen_requests.contains(&clearinghouse_state_dex2_request));
-        assert!(!seen_requests.contains(&open_orders_dex1_request));
-        assert!(!seen_requests.contains(&open_orders_dex2_request));
+        assert_eq!(summary.positions[0].take_profit.as_ref().map(|order| order.price), Some(110.0));
+        assert_eq!(sorted_types(&seen_requests), vec!["clearinghouseState", "frontendOpenOrders", "userAbstraction"]);
+    }
+
+    #[tokio::test]
+    async fn test_get_perpetual_portfolio() {
+        let seen_requests = Arc::new(Mutex::new(Vec::new()));
+        let mut client = HyperCoreClient::mock_with_responses_by_request(
+            vec![
+                (serde_json::json!({"type": "portfolio", "user": "0x123"}), include_bytes!("../../testdata/perpetual_portfolio_response.json").to_vec()),
+                (
+                    load_testdata("perpetual_positions_request_clearinghouse_state.json"),
+                    include_bytes!("../../testdata/perpetual_positions_response_clearinghouse_state.json").to_vec(),
+                ),
+                (
+                    load_testdata("perpetual_positions_request_clearinghouse_state_xyz.json"),
+                    include_bytes!("../../testdata/perpetual_positions_response_clearinghouse_state_xyz.json").to_vec(),
+                ),
+            ],
+            Arc::clone(&seen_requests),
+        );
+        client.config.perp_dexes = vec![PerpDex::Main, PerpDex::Xyz];
+
+        let portfolio = ChainPerpetual::get_perpetual_portfolio(&client, "0x123".to_string(), PerpetualAccountMode::Standard).await.unwrap();
+
+        assert_eq!(
+            sorted_types(&seen_requests),
+            vec!["clearinghouseState", "clearinghouseState:xyz", "portfolio"],
+            "the portfolio already covers every dex, so it is asked for once, and a standard account needs no spot balance"
+        );
+        assert_eq!(portfolio.all_time.unwrap().volume, 11_038_949_929.92);
+        assert_eq!(portfolio.account_summary.unwrap().account_value, 10000.0 + 10000.0);
+    }
+
+    #[tokio::test]
+    async fn test_get_perpetual_portfolio_unified() {
+        let seen_requests = Arc::new(Mutex::new(Vec::new()));
+        let client = HyperCoreClient::mock_with_responses_by_request(
+            vec![
+                (serde_json::json!({"type": "portfolio", "user": "0x123"}), include_bytes!("../../testdata/perpetual_portfolio_response.json").to_vec()),
+                (
+                    load_testdata("perpetual_positions_request_clearinghouse_state.json"),
+                    include_bytes!("../../testdata/perpetual_positions_response_clearinghouse_state.json").to_vec(),
+                ),
+                (
+                    serde_json::json!({"type": "spotClearinghouseState", "user": "0x123"}),
+                    include_bytes!("../../testdata/perpetual_balance_response_spot_clearinghouse_state.json").to_vec(),
+                ),
+            ],
+            Arc::clone(&seen_requests),
+        );
+
+        let portfolio = ChainPerpetual::get_perpetual_portfolio(&client, "0x123".to_string(), PerpetualAccountMode::Unified).await.unwrap();
+
+        assert_eq!(sorted_types(&seen_requests), vec!["clearinghouseState", "portfolio", "spotClearinghouseState"]);
+        assert_eq!(portfolio.all_time.unwrap().volume, 11_038_949_929.92);
+        assert_eq!(portfolio.account_summary.unwrap().account_value, 4.331289);
+    }
+
+    fn sorted_types(requests: &Mutex<Vec<Value>>) -> Vec<String> {
+        let mut types: Vec<String> = requests
+            .lock()
+            .unwrap()
+            .iter()
+            .map(|request| match request["dex"].as_str() {
+                Some(dex) => format!("{}:{dex}", request["type"].as_str().unwrap()),
+                None => request["type"].as_str().unwrap().to_string(),
+            })
+            .collect();
+        types.sort();
+        types
     }
 }
 
 #[cfg(all(test, feature = "chain_integration_tests"))]
 mod chain_integration_tests {
+    use crate::models::perp_dex::PerpDex;
     use crate::provider::testkit::{TEST_ADDRESS, create_hypercore_test_client};
     use chain_traits::ChainPerpetual;
-    use primitives::ChartPeriod;
+    use primitives::{ChartPeriod, PerpetualAccountMode};
 
     #[tokio::test]
-    async fn test_hypercore_get_perp_dexs() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let client = create_hypercore_test_client();
-        let dexs = client.get_perp_dexs().await?;
+    async fn test_hypercore_get_xyz_perpetuals_data() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let mut client = create_hypercore_test_client();
+        client.config.perp_dexes = vec![PerpDex::Xyz];
 
-        assert!(!dexs.is_empty());
+        let data = client.get_perpetuals_data().await?;
 
-        println!("Perp DEXs count: {}", dexs.len());
-        for (i, dex) in dexs.iter().enumerate() {
-            println!("  DEX {}: {:?}", i, dex.as_ref().map(|d| (&d.name, &d.is_active)));
-        }
+        let xyz100 = data.iter().find(|data| data.perpetual.name == "xyz:XYZ100").unwrap();
+        assert_eq!(xyz100.perpetual.identifier, "110000");
+        assert!(data.iter().all(|data| data.perpetual.name.starts_with("xyz:")));
         Ok(())
     }
 
@@ -481,7 +393,7 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_hypercore_get_perpetual_portfolio() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_hypercore_test_client();
-        let portfolio = ChainPerpetual::get_perpetual_portfolio(&client, TEST_ADDRESS.to_string()).await?;
+        let portfolio = ChainPerpetual::get_perpetual_portfolio(&client, TEST_ADDRESS.to_string(), PerpetualAccountMode::Standard).await?;
 
         println!("Perpetual portfolio day: {:?}", portfolio.day.is_some());
 

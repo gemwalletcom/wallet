@@ -1,4 +1,7 @@
-use gem_hypercore::{models::websocket::HyperliquidSubscription, perpetual_formatter::PerpetualFormatter};
+use gem_hypercore::{
+    models::{perp_dex::PerpDex, websocket::HyperliquidSubscription},
+    perpetual_formatter::PerpetualFormatter,
+};
 use primitives::contract_constants::HYPERLIQUID_ARBITRUM_DEPOSIT_ADDRESS;
 use primitives::known_assets::{ARBITRUM_USDC, HYPERCORE_SPOT_USDC};
 use primitives::{Asset, AutocloseEstimator as Estimator, AutocloseValidation, PerpetualAccountMode, PerpetualDirection, PerpetualProvider, PerpetualType, TpslType};
@@ -159,14 +162,11 @@ impl GemAutocloseEstimator {
 }
 
 impl GemPerpetualSubscription {
-    pub(crate) fn map(self) -> HyperliquidSubscription {
+    pub(crate) fn map(self, dexes: &[PerpDex]) -> Vec<HyperliquidSubscription> {
         match self {
-            Self::AccountState { address } => HyperliquidSubscription::AccountState { address },
-            Self::SpotState { address } => HyperliquidSubscription::SpotState { address },
-            Self::OpenOrders { address } => HyperliquidSubscription::OpenOrders { address },
-            Self::Candle { symbol, interval } => HyperliquidSubscription::Candle { symbol, interval },
-            Self::MarketData { symbol } => HyperliquidSubscription::MarketData { symbol },
-            Self::MarketPrices => HyperliquidSubscription::MarketPrices,
+            Self::Candle { symbol, interval } => vec![HyperliquidSubscription::Candle { symbol, interval }],
+            Self::MarketData { symbol } => vec![HyperliquidSubscription::MarketData { symbol }],
+            Self::MarketPrices => dexes.iter().map(|dex| HyperliquidSubscription::MarketPrices { dex: dex.name() }).collect(),
         }
     }
 }
@@ -174,6 +174,19 @@ impl GemPerpetualSubscription {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_map_subscription() {
+        assert_eq!(
+            serde_json::to_value(GemPerpetualSubscription::MarketPrices.map(&[PerpDex::Main, PerpDex::Xyz])).unwrap(),
+            serde_json::json!([{"type": "allMids"}, {"type": "allMids", "dex": "xyz"}]),
+            "market prices come from every dex the app loads"
+        );
+        assert_eq!(
+            GemPerpetualSubscription::MarketData { symbol: "xyz:NVDA".to_string() }.map(&[PerpDex::Main, PerpDex::Xyz]),
+            vec![HyperliquidSubscription::MarketData { symbol: "xyz:NVDA".to_string() }]
+        );
+    }
 
     #[test]
     fn test_a_target_price_reads_as_profit_from_its_pnl_and_falls_back_to_the_trigger_kind() {
