@@ -35,9 +35,6 @@ impl BagOfCells {
         let header = BocHeader::parse(&mut reader)?;
 
         let root_indexes = (0..header.roots_count).map(|_| reader.read_var_uint(header.ref_bytes)).collect::<Result<Vec<_>, _>>()?;
-        if root_indexes.iter().collect::<HashSet<_>>().len() != root_indexes.len() {
-            return Err(invalid("duplicate BoC root"));
-        }
 
         if header.has_idx {
             reader.skip(header.cells_count * header.off_bytes)?;
@@ -55,6 +52,9 @@ impl BagOfCells {
 
         let cells = build_cell_tree(&raw_cells)?;
         let roots = root_indexes.iter().map(|index| cells.get(*index).cloned().ok_or_else(|| invalid("BoC root out of bounds"))).collect::<Result<Vec<_>, _>>()?;
+        if roots.iter().map(|root| root.hash).collect::<HashSet<_>>().len() != roots.len() {
+            return Err(invalid("duplicate BoC root"));
+        }
         Ok(Self { roots })
     }
 
@@ -152,8 +152,12 @@ mod tests {
 
     #[test]
     fn test_parse_rejects_duplicate_roots() {
-        let bytes = hex::decode("b5ee9c7201010402003a030303020003030303030303030303030303f00303030048d301d00103d371b0915be0400000000000000004b0995b0127cf16c98001fb0097109aac").unwrap();
+        let repeated_index = "b5ee9c7201010402003a030303020003030303030303030303030303f00303030048d301d00103d371b0915be0400000000000000004b0995b0127cf16c98001fb0097109aac";
+        let identical_cells = "b5ee9c7201010402003a010203020301030303030303030303030303030303030048d301d0d3030171b0915be0400000000000000004b0995b0127cf16c98001fb0097109aac";
+        let identical_empty_cells = "b5ee9c7201010402003a010000000000001c03030303030302030303030303030048d301d0d3030171b0915be0400000000500000004b0995b0127cf16c38001fb0097109aac";
 
-        assert_eq!(BagOfCells::parse(&bytes).unwrap_err().to_string(), "duplicate BoC root");
+        for value in [repeated_index, identical_cells, identical_empty_cells] {
+            assert_eq!(BagOfCells::parse(&hex::decode(value).unwrap()).unwrap_err().to_string(), "duplicate BoC root");
+        }
     }
 }
