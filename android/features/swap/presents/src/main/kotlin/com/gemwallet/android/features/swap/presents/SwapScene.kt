@@ -123,6 +123,7 @@ internal fun SwapScene(viewState: GemSwapViewState, pay: AssetData?, receive: As
                     side = viewState.receive,
                     state = receiveValue,
                     calculating = viewState.isReceiveLoading,
+                    isQuote = true,
                     onBalanceClick = {},
                     onAssetSelect = {
                         clearAmountFocus()
@@ -133,7 +134,7 @@ internal fun SwapScene(viewState: GemSwapViewState, pay: AssetData?, receive: As
             }
             item {
                 viewState.details?.let {
-                    SwapDetailsSummaryItem(details = it, onClick = { onAction(SwapAction.ShowDetails) })
+                    SwapDetailsSummaryItem(details = it, progress = viewState.quoteProgress, onClick = { onAction(SwapAction.ShowDetails) })
                 }
             }
 

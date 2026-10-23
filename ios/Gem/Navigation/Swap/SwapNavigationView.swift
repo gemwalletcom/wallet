@@ -34,6 +34,7 @@ struct SwapNavigationView: View {
                         SwapDetailsView(
                             details: model.swapDetails,
                             providers: model.providers,
+                            pendingProviders: model.pendingProviders,
                             allowSelectProvider: model.allowsProviderSelection,
                             onSelectProvider: model.onFinishSwapProviderSelection,
                         )

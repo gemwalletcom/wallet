@@ -92,6 +92,9 @@ public struct SwapScene: View {
         .onTimer(every: GemConstants.swapQuoteRefreshInterval.timeInterval, id: model.loadTrigger) {
             await model.load()
         }
+        .task(id: model.firstQuoteWait) {
+            await model.onFirstQuoteWait()
+        }
         .onAppear(perform: model.onAppear)
         .taskOnce {
             focusedField = true
@@ -126,6 +129,7 @@ extension SwapScene {
             SwapTokenView(
                 side: model.side(type: .receive(payAssetId: nil)),
                 text: .constant(model.toValue),
+                isQuote: true,
                 showLoading: model.isReceiveFieldLoading,
                 onBalanceAction: {},
                 onSelectAssetAction: model.onSelectAssetReceive,
@@ -152,7 +156,7 @@ extension SwapScene {
         Section {
             if let swapDetails = model.swapDetails {
                 NavigationCustomLink(
-                    with: SwapDetailsListView(details: swapDetails),
+                    with: SwapDetailsListView(details: swapDetails, progress: model.quoteProgress),
                     action: model.onSelectSwapDetails,
                 )
             }

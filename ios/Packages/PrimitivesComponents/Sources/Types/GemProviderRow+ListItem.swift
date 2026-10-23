@@ -2,6 +2,7 @@
 
 import Components
 import enum Gemstone.GemProviderKind
+import struct Gemstone.GemProviderLoadingRow
 import struct Gemstone.GemProviderRow
 import GemstonePrimitives
 import Style
@@ -26,6 +27,23 @@ public extension GemProviderRow {
                 placeholder: kind.image,
                 chainPlaceholder: isSelected ? Images.Wallets.selected : nil,
             )),
+        )
+    }
+}
+
+extension GemProviderLoadingRow: @retroactive Identifiable {
+    public var id: GemProviderKind {
+        kind
+    }
+}
+
+public extension GemProviderLoadingRow {
+    var listItem: ListItemModel {
+        ListItemModel(
+            title: name,
+            titleStyle: TextStyle(font: .callout, color: Colors.black, fontWeight: .semibold),
+            imageStyle: .asset(assetImage: AssetImage(placeholder: kind.image)),
+            placeholders: [.subtitle],
         )
     }
 }

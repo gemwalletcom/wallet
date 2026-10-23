@@ -26,6 +26,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import com.gemwallet.android.model.text
+import com.gemwallet.android.ui.components.NumericText
 import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.components.fields.AmountInputTransformation
 import com.gemwallet.android.ui.components.fields.decimalKeyboardOptions
@@ -48,7 +49,7 @@ import uniffi.gemstone.GemSwapSideInteraction
 import uniffi.gemstone.GemSwapSideState
 
 @Composable
-internal fun SwapToken(item: AssetData?, side: GemSwapSideState, calculating: Boolean = false, state: TextFieldState = rememberTextFieldState(), onBalanceClick: () -> Unit, onAssetSelect: () -> Unit) {
+internal fun SwapToken(item: AssetData?, side: GemSwapSideState, calculating: Boolean = false, isQuote: Boolean = false, state: TextFieldState = rememberTextFieldState(), onBalanceClick: () -> Unit, onAssetSelect: () -> Unit) {
     Row(
         modifier = Modifier
             .listItem(ListPosition.Single)
@@ -64,6 +65,7 @@ internal fun SwapToken(item: AssetData?, side: GemSwapSideState, calculating: Bo
         ) {
             SwapItemInput(
                 calculating = calculating,
+                isQuote = isQuote,
                 interaction = side.interaction,
                 state = state,
                 assetSelected = item != null,
@@ -149,7 +151,7 @@ private fun SwapBalance(balance: GemLocalizedText?, interaction: GemSwapSideInte
 }
 
 @Composable
-private fun SwapItemInput(calculating: Boolean, interaction: GemSwapSideInteraction, assetSelected: Boolean, placeholder: String, state: TextFieldState = rememberTextFieldState()) {
+private fun SwapItemInput(calculating: Boolean, isQuote: Boolean, interaction: GemSwapSideInteraction, assetSelected: Boolean, placeholder: String, state: TextFieldState = rememberTextFieldState()) {
     val focusRequester = remember { FocusRequester() }
     val amountTextStyle = MaterialTheme.typography.headlineSmall
     val inputTextStyle = amountTextStyle.copy(
@@ -170,6 +172,13 @@ private fun SwapItemInput(calculating: Boolean, interaction: GemSwapSideInteract
     ) {
         if (calculating) {
             CircularProgressIndicator16()
+        } else if (isQuote) {
+            NumericText(
+                text = state.text.ifEmpty { placeholder }.toString(),
+                style = amountTextStyle,
+                color = if (state.text.isEmpty()) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+            )
         } else {
             BasicTextField(
                 modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),

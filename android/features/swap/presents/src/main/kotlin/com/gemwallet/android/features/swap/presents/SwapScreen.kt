@@ -101,6 +101,7 @@ fun SwapScreen(
         details = viewState.details,
         quotesState = viewState.quotesState,
         providers = viewState.providers,
+        pendingProviders = viewState.pendingProviders,
         isProviderSelectable = viewState.allowsProviderSelection,
         onDismiss = { isShowDetails = false },
         expansion = SheetExpansion.Full,

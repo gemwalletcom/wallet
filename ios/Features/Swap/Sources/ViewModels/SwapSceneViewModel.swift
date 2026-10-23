@@ -6,14 +6,17 @@ import Foundation
 import class Gemstone.Config
 import func Gemstone.formattedPercentage
 import enum Gemstone.GemInfoTopic
+import struct Gemstone.GemProviderLoadingRow
 import struct Gemstone.GemProviderRow
 import enum Gemstone.GemSlippageSelection
 import struct Gemstone.GemSwapDetails
 import enum Gemstone.GemSwapErrorDisplay
+import struct Gemstone.GemSwapFirstQuoteWait
 import struct Gemstone.GemSwapPairSelection
+import enum Gemstone.GemSwapProviderAnswer
 import struct Gemstone.GemSwapQuoteInput
+import struct Gemstone.GemSwapQuoteProgress
 import protocol Gemstone.GemSwapQuoteServiceProtocol
-import struct Gemstone.GemSwapQuotesResult
 import struct Gemstone.GemSwapSession
 import enum Gemstone.GemSwapSide
 import struct Gemstone.GemSwapSideState
@@ -121,6 +124,18 @@ public final class SwapSceneViewModel {
         providersState(viewState)
     }
 
+    public var pendingProviders: [GemProviderLoadingRow] {
+        viewState.pendingProviders
+    }
+
+    var quoteProgress: GemSwapQuoteProgress? {
+        viewState.quoteProgress
+    }
+
+    var firstQuoteWait: GemSwapFirstQuoteWait? {
+        viewState.firstQuoteWait
+    }
+
     public var allowsProviderSelection: Bool {
         viewState.allowsProviderSelection
     }
@@ -208,6 +223,13 @@ extension SwapSceneViewModel {
 
     func onAppear() {
         session = session.onRefreshResumed()
+    }
+
+    func onFirstQuoteWait() async {
+        guard let wait = viewState.firstQuoteWait else { return }
+        try? await Task.sleep(for: .milliseconds(wait.milliseconds))
+        guard !Task.isCancelled else { return }
+        session = session.onFirstQuoteWaitEnded(request: wait.request)
     }
 
     func onChangePair(_ _: SwapPairSelectorViewModel, _ newModel: SwapPairSelectorViewModel) {
@@ -377,13 +399,21 @@ extension SwapSceneViewModel {
         guard !isTransferDataLoading else { return }
         session = session.onFetchStarted(request: input.request)
         do {
-            let swapQuotes = try await service.getQuotes(input: input)
+            let quoteProviders = try await service.quoteProviders(input: input)
             try Task.checkCancellation()
-            session = session.onQuoteResults(results: GemSwapQuotesResult(request: input.request, quotes: swapQuotes, error: nil))
+            session = session.onQuotesRequested(request: input.request, providers: quoteProviders.providers)
+            await withTaskGroup(of: GemSwapProviderAnswer.self) { [service] group in
+                for provider in quoteProviders.providers {
+                    group.addTask { await service.quote(request: quoteProviders.request, provider: provider) }
+                }
+                for await answer in group {
+                    session = session.onProviderAnswer(request: input.request, answer: answer)
+                }
+            }
         } catch {
             guard !Task.isCancelled else { return }
             let quoteError = error as? SwapperError ?? .ComputeQuoteError(error.localizedDescription)
-            session = session.onQuoteResults(results: GemSwapQuotesResult(request: input.request, quotes: [], error: quoteError))
+            session = session.onQuotesFailed(request: input.request, error: quoteError)
             debugLog("SwapScene get quotes error: \(error)")
         }
     }

@@ -70,7 +70,9 @@ import uniffi.gemstone.GemSwapButtonAction
 import uniffi.gemstone.GemSwapErrorDisplay
 import uniffi.gemstone.GemSwapPairSelection
 import uniffi.gemstone.GemSwapPairSuggestion
+import uniffi.gemstone.GemSwapProviderAnswer
 import uniffi.gemstone.GemSwapQuoteInput
+import uniffi.gemstone.GemSwapQuoteProviders
 import uniffi.gemstone.GemSwapQuoteServiceInterface
 import uniffi.gemstone.GemSwapQuotesState
 import uniffi.gemstone.GemSwapRequest
@@ -111,8 +113,18 @@ class SwapViewModelTest {
         every { this@mockk(walletId.id, usdcAsset.id) } returns flowOf(usdcInfo)
     }
     private val quoteAnswers = Channel<Result<List<SwapperQuote>>>(Channel.UNLIMITED)
+    private var quoted = emptyList<SwapperQuote>()
     private val swapQuoteService = mockk<GemSwapQuoteServiceInterface>(relaxed = true) {
-        coEvery { getQuotes(any()) } coAnswers { quoteAnswers.receive().getOrThrow() }
+        coEvery { quoteProviders(any()) } coAnswers {
+            quoted = quoteAnswers.receive().getOrThrow()
+            GemSwapQuoteProviders(request = mockSwapperQuoteRequest(), providers = quoted.map { it.data.provider.id })
+        }
+        coEvery { quote(any(), any()) } coAnswers {
+            val provider = secondArg<SwapProvider>()
+            quoted.firstOrNull { it.data.provider.id == provider }
+                ?.let { GemSwapProviderAnswer.Quote(quote = it, leavesNoDust = false) }
+                ?: GemSwapProviderAnswer.Failed(provider = provider, error = SwapperException.NoQuoteAvailable())
+        }
         every { isAvailable() } returns true
         every { slippageBps() } returns null
         coEvery { suggestPair(any()) } returns null
@@ -341,7 +353,7 @@ class SwapViewModelTest {
         viewModel.setRefreshEnabled(true)
         requestQuote(viewModel, "0.5")
 
-        coVerify(exactly = 1) { swapQuoteService.getQuotes(quoteInput(value = BigInteger("500000000"), slippageBps = 200u)) }
+        coVerify(exactly = 1) { swapQuoteService.quoteProviders(quoteInput(value = BigInteger("500000000"), slippageBps = 200u)) }
     }
 
     @Test
@@ -352,7 +364,7 @@ class SwapViewModelTest {
         viewModel.setRefreshEnabled(true)
         advanceUntilIdle()
 
-        coVerify(exactly = 0) { swapQuoteService.getQuotes(any()) }
+        coVerify(exactly = 0) { swapQuoteService.quoteProviders(any()) }
     }
 
     @Test
@@ -366,8 +378,8 @@ class SwapViewModelTest {
         advanceTimeBy(GemConstants.swapQuoteDebounce.inWholeMilliseconds / 2)
         requestQuote(viewModel, "0.25")
 
-        coVerify(exactly = 1) { swapQuoteService.getQuotes(any()) }
-        coVerify(exactly = 1) { swapQuoteService.getQuotes(match { it.request.value == BigInteger("250000000") }) }
+        coVerify(exactly = 1) { swapQuoteService.quoteProviders(any()) }
+        coVerify(exactly = 1) { swapQuoteService.quoteProviders(match { it.request.value == BigInteger("250000000") }) }
     }
 
     @Test
@@ -379,7 +391,7 @@ class SwapViewModelTest {
         requestQuote(viewModel, "0.5")
         requestQuote(viewModel, "0.25")
 
-        coVerify(exactly = 2) { swapQuoteService.getQuotes(any()) }
+        coVerify(exactly = 2) { swapQuoteService.quoteProviders(any()) }
         assertTrue(viewModel.viewState.value.isQuoteLoading)
         assertFalse(viewModel.viewState.value.quotesState is GemSwapQuotesState.Failed)
     }
@@ -409,7 +421,7 @@ class SwapViewModelTest {
         Snapshot.sendApplyNotifications()
         advanceTimeBy(GemConstants.swapQuoteDebounce.inWholeMilliseconds * 2)
 
-        coVerify(exactly = 1) { swapQuoteService.getQuotes(any()) }
+        coVerify(exactly = 1) { swapQuoteService.quoteProviders(any()) }
         assertEquals(ButtonState.Enabled, viewModel.viewState.value.buttonState.buttonState())
     }
 
@@ -423,12 +435,12 @@ class SwapViewModelTest {
         viewModel.payValue.setTextAndPlaceCursorAtEnd("0.25")
         Snapshot.sendApplyNotifications()
         runCurrent()
-        coVerify(exactly = 0) { swapQuoteService.getQuotes(any()) }
+        coVerify(exactly = 0) { swapQuoteService.quoteProviders(any()) }
 
         viewModel.onSelectPercent(50)
         Snapshot.sendApplyNotifications()
         runCurrent()
-        coVerify(exactly = 1) { swapQuoteService.getQuotes(match { it.request.value == BigInteger("500000000") }) }
+        coVerify(exactly = 1) { swapQuoteService.quoteProviders(match { it.request.value == BigInteger("500000000") }) }
     }
 
     @Test
@@ -442,7 +454,7 @@ class SwapViewModelTest {
         viewModel.onSelect(SwapItemType.Receive, usdcAsset.id)
         runCurrent()
 
-        coVerify(exactly = 1) { swapQuoteService.getQuotes(quoteInput(value = BigInteger("500000000"), slippageBps = null)) }
+        coVerify(exactly = 1) { swapQuoteService.quoteProviders(quoteInput(value = BigInteger("500000000"), slippageBps = null)) }
     }
 
     @Test
@@ -453,10 +465,10 @@ class SwapViewModelTest {
 
         advanceTimeBy(GemConstants.swapQuoteRefreshInterval.inWholeMilliseconds - 1)
         runCurrent()
-        coVerify(exactly = 1) { swapQuoteService.getQuotes(any()) }
+        coVerify(exactly = 1) { swapQuoteService.quoteProviders(any()) }
 
         advanceUntilIdle()
-        coVerify(exactly = 2) { swapQuoteService.getQuotes(any()) }
+        coVerify(exactly = 2) { swapQuoteService.quoteProviders(any()) }
     }
 
     @Test
@@ -466,7 +478,7 @@ class SwapViewModelTest {
 
         failQuote(viewModel, SwapperException.ComputeQuoteException("boom"))
 
-        coVerify(exactly = 1) { swapQuoteService.getQuotes(any()) }
+        coVerify(exactly = 1) { swapQuoteService.quoteProviders(any()) }
         assertTrue(viewModel.viewState.value.quotesState is GemSwapQuotesState.Failed)
     }
 
@@ -490,11 +502,11 @@ class SwapViewModelTest {
 
         viewModel.setRefreshEnabled(false)
         advanceUntilIdle()
-        coVerify(exactly = 1) { swapQuoteService.getQuotes(any()) }
+        coVerify(exactly = 1) { swapQuoteService.quoteProviders(any()) }
 
         viewModel.setRefreshEnabled(true)
         advanceUntilIdle()
-        coVerify(exactly = 2) { swapQuoteService.getQuotes(any()) }
+        coVerify(exactly = 2) { swapQuoteService.quoteProviders(any()) }
     }
 
     @Test
@@ -506,7 +518,7 @@ class SwapViewModelTest {
         viewModel.onPrimaryAction(onConfirm = {}, onError = {}, onShowPriceImpactWarning = {})
         runCurrent()
 
-        coVerify(exactly = 2) { swapQuoteService.getQuotes(any()) }
+        coVerify(exactly = 2) { swapQuoteService.quoteProviders(any()) }
     }
 
     @Test
@@ -528,7 +540,7 @@ class SwapViewModelTest {
         viewModel.onPrimaryAction(onConfirm = {}, onError = {}, onShowPriceImpactWarning = {})
         advanceUntilIdle()
 
-        coVerify(exactly = 3) { swapQuoteService.getQuotes(any()) }
+        coVerify(exactly = 3) { swapQuoteService.quoteProviders(any()) }
     }
 
     @Test
@@ -590,7 +602,7 @@ class SwapViewModelTest {
 
         assertEquals(listOf(alerts.first(), alerts.first()), alerts)
         coVerify(exactly = 2) { swapQuoteService.transferData(any()) }
-        coVerify(exactly = 1) { swapQuoteService.getQuotes(any()) }
+        coVerify(exactly = 1) { swapQuoteService.quoteProviders(any()) }
     }
 
     @Test
@@ -700,13 +712,13 @@ class SwapViewModelTest {
         confirmInputGate.complete(Unit)
         awaitCondition { viewModel.viewState.value.buttonState.buttonState() == ButtonState.Enabled && viewModel.viewState.value.quotesState !is GemSwapQuotesState.Failed }
         advanceUntilIdle()
-        coVerify(exactly = 1) { swapQuoteService.getQuotes(any()) }
+        coVerify(exactly = 1) { swapQuoteService.quoteProviders(any()) }
 
         viewModel.setRefreshEnabled(false)
         advanceUntilIdle()
         viewModel.setRefreshEnabled(true)
         advanceUntilIdle()
-        coVerify(exactly = 2) { swapQuoteService.getQuotes(any()) }
+        coVerify(exactly = 2) { swapQuoteService.quoteProviders(any()) }
     }
 
     @Test

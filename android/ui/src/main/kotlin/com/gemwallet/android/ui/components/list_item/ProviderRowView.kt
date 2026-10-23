@@ -10,9 +10,11 @@ import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.image.ListItemImageView
 import com.gemwallet.android.ui.components.image.listItemImage
+import com.gemwallet.android.ui.components.progress.CircularProgressIndicator20
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.listItemIconSize
 import uniffi.gemstone.GemProviderKind
+import uniffi.gemstone.GemProviderLoadingRow
 import uniffi.gemstone.GemProviderRow
 
 @Composable
@@ -34,6 +36,16 @@ fun ProviderRowView(row: GemProviderRow, listPosition: ListPosition, onClick: ((
                 row.fiat?.let { ListItemSupportText(it.text()) }
             }
         },
+        listPosition = listPosition,
+    )
+}
+
+@Composable
+fun ProviderLoadingRowView(row: GemProviderLoadingRow, listPosition: ListPosition) {
+    ListItem(
+        leading = { ListItemImageView(row.kind.listItemImage(), size = listItemIconSize) },
+        title = { ListItemTitleText(row.name) },
+        trailing = { CircularProgressIndicator20() },
         listPosition = listPosition,
     )
 }

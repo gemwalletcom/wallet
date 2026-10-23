@@ -3,6 +3,7 @@
 import Components
 import Foundation
 import struct Gemstone.GemInfoSheet
+import struct Gemstone.GemProviderLoadingRow
 import struct Gemstone.GemProviderRow
 import struct Gemstone.GemSwapDetails
 import enum Gemstone.SwapProvider
@@ -17,6 +18,7 @@ public struct SwapDetailsView: View {
     @Environment(\.dismiss) private var dismiss
     private let details: GemSwapDetails?
     private let providers: StateViewType<[GemProviderRow]>
+    private let pendingProviders: [GemProviderLoadingRow]
     private let allowSelectProvider: Bool
     private let onSelectProvider: ((SwapProvider) -> Void)?
 
@@ -27,11 +29,13 @@ public struct SwapDetailsView: View {
     public init(
         details: GemSwapDetails?,
         providers: StateViewType<[GemProviderRow]> = .data([]),
+        pendingProviders: [GemProviderLoadingRow] = [],
         allowSelectProvider: Bool = false,
         onSelectProvider: ((SwapProvider) -> Void)? = nil,
     ) {
         self.details = details
         self.providers = providers
+        self.pendingProviders = pendingProviders
         self.allowSelectProvider = allowSelectProvider
         self.onSelectProvider = onSelectProvider
     }
@@ -61,16 +65,41 @@ public struct SwapDetailsView: View {
             InfoSheetScene(sheet: $0)
         }
         .sheet(isPresented: $isPresentingProviderSelection) {
-            SelectableListNavigationStack(
-                model: ProvidersViewModel(state: providers.map { .plain($0) }),
-                onFinishSelection: {
-                    if case let .swap(provider) = $0.first?.kind {
-                        onSelectProvider?(provider)
+            NavigationStack {
+                providersView
+                    .navigationTitle(Localized.Buy.Providers.title)
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .topBarLeading) {
+                            Button("", systemImage: SystemImage.xmark, action: { isPresentingProviderSelection = false })
+                        }
                     }
-                    isPresentingProviderSelection = false
-                },
-                listContent: { ListItemView(model: $0.listItem) },
-            )
+            }
+            .sheetPresentation(.forCurrentDeviceSize(expandable: true))
+        }
+    }
+
+    @ViewBuilder
+    private var providersView: some View {
+        switch providers {
+        case let .data(rows):
+            List {
+                ForEach(rows) { row in
+                    NavigationCustomLink(with: ListItemView(model: row.listItem)) {
+                        if case let .swap(provider) = row.kind {
+                            onSelectProvider?(provider)
+                        }
+                        isPresentingProviderSelection = false
+                    }
+                }
+                ForEach(pendingProviders) {
+                    ListItemView(model: $0.listItem)
+                }
+            }
+            .contentMargins([.top], .medium, for: .scrollContent)
+        case let .error(error): ListItemErrorView(errorTitle: Localized.Errors.errorOccurred, error: error)
+        case .loading: LoadingView()
+        case .noData: StateEmptyView(title: Localized.Common.notAvailable)
         }
     }
 

@@ -7,13 +7,18 @@ import typealias Gemstone.Currency
 import struct Gemstone.GemSwapPairFailure
 import struct Gemstone.GemSwapPairSelection
 import struct Gemstone.GemSwapPairSuggestion
+import enum Gemstone.GemSwapProviderAnswer
 import struct Gemstone.GemSwapQuoteInput
+import struct Gemstone.GemSwapQuoteProviders
 import protocol Gemstone.GemSwapQuoteServiceProtocol
 import struct Gemstone.GemSwapSession
 import enum Gemstone.GemSwapSide
 import struct Gemstone.GemTransferData
 import struct Gemstone.SwapData
+import enum Gemstone.SwapperError
 import struct Gemstone.SwapperQuote
+import struct Gemstone.SwapperQuoteRequest
+import enum Gemstone.SwapProvider
 import struct Gemstone.SwapProviderData
 import struct Gemstone.SwapQuote
 import struct Gemstone.SwapQuoteData
@@ -37,6 +42,7 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
     public private(set) var storedSlippageBps: UInt32?
     public private(set) var priceSubscriptions: [[AssetId]] = []
     public private(set) var balanceUpdates: [[AssetId]] = []
+    private var quoted: [SwapperQuote] = []
 
     public init(
         quotes: @escaping @Sendable (BigInt) async throws -> [SwapperQuote],
@@ -101,11 +107,19 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
         return []
     }
 
-    public func getQuotes(input: GemSwapQuoteInput) async throws -> [SwapperQuote] {
+    public func quoteProviders(input: GemSwapQuoteInput) async throws -> GemSwapQuoteProviders {
         if let quotesError {
             throw quotesError
         }
-        return try await quotes(BigInt(input.request.value))
+        quoted = try await quotes(BigInt(input.request.value))
+        return GemSwapQuoteProviders(request: .mock(), providers: quoted.map(\.data.provider.id))
+    }
+
+    public func quote(request _: SwapperQuoteRequest, provider: SwapProvider) async -> GemSwapProviderAnswer {
+        guard let quote = quoted.first(where: { $0.data.provider.id == provider }) else {
+            return .failed(provider: provider, error: .NoQuoteAvailable)
+        }
+        return .quote(quote: quote, leavesNoDust: false)
     }
 
     public func transferData(quote: SwapperQuote) async throws -> GemTransferData {

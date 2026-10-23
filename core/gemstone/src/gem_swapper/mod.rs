@@ -33,8 +33,16 @@ impl GemSwapper {
 }
 
 impl GemSwapper {
-    pub async fn get_quote(&self, request: &SwapperQuoteRequest) -> Result<Vec<SwapperQuote>, SwapperError> {
-        self.inner.get_quote(request).await
+    pub fn get_providers(&self, request: &SwapperQuoteRequest) -> Result<Vec<SwapperProvider>, SwapperError> {
+        Ok(self.inner.get_providers_for_request(request)?.into_iter().map(|provider| provider.id).collect())
+    }
+
+    pub async fn get_provider_quote(&self, provider: &SwapperProvider, request: &SwapperQuoteRequest) -> Result<SwapperQuote, SwapperError> {
+        self.inner.get_provider_quote(provider, request).await
+    }
+
+    pub fn leaves_no_dust(&self, quote: &SwapperQuote) -> bool {
+        self.inner.leaves_no_dust(quote)
     }
 
     pub fn supported_chains_for_from_asset(&self, asset_id: &AssetId) -> SwapperAssetList {

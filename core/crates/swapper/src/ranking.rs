@@ -7,7 +7,7 @@ use crate::{Quote, QuoteRequest, SwapAmountMode};
 
 const MAX_SHORTFALL_BPS: u32 = 5_000;
 
-pub(crate) fn rank_quotes(request: &QuoteRequest, mut quotes: Vec<Quote>, preferences: &[QuotePreference], amount_mode: impl Fn(&Quote) -> Option<SwapAmountMode>) -> Vec<Quote> {
+pub fn rank_quotes(request: &QuoteRequest, mut quotes: Vec<Quote>, preferences: &[QuotePreference], leaves_no_dust: impl Fn(&Quote) -> bool) -> Vec<Quote> {
     quotes.sort_by(|a, b| b.to_value.cmp(&a.to_value));
     let Some(best) = quotes.first().map(|quote| quote.to_value.clone()) else {
         return quotes;
@@ -19,7 +19,7 @@ pub(crate) fn rank_quotes(request: &QuoteRequest, mut quotes: Vec<Quote>, prefer
             QuotePreference::Providers { providers, tolerance_bps } => prefer(&mut quotes, &best, *tolerance_bps, |quote| providers.contains(&quote.data.provider.id)),
             QuotePreference::DustFreeMaxAmount { tolerance_bps } => {
                 if request.options.use_max_amount && request.from_asset.is_native() {
-                    prefer(&mut quotes, &best, *tolerance_bps, |quote| leaves_no_dust(quote, amount_mode(quote)));
+                    prefer(&mut quotes, &best, *tolerance_bps, &leaves_no_dust);
                 }
             }
         }
@@ -27,7 +27,7 @@ pub(crate) fn rank_quotes(request: &QuoteRequest, mut quotes: Vec<Quote>, prefer
     quotes
 }
 
-fn leaves_no_dust(quote: &Quote, amount_mode: Option<SwapAmountMode>) -> bool {
+pub(crate) fn leaves_no_dust(quote: &Quote, amount_mode: Option<SwapAmountMode>) -> bool {
     match amount_mode {
         Some(SwapAmountMode::Flexible) => true,
         Some(SwapAmountMode::Fixed) | None => max_amount_spends_all_but_fee(quote.request.from_asset.chain()),
@@ -63,11 +63,12 @@ mod tests {
         }
     }
 
-    fn deposit_only_near_intents(quote: &Quote) -> Option<SwapAmountMode> {
-        match quote.data.provider.id {
-            SwapperProvider::NearIntents => Some(SwapAmountMode::Flexible),
-            _ => Some(SwapAmountMode::Fixed),
-        }
+    fn deposit_only_near_intents(quote: &Quote) -> bool {
+        let amount_mode = match quote.data.provider.id {
+            SwapperProvider::NearIntents => SwapAmountMode::Flexible,
+            _ => SwapAmountMode::Fixed,
+        };
+        leaves_no_dust(quote, Some(amount_mode))
     }
 
     fn providers(quotes: Vec<Quote>) -> Vec<SwapperProvider> {

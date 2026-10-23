@@ -484,6 +484,12 @@ pub struct GemProviderRow {
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemProviderLoadingRow {
+    pub kind: GemProviderKind,
+    pub name: String,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAddressRow {
     pub title: GemLocalizedText,
     pub text: GemLocalizedText,

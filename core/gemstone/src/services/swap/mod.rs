@@ -7,25 +7,30 @@ pub mod store;
 #[cfg(test)]
 pub(crate) mod testkit;
 
-use crate::models::custom_types::{GemBigInt, GemBigUint};
+use crate::models::custom_types::GemBigInt;
+use futures::future::{Either, select};
+use primitives::swap::SwapProviderMode;
 use primitives::unix_seconds;
 use std::sync::Arc;
+use std::time::Duration;
 
 use primitives::swap::Permit2ApprovalData;
 use primitives::{Asset, Wallet};
 use swapper::permit2_data::{Permit2Data, PermitSingle, permit2_data_to_eip712_json};
-use swapper::{AssetList, FetchQuoteData, Quote, SwapperError};
+use swapper::{AssetList, FetchQuoteData, Quote, QuoteRequest, SwapperError, SwapperProvider};
 
 use crate::config::swap_config::get_swap_config;
 use crate::gem_swapper::GemSwapper;
 use crate::message::sign_type::SignMessage;
 use crate::services::assets::GemAssetAction;
+use crate::services::clock::sleep;
 use crate::services::error::GemServiceError;
 use crate::services::transfer::GemTransferData;
 use gem_wallet_connect::SignDigestType;
 pub use model::{GemAssetRate, GemSwapButtonAction, GemSwapButtonInput, GemSwapPair, GemSwapPairSuggestion, GemSwapQuoteSummary, GemSwapRequote, swap_quote_summary};
 use primitives::AssetId;
-pub use session::{GemSwapQuotePhase, GemSwapQuotesResult, GemSwapRequest, GemSwapSession, GemSwapSessionAction, GemSwapTransferPhase};
+use session::GemSwapQuoteInput;
+pub use session::{GemSwapProviderAnswer, GemSwapQuotePhase, GemSwapQuoteProviders, GemSwapQuotesResult, GemSwapRequest, GemSwapSession, GemSwapSessionAction, GemSwapTransferPhase};
 pub use store::GemSwapStore;
 
 #[derive(uniffi::Object)]
@@ -43,9 +48,17 @@ impl GemSwapService {
 }
 
 impl GemSwapService {
-    pub async fn get_quotes(&self, wallet: Wallet, from_asset: Asset, to_asset: Asset, value: GemBigUint, use_max_amount: bool, slippage_bps: Option<u32>) -> Result<Vec<Quote>, SwapperError> {
-        let request = rules::quote_request(&wallet, &from_asset, &to_asset, value, use_max_amount, slippage_bps)?;
-        self.swapper.get_quote(&request).await
+    pub fn quote_providers(&self, wallet: &Wallet, from_asset: &Asset, to_asset: &Asset, input: &GemSwapQuoteInput) -> Result<GemSwapQuoteProviders, SwapperError> {
+        let request = rules::quote_request(wallet, from_asset, to_asset, input.request.value.clone(), input.use_max_amount, input.request.slippage_bps)?;
+        Ok(GemSwapQuoteProviders {
+            providers: self.swapper.get_providers(&request)?,
+            request,
+        })
+    }
+
+    pub async fn quote(&self, request: &QuoteRequest, provider: SwapperProvider) -> GemSwapProviderAnswer {
+        let timeout = SwapProviderMode::for_pair(request.from_asset.chain(), request.to_asset.chain()).quote_timeout();
+        self.quote_within(request, provider, timeout).await
     }
 
     pub async fn suggest_pair(&self, wallet: Wallet, pay_asset_id: Option<AssetId>) -> Result<Option<GemSwapPairSuggestion>, GemServiceError> {
@@ -101,6 +114,23 @@ impl GemSwapService {
 }
 
 impl GemSwapService {
+    async fn quote_within(&self, request: &QuoteRequest, provider: SwapperProvider, timeout: Duration) -> GemSwapProviderAnswer {
+        let quote = self.swapper.get_provider_quote(&provider, request);
+        let timeout = sleep(timeout);
+        futures::pin_mut!(quote, timeout);
+        let result = match select(quote, timeout).await {
+            Either::Left((result, _)) => result,
+            Either::Right(_) => Err(SwapperError::NoQuoteAvailable),
+        };
+        match result {
+            Ok(quote) => GemSwapProviderAnswer::Quote {
+                leaves_no_dust: self.swapper.leaves_no_dust(&quote),
+                quote,
+            },
+            Err(error) => GemSwapProviderAnswer::Failed { provider, error },
+        }
+    }
+
     fn permit2_message(&self, quote: &Quote, approval: &Permit2ApprovalData) -> Result<(PermitSingle, SignMessage), SwapperError> {
         let chain = quote.request.from_asset.chain();
         let now = unix_seconds().map_err(|error| SwapperError::TransactionError(error.to_string()))?;
@@ -134,10 +164,32 @@ impl GemSwapService {
 mod tests {
     use primitives::{Chain, asset_constants::SMARTCHAIN_USDT_TOKEN_ID};
 
-    use super::testkit::MemorySwapStore;
+    use super::testkit::{MemorySwapStore, SilentSwapper};
     use super::*;
     use crate::services::assets::GemAssetFilter;
     use futures::executor::block_on;
+    use swapper::testkit::{MockSwapper, mock_quote};
+
+    #[test]
+    fn test_a_provider_silent_past_the_timeout_is_left_out() {
+        block_on(async {
+            let service = GemSwapService::mock_with_swappers(vec![
+                Box::new(SilentSwapper::new(SwapperProvider::NearIntents)),
+                Box::new(MockSwapper::new(SwapperProvider::UniswapV3, |request| Ok(Quote::mock_with_request(request)))),
+            ]);
+            let request = mock_quote(AssetId::from_chain(Chain::Ethereum).into(), primitives::asset_constants::ETHEREUM_USDC_ASSET_ID.clone().into());
+
+            assert_eq!(
+                service.quote_within(&request, SwapperProvider::NearIntents, Duration::from_millis(10)).await,
+                GemSwapProviderAnswer::Failed {
+                    provider: SwapperProvider::NearIntents,
+                    error: SwapperError::NoQuoteAvailable
+                }
+            );
+            let answer = service.quote_within(&request, SwapperProvider::UniswapV3, Duration::from_millis(10)).await;
+            assert!(answer.quote().is_some(), "a provider that answers in time keeps its quote: {answer:?}");
+        });
+    }
 
     #[test]
     fn test_a_wallet_that_has_never_paid_with_anything_gets_no_suggestion() {

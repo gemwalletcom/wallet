@@ -64,7 +64,7 @@ impl SwapperError {
         Self::TransactionError(error.to_string())
     }
 
-    pub(crate) fn combined(errors: Vec<SwapperError>) -> Self {
+    pub fn combined(errors: Vec<SwapperError>) -> Self {
         if !errors.is_empty() && errors.iter().all(|error| *error == SwapperError::Offline) {
             return SwapperError::Offline;
         }

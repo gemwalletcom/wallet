@@ -9,6 +9,7 @@ mod fee_token;
 pub mod fees;
 mod provider_group;
 mod ranking;
+pub use ranking::rank_quotes;
 mod swapper_trait;
 
 #[cfg(any(test, feature = "testkit"))]

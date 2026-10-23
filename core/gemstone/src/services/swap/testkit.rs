@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 use num_bigint::{BigInt, BigUint};
 use primitives::{Asset, AssetData, AssetId, Balance, Chain, RecentActivityType, WalletId};
 use swapper::testkit::MockSwapper;
-use swapper::{Quote, SwapperProvider};
+use swapper::{FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData};
 
 use super::GemSwapService;
 use super::model::{GemSwapButtonInput, GemSwapPair};
@@ -120,7 +120,6 @@ impl GemSwapSession {
 
 pub struct SwapQuoteTestkit {
     pub service: GemSwapQuoteService,
-    pub swap: Arc<GemSwapService>,
     pub discovery: DiscoveryTestkit,
     pub connection: Arc<MemoryStreamConnection>,
 }
@@ -141,9 +140,8 @@ impl SwapQuoteTestkit {
         let discovery = DiscoveryTestkit::with_provider(provider.clone(), Wallet::mock());
         let subscription = SubscriptionTestkit::new(&[], &[]);
         let connection = subscription.connection.clone();
-        let swap = Arc::new(swap);
         let service = GemSwapQuoteService::new(
-            swap.clone(),
+            Arc::new(swap),
             discovery.assets.clone(),
             discovery.preferences.clone(),
             discovery.balance.clone(),
@@ -151,6 +149,40 @@ impl SwapQuoteTestkit {
             discovery.session.clone(),
             Arc::new(GemConfigService::mock(provider)),
         );
-        Self { service, swap, discovery, connection }
+        Self { service, discovery, connection }
+    }
+}
+
+#[derive(Debug)]
+pub struct SilentSwapper {
+    provider: ProviderType,
+}
+
+impl SilentSwapper {
+    pub fn new(provider: SwapperProvider) -> Self {
+        Self { provider: ProviderType::new(provider) }
+    }
+}
+
+#[async_trait::async_trait]
+impl Swapper for SilentSwapper {
+    fn provider(&self) -> &ProviderType {
+        &self.provider
+    }
+
+    fn supported_assets(&self) -> Vec<SwapperChainAsset> {
+        vec![SwapperChainAsset::All(Chain::Ethereum)]
+    }
+
+    fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {
+        SwapAmountMode::Fixed
+    }
+
+    async fn get_quote(&self, _request: &QuoteRequest) -> Result<Quote, SwapperError> {
+        futures::future::pending().await
+    }
+
+    async fn get_quote_data(&self, _quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
+        Err(SwapperError::NoQuoteAvailable)
     }
 }

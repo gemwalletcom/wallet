@@ -1,12 +1,12 @@
 use std::sync::Arc;
 
 use primitives::{Asset, AssetId, Currency, Feature, Wallet};
-use swapper::{FetchQuoteData, Quote, SwapperError};
+use swapper::{FetchQuoteData, Quote, QuoteRequest, SwapperError, SwapperProvider};
 
 use super::model::{GemSwapPairSelection, GemSwapSide};
 use super::rules;
 use super::session::GemSwapQuoteInput;
-use super::{GemSwapPairSuggestion, GemSwapService, GemSwapSession};
+use super::{GemSwapPairSuggestion, GemSwapProviderAnswer, GemSwapQuoteProviders, GemSwapService, GemSwapSession};
 use crate::models::custom_types::GemBigInt;
 use crate::services::assets::GemAssetsService;
 use crate::services::balance::GemBalanceService;
@@ -100,10 +100,17 @@ impl GemSwapQuoteService {
         rules::amount_for_percent(&available, percent)
     }
 
-    pub async fn get_quotes(&self, input: GemSwapQuoteInput) -> Result<Vec<Quote>, SwapperError> {
-        let request = input.request;
-        let (wallet, from_asset, to_asset) = self.pair(request.pay_asset_id, request.receive_asset_id).await.map_err(|error| SwapperError::ComputeQuoteError(error.to_string()))?;
-        self.swap.get_quotes(wallet, from_asset, to_asset, request.value, input.use_max_amount, request.slippage_bps).await
+    pub async fn quote_providers(&self, input: GemSwapQuoteInput) -> Result<GemSwapQuoteProviders, SwapperError> {
+        let request = &input.request;
+        let (wallet, from_asset, to_asset) = self
+            .pair(request.pay_asset_id.clone(), request.receive_asset_id.clone())
+            .await
+            .map_err(|error| SwapperError::ComputeQuoteError(error.to_string()))?;
+        self.swap.quote_providers(&wallet, &from_asset, &to_asset, &input)
+    }
+
+    pub async fn quote(&self, request: QuoteRequest, provider: SwapperProvider) -> GemSwapProviderAnswer {
+        self.swap.quote(&request, provider).await
     }
 
     pub async fn suggest_pair(&self, pay_asset_id: Option<AssetId>) -> Option<GemSwapPairSuggestion> {
@@ -183,11 +190,17 @@ mod tests {
         block_on(async {
             let testkit = SwapQuoteTestkit::with_swapper(echoing_swapper(), vec![Asset::mock_eth(), Asset::mock_ethereum_usdc()]);
 
-            let quotes = testkit.service.get_quotes(eth_to_usdc()).await.unwrap();
+            let providers = testkit.service.quote_providers(eth_to_usdc()).await.unwrap();
 
             let wallet = testkit.discovery.session.require_current_wallet().await.unwrap();
-            let direct = testkit.swap.get_quotes(wallet, Asset::mock_eth(), Asset::mock_ethereum_usdc(), ONE_ETH.into(), true, Some(150)).await.unwrap();
-            assert_eq!(quotes, direct, "the input names the same quotes the assets used to");
+            let direct = rules::quote_request(&wallet, &Asset::mock_eth(), &Asset::mock_ethereum_usdc(), ONE_ETH.into(), true, Some(150)).unwrap();
+            assert_eq!(providers.request, direct, "the input names the request the stored assets build");
+            assert_eq!(providers.providers, vec![SwapperProvider::UniswapV3]);
+
+            let GemSwapProviderAnswer::Quote { quote, .. } = testkit.service.quote(providers.request.clone(), SwapperProvider::UniswapV3).await else {
+                panic!("the provider answers with a quote")
+            };
+            assert!(quote.request.value < providers.request.value, "a max swap keeps the fee reserve back for a provider that needs the exact amount");
         })
     }
 
@@ -197,7 +210,10 @@ mod tests {
             let swapper = echoing_swapper();
             let builds = swapper.builds();
             let testkit = SwapQuoteTestkit::with_swapper(swapper, vec![Asset::mock_eth(), Asset::mock_ethereum_usdc()]);
-            let quote = testkit.service.get_quotes(eth_to_usdc()).await.unwrap().remove(0);
+            let providers = testkit.service.quote_providers(eth_to_usdc()).await.unwrap();
+            let GemSwapProviderAnswer::Quote { quote, .. } = testkit.service.quote(providers.request, SwapperProvider::UniswapV3).await else {
+                panic!("the provider answers with a quote")
+            };
 
             let transfer = testkit.service.transfer_data(quote).await.unwrap();
 

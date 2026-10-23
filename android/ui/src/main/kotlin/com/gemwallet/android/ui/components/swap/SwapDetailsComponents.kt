@@ -1,8 +1,11 @@
 package com.gemwallet.android.ui.components.swap
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -20,15 +23,19 @@ import com.gemwallet.android.domains.swap.AssetRatePair
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoSheetEntity
+import com.gemwallet.android.ui.components.NumericText
 import com.gemwallet.android.ui.components.dialog.DialogBarDismissType
 import com.gemwallet.android.ui.components.list_item.GemListRowView
-import com.gemwallet.android.ui.components.list_item.ListItem
-import com.gemwallet.android.ui.components.list_item.ListItemModel
+import com.gemwallet.android.ui.components.list_item.ProviderLoadingRowView
 import com.gemwallet.android.ui.components.list_item.ProviderRowView
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.WarningItem
 import com.gemwallet.android.ui.components.list_item.property.AssetRatePropertyItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
+import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
+import com.gemwallet.android.ui.components.list_item.property.PropertyItem
+import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
+import com.gemwallet.android.ui.components.progress.CircularProgressIndicator14
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator20
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.SheetExpansion
@@ -36,38 +43,68 @@ import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.style.textStyle
+import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.pendingColor
 import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemProviderKind
+import uniffi.gemstone.GemProviderLoadingRow
 import uniffi.gemstone.GemProviderRow
 import uniffi.gemstone.GemSwapDetails
+import uniffi.gemstone.GemSwapQuoteProgress
 import uniffi.gemstone.GemSwapQuotesState
 import uniffi.gemstone.SwapProvider
 
 @Composable
-fun SwapDetailsSummaryItem(details: GemSwapDetails, onClick: () -> Unit, listPosition: ListPosition = ListPosition.Single) {
+fun SwapDetailsSummaryItem(details: GemSwapDetails, onClick: () -> Unit, progress: GemSwapQuoteProgress? = null, listPosition: ListPosition = ListPosition.Single) {
     val priceImpact = details.summary.priceImpactRow?.takeIf { it.showsInSummary }?.value
 
-    ListItem(
-        model = ListItemModel(title = stringResource(R.string.common_details), subtitle = details.rate?.forward),
-        listPosition = listPosition,
+    PropertyItem(
         modifier = Modifier.clickable(onClick = onClick),
-        accessory = {
-            if (priceImpact != null) {
-                DataBadgeChevron {
-                    Text(
-                        text = "(${priceImpact.text()})",
-                        color = priceImpact.tone.color(),
-                        maxLines = 1,
-                        overflow = TextOverflow.Clip,
-                        softWrap = false,
-                    )
-                }
-            } else {
-                DataBadgeChevron()
-            }
+        title = { PropertyTitleText(R.string.common_details) },
+        data = {
+            progress?.let { SwapQuoteProgress(it) }
+            PropertyDataText(
+                text = details.rate?.forward.orEmpty(),
+                badge = {
+                    if (priceImpact != null) {
+                        DataBadgeChevron {
+                            Text(
+                                text = "(${priceImpact.text()})",
+                                color = priceImpact.tone.color(),
+                                maxLines = 1,
+                                overflow = TextOverflow.Clip,
+                                softWrap = false,
+                            )
+                        }
+                    } else {
+                        DataBadgeChevron()
+                    }
+                },
+            )
         },
+        listPosition = listPosition,
     )
+}
+
+@Composable
+private fun SwapQuoteProgress(progress: GemSwapQuoteProgress) {
+    Row(
+        modifier = Modifier.padding(end = paddingHalfSmall),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(paddingHalfSmall),
+    ) {
+        CircularProgressIndicator14(
+            progress = { progress.fraction.toFloat() },
+            color = MaterialTheme.colorScheme.secondary,
+            trackColor = MaterialTheme.colorScheme.secondaryContainer,
+        )
+        NumericText(
+            text = progress.text,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.secondary,
+            maxLines = 1,
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -80,6 +117,7 @@ fun SwapDetailsBottomSheet(
     quotesState: GemSwapQuotesState = GemSwapQuotesState.Quotes,
     expansion: SheetExpansion = SheetExpansion.Partial,
     providers: List<GemProviderRow> = emptyList(),
+    pendingProviders: List<GemProviderLoadingRow> = emptyList(),
     isProviderSelectable: Boolean = false,
     onProviderSelect: ((SwapProvider) -> Unit)? = null,
 ) {
@@ -114,6 +152,7 @@ fun SwapDetailsBottomSheet(
                 SwapDetailsList(
                     details = it,
                     providers = providers,
+                    pendingProviders = pendingProviders,
                     isProviderSelectable = isProviderSelectable,
                     onProviderSelect = onProviderSelect,
                     onDismiss = onDismiss,
@@ -124,17 +163,18 @@ fun SwapDetailsBottomSheet(
 }
 
 @Composable
-private fun SwapDetailsList(details: GemSwapDetails, providers: List<GemProviderRow>, isProviderSelectable: Boolean, onProviderSelect: ((SwapProvider) -> Unit)?, onDismiss: () -> Unit) {
+private fun SwapDetailsList(details: GemSwapDetails, providers: List<GemProviderRow>, pendingProviders: List<GemProviderLoadingRow>, isProviderSelectable: Boolean, onProviderSelect: ((SwapProvider) -> Unit)?, onDismiss: () -> Unit) {
     val context = LocalContext.current
     LazyColumn {
         item {
             SubheaderItem(GemListRowTitle.PROVIDER.text(context))
         }
         if (onProviderSelect != null && isProviderSelectable) {
+            val rows = providers.size + pendingProviders.size
             itemsIndexed(providers) { index, provider ->
                 ProviderRowView(
                     row = provider,
-                    listPosition = ListPosition.getPosition(index, providers.size),
+                    listPosition = ListPosition.getPosition(index, rows),
                     onClick = (provider.kind as? GemProviderKind.Swap)?.let { kind ->
                         {
                             onDismiss()
@@ -142,6 +182,9 @@ private fun SwapDetailsList(details: GemSwapDetails, providers: List<GemProvider
                         }
                     },
                 )
+            }
+            itemsIndexed(pendingProviders) { index, provider ->
+                ProviderLoadingRowView(row = provider, listPosition = ListPosition.getPosition(providers.size + index, rows))
             }
         } else {
             item {

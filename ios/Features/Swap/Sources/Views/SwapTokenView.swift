@@ -11,6 +11,7 @@ import SwiftUI
 struct SwapTokenView: View {
     let side: GemSwapSideState
     @Binding var text: String
+    var isQuote: Bool = false
     var showLoading: Bool = false
     var onBalanceAction: () -> Void
     var onSelectAssetAction: () -> Void
@@ -34,12 +35,22 @@ struct SwapTokenView: View {
             if showLoading {
                 LoadingView()
             }
-            TextField(side.amountPlaceholder, text: $text)
-                .keyboardType(.decimalPad)
-                .foregroundStyle(Colors.black)
-                .font(.app.title1)
-                .disabled(!side.interaction.isAmountEditable)
-                .multilineTextAlignment(.leading)
+            if isQuote {
+                Text(text.isEmpty ? side.amountPlaceholder : text)
+                    .foregroundStyle(text.isEmpty ? Color(.placeholderText) : Colors.black)
+                    .font(.app.title1)
+                    .lineLimit(1, reservesSpace: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .contentTransition(.numericText(countsDown: true))
+                    .animation(text.isEmpty ? nil : .default, value: text)
+            } else {
+                TextField(side.amountPlaceholder, text: $text)
+                    .keyboardType(.decimalPad)
+                    .foregroundStyle(Colors.black)
+                    .font(.app.title1)
+                    .disabled(!side.interaction.isAmountEditable)
+                    .multilineTextAlignment(.leading)
+            }
         }
     }
 

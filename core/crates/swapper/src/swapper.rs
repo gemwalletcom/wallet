@@ -1,15 +1,11 @@
-use crate::ranking::rank_quotes;
+use crate::ranking::{leaves_no_dust, rank_quotes};
 use crate::{
     AssetList, FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, SwapQuoteError, SwapQuotes, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperProviderMode, SwapperQuoteData,
     across, alien::RpcProvider, bridgers, cetus_clmm, chainflip, config::quote_preferences, cross_chain::VaultAddresses, dedust, hyperion, hyperliquid, jupiter, mayan, meteora_damm_v2, meteora_dlmm, near_intents, okx, orca, panora,
     provider_group::ProviderGroup, pump_swap, raydium_amm, raydium_clmm, raydium_cpmm, relay, solana_dex, squid, stonfi, swaps_xyz, thorchain, uniswap,
 };
 use primitives::{AssetId, Chain, EVMChain};
-use std::{
-    collections::{BTreeSet, HashSet},
-    fmt::Debug,
-    sync::Arc,
-};
+use std::{collections::HashSet, fmt::Debug, sync::Arc};
 
 #[derive(Debug)]
 pub struct GemSwapper {
@@ -29,8 +25,8 @@ impl GemSwapper {
         supported_chains.contains(&from_chain) && supported_chains.contains(&to_chain)
     }
 
-    fn amount_mode(&self, quote: &Quote) -> Option<SwapAmountMode> {
-        self.get_swapper_by_provider(&quote.data.provider.id).ok().map(|swapper| swapper.amount_mode(&quote.request))
+    pub fn leaves_no_dust(&self, quote: &Quote) -> bool {
+        leaves_no_dust(quote, self.get_swapper_by_provider(&quote.data.provider.id).ok().map(|swapper| swapper.amount_mode(&quote.request)))
     }
 
     fn get_swapper_by_provider(&self, provider: &SwapperProvider) -> Result<&dyn Swapper, SwapperError> {
@@ -135,7 +131,7 @@ impl GemSwapper {
         from_asset.chain == to_asset.chain && ((from_asset.is_native() && to_asset.is_native_mirror()) || (from_asset.is_native_mirror() && to_asset.is_native()))
     }
 
-    fn get_providers_for_request(&self, request: &QuoteRequest) -> Result<Vec<ProviderType>, SwapperError> {
+    pub fn get_providers_for_request(&self, request: &QuoteRequest) -> Result<Vec<ProviderType>, SwapperError> {
         if request.from_asset.id == request.to_asset.id || Self::is_native_mirror_pair(&request.from_asset.asset_id(), &request.to_asset.asset_id()) {
             return Err(SwapperError::NoQuoteAvailable);
         }
@@ -163,25 +159,28 @@ impl GemSwapper {
     }
 
     pub async fn get_quotes(&self, request: &QuoteRequest) -> Result<SwapQuotes, SwapperError> {
-        let provider_ids: BTreeSet<_> = self.get_providers_for_request(request)?.into_iter().map(|p| p.id).collect();
-        let (from_asset, to_asset) = (&request.from_asset.asset_id(), &request.to_asset.asset_id());
-        let quotes_futures = self.swappers.iter().filter(|x| provider_ids.contains(&x.provider().id)).map(|x| {
-            let provider_id = x.provider().id.id().to_string();
-            async move {
-                let request = Self::quote_request_for_mode(x.amount_mode(request), request).map_err(|error| (provider_id.clone(), error))?;
-                x.preload_routes(from_asset, to_asset).await;
-                x.get_quote(&request).await.map_err(|error| (provider_id, error))
+        let providers = self.get_providers_for_request(request)?;
+        let quote_results = futures::future::join_all(providers.iter().map(|provider| async move { (provider.id, self.get_provider_quote(&provider.id, request).await) })).await;
+
+        let mut quotes = Vec::new();
+        let mut errors = Vec::new();
+        for (provider, result) in quote_results {
+            match result {
+                Ok(quote) => quotes.push(quote),
+                Err(error) => errors.push(SwapQuoteError::new(Some(provider.id().to_string()), error)),
             }
-        });
+        }
+        Ok(SwapQuotes {
+            quotes: rank_quotes(request, quotes, &quote_preferences(), |quote| self.leaves_no_dust(quote)),
+            errors,
+        })
+    }
 
-        let quote_results = futures::future::join_all(quotes_futures).await;
-
-        let (quotes, errors): (Vec<_>, Vec<_>) = quote_results.into_iter().partition(Result::is_ok);
-        let quotes = quotes.into_iter().filter_map(Result::ok).collect();
-        let errors = errors.into_iter().filter_map(Result::err).map(|(provider_id, error)| SwapQuoteError::new(Some(provider_id), error)).collect();
-
-        let quotes = rank_quotes(request, quotes, &quote_preferences(), |quote| self.amount_mode(quote));
-        Ok(SwapQuotes { quotes, errors })
+    pub async fn get_provider_quote(&self, provider: &SwapperProvider, request: &QuoteRequest) -> Result<Quote, SwapperError> {
+        let swapper = self.get_swapper_by_provider(provider)?;
+        let request = Self::quote_request_for_mode(swapper.amount_mode(request), request)?;
+        swapper.preload_routes(&request.from_asset.asset_id(), &request.to_asset.asset_id()).await;
+        swapper.get_quote(&request).await
     }
 
     fn quote_request_for_mode(mode: SwapAmountMode, request: &QuoteRequest) -> Result<QuoteRequest, SwapperError> {
@@ -476,7 +475,7 @@ mod tests {
 
 #[cfg(all(test, feature = "swap_integration_tests"))]
 mod swap_integration_tests {
-    use std::{sync::Arc, time::Instant};
+    use std::{collections::BTreeSet, sync::Arc, time::Instant};
 
     use num_bigint::BigUint;
     use primitives::{
