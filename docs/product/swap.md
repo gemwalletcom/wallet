@@ -64,10 +64,10 @@ sequenceDiagram
 
 | Pair | Short wait after the first quote | Round closes after the request |
 |---|---|---|
-| Both assets on one network | `0.5 s` | `8 s` |
-| Across networks | `1 s` | `15 s` |
+| Both assets on one network | `0.5 s` | `6 s` |
+| Across networks | `1 s` | `12 s` |
 
-The short wait counts from the first quote, so a slow connection still gets every answer; the long close leaves room for slow connections and slow providers. While the round is open, the Details row shows a small spinner and how many providers answered of those asked, as `3/4`, before the rate, Swap works, and Providers lists each provider that answered and a loading row for each one still quoting. The first quote fades in where the spinner was, without moving; a better quote then rolls You Receive and its fiat value to the new amount, ranked as in [Choosing a quote](#choosing-a-quote). When the round closes, a provider still silent is left out and the spinner and `3/4` fade out; with no quote at all, No quote available shows with Try Again.
+The short wait counts from the first quote, so a slow connection still gets every answer; the long close leaves room for slow connections and slow providers. While the round is open, the Details row shows a small spinner and how many providers answered of those asked, as `3/4`, before the rate, Swap works, and Providers lists each provider that answered and a loading row for each one still quoting. You Receive's spinner sits at the start of the row, centered on its height; the first quote and its fiat value fade in at their usual places over it, without moving, and a better quote then rolls You Receive and its fiat value to the new amount, ranked as in [Choosing a quote](#choosing-a-quote). When the round closes, a provider still silent is left out and the spinner and `3/4` fade out; with no quote at all, No quote available shows with Try Again.
 
 A quote that loses more than `1%` against the market price, the point where Details starts showing the Price Impact, is not shown early: You Receive keeps its spinner and the Details row shows only the spinner and `2/4`, with no rate, until a provider gives a quote within `1%` or the round ends. Tapping it opens Providers with the quotes so far, and a provider the user picks there shows at once. When every provider has answered or the round closes, the best quote shows with its Price Impact, and the `10%` High Price Impact confirmation still asks first. A pair without prices has no Price Impact, so its quotes are never held.
 
@@ -366,7 +366,7 @@ A deposit no relayer fills is refunded once its fill deadline passes. The deadli
 | Providers is opened while the round is open | a row for each provider that answered and a loading row for each one still quoting | (`test_the_providers_list_shows_a_loading_row_for_each_provider_still_quoting`) |
 | The user picked a provider in Providers and a better quote arrives | the picked provider stays | the user's choice wins (`test_the_users_choice_wins_over_a_later_answer`) |
 | The user tapped Swap and a provider answers afterwards | the trade does not change; Confirm asks that provider again once the quote is old | the trade on Confirm is the one the user chose (`test_the_users_choice_wins_over_a_later_answer`) |
-| A provider is still silent `8 s` after the request on one network, `15 s` across networks | it is left out and the spinner and `3/4` fade out | the round always closes (`test_a_provider_silent_past_the_timeout_or_failing_hard_is_left_out`) |
+| A provider is still silent `6 s` after the request on one network, `12 s` across networks | it is left out and the spinner and `3/4` fade out | the round always closes (`test_a_provider_silent_past_the_timeout_or_failing_hard_is_left_out`) |
 | No provider gave a quote by the close | No quote available with Try Again | (`test_no_quote_once_every_provider_answered_is_the_error`) |
 | The best quote so far loses more than `1%` and providers are still quoting | You Receive keeps its spinner, Details shows the spinner and `1/4` without a rate, and tapping it opens Providers with the quotes so far | an early quote from a thin pool should not be the first number the user sees when a better one may follow (`test_a_quote_losing_more_than_the_hold_waits_and_a_better_late_quote_shows_at_once`) |
 | A quote within `1%` then arrives | it shows at once, with the spinner and the count on Details while the rest answer | |
@@ -399,7 +399,7 @@ A deposit no relayer fills is refunded once its fill deadline passes. The deadli
 
 - Regional restrictions follow the shared [Feature availability](../PRODUCT.md#feature-availability) table.
 - A quote is never cached: every eligible provider is asked again for the live amount, and every quote is priced on live chain state. Only the facts that never change are kept, and for `5 minutes` which pools lost at that exact amount, as [On-chain quotes](#on-chain-quotes) lists.
-- A slow provider never holds back a quote another provider already gave: the first quote shows at all answers, all but one, or the short wait, unless it loses more than `1%`, and the round closes `8 s` or `15 s` after the request, as [Asking the providers](#asking-the-providers) says.
+- A slow provider never holds back a quote another provider already gave: the first quote shows at all answers, all but one, or the short wait, unless it loses more than `1%`, and the round closes `6 s` or `12 s` after the request, as [Asking the providers](#asking-the-providers) says.
 - Swap never signs anything: the confirmation screen holds the only authentication and signs the trade it loaded and showed.
 - A Solana swap the wallet signs alone is built without a recent blockhash and signed with the one the confirmation screen fetched on its last load or refresh, so the swap and the screen never fetch one each. A transaction another party has already signed, or one that uses a durable nonce, keeps its own (`test_sign_swap_uses_the_confirmation_blockhash`).
 - The Slippage row reads Auto on both screens until the user picks a value.

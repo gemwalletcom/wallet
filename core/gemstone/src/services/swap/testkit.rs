@@ -153,29 +153,19 @@ impl SwapQuoteTestkit {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
-pub enum StubQuote {
-    Silent,
-    Panics,
-}
-
 #[derive(Debug)]
-pub struct StubSwapper {
+pub struct SilentSwapper {
     provider: ProviderType,
-    quote: StubQuote,
 }
 
-impl StubSwapper {
-    pub fn new(provider: SwapperProvider, quote: StubQuote) -> Self {
-        Self {
-            provider: ProviderType::new(provider),
-            quote,
-        }
+impl SilentSwapper {
+    pub fn new(provider: SwapperProvider) -> Self {
+        Self { provider: ProviderType::new(provider) }
     }
 }
 
 #[async_trait::async_trait]
-impl Swapper for StubSwapper {
+impl Swapper for SilentSwapper {
     fn provider(&self) -> &ProviderType {
         &self.provider
     }
@@ -189,10 +179,7 @@ impl Swapper for StubSwapper {
     }
 
     async fn get_quote(&self, _request: &QuoteRequest) -> Result<Quote, SwapperError> {
-        match self.quote {
-            StubQuote::Silent => futures::future::pending().await,
-            StubQuote::Panics => panic!("provider failed"),
-        }
+        futures::future::pending().await
     }
 
     async fn get_quote_data(&self, _quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {

@@ -39,7 +39,7 @@ import com.gemwallet.android.ui.components.fields.AmountInputTransformation
 import com.gemwallet.android.ui.components.fields.decimalKeyboardOptions
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.list_item.listItem
-import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
+import com.gemwallet.android.ui.components.progress.CircularProgressIndicator20
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.models.ListPosition
@@ -66,47 +66,56 @@ internal fun SwapToken(
     onBalanceClick: () -> Unit,
     onAssetSelect: () -> Unit,
 ) {
-    Row(
+    Box(
         modifier = Modifier
             .listItem(ListPosition.Single)
             .padding(horizontal = paddingMiddle, vertical = paddingMiddle)
-            .fillMaxWidth()
-            .heightIn(min = listItemIconSize),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(paddingSmall),
+            .fillMaxWidth(),
+        contentAlignment = Alignment.CenterStart,
     ) {
-        Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(space2),
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = listItemIconSize),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(paddingSmall),
         ) {
-            SwapItemInput(
-                calculating = calculating,
-                quote = quote,
-                isQuote = isQuote,
-                interaction = side.interaction,
-                state = state,
-                assetSelected = item != null,
-                placeholder = side.amountPlaceholder,
-            )
-            QuoteFade(isLoading = calculating) {
-                SwapEquivalent(equivalent = side.fiat?.text().orEmpty(), animated = isQuote)
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(space2),
+            ) {
+                SwapItemInput(
+                    calculating = calculating,
+                    quote = quote,
+                    isQuote = isQuote,
+                    interaction = side.interaction,
+                    state = state,
+                    assetSelected = item != null,
+                    placeholder = side.amountPlaceholder,
+                )
+                QuoteFade(isLoading = calculating) {
+                    SwapEquivalent(equivalent = side.fiat?.text().orEmpty(), animated = isQuote)
+                }
+            }
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(space2),
+            ) {
+                SwapItemLotInfo(
+                    title = side.title.string(LocalContext.current),
+                    icon = side.icon,
+                    enabled = side.interaction.isAssetSelectable,
+                    onClick = onAssetSelect,
+                )
+                SwapBalance(
+                    balance = side.balance,
+                    interaction = side.interaction,
+                    onBalanceClick = onBalanceClick,
+                )
             }
         }
-        Column(
-            horizontalAlignment = Alignment.End,
-            verticalArrangement = Arrangement.spacedBy(space2),
-        ) {
-            SwapItemLotInfo(
-                title = side.title.string(LocalContext.current),
-                icon = side.icon,
-                enabled = side.interaction.isAssetSelectable,
-                onClick = onAssetSelect,
-            )
-            SwapBalance(
-                balance = side.balance,
-                interaction = side.interaction,
-                onBalanceClick = onBalanceClick,
-            )
+        if (calculating) {
+            CircularProgressIndicator20()
         }
     }
 }
@@ -191,9 +200,7 @@ private fun SwapItemInput(calculating: Boolean, quote: String?, isQuote: Boolean
     ) {
         if (isQuote) {
             QuoteFade(isLoading = calculating) { loading ->
-                if (loading) {
-                    CircularProgressIndicator16()
-                } else {
+                if (!loading) {
                     NumericText(
                         text = quote ?: placeholder,
                         style = amountTextStyle,

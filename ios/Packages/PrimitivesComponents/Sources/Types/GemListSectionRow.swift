@@ -27,7 +27,7 @@ public extension [GemListSection] {
     }
 }
 
-public extension ListSectionView where Item == GemListSectionRow {
+public extension ListSectionView where Item == GemListSectionRow, TrailingRows == EmptyView {
     init(sections: [GemListSection], @ViewBuilder content: @escaping (GemListRow) -> Content) {
         self.init(sections: sections.listSections) { content($0.row) }
     }

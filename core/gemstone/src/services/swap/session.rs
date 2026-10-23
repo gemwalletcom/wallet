@@ -131,8 +131,9 @@ impl GemSwapQuoteAnswers {
 
     fn results(&self) -> GemSwapQuotesResult {
         let quotes: Vec<SwapperQuote> = self.answers.iter().filter_map(GemSwapProviderAnswer::quote).cloned().collect();
+        let dust_free: Vec<SwapperProvider> = self.answers.iter().filter(|answer| answer.leaves_no_dust()).map(GemSwapProviderAnswer::provider).collect();
         let quotes = match quotes.first().map(|quote| quote.request.clone()) {
-            Some(request) => rank_quotes(&request, quotes, &quote_preferences(), |quote| self.leaves_no_dust(quote)),
+            Some(request) => rank_quotes(&request, quotes, &quote_preferences(), |quote| dust_free.contains(&quote.data.provider.id)),
             None => quotes,
         };
         GemSwapQuotesResult {
@@ -140,10 +141,6 @@ impl GemSwapQuoteAnswers {
             error: quotes.is_empty().then(|| SwapperError::combined(self.answers.iter().filter_map(GemSwapProviderAnswer::error).cloned().collect())),
             quotes,
         }
-    }
-
-    fn leaves_no_dust(&self, quote: &SwapperQuote) -> bool {
-        self.answers.iter().any(|answer| answer.quote() == Some(quote) && answer.leaves_no_dust())
     }
 }
 

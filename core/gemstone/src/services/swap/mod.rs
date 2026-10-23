@@ -166,7 +166,7 @@ impl GemSwapService {
 mod tests {
     use primitives::{Chain, asset_constants::SMARTCHAIN_USDT_TOKEN_ID};
 
-    use super::testkit::{MemorySwapStore, StubQuote, StubSwapper};
+    use super::testkit::{MemorySwapStore, SilentSwapper};
     use super::*;
     use crate::services::assets::GemAssetFilter;
     use futures::executor::block_on;
@@ -176,8 +176,8 @@ mod tests {
     fn test_a_provider_silent_past_the_timeout_or_failing_hard_is_left_out() {
         block_on(async {
             let service = GemSwapService::mock_with_swappers(vec![
-                Box::new(StubSwapper::new(SwapperProvider::NearIntents, StubQuote::Silent)),
-                Box::new(StubSwapper::new(SwapperProvider::Relay, StubQuote::Panics)),
+                Box::new(SilentSwapper::new(SwapperProvider::NearIntents)),
+                Box::new(MockSwapper::new(SwapperProvider::Relay, |_| panic!("provider failed"))),
                 Box::new(MockSwapper::new(SwapperProvider::UniswapV3, |request| Ok(Quote::mock_with_request(request)))),
             ]);
             let request = mock_quote(AssetId::from_chain(Chain::Ethereum).into(), primitives::asset_constants::ETHEREUM_USDC_ASSET_ID.clone().into());

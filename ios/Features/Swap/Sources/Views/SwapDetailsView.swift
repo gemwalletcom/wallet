@@ -47,7 +47,12 @@ public struct SwapDetailsView: View {
                 if let details {
                     listView(details)
                 } else {
-                    providersView
+                    SelectableListView(
+                        model: .constant(providersModel),
+                        onFinishSelection: onFinishProviderSelection,
+                        listContent: { ListItemView(model: $0.listItem) },
+                        trailingRows: pendingRows,
+                    )
                 }
             case let .error(error): List { ListItemErrorView(errorTitle: Localized.Errors.errorOccurred, error: error) }
             case .loading: LoadingView()
@@ -67,42 +72,30 @@ public struct SwapDetailsView: View {
             InfoSheetScene(sheet: $0)
         }
         .sheet(isPresented: $isPresentingProviderSelection) {
-            NavigationStack {
-                providersView
-                    .navigationTitle(Localized.Buy.Providers.title)
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
-                        ToolbarItem(placement: .topBarLeading) {
-                            Button("", systemImage: SystemImage.xmark, action: { isPresentingProviderSelection = false })
-                        }
-                    }
-            }
-            .sheetPresentation(.forCurrentDeviceSize(expandable: true))
+            SelectableListNavigationStack(
+                model: .constant(providersModel),
+                onFinishSelection: onFinishProviderSelection,
+                listContent: { ListItemView(model: $0.listItem) },
+                trailingRows: pendingRows,
+            )
         }
     }
 
-    @ViewBuilder
-    private var providersView: some View {
-        switch providers {
-        case let .data(rows):
-            List {
-                ForEach(rows) { row in
-                    NavigationCustomLink(with: ListItemView(model: row.listItem)) {
-                        if case let .swap(provider) = row.kind {
-                            onSelectProvider?(provider)
-                        }
-                        isPresentingProviderSelection = false
-                    }
-                }
-                ForEach(pendingProviders) {
-                    ListItemView(model: $0.listItem)
-                }
-            }
-            .contentMargins([.top], .medium, for: .scrollContent)
-        case let .error(error): ListItemErrorView(errorTitle: Localized.Errors.errorOccurred, error: error)
-        case .loading: LoadingView()
-        case .noData: StateEmptyView(title: Localized.Common.notAvailable)
+    private var providersModel: ProvidersViewModel {
+        ProvidersViewModel(state: providers.map { .plain($0) })
+    }
+
+    private func pendingRows() -> some View {
+        ForEach(pendingProviders) {
+            ListItemView(model: $0.listItem)
         }
+    }
+
+    private func onFinishProviderSelection(_ rows: [GemProviderRow]) {
+        if case let .swap(provider) = rows.first?.kind {
+            onSelectProvider?(provider)
+        }
+        isPresentingProviderSelection = false
     }
 
     private func listView(_ details: GemSwapDetails) -> some View {

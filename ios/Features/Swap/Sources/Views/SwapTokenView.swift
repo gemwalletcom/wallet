@@ -28,22 +28,22 @@ struct SwapTokenView: View {
                 availableBalanceView
             }
         }
+        .overlay(alignment: .leading) {
+            if showLoading {
+                LoadingView()
+            }
+        }
     }
 
     @ViewBuilder
     private var inputView: some View {
         if isQuote {
-            ZStack(alignment: .leading) {
-                Text(text.isEmpty ? side.amountPlaceholder : text)
-                    .foregroundStyle(text.isEmpty ? Color(.placeholderText) : Colors.black)
-                    .font(.app.title1)
-                    .lineLimit(1, reservesSpace: true)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .quoteTransition(value: text, isLoading: showLoading)
-                if showLoading {
-                    LoadingView()
-                }
-            }
+            Text(text.isEmpty ? side.amountPlaceholder : text)
+                .foregroundStyle(text.isEmpty ? Color(.placeholderText) : Colors.black)
+                .font(.app.title1)
+                .lineLimit(1, reservesSpace: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .quoteTransition(value: text, isLoading: showLoading)
         } else {
             TextField(side.amountPlaceholder, text: $text)
                 .keyboardType(.decimalPad)
@@ -98,8 +98,7 @@ struct SwapTokenView: View {
 
 private extension View {
     func quoteTransition(value: String, isLoading: Bool) -> some View {
-        contentTransition(.numericText(countsDown: true))
-            .animation(value.isEmpty ? nil : .default, value: value)
+        numericTransition(for: value)
             .id(isLoading)
             .transition(.asymmetric(insertion: .opacity.animation(.easeIn(duration: .AnimationDuration.normal)), removal: .identity))
     }

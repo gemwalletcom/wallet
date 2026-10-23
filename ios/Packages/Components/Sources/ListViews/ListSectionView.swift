@@ -2,16 +2,19 @@
 
 import SwiftUI
 
-public struct ListSectionView<Item: Identifiable & Sendable, Content: View>: View {
+public struct ListSectionView<Item: Identifiable & Sendable, Content: View, TrailingRows: View>: View {
     private let sections: [ListSection<Item>]
     private let content: (Item) -> Content
+    private let trailingRows: () -> TrailingRows
 
     public init(
         sections: [ListSection<Item>],
         @ViewBuilder content: @escaping (Item) -> Content,
+        @ViewBuilder trailingRows: @escaping () -> TrailingRows,
     ) {
         self.sections = sections
         self.content = content
+        self.trailingRows = trailingRows
     }
 
     public var body: some View {
@@ -44,6 +47,16 @@ public struct ListSectionView<Item: Identifiable & Sendable, Content: View>: Vie
                     }
                 }
             }
+            trailingRows()
         }
+    }
+}
+
+public extension ListSectionView where TrailingRows == EmptyView {
+    init(
+        sections: [ListSection<Item>],
+        @ViewBuilder content: @escaping (Item) -> Content,
+    ) {
+        self.init(sections: sections, content: content, trailingRows: { EmptyView() })
     }
 }

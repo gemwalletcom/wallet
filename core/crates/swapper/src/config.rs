@@ -90,10 +90,10 @@ pub fn get_swap_config() -> Config {
             pending_allowed: 1,
             answered_minimum: 2,
             hold_price_impact_percent: 1,
-            on_chain: SwapQuoteRoundTiming { first_quote_wait_ms: 500, close_ms: 8_000 },
+            on_chain: SwapQuoteRoundTiming { first_quote_wait_ms: 500, close_ms: 6_000 },
             cross_chain: SwapQuoteRoundTiming {
                 first_quote_wait_ms: 1_000,
-                close_ms: 15_000,
+                close_ms: 12_000,
             },
         },
         high_slippage_warning_bps: 300,
@@ -125,12 +125,12 @@ mod tests {
     fn test_the_quote_round_waits_and_closes_by_whether_the_pair_crosses_networks() {
         let round = get_swap_config().quote_round;
 
-        assert_eq!(round.timing(Chain::Ethereum, Chain::Ethereum), &SwapQuoteRoundTiming { first_quote_wait_ms: 500, close_ms: 8_000 });
+        assert_eq!(round.timing(Chain::Ethereum, Chain::Ethereum), &SwapQuoteRoundTiming { first_quote_wait_ms: 500, close_ms: 6_000 });
         assert_eq!(
             round.timing(Chain::Arbitrum, Chain::Solana),
             &SwapQuoteRoundTiming {
                 first_quote_wait_ms: 1_000,
-                close_ms: 15_000
+                close_ms: 12_000
             }
         );
     }

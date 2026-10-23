@@ -3,7 +3,7 @@
 import Style
 import SwiftUI
 
-public struct SelectableListView<ViewModel: SelectableListAdoptable, Content: View>: View {
+public struct SelectableListView<ViewModel: SelectableListAdoptable, Content: View, TrailingRows: View>: View {
     public typealias ListContent = (ViewModel.Item) -> Content
     public typealias FinishSelection = ([ViewModel.Item]) -> Void
 
@@ -11,15 +11,18 @@ public struct SelectableListView<ViewModel: SelectableListAdoptable, Content: Vi
 
     private let onFinishSelection: FinishSelection?
     private let listContent: ListContent
+    private let trailingRows: () -> TrailingRows
 
     public init(
         model: Binding<ViewModel>,
         onFinishSelection: FinishSelection? = nil,
         listContent: @escaping ListContent,
+        @ViewBuilder trailingRows: @escaping () -> TrailingRows,
     ) {
         _model = model
         self.listContent = listContent
         self.onFinishSelection = onFinishSelection
+        self.trailingRows = trailingRows
     }
 
     public var body: some View {
@@ -62,11 +65,13 @@ public struct SelectableListView<ViewModel: SelectableListAdoptable, Content: Vi
             ListView(
                 items: items,
                 content: contentView,
+                trailingRows: trailingRows,
             )
         case let .section(sections):
             ListSectionView(
                 sections: sections,
                 content: contentView,
+                trailingRows: trailingRows,
             )
         }
     }
@@ -94,5 +99,15 @@ public struct SelectableListView<ViewModel: SelectableListAdoptable, Content: Vi
         if let selected = model.select(item: item) {
             onFinishSelection?(selected)
         }
+    }
+}
+
+public extension SelectableListView where TrailingRows == EmptyView {
+    init(
+        model: Binding<ViewModel>,
+        onFinishSelection: FinishSelection? = nil,
+        listContent: @escaping ListContent,
+    ) {
+        self.init(model: model, onFinishSelection: onFinishSelection, listContent: listContent, trailingRows: { EmptyView() })
     }
 }
