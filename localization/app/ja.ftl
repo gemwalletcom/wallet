@@ -98,6 +98,8 @@ wallet_add_token_title = トークンを追加
 wallet_sell = 売却する
 wallet_receive_collection = コレクションを受け取る
 wallet_more = もっと見る
+wallet_backup = バックアップ
+wallet_advanced = 詳細設定
 wallet_import_contract_address_field = コントラクトまたはトークンID
 wallet_import_address_warning = このアドレスの残高と取引履歴は確認できますが、**送金や売却はできません**。
 wallet_deposit = 入金
@@ -445,6 +447,17 @@ private_key_reminder_no_recovery_subtitle = プライベートキーを紛失す
 private_key_do_not_share_title = プライベートキーを共有しないでください。
 private_key_do_not_share_description = プライベートキーを知った人は、このアカウントを完全に操作できます。
 private_key_screenshot_detected_description = スクリーンショットは他のアプリからアクセスされる可能性があります。この方法でプライベートキーを保存すると、漏えいするおそれがあります。
+private_key_export_reminder_intro = プライベートキーがあれば、このアカウントのすべてを操作できます。
+private_key_export_reminder_keep_safe_title = 安全な場所に保管する
+private_key_export_reminder_keep_safe_subtitle = キーを持っている人は誰でも、このアカウントを使えます。
+private_key_export_reminder_do_not_share_title = 誰とも共有しないでください
+private_key_export_reminder_do_not_share_subtitle = 人、ウェブサイト、アプリから求められても教えないでください。
+private_key_export_reminder_no_recovery_title = 当社では取り戻せません
+private_key_export_reminder_no_recovery_subtitle = 資金を移されると、元に戻すことはできません。
+private_key_select_account = アカウントを選択
+private_key_scope_evm = このキーは、すべてのEVMネットワーク上のアカウントも操作できます。
+private_key_scope_cosmos = このキーは、すべてのCosmosネットワーク上のアカウントも操作できます。
+private_key_accounts_info = これらのアカウントはリカバリーフレーズですでにバックアップされています。キーのエクスポートは、別のウォレットで1つのアカウントを使う場合のみ行ってください。
 
 # Social
 

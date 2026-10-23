@@ -98,6 +98,8 @@ wallet_add_token_title = Tilføj token
 wallet_sell = Sælg
 wallet_receive_collection = Modtag samling
 wallet_more = Mere
+wallet_backup = Sikkerhedskopi
+wallet_advanced = Avanceret
 wallet_import_contract_address_field = Kontrakt eller token-ID
 wallet_import_address_warning = Du kan se saldi og transaktioner for denne adresse, men **kan ikke sende eller sælge penge**.
 wallet_deposit = Indbetal
@@ -445,6 +447,17 @@ private_key_reminder_no_recovery_subtitle = Hvis du mister din private nøgle, m
 private_key_do_not_share_title = Del ikke din private nøgle!
 private_key_do_not_share_description = Hvis nogen har din private nøgle, vil de have fuld kontrol over denne konto!
 private_key_screenshot_detected_description = Skærmbilleder kan være tilgængelige for andre apps, og de kan bringe din private nøgle i fare, hvis de gemmes på denne måde.
+private_key_export_reminder_intro = Din private nøgle giver fuld adgang til denne konto.
+private_key_export_reminder_keep_safe_title = Opbevar den et sikkert sted
+private_key_export_reminder_keep_safe_subtitle = Alle, der har den, kan bruge denne konto.
+private_key_export_reminder_do_not_share_title = Del den ikke med nogen
+private_key_export_reminder_do_not_share_subtitle = Ingen person, hjemmeside eller app bør bede om den.
+private_key_export_reminder_no_recovery_title = Vi kan ikke hjælpe dig med at få dem tilbage
+private_key_export_reminder_no_recovery_subtitle = Hvis nogen tager dine midler, kan de ikke returneres.
+private_key_select_account = Vælg din konto
+private_key_scope_evm = Denne nøgle styrer også dine konti på alle EVM-netværk.
+private_key_scope_cosmos = Denne nøgle styrer også dine konti på alle Cosmos-netværk.
+private_key_accounts_info = Din hemmelige sætning sikkerhedskopierer allerede disse konti. Eksportér kun en nøgle for at bruge én konto i en anden tegnebog.
 
 # Social
 

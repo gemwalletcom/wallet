@@ -92,6 +92,8 @@
   <string name="wallet_sell">Ibenta</string>
   <string name="wallet_receive_collection">Tumanggap ng Koleksyon</string>
   <string name="wallet_more">Higit pa</string>
+  <string name="wallet_backup">Backup</string>
+  <string name="wallet_advanced">Advanced</string>
   <string name="wallet_import_contract_address_field">Kontrata o Token ID</string>
   <string name="wallet_import_address_warning">Maaari mong tingnan ang mga balanse at transaksyon para sa address na ito, ngunit **hindi maaaring magpadala o magbenta ng mga pondo**.</string>
   <string name="wallet_deposit">Deposito</string>
@@ -376,6 +378,17 @@
   <string name="private_key_do_not_share_title">Huwag ibahagi ang iyong Pribadong Susi!</string>
   <string name="private_key_do_not_share_description">Kung may hawak ng iyong pribadong susi, magkakaroon sila ng ganap na kontrol sa account na ito!</string>
   <string name="private_key_screenshot_detected_description">Maaaring ma-access ang mga screenshot sa iba pang apps, maaari nilang ilagay sa panganib ang iyong pribadong susi kung ise-save sa ganitong paraan.</string>
+  <string name="private_key_export_reminder_intro">Ang iyong pribadong susi ay nagbibigay ng buong access sa account na ito.</string>
+  <string name="private_key_export_reminder_keep_safe_title">Itago Ito sa Ligtas na Lugar</string>
+  <string name="private_key_export_reminder_keep_safe_subtitle">Sinumang may hawak nito ay magagamit ang account na ito.</string>
+  <string name="private_key_export_reminder_do_not_share_title">Huwag Ibahagi Ito Kaninuman</string>
+  <string name="private_key_export_reminder_do_not_share_subtitle">Walang tao, website, o app ang dapat humingi nito.</string>
+  <string name="private_key_export_reminder_no_recovery_title">Hindi Ka Namin Matutulungang Mabawi Ito</string>
+  <string name="private_key_export_reminder_no_recovery_subtitle">Kapag kinuha ng iba ang iyong pondo, hindi na ito maibabalik.</string>
+  <string name="private_key_select_account">Piliin ang iyong account</string>
+  <string name="private_key_scope_evm">Kontrolado rin ng susing ito ang iyong mga account sa lahat ng EVM network.</string>
+  <string name="private_key_scope_cosmos">Kontrolado rin ng susing ito ang iyong mga account sa lahat ng Cosmos network.</string>
+  <string name="private_key_accounts_info">Naka-back up na ang mga account na ito sa iyong Lihim na Parirala. Mag-export lang ng susi para gamitin ang isang account sa ibang wallet.</string>
   <string name="social_x">X (formerly Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

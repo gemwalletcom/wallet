@@ -92,6 +92,8 @@
   <string name="wallet_sell">Verkopen</string>
   <string name="wallet_receive_collection">Ontvang collectie</string>
   <string name="wallet_more">Meer</string>
+  <string name="wallet_backup">Back-up</string>
+  <string name="wallet_advanced">Geavanceerd</string>
   <string name="wallet_import_contract_address_field">Contract of token-ID</string>
   <string name="wallet_import_address_warning">U kunt het saldo en de transacties voor dit adres bekijken, maar **u kunt geen geld verzenden of verkopen**.</string>
   <string name="wallet_deposit">Storten</string>
@@ -376,6 +378,17 @@
   <string name="private_key_do_not_share_title">Deel uw privésleutel niet!</string>
   <string name="private_key_do_not_share_description">Als iemand uw privésleutel heeft, heeft diegene volledige controle over dit account!</string>
   <string name="private_key_screenshot_detected_description">Schermafbeeldingen zijn mogelijk toegankelijk voor andere apps en kunnen uw privésleutel in gevaar brengen als u ze op deze manier opslaat.</string>
+  <string name="private_key_export_reminder_intro">Uw privésleutel geeft volledige toegang tot dit account.</string>
+  <string name="private_key_export_reminder_keep_safe_title">Bewaar hem op een veilige plek</string>
+  <string name="private_key_export_reminder_keep_safe_subtitle">Iedereen die hem heeft, kan dit account gebruiken.</string>
+  <string name="private_key_export_reminder_do_not_share_title">Deel hem met niemand</string>
+  <string name="private_key_export_reminder_do_not_share_subtitle">Geen persoon, website of app hoort erom te vragen.</string>
+  <string name="private_key_export_reminder_no_recovery_title">Wij kunnen u niet helpen het terug te krijgen</string>
+  <string name="private_key_export_reminder_no_recovery_subtitle">Als iemand uw tegoed meeneemt, kan het niet worden teruggegeven.</string>
+  <string name="private_key_select_account">Selecteer uw account</string>
+  <string name="private_key_scope_evm">Deze sleutel beheert ook uw accounts op alle EVM-netwerken.</string>
+  <string name="private_key_scope_cosmos">Deze sleutel beheert ook uw accounts op alle Cosmos-netwerken.</string>
+  <string name="private_key_accounts_info">Uw geheime zin maakt al een back-up van deze accounts. Exporteer alleen een sleutel om één account in een andere portemonnee te gebruiken.</string>
   <string name="social_x">X (voorheen Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

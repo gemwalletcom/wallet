@@ -92,6 +92,8 @@
   <string name="wallet_sell">Sayarwa</string>
   <string name="wallet_receive_collection">Karɓi Tarin</string>
   <string name="wallet_more">Kara</string>
+  <string name="wallet_backup">Ajiya</string>
+  <string name="wallet_advanced">Na Ci Gaba</string>
   <string name="wallet_import_contract_address_field">Kwangila ko Token ID</string>
   <string name="wallet_import_address_warning">Kuna iya duba ma\'auni da ma\'amaloli don wannan adireshin, amma ** ba za ku iya aikawa ko siyar da kuɗi ba**.</string>
   <string name="wallet_deposit">Ajiya</string>
@@ -376,6 +378,17 @@
   <string name="private_key_do_not_share_title">Kada ku raba Keɓaɓɓen Maɓallinku!</string>
   <string name="private_key_do_not_share_description">Idan wani yana da keɓaɓɓen maɓallinku zai sami cikakken iko akan wannan asusun!</string>
   <string name="private_key_screenshot_detected_description">Hotunan allo na iya kasancewa a bayyane ga wasu app, kuma za su iya sanya keɓaɓɓen maɓallin ku cikin haɗari idan an ajiye shi ta wannan hanyar.</string>
+  <string name="private_key_export_reminder_intro">Keɓaɓɓen maɓallinku yana ba da cikakken damar shiga wannan asusun.</string>
+  <string name="private_key_export_reminder_keep_safe_title">Ajiye Shi Wani Wuri Mai Aminci</string>
+  <string name="private_key_export_reminder_keep_safe_subtitle">Duk wanda ke da shi zai iya amfani da wannan asusun.</string>
+  <string name="private_key_export_reminder_do_not_share_title">Kada Ku Raba Shi Ga Kowa</string>
+  <string name="private_key_export_reminder_do_not_share_subtitle">Babu mutum, gidan yanar gizo, ko manhaja da ya kamata ya nema.</string>
+  <string name="private_key_export_reminder_no_recovery_title">Ba Za Mu Iya Taimaka Muku Dawo Da Su Ba</string>
+  <string name="private_key_export_reminder_no_recovery_subtitle">Idan wani ya kwashe kuɗinku, ba za a iya dawo da su ba.</string>
+  <string name="private_key_select_account">Zaɓi asusunku</string>
+  <string name="private_key_scope_evm">Wannan maɓalli kuma yana sarrafa asusunku a duk hanyoyin sadarwa na EVM.</string>
+  <string name="private_key_scope_cosmos">Wannan maɓalli kuma yana sarrafa asusunku a duk hanyoyin sadarwa na Cosmos.</string>
+  <string name="private_key_accounts_info">Kalmar sirrinku ta riga ta adana waɗannan asusun. Fitar da maɓalli kawai don amfani da asusu ɗaya a wata walat.</string>
   <string name="social_x">X (formerly Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

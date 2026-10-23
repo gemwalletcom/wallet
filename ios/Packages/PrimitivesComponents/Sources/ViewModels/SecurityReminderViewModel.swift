@@ -3,7 +3,7 @@
 import Components
 import Foundation
 import enum Gemstone.GemSecurityReminderItem
-import enum Gemstone.GemWalletSecretKind
+import enum Gemstone.GemSecurityReminderKind
 import func Gemstone.securityReminderItems
 import GemstonePrimitives
 import Localization
@@ -12,12 +12,12 @@ import Style
 @Observable
 public final class SecurityReminderViewModel {
     let title: String
-    let kind: GemWalletSecretKind
+    let kind: GemSecurityReminderKind
     let onNext: () -> Void
 
     public init(
         title: String,
-        kind: GemWalletSecretKind,
+        kind: GemSecurityReminderKind,
         onNext: @escaping () -> Void,
     ) {
         self.title = title
@@ -29,6 +29,7 @@ public final class SecurityReminderViewModel {
         switch kind {
         case .phrase: Localized.Onboarding.Security.CreateWallet.Intro.title
         case .privateKey: Localized.PrivateKey.Reminder.intro
+        case .accountKey: Localized.PrivateKey.ExportReminder.intro
         }
     }
 
@@ -43,7 +44,7 @@ public final class SecurityReminderViewModel {
     var docsUrl: URL {
         switch kind {
         case .phrase: AppUrl.docs(.whatIsSecretPhrase)
-        case .privateKey: AppUrl.docs(.whatIsPrivateKey)
+        case .privateKey, .accountKey: AppUrl.docs(.whatIsPrivateKey)
         }
     }
 }

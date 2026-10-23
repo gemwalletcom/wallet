@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.wallet.presents
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,7 +25,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.domains.wallet.WalletSecretInput
 import com.gemwallet.android.features.wallet.presents.components.WalletAddress
 import com.gemwallet.android.features.wallet.presents.dialogs.ConfirmWalletDeleteDialog
 import com.gemwallet.android.ui.R
@@ -34,6 +34,7 @@ import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemImageStyle
 import com.gemwallet.android.ui.components.list_item.ListItemModel
+import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.localization.string
@@ -43,7 +44,7 @@ import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.defaultPadding
 import com.gemwallet.android.ui.theme.extraLargeIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
-import com.wallet.core.primitives.WalletId
+import uniffi.gemstone.GemSecretRow
 import uniffi.gemstone.GemWalletDetails
 
 @Composable
@@ -83,16 +84,8 @@ internal fun WalletDetailScene(wallet: GemWalletDetails?, snackbar: SnackbarHost
                 },
                 singleLine = true,
             )
-            val secretKind = wallet.secretKind
-            val showSecret = wallet.showSecret
-            if (secretKind != null && showSecret != null) {
-                ListItem(
-                    model = ListItemModel(title = showSecret.string(LocalContext.current)),
-                    listPosition = ListPosition.Single,
-                    modifier = Modifier.clickable { onAction(WalletDetailAction.ShowPhrase(WalletSecretInput(WalletId(wallet.row.id), secretKind))) },
-                    accessory = { DataBadgeChevron() },
-                )
-            }
+            SecretSection(title = R.string.wallet_backup, row = wallet.backup, onAction = onAction)
+            SecretSection(title = R.string.wallet_advanced, row = wallet.advanced, onAction = onAction)
             WalletAddress(wallet.address)
 
             Spacer16()
@@ -120,6 +113,18 @@ internal fun WalletDetailScene(wallet: GemWalletDetails?, snackbar: SnackbarHost
             },
         ) { showDeleteDialog = false }
     }
+}
+
+@Composable
+private fun SecretSection(@StringRes title: Int, row: GemSecretRow?, onAction: (WalletDetailAction) -> Unit) {
+    row ?: return
+    SubheaderItem(title)
+    ListItem(
+        model = ListItemModel(title = row.title.string(LocalContext.current)),
+        listPosition = ListPosition.Single,
+        modifier = Modifier.clickable { onAction(WalletDetailAction.ShowSecret(row.export)) },
+        accessory = { DataBadgeChevron() },
+    )
 }
 
 @Composable

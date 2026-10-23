@@ -92,6 +92,8 @@
   <string name="wallet_sell">Продати</string>
   <string name="wallet_receive_collection">Отримати колекцію</string>
   <string name="wallet_more">Більше</string>
+  <string name="wallet_backup">Резервна копія</string>
+  <string name="wallet_advanced">Додатково</string>
   <string name="wallet_import_contract_address_field">Контракт або ID токена</string>
   <string name="wallet_import_address_warning">Ви можете переглядати баланси та транзакції для цієї адреси, але **не можете надсилати або продавати кошти**.</string>
   <string name="wallet_deposit">Депозит</string>
@@ -376,6 +378,17 @@
   <string name="private_key_do_not_share_title">Не діліться своїм приватним ключем!</string>
   <string name="private_key_do_not_share_description">Якщо у когось є ваш приватний ключ, він отримає повний контроль над цим обліковим записом!</string>
   <string name="private_key_screenshot_detected_description">Знімки екрана можуть бути доступні іншим програмам, і якщо їх зберегти таким чином, ваш приватний ключ може бути під загрозою.</string>
+  <string name="private_key_export_reminder_intro">Приватний ключ дає повний доступ до цього облікового запису.</string>
+  <string name="private_key_export_reminder_keep_safe_title">Зберігайте його в безпечному місці</string>
+  <string name="private_key_export_reminder_keep_safe_subtitle">Будь-хто, у кого він є, може користуватися цим обліковим записом.</string>
+  <string name="private_key_export_reminder_do_not_share_title">Нікому його не передавайте</string>
+  <string name="private_key_export_reminder_do_not_share_subtitle">Жодна людина, сайт чи застосунок не повинні його запитувати.</string>
+  <string name="private_key_export_reminder_no_recovery_title">Ми не зможемо їх повернути</string>
+  <string name="private_key_export_reminder_no_recovery_subtitle">Якщо хтось забере ваші кошти, повернути їх буде неможливо.</string>
+  <string name="private_key_select_account">Виберіть обліковий запис</string>
+  <string name="private_key_scope_evm">Цей ключ також керує вашими обліковими записами в усіх мережах EVM.</string>
+  <string name="private_key_scope_cosmos">Цей ключ також керує вашими обліковими записами в усіх мережах Cosmos.</string>
+  <string name="private_key_accounts_info">Ваша секретна фраза вже є резервною копією цих облікових записів. Експортуйте ключ, лише щоб використати один обліковий запис в іншому гаманці.</string>
   <string name="social_x">X (раніше Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

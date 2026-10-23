@@ -65,6 +65,7 @@ import enum Gemstone.GemPerpetualSection
 import enum Gemstone.GemPriceAlertLabel
 import enum Gemstone.GemPriceAlertPrompt
 import enum Gemstone.GemPriceAlertSectionKind
+import enum Gemstone.GemPrivateKeyScope
 import enum Gemstone.GemReceiveWarning
 import enum Gemstone.GemRecipientError
 import enum Gemstone.GemRecipientErrorDisplay
@@ -1210,10 +1211,13 @@ public extension GemSecurityReminderItem {
         switch self {
         case .keepSafe(.phrase): Localized.Onboarding.Security.CreateWallet.KeepSafe.title
         case .keepSafe(.privateKey): Localized.PrivateKey.Reminder.KeepSafe.title
+        case .keepSafe(.accountKey): Localized.PrivateKey.ExportReminder.KeepSafe.title
         case .doNotShare(.phrase): Localized.Onboarding.Security.CreateWallet.DoNotShare.title
         case .doNotShare(.privateKey): Localized.PrivateKey.Reminder.DoNotShare.title
+        case .doNotShare(.accountKey): Localized.PrivateKey.ExportReminder.DoNotShare.title
         case .noRecovery(.phrase): Localized.Onboarding.Security.CreateWallet.NoRecovery.title
         case .noRecovery(.privateKey): Localized.PrivateKey.Reminder.NoRecovery.title
+        case .noRecovery(.accountKey): Localized.PrivateKey.ExportReminder.NoRecovery.title
         }
     }
 
@@ -1221,26 +1225,32 @@ public extension GemSecurityReminderItem {
         switch self {
         case .keepSafe(.phrase): Localized.Onboarding.Security.CreateWallet.KeepSafe.subtitle
         case .keepSafe(.privateKey): Localized.PrivateKey.Reminder.KeepSafe.subtitle
+        case .keepSafe(.accountKey): Localized.PrivateKey.ExportReminder.KeepSafe.subtitle
         case .doNotShare(.phrase): Localized.Onboarding.Security.CreateWallet.DoNotShare.subtitle
         case .doNotShare(.privateKey): Localized.PrivateKey.Reminder.DoNotShare.subtitle
+        case .doNotShare(.accountKey): Localized.PrivateKey.ExportReminder.DoNotShare.subtitle
         case .noRecovery(.phrase): Localized.Onboarding.Security.CreateWallet.NoRecovery.subtitle
         case .noRecovery(.privateKey): Localized.PrivateKey.Reminder.NoRecovery.subtitle
+        case .noRecovery(.accountKey): Localized.PrivateKey.ExportReminder.NoRecovery.subtitle
         }
     }
 }
 
 public extension GemWalletSecret {
-    var kind: GemWalletSecretKind {
-        switch self {
-        case .words: .phrase
-        case .privateKey: .privateKey
-        }
-    }
-
     var title: String {
         switch self {
         case .words: Localized.Common.secretPhrase
         case .privateKey: Localized.Common.privateKey
+        }
+    }
+}
+
+public extension GemPrivateKeyScope {
+    var description: String? {
+        switch self {
+        case .oneChain: nil
+        case .evmChains: Localized.PrivateKey.Scope.evm
+        case .cosmosChains: Localized.PrivateKey.Scope.cosmos
         }
     }
 }

@@ -92,6 +92,8 @@
   <string name="wallet_sell">Vender</string>
   <string name="wallet_receive_collection">Receber coleção</string>
   <string name="wallet_more">Mais</string>
+  <string name="wallet_backup">Backup</string>
+  <string name="wallet_advanced">Avançado</string>
   <string name="wallet_import_contract_address_field">Contrato ou ID do token</string>
   <string name="wallet_import_address_warning">Você pode visualizar saldos e transações para este endereço, mas **não pode enviar ou vender fundos**.</string>
   <string name="wallet_deposit">Depósito</string>
@@ -376,6 +378,17 @@
   <string name="private_key_do_not_share_title">Não compartilhe sua chave privada!</string>
   <string name="private_key_do_not_share_description">Se alguém tiver sua chave privada, terá controle total desta conta!</string>
   <string name="private_key_screenshot_detected_description">Capturas de tela podem ser acessíveis a outros aplicativos e, se salvas dessa forma, podem colocar sua chave privada em risco.</string>
+  <string name="private_key_export_reminder_intro">Sua chave privada dá acesso total a esta conta.</string>
+  <string name="private_key_export_reminder_keep_safe_title">Guarde em algum lugar seguro</string>
+  <string name="private_key_export_reminder_keep_safe_subtitle">Qualquer pessoa que a tenha pode usar esta conta.</string>
+  <string name="private_key_export_reminder_do_not_share_title">Não a compartilhe com ninguém</string>
+  <string name="private_key_export_reminder_do_not_share_subtitle">Nenhuma pessoa, site ou aplicativo deve pedi-la.</string>
+  <string name="private_key_export_reminder_no_recovery_title">Não podemos ajudar você a recuperá-los</string>
+  <string name="private_key_export_reminder_no_recovery_subtitle">Se alguém levar seus fundos, eles não poderão ser devolvidos.</string>
+  <string name="private_key_select_account">Selecione sua conta</string>
+  <string name="private_key_scope_evm">Esta chave também controla suas contas em todas as redes EVM.</string>
+  <string name="private_key_scope_cosmos">Esta chave também controla suas contas em todas as redes Cosmos.</string>
+  <string name="private_key_accounts_info">Sua frase secreta já faz backup destas contas. Exporte uma chave apenas para usar uma conta em outra carteira.</string>
   <string name="social_x">X (ex-Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>
