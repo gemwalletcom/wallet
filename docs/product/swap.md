@@ -67,6 +67,24 @@ sequenceDiagram
 | Both assets on one network | `0.5 s` | `6 s` |
 | Across networks | `1 s` | `12 s` |
 
+What You Receive and the Details row show through one round, with the example values from the design, paying `0.15 ETH` for SOL with four providers:
+
+```mermaid
+flowchart TB
+    W["Waiting<br/>You Receive: spinner<br/>no Details row"]
+    F["First quote<br/>You Receive: 3.43 SOL, $354.81<br/>Details: spinner 3/4, rate ›"]
+    H["Held, loses more than 1%<br/>You Receive: spinner<br/>Details: spinner 2/4 ›"]
+    A["Round over<br/>You Receive: 3.44 SOL, $355.69<br/>Details: rate ›"]
+    N["No quote<br/>No quote available, Try Again"]
+    W -- "all, all but one, or the short wait" --> F
+    W -- "best so far loses more than 1%" --> H
+    W -- "no quote by the close" --> N
+    H -- "a quote within 1%" --> F
+    F -- "a better quote rolls in" --> F
+    F -- "all answered, or the close" --> A
+    H -- "all answered, or the close" --> A
+```
+
 The short wait counts from the first quote, so a slow connection still gets every answer; the long close leaves room for slow connections and slow providers. While the round is open, the Details row shows a small spinner and how many providers answered of those asked, as `3/4`, before the rate, Swap works, and Providers lists each provider that answered and a loading row for each one still quoting. You Receive's spinner sits at the start of the row, centered on its height; the first quote and its fiat value fade in at their usual places over it, without moving, and a better quote then rolls You Receive and its fiat value to the new amount, ranked as in [Choosing a quote](#choosing-a-quote). When the round closes, a provider still silent is left out and the spinner and `3/4` fade out; with no quote at all, No quote available shows with Try Again.
 
 A quote that loses more than `1%` against the market price, the point where Details starts showing the Price Impact, is not shown early: You Receive keeps its spinner and the Details row shows only the spinner and `2/4`, with no rate, until a provider gives a quote within `1%` or the round ends. Tapping it opens Providers with the quotes so far, and a provider the user picks there shows at once. When every provider has answered or the round closes, the best quote shows with its Price Impact, and the `10%` High Price Impact confirmation still asks first. A pair without prices has no Price Impact, so its quotes are never held.
