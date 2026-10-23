@@ -383,6 +383,7 @@ swap_price_impact_warning_title = 価格への影響が大きすぎます
 swap_estimated_time_title = 推定時間
 swap_min_receive = 最小受取額
 swap_use_minimum_amount = 最低金額を使用
+swap_looking_for_better_rate = より良いレートを検索中 %@
 
 # Stake
 

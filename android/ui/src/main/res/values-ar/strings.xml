@@ -329,6 +329,7 @@
   <string name="swap_estimated_time_title">الوقت المقدر</string>
   <string name="swap_min_receive">الحد الأدنى للاستقبال</string>
   <string name="swap_use_minimum_amount">استخدم الحد الأدنى من الكمية</string>
+  <string name="swap_looking_for_better_rate">جارٍ البحث عن سعر أفضل %1$s</string>
   <string name="stake_active">نشيط</string>
   <string name="stake_pending">قيد الانتظار</string>
   <string name="stake_rewards">المكافآت</string>

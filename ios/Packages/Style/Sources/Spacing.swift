@@ -45,7 +45,6 @@ public extension Sizing {
     }
 
     enum image {
-        public static let tiny: CGFloat = 14
         public static let small: CGFloat = 22
         public static let semiMedium: CGFloat = 34
         public static let medium: CGFloat = 44

@@ -131,6 +131,7 @@ extension SwapScene {
                 text: .constant(model.toValue),
                 isQuote: true,
                 showLoading: model.isReceiveFieldLoading,
+                loadingText: model.receiveLoadingText,
                 onBalanceAction: {},
                 onSelectAssetAction: model.onSelectAssetReceive,
             )
@@ -156,7 +157,8 @@ extension SwapScene {
         Section {
             if let swapDetails = model.swapDetails {
                 NavigationCustomLink(
-                    with: SwapDetailsListView(details: swapDetails, progress: model.quoteProgress),
+                    with: SwapDetailsListView(details: swapDetails),
+                    isLoading: model.isCheckingProviders,
                     action: model.onSelectSwapDetails,
                 )
             }

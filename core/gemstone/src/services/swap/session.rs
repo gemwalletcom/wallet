@@ -1,16 +1,18 @@
 use crate::models::button::GemButtonState;
 use crate::services::assets::icon::asset_icon;
 use number_formatter::BigNumberFormatter;
-use primitives::swap::SwapProviderMode;
+use number_formatter::precision::round_to_places;
 use primitives::{Asset, AssetData, AssetId, Currency};
 use swapper::config::quote_preferences;
 use swapper::{Quote as SwapperQuote, QuoteRequest as SwapperQuoteRequest, SwapperError, SwapperProvider, rank_quotes};
 
 use super::model::{GemSwapButtonAction, GemSwapButtonInput, GemSwapDetails, quote_details};
 use super::rules;
+use crate::config::swap_config::get_swap_config;
 use crate::formatted_number::GemFormattedNumber;
 use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::list::{GemInfoTopic, GemProviderKind, GemProviderLoadingRow, GemProviderRow};
+use crate::models::swap::GemSwapValue;
 use crate::precision::{GemCurrencyStyle, GemValueStyle};
 use crate::services::amount::model::GemNumberFormat;
 use crate::services::assets::rules::fiat_amount_of;
@@ -42,15 +44,14 @@ pub struct GemSwapQuoteProviders {
 #[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemSwapProviderAnswer {
-    Quote { quote: SwapperQuote, leaves_no_dust: bool },
+    Quote { provider: SwapperProvider, quote: SwapperQuote, leaves_no_dust: bool },
     Failed { provider: SwapperProvider, error: SwapperError },
 }
 
 impl GemSwapProviderAnswer {
     fn provider(&self) -> SwapperProvider {
         match self {
-            Self::Quote { quote, .. } => quote.data.provider.id,
-            Self::Failed { provider, .. } => *provider,
+            Self::Quote { provider, .. } | Self::Failed { provider, .. } => *provider,
         }
     }
 
@@ -95,9 +96,7 @@ impl GemSwapQuoteAnswers {
     }
 
     fn with_answer(&self, answer: GemSwapProviderAnswer) -> Option<Self> {
-        let provider = answer.provider();
-        let is_pending = self.providers.contains(&provider) && self.answers.iter().all(|answered| answered.provider() != provider);
-        is_pending.then(|| Self {
+        self.pending().contains(&answer.provider()).then(|| Self {
             answers: [self.answers.clone(), vec![answer]].concat(),
             ..self.clone()
         })
@@ -112,9 +111,10 @@ impl GemSwapQuoteAnswers {
     }
 
     fn shows_first_quote(&self) -> bool {
+        let round = get_swap_config().quote_round;
         let answered = self.answers.len();
-        let all_but_one = answered >= 2 && answered + 1 >= self.providers.len();
-        self.has_quote() && (self.is_complete() || all_but_one || self.first_quote_wait_ended)
+        let enough_answered = answered >= round.answered_minimum as usize && self.providers.len() - answered <= round.pending_allowed as usize;
+        self.has_quote() && (self.is_complete() || enough_answered || self.first_quote_wait_ended)
     }
 
     fn pending(&self) -> Vec<SwapperProvider> {
@@ -122,8 +122,7 @@ impl GemSwapQuoteAnswers {
     }
 
     fn first_quote_wait(&self) -> u64 {
-        let mode = SwapProviderMode::for_pair(self.request.pay_asset_id.chain, self.request.receive_asset_id.chain);
-        mode.first_quote_wait().as_millis() as u64
+        get_swap_config().quote_round.timing(self.request.pay_asset_id.chain, self.request.receive_asset_id.chain).first_quote_wait_ms
     }
 
     fn results(&self) -> GemSwapQuotesResult {
@@ -140,7 +139,7 @@ impl GemSwapQuoteAnswers {
     }
 
     fn leaves_no_dust(&self, quote: &SwapperQuote) -> bool {
-        self.answers.iter().any(|answer| answer.provider() == quote.data.provider.id && answer.leaves_no_dust())
+        self.answers.iter().any(|answer| answer.quote() == Some(quote) && answer.leaves_no_dust())
     }
 }
 
@@ -150,18 +149,18 @@ pub struct GemSwapFirstQuoteWait {
     pub milliseconds: u64,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemSwapQuoteProgress {
-    pub text: String,
-    pub fraction: f64,
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemSwapQuoteStatus {
+    Checking,
+    HeldForPriceImpact { text: GemLocalizedText },
 }
 
-impl GemSwapQuoteProgress {
-    fn new(answers: &GemSwapQuoteAnswers) -> Self {
-        let (answered, total) = (answers.answers.len(), answers.providers.len());
-        Self {
-            text: format!("{answered}/{total}"),
-            fraction: answered as f64 / total as f64,
+impl GemSwapQuoteStatus {
+    fn held(answers: &GemSwapQuoteAnswers) -> Self {
+        Self::HeldForPriceImpact {
+            text: GemLocalizedText::LookingForBetterRate {
+                progress: format!("{}/{}", answers.answers.len(), answers.providers.len()),
+            },
         }
     }
 }
@@ -350,7 +349,7 @@ pub struct GemSwapViewState {
     pub receive: GemSwapSideState,
     pub is_receive_loading: bool,
     pub receive_amount: Option<GemFormattedNumber>,
-    pub quote_progress: Option<GemSwapQuoteProgress>,
+    pub quote_status: Option<GemSwapQuoteStatus>,
     pub first_quote_wait: Option<GemSwapFirstQuoteWait>,
     pub providers: Vec<GemProviderRow>,
     pub pending_providers: Vec<GemProviderLoadingRow>,
@@ -448,6 +447,7 @@ impl GemSwapSession {
         }
         GemSwapSession {
             quote_phase: GemSwapQuotePhase::Loading { request },
+            answers: None,
             ..self.clone()
         }
     }
@@ -457,6 +457,7 @@ impl GemSwapSession {
             return self.clone();
         }
         GemSwapSession {
+            quote_phase: GemSwapQuotePhase::Loading { request: request.clone() },
             answers: Some(GemSwapQuoteAnswers::new(request, providers)),
             ..self.clone()
         }
@@ -540,67 +541,17 @@ impl GemSwapSession {
     }
 
     pub fn view_state(&self, pay: Option<AssetData>, receive: Option<AssetData>, currency: Currency) -> GemSwapViewState {
-        let available_balance = pay.as_ref().map(|pay| GemBigInt::from(pay.balance.available.clone())).unwrap_or_default();
-        let button_action = self.button_action(available_balance);
-        let is_transfer_loading = self.is_transfer_loading();
-        let quote = self.pair_quote(pay.as_ref(), receive.as_ref());
-        let is_receive_loading = self.is_quote_loading() && !is_transfer_loading;
-        let receive_quote = quote.filter(|_| !is_receive_loading);
-        GemSwapViewState {
-            quotes_state: self.quotes_state(pay.as_ref().map(|pay| &pay.asset)),
-            action: self.action(),
-            button_state: self.button_state(button_action.clone()),
-            button_action,
-            is_quote_loading: self.is_quote_loading(),
-            is_transfer_loading,
-            allows_provider_selection: self.allows_provider_selection(),
-            is_input_empty: self.is_input_empty(),
-            shows_button: !self.is_input_empty(),
-            pay: GemSwapSideState {
-                title: side_title(pay.as_ref()),
-                amount_placeholder: side_amount_placeholder(pay.as_ref()),
-                icon: pay.as_ref().map(|pay| asset_icon(&pay.asset.id)),
-                interaction: GemSwapSideInteraction {
-                    is_amount_editable: !is_transfer_loading,
-                    is_asset_selectable: !is_transfer_loading,
-                    is_balance_action_enabled: !is_transfer_loading && pay.is_some(),
-                },
-                balance: pay.as_ref().map(|pay| available_balance_text(pay.asset.clone(), GemAssetBalance::from(pay))),
-                fiat: pay
-                    .as_ref()
-                    .zip(self.pay_value.as_ref())
-                    .and_then(|(pay, value)| fiat_amount_of(&pay.asset, value, price_value(pay), currency.clone(), GemCurrencyStyle::Currency)),
+        match self.held_answers(pay.as_ref(), receive.as_ref()) {
+            Some(answers) => GemSwapViewState {
+                quote_status: Some(GemSwapQuoteStatus::held(answers)),
+                details: None,
+                ..GemSwapSession {
+                    quote_phase: GemSwapQuotePhase::Loading { request: answers.request.clone() },
+                    ..self.clone()
+                }
+                .shown_view_state(pay, receive, currency)
             },
-            receive: GemSwapSideState {
-                title: side_title(receive.as_ref()),
-                amount_placeholder: side_amount_placeholder(receive.as_ref().filter(|_| !is_receive_loading)),
-                icon: receive.as_ref().map(|receive| asset_icon(&receive.asset.id)),
-                interaction: GemSwapSideInteraction {
-                    is_amount_editable: false,
-                    is_asset_selectable: !is_transfer_loading,
-                    is_balance_action_enabled: false,
-                },
-                balance: receive.as_ref().map(|receive| available_balance_text(receive.asset.clone(), GemAssetBalance::from(receive))),
-                fiat: receive
-                    .as_ref()
-                    .zip(receive_quote)
-                    .and_then(|(receive, quote)| fiat_amount_of(&receive.asset, &quote.to_value, price_value(receive), currency.clone(), GemCurrencyStyle::Currency)),
-            },
-            is_receive_loading,
-            receive_amount: receive_quote.map(receive_amount),
-            quote_progress: receive_quote.and(self.open_answers()).map(GemSwapQuoteProgress::new),
-            first_quote_wait: self.first_quote_wait(),
-            providers: receive
-                .as_ref()
-                .filter(|_| quote.is_some())
-                .map(|receive| self.provider_rows(&receive.asset, price_value(receive), &currency))
-                .unwrap_or_default(),
-            pending_providers: quote.map(|_| self.pending_provider_rows()).unwrap_or_default(),
-            details: pay
-                .zip(receive)
-                .zip(quote)
-                .map(|((pay, receive), quote)| quote_details(rules::swap_quote(quote), pay.asset.clone(), receive.asset.clone(), price_value(&pay), price_value(&receive), &currency)),
-            quote: quote.cloned(),
+            None => self.shown_view_state(pay, receive, currency),
         }
     }
 
@@ -693,6 +644,81 @@ impl GemSwapSession {
                 )
             })
             .collect()
+    }
+
+    fn shown_view_state(&self, pay: Option<AssetData>, receive: Option<AssetData>, currency: Currency) -> GemSwapViewState {
+        let available_balance = pay.as_ref().map(|pay| GemBigInt::from(pay.balance.available.clone())).unwrap_or_default();
+        let button_action = self.button_action(available_balance);
+        let is_transfer_loading = self.is_transfer_loading();
+        let quote = self.pair_quote(pay.as_ref(), receive.as_ref());
+        let is_receive_loading = self.is_quote_loading() && !is_transfer_loading;
+        let receive_quote = quote.filter(|_| !is_receive_loading);
+        GemSwapViewState {
+            quotes_state: self.quotes_state(pay.as_ref().map(|pay| &pay.asset)),
+            action: self.action(),
+            button_state: self.button_state(button_action.clone()),
+            button_action,
+            is_quote_loading: self.is_quote_loading(),
+            is_transfer_loading,
+            allows_provider_selection: self.allows_provider_selection(),
+            is_input_empty: self.is_input_empty(),
+            shows_button: !self.is_input_empty(),
+            pay: GemSwapSideState {
+                title: side_title(pay.as_ref()),
+                amount_placeholder: side_amount_placeholder(pay.as_ref()),
+                icon: pay.as_ref().map(|pay| asset_icon(&pay.asset.id)),
+                interaction: GemSwapSideInteraction {
+                    is_amount_editable: !is_transfer_loading,
+                    is_asset_selectable: !is_transfer_loading,
+                    is_balance_action_enabled: !is_transfer_loading && pay.is_some(),
+                },
+                balance: pay.as_ref().map(|pay| available_balance_text(pay.asset.clone(), GemAssetBalance::from(pay))),
+                fiat: pay
+                    .as_ref()
+                    .zip(self.pay_value.as_ref())
+                    .and_then(|(pay, value)| fiat_amount_of(&pay.asset, value, price_value(pay), currency.clone(), GemCurrencyStyle::Currency)),
+            },
+            receive: GemSwapSideState {
+                title: side_title(receive.as_ref()),
+                amount_placeholder: side_amount_placeholder(receive.as_ref().filter(|_| !is_receive_loading)),
+                icon: receive.as_ref().map(|receive| asset_icon(&receive.asset.id)),
+                interaction: GemSwapSideInteraction {
+                    is_amount_editable: false,
+                    is_asset_selectable: !is_transfer_loading,
+                    is_balance_action_enabled: false,
+                },
+                balance: receive.as_ref().map(|receive| available_balance_text(receive.asset.clone(), GemAssetBalance::from(receive))),
+                fiat: receive
+                    .as_ref()
+                    .zip(receive_quote)
+                    .and_then(|(receive, quote)| fiat_amount_of(&receive.asset, &quote.to_value, price_value(receive), currency.clone(), GemCurrencyStyle::Currency)),
+            },
+            is_receive_loading,
+            receive_amount: receive_quote.map(receive_amount),
+            quote_status: receive_quote.and(self.open_answers()).map(|_| GemSwapQuoteStatus::Checking),
+            first_quote_wait: self.first_quote_wait(),
+            providers: receive
+                .as_ref()
+                .filter(|_| quote.is_some())
+                .map(|receive| self.provider_rows(&receive.asset, price_value(receive), &currency))
+                .unwrap_or_default(),
+            pending_providers: quote.map(|_| self.pending_provider_rows()).unwrap_or_default(),
+            details: pay
+                .zip(receive)
+                .zip(quote)
+                .map(|((pay, receive), quote)| quote_details(rules::swap_quote(quote), pay.asset.clone(), receive.asset.clone(), price_value(&pay), price_value(&receive), &currency)),
+            quote: quote.cloned(),
+        }
+    }
+
+    fn held_answers(&self, pay: Option<&AssetData>, receive: Option<&AssetData>) -> Option<&GemSwapQuoteAnswers> {
+        let answers = self.open_answers()?;
+        let (pay, receive) = (pay?, receive?);
+        let quote = self.pair_quote(Some(pay), Some(receive)).filter(|quote| !self.is_quote_loading() && self.selected_provider != Some(quote.data.provider.id))?;
+        let paid = GemSwapValue::new(quote.from_value.clone(), pay.asset.decimals, price_value(pay));
+        let impact = paid.price_impact(&GemSwapValue::new(quote.to_value.clone(), receive.asset.decimals, price_value(receive)))?;
+        let hold_percent = f64::from(get_swap_config().quote_round.hold_price_impact_percent);
+        (round_to_places(impact.percentage, 2) < -hold_percent).then_some(answers)
     }
 
     fn pending_provider_rows(&self) -> Vec<GemProviderLoadingRow> {
@@ -1200,6 +1226,7 @@ mod tests {
 
     fn quote_answer(provider: SwapperProvider, to_value: &str) -> GemSwapProviderAnswer {
         GemSwapProviderAnswer::Quote {
+            provider,
             quote: SwapperQuote::mock_with_provider(provider, to_value),
             leaves_no_dust: false,
         }
@@ -1287,17 +1314,67 @@ mod tests {
         let first = two_of_three();
         let state = view(&first, 1000);
         assert_eq!(shown_provider(&first), Some(SwapperProvider::Relay));
-        assert_eq!(state.quote_progress.as_ref().map(|progress| progress.text.as_str()), Some("2/3"));
+        assert_eq!(state.quote_status, Some(GemSwapQuoteStatus::Checking));
         assert_eq!(state.button_state, GemButtonState::Enabled, "Swap works while the round is open");
 
         let better = first.on_provider_answer(GemSwapRequest::mock(), quote_answer(SwapperProvider::NearIntents, "11"));
         assert_eq!(shown_provider(&better), Some(SwapperProvider::NearIntents));
-        assert_eq!(view(&better, 1000).quote_progress, None);
+        assert_eq!(view(&better, 1000).quote_status, None);
 
         let left_out = first.on_provider_answer(GemSwapRequest::mock(), failed_answer(SwapperProvider::NearIntents, SwapperError::NoQuoteAvailable));
         assert_eq!(shown_provider(&left_out), Some(SwapperProvider::Relay), "a provider silent at the close is left out");
-        assert_eq!(view(&left_out, 1000).quote_progress, None);
+        assert_eq!(view(&left_out, 1000).quote_status, None);
         assert!(view(&left_out, 1000).pending_providers.is_empty());
+    }
+
+    fn priced_view(session: &GemSwapSession) -> GemSwapViewState {
+        let price = |price| Some(Price::new(price, 0.0, Utc::now(), PriceProvider::Coingecko));
+        let pay = AssetData {
+            price: price(10_000_000_000.0),
+            ..mock_asset_data(Chain::Ethereum, 1000)
+        };
+        let receive = AssetData {
+            price: price(950_000.0),
+            ..mock_asset_data(Chain::Solana, 0)
+        };
+        session.view_state(Some(pay), Some(receive), Currency::USD)
+    }
+
+    #[test]
+    fn test_a_quote_losing_more_than_the_hold_waits_and_a_better_late_quote_shows_at_once() {
+        let providers = [SwapperProvider::Relay, SwapperProvider::Mayan, SwapperProvider::Chainflip, SwapperProvider::NearIntents];
+        let bad = answered(requested(&GemSwapRequest::mock(), &providers), [quote_answer(SwapperProvider::Relay, "10")]).on_first_quote_wait_ended(GemSwapRequest::mock());
+
+        let held = priced_view(&bad);
+        assert!(held.is_receive_loading, "a quote losing 5% keeps the spinner while providers are still quoting");
+        assert_eq!((held.receive_amount, held.details, held.button_state), (None, None, GemButtonState::Loading));
+        assert_eq!(
+            held.quote_status,
+            Some(GemSwapQuoteStatus::HeldForPriceImpact {
+                text: GemLocalizedText::LookingForBetterRate { progress: "1/4".to_string() },
+            })
+        );
+        assert_eq!(view(&bad, 1000).quote_status, Some(GemSwapQuoteStatus::Checking), "a pair without prices is never held");
+
+        let picked = bad.on_provider_selected(SwapperProvider::Relay);
+        assert_eq!(priced_view(&picked).quote_status, Some(GemSwapQuoteStatus::Checking), "a provider the user picked is never held");
+
+        let better = priced_view(&bad.on_provider_answer(GemSwapRequest::mock(), quote_answer(SwapperProvider::Mayan, "11")));
+        assert!(!better.is_receive_loading, "a quote within the hold shows as soon as it arrives");
+        assert_eq!(better.quote.map(|quote| quote.data.provider.id), Some(SwapperProvider::Mayan));
+        assert_eq!(better.quote_status, Some(GemSwapQuoteStatus::Checking));
+    }
+
+    #[test]
+    fn test_a_held_quote_shows_once_the_round_ends() {
+        let providers = [SwapperProvider::Relay, SwapperProvider::NearIntents];
+        let bad = answered(requested(&GemSwapRequest::mock(), &providers), [quote_answer(SwapperProvider::Relay, "10")]).on_first_quote_wait_ended(GemSwapRequest::mock());
+        assert!(priced_view(&bad).is_receive_loading);
+
+        let closed = priced_view(&bad.on_provider_answer(GemSwapRequest::mock(), failed_answer(SwapperProvider::NearIntents, SwapperError::NoQuoteAvailable)));
+        assert!(!closed.is_receive_loading, "every provider answered or the close came, so the best quote shows");
+        assert_eq!(closed.quote_status, None);
+        assert!(closed.details.unwrap().summary.price_impact_row.is_some(), "Details shows the loss");
     }
 
     #[test]
@@ -1325,7 +1402,7 @@ mod tests {
         let started = two_of_three().start_transfer().unwrap();
         let after_swap = started.on_provider_answer(GemSwapRequest::mock(), quote_answer(SwapperProvider::NearIntents, "11"));
         assert_eq!(after_swap.quote(), started.quote(), "once Swap is tapped no later answer changes the trade");
-        assert_eq!(view(&after_swap, 1000).quote_progress, None);
+        assert_eq!(view(&after_swap, 1000).quote_status, None);
     }
 
     #[test]
@@ -1340,6 +1417,30 @@ mod tests {
         assert_eq!(first.on_first_quote_wait_ended(outdated.clone()), first);
         let changed = first.on_request_changed(Some(outdated));
         assert_eq!(changed.on_provider_answer(GemSwapRequest::mock(), quote_answer(SwapperProvider::NearIntents, "11")), changed);
+    }
+
+    #[test]
+    fn test_a_new_fetch_drops_the_answers_of_the_one_before() {
+        let restarted = two_of_three().on_fetch_started(GemSwapRequest::mock());
+        let late = restarted.on_provider_answer(GemSwapRequest::mock(), failed_answer(SwapperProvider::NearIntents, SwapperError::NoQuoteAvailable));
+        assert_eq!(late, restarted, "an answer from the fetch before is not counted");
+
+        let requested = late.on_quotes_requested(GemSwapRequest::mock(), vec![SwapperProvider::Relay, SwapperProvider::NearIntents]);
+        let failure = requested.on_provider_answer(GemSwapRequest::mock(), failed_answer(SwapperProvider::Relay, SwapperError::NoQuoteAvailable));
+        assert_eq!(failure.quote_error(), None, "one failure while others are quoting is no error");
+        assert!(failure.is_quote_loading());
+    }
+
+    #[test]
+    fn test_an_answer_counts_for_the_provider_that_was_asked() {
+        let answer = GemSwapProviderAnswer::Quote {
+            provider: SwapperProvider::Relay,
+            quote: SwapperQuote::mock_with_provider(SwapperProvider::Okx, "10"),
+            leaves_no_dust: false,
+        };
+        let session = answered(requested(&GemSwapRequest::mock(), &[SwapperProvider::Relay]), [answer]);
+
+        assert_eq!(shown_provider(&session), Some(SwapperProvider::Okx), "the round completes even when the quote names another provider");
     }
 
     #[test]

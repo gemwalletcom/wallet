@@ -13,6 +13,7 @@ struct SwapTokenView: View {
     @Binding var text: String
     var isQuote: Bool = false
     var showLoading: Bool = false
+    var loadingText: String?
     var onBalanceAction: () -> Void
     var onSelectAssetAction: () -> Void
 
@@ -41,6 +42,12 @@ struct SwapTokenView: View {
                     .font(.app.title1)
                     .lineLimit(1, reservesSpace: true)
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    .overlay(alignment: .leading) {
+                        if let loadingText {
+                            Text(loadingText)
+                                .textStyle(.footnote)
+                        }
+                    }
                     .contentTransition(.numericText(countsDown: true))
                     .animation(text.isEmpty ? nil : .default, value: text)
             } else {

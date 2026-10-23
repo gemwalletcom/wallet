@@ -49,7 +49,16 @@ import uniffi.gemstone.GemSwapSideInteraction
 import uniffi.gemstone.GemSwapSideState
 
 @Composable
-internal fun SwapToken(item: AssetData?, side: GemSwapSideState, calculating: Boolean = false, isQuote: Boolean = false, state: TextFieldState = rememberTextFieldState(), onBalanceClick: () -> Unit, onAssetSelect: () -> Unit) {
+internal fun SwapToken(
+    item: AssetData?,
+    side: GemSwapSideState,
+    calculating: Boolean = false,
+    calculatingText: String? = null,
+    isQuote: Boolean = false,
+    state: TextFieldState = rememberTextFieldState(),
+    onBalanceClick: () -> Unit,
+    onAssetSelect: () -> Unit,
+) {
     Row(
         modifier = Modifier
             .listItem(ListPosition.Single)
@@ -65,6 +74,7 @@ internal fun SwapToken(item: AssetData?, side: GemSwapSideState, calculating: Bo
         ) {
             SwapItemInput(
                 calculating = calculating,
+                calculatingText = calculatingText,
                 isQuote = isQuote,
                 interaction = side.interaction,
                 state = state,
@@ -151,7 +161,7 @@ private fun SwapBalance(balance: GemLocalizedText?, interaction: GemSwapSideInte
 }
 
 @Composable
-private fun SwapItemInput(calculating: Boolean, isQuote: Boolean, interaction: GemSwapSideInteraction, assetSelected: Boolean, placeholder: String, state: TextFieldState = rememberTextFieldState()) {
+private fun SwapItemInput(calculating: Boolean, calculatingText: String?, isQuote: Boolean, interaction: GemSwapSideInteraction, assetSelected: Boolean, placeholder: String, state: TextFieldState = rememberTextFieldState()) {
     val focusRequester = remember { FocusRequester() }
     val amountTextStyle = MaterialTheme.typography.headlineSmall
     val inputTextStyle = amountTextStyle.copy(
@@ -171,7 +181,12 @@ private fun SwapItemInput(calculating: Boolean, isQuote: Boolean, interaction: G
         contentAlignment = Alignment.CenterStart,
     ) {
         if (calculating) {
-            CircularProgressIndicator16()
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(paddingSmall)) {
+                CircularProgressIndicator16()
+                calculatingText?.let {
+                    Text(text = it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
+                }
+            }
         } else if (isQuote) {
             NumericText(
                 text = state.text.ifEmpty { placeholder }.toString(),

@@ -719,6 +719,8 @@ swap_estimated_time_title = Estimated Time
 swap_min_receive = Minimum Receive
 # Used in Swap flow and swap details screen for the use minimum amount label.
 swap_use_minimum_amount = Use Minimum Amount
+# Swap screen You Receive field while the quotes so far lose more than 1% against the market price and providers are still quoting. The placeholder is answered/asked, for example 2/4.
+swap_looking_for_better_rate = Looking for a better rate %@
 
 # Stake
 

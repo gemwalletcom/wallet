@@ -122,7 +122,7 @@ class SwapViewModelTest {
         coEvery { quote(any(), any()) } coAnswers {
             val provider = secondArg<SwapProvider>()
             quoted.firstOrNull { it.data.provider.id == provider }
-                ?.let { GemSwapProviderAnswer.Quote(quote = it, leavesNoDust = false) }
+                ?.let { GemSwapProviderAnswer.Quote(provider = provider, quote = it, leavesNoDust = false) }
                 ?: GemSwapProviderAnswer.Failed(provider = provider, error = SwapperException.NoQuoteAvailable())
         }
         every { isAvailable() } returns true

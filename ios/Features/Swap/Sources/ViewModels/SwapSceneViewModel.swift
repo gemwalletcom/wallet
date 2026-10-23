@@ -15,8 +15,8 @@ import struct Gemstone.GemSwapFirstQuoteWait
 import struct Gemstone.GemSwapPairSelection
 import enum Gemstone.GemSwapProviderAnswer
 import struct Gemstone.GemSwapQuoteInput
-import struct Gemstone.GemSwapQuoteProgress
 import protocol Gemstone.GemSwapQuoteServiceProtocol
+import enum Gemstone.GemSwapQuoteStatus
 import struct Gemstone.GemSwapSession
 import enum Gemstone.GemSwapSide
 import struct Gemstone.GemSwapSideState
@@ -128,8 +128,18 @@ public final class SwapSceneViewModel {
         viewState.pendingProviders
     }
 
-    var quoteProgress: GemSwapQuoteProgress? {
-        viewState.quoteProgress
+    var isCheckingProviders: Bool {
+        switch viewState.quoteStatus {
+        case .checking: true
+        case .heldForPriceImpact, .none: false
+        }
+    }
+
+    var receiveLoadingText: String? {
+        switch viewState.quoteStatus {
+        case let .heldForPriceImpact(text): text.text
+        case .checking, .none: nil
+        }
     }
 
     var firstQuoteWait: GemSwapFirstQuoteWait? {
@@ -407,6 +417,10 @@ extension SwapSceneViewModel {
                     group.addTask { await service.quote(request: quoteProviders.request, provider: provider) }
                 }
                 for await answer in group {
+                    guard !Task.isCancelled else {
+                        group.cancelAll()
+                        break
+                    }
                     session = session.onProviderAnswer(request: input.request, answer: answer)
                 }
             }

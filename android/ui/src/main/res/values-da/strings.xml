@@ -329,6 +329,7 @@
   <string name="swap_estimated_time_title">Anslået Tid</string>
   <string name="swap_min_receive">Minimumsmodtagelse</string>
   <string name="swap_use_minimum_amount">Brug minimumsbeløb</string>
+  <string name="swap_looking_for_better_rate">Leder efter en bedre kurs %1$s</string>
   <string name="stake_active">Aktiv</string>
   <string name="stake_pending">Afventer</string>
   <string name="stake_rewards">Belønninger</string>

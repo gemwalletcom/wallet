@@ -329,6 +329,7 @@
   <string name="swap_estimated_time_title">Расчетное время</string>
   <string name="swap_min_receive">Минимум к получению</string>
   <string name="swap_use_minimum_amount">Использовать минимальное количество</string>
+  <string name="swap_looking_for_better_rate">Поиск лучшего курса %1$s</string>
   <string name="stake_active">Активный</string>
   <string name="stake_pending">В ожидании</string>
   <string name="stake_rewards">Награды</string>

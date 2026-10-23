@@ -329,6 +329,7 @@
   <string name="swap_estimated_time_title">Tahmini Süre</string>
   <string name="swap_min_receive">Alınacak minimum</string>
   <string name="swap_use_minimum_amount">Minimum Tutarı Kullanın</string>
+  <string name="swap_looking_for_better_rate">Daha iyi bir kur aranıyor %1$s</string>
   <string name="stake_active">Aktif</string>
   <string name="stake_pending">Beklemede</string>
   <string name="stake_rewards">Ödüller</string>

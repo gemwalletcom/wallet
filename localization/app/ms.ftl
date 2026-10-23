@@ -383,6 +383,7 @@ swap_price_impact_warning_title = Kesan Harga Tinggi
 swap_estimated_time_title = Anggaran Masa
 swap_min_receive = Penerimaan Minimum
 swap_use_minimum_amount = Gunakan Jumlah Minimum
+swap_looking_for_better_rate = Mencari kadar yang lebih baik %@
 
 # Stake
 

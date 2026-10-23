@@ -383,6 +383,7 @@ swap_price_impact_warning_title = Mataas na Epekto sa Presyo
 swap_estimated_time_title = Tinatayang Oras
 swap_min_receive = Pinakamababang Matatanggap
 swap_use_minimum_amount = Gamitin ang Minimum na Halaga
+swap_looking_for_better_rate = Naghahanap ng mas magandang rate %@
 
 # Stake
 

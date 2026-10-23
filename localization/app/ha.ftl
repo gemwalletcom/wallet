@@ -383,6 +383,7 @@ swap_price_impact_warning_title = Tasirin Farashin Mai Girma
 swap_estimated_time_title = Kiyasta Lokacin
 swap_min_receive = Mafi ƙarancin karɓa
 swap_use_minimum_amount = Yi amfani da Mafi ƙarancin Adadin
+swap_looking_for_better_rate = Ana neman rate mafi kyau %@
 
 # Stake
 

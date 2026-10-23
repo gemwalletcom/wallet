@@ -329,6 +329,7 @@
   <string name="swap_estimated_time_title">预计时间</string>
   <string name="swap_min_receive">最少收到</string>
   <string name="swap_use_minimum_amount">使用最低金额</string>
+  <string name="swap_looking_for_better_rate">正在寻找更优汇率 %1$s</string>
   <string name="stake_active">已激活</string>
   <string name="stake_pending">待确认</string>
   <string name="stake_rewards">奖励</string>

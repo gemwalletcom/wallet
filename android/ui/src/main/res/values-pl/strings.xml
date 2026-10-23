@@ -329,6 +329,7 @@
   <string name="swap_estimated_time_title">Szacowany czas</string>
   <string name="swap_min_receive">Minimalny odbiór</string>
   <string name="swap_use_minimum_amount">Użyj minimalnej kwoty</string>
+  <string name="swap_looking_for_better_rate">Szukanie lepszego kursu %1$s</string>
   <string name="stake_active">Aktywny</string>
   <string name="stake_pending">Oczekujące</string>
   <string name="stake_rewards">Nagrody</string>

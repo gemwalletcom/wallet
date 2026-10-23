@@ -327,8 +327,8 @@ class SwapViewModel @Inject constructor(
             infoSheet.value = GemInfoTopic.RegionUnavailable
             return@launch
         }
-        val quote = viewState.value.quote ?: return@launch
         val started = session.value.startTransfer() ?: return@launch
+        val quote = started.quote() ?: return@launch
         val transfer = started.transferPhase
         session.value = started
 

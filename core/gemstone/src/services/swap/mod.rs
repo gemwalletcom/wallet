@@ -8,9 +8,10 @@ pub mod store;
 pub(crate) mod testkit;
 
 use crate::models::custom_types::GemBigInt;
+use futures::FutureExt;
 use futures::future::{Either, select};
-use primitives::swap::SwapProviderMode;
 use primitives::unix_seconds;
+use std::panic::AssertUnwindSafe;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -57,8 +58,8 @@ impl GemSwapService {
     }
 
     pub async fn quote(&self, request: &QuoteRequest, provider: SwapperProvider) -> GemSwapProviderAnswer {
-        let timeout = SwapProviderMode::for_pair(request.from_asset.chain(), request.to_asset.chain()).quote_timeout();
-        self.quote_within(request, provider, timeout).await
+        let close_ms = get_swap_config().quote_round.timing(request.from_asset.chain(), request.to_asset.chain()).close_ms;
+        self.quote_within(request, provider, Duration::from_millis(close_ms)).await
     }
 
     pub async fn suggest_pair(&self, wallet: Wallet, pay_asset_id: Option<AssetId>) -> Result<Option<GemSwapPairSuggestion>, GemServiceError> {
@@ -115,15 +116,16 @@ impl GemSwapService {
 
 impl GemSwapService {
     async fn quote_within(&self, request: &QuoteRequest, provider: SwapperProvider, timeout: Duration) -> GemSwapProviderAnswer {
-        let quote = self.swapper.get_provider_quote(&provider, request);
+        let quote = AssertUnwindSafe(self.swapper.get_provider_quote(&provider, request)).catch_unwind();
         let timeout = sleep(timeout);
         futures::pin_mut!(quote, timeout);
         let result = match select(quote, timeout).await {
-            Either::Left((result, _)) => result,
-            Either::Right(_) => Err(SwapperError::NoQuoteAvailable),
+            Either::Left((Ok(result), _)) => result,
+            Either::Left((Err(_), _)) | Either::Right(_) => Err(SwapperError::NoQuoteAvailable),
         };
         match result {
             Ok(quote) => GemSwapProviderAnswer::Quote {
+                provider,
                 leaves_no_dust: self.swapper.leaves_no_dust(&quote),
                 quote,
             },
@@ -164,17 +166,18 @@ impl GemSwapService {
 mod tests {
     use primitives::{Chain, asset_constants::SMARTCHAIN_USDT_TOKEN_ID};
 
-    use super::testkit::{MemorySwapStore, SilentSwapper};
+    use super::testkit::{MemorySwapStore, StubQuote, StubSwapper};
     use super::*;
     use crate::services::assets::GemAssetFilter;
     use futures::executor::block_on;
     use swapper::testkit::{MockSwapper, mock_quote};
 
     #[test]
-    fn test_a_provider_silent_past_the_timeout_is_left_out() {
+    fn test_a_provider_silent_past_the_timeout_or_failing_hard_is_left_out() {
         block_on(async {
             let service = GemSwapService::mock_with_swappers(vec![
-                Box::new(SilentSwapper::new(SwapperProvider::NearIntents)),
+                Box::new(StubSwapper::new(SwapperProvider::NearIntents, StubQuote::Silent)),
+                Box::new(StubSwapper::new(SwapperProvider::Relay, StubQuote::Panics)),
                 Box::new(MockSwapper::new(SwapperProvider::UniswapV3, |request| Ok(Quote::mock_with_request(request)))),
             ]);
             let request = mock_quote(AssetId::from_chain(Chain::Ethereum).into(), primitives::asset_constants::ETHEREUM_USDC_ASSET_ID.clone().into());
@@ -185,6 +188,14 @@ mod tests {
                     provider: SwapperProvider::NearIntents,
                     error: SwapperError::NoQuoteAvailable
                 }
+            );
+            assert_eq!(
+                service.quote_within(&request, SwapperProvider::Relay, Duration::from_secs(1)).await,
+                GemSwapProviderAnswer::Failed {
+                    provider: SwapperProvider::Relay,
+                    error: SwapperError::NoQuoteAvailable
+                },
+                "a provider that panics is a failed answer, not a crash in the app"
             );
             let answer = service.quote_within(&request, SwapperProvider::UniswapV3, Duration::from_millis(10)).await;
             assert!(answer.quote().is_some(), "a provider that answers in time keeps its quote: {answer:?}");

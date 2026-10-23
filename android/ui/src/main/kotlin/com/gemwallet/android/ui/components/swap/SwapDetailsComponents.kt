@@ -1,11 +1,8 @@
 package com.gemwallet.android.ui.components.swap
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -23,18 +20,16 @@ import com.gemwallet.android.domains.swap.AssetRatePair
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoSheetEntity
-import com.gemwallet.android.ui.components.NumericText
 import com.gemwallet.android.ui.components.dialog.DialogBarDismissType
 import com.gemwallet.android.ui.components.list_item.GemListRowView
+import com.gemwallet.android.ui.components.list_item.ListItem
+import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.ProviderLoadingRowView
 import com.gemwallet.android.ui.components.list_item.ProviderRowView
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.WarningItem
 import com.gemwallet.android.ui.components.list_item.property.AssetRatePropertyItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
-import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
-import com.gemwallet.android.ui.components.list_item.property.PropertyItem
-import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator14
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator20
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
@@ -43,68 +38,52 @@ import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.style.textStyle
-import com.gemwallet.android.ui.theme.paddingHalfSmall
+import com.gemwallet.android.ui.theme.Spacer8
 import com.gemwallet.android.ui.theme.pendingColor
+import uniffi.gemstone.GemFormattedNumber
 import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemProviderKind
 import uniffi.gemstone.GemProviderLoadingRow
 import uniffi.gemstone.GemProviderRow
 import uniffi.gemstone.GemSwapDetails
-import uniffi.gemstone.GemSwapQuoteProgress
 import uniffi.gemstone.GemSwapQuotesState
 import uniffi.gemstone.SwapProvider
 
 @Composable
-fun SwapDetailsSummaryItem(details: GemSwapDetails, onClick: () -> Unit, progress: GemSwapQuoteProgress? = null, listPosition: ListPosition = ListPosition.Single) {
+fun SwapDetailsSummaryItem(details: GemSwapDetails, onClick: () -> Unit, isLoading: Boolean = false, listPosition: ListPosition = ListPosition.Single) {
     val priceImpact = details.summary.priceImpactRow?.takeIf { it.showsInSummary }?.value
 
-    PropertyItem(
-        modifier = Modifier.clickable(onClick = onClick),
-        title = { PropertyTitleText(R.string.common_details) },
-        data = {
-            progress?.let { SwapQuoteProgress(it) }
-            PropertyDataText(
-                text = details.rate?.forward.orEmpty(),
-                badge = {
-                    if (priceImpact != null) {
-                        DataBadgeChevron {
-                            Text(
-                                text = "(${priceImpact.text()})",
-                                color = priceImpact.tone.color(),
-                                maxLines = 1,
-                                overflow = TextOverflow.Clip,
-                                softWrap = false,
-                            )
-                        }
-                    } else {
-                        DataBadgeChevron()
-                    }
-                },
-            )
-        },
+    ListItem(
+        model = ListItemModel(title = stringResource(R.string.common_details), subtitle = details.rate?.forward),
         listPosition = listPosition,
+        modifier = Modifier.clickable(onClick = onClick),
+        accessory = {
+            when {
+                isLoading -> DataBadgeChevron(isShowChevron = false) {
+                    priceImpact?.let {
+                        PriceImpactText(it)
+                        Spacer8()
+                    }
+                    CircularProgressIndicator14()
+                }
+
+                priceImpact != null -> DataBadgeChevron { PriceImpactText(priceImpact) }
+
+                else -> DataBadgeChevron()
+            }
+        },
     )
 }
 
 @Composable
-private fun SwapQuoteProgress(progress: GemSwapQuoteProgress) {
-    Row(
-        modifier = Modifier.padding(end = paddingHalfSmall),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(paddingHalfSmall),
-    ) {
-        CircularProgressIndicator14(
-            progress = { progress.fraction.toFloat() },
-            color = MaterialTheme.colorScheme.secondary,
-            trackColor = MaterialTheme.colorScheme.secondaryContainer,
-        )
-        NumericText(
-            text = progress.text,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.secondary,
-            maxLines = 1,
-        )
-    }
+private fun PriceImpactText(priceImpact: GemFormattedNumber) {
+    Text(
+        text = "(${priceImpact.text()})",
+        color = priceImpact.tone.color(),
+        maxLines = 1,
+        overflow = TextOverflow.Clip,
+        softWrap = false,
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

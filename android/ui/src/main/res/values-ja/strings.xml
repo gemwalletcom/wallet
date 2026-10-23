@@ -329,6 +329,7 @@
   <string name="swap_estimated_time_title">推定時間</string>
   <string name="swap_min_receive">最小受取額</string>
   <string name="swap_use_minimum_amount">最低金額を使用</string>
+  <string name="swap_looking_for_better_rate">より良いレートを検索中 %1$s</string>
   <string name="stake_active">アクティブ</string>
   <string name="stake_pending">確認待ち</string>
   <string name="stake_rewards">報酬</string>

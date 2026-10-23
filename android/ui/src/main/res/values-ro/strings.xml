@@ -329,6 +329,7 @@
   <string name="swap_estimated_time_title">Timp estimat</string>
   <string name="swap_min_receive">Primire minimă</string>
   <string name="swap_use_minimum_amount">Utilizați suma minimă</string>
+  <string name="swap_looking_for_better_rate">Se caută o rată mai bună %1$s</string>
   <string name="stake_active">Activ</string>
   <string name="stake_pending">În așteptare</string>
   <string name="stake_rewards">Recompense</string>

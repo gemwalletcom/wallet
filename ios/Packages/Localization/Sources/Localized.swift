@@ -1452,6 +1452,10 @@ public enum Localized {
     public static let stateEmptyTitle = Localized.tr("Localizable", "support.state_empty_title", fallback: "How can we help?")
   }
   public enum Swap {
+    /// Looking for a better rate %@
+    public static func lookingForBetterRate(_ p1: Any) -> String {
+      return Localized.tr("Localizable", "swap.looking_for_better_rate", String(describing: p1), fallback: "Looking for a better rate %@")
+    }
     /// Minimum Receive
     public static let minReceive = Localized.tr("Localizable", "swap.min_receive", fallback: "Minimum Receive")
     /// Price Impact

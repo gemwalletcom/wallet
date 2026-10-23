@@ -329,6 +329,7 @@
   <string name="swap_estimated_time_title">Odhadovaný čas</string>
   <string name="swap_min_receive">Minimální příjem</string>
   <string name="swap_use_minimum_amount">Použijte minimální množství</string>
+  <string name="swap_looking_for_better_rate">Hledání lepšího kurzu %1$s</string>
   <string name="stake_active">Aktivní</string>
   <string name="stake_pending">Čeká na vyřízení</string>
   <string name="stake_rewards">Odměny</string>

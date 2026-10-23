@@ -329,6 +329,7 @@
   <string name="swap_estimated_time_title">Muda Unaokadiriwa</string>
   <string name="swap_min_receive">Kiasi cha chini cha kupokea</string>
   <string name="swap_use_minimum_amount">Tumia Kiasi cha Chini Zaidi</string>
+  <string name="swap_looking_for_better_rate">Inatafuta kiwango bora zaidi %1$s</string>
   <string name="stake_active">Inayotumika</string>
   <string name="stake_pending">Inasubiri</string>
   <string name="stake_rewards">Zawadi</string>

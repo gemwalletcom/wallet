@@ -383,6 +383,7 @@ swap_price_impact_warning_title = 价格影响
 swap_estimated_time_title = 预计时间
 swap_min_receive = 最少收到
 swap_use_minimum_amount = 使用最低金额
+swap_looking_for_better_rate = 正在寻找更优汇率 %@
 
 # Stake
 

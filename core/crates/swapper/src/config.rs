@@ -24,11 +24,33 @@ pub struct Config {
     pub permit2_expiration: u64,
     pub permit2_sig_deadline: u64,
     pub high_price_impact_percent: u32,
+    pub quote_round: SwapQuoteRound,
     pub high_slippage_warning_bps: u32,
     pub min_slippage_bps: u32,
     pub max_slippage_bps: u32,
     pub slippage_suggestions_bps: Vec<u32>,
     pub amount_percent_presets: Vec<u32>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct SwapQuoteRound {
+    pub pending_allowed: u32,
+    pub answered_minimum: u32,
+    pub hold_price_impact_percent: u32,
+    pub on_chain: SwapQuoteRoundTiming,
+    pub cross_chain: SwapQuoteRoundTiming,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct SwapQuoteRoundTiming {
+    pub first_quote_wait_ms: u64,
+    pub close_ms: u64,
+}
+
+impl SwapQuoteRound {
+    pub fn timing(&self, from_chain: Chain, to_chain: Chain) -> &SwapQuoteRoundTiming {
+        if from_chain == to_chain { &self.on_chain } else { &self.cross_chain }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -64,6 +86,16 @@ pub fn get_swap_config() -> Config {
         permit2_expiration: 2_592_000,
         permit2_sig_deadline: 1800,
         high_price_impact_percent: 10,
+        quote_round: SwapQuoteRound {
+            pending_allowed: 1,
+            answered_minimum: 2,
+            hold_price_impact_percent: 1,
+            on_chain: SwapQuoteRoundTiming { first_quote_wait_ms: 500, close_ms: 8_000 },
+            cross_chain: SwapQuoteRoundTiming {
+                first_quote_wait_ms: 1_000,
+                close_ms: 15_000,
+            },
+        },
         high_slippage_warning_bps: 300,
         min_slippage_bps: MIN_SLIPPAGE_BPS,
         max_slippage_bps: MAX_SLIPPAGE_BPS,
@@ -82,5 +114,24 @@ pub fn get_default_slippage(chain: &Chain) -> SwapperSlippage {
             bps: DEFAULT_SLIPPAGE_BPS,
             mode: SwapperSlippageMode::Exact,
         },
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_the_quote_round_waits_and_closes_by_whether_the_pair_crosses_networks() {
+        let round = get_swap_config().quote_round;
+
+        assert_eq!(round.timing(Chain::Ethereum, Chain::Ethereum), &SwapQuoteRoundTiming { first_quote_wait_ms: 500, close_ms: 8_000 });
+        assert_eq!(
+            round.timing(Chain::Arbitrum, Chain::Solana),
+            &SwapQuoteRoundTiming {
+                first_quote_wait_ms: 1_000,
+                close_ms: 15_000
+            }
+        );
     }
 }

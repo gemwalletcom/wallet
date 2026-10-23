@@ -119,7 +119,7 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
         guard let quote = quoted.first(where: { $0.data.provider.id == provider }) else {
             return .failed(provider: provider, error: .NoQuoteAvailable)
         }
-        return .quote(quote: quote, leavesNoDust: false)
+        return .quote(provider: provider, quote: quote, leavesNoDust: false)
     }
 
     public func transferData(quote: SwapperQuote) async throws -> GemTransferData {

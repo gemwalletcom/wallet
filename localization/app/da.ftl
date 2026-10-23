@@ -383,6 +383,7 @@ swap_price_impact_warning_title = Høj prispåvirkning
 swap_estimated_time_title = Anslået Tid
 swap_min_receive = Minimumsmodtagelse
 swap_use_minimum_amount = Brug minimumsbeløb
+swap_looking_for_better_rate = Leder efter en bedre kurs %@
 
 # Stake
 

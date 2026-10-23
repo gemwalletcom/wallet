@@ -4,15 +4,18 @@ import SwiftUI
 public struct NavigationCustomLink<Content: View>: View {
     private let content: Content
     private let isEnabled: Bool
+    private let isLoading: Bool
     private let action: @MainActor @Sendable () -> Void
 
     public init(
         with content: Content,
         isEnabled: Bool = true,
+        isLoading: Bool = false,
         action: @escaping @MainActor @Sendable () -> Void,
     ) {
         self.content = content
         self.isEnabled = isEnabled
+        self.isLoading = isLoading
         self.action = action
     }
 
@@ -21,7 +24,9 @@ public struct NavigationCustomLink<Content: View>: View {
             HStack {
                 content
                     .layoutPriority(1)
-                if isEnabled {
+                if isLoading {
+                    LoadingView(size: .small)
+                } else if isEnabled {
                     NavigationLink.empty
                 }
             }

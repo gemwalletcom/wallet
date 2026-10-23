@@ -329,6 +329,7 @@
   <string name="swap_estimated_time_title">Tinatayang Oras</string>
   <string name="swap_min_receive">Pinakamababang Matatanggap</string>
   <string name="swap_use_minimum_amount">Gamitin ang Minimum na Halaga</string>
+  <string name="swap_looking_for_better_rate">Naghahanap ng mas magandang rate %1$s</string>
   <string name="stake_active">Aktibo</string>
   <string name="stake_pending">Nakabinbin</string>
   <string name="stake_rewards">Mga gantimpala</string>
