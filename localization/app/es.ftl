@@ -383,7 +383,6 @@ swap_price_impact_warning_title = Alto impacto en el precio
 swap_estimated_time_title = Tiempo estimado
 swap_min_receive = Mínimo a recibir
 swap_use_minimum_amount = Usar cantidad mínima
-swap_looking_for_better_rate = Buscando una mejor tasa %@
 
 # Stake
 

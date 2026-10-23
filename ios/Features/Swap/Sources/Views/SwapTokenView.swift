@@ -13,7 +13,6 @@ struct SwapTokenView: View {
     @Binding var text: String
     var isQuote: Bool = false
     var showLoading: Bool = false
-    var loadingText: String?
     var onBalanceAction: () -> Void
     var onSelectAssetAction: () -> Void
 
@@ -31,41 +30,41 @@ struct SwapTokenView: View {
         }
     }
 
+    @ViewBuilder
     private var inputView: some View {
-        HStack {
-            if showLoading {
-                LoadingView()
-            }
-            if isQuote {
+        if isQuote {
+            ZStack(alignment: .leading) {
                 Text(text.isEmpty ? side.amountPlaceholder : text)
                     .foregroundStyle(text.isEmpty ? Color(.placeholderText) : Colors.black)
                     .font(.app.title1)
                     .lineLimit(1, reservesSpace: true)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .overlay(alignment: .leading) {
-                        if let loadingText {
-                            Text(loadingText)
-                                .textStyle(.footnote)
-                        }
-                    }
-                    .contentTransition(.numericText(countsDown: true))
-                    .animation(text.isEmpty ? nil : .default, value: text)
-            } else {
-                TextField(side.amountPlaceholder, text: $text)
-                    .keyboardType(.decimalPad)
-                    .foregroundStyle(Colors.black)
-                    .font(.app.title1)
-                    .disabled(!side.interaction.isAmountEditable)
-                    .multilineTextAlignment(.leading)
+                    .quoteTransition(value: text, isLoading: showLoading)
+                if showLoading {
+                    LoadingView()
+                }
             }
+        } else {
+            TextField(side.amountPlaceholder, text: $text)
+                .keyboardType(.decimalPad)
+                .foregroundStyle(Colors.black)
+                .font(.app.title1)
+                .disabled(!side.interaction.isAmountEditable)
+                .multilineTextAlignment(.leading)
         }
     }
 
+    @ViewBuilder
     private var fiatBalanceView: some View {
-        Text(side.fiat?.text() ?? " ")
+        let fiat = Text(side.fiat?.text() ?? " ")
             .lineLimit(1, reservesSpace: true)
             .font(.app.callout)
             .foregroundStyle(Colors.secondaryText)
+        if isQuote {
+            fiat.quoteTransition(value: side.fiat?.text() ?? "", isLoading: showLoading)
+        } else {
+            fiat
+        }
     }
 
     private var assetActionView: some View {
@@ -94,5 +93,14 @@ struct SwapTokenView: View {
                 .foregroundStyle(Colors.secondaryText)
         }
         .disabled(!side.interaction.isBalanceActionEnabled)
+    }
+}
+
+private extension View {
+    func quoteTransition(value: String, isLoading: Bool) -> some View {
+        contentTransition(.numericText(countsDown: true))
+            .animation(value.isEmpty ? nil : .default, value: value)
+            .id(isLoading)
+            .transition(.asymmetric(insertion: .opacity.animation(.easeIn(duration: .AnimationDuration.normal)), removal: .identity))
     }
 }

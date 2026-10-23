@@ -383,7 +383,6 @@ swap_price_impact_warning_title = Yüksek Fiyat Etkisi
 swap_estimated_time_title = Tahmini Süre
 swap_min_receive = Alınacak minimum
 swap_use_minimum_amount = Minimum Tutarı Kullanın
-swap_looking_for_better_rate = Daha iyi bir kur aranıyor %@
 
 # Stake
 

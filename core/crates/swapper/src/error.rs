@@ -218,6 +218,17 @@ mod tests {
     }
 
     #[test]
+    fn test_combined_names_the_lowest_known_minimum_then_offline_then_no_quote() {
+        let input = |min_amount: Option<&str>| SwapperError::InputAmountError { min_amount: min_amount.map(str::to_string) };
+        let compute = SwapperError::ComputeQuoteError("HTTP error: status 500".into());
+        assert_eq!(SwapperError::combined(vec![input(Some("5000000")), input(Some("1264000")), SwapperError::NoQuoteAvailable]), input(Some("1264000")));
+        assert_eq!(SwapperError::combined(vec![input(None), input(Some("1264000"))]), input(None));
+        assert_eq!(SwapperError::combined(vec![SwapperError::NoQuoteAvailable, compute]), SwapperError::NoQuoteAvailable);
+        assert_eq!(SwapperError::combined(vec![SwapperError::Offline, SwapperError::Offline]), SwapperError::Offline);
+        assert_eq!(SwapperError::combined(vec![SwapperError::Offline, SwapperError::NoQuoteAvailable]), SwapperError::NoQuoteAvailable);
+    }
+
+    #[test]
     fn test_an_offline_request_stays_offline() {
         assert_eq!(SwapperError::from(AlienError::Offline), SwapperError::Offline);
         assert_eq!(SwapperError::from(AlienError::RequestError { msg: "timeout".to_string() }), SwapperError::ComputeQuoteError("timeout".to_string()));

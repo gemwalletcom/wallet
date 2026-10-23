@@ -329,7 +329,6 @@
   <string name="swap_estimated_time_title">Estimated Time</string>
   <string name="swap_min_receive">Minimum Receive</string>
   <string name="swap_use_minimum_amount">Use Minimum Amount</string>
-  <string name="swap_looking_for_better_rate">Looking for a better rate %1$s</string>
   <string name="stake_active">Active</string>
   <string name="stake_pending">Pending</string>
   <string name="stake_rewards">Rewards</string>

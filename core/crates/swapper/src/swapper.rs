@@ -150,14 +150,6 @@ impl GemSwapper {
         Ok(providers)
     }
 
-    pub async fn get_quote(&self, request: &QuoteRequest) -> Result<Vec<Quote>, SwapperError> {
-        let SwapQuotes { quotes, errors } = self.get_quotes(request).await?;
-        if quotes.is_empty() {
-            return Err(SwapperError::combined(errors.into_iter().map(|error| error.error).collect()));
-        }
-        Ok(quotes)
-    }
-
     pub async fn get_quotes(&self, request: &QuoteRequest) -> Result<SwapQuotes, SwapperError> {
         let providers = self.get_providers_for_request(request)?;
         let quote_results = futures::future::join_all(providers.iter().map(|provider| async move { (provider.id, self.get_provider_quote(&provider.id, request).await) })).await;
@@ -370,7 +362,7 @@ mod tests {
             )])
         };
         async fn quote_data(swapper: &GemSwapper, request: &QuoteRequest) -> Result<SwapperQuoteData, SwapperError> {
-            let quote = swapper.get_quote(request).await?.remove(0);
+            let quote = swapper.get_quotes(request).await?.quotes.remove(0);
             swapper.get_quote_data(&quote, FetchQuoteData::None).await
         }
 
@@ -405,7 +397,7 @@ mod tests {
         };
         let gem_swapper = GemSwapper::mock(vec![Box::new(MockSwapper::new(SwapperProvider::UniswapV3, |request| Ok(Quote::mock_with_request(request))))]);
 
-        let quotes = gem_swapper.get_quote(&request).await.unwrap();
+        let quotes = gem_swapper.get_quotes(&request).await.unwrap().quotes;
         let requoted = gem_swapper.get_quote_by_provider(&SwapperProvider::UniswapV3, &quotes[0].request).await.unwrap();
 
         assert!(quotes[0].request.value < request.value, "the first quote of a max swap keeps the fee reserve back");
@@ -435,41 +427,6 @@ mod tests {
             &request.value - reserve,
             "a contract call spends exactly what it is asked, so the fee reserve comes off first"
         );
-    }
-
-    #[tokio::test]
-    async fn test_get_quote_aggregates_provider_errors() {
-        let request = mock_quote(SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ethereum)), SwapperQuoteAsset::from(ETHEREUM_USDC_ASSET_ID.clone()));
-        let known_minimums = GemSwapper::mock(vec![
-            Box::new(MockSwapper::new(SwapperProvider::PancakeswapV3, |_| Err(SwapperError::InputAmountError { min_amount: Some("5000000".into()) }))),
-            Box::new(MockSwapper::new(SwapperProvider::UniswapV4, |_| Err(SwapperError::InputAmountError { min_amount: Some("1264000".into()) }))),
-            Box::new(MockSwapper::new(SwapperProvider::Jupiter, |_| Err(SwapperError::NoQuoteAvailable))),
-        ]);
-        assert_eq!(known_minimums.get_quote(&request).await.unwrap_err(), SwapperError::InputAmountError { min_amount: Some("1264000".into()) });
-
-        let unknown_minimum = GemSwapper::mock(vec![
-            Box::new(MockSwapper::new(SwapperProvider::UniswapV3, |_| Err(SwapperError::InputAmountError { min_amount: None }))),
-            Box::new(MockSwapper::new(SwapperProvider::UniswapV4, |_| Err(SwapperError::InputAmountError { min_amount: Some("1264000".into()) }))),
-        ]);
-        assert_eq!(unknown_minimum.get_quote(&request).await.unwrap_err(), SwapperError::InputAmountError { min_amount: None });
-
-        let route_errors = GemSwapper::mock(vec![
-            Box::new(MockSwapper::new(SwapperProvider::UniswapV3, |_| Err(SwapperError::NoQuoteAvailable))),
-            Box::new(MockSwapper::new(SwapperProvider::Jupiter, |_| Err(SwapperError::ComputeQuoteError("HTTP error: status 500".into())))),
-        ]);
-        assert_eq!(route_errors.get_quote(&request).await.unwrap_err(), SwapperError::NoQuoteAvailable);
-
-        let offline = GemSwapper::mock(vec![
-            Box::new(MockSwapper::new(SwapperProvider::UniswapV3, |_| Err(SwapperError::Offline))),
-            Box::new(MockSwapper::new(SwapperProvider::Jupiter, |_| Err(SwapperError::Offline))),
-        ]);
-        assert_eq!(offline.get_quote(&request).await.unwrap_err(), SwapperError::Offline);
-
-        let partly_offline = GemSwapper::mock(vec![
-            Box::new(MockSwapper::new(SwapperProvider::UniswapV3, |_| Err(SwapperError::Offline))),
-            Box::new(MockSwapper::new(SwapperProvider::Jupiter, |_| Err(SwapperError::NoQuoteAvailable))),
-        ]);
-        assert_eq!(partly_offline.get_quote(&request).await.unwrap_err(), SwapperError::NoQuoteAvailable);
     }
 }
 

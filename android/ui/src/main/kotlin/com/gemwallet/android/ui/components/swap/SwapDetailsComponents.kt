@@ -1,7 +1,13 @@
 package com.gemwallet.android.ui.components.swap
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -22,15 +28,16 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.dialog.DialogBarDismissType
 import com.gemwallet.android.ui.components.list_item.GemListRowView
-import com.gemwallet.android.ui.components.list_item.ListItem
-import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.ProviderLoadingRowView
 import com.gemwallet.android.ui.components.list_item.ProviderRowView
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.WarningItem
 import com.gemwallet.android.ui.components.list_item.property.AssetRatePropertyItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
-import com.gemwallet.android.ui.components.progress.CircularProgressIndicator14
+import com.gemwallet.android.ui.components.list_item.property.PropertyDataText
+import com.gemwallet.android.ui.components.list_item.property.PropertyItem
+import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
+import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator20
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.SheetExpansion
@@ -38,9 +45,9 @@ import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.style.textStyle
-import com.gemwallet.android.ui.theme.Spacer8
+import com.gemwallet.android.ui.theme.Spacer4
 import com.gemwallet.android.ui.theme.pendingColor
-import uniffi.gemstone.GemFormattedNumber
+import com.gemwallet.android.ui.theme.space4
 import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemProviderKind
 import uniffi.gemstone.GemProviderLoadingRow
@@ -50,40 +57,53 @@ import uniffi.gemstone.GemSwapQuotesState
 import uniffi.gemstone.SwapProvider
 
 @Composable
-fun SwapDetailsSummaryItem(details: GemSwapDetails, onClick: () -> Unit, isLoading: Boolean = false, listPosition: ListPosition = ListPosition.Single) {
-    val priceImpact = details.summary.priceImpactRow?.takeIf { it.showsInSummary }?.value
+fun SwapDetailsSummaryItem(details: GemSwapDetails?, onClick: () -> Unit, progress: String? = null, listPosition: ListPosition = ListPosition.Single) {
+    val priceImpact = details?.summary?.priceImpactRow?.takeIf { it.showsInSummary }?.value
 
-    ListItem(
-        model = ListItemModel(title = stringResource(R.string.common_details), subtitle = details.rate?.forward),
-        listPosition = listPosition,
+    PropertyItem(
         modifier = Modifier.clickable(onClick = onClick),
-        accessory = {
-            when {
-                isLoading -> DataBadgeChevron(isShowChevron = false) {
-                    priceImpact?.let {
-                        PriceImpactText(it)
-                        Spacer8()
-                    }
-                    CircularProgressIndicator14()
-                }
-
-                priceImpact != null -> DataBadgeChevron { PriceImpactText(priceImpact) }
-
-                else -> DataBadgeChevron()
-            }
+        title = { PropertyTitleText(R.string.common_details) },
+        data = {
+            QuoteProgress(progress)
+            PropertyDataText(
+                text = details?.rate?.forward.orEmpty(),
+                badge = {
+                    DataBadgeChevron(
+                        content = priceImpact?.let {
+                            {
+                                Text(
+                                    text = "(${it.text()})",
+                                    color = it.tone.color(),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Clip,
+                                    softWrap = false,
+                                )
+                            }
+                        },
+                    )
+                },
+            )
         },
+        listPosition = listPosition,
     )
 }
 
 @Composable
-private fun PriceImpactText(priceImpact: GemFormattedNumber) {
-    Text(
-        text = "(${priceImpact.text()})",
-        color = priceImpact.tone.color(),
-        maxLines = 1,
-        overflow = TextOverflow.Clip,
-        softWrap = false,
-    )
+private fun QuoteProgress(progress: String?) {
+    AnimatedContent(
+        targetState = progress,
+        contentKey = { it != null },
+        transitionSpec = { fadeIn() togetherWith fadeOut() },
+        label = "quote_progress",
+    ) { text ->
+        text?.let {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(space4)) {
+                CircularProgressIndicator16()
+                Text(text = it, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.secondary)
+                Spacer4()
+            }
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -106,7 +126,7 @@ fun SwapDetailsBottomSheet(
         onDismissRequest = onDismiss,
         modifier = modifier,
         expansion = expansion,
-        title = { stringResource(R.string.common_details) },
+        title = { stringResource(if (details == null) R.string.buy_providers_title else R.string.common_details) },
         dismissType = DialogBarDismissType.Confirm,
     ) { (quotesState, details) ->
         when (quotesState) {
@@ -127,22 +147,20 @@ fun SwapDetailsBottomSheet(
                 position = ListPosition.Single,
             )
 
-            GemSwapQuotesState.Quotes -> details?.let {
-                SwapDetailsList(
-                    details = it,
-                    providers = providers,
-                    pendingProviders = pendingProviders,
-                    isProviderSelectable = isProviderSelectable,
-                    onProviderSelect = onProviderSelect,
-                    onDismiss = onDismiss,
-                )
-            }
+            GemSwapQuotesState.Quotes -> SwapDetailsList(
+                details = details,
+                providers = providers,
+                pendingProviders = pendingProviders,
+                isProviderSelectable = isProviderSelectable,
+                onProviderSelect = onProviderSelect,
+                onDismiss = onDismiss,
+            )
         }
     }
 }
 
 @Composable
-private fun SwapDetailsList(details: GemSwapDetails, providers: List<GemProviderRow>, pendingProviders: List<GemProviderLoadingRow>, isProviderSelectable: Boolean, onProviderSelect: ((SwapProvider) -> Unit)?, onDismiss: () -> Unit) {
+private fun SwapDetailsList(details: GemSwapDetails?, providers: List<GemProviderRow>, pendingProviders: List<GemProviderLoadingRow>, isProviderSelectable: Boolean, onProviderSelect: ((SwapProvider) -> Unit)?, onDismiss: () -> Unit) {
     val context = LocalContext.current
     LazyColumn {
         item {
@@ -165,10 +183,13 @@ private fun SwapDetailsList(details: GemSwapDetails, providers: List<GemProvider
             itemsIndexed(pendingProviders) { index, provider ->
                 ProviderLoadingRowView(row = provider, listPosition = ListPosition.getPosition(providers.size + index, rows))
             }
-        } else {
+        } else if (details != null) {
             item {
                 ProviderRowView(row = details.provider, listPosition = ListPosition.Single)
             }
+        }
+        if (details == null) {
+            return@LazyColumn
         }
         val rate = details.rate
         val rateRows = if (rate != null) 1 else 0

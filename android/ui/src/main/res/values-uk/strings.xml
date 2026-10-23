@@ -329,7 +329,6 @@
   <string name="swap_estimated_time_title">Розрахунковий час</string>
   <string name="swap_min_receive">Мінімум до отримання</string>
   <string name="swap_use_minimum_amount">Використовуйте мінімальну суму</string>
-  <string name="swap_looking_for_better_rate">Пошук кращого курсу %1$s</string>
   <string name="stake_active">Активний</string>
   <string name="stake_pending">В Очікуванні</string>
   <string name="stake_rewards">Нагороди</string>

@@ -408,7 +408,7 @@ class SwapViewModelTest {
         advanceUntilIdle()
 
         assertNull(viewModel.viewState.value.details)
-        assertEquals("", viewModel.receiveValue.text.toString())
+        assertNull(viewModel.viewState.value.receiveAmount)
     }
 
     @Test
@@ -732,7 +732,7 @@ class SwapViewModelTest {
         advanceUntilIdle()
 
         assertTrue(viewModel.viewState.value.isQuoteLoading)
-        assertEquals("", viewModel.receiveValue.text.toString())
+        assertNull(viewModel.viewState.value.receiveAmount)
     }
 
     @Test

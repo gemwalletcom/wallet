@@ -56,7 +56,6 @@ fun SwapScreen(
         pay = pay,
         receive = receive,
         payValue = viewModel.payValue,
-        receiveValue = viewModel.receiveValue,
         showsSlippageIndicator = selectedSlippage != null,
         onAction = { action ->
             when (action) {

@@ -16,7 +16,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -26,6 +25,7 @@ import com.gemwallet.android.features.swap.presents.components.SwapButton
 import com.gemwallet.android.features.swap.presents.components.SwapQuoteError
 import com.gemwallet.android.features.swap.presents.components.SwapToken
 import com.gemwallet.android.features.swap.viewmodels.SwapViewModel
+import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.PercentSuggestionsBar
 import com.gemwallet.android.ui.components.buttons.IndicatorButton
@@ -35,18 +35,16 @@ import com.gemwallet.android.ui.components.screen.MainActionWidth
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.swap.SwapDetailsSummaryItem
 import com.gemwallet.android.ui.icons.AppIcons
-import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.theme.iconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.sceneContentPadding
 import com.gemwallet.android.ui.theme.space0
 import com.wallet.core.primitives.AssetData
-import uniffi.gemstone.GemSwapQuoteStatus
 import uniffi.gemstone.GemSwapViewState
 
 @Composable
-internal fun SwapScene(viewState: GemSwapViewState, pay: AssetData?, receive: AssetData?, payValue: TextFieldState, receiveValue: TextFieldState, showsSlippageIndicator: Boolean, onAction: (SwapAction) -> Unit) {
+internal fun SwapScene(viewState: GemSwapViewState, pay: AssetData?, receive: AssetData?, payValue: TextFieldState, showsSlippageIndicator: Boolean, onAction: (SwapAction) -> Unit) {
     val focusManager = LocalFocusManager.current
     fun clearAmountFocus() {
         focusManager.clearFocus(force = true)
@@ -124,9 +122,8 @@ internal fun SwapScene(viewState: GemSwapViewState, pay: AssetData?, receive: As
                 SwapToken(
                     item = receive,
                     side = viewState.receive,
-                    state = receiveValue,
                     calculating = viewState.isReceiveLoading,
-                    calculatingText = viewState.quoteStatus.receiveLoadingText(),
+                    quote = viewState.receiveAmount?.text(),
                     isQuote = true,
                     onBalanceClick = {},
                     onAssetSelect = {
@@ -137,8 +134,8 @@ internal fun SwapScene(viewState: GemSwapViewState, pay: AssetData?, receive: As
                 )
             }
             item {
-                viewState.details?.let {
-                    SwapDetailsSummaryItem(details = it, isLoading = viewState.quoteStatus.isChecking(), onClick = { onAction(SwapAction.ShowDetails) })
+                if (viewState.details != null || viewState.quoteProgress != null) {
+                    SwapDetailsSummaryItem(details = viewState.details, progress = viewState.quoteProgress, onClick = { onAction(SwapAction.ShowDetails) })
                 }
             }
 
@@ -147,17 +144,6 @@ internal fun SwapScene(viewState: GemSwapViewState, pay: AssetData?, receive: As
             }
         }
     }
-}
-
-private fun GemSwapQuoteStatus?.isChecking(): Boolean = when (this) {
-    GemSwapQuoteStatus.Checking -> true
-    is GemSwapQuoteStatus.HeldForPriceImpact, null -> false
-}
-
-@Composable
-private fun GemSwapQuoteStatus?.receiveLoadingText(): String? = when (this) {
-    is GemSwapQuoteStatus.HeldForPriceImpact -> text.string(LocalContext.current)
-    GemSwapQuoteStatus.Checking, null -> null
 }
 
 @Composable

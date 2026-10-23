@@ -383,7 +383,6 @@ swap_price_impact_warning_title = 높은 가격의 영향
 swap_estimated_time_title = 예상 시간
 swap_min_receive = 최소 수령
 swap_use_minimum_amount = 최소 금액을 사용하세요
-swap_looking_for_better_rate = 더 나은 환율 찾는 중 %@
 
 # Stake
 

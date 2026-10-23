@@ -329,7 +329,6 @@
   <string name="swap_estimated_time_title">เวลาโดยประมาณ</string>
   <string name="swap_min_receive">รับขั้นต่ำ</string>
   <string name="swap_use_minimum_amount">ใช้ในปริมาณน้อยที่สุด</string>
-  <string name="swap_looking_for_better_rate">กำลังหาอัตราที่ดีกว่า %1$s</string>
   <string name="stake_active">ใช้งานอยู่</string>
   <string name="stake_pending">รอดำเนินการ</string>
   <string name="stake_rewards">รางวัล</string>

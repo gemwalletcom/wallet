@@ -383,7 +383,6 @@ swap_price_impact_warning_title = उच्च मूल्य प्रभा�
 swap_estimated_time_title = अनुमानित समय
 swap_min_receive = न्यूनतम प्राप्ति राशि
 swap_use_minimum_amount = न्यूनतम राशि का प्रयोग करें
-swap_looking_for_better_rate = बेहतर दर खोजी जा रही है %@
 
 # Stake
 

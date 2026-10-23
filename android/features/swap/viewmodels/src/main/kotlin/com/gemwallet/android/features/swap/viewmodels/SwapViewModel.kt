@@ -21,7 +21,6 @@ import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.math.numberFormat
-import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.AssetId
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -94,7 +93,6 @@ class SwapViewModel @Inject constructor(
     private val session = MutableStateFlow(service.newSession())
 
     val payValue: TextFieldState = TextFieldState()
-    val receiveValue: TextFieldState = TextFieldState()
 
     private val payValueFlow = snapshotFlow { payValue.text }
         .map { it.toString() }
@@ -192,10 +190,6 @@ class SwapViewModel @Inject constructor(
                 delay(wait.milliseconds.toLong())
                 session.update { it.onFirstQuoteWaitEnded(wait.request) }
             }
-            .launchIn(viewModelScope)
-        viewState.map { it.receiveAmount?.text().orEmpty() }
-            .distinctUntilChanged()
-            .onEach(::setReceive)
             .launchIn(viewModelScope)
         combine(payAssetIdFlow, receiveAssetIdFlow) { pay, receive -> listOfNotNull(pay, receive).map { it.toIdentifier() } }
             .distinctUntilChanged()
@@ -399,11 +393,6 @@ class SwapViewModel @Inject constructor(
         presetPayValue = text
         payValue.clearText()
         payValue.setTextAndPlaceCursorAtEnd(text)
-    }
-
-    private suspend fun setReceive(amount: String) = withContext(Dispatchers.Main) {
-        receiveValue.clearText()
-        receiveValue.setTextAndPlaceCursorAtEnd(amount)
     }
 
     companion object {

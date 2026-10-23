@@ -383,7 +383,6 @@ swap_price_impact_warning_title = Athari ya Bei ya Juu
 swap_estimated_time_title = Muda Unaokadiriwa
 swap_min_receive = Kiasi cha chini cha kupokea
 swap_use_minimum_amount = Tumia Kiasi cha Chini Zaidi
-swap_looking_for_better_rate = Inatafuta kiwango bora zaidi %@
 
 # Stake
 

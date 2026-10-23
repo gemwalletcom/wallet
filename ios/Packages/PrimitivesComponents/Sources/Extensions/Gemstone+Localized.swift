@@ -154,8 +154,6 @@ public extension GemLocalizedText {
             Localized.Common.none
         case .slippageAuto:
             Localized.Swap.slippageAuto
-        case let .lookingForBetterRate(progress):
-            Localized.Swap.lookingForBetterRate(progress)
         case .rewardsUnverified:
             Localized.Rewards.Unverified.description
         case let .rewardsPending(countdown):

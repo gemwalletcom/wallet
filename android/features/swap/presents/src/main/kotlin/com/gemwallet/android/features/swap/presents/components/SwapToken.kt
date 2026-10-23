@@ -1,5 +1,12 @@
 package com.gemwallet.android.features.swap.presents.components
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -53,7 +60,7 @@ internal fun SwapToken(
     item: AssetData?,
     side: GemSwapSideState,
     calculating: Boolean = false,
-    calculatingText: String? = null,
+    quote: String? = null,
     isQuote: Boolean = false,
     state: TextFieldState = rememberTextFieldState(),
     onBalanceClick: () -> Unit,
@@ -74,14 +81,16 @@ internal fun SwapToken(
         ) {
             SwapItemInput(
                 calculating = calculating,
-                calculatingText = calculatingText,
+                quote = quote,
                 isQuote = isQuote,
                 interaction = side.interaction,
                 state = state,
                 assetSelected = item != null,
                 placeholder = side.amountPlaceholder,
             )
-            SwapEquivalent(equivalent = side.fiat?.text().orEmpty())
+            QuoteFade(isLoading = calculating) {
+                SwapEquivalent(equivalent = side.fiat?.text().orEmpty(), animated = isQuote)
+            }
         }
         Column(
             horizontalAlignment = Alignment.End,
@@ -130,14 +139,14 @@ private fun AssetPickerChevron() {
 }
 
 @Composable
-private fun SwapEquivalent(equivalent: String) {
-    Text(
+private fun SwapEquivalent(equivalent: String, animated: Boolean) {
+    NumericText(
         modifier = Modifier.padding(vertical = paddingHalfSmall),
         text = equivalent,
-        minLines = 1,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
         style = MaterialTheme.typography.bodySmall,
+        animated = animated,
     )
 }
 
@@ -161,7 +170,7 @@ private fun SwapBalance(balance: GemLocalizedText?, interaction: GemSwapSideInte
 }
 
 @Composable
-private fun SwapItemInput(calculating: Boolean, calculatingText: String?, isQuote: Boolean, interaction: GemSwapSideInteraction, assetSelected: Boolean, placeholder: String, state: TextFieldState = rememberTextFieldState()) {
+private fun SwapItemInput(calculating: Boolean, quote: String?, isQuote: Boolean, interaction: GemSwapSideInteraction, assetSelected: Boolean, placeholder: String, state: TextFieldState = rememberTextFieldState()) {
     val focusRequester = remember { FocusRequester() }
     val amountTextStyle = MaterialTheme.typography.headlineSmall
     val inputTextStyle = amountTextStyle.copy(
@@ -180,20 +189,19 @@ private fun SwapItemInput(calculating: Boolean, calculatingText: String?, isQuot
             .heightIn(min = listItemIconSize),
         contentAlignment = Alignment.CenterStart,
     ) {
-        if (calculating) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(paddingSmall)) {
-                CircularProgressIndicator16()
-                calculatingText?.let {
-                    Text(text = it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
+        if (isQuote) {
+            QuoteFade(isLoading = calculating) { loading ->
+                if (loading) {
+                    CircularProgressIndicator16()
+                } else {
+                    NumericText(
+                        text = quote ?: placeholder,
+                        style = amountTextStyle,
+                        color = if (quote == null) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                    )
                 }
             }
-        } else if (isQuote) {
-            NumericText(
-                text = state.text.ifEmpty { placeholder }.toString(),
-                style = amountTextStyle,
-                color = if (state.text.isEmpty()) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
-            )
         } else {
             BasicTextField(
                 modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
@@ -218,3 +226,15 @@ private fun SwapItemInput(calculating: Boolean, calculatingText: String?, isQuot
         }
     }
 }
+
+@Composable
+private fun QuoteFade(isLoading: Boolean, content: @Composable (Boolean) -> Unit) {
+    AnimatedContent(
+        targetState = isLoading,
+        transitionSpec = { (if (targetState) EnterTransition.None else fadeIn(tween(QUOTE_FADE_IN_MS))) togetherWith fadeOut(snap()) using null },
+        contentAlignment = Alignment.CenterStart,
+        label = "quote_fade",
+    ) { content(it) }
+}
+
+private const val QUOTE_FADE_IN_MS = 200

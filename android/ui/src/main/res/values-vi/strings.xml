@@ -329,7 +329,6 @@
   <string name="swap_estimated_time_title">Thời gian dự kiến</string>
   <string name="swap_min_receive">Nhận tối thiểu</string>
   <string name="swap_use_minimum_amount">Sử dụng số lượng tối thiểu</string>
-  <string name="swap_looking_for_better_rate">Đang tìm tỷ lệ tốt hơn %1$s</string>
   <string name="stake_active">Tích cực</string>
   <string name="stake_pending">Đang chờ xử lý</string>
   <string name="stake_rewards">Phần thưởng</string>

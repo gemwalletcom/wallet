@@ -329,7 +329,6 @@
   <string name="swap_estimated_time_title">Anggaran Masa</string>
   <string name="swap_min_receive">Penerimaan Minimum</string>
   <string name="swap_use_minimum_amount">Gunakan Jumlah Minimum</string>
-  <string name="swap_looking_for_better_rate">Mencari kadar yang lebih baik %1$s</string>
   <string name="stake_active">Aktif</string>
   <string name="stake_pending">Belum selesai</string>
   <string name="stake_rewards">Ganjaran</string>

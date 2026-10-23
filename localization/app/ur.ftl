@@ -383,7 +383,6 @@ swap_price_impact_warning_title = اعلی قیمت کا اثر
 swap_estimated_time_title = تخمینی وقت
 swap_min_receive = کم از کم وصولی
 swap_use_minimum_amount = کم سے کم رقم استعمال کریں
-swap_looking_for_better_rate = بہتر شرح تلاش کی جا رہی ہے %@
 
 # Stake
 

@@ -329,7 +329,6 @@
   <string name="swap_estimated_time_title">زمان تخمینی</string>
   <string name="swap_min_receive">حداقل دریافت</string>
   <string name="swap_use_minimum_amount">از حداقل مقدار استفاده کنید</string>
-  <string name="swap_looking_for_better_rate">در حال یافتن نرخ بهتر %1$s</string>
   <string name="stake_active">فعال</string>
   <string name="stake_pending">در انتظار</string>
   <string name="stake_rewards">پاداش ها</string>

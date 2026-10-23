@@ -383,7 +383,6 @@ swap_price_impact_warning_title = Tác động giá cao
 swap_estimated_time_title = Thời gian dự kiến
 swap_min_receive = Nhận tối thiểu
 swap_use_minimum_amount = Sử dụng số lượng tối thiểu
-swap_looking_for_better_rate = Đang tìm tỷ lệ tốt hơn %@
 
 # Stake
 

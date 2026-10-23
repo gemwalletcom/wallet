@@ -329,7 +329,6 @@
   <string name="swap_estimated_time_title">Geschatte tijd</string>
   <string name="swap_min_receive">Minimale ontvangst</string>
   <string name="swap_use_minimum_amount">Gebruik de minimale hoeveelheid</string>
-  <string name="swap_looking_for_better_rate">Zoeken naar een betere koers %1$s</string>
   <string name="stake_active">Actief</string>
   <string name="stake_pending">In behandeling</string>
   <string name="stake_rewards">Beloningen</string>

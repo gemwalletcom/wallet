@@ -329,7 +329,6 @@
   <string name="swap_estimated_time_title">अनुमानित समय</string>
   <string name="swap_min_receive">न्यूनतम प्राप्ति राशि</string>
   <string name="swap_use_minimum_amount">न्यूनतम राशि का प्रयोग करें</string>
-  <string name="swap_looking_for_better_rate">बेहतर दर खोजी जा रही है %1$s</string>
   <string name="stake_active">सक्रिय</string>
   <string name="stake_pending">लंबित</string>
   <string name="stake_rewards">पुरस्कार</string>

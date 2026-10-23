@@ -329,7 +329,6 @@
   <string name="swap_estimated_time_title">예상 시간</string>
   <string name="swap_min_receive">최소 수령</string>
   <string name="swap_use_minimum_amount">최소 금액을 사용하세요</string>
-  <string name="swap_looking_for_better_rate">더 나은 환율 찾는 중 %1$s</string>
   <string name="stake_active">활동적인</string>
   <string name="stake_pending">보류 중</string>
   <string name="stake_rewards">보상</string>

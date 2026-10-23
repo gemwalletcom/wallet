@@ -26,7 +26,6 @@ pub enum GemLocalizedText {
     Number { number: GemFormattedNumber },
     None,
     SlippageAuto,
-    LookingForBetterRate { progress: String },
     RewardsUnverified,
     RewardsPending { countdown: Vec<GemDurationPart> },
     RewardsPendingReady,

@@ -7,7 +7,7 @@ flowchart LR
     A[Pick the pair] --> B[Enter amount] --> C[Every provider asked at once] --> D{All, all but one, or the short wait?}
     D -- no quote by the close --> E[No quote available, Try Again]
     D -- yes --> P{Loses more than 1%?}
-    P -- yes, providers still quoting --> W[Spinner, Looking for a better rate] --> P
+    P -- yes, providers still quoting --> W[You Receive keeps its spinner, Details shows 2/4] --> P
     P -- no, or every provider answered --> F[Best quote so far shown] --> G[Swap] --> H{Price impact 10% or more?}
     F -- a better answer --> U[You Receive updates in place] --> F
     F -- the close --> X[Silent providers left out]
@@ -67,9 +67,9 @@ sequenceDiagram
 | Both assets on one network | `0.5 s` | `8 s` |
 | Across networks | `1 s` | `15 s` |
 
-The short wait counts from the first quote, so a slow connection still gets every answer; the long close leaves room for slow connections and slow providers. While the round is open, a small spinner takes the place of the Details row's chevron, Swap works, and Providers lists each provider that answered and a loading row for each one still quoting. A better quote replaces You Receive in place, ranked as in [Choosing a quote](#choosing-a-quote). When the round closes, a provider still silent is left out and the chevron comes back; with no quote at all, No quote available shows with Try Again.
+The short wait counts from the first quote, so a slow connection still gets every answer; the long close leaves room for slow connections and slow providers. While the round is open, the Details row shows a small spinner and how many providers answered of those asked, as `3/4`, before the rate, Swap works, and Providers lists each provider that answered and a loading row for each one still quoting. The first quote fades in where the spinner was, without moving; a better quote then rolls You Receive and its fiat value to the new amount, ranked as in [Choosing a quote](#choosing-a-quote). When the round closes, a provider still silent is left out and the spinner and `3/4` fade out; with no quote at all, No quote available shows with Try Again.
 
-A quote that loses more than `1%` against the market price, the point where Details starts showing the Price Impact, is not shown early: You Receive keeps its spinner and reads "Looking for a better rate 2/4", the providers answered of those asked, until a provider gives a quote within `1%` or the round ends. When every provider has answered or the round closes, the best quote shows with its Price Impact, and the `10%` High Price Impact confirmation still asks first. A pair without prices has no Price Impact, so its quotes are never held.
+A quote that loses more than `1%` against the market price, the point where Details starts showing the Price Impact, is not shown early: You Receive keeps its spinner and the Details row shows only the spinner and `2/4`, with no rate, until a provider gives a quote within `1%` or the round ends. Tapping it opens Providers with the quotes so far, and a provider the user picks there shows at once. When every provider has answered or the round closes, the best quote shows with its Price Impact, and the `10%` High Price Impact confirmation still asks first. A pair without prices has no Price Impact, so its quotes are never held.
 
 All of these numbers live in one place, the quote round settings next to the High Price Impact threshold, so they can be tuned together.
 
@@ -360,16 +360,16 @@ A deposit no relayer fills is refunded once its fill deadline passes. The deadli
 | The user types an amount | quotes are asked shortly after typing stops | |
 | The screen stays open | quotes refresh every `30 seconds` | |
 | A refresh, including going back from Confirm | You Receive shows only the loading indicator until the new round's first quote, never the old amount with it | |
-| Three of four providers answered and the fourth is still quoting | the best of the three shows, a spinner replaces the Details chevron and Swap works | one slow provider never holds back the others (`test_the_first_quote_shows_once_every_provider_or_all_but_one_answered`) |
+| Three of four providers answered and the fourth is still quoting | the best of the three fades in, Details shows a spinner and `3/4` before the rate, and Swap works | one slow provider never holds back the others (`test_the_first_quote_shows_once_every_provider_or_all_but_one_answered`) |
 | One of two providers answered | its quote shows `1 s` later across networks, `0.5 s` on one network, unless the other answers first | the short wait lets the other answer on a slow connection (`test_the_wait_after_the_first_quote_shows_it_and_depends_on_the_pair`) |
-| A better quote arrives while the round is open | You Receive changes to it in place | the best quote wins, as before (`test_a_late_better_quote_replaces_the_shown_one_and_the_progress_goes_with_the_last_answer`) |
+| A better quote arrives while the round is open | You Receive and its fiat value roll to it in place | the best quote wins, as before (`test_a_late_better_quote_replaces_the_shown_one_and_the_progress_goes_with_the_last_answer`) |
 | Providers is opened while the round is open | a row for each provider that answered and a loading row for each one still quoting | (`test_the_providers_list_shows_a_loading_row_for_each_provider_still_quoting`) |
 | The user picked a provider in Providers and a better quote arrives | the picked provider stays | the user's choice wins (`test_the_users_choice_wins_over_a_later_answer`) |
 | The user tapped Swap and a provider answers afterwards | the trade does not change; Confirm asks that provider again once the quote is old | the trade on Confirm is the one the user chose (`test_the_users_choice_wins_over_a_later_answer`) |
-| A provider is still silent `8 s` after the request on one network, `15 s` across networks | it is left out and the chevron comes back | the round always closes (`test_a_provider_silent_past_the_timeout_or_failing_hard_is_left_out`) |
+| A provider is still silent `8 s` after the request on one network, `15 s` across networks | it is left out and the spinner and `3/4` fade out | the round always closes (`test_a_provider_silent_past_the_timeout_or_failing_hard_is_left_out`) |
 | No provider gave a quote by the close | No quote available with Try Again | (`test_no_quote_once_every_provider_answered_is_the_error`) |
-| The best quote so far loses more than `1%` and providers are still quoting | You Receive keeps its spinner and reads "Looking for a better rate 1/4" | an early quote from a thin pool should not be the first number the user sees when a better one may follow (`test_a_quote_losing_more_than_the_hold_waits_and_a_better_late_quote_shows_at_once`) |
-| A quote within `1%` then arrives | it shows at once, with the spinner on Details while the rest answer | |
+| The best quote so far loses more than `1%` and providers are still quoting | You Receive keeps its spinner, Details shows the spinner and `1/4` without a rate, and tapping it opens Providers with the quotes so far | an early quote from a thin pool should not be the first number the user sees when a better one may follow (`test_a_quote_losing_more_than_the_hold_waits_and_a_better_late_quote_shows_at_once`) |
+| A quote within `1%` then arrives | it shows at once, with the spinner and the count on Details while the rest answer | |
 | Every provider answered or the round closed and the best quote still loses more than `1%` | it shows with its Price Impact | the user still decides (`test_a_held_quote_shows_once_the_round_ends`) |
 | A refresh while Details is open | Details shows the loading indicator until the new quote arrives, never the old quote's details | it matches You Receive |
 | A refresh fails while Details is open | Details stays open and shows the error, as the Swap screen does | |

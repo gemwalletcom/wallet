@@ -46,6 +46,8 @@ public struct SwapDetailsView: View {
             case .data:
                 if let details {
                     listView(details)
+                } else {
+                    providersView
                 }
             case let .error(error): List { ListItemErrorView(errorTitle: Localized.Errors.errorOccurred, error: error) }
             case .loading: LoadingView()
@@ -57,7 +59,7 @@ public struct SwapDetailsView: View {
                 Button("", systemImage: SystemImage.checkmark, action: { dismiss() })
             }
         }
-        .navigationTitle(Localized.Common.details)
+        .navigationTitle(details == nil ? Localized.Buy.Providers.title : Localized.Common.details)
         .navigationBarTitleDisplayMode(.inline)
         .listSectionSpacing(.compact)
         .contentMargins([.top], .extraSmall, for: .scrollContent)

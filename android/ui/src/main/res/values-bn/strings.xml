@@ -329,7 +329,6 @@
   <string name="swap_estimated_time_title">আনুমানিক সময়</string>
   <string name="swap_min_receive">প্রাপ্তির সর্বনিম্ন</string>
   <string name="swap_use_minimum_amount">সর্বনিম্ন পরিমাণ ব্যবহার করুন</string>
-  <string name="swap_looking_for_better_rate">আরও ভালো হার খোঁজা হচ্ছে %1$s</string>
   <string name="stake_active">সক্রিয়</string>
   <string name="stake_pending">মুলতুবি</string>
   <string name="stake_rewards">পুরস্কার</string>

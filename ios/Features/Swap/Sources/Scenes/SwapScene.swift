@@ -21,9 +21,7 @@ public struct SwapScene: View {
         List {
             swapFromSectionView
             swapToSectionView
-            if model.shouldShowAdditionalInfo {
-                additionalInfoSectionView
-            }
+            additionalInfoSectionView
 
             if let error = model.quoteError {
                 Section {
@@ -131,7 +129,6 @@ extension SwapScene {
                 text: .constant(model.toValue),
                 isQuote: true,
                 showLoading: model.isReceiveFieldLoading,
-                loadingText: model.receiveLoadingText,
                 onBalanceAction: {},
                 onSelectAssetAction: model.onSelectAssetReceive,
             )
@@ -155,10 +152,9 @@ extension SwapScene {
 
     private var additionalInfoSectionView: some View {
         Section {
-            if let swapDetails = model.swapDetails {
+            if model.showsSwapDetails {
                 NavigationCustomLink(
-                    with: SwapDetailsListView(details: swapDetails),
-                    isLoading: model.isCheckingProviders,
+                    with: SwapDetailsListView(details: model.swapDetails, progress: model.quoteProgress),
                     action: model.onSelectSwapDetails,
                 )
             }
