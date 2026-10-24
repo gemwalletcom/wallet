@@ -28,6 +28,8 @@ updates:
       - dependency-name: "*"
         update-types:
           - "version-update:semver-patch"
+      # Moves with axum: the api matches the WebSocket errors axum wraps by their type.
+      - dependency-name: "tokio-tungstenite"
 
   - package-ecosystem: "github-actions"
     directories:

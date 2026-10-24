@@ -141,10 +141,36 @@ async fn flush_device_stream_events(observer: &StreamObserver, device_stream: &D
 mod tests {
     use std::io::Error as IoError;
 
-    use axum::Error as AxumError;
+    use axum::extract::ws::WebSocketUpgrade;
+    use axum::{Error as AxumError, Router, routing::get};
+    use tokio::net::TcpListener;
+    use tokio::sync::mpsc;
     use tokio_tungstenite::tungstenite::error::ProtocolError;
 
     use super::{WsError, is_disconnect_error};
+
+    #[tokio::test]
+    async fn test_is_disconnect_error_from_axum_socket() {
+        let (sender, mut receiver) = mpsc::unbounded_channel();
+        let router = Router::new().route(
+            "/",
+            get(move |upgrade: WebSocketUpgrade| async move {
+                upgrade.on_upgrade(move |mut socket| async move {
+                    if let Some(Err(error)) = socket.recv().await {
+                        sender.send(is_disconnect_error(&error)).unwrap();
+                    }
+                })
+            }),
+        );
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let address = listener.local_addr().unwrap();
+        tokio::spawn(async move { axum::serve(listener, router).await });
+
+        let (client, _) = tokio_tungstenite::connect_async(format!("ws://{address}/")).await.unwrap();
+        drop(client);
+
+        assert!(receiver.recv().await.unwrap());
+    }
 
     #[test]
     fn test_is_disconnect_error() {
