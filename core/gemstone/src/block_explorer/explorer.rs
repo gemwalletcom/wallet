@@ -95,6 +95,18 @@ mod tests {
     }
 
     #[test]
+    fn test_zcash_explorers() {
+        let chain = Chain::Zcash;
+        let explorers = get_block_explorers(chain);
+        let names = explorers.iter().map(|explorer| explorer.name()).collect::<Vec<_>>();
+        let explorer = Explorer { chain };
+
+        assert_eq!(names, vec!["3xpl", "Blockchair", "ZecBlock"]);
+        assert_eq!(explorer.get_transaction_url("ZecBlock", "transaction_id"), "https://zecblock.com/tx/transaction_id");
+        assert_eq!(explorer.get_address_url("ZecBlock", "address"), "https://zecblock.com/address/address");
+    }
+
+    #[test]
     fn test_ethereum_explorers() {
         let chain = Chain::Ethereum;
         let explorers = get_block_explorers(chain);

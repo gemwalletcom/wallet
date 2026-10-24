@@ -28,6 +28,7 @@ use gem_tempo::TempoProvider;
 use gem_ton::rpc::TonClient;
 use gem_tron::rpc::{TronProvider, client::TronClient, trongrid::client::TronGridClient};
 use gem_xrp::rpc::XrpClient;
+use gem_zcash::ZcashProvider;
 use reqwest::Client;
 
 use primitives::{BitcoinChain, Chain, ChainType, EVMChain, chain_cosmos::CosmosChain};
@@ -66,7 +67,7 @@ impl ProviderFactory {
         let chain = config.chain;
 
         match chain.chain_type() {
-            ChainType::Bitcoin => Box::new(BitcoinClient::new(gem_client, BitcoinChain::from_chain(chain).unwrap())),
+            ChainType::Bitcoin => ZcashProvider::new_or_else(BitcoinClient::new(gem_client, BitcoinChain::from_chain(chain).unwrap()), |client| Box::new(client)),
             ChainType::Ethereum => {
                 let evm_chain = EVMChain::from_chain(chain).unwrap();
                 let rpc_client = JsonRpcClient::new(gem_client.clone());

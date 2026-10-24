@@ -3,7 +3,7 @@ use std::str::FromStr;
 use super::error::{PaymentDecoderError, Result};
 use primitives::{Chain, ChainType, HTTPS_URL_SCHEME, WALLET_CONNECT_URL_SCHEME, payment::Payment};
 
-use super::{bip21, bip321, erc681, solana_pay, ton_pay, wallet_connect_pay, xrp};
+use super::{bip21, bip321, erc681, solana_pay, ton_pay, wallet_connect_pay, xrp, zip321};
 
 const DOGECOIN_SCHEME: &str = "dogecoin";
 const RIPPLE_SCHEME: &str = "ripple";
@@ -31,6 +31,7 @@ impl PaymentURLDecoder {
             Chain::Solana => solana_pay::decode(path),
             Chain::Ton => ton_pay::decode(path),
             Chain::Xrp => xrp::decode(path),
+            Chain::Zcash => zip321::decode(path),
             chain => bip21::decode(Some(chain), path),
         }
     }
@@ -119,6 +120,10 @@ mod tests {
         assert_eq!(
             PaymentURLDecoder::decode("ripple:rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh").unwrap(),
             PaymentURLDecoder::decode("xrpl:rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh").unwrap()
+        );
+        assert_eq!(
+            PaymentURLDecoder::decode("zcash:?address=t1dTLYuecTCt8irWJsyLkDaJm2EAvVgdxgM&amount=0.5").unwrap(),
+            PaymentURLDecoder::decode("zcash:t1dTLYuecTCt8irWJsyLkDaJm2EAvVgdxgM?amount=0.5").unwrap()
         );
 
         assert_eq!(

@@ -3,7 +3,7 @@ use gem_hypercore::perpetual_formatter::usdc_value;
 use num_bigint::BigInt;
 use primitives::swap::{ApprovalData, SwapQuoteDataType};
 use primitives::{
-    AccountDataType, AddressName, Asset, AssetId, Chain, ContractCallData, DelegationValidator, EarnType, FeePriority, PaymentVerification, PerpetualType, RecentActivityType, StakeType, Transaction, TransactionDirection,
+    AccountDataType, AddressName, Asset, AssetId, Chain, ChainType, ContractCallData, DelegationValidator, EarnType, FeePriority, PaymentVerification, PerpetualType, RecentActivityType, StakeType, Transaction, TransactionDirection,
     TransactionInputType, TransactionNFTTransferMetadata, TransactionPaymentMetadata, TransactionPerpetualMetadata, TransactionResourceTypeMetadata, TransactionState, TransactionSwapMetadata, TransactionType,
     TransactionWalletConnectMetadata, TransferDataOutputAction, TransferDataOutputType,
 };
@@ -449,7 +449,13 @@ pub fn earn_transfer_data(asset: Asset, earn_type: EarnType, data: ContractCallD
 
 impl GemTransferData {
     pub fn shows_memo(&self) -> bool {
-        self.input_type.shows_memo()
+        let signs_memo = match &self.input_type {
+            TransactionInputType::Transfer { asset } | TransactionInputType::Deposit { asset } | TransactionInputType::Withdrawal { asset } => {
+                asset.chain().chain_type() == ChainType::Bitcoin && self.recipient.memo.as_deref().is_some_and(|memo| !memo.trim().is_empty())
+            }
+            _ => false,
+        };
+        self.input_type.shows_memo() || signs_memo
     }
 
     pub fn confirm_rows(&self) -> Vec<GemConfirmRow> {
@@ -830,6 +836,12 @@ mod tests {
 
         let ethereum = GemTransferData::mock(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Ethereum) });
         assert!(!ethereum.confirm_rows().contains(&GemConfirmRow::Memo), "a chain without memos has no memo row");
+
+        let mut zcash = GemTransferData::mock(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Zcash) });
+        zcash.recipient.memo = None;
+        assert!(!zcash.confirm_rows().contains(&GemConfirmRow::Memo));
+        zcash.recipient.memo = Some("Thank you".to_string());
+        assert!(zcash.confirm_rows().contains(&GemConfirmRow::Memo), "a scanned memo is shown before it is signed");
 
         let generic = GemTransferData::mock(TransactionInputType::Generic {
             asset: Asset::from_chain(Chain::Ethereum),

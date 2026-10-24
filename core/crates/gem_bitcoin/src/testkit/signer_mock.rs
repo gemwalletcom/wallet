@@ -104,7 +104,7 @@ fn mock_swap_input(chain: BitcoinChain, provider: SwapProvider, use_max_amount: 
     input
 }
 
-pub(crate) fn mock_utxo_with(transaction_id: &str, vout: i32, value: &str, address: &str) -> UTXO {
+pub fn mock_utxo_with(transaction_id: &str, vout: i32, value: &str, address: &str) -> UTXO {
     UTXO {
         transaction_id: transaction_id.to_string(),
         vout,
@@ -113,6 +113,6 @@ pub(crate) fn mock_utxo_with(transaction_id: &str, vout: i32, value: &str, addre
     }
 }
 
-pub(crate) fn mock_utxo_with_address(address: &str) -> UTXO {
+pub fn mock_utxo_with_address(address: &str) -> UTXO {
     mock_utxo_with(TEST_UTXO_TXID, 0, "50000", address)
 }

@@ -7,8 +7,13 @@ pub const TEST_ZCASH_TRANSPARENT_ADDRESS: &str = "t1VmmGiyjVNeCjxDZzg7vZmd99WyzV
 pub const TEST_ZCASH_TEX_ADDRESS: &str = "tex1s2rt77ggv6q989lr49rkgzmh5slsksa9khdgte";
 
 pub const TEST_ZCASH_BRANCH_ID: &str = "4dec4df0";
+pub const TEST_ZCASH_NU6_3_BRANCH_ID: &str = "37a5165b";
 
 pub fn mock_signer_input(sender_address: String, destination_address: String) -> SignerInput {
+    mock_signer_input_with_branch_id(sender_address, destination_address, TEST_ZCASH_BRANCH_ID)
+}
+
+pub fn mock_signer_input_with_branch_id(sender_address: String, destination_address: String, branch_id: &str) -> SignerInput {
     SignerInput::new(
         TransactionLoadInput {
             input_type: TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Zcash) },
@@ -19,7 +24,7 @@ pub fn mock_signer_input(sender_address: String, destination_address: String) ->
             memo: None,
             is_max_value: false,
             metadata: TransactionLoadMetadata::Zcash {
-                branch_id: TEST_ZCASH_BRANCH_ID.to_string(),
+                branch_id: branch_id.to_string(),
                 utxos: vec![UTXO {
                     transaction_id: "0000000000000000000000000000000000000000000000000000000000000001".to_string(),
                     vout: 0,

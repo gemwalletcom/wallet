@@ -73,7 +73,7 @@ pub fn get_block_explorers(chain: Chain) -> Vec<Box<dyn BlockExplorer>> {
         Chain::Litecoin => vec![blockchair::new_litecoin(), threexpl::new_litecoin()],
         Chain::Doge => vec![blockchair::new_doge(), threexpl::new_doge()],
         Chain::Dash => vec![blockchair::new_dash(), Explorer::boxed(Metadata::new("Dash Explorer", "https://explorer.dash.org/insight"))],
-        Chain::Zcash => vec![blockchair::new_zcash(), threexpl::new_zcash()],
+        Chain::Zcash => vec![threexpl::new_zcash(), blockchair::new_zcash(), Explorer::boxed(Metadata::new("ZecBlock", "https://zecblock.com"))],
 
         Chain::Ethereum => vec![EtherScan::boxed(EVMChain::Ethereum), blockchair::new_ethereum(), Blocksec::new_ethereum()],
         Chain::SmartChain => vec![EtherScan::boxed(EVMChain::SmartChain), blockchair::new_bnb(), Blocksec::new_bsc()],

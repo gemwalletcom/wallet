@@ -4,7 +4,7 @@ How to add a chain to Core without spreading it through shared code. A chain own
 
 ## Boundary Rule
 
-- Chain-specific behavior lives in `crates/gem_<chain>`: provider overrides, signing, fee logic, RPC mapping fixups, testkit mocks, testdata fixtures. `gem_tempo` is the reference for an EVM-family chain that diverges.
+- Chain-specific behavior lives in `crates/gem_<chain>`: provider overrides, signing, fee logic, RPC mapping fixups, testkit mocks, testdata fixtures. `gem_tempo` is the reference for an EVM-family chain that diverges, `gem_zcash` for a Bitcoin-family one.
 - Family crates (`gem_evm`, `gem_bitcoin`, `gem_cosmos`) stay chain-agnostic. When a new chain needs a family building block, export it as `pub` and compose it in the chain crate. Never add a `match chain` arm for the new chain inside the family crate.
 - A family member keeps the family `ChainType`. Do not add a `ChainType` per chain; see [Architecture Decisions](../../docs/ARCHITECTURE.md#chain-families-remain-families). Family-wide behavior follows from `ChainType`; per-chain divergence belongs in `ChainConfig` or the chain crate.
 - Dispatch happens once, at the factories: `chain_providers::build_provider` (`crates/chain_providers/src/lib.rs`), `gemstone::gateway::chain_factory`, and `gemstone::signer::chain`. Inside the `ChainType::Ethereum` arm the provider diverges through `TempoProvider::new_or_else(client, fallback)` and per-`EVMChain` staking or gas clients; the signer diverges through `Chain::Tempo => TempoSigner`. Everything downstream is virtual through `ChainTraits` and `ChainSigner`.

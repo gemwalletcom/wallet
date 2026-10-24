@@ -50,6 +50,7 @@ One transaction can move funds to several addresses, such as an exchange payout 
 | Ethereum and other EVM networks, for tokens | each wallet sees only its own transfer |
 | Bitcoin, Bitcoin Cash, Litecoin, Dogecoin, Dash and Zcash | each wallet sees what it sent or received |
 | Cardano | each wallet sees the ADA it sent or received; other tokens in the same transaction are not shown |
+| Zcash, when value moves between a transparent address and a shielded pool | the shielded amount is read from the transaction and counted as sent or received; the fee excludes it, and the shielded counterparty shows no address because the chain hides it |
 | Every other network | not supported yet: Activity shows one of the transfers, or none |
 
 ## Push notifications

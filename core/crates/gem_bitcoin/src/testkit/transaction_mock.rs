@@ -13,6 +13,7 @@ impl Transaction {
             block_height: 700000,
             vin: vec![],
             vout: vec![],
+            hex: None,
         }
     }
 }

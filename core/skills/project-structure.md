@@ -29,7 +29,7 @@ Shared Rust library compiled to iOS Swift Package and Android AAR using UniFFI b
 ## Blockchain Support
 
 Individual `gem_*` crates for each blockchain with unified RPC client patterns:
-- **Bitcoin family** (`gem_bitcoin`): Bitcoin, Bitcoin Cash, Litecoin, Dogecoin
+- **Bitcoin family** (`gem_bitcoin` family crate plus `gem_zcash`): Bitcoin, Bitcoin Cash, Litecoin, Dogecoin, Dash, Zcash
 - **EVM chains** (`gem_evm` family crate plus `gem_optimism`, `gem_bsc`, `everstake`, `gem_monad`, `gem_tempo`): Ethereum, Polygon, Arbitrum, Optimism, Base, zkSync, Linea, BSC, Monad, Tempo, and the other chains in `ChainConfig`; see [New Chain Checklist](new-chain-checklist.md) for the crate boundary
 - **EVM indexers** (`alchemy`, `ankr`, `blockscout`): address history and token balance providers composed only by `chain_providers`
 - **Alternative L1s**: Solana (`gem_solana`), Sui (`gem_sui`), TON (`gem_ton`), Aptos (`gem_aptos`), NEAR (`gem_near`), Stellar (`gem_stellar`), Algorand (`gem_algorand`), Tron (`gem_tron`), XRP (`gem_xrp`), Cardano (`gem_cardano`), Polkadot (`gem_polkadot`)

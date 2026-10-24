@@ -7,7 +7,6 @@ pub(super) const ZCASH_TXID_PREVOUTS_HASH_PERSONALIZATION: &[u8; 16] = b"ZTxIdPr
 pub(super) const ZCASH_TXID_SEQUENCES_HASH_PERSONALIZATION: &[u8; 16] = b"ZTxIdSequencHash";
 pub(super) const ZCASH_TXID_OUTPUTS_HASH_PERSONALIZATION: &[u8; 16] = b"ZTxIdOutputsHash";
 pub(super) const ZCASH_TXID_SAPLING_HASH_PERSONALIZATION: &[u8; 16] = b"ZTxIdSaplingHash";
-pub(super) const ZCASH_TXID_ORCHARD_HASH_PERSONALIZATION: &[u8; 16] = b"ZTxIdOrchardHash";
 
 // Transparent sighash digests.
 pub(super) const ZCASH_TXID_TRANSPARENT_HASH_PERSONALIZATION: &[u8; 16] = b"ZTxIdTranspaHash";
