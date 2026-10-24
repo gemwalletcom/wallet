@@ -18,7 +18,7 @@ fn transaction(step: &SolanaStepData) -> Result<SolanaTransaction, SwapperError>
 mod tests {
     use super::*;
     use crate::relay::model::RelayQuoteResponse;
-    use gem_solana::decode_transaction;
+    use gem_solana::{AddressLookupTableAccount, Pubkey, decode_transaction};
     use num_bigint::BigUint;
     use primitives::contract_constants::SOLANA_RELAY_DEPOSITORY_PROGRAM_ID;
 
@@ -40,5 +40,22 @@ mod tests {
         let instructions = instructions_from_primitives::<HexInstructionData>(step.instructions.clone()).unwrap();
         assert_eq!(instructions[0].program_id.to_base58(), SOLANA_RELAY_DEPOSITORY_PROGRAM_ID);
         assert_eq!(instructions[0].data, hex::decode("0d9e0ddf5fd51c0600e1f50500000000d8f6831d9a771a5b031cc86256987f54a9759e6107db24b07ec66eef4e555055").unwrap());
+    }
+
+    #[test]
+    fn test_build_transaction_through_jupiter() {
+        let response: RelayQuoteResponse = serde_json::from_str(include_str!("testdata/quote_cbbtc_to_base_usdc.json")).unwrap();
+        let step = response.get_solana_step().unwrap();
+        let mut accounts = Vec::new();
+        for account in instructions_from_primitives::<HexInstructionData>(step.instructions.clone()).unwrap().into_iter().flat_map(|instruction| instruction.accounts) {
+            if !account.is_signer && !accounts.contains(&account.pubkey) {
+                accounts.push(account.pubkey);
+            }
+        }
+        let lookup_table = AddressLookupTableAccount::new(Pubkey::new([7; 32]), accounts);
+
+        let quote_data = transaction(step).unwrap().encode("4Nd1mBQtrMJVYVfKf2PJy9NZUZdTAsp7D4xWLs4gDB4T", &[lookup_table]).unwrap();
+
+        crate::contract_check::verify_solana_programs(&quote_data.data, &crate::relay::contracts::contracts(primitives::Chain::Solana)).unwrap();
     }
 }

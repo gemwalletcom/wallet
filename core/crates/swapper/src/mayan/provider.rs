@@ -22,7 +22,11 @@ use crate::{
 use async_trait::async_trait;
 use gem_client::Client;
 use gem_evm::rpc::client::FUNCTION_ERC20_DECIMALS;
-use primitives::{AssetId, Chain, ChainType, HOUR, contract_constants::EVM_ZERO_ADDRESS, decode_hex};
+use primitives::{
+    AssetId, Chain, ChainType, HOUR,
+    contract_constants::{EVM_ZERO_ADDRESS, SOLANA_JUPITER_PROGRAM_ID},
+    decode_hex,
+};
 use std::{collections::BTreeSet, fmt::Debug, sync::Arc};
 
 #[derive(Debug)]
@@ -124,6 +128,7 @@ where
                 MAYAN_FAST_MCTP_PROGRAM_ID,
                 MAYAN_FEE_MANAGER_PROGRAM_ID,
                 MAYAN_PAYLOAD_WRITER_PROGRAM_ID,
+                SOLANA_JUPITER_PROGRAM_ID,
             ],
             _ => Vec::new(),
         }

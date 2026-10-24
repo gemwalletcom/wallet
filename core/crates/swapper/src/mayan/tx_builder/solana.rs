@@ -121,7 +121,32 @@ pub(in crate::mayan::tx_builder) fn solana_error(err: impl Display) -> SwapperEr
 
 #[cfg(test)]
 mod tests {
+    use std::sync::Arc;
+
+    use gem_client::testkit::MockClient;
+    use primitives::{AssetId, Chain};
+
     use super::*;
+    use crate::{
+        Swapper,
+        alien::mock::ProviderMock,
+        contract_check::verify_solana_programs,
+        mayan::{client::MayanClient, provider::Mayan},
+        solana_dex::SolanaTransaction,
+    };
+
+    #[test]
+    fn test_client_swap_through_jupiter_passes_the_contract_check() {
+        let user = "7g2rVN8fAAQdPh1mkajpvELqYa3gWvFXJsBLnKfEQfqy";
+        let payer: Pubkey = SolanaAddress::parse(user).unwrap().into();
+        let swap: SolanaClientSwap = serde_json::from_str(include_str!("../test/solana_client_swap_usdt_jupiter.json")).unwrap();
+        let mut instructions = Vec::new();
+        append_client_swap_instructions(&mut instructions, swap, &payer, &payer, "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB", "1000000").unwrap();
+        let data = SolanaTransaction::new(instructions, vec![]).encode(user, &[]).unwrap().data;
+        let mayan = Mayan::with_clients(MayanClient::new(MockClient::new()), MayanClient::new(MockClient::new()), Arc::new(ProviderMock::new("{}".to_string())));
+
+        verify_solana_programs(&data, &mayan.contracts(&AssetId::from_chain(Chain::Solana))).unwrap();
+    }
 
     #[test]
     fn test_wrap_instruction_in_cpi_proxy_uses_deployed_program_id() {

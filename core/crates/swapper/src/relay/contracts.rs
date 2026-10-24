@@ -1,6 +1,6 @@
 use primitives::{
     Chain, ChainType,
-    contract_constants::{SOLANA_RELAY_DEPOSITORY_PROGRAM_ID, SOLANA_RELAY_FORWARDER_PROGRAM_ID},
+    contract_constants::{SOLANA_JUPITER_PROGRAM_ID, SOLANA_RELAY_DEPOSITORY_PROGRAM_ID, SOLANA_RELAY_FORWARDER_PROGRAM_ID},
 };
 
 use crate::Deployment;
@@ -55,7 +55,7 @@ pub(super) fn contracts(chain: Chain) -> Vec<&'static str> {
         ],
         Chain::Tron => &[TRON_DEPOSITORY],
         Chain::Ton => &[TON_DEPOSITORY],
-        Chain::Solana => &[SOLANA_RELAY_DEPOSITORY_PROGRAM_ID, SOLANA_RELAY_FORWARDER_PROGRAM_ID],
+        Chain::Solana => &[SOLANA_RELAY_DEPOSITORY_PROGRAM_ID, SOLANA_RELAY_FORWARDER_PROGRAM_ID, SOLANA_JUPITER_PROGRAM_ID],
         _ if chain.chain_type() == ChainType::Ethereum => &[DEPOSITORY, APPROVAL_PROXY, APPROVAL_PROXY_V3_2, ERC20_ROUTER, ERC20_ROUTER_V3_2],
         _ => &[],
     };
@@ -75,6 +75,6 @@ mod tests {
         assert_eq!(contracts(Chain::Tron), vec![TRON_DEPOSITORY]);
         assert_eq!(contracts(Chain::Ton), vec![TON_DEPOSITORY]);
         assert!(contracts(Chain::Bitcoin).is_empty(), "a Bitcoin deposit address is made per swap");
-        assert_eq!(contracts(Chain::Solana), vec![SOLANA_RELAY_DEPOSITORY_PROGRAM_ID, SOLANA_RELAY_FORWARDER_PROGRAM_ID]);
+        assert_eq!(contracts(Chain::Solana), vec![SOLANA_RELAY_DEPOSITORY_PROGRAM_ID, SOLANA_RELAY_FORWARDER_PROGRAM_ID, SOLANA_JUPITER_PROGRAM_ID]);
     }
 }
