@@ -7331,6 +7331,7 @@ dependencies = [
  "gem_jsonrpc",
  "gem_polkadot",
  "gem_solana",
+ "gem_stellar",
  "gem_sui",
  "gem_ton",
  "gem_tron",

@@ -3,8 +3,11 @@ pub mod common;
 pub mod fee;
 #[cfg(feature = "rpc")]
 pub mod node;
+#[cfg(feature = "rpc")]
+pub mod path;
 #[cfg(feature = "signer")]
 pub mod signing;
+pub mod swap;
 pub mod transaction;
 
 pub use account::*;
@@ -12,4 +15,7 @@ pub use common::*;
 pub use fee::*;
 #[cfg(feature = "rpc")]
 pub use node::*;
+#[cfg(feature = "rpc")]
+pub use path::*;
+pub use swap::*;
 pub use transaction::*;

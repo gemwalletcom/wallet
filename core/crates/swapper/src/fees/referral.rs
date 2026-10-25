@@ -1,13 +1,16 @@
 use super::{DEFAULT_SWAP_FEE_BPS, STABLECOIN_SWAP_FEE_BPS};
-use crate::{QuoteRequest, fees::bps_of};
+use crate::{
+    QuoteRequest,
+    fees::{bps_of, minimum_value},
+};
 use gem_cosmos::address::CosmosAddress;
 use gem_solana::{USDC_TOKEN_MINT, USDS_TOKEN_MINT, USDT_TOKEN_MINT, WSOL_TOKEN_ADDRESS};
 use primitives::chain_cosmos::CosmosChain;
 use primitives::{
     Chain, ChainType,
     swap::{
-        APTOS_REFERRAL_ADDRESS, COSMOS_REFERRAL_ADDRESS, EVM_REFERRAL_ADDRESS, INJECTIVE_REFERRAL_ADDRESS, NEAR_REFERRAL_ADDRESS, SOLANA_REFERRAL_ADDRESS, SUI_REFERRAL_ADDRESS, THORCHAIN_REFERRAL_ADDRESS, TON_REFERRAL_ADDRESS,
-        TRON_REFERRAL_ADDRESS,
+        APTOS_REFERRAL_ADDRESS, COSMOS_REFERRAL_ADDRESS, EVM_REFERRAL_ADDRESS, INJECTIVE_REFERRAL_ADDRESS, NEAR_REFERRAL_ADDRESS, SOLANA_REFERRAL_ADDRESS, STELLAR_REFERRAL_ADDRESS, SUI_REFERRAL_ADDRESS, THORCHAIN_REFERRAL_ADDRESS,
+        TON_REFERRAL_ADDRESS, TRON_REFERRAL_ADDRESS,
     },
 };
 use serde::{Deserialize, Serialize};
@@ -26,6 +29,7 @@ pub struct ReferralFees {
     pub aptos: ReferralFee,
     pub cosmos: ReferralFee,
     pub injective: ReferralFee,
+    pub stellar: ReferralFee,
 }
 
 #[derive(Default, Debug, Clone, PartialEq)]
@@ -96,6 +100,14 @@ impl ReferralTransfer {
             FeeSide::Output => output_value.saturating_sub(self.value),
         }
     }
+
+    pub fn minimum_output(&self, output_value: u64, slippage_bps: u32) -> u64 {
+        let minimum_received = minimum_value(self.received_value(output_value), slippage_bps);
+        match self.side {
+            FeeSide::Input => minimum_received,
+            FeeSide::Output => minimum_received.saturating_add(self.value),
+        }
+    }
 }
 
 impl ReferralFees {
@@ -108,12 +120,13 @@ impl ReferralFees {
             ChainType::Tron => &self.tron,
             ChainType::Near => &self.near,
             ChainType::Aptos => &self.aptos,
+            ChainType::Stellar => &self.stellar,
             ChainType::Cosmos => match chain {
                 Chain::Thorchain => &self.thorchain,
                 Chain::Injective => &self.injective,
                 _ => &self.cosmos,
             },
-            ChainType::Bitcoin | ChainType::Xrp | ChainType::Stellar | ChainType::Algorand | ChainType::Polkadot | ChainType::Cardano | ChainType::HyperCore => return None,
+            ChainType::Bitcoin | ChainType::Xrp | ChainType::Algorand | ChainType::Polkadot | ChainType::Cardano | ChainType::HyperCore => return None,
         };
         Some(fee)
     }
@@ -143,6 +156,7 @@ pub(crate) fn referral_fees(bps: u32) -> ReferralFees {
         aptos: fee(APTOS_REFERRAL_ADDRESS),
         cosmos: fee(COSMOS_REFERRAL_ADDRESS),
         injective: fee(INJECTIVE_REFERRAL_ADDRESS),
+        stellar: fee(STELLAR_REFERRAL_ADDRESS),
     }
 }
 

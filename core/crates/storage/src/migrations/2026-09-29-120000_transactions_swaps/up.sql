@@ -1,4 +1,4 @@
-CREATE TYPE swap_provider AS ENUM ('uniswap_v3', 'uniswap_v4', 'pancakeswap_v3', 'aerodrome', 'panora', 'thorchain', 'jupiter', 'okx', 'across', 'oku', 'wagmi', 'stonfi_v2', 'mayan', 'chainflip', 'near_intents', 'cetus_clmm', 'relay', 'hyperliquid', 'orca', 'squid', 'mayachain', 'swaps_xyz', 'hyperion', 'bridgers', 'raydium_clmm', 'dedust', 'pump_swap', 'meteora_damm_v2', 'sunswap_v3');
+CREATE TYPE swap_provider AS ENUM ('uniswap_v3', 'uniswap_v4', 'pancakeswap_v3', 'aerodrome', 'panora', 'thorchain', 'jupiter', 'okx', 'across', 'oku', 'wagmi', 'stonfi_v2', 'mayan', 'chainflip', 'near_intents', 'cetus_clmm', 'relay', 'hyperliquid', 'orca', 'squid', 'mayachain', 'swaps_xyz', 'hyperion', 'bridgers', 'raydium_clmm', 'dedust', 'pump_swap', 'meteora_damm_v2', 'sunswap_v3', 'stellar_dex');
 
 CREATE TYPE swap_status AS ENUM ('pending', 'completed', 'failed', 'refunded');
 

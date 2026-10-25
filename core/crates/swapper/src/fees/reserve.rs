@@ -17,6 +17,7 @@ pub fn reserved_transaction_fees(chain: Chain) -> Option<BigUint> {
         Chain::Tron => 2_000_000,
         Chain::Ton => 20_000_000,
         Chain::Aptos => 20_000_000,
+        Chain::Stellar => 5_500_000,
         Chain::Monad => 5_000_000_000_000_000,
         Chain::XLayer => 5_000_000_000_000_000,
         Chain::Plasma => 5_000_000_000_000_000,
@@ -61,6 +62,15 @@ mod tests {
     fn solana_reserve_covers_rent_and_priority_fees() {
         let reserve = reserved_transaction_fees(Chain::Solana).unwrap();
         assert!(reserve >= BigUint::from(2_500_000u64), "Solana reserve {reserve} too small to cover wSOL ATA rent plus priority fees");
+    }
+
+    #[test]
+    fn stellar_reserve_covers_a_new_trustline_and_the_swap_fee() {
+        let reserve = reserved_transaction_fees(Chain::Stellar).unwrap();
+        assert!(
+            reserve >= BigUint::from(5_000_000u64 + 3 * 2 * 18_888),
+            "Stellar reserve {reserve} too small for a trustline's 0.5 XLM base reserve plus three operations at twice the p99 fee"
+        );
     }
 
     #[test]

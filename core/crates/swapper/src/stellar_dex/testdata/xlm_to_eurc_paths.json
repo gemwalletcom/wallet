@@ -1,0 +1,30 @@
+{
+  "_embedded": {
+    "records": [
+      {
+        "source_asset_type": "native",
+        "source_amount": "50000.0000000",
+        "destination_asset_type": "credit_alphanum4",
+        "destination_asset_code": "EURC",
+        "destination_asset_issuer": "GDHU6WRG4IEQXM5NZ4BMPKOXHW76MZM4Y2IEMFDVXBSDP6SJY4ITNPP2",
+        "destination_amount": "7693.2168543",
+        "path": [
+          {
+            "asset_type": "credit_alphanum4",
+            "asset_code": "USDC",
+            "asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+          }
+        ]
+      },
+      {
+        "source_asset_type": "native",
+        "source_amount": "50000.0000000",
+        "destination_asset_type": "credit_alphanum4",
+        "destination_asset_code": "EURC",
+        "destination_asset_issuer": "GDHU6WRG4IEQXM5NZ4BMPKOXHW76MZM4Y2IEMFDVXBSDP6SJY4ITNPP2",
+        "destination_amount": "7671.3771345",
+        "path": []
+      }
+    ]
+  }
+}

@@ -5,6 +5,7 @@ use gem_jsonrpc::client::JsonRpcClient;
 use gem_jsonrpc::grpc::AlienGrpcTransport;
 #[cfg(all(test, feature = "reqwest_provider", feature = "swap_integration_tests"))]
 use gem_solana::SolanaRpcConfig;
+use gem_stellar::rpc::StellarClient;
 use gem_sui::rpc::SuiClient;
 use gem_ton::rpc::client::TonClient;
 use gem_tron::rpc::TronClient;
@@ -42,6 +43,10 @@ pub fn create_tron_client(provider: Arc<dyn RpcProvider>) -> Result<TronClient<R
 
 pub fn create_ton_client(provider: Arc<dyn RpcProvider>) -> Result<TonClient<RpcClient>, SwapperError> {
     Ok(TonClient::new(create_rpc_client(provider, Chain::Ton)?))
+}
+
+pub fn create_stellar_client(provider: Arc<dyn RpcProvider>) -> Result<StellarClient<RpcClient>, SwapperError> {
+    Ok(StellarClient::new(create_rpc_client(provider, Chain::Stellar)?))
 }
 
 pub fn create_xrp_client(provider: Arc<dyn RpcProvider>) -> Result<XrpClient<RpcClient>, SwapperError> {

@@ -1,6 +1,6 @@
 use gem_client::{ContentType, Target, build_path_with_query};
 
-use crate::models::transaction::PaymentsQuery;
+use crate::models::{path::StrictSendPathsQuery, transaction::PaymentsQuery};
 
 #[derive(Clone, Debug)]
 pub enum HorizonTarget {
@@ -12,6 +12,7 @@ pub enum HorizonTarget {
     GetAccountPayments { address: String, query: PaymentsQuery },
     GetTransactionPayments { hash: String, query: PaymentsQuery },
     GetLedgerPayments { ledger: u64, query: PaymentsQuery },
+    GetStrictSendPaths { query: StrictSendPathsQuery },
     SubmitTransaction,
 }
 
@@ -26,6 +27,7 @@ impl Target for HorizonTarget {
             Self::GetAccountPayments { address, query } => build_path_with_query(&format!("/accounts/{address}/payments"), query),
             Self::GetTransactionPayments { hash, query } => build_path_with_query(&format!("/transactions/{hash}/payments"), query),
             Self::GetLedgerPayments { ledger, query } => build_path_with_query(&format!("/ledgers/{ledger}/payments"), query),
+            Self::GetStrictSendPaths { query } => build_path_with_query("/paths/strict-send", query),
             Self::SubmitTransaction => "/transactions_async".to_string(),
         }
     }

@@ -1,0 +1,25 @@
+{
+  "id": "GCVQA5JVHNDJFPODJZU6BM7H5344VK2KGBFXSUUEP7ZH3T5DXGMCR6NL",
+  "sequence": "278896359950521657",
+  "balances": [
+    {
+      "balance": "64.6315425",
+      "asset_type": "credit_alphanum4",
+      "asset_code": "USDC",
+      "asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+    },
+    {
+      "balance": "373.5153715",
+      "asset_type": "native"
+    }
+  ],
+  "thresholds": {
+    "med_threshold": 0
+  },
+  "signers": [
+    {
+      "key": "GCVQA5JVHNDJFPODJZU6BM7H5344VK2KGBFXSUUEP7ZH3T5DXGMCR6NL",
+      "weight": 1
+    }
+  ]
+}

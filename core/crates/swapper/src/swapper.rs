@@ -2,7 +2,7 @@ use crate::ranking::{leaves_no_dust, rank_quotes};
 use crate::{
     AssetList, FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, SwapQuoteError, SwapQuotes, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperProviderMode, SwapperQuoteData,
     across, alien::RpcProvider, bridgers, cetus_clmm, chainflip, config::quote_preferences, cross_chain::VaultAddresses, dedust, hyperion, hyperliquid, jupiter, mayan, meteora_damm_v2, meteora_dlmm, near_intents, okx, orca, panora,
-    provider_group::ProviderGroup, pump_swap, raydium_amm, raydium_clmm, raydium_cpmm, relay, solana_dex, squid, stonfi, swaps_xyz, thorchain, uniswap,
+    provider_group::ProviderGroup, pump_swap, raydium_amm, raydium_clmm, raydium_cpmm, relay, solana_dex, squid, stellar_dex, stonfi, swaps_xyz, thorchain, uniswap,
 };
 use primitives::{AssetId, Chain, EVMChain};
 use std::{collections::HashSet, fmt::Debug, sync::Arc};
@@ -100,6 +100,7 @@ impl GemSwapper {
             swaps_xyz::SwapsXyz::new(rpc_provider.clone()).map(Self::boxed),
             Some(uniswap::default::boxed_aerodrome(rpc_provider.clone())),
             Some(Box::new(bridgers::Bridgers::new(rpc_provider.clone()))),
+            stellar_dex::StellarDex::new(rpc_provider.clone()).map(Self::boxed),
         ]
         .into_iter()
         .flatten()

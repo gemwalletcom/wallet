@@ -19,7 +19,7 @@ use std::{
 
 use super::{
     protocol::{DexProtocol, PoolDepth, PoolQuery, PoolSwap, QuoteAccount},
-    route::{DexHop, DexRoute, minimum_value, preferred_fee_side},
+    route::{DexHop, DexRoute, preferred_fee_side},
     token::{SwapToken, decode_mint},
     transaction::DexTransaction,
 };
@@ -27,7 +27,7 @@ use crate::{
     Contracts, FetchQuoteData, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperQuoteData,
     client_factory::create_client_with_chain,
     error::INVALID_ADDRESS,
-    fees::{FeeSide, default_referral_fees, on_chain_referral_fees},
+    fees::{FeeSide, default_referral_fees, minimum_value, on_chain_referral_fees},
     route_cache::{Cache, DiscoveryCache, OutpricedCache},
     route_path::RoutePath,
 };

@@ -11,9 +11,26 @@ pub enum Memo {
 
 #[derive(Clone)]
 pub enum Operation {
-    CreateAccount { destination: StellarAddress, amount: u64 },
-    Payment { destination: StellarAddress, asset: Option<StellarAssetData>, amount: u64 },
-    ChangeTrust { asset: StellarAssetData },
+    CreateAccount {
+        destination: StellarAddress,
+        amount: u64,
+    },
+    Payment {
+        destination: StellarAddress,
+        asset: Option<StellarAssetData>,
+        amount: u64,
+    },
+    ChangeTrust {
+        asset: StellarAssetData,
+    },
+    PathPaymentStrictSend {
+        send_asset: Option<StellarAssetData>,
+        send_amount: u64,
+        destination: StellarAddress,
+        destination_asset: Option<StellarAssetData>,
+        destination_min: u64,
+        path: Vec<Option<StellarAssetData>>,
+    },
 }
 
 impl Operation {
@@ -22,6 +39,7 @@ impl Operation {
             Self::CreateAccount { .. } => 0,
             Self::Payment { .. } => 1,
             Self::ChangeTrust { .. } => 6,
+            Self::PathPaymentStrictSend { .. } => 13,
         }
     }
 }

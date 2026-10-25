@@ -7,6 +7,10 @@ use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "rpc")]
 use crate::constants::STELLAR_DECIMALS;
+#[cfg(feature = "rpc")]
+use crate::models::path::stellar_asset_id;
+#[cfg(feature = "rpc")]
+use primitives::AssetId;
 
 #[cfg(feature = "rpc")]
 fn deserialize_option_stellar_amount<'de, D>(deserializer: D) -> Result<Option<BigUint>, D::Error>
@@ -44,11 +48,19 @@ pub struct Payment {
     pub payment_type: String,
 
     pub asset_type: Option<String>,
+    pub asset_code: Option<String>,
+    pub asset_issuer: Option<String>,
     pub from: Option<String>,
     pub to: Option<String>,
     #[serde(default)]
     #[cfg_attr(feature = "rpc", serde(deserialize_with = "deserialize_option_stellar_amount"))]
     pub amount: Option<BigUint>,
+    pub source_asset_type: Option<String>,
+    pub source_asset_code: Option<String>,
+    pub source_asset_issuer: Option<String>,
+    #[serde(default)]
+    #[cfg_attr(feature = "rpc", serde(deserialize_with = "deserialize_option_stellar_amount"))]
+    pub source_amount: Option<BigUint>,
 
     pub created_at: String,
 
@@ -106,6 +118,14 @@ impl Payment {
             TRANSACTION_TYPE_CREATE_ACCOUNT => self.starting_balance.clone(),
             _ => None,
         }
+    }
+
+    pub fn asset_id(&self) -> Option<AssetId> {
+        stellar_asset_id(self.asset_type.as_deref()?, self.asset_code.as_ref(), self.asset_issuer.as_ref())
+    }
+
+    pub fn source_asset_id(&self) -> Option<AssetId> {
+        stellar_asset_id(self.source_asset_type.as_deref()?, self.source_asset_code.as_ref(), self.source_asset_issuer.as_ref())
     }
 
     pub fn get_memo(&self) -> Option<String> {

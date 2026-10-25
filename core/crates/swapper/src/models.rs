@@ -59,6 +59,7 @@ impl ProviderType {
             | SwapperProvider::PumpSwap
             | SwapperProvider::MeteoraDammV2
             | SwapperProvider::SunswapV3
+            | SwapperProvider::StellarDex
             | SwapperProvider::Okx => SwapProviderMode::OnChain,
             SwapperProvider::Mayan | SwapperProvider::Mayachain | SwapperProvider::Squid | SwapperProvider::SwapsXyz | SwapperProvider::Bridgers => SwapProviderMode::CrossChain,
             SwapperProvider::Chainflip => SwapProviderMode::OmniChain(vec![Chain::Tron]),
@@ -90,6 +91,7 @@ impl ProviderType {
             | SwapperProvider::PumpSwap
             | SwapperProvider::MeteoraDammV2
             | SwapperProvider::SunswapV3
+            | SwapperProvider::StellarDex
             | SwapperProvider::Mayachain
             | SwapperProvider::Chainflip
             | SwapperProvider::Thorchain

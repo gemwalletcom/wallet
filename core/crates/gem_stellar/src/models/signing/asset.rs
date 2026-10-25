@@ -1,5 +1,5 @@
 use crate::address::StellarAddress;
-use primitives::{Address, SignerError, SignerInput};
+use primitives::{Address, AssetId, SignerError, SignerInput};
 use signer::InvalidInput;
 
 #[derive(Clone)]
@@ -39,7 +39,14 @@ impl StellarAssetData {
     }
 
     pub(crate) fn from_input(input: &SignerInput) -> Result<Self, SignerError> {
-        let (issuer, code) = input.input_type.get_asset().id.split_sub_token_parts().invalid_input("invalid Stellar token ID")?;
-        Self::new(&issuer, &code)
+        Self::from_asset_id(&input.input_type.get_asset().id)?.invalid_input("invalid Stellar token ID")
+    }
+
+    pub(crate) fn from_asset_id(asset_id: &AssetId) -> Result<Option<Self>, SignerError> {
+        if asset_id.is_native() {
+            return Ok(None);
+        }
+        let (issuer, code) = asset_id.split_sub_token_parts().invalid_input("invalid Stellar token ID")?;
+        Self::new(&issuer, &code).map(Some)
     }
 }

@@ -45,6 +45,7 @@ mod route_cache;
 mod route_path;
 mod solana_dex;
 pub mod squid;
+mod stellar_dex;
 pub mod stonfi;
 pub mod swapper;
 pub mod swaps_xyz;
