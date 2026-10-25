@@ -2,9 +2,10 @@ use std::str::FromStr;
 
 use bigdecimal::{BigDecimal, Signed, Zero};
 use num_traits::ToPrimitive;
-use primitives::{SignerError, hex::decode_hex_array};
+use primitives::SignerError;
 
 use crate::address::XrpAddress;
+use crate::currency::{CURRENCY_CODE_LENGTH, MAX_IOU_PRECISION, currency_code_bytes};
 
 const POS_SIGN_BIT_MASK: u64 = 0x4000_0000_0000_0000;
 const ISSUED_CURRENCY_ZERO: u64 = 0x8000_0000_0000_0000;
@@ -12,11 +13,7 @@ const MIN_MANTISSA: u128 = 1_000_000_000_000_000;
 const MAX_MANTISSA: u128 = 9_999_999_999_999_999;
 const MIN_IOU_EXPONENT: i32 = -96;
 const MAX_IOU_EXPONENT: i32 = 80;
-const MAX_IOU_PRECISION: usize = 16;
 const MAX_DROPS: u64 = 100_000_000_000_000_000;
-const CURRENCY_CODE_LENGTH: usize = 20;
-const STANDARD_CURRENCY_CODE_LENGTH: usize = 3;
-const STANDARD_CURRENCY_CODE_OFFSET: usize = 12;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) enum XrpAmount {
@@ -113,25 +110,6 @@ impl IssuedAmount {
     }
 }
 
-fn currency_code_bytes(value: &str) -> Result<[u8; CURRENCY_CODE_LENGTH], SignerError> {
-    if value.len() == CURRENCY_CODE_LENGTH * 2 || value.starts_with("0x") {
-        return decode_hex_array(value).map_err(|_| SignerError::invalid_input("invalid XRP currency code"));
-    }
-
-    let mut bytes = [0; CURRENCY_CODE_LENGTH];
-    let value = value.as_bytes();
-    if value.len() > CURRENCY_CODE_LENGTH {
-        return Err(SignerError::invalid_input("XRP currency symbol is too long"));
-    }
-    if value.len() == STANDARD_CURRENCY_CODE_LENGTH {
-        let end = STANDARD_CURRENCY_CODE_OFFSET + STANDARD_CURRENCY_CODE_LENGTH;
-        bytes[STANDARD_CURRENCY_CODE_OFFSET..end].copy_from_slice(value);
-        return Ok(bytes);
-    }
-    bytes[..value.len()].copy_from_slice(value);
-    Ok(bytes)
-}
-
 fn validate_issued_value(value: &BigDecimal) -> Result<(), SignerError> {
     if value.is_zero() {
         return Ok(());
@@ -164,13 +142,6 @@ fn issued_amount_exponent(value: &BigDecimal) -> i32 {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_currency_bytes() {
-        assert_eq!(hex::encode(currency_code_bytes("USD").unwrap()), "0000000000000000000000005553440000000000");
-        assert_eq!(hex::encode(currency_code_bytes("524C555344000000000000000000000000000000").unwrap()), "524c555344000000000000000000000000000000");
-        assert_eq!(hex::encode(currency_code_bytes("RLUSD").unwrap()), "524c555344000000000000000000000000000000");
-    }
 
     #[test]
     fn test_issued_amount_precision_ignores_trailing_zeros() {

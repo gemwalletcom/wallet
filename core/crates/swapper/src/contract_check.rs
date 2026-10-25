@@ -1,7 +1,7 @@
+use crate::{Contracts, Deployment, SwapperError, SwapperQuoteData};
 use alloy_sol_types::SolCall;
-use gem_cosmos::constants::{MESSAGE_EXECUTE_CONTRACT, MESSAGE_IBC_TRANSFER, MESSAGE_SEND_BETA};
 use gem_evm::contracts::IERC20;
-use gem_solana::{Pubkey, decode_transaction};
+use gem_solana::{Pubkey, decode_transaction, instructions};
 use gem_ton::models::TonConnectMessage;
 use gem_tron::address::TronAddress;
 use primitives::{
@@ -10,9 +10,6 @@ use primitives::{
     decode_hex,
     swap::SwapQuoteDataType,
 };
-use serde::Deserialize;
-
-use crate::{Deployment, SwapperError, SwapperQuoteData, fees::default_referral_address};
 
 const SOLANA_PROGRAMS: &[&str] = &[
     SOLANA_SYSTEM_PROGRAM_ID,
@@ -23,31 +20,31 @@ const SOLANA_PROGRAMS: &[&str] = &[
     SOLANA_MEMO_PROGRAM_ID,
 ];
 
-pub(crate) fn verify(from_asset: &AssetId, contracts: &[&str], data: &SwapperQuoteData) -> Result<(), SwapperError> {
-    if contracts.is_empty() {
+pub(crate) fn verify(from_asset: &AssetId, contracts: &Contracts, data: &SwapperQuoteData) -> Result<(), SwapperError> {
+    if contracts.targets.is_empty() {
         return Ok(());
     }
     match from_asset.chain.chain_type() {
-        ChainType::Solana => verify_solana_programs(&data.data, contracts),
-        ChainType::Cosmos => verify_cosmos_messages(from_asset.chain, &data.data, contracts),
-        ChainType::Ton => verify_ton_messages(&data.data, contracts),
+        ChainType::Solana => verify_solana_programs(&data.data, &contracts.targets),
+        ChainType::Ton => verify_ton_messages(&data.data, &contracts.targets),
         _ => verify_targets(from_asset, contracts, data),
     }
 }
 
-fn verify_targets(from_asset: &AssetId, contracts: &[&str], data: &SwapperQuoteData) -> Result<(), SwapperError> {
+fn verify_targets(from_asset: &AssetId, contracts: &Contracts, data: &SwapperQuoteData) -> Result<(), SwapperError> {
     let chain = from_asset.chain;
-    let is_contract = |address: &str| Deployment::contains(chain, contracts, address);
-    if data.data_type == SwapQuoteDataType::Contract && !is_contract(&data.to) && !token_transfer_recipient(from_asset, data).is_some_and(|recipient| is_contract(&recipient)) {
+    let is_contract = |address: &str| Deployment::contains(chain, &contracts.targets, address);
+    let is_spender = |address: &str| Deployment::contains(chain, &contracts.spenders, address);
+    if data.data_type == SwapQuoteDataType::Contract && !is_contract(&data.to) && !token_transfer_recipient(from_asset, data).is_some_and(|recipient| is_spender(&recipient)) {
         return Err(SwapperError::InvalidRoute);
     }
     if let Some(approval) = &data.approval
-        && !is_contract(&approval.spender)
+        && !is_spender(&approval.spender)
     {
         return Err(SwapperError::InvalidRoute);
     }
     if let Some(permit2) = &data.permit2
-        && !is_contract(&permit2.spender)
+        && !is_spender(&permit2.spender)
     {
         return Err(SwapperError::InvalidRoute);
     }
@@ -77,38 +74,8 @@ pub(crate) fn verify_solana_programs(transaction: &str, contracts: &[&str]) -> R
     let keys = transaction.account_keys();
     for instruction in transaction.instructions() {
         let program = keys.get(instruction.program_id_index as usize).map(Pubkey::to_base58).ok_or(SwapperError::InvalidRoute)?;
-        if !SOLANA_PROGRAMS.contains(&program.as_str()) && !Deployment::contains(Chain::Solana, contracts, &program) {
-            return Err(SwapperError::InvalidRoute);
-        }
-    }
-    Ok(())
-}
-
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct CosmosMessage {
-    type_url: String,
-    value: CosmosMessageValue,
-}
-
-#[derive(Deserialize)]
-struct CosmosMessageValue {
-    contract: Option<String>,
-    receiver: Option<String>,
-    to_address: Option<String>,
-}
-
-pub(crate) fn verify_cosmos_messages(chain: Chain, messages: &str, contracts: &[&str]) -> Result<(), SwapperError> {
-    let messages: Vec<CosmosMessage> = serde_json::from_str(messages).map_err(SwapperError::transaction_error)?;
-    let referral = default_referral_address(chain);
-    for message in messages {
-        let allowed = match message.type_url.as_str() {
-            MESSAGE_EXECUTE_CONTRACT => message.value.contract.is_some_and(|contract| Deployment::contains(chain, contracts, &contract)),
-            MESSAGE_IBC_TRANSFER => message.value.receiver.is_some_and(|receiver| Deployment::contains(chain, contracts, &receiver)),
-            MESSAGE_SEND_BETA => message.value.to_address.is_some_and(|to_address| to_address == referral),
-            _ => false,
-        };
-        if !allowed {
+        let is_standard = SOLANA_PROGRAMS.contains(&program.as_str());
+        if (!is_standard && !Deployment::contains(Chain::Solana, contracts, &program)) || (is_standard && instructions::grants_authority(&program, &instruction.data)) {
             return Err(SwapperError::InvalidRoute);
         }
     }
@@ -118,36 +85,17 @@ pub(crate) fn verify_cosmos_messages(chain: Chain, messages: &str, contracts: &[
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::squid::SQUID_COSMOS_MULTICALL;
-    use gem_cosmos::models::message::send_msg_json;
+    use crate::solana_dex::SolanaTransaction;
+    use gem_solana::{
+        AccountMeta, Instruction, SolanaAddress,
+        instructions::{program_ids::token_program, token},
+    };
     use num_bigint::BigUint;
     use primitives::asset_constants::TRON_USDT_TOKEN_ID;
 
-    fn squid_message(fixture: &str) -> String {
-        let route: serde_json::Value = serde_json::from_str(fixture).unwrap();
-        route["route"]["transactionRequest"]["data"].as_str().unwrap().to_string()
-    }
-
     #[test]
-    fn test_verify_cosmos_messages() {
-        let multicall = [SQUID_COSMOS_MULTICALL.contract];
-        let transfer = squid_message(include_str!("squid/testdata/route_tia_to_osmo_usdc.json"));
-        let execute = squid_message(include_str!("squid/testdata/route_osmo_to_osmo_usdc.json"));
-        let fee = send_msg_json("celestia1knwywgnzs3a2p39k7337klt6daqrhyvnxdajsn", &default_referral_address(Chain::Celestia), "utia", "5000").to_string();
-
-        assert!(
-            verify_cosmos_messages(Chain::Celestia, &format!("[{fee},{transfer}]"), &multicall).is_ok(),
-            "the fee goes to Gem and the transfer is received by the multicall"
-        );
-        assert!(verify_cosmos_messages(Chain::Osmosis, &format!("[{execute}]"), &multicall).is_ok(), "a same-network swap calls the multicall");
-
-        let foreign_receiver = transfer.replace(SQUID_COSMOS_MULTICALL.contract, "osmo1knwywgnzs3a2p39k7337klt6daqrhyvnluljuv");
-        assert_eq!(verify_cosmos_messages(Chain::Celestia, &format!("[{foreign_receiver}]"), &multicall), Err(SwapperError::InvalidRoute));
-        let foreign_send = send_msg_json("celestia1knwywgnzs3a2p39k7337klt6daqrhyvnxdajsn", "celestia1someoneelse", "utia", "5000").to_string();
-        assert_eq!(verify_cosmos_messages(Chain::Celestia, &format!("[{foreign_send},{transfer}]"), &multicall), Err(SwapperError::InvalidRoute));
-        let plain_send = execute.replace(MESSAGE_EXECUTE_CONTRACT, MESSAGE_SEND_BETA);
-        assert_eq!(verify_cosmos_messages(Chain::Osmosis, &format!("[{plain_send}]"), &multicall), Err(SwapperError::InvalidRoute));
-        assert!(verify(&Chain::Osmosis.as_asset_id(), &[], &SwapperQuoteData::mock()).is_ok(), "a provider that ships no contracts is not bound");
+    fn test_a_provider_that_ships_no_contracts_is_not_bound() {
+        assert!(verify(&Chain::Osmosis.as_asset_id(), &Contracts::default(), &SwapperQuoteData::mock()).is_ok());
     }
 
     #[test]
@@ -163,9 +111,19 @@ mod tests {
             SwapperQuoteData::new_contract(TRON_USDT_TOKEN_ID.to_string(), BigUint::ZERO, hex::encode(call.abi_encode()), None, None)
         };
 
-        assert!(verify(&usdt, &[vault], &transfer(vault)).is_ok(), "a token transfer into the shipped vault is the deposit");
-        assert_eq!(verify(&usdt, &[vault], &transfer("TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi")), Err(SwapperError::InvalidRoute));
-        assert_eq!(verify(&Chain::Tron.as_asset_id(), &[vault], &transfer(vault)), Err(SwapperError::InvalidRoute), "a coin swap may not call a token contract");
+        assert!(verify(&usdt, &Contracts::new(vec![vault]), &transfer(vault)).is_ok(), "a token transfer into the shipped vault is the deposit");
+        let router = "TXtEs6t2oUWQsNos7m68gbHdE9Q5n6x2oN";
+        let routed = Contracts {
+            targets: vec![vault, router],
+            spenders: vec![vault],
+        };
+        assert_eq!(verify(&usdt, &routed, &transfer(router)), Err(SwapperError::InvalidRoute), "a token sent to a contract that only runs calls is not a deposit");
+        assert_eq!(verify(&usdt, &Contracts::new(vec![vault]), &transfer("TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi")), Err(SwapperError::InvalidRoute));
+        assert_eq!(
+            verify(&Chain::Tron.as_asset_id(), &Contracts::new(vec![vault]), &transfer(vault)),
+            Err(SwapperError::InvalidRoute),
+            "a coin swap may not call a token contract"
+        );
     }
 
     #[test]
@@ -181,6 +139,27 @@ mod tests {
             "every message must go to a shipped contract"
         );
         assert_eq!(verify_ton_messages("[]", &[depository]), Err(SwapperError::InvalidRoute));
+    }
+
+    #[test]
+    fn test_standard_programs_cannot_hand_over_an_account() {
+        let user = "7g2rVN8fAAQdPh1mkajpvELqYa3gWvFXJsBLnKfEQfqy";
+        let owner: Pubkey = SolanaAddress::parse(user).unwrap().into();
+        let (token_account, mint, destination) = (Pubkey::new([2; 32]), Pubkey::new([3; 32]), Pubkey::new([4; 32]));
+        let transaction = |instruction: Instruction| SolanaTransaction::new(vec![instruction], vec![]).encode(user, &[]).unwrap().data;
+        let set_authority = Instruction {
+            program_id: token_program(),
+            accounts: vec![AccountMeta::new(token_account, false, true), AccountMeta::new(owner, true, false)],
+            data: [vec![token::SET_AUTHORITY_DISCRIMINANT, 2, 1], Pubkey::new([9; 32]).as_bytes().to_vec()].concat(),
+        };
+
+        assert_eq!(
+            verify_solana_programs(&transaction(set_authority), &[]),
+            Err(SwapperError::InvalidRoute),
+            "handing the user's token account to another key is refused"
+        );
+        let transfer_checked = token::transfer_checked_with_program_id(&token_account, &mint, &destination, &owner, 1_000, 6, &token_program());
+        assert!(verify_solana_programs(&transaction(transfer_checked), &[]).is_ok(), "moving tokens is a swap");
     }
 
     #[test]

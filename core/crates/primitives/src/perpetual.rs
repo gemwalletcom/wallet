@@ -116,6 +116,7 @@ pub struct PerpetualPositionsSummary {
 pub struct PerpetualAccountPositions {
     pub mode: PerpetualAccountMode,
     pub summary: PerpetualPositionsSummary,
+    pub is_complete: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Model)]

@@ -113,7 +113,16 @@ Dynode also starts a monitoring cycle when the active URL reaches either configu
 - `trigger.rate`: retryable failure percentage within `trigger.window`, after at least `trigger.failures` failed requests.
 - `trigger.latency`: maximum acceptable latency for one node monitoring observation before alternatives are checked.
 
-Transport errors always count. Responses count only when their HTTP status or JSON-RPC error message matches `retry.errors`. Cache hits and fallback attempts do not count. The window also acts as the cooldown between triggered checks for the active URL.
+Transport errors always count. Responses count when any `retry.errors` rule matches. Each rule has an optional HTTP `status` and an optional `message` substring matched case-insensitively against JSON `error` or `error.message`. When both are configured, both must match; a message-only rule applies at any HTTP status. Empty rules and blank message patterns never match. Cache hits and fallback attempts do not count. The window also acts as the cooldown between triggered checks for the active URL.
+
+```yaml
+retry:
+  errors:
+    - status: 503
+    - message: "rate limit"
+    - status: 400
+      message: "502 Bad Gateway"
+```
 
 The rolling rate uses bounded time buckets, so memory use does not grow with request volume.
 

@@ -137,12 +137,6 @@ pub fn get_uniswap_router_deployment_by_chain(chain: &Chain) -> Option<V3Deploym
             permit2,
             "0x8B844f885672f333Bc0042cB669255f93a4C1E6b",
         )),
-        Chain::Blast => Some(V3Deployment::v2_1(
-            "0x792edAdE80af5fC680d96a2eD80A44247D2Cf6Fd",
-            "0x6Cdcd65e03c1CEc3730AeeCd45bc140D57A25C77",
-            permit2,
-            "0x8B844f885672f333Bc0042cB669255f93a4C1E6b",
-        )),
         Chain::World => Some(V3Deployment::v2_1(
             "0x7a5028BDa40e7B173C278C5342087826455ea25a",
             "0x10158D43e6cc414deE1Bd1eB0EfC6a5cBCfF244c",
@@ -215,7 +209,7 @@ fn legacy_uniswap_router_contracts_by_chain(chain: &Chain) -> &'static [&'static
         Chain::Arbitrum => &["0x5E325eDA8064b456f4781070C0738d849c824258"],
         Chain::Polygon => &["0xec7BE89e9d109e7e3Fec59c222CF297125FEFda2"],
         Chain::AvalancheC | Chain::SmartChain => &["0x4Dae2f939ACf50408e13d58534Ff8c2776d45265"],
-        Chain::Celo | Chain::Blast => &["0x643770E279d5D0733F21d6DC03A8efbABf3255B4"],
+        Chain::Celo => &["0x643770E279d5D0733F21d6DC03A8efbABf3255B4"],
         Chain::World => &["0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"],
         Chain::Unichain => &[UNICHAIN_UNISWAP_V3_UNIVERSAL_ROUTER_CONTRACT],
         Chain::Monad => &["0x0D97Dc33264bfC1c226207428A79b26757fb9dc3"],

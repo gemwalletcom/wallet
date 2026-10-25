@@ -49,6 +49,8 @@ Markets come from two sets on Hyperliquid:
 | The user searches | positions and markets are filtered | |
 | Hyperliquid delists a market | it leaves the list, pins and search; its trades stay in Activity and still open it, without Long or Short | a delisted market cannot be traded, but past trades keep their market |
 | An xyz market trades under `$1M` a day | it is treated like a delisted market: not offered, while a position in it still shows and closes | a thin market fills far from its price |
+| xyz does not answer a refresh while Hyperliquid's own markets do | Hyperliquid's markets and positions refresh; xyz keeps its last markets, positions and balance until it answers (`test_a_refresh_missing_a_dex_keeps_that_dexs_positions_and_the_balance`) | one market operator's outage does not stop the others, and nothing the user holds disappears from the screen |
+| A position is open on a delisted or not-offered market | Modify offers only Reduce | the position can be wound down but not grown in a market that is no longer traded |
 | A market's name shows (the list, search, a position, a pin, a toast) | Hyperliquid's own markets by their plain name, `BTC`; xyz markets with their `xyz:` prefix, `xyz:AAPL`, the name Hyperliquid gives them | users can tell a stock or commodity market run by another team, isolated only and with its own fees, from Hyperliquid's own |
 | The market has fewer than 14 candles | the chart draws them at the width of 14, newest on the right | wider bodies stop reading as a trend |
 | The chart shows its time labels | at most four, on round times of the user's own clock (quarter hours, six hours, whole days, calendar months); a pan slides them with their candles and only a pinch changes the step | a label that jumps or re-spaces while the user drags cannot be read |
@@ -65,6 +67,7 @@ Markets come from two sets on Hyperliquid:
 | The user taps Close on a position | straight to confirmation, with the expected PnL | |
 | A position has paid funding | Funding Payments shows it as a negative cost, for a long and a short alike | a short must see when funding costs money, the same as on Hyperliquid |
 | The user withdraws | the amount is what arrives on Arbitrum, the Network Fee shows Hyperliquid's `1 USDC`, and Max leaves the fee out | Hyperliquid takes the fee out of every withdrawal, so the screen shows what actually arrives |
+| A standard account also holds margin on an xyz market | Withdraw Max is what the main Hyperliquid dex can pay out; margin on xyz is not counted (`test_map_perpetual_dexes_balance`) | Hyperliquid pays a withdrawal from its main dex only |
 | The wallet's currency is not dollars | every perpetual value is still in dollars | the collateral is USDC |
 | The user taps Deposit on a standard Hyperliquid account | a choice between the Arbitrum USDC and the HyperCore spot USDC when both hold USDC, otherwise straight to the amount of the one that does, even when it is not in the wallet list | spot and perpetual balances are separate there, spot USDC often arrives from outside the wallet, and a choice of one is no choice |
 | The user taps Deposit on a unified Hyperliquid account | straight to the Arbitrum USDC amount | the spot USDC already is the perpetual balance |

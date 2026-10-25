@@ -44,11 +44,19 @@ pub struct Payment {
     pub payment_type: String,
 
     pub asset_type: Option<String>,
+    pub asset_code: Option<String>,
+    pub asset_issuer: Option<String>,
     pub from: Option<String>,
     pub to: Option<String>,
     #[serde(default)]
     #[cfg_attr(feature = "rpc", serde(deserialize_with = "deserialize_option_stellar_amount"))]
     pub amount: Option<BigUint>,
+    pub source_asset_type: Option<String>,
+    pub source_asset_code: Option<String>,
+    pub source_asset_issuer: Option<String>,
+    #[serde(default)]
+    #[cfg_attr(feature = "rpc", serde(deserialize_with = "deserialize_option_stellar_amount"))]
+    pub source_amount: Option<BigUint>,
 
     pub created_at: String,
 

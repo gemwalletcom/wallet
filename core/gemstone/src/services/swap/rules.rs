@@ -47,8 +47,8 @@ pub fn quote_request(wallet: &Wallet, from_asset: &Asset, to_asset: &Asset, valu
     let wallet_address = account_address(wallet, from_asset.chain())?;
     let destination_address = account_address(wallet, to_asset.chain())?;
     Ok(QuoteRequest {
-        from_asset: quote_asset(from_asset),
-        to_asset: quote_asset(to_asset),
+        from_asset: SwapperQuoteAsset::from(from_asset),
+        to_asset: SwapperQuoteAsset::from(to_asset),
         wallet_address,
         destination_address,
         value,
@@ -218,15 +218,6 @@ fn slippage(from_asset: &Asset, slippage_bps: Option<u32>) -> SwapperSlippage {
             mode: SwapperSlippageMode::Auto,
             ..get_default_slippage(&from_asset.chain())
         },
-    }
-}
-
-fn quote_asset(asset: &Asset) -> SwapperQuoteAsset {
-    SwapperQuoteAsset {
-        id: asset.id.to_string(),
-        symbol: asset.symbol.clone(),
-        decimals: asset.decimals,
-        asset_type: asset.asset_type.clone(),
     }
 }
 

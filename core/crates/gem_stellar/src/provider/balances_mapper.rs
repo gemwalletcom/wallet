@@ -1,4 +1,4 @@
-use crate::constants::STELLAR_DECIMALS;
+use crate::constants::{ASSET_TYPE_CREDIT_ALPHANUM4, ASSET_TYPE_CREDIT_ALPHANUM12, ASSET_TYPE_NATIVE, STELLAR_DECIMALS};
 use crate::models::account::Account;
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
@@ -46,31 +46,23 @@ pub fn map_token_balances(account: &Account, token_ids: Vec<String>, chain: Chai
 }
 
 pub fn map_all_balances(chain: Chain, account: Account) -> Vec<AssetBalance> {
-    let mut balances = Vec::new();
+    account
+        .balances
+        .into_iter()
+        .filter_map(|balance| {
+            let asset_id = map_asset_id(chain, &balance.asset_type, balance.asset_issuer.as_ref(), balance.asset_code.as_ref())?;
+            let value = BigNumberFormatter::value_from_amount_biguint(&balance.balance, STELLAR_DECIMALS).ok()?;
+            Some(AssetBalance::new_with_active(asset_id, Balance::coin_balance(value), true))
+        })
+        .collect()
+}
 
-    for balance in account.balances {
-        match balance.asset_type.as_str() {
-            "native" => {
-                if let Ok(value) = BigNumberFormatter::value_from_amount_biguint(&balance.balance, STELLAR_DECIMALS) {
-                    let balance_obj = Balance::coin_balance(value);
-                    balances.push(AssetBalance::new_with_active(chain.as_asset_id(), balance_obj, true));
-                }
-            }
-            "credit_alphanum4" | "credit_alphanum12" => {
-                if let (Some(asset_issuer), Some(asset_code)) = (&balance.asset_issuer, &balance.asset_code) {
-                    let token_id = AssetId::sub_token_id(&[asset_issuer.clone(), asset_code.clone()]);
-                    let asset_id = AssetId::from_token(chain, &token_id);
-                    if let Ok(value) = BigNumberFormatter::value_from_amount_biguint(&balance.balance, STELLAR_DECIMALS) {
-                        let balance_obj = Balance::coin_balance(value);
-                        balances.push(AssetBalance::new_with_active(asset_id, balance_obj, true));
-                    }
-                }
-            }
-            _ => {}
-        }
+pub fn map_asset_id(chain: Chain, asset_type: &str, issuer: Option<&String>, code: Option<&String>) -> Option<AssetId> {
+    match (asset_type, issuer, code) {
+        (ASSET_TYPE_NATIVE, _, _) => Some(chain.as_asset_id()),
+        (ASSET_TYPE_CREDIT_ALPHANUM4 | ASSET_TYPE_CREDIT_ALPHANUM12, Some(issuer), Some(code)) => Some(AssetId::from_token(chain, &AssetId::sub_token_id(&[issuer.clone(), code.clone()]))),
+        _ => None,
     }
-
-    balances
 }
 
 #[cfg(test)]

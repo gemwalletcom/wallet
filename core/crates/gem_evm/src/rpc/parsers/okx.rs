@@ -3,27 +3,19 @@ use num_bigint::BigUint;
 use std::str::FromStr;
 
 use crate::{
-    address::ethereum_address_from_topic,
     contracts::{IOkxDexRouter, OkxCommission},
     ethereum_address_checksum,
-    rpc::{mapper::TRANSFER_TOPIC, model::Log},
+    rpc::model::Log,
     u256::u256_to_biguint,
 };
 use primitives::{AssetId, SwapProvider, Transaction as PrimitivesTransaction, TransactionSwapMetadata, TransactionSwapReferralFee, contract_constants::EVM_NATIVE_TOKEN_ADDRESS, swap::EVM_REFERRAL_ADDRESS};
 
-use super::{EVENT_WORD_SIZE, ParseContext, ParseContextExt, TransactionParser, ethereum_value_from_log_data, referral_fee_for_token, referral_fee_from_transfers};
+use super::{ParseContext, ParseContextExt, TransactionParser, referral_fee_for_token, referral_fee_from_transfers, transfer_swap};
 
 pub(crate) const FUNCTION_OKX_DAG_SWAP_BY_ORDER_ID: &str = "0xf2c42696";
 pub(crate) const FUNCTION_OKX_UNISWAP_V3_SWAP_TO: &str = "0x0d5f0e3b";
 pub(crate) const FUNCTION_OKX_UNXSWAP_BY_ORDER_ID: &str = "0x9871efa4";
 pub struct OkxParser;
-
-struct ReceiptTransfer {
-    token: String,
-    from: String,
-    to: String,
-    value: String,
-}
 
 impl TransactionParser<ParseContext<'_>, PrimitivesTransaction> for OkxParser {
     fn matches(&self, context: &ParseContext<'_>) -> bool {
@@ -44,7 +36,20 @@ impl OkxParser {
     }
 
     fn try_map_receipt_swap(context: &ParseContext<'_>) -> Option<TransactionSwapMetadata> {
-        Self::try_map_receipt_event(context).or_else(|| Self::try_map_transfer_swap(context))
+        Self::try_map_receipt_event(context).or_else(|| transfer_swap(context, SwapProvider::Okx, &Self::native_commission(context)))
+    }
+
+    fn native_commission(context: &ParseContext<'_>) -> BigUint {
+        let native = AssetId::from_chain(*context.metadata.chain);
+        context
+            .metadata
+            .receipt
+            .logs
+            .iter()
+            .filter_map(Log::decode_event::<IOkxDexRouter::CommissionToTokenRecord>)
+            .filter(|event| Self::asset_id_from_token(context, &event.toTokenAddress.to_checksum(None)).as_ref() == Some(&native))
+            .map(|event| u256_to_biguint(&event.commissionAmount))
+            .sum()
     }
 
     fn try_map_receipt_event(context: &ParseContext<'_>) -> Option<TransactionSwapMetadata> {
@@ -73,31 +78,6 @@ impl OkxParser {
         })
     }
 
-    fn try_map_transfer_swap(context: &ParseContext<'_>) -> Option<TransactionSwapMetadata> {
-        let from = ethereum_address_checksum(&context.transaction.from).ok()?;
-        let transfers: Vec<ReceiptTransfer> = context.metadata.receipt.logs.iter().filter_map(ReceiptTransfer::from_log).collect();
-        let outgoing: Vec<&ReceiptTransfer> = transfers.iter().filter(|transfer| transfer.from == from && transfer.value != "0").collect();
-        let incoming: Vec<&ReceiptTransfer> = transfers.iter().filter(|transfer| transfer.to == from && transfer.value != "0").collect();
-
-        match (context.transaction.value > BigUint::from(0u8), outgoing.as_slice(), incoming.as_slice()) {
-            (_, [sent], [received]) if sent.token != received.token => Some(TransactionSwapMetadata::new(
-                AssetId::from_token(*context.metadata.chain, &sent.token),
-                BigUint::from_str(&sent.value).ok()?,
-                AssetId::from_token(*context.metadata.chain, &received.token),
-                BigUint::from_str(&received.value).ok()?,
-                SwapProvider::Okx,
-            )),
-            (true, [], [received]) => Some(TransactionSwapMetadata::new(
-                AssetId::from_chain(*context.metadata.chain),
-                context.transaction.value.clone(),
-                AssetId::from_token(*context.metadata.chain, &received.token),
-                BigUint::from_str(&received.value).ok()?,
-                SwapProvider::Okx,
-            )),
-            _ => None,
-        }
-    }
-
     fn asset_id_from_token(context: &ParseContext<'_>, token: &str) -> Option<AssetId> {
         let token = ethereum_address_checksum(token).ok()?;
         if token == EVM_NATIVE_TOKEN_ADDRESS || token == Address::ZERO.to_checksum(None) {
@@ -108,31 +88,22 @@ impl OkxParser {
     }
 }
 
-impl ReceiptTransfer {
-    fn from_log(log: &Log) -> Option<Self> {
-        if log.topics.len() != 3 || log.topics.first().is_none_or(|topic| topic != TRANSFER_TOPIC) {
-            return None;
-        }
-
-        Some(Self {
-            token: ethereum_address_checksum(&log.address).ok()?,
-            from: ethereum_address_from_topic(log.topics.get(1)?)?,
-            to: ethereum_address_from_topic(log.topics.get(2)?)?,
-            value: ethereum_value_from_log_data(&log.data, 0, EVENT_WORD_SIZE)?.to_string(),
-        })
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::ethereum_address_checksum;
     use crate::rpc::model::{Log, Transaction, TransactionReceipt};
-    use crate::rpc::parsers::ProtocolParsers;
+    use crate::rpc::parsers::{ProtocolParsers, WITHDRAWAL_TOPIC};
+    use alloy_primitives::U256;
     use alloy_sol_types::SolEvent;
     use chrono::DateTime;
     use num_bigint::BigUint;
-    use primitives::{Chain, SwapProvider, TransactionState, asset_constants::BASE_USDC_TOKEN_ID, testkit::json_rpc::load_json_rpc_result};
+    use primitives::{
+        Chain, SwapProvider, TransactionState,
+        asset_constants::{BASE_USDC_TOKEN_ID, BASE_WETH_TOKEN_ID},
+        hex::encode_with_0x,
+        testkit::json_rpc::load_json_rpc_result,
+    };
 
     fn map_transaction(chain: &Chain, transaction: &Transaction, receipt: &TransactionReceipt) -> PrimitivesTransaction {
         ProtocolParsers::map_transaction(chain, transaction, receipt, DateTime::from_timestamp(1743373403, 0).unwrap()).unwrap()
@@ -275,5 +246,54 @@ mod tests {
         let reverted_tx = map_transaction(&Chain::Base, &receipt_tx, &reverted_receipt);
         assert_eq!(reverted_tx.transaction_type, primitives::TransactionType::Swap);
         assert_eq!(reverted_tx.state, TransactionState::Reverted);
+
+        let unwrap_receipt = TransactionReceipt {
+            logs: vec![
+                Log::mock_erc20_transfer(BASE_USDC_TOKEN_ID, &transfer_tx.from, transfer_tx.to.as_deref().unwrap(), 10_000_000),
+                Log {
+                    address: BASE_WETH_TOKEN_ID.to_string(),
+                    topics: vec![WITHDRAWAL_TOPIC.to_string(), format!("0x{:0>64}", "dead")],
+                    data: format!("0x{:064x}", 5_000_000_000_000_000u64),
+                    transaction_hash: None,
+                },
+                Log {
+                    address: BASE_WETH_TOKEN_ID.to_string(),
+                    topics: vec![WITHDRAWAL_TOPIC.to_string(), format!("0x{:0>64}", &transfer_tx.to.as_deref().unwrap()[2..])],
+                    data: format!("0x{:064x}", 1_000_000_000_000_000u64),
+                    transaction_hash: None,
+                },
+                Log {
+                    address: transfer_tx.to.clone().unwrap(),
+                    topics: vec![IOkxDexRouter::CommissionToTokenRecord::SIGNATURE_HASH.to_string()],
+                    data: encode_with_0x(
+                        &IOkxDexRouter::CommissionToTokenRecord {
+                            toTokenAddress: EVM_NATIVE_TOKEN_ADDRESS.parse().unwrap(),
+                            commissionAmount: U256::from(7_000_000_000_000u64),
+                            referrerAddress: EVM_REFERRAL_ADDRESS.parse().unwrap(),
+                            commissionRate: U256::from(70),
+                        }
+                        .encode_data(),
+                    ),
+                    transaction_hash: None,
+                },
+            ],
+            ..transfer_receipt
+        };
+        assert_eq!(
+            map_transaction(&Chain::Base, &transfer_tx, &unwrap_receipt).swap_metadata(),
+            Some(
+                TransactionSwapMetadata::new(
+                    AssetId::from_token(Chain::Base, BASE_USDC_TOKEN_ID),
+                    BigUint::from(10_000_000u64),
+                    AssetId::from_chain(Chain::Base),
+                    BigUint::from(993_000_000_000_000u64),
+                    SwapProvider::Okx
+                )
+                .with_referral_fee(Some(TransactionSwapReferralFee {
+                    asset_id: AssetId::from_chain(Chain::Base),
+                    value: BigUint::from(7_000_000_000_000u64)
+                }))
+            )
+        );
     }
 }

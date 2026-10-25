@@ -7,6 +7,15 @@ use crate::{
 
 const TRANSFER_DISCRIMINANT: [u8; 4] = hex!("02000000");
 pub const ADVANCE_NONCE_ACCOUNT_DISCRIMINANT: [u8; 4] = hex!("04000000");
+const ASSIGN_DISCRIMINANT: [u8; 4] = hex!("01000000");
+const AUTHORIZE_NONCE_ACCOUNT_DISCRIMINANT: [u8; 4] = hex!("07000000");
+const ASSIGN_WITH_SEED_DISCRIMINANT: [u8; 4] = hex!("0a000000");
+
+pub fn grants_authority_data(data: &[u8]) -> bool {
+    [ASSIGN_DISCRIMINANT, AUTHORIZE_NONCE_ACCOUNT_DISCRIMINANT, ASSIGN_WITH_SEED_DISCRIMINANT]
+        .iter()
+        .any(|discriminant| data.get(..4) == Some(discriminant.as_slice()))
+}
 
 pub fn is_advance_nonce_account_data(data: &[u8]) -> bool {
     data.get(..4) == Some(ADVANCE_NONCE_ACCOUNT_DISCRIMINANT.as_slice())
@@ -31,6 +40,14 @@ pub fn transfer(from: &Pubkey, to: &Pubkey, lamports: u64) -> Instruction {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_grants_authority_data() {
+        assert!(grants_authority_data(&ASSIGN_DISCRIMINANT));
+        assert!(grants_authority_data(&AUTHORIZE_NONCE_ACCOUNT_DISCRIMINANT));
+        assert!(grants_authority_data(&ASSIGN_WITH_SEED_DISCRIMINANT));
+        assert!(!grants_authority_data(&TRANSFER_DISCRIMINANT), "a transfer hands nothing over");
+    }
 
     #[test]
     fn test_transfer_wire_format() {

@@ -16,8 +16,8 @@ use super::{
     quote_data_mapper, quote_mapper, swap_mapper,
 };
 use crate::{
-    Deployment, FetchQuoteData, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperQuoteData, approval::check_approval_erc20,
-    client_factory::create_rpc_client, cross_chain::VaultAddresses, fees::default_referral_fees, route_cache::Cache, thorchain::client::ThorChainSwapClient,
+    Contracts, Deployment, FetchQuoteData, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperQuoteData,
+    approval::check_approval_erc20, client_factory::create_rpc_client, cross_chain::VaultAddresses, fees::default_referral_fees, route_cache::Cache, thorchain::client::ThorChainSwapClient,
 };
 
 const INBOUND_ADDRESS_CACHE_TTL: Duration = MINUTE.saturating_mul(5);
@@ -100,9 +100,9 @@ where
         }
     }
 
-    fn contracts(&self, from_asset: &AssetId) -> Vec<&'static str> {
+    fn contracts(&self, from_asset: &AssetId) -> Contracts {
         if from_asset.token_id.is_none() {
-            return Vec::new();
+            return Contracts::default();
         }
         Deployment::contracts(self.network.routers(), from_asset.chain)
     }
@@ -162,7 +162,7 @@ where
             });
         }
 
-        let routers = self.contracts(&request.from_asset.asset_id());
+        let routers = self.contracts(&request.from_asset.asset_id()).targets;
         if from_asset.use_evm_router() && !quote.router.as_deref().is_some_and(|router| Deployment::contains(from_asset.chain.chain(), &routers, router)) {
             return Err(SwapperError::InvalidRoute);
         }
@@ -392,11 +392,11 @@ mod tests {
 
         assert_eq!(
             swapper.contracts(&AssetId::from_token(Chain::Ethereum, ETHEREUM_USDC_TOKEN_ID)),
-            vec!["0xD37BbE5744D730a1d98d8DC97c42F0Ca46aD7146", "0x00dc6100103BC402d490aEE3F9a5560cBd91f1d4"],
+            Contracts::new(vec!["0xD37BbE5744D730a1d98d8DC97c42F0Ca46aD7146", "0x00dc6100103BC402d490aEE3F9a5560cBd91f1d4"]),
             "the live V4 router and the V6.1 router THORChain will switch to"
         );
-        assert_eq!(swapper.contracts(&AssetId::from_token(Chain::AvalancheC, AVALANCHE_USDC_TOKEN_ID)).len(), 2);
-        assert!(swapper.contracts(&Chain::Ethereum.as_asset_id()).is_empty(), "a coin deposit goes to the vault the network names");
+        assert_eq!(swapper.contracts(&AssetId::from_token(Chain::AvalancheC, AVALANCHE_USDC_TOKEN_ID)).targets.len(), 2);
+        assert_eq!(swapper.contracts(&Chain::Ethereum.as_asset_id()), Contracts::default(), "a coin deposit goes to the vault the network names");
     }
 
     #[tokio::test]

@@ -96,6 +96,7 @@ public enum Images {
         public static let chainflip = Image(.chainflip)
         public static let relay = Image(.relay)
         public static let aerodrome = Image(.aerodrome)
+        public static let aero = Image(.aero)
         public static let hyperliquid = Image(.hyperliquid)
         public static let panora = Image(.panora)
         public static let okx = Image(.okx)
@@ -109,6 +110,9 @@ public enum Images {
         public static let pumpswap = Image(.pumpswap)
         public static let meteora = Image(.meteora)
         public static let sunswap = Image(.sunswap)
+        public static let stellarDex = Images.Chains.stellar
+        public static let deepbook = Image(.deepbook)
+        public static let xrpLedger = Images.Chains.xrp
     }
 
     public enum EarnProviders {

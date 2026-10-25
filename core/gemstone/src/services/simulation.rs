@@ -95,14 +95,7 @@ impl GemSimulationService {
             EvmTransactionKind::TokenApproval(_) => Ok(SimulationClient::new(&provider).simulate_evm_calldata(chain, &calldata, &transaction.to).await?),
             EvmTransactionKind::Transfer | EvmTransactionKind::ContractCall => {
                 let (calldata_result, balance_result) = self.simulate_calldata_and_balance_changes(chain, &calldata, &provider, &transaction).await;
-                let calldata_result = calldata_result?;
-                let balance_result = balance_result.unwrap_or_default();
-
-                Ok(SimulationResult {
-                    balance_changes: balance_result.balance_changes,
-                    ..calldata_result
-                }
-                .prepend_warnings(balance_result.warnings))
+                Ok(contract_call_result(calldata_result?, balance_result.unwrap_or_default()))
             }
         }
     }
@@ -165,6 +158,15 @@ impl GemSimulationService {
             _ => Err(format!("{chain} does not support transaction simulation").into()),
         }
     }
+}
+
+fn contract_call_result(calldata: SimulationResult, balances: SimulationResult) -> SimulationResult {
+    SimulationResult {
+        header: None,
+        balance_changes: balances.balance_changes,
+        ..calldata
+    }
+    .prepend_warnings(balances.warnings)
 }
 
 fn map_transaction_object(transaction: &WCEthereumTransactionData) -> TransactionObject {
@@ -445,6 +447,27 @@ mod tests {
                 kind: GemNoticeKind::Warning,
             }]
         );
+    }
+
+    #[test]
+    fn test_a_contract_call_is_not_headlined_by_the_approval_in_its_calldata() {
+        let approval = SimulationResult {
+            header: Some(primitives::SimulationHeader {
+                asset_id: AssetId::new("ethereum_0xdac17f958d2ee523a2206206994597c13d831ec7").unwrap(),
+                value: None,
+                is_unlimited: true,
+            }),
+            ..SimulationResult::default()
+        };
+        let sent = SimulationResult {
+            balance_changes: vec![SimulationBalanceChange::mock(AssetId::new("ethereum").unwrap(), BigInt::from(-1000), 18)],
+            ..SimulationResult::default()
+        };
+
+        let result = contract_call_result(approval, sent.clone());
+
+        assert_eq!(result.header, None, "an approval that also sends coins leads with the coins, not the approval");
+        assert_eq!(result.balance_changes, sent.balance_changes);
     }
 
     #[test]

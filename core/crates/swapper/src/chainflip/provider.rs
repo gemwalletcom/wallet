@@ -24,7 +24,7 @@ use super::{
     tx_builder,
 };
 use crate::{
-    Deployment, FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData, SwapperSlippage,
+    Contracts, Deployment, FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData, SwapperSlippage,
     alien::RpcProvider,
     approval::{check_approval_erc20, get_swap_gas_limit_with_approval},
     cross_chain::VaultAddresses,
@@ -315,7 +315,7 @@ where
         }
     }
 
-    fn contracts(&self, from_asset: &AssetId) -> Vec<&'static str> {
+    fn contracts(&self, from_asset: &AssetId) -> Contracts {
         Deployment::contracts(VAULT_ADDRESSES, from_asset.chain)
     }
 
@@ -449,9 +449,9 @@ mod tests {
     fn test_contracts() {
         let provider = ChainflipProvider::with_clients(ChainflipClient::new(MockClient::new()), BrokerClient::new(MockClient::new(), MockClient::new()), Arc::new(ProviderMock::new(String::new())));
 
-        assert_eq!(provider.contracts(&AssetId::from_chain(Chain::Ethereum)), vec![ETHEREUM_VAULT]);
-        assert_eq!(provider.contracts(&AssetId::from_token(Chain::Tron, TRON_USDT_TOKEN_ID)), vec![TRON_VAULT]);
-        assert!(provider.contracts(&AssetId::from_chain(Chain::Bitcoin)).is_empty(), "a deposit channel address is made per swap");
+        assert_eq!(provider.contracts(&AssetId::from_chain(Chain::Ethereum)), Contracts::new(vec![ETHEREUM_VAULT]));
+        assert_eq!(provider.contracts(&AssetId::from_token(Chain::Tron, TRON_USDT_TOKEN_ID)), Contracts::new(vec![TRON_VAULT]));
+        assert_eq!(provider.contracts(&AssetId::from_chain(Chain::Bitcoin)), Contracts::default(), "a deposit channel address is made per swap");
     }
 
     #[test]

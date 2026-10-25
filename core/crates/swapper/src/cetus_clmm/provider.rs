@@ -1,10 +1,8 @@
-use super::{
-    client::CetusClmm,
-    constants::CETUS_CLMM_PUBLISHED_AT,
-    model::{PoolRoute, fee_side},
-    tx_builder,
+use super::{client::CetusClmm, constants::CETUS_CLMM_PUBLISHED_AT, model::PoolRoute, tx_builder};
+use crate::{
+    FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperQuoteData,
+    sui_swap::{coin_type, fee_side},
 };
-use crate::{FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperQuoteData};
 use async_trait::async_trait;
 use gem_sui::coin_type_matches;
 use num_bigint::BigUint;
@@ -28,8 +26,8 @@ impl Swapper for CetusClmm {
         if from_asset.chain != Chain::Sui || to_asset.chain != Chain::Sui {
             return;
         }
-        let from = CetusClmm::coin_type(from_asset);
-        let to = CetusClmm::coin_type(to_asset);
+        let from = coin_type(from_asset);
+        let to = coin_type(to_asset);
         self.preload_pair(&from, &to).await;
     }
 
@@ -38,8 +36,8 @@ impl Swapper for CetusClmm {
         let to_asset = request.to_asset.asset_id();
         let amount = request.value_u64()?;
 
-        let from_coin_type = CetusClmm::coin_type(&from_asset);
-        let to_coin_type = CetusClmm::coin_type(&to_asset);
+        let from_coin_type = coin_type(&from_asset);
+        let to_coin_type = coin_type(&to_asset);
         let fee_side = fee_side(&from_coin_type, &to_coin_type);
 
         let referral_fee = request.on_chain_referral_fee();
@@ -58,8 +56,8 @@ impl Swapper for CetusClmm {
     async fn get_quote_data(&self, quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
         let route: PoolRoute = quote.route_data()?;
 
-        let request_from = CetusClmm::coin_type(&quote.request.from_asset.asset_id());
-        let request_to = CetusClmm::coin_type(&quote.request.to_asset.asset_id());
+        let request_from = coin_type(&quote.request.from_asset.asset_id());
+        let request_to = coin_type(&quote.request.to_asset.asset_id());
         if !coin_type_matches(&request_from, route.input_coin_type()) || !coin_type_matches(&request_to, route.output_coin_type()) {
             return Err(SwapperError::InvalidRoute);
         }
@@ -71,11 +69,10 @@ impl Swapper for CetusClmm {
 #[cfg(all(test, feature = "swap_integration_tests"))]
 mod swap_integration_tests {
     use super::*;
-    use crate::{FetchQuoteData, SwapperQuoteAsset, alien::reqwest_provider::NativeProvider, models::Options};
+    use crate::{FetchQuoteData, SwapperQuoteAsset, alien::reqwest_provider::NativeProvider, models::Options, testkit::TEST_SUI_WALLET};
     use primitives::{AssetId, asset_constants::SUI_USDC_TOKEN_ID};
     use std::sync::Arc;
 
-    const TEST_WALLET: &str = "0x2ec5b7bcf6a0512850fe5f95cbd0a4303e8de5a3ffc01f9dba96bf1fde5f9bb5";
     const BLUE_TOKEN_ID: &str = "0xe1b45a0e641b9955a20aa0ad1c1f4ad86aad8afb07296d4085e349a50e90bdca::blue::BLUE";
 
     fn print_quote(label: &str, quote: &Quote) -> Result<PoolRoute, SwapperError> {
@@ -107,8 +104,8 @@ mod swap_integration_tests {
         let request = QuoteRequest {
             from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Sui)),
             to_asset: SwapperQuoteAsset::from(AssetId::from(Chain::Sui, Some(SUI_USDC_TOKEN_ID.to_string()))),
-            wallet_address: TEST_WALLET.to_string(),
-            destination_address: TEST_WALLET.to_string(),
+            wallet_address: TEST_SUI_WALLET.to_string(),
+            destination_address: TEST_SUI_WALLET.to_string(),
             value: BigUint::from(1500000000u64),
             options: Options::new_with_slippage(50.into()),
         };
@@ -133,8 +130,8 @@ mod swap_integration_tests {
         let request = QuoteRequest {
             from_asset: SwapperQuoteAsset::from(AssetId::from(Chain::Sui, Some(SUI_USDC_TOKEN_ID.to_string()))),
             to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Sui)),
-            wallet_address: TEST_WALLET.to_string(),
-            destination_address: TEST_WALLET.to_string(),
+            wallet_address: TEST_SUI_WALLET.to_string(),
+            destination_address: TEST_SUI_WALLET.to_string(),
             value: BigUint::from(100000u64),
             options: Options::new_with_slippage(50.into()),
         };
@@ -159,8 +156,8 @@ mod swap_integration_tests {
         let request = QuoteRequest {
             from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Sui)),
             to_asset: SwapperQuoteAsset::from(AssetId::from(Chain::Sui, Some(BLUE_TOKEN_ID.to_string()))),
-            wallet_address: TEST_WALLET.to_string(),
-            destination_address: TEST_WALLET.to_string(),
+            wallet_address: TEST_SUI_WALLET.to_string(),
+            destination_address: TEST_SUI_WALLET.to_string(),
             value: BigUint::from(100000000u64),
             options: Options::default(),
         };
@@ -178,8 +175,8 @@ mod swap_integration_tests {
         let request = QuoteRequest {
             from_asset: SwapperQuoteAsset::from(AssetId::from(Chain::Sui, Some(SUI_USDC_TOKEN_ID.to_string()))),
             to_asset: SwapperQuoteAsset::from(AssetId::from(Chain::Sui, Some(BLUE_TOKEN_ID.to_string()))),
-            wallet_address: TEST_WALLET.to_string(),
-            destination_address: TEST_WALLET.to_string(),
+            wallet_address: TEST_SUI_WALLET.to_string(),
+            destination_address: TEST_SUI_WALLET.to_string(),
             value: BigUint::from(100000u64),
             options: Options::default(),
         };
@@ -198,8 +195,8 @@ mod swap_integration_tests {
         let request = QuoteRequest {
             from_asset: SwapperQuoteAsset::from(AssetId::from(Chain::Sui, Some(BLUE_TOKEN_ID.to_string()))),
             to_asset: SwapperQuoteAsset::from(AssetId::from(Chain::Sui, Some(SUI_USDC_TOKEN_ID.to_string()))),
-            wallet_address: TEST_WALLET.to_string(),
-            destination_address: TEST_WALLET.to_string(),
+            wallet_address: TEST_SUI_WALLET.to_string(),
+            destination_address: TEST_SUI_WALLET.to_string(),
             value: BigUint::from(10000000u64),
             options: Options::default(),
         };

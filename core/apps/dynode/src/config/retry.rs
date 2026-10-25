@@ -5,25 +5,23 @@ use serde_serializers::duration;
 
 #[derive(Debug, Deserialize, Clone, Default)]
 pub struct ErrorMatcherConfig {
-    pub status_codes: Vec<u16>,
-    pub error_messages: Vec<String>,
+    pub status: Option<u16>,
+    pub message: Option<String>,
 }
 
 impl ErrorMatcherConfig {
-    pub fn matches_status(&self, status: u16) -> bool {
-        self.status_codes.contains(&status)
-    }
-
-    pub fn matches_message(&self, message: &str) -> bool {
-        if message.is_empty() {
+    pub fn matches(&self, status: u16, message: Option<&str>) -> bool {
+        if self.status.is_some_and(|expected| expected != status) {
             return false;
         }
 
-        let message_lower = message.to_ascii_lowercase();
-        self.error_messages.iter().any(|pattern| {
-            let pattern = pattern.trim();
-            !pattern.is_empty() && message_lower.contains(&pattern.to_ascii_lowercase())
-        })
+        match self.message.as_deref() {
+            Some(pattern) => {
+                let pattern = pattern.trim();
+                !pattern.is_empty() && message.is_some_and(|message| message.to_ascii_lowercase().contains(&pattern.to_ascii_lowercase()))
+            }
+            None => self.status.is_some(),
+        }
     }
 }
 
@@ -32,7 +30,7 @@ impl ErrorMatcherConfig {
 pub struct RetryConfig {
     pub enabled: bool,
     pub max_attempts: usize,
-    pub errors: ErrorMatcherConfig,
+    pub errors: Vec<ErrorMatcherConfig>,
     #[serde(deserialize_with = "duration::deserialize")]
     pub cooldown: Duration,
     pub statuses: Vec<u16>,
@@ -43,7 +41,7 @@ impl Default for RetryConfig {
         Self {
             enabled: false,
             max_attempts: 0,
-            errors: ErrorMatcherConfig::default(),
+            errors: Vec::new(),
             cooldown: Duration::from_secs(60),
             statuses: vec![403, 429],
         }
@@ -61,35 +59,52 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_should_retry_on_error_message() {
-        let config = RetryConfig::mock_with_errors(vec![], vec!["daily request limit", "rate limit"]);
+    fn test_matches_message() {
+        let rule = ErrorMatcherConfig {
+            message: Some(" Rate Limit ".to_string()),
+            ..ErrorMatcherConfig::default()
+        };
 
-        assert!(config.errors.matches_message("daily request limit reached - upgrade your account"));
-        assert!(config.errors.matches_message("rate limit exceeded"));
-        assert!(config.errors.matches_message("Rate Limit Exceeded"));
-        assert!(!config.errors.matches_message("internal server error"));
-        assert!(!config.errors.matches_message(""));
+        assert!(rule.matches(200, Some("rate limit exceeded")));
+        assert!(rule.matches(400, Some("Rate Limit Exceeded")));
+        assert!(!rule.matches(400, Some("internal server error")));
+        assert!(!rule.matches(400, Some("")));
+        assert!(!rule.matches(400, None));
     }
 
     #[test]
-    fn test_should_retry_on_error_message_empty() {
-        let config = RetryConfig::mock();
+    fn test_matches_empty_rule() {
+        let rule = ErrorMatcherConfig::default();
+        assert!(!rule.matches(400, Some("error")));
 
-        assert!(!config.errors.matches_message("daily request limit reached"));
+        let rule = ErrorMatcherConfig {
+            status: Some(400),
+            message: Some(" ".to_string()),
+        };
+        assert!(!rule.matches(400, Some("error")));
     }
 
     #[test]
     fn test_matches_status() {
-        let config = RetryConfig::mock_with_errors(vec![401, 403, 429], vec![]);
-        assert!(config.errors.matches_status(429));
-        assert!(!config.errors.matches_status(500));
+        let rule = ErrorMatcherConfig {
+            status: Some(429),
+            ..ErrorMatcherConfig::default()
+        };
+        assert!(rule.matches(429, None));
+        assert!(rule.matches(429, Some("any error")));
+        assert!(!rule.matches(500, None));
     }
 
     #[test]
-    fn test_matches_message_case_and_whitespace() {
-        let config = RetryConfig::mock_with_errors(vec![], vec![" Rate Limit ", "", "rate limit"]);
-        assert!(config.errors.matches_message("rate limit exceeded"));
-        assert!(!config.errors.matches_message("unrelated error"));
+    fn test_matches_status_and_message() {
+        let rule = ErrorMatcherConfig {
+            status: Some(400),
+            message: Some("502 Bad Gateway".to_string()),
+        };
+        assert!(rule.matches(400, Some("502 Bad Gateway invalid character '<'")));
+        assert!(!rule.matches(200, Some("502 Bad Gateway invalid character '<'")));
+        assert!(!rule.matches(400, Some("invalid transaction")));
+        assert!(!rule.matches(400, None));
     }
 
     #[test]

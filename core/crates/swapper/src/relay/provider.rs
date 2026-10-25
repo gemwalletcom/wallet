@@ -19,7 +19,7 @@ use super::{
     solana, ton,
 };
 use crate::{
-    FetchQuoteData, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
+    Contracts, FetchQuoteData, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
     approval::check_token_approval,
     client_factory::create_ton_client,
     config::get_swap_proxy_url,
@@ -74,7 +74,7 @@ where
         RelayChain::from_chain(&request.from_asset.chain()).map_or(SwapAmountMode::Fixed, |chain| chain.amount_mode())
     }
 
-    fn contracts(&self, from_asset: &AssetId) -> Vec<&'static str> {
+    fn contracts(&self, from_asset: &AssetId) -> Contracts {
         contracts::contracts(from_asset.chain)
     }
 
@@ -201,14 +201,42 @@ mod tests {
     use gem_client::{ClientError, testkit::MockClient};
     use primitives::Chain;
     use primitives::{
-        asset_constants::{BASE_USDC_ASSET_ID, CELO_WETH_TOKEN_ID, TRON_USDT_TOKEN_ID},
+        asset_constants::{BASE_USDC_ASSET_ID, BASE_USDC_TOKEN_ID, CELO_WETH_TOKEN_ID, TRON_USDT_TOKEN_ID},
         swap::{SwapQuoteDataType, SwapStatus},
     };
 
     const ROUTER_ADDRESS: &str = "0xCcC88a9d1B4ED6b0EABA998850414b24f1c315bE";
+    const ERC20_ROUTER_ADDRESS: &str = "0xb92fe925DC43a0ECdE6c8b1a2709c170Ec4fFf4f";
     const QUOTE_VALUE: &str = "40000000000000000000";
     const ZERO_ALLOWANCE: &str = "0x0000000000000000000000000000000000000000000000000000000000000000";
     const SUFFICIENT_ALLOWANCE: &str = "0x0000000000000000000000000000000000000000000000022b1c8c1227a00000";
+
+    #[test]
+    fn test_verify_contracts_approves_only_contracts_that_take_the_deposit() {
+        let relay = Relay {
+            provider: ProviderType::new(SwapperProvider::Relay),
+            rpc_provider: Arc::new(ProviderMock::new(String::new())),
+            client: RelayClient::new(MockClient::new()),
+        };
+        let quote = Quote::mock(Chain::Base, Some(BASE_USDC_TOKEN_ID));
+        let approving = |spender: &str| {
+            let approval = ApprovalData {
+                token: BASE_USDC_TOKEN_ID.to_string(),
+                spender: spender.to_string(),
+                value: BigUint::from(1u64),
+                is_unlimited: true,
+            };
+            SwapperQuoteData::new_contract(ROUTER_ADDRESS.to_string(), BigUint::ZERO, String::new(), Some(approval), None)
+        };
+        let relay = &relay as &dyn Swapper;
+
+        assert!(relay.verify_contracts(&quote, &approving(ROUTER_ADDRESS)).is_ok());
+        assert_eq!(
+            relay.verify_contracts(&quote, &approving(ERC20_ROUTER_ADDRESS)),
+            Err(SwapperError::InvalidRoute),
+            "only the contracts that take the deposit receive an approval"
+        );
+    }
 
     #[tokio::test]
     async fn test_swap_status_missing_request_is_pending() {

@@ -19,15 +19,15 @@ use std::{
 
 use super::{
     protocol::{DexProtocol, PoolDepth, PoolQuery, PoolSwap, QuoteAccount},
-    route::{DexHop, DexRoute, minimum_value, preferred_fee_side},
+    route::{DexHop, DexRoute, preferred_fee_side},
     token::{SwapToken, decode_mint},
     transaction::DexTransaction,
 };
 use crate::{
-    FetchQuoteData, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperQuoteData,
+    Contracts, FetchQuoteData, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperQuoteData,
     client_factory::create_client_with_chain,
     error::INVALID_ADDRESS,
-    fees::{FeeSide, default_referral_fees, on_chain_referral_fees},
+    fees::{FeeSide, default_referral_fees, on_chain_referral_fees, subtract_bps},
     route_cache::{Cache, DiscoveryCache, OutpricedCache},
     route_path::RoutePath,
 };
@@ -271,7 +271,7 @@ impl<P: DexProtocol, C: Client + Clone + Send + Sync + 'static> SolanaDex<P, C> 
                 let output = hop_accounts.and_then(|hop_accounts| {
                     route.iter().zip(hop_accounts).enumerate().try_fold((amount_in, None), |(amount, intermediate_value), (index, ((hop, pool), quote_accounts))| {
                         let chained = index > 0 && self.protocol.native_two_hop().is_none();
-                        let amount = if chained { minimum_value(amount, slippage_bps) } else { amount };
+                        let amount = if chained { subtract_bps(&amount, slippage_bps) } else { amount };
                         let data = quote_accounts.iter().map(|account| quote_data(&accounts, account)).collect::<Result<Vec<_>, _>>().ok()?;
                         let value = self.protocol.quote(&hop.pool, pool, &hop.input_mint, amount, &data, clock).ok()?;
                         Some((value, if chained { Some(amount) } else { intermediate_value }))
@@ -488,8 +488,8 @@ impl<P: DexProtocol, C: Client + Clone + Send + Sync + 'static> Swapper for Sola
         vec![SwapperChainAsset::All(Chain::Solana)]
     }
 
-    fn contracts(&self, _from_asset: &AssetId) -> Vec<&'static str> {
-        vec![P::PROGRAM]
+    fn contracts(&self, _from_asset: &AssetId) -> Contracts {
+        Contracts::new(vec![P::PROGRAM])
     }
 
     fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {

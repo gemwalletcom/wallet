@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use futures::future::{join_all, try_join_all};
 use primitives::{AssetId, Chain};
 
-use crate::{FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData, cross_chain::VaultAddresses};
+use crate::{Contracts, FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData, cross_chain::VaultAddresses};
 
 #[derive(Debug)]
 pub(crate) struct ProviderGroup {
@@ -36,6 +36,10 @@ impl Swapper for ProviderGroup {
     fn supported_assets(&self) -> Vec<SwapperChainAsset> {
         let assets = self.members.iter().flat_map(|(_, member)| member.supported_assets()).collect::<Vec<_>>();
         assets.iter().enumerate().filter(|(index, asset)| !assets[..*index].contains(asset)).map(|(_, asset)| asset.clone()).collect()
+    }
+
+    fn contracts(&self, from_asset: &AssetId) -> Contracts {
+        self.members_for(from_asset.chain).map(|(_, member)| member.contracts(from_asset)).collect()
     }
 
     fn amount_mode(&self, request: &QuoteRequest) -> SwapAmountMode {
@@ -124,6 +128,18 @@ mod tests {
         assert_eq!(group.supported_assets(), vec![SwapperChainAsset::All(Chain::Ethereum), SwapperChainAsset::All(Chain::Solana)]);
         assert_eq!(group.get_quote(&QuoteRequest::mock(Chain::Ethereum, None)).await.unwrap().data.provider.protocol_id, "uniswap_v3");
         assert_eq!(group.get_quote(&QuoteRequest::mock(Chain::Solana, None)).await, Err(SwapperError::NoQuoteAvailable));
+    }
+
+    #[test]
+    fn test_group_binds_every_member_on_the_chain() {
+        let clmm = MockSwapper::new(SwapperProvider::RaydiumClmm, |request| quote(request, 100)).with_contracts(vec!["clmm"]);
+        let amm = MockSwapper::new(SwapperProvider::RaydiumClmm, |request| quote(request, 100)).with_contracts(vec!["amm"]);
+        let solana = MockSwapper::new(SwapperProvider::RaydiumClmm, |request| quote(request, 100))
+            .with_supported_assets(vec![SwapperChainAsset::All(Chain::Solana)])
+            .with_contracts(vec!["other_chain"]);
+        let group = group(vec![("clmm", clmm), ("amm", amm), ("solana", solana)]);
+
+        assert_eq!(group.contracts(&Chain::Ethereum.as_asset_id()), Contracts::new(vec!["clmm", "amm"]));
     }
 
     #[tokio::test]

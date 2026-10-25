@@ -1,28 +1,18 @@
-use num_bigint::BigUint;
-use std::str::FromStr;
+use std::fmt::Debug;
 use std::sync::Arc;
 
 use async_trait::async_trait;
 use gem_client::Client;
-use gem_cosmos::models::message::send_msg_json;
-use primitives::{
-    AssetId, Chain,
-    chain_cosmos::CosmosChain,
-    swap::{SlippageMode, SwapQuoteDataType},
-};
 
-use super::{SQUID_COSMOS_MULTICALL, SUPPORTED_CHAINS, client::SquidClient, model::*};
+use super::client::SquidClient;
 use crate::{
-    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
-    config::get_swap_proxy_url,
-    cross_chain::VaultAddresses,
-    fees::{DEFAULT_SWAP_FEE_BPS, bps_of, default_referral_address},
+    FetchQuoteData, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData, config::get_swap_proxy_url,
 };
 
 #[derive(Debug)]
 pub struct Squid<C>
 where
-    C: Client + Clone + Send + Sync + std::fmt::Debug + 'static,
+    C: Client + Clone + Send + Sync + Debug + 'static,
 {
     provider: ProviderType,
     client: SquidClient<C>,
@@ -30,251 +20,40 @@ where
 
 impl Squid<RpcClient> {
     pub fn new(rpc_provider: Arc<dyn RpcProvider>) -> Self {
-        let client = SquidClient::new(RpcClient::new(get_swap_proxy_url("squid"), rpc_provider));
         Self {
             provider: ProviderType::new(SwapperProvider::Squid),
-            client,
+            client: SquidClient::new(RpcClient::new(get_swap_proxy_url("squid"), rpc_provider)),
         }
-    }
-}
-
-impl<C> Squid<C>
-where
-    C: Client + Clone + Send + Sync + std::fmt::Debug + 'static,
-{
-    fn get_network_id(chain: &Chain) -> Result<&str, SwapperError> {
-        CosmosChain::from_chain(*chain).map(|_| chain.network_id()).ok_or(SwapperError::NotSupportedChain)
-    }
-
-    fn get_token_id(asset_id: &AssetId) -> Result<String, SwapperError> {
-        if asset_id.is_native() {
-            asset_id.chain.as_denom().map(ToString::to_string).ok_or(SwapperError::NotSupportedAsset)
-        } else {
-            asset_id.token_id.clone().ok_or(SwapperError::NotSupportedAsset)
-        }
-    }
-
-    fn get_fee_address(request: &QuoteRequest) -> Option<String> {
-        Some(default_referral_address(request.from_asset.chain())).filter(|address| !address.is_empty())
-    }
-
-    fn build_route_request(request: &QuoteRequest, from_value: &str, quote_only: bool) -> Result<SquidRouteRequest, SwapperError> {
-        let from_asset_id = request.from_asset.asset_id();
-        let to_asset_id = request.to_asset.asset_id();
-        let (slippage_config, slippage) = match request.options.slippage.mode {
-            SlippageMode::Auto => (Some(SlippageConfig { auto_mode: 1 }), None),
-            SlippageMode::Exact => (None, Some(request.options.slippage.bps as f64 / 100.0)),
-        };
-        Ok(SquidRouteRequest {
-            from_chain: Self::get_network_id(&from_asset_id.chain)?.to_string(),
-            to_chain: Self::get_network_id(&to_asset_id.chain)?.to_string(),
-            from_token: Self::get_token_id(&from_asset_id)?,
-            to_token: Self::get_token_id(&to_asset_id)?,
-            from_amount: from_value.to_string(),
-            from_address: request.wallet_address.clone(),
-            to_address: request.destination_address.clone(),
-            slippage_config,
-            slippage,
-            quote_only,
-        })
-    }
-}
-
-impl<C> Squid<C>
-where
-    C: Client + Clone + Send + Sync + std::fmt::Debug + 'static,
-{
-    async fn get_route(&self, request: &QuoteRequest, from_value: &str, quote_only: bool) -> Result<(SquidRouteResponse, u128, Option<String>), SwapperError> {
-        let fee_address = Self::get_fee_address(request);
-        let value: u128 = from_value.parse().unwrap_or(0);
-        let fee = if fee_address.is_some() { bps_of(&value, DEFAULT_SWAP_FEE_BPS) } else { 0 };
-        let swap_value = (value - fee).to_string();
-        let squid_request = Self::build_route_request(request, &swap_value, quote_only)?;
-        let response = self.client.get_route(&squid_request).await?;
-        Ok((response, fee, fee_address))
     }
 }
 
 #[async_trait]
 impl<C> Swapper for Squid<C>
 where
-    C: Client + Clone + Send + Sync + std::fmt::Debug + 'static,
+    C: Client + Clone + Send + Sync + Debug + 'static,
 {
     fn provider(&self) -> &ProviderType {
         &self.provider
     }
 
     fn supported_assets(&self) -> Vec<SwapperChainAsset> {
-        SUPPORTED_CHAINS.clone()
+        vec![]
     }
 
     fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {
         SwapAmountMode::Fixed
     }
 
-    fn contracts(&self, from_asset: &AssetId) -> Vec<&'static str> {
-        CosmosChain::from_chain(from_asset.chain).map(|_| vec![SQUID_COSMOS_MULTICALL.contract]).unwrap_or_default()
+    async fn get_quote(&self, _request: &QuoteRequest) -> Result<Quote, SwapperError> {
+        Err(SwapperError::NotSupportedChain)
     }
 
-    async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
-        let from_value = request.value.clone();
-        let (response, _, _) = self.get_route(request, &from_value.to_string(), true).await?;
-
-        Ok(Quote {
-            from_value,
-            min_from_value: None,
-            to_value: BigUint::from_str(&response.route.estimate.to_amount).map_err(SwapperError::compute_quote_error)?,
-            data: ProviderData {
-                provider: self.provider().clone(),
-                routes: vec![Route {
-                    input: request.from_asset.asset_id(),
-                    output: request.to_asset.asset_id(),
-                    route_data: String::new(),
-                }],
-                slippage_bps: response.route.estimate.slippage_bps(&request.options.slippage)?,
-            },
-            request: request.clone(),
-            eta_in_seconds: Some(response.route.estimate.estimated_route_duration).filter(|seconds| *seconds > 0),
-        })
-    }
-
-    async fn get_quote_data(&self, quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
-        let (response, fee, fee_address) = self.get_route(&quote.request, &quote.from_value.to_string(), false).await?;
-        let transaction = response.route.transaction_request.ok_or(SwapperError::InvalidRoute)?;
-
-        let swap_msg: serde_json::Value = serde_json::from_str(&transaction.data).map_err(SwapperError::transaction_error)?;
-        let messages = match fee_address {
-            Some(addr) if fee > 0 => {
-                let denom = Self::get_token_id(&quote.request.from_asset.asset_id())?;
-                vec![send_msg_json(&quote.request.wallet_address, &addr, &denom, &fee.to_string()), swap_msg]
-            }
-            _ => vec![swap_msg],
-        };
-        let data = serde_json::to_string(&messages).map_err(SwapperError::transaction_error)?;
-
-        Ok(SwapperQuoteData {
-            to: transaction.target,
-            data_type: SwapQuoteDataType::Contract,
-            value: BigUint::from_str(&transaction.value).map_err(SwapperError::compute_quote_error)?,
-            data,
-            memo: None,
-            approval: None,
-            gas_limit: Some(transaction.gas_limit),
-            permit2: None,
-        })
-    }
-
-    async fn get_vault_addresses(&self, _from_timestamp: Option<u64>) -> Result<VaultAddresses, SwapperError> {
-        let address = SQUID_COSMOS_MULTICALL.contract.to_string();
-        Ok(VaultAddresses {
-            deposit: vec![address.clone()],
-            send: vec![address],
-        })
+    async fn get_quote_data(&self, _quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
+        Err(SwapperError::NotSupportedChain)
     }
 
     async fn get_swap_result(&self, request: &SwapResultRequest) -> Result<SwapResult, SwapperError> {
         let result = self.client.get_status(&request.transaction_hash, request.chain.network_id()).await?;
         Ok(SwapResult::from(result.squid_transaction_status.swap_status()))
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_build_route_request_auto_slippage() {
-        let mut request = QuoteRequest::mock_osmosis_to_cosmos();
-        request.options.slippage.mode = SlippageMode::Auto;
-        let route_request = Squid::<RpcClient>::build_route_request(&request, "10000000", true).unwrap();
-
-        assert_eq!(route_request.slippage_config.map(|c| c.auto_mode), Some(1));
-        assert_eq!(route_request.slippage, None);
-    }
-
-    #[test]
-    fn test_build_route_request_exact_slippage() {
-        let mut request = QuoteRequest::mock_osmosis_to_cosmos();
-        request.options.slippage.bps = 150;
-        let route_request = Squid::<RpcClient>::build_route_request(&request, "10000000", true).unwrap();
-
-        assert_eq!(route_request.slippage_config, None);
-        assert_eq!(route_request.slippage, Some(1.5));
-    }
-}
-
-#[cfg(all(test, feature = "swap_integration_tests"))]
-mod swap_integration_tests {
-    use super::super::testkit::{TEST_COSMOS_ADDRESS, TEST_OSMOSIS_ADDRESS};
-    use super::*;
-    use crate::{SwapperQuoteAsset, models::Options};
-    use primitives::{swap::SwapStatus, testkit::signer_mock::TEST_OSMOSIS_SENDER};
-
-    #[tokio::test]
-    async fn test_squid_osmo_to_atom() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let squid = Squid::new(Arc::new(crate::NativeProvider::default()));
-
-        let request = QuoteRequest::mock_osmosis_to_cosmos();
-
-        let quote = squid.get_quote(&request).await?;
-        println!("OSMO->ATOM quote: from={}, to={}, eta={}s", quote.from_value, quote.to_value, quote.eta_in_seconds.unwrap_or(0));
-        assert_eq!(quote.from_value, BigUint::from(10000000u64));
-        assert!(quote.to_value > BigUint::ZERO);
-
-        let quote_data = squid.get_quote_data(&quote, FetchQuoteData::None).await?;
-        println!("OSMO->ATOM data: to={}, value={}, gasLimit={:?}", quote_data.to, quote_data.value, quote_data.gas_limit);
-        assert!(!quote_data.data.is_empty());
-
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn test_squid_atom_to_osmo() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let squid = Squid::new(Arc::new(crate::NativeProvider::default()));
-
-        let request = QuoteRequest {
-            from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Cosmos)),
-            to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Osmosis)),
-            wallet_address: TEST_COSMOS_ADDRESS.to_string(),
-            destination_address: TEST_OSMOSIS_ADDRESS.to_string(),
-            value: BigUint::from(1000000u64),
-            options: Options::default(),
-        };
-
-        let quote = squid.get_quote(&request).await?;
-        println!("ATOM->OSMO quote: from={}, to={}, eta={}s", quote.from_value, quote.to_value, quote.eta_in_seconds.unwrap_or(0));
-        assert_eq!(quote.from_value, BigUint::from(1000000u64));
-        assert!(quote.to_value > BigUint::ZERO);
-
-        let quote_data = squid.get_quote_data(&quote, FetchQuoteData::None).await?;
-        println!("ATOM->OSMO data: to={}, value={}, gasLimit={:?}", quote_data.to, quote_data.value, quote_data.gas_limit);
-        assert!(!quote_data.data.is_empty());
-
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn test_squid_swap_status() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let squid = Squid::new(Arc::new(crate::NativeProvider::default()));
-        let result = squid.get_swap_result(&SwapResultRequest::new(Chain::Cosmos, "D68723CEADAB65795B176FAE0B84B0ED5923DA9AAEC69502F8D30554431250A9")).await?;
-        println!("status: {:?}", result.status);
-        assert_eq!(result.status, SwapStatus::Completed);
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn test_squid_exact_slippage_quote_and_data_succeed() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let squid = Squid::new(Arc::new(crate::NativeProvider::default()));
-        let mut request = QuoteRequest::mock_osmosis_to_cosmos();
-        request.wallet_address = TEST_OSMOSIS_SENDER.to_string();
-        request.options.slippage.bps = 2000;
-
-        let quote = squid.get_quote(&request).await?;
-        assert!(quote.to_value > BigUint::ZERO);
-
-        let quote_data = squid.get_quote_data(&quote, FetchQuoteData::None).await?;
-        assert!(!quote_data.data.is_empty());
-
-        Ok(())
     }
 }

@@ -22,6 +22,7 @@ import struct Gemstone.GemSwapSideState
 import struct Gemstone.GemSwapViewState
 import func Gemstone.swapErrorDisplay
 import enum Gemstone.SwapperError
+import struct Gemstone.SwapperQuote
 import enum Gemstone.SwapProvider
 import GemstonePrimitives
 import InfoSheet
@@ -56,7 +57,7 @@ public final class SwapSceneViewModel {
         toAssetQuery.value
     }
 
-    var isPresentingPriceImpactConfirmation: String?
+    var isPresentingPriceImpactConfirmation: SwapPriceImpactConfirmation?
     var pairSelectorModel: SwapPairSelectorViewModel
 
     var viewState: GemSwapViewState {
@@ -127,12 +128,8 @@ public final class SwapSceneViewModel {
         viewState.pendingProviders
     }
 
-    var quoteProgress: String? {
-        viewState.quoteProgress
-    }
-
     var showsSwapDetails: Bool {
-        quoteProgress != nil || (swapDetails != nil && !viewState.isQuoteLoading)
+        viewState.showsDetails
     }
 
     var firstQuoteWait: GemSwapFirstQuoteWait? {
@@ -270,8 +267,8 @@ extension SwapSceneViewModel {
         setLoadTrigger(isImmediate: true)
     }
 
-    func onSelectSwapConfirmation() async {
-        await swap()
+    func onSelectSwapConfirmation(_ confirmation: SwapPriceImpactConfirmation) async {
+        await swap(quote: confirmation.quote)
     }
 
     func onAssetIdsChange(assetIds: Set<AssetId>) async {
@@ -374,12 +371,12 @@ extension SwapSceneViewModel {
         loadTrigger = SwapLoadTrigger(input: input, isImmediate: isImmediate)
     }
 
-    private func swap() async {
+    private func swap(quote: SwapperQuote) async {
         guard service.isAvailable() else {
             isPresentingInfoSheet = .info(InfoSheetModel(sheet: GemInfoTopic.regionUnavailable.infoSheet))
             return
         }
-        guard let started = session.startTransfer(), let quote = started.quote() else { return }
+        guard let started = session.startTransfer(quote: quote) else { return }
         let transfer = started.transferPhase
         session = started
         do {
@@ -431,15 +428,16 @@ extension SwapSceneViewModel {
         case .insufficientBalance: break
         case .useMinimumAmount: setMinimumAmount()
         case .swap:
-            if let warningText = viewState.details?.priceImpactWarning {
+            guard let quote = viewState.quote else { return }
+            if let warning = viewState.details?.priceImpactWarning {
                 guard service.isAvailable() else {
                     isPresentingInfoSheet = .info(InfoSheetModel(sheet: GemInfoTopic.regionUnavailable.infoSheet))
                     return
                 }
-                isPresentingPriceImpactConfirmation = warningText
+                isPresentingPriceImpactConfirmation = SwapPriceImpactConfirmation(warning: warning, quote: quote)
                 return
             }
-            await swap()
+            await swap(quote: quote)
         }
     }
 }

@@ -124,7 +124,9 @@ class WalletViewModel @Inject constructor(
     }
 
     fun hideBalances() {
-        preferences.hideBalances()
+        viewModelScope.launch(ioDispatcher) {
+            preferences.hideBalances()
+        }
     }
 
     fun closeBanner(key: GemBannerKey) = viewModelScope.launch(ioDispatcher) {

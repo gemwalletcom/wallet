@@ -110,7 +110,7 @@ impl GemPerpetualStore for MemoryPerpetualStore {
     }
 }
 
-const EMPTY_CLEARINGHOUSE_STATE: &str = r#"{"assetPositions":[],"marginSummary":{"accountValue":"0","totalNtlPos":"0","totalRawUsd":"0","totalMarginUsed":"0"},"crossMarginSummary":{"accountValue":"0","totalNtlPos":"0","totalRawUsd":"0","totalMarginUsed":"0"},"crossMaintenanceMarginUsed":"0","withdrawable":"0"}"#;
+pub const EMPTY_CLEARINGHOUSE_STATE: &str = r#"{"assetPositions":[],"marginSummary":{"accountValue":"0","totalNtlPos":"0","totalRawUsd":"0","totalMarginUsed":"0"},"crossMarginSummary":{"accountValue":"0","totalNtlPos":"0","totalRawUsd":"0","totalMarginUsed":"0"},"crossMaintenanceMarginUsed":"0","withdrawable":"0"}"#;
 
 pub struct PerpetualTestkit {
     pub service: GemPerpetualService,

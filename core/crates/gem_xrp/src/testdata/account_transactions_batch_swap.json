@@ -1,0 +1,163 @@
+{
+  "result": {
+    "account": "rnCRC2AqXhFCnb9ULHtyCNrRYXgYuLBvZF",
+    "transactions": [
+      {
+        "meta": {
+          "AffectedNodes": [
+            {
+              "ModifiedNode": {
+                "FinalFields": {
+                  "Account": "rnCRC2AqXhFCnb9ULHtyCNrRYXgYuLBvZF",
+                  "Balance": "7049940"
+                },
+                "LedgerEntryType": "AccountRoot",
+                "PreviousFields": {
+                  "Balance": "7099940"
+                }
+              }
+            }
+          ],
+          "ParentBatchID": "3B925B414BF7E91EC67A3E283F374DE0BC84D6E11DF5345115B44AF7DA5FEDEA",
+          "TransactionResult": "tesSUCCESS",
+          "delivered_amount": "50000"
+        },
+        "tx_json": {
+          "Account": "rnCRC2AqXhFCnb9ULHtyCNrRYXgYuLBvZF",
+          "DeliverMax": "50000",
+          "Destination": "rJGb4etn9GSwNHYVu7dNMbdiVgzqxaTSUG",
+          "Fee": "0",
+          "TransactionType": "Payment",
+          "date": 846227231
+        },
+        "ledger_index": 107888305,
+        "hash": "C2CDD4152623715073A2FE5243995F3D0F9C7B793F9A591F74A3A0076C002BA8"
+      },
+      {
+        "meta": {
+          "AffectedNodes": [
+            {
+              "ModifiedNode": {
+                "FinalFields": {
+                  "Account": "rnCRC2AqXhFCnb9ULHtyCNrRYXgYuLBvZF",
+                  "Balance": "7099940"
+                },
+                "LedgerEntryType": "AccountRoot",
+                "PreviousFields": {
+                  "Balance": "12099940"
+                }
+              }
+            },
+            {
+              "ModifiedNode": {
+                "FinalFields": {
+                  "Balance": {
+                    "currency": "XYZ",
+                    "issuer": "rrrrrrrrrrrrrrrrrrrrBZbvji",
+                    "value": "881538.0984571"
+                  },
+                  "HighLimit": {
+                    "currency": "XYZ",
+                    "issuer": "rU5nUwkBUPx3MFPQSHmMnr9S9yg4g8cKLc",
+                    "value": "0"
+                  },
+                  "LowLimit": {
+                    "currency": "XYZ",
+                    "issuer": "rnCRC2AqXhFCnb9ULHtyCNrRYXgYuLBvZF",
+                    "value": "962458111.3028662"
+                  }
+                },
+                "LedgerEntryType": "RippleState",
+                "PreviousFields": {
+                  "Balance": {
+                    "currency": "XYZ",
+                    "issuer": "rrrrrrrrrrrrrrrrrrrrBZbvji",
+                    "value": "0"
+                  }
+                }
+              }
+            }
+          ],
+          "ParentBatchID": "3B925B414BF7E91EC67A3E283F374DE0BC84D6E11DF5345115B44AF7DA5FEDEA",
+          "TransactionResult": "tesSUCCESS",
+          "delivered_amount": {
+            "currency": "XYZ",
+            "issuer": "rU5nUwkBUPx3MFPQSHmMnr9S9yg4g8cKLc",
+            "value": "881538.0984571"
+          }
+        },
+        "tx_json": {
+          "Account": "rnCRC2AqXhFCnb9ULHtyCNrRYXgYuLBvZF",
+          "DeliverMax": {
+            "currency": "XYZ",
+            "issuer": "rU5nUwkBUPx3MFPQSHmMnr9S9yg4g8cKLc",
+            "value": "962458111.3028662"
+          },
+          "Destination": "rnCRC2AqXhFCnb9ULHtyCNrRYXgYuLBvZF",
+          "Fee": "0",
+          "SendMax": "5000000",
+          "TransactionType": "Payment",
+          "date": 846227231
+        },
+        "ledger_index": 107888305,
+        "hash": "16CE6F24492DBF58CA1C2AF710951ED25B0522AA45125373CFFD35E88FD17036"
+      },
+      {
+        "meta": {
+          "ParentBatchID": "3B925B414BF7E91EC67A3E283F374DE0BC84D6E11DF5345115B44AF7DA5FEDEA",
+          "TransactionResult": "tesSUCCESS"
+        },
+        "tx_json": {
+          "Account": "rnCRC2AqXhFCnb9ULHtyCNrRYXgYuLBvZF",
+          "Fee": "0",
+          "TransactionType": "TrustSet",
+          "date": 846227231
+        },
+        "ledger_index": 107888305,
+        "hash": "EAE0E2C8BC54674A3DEDEDE6248A54482157CA6DD22D3CA2A8C0D991179F9360"
+      },
+      {
+        "meta": {
+          "TransactionResult": "tesSUCCESS"
+        },
+        "tx_json": {
+          "Account": "rnCRC2AqXhFCnb9ULHtyCNrRYXgYuLBvZF",
+          "Fee": "60",
+          "RawTransactions": [
+            {
+              "RawTransaction": {
+                "Account": "rnCRC2AqXhFCnb9ULHtyCNrRYXgYuLBvZF",
+                "TransactionType": "TrustSet"
+              }
+            },
+            {
+              "RawTransaction": {
+                "Account": "rnCRC2AqXhFCnb9ULHtyCNrRYXgYuLBvZF",
+                "Amount": {
+                  "currency": "XYZ",
+                  "issuer": "rU5nUwkBUPx3MFPQSHmMnr9S9yg4g8cKLc",
+                  "value": "962458111.3028662"
+                },
+                "Destination": "rnCRC2AqXhFCnb9ULHtyCNrRYXgYuLBvZF",
+                "SendMax": "5000000",
+                "TransactionType": "Payment"
+              }
+            },
+            {
+              "RawTransaction": {
+                "Account": "rnCRC2AqXhFCnb9ULHtyCNrRYXgYuLBvZF",
+                "Amount": "50000",
+                "Destination": "rJGb4etn9GSwNHYVu7dNMbdiVgzqxaTSUG",
+                "TransactionType": "Payment"
+              }
+            }
+          ],
+          "TransactionType": "Batch",
+          "date": 846227231
+        },
+        "ledger_index": 107888305,
+        "hash": "3B925B414BF7E91EC67A3E283F374DE0BC84D6E11DF5345115B44AF7DA5FEDEA"
+      }
+    ]
+  }
+}

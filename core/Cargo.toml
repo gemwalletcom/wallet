@@ -1,5 +1,5 @@
 [workspace.package]
-version = "2.114.79"
+version = "2.114.81"
 edition = "2024"
 license = "MIT"
 homepage = "https://gemwallet.com/"
@@ -172,7 +172,7 @@ strum = { version = "0.28.0", features = ["derive"] }
 tempfile = { version = "3.24.0" }
 unicode-normalization = { version = "0.1.25" }
 uuid = { version = "1.24.0", features = ["v4", "v5"] }
-tokio-tungstenite = { version = "0.30.0" }
+tokio-tungstenite = { version = "0.29.0" }
 axum = { version = "0.8.9", default-features = false, features = ["http1", "json", "query", "tokio", "matched-path", "original-uri", "ws"] }
 http = { version = "1.4.2" }
 http-body-util = { version = "0.1.3" }

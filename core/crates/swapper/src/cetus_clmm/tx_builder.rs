@@ -9,21 +9,16 @@ use crate::{
     Quote, SwapperError, SwapperQuoteData,
     clmm::{MAX_SQRT_PRICE, MIN_SQRT_PRICE},
     fees::{FeeSide, ReferralFee, subtract_bps},
+    sui_swap::{self, inspect_transaction_kind_bytes, package_address, pay_referral_fee, shared_object_input},
 };
 use gem_sui::{
-    EMPTY_ADDRESS, ESTIMATION_GAS_BUDGET, SuiClient,
-    address::SuiAddress,
-    gas_budget::GAS_BUDGET_MULTIPLIER,
-    is_sui_coin,
+    ESTIMATION_GAS_BUDGET, SuiClient,
     models::{Coin, OwnedCoins, TxOutput},
     sui_clock_object_input,
     tx_builder::{ObjectResolver, PrefetchedTransactionData, TransactionBuilderInput, balance_value, balance_zero, build_input_coin, destroy_zero_balance, finish_transaction, from_balance, into_balance, move_call},
 };
-use num_bigint::BigUint;
-use primitives::Address as AddressTrait;
 use std::{collections::HashMap, fmt::Display};
-use sui_transaction_builder::{Argument, ObjectInput, TransactionBuilder};
-use sui_types::{Address, Digest};
+use sui_transaction_builder::{Argument, TransactionBuilder};
 
 #[derive(Clone)]
 pub(super) struct BuildInput<'a> {
@@ -60,83 +55,53 @@ pub(super) async fn build_quote_data(client: &SuiClient, quote: &Quote, route: &
         from_coins: &input_coins,
     };
 
-    let estimate = build_transaction(&resolver, quote, route, referral_fee, published_at, &input)?;
-    let dry_run = client.dry_run(estimate.base64_encoded()).await.map_err(SwapperError::transaction_error)?;
-    if dry_run.effects.status.status != "success" {
-        let detail = dry_run.effects.status.error.as_deref().unwrap_or("no details available");
-        if detail.contains("checked_package_version") {
-            return Err(SwapperError::TransactionError("Cetus CLMM was upgraded since this app was built; on-chain Cetus quotes are temporarily unavailable.".into()));
-        }
-        return Err(SwapperError::TransactionError(format!("Sui Cetus CLMM swap simulation failed: {detail}")));
-    }
-
-    let fee = dry_run.effects.gas_used.calculate_gas_budget().map_err(SwapperError::transaction_error)?;
-    let gas_budget = fee * GAS_BUDGET_MULTIPLIER / 100;
-    let output = build_transaction(&resolver, quote, route, referral_fee, published_at, &input.with_gas_budget(gas_budget))?;
-
-    Ok(SwapperQuoteData::new_contract(String::new(), BigUint::from(0u64), output.base64_encoded(), None, Some(gas_budget.to_string())))
+    sui_swap::build_quote_data(client, |gas_budget| build_transaction(&resolver, quote, route, referral_fee, published_at, &input.with_gas_budget(gas_budget)))
+        .await
+        .map_err(|error| match error {
+            SwapperError::TransactionError(detail) if detail.contains("checked_package_version") => sui_swap::upgraded_error("Cetus"),
+            error => error,
+        })
 }
 
 pub(super) fn build_batch_quote_inspect(quotes: &[(&Hop, u64)]) -> Result<Vec<u8>, SwapperError> {
+    let package = package_address(CETUS_CLMM_PUBLISHED_AT)?;
     let mut txb = TransactionBuilder::new();
     for (hop, amount_in) in quotes {
         let pool = txb.object(shared_object_input(&hop.pool_id, hop.pool_init_version, false)?);
         let a2b = txb.pure(&hop.a2b);
         let by_amount_in = txb.pure(&true);
         let amount = txb.pure(amount_in);
-        move_call(
-            &mut txb,
-            cetus_clmm_publish_at(),
-            MODULE_POOL,
-            FUNCTION_CALCULATE_SWAP_RESULT,
-            &[&hop.coin_a, &hop.coin_b],
-            vec![pool, a2b, by_amount_in, amount],
-        )
-        .map_err(error)?;
+        move_call(&mut txb, package, MODULE_POOL, FUNCTION_CALCULATE_SWAP_RESULT, &[&hop.coin_a, &hop.coin_b], vec![pool, a2b, by_amount_in, amount]).map_err(error)?;
     }
     inspect_transaction_kind_bytes(txb)
 }
 
 pub(super) fn build_batch_multi_hop_quote_inspect(routes: &[(&Hop, &Hop, u64)]) -> Result<Vec<u8>, SwapperError> {
+    let package = package_address(CETUS_CLMM_PUBLISHED_AT)?;
     let mut txb = TransactionBuilder::new();
     for (hop1, hop2, amount_in) in routes {
         let pool1 = txb.object(shared_object_input(&hop1.pool_id, hop1.pool_init_version, false)?);
         let a2b1 = txb.pure(&hop1.a2b);
         let by_amount_in_1 = txb.pure(&true);
         let amount = txb.pure(amount_in);
-        let csr1 = move_call(
-            &mut txb,
-            cetus_clmm_publish_at(),
-            MODULE_POOL,
-            FUNCTION_CALCULATE_SWAP_RESULT,
-            &[&hop1.coin_a, &hop1.coin_b],
-            vec![pool1, a2b1, by_amount_in_1, amount],
-        )
-        .map_err(error)?;
-        let amount2 = move_call(&mut txb, cetus_clmm_publish_at(), MODULE_POOL, FUNCTION_CALCULATED_SWAP_RESULT_AMOUNT_OUT, &[], vec![csr1]).map_err(error)?;
+        let csr1 = move_call(&mut txb, package, MODULE_POOL, FUNCTION_CALCULATE_SWAP_RESULT, &[&hop1.coin_a, &hop1.coin_b], vec![pool1, a2b1, by_amount_in_1, amount]).map_err(error)?;
+        let amount2 = move_call(&mut txb, package, MODULE_POOL, FUNCTION_CALCULATED_SWAP_RESULT_AMOUNT_OUT, &[], vec![csr1]).map_err(error)?;
         let pool2 = txb.object(shared_object_input(&hop2.pool_id, hop2.pool_init_version, false)?);
         let a2b2 = txb.pure(&hop2.a2b);
         let by_amount_in_2 = txb.pure(&true);
-        move_call(
-            &mut txb,
-            cetus_clmm_publish_at(),
-            MODULE_POOL,
-            FUNCTION_CALCULATE_SWAP_RESULT,
-            &[&hop2.coin_a, &hop2.coin_b],
-            vec![pool2, a2b2, by_amount_in_2, amount2],
-        )
-        .map_err(error)?;
+        move_call(&mut txb, package, MODULE_POOL, FUNCTION_CALCULATE_SWAP_RESULT, &[&hop2.coin_a, &hop2.coin_b], vec![pool2, a2b2, by_amount_in_2, amount2]).map_err(error)?;
     }
     inspect_transaction_kind_bytes(txb)
 }
 
 pub(super) fn build_pool_id_inspect(coin_a: &str, coin_b: &str, tick_spacing: u32) -> Result<Vec<u8>, SwapperError> {
+    let package = package_address(CETUS_CLMM_PUBLISHED_AT)?;
     let mut txb = TransactionBuilder::new();
     let tick = txb.pure(&tick_spacing);
-    let key = move_call(&mut txb, cetus_clmm_publish_at(), MODULE_FACTORY, FUNCTION_NEW_POOL_KEY, &[coin_a, coin_b], vec![tick]).map_err(error)?;
+    let key = move_call(&mut txb, package, MODULE_FACTORY, FUNCTION_NEW_POOL_KEY, &[coin_a, coin_b], vec![tick]).map_err(error)?;
     let pools = txb.object(shared_object_input(CETUS_POOLS_REGISTRY, CETUS_SHARED_INIT_VERSION, false)?);
-    let info = move_call(&mut txb, cetus_clmm_publish_at(), MODULE_FACTORY, FUNCTION_POOL_SIMPLE_INFO, &[], vec![pools, key]).map_err(error)?;
-    move_call(&mut txb, cetus_clmm_publish_at(), MODULE_FACTORY, FUNCTION_POOL_ID, &[], vec![info]).map_err(error)?;
+    let info = move_call(&mut txb, package, MODULE_FACTORY, FUNCTION_POOL_SIMPLE_INFO, &[], vec![pools, key]).map_err(error)?;
+    move_call(&mut txb, package, MODULE_FACTORY, FUNCTION_POOL_ID, &[], vec![info]).map_err(error)?;
     inspect_transaction_kind_bytes(txb)
 }
 
@@ -150,7 +115,7 @@ struct PendingRepay<'a> {
 
 fn build_transaction(resolver: &ObjectResolver, quote: &Quote, route: &PoolRoute, referral_fee: &ReferralFee, published_at: &str, input: &BuildInput<'_>) -> Result<TxOutput, SwapperError> {
     let mut txb = TransactionBuilder::new();
-    let published_at = SuiAddress::from_str(published_at).map(Address::from)?;
+    let published_at = package_address(published_at)?;
     let input_coin = build_input_coin(&mut txb, route.input_coin_type(), input.amount, input.from_coins).map_err(error)?;
     let (swap_coin, swap_amount) = match route.fee.side {
         FeeSide::Input => {
@@ -234,41 +199,9 @@ fn build_transaction(resolver: &ObjectResolver, quote: &Quote, route: &PoolRoute
         .map_err(error)?;
     }
 
-    let sender = SuiAddress::from_str(&quote.request.wallet_address).map(Address::from)?;
     let output_coin = from_balance(&mut txb, route.output_coin_type(), current_balance).map_err(error)?;
-
-    let pay_output_fee = match route.fee.side {
-        FeeSide::Output => route.fee.value > 0,
-        FeeSide::Input => false,
-    };
-    if pay_output_fee {
-        let fee_amount_arg = txb.pure(&route.fee.value);
-        let fee_coin = txb
-            .split_coins(output_coin, vec![fee_amount_arg])
-            .pop()
-            .ok_or_else(|| SwapperError::TransactionError("Cetus CLMM output fee split failed".into()))?;
-        let recipient = SuiAddress::from_str(&referral_fee.address).map(Address::from)?;
-        transfer_coin(&mut txb, fee_coin, recipient);
-    }
-
     let min_out = subtract_bps(&route.net_amount_out(), quote.request.options.slippage.bps);
-    let min_out_arg = txb.pure(&min_out);
-    let split_off = txb.split_coins(output_coin, vec![min_out_arg]).pop().ok_or_else(|| SwapperError::TransactionError("Cetus CLMM min-out split failed".into()))?;
-    txb.merge_coins(output_coin, vec![split_off]);
-
-    let dest = SuiAddress::from_str(if quote.request.destination_address.is_empty() {
-        &quote.request.wallet_address
-    } else {
-        &quote.request.destination_address
-    })
-    .map(Address::from)?;
-    if dest == sender && is_sui_coin(route.output_coin_type()) {
-        let gas = txb.gas();
-        txb.merge_coins(gas, vec![output_coin]);
-    } else {
-        let dest_arg = txb.pure(&dest);
-        txb.transfer_objects(vec![output_coin], dest_arg);
-    }
+    sui_swap::send_output(&mut txb, quote, route.output_coin_type(), output_coin, &route.fee, min_out, referral_fee)?;
 
     finish_transaction(txb, input.transaction.clone()).map_err(error)
 }
@@ -285,40 +218,6 @@ fn sqrt_price_limit_with_slippage(hop: &Hop, slippage_bps: u32) -> u128 {
         let limit = hop.after_sqrt_price.saturating_mul(10_000u128.saturating_add(bps)).saturating_add(9_999) / 10_000;
         limit.min(MAX_SQRT_PRICE)
     }
-}
-
-fn pay_referral_fee(txb: &mut TransactionBuilder, input_coin: Argument, fee: u64, referral_fee: &ReferralFee) -> Result<Argument, SwapperError> {
-    if fee == 0 {
-        return Ok(input_coin);
-    }
-    let fee_amount = txb.pure(&fee);
-    let fee_coin = txb.split_coins(input_coin, vec![fee_amount]).pop().ok_or_else(|| SwapperError::TransactionError("Sui referral fee split failed".into()))?;
-    let recipient = SuiAddress::from_str(&referral_fee.address).map(Address::from)?;
-    transfer_coin(txb, fee_coin, recipient);
-    Ok(input_coin)
-}
-
-fn transfer_coin(txb: &mut TransactionBuilder, coin: Argument, recipient: Address) {
-    let recipient = txb.pure(&recipient);
-    txb.transfer_objects(vec![coin], recipient);
-}
-
-fn cetus_clmm_publish_at() -> Address {
-    SuiAddress::from_str(CETUS_CLMM_PUBLISHED_AT).map(Address::from).unwrap()
-}
-
-fn shared_object_input(object_id: &str, initial_shared_version: u64, mutable: bool) -> Result<ObjectInput, SwapperError> {
-    let address = SuiAddress::from_str(object_id).map(Address::from)?;
-    Ok(ObjectInput::shared(address, initial_shared_version, mutable))
-}
-
-fn inspect_transaction_kind_bytes(mut txb: TransactionBuilder) -> Result<Vec<u8>, SwapperError> {
-    txb.set_sender(SuiAddress::from_str(EMPTY_ADDRESS).map(Address::from)?);
-    txb.set_gas_price(0);
-    txb.set_gas_budget(0);
-    txb.add_gas_objects(vec![ObjectInput::owned(Address::ZERO, 0, Digest::ZERO)]);
-    let tx = txb.try_build().map_err(SwapperError::compute_quote_error)?;
-    bcs::to_bytes(&tx.kind).map_err(SwapperError::compute_quote_error)
 }
 
 fn error(err: impl Display) -> SwapperError {

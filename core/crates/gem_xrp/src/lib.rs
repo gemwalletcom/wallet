@@ -1,5 +1,6 @@
 pub mod address;
 pub mod constants;
+pub mod currency;
 pub mod jsonrpc;
 pub mod method;
 pub mod models;
@@ -15,3 +16,6 @@ pub use constants::*;
 
 #[cfg(feature = "rpc")]
 pub mod provider;
+
+#[cfg(test)]
+mod testkit;

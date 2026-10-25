@@ -7,11 +7,11 @@ use crate::mayan::{
     model::{GetSwapSuiParams, MayanMctpQuote},
     tx_builder::{
         route::quote_destination_address,
-        sui::{SuiClientSwapReplay, build_sui_quote_data, requires_client_swap, sui_error},
+        sui::{SuiClientSwapReplay, requires_client_swap, sui_error},
     },
     wormhole_chain::WormholeChain,
 };
-use crate::{Quote, RpcProvider, SwapperError, SwapperQuoteData, client_factory::create_sui_client, route_cache::Cache};
+use crate::{Quote, RpcProvider, SwapperError, SwapperQuoteData, client_factory::create_sui_client, route_cache::Cache, sui_swap};
 use futures::try_join;
 use gem_sui::SuiClient;
 use std::{fmt::Debug, sync::Arc};
@@ -28,7 +28,7 @@ where
     let swap = get_swap_transaction(client, &sui_client, quote, route, mctp_input_contract);
     let (prefetched, swap) = try_join!(prefetched, swap)?;
 
-    build_sui_quote_data(&sui_client, |gas_budget| build_mctp_transaction(quote, route, &prefetched, destination_address, swap.as_ref(), gas_budget)).await
+    sui_swap::build_quote_data(&sui_client, |gas_budget| build_mctp_transaction(quote, route, &prefetched, destination_address, swap.as_ref(), gas_budget)).await
 }
 
 async fn get_swap_transaction<C>(client: &MayanClient<C>, sui_client: &SuiClient, quote: &Quote, route: &MayanMctpQuote, mctp_input_contract: &str) -> Result<Option<SuiClientSwapReplay>, SwapperError>

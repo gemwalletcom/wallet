@@ -8,12 +8,10 @@ import Style
 import SwiftUI
 
 public struct SwapDetailsListView: View {
-    private let details: GemSwapDetails?
-    private let progress: String?
+    private let details: GemSwapDetails
 
-    public init(details: GemSwapDetails?, progress: String? = nil) {
+    public init(details: GemSwapDetails) {
         self.details = details
-        self.progress = progress
     }
 
     public var body: some View {
@@ -22,30 +20,19 @@ public struct SwapDetailsListView: View {
 
             Spacer(minLength: .extraSmall)
 
-            HStack(spacing: .small) {
-                if let progress {
-                    HStack(spacing: .tiny) {
-                        LoadingView(size: .small)
-                        Text(progress)
-                            .textStyle(TextStyle(font: .footnote, color: Colors.secondaryText, fontWeight: .medium))
-                    }
-                    .transition(.opacity)
-                }
-                if let details, let rate = details.rateText(isInverse: false) {
-                    HStack(spacing: .tiny) {
-                        Text(rate)
-                            .textStyle(.calloutSecondary)
-                        if let priceImpact = details.summaryPriceImpact {
-                            HStack(spacing: .zero) {
-                                Text("(").textStyle(.calloutSecondary)
-                                Text(priceImpact.text()).textStyle(TextStyle(font: .callout, color: priceImpact.tone.color))
-                                Text(")").textStyle(.calloutSecondary)
-                            }
-                        }
-                    }
-                }
+            if let rate = details.rateText(isInverse: false) {
+                rateText(rate)
+                    .textStyle(.calloutSecondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(12 / 16)
             }
-            .animation(.easeInOut(duration: .AnimationDuration.normal), value: progress == nil)
         }
+    }
+
+    private func rateText(_ rate: String) -> Text {
+        guard let priceImpact = details.summaryPriceImpact else {
+            return Text(rate)
+        }
+        return Text("\(rate) (\(Text(priceImpact.text()).foregroundStyle(priceImpact.tone.color)))")
     }
 }

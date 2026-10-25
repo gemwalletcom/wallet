@@ -8,6 +8,7 @@ mod swap_route;
 #[cfg(test)]
 mod testkit;
 
+pub mod aero;
 pub mod default;
 pub mod sunswap;
 pub mod universal_router;

@@ -19,7 +19,7 @@ use self::error::NodeServiceError;
 use self::upstream::Upstream;
 use crate::BoxError;
 use crate::cache::RequestCache;
-use crate::config::{ChainConfig, ChainTypesConfig, ErrorMatcherConfig, HeadersConfig, MonitoringConfig, REJECTED_ROUTE, RetryConfig, Url};
+use crate::config::{ChainConfig, ChainTypesConfig, HeadersConfig, MonitoringConfig, REJECTED_ROUTE, RetryConfig, Url};
 use crate::failure_reason::FailureReason;
 use crate::jsonrpc_types::{JsonRpcErrorResponse, RequestType};
 use crate::metrics::Metrics;
@@ -164,7 +164,7 @@ impl NodeService {
             };
             match result {
                 Ok(response) => {
-                    let retry_error = self.matches_response_error_signal(request, &response, &self.retry_config.errors);
+                    let retry_error = self.matches_response_error_signal(&response);
                     if !response.is_from_cache() {
                         self.report_active_node_outcome(upstream, request.chain, retry_error);
                     }
@@ -328,20 +328,16 @@ impl NodeService {
         }
     }
 
-    fn matches_response_error_signal(&self, request: &ProxyRequest, response: &ProxyResponse, matcher: &ErrorMatcherConfig) -> bool {
-        if matcher.matches_status(response.status) {
+    fn matches_response_error_signal(&self, response: &ProxyResponse) -> bool {
+        if self.retry_config.errors.iter().any(|rule| rule.matches(response.status, None)) {
             return true;
         }
 
-        match request.request_type() {
-            RequestType::JsonRpc(_) if response.status == StatusCode::OK.as_u16() => {
-                if let Ok(error_response) = serde_json::from_slice::<JsonRpcErrorResponse>(&response.body) {
-                    return matcher.matches_message(&error_response.error.message);
-                }
-                false
-            }
-            _ => false,
-        }
+        let Ok(body) = serde_json::from_slice::<Value>(&response.body) else {
+            return false;
+        };
+        let message = body.get("error").and_then(|error| error.as_str().or_else(|| error.get("message").and_then(Value::as_str)));
+        self.retry_config.errors.iter().any(|rule| rule.matches(response.status, message))
     }
 
     fn log_and_create_error_response(&self, request: &ProxyRequest, host: Option<&str>, error: NodeServiceError, upstream_data: Option<Value>) -> Result<ProxyResponse, BoxError> {
@@ -386,7 +382,7 @@ mod tests {
     use reqwest::{Method, header::HeaderMap};
 
     use super::*;
-    use crate::config::{AllowlistConfig, Override, RPC_ROUTE};
+    use crate::config::{AllowlistConfig, ErrorMatcherConfig, Override, RPC_ROUTE};
     use crate::testkit::server_mock::spawn_node;
 
     #[tokio::test]
@@ -553,27 +549,86 @@ mod tests {
     #[test]
     fn test_matches_retry_status_codes() {
         let service = NodeService {
-            retry_config: RetryConfig::mock_with_errors(vec![429], vec![]),
+            retry_config: RetryConfig::mock_with_errors(vec![ErrorMatcherConfig {
+                status: Some(429),
+                ..ErrorMatcherConfig::default()
+            }]),
             ..NodeService::mock(ChainConfig::mock(Chain::Ethereum))
         };
 
-        let request = ProxyRequest::mock(Chain::Ethereum, Method::POST, "/", &[]);
         let response = ProxyResponse::new(429, HeaderMap::new(), Bytes::new());
 
-        assert!(service.matches_response_error_signal(&request, &response, &service.retry_config.errors));
+        assert!(service.matches_response_error_signal(&response));
     }
 
     #[test]
     fn test_matches_retry_jsonrpc_messages() {
         let service = NodeService {
-            retry_config: RetryConfig::mock_with_errors(vec![], vec!["Exceeded the quota usage"]),
+            retry_config: RetryConfig::mock_with_errors(vec![ErrorMatcherConfig {
+                message: Some("Exceeded the quota usage".to_string()),
+                ..ErrorMatcherConfig::default()
+            }]),
             ..NodeService::mock(ChainConfig::mock(Chain::Ethereum))
         };
 
-        let request = ProxyRequest::mock_jsonrpc(Chain::Ethereum, "eth_blockNumber");
         let response = ProxyResponse::new(200, HeaderMap::new(), Bytes::from_static(br#"{"jsonrpc":"2.0","error":{"code":-32000,"message":"Exceeded the quota usage"},"id":1}"#));
 
-        assert!(service.matches_response_error_signal(&request, &response, &service.retry_config.errors));
+        assert!(service.matches_response_error_signal(&response));
+    }
+
+    #[test]
+    fn test_matches_retry_error_message_across_statuses() {
+        let service = NodeService {
+            retry_config: RetryConfig::mock_with_errors(vec![ErrorMatcherConfig {
+                message: Some("502 Bad Gateway".to_string()),
+                ..ErrorMatcherConfig::default()
+            }]),
+            ..NodeService::mock(ChainConfig::mock(Chain::Zcash))
+        };
+        let gateway_error = br#"{"error":"502 Bad Gateway invalid character '<' looking for beginning of value"}"#;
+
+        for (status, body, retry) in [
+            (200, gateway_error.as_slice(), true),
+            (400, gateway_error.as_slice(), true),
+            (500, gateway_error.as_slice(), true),
+            (400, br#"{"error":"-26: txn-mempool-conflict"}"#.as_slice(), false),
+            (400, br#"{"error":"transaction already in block chain"}"#.as_slice(), false),
+            (400, br#"{"error":"-26: min relay fee not met"}"#.as_slice(), false),
+            (400, br#"{"error":"invalid transaction"}"#.as_slice(), false),
+        ] {
+            let response = ProxyResponse::new(status, HeaderMap::new(), Bytes::copy_from_slice(body));
+            assert_eq!(service.matches_response_error_signal(&response), retry);
+        }
+    }
+
+    #[test]
+    fn test_matches_retry_combined_rules() {
+        let service = NodeService {
+            retry_config: RetryConfig::mock_with_errors(vec![
+                ErrorMatcherConfig {
+                    status: Some(429),
+                    ..ErrorMatcherConfig::default()
+                },
+                ErrorMatcherConfig {
+                    status: Some(400),
+                    message: Some("502 Bad Gateway".to_string()),
+                },
+            ]),
+            ..NodeService::mock(ChainConfig::mock(Chain::Ethereum))
+        };
+
+        for (status, body, retry) in [
+            (429, b"rate limited".as_slice(), true),
+            (400, br#"{"error":"502 Bad Gateway"}"#.as_slice(), true),
+            (400, br#"{"error":{"message":"502 Bad Gateway"}}"#.as_slice(), true),
+            (500, br#"{"error":"502 Bad Gateway"}"#.as_slice(), false),
+            (400, br#"{"error":"invalid transaction"}"#.as_slice(), false),
+            (400, br#"{"result":"502 Bad Gateway"}"#.as_slice(), false),
+            (400, b"invalid json".as_slice(), false),
+        ] {
+            let response = ProxyResponse::new(status, HeaderMap::new(), Bytes::copy_from_slice(body));
+            assert_eq!(service.matches_response_error_signal(&response), retry);
+        }
     }
 
     #[tokio::test]
@@ -614,7 +669,10 @@ mod tests {
     #[tokio::test]
     async fn test_proxy_request_hides_upstream_url_on_retry_failure() {
         let service = NodeService {
-            retry_config: RetryConfig::mock_with_errors(vec![500], vec![]),
+            retry_config: RetryConfig::mock_with_errors(vec![ErrorMatcherConfig {
+                status: Some(500),
+                ..ErrorMatcherConfig::default()
+            }]),
             ..NodeService::mock(ChainConfig {
                 urls: vec![Url::mock("http://127.0.0.1:9/secret-key"), Url::mock("http://127.0.0.1:10/other-secret-key")],
                 ..ChainConfig::mock(Chain::Solana)

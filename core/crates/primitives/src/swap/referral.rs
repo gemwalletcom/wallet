@@ -1,3 +1,9 @@
+use crate::{
+    AssetId, Chain,
+    asset_constants::{STELLAR_USDC_ASSET_ID, XRP_RLUSD_ASSET_ID},
+};
+use std::sync::LazyLock;
+
 pub const EVM_REFERRAL_ADDRESS: &str = "0x0D9DAB1A248f63B0a48965bA8435e4de7497a3dC";
 pub const SOLANA_REFERRAL_ADDRESS: &str = "5fmLrs2GuhfDP1B51ziV5Kd1xtAr9rw1jf3aQ4ihZ2gy";
 pub const THORCHAIN_REFERRAL_ADDRESS: &str = "g1";
@@ -8,4 +14,8 @@ pub const NEAR_REFERRAL_ADDRESS: &str = "0x0d9dab1a248f63b0a48965ba8435e4de7497a
 pub const APTOS_REFERRAL_ADDRESS: &str = "0xc09d385527743bb03ed7847bb9180b5ff2263d38d5a93f1c9b3068f8505f6488";
 pub const COSMOS_REFERRAL_ADDRESS: &str = "cosmos1knwywgnzs3a2p39k7337klt6daqrhyvnh8vz27";
 pub const INJECTIVE_REFERRAL_ADDRESS: &str = "inj1pkw6kx3y3a3mpfyfvkaggd0yme6f0g7uylvm5y";
+pub const STELLAR_REFERRAL_ADDRESS: &str = "GBSDHULBPEYIHHSWWLE54DJOGBYQRECYW3FO4FCKE76ECFC7HSJUF3I6";
+pub static STELLAR_REFERRAL_FEE_ASSET_IDS: LazyLock<[AssetId; 2]> = LazyLock::new(|| [AssetId::from_chain(Chain::Stellar), STELLAR_USDC_ASSET_ID.clone()]);
+pub const XRP_REFERRAL_ADDRESS: &str = "r3eytS1HHhddphtTypWvADeNDUYNeu7gBx";
+pub static XRP_REFERRAL_FEE_ASSET_IDS: LazyLock<[AssetId; 2]> = LazyLock::new(|| [AssetId::from_chain(Chain::Xrp), XRP_RLUSD_ASSET_ID.clone()]);
 pub const CHAINFLIP_REFERRAL_ADDRESS: &str = "cFNDSNTJMRwL773EzoCLn3n2kFSvBHMhEoHDKaHdkDWUa6XVD";

@@ -31,6 +31,11 @@ if [ "$BUILD_MODE" = "release" ]; then
     BUILD_FLAG="--release"
 fi
 
+if [ "$PROFILE" = "debug" ] && [ -z "${CI:-}" ]; then
+    export RUSTC_WRAPPER=""
+    export CARGO_INCREMENTAL=1
+fi
+
 case "${PLATFORM_NAME:-}" in
     iphoneos)
         DEFAULT_TARGETS="aarch64-apple-ios"

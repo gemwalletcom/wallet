@@ -40,6 +40,10 @@ public final class PerpetualSceneViewModel {
         perpetualQuery.value.data
     }
 
+    private var hasMarket: Bool {
+        perpetualQuery.value != .empty
+    }
+
     var transactionSections: [ListSection<GemTransactionRow>] {
         transactionsQuery.value
     }
@@ -132,15 +136,15 @@ public extension PerpetualSceneViewModel {
         _ = await (refresh, refreshCandlesticks)
     }
 
-    func onAppear() {
-        chart.onAppear(perpetual: perpetual)
-        observerService.subscribe(service.marketSubscription(perpetual: perpetual.toGem()))
-        Task { await load() }
-    }
-
-    func onDisappear() {
-        chart.onDisappear(perpetual: perpetual)
-        observerService.unsubscribe(service.marketSubscription(perpetual: perpetual.toGem()))
+    func observeMarket() async {
+        guard hasMarket else { return }
+        let perpetual = perpetual
+        let market = service.marketSubscription(perpetual: perpetual.toGem())
+        observerService.subscribe(market)
+        async let loaded: () = load()
+        await chart.observe(perpetual: perpetual)
+        observerService.unsubscribe(market)
+        await loaded
     }
 
     func onScenePhaseChange(_: ScenePhase, _ newPhase: ScenePhase) {

@@ -1,4 +1,4 @@
-use crate::Deployment;
+use crate::{Contracts, Deployment};
 use primitives::{Chain, contract_constants::SOLANA_OKX_DEX_V2_PROGRAM_ID};
 
 pub(super) const PROXY_QUOTE_PATH: &str = "/v6/quote";
@@ -19,7 +19,6 @@ const DEPLOYMENTS: &[Deployment] = &[
     Deployment::with_spender(Chain::AvalancheC, "0xAB96dcFA7A7D669d9BF5918faB8641479973dD0A", "0x40aA958dd87FC8305b97f2BA922CDdCa374bcD7f"),
     Deployment::with_spender(Chain::Fantom, "0xd72f9Af181A0eB1B8550a00124ECdb71Bb758C89", "0x70cBb871E8f30Fc8Ce23609E9E0Ea87B6b222F58"),
     Deployment::with_spender(Chain::Manta, "0xd72f9Af181A0eB1B8550a00124ECdb71Bb758C89", "0x57df6092665eb6058DE53939612413ff4B09114E"),
-    Deployment::with_spender(Chain::Blast, "0x472fc4f7fd3C9F06f0b8637c5505815ac80938Ad", "0x5fD2Dc91FF1dE7FF4AEB1CACeF8E9911bAAECa68"),
     Deployment::with_spender(Chain::ZkSync, "0x46eDEcEa0228f04Ab88dC34BE98314863bA40bE0", "0xc67879F4065d3B9fe1C09EE990B891Aa8E3a4c2f"),
     Deployment::with_spender(Chain::Linea, "0xdfcb0cEcC10e78F3F3749F3f3d3EE4047b2c9829", "0x57df6092665eb6058DE53939612413ff4B09114E"),
     Deployment::with_spender(Chain::Mantle, "0x472fc4f7fd3C9F06f0b8637c5505815ac80938Ad", "0x57df6092665eb6058DE53939612413ff4B09114E"),
@@ -43,7 +42,7 @@ pub(super) fn chain_index(chain: Chain) -> Option<&'static str> {
     }
 }
 
-pub(super) fn contracts(chain: Chain) -> Vec<&'static str> {
+pub(super) fn contracts(chain: Chain) -> Contracts {
     Deployment::contracts(DEPLOYMENTS, chain)
 }
 

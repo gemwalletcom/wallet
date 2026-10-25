@@ -40,15 +40,15 @@ public struct SwapScene: View {
                     model.priceImpactWarningTitle,
                     presenting: $model.isPresentingPriceImpactConfirmation,
                     sensoryFeedback: .warning,
-                    actions: { _ in
+                    actions: { confirmation in
                         Button(
                             model.buttonViewModel.title,
                             role: .destructive,
-                            action: { Task { await model.onSelectSwapConfirmation() } },
+                            action: { Task { await model.onSelectSwapConfirmation(confirmation) } },
                         )
                     },
                     message: {
-                        Text(model.isPresentingPriceImpactConfirmation ?? "")
+                        Text(model.isPresentingPriceImpactConfirmation?.warning ?? "")
                     },
                 )
         }
@@ -152,9 +152,9 @@ extension SwapScene {
 
     private var additionalInfoSectionView: some View {
         Section {
-            if model.showsSwapDetails {
+            if model.showsSwapDetails, let swapDetails = model.swapDetails {
                 NavigationCustomLink(
-                    with: SwapDetailsListView(details: model.swapDetails, progress: model.quoteProgress),
+                    with: SwapDetailsListView(details: swapDetails),
                     action: model.onSelectSwapDetails,
                 )
             }

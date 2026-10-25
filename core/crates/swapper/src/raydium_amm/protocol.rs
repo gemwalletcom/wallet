@@ -112,7 +112,7 @@ mod tests {
         assert_eq!(requests.load(Ordering::SeqCst), 6);
 
         let quote_data = amm.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
-        crate::contract_check::verify_solana_programs(&quote_data.data, &amm.contracts(&quote.request.from_asset.asset_id())).unwrap();
+        crate::contract_check::verify_solana_programs(&quote_data.data, &amm.contracts(&quote.request.from_asset.asset_id()).targets).unwrap();
         assert_eq!(requests.load(Ordering::SeqCst), 7);
         assert_eq!(quote_data.to, raydium_amm_program().to_base58());
     }

@@ -9,11 +9,12 @@ use crate::{
             address::native_address_to_bytes32,
             amount::{gas_drop_amount, min_amount_out, optional_bps_u8},
             mctp::redeem_relayer_fee,
-            sui::{bridge_amount, sui_package_address},
+            sui::bridge_amount,
             swift::{referrer_bytes, swift_to_token},
         },
         wormhole_chain::id_for_name as wormhole_chain_id,
     },
+    sui_swap::package_address,
 };
 use gem_sui::{address::SuiAddress, tx_builder::move_call};
 use sui_transaction_builder::{Argument, TransactionBuilder};
@@ -39,8 +40,8 @@ pub(super) fn add_init_order_move_calls(
     let amount_out_min = min_amount_out(&route.min_amount_out, route.to_token.decimals, &route.to_chain, &QuoteType::Mctp)?;
     let gas_drop = gas_drop_amount(&route.gas_drop, &route.to_chain, &QuoteType::Mctp, false)?;
     let cctp_domain = domain_for_wormhole_chain(&route.to_chain)?.id();
-    let fee_manager_package = sui_package_address(fee_manager_package_id)?;
-    let mctp_package = sui_package_address(&prefetched.mctp_package_id)?;
+    let fee_manager_package = package_address(fee_manager_package_id)?;
+    let mctp_package = package_address(&prefetched.mctp_package_id)?;
 
     let common_arguments = vec![
         txb.object(prefetched.objects[&prefetched.mctp_verified_input_address].input(false)),

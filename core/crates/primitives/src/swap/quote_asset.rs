@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{AssetId, AssetType, Chain};
+use crate::{Asset, AssetId, AssetType, Chain};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct QuoteAsset {
@@ -21,6 +21,17 @@ impl QuoteAsset {
 
     pub fn chain(&self) -> Chain {
         self.asset_id().chain
+    }
+}
+
+impl From<&Asset> for QuoteAsset {
+    fn from(asset: &Asset) -> Self {
+        Self {
+            id: asset.id.to_string(),
+            symbol: asset.symbol.clone(),
+            decimals: asset.decimals,
+            asset_type: asset.asset_type.clone(),
+        }
     }
 }
 

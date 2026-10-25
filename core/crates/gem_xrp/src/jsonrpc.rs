@@ -2,6 +2,7 @@ use gem_jsonrpc::types::ToJsonRpcRequest;
 use serde_json::json;
 
 use crate::method;
+use crate::models::PathFindRequest;
 
 #[derive(Clone, Debug)]
 pub enum XrpRpc {
@@ -9,6 +10,8 @@ pub enum XrpRpc {
     GetValidatedAccountInfo { address: String },
     GetAccountObjects { address: String },
     GetAccountTransactions { address: String, limit: usize },
+    GetLedgerAccountTransactions { address: String, ledger_index: u64 },
+    FindPaths(PathFindRequest),
     GetFees,
     GetLedger { index: u64 },
     GetLatestValidatedLedger,
@@ -22,7 +25,8 @@ impl ToJsonRpcRequest for XrpRpc {
         match self {
             Self::GetAccountInfo { .. } | Self::GetValidatedAccountInfo { .. } => method::ACCOUNT_INFO,
             Self::GetAccountObjects { .. } => method::ACCOUNT_OBJECTS,
-            Self::GetAccountTransactions { .. } => method::ACCOUNT_TRANSACTIONS,
+            Self::GetAccountTransactions { .. } | Self::GetLedgerAccountTransactions { .. } => method::ACCOUNT_TRANSACTIONS,
+            Self::FindPaths(_) => method::RIPPLE_PATH_FIND,
             Self::GetFees => method::FEE,
             Self::GetLedger { .. } | Self::GetLatestValidatedLedger => method::LEDGER,
             Self::GetServerInfo => method::SERVER_INFO,
@@ -53,6 +57,12 @@ impl ToJsonRpcRequest for XrpRpc {
                 "ledger_index_max": -1,
                 "ledger_index_min": -1
             }]),
+            Self::GetLedgerAccountTransactions { address, ledger_index } => json!([{
+                "account": address,
+                "api_version": 2,
+                "ledger_index": ledger_index
+            }]),
+            Self::FindPaths(request) => json!([request]),
             Self::GetFees => json!([{}]),
             Self::GetLedger { index } => json!([{
                 "ledger_index": index,

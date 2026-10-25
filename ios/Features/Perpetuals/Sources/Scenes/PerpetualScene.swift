@@ -92,11 +92,8 @@ public struct PerpetualScene: View {
         .refreshable {
             await model.load()
         }
-        .onAppear {
-            model.onAppear()
-        }
-        .onDisappear {
-            model.onDisappear()
+        .task(id: model.perpetual.id) {
+            await model.observeMarket()
         }
         .onChange(of: scenePhase, model.onScenePhaseChange)
     }

@@ -83,7 +83,6 @@ pub fn get_base_pair(chain: &EVMChain, native_address: Address) -> Option<BasePa
         EVMChain::SmartChain => "0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c",
         EVMChain::OpBNB => "0x7c6b91d9be155a6db01f749217d76ff02a7227f2",
         EVMChain::ZkSync => ZKSYNC_WBTC_TOKEN_ID,
-        EVMChain::Blast => BLAST_WBTC_TOKEN_ID,
         EVMChain::World => WORLD_WBTC_TOKEN_ID,
         EVMChain::Sonic => SONIC_WBTC_TOKEN_ID,
         EVMChain::Linea => LINEA_WBTC_TOKEN_ID,
@@ -101,7 +100,6 @@ pub fn get_base_pair(chain: &EVMChain, native_address: Address) -> Option<BasePa
         EVMChain::Celo => "0xcebA9300f2b948710d2653dD7B07f33A8B32118C",
         EVMChain::SmartChain => SMARTCHAIN_USDC_TOKEN_ID,
         EVMChain::ZkSync => ZKSYNC_USDC_E_TOKEN_ID,
-        EVMChain::Blast => "0x4300000000000000000000000000000000000003",
         EVMChain::World => WORLD_USDC_E_TOKEN_ID,
         EVMChain::Abstract => "0x84A71ccD554Cc1b02749b35d22F684CC8ec987e1",
         EVMChain::Unichain => UNICHAIN_USDC_TOKEN_ID,
@@ -143,7 +141,7 @@ pub fn get_base_pair(chain: &EVMChain, native_address: Address) -> Option<BasePa
         EVMChain::Monad => MONAD_USDT_TOKEN_ID,
         EVMChain::SeiEvm => SEIEVM_USDT_TOKEN_ID,
         EVMChain::XLayer => XLAYER_USDT_TOKEN_ID,
-        EVMChain::Blast | EVMChain::World | EVMChain::Robinhood | EVMChain::Tempo | EVMChain::Arc | EVMChain::Stable => "",
+        EVMChain::World | EVMChain::Robinhood | EVMChain::Tempo | EVMChain::Arc | EVMChain::Stable => "",
         _ => panic!("USDT is not configured for this chain"),
     };
 

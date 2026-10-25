@@ -9,7 +9,7 @@ use gem_evm::{
             v3::{ISlipstreamFactory, IUniswapV3Factory},
             v4::IUniswapV4StateView,
         },
-        deployment::v3::{PoolLookup, V3Deployment},
+        deployment::v3::PoolLookup,
         path::TokenPair,
     },
 };
@@ -32,6 +32,16 @@ impl PoolDiscovery {
                     token_out: *token_out,
                     fee_tier,
                 })
+            })
+            .collect()
+    }
+
+    pub(super) fn missing_pool_requests(&self, chain: Chain, pairs: &[(Address, Address)], fee_tiers: &[FeeTier], (factory, pool_lookup): (&str, PoolLookup)) -> Vec<(TokenPair, EthereumRpc)> {
+        self.missing_pools(chain, pairs, fee_tiers)
+            .into_iter()
+            .map(|pool| {
+                let request = v3_pool_request(factory, pool_lookup, &pool);
+                (pool, request)
             })
             .collect()
     }
@@ -59,8 +69,8 @@ pub(super) fn candidate_pairs(token_in: Address, token_out: Address, intermediar
         .collect()
 }
 
-pub(super) fn v3_pool_request(deployment: &V3Deployment, pool: &TokenPair) -> EthereumRpc {
-    let data = match deployment.pool_lookup {
+fn v3_pool_request(factory: &str, pool_lookup: PoolLookup, pool: &TokenPair) -> EthereumRpc {
+    let data = match pool_lookup {
         PoolLookup::Fee => IUniswapV3Factory::getPoolCall {
             tokenA: pool.token_in,
             tokenB: pool.token_out,
@@ -74,7 +84,7 @@ pub(super) fn v3_pool_request(deployment: &V3Deployment, pool: &TokenPair) -> Et
         }
         .abi_encode(),
     };
-    EthereumRpc::call(deployment.factory, data)
+    EthereumRpc::call(factory, data)
 }
 
 pub(super) async fn discover_pools<T>(client: &JsonRpcClient<RpcClient>, pools: Vec<(T, EthereumRpc)>) -> Result<Vec<(T, bool)>, SwapperError> {

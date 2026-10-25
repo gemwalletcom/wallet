@@ -71,6 +71,7 @@ import uniffi.gemstone.GemSwapRequest
 import uniffi.gemstone.GemSwapViewState
 import uniffi.gemstone.SwapProvider
 import uniffi.gemstone.SwapperException
+import uniffi.gemstone.SwapperQuote
 import uniffi.gemstone.formattedPercentage
 import uniffi.gemstone.newSlippageSession
 import uniffi.gemstone.swapErrorDisplay
@@ -283,21 +284,23 @@ class SwapViewModel @Inject constructor(
         refreshRequests.tryEmit(Unit)
     }
 
-    fun onPrimaryAction(onConfirm: (ConfirmTransferInput) -> Unit, onError: (GemSwapErrorDisplay) -> Unit, onShowPriceImpactWarning: () -> Unit) {
+    fun onPrimaryAction(onConfirm: (ConfirmTransferInput) -> Unit, onError: (GemSwapErrorDisplay) -> Unit, onShowPriceImpactWarning: (SwapPriceImpactConfirmation) -> Unit) {
         val state = viewState.value
         if (state.buttonState != GemButtonState.ENABLED) {
             return
         }
         when (val action = state.buttonAction) {
             GemSwapButtonAction.Swap -> {
-                if (state.details?.summary?.priceImpactRow?.warning != null) {
+                val quote = state.quote ?: return
+                val priceImpact = state.details?.summary?.priceImpactRow
+                if (priceImpact?.warning != null) {
                     if (!service.isAvailable()) {
                         infoSheet.value = GemInfoTopic.RegionUnavailable
                         return
                     }
-                    onShowPriceImpactWarning()
+                    onShowPriceImpactWarning(SwapPriceImpactConfirmation(quote, priceImpact))
                 } else {
-                    swap(onConfirm, onError)
+                    swap(quote, onConfirm, onError)
                 }
             }
 
@@ -316,13 +319,12 @@ class SwapViewModel @Inject constructor(
         refreshEnabled.value = isEnabled
     }
 
-    fun swap(onConfirm: (ConfirmTransferInput) -> Unit, onError: (GemSwapErrorDisplay) -> Unit) = viewModelScope.launch(ioDispatcher) {
+    fun swap(quote: SwapperQuote, onConfirm: (ConfirmTransferInput) -> Unit, onError: (GemSwapErrorDisplay) -> Unit) = viewModelScope.launch(ioDispatcher) {
         if (!service.isAvailable()) {
             infoSheet.value = GemInfoTopic.RegionUnavailable
             return@launch
         }
-        val started = session.value.startTransfer() ?: return@launch
-        val quote = started.quote() ?: return@launch
+        val started = session.value.startTransfer(quote) ?: return@launch
         val transfer = started.transferPhase
         session.value = started
 

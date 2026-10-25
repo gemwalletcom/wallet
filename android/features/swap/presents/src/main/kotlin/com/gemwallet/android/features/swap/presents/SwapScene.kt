@@ -134,8 +134,8 @@ internal fun SwapScene(viewState: GemSwapViewState, pay: AssetData?, receive: As
                 )
             }
             item {
-                if (viewState.details != null || viewState.quoteProgress != null) {
-                    SwapDetailsSummaryItem(details = viewState.details, progress = viewState.quoteProgress, onClick = { onAction(SwapAction.ShowDetails) })
+                viewState.details?.takeIf { viewState.showsDetails }?.let {
+                    SwapDetailsSummaryItem(details = it, onClick = { onAction(SwapAction.ShowDetails) })
                 }
             }
 

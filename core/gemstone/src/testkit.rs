@@ -89,13 +89,11 @@ impl AlienProvider for TestAlienProvider {
         }
         if !self.by_request_type.is_empty() {
             let body: Value = serde_json::from_slice(target.body.as_deref().unwrap()).unwrap();
-            self.requested_types.lock().unwrap().extend(body["type"].as_str().map(str::to_string));
-            return Ok(self
-                .by_request_type
-                .iter()
-                .find(|(kind, _)| body["type"].as_str() == Some(kind.as_str()))
-                .map(|(_, response)| response.clone())
-                .unwrap_or_else(|| self.response.clone()));
+            let kind = body["type"].as_str();
+            let dex_kind = kind.zip(body["dex"].as_str()).map(|(kind, dex)| format!("{kind}:{dex}"));
+            self.requested_types.lock().unwrap().extend(kind.map(str::to_string));
+            let response = |key: Option<&str>| self.by_request_type.iter().find(|(kind, _)| key == Some(kind.as_str())).map(|(_, response)| response.clone());
+            return Ok(response(dex_kind.as_deref()).or_else(|| response(kind)).unwrap_or_else(|| self.response.clone()));
         }
         let matched = self.by_path.iter().find(|(fragment, _)| path.contains(fragment.as_str()));
         Ok(matched.map(|(_, response)| response.clone()).unwrap_or_else(|| self.response.clone()))

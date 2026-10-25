@@ -1,17 +1,22 @@
 use alloy_primitives::{Address, U256};
-use gem_evm::uniswap::path::{BasePair, get_base_pair};
+use gem_evm::{
+    u256::u256_to_biguint,
+    uniswap::path::{BasePair, get_base_pair},
+};
+use num_bigint::BigUint;
 #[cfg(test)]
 use primitives::Chain;
 use primitives::{Asset, AssetId, EVMChain, EvmNativeCurrency};
 use serde::{Deserialize, Serialize};
+use std::str::FromStr;
 
-use crate::{SwapperError, eth_address};
+use crate::{QuoteRequest, SwapperError, eth_address};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum Funding {
     Value,
     RouterBalance,
-    Permit2,
+    Token,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -33,7 +38,7 @@ pub struct RoutedAsset {
 impl RoutedAsset {
     pub fn from_asset(asset_id: &AssetId, chain: EVMChain, protocol: Protocol) -> Result<Self, SwapperError> {
         if let Some(token_id) = &asset_id.token_id {
-            return Ok(Self::unscaled(eth_address::parse_str(token_id)?, Funding::Permit2));
+            return Ok(Self::unscaled(eth_address::parse_str(token_id)?, Funding::Token));
         }
         match chain.native_currency() {
             EvmNativeCurrency::Wrapped(wrapped) => {
@@ -43,7 +48,7 @@ impl RoutedAsset {
                 };
                 Ok(Self::unscaled(address, Funding::Value))
             }
-            EvmNativeCurrency::Token(token) => Ok(Self::unscaled(eth_address::parse_str(token)?, Funding::Permit2)),
+            EvmNativeCurrency::Token(token) => Ok(Self::unscaled(eth_address::parse_str(token)?, Funding::Token)),
             EvmNativeCurrency::Mirrored { token, decimals } => {
                 let native_decimals = Asset::from_chain(chain.to_chain()).decimals;
                 let exponent = native_decimals.checked_sub(decimals).ok_or(SwapperError::NotSupportedChain)?;
@@ -60,6 +65,13 @@ impl RoutedAsset {
     pub fn unscaled(address: Address, funding: Funding) -> Self {
         Self { address, scale: U256::from(1), funding }
     }
+
+    pub fn value(&self, amount_in: U256) -> BigUint {
+        match self.funding {
+            Funding::Value | Funding::RouterBalance => u256_to_biguint(&(amount_in * self.scale)),
+            Funding::Token => BigUint::ZERO,
+        }
+    }
 }
 
 pub fn routed_pair(from_asset: &AssetId, to_asset: &AssetId, protocol: Protocol) -> Result<(EVMChain, RoutedAsset, RoutedAsset), SwapperError> {
@@ -68,6 +80,12 @@ pub fn routed_pair(from_asset: &AssetId, to_asset: &AssetId, protocol: Protocol)
     }
     let evm_chain = EVMChain::from_chain(from_asset.chain).ok_or(SwapperError::NotSupportedChain)?;
     Ok((evm_chain, RoutedAsset::from_asset(from_asset, evm_chain, protocol)?, RoutedAsset::from_asset(to_asset, evm_chain, protocol)?))
+}
+
+pub fn routed_request(request: &QuoteRequest, protocol: Protocol) -> Result<(EVMChain, RoutedAsset, RoutedAsset, U256), SwapperError> {
+    let (evm_chain, input, output) = routed_pair(&request.from_asset.asset_id(), &request.to_asset.asset_id(), protocol)?;
+    let amount_in = U256::from_str(&request.value.to_string()).map_err(SwapperError::from)? / input.scale;
+    Ok((evm_chain, input, output, amount_in))
 }
 
 pub fn base_pair(chain: EVMChain, protocol: Protocol) -> Option<BasePair> {

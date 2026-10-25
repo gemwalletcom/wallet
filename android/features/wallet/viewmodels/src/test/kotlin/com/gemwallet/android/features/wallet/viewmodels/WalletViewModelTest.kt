@@ -3,6 +3,7 @@ package com.gemwallet.android.features.wallet.viewmodels
 import android.util.Log
 import com.gemwallet.android.application.assets.cases.GetActiveAssetsInfo
 import com.gemwallet.android.application.assets.cases.GetWalletHomeState
+import com.gemwallet.android.application.preferences.cases.ObservablePreferences
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.ext.toIdentifier
@@ -21,12 +22,15 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
+import io.mockk.verify
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestCoroutineScheduler
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -184,13 +188,29 @@ class WalletViewModelTest {
         assertFalse(viewModel.isLoadingAssets.value)
     }
 
-    private fun createViewModel() = WalletViewModel(
+    @Test
+    fun `hiding balances writes the preference off the main thread`() = runTest(testDispatcher) {
+        val preferences = mockk<ObservablePreferences>(relaxed = true)
+        val ioDispatcher = StandardTestDispatcher(TestCoroutineScheduler())
+        val viewModel = createViewModel(preferences = preferences, ioDispatcher = ioDispatcher)
+
+        viewModel.hideBalances()
+        advanceUntilIdle()
+
+        verify(exactly = 0) { preferences.hideBalances() }
+
+        ioDispatcher.scheduler.advanceUntilIdle()
+
+        verify(exactly = 1) { preferences.hideBalances() }
+    }
+
+    private fun createViewModel(preferences: ObservablePreferences = mockk(relaxed = true), ioDispatcher: CoroutineDispatcher = testDispatcher) = WalletViewModel(
         service = service,
         getActiveAssetsInfo = getActiveAssetsInfo,
         getWalletHomeState = getWalletHomeState,
         getSession = getSession,
-        preferences = mockk(relaxed = true),
-        ioDispatcher = testDispatcher,
+        preferences = preferences,
+        ioDispatcher = ioDispatcher,
         context = mockk(relaxed = true),
     )
 }

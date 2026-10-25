@@ -23,11 +23,12 @@ use crate::{
             address::native_address_to_bytes32,
             amount::{gas_drop_amount, min_amount_out, optional_bps_u8, required_u64},
             route::quote_destination_address,
-            sui::{SuiClientSwapReplay, SuiInputCoin, bridge_amount, build_sui_input_coin, build_sui_quote_data, get_package_id, get_sui_input_coins, get_sui_objects, requires_client_swap, sui_error, sui_package_address},
+            sui::{SuiClientSwapReplay, SuiInputCoin, bridge_amount, build_sui_input_coin, get_package_id, get_sui_input_coins, get_sui_objects, requires_client_swap, sui_error},
         },
         wormhole_chain::id_for_name as wormhole_chain_id,
     },
     route_cache::Cache,
+    sui_swap::{self, package_address},
 };
 
 const BRIDGE_MODULE: &str = "bridge";
@@ -85,7 +86,7 @@ where
     let swap = get_swap_transaction(client, &sui_client, quote, route);
     let (prefetched, swap) = try_join!(prefetched, swap)?;
 
-    build_sui_quote_data(&sui_client, |gas_budget| build_fast_mctp_transaction(quote, route, &prefetched, swap.as_ref(), gas_budget)).await
+    sui_swap::build_quote_data(&sui_client, |gas_budget| build_fast_mctp_transaction(quote, route, &prefetched, swap.as_ref(), gas_budget)).await
 }
 
 async fn get_swap_transaction<C>(client: &MayanClient<C>, sui_client: &SuiClient, quote: &Quote, route: &MayanFastMctpQuote) -> Result<Option<SuiClientSwapReplay>, SwapperError>
@@ -103,7 +104,7 @@ where
 fn build_fast_mctp_transaction(quote: &Quote, route: &MayanFastMctpQuote, prefetched: &PrefetchedFastMctpData, swap: Option<&SuiClientSwapReplay>, gas_budget: u64) -> Result<TxOutput, SwapperError> {
     let input_contract = fast_mctp_input_contract(route)?;
     let SuiInputCoin { mut txb, coin: input_coin, .. } = build_sui_input_coin(swap, input_contract, route.effective_amount_in64.parse::<u64>()?, &prefetched.input_coins)?;
-    let package = sui_package_address(&prefetched.package_id)?;
+    let package = package_address(&prefetched.package_id)?;
 
     let burn_ticket = if route.has_auction == Some(true) {
         add_create_order_move_calls(&mut txb, quote, route, prefetched, package, input_coin)?
@@ -164,8 +165,8 @@ fn add_burn_ticket_move_call(txb: &mut TransactionBuilder, route: &MayanFastMctp
 
 fn add_circle_burn_move_calls(txb: &mut TransactionBuilder, route: &MayanFastMctpQuote, prefetched: &PrefetchedFastMctpData, burn_ticket: Argument) -> Result<(), SwapperError> {
     let input_contract = fast_mctp_input_contract(route)?;
-    let token_package = sui_package_address(SUI_CCTP_V2_TOKEN_PACKAGE_ID)?;
-    let handler_package = sui_package_address(SUI_CCTP_V2_HANDLER_PACKAGE_ID)?;
+    let token_package = package_address(SUI_CCTP_V2_TOKEN_PACKAGE_ID)?;
+    let handler_package = package_address(SUI_CCTP_V2_HANDLER_PACKAGE_ID)?;
 
     let circle_auth = format!("{}::circle_auth::CircleAuth", prefetched.package_id);
     let token_state = prefetched.object(txb, SUI_CCTP_V2_TOKEN_STATE, false)?;

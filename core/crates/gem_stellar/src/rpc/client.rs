@@ -4,6 +4,7 @@ use crate::models::account::Account;
 use crate::models::common::{Embedded, StellarAsset, StellarEmbedded};
 use crate::models::fee::StellarFees;
 use crate::models::node::NodeStatus;
+use crate::models::path::{StellarPaymentPath, StrictSendPathsQuery};
 use crate::models::transaction::{Payment, PaymentsQuery, StellarTransactionBroadcast, StellarTransactionStatus};
 use crate::models::{AccountEmpty, AccountResult};
 use crate::rpc::target::HorizonTarget;
@@ -83,6 +84,10 @@ impl<C: Client> StellarClient<C> {
             Some(destination) => self.account_exists(destination).await,
             None => Ok(false),
         }
+    }
+
+    pub async fn get_strict_send_paths(&self, query: StrictSendPathsQuery) -> Result<Vec<StellarPaymentPath>, Box<dyn Error + Send + Sync>> {
+        Ok(self.client.get::<Embedded<StellarPaymentPath>>(HorizonTarget::GetStrictSendPaths { query }).await?._embedded.records)
     }
 
     pub async fn get_account_payments(&self, account_id: String) -> Result<AccountResult<Embedded<Payment>>, Box<dyn Error + Send + Sync>> {

@@ -7,3 +7,4 @@ pub const TEST_POLKADOT_SENDER: &str = "15e6w4u9nH4Tb9HdJco2Zua4y5DpHb1hHXBKBGkU
 pub const TEST_OSMOSIS_SENDER: &str = "osmo1kglemumu8mn658j6g4z9jzn3zef2qdyyvklwa3";
 pub const TEST_SOLANA_SENDER: &str = "8wytzyCBXco7yqgrLDiecpEt452MSuNWRe7xsLgAAX1H";
 pub const TEST_TON_SENDER: &str = "UQAzoUpalAaXnVm5MoiYWRZguLFzY0KxFjLv3MkRq5BXz3VV";
+pub const TEST_TRON_SENDER: &str = "TFdTEn9dJuqh351y8fyJ3eMmghFsZNwakb";

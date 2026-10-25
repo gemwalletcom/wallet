@@ -1,5 +1,27 @@
 use primitives::{Chain, ChainType};
 
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct Contracts {
+    pub targets: Vec<&'static str>,
+    pub spenders: Vec<&'static str>,
+}
+
+impl Contracts {
+    pub fn new(targets: Vec<&'static str>) -> Self {
+        Self { spenders: targets.clone(), targets }
+    }
+}
+
+impl FromIterator<Contracts> for Contracts {
+    fn from_iter<I: IntoIterator<Item = Contracts>>(contracts: I) -> Self {
+        contracts.into_iter().fold(Contracts::default(), |mut merged, contracts| {
+            merged.targets.extend(contracts.targets);
+            merged.spenders.extend(contracts.spenders);
+            merged
+        })
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Deployment {
     pub chain: Chain,
@@ -16,16 +38,15 @@ impl Deployment {
         Self { chain, contract, spender }
     }
 
-    pub fn contracts(deployments: &[Self], chain: Chain) -> Vec<&'static str> {
-        let mut contracts: Vec<&'static str> = Vec::new();
-        for deployment in deployments.iter().filter(|deployment| deployment.chain == chain) {
-            for contract in [deployment.contract, deployment.spender] {
-                if !contracts.contains(&contract) {
-                    contracts.push(contract);
-                }
-            }
-        }
-        contracts
+    pub fn contracts(deployments: &[Self], chain: Chain) -> Contracts {
+        deployments
+            .iter()
+            .filter(|deployment| deployment.chain == chain)
+            .map(|deployment| Contracts {
+                targets: vec![deployment.contract],
+                spenders: vec![deployment.spender],
+            })
+            .collect()
     }
 
     pub fn contains(chain: Chain, contracts: &[&str], address: &str) -> bool {
@@ -42,15 +63,17 @@ mod tests {
 
     #[test]
     fn test_contracts() {
-        let deployments = [
-            Deployment::with_spender(Chain::Ethereum, "0xrouter", "0xspender"),
-            Deployment::new(Chain::Ethereum, "0xrouter"),
-            Deployment::new(Chain::Base, "0xvault"),
-        ];
+        let deployments = [Deployment::with_spender(Chain::Ethereum, "0xrouter", "0xspender"), Deployment::new(Chain::Base, "0xvault")];
 
-        assert_eq!(Deployment::contracts(&deployments, Chain::Ethereum), vec!["0xrouter", "0xspender"]);
-        assert_eq!(Deployment::contracts(&deployments, Chain::Base), vec!["0xvault"]);
-        assert!(Deployment::contracts(&deployments, Chain::Solana).is_empty());
+        assert_eq!(
+            Deployment::contracts(&deployments, Chain::Ethereum),
+            Contracts {
+                targets: vec!["0xrouter"],
+                spenders: vec!["0xspender"],
+            }
+        );
+        assert_eq!(Deployment::contracts(&deployments, Chain::Base), Contracts::new(vec!["0xvault"]));
+        assert_eq!(Deployment::contracts(&deployments, Chain::Solana), Contracts::default());
     }
 
     #[test]

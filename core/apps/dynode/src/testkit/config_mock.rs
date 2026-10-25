@@ -146,14 +146,8 @@ impl RetryConfig {
         Self { enabled: true, ..Self::default() }
     }
 
-    pub fn mock_with_errors(status_codes: Vec<u16>, error_messages: Vec<&str>) -> Self {
-        Self {
-            errors: ErrorMatcherConfig {
-                status_codes,
-                error_messages: error_messages.into_iter().map(ToString::to_string).collect(),
-            },
-            ..Self::mock()
-        }
+    pub fn mock_with_errors(errors: Vec<ErrorMatcherConfig>) -> Self {
+        Self { errors, ..Self::mock() }
     }
 }
 

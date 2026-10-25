@@ -247,6 +247,28 @@ mod tests {
     }
 
     #[test]
+    fn test_a_generic_request_without_a_simulation_header_shows_the_coins_it_sends() {
+        let asset = Asset::mock();
+        let request = GemTransferData {
+            value: 150_000u32.into(),
+            ..transfer(TransactionInputType::Generic {
+                asset: asset.clone(),
+                metadata: primitives::ApplicationMetadata::mock(),
+                extra: primitives::TransferDataExtra::default(),
+            })
+        };
+        let simulation = SimulationResult::new(vec![], vec![]);
+
+        assert_eq!(
+            amount_header(header(&request, Some(&simulation), None, Currency::USD, &ready())).title,
+            GemLocalizedText::Number {
+                number: GemFormattedNumber::asset_amount(&150_000u32.into(), &asset, GemValueStyle::Auto)
+            },
+            "an approval that also sends coins is reviewed by the coins it sends"
+        );
+    }
+
+    #[test]
     fn test_the_head_shows_the_requested_amount_until_the_fee_has_been_worked_out() {
         let sent = GemTransferData {
             value: 150_000u32.into(),

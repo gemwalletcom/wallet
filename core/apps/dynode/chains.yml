@@ -34,12 +34,18 @@ retry:
   enabled: true
   max_attempts: 3
   errors:
-    status_codes: [401, 403, 429, 502, 503, 504]
-    error_messages:
-      - "daily request limit"
-      - "rate limit"
-      - "Exceeded the quota usage"
-      - "Unauthorized"
+    - status: 401
+    - status: 403
+    - status: 429
+    - status: 502
+    - status: 503
+    - status: 504
+    - status: 400
+      message: "502 Bad Gateway"
+    - message: "daily request limit"
+    - message: "rate limit"
+    - message: "Exceeded the quota usage"
+    - message: "Unauthorized"
 
 chain_types:
   ethereum:

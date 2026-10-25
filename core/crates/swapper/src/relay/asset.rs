@@ -66,7 +66,6 @@ pub static SUPPORTED_CHAINS: LazyLock<Vec<SwapperChainAsset>> = LazyLock::new(||
         SwapperChainAsset::Assets(Chain::XLayer, vec![]),
         SwapperChainAsset::Assets(Chain::Gnosis, vec![GNOSIS_USDC_ASSET_ID.clone()]),
         SwapperChainAsset::Assets(Chain::Mantle, vec![MANTLE_USDC_ASSET_ID.clone(), MANTLE_USDT0_ASSET_ID.clone()]),
-        SwapperChainAsset::Assets(Chain::Blast, vec![]),
         SwapperChainAsset::Assets(Chain::World, vec![WORLD_USDC_E_ASSET_ID.clone()]),
         SwapperChainAsset::Assets(Chain::Ink, vec![INK_USDC_ASSET_ID.clone(), INK_USDT0_ASSET_ID.clone()]),
         SwapperChainAsset::Assets(Chain::Unichain, vec![UNICHAIN_USDC_ASSET_ID.clone()]),

@@ -61,6 +61,7 @@ pub(in crate::mayan::tx_builder) fn append_client_swap_instructions(
     instructions.extend(setup_instructions(setup, relayer)?);
     instructions.push(instruction_from_primitive::<Base64InstructionData>(swap.swap_instruction).map_err(solana_error)?);
     if let Some(cleanup_instruction) = swap.cleanup_instruction {
+        refuse_authority_grant(&cleanup_instruction)?;
         instructions.push(wrap_instruction_in_cpi_proxy(instruction_from_primitive::<Base64InstructionData>(cleanup_instruction).map_err(solana_error)?)?);
     }
     Ok(swap.address_lookup_table_addresses)
@@ -70,11 +71,20 @@ fn setup_instructions(instructions: Vec<SolanaInstruction>, payer: &Pubkey) -> R
     instructions
         .into_iter()
         .map(|instruction| {
+            refuse_authority_grant(&instruction)?;
             override_setup_payer(instruction, payer)
                 .and_then(|instruction| instruction_from_primitive::<Base64InstructionData>(instruction).map_err(solana_error))
                 .and_then(wrap_instruction_in_cpi_proxy)
         })
         .collect()
+}
+
+fn refuse_authority_grant(instruction: &SolanaInstruction) -> Result<(), SwapperError> {
+    let data = decode_base64(&instruction.data).map_err(solana_error)?;
+    match gem_solana::instructions::grants_authority(&instruction.program_id, &data) {
+        true => Err(SwapperError::InvalidRoute),
+        false => Ok(()),
+    }
 }
 
 fn setup_wraps_native_sol(instructions: &[SolanaInstruction], owner: &Pubkey) -> Result<bool, SwapperError> {
@@ -121,7 +131,48 @@ pub(in crate::mayan::tx_builder) fn solana_error(err: impl Display) -> SwapperEr
 
 #[cfg(test)]
 mod tests {
+    use std::sync::Arc;
+
+    use gem_client::testkit::MockClient;
+    use primitives::{AssetId, Chain, contract_constants::SOLANA_TOKEN_PROGRAM_ID};
+
     use super::*;
+    use crate::{
+        Swapper,
+        alien::mock::ProviderMock,
+        contract_check::verify_solana_programs,
+        mayan::{client::MayanClient, provider::Mayan},
+        solana_dex::SolanaTransaction,
+    };
+
+    #[test]
+    fn test_client_swap_through_jupiter_passes_the_contract_check() {
+        let user = "7g2rVN8fAAQdPh1mkajpvELqYa3gWvFXJsBLnKfEQfqy";
+        let payer: Pubkey = SolanaAddress::parse(user).unwrap().into();
+        let swap: SolanaClientSwap = serde_json::from_str(include_str!("../test/solana_client_swap_usdt_jupiter.json")).unwrap();
+        let mut instructions = Vec::new();
+        append_client_swap_instructions(&mut instructions, swap, &payer, &payer, "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB", "1000000").unwrap();
+        let data = SolanaTransaction::new(instructions, vec![]).encode(user, &[]).unwrap().data;
+        let mayan = Mayan::with_clients(MayanClient::new(MockClient::new()), MayanClient::new(MockClient::new()), Arc::new(ProviderMock::new("{}".to_string())));
+
+        verify_solana_programs(&data, &mayan.contracts(&AssetId::from_chain(Chain::Solana)).targets).unwrap();
+    }
+
+    #[test]
+    fn test_client_swap_refuses_a_setup_that_hands_over_an_account() {
+        let user = "7g2rVN8fAAQdPh1mkajpvELqYa3gWvFXJsBLnKfEQfqy";
+        let payer: Pubkey = SolanaAddress::parse(user).unwrap().into();
+        let mut swap: SolanaClientSwap = serde_json::from_str(include_str!("../test/solana_client_swap_usdt_jupiter.json")).unwrap();
+        swap.setup_instructions.get_or_insert_default().push(SolanaInstruction {
+            program_id: SOLANA_TOKEN_PROGRAM_ID.to_string(),
+            accounts: vec![],
+            data: gem_encoding::encode_base64(&[gem_solana::token::SET_AUTHORITY_DISCRIMINANT, 2, 0]),
+        });
+
+        let result = append_client_swap_instructions(&mut Vec::new(), swap, &payer, &payer, "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB", "1000000");
+
+        assert_eq!(result, Err(SwapperError::InvalidRoute), "a setup instruction inside Mayan's proxy may not hand the user's token account over");
+    }
 
     #[test]
     fn test_wrap_instruction_in_cpi_proxy_uses_deployed_program_id() {

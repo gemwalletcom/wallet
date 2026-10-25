@@ -1,8 +1,6 @@
 use alloy_primitives::{Address, B256, U256, hex::encode_prefixed as HexEncode};
 use alloy_sol_types::SolValue;
 use async_trait::async_trait;
-use gem_evm::u256::u256_to_biguint;
-use num_bigint::BigUint;
 use std::{fmt, str::FromStr, sync::Arc, vec};
 
 use crate::{
@@ -168,7 +166,7 @@ impl Swapper for UniswapV4 {
         let permit = data.permit2_data().map(Permit2Permit::try_from).transpose()?;
 
         let (approval, permit2) = match input.funding {
-            Funding::Permit2 => {
+            Funding::Token => {
                 let spenders = (deployment.permit2, deployment.universal_router);
                 check_permit2_approvals(&client, &request.wallet_address, &input.address.to_checksum(None), U256::from(amount_in), spenders, permit.is_some()).await?
             }
@@ -187,10 +185,7 @@ impl Swapper for UniswapV4 {
         let commands = build_commands(request, &input, &output, amount_in, to_amount, &quote.data.routes, permit, fee_token_is_input, deployment.universal_router_abi)?;
         let encoded = encode_commands(&commands, U256::from(sig_deadline));
 
-        let value = match input.funding {
-            Funding::Value | Funding::RouterBalance => u256_to_biguint(&(U256::from(amount_in) * input.scale)),
-            Funding::Permit2 => BigUint::ZERO,
-        };
+        let value = input.value(U256::from(amount_in));
 
         Ok(SwapperQuoteData {
             permit2,

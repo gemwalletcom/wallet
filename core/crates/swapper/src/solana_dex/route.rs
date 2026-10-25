@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use super::token::SwapToken;
 use crate::{
     SwapperError,
-    fees::{FeeSide, ReferralTransfer, SOLANA_FEE_MINTS, subtract_bps},
+    fees::{FeeSide, ReferralTransfer, SOLANA_FEE_MINTS},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
@@ -44,16 +44,8 @@ impl DexRoute {
     }
 
     pub fn minimum_output(&self, slippage_bps: u32) -> u64 {
-        let minimum_received = minimum_value(self.received_value(), slippage_bps);
-        match self.fee.side {
-            FeeSide::Input => minimum_received,
-            FeeSide::Output => minimum_received.saturating_add(self.fee.value),
-        }
+        self.fee.minimum_output(self.output_value, slippage_bps)
     }
-}
-
-pub(crate) fn minimum_value(value: u64, slippage_bps: u32) -> u64 {
-    u64::try_from(subtract_bps(&u128::from(value), slippage_bps)).unwrap_or_default()
 }
 
 pub(crate) fn preferred_fee_side(input_mint: &Pubkey, output_mint: &Pubkey) -> Option<FeeSide> {

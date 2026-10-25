@@ -21,8 +21,6 @@ public final class PerpetualChartViewModel {
     private let observerService: any PerpetualObservable
     private let asset: Asset
 
-    private var observeTask: Task<Void, Never>?
-
     private var session: GemCandleSession
 
     public var isPinching = false
@@ -47,17 +45,9 @@ public final class PerpetualChartViewModel {
 // MARK: - Actions
 
 public extension PerpetualChartViewModel {
-    func onAppear(perpetual: Perpetual) {
+    func observe(perpetual: Perpetual) async {
         observerService.subscribe(candleSubscription(perpetual: perpetual, period: currentPeriod))
-        observeTask?.cancel()
-        observeTask = Task {
-            await observeCandles()
-        }
-    }
-
-    func onDisappear(perpetual: Perpetual) {
-        observeTask?.cancel()
-        observeTask = nil
+        await observeCandles()
         observerService.unsubscribe(candleSubscription(perpetual: perpetual, period: currentPeriod))
     }
 

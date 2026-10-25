@@ -12,7 +12,7 @@ use primitives::{AssetId, Chain, SolanaTokenProgramId};
 
 use super::{client::JupiterClient, model::BuildRequest};
 use crate::{
-    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData,
+    Contracts, FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData,
     error::INVALID_ADDRESS,
     fees::{SOLANA_FEE_MINTS, on_chain_referral_fees},
 };
@@ -94,8 +94,8 @@ where
         SwapAmountMode::Fixed
     }
 
-    fn contracts(&self, _from_asset: &AssetId) -> Vec<&'static str> {
-        vec![JUPITER_PROGRAM_ID]
+    fn contracts(&self, _from_asset: &AssetId) -> Contracts {
+        Contracts::new(vec![JUPITER_PROGRAM_ID])
     }
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {

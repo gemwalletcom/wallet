@@ -773,7 +773,7 @@ pub fn details(perpetual: &Perpetual, asset: &Asset, positions: Vec<PerpetualPos
         .into_iter()
         .flatten()
         .collect(),
-        modify_buttons: button_rows(&[GemPerpetualButton::Increase, GemPerpetualButton::Reduce]),
+        modify_buttons: modify_buttons(perpetual),
         position_row: position.as_ref().map(|position| position_row(perpetual, asset, position)),
         position,
         associated_assets: associated_assets.into_iter().map(GemPerpetualAssociatedAssetRow::from).collect(),
@@ -867,6 +867,13 @@ fn perpetual_buttons(perpetual: &Perpetual, has_position: bool) -> Vec<GemPerpet
         (true, _) => button_rows(&[GemPerpetualButton::Modify, GemPerpetualButton::Close]),
         (false, true) => button_rows(&[GemPerpetualButton::Long, GemPerpetualButton::Short]),
         (false, false) => Vec::new(),
+    }
+}
+
+fn modify_buttons(perpetual: &Perpetual) -> Vec<GemPerpetualButtonRow> {
+    match perpetual.is_enabled {
+        true => button_rows(&[GemPerpetualButton::Increase, GemPerpetualButton::Reduce]),
+        false => button_rows(&[GemPerpetualButton::Reduce]),
     }
 }
 
@@ -1020,6 +1027,11 @@ mod tests {
                 rows: info_rows(market_row(&delisted, &asset)),
             }],
             "a delisted market cannot be traded"
+        );
+        assert_eq!(
+            details(&delisted, &asset, vec![PerpetualPosition::mock()], vec![]).modify_buttons,
+            button_rows(&[GemPerpetualButton::Reduce]),
+            "a position on a delisted market can only be reduced"
         );
 
         let detail_kinds = |position: &PerpetualPosition| position_details(&asset, position).into_iter().map(|detail| detail.kind).collect::<Vec<_>>();

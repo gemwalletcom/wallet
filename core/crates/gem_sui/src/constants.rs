@@ -11,6 +11,7 @@ pub const EMPTY_ADDRESS: &str = "0x000000000000000000000000000000000000000000000
 pub const ESTIMATION_GAS_BUDGET: u64 = 50_000_000;
 pub const SUI_STAKE_EVENT: &str = "0x3::validator::StakingRequestEvent";
 pub const SUI_UNSTAKE_EVENT: &str = "0x3::validator::UnstakingRequestEvent";
+pub const DEEPBOOK_ORDER_FILLED_EVENT: &str = "0x2c8d603bc51326b8c13cef9dd07031a408a48dddb541963357661df5d3204809::order_info::OrderFilled";
 
 #[cfg(feature = "rpc")]
 pub(crate) const TRANSFER_GAS_UNITS: u64 = 3_000;

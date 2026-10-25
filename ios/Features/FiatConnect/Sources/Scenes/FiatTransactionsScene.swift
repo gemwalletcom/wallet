@@ -52,6 +52,8 @@ public struct FiatTransactionsScene: View {
         }
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .listSectionSpacing(.compact)
+        .scrollContentBackground(.hidden)
+        .background { Colors.insetGroupedListStyle.ignoresSafeArea() }
         .bindQuery(model.query)
         .refreshable { await model.load() }
         .navigationTitle(model.title)

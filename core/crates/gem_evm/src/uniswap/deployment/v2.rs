@@ -19,9 +19,13 @@ impl SolidlyDeployment {
     pub fn pool_address(&self, token_a: &Address, token_b: &Address, stable: bool) -> Address {
         let (token0, token1) = sort_tokens(token_a, token_b);
         let salt = keccak256([token0.as_slice(), token1.as_slice(), &[u8::from(stable)]].concat());
-        let creation_code = [CLONE_CREATION_PREFIX.as_slice(), self.implementation.as_slice(), CLONE_CREATION_SUFFIX.as_slice()].concat();
-        self.factory.create2(salt, keccak256(creation_code))
+        clone_address(&self.factory, &self.implementation, salt)
     }
+}
+
+pub(super) fn clone_address(factory: &Address, implementation: &Address, salt: B256) -> Address {
+    let creation_code = [CLONE_CREATION_PREFIX.as_slice(), implementation.as_slice(), CLONE_CREATION_SUFFIX.as_slice()].concat();
+    factory.create2(salt, keccak256(creation_code))
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

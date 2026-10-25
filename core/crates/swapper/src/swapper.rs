@@ -1,8 +1,8 @@
 use crate::ranking::{leaves_no_dust, rank_quotes};
 use crate::{
     AssetList, FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, SwapQuoteError, SwapQuotes, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperProviderMode, SwapperQuoteData,
-    across, alien::RpcProvider, bridgers, cetus_clmm, chainflip, config::quote_preferences, cross_chain::VaultAddresses, dedust, hyperion, hyperliquid, jupiter, mayan, meteora_damm_v2, meteora_dlmm, near_intents, okx, orca, panora,
-    provider_group::ProviderGroup, pump_swap, raydium_amm, raydium_clmm, raydium_cpmm, relay, solana_dex, squid, stonfi, swaps_xyz, thorchain, uniswap,
+    across, alien::RpcProvider, bridgers, cetus_clmm, chainflip, config::quote_preferences, cross_chain::VaultAddresses, dedust, deepbook, hyperion, hyperliquid, jupiter, mayan, meteora_damm_v2, meteora_dlmm, near_intents, okx, orca,
+    panora, provider_group::ProviderGroup, pump_swap, raydium_amm, raydium_clmm, raydium_cpmm, relay, solana_dex, squid, stellar_dex, stonfi, swaps_xyz, thorchain, uniswap, xrp_ledger,
 };
 use primitives::{AssetId, Chain, EVMChain};
 use std::{collections::HashSet, fmt::Debug, sync::Arc};
@@ -95,11 +95,15 @@ impl GemSwapper {
             Some(Self::boxed(near_intents::NearIntents::new(rpc_provider.clone()))),
             Some(Box::new(chainflip::ChainflipProvider::new(rpc_provider.clone()))),
             cetus_clmm::CetusClmm::new(rpc_provider.clone()).map(Self::boxed),
+            deepbook::Deepbook::new(rpc_provider.clone()).map(Self::boxed),
             Some(Box::new(relay::Relay::new(rpc_provider.clone()))),
             Some(Box::new(squid::Squid::new(rpc_provider.clone()))),
             swaps_xyz::SwapsXyz::new(rpc_provider.clone()).map(Self::boxed),
             Some(uniswap::default::boxed_aerodrome(rpc_provider.clone())),
+            Some(Self::boxed(uniswap::aero::Aero::new(rpc_provider.clone()))),
             Some(Box::new(bridgers::Bridgers::new(rpc_provider.clone()))),
+            stellar_dex::StellarDex::new(rpc_provider.clone()).map(Self::boxed),
+            xrp_ledger::XrpLedger::new(rpc_provider.clone()).map(Self::boxed),
         ]
         .into_iter()
         .flatten()
@@ -432,16 +436,104 @@ mod tests {
 
 #[cfg(all(test, feature = "swap_integration_tests"))]
 mod swap_integration_tests {
-    use std::{collections::BTreeSet, sync::Arc, time::Instant};
+    use std::{
+        collections::{BTreeMap, BTreeSet},
+        sync::Arc,
+        time::Instant,
+    };
 
+    use futures::{StreamExt, stream};
     use num_bigint::BigUint;
     use primitives::{
-        AssetId, Chain,
+        AssetFull, AssetId, Chain, ChainType,
         asset_constants::{ETHEREUM_USDC_ASSET_ID, SOLANA_USDC_ASSET_ID},
+        testkit::signer_mock::{TEST_EVM_SENDER, TEST_SOLANA_SENDER, TEST_TON_SENDER, TEST_TRON_SENDER},
     };
 
     use super::*;
-    use crate::{QuoteRequest, alien::reqwest_provider::NativeProvider, testkit::mock_quote};
+    use crate::{QuoteRequest, SwapperQuoteAsset, alien::reqwest_provider::NativeProvider, config::API_BASE_URL, models::Options, testkit::mock_quote};
+
+    const CONTRACT_CHECK_AMOUNT_USD: f64 = 50.0;
+    const CONTRACT_CHECK_CONCURRENCY: usize = 4;
+
+    fn test_address(chain: Chain) -> Option<&'static str> {
+        match chain.chain_type() {
+            ChainType::Ethereum => Some(TEST_EVM_SENDER),
+            ChainType::Solana => Some(TEST_SOLANA_SENDER),
+            ChainType::Ton => Some(TEST_TON_SENDER),
+            ChainType::Tron => Some(TEST_TRON_SENDER),
+            _ => None,
+        }
+    }
+
+    fn bound_routes(swappers: &[Box<dyn Swapper>]) -> Vec<(&dyn Swapper, AssetId, AssetId)> {
+        let mut tokens: BTreeMap<Chain, Vec<AssetId>> = BTreeMap::new();
+        for (chain, assets) in swappers.iter().flat_map(|swapper| swapper.supported_assets()).filter_map(|supported| match supported {
+            SwapperChainAsset::Assets(chain, assets) => Some((chain, assets)),
+            SwapperChainAsset::All(_) => None,
+        }) {
+            let listed = tokens.entry(chain).or_default();
+            listed.extend(assets.into_iter().filter(|asset| !listed.contains(asset)).collect::<Vec<_>>());
+        }
+        let destination = |swapper: &dyn Swapper, from: &AssetId| match swapper.provider().mode {
+            SwapperProviderMode::OnChain if from.is_native() => tokens.get(&from.chain)?.first().cloned(),
+            SwapperProviderMode::OnChain => Some(from.chain.as_asset_id()),
+            _ => swapper.supported_chains().into_iter().find(|chain| *chain != from.chain && test_address(*chain).is_some()).map(|chain| chain.as_asset_id()),
+        };
+        swappers
+            .iter()
+            .flat_map(|swapper| swapper.supported_assets().into_iter().map(move |supported| (swapper, supported)))
+            .flat_map(|(swapper, supported)| {
+                let chain = supported.get_chain();
+                let assets = match supported {
+                    SwapperChainAsset::All(_) => tokens.get(&chain).cloned().unwrap_or_default(),
+                    SwapperChainAsset::Assets(_, assets) => assets,
+                };
+                std::iter::once(chain.as_asset_id())
+                    .chain(assets)
+                    .filter(|from| !swapper.contracts(from).targets.is_empty())
+                    .filter_map(|from| destination(swapper.as_ref(), &from).map(|to| (swapper.as_ref(), from, to)))
+                    .collect::<Vec<_>>()
+            })
+            .collect()
+    }
+
+    async fn quote_asset(asset_id: &AssetId) -> Option<(SwapperQuoteAsset, BigUint)> {
+        let mut url = reqwest::Url::parse(API_BASE_URL).ok()?;
+        url.path_segments_mut().ok()?.extend(["v1", "assets", &asset_id.to_string()]);
+        let asset: AssetFull = reqwest::get(url).await.ok()?.json().await.ok()?;
+        let value = CONTRACT_CHECK_AMOUNT_USD / asset.price?.price * 10f64.powi(asset.asset.decimals as i32);
+        Some((SwapperQuoteAsset::from(&asset.asset), BigUint::from(value as u128)))
+    }
+
+    async fn checked_route(swapper: &dyn Swapper, from: &AssetId, to: &AssetId) -> Option<Result<(), String>> {
+        let ((from_asset, value), (to_asset, _)) = (quote_asset(from).await?, quote_asset(to).await?);
+        let request = QuoteRequest {
+            from_asset,
+            to_asset,
+            wallet_address: test_address(from.chain)?.to_string(),
+            destination_address: test_address(to.chain)?.to_string(),
+            value,
+            options: Options::default(),
+        };
+        let quote = swapper.get_quote(&request).await.ok()?;
+        let data = swapper.get_quote_data(&quote, FetchQuoteData::None).await.ok()?;
+        Some(swapper.verify_contracts(&quote, &data).map_err(|_| {
+            let spender = data.approval.map(|approval| approval.spender).or(data.permit2.map(|permit2| permit2.spender));
+            format!("{} {from} -> {to}: calls {}, spender {spender:?}, data {:.200}", swapper.provider().id.as_ref(), data.to, data.data)
+        }))
+    }
+
+    #[tokio::test]
+    async fn test_every_bound_route_passes_the_contract_check() {
+        let swapper = GemSwapper::new(Arc::new(NativeProvider::default().set_debug(false)));
+        let routes = bound_routes(&swapper.swappers);
+        let results: Vec<_> = stream::iter(&routes).map(|(swapper, from, to)| checked_route(*swapper, from, to)).buffer_unordered(CONTRACT_CHECK_CONCURRENCY).collect().await;
+        let refused: Vec<String> = results.iter().flatten().filter_map(|result| result.clone().err()).collect();
+
+        println!("{} of {} bound routes quoted", results.iter().flatten().count(), routes.len());
+        assert!(refused.is_empty(), "Confirm refuses these routes, each calling a contract its provider does not ship:\n{}", refused.join("\n"));
+    }
 
     async fn report(swapper: &GemSwapper, request: &QuoteRequest, round: &str) {
         let provider_ids: BTreeSet<_> = swapper.get_providers_for_request(request).unwrap().into_iter().map(|provider| provider.id).collect();

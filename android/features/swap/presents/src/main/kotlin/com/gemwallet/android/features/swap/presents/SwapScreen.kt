@@ -12,6 +12,7 @@ import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.features.swap.presents.dialogs.PriceImpactWarningDialog
 import com.gemwallet.android.features.swap.presents.dialogs.SwapQuoteDataErrorDialog
+import com.gemwallet.android.features.swap.viewmodels.SwapPriceImpactConfirmation
 import com.gemwallet.android.features.swap.viewmodels.SwapViewModel
 import com.gemwallet.android.ui.ObserveStartedState
 import com.gemwallet.android.ui.components.InfoBottomSheet
@@ -39,7 +40,7 @@ fun SwapScreen(
     val viewState by viewModel.viewState.collectAsStateWithLifecycle()
     val selectedSlippage by viewModel.selectedSlippage.collectAsStateWithLifecycle()
 
-    var isShowPriceImpactAlert by remember { mutableStateOf(false) }
+    var priceImpactConfirmation by remember { mutableStateOf<SwapPriceImpactConfirmation?>(null) }
     var isShowDetails by remember { mutableStateOf(false) }
     var quoteDataError by remember { mutableStateOf<GemSwapErrorDisplay?>(null) }
 
@@ -74,7 +75,7 @@ fun SwapScreen(
                 SwapAction.Swap -> viewModel.onPrimaryAction(
                     onConfirm = onConfirm,
                     onError = { quoteDataError = it },
-                    onShowPriceImpactWarning = { isShowPriceImpactAlert = true },
+                    onShowPriceImpactWarning = { priceImpactConfirmation = it },
                 )
 
                 SwapAction.Cancel -> onCancel()
@@ -83,11 +84,11 @@ fun SwapScreen(
     )
 
     PriceImpactWarningDialog(
-        isVisible = isShowPriceImpactAlert,
-        priceImpact = viewState.details?.summary?.priceImpactRow,
+        isVisible = priceImpactConfirmation != null,
+        priceImpact = priceImpactConfirmation?.priceImpact,
         asset = pay?.asset,
-        onDismiss = { isShowPriceImpactAlert = false },
-        onContinue = { viewModel.swap(onConfirm = onConfirm, onError = { quoteDataError = it }) },
+        onDismiss = { priceImpactConfirmation = null },
+        onContinue = { priceImpactConfirmation?.let { confirmation -> viewModel.swap(confirmation.quote, onConfirm = onConfirm, onError = { quoteDataError = it }) } },
     )
 
     SwapQuoteDataErrorDialog(

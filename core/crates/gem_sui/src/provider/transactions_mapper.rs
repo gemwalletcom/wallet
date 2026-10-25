@@ -1,5 +1,5 @@
 use crate::models::{BalanceChange, Digest, Event, EventStake, EventUnstake, GasUsed, STATUS_SUCCESS, TransactionBlocks};
-use crate::{SUI_COIN_TYPE, SUI_STAKE_EVENT, SUI_UNSTAKE_EVENT, full_coin_type, sui_framework_package_address};
+use crate::{DEEPBOOK_ORDER_FILLED_EVENT, SUI_COIN_TYPE, SUI_STAKE_EVENT, SUI_UNSTAKE_EVENT, full_coin_type, sui_framework_package_address};
 use chain_primitives::{BalanceDiff, SwapMapper};
 use chrono::{TimeZone, Utc};
 use num_bigint::{BigUint, Sign};
@@ -65,9 +65,9 @@ fn map_transaction_type(events: &[Event], move_call_packages: &[String], balance
         return Some((chain.as_asset_id(), stake.staker_address, stake.validator_address, TransactionType::StakeDelegate, stake.amount, None));
     }
 
-    if events.iter().any(|x| x.event_type.contains("Swap"))
+    if let Some(provider) = swap_provider(events)
         && let Some(owner) = owner.clone()
-        && let Some(swap) = map_owner_swap(balance_changes, &owner, fee)
+        && let Some(swap) = map_owner_swap(balance_changes, &owner, fee, provider)
     {
         let swap = swap.with_referral_fee(map_referral_fee(balance_changes, &owner));
         let asset_id = swap.from_asset.clone();
@@ -98,11 +98,21 @@ fn map_transaction_type(events: &[Event], move_call_packages: &[String], balance
     None
 }
 
-fn map_owner_swap(balance_changes: &[BalanceChange], owner: &str, fee: &BigUint) -> Option<TransactionSwapMetadata> {
+fn swap_provider(events: &[Event]) -> Option<SwapProvider> {
+    if events.iter().any(|event| event.event_type.contains("Swap")) {
+        Some(SwapProvider::CetusClmm)
+    } else if events.iter().any(|event| type_tag_matches(&event.event_type, DEEPBOOK_ORDER_FILLED_EVENT)) {
+        Some(SwapProvider::DeepbookV3)
+    } else {
+        None
+    }
+}
+
+fn map_owner_swap(balance_changes: &[BalanceChange], owner: &str, fee: &BigUint, provider: SwapProvider) -> Option<TransactionSwapMetadata> {
     let owner_balance_changes: Vec<_> = balance_changes.iter().filter(|x| x.owner.get_address_owner().as_deref() == Some(owner)).cloned().collect();
     match owner_balance_changes.len() {
-        2 => map_swap_from_balance_changes(owner_balance_changes, fee),
-        3 => map_swap_from_balance_changes(owner_balance_changes.into_iter().filter(|x| !is_native_sui(&x.coin_type)).collect(), fee),
+        2 => map_swap_from_balance_changes(owner_balance_changes, fee, provider),
+        3 => map_swap_from_balance_changes(owner_balance_changes.into_iter().filter(|x| !is_native_sui(&x.coin_type)).collect(), fee, provider),
         _ => None,
     }
 }
@@ -161,7 +171,7 @@ fn select_native_transfer_source<'a>(balance_changes: &'a [BalanceChange], to_ch
         .or_else(|| outgoing_changes(balance_changes, &to_change.coin_type).max_by(|left, right| left.amount.magnitude().cmp(right.amount.magnitude())))
 }
 
-pub fn map_swap_from_balance_changes(balance_changes: Vec<BalanceChange>, fee: &BigUint) -> Option<TransactionSwapMetadata> {
+pub fn map_swap_from_balance_changes(balance_changes: Vec<BalanceChange>, fee: &BigUint, provider: SwapProvider) -> Option<TransactionSwapMetadata> {
     let balance_diffs: Vec<BalanceDiff> = balance_changes
         .into_iter()
         .map(|change| BalanceDiff {
@@ -171,7 +181,7 @@ pub fn map_swap_from_balance_changes(balance_changes: Vec<BalanceChange>, fee: &
         .collect();
 
     let native_asset_id = Chain::Sui.as_asset_id();
-    SwapMapper::map_swap(&balance_diffs, fee, &native_asset_id, Some(SwapProvider::CetusClmm))
+    SwapMapper::map_swap(&balance_diffs, fee, &native_asset_id, Some(provider))
 }
 
 fn map_referral_fee(balance_changes: &[BalanceChange], owner: &str) -> Option<TransactionSwapReferralFee> {
@@ -217,6 +227,7 @@ mod tests {
     use crate::provider::testkit::TEST_TRANSACTION_ID;
     use crate::{SUI_COIN_TYPE_FULL, SUI_STAKE_EVENT, SUI_UNSTAKE_EVENT};
     use num_bigint::BigUint;
+    use primitives::asset_constants::SUI_USDC_TOKEN_ID;
     use serde_json::json;
 
     const RECIPIENT_ADDRESS: &str = "0x9d6b98b18fd26b5efeec68d020dcf1be7a94c2c315353779bc6b3aed44188ddf";
@@ -261,6 +272,26 @@ mod tests {
                 asset_id: usdc,
                 value: BigUint::from(168396207u64),
             })
+        );
+    }
+
+    #[test]
+    fn test_map_deepbook_swap() {
+        let digest: Digest = serde_json::from_str(include_str!("../../testdata/swap_deepbook.json")).unwrap();
+        assert_eq!(digest.events.iter().filter(|event| event.event_type == DEEPBOOK_ORDER_FILLED_EVENT).count(), 1);
+
+        let transaction = map_transaction(digest).unwrap();
+
+        assert_eq!(transaction.transaction_type, TransactionType::Swap);
+        assert_eq!(
+            transaction.swap_metadata().unwrap(),
+            TransactionSwapMetadata::new(
+                Chain::Sui.as_asset_id(),
+                BigUint::from(495923950000u64),
+                AssetId::from_token(Chain::Sui, SUI_USDC_TOKEN_ID),
+                BigUint::from(491263430u64),
+                SwapProvider::DeepbookV3
+            )
         );
     }
 

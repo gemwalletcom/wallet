@@ -1,7 +1,7 @@
 use gem_evm::{
     across::deployment::AcrossDeployment,
     uniswap::deployment::{
-        get_uniswap_permit2_by_chain,
+        aero, get_uniswap_permit2_by_chain,
         v3::{get_aerodrome_router_deployment_by_chain, get_oku_deployment_by_chain, get_pancakeswap_router_deployment_by_chain, get_uniswap_router_deployment_by_chain, get_wagmi_router_deployment_by_chain},
         v4::get_uniswap_deployment_by_chain,
     },
@@ -52,6 +52,7 @@ fn swap_contracts(chain: Chain) -> Vec<ScanAddress> {
         (SwapProvider::Oku, oku.as_ref().map(|deployment| deployment.universal_router)),
         (SwapProvider::Wagmi, wagmi.as_ref().map(|deployment| deployment.universal_router)),
         (SwapProvider::Aerodrome, aerodrome.as_ref().map(|deployment| deployment.universal_router)),
+        (SwapProvider::Aero, aero::get_factory_by_chain(&chain).map(|_| aero::METAROUTER)),
     ]
     .into_iter()
     .filter_map(|(provider, address)| address.map(|address| ScanAddress::contract(chain, address, format!("{} Router", provider.name()))));

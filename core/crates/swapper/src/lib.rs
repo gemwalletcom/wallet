@@ -23,6 +23,7 @@ pub mod chainflip;
 pub mod client_factory;
 pub mod config;
 pub mod dedust;
+mod deepbook;
 pub mod error;
 pub mod hyperion;
 pub mod hyperliquid;
@@ -45,11 +46,14 @@ mod route_cache;
 mod route_path;
 mod solana_dex;
 pub mod squid;
+mod stellar_dex;
 pub mod stonfi;
+mod sui_swap;
 pub mod swapper;
 pub mod swaps_xyz;
 pub mod thorchain;
 pub mod uniswap;
+mod xrp_ledger;
 
 use number_formatter::BigNumberFormatter;
 
@@ -64,7 +68,7 @@ pub fn amount_to_value(token: &str, decimals: u32) -> Option<String> {
 #[cfg(feature = "reqwest_provider")]
 pub use alien::reqwest_provider::NativeProvider;
 pub use alien::{AlienError, HttpMethod, RpcClient, RpcProvider, Target};
-pub use deployment::Deployment;
+pub use deployment::{Contracts, Deployment};
 pub use error::SwapperError;
 pub use models::*;
 pub use swapper_trait::Swapper;

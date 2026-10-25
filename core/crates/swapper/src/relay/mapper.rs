@@ -29,7 +29,7 @@ pub fn validate_quote_response(from_chain: RelayChain, quote_response: &RelayQuo
 
 fn validate_targets(from_chain: RelayChain, quote_response: &RelayQuoteResponse) -> Result<(), SwapperError> {
     let chain = from_chain.to_chain();
-    let contracts = contracts::contracts(chain);
+    let contracts = contracts::contracts(chain).targets;
     for target in quote_response.targets() {
         if !Deployment::contains(chain, &contracts, &from_chain.contract_address(&target)?) {
             return Err(SwapperError::InvalidRoute);

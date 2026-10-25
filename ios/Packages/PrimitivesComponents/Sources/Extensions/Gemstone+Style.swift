@@ -724,6 +724,7 @@ public extension SwapProvider {
         case .chainflip: Images.SwapProviders.chainflip
         case .relay: Images.SwapProviders.relay
         case .aerodrome: Images.SwapProviders.aerodrome
+        case .aero: Images.SwapProviders.aero
         case .hyperliquid: Images.SwapProviders.hyperliquid
         case .nearIntents: Images.SwapProviders.nearIntents
         case .orca: Images.SwapProviders.orca
@@ -738,6 +739,9 @@ public extension SwapProvider {
         case .pumpSwap: Images.SwapProviders.pumpswap
         case .meteoraDammV2: Images.SwapProviders.meteora
         case .sunswapV3: Images.SwapProviders.sunswap
+        case .stellarDex: Images.SwapProviders.stellarDex
+        case .deepbookV3: Images.SwapProviders.deepbook
+        case .xrpLedger: Images.SwapProviders.xrpLedger
         }
     }
 }

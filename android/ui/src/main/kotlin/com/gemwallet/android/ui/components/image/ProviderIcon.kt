@@ -40,6 +40,8 @@ fun SwapProvider.iconResource(): Int = when (this) {
 
     SwapProvider.AERODROME -> R.drawable.swap_provider_aerodrome
 
+    SwapProvider.AERO -> R.drawable.swap_provider_aero
+
     SwapProvider.HYPERLIQUID -> R.drawable.chain_hyperliquid
 
     SwapProvider.NEAR_INTENTS -> R.drawable.swap_provider_near_intents
@@ -67,6 +69,12 @@ fun SwapProvider.iconResource(): Int = when (this) {
     SwapProvider.METEORA_DAMM_V2 -> R.drawable.swap_provider_meteora
 
     SwapProvider.SUNSWAP_V3 -> R.drawable.swap_provider_sunswap
+
+    SwapProvider.STELLAR_DEX -> R.drawable.chain_stellar
+
+    SwapProvider.DEEPBOOK_V3 -> R.drawable.swap_provider_deepbook
+
+    SwapProvider.XRP_LEDGER -> R.drawable.chain_xrp
 }
 
 @DrawableRes

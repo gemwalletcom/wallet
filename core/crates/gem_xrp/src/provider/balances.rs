@@ -18,6 +18,13 @@ fn default_if_account_not_found<T: Default>(result: Result<T, Box<dyn Error + Se
     }
 }
 
+impl<C: Client + Clone> XrpClient<C> {
+    pub async fn has_trust_line(&self, address: &str, token_id: &str) -> Result<bool, Box<dyn Error + Send + Sync>> {
+        let balances = self.get_balance_tokens(address.to_string(), vec![token_id.to_string()]).await?;
+        Ok(balances.first().is_some_and(|balance| balance.is_active))
+    }
+}
+
 #[async_trait]
 impl<C: Client + Clone> ChainBalances for XrpClient<C> {
     async fn get_balance_coin(&self, address: String) -> Result<AssetBalance, Box<dyn Error + Sync + Send>> {

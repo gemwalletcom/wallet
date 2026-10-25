@@ -66,6 +66,18 @@ pub fn map_perpetual_balance(positions: &AssetPositions) -> PerpetualBalance {
     PerpetualBalance { available, reserved, withdrawable }
 }
 
+pub fn map_perpetual_dexes_balance(states: &[(PerpDex, AssetPositions)]) -> PerpetualBalance {
+    total_dexes_balance(states.iter().map(|(dex, positions)| (*dex, map_perpetual_balance(positions))).collect())
+}
+
+pub fn total_dexes_balance(balances: Vec<(PerpDex, PerpetualBalance)>) -> PerpetualBalance {
+    let withdrawable = balances.iter().find(|(dex, _)| *dex == PerpDex::Main).map_or(0.0, |(_, balance)| balance.withdrawable);
+    PerpetualBalance {
+        withdrawable,
+        ..balances.into_iter().map(|(_, balance)| balance).sum()
+    }
+}
+
 pub fn map_perpetual_balance_from_spot(balances: &Balances) -> PerpetualBalance {
     let Some(collateral) = balances.balances.iter().find(|balance| balance.coin == USDC_SYMBOL) else {
         return PerpetualBalance {
@@ -721,6 +733,18 @@ mod tests {
             },
             "the margin of the isolated HYPE position is in use alongside the cross BTC margin"
         );
+    }
+
+    #[test]
+    fn test_map_perpetual_dexes_balance() {
+        let xyz = AssetPositions {
+            withdrawable: "500".to_string(),
+            ..AssetPositions::mock()
+        };
+        let balance = map_perpetual_dexes_balance(&[(PerpDex::Main, AssetPositions::mock()), (PerpDex::Xyz, xyz)]);
+
+        assert_eq!(balance.available, 16000.0);
+        assert_eq!(balance.withdrawable, 8000.0, "Hyperliquid pays a withdrawal from the main dex only");
     }
 
     #[test]

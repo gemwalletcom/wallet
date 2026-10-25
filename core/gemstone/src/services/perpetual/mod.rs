@@ -17,6 +17,7 @@ use futures::lock::Mutex;
 use gem_hypercore::config::HypercoreConfig;
 use gem_hypercore::models::perp_dex::PerpDex;
 use gem_hypercore::models::websocket::HyperliquidSocketMessage;
+use gem_hypercore::provider::perpetual_mapper::total_dexes_balance;
 use gem_hypercore::provider::websocket_mapper::{diff_clearinghouse_positions, diff_open_orders_positions, parse_websocket_data};
 use primitives::perpetual::{PerpetualAccountPositions, PerpetualBalance, PerpetualData};
 use primitives::portfolio::PerpetualPortfolio;
@@ -263,12 +264,16 @@ impl GemPerpetualService {
 
 impl GemPerpetualService {
     pub async fn sync_positions(&self, wallet_id: WalletId, chain: Chain, address: String) -> Result<PerpetualAccountMode, GemServiceError> {
-        let PerpetualAccountPositions { mode, summary } = self.gateway.get_positions(chain, address).await?;
+        let PerpetualAccountPositions { mode, summary, is_complete } = self.gateway.get_positions(chain, address).await?;
         self.wallet_preferences.set_perpetual_account_mode(wallet_id.clone(), mode)?;
-        self.update_balance(wallet_id.clone(), summary.balance).await?;
+        if is_complete || rules::spot_is_perpetual_collateral(mode) {
+            self.update_balance(wallet_id.clone(), summary.balance).await?;
+        }
         let positions = self.with_stored_markets(summary.positions).await?;
-        let existing_ids = self.store.get_position_ids(wallet_id.clone(), provider(chain)?).await?;
-        let delete_ids = stale(existing_ids, positions.iter().map(|position| position.id.clone()));
+        let delete_ids = match is_complete {
+            true => stale(self.store.get_position_ids(wallet_id.clone(), provider(chain)?).await?, positions.iter().map(|position| position.id.clone())),
+            false => Vec::new(),
+        };
         self.store.update_positions(wallet_id, positions, delete_ids).await?;
         Ok(mode)
     }
@@ -276,7 +281,8 @@ impl GemPerpetualService {
     fn total_balance(&self, wallet_id: WalletId, dex: PerpDex, balance: PerpetualBalance) -> Option<PerpetualBalance> {
         let mut balances = self.dex_balances.lock().unwrap();
         balances.insert((wallet_id.clone(), dex), balance);
-        self.perp_dexes.iter().map(|dex| balances.get(&(wallet_id.clone(), *dex)).cloned()).sum()
+        let dexes = self.perp_dexes.iter().map(|dex| balances.get(&(wallet_id.clone(), *dex)).map(|balance| (*dex, balance.clone()))).collect::<Option<Vec<_>>>()?;
+        Some(total_dexes_balance(dexes))
     }
 
     async fn with_stored_markets(&self, positions: Vec<PerpetualPosition>) -> Result<Vec<PerpetualPosition>, GemServiceError> {
@@ -346,7 +352,7 @@ mod tests {
     use futures::executor::block_on;
     use primitives::Account;
 
-    use super::testkit::PerpetualTestkit;
+    use super::testkit::{EMPTY_CLEARINGHOUSE_STATE, PerpetualTestkit};
     use super::*;
     use crate::services::balance::GemAssetBalance;
     use crate::services::transfer::{GemRecentActivity, GemRecentActivityStore};
@@ -522,6 +528,27 @@ mod tests {
     }
 
     #[test]
+    fn test_a_refresh_missing_a_dex_keeps_that_dexs_positions_and_the_balance() {
+        block_on(async {
+            let testkit = PerpetualTestkit::with_provider(TestAlienProvider::with_json_by_request_type(&[
+                ("userAbstraction", r#""default""#),
+                ("clearinghouseState", EMPTY_CLEARINGHOUSE_STATE),
+                ("clearinghouseState:xyz", "{}"),
+            ]));
+            let xyz = PerpetualPosition {
+                id: "xyz:NVDA".to_string(),
+                ..PerpetualPosition::mock()
+            };
+            *testkit.store.positions.lock().unwrap() = vec![xyz.clone()];
+
+            testkit.service.sync_positions(testkit.wallet_id.clone(), Chain::HyperCore, "0x123".to_string()).await.unwrap();
+
+            assert_eq!(*testkit.store.positions.lock().unwrap(), vec![xyz], "a dex that did not answer keeps its stored positions");
+            assert!(testkit.balances.balances.lock().unwrap().get(&testkit.wallet_id).is_none(), "a balance missing a dex is not shown");
+        })
+    }
+
+    #[test]
     fn test_a_dex_snapshot_keeps_the_other_dexes_positions_and_adds_up_the_balance() {
         let mut testkit = block_on(PerpetualTestkit::with_unified_balance());
         testkit.service.perp_dexes = vec![PerpDex::Main, PerpDex::Xyz];
@@ -539,6 +566,8 @@ mod tests {
 
         message(&testkit, include_str!("../../../../crates/gem_hypercore/testdata/ws_clearinghouse_state_xyz.json"));
         assert_eq!(available(&testkit), Some((14_400_000_000u64 + 900_000_000u64).to_string()));
+        let withdrawable = testkit.balances.balances.lock().unwrap()[&testkit.wallet_id][0].withdrawable.to_string();
+        assert_eq!(withdrawable, "14400000000", "Hyperliquid pays a withdrawal from the main dex only");
         let held: Vec<String> = testkit.store.positions.lock().unwrap().iter().map(|position| position.perpetual_id.symbol.clone()).collect();
         assert_eq!(held, vec!["ETH".to_string(), "xyz:NVDA".to_string()], "the xyz snapshot does not delete the main dex position");
     }

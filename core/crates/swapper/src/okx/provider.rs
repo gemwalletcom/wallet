@@ -6,7 +6,7 @@ use super::{
     quote_data::build_swap_quote_data,
 };
 use crate::{
-    FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperError, SwapperProvider, SwapperQuoteData,
+    Contracts, FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperError, SwapperProvider, SwapperQuoteData,
     alien::{RpcClient, RpcProvider},
     config::get_swap_provider_url,
     models::SwapperChainAsset,
@@ -62,7 +62,7 @@ where
         SwapAmountMode::Fixed
     }
 
-    fn contracts(&self, from_asset: &AssetId) -> Vec<&'static str> {
+    fn contracts(&self, from_asset: &AssetId) -> Contracts {
         constants::contracts(from_asset.chain)
     }
 
@@ -122,12 +122,18 @@ mod tests {
     fn test_contracts() {
         let provider = OkxProvider::mock(MockClient::new(), "{}");
 
-        assert_eq!(provider.contracts(&AssetId::from_chain(Chain::Ethereum)), vec!["0x8feAB81D36E7576107D5dE0758c1b839Be31B4F6", EVM_TOKEN_APPROVE]);
+        assert_eq!(
+            provider.contracts(&AssetId::from_chain(Chain::Ethereum)),
+            Contracts {
+                targets: vec!["0x8feAB81D36E7576107D5dE0758c1b839Be31B4F6"],
+                spenders: vec![EVM_TOKEN_APPROVE],
+            }
+        );
         assert_eq!(provider.contracts(&ETHEREUM_USDC_ASSET_ID), provider.contracts(&AssetId::from_chain(Chain::Ethereum)));
-        assert_eq!(provider.contracts(&AssetId::from_chain(Chain::Solana)), vec![SOLANA_OKX_DEX_V2_PROGRAM_ID]);
-        assert!(provider.contracts(&AssetId::from_chain(Chain::Bitcoin)).is_empty());
+        assert_eq!(provider.contracts(&AssetId::from_chain(Chain::Solana)), Contracts::new(vec![SOLANA_OKX_DEX_V2_PROGRAM_ID]));
+        assert_eq!(provider.contracts(&AssetId::from_chain(Chain::Bitcoin)), Contracts::default());
         for asset in support_assets() {
-            assert!(!provider.contracts(&asset.get_chain().as_asset_id()).is_empty(), "{:?} ships no contracts", asset.get_chain());
+            assert!(!provider.contracts(&asset.get_chain().as_asset_id()).targets.is_empty(), "{:?} ships no contracts", asset.get_chain());
         }
     }
 

@@ -1,0 +1,211 @@
+{
+  "digest": "9AWeiFTdgmJc4m53mJ35bEDez1xsEx3girZTCtvukH8d",
+  "effects": {
+    "gasUsed": {
+      "computationCost": "161000",
+      "storageCost": "66158000",
+      "storageRebate": "59236076",
+      "nonRefundableStorageFee": "5924"
+    },
+    "status": {
+      "status": "success"
+    },
+    "gasObject": {
+      "owner": {
+        "AddressOwner": "0xa9b3043c6514271654ca52730ea83b6e08b538f747bab1eae093b57b13ef4f9d"
+      }
+    }
+  },
+  "move_call_packages": [
+    "0x0000000000000000000000000000000000000000000000000000000000000002",
+    "0x337f4f4f6567fcd778d5454f27c16c70e2f274cc6377ea6249ddf491482ef497"
+  ],
+  "balanceChanges": [
+    {
+      "owner": {
+        "AddressOwner": "0xa9b3043c6514271654ca52730ea83b6e08b538f747bab1eae093b57b13ef4f9d"
+      },
+      "coinType": "0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI",
+      "amount": "-495931032924"
+    },
+    {
+      "owner": {
+        "AddressOwner": "0xa9b3043c6514271654ca52730ea83b6e08b538f747bab1eae093b57b13ef4f9d"
+      },
+      "coinType": "0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC",
+      "amount": "491263430"
+    }
+  ],
+  "events": [
+    {
+      "type": "0xcaf6ba059d539a97646d47f0b9ddf843e138d215e2a12ca1f4585d386f7aec3a::balance_manager::BalanceManagerEvent",
+      "parsedJson": {
+        "balance_manager_id": "0xa01a08940953c5dd6f66b3725a7fdfdc28c51478a4a2bd0a6456bc1df5b69d21",
+        "owner": "0xa9b3043c6514271654ca52730ea83b6e08b538f747bab1eae093b57b13ef4f9d"
+      },
+      "packageId": "0x337f4f4f6567fcd778d5454f27c16c70e2f274cc6377ea6249ddf491482ef497"
+    },
+    {
+      "type": "0x2c8d603bc51326b8c13cef9dd07031a408a48dddb541963357661df5d3204809::balance_manager::BalanceEvent",
+      "parsedJson": {
+        "amount": "495923950000",
+        "asset": "0000000000000000000000000000000000000000000000000000000000000002::sui::SUI",
+        "balance_manager_id": "0xa01a08940953c5dd6f66b3725a7fdfdc28c51478a4a2bd0a6456bc1df5b69d21",
+        "deposit": true
+      },
+      "packageId": "0x337f4f4f6567fcd778d5454f27c16c70e2f274cc6377ea6249ddf491482ef497"
+    },
+    {
+      "type": "0x2c8d603bc51326b8c13cef9dd07031a408a48dddb541963357661df5d3204809::balance_manager::BalanceEvent",
+      "parsedJson": {
+        "amount": "0",
+        "asset": "dba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC",
+        "balance_manager_id": "0xa01a08940953c5dd6f66b3725a7fdfdc28c51478a4a2bd0a6456bc1df5b69d21",
+        "deposit": true
+      },
+      "packageId": "0x337f4f4f6567fcd778d5454f27c16c70e2f274cc6377ea6249ddf491482ef497"
+    },
+    {
+      "type": "0x2c8d603bc51326b8c13cef9dd07031a408a48dddb541963357661df5d3204809::balance_manager::BalanceEvent",
+      "parsedJson": {
+        "amount": "0",
+        "asset": "deeb7a4662eec9f2f3def03fb937a663dddaa2e215b8078a284d026b7946c270::deep::DEEP",
+        "balance_manager_id": "0xa01a08940953c5dd6f66b3725a7fdfdc28c51478a4a2bd0a6456bc1df5b69d21",
+        "deposit": true
+      },
+      "packageId": "0x337f4f4f6567fcd778d5454f27c16c70e2f274cc6377ea6249ddf491482ef497"
+    },
+    {
+      "type": "0x00c1a56ec8c4c623a848b2ed2f03d23a25d17570b670c22106f336eb933785cc::ewma::EWMAUpdate",
+      "parsedJson": {
+        "gas_price": "100000000000",
+        "mean": "396577416426",
+        "pool_id": "0xe05dafb5133bcffb8d59f4e12465dc0e9faeaa05e3e342a08fe135800e3e4407",
+        "timestamp": "1792031873875",
+        "variance": "195567018250644"
+      },
+      "packageId": "0x337f4f4f6567fcd778d5454f27c16c70e2f274cc6377ea6249ddf491482ef497"
+    },
+    {
+      "type": "0x2c8d603bc51326b8c13cef9dd07031a408a48dddb541963357661df5d3204809::order_info::OrderInfo",
+      "parsedJson": {
+        "balance_manager_id": "0xa01a08940953c5dd6f66b3725a7fdfdc28c51478a4a2bd0a6456bc1df5b69d21",
+        "client_order_id": "0",
+        "cumulative_quote_quantity": "491263430",
+        "epoch": "1281",
+        "executed_quantity": "495800000000",
+        "expire_timestamp": "1792031873875",
+        "fee_is_deep": false,
+        "fill_limit_reached": false,
+        "fills": [
+          {
+            "balance_manager_id": "0xd98ae3b0d38f34ef1a1cc6c36f703f8873d7308a25d4ff88229820753e1fad63",
+            "base_quantity": "495800000000",
+            "completed": false,
+            "execution_price": "990850",
+            "expired": false,
+            "maker_client_order_id": "18446744073709551615",
+            "maker_deep_price": {
+              "asset_is_base": false,
+              "deep_per_asset": "41001216922"
+            },
+            "maker_epoch": "1281",
+            "maker_fee": "0",
+            "maker_fee_is_deep": false,
+            "maker_order_id": "18277974812179182683631137",
+            "original_maker_quantity": "1008000000000",
+            "quote_quantity": "491263430",
+            "taker_fee": "123950000",
+            "taker_fee_is_deep": false,
+            "taker_is_bid": false
+          }
+        ],
+        "is_bid": false,
+        "maker_fees": "0",
+        "market_order": true,
+        "order_deep_price": {
+          "asset_is_base": false,
+          "deep_per_asset": "0"
+        },
+        "order_id": "170141183460469231750134047789849059830",
+        "order_inserted": false,
+        "order_type": 1.0,
+        "original_quantity": "495800000000",
+        "paid_fees": "123950000",
+        "pool_id": "0xe05dafb5133bcffb8d59f4e12465dc0e9faeaa05e3e342a08fe135800e3e4407",
+        "price": "1",
+        "self_matching_option": 0.0,
+        "status": 2.0,
+        "timestamp": "1792031873875",
+        "trader": "0xa9b3043c6514271654ca52730ea83b6e08b538f747bab1eae093b57b13ef4f9d"
+      },
+      "packageId": "0x337f4f4f6567fcd778d5454f27c16c70e2f274cc6377ea6249ddf491482ef497"
+    },
+    {
+      "type": "0x2c8d603bc51326b8c13cef9dd07031a408a48dddb541963357661df5d3204809::order_info::OrderFilled",
+      "parsedJson": {
+        "base_quantity": "495800000000",
+        "maker_balance_manager_id": "0xd98ae3b0d38f34ef1a1cc6c36f703f8873d7308a25d4ff88229820753e1fad63",
+        "maker_client_order_id": "18446744073709551615",
+        "maker_fee": "0",
+        "maker_fee_is_deep": false,
+        "maker_order_id": "18277974812179182683631137",
+        "pool_id": "0xe05dafb5133bcffb8d59f4e12465dc0e9faeaa05e3e342a08fe135800e3e4407",
+        "price": "990850",
+        "quote_quantity": "491263430",
+        "taker_balance_manager_id": "0xa01a08940953c5dd6f66b3725a7fdfdc28c51478a4a2bd0a6456bc1df5b69d21",
+        "taker_client_order_id": "0",
+        "taker_fee": "123950000",
+        "taker_fee_is_deep": false,
+        "taker_is_bid": false,
+        "taker_order_id": "170141183460469231750134047789849059830",
+        "timestamp": "1792031873875"
+      },
+      "packageId": "0x337f4f4f6567fcd778d5454f27c16c70e2f274cc6377ea6249ddf491482ef497"
+    },
+    {
+      "type": "0x00c1a56ec8c4c623a848b2ed2f03d23a25d17570b670c22106f336eb933785cc::order_info::OrderFullyFilled",
+      "parsedJson": {
+        "balance_manager_id": "0xa01a08940953c5dd6f66b3725a7fdfdc28c51478a4a2bd0a6456bc1df5b69d21",
+        "client_order_id": "0",
+        "is_bid": false,
+        "order_id": "170141183460469231750134047789849059830",
+        "original_quantity": "495800000000",
+        "pool_id": "0xe05dafb5133bcffb8d59f4e12465dc0e9faeaa05e3e342a08fe135800e3e4407",
+        "timestamp": "1792031873875"
+      },
+      "packageId": "0x337f4f4f6567fcd778d5454f27c16c70e2f274cc6377ea6249ddf491482ef497"
+    },
+    {
+      "type": "0x2c8d603bc51326b8c13cef9dd07031a408a48dddb541963357661df5d3204809::balance_manager::BalanceEvent",
+      "parsedJson": {
+        "amount": "0",
+        "asset": "0000000000000000000000000000000000000000000000000000000000000002::sui::SUI",
+        "balance_manager_id": "0xa01a08940953c5dd6f66b3725a7fdfdc28c51478a4a2bd0a6456bc1df5b69d21",
+        "deposit": false
+      },
+      "packageId": "0x337f4f4f6567fcd778d5454f27c16c70e2f274cc6377ea6249ddf491482ef497"
+    },
+    {
+      "type": "0x2c8d603bc51326b8c13cef9dd07031a408a48dddb541963357661df5d3204809::balance_manager::BalanceEvent",
+      "parsedJson": {
+        "amount": "491263430",
+        "asset": "dba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC",
+        "balance_manager_id": "0xa01a08940953c5dd6f66b3725a7fdfdc28c51478a4a2bd0a6456bc1df5b69d21",
+        "deposit": false
+      },
+      "packageId": "0x337f4f4f6567fcd778d5454f27c16c70e2f274cc6377ea6249ddf491482ef497"
+    },
+    {
+      "type": "0x2c8d603bc51326b8c13cef9dd07031a408a48dddb541963357661df5d3204809::balance_manager::BalanceEvent",
+      "parsedJson": {
+        "amount": "0",
+        "asset": "deeb7a4662eec9f2f3def03fb937a663dddaa2e215b8078a284d026b7946c270::deep::DEEP",
+        "balance_manager_id": "0xa01a08940953c5dd6f66b3725a7fdfdc28c51478a4a2bd0a6456bc1df5b69d21",
+        "deposit": false
+      },
+      "packageId": "0x337f4f4f6567fcd778d5454f27c16c70e2f274cc6377ea6249ddf491482ef497"
+    }
+  ],
+  "timestampMs": "1792031873875"
+}

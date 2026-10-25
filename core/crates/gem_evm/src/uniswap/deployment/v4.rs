@@ -69,12 +69,6 @@ pub fn get_uniswap_deployment_by_chain(chain: &Chain) -> Option<V4Deployment> {
             permit2,
             "0x8B844f885672f333Bc0042cB669255f93a4C1E6b",
         )),
-        Chain::Blast => Some(V4Deployment::v2_1(
-            "0x6F71Cdcb0d119fF72C6eb501ABCEb576fBF62BCF",
-            "0x12a88AE16F46DCe4e8B15368008Ab3380885df30",
-            permit2,
-            "0x8B844f885672f333Bc0042cB669255f93a4C1E6b",
-        )),
         Chain::Linea => Some(V4Deployment::v2_1(
             "0x2C125569C0BeE20A66E33E5491C552B37EBD9934",
             "0xE861de206E460A8b936b05ad3816520B58ccDf9b",
@@ -162,7 +156,6 @@ fn legacy_uniswap_router_abi_by_chain_contract(chain: &Chain, contract: &str) ->
         Chain::AvalancheC => "0x94b75331AE8d42C1b61065089B7d48FE14aA73b7",
         Chain::Base => "0x6fF5693b99212Da76ad316178A184AB56D299b43",
         Chain::SmartChain => "0x1906c1d672b88cD1B9aC7593301cA990F94Eae07",
-        Chain::Blast => "0xeAbBcB3E8E415306207ef514f660A3F820025BE3",
         Chain::Linea => "0x661E93cca42AfacB172121EF892830cA3b70F08d",
         Chain::World => "0x8ac7bEE993bb44dAb564Ea4bc9EA67Bf9Eb5e743",
         Chain::Unichain => UNICHAIN_UNISWAP_V4_UNIVERSAL_ROUTER_CONTRACT,

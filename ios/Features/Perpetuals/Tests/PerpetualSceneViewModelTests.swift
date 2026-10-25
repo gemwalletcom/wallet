@@ -24,6 +24,15 @@ struct PerpetualSceneViewModelTests {
         #expect(model.chart.state(position: nil, transactions: []).isLoading)
     }
 
+    @Test(.timeLimit(.minutes(1)))
+    func aSceneWhoseMarketHasNotLoadedObservesNothing() async {
+        let model = PerpetualSceneViewModel.mock()
+
+        await model.observeMarket()
+
+        #expect(model.perpetualQuery.value == .empty)
+    }
+
     @Test
     func theSceneReadsItsScreenFromCore() {
         let service = GemPerpetualDetailsServiceMock()
