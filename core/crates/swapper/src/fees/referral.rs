@@ -10,8 +10,8 @@ use primitives::chain_cosmos::CosmosChain;
 use primitives::{
     AssetId, Chain, ChainType,
     swap::{
-        APTOS_REFERRAL_ADDRESS, COSMOS_REFERRAL_ADDRESS, EVM_REFERRAL_ADDRESS, INJECTIVE_REFERRAL_ADDRESS, NEAR_REFERRAL_ADDRESS, SOLANA_REFERRAL_ADDRESS, STELLAR_REFERRAL_ADDRESS, SUI_REFERRAL_ADDRESS, THORCHAIN_REFERRAL_ADDRESS,
-        TON_REFERRAL_ADDRESS, TRON_REFERRAL_ADDRESS,
+        APTOS_REFERRAL_ADDRESS, COSMOS_REFERRAL_ADDRESS, EVM_REFERRAL_ADDRESS, HUNDRED_PERCENT_IN_BPS, INJECTIVE_REFERRAL_ADDRESS, NEAR_REFERRAL_ADDRESS, SOLANA_REFERRAL_ADDRESS, STELLAR_REFERRAL_ADDRESS, SUI_REFERRAL_ADDRESS,
+        THORCHAIN_REFERRAL_ADDRESS, TON_REFERRAL_ADDRESS, TRON_REFERRAL_ADDRESS,
     },
 };
 use serde::{Deserialize, Serialize};
@@ -91,6 +91,16 @@ impl ReferralFee {
                 saturating_sub(value, fee)
             }
             FeeSide::Output => value,
+        }
+    }
+
+    pub fn value_for_swap<T: FeeAmount>(&self, side: FeeSide, swap_value: T) -> T {
+        match side {
+            FeeSide::Input => {
+                let kept = HUNDRED_PERCENT_IN_BPS - self.bps;
+                (swap_value * T::from_u32(HUNDRED_PERCENT_IN_BPS) + T::from_u32(kept - 1)) / T::from_u32(kept)
+            }
+            FeeSide::Output => swap_value,
         }
     }
 
@@ -249,6 +259,15 @@ mod tests {
         assert_eq!(fee.fee_value(&u64::MAX), u64::MAX / 200);
         assert_eq!(fee.fee_value(&BigUint::from(1_000_000u32)), BigUint::from(5_000u32));
         assert_eq!(ReferralFee { bps: 0, ..fee }.fee_value(&1_000_000u64), 0);
+    }
+
+    #[test]
+    fn test_value_for_swap() {
+        let fee = ReferralFee { address: String::new(), bps: 50 };
+
+        assert_eq!(fee.value_for_swap(FeeSide::Input, 1_000_000_000u64), 1_005_025_126);
+        assert_eq!(fee.swap_value(FeeSide::Input, 1_005_025_126u64), 1_000_000_001);
+        assert_eq!(fee.value_for_swap(FeeSide::Output, 1_000_000_000u64), 1_000_000_000);
     }
 
     #[test]

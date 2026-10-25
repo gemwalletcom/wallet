@@ -1,8 +1,8 @@
 use crate::ranking::{leaves_no_dust, rank_quotes};
 use crate::{
     AssetList, FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, SwapQuoteError, SwapQuotes, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperProviderMode, SwapperQuoteData,
-    across, alien::RpcProvider, bridgers, cetus_clmm, chainflip, config::quote_preferences, cross_chain::VaultAddresses, dedust, hyperion, hyperliquid, jupiter, mayan, meteora_damm_v2, meteora_dlmm, near_intents, okx, orca, panora,
-    provider_group::ProviderGroup, pump_swap, raydium_amm, raydium_clmm, raydium_cpmm, relay, solana_dex, squid, stellar_dex, stonfi, swaps_xyz, thorchain, uniswap,
+    across, alien::RpcProvider, bridgers, cetus_clmm, chainflip, config::quote_preferences, cross_chain::VaultAddresses, dedust, deepbook, hyperion, hyperliquid, jupiter, mayan, meteora_damm_v2, meteora_dlmm, near_intents, okx, orca,
+    panora, provider_group::ProviderGroup, pump_swap, raydium_amm, raydium_clmm, raydium_cpmm, relay, solana_dex, squid, stellar_dex, stonfi, swaps_xyz, thorchain, uniswap,
 };
 use primitives::{AssetId, Chain, EVMChain};
 use std::{collections::HashSet, fmt::Debug, sync::Arc};
@@ -95,6 +95,7 @@ impl GemSwapper {
             Some(Self::boxed(near_intents::NearIntents::new(rpc_provider.clone()))),
             Some(Box::new(chainflip::ChainflipProvider::new(rpc_provider.clone()))),
             cetus_clmm::CetusClmm::new(rpc_provider.clone()).map(Self::boxed),
+            deepbook::Deepbook::new(rpc_provider.clone()).map(Self::boxed),
             Some(Box::new(relay::Relay::new(rpc_provider.clone()))),
             Some(Box::new(squid::Squid::new(rpc_provider.clone()))),
             swaps_xyz::SwapsXyz::new(rpc_provider.clone()).map(Self::boxed),

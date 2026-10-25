@@ -277,6 +277,7 @@ These tables compare implemented coverage with provider-advertised support acros
 | [SunSwap v3](../core/crates/swapper/src/uniswap/sunswap/provider.rs) | 1/57 | Tron | v3 pools on all four fee tiers between TRX and TRC-20 tokens, direct or in two hops through WTRX or USDT, whichever pays more, through SUN's Universal Router; v1, v2 and v4 pools are not routed | <sub>[code](../core/crates/swapper/src/uniswap/sunswap/provider.rs) · [Universal Router](https://github.com/sun-protocol/sunswap-universal-router) · [v3 contracts](https://github.com/sun-protocol/sunswap-v3-contracts)</sub> |
 | [Stellar DEX](../core/crates/swapper/src/stellar_dex/provider.rs) | 1/57 | Stellar | Path payments across the order books and liquidity pools, on the path Horizon finds that pays the most; a pair with neither XLM nor Circle's USDC on either side is not routed, because Gem's fee account can receive nothing else | <sub>[code](../core/crates/swapper/src/stellar_dex/provider.rs) · [strict-send paths](https://developers.stellar.org/docs/data/apis/horizon/api-reference/list-strict-send-payment-paths) · [path payments](https://developers.stellar.org/docs/learn/fundamentals/transactions/list-of-operations#path-payment-strict-send)</sub> |
 | [Cetus CLMM](../core/crates/swapper/src/cetus_clmm/provider.rs) | 1/57 | Sui | Missing: Aptos | <sub>[code](../core/crates/swapper/src/cetus_clmm/provider.rs) · [Sui developer docs](https://cetus-1.gitbook.io/cetus-developer-docs) · [Cetus chain support](https://cetus-1.gitbook.io/cetus-docs/guides/faq)</sub> |
+| [DeepBook v3](../core/crates/swapper/src/deepbook/provider.rs) | 1/57 | Sui | The order book pools DeepBook's registry holds, direct or in two hops through SUI or USDC, whichever pays more, with DeepBook's fee paid in the token sold, so no DEEP is needed | <sub>[code](../core/crates/swapper/src/deepbook/provider.rs) · [DeepBook v3 contracts](https://github.com/MystenLabs/deepbookv3)</sub> |
 
 <sub>Additional OKX gap evidence: [Sui guide](https://web3.okx.com/onchainos/dev-docs-v5/dex-api/dex-use-swap-sui-quick-start) and [TON guide](https://web3.okx.com/onchainos/dev-docs-v5/dex-api/dex-use-swap-ton-quick-start).</sub>
 
@@ -322,6 +323,7 @@ These tables compare implemented coverage with provider-advertised support acros
 | [SunSwap v3](../core/crates/swapper/src/uniswap/sunswap/provider.rs) | On-chain | Fixed | Exact | ➖ | ➖ |
 | [Stellar DEX](../core/crates/swapper/src/stellar_dex/provider.rs) | On-chain | Fixed | Exact | ➖ | ➖ |
 | [Cetus CLMM](../core/crates/swapper/src/cetus_clmm/provider.rs) | On-chain | Fixed | Exact | ➖ | ➖ |
+| [DeepBook v3](../core/crates/swapper/src/deepbook/provider.rs) | On-chain | Fixed | Exact | ➖ | ➖ |
 | [NEAR Intents](../core/crates/swapper/src/near_intents/provider.rs) | Omnichain | Flexible | Exact | ✅ | ✅ |
 | [Relay](../core/crates/swapper/src/relay/provider.rs) | Omnichain | Flexible from Bitcoin; fixed otherwise | Auto | ✅ | ✅ |
 | [Across](../core/crates/swapper/src/across/provider.rs) | Bridge | Fixed | Exact | ✅ | ✅ |

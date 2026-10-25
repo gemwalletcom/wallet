@@ -67,5 +67,7 @@ enum class SwapProvider(val string: String) {
 	SunswapV3("sunswap_v3"),
 	@SerialName("stellar_dex")
 	StellarDex("stellar_dex"),
+	@SerialName("deepbook_v3")
+	DeepbookV3("deepbook_v3"),
 }
 

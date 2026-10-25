@@ -755,6 +755,7 @@ fun uniffi.gemstone.SwapProvider.toPrimitives(): com.wallet.core.primitives.Swap
     uniffi.gemstone.SwapProvider.METEORA_DAMM_V2 -> com.wallet.core.primitives.SwapProvider.MeteoraDammV2
     uniffi.gemstone.SwapProvider.SUNSWAP_V3 -> com.wallet.core.primitives.SwapProvider.SunswapV3
     uniffi.gemstone.SwapProvider.STELLAR_DEX -> com.wallet.core.primitives.SwapProvider.StellarDex
+    uniffi.gemstone.SwapProvider.DEEPBOOK_V3 -> com.wallet.core.primitives.SwapProvider.DeepbookV3
 }
 
 fun com.wallet.core.primitives.SwapProvider.toGem(): uniffi.gemstone.SwapProvider = when (this) {
@@ -788,6 +789,7 @@ fun com.wallet.core.primitives.SwapProvider.toGem(): uniffi.gemstone.SwapProvide
     com.wallet.core.primitives.SwapProvider.MeteoraDammV2 -> uniffi.gemstone.SwapProvider.METEORA_DAMM_V2
     com.wallet.core.primitives.SwapProvider.SunswapV3 -> uniffi.gemstone.SwapProvider.SUNSWAP_V3
     com.wallet.core.primitives.SwapProvider.StellarDex -> uniffi.gemstone.SwapProvider.STELLAR_DEX
+    com.wallet.core.primitives.SwapProvider.DeepbookV3 -> uniffi.gemstone.SwapProvider.DEEPBOOK_V3
 }
 
 fun uniffi.gemstone.TpslType.toPrimitives(): com.wallet.core.primitives.TpslType = when (this) {

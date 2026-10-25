@@ -1,16 +1,7 @@
-use gem_sui::{SUI_COIN_TYPE_FULL, coin_type_matches};
-use primitives::asset_constants::SUI_USDC_TOKEN_ID;
+use gem_sui::coin_type_matches;
 use serde::{Deserialize, Serialize};
 
-use crate::fees::{FeeSide, ReferralTransfer};
-
-pub(super) const INTERMEDIATE_COIN_TYPES: &[&str] = &[SUI_COIN_TYPE_FULL, SUI_USDC_TOKEN_ID];
-
-const FEE_PRIORITY_COINS: &[&str] = &[SUI_COIN_TYPE_FULL, SUI_USDC_TOKEN_ID];
-
-pub(super) fn fee_side(input_coin_type: &str, output_coin_type: &str) -> FeeSide {
-    FeeSide::by_priority(FEE_PRIORITY_COINS, |preferred| coin_type_matches(input_coin_type, preferred), |preferred| coin_type_matches(output_coin_type, preferred)).unwrap_or(FeeSide::Output)
-}
+use crate::fees::ReferralTransfer;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub(super) struct Hop {
@@ -89,21 +80,11 @@ impl DiscoveredPool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::fees::FeeSide;
+    use primitives::asset_constants::SUI_USDC_TOKEN_ID;
 
     const SUI_FULL: &str = gem_sui::SUI_COIN_TYPE_FULL;
     const USDC: &str = SUI_USDC_TOKEN_ID;
-    const BLUE: &str = "0xe1b45a0e641b9955a20aa0ad1c1f4ad86aad8afb07296d4085e349a50e90bdca::blue::BLUE";
-
-    #[test]
-    fn test_fee_side_preference() {
-        assert_eq!(fee_side(SUI_FULL, USDC), FeeSide::Input);
-        assert_eq!(fee_side(USDC, SUI_FULL), FeeSide::Output);
-        assert_eq!(fee_side(SUI_FULL, BLUE), FeeSide::Input);
-        assert_eq!(fee_side(BLUE, SUI_FULL), FeeSide::Output);
-        assert_eq!(fee_side(USDC, BLUE), FeeSide::Input);
-        assert_eq!(fee_side(BLUE, USDC), FeeSide::Output);
-        assert_eq!(fee_side(BLUE, "0xfoo::bar::BAR"), FeeSide::Output);
-    }
 
     #[test]
     fn test_pool_route_traversal() {

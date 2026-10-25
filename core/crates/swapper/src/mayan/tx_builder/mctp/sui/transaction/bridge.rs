@@ -5,14 +5,10 @@ use crate::{
         cctp_domain::domain_for_wormhole_chain,
         constants::{SUI_CCTP_CORE_STATE, SUI_MCTP_STATE},
         model::{MayanMctpQuote, QuoteType},
-        tx_builder::{
-            address::native_address_to_bytes32,
-            amount::gas_drop_amount,
-            mctp::redeem_relayer_fee,
-            sui::{bridge_amount, sui_package_address},
-        },
+        tx_builder::{address::native_address_to_bytes32, amount::gas_drop_amount, mctp::redeem_relayer_fee, sui::bridge_amount},
         wormhole_chain::id_for_name as wormhole_chain_id,
     },
+    sui_swap::package_address,
 };
 use gem_sui::tx_builder::move_call;
 use sui_transaction_builder::{Argument, TransactionBuilder};
@@ -50,7 +46,7 @@ pub(super) fn add_bridge_with_fee_move_calls(txb: &mut TransactionBuilder, route
     let mctp_input_contract = prefetched.mctp_input_contract.as_str();
     let bridge = BridgeParams::new(route, mctp_input_contract, destination_address)?;
     let payload = Vec::<u8>::new();
-    let mctp_package = sui_package_address(&prefetched.mctp_package_id)?;
+    let mctp_package = package_address(&prefetched.mctp_package_id)?;
     let bridge_arguments = vec![
         txb.pure(&MCTP_PAYLOAD_TYPE_DEFAULT),
         input_coin,
@@ -72,7 +68,7 @@ pub(super) fn add_bridge_with_fee_move_calls(txb: &mut TransactionBuilder, route
 pub(super) fn add_bridge_locked_fee_move_calls(txb: &mut TransactionBuilder, route: &MayanMctpQuote, prefetched: &PrefetchedSuiData, input_coin: Argument, destination_address: &str) -> Result<(), SwapperError> {
     let mctp_input_contract = prefetched.mctp_input_contract.as_str();
     let bridge = BridgeParams::new(route, mctp_input_contract, destination_address)?;
-    let mctp_package = sui_package_address(&prefetched.mctp_package_id)?;
+    let mctp_package = package_address(&prefetched.mctp_package_id)?;
     let bridge_arguments = vec![
         input_coin,
         txb.pure(&bridge.amount_in),
@@ -98,7 +94,7 @@ pub(super) fn add_bridge_locked_fee_move_calls(txb: &mut TransactionBuilder, rou
 }
 
 fn complete_bridge(txb: &mut TransactionBuilder, prefetched: &PrefetchedSuiData, mctp_input_contract: &str, module: &str, bridge_ticket: Argument) -> Result<(Argument, Argument), SwapperError> {
-    let mctp_package = sui_package_address(&prefetched.mctp_package_id)?;
+    let mctp_package = package_address(&prefetched.mctp_package_id)?;
     let mctp_state = txb.object(prefetched.objects[SUI_MCTP_STATE].input(true));
     let cctp_core_state = txb.object(prefetched.objects[SUI_CCTP_CORE_STATE].input(true));
     let verified_input = txb.object(prefetched.objects[&prefetched.mctp_verified_input_address].input(false));

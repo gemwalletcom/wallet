@@ -153,13 +153,13 @@ Gem takes `0.5%` of every swap and bridge, with these exceptions:
 | OKX | `0.7%` |
 | SunSwap | `0.85%`, of which Gem receives half, see [SunSwap on Tron](#sunswap-on-tron) |
 
-The stablecoin rate applies to every provider that swaps on one network: Uniswap, PancakeSwap, Aerodrome, Oku, Wagmi, Orca, Raydium, PumpSwap, Meteora, Cetus, STON.fi, DeDust, Hyperion, Stellar DEX and Jupiter; OKX keeps `0.7%`. A stablecoin is a token on the official list: USDT, USDC, USDS, USDe, USD1, USDG and PYUSD, on the networks their issuers deploy them to; a token that only carries one of those names pays the full fee (`test_on_chain_referral_fees`). On a stablecoin pair the pool's own fee is about `0.01%`, so Gem's fee is nearly the whole cost: on 2026-10-19, 10,000 USDT to USDC on Ethereum received `9,963.03` USDC at `0.25%`, against `9,937.99` at `0.5%`. A stablecoin moved to another network pays `0.5%` like any cross-chain swap, unless it goes through Across.
+The stablecoin rate applies to every provider that swaps on one network: Uniswap, PancakeSwap, Aerodrome, Oku, Wagmi, Orca, Raydium, PumpSwap, Meteora, Cetus, DeepBook, STON.fi, DeDust, Hyperion, Stellar DEX and Jupiter; OKX keeps `0.7%`. A stablecoin is a token on the official list: USDT, USDC, USDS, USDe, USD1, USDG and PYUSD, on the networks their issuers deploy them to; a token that only carries one of those names pays the full fee (`test_on_chain_referral_fees`). On a stablecoin pair the pool's own fee is about `0.01%`, so Gem's fee is nearly the whole cost: on 2026-10-19, 10,000 USDT to USDC on Ethereum received `9,963.03` USDC at `0.25%`, against `9,937.99` at `0.5%`. A stablecoin moved to another network pays `0.5%` like any cross-chain swap, unless it goes through Across.
 
 NEAR Intents gives half of every app fee to NEAR's buyback wallet: its docs set a 50/50 split for partners with an API key, with NEAR keeping at least `0.2%`, or `0.01%` on stablecoin and same-asset routes. So the wallet asks NEAR for `1%`, Gem receives `0.5%` and NEAR's buyback wallet `0.5%`. On 2026-10-19 a quote with no app fee for 1 ETH to SOL paid NEAR `0.2%`; a `0.5%` app fee showed in NEAR's explorer as `0.25%` to Gem and `0.25%` to the buyback wallet, and a `1%` app fee as `0.5%` to each. Until 2026-10-19 the wallet asked for `0.5%`, so Gem received `0.25%` from NEAR Intents.
 
 ## On-chain quotes
 
-Uniswap v2, v3 and v4, PancakeSwap v2 and v3, Aerodrome, Oku, Wagmi, Orca, Raydium, PumpSwap, Meteora, Cetus, STON.fi, DeDust, Hyperion and SunSwap quote straight from the chain. What a pool is never changes once it exists: its address, its tokens, its fee tier. What it holds changes with every trade: its price, liquidity and reserves. The wallet keeps the first and reads the second again for every quote, so a quote is always priced on live state while the lookups that never change are not repeated. Dynode, the node proxy every wallet talks to, keeps the same unchanging lookups for all users ([how Dynode caches](../DYNODE.md#caching)).
+Uniswap v2, v3 and v4, PancakeSwap v2 and v3, Aerodrome, Oku, Wagmi, Orca, Raydium, PumpSwap, Meteora, Cetus, DeepBook, STON.fi, DeDust, Hyperion and SunSwap quote straight from the chain. What a pool is never changes once it exists: its address, its tokens, its fee tier. What it holds changes with every trade: its price, liquidity and reserves. The wallet keeps the first and reads the second again for every quote, so a quote is always priced on live state while the lookups that never change are not repeated. Dynode, the node proxy every wallet talks to, keeps the same unchanging lookups for all users ([how Dynode caches](../DYNODE.md#caching)).
 
 ```mermaid
 flowchart LR
@@ -173,10 +173,10 @@ flowchart LR
 
 | On the device | Kept for |
 |---|---|
-| A pool, a Uniswap or PancakeSwap v2 pair, or an Aerodrome classic pool exists: its address, tokens and fee tier, and the version Cetus needs to trade with it | `7 days` |
+| A pool, a Uniswap or PancakeSwap v2 pair, or an Aerodrome classic pool exists: its address, tokens and fee tier, and the version Cetus and DeepBook need to trade with it | `7 days` |
 | DeDust pool and vault addresses | `7 days` |
 | The Meteora DAMM v2 and DLMM, Raydium CPMM and Raydium AMM v4 pools found for a pair | `1 day`; Dynode keeps the lookup a day too, so a drained pool or a new one is noticed within about two days |
-| No pool exists at a fee tier, no v2 pair exists for two tokens, or Meteora has none for a pair | `1 day` |
+| No pool exists at a fee tier, no v2 pair exists for two tokens, or Meteora or DeepBook's registry has none for a pair | `1 day` |
 | Whether a token takes a fee when it moves, from its [v2](#uniswap-and-pancakeswap-v2) or [Aerodrome classic](#aerodrome) check | `1 day` |
 | A pool with no liquidity at its price | `1 hour`, then it is checked again |
 | An Orca or Raydium pool with swaps paused or not open yet | `1 hour`, then it is checked again |
@@ -267,6 +267,12 @@ A classic swap goes through Aerodrome's Universal Router with the same Permit2 a
 
 A token that takes a fee when it moves gets no classic quote either. The first time a classic route gives the most for a token other than WETH, USDC or USDT, the wallet runs the same [round trip as for v2](#uniswap-and-pancakeswap-v2) through the token's volatile pool with WETH, at that pool's own fee; the pool's reserves and fee come back in the quote request, so the check adds one request (`test_get_quote_solidly_paths`). A token that fails, or has no such pool to check, keeps only its Slipstream routes, and the verdict is kept for `1 day` for v2 and classic routes alike.
 
+### DeepBook
+
+DeepBook v3 is Sui's order book. Its registry holds one pool for each pair of tokens, with one of them as the base, so a pair's first quote asks the registry for both orders at the same time and reads the pool's version once; both are kept as the table above says. A pair with no pool, such as DEEP and WAL, trades in two pools through SUI or USDC, the hubs Cetus routes through; the direct pool and each route through a hub are priced in their own dry run, sent at the same time, and the one that pays most wins. Every quote is one dry run of the pool's own `get_quote_quantity_out_input_fee`, or `get_base_quantity_out_input_fee` when buying the base, on the live book, the second pool of a route priced on what the first returns; the same dry run reads the pool's smallest trade, so an amount below it is told the minimum to pay, Gem's fee included (`test_pool_quote`, `test_value_for_swap`).
+
+The swap calls each pool's `swap_exact_quantity` with an empty DEEP coin, the first pool's output going whole into the second, so DeepBook takes its fee in the token sold, `25%` more than in DEEP, and neither the user nor Gem needs DEEP. Gem's fee is split once, from the token sold or the final token bought, and sent to Gem in the same transaction, as Cetus does, and the transaction refuses to finish below the Minimum Receive on the final token (`test_build_swap_transaction`). The book trades whole lots, so what each pool leaves after its last whole lot comes back to the wallet in the same transaction; a quote whose pools would leave more than `1%` unfilled together is not offered (`test_pool_quote`). A DeepBook fill in history shows as a swap through DeepBook, checked against a real swap on mainnet (`test_map_deepbook_swap`). On Sui every provider that swaps on one network runs on-chain, so the quote that gives the most wins between Cetus and DeepBook. When DeepBook retires the package version the app calls, its quotes answer that DeepBook was upgraded since the app was built, as Cetus's swaps do, until an app update ships the new package.
+
 ### Skipping pools that lose
 
 Every quote compares candidates and keeps the best. A candidate that gave more than `3%` less than the best, or that failed while another succeeded, is not asked again for the next `5 minutes` when the same pair is quoted for the same amount, as the 30-second refresh and the confirmation screen do. Any other amount asks every candidate again: a pool too shallow for a large trade can still be the best for a small one, and a deep pool that lost to a small pool's better price can win a larger trade. Failing means the quote reverted, the pool ran out of liquidity for the amount, or the pool could not pay the output; a network error never counts. When every candidate fails or gives nothing, as for a dust amount, none is marked. If every candidate still asked fails, the skipped ones are asked before the quote fails (`test_outpriced_cache`, `test_get_best_quote_skips_outpriced_paths`, `test_route_failing_alone_is_asked_again`, `test_find_route_skips_outpriced_pools`).
@@ -283,7 +289,7 @@ Every quote compares candidates and keeps the best. A candidate that gave more t
 | DeDust | each path: one pool, or two pools through TON or USDT; each hop asks its volatile and stable pool at the same time and takes the one that pays more |
 | Hyperion | each path, and each pool within a hop |
 
-Cetus prices all its direct pools in one dry run and all its two-pool routes in another, sent at the same time, so it has nothing to skip. `3%` keeps close rivals: two fee tiers on a busy pair are often within `1%` and trade places as prices move, so both stay. In the measured pairs, every pool that lost was `6%` to `99%` worse than the best, or failed.
+Cetus prices all its direct pools in one dry run and all its two-pool routes in another, sent at the same time, so it has nothing to skip; DeepBook asks at most its direct pool and one route through each hub, every time. `3%` keeps close rivals: two fee tiers on a busy pair are often within `1%` and trade places as prices move, so both stay. In the measured pairs, every pool that lost was `6%` to `99%` worse than the best, or failed.
 
 ### Requests per quote
 
@@ -301,6 +307,7 @@ Measured on 2026-10-17, one pair per provider and the same amount, on the build 
 | PumpSwap, SOL to TOS | 2 | 1 | 1 | 1 | 2 KB |
 | Meteora, SOL to TOS | 3 | 1 | 1 | 1 | 2 KB |
 | Cetus, SUI to USDC | 7 | 1 | 7 → 1 | 6 | 3 KB |
+| DeepBook, SUI to USDC | 4 | 1 | 1 | 4 | under 1 KB |
 | STON.fi, TON to USDT | 10 | 4 → 2 | 10 → 4 | 0 | 2 → 1 KB |
 | DeDust, TON to USDT | 2 | 1 | 2 → 1 | 1 | under 1 KB |
 | DeDust, USDT to NOT | 6 | 3 → 2 | 6 → 3 | 2 | under 1 KB |
@@ -436,6 +443,10 @@ A deposit no relayer fills is refunded once its fill deadline passes. The deadli
 | A provider's minimum is then above that amount | the user is told the minimum, not "insufficient balance" | |
 | A Stellar pair has neither XLM nor Circle's USDC on either side | Stellar DEX gives no quote | Gem's fee could not be paid (`test_fee_side_takes_the_fee_in_an_asset_the_fee_account_receives`) |
 | The user taps 25%, 50% or 100%, or "Use minimum amount" | quotes are asked at once | typing waits a short pause for the amount to settle; a button's amount is already final |
+| A Sui pair has no DeepBook pool, such as DEEP to WAL | DeepBook trades it in two pools through SUI or USDC, whichever pays more | Sui swaps get DeepBook's book wherever a hub reaches it (`test_build_swap_transaction`, `test_deep_to_wal_routes_through_a_hub_and_competes_with_cetus`) |
+| The amount is below a DeepBook pool's smallest trade, such as 1 SUI to USDC | no DeepBook quote; if no other provider quotes, the minimum to pay shows, Gem's fee included | the pool would hand the coins back unswapped (`test_pool_quote`, `test_value_for_swap`) |
+| DeepBook's whole lots would leave more than `1%` of the amount unfilled, such as 22.53 DEEP to WAL | no DeepBook quote | the rate would count only part of what the user pays (`test_pool_quote`) |
+| Both Cetus and DeepBook quote a Sui pair | the quote that gives the most wins | both run on-chain on Sui, so no preference applies (`test_quotes_rank_by_output_and_equal_outputs_keep_the_order_the_providers_answered_in`) |
 
 ## Contract binding
 
@@ -465,7 +476,7 @@ A provider's API may only move funds into contracts the app ships for it. Before
 | Bridgers | EVM, TON coin | The router | At Confirm, plus its own check that the API named the same router |
 | Bridgers | TON tokens, XRP | The user's own jetton wallet, or a transfer to the router | Not bound |
 | Jupiter, Orca, Raydium, PumpSwap, Meteora | Solana | Their program, for every pool type a grouped provider asks (`test_group_binds_every_member_on_the_chain`); standard programs pass | At Confirm, program level only |
-| Uniswap family, Across, SunSwap, STON.fi, DeDust, Hyperion, Cetus, Hyperliquid | All | Built on the device against shipped contracts | Not bound by the check |
+| Uniswap family, Across, SunSwap, STON.fi, DeDust, Hyperion, Cetus, DeepBook, Hyperliquid | All | Built on the device against shipped contracts | Not bound by the check |
 | Stellar DEX | Stellar | Built on the device: a path payment to the wallet's own account and Gem's fee payment; no contract is called | Not bound by the check |
 
 A provider that names anything outside its list is left out of the quote list where its quote already names the contract (THORChain, Relay), and refused at Confirm everywhere. When a provider upgrades a contract, its swaps stop until the app update that ships the new address.

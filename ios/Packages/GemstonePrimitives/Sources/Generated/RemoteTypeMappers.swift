@@ -1111,6 +1111,7 @@ public extension Gemstone.SwapProvider {
         case .meteoraDammV2: .meteoraDammV2
         case .sunswapV3: .sunswapV3
         case .stellarDex: .stellarDex
+        case .deepbookV3: .deepbookV3
         }
     }
 }
@@ -1148,6 +1149,7 @@ public extension Primitives.SwapProvider {
         case .meteoraDammV2: .meteoraDammV2
         case .sunswapV3: .sunswapV3
         case .stellarDex: .stellarDex
+        case .deepbookV3: .deepbookV3
         }
     }
 }

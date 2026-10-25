@@ -1,12 +1,19 @@
 use super::{
-    constants::{CETUS_TICK_SPACINGS, KNOWN_POOLS},
-    model::{DiscoveredPool, Hop, INTERMEDIATE_COIN_TYPES},
+    constants::{CETUS_TICK_SPACINGS, FUNCTION_POOL_SIMPLE_INFO, KNOWN_POOLS, MODULE_FACTORY},
+    model::{DiscoveredPool, Hop},
     tx_builder,
 };
-use crate::{ProviderType, RpcProvider, SwapperError, SwapperProvider, client_factory::create_sui_client, route_cache::DiscoveryCache, route_path::RoutePath};
-use gem_sui::{EMPTY_ADDRESS, SUI_COIN_TYPE, SuiClient, coin_type_matches, full_coin_type, models::InspectResult, tx_builder::ObjectResolver};
-use primitives::AssetId;
-use std::{collections::HashMap, sync::Arc};
+use crate::{
+    ProviderType, RpcProvider, SwapperError, SwapperProvider,
+    client_factory::create_sui_client,
+    route_cache::DiscoveryCache,
+    route_path::RoutePath,
+    sui_swap::{MoveAbort, discovery_pairs, lookup_pools, route_paths},
+};
+use gem_sui::{EMPTY_ADDRESS, SuiClient, coin_type_matches, models::InspectResult};
+use std::sync::Arc;
+
+const MISSING_POOL: MoveAbort = (MODULE_FACTORY, FUNCTION_POOL_SIMPLE_INFO, 10);
 
 #[derive(Debug, Clone)]
 pub(super) struct QuoteResult {
@@ -45,10 +52,6 @@ impl CetusClmm {
             sui_client,
             discovery_cache: DiscoveryCache::default(),
         }
-    }
-
-    pub(super) fn coin_type(asset_id: &AssetId) -> String {
-        full_coin_type(asset_id.token_id.as_deref().unwrap_or(SUI_COIN_TYPE))
     }
 
     pub(super) async fn find_route_hops(&self, from: &str, to: &str, swap_amount: u64) -> Result<Vec<Hop>, SwapperError> {
@@ -104,37 +107,19 @@ impl CetusClmm {
 
     async fn query_direct_pools(&self, from: &str, to: &str, ticks: &[u32]) -> Vec<(u32, Option<DiscoveredPool>)> {
         let (coin_a, coin_b) = canonical_pair_order(from, to);
-        let inspects = ticks.iter().map(|tick| async move { self.inspect_pool_id(coin_a, coin_b, *tick).await.map(|pool_id| (*tick, pool_id)) });
-        let results = futures::future::join_all(inspects).await.into_iter().filter_map(Result::ok).collect::<Vec<_>>();
-        let pool_ids = results.iter().filter_map(|(_, pool_id)| pool_id.clone()).collect::<Vec<_>>();
-        let pool_ids = pool_ids
-            .iter()
-            .enumerate()
-            .filter(|(index, pool_id)| !pool_ids[..*index].contains(pool_id))
-            .map(|(_, pool_id)| pool_id.clone())
-            .collect::<Vec<_>>();
-        if pool_ids.is_empty() {
-            return results.into_iter().map(|(tick, _)| (tick, None)).collect();
-        }
-        let pinned = Self::known_pools(from, to).into_iter().map(|pool| (pool.pool_id, pool.pool_init_version)).collect::<HashMap<_, _>>();
-        let Ok(resolver) = ObjectResolver::prefetch(&self.sui_client, pool_ids, &pinned).await else {
-            return results.into_iter().filter_map(|(tick, pool_id)| pool_id.is_none().then_some((tick, None))).collect();
-        };
-        results
+        let lookups = ticks.iter().filter_map(|tick| tx_builder::build_pool_id_inspect(coin_a, coin_b, *tick).ok().map(|transaction| (*tick, transaction))).collect();
+        let pinned = Self::known_pools(from, to).into_iter().map(|pool| (pool.pool_id, pool.pool_init_version)).collect();
+        lookup_pools(&self.sui_client, lookups, MISSING_POOL, &pinned)
+            .await
             .into_iter()
-            .filter_map(|(tick, pool_id)| match pool_id {
-                Some(pool_id) => resolver.initial_shared_version(&pool_id).map(|pool_init_version| {
-                    (
-                        tick,
-                        Some(DiscoveredPool {
-                            pool_id,
-                            pool_init_version,
-                            coin_a: coin_a.to_string(),
-                            coin_b: coin_b.to_string(),
-                        }),
-                    )
-                }),
-                None => Some((tick, None)),
+            .map(|(tick, pool)| {
+                let pool = pool.map(|(pool_id, pool_init_version)| DiscoveredPool {
+                    pool_id,
+                    pool_init_version,
+                    coin_a: coin_a.to_string(),
+                    coin_b: coin_b.to_string(),
+                });
+                (tick, pool)
             })
             .collect()
     }
@@ -192,28 +177,6 @@ impl CetusClmm {
             .collect()
     }
 
-    async fn inspect_pool_id(&self, coin_a: &str, coin_b: &str, tick_spacing: u32) -> Result<Option<String>, SwapperError> {
-        let transaction = tx_builder::build_pool_id_inspect(coin_a, coin_b, tick_spacing)?;
-        let result = self.sui_client.inspect_transaction_block(EMPTY_ADDRESS, &transaction).await.map_err(SwapperError::compute_quote_error)?;
-        if let Some(error) = result.error.as_deref() {
-            return if is_missing_pool_error(error) {
-                Ok(None)
-            } else {
-                Err(SwapperError::ComputeQuoteError(format!("Cetus CLMM pool discovery failed: {error}")))
-            };
-        }
-        let bytes = result
-            .results
-            .last()
-            .and_then(|command| command.return_values.first())
-            .map(|(bytes, _)| bytes)
-            .ok_or_else(|| SwapperError::ComputeQuoteError("Cetus CLMM pool discovery returned no value".into()))?;
-        if bytes.len() != 32 {
-            return Err(SwapperError::ComputeQuoteError("Cetus CLMM pool discovery returned invalid id".into()));
-        }
-        Ok(Some(format!("0x{}", hex::encode(bytes))))
-    }
-
     async fn inspect_batch_quotes(&self, quotes: &[(&Hop, u64)]) -> Result<Vec<Option<QuoteResult>>, SwapperError> {
         if quotes.is_empty() {
             return Ok(Vec::new());
@@ -239,23 +202,8 @@ impl CetusClmm {
     }
 }
 
-fn route_paths(from: &str, to: &str) -> Vec<RoutePath<String>> {
-    RoutePath::all(&from.to_string(), &to.to_string(), INTERMEDIATE_COIN_TYPES.iter().map(|intermediate| full_coin_type(intermediate)), |left, right| {
-        coin_type_matches(left, right)
-    })
-}
-
-fn discovery_pairs(from: &str, to: &str) -> Vec<(String, String)> {
-    RoutePath::all_pairs(&route_paths(from, to), &from.to_string(), &to.to_string())
-}
-
 fn canonical_pair_order<'a>(a: &'a str, b: &'a str) -> (&'a str, &'a str) {
     if a > b { (a, b) } else { (b, a) }
-}
-
-fn is_missing_pool_error(error: &str) -> bool {
-    let error = error.to_ascii_lowercase();
-    error.contains("moveabort") && error.contains("factory") && error.contains("pool_simple_info") && (error.contains(", 10)") || error.contains("abort code 10") || error.contains("abort_code: 10"))
 }
 
 fn decode_quote_result_bytes(bytes: &[u8]) -> Result<QuoteResult, SwapperError> {
@@ -307,18 +255,6 @@ mod tests {
         assert_eq!(canonical_pair_order(usdc, blue), (blue, usdc));
     }
 
-    #[test]
-    fn test_discovery_pairs() {
-        let sui = gem_sui::SUI_COIN_TYPE_FULL;
-        let usdc = SUI_USDC_TOKEN_ID;
-        let blue = "0xe1b45a0e641b9955a20aa0ad1c1f4ad86aad8afb07296d4085e349a50e90bdca::blue::BLUE";
-        let other = "0x123::coin::COIN";
-
-        assert_eq!(discovery_pairs(sui, usdc), vec![(sui.to_string(), usdc.to_string())]);
-        assert_eq!(discovery_pairs(sui, blue).len(), 3);
-        assert_eq!(discovery_pairs(blue, other).len(), 5);
-    }
-
     #[tokio::test]
     async fn test_known_pools_do_not_suppress_discovery() {
         let provider = CetusClmm::new(Arc::new(ProviderMock::new(String::new()))).unwrap();
@@ -332,16 +268,6 @@ mod tests {
             provider.discover_direct_pools(SUI_USDC_TOKEN_ID, gem_sui::SUI_COIN_TYPE_FULL).await,
             CetusClmm::known_pools(SUI_USDC_TOKEN_ID, gem_sui::SUI_COIN_TYPE_FULL)
         );
-    }
-
-    #[test]
-    fn test_missing_pool_error_requires_exact_cetus_abort() {
-        let missing = r#"MoveAbort(MoveLocation { module: ModuleId { name: Identifier("factory") }, function_name: Some("pool_simple_info") }, 10) in command 1"#;
-
-        assert!(is_missing_pool_error(missing));
-        assert!(!is_missing_pool_error(&missing.replace(", 10)", ", 11)")));
-        assert!(!is_missing_pool_error(&missing.replace("pool_simple_info", "pool_id")));
-        assert!(!is_missing_pool_error("RPC timeout"));
     }
 
     #[test]

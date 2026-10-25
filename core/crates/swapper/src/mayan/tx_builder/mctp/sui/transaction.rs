@@ -16,9 +16,10 @@ use crate::{
     Quote, SwapperError,
     mayan::tx_builder::{
         amount::optional_bps_u8,
-        sui::{SuiClientSwapReplay, SuiInputCoin, build_sui_input_coin, sui_package_address},
+        sui::{SuiClientSwapReplay, SuiInputCoin, build_sui_input_coin},
         swift::referrer_bytes,
     },
+    sui_swap::package_address,
 };
 use gem_sui::{
     SUI_COIN_TYPE,
@@ -54,7 +55,7 @@ fn deposit_for_burn_with_auth(txb: &mut TransactionBuilder, prefetched: &Prefetc
     let auth_type = format!("{}::{auth_module}::CircleAuth", prefetched.mctp_package_id);
     move_call(
         txb,
-        sui_package_address(SUI_CCTP_TOKEN_PACKAGE_ID)?,
+        package_address(SUI_CCTP_TOKEN_PACKAGE_ID)?,
         "deposit_for_burn",
         "deposit_for_burn_with_caller_with_package_auth",
         &[&prefetched.mctp_input_contract, &auth_type],
@@ -72,7 +73,7 @@ fn add_publish_wormhole_message(txb: &mut TransactionBuilder, prefetched: &Prefe
     let wormhole_state = txb.object(prefetched.objects[SUI_WORMHOLE_STATE].input(true));
     move_call(
         txb,
-        sui_package_address(SUI_WORMHOLE_PACKAGE_ID)?,
+        package_address(SUI_WORMHOLE_PACKAGE_ID)?,
         "publish_message",
         "publish_message",
         &[],
@@ -89,7 +90,7 @@ fn log_initialize_mctp(txb: &mut TransactionBuilder, route: &MayanMctpQuote, pre
     let payload = txb.pure(&Vec::<u8>::new());
     move_call(
         txb,
-        sui_package_address(&prefetched.mctp_package_id)?,
+        package_address(&prefetched.mctp_package_id)?,
         "init_order",
         "log_initialize_mctp",
         &[&route.from_token.contract],
@@ -103,6 +104,6 @@ fn log_referrer(txb: &mut TransactionBuilder, route: &MayanMctpQuote) -> Result<
     let referrer = referrer_bytes(&route.to_chain)?;
     let referrer = txb.pure(&Address::new(referrer));
     let referrer_bps = txb.pure(&optional_bps_u8(route.referrer_bps)?);
-    move_call(txb, sui_package_address(SUI_LOGGER_PACKAGE_ID)?, "referrer_logger", "log_referrer", &[], vec![referrer, referrer_bps]).map_err(sui_error)?;
+    move_call(txb, package_address(SUI_LOGGER_PACKAGE_ID)?, "referrer_logger", "log_referrer", &[], vec![referrer, referrer_bps]).map_err(sui_error)?;
     Ok(())
 }

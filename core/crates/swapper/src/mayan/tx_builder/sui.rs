@@ -5,21 +5,16 @@ use std::{
 
 use gem_client::Client;
 use gem_sui::{
-    ESTIMATION_GAS_BUDGET, SuiClient,
-    address::SuiAddress,
-    gas_budget::GAS_BUDGET_MULTIPLIER,
-    is_sui_coin,
-    models::{Coin, OwnedCoins, TxOutput},
+    SuiClient, is_sui_coin,
+    models::{Coin, OwnedCoins},
     tx_builder::{ResolvedObjectInput, TransactionJsonReplay, build_input_coin, prepare_transaction_json_replay},
 };
-use num_bigint::BigUint;
 use serde::Deserialize;
 use serde_json::Value;
 use sui_transaction_builder::{Argument, TransactionBuilder};
-use sui_types::Address;
 
 use crate::{
-    SwapperError, SwapperQuoteData,
+    SwapperError,
     mayan::{
         cctp_domain::CCTP_TOKEN_DECIMALS,
         client::MayanClient,
@@ -82,10 +77,6 @@ pub(in crate::mayan::tx_builder) async fn get_sui_input_coins(client: &SuiClient
     client.get_coins(sender, input_contract).await.map_err(sui_error)
 }
 
-pub(in crate::mayan::tx_builder) fn sui_package_address(package_id: &str) -> Result<Address, SwapperError> {
-    SuiAddress::parse(package_id).map(Address::from).map_err(sui_error)
-}
-
 pub(in crate::mayan::tx_builder) async fn get_sui_objects(client: &SuiClient, object_ids: Vec<String>) -> Result<HashMap<String, ResolvedObjectInput>, SwapperError> {
     let object_ids: Vec<String> = object_ids.into_iter().collect::<BTreeSet<_>>().into_iter().collect();
     let objects = ResolvedObjectInput::get_multiple(client, object_ids.clone()).await.map_err(sui_error)?;
@@ -103,21 +94,6 @@ pub(in crate::mayan::tx_builder) async fn get_package_id(client: &SuiClient, sta
     let package_id = state.latest_package_id;
     package_id_cache.put(state_object_id, package_id.clone());
     Ok(package_id)
-}
-
-pub(in crate::mayan::tx_builder) async fn build_sui_quote_data(sui_client: &SuiClient, build_transaction: impl Fn(u64) -> Result<TxOutput, SwapperError>) -> Result<SwapperQuoteData, SwapperError> {
-    let estimate = build_transaction(ESTIMATION_GAS_BUDGET)?;
-    let dry_run = sui_client.dry_run(estimate.base64_encoded()).await.map_err(SwapperError::transaction_error)?;
-    if dry_run.effects.status.status != "success" {
-        let detail = dry_run.effects.status.error.as_deref().unwrap_or("no details available");
-        return Err(SwapperError::TransactionError(format!("Sui swap simulation failed: {detail}")));
-    }
-
-    let fee = dry_run.effects.gas_used.calculate_gas_budget().map_err(SwapperError::transaction_error)?;
-    let gas_budget = fee * GAS_BUDGET_MULTIPLIER / 100;
-    let output = build_transaction(gas_budget)?;
-
-    Ok(SwapperQuoteData::new_contract(String::new(), BigUint::from(0u64), output.base64_encoded(), None, Some(gas_budget.to_string())))
 }
 
 pub(in crate::mayan::tx_builder) fn sui_error(err: impl Display) -> SwapperError {

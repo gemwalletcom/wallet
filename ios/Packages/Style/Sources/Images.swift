@@ -110,6 +110,7 @@ public enum Images {
         public static let meteora = Image(.meteora)
         public static let sunswap = Image(.sunswap)
         public static let stellarDex = Images.Chains.stellar
+        public static let deepbook = Image(.deepbook)
     }
 
     public enum EarnProviders {

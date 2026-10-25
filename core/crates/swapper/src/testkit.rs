@@ -9,6 +9,8 @@ use std::sync::{Arc, Mutex};
 
 use super::{Options, Quote, QuoteRequest};
 
+pub const TEST_SUI_WALLET: &str = "0x2ec5b7bcf6a0512850fe5f95cbd0a4303e8de5a3ffc01f9dba96bf1fde5f9bb5";
+
 impl ProviderData {
     pub fn mock() -> Self {
         ProviderData {
