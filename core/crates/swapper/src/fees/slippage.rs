@@ -9,10 +9,6 @@ pub fn bps_to_percent_string(bps: u32) -> Result<String, NumberFormatterError> {
     BigNumberFormatter::value(bps, BPS_PER_PERCENT_DECIMALS as u32)
 }
 
-pub(crate) fn minimum_value(value: u64, slippage_bps: u32) -> u64 {
-    u64::try_from(subtract_bps(&u128::from(value), slippage_bps)).unwrap_or_default()
-}
-
 pub fn percent_to_bps(percent: f64) -> Option<u32> {
     (percent * 10f64.powi(BPS_PER_PERCENT_DECIMALS)).round().to_u32()
 }

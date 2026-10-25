@@ -1,7 +1,9 @@
 use crate::constants::{TRANSACTION_TYPE_CREATE_ACCOUNT, TRANSACTION_TYPE_PATH_PAYMENT_STRICT_SEND, TRANSACTION_TYPE_PAYMENT};
 use crate::models::transaction::{Payment, StellarTransactionBroadcast};
+use crate::provider::balances_mapper::map_asset_id;
 use chrono::DateTime;
-use primitives::{SwapProvider, Transaction, TransactionSwapMetadata, TransactionSwapReferralFee, TransactionType, chain::Chain, swap::STELLAR_REFERRAL_ADDRESS};
+use num_bigint::BigUint;
+use primitives::{AssetId, SwapProvider, Transaction, TransactionSwapMetadata, TransactionSwapReferralFee, TransactionType, chain::Chain, swap::STELLAR_REFERRAL_ADDRESS};
 use std::error::Error;
 use url::form_urlencoded;
 
@@ -41,17 +43,22 @@ fn map_swap(chain: Chain, payments: &[Payment]) -> Option<Transaction> {
     let swap = payments
         .iter()
         .find(|payment| payment.payment_type == TRANSACTION_TYPE_PATH_PAYMENT_STRICT_SEND && payment.from.is_some() && payment.from == payment.to)?;
-    let (from_asset, from_value) = (swap.source_asset_id()?, swap.source_amount.clone()?);
+    let from_asset = map_asset_id(chain, swap.source_asset_type.as_deref()?, swap.source_asset_issuer.as_ref(), swap.source_asset_code.as_ref())?;
+    let to_asset = map_asset_id(chain, swap.asset_type.as_deref()?, swap.asset_issuer.as_ref(), swap.asset_code.as_ref())?;
     let referral_fee = payments
         .iter()
         .find(|payment| payment.payment_type == TRANSACTION_TYPE_PAYMENT && payment.from == swap.from && payment.to.as_deref() == Some(STELLAR_REFERRAL_ADDRESS))
         .and_then(|payment| {
             Some(TransactionSwapReferralFee {
-                asset_id: payment.asset_id()?,
+                asset_id: map_asset_id(chain, payment.asset_type.as_deref()?, payment.asset_issuer.as_ref(), payment.asset_code.as_ref())?,
                 value: payment.amount.clone()?,
             })
         });
-    let metadata = TransactionSwapMetadata::new(from_asset.clone(), from_value.clone(), swap.asset_id()?, swap.amount.clone()?, SwapProvider::StellarDex).with_referral_fee(referral_fee);
+    let fee_in = |asset_id: &AssetId| referral_fee.as_ref().filter(|fee| fee.asset_id == *asset_id).map_or(BigUint::ZERO, |fee| fee.value.clone());
+    let from_value = swap.source_amount.clone()? + fee_in(&from_asset);
+    let (received, to_fee) = (swap.amount.clone()?, fee_in(&to_asset));
+    let to_value = (to_fee <= received).then(|| received - to_fee)?;
+    let metadata = TransactionSwapMetadata::new(from_asset.clone(), from_value.clone(), to_asset, to_value, SwapProvider::StellarDex).with_referral_fee(referral_fee);
     let address = swap.from.clone()?;
 
     Some(Transaction::new(
@@ -172,45 +179,40 @@ mod tests {
     }
 
     #[test]
-    fn test_map_transactions_swap_to_self_with_gem_fee() {
+    fn test_map_transactions_swap_records_what_left_the_wallet_and_what_it_kept() {
         let records = || serde_json::from_str::<Embedded<Payment>>(include_str!("../../testdata/transaction_swap_path_payment.json")).unwrap()._embedded.records;
-        let fee_payment = |asset: &str| -> Payment {
+        let fee_payment = |asset: &str, amount: &str| -> Payment {
             serde_json::from_str(&format!(
-                r#"{{"id":"2","transaction_successful":true,"transaction_hash":"b652bc89d2c3b29573a512d76088d8fc3108298947451197af019709185f2ef2","type":"payment",{asset},"from":"GCVQA5JVHNDJFPODJZU6BM7H5344VK2KGBFXSUUEP7ZH3T5DXGMCR6NL","to":"{STELLAR_REFERRAL_ADDRESS}","amount":"0.0100170","created_at":"2026-10-25T04:21:03Z","transaction":{{"memo":null,"fee_charged":"200"}}}}"#
+                r#"{{"id":"2","transaction_successful":true,"transaction_hash":"b652bc89d2c3b29573a512d76088d8fc3108298947451197af019709185f2ef2","type":"payment",{asset},"from":"GCVQA5JVHNDJFPODJZU6BM7H5344VK2KGBFXSUUEP7ZH3T5DXGMCR6NL","to":"{STELLAR_REFERRAL_ADDRESS}","amount":"{amount}","created_at":"2026-10-25T04:21:03Z","transaction":{{"memo":null,"fee_charged":"300"}}}}"#
             ))
             .unwrap()
         };
         let usdc = AssetId::from_token(Chain::Stellar, "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN::USDC");
-        let metadata = |transaction: &Transaction| serde_json::from_value::<TransactionSwapMetadata>(transaction.metadata.clone().unwrap()).unwrap();
+        let swap = |fee: Option<Payment>| {
+            let transactions = map_transactions(Chain::Stellar, [records(), fee.into_iter().collect()].concat());
+            assert_eq!(transactions.len(), 1, "Gem's fee payment is part of the swap, not a transfer of its own");
+            assert_eq!(transactions[0].transaction_type, TransactionType::Swap);
+            serde_json::from_value::<TransactionSwapMetadata>(transactions[0].metadata.clone().unwrap()).unwrap()
+        };
+        let xlm_fee = swap(Some(fee_payment(r#""asset_type":"native""#, "0.0100170")));
+        let usdc_fee = swap(Some(fee_payment(
+            r#""asset_type":"credit_alphanum4","asset_code":"USDC","asset_issuer":"GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN""#,
+            "0.0017163",
+        )));
 
-        let without_fee = map_transactions(Chain::Stellar, records());
-        let with_xlm_fee = map_transactions(Chain::Stellar, [records(), vec![fee_payment(r#""asset_type":"native""#)]].concat());
-        let with_usdc_fee = map_transactions(
-            Chain::Stellar,
-            [
-                records(),
-                vec![fee_payment(r#""asset_type":"credit_alphanum4","asset_code":"USDC","asset_issuer":"GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN""#)],
-            ]
-            .concat(),
-        );
-
-        assert_eq!(without_fee.len(), 1);
-        assert_eq!(without_fee[0].transaction_type, TransactionType::Swap);
-        assert_eq!(without_fee[0].asset_id, Chain::Stellar.as_asset_id());
-        assert_eq!(without_fee[0].value, BigUint::from(20_034_027u32));
         assert_eq!(
-            metadata(&without_fee[0]),
+            swap(None),
             TransactionSwapMetadata::new(Chain::Stellar.as_asset_id(), BigUint::from(20_034_027u32), usdc.clone(), BigUint::from(3_432_692u32), SwapProvider::StellarDex)
         );
-        assert_eq!(with_xlm_fee.len(), 1, "Gem's fee payment is part of the swap, not a transfer of its own");
+        assert_eq!((xlm_fee.from_value, xlm_fee.to_value), (BigUint::from(20_134_197u32), BigUint::from(3_432_692u32)), "the XLM paid includes Gem's fee");
+        assert_eq!((usdc_fee.from_value, usdc_fee.to_value), (BigUint::from(20_034_027u32), BigUint::from(3_415_529u32)), "the USDC kept excludes Gem's fee");
         assert_eq!(
-            metadata(&with_xlm_fee[0]).referral_fee,
+            usdc_fee.referral_fee,
             Some(TransactionSwapReferralFee {
-                asset_id: Chain::Stellar.as_asset_id(),
-                value: BigUint::from(100_170u32),
+                asset_id: usdc,
+                value: BigUint::from(17_163u32),
             })
         );
-        assert_eq!(metadata(&with_usdc_fee[0]).referral_fee.unwrap().asset_id, usdc);
         assert_eq!(
             map_transaction_by_hash(Chain::Stellar, records(), "b652bc89d2c3b29573a512d76088d8fc3108298947451197af019709185f2ef2").unwrap().transaction_type,
             TransactionType::Swap

@@ -1,4 +1,4 @@
-use primitives::AssetId;
+use primitives::{AssetId, TransactionSwapReferralFee};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -7,15 +7,8 @@ pub struct StellarSwapData {
     pub destination_min: u64,
     pub path: Vec<AssetId>,
     pub change_trust: bool,
-    pub fee: Option<StellarSwapFee>,
+    pub fee: Option<TransactionSwapReferralFee>,
     pub max_time: u64,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct StellarSwapFee {
-    pub destination: String,
-    pub asset: AssetId,
-    pub amount: u64,
 }
 
 impl StellarSwapData {

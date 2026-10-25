@@ -19,9 +19,8 @@ pub fn map_transaction_load(input: TransactionLoadInput) -> Result<TransactionLo
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::swap::StellarSwapFee;
     use num_bigint::BigUint;
-    use primitives::{Asset, Chain, GasPriceType, SwapProvider, TransactionInputType, TransactionLoadMetadata, swap::SwapData};
+    use primitives::{Asset, Chain, GasPriceType, SwapProvider, TransactionInputType, TransactionLoadMetadata, TransactionSwapReferralFee, swap::SwapData};
 
     #[test]
     fn test_map_transaction_load_destination_exists() {
@@ -66,10 +65,9 @@ mod tests {
             destination_min: 1,
             path: vec![],
             change_trust,
-            fee: Some(StellarSwapFee {
-                destination: String::new(),
-                asset: AssetId::from_chain(Chain::Stellar),
-                amount: 1,
+            fee: Some(TransactionSwapReferralFee {
+                asset_id: AssetId::from_chain(Chain::Stellar),
+                value: BigUint::from(1u32),
             }),
             max_time: 1,
         };

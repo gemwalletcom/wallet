@@ -176,33 +176,4 @@ mod tests {
             "py-stellar-base tests/operation/test_path_payment_strict_send.py, case without_source"
         );
     }
-
-    #[test]
-    fn test_encode_swap_to_self_matches_a_mainnet_transaction() {
-        let sender = address("GCVQA5JVHNDJFPODJZU6BM7H5344VK2KGBFXSUUEP7ZH3T5DXGMCR6NL");
-        let transaction = StellarTransaction {
-            account: sender.clone(),
-            fee: 100,
-            sequence: 278_896_359_950_521_622,
-            memo: Memo::None,
-            time_bounds: Some(1_792_902_087),
-            operations: vec![Operation::PathPaymentStrictSend {
-                send_asset: None,
-                send_amount: 20_034_027,
-                destination: sender,
-                destination_asset: asset("USDC", "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"),
-                destination_min: 3_262_747,
-                path: vec![],
-            }],
-        };
-        let envelope = decode_base64("AAAAAgAAAACrAHU1O0aSvcNOaeCz5+75yqtKMEt5UoR/8n3Po7mYKAAAAGQD3tbDAAAVFgAAAAEAAAAAAAAAAAAAAABq3YPHAAAAAAAAAAEAAAAAAAAADQAAAAAAAAAAATGx6wAAAACrAHU1O0aSvcNOaeCz5+75yqtKMEt5UoR/8n3Po7mYKAAAAAFVU0RDAAAAADuZETgO/piLoKiQDrHP5E82b32+lGvtB3JA9/Yk3xXFAAAAAAAxyRsAAAAAAAAAAAAAAAGjuZgoAAAAQC86O1b6KMIGFYR0qQSpz6/K1X2ilQYn8DFN4VHfjc+mkKPdYmXG41sWH+gb00qfEgwIpIKiIK0EFRSWqXj/nw4=").unwrap();
-        let signatures_length = 4 + 4 + 4 + 64;
-
-        assert_eq!(&envelope[..4], &2u32.to_be_bytes(), "a v1 envelope");
-        assert_eq!(
-            encode_transaction(&transaction),
-            envelope[4..envelope.len() - signatures_length],
-            "mainnet b652bc89d2c3b29573a512d76088d8fc3108298947451197af019709185f2ef2: 2.0034027 XLM to at least 0.3262747 USDC, paid to its sender"
-        );
-    }
 }

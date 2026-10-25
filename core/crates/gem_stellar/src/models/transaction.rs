@@ -7,10 +7,6 @@ use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "rpc")]
 use crate::constants::STELLAR_DECIMALS;
-#[cfg(feature = "rpc")]
-use crate::models::path::stellar_asset_id;
-#[cfg(feature = "rpc")]
-use primitives::AssetId;
 
 #[cfg(feature = "rpc")]
 fn deserialize_option_stellar_amount<'de, D>(deserializer: D) -> Result<Option<BigUint>, D::Error>
@@ -118,14 +114,6 @@ impl Payment {
             TRANSACTION_TYPE_CREATE_ACCOUNT => self.starting_balance.clone(),
             _ => None,
         }
-    }
-
-    pub fn asset_id(&self) -> Option<AssetId> {
-        stellar_asset_id(self.asset_type.as_deref()?, self.asset_code.as_ref(), self.asset_issuer.as_ref())
-    }
-
-    pub fn source_asset_id(&self) -> Option<AssetId> {
-        stellar_asset_id(self.source_asset_type.as_deref()?, self.source_asset_code.as_ref(), self.source_asset_issuer.as_ref())
     }
 
     pub fn get_memo(&self) -> Option<String> {

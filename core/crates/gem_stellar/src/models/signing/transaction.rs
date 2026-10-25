@@ -1,13 +1,15 @@
 use super::asset::StellarAssetData;
 use super::operation::{Memo, Operation};
 use crate::address::StellarAddress;
-use crate::models::swap::{StellarSwapData, StellarSwapFee};
+use crate::models::swap::StellarSwapData;
 use num_traits::ToPrimitive;
-use primitives::{Address, SignerError, SignerInput, swap::STELLAR_REFERRAL_TRUSTED_ASSETS};
+use primitives::{
+    Address, AssetId, SignerError, SignerInput, TransactionSwapReferralFee,
+    swap::{STELLAR_REFERRAL_ADDRESS, STELLAR_REFERRAL_FEE_ASSET_IDS},
+};
 use signer::InvalidInput;
 
 const MEMO_TEXT_MAX_BYTES: usize = 28;
-const PATH_MAX_LENGTH: usize = 5;
 
 #[derive(Clone)]
 pub struct StellarTransaction {
@@ -57,21 +59,26 @@ impl StellarTransaction {
 
     pub fn swap(input: &SignerInput) -> Result<Self, SignerError> {
         let swap: StellarSwapData = serde_json::from_str(&input.input_type.get_swap_data()?.data.data).invalid_input("invalid Stellar swap data")?;
-        if swap.path.len() > PATH_MAX_LENGTH {
-            return SignerError::invalid_input_err("Stellar path payment path is too long");
+        let (from_asset, to_asset) = (&input.input_type.get_asset().id, &input.input_type.get_recipient_asset().id);
+        let fee_payment = swap.fee.as_ref().map(|fee| fee_payment(fee, from_asset, to_asset)).transpose()?;
+        let input_fee = match &swap.fee {
+            Some(fee) if fee.asset_id == *from_asset => fee.value.to_u64().invalid_input("invalid Stellar fee amount")?,
+            _ => 0,
+        };
+        if swap.send_amount.checked_add(input_fee) != Some(input.value_as_u64()?) {
+            return SignerError::invalid_input_err("Stellar swap amount does not match the amount paid");
         }
         let account = StellarAddress::from_str(&input.sender_address).invalid_input("invalid Stellar address")?;
-        let destination_asset = StellarAssetData::from_asset_id(&input.input_type.get_recipient_asset().id)?;
-        let change_trust = change_trust(swap.change_trust, destination_asset.as_ref())?;
+        let destination_asset = StellarAssetData::from_asset_id(to_asset)?;
+        let change_trust = destination_asset.clone().filter(|_| swap.change_trust).map(|asset| Operation::ChangeTrust { asset });
         let path_payment = Operation::PathPaymentStrictSend {
-            send_asset: StellarAssetData::from_asset_id(&input.input_type.get_asset().id)?,
+            send_asset: StellarAssetData::from_asset_id(from_asset)?,
             send_amount: swap.send_amount,
             destination: account.clone(),
             destination_asset,
             destination_min: swap.destination_min,
             path: swap.path.iter().map(StellarAssetData::from_asset_id).collect::<Result<_, _>>()?,
         };
-        let fee_payment = fee_payment(swap.fee.as_ref())?;
 
         Ok(Self {
             account,
@@ -95,26 +102,15 @@ impl StellarTransaction {
     }
 }
 
-fn change_trust(is_needed: bool, asset: Option<&StellarAssetData>) -> Result<Option<Operation>, SignerError> {
-    match (is_needed, asset) {
-        (true, Some(asset)) => Ok(Some(Operation::ChangeTrust { asset: asset.clone() })),
-        (true, None) => SignerError::invalid_input_err("Stellar trustline requires a token"),
-        (false, _) => Ok(None),
+fn fee_payment(fee: &TransactionSwapReferralFee, from_asset: &AssetId, to_asset: &AssetId) -> Result<Operation, SignerError> {
+    if (fee.asset_id != *from_asset && fee.asset_id != *to_asset) || !STELLAR_REFERRAL_FEE_ASSET_IDS.contains(&fee.asset_id) {
+        return SignerError::invalid_input_err("Stellar fee must be paid in the asset sold or bought that Gem's fee account receives");
     }
-}
-
-fn fee_payment(fee: Option<&StellarSwapFee>) -> Result<Option<Operation>, SignerError> {
-    let Some(fee) = fee else {
-        return Ok(None);
-    };
-    if !fee.asset.is_native() && !STELLAR_REFERRAL_TRUSTED_ASSETS.contains(&fee.asset) {
-        return SignerError::invalid_input_err("Stellar fee asset is not trusted by the fee account");
-    }
-    Ok(Some(Operation::Payment {
-        destination: StellarAddress::from_str(&fee.destination).invalid_input("invalid Stellar fee address")?,
-        asset: StellarAssetData::from_asset_id(&fee.asset)?,
-        amount: fee.amount,
-    }))
+    Ok(Operation::Payment {
+        destination: StellarAddress::from_str(STELLAR_REFERRAL_ADDRESS).invalid_input("invalid Stellar fee address")?,
+        asset: StellarAssetData::from_asset_id(&fee.asset_id)?,
+        amount: fee.value.to_u64().invalid_input("invalid Stellar fee amount")?,
+    })
 }
 
 fn fee_u32(input: &SignerInput) -> Result<u32, SignerError> {
