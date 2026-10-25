@@ -3924,7 +3924,7 @@ dependencies = [
 
 [[package]]
 name = "gem_zcash"
-version = "2.114.79"
+version = "2.114.81"
 dependencies = [
  "async-trait",
  "bech32 0.12.0",
