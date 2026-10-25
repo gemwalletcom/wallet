@@ -13,8 +13,8 @@ use crate::rpc::client::BitcoinClient;
 impl<C: Client> ChainBalances for BitcoinClient<C> {
     async fn get_balance_coin(&self, address: String) -> Result<AssetBalance, Box<dyn Error + Sync + Send>> {
         let address = &Address::new(&address, self.get_chain()).full();
-        let account = self.get_balance(address).await?;
-        Ok(map_balance_coin(&account, self.chain))
+        let utxos = self.get_utxos(address).await?;
+        Ok(map_balance_coin(&utxos, self.chain))
     }
 }
 

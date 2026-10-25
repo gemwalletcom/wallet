@@ -34,18 +34,13 @@ mod tests {
 
     #[test]
     fn test_map_utxos_skips_immature_coinbase() {
-        let utxos: Vec<BitcoinUTXO> = serde_json::from_str(
-            r#"[
-                {"txid":"faa82c96d58602b7704eb609664ee800b6d9b2b27fa6c8c1dd4977d3264964cd","vout":0,"value":"307891765","height":974378,"confirmations":71,"coinbase":true},
-                {"txid":"0000000000000000000000000000000000000000000000000000000000000001","vout":1,"value":"50000","height":974000,"confirmations":449}
-            ]"#,
-        )
-        .unwrap();
+        let utxos: Vec<BitcoinUTXO> = serde_json::from_str(include_str!("../../testdata/utxos_immature_coinbase.json")).unwrap();
 
         let result = map_utxos(utxos, "bitcoincash:qplzr8pyqknsgxeaevu20z3zrhcms3wp8g65lxrynf".to_string());
 
-        assert_eq!(result.len(), 1);
-        assert_eq!(result[0].transaction_id, "0000000000000000000000000000000000000000000000000000000000000001");
-        assert_eq!(result[0].vout, 1);
+        assert_eq!(
+            result.iter().map(|utxo| utxo.transaction_id.as_str()).collect::<Vec<_>>(),
+            vec!["0000000000000000000000000000000000000000000000000000000000000001", "0000000000000000000000000000000000000000000000000000000000000002"]
+        );
     }
 }
