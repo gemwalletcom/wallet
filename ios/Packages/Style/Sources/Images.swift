@@ -96,6 +96,7 @@ public enum Images {
         public static let chainflip = Image(.chainflip)
         public static let relay = Image(.relay)
         public static let aerodrome = Image(.aerodrome)
+        public static let aero = Image(.aero)
         public static let hyperliquid = Image(.hyperliquid)
         public static let panora = Image(.panora)
         public static let okx = Image(.okx)

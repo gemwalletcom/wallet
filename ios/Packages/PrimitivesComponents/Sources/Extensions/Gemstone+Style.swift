@@ -723,7 +723,8 @@ public extension SwapProvider {
         case .mayan: Images.SwapProviders.mayan
         case .chainflip: Images.SwapProviders.chainflip
         case .relay: Images.SwapProviders.relay
-        case .aerodrome, .aero: Images.SwapProviders.aerodrome
+        case .aerodrome: Images.SwapProviders.aerodrome
+        case .aero: Images.SwapProviders.aero
         case .hyperliquid: Images.SwapProviders.hyperliquid
         case .nearIntents: Images.SwapProviders.nearIntents
         case .orca: Images.SwapProviders.orca
