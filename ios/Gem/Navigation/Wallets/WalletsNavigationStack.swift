@@ -10,6 +10,7 @@ import Wallet
 struct WalletsNavigationStack: View {
     @Environment(\.viewModelFactory) private var viewModelFactory
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.navigationState) private var navigationState
 
     @State private var navigationPath = NavigationPath()
 
@@ -35,7 +36,7 @@ struct WalletsNavigationStack: View {
                 CreateWalletNavigationStack(model: viewModelFactory.createWalletScene(onComplete: { dismiss() }))
             }
             .sheet(isPresented: $isPresentingImportWalletSheet) {
-                ImportWalletNavigationStack(model: viewModelFactory.importWalletScene(onComplete: { dismiss() }))
+                ImportWalletNavigationStack(model: viewModelFactory.importWalletScene(onComplete: onImportComplete))
             }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
@@ -46,5 +47,10 @@ struct WalletsNavigationStack: View {
             }
             .navigationBarTitleDisplayMode(.inline)
         }
+    }
+
+    private func onImportComplete() {
+        dismiss()
+        navigationState.reset()
     }
 }
