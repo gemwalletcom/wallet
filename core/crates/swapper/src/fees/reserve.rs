@@ -29,6 +29,7 @@ pub fn reserved_transaction_fees(chain: Chain) -> Option<BigUint> {
         Chain::Robinhood => 100_000_000_000_000,
         Chain::Hyperliquid => 1_000_000_000_000_000,
         Chain::Stable => 10_000_000_000_000_000,
+        Chain::Arc => 50_000_000_000_000_000,
         _ => return None,
     };
     Some(BigUint::from(reserve))

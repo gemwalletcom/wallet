@@ -1,3 +1,4 @@
+use num_bigint::BigUint;
 use primitives::{SwapProvider, Transaction as PrimitivesTransaction};
 
 use super::{ParseContext, ParseContextExt, TransactionParser, referral_fee_from_transfers, transfer_swap};
@@ -11,7 +12,7 @@ impl TransactionParser<ParseContext<'_>, PrimitivesTransaction> for AeroParser {
     }
 
     fn parse(&self, context: &ParseContext<'_>) -> Option<PrimitivesTransaction> {
-        let metadata = transfer_swap(context, SwapProvider::Aero)?.with_referral_fee(referral_fee_from_transfers(*context.metadata.chain, context.metadata.receipt));
+        let metadata = transfer_swap(context, SwapProvider::Aero, &BigUint::ZERO)?.with_referral_fee(referral_fee_from_transfers(*context.metadata.chain, context.metadata.receipt));
         context.make_swap_transaction(&context.transaction.from, &context.transaction.from, &metadata)
     }
 }

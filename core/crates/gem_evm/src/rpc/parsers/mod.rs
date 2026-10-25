@@ -10,7 +10,7 @@ pub mod yo;
 use chain_traits::transaction_parser::{ParseContext as GenericParseContext, parse_transaction};
 use chrono::{DateTime, Utc};
 use num_bigint::BigUint;
-use num_traits::{Num, Zero};
+use num_traits::{CheckedSub, Num, Zero};
 
 use super::{
     mapper::TRANSFER_TOPIC,
@@ -119,7 +119,7 @@ impl ReceiptTransfer {
     }
 }
 
-pub(super) fn transfer_swap(context: &ParseContext<'_>, provider: SwapProvider) -> Option<TransactionSwapMetadata> {
+pub(super) fn transfer_swap(context: &ParseContext<'_>, provider: SwapProvider, native_fee: &BigUint) -> Option<TransactionSwapMetadata> {
     let chain = *context.metadata.chain;
     let wallet = ethereum_address_checksum(&context.transaction.from).ok()?;
     let transfers = context.metadata.receipt.logs.iter().filter_map(ReceiptTransfer::from_log).filter(|transfer| !transfer.value.is_zero()).collect::<Vec<_>>();
@@ -129,8 +129,9 @@ pub(super) fn transfer_swap(context: &ParseContext<'_>, provider: SwapProvider) 
         ([sent], [received]) if sent.token != received.token => ((AssetId::from_token(chain, &sent.token), sent.value.clone()), (AssetId::from_token(chain, &received.token), received.value.clone())),
         ([], [received]) if !context.transaction.value.is_zero() => ((AssetId::from_chain(chain), context.transaction.value.clone()), (AssetId::from_token(chain, &received.token), received.value.clone())),
         ([sent], []) => {
-            let withdrawn = withdraw_value_from_receipt(EVMChain::from_chain(chain)?.weth_contract()?, context.metadata.receipt)?;
-            ((AssetId::from_token(chain, &sent.token), sent.value.clone()), (AssetId::from_chain(chain), withdrawn))
+            let (weth, router) = (EVMChain::from_chain(chain)?.weth_contract()?, ethereum_address_checksum(context.transaction.to.as_deref()?).ok()?);
+            let unwrapped = context.metadata.receipt.logs.iter().filter_map(|log| withdrawal(log, weth)).find(|(unwrapper, _)| *unwrapper == router)?.1;
+            ((AssetId::from_token(chain, &sent.token), sent.value.clone()), (AssetId::from_chain(chain), unwrapped.checked_sub(native_fee)?))
         }
         _ => return None,
     };
@@ -140,12 +141,14 @@ pub(super) fn transfer_swap(context: &ParseContext<'_>, provider: SwapProvider) 
 }
 
 pub(super) fn withdraw_value_from_receipt(token: &str, receipt: &TransactionReceipt) -> Option<BigUint> {
-    let token = ethereum_address_checksum(token).ok()?;
-    receipt.logs.iter().find_map(|log| {
-        (ethereum_address_checksum(&log.address).ok()? == token && log.topics.len() == 2 && log.topics.first().is_some_and(|topic| topic == WITHDRAWAL_TOPIC))
-            .then(|| ethereum_value_from_log_data(&log.data, 0, EVENT_WORD_SIZE))
-            .flatten()
-    })
+    receipt.logs.iter().find_map(|log| withdrawal(log, token)).map(|(_, value)| value)
+}
+
+fn withdrawal(log: &Log, token: &str) -> Option<(String, BigUint)> {
+    if log.topics.len() != 2 || log.topics.first().is_none_or(|topic| topic != WITHDRAWAL_TOPIC) || !log.address.eq_ignore_ascii_case(token) {
+        return None;
+    }
+    Some((ethereum_address_from_topic(log.topics.get(1)?)?, ethereum_value_from_log_data(&log.data, 0, EVENT_WORD_SIZE)?))
 }
 
 pub fn ethereum_value_from_log_data(data: &str, start: usize, end: usize) -> Option<BigUint> {
