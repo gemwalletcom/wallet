@@ -63,7 +63,7 @@ impl SunSwap {
 
     fn routed_asset(asset_id: &AssetId) -> Result<RoutedAsset, SwapperError> {
         let (token, funding) = match &asset_id.token_id {
-            Some(token_id) => (token_id.as_str(), Funding::Permit2),
+            Some(token_id) => (token_id.as_str(), Funding::Token),
             None => (TRON_WTRX_TOKEN_ID, Funding::Value),
         };
         Ok(RoutedAsset::unscaled(eth_address::parse(Chain::Tron, token)?, funding))
@@ -160,7 +160,7 @@ impl Swapper for SunSwap {
         let permit = data.permit2_data().map(Permit2Permit::try_from).transpose()?;
 
         let (approval, permit2) = match input.funding {
-            Funding::Permit2 => {
+            Funding::Token => {
                 let token = eth_address::token_id(Chain::Tron, &input.address);
                 check_permit2_approvals_trc20(
                     &request.wallet_address,
@@ -189,7 +189,7 @@ impl Swapper for SunSwap {
         let calldata = encode_commands(&commands, U256::from(get_sig_deadline()));
         let value = match input.funding {
             Funding::Value => request.value.clone(),
-            Funding::Permit2 | Funding::RouterBalance => BigUint::ZERO,
+            Funding::Token | Funding::RouterBalance => BigUint::ZERO,
         };
         let gas_limit = (approval.is_some() || permit2.is_some()).then(|| SWAP_ENERGY_LIMIT.to_string());
 

@@ -1,14 +1,14 @@
-use super::commands::{SwapCommands, build_commands, encode_execute, input_fee};
+use super::commands::{SwapCommands, build_commands, encode_execute};
 use crate::{
     Contracts, FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
     alien::RpcProvider,
     approval::{DEFAULT_EVM_SWAP_GAS_LIMIT, check_approval_erc20, get_swap_gas_limit_with_approval},
     client_factory::create_client_with_chain,
     eth_address,
-    fees::on_chain_referral_fees,
+    fees::{on_chain_referral_fees, subtract_bps},
     uniswap::{
         deadline::get_sig_deadline,
-        discovery::{PoolDiscovery, candidate_pairs, discover_pools, v3_pool_request},
+        discovery::{PoolDiscovery, candidate_pairs, discover_pools},
         fee_token::is_quote_input_fee_token,
         quote_result::{OutpricedPaths, get_best_quote},
         routed_asset::{Funding, Protocol, base_pair, routed_pair, routed_request},
@@ -20,19 +20,17 @@ use alloy_sol_types::SolCall;
 use async_trait::async_trait;
 use gem_evm::{
     jsonrpc::EthereumRpc,
-    u256::u256_to_biguint,
     uniswap::{
         FeeTier,
         contracts::aero::IMetaquoter,
         deployment::{
-            aero::{AeroDeployment, get_aero_deployment_by_chain},
+            aero::{METAQUOTER, METAROUTER, get_factory_by_chain, pool_address},
             v3::PoolLookup,
         },
         path::TokenPair,
     },
 };
 use gem_jsonrpc::types::JsonRpcResponse;
-use num_bigint::BigUint;
 use primitives::{AssetId, Chain, decode_hex};
 use std::{fmt, str::FromStr, sync::Arc};
 
@@ -58,43 +56,29 @@ impl Aero {
         }
     }
 
-    fn deployment(chain: Chain) -> Result<AeroDeployment, SwapperError> {
-        get_aero_deployment_by_chain(&chain).ok_or(SwapperError::NotSupportedChain)
-    }
-
     async fn preload_pools(&self, from_asset: &AssetId, to_asset: &AssetId) -> Result<(), SwapperError> {
         let chain = from_asset.chain;
-        let deployment = Self::deployment(chain)?;
+        let factory = get_factory_by_chain(&chain).ok_or(SwapperError::NotSupportedChain)?;
         let (evm_chain, input, output) = routed_pair(from_asset, to_asset, PROTOCOL)?;
         let base_pair = base_pair(evm_chain, PROTOCOL).ok_or(SwapperError::NotSupportedChain)?;
         let pairs = candidate_pairs(input.address, output.address, get_intermediaries(&input.address, &output.address, &base_pair));
-        let factory = deployment.factory.to_checksum(None);
-        let pools = self
-            .pool_discovery
-            .missing_pools(chain, &pairs, &TICK_SPACINGS)
-            .into_iter()
-            .map(|pool| {
-                let request = v3_pool_request(&factory, PoolLookup::TickSpacing, &pool);
-                (pool, request)
-            })
-            .collect::<Vec<_>>();
+        let pools = self.pool_discovery.missing_pool_requests(chain, &pairs, &TICK_SPACINGS, (&factory.to_checksum(None), PoolLookup::TickSpacing));
         if pools.is_empty() {
             return Ok(());
         }
         let client = create_client_with_chain(self.rpc_provider.clone(), chain)?;
-        let discovered = discover_pools(&client, pools).await?;
-        self.pool_discovery.record_pools(chain, &discovered);
+        self.pool_discovery.record_pools(chain, &discover_pools(&client, pools).await?);
         Ok(())
     }
 }
 
-fn quote_request(deployment: &AeroDeployment, token_in: Address, pairs: &[TokenPair], amount_in: U256) -> EthereumRpc {
+fn quote_request(factory: &Address, token_in: Address, pairs: &[TokenPair], amount_in: U256) -> EthereumRpc {
     let call = IMetaquoter::quoteExactInputCall {
-        pools: pairs.iter().map(|pair| deployment.pool_address(pair)).collect(),
+        pools: pairs.iter().map(|pair| pool_address(factory, pair)).collect(),
         tokenIn: token_in,
         amountIn: amount_in,
     };
-    EthereumRpc::call(deployment.metaquoter, call.abi_encode())
+    EthereumRpc::call(METAQUOTER, call.abi_encode())
 }
 
 fn decode_quote_response(response: &JsonRpcResponse<String>) -> Result<U256, SwapperError> {
@@ -103,13 +87,13 @@ fn decode_quote_response(response: &JsonRpcResponse<String>) -> Result<U256, Swa
     Some(quote.amountOut).filter(|amount_out| !amount_out.is_zero()).ok_or(SwapperError::NoQuoteAvailable)
 }
 
-fn route_pools(deployment: &AeroDeployment, quote: &Quote, token_in: Address, token_out: Address) -> Result<Vec<Address>, SwapperError> {
+fn route_pools(factory: &Address, quote: &Quote, token_in: Address, token_out: Address) -> Result<Vec<Address>, SwapperError> {
     let pairs = quote.data.routes.iter().map(TokenPair::try_from).collect::<Result<Vec<_>, _>>()?;
     let connected = pairs.first().map(|pair| pair.token_in) == Some(token_in) && pairs.last().map(|pair| pair.token_out) == Some(token_out) && pairs.windows(2).all(|hops| hops[0].token_out == hops[1].token_in);
     if !connected {
         return Err(SwapperError::InvalidRoute);
     }
-    Ok(pairs.iter().map(|pair| deployment.pool_address(pair)).collect())
+    Ok(pairs.iter().map(|pair| pool_address(factory, pair)).collect())
 }
 
 impl fmt::Debug for Aero {
@@ -125,7 +109,7 @@ impl Swapper for Aero {
     }
 
     fn supported_assets(&self) -> Vec<SwapperChainAsset> {
-        Chain::all().into_iter().filter(|chain| get_aero_deployment_by_chain(chain).is_some()).map(SwapperChainAsset::All).collect()
+        Chain::all().into_iter().filter(|chain| get_factory_by_chain(chain).is_some()).map(SwapperChainAsset::All).collect()
     }
 
     fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {
@@ -133,7 +117,7 @@ impl Swapper for Aero {
     }
 
     fn contracts(&self, from_asset: &AssetId) -> Contracts {
-        get_aero_deployment_by_chain(&from_asset.chain).map(|deployment| Contracts::new(vec![deployment.metarouter])).unwrap_or_default()
+        get_factory_by_chain(&from_asset.chain).map(|_| Contracts::new(vec![METAROUTER])).unwrap_or_default()
     }
 
     async fn preload_routes(&self, from_asset: &AssetId, to_asset: &AssetId) {
@@ -142,18 +126,18 @@ impl Swapper for Aero {
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
         let chain = request.from_asset.chain();
-        let deployment = Self::deployment(chain)?;
+        let factory = get_factory_by_chain(&chain).ok_or(SwapperError::NotSupportedChain)?;
         let (evm_chain, input, output, from_value) = routed_request(request, PROTOCOL)?;
         let base_pair = base_pair(evm_chain, PROTOCOL).ok_or(SwapperError::NotSupportedChain)?;
         let fee_token_is_input = is_quote_input_fee_token(Some(&base_pair), request, input.address, output.address);
-        let amount_in = from_value - input_fee(from_value, on_chain_referral_fees(request).evm.bps, fee_token_is_input);
+        let amount_in = if fee_token_is_input { subtract_bps(&from_value, on_chain_referral_fees(request).evm.bps) } else { from_value };
 
         _ = self.preload_pools(&request.from_asset.asset_id(), &request.to_asset.asset_id()).await;
         let paths = candidate_paths(&input.address, &output.address, &TICK_SPACINGS, &base_pair)
             .into_iter()
             .filter(|pairs| self.pool_discovery.path_may_exist(chain, pairs))
             .map(|pairs| {
-                let request = quote_request(&deployment, input.address, &pairs, amount_in);
+                let request = quote_request(&factory, input.address, &pairs, amount_in);
                 (PoolPath::new(PROTOCOL, pairs), request)
             })
             .collect();
@@ -166,23 +150,18 @@ impl Swapper for Aero {
     async fn get_quote_data(&self, quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
         let request = &quote.request;
         let chain = request.from_asset.chain();
-        let deployment = Self::deployment(chain)?;
+        let factory = get_factory_by_chain(&chain).ok_or(SwapperError::NotSupportedChain)?;
         let (evm_chain, input, output, amount_in) = routed_request(request, PROTOCOL)?;
+        let base_pair = base_pair(evm_chain, PROTOCOL).ok_or(SwapperError::NotSupportedChain)?;
         let route_data: RouteData = quote.route_data()?;
-        let pools = route_pools(&deployment, quote, input.address, output.address)?;
+        let pools = route_pools(&factory, quote, input.address, output.address)?;
 
         let approval = match input.funding {
-            Funding::Permit2 => check_approval_erc20(request.wallet_address.clone(), input.address.to_checksum(None), deployment.metarouter.to_string(), amount_in, self.rpc_provider.clone(), &chain).await?,
+            Funding::Token => check_approval_erc20(request.wallet_address.clone(), input.address.to_checksum(None), METAROUTER.to_string(), amount_in, self.rpc_provider.clone(), &chain).await?,
             Funding::Value | Funding::RouterBalance => None,
         };
-        let swap_gas_limit = SWAP_GAS_LIMIT + POOL_GAS_LIMIT * pools.len() as u64;
-        let gas_limit = get_swap_gas_limit_with_approval(&approval, Some(swap_gas_limit.to_string()), DEFAULT_EVM_SWAP_GAS_LIMIT);
-        let value = match input.funding {
-            Funding::Value | Funding::RouterBalance => u256_to_biguint(&(amount_in * input.scale)),
-            Funding::Permit2 => BigUint::ZERO,
-        };
-
-        let base_pair = base_pair(evm_chain, PROTOCOL).ok_or(SwapperError::NotSupportedChain)?;
+        let gas_limit = get_swap_gas_limit_with_approval(&approval, Some((SWAP_GAS_LIMIT + POOL_GAS_LIMIT * pools.len() as u64).to_string()), DEFAULT_EVM_SWAP_GAS_LIMIT);
+        let value = input.value(amount_in);
         let commands = build_commands(&SwapCommands {
             fee_token_is_input: is_quote_input_fee_token(Some(&base_pair), request, input.address, output.address),
             input,
@@ -191,12 +170,11 @@ impl Swapper for Aero {
             amount_in,
             min_amount_out: U256::from_str(&route_data.min_amount_out).map_err(SwapperError::from)?,
             recipient: eth_address::parse_str(&request.wallet_address)?,
-            metarouter: eth_address::parse_str(deployment.metarouter)?,
             referral: on_chain_referral_fees(request).evm,
         })?;
         let calldata = encode_execute(commands, U256::from(get_sig_deadline()));
 
-        Ok(SwapperQuoteData::new_contract(deployment.metarouter.to_string(), value, HexEncode(calldata), approval, gas_limit))
+        Ok(SwapperQuoteData::new_contract(METAROUTER.to_string(), value, HexEncode(calldata), approval, gas_limit))
     }
 }
 
@@ -212,9 +190,10 @@ mod tests {
     use alloy_primitives::Bytes;
     use alloy_sol_types::SolValue;
     use gem_evm::uniswap::contracts::{
-        aero::{BALANCE_CHECK_COMMAND, BalanceCheck, BalanceSpend, CL_SWAP_EXACT_IN_COMMAND, IMetarouter, SwapExactIn, TRANSFER_COMMAND, Transfer, UNWRAP_WETH_COMMAND, UnwrapWeth, WRAP_ETH_COMMAND},
+        aero::{BALANCE_CHECK_COMMAND, BalanceSpend, CL_SWAP_EXACT_IN_COMMAND, IMetarouter, SwapExactIn, TRANSFER_COMMAND, UNWRAP_WETH_COMMAND, WRAP_ETH_COMMAND},
         v3::ISlipstreamFactory,
     };
+    use num_bigint::BigUint;
     use primitives::{
         asset_constants::{BASE_CBBTC_ASSET_ID, BASE_CBBTC_TOKEN_ID, BASE_USDC_ASSET_ID, BASE_USDC_TOKEN_ID, BASE_USDT_TOKEN_ID, BASE_WETH_TOKEN_ID},
         hex::encode_with_0x,
@@ -231,13 +210,12 @@ mod tests {
     #[tokio::test]
     async fn test_get_quote() {
         let (weth, usdc): (Address, Address) = (BASE_WETH_TOKEN_ID.parse().unwrap(), BASE_USDC_TOKEN_ID.parse().unwrap());
-        let deployment = get_aero_deployment_by_chain(&Chain::Base).unwrap();
         let pair = TokenPair {
             token_in: weth,
             token_out: usdc,
             fee_tier: FeeTier::Fifty,
         };
-        let pool = deployment.pool_address(&pair);
+        let pool = pool_address(&get_factory_by_chain(&Chain::Base).unwrap(), &pair);
         let request = QuoteRequest {
             value: BigUint::from(1_000_000_000_000_000_000u64),
             ..mock_quote(AssetId::from_chain(Chain::Base).into(), BASE_USDC_ASSET_ID.clone().into())
@@ -276,9 +254,7 @@ mod tests {
     #[tokio::test]
     async fn test_get_quote_data() {
         let (weth, usdc): (Address, Address) = (BASE_WETH_TOKEN_ID.parse().unwrap(), BASE_USDC_TOKEN_ID.parse().unwrap());
-        let deployment = get_aero_deployment_by_chain(&Chain::Base).unwrap();
-        let metarouter: Address = deployment.metarouter.parse().unwrap();
-        let referral: Address = EVM_REFERRAL_ADDRESS.parse().unwrap();
+        let (metarouter, referral): (Address, Address) = (METAROUTER.parse().unwrap(), EVM_REFERRAL_ADDRESS.parse().unwrap());
         let weth_to_usdc = TokenPair {
             token_in: weth,
             token_out: usdc,
@@ -287,9 +263,9 @@ mod tests {
         let usdc_to_weth = TokenPair {
             token_in: usdc,
             token_out: weth,
-            fee_tier: FeeTier::Fifty,
+            ..weth_to_usdc.clone()
         };
-        let pool = deployment.pool_address(&weth_to_usdc);
+        let pool = pool_address(&get_factory_by_chain(&Chain::Base).unwrap(), &weth_to_usdc);
         let native = QuoteRequest {
             value: BigUint::from(1_000_000_000_000_000_000u64),
             ..mock_quote(AssetId::from_chain(Chain::Base).into(), BASE_USDC_ASSET_ID.clone().into())
@@ -300,8 +276,8 @@ mod tests {
             value: BigUint::from(100_000_000u64),
             ..native.clone()
         };
-        let allowance = ProviderMock::mock_json_rpc_result(&encode_with_0x(&U256::ZERO.abi_encode()));
-        let aero = Aero::new(Arc::new(allowance));
+        let wallet: Address = native.wallet_address.parse().unwrap();
+        let aero = Aero::new(Arc::new(ProviderMock::mock_json_rpc_result(&encode_with_0x(&U256::ZERO.abi_encode()))));
 
         let quote = QuoteResult {
             amount_out: U256::from(2_380_000_000u64),
@@ -309,100 +285,66 @@ mod tests {
         }
         .into_quote(&native, aero.provider().clone(), true, U256::from(1));
         let data = aero.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
-        let (commands, inputs) = decode_execute(&data);
         (&aero as &dyn Swapper).verify_contracts(&quote, &data).unwrap();
+        let swap = SwapExactIn {
+            pools: vec![pool],
+            tokenIn: weth,
+            amountIn: BalanceSpend::amount(U256::from(995_000_000_000_000_000u64)),
+            payerIsUser: false,
+            minAmountOut: U256::from(2_368_100_000u64),
+            recipient: wallet,
+        };
 
-        assert_eq!((data.to.as_str(), data.value.clone(), data.approval.clone(), data.gas_limit.clone()), (deployment.metarouter, native.value.clone(), None, None));
-        assert_eq!(commands, vec![WRAP_ETH_COMMAND, TRANSFER_COMMAND, CL_SWAP_EXACT_IN_COMMAND]);
-        assert_eq!(BalanceSpend::abi_decode(&inputs[0]).unwrap(), BalanceSpend::amount(U256::from(1_000_000_000_000_000_000u64)));
+        assert_eq!((data.to.as_str(), data.value.clone(), data.approval.clone(), data.gas_limit.clone()), (METAROUTER, native.value.clone(), None, None));
         assert_eq!(
-            Transfer::abi_decode(&inputs[1]).unwrap(),
-            Transfer {
-                token: weth,
-                recipient: referral,
-                spend: BalanceSpend::amount(U256::from(5_000_000_000_000_000u64))
-            }
-        );
-        assert_eq!(
-            SwapExactIn::abi_decode(&inputs[2]).unwrap(),
-            SwapExactIn {
-                pools: vec![pool],
-                tokenIn: weth,
-                amountIn: BalanceSpend::amount(U256::from(995_000_000_000_000_000u64)),
-                payerIsUser: false,
-                minAmountOut: U256::from(2_368_100_000u64),
-                recipient: native.wallet_address.parse().unwrap(),
-            }
+            decode_execute(&data),
+            (
+                vec![WRAP_ETH_COMMAND, TRANSFER_COMMAND, CL_SWAP_EXACT_IN_COMMAND],
+                vec![
+                    BalanceSpend::amount(U256::from(1_000_000_000_000_000_000u64)).abi_encode().into(),
+                    (weth, referral, BalanceSpend::amount(U256::from(5_000_000_000_000_000u64))).abi_encode().into(),
+                    swap.abi_encode().into(),
+                ]
+            )
         );
 
         let amount_out = U256::from(420_000_000_000_000_000u64);
-        let min_amount_out = subtract_bps(&subtract_bps(&amount_out, 50), token.options.slippage.bps);
         let quote = QuoteResult {
             amount_out,
-            path: PoolPath::new(PROTOCOL, vec![usdc_to_weth]),
+            path: PoolPath::new(PROTOCOL, vec![usdc_to_weth.clone()]),
         }
         .into_quote(&token, aero.provider().clone(), false, U256::from(1));
         let data = aero.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
-        let (commands, inputs) = decode_execute(&data);
         (&aero as &dyn Swapper).verify_contracts(&quote, &data).unwrap();
+        let swap = SwapExactIn {
+            tokenIn: usdc,
+            amountIn: BalanceSpend::amount(U256::from(100_000_000u64)),
+            payerIsUser: true,
+            minAmountOut: U256::ZERO,
+            recipient: metarouter,
+            ..swap
+        };
 
-        assert_eq!((data.to.as_str(), data.value.clone(), data.gas_limit.clone()), (deployment.metarouter, BigUint::ZERO, Some("750000".to_string())));
+        assert_eq!((data.to.as_str(), data.value.clone(), data.gas_limit.clone()), (METAROUTER, BigUint::ZERO, Some("750000".to_string())));
         assert_eq!(
-            data.approval.map(|approval| (approval.token, approval.spender, approval.value)),
-            Some((usdc.to_checksum(None), metarouter.to_checksum(None), token.value.clone()))
-        );
-        assert_eq!(commands, vec![CL_SWAP_EXACT_IN_COMMAND, TRANSFER_COMMAND, BALANCE_CHECK_COMMAND, UNWRAP_WETH_COMMAND]);
-        assert_eq!(
-            SwapExactIn::abi_decode(&inputs[0]).unwrap(),
-            SwapExactIn {
-                pools: vec![pool],
-                tokenIn: usdc,
-                amountIn: BalanceSpend::amount(U256::from(100_000_000u64)),
-                payerIsUser: true,
-                minAmountOut: U256::ZERO,
-                recipient: metarouter,
-            }
+            data.approval.clone().map(|approval| (approval.token, approval.spender, approval.value)),
+            Some((usdc.to_checksum(None), METAROUTER.to_string(), token.value.clone()))
         );
         assert_eq!(
-            Transfer::abi_decode(&inputs[1]).unwrap(),
-            Transfer {
-                token: weth,
-                recipient: referral,
-                spend: BalanceSpend::share(50)
-            }
-        );
-        assert_eq!(
-            BalanceCheck::abi_decode(&inputs[2]).unwrap(),
-            BalanceCheck {
-                asset: weth,
-                owner: metarouter,
-                minBalance: min_amount_out
-            }
-        );
-        assert_eq!(
-            UnwrapWeth::abi_decode(&inputs[3]).unwrap(),
-            UnwrapWeth {
-                recipient: token.wallet_address.parse().unwrap(),
-                spend: BalanceSpend::all()
-            }
+            decode_execute(&data),
+            (
+                vec![CL_SWAP_EXACT_IN_COMMAND, TRANSFER_COMMAND, BALANCE_CHECK_COMMAND, UNWRAP_WETH_COMMAND],
+                vec![
+                    swap.abi_encode().into(),
+                    (weth, referral, BalanceSpend::share(50)).abi_encode().into(),
+                    (weth, metarouter, subtract_bps(&subtract_bps(&amount_out, 50), token.options.slippage.bps)).abi_encode().into(),
+                    (wallet, BalanceSpend::all()).abi_encode().into(),
+                ]
+            )
         );
 
         let (cbbtc, usdt): (Address, Address) = (BASE_CBBTC_TOKEN_ID.parse().unwrap(), BASE_USDT_TOKEN_ID.parse().unwrap());
-        let disconnected = PoolPath::new(
-            PROTOCOL,
-            vec![
-                TokenPair {
-                    token_in: usdc,
-                    token_out: cbbtc,
-                    fee_tier: FeeTier::Fifty,
-                },
-                TokenPair {
-                    token_in: usdt,
-                    token_out: weth,
-                    fee_tier: FeeTier::Fifty,
-                },
-            ],
-        );
+        let disconnected = vec![TokenPair { token_out: cbbtc, ..usdc_to_weth.clone() }, TokenPair { token_in: usdt, ..usdc_to_weth }];
         let elsewhere = Quote {
             request: QuoteRequest {
                 to_asset: BASE_CBBTC_ASSET_ID.clone().into(),
@@ -410,7 +352,14 @@ mod tests {
             },
             ..quote
         };
-        for refused in [elsewhere, QuoteResult { amount_out, path: disconnected }.into_quote(&token, aero.provider().clone(), false, U256::from(1))] {
+        for refused in [
+            elsewhere,
+            QuoteResult {
+                amount_out,
+                path: PoolPath::new(PROTOCOL, disconnected),
+            }
+            .into_quote(&token, aero.provider().clone(), false, U256::from(1)),
+        ] {
             assert_eq!(aero.get_quote_data(&refused, FetchQuoteData::None).await, Err(SwapperError::InvalidRoute));
         }
     }
@@ -419,46 +368,9 @@ mod tests {
 #[cfg(all(test, feature = "swap_integration_tests"))]
 mod swap_integration_tests {
     use super::*;
-    use crate::{
-        swapper::GemSwapper,
-        testkit::{dynode_provider, mock_quote},
-    };
-    use alloy_sol_types::SolValue;
-    use gem_evm::{
-        jsonrpc::{BlockParameter, TransactionObject},
-        uniswap::contracts::aero::{IMetarouter, TRANSFER_COMMAND, Transfer},
-    };
-    use num_traits::ToPrimitive;
-    use primitives::{
-        asset_constants::{ARC_EURC_ASSET_ID, BASE_CBBTC_ASSET_ID, BASE_USDC_ASSET_ID, ROBINHOOD_USDG_ASSET_ID},
-        swap::EVM_REFERRAL_ADDRESS,
-    };
-
-    fn referral_transfer(data: &SwapperQuoteData) -> Option<Transfer> {
-        let execute = IMetarouter::executeCall::abi_decode(&decode_hex(&data.data).ok()?).ok()?;
-        let referral = eth_address::parse_str(EVM_REFERRAL_ADDRESS).ok()?;
-        execute
-            .commands
-            .iter()
-            .zip(&execute.inputs)
-            .filter(|(command, _)| **command == TRANSFER_COMMAND)
-            .find_map(|(_, input)| Transfer::abi_decode(input).ok().filter(|transfer| transfer.recipient == referral))
-    }
-
-    async fn simulate(chain: Chain, wallet: &str, data: &SwapperQuoteData) -> Result<(), SwapperError> {
-        let balance = format!("0x{:x}", data.value.to_u128().unwrap());
-        let simulation = EthereumRpc::CallWithBalance {
-            transaction: TransactionObject {
-                value: Some(balance.clone()),
-                ..TransactionObject::new_call_with_from(wallet, &data.to, decode_hex(&data.data).unwrap())
-            },
-            block: BlockParameter::Latest,
-            address: wallet.into(),
-            balance,
-        };
-        create_client_with_chain(dynode_provider([chain]), chain)?.request::<String, _>(simulation).await.map_err(SwapperError::compute_quote_error)?;
-        Ok(())
-    }
+    use crate::testkit::{dynode_provider, mock_quote, simulate_swap};
+    use num_bigint::BigUint;
+    use primitives::asset_constants::{ARC_EURC_ASSET_ID, BASE_USDC_ASSET_ID, ROBINHOOD_USDG_ASSET_ID};
 
     #[tokio::test]
     async fn test_native_swaps_simulate() -> Result<(), SwapperError> {
@@ -476,35 +388,11 @@ mod swap_integration_tests {
             let quote = provider.get_quote(&request).await?;
             let data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
             (&provider as &dyn Swapper).verify_contracts(&quote, &data)?;
-            println!("{chain} native -> {} through {:?}, fee {:?}", quote.to_value, quote.data.routes, referral_transfer(&data));
+            println!("{chain} native -> {} through {:?}", quote.to_value, quote.data.routes);
 
-            assert_eq!((data.to.as_str(), data.approval.clone(), data.gas_limit.clone()), (get_aero_deployment_by_chain(&chain).unwrap().metarouter, None, None));
-            assert!(referral_transfer(&data).is_some());
-            simulate(chain, &request.wallet_address, &data).await?;
+            assert_eq!((data.to.as_str(), data.approval.clone(), data.gas_limit.clone()), (METAROUTER, None, None));
+            simulate_swap(chain, &request.wallet_address, &data).await?;
         }
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn test_base_cbbtc_to_usdc_quote() -> Result<(), SwapperError> {
-        let swapper = GemSwapper::new(dynode_provider([Chain::Base]));
-        let request = QuoteRequest {
-            value: BigUint::from(10_000_000u64),
-            ..mock_quote(BASE_CBBTC_ASSET_ID.clone().into(), BASE_USDC_ASSET_ID.clone().into())
-        };
-        for provider in [SwapperProvider::UniswapV3, SwapperProvider::Aerodrome] {
-            match swapper.get_quote_by_provider(&provider, &request).await {
-                Ok(quote) => println!("0.1 cbBTC -> {} USDC through {provider:?}", quote.to_value),
-                Err(error) => println!("0.1 cbBTC -> {provider:?} {error:?}"),
-            }
-        }
-        let quote = swapper.get_quote_by_provider(&SwapperProvider::Aero, &request).await?;
-        let data = swapper.get_quote_data(&quote, FetchQuoteData::None).await?;
-        println!("0.1 cbBTC -> {} USDC through Aero {:?}", quote.to_value, quote.data.routes);
-
-        let metarouter = get_aero_deployment_by_chain(&Chain::Base).unwrap().metarouter;
-        assert_eq!(data.approval.map(|approval| approval.spender.to_lowercase()), Some(metarouter.to_lowercase()));
-        assert_eq!(data.gas_limit, Some((SWAP_GAS_LIMIT + POOL_GAS_LIMIT * quote.data.routes.len() as u64).to_string()));
         Ok(())
     }
 }

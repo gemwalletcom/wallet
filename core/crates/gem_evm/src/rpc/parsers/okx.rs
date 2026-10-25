@@ -1,29 +1,20 @@
 use alloy_primitives::Address;
-use num_bigint::BigUint;
 use std::str::FromStr;
 
 use crate::{
-    address::ethereum_address_from_topic,
     contracts::{IOkxDexRouter, OkxCommission},
     ethereum_address_checksum,
-    rpc::{mapper::TRANSFER_TOPIC, model::Log},
+    rpc::model::Log,
     u256::u256_to_biguint,
 };
 use primitives::{AssetId, SwapProvider, Transaction as PrimitivesTransaction, TransactionSwapMetadata, TransactionSwapReferralFee, contract_constants::EVM_NATIVE_TOKEN_ADDRESS, swap::EVM_REFERRAL_ADDRESS};
 
-use super::{EVENT_WORD_SIZE, ParseContext, ParseContextExt, TransactionParser, ethereum_value_from_log_data, referral_fee_for_token, referral_fee_from_transfers};
+use super::{ParseContext, ParseContextExt, TransactionParser, referral_fee_for_token, referral_fee_from_transfers, transfer_swap};
 
 pub(crate) const FUNCTION_OKX_DAG_SWAP_BY_ORDER_ID: &str = "0xf2c42696";
 pub(crate) const FUNCTION_OKX_UNISWAP_V3_SWAP_TO: &str = "0x0d5f0e3b";
 pub(crate) const FUNCTION_OKX_UNXSWAP_BY_ORDER_ID: &str = "0x9871efa4";
 pub struct OkxParser;
-
-struct ReceiptTransfer {
-    token: String,
-    from: String,
-    to: String,
-    value: String,
-}
 
 impl TransactionParser<ParseContext<'_>, PrimitivesTransaction> for OkxParser {
     fn matches(&self, context: &ParseContext<'_>) -> bool {
@@ -44,7 +35,7 @@ impl OkxParser {
     }
 
     fn try_map_receipt_swap(context: &ParseContext<'_>) -> Option<TransactionSwapMetadata> {
-        Self::try_map_receipt_event(context).or_else(|| Self::try_map_transfer_swap(context))
+        Self::try_map_receipt_event(context).or_else(|| transfer_swap(context, SwapProvider::Okx))
     }
 
     fn try_map_receipt_event(context: &ParseContext<'_>) -> Option<TransactionSwapMetadata> {
@@ -73,31 +64,6 @@ impl OkxParser {
         })
     }
 
-    fn try_map_transfer_swap(context: &ParseContext<'_>) -> Option<TransactionSwapMetadata> {
-        let from = ethereum_address_checksum(&context.transaction.from).ok()?;
-        let transfers: Vec<ReceiptTransfer> = context.metadata.receipt.logs.iter().filter_map(ReceiptTransfer::from_log).collect();
-        let outgoing: Vec<&ReceiptTransfer> = transfers.iter().filter(|transfer| transfer.from == from && transfer.value != "0").collect();
-        let incoming: Vec<&ReceiptTransfer> = transfers.iter().filter(|transfer| transfer.to == from && transfer.value != "0").collect();
-
-        match (context.transaction.value > BigUint::from(0u8), outgoing.as_slice(), incoming.as_slice()) {
-            (_, [sent], [received]) if sent.token != received.token => Some(TransactionSwapMetadata::new(
-                AssetId::from_token(*context.metadata.chain, &sent.token),
-                BigUint::from_str(&sent.value).ok()?,
-                AssetId::from_token(*context.metadata.chain, &received.token),
-                BigUint::from_str(&received.value).ok()?,
-                SwapProvider::Okx,
-            )),
-            (true, [], [received]) => Some(TransactionSwapMetadata::new(
-                AssetId::from_chain(*context.metadata.chain),
-                context.transaction.value.clone(),
-                AssetId::from_token(*context.metadata.chain, &received.token),
-                BigUint::from_str(&received.value).ok()?,
-                SwapProvider::Okx,
-            )),
-            _ => None,
-        }
-    }
-
     fn asset_id_from_token(context: &ParseContext<'_>, token: &str) -> Option<AssetId> {
         let token = ethereum_address_checksum(token).ok()?;
         if token == EVM_NATIVE_TOKEN_ADDRESS || token == Address::ZERO.to_checksum(None) {
@@ -105,21 +71,6 @@ impl OkxParser {
         }
 
         Some(AssetId::from_token(*context.metadata.chain, &token))
-    }
-}
-
-impl ReceiptTransfer {
-    fn from_log(log: &Log) -> Option<Self> {
-        if log.topics.len() != 3 || log.topics.first().is_none_or(|topic| topic != TRANSFER_TOPIC) {
-            return None;
-        }
-
-        Some(Self {
-            token: ethereum_address_checksum(&log.address).ok()?,
-            from: ethereum_address_from_topic(log.topics.get(1)?)?,
-            to: ethereum_address_from_topic(log.topics.get(2)?)?,
-            value: ethereum_value_from_log_data(&log.data, 0, EVENT_WORD_SIZE)?.to_string(),
-        })
     }
 }
 

@@ -19,8 +19,8 @@ impl RoutedAsset {
         Self { address, scale: U256::from(scale), funding }
     }
 
-    pub fn mock_permit2(token_id: &str) -> Self {
-        Self::mock(eth_address::parse_str(token_id).unwrap(), Funding::Permit2, 1)
+    pub fn mock_token(token_id: &str) -> Self {
+        Self::mock(eth_address::parse_str(token_id).unwrap(), Funding::Token, 1)
     }
 
     pub fn mock_value(token_id: &str) -> Self {

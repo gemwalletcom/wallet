@@ -8,6 +8,12 @@ use primitives::{AssetId, Chain, asset_constants::TON_USDT_TOKEN_ID};
 use std::sync::{Arc, Mutex};
 
 use super::{Options, Quote, QuoteRequest};
+#[cfg(feature = "swap_integration_tests")]
+use crate::client_factory::create_client_with_chain;
+#[cfg(feature = "swap_integration_tests")]
+use gem_evm::jsonrpc::{BlockParameter, EthereumRpc, TransactionObject};
+#[cfg(feature = "swap_integration_tests")]
+use primitives::decode_hex;
 
 pub const TEST_SUI_WALLET: &str = "0x2ec5b7bcf6a0512850fe5f95cbd0a4303e8de5a3ffc01f9dba96bf1fde5f9bb5";
 
@@ -118,6 +124,22 @@ impl Quote {
 #[cfg(feature = "swap_integration_tests")]
 pub fn dynode_provider(chains: impl IntoIterator<Item = Chain>) -> Arc<crate::NativeProvider> {
     Arc::new(crate::NativeProvider::new_with_endpoints(chains.into_iter().map(|chain| (chain, format!("https://gemnodes.com/{}", chain.as_ref()))).collect()))
+}
+
+#[cfg(feature = "swap_integration_tests")]
+pub async fn simulate_swap(chain: Chain, wallet: &str, data: &SwapperQuoteData) -> Result<(), SwapperError> {
+    let balance = format!("0x{:x}", data.value);
+    let simulation = EthereumRpc::CallWithBalance {
+        transaction: TransactionObject {
+            value: Some(balance.clone()),
+            ..TransactionObject::new_call_with_from(wallet, &data.to, decode_hex(&data.data).map_err(SwapperError::compute_quote_error)?)
+        },
+        block: BlockParameter::Latest,
+        address: wallet.into(),
+        balance,
+    };
+    create_client_with_chain(dynode_provider([chain]), chain)?.request::<String, _>(simulation).await.map_err(SwapperError::compute_quote_error)?;
+    Ok(())
 }
 
 pub fn mock_quote(from_asset: SwapperQuoteAsset, to_asset: SwapperQuoteAsset) -> QuoteRequest {

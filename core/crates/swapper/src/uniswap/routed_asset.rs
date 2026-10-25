@@ -1,5 +1,9 @@
 use alloy_primitives::{Address, U256};
-use gem_evm::uniswap::path::{BasePair, get_base_pair};
+use gem_evm::{
+    u256::u256_to_biguint,
+    uniswap::path::{BasePair, get_base_pair},
+};
+use num_bigint::BigUint;
 #[cfg(test)]
 use primitives::Chain;
 use primitives::{Asset, AssetId, EVMChain, EvmNativeCurrency};
@@ -12,7 +16,7 @@ use crate::{QuoteRequest, SwapperError, eth_address};
 pub enum Funding {
     Value,
     RouterBalance,
-    Permit2,
+    Token,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -34,7 +38,7 @@ pub struct RoutedAsset {
 impl RoutedAsset {
     pub fn from_asset(asset_id: &AssetId, chain: EVMChain, protocol: Protocol) -> Result<Self, SwapperError> {
         if let Some(token_id) = &asset_id.token_id {
-            return Ok(Self::unscaled(eth_address::parse_str(token_id)?, Funding::Permit2));
+            return Ok(Self::unscaled(eth_address::parse_str(token_id)?, Funding::Token));
         }
         match chain.native_currency() {
             EvmNativeCurrency::Wrapped(wrapped) => {
@@ -44,7 +48,7 @@ impl RoutedAsset {
                 };
                 Ok(Self::unscaled(address, Funding::Value))
             }
-            EvmNativeCurrency::Token(token) => Ok(Self::unscaled(eth_address::parse_str(token)?, Funding::Permit2)),
+            EvmNativeCurrency::Token(token) => Ok(Self::unscaled(eth_address::parse_str(token)?, Funding::Token)),
             EvmNativeCurrency::Mirrored { token, decimals } => {
                 let native_decimals = Asset::from_chain(chain.to_chain()).decimals;
                 let exponent = native_decimals.checked_sub(decimals).ok_or(SwapperError::NotSupportedChain)?;
@@ -60,6 +64,13 @@ impl RoutedAsset {
 
     pub fn unscaled(address: Address, funding: Funding) -> Self {
         Self { address, scale: U256::from(1), funding }
+    }
+
+    pub fn value(&self, amount_in: U256) -> BigUint {
+        match self.funding {
+            Funding::Value | Funding::RouterBalance => u256_to_biguint(&(amount_in * self.scale)),
+            Funding::Token => BigUint::ZERO,
+        }
     }
 }
 

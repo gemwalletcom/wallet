@@ -30,9 +30,7 @@ use primitives::{
     swap::{EVM_REFERRAL_ADDRESS, HUNDRED_PERCENT_IN_BPS},
 };
 
-use super::{EVENT_WORD_SIZE, ParseContext, ParseContextExt, TransactionParser, ethereum_value_from_log_data, referral_fee_from_transfers};
-
-const WITHDRAWAL_TOPIC: &str = "0x7fcf532c15f0a6db0bd6d0e038bea71d30d808c7d98cb3bf7268a95bf5081b65";
+use super::{EVENT_WORD_SIZE, ParseContext, ParseContextExt, TransactionParser, ethereum_value_from_log_data, referral_fee_from_transfers, withdraw_value_from_receipt};
 
 pub struct UniversalRouterParser;
 
@@ -147,7 +145,10 @@ fn decode_execute_swap_call(chain: &Chain, router_abi: RouterAbi, provider: Swap
 
             let leg_from_asset = AssetId::from(*chain, (!has_wrap).then_some(from_token));
             let (leg_to_asset, leg_to_value) = if let Some(unwrap_minimum) = &unwrap_minimum {
-                (AssetId::from_chain(*chain), withdraw_value_from_receipt(&to_token, receipt).unwrap_or_else(|| unwrap_minimum.to_string()))
+                (
+                    AssetId::from_chain(*chain),
+                    withdraw_value_from_receipt(&to_token, receipt).map_or_else(|| unwrap_minimum.to_string(), |value| value.to_string()),
+                )
             } else {
                 let to_value = if let Some(sweep_minimum) = &sweep_minimum {
                     transfer_value_from_receipt(from, &to_token, receipt).unwrap_or_else(|| sweep_minimum.to_string())
@@ -284,17 +285,6 @@ fn native_v4_value_from_receipt(router: Address, from: &str, actions: &[V4Action
         return None;
     }
     Some(U256::from(u128::try_from(swap.amount0).ok()?))
-}
-
-fn withdraw_value_from_receipt(token: &str, receipt: &TransactionReceipt) -> Option<String> {
-    let token = ethereum_address_checksum(token).ok()?;
-
-    receipt.logs.iter().find_map(|log| {
-        (ethereum_address_checksum(&log.address).ok()? == token && log.topics.len() == 2 && log.topics.first().is_some_and(|topic| topic == WITHDRAWAL_TOPIC))
-            .then(|| ethereum_value_from_log_data(&log.data, 0, EVENT_WORD_SIZE))
-            .flatten()
-            .map(|value| value.to_string())
-    })
 }
 
 fn transfer_value_from_receipt(to: &str, token: &str, receipt: &TransactionReceipt) -> Option<String> {

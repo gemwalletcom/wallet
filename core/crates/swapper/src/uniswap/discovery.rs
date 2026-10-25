@@ -36,6 +36,16 @@ impl PoolDiscovery {
             .collect()
     }
 
+    pub(super) fn missing_pool_requests(&self, chain: Chain, pairs: &[(Address, Address)], fee_tiers: &[FeeTier], (factory, pool_lookup): (&str, PoolLookup)) -> Vec<(TokenPair, EthereumRpc)> {
+        self.missing_pools(chain, pairs, fee_tiers)
+            .into_iter()
+            .map(|pool| {
+                let request = v3_pool_request(factory, pool_lookup, &pool);
+                (pool, request)
+            })
+            .collect()
+    }
+
     pub(super) fn record_pools(&self, chain: Chain, discovered: &[(TokenPair, bool)]) {
         discovered.iter().for_each(|(pair, exists)| {
             self.cache.record_discovery((chain, pair.token_in), (chain, pair.token_out), [(pair.fee_tier, exists.then_some(pair.fee_tier))]);
@@ -59,7 +69,7 @@ pub(super) fn candidate_pairs(token_in: Address, token_out: Address, intermediar
         .collect()
 }
 
-pub(super) fn v3_pool_request(factory: &str, pool_lookup: PoolLookup, pool: &TokenPair) -> EthereumRpc {
+fn v3_pool_request(factory: &str, pool_lookup: PoolLookup, pool: &TokenPair) -> EthereumRpc {
     let data = match pool_lookup {
         PoolLookup::Fee => IUniswapV3Factory::getPoolCall {
             tokenA: pool.token_in,

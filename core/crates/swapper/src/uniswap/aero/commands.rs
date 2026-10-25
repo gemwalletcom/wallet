@@ -5,12 +5,17 @@ use crate::{
 };
 use alloy_primitives::{Address, Bytes, U256};
 use alloy_sol_types::{SolCall, SolValue};
-use gem_evm::uniswap::contracts::aero::{
-    BALANCE_CHECK_COMMAND, BalanceCheck, BalanceSpend, CL_SWAP_EXACT_IN_COMMAND, FUND_ERC20_COMMAND, FundErc20, IMetarouter, SWEEP_COMMAND, SwapExactIn, Sweep, TRANSFER_COMMAND, Transfer, UNWRAP_WETH_COMMAND, UnwrapWeth, WRAP_ETH_COMMAND,
+use gem_evm::uniswap::{
+    contracts::aero::{
+        BALANCE_CHECK_COMMAND, BalanceCheck, BalanceSpend, CL_SWAP_EXACT_IN_COMMAND, FUND_ERC20_COMMAND, FundErc20, IMetarouter, SWEEP_COMMAND, SwapExactIn, Sweep, TRANSFER_COMMAND, Transfer, UNWRAP_WETH_COMMAND, UnwrapWeth,
+        WRAP_ETH_COMMAND,
+    },
+    deployment::aero::METAROUTER,
 };
 
 type Command = (u8, Vec<u8>);
 
+#[cfg_attr(test, derive(Clone))]
 pub(super) struct SwapCommands {
     pub input: RoutedAsset,
     pub output: RoutedAsset,
@@ -18,36 +23,28 @@ pub(super) struct SwapCommands {
     pub amount_in: U256,
     pub min_amount_out: U256,
     pub recipient: Address,
-    pub metarouter: Address,
     pub referral: ReferralFee,
     pub fee_token_is_input: bool,
 }
 
-pub(super) fn input_fee(amount_in: U256, bps: u32, fee_token_is_input: bool) -> U256 {
-    match fee_token_is_input {
-        true => bps_of(&amount_in, bps),
-        false => U256::ZERO,
-    }
-}
-
 pub(super) fn build_commands(swap: &SwapCommands) -> Result<Vec<Command>, SwapperError> {
-    let fee_recipient = eth_address::parse_str(&swap.referral.address)?;
-    let fee = input_fee(swap.amount_in, swap.referral.bps, swap.fee_token_is_input);
+    let (fee_recipient, metarouter) = (eth_address::parse_str(&swap.referral.address)?, eth_address::parse_str(METAROUTER)?);
+    let fee = if swap.fee_token_is_input { bps_of(&swap.amount_in, swap.referral.bps) } else { U256::ZERO };
     let output_fee_bps = (!swap.fee_token_is_input && swap.referral.bps > 0).then_some(swap.referral.bps);
     let unwrap_output = swap.output.funding == Funding::Value;
     let swap_to_router = output_fee_bps.is_some() || unwrap_output;
-    let payer_is_user = swap.input.funding == Funding::Permit2 && fee.is_zero();
+    let payer_is_user = swap.input.funding == Funding::Token && fee.is_zero();
 
     let funding = match swap.input.funding {
         Funding::Value => Some(command(WRAP_ETH_COMMAND, BalanceSpend::amount(swap.amount_in))),
-        Funding::Permit2 if !payer_is_user => Some(command(
+        Funding::Token if !payer_is_user => Some(command(
             FUND_ERC20_COMMAND,
             FundErc20 {
                 token: swap.input.address,
                 spend: BalanceSpend::amount(swap.amount_in),
             },
         )),
-        Funding::Permit2 | Funding::RouterBalance => None,
+        Funding::Token | Funding::RouterBalance => None,
     };
     let input_fee = (!fee.is_zero()).then(|| {
         command(
@@ -67,7 +64,7 @@ pub(super) fn build_commands(swap: &SwapCommands) -> Result<Vec<Command>, Swappe
             amountIn: BalanceSpend::amount(swap.amount_in - fee),
             payerIsUser: payer_is_user,
             minAmountOut: if swap_to_router { U256::ZERO } else { swap.min_amount_out },
-            recipient: if swap_to_router { swap.metarouter } else { swap.recipient },
+            recipient: if swap_to_router { metarouter } else { swap.recipient },
         },
     );
     let output_fee = output_fee_bps.map(|bps| {
@@ -86,7 +83,7 @@ pub(super) fn build_commands(swap: &SwapCommands) -> Result<Vec<Command>, Swappe
                 BALANCE_CHECK_COMMAND,
                 BalanceCheck {
                     asset: swap.output.address,
-                    owner: swap.metarouter,
+                    owner: metarouter,
                     minBalance: swap.min_amount_out,
                 },
             ),
@@ -131,229 +128,83 @@ mod tests {
     use crate::fees::default_referral_fees;
     use gem_evm::uniswap::contracts::aero::SpendMode;
     use primitives::{
-        asset_constants::{ARC_EURC_TOKEN_ID, ARC_USDC_TOKEN_ID, BASE_CBBTC_TOKEN_ID, BASE_USDC_TOKEN_ID, BASE_WETH_TOKEN_ID},
+        asset_constants::{ARC_EURC_TOKEN_ID, ARC_USDC_TOKEN_ID, BASE_CBBTC_TOKEN_ID, BASE_USDC_TOKEN_ID},
         swap::EVM_REFERRAL_ADDRESS,
     };
 
+    const TEST_POOL: Address = Address::repeat_byte(0x11);
+    const TEST_RECIPIENT: Address = Address::repeat_byte(0x22);
+
+    fn exact_in(token_in: Address, amount_in: u64, payer_is_user: bool, min_amount_out: u64, recipient: Address) -> Command {
+        let swap = SwapExactIn {
+            pools: vec![TEST_POOL],
+            tokenIn: token_in,
+            amountIn: BalanceSpend::amount(U256::from(amount_in)),
+            payerIsUser: payer_is_user,
+            minAmountOut: U256::from(min_amount_out),
+            recipient,
+        };
+        command(CL_SWAP_EXACT_IN_COMMAND, swap)
+    }
+
     #[test]
     fn test_build_commands() {
-        let (usdc, cbbtc, eth) = (RoutedAsset::mock_permit2(BASE_USDC_TOKEN_ID), RoutedAsset::mock_permit2(BASE_CBBTC_TOKEN_ID), RoutedAsset::mock_value(BASE_WETH_TOKEN_ID));
-        let (arc_usdc, eurc) = (RoutedAsset::mock_router_balance(ARC_USDC_TOKEN_ID, 1_000_000_000_000), RoutedAsset::mock_permit2(ARC_EURC_TOKEN_ID));
-        let (pool, recipient, metarouter) = (Address::repeat_byte(0x11), Address::repeat_byte(0x22), Address::repeat_byte(0x33));
-        let referral = eth_address::parse_str(EVM_REFERRAL_ADDRESS).unwrap();
-        let (amount_in, min_amount_out) = (U256::from(100_000_000u64), U256::from(120_000u64));
-        let fee_share = BalanceSpend {
-            mode: SpendMode::Pips,
-            value: U256::from(5_000),
-        };
+        let (usdc, cbbtc) = (RoutedAsset::mock_token(BASE_USDC_TOKEN_ID), RoutedAsset::mock_token(BASE_CBBTC_TOKEN_ID));
+        let (arc_usdc, eurc) = (RoutedAsset::mock_router_balance(ARC_USDC_TOKEN_ID, 1_000_000_000_000), RoutedAsset::mock_token(ARC_EURC_TOKEN_ID));
+        let (referral, metarouter): (Address, Address) = (EVM_REFERRAL_ADDRESS.parse().unwrap(), METAROUTER.parse().unwrap());
+        let (fee, share) = (
+            BalanceSpend::amount(U256::from(500_000u64)),
+            BalanceSpend {
+                mode: SpendMode::Pips,
+                value: U256::from(5_000),
+            },
+        );
         let usdc_to_cbbtc = SwapCommands {
             input: usdc.clone(),
             output: cbbtc.clone(),
-            pools: vec![pool],
-            amount_in,
-            min_amount_out,
-            recipient,
-            metarouter,
+            pools: vec![TEST_POOL],
+            amount_in: U256::from(100_000_000u64),
+            min_amount_out: U256::from(120_000u64),
+            recipient: TEST_RECIPIENT,
             referral: default_referral_fees().evm,
             fee_token_is_input: true,
         };
         let cases = [
             (
-                SwapCommands {
-                    input: usdc.clone(),
-                    output: cbbtc.clone(),
-                    pools: vec![pool],
-                    referral: default_referral_fees().evm,
-                    ..usdc_to_cbbtc
-                },
+                usdc_to_cbbtc.clone(),
                 vec![
-                    command(
-                        FUND_ERC20_COMMAND,
-                        FundErc20 {
-                            token: usdc.address,
-                            spend: BalanceSpend::amount(amount_in),
-                        },
-                    ),
-                    command(
-                        TRANSFER_COMMAND,
-                        Transfer {
-                            token: usdc.address,
-                            recipient: referral,
-                            spend: BalanceSpend::amount(U256::from(500_000u64)),
-                        },
-                    ),
-                    command(
-                        CL_SWAP_EXACT_IN_COMMAND,
-                        SwapExactIn {
-                            pools: vec![pool],
-                            tokenIn: usdc.address,
-                            amountIn: BalanceSpend::amount(U256::from(99_500_000u64)),
-                            payerIsUser: false,
-                            minAmountOut: min_amount_out,
-                            recipient,
-                        },
-                    ),
+                    command(FUND_ERC20_COMMAND, (usdc.address, BalanceSpend::amount(U256::from(100_000_000u64)))),
+                    command(TRANSFER_COMMAND, (usdc.address, referral, fee.clone())),
+                    exact_in(usdc.address, 99_500_000, false, 120_000, TEST_RECIPIENT),
                 ],
             ),
             (
                 SwapCommands {
                     input: cbbtc.clone(),
                     output: usdc.clone(),
-                    pools: vec![pool],
-                    referral: default_referral_fees().evm,
                     fee_token_is_input: false,
-                    ..usdc_to_cbbtc
+                    ..usdc_to_cbbtc.clone()
                 },
                 vec![
-                    command(
-                        CL_SWAP_EXACT_IN_COMMAND,
-                        SwapExactIn {
-                            pools: vec![pool],
-                            tokenIn: cbbtc.address,
-                            amountIn: BalanceSpend::amount(amount_in),
-                            payerIsUser: true,
-                            minAmountOut: U256::ZERO,
-                            recipient: metarouter,
-                        },
-                    ),
-                    command(
-                        TRANSFER_COMMAND,
-                        Transfer {
-                            token: usdc.address,
-                            recipient: referral,
-                            spend: fee_share.clone(),
-                        },
-                    ),
-                    command(
-                        SWEEP_COMMAND,
-                        Sweep {
-                            token: usdc.address,
-                            recipient,
-                            minAmount: min_amount_out,
-                        },
-                    ),
+                    exact_in(cbbtc.address, 100_000_000, true, 0, metarouter),
+                    command(TRANSFER_COMMAND, (usdc.address, referral, share)),
+                    command(SWEEP_COMMAND, (usdc.address, TEST_RECIPIENT, U256::from(120_000u64))),
                 ],
             ),
             (
                 SwapCommands {
-                    input: usdc.clone(),
-                    output: cbbtc.clone(),
-                    pools: vec![pool],
                     referral: ReferralFee { bps: 0, ..default_referral_fees().evm },
-                    ..usdc_to_cbbtc
+                    ..usdc_to_cbbtc.clone()
                 },
-                vec![command(
-                    CL_SWAP_EXACT_IN_COMMAND,
-                    SwapExactIn {
-                        pools: vec![pool],
-                        tokenIn: usdc.address,
-                        amountIn: BalanceSpend::amount(amount_in),
-                        payerIsUser: true,
-                        minAmountOut: min_amount_out,
-                        recipient,
-                    },
-                )],
-            ),
-            (
-                SwapCommands {
-                    input: cbbtc.clone(),
-                    output: eth.clone(),
-                    pools: vec![pool],
-                    referral: ReferralFee { bps: 0, ..default_referral_fees().evm },
-                    fee_token_is_input: false,
-                    ..usdc_to_cbbtc
-                },
-                vec![
-                    command(
-                        CL_SWAP_EXACT_IN_COMMAND,
-                        SwapExactIn {
-                            pools: vec![pool],
-                            tokenIn: cbbtc.address,
-                            amountIn: BalanceSpend::amount(amount_in),
-                            payerIsUser: true,
-                            minAmountOut: U256::ZERO,
-                            recipient: metarouter,
-                        },
-                    ),
-                    command(
-                        BALANCE_CHECK_COMMAND,
-                        BalanceCheck {
-                            asset: eth.address,
-                            owner: metarouter,
-                            minBalance: min_amount_out,
-                        },
-                    ),
-                    command(UNWRAP_WETH_COMMAND, UnwrapWeth { recipient, spend: BalanceSpend::all() }),
-                ],
+                vec![exact_in(usdc.address, 100_000_000, true, 120_000, TEST_RECIPIENT)],
             ),
             (
                 SwapCommands {
                     input: arc_usdc.clone(),
-                    output: eurc.clone(),
-                    pools: vec![pool],
-                    referral: default_referral_fees().evm,
-                    ..usdc_to_cbbtc
+                    output: eurc,
+                    ..usdc_to_cbbtc.clone()
                 },
-                vec![
-                    command(
-                        TRANSFER_COMMAND,
-                        Transfer {
-                            token: arc_usdc.address,
-                            recipient: referral,
-                            spend: BalanceSpend::amount(U256::from(500_000u64)),
-                        },
-                    ),
-                    command(
-                        CL_SWAP_EXACT_IN_COMMAND,
-                        SwapExactIn {
-                            pools: vec![pool],
-                            tokenIn: arc_usdc.address,
-                            amountIn: BalanceSpend::amount(U256::from(99_500_000u64)),
-                            payerIsUser: false,
-                            minAmountOut: min_amount_out,
-                            recipient,
-                        },
-                    ),
-                ],
-            ),
-            (
-                SwapCommands {
-                    input: eurc.clone(),
-                    output: arc_usdc.clone(),
-                    pools: vec![pool],
-                    referral: default_referral_fees().evm,
-                    fee_token_is_input: false,
-                    ..usdc_to_cbbtc
-                },
-                vec![
-                    command(
-                        CL_SWAP_EXACT_IN_COMMAND,
-                        SwapExactIn {
-                            pools: vec![pool],
-                            tokenIn: eurc.address,
-                            amountIn: BalanceSpend::amount(amount_in),
-                            payerIsUser: true,
-                            minAmountOut: U256::ZERO,
-                            recipient: metarouter,
-                        },
-                    ),
-                    command(
-                        TRANSFER_COMMAND,
-                        Transfer {
-                            token: arc_usdc.address,
-                            recipient: referral,
-                            spend: fee_share,
-                        },
-                    ),
-                    command(
-                        SWEEP_COMMAND,
-                        Sweep {
-                            token: arc_usdc.address,
-                            recipient,
-                            minAmount: min_amount_out,
-                        },
-                    ),
-                ],
+                vec![command(TRANSFER_COMMAND, (arc_usdc.address, referral, fee)), exact_in(arc_usdc.address, 99_500_000, false, 120_000, TEST_RECIPIENT)],
             ),
         ];
 

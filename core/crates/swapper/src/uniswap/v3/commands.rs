@@ -32,7 +32,7 @@ pub fn build_commands(
 
     let token_in = input.address;
     let token_out = output.address;
-    let payer_is_user = input.funding == Funding::Permit2;
+    let payer_is_user = input.funding == Funding::Token;
     let unwrap_output_weth = output.funding == Funding::Value;
     let pay_fees = fee_options.bps > 0;
     let amount_out = quote_amount;
@@ -40,7 +40,7 @@ pub fn build_commands(
     let funding = match input.funding {
         Funding::Value => Some(UniversalRouterCommand::WRAP_ETH(WrapEth { recipient: router, amount_min: amount_in })),
         Funding::RouterBalance => None,
-        Funding::Permit2 => permit.map(UniversalRouterCommand::PERMIT2_PERMIT),
+        Funding::Token => permit.map(UniversalRouterCommand::PERMIT2_PERMIT),
     };
 
     let swap: Vec<UniversalRouterCommand> = match (pay_fees, fee_token_is_input) {
@@ -53,7 +53,7 @@ pub fn build_commands(
             };
             let fee_command = match input.funding {
                 Funding::Value | Funding::RouterBalance => UniversalRouterCommand::TRANSFER(fee_transfer),
-                Funding::Permit2 => UniversalRouterCommand::PERMIT2_TRANSFER_FROM(fee_transfer),
+                Funding::Token => UniversalRouterCommand::PERMIT2_TRANSFER_FROM(fee_transfer),
             };
             vec![fee_command, path.exact_in_command(recipient, amount_in - fee, amount_out, payer_is_user, universal_router_abi)]
         }
@@ -115,7 +115,7 @@ mod tests {
             ..mock_quote(AssetId::from_chain(Chain::Arc).into(), AssetId::from(Chain::Arc, Some(ARC_EURC_TOKEN_ID.into())).into())
         };
         let input = RoutedAsset::mock_router_balance(ARC_USDC_TOKEN_ID, 1_000_000_000_000);
-        let output = RoutedAsset::mock_permit2(ARC_EURC_TOKEN_ID);
+        let output = RoutedAsset::mock_token(ARC_EURC_TOKEN_ID);
         let path = build_direct_pair(&input.address, &output.address, FeeTier::FiveHundred);
         let amount_in = U256::from(3_000_000u64);
         let fee = amount_in * U256::from(default_referral_fees().evm.bps) / U256::from(10000);
@@ -151,7 +151,7 @@ mod tests {
         };
 
         let input = RoutedAsset::mock_value(ETHEREUM_WETH_TOKEN_ID);
-        let output = RoutedAsset::mock_permit2(ETHEREUM_USDC_TOKEN_ID);
+        let output = RoutedAsset::mock_token(ETHEREUM_USDC_TOKEN_ID);
         let amount_in = U256::from(1000000000000000u64);
 
         let path = build_direct_pair(&input.address, &output.address, FeeTier::FiveHundred);
@@ -194,7 +194,7 @@ mod tests {
         };
 
         let input = RoutedAsset::mock_value(ETHEREUM_WETH_TOKEN_ID);
-        let output = RoutedAsset::mock_permit2(ETHEREUM_USDC_TOKEN_ID);
+        let output = RoutedAsset::mock_token(ETHEREUM_USDC_TOKEN_ID);
         let path = build_direct_pair(&input.address, &output.address, FeeTier::FiveHundred);
         let commands = super::build_commands(&request, &input, &output, U256::from(1000000000000000u64), U256::from(0), &RouterPath::V3(path.clone()), None, false, UniversalRouterAbi::V2_1).unwrap();
 
@@ -223,7 +223,7 @@ mod tests {
         };
 
         let deployment = gem_evm::uniswap::deployment::v3::get_uniswap_router_deployment_by_chain(&Chain::Robinhood).unwrap();
-        let input = RoutedAsset::mock_permit2(ROBINHOOD_USDG_TOKEN_ID);
+        let input = RoutedAsset::mock_token(ROBINHOOD_USDG_TOKEN_ID);
         let output = RoutedAsset::mock_value(ROBINHOOD_WETH_TOKEN_ID);
         let amount_in = U256::from_str(&request.value.to_string()).unwrap();
         let permit2_data = Permit2Data {
@@ -291,8 +291,8 @@ mod tests {
             )
         };
 
-        let input = RoutedAsset::mock_permit2(request.from_asset.asset_id().token_id.as_ref().unwrap());
-        let output = RoutedAsset::mock_permit2(request.to_asset.asset_id().token_id.as_ref().unwrap());
+        let input = RoutedAsset::mock_token(request.from_asset.asset_id().token_id.as_ref().unwrap());
+        let output = RoutedAsset::mock_token(request.to_asset.asset_id().token_id.as_ref().unwrap());
         let amount_in = U256::from_str(&request.value.to_string()).unwrap();
 
         let permit2_data = Permit2Data {
@@ -359,8 +359,8 @@ mod tests {
             )
         };
 
-        let input = RoutedAsset::mock_permit2(request.from_asset.asset_id().token_id.as_ref().unwrap());
-        let output = RoutedAsset::mock_permit2(request.to_asset.asset_id().token_id.as_ref().unwrap());
+        let input = RoutedAsset::mock_token(request.from_asset.asset_id().token_id.as_ref().unwrap());
+        let output = RoutedAsset::mock_token(request.to_asset.asset_id().token_id.as_ref().unwrap());
         let amount_in = U256::from_str(&request.value.to_string()).unwrap();
         let quote_amount = U256::from(33377662359182269u64);
         let fee = amount_in * U256::from(default_referral_fees().evm.bps) / U256::from(10000);
@@ -420,7 +420,7 @@ mod tests {
             ..mock_quote(AssetId::from(Chain::Optimism, Some(OPTIMISM_USDC_E_TOKEN_ID.into())).into(), AssetId::from(Chain::Ethereum, None).into())
         };
 
-        let input = RoutedAsset::mock_permit2(request.from_asset.asset_id().token_id.as_ref().unwrap());
+        let input = RoutedAsset::mock_token(request.from_asset.asset_id().token_id.as_ref().unwrap());
         let output = RoutedAsset::mock_value(OPTIMISM_WETH_TOKEN_ID);
         let amount_in = U256::from_str(&request.value.to_string()).unwrap();
 
@@ -485,7 +485,7 @@ mod tests {
         };
 
         let input = RoutedAsset::mock_value(OPTIMISM_WETH_TOKEN_ID);
-        let output = RoutedAsset::mock_permit2(&request.to_asset.asset_id().token_id.unwrap());
+        let output = RoutedAsset::mock_token(&request.to_asset.asset_id().token_id.unwrap());
         let amount_in = U256::from_str(&request.value.to_string()).unwrap();
         let quote_amount = U256::from(244440440678888410_u64);
         let fee = amount_in * U256::from(default_referral_fees().evm.bps) / U256::from(10000);
@@ -518,8 +518,8 @@ mod tests {
 
     #[test]
     fn test_build_commands_celo_tokenized_native() {
-        let celo = RoutedAsset::mock_permit2(CELO_WETH_TOKEN_ID);
-        let usdt = RoutedAsset::mock_permit2(CELO_USDT_TOKEN_ID);
+        let celo = RoutedAsset::mock_token(CELO_WETH_TOKEN_ID);
+        let usdt = RoutedAsset::mock_token(CELO_USDT_TOKEN_ID);
         let wallet = "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7";
 
         let request = QuoteRequest {

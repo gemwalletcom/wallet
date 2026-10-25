@@ -28,7 +28,7 @@ pub(super) fn build_commands(input: &RoutedAsset, output: &RoutedAsset, swap: Sw
                 amount_min: CONTRACT_BALANCE,
             }),
         ],
-        Funding::Permit2 => swap
+        Funding::Token => swap
             .permit
             .map(UniversalRouterCommand::PERMIT2_PERMIT)
             .into_iter()

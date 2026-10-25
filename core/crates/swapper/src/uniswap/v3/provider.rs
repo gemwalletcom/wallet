@@ -8,7 +8,7 @@ use crate::{
     route_cache::Cache,
     uniswap::{
         deadline::get_sig_deadline,
-        discovery::{PoolDiscovery, candidate_pairs, discover_pools, v3_pool_request},
+        discovery::{PoolDiscovery, candidate_pairs, discover_pools},
         fee_token::is_quote_input_fee_token,
         quote_result::{OutpricedPaths, QuoteResult, best_path_quote, path_outcomes},
         routed_asset::{Funding, Protocol, base_pair, routed_pair, routed_request},
@@ -22,7 +22,6 @@ use crate::{
 };
 use alloy_primitives::{Address, U256, hex::encode_prefixed as HexEncode};
 use async_trait::async_trait;
-use gem_evm::u256::u256_to_biguint;
 use gem_evm::{
     constants::DEFAULT_SWAP_GAS_LIMIT,
     jsonrpc::EthereumRpc,
@@ -33,7 +32,6 @@ use gem_evm::{
     },
 };
 use gem_jsonrpc::{client::JsonRpcClient, types::JsonRpcResult};
-use num_bigint::BigUint;
 use primitives::{AssetId, Chain, EVMChain};
 use std::{collections::HashMap, fmt, str::FromStr, sync::Arc};
 
@@ -82,10 +80,11 @@ impl UniswapV3 {
         let client = create_client_with_chain(self.rpc_provider.clone(), chain)?;
         let fee_tiers = self.provider.get_tiers();
         let pairs = candidate_pairs(token_in, token_out, get_intermediaries(&token_in, &token_out, &base_pair));
-        let v3_pools = self.pool_discovery.missing_pools(chain, &pairs, &fee_tiers).into_iter().map(|pool| {
-            let request = v3_pool_request(deployment.factory, deployment.pool_lookup, &pool);
-            ((Protocol::V3, pool), request)
-        });
+        let v3_pools = self
+            .pool_discovery
+            .missing_pool_requests(chain, &pairs, &fee_tiers, (deployment.factory, deployment.pool_lookup))
+            .into_iter()
+            .map(|(pool, request)| ((Protocol::V3, pool), request));
         let solidly_pools = deployment.solidly_deployment.iter().flat_map(|solidly_deployment| {
             self.solidly_pool_discovery.missing_pools(chain, &pairs, &solidly::POOL_TYPES).into_iter().map(move |pool| {
                 let request = solidly::pool_request(solidly_deployment, &pool);
@@ -319,7 +318,7 @@ impl Swapper for UniswapV3 {
         let permit = data.permit2_data().map(Permit2Permit::try_from).transpose()?;
 
         let (approval, permit2) = match input.funding {
-            Funding::Permit2 => {
+            Funding::Token => {
                 let spenders = (deployment.permit2, deployment.universal_router);
                 check_permit2_approvals(&client, &request.wallet_address, &input.address.to_checksum(None), amount_in, spenders, permit.is_some()).await?
             }
@@ -336,10 +335,7 @@ impl Swapper for UniswapV3 {
         let commands = build_commands(request, &input, &output, amount_in, to_amount, &path, permit, fee_token_is_input, deployment.universal_router_abi)?;
         let encoded = encode_commands(&commands, U256::from(sig_deadline));
 
-        let value = match input.funding {
-            Funding::Value | Funding::RouterBalance => u256_to_biguint(&(amount_in * input.scale)),
-            Funding::Permit2 => BigUint::ZERO,
-        };
+        let value = input.value(amount_in);
 
         Ok(SwapperQuoteData {
             permit2,
@@ -376,6 +372,7 @@ mod tests {
         },
         deployment::v3::{get_aerodrome_router_deployment_by_chain, get_pancakeswap_router_deployment_by_chain},
     };
+    use num_bigint::BigUint;
     use primitives::TransactionSwapMetadata;
     use primitives::{
         asset_constants::{BASE_USDC_TOKEN_ID, BASE_WETH_TOKEN_ID, SMARTCHAIN_USDC_TOKEN_ID, SMARTCHAIN_USDT_TOKEN_ID},
@@ -549,7 +546,7 @@ mod tests {
 
 #[cfg(all(test, feature = "swap_integration_tests", feature = "reqwest_provider"))]
 mod swap_integration_tests {
-    use crate::testkit::{dynode_provider, mock_quote};
+    use crate::testkit::{dynode_provider, mock_quote, simulate_swap};
     use crate::{
         FetchQuoteData, NativeProvider, Options, QuoteRequest, Swapper, SwapperError,
         client_factory::{create_client_with_chain, create_eth_client},
@@ -567,14 +564,11 @@ mod swap_integration_tests {
     };
     use alloy_primitives::{Address, U256};
     use alloy_sol_types::SolCall;
-    use gem_evm::{
-        jsonrpc::{BlockParameter, EthereumRpc, TransactionObject},
-        uniswap::{
-            command::{TRANSFER_COMMAND, Transfer},
-            contracts::IUniversalRouter,
-            deployment::v3::get_uniswap_router_deployment_by_chain,
-            path::TokenPair,
-        },
+    use gem_evm::uniswap::{
+        command::{TRANSFER_COMMAND, Transfer},
+        contracts::IUniversalRouter,
+        deployment::v3::get_uniswap_router_deployment_by_chain,
+        path::TokenPair,
     };
     use num_bigint::BigUint;
     use num_traits::ToPrimitive;
@@ -623,18 +617,7 @@ mod swap_integration_tests {
         });
         assert_eq!(fee, Some(bps_of(&U256::from(value), default_referral_fees().evm.bps)));
 
-        let balance = format!("0x{:x}", quote_data.value.to_u128().unwrap());
-        let transaction = TransactionObject {
-            value: Some(balance.clone()),
-            ..TransactionObject::new_call_with_from(TEST_V2_WALLET, &quote_data.to, calldata)
-        };
-        let simulation = EthereumRpc::CallWithBalance {
-            transaction,
-            block: BlockParameter::Latest,
-            address: TEST_V2_WALLET.into(),
-            balance,
-        };
-        create_client_with_chain(dynode_provider([chain]), chain)?.request::<String, _>(simulation).await.map_err(SwapperError::compute_quote_error)?;
+        simulate_swap(chain, TEST_V2_WALLET, &quote_data).await?;
         Ok(protocol)
     }
 

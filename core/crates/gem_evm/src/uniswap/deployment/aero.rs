@@ -5,37 +5,23 @@ use primitives::Chain;
 use super::v2::{clone_address, sort_tokens};
 use crate::uniswap::path::TokenPair;
 
+pub const METAQUOTER: &str = "0x1dDfeC5058180C207F55BB77D95AcDd0d8227868";
+pub const METAROUTER: &str = "0x0fEf9e88A7b76BCDBF451780C6774FE32965Ee98";
 const POOL_IMPLEMENTATION: Address = address!("0x1642634C8CB1C9f1B84c9a1a08534F8c3F4E89f8");
-const METAQUOTER: &str = "0x1dDfeC5058180C207F55BB77D95AcDd0d8227868";
-const METAROUTER: &str = "0x0fEf9e88A7b76BCDBF451780C6774FE32965Ee98";
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct AeroDeployment {
-    pub factory: Address,
-    pub metaquoter: &'static str,
-    pub metarouter: &'static str,
-}
-
-impl AeroDeployment {
-    pub fn pool_address(&self, pair: &TokenPair) -> Address {
-        let (token0, token1) = sort_tokens(&pair.token_in, &pair.token_out);
-        let salt = keccak256((*token0, *token1, pair.fee_tier.as_tick_spacing()).abi_encode());
-        clone_address(&self.factory, &POOL_IMPLEMENTATION, salt)
+pub fn get_factory_by_chain(chain: &Chain) -> Option<Address> {
+    match chain {
+        Chain::Base => Some(address!("0x9CB220581b91b0C83223012FE69688b92aD07a76")),
+        Chain::Robinhood => Some(address!("0xc63d7338c178e805c544B8f897066bD3BBcBE136")),
+        Chain::Arc => Some(address!("0x7F83235643181E440433400a027618Cd50879751")),
+        _ => None,
     }
 }
 
-pub fn get_aero_deployment_by_chain(chain: &Chain) -> Option<AeroDeployment> {
-    let factory = match chain {
-        Chain::Base => address!("0x9CB220581b91b0C83223012FE69688b92aD07a76"),
-        Chain::Robinhood => address!("0xc63d7338c178e805c544B8f897066bD3BBcBE136"),
-        Chain::Arc => address!("0x7F83235643181E440433400a027618Cd50879751"),
-        _ => return None,
-    };
-    Some(AeroDeployment {
-        factory,
-        metaquoter: METAQUOTER,
-        metarouter: METAROUTER,
-    })
+pub fn pool_address(factory: &Address, pair: &TokenPair) -> Address {
+    let (token0, token1) = sort_tokens(&pair.token_in, &pair.token_out);
+    let salt = keccak256((*token0, *token1, pair.fee_tier.as_tick_spacing()).abi_encode());
+    clone_address(factory, &POOL_IMPLEMENTATION, salt)
 }
 
 #[cfg(test)]
@@ -60,7 +46,7 @@ mod tests {
                 token_out: token_out.parse().unwrap(),
                 fee_tier,
             };
-            assert_eq!(get_aero_deployment_by_chain(&chain).unwrap().pool_address(&pair), pool);
+            assert_eq!(pool_address(&get_factory_by_chain(&chain).unwrap(), &pair), pool);
         }
     }
 }
