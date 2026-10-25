@@ -28,9 +28,19 @@ pub fn map_transaction_broadcast(response: &StellarTransactionBroadcast) -> Resu
 pub fn map_transactions(chain: Chain, transactions: Vec<Payment>) -> Vec<Transaction> {
     transactions
         .chunk_by(|first, second| first.transaction_hash == second.transaction_hash)
-        .flat_map(|payments| match map_swap(chain, payments) {
-            Some(swap) => vec![swap],
-            None => payments.iter().cloned().filter_map(|payment| map_transaction(chain, payment)).collect(),
+        .flat_map(|payments| {
+            let swap = payments
+                .iter()
+                .find(|payment| payment.payment_type == TRANSACTION_TYPE_PATH_PAYMENT_STRICT_SEND && payment.from.is_some() && payment.from == payment.to);
+            let fee = swap.and_then(|swap| {
+                payments
+                    .iter()
+                    .find(|payment| payment.payment_type == TRANSACTION_TYPE_PAYMENT && payment.from == swap.from && payment.to.as_deref() == Some(STELLAR_REFERRAL_ADDRESS))
+            });
+            let swap = swap.and_then(|swap| map_swap(chain, swap, fee));
+            let absorbed_fee = fee.filter(|_| swap.is_some());
+            let others = payments.iter().filter(|payment| absorbed_fee.is_none_or(|fee| fee.id != payment.id)).cloned();
+            swap.into_iter().chain(others.filter_map(|payment| map_transaction(chain, payment))).collect::<Vec<_>>()
         })
         .collect()
 }
@@ -39,21 +49,15 @@ pub fn map_transaction_by_hash(chain: Chain, transactions: Vec<Payment>, hash: &
     map_transactions(chain, transactions).into_iter().find(|transaction| transaction.hash() == hash)
 }
 
-fn map_swap(chain: Chain, payments: &[Payment]) -> Option<Transaction> {
-    let swap = payments
-        .iter()
-        .find(|payment| payment.payment_type == TRANSACTION_TYPE_PATH_PAYMENT_STRICT_SEND && payment.from.is_some() && payment.from == payment.to)?;
+fn map_swap(chain: Chain, swap: &Payment, fee: Option<&Payment>) -> Option<Transaction> {
     let from_asset = map_asset_id(chain, swap.source_asset_type.as_deref()?, swap.source_asset_issuer.as_ref(), swap.source_asset_code.as_ref())?;
     let to_asset = map_asset_id(chain, swap.asset_type.as_deref()?, swap.asset_issuer.as_ref(), swap.asset_code.as_ref())?;
-    let referral_fee = payments
-        .iter()
-        .find(|payment| payment.payment_type == TRANSACTION_TYPE_PAYMENT && payment.from == swap.from && payment.to.as_deref() == Some(STELLAR_REFERRAL_ADDRESS))
-        .and_then(|payment| {
-            Some(TransactionSwapReferralFee {
-                asset_id: map_asset_id(chain, payment.asset_type.as_deref()?, payment.asset_issuer.as_ref(), payment.asset_code.as_ref())?,
-                value: payment.amount.clone()?,
-            })
-        });
+    let referral_fee = fee.and_then(|payment| {
+        Some(TransactionSwapReferralFee {
+            asset_id: map_asset_id(chain, payment.asset_type.as_deref()?, payment.asset_issuer.as_ref(), payment.asset_code.as_ref())?,
+            value: payment.amount.clone()?,
+        })
+    });
     let fee_in = |asset_id: &AssetId| referral_fee.as_ref().filter(|fee| fee.asset_id == *asset_id).map_or(BigUint::ZERO, |fee| fee.value.clone());
     let from_value = swap.source_amount.clone()? + fee_in(&from_asset);
     let (received, to_fee) = (swap.amount.clone()?, fee_in(&to_asset));
@@ -217,5 +221,22 @@ mod tests {
             map_transaction_by_hash(Chain::Stellar, records(), "b652bc89d2c3b29573a512d76088d8fc3108298947451197af019709185f2ef2").unwrap().transaction_type,
             TransactionType::Swap
         );
+    }
+
+    #[test]
+    fn test_map_transactions_swap_keeps_a_payment_to_someone_else() {
+        let records = serde_json::from_str::<Embedded<Payment>>(include_str!("../../testdata/transaction_swap_path_payment.json")).unwrap()._embedded.records;
+        let payment: Payment = serde_json::from_str(
+            r#"{"id":"2","transaction_successful":true,"transaction_hash":"b652bc89d2c3b29573a512d76088d8fc3108298947451197af019709185f2ef2","type":"payment","asset_type":"native","from":"GCVQA5JVHNDJFPODJZU6BM7H5344VK2KGBFXSUUEP7ZH3T5DXGMCR6NL","to":"GTHIRD","amount":"1.0000000","created_at":"2026-10-25T04:21:03Z","transaction":{"memo":null,"fee_charged":"200"}}"#,
+        )
+        .unwrap();
+
+        let transactions = map_transactions(Chain::Stellar, [records, vec![payment]].concat());
+
+        assert_eq!(
+            transactions.iter().map(|transaction| transaction.transaction_type.clone()).collect::<Vec<_>>(),
+            vec![TransactionType::Swap, TransactionType::Transfer]
+        );
+        assert_eq!((transactions[1].to.as_str(), transactions[1].value.clone()), ("GTHIRD", BigUint::from(10_000_000u32)));
     }
 }
