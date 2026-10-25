@@ -30,6 +30,8 @@ pub struct BitcoinUTXO {
     pub vout: i32,
     #[serde(serialize_with = "serialize_biguint", deserialize_with = "deserialize_biguint_from_str")]
     pub value: BigUint,
+    #[serde(default)]
+    pub coinbase: bool,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
