@@ -11,7 +11,7 @@ use crate::{
         discovery::{PoolDiscovery, candidate_pairs, discover_pools, v3_pool_request},
         fee_token::is_quote_input_fee_token,
         quote_result::{OutpricedPaths, QuoteResult, best_path_quote, path_outcomes},
-        routed_asset::{Funding, Protocol, RoutedAsset, base_pair, routed_pair},
+        routed_asset::{Funding, Protocol, base_pair, routed_pair, routed_request},
         solidly,
         swap_route::{PoolPath, RouteData, RouterPath, candidate_paths, get_intermediaries},
         v2::{
@@ -75,12 +75,6 @@ impl UniswapV3 {
         self.provider.get_deployment_by_chain(chain).is_some()
     }
 
-    fn routed_request(request: &QuoteRequest) -> Result<(EVMChain, RoutedAsset, RoutedAsset, U256), SwapperError> {
-        let (evm_chain, input, output) = routed_pair(&request.from_asset.asset_id(), &request.to_asset.asset_id(), PROTOCOL)?;
-        let amount_in = U256::from_str(&request.value.to_string()).map_err(SwapperError::from)? / input.scale;
-        Ok((evm_chain, input, output, amount_in))
-    }
-
     async fn preload_pool_candidates(&self, chain: Chain, token_in: Address, token_out: Address) -> Result<(), SwapperError> {
         let deployment = self.provider.get_deployment_by_chain(&chain).ok_or(SwapperError::NotSupportedChain)?;
         let evm_chain = EVMChain::from_chain(chain).ok_or(SwapperError::NotSupportedChain)?;
@@ -89,7 +83,7 @@ impl UniswapV3 {
         let fee_tiers = self.provider.get_tiers();
         let pairs = candidate_pairs(token_in, token_out, get_intermediaries(&token_in, &token_out, &base_pair));
         let v3_pools = self.pool_discovery.missing_pools(chain, &pairs, &fee_tiers).into_iter().map(|pool| {
-            let request = v3_pool_request(&deployment, &pool);
+            let request = v3_pool_request(deployment.factory, deployment.pool_lookup, &pool);
             ((Protocol::V3, pool), request)
         });
         let solidly_pools = deployment.solidly_deployment.iter().flat_map(|solidly_deployment| {
@@ -273,7 +267,7 @@ impl Swapper for UniswapV3 {
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
         let from_chain = request.from_asset.chain();
         let deployment = self.provider.get_deployment_by_chain(&from_chain).ok_or(SwapperError::NotSupportedChain)?;
-        let (evm_chain, input, output, from_value) = Self::routed_request(request)?;
+        let (evm_chain, input, output, from_value) = routed_request(request, PROTOCOL)?;
         let (token_in, token_out) = (input.address, output.address);
 
         let client = create_client_with_chain(self.rpc_provider.clone(), from_chain)?;
@@ -314,7 +308,7 @@ impl Swapper for UniswapV3 {
     async fn get_quote_data(&self, quote: &Quote, data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
         let request = &quote.request;
         let from_chain = request.from_asset.chain();
-        let (evm_chain, input, output, amount_in) = Self::routed_request(request)?;
+        let (evm_chain, input, output, amount_in) = routed_request(request, PROTOCOL)?;
         let deployment = self.provider.get_deployment_by_chain(&from_chain).ok_or(SwapperError::NotSupportedChain)?;
 
         let client = create_client_with_chain(self.rpc_provider.clone(), from_chain)?;

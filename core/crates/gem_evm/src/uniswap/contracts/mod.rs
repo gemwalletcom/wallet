@@ -1,5 +1,6 @@
 use alloy_sol_types::sol;
 
+pub mod aero;
 pub mod solidly;
 pub mod v2;
 pub mod v3;

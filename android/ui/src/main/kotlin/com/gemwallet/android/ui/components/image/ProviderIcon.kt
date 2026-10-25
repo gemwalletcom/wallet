@@ -38,7 +38,9 @@ fun SwapProvider.iconResource(): Int = when (this) {
 
     SwapProvider.RELAY -> R.drawable.swap_provider_relay
 
-    SwapProvider.AERODROME -> R.drawable.swap_provider_aerodrome
+    SwapProvider.AERODROME,
+    SwapProvider.AERO,
+    -> R.drawable.swap_provider_aerodrome
 
     SwapProvider.HYPERLIQUID -> R.drawable.chain_hyperliquid
 

@@ -100,6 +100,7 @@ impl GemSwapper {
             Some(Box::new(squid::Squid::new(rpc_provider.clone()))),
             swaps_xyz::SwapsXyz::new(rpc_provider.clone()).map(Self::boxed),
             Some(uniswap::default::boxed_aerodrome(rpc_provider.clone())),
+            Some(Self::boxed(uniswap::aero::Aero::new(rpc_provider.clone()))),
             Some(Box::new(bridgers::Bridgers::new(rpc_provider.clone()))),
             stellar_dex::StellarDex::new(rpc_provider.clone()).map(Self::boxed),
         ]

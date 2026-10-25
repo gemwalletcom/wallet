@@ -4,8 +4,9 @@ use gem_evm::uniswap::path::{BasePair, get_base_pair};
 use primitives::Chain;
 use primitives::{Asset, AssetId, EVMChain, EvmNativeCurrency};
 use serde::{Deserialize, Serialize};
+use std::str::FromStr;
 
-use crate::{SwapperError, eth_address};
+use crate::{QuoteRequest, SwapperError, eth_address};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum Funding {
@@ -68,6 +69,12 @@ pub fn routed_pair(from_asset: &AssetId, to_asset: &AssetId, protocol: Protocol)
     }
     let evm_chain = EVMChain::from_chain(from_asset.chain).ok_or(SwapperError::NotSupportedChain)?;
     Ok((evm_chain, RoutedAsset::from_asset(from_asset, evm_chain, protocol)?, RoutedAsset::from_asset(to_asset, evm_chain, protocol)?))
+}
+
+pub fn routed_request(request: &QuoteRequest, protocol: Protocol) -> Result<(EVMChain, RoutedAsset, RoutedAsset, U256), SwapperError> {
+    let (evm_chain, input, output) = routed_pair(&request.from_asset.asset_id(), &request.to_asset.asset_id(), protocol)?;
+    let amount_in = U256::from_str(&request.value.to_string()).map_err(SwapperError::from)? / input.scale;
+    Ok((evm_chain, input, output, amount_in))
 }
 
 pub fn base_pair(chain: EVMChain, protocol: Protocol) -> Option<BasePair> {
