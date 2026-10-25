@@ -1,6 +1,5 @@
-package com.gemwallet.android
+package com.gemwallet.android.features.settings.presents.lock
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.AlertDialog
@@ -15,8 +14,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.features.support.presents.SupportChatScreen
+import com.gemwallet.android.AppUrl
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.consumeAllPointerEvents
 import com.gemwallet.android.ui.components.empty.EmptyAction
@@ -24,11 +25,14 @@ import com.gemwallet.android.ui.components.empty.EmptyActionStyle
 import com.gemwallet.android.ui.components.empty.EmptyStateView
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.open
+import uniffi.gemstone.PublicUrl
 
 @Composable
-internal fun KeystoreKeyChanged(onReset: () -> Unit) {
+fun KeystoreKeyChangedScene(onReset: () -> Unit) {
+    val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
     var isResetConfirmationShown by rememberSaveable { mutableStateOf(false) }
-    var isSupportShown by rememberSaveable { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize().consumeAllPointerEvents()) {
         Scene(title = "") {
@@ -39,14 +43,10 @@ internal fun KeystoreKeyChanged(onReset: () -> Unit) {
                     iconVector = AppIcons.Warning,
                     buttons = listOf(
                         EmptyAction(title = stringResource(R.string.wallet_import_title), onClick = { isResetConfirmationShown = true }),
-                        EmptyAction(title = stringResource(R.string.settings_support), onClick = { isSupportShown = true }, style = EmptyActionStyle.Secondary),
+                        EmptyAction(title = stringResource(R.string.settings_support), onClick = { uriHandler.open(context, AppUrl.page(PublicUrl.SUPPORT)) }, style = EmptyActionStyle.Secondary),
                     ),
                 )
             }
-        }
-        if (isSupportShown) {
-            BackHandler { isSupportShown = false }
-            SupportChatScreen(message = null, onMessageShown = {}, onCancel = { isSupportShown = false })
         }
     }
 

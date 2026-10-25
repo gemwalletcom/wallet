@@ -5,4 +5,11 @@ enum class AuthState {
     Success,
     Fail,
     KeyChanged,
+    WalletsUnreadable,
+    ResetRequested,
+    ;
+
+    val requiresPrompt: Boolean get() = this == Required || this == KeyChanged || this == ResetRequested
+
+    val isKeystoreRecovery: Boolean get() = this == KeyChanged || this == WalletsUnreadable || this == ResetRequested
 }

@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import com.gemwallet.android.application.KeystoreKeyChangedException
 import com.google.crypto.tink.aead.AeadConfig
 import com.google.crypto.tink.aead.AesGcmKeyManager
 import com.google.crypto.tink.daead.AesSivKeyManager
@@ -39,6 +40,15 @@ internal class LegacyEncryptedPreferences(context: Context, private val preferen
     override fun removeString(key: String): Boolean = synchronized(secureStorageLock) {
         val preferences = existingPreferences() ?: return@synchronized true
         preferences.edit().remove(key).commit().also { removed -> if (removed) retireIfDrained() }
+    }
+
+    fun isKeyChanged(): Boolean = synchronized(secureStorageLock) {
+        try {
+            existingPreferences()
+            false
+        } catch (_: KeystoreKeyChangedException) {
+            true
+        }
     }
 
     private fun preferences(): SharedPreferences {

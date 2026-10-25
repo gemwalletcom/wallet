@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.password
 
 import android.content.Context
+import com.gemwallet.android.application.KeystoreKeyChangedException
 import com.gemwallet.android.application.PasswordNotFoundException
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.math.append0x
@@ -40,6 +41,12 @@ class TinkPasswordStore internal constructor(private val encryptedStore: SecureS
     )
 
     fun authenticationRequired(): Boolean = keyset?.authenticationRequired == true
+
+    fun canReadPasswords(keys: List<String>): Boolean = try {
+        keyset?.isKeyLost != true && keys.all { encryptedStore.getString(it) != null }
+    } catch (_: KeystoreKeyChangedException) {
+        false
+    }
 
     @Synchronized
     fun setAuthenticationRequired(required: Boolean, walletIds: List<String>) {

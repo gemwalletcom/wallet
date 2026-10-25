@@ -119,7 +119,7 @@ class MainActivity :
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState.first { it.isLocalDataReset }
+                lockViewModel.uiState.first { it.isLocalDataReset }
                 restartAtImportWallet()
             }
         }
@@ -195,7 +195,8 @@ class MainActivity :
                     onSystemAuthRequired = systemAuthenticator::authenticate,
                     onPendingNavigationConsumed = viewModel::consumePendingNavigation,
                     onImportWalletOpened = viewModel::consumeImportWallet,
-                    onResetLocalData = viewModel::resetLocalData,
+                    onResetLocalData = lockViewModel::requestReset,
+                    onResetErrorDismiss = lockViewModel::dismissResetError,
                     onOpenSystemAuthSettings = systemAuthenticator::openSettings,
                     onWalletConnectError = viewModel::showWalletConnectError,
                     onErrorDismiss = viewModel::resetError,

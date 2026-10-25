@@ -17,8 +17,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
+import com.gemwallet.android.features.settings.presents.lock.KeystoreKeyChangedScene
 import com.gemwallet.android.features.settings.presents.lock.LockScreen
 import com.gemwallet.android.features.settings.viewmodels.lock.models.AuthState
 import com.gemwallet.android.features.settings.viewmodels.lock.models.LockUIState
@@ -26,6 +28,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.WalletApp
 import com.gemwallet.android.ui.components.screen.SnackbarHost
 import com.gemwallet.android.ui.components.screen.ToastEffect
+import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ToastMessage
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.mainActionHeight
@@ -47,6 +50,7 @@ internal fun MainContent(
     onPendingNavigationConsumed: () -> Unit,
     onImportWalletOpened: () -> Unit,
     onResetLocalData: () -> Unit,
+    onResetErrorDismiss: () -> Unit,
     onOpenSystemAuthSettings: () -> Unit,
     onWalletConnectError: (String) -> Unit,
     onErrorDismiss: () -> Unit,
@@ -54,9 +58,9 @@ internal fun MainContent(
     val pendingDestination = pendingNavigation as? PendingNavigation.Routes
     val pendingRoutes = pendingDestination?.routes.orEmpty()
     val canAttemptSystemAuth = !systemAuthEnrollmentMissing
-    val requiresAuthPrompt = lockState.initialAuth == AuthState.Required || lockState.authState == AuthState.Required
+    val requiresAuthPrompt = lockState.initialAuth.requiresPrompt || lockState.authState == AuthState.Required
     val isWalletUnlocked = lockState.isUnlocked
-    val isEnrollmentRequired = lockState.initialAuth == AuthState.Required && systemAuthEnrollmentMissing
+    val isEnrollmentRequired = lockState.initialAuth.requiresPrompt && systemAuthEnrollmentMissing
     val unlockedPendingRoutes = if (isWalletUnlocked) pendingRoutes else emptyList()
     val unsupportedWalletConnectError = if (state.isWalletConnectUnsupportedVisible) {
         "${stringResource(R.string.wallet_connect_title)}: ${stringResource(R.string.errors_not_supported)} (${BuildConfig.FLAVOR})"
@@ -89,11 +93,11 @@ internal fun MainContent(
             }
 
             when {
-                lockState.initialAuth == AuthState.KeyChanged -> KeystoreKeyChanged(onReset = onResetLocalData)
-
                 isEnrollmentRequired -> SystemAuthEnrollmentRequired(
                     onOpenSettings = onOpenSystemAuthSettings,
                 )
+
+                lockState.initialAuth == AuthState.WalletsUnreadable || lockState.initialAuth == AuthState.ResetRequested -> KeystoreKeyChangedScene(onReset = onResetLocalData)
 
                 else -> LockScreen(
                     isContentReady = isWalletContentReady,
@@ -105,6 +109,10 @@ internal fun MainContent(
         ErrorDialog(
             error = state.walletConnectError ?: unsupportedWalletConnectError ?: state.startupError,
             onDismiss = onErrorDismiss,
+        )
+        ErrorDialog(
+            error = lockState.resetError?.text(LocalContext.current),
+            onDismiss = onResetErrorDismiss,
         )
     }
 }

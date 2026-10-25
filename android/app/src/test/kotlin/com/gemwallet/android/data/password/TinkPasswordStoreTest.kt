@@ -1,11 +1,18 @@
 package com.gemwallet.android.data.password
 
+import com.gemwallet.android.application.KeystoreKeyChangedException
 import com.gemwallet.android.application.PasswordNotFoundException
+import com.gemwallet.android.application.PasswordStore
+import io.mockk.confirmVerified
+import io.mockk.every
+import io.mockk.mockk
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.security.SecureRandom
+import javax.crypto.AEADBadTagException
 
 private const val TEST_WALLET_KEY = "wallet-1"
 private const val LEGACY_PASSWORD = "legacy-password"
@@ -102,6 +109,40 @@ class TinkPasswordStoreTest {
         assertEquals(0, legacyStore.readCount)
         assertEquals(0, encryptedStore.readCount)
         assertEquals(0, legacyStore.removeCount(TEST_WALLET_KEY))
+    }
+
+    @Test
+    fun canReadPasswords_storedPasswordsAreReadable() {
+        encryptedStore.putString(PasswordStore.Keys.Password.key, ENCRYPTED_PASSWORD)
+        encryptedStore.putString(TEST_WALLET_KEY, ENCRYPTED_PASSWORD)
+
+        assertTrue(passwordStore.canReadPasswords(listOf(PasswordStore.Keys.Password.key, TEST_WALLET_KEY)))
+    }
+
+    @Test
+    fun canReadPasswords_neverTouchesTheLegacyStore() {
+        encryptedStore.putString(PasswordStore.Keys.Password.key, ENCRYPTED_PASSWORD)
+        val brokenLegacyStore = mockk<SecureStringStore>()
+
+        val readable = TinkPasswordStore(encryptedStore, brokenLegacyStore, IncrementingSecureRandom()).canReadPasswords(listOf(PasswordStore.Keys.Password.key, TEST_WALLET_KEY))
+
+        assertFalse(readable)
+        confirmVerified(brokenLegacyStore)
+    }
+
+    @Test
+    fun canReadPasswords_missingPasswordIsUnreadable() {
+        legacyStore.putString(PasswordStore.Keys.Password.key, LEGACY_PASSWORD)
+
+        assertFalse(passwordStore.canReadPasswords(listOf(PasswordStore.Keys.Password.key)))
+        assertEquals(0, legacyStore.readCount)
+    }
+
+    @Test
+    fun canReadPasswords_changedKeystoreKeyIsUnreadable() {
+        val changedKeyStore = mockk<SecureStringStore> { every { getString(any()) } throws KeystoreKeyChangedException(AEADBadTagException()) }
+
+        assertFalse(TinkPasswordStore(changedKeyStore, legacyStore, IncrementingSecureRandom()).canReadPasswords(listOf(PasswordStore.Keys.Password.key)))
     }
 
     @Test

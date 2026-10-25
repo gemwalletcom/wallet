@@ -5,7 +5,6 @@ import android.util.Log
 import com.gemwallet.android.application.WalletPasswordProtection
 import com.gemwallet.android.application.security.cases.SecurityPreferences
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
-import com.gemwallet.android.services.LocalDataReset
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.ToastMessage
 import com.gemwallet.android.ui.models.ToastPresenter
@@ -109,26 +108,6 @@ class MainViewModelStartupErrorTest {
     }
 
     @Test
-    fun localDataReset_restartsTheApp() {
-        val viewModel = mainViewModel()
-
-        viewModel.resetLocalData()
-
-        assertTrue(viewModel.uiState.value.isLocalDataReset)
-    }
-
-    @Test
-    fun failedLocalDataReset_isShownAndDoesNotRestart() {
-        val localDataReset = mockk<LocalDataReset> { coEvery { reset() } throws IllegalStateException("Secure storage reset failed") }
-        val viewModel = mainViewModel(localDataReset = localDataReset)
-
-        viewModel.resetLocalData()
-
-        assertEquals("Secure storage reset failed", viewModel.uiState.value.startupError)
-        assertFalse(viewModel.uiState.value.isLocalDataReset)
-    }
-
-    @Test
     fun launchAfterReset_opensImportWalletOnce() {
         val viewModel = mainViewModel()
 
@@ -150,7 +129,6 @@ class MainViewModelStartupErrorTest {
         protection: WalletPasswordProtection = mockk(relaxed = true),
         walletService: GemWalletServiceInterface = walletService(),
         coordinator: PendingNavigationCoordinator = coordinator(),
-        localDataReset: LocalDataReset = mockk(relaxed = true),
     ): MainViewModel {
         val userConfig = mockk<UserConfig>()
         every { userConfig.appearance() } returns flowOf(Appearance.System)
@@ -162,7 +140,6 @@ class MainViewModelStartupErrorTest {
             pairWalletConnect = mockk(relaxed = true),
             appStartService = mockk(relaxed = true),
             migrateV3KeystoreService = mockk(relaxed = true),
-            localDataReset = localDataReset,
             walletService = walletService,
             pendingNavigationCoordinator = coordinator,
             toastPresenter = toastPresenter,

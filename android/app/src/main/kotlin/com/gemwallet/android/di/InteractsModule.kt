@@ -3,10 +3,12 @@ package com.gemwallet.android.di
 import android.content.Context
 import com.gemwallet.android.application.PasswordStore
 import com.gemwallet.android.application.WalletPasswordProtection
+import com.gemwallet.android.application.security.cases.KeystoreRecovery
 import com.gemwallet.android.data.password.TinkPasswordStore
 import com.gemwallet.android.data.password.WalletPasswordProtectionService
 import com.gemwallet.android.data.services.gemstone.keystore.GemMigrateKeystoreOperator
 import com.gemwallet.android.data.services.gemstone.keystore.MigrateKeystoreOperator
+import com.gemwallet.android.services.KeystoreRecoveryService
 import com.gemwallet.android.ui.models.ToastPresenter
 import dagger.Module
 import dagger.Provides
@@ -32,6 +34,9 @@ object InteractsModule {
 
     @Provides
     fun providePasswordProtection(service: WalletPasswordProtectionService): WalletPasswordProtection = service
+
+    @Provides
+    fun provideKeystoreRecovery(service: KeystoreRecoveryService): KeystoreRecovery = service
 
     @Provides
     @Singleton

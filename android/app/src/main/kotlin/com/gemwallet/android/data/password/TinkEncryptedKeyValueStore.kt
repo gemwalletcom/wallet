@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.password
 
 import android.content.Context
+import com.gemwallet.android.application.KeystoreKeyChangedException
 import com.gemwallet.android.math.hex
 import com.google.crypto.tink.Aead
 import com.google.crypto.tink.KeysetHandle
@@ -61,6 +62,7 @@ internal class TinkEncryptedKeyValueStore(context: Context, private val config: 
 
 internal data class TinkStoreConfig(val preferencesFileName: String, val namespace: String, val keysetName: String, val keysetPreferencesFileName: String, val masterKeyAlias: String) {
     val authenticatedMasterKeyAlias: String get() = "${masterKeyAlias}_authenticated"
+    val preferencesFiles: List<String> get() = listOf(preferencesFileName, keysetPreferencesFileName)
 }
 
 internal class TinkAeadProvider(context: Context, private val config: TinkStoreConfig, private val masterAead: () -> Aead = { AndroidKeystoreKmsClient.getOrGenerateNewAeadKey("android-keystore://${config.masterKeyAlias}") }) {
@@ -80,6 +82,13 @@ internal class TinkAeadProvider(context: Context, private val config: TinkStoreC
 
     fun reset() {
         aead = null
+    }
+
+    fun isKeyChanged(): Boolean = try {
+        get()
+        false
+    } catch (_: KeystoreKeyChangedException) {
+        true
     }
 
     fun keysetHandle(): KeysetHandle = keysetHandle(masterAead())

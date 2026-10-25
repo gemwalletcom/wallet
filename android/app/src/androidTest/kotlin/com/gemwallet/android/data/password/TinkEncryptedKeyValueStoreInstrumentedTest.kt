@@ -7,6 +7,7 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.gemwallet.android.application.PasswordStore
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -66,7 +67,7 @@ class TinkEncryptedKeyValueStoreInstrumentedTest {
         TinkGemPreferences(context).set("instrumented_gem_preference", "preference")
         legacyPreferences().edit().putString("instrumented_legacy_preference", "legacy").commit()
 
-        SecureStorageReset(context).clear()
+        SecureStorageRecovery(context).clear()
 
         listOf(LEGACY_PREFERENCES_FILE_NAME, PASSWORD_STORE_PREFERENCES_FILE_NAME, PASSWORD_STORE_KEYSET_PREFERENCES_FILE_NAME, GEM_PREFERENCES_FILE_NAME, GEM_PREFERENCES_KEYSET_FILE_NAME).forEach { name ->
             assertTrue(name, context.getSharedPreferences(name, Context.MODE_PRIVATE).all.isEmpty())
@@ -74,6 +75,20 @@ class TinkEncryptedKeyValueStoreInstrumentedTest {
         listOf(PASSWORD_STORE_CONFIG.masterKeyAlias, GEM_PREFERENCES_STORE_CONFIG.masterKeyAlias, LEGACY_MASTER_KEY_ALIAS).forEach { alias ->
             assertFalse(alias, androidKeyStore().containsAlias(alias))
         }
+    }
+
+    @Test
+    fun repair_clearsOnlyTheStoreWhoseKeyChanged() {
+        TinkPasswordStore(context).putPassword(PasswordStore.Keys.Password.key, "password")
+        legacyPreferences().edit().putString("instrumented_legacy_preference", "legacy").commit()
+        androidKeyStore().deleteEntry(LEGACY_MASTER_KEY_ALIAS)
+
+        SecureStorageRecovery(context).clearUnreadableLockStores()
+
+        assertTrue(context.getSharedPreferences(LEGACY_PREFERENCES_FILE_NAME, Context.MODE_PRIVATE).all.isEmpty())
+        assertFalse(androidKeyStore().containsAlias(LEGACY_MASTER_KEY_ALIAS))
+        assertTrue(TinkPasswordStore(context).canReadPasswords(listOf(PasswordStore.Keys.Password.key)))
+        assertEquals("password", TinkPasswordStore(context).getPassword(PasswordStore.Keys.Password.key))
     }
 
     @Test

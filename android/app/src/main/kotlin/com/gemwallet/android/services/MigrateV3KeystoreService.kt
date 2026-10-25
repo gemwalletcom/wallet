@@ -51,7 +51,7 @@ class MigrateV3KeystoreService @Inject constructor(
         }
     }
 
-    private fun needsMigration(wallet: Wallet): Boolean = wallet.type != WalletType.View && File(baseDir, wallet.id.id).exists()
+    internal fun needsMigration(wallet: Wallet): Boolean = wallet.type != WalletType.View && File(baseDir, wallet.id.id).exists()
 
     private companion object {
         const val TAG = "MigrateV3Keystore"
