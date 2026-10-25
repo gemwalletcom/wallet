@@ -73,6 +73,8 @@ fun SwapProvider.iconResource(): Int = when (this) {
     SwapProvider.STELLAR_DEX -> R.drawable.chain_stellar
 
     SwapProvider.DEEPBOOK_V3 -> R.drawable.swap_provider_deepbook
+
+    SwapProvider.XRP_LEDGER -> R.drawable.chain_xrp
 }
 
 @DrawableRes

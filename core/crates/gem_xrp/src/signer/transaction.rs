@@ -2,11 +2,18 @@ use gem_hash::sha2::sha512_half;
 use primitives::SignerError;
 
 use crate::address::XrpAddress;
+use crate::currency::currency_code_bytes;
+use crate::models::XrpPathStep;
 use crate::signer::amount::XrpAmount;
 
 const SIGNING_PREFIX: [u8; 4] = [0x53, 0x54, 0x58, 0x00];
 const TRANSACTION_TYPE_PAYMENT: u16 = 0;
 const TRANSACTION_TYPE_TRUST_SET: u16 = 20;
+const TRANSACTION_TYPE_BATCH: u16 = 71;
+
+const TF_PARTIAL_PAYMENT: u32 = 0x0002_0000;
+const TF_ALL_OR_NOTHING: u32 = 0x0001_0000;
+const TF_INNER_BATCH_TXN: u32 = 0x4000_0000;
 
 const TYPE_UINT16: u8 = 1;
 const TYPE_UINT32: u8 = 2;
@@ -15,6 +22,7 @@ const TYPE_VL: u8 = 7;
 const TYPE_ACCOUNT_ID: u8 = 8;
 const TYPE_ST_OBJECT: u8 = 14;
 const TYPE_ST_ARRAY: u8 = 15;
+const TYPE_PATH_SET: u8 = 18;
 
 const FIELD_TRANSACTION_TYPE: u8 = 2;
 const FIELD_FLAGS: u8 = 2;
@@ -24,6 +32,8 @@ const FIELD_LAST_LEDGER_SEQUENCE: u8 = 27;
 const FIELD_AMOUNT: u8 = 1;
 const FIELD_LIMIT_AMOUNT: u8 = 3;
 const FIELD_FEE: u8 = 8;
+const FIELD_SEND_MAX: u8 = 9;
+const FIELD_DELIVER_MIN: u8 = 10;
 const FIELD_SIGNING_PUB_KEY: u8 = 3;
 const FIELD_TXN_SIGNATURE: u8 = 4;
 const FIELD_MEMO_DATA: u8 = 13;
@@ -31,14 +41,23 @@ const FIELD_ACCOUNT: u8 = 1;
 const FIELD_DESTINATION: u8 = 3;
 const FIELD_MEMO: u8 = 10;
 const FIELD_MEMOS: u8 = 9;
+const FIELD_RAW_TRANSACTION: u8 = 34;
+const FIELD_RAW_TRANSACTIONS: u8 = 30;
+const FIELD_PATHS: u8 = 1;
 
 const OBJECT_END_MARKER: u8 = 0xe1;
 const ARRAY_END_MARKER: u8 = 0xf1;
+const PATH_SEPARATOR: u8 = 0xff;
+const PATH_SET_END: u8 = 0x00;
+const PATH_STEP_ACCOUNT: u8 = 0x01;
+const PATH_STEP_CURRENCY: u8 = 0x10;
+const PATH_STEP_ISSUER: u8 = 0x20;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct XrpTransaction {
+    flags: u32,
     sequence: u32,
-    last_ledger_sequence: u32,
+    last_ledger_sequence: Option<u32>,
     fee: u64,
     signing_pub_key: Vec<u8>,
     account: XrpAddress,
@@ -46,9 +65,26 @@ pub(crate) struct XrpTransaction {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-enum XrpOperation {
-    Payment { amount: XrpAmount, destination: XrpAddress, memo: XrpPaymentMemo },
-    TrustSet { limit_amount: XrpAmount },
+pub(crate) enum XrpOperation {
+    Payment {
+        amount: XrpAmount,
+        destination: XrpAddress,
+        memo: XrpPaymentMemo,
+        exchange: Option<Box<XrpExchange>>,
+    },
+    TrustSet {
+        limit_amount: XrpAmount,
+    },
+    Batch {
+        transactions: Vec<XrpTransaction>,
+    },
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct XrpExchange {
+    pub(crate) send_max: XrpAmount,
+    pub(crate) deliver_min: XrpAmount,
+    pub(crate) paths: Vec<Vec<XrpPathStep>>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -60,28 +96,42 @@ pub(crate) enum XrpPaymentMemo {
 
 impl XrpTransaction {
     pub(crate) fn new_payment(params: XrpTransactionParams, amount: XrpAmount, destination: &str, memo: XrpPaymentMemo) -> Result<Self, SignerError> {
-        Ok(Self {
-            sequence: params.sequence,
-            last_ledger_sequence: params.last_ledger_sequence,
-            fee: params.fee,
-            signing_pub_key: params.signing_pub_key,
-            account: params.account,
-            operation: XrpOperation::Payment {
-                amount,
-                destination: XrpAddress::parse(destination)?,
-                memo,
-            },
-        })
+        Ok(Self::new(params, XrpOperation::new_payment(amount, destination, memo)?))
     }
 
     pub(crate) fn new_trust_set(params: XrpTransactionParams, limit_amount: XrpAmount) -> Self {
+        Self::new(params, XrpOperation::TrustSet { limit_amount })
+    }
+
+    pub(crate) fn new_batch(params: XrpTransactionParams, operations: Vec<XrpOperation>) -> Result<Self, SignerError> {
+        let account = params.account;
+        let transactions = operations
+            .into_iter()
+            .zip(1u32..)
+            .map(|(operation, offset)| {
+                Ok(Self {
+                    flags: TF_INNER_BATCH_TXN | operation.flags(),
+                    sequence: params.sequence.checked_add(offset).ok_or_else(|| SignerError::invalid_input("XRP sequence overflow"))?,
+                    last_ledger_sequence: None,
+                    fee: 0,
+                    signing_pub_key: vec![],
+                    account,
+                    operation,
+                })
+            })
+            .collect::<Result<Vec<_>, SignerError>>()?;
+        Ok(Self::new(params, XrpOperation::Batch { transactions }))
+    }
+
+    pub(crate) fn new(params: XrpTransactionParams, operation: XrpOperation) -> Self {
         Self {
+            flags: operation.flags(),
             sequence: params.sequence,
-            last_ledger_sequence: params.last_ledger_sequence,
+            last_ledger_sequence: Some(params.last_ledger_sequence),
             fee: params.fee,
             signing_pub_key: params.signing_pub_key,
             account: params.account,
-            operation: XrpOperation::TrustSet { limit_amount },
+            operation,
         }
     }
 
@@ -103,8 +153,8 @@ impl XrpTransaction {
     fn encode(&self, signature: Option<&[u8]>) -> Result<Vec<u8>, SignerError> {
         let mut buffer = Vec::new();
 
-        append_u16(&mut buffer, FIELD_TRANSACTION_TYPE, self.transaction_type());
-        append_u32(&mut buffer, FIELD_FLAGS, 0);
+        append_u16(&mut buffer, FIELD_TRANSACTION_TYPE, self.operation.transaction_type());
+        append_u32(&mut buffer, FIELD_FLAGS, self.flags);
         append_u32(&mut buffer, FIELD_SEQUENCE, self.sequence);
 
         if let XrpOperation::Payment {
@@ -115,14 +165,23 @@ impl XrpTransaction {
             append_u32(&mut buffer, FIELD_DESTINATION_TAG, *destination_tag);
         }
 
-        append_u32(&mut buffer, FIELD_LAST_LEDGER_SEQUENCE, self.last_ledger_sequence);
+        if let Some(last_ledger_sequence) = self.last_ledger_sequence {
+            append_u32(&mut buffer, FIELD_LAST_LEDGER_SEQUENCE, last_ledger_sequence);
+        }
 
         match &self.operation {
             XrpOperation::Payment { amount, .. } => append_amount(&mut buffer, FIELD_AMOUNT, amount)?,
             XrpOperation::TrustSet { limit_amount } => append_amount(&mut buffer, FIELD_LIMIT_AMOUNT, limit_amount)?,
+            XrpOperation::Batch { .. } => {}
         }
 
         append_amount(&mut buffer, FIELD_FEE, &XrpAmount::Native(self.fee))?;
+
+        if let XrpOperation::Payment { exchange: Some(exchange), .. } = &self.operation {
+            append_amount(&mut buffer, FIELD_SEND_MAX, &exchange.send_max)?;
+            append_amount(&mut buffer, FIELD_DELIVER_MIN, &exchange.deliver_min)?;
+        }
+
         append_blob(&mut buffer, FIELD_SIGNING_PUB_KEY, &self.signing_pub_key)?;
 
         if let Some(signature) = signature {
@@ -131,18 +190,54 @@ impl XrpTransaction {
 
         append_address(&mut buffer, FIELD_ACCOUNT, &self.account)?;
 
-        if let XrpOperation::Payment { destination, memo, .. } = &self.operation {
-            append_address(&mut buffer, FIELD_DESTINATION, destination)?;
-            append_memo(&mut buffer, memo)?;
+        match &self.operation {
+            XrpOperation::Payment { destination, memo, exchange, .. } => {
+                append_address(&mut buffer, FIELD_DESTINATION, destination)?;
+                append_memo(&mut buffer, memo)?;
+                if let Some(exchange) = exchange {
+                    append_paths(&mut buffer, &exchange.paths)?;
+                }
+            }
+            XrpOperation::TrustSet { .. } => {}
+            XrpOperation::Batch { transactions } => append_raw_transactions(&mut buffer, transactions)?,
         }
 
         Ok(buffer)
     }
+}
+
+impl XrpOperation {
+    pub(crate) fn new_payment(amount: XrpAmount, destination: &str, memo: XrpPaymentMemo) -> Result<Self, SignerError> {
+        Ok(Self::Payment {
+            amount,
+            destination: XrpAddress::parse(destination)?,
+            memo,
+            exchange: None,
+        })
+    }
+
+    pub(crate) fn new_exchange(account: &XrpAddress, amount: XrpAmount, exchange: XrpExchange) -> Self {
+        Self::Payment {
+            amount,
+            destination: *account,
+            memo: XrpPaymentMemo::None,
+            exchange: Some(Box::new(exchange)),
+        }
+    }
 
     fn transaction_type(&self) -> u16 {
-        match &self.operation {
-            XrpOperation::Payment { .. } => TRANSACTION_TYPE_PAYMENT,
-            XrpOperation::TrustSet { .. } => TRANSACTION_TYPE_TRUST_SET,
+        match self {
+            Self::Payment { .. } => TRANSACTION_TYPE_PAYMENT,
+            Self::TrustSet { .. } => TRANSACTION_TYPE_TRUST_SET,
+            Self::Batch { .. } => TRANSACTION_TYPE_BATCH,
+        }
+    }
+
+    fn flags(&self) -> u32 {
+        match self {
+            Self::Payment { exchange: Some(_), .. } => TF_PARTIAL_PAYMENT,
+            Self::Batch { .. } => TF_ALL_OR_NOTHING,
+            Self::Payment { .. } | Self::TrustSet { .. } => 0,
         }
     }
 }
@@ -197,6 +292,48 @@ fn append_memo(buffer: &mut Vec<u8>, memo: &XrpPaymentMemo) -> Result<(), Signer
         }
         XrpPaymentMemo::None | XrpPaymentMemo::DestinationTag(_) => Ok(()),
     }
+}
+
+fn append_raw_transactions(buffer: &mut Vec<u8>, transactions: &[XrpTransaction]) -> Result<(), SignerError> {
+    append_header(buffer, TYPE_ST_ARRAY, FIELD_RAW_TRANSACTIONS);
+    for transaction in transactions {
+        append_header(buffer, TYPE_ST_OBJECT, FIELD_RAW_TRANSACTION);
+        buffer.extend_from_slice(&transaction.encode(None)?);
+        buffer.push(OBJECT_END_MARKER);
+    }
+    buffer.push(ARRAY_END_MARKER);
+    Ok(())
+}
+
+fn append_paths(buffer: &mut Vec<u8>, paths: &[Vec<XrpPathStep>]) -> Result<(), SignerError> {
+    if paths.is_empty() {
+        return Ok(());
+    }
+    append_header(buffer, TYPE_PATH_SET, FIELD_PATHS);
+    for (index, path) in paths.iter().enumerate() {
+        if index > 0 {
+            buffer.push(PATH_SEPARATOR);
+        }
+        for step in path {
+            append_path_step(buffer, step)?;
+        }
+    }
+    buffer.push(PATH_SET_END);
+    Ok(())
+}
+
+fn append_path_step(buffer: &mut Vec<u8>, step: &XrpPathStep) -> Result<(), SignerError> {
+    let account = step.account.as_deref().map(XrpAddress::parse).transpose()?;
+    let currency = step.currency.as_deref().map(currency_code_bytes).transpose()?;
+    let issuer = step.issuer.as_deref().map(XrpAddress::parse).transpose()?;
+    let fields = [
+        (PATH_STEP_ACCOUNT, account.as_ref().map(XrpAddress::as_bytes)),
+        (PATH_STEP_CURRENCY, currency.as_ref()),
+        (PATH_STEP_ISSUER, issuer.as_ref().map(XrpAddress::as_bytes)),
+    ];
+    buffer.push(fields.iter().filter(|(_, bytes)| bytes.is_some()).fold(0, |kind, (flag, _)| kind | flag));
+    fields.iter().filter_map(|(_, bytes)| *bytes).for_each(|bytes| buffer.extend_from_slice(bytes));
+    Ok(())
 }
 
 fn append_header(buffer: &mut Vec<u8>, type_code: u8, field_code: u8) {
@@ -277,6 +414,52 @@ fn der_integer(value: &[u8]) -> Vec<u8> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    const TF_SET_NO_RIPPLE: u32 = 0x0002_0000;
+
+    const MAINNET_BATCH_WITHOUT_ITS_SECOND_PAYMENT: &str = "12004722000100002406424CAC68400000000000006473210284B1DE798765483FBD17373846D4A39378227368E1F76EC074E602FF1F5F41F5744630440220586F2D5B3F7A4471EB4B08C29623A6D290A50148FFF4C981AE2CD2CA1E4B43A60220368170E36F1985C86F3F17DC7B19F06DAABF03E2D31943E7D105A2D62FA9395D811439FBDD91DE7E37E8431918EFC96E590B936727EAF01EE02212001422400200002406424CAD63D8438D7EA4C680004252544F00000000000000000000000000000000CDAE366CD6AE13BC6C9B165AD6F20E2721414BFA6840000000000000007300811439FBDD91DE7E37E8431918EFC96E590B936727EAE1E02212000022400200002406424CAF6140038D7EA4C6800068400000000000000069D8438D7EA4C680000000000000000000000000004E5853000000000095C7AFC4CCA0A6D27DEE3B661A8F18FEDE2C11416A400000000001AD2E7300811439FBDD91DE7E37E8431918EFC96E590B936727EA831439FBDD91DE7E37E8431918EFC96E590B936727EAE1F1";
+
+    #[test]
+    fn test_encode_batch() {
+        let account = XrpAddress::parse("raHbNigTZBS1iNSXLn7Tnbg6WBxenbwpuJ").unwrap();
+        let trust_set = XrpTransaction {
+            flags: TF_INNER_BATCH_TXN | TF_SET_NO_RIPPLE,
+            sequence: 105_008_301,
+            last_ledger_sequence: None,
+            fee: 0,
+            signing_pub_key: vec![],
+            account,
+            operation: XrpOperation::TrustSet {
+                limit_amount: XrpAmount::issued("1000000000000000", "4252544F00000000000000000000000000000000", "rKkYDqhye97uBNYqSDdKSKpa3YsScnd7M7").unwrap(),
+            },
+        };
+        let sell = XrpTransaction {
+            flags: TF_INNER_BATCH_TXN | TF_PARTIAL_PAYMENT,
+            sequence: 105_008_303,
+            operation: XrpOperation::new_exchange(
+                &account,
+                XrpAmount::Native(1_000_000_000_000_000),
+                XrpExchange {
+                    send_max: XrpAmount::issued("1000000000000000", "NXS", "rNexusA23ZQdtejTCeHZZaiKoJRsrnXboq").unwrap(),
+                    deliver_min: XrpAmount::Native(109_870),
+                    paths: vec![],
+                },
+            ),
+            ..trust_set.clone()
+        };
+        let batch = XrpTransaction {
+            flags: TF_ALL_OR_NOTHING,
+            sequence: 105_008_300,
+            last_ledger_sequence: None,
+            fee: 100,
+            signing_pub_key: hex::decode("0284B1DE798765483FBD17373846D4A39378227368E1F76EC074E602FF1F5F41F5").unwrap(),
+            account,
+            operation: XrpOperation::Batch { transactions: vec![trust_set, sell] },
+        };
+        let signature = hex::decode("30440220586F2D5B3F7A4471EB4B08C29623A6D290A50148FFF4C981AE2CD2CA1E4B43A60220368170E36F1985C86F3F17DC7B19F06DAABF03E2D31943E7D105A2D62FA9395D").unwrap();
+
+        assert_eq!(hex::encode_upper(batch.encode(Some(&signature)).unwrap()), MAINNET_BATCH_WITHOUT_ITS_SECOND_PAYMENT);
+    }
 
     #[test]
     fn test_variable_length_encoding() {

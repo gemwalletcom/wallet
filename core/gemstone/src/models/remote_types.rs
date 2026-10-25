@@ -694,6 +694,7 @@ pub enum SwapProvider {
     StellarDex,
     DeepbookV3,
     Aero,
+    XrpLedger,
 }
 
 #[uniffi::remote(Enum)]

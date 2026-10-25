@@ -1,0 +1,32 @@
+{
+  "alternatives": [
+    {
+      "destination_amount": "760418190",
+      "paths_canonical": [],
+      "paths_computed": [
+        [
+          {
+            "currency": "XRP",
+            "type": 16
+          }
+        ]
+      ],
+      "source_amount": {
+        "currency": "5553444300000000000000000000000000000000",
+        "issuer": "rGm7WCVp9gb4jZHWTEtGUr4dd74z2XuWhE",
+        "value": "1000"
+      }
+    }
+  ],
+  "destination_account": "rLVkkxk7THbb3dCZ6aETvLnzc8HabyubEs",
+  "destination_amount": "-1",
+  "destination_currencies": [
+    "524C555344000000000000000000000000000000",
+    "5745544800000000000000000000000000000000",
+    "5553444300000000000000000000000000000000",
+    "BTC",
+    "XRP"
+  ],
+  "ledger_current_index": 107886298,
+  "source_account": "rLVkkxk7THbb3dCZ6aETvLnzc8HabyubEs"
+}

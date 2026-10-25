@@ -110,8 +110,8 @@ flowchart LR
 |---|---|---|
 | the provider swaps whatever arrives: Near Intents except HyperCore, Chainflip from Polkadot, Thorchain and Relay from Bitcoin and other non-Ethereum networks | the full balance is quoted; the network fee comes off when the transaction is signed, so nothing is left behind | a deposit can be any amount |
 | what is left after the fee is under that provider's minimum | the minimum is shown, not a balance error | the provider would reject or refund it |
-| the provider needs the exact amount: Uniswap, PancakeSwap, OKX, Jupiter, Orca, Mayan, Across, Bridgers, Stellar DEX | Swap quotes the balance minus a fee reserve, so the quote is close; the confirmation screen then asks for everything but the actual network fee and shows that amount | the reserve is a guess; the fee is known only on the confirmation screen |
-| that provider is used on Solana, TON, Tron, Sui, Aptos or Stellar | the reserve stays in the wallet | those networks charge more than the fee shown: rent, forwarding, energy, a Stellar trustline's reserve |
+| the provider needs the exact amount: Uniswap, PancakeSwap, OKX, Jupiter, Orca, Mayan, Across, Bridgers, Stellar DEX, XRP Ledger DEX | Swap quotes the balance minus a fee reserve, so the quote is close; the confirmation screen then asks for everything but the actual network fee and shows that amount | the reserve is a guess; the fee is known only on the confirmation screen |
+| that provider is used on Solana, TON, Tron, Sui, Aptos, Stellar or the XRP Ledger | the reserve stays in the wallet | those networks charge more than the fee shown: rent, forwarding, energy, a Stellar or XRP Ledger trust line's reserve |
 | the provider says it can take any amount but builds a contract call | it is treated as needing the exact amount | otherwise the full balance would be quoted and the fee would not fit |
 | a provider that leaves nothing behind quotes within `0.25%` of the best quote | that provider is chosen | a slightly smaller amount received beats a reserve stuck in the wallet |
 
@@ -153,13 +153,13 @@ Gem takes `0.5%` of every swap and bridge, with these exceptions:
 | OKX | `0.7%` |
 | SunSwap | `0.85%`, of which Gem receives half, see [SunSwap on Tron](#sunswap-on-tron) |
 
-The stablecoin rate applies to every provider that swaps on one network: Uniswap, PancakeSwap, Aerodrome, Aero, Oku, Wagmi, Orca, Raydium, PumpSwap, Meteora, Cetus, DeepBook, STON.fi, DeDust, Hyperion, Stellar DEX and Jupiter; OKX keeps `0.7%`. A stablecoin is a token on the official list: USDT, USDC, USDS, USDe, USD1, USDG and PYUSD, on the networks their issuers deploy them to; a token that only carries one of those names pays the full fee (`test_on_chain_referral_fees`). On a stablecoin pair the pool's own fee is about `0.01%`, so Gem's fee is nearly the whole cost: on 2026-10-19, 10,000 USDT to USDC on Ethereum received `9,963.03` USDC at `0.25%`, against `9,937.99` at `0.5%`. A stablecoin moved to another network pays `0.5%` like any cross-chain swap, unless it goes through Across.
+The stablecoin rate applies to every provider that swaps on one network: Uniswap, PancakeSwap, Aerodrome, Aero, Oku, Wagmi, Orca, Raydium, PumpSwap, Meteora, Cetus, DeepBook, STON.fi, DeDust, Hyperion, Stellar DEX, XRP Ledger DEX and Jupiter; OKX keeps `0.7%`. A stablecoin is a token on the official list: USDT, USDC, USDS, USDe, USD1, USDG and PYUSD, on the networks their issuers deploy them to; a token that only carries one of those names pays the full fee (`test_on_chain_referral_fees`). On a stablecoin pair the pool's own fee is about `0.01%`, so Gem's fee is nearly the whole cost: on 2026-10-19, 10,000 USDT to USDC on Ethereum received `9,963.03` USDC at `0.25%`, against `9,937.99` at `0.5%`. A stablecoin moved to another network pays `0.5%` like any cross-chain swap, unless it goes through Across.
 
 NEAR Intents gives half of every app fee to NEAR's buyback wallet: its docs set a 50/50 split for partners with an API key, with NEAR keeping at least `0.2%`, or `0.01%` on stablecoin and same-asset routes. So the wallet asks NEAR for `1%`, Gem receives `0.5%` and NEAR's buyback wallet `0.5%`. On 2026-10-19 a quote with no app fee for 1 ETH to SOL paid NEAR `0.2%`; a `0.5%` app fee showed in NEAR's explorer as `0.25%` to Gem and `0.25%` to the buyback wallet, and a `1%` app fee as `0.5%` to each. Until 2026-10-19 the wallet asked for `0.5%`, so Gem received `0.25%` from NEAR Intents.
 
 ## On-chain quotes
 
-Uniswap v2, v3 and v4, PancakeSwap v2 and v3, Aerodrome, Aero, Oku, Wagmi, Orca, Raydium, PumpSwap, Meteora, Cetus, DeepBook, STON.fi, DeDust, Hyperion and SunSwap quote straight from the chain. What a pool is never changes once it exists: its address, its tokens, its fee tier. What it holds changes with every trade: its price, liquidity and reserves. The wallet keeps the first and reads the second again for every quote, so a quote is always priced on live state while the lookups that never change are not repeated. Dynode, the node proxy every wallet talks to, keeps the same unchanging lookups for all users ([how Dynode caches](../DYNODE.md#caching)).
+Uniswap v2, v3 and v4, PancakeSwap v2 and v3, Aerodrome, Aero, Oku, Wagmi, Orca, Raydium, PumpSwap, Meteora, Cetus, DeepBook, STON.fi, DeDust, Hyperion, SunSwap and XRP Ledger DEX quote straight from the chain. What a pool is never changes once it exists: its address, its tokens, its fee tier. What it holds changes with every trade: its price, liquidity and reserves. The wallet keeps the first and reads the second again for every quote, so a quote is always priced on live state while the lookups that never change are not repeated. Dynode, the node proxy every wallet talks to, keeps the same unchanging lookups for all users ([how Dynode caches](../DYNODE.md#caching)).
 
 ```mermaid
 flowchart LR
@@ -364,6 +364,20 @@ The path payment pays the wallet's own account and Gem's fee goes to Gem's fee a
 
 A trustline locks Stellar's `0.5 XLM` base reserve in the wallet; it is not spent, so swapping 100% of XLM keeps `0.55 XLM` back for it and the network fee. The network fee is the fee rate once for each operation, two or three (`test_map_transaction_load_swap_pays_the_rate_for_every_operation`). The transaction is valid for `15 minutes` after the confirmation screen prepared it, so one stuck behind higher fees expires instead of trading late. History shows the swap as one Swap with Gem's fee, not as a separate payment to Gem: what left the wallet, a fee paid in the asset sold included, and what it kept, a fee taken from the asset bought excluded (`test_map_transactions_swap_records_what_left_the_wallet_and_what_it_kept`).
 
+## XRP Ledger DEX
+
+XRP Ledger DEX swaps trade on the ledger's own order books and AMM pools, between XRP, RLUSD and USDC. The node's path finder prices the trade for the exact amount paid, through the books, the pools and any path through another currency, in one request that takes about `0.5 s` to `1.5 s`; nothing is kept between quotes. The quote is priced for delivery to the token's issuer, so a wallet without a trust line for the token still gets one; both issuers charge no transfer fee. Measured twice on 2026-10-25, paths gave `0.07%` to `0.29%` more RLUSD than the XRP/RLUSD pool alone for $1,000 of XRP, and `2.0%` to `2.2%` more for $50,000.
+
+The swap is one Batch transaction that applies all of its parts or none:
+
+| Part | When |
+|---|---|
+| A trust line for the token received, with the same limit as activating the token | the wallet has none yet, read when the swap is built; it holds `0.2 XRP` of reserve |
+| A payment to the wallet itself that spends at most the amount paid and delivers at least the Minimum Receive | always |
+| Gem's fee, a payment to Gem's XRP address | the fee is above zero |
+
+With a single part left, the payment is sent on its own. Gem's fee account holds only XRP and RLUSD, so the fee comes out of the amount paid when that is XRP or RLUSD and out of the XRP received otherwise, never out of RLUSD received; USDC to RLUSD pays neither and receives no XRP, so it gets no quote (`test_fee_side_takes_the_fee_in_an_asset_the_fee_account_receives`). The signer pays the fee only to Gem's address and only in XRP or RLUSD, sold or bought, whatever the swap data says, and refuses a swap whose amount paid differs from the one confirmed (`test_sign_swap_batch`). The network fee is the Batch's: twice the base fee, plus one for each part (`test_map_transaction_fee`). Swapping 100% of XRP keeps `0.25 XRP` back, for a new trust line's reserve and the network fee (`xrp_reserve_covers_a_new_trust_line_and_the_batch_fee`). The ledger reports a Batch as successful even when its swap failed, for instance because the price moved past the slippage, so the wallet reads the swap's own result in the same ledger and shows it failed; only the network fee is spent (`test_map_batch_transaction_status`). History shows the Batch as one XRP Ledger DEX swap, valued by what left and reached the wallet in the ledger's balance changes, with Gem's fee; its payments are not listed one by one, and a lookup by hash or a page of history that cuts a Batch reads the Batch's ledger to complete it (`test_map_batch_swaps`, `test_get_transaction_by_hash_and_address`). The signed Batch matches the ledger's encoding byte for byte (`test_encode_batch`, `test_sign_swap_batch`).
+
 ## Cross-chain quotes
 
 A cross-chain provider is asked for a new quote every time. Only these facts are kept between quotes:
@@ -487,6 +501,7 @@ A provider's API may only move funds into contracts the app ships for it. Before
 | Aero | EVM | The Metarouter as the contract called and the only spender, on Base, Robinhood Chain and Arc | At Confirm |
 | Uniswap family, Across, SunSwap, STON.fi, DeDust, Hyperion, Cetus, DeepBook, Hyperliquid | All | Built on the device against shipped contracts | Not bound by the check |
 | Stellar DEX | Stellar | Built on the device: a path payment to the wallet's own account and Gem's fee payment; no contract is called | Not bound by the check |
+| XRP Ledger DEX | XRP Ledger | No contract: built on the device as a Batch of a payment to the wallet itself and Gem's fee to Gem's address | Not bound by the check |
 
 A provider that names anything outside its list is left out of the quote list where its quote already names the contract (THORChain, Relay), and refused at Confirm everywhere. When a provider upgrades a contract, its swaps stop until the app update that ships the new address.
 

@@ -71,5 +71,7 @@ enum class SwapProvider(val string: String) {
 	DeepbookV3("deepbook_v3"),
 	@SerialName("aero")
 	Aero("aero"),
+	@SerialName("xrp_ledger")
+	XrpLedger("xrp_ledger"),
 }
 

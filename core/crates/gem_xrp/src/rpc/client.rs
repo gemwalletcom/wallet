@@ -10,7 +10,9 @@ use gem_jsonrpc::types::{ERROR_CLIENT_ERROR, JsonRpcError};
 use primitives::Chain;
 
 use crate::jsonrpc::XrpRpc;
-use crate::models::rpc::{AccountInfo, AccountInfoResult, AccountLedger, AccountObjects, FeesResult, Ledger, LedgerData, LedgerInfo, ServerInfo, ServerInfoResult, TransactionBroadcast, ValidatedAccountInfoResult};
+use crate::models::rpc::{
+    AccountInfo, AccountInfoResult, AccountLedger, AccountObjects, FeesResult, Ledger, LedgerData, LedgerInfo, PathAlternative, PathFindRequest, PathFindResult, ServerInfo, ServerInfoResult, TransactionBroadcast, ValidatedAccountInfoResult,
+};
 
 pub(crate) const ACCOUNT_NOT_FOUND_ERROR_CODE: i32 = 19;
 const TRANSACTION_NOT_FOUND_ERROR_CODE: i32 = 29;
@@ -108,6 +110,14 @@ impl<C: Client + Clone> XrpClient<C> {
 
     pub async fn get_account_transactions(&self, address: String, limit: usize) -> Result<AccountLedger, Box<dyn Error + Send + Sync>> {
         self.request(XrpRpc::GetAccountTransactions { address, limit }).await
+    }
+
+    pub async fn get_ledger_account_transactions(&self, address: &str, ledger_index: u64) -> Result<AccountLedger, Box<dyn Error + Send + Sync>> {
+        self.request(XrpRpc::GetLedgerAccountTransactions { address: address.to_string(), ledger_index }).await
+    }
+
+    pub async fn get_path_alternatives(&self, request: PathFindRequest) -> Result<Vec<PathAlternative>, Box<dyn Error + Send + Sync>> {
+        Ok(self.request::<PathFindResult>(XrpRpc::FindPaths(request)).await?.alternatives)
     }
 }
 

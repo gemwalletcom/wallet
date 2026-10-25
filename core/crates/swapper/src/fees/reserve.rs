@@ -18,6 +18,7 @@ pub fn reserved_transaction_fees(chain: Chain) -> Option<BigUint> {
         Chain::Ton => 20_000_000,
         Chain::Aptos => 20_000_000,
         Chain::Stellar => 5_500_000,
+        Chain::Xrp => 250_000,
         Chain::Monad => 5_000_000_000_000_000,
         Chain::XLayer => 5_000_000_000_000_000,
         Chain::Plasma => 5_000_000_000_000_000,
@@ -71,6 +72,15 @@ mod tests {
         assert!(
             reserve >= BigUint::from(5_000_000u64 + 3 * 2 * 18_888),
             "Stellar reserve {reserve} too small for a trustline's 0.5 XLM base reserve plus three operations at twice the p99 fee"
+        );
+    }
+
+    #[test]
+    fn xrp_reserve_covers_a_new_trust_line_and_the_batch_fee() {
+        let reserve = reserved_transaction_fees(Chain::Xrp).unwrap();
+        assert!(
+            reserve >= BigUint::from(200_000u64 + 5 * 2 * 5_000),
+            "XRP reserve {reserve} too small for a trust line's 0.2 XRP reserve plus a five-part Batch at twice a 5,000-drop open ledger fee"
         );
     }
 

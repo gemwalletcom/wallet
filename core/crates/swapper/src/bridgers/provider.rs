@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use chain_traits::ChainBalances;
 use gem_evm::{
     constants::TOKEN_TRANSFER_GAS_LIMIT,
     u256::{biguint_to_u256, u256_to_biguint},
@@ -94,13 +93,13 @@ impl Bridgers {
         let Some(token_id) = asset_id.token_id.filter(|_| asset_id.chain == Chain::Xrp) else {
             return Ok(());
         };
-        let balances = create_xrp_client(self.rpc_provider.clone())?
-            .get_balance_tokens(request.destination_address.clone(), vec![token_id])
+        let has_trust_line = create_xrp_client(self.rpc_provider.clone())?
+            .has_trust_line(&request.destination_address, &token_id)
             .await
             .map_err(SwapperError::compute_quote_error)?;
-        match balances.first() {
-            Some(balance) if balance.is_active => Ok(()),
-            _ => Err(SwapperError::NotSupportedAsset),
+        match has_trust_line {
+            true => Ok(()),
+            false => Err(SwapperError::NotSupportedAsset),
         }
     }
 

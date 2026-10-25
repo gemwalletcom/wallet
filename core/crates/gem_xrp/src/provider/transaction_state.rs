@@ -5,14 +5,21 @@ use std::error::Error;
 use gem_client::Client;
 use primitives::{TransactionState, TransactionStateRequest, TransactionUpdate};
 
-use crate::{provider::transaction_state_mapper::map_transaction_status, rpc::XrpClient};
+use crate::{
+    models::rpc::TransactionStatus,
+    provider::transaction_state_mapper::{map_batch_transaction_status, map_transaction_status},
+    rpc::XrpClient,
+};
 
 #[async_trait]
 impl<C: Client + Clone> ChainTransactionState for XrpClient<C> {
     async fn get_transaction_status(&self, request: TransactionStateRequest) -> Result<TransactionUpdate, Box<dyn Error + Sync + Send>> {
-        Ok(match self.get_transaction(&request.id).await? {
-            Some(status) => map_transaction_status(&status),
-            None => TransactionUpdate::new_state(TransactionState::Pending),
+        let Some(status) = self.get_transaction::<TransactionStatus>(&request.id).await? else {
+            return Ok(TransactionUpdate::new_state(TransactionState::Pending));
+        };
+        Ok(match status.applied_batch_ledger() {
+            Some(ledger_index) => map_batch_transaction_status(&status, &request.id, &self.get_ledger_account_transactions(&request.sender_address, ledger_index).await?),
+            None => map_transaction_status(&status),
         })
     }
 }
@@ -20,6 +27,7 @@ impl<C: Client + Clone> ChainTransactionState for XrpClient<C> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::method;
     use gem_jsonrpc::testkit::mock_jsonrpc_client;
     use serde_json::json;
 
@@ -32,6 +40,25 @@ mod tests {
 
         let client = XrpClient::new(mock_jsonrpc_client(|_, _| Ok(json!({"error": "tooBusy", "error_code": 9, "status": "error"}))));
         assert_eq!(ChainTransactionState::get_transaction_status(&client, request).await.unwrap_err().to_string(), "tooBusy (9)");
+
+        let request = TransactionStateRequest {
+            sender_address: "rnCRC2AqXhFCnb9ULHtyCNrRYXgYuLBvZF".to_string(),
+            ..TransactionStateRequest::mock_with_id("3B925B414BF7E91EC67A3E283F374DE0BC84D6E11DF5345115B44AF7DA5FEDEA")
+        };
+        let client = XrpClient::new(mock_jsonrpc_client(|rpc_method, params| {
+            let fixture = match rpc_method {
+                method::TRANSACTION => include_str!("../testdata/transaction_batch.json"),
+                method::ACCOUNT_TRANSACTIONS => {
+                    assert_eq!(params[0]["account"], "rnCRC2AqXhFCnb9ULHtyCNrRYXgYuLBvZF");
+                    assert_eq!(params[0]["ledger_index"], 107_888_305);
+                    include_str!("../testdata/account_transactions_batch_swap.json")
+                }
+                _ => panic!("unexpected method: {rpc_method}"),
+            };
+            Ok(serde_json::from_str::<serde_json::Value>(fixture).unwrap()["result"].clone())
+        }));
+
+        assert_eq!(ChainTransactionState::get_transaction_status(&client, request).await.unwrap().state, TransactionState::Confirmed);
     }
 }
 

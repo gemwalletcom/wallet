@@ -11,7 +11,7 @@ use primitives::{
     AssetId, Chain, ChainType,
     swap::{
         APTOS_REFERRAL_ADDRESS, COSMOS_REFERRAL_ADDRESS, EVM_REFERRAL_ADDRESS, HUNDRED_PERCENT_IN_BPS, INJECTIVE_REFERRAL_ADDRESS, NEAR_REFERRAL_ADDRESS, SOLANA_REFERRAL_ADDRESS, STELLAR_REFERRAL_ADDRESS, SUI_REFERRAL_ADDRESS,
-        THORCHAIN_REFERRAL_ADDRESS, TON_REFERRAL_ADDRESS, TRON_REFERRAL_ADDRESS,
+        THORCHAIN_REFERRAL_ADDRESS, TON_REFERRAL_ADDRESS, TRON_REFERRAL_ADDRESS, XRP_REFERRAL_ADDRESS,
     },
 };
 use serde::{Deserialize, Serialize};
@@ -32,6 +32,7 @@ pub struct ReferralFees {
     pub cosmos: ReferralFee,
     pub injective: ReferralFee,
     pub stellar: ReferralFee,
+    pub xrp: ReferralFee,
 }
 
 #[derive(Default, Debug, Clone, PartialEq)]
@@ -58,7 +59,11 @@ pub trait FeeAmount: BasisPointConvert + Mul<Output = Self> + Div<Output = Self>
 impl<T: BasisPointConvert + Mul<Output = T> + Div<Output = T> + Rem<Output = T> + Add<Output = T> + Sub<Output = T> + PartialOrd> FeeAmount for T {}
 
 pub fn fee_side(fee_assets: &[AssetId], from_asset: &AssetId, to_asset: &AssetId) -> Option<FeeSide> {
-    FeeSide::from_available(fee_assets.contains(from_asset), fee_assets.contains(to_asset))
+    FeeSide::from_available(fee_assets.contains(from_asset), fee_assets.contains(to_asset) && takes_output_fee(to_asset))
+}
+
+fn takes_output_fee(asset_id: &AssetId) -> bool {
+    asset_id.chain != Chain::Xrp || asset_id.is_native()
 }
 
 fn saturating_sub<T: FeeAmount>(value: T, subtrahend: T) -> T {
@@ -153,7 +158,8 @@ impl ReferralFees {
                 Chain::Injective => &self.injective,
                 _ => &self.cosmos,
             },
-            ChainType::Bitcoin | ChainType::Xrp | ChainType::Algorand | ChainType::Polkadot | ChainType::Cardano | ChainType::HyperCore => return None,
+            ChainType::Xrp => &self.xrp,
+            ChainType::Bitcoin | ChainType::Algorand | ChainType::Polkadot | ChainType::Cardano | ChainType::HyperCore => return None,
         };
         Some(fee)
     }
@@ -184,6 +190,7 @@ pub(crate) fn referral_fees(bps: u32) -> ReferralFees {
         cosmos: fee(COSMOS_REFERRAL_ADDRESS),
         injective: fee(INJECTIVE_REFERRAL_ADDRESS),
         stellar: fee(STELLAR_REFERRAL_ADDRESS),
+        xrp: fee(XRP_REFERRAL_ADDRESS),
     }
 }
 
@@ -204,7 +211,10 @@ mod tests {
     use super::*;
     use crate::{SwapperQuoteAsset, testkit::mock_quote};
     use num_bigint::BigUint;
-    use primitives::{asset_constants::*, swap::STELLAR_REFERRAL_FEE_ASSET_IDS};
+    use primitives::{
+        asset_constants::*,
+        swap::{STELLAR_REFERRAL_FEE_ASSET_IDS, XRP_REFERRAL_FEE_ASSET_IDS},
+    };
 
     #[test]
     fn test_on_chain_referral_fees() {
@@ -248,6 +258,15 @@ mod tests {
         assert_eq!(side(&eurc, &xlm), Some(FeeSide::Output));
         assert_eq!(side(&eurc, &usdc), Some(FeeSide::Output));
         assert_eq!(side(&eurc, &other_usdc), None, "a USDC from another issuer is not one the fee account trusts");
+
+        let (xrp, rlusd, xrp_usdc) = (AssetId::from_chain(Chain::Xrp), XRP_RLUSD_ASSET_ID.clone(), XRP_USDC_ASSET_ID.clone());
+        let xrp_side = |from: &AssetId, to: &AssetId| fee_side(&*XRP_REFERRAL_FEE_ASSET_IDS, from, to);
+
+        assert_eq!(xrp_side(&xrp, &rlusd), Some(FeeSide::Input));
+        assert_eq!(xrp_side(&rlusd, &xrp), Some(FeeSide::Input));
+        assert_eq!(xrp_side(&rlusd, &xrp_usdc), Some(FeeSide::Input));
+        assert_eq!(xrp_side(&xrp_usdc, &xrp), Some(FeeSide::Output));
+        assert_eq!(xrp_side(&xrp_usdc, &rlusd), None, "on the XRP Ledger only XRP is taken out of the amount received");
     }
 
     #[test]

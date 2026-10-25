@@ -2,4 +2,5 @@ pub const XRP_EPOCH_OFFSET_SECONDS: i64 = 946684800;
 pub const XRP_DEFAULT_ASSET_DECIMALS: u32 = 15;
 pub const RESULT_SUCCESS: &str = "tesSUCCESS";
 pub const TRANSACTION_TYPE_PAYMENT: &str = "Payment";
+pub const TRANSACTION_TYPE_BATCH: &str = "Batch";
 pub const ACCOUNT_FLAG_DISABLE_MASTER: u32 = 0x0010_0000;

@@ -1,10 +1,14 @@
 use num_traits::ToPrimitive;
 use number_formatter::BigNumberFormatter;
-use primitives::{AssetSubtype, ChainSigner, SignerError, SignerInput, swap::SwapQuoteData};
+use primitives::{
+    Asset, AssetSubtype, ChainSigner, SignerError, SignerInput, TransactionSwapReferralFee,
+    swap::{SwapQuoteData, SwapQuoteDataType, XRP_REFERRAL_ADDRESS, XRP_REFERRAL_FEE_ASSET_IDS},
+};
 
 use crate::address::XrpAddress;
+use crate::models::XrpSwap;
 use crate::signer::amount::XrpAmount;
-use crate::signer::transaction::{XrpPaymentMemo, XrpTransaction, XrpTransactionParams};
+use crate::signer::transaction::{XrpExchange, XrpOperation, XrpPaymentMemo, XrpTransaction, XrpTransactionParams};
 
 const LEDGER_SEQUENCE_OFFSET: u64 = 24;
 const TRUST_LINE_LIMIT: &str = "690000000000";
@@ -20,23 +24,60 @@ impl ChainSigner for XrpChainSigner {
     }
 
     fn sign_token_transfer(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
-        let amount = token_amount(input, &input.value.to_string())?;
+        let amount = asset_amount(input.input_type.get_asset(), &input.value.to_string())?;
         sign_payment(input, private_key, amount, &input.destination_address, payment_memo(input.get_memo())?)
     }
 
     fn sign_swap(&self, input: &SignerInput, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
         let swap = input.input_type.get_swap_data()?;
-        let amount = match input.input_type.get_asset().id.token_subtype() {
-            AssetSubtype::NATIVE => XrpAmount::native(&swap.data.value.to_string())?,
-            AssetSubtype::TOKEN => token_amount(input, &swap.data.value.to_string())?,
+        let signed = match swap.data.data_type {
+            SwapQuoteDataType::Contract => sign_swap_batch(input, private_key, &serde_json::from_str(&swap.data.data)?)?,
+            SwapQuoteDataType::Transfer => {
+                let amount = asset_amount(input.input_type.get_asset(), &swap.data.value.to_string())?;
+                sign_payment(input, private_key, amount, &swap.data.to, swap_memo(&swap.data))?
+            }
         };
-        Ok(vec![sign_payment(input, private_key, amount, &swap.data.to, swap_memo(&swap.data))?])
+        Ok(vec![signed])
     }
 
     fn sign_account_action(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
-        let amount = trust_line_limit_amount(input)?;
+        let amount = trust_line_limit_amount(input.input_type.get_asset())?;
         XrpTransaction::new_trust_set(params(input, private_key)?, amount).sign(private_key)
     }
+}
+
+fn sign_swap_batch(input: &SignerInput, private_key: &[u8], swap: &XrpSwap) -> Result<String, SignerError> {
+    let params = params(input, private_key)?;
+    let (from_asset, to_asset) = (input.input_type.get_asset(), input.input_type.get_recipient_asset());
+    if swap.input_value(&from_asset.id) != input.value {
+        return SignerError::invalid_input_err("XRP swap amount does not match the amount paid");
+    }
+    let trust_set = match swap.trust_line {
+        true => Some(XrpOperation::TrustSet {
+            limit_amount: trust_line_limit_amount(to_asset)?,
+        }),
+        false => None,
+    };
+    let exchange = XrpExchange {
+        send_max: asset_amount(from_asset, &swap.send_max.to_string())?,
+        deliver_min: asset_amount(to_asset, &swap.deliver_min.to_string())?,
+        paths: swap.paths.clone(),
+    };
+    let payment = XrpOperation::new_exchange(&params.account, asset_amount(to_asset, &swap.amount.to_string())?, exchange);
+    let fee = swap.fee.as_ref().map(|fee| referral_payment(fee, [from_asset, to_asset])).transpose()?;
+    let transaction = match <[XrpOperation; 1]>::try_from(trust_set.into_iter().chain([payment]).chain(fee).collect::<Vec<_>>()) {
+        Ok([operation]) => XrpTransaction::new(params, operation),
+        Err(operations) => XrpTransaction::new_batch(params, operations)?,
+    };
+    transaction.sign(private_key)
+}
+
+fn referral_payment(fee: &TransactionSwapReferralFee, swapped: [&Asset; 2]) -> Result<XrpOperation, SignerError> {
+    let asset = swapped
+        .into_iter()
+        .find(|asset| asset.id == fee.asset_id && XRP_REFERRAL_FEE_ASSET_IDS.contains(&asset.id))
+        .ok_or_else(|| SignerError::invalid_input("XRP swap fee must be XRP or RLUSD, sold or bought"))?;
+    XrpOperation::new_payment(asset_amount(asset, &fee.value.to_string())?, XRP_REFERRAL_ADDRESS, XrpPaymentMemo::None)
 }
 
 fn sign_payment(input: &SignerInput, private_key: &[u8], amount: XrpAmount, destination: &str, memo: XrpPaymentMemo) -> Result<String, SignerError> {
@@ -57,14 +98,17 @@ fn params(input: &SignerInput, private_key: &[u8]) -> Result<XrpTransactionParam
     })
 }
 
-fn token_amount(input: &SignerInput, value: &str) -> Result<XrpAmount, SignerError> {
-    let asset = input.input_type.get_asset();
-    let value = BigNumberFormatter::value(value, asset.decimals).map_err(SignerError::from_display)?;
-    XrpAmount::issued(&value, &asset.symbol, asset.id.get_token_id()?)
+fn asset_amount(asset: &Asset, value: &str) -> Result<XrpAmount, SignerError> {
+    match asset.id.token_subtype() {
+        AssetSubtype::NATIVE => XrpAmount::native(value),
+        AssetSubtype::TOKEN => {
+            let value = BigNumberFormatter::value(value, asset.decimals).map_err(SignerError::from_display)?;
+            XrpAmount::issued(&value, &asset.symbol, asset.id.get_token_id()?)
+        }
+    }
 }
 
-fn trust_line_limit_amount(input: &SignerInput) -> Result<XrpAmount, SignerError> {
-    let asset = input.input_type.get_asset();
+fn trust_line_limit_amount(asset: &Asset) -> Result<XrpAmount, SignerError> {
     XrpAmount::issued(TRUST_LINE_LIMIT, &asset.symbol, asset.id.get_token_id()?)
 }
 
@@ -94,10 +138,12 @@ mod tests {
     use num_bigint::BigUint;
     use primitives::{
         AccountDataType, Asset, AssetId, Chain, SwapProvider, TransactionFee, TransactionInputType, TransactionLoadMetadata,
+        asset_constants::{XRP_RLUSD_ASSET_ID, XRP_USDC_ASSET_ID},
         swap::{SwapData, SwapQuoteData},
     };
 
     use super::*;
+    use crate::models::XrpPathStep;
 
     // Source vector:
     // https://github.com/trustwallet/wallet-core/blob/62ef27c56c6769b3aec3c5167d925dc085646a5c/tests/chains/XRP/TWAnySignerTests.cpp#L134-L152
@@ -274,8 +320,75 @@ mod tests {
             "0",
             TransactionLoadMetadata::None,
         );
-        let amount = trust_line_limit_amount(&input).unwrap();
+        let amount = trust_line_limit_amount(input.input_type.get_asset()).unwrap();
 
         assert_eq!(amount, XrpAmount::issued(TRUST_LINE_LIMIT, "RLUSD", "rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De").unwrap());
+    }
+
+    const XRP_TO_RLUSD_SIGNED_BATCH: &str = "12004722000100002405955dc7201b066e31e06840000000000000647321039c77e9329017ced5f8673ebafcd29687a1fff181140c030062fa77865688fc5d7446304402205d98c172b917d7927a2cc6eb8a1f1f4d14d1bd55d6638fe0c0043cd9b1935db2022074b49f494d43f7dc29ceb6d735f55fbbdc441c26478d9b2f7e5c29f2a7ce418681140265c09d122fab2a261a80ee59f1f4cd8fba8cf8f01ee02212001422400000002405955dc863d758838370f34000524c555344000000000000000000000000000000e5e961c6a025c9404aa7b662dd1df975be75d13e684000000000000000730081140265c09d122fab2a261a80ee59f1f4cd8fba8cf8e1e02212000022400200002405955dc961d544a3d79434f0b4524c555344000000000000000000000000000000e5e961c6a025c9404aa7b662dd1df975be75d13e68400000000000000069400000003b4e7ec06ad54497f6b40135f9524c555344000000000000000000000000000000e5e961c6a025c9404aa7b662dd1df975be75d13e730081140265c09d122fab2a261a80ee59f1f4cd8fba8cf883140265c09d122fab2a261a80ee59f1f4cd8fba8cf8011230524c555344000000000000000000000000000000e5e961c6a025c9404aa7b662dd1df975be75d13e00e1e02212000022400000002405955dca6140000000004c4b40684000000000000000730081140265c09d122fab2a261a80ee59f1f4cd8fba8cf8831453f7c208ea96c0b2a16c05e342fb992b521ba110e1f1";
+    const XRP_TO_RLUSD_SIGNED_PAYMENT: &str = "12000022000200002405955dc7201b066e31e061d544a3d79434f0b4524c555344000000000000000000000000000000e5e961c6a025c9404aa7b662dd1df975be75d13e68400000000000001469400000003b4e7ec06ad54497f6b40135f9524c555344000000000000000000000000000000e5e961c6a025c9404aa7b662dd1df975be75d13e7321039c77e9329017ced5f8673ebafcd29687a1fff181140c030062fa77865688fc5d74463044022054c7c8a1e122a75cfd923b90d418d45d6cc999dda1c46bfbc2521b61bc1eb9ce02206d13c391ad84a1f798f0d1761a44d69467a6661b4fad9246d62bd1c71c9dd6cb81140265c09d122fab2a261a80ee59f1f4cd8fba8cf883140265c09d122fab2a261a80ee59f1f4cd8fba8cf8011230524c555344000000000000000000000000000000e5e961c6a025c9404aa7b662dd1df975be75d13e00";
+    const RLUSD_TO_XRP_SIGNED_BATCH: &str = "12004722000100002405955dc7201b066e31e06840000000000000507321039c77e9329017ced5f8673ebafcd29687a1fff181140c030062fa77865688fc5d74463044022000f4589c4ee4847a01a413881a5bc49a1b0b7bd2aa2561dde405ae886ab0be66022026fa39048ba5f7898526539f8a0f8f55a59ec406484a31ff1fc80752511f497581140265c09d122fab2a261a80ee59f1f4cd8fba8cf8f01ee02212000022400200002405955dc861400000002d530f8e68400000000000000069d5235978e783e000524c555344000000000000000000000000000000e5e961c6a025c9404aa7b662dd1df975be75d13e6a400000002cdf07b8730081140265c09d122fab2a261a80ee59f1f4cd8fba8cf883140265c09d122fab2a261a80ee59f1f4cd8fba8cf8011210000000000000000000000000000000000000000000e1e02212000022400000002405955dc961d491c37937e08000524c555344000000000000000000000000000000e5e961c6a025c9404aa7b662dd1df975be75d13e684000000000000000730081140265c09d122fab2a261a80ee59f1f4cd8fba8cf8831453f7c208ea96c0b2a16c05e342fb992b521ba110e1f1";
+
+    #[test]
+    fn test_sign_swap_batch() {
+        let private_key = hex::decode(RLUSD_PRIVATE_KEY).unwrap();
+        let (xrp, rlusd, usdc) = (Asset::from_chain(Chain::Xrp), Asset::mock_xrp_rlusd(), Asset::mock_xrp_usdc());
+        let xrp_to_rlusd = XrpSwap { trust_line: true, ..XrpSwap::mock() };
+        let rlusd_to_xrp = XrpSwap {
+            send_max: BigUint::from(995_000_000_000_000_000u64),
+            amount: BigUint::from(760_418_190u64),
+            deliver_min: BigUint::from(752_814_008u64),
+            paths: vec![vec![XrpPathStep {
+                account: None,
+                currency: Some("XRP".to_string()),
+                issuer: None,
+            }]],
+            fee: Some(TransactionSwapReferralFee {
+                asset_id: XRP_RLUSD_ASSET_ID.clone(),
+                value: BigUint::from(5_000_000_000_000_000u64),
+            }),
+            trust_line: false,
+        };
+        let usdc_fee = XrpSwap {
+            fee: Some(TransactionSwapReferralFee {
+                asset_id: XRP_USDC_ASSET_ID.clone(),
+                value: BigUint::from(5_000_000_000_000_000u64),
+            }),
+            ..rlusd_to_xrp.clone()
+        };
+        let mut foreign_destination = serde_json::to_value(&xrp_to_rlusd).unwrap();
+        foreign_destination["fee"]["destination"] = serde_json::json!(RLUSD_DESTINATION);
+
+        let json = |swap: &XrpSwap| serde_json::to_string(swap).unwrap();
+        let refused = |message: &str| Err(SignerError::invalid_input(message));
+
+        for (from_asset, to_asset, data, value, fee, expected) in [
+            (&xrp, &rlusd, json(&xrp_to_rlusd), "1000000000", 100, Ok(vec![XRP_TO_RLUSD_SIGNED_BATCH.to_string()])),
+            (&xrp, &rlusd, foreign_destination.to_string(), "1000000000", 100, Ok(vec![XRP_TO_RLUSD_SIGNED_BATCH.to_string()])),
+            (&xrp, &rlusd, json(&xrp_to_rlusd), "999999999", 100, refused("XRP swap amount does not match the amount paid")),
+            (&rlusd, &xrp, json(&rlusd_to_xrp), "1000000000000000000", 80, Ok(vec![RLUSD_TO_XRP_SIGNED_BATCH.to_string()])),
+            (&usdc, &xrp, json(&usdc_fee), "1000000000000000000", 80, refused("XRP swap fee must be XRP or RLUSD, sold or bought")),
+            (&xrp, &rlusd, json(&XrpSwap { fee: None, ..XrpSwap::mock() }), "995000000", 20, Ok(vec![XRP_TO_RLUSD_SIGNED_PAYMENT.to_string()])),
+        ] {
+            let input = SignerInput {
+                fee: TransactionFee::new_from_fee(fee.into(), AssetId::from_chain(Chain::Xrp)),
+                ..SignerInput::mock_with_input_type(
+                    TransactionInputType::Swap {
+                        from_asset: from_asset.clone(),
+                        to_asset: to_asset.clone(),
+                        swap_data: SwapData::mock_with_provider_data(SwapProvider::XrpLedger, &data, None),
+                    },
+                    RLUSD_SENDER,
+                    "",
+                    value,
+                    TransactionLoadMetadata::Xrp {
+                        sequence: 93_674_951,
+                        block_number: 107_885_000,
+                        is_destination_address_exist: false,
+                    },
+                )
+            };
+            assert_eq!(XrpChainSigner.sign_swap(&input, &private_key), expected);
+        }
     }
 }

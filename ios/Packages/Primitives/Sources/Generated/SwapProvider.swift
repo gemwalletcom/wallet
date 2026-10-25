@@ -35,4 +35,5 @@ public enum SwapProvider: String, Codable, Equatable, Hashable, Sendable {
 	case stellarDex = "stellar_dex"
 	case deepbookV3 = "deepbook_v3"
 	case aero
+	case xrpLedger = "xrp_ledger"
 }

@@ -1,0 +1,34 @@
+{
+  "alternatives": [
+    {
+      "destination_amount": {
+        "currency": "524C555344000000000000000000000000000000",
+        "issuer": "rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De",
+        "value": "1306.046206636212"
+      },
+      "paths_canonical": [],
+      "paths_computed": [
+        [
+          {
+            "currency": "524C555344000000000000000000000000000000",
+            "issuer": "rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De",
+            "type": 48
+          }
+        ]
+      ],
+      "source_amount": "995000000"
+    }
+  ],
+  "destination_account": "rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De",
+  "destination_amount": {
+    "currency": "524C555344000000000000000000000000000000",
+    "issuer": "rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De",
+    "value": "-1"
+  },
+  "destination_currencies": [
+    "524C555344000000000000000000000000000000",
+    "XRP"
+  ],
+  "ledger_current_index": 107886297,
+  "source_account": "rLVkkxk7THbb3dCZ6aETvLnzc8HabyubEs"
+}

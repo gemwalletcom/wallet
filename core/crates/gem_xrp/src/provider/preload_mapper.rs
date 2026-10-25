@@ -1,6 +1,9 @@
-use crate::models::rpc::{AccountInfoResult, Fee};
+use crate::models::{
+    XrpSwap,
+    rpc::{AccountInfoResult, Fee},
+};
 use num_bigint::BigInt;
-use primitives::{FeePriority, FeeRate, GasPriceType, TransactionLoadMetadata};
+use primitives::{AssetId, Chain, FeePriority, FeeRate, GasPriceType, TransactionFee, TransactionLoadInput, TransactionLoadMetadata, swap::SwapQuoteDataType};
 use std::error::Error;
 
 const NORMAL_FEE_MULTIPLIER: u64 = 2;
@@ -12,6 +15,19 @@ pub fn map_fee_rates(fee: &Fee) -> Vec<FeeRate> {
         FeeRate::new(FeePriority::Normal, GasPriceType::regular(BigInt::from(base_fee * NORMAL_FEE_MULTIPLIER))),
         FeeRate::new(FeePriority::Fast, GasPriceType::regular(BigInt::from(base_fee * FAST_FEE_MULTIPLIER))),
     ]
+}
+
+pub fn map_transaction_fee(input: &TransactionLoadInput) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
+    let Ok(swap_data) = input.input_type.get_swap_data() else {
+        return Ok(input.default_fee());
+    };
+    match swap_data.data.data_type {
+        SwapQuoteDataType::Contract => {
+            let swap: XrpSwap = serde_json::from_str(&swap_data.data.data)?;
+            Ok(TransactionFee::calculate(swap.fee_multiplier(), &input.gas_price, AssetId::from_chain(Chain::Xrp)))
+        }
+        SwapQuoteDataType::Transfer => Ok(input.default_fee()),
+    }
 }
 
 pub fn map_transaction_preload(account_result: AccountInfoResult, destination_exists: bool) -> Result<TransactionLoadMetadata, Box<dyn Error + Send + Sync>> {
@@ -30,6 +46,36 @@ pub fn map_transaction_preload(account_result: AccountInfoResult, destination_ex
 mod tests {
     use super::*;
     use crate::models::rpc::{AccountInfo, AccountInfoResult};
+    use num_bigint::BigUint;
+    use primitives::{
+        Asset, TransactionInputType,
+        swap::{SwapData, SwapQuoteData},
+    };
+
+    #[test]
+    fn test_map_transaction_fee() {
+        let batch = |swap: XrpSwap| SwapQuoteData {
+            data: serde_json::to_string(&swap).unwrap(),
+            ..SwapQuoteData::mock()
+        };
+        for (data, fee) in [
+            (batch(XrpSwap { trust_line: true, ..XrpSwap::mock() }), 100),
+            (batch(XrpSwap::mock()), 80),
+            (batch(XrpSwap { fee: None, ..XrpSwap::mock() }), 20),
+            (SwapQuoteData::new_transfer("rM27yzkCw6WA3T4g1sPaeC1kpxHUhuxRWn".to_string(), BigUint::from(10u64), None), 20),
+        ] {
+            let input = TransactionLoadInput {
+                gas_price: GasPriceType::regular(BigInt::from(20)),
+                ..TransactionLoadInput::mock_with_input_type(TransactionInputType::Swap {
+                    from_asset: Asset::from_chain(Chain::Xrp),
+                    to_asset: Asset::mock_xrp_rlusd(),
+                    swap_data: SwapData { data, ..SwapData::mock() },
+                })
+            };
+
+            assert_eq!(map_transaction_fee(&input).unwrap().fee, BigInt::from(fee));
+        }
+    }
 
     #[test]
     fn test_map_fee_rates() {

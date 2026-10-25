@@ -1,0 +1,13 @@
+{
+  "result": {
+    "Account": "rnCRC2AqXhFCnb9ULHtyCNrRYXgYuLBvZF",
+    "Fee": "60",
+    "TransactionType": "Batch",
+    "hash": "3B925B414BF7E91EC67A3E283F374DE0BC84D6E11DF5345115B44AF7DA5FEDEA",
+    "meta": {
+      "TransactionResult": "tesSUCCESS"
+    },
+    "validated": true,
+    "ledger_index": 107888305
+  }
+}

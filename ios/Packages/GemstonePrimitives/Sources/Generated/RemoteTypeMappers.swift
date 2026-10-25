@@ -1113,6 +1113,7 @@ public extension Gemstone.SwapProvider {
         case .stellarDex: .stellarDex
         case .deepbookV3: .deepbookV3
         case .aero: .aero
+        case .xrpLedger: .xrpLedger
         }
     }
 }
@@ -1152,6 +1153,7 @@ public extension Primitives.SwapProvider {
         case .stellarDex: .stellarDex
         case .deepbookV3: .deepbookV3
         case .aero: .aero
+        case .xrpLedger: .xrpLedger
         }
     }
 }

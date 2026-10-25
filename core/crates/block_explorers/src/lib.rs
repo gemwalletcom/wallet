@@ -167,7 +167,8 @@ pub fn swap_explorer(provider: SwapProvider, chain: Chain) -> Option<Box<dyn Blo
         | SwapProvider::SunswapV3
         | SwapProvider::StellarDex
         | SwapProvider::DeepbookV3
-        | SwapProvider::Aero => None,
+        | SwapProvider::Aero
+        | SwapProvider::XrpLedger => None,
     }
 }
 

@@ -312,6 +312,9 @@ pub static STELLAR_USDC_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::
 pub const XRP_RLUSD_TOKEN_ID: &str = "rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De";
 pub static XRP_RLUSD_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Xrp, XRP_RLUSD_TOKEN_ID));
 
+pub const XRP_USDC_TOKEN_ID: &str = "rGm7WCVp9gb4jZHWTEtGUr4dd74z2XuWhE";
+pub static XRP_USDC_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Xrp, XRP_USDC_TOKEN_ID));
+
 pub const XLAYER_USDC_TOKEN_ID: &str = "0xB6CEceAB302E2E4948951eE7843FC24E92933061";
 
 pub const XLAYER_USDC_E_TOKEN_ID: &str = "0x74b7F16337b8972027F6196A17a631aC6dE26d22";

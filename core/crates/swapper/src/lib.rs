@@ -53,6 +53,7 @@ pub mod swapper;
 pub mod swaps_xyz;
 pub mod thorchain;
 pub mod uniswap;
+mod xrp_ledger;
 
 use number_formatter::BigNumberFormatter;
 

@@ -741,6 +741,7 @@ public extension SwapProvider {
         case .sunswapV3: Images.SwapProviders.sunswap
         case .stellarDex: Images.SwapProviders.stellarDex
         case .deepbookV3: Images.SwapProviders.deepbook
+        case .xrpLedger: Images.SwapProviders.xrpLedger
         }
     }
 }

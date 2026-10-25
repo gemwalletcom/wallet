@@ -6,7 +6,7 @@ use gem_client::Client;
 use primitives::{FeeRate, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput};
 
 use crate::{
-    provider::preload_mapper::{map_fee_rates, map_transaction_preload},
+    provider::preload_mapper::{map_fee_rates, map_transaction_fee, map_transaction_preload},
     rpc::XrpClient,
 };
 
@@ -20,7 +20,7 @@ impl<C: Client + Clone> ChainTransactionLoad for XrpClient<C> {
 
     async fn get_transaction_load(&self, input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Sync + Send>> {
         Ok(TransactionLoadData {
-            fee: input.default_fee(),
+            fee: map_transaction_fee(&input)?,
             metadata: input.metadata,
         })
     }

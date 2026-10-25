@@ -41,6 +41,7 @@ pub enum SwapProvider {
     StellarDex,
     DeepbookV3,
     Aero,
+    XrpLedger,
 }
 
 impl SwapProvider {
@@ -75,7 +76,8 @@ impl SwapProvider {
             | Self::SunswapV3
             | Self::StellarDex
             | Self::DeepbookV3
-            | Self::Aero => false,
+            | Self::Aero
+            | Self::XrpLedger => false,
         }
     }
 
@@ -116,6 +118,7 @@ impl SwapProvider {
             Self::StellarDex => "Stellar DEX",
             Self::DeepbookV3 => "DeepBook",
             Self::Aero => "Aero",
+            Self::XrpLedger => "XRP Ledger DEX",
         }
     }
 }
