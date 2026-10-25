@@ -456,6 +456,11 @@
   <string name="lock_passcode">Adgangskode</string>
   <string name="lock_passcode_off_title">Enhedens adgangskode er slået fra</string>
   <string name="lock_passcode_off_description">Gem er låst med din enheds adgangskode. Slå en adgangskode til i enhedens indstillinger for at åbne Gem. Dine tegnebøger er i sikkerhed.</string>
+  <string name="lock_key_changed_title">Gem kan ikke låses op på denne telefon</string>
+  <string name="lock_key_changed_description">Telefonens sikkerhedsnøgle er ændret, så Gem kan ikke læse de tegnebøger, der er gemt her. Dine midler er i sikkerhed på deres netværk. Nulstil Gem, og importér dine tegnebøger med deres hemmelige sætninger.</string>
+  <string name="lock_reset_title">Nulstil Gem på denne telefon?</string>
+  <string name="lock_reset_description">Tegnebøgerne, der er gemt på denne telefon, bliver fjernet. Du kan kun få dem tilbage med deres hemmelige sætninger eller private nøgler.</string>
+  <string name="lock_reset">Nulstil</string>
   <string name="verify_phrase_title">Bekræft</string>
   <string name="warnings_externally_controlled_account">Denne %1$s-konto kan være kontrolleret af en anden. Overfør ikke penge til den, medmindre du er sikker på, at du kontrollerer den, ellers kan du permanent miste dine aktiver.</string>
   <string name="sell_title">Sælg %1$s</string>

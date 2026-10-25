@@ -456,6 +456,11 @@
   <string name="lock_passcode">Mật mã</string>
   <string name="lock_passcode_off_title">Mật mã thiết bị đang tắt</string>
   <string name="lock_passcode_off_description">Gem được khóa bằng mật mã thiết bị của bạn. Hãy bật mật mã trong cài đặt thiết bị để mở Gem. Ví của bạn vẫn an toàn.</string>
+  <string name="lock_key_changed_title">Không thể mở khóa Gem trên điện thoại này</string>
+  <string name="lock_key_changed_description">Khóa bảo mật của điện thoại này đã thay đổi nên Gem không thể đọc các ví đã lưu ở đây. Tiền của bạn vẫn an toàn trên các mạng tương ứng. Hãy đặt lại Gem và nhập ví bằng Cụm từ bí mật của chúng.</string>
+  <string name="lock_reset_title">Đặt lại Gem trên điện thoại này?</string>
+  <string name="lock_reset_description">Các ví đã lưu trên điện thoại này sẽ bị xóa. Bạn chỉ có thể khôi phục chúng bằng Cụm từ bí mật hoặc khóa riêng của chúng.</string>
+  <string name="lock_reset">Đặt lại</string>
   <string name="verify_phrase_title">Xác nhận</string>
   <string name="warnings_externally_controlled_account">Tài khoản %1$s này có thể do người khác kiểm soát. Không gửi tiền vào tài khoản này trừ khi bạn chắc chắn mình kiểm soát nó, nếu không bạn có thể mất vĩnh viễn tài sản của mình.</string>
   <string name="sell_title">Bán %1$s</string>

@@ -552,6 +552,11 @@ lock_footer = Beveilig de toegang tot deze app op uw apparaat
 lock_passcode = Toegangscode
 lock_passcode_off_title = Toegangscode van apparaat staat uit
 lock_passcode_off_description = Gem is vergrendeld met de toegangscode van uw apparaat. Zet een toegangscode aan in de apparaatinstellingen om Gem te openen. Uw portemonnees zijn veilig.
+lock_key_changed_title = Gem kan niet worden ontgrendeld op deze telefoon
+lock_key_changed_description = De beveiligingssleutel van deze telefoon is gewijzigd, waardoor Gem de hier opgeslagen portemonnees niet kan lezen. Uw tegoeden zijn veilig op hun netwerken. Reset Gem en importeer uw portemonnees met hun geheime zinnen.
+lock_reset_title = Gem op deze telefoon resetten?
+lock_reset_description = De portemonnees die op deze telefoon zijn opgeslagen, worden verwijderd. U kunt ze alleen terugzetten met hun geheime zinnen of privésleutels.
+lock_reset = Resetten
 
 # Verify
 

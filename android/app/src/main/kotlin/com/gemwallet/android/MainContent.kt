@@ -45,6 +45,8 @@ internal fun MainContent(
     toastEvents: Flow<ToastMessage>,
     onSystemAuthRequired: () -> Unit,
     onPendingNavigationConsumed: () -> Unit,
+    onImportWalletOpened: () -> Unit,
+    onResetLocalData: () -> Unit,
     onOpenSystemAuthSettings: () -> Unit,
     onWalletConnectError: (String) -> Unit,
     onErrorDismiss: () -> Unit,
@@ -77,6 +79,8 @@ internal fun MainContent(
                     pendingRoutes = unlockedPendingRoutes,
                     pendingTab = pendingDestination?.tab,
                     onPendingNavigationConsumed = onPendingNavigationConsumed,
+                    opensImportWallet = state.opensImportWallet,
+                    onImportWalletOpened = onImportWalletOpened,
                     onContentReady = onWalletContentReady,
                     activeWalletConnectRequest = activeWalletConnectRequest.takeIf { walletConnectEnabled },
                     onWalletConnectError = onWalletConnectError,
@@ -84,12 +88,14 @@ internal fun MainContent(
                 AppToastHost(toastEvents)
             }
 
-            if (isEnrollmentRequired) {
-                SystemAuthEnrollmentRequired(
+            when {
+                lockState.initialAuth == AuthState.KeyChanged -> KeystoreKeyChanged(onReset = onResetLocalData)
+
+                isEnrollmentRequired -> SystemAuthEnrollmentRequired(
                     onOpenSettings = onOpenSystemAuthSettings,
                 )
-            } else {
-                LockScreen(
+
+                else -> LockScreen(
                     isContentReady = isWalletContentReady,
                     logo = AppR.drawable.ic_splash_screen,
                 )

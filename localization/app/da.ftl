@@ -552,6 +552,11 @@ lock_footer = Beskyt adgangen til denne app på din enhed
 lock_passcode = Adgangskode
 lock_passcode_off_title = Enhedens adgangskode er slået fra
 lock_passcode_off_description = Gem er låst med din enheds adgangskode. Slå en adgangskode til i enhedens indstillinger for at åbne Gem. Dine tegnebøger er i sikkerhed.
+lock_key_changed_title = Gem kan ikke låses op på denne telefon
+lock_key_changed_description = Telefonens sikkerhedsnøgle er ændret, så Gem kan ikke læse de tegnebøger, der er gemt her. Dine midler er i sikkerhed på deres netværk. Nulstil Gem, og importér dine tegnebøger med deres hemmelige sætninger.
+lock_reset_title = Nulstil Gem på denne telefon?
+lock_reset_description = Tegnebøgerne, der er gemt på denne telefon, bliver fjernet. Du kan kun få dem tilbage med deres hemmelige sætninger eller private nøgler.
+lock_reset = Nulstil
 
 # Verify
 

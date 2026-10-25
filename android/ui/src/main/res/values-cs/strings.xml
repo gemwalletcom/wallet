@@ -456,6 +456,11 @@
   <string name="lock_passcode">Přístupový kód</string>
   <string name="lock_passcode_off_title">Kód zařízení je vypnutý</string>
   <string name="lock_passcode_off_description">Gem je zamčený kódem zařízení. Abyste Gem otevřeli, zapněte kód v nastavení zařízení. Vaše peněženky jsou v bezpečí.</string>
+  <string name="lock_key_changed_title">Gem nelze na tomto telefonu odemknout</string>
+  <string name="lock_key_changed_description">Bezpečnostní klíč tohoto telefonu se změnil, takže Gem nemůže přečíst peněženky, které jsou zde uložené. Vaše prostředky jsou na svých sítích v bezpečí. Resetujte Gem a importujte své peněženky pomocí jejich tajných frází.</string>
+  <string name="lock_reset_title">Resetovat Gem na tomto telefonu?</string>
+  <string name="lock_reset_description">Peněženky uložené v tomto telefonu budou odstraněny. Obnovit je můžete jen pomocí jejich tajných frází nebo soukromých klíčů.</string>
+  <string name="lock_reset">Resetovat</string>
   <string name="verify_phrase_title">Potvrdit</string>
   <string name="warnings_externally_controlled_account">Tento účet %1$s může ovládat někdo jiný. Neposílejte na něj prostředky, pokud si nejste jisti, že ho ovládáte vy, jinak můžete o svá aktiva trvale přijít.</string>
   <string name="sell_title">Prodat %1$s</string>

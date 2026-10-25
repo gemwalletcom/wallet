@@ -552,6 +552,11 @@ lock_footer = 기기에서 이 앱에 대한 액세스를 보호하세요
 lock_passcode = 암호
 lock_passcode_off_title = 기기 암호가 꺼져 있습니다
 lock_passcode_off_description = Gem은 기기 암호로 잠겨 있습니다. Gem을 열려면 기기 설정에서 암호를 켜세요. 지갑은 안전합니다.
+lock_key_changed_title = 이 휴대폰에서 Gem 잠금을 해제할 수 없습니다
+lock_key_changed_description = 이 휴대폰의 보안 키가 변경되어 Gem이 여기에 저장된 지갑을 읽을 수 없습니다. 자금은 각 네트워크에서 안전합니다. Gem을 재설정하고 비밀 문구로 지갑을 가져오세요.
+lock_reset_title = 이 휴대폰에서 Gem을 재설정할까요?
+lock_reset_description = 이 휴대폰에 저장된 지갑이 삭제됩니다. 비밀 문구나 개인 키로만 다시 복구할 수 있습니다.
+lock_reset = 재설정
 
 # Verify
 

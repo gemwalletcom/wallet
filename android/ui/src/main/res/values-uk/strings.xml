@@ -456,6 +456,11 @@
   <string name="lock_passcode">Пароль</string>
   <string name="lock_passcode_off_title">Пароль пристрою вимкнено</string>
   <string name="lock_passcode_off_description">Gem захищено паролем пристрою. Увімкніть пароль у налаштуваннях пристрою, щоб відкрити Gem. Ваші гаманці в безпеці.</string>
+  <string name="lock_key_changed_title">Не вдається розблокувати Gem на цьому телефоні</string>
+  <string name="lock_key_changed_description">Ключ безпеки цього телефона змінився, тому Gem не може прочитати збережені тут гаманці. Ваші кошти в безпеці у своїх мережах. Скиньте Gem та імпортуйте гаманці за допомогою їхніх секретних фраз.</string>
+  <string name="lock_reset_title">Скинути Gem на цьому телефоні?</string>
+  <string name="lock_reset_description">Гаманці, збережені на цьому телефоні, буде видалено. Повернути їх можна лише за допомогою їхніх секретних фраз або приватних ключів.</string>
+  <string name="lock_reset">Скинути</string>
   <string name="verify_phrase_title">Підтвердити</string>
   <string name="warnings_externally_controlled_account">Цей обліковий запис %1$s може контролювати хтось інший. Не надсилайте на нього кошти, якщо ви не впевнені, що контролюєте його, інакше ви можете назавжди втратити свої активи.</string>
   <string name="sell_title">Продати %1$s</string>

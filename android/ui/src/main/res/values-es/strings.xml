@@ -456,6 +456,11 @@
   <string name="lock_passcode">Código de acceso</string>
   <string name="lock_passcode_off_title">El código del dispositivo está desactivado</string>
   <string name="lock_passcode_off_description">Gem está bloqueado con el código de tu dispositivo. Activa un código en los ajustes del dispositivo para abrir Gem. Tus billeteras están a salvo.</string>
+  <string name="lock_key_changed_title">Gem no puede desbloquearse en este teléfono</string>
+  <string name="lock_key_changed_description">La clave de seguridad de este teléfono cambió, así que Gem no puede leer las billeteras guardadas aquí. Tus fondos están a salvo en sus redes. Restablece Gem e importa tus billeteras con sus frases secretas.</string>
+  <string name="lock_reset_title">¿Restablecer Gem en este teléfono?</string>
+  <string name="lock_reset_description">Se eliminarán las billeteras guardadas en este teléfono. Solo podrás recuperarlas con sus frases secretas o claves privadas.</string>
+  <string name="lock_reset">Restablecer</string>
   <string name="verify_phrase_title">Confirmar</string>
   <string name="warnings_externally_controlled_account">Esta cuenta de %1$s puede estar controlada por otra persona. No le envíes fondos a menos que estés seguro de que la controlas, o podrías perder tus activos de forma permanente.</string>
   <string name="sell_title">Vender %1$s</string>

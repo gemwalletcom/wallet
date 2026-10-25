@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.password
 
 import android.content.SharedPreferences
+import com.gemwallet.android.application.KeystoreKeyChangedException
 import com.gemwallet.android.math.fromHex
 import com.gemwallet.android.math.hex
 import com.google.crypto.tink.Aead
@@ -10,6 +11,7 @@ import com.google.crypto.tink.KeysetHandle
 import com.google.crypto.tink.RegistryConfiguration
 import com.google.crypto.tink.TinkProtoKeysetFormat
 import java.security.GeneralSecurityException
+import javax.crypto.AEADBadTagException
 
 internal fun encryptedKeyset(preferences: SharedPreferences, name: String, masterAead: Aead, template: KeyTemplate? = null): KeysetHandle = synchronized(secureStorageLock) {
     val encoded = preferences.getString(name, null)
@@ -25,7 +27,7 @@ internal fun encryptedKeyset(preferences: SharedPreferences, name: String, maste
                 TinkProtoKeysetFormat.parseKeyset(bytes, InsecureSecretKeyAccess.get(), RegistryConfiguration.get())
             } catch (plaintextError: GeneralSecurityException) {
                 keystoreError.addSuppressed(plaintextError)
-                throw keystoreError
+                throw if (keystoreError is AEADBadTagException) KeystoreKeyChangedException(keystoreError) else keystoreError
             }
         } finally {
             bytes.fill(0)

@@ -49,6 +49,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -114,6 +115,13 @@ class MainActivity :
 
         lifecycleScope.launch {
             privacyCover.isCovered.collect { isCovered -> if (isCovered) showCover() else hideCover() }
+        }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.first { it.isLocalDataReset }
+                restartAtImportWallet()
+            }
         }
 
         lifecycleScope.launch {
@@ -186,6 +194,8 @@ class MainActivity :
                     toastEvents = viewModel.toastEvents,
                     onSystemAuthRequired = systemAuthenticator::authenticate,
                     onPendingNavigationConsumed = viewModel::consumePendingNavigation,
+                    onImportWalletOpened = viewModel::consumeImportWallet,
+                    onResetLocalData = viewModel::resetLocalData,
                     onOpenSystemAuthSettings = systemAuthenticator::openSettings,
                     onWalletConnectError = viewModel::showWalletConnectError,
                     onErrorDismiss = viewModel::resetError,
@@ -193,6 +203,11 @@ class MainActivity :
             }
             RootWarningHost(darkTheme = darkTheme, onCancel = ::finishAffinity)
         }
+    }
+
+    private fun restartAtImportWallet() {
+        startActivity(Intent.makeRestartActivityTask(componentName).putExtra(MainViewModel.IMPORT_WALLET_EXTRA, true))
+        Runtime.getRuntime().exit(0)
     }
 
     private fun setSystemBarsAppearance(darkTheme: Boolean) {

@@ -47,4 +47,9 @@ class GemstonePreferencesStore(private val sharedPreferences: SharedPreferences)
         restore.commit()
         throw GemServiceException.Store("preference write failed")
     }
+
+    companion object {
+        const val APP_PREFERENCES_FILE_NAME = "gemstone_preferences"
+        const val GATEWAY_PREFERENCES_FILE_NAME = "gateway_preferences"
+    }
 }

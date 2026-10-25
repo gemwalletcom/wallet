@@ -21,7 +21,7 @@ object PreferencesModule {
 
     @Singleton
     @Provides
-    fun provideGemstonePreferencesStore(@ApplicationContext context: Context): GemstonePreferencesStore = GemstonePreferencesStore(context.getSharedPreferences("gemstone_preferences", Context.MODE_PRIVATE))
+    fun provideGemstonePreferencesStore(@ApplicationContext context: Context): GemstonePreferencesStore = GemstonePreferencesStore(context.getSharedPreferences(GemstonePreferencesStore.APP_PREFERENCES_FILE_NAME, Context.MODE_PRIVATE))
 
     @Singleton
     @Provides

@@ -552,6 +552,11 @@ lock_footer = 保護此裝置上的 App 存取安全
 lock_passcode = 密碼
 lock_passcode_off_title = 裝置密碼已關閉
 lock_passcode_off_description = Gem 使用裝置密碼鎖定。請在裝置設定中開啟密碼以開啟 Gem。錢包仍然安全。
+lock_key_changed_title = 無法在此手機上解鎖 Gem
+lock_key_changed_description = 此手機的安全金鑰已變更，Gem 無法讀取儲存在這裡的錢包。資金在各自的網路上仍然安全。請重設 Gem，並使用助記詞匯入錢包。
+lock_reset_title = 要在此手機上重設 Gem 嗎？
+lock_reset_description = 此手機上儲存的錢包將被移除。只有使用助記詞或私鑰才能復原它們。
+lock_reset = 重設
 
 # Verify
 

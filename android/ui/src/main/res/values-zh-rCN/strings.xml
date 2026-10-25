@@ -456,6 +456,11 @@
   <string name="lock_passcode">密码</string>
   <string name="lock_passcode_off_title">设备密码已关闭</string>
   <string name="lock_passcode_off_description">Gem 使用设备密码锁定。请在设备设置中开启密码以打开 Gem。钱包仍然安全。</string>
+  <string name="lock_key_changed_title">无法在此手机上解锁 Gem</string>
+  <string name="lock_key_changed_description">此手机的安全密钥已更改，Gem 无法读取保存在这里的钱包。资金在各自的网络上仍然安全。请重置 Gem，并使用助记词导入钱包。</string>
+  <string name="lock_reset_title">要在此手机上重置 Gem 吗？</string>
+  <string name="lock_reset_description">此手机上保存的钱包将被移除。只有使用助记词或私钥才能恢复它们。</string>
+  <string name="lock_reset">重置</string>
   <string name="verify_phrase_title">确认</string>
   <string name="warnings_externally_controlled_account">此 %1$s 账户可能由他人控制。除非确定该账户由您掌控，切勿向其转入资金，以免永久损失资产。</string>
   <string name="sell_title">出售%1$s</string>

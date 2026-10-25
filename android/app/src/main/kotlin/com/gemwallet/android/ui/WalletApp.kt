@@ -30,6 +30,7 @@ import com.gemwallet.android.features.onboarding.presents.terms.AcceptTermsDesti
 import com.gemwallet.android.flavors.ReviewManager
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.localization.stringRes
+import com.gemwallet.android.ui.navigation.OnboardingRoute
 import com.gemwallet.android.ui.navigation.WalletNavGraph
 import com.gemwallet.android.ui.navigation.WalletRootRoute
 import com.gemwallet.android.ui.navigation.rememberWalletNavigationState
@@ -43,6 +44,8 @@ fun WalletApp(
     pendingRoutes: List<NavKey> = emptyList(),
     pendingTab: GemNavigationTab? = null,
     onPendingNavigationConsumed: () -> Unit = {},
+    opensImportWallet: Boolean = false,
+    onImportWalletOpened: () -> Unit = {},
     onContentReady: () -> Unit = {},
     activeWalletConnectRequest: ActiveWalletConnectRequest? = null,
     onWalletConnectError: (String) -> Unit = {},
@@ -64,6 +67,13 @@ fun WalletApp(
     val currentOnContentReady by rememberUpdatedState(onContentReady)
     val isWalletRootActive = navigator.backStack.lastOrNull() == WalletRootRoute
     val shouldWaitForWalletRootContent = isWalletRootActive && pendingRoutes.isEmpty()
+    val onImportWallet: () -> Unit = {
+        if (isTermsAccepted) {
+            navigator.openImportWallet()
+        } else {
+            navigator.openAcceptTerms(AcceptTermsDestination.Import)
+        }
+    }
 
     LaunchedEffect(pendingRoutes, navigator) {
         if (pendingRoutes.isEmpty()) return@LaunchedEffect
@@ -74,6 +84,12 @@ fun WalletApp(
 
     LaunchedEffect(navigator) {
         navigator.observeCurrentWallet()
+    }
+
+    LaunchedEffect(opensImportWallet, navigator) {
+        if (!opensImportWallet) return@LaunchedEffect
+        if (start == OnboardingRoute) onImportWallet()
+        onImportWalletOpened()
     }
 
     val walletConnectorRequest = activeWalletConnectRequest?.current?.collectAsStateWithLifecycle()?.value
@@ -111,13 +127,7 @@ fun WalletApp(
                         navigator.openAcceptTerms(AcceptTermsDestination.Create)
                     }
                 },
-                onImportWallet = {
-                    if (isTermsAccepted) {
-                        navigator.openImportWallet()
-                    } else {
-                        navigator.openAcceptTerms(AcceptTermsDestination.Import)
-                    }
-                },
+                onImportWallet = onImportWallet,
             )
         },
     )

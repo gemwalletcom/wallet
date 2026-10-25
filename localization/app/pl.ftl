@@ -552,6 +552,11 @@ lock_footer = Chroń dostęp do tej aplikacji na swoim urządzeniu
 lock_passcode = Hasło
 lock_passcode_off_title = Kod urządzenia jest wyłączony
 lock_passcode_off_description = Gem jest zablokowany kodem urządzenia. Włącz kod w ustawieniach urządzenia, aby otworzyć Gem. Twoje portfele są bezpieczne.
+lock_key_changed_title = Nie można odblokować Gem na tym telefonie
+lock_key_changed_description = Klucz bezpieczeństwa tego telefonu się zmienił, więc Gem nie może odczytać zapisanych tu portfeli. Twoje środki są bezpieczne w swoich sieciach. Zresetuj Gem i zaimportuj portfele za pomocą ich tajnych zdań.
+lock_reset_title = Zresetować Gem na tym telefonie?
+lock_reset_description = Portfele zapisane na tym telefonie zostaną usunięte. Możesz je przywrócić tylko za pomocą ich tajnych zdań lub kluczy prywatnych.
+lock_reset = Zresetuj
 
 # Verify
 

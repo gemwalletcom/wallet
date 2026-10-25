@@ -456,6 +456,11 @@
   <string name="lock_passcode">رمز المرور</string>
   <string name="lock_passcode_off_title">رمز مرور الجهاز غير مفعّل</string>
   <string name="lock_passcode_off_description">Gem مقفل برمز مرور جهازك. فعّل رمز المرور من إعدادات جهازك لفتح Gem. محافظك آمنة.</string>
+  <string name="lock_key_changed_title">لا يمكن فتح قفل Gem على هذا الهاتف</string>
+  <string name="lock_key_changed_description">تغيّر مفتاح الأمان في هذا الهاتف، لذا لا يستطيع Gem قراءة المحافظ المحفوظة هنا. أموالك آمنة على شبكاتها. أعد ضبط Gem واستورد محافظك باستخدام عباراتها السرية.</string>
+  <string name="lock_reset_title">إعادة ضبط Gem على هذا الهاتف؟</string>
+  <string name="lock_reset_description">ستُزال المحافظ المحفوظة على هذا الهاتف. لا يمكنك استعادتها إلا بعباراتها السرية أو مفاتيحها الخاصة.</string>
+  <string name="lock_reset">إعادة الضبط</string>
   <string name="verify_phrase_title">يتأكد</string>
   <string name="warnings_externally_controlled_account">قد يتحكم شخص آخر في حساب %1$s هذا. لا ترسل أموالًا إليه إلا إذا كنت متأكدًا من أنك تتحكم فيه، وإلا فقد تفقد أصولك بشكل دائم.</string>
   <string name="sell_title">بيع %1$s</string>

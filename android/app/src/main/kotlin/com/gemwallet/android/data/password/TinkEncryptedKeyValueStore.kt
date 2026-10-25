@@ -59,7 +59,9 @@ internal class TinkEncryptedKeyValueStore(context: Context, private val config: 
     }
 }
 
-internal data class TinkStoreConfig(val preferencesFileName: String, val namespace: String, val keysetName: String, val keysetPreferencesFileName: String, val masterKeyAlias: String)
+internal data class TinkStoreConfig(val preferencesFileName: String, val namespace: String, val keysetName: String, val keysetPreferencesFileName: String, val masterKeyAlias: String) {
+    val authenticatedMasterKeyAlias: String get() = "${masterKeyAlias}_authenticated"
+}
 
 internal class TinkAeadProvider(context: Context, private val config: TinkStoreConfig, private val masterAead: () -> Aead = { AndroidKeystoreKmsClient.getOrGenerateNewAeadKey("android-keystore://${config.masterKeyAlias}") }) {
 

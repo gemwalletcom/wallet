@@ -13,7 +13,7 @@ private const val PASSWORD_STORE_KEYSET_NAME = "gem_wallet_password_keyset"
 internal const val PASSWORD_STORE_KEYSET_PREFERENCES_FILE_NAME = "gem_wallet_password_keyset_prefs"
 private const val PASSWORD_STORE_MASTER_KEY_ALIAS = "gem_wallet_password_master_key"
 
-private val PASSWORD_STORE_CONFIG = TinkStoreConfig(
+internal val PASSWORD_STORE_CONFIG = TinkStoreConfig(
     preferencesFileName = PASSWORD_STORE_PREFERENCES_FILE_NAME,
     namespace = PASSWORD_STORE_NAMESPACE,
     keysetName = PASSWORD_STORE_KEYSET_NAME,

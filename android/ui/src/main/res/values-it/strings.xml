@@ -456,6 +456,11 @@
   <string name="lock_passcode">Codice di accesso</string>
   <string name="lock_passcode_off_title">Il codice del dispositivo è disattivato</string>
   <string name="lock_passcode_off_description">Gem è bloccato con il codice del tuo dispositivo. Attiva un codice nelle impostazioni del dispositivo per aprire Gem. I tuoi portafogli sono al sicuro.</string>
+  <string name="lock_key_changed_title">Gem non può sbloccarsi su questo telefono</string>
+  <string name="lock_key_changed_description">La chiave di sicurezza di questo telefono è cambiata, quindi Gem non può leggere i portafogli salvati qui. I tuoi fondi sono al sicuro sulle loro reti. Reimposta Gem e importa i tuoi portafogli con le loro frasi segrete.</string>
+  <string name="lock_reset_title">Reimpostare Gem su questo telefono?</string>
+  <string name="lock_reset_description">I portafogli salvati su questo telefono verranno rimossi. Potrai recuperarli solo con le loro frasi segrete o chiavi private.</string>
+  <string name="lock_reset">Reimposta</string>
   <string name="verify_phrase_title">Confermare</string>
   <string name="warnings_externally_controlled_account">Questo account %1$s può essere controllato da qualcun altro. Non inviarvi fondi a meno che tu non sia certo di controllarlo, altrimenti potresti perdere definitivamente i tuoi beni.</string>
   <string name="sell_title">Vendi %1$s</string>

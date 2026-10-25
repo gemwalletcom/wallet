@@ -552,6 +552,11 @@ lock_footer = Lindungi akses kepada apl ini pada peranti anda
 lock_passcode = Kod Laluan
 lock_passcode_off_title = Kod laluan peranti dimatikan
 lock_passcode_off_description = Gem dikunci dengan kod laluan peranti anda. Hidupkan kod laluan dalam tetapan peranti untuk membuka Gem. Dompet anda selamat.
+lock_key_changed_title = Gem tidak dapat dibuka kunci pada telefon ini
+lock_key_changed_description = Kunci keselamatan telefon ini telah berubah, jadi Gem tidak dapat membaca dompet yang disimpan di sini. Dana anda selamat pada rangkaian masing-masing. Tetapkan semula Gem dan import dompet anda dengan Frasa Rahsianya.
+lock_reset_title = Tetapkan semula Gem pada telefon ini?
+lock_reset_description = Dompet yang disimpan pada telefon ini akan dialih keluar. Anda hanya boleh memulihkannya dengan Frasa Rahsia atau kunci peribadinya.
+lock_reset = Tetapkan Semula
 
 # Verify
 

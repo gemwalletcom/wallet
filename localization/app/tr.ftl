@@ -552,6 +552,11 @@ lock_footer = Cihazınızda bu uygulamaya erişimi koruyun
 lock_passcode = Şifre
 lock_passcode_off_title = Cihaz parolası kapalı
 lock_passcode_off_description = Gem, cihazınızın parolasıyla kilitli. Gem'i açmak için cihaz ayarlarından bir parola açın. Cüzdanlarınız güvende.
+lock_key_changed_title = Gem'in kilidi bu telefonda açılamıyor
+lock_key_changed_description = Bu telefonun güvenlik anahtarı değişti, bu yüzden Gem burada kayıtlı cüzdanları okuyamıyor. Fonlarınız kendi ağlarında güvende. Gem'i sıfırlayın ve cüzdanlarınızı Gizli İfadeleriyle içe aktarın.
+lock_reset_title = Gem bu telefonda sıfırlansın mı?
+lock_reset_description = Bu telefonda kayıtlı cüzdanlar kaldırılacak. Onları yalnızca Gizli İfadeleri veya özel anahtarlarıyla geri getirebilirsiniz.
+lock_reset = Sıfırla
 
 # Verify
 

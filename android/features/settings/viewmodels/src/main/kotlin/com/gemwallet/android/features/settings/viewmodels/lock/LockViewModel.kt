@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.settings.viewmodels.lock
 
 import androidx.lifecycle.ViewModel
+import com.gemwallet.android.application.KeystoreKeyChangedException
 import com.gemwallet.android.application.security.cases.SecurityPreferences
 import com.gemwallet.android.features.settings.viewmodels.lock.models.AuthState
 import com.gemwallet.android.features.settings.viewmodels.lock.models.LockUIState
@@ -9,6 +10,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.update
 import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
@@ -16,12 +18,12 @@ import javax.inject.Inject
 @HiltViewModel
 class LockViewModel @Inject constructor(private val securityPreferences: SecurityPreferences, private val lockTimer: LockTimer) : ViewModel() {
 
-    private val isInitialAuthRequired = isAuthRequired()
+    private val initialAuth = readInitialAuth()
 
     private val _uiState = MutableStateFlow(
         LockUIState(
-            initialAuth = if (isInitialAuthRequired) AuthState.Required else AuthState.Success,
-            hasUnlockedApp = !isInitialAuthRequired,
+            initialAuth = initialAuth,
+            hasUnlockedApp = initialAuth == AuthState.Success,
         ),
     )
     val uiState: StateFlow<LockUIState> = _uiState.asStateFlow()
@@ -30,7 +32,7 @@ class LockViewModel @Inject constructor(private val securityPreferences: Securit
 
     fun isAuthRequired(): Boolean = securityPreferences.isLockEnabled()
 
-    fun observeAuthRequired(): Flow<Boolean> = securityPreferences.getLockEnabled()
+    fun observeAuthRequired(): Flow<Boolean> = if (initialAuth == AuthState.KeyChanged) flowOf(true) else securityPreferences.getLockEnabled()
 
     fun requestAuth(requestId: Long) {
         activeAuthRequestId.set(requestId)
@@ -79,7 +81,7 @@ class LockViewModel @Inject constructor(private val securityPreferences: Securit
     }
 
     fun onReturn(): Boolean {
-        if (!lockTimer.shouldRelockOnReturn()) return false
+        if (initialAuth == AuthState.KeyChanged || !lockTimer.shouldRelockOnReturn()) return false
         relock()
         return true
     }
@@ -93,6 +95,12 @@ class LockViewModel @Inject constructor(private val securityPreferences: Securit
                 authPromptRequest = current.authPromptRequest + 1,
             )
         }
+    }
+
+    private fun readInitialAuth(): AuthState = try {
+        if (isAuthRequired()) AuthState.Required else AuthState.Success
+    } catch (_: KeystoreKeyChangedException) {
+        AuthState.KeyChanged
     }
 }
 

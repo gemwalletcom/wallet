@@ -552,6 +552,11 @@ lock_footer = Bảo vệ quyền truy cập vào ứng dụng này trên thiết
 lock_passcode = Mật mã
 lock_passcode_off_title = Mật mã thiết bị đang tắt
 lock_passcode_off_description = Gem được khóa bằng mật mã thiết bị của bạn. Hãy bật mật mã trong cài đặt thiết bị để mở Gem. Ví của bạn vẫn an toàn.
+lock_key_changed_title = Không thể mở khóa Gem trên điện thoại này
+lock_key_changed_description = Khóa bảo mật của điện thoại này đã thay đổi nên Gem không thể đọc các ví đã lưu ở đây. Tiền của bạn vẫn an toàn trên các mạng tương ứng. Hãy đặt lại Gem và nhập ví bằng Cụm từ bí mật của chúng.
+lock_reset_title = Đặt lại Gem trên điện thoại này?
+lock_reset_description = Các ví đã lưu trên điện thoại này sẽ bị xóa. Bạn chỉ có thể khôi phục chúng bằng Cụm từ bí mật hoặc khóa riêng của chúng.
+lock_reset = Đặt lại
 
 # Verify
 

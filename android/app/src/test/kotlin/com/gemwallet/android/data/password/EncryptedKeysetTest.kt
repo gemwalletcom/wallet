@@ -1,6 +1,7 @@
 package com.gemwallet.android.data.password
 
 import android.content.SharedPreferences
+import com.gemwallet.android.application.KeystoreKeyChangedException
 import com.gemwallet.android.math.hex
 import com.google.crypto.tink.Aead
 import com.google.crypto.tink.KeysetHandle
@@ -11,11 +12,13 @@ import com.google.crypto.tink.aead.AesGcmKeyManager
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.security.GeneralSecurityException
+import javax.crypto.AEADBadTagException
 
 class EncryptedKeysetTest {
     private val preferences = mockk<SharedPreferences>()
@@ -72,5 +75,34 @@ class EncryptedKeysetTest {
         assertTrue(generateSequence<Throwable>(thrown) { it.cause }.any { it === keystoreError })
         assertTrue(thrown.suppressed.isNotEmpty())
         verify(exactly = 0) { preferences.edit() }
+    }
+
+    @Test
+    fun keystoreVerificationFailureIsReportedAsAChangedKey() {
+        storeEncryptedKeyset()
+        val verificationFailed = AEADBadTagException()
+        val master = mockk<Aead> { every { decrypt(any(), any()) } throws verificationFailed }
+
+        val thrown = assertThrows(KeystoreKeyChangedException::class.java) { encryptedKeyset(preferences, "keyset", master, template) }
+
+        assertSame(verificationFailed, thrown.cause)
+        verify(exactly = 0) { preferences.edit() }
+    }
+
+    @Test
+    fun otherKeystoreFailureIsNotReportedAsAChangedKey() {
+        storeEncryptedKeyset()
+        val keystoreError = GeneralSecurityException("Keystore unavailable")
+        val master = mockk<Aead> { every { decrypt(any(), any()) } throws keystoreError }
+
+        val thrown = assertThrows(GeneralSecurityException::class.java) { encryptedKeyset(preferences, "keyset", master, template) }
+
+        assertSame(keystoreError, thrown)
+    }
+
+    private fun storeEncryptedKeyset() {
+        val master = KeysetHandle.generateNew(template).getPrimitive(RegistryConfiguration.get(), Aead::class.java)
+        val stored = TinkProtoKeysetFormat.serializeEncryptedKeyset(KeysetHandle.generateNew(template), master, byteArrayOf(), RegistryConfiguration.get())
+        every { preferences.getString("keyset", null) } returns stored.hex
     }
 }

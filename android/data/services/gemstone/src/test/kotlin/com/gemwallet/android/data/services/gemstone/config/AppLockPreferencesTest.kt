@@ -1,5 +1,6 @@
 package com.gemwallet.android.data.services.gemstone.config
 
+import com.gemwallet.android.application.KeystoreKeyChangedException
 import com.gemwallet.android.application.WalletPasswordProtection
 import com.gemwallet.android.data.services.store.ConfigStore
 import io.mockk.every
@@ -11,9 +12,11 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.GemSecureStore
+import javax.crypto.AEADBadTagException
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AppLockPreferencesTest {
@@ -72,6 +75,14 @@ class AppLockPreferencesTest {
 
         assertTrue(subject.isLockEnabled())
         assertTrue(subject.getLockEnabled().first())
+    }
+
+    @Test
+    fun lockCheckReachesTheSecureStoreWhenThePasswordKeysetIsProtected() {
+        every { secureStore.get("auth_required") } throws KeystoreKeyChangedException(AEADBadTagException())
+        every { passwordProtection.authenticationRequired() } returns true
+
+        assertThrows(KeystoreKeyChangedException::class.java) { subject().isLockEnabled() }
     }
 
     @Test

@@ -7,6 +7,7 @@ import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -57,6 +58,22 @@ class TinkEncryptedKeyValueStoreInstrumentedTest {
         assertEquals("legacy-preference", preferences.get(key))
         assertFalse(legacyPreferences().contains(key))
         assertEquals("legacy-preference", preferences.get(key))
+    }
+
+    @Test
+    fun secureStorageReset_clearsEveryStoreAndItsKeys() = runBlocking {
+        TinkPasswordStore(context).putPassword("instrumented_wallet_password", "password")
+        TinkGemPreferences(context).set("instrumented_gem_preference", "preference")
+        legacyPreferences().edit().putString("instrumented_legacy_preference", "legacy").commit()
+
+        SecureStorageReset(context).clear()
+
+        listOf(LEGACY_PREFERENCES_FILE_NAME, PASSWORD_STORE_PREFERENCES_FILE_NAME, PASSWORD_STORE_KEYSET_PREFERENCES_FILE_NAME, GEM_PREFERENCES_FILE_NAME, GEM_PREFERENCES_KEYSET_FILE_NAME).forEach { name ->
+            assertTrue(name, context.getSharedPreferences(name, Context.MODE_PRIVATE).all.isEmpty())
+        }
+        listOf(PASSWORD_STORE_CONFIG.masterKeyAlias, GEM_PREFERENCES_STORE_CONFIG.masterKeyAlias, LEGACY_MASTER_KEY_ALIAS).forEach { alias ->
+            assertFalse(alias, androidKeyStore().containsAlias(alias))
+        }
     }
 
     @Test

@@ -747,6 +747,10 @@ public enum Localized {
     public static let footer = Localized.tr("Localizable", "lock.footer", fallback: "Protect access to this app on your device")
     /// Immediately
     public static let immediately = Localized.tr("Localizable", "lock.immediately", fallback: "Immediately")
+    /// This phone's security key has changed, so Gem can't read the wallets saved here. Your funds are safe on their networks. Reset Gem and import your wallets with their Secret Phrases.
+    public static let keyChangedDescription = Localized.tr("Localizable", "lock.key_changed_description", fallback: "This phone's security key has changed, so Gem can't read the wallets saved here. Your funds are safe on their networks. Reset Gem and import your wallets with their Secret Phrases.")
+    /// Gem can't unlock on this phone
+    public static let keyChangedTitle = Localized.tr("Localizable", "lock.key_changed_title", fallback: "Gem can't unlock on this phone")
     /// 1 hour
     public static let oneHour = Localized.tr("Localizable", "lock.one_hour", fallback: "1 hour")
     /// 1 minute
@@ -759,6 +763,12 @@ public enum Localized {
     public static let passcodeOffTitle = Localized.tr("Localizable", "lock.passcode_off_title", fallback: "Device passcode is off")
     /// Require authentication
     public static let requireAuthentication = Localized.tr("Localizable", "lock.require_authentication", fallback: "Require authentication")
+    /// Reset
+    public static let reset = Localized.tr("Localizable", "lock.reset", fallback: "Reset")
+    /// The wallets saved on this phone will be removed. You can bring them back only with their Secret Phrases or private keys.
+    public static let resetDescription = Localized.tr("Localizable", "lock.reset_description", fallback: "The wallets saved on this phone will be removed. You can bring them back only with their Secret Phrases or private keys.")
+    /// Reset Gem on this phone?
+    public static let resetTitle = Localized.tr("Localizable", "lock.reset_title", fallback: "Reset Gem on this phone?")
     /// 6 hours
     public static let sixHours = Localized.tr("Localizable", "lock.six_hours", fallback: "6 hours")
     /// Unlock

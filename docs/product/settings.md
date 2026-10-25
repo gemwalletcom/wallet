@@ -44,6 +44,8 @@ flowchart LR
 | A WalletConnect request is open when the lock period passes | the lock still re-engages; the request cannot hold it off | |
 | The phone is turned or the appearance changes while the unlock prompt is open | the same prompt stays open and unlocks the app | Android recreates the screen; cancelling the prompt then crashed the app |
 | The lock is on but the device passcode was turned off | the lock stays and says the device passcode is off and must be turned on to open Gem | the lock relies on the device passcode, so there is nothing else to unlock with |
+| Gem opens and the app lock can't be read because the phone's security key changed | "Gem can't unlock on this phone" with Import Wallet and Support; nothing of the wallet shows and the lock is never read as off | the wallets saved on the phone can't be read without that key, while their funds stay safe on their networks |
+| The user taps Import Wallet on that screen | "Reset Gem on this phone?" with Reset and Cancel; Reset removes every wallet, setting and key Gem saved on the phone, then onboarding opens at Import Wallet, where the user sets the app lock again | only the wallets' Secret Phrases or private keys bring them back |
 | The user turns the push switch on | the app asks the system for permission | |
 | A wallet is created or imported, including one that was already on the device | the app offers push right after | |
 | A network API does not expose a latest block, such as HyperCore | the node row shows a dash for Latest Block and still measures the API response latency | a missing capability is not a failed node |
@@ -63,6 +65,7 @@ flowchart LR
 |---|---|---|---|
 | The lock is on and Gem is in the app switcher or behind a system panel | covered with the Gem logo | covered with Gem's background color, without the logo | Intentional: Android saves the switcher preview before Gem can draw a cover and allows only a color in its place, so the cover uses the same color and coming back goes straight from it to the app |
 | The device passcode is off while the lock is on | the lock screen explains it in text | the lock screen explains it and opens screen lock setup | Intentional: iOS has no public way to open passcode settings |
+| The phone's security key changes under Gem | not applicable | "Gem can't unlock on this phone", then Reset and Import Wallet | Intentional: the failure comes from the Android Keystore, which iOS doesn't use |
 | The user opens Developer | includes a deep link URL tool | includes a platform store setting | Intentional (developer-only) |
 | The build cannot push (F-Droid, Huawei) | not applicable | Settings does not list Notifications, so neither the push switch nor Price Alerts is reachable | Intentional: the build has no push service |
 

@@ -14,6 +14,7 @@ import com.google.crypto.tink.integration.android.AndroidKeystoreKmsClient
 
 // Passwords and Gemstone secure preferences historically shared this file; their keys must stay disjoint.
 internal const val LEGACY_PREFERENCES_FILE_NAME = "pwd"
+internal const val LEGACY_MASTER_KEY_ALIAS = MasterKey.DEFAULT_MASTER_KEY_ALIAS
 private const val ANDROIDX_KEY_KEYSET_ALIAS = "__androidx_security_crypto_encrypted_prefs_key_keyset__"
 private const val ANDROIDX_VALUE_KEYSET_ALIAS = "__androidx_security_crypto_encrypted_prefs_value_keyset__"
 private val ANDROIDX_KEYSET_ALIASES = setOf(ANDROIDX_KEY_KEYSET_ALIAS, ANDROIDX_VALUE_KEYSET_ALIAS)
@@ -67,7 +68,7 @@ internal class LegacyEncryptedPreferences(context: Context, private val preferen
         check(isEmpty || (rawPreferences.contains(ANDROIDX_KEY_KEYSET_ALIAS) && rawPreferences.contains(ANDROIDX_VALUE_KEYSET_ALIAS))) { "Legacy secure keyset is missing" }
         AeadConfig.register()
         DeterministicAeadConfig.register()
-        val masterAead = AndroidKeystoreKmsClient.getOrGenerateNewAeadKey("android-keystore://${MasterKey.DEFAULT_MASTER_KEY_ALIAS}")
+        val masterAead = AndroidKeystoreKmsClient.getOrGenerateNewAeadKey("android-keystore://$LEGACY_MASTER_KEY_ALIAS")
         encryptedKeyset(rawPreferences, ANDROIDX_KEY_KEYSET_ALIAS, masterAead, AesSivKeyManager.aes256SivTemplate().takeIf { isEmpty })
         encryptedKeyset(rawPreferences, ANDROIDX_VALUE_KEYSET_ALIAS, masterAead, AesGcmKeyManager.aes256GcmTemplate().takeIf { isEmpty })
         val masterKey = MasterKey.Builder(context)

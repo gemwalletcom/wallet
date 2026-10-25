@@ -456,6 +456,11 @@
   <string name="lock_passcode">Code</string>
   <string name="lock_passcode_off_title">Le code de l\'appareil est désactivé</string>
   <string name="lock_passcode_off_description">Gem est verrouillé par le code de votre appareil. Activez un code dans les réglages de l\'appareil pour ouvrir Gem. Vos portefeuilles sont en sécurité.</string>
+  <string name="lock_key_changed_title">Gem ne peut pas se déverrouiller sur ce téléphone</string>
+  <string name="lock_key_changed_description">La clé de sécurité de ce téléphone a changé, Gem ne peut donc pas lire les portefeuilles enregistrés ici. Vos fonds sont en sécurité sur leurs réseaux. Réinitialisez Gem et importez vos portefeuilles avec leurs phrases secrètes.</string>
+  <string name="lock_reset_title">Réinitialiser Gem sur ce téléphone ?</string>
+  <string name="lock_reset_description">Les portefeuilles enregistrés sur ce téléphone seront supprimés. Vous ne pourrez les récupérer qu\'avec leurs phrases secrètes ou leurs clés privées.</string>
+  <string name="lock_reset">Réinitialiser</string>
   <string name="verify_phrase_title">Confirmer</string>
   <string name="warnings_externally_controlled_account">Ce compte %1$s peut être contrôlé par quelqu\'un d\'autre. N\'y envoyez pas de fonds à moins d\'être certain de le contrôler, sinon vous pourriez perdre définitivement vos actifs.</string>
   <string name="sell_title">Vendre %1$s</string>

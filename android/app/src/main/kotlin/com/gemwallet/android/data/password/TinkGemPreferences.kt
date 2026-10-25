@@ -16,7 +16,7 @@ private val DEVICE_KEY_NAMES = mapOf(
     "device_public_key" to "public_key",
 )
 
-private val GEM_PREFERENCES_STORE_CONFIG = TinkStoreConfig(
+internal val GEM_PREFERENCES_STORE_CONFIG = TinkStoreConfig(
     preferencesFileName = GEM_PREFERENCES_FILE_NAME,
     namespace = GEM_PREFERENCES_NAMESPACE,
     keysetName = GEM_PREFERENCES_KEYSET_NAME,

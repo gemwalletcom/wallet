@@ -1019,6 +1019,16 @@ lock_passcode = Passcode
 lock_passcode_off_title = Device passcode is off
 # Description on the same lock screen: the app cannot be unlocked until the user turns the device passcode (screen lock) back on.
 lock_passcode_off_description = Gem is locked with your device passcode. Turn on a passcode in your device settings to open Gem. Your wallets are safe.
+# Title of the screen shown at launch on Android when the phone's security key (Android Keystore) changed and Gem can no longer read the wallets saved on the phone.
+lock_key_changed_title = Gem can't unlock on this phone
+# Description on the same screen. It leads to resetting Gem and importing the wallets again with their Secret Phrases.
+lock_key_changed_description = This phone's security key has changed, so Gem can't read the wallets saved here. Your funds are safe on their networks. Reset Gem and import your wallets with their Secret Phrases.
+# Title of the confirmation shown before resetting Gem from that screen.
+lock_reset_title = Reset Gem on this phone?
+# Message of the same confirmation: resetting removes every wallet saved on the phone.
+lock_reset_description = The wallets saved on this phone will be removed. You can bring them back only with their Secret Phrases or private keys.
+# Destructive button of the same confirmation that resets Gem on this phone.
+lock_reset = Reset
 
 # Verify
 

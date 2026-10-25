@@ -552,6 +552,11 @@ lock_footer = デバイス上のこのアプリへのアクセスを保護する
 lock_passcode = パスコード
 lock_passcode_off_title = デバイスのパスコードがオフです
 lock_passcode_off_description = Gem はデバイスのパスコードでロックされています。Gem を開くには、デバイスの設定でパスコードをオンにしてください。ウォレットは安全です。
+lock_key_changed_title = このスマートフォンでは Gem のロックを解除できません
+lock_key_changed_description = このスマートフォンのセキュリティキーが変更されたため、Gem はここに保存されたウォレットを読み取れません。資産はそれぞれのネットワーク上で安全です。Gem をリセットし、リカバリーフレーズでウォレットをインポートしてください。
+lock_reset_title = このスマートフォンの Gem をリセットしますか？
+lock_reset_description = このスマートフォンに保存されているウォレットは削除されます。元に戻すには、リカバリーフレーズまたはプライベートキーが必要です。
+lock_reset = リセット
 
 # Verify
 

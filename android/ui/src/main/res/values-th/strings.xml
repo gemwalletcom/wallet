@@ -456,6 +456,11 @@
   <string name="lock_passcode">รหัสผ่าน</string>
   <string name="lock_passcode_off_title">รหัสผ่านอุปกรณ์ปิดอยู่</string>
   <string name="lock_passcode_off_description">Gem ถูกล็อกด้วยรหัสผ่านอุปกรณ์ของคุณ เปิดรหัสผ่านในการตั้งค่าอุปกรณ์เพื่อเปิด Gem กระเป๋าเงินของคุณปลอดภัย</string>
+  <string name="lock_key_changed_title">ไม่สามารถปลดล็อก Gem บนโทรศัพท์เครื่องนี้ได้</string>
+  <string name="lock_key_changed_description">คีย์ความปลอดภัยของโทรศัพท์เครื่องนี้เปลี่ยนไป Gem จึงอ่านกระเป๋าเงินที่บันทึกไว้ที่นี่ไม่ได้ เงินทุนของคุณยังปลอดภัยบนเครือข่ายของกระเป๋าเงินแต่ละใบ รีเซ็ต Gem แล้วนำเข้ากระเป๋าเงินของคุณด้วยวลีลับ</string>
+  <string name="lock_reset_title">รีเซ็ต Gem บนโทรศัพท์เครื่องนี้ใช่ไหม</string>
+  <string name="lock_reset_description">กระเป๋าเงินที่บันทึกไว้ในโทรศัพท์เครื่องนี้จะถูกลบ คุณจะกู้คืนได้ด้วยวลีลับหรือคีย์ส่วนตัวเท่านั้น</string>
+  <string name="lock_reset">รีเซ็ต</string>
   <string name="verify_phrase_title">ยืนยัน</string>
   <string name="warnings_externally_controlled_account">บัญชี %1$s นี้อาจถูกควบคุมโดยผู้อื่น อย่าส่งเงินไปยังบัญชีนี้ เว้นแต่คุณจะแน่ใจว่าคุณเป็นผู้ควบคุม มิฉะนั้นคุณอาจสูญเสียทรัพย์สินของคุณไปอย่างถาวร</string>
   <string name="sell_title">ขาย %1$s</string>

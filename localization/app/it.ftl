@@ -552,6 +552,11 @@ lock_footer = Proteggi l'accesso a questa app sul tuo dispositivo
 lock_passcode = Codice di accesso
 lock_passcode_off_title = Il codice del dispositivo è disattivato
 lock_passcode_off_description = Gem è bloccato con il codice del tuo dispositivo. Attiva un codice nelle impostazioni del dispositivo per aprire Gem. I tuoi portafogli sono al sicuro.
+lock_key_changed_title = Gem non può sbloccarsi su questo telefono
+lock_key_changed_description = La chiave di sicurezza di questo telefono è cambiata, quindi Gem non può leggere i portafogli salvati qui. I tuoi fondi sono al sicuro sulle loro reti. Reimposta Gem e importa i tuoi portafogli con le loro frasi segrete.
+lock_reset_title = Reimpostare Gem su questo telefono?
+lock_reset_description = I portafogli salvati su questo telefono verranno rimossi. Potrai recuperarli solo con le loro frasi segrete o chiavi private.
+lock_reset = Reimposta
 
 # Verify
 

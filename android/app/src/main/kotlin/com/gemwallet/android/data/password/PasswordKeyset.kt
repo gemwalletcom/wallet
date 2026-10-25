@@ -14,7 +14,7 @@ internal class PasswordKeyset(context: Context, private val config: TinkStoreCon
     private val context = context.applicationContext
     private val preferences by lazy { this.context.securePreferences(config.keysetPreferencesFileName) }
     private val protectedName = "${config.keysetName}_authenticated"
-    private val authenticated = AuthenticatedKeysetAead("${config.masterKeyAlias}_authenticated")
+    private val authenticated = AuthenticatedKeysetAead(config.authenticatedMasterKeyAlias)
     private val unprotected = TinkAeadProvider(context, config)
 
     val authenticationRequired: Boolean

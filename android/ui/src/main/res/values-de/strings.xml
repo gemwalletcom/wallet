@@ -456,6 +456,11 @@
   <string name="lock_passcode">Passcode</string>
   <string name="lock_passcode_off_title">Gerätecode ist deaktiviert</string>
   <string name="lock_passcode_off_description">Gem ist mit dem Code Ihres Geräts gesperrt. Aktivieren Sie einen Code in den Geräteeinstellungen, um Gem zu öffnen. Ihre Wallets sind sicher.</string>
+  <string name="lock_key_changed_title">Gem kann auf diesem Telefon nicht entsperrt werden</string>
+  <string name="lock_key_changed_description">Der Sicherheitsschlüssel dieses Telefons hat sich geändert, daher kann Gem die hier gespeicherten Wallets nicht lesen. Ihr Guthaben ist in den jeweiligen Netzwerken sicher. Setzen Sie Gem zurück und importieren Sie Ihre Wallets mit ihren geheimen Phrasen.</string>
+  <string name="lock_reset_title">Gem auf diesem Telefon zurücksetzen?</string>
+  <string name="lock_reset_description">Die auf diesem Telefon gespeicherten Wallets werden entfernt. Sie können sie nur mit ihren geheimen Phrasen oder privaten Schlüsseln wiederherstellen.</string>
+  <string name="lock_reset">Zurücksetzen</string>
   <string name="verify_phrase_title">Bestätigen</string>
   <string name="warnings_externally_controlled_account">Dieses %1$s-Konto kann von jemand anderem kontrolliert werden. Senden Sie kein Geld darauf, es sei denn, Sie sind sicher, dass Sie es kontrollieren, sonst könnten Sie Ihr Vermögen dauerhaft verlieren.</string>
   <string name="sell_title">Verkaufen %1$s</string>

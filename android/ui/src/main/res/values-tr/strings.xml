@@ -456,6 +456,11 @@
   <string name="lock_passcode">Şifre</string>
   <string name="lock_passcode_off_title">Cihaz parolası kapalı</string>
   <string name="lock_passcode_off_description">Gem, cihazınızın parolasıyla kilitli. Gem\'i açmak için cihaz ayarlarından bir parola açın. Cüzdanlarınız güvende.</string>
+  <string name="lock_key_changed_title">Gem\'in kilidi bu telefonda açılamıyor</string>
+  <string name="lock_key_changed_description">Bu telefonun güvenlik anahtarı değişti, bu yüzden Gem burada kayıtlı cüzdanları okuyamıyor. Fonlarınız kendi ağlarında güvende. Gem\'i sıfırlayın ve cüzdanlarınızı Gizli İfadeleriyle içe aktarın.</string>
+  <string name="lock_reset_title">Gem bu telefonda sıfırlansın mı?</string>
+  <string name="lock_reset_description">Bu telefonda kayıtlı cüzdanlar kaldırılacak. Onları yalnızca Gizli İfadeleri veya özel anahtarlarıyla geri getirebilirsiniz.</string>
+  <string name="lock_reset">Sıfırla</string>
   <string name="verify_phrase_title">Onayla</string>
   <string name="warnings_externally_controlled_account">Bu %1$s hesabı başka biri tarafından kontrol ediliyor olabilir. Hesabı sizin kontrol ettiğinizden emin olmadıkça bu hesaba para göndermeyin, aksi takdirde varlıklarınızı kalıcı olarak kaybedebilirsiniz.</string>
   <string name="sell_title">%1$s sat</string>

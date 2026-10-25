@@ -55,7 +55,7 @@ object DeviceModule {
     @Singleton
     fun provideDevicePushSettings(@ApplicationContext context: Context, notificationsAvailable: NotificationsAvailable, deviceService: Lazy<GemDeviceService>, notificationsService: Lazy<GemNotificationsService>): DevicePushSettings =
         DevicePushSettings(
-            configStore = ConfigStore(context.getSharedPreferences("device-info", Context.MODE_PRIVATE)),
+            configStore = ConfigStore(context.getSharedPreferences(DevicePushSettings.PREFERENCES_FILE_NAME, Context.MODE_PRIVATE)),
             notificationsAvailable = notificationsAvailable,
             deviceService = deviceService,
             notificationsService = notificationsService,

@@ -48706,6 +48706,388 @@
         }
       }
     },
+    "lock.key_changed_description": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تغيّر مفتاح الأمان في هذا الهاتف، لذا لا يستطيع Gem قراءة المحافظ المحفوظة هنا. أموالك آمنة على شبكاتها. أعد ضبط Gem واستورد محافظك باستخدام عباراتها السرية."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এই ফোনের নিরাপত্তা কী পরিবর্তিত হয়েছে, তাই Gem এখানে সংরক্ষিত ওয়ালেটগুলো পড়তে পারছে না। আপনার তহবিল তাদের নেটওয়ার্কে নিরাপদ আছে। Gem রিসেট করুন এবং গোপন বাক্যাংশ দিয়ে আপনার ওয়ালেটগুলো আমদানি করুন।"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bezpečnostní klíč tohoto telefonu se změnil, takže Gem nemůže přečíst peněženky, které jsou zde uložené. Vaše prostředky jsou na svých sítích v bezpečí. Resetujte Gem a importujte své peněženky pomocí jejich tajných frází."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Telefonens sikkerhedsnøgle er ændret, så Gem kan ikke læse de tegnebøger, der er gemt her. Dine midler er i sikkerhed på deres netværk. Nulstil Gem, og importér dine tegnebøger med deres hemmelige sætninger."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Sicherheitsschlüssel dieses Telefons hat sich geändert, daher kann Gem die hier gespeicherten Wallets nicht lesen. Ihr Guthaben ist in den jeweiligen Netzwerken sicher. Setzen Sie Gem zurück und importieren Sie Ihre Wallets mit ihren geheimen Phrasen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This phone's security key has changed, so Gem can't read the wallets saved here. Your funds are safe on their networks. Reset Gem and import your wallets with their Secret Phrases."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La clave de seguridad de este teléfono cambió, así que Gem no puede leer las billeteras guardadas aquí. Tus fondos están a salvo en sus redes. Restablece Gem e importa tus billeteras con sus frases secretas."
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "کلید امنیتی این گوشی تغییر کرده است، بنابراین Gem نمی‌تواند کیف پول‌های ذخیره‌شده در اینجا را بخواند. دارایی‌های شما در شبکه‌هایشان امن هستند. Gem را بازنشانی کنید و کیف پول‌هایتان را با عبارت‌های مخفی‌شان وارد کنید."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nagbago ang security key ng phone na ito, kaya hindi mabasa ng Gem ang mga wallet na naka-save dito. Ligtas ang iyong pondo sa kani-kanilang network. I-reset ang Gem at i-import ang iyong mga wallet gamit ang kanilang Lihim na Parirala."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La clé de sécurité de ce téléphone a changé, Gem ne peut donc pas lire les portefeuilles enregistrés ici. Vos fonds sont en sécurité sur leurs réseaux. Réinitialisez Gem et importez vos portefeuilles avec leurs phrases secrètes."
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maɓallin tsaro na wannan wayar ya canza, don haka Gem ba zai iya karanta walat ɗin da aka adana a nan ba. Kuɗaɗenka suna cikin aminci a hanyoyin sadarwarsu. Sake saita Gem kuma ka shigo da walat ɗinka da Kalmomin Sirrinsu."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "מפתח האבטחה של הטלפון הזה השתנה, ולכן Gem לא יכול לקרוא את הארנקים שנשמרו כאן. הכספים שלך בטוחים ברשתות שלהם. אפס את Gem וייבא את הארנקים שלך באמצעות הביטויים הסודיים שלהם."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "इस फ़ोन की सुरक्षा कुंजी बदल गई है, इसलिए Gem यहाँ सहेजे गए वॉलेट नहीं पढ़ सकता। आपके फ़ंड उनके नेटवर्क पर सुरक्षित हैं। Gem रीसेट करें और अपने वॉलेट उनके गुप्त वाक्यांशों से आयात करें।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kunci keamanan ponsel ini telah berubah, sehingga Gem tidak dapat membaca dompet yang tersimpan di sini. Dana Anda aman di jaringannya masing-masing. Atur ulang Gem dan impor dompet Anda dengan Frasa Rahasianya."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La chiave di sicurezza di questo telefono è cambiata, quindi Gem non può leggere i portafogli salvati qui. I tuoi fondi sono al sicuro sulle loro reti. Reimposta Gem e importa i tuoi portafogli con le loro frasi segrete."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このスマートフォンのセキュリティキーが変更されたため、Gem はここに保存されたウォレットを読み取れません。資産はそれぞれのネットワーク上で安全です。Gem をリセットし、リカバリーフレーズでウォレットをインポートしてください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 휴대폰의 보안 키가 변경되어 Gem이 여기에 저장된 지갑을 읽을 수 없습니다. 자금은 각 네트워크에서 안전합니다. Gem을 재설정하고 비밀 문구로 지갑을 가져오세요."
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kunci keselamatan telefon ini telah berubah, jadi Gem tidak dapat membaca dompet yang disimpan di sini. Dana anda selamat pada rangkaian masing-masing. Tetapkan semula Gem dan import dompet anda dengan Frasa Rahsianya."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De beveiligingssleutel van deze telefoon is gewijzigd, waardoor Gem de hier opgeslagen portemonnees niet kan lezen. Uw tegoeden zijn veilig op hun netwerken. Reset Gem en importeer uw portemonnees met hun geheime zinnen."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klucz bezpieczeństwa tego telefonu się zmienił, więc Gem nie może odczytać zapisanych tu portfeli. Twoje środki są bezpieczne w swoich sieciach. Zresetuj Gem i zaimportuj portfele za pomocą ich tajnych zdań."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A chave de segurança deste celular mudou, então o Gem não consegue ler as carteiras salvas aqui. Seus fundos estão seguros nas respectivas redes. Redefina o Gem e importe suas carteiras com as frases secretas delas."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cheia de securitate a acestui telefon s-a schimbat, așa că Gem nu poate citi portofelele salvate aici. Fondurile dvs. sunt în siguranță în rețelele lor. Resetați Gem și importați-vă portofelele cu frazele lor secrete."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ключ безопасности этого телефона изменился, поэтому Gem не может прочитать сохранённые здесь кошельки. Ваши средства в безопасности в своих сетях. Сбросьте Gem и импортируйте кошельки с помощью их секретных фраз."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ufunguo wa usalama wa simu hii umebadilika, kwa hivyo Gem haiwezi kusoma pochi zilizohifadhiwa hapa. Fedha zako ziko salama kwenye mitandao yake. Weka upya Gem kisha uingize pochi zako kwa Vifungu vyao vya Siri."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "คีย์ความปลอดภัยของโทรศัพท์เครื่องนี้เปลี่ยนไป Gem จึงอ่านกระเป๋าเงินที่บันทึกไว้ที่นี่ไม่ได้ เงินทุนของคุณยังปลอดภัยบนเครือข่ายของกระเป๋าเงินแต่ละใบ รีเซ็ต Gem แล้วนำเข้ากระเป๋าเงินของคุณด้วยวลีลับ"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu telefonun güvenlik anahtarı değişti, bu yüzden Gem burada kayıtlı cüzdanları okuyamıyor. Fonlarınız kendi ağlarında güvende. Gem'i sıfırlayın ve cüzdanlarınızı Gizli İfadeleriyle içe aktarın."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ключ безпеки цього телефона змінився, тому Gem не може прочитати збережені тут гаманці. Ваші кошти в безпеці у своїх мережах. Скиньте Gem та імпортуйте гаманці за допомогою їхніх секретних фраз."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اس فون کی سیکیورٹی کلید بدل گئی ہے، اس لیے Gem یہاں محفوظ والیٹس نہیں پڑھ سکتا۔ آپ کے فنڈز اپنے نیٹ ورکس پر محفوظ ہیں۔ Gem ری سیٹ کریں اور اپنے والیٹس ان کے خفیہ جملوں سے درآمد کریں۔"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Khóa bảo mật của điện thoại này đã thay đổi nên Gem không thể đọc các ví đã lưu ở đây. Tiền của bạn vẫn an toàn trên các mạng tương ứng. Hãy đặt lại Gem và nhập ví bằng Cụm từ bí mật của chúng."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此手机的安全密钥已更改，Gem 无法读取保存在这里的钱包。资金在各自的网络上仍然安全。请重置 Gem，并使用助记词导入钱包。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此手機的安全金鑰已變更，Gem 無法讀取儲存在這裡的錢包。資金在各自的網路上仍然安全。請重設 Gem，並使用助記詞匯入錢包。"
+          }
+        }
+      }
+    },
+    "lock.key_changed_title": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لا يمكن فتح قفل Gem على هذا الهاتف"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এই ফোনে Gem আনলক করা যাচ্ছে না"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem nelze na tomto telefonu odemknout"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem kan ikke låses op på denne telefon"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem kann auf diesem Telefon nicht entsperrt werden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem can't unlock on this phone"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem no puede desbloquearse en este teléfono"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "قفل Gem روی این گوشی باز نمی‌شود"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hindi ma-unlock ang Gem sa phone na ito"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem ne peut pas se déverrouiller sur ce téléphone"
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem ba zai iya buɗewa a wannan wayar ba"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "לא ניתן לבטל את נעילת Gem בטלפון הזה"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "इस फ़ोन पर Gem अनलॉक नहीं हो सकता"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem tidak dapat dibuka di ponsel ini"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem non può sbloccarsi su questo telefono"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このスマートフォンでは Gem のロックを解除できません"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 휴대폰에서 Gem 잠금을 해제할 수 없습니다"
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem tidak dapat dibuka kunci pada telefon ini"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem kan niet worden ontgrendeld op deze telefoon"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie można odblokować Gem na tym telefonie"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Gem não pode ser desbloqueado neste celular"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem nu poate fi deblocat pe acest telefon"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удаётся разблокировать Gem на этом телефоне"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem haiwezi kufunguliwa kwenye simu hii"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ไม่สามารถปลดล็อก Gem บนโทรศัพท์เครื่องนี้ได้"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem'in kilidi bu telefonda açılamıyor"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не вдається розблокувати Gem на цьому телефоні"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اس فون پر Gem کو ان لاک نہیں کیا جا سکتا"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Không thể mở khóa Gem trên điện thoại này"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法在此手机上解锁 Gem"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法在此手機上解鎖 Gem"
+          }
+        }
+      }
+    },
     "lock.one_hour": {
       "extractionState": "manual",
       "localizations": {
@@ -49848,6 +50230,579 @@
           "stringUnit": {
             "state": "translated",
             "value": "需要身分驗證"
+          }
+        }
+      }
+    },
+    "lock.reset": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إعادة الضبط"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "রিসেট করুন"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resetovat"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nulstil"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zurücksetzen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reset"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restablecer"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "بازنشانی"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I-reset"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réinitialiser"
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sake saita"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "איפוס"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "रीसेट करें"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atur Ulang"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reimposta"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "リセット"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "재설정"
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tetapkan Semula"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resetten"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zresetuj"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redefinir"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resetează"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сбросить"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weka upya"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "รีเซ็ต"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sıfırla"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скинути"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ری سیٹ کریں"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đặt lại"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重置"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重設"
+          }
+        }
+      }
+    },
+    "lock.reset_description": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ستُزال المحافظ المحفوظة على هذا الهاتف. لا يمكنك استعادتها إلا بعباراتها السرية أو مفاتيحها الخاصة."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এই ফোনে সংরক্ষিত ওয়ালেটগুলো সরিয়ে ফেলা হবে। শুধু তাদের গোপন বাক্যাংশ বা ব্যক্তিগত কী দিয়েই আপনি সেগুলো ফিরিয়ে আনতে পারবেন।"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Peněženky uložené v tomto telefonu budou odstraněny. Obnovit je můžete jen pomocí jejich tajných frází nebo soukromých klíčů."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tegnebøgerne, der er gemt på denne telefon, bliver fjernet. Du kan kun få dem tilbage med deres hemmelige sætninger eller private nøgler."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die auf diesem Telefon gespeicherten Wallets werden entfernt. Sie können sie nur mit ihren geheimen Phrasen oder privaten Schlüsseln wiederherstellen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The wallets saved on this phone will be removed. You can bring them back only with their Secret Phrases or private keys."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se eliminarán las billeteras guardadas en este teléfono. Solo podrás recuperarlas con sus frases secretas o claves privadas."
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "کیف پول‌های ذخیره‌شده در این گوشی حذف می‌شوند. فقط با عبارت‌های مخفی یا کلیدهای خصوصی‌شان می‌توانید آن‌ها را برگردانید."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aalisin ang mga wallet na naka-save sa phone na ito. Maibabalik mo lang ang mga ito gamit ang kanilang Lihim na Parirala o pribadong susi."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les portefeuilles enregistrés sur ce téléphone seront supprimés. Vous ne pourrez les récupérer qu'avec leurs phrases secrètes ou leurs clés privées."
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Za a cire walat ɗin da aka adana a wannan wayar. Za ka iya dawo da su ne kawai da Kalmomin Sirrinsu ko keɓaɓɓun maɓallansu."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "הארנקים השמורים בטלפון הזה יוסרו. אפשר לשחזר אותם רק באמצעות הביטויים הסודיים או המפתחות הפרטיים שלהם."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "इस फ़ोन पर सहेजे गए वॉलेट हटा दिए जाएँगे। आप उन्हें केवल उनके गुप्त वाक्यांशों या निजी कुंजियों से वापस ला सकते हैं।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dompet yang tersimpan di ponsel ini akan dihapus. Anda hanya dapat memulihkannya dengan Frasa Rahasia atau kunci privatnya."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I portafogli salvati su questo telefono verranno rimossi. Potrai recuperarli solo con le loro frasi segrete o chiavi private."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このスマートフォンに保存されているウォレットは削除されます。元に戻すには、リカバリーフレーズまたはプライベートキーが必要です。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 휴대폰에 저장된 지갑이 삭제됩니다. 비밀 문구나 개인 키로만 다시 복구할 수 있습니다."
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dompet yang disimpan pada telefon ini akan dialih keluar. Anda hanya boleh memulihkannya dengan Frasa Rahsia atau kunci peribadinya."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De portemonnees die op deze telefoon zijn opgeslagen, worden verwijderd. U kunt ze alleen terugzetten met hun geheime zinnen of privésleutels."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Portfele zapisane na tym telefonie zostaną usunięte. Możesz je przywrócić tylko za pomocą ich tajnych zdań lub kluczy prywatnych."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As carteiras salvas neste celular serão removidas. Você só poderá recuperá-las com as frases secretas ou chaves privadas delas."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Portofelele salvate pe acest telefon vor fi eliminate. Le puteți recupera doar cu frazele lor secrete sau cu cheile private."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Кошельки, сохранённые на этом телефоне, будут удалены. Вернуть их можно только с помощью секретных фраз или приватных ключей."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pochi zilizohifadhiwa kwenye simu hii zitaondolewa. Unaweza kuzirejesha tu kwa Vifungu vyao vya Siri au funguo zao za kibinafsi."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "กระเป๋าเงินที่บันทึกไว้ในโทรศัพท์เครื่องนี้จะถูกลบ คุณจะกู้คืนได้ด้วยวลีลับหรือคีย์ส่วนตัวเท่านั้น"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu telefonda kayıtlı cüzdanlar kaldırılacak. Onları yalnızca Gizli İfadeleri veya özel anahtarlarıyla geri getirebilirsiniz."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Гаманці, збережені на цьому телефоні, буде видалено. Повернути їх можна лише за допомогою їхніх секретних фраз або приватних ключів."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اس فون پر محفوظ والیٹس ہٹا دیے جائیں گے۔ آپ انہیں صرف ان کے خفیہ جملوں یا نجی کلیدوں سے واپس لا سکتے ہیں۔"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Các ví đã lưu trên điện thoại này sẽ bị xóa. Bạn chỉ có thể khôi phục chúng bằng Cụm từ bí mật hoặc khóa riêng của chúng."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此手机上保存的钱包将被移除。只有使用助记词或私钥才能恢复它们。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此手機上儲存的錢包將被移除。只有使用助記詞或私鑰才能復原它們。"
+          }
+        }
+      }
+    },
+    "lock.reset_title": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إعادة ضبط Gem على هذا الهاتف؟"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এই ফোনে Gem রিসেট করবেন?"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resetovat Gem na tomto telefonu?"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nulstil Gem på denne telefon?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem auf diesem Telefon zurücksetzen?"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reset Gem on this phone?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Restablecer Gem en este teléfono?"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem روی این گوشی بازنشانی شود؟"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I-reset ang Gem sa phone na ito?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réinitialiser Gem sur ce téléphone ?"
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sake saita Gem a wannan wayar?"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "לאפס את Gem בטלפון הזה?"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "इस फ़ोन पर Gem रीसेट करें?"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atur ulang Gem di ponsel ini?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reimpostare Gem su questo telefono?"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このスマートフォンの Gem をリセットしますか？"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 휴대폰에서 Gem을 재설정할까요?"
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tetapkan semula Gem pada telefon ini?"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem op deze telefoon resetten?"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zresetować Gem na tym telefonie?"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redefinir o Gem neste celular?"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resetați Gem pe acest telefon?"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сбросить Gem на этом телефоне?"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weka upya Gem kwenye simu hii?"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "รีเซ็ต Gem บนโทรศัพท์เครื่องนี้ใช่ไหม"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gem bu telefonda sıfırlansın mı?"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скинути Gem на цьому телефоні?"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اس فون پر Gem ری سیٹ کریں؟"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đặt lại Gem trên điện thoại này?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要在此手机上重置 Gem 吗？"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要在此手機上重設 Gem 嗎？"
           }
         }
       }

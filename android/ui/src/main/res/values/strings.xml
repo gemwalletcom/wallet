@@ -456,6 +456,11 @@
   <string name="lock_passcode">Passcode</string>
   <string name="lock_passcode_off_title">Device passcode is off</string>
   <string name="lock_passcode_off_description">Gem is locked with your device passcode. Turn on a passcode in your device settings to open Gem. Your wallets are safe.</string>
+  <string name="lock_key_changed_title">Gem can\'t unlock on this phone</string>
+  <string name="lock_key_changed_description">This phone\'s security key has changed, so Gem can\'t read the wallets saved here. Your funds are safe on their networks. Reset Gem and import your wallets with their Secret Phrases.</string>
+  <string name="lock_reset_title">Reset Gem on this phone?</string>
+  <string name="lock_reset_description">The wallets saved on this phone will be removed. You can bring them back only with their Secret Phrases or private keys.</string>
+  <string name="lock_reset">Reset</string>
   <string name="verify_phrase_title">Confirm</string>
   <string name="warnings_externally_controlled_account">This %1$s account can be controlled by someone else. Do not send funds to it unless you are certain you control it, or you may permanently lose your assets.</string>
   <string name="sell_title">Sell %1$s</string>

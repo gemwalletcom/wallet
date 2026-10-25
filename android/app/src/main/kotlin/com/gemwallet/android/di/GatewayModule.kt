@@ -95,7 +95,7 @@ object GatewayModule {
         alienProvider,
         nodes = nodes,
         preferences = GemstonePreferencesStore(
-            sharedPreferences = context.getSharedPreferences("gateway_preferences", Context.MODE_PRIVATE),
+            sharedPreferences = context.getSharedPreferences(GemstonePreferencesStore.GATEWAY_PREFERENCES_FILE_NAME, Context.MODE_PRIVATE),
         ),
         securePreferences = securePreferences,
     )
@@ -215,8 +215,7 @@ object GatewayModule {
 
     @Provides
     @Singleton
-    fun provideGemPaymentService(alienProvider: AlienProvider, assetsService: GemAssetsService, balanceService: GemBalanceService): GemPaymentService =
-        GemPaymentService(alienProvider, assetsService, balanceService)
+    fun provideGemPaymentService(alienProvider: AlienProvider, assetsService: GemAssetsService, balanceService: GemBalanceService): GemPaymentService = GemPaymentService(alienProvider, assetsService, balanceService)
 
     @Provides
     @Singleton

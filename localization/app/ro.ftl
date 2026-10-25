@@ -552,6 +552,11 @@ lock_footer = Protejați accesul la această aplicație pe dispozitivul dvs.
 lock_passcode = Cod de acces
 lock_passcode_off_title = Codul dispozitivului este dezactivat
 lock_passcode_off_description = Gem este blocat cu codul dispozitivului. Activați un cod din setările dispozitivului pentru a deschide Gem. Portofelele dvs. sunt în siguranță.
+lock_key_changed_title = Gem nu poate fi deblocat pe acest telefon
+lock_key_changed_description = Cheia de securitate a acestui telefon s-a schimbat, așa că Gem nu poate citi portofelele salvate aici. Fondurile dvs. sunt în siguranță în rețelele lor. Resetați Gem și importați-vă portofelele cu frazele lor secrete.
+lock_reset_title = Resetați Gem pe acest telefon?
+lock_reset_description = Portofelele salvate pe acest telefon vor fi eliminate. Le puteți recupera doar cu frazele lor secrete sau cu cheile private.
+lock_reset = Resetează
 
 # Verify
 

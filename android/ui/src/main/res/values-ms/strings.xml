@@ -456,6 +456,11 @@
   <string name="lock_passcode">Kod Laluan</string>
   <string name="lock_passcode_off_title">Kod laluan peranti dimatikan</string>
   <string name="lock_passcode_off_description">Gem dikunci dengan kod laluan peranti anda. Hidupkan kod laluan dalam tetapan peranti untuk membuka Gem. Dompet anda selamat.</string>
+  <string name="lock_key_changed_title">Gem tidak dapat dibuka kunci pada telefon ini</string>
+  <string name="lock_key_changed_description">Kunci keselamatan telefon ini telah berubah, jadi Gem tidak dapat membaca dompet yang disimpan di sini. Dana anda selamat pada rangkaian masing-masing. Tetapkan semula Gem dan import dompet anda dengan Frasa Rahsianya.</string>
+  <string name="lock_reset_title">Tetapkan semula Gem pada telefon ini?</string>
+  <string name="lock_reset_description">Dompet yang disimpan pada telefon ini akan dialih keluar. Anda hanya boleh memulihkannya dengan Frasa Rahsia atau kunci peribadinya.</string>
+  <string name="lock_reset">Tetapkan Semula</string>
   <string name="verify_phrase_title">Sahkan</string>
   <string name="warnings_externally_controlled_account">Akaun %1$s ini mungkin dikawal oleh orang lain. Jangan hantar dana ke akaun ini melainkan anda pasti anda yang mengawalnya, atau anda mungkin kehilangan aset anda secara kekal.</string>
   <string name="sell_title">Jual %1$s</string>

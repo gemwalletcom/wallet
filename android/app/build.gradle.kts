@@ -256,6 +256,7 @@ dependencies {
     implementation(libs.lifecycle.process)
     implementation(libs.lifecycle.runtime.compose)
     implementation(libs.datastore)
+    implementation(libs.room.runtime)
 
     implementation(libs.navigation3.runtime)
     implementation(libs.navigation3.ui)

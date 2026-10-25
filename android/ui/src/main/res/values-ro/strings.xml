@@ -456,6 +456,11 @@
   <string name="lock_passcode">Cod de acces</string>
   <string name="lock_passcode_off_title">Codul dispozitivului este dezactivat</string>
   <string name="lock_passcode_off_description">Gem este blocat cu codul dispozitivului. Activați un cod din setările dispozitivului pentru a deschide Gem. Portofelele dvs. sunt în siguranță.</string>
+  <string name="lock_key_changed_title">Gem nu poate fi deblocat pe acest telefon</string>
+  <string name="lock_key_changed_description">Cheia de securitate a acestui telefon s-a schimbat, așa că Gem nu poate citi portofelele salvate aici. Fondurile dvs. sunt în siguranță în rețelele lor. Resetați Gem și importați-vă portofelele cu frazele lor secrete.</string>
+  <string name="lock_reset_title">Resetați Gem pe acest telefon?</string>
+  <string name="lock_reset_description">Portofelele salvate pe acest telefon vor fi eliminate. Le puteți recupera doar cu frazele lor secrete sau cu cheile private.</string>
+  <string name="lock_reset">Resetează</string>
   <string name="verify_phrase_title">Confirmați</string>
   <string name="warnings_externally_controlled_account">Acest cont %1$s poate fi controlat de altcineva. Nu trimiteți fonduri în el decât dacă sunteți sigur că îl controlați, altfel vă puteți pierde definitiv bunurile.</string>
   <string name="sell_title">Vânzare %1$s</string>

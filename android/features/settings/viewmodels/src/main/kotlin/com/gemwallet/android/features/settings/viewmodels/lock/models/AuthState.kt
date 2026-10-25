@@ -4,4 +4,5 @@ enum class AuthState {
     Required,
     Success,
     Fail,
+    KeyChanged,
 }

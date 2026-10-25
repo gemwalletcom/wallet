@@ -552,6 +552,11 @@ lock_footer = Proteja o acesso a este aplicativo no seu dispositivo
 lock_passcode = Senha
 lock_passcode_off_title = O código do dispositivo está desativado
 lock_passcode_off_description = O Gem está bloqueado com o código do seu dispositivo. Ative um código nos ajustes do dispositivo para abrir o Gem. Suas carteiras estão seguras.
+lock_key_changed_title = O Gem não pode ser desbloqueado neste celular
+lock_key_changed_description = A chave de segurança deste celular mudou, então o Gem não consegue ler as carteiras salvas aqui. Seus fundos estão seguros nas respectivas redes. Redefina o Gem e importe suas carteiras com as frases secretas delas.
+lock_reset_title = Redefinir o Gem neste celular?
+lock_reset_description = As carteiras salvas neste celular serão removidas. Você só poderá recuperá-las com as frases secretas ou chaves privadas delas.
+lock_reset = Redefinir
 
 # Verify
 

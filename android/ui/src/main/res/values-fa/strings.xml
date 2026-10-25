@@ -456,6 +456,11 @@
   <string name="lock_passcode">رمز عبور</string>
   <string name="lock_passcode_off_title">رمز عبور دستگاه خاموش است</string>
   <string name="lock_passcode_off_description">Gem با رمز عبور دستگاه شما قفل شده است. برای باز کردن Gem، رمز عبور را در تنظیمات دستگاه روشن کنید. کیف پول‌های شما امن هستند.</string>
+  <string name="lock_key_changed_title">قفل Gem روی این گوشی باز نمی‌شود</string>
+  <string name="lock_key_changed_description">کلید امنیتی این گوشی تغییر کرده است، بنابراین Gem نمی‌تواند کیف پول‌های ذخیره‌شده در اینجا را بخواند. دارایی‌های شما در شبکه‌هایشان امن هستند. Gem را بازنشانی کنید و کیف پول‌هایتان را با عبارت‌های مخفی‌شان وارد کنید.</string>
+  <string name="lock_reset_title">Gem روی این گوشی بازنشانی شود؟</string>
+  <string name="lock_reset_description">کیف پول‌های ذخیره‌شده در این گوشی حذف می‌شوند. فقط با عبارت‌های مخفی یا کلیدهای خصوصی‌شان می‌توانید آن‌ها را برگردانید.</string>
+  <string name="lock_reset">بازنشانی</string>
   <string name="verify_phrase_title">تایید کنید</string>
   <string name="warnings_externally_controlled_account">ممکن است شخص دیگری این حساب %1$s را کنترل کند. تا زمانی که مطمئن نیستید کنترل آن در دست شماست، وجهی به آن ارسال نکنید، وگرنه ممکن است دارایی‌های خود را برای همیشه از دست بدهید.</string>
   <string name="sell_title">فروش %1$s</string>

@@ -456,6 +456,11 @@
   <string name="lock_passcode">Senha</string>
   <string name="lock_passcode_off_title">O código do dispositivo está desativado</string>
   <string name="lock_passcode_off_description">O Gem está bloqueado com o código do seu dispositivo. Ative um código nos ajustes do dispositivo para abrir o Gem. Suas carteiras estão seguras.</string>
+  <string name="lock_key_changed_title">O Gem não pode ser desbloqueado neste celular</string>
+  <string name="lock_key_changed_description">A chave de segurança deste celular mudou, então o Gem não consegue ler as carteiras salvas aqui. Seus fundos estão seguros nas respectivas redes. Redefina o Gem e importe suas carteiras com as frases secretas delas.</string>
+  <string name="lock_reset_title">Redefinir o Gem neste celular?</string>
+  <string name="lock_reset_description">As carteiras salvas neste celular serão removidas. Você só poderá recuperá-las com as frases secretas ou chaves privadas delas.</string>
+  <string name="lock_reset">Redefinir</string>
   <string name="verify_phrase_title">Confirmar</string>
   <string name="warnings_externally_controlled_account">Esta conta %1$s pode ser controlada por outra pessoa. Não envie fundos para ela a menos que tenha certeza de que você a controla, ou poderá perder seus ativos permanentemente.</string>
   <string name="sell_title">Vender %1$s</string>

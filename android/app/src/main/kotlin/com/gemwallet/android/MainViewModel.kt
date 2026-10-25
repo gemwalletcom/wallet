@@ -12,6 +12,8 @@ import com.gemwallet.android.application.wallet_connect.cases.IsWalletConnectEna
 import com.gemwallet.android.application.wallet_connect.cases.PairWalletConnect
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.ext.errorText
+import com.gemwallet.android.ext.runCatchingCancellable
+import com.gemwallet.android.services.LocalDataReset
 import com.gemwallet.android.services.MigrateV3KeystoreService
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.localization.text
@@ -49,6 +51,7 @@ class MainViewModel @Inject constructor(
     private val pairWalletConnect: PairWalletConnect,
     private val appStartService: GemAppStartServiceInterface,
     private val migrateV3KeystoreService: MigrateV3KeystoreService,
+    private val localDataReset: LocalDataReset,
     private val walletService: GemWalletServiceInterface,
     private val pendingNavigationCoordinator: PendingNavigationCoordinator,
     private val toastPresenter: ToastPresenter,
@@ -134,7 +137,23 @@ class MainViewModel @Inject constructor(
         Log.e("MainViewModel", "${failure.step} failed: ${failure.message}")
     }
 
-    fun pendIntent(intent: Intent) = pendingNavigationCoordinator.pendIntent(intent)
+    fun pendIntent(intent: Intent) {
+        if (intent.getBooleanExtra(IMPORT_WALLET_EXTRA, false)) {
+            _uiState.update { it.copy(opensImportWallet = true) }
+        }
+        pendingNavigationCoordinator.pendIntent(intent)
+    }
+
+    fun consumeImportWallet() = _uiState.update { it.copy(opensImportWallet = false) }
+
+    fun resetLocalData() = viewModelScope.launch(ioDispatcher) {
+        runCatchingCancellable { localDataReset.reset() }
+            .onSuccess { _uiState.update { it.copy(isLocalDataReset = true) } }
+            .onFailure { error ->
+                Log.e("MainViewModel", "local data reset failed", error)
+                _uiState.update { it.copy(startupError = error.errorText().text(context)) }
+            }
+    }
 
     fun consumePendingNavigation() = pendingNavigationCoordinator.clear()
 
@@ -191,5 +210,9 @@ class MainViewModel @Inject constructor(
         _uiState.update { it.copy(isWalletConnectUnsupportedVisible = true) }
     }
 
-    data class MainUIState(val walletConnectError: String? = null, val startupError: String? = null, val isWalletConnectUnsupportedVisible: Boolean = false)
+    data class MainUIState(val walletConnectError: String? = null, val startupError: String? = null, val isWalletConnectUnsupportedVisible: Boolean = false, val opensImportWallet: Boolean = false, val isLocalDataReset: Boolean = false)
+
+    companion object {
+        const val IMPORT_WALLET_EXTRA = "import_wallet"
+    }
 }

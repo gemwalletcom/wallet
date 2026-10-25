@@ -25,7 +25,7 @@ class AppLockPreferences(private val configStore: ConfigStore, private val secur
         authRequiredState.value = enabled
     }
 
-    override fun isLockEnabled(): Boolean = passwordProtection.authenticationRequired() || authRequired()
+    override fun isLockEnabled(): Boolean = authRequired() || passwordProtection.authenticationRequired()
 
     override fun getLockEnabled(): Flow<Boolean> = flow { emitAll(authRequiredState) }
         .map { it || passwordProtection.authenticationRequired() }

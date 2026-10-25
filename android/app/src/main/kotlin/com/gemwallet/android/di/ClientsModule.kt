@@ -2,6 +2,8 @@ package com.gemwallet.android.di
 
 import android.content.Context
 import android.os.Build
+import coil3.ImageLoader
+import coil3.SingletonImageLoader
 import com.gemwallet.android.model.BuildInfo
 import dagger.Module
 import dagger.Provides
@@ -17,6 +19,9 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 @Module
 object ClientsModule {
+
+    @Provides
+    fun provideImageLoader(@ApplicationContext context: Context): ImageLoader = SingletonImageLoader.get(context)
 
     @Provides
     @Singleton

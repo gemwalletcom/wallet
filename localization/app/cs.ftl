@@ -552,6 +552,11 @@ lock_footer = Chraňte přístup k této aplikaci na svém zařízení
 lock_passcode = Přístupový kód
 lock_passcode_off_title = Kód zařízení je vypnutý
 lock_passcode_off_description = Gem je zamčený kódem zařízení. Abyste Gem otevřeli, zapněte kód v nastavení zařízení. Vaše peněženky jsou v bezpečí.
+lock_key_changed_title = Gem nelze na tomto telefonu odemknout
+lock_key_changed_description = Bezpečnostní klíč tohoto telefonu se změnil, takže Gem nemůže přečíst peněženky, které jsou zde uložené. Vaše prostředky jsou na svých sítích v bezpečí. Resetujte Gem a importujte své peněženky pomocí jejich tajných frází.
+lock_reset_title = Resetovat Gem na tomto telefonu?
+lock_reset_description = Peněženky uložené v tomto telefonu budou odstraněny. Obnovit je můžete jen pomocí jejich tajných frází nebo soukromých klíčů.
+lock_reset = Resetovat
 
 # Verify
 

@@ -552,6 +552,11 @@ lock_footer = Kare damar shiga wannan app akan na'urarka
 lock_passcode = Lambar wucewa
 lock_passcode_off_title = An kashe lambar wucewar na'ura
 lock_passcode_off_description = An kulle Gem da lambar wucewar na'urarka. Kunna lambar wucewa a cikin saitunan na'urar don buɗe Gem. Walat ɗinka suna cikin aminci.
+lock_key_changed_title = Gem ba zai iya buɗewa a wannan wayar ba
+lock_key_changed_description = Maɓallin tsaro na wannan wayar ya canza, don haka Gem ba zai iya karanta walat ɗin da aka adana a nan ba. Kuɗaɗenka suna cikin aminci a hanyoyin sadarwarsu. Sake saita Gem kuma ka shigo da walat ɗinka da Kalmomin Sirrinsu.
+lock_reset_title = Sake saita Gem a wannan wayar?
+lock_reset_description = Za a cire walat ɗin da aka adana a wannan wayar. Za ka iya dawo da su ne kawai da Kalmomin Sirrinsu ko keɓaɓɓun maɓallansu.
+lock_reset = Sake saita
 
 # Verify
 

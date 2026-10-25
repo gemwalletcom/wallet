@@ -456,6 +456,11 @@
   <string name="lock_passcode">Toegangscode</string>
   <string name="lock_passcode_off_title">Toegangscode van apparaat staat uit</string>
   <string name="lock_passcode_off_description">Gem is vergrendeld met de toegangscode van uw apparaat. Zet een toegangscode aan in de apparaatinstellingen om Gem te openen. Uw portemonnees zijn veilig.</string>
+  <string name="lock_key_changed_title">Gem kan niet worden ontgrendeld op deze telefoon</string>
+  <string name="lock_key_changed_description">De beveiligingssleutel van deze telefoon is gewijzigd, waardoor Gem de hier opgeslagen portemonnees niet kan lezen. Uw tegoeden zijn veilig op hun netwerken. Reset Gem en importeer uw portemonnees met hun geheime zinnen.</string>
+  <string name="lock_reset_title">Gem op deze telefoon resetten?</string>
+  <string name="lock_reset_description">De portemonnees die op deze telefoon zijn opgeslagen, worden verwijderd. U kunt ze alleen terugzetten met hun geheime zinnen of privésleutels.</string>
+  <string name="lock_reset">Resetten</string>
   <string name="verify_phrase_title">Bevestig</string>
   <string name="warnings_externally_controlled_account">Dit %1$s-account kan door iemand anders worden beheerd. Stuur er geen geld naartoe, tenzij u zeker weet dat u het zelf beheert, anders kunt u uw bezittingen permanent kwijtraken.</string>
   <string name="sell_title">Verkoop %1$s</string>

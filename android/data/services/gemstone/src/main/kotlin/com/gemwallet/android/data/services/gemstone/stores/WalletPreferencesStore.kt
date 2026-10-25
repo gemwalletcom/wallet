@@ -10,7 +10,7 @@ class GemstoneWalletPreferencesStore(private val context: Context) : GemWalletPr
 
     override fun set(walletId: String, key: String, value: String) = preferences(walletId).edit { putString(key, value) }
 
-    override fun deletePreferences(walletId: String) = preferences(walletId).edit { clear() }
+    override fun deletePreferences(walletId: String) = preferences(walletId).edit(commit = true) { clear() }
 
     private fun preferences(walletId: String): SharedPreferences = context.getSharedPreferences("wallet_preferences_${walletId}_v2", Context.MODE_PRIVATE)
 }

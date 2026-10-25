@@ -456,6 +456,11 @@
   <string name="lock_passcode">קוד גישה</string>
   <string name="lock_passcode_off_title">קוד הגישה של המכשיר כבוי</string>
   <string name="lock_passcode_off_description">Gem נעול באמצעות קוד הגישה של המכשיר. הפעל קוד גישה בהגדרות המכשיר כדי לפתוח את Gem. הארנקים שלך בטוחים.</string>
+  <string name="lock_key_changed_title">לא ניתן לבטל את נעילת Gem בטלפון הזה</string>
+  <string name="lock_key_changed_description">מפתח האבטחה של הטלפון הזה השתנה, ולכן Gem לא יכול לקרוא את הארנקים שנשמרו כאן. הכספים שלך בטוחים ברשתות שלהם. אפס את Gem וייבא את הארנקים שלך באמצעות הביטויים הסודיים שלהם.</string>
+  <string name="lock_reset_title">לאפס את Gem בטלפון הזה?</string>
+  <string name="lock_reset_description">הארנקים השמורים בטלפון הזה יוסרו. אפשר לשחזר אותם רק באמצעות הביטויים הסודיים או המפתחות הפרטיים שלהם.</string>
+  <string name="lock_reset">איפוס</string>
   <string name="verify_phrase_title">אישור</string>
   <string name="warnings_externally_controlled_account">ייתכן שמישהו אחר שולט בחשבון %1$s זה. אל תשלח אליו כספים אלא אם אתה בטוח שאתה שולט בו, אחרת אתה עלול לאבד את הנכסים שלך לצמיתות.</string>
   <string name="sell_title">למכור %1$s</string>

@@ -71,7 +71,8 @@ class DevicePushSettings(
 
     suspend fun getPushToken(): String = configStore.getString(PUSH_TOKEN)
 
-    private companion object {
-        const val PUSH_TOKEN = "push_token"
+    companion object {
+        const val PREFERENCES_FILE_NAME = "device-info"
+        private const val PUSH_TOKEN = "push_token"
     }
 }

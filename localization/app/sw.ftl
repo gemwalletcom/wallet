@@ -552,6 +552,11 @@ lock_footer = Linda ufikiaji wa programu hii kwenye kifaa chako
 lock_passcode = Nambari ya siri
 lock_passcode_off_title = Nambari ya siri ya kifaa imezimwa
 lock_passcode_off_description = Gem imefungwa kwa nambari ya siri ya kifaa chako. Washa nambari ya siri kwenye mipangilio ya kifaa ili kufungua Gem. Pochi zako ziko salama.
+lock_key_changed_title = Gem haiwezi kufunguliwa kwenye simu hii
+lock_key_changed_description = Ufunguo wa usalama wa simu hii umebadilika, kwa hivyo Gem haiwezi kusoma pochi zilizohifadhiwa hapa. Fedha zako ziko salama kwenye mitandao yake. Weka upya Gem kisha uingize pochi zako kwa Vifungu vyao vya Siri.
+lock_reset_title = Weka upya Gem kwenye simu hii?
+lock_reset_description = Pochi zilizohifadhiwa kwenye simu hii zitaondolewa. Unaweza kuzirejesha tu kwa Vifungu vyao vya Siri au funguo zao za kibinafsi.
+lock_reset = Weka upya
 
 # Verify
 

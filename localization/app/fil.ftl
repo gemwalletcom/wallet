@@ -552,6 +552,11 @@ lock_footer = Protektahan ang access sa app na ito sa iyong device
 lock_passcode = Passcode
 lock_passcode_off_title = Naka-off ang passcode ng device
 lock_passcode_off_description = Naka-lock ang Gem gamit ang passcode ng iyong device. I-on ang passcode sa mga setting ng device para mabuksan ang Gem. Ligtas ang iyong mga wallet.
+lock_key_changed_title = Hindi ma-unlock ang Gem sa phone na ito
+lock_key_changed_description = Nagbago ang security key ng phone na ito, kaya hindi mabasa ng Gem ang mga wallet na naka-save dito. Ligtas ang iyong pondo sa kani-kanilang network. I-reset ang Gem at i-import ang iyong mga wallet gamit ang kanilang Lihim na Parirala.
+lock_reset_title = I-reset ang Gem sa phone na ito?
+lock_reset_description = Aalisin ang mga wallet na naka-save sa phone na ito. Maibabalik mo lang ang mga ito gamit ang kanilang Lihim na Parirala o pribadong susi.
+lock_reset = I-reset
 
 # Verify
 

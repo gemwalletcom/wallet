@@ -552,6 +552,11 @@ lock_footer = Protege el acceso a esta aplicación en tu dispositivo
 lock_passcode = Código de acceso
 lock_passcode_off_title = El código del dispositivo está desactivado
 lock_passcode_off_description = Gem está bloqueado con el código de tu dispositivo. Activa un código en los ajustes del dispositivo para abrir Gem. Tus billeteras están a salvo.
+lock_key_changed_title = Gem no puede desbloquearse en este teléfono
+lock_key_changed_description = La clave de seguridad de este teléfono cambió, así que Gem no puede leer las billeteras guardadas aquí. Tus fondos están a salvo en sus redes. Restablece Gem e importa tus billeteras con sus frases secretas.
+lock_reset_title = ¿Restablecer Gem en este teléfono?
+lock_reset_description = Se eliminarán las billeteras guardadas en este teléfono. Solo podrás recuperarlas con sus frases secretas o claves privadas.
+lock_reset = Restablecer
 
 # Verify
 

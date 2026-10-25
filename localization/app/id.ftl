@@ -552,6 +552,11 @@ lock_footer = Lindungi akses ke aplikasi ini di perangkat Anda
 lock_passcode = Kode Sandi
 lock_passcode_off_title = Kode sandi perangkat nonaktif
 lock_passcode_off_description = Gem dikunci dengan kode sandi perangkat Anda. Aktifkan kode sandi di pengaturan perangkat untuk membuka Gem. Dompet Anda aman.
+lock_key_changed_title = Gem tidak dapat dibuka di ponsel ini
+lock_key_changed_description = Kunci keamanan ponsel ini telah berubah, sehingga Gem tidak dapat membaca dompet yang tersimpan di sini. Dana Anda aman di jaringannya masing-masing. Atur ulang Gem dan impor dompet Anda dengan Frasa Rahasianya.
+lock_reset_title = Atur ulang Gem di ponsel ini?
+lock_reset_description = Dompet yang tersimpan di ponsel ini akan dihapus. Anda hanya dapat memulihkannya dengan Frasa Rahasia atau kunci privatnya.
+lock_reset = Atur Ulang
 
 # Verify
 

@@ -552,6 +552,11 @@ lock_footer = Schützen Sie den Zugriff auf diese App auf Ihrem Gerät
 lock_passcode = Passcode
 lock_passcode_off_title = Gerätecode ist deaktiviert
 lock_passcode_off_description = Gem ist mit dem Code Ihres Geräts gesperrt. Aktivieren Sie einen Code in den Geräteeinstellungen, um Gem zu öffnen. Ihre Wallets sind sicher.
+lock_key_changed_title = Gem kann auf diesem Telefon nicht entsperrt werden
+lock_key_changed_description = Der Sicherheitsschlüssel dieses Telefons hat sich geändert, daher kann Gem die hier gespeicherten Wallets nicht lesen. Ihr Guthaben ist in den jeweiligen Netzwerken sicher. Setzen Sie Gem zurück und importieren Sie Ihre Wallets mit ihren geheimen Phrasen.
+lock_reset_title = Gem auf diesem Telefon zurücksetzen?
+lock_reset_description = Die auf diesem Telefon gespeicherten Wallets werden entfernt. Sie können sie nur mit ihren geheimen Phrasen oder privaten Schlüsseln wiederherstellen.
+lock_reset = Zurücksetzen
 
 # Verify
 
