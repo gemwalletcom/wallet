@@ -7,8 +7,8 @@ import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.PendingNavigationCoordinator
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.WalletPasswordProtection
-import com.gemwallet.android.application.security.cases.SecurityPreferences
 import com.gemwallet.android.application.assets.cases.GetWalletHomeState
+import com.gemwallet.android.application.security.cases.SecurityPreferences
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.update.cases.SkipAppUpdate
 import com.gemwallet.android.application.update.cases.SyncAppUpdate
@@ -123,7 +123,7 @@ class AppViewModel @Inject constructor(
 
     private suspend fun offerStoreUpdate() {
         val offer = syncAppUpdate.syncAppUpdate() ?: return
-        if (offer.apkUrl != null) {
+        if (offer.downloadUrl != null) {
             return
         }
         state.update { it.copy(update = offer) }

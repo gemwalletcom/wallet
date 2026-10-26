@@ -40,7 +40,7 @@ class InAppUpdateViewModelTest {
 
     @Test
     fun `in app apk offer is available`() = runTest(testDispatcher) {
-        offer.value = mockGemAppUpdateOffer(version = "2.0.0", apkUrl = APK_URL)
+        offer.value = mockGemAppUpdateOffer(version = "2.0.0", downloadUrl = APK_URL)
 
         val viewModel = createViewModel()
         advanceUntilIdle()
@@ -63,7 +63,7 @@ class InAppUpdateViewModelTest {
 
     @Test
     fun `skip stores the optional update version`() = runTest(testDispatcher) {
-        offer.value = mockGemAppUpdateOffer(version = "2.0.0", actions = listOf(GemAppUpdateAction.SKIP, GemAppUpdateAction.UPDATE), apkUrl = APK_URL)
+        offer.value = mockGemAppUpdateOffer(version = "2.0.0", actions = listOf(GemAppUpdateAction.SKIP, GemAppUpdateAction.UPDATE), downloadUrl = APK_URL)
 
         val viewModel = createViewModel()
         advanceUntilIdle()
@@ -76,7 +76,7 @@ class InAppUpdateViewModelTest {
 
     @Test
     fun `update does not launch overlapping downloads and cancel marks canceled`() = runTest(testDispatcher) {
-        offer.value = mockGemAppUpdateOffer(version = "2.0.0", actions = listOf(GemAppUpdateAction.SKIP, GemAppUpdateAction.UPDATE), apkUrl = APK_URL)
+        offer.value = mockGemAppUpdateOffer(version = "2.0.0", actions = listOf(GemAppUpdateAction.SKIP, GemAppUpdateAction.UPDATE), downloadUrl = APK_URL)
 
         val viewModel = createViewModel()
         advanceUntilIdle()
@@ -109,7 +109,7 @@ class InAppUpdateViewModelTest {
 
     @Test
     fun `granting install permission reuses the downloaded apk`() = runTest(testDispatcher) {
-        offer.value = mockGemAppUpdateOffer(version = "2.0.0", apkUrl = APK_URL)
+        offer.value = mockGemAppUpdateOffer(version = "2.0.0", downloadUrl = APK_URL)
         updateService.canInstall = false
         updateService.suspendDownload = false
         val viewModel = createViewModel()
@@ -140,7 +140,7 @@ class InAppUpdateViewModelTest {
 
     @Test
     fun `changed offer is not installed after permission round trip`() = runTest(testDispatcher) {
-        offer.value = mockGemAppUpdateOffer(version = "2.0.0", apkUrl = APK_URL)
+        offer.value = mockGemAppUpdateOffer(version = "2.0.0", downloadUrl = APK_URL)
         updateService.canInstall = false
         updateService.suspendDownload = false
         val viewModel = createViewModel()
@@ -148,7 +148,7 @@ class InAppUpdateViewModelTest {
 
         viewModel.update()
         advanceUntilIdle()
-        offer.value = mockGemAppUpdateOffer(version = "3.0.0", apkUrl = APK_URL)
+        offer.value = mockGemAppUpdateOffer(version = "3.0.0", downloadUrl = APK_URL)
         updateService.canInstall = true
         advanceUntilIdle()
 

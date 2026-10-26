@@ -577,6 +577,7 @@ fun uniffi.gemstone.PlatformStore.toPrimitives(): com.wallet.core.primitives.Pla
     uniffi.gemstone.PlatformStore.SAMSUNG_STORE -> com.wallet.core.primitives.PlatformStore.SamsungStore
     uniffi.gemstone.PlatformStore.APK_UNIVERSAL -> com.wallet.core.primitives.PlatformStore.ApkUniversal
     uniffi.gemstone.PlatformStore.EMERALD -> com.wallet.core.primitives.PlatformStore.Emerald
+    uniffi.gemstone.PlatformStore.MAC_DMG -> com.wallet.core.primitives.PlatformStore.MacDmg
     uniffi.gemstone.PlatformStore.LOCAL -> com.wallet.core.primitives.PlatformStore.Local
 }
 
@@ -589,6 +590,7 @@ fun com.wallet.core.primitives.PlatformStore.toGem(): uniffi.gemstone.PlatformSt
     com.wallet.core.primitives.PlatformStore.SamsungStore -> uniffi.gemstone.PlatformStore.SAMSUNG_STORE
     com.wallet.core.primitives.PlatformStore.ApkUniversal -> uniffi.gemstone.PlatformStore.APK_UNIVERSAL
     com.wallet.core.primitives.PlatformStore.Emerald -> uniffi.gemstone.PlatformStore.EMERALD
+    com.wallet.core.primitives.PlatformStore.MacDmg -> uniffi.gemstone.PlatformStore.MAC_DMG
     com.wallet.core.primitives.PlatformStore.Local -> uniffi.gemstone.PlatformStore.LOCAL
 }
 

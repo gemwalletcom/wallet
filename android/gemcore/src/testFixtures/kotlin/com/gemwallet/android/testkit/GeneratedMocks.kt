@@ -1046,13 +1046,13 @@ fun mockGemAppUpdateOffer(
     title: uniffi.gemstone.GemLocalizedText = mockGemLocalizedText(),
     description: uniffi.gemstone.GemLocalizedText = mockGemLocalizedText(),
     actions: List<uniffi.gemstone.GemAppUpdateAction> = emptyList(),
-    apkUrl: String? = null,
+    downloadUrl: String? = null,
 ) = uniffi.gemstone.GemAppUpdateOffer(
     version = version,
     title = title,
     description = description,
     actions = actions,
-    apkUrl = apkUrl,
+    downloadUrl = downloadUrl,
 )
 
 fun mockGemAssetBalance(
@@ -1794,6 +1794,7 @@ fun mockGemSwapSession(
     refreshPausedUntilRestart: Boolean = false,
     input: uniffi.gemstone.GemSwapQuoteInput? = null,
     payValue: java.math.BigInteger? = null,
+    answers: uniffi.gemstone.GemSwapQuoteAnswers? = null,
 ) = uniffi.gemstone.GemSwapSession(
     quotes = quotes,
     selectedProvider = selectedProvider,
@@ -1803,6 +1804,7 @@ fun mockGemSwapSession(
     refreshPausedUntilRestart = refreshPausedUntilRestart,
     input = input,
     payValue = payValue,
+    answers = answers,
 )
 
 fun mockGemTransactionAmount(

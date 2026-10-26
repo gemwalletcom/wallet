@@ -15,6 +15,7 @@ pub enum PlatformStore {
     SamsungStore,
     ApkUniversal,
     Emerald,
+    MacDmg,
     Local,
 }
 
@@ -33,6 +34,7 @@ impl PlatformStore {
             Self::SamsungStore => "Samsung Store",
             Self::ApkUniversal => "APK Universal",
             Self::Emerald => "Emerald",
+            Self::MacDmg => "Mac DMG",
             Self::Local => "Local",
         }
     }

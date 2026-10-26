@@ -475,6 +475,7 @@ pub enum PlatformStore {
     SamsungStore,
     ApkUniversal,
     Emerald,
+    MacDmg,
     Local,
 }
 

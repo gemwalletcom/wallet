@@ -110,14 +110,14 @@ public extension Gemstone.GemAppUpdateOffer {
         title: Gemstone.GemLocalizedText = .mock(),
         description: Gemstone.GemLocalizedText = .mock(),
         actions: [Gemstone.GemAppUpdateAction] = [],
-        apkUrl: String? = nil,
+        downloadUrl: String? = nil,
     ) -> Gemstone.GemAppUpdateOffer {
         Gemstone.GemAppUpdateOffer(
             version: version,
             title: title,
             description: description,
             actions: actions,
-            apkUrl: apkUrl,
+            downloadUrl: downloadUrl,
         )
     }
 }
@@ -1126,6 +1126,7 @@ public extension Gemstone.GemSwapSession {
         refreshPausedUntilRestart: Bool = false,
         input: Gemstone.GemSwapQuoteInput? = nil,
         payValue: BigUInt? = nil,
+        answers: Gemstone.GemSwapQuoteAnswers? = nil,
     ) -> Gemstone.GemSwapSession {
         Gemstone.GemSwapSession(
             quotes: quotes,
@@ -1136,6 +1137,7 @@ public extension Gemstone.GemSwapSession {
             refreshPausedUntilRestart: refreshPausedUntilRestart,
             input: input,
             payValue: payValue,
+            answers: answers,
         )
     }
 }

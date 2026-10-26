@@ -243,6 +243,7 @@ fn store_url(store: PlatformStore) -> PublicUrl {
         PlatformStore::AppStore => PublicUrl::AppStore,
         PlatformStore::GooglePlay => PublicUrl::PlayStore,
         PlatformStore::Fdroid | PlatformStore::Huawei | PlatformStore::SolanaStore | PlatformStore::SamsungStore | PlatformStore::ApkUniversal | PlatformStore::Emerald | PlatformStore::Local => PublicUrl::APK,
+        PlatformStore::MacDmg => PublicUrl::DMG,
     }
 }
 
@@ -459,6 +460,19 @@ mod tests {
                 target: GemUrlTarget::External,
             }),
             "the row points at the store the release came from, and a store page opens outside the app"
+        );
+
+        let mac = about_sections("1.2.3".to_string(), "345".to_string(), Some(Release::new(PlatformStore::MacDmg, "1.3.0".to_string(), false)));
+        assert_eq!(
+            mac.last().and_then(|section| section.rows.last().cloned()),
+            Some(GemListRow::Url {
+                title: GemListRowTitle::UpdateApp,
+                value: Some("1.3.0".to_string()),
+                icon: GemListRowIcon::AppLogo,
+                url: "https://apk.gemwallet.com/gem_wallet_latest.dmg".to_string(),
+                target: GemUrlTarget::External,
+            }),
+            "the Mac app has no store, so the row downloads the latest DMG"
         );
     }
 

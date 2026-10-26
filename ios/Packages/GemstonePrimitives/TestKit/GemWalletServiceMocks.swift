@@ -425,7 +425,7 @@ public final class GemAppUpdateServiceMock: GemAppUpdateServiceProtocol, @unchec
                 title: .appUpdateTitle,
                 description: .appUpdateDescription(version: $0.version),
                 actions: $0.upgradeRequired ? [.update] : [.skip, .update],
-                apkUrl: nil,
+                downloadUrl: nil,
             )
         }
     }

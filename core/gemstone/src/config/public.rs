@@ -13,6 +13,7 @@ pub enum PublicUrl {
     AppStore,
     PlayStore,
     APK,
+    DMG,
 }
 
 pub const WEBSITE_URL: &str = "https://gemwallet.com";
@@ -23,6 +24,10 @@ pub const DEVICE_STREAM_PATH: &str = "/v3/devices/stream";
 
 pub fn apk_download_url(version: &str) -> String {
     format!("{APK_URL}/gem_wallet_universal_{version}.apk")
+}
+
+pub fn dmg_download_url(version: &str) -> String {
+    format!("{APK_URL}/gem_wallet_{version}.dmg")
 }
 
 pub fn device_stream_url() -> String {
@@ -49,6 +54,7 @@ impl PublicUrl {
             Self::AppStore => "https://apps.apple.com/app/apple-store/id6448712670".to_string(),
             Self::PlayStore => format!("https://play.google.com/store/apps/details?id={GEM_ANDROID_PACKAGE_ID}"),
             Self::APK => format!("{APK_URL}/gem_wallet_latest.apk"),
+            Self::DMG => format!("{APK_URL}/gem_wallet_latest.dmg"),
         }
     }
 }

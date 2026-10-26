@@ -21,7 +21,7 @@ pub struct GemAppUpdateOffer {
     pub title: GemLocalizedText,
     pub description: GemLocalizedText,
     pub actions: Vec<GemAppUpdateAction>,
-    pub apk_url: Option<String>,
+    pub download_url: Option<String>,
 }
 
 #[uniffi::export]

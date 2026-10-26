@@ -1,5 +1,5 @@
 use super::{GemAppUpdateAction, GemAppUpdateOffer};
-use crate::config::public::apk_download_url;
+use crate::config::public::{apk_download_url, dmg_download_url};
 use crate::services::localization::GemLocalizedText;
 use primitives::{PlatformStore, Release, is_version_higher};
 
@@ -19,7 +19,11 @@ pub fn update_offer(release: Release) -> GemAppUpdateOffer {
             true => vec![GemAppUpdateAction::Update],
             false => vec![GemAppUpdateAction::Skip, GemAppUpdateAction::Update],
         },
-        apk_url: (release.store == PlatformStore::ApkUniversal).then(|| apk_download_url(&release.version)),
+        download_url: match release.store {
+            PlatformStore::ApkUniversal => Some(apk_download_url(&release.version)),
+            PlatformStore::MacDmg => Some(dmg_download_url(&release.version)),
+            PlatformStore::AppStore | PlatformStore::GooglePlay | PlatformStore::Fdroid | PlatformStore::Huawei | PlatformStore::SolanaStore | PlatformStore::SamsungStore | PlatformStore::Emerald | PlatformStore::Local => None,
+        },
         version: release.version,
     }
 }
@@ -46,13 +50,17 @@ mod tests {
     }
 
     #[test]
-    fn test_update_offer_apk_url() {
+    fn test_update_offer_download_url() {
         assert_eq!(
-            update_offer(Release::new(PlatformStore::ApkUniversal, "2.29".into(), false)).apk_url,
+            update_offer(Release::new(PlatformStore::ApkUniversal, "2.29".into(), false)).download_url,
             Some("https://apk.gemwallet.com/gem_wallet_universal_2.29.apk".into())
         );
-        assert_eq!(update_offer(Release::new(PlatformStore::GooglePlay, "2.29".into(), true)).apk_url, None);
-        assert_eq!(update_offer(Release::new(PlatformStore::Huawei, "2.29".into(), false)).apk_url, None);
+        assert_eq!(
+            update_offer(Release::new(PlatformStore::MacDmg, "2.29".into(), false)).download_url,
+            Some("https://apk.gemwallet.com/gem_wallet_2.29.dmg".into())
+        );
+        assert_eq!(update_offer(Release::new(PlatformStore::GooglePlay, "2.29".into(), true)).download_url, None);
+        assert_eq!(update_offer(Release::new(PlatformStore::Huawei, "2.29".into(), false)).download_url, None);
     }
 
     #[test]

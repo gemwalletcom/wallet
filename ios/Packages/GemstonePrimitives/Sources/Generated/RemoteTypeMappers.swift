@@ -837,6 +837,7 @@ public extension Gemstone.PlatformStore {
         case .samsungStore: .samsungStore
         case .apkUniversal: .apkUniversal
         case .emerald: .emerald
+        case .macDmg: .macDmg
         case .local: .local
         }
     }
@@ -853,6 +854,7 @@ public extension Primitives.PlatformStore {
         case .samsungStore: .samsungStore
         case .apkUniversal: .apkUniversal
         case .emerald: .emerald
+        case .macDmg: .macDmg
         case .local: .local
         }
     }

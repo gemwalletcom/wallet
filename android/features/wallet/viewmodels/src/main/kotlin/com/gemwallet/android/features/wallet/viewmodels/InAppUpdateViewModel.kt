@@ -22,7 +22,7 @@ import javax.inject.Inject
 class InAppUpdateViewModel @Inject constructor(observeAppUpdateOffer: ObserveAppUpdateOffer, private val skipAppUpdate: SkipAppUpdate, private val updateService: InAppUpdateService) : ViewModel() {
 
     val updateAvailable = observeAppUpdateOffer.observeAppUpdateOffer()
-        .map { offer -> offer?.takeIf { it.apkUrl != null } }
+        .map { offer -> offer?.takeIf { it.downloadUrl != null } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val _downloadState = MutableStateFlow<DownloadState>(DownloadState.Idle)
@@ -44,7 +44,7 @@ class InAppUpdateViewModel @Inject constructor(observeAppUpdateOffer: ObserveApp
         }
 
         val update = updateAvailable.value ?: return
-        val apkUrl = update.apkUrl ?: return
+        val apkUrl = update.downloadUrl ?: return
 
         downloadJob = viewModelScope.launch {
             downloadedVersion = null
