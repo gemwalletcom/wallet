@@ -12,7 +12,7 @@ pub fn map_transaction_preload(utxos: Vec<BitcoinUTXO>, input: TransactionPreloa
 pub fn map_utxos(utxos: Vec<BitcoinUTXO>, address: String) -> Vec<UTXO> {
     utxos
         .into_iter()
-        .filter(|utxo| !utxo.coinbase)
+        .filter(BitcoinUTXO::is_spendable)
         .map(|utxo| UTXO {
             transaction_id: utxo.txid,
             vout: utxo.vout,
