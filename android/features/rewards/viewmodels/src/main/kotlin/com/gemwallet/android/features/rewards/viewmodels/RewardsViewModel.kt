@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.gemwallet.android.AppUrl
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.store.queries.WalletsQuery
@@ -46,6 +47,7 @@ import uniffi.gemstone.GemRewardsPendingReferral
 import uniffi.gemstone.GemRewardsRedemption
 import uniffi.gemstone.GemRewardsServiceInterface
 import uniffi.gemstone.GemRewardsWallet
+import uniffi.gemstone.RewardsUrl
 import uniffi.gemstone.rewardsSession
 import javax.inject.Inject
 
@@ -61,6 +63,8 @@ class RewardsViewModel @Inject constructor(
     ToastEmitter by ToastEmitterImpl() {
 
     val infoSheet = MutableStateFlow<GemInfoTopic?>(null)
+
+    val rewardsUrl: String = AppUrl.rewards(RewardsUrl.REWARDS)
 
     private val errorState = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = errorState.asStateFlow()

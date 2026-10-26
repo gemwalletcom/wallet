@@ -35,6 +35,7 @@ import com.gemwallet.android.features.rewards.viewmodels.models.RewardsSheetType
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.DocsInfoButton
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.buttons.mainActionButtonColors
 import com.gemwallet.android.ui.components.clickable
@@ -80,6 +81,7 @@ internal fun RewardsScene(
     redemptions: List<GemRewardsRedemption>,
     sheet: RewardsSheetType?,
     isLoading: Boolean,
+    rewardsUrl: String,
     incomingCode: GemIncomingCode? = null,
     snackbar: SnackbarHostState = remember { SnackbarHostState() },
     onAction: (RewardsAction) -> Unit,
@@ -122,6 +124,8 @@ internal fun RewardsScene(
                         tint = MaterialTheme.colorScheme.onPrimary,
                     )
                 }
+            } else {
+                DocsInfoButton(rewardsUrl)
             }
         },
         onClose = { onAction(RewardsAction.Close) },
@@ -245,6 +249,7 @@ private fun RewardsScenePreview() {
             redemptions = emptyList(),
             sheet = null,
             isLoading = false,
+            rewardsUrl = "",
             onAction = {},
         )
     }
@@ -268,6 +273,7 @@ private fun RewardsSceneNoRewardsPreview() {
             redemptions = emptyList(),
             sheet = null,
             isLoading = false,
+            rewardsUrl = "",
             onAction = {},
         )
     }

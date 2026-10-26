@@ -75,6 +75,7 @@ fun RewardsScreen(onClose: () -> Unit, viewModel: RewardsViewModel = hiltViewMod
         redemptions = redemptions,
         sheet = sheet,
         isLoading = isLoading,
+        rewardsUrl = viewModel.rewardsUrl,
         snackbar = snackbar,
         onAction = { action ->
             when (action) {
