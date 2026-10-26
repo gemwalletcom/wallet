@@ -47,8 +47,12 @@ impl GemAddNodeSession {
 #[uniffi::export]
 impl GemAddNodeSession {
     pub fn on_input(&self, url: String) -> Self {
+        let url = url.trim();
+        if url == self.url {
+            return self.clone();
+        }
         Self {
-            url: url.trim().to_string(),
+            url: url.to_string(),
             check: None,
             error: None,
             is_checking: false,
@@ -151,6 +155,16 @@ mod tests {
         assert_eq!(retyped.view_state().phase, GemAddNodePhase::Idle);
         assert!(!retyped.view_state().shows_warning);
         assert!(!retyped.view_state().can_import, "a url that was never checked cannot be imported");
+    }
+
+    #[test]
+    fn test_whitespace_around_the_same_url_keeps_the_answer() {
+        let checked = GemAddNodeSession::new(Chain::Ethereum).on_input("https://node".to_string()).on_checked("https://node".to_string(), GemNodeCheck::mock());
+        let checking = GemAddNodeSession::new(Chain::Ethereum).on_input("https://node".to_string()).on_checking();
+
+        assert_eq!(checked.on_input("https://node ".to_string()), checked);
+        assert_eq!(checked.on_input(" https://node".to_string()), checked);
+        assert_eq!(checking.on_input("https://node ".to_string()), checking, "the running check still answers the same url");
     }
 
     #[test]
