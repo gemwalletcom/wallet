@@ -1,0 +1,49 @@
+appId: ${APP_ID}
+---
+- runFlow: launch.yaml
+- tapOn:
+    id: "settingsTab"
+- tapOn:
+    id: "wallets"
+- waitForAnimationToEnd
+- tapOn:
+    id: "import"
+- waitForAnimationToEnd
+- tapOn:
+    id: "ethereum"
+- waitForAnimationToEnd
+- tapOn:
+    id: "importInputField"
+- inputText: ${TEST_PHRASE}
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- tapOn:
+    id: "main_action"
+- runFlow: finish_onboarding.yaml
+- extendedWaitUntil:
+    visible:
+      id: "send_button"
+    timeout: 15000
+- assertVisible:
+    id: "ethereum"
+- assertNotVisible:
+    id: "bitcoin"
+- takeScreenshot: ${output.journey}_single_network_wallet
+- tapOn:
+    id: "settingsTab"
+- tapOn:
+    id: "wallets"
+- waitForAnimationToEnd
+- tapOn:
+    id: "wallet_edit"
+    index: 1
+- waitForAnimationToEnd
+- tapOn:
+    id: "delete"
+- tapOn: "Delete"
+- runFlow: launch.yaml
+- assertVisible:
+    text: ".*Maestro.*"

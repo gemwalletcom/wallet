@@ -25,3 +25,4 @@ appId: ${APP_ID}
 - runFlow: wallet_connect.yaml
 - runFlow: appearance.yaml
 - runFlow: language.yaml
+- runFlow: phrase_suggestions.yaml

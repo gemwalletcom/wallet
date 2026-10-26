@@ -71,6 +71,7 @@ private fun ImportWalletTypeScene(types: GemImportWalletTypes, chainFilter: Text
             itemsIndexed(types.chains) { index, row ->
                 ChainItem(
                     row = row,
+                    modifier = Modifier.testTag(row.chain),
                     listPosition = ListPosition.getPosition(index, types.chains.size),
                 ) {
                     onSelect(ImportType.phrase(row.chain.toChain()))

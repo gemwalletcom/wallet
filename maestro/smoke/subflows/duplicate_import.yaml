@@ -1,0 +1,42 @@
+appId: ${APP_ID}
+---
+- runFlow: launch.yaml
+- tapOn:
+    id: "settingsTab"
+- tapOn:
+    id: "wallets"
+- waitForAnimationToEnd
+- tapOn:
+    id: "import"
+- waitForAnimationToEnd
+- tapOn:
+    id: "multicoin_item"
+- tapOn:
+    id: "importInputField"
+- inputText: ${TEST_PHRASE}
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- tapOn:
+    id: "main_action"
+- extendedWaitUntil:
+    visible:
+      text: ".*Maestro.*"
+    timeout: 15000
+- tapOn:
+    id: "main_action"
+- runFlow: finish_onboarding.yaml
+- tapOn:
+    id: "settingsTab"
+- tapOn:
+    id: "wallets"
+- waitForAnimationToEnd
+- assertVisible:
+    id: "wallet_edit"
+- assertNotVisible:
+    id: "wallet_edit"
+    index: 1
+- takeScreenshot: ${output.journey}_duplicate_import
+- runFlow: launch.yaml
