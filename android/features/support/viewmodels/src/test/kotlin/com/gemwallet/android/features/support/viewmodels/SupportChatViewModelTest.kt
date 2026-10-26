@@ -1,11 +1,13 @@
 package com.gemwallet.android.features.support.viewmodels
 
 import android.content.Context
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import com.gemwallet.android.application.device.cases.EnablePushForSupport
 import com.gemwallet.android.data.services.store.queries.SupportMessagesQuery
 import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.ui.R
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -58,6 +60,19 @@ class SupportChatViewModelTest {
         advanceUntilIdle()
 
         assertEquals("offline", ((viewModel.phase.value as GemListPhase.Error).error as GemServiceException.Gateway).msg)
+    }
+
+    @Test
+    fun `sending a message sends it trimmed and clears the draft`() = runTest(testDispatcher) {
+        val supportService = mockk<GemSupportServiceInterface>(relaxed = true)
+        val viewModel = viewModel(supportService = supportService, enablePushForSupport = mockk { coEvery { enablePushForSupport() } returns null })
+        viewModel.messageState.setTextAndPlaceCursorAtEnd("  My swap is stuck ")
+
+        viewModel.sendMessage()
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { supportService.sendText("My swap is stuck") }
+        assertEquals("", viewModel.messageState.text.toString())
     }
 
     private fun viewModel(supportService: GemSupportServiceInterface, enablePushForSupport: EnablePushForSupport) = SupportChatViewModel(

@@ -117,7 +117,8 @@ fun SupportChatScreen(message: RouteMessage?, onMessageShown: () -> Unit, onCanc
             }
             SupportMessageInputBar(
                 onPickImage = { imagePicker.launch(PickVisualMediaRequest(PickVisualMedia.ImageOnly)) },
-                onSend = viewModel::sendText,
+                state = viewModel.messageState,
+                onSend = viewModel::sendMessage,
             )
         }
     }
