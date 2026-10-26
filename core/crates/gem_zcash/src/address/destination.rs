@@ -11,12 +11,12 @@ use zcash_protocol::consensus::NetworkType;
 use super::transparent::TransparentAddress;
 
 #[derive(Debug, Clone, PartialEq)]
-pub(crate) enum ZcashDestination {
+pub(crate) enum Destination {
     Transparent(ScriptBuf),
     Shielded(OrchardAddress),
 }
 
-impl ZcashDestination {
+impl Destination {
     pub(crate) fn into_spend(self) -> (SpendDestination, Option<OrchardAddress>) {
         match self {
             Self::Transparent(script_pubkey) => (SpendDestination::Script(script_pubkey), None),
@@ -39,13 +39,13 @@ impl ZcashDestination {
     }
 }
 
-impl From<TransparentAddress> for ZcashDestination {
+impl From<TransparentAddress> for Destination {
     fn from(address: TransparentAddress) -> Self {
         Self::Transparent(address.script())
     }
 }
 
-impl TryFromAddress for ZcashDestination {
+impl TryFromAddress for Destination {
     type Error = SignerError;
 
     fn try_from_unified(_net: NetworkType, address: unified::Address) -> Result<Self, ConversionError<Self::Error>> {
@@ -94,28 +94,25 @@ mod tests {
         let p2sh_script = mock_transparent_script("t3Vz22vK5z2LcKEdg16Yv4FFneEL1zg9ojd");
         let fallback_script = mock_transparent_script(&mock_sender_address(BitcoinChain::Zcash));
         let cases = [
-            (TEST_ZCASH_UNIFIED_ADDRESS.to_string(), ZcashDestination::Shielded(mock_orchard_recipient())),
-            (TEST_ZCASH_UNIFIED_ORCHARD_ADDRESS.to_string(), ZcashDestination::Shielded(mock_orchard_recipient())),
-            (TEST_ZCASH_UNIFIED_SAPLING_TRANSPARENT_ADDRESS.to_string(), ZcashDestination::Transparent(fallback_script)),
-            (TEST_ZCASH_TRANSPARENT_ADDRESS.to_string(), ZcashDestination::Transparent(transparent_script.clone())),
-            ("t3Vz22vK5z2LcKEdg16Yv4FFneEL1zg9ojd".to_string(), ZcashDestination::Transparent(p2sh_script)),
-            (TEST_ZCASH_TEX_ADDRESS.to_string(), ZcashDestination::Transparent(transparent_script.clone())),
-            (TEST_ZCASH_TEX_ADDRESS.to_uppercase(), ZcashDestination::Transparent(transparent_script)),
+            (TEST_ZCASH_UNIFIED_ADDRESS.to_string(), Destination::Shielded(mock_orchard_recipient())),
+            (TEST_ZCASH_UNIFIED_ORCHARD_ADDRESS.to_string(), Destination::Shielded(mock_orchard_recipient())),
+            (TEST_ZCASH_UNIFIED_SAPLING_TRANSPARENT_ADDRESS.to_string(), Destination::Transparent(fallback_script)),
+            (TEST_ZCASH_TRANSPARENT_ADDRESS.to_string(), Destination::Transparent(transparent_script.clone())),
+            ("t3Vz22vK5z2LcKEdg16Yv4FFneEL1zg9ojd".to_string(), Destination::Transparent(p2sh_script)),
+            (TEST_ZCASH_TEX_ADDRESS.to_string(), Destination::Transparent(transparent_script.clone())),
+            (TEST_ZCASH_TEX_ADDRESS.to_uppercase(), Destination::Transparent(transparent_script)),
         ];
         for (address, expected) in cases {
-            assert_eq!(ZcashDestination::parse(&address).unwrap(), expected, "{address}");
+            assert_eq!(Destination::parse(&address).unwrap(), expected, "{address}");
         }
 
-        assert_eq!(ZcashDestination::parse(TEST_ZCASH_UNIFIED_SAPLING_ADDRESS).unwrap_err(), SignerError::invalid_input("unsupported Zcash unified address"));
-        assert_eq!(ZcashDestination::parse(TEST_ZCASH_UNIFIED_TESTNET_ADDRESS).unwrap_err(), SignerError::invalid_input("unsupported Zcash network"));
+        assert_eq!(Destination::parse(TEST_ZCASH_UNIFIED_SAPLING_ADDRESS).unwrap_err(), SignerError::invalid_input("unsupported Zcash unified address"));
+        assert_eq!(Destination::parse(TEST_ZCASH_UNIFIED_TESTNET_ADDRESS).unwrap_err(), SignerError::invalid_input("unsupported Zcash network"));
         assert_eq!(
-            ZcashDestination::parse(&bech32::encode::<Bech32>(Hrp::parse("zs").unwrap(), &[0; 43]).unwrap()).unwrap_err(),
+            Destination::parse(&bech32::encode::<Bech32>(Hrp::parse("zs").unwrap(), &[0; 43]).unwrap()).unwrap_err(),
             SignerError::invalid_input("unsupported Zcash address")
         );
-    }
 
-    #[test]
-    fn test_parse_rejects_invalid_tex() {
         let tex = Hrp::parse("tex").unwrap();
         let addresses = [
             bech32::encode::<Bech32>(tex, &[0; 20]).unwrap(),
@@ -126,10 +123,10 @@ mod tests {
             "tEX1S2RT77GGV6Q989LR49RKGZMH5SLSKSA9KHDGTE".to_string(),
         ];
         for address in addresses {
-            assert!(ZcashDestination::parse(&address).is_err(), "{address}");
+            assert!(Destination::parse(&address).is_err(), "{address}");
         }
         assert_eq!(
-            ZcashDestination::parse(&bech32::encode::<Bech32m>(Hrp::parse("textest").unwrap(), &[0; 20]).unwrap()).unwrap_err(),
+            Destination::parse(&bech32::encode::<Bech32m>(Hrp::parse("textest").unwrap(), &[0; 20]).unwrap()).unwrap_err(),
             SignerError::invalid_input("unsupported Zcash network")
         );
     }

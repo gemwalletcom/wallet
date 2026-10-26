@@ -7,4 +7,6 @@ mod transaction;
 
 pub use chain_signer::ZcashChainSigner;
 #[cfg(feature = "rpc")]
-pub(crate) use plan::ZcashPlan;
+pub(crate) use plan::Plan;
+#[cfg(test)]
+pub(crate) use plan::ShieldedOutput;

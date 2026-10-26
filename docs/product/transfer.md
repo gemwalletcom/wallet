@@ -37,7 +37,7 @@ flowchart LR
 | The recipient is a Zcash unified address (`u1…`) with an Orchard receiver | the transparent balance pays that receiver in the shielded Ironwood pool, a memo travels encrypted in the note, and the Network Fee covers the two shielded actions; sending takes a few seconds longer while the proof is built | since NU6.3 a payment to someone else's shielded address can only land in Ironwood |
 | A Zcash unified address whose only shielded receiver is Sapling | its transparent receiver is paid; without one the address is not valid for Zcash | Sapling outputs need proving parameters Gem does not ship |
 | A Zcash send carries a memo but the recipient gets a transparent output | the fee cannot load and the send is refused | ZIP-321 memos are private; a transparent output would publish the memo on chain |
-| A Zcash unified address is shortened | at least its first 20 characters stay visible | ZIP-316 asks for 20 so a lookalike address cannot match the visible part |
+| An address of 100 characters or more is shortened, such as a Zcash unified address or a Cardano base address | at least its first 20 characters stay visible | a long address is easier to imitate in its first few characters; ZIP-316 asks for 20 |
 | A Bitcoin-family send carries a memo, as a scanned Zcash payment code can | Confirm shows the Memo row even though the send form has no memo field | every memo that will be signed is shown first |
 
 Names, the Network Fee, and account requirements follow the shared [Names](../PRODUCT.md#names), [Network Fee](../PRODUCT.md#network-fee), and [Network minimums and activation](../PRODUCT.md#network-minimums-and-activation) sections.

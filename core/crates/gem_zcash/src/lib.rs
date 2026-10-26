@@ -13,6 +13,6 @@ mod testkit;
 #[cfg(feature = "signer")]
 pub use address::{transparent_address, validate_address};
 #[cfg(feature = "rpc")]
-pub use provider::ZcashProvider;
+pub use provider::{ValueBalanceReader, ZcashProvider};
 #[cfg(feature = "signer")]
 pub use signer::ZcashChainSigner;

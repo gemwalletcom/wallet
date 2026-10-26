@@ -13,8 +13,8 @@ pub struct AddressFormatter;
 impl AddressFormatter {
     const CONNECTOR: &str = "...";
     const EDGE_CHARS: usize = 5;
-    const ZCASH_UNIFIED_PREFIX: &str = "u1";
-    const ZCASH_UNIFIED_LEADING_CHARS: usize = 20;
+    const LONG_ADDRESS_CHARS: usize = 100;
+    const LONG_ADDRESS_LEADING_CHARS: usize = 20;
 
     pub fn format(address: &str, chain: Option<Chain>, style: AddressFormatStyle) -> String {
         match style {
@@ -25,10 +25,10 @@ impl AddressFormatter {
     }
 
     fn truncate(address: &str, chain: Option<Chain>, extra: usize) -> String {
-        let leading = Self::leading_chars(address, chain) + extra;
-        let trailing = Self::EDGE_CHARS + extra;
         let chars = address.chars().collect::<Vec<_>>();
         let char_count = chars.len();
+        let leading = Self::leading_chars(char_count, chain) + extra;
+        let trailing = Self::EDGE_CHARS + extra;
 
         if char_count <= leading + trailing {
             return address.to_string();
@@ -39,14 +39,15 @@ impl AddressFormatter {
         format!("{start}{}{end}", Self::CONNECTOR)
     }
 
-    fn leading_chars(address: &str, chain: Option<Chain>) -> usize {
-        if chain == Some(Chain::Zcash) && address.get(..Self::ZCASH_UNIFIED_PREFIX.len()).is_some_and(|prefix| prefix.eq_ignore_ascii_case(Self::ZCASH_UNIFIED_PREFIX)) {
-            return Self::ZCASH_UNIFIED_LEADING_CHARS;
-        }
-        match chain.map(|chain| chain.chain_type()) {
+    fn leading_chars(char_count: usize, chain: Option<Chain>) -> usize {
+        let leading = match chain.map(|chain| chain.chain_type()) {
             Some(ChainType::Ethereum) => Self::EDGE_CHARS + "0x".len(),
             Some(ChainType::Bitcoin | ChainType::Aptos) => Self::EDGE_CHARS + 1,
             Some(_) | None => Self::EDGE_CHARS,
+        };
+        match char_count >= Self::LONG_ADDRESS_CHARS {
+            true => leading.max(Self::LONG_ADDRESS_LEADING_CHARS),
+            false => leading,
         }
     }
 }
@@ -86,5 +87,13 @@ mod tests {
             "U1QHWQ6EVPQQ04GA6DN0...42HXS"
         );
         assert_eq!(AddressFormatter::format("t1SdZhkr3TmiHttYNL6y4qsK5N7nMDoPHm8", Some(Chain::Zcash), AddressFormatStyle::Short), "t1SdZh...oPHm8");
+        assert_eq!(
+            AddressFormatter::format(
+                "addr1qx2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3n0d3vllmyqwsx5wktcd8cc3sq835lu7drv2xwl2wywfgse35a3x",
+                Some(Chain::Cardano),
+                AddressFormatStyle::Short
+            ),
+            "addr1qx2fxv2umyhttkx...35a3x"
+        );
     }
 }

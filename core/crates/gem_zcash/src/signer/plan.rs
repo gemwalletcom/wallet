@@ -5,7 +5,7 @@ use primitives::TransactionInputType;
 use primitives::{BitcoinChain, SignerError, SignerInput};
 
 use crate::{
-    address::{ParseAddress, ZcashDestination},
+    address::{Destination, ParseAddress},
     fee::Zip317Fee,
 };
 
@@ -31,12 +31,12 @@ impl ShieldedOutput {
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct ZcashPlan {
+pub(crate) struct Plan {
     pub(crate) spend: SpendPlan,
     pub(crate) shielded_output: Option<ShieldedOutput>,
 }
 
-impl ZcashPlan {
+impl Plan {
     pub(crate) fn transfer(input: &SignerInput) -> Result<Self, SignerError> {
         let mut recipient = None;
         let request = SpendRequest::transfer(BitcoinChain::Zcash, input, |address| Self::destination(address, &mut recipient))?;
@@ -62,7 +62,7 @@ impl ZcashPlan {
     }
 
     fn destination(address: &str, recipient: &mut Option<OrchardAddress>) -> Result<SpendDestination, SignerError> {
-        let (destination, shielded) = ZcashDestination::parse(address)?.into_spend();
+        let (destination, shielded) = Destination::parse(address)?.into_spend();
         *recipient = shielded;
         Ok(destination)
     }
@@ -87,48 +87,43 @@ mod tests {
     use crate::testkit::{TEST_ZCASH_UNIFIED_ADDRESS, TEST_ZCASH_UNIFIED_SAPLING_TRANSPARENT_ADDRESS, mock_orchard_recipient, mock_transparent_script};
 
     #[test]
-    fn test_transfer_shielded() {
+    fn test_transfer() {
         let sender_address = mock_sender_address(BitcoinChain::Zcash);
         let change_script = mock_transparent_script(&sender_address);
-        let mut input = zcash_mock::mock_signer_input(sender_address, TEST_ZCASH_UNIFIED_ADDRESS.to_string());
+        let mut input = zcash_mock::mock_signer_input(sender_address.clone(), TEST_ZCASH_UNIFIED_ADDRESS.to_string());
         input.input.memo = Some("thanks".to_string());
 
-        let plan = ZcashPlan::transfer(&input).unwrap();
+        let plan = Plan::transfer(&input).unwrap();
         let shielded_output = plan.shielded_output.unwrap();
         assert_eq!(plan.spend.fee, 15_000);
         assert_eq!(plan.spend.outputs.iter().map(|output| (output.value.to_sat(), output.script_pubkey.clone())).collect::<Vec<_>>(), vec![(15_000, change_script)]);
         assert_eq!((shielded_output.recipient, shielded_output.value, shielded_output.memo), (mock_orchard_recipient(), 20_000, Some(b"thanks".to_vec())));
 
         input.input.is_max_value = true;
-        let plan = ZcashPlan::transfer(&input).unwrap();
+        let plan = Plan::transfer(&input).unwrap();
         assert_eq!(plan.spend.fee, 15_000);
         assert!(plan.spend.outputs.is_empty());
         assert_eq!(plan.shielded_output.unwrap().value, 35_000);
 
         input.input.memo = Some("a".repeat(513));
-        assert_eq!(ZcashPlan::transfer(&input).unwrap_err(), SignerError::invalid_input("Zcash memo is too large"));
-    }
+        assert_eq!(Plan::transfer(&input).unwrap_err(), SignerError::invalid_input("Zcash memo is too large"));
 
-    #[test]
-    fn test_transfer_rejects_memo_without_shielded_receiver() {
-        let sender_address = mock_sender_address(BitcoinChain::Zcash);
         let mut input = zcash_mock::mock_signer_input(sender_address.clone(), TEST_ZCASH_UNIFIED_SAPLING_TRANSPARENT_ADDRESS.to_string());
         input.input.memo = Some("secret".to_string());
-        assert_eq!(ZcashPlan::transfer(&input).unwrap_err(), SignerError::invalid_input("Zcash memo requires a shielded address"));
+        assert_eq!(Plan::transfer(&input).unwrap_err(), SignerError::invalid_input("Zcash memo requires a shielded address"));
 
         input.input.destination_address = sender_address;
-        assert_eq!(ZcashPlan::transfer(&input).unwrap_err(), SignerError::invalid_input("Zcash memo requires a shielded address"));
+        assert_eq!(Plan::transfer(&input).unwrap_err(), SignerError::invalid_input("Zcash memo requires a shielded address"));
 
         input.input.memo = None;
-        assert!(ZcashPlan::transfer(&input).unwrap().shielded_output.is_none());
+        assert!(Plan::transfer(&input).unwrap().shielded_output.is_none());
     }
 
     #[test]
     fn test_memo_bytes() {
         let output = ShieldedOutput {
-            recipient: mock_orchard_recipient(),
-            value: 1,
             memo: Some(b"hello".to_vec()),
+            ..ShieldedOutput::mock()
         };
         let mut expected = [0u8; MEMO_BYTES];
         expected[..5].copy_from_slice(b"hello");

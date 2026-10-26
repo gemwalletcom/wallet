@@ -13,7 +13,10 @@ const QUERY_ADDRESS: &str = "address";
 pub fn decode(path: &str) -> Result<Payment> {
     let (path_address, query) = path.split_once('?').unwrap_or((path, ""));
     let parameters = query::parameters(query);
-    if parameters.iter().any(|(key, _)| is_payment_index(key)) {
+    if parameters
+        .iter()
+        .any(|(key, _)| key.rsplit_once('.').is_some_and(|(_, index)| !index.is_empty() && index.bytes().all(|byte| byte.is_ascii_digit())))
+    {
         return Err(PaymentDecoderError::InvalidFormat("Multiple Zcash payments are not supported".to_string()));
     }
     let address = match (path_address, query::values(&parameters, QUERY_ADDRESS).as_slice()) {
@@ -24,19 +27,19 @@ pub fn decode(path: &str) -> Result<Payment> {
     let request = bip21::get_request(Some(Chain::Zcash), &format!("{address}?{query}"))?;
     Ok(Payment::Request {
         request: PaymentRequest {
-            memo: request.memo.as_deref().map(decode_memo).transpose()?,
+            memo: request
+                .memo
+                .as_deref()
+                .map(|memo| {
+                    decode_base64_url(memo)
+                        .ok()
+                        .and_then(|bytes| String::from_utf8(bytes).ok())
+                        .ok_or_else(|| PaymentDecoderError::InvalidFormat("Invalid Zcash memo".to_string()))
+                })
+                .transpose()?,
             ..request
         },
     })
-}
-
-fn is_payment_index(key: &str) -> bool {
-    key.rsplit_once('.').is_some_and(|(_, index)| !index.is_empty() && index.bytes().all(|byte| byte.is_ascii_digit()))
-}
-
-fn decode_memo(memo: &str) -> Result<String> {
-    let bytes = decode_base64_url(memo).map_err(|_| PaymentDecoderError::InvalidFormat("Invalid Zcash memo".to_string()))?;
-    String::from_utf8(bytes).map_err(|_| PaymentDecoderError::InvalidFormat("Invalid Zcash memo".to_string()))
 }
 
 #[cfg(test)]

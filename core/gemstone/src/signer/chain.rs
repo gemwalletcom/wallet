@@ -240,6 +240,7 @@ fn unsupported_error(chain: Chain, action: &str) -> GemstoneError {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use gem_bitcoin::testkit::signer_mock::{TEST_PRIVATE_KEY as TEST_BITCOIN_PRIVATE_KEY, mock_transfer_swap_input};
     use gem_evm::testkit::eip712_mock::mock_eip712_json;
     use primitives::contract_constants::HYPERLIQUID_ARBITRUM_DEPOSIT_ADDRESS;
     use primitives::known_assets::HYPERCORE_SPOT_USDC;
@@ -476,8 +477,8 @@ mod tests {
 
     #[test]
     fn test_sign_input_zcash_transfer_swap() {
-        let input = gem_bitcoin::testkit::signer_mock::mock_transfer_swap_input(BitcoinChain::Zcash, "=:b:bc1qdestination:0/1/0:g1:50");
-        let key = gem_bitcoin::testkit::signer_mock::TEST_PRIVATE_KEY.to_vec();
+        let input = mock_transfer_swap_input(BitcoinChain::Zcash, "=:b:bc1qdestination:0/1/0:g1:50");
+        let key = TEST_BITCOIN_PRIVATE_KEY.to_vec();
         let expected = ZcashChainSigner.sign_swap(&input, &key).unwrap();
 
         let signed_swap = ChainTransactionSigner::new(Chain::Zcash).sign_input(input.into(), Zeroizing::new(key)).unwrap();

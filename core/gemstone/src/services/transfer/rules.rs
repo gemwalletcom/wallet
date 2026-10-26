@@ -831,17 +831,19 @@ mod tests {
 
     #[test]
     fn test_a_generic_request_shows_the_app_instead_of_a_recipient() {
+        let with_memo = vec![GemConfirmRow::Sender, GemConfirmRow::Recipient, GemConfirmRow::Network, GemConfirmRow::Memo, GemConfirmRow::Details];
+        let without_memo = vec![GemConfirmRow::Sender, GemConfirmRow::Recipient, GemConfirmRow::Network, GemConfirmRow::Details];
         let send = GemTransferData::mock(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Cosmos) });
-        assert_eq!(send.confirm_rows(), vec![GemConfirmRow::Sender, GemConfirmRow::Recipient, GemConfirmRow::Network, GemConfirmRow::Memo, GemConfirmRow::Details]);
+        assert_eq!(send.confirm_rows(), with_memo);
 
         let ethereum = GemTransferData::mock(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Ethereum) });
-        assert!(!ethereum.confirm_rows().contains(&GemConfirmRow::Memo), "a chain without memos has no memo row");
+        assert_eq!(ethereum.confirm_rows(), without_memo, "a chain without memos has no memo row");
 
         let mut zcash = GemTransferData::mock(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Zcash) });
         zcash.recipient.memo = None;
-        assert!(!zcash.confirm_rows().contains(&GemConfirmRow::Memo));
+        assert_eq!(zcash.confirm_rows(), without_memo);
         zcash.recipient.memo = Some("Thank you".to_string());
-        assert!(zcash.confirm_rows().contains(&GemConfirmRow::Memo), "a scanned memo is shown before it is signed");
+        assert_eq!(zcash.confirm_rows(), with_memo, "a scanned memo is shown before it is signed");
 
         let generic = GemTransferData::mock(TransactionInputType::Generic {
             asset: Asset::from_chain(Chain::Ethereum),

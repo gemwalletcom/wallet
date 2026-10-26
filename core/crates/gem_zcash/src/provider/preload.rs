@@ -8,7 +8,7 @@ use num_bigint::BigInt;
 use primitives::{AssetId, Chain, FeePriority, FeeRate, GasPriceType, SignerError, SignerInput, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput, UTXO};
 
 use super::ZcashProvider;
-use crate::signer::ZcashPlan;
+use crate::signer::Plan;
 
 const FEE_RATE: u64 = 10_000;
 
@@ -44,7 +44,7 @@ impl<C: Client> ChainTransactionLoad for ZcashProvider<C> {
 
 impl<C: Client> ZcashProvider<C> {
     fn transaction_fee(input: &TransactionLoadInput) -> Result<TransactionFee, SignerError> {
-        let plan = ZcashPlan::for_input(&SignerInput::new(input.clone(), input.default_fee()))?;
+        let plan = Plan::for_input(&SignerInput::new(input.clone(), input.default_fee()))?;
         Ok(TransactionFee {
             fee: BigInt::from(plan.spend.fee),
             gas_price_type: input.gas_price.clone(),

@@ -16,7 +16,8 @@ seed() {
 }
 seed solana_transaction '(AQ|Ag|Aw|gA)[A-Za-z0-9+/]{200,}={0,2}' 'base64 -d'
 seed ton_boc 'te6cc[A-Za-z0-9+/]+={0,2}' 'base64 -d'
-seed payment_url '(bitcoin|ethereum|solana|ton|xrp|wc):[^" ]+' cat
+seed payment_url '(bitcoin|ethereum|solana|ton|xrp|zcash|wc):[^" ]+' cat
+seed zcash_transaction '0[456]000080[0-9a-f]{200,}' 'xxd -r -p'
 
 mkdir -p artifacts
 for target in $(cargo fuzz list); do
