@@ -94,6 +94,7 @@ mod tests {
     use crate::sign_type::SignDigestType;
     use gem_evm::testkit::eip712_mock::mock_eip712_json;
     use gem_evm::transaction::EvmTransactionKind;
+    use gem_solana::VersionedTransactionExt;
     use num_bigint::BigUint;
     use primitives::{TransactionType, TransferDataOutputType};
 
@@ -236,10 +237,10 @@ mod tests {
                 assert_eq!(transactions.len(), 1);
                 let decoded = WalletConnectRequestHandler::decode_send_transaction(transaction_type.clone(), transactions[0].clone()).unwrap();
                 match decoded {
-                    WalletConnectTransaction::Solana { data, output_type, transaction_type } => {
+                    WalletConnectTransaction::Solana { data, output_type } => {
                         assert!(data.transaction.starts_with("AQAAAAAAAAA"));
                         assert_eq!(output_type, TransferDataOutputType::EncodedTransaction);
-                        assert_eq!(transaction_type, TransactionType::SmartContractCall);
+                        assert_eq!(data.decoded.transaction_type(), TransactionType::SmartContractCall);
                     }
                     _ => panic!("Expected Solana transaction"),
                 }

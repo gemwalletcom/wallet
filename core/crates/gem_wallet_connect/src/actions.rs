@@ -1,7 +1,8 @@
 use crate::sign_type::SignDigestType;
 pub use gem_evm::transaction::EvmTransactionKind;
+use gem_solana::VersionedTransaction;
 use num_bigint::BigUint;
-use primitives::{Chain, TransactionType, TransferDataOutputType, WCEthereumTransaction};
+use primitives::{Chain, TransferDataOutputType, WCEthereumTransaction};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum WalletConnectAction {
@@ -70,6 +71,7 @@ pub struct WCEthereumTransactionData {
 #[derive(Debug, Clone)]
 pub struct WCSolanaTransactionData {
     pub transaction: String,
+    pub decoded: VersionedTransaction,
 }
 
 #[derive(Debug, Clone)]
@@ -81,27 +83,11 @@ pub struct WCSuiTransactionData {
 #[derive(Debug, Clone)]
 #[allow(clippy::large_enum_variant)]
 pub enum WalletConnectTransaction {
-    Ethereum {
-        data: WCEthereumTransactionData,
-        kind: EvmTransactionKind,
-    },
-    Solana {
-        data: WCSolanaTransactionData,
-        output_type: TransferDataOutputType,
-        transaction_type: TransactionType,
-    },
-    Sui {
-        data: WCSuiTransactionData,
-        output_type: TransferDataOutputType,
-    },
-    Ton {
-        data: String,
-        output_type: TransferDataOutputType,
-    },
-    Tron {
-        data: String,
-        output_type: TransferDataOutputType,
-    },
+    Ethereum { data: WCEthereumTransactionData, kind: EvmTransactionKind },
+    Solana { data: WCSolanaTransactionData, output_type: TransferDataOutputType },
+    Sui { data: WCSuiTransactionData, output_type: TransferDataOutputType },
+    Ton { data: String, output_type: TransferDataOutputType },
+    Tron { data: String, output_type: TransferDataOutputType },
 }
 
 #[derive(Debug, Clone, PartialEq)]
