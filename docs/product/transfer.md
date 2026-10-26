@@ -35,6 +35,8 @@ flowchart LR
 | Rotation or theme change while Send, Amount or Swap waits on the network | the next screen still opens | |
 | Sending fails after Confirm | an error alert; the screen keeps its fee and amounts with no reload, and the button stays Confirm, so every tap sends again, as Swap keeps its Swap button | Try Again belongs to a failed load |
 | A Dash payment is sent | Pending until the transaction is mined | the network may lock it with InstantSend, but the provider does not report that lock yet |
+| Rotation, theme or window size change during Send, Swap or Stake | the open screen and its input stay | |
+| The system closes the app during Send, Swap or Stake | the flow starts again from the screen that opened it | a restored Confirm could sign a stale transfer |
 
 Names, the Network Fee, and account requirements follow the shared [Names](../PRODUCT.md#names), [Network Fee](../PRODUCT.md#network-fee), and [Network minimums and activation](../PRODUCT.md#network-minimums-and-activation) sections.
 

@@ -1,5 +1,7 @@
 package com.gemwallet.android.ui.navigation
 
+import android.app.Activity
+import androidx.activity.compose.LocalActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSerializable
@@ -18,31 +20,31 @@ import kotlinx.serialization.encoding.Encoder
 
 @Composable
 internal fun rememberWalletNavBackStack(startDestination: NavKey): NavBackStack<NavKey> {
-    val serializer = remember(startDestination) {
-        WalletNavBackStackSerializer(startDestination)
+    val activity = checkNotNull(LocalActivity.current)
+    val serializer = remember(startDestination, activity) {
+        WalletNavBackStackSerializer(startDestination, activity)
     }
     return rememberSerializable(serializer = serializer) {
         NavBackStack(startDestination)
     }
 }
 
-private class WalletNavBackStackSerializer(private val startDestination: NavKey) : KSerializer<NavBackStack<NavKey>> {
+private class WalletNavBackStackSerializer(private val startDestination: NavKey, private val activity: Activity) : KSerializer<NavBackStack<NavKey>> {
 
     private val delegate = ListSerializer(NavKeySerializer<NavKey>())
 
     override val descriptor: SerialDescriptor = delegate.descriptor
 
     override fun serialize(encoder: Encoder, value: NavBackStack<NavKey>) {
+        val routes = value.toList()
         encoder.encodeSerializableValue(
             serializer = delegate,
-            value = value.toList().dropNonRestorableRoutes(startDestination),
+            value = if (activity.isChangingConfigurations) routes else routes.dropNonRestorableRoutes(startDestination),
         )
     }
 
     override fun deserialize(decoder: Decoder): NavBackStack<NavKey> {
-        val routes = decoder
-            .decodeSerializableValue(deserializer = delegate)
-            .dropNonRestorableRoutes(startDestination)
+        val routes = decoder.decodeSerializableValue(deserializer = delegate)
         return NavBackStack(*routes.toTypedArray())
     }
 }
