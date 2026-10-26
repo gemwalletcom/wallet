@@ -15,10 +15,10 @@ import com.gemwallet.android.ui.components.keyboardFollowsFocus
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 
 @Composable
-fun MemoTextField(value: String, label: String, onValueChange: (String) -> Unit, error: String = "", onQrScanner: (() -> Unit)? = null) {
+fun MemoTextField(value: String, label: String, onValueChange: (String) -> Unit, modifier: Modifier = Modifier, error: String = "", onQrScanner: (() -> Unit)? = null) {
     val clipboardManager = LocalContext.current.clipboardManager()
     Column(
-        modifier = Modifier,
+        modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(paddingHalfSmall),
     ) {
         GemTextField(

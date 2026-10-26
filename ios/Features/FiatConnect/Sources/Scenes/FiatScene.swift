@@ -65,6 +65,7 @@ extension FiatScene {
                             }
                             .font(.subheadline.weight(.semibold))
                             .buttonStyle(.amount())
+                            .accessibilityIdentifier("fiat_preset_\(suggestion.amount)")
                         }
                     }
                     .fixedSize()

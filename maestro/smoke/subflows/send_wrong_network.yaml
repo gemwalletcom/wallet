@@ -1,0 +1,24 @@
+appId: ${APP_ID}
+---
+- runFlow: launch.yaml
+- tapOn:
+    id: "bitcoin"
+- waitForAnimationToEnd
+- tapOn:
+    id: "send_button"
+- waitForAnimationToEnd
+- tapOn:
+    id: "addressInputField"
+- inputText: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"
+- waitForAnimationToEnd
+- assertVisible:
+    id: "main_action"
+    enabled: false
+- takeScreenshot: ${output.journey}_send_wrong_network
+- eraseText
+- inputText: ${BITCOIN_ADDRESS}
+- extendedWaitUntil:
+    visible:
+      id: "main_action"
+      enabled: true
+    timeout: 15000

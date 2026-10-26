@@ -1,0 +1,22 @@
+appId: ${APP_ID}
+---
+- runFlow: launch.yaml
+- tapOn:
+    id: "ethereum"
+- waitForAnimationToEnd
+- tapOn:
+    id: "send_button"
+- waitForAnimationToEnd
+- tapOn:
+    id: "addressInputField"
+- inputText: "vitalik.eth"
+- pressKey: Enter
+- extendedWaitUntil:
+    visible:
+      id: "main_action"
+      enabled: true
+    timeout: 15000
+- tapOn:
+    id: "main_action"
+- runFlow: amount_over_balance.yaml
+- takeScreenshot: ${output.journey}_send_name

@@ -12,3 +12,19 @@ appId: ${APP_ID}
       enabled: true
     timeout: 30000
 - takeScreenshot: ${output.journey}_buy
+- tapOn:
+    id: "fiat_preset_100"
+- assertVisible:
+    id: "amountInputField"
+    text: ".*100.*"
+- tapOn:
+    id: "fiat_preset_250"
+- assertVisible:
+    id: "amountInputField"
+    text: ".*250.*"
+- extendedWaitUntil:
+    visible:
+      id: "main_action"
+      enabled: true
+    timeout: 30000
+- takeScreenshot: ${output.journey}_buy_preset

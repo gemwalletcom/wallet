@@ -39,6 +39,7 @@ fun LazyListScope.destinationView(
                     value = memo,
                     label = stringResource(id = R.string.transfer_memo),
                     onValueChange = onMemo,
+                    modifier = Modifier.testTag("memoInputField"),
                     onQrScanner = { onQrScan(QrScanField.Memo) },
                 )
             }
