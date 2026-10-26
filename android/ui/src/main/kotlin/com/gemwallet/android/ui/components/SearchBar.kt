@@ -23,10 +23,8 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.gemwallet.android.ui.components.fields.requestFocusIfAttached
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.icons.AppIcons
@@ -55,10 +53,7 @@ fun SearchBar(query: TextFieldState, modifier: Modifier = Modifier.listItem(List
                     .fillMaxWidth()
                     .focusRequester(focusRequester)
                     .padding(start = inputStartPadding, top = space10, end = inputEndPadding, bottom = space10),
-                textStyle = TextStyle.Default.copy(
-                    fontSize = 18.sp,
-                    color = MaterialTheme.colorScheme.onSurface,
-                ),
+                textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
                 cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                 state = query,
                 lineLimits = TextFieldLineLimits.SingleLine,
@@ -66,13 +61,11 @@ fun SearchBar(query: TextFieldState, modifier: Modifier = Modifier.listItem(List
             )
             if (query.text.isEmpty()) {
                 Text(
-                    modifier = Modifier
-                        .align(Alignment.CenterStart)
-                        .padding(start = inputStartPadding, end = paddingLarge),
+                    modifier = Modifier.padding(start = inputStartPadding, top = space10, end = paddingLarge),
                     maxLines = 1,
                     text = stringResource(id = android.R.string.search_go),
                     color = MaterialTheme.colorScheme.secondary,
-                    fontSize = 14.sp,
+                    style = MaterialTheme.typography.bodyLarge,
                 )
             }
             IconButton(onClick = focusRequester::requestFocus) {
