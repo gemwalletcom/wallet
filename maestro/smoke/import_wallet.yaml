@@ -4,6 +4,7 @@ appId: ${APP_ID}
 - runFlow: subflows/import_wallet.yaml
 - runFlow: subflows/wallet_tour.yaml
 - runFlow: subflows/manage_contact.yaml
+- runFlow: subflows/contact_invalid_address.yaml
 - runFlow: subflows/rename_wallet.yaml
 - runFlow: subflows/second_wallet.yaml
 - runFlow:
