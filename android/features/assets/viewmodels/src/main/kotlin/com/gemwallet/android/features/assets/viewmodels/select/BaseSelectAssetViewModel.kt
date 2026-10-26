@@ -82,6 +82,7 @@ open class BaseSelectAssetViewModel(
     selectType: GemSelectAssetType,
     protected val ioDispatcher: CoroutineDispatcher,
     protected val context: Context,
+    chains: List<Chain> = emptyList(),
 ) : ViewModel(),
     ToastEmitter by ToastEmitterImpl() {
 
@@ -104,7 +105,7 @@ open class BaseSelectAssetViewModel(
     protected val searching: StateFlow<Boolean> = isSearching.asStateFlow()
 
     val queryState = TextFieldState()
-    private val filterSession = MutableStateFlow(flow.filterSession(emptyList()))
+    private val filterSession = MutableStateFlow(flow.filterSession(chains.map { it.string }))
     val filterView: StateFlow<GemAssetsFilterView> = filterSession
         .map { it.viewState() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, filterSession.value.viewState())
@@ -245,10 +246,6 @@ open class BaseSelectAssetViewModel(
     private suspend fun setVisibility(assetId: AssetId, visible: Boolean): Result<Unit> = withContext(ioDispatcher) {
         runCatchingCancellable { service.setAssetsEnabled(listOf(assetId.toIdentifier()), visible) }
             .onFailure { emitToast(ToastMessage(it.errorText().text(context), R.drawable.ic_error)) }
-    }
-
-    fun setChainFilter(chains: List<Chain>) {
-        filterSession.update { it.onChains(chains.map { chain -> chain.string }) }
     }
 
     fun onChainFilter(chain: Chain) {

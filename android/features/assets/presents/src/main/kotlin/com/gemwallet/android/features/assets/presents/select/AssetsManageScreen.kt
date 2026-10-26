@@ -3,7 +3,6 @@ package com.gemwallet.android.features.assets.presents.select
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -14,11 +13,7 @@ import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemSelectAssetType
 
 @Composable
-fun AssetsManageScreen(onAddAsset: () -> Unit, onAssetClick: (AssetId) -> Unit, onCancel: () -> Unit, chain: Chain? = null, viewModel: SelectAssetViewModel = selectAssetViewModel(GemSelectAssetType.Manage)) {
-    LaunchedEffect(chain) {
-        viewModel.setChainFilter(listOfNotNull(chain))
-    }
-
+fun AssetsManageScreen(onAddAsset: () -> Unit, onAssetClick: (AssetId) -> Unit, onCancel: () -> Unit, chain: Chain? = null, viewModel: SelectAssetViewModel = selectAssetViewModel(GemSelectAssetType.Manage, listOfNotNull(chain))) {
     val isAddAssetAvailable by viewModel.isAddAssetAvailable.collectAsStateWithLifecycle()
 
     SelectAssetScreen(
