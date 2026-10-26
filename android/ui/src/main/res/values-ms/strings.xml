@@ -60,7 +60,6 @@
   <string name="common_suspicious_address_description">Alamat ini dikaitkan dengan aktiviti yang mencurigakan atau berbahaya.</string>
   <string name="common_refresh">Segarkan semula</string>
   <string name="common_grant_permission">Berikan kebenaran</string>
-  <string name="common_required_field">%1$s diperlukan</string>
   <string name="welcome_title">Selamat datang ke Gem Family</string>
   <string name="wallet_create_new_wallet">Buat Dompet Baharu</string>
   <string name="wallet_import_existing_wallet">Import Dompet Sedia Ada</string>
@@ -144,7 +143,6 @@
   <string name="transfer_freeze_title">Bekukan</string>
   <string name="transfer_unfreeze_title">Nyahbekukan</string>
   <string name="transfer_review_request">Semak Permintaan</string>
-  <string name="transfer_amount">Jumlah</string>
   <string name="settings_terms_of_services">Syarat Perkhidmatan</string>
   <string name="settings_privacy_policy">Dasar Privasi</string>
   <string name="settings_title">Tetapan</string>
@@ -225,7 +223,6 @@
   <string name="errors_swap_minimum_amount">Jumlah dagangan minimum ialah %1$s. Sila masukkan jumlah yang lebih tinggi.</string>
   <string name="errors_perpetual_trigger_price_lower">Harga pencetus perlu lebih rendah daripada harga pasaran</string>
   <string name="errors_perpetual_trigger_price_higher">Harga pencetus perlu lebih tinggi daripada harga pasaran</string>
-  <string name="errors_unknown_try_again">Ralat tidak diketahui berlaku. Sila cuba lagi.</string>
   <string name="errors_network_error">Ralat rangkaian: %1$s</string>
   <string name="errors_network_offline">Sambungan Internet nampaknya di luar talian.</string>
   <string name="errors_no_internet_connection">Tiada sambungan internet</string>
@@ -285,7 +282,6 @@
   <string name="asset_get_asset">Dapatkan %1$s</string>
   <string name="asset_add_to_wallet">Tambah pada dompet</string>
   <string name="asset_added_to_wallet">Ditambah ke dompet</string>
-  <string name="asset_hidden_from_wallet">Disembunyikan dari dompet</string>
   <string name="asset_resources">Sumber</string>
   <string name="asset_verification_verified">Disahkan</string>
   <string name="asset_all_time_high">Tertinggi Sepanjang Masa</string>

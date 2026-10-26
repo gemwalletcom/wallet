@@ -60,7 +60,6 @@
   <string name="common_suspicious_address_description">Địa chỉ này có liên quan đến hoạt động đáng ngờ hoặc có hại.</string>
   <string name="common_refresh">Làm mới</string>
   <string name="common_grant_permission">Cấp phép</string>
-  <string name="common_required_field">%1$s là bắt buộc</string>
   <string name="welcome_title">Chào mừng đến với Gem Family</string>
   <string name="wallet_create_new_wallet">Tạo một ví mới</string>
   <string name="wallet_import_existing_wallet">Nhập ví hiện có</string>
@@ -144,7 +143,6 @@
   <string name="transfer_freeze_title">Đóng băng</string>
   <string name="transfer_unfreeze_title">Giải đông</string>
   <string name="transfer_review_request">Yêu cầu xem xét</string>
-  <string name="transfer_amount">Số lượng</string>
   <string name="settings_terms_of_services">Điều khoản dịch vụ</string>
   <string name="settings_privacy_policy">Chính sách bảo mật</string>
   <string name="settings_title">Cài đặt</string>
@@ -225,7 +223,6 @@
   <string name="errors_swap_minimum_amount">Số tiền giao dịch tối thiểu là %1$s. Vui lòng nhập số tiền lớn hơn.</string>
   <string name="errors_perpetual_trigger_price_lower">Giá kích hoạt phải thấp hơn giá thị trường</string>
   <string name="errors_perpetual_trigger_price_higher">Giá kích hoạt phải cao hơn giá thị trường</string>
-  <string name="errors_unknown_try_again">Đã xảy ra lỗi không xác định. Vui lòng thử lại.</string>
   <string name="errors_network_error">Lỗi mạng: %1$s</string>
   <string name="errors_network_offline">Kết nối Internet dường như đang bị ngắt.</string>
   <string name="errors_no_internet_connection">Không có kết nối internet</string>
@@ -285,7 +282,6 @@
   <string name="asset_get_asset">Nhận %1$s</string>
   <string name="asset_add_to_wallet">Thêm vào ví</string>
   <string name="asset_added_to_wallet">Đã thêm vào ví</string>
-  <string name="asset_hidden_from_wallet">Đã ẩn khỏi ví</string>
   <string name="asset_resources">Tài nguyên</string>
   <string name="asset_verification_verified">Đã xác minh</string>
   <string name="asset_all_time_high">Mức cao nhất mọi thời đại</string>

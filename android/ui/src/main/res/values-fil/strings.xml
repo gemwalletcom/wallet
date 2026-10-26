@@ -60,7 +60,6 @@
   <string name="common_suspicious_address_description">Ang address na ito ay nauugnay sa kahina-hinala o nakakapinsalang aktibidad.</string>
   <string name="common_refresh">I-refresh</string>
   <string name="common_grant_permission">Magbigay ng pahintulot</string>
-  <string name="common_required_field">Kinakailangan ang %1$s</string>
   <string name="welcome_title">Maligayang pagdating sa Gem Family</string>
   <string name="wallet_create_new_wallet">Gumawa ng Bagong Wallet</string>
   <string name="wallet_import_existing_wallet">Mag-import ng Umiiral na Wallet</string>
@@ -144,7 +143,6 @@
   <string name="transfer_freeze_title">I-freeze</string>
   <string name="transfer_unfreeze_title">I-unfreeze</string>
   <string name="transfer_review_request">Suriin ang Kahilingan</string>
-  <string name="transfer_amount">Halaga</string>
   <string name="settings_terms_of_services">Mga Tuntunin ng Serbisyo</string>
   <string name="settings_privacy_policy">Patakaran sa Privacy</string>
   <string name="settings_title">Mga Setting</string>
@@ -225,7 +223,6 @@
   <string name="errors_swap_minimum_amount">Ang minimum na halaga ng kalakalan ay %1$s. Mangyaring maglagay ng mas mataas na halaga.</string>
   <string name="errors_perpetual_trigger_price_lower">Dapat mas mababa sa presyo sa merkado ang trigger price</string>
   <string name="errors_perpetual_trigger_price_higher">Dapat mas mataas sa presyo sa merkado ang trigger price</string>
-  <string name="errors_unknown_try_again">May naganap na hindi kilalang error. Pakisubukang muli.</string>
   <string name="errors_network_error">Error sa network: %1$s</string>
   <string name="errors_network_offline">Mukhang offline ang koneksyon sa internet.</string>
   <string name="errors_no_internet_connection">Walang koneksyon sa internet</string>
@@ -285,7 +282,6 @@
   <string name="asset_get_asset">Kumuha ng %1$s</string>
   <string name="asset_add_to_wallet">Idagdag sa wallet</string>
   <string name="asset_added_to_wallet">Naidagdag sa wallet</string>
-  <string name="asset_hidden_from_wallet">Naitago sa wallet</string>
   <string name="asset_resources">Mga mapagkukunan</string>
   <string name="asset_verification_verified">Na-verify</string>
   <string name="asset_all_time_high">Mataas sa Lahat ng Panahon</string>

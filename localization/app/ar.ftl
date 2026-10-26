@@ -60,7 +60,6 @@ common_suspicious_address = عنوان مشبوه
 common_suspicious_address_description = هذا العنوان مرتبط بنشاط مشبوه أو ضار.
 common_refresh = ينعش
 common_grant_permission = يعطي الأذن
-common_required_field = %@ مطلوب
 
 # Welcome
 
@@ -165,7 +164,6 @@ transfer_reserved_fees = لقد تركنا %@ في رصيدك لتغطية رس�
 transfer_freeze_title = تجميد
 transfer_unfreeze_title = إزالة التجميد
 transfer_review_request = طلب مراجعة
-transfer_amount = كمية
 
 # Settings
 
@@ -255,7 +253,6 @@ errors_dust_threshold_short = تعتبر الشبكة هذه الكمية مجر
 errors_swap_minimum_amount = الحد الأدنى لمبلغ التداول هو %@. يرجى إدخال مبلغ أعلى.
 errors_perpetual_trigger_price_lower = يجب أن يكون سعر التفعيل أقل من سعر السوق
 errors_perpetual_trigger_price_higher = يجب أن يكون سعر التفعيل أعلى من سعر السوق
-errors_unknown_try_again = حدث خطأ غير معروف. يرجى المحاولة مرة أخرى.
 errors_network_error = خطأ في الشبكة: %@
 errors_network_offline = يبدو أن الاتصال بالإنترنت غير متاح.
 errors_no_internet_connection = لا يوجد اتصال بالإنترنت
@@ -327,7 +324,6 @@ asset_buy_asset = شراء %@
 asset_get_asset = احصل على %@
 asset_add_to_wallet = أضف إلى المحفظة
 asset_added_to_wallet = تمت الإضافة إلى المحفظة
-asset_hidden_from_wallet = تم الإخفاء من المحفظة
 asset_resources = موارد
 asset_verification_verified = تم التحقق
 asset_all_time_high = أعلى مستوى على الإطلاق

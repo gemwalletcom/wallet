@@ -60,7 +60,6 @@ common_suspicious_address = 不審なアドレス
 common_suspicious_address_description = このアドレスは不審または悪意のある活動に関連しています。
 common_refresh = 更新
 common_grant_permission = 許可する
-common_required_field = %@は必須です
 
 # Welcome
 
@@ -165,7 +164,6 @@ transfer_reserved_fees = 今後のネットワーク手数料として、残高�
 transfer_freeze_title = 凍結
 transfer_unfreeze_title = 凍結解除
 transfer_review_request = リクエストを確認
-transfer_amount = 金額
 
 # Settings
 
@@ -255,7 +253,6 @@ errors_dust_threshold_short = ネットワークはこの金額をダストと�
 errors_swap_minimum_amount = 最低取引金額は %@ です。これより大きい金額を入力してください。
 errors_perpetual_trigger_price_lower = トリガー価格は市場価格より低くする必要があります
 errors_perpetual_trigger_price_higher = トリガー価格は市場価格より高くする必要があります
-errors_unknown_try_again = 不明なエラーが発生しました。もう一度お試しください。
 errors_network_error = ネットワークエラー: %@
 errors_network_offline = インターネット接続が切断されているようです。
 errors_no_internet_connection = インターネット接続がありません
@@ -327,7 +324,6 @@ asset_buy_asset = %@を購入
 asset_get_asset = %@を入手
 asset_add_to_wallet = ウォレットに追加
 asset_added_to_wallet = ウォレットに追加しました
-asset_hidden_from_wallet = ウォレットから非表示にしました
 asset_resources = リソース
 asset_verification_verified = 検証済み
 asset_all_time_high = 史上最高値

@@ -17,12 +17,9 @@ pub const DEFAULT_LANGUAGE: &str = "en";
 pub const ANDROID_ONLY_KEYS: &[&str] = &[
     "application_name",
     "common_grant_permission",
-    "common_required_field",
-    "errors_unknown_try_again",
     "rootcheck_body",
     "rootcheck_exit",
     "rootcheck_ignore",
-    "transfer_amount",
     "update_app_permission_description",
     "update_app_permission_open_settings",
     "update_app_permission_title",

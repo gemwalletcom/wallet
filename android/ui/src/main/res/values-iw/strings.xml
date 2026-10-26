@@ -60,7 +60,6 @@
   <string name="common_suspicious_address_description">כתובת זו קשורה לפעילות חשודה או מזיקה.</string>
   <string name="common_refresh">רענן</string>
   <string name="common_grant_permission">תן רשות</string>
-  <string name="common_required_field">%1$s נדרש</string>
   <string name="welcome_title">ברוכים הבאים למשפחת Gem</string>
   <string name="wallet_create_new_wallet">צור ארנק חדש</string>
   <string name="wallet_import_existing_wallet">ייבא ארנק קיים</string>
@@ -144,7 +143,6 @@
   <string name="transfer_freeze_title">הקפאה</string>
   <string name="transfer_unfreeze_title">הפשרה</string>
   <string name="transfer_review_request">סקור בקשה</string>
-  <string name="transfer_amount">כמות</string>
   <string name="settings_terms_of_services">תנאי השירות</string>
   <string name="settings_privacy_policy">מדיניות פרטיות</string>
   <string name="settings_title">הגדרות</string>
@@ -225,7 +223,6 @@
   <string name="errors_swap_minimum_amount">סכום המסחר המינימלי הוא %1$s. אנא הזן סכום גבוה יותר.</string>
   <string name="errors_perpetual_trigger_price_lower">מחיר ההפעלה צריך להיות נמוך ממחיר השוק</string>
   <string name="errors_perpetual_trigger_price_higher">מחיר ההפעלה צריך להיות גבוה ממחיר השוק</string>
-  <string name="errors_unknown_try_again">אירעה שגיאה לא ידועה. אנא נסה שוב.</string>
   <string name="errors_network_error">שגיאת רשת: %1$s</string>
   <string name="errors_network_offline">נראה שחיבור האינטרנט אינו מקוון.</string>
   <string name="errors_no_internet_connection">אין חיבור לאינטרנט</string>
@@ -285,7 +282,6 @@
   <string name="asset_get_asset">קבל %1$s</string>
   <string name="asset_add_to_wallet">הוסף לארנק</string>
   <string name="asset_added_to_wallet">נוסף לארנק</string>
-  <string name="asset_hidden_from_wallet">הוסתר מהארנק</string>
   <string name="asset_resources">משאבים</string>
   <string name="asset_verification_verified">מאומת</string>
   <string name="asset_all_time_high">שיא כל הזמנים</string>

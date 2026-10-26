@@ -120,8 +120,6 @@ common_suspicious_address_description = This address is associated with suspicio
 common_refresh = Refresh
 # Used in shared app UI for the grant permission label.
 common_grant_permission = Grant permission
-# Used in shared app UI for the required field label. Contains 1 string placeholder.
-common_required_field = %@ is required
 
 # Welcome
 
@@ -306,8 +304,6 @@ transfer_freeze_title = Freeze
 transfer_unfreeze_title = Unfreeze
 # Used in Transfer, Send, Stake, and confirmation flows for the review request label.
 transfer_review_request = Review Request
-# Used in Transfer, Send, Stake, and confirmation flows for the amount label.
-transfer_amount = Amount
 
 # Settings
 
@@ -477,8 +473,6 @@ errors_swap_minimum_amount = Minimum trade amount is %@. Please enter a higher a
 errors_perpetual_trigger_price_lower = Trigger price should be lower than market price
 # Perpetual order validation when a take-profit or stop-loss trigger must be above market price.
 errors_perpetual_trigger_price_higher = Trigger price should be higher than market price
-# Used in error cards and validation UI for the unknown try again label.
-errors_unknown_try_again = An unknown error occurred. Please try again.
 # Used in error cards and validation UI for the network error label. Contains 1 string placeholder.
 errors_network_error = Network error: %@
 # Used in error cards and validation UI for the network offline label.
@@ -608,8 +602,6 @@ asset_get_asset = Get %@
 asset_add_to_wallet = Add to wallet
 # Used in toast confirmations after an asset is added to the wallet.
 asset_added_to_wallet = Added to wallet
-# Used in toast confirmations after an asset is hidden from the wallet.
-asset_hidden_from_wallet = Hidden from wallet
 # Used in asset detail and asset verification screens for the resources label.
 asset_resources = Resources
 # Used in asset detail and asset verification screens for the verification verified label.

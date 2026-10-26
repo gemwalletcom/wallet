@@ -60,7 +60,6 @@
   <string name="common_suspicious_address_description">Ця адреса пов\'язана з підозрілою або шкідливою активністю.</string>
   <string name="common_refresh">Оновити</string>
   <string name="common_grant_permission">Надати дозвіл</string>
-  <string name="common_required_field">%1$s є обов\'язковим</string>
   <string name="welcome_title">Ласкаво просимо до Gem Сім\'ї</string>
   <string name="wallet_create_new_wallet">Створити новий гаманець</string>
   <string name="wallet_import_existing_wallet">Імпорт існуючого гаманця</string>
@@ -144,7 +143,6 @@
   <string name="transfer_freeze_title">Заморозити</string>
   <string name="transfer_unfreeze_title">Розморозити</string>
   <string name="transfer_review_request">Переглянути запит</string>
-  <string name="transfer_amount">Сума</string>
   <string name="settings_terms_of_services">Умови надання послуг</string>
   <string name="settings_privacy_policy">Політика конфіденційності</string>
   <string name="settings_title">Налаштування</string>
@@ -225,7 +223,6 @@
   <string name="errors_swap_minimum_amount">Мінімально дозволена сума угоди становить %1$s. Будь ласка, введіть більшу суму.</string>
   <string name="errors_perpetual_trigger_price_lower">Ціна спрацювання має бути нижчою за ринкову ціну</string>
   <string name="errors_perpetual_trigger_price_higher">Ціна спрацювання має бути вищою за ринкову ціну</string>
-  <string name="errors_unknown_try_again">Сталася невідома помилка. Будь ласка, спробуйте ще раз.</string>
   <string name="errors_network_error">Помилка мережі: %1$s</string>
   <string name="errors_network_offline">Здається, підключення до Інтернету відсутнє.</string>
   <string name="errors_no_internet_connection">Немає підключення до інтернету</string>
@@ -285,7 +282,6 @@
   <string name="asset_get_asset">Отримати %1$s</string>
   <string name="asset_add_to_wallet">Додати до гаманця</string>
   <string name="asset_added_to_wallet">Додано до гаманця</string>
-  <string name="asset_hidden_from_wallet">Приховано з гаманця</string>
   <string name="asset_resources">Ресурси</string>
   <string name="asset_verification_verified">Перевірено</string>
   <string name="asset_all_time_high">Історичний максимум</string>

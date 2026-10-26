@@ -60,7 +60,6 @@
   <string name="common_suspicious_address_description">এই ঠিকানাটি সন্দেহজনক বা ক্ষতিকারক কার্যকলাপের সাথে সম্পর্কিত।</string>
   <string name="common_refresh">রিফ্রেশ</string>
   <string name="common_grant_permission">অনুমতি দিন</string>
-  <string name="common_required_field">%1$s প্রয়োজন</string>
   <string name="welcome_title">Gem পরিবারে স্বাগতম</string>
   <string name="wallet_create_new_wallet">একটি নতুন ওয়ালেট তৈরি করুন৷</string>
   <string name="wallet_import_existing_wallet">একটি বিদ্যমান ওয়ালেট আমদানি করুন</string>
@@ -144,7 +143,6 @@
   <string name="transfer_freeze_title">ফ্রিজ করুন</string>
   <string name="transfer_unfreeze_title">আনফ্রিজ করুন</string>
   <string name="transfer_review_request">পর্যালোচনার অনুরোধ</string>
-  <string name="transfer_amount">পরিমাণ</string>
   <string name="settings_terms_of_services">পরিষেবার শর্তাবলী</string>
   <string name="settings_privacy_policy">গোপনীয়তা নীতি</string>
   <string name="settings_title">সেটিংস</string>
@@ -225,7 +223,6 @@
   <string name="errors_swap_minimum_amount">সর্বনিম্ন ট্রেডের পরিমাণ হল %1$s. অনুগ্রহ করে আরও বেশি পরিমাণ লিখুন।</string>
   <string name="errors_perpetual_trigger_price_lower">ট্রিগার মূল্য বাজার মূল্যের চেয়ে কম হওয়া উচিত</string>
   <string name="errors_perpetual_trigger_price_higher">ট্রিগার মূল্য বাজার মূল্যের চেয়ে বেশি হওয়া উচিত</string>
-  <string name="errors_unknown_try_again">একটি অজানা ত্রুটি ঘটেছে. আবার চেষ্টা করুন.</string>
   <string name="errors_network_error">নেটওয়ার্ক ত্রুটি: %1$s</string>
   <string name="errors_network_offline">ইন্টারনেট সংযোগটি অফলাইন বলে মনে হচ্ছে।</string>
   <string name="errors_no_internet_connection">ইন্টারনেট সংযোগ নেই</string>
@@ -285,7 +282,6 @@
   <string name="asset_get_asset">%1$s পান</string>
   <string name="asset_add_to_wallet">ওয়ালেটে যোগ করুন</string>
   <string name="asset_added_to_wallet">ওয়ালেটে যোগ করা হয়েছে</string>
-  <string name="asset_hidden_from_wallet">ওয়ালেট থেকে লুকানো হয়েছে</string>
   <string name="asset_resources">রিসোর্স</string>
   <string name="asset_verification_verified">যাচাইকৃত</string>
   <string name="asset_all_time_high">সর্বকালের সর্বোচ্চ</string>

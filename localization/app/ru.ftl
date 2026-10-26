@@ -60,7 +60,6 @@ common_suspicious_address = Подозрительный адрес
 common_suspicious_address_description = Этот адрес связан с подозрительной или вредоносной активностью.
 common_refresh = Обновить
 common_grant_permission = Предоставить разрешение
-common_required_field = %@ является обязательным
 
 # Welcome
 
@@ -165,7 +164,6 @@ transfer_reserved_fees = Мы оставили %@ на вашем балансе
 transfer_freeze_title = Заморозить
 transfer_unfreeze_title = Разморозить
 transfer_review_request = Просмотр запроса
-transfer_amount = Сумма
 
 # Settings
 
@@ -255,7 +253,6 @@ errors_dust_threshold_short = Эту сумму сеть считает пыль
 errors_swap_minimum_amount = Минимальная сумма сделки — %@. Введите, пожалуйста, сумму побольше.
 errors_perpetual_trigger_price_lower = Цена триггера должна быть ниже рыночной цены
 errors_perpetual_trigger_price_higher = Цена триггера должна быть выше рыночной цены
-errors_unknown_try_again = Произошла неизвестная ошибка. Пожалуйста, повторите попытку.
 errors_network_error = Сетевая ошибка: %@
 errors_network_offline = По всей видимости, интернет-соединение отсутствует.
 errors_no_internet_connection = Нет подключения к интернету
@@ -327,7 +324,6 @@ asset_buy_asset = Купить %@
 asset_get_asset = Получить %@
 asset_add_to_wallet = Добавить в кошелек
 asset_added_to_wallet = Добавлено в кошелек
-asset_hidden_from_wallet = Скрыто из кошелька
 asset_resources = Ресурсы
 asset_verification_verified = Проверено
 asset_all_time_high = Исторический максимум

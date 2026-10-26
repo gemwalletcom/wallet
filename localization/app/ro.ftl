@@ -60,7 +60,6 @@ common_suspicious_address = Adresă suspectă
 common_suspicious_address_description = Această adresă este asociată cu o activitate suspectă sau dăunătoare.
 common_refresh = Reîmprospătează
 common_grant_permission = Acordați permisiunea
-common_required_field = %@ este necesar
 
 # Welcome
 
@@ -165,7 +164,6 @@ transfer_reserved_fees = Am lăsat %@ în soldul dumneavoastră pentru a acoperi
 transfer_freeze_title = Îngheață
 transfer_unfreeze_title = Dezghețare
 transfer_review_request = Cerere de revizuire
-transfer_amount = Suma
 
 # Settings
 
@@ -255,7 +253,6 @@ errors_dust_threshold_short = Rețeaua consideră această cantitate drept praf 
 errors_swap_minimum_amount = Suma minimă a tranzacției este %@. Vă rugăm să introduceți o sumă mai mare.
 errors_perpetual_trigger_price_lower = Prețul de declanșare trebuie să fie mai mic decât prețul pieței
 errors_perpetual_trigger_price_higher = Prețul de declanșare trebuie să fie mai mare decât prețul pieței
-errors_unknown_try_again = A apărut o eroare necunoscută. Vă rugăm să încercați din nou.
 errors_network_error = Eroare de rețea: %@
 errors_network_offline = Conexiunea la internet pare să fie offline.
 errors_no_internet_connection = Nicio conexiune la internet
@@ -327,7 +324,6 @@ asset_buy_asset = Cumpără %@
 asset_get_asset = Obține %@
 asset_add_to_wallet = Adaugă în portofel
 asset_added_to_wallet = Adăugat în portofel
-asset_hidden_from_wallet = Ascuns din portofel
 asset_resources = Resurse
 asset_verification_verified = Verificat
 asset_all_time_high = Maxim istoric

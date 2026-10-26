@@ -60,7 +60,6 @@ common_suspicious_address = Verdächtige Adresse
 common_suspicious_address_description = Diese Adresse steht im Zusammenhang mit verdächtigen oder schädlichen Aktivitäten.
 common_refresh = Aktualisieren
 common_grant_permission = Erlaubnis erteilen
-common_required_field = %@ ist erforderlich
 
 # Welcome
 
@@ -165,7 +164,6 @@ transfer_reserved_fees = Wir haben %@ auf Ihrem Guthaben belassen, um zukünftig
 transfer_freeze_title = Einfrieren
 transfer_unfreeze_title = Auftauen
 transfer_review_request = Überprüfungsanfrage
-transfer_amount = Betrag
 
 # Settings
 
@@ -255,7 +253,6 @@ errors_dust_threshold_short = Das Netzwerk betrachtet diesen Betrag als Staub �
 errors_swap_minimum_amount = Der Mindesthandelsbetrag beträgt %@. Bitte geben Sie einen höheren Betrag ein.
 errors_perpetual_trigger_price_lower = Der Triggerpreis muss unter dem Marktpreis liegen
 errors_perpetual_trigger_price_higher = Der Triggerpreis muss über dem Marktpreis liegen
-errors_unknown_try_again = Ein unbekannter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.
 errors_network_error = Netzwerkfehler: %@
 errors_network_offline = Die Internetverbindung scheint unterbrochen zu sein.
 errors_no_internet_connection = Keine Internetverbindung
@@ -327,7 +324,6 @@ asset_buy_asset = Kaufen %@
 asset_get_asset = %@ erhalten
 asset_add_to_wallet = Zum Wallet hinzufügen
 asset_added_to_wallet = Zum Wallet hinzugefügt
-asset_hidden_from_wallet = Aus dem Wallet ausgeblendet
 asset_resources = Ressourcen
 asset_verification_verified = Bestätigt
 asset_all_time_high = Allzeithoch

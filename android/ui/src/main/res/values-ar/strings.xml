@@ -60,7 +60,6 @@
   <string name="common_suspicious_address_description">هذا العنوان مرتبط بنشاط مشبوه أو ضار.</string>
   <string name="common_refresh">ينعش</string>
   <string name="common_grant_permission">يعطي الأذن</string>
-  <string name="common_required_field">%1$s مطلوب</string>
   <string name="welcome_title">مرحبًا بكم في Gem Family</string>
   <string name="wallet_create_new_wallet">إنشاء محفظة جديدة</string>
   <string name="wallet_import_existing_wallet">استيراد محفظة موجودة</string>
@@ -144,7 +143,6 @@
   <string name="transfer_freeze_title">تجميد</string>
   <string name="transfer_unfreeze_title">إزالة التجميد</string>
   <string name="transfer_review_request">طلب مراجعة</string>
-  <string name="transfer_amount">كمية</string>
   <string name="settings_terms_of_services">شروط الخدمات</string>
   <string name="settings_privacy_policy">سياسة الخصوصية</string>
   <string name="settings_title">إعدادات</string>
@@ -225,7 +223,6 @@
   <string name="errors_swap_minimum_amount">الحد الأدنى لمبلغ التداول هو %1$s. يرجى إدخال مبلغ أعلى.</string>
   <string name="errors_perpetual_trigger_price_lower">يجب أن يكون سعر التفعيل أقل من سعر السوق</string>
   <string name="errors_perpetual_trigger_price_higher">يجب أن يكون سعر التفعيل أعلى من سعر السوق</string>
-  <string name="errors_unknown_try_again">حدث خطأ غير معروف. يرجى المحاولة مرة أخرى.</string>
   <string name="errors_network_error">خطأ في الشبكة: %1$s</string>
   <string name="errors_network_offline">يبدو أن الاتصال بالإنترنت غير متاح.</string>
   <string name="errors_no_internet_connection">لا يوجد اتصال بالإنترنت</string>
@@ -285,7 +282,6 @@
   <string name="asset_get_asset">احصل على %1$s</string>
   <string name="asset_add_to_wallet">أضف إلى المحفظة</string>
   <string name="asset_added_to_wallet">تمت الإضافة إلى المحفظة</string>
-  <string name="asset_hidden_from_wallet">تم الإخفاء من المحفظة</string>
   <string name="asset_resources">موارد</string>
   <string name="asset_verification_verified">تم التحقق</string>
   <string name="asset_all_time_high">أعلى مستوى على الإطلاق</string>
