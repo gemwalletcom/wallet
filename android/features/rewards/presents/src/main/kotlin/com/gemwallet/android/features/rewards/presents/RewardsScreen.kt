@@ -123,9 +123,10 @@ fun RewardsScreen(onClose: () -> Unit, viewModel: RewardsViewModel = hiltViewMod
         AlertDialog(
             containerColor = MaterialTheme.colorScheme.background,
             onDismissRequest = viewModel::clearError,
+            title = { Text(stringResource(R.string.errors_error_occurred)) },
             text = { Text(message) },
             confirmButton = {
-                Button(viewModel::clearError) { Text(stringResource(R.string.common_cancel)) }
+                Button(viewModel::clearError) { Text(stringResource(R.string.common_done)) }
             },
         )
     }
