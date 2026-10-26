@@ -3,6 +3,9 @@
 common_cancel = Batalkan
 common_hidden = Tersembunyi
 common_done = Selesai
+common_add = Tambah
+common_close = Tutup
+common_back = Kembali
 common_maximum_value = Nilai maksimum adalah %@
 common_minimum_value = Nilai minimum adalah %@
 common_secret_phrase = Frasa Rahasia

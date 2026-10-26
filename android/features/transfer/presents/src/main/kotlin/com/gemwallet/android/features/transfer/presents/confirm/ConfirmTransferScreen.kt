@@ -335,7 +335,7 @@ fun ConfirmTransferScreen(
             title = stringResource(R.string.info_payment_verification_title),
             actions = {
                 IconButton(onClick = { isVerificationInfoVisible = true }) {
-                    Icon(AppIcons.InfoOutlined, contentDescription = null)
+                    Icon(AppIcons.InfoOutlined, contentDescription = stringResource(R.string.common_learn_more))
                 }
             },
         ) {

@@ -53,7 +53,7 @@ fun ContactsScreen(onAction: (ContactsAction) -> Unit, viewModel: ContactsViewMo
         snackbar = snackbar,
         actions = {
             IconButton(onClick = { onAction(ContactsAction.AddContact(viewModel.draft)) }, modifier = Modifier.testTag("add_contact")) {
-                Icon(imageVector = AppIcons.Add, contentDescription = "")
+                Icon(imageVector = AppIcons.Add, contentDescription = stringResource(R.string.contacts_create_new_contact))
             }
         },
     ) {

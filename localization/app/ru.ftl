@@ -3,6 +3,9 @@
 common_cancel = Отмена
 common_hidden = Скрытые
 common_done = Готово
+common_add = Добавить
+common_close = Закрыть
+common_back = Назад
 common_maximum_value = Максимальное значение %@
 common_minimum_value = Минимальное значение %@
 common_secret_phrase = Секретная фраза

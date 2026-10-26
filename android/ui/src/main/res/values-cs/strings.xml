@@ -3,6 +3,9 @@
   <string name="common_cancel">Zrušit</string>
   <string name="common_hidden">Skryté</string>
   <string name="common_done">Hotovo</string>
+  <string name="common_add">Přidat</string>
+  <string name="common_close">Zavřít</string>
+  <string name="common_back">Zpět</string>
   <string name="common_maximum_value">Maximální hodnota je %1$s</string>
   <string name="common_minimum_value">Minimální hodnota je %1$s</string>
   <string name="common_secret_phrase">Tajná fráze</string>

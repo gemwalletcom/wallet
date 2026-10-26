@@ -3,6 +3,9 @@
   <string name="common_cancel">İptal</string>
   <string name="common_hidden">Gizli</string>
   <string name="common_done">Tamam</string>
+  <string name="common_add">Ekle</string>
+  <string name="common_close">Kapat</string>
+  <string name="common_back">Geri</string>
   <string name="common_maximum_value">Maksimum değer %1$s</string>
   <string name="common_minimum_value">Minimum değer %1$s</string>
   <string name="common_secret_phrase">Gizli İfade</string>

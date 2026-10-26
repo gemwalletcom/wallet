@@ -3,6 +3,9 @@
 common_cancel = Annuller
 common_hidden = Skjulte
 common_done = Færdig
+common_add = Tilføj
+common_close = Luk
+common_back = Tilbage
 common_maximum_value = Maksimal værdi er %@
 common_minimum_value = Minimumsværdi er %@
 common_secret_phrase = Hemmelig sætning

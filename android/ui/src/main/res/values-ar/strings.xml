@@ -3,6 +3,9 @@
   <string name="common_cancel">يلغي</string>
   <string name="common_hidden">مخفية</string>
   <string name="common_done">تم</string>
+  <string name="common_add">إضافة</string>
+  <string name="common_close">إغلاق</string>
+  <string name="common_back">رجوع</string>
   <string name="common_maximum_value">القيمة القصوى هي %1$s</string>
   <string name="common_minimum_value">القيمة الدنيا هي %1$s</string>
   <string name="common_secret_phrase">العبارة السرية</string>

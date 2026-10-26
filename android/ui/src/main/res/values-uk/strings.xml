@@ -3,6 +3,9 @@
   <string name="common_cancel">Скасувати</string>
   <string name="common_hidden">Приховані</string>
   <string name="common_done">Готово</string>
+  <string name="common_add">Додати</string>
+  <string name="common_close">Закрити</string>
+  <string name="common_back">Назад</string>
   <string name="common_maximum_value">Максимальне значення %1$s</string>
   <string name="common_minimum_value">Мінімальне значення %1$s</string>
   <string name="common_secret_phrase">Секретна фраза</string>

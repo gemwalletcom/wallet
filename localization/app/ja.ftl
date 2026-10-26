@@ -3,6 +3,9 @@
 common_cancel = キャンセル
 common_hidden = 非表示
 common_done = 完了
+common_add = 追加
+common_close = 閉じる
+common_back = 戻る
 common_maximum_value = 最大値は %@ です
 common_minimum_value = 最小値は %@ です
 common_secret_phrase = リカバリーフレーズ

@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.ListItemImageView
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.icons.AppIcons
@@ -85,7 +86,7 @@ internal fun WelcomeBanner(content: GemBannerContent, onBuy: () -> Unit, onRecei
             ) {
                 Icon(
                     imageVector = AppIcons.Close,
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.common_close),
                 )
             }
         }

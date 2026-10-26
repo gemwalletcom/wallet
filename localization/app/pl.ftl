@@ -3,6 +3,9 @@
 common_cancel = Anuluj
 common_hidden = Ukryte
 common_done = Gotowe
+common_add = Dodaj
+common_close = Zamknij
+common_back = Wstecz
 common_maximum_value = Maksymalna wartość to %@
 common_minimum_value = Minimalna wartość to %@
 common_secret_phrase = Tajne zdanie

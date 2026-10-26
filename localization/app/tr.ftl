@@ -3,6 +3,9 @@
 common_cancel = İptal
 common_hidden = Gizli
 common_done = Tamam
+common_add = Ekle
+common_close = Kapat
+common_back = Geri
 common_maximum_value = Maksimum değer %@
 common_minimum_value = Minimum değer %@
 common_secret_phrase = Gizli İfade

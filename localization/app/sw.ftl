@@ -3,6 +3,9 @@
 common_cancel = Ghairi
 common_hidden = Zilizofichwa
 common_done = Imekamilika
+common_add = Ongeza
+common_close = Funga
+common_back = Rudi
 common_maximum_value = Thamani ya juu ni %@
 common_minimum_value = Thamani ya chini ni %@
 common_secret_phrase = Kifungu cha Siri

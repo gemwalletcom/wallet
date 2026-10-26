@@ -33,7 +33,7 @@ fun ContactAddressEditorScene(input: ContactAddressInput, onAddressChange: (Stri
         onClose = { onAction(ContactAddressEditorAction.Cancel) },
         actions = {
             IconButton(onClick = { onAction(ContactAddressEditorAction.Confirm) }, enabled = input.isAddressValid, modifier = Modifier.testTag("save_address")) {
-                Icon(imageVector = AppIcons.Check, contentDescription = "")
+                Icon(imageVector = AppIcons.Check, contentDescription = stringResource(R.string.common_done))
             }
         },
     ) {

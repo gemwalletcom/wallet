@@ -16,13 +16,13 @@ import com.gemwallet.android.ui.theme.space2
 import com.gemwallet.android.ui.theme.space8
 
 @Composable
-fun IndicatorButton(imageVector: ImageVector, showsIndicator: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun IndicatorButton(imageVector: ImageVector, contentDescription: String, showsIndicator: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
     IconButton(onClick = onClick, modifier = modifier) {
         Box {
             Icon(
                 imageVector = imageVector,
                 tint = MaterialTheme.colorScheme.onSurface,
-                contentDescription = null,
+                contentDescription = contentDescription,
             )
             if (showsIndicator) {
                 Box(

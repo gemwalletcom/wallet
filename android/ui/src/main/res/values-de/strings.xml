@@ -3,6 +3,9 @@
   <string name="common_cancel">Abbrechen</string>
   <string name="common_hidden">Ausgeblendet</string>
   <string name="common_done">Fertig</string>
+  <string name="common_add">Hinzufügen</string>
+  <string name="common_close">Schließen</string>
+  <string name="common_back">Zurück</string>
   <string name="common_maximum_value">Maximaler Wert ist %1$s</string>
   <string name="common_minimum_value">Minimaler Wert ist %1$s</string>
   <string name="common_secret_phrase">Geheime Phrase</string>

@@ -74,7 +74,7 @@ internal fun PriceAlertsScene(
         title = stringResource(R.string.settings_price_alerts_title),
         actions = @Composable {
             IconButton(onClick = { onAction(PriceAlertsAction.Add) }, modifier = Modifier.testTag("add_price_alert")) {
-                Icon(imageVector = AppIcons.Add, contentDescription = "")
+                Icon(imageVector = AppIcons.Add, contentDescription = stringResource(R.string.common_add))
             }
         },
         snackbar = snackbar,

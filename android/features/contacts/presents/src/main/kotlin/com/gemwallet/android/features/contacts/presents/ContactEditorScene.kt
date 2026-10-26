@@ -46,7 +46,7 @@ fun ContactEditorScene(state: ContactEditorUIState, snackbar: SnackbarHostState?
         snackbar = snackbar,
         actions = {
             IconButton(onClick = { onAction(ContactEditorAction.Save) }, enabled = state.isSaveEnabled, modifier = Modifier.testTag("save_contact")) {
-                Icon(imageVector = AppIcons.Check, contentDescription = "")
+                Icon(imageVector = AppIcons.Check, contentDescription = stringResource(R.string.common_done))
             }
         },
     ) {

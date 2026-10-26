@@ -3,6 +3,9 @@
   <string name="common_cancel">בטל</string>
   <string name="common_hidden">מוסתרים</string>
   <string name="common_done">בוצע</string>
+  <string name="common_add">הוספה</string>
+  <string name="common_close">סגירה</string>
+  <string name="common_back">חזרה</string>
   <string name="common_maximum_value">הערך המקסימלי הוא %1$s</string>
   <string name="common_minimum_value">הערך המינימלי הוא %1$s</string>
   <string name="common_secret_phrase">ביטוי סודי</string>

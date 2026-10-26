@@ -61,7 +61,7 @@ fun RecentsScene(isVisible: Boolean, viewState: GemRecentsViewState, query: Text
                 ) {
                     Icon(
                         imageVector = AppIcons.Close,
-                        contentDescription = null,
+                        contentDescription = stringResource(R.string.common_close),
                     )
                 }
                 Text(

@@ -3,6 +3,9 @@
 common_cancel = בטל
 common_hidden = מוסתרים
 common_done = בוצע
+common_add = הוספה
+common_close = סגירה
+common_back = חזרה
 common_maximum_value = הערך המקסימלי הוא %@
 common_minimum_value = הערך המינימלי הוא %@
 common_secret_phrase = ביטוי סודי

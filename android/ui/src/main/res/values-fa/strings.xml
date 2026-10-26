@@ -3,6 +3,9 @@
   <string name="common_cancel">لغو کردن</string>
   <string name="common_hidden">مخفی</string>
   <string name="common_done">انجام شد</string>
+  <string name="common_add">افزودن</string>
+  <string name="common_close">بستن</string>
+  <string name="common_back">بازگشت</string>
   <string name="common_maximum_value">حداکثر مقدار %1$s است</string>
   <string name="common_minimum_value">حداقل مقدار %1$s است</string>
   <string name="common_secret_phrase">عبارت مخفی</string>

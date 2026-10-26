@@ -3,6 +3,9 @@
 common_cancel = रद्द करना
 common_hidden = छिपाए गए
 common_done = हो गया
+common_add = जोड़ें
+common_close = बंद करें
+common_back = वापस जाएं
 common_maximum_value = अधिकतम मान %@ है
 common_minimum_value = न्यूनतम मान %@ है
 common_secret_phrase = गुप्त वाक्यांश

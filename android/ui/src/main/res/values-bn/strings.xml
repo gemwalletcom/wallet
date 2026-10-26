@@ -3,6 +3,9 @@
   <string name="common_cancel">বাতিল করুন</string>
   <string name="common_hidden">লুকানো</string>
   <string name="common_done">সম্পন্ন</string>
+  <string name="common_add">যোগ করুন</string>
+  <string name="common_close">বন্ধ করুন</string>
+  <string name="common_back">ফিরে যান</string>
   <string name="common_maximum_value">সর্বোচ্চ মান %1$s</string>
   <string name="common_minimum_value">সর্বনিম্ন মান %1$s</string>
   <string name="common_secret_phrase">গোপন বাক্যাংশ</string>

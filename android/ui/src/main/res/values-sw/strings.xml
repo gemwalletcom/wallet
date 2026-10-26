@@ -3,6 +3,9 @@
   <string name="common_cancel">Ghairi</string>
   <string name="common_hidden">Zilizofichwa</string>
   <string name="common_done">Imekamilika</string>
+  <string name="common_add">Ongeza</string>
+  <string name="common_close">Funga</string>
+  <string name="common_back">Rudi</string>
   <string name="common_maximum_value">Thamani ya juu ni %1$s</string>
   <string name="common_minimum_value">Thamani ya chini ni %1$s</string>
   <string name="common_secret_phrase">Kifungu cha Siri</string>

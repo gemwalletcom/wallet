@@ -3,6 +3,9 @@
   <string name="common_cancel">Annuller</string>
   <string name="common_hidden">Skjulte</string>
   <string name="common_done">Færdig</string>
+  <string name="common_add">Tilføj</string>
+  <string name="common_close">Luk</string>
+  <string name="common_back">Tilbage</string>
   <string name="common_maximum_value">Maksimal værdi er %1$s</string>
   <string name="common_minimum_value">Minimumsværdi er %1$s</string>
   <string name="common_secret_phrase">Hemmelig sætning</string>

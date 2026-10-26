@@ -3,6 +3,9 @@
   <string name="common_cancel">Batalkan</string>
   <string name="common_hidden">Tersembunyi</string>
   <string name="common_done">Selesai</string>
+  <string name="common_add">Tambah</string>
+  <string name="common_close">Tutup</string>
+  <string name="common_back">Kembali</string>
   <string name="common_maximum_value">Nilai maksimum adalah %1$s</string>
   <string name="common_minimum_value">Nilai minimum adalah %1$s</string>
   <string name="common_secret_phrase">Frasa Rahasia</string>
