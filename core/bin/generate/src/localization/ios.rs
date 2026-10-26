@@ -27,6 +27,10 @@ pub fn write_info_plist(localizations: &BTreeMap<String, Vec<(String, String)>>,
 }
 
 fn write_package(localizations: &BTreeMap<String, Vec<(String, String)>>, package_path: &Path, enum_name: &str, swift_file_name: &str, excluded_keys: &[&str]) -> Result<(), Box<dyn Error + Send + Sync>> {
+    let missing = unknown_keys(excluded_keys, localizations.get(DEFAULT_LANGUAGE).ok_or("default localization was checked")?);
+    if !missing.is_empty() {
+        return Err(format!("excluded keys are not in {DEFAULT_LANGUAGE}.ftl: {}", missing.join(", ")).into());
+    }
     let catalog_path = package_path.join(RESOURCES_DIRECTORY).join(CATALOG_FILE_NAME);
     let key_map = read_key_map(&catalog_path)?;
     let entries = catalog_entries(localizations, excluded_keys, &key_map);
@@ -36,6 +40,10 @@ fn write_package(localizations: &BTreeMap<String, Vec<(String, String)>>, packag
     fs::write(&catalog_path, catalog_json(&entries)?)?;
     fs::write(package_path.join(swift_file_name), swift_source)?;
     Ok(())
+}
+
+fn unknown_keys<'a>(keys: &[&'a str], entries: &[(String, String)]) -> Vec<&'a str> {
+    keys.iter().copied().filter(|key| !entries.iter().any(|(name, _)| name == key)).collect()
 }
 
 fn catalog_entries(localizations: &BTreeMap<String, Vec<(String, String)>>, excluded_keys: &[&str], key_map: &BTreeMap<String, String>) -> BTreeMap<String, BTreeMap<String, String>> {
@@ -124,6 +132,12 @@ mod tests {
         assert_eq!(ios_key("unknown_key", &BTreeMap::new()), "unknown.key");
         assert_eq!(ios_key("rootcheck_security_alert", &BTreeMap::new()), "rootcheck.security_alert");
         assert_eq!(ios_key("legacy_key", &BTreeMap::from([("legacy_key".to_string(), "legacy_key".to_string())])), "legacy_key");
+    }
+
+    #[test]
+    fn test_unknown_keys() {
+        let entries = vec![("common_cancel".to_string(), "Cancel".to_string())];
+        assert_eq!(unknown_keys(&["common_cancel", "removed_key"], &entries), vec!["removed_key"]);
     }
 
     #[test]
