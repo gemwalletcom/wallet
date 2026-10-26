@@ -49,7 +49,7 @@ import uniffi.gemstone.GemNodeRow
 
 @Composable
 internal fun ChainSettingsScene(state: ChainSettingsUIState, snackbar: SnackbarHostState? = null, onAction: (ChainSettingsAction) -> Unit) {
-    val chain = state.chain ?: return
+    val chain = state.chain
     var isShowAddSource by remember { mutableStateOf(false) }
     var revealedNodeId by remember { mutableStateOf<String?>(null) }
     var nodeDelete by remember { mutableStateOf<GemNodeRow?>(null) }

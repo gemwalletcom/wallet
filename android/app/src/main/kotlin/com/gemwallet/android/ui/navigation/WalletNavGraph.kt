@@ -266,7 +266,9 @@ fun WalletNavGraph(
                     when (action) {
                         SettingsAction.Currencies -> navigator.openCurrency()
                         SettingsAction.Contacts -> navigator.openContacts()
-                        SettingsAction.Networks -> navigator.openChainSettings()
+                        SettingsAction.Networks -> navigator.openChainListSettings()
+                        is SettingsAction.ChainSettings -> navigator.openChainSettings(action.chain)
+                        SettingsAction.ServiceStatus -> navigator.openServiceStatus()
                         SettingsAction.PriceAlerts -> navigator.openPriceAlerts()
                         is SettingsAction.SetPriceAlert -> navigator.openSetPriceAlert(action.assetId)
                         is SettingsAction.SetPriceAlertComplete -> navigator.popWithToast(action.message)

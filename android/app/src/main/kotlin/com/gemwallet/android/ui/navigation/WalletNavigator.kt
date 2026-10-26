@@ -40,6 +40,7 @@ import com.gemwallet.android.ui.navigation.routes.AmountRoute
 import com.gemwallet.android.ui.navigation.routes.AssetPriceAlertsRoute
 import com.gemwallet.android.ui.navigation.routes.AssetRoute
 import com.gemwallet.android.ui.navigation.routes.AssetsResultsRoute
+import com.gemwallet.android.ui.navigation.routes.ChainListSettingsRoute
 import com.gemwallet.android.ui.navigation.routes.ChainSettingsRoute
 import com.gemwallet.android.ui.navigation.routes.ChartRoute
 import com.gemwallet.android.ui.navigation.routes.CollectibleRoute
@@ -78,6 +79,7 @@ import com.gemwallet.android.ui.navigation.routes.RewardsRoute
 import com.gemwallet.android.ui.navigation.routes.SecurityReminderRoute
 import com.gemwallet.android.ui.navigation.routes.SecurityRoute
 import com.gemwallet.android.ui.navigation.routes.SendSelectRoute
+import com.gemwallet.android.ui.navigation.routes.ServiceStatusRoute
 import com.gemwallet.android.ui.navigation.routes.SetPriceAlertRoute
 import com.gemwallet.android.ui.navigation.routes.SettingsRoute
 import com.gemwallet.android.ui.navigation.routes.StakeRoute
@@ -286,7 +288,9 @@ class WalletNavigator(
         return true
     }
     fun openAboutUs() = push(AboutUsRoute)
-    fun openChainSettings() = push(ChainSettingsRoute)
+    fun openChainListSettings() = push(ChainListSettingsRoute)
+    fun openChainSettings(chain: Chain) = push(ChainSettingsRoute(chain))
+    fun openServiceStatus() = push(ServiceStatusRoute)
     fun openNotifications() = push(NotificationsRoute)
     fun openPreferences() = push(PreferencesRoute)
     fun openSupport() = push(SupportRoute)
