@@ -1,0 +1,44 @@
+appId: ${APP_ID}
+---
+- runFlow: launch.yaml
+- scrollUntilVisible:
+    element:
+      id: "manage"
+    centerElement: true
+- tapOn:
+    id: "manage"
+- tapOn:
+    id: "add_custom_token"
+- waitForAnimationToEnd
+- tapOn:
+    id: "contractInputField"
+- inputText: ${USDC_CONTRACT}
+- extendedWaitUntil:
+    visible:
+      id: "main_action"
+      enabled: true
+    timeout: 30000
+- takeScreenshot: ${output.journey}_add_custom_token
+- tapOn:
+    id: "main_action"
+- runFlow: launch.yaml
+- scrollUntilVisible:
+    element:
+      id: "ethereum_${USDC_CONTRACT}"
+    centerElement: true
+- runFlow: launch.yaml
+- scrollUntilVisible:
+    element:
+      id: "manage"
+    centerElement: true
+- tapOn:
+    id: "manage"
+- tapOn:
+    id: "asset_toggle"
+    checked: true
+    childOf:
+      id: "ethereum_${USDC_CONTRACT}"
+- waitForAnimationToEnd
+- runFlow: launch.yaml
+- assertNotVisible:
+    id: "ethereum_${USDC_CONTRACT}"

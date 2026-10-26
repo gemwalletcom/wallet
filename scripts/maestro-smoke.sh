@@ -79,6 +79,7 @@ for flow in "$ROOT_DIR"/maestro/smoke/*.yaml; do
         -e ETHEREUM_ADDRESS="$(constant ethereumAddress)" \
         -e ETHEREUM_NAME="$(constant ethereumName)" \
         -e USDT_CONTRACT="$(constant usdtContract)" \
+        -e USDC_CONTRACT="$(constant usdcContract)" \
         --no-reinstall-driver \
         --test-output-dir "$OUTPUT_DIR" \
         "$flow" < /dev/null || failed="$failed $name"

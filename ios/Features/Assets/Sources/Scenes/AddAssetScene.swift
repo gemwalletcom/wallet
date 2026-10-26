@@ -83,6 +83,7 @@ extension AddAssetScene {
                     }
                 }
                 .focused($focusedField, equals: .address)
+                .accessibilityIdentifier("contractInputField")
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .submitLabel(.search)

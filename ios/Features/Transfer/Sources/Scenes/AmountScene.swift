@@ -66,6 +66,7 @@ public struct AmountScene: View {
                         NavigationLink(value: row.validator.toPrimitives()) {
                             ValidatorView(row: row)
                         }
+                        .accessibilityIdentifier("validator_row")
                     } else {
                         ValidatorView(row: row)
                     }
