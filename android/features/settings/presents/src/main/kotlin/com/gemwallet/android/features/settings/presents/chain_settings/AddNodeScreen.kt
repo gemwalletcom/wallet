@@ -1,7 +1,6 @@
 package com.gemwallet.android.features.settings.presents.chain_settings
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -10,12 +9,11 @@ import com.wallet.core.primitives.Chain
 
 @Composable
 fun AddNodeScreen(chain: Chain, onCancel: () -> Unit) {
-    val viewModel: AddNodeViewModel = hiltViewModel()
+    val viewModel = hiltViewModel<AddNodeViewModel, AddNodeViewModel.Factory> { it.create(chain) }
     val state by viewModel.viewState.collectAsStateWithLifecycle()
-
-    DisposableEffect(chain) {
-        viewModel.init(chain)
-        onDispose { }
+    val close = {
+        viewModel.clear()
+        onCancel()
     }
 
     AddNodeScene(
@@ -23,7 +21,7 @@ fun AddNodeScreen(chain: Chain, onCancel: () -> Unit) {
         state = state,
         url = viewModel.url,
         onUrlChange = viewModel::onUrlChange,
-        onAdd = { viewModel.addUrl(onAdded = onCancel) },
-        onCancel = onCancel,
+        onAdd = { viewModel.addUrl(onAdded = close) },
+        onCancel = close,
     )
 }

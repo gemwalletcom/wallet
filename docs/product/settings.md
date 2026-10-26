@@ -52,6 +52,7 @@ flowchart LR
 | The user confirms deleting an added node | the node is removed, and if it was selected the US Gem Wallet Node takes over | |
 | The user cancels deleting an added node | the node stays in the list as it was | |
 | The user types spaces around a node URL that was already checked | the check result and Import stay | spaces are not part of the URL, so the node is the same |
+| Rotation or theme change while Add node is open | it stays open with the typed URL and its check; closed and opened again, it starts empty | |
 | The app has offered push | it asks again no sooner than 30 days later, unless the user turned push off | |
 | The user taps a push | the app switches to the wallet the push belongs to, then opens the transaction, the asset or the chat | |
 | A newer release exists | "New update available!" at launch, with Update and Skip, and in About Us | |
