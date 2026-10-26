@@ -79,3 +79,47 @@ jobs:
       - name: Unit Tests
         working-directory: ios
         run: just test-without-building
+
+  mac_catalyst_build:
+    runs-on: macos-26
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+          submodules: recursive
+
+      - name: Setup Rust
+        uses: ./.github/actions/setup-rust-ci
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app
+
+      - name: Cache Swift Package Manager
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.swiftpm
+            ios/build/SourcePackages
+          key: ${{ runner.os }}-spm-${{ hashFiles('ios/**/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-
+
+      - name: Install dependencies
+        working-directory: ios
+        run: just install-toolchains
+
+      - name: Build Core
+        working-directory: ios
+        run: just generate-stone
+        env:
+          GEMSTONE_IOS_TARGETS: "aarch64-apple-ios-macabi"
+
+      - name: Resolve SPM Dependencies
+        working-directory: ios
+        run: just spm-resolve
+
+      - name: Build for Mac Catalyst
+        working-directory: ios
+        run: just build-mac
