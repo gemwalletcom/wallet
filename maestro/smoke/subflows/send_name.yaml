@@ -9,7 +9,7 @@ appId: ${APP_ID}
 - waitForAnimationToEnd
 - tapOn:
     id: "addressInputField"
-- inputText: "vitalik.eth"
+- inputText: ${ETHEREUM_NAME}
 - pressKey: Enter
 - extendedWaitUntil:
     visible:

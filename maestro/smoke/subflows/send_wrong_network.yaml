@@ -9,7 +9,7 @@ appId: ${APP_ID}
 - waitForAnimationToEnd
 - tapOn:
     id: "addressInputField"
-- inputText: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"
+- inputText: ${ETHEREUM_ADDRESS}
 - waitForAnimationToEnd
 - assertVisible:
     id: "main_action"
