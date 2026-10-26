@@ -16,7 +16,6 @@ use std::{
 pub const DEFAULT_LANGUAGE: &str = "en";
 pub const ANDROID_ONLY_KEYS: &[&str] = &[
     "application_name",
-    "camera_permission_request_camera",
     "common_add",
     "common_back",
     "common_close",

@@ -75,7 +75,7 @@ fun ConnectionStatusBanner(title: String, onDismiss: () -> Unit, modifier: Modif
                     modifier = Modifier.size(tinyIconSize),
                     imageVector = AppIcons.Close,
                     tint = MaterialTheme.colorScheme.secondary,
-                    contentDescription = "dismiss",
+                    contentDescription = stringResource(R.string.common_close),
                 )
             }
         }

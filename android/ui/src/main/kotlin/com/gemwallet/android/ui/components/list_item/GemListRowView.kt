@@ -20,6 +20,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
 import com.gemwallet.android.ui.components.clipboard.setCopy
@@ -180,7 +182,7 @@ fun GemListRowView(
             listPosition = listPosition,
             modifier = rowModifier,
             minHeight = ListItemDefaults.plainMinHeight,
-            accessory = { Switch(checked = row.isOn, onCheckedChange = { onToggle?.invoke(row.action, it) }) },
+            accessory = { Switch(checked = row.isOn, onCheckedChange = { onToggle?.invoke(row.action, it) }, modifier = Modifier.semantics { contentDescription = row.model.title }) },
         )
 
         is GemListRowUIModel.Picker -> ListItem(

@@ -291,7 +291,7 @@ private fun MessageMeta(outcome: GemSupportMessageOutcome, message: SupportMessa
             is GemSupportMessageOutcome.Failed -> if (outcome.canRetry) {
                 Icon(
                     imageVector = AppIcons.Refresh,
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.common_try_again),
                     tint = color,
                     modifier = Modifier
                         .size(statusIconSize)

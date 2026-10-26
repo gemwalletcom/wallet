@@ -90,7 +90,7 @@ fun QRScannerScene(scanType: QRScanType, isCameraGranted: Boolean, permissionAct
                 onClick = { galleryLauncher.launch("image/*") },
                 modifier = Modifier.testTag(SCAN_FROM_GALLERY_TAG),
             ) {
-                Icon(imageVector = AppIcons.Image, contentDescription = "from_image")
+                Icon(imageVector = AppIcons.Image, contentDescription = stringResource(R.string.library_select_from_photo_library))
             }
         },
         onClose = onCancel,

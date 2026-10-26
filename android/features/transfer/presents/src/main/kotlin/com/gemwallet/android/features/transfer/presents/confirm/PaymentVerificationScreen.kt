@@ -50,7 +50,7 @@ fun PaymentVerificationScreen(onCancel: () -> Unit, onConfirm: ConfirmTransactio
         snackbar = snackbar,
         actions = {
             IconButton(onClick = { isInfoVisible = true }) {
-                Icon(AppIcons.InfoOutlined, "")
+                Icon(AppIcons.InfoOutlined, stringResource(R.string.common_learn_more))
             }
         },
     ) {

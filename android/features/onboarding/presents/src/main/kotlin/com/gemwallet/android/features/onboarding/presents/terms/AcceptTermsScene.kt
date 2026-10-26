@@ -72,7 +72,7 @@ fun AcceptTermsScene(onCancel: CancelAction, onAccept: () -> Unit) {
                     uriHandler.open(context, AppUrl.page(PublicUrl.TERMS_OF_SERVICE))
                 },
             ) {
-                Icon(AppIcons.InfoOutlined, "")
+                Icon(AppIcons.InfoOutlined, stringResource(R.string.settings_terms_of_services))
             }
         },
     ) {

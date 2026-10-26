@@ -166,7 +166,12 @@ fun SetPriceAlertScene(
                                     uniffi.gemstone.PriceAlertDirection.UP -> AppIcons.ArrowCircleUp
                                     uniffi.gemstone.PriceAlertDirection.DOWN -> AppIcons.ArrowCircleDown
                                 },
-                                contentDescription = "",
+                                contentDescription = stringResource(
+                                    when (directionButton) {
+                                        uniffi.gemstone.PriceAlertDirection.UP -> R.string.price_alerts_direction_increases_by
+                                        uniffi.gemstone.PriceAlertDirection.DOWN -> R.string.price_alerts_direction_decreases_by
+                                    },
+                                ),
                                 tint = when (directionButton) {
                                     uniffi.gemstone.PriceAlertDirection.UP -> MaterialTheme.colorScheme.tertiary
                                     uniffi.gemstone.PriceAlertDirection.DOWN -> MaterialTheme.colorScheme.error

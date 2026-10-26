@@ -108,7 +108,7 @@ private fun ChartTypeSelector(selected: PortfolioChartType, onSelect: (Portfolio
                 Icon(
                     imageVector = AppIcons.ExpandMore,
                     tint = MaterialTheme.colorScheme.onSurface,
-                    contentDescription = "select_chart_type",
+                    contentDescription = null,
                 )
             }
         }

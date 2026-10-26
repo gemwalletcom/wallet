@@ -328,7 +328,7 @@ private fun FeeSheetHeader(title: String, onBack: (() -> Unit)?, onConfirm: (() 
                     containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = alpha10),
                 ),
             ) {
-                Icon(imageVector = AppIcons.ArrowBack, contentDescription = null)
+                Icon(imageVector = AppIcons.ArrowBack, contentDescription = stringResource(R.string.common_back))
             }
         }
         Text(text = title, style = MaterialTheme.typography.titleMedium)
@@ -341,7 +341,7 @@ private fun FeeSheetHeader(title: String, onBack: (() -> Unit)?, onConfirm: (() 
                     containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = alpha10),
                 ),
             ) {
-                Icon(imageVector = AppIcons.Check, contentDescription = null)
+                Icon(imageVector = AppIcons.Check, contentDescription = stringResource(R.string.common_done))
             }
         }
     }

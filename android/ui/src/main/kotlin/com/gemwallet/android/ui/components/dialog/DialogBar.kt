@@ -14,6 +14,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.alpha10
 import com.gemwallet.android.ui.theme.paddingHalfSmall
@@ -52,7 +54,12 @@ fun DialogBar(onDismissRequest: () -> Unit, title: String? = null, dismissType: 
                             DialogBarDismissType.Close -> AppIcons.Close
                             DialogBarDismissType.Confirm -> AppIcons.Check
                         },
-                        contentDescription = null,
+                        contentDescription = stringResource(
+                            when (dismissType) {
+                                DialogBarDismissType.Close -> R.string.common_close
+                                DialogBarDismissType.Confirm -> R.string.common_done
+                            },
+                        ),
                     )
                 }
             }

@@ -2,6 +2,9 @@ package com.gemwallet.android.ui.components.list_item
 
 import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
 import com.gemwallet.android.ui.models.ListPosition
@@ -14,6 +17,7 @@ fun SwitchProperty(text: String, checked: Boolean, listPosition: ListPosition = 
             Switch(
                 checked = checked,
                 onCheckedChange = onCheckedChange,
+                modifier = Modifier.semantics { contentDescription = text },
             )
         },
         listPosition = listPosition,

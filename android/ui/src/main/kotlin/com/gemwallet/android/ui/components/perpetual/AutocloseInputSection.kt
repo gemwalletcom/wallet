@@ -57,7 +57,7 @@ fun AutocloseInputSection(field: GemAutocloseFieldState, onTextChanged: (String)
                             onClick = { onTextChanged("") },
                         ),
                     imageVector = AppIcons.Cancel,
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.filter_clear),
                     tint = MaterialTheme.colorScheme.secondary,
                 )
             }

@@ -41,12 +41,7 @@ import uniffi.gemstone.DocsUrl
 import uniffi.gemstone.GemWalletSecretKind
 
 @Composable
-fun SecurityReminderScene(
-    title: String = stringResource(R.string.wallet_new_title),
-    kind: GemWalletSecretKind = GemWalletSecretKind.PHRASE,
-    onAccept: () -> Unit,
-    onCancel: CancelAction,
-) {
+fun SecurityReminderScene(title: String = stringResource(R.string.wallet_new_title), kind: GemWalletSecretKind = GemWalletSecretKind.PHRASE, onAccept: () -> Unit, onCancel: CancelAction) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
     val items = remember(kind) { securityReminderListItems(context, kind) }
@@ -63,7 +58,7 @@ fun SecurityReminderScene(
             IconButton(
                 { uriHandler.open(context, AppUrl.docs(kind.docsUrl())) },
             ) {
-                Icon(AppIcons.InfoOutlined, "")
+                Icon(AppIcons.InfoOutlined, stringResource(R.string.common_learn_more))
             }
         },
         onClose = { onCancel() },

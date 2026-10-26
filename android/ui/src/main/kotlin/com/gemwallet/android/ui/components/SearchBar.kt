@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
+import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.fields.requestFocusIfAttached
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.icons.AppIcons
@@ -69,7 +70,7 @@ fun SearchBar(query: TextFieldState, modifier: Modifier = Modifier.listItem(List
                 )
             }
             IconButton(onClick = focusRequester::requestFocus) {
-                Icon(imageVector = AppIcons.Search, contentDescription = "search")
+                Icon(imageVector = AppIcons.Search, contentDescription = stringResource(android.R.string.search_go))
             }
             if (query.text.isNotEmpty()) {
                 IconButton(
@@ -78,7 +79,7 @@ fun SearchBar(query: TextFieldState, modifier: Modifier = Modifier.listItem(List
                         query.clearText()
                     },
                 ) {
-                    Icon(imageVector = AppIcons.Close, contentDescription = "Clear")
+                    Icon(imageVector = AppIcons.Close, contentDescription = stringResource(R.string.filter_clear))
                 }
             }
         }

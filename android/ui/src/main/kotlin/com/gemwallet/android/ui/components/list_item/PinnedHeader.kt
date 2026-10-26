@@ -32,7 +32,7 @@ fun LazyListScope.pinnedHeader() {
                 modifier = Modifier.size(tinyIconSize),
                 imageVector = AppIcons.PushPin,
                 tint = MaterialTheme.colorScheme.secondary,
-                contentDescription = "pinned_section",
+                contentDescription = null,
             )
             Spacer4()
             Text(
