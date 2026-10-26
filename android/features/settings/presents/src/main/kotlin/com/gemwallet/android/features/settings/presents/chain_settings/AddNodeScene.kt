@@ -43,10 +43,10 @@ import uniffi.gemstone.GemNodeSyncState
 import uniffi.gemstone.chainRow
 
 @Composable
-fun AddNodeScene(chain: Chain, state: GemAddNodeViewState?, url: MutableState<String>, onUrlChange: () -> Unit, onAdd: () -> Unit, onCancel: () -> Unit) {
+fun AddNodeScene(chain: Chain, state: GemAddNodeViewState, url: MutableState<String>, onUrlChange: () -> Unit, onAdd: () -> Unit, onCancel: () -> Unit) {
     val context = LocalContext.current
     var isShowQRScan by remember { mutableStateOf(false) }
-    val phase = state?.phase
+    val phase = state.phase
 
     BackHandler {
         onCancel()
@@ -57,7 +57,7 @@ fun AddNodeScene(chain: Chain, state: GemAddNodeViewState?, url: MutableState<St
         mainAction = {
             MainActionButton(
                 title = stringResource(id = R.string.wallet_import_action),
-                state = buttonState(enabled = state?.canImport == true, loading = phase is GemAddNodePhase.Checking),
+                state = buttonState(enabled = state.canImport, loading = phase is GemAddNodePhase.Checking),
             ) {
                 onAdd()
             }
@@ -79,7 +79,7 @@ fun AddNodeScene(chain: Chain, state: GemAddNodeViewState?, url: MutableState<St
         )
         Spacer16()
         (phase as? GemAddNodePhase.Ready)?.rows.orEmpty().forEach { NodeCheckRow(it) }
-        if (state?.showsWarning == true) {
+        if (state.showsWarning) {
             ListItem(
                 model = ListItemModel(title = stringResource(R.string.asset_verification_warning_title), titleExtra = stringResource(R.string.nodes_import_node_warning_message)),
                 listPosition = ListPosition.Single,

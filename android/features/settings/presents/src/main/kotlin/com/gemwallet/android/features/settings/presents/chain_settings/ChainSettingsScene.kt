@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -50,7 +51,7 @@ import uniffi.gemstone.GemNodeRow
 @Composable
 internal fun ChainSettingsScene(state: ChainSettingsUIState, snackbar: SnackbarHostState? = null, onAction: (ChainSettingsAction) -> Unit) {
     val chain = state.chain
-    var isShowAddSource by remember { mutableStateOf(false) }
+    var isShowAddSource by rememberSaveable { mutableStateOf(false) }
     var revealedNodeId by remember { mutableStateOf<String?>(null) }
     var nodeDelete by remember { mutableStateOf<GemNodeRow?>(null) }
 
