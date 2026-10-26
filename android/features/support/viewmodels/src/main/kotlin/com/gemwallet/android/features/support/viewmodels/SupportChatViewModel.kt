@@ -3,6 +3,8 @@ package com.gemwallet.android.features.support.viewmodels
 import android.content.Context
 import android.net.Uri
 import android.util.Log
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.clearText
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
@@ -62,6 +64,8 @@ class SupportChatViewModel @Inject constructor(
         .map { it?.name }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
+    val messageState = TextFieldState()
+
     private val errorState = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = errorState.asStateFlow()
 
@@ -83,8 +87,13 @@ class SupportChatViewModel @Inject constructor(
         loadState.update { supportService.refresh(fromTimestamp) }
     }
 
-    fun sendText(content: String) = viewModelScope.launch(ioDispatcher) {
-        alertOnFailure { supportService.sendText(content) }
+    fun sendMessage() {
+        val text = messageState.text.trim().toString()
+        if (text.isEmpty()) return
+        messageState.clearText()
+        viewModelScope.launch(ioDispatcher) {
+            alertOnFailure { supportService.sendText(text) }
+        }
     }
 
     fun sendImages(uris: List<Uri>) = viewModelScope.launch(ioDispatcher) {
