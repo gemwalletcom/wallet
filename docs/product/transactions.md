@@ -28,6 +28,8 @@ flowchart LR
 | A transaction is sent | a Pending row at once, tracked until the network settles it, whatever screen the user is on | |
 | The network settles it | Successful, or Failed or Reverted | amounts and status come from the network, never from the app's guess |
 | A swap | listed under both the asset paid and the asset received | the user looks for it under either |
+| The user taps a swap's header or Swap Again | Swap opens only where the asset screen offers it: nothing in a watch-only wallet or for an asset that cannot be swapped | the details follow the same rule as a link |
+| The user taps a perpetual's header | the market opens only where the wallet screen shows Perpetuals | |
 | The wallet switches while details are open, such as a push for another wallet | the details stay on the wallet they were opened for | an open details screen never blanks or swaps |
 | A transaction is deleted while its details are open | the details keep showing it | an open details screen never blanks or swaps |
 | A transaction push is tapped | its details open at once; until the wallet has the transaction, a loader shows while it comes from Gem's server | the wallet shows only what its history or Gem's server holds, never what a push carries |

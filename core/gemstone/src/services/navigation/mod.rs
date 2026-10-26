@@ -76,10 +76,7 @@ impl GemNavigationService {
             Deeplink::Asset { asset_id } => self.open_asset(asset_id).await,
             Deeplink::Perpetuals => self.perpetuals().await,
             Deeplink::Rewards { code } => Ok(GemNavigationTarget::Rewards { code: rules::code(code) }),
-            Deeplink::Receive { asset_id } => Ok(match self.offered_asset(asset_id, GemAssetAction::Receive).await? {
-                Some(asset) => GemNavigationTarget::Receive { asset },
-                None => GemNavigationTarget::None,
-            }),
+            Deeplink::Receive { asset_id } => self.receive(asset_id).await,
             Deeplink::Buy { asset_id, amount } => self.fiat(asset_id, amount, FiatQuoteType::Buy).await,
             Deeplink::Sell { asset_id, amount } => self.fiat(asset_id, amount, FiatQuoteType::Sell).await,
             Deeplink::Swap { asset_id } => self.swap(asset_id, None).await,
@@ -129,6 +126,10 @@ impl GemNavigationService {
         })
     }
 
+    pub async fn open_swap(&self, from_asset_id: AssetId, to_asset_id: AssetId) -> Result<GemNavigationTarget, GemServiceError> {
+        self.swap(from_asset_id, Some(to_asset_id)).await
+    }
+
     pub fn asset_target(&self, asset: Asset) -> GemNavigationTarget {
         target(asset, None)
     }
@@ -168,46 +169,55 @@ impl GemNavigationService {
     }
 
     async fn open_transaction(&self, wallet_id: WalletId, asset_id: AssetId, transaction_id: TransactionId) -> Result<GemNavigationTarget, GemServiceError> {
-        let Some(wallet) = self.session.get_wallet(wallet_id.clone()).await? else {
-            return Ok(GemNavigationTarget::None);
-        };
-        Ok(match self.balance.open_wallet_asset(wallet.clone(), asset_id).await? {
-            Some(asset) if self.hides_asset(&wallet, &asset) => GemNavigationTarget::None,
-            Some(asset) => GemNavigationTarget::Transaction {
-                is_perpetual: asset.asset_type == AssetType::PERPETUAL,
+        Ok(match self.open_wallet_asset(wallet_id.clone(), asset_id).await? {
+            GemNavigationTarget::Asset { asset, is_perpetual, .. } => GemNavigationTarget::Transaction {
                 asset,
                 wallet_id,
                 transaction_id,
+                is_perpetual,
             },
+            _ => GemNavigationTarget::None,
+        })
+    }
+
+    async fn receive(&self, asset_id: AssetId) -> Result<GemNavigationTarget, GemServiceError> {
+        let Some(wallet) = self.session.get_current_wallet().await? else {
+            return Ok(GemNavigationTarget::None);
+        };
+        Ok(match self.offered_asset(&wallet, asset_id, GemAssetAction::Receive).await? {
+            Some(asset) => GemNavigationTarget::Receive { asset },
             None => GemNavigationTarget::None,
         })
     }
 
     async fn fiat(&self, asset_id: AssetId, amount: Option<i32>, quote_type: FiatQuoteType) -> Result<GemNavigationTarget, GemServiceError> {
-        Ok(match self.offered_asset(asset_id, quote_action(&quote_type)).await? {
+        let Some(wallet) = self.session.get_current_wallet().await? else {
+            return Ok(GemNavigationTarget::None);
+        };
+        Ok(match self.offered_asset(&wallet, asset_id, quote_action(&quote_type)).await? {
             Some(asset) => GemNavigationTarget::Fiat { asset, amount, quote_type },
             None => GemNavigationTarget::None,
         })
     }
 
     async fn swap(&self, from_asset_id: AssetId, to_asset_id: Option<AssetId>) -> Result<GemNavigationTarget, GemServiceError> {
-        let Some(from) = self.offered_asset(from_asset_id, GemAssetAction::SwapPay).await? else {
+        let Some(wallet) = self.session.get_current_wallet().await? else {
+            return Ok(GemNavigationTarget::None);
+        };
+        let Some(from) = self.offered_asset(&wallet, from_asset_id, GemAssetAction::SwapPay).await? else {
             return Ok(GemNavigationTarget::None);
         };
         let to = match to_asset_id {
-            Some(asset_id) => self.offered_asset(asset_id, GemAssetAction::SwapReceive).await?,
-            None => None,
+            Some(asset_id) if wallet.account(asset_id.chain).is_some() => self.offered_asset(&wallet, asset_id, GemAssetAction::SwapReceive).await?,
+            _ => None,
         };
         Ok(GemNavigationTarget::Swap { from, to })
     }
 }
 
 impl GemNavigationService {
-    async fn offered_asset(&self, asset_id: AssetId, action: GemAssetAction) -> Result<Option<Asset>, GemServiceError> {
-        let Some(wallet) = self.session.get_current_wallet().await? else {
-            return Ok(None);
-        };
-        required_account(&wallet, asset_id.chain)?;
+    async fn offered_asset(&self, wallet: &Wallet, asset_id: AssetId, action: GemAssetAction) -> Result<Option<Asset>, GemServiceError> {
+        required_account(wallet, asset_id.chain)?;
         let asset = self.assets.ensure_asset(asset_id.clone()).await?;
         let properties = self.assets.asset_properties(asset_id).await?;
         Ok(properties.is_some_and(|properties| action.is_offered(wallet.wallet_type, &properties)).then_some(asset))
@@ -396,15 +406,17 @@ mod tests {
     }
 
     #[test]
-    fn test_a_swap_push_drops_a_receive_asset_that_cannot_be_swapped() {
+    fn test_a_swap_drops_a_receive_asset_the_wallet_cannot_take() {
         block_on(async {
             let testkit = DiscoveryTestkit::with_status(200);
             let service = GemNavigationService::mock(&testkit);
             let ethereum = Asset::from_chain(Chain::Ethereum);
             let arbitrum = Asset::from_chain(Chain::Arbitrum);
+            let bitcoin = Asset::from_chain(Chain::Bitcoin);
             testkit.select_wallet(&Wallet::mock_with_chains(&[Chain::Ethereum, Chain::Arbitrum]));
             save_asset(&testkit, ethereum.clone(), false, true).await;
             save_asset(&testkit, arbitrum.clone(), false, false).await;
+            save_asset(&testkit, bitcoin.clone(), false, true).await;
 
             let target = service
                 .open_notification(GemPushNotification::SwapAsset {
@@ -414,7 +426,12 @@ mod tests {
                 .await
                 .unwrap();
 
-            assert_eq!(target, GemNavigationTarget::Swap { from: ethereum, to: None });
+            assert_eq!(target, GemNavigationTarget::Swap { from: ethereum.clone(), to: None }, "the asset cannot be swapped");
+            assert_eq!(
+                service.open_swap(ethereum.id.clone(), bitcoin.id).await.unwrap(),
+                GemNavigationTarget::Swap { from: ethereum, to: None },
+                "the wallet has no account on the network"
+            );
         });
     }
 

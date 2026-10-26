@@ -12,6 +12,7 @@ import protocol Gemstone.GemPaymentServiceProtocol
 import enum Gemstone.GemPaymentTarget
 import enum Gemstone.GemPushNotification
 import protocol Gemstone.GemPushNotificationServiceProtocol
+import enum Gemstone.GemTransactionHeaderAction
 import protocol Gemstone.GemWalletSessionServiceProtocol
 import enum Gemstone.Payment
 import enum Gemstone.UrlAction
@@ -105,7 +106,7 @@ final class NavigationRouter: Sendable {
 
     @MainActor
     func openAsset(_ asset: Asset) {
-        navigationState.openAsset(target: navigationService.assetTarget(asset: asset.toGem()))
+        appendAsset(target: navigationService.assetTarget(asset: asset.toGem()))
     }
 
     @MainActor
@@ -138,7 +139,7 @@ extension NavigationRouter {
     private func open(target: GemNavigationTarget) async throws {
         switch target {
         case let .asset(asset, walletId, isPerpetual):
-            try openTarget(path: [NavigationStateManager.assetScene(asset.toPrimitives(), isPerpetual: isPerpetual)], walletId: walletId)
+            try openTarget(path: [Self.assetScene(asset.toPrimitives(), isPerpetual: isPerpetual)], walletId: walletId)
         case let .receive(asset):
             try await presentAssetInput(type: .receive(.asset), for: asset.toPrimitives())
         case let .fiat(asset, amount, quoteType):
@@ -149,7 +150,8 @@ extension NavigationRouter {
             }
             try await presentAssetInput(type: type, for: asset)
         case let .swap(from, to):
-            try await presentSwap(from: from.toPrimitives().id, to: to?.toPrimitives().id)
+            let from = from.toPrimitives()
+            try await presentAssetInput(type: .swap(from.id, to?.toPrimitives().id), for: from)
         case .perpetuals:
             navigationState.wallet.append(Scenes.Perpetuals())
         case let .rewards(code):
@@ -164,6 +166,26 @@ extension NavigationRouter {
             break
         }
         selectTab(target.tab())
+    }
+
+    func openTransactionAction(_ action: GemTransactionHeaderAction, collectiblePath: NavigationPathState) async throws {
+        switch action {
+        case let .asset(assetId), let .perpetual(assetId):
+            try await appendAsset(target: navigationService.openAsset(assetId: assetId))
+        case let .swap(fromAssetId, toAssetId):
+            try await open(target: navigationService.openSwap(fromAssetId: fromAssetId, toAssetId: toAssetId))
+        case let .nft(assetId):
+            try collectiblePath.append(Scenes.Collectible.assetId(NFTAssetId.from(id: assetId)))
+        }
+    }
+
+    private func appendAsset(target: GemNavigationTarget) {
+        guard case let .asset(asset, _, isPerpetual) = target else { return }
+        navigationState.appendWallet(Self.assetScene(asset.toPrimitives(), isPerpetual: isPerpetual))
+    }
+
+    private static func assetScene(_ asset: Asset, isPerpetual: Bool) -> any Hashable & Codable {
+        isPerpetual ? Scenes.Perpetual(asset) : Scenes.Asset(asset: asset)
     }
 
     private func openTarget(path: [any Hashable & Codable], walletId: WalletId?) throws {
@@ -285,11 +307,6 @@ extension NavigationRouter {
         case true: [Scenes.Perpetuals(), Scenes.Perpetual(asset), Scenes.Transaction(id: transactionId)]
         case false: [Scenes.Asset(asset: asset), Scenes.Transaction(id: transactionId)]
         }
-    }
-
-    private func presentSwap(from fromId: AssetId, to toId: AssetId?) async throws {
-        let wallet = try await walletSessionService.requireCurrentWallet().toPrimitives()
-        try await presenter.presentSwap(from: fromId, to: toId, wallet: wallet)
     }
 
     private func presentAssetInput(type: SelectedAssetType, for asset: Asset) async throws {

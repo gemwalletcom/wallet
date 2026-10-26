@@ -15,6 +15,7 @@ import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.assets.presents.select.AssetsManageRoute
 import com.gemwallet.android.features.onboarding.presents.authentication.EnableAuthenticationRoute
 import com.gemwallet.android.features.onboarding.presents.create_wallet.CreateWalletRoute
@@ -141,10 +142,10 @@ class WalletNavigator(
         pop()
     }
 
-    private fun openAssetRoute(route: AssetRoute) = scope.launch {
-        runCatchingCancellable { withContext(Dispatchers.IO) { navigationService.openAsset(route.assetId.toIdentifier()) } }
-            .onSuccess { target -> if (target is GemNavigationTarget.Asset) push(route) }
-            .onFailure { Log.e(TAG, "opening an asset failed", it) }
+    private fun openTarget(open: suspend () -> GemNavigationTarget, onTarget: (GemNavigationTarget) -> Unit) = scope.launch {
+        runCatchingCancellable { withContext(Dispatchers.IO) { open() } }
+            .onSuccess(onTarget)
+            .onFailure { Log.e(TAG, "opening a target failed", it) }
     }
 
     private fun replaceTop(route: NavKey) {
@@ -240,7 +241,9 @@ class WalletNavigator(
     fun openWalletSecurityReminder(input: WalletSecretInput) = push(SecurityReminderRoute(input))
     fun finishWalletSecurityReminder(input: WalletSecretInput) = replaceTop(ExportWalletRoute(input))
     fun openAddAsset() = push(AddAssetRoute)
-    fun openAsset(assetId: AssetId) = openAssetRoute(AssetRoute(assetId))
+    fun openAsset(assetId: AssetId) = openTarget({ navigationService.openAsset(assetId.toIdentifier()) }) { target ->
+        if (target is GemNavigationTarget.Asset) push(AssetRoute(assetId))
+    }
     fun openNetworkAssets(chain: Chain) = push(NetworkAssetsRoute(chain))
     fun openChart(assetId: AssetId) = push(ChartRoute(assetId))
     fun openPortfolio(type: PortfolioType = PortfolioType.Wallet) = push(PortfolioRoute(type))
@@ -293,6 +296,9 @@ class WalletNavigator(
     fun openSetPriceAlert(assetId: AssetId) = push(SetPriceAlertRoute(assetId))
     fun openPerpetuals() = push(PerpetualsRoute)
     fun openPerpetual(assetId: AssetId) = push(PerpetualRoute(assetId))
+    fun openTransactionPerpetual(assetId: AssetId) = openTarget({ navigationService.openAsset(assetId.toIdentifier()) }) { target ->
+        if (target is GemNavigationTarget.Asset) push(PerpetualRoute(assetId))
+    }
 
     fun openPerpetualDepositSelect() = push(PerpetualDepositSelectRoute)
 
@@ -321,6 +327,9 @@ class WalletNavigator(
     fun openSwap(from: AssetId?, to: AssetId? = null) {
         clearSwapSelections()
         push(SwapPairRoute(from, to))
+    }
+    fun openTransactionSwap(from: AssetId, to: AssetId) = openTarget({ navigationService.openSwap(from.toIdentifier(), to.toIdentifier()) }) { target ->
+        if (target is GemNavigationTarget.Swap) openSwap(target.from.toPrimitives().id, target.to?.toPrimitives()?.id)
     }
     fun openSwapSelect(itemType: SwapItemType, payAssetId: AssetId?, receiveAssetId: AssetId?) {
         push(SwapSelectRoute(itemType, payAssetId, receiveAssetId))
