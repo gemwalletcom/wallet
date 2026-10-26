@@ -290,7 +290,6 @@ fun ConfirmTransferScreen(
         FeeDetails(
             isVisible = showSelectTxSpeed,
             screen = feeScreen,
-            feeListItem = feeListItem,
             onSelectPriority = viewModel::changeFeePriority,
             onSelectCustom = viewModel::changeFeeSelection,
             onSelectFeeAsset = viewModel::changeFeeAsset,

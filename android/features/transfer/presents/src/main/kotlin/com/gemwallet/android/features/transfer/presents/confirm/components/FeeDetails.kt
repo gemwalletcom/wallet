@@ -87,15 +87,7 @@ import uniffi.gemstone.GemNetworkFeeScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FeeDetails(
-    isVisible: Boolean,
-    screen: GemNetworkFeeScreen?,
-    feeListItem: ListItemModel?,
-    onSelectPriority: (FeePriority) -> Unit,
-    onSelectCustom: (GemConfirmFeeSelection) -> Unit,
-    onSelectFeeAsset: (AssetId) -> Unit,
-    onCancel: () -> Unit,
-) {
+fun FeeDetails(isVisible: Boolean, screen: GemNetworkFeeScreen?, onSelectPriority: (FeePriority) -> Unit, onSelectCustom: (GemConfirmFeeSelection) -> Unit, onSelectFeeAsset: (AssetId) -> Unit, onCancel: () -> Unit) {
     screen ?: return
     val feeAsset = remember(screen.feeAsset) { screen.feeAsset?.toFeeAssetUIModel() }
     val feeAssets = remember(screen.feeAssets) { screen.feeAssets.map { it.toFeeAssetUIModel() } }
@@ -144,8 +136,8 @@ fun FeeDetails(
         )
         when (page) {
             FeeDetailsPage.Details -> FeeRates(
-                feeItems = screen.additionalFees.map { ListItemModel(title = stringResource(it.option.stringRes()), subtitle = it.amount.amount.text()) },
-                feeListItem = feeListItem,
+                feeItems = screen.additionalFees.map { ListItemModel(title = stringResource(it.option.stringRes()), subtitle = it.amount.amount.text(), subtitleExtra = it.amount.fiat?.text()) },
+                feeListItem = screen.fee?.let { ListItemModel(title = stringResource(R.string.transfer_network_fee), subtitle = it.amount.text(), subtitleExtra = it.fiat?.text()) },
                 feeRateRows = screen.rates?.rows.orEmpty(),
                 showsOptions = screen.rates?.showsOptions == true,
                 feeAsset = feeAsset,
