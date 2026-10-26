@@ -87,6 +87,7 @@ class BaseSelectAssetViewModelTest {
 
     private fun viewModel(
         items: List<AssetData>,
+        chains: List<Chain> = emptyList(),
         recents: RecentActivityQuery = mockk(relaxed = true) {
             every { this@mockk(any(), any(), any(), any()) } returns flowOf(emptyList())
         },
@@ -105,7 +106,7 @@ class BaseSelectAssetViewModelTest {
                 items.filter { (chains.isEmpty() || it.asset.id.chain in chains) && (GemAssetFilter.HasBalance !in query || it.balance.available.signum() > 0) }.take(current.limit)
             }
         }
-        return BaseSelectAssetViewModel(session, recents, service, search, GemSelectAssetType.Send, dispatcher, mockk(relaxed = true))
+        return BaseSelectAssetViewModel(session, recents, service, search, GemSelectAssetType.Send, dispatcher, mockk(relaxed = true), chains)
             .also { models.add(it) }
     }
 
@@ -123,11 +124,16 @@ class BaseSelectAssetViewModelTest {
     }
 
     @Test
-    fun `clearing the filters puts every chain back`() = runTest(dispatcher) {
-        val model = viewModel(listOf(mockAssetData(asset = ethereum), mockAssetData(asset = bitcoin)))
-        model.unpinned.first { it.size == 2 }
+    fun `the picker opens filtered to the chains it was given`() = runTest(dispatcher) {
+        val model = viewModel(listOf(mockAssetData(asset = ethereum), mockAssetData(asset = bitcoin)), chains = listOf(Chain.Bitcoin))
 
-        model.setChainFilter(listOf(Chain.Bitcoin))
+        assertEquals(listOf(Chain.Bitcoin.string), model.filterView.value.selectedChains)
+        assertEquals(listOf("Bitcoin"), model.unpinned.first { it.isNotEmpty() }.map { it.asset.name })
+    }
+
+    @Test
+    fun `clearing the filters puts every chain back`() = runTest(dispatcher) {
+        val model = viewModel(listOf(mockAssetData(asset = ethereum), mockAssetData(asset = bitcoin)), chains = listOf(Chain.Bitcoin))
         assertEquals(listOf("Bitcoin"), model.unpinned.first { it.size == 1 }.map { it.asset.name })
 
         model.onBalanceFilter(true)
@@ -154,9 +160,7 @@ class BaseSelectAssetViewModelTest {
                 flowOf(emptyList())
             }
         }
-        val model = viewModel(emptyList(), recents = recents)
-
-        model.setChainFilter(listOf(Chain.Bitcoin))
+        val model = viewModel(emptyList(), chains = listOf(Chain.Bitcoin), recents = recents)
 
         val bitcoin = setOf(AssetsQueryFilter.Chains(listOf(Chain.Bitcoin)))
         assertEquals(bitcoin, requests.first { it.lastOrNull() == bitcoin }.last())
