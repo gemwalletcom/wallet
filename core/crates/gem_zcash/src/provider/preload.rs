@@ -21,7 +21,7 @@ impl<C: Client> ChainTransactionLoad for ZcashProvider<C> {
     async fn get_transaction_preload(&self, input: TransactionPreloadInput) -> Result<TransactionLoadMetadata, Box<dyn Error + Sync + Send>> {
         let utxos = self.client.get_utxos(&input.sender_address).await?;
         let node_info = self.client.get_node_info().await?;
-        let branch_id = node_info.backend.consensus.ok_or("Branch ID not found")?.chaintip;
+        let branch_id = node_info.backend.consensus.ok_or("Branch ID not found")?.nextblock;
         Ok(TransactionLoadMetadata::Zcash {
             utxos: map_utxos(utxos, input.sender_address),
             branch_id,

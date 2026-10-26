@@ -13,6 +13,8 @@ use crate::signer::{
 };
 
 const NU6_3_BRANCH_ID: u32 = 0x37a5_165b;
+const NU7_BRANCH_ID: u32 = 0x7719_0ad9;
+const SHIELDED_BRANCH_IDS: [u32; 2] = [NU6_3_BRANCH_ID, NU7_BRANCH_ID];
 const PROVING_STACK_SIZE: usize = 16 * 1024 * 1024;
 
 impl Signer<'_> {
@@ -27,7 +29,7 @@ impl Signer<'_> {
     }
 
     fn sign_shielded<R: Rng + CryptoRng>(&self, plan: &SpendPlan, output: &ShieldedOutput, rng: &mut R) -> Result<String, SignerError> {
-        if self.branch_id != NU6_3_BRANCH_ID {
+        if !SHIELDED_BRANCH_IDS.contains(&self.branch_id) {
             return SignerError::invalid_input_err("unsupported Zcash network upgrade for shielded transfers");
         }
         let unauthorized = output.ironwood_bundle(rng)?;
@@ -74,6 +76,9 @@ mod tests {
 
         // Test vector is checked against zcash_primitives 0.31.0-pre.2: parse round trip, proof, signatures and note decryption.
         assert_eq!(raw, include_str!("../../../testdata/zcash_shielded_transfer.hex"));
+
+        let nu7 = Signer::new(NU7_BRANCH_ID, &key).sign_shielded(&plan.spend, plan.shielded_output.as_ref().unwrap(), &mut StdRng::seed_from_u64(1)).unwrap();
+        assert_eq!(&nu7[16..24], "d90a1977");
 
         let other_branch = mock_signer_input_with_branch_id(mock_sender_address(BitcoinChain::Zcash), TEST_ZCASH_UNIFIED_ADDRESS.to_string(), "5437f330");
         assert_eq!(
