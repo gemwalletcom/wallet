@@ -29,6 +29,7 @@ import org.junit.runner.RunWith
 import uniffi.gemstone.GemFeeRateKind
 import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemNumberUnit
+import java.math.BigInteger
 
 @RunWith(AndroidJUnit4::class)
 class FeeDetailsTest {
@@ -63,6 +64,18 @@ class FeeDetailsTest {
         showFeeDetails()
 
         composeRule.onNodeWithText(amount.text()).assertIsDisplayed()
+    }
+
+    @Test
+    fun theCustomFeeEstimateShowsItsAmount() {
+        val priced = custom.copy(loadedFee = BigInteger.valueOf(21_000), price = 2.0)
+        val fee = requireNotNull(priced.viewState().fee)
+        screen = mockGemNetworkFeeScreen(rates = priced.rows, custom = priced)
+
+        showFeeDetails()
+        composeRule.onNodeWithText(context.getString(R.string.fee_rate_custom)).performClick()
+
+        composeRule.onNodeWithText(fee.amount.text()).assertIsDisplayed()
     }
 
     private fun showFeeDetails() {
