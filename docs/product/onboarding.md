@@ -57,6 +57,7 @@ The Import screen, top to bottom:
 | The wallet already exists | it is simply opened | |
 | The wallet already exists and the app lock offer is due | the "already imported" sheet closes, then the offer opens | the offer must not open behind the sheet |
 | An import fails | its error shows under the input after every failed attempt, and clears as soon as the input changes | a retry with the same mistake must not look like nothing happened |
+| Rotation or theme change while typing | the picked kind and the typed text stay | |
 
 Names follow the shared [Names](../PRODUCT.md#names) section.
 
