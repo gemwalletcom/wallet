@@ -225,7 +225,10 @@ extension RootSceneViewModel {
                         isDefaultAction: true,
                         action: {
                             Task { @MainActor in
-                                UIApplication.shared.open(offer.downloadUrl.flatMap(URL.init(string:)) ?? AppUrl.page(.appStore))
+                                switch offer.destination {
+                                case let .store(url), let .file(url):
+                                    UIApplication.shared.open(URL(string: url)!)
+                                }
                             }
                         },
                     )

@@ -15,13 +15,19 @@ pub enum GemAppUpdateAction {
     Update,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, uniffi::Enum)]
+pub enum GemAppUpdateDestination {
+    Store { url: String },
+    File { url: String },
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAppUpdateOffer {
     pub version: String,
     pub title: GemLocalizedText,
     pub description: GemLocalizedText,
     pub actions: Vec<GemAppUpdateAction>,
-    pub download_url: Option<String>,
+    pub destination: GemAppUpdateDestination,
 }
 
 #[uniffi::export]

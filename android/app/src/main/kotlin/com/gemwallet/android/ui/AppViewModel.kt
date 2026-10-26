@@ -34,6 +34,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemAppStartServiceInterface
+import uniffi.gemstone.GemAppUpdateDestination
 import uniffi.gemstone.GemAppUpdateOffer
 import uniffi.gemstone.GemWalletSessionServiceInterface
 import uniffi.gemstone.UrlAction
@@ -123,10 +124,10 @@ class AppViewModel @Inject constructor(
 
     private suspend fun offerStoreUpdate() {
         val offer = syncAppUpdate.syncAppUpdate() ?: return
-        if (offer.downloadUrl != null) {
-            return
+        when (offer.destination) {
+            is GemAppUpdateDestination.File -> return
+            is GemAppUpdateDestination.Store -> state.update { it.copy(update = offer) }
         }
-        state.update { it.copy(update = offer) }
     }
 
     fun acceptTerms() {

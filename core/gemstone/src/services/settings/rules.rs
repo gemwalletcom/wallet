@@ -1,4 +1,4 @@
-use primitives::{Currency, PerpetualMarginType, PlatformStore, Release};
+use primitives::{Currency, PerpetualMarginType, Release};
 
 use crate::config::perpetual_config;
 use crate::config::public::PublicUrl;
@@ -227,7 +227,7 @@ pub fn about_sections(version: String, build: String, update: Option<Release>) -
                     title: GemListRowTitle::UpdateApp,
                     value: Some(release.version),
                     icon: GemListRowIcon::AppLogo,
-                    url: store_url(release.store).url(),
+                    url: PublicUrl::for_store(release.store).url(),
                     target: GemUrlTarget::External,
                 }),
             ]
@@ -236,15 +236,6 @@ pub fn about_sections(version: String, build: String, update: Option<Release>) -
             .collect(),
         ),
     ]
-}
-
-fn store_url(store: PlatformStore) -> PublicUrl {
-    match store {
-        PlatformStore::AppStore => PublicUrl::AppStore,
-        PlatformStore::GooglePlay => PublicUrl::PlayStore,
-        PlatformStore::Fdroid | PlatformStore::Huawei | PlatformStore::SolanaStore | PlatformStore::SamsungStore | PlatformStore::ApkUniversal | PlatformStore::Emerald | PlatformStore::Local => PublicUrl::APK,
-        PlatformStore::MacDmg => PublicUrl::DMG,
-    }
 }
 
 pub fn sections(wallets_count: usize, notifications_available: bool, wallet_connect_available: bool, shows_rewards: bool, developer_enabled: bool) -> Vec<GemListSection> {
@@ -289,6 +280,7 @@ pub fn sections(wallets_count: usize, notifications_available: bool, wallet_conn
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::PlatformStore;
 
     #[test]
     fn test_notifications_offer_the_push_toggle_and_the_price_alerts_link() {

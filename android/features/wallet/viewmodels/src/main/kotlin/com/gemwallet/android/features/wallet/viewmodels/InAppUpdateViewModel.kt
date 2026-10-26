@@ -16,13 +16,21 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemAppUpdateDestination
 import javax.inject.Inject
 
 @HiltViewModel
 class InAppUpdateViewModel @Inject constructor(observeAppUpdateOffer: ObserveAppUpdateOffer, private val skipAppUpdate: SkipAppUpdate, private val updateService: InAppUpdateService) : ViewModel() {
 
     val updateAvailable = observeAppUpdateOffer.observeAppUpdateOffer()
-        .map { offer -> offer?.takeIf { it.downloadUrl != null } }
+        .map { offer ->
+            offer?.takeIf {
+                when (it.destination) {
+                    is GemAppUpdateDestination.File -> true
+                    is GemAppUpdateDestination.Store -> false
+                }
+            }
+        }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val _downloadState = MutableStateFlow<DownloadState>(DownloadState.Idle)
@@ -44,7 +52,10 @@ class InAppUpdateViewModel @Inject constructor(observeAppUpdateOffer: ObserveApp
         }
 
         val update = updateAvailable.value ?: return
-        val apkUrl = update.downloadUrl ?: return
+        val apkUrl = when (val destination = update.destination) {
+            is GemAppUpdateDestination.File -> destination.url
+            is GemAppUpdateDestination.Store -> return
+        }
 
         downloadJob = viewModelScope.launch {
             downloadedVersion = null

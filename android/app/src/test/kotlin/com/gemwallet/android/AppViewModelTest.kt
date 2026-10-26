@@ -38,6 +38,7 @@ import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.GemAppStartServiceInterface
 import uniffi.gemstone.GemAppUpdateAction
+import uniffi.gemstone.GemAppUpdateDestination
 import uniffi.gemstone.GemAppUpdateOffer
 import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemWalletSessionServiceInterface
@@ -113,7 +114,14 @@ class AppViewModelTest {
 
     @Test
     fun `an update outside the store is never offered`() = runTest(dispatcher) {
-        val model = viewModel(update = mockGemAppUpdateOffer(version = "2.0.0", actions = listOf(GemAppUpdateAction.SKIP, GemAppUpdateAction.UPDATE), downloadUrl = "https://apk.gemwallet.com/gem_wallet_universal_2.0.0.apk"))
+        val model =
+            viewModel(
+                update = mockGemAppUpdateOffer(
+                    version = "2.0.0",
+                    actions = listOf(GemAppUpdateAction.SKIP, GemAppUpdateAction.UPDATE),
+                    destination = GemAppUpdateDestination.File(url = "https://apk.gemwallet.com/gem_wallet_universal_2.0.0.apk"),
+                ),
+            )
 
         model.startDestinationState.first { it != null }
 

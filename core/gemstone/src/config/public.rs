@@ -1,5 +1,5 @@
 use super::with_utm_source;
-use primitives::{GEM_ANDROID_PACKAGE_ID, GEM_API_HOST, Platform};
+use primitives::{GEM_ANDROID_PACKAGE_ID, GEM_API_HOST, Platform, PlatformStore};
 
 #[derive(uniffi::Enum, Clone)]
 pub enum PublicUrl {
@@ -55,6 +55,15 @@ impl PublicUrl {
             Self::PlayStore => format!("https://play.google.com/store/apps/details?id={GEM_ANDROID_PACKAGE_ID}"),
             Self::APK => format!("{APK_URL}/gem_wallet_latest.apk"),
             Self::DMG => format!("{APK_URL}/gem_wallet_latest.dmg"),
+        }
+    }
+
+    pub fn for_store(store: PlatformStore) -> Self {
+        match store {
+            PlatformStore::AppStore => Self::AppStore,
+            PlatformStore::GooglePlay => Self::PlayStore,
+            PlatformStore::Fdroid | PlatformStore::Huawei | PlatformStore::SolanaStore | PlatformStore::SamsungStore | PlatformStore::ApkUniversal | PlatformStore::Emerald | PlatformStore::Local => Self::APK,
+            PlatformStore::MacDmg => Self::DMG,
         }
     }
 }

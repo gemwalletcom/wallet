@@ -256,6 +256,7 @@ mocks:
   - FiatTransactionAssetData
   - FiatTransactionData
   - GemAddressRow
+  - GemAppUpdateDestination
   - GemAppUpdateOffer
   - GemAssetBalance
   - GemAssetDetails
