@@ -13,7 +13,6 @@ type AddJob = Box<dyn FnOnce(JobPlan, Duration) -> JobPlan + Send>;
 
 struct PendingJob {
     variant: JobVariant,
-    interval_param: Option<ConfigParamKey>,
     add: AddJob,
 }
 
@@ -21,7 +20,7 @@ pub struct JobPlanBuilder<'a> {
     worker: WorkerService,
     plan: PlanResult,
     pending: Vec<PendingJob>,
-    config: Option<&'a ConfigCacher>,
+    config: &'a ConfigCacher,
     filter: Option<String>,
 }
 
@@ -31,7 +30,7 @@ impl<'a> JobPlanBuilder<'a> {
             worker,
             plan: Ok(plan),
             pending: Vec::new(),
-            config: Some(config),
+            config,
             filter: None,
         }
     }
@@ -53,7 +52,7 @@ impl<'a> JobPlanBuilder<'a> {
             self.plan = Err(format!("job {} belongs to {:?} worker but builder is {:?}", variant.name(), variant.worker(), self.worker).into());
         }
         if self.plan.is_ok() && should_include(&variant.name(), self.filter.as_deref()) {
-            self.pending.push(Self::pending_job(variant, None, job_fn));
+            self.pending.push(Self::pending_job(variant, job_fn));
         }
         self
     }
@@ -100,17 +99,20 @@ impl<'a> JobPlanBuilder<'a> {
             return self;
         }
         for item in items {
-            let variant = JobVariant::labeled(job, item.job_label());
+            let variant = match interval_param(item.clone()) {
+                Some(key) => JobVariant::labeled(job, item.job_label()).provider_interval(key),
+                None => JobVariant::labeled(job, item.job_label()),
+            };
             if !should_include(&variant.name(), self.filter.as_deref()) {
                 continue;
             }
             let job_fn = build_job(item.clone(), variant.clone());
-            self.pending.push(Self::pending_job(variant, interval_param(item), job_fn));
+            self.pending.push(Self::pending_job(variant, job_fn));
         }
         self
     }
 
-    fn pending_job<F, Fut, R>(variant: JobVariant, interval_param: Option<ConfigParamKey>, job_fn: F) -> PendingJob
+    fn pending_job<F, Fut, R>(variant: JobVariant, job_fn: F) -> PendingJob
     where
         F: Fn(JobContext) -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<R, JobError>> + Send + 'static,
@@ -119,7 +121,6 @@ impl<'a> JobPlanBuilder<'a> {
         let name = variant.name();
         PendingJob {
             variant,
-            interval_param,
             add: Box::new(move |plan, interval| plan.job(name, interval, job_fn)),
         }
     }
@@ -127,11 +128,7 @@ impl<'a> JobPlanBuilder<'a> {
     pub async fn finish(self) -> Result<Vec<JobHandle>, Box<dyn Error + Send + Sync>> {
         let mut plan = self.plan?;
         for pending in self.pending {
-            let variant = match pending.interval_param {
-                Some(param) => pending.variant.with_param_duration(self.config.ok_or("ConfigCacher required for jobs_with_config")?, &param).await?,
-                None => pending.variant,
-            };
-            plan = (pending.add)(plan, variant.interval_duration(self.config).await?);
+            plan = (pending.add)(plan, pending.variant.interval_duration(self.config).await?);
         }
         Ok(plan.finish())
     }
