@@ -32,6 +32,7 @@ flowchart LR
 | The simulation finds a risk | the risk shows before the user confirms | |
 | The simulation predicts balance changes | every digit of each amount, never rounded | what the user approves is exactly what moves |
 | The network rejects the sent transaction | the network's own reason | it is often the only explanation there is |
+| Rotation or theme change while Send, Amount or Swap waits on the network | the next screen still opens | |
 | Sending fails after Confirm | an error alert; the screen keeps its fee and amounts with no reload, and the button stays Confirm, so every tap sends again, as Swap keeps its Swap button | Try Again belongs to a failed load |
 | A Dash payment is sent | Pending until the transaction is mined | the network may lock it with InstantSend, but the provider does not report that lock yet |
 
