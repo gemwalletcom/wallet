@@ -1,7 +1,5 @@
-package com.gemwallet.android.features.wallet_connector.viewmodels.models
+package com.gemwallet.android.application.wallet_connect
 
-import com.gemwallet.android.application.wallet_connect.WalletConnectValidation
-import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
 import uniffi.gemstone.WalletConnectionVerificationStatus
 
 fun WalletConnectVerifyContext.map(): WalletConnectionVerificationStatus {

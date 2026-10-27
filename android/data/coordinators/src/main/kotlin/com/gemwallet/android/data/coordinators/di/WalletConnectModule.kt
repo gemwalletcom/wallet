@@ -2,7 +2,6 @@ package com.gemwallet.android.data.coordinators.di
 
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
 import com.gemwallet.android.application.wallet_connect.WalletConnectClient
-import com.gemwallet.android.application.wallet_connect.cases.AddWalletConnectSessionAccount
 import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnectAuthentication
 import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnection
 import com.gemwallet.android.application.wallet_connect.cases.DisconnectWalletConnection
@@ -54,7 +53,4 @@ object WalletConnectModule {
 
     @Provides
     fun provideRespondWalletConnectRequest(coordinator: WalletConnectCoordinator): RespondWalletConnectRequest = coordinator
-
-    @Provides
-    fun provideAddWalletConnectSessionAccount(coordinator: WalletConnectCoordinator): AddWalletConnectSessionAccount = coordinator
 }

@@ -10,12 +10,12 @@ import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectReque
 import com.gemwallet.android.application.wallet_connect.WalletConnectSessionProposal
 import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
 import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnection
+import com.gemwallet.android.application.wallet_connect.map
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.listItem
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.features.wallet_connector.viewmodels.models.map
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.localization.stringRes
@@ -119,6 +119,9 @@ class ConnectionProposalViewModel @AssistedInject constructor(
                 reject((error as? GemWalletConnectException)?.rejectionReason() ?: GemWalletConnectRejectionReason.USER_REJECTED)
                 return@launch
             }
+            if (state.value !is ConnectionProposalUIState.Init) {
+                return@launch
+            }
             state.update { ConnectionProposalUIState.Init(prepared.verificationStatus) }
             _sessionProposal.update { prepared }
         }
@@ -126,27 +129,19 @@ class ConnectionProposalViewModel @AssistedInject constructor(
 
     fun onApprove(onError: (GemErrorText) -> Unit) {
         val wallet = selectedWallet.value ?: return
-        if (state.value is ConnectionProposalUIState.Approving) {
+        if (state.value !is ConnectionProposalUIState.Init) {
             return
         }
         state.update { ConnectionProposalUIState.Approving(it.verificationStatus) }
-        viewModelScope.launch(ioDispatcher) {
-            val result = runCatching {
-                approveWalletConnection.approveConnection(
-                    wallet = wallet,
-                    proposal = proposal,
-                    onSuccess = ::finish,
-                    onError = { error -> fail(error, onError) },
-                )
-            }
-            result.onFailure { err -> fail(err.errorText(), onError) }
-        }
+        approveWalletConnection.approveConnection(
+            wallet = wallet,
+            proposal = proposal,
+            onSuccess = ::finish,
+            onError = { error -> fail(error, onError) },
+        )
     }
 
     fun onReject() {
-        if (state.value is ConnectionProposalUIState.Approving) {
-            return
-        }
         reject()
     }
 
@@ -157,15 +152,21 @@ class ConnectionProposalViewModel @AssistedInject constructor(
         _selectedWallet.update { availableWallets.value.firstOrNull { it.id == walletId } }
     }
 
+    override fun onCleared() {
+        onReject()
+    }
+
     private fun reject(reason: GemWalletConnectRejectionReason = GemWalletConnectRejectionReason.USER_REJECTED) {
-        viewModelScope.launch(ioDispatcher) {
-            approveWalletConnection.rejectConnection(
-                proposal = proposal,
-                reason = reason,
-                onSuccess = ::finish,
-                onError = { finish() },
-            )
+        if (state.value !is ConnectionProposalUIState.Init) {
+            return
         }
+        state.update { ConnectionProposalUIState.Rejected(it.verificationStatus) }
+        approveWalletConnection.rejectConnection(
+            proposal = proposal,
+            reason = reason,
+            onSuccess = ::finish,
+            onError = { finish() },
+        )
     }
 
     private fun fail(error: GemErrorText, onError: (GemErrorText) -> Unit) {
@@ -195,4 +196,6 @@ sealed interface ConnectionProposalUIState {
     data class Init(override val verificationStatus: WalletConnectionVerificationStatus) : ConnectionProposalUIState
 
     data class Approving(override val verificationStatus: WalletConnectionVerificationStatus) : ConnectionProposalUIState
+
+    data class Rejected(override val verificationStatus: WalletConnectionVerificationStatus) : ConnectionProposalUIState
 }

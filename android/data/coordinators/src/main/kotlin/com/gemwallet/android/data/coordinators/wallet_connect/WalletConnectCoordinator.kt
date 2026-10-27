@@ -11,8 +11,9 @@ import com.gemwallet.android.application.wallet_connect.WalletConnectJsonRpcResp
 import com.gemwallet.android.application.wallet_connect.WalletConnectSession
 import com.gemwallet.android.application.wallet_connect.WalletConnectSessionNamespace
 import com.gemwallet.android.application.wallet_connect.WalletConnectSessionProposal
+import com.gemwallet.android.application.wallet_connect.WalletConnectSessionRequest
+import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
 import com.gemwallet.android.application.wallet_connect.addingAccount
-import com.gemwallet.android.application.wallet_connect.cases.AddWalletConnectSessionAccount
 import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnectAuthentication
 import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnection
 import com.gemwallet.android.application.wallet_connect.cases.DisconnectWalletConnection
@@ -20,8 +21,11 @@ import com.gemwallet.android.application.wallet_connect.cases.IsWalletConnectEna
 import com.gemwallet.android.application.wallet_connect.cases.PairWalletConnect
 import com.gemwallet.android.application.wallet_connect.cases.RespondWalletConnectRequest
 import com.gemwallet.android.application.wallet_connect.cases.SyncWalletConnectSessions
+import com.gemwallet.android.application.wallet_connect.map
 import com.gemwallet.android.application.wallet_connect.toConnectionSession
+import com.gemwallet.android.application.wallet_connect.toJsonRpcResponse
 import com.gemwallet.android.application.wallet_connect.toSupportedNamespaces
+import com.gemwallet.android.ext.GemConstants
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
@@ -30,6 +34,7 @@ import com.wallet.core.primitives.WalletConnection
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,8 +49,12 @@ import kotlinx.coroutines.launch
 import uniffi.gemstone.GemChainService
 import uniffi.gemstone.GemChainServiceInterface
 import uniffi.gemstone.GemErrorText
+import uniffi.gemstone.GemWalletConnectFailure
+import uniffi.gemstone.GemWalletConnectOutcome
 import uniffi.gemstone.GemWalletConnectRejectionReason
+import uniffi.gemstone.GemWalletConnectResponse
 import uniffi.gemstone.GemWalletConnectServiceInterface
+import uniffi.gemstone.GemWalletConnectSessionRequest
 import uniffi.gemstone.walletConnectErrorText
 import java.util.concurrent.ConcurrentHashMap
 
@@ -61,12 +70,12 @@ class WalletConnectCoordinator(
     DisconnectWalletConnection,
     ApproveWalletConnection,
     ApproveWalletConnectAuthentication,
-    RespondWalletConnectRequest,
-    AddWalletConnectSessionAccount {
+    RespondWalletConnectRequest {
 
     private val pendingEvents = MutableSharedFlow<WalletConnectEvent>(extraBufferCapacity = 16)
     private val isWalletConnectInit = MutableStateFlow(false)
     private val approvedWallets = ConcurrentHashMap<Set<String>, Wallet>()
+    private val requestJobs = ConcurrentHashMap<WalletConnectSessionRequest, Job>()
     private val events = isWalletConnectInit.flatMapLatest {
         if (it) {
             merge(walletConnectClient.events, pendingEvents)
@@ -132,7 +141,14 @@ class WalletConnectCoordinator(
         )
     }
 
-    override suspend fun approveConnection(wallet: Wallet, proposal: WalletConnectSessionProposal, onSuccess: () -> Unit, onError: (GemErrorText) -> Unit) {
+    override fun approveConnection(wallet: Wallet, proposal: WalletConnectSessionProposal, onSuccess: () -> Unit, onError: (GemErrorText) -> Unit) {
+        scope.launch {
+            runCatchingCancellable { approve(wallet, proposal, onSuccess, onError) }
+                .onFailure { onError(it.errorText()) }
+        }
+    }
+
+    private suspend fun approve(wallet: Wallet, proposal: WalletConnectSessionProposal, onSuccess: () -> Unit, onError: (GemErrorText) -> Unit) {
         val approval = walletConnectService.sessionApproval(wallet = wallet.toGem())
         val sessionNamespaces = walletConnectClient.generateApprovedNamespaces(
             proposal = proposal,
@@ -154,21 +170,23 @@ class WalletConnectCoordinator(
     }
 
     override fun rejectConnection(proposal: WalletConnectSessionProposal, reason: GemWalletConnectRejectionReason, onSuccess: () -> Unit, onError: (GemErrorText) -> Unit) {
-        val rejection = walletConnectService.sessionRejection(reason)
-        walletConnectClient.rejectSession(
-            proposal = proposal,
-            rejection = rejection,
-            onSuccess = {
-                if (rejection.deletesSession) {
-                    scope.launch {
-                        runCatchingCancellable { walletConnectService.deleteSession(proposal.pairingTopic) }
-                            .onFailure { Log.e("WalletConnect", "Delete rejected session failed", it) }
+        scope.launch {
+            val rejection = walletConnectService.sessionRejection(reason)
+            walletConnectClient.rejectSession(
+                proposal = proposal,
+                rejection = rejection,
+                onSuccess = {
+                    if (rejection.deletesSession) {
+                        scope.launch {
+                            runCatchingCancellable { walletConnectService.deleteSession(proposal.pairingTopic) }
+                                .onFailure { Log.e("WalletConnect", "Delete rejected session failed", it) }
+                        }
                     }
-                }
-                onSuccess()
-            },
-            onError = { onError(clientErrorText(it)) },
-        )
+                    onSuccess()
+                },
+                onError = { onError(clientErrorText(it)) },
+            )
+        }
     }
 
     override fun approveAuthentication(request: WalletConnectAuthenticationRequest, auths: List<WalletConnectAuthObject>, wallet: Wallet, onSuccess: () -> Unit, onError: (GemErrorText) -> Unit) {
@@ -185,11 +203,43 @@ class WalletConnectCoordinator(
         walletConnectClient.rejectAuthentication(request, onSuccess) { onError(clientErrorText(it)) }
     }
 
-    override fun respond(topic: String, id: Long, response: WalletConnectJsonRpcResponse, onSuccess: () -> Unit, onError: (GemErrorText) -> Unit) {
-        walletConnectClient.respondSessionRequest(topic, id, response, onSuccess) { onError(clientErrorText(it)) }
+    override fun respondRequest(request: WalletConnectSessionRequest, verifyContext: WalletConnectVerifyContext, onFailure: (GemWalletConnectFailure) -> Unit, onFinish: () -> Unit) {
+        val job = scope.launch { answer(request, verifyContext, onFailure, onFinish) }
+        requestJobs[request] = job
+        job.invokeOnCompletion { requestJobs.remove(request, job) }
     }
 
-    override fun addSessionAccount(topic: String, account: String, onComplete: () -> Unit) {
+    override fun rejectRequest(request: WalletConnectSessionRequest, onFinish: () -> Unit) {
+        val job = requestJobs.remove(request) ?: return
+        job.cancel()
+        reply(request, WalletConnectJsonRpcResponse.Error(code = GemConstants.walletConnectUserRejectedErrorCode, message = GemConstants.walletConnectUserRejectedErrorMessage), onFinish)
+    }
+
+    private suspend fun answer(request: WalletConnectSessionRequest, verifyContext: WalletConnectVerifyContext, onFailure: (GemWalletConnectFailure) -> Unit, onFinish: () -> Unit) {
+        when (val outcome = walletConnectService.requestOutcome(request.toGem(verifyContext))) {
+            GemWalletConnectOutcome.Ignored -> onFinish()
+
+            is GemWalletConnectOutcome.Respond -> reply(request, outcome.response.toJsonRpcResponse(), onFinish)
+
+            is GemWalletConnectOutcome.Fail -> {
+                onFailure(outcome.failure)
+                reply(request, outcome.error.toJsonRpcResponse(), onFinish)
+            }
+
+            is GemWalletConnectOutcome.AddSessionAccount -> addSessionAccount(request.topic, outcome.account) {
+                reply(request, GemWalletConnectResponse.Null.toJsonRpcResponse(), onFinish)
+            }
+        }
+    }
+
+    private fun reply(request: WalletConnectSessionRequest, response: WalletConnectJsonRpcResponse, onFinish: () -> Unit) {
+        walletConnectClient.respondSessionRequest(request.topic, request.request.id, response, onFinish) { error ->
+            Log.e("WalletConnect", "Respond to request ${request.request.id} failed: $error")
+            onFinish()
+        }
+    }
+
+    private fun addSessionAccount(topic: String, account: String, onComplete: () -> Unit) {
         val session = activeSessions()?.firstOrNull { it.topic == topic }
         if (session == null) {
             onComplete()
@@ -276,5 +326,16 @@ class WalletConnectCoordinator(
 }
 
 private fun clientErrorText(message: String): GemErrorText = walletConnectErrorText(message)
+
+private fun WalletConnectSessionRequest.toGem(verifyContext: WalletConnectVerifyContext) = GemWalletConnectSessionRequest(
+    topic = topic,
+    requestId = request.id.toString(),
+    method = request.method,
+    params = request.params,
+    chainId = chainId,
+    origin = verifyContext.origin,
+    validation = verifyContext.map(),
+    expiry = null,
+)
 
 private fun Map<String, WalletConnectSessionNamespace>.accounts(): Set<String> = values.flatMapTo(mutableSetOf()) { it.accounts }

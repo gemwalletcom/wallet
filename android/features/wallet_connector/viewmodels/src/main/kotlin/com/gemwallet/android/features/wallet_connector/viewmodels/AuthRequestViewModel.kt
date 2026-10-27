@@ -9,6 +9,7 @@ import com.gemwallet.android.application.wallet_connect.WalletConnectAuthPayload
 import com.gemwallet.android.application.wallet_connect.WalletConnectAuthenticationRequest
 import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
 import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnectAuthentication
+import com.gemwallet.android.application.wallet_connect.map
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.listItem
 import com.gemwallet.android.ext.runCatchingCancellable
@@ -16,7 +17,6 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.wallet_connector.viewmodels.models.ReviewTexts
 import com.gemwallet.android.features.wallet_connector.viewmodels.models.WalletConnectReviewModel
-import com.gemwallet.android.features.wallet_connector.viewmodels.models.map
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ButtonState
@@ -183,6 +183,13 @@ class AuthRequestViewModel @Inject constructor(
         hasResponded = true
         approveWalletConnectAuthentication.rejectAuthentication(request)
         finish()
+    }
+
+    override fun onCleared() {
+        val request = authRequest ?: return
+        if (!hasResponded && _state.value !is AuthRequestUIState.Approving) {
+            approveWalletConnectAuthentication.rejectAuthentication(request)
+        }
     }
 
     private fun rejectRequest(request: WalletConnectAuthenticationRequest, errorState: AuthRequestUIState.Error) {
