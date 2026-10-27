@@ -11,7 +11,6 @@ import com.gemwallet.android.application.wallet_connect.cases.PairWalletConnect
 import com.gemwallet.android.application.wallet_connect.cases.RespondWalletConnectRequest
 import com.gemwallet.android.application.wallet_connect.cases.SyncWalletConnectSessions
 import com.gemwallet.android.data.coordinators.wallet_connect.WalletConnectCoordinator
-import com.gemwallet.android.data.services.gemstone.stores.GemstoneConnectionStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -25,13 +24,11 @@ import javax.inject.Singleton
 object WalletConnectModule {
     @Singleton
     @Provides
-    fun provideWalletConnectCoordinator(connectionStore: GemstoneConnectionStore, walletConnectClient: WalletConnectClient, walletConnectService: GemWalletConnectService, chainService: GemChainService): WalletConnectCoordinator =
-        WalletConnectCoordinator(
-            connectionStore = connectionStore,
-            walletConnectClient = walletConnectClient,
-            walletConnectService = walletConnectService,
-            chainService = chainService,
-        )
+    fun provideWalletConnectCoordinator(walletConnectClient: WalletConnectClient, walletConnectService: GemWalletConnectService, chainService: GemChainService): WalletConnectCoordinator = WalletConnectCoordinator(
+        walletConnectClient = walletConnectClient,
+        walletConnectService = walletConnectService,
+        chainService = chainService,
+    )
 
     @Singleton
     @Provides
