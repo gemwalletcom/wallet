@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use primitives::Wallet;
+use primitives::{PlatformStore, Wallet};
 
 use super::GemAppStartService;
 use crate::api::{GemApiClient, GemDeviceApiClient};
@@ -50,7 +50,7 @@ impl AppStartTestkit {
         let node_store = Arc::new(MemoryNodeStore::default());
         let nodes = Arc::new(GemNodeService::new(node_store.clone(), Arc::new(MemoryPreferencesStore::default())));
         let service = GemAppStartService::new(
-            Arc::new(GemConfigService::new(Arc::new(GemApiClient::new(provider.clone())), preferences.clone())),
+            Arc::new(GemConfigService::new(Arc::new(GemApiClient::new(provider.clone())), preferences.clone(), PlatformStore::Local)),
             banners.clone(),
             discovery.assets.clone(),
             discovery.balance.clone(),

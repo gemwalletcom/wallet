@@ -60,13 +60,13 @@ mod tests {
         assert_eq!(
             destination(PlatformStore::ApkUniversal),
             GemAppUpdateDestination::File {
-                url: "https://apk.gemwallet.com/gem_wallet_universal_2.29.apk".into()
+                url: "https://downloads.gemwallet.com/apk/gem_wallet_universal_2.29.apk".into()
             }
         );
         assert_eq!(
             destination(PlatformStore::MacDmg),
             GemAppUpdateDestination::File {
-                url: "https://apk.gemwallet.com/gem_wallet_2.29.dmg".into()
+                url: "https://downloads.gemwallet.com/dmg/gem_wallet_2.29.dmg".into()
             }
         );
         assert_eq!(

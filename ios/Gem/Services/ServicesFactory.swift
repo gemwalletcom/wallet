@@ -50,7 +50,7 @@ struct ServicesFactory {
             ],
         )
         let apiClient = Gemstone.GemApiClient(provider: nativeProvider)
-        let configService = Gemstone.GemConfigService(api: apiClient, preferences: preferencesService)
+        let configService = Gemstone.GemConfigService(api: apiClient, preferences: preferencesService, store: Primitives.PlatformStore.current.toGem())
         let staticApiClient = Gemstone.GemStaticApiClient(provider: nativeProvider)
         let priceService = Gemstone.GemPriceService(
             store: GemstonePriceStore(priceStore: stores.priceStore),

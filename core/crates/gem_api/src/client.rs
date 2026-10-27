@@ -1,5 +1,5 @@
 use gem_client::{Client, ClientError, ClientExt};
-use primitives::{AssetBasic, AssetFull, AssetId, Chain, ChartPeriod, Charts, ConfigResponse, FiatAssets, FiatQuoteType, SearchResponse};
+use primitives::{AssetBasic, AssetFull, AssetId, Chain, ChartPeriod, Charts, ConfigResponse, FiatAssets, FiatQuoteType, PlatformStore, SearchResponse};
 
 use crate::target::GemApiTarget;
 
@@ -13,8 +13,8 @@ impl<C: Client> GemApiClient<C> {
         Self { client }
     }
 
-    pub async fn get_config(&self) -> Result<ConfigResponse, ClientError> {
-        self.client.get(GemApiTarget::GetConfig).await
+    pub async fn get_config(&self, store: PlatformStore) -> Result<ConfigResponse, ClientError> {
+        self.client.get(GemApiTarget::GetConfig { store }).await
     }
 
     pub async fn get_charts(&self, asset_id: AssetId, period: ChartPeriod) -> Result<Charts, ClientError> {

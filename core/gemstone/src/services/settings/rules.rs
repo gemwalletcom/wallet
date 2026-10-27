@@ -461,7 +461,7 @@ mod tests {
                 title: GemListRowTitle::UpdateApp,
                 value: Some("1.3.0".to_string()),
                 icon: GemListRowIcon::AppLogo,
-                url: "https://apk.gemwallet.com/gem_wallet_latest.dmg".to_string(),
+                url: "https://downloads.gemwallet.com/dmg/gem_wallet_latest.dmg".to_string(),
                 target: GemUrlTarget::External,
             }),
             "the Mac app has no store, so the row downloads the latest DMG"

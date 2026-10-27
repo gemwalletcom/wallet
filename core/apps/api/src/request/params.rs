@@ -3,7 +3,7 @@ use std::str::FromStr;
 
 pub(crate) use primitives::MAX_QUERY_LIMIT;
 use primitives::currency::Currency;
-use primitives::{AssetId, Chain, ChartPeriod, FiatProviderName, FiatQuoteType, NFTAssetId, NFTCollectionId, SwapProvider, TransactionId, WebhookKind};
+use primitives::{AssetId, Chain, ChartPeriod, FiatProviderName, FiatQuoteType, NFTAssetId, NFTCollectionId, PlatformStore, SwapProvider, TransactionId, WebhookKind};
 use serde::de::{self, Deserialize, Deserializer};
 
 const MAX_ADDRESS_LENGTH: usize = 256;
@@ -60,6 +60,7 @@ string_param!(FiatProviderIdParam, FiatProviderName, "provider", |value| FiatPro
 string_param!(SearchQueryParam, String, "query length", |value| (value.len() <= MAX_SEARCH_QUERY_LENGTH).then(|| value.to_string()));
 string_param!(WebhookKindParam, WebhookKind, "webhook kind", |value| WebhookKind::from_str(value).ok());
 string_param!(CurrencyParam, Currency, "currency", |value| Currency::from_str(value).ok());
+string_param!(PlatformStoreParam, PlatformStore, "platform store", |value| PlatformStore::from_str(value).ok());
 
 impl Default for CurrencyParam {
     fn default() -> Self {

@@ -2,7 +2,7 @@ use std::error::Error;
 use std::sync::Arc;
 
 use fiat::IpAddressProvider;
-use primitives::{ConfigResponse, ConfigVersions, Features, Release, SwapConfig, SwapProvider};
+use primitives::{ConfigResponse, ConfigVersions, Features, PlatformStore, Release, SwapConfig, SwapProvider};
 
 use super::client_country;
 use super::repository::Repository;
@@ -24,8 +24,8 @@ impl ConfigClient {
         }
     }
 
-    pub async fn get_config(&self, ip_address: &str, country: Option<&str>) -> Result<ConfigResponse, Box<dyn Error + Send + Sync>> {
-        let (features, releases, catalog) = tokio::try_join!(self.get_features(ip_address, country), self.get_releases(), self.asset_catalog.get())?;
+    pub async fn get_config(&self, ip_address: &str, country: Option<&str>, store: Option<PlatformStore>) -> Result<ConfigResponse, Box<dyn Error + Send + Sync>> {
+        let (features, releases, catalog) = tokio::try_join!(self.get_features(ip_address, country), self.get_releases(store), self.asset_catalog.get())?;
 
         let response = ConfigResponse {
             features,
@@ -48,7 +48,39 @@ impl ConfigClient {
         Ok(Features::for_country(&policies, &country))
     }
 
-    async fn get_releases(&self) -> Result<Vec<Release>, Box<dyn Error + Send + Sync>> {
-        Ok(self.repository.get_releases().await?)
+    async fn get_releases(&self, store: Option<PlatformStore>) -> Result<Vec<Release>, Box<dyn Error + Send + Sync>> {
+        Ok(releases_for_store(self.repository.get_releases().await?, store))
+    }
+}
+
+fn releases_for_store(releases: Vec<Release>, store: Option<PlatformStore>) -> Vec<Release> {
+    releases
+        .into_iter()
+        .filter(|release| match store {
+            Some(store) => release.store == store,
+            // Remove this exclusion when clients without store-scoped config are no longer supported.
+            None => release.store != PlatformStore::MacDmg,
+        })
+        .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_releases_for_store() {
+        let app_store = Release::new(PlatformStore::AppStore, "2.0.0".into(), true);
+        let google_play = Release::new(PlatformStore::GooglePlay, "3.0.0".into(), false);
+        let mac = Release::new(PlatformStore::MacDmg, "4.0.0".into(), false);
+        let local = Release::new(PlatformStore::Local, "5.0.0".into(), false);
+        let releases = vec![mac.clone(), app_store.clone(), google_play.clone(), local.clone()];
+
+        assert_eq!(releases_for_store(releases.clone(), None), vec![app_store.clone(), google_play.clone(), local]);
+        assert_eq!(releases_for_store(releases.clone(), Some(PlatformStore::MacDmg)), vec![mac]);
+        assert_eq!(releases_for_store(releases.clone(), Some(PlatformStore::AppStore)), vec![app_store]);
+        assert_eq!(releases_for_store(releases.clone(), Some(PlatformStore::GooglePlay)), vec![google_play]);
+        assert_eq!(releases_for_store(releases, Some(PlatformStore::Fdroid)), vec![]);
+        assert_eq!(releases_for_store(vec![], None), vec![]);
     }
 }
