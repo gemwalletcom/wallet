@@ -7,6 +7,11 @@ plugins {
 android {
     namespace = "com.gemwallet.android.features.settings.presents"
 
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+    }
     buildFeatures {
         compose = true
     }
@@ -21,4 +26,8 @@ dependencies {
 
     debugImplementation(libs.androidx.ui.tooling)
     implementation(libs.androidx.ui.tooling.preview)
+
+    debugImplementation(libs.androidx.ui.test.manifest)
+    testImplementation(libs.junit)
+    testImplementation(libs.androidx.ui.test.junit4)
 }

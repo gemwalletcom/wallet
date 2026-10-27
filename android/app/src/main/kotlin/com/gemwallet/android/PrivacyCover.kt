@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 
-internal class PrivacyCover(private val scope: CoroutineScope, private val isGemFocused: () -> Boolean) {
+internal class PrivacyCover(private val scope: CoroutineScope, private val isGemFocused: () -> Boolean, private val isGemLocked: () -> Boolean) {
     private val _isCovered = MutableStateFlow(false)
     val isCovered: StateFlow<Boolean> = _isCovered.asStateFlow()
 
@@ -18,6 +18,7 @@ internal class PrivacyCover(private val scope: CoroutineScope, private val isGem
     private var showsGemPrompt = false
     private var promptEndedAway = false
     private var pendingCover: Job? = null
+    private val coversGem get() = isLockEnabled && !isGemLocked()
 
     fun onPromptShown() {
         showsGemPrompt = true
@@ -41,13 +42,13 @@ internal class PrivacyCover(private val scope: CoroutineScope, private val isGem
         }
         pendingCover = scope.launch {
             delay(obscureDelay)
-            if (isLockEnabled && !showsGemPrompt && !isGemFocused()) _isCovered.value = true
+            if (coversGem && !showsGemPrompt && !isGemFocused()) _isCovered.value = true
         }
     }
 
     fun onStop() {
         pendingCover?.cancel()
-        if (isLockEnabled) _isCovered.value = true
+        if (coversGem) _isCovered.value = true
     }
 
     fun onReturn() {
