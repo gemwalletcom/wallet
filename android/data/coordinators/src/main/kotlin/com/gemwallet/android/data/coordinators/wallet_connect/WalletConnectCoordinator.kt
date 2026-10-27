@@ -218,6 +218,7 @@ class WalletConnectCoordinator(
         else -> true
     }
 
+    @Synchronized
     private fun initWalletConnect(onSuccess: () -> Unit = {}, onError: (String) -> Unit = {}) {
         if (isWalletConnectInit.value) {
             onSuccess()
