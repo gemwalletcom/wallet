@@ -788,6 +788,7 @@ assets_title = Assets
 
 # Used in sign UI for the message title.
 # Used in sign UI for the message message.
+# Also titles the merchant's message on the payment confirmation.
 sign_message_message = Message
 # Used in sign UI for the message view full message.
 sign_message_view_full_message = View Full Message

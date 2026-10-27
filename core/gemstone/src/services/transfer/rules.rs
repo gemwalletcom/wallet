@@ -51,6 +51,13 @@ impl GemTransferData {
         invoice.verification.clone()
     }
 
+    pub fn payment_message(&self) -> Option<String> {
+        let TransactionInputType::Payment { invoice, .. } = &self.input_type else {
+            return None;
+        };
+        invoice.message.clone()
+    }
+
     pub fn fee_asset(&self) -> Asset {
         self.input_type.fee_asset()
     }
@@ -856,6 +863,21 @@ mod tests {
             vec![GemConfirmRow::Recipient, GemConfirmRow::Sender, GemConfirmRow::Network],
             "a rail without quotes offers nothing to pay with"
         );
+    }
+
+    #[test]
+    fn test_only_a_payment_carries_the_merchant_message() {
+        let payment = GemTransferData::mock(TransactionInputType::Payment {
+            asset: Asset::from_chain(Chain::Solana),
+            invoice: PaymentInvoice {
+                message: Some("Annual plan".to_string()),
+                ..PaymentInvoice::mock()
+            },
+            extra: TransferDataExtra::mock(),
+        });
+
+        assert_eq!(payment.payment_message(), Some("Annual plan".to_string()));
+        assert_eq!(GemTransferData::mock(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Solana) }).payment_message(), None);
     }
 
     #[test]

@@ -2139,12 +2139,14 @@ fun mockPaymentInvoice(
     link: uniffi.gemstone.PaymentLink = mockPaymentLink(),
     merchant: uniffi.gemstone.PaymentMerchant = mockPaymentMerchant(),
     price: uniffi.gemstone.PaymentPrice? = null,
+    message: String? = null,
     quotes: List<uniffi.gemstone.PaymentQuote> = emptyList(),
     verification: uniffi.gemstone.PaymentVerification? = null,
 ) = uniffi.gemstone.PaymentInvoice(
     link = link,
     merchant = merchant,
     price = price,
+    message = message,
     quotes = quotes,
     verification = verification,
 )

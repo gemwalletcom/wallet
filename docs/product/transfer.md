@@ -63,6 +63,7 @@ Supported codes: a plain address; Bitcoin, Litecoin, Bitcoin Cash, Dogecoin, Das
 | A plain address that matches several networks | a pick of the asset to send, then the rows above | |
 | A token the wallet has no balance for | Confirm, with the token's balance at zero so the shortfall and the ways to get it show; the token is not added to the wallet's list | the code chooses the token, not the wallet |
 | A WalletConnect Pay link | a review of the merchant's request; once confirmed, it pays and reports the result back to the merchant | |
+| A Solana Pay transaction request | Confirm with the merchant's name and, when the merchant sends one, its message in full in a Message section, like a signed message in WalletConnect | the message says what is being paid for; Solana Pay asks the wallet to show it |
 | A code the app cannot read | "Not supported" | a scan never does nothing |
 | A code the app can read but not open: a network without an account, a payment link that fails | why it cannot open | |
 

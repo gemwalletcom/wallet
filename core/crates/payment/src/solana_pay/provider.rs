@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use gem_client::Client;
-use primitives::{Chain, ChainAddress, PaymentInvoice, PaymentLink, PaymentMerchant, TransferDataOutputType};
+use primitives::{Chain, ChainAddress, OptionStringExt, PaymentInvoice, PaymentLink, PaymentMerchant, TransferDataOutputType};
 
 use crate::provider::PaymentProvider;
 use crate::solana_pay::client::SolanaPayClient;
@@ -36,6 +36,7 @@ impl<C: Client> PaymentProvider for SolanaPayProvider<C> {
                     link: PaymentLink::SolanaPay { url: self.url.clone() },
                     merchant: PaymentMerchant { name: info.label, icon: info.icon },
                     price: None,
+                    message: response.message.non_empty(),
                     quotes: vec![],
                     verification: None,
                 },
@@ -63,21 +64,32 @@ mod tests {
     const ACCOUNT: &str = "mvines9iiHiQTysrwkJjGf2gb9Ex9jXJX8ns3qwf2kN";
     const TRANSACTION: &str = "AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAECC4JMKqNplIXybGb/GhK1ofdVWeuEjXnQor7gi0Y2hMcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQECAAAMAgAAAAAAAAAAAAAA";
 
-    #[tokio::test]
-    async fn test_transaction_request() {
-        let provider = SolanaPayProvider::new(
+    fn provider(response: String) -> SolanaPayProvider<MockClient> {
+        SolanaPayProvider::new(
             MockClient::new()
                 .with_get(|path| {
                     assert_eq!(path, "");
                     Ok(br#"{"label":"Constant K","icon":"https://constant-k.com/icon.png"}"#.to_vec())
                 })
-                .with_post(|path, body| {
+                .with_post(move |path, body| {
                     assert_eq!(path, "");
                     assert_eq!(serde_json::from_slice::<serde_json::Value>(body).unwrap(), serde_json::json!({ "account": ACCOUNT }));
-                    Ok(format!(r#"{{"message":"Annual plan","transaction":"{TRANSACTION}"}}"#).into_bytes())
+                    Ok(response.clone().into_bytes())
                 }),
             "https://constant-k.com/checkout".to_string(),
-        );
+        )
+    }
+
+    async fn message(response: String) -> Option<String> {
+        let PaymentLoad::Sign { transaction } = provider(response).load(&[ChainAddress::new(Chain::Solana, ACCOUNT.to_string())]).await.unwrap() else {
+            panic!("a transaction request is signed");
+        };
+        transaction.invoice.message
+    }
+
+    #[tokio::test]
+    async fn test_transaction_request() {
+        let provider = provider(format!(r#"{{"message":"Annual plan","transaction":"{TRANSACTION}"}}"#));
         let prepared = prepare(TRANSACTION, ACCOUNT).unwrap();
 
         assert_eq!(
@@ -93,6 +105,7 @@ mod tests {
                             icon: "https://constant-k.com/icon.png".to_string(),
                         },
                         price: None,
+                        message: Some("Annual plan".to_string()),
                         quotes: vec![],
                         verification: None,
                     },
@@ -106,5 +119,11 @@ mod tests {
                 },
             }
         );
+    }
+
+    #[tokio::test]
+    async fn test_transaction_request_without_message() {
+        assert_eq!(message(format!(r#"{{"transaction":"{TRANSACTION}"}}"#)).await, None);
+        assert_eq!(message(format!(r#"{{"message":"","transaction":"{TRANSACTION}"}}"#)).await, None, "an empty message is no message");
     }
 }
