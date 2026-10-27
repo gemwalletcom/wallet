@@ -23,7 +23,7 @@ import com.gemwallet.android.ui.components.empty.StateHeroView
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.localization.string
-import com.gemwallet.android.ui.requestAuth
+import com.gemwallet.android.ui.rememberAuthorizedAction
 import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingDefault
 import uniffi.gemstone.enableAuthenticationLabel
@@ -31,6 +31,7 @@ import uniffi.gemstone.enableAuthenticationLabel
 @Composable
 fun EnableAuthenticationScene(onEnable: () -> Unit, onSkip: () -> Unit) {
     val context = LocalContext.current
+    val enable = rememberAuthorizedAction(AuthRequest.Required, onEnable)
 
     BackHandler(onBack = onSkip)
 
@@ -40,7 +41,7 @@ fun EnableAuthenticationScene(onEnable: () -> Unit, onSkip: () -> Unit) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 MainActionButton(
                     title = enableAuthenticationLabel(null).string(context),
-                    onClick = { context.requestAuth(AuthRequest.Required, onSuccess = onEnable) },
+                    onClick = enable,
                 )
                 TextButton(
                     onClick = onSkip,
