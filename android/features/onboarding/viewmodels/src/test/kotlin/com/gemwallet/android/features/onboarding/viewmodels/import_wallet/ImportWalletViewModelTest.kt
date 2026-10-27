@@ -124,7 +124,7 @@ class ImportWalletViewModelTest {
         val request = slot<GemWalletImportRequest>()
 
         viewModel.type("abandon ability")
-        viewModel.import { }
+        viewModel.import()
         advanceUntilIdle()
 
         coVerify { service.importWallet(capture(request)) }
@@ -141,7 +141,7 @@ class ImportWalletViewModelTest {
         val viewModel = viewModel(ImportType(GemWalletImportKind.PHRASE, chain), NameServiceMock(), dispatcher, service, enablePush)
 
         viewModel.type("abandon ability")
-        viewModel.import(onImported)
+        viewModel.import()
         advanceUntilIdle()
 
         assertEquals("Main", viewModel.uiState.value.existingWalletName)
@@ -187,7 +187,7 @@ class ImportWalletViewModelTest {
         val viewModel = viewModel(ImportType(GemWalletImportKind.ADDRESS, chain), NameServiceMock(), dispatcher, service)
 
         viewModel.type("0x123")
-        viewModel.import { }
+        viewModel.import()
         advanceUntilIdle()
         val error = viewModel.uiState.value.dataError
         assertNotNull(error)
@@ -196,7 +196,7 @@ class ImportWalletViewModelTest {
         advanceUntilIdle()
         assertNull(viewModel.uiState.value.dataError)
 
-        viewModel.import { }
+        viewModel.import()
         advanceUntilIdle()
         assertEquals(error, viewModel.uiState.value.dataError)
     }

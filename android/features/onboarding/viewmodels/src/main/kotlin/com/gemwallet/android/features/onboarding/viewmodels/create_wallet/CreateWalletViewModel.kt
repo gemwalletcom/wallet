@@ -16,7 +16,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -26,7 +25,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemCopy
 import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemVerifyPhraseSession
@@ -67,6 +65,8 @@ class CreateWalletViewModel @Inject constructor(
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
+    val isCreated = MutableStateFlow(false)
+
     fun phraseCopy(): GemCopy = secretPhraseCopy(state.value.data)
 
     fun onPickWord(choice: Int): Boolean {
@@ -97,7 +97,7 @@ class CreateWalletViewModel @Inject constructor(
         state.update { it.copy(isShowSafeMessage = true) }
     }
 
-    fun createWallet(onCreated: () -> Unit) {
+    fun createWallet() {
         val current = verification.value ?: return
         if (current.isCreating) {
             return
@@ -108,7 +108,7 @@ class CreateWalletViewModel @Inject constructor(
             try {
                 service.importWallet(GemWalletImportKind.PHRASE, null, state.value.data.joinToString(" "), null, WalletSource.Create, context)
                 enablePushForNewWallet.enablePushForNewWallet()
-                withContext(Dispatchers.Main) { onCreated() }
+                isCreated.value = true
             } catch (err: CancellationException) {
                 throw err
             } catch (err: Throwable) {

@@ -6,6 +6,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,6 +23,7 @@ import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 import com.gemwallet.android.ui.localization.string
 import com.wallet.core.primitives.WalletId
 import uniffi.gemstone.GemLocalizedText
+import uniffi.gemstone.GemWalletDeletion
 import uniffi.gemstone.GemWalletPlaceholder
 import uniffi.gemstone.GemWalletRow
 import uniffi.gemstone.GemWalletSection
@@ -34,6 +36,23 @@ fun WalletsScreen(onCreateWallet: () -> Unit, onImportWallet: () -> Unit, onEdit
     val sections by viewModel.sections.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     val snackbar = rememberSnackbarState(message = error, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
+    val isSelected by viewModel.isSelected.collectAsStateWithLifecycle()
+    val deletion by viewModel.deletion.collectAsStateWithLifecycle()
+
+    LaunchedEffect(isSelected) {
+        if (isSelected) {
+            viewModel.isSelected.value = false
+            onSelectWallet()
+        }
+    }
+
+    LaunchedEffect(deletion) {
+        val result = deletion ?: return@LaunchedEffect
+        viewModel.deletion.value = null
+        if (result == GemWalletDeletion.LAST_WALLET_DELETED) {
+            onBoard()
+        }
+    }
 
     var deleteRow by remember { mutableStateOf<GemWalletRow?>(null) }
 
@@ -45,7 +64,7 @@ fun WalletsScreen(onCreateWallet: () -> Unit, onImportWallet: () -> Unit, onEdit
                 WalletsAction.Create -> onCreateWallet()
                 WalletsAction.Import -> onImportWallet()
                 is WalletsAction.Edit -> onEditWallet(WalletId(action.row.id))
-                is WalletsAction.Select -> viewModel.selectWallet(action.row, onSelectWallet)
+                is WalletsAction.Select -> viewModel.selectWallet(action.row)
                 is WalletsAction.Delete -> deleteRow = action.row
                 is WalletsAction.TogglePin -> viewModel.togglePin(action.row)
                 WalletsAction.Cancel -> onCancel()
@@ -58,7 +77,7 @@ fun WalletsScreen(onCreateWallet: () -> Unit, onImportWallet: () -> Unit, onEdit
             prompt = row.deletePrompt.string(LocalContext.current),
             onConfirm = {
                 deleteRow = null
-                viewModel.deleteWallet(row, onBoard)
+                viewModel.deleteWallet(row)
             },
         ) {
             deleteRow = null

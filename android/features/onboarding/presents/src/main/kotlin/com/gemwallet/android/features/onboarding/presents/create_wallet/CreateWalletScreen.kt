@@ -15,6 +15,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -69,6 +70,14 @@ fun CreateWalletScreen(onCancel: () -> Unit, onCreated: () -> Unit) {
     val phraseRows by viewModel.phraseRows.collectAsStateWithLifecycle()
     val verifiedRows by viewModel.verifiedRows.collectAsStateWithLifecycle()
     val verificationChoices by viewModel.verificationChoices.collectAsStateWithLifecycle()
+    val isCreated by viewModel.isCreated.collectAsStateWithLifecycle()
+
+    LaunchedEffect(isCreated) {
+        if (isCreated) {
+            viewModel.isCreated.value = false
+            onCreated()
+        }
+    }
 
     BackHandler(uiState.isShowSafeMessage) {
         viewModel.dismissSafeMessage()
@@ -88,7 +97,7 @@ fun CreateWalletScreen(onCancel: () -> Unit, onCreated: () -> Unit) {
                     choices = verificationChoices,
                     rows = verifiedRows,
                     onPick = viewModel::onPickWord,
-                    onDone = { context.requestAuth(AuthRequest.Default) { viewModel.createWallet(onCreated) } },
+                    onDone = { context.requestAuth(AuthRequest.Default) { viewModel.createWallet() } },
                     onCancel = viewModel::dismissSafeMessage,
                 )
             }
