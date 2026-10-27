@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -37,7 +38,7 @@ fun RewardsScreen(onClose: () -> Unit, viewModel: RewardsViewModel = hiltViewMod
     ToastEffect(viewModel.toastEvents, snackbar)
     val context = LocalContext.current
 
-    var isShowSelectWallets by remember { mutableStateOf(false) }
+    var isShowSelectWallets by rememberSaveable { mutableStateOf(false) }
 
     val error by viewModel.error.collectAsStateWithLifecycle()
     val sheet by viewModel.sheet.collectAsStateWithLifecycle()

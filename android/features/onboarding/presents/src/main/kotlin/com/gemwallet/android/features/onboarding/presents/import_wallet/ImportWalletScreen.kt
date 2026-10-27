@@ -25,7 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -89,6 +89,7 @@ fun ImportWalletScreen(importType: ImportType, onImported: () -> Unit, onCancel:
     val nameResolveIndicator by viewModel.nameResolveIndicator.collectAsStateWithLifecycle()
     val suggestions by viewModel.suggestions.collectAsStateWithLifecycle()
     val isImported by viewModel.isImported.collectAsStateWithLifecycle()
+    var isScanning by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(isImported) {
         if (isImported) {
@@ -96,7 +97,6 @@ fun ImportWalletScreen(importType: ImportType, onImported: () -> Unit, onCancel:
             onImported()
         }
     }
-    var isScanning by remember { mutableStateOf(false) }
 
     ImportWalletScene(
         inputState = viewModel.inputState,

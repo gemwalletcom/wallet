@@ -9,6 +9,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -31,7 +32,7 @@ fun PaymentVerificationScreen(onCancel: () -> Unit, onConfirm: ConfirmTransactio
     val confirm by viewModel.confirm.collectAsStateWithLifecycle()
     val isFailed by viewModel.isFailed.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
-    var isInfoVisible by remember { mutableStateOf(false) }
+    var isInfoVisible by rememberSaveable { mutableStateOf(false) }
     ToastEffect(viewModel.toastEvents, snackbar)
 
     LaunchedEffect(confirm) {

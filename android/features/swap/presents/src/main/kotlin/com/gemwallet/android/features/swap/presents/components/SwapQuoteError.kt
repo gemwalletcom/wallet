@@ -4,7 +4,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -19,7 +19,7 @@ import uniffi.gemstone.GemSwapViewState
 
 @Composable
 internal fun SwapQuoteError(viewState: GemSwapViewState) {
-    var isShowInfoSheet by remember { mutableStateOf(false) }
+    var isShowInfoSheet by rememberSaveable { mutableStateOf(false) }
     val error = (viewState.quotesState as? GemSwapQuotesState.Failed)?.error ?: return
     val errorText = error.text(LocalContext.current)
     val infoSheetEntity = error.info()?.infoSheet()

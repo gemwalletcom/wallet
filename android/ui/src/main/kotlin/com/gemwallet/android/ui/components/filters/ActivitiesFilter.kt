@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -46,7 +47,7 @@ fun TransactionsFilter(
     onSelectTypesFilter: (List<GemTransactionFilter>) -> Unit,
     onClear: () -> Unit,
 ) {
-    var showedSubFilter by remember { mutableStateOf<FilterType?>(null) }
+    var showedSubFilter by rememberSaveable { mutableStateOf<FilterType?>(null) }
     val context = LocalContext.current
     val availableChains = remember(filter.chains) { filter.chains.map { it.requireChain() } }
     val chainsFilter = remember(filter.selectedChains) { filter.selectedChains.map { it.requireChain() } }

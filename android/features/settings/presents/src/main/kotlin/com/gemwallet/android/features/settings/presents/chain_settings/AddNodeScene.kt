@@ -10,7 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -45,7 +45,7 @@ import uniffi.gemstone.chainRow
 @Composable
 fun AddNodeScene(chain: Chain, state: GemAddNodeViewState, url: MutableState<String>, onUrlChange: () -> Unit, onAdd: () -> Unit, onCancel: () -> Unit) {
     val context = LocalContext.current
-    var isShowQRScan by remember { mutableStateOf(false) }
+    var isShowQRScan by rememberSaveable { mutableStateOf(false) }
     val phase = state.phase
 
     BackHandler {

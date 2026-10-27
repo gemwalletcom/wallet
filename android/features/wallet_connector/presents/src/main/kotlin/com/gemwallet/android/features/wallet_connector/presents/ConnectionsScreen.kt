@@ -15,6 +15,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -47,7 +48,7 @@ import uniffi.gemstone.GemListPhase
 @Composable
 fun ConnectionsScreen(onConnection: (String) -> Unit, onCancel: () -> Unit, viewModel: ConnectionsViewModel = hiltViewModel()) {
     val clipboardManager = LocalContext.current.clipboardManager()
-    var scannerShowed by remember { mutableStateOf(false) }
+    var scannerShowed by rememberSaveable { mutableStateOf(false) }
 
     val sections by viewModel.sections.collectAsStateWithLifecycle()
     val phase by viewModel.phase.collectAsStateWithLifecycle()

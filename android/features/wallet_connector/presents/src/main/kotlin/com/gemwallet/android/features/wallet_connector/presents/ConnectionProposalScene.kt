@@ -8,7 +8,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -52,7 +52,7 @@ internal fun ConnectionProposalScene(
     onApprove: () -> Unit,
     onWalletSelected: (WalletId) -> Unit,
 ) {
-    var isShowSelectWallets by remember { mutableStateOf(false) }
+    var isShowSelectWallets by rememberSaveable { mutableStateOf(false) }
 
     Scene(
         title = stringResource(id = R.string.wallet_connect_connect_title),

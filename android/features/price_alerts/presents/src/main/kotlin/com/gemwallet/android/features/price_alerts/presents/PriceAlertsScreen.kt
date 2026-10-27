@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -23,7 +23,7 @@ fun PriceAlertsScreen(message: RouteMessage?, onMessageShown: () -> Unit, onChar
     val error by viewModel.error.collectAsStateWithLifecycle()
     val snackbar = rememberSnackbarState(message = message, onShown = onMessageShown)
 
-    var selectingAsset by remember { mutableStateOf(false) }
+    var selectingAsset by rememberSaveable { mutableStateOf(false) }
 
     val sections by viewModel.sections.collectAsStateWithLifecycle()
     val enabled by viewModel.priceAlertEnabled.collectAsStateWithLifecycle()

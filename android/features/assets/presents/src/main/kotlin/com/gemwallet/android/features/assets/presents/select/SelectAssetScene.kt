@@ -31,6 +31,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -178,7 +179,7 @@ fun SelectAssetScene(
     val listState = rememberLazyListState()
     var isReturnToTop by remember { mutableStateOf(false) }
 
-    var showSelectNetworks by remember { mutableStateOf(false) }
+    var showSelectNetworks by rememberSaveable { mutableStateOf(false) }
     val longPressedAsset = remember { mutableStateOf<AssetId?>(null) }
 
     LaunchedEffect(Unit) {
