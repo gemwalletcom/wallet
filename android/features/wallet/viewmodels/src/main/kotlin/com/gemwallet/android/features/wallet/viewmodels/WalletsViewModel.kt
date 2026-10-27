@@ -35,20 +35,17 @@ class WalletsViewModel @Inject constructor(
 
     private val errorState = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = errorState.asStateFlow()
+    val isSelected = MutableStateFlow(false)
+    val deletion = MutableStateFlow<GemWalletDeletion?>(null)
 
-    fun selectWallet(row: GemWalletRow, onSelected: () -> Unit) = viewModelScope.launch {
+    fun selectWallet(row: GemWalletRow) = viewModelScope.launch {
         runCatchingCancellable { withContext(ioDispatcher) { service.setCurrentWalletId(row.id) } }
-            .onSuccess { onSelected() }
+            .onSuccess { isSelected.value = true }
             .onFailure(::showError)
     }
 
-    fun deleteWallet(row: GemWalletRow, onBoard: () -> Unit) = viewModelScope.launch {
-        runCatchingCancellable {
-            when (withContext(ioDispatcher) { service.deleteWallet(row.id) }) {
-                GemWalletDeletion.WALLETS_REMAINING -> Unit
-                GemWalletDeletion.LAST_WALLET_DELETED -> onBoard()
-            }
-        }
+    fun deleteWallet(row: GemWalletRow) = viewModelScope.launch {
+        runCatchingCancellable { deletion.value = withContext(ioDispatcher) { service.deleteWallet(row.id) } }
             .onFailure(::showError)
     }
 

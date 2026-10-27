@@ -22,6 +22,7 @@ import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -87,6 +88,14 @@ fun ImportWalletScreen(importType: ImportType, onImported: () -> Unit, onCancel:
     DetectScreenshot(uiState.importType.kind.secretKind())
     val nameResolveIndicator by viewModel.nameResolveIndicator.collectAsStateWithLifecycle()
     val suggestions by viewModel.suggestions.collectAsStateWithLifecycle()
+    val isImported by viewModel.isImported.collectAsStateWithLifecycle()
+
+    LaunchedEffect(isImported) {
+        if (isImported) {
+            viewModel.isImported.value = false
+            onImported()
+        }
+    }
     var isScanning by remember { mutableStateOf(false) }
 
     ImportWalletScene(
@@ -101,8 +110,8 @@ fun ImportWalletScreen(importType: ImportType, onImported: () -> Unit, onCancel:
         buttonState = buttonState(loading = uiState.loading),
         onImport = {
             when (uiState.importType.kind) {
-                GemWalletImportKind.ADDRESS -> viewModel.import(onImported)
-                GemWalletImportKind.PHRASE, GemWalletImportKind.PRIVATE_KEY -> context.requestAuth(AuthRequest.Default) { viewModel.import(onImported) }
+                GemWalletImportKind.ADDRESS -> viewModel.import()
+                GemWalletImportKind.PHRASE, GemWalletImportKind.PRIVATE_KEY -> context.requestAuth(AuthRequest.Default) { viewModel.import() }
             }
         },
         onScan = if (uiState.showsScan) {

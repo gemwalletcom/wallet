@@ -10,7 +10,6 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
@@ -101,33 +100,15 @@ class WalletDetailViewModelTest {
     }
 
     @Test
-    fun `deleting a wallet while others remain completes without onboarding`() = runTest(dispatcher) {
-        val service: GemWalletServiceInterface = mockk(relaxed = true) {
-            coEvery { deleteWallet(walletId) } returns GemWalletDeletion.WALLETS_REMAINING
-        }
-        val onBoard = mockk<() -> Unit>(relaxed = true)
-        val onComplete = mockk<() -> Unit>(relaxed = true)
-        val model = WalletDetailViewModel(walletQuery, service, route(), dispatcher, mockk(relaxed = true)).also { models.add(it) }
-
-        model.delete(onBoard, onComplete).join()
-
-        verify(exactly = 1) { onComplete() }
-        verify(exactly = 0) { onBoard() }
-    }
-
-    @Test
-    fun `deleting the last wallet returns to onboarding`() = runTest(dispatcher) {
+    fun `a delete publishes what Core reports`() = runTest(dispatcher) {
         val service: GemWalletServiceInterface = mockk(relaxed = true) {
             coEvery { deleteWallet(walletId) } returns GemWalletDeletion.LAST_WALLET_DELETED
         }
-        val onBoard = mockk<() -> Unit>(relaxed = true)
-        val onComplete = mockk<() -> Unit>(relaxed = true)
         val model = WalletDetailViewModel(walletQuery, service, route(), dispatcher, mockk(relaxed = true)).also { models.add(it) }
 
-        model.delete(onBoard, onComplete).join()
+        model.delete().join()
 
-        verify(exactly = 1) { onBoard() }
-        verify(exactly = 0) { onComplete() }
+        assertEquals(GemWalletDeletion.LAST_WALLET_DELETED, model.deletion.value)
     }
 
     @Test
@@ -135,15 +116,12 @@ class WalletDetailViewModelTest {
         val service: GemWalletServiceInterface = mockk(relaxed = true) {
             coEvery { deleteWallet(walletId) } throws GemServiceException.Platform("keystore delete failed")
         }
-        val onBoard = mockk<() -> Unit>(relaxed = true)
-        val onComplete = mockk<() -> Unit>(relaxed = true)
         val model = WalletDetailViewModel(walletQuery, service, route(), dispatcher, mockk(relaxed = true)).also { models.add(it) }
 
-        model.delete(onBoard, onComplete).join()
+        model.delete().join()
 
         assertEquals("keystore delete failed", model.error.value)
-        verify(exactly = 0) { onBoard() }
-        verify(exactly = 0) { onComplete() }
+        assertNull(model.deletion.value)
     }
 
     @Test
@@ -151,15 +129,12 @@ class WalletDetailViewModelTest {
         val service: GemWalletServiceInterface = mockk(relaxed = true) {
             coEvery { deleteWallet(walletId) } throws IllegalStateException("keystore delete failed")
         }
-        val onBoard = mockk<() -> Unit>(relaxed = true)
-        val onComplete = mockk<() -> Unit>(relaxed = true)
         val model = WalletDetailViewModel(walletQuery, service, route(), dispatcher, mockk(relaxed = true)).also { models.add(it) }
 
-        model.delete(onBoard, onComplete).join()
+        model.delete().join()
 
         assertNull(model.error.value)
-        verify(exactly = 0) { onBoard() }
-        verify(exactly = 0) { onComplete() }
+        assertNull(model.deletion.value)
     }
 
     @Test

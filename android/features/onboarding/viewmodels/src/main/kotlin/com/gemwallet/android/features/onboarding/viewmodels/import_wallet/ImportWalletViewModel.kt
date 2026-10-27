@@ -27,7 +27,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -36,7 +35,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemNameIndicator
 import uniffi.gemstone.GemNameRecordState
 import uniffi.gemstone.GemNameServiceInterface
@@ -59,6 +57,7 @@ class ImportWalletViewModel @AssistedInject constructor(
     private val state = MutableStateFlow(ImportWalletUIState())
     private val input = snapshotFlow { inputState.text.toString() to inputState.selection.end }
     private val isImporting = MutableStateFlow(false)
+    val isImported = MutableStateFlow(false)
     val uiState = combine(state, isImporting) { state, importing -> state.copy(loading = importing) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, ImportWalletUIState())
     val suggestions: StateFlow<List<String>> = combine(input, state) { (value, cursor), state ->
@@ -129,7 +128,7 @@ class ImportWalletViewModel @AssistedInject constructor(
         isImporting.value = false
     }
 
-    fun import(onImported: () -> Unit) {
+    fun import() {
         if (isImporting.value) {
             return
         }
@@ -143,15 +142,13 @@ class ImportWalletViewModel @AssistedInject constructor(
                 val importType = state.value.importType
                 val imported = service.importWallet(importType.kind, importType.chain, data, nameRecord, WalletSource.Import, context)
                 isImporting.value = false
-                withContext(Dispatchers.Main) {
-                    when (imported) {
-                        is GemWalletImportResult.New -> {
-                            enablePushForNewWallet.enablePushForNewWallet()
-                            onImported()
-                        }
-
-                        is GemWalletImportResult.Existing -> state.update { it.copy(existingWalletName = imported.wallet.name) }
+                when (imported) {
+                    is GemWalletImportResult.New -> {
+                        enablePushForNewWallet.enablePushForNewWallet()
+                        isImported.value = true
                     }
+
+                    is GemWalletImportResult.Existing -> state.update { it.copy(existingWalletName = imported.wallet.name) }
                 }
             } catch (err: CancellationException) {
                 throw err
