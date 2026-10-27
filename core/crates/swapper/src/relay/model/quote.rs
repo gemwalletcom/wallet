@@ -43,6 +43,18 @@ pub struct RelayAppFee {
 pub struct RelayQuoteResponse {
     pub steps: Vec<Step>,
     pub details: QuoteDetails,
+    pub protocol: Option<RelayProtocol>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct RelayProtocol {
+    pub v2: Option<RelayProtocolOrder>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RelayProtocolOrder {
+    pub order_id: Option<String>,
 }
 
 impl RelayQuoteResponse {
@@ -61,6 +73,12 @@ impl RelayQuoteResponse {
             (deposit_address, StepData::Deposit(deposit)) => Some((deposit_address, deposit)),
             (_, StepData::Evm(_) | StepData::Tron(_) | StepData::Solana(_) | StepData::Ton(_)) => None,
         }
+    }
+
+    pub fn deposit_id(&self) -> Option<String> {
+        let deposit_address = self.get_deposit_address().map(|(address, _)| address);
+        let order_id = self.protocol.as_ref().and_then(|protocol| protocol.v2.as_ref()).and_then(|order| order.order_id.as_deref());
+        [deposit_address, order_id].into_iter().flatten().find(|id| !id.is_empty()).map(str::to_string)
     }
 
     pub fn get_evm_step(&self) -> Option<&EvmStepData> {
@@ -221,5 +239,20 @@ mod tests {
         assert_eq!(response.steps[0].id, "approve");
         assert_eq!(response.router_address(), response.get_evm_step().map(|evm| evm.to.clone()));
         assert_eq!(response.get_evm_step().unwrap().gas_limit_with_buffer().as_deref(), Some("724402"));
+    }
+
+    #[test]
+    fn test_deposit_id() {
+        let bitcoin: RelayQuoteResponse = serde_json::from_str(include_str!("../testdata/quote_btc_to_base_usdc.json")).unwrap();
+        let tron: RelayQuoteResponse = serde_json::from_str(include_str!("../testdata/quote_tron_to_base_usdc.json")).unwrap();
+        let order_id = "0x5018b8125a7aec15f5a9e8bf07786e79cc1b52b6d97fb1a92930fc5aeea6ddf0";
+        let protocol = Some(RelayProtocol {
+            v2: Some(RelayProtocolOrder { order_id: Some(order_id.to_string()) }),
+        });
+
+        assert_eq!(bitcoin.deposit_id().as_deref(), Some("bc1qa0z550eacdsxytnxf9yk7xvvhqzqvlx2tl44z2"));
+        assert_eq!(RelayQuoteResponse { protocol: protocol.clone(), ..bitcoin }.deposit_id().as_deref(), Some("bc1qa0z550eacdsxytnxf9yk7xvvhqzqvlx2tl44z2"));
+        assert_eq!(tron.deposit_id(), None);
+        assert_eq!(RelayQuoteResponse { protocol, ..tron }.deposit_id().as_deref(), Some(order_id));
     }
 }

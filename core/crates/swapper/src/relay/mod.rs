@@ -11,4 +11,5 @@ mod target;
 mod testkit;
 mod ton;
 
+pub(crate) use model::RelayQuoteResponse;
 pub use provider::Relay;

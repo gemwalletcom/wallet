@@ -4,7 +4,11 @@ use super::model::{CurrencyAmount, EvmStepData, QuoteDetails, RelayChainInfo, Re
 
 impl RelayQuoteResponse {
     pub fn mock_with_steps(steps: Vec<Step>) -> Self {
-        Self { steps, details: QuoteDetails::mock() }
+        Self {
+            steps,
+            details: QuoteDetails::mock(),
+            protocol: None,
+        }
     }
 }
 

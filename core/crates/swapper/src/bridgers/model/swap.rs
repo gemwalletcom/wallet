@@ -1,4 +1,5 @@
-use gem_xrp::models::{Amount, TransactionMemo};
+use gem_ton::tvm::BagOfCells;
+use gem_xrp::models::{Amount, TransactionMemo, memos_hash};
 use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 
@@ -47,6 +48,16 @@ pub struct SwapData {
     pub tx_data: SwapTransaction,
 }
 
+impl SwapData {
+    pub fn deposit_id(&self) -> Option<String> {
+        match &self.tx_data {
+            SwapTransaction::Evm(transaction) => Some(transaction.data.clone()).filter(|data| !data.is_empty()),
+            SwapTransaction::Ton(transaction) => Some(hex::encode(BagOfCells::parse_base64_root(&transaction.payload).ok()?.hash)),
+            SwapTransaction::Xrp(transaction) => memos_hash(&transaction.memos),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Deserialize)]
 #[serde(untagged)]
 pub enum SwapTransaction {
@@ -77,4 +88,28 @@ pub struct XrpTransaction {
     pub destination_tag: Option<u32>,
     pub amount: Amount,
     pub memos: Vec<TransactionMemo>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::bridgers::BridgersResponse;
+
+    #[test]
+    fn test_deposit_id() {
+        let deposit_id = |json: &str| serde_json::from_str::<BridgersResponse>(json).unwrap().data::<SwapData>().unwrap().deposit_id();
+
+        assert_eq!(
+            deposit_id(include_str!("../testdata/swap_ton_bsc_usdt.json")).as_deref(),
+            Some("03649dcfca44d7fe76c5a22ff8c955097e5cb60d32fef4feb9c368bee9df9d15")
+        );
+        assert_eq!(
+            deposit_id(include_str!("../testdata/swap_xrp_bsc_usdt.json")).as_deref(),
+            Some("3fed38eafa6b3bf232aaf79bd5ce2e20a8e41769eb1759a44a7f1ede8989a995")
+        );
+        assert_eq!(
+            deposit_id(include_str!("../testdata/swap_rlusd_bsc_usdt.json")).as_deref(),
+            Some("6d4a249eec51b33a5dc11e60d1cc6f7653c2d85474986e7c31ac02b1ae392366")
+        );
+    }
 }
