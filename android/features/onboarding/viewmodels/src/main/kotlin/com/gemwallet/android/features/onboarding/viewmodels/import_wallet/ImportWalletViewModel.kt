@@ -117,12 +117,8 @@ class ImportWalletViewModel @AssistedInject constructor(
         state.update { it.copy(dataError = null) }
     }
 
-    fun clearInput() {
-        inputState.clearText()
-    }
-
     private fun resetInput() {
-        clearInput()
+        inputState.clearText()
         isImporting.value = false
     }
 
