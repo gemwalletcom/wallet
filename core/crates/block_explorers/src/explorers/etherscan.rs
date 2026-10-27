@@ -42,3 +42,32 @@ impl EtherScan {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use primitives::{AssetId, Chain};
+
+    use super::*;
+
+    #[test]
+    fn test_etherscan_urls() {
+        let explorer = EtherScan::boxed(EVMChain::Ethereum);
+
+        assert_eq!(
+            explorer.get_address_url("0x1f9090aae28b8a3dceadf281b0f12828e676c326"),
+            "https://etherscan.io/address/0x1f9090aae28b8a3dceadf281b0f12828e676c326"
+        );
+        assert_eq!(
+            explorer.get_tx_url("0xfd96a9ee20a7440bf65a5b8ecf7f884289ed78e28f82d45343a70f459e7a42a0"),
+            "https://etherscan.io/tx/0xfd96a9ee20a7440bf65a5b8ecf7f884289ed78e28f82d45343a70f459e7a42a0"
+        );
+        assert_eq!(
+            explorer.get_token_url(&AssetId::from_token(Chain::Ethereum, "0xdac17f958d2ee523a2206206994597c13d831ec7")),
+            Some("https://etherscan.io/token/0xdac17f958d2ee523a2206206994597c13d831ec7".to_string())
+        );
+        assert_eq!(
+            explorer.get_nft_url("0x47A00fC8590C11bE4c419D9Ae50DEc267B6E24ee", "11871"),
+            Some("https://etherscan.io/nft/0x47A00fC8590C11bE4c419D9Ae50DEc267B6E24ee/11871".to_string())
+        );
+    }
+}

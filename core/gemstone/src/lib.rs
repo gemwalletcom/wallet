@@ -4,7 +4,6 @@ pub mod alien;
 pub mod api;
 pub mod application;
 pub mod auth;
-pub mod block_explorer;
 pub mod config;
 pub mod constants;
 pub mod day_section;
