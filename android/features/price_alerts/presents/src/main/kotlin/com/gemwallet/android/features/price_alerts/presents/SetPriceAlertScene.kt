@@ -40,6 +40,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.TabsBar
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.clickable
+import com.gemwallet.android.ui.components.fields.AmountInputTransformation
 import com.gemwallet.android.ui.components.fields.requestFocusIfAttached
 import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.components.screen.Scene
@@ -184,6 +185,7 @@ fun SetPriceAlertScene(
                         modifier = Modifier.width(IntrinsicSize.Min).focusRequester(focusRequester),
                         state = value,
                         lineLimits = TextFieldLineLimits.SingleLine,
+                        inputTransformation = AmountInputTransformation(),
                         textStyle = MaterialTheme.typography.displaySmall.copy(
                             textAlign = TextAlign.Center,
                             color = if (value.text.isEmpty()) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurface,
