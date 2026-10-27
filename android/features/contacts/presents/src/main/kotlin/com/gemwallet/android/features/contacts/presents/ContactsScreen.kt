@@ -8,6 +8,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,6 +38,14 @@ fun ContactsScreen(onAction: (ContactsAction) -> Unit, viewModel: ContactsViewMo
     val errorText by viewModel.errorText.collectAsStateWithLifecycle()
     val revealed = remember { mutableStateOf<String?>(null) }
     val snackbar = rememberSnackbarState(message = errorText, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
+    val isAddressAdded by viewModel.isAddressAdded.collectAsStateWithLifecycle()
+
+    LaunchedEffect(isAddressAdded) {
+        if (isAddressAdded) {
+            viewModel.isAddressAdded.value = false
+            onAction(ContactsAction.Cancel)
+        }
+    }
 
     Scene(
         title = stringResource(R.string.contacts_title),
@@ -81,7 +90,7 @@ fun ContactsScreen(onAction: (ContactsAction) -> Unit, viewModel: ContactsViewMo
                             modifier = Modifier.clickable {
                                 when (viewModel.draft) {
                                     null -> onAction(ContactsAction.OpenContact(item.contact.contact.id))
-                                    else -> viewModel.addAddress(item.contact) { onAction(ContactsAction.Cancel) }
+                                    else -> viewModel.addAddress(item.contact)
                                 }
                             }.testTag("contact_row"),
                             minHeight = ListItemDefaults.defaultMinHeight,

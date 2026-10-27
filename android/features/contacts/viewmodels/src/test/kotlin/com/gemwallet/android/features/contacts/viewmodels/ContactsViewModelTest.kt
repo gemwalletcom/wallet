@@ -50,13 +50,12 @@ class ContactsViewModelTest {
     fun `picking a contact while adding an address saves that address on the contact`() = runTest(dispatcher) {
         val service = mockk<GemContactServiceInterface>(relaxed = true)
         val model = model(service, SavedStateHandle(mapOf(RouteArgument.Chain.key to "bitcoin", RouteArgument.Address.key to "bc1qar0")))
-        var added = false
 
-        model.addAddress(ContactData(contact, emptyList())) { added = true }
+        model.addAddress(ContactData(contact, emptyList()))
         advanceUntilIdle()
 
         coVerify { service.updateContact(contact.toGem(), match { it.single().address == "bc1qar0" && it.single().chain == "bitcoin" }) }
-        assertTrue(added)
+        assertTrue(model.isAddressAdded.value)
     }
 
     @Test

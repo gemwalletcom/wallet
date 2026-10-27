@@ -109,10 +109,8 @@ class AddNodeViewModelTest {
         viewModel.url.value = "https://node"
         viewModel.onUrlChange()
         advanceUntilIdle()
-        var navigations = 0
-
-        viewModel.addUrl { navigations++ }
-        viewModel.addUrl { navigations++ }
+        viewModel.addUrl()
+        viewModel.addUrl()
         runCurrent()
         viewModel.url.value = "https://other"
         viewModel.onUrlChange()
@@ -120,7 +118,7 @@ class AddNodeViewModelTest {
         advanceUntilIdle()
 
         coVerify(exactly = 1) { service.addNode(any(), any()) }
-        assertEquals(1, navigations)
+        assertEquals(true, viewModel.isAdded.value)
         assertEquals("https://other", viewModel.url.value)
     }
 }

@@ -18,7 +18,6 @@ import com.wallet.core.primitives.AssetId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -31,7 +30,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemListPhase
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemPriceAlertItem
@@ -75,6 +73,7 @@ class PriceAlertsViewModel @Inject constructor(
 
     private val errorState = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = errorState.asStateFlow()
+    val toast = MutableStateFlow<GemToast?>(null)
 
     init {
         viewModelScope.launch(ioDispatcher) { sync() }
@@ -108,12 +107,11 @@ class PriceAlertsViewModel @Inject constructor(
             .onFailure { errorState.value = it.errorText().text(context) }
     }
 
-    fun includeAsset(assetId: AssetId, callback: (GemToast) -> Unit) = viewModelScope.launch(ioDispatcher) {
+    fun includeAsset(assetId: AssetId) = viewModelScope.launch(ioDispatcher) {
         val asset = getCurrentWalletId().flatMapLatest { walletId -> assetQuery(walletId.id, assetId) }.firstOrNull()?.asset ?: return@launch
-        val toast = runCatchingCancellable { service.setAutoAlert(asset.toGem(), true) }
+        runCatchingCancellable { service.setAutoAlert(asset.toGem(), true) }
+            .onSuccess { toast.value = it }
             .onFailure { errorState.value = it.errorText().text(context) }
-            .getOrNull() ?: return@launch
-        withContext(Dispatchers.Main) { callback(toast) }
     }
 
     fun clearError() = errorState.update { null }

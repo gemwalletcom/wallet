@@ -34,6 +34,7 @@ class AddNodeViewModel @AssistedInject constructor(@Assisted private val chain: 
     val viewState: StateFlow<GemAddNodeViewState> = session.map { it.viewState() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, session.value.viewState())
     val url = mutableStateOf("")
+    val isAdded = MutableStateFlow(false)
     private var checkUrlJob: Job? = null
     private var addUrlJob: Job? = null
 
@@ -56,7 +57,7 @@ class AddNodeViewModel @AssistedInject constructor(@Assisted private val chain: 
         }
     }
 
-    fun addUrl(onAdded: () -> Unit) {
+    fun addUrl() {
         if (addUrlJob?.isActive == true) return
         val current = session.value
         val status = current.viewState().canImport.takeIf { it }?.let { (current.check) } ?: return
@@ -77,7 +78,7 @@ class AddNodeViewModel @AssistedInject constructor(@Assisted private val chain: 
                 checkUrlJob?.cancel()
                 session.value = current.onImported()
             }
-            onAdded()
+            isAdded.value = true
         }
     }
 

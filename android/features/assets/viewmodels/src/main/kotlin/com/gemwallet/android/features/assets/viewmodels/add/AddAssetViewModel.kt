@@ -56,6 +56,7 @@ class AddAssetViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val state = MutableStateFlow(State())
+    val isAdded = MutableStateFlow(false)
     val uiState = state.map { it.toUIState() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, AddAssetUIState())
 
@@ -153,7 +154,7 @@ class AddAssetViewModel @Inject constructor(
         state.update { it.copy(isSelectChain = false) }
     }
 
-    fun addAsset(onFinish: () -> Unit) = viewModelScope.launch {
+    fun addAsset() = viewModelScope.launch {
         val asset = token.value ?: return@launch
         val wallet = wallet.value ?: return@launch
         state.update { it.copy(isImporting = true) }
@@ -163,9 +164,7 @@ class AddAssetViewModel @Inject constructor(
             }
         }
         state.update { it.copy(isImporting = false, error = added.exceptionOrNull()?.errorText()?.text(context)) }
-        if (added.isSuccess) {
-            onFinish()
-        }
+        isAdded.value = added.isSuccess
     }
 
     fun clearError() = state.update { it.copy(error = null) }

@@ -2,10 +2,10 @@ package com.gemwallet.android.features.price_alerts.presents
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -16,12 +16,10 @@ import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 import com.gemwallet.android.ui.components.screen.showSnackbar
 import com.gemwallet.android.ui.models.navigation.RouteMessage
 import com.wallet.core.primitives.AssetId
-import kotlinx.coroutines.launch
 
 @Composable
 fun PriceAlertsScreen(message: RouteMessage?, onMessageShown: () -> Unit, onChart: (AssetId) -> Unit, onCancel: () -> Unit, viewModel: PriceAlertsViewModel = hiltViewModel()) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
     val error by viewModel.error.collectAsStateWithLifecycle()
     val snackbar = rememberSnackbarState(message = message, onShown = onMessageShown)
 
@@ -31,18 +29,22 @@ fun PriceAlertsScreen(message: RouteMessage?, onMessageShown: () -> Unit, onChar
     val enabled by viewModel.priceAlertEnabled.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val phase by viewModel.phase.collectAsStateWithLifecycle()
+    val toast by viewModel.toast.collectAsStateWithLifecycle()
+
+    LaunchedEffect(toast) {
+        toast?.let {
+            viewModel.toast.value = null
+            val message = it.message(context)
+            snackbar.showSnackbar(message.title, message.image)
+        }
+    }
 
     AnimatedContent(selectingAsset, label = "") { selecting ->
         when (selecting) {
             true -> AddAssetPriceAlertsScreen(
                 onCancel = { selectingAsset = false },
                 onSelect = { assetId ->
-                    viewModel.includeAsset(assetId) { toast ->
-                        val message = toast.message(context)
-                        scope.launch {
-                            snackbar.showSnackbar(message.title, message.image)
-                        }
-                    }
+                    viewModel.includeAsset(assetId)
                     selectingAsset = false
                 },
             )
