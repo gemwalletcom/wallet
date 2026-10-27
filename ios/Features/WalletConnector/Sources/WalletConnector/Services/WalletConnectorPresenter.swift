@@ -18,7 +18,14 @@ public final class WalletConnectorPresenter: Sendable {
         if let presented = isPresentingSheet, presented.id != type.id {
             presented.reject(ConnectionsError.userCancelled)
         }
+        isPresentingConnectionBar = false
         isPresentingSheet = type
+    }
+
+    @MainActor
+    public func presentError(_ message: String) {
+        isPresentingConnectionBar = false
+        isPresentingError = message
     }
 
     @MainActor

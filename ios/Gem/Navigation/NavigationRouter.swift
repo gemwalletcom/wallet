@@ -257,11 +257,10 @@ extension NavigationRouter {
 @MainActor
 extension NavigationRouter {
     private func openWalletConnect(_ link: WalletConnectLink) async {
-        walletConnectorPresenter.isPresentingConnectionBar = true
-
         do {
             switch link {
             case let .connect(uri):
+                walletConnectorPresenter.isPresentingConnectionBar = true
                 try await walletConnector.pair(uri: uri)
             case .request:
                 break
@@ -270,7 +269,7 @@ extension NavigationRouter {
             }
         } catch {
             debugLog("NavigationRouter walletConnect error: \(error)")
-            walletConnectorPresenter.isPresentingError = error.localizedDescription
+            walletConnectorPresenter.presentError(error.localizedDescription)
         }
     }
 }
