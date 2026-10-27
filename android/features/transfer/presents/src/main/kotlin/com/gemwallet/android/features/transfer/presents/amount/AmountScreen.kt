@@ -3,6 +3,7 @@ package com.gemwallet.android.features.transfer.presents.amount
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -21,6 +22,15 @@ import uniffi.gemstone.GemAmountExtras
 @Composable
 fun AmountScreen(onCancel: () -> Unit, onConfirm: (ConfirmTransferInput) -> Unit, onBuy: (AssetId) -> Unit, viewModel: AmountViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val confirmInput by viewModel.confirmInput.collectAsStateWithLifecycle()
+
+    LaunchedEffect(confirmInput) {
+        confirmInput?.let {
+            viewModel.confirmInput.value = null
+            onConfirm(it)
+        }
+    }
+
     val asset = uiState.asset ?: run {
         LoadingScene(uiState.title, onCancel)
         return
@@ -70,7 +80,7 @@ fun AmountScreen(onCancel: () -> Unit, onConfirm: (ConfirmTransferInput) -> Unit
                 buttonState = uiState.buttonState,
                 onAction = { action ->
                     when (action) {
-                        AmountAction.Next -> viewModel.onNext(onConfirm)
+                        AmountAction.Next -> viewModel.onNext()
                         is AmountAction.SetAmount -> viewModel.updateAmount(action.amount)
                         AmountAction.SwitchInputType -> viewModel.switchInputType()
                         AmountAction.SetMaxAmount -> viewModel.onMaxAmount()

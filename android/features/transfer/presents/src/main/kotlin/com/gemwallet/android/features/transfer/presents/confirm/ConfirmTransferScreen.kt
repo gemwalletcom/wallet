@@ -131,6 +131,14 @@ fun ConfirmTransferScreen(
         }
     }
     val isShowBottomSheetInfo by viewModel.isErrorSheetVisible.collectAsStateWithLifecycle()
+    val sentTransactionHash by viewModel.sentTransactionHash.collectAsStateWithLifecycle()
+
+    LaunchedEffect(sentTransactionHash) {
+        sentTransactionHash?.let {
+            viewModel.sentTransactionHash.value = null
+            finishAction(it)
+        }
+    }
 
     LaunchedEffect(input, simulationResult) {
         if (input == null) {
@@ -162,10 +170,10 @@ fun ConfirmTransferScreen(
                 onClick = {
                     when (viewModel.action()) {
                         GemConfirmAction.EXECUTE -> context.requestAuth(AuthRequest.Confirmation) {
-                            viewModel.send(finishAction)
+                            viewModel.send()
                         }
 
-                        GemConfirmAction.LOAD, null -> viewModel.send(finishAction)
+                        GemConfirmAction.LOAD, null -> viewModel.send()
                     }
                 },
             )

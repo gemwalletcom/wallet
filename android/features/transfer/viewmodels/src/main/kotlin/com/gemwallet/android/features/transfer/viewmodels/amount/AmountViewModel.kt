@@ -137,6 +137,7 @@ class AmountViewModel @Inject constructor(
     val amountInputType: StateFlow<GemAmountInputType> = session.map { it.inputType }
         .stateIn(viewModelScope, SharingStarted.Eagerly, GemAmountInputType.ASSET)
     private val amountError = MutableStateFlow<Throwable?>(null)
+    val confirmInput = MutableStateFlow<ConfirmTransferInput?>(null)
 
     val currency: Currency = service.getCurrency().toPrimitives()
 
@@ -254,7 +255,7 @@ class AmountViewModel @Inject constructor(
         amount = next.text
     }
 
-    fun onNext(onConfirm: (ConfirmTransferInput) -> Unit) {
+    fun onNext() {
         viewModelScope.launch {
             val entry = entry.value ?: return@launch
             entry.error?.let {
@@ -266,7 +267,7 @@ class AmountViewModel @Inject constructor(
                 amountError.value = null
                 val current = assetInfo.filterNotNull().first()
                 val request = request.filterNotNull().first()
-                onConfirm(ConfirmTransferInput(service.transferData(current.asset.toGem(), request, value, entry.isMax)))
+                confirmInput.value = ConfirmTransferInput(service.transferData(current.asset.toGem(), request, value, entry.isMax))
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {

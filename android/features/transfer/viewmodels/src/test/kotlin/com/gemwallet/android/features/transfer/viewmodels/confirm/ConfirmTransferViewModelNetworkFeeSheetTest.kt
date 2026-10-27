@@ -15,7 +15,6 @@ import com.gemwallet.android.testkit.mockGemConfirmMetadata
 import com.gemwallet.android.testkit.mockGemConfirmScreen
 import com.gemwallet.android.testkit.mockGemConfirmSimulationState
 import com.gemwallet.android.testkit.mockGemTransferData
-import com.gemwallet.android.ui.models.actions.FinishConfirmAction
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
@@ -75,7 +74,7 @@ class ConfirmTransferViewModelNetworkFeeSheetTest {
         assertEquals(GemConfirmPhase.FAILED, viewModel.screen.value.phase)
         assertFalse(viewModel.isErrorSheetVisible.value)
 
-        viewModel.send(FinishConfirmAction {})
+        viewModel.send()
         advanceUntilIdle()
 
         assertTrue(viewModel.isErrorSheetVisible.value)

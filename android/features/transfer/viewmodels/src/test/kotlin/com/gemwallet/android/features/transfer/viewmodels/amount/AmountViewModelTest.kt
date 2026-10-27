@@ -248,10 +248,9 @@ class AmountViewModelTest {
         }
 
     private fun AmountViewModel.confirm(): GemTransferData? {
-        var confirmed: GemTransferData? = null
-        onNext { confirmed = it.data }
+        onNext()
         testDispatcher.scheduler.runCurrent()
-        return confirmed
+        return confirmInput.value?.data
     }
 
     private fun AmountViewModel.setAmount(value: String) {
