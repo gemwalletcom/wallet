@@ -59,6 +59,7 @@ The Import screen, top to bottom:
 | An import fails | its error shows under the input after every failed attempt, and clears as soon as the input changes | a retry with the same mistake must not look like nothing happened |
 | Rotation or theme change while typing | the picked kind and the typed text stay | |
 | Rotation or theme change while the wallet is imported or created | the wallet still opens | |
+| The system closes the app after the first wallet and the user returns | the screen the user left opens | |
 
 Names follow the shared [Names](../PRODUCT.md#names) section.
 
