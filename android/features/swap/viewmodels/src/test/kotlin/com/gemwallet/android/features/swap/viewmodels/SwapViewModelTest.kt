@@ -625,7 +625,7 @@ class SwapViewModelTest {
         assertEquals(GemSwapButtonAction.Swap, state.buttonAction)
         assertEquals(ButtonState.Enabled, state.buttonState.buttonState())
         assertEquals(quote, state.quote)
-        assertNotNull(alert)
+        assertEquals(GemSwapErrorDisplay.Message("unexpected transfer failure"), alert)
         assertFalse(state.quotesState is GemSwapQuotesState.Failed)
         assertEquals(0, confirmations)
     }

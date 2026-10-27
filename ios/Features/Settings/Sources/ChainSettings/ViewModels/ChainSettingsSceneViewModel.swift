@@ -96,9 +96,9 @@ extension ChainSettingsSceneViewModel {
         }
     }
 
-    func onDeleteNode() async {
+    func onDeleteNode(_ row: GemNodeRow) async {
         do {
-            try await delete()
+            try await delete(row)
         } catch {
             isPresentingAlertMessage = AlertMessage(error: error)
         }
@@ -127,9 +127,8 @@ extension ChainSettingsSceneViewModel {
         }
     }
 
-    private func delete() async throws {
-        guard let nodeDelete else { return }
-        try await service.deleteNode(chain: chain.rawValue, url: nodeDelete.node.url)
+    private func delete(_ row: GemNodeRow) async throws {
+        try await service.deleteNode(chain: chain.rawValue, url: row.node.url)
         try await loadNodes()
     }
 }

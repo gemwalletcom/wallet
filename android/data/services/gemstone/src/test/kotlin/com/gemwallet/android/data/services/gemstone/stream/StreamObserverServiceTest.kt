@@ -47,7 +47,7 @@ class StreamObserverServiceTest {
     }
     private val service = mockk<GemStreamServiceInterface>(relaxed = true) {
         coEvery { prepareConnection() } returns true
-        coEvery { decodeEvent(any()) } returns GemStreamEvent.Prices(prices = 0u, rates = 0u)
+        coEvery { decodeEvent(any()) } returns GemStreamEvent.Prices(prices = 0, rates = 0)
     }
     private val connection = Connection()
     private val health = ConnectionComponentHealth(ConnectionComponent.Stream)
@@ -246,7 +246,7 @@ class StreamObserverServiceTest {
         val snapshotGate = CompletableDeferred<Unit>()
         coEvery { service.decodeEvent("snapshot") } coAnswers {
             snapshotGate.await()
-            GemStreamEvent.Prices(prices = 0u, rates = 0u)
+            GemStreamEvent.Prices(prices = 0, rates = 0)
         }
         observer().start()
         runCurrent()
@@ -312,7 +312,7 @@ class StreamObserverServiceTest {
     }
 
     private val connectionService = mockk<GemConnectionServiceInterface> {
-        every { reconnection(any(), any()) } returns GemReconnection(nextAttempt = 1u, delay = Duration.ofSeconds(1))
+        every { reconnection(any(), any()) } returns GemReconnection(nextAttempt = 1, delay = Duration.ofSeconds(1))
     }
 
     @Test

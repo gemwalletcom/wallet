@@ -275,7 +275,7 @@ pub struct GemNumberFormat {
 
 #[uniffi::export]
 impl GemNumberFormat {
-    pub fn sanitize(&self, input: String, maximum_fraction_digits: Option<u32>, maximum_integer_digits: Option<u32>) -> String {
+    pub fn sanitize(&self, input: String, maximum_fraction_digits: Option<usize>, maximum_integer_digits: Option<usize>) -> String {
         super::rules::sanitize_number_input(&self.decimal_separator, &input, maximum_fraction_digits, maximum_integer_digits)
     }
 

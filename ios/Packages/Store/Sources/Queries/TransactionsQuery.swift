@@ -109,8 +109,17 @@ extension TransactionsQuery {
         if let rank = filter.assetRankGreaterThan {
             request = request.joining(required: TransactionRecord.asset.filter(AssetRecord.Columns.rank > Int(rank)))
         }
+        if let createdFrom = filter.createdFrom {
+            request = request.filter(TransactionRecord.Columns.date >= createdFrom)
+        }
         return request
     }
 }
 
 extension TransactionsQuery: Equatable {}
+
+extension TransactionsQuery: LimitedQuery {
+    public func with(limit: Int) -> TransactionsQuery {
+        TransactionsQuery(walletId: walletId, type: type, filter: filter, limit: limit)
+    }
+}

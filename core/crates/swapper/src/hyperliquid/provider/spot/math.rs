@@ -93,7 +93,7 @@ fn round_to_significant_and_decimal(value: f64, sig_figs: u32, max_decimals: u32
     let magnitude = abs_value.log10().floor() as i32;
     let scale = 10f64.powi(sig_figs as i32 - magnitude - 1);
     let rounded = (abs_value * scale).round() / scale;
-    round_to_places(rounded.copysign(value), max_decimals)
+    round_to_places(rounded.copysign(value), max_decimals as usize)
 }
 
 #[cfg(test)]

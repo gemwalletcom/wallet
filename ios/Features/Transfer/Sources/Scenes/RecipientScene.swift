@@ -69,6 +69,7 @@ public struct RecipientScene: View {
                         },
                     )
                     .focused($focusedField, equals: .memo)
+                    .accessibilityIdentifier("memoInputField")
                     .keyboardType(.alphabet)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()

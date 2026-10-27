@@ -18,7 +18,7 @@ class FormattedNumberTest {
         val amount = GemFormattedNumber(
             value = 5.205516,
             unit = GemNumberUnit.Symbol(symbol = "ATOM"),
-            display = GemNumberDisplay.Number(precision = GemPrecision.Fraction(min = 0u, max = 2u)),
+            display = GemNumberDisplay.Number(precision = GemPrecision.Fraction(min = 0, max = 2)),
             notation = GemNumberNotation.PLAIN,
             tone = GemValueTone.PLAIN,
             rounding = GemNumberRounding.TOWARD_ZERO,
@@ -34,7 +34,7 @@ class FormattedNumberTest {
         val fiat = GemFormattedNumber(
             value = 1234.567,
             unit = GemNumberUnit.Currency(code = "USD"),
-            display = GemNumberDisplay.Number(precision = GemPrecision.Fraction(min = 2u, max = 2u)),
+            display = GemNumberDisplay.Number(precision = GemPrecision.Fraction(min = 2, max = 2)),
             notation = GemNumberNotation.SIGNED,
             tone = GemValueTone.PLAIN,
             rounding = GemNumberRounding.TOWARD_ZERO,
@@ -51,7 +51,7 @@ class FormattedNumberTest {
         val percent = GemFormattedNumber(
             value = 5.23,
             unit = GemNumberUnit.Percent,
-            display = GemNumberDisplay.Number(precision = GemPrecision.Fraction(min = 0u, max = 2u)),
+            display = GemNumberDisplay.Number(precision = GemPrecision.Fraction(min = 0, max = 2)),
             notation = GemNumberNotation.PLAIN,
             tone = GemValueTone.PLAIN,
             rounding = GemNumberRounding.TO_NEAREST,
@@ -70,7 +70,7 @@ class FormattedNumberTest {
         val spent = GemFormattedNumber(
             value = -123.456789012345678901,
             unit = GemNumberUnit.Symbol(symbol = "ETH"),
-            display = GemNumberDisplay.Number(precision = GemPrecision.Fraction(min = 0u, max = 32u)),
+            display = GemNumberDisplay.Number(precision = GemPrecision.Fraction(min = 0, max = 32)),
             notation = GemNumberNotation.SIGNED,
             tone = GemValueTone.NEGATIVE,
             rounding = GemNumberRounding.TOWARD_ZERO,

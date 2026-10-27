@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -126,6 +127,7 @@ fun LotButton(fiatSuggestion: GemFiatSuggestedAmount, onLotClick: (GemFiatSugges
         modifier = Modifier
             .clip(RoundedCornerShape(paddingSmall))
             .clickable { onLotClick(fiatSuggestion) }
+            .testTag("fiat_preset_${fiatSuggestion.amount}")
             .background(MaterialTheme.colorScheme.surfaceContainerHighest)
             .heightIn(min = iconSize)
             .padding(horizontal = space6),

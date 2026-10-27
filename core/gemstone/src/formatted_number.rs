@@ -42,7 +42,7 @@ pub enum GemNumberNotation {
 pub enum GemNumberDisplay {
     Number { precision: GemPrecision },
     Abbreviated,
-    BelowThreshold { threshold: f64, places: u32 },
+    BelowThreshold { threshold: f64, places: usize },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -125,7 +125,7 @@ impl GemFormattedNumber {
         }
     }
 
-    pub fn with_places(self, places: u32) -> Self {
+    pub fn with_places(self, places: usize) -> Self {
         Self {
             display: GemNumberDisplay::Number {
                 precision: GemPrecision::Fraction { min: places, max: places },
@@ -206,7 +206,7 @@ impl GemFormattedNumber {
         Self::currency(value, currency, GemCurrencyStyle::Currency).with_places(0)
     }
 
-    pub fn plain(value: f64, places: u32) -> Self {
+    pub fn plain(value: f64, places: usize) -> Self {
         Self {
             value,
             notation: GemNumberNotation::Plain,

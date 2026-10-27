@@ -16,7 +16,7 @@ pub enum GemRefreshKind {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
 pub struct GemReconnection {
-    pub next_attempt: u32,
+    pub next_attempt: usize,
     pub delay: Duration,
 }
 
@@ -30,7 +30,7 @@ impl GemConnectionService {
         Self {}
     }
 
-    pub fn reconnection(&self, attempt: u32, connected: Duration) -> GemReconnection {
+    pub fn reconnection(&self, attempt: usize, connected: Duration) -> GemReconnection {
         rules::reconnection(attempt, connected)
     }
 

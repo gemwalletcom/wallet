@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import uniffi.gemstone.GemAssetDestination
 import uniffi.gemstone.GemNavigationServiceInterface
 import uniffi.gemstone.GemNavigationTab
 import uniffi.gemstone.GemNavigationTarget
@@ -46,7 +47,7 @@ class NotificationNavigationTest {
     fun `an asset Core opened becomes its route`() = runBlocking {
         val asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum))
 
-        val routes = navigation(GemNavigationTarget.Asset(asset.toGem(), walletId = null, isPerpetual = false)).prepareNavigation(GemPushNotification.Rewards).routes
+        val routes = navigation(GemNavigationTarget.Asset(GemAssetDestination.Asset(asset.toGem()), walletId = null)).prepareNavigation(GemPushNotification.Rewards).routes
 
         assertEquals(listOf(AssetRoute(asset.id)), routes)
     }
@@ -55,7 +56,7 @@ class NotificationNavigationTest {
     fun `a perpetual opens its market before its position`() = runBlocking {
         val asset = mockAsset(id = mockAssetId(chain = Chain.HyperCore, tokenId = "perpetual::UNI"), type = AssetType.PERPETUAL)
 
-        val routes = navigation(GemNavigationTarget.Asset(asset.toGem(), walletId = null, isPerpetual = true)).prepareNavigation(GemPushNotification.Rewards).routes
+        val routes = navigation(GemNavigationTarget.Asset(GemAssetDestination.Perpetual(asset.toGem()), walletId = null)).prepareNavigation(GemPushNotification.Rewards).routes
 
         assertEquals(listOf(PerpetualsRoute, PerpetualRoute(asset.id)), routes)
     }
@@ -67,7 +68,7 @@ class NotificationNavigationTest {
         val asset = mockAsset(id = assetId)
         val transaction = mockTransaction(assetId = assetId)
 
-        val routes = navigation(GemNavigationTarget.Transaction(asset.toGem(), walletId.id, transaction.id.toIdentifier(), isPerpetual = false))
+        val routes = navigation(GemNavigationTarget.Transaction(GemAssetDestination.Asset(asset.toGem()), walletId.id, transaction.id.toIdentifier()))
             .prepareNavigation(
                 GemPushNotification.Transaction(walletId = walletId.id, assetId = assetId.toIdentifier(), transactionId = transaction.id.toIdentifier()),
             ).routes

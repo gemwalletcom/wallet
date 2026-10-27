@@ -47,6 +47,8 @@ fun AssetScreen(onAction: (AssetAction.Navigation) -> Unit) {
                 when (action) {
                     AssetAction.Refresh -> viewModel.refresh()
 
+                    AssetAction.TransactionsEndReached -> viewModel.onTransactionsEndReached()
+
                     AssetAction.Pin -> viewModel.pin()
 
                     AssetAction.Add -> viewModel.add()

@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemListWindow
 import enum Gemstone.GemTransactionFilter
 import struct Gemstone.GemTransactionRow
 import struct Gemstone.GemTransactionsFilterSession
@@ -17,6 +18,7 @@ import Store
 @MainActor
 public final class TransactionsFilterSceneViewModel {
     private var session: GemTransactionsFilterSession
+    private var window: GemListWindow = .transactions
     public private(set) var viewState: GemTransactionsFilterView
 
     public let query: ObservableQuery<MappedQuery<TransactionsQuery, [ListSection<GemTransactionRow>]>>
@@ -34,7 +36,7 @@ public final class TransactionsFilterSceneViewModel {
             walletId: wallet.id,
             type: type,
             filter: viewState.filter.toPrimitives(),
-            limit: GemConstants.transactionsListLimit,
+            limit: GemListWindow.transactions.limit,
         )
         query = ObservableQuery(MappedQuery(request, transform: transactionListSections), initialValue: [])
     }
@@ -51,6 +53,11 @@ public final class TransactionsFilterSceneViewModel {
 
     public func onClear() {
         update(session.onClear())
+    }
+
+    public func onEndReached() {
+        window = window.onEndReached(rowCount: query.value.rowCount())
+        query.setLimit(window.limit)
     }
 
     public var isAnyFilterSpecified: Bool {

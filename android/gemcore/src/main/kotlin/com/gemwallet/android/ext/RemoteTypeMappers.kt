@@ -2077,6 +2077,7 @@ fun uniffi.gemstone.TransactionsFilter.toPrimitives(): com.wallet.core.primitive
     transactionTypes = transactionTypes.map { it.toPrimitives() },
     states = states.map { it.toPrimitives() },
     assetRankGreaterThan = assetRankGreaterThan,
+    createdFrom = createdFrom,
 )
 
 fun com.wallet.core.primitives.TransactionsFilter.toGem(): uniffi.gemstone.TransactionsFilter = uniffi.gemstone.TransactionsFilter(
@@ -2085,6 +2086,7 @@ fun com.wallet.core.primitives.TransactionsFilter.toGem(): uniffi.gemstone.Trans
     transactionTypes = transactionTypes.map { it.toGem() },
     states = states.map { it.toGem() },
     assetRankGreaterThan = assetRankGreaterThan,
+    createdFrom = createdFrom,
 )
 
 fun uniffi.gemstone.Wallet.toPrimitives(): com.wallet.core.primitives.Wallet = com.wallet.core.primitives.Wallet(

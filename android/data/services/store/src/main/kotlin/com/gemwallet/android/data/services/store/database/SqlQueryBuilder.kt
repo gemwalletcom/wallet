@@ -15,6 +15,8 @@ data class SqlClause(val sql: String, val args: List<Any> = emptyList()) {
 
         fun greaterThan(column: String, value: Any): SqlClause = SqlClause("$column > ?", listOf(value))
 
+        fun atLeast(column: String, value: Any): SqlClause = SqlClause("$column >= ?", listOf(value))
+
         fun inList(column: String, values: Collection<Any>): SqlClause {
             if (values.isEmpty()) return EMPTY
             val placeholders = values.joinToString(",") { "?" }

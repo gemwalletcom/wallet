@@ -55,6 +55,7 @@ fun ContactEditorScreen(onSaved: () -> Unit, onCancel: () -> Unit, viewModel: Co
                     onAction = { action ->
                         when (action) {
                             ContactAddressEditorAction.SelectChain -> viewModel.selectChain()
+                            ContactAddressEditorAction.ValidateAddress -> viewModel.validateAddress()
                             ContactAddressEditorAction.Confirm -> viewModel.confirmAddress()
                             ContactAddressEditorAction.Cancel -> viewModel.cancelAddress()
                         }

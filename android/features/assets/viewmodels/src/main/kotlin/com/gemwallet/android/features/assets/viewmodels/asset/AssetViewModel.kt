@@ -15,12 +15,12 @@ import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.data.services.store.queries.BannersQuery
 import com.gemwallet.android.data.services.store.queries.ChainAssetQuery
 import com.gemwallet.android.data.services.store.queries.PriceAlertsQuery
-import com.gemwallet.android.ext.GemConstants
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.ext.transactions
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.assetAddedToast
@@ -62,6 +62,7 @@ import uniffi.gemstone.GemAssetDetailsInput
 import uniffi.gemstone.GemAssetDetailsServiceInterface
 import uniffi.gemstone.GemBannerKey
 import uniffi.gemstone.GemListPhase
+import uniffi.gemstone.GemListWindow
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemPriceAlertToggle
 import uniffi.gemstone.GemRefreshKind
@@ -105,10 +106,13 @@ class AssetViewModel @Inject constructor(
 
     private val transactionsFilter = TransactionsFilter(assetId = assetId, chains = emptyList(), transactionTypes = emptyList(), states = emptyList())
 
-    val transactions = getTransactions.getTransactions(transactionsFilter, GemConstants.transactionsListLimit)
+    private val transactionsWindow = MutableStateFlow(GemListWindow.transactions)
+
+    val transactions = transactionsWindow.map { it.limit }
+        .flatMapLatest { limit -> getTransactions.getTransactions(transactionsFilter, limit) }
         .map { it.toImmutableList() }
         .flowOn(ioDispatcher)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, getTransactions.stored(transactionsFilter, GemConstants.transactionsListLimit).toImmutableList())
+        .stateIn(viewModelScope, SharingStarted.Eagerly, getTransactions.stored(transactionsFilter, transactionsWindow.value.limit).toImmutableList())
 
     private val transactionsState = MutableStateFlow<GemLoadState>(GemLoadState.Loading)
 
@@ -224,6 +228,10 @@ class AssetViewModel @Inject constructor(
     }
 
     fun clearError() = errorState.update { null }
+
+    fun onTransactionsEndReached() {
+        transactionsWindow.update { it.onEndReached(transactions.value.size) }
+    }
 
     private companion object {
         const val TAG = "AssetDetails"

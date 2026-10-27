@@ -314,7 +314,7 @@ struct SwapSceneViewModelTests {
         #expect(model.viewState.isTransferLoading == false)
         #expect(model.viewState.buttonAction == .swap)
         #expect(model.quoteError == nil)
-        #expect(model.quoteDataErrorAlert?.message == Localized.Errors.Swap.noQuoteAvailable)
+        #expect(model.quoteDataErrorAlert?.message == "offline")
         model.quoteDataErrorAlert = nil
         #expect(model.quoteDataErrorAlert == nil)
         #expect(model.viewState.buttonAction == .swap)

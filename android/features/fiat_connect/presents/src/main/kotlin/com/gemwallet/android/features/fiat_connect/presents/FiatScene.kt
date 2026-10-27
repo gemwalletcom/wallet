@@ -115,13 +115,14 @@ fun FiatScene(
     ) {
         Spacer16()
         AmountField(
+            modifier = Modifier.testTag("amountInputField"),
             amount = fiatAmount,
             symbol = viewState.amountField.amountSymbol(),
             equivalent = selectedProvider?.let { it.cryptoEstimateText(it.cryptoAmount.text()) } ?: " ",
             error = viewState.amountError?.string(LocalContext.current).orEmpty(),
             onValueChange = onAmount,
             keyboardType = viewState.amountField.keyboard.keyboardType(),
-            maximumFractionDigits = 0u,
+            maximumFractionDigits = 0,
             textStyle = MaterialTheme.typography.displayMedium,
             onNext = { },
         )

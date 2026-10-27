@@ -246,7 +246,7 @@ pub struct GemPerpetualChartLine {
     pub kind: GemPerpetualChartLineKind,
     pub price: GemFormattedNumber,
     pub label: GemLocalizedText,
-    pub overlap_level: u32,
+    pub overlap_level: usize,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -281,7 +281,7 @@ pub struct GemCandleChart {
     pub header: GemChartHeader,
     pub date_style: GemChartDateStyle,
     pub base: f64,
-    pub price_decimals: u32,
+    pub price_decimals: usize,
     pub start: DateTime<Utc>,
     pub end: DateTime<Utc>,
     pub body_width: f64,
@@ -295,24 +295,24 @@ pub struct GemCandleMarker {
     pub date: DateTime<Utc>,
     pub price: f64,
     pub direction: PerpetualDirection,
-    pub level: u32,
+    pub level: usize,
 }
 
 #[uniffi::export]
 impl GemCandleChart {
-    pub fn selection(&self, index: u32) -> Option<GemChartSelection> {
-        let candle = self.candles.get(index as usize)?;
+    pub fn selection(&self, index: usize) -> Option<GemChartSelection> {
+        let candle = self.candles.get(index)?;
         Some(GemChartSelection {
             header: candlestick_header(self.base, candle.close, self.price_decimals),
             date: candle.date,
         })
     }
 
-    pub fn tooltip(&self, index: u32) -> Option<GemCandleTooltip> {
-        self.candles.get(index as usize).map(|candle| rules::candle_tooltip(candle, self.price_decimals))
+    pub fn tooltip(&self, index: usize) -> Option<GemCandleTooltip> {
+        self.candles.get(index).map(|candle| rules::candle_tooltip(candle, self.price_decimals))
     }
 
-    pub fn index_at(&self, fraction: f64) -> Option<u32> {
+    pub fn index_at(&self, fraction: f64) -> Option<usize> {
         chart_rules::nearest_index(self.candles.iter().map(|candle| candle.date), self.start..=self.end, fraction)
     }
 }
@@ -498,7 +498,7 @@ pub struct GemPerpetualMarketSession {
 #[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
 pub struct GemPerpetualMarketQuery {
     pub search: String,
-    pub limit: u32,
+    pub limit: usize,
     pub requires_volume: bool,
 }
 

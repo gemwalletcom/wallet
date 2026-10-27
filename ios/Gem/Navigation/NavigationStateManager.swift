@@ -1,9 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import enum Gemstone.GemNavigationTarget
-import GemstonePrimitives
-import Primitives
 import SwiftUI
 
 @Observable
@@ -63,15 +60,10 @@ extension NavigationStateManager {
         pendingWalletPath = []
     }
 
-    func openAsset(target: GemNavigationTarget) {
-        guard case let .asset(asset, _, isPerpetual) = target else { return }
-        wallet.append(Self.assetScene(asset.toPrimitives(), isPerpetual: isPerpetual))
+    func appendWallet(_ scene: any Hashable & Codable) {
+        wallet.append(scene)
         selectedTab = .wallet
         previousSelectedTab = .wallet
-    }
-
-    static func assetScene(_ asset: Asset, isPerpetual: Bool) -> any Hashable & Codable {
-        isPerpetual ? Scenes.Perpetual(asset) : Scenes.Asset(asset: asset)
     }
 
     func openWallet(path: [any Hashable & Codable]) {

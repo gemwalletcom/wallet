@@ -417,12 +417,12 @@ const DIGIT_ZEROS: [u32; 76] = [
 ];
 const ARABIC_GROUPING: char = '\u{066C}';
 
-pub fn sanitize_number_input(decimal_separator: &str, text: &str, maximum_fraction_digits: Option<u32>, maximum_integer_digits: Option<u32>) -> String {
+pub fn sanitize_number_input(decimal_separator: &str, text: &str, maximum_fraction_digits: Option<usize>, maximum_integer_digits: Option<usize>) -> String {
     let is_separator = |character: &char| SEPARATORS.contains(character) || decimal_separator.contains(*character);
     let allows_fraction = maximum_fraction_digits != Some(0);
     let typed: String = text.chars().filter(|character| character.is_numeric() || allows_fraction && is_separator(character)).collect();
-    let limit = |value: &str, maximum: Option<u32>| match maximum {
-        Some(maximum) => value.chars().take(maximum as usize).collect::<String>(),
+    let limit = |value: &str, maximum: Option<usize>| match maximum {
+        Some(maximum) => value.chars().take(maximum).collect::<String>(),
         None => value.to_string(),
     };
     match typed.chars().position(|character| is_separator(&character)) {

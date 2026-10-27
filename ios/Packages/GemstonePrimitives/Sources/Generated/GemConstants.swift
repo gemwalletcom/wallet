@@ -20,6 +20,8 @@ public enum GemConstants {
     public static let scanTimeout: Duration = .seconds(3)
     public static let serviceStatusTimeout: Duration = .seconds(30)
     public static let transactionsListLimit: Int = 1000
+    public static let listPageSize: Int = 50
+    public static let listPrefetchRows: Int = 10
     public static let assetResultsLimit: Int = 100
     public static let recentAssetsLimit: Int = 10
     public static let supportAttachmentMaxDimension: Int = 2048

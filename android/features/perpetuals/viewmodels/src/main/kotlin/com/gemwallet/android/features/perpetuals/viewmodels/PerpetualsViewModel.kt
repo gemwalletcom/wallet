@@ -113,7 +113,7 @@ class PerpetualsViewModel @Inject constructor(
     }
     val isRefreshing = MutableStateFlow(false)
     private val perpetualSections = query
-        .flatMapLatest { search -> perpetualMarketQuery(search.orEmpty()).let { perpetualsQuery(it.search, it.limit.toInt(), it.requiresVolume) } }
+        .flatMapLatest { search -> perpetualMarketQuery(search.orEmpty()).let { perpetualsQuery(it.search, it.limit, it.requiresVolume) } }
         .map { markets -> perpetualMarketSections(markets.map { it.toGem() }) }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, GemPerpetualMarketSections(emptyList(), emptyList()))

@@ -38,6 +38,7 @@ public struct CurrencyInputView: View {
                     currencyPosition: config.currencyPosition,
                     keyboardType: config.keyboardType,
                 )
+                .accessibilityIdentifier("amountInputField")
                 .onChange(of: text) { _, newValue in
                     text = config.sanitize(newValue)
                 }
@@ -70,6 +71,7 @@ public struct CurrencyInputView: View {
         }
         .buttonStyle(.plain)
         .disabled(config.actionStyle == nil)
+        .accessibilityIdentifier("amount_equivalent")
     }
 
     @ViewBuilder

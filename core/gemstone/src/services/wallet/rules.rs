@@ -14,7 +14,7 @@ use crate::services::localization::GemLocalizedText;
 use crate::services::onboarding::GemSecurityReminderItem;
 
 const WALLET_ADDRESS_STYLE: GemAddressFormatStyle = GemAddressFormatStyle::Extra { extra: 1 };
-const SECRET_PHRASE_COLUMNS: u32 = 2;
+const SECRET_PHRASE_COLUMNS: usize = 2;
 use crate::address::validate_address;
 use crate::keystore::GemKeystoreAccount;
 use crate::signer::decode_private_key;
@@ -135,14 +135,14 @@ fn secret_kind(wallet: &Wallet) -> Option<GemWalletSecretKind> {
     }
 }
 
-pub fn secret_phrase_rows(word_count: u32) -> Vec<GemSecretPhraseRow> {
+pub fn secret_phrase_rows(word_count: usize) -> Vec<GemSecretPhraseRow> {
     let per_column = word_count / SECRET_PHRASE_COLUMNS;
     let pairs = (0..per_column).map(|row| GemSecretPhraseRow::Pair { left: row, right: row + per_column });
     let odd_last = (word_count % SECRET_PHRASE_COLUMNS == 1).then(|| GemSecretPhraseRow::Single { index: word_count - 1 });
     pairs.chain(odd_last).collect()
 }
 
-pub fn secret_screen(kind: GemWalletSecretKind, word_count: u32, is_new: bool) -> GemSecretScreen {
+pub fn secret_screen(kind: GemWalletSecretKind, word_count: usize, is_new: bool) -> GemSecretScreen {
     GemSecretScreen {
         title: match is_new {
             true => GemLocalizedText::NewWallet,

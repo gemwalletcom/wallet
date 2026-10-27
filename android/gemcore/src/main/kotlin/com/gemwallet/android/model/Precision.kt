@@ -7,14 +7,14 @@ import java.math.RoundingMode
 import java.text.DecimalFormat
 
 internal fun BigDecimal.rounded(precision: GemPrecision, roundingMode: RoundingMode): BigDecimal = when (precision) {
-    is GemPrecision.Fraction -> setScale(precision.max.toInt(), roundingMode)
-    is GemPrecision.Significant -> round(MathContext(precision.max.toInt(), roundingMode)).stripTrailingZeros()
+    is GemPrecision.Fraction -> setScale(precision.max, roundingMode)
+    is GemPrecision.Significant -> round(MathContext(precision.max, roundingMode)).stripTrailingZeros()
 }
 
 internal fun DecimalFormat.format(value: BigDecimal, precision: GemPrecision): String = when (precision) {
     is GemPrecision.Fraction -> apply {
-        minimumFractionDigits = precision.min.toInt()
-        maximumFractionDigits = precision.max.toInt()
+        minimumFractionDigits = precision.min
+        maximumFractionDigits = precision.max
     }.format(value.rounded(precision, roundingMode))
 
     is GemPrecision.Significant -> apply {

@@ -280,6 +280,7 @@ pub enum GemSwapErrorDisplay {
     Offline,
     MinimumAmount { minimum: GemFormattedNumber },
     AmountTooSmall,
+    Message { msg: String },
 }
 
 #[uniffi::export]
@@ -287,7 +288,7 @@ impl GemSwapErrorDisplay {
     pub fn info(&self) -> Option<GemInfoTopic> {
         match self {
             Self::NoQuote => Some(GemInfoTopic::NoQuote),
-            Self::NotSupportedAsset | Self::Offline | Self::MinimumAmount { .. } | Self::AmountTooSmall => None,
+            Self::NotSupportedAsset | Self::Offline | Self::MinimumAmount { .. } | Self::AmountTooSmall | Self::Message { .. } => None,
         }
     }
 }
@@ -296,7 +297,8 @@ impl GemSwapErrorDisplay {
     fn new(error: &SwapperError, pay_asset: Option<&Asset>) -> Self {
         match error {
             SwapperError::NotSupportedChain | SwapperError::NotSupportedAsset => Self::NotSupportedAsset,
-            SwapperError::NoQuoteAvailable | SwapperError::NoAvailableProvider | SwapperError::InvalidRoute | SwapperError::ComputeQuoteError(_) | SwapperError::TransactionError(_) => Self::NoQuote,
+            SwapperError::NoQuoteAvailable | SwapperError::NoAvailableProvider | SwapperError::InvalidRoute | SwapperError::ComputeQuoteError(_) => Self::NoQuote,
+            SwapperError::TransactionError(msg) => Self::Message { msg: msg.clone() },
             SwapperError::Offline => Self::Offline,
             SwapperError::InputAmountError { .. } => match (pay_asset, rules::minimum_amount(Some(error))) {
                 (Some(asset), Some(min_amount)) => Self::MinimumAmount {
@@ -820,13 +822,21 @@ mod tests {
             SwapperError::NoAvailableProvider,
             SwapperError::InvalidRoute,
             SwapperError::ComputeQuoteError("status 500".to_string()),
-            SwapperError::TransactionError("bad transaction".to_string()),
         ] {
             assert_eq!(GemSwapErrorDisplay::new(&error, None), GemSwapErrorDisplay::NoQuote);
         }
         assert_eq!(GemSwapErrorDisplay::new(&SwapperError::NotSupportedChain, None), GemSwapErrorDisplay::NotSupportedAsset);
         assert_eq!(GemSwapErrorDisplay::new(&SwapperError::NotSupportedAsset, None), GemSwapErrorDisplay::NotSupportedAsset);
         assert_eq!(GemSwapErrorDisplay::new(&SwapperError::Offline, None), GemSwapErrorDisplay::Offline);
+    }
+
+    #[test]
+    fn test_transaction_preparation_errors_preserve_the_message() {
+        let msg = "Cetus was upgraded since this app was built; on-chain Cetus quotes are temporarily unavailable.".to_string();
+        let display = swap_error_display(SwapperError::TransactionError(msg.clone()), None);
+
+        assert_eq!(display, GemSwapErrorDisplay::Message { msg });
+        assert_eq!(display.info(), None);
     }
 
     #[test]

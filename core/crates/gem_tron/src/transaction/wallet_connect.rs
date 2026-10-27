@@ -49,10 +49,21 @@ impl WalletConnectTransaction {
     }
 }
 
+#[derive(Debug, Clone, PartialEq)]
+pub struct WalletConnectContract {
+    pub to: String,
+    pub value: u64,
+    pub approval: Option<TransactionApproval>,
+}
+
 pub fn decode_wallet_connect_approval(data: &str) -> Result<Option<TransactionApproval>, SignerError> {
+    Ok(decode_wallet_connect_contract(data)?.and_then(|contract| contract.approval))
+}
+
+pub fn decode_wallet_connect_contract(data: &str) -> Result<Option<WalletConnectContract>, SignerError> {
     let payload: WalletConnectRequest = serde_json::from_str(data)?;
     let (_, raw_data) = payload.transaction.validate()?;
-    raw_data.approval()
+    raw_data.wallet_connect_contract()
 }
 
 #[cfg(test)]
@@ -62,6 +73,7 @@ mod tests {
     use gem_evm::permit2::IAllowanceTransfer;
     use num_bigint::BigUint;
     use primitives::ApprovalData;
+    use serde_json::json;
 
     const PAYLOAD: &str = include_str!("../../../gem_wallet_connect/testdata/tron_send_transaction.json");
     const PERMIT2_PAYLOAD: &str = include_str!("../../testdata/wallet_connect_permit2_approval.json");
@@ -99,6 +111,25 @@ mod tests {
         assert_eq!(decode_wallet_connect_approval(&payload_with_calldata(PAYLOAD, "deadbeef")).unwrap(), None);
         assert!(decode_wallet_connect_approval(&payload_with_calldata(PAYLOAD, "095ea7b3abcd")).is_err());
         assert!(decode_wallet_connect_approval(&payload_with_calldata(PAYLOAD, &format!("095ea7b3{}{}", "ff".repeat(32), "00".repeat(32)))).is_err());
+    }
+
+    #[test]
+    fn test_decode_wallet_connect_contract() {
+        let mut contract_call: Value = serde_json::from_str(&payload_with_calldata(PAYLOAD, "deadbeef")).unwrap();
+        contract_call["transaction"]["raw_data"]["contract"][0]["parameter"]["value"]["call_value"] = json!(27_334_102);
+        assert_eq!(
+            decode_wallet_connect_contract(&encode_payload(contract_call)).unwrap(),
+            Some(WalletConnectContract {
+                to: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t".to_string(),
+                value: 27_334_102,
+                approval: None,
+            })
+        );
+
+        let vote: Value = serde_json::from_str(include_str!("../../testdata/wallet_connect_vote_witness_contract.json")).unwrap();
+        let mut vote_payload: Value = serde_json::from_str(PAYLOAD).unwrap();
+        vote_payload["transaction"]["raw_data"]["contract"] = vote["transaction"]["raw_data"]["contract"].clone();
+        assert_eq!(decode_wallet_connect_contract(&encode_payload(vote_payload)).unwrap(), None);
     }
 
     #[test]

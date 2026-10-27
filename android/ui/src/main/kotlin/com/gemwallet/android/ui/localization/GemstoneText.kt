@@ -1542,6 +1542,7 @@ fun GemSwapErrorDisplay.text(context: Context): String = when (this) {
     is GemSwapErrorDisplay.Offline -> context.getString(R.string.errors_network_offline)
     is GemSwapErrorDisplay.MinimumAmount -> context.getString(R.string.errors_swap_minimum_amount, minimum.text().boldMarkdown())
     is GemSwapErrorDisplay.AmountTooSmall -> context.getString(R.string.errors_swap_amount_too_small)
+    is GemSwapErrorDisplay.Message -> msg
 }
 
 fun GemAmountTitle.text(context: Context): String = when (this) {

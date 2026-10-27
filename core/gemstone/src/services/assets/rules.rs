@@ -538,12 +538,12 @@ pub fn wallet_search_view(input: GemWalletSearchInput, shows_recents: bool, show
     let nfts = nft_rules::entries(nft_rules::search_collections(input.collections, &input.query));
     let counts = WalletSearchCounts {
         recents: if shows_recents { input.recents } else { 0 },
-        pinned_assets: assets.pinned.len() as u32,
-        assets: assets.assets.len() as u32,
-        pinned_perpetuals: perpetuals.pinned.len() as u32,
-        perpetuals: perpetuals.markets.len() as u32,
-        lists: lists.len() as u32,
-        nfts: nfts.len() as u32,
+        pinned_assets: assets.pinned.len(),
+        assets: assets.assets.len(),
+        pinned_perpetuals: perpetuals.pinned.len(),
+        perpetuals: perpetuals.markets.len(),
+        lists: lists.len(),
+        nfts: nfts.len(),
     };
     let assets_limit = assets_preview_limit(&input.query);
     GemWalletSearchView {
@@ -564,13 +564,13 @@ pub fn wallet_search_view(input: GemWalletSearchInput, shows_recents: bool, show
 pub fn wallet_search_results_view(input: GemWalletSearchResultsInput, shows_perpetuals: bool) -> GemWalletSearchResultsView {
     let assets = asset_sections(input.asset_ids, input.pinned_asset_ids, false, Vec::new());
     let perpetuals = match shows_perpetuals && input.scope.includes_perpetuals() {
-        true => preview(perpetual_market_items(input.perpetuals), ASSET_RESULTS_LIMIT as u32),
+        true => preview(perpetual_market_items(input.perpetuals), ASSET_RESULTS_LIMIT),
         false => Vec::new(),
     };
     let counts = WalletSearchCounts {
-        pinned_assets: assets.pinned.len() as u32,
-        assets: assets.assets.len() as u32,
-        perpetuals: perpetuals.len() as u32,
+        pinned_assets: assets.pinned.len(),
+        assets: assets.assets.len(),
+        perpetuals: perpetuals.len(),
         ..Default::default()
     };
     GemWalletSearchResultsView {
@@ -581,8 +581,8 @@ pub fn wallet_search_results_view(input: GemWalletSearchResultsInput, shows_perp
     }
 }
 
-fn preview<T>(items: Vec<T>, limit: u32) -> Vec<T> {
-    items.into_iter().take(limit as usize).collect()
+fn preview<T>(items: Vec<T>, limit: usize) -> Vec<T> {
+    items.into_iter().take(limit).collect()
 }
 
 pub fn search_assets_empty_state(shows_add_token: bool) -> GemEmptyState {
@@ -592,11 +592,11 @@ pub fn search_assets_empty_state(shows_add_token: bool) -> GemEmptyState {
 pub fn wallet_search_limits(query: &str) -> GemWalletSearchLimits {
     GemWalletSearchLimits {
         fetch: assets_preview_limit(query) + 1,
-        results: ASSET_RESULTS_LIMIT as u32,
+        results: ASSET_RESULTS_LIMIT,
     }
 }
 
-fn assets_preview_limit(query: &str) -> u32 {
+fn assets_preview_limit(query: &str) -> usize {
     match query.trim().is_empty() {
         true => ASSETS_INITIAL_LIMIT,
         false => ASSETS_SEARCH_LIMIT,
@@ -1425,7 +1425,7 @@ mod tests {
         };
 
         for query in ["", "usd"] {
-            let fetch = wallet_search_limits(query).fetch as usize;
+            let fetch = wallet_search_limits(query).fetch;
             assert!(view(query, fetch, 0).has_more_assets, "a full window offers more");
             assert!(view(query, fetch, 1).has_more_assets, "a pinned row shares the window, so a full window still offers more");
             assert!(view(query, fetch, fetch).has_more_assets, "a window full of pinned rows can hide the rest");

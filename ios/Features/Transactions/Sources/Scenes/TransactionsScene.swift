@@ -26,7 +26,7 @@ public struct TransactionsScene: View {
                         ListItemErrorView(errorTitle: Localized.Errors.errorOccurred, error: error)
                     }
                 }
-                TransactionsList(sections: model.sections)
+                TransactionsList(sections: model.sections, onEndReached: model.filterModel.onEndReached)
                     .listRowInsets(.assetListRowInsets)
             }
             .listSectionSpacing(.compact)

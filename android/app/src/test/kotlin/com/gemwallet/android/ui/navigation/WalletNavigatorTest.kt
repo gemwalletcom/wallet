@@ -33,6 +33,7 @@ import com.gemwallet.android.ui.navigation.routes.ConfirmTransferRoute
 import com.gemwallet.android.ui.navigation.routes.DelegationRoute
 import com.gemwallet.android.ui.navigation.routes.ExportWalletRoute
 import com.gemwallet.android.ui.navigation.routes.PerpetualDepositSelectRoute
+import com.gemwallet.android.ui.navigation.routes.PerpetualRoute
 import com.gemwallet.android.ui.navigation.routes.PerpetualsRoute
 import com.gemwallet.android.ui.navigation.routes.ReceiveRoute
 import com.gemwallet.android.ui.navigation.routes.RecipientRoute
@@ -74,6 +75,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemAssetDestination
 import uniffi.gemstone.GemDeeplinkService
 import uniffi.gemstone.GemNavigationServiceInterface
 import uniffi.gemstone.GemNavigationTab
@@ -155,7 +157,7 @@ class WalletNavigatorTest {
             }
             coEvery { openAsset(opened.toIdentifier()) } answers {
                 callingThreads += Thread.currentThread().name
-                GemNavigationTarget.Asset(mockAsset(id = mockAssetId(chain = Chain.Tron)).toGem(), walletId = null, isPerpetual = false)
+                GemNavigationTarget.Asset(GemAssetDestination.Asset(mockAsset(id = mockAssetId(chain = Chain.Tron)).toGem()), walletId = null)
             }
         }
         val navigator = navigatorWith(WalletRootRoute, navigationService = navigationService, scope = this)
@@ -169,6 +171,43 @@ class WalletNavigatorTest {
                 "calling it on the navigator scope lands on main. Got $callingThreads",
             callingThreads.size == 2 && callingThreads.all { it.startsWith("DefaultDispatcher-worker") },
         )
+    }
+
+    @Test
+    fun openTransactionSwap_opensOnlyTheSwapCoreOffers() = runTest {
+        val from = mockAssetId(Chain.Ethereum)
+        val to = mockAssetId(Chain.Arbitrum)
+        val navigationService = mockk<GemNavigationServiceInterface> {
+            coEvery { openSwap(from.toIdentifier(), to.toIdentifier()) } returnsMany listOf(
+                GemNavigationTarget.None,
+                GemNavigationTarget.Swap(mockAsset(id = from).toGem(), to = null),
+            )
+        }
+        val navigator = navigatorWith(WalletRootRoute, navigationService = navigationService, scope = this)
+
+        navigator.openTransactionSwap(from, to).join()
+        assertEquals(listOf(WalletRootRoute), navigator.backStack.toList())
+
+        navigator.openTransactionSwap(from, to).join()
+        assertEquals(listOf(WalletRootRoute, SwapPairRoute(from, null)), navigator.backStack.toList())
+    }
+
+    @Test
+    fun openTransactionPerpetual_opensOnlyWhereCoreShowsPerpetuals() = runTest {
+        val assetId = mockAssetId(Chain.HyperCore)
+        val navigationService = mockk<GemNavigationServiceInterface> {
+            coEvery { openAsset(assetId.toIdentifier()) } returnsMany listOf(
+                GemNavigationTarget.None,
+                GemNavigationTarget.Asset(GemAssetDestination.Perpetual(mockAsset(id = assetId).toGem()), walletId = null),
+            )
+        }
+        val navigator = navigatorWith(WalletRootRoute, navigationService = navigationService, scope = this)
+
+        navigator.openTransactionPerpetual(assetId).join()
+        assertEquals(listOf(WalletRootRoute), navigator.backStack.toList())
+
+        navigator.openTransactionPerpetual(assetId).join()
+        assertEquals(listOf(WalletRootRoute, PerpetualRoute(assetId)), navigator.backStack.toList())
     }
 
     @Test

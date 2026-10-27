@@ -27,7 +27,7 @@ pub struct MemorySwapStore {
     pub asset_ids: Mutex<Vec<AssetId>>,
     pub recent_requests: Mutex<Vec<(Vec<RecentActivityType>, Vec<GemAssetFilter>)>>,
     pub asset_requests: Mutex<Vec<Vec<GemAssetFilter>>>,
-    pub limits: Mutex<Vec<u32>>,
+    pub limits: Mutex<Vec<usize>>,
 }
 
 #[async_trait::async_trait]
@@ -36,13 +36,13 @@ impl GemSwapStore for MemorySwapStore {
         Ok(self.pairs.lock().unwrap().clone())
     }
 
-    async fn get_recent_asset_ids(&self, _wallet_id: WalletId, types: Vec<RecentActivityType>, filters: Vec<GemAssetFilter>, limit: u32) -> Result<Vec<AssetId>, GemServiceError> {
+    async fn get_recent_asset_ids(&self, _wallet_id: WalletId, types: Vec<RecentActivityType>, filters: Vec<GemAssetFilter>, limit: usize) -> Result<Vec<AssetId>, GemServiceError> {
         self.limits.lock().unwrap().push(limit);
         self.recent_requests.lock().unwrap().push((types, filters));
         Ok(self.recent_asset_ids.lock().unwrap().clone())
     }
 
-    async fn get_asset_ids(&self, _wallet_id: WalletId, filters: Vec<GemAssetFilter>, limit: u32) -> Result<Vec<AssetId>, GemServiceError> {
+    async fn get_asset_ids(&self, _wallet_id: WalletId, filters: Vec<GemAssetFilter>, limit: usize) -> Result<Vec<AssetId>, GemServiceError> {
         self.limits.lock().unwrap().push(limit);
         self.asset_requests.lock().unwrap().push(filters);
         Ok(self.asset_ids.lock().unwrap().clone())

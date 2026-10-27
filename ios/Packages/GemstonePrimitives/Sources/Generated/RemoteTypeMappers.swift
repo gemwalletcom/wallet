@@ -3073,6 +3073,7 @@ public extension Gemstone.TransactionsFilter {
             transactionTypes: transactionTypes.map { $0.toPrimitives() },
             states: states.map { $0.toPrimitives() },
             assetRankGreaterThan: assetRankGreaterThan,
+            createdFrom: createdFrom,
         )
     }
 }
@@ -3085,6 +3086,7 @@ public extension Primitives.TransactionsFilter {
             transactionTypes: transactionTypes.map { $0.toGem() },
             states: states.map { $0.toGem() },
             assetRankGreaterThan: assetRankGreaterThan,
+            createdFrom: createdFrom,
         )
     }
 }

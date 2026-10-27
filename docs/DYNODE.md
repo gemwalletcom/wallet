@@ -70,7 +70,7 @@ Swaps rely on Dynode only for lookups that do not price a quote, what a pool is 
 
 | Chain | Request | TTL |
 |---|---|---|
-| Ethereum and EVM networks | `eth_call` `getPool` to the Uniswap v3, PancakeSwap, Aerodrome, Oku and Wagmi factories | `1d` |
+| Ethereum and EVM networks | `eth_call` `getPool` to the Uniswap v3, PancakeSwap, Aerodrome, Aero, Oku and Wagmi factories | `1d` |
 | Ethereum and EVM networks | `eth_call` `getSlot0` to the Uniswap v4 StateView; the wallet reads it only to learn whether a pool exists, never for its price | `1d` |
 | Sui | `SimulateTransaction` calling Cetus `factory::new_pool_key`, `factory::pool_simple_info` or `factory::pool_id` | `1d` |
 | Solana | `getProgramAccounts` of the Meteora DAMM v2 and DLMM, Raydium CPMM and Raydium AMM v4 programs, the pools that hold a pair | `1d` |

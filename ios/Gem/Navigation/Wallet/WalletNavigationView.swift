@@ -103,12 +103,7 @@ struct WalletNavigationView: View {
                 onHeaderAction: { action in
                     Task {
                         do {
-                            try await presenter.openTransactionHeaderAction(
-                                action,
-                                wallet: model.wallet,
-                                navigationState: navigationState,
-                                nftDestination: navigationState.wallet,
-                            )
+                            try await navigationRouter.openTransactionAction(action, collectiblePath: navigationState.wallet)
                         } catch {
                             model.isPresentingToastMessage = .error(Localized.Errors.errorOccurred)
                         }

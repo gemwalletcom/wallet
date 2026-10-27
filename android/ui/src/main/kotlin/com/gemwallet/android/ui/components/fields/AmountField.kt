@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -63,7 +64,7 @@ fun ColumnScope.AmountField(
     onInputTypeClick: (() -> Unit)? = null,
     readOnly: Boolean = false,
     keyboardType: KeyboardType = KeyboardType.Decimal,
-    maximumFractionDigits: UInt? = null,
+    maximumFractionDigits: Int? = null,
     error: String,
     errorInfo: (() -> Unit)? = null,
     textStyle: TextStyle = MaterialTheme.typography.displaySmall,
@@ -111,6 +112,7 @@ fun ColumnScope.AmountField(
             horizontalArrangement = Arrangement.spacedBy(paddingSmall),
         ) {
             Text(
+                modifier = Modifier.testTag("amount_equivalent"),
                 text = equivalent,
                 color = MaterialTheme.colorScheme.secondary,
             )

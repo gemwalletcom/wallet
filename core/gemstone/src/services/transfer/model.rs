@@ -81,8 +81,8 @@ pub(crate) struct GemPendingTransactionInput {
     pub(crate) network_fee: GemBigInt,
     pub(crate) metadata: GemTransactionLoadMetadata,
     pub(crate) simulation: Option<SimulationResult>,
-    pub(crate) transaction_index: u32,
-    pub(crate) transaction_count: u32,
+    pub(crate) transaction_index: usize,
+    pub(crate) transaction_count: usize,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]

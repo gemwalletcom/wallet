@@ -3,6 +3,7 @@ package com.gemwallet.android.features.assets.presents.asset
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -24,6 +25,7 @@ import com.gemwallet.android.features.assets.viewmodels.asset.models.AssetAction
 import com.gemwallet.android.features.assets.viewmodels.asset.models.detailsAction
 import com.gemwallet.android.features.assets.viewmodels.asset.models.navigation
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.LoadOnListEnd
 import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
@@ -88,8 +90,11 @@ internal fun AssetScene(
             isRefreshing = isRefreshing,
             onRefresh = { onAction(AssetAction.Refresh) },
         ) {
+            val listState = rememberLazyListState()
+            LoadOnListEnd(listState) { onAction(AssetAction.TransactionsEndReached) }
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
+                state = listState,
             ) {
                 item {
                     AssetHeadItem(header = details.header, onAction = onAction)

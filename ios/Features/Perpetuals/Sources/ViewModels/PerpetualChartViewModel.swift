@@ -8,10 +8,13 @@ import struct Gemstone.GemCandleSession
 import protocol Gemstone.GemPerpetualDetailsServiceProtocol
 import enum Gemstone.GemPerpetualSubscription
 import struct Gemstone.GemTransactionRow
+import struct Gemstone.GemTransactionsRequest
 import struct Gemstone.PerpetualPosition
 import GemstonePrimitives
 import GemstoneServices
 import Primitives
+import PrimitivesComponents
+import Store
 import SwiftUI
 
 @Observable
@@ -19,9 +22,14 @@ import SwiftUI
 public final class PerpetualChartViewModel {
     private let service: any GemPerpetualDetailsServiceProtocol
     private let observerService: any PerpetualObservable
+    private let walletId: WalletId
     private let asset: Asset
 
-    private var session: GemCandleSession
+    private var session: GemCandleSession {
+        didSet { markersQuery.setRequestInBackground(Self.markersRequest(walletId: walletId, session.markersRequest(assetId: asset.id))) }
+    }
+
+    public let markersQuery: ObservableQuery<MappedQuery<TransactionsQuery, [GemTransactionRow]>>
 
     public var isPinching = false
 
@@ -30,15 +38,18 @@ public final class PerpetualChartViewModel {
         set { session = session.onSelectPeriod(period: newValue.toGem()) }
     }
 
-    public init(service: any GemPerpetualDetailsServiceProtocol, observerService: any PerpetualObservable, asset: Asset) {
+    public init(service: any GemPerpetualDetailsServiceProtocol, observerService: any PerpetualObservable, walletId: WalletId, asset: Asset) {
         self.service = service
         self.observerService = observerService
+        self.walletId = walletId
         self.asset = asset
-        session = candleSession(period: service.chartPeriod())
+        let session = candleSession(period: service.chartPeriod())
+        self.session = session
+        markersQuery = ObservableQuery(Self.markersRequest(walletId: walletId, session.markersRequest(assetId: asset.id)), initialValue: [])
     }
 
-    public func state(position: PerpetualPosition?, transactions: [GemTransactionRow]) -> StateViewType<GemCandleChart> {
-        session.viewState().state.stateViewType(session.chart(asset: asset.toGem(), position: position, transactions: transactions, utcOffsetSeconds: Int32(TimeZone.current.secondsFromGMT())))
+    public func state(position: PerpetualPosition?) -> StateViewType<GemCandleChart> {
+        session.viewState().state.stateViewType(session.chart(asset: asset.toGem(), position: position, transactions: markersQuery.value, utcOffsetSeconds: Int32(TimeZone.current.secondsFromGMT())))
     }
 }
 
@@ -84,6 +95,10 @@ public extension PerpetualChartViewModel {
 // MARK: - Private
 
 private extension PerpetualChartViewModel {
+    static func markersRequest(walletId: WalletId, _ request: GemTransactionsRequest) -> MappedQuery<TransactionsQuery, [GemTransactionRow]> {
+        MappedQuery(TransactionsQuery(walletId: walletId, type: .all, filter: request.filter.toPrimitives(), limit: request.limit), transform: transactionListRows)
+    }
+
     func candleSubscription(perpetual: Perpetual, period: ChartPeriod) -> GemPerpetualSubscription {
         service.candleSubscription(perpetual: perpetual.toGem(), period: period.toGem())
     }

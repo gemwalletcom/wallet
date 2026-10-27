@@ -270,8 +270,8 @@ public actor WebSocketConnection: WebSocketConnectable {
 
         let connectedFor = connectedAt.map { $0.duration(to: .now) } ?? .zero
         connectedAt = nil
-        let reconnection = configuration.reconnection.reconnection(attempt: UInt32(clamping: reconnectAttempt), connectedFor: connectedFor)
-        reconnectAttempt = Int(reconnection.nextAttempt)
+        let reconnection = configuration.reconnection.reconnection(attempt: reconnectAttempt, connectedFor: connectedFor)
+        reconnectAttempt = reconnection.nextAttempt
 
         reconnectTask = Task { [weak self] in
             do {

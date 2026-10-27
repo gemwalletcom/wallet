@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.LoadOnListEnd
 import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.filters.TransactionsFilter
 import com.gemwallet.android.ui.components.list_item.GemListRowView
@@ -97,14 +98,17 @@ internal fun TransactionsScene(
                     }
                 }
 
-                GemListPhase.Rows -> LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    state = listState,
-                ) {
-                    transactionsList(
-                        sections = transactionSections,
-                        onTransactionClick = onTransactionClick,
-                    )
+                GemListPhase.Rows -> {
+                    LoadOnListEnd(listState) { onAction(TransactionsAction.EndReached) }
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        state = listState,
+                    ) {
+                        transactionsList(
+                            sections = transactionSections,
+                            onTransactionClick = onTransactionClick,
+                        )
+                    }
                 }
             }
         }

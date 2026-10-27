@@ -21,7 +21,7 @@ These need no further answer; work them in this order, one family per change.
 
 1. **App models to Core records:** VM269 to VM287 (second round) area by area as grouped in section 5, then VM294 (scenes) in the same way.
 
-Waiting on the owner: BD29 (server), VM79, VM296 (review first), VM181, VM183, D175 (on hold), X171, CLN455, and everything under [Needs review](#needs-review). Waiting on a date or a release: X168, X169, X170, X163, X172, X173, X174, X176, X526.
+Waiting on the owner: VM79, VM296 (review first), VM181, VM183, D175 (on hold), X171, CLN455, and everything under [Needs review](#needs-review). Waiting on a date or a release: X168, X169, X170, X163, X172, X173, X174, X176, X526.
 
 ## Screen coverage and existing infrastructure
 
@@ -162,10 +162,6 @@ Taps on rows that already exist, not new row types.
 ## 9. Behavior differences
 
 Differences between the apps, or between an app and the server, each with its decision.
-
-### Same rule, different answers
-
-- **BD29** **S** **Redemption options with unlimited stock are never listed.** `summary.rs:18` (`remaining.unwrap_or_default() > 0` drops `None`) vs storage `rewards_redemptions_repository.rs:48,96` and Core `rules.rs:146` (`None` = unlimited). Needs a decision: `test_available_redemption_options` pins a `None` stock as hidden, so confirm whether options stored without a stock are meant to be offered before changing the server.
 
 ## 10. Module layout and names
 

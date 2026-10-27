@@ -481,6 +481,7 @@ pub enum GemConfirmSection {
     Header,
     Notice { row: GemListRow },
     Details { rows: Vec<GemConfirmRowContent> },
+    Message { text: String },
     Warnings { rows: Vec<GemListRow> },
     Payload { primary: Vec<GemListRow>, secondary: Vec<GemListRow> },
     BalanceChanges { rows: Vec<GemListRow> },

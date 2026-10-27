@@ -46,7 +46,7 @@ const X_TICK_STEPS: [TimeDelta; 23] = [
 const X_TICK_STEP_MONTHS: [i64; 6] = [1, 2, 3, 6, 12, 24];
 const X_TICK_MONTH: TimeDelta = TimeDelta::days(30);
 
-pub fn candle_chart(candles: &[ChartCandleStick], period: ChartPeriod, price_decimals: u32, position: Option<&PerpetualPosition>, transactions: &[GemTransactionRow], zoom: GemChartZoom, utc_offset: TimeDelta) -> Option<GemCandleChart> {
+pub fn candle_chart(candles: &[ChartCandleStick], period: ChartPeriod, price_decimals: usize, position: Option<&PerpetualPosition>, transactions: &[GemTransactionRow], zoom: GemChartZoom, utc_offset: TimeDelta) -> Option<GemCandleChart> {
     let (first, last) = (candles.first()?, candles.last()?);
     let interval = candles
         .iter()
@@ -98,7 +98,7 @@ fn candle_markers(candles: &[ChartCandleStick], window: RangeInclusive<DateTime<
                 date: candle.date,
                 price: candle.high,
                 direction,
-                level: level as u32,
+                level,
             })
         })
         .collect()

@@ -27,7 +27,7 @@ class GemstoneSwapStoreTest {
         subject.getAssetIds(
             mockWalletId().id,
             listOf(GemAssetFilter.Enabled, GemAssetFilter.Swappable, GemAssetFilter.ChainsOrAssetIds(listOf("ethereum"), listOf("ethereum"))),
-            25u,
+            25,
         )
 
         verify {
@@ -49,7 +49,7 @@ class GemstoneSwapStoreTest {
             mockWalletId().id,
             listOf(RecentActivityType.SWAP_SELECT, RecentActivityType.SWAP),
             listOf(GemAssetFilter.Enabled, GemAssetFilter.Swappable),
-            20u,
+            20,
         )
 
         verify {

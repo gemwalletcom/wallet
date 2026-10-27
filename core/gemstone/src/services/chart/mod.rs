@@ -24,7 +24,7 @@ use session::{GemChartInput, GemChartRequest, GemChartResult, GemChartSession, G
 pub use model::{GemChartBounds, GemChartData, GemChartHeader, GemChartValueType};
 pub use zoom::GemChartZoom;
 
-pub fn candlestick_header(base: f64, value: f64, price_decimals: u32) -> GemChartHeader {
+pub fn candlestick_header(base: f64, value: f64, price_decimals: usize) -> GemChartHeader {
     let header = rules::series_header(GemChartValueType::Price, base, false, &Currency::USD, value, None);
     GemChartHeader {
         value: header.value.with_places(price_decimals),

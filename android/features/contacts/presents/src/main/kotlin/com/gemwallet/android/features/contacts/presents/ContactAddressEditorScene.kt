@@ -53,6 +53,7 @@ fun ContactAddressEditorScene(input: ContactAddressInput, onAddressChange: (Stri
             error = input.addressError,
             onPaste = onPaste,
             onQrScanner = { scanning = true },
+            onSubmit = { onAction(ContactAddressEditorAction.ValidateAddress) },
         )
         if (input.showsMemo) {
             MemoTextField(

@@ -164,6 +164,7 @@ extension ConfirmTransferSceneViewModel {
             case .header: ListSection(type: .header, [.header])
             case .notice: ListSection(type: .notice, [.notice])
             case let .details(rows): ListSection(type: .details, rows.indices.map { rows[$0].item(at: $0) })
+            case let .message(text): ListSection(type: .message, title: Localized.SignMessage.message, [.message(text)])
             case .warnings: ListSection(type: .warnings, [.warnings])
             case .payload: ListSection(type: .payload, [.payload])
             case let .balanceChanges(rows): ListSection(type: .balanceChanges, rows.indices.map(ConfirmTransferItem.balanceChange))
@@ -188,6 +189,8 @@ extension ConfirmTransferSceneViewModel {
             verificationItem
         case .details:
             detailsItemModel
+        case let .message(text):
+            .message(text)
         case .payload:
             .payload(primaryPayloadFields)
         case let .balanceChange(index):

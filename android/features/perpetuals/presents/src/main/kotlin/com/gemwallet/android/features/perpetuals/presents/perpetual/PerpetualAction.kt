@@ -8,6 +8,7 @@ import com.wallet.core.primitives.TransactionId
 internal sealed interface PerpetualAction {
     data object Close : PerpetualAction
     data object Refresh : PerpetualAction
+    data object TransactionsEndReached : PerpetualAction
     data object ModifyPosition : PerpetualAction
     data object IncreasePosition : PerpetualAction
     data object ReducePosition : PerpetualAction

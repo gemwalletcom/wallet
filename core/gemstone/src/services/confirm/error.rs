@@ -235,8 +235,8 @@ impl GemConfirmRequirement {
     }
 }
 
-fn truncated(value: &GemBigInt, decimals: u32, places: u32) -> GemBigInt {
-    let unit = GemBigInt::from(10).pow(decimals.saturating_sub(places));
+fn truncated(value: &GemBigInt, decimals: u32, places: usize) -> GemBigInt {
+    let unit = GemBigInt::from(10).pow(decimals.saturating_sub(places as u32));
     value - value % unit
 }
 

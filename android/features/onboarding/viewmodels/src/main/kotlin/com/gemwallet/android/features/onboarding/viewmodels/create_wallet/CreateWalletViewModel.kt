@@ -62,7 +62,7 @@ class CreateWalletViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val verifiedRows: StateFlow<List<PhraseRow>> = combine(verificationState, state) { verification, current ->
-        val count = verification?.verifiedCount?.toInt() ?: 0
+        val count = verification?.verifiedCount ?: 0
         phraseRows(current.data.mapIndexed { index, word -> if (index < count) word else "" })
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
@@ -71,7 +71,7 @@ class CreateWalletViewModel @Inject constructor(
 
     fun onPickWord(choice: Int): Boolean {
         val current = verification.value ?: return false
-        val next = current.onPick(choice.toUInt())
+        val next = current.onPick(choice)
         verification.value = next
         return next != current
     }

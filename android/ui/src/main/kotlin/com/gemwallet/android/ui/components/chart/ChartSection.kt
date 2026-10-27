@@ -25,7 +25,7 @@ fun ChartSection(state: ChartUIState, onPeriodSelect: (ChartPeriod) -> Unit, onZ
         val dateFormatter = remember(context) { context.rowDateFormatter() }
 
         val chart = state.chart.dataOrNull
-        val selection = remember(chart, selectedIndex) { selectedIndex?.let { chart?.selection(it.toUInt()) } }
+        val selection = remember(chart, selectedIndex) { selectedIndex?.let { chart?.selection(it) } }
         val date = chart?.let { data -> selection?.let { dateFormatter.chartDate(it.date, data.dateStyle, ZoneId.systemDefault(), LocalConfiguration.current.locales[0]) } }
 
         ChartStateView(
@@ -44,7 +44,7 @@ fun ChartSection(state: ChartUIState, onPeriodSelect: (ChartPeriod) -> Unit, onZ
                 bounds = model.bounds,
                 isZoomed = model.isZoomed,
                 lineColor = MaterialTheme.colorScheme.primary,
-                indexAt = { fraction -> model.indexAt(fraction.toDouble())?.toInt() },
+                indexAt = { fraction -> model.indexAt(fraction.toDouble()) },
                 selectedIndex = selectedIndex,
                 onSelectionChanged = { selectedIndex = it },
                 onZoom = onZoom,

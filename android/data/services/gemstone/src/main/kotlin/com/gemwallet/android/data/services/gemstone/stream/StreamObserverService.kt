@@ -48,7 +48,7 @@ class StreamObserverService(
                         .onFailure { Log.e(TAG, "Stream session update error", it) }
                 }
             }
-            var failedAttempts = 0u
+            var failedAttempts = 0
             while (isActive) {
                 var subscribedAt: TimeMark? = null
                 runCatchingCancellable {

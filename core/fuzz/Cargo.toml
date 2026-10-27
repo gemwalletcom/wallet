@@ -21,6 +21,7 @@ gem_encoding = { path = "../crates/gem_encoding", features = ["protobuf"] }
 gem_keystore = { path = "../crates/gem_keystore", features = ["v3"] }
 gem_solana = { path = "../crates/gem_solana" }
 gem_ton = { path = "../crates/gem_ton", features = ["tvm"] }
+gem_tron = { path = "../crates/gem_tron" }
 gem_wallet_connect = { path = "../crates/gem_wallet_connect" }
 gem_zcash = { path = "../crates/gem_zcash", features = ["rpc"] }
 
