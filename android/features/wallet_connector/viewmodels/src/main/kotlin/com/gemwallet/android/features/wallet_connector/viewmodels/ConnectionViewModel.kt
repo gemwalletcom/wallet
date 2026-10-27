@@ -14,7 +14,6 @@ import com.gemwallet.android.ui.models.navigation.requireString
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -55,17 +54,18 @@ class ConnectionViewModel @Inject constructor(
 
     private val errorState = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = errorState.asStateFlow()
+    val isDisconnected = MutableStateFlow(false)
 
-    fun disconnect(onSuccess: () -> Unit) {
+    fun disconnect() {
         details.value?.connection?.connection?.session?.id?.let {
             viewModelScope.launch(ioDispatcher) {
                 disconnectWalletConnection.disconnect(
                     connectionId = it,
-                    onSuccess = { viewModelScope.launch(Dispatchers.Main) { onSuccess() } },
+                    onSuccess = { isDisconnected.value = true },
                     onError = { error -> errorState.value = error.text(context) },
                 )
             }
-        } ?: onSuccess()
+        } ?: run { isDisconnected.value = true }
     }
 
     fun clearError() = errorState.update { null }

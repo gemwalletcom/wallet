@@ -48,6 +48,7 @@ class CurrencyViewModel @Inject constructor(
 
     private val errorState = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = errorState.asStateFlow()
+    val isSelected = MutableStateFlow(false)
 
     val list: StateFlow<GemCurrencyList?> = combine(getCurrentCurrency.getCurrency(), snapshotFlow { query.text.toString() }) { currency, query ->
         val localizedNames = Currency.entries.associate { it.string to android.icu.util.Currency.getInstance(it.string).displayName }
@@ -58,9 +59,9 @@ class CurrencyViewModel @Inject constructor(
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    fun setCurrency(row: GemCurrencyRow, onSelected: () -> Unit) = viewModelScope.launch {
+    fun setCurrency(row: GemCurrencyRow) = viewModelScope.launch {
         runCatchingCancellable { setCurrentCurrency.setCurrentCurrency(row.currency.toPrimitives()) }
-            .onSuccess { onSelected() }
+            .onSuccess { isSelected.value = true }
             .onFailure { errorState.value = it.errorText().text(context) }
     }
 

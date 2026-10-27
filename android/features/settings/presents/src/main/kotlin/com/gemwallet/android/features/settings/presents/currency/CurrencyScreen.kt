@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.settings.presents.currency
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -13,12 +14,20 @@ fun CurrencyScreen(onCancel: () -> Unit, viewModel: CurrencyViewModel = hiltView
     val list by viewModel.list.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     val snackbar = rememberSnackbarState(message = error, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
+    val isSelected by viewModel.isSelected.collectAsStateWithLifecycle()
+
+    LaunchedEffect(isSelected) {
+        if (isSelected) {
+            viewModel.isSelected.value = false
+            onCancel()
+        }
+    }
 
     CurrencyScene(
         list = list,
         query = viewModel.query,
         snackbar = snackbar,
-        onSelect = { viewModel.setCurrency(it, onCancel) },
+        onSelect = viewModel::setCurrency,
         onCancel = onCancel,
     )
 }
