@@ -9,5 +9,6 @@ mod ton;
 mod transaction;
 mod xrp;
 
-pub(crate) use model::{BridgersResponse, SwapData};
+pub use asset::routers;
+pub(crate) use model::DepositResponse;
 pub use provider::Bridgers;

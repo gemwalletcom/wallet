@@ -16,4 +16,4 @@ mod testkit;
 pub(crate) use assets::{get_asset_id_from_near_asset, get_near_asset_id, supported_assets};
 pub(crate) use client::{NearIntentsClient, NearIntentsExplorer};
 pub(crate) use config::{auto_quote_time_chains, deposit_memo_chains};
-pub(crate) use model::{AppFee, DepositData, DepositMode, QuoteRequest, SwapType};
+pub(crate) use model::{AppFee, DepositData, DepositMode, DepositResponse, QuoteRequest, SwapType};

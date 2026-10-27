@@ -60,7 +60,6 @@
   <string name="common_suspicious_address_description">این آدرس با فعالیت مشکوک یا مضر مرتبط است.</string>
   <string name="common_refresh">تازه کردن</string>
   <string name="common_grant_permission">اجازه بدهید</string>
-  <string name="common_required_field">%1$s مورد نیاز است</string>
   <string name="welcome_title">به خانواده Gem خوش آمدید</string>
   <string name="wallet_create_new_wallet">ساختن کیف پول جدید</string>
   <string name="wallet_import_existing_wallet">وارد کردن یک کیف پول موجود</string>
@@ -144,7 +143,6 @@
   <string name="transfer_freeze_title">فریز کردن</string>
   <string name="transfer_unfreeze_title">لغو فریز</string>
   <string name="transfer_review_request">درخواست بررسی</string>
-  <string name="transfer_amount">مبلغ</string>
   <string name="settings_terms_of_services">شرایط استفاده از خدمات</string>
   <string name="settings_privacy_policy">سیاست حفظ حریم خصوصی</string>
   <string name="settings_title">تنظیمات</string>
@@ -225,7 +223,6 @@
   <string name="errors_swap_minimum_amount">حداقل مبلغ معامله %1$s است. لطفاً مبلغ بیشتری وارد کنید.</string>
   <string name="errors_perpetual_trigger_price_lower">قیمت فعالسازی باید کمتر از قیمت بازار باشد</string>
   <string name="errors_perpetual_trigger_price_higher">قیمت فعالسازی باید بیشتر از قیمت بازار باشد</string>
-  <string name="errors_unknown_try_again">خطای ناشناخته ای رخ داد. لطفا دوباره امتحان کنید.</string>
   <string name="errors_network_error">خطای شبکه: %1$s</string>
   <string name="errors_network_offline">به نظر می‌رسد اتصال اینترنت آفلاین است.</string>
   <string name="errors_no_internet_connection">اتصال اینترنت برقرار نیست</string>
@@ -285,7 +282,6 @@
   <string name="asset_get_asset">دریافت %1$s</string>
   <string name="asset_add_to_wallet">اضافه کردن به کیف پول</string>
   <string name="asset_added_to_wallet">به کیف پول اضافه شد</string>
-  <string name="asset_hidden_from_wallet">از کیف پول پنهان شد</string>
   <string name="asset_resources">منابع</string>
   <string name="asset_verification_verified">تأیید شده</string>
   <string name="asset_all_time_high">بالاترین رکورد تمام دوران</string>

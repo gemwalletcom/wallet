@@ -1,0 +1,22 @@
+appId: ${APP_ID}
+---
+- runFlow: launch.yaml
+- tapOn:
+    id: "settingsTab"
+- tapOn:
+    id: "wallets"
+- waitForAnimationToEnd
+- tapOn:
+    id: "import"
+- waitForAnimationToEnd
+- tapOn:
+    id: "multicoin_item"
+- tapOn:
+    id: "importInputField"
+- inputText: ${TEST_PHRASE.substring(0, 5)}
+- tapOn:
+    id: "word_suggestion"
+- assertVisible:
+    id: "importInputField"
+    text: ${TEST_PHRASE.split(' ')[0] + '.*'}
+- runFlow: launch.yaml

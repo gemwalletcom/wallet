@@ -60,7 +60,6 @@
   <string name="common_suspicious_address_description">Ten adres jest powiązany z podejrzaną lub szkodliwą aktywnością.</string>
   <string name="common_refresh">Odśwież</string>
   <string name="common_grant_permission">Udziel pozwolenia</string>
-  <string name="common_required_field">%1$s jest wymagane</string>
   <string name="welcome_title">Witamy w Gem Family</string>
   <string name="wallet_create_new_wallet">Utwórz nowy portfel</string>
   <string name="wallet_import_existing_wallet">Zaimportuj istniejący portfel</string>
@@ -144,7 +143,6 @@
   <string name="transfer_freeze_title">Zamroź</string>
   <string name="transfer_unfreeze_title">Odmroź</string>
   <string name="transfer_review_request">Prośba o przegląd</string>
-  <string name="transfer_amount">Kwota</string>
   <string name="settings_terms_of_services">Warunki świadczenia usług</string>
   <string name="settings_privacy_policy">Polityka prywatności</string>
   <string name="settings_title">Ustawienia</string>
@@ -225,7 +223,6 @@
   <string name="errors_swap_minimum_amount">Minimalna kwota transakcji wynosi %1$s. Proszę wprowadzić wyższą kwotę.</string>
   <string name="errors_perpetual_trigger_price_lower">Cena aktywacji powinna być niższa niż cena rynkowa</string>
   <string name="errors_perpetual_trigger_price_higher">Cena aktywacji powinna być wyższa niż cena rynkowa</string>
-  <string name="errors_unknown_try_again">Wystąpił nieznany błąd. Spróbuj ponownie.</string>
   <string name="errors_network_error">Błąd sieciowy: %1$s</string>
   <string name="errors_network_offline">Połączenie internetowe wydaje się być niedostępne.</string>
   <string name="errors_no_internet_connection">Brak połączenia z internetem</string>
@@ -285,7 +282,6 @@
   <string name="asset_get_asset">Zdobądź %1$s</string>
   <string name="asset_add_to_wallet">Dodaj do portfela</string>
   <string name="asset_added_to_wallet">Dodano do portfela</string>
-  <string name="asset_hidden_from_wallet">Ukryto w portfelu</string>
   <string name="asset_resources">Zasoby</string>
   <string name="asset_verification_verified">Zweryfikowano</string>
   <string name="asset_all_time_high">Najwyższy poziom wszech czasów</string>

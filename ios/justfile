@@ -40,7 +40,15 @@ lint:
     @git ls-files -z '*.swift' | xargs -0 swiftlint lint --fix --config .swiftlint.yml --quiet --force-exclude
 
 format:
-    @echo "==> Running SwiftFormat"
+    #!/usr/bin/env bash
+    set -euo pipefail
+    files=$( { git diff --name-only --diff-filter=ACMR HEAD -- '*.swift'; git ls-files --others --exclude-standard -- '*.swift'; } | sed 's|^ios/||' | sort -u )
+    [ -z "$files" ] && exit 0
+    echo "==> Running SwiftFormat"
+    echo "$files" | tr '\n' '\0' | xargs -0 swiftformat --config .swiftformat --quiet
+
+format-all:
+    @echo "==> Running SwiftFormat on every file"
     @git ls-files -z '*.swift' | xargs -0 swiftformat --config .swiftformat --quiet
 
 _build action scheme="Gem":

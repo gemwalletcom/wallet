@@ -41,9 +41,21 @@ pub struct ActionResponse {
     pub estimated_tx_time: f64,
 }
 
-impl ActionResponse {
-    pub fn deposit_id(&self) -> Option<String> {
-        self.tx.to_extra.iter().chain([&self.tx.to]).find(|id| !id.is_empty()).cloned()
+#[derive(Debug, Deserialize)]
+pub(crate) struct DepositResponse {
+    tx: DepositTransaction,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct DepositTransaction {
+    to: Option<String>,
+    to_extra: Option<String>,
+}
+
+impl DepositResponse {
+    pub(crate) fn deposit_id(&self) -> Option<String> {
+        self.tx.to_extra.iter().chain(self.tx.to.iter()).find(|id| !id.is_empty()).cloned()
     }
 }
 
@@ -164,8 +176,8 @@ mod tests {
 
     #[test]
     fn test_deposit_id() {
-        let memo: ActionResponse = serde_json::from_str(include_str!("testdata/action_response.json")).unwrap();
-        let address: ActionResponse = serde_json::from_str(include_str!("testdata/action_sui_to_ton.json")).unwrap();
+        let memo: DepositResponse = serde_json::from_str(include_str!("testdata/action_response.json")).unwrap();
+        let address: DepositResponse = serde_json::from_str(include_str!("testdata/action_sui_to_ton.json")).unwrap();
 
         assert_eq!(memo.deposit_id().as_deref(), Some("1234"));
         assert_eq!(address.deposit_id().as_deref(), Some("0x82d03c6b623f1e15164c9329b1c49e066ff7814be70ff86f8e19125292661040"));

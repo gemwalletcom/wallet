@@ -60,7 +60,6 @@ common_suspicious_address = 可疑地址
 common_suspicious_address_description = 此地址与可疑或恶意行为有关。
 common_refresh = 刷新
 common_grant_permission = 授予权限
-common_required_field = %@为必填项
 
 # Welcome
 
@@ -165,7 +164,6 @@ transfer_reserved_fees = 已在余额中预留 %@，用于支付后续网络费�
 transfer_freeze_title = 冻结
 transfer_unfreeze_title = 解冻
 transfer_review_request = 审查请求
-transfer_amount = 金额
 
 # Settings
 
@@ -255,7 +253,6 @@ errors_dust_threshold_short = 转账金额过小，被网络视为“粉尘”�
 errors_swap_minimum_amount = 最低交易金额为 %@。请输入更高的金额。
 errors_perpetual_trigger_price_lower = 触发价格应低于市场价格
 errors_perpetual_trigger_price_higher = 触发价格应高于市场价格
-errors_unknown_try_again = 发生未知错误，请重试
 errors_network_error = 网络错误： %@
 errors_network_offline = 网络连接似乎已断开。
 errors_no_internet_connection = 无互联网连接
@@ -327,7 +324,6 @@ asset_buy_asset = 购买%@
 asset_get_asset = 获取 %@
 asset_add_to_wallet = 添加到钱包
 asset_added_to_wallet = 已添加到钱包
-asset_hidden_from_wallet = 已从钱包隐藏
 asset_resources = 资源
 asset_verification_verified = 已验证
 asset_all_time_high = 历史最高点

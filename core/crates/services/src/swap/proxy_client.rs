@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use cacher::{SwapVaultAddressCacher, SwapVaultAddressKind};
 use gem_client::{ClientError, ReqwestClient, Response};
-use gem_tracing::error_with_fields;
+use gem_tracing::{error_fields, error_with_fields};
 use primitives::SwapProvider;
 use reqwest::{Method, RequestBuilder};
 use serde::Serialize;
@@ -33,13 +33,26 @@ impl SwapProxyClient {
 
     async fn send(&self, request: RequestBuilder) -> Result<Response, ClientError> {
         let response = self.client.send(request).await?;
-        self.cache_deposit_id(&response.data).await;
+        if response.status.is_some_and(|status| (200..300).contains(&status)) {
+            self.cache_deposit_id(&response.data).await;
+        }
         Ok(response)
     }
 
     async fn cache_deposit_id(&self, data: &[u8]) {
-        let Some(deposit_id) = deposit_id_from_response(self.provider, data) else {
-            return;
+        let deposit_id = match deposit_id_from_response(self.provider, data) {
+            Ok(Some(deposit_id)) => deposit_id,
+            Ok(None) => return,
+            Err(error) => {
+                error_fields!(
+                    "swap deposit id parse failed",
+                    provider = self.provider.as_ref(),
+                    category = format!("{:?}", error.classify()),
+                    line = error.line(),
+                    column = error.column()
+                );
+                return;
+            }
         };
         if let Err(error) = self.deposit_addresses.add_vault_addresses(self.provider, SwapVaultAddressKind::Deposit, &[deposit_id]).await {
             error_with_fields!("swap deposit address cache failed", &*error, provider = self.provider.as_ref());

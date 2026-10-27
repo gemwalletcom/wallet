@@ -48,12 +48,33 @@ pub struct SwapData {
     pub tx_data: SwapTransaction,
 }
 
-impl SwapData {
-    pub fn deposit_id(&self) -> Option<String> {
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub(super) struct DepositData {
+    tx_data: DepositTransaction,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(untagged)]
+enum DepositTransaction {
+    Evm {
+        data: String,
+    },
+    Ton {
+        payload: String,
+    },
+    Xrp {
+        #[serde(rename = "Memos")]
+        memos: Vec<TransactionMemo>,
+    },
+}
+
+impl DepositData {
+    pub(super) fn deposit_id(&self) -> Option<String> {
         match &self.tx_data {
-            SwapTransaction::Evm(transaction) => Some(transaction.data.clone()).filter(|data| !data.is_empty()),
-            SwapTransaction::Ton(transaction) => Some(hex::encode(BagOfCells::parse_base64_root(&transaction.payload).ok()?.hash)),
-            SwapTransaction::Xrp(transaction) => memos_hash(&transaction.memos),
+            DepositTransaction::Evm { data } => Some(data.clone()).filter(|data| !data.is_empty()),
+            DepositTransaction::Ton { payload } => Some(hex::encode(BagOfCells::parse_base64_root(payload).ok()?.hash)),
+            DepositTransaction::Xrp { memos } => memos_hash(memos),
         }
     }
 }
@@ -92,24 +113,23 @@ pub struct XrpTransaction {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::bridgers::BridgersResponse;
+    use crate::bridgers::DepositResponse;
 
     #[test]
     fn test_deposit_id() {
-        let deposit_id = |json: &str| serde_json::from_str::<BridgersResponse>(json).unwrap().data::<SwapData>().unwrap().deposit_id();
+        for (json, expected) in [
+            (include_str!("../testdata/swap_ton_bsc_usdt.json"), "03649dcfca44d7fe76c5a22ff8c955097e5cb60d32fef4feb9c368bee9df9d15"),
+            (include_str!("../testdata/swap_xrp_bsc_usdt.json"), "3fed38eafa6b3bf232aaf79bd5ce2e20a8e41769eb1759a44a7f1ede8989a995"),
+            (include_str!("../testdata/swap_rlusd_bsc_usdt.json"), "6d4a249eec51b33a5dc11e60d1cc6f7653c2d85474986e7c31ac02b1ae392366"),
+        ] {
+            let response: DepositResponse = serde_json::from_str(json).unwrap();
+            assert_eq!(response.deposit_id().unwrap().as_deref(), Some(expected));
 
-        assert_eq!(
-            deposit_id(include_str!("../testdata/swap_ton_bsc_usdt.json")).as_deref(),
-            Some("03649dcfca44d7fe76c5a22ff8c955097e5cb60d32fef4feb9c368bee9df9d15")
-        );
-        assert_eq!(
-            deposit_id(include_str!("../testdata/swap_xrp_bsc_usdt.json")).as_deref(),
-            Some("3fed38eafa6b3bf232aaf79bd5ce2e20a8e41769eb1759a44a7f1ede8989a995")
-        );
-        assert_eq!(
-            deposit_id(include_str!("../testdata/swap_rlusd_bsc_usdt.json")).as_deref(),
-            Some("6d4a249eec51b33a5dc11e60d1cc6f7653c2d85474986e7c31ac02b1ae392366")
-        );
+            let mut minimal: serde_json::Value = serde_json::from_str(json).unwrap();
+            minimal.as_object_mut().unwrap().remove("resMsg");
+            minimal["data"]["txData"].as_object_mut().unwrap().retain(|key, _| key == "payload" || key == "Memos");
+            let response: DepositResponse = serde_json::from_value(minimal).unwrap();
+            assert_eq!(response.deposit_id().unwrap().as_deref(), Some(expected));
+        }
     }
 }

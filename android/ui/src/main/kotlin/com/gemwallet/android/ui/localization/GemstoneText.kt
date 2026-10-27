@@ -106,6 +106,7 @@ import uniffi.gemstone.GemRecipientSectionKind
 import uniffi.gemstone.GemRewardsIntroItem
 import uniffi.gemstone.GemRowText
 import uniffi.gemstone.GemSecurityReminderItem
+import uniffi.gemstone.GemSelectAssetSection
 import uniffi.gemstone.GemSelectAssetTitle
 import uniffi.gemstone.GemSlippageFooter
 import uniffi.gemstone.GemStakeSection
@@ -1173,6 +1174,12 @@ fun GemSelectAssetTitle.stringRes(): Int = when (this) {
     GemSelectAssetTitle.DEPOSIT -> R.string.wallet_deposit
     GemSelectAssetTitle.WITHDRAW -> R.string.wallet_withdraw
     GemSelectAssetTitle.SEARCH -> R.string.assets_select_asset
+}
+
+@StringRes
+fun GemSelectAssetSection.stringRes(): Int = when (this) {
+    GemSelectAssetSection.ASSETS -> R.string.assets_title
+    GemSelectAssetSection.NETWORKS -> R.string.settings_networks_title
 }
 
 fun GemWalletConnectFailure.text(context: Context): String = when (this) {

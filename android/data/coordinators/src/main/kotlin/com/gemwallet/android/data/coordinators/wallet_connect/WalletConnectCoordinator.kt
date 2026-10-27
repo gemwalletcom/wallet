@@ -9,6 +9,7 @@ import com.gemwallet.android.application.wallet_connect.WalletConnectClient
 import com.gemwallet.android.application.wallet_connect.WalletConnectEvent
 import com.gemwallet.android.application.wallet_connect.WalletConnectJsonRpcResponse
 import com.gemwallet.android.application.wallet_connect.WalletConnectSession
+import com.gemwallet.android.application.wallet_connect.WalletConnectSessionNamespace
 import com.gemwallet.android.application.wallet_connect.WalletConnectSessionProposal
 import com.gemwallet.android.application.wallet_connect.addingAccount
 import com.gemwallet.android.application.wallet_connect.cases.AddWalletConnectSessionAccount
@@ -21,7 +22,6 @@ import com.gemwallet.android.application.wallet_connect.cases.RespondWalletConne
 import com.gemwallet.android.application.wallet_connect.cases.SyncWalletConnectSessions
 import com.gemwallet.android.application.wallet_connect.toConnectionSession
 import com.gemwallet.android.application.wallet_connect.toSupportedNamespaces
-import com.gemwallet.android.data.services.gemstone.stores.GemstoneConnectionStore
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
@@ -47,10 +47,10 @@ import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemWalletConnectRejectionReason
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.walletConnectErrorText
+import java.util.concurrent.ConcurrentHashMap
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class WalletConnectCoordinator(
-    private val connectionStore: GemstoneConnectionStore,
     private val walletConnectClient: WalletConnectClient,
     private val walletConnectService: GemWalletConnectServiceInterface,
     private val chainService: GemChainServiceInterface,
@@ -66,7 +66,7 @@ class WalletConnectCoordinator(
 
     private val pendingEvents = MutableSharedFlow<WalletConnectEvent>(extraBufferCapacity = 16)
     private val isWalletConnectInit = MutableStateFlow(false)
-    private val approvingWallet = MutableStateFlow<Wallet?>(null)
+    private val approvedWallets = ConcurrentHashMap<Set<String>, Wallet>()
     private val events = isWalletConnectInit.flatMapLatest {
         if (it) {
             merge(walletConnectClient.events, pendingEvents)
@@ -92,7 +92,7 @@ class WalletConnectCoordinator(
                 runCatchingCancellable {
                     when (event) {
                         is WalletConnectEvent.SessionDeleted -> walletConnectService.deleteSession(event.topic)
-                        is WalletConnectEvent.SessionSettled -> storeSettledSession(event.session)
+                        is WalletConnectEvent.SessionSettled -> approvedWallets[event.session.namespaces.accounts()]?.let { storeSession(event.session, it) }
                         is WalletConnectEvent.SessionChanged -> sync()
                         else -> Unit
                     }
@@ -143,15 +143,14 @@ class WalletConnectCoordinator(
             caip2Chains = sessionNamespaces.values.flatMap { it.chains.orEmpty() },
             accounts = approval.accounts,
         )
-        approveAndStoreSession(wallet, onSuccess, onError) { onApproved, onFailure ->
-            walletConnectClient.approveSession(
-                proposal = proposal,
-                namespaces = sessionNamespaces,
-                properties = sessionProperties,
-                onSuccess = onApproved,
-                onError = onFailure,
-            )
-        }
+        approvedWallets[sessionNamespaces.accounts()] = wallet
+        walletConnectClient.approveSession(
+            proposal = proposal,
+            namespaces = sessionNamespaces,
+            properties = sessionProperties,
+            onSuccess = onSuccess,
+            onError = { onError(clientErrorText(it)) },
+        )
     }
 
     override fun rejectConnection(proposal: WalletConnectSessionProposal, reason: GemWalletConnectRejectionReason, onSuccess: () -> Unit, onError: (GemErrorText) -> Unit) {
@@ -173,14 +172,13 @@ class WalletConnectCoordinator(
     }
 
     override fun approveAuthentication(request: WalletConnectAuthenticationRequest, auths: List<WalletConnectAuthObject>, wallet: Wallet, onSuccess: () -> Unit, onError: (GemErrorText) -> Unit) {
-        approveAndStoreSession(wallet, onSuccess, onError) { onApproved, onFailure ->
-            walletConnectClient.approveAuthentication(
-                request = request,
-                auths = auths,
-                onSuccess = onApproved,
-                onError = onFailure,
-            )
-        }
+        val activeBefore = activeSessions().orEmpty().map { it.topic }.toSet()
+        walletConnectClient.approveAuthentication(
+            request = request,
+            auths = auths,
+            onSuccess = { storeAuthenticatedSessions(wallet, activeBefore, onSuccess, onError) },
+            onError = { onError(clientErrorText(it)) },
+        )
     }
 
     override fun rejectAuthentication(request: WalletConnectAuthenticationRequest, onSuccess: () -> Unit, onError: (GemErrorText) -> Unit) {
@@ -257,19 +255,12 @@ class WalletConnectCoordinator(
         .onFailure { Log.e("WalletConnectCoordinator", "Failed to get active sessions", it) }
         .getOrNull()
 
-    private fun approveAndStoreSession(wallet: Wallet, onSuccess: () -> Unit, onError: (GemErrorText) -> Unit, approve: (onSuccess: () -> Unit, onError: (String) -> Unit) -> Unit) {
-        approvingWallet.value = wallet
-        val activeBefore = activeSessions().orEmpty().map { it.topic }.toSet()
-        approve(
-            { persistNewSessions(wallet, activeBefore, onSuccess, onError) },
-            { onError(clientErrorText(it)) },
-        )
-    }
-
-    private fun persistNewSessions(wallet: Wallet, activeBefore: Set<String>, onSuccess: () -> Unit, onError: (GemErrorText) -> Unit) {
+    private fun storeAuthenticatedSessions(wallet: Wallet, activeBefore: Set<String>, onSuccess: () -> Unit, onError: (GemErrorText) -> Unit) {
         scope.launch(Dispatchers.IO) {
             runCatchingCancellable {
-                addNewSessions(wallet, activeBefore)
+                activeSessions().orEmpty()
+                    .filter { it.topic !in activeBefore }
+                    .forEach { storeSession(it, wallet) }
             }.onSuccess {
                 onSuccess()
             }.onFailure { error ->
@@ -278,24 +269,12 @@ class WalletConnectCoordinator(
         }
     }
 
-    private suspend fun addNewSessions(wallet: Wallet, activeBefore: Set<String>) {
-        activeSessions().orEmpty()
-            .filter { it.topic !in activeBefore }
-            .forEach { storeSession(it, wallet) }
-    }
-
-    private suspend fun storeSettledSession(session: WalletConnectSession) {
-        val wallet = approvingWallet.value ?: return
-        storeSession(session, wallet)
-    }
-
     private suspend fun storeSession(session: WalletConnectSession, wallet: Wallet) {
-        if (connectionStore.getConnectionBySessionId(session.topic) != null) {
-            return
-        }
         val connectionSession = session.toConnectionSession(walletConnectService) ?: return
         walletConnectService.addConnection(WalletConnection(session = connectionSession, wallet = wallet).toGem())
     }
 }
 
 private fun clientErrorText(message: String): GemErrorText = walletConnectErrorText(message)
+
+private fun Map<String, WalletConnectSessionNamespace>.accounts(): Set<String> = values.flatMapTo(mutableSetOf()) { it.accounts }

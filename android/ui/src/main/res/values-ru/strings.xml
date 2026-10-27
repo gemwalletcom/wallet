@@ -60,7 +60,6 @@
   <string name="common_suspicious_address_description">Этот адрес связан с подозрительной или вредоносной активностью.</string>
   <string name="common_refresh">Обновить</string>
   <string name="common_grant_permission">Предоставить разрешение</string>
-  <string name="common_required_field">%1$s является обязательным</string>
   <string name="welcome_title">Добро пожаловать в семью Gem</string>
   <string name="wallet_create_new_wallet">Создать новый кошелек</string>
   <string name="wallet_import_existing_wallet">Импорт существующего кошелька</string>
@@ -144,7 +143,6 @@
   <string name="transfer_freeze_title">Заморозить</string>
   <string name="transfer_unfreeze_title">Разморозить</string>
   <string name="transfer_review_request">Просмотр запроса</string>
-  <string name="transfer_amount">Сумма</string>
   <string name="settings_terms_of_services">Условия предоставления услуг</string>
   <string name="settings_privacy_policy">Политика конфиденциальности</string>
   <string name="settings_title">Настройки</string>
@@ -225,7 +223,6 @@
   <string name="errors_swap_minimum_amount">Минимальная сумма сделки — %1$s. Введите, пожалуйста, сумму побольше.</string>
   <string name="errors_perpetual_trigger_price_lower">Цена триггера должна быть ниже рыночной цены</string>
   <string name="errors_perpetual_trigger_price_higher">Цена триггера должна быть выше рыночной цены</string>
-  <string name="errors_unknown_try_again">Произошла неизвестная ошибка. Пожалуйста, повторите попытку.</string>
   <string name="errors_network_error">Сетевая ошибка: %1$s</string>
   <string name="errors_network_offline">По всей видимости, интернет-соединение отсутствует.</string>
   <string name="errors_no_internet_connection">Нет подключения к интернету</string>
@@ -285,7 +282,6 @@
   <string name="asset_get_asset">Получить %1$s</string>
   <string name="asset_add_to_wallet">Добавить в кошелек</string>
   <string name="asset_added_to_wallet">Добавлено в кошелек</string>
-  <string name="asset_hidden_from_wallet">Скрыто из кошелька</string>
   <string name="asset_resources">Ресурсы</string>
   <string name="asset_verification_verified">Проверено</string>
   <string name="asset_all_time_high">Исторический максимум</string>

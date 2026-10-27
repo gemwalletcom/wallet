@@ -60,7 +60,6 @@
   <string name="common_suspicious_address_description">Diese Adresse steht im Zusammenhang mit verdächtigen oder schädlichen Aktivitäten.</string>
   <string name="common_refresh">Aktualisieren</string>
   <string name="common_grant_permission">Erlaubnis erteilen</string>
-  <string name="common_required_field">%1$s ist erforderlich</string>
   <string name="welcome_title">Willkommen zur Gem Familie</string>
   <string name="wallet_create_new_wallet">Eine neue Wallet erstellen</string>
   <string name="wallet_import_existing_wallet">Eine vorhandene Wallet importieren</string>
@@ -144,7 +143,6 @@
   <string name="transfer_freeze_title">Einfrieren</string>
   <string name="transfer_unfreeze_title">Auftauen</string>
   <string name="transfer_review_request">Überprüfungsanfrage</string>
-  <string name="transfer_amount">Betrag</string>
   <string name="settings_terms_of_services">Nutzungsbedingungen</string>
   <string name="settings_privacy_policy">Datenschutzbestimmungen</string>
   <string name="settings_title">Einstellungen</string>
@@ -225,7 +223,6 @@
   <string name="errors_swap_minimum_amount">Der Mindesthandelsbetrag beträgt %1$s. Bitte geben Sie einen höheren Betrag ein.</string>
   <string name="errors_perpetual_trigger_price_lower">Der Triggerpreis muss unter dem Marktpreis liegen</string>
   <string name="errors_perpetual_trigger_price_higher">Der Triggerpreis muss über dem Marktpreis liegen</string>
-  <string name="errors_unknown_try_again">Ein unbekannter Fehler ist aufgetreten. Bitte versuchen Sie es erneut.</string>
   <string name="errors_network_error">Netzwerkfehler: %1$s</string>
   <string name="errors_network_offline">Die Internetverbindung scheint unterbrochen zu sein.</string>
   <string name="errors_no_internet_connection">Keine Internetverbindung</string>
@@ -285,7 +282,6 @@
   <string name="asset_get_asset">%1$s erhalten</string>
   <string name="asset_add_to_wallet">Zum Wallet hinzufügen</string>
   <string name="asset_added_to_wallet">Zum Wallet hinzugefügt</string>
-  <string name="asset_hidden_from_wallet">Aus dem Wallet ausgeblendet</string>
   <string name="asset_resources">Ressourcen</string>
   <string name="asset_verification_verified">Bestätigt</string>
   <string name="asset_all_time_high">Allzeithoch</string>

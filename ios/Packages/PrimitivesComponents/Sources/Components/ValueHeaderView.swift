@@ -117,6 +117,7 @@ public struct ValueHeaderView: View {
                     .cornerRadius(.medium)
                     .padding(.top, .space8)
                 }
+                .accessibilityIdentifier("watchWalletBanner")
 
             case false:
                 HeaderButtonsView(buttons: model.buttons, action: onHeaderAction)

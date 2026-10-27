@@ -60,7 +60,6 @@
   <string name="common_suspicious_address_description">Cette adresse est associée à une activité suspecte ou malveillante.</string>
   <string name="common_refresh">Rafraîchir</string>
   <string name="common_grant_permission">Donner la permission</string>
-  <string name="common_required_field">%1$s est requis</string>
   <string name="welcome_title">Bienvenue dans la famille Gem</string>
   <string name="wallet_create_new_wallet">Créer un nouveau portefeuille</string>
   <string name="wallet_import_existing_wallet">Importer un portefeuille existant</string>
@@ -144,7 +143,6 @@
   <string name="transfer_freeze_title">Geler</string>
   <string name="transfer_unfreeze_title">Dégeler</string>
   <string name="transfer_review_request">Examiner la demande</string>
-  <string name="transfer_amount">Montant</string>
   <string name="settings_terms_of_services">Conditions d\'utilisation</string>
   <string name="settings_privacy_policy">Politique de confidentialité</string>
   <string name="settings_title">Paramètres</string>
@@ -225,7 +223,6 @@
   <string name="errors_swap_minimum_amount">Le montant minimum de transaction est %1$s. Veuillez saisir un montant plus élevé.</string>
   <string name="errors_perpetual_trigger_price_lower">Le prix de déclenchement doit être inférieur au prix du marché</string>
   <string name="errors_perpetual_trigger_price_higher">Le prix de déclenchement doit être supérieur au prix du marché</string>
-  <string name="errors_unknown_try_again">Une erreur inconnue s\'est produite. Veuillez réessayer.</string>
   <string name="errors_network_error">Erreur réseau : %1$s</string>
   <string name="errors_network_offline">La connexion Internet semble être hors ligne.</string>
   <string name="errors_no_internet_connection">Pas de connexion Internet</string>
@@ -285,7 +282,6 @@
   <string name="asset_get_asset">Obtenir %1$s</string>
   <string name="asset_add_to_wallet">Ajouter au portefeuille</string>
   <string name="asset_added_to_wallet">Ajouté au portefeuille</string>
-  <string name="asset_hidden_from_wallet">Masqué du portefeuille</string>
   <string name="asset_resources">Ressources</string>
   <string name="asset_verification_verified">Vérifié</string>
   <string name="asset_all_time_high">Record absolu</string>

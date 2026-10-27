@@ -34,9 +34,11 @@ import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemImageStyle
 import com.gemwallet.android.ui.components.list_item.ListItemModel
+import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.localization.string
+import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.style.listItemImage
 import com.gemwallet.android.ui.theme.Spacer16
@@ -86,6 +88,7 @@ internal fun WalletDetailScene(wallet: GemWalletDetails?, snackbar: SnackbarHost
             val secretKind = wallet.secretKind
             val showSecret = wallet.showSecret
             if (secretKind != null && showSecret != null) {
+                SubheaderItem(secretKind.stringRes())
                 ListItem(
                     model = ListItemModel(title = showSecret.string(LocalContext.current)),
                     listPosition = ListPosition.Single,

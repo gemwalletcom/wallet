@@ -6,12 +6,12 @@ use num_bigint::BigUint;
 use primitives::{Chain, ChainType, Transaction, decode_hex};
 
 use crate::SwapperProvider;
-use crate::bridgers::{BridgersResponse, SwapData};
+use crate::bridgers::DepositResponse as BridgersDepositResponse;
 use crate::chainflip::broker::DepositChannelResponse;
 use crate::mayan::MAYAN_FORWARDER_SELECTORS;
-use crate::near_intents::QuoteResponse as NearIntentsQuoteResponse;
-use crate::relay::RelayQuoteResponse;
-use crate::swaps_xyz::ActionResponse;
+use crate::near_intents::DepositResponse as NearIntentsDepositResponse;
+use crate::relay::DepositResponse as RelayDepositResponse;
+use crate::swaps_xyz::DepositResponse as SwapsXyzDepositResponse;
 use crate::thorchain::{contracts::RouterInterface, memo::ThorchainMemo};
 
 #[derive(Debug, serde::Serialize)]
@@ -112,13 +112,13 @@ fn is_valid_chainflip_swap(transaction: &Transaction) -> bool {
     }
 }
 
-pub fn deposit_id_from_response(provider: SwapperProvider, data: &[u8]) -> Option<String> {
-    match provider {
-        SwapperProvider::Relay => serde_json::from_slice::<RelayQuoteResponse>(data).ok()?.deposit_id(),
-        SwapperProvider::NearIntents => serde_json::from_slice::<NearIntentsQuoteResponse>(data).ok()?.deposit_id(),
-        SwapperProvider::SwapsXyz => serde_json::from_slice::<ActionResponse>(data).ok()?.deposit_id(),
-        SwapperProvider::Bridgers => serde_json::from_slice::<BridgersResponse>(data).ok()?.data::<SwapData>().ok()?.deposit_id(),
-        SwapperProvider::Chainflip => DepositChannelResponse::from_jsonrpc(data)?.deposit_address().ok(),
+pub fn deposit_id_from_response(provider: SwapperProvider, data: &[u8]) -> Result<Option<String>, serde_json::Error> {
+    Ok(match provider {
+        SwapperProvider::Relay => serde_json::from_slice::<RelayDepositResponse>(data)?.deposit_id(),
+        SwapperProvider::NearIntents => serde_json::from_slice::<NearIntentsDepositResponse>(data)?.deposit_id(),
+        SwapperProvider::SwapsXyz => serde_json::from_slice::<SwapsXyzDepositResponse>(data)?.deposit_id(),
+        SwapperProvider::Bridgers => serde_json::from_slice::<BridgersDepositResponse>(data)?.deposit_id()?,
+        SwapperProvider::Chainflip => DepositChannelResponse::from_jsonrpc(data)?.and_then(|response| response.deposit_address().ok()),
         SwapperProvider::UniswapV3
         | SwapperProvider::UniswapV4
         | SwapperProvider::PancakeswapV3
@@ -147,7 +147,7 @@ pub fn deposit_id_from_response(provider: SwapperProvider, data: &[u8]) -> Optio
         | SwapperProvider::DeepbookV3
         | SwapperProvider::Aero
         | SwapperProvider::XrpLedger => None,
-    }
+    })
 }
 
 pub fn is_cross_chain_swap(transaction: &Transaction, deposit_addresses: &DepositAddressMap) -> bool {
@@ -228,16 +228,42 @@ mod tests {
     fn test_deposit_id_from_response() {
         let failed = br#"{"resCode":412,"resMsg":"no quote","data":{"txData":{"data":"0x9ddf93bb","to":"0xa18968cc31232724f1dbd0d1e8d0b323d89f3501","value":"0"}}}"#;
 
-        assert_eq!(deposit_id_from_response(SwapperProvider::Bridgers, failed), None);
-        assert_eq!(deposit_id_from_response(SwapperProvider::Relay, b"not json"), None);
-        assert_eq!(deposit_id_from_response(SwapperProvider::Thorchain, include_bytes!("relay/testdata/quote_btc_to_base_usdc.json")), None);
+        assert_eq!(deposit_id_from_response(SwapperProvider::Bridgers, failed).unwrap(), None);
+        assert_eq!(deposit_id_from_response(SwapperProvider::Thorchain, include_bytes!("relay/testdata/quote_btc_to_base_usdc.json")).unwrap(), None);
+    }
+
+    #[test]
+    fn test_deposit_id_parse_errors_are_reported() {
+        for provider in [SwapperProvider::Relay, SwapperProvider::NearIntents, SwapperProvider::SwapsXyz, SwapperProvider::Bridgers, SwapperProvider::Chainflip] {
+            assert!(deposit_id_from_response(provider, b"not json").is_err(), "{provider:?}");
+        }
+        assert!(deposit_id_from_response(SwapperProvider::Relay, br#"{"steps":false}"#).is_err());
+        let invalid_swap = br#"{"resCode":100,"resMsg":"success","data":{"txData":{}}}"#;
+        assert!(deposit_id_from_response(SwapperProvider::Bridgers, invalid_swap).is_err());
+        let rejected_channel = br#"{"jsonrpc":"2.0","id":1,"error":{"code":-32603,"message":"Invalid destination address"}}"#;
+        assert_eq!(deposit_id_from_response(SwapperProvider::Chainflip, rejected_channel).unwrap(), None);
+    }
+
+    #[test]
+    fn test_deposit_id_ignores_unrelated_response_fields() {
+        let cases: [(SwapperProvider, &[u8], &str); 6] = [
+            (SwapperProvider::Relay, br#"{"steps":[{"depositAddress":"deposit-address","items":"changed"}],"details":false}"#, "deposit-address"),
+            (SwapperProvider::NearIntents, br#"{"quote":{"depositAddress":"deposit-address","amountIn":false},"quoteRequest":"changed"}"#, "deposit-address"),
+            (SwapperProvider::SwapsXyz, br#"{"tx":{"to":"deposit-address","toExtra":"memo","value":false},"estimatedTxTime":"changed"}"#, "memo"),
+            (SwapperProvider::Bridgers, br#"{"resCode":100,"data":{"txData":{"data":"0x1234","value":false}},"resMsg":false}"#, "0x1234"),
+            (SwapperProvider::Relay, br#"{"protocol":{"v2":{"orderId":"order-id"}}}"#, "order-id"),
+            (SwapperProvider::SwapsXyz, br#"{"tx":{"to":"deposit-address","toExtra":""}}"#, "deposit-address"),
+        ];
+        for (provider, response, expected) in cases {
+            assert_eq!(deposit_id_from_response(provider, response).unwrap().as_deref(), Some(expected), "{provider:?}");
+        }
     }
 
     #[test]
     fn test_calldata_deposit_detected() {
         let response = include_str!("bridgers/testdata/swap_base_usdc_bsc_usdt.json");
         let calldata = serde_json::from_str::<serde_json::Value>(response).unwrap()["data"]["txData"]["data"].as_str().unwrap().to_string();
-        assert_eq!(deposit_id_from_response(SwapperProvider::Bridgers, response.as_bytes()), Some(calldata.clone()));
+        assert_eq!(deposit_id_from_response(SwapperProvider::Bridgers, response.as_bytes()).unwrap(), Some(calldata.clone()));
         let deposit_addresses = DepositAddressMap::from([(calldata.clone(), SwapperProvider::Bridgers)]);
         let deposit = Transaction {
             to: "0xa18968cc31232724f1dbd0d1e8d0b323d89f3501".to_string(),

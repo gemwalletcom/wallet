@@ -26,6 +26,7 @@ pub(crate) trait TransferInput {
     fn fee_asset(&self) -> Asset;
     fn default_fee_priority(&self) -> FeePriority;
     fn application_short_name(&self) -> Option<String>;
+    fn payment_message(&self) -> Option<String>;
     fn output(&self) -> GemTransferOutput;
     fn asset_ids(&self) -> Vec<AssetId>;
     fn recent_activity(&self) -> Option<GemRecentActivity>;
@@ -177,6 +178,23 @@ impl TransferInput for TransactionInputType {
             | Self::Perpetual { .. }
             | Self::Earn { .. }
             | Self::Withdrawal { .. } => None,
+        }
+    }
+
+    fn payment_message(&self) -> Option<String> {
+        match self {
+            Self::Payment { invoice, .. } => invoice.message.clone(),
+            Self::Transfer { .. }
+            | Self::Deposit { .. }
+            | Self::Swap { .. }
+            | Self::Stake { .. }
+            | Self::TokenApprove { .. }
+            | Self::TransferNft { .. }
+            | Self::Account { .. }
+            | Self::Perpetual { .. }
+            | Self::Earn { .. }
+            | Self::Withdrawal { .. }
+            | Self::Generic { .. } => None,
         }
     }
 
@@ -480,6 +498,10 @@ impl GemTransferData {
 
     pub fn application_short_name(&self) -> Option<String> {
         self.input_type.application_short_name()
+    }
+
+    pub fn payment_message(&self) -> Option<String> {
+        self.input_type.payment_message()
     }
 
     pub(crate) fn fee_available_value(&self, balance: &GemAssetBalance) -> BigInt {
@@ -1063,6 +1085,21 @@ mod tests {
             .output_action,
             TransferDataOutputAction::Send
         );
+    }
+
+    #[test]
+    fn test_only_a_payment_carries_the_merchant_message() {
+        let payment = TransactionInputType::Payment {
+            asset: Asset::from_chain(Chain::Solana),
+            invoice: PaymentInvoice {
+                message: Some("Annual plan".to_string()),
+                ..PaymentInvoice::mock()
+            },
+            extra: TransferDataExtra::mock(),
+        };
+
+        assert_eq!(payment.payment_message().as_deref(), Some("Annual plan"));
+        assert_eq!(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Solana) }.payment_message(), None);
     }
 
     #[test]

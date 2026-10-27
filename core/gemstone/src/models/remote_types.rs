@@ -1314,6 +1314,7 @@ pub struct PaymentInvoice {
     pub link: PaymentLink,
     pub merchant: PaymentMerchant,
     pub price: Option<PaymentPrice>,
+    pub message: Option<String>,
     pub quotes: Vec<PaymentQuote>,
     pub verification: Option<PaymentVerification>,
 }

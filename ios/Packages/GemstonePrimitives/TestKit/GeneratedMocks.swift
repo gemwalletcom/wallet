@@ -1557,6 +1557,7 @@ public extension Gemstone.PaymentInvoice {
         link: Gemstone.PaymentLink = .mock(),
         merchant: Gemstone.PaymentMerchant = .mock(),
         price: Gemstone.PaymentPrice? = nil,
+        message: String? = nil,
         quotes: [Gemstone.PaymentQuote] = [],
         verification: Gemstone.PaymentVerification? = nil,
     ) -> Gemstone.PaymentInvoice {
@@ -1564,6 +1565,7 @@ public extension Gemstone.PaymentInvoice {
             link: link,
             merchant: merchant,
             price: price,
+            message: message,
             quotes: quotes,
             verification: verification,
         )

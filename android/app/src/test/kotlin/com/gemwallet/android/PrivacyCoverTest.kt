@@ -13,6 +13,7 @@ import org.junit.Test
 class PrivacyCoverTest {
 
     private var gemFocused = false
+    private var gemLocked = false
 
     @Test
     fun leavingGemCoversAfterAMoment() = runTest {
@@ -139,7 +140,19 @@ class PrivacyCoverTest {
         assertFalse(cover.isCovered.value)
     }
 
-    private fun TestScope.cover(isLockEnabled: Boolean = true) = PrivacyCover(backgroundScope) { gemFocused }.also { it.isLockEnabled = isLockEnabled }
+    @Test
+    fun aLockedGemIsLeftToItsLockWindow() = runTest {
+        val cover = cover()
+        gemLocked = true
+
+        cover.onFocusChanged(false)
+        settle()
+        cover.onStop()
+
+        assertFalse(cover.isCovered.value)
+    }
+
+    private fun TestScope.cover(isLockEnabled: Boolean = true) = PrivacyCover(backgroundScope, { gemFocused }, { gemLocked }).also { it.isLockEnabled = isLockEnabled }
 
     private fun TestScope.settle() {
         advanceTimeBy(1_000)

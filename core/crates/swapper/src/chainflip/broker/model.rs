@@ -109,8 +109,8 @@ pub struct DepositChannelResponse {
 }
 
 impl DepositChannelResponse {
-    pub fn from_jsonrpc(data: &[u8]) -> Option<Self> {
-        serde_json::from_slice::<JsonRpcResult<Self>>(data).ok()?.take().ok()
+    pub fn from_jsonrpc(data: &[u8]) -> Result<Option<Self>, serde_json::Error> {
+        Ok(serde_json::from_slice::<JsonRpcResult<Self>>(data)?.take().ok())
     }
 
     pub fn deposit_address(&self) -> Result<String, SwapperError> {
@@ -146,8 +146,8 @@ mod tests {
         let channel = br#"{"jsonrpc":"2.0","id":1,"result":{"address":"0x3cc22d40b17571ee448414b0a21c7e8f6f2b96aaab95625363918412b4721550","issued_block":15242255,"channel_id":6}}"#;
         let error = br#"{"jsonrpc":"2.0","id":1,"error":{"code":-32603,"message":"Invalid destination address"}}"#;
 
-        assert_eq!(DepositChannelResponse::from_jsonrpc(channel).unwrap().deposit_address().unwrap(), "12NfZE9HvsZseFTYGAcwdTyw5NDxVNZUVsyggP5XTQN8j9xB");
-        assert!(DepositChannelResponse::from_jsonrpc(error).is_none());
+        assert_eq!(DepositChannelResponse::from_jsonrpc(channel).unwrap().unwrap().deposit_address().unwrap(), "12NfZE9HvsZseFTYGAcwdTyw5NDxVNZUVsyggP5XTQN8j9xB");
+        assert!(DepositChannelResponse::from_jsonrpc(error).unwrap().is_none());
     }
 
     #[test]

@@ -7,11 +7,11 @@ use gem_evm::{
     },
 };
 use gem_tracing::info_with_fields;
-use primitives::contract_constants::{UNISWAP_PERMIT2_CONTRACT, ZKSYNC_UNISWAP_PERMIT2_CONTRACT};
-use primitives::{AddressType, Chain, ScanAddress, SwapProvider};
+use primitives::contract_constants::{TRON_SUNSWAP_PERMIT2_CONTRACT, TRON_SUNSWAP_UNIVERSAL_ROUTER_CONTRACT, UNISWAP_PERMIT2_CONTRACT, ZKSYNC_UNISWAP_PERMIT2_CONTRACT};
+use primitives::{AddressType, Chain, ChainType, ScanAddress, SwapProvider};
 use std::collections::HashMap;
 use std::error::Error;
-use swapper::{chainflip, mayan, near_intents, squid, thorchain::THORChainNetwork};
+use swapper::{bridgers, chainflip, mayan, near_intents, okx, relay, squid, thorchain::THORChainNetwork};
 
 use super::repository::Repository;
 
@@ -84,8 +84,28 @@ fn provider_contracts() -> Vec<ScanAddress> {
         address_type: Some(AddressType::Address),
         ..ScanAddress::contract(chain, treasury, SwapProvider::NearIntents.name())
     });
+    let okx = okx::DEPLOYMENTS.iter().flat_map(|deployment| {
+        [(deployment.contract, "OKX DEX Router"), (deployment.spender, "OKX DEX Approval")]
+            .into_iter()
+            .map(move |(address, name)| ScanAddress::contract(deployment.chain, address, if deployment.chain == Chain::Solana { SwapProvider::Okx.name() } else { name }))
+    });
+    let relay = relay::SUPPORTED_CHAINS.iter().filter(|asset| asset.get_chain().chain_type() == ChainType::Ethereum).flat_map(|asset| {
+        let chain = asset.get_chain();
+        let contracts = relay::contracts(chain);
+        contracts.targets.into_iter().chain(contracts.spenders).map(move |address| ScanAddress::contract(chain, address, SwapProvider::Relay.name()))
+    });
+    let bridgers = bridgers::routers()
+        .filter(|(chain, _)| chain.chain_type() == ChainType::Ethereum)
+        .map(|(chain, address)| ScanAddress::contract(chain, address, SwapProvider::Bridgers.name()));
+    let mayan_forwarders = mayan::supported_assets()
+        .into_iter()
+        .filter(|asset| asset.get_chain().chain_type() == ChainType::Ethereum)
+        .map(|asset| ScanAddress::contract(asset.get_chain(), mayan::MAYAN_FORWARDER, SwapProvider::Mayan.name()));
+    let sunswap = [(TRON_SUNSWAP_UNIVERSAL_ROUTER_CONTRACT, "SunSwap Router"), (TRON_SUNSWAP_PERMIT2_CONTRACT, "SunSwap Permit2")]
+        .into_iter()
+        .map(|(address, name)| ScanAddress::contract(Chain::Tron, address, name));
 
-    routers.chain(contracts).chain(treasuries).collect()
+    routers.chain(contracts).chain(treasuries).chain(okx).chain(relay).chain(bridgers).chain(mayan_forwarders).chain(sunswap).collect()
 }
 
 fn permit2_name(provider: SwapProvider, address: &str) -> String {
@@ -97,7 +117,68 @@ fn permit2_name(provider: SwapProvider, address: &str) -> String {
 
 #[cfg(test)]
 mod tests {
+    use gem_evm::ethereum_address_checksum;
+
     use super::*;
+
+    #[test]
+    fn test_approval_contracts_are_identified_with_generic_provider_names() {
+        let contracts = known_contracts();
+        let relay = relay::contracts(Chain::Ethereum);
+        let (_, bridgers) = bridgers::routers().find(|(chain, _)| *chain == Chain::SmartChain).unwrap();
+        let entries = [
+            (Chain::Ethereum, relay.spenders[1], "Relay"),
+            (Chain::SmartChain, bridgers, "Bridgers"),
+            (Chain::Base, mayan::MAYAN_FORWARDER, "Mayan"),
+            (Chain::Tron, TRON_SUNSWAP_PERMIT2_CONTRACT, "SunSwap Permit2"),
+            (Chain::Tron, TRON_SUNSWAP_UNIVERSAL_ROUTER_CONTRACT, "SunSwap Router"),
+        ];
+
+        for (chain, address, name) in entries {
+            assert_eq!(contracts.iter().find(|contract| contract.chain == chain && contract.address == address), Some(&ScanAddress::contract(chain, address, name)));
+        }
+    }
+
+    #[test]
+    fn test_provider_identification_keeps_supported_chain_scope_and_checksums() {
+        let contracts = known_contracts();
+        let relay = relay::contracts(Chain::Fantom);
+        let (_, bridgers) = bridgers::routers().find(|(chain, _)| *chain == Chain::SmartChain).unwrap();
+
+        for (chain, address) in [
+            (Chain::Fantom, relay.spenders[1]),
+            (Chain::Ethereum, bridgers),
+            (Chain::Fantom, mayan::MAYAN_FORWARDER),
+            (Chain::Ethereum, TRON_SUNSWAP_PERMIT2_CONTRACT),
+        ] {
+            assert_eq!(contracts.iter().find(|contract| contract.chain == chain && contract.address == address), None);
+        }
+        for provider in [SwapProvider::Relay, SwapProvider::Bridgers, SwapProvider::Mayan] {
+            for contract in contracts.iter().filter(|contract| contract.chain.chain_type() == ChainType::Ethereum && contract.name.as_deref() == Some(provider.name())) {
+                assert_eq!(contract.address, ethereum_address_checksum(&contract.address).unwrap());
+            }
+        }
+        for provider in [SwapProvider::Relay, SwapProvider::Bridgers] {
+            let other_chains = contracts
+                .iter()
+                .filter(|contract| contract.chain.chain_type() != ChainType::Ethereum && contract.name.as_deref() == Some(provider.name()))
+                .count();
+            assert_eq!(other_chains, 0, "{}", provider.name());
+        }
+    }
+
+    #[test]
+    fn test_okx_approval_is_identified_on_its_deployed_chains() {
+        let contracts = known_contracts();
+        let address = "0x40aA958dd87FC8305b97f2BA922CDdCa374bcD7f";
+
+        for chain in [Chain::Ethereum, Chain::AvalancheC] {
+            assert_eq!(
+                contracts.iter().find(|contract| contract.chain == chain && contract.address == address),
+                Some(&ScanAddress::contract(chain, address, "OKX DEX Approval"))
+            );
+        }
+    }
 
     #[test]
     fn test_a_contract_listed_more_than_once_keeps_one_name() {

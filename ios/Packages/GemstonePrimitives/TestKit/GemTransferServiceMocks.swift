@@ -33,6 +33,10 @@ public final class GemAmountServiceMock: GemAmountServiceProtocol, @unchecked Se
     public func extras(request: GemAmountRequest, asset: Gemstone.Asset) -> GemAmountExtras {
         builder.extras(request: request, asset: asset)
     }
+
+    public func stakeValidatorOptions(chain: Gemstone.Chain, input: GemStakeAmountInput, validators: [Gemstone.DelegationValidator]) -> GemStakeValidatorOptions {
+        builder.stakeValidatorOptions(chain: chain, input: input, validators: validators)
+    }
 }
 
 public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchecked Sendable {
@@ -166,10 +170,6 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         self.freezes = freezes
         self.claimRewardsDestination = claimRewardsDestination
         self.refreshState = refreshState
-    }
-
-    public func stakeAmountSelection(chain _: Gemstone.Chain, input _: GemStakeAmountInput) -> GemStakeAmountSelection {
-        .validator(validator: validators.first.map { .mock(validator: $0) } ?? .mock(), canSelect: true)
     }
 
     public func stakeValidatorOptions(chain _: Gemstone.Chain, input _: GemStakeAmountInput, validators: [Gemstone.DelegationValidator]) -> GemStakeValidatorOptions {

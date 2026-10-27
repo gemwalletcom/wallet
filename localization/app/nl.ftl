@@ -60,7 +60,6 @@ common_suspicious_address = Verdacht adres
 common_suspicious_address_description = Dit adres wordt in verband gebracht met verdachte of schadelijke activiteiten.
 common_refresh = Vernieuwen
 common_grant_permission = Geef toestemming
-common_required_field = %@ is vereist
 
 # Welcome
 
@@ -165,7 +164,6 @@ transfer_reserved_fees = We hebben %@ op uw saldo laten staan om toekomstige net
 transfer_freeze_title = Bevriezen
 transfer_unfreeze_title = Ontvriezen
 transfer_review_request = Verzoek controleren
-transfer_amount = Bedrag
 
 # Settings
 
@@ -255,7 +253,6 @@ errors_dust_threshold_short = Het netwerk beschouwt deze hoeveelheid als stof; d
 errors_swap_minimum_amount = Het minimale handelsbedrag is %@. Voer een hoger bedrag in.
 errors_perpetual_trigger_price_lower = De triggerprijs moet lager zijn dan de marktprijs
 errors_perpetual_trigger_price_higher = De triggerprijs moet hoger zijn dan de marktprijs
-errors_unknown_try_again = Er is een onbekende fout opgetreden. Probeer het opnieuw.
 errors_network_error = Netwerkfout: %@
 errors_network_offline = De internetverbinding lijkt offline te zijn.
 errors_no_internet_connection = Geen internetverbinding
@@ -327,7 +324,6 @@ asset_buy_asset = Koop %@
 asset_get_asset = %@ krijgen
 asset_add_to_wallet = Toevoegen aan portemonnee
 asset_added_to_wallet = Toegevoegd aan portemonnee
-asset_hidden_from_wallet = Verborgen voor portemonnee
 asset_resources = Bronnen
 asset_verification_verified = Geverifieerd
 asset_all_time_high = Hoogste ooit

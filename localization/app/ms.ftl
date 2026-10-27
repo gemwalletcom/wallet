@@ -60,7 +60,6 @@ common_suspicious_address = Alamat yang mencurigakan
 common_suspicious_address_description = Alamat ini dikaitkan dengan aktiviti yang mencurigakan atau berbahaya.
 common_refresh = Segarkan semula
 common_grant_permission = Berikan kebenaran
-common_required_field = %@ diperlukan
 
 # Welcome
 
@@ -165,7 +164,6 @@ transfer_reserved_fees = Kami telah meninggalkan %@ dalam baki anda untuk menamp
 transfer_freeze_title = Bekukan
 transfer_unfreeze_title = Nyahbekukan
 transfer_review_request = Semak Permintaan
-transfer_amount = Jumlah
 
 # Settings
 
@@ -255,7 +253,6 @@ errors_dust_threshold_short = Rangkaian menganggap jumlah habuk ini - bayarannya
 errors_swap_minimum_amount = Jumlah dagangan minimum ialah %@. Sila masukkan jumlah yang lebih tinggi.
 errors_perpetual_trigger_price_lower = Harga pencetus perlu lebih rendah daripada harga pasaran
 errors_perpetual_trigger_price_higher = Harga pencetus perlu lebih tinggi daripada harga pasaran
-errors_unknown_try_again = Ralat tidak diketahui berlaku. Sila cuba lagi.
 errors_network_error = Ralat rangkaian: %@
 errors_network_offline = Sambungan Internet nampaknya di luar talian.
 errors_no_internet_connection = Tiada sambungan internet
@@ -327,7 +324,6 @@ asset_buy_asset = Beli %@
 asset_get_asset = Dapatkan %@
 asset_add_to_wallet = Tambah pada dompet
 asset_added_to_wallet = Ditambah ke dompet
-asset_hidden_from_wallet = Disembunyikan dari dompet
 asset_resources = Sumber
 asset_verification_verified = Disahkan
 asset_all_time_high = Tertinggi Sepanjang Masa

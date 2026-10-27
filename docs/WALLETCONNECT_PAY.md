@@ -12,7 +12,7 @@ A decoded `PaymentLink` is either `WalletConnectPay { payment_id }` or `SolanaPa
 | `GemPaymentLoad::Verify { invoice, asset_id, url }` | The gateway wants identity data before it builds the transaction | Show the form at `url`, then load the link again |
 | `PaymentError::Status { status }` | The payment is already final (succeeded, failed, expired, cancelled) | Toast the status, open nothing |
 
-`invoice` carries the link, the merchant (name and icon), the price when the rail quotes one, every quote the wallet can pay with, and the pending verification when there is one. The quote being paid is the one whose asset is the transfer's asset, so the confirm renders the payment from that input alone: title, price header, merchant recipient row, pay-with row, and the verification row in place of the fee while a quote still needs the form.
+`invoice` carries the link, the merchant (name and icon), the price when the rail quotes one, the merchant's message when the rail sends one (Solana Pay), every quote the wallet can pay with, and the pending verification when there is one. The quote being paid is the one whose asset is the transfer's asset, so the confirm renders the payment from that input alone: title, price header, merchant recipient row, pay-with row, and the verification row in place of the fee while a quote still needs the form.
 
 ```mermaid
 sequenceDiagram

@@ -17,6 +17,7 @@ enum ConfirmTransferSectionType: String, Identifiable, Equatable {
     case notice
     case warnings
     case details
+    case message
     case balanceChanges
     case payload
     case fee
@@ -34,6 +35,7 @@ public enum ConfirmTransferItem: Identifiable, Hashable, Sendable {
     case row(Int)
     case verification
     case details
+    case message(String)
     case balanceChange(Int)
     case payload
     case networkFee
@@ -49,6 +51,7 @@ public enum ConfirmTransferItemModel {
     case row(GemListRow)
     case recipient(GemAddressRow)
     case paymentAsset(ListItemModel, selectable: Bool)
+    case message(String)
     case verification(ListItemModel)
     case swapDetails(GemSwapDetails)
     case networkFee(ListItemModel, selectable: Bool)
@@ -61,7 +64,7 @@ public enum ConfirmTransferItemModel {
 }
 
 extension ListSection where T == ConfirmTransferItem {
-    init(type: ConfirmTransferSectionType, _ items: [ConfirmTransferItem]) {
-        self.init(type: type, values: items)
+    init(type: ConfirmTransferSectionType, title: String? = nil, _ items: [ConfirmTransferItem]) {
+        self.init(type: type, title: title, values: items)
     }
 }

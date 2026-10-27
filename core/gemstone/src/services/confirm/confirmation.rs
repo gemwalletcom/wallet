@@ -172,7 +172,14 @@ impl GemConfirmation {
                 state.as_ref().is_some_and(|state| state.confirm_data.is_some() || state.load.shows_fee_assets()),
             ),
             title: transfer.title(),
-            sections: super::rules::confirm_sections(rows, self.simulation_warnings(state.as_ref()), load.and_then(|load| load.simulation.simulation.clone()), verification.is_some(), load_error),
+            sections: super::rules::confirm_sections(
+                rows,
+                transfer.payment_message(),
+                self.simulation_warnings(state.as_ref()),
+                load.and_then(|load| load.simulation.simulation.clone()),
+                verification.is_some(),
+                load_error,
+            ),
             verification,
         }
     }

@@ -11,6 +11,7 @@ mod testkit;
 mod tx_builder;
 mod wormhole_chain;
 
-pub use constants::{MAYAN_DEPOSIT_CONTRACTS, MAYAN_SEND_CONTRACTS};
+pub use asset::supported_assets;
+pub use constants::{MAYAN_DEPOSIT_CONTRACTS, MAYAN_FORWARDER, MAYAN_SEND_CONTRACTS};
 pub use provider::Mayan;
 pub(crate) use tx_builder::FORWARDER_SELECTORS as MAYAN_FORWARDER_SELECTORS;

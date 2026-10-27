@@ -81,10 +81,6 @@ impl GemStakeService {
         self.preferences.get_currency()
     }
 
-    pub fn stake_amount_selection(&self, chain: Chain, input: GemStakeAmountInput) -> GemStakeAmountSelection {
-        rules::amount_selection(chain, &input)
-    }
-
     pub fn stake_validator_options(&self, chain: Chain, input: GemStakeAmountInput, validators: Vec<DelegationValidator>) -> GemStakeValidatorOptions {
         let options = rules::validator_options(chain, &input, validators);
         let with_explorer = |row: GemValidatorRow| GemValidatorRow {

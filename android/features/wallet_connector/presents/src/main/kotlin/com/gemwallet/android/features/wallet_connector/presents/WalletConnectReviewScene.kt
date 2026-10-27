@@ -2,11 +2,8 @@ package com.gemwallet.android.features.wallet_connector.presents
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -23,11 +20,10 @@ import com.gemwallet.android.ui.components.list_head.CenteredListHead
 import com.gemwallet.android.ui.components.list_head.CenteredListHeadSubtitleLayout
 import com.gemwallet.android.ui.components.list_head.ValueListHead
 import com.gemwallet.android.ui.components.list_item.GemListRowView
-import com.gemwallet.android.ui.components.list_item.SubheaderItem
-import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.simulation.simulationPayloadFieldsContent
+import com.gemwallet.android.ui.components.textMessageContent
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.requestAuth
@@ -87,7 +83,7 @@ internal fun WalletConnectReviewScene(model: WalletConnectReviewModel, buttonSta
                         ?.let { { sheetType = WalletConnectReviewSheetType.Details } },
                 )
             } else {
-                walletConnectTextMessage(model.message)
+                textMessageContent(model.message)
             }
         }
     }
@@ -111,17 +107,4 @@ internal fun WalletConnectReviewScene(model: WalletConnectReviewModel, buttonSta
 private enum class WalletConnectReviewSheetType {
     Details,
     FullMessage,
-}
-
-private fun LazyListScope.walletConnectTextMessage(message: String) {
-    item {
-        SubheaderItem(R.string.sign_message_message)
-        Text(
-            modifier = Modifier
-                .fillMaxWidth()
-                .listItem()
-                .padding(paddingDefault),
-            text = message,
-        )
-    }
 }
