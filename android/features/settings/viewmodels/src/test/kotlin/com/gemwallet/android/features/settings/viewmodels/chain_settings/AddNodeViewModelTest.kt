@@ -82,7 +82,7 @@ class AddNodeViewModelTest {
         viewModel.onUrlChange()
         advanceUntilIdle()
 
-        viewModel.clear()
+        viewModel.reset()
         advanceUntilIdle()
 
         assertEquals("", viewModel.url.value)

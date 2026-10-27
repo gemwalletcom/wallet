@@ -123,7 +123,7 @@ fun ConfirmTransferScreen(
     var showSelectTxSpeed by rememberSaveable { mutableStateOf(false) }
     var showSimulationDetails by rememberSaveable { mutableStateOf(false) }
     var isVerificationInfoVisible by rememberSaveable { mutableStateOf(false) }
-    var isDetailsVisible by rememberSaveable(input) { mutableStateOf(false) }
+    var selectedDetailIndex by rememberSaveable(input) { mutableStateOf<Int?>(null) }
     val payload = sections.filterIsInstance<GemConfirmSection.Payload>().firstOrNull()
     val openPayloadAddress = payloadChain?.let { chain ->
         { address: String ->
@@ -239,7 +239,7 @@ fun ConfirmTransferScreen(
                             ConfirmDetailsRow(
                                 item = item,
                                 listPosition = listPosition,
-                                onClick = { isDetailsVisible = true },
+                                onClick = { selectedDetailIndex = index },
                             )
                         }
                     }
@@ -324,8 +324,8 @@ fun ConfirmTransferScreen(
         }
 
         ConfirmDetailsSheet(
-            item = detailElements.firstOrNull().takeIf { isDetailsVisible },
-            onDismiss = { isDetailsVisible = false },
+            item = selectedDetailIndex?.let(detailElements::getOrNull),
+            onDismiss = { selectedDetailIndex = null },
         )
 
         ModalBottomSheet(

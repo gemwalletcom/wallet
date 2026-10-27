@@ -14,7 +14,7 @@ fun AddNodeScreen(chain: Chain, onCancel: () -> Unit) {
     val state by viewModel.viewState.collectAsStateWithLifecycle()
     val isAdded by viewModel.isAdded.collectAsStateWithLifecycle()
     val close = {
-        viewModel.clear()
+        viewModel.reset()
         onCancel()
     }
 

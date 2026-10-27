@@ -38,7 +38,7 @@ class AddNodeViewModel @AssistedInject constructor(@Assisted private val chain: 
     private var checkUrlJob: Job? = null
     private var addUrlJob: Job? = null
 
-    fun clear() {
+    fun reset() {
         checkUrlJob?.cancel()
         url.value = ""
         session.value = service.newAddNodeSession(chain.string)

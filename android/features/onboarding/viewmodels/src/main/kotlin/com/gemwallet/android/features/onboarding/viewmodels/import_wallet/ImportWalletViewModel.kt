@@ -81,7 +81,7 @@ class ImportWalletViewModel @AssistedInject constructor(
             )
         }
         viewModelScope.launch {
-            input.collect { (value, _) -> onInput(value) }
+            snapshotFlow { inputState.text.toString() }.collect(::onInput)
         }
     }
 

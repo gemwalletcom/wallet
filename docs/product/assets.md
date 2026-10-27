@@ -63,7 +63,6 @@ flowchart LR
 | The custom token is unverified | "Know What You're Adding" shows before it is added | |
 | The user picks an asset | Recents: the assets the user recently used, per wallet, most recent first | |
 | The list below Recents is filtered | Recents follow the same filters | picking an asset to sell never offers one that cannot be sold |
-| Rotation or theme change while a network filter is picked | the filter stays | |
 
 ## Toasts
 

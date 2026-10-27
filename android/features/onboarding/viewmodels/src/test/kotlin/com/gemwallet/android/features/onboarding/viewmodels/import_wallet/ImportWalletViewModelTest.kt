@@ -192,6 +192,10 @@ class ImportWalletViewModelTest {
         val error = viewModel.uiState.value.dataError
         assertNotNull(error)
 
+        viewModel.type("0x123", cursor = 2)
+        advanceUntilIdle()
+        assertEquals(error, viewModel.uiState.value.dataError)
+
         viewModel.type("0x1234")
         advanceUntilIdle()
         assertNull(viewModel.uiState.value.dataError)

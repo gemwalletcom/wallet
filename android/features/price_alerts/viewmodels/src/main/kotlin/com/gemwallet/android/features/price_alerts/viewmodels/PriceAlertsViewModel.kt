@@ -10,10 +10,13 @@ import com.gemwallet.android.data.services.store.queries.PriceAlertsQuery
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ui.components.screen.message
 import com.gemwallet.android.ui.localization.footer
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.localization.title
 import com.gemwallet.android.ui.models.ListSection
+import com.gemwallet.android.ui.models.ToastEmitter
+import com.gemwallet.android.ui.models.ToastEmitterImpl
 import com.wallet.core.primitives.AssetId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -36,7 +39,6 @@ import uniffi.gemstone.GemPriceAlertItem
 import uniffi.gemstone.GemPriceAlertList
 import uniffi.gemstone.GemPriceAlertSectionKind
 import uniffi.gemstone.GemPriceAlertServiceInterface
-import uniffi.gemstone.GemToast
 import uniffi.gemstone.PriceAlertFormatter
 import javax.inject.Inject
 
@@ -50,7 +52,8 @@ class PriceAlertsViewModel @Inject constructor(
     private val priceAlertFormatter: PriceAlertFormatter,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @param:ApplicationContext private val context: Context,
-) : ViewModel() {
+) : ViewModel(),
+    ToastEmitter by ToastEmitterImpl() {
 
     private val refreshState = MutableStateFlow(false)
     private val alertsEnabled = MutableStateFlow(service.isEnabled())
@@ -73,7 +76,6 @@ class PriceAlertsViewModel @Inject constructor(
 
     private val errorState = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = errorState.asStateFlow()
-    val toast = MutableStateFlow<GemToast?>(null)
 
     init {
         viewModelScope.launch(ioDispatcher) { sync() }
@@ -110,7 +112,7 @@ class PriceAlertsViewModel @Inject constructor(
     fun includeAsset(assetId: AssetId) = viewModelScope.launch(ioDispatcher) {
         val asset = getCurrentWalletId().flatMapLatest { walletId -> assetQuery(walletId.id, assetId) }.firstOrNull()?.asset ?: return@launch
         runCatchingCancellable { service.setAutoAlert(asset.toGem(), true) }
-            .onSuccess { toast.value = it }
+            .onSuccess { toast -> toast?.let { emitToast(it.message(context)) } }
             .onFailure { errorState.value = it.errorText().text(context) }
     }
 

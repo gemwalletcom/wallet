@@ -44,7 +44,6 @@ flowchart LR
 | A WalletConnect request is open when the lock period passes | the lock still re-engages; the request cannot hold it off | |
 | A sheet or dialog is open when the lock re-engages | the lock covers it, cancelled prompt or not, and it is still open after unlocking | nothing Gem shows sits above the lock |
 | The phone is turned or the appearance changes while the unlock prompt is open | the same prompt stays open and unlocks the app | Android recreates the screen; cancelling the prompt then crashed the app |
-| Rotation or theme change while a confirmation prompt is open | the confirmed action runs once | |
 | The lock is on but the device passcode was turned off | the lock stays and says the device passcode is off and must be turned on to open Gem | the lock relies on the device passcode, so there is nothing else to unlock with |
 | The user turns the push switch on | the app asks the system for permission | |
 | A wallet is created or imported, including one that was already on the device | the app offers push right after | |
@@ -53,7 +52,6 @@ flowchart LR
 | The user confirms deleting an added node | the node is removed, and if it was selected the US Gem Wallet Node takes over | |
 | The user cancels deleting an added node | the node stays in the list as it was | |
 | The user types spaces around a node URL that was already checked | the check result and Import stay | spaces are not part of the URL, so the node is the same |
-| Rotation or theme change while Add node is open | it stays open with the typed URL and its check; closed and opened again, it starts empty | |
 | The app has offered push | it asks again no sooner than 30 days later, unless the user turned push off | |
 | The user taps a push | the app switches to the wallet the push belongs to, then opens the transaction, the asset or the chat | |
 | A newer release exists | "New update available!" at launch, with Update and Skip, and in About Us | |

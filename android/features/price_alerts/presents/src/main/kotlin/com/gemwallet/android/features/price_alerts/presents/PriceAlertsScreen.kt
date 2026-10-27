@@ -2,24 +2,20 @@ package com.gemwallet.android.features.price_alerts.presents
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.price_alerts.viewmodels.PriceAlertsViewModel
-import com.gemwallet.android.ui.components.screen.message
+import com.gemwallet.android.ui.components.screen.ToastEffect
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
-import com.gemwallet.android.ui.components.screen.showSnackbar
 import com.gemwallet.android.ui.models.navigation.RouteMessage
 import com.wallet.core.primitives.AssetId
 
 @Composable
 fun PriceAlertsScreen(message: RouteMessage?, onMessageShown: () -> Unit, onChart: (AssetId) -> Unit, onCancel: () -> Unit, viewModel: PriceAlertsViewModel = hiltViewModel()) {
-    val context = LocalContext.current
     val error by viewModel.error.collectAsStateWithLifecycle()
     val snackbar = rememberSnackbarState(message = message, onShown = onMessageShown)
 
@@ -29,15 +25,8 @@ fun PriceAlertsScreen(message: RouteMessage?, onMessageShown: () -> Unit, onChar
     val enabled by viewModel.priceAlertEnabled.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val phase by viewModel.phase.collectAsStateWithLifecycle()
-    val toast by viewModel.toast.collectAsStateWithLifecycle()
 
-    LaunchedEffect(toast) {
-        toast?.let {
-            viewModel.toast.value = null
-            val message = it.message(context)
-            snackbar.showSnackbar(message.title, message.image)
-        }
-    }
+    ToastEffect(viewModel.toastEvents, snackbar)
 
     AnimatedContent(selectingAsset, label = "") { selecting ->
         when (selecting) {
