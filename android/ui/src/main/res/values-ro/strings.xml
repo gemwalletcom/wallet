@@ -60,7 +60,6 @@
   <string name="common_suspicious_address_description">Această adresă este asociată cu o activitate suspectă sau dăunătoare.</string>
   <string name="common_refresh">Reîmprospătează</string>
   <string name="common_grant_permission">Acordați permisiunea</string>
-  <string name="common_required_field">%1$s este necesar</string>
   <string name="welcome_title">Bun venit la Gem Family</string>
   <string name="wallet_create_new_wallet">Creați un portofel nou</string>
   <string name="wallet_import_existing_wallet">Importați un portofel existent</string>
@@ -144,7 +143,6 @@
   <string name="transfer_freeze_title">Îngheață</string>
   <string name="transfer_unfreeze_title">Dezghețare</string>
   <string name="transfer_review_request">Cerere de revizuire</string>
-  <string name="transfer_amount">Suma</string>
   <string name="settings_terms_of_services">Termeni și condiții</string>
   <string name="settings_privacy_policy">Politica de confidențialitate</string>
   <string name="settings_title">Setări</string>
@@ -225,7 +223,6 @@
   <string name="errors_swap_minimum_amount">Suma minimă a tranzacției este %1$s. Vă rugăm să introduceți o sumă mai mare.</string>
   <string name="errors_perpetual_trigger_price_lower">Prețul de declanșare trebuie să fie mai mic decât prețul pieței</string>
   <string name="errors_perpetual_trigger_price_higher">Prețul de declanșare trebuie să fie mai mare decât prețul pieței</string>
-  <string name="errors_unknown_try_again">A apărut o eroare necunoscută. Vă rugăm să încercați din nou.</string>
   <string name="errors_network_error">Eroare de rețea: %1$s</string>
   <string name="errors_network_offline">Conexiunea la internet pare să fie offline.</string>
   <string name="errors_no_internet_connection">Nicio conexiune la internet</string>
@@ -285,7 +282,6 @@
   <string name="asset_get_asset">Obține %1$s</string>
   <string name="asset_add_to_wallet">Adaugă în portofel</string>
   <string name="asset_added_to_wallet">Adăugat în portofel</string>
-  <string name="asset_hidden_from_wallet">Ascuns din portofel</string>
   <string name="asset_resources">Resurse</string>
   <string name="asset_verification_verified">Verificat</string>
   <string name="asset_all_time_high">Maxim istoric</string>

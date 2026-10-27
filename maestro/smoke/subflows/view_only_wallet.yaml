@@ -1,0 +1,54 @@
+appId: ${APP_ID}
+---
+- runFlow: launch.yaml
+- tapOn:
+    id: "settingsTab"
+- tapOn:
+    id: "wallets"
+- waitForAnimationToEnd
+- tapOn:
+    id: "import"
+- waitForAnimationToEnd
+- tapOn:
+    id: "bitcoin"
+- waitForAnimationToEnd
+- tapOn:
+    id: "import_kinds"
+    point: "90%,50%"
+- assertVisible:
+    id: "view_only_warning"
+- tapOn:
+    id: "importInputField"
+- inputText: ${BITCOIN_ADDRESS_2}
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- tapOn:
+    id: "main_action"
+- runFlow: finish_onboarding.yaml
+- extendedWaitUntil:
+    visible:
+      id: "watchWalletBanner"
+    timeout: 15000
+- assertNotVisible:
+    id: "send_button"
+- takeScreenshot: ${output.journey}_view_only_wallet
+- tapOn:
+    id: "settingsTab"
+- tapOn:
+    id: "wallets"
+- waitForAnimationToEnd
+- tapOn:
+    id: "wallet_edit"
+    index: 1
+- waitForAnimationToEnd
+- tapOn:
+    id: "delete"
+- tapOn: "Delete"
+- runFlow: launch.yaml
+- assertVisible:
+    text: ".*Maestro.*"
+- assertNotVisible:
+    id: "watchWalletBanner"

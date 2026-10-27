@@ -60,7 +60,6 @@
   <string name="common_suspicious_address_description">此位址與可疑或惡意行為有關。</string>
   <string name="common_refresh">重新整理</string>
   <string name="common_grant_permission">允許</string>
-  <string name="common_required_field">%1$s 為必填欄位</string>
   <string name="welcome_title">歡迎來到Gem大家庭</string>
   <string name="wallet_create_new_wallet">建立新錢包</string>
   <string name="wallet_import_existing_wallet">匯入現有錢包</string>
@@ -144,7 +143,6 @@
   <string name="transfer_freeze_title">凍結</string>
   <string name="transfer_unfreeze_title">解凍</string>
   <string name="transfer_review_request">檢視請求</string>
-  <string name="transfer_amount">數量</string>
   <string name="settings_terms_of_services">服務條款</string>
   <string name="settings_privacy_policy">隱私政策</string>
   <string name="settings_title">設定</string>
@@ -225,7 +223,6 @@
   <string name="errors_swap_minimum_amount">最低交易金額為 %1$s。請輸入更高的金額。</string>
   <string name="errors_perpetual_trigger_price_lower">觸發價格應低於市場價格</string>
   <string name="errors_perpetual_trigger_price_higher">觸發價格應高於市場價格</string>
-  <string name="errors_unknown_try_again">發生未知錯誤，請重試</string>
   <string name="errors_network_error">網路錯誤： %1$s</string>
   <string name="errors_network_offline">網路連線似乎已斷開。</string>
   <string name="errors_no_internet_connection">無網際網路連線</string>
@@ -285,7 +282,6 @@
   <string name="asset_get_asset">取得 %1$s</string>
   <string name="asset_add_to_wallet">加入錢包</string>
   <string name="asset_added_to_wallet">已加入錢包</string>
-  <string name="asset_hidden_from_wallet">已從錢包隱藏</string>
   <string name="asset_resources">資源</string>
   <string name="asset_verification_verified">已驗證</string>
   <string name="asset_all_time_high">歷史最高點</string>

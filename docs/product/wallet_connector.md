@@ -29,6 +29,7 @@ flowchart LR
 | The user rejects a request | a refusal goes back to the dapp | |
 | A new request arrives while another one is on screen | the new request shows and the earlier one is refused, so its dapp is told | the earlier review is gone and can no longer be approved |
 | The same connection code is opened again while its proposal is on screen | the proposal stays; approving or rejecting it closes it | the SDK delivers a pending proposal again when its code is paired twice |
+| A second connection is approved before the first dapp confirms its own | each connection is listed under, and signs with, the wallet it was approved with | a request is reviewed and signed by its connection's wallet (`sessions that settle out of order are stored for the wallet that approved each`) |
 | A request has expired | "Request expired"; it cannot be approved and is never signed | |
 | A message to sign comes from a site flagged as malicious | it is refused before anything is signed | a message to sign is checked like a transaction |
 | A permit to sign names a flagged spender | a critical warning on the review | |

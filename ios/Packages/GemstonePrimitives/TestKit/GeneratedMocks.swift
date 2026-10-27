@@ -104,20 +104,26 @@ public extension Gemstone.GemAddressRow {
     }
 }
 
+public extension Gemstone.GemAppUpdateDestination {
+    static func mock() -> Gemstone.GemAppUpdateDestination {
+        .store(url: "")
+    }
+}
+
 public extension Gemstone.GemAppUpdateOffer {
     static func mock(
         version: String = "",
         title: Gemstone.GemLocalizedText = .mock(),
         description: Gemstone.GemLocalizedText = .mock(),
         actions: [Gemstone.GemAppUpdateAction] = [],
-        apkUrl: String? = nil,
+        destination: Gemstone.GemAppUpdateDestination = .mock(),
     ) -> Gemstone.GemAppUpdateOffer {
         Gemstone.GemAppUpdateOffer(
             version: version,
             title: title,
             description: description,
             actions: actions,
-            apkUrl: apkUrl,
+            destination: destination,
         )
     }
 }

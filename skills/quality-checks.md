@@ -48,7 +48,7 @@ Run the formatter for each platform your change touched, before the closing chec
 | Platform | Command |
 |---|---|
 | Core | `cd core && just format` |
-| iOS | `cd ios && just format` |
+| iOS | `cd ios && just format` (`just ios format-all` sweeps every file) |
 | Android | `cd android && just format` (`just android format-all` sweeps every file) |
 
 `just generate-models` formats the Rust it writes.

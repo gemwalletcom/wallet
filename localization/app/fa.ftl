@@ -60,7 +60,6 @@ common_suspicious_address = آدرس مشکوک
 common_suspicious_address_description = این آدرس با فعالیت مشکوک یا مضر مرتبط است.
 common_refresh = تازه کردن
 common_grant_permission = اجازه بدهید
-common_required_field = %@ مورد نیاز است
 
 # Welcome
 
@@ -165,7 +164,6 @@ transfer_reserved_fees = ما %@ را برای پوشش هزینه‌های شب
 transfer_freeze_title = فریز کردن
 transfer_unfreeze_title = لغو فریز
 transfer_review_request = درخواست بررسی
-transfer_amount = مبلغ
 
 # Settings
 
@@ -255,7 +253,6 @@ errors_dust_threshold_short = شبکه این مبلغ را داست (dust) در
 errors_swap_minimum_amount = حداقل مبلغ معامله %@ است. لطفاً مبلغ بیشتری وارد کنید.
 errors_perpetual_trigger_price_lower = قیمت فعالسازی باید کمتر از قیمت بازار باشد
 errors_perpetual_trigger_price_higher = قیمت فعالسازی باید بیشتر از قیمت بازار باشد
-errors_unknown_try_again = خطای ناشناخته ای رخ داد. لطفا دوباره امتحان کنید.
 errors_network_error = خطای شبکه: %@
 errors_network_offline = به نظر می‌رسد اتصال اینترنت آفلاین است.
 errors_no_internet_connection = اتصال اینترنت برقرار نیست
@@ -327,7 +324,6 @@ asset_buy_asset = خرید %@
 asset_get_asset = دریافت %@
 asset_add_to_wallet = اضافه کردن به کیف پول
 asset_added_to_wallet = به کیف پول اضافه شد
-asset_hidden_from_wallet = از کیف پول پنهان شد
 asset_resources = منابع
 asset_verification_verified = تأیید شده
 asset_all_time_high = بالاترین رکورد تمام دوران

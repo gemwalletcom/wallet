@@ -60,7 +60,6 @@
   <string name="common_suspicious_address_description">This address is associated with suspicious or harmful activity.</string>
   <string name="common_refresh">Refresh</string>
   <string name="common_grant_permission">Grant permission</string>
-  <string name="common_required_field">%1$s is required</string>
   <string name="welcome_title">Welcome to Gem Family</string>
   <string name="wallet_create_new_wallet">Create a New Wallet</string>
   <string name="wallet_import_existing_wallet">Import an Existing Wallet</string>
@@ -144,7 +143,6 @@
   <string name="transfer_freeze_title">Freeze</string>
   <string name="transfer_unfreeze_title">Unfreeze</string>
   <string name="transfer_review_request">Review Request</string>
-  <string name="transfer_amount">Amount</string>
   <string name="settings_terms_of_services">Terms of Services</string>
   <string name="settings_privacy_policy">Privacy Policy</string>
   <string name="settings_title">Settings</string>
@@ -225,7 +223,6 @@
   <string name="errors_swap_minimum_amount">Minimum trade amount is %1$s. Please enter a higher amount.</string>
   <string name="errors_perpetual_trigger_price_lower">Trigger price should be lower than market price</string>
   <string name="errors_perpetual_trigger_price_higher">Trigger price should be higher than market price</string>
-  <string name="errors_unknown_try_again">An unknown error occurred. Please try again.</string>
   <string name="errors_network_error">Network error: %1$s</string>
   <string name="errors_network_offline">The Internet connection appears to be offline.</string>
   <string name="errors_no_internet_connection">No internet connection</string>
@@ -285,7 +282,6 @@
   <string name="asset_get_asset">Get %1$s</string>
   <string name="asset_add_to_wallet">Add to wallet</string>
   <string name="asset_added_to_wallet">Added to wallet</string>
-  <string name="asset_hidden_from_wallet">Hidden from wallet</string>
   <string name="asset_resources">Resources</string>
   <string name="asset_verification_verified">Verified</string>
   <string name="asset_all_time_high">All Time High</string>

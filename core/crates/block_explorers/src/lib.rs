@@ -1,7 +1,5 @@
 mod explorers;
 
-use std::str::FromStr;
-
 use primitives::{AssetId, Chain, EVMChain, SwapProvider};
 
 use crate::explorers::{
@@ -44,20 +42,6 @@ pub trait BlockExplorer: Send + Sync {
     fn get_swap_tx_url(&self, input: &ExplorerInput) -> String {
         self.get_tx_url(&input.hash)
     }
-
-    fn new() -> Box<Self>
-    where
-        Self: Default + Sized,
-    {
-        Box::new(Self::default())
-    }
-}
-
-pub fn get_block_explorers_by_chain(chain: &str) -> Vec<Box<dyn BlockExplorer>> {
-    let Ok(chain) = Chain::from_str(chain) else {
-        return vec![];
-    };
-    get_block_explorers(chain)
 }
 
 pub fn get_block_explorer(chain: Chain, name: &str) -> Box<dyn BlockExplorer> {
@@ -175,6 +159,58 @@ pub fn swap_explorer(provider: SwapProvider, chain: Chain) -> Option<Box<dyn Blo
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_get_block_explorer() {
+        assert_eq!(get_block_explorer(Chain::Ethereum, "Blockchair").name(), "Blockchair");
+        assert_eq!(get_block_explorer(Chain::Ethereum, "Unknown").name(), "Etherscan");
+        assert_eq!(get_block_explorer(Chain::Ethereum, "").name(), "Etherscan");
+
+        assert_eq!(get_block_explorer(Chain::Bitcoin, "").name(), "Blockchair");
+        assert_eq!(get_block_explorer(Chain::Bitcoin, "Mempool").name(), "Mempool");
+        assert_eq!(get_block_explorer(Chain::Dash, "").name(), "Blockchair");
+        assert_eq!(get_block_explorer(Chain::Dash, "Dash Explorer").name(), "Dash Explorer");
+        assert_eq!(get_block_explorer(Chain::Zcash, "").name(), "3xpl");
+        assert_eq!(get_block_explorer(Chain::Zcash, "ZecBlock").get_tx_url("transaction_id"), "https://zecblock.com/tx/transaction_id");
+        assert_eq!(get_block_explorer(Chain::Zcash, "ZecBlock").get_address_url("address"), "https://zecblock.com/address/address");
+        assert_eq!(get_block_explorer(Chain::Ton, "").name(), "TonViewer");
+        assert_eq!(get_block_explorer(Chain::Ton, "Tonscan").name(), "Tonscan");
+        assert_eq!(get_block_explorer(Chain::Solana, "").name(), "Solscan");
+        assert_eq!(get_block_explorer(Chain::Solana, "SolanaFM").name(), "SolanaFM");
+        assert_eq!(get_block_explorer(Chain::Sui, "").name(), "SuiScan");
+        assert_eq!(get_block_explorer(Chain::Sui, "SuiVision").name(), "SuiVision");
+        assert_eq!(get_block_explorer(Chain::Cosmos, "").name(), "Mintscan");
+        assert_eq!(get_block_explorer(Chain::Noble, "").name(), "Mintscan");
+        assert_eq!(get_block_explorer(Chain::Tron, "").name(), "TRONSCAN");
+        assert_eq!(get_block_explorer(Chain::Thorchain, "").name(), "RuneScan");
+    }
+
+    #[test]
+    fn test_swap_explorer() {
+        let near_intents = swap_explorer(SwapProvider::NearIntents, Chain::Near).unwrap();
+        let recipient = "aec8de30ed03c5e6f9d0dc90ae39d865f1b4f6f77c990f2ad16c93e873ea67de";
+        let input = ExplorerInput {
+            recipient: Some(recipient.to_string()),
+            memo: Some("48694126".to_string()),
+            ..Default::default()
+        };
+
+        assert_eq!(
+            swap_explorer(SwapProvider::Thorchain, Chain::Thorchain)
+                .unwrap()
+                .get_swap_tx_url(&"0x0299923c9a0a40e3a296058ac2c5c3a7b41f91803ea36ad9645492ccca0f8631".into()),
+            "https://runescan.io/tx/0299923c9a0a40e3a296058ac2c5c3a7b41f91803ea36ad9645492ccca0f8631"
+        );
+        assert_eq!(
+            swap_explorer(SwapProvider::Mayan, Chain::Solana)
+                .unwrap()
+                .get_swap_tx_url(&"0x56acc6a58fc0bdd9e9be5cc2a3ff079b91b933f562cf0fe760f1d8d6b76f4876".into()),
+            "https://explorer.mayan.finance/tx/0x56acc6a58fc0bdd9e9be5cc2a3ff079b91b933f562cf0fe760f1d8d6b76f4876"
+        );
+        assert_eq!(swap_explorer(SwapProvider::Across, Chain::Tron).unwrap().name(), "Across");
+        assert_eq!(near_intents.name(), "NEAR Intents");
+        assert_eq!(near_intents.get_swap_tx_url(&input), format!("https://explorer.near-intents.org/transactions/{recipient}?depositMemo=48694126"));
+    }
 
     #[test]
     fn test_chainflip_explorer() {

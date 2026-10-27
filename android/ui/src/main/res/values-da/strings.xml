@@ -60,7 +60,6 @@
   <string name="common_suspicious_address_description">Denne adresse er forbundet med mistænkelig eller skadelig aktivitet.</string>
   <string name="common_refresh">Opdater</string>
   <string name="common_grant_permission">Giv tilladelse</string>
-  <string name="common_required_field">%1$s er påkrævet</string>
   <string name="welcome_title">Velkommen til Gem Family</string>
   <string name="wallet_create_new_wallet">Opret en ny tegnebog</string>
   <string name="wallet_import_existing_wallet">Importer en eksisterende tegnebog</string>
@@ -144,7 +143,6 @@
   <string name="transfer_freeze_title">Fryse</string>
   <string name="transfer_unfreeze_title">Optø</string>
   <string name="transfer_review_request">Anmodning om gennemgang</string>
-  <string name="transfer_amount">Beløb</string>
   <string name="settings_terms_of_services">Servicevilkår</string>
   <string name="settings_privacy_policy">Privatlivspolitik</string>
   <string name="settings_title">Indstillinger</string>
@@ -225,7 +223,6 @@
   <string name="errors_swap_minimum_amount">Minimumsbeløbet for handel er %1$s. Indtast venligst et højere beløb.</string>
   <string name="errors_perpetual_trigger_price_lower">Triggerprisen skal være lavere end markedsprisen</string>
   <string name="errors_perpetual_trigger_price_higher">Triggerprisen skal være højere end markedsprisen</string>
-  <string name="errors_unknown_try_again">Der opstod en ukendt fejl. Prøv venligst igen.</string>
   <string name="errors_network_error">Netværksfejl: %1$s</string>
   <string name="errors_network_offline">Internetforbindelsen ser ud til at være offline.</string>
   <string name="errors_no_internet_connection">Ingen internetforbindelse</string>
@@ -285,7 +282,6 @@
   <string name="asset_get_asset">Få %1$s</string>
   <string name="asset_add_to_wallet">Tilføj til tegnebog</string>
   <string name="asset_added_to_wallet">Tilføjet til tegnebogen</string>
-  <string name="asset_hidden_from_wallet">Skjult fra tegnebogen</string>
   <string name="asset_resources">Ressourcer</string>
   <string name="asset_verification_verified">Bekræftet</string>
   <string name="asset_all_time_high">Højeste nogensinde</string>

@@ -333,6 +333,7 @@ fn public_cases() -> Vec<Case> {
         Case::new("health", Method::GET, "/health"),
         Case::new("metrics", Method::GET, "/metrics"),
         Case::new("v1_config", Method::GET, "/v1/config"),
+        Case::new("v1_config_bad_store", Method::GET, "/v1/config?store=invalid"),
         Case::new("v1_asset", Method::GET, "/v1/assets/ethereum"),
         Case::new("v1_asset_currency", Method::GET, "/v1/assets/ethereum?currency=EUR"),
         Case::new("v1_asset_bad_currency", Method::GET, "/v1/assets/ethereum?currency=BAD"),

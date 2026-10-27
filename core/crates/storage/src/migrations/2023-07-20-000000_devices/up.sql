@@ -1,5 +1,5 @@
 CREATE TYPE platform AS ENUM ('ios', 'android');
-CREATE TYPE platform_store AS ENUM ('appStore', 'googlePlay', 'fdroid', 'huawei', 'solanaStore', 'samsungStore', 'apkUniversal', 'emerald', 'local');
+CREATE TYPE platform_store AS ENUM ('appStore', 'googlePlay', 'fdroid', 'huawei', 'solanaStore', 'samsungStore', 'apkUniversal', 'emerald', 'macDmg', 'local');
 CREATE TYPE device_locale AS ENUM (
     'ar', 'bn', 'cs', 'da', 'de', 'en', 'es', 'fa', 'fil', 'fr', 'ha', 'he', 'hi', 'id', 'it', 'ja',
     'ko', 'ms', 'nl', 'pl', 'pt-BR', 'ro', 'ru', 'sw', 'th', 'tr', 'uk', 'ur', 'vi', 'zh-Hans', 'zh-Hant'

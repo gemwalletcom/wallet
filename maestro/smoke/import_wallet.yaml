@@ -7,6 +7,9 @@ appId: ${APP_ID}
 - runFlow: subflows/contact_invalid_address.yaml
 - runFlow: subflows/rename_wallet.yaml
 - runFlow: subflows/second_wallet.yaml
+- runFlow: subflows/view_only_wallet.yaml
+- runFlow: subflows/duplicate_import.yaml
+- runFlow: subflows/single_network_wallet.yaml
 - runFlow:
     file: subflows/receive_bitcoin.yaml
     env:

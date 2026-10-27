@@ -60,7 +60,6 @@
   <string name="common_suspicious_address_description">Wannan adireshin yana da alaƙa da ayyukan da ake zargi ko masu cutarwa.</string>
   <string name="common_refresh">Sabuntawa</string>
   <string name="common_grant_permission">Ba da izini</string>
-  <string name="common_required_field">%1$s ana bukata</string>
   <string name="welcome_title">Barka da zuwa Gem Iyali</string>
   <string name="wallet_create_new_wallet">Ƙirƙiri Sabon Wallet</string>
   <string name="wallet_import_existing_wallet">Shigo da Wallet ɗin da ke da</string>
@@ -144,7 +143,6 @@
   <string name="transfer_freeze_title">Daskare</string>
   <string name="transfer_unfreeze_title">Cire daskarewa</string>
   <string name="transfer_review_request">Buƙatar Bita</string>
-  <string name="transfer_amount">Adadin</string>
   <string name="settings_terms_of_services">Sharuɗɗan Sabis</string>
   <string name="settings_privacy_policy">takardar kebantawa</string>
   <string name="settings_title">Saituna</string>
@@ -225,7 +223,6 @@
   <string name="errors_swap_minimum_amount">Mafi ƙarancin adadin ciniki shine %1$s. Da fatan a shigar da adadin da ya fi girma.</string>
   <string name="errors_perpetual_trigger_price_lower">Farashin kunnawa ya kamata ya zama ƙasa da farashin kasuwa</string>
   <string name="errors_perpetual_trigger_price_higher">Farashin kunnawa ya kamata ya zama sama da farashin kasuwa</string>
-  <string name="errors_unknown_try_again">An sami kuskuren da ba a sani ba. Da fatan za a sake gwadawa.</string>
   <string name="errors_network_error">Kuskuren hanyar sadarwa: %1$s</string>
   <string name="errors_network_offline">Da alama haɗin intanet ɗin ya katse.</string>
   <string name="errors_no_internet_connection">Babu haɗin intanet</string>
@@ -285,7 +282,6 @@
   <string name="asset_get_asset">Sami %1$s</string>
   <string name="asset_add_to_wallet">Ƙara zuwa walat</string>
   <string name="asset_added_to_wallet">An ƙara zuwa walat</string>
-  <string name="asset_hidden_from_wallet">An ɓoye daga walat</string>
   <string name="asset_resources">Albarkatu</string>
   <string name="asset_verification_verified">An tantance</string>
   <string name="asset_all_time_high">Mafi Girma a Kowane Lokaci</string>

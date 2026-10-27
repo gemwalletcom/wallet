@@ -60,7 +60,6 @@
   <string name="common_suspicious_address_description">이 주소는 의심스럽거나 유해한 활동과 관련되어 있습니다.</string>
   <string name="common_refresh">새로고침</string>
   <string name="common_grant_permission">권한 부여</string>
-  <string name="common_required_field">%1$s 이(가) 필요합니다</string>
   <string name="welcome_title">Gem Family에 오신 것을 환영합니다</string>
   <string name="wallet_create_new_wallet">새 지갑 만들기</string>
   <string name="wallet_import_existing_wallet">기존 지갑 가져오기</string>
@@ -144,7 +143,6 @@
   <string name="transfer_freeze_title">동결</string>
   <string name="transfer_unfreeze_title">동결 해제</string>
   <string name="transfer_review_request">검토 요청</string>
-  <string name="transfer_amount">금액</string>
   <string name="settings_terms_of_services">서비스 약관</string>
   <string name="settings_privacy_policy">개인 정보 보호 정책</string>
   <string name="settings_title">설정</string>
@@ -225,7 +223,6 @@
   <string name="errors_swap_minimum_amount">최소 거래 금액은 %1$s. 더 높은 금액을 입력해 주세요.</string>
   <string name="errors_perpetual_trigger_price_lower">트리거 가격은 시장 가격보다 낮아야 합니다</string>
   <string name="errors_perpetual_trigger_price_higher">트리거 가격은 시장 가격보다 높아야 합니다</string>
-  <string name="errors_unknown_try_again">알 수 없는 오류가 발생했습니다. 다시 시도해 주세요.</string>
   <string name="errors_network_error">네트워크 오류: %1$s</string>
   <string name="errors_network_offline">인터넷 연결이 끊긴 것 같습니다.</string>
   <string name="errors_no_internet_connection">인터넷 연결 없음</string>
@@ -285,7 +282,6 @@
   <string name="asset_get_asset">%1$s 받기</string>
   <string name="asset_add_to_wallet">지갑에 추가</string>
   <string name="asset_added_to_wallet">지갑에 추가됨</string>
-  <string name="asset_hidden_from_wallet">지갑에서 숨김</string>
   <string name="asset_resources">자원</string>
   <string name="asset_verification_verified">검증됨</string>
   <string name="asset_all_time_high">역대 최고</string>

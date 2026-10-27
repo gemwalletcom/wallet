@@ -3,8 +3,8 @@ package com.gemwallet.android
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.WalletPasswordProtection
-import com.gemwallet.android.application.security.cases.SecurityPreferences
 import com.gemwallet.android.application.assets.cases.GetWalletHomeState
+import com.gemwallet.android.application.security.cases.SecurityPreferences
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.update.cases.SkipAppUpdate
 import com.gemwallet.android.application.update.cases.SyncAppUpdate
@@ -38,6 +38,7 @@ import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.GemAppStartServiceInterface
 import uniffi.gemstone.GemAppUpdateAction
+import uniffi.gemstone.GemAppUpdateDestination
 import uniffi.gemstone.GemAppUpdateOffer
 import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemWalletSessionServiceInterface
@@ -65,7 +66,13 @@ class AppViewModelTest {
         unmockkStatic(Log::class)
     }
 
-    private fun viewModel(currentWalletId: String? = null, update: GemAppUpdateOffer? = null, skip: SkipAppUpdate = mockk(relaxed = true), securityPreferences: SecurityPreferences = mockk(relaxed = true), passwordProtection: WalletPasswordProtection = mockk(relaxed = true)): AppViewModel {
+    private fun viewModel(
+        currentWalletId: String? = null,
+        update: GemAppUpdateOffer? = null,
+        skip: SkipAppUpdate = mockk(relaxed = true),
+        securityPreferences: SecurityPreferences = mockk(relaxed = true),
+        passwordProtection: WalletPasswordProtection = mockk(relaxed = true),
+    ): AppViewModel {
         val session: GetSession = mockk { every { this@mockk.invoke() } returns MutableStateFlow(null) }
         val walletSession: GemWalletSessionServiceInterface = mockk {
             coEvery { ensureCurrentWallet() } returns currentWalletId
@@ -107,7 +114,14 @@ class AppViewModelTest {
 
     @Test
     fun `an update outside the store is never offered`() = runTest(dispatcher) {
-        val model = viewModel(update = mockGemAppUpdateOffer(version = "2.0.0", actions = listOf(GemAppUpdateAction.SKIP, GemAppUpdateAction.UPDATE), apkUrl = "https://apk.gemwallet.com/gem_wallet_universal_2.0.0.apk"))
+        val model =
+            viewModel(
+                update = mockGemAppUpdateOffer(
+                    version = "2.0.0",
+                    actions = listOf(GemAppUpdateAction.SKIP, GemAppUpdateAction.UPDATE),
+                    destination = GemAppUpdateDestination.File(url = "https://apk.gemwallet.com/gem_wallet_universal_2.0.0.apk"),
+                ),
+            )
 
         model.startDestinationState.first { it != null }
 

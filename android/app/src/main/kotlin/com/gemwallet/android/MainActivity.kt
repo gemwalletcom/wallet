@@ -21,7 +21,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.core.view.WindowCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -42,6 +41,7 @@ import com.gemwallet.android.ui.LocalStreamConnected
 import com.gemwallet.android.ui.components.ConnectionBannerState
 import com.gemwallet.android.ui.components.LocalConnectionBannerState
 import com.gemwallet.android.ui.localization.stringRes
+import com.gemwallet.android.ui.theme.setSystemBarsAppearance
 import com.gemwallet.android.ui.theme.walletSurfaceColor
 import com.wallet.core.primitives.Appearance
 import com.wallet.core.primitives.ConnectionComponent
@@ -83,7 +83,7 @@ class MainActivity :
 
     @Inject lateinit var chainService: GemChainService
 
-    private val privacyCover by lazy { PrivacyCover(lifecycleScope, ::isGemFocused) }
+    private val privacyCover by lazy { PrivacyCover(lifecycleScope, ::isGemFocused) { !lockViewModel.uiState.value.isUnlocked } }
     private val watchedWindows = Collections.newSetFromMap(WeakHashMap<View, Boolean>())
     private val windowFocusListener = ViewTreeObserver.OnWindowFocusChangeListener { privacyCover.onFocusChanged(isGemFocused()) }
     private var coverView: View? = null
@@ -164,7 +164,7 @@ class MainActivity :
             }
             LaunchedEffect(darkTheme) {
                 isDarkTheme = darkTheme
-                setSystemBarsAppearance(darkTheme)
+                window.setSystemBarsAppearance(darkTheme)
                 setRecentsAppearance(darkTheme)
             }
 
@@ -187,18 +187,12 @@ class MainActivity :
                     onSystemAuthRequired = systemAuthenticator::authenticate,
                     onPendingNavigationConsumed = viewModel::consumePendingNavigation,
                     onOpenSystemAuthSettings = systemAuthenticator::openSettings,
+                    onLeave = { moveTaskToBack(true) },
                     onWalletConnectError = viewModel::showWalletConnectError,
                     onErrorDismiss = viewModel::resetError,
                 )
             }
             RootWarningHost(darkTheme = darkTheme, onCancel = ::finishAffinity)
-        }
-    }
-
-    private fun setSystemBarsAppearance(darkTheme: Boolean) {
-        WindowCompat.getInsetsController(window, window.decorView).apply {
-            isAppearanceLightStatusBars = !darkTheme
-            isAppearanceLightNavigationBars = !darkTheme
         }
     }
 

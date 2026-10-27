@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
@@ -220,7 +221,7 @@ private fun ImportWalletScene(
             if (input.showsViewOnlyWarning) {
                 item {
                     Text(
-                        modifier = Modifier.sectionHeaderItem(),
+                        modifier = Modifier.sectionHeaderItem().testTag("view_only_warning"),
                         text = parseMarkdownToAnnotatedString(
                             stringResource(R.string.wallet_import_address_warning),
                         ),
@@ -261,6 +262,7 @@ private fun DataInput(
         ) {
             items(suggestions) { word ->
                 SuggestionChip(
+                    modifier = Modifier.testTag("word_suggestion"),
                     onClick = {
                         val text = onSelectSuggestion(word)
                         inputState.value = TextFieldValue(text = text, selection = TextRange(text.length))
@@ -279,7 +281,7 @@ private fun TypeSelection(tabs: List<ImportTabUIModel>, showsTabs: Boolean, onTy
         return
     }
     PrimaryTabRow(
-        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(paddingHalfSmall)),
+        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(paddingHalfSmall)).testTag("import_kinds"),
         selectedTabIndex = tabs.indexOfFirst { it.isSelected }.coerceAtLeast(0),
         indicator = { Box {} },
         containerColor = Color.Transparent,

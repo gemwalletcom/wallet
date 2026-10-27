@@ -11,6 +11,7 @@ just check GemstonePrimitives          # compile one UIKit-free package with Swi
 just check-test Primitives             # run one UIKit- and Gemstone-free package's tests with SwiftPM
 just build-package Assets              # build one package or feature scheme
 just build                             # build the app
+just build-mac                         # build the app for Mac Catalyst, unsigned
 just test-package Assets               # build and test one package on the simulator
 just test                              # run the whole unit test plan
 just build-for-testing                 # build every test target once
@@ -43,7 +44,7 @@ SwiftPM builds for the host, so the two `check` recipes only cover packages that
 
 The app links Core through `libgemstone.a` and the generated `Gemstone.swift`/`GemstoneFFI.h`, so run `just generate-stone` after any Core change before building or testing iOS. It builds the simulator library, generates the bindings from that library, and rewrites a binding file only when its content changed, so an unchanged FFI surface causes no Swift recompile. It takes about 3s when Core is unchanged and about 20s after a `gemstone` edit.
 
-`just generate-stone release` (or `BUILD_MODE=release`) builds the device library in release. An Xcode simulator release builds the simulator library instead. `GEMSTONE_IOS_TARGETS` overrides the target list, for example `GEMSTONE_IOS_TARGETS=aarch64-apple-ios` for a debug build on a device.
+`just generate-stone release` (or `BUILD_MODE=release`) builds the device library in release. An Xcode simulator release builds the simulator library instead. `GEMSTONE_IOS_TARGETS` overrides the target list, for example `GEMSTONE_IOS_TARGETS=aarch64-apple-ios` for a debug build on a device, or `GEMSTONE_IOS_TARGETS=aarch64-apple-ios-macabi` before `just build-mac`. The Mac app is Mac Catalyst on Apple Silicon only. `just build-mac` is a compile check: its output is unsigned and therefore unsandboxed, so launching it would put the database and keystore in the real `~/Library/Application Support`. Run the Mac app signed, from Xcode.
 
 ## Generation and Localization
 

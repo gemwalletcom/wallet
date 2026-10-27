@@ -1043,18 +1043,20 @@ fun mockGemAddressRow(
     isSelectable = isSelectable,
 )
 
+fun mockGemAppUpdateDestination(): uniffi.gemstone.GemAppUpdateDestination = uniffi.gemstone.GemAppUpdateDestination.Store(url = "")
+
 fun mockGemAppUpdateOffer(
     version: String = "",
     title: uniffi.gemstone.GemLocalizedText = mockGemLocalizedText(),
     description: uniffi.gemstone.GemLocalizedText = mockGemLocalizedText(),
     actions: List<uniffi.gemstone.GemAppUpdateAction> = emptyList(),
-    apkUrl: String? = null,
+    destination: uniffi.gemstone.GemAppUpdateDestination = mockGemAppUpdateDestination(),
 ) = uniffi.gemstone.GemAppUpdateOffer(
     version = version,
     title = title,
     description = description,
     actions = actions,
-    apkUrl = apkUrl,
+    destination = destination,
 )
 
 fun mockGemAssetBalance(

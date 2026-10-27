@@ -2,6 +2,7 @@ XCBEAUTIFY_ARGS := "--quiet --is-ci"
 BUILD_THREADS := `getconf _NPROCESSORS_ONLN`
 SIMULATOR_NAME := env("SIMULATOR_NAME", "iPhone 17")
 SIMULATOR_DEST := "platform=iOS Simulator,name=" + SIMULATOR_NAME
+MAC_CATALYST_DEST := "platform=macOS,variant=Mac Catalyst"
 XCODE_CONFIGURATION := env("CONFIGURATION", "Debug")
 GEMSTONE_IOS_PROFILE := if XCODE_CONFIGURATION == "Release" { "release" } else { "debug" }
 DERIVED_DATA := "build/DerivedData"
@@ -40,7 +41,15 @@ lint:
     @git ls-files -z '*.swift' | xargs -0 swiftlint lint --fix --config .swiftlint.yml --quiet --force-exclude
 
 format:
-    @echo "==> Running SwiftFormat"
+    #!/usr/bin/env bash
+    set -euo pipefail
+    files=$( { git diff --name-only --diff-filter=ACMR HEAD -- '*.swift'; git ls-files --others --exclude-standard -- '*.swift'; } | sed 's|^ios/||' | sort -u )
+    [ -z "$files" ] && exit 0
+    echo "==> Running SwiftFormat"
+    echo "$files" | tr '\n' '\0' | xargs -0 swiftformat --config .swiftformat --quiet
+
+format-all:
+    @echo "==> Running SwiftFormat on every file"
     @git ls-files -z '*.swift' | xargs -0 swiftformat --config .swiftformat --quiet
 
 _build action scheme="Gem":
@@ -55,6 +64,18 @@ build: (_build "build")
 
 # Example: just build-for-testing
 build-for-testing: (_build "build-for-testing")
+
+# Example: just build-mac
+build-mac:
+    @set -o pipefail && {{ XCODEBUILD }} \
+    -scheme Gem \
+    -configuration "{{ XCODE_CONFIGURATION }}" \
+    -destination "{{ MAC_CATALYST_DEST }}" \
+    -parallelizeTargets -jobs {{ BUILD_THREADS }} \
+    {{ COMPILATION_CACHE_FLAGS }} \
+    CODE_SIGNING_ALLOWED=NO \
+    -showBuildTimingSummary \
+    build | xcbeautify {{ XCBEAUTIFY_ARGS }}
 
 clean:
     #!/usr/bin/env bash

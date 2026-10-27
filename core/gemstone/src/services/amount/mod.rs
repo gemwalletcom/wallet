@@ -5,7 +5,7 @@ pub mod rules;
 
 use std::sync::Arc;
 
-use primitives::{Asset, Currency};
+use primitives::{Asset, Chain, Currency, DelegationValidator};
 
 pub use model::{
     GemAmountEarnType, GemAmountEntry, GemAmountError, GemAmountExtras, GemAmountInput, GemAmountInputType, GemAmountLeverage, GemAmountMaxEntry, GemAmountPerpetualPosition, GemAmountRequest, GemAmountStakeType, GemAmountTransfer,
@@ -18,7 +18,8 @@ use crate::services::error::{GemServiceError, required_account};
 use crate::services::perpetual::GemPerpetualPositionAction;
 use crate::services::perpetual::rules as perpetual_rules;
 use crate::services::preferences::GemPreferencesService;
-use crate::services::stake::{GemStakeAmountSelection, GemStakeService};
+use crate::services::stake::rules as stake_rules;
+use crate::services::stake::{GemStakeAmountInput, GemStakeAmountSelection, GemStakeService, GemStakeValidatorOptions};
 use crate::services::transfer::rules as transfer_rules;
 use crate::services::transfer::{GemRecipient, GemTransferData};
 use crate::services::wallet_session::GemWalletSessionService;
@@ -54,7 +55,7 @@ impl GemAmountService {
     pub fn extras(&self, request: GemAmountRequest, asset: Asset) -> GemAmountExtras {
         match &request {
             GemAmountRequest::Transfer { .. } => GemAmountExtras::None,
-            GemAmountRequest::Stake { input } => match self.stake.stake_amount_selection(asset.chain(), input.clone()) {
+            GemAmountRequest::Stake { input } => match stake_rules::amount_selection(asset.chain(), input) {
                 GemStakeAmountSelection::Validator { validator, can_select } => GemAmountExtras::Validator { row: validator, can_select },
                 GemStakeAmountSelection::Resource { options, selected } => GemAmountExtras::Resources { options, selected },
             },
@@ -73,6 +74,10 @@ impl GemAmountService {
                 }),
             },
         }
+    }
+
+    pub fn stake_validator_options(&self, chain: Chain, input: GemStakeAmountInput, validators: Vec<DelegationValidator>) -> GemStakeValidatorOptions {
+        self.stake.stake_validator_options(chain, input, validators)
     }
 
     pub async fn transfer_data(&self, asset: Asset, request: GemAmountRequest, value: GemBigInt, use_max_amount: bool) -> Result<GemTransferData, GemServiceError> {

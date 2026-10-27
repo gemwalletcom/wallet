@@ -60,7 +60,6 @@ common_suspicious_address = Anwani ya kutiliwa shaka
 common_suspicious_address_description = Anwani hii inahusishwa na shughuli za kutiliwa shaka au hatari.
 common_refresh = Onyesha upya
 common_grant_permission = Toa ruhusa
-common_required_field = %@ inahitajika
 
 # Welcome
 
@@ -165,7 +164,6 @@ transfer_reserved_fees = Tumeacha %@ katika salio lako ili kulipia ada za mtanda
 transfer_freeze_title = Kuganda
 transfer_unfreeze_title = Ondoa kuganda
 transfer_review_request = Ombi la Uhakiki
-transfer_amount = Kiasi
 
 # Settings
 
@@ -255,7 +253,6 @@ errors_dust_threshold_short = Mtandao unazingatia kiasi hiki cha vumbi - ada ni 
 errors_swap_minimum_amount = Kiwango cha chini cha biashara ni %@. Tafadhali weka kiasi cha juu zaidi.
 errors_perpetual_trigger_price_lower = Bei ya kichochezi inapaswa kuwa chini ya bei ya soko
 errors_perpetual_trigger_price_higher = Bei ya kichochezi inapaswa kuwa juu ya bei ya soko
-errors_unknown_try_again = Hitilafu isiyojulikana imetokea. Tafadhali jaribu tena.
 errors_network_error = Hitilafu ya mtandao: %@
 errors_network_offline = Muunganisho wa intaneti unaonekana kuwa nje ya mtandao.
 errors_no_internet_connection = Hakuna muunganisho wa intaneti
@@ -327,7 +324,6 @@ asset_buy_asset = Nunua %@
 asset_get_asset = Pata %@
 asset_add_to_wallet = Ongeza kwenye mkoba
 asset_added_to_wallet = Imeongezwa kwenye mkoba
-asset_hidden_from_wallet = Imefichwa kutoka kwa mkoba
 asset_resources = Rasilimali
 asset_verification_verified = Imethibitishwa
 asset_all_time_high = Wakati Wote Juu

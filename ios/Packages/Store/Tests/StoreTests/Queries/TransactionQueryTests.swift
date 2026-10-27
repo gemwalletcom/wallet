@@ -7,11 +7,10 @@ import PrimitivesTestKit
 @testable import Store
 import StoreTestKit
 import Testing
-import XCTest
 
 @MainActor
 struct TransactionQueryTests {
-    @Test(arguments: [false, true])
+    @Test(.timeLimit(.minutes(1)), arguments: [false, true])
     func observationSurvivesHashUpdate(existingTarget: Bool) async throws {
         let db = DB.mock(wallets: [.mock(accounts: [.mock(chain: .ethereum)])], assets: [.mock(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18))])
         let store = TransactionStore(db: db)
@@ -29,9 +28,8 @@ struct TransactionQueryTests {
         query.bind(dbQueue: db.dbQueue)
         #expect(query.value?.transaction.id == pendingId)
 
-        try await expectUpdate(query) {
-            try store.updateTransactionHash(walletId: walletId, transactionId: pendingId, hash: confirmedId.hash)
-        }
+        try store.updateTransactionHash(walletId: walletId, transactionId: pendingId, hash: confirmedId.hash)
+        await waitFor(query) { $0?.transaction.id == confirmedId }
         #expect(query.value?.recordId == stored.recordId)
         #expect(query.value?.transaction.id == confirmedId)
         #expect(query.value?.transaction.state == (existingTarget ? .confirmed : .pending))
@@ -41,9 +39,8 @@ struct TransactionQueryTests {
         }
 
         let updated = Transaction.mock(id: confirmedId, assetId: Chain.ethereum.assetId, state: .confirmed, fee: "84", feeAssetId: Chain.ethereum.assetId)
-        try await expectUpdate(query) {
-            try store.addTransactions(walletId: walletId, transactions: [.mock(updated)])
-        }
+        try store.addTransactions(walletId: walletId, transactions: [.mock(updated)])
+        await waitFor(query) { $0?.transaction.fee == "84" }
         #expect(query.value?.recordId == stored.recordId)
         #expect(query.value?.transaction.state == .confirmed)
         #expect(query.value?.transaction.fee == "84")
@@ -76,7 +73,7 @@ struct TransactionQueryTests {
         }
     }
 
-    @Test
+    @Test(.timeLimit(.minutes(1)))
     func aTransactionKeyFindsTheTransactionOnceItIsStored() async throws {
         let db = DB.mock(wallets: [.mock(accounts: [.mock(chain: .ethereum)])], assets: [.mock(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18))])
         let store = TransactionStore(db: db)
@@ -85,14 +82,13 @@ struct TransactionQueryTests {
         query.bind(dbQueue: db.dbQueue)
         #expect(query.value == nil)
 
-        try await expectUpdate(query) {
-            try store.addTransactions(walletId: .mock(), transactions: [.mock(.mock(id: transactionId, assetId: Chain.ethereum.assetId, feeAssetId: Chain.ethereum.assetId))])
-        }
+        try store.addTransactions(walletId: .mock(), transactions: [.mock(.mock(id: transactionId, assetId: Chain.ethereum.assetId, feeAssetId: Chain.ethereum.assetId))])
+        await waitFor(query) { $0?.transaction.id == transactionId }
         #expect(query.value?.transaction.id == transactionId)
     }
 
     @Test
-    func aRecordKeyThrowsOnceItsTransactionIsDeleted() async throws {
+    func aRecordKeyThrowsOnceItsTransactionIsDeleted() throws {
         let db = DB.mock(wallets: [.mock(accounts: [.mock(chain: .ethereum)])], assets: [.mock(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18))])
         let store = TransactionStore(db: db)
         let transactionId = TransactionId(chain: .ethereum, hash: "deleted")
@@ -109,15 +105,11 @@ struct TransactionQueryTests {
         #expect(query.value?.transaction.id == transactionId)
     }
 
-    private func expectUpdate(_ query: ObservableQuery<TransactionQuery>, update: () throws -> Void) async throws {
-        let expectation = XCTestExpectation(description: "Transaction observation updated")
-        withObservationTracking {
-            _ = query.value
-        } onChange: {
-            expectation.fulfill()
+    private func waitFor(_ query: ObservableQuery<TransactionQuery>, until matches: (TransactionExtended?) -> Bool) async {
+        while !matches(query.value) {
+            await withCheckedContinuation { changed in
+                withObservationTracking { _ = query.value } onChange: { changed.resume() }
+            }
         }
-        try update()
-        let result = await XCTWaiter.fulfillment(of: [expectation], timeout: 3)
-        #expect(result == .completed)
     }
 }

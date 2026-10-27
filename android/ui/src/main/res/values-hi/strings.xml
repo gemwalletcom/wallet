@@ -60,7 +60,6 @@
   <string name="common_suspicious_address_description">यह पता संदिग्ध या हानिकारक गतिविधि से संबंधित है।</string>
   <string name="common_refresh">ताज़ा करना</string>
   <string name="common_grant_permission">अनुमति प्रदान करें</string>
-  <string name="common_required_field">%1$s आवश्यक है</string>
   <string name="welcome_title">Gem Family में आपका स्वागत है</string>
   <string name="wallet_create_new_wallet">एक नया वॉलेट बनाएं</string>
   <string name="wallet_import_existing_wallet">मौजूदा वॉलेट आयात करें</string>
@@ -144,7 +143,6 @@
   <string name="transfer_freeze_title">फ़्रीज़ करें</string>
   <string name="transfer_unfreeze_title">अनफ़्रीज़</string>
   <string name="transfer_review_request">समीक्षा अनुरोध</string>
-  <string name="transfer_amount">रकम</string>
   <string name="settings_terms_of_services">सेवा की शर्तें</string>
   <string name="settings_privacy_policy">गोपनीयता नीति</string>
   <string name="settings_title">सेटिंग्स</string>
@@ -225,7 +223,6 @@
   <string name="errors_swap_minimum_amount">न्यूनतम व्यापार राशि है %1$s। कृपया अधिक राशि दर्ज करें।</string>
   <string name="errors_perpetual_trigger_price_lower">ट्रिगर मूल्य बाजार मूल्य से कम होना चाहिए</string>
   <string name="errors_perpetual_trigger_price_higher">ट्रिगर मूल्य बाजार मूल्य से अधिक होना चाहिए</string>
-  <string name="errors_unknown_try_again">एक अज्ञात त्रुटि उत्पन्न हुई. कृपया पुन: प्रयास करें।</string>
   <string name="errors_network_error">नेटवर्क त्रुटि: %1$s</string>
   <string name="errors_network_offline">इंटरनेट कनेक्शन ऑफ़लाइन प्रतीत हो रहा है।</string>
   <string name="errors_no_internet_connection">इंटरनेट कनेक्शन नहीं है</string>
@@ -285,7 +282,6 @@
   <string name="asset_get_asset">%1$s प्राप्त करें</string>
   <string name="asset_add_to_wallet">वॉलेट में जोड़ें</string>
   <string name="asset_added_to_wallet">वॉलेट में जोड़ा गया</string>
-  <string name="asset_hidden_from_wallet">वॉलेट से छिपाया गया</string>
   <string name="asset_resources">संसाधन</string>
   <string name="asset_verification_verified">सत्यापित</string>
   <string name="asset_all_time_high">सर्वकालिक उच्च</string>

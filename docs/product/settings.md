@@ -42,6 +42,7 @@ flowchart LR
 | The lock is on and Gem asks for photos or camera access the first time | Gem is covered behind the prompt | these prompts appear once |
 | The user opens the app switcher while one of those Gem prompts is open or closing | Gem is covered once the user moves to another app or the Home Screen | Gem cannot tell the switcher from its own prompt closing |
 | A WalletConnect request is open when the lock period passes | the lock still re-engages; the request cannot hold it off | |
+| A sheet or dialog is open when the lock re-engages | the lock covers it, cancelled prompt or not, and it is still open after unlocking | nothing Gem shows sits above the lock |
 | The phone is turned or the appearance changes while the unlock prompt is open | the same prompt stays open and unlocks the app | Android recreates the screen; cancelling the prompt then crashed the app |
 | The lock is on but the device passcode was turned off | the lock stays and says the device passcode is off and must be turned on to open Gem | the lock relies on the device passcode, so there is nothing else to unlock with |
 | The user turns the push switch on | the app asks the system for permission | |
@@ -54,6 +55,7 @@ flowchart LR
 | The app has offered push | it asks again no sooner than 30 days later, unless the user turned push off | |
 | The user taps a push | the app switches to the wallet the push belongs to, then opens the transaction, the asset or the chat | |
 | A newer release exists | "New update available!" at launch, with Update and Skip, and in About Us | |
+| The user taps Update in the Mac app | the DMG of that version downloads, and Update App in About Us downloads the latest DMG | the Mac app is installed from a DMG, not a store |
 | The update is required | no Skip | |
 | The user closes the update prompt | it counts as Skip | |
 | The user skipped a version | that version is not offered again | |
@@ -66,6 +68,7 @@ flowchart LR
 |---|---|---|---|
 | The lock is on and Gem is in the app switcher or behind a system panel | covered with the Gem logo | covered with Gem's background color, without the logo | Intentional: Android saves the switcher preview before Gem can draw a cover and allows only a color in its place, so the cover uses the same color and coming back goes straight from it to the app |
 | The device passcode is off while the lock is on | the lock screen explains it in text | the lock screen explains it and opens screen lock setup | Intentional: iOS has no public way to open passcode settings |
+| The user presses Back on the lock screen | not applicable | Gem goes to the background, as Back does on its first screen | Intentional: iOS has no Back |
 | The user opens Developer | includes a deep link URL tool | includes a platform store setting | Intentional (developer-only) |
 | The build cannot push (F-Droid, Huawei) | not applicable | Settings does not list Notifications, so neither the push switch nor Price Alerts is reachable | Intentional: the build has no push service |
 

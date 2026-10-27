@@ -60,7 +60,6 @@ common_suspicious_address = Adireshin da ake zargi
 common_suspicious_address_description = Wannan adireshin yana da alaƙa da ayyukan da ake zargi ko masu cutarwa.
 common_refresh = Sabuntawa
 common_grant_permission = Ba da izini
-common_required_field = %@ ana bukata
 
 # Welcome
 
@@ -165,7 +164,6 @@ transfer_reserved_fees = Mun bar %@ cikin ma'auni don biyan kuɗin hanyar sadarw
 transfer_freeze_title = Daskare
 transfer_unfreeze_title = Cire daskarewa
 transfer_review_request = Buƙatar Bita
-transfer_amount = Adadin
 
 # Settings
 
@@ -255,7 +253,6 @@ errors_dust_threshold_short = Cibiyar sadarwa tana la'akari da wannan adadin ƙu
 errors_swap_minimum_amount = Mafi ƙarancin adadin ciniki shine %@. Da fatan a shigar da adadin da ya fi girma.
 errors_perpetual_trigger_price_lower = Farashin kunnawa ya kamata ya zama ƙasa da farashin kasuwa
 errors_perpetual_trigger_price_higher = Farashin kunnawa ya kamata ya zama sama da farashin kasuwa
-errors_unknown_try_again = An sami kuskuren da ba a sani ba. Da fatan za a sake gwadawa.
 errors_network_error = Kuskuren hanyar sadarwa: %@
 errors_network_offline = Da alama haɗin intanet ɗin ya katse.
 errors_no_internet_connection = Babu haɗin intanet
@@ -327,7 +324,6 @@ asset_buy_asset = Sayi %@
 asset_get_asset = Sami %@
 asset_add_to_wallet = Ƙara zuwa walat
 asset_added_to_wallet = An ƙara zuwa walat
-asset_hidden_from_wallet = An ɓoye daga walat
 asset_resources = Albarkatu
 asset_verification_verified = An tantance
 asset_all_time_high = Mafi Girma a Kowane Lokaci

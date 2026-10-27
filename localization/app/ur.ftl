@@ -60,7 +60,6 @@ common_suspicious_address = مشکوک پتہ
 common_suspicious_address_description = یہ پتہ مشکوک یا نقصان دہ سرگرمی سے وابستہ ہے۔
 common_refresh = ریفریش کریں
 common_grant_permission = اجازت دیں
-common_required_field = %@ درکار ہے
 
 # Welcome
 
@@ -165,7 +164,6 @@ transfer_reserved_fees = ہم نے مستقبل کے نیٹ ورک فیس کو �
 transfer_freeze_title = منجمد کریں
 transfer_unfreeze_title = غیر منجمد کریں
 transfer_review_request = درخواست کا جائزہ لیں
-transfer_amount = رقم
 
 # Settings
 
@@ -255,7 +253,6 @@ errors_dust_threshold_short = نیٹ ورک اس رقم کو دھول سمجھت
 errors_swap_minimum_amount = کم از کم تجارتی رقم %@ ہے۔ براہ کرم زیادہ رقم درج کریں۔
 errors_perpetual_trigger_price_lower = ٹرگر قیمت مارکیٹ قیمت سے کم ہونی چاہیے
 errors_perpetual_trigger_price_higher = ٹرگر قیمت مارکیٹ قیمت سے زیادہ ہونی چاہیے
-errors_unknown_try_again = ایک نامعلوم خرابی پیش آگئی۔ براہ کرم دوبارہ کوشش کریں۔
 errors_network_error = نیٹ ورک کی خرابی: %@
 errors_network_offline = انٹرنیٹ کنکشن آف لائن معلوم ہوتا ہے۔
 errors_no_internet_connection = انٹرنیٹ کنکشن نہیں ہے
@@ -327,7 +324,6 @@ asset_buy_asset = خریدیں %@
 asset_get_asset = %@ حاصل کریں
 asset_add_to_wallet = بٹوے میں شامل کریں
 asset_added_to_wallet = بٹوے میں شامل کر دیا گیا
-asset_hidden_from_wallet = بٹوے سے چھپا دیا گیا
 asset_resources = وسائل
 asset_verification_verified = تصدیق شدہ
 asset_all_time_high = آل ٹائم ہائی

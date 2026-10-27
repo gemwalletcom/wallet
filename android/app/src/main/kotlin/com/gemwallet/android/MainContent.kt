@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
+import com.gemwallet.android.features.settings.presents.lock.LockScene
 import com.gemwallet.android.features.settings.presents.lock.LockScreen
 import com.gemwallet.android.features.settings.viewmodels.lock.models.AuthState
 import com.gemwallet.android.features.settings.viewmodels.lock.models.LockUIState
@@ -46,6 +47,7 @@ internal fun MainContent(
     onSystemAuthRequired: () -> Unit,
     onPendingNavigationConsumed: () -> Unit,
     onOpenSystemAuthSettings: () -> Unit,
+    onLeave: () -> Unit,
     onWalletConnectError: (String) -> Unit,
     onErrorDismiss: () -> Unit,
 ) {
@@ -54,7 +56,6 @@ internal fun MainContent(
     val canAttemptSystemAuth = !systemAuthEnrollmentMissing
     val requiresAuthPrompt = lockState.initialAuth == AuthState.Required || lockState.authState == AuthState.Required
     val isWalletUnlocked = lockState.isUnlocked
-    val isEnrollmentRequired = lockState.initialAuth == AuthState.Required && systemAuthEnrollmentMissing
     val unlockedPendingRoutes = if (isWalletUnlocked) pendingRoutes else emptyList()
     val unsupportedWalletConnectError = if (state.isWalletConnectUnsupportedVisible) {
         "${stringResource(R.string.wallet_connect_title)}: ${stringResource(R.string.errors_not_supported)} (${BuildConfig.FLAVOR})"
@@ -84,15 +85,18 @@ internal fun MainContent(
                 AppToastHost(toastEvents)
             }
 
-            if (isEnrollmentRequired) {
-                SystemAuthEnrollmentRequired(
-                    onOpenSettings = onOpenSystemAuthSettings,
-                )
-            } else {
-                LockScreen(
-                    isContentReady = isWalletContentReady,
-                    logo = AppR.drawable.ic_splash_screen,
-                )
+            if (!isWalletContentReady) {
+                LockScene(logo = AppR.drawable.ic_splash_screen)
+            }
+        }
+
+        if (!isWalletUnlocked) {
+            LockScreen(darkTheme = darkTheme, onLeave = onLeave) {
+                if (systemAuthEnrollmentMissing) {
+                    SystemAuthEnrollmentRequired(onOpenSettings = onOpenSystemAuthSettings)
+                } else {
+                    LockScene(logo = AppR.drawable.ic_splash_screen)
+                }
             }
         }
 

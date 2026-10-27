@@ -77,11 +77,15 @@ extension QRScannerSceneViewModel {
 
 extension QRScannerSceneViewModel {
     private func refreshScannerState() {
-        do {
-            try QRScannerViewWrapper.checkDeviceQRScanningSupport()
-            scannerState = .scanning
-        } catch {
-            scannerState = .failure(error: error)
-        }
+        #if targetEnvironment(macCatalyst)
+            scannerState = .failure(error: .notSupported)
+        #else
+            do {
+                try QRScannerViewWrapper.checkDeviceQRScanningSupport()
+                scannerState = .scanning
+            } catch {
+                scannerState = .failure(error: error)
+            }
+        #endif
     }
 }

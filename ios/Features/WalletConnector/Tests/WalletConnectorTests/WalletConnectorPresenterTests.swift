@@ -59,4 +59,27 @@ struct WalletConnectorPresenterTests {
 
         #expect(presenter.isPresentingSheet?.id == AnyHashable("pairing"))
     }
+
+    @Test
+    @MainActor
+    func presentingTheProposalEndsTheConnectionBar() {
+        let presenter = WalletConnectorPresenter()
+        presenter.isPresentingConnectionBar = true
+
+        presenter.present(.connectionProposal(TransferDataCallback(payload: .mock(pairingId: "pairing"), delegate: { _ in })))
+
+        #expect(presenter.isPresentingConnectionBar == false)
+    }
+
+    @Test
+    @MainActor
+    func aRejectedConnectionEndsTheConnectionBar() {
+        let presenter = WalletConnectorPresenter()
+        presenter.isPresentingConnectionBar = true
+
+        presenter.presentError("No supported wallets are available.")
+
+        #expect(presenter.isPresentingConnectionBar == false)
+        #expect(presenter.isPresentingError == "No supported wallets are available.")
+    }
 }

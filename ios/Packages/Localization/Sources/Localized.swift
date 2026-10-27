@@ -51,8 +51,6 @@ public enum Localized {
     public static func getAsset(_ p1: Any) -> String {
       return Localized.tr("Localizable", "asset.get_asset", String(describing: p1), fallback: "Get %@")
     }
-    /// Hidden from wallet
-    public static let hiddenFromWallet = Localized.tr("Localizable", "asset.hidden_from_wallet", fallback: "Hidden from wallet")
     /// Market Cap
     public static let marketCap = Localized.tr("Localizable", "asset.market_cap", fallback: "Market Cap")
     /// Name

@@ -60,7 +60,6 @@
   <string name="common_suspicious_address_description">Dit adres wordt in verband gebracht met verdachte of schadelijke activiteiten.</string>
   <string name="common_refresh">Vernieuwen</string>
   <string name="common_grant_permission">Geef toestemming</string>
-  <string name="common_required_field">%1$s is vereist</string>
   <string name="welcome_title">Welkom bij Gem-familie</string>
   <string name="wallet_create_new_wallet">Maak een nieuwe portemonnee</string>
   <string name="wallet_import_existing_wallet">Importeer een bestaande portemonnee</string>
@@ -144,7 +143,6 @@
   <string name="transfer_freeze_title">Bevriezen</string>
   <string name="transfer_unfreeze_title">Ontvriezen</string>
   <string name="transfer_review_request">Verzoek controleren</string>
-  <string name="transfer_amount">Bedrag</string>
   <string name="settings_terms_of_services">Servicevoorwaarden</string>
   <string name="settings_privacy_policy">Privacybeleid</string>
   <string name="settings_title">Instellingen</string>
@@ -225,7 +223,6 @@
   <string name="errors_swap_minimum_amount">Het minimale handelsbedrag is %1$s. Voer een hoger bedrag in.</string>
   <string name="errors_perpetual_trigger_price_lower">De triggerprijs moet lager zijn dan de marktprijs</string>
   <string name="errors_perpetual_trigger_price_higher">De triggerprijs moet hoger zijn dan de marktprijs</string>
-  <string name="errors_unknown_try_again">Er is een onbekende fout opgetreden. Probeer het opnieuw.</string>
   <string name="errors_network_error">Netwerkfout: %1$s</string>
   <string name="errors_network_offline">De internetverbinding lijkt offline te zijn.</string>
   <string name="errors_no_internet_connection">Geen internetverbinding</string>
@@ -285,7 +282,6 @@
   <string name="asset_get_asset">%1$s krijgen</string>
   <string name="asset_add_to_wallet">Toevoegen aan portemonnee</string>
   <string name="asset_added_to_wallet">Toegevoegd aan portemonnee</string>
-  <string name="asset_hidden_from_wallet">Verborgen voor portemonnee</string>
   <string name="asset_resources">Bronnen</string>
   <string name="asset_verification_verified">Geverifieerd</string>
   <string name="asset_all_time_high">Hoogste ooit</string>

@@ -505,6 +505,8 @@ A provider's API may only move funds into contracts the app ships for it. Before
 
 A provider that names anything outside its list is left out of the quote list where its quote already names the contract (THORChain, Relay), and refused at Confirm everywhere. When a provider upgrades a contract, its swaps stop until the app update that ships the new address.
 
+Known Relay, Bridgers and Mayan EVM contracts use the provider's name. Shared Uniswap Permit2 deployments are named `Permit2`; separate provider deployments keep the provider name, such as `SunSwap Permit2`. SunSwap's router is named `SunSwap Router`.
+
 ## Rules
 
 - Regional restrictions follow the shared [Feature availability](../PRODUCT.md#feature-availability) table.

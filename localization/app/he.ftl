@@ -60,7 +60,6 @@ common_suspicious_address = כתובת חשודה
 common_suspicious_address_description = כתובת זו קשורה לפעילות חשודה או מזיקה.
 common_refresh = רענן
 common_grant_permission = תן רשות
-common_required_field = %@ נדרש
 
 # Welcome
 
@@ -165,7 +164,6 @@ transfer_reserved_fees = השארנו %@ ביתרה שלך לכיסוי עמלו
 transfer_freeze_title = הקפאה
 transfer_unfreeze_title = הפשרה
 transfer_review_request = סקור בקשה
-transfer_amount = כמות
 
 # Settings
 
@@ -255,7 +253,6 @@ errors_dust_threshold_short = הרשת מחשיבה את הכמות הזו כא�
 errors_swap_minimum_amount = סכום המסחר המינימלי הוא %@. אנא הזן סכום גבוה יותר.
 errors_perpetual_trigger_price_lower = מחיר ההפעלה צריך להיות נמוך ממחיר השוק
 errors_perpetual_trigger_price_higher = מחיר ההפעלה צריך להיות גבוה ממחיר השוק
-errors_unknown_try_again = אירעה שגיאה לא ידועה. אנא נסה שוב.
 errors_network_error = שגיאת רשת: %@
 errors_network_offline = נראה שחיבור האינטרנט אינו מקוון.
 errors_no_internet_connection = אין חיבור לאינטרנט
@@ -327,7 +324,6 @@ asset_buy_asset = קנה %@
 asset_get_asset = קבל %@
 asset_add_to_wallet = הוסף לארנק
 asset_added_to_wallet = נוסף לארנק
-asset_hidden_from_wallet = הוסתר מהארנק
 asset_resources = משאבים
 asset_verification_verified = מאומת
 asset_all_time_high = שיא כל הזמנים

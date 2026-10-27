@@ -60,7 +60,6 @@ common_suspicious_address = संदिग्ध पता
 common_suspicious_address_description = यह पता संदिग्ध या हानिकारक गतिविधि से संबंधित है।
 common_refresh = ताज़ा करना
 common_grant_permission = अनुमति प्रदान करें
-common_required_field = %@ आवश्यक है
 
 # Welcome
 
@@ -165,7 +164,6 @@ transfer_reserved_fees = हमने भविष्य में नेटव�
 transfer_freeze_title = फ़्रीज़ करें
 transfer_unfreeze_title = अनफ़्रीज़
 transfer_review_request = समीक्षा अनुरोध
-transfer_amount = रकम
 
 # Settings
 
@@ -255,7 +253,6 @@ errors_dust_threshold_short = नेटवर्क इस राशि को �
 errors_swap_minimum_amount = न्यूनतम व्यापार राशि है %@। कृपया अधिक राशि दर्ज करें।
 errors_perpetual_trigger_price_lower = ट्रिगर मूल्य बाजार मूल्य से कम होना चाहिए
 errors_perpetual_trigger_price_higher = ट्रिगर मूल्य बाजार मूल्य से अधिक होना चाहिए
-errors_unknown_try_again = एक अज्ञात त्रुटि उत्पन्न हुई. कृपया पुन: प्रयास करें।
 errors_network_error = नेटवर्क त्रुटि: %@
 errors_network_offline = इंटरनेट कनेक्शन ऑफ़लाइन प्रतीत हो रहा है।
 errors_no_internet_connection = इंटरनेट कनेक्शन नहीं है
@@ -327,7 +324,6 @@ asset_buy_asset = %@ खरीदें
 asset_get_asset = %@ प्राप्त करें
 asset_add_to_wallet = वॉलेट में जोड़ें
 asset_added_to_wallet = वॉलेट में जोड़ा गया
-asset_hidden_from_wallet = वॉलेट से छिपाया गया
 asset_resources = संसाधन
 asset_verification_verified = सत्यापित
 asset_all_time_high = सर्वकालिक उच्च

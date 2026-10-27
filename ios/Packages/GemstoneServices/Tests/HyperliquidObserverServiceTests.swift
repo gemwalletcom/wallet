@@ -138,7 +138,9 @@ struct HyperliquidObserverServiceTests {
         #expect(streamService.subscriptionChanges.isEmpty)
 
         subscribe?.resume()
-        try await Task.sleep(for: .milliseconds(100))
+        while streamService.subscriptionChanges.count < 2 {
+            try await Task.sleep(for: .milliseconds(10))
+        }
         #expect(streamService.subscriptionChanges == ["subscribe marketPrices", "unsubscribe marketPrices"])
     }
 }

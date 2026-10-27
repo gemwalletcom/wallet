@@ -60,7 +60,6 @@ common_suspicious_address = সন্দেহজনক ঠিকানা
 common_suspicious_address_description = এই ঠিকানাটি সন্দেহজনক বা ক্ষতিকারক কার্যকলাপের সাথে সম্পর্কিত।
 common_refresh = রিফ্রেশ
 common_grant_permission = অনুমতি দিন
-common_required_field = %@ প্রয়োজন
 
 # Welcome
 
@@ -165,7 +164,6 @@ transfer_reserved_fees = ভবিষ্যতের নেটওয়ার্
 transfer_freeze_title = ফ্রিজ করুন
 transfer_unfreeze_title = আনফ্রিজ করুন
 transfer_review_request = পর্যালোচনার অনুরোধ
-transfer_amount = পরিমাণ
 
 # Settings
 
@@ -255,7 +253,6 @@ errors_dust_threshold_short = নেটওয়ার্ক এই পরিম
 errors_swap_minimum_amount = সর্বনিম্ন ট্রেডের পরিমাণ হল %@. অনুগ্রহ করে আরও বেশি পরিমাণ লিখুন।
 errors_perpetual_trigger_price_lower = ট্রিগার মূল্য বাজার মূল্যের চেয়ে কম হওয়া উচিত
 errors_perpetual_trigger_price_higher = ট্রিগার মূল্য বাজার মূল্যের চেয়ে বেশি হওয়া উচিত
-errors_unknown_try_again = একটি অজানা ত্রুটি ঘটেছে. আবার চেষ্টা করুন.
 errors_network_error = নেটওয়ার্ক ত্রুটি: %@
 errors_network_offline = ইন্টারনেট সংযোগটি অফলাইন বলে মনে হচ্ছে।
 errors_no_internet_connection = ইন্টারনেট সংযোগ নেই
@@ -327,7 +324,6 @@ asset_buy_asset = %@ কিনুন
 asset_get_asset = %@ পান
 asset_add_to_wallet = ওয়ালেটে যোগ করুন
 asset_added_to_wallet = ওয়ালেটে যোগ করা হয়েছে
-asset_hidden_from_wallet = ওয়ালেট থেকে লুকানো হয়েছে
 asset_resources = রিসোর্স
 asset_verification_verified = যাচাইকৃত
 asset_all_time_high = সর্বকালের সর্বোচ্চ
