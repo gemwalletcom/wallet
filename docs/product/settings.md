@@ -44,6 +44,7 @@ flowchart LR
 | A WalletConnect request is open when the lock period passes | the lock still re-engages; the request cannot hold it off | |
 | A sheet or dialog is open when the lock re-engages | the lock covers it, cancelled prompt or not, and it is still open after unlocking | nothing Gem shows sits above the lock |
 | The phone is turned or the appearance changes while the unlock prompt is open | the same prompt stays open and unlocks the app | Android recreates the screen; cancelling the prompt then crashed the app |
+| Rotation or theme change while a confirmation prompt is open | the confirmed action runs once | |
 | The lock is on but the device passcode was turned off | the lock stays and says the device passcode is off and must be turned on to open Gem | the lock relies on the device passcode, so there is nothing else to unlock with |
 | The user turns the push switch on | the app asks the system for permission | |
 | A wallet is created or imported, including one that was already on the device | the app offers push right after | |

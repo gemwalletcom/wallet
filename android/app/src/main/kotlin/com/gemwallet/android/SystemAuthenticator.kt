@@ -24,9 +24,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlin.time.Duration
 
-internal class SystemAuthenticator(private val activity: FragmentActivity, private val lockViewModel: LockViewModel, private val privacyCover: PrivacyCover) {
+internal class SystemAuthenticator(private val activity: FragmentActivity, private val lockViewModel: LockViewModel, private val privacyCover: PrivacyCover, private val authRequests: AuthRequestQueue) {
     private val _enrollmentMissing = MutableStateFlow(false)
-    private val authRequests = AuthRequestQueue()
     private lateinit var biometricPrompt: BiometricPrompt
     private var initialAuthRetry: Job? = null
     private var activeAuthTimeout: Job? = null
