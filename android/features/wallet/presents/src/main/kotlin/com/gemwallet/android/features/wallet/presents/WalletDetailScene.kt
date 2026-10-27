@@ -16,7 +16,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -49,7 +48,7 @@ import uniffi.gemstone.GemWalletDetails
 @Composable
 internal fun WalletDetailScene(wallet: GemWalletDetails?, snackbar: SnackbarHostState? = null, onAction: (WalletDetailAction) -> Unit) {
     wallet ?: return
-    var showDeleteDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
 
     var walletName by rememberSaveable { mutableStateOf(wallet.row.name) }
     Scene(

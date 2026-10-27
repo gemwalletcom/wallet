@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -41,7 +41,7 @@ fun SwapScreen(
     val quoteDataError by viewModel.quoteDataError.collectAsStateWithLifecycle()
     val confirmInput by viewModel.confirmInput.collectAsStateWithLifecycle()
 
-    var isShowDetails by remember { mutableStateOf(false) }
+    var isShowDetails by rememberSaveable { mutableStateOf(false) }
 
     ObserveStartedState(viewModel::setRefreshEnabled)
 

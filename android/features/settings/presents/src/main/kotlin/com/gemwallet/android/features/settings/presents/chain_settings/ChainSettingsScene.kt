@@ -46,14 +46,14 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.paddingSmall
 import uniffi.gemstone.GemChainSettingsSection
 import uniffi.gemstone.GemExplorerRow
-import uniffi.gemstone.GemNodeRow
 
 @Composable
 internal fun ChainSettingsScene(state: ChainSettingsUIState, snackbar: SnackbarHostState? = null, onAction: (ChainSettingsAction) -> Unit) {
     val chain = state.chain
     var isShowAddSource by rememberSaveable { mutableStateOf(false) }
     var revealedNodeId by remember { mutableStateOf<String?>(null) }
-    var nodeDelete by remember { mutableStateOf<GemNodeRow?>(null) }
+    var nodeDeleteUrl by rememberSaveable { mutableStateOf<String?>(null) }
+    val nodeDelete = state.sections.filterIsInstance<GemChainSettingsSection.Nodes>().flatMap { it.rows }.firstOrNull { it.node.url == nodeDeleteUrl }
 
     Scene(
         title = chain.networkName(),
@@ -88,7 +88,7 @@ internal fun ChainSettingsScene(state: ChainSettingsUIState, snackbar: SnackbarH
                                 onDelete = if (node.canDelete) {
                                     {
                                         revealedNodeId = null
-                                        nodeDelete = node
+                                        nodeDeleteUrl = node.node.url
                                     }
                                 } else {
                                     null
@@ -125,9 +125,9 @@ internal fun ChainSettingsScene(state: ChainSettingsUIState, snackbar: SnackbarH
             prompt = pendingNode.deletePrompt.string(LocalContext.current),
             onConfirm = {
                 onAction(ChainSettingsAction.DeleteNode(pendingNode.node.url))
-                nodeDelete = null
+                nodeDeleteUrl = null
             },
-            onDismiss = { nodeDelete = null },
+            onDismiss = { nodeDeleteUrl = null },
         )
     }
 }

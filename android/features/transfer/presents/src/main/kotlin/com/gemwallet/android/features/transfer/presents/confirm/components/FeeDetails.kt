@@ -24,6 +24,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -92,7 +93,7 @@ fun FeeDetails(isVisible: Boolean, screen: GemNetworkFeeScreen?, onSelectPriorit
     val feeAsset = remember(screen.feeAsset) { screen.feeAsset?.toFeeAssetUIModel() }
     val feeAssets = remember(screen.feeAssets) { screen.feeAssets.map { it.toFeeAssetUIModel() } }
 
-    var page by remember(isVisible) { mutableStateOf(FeeDetailsPage.Details) }
+    var page by rememberSaveable(isVisible) { mutableStateOf(FeeDetailsPage.Details) }
     var custom by remember(page) { mutableStateOf(screen.custom) }
     val estimate = remember(custom) { custom?.viewState() }
     val navigateToDetails: () -> Unit = { page = FeeDetailsPage.Details }

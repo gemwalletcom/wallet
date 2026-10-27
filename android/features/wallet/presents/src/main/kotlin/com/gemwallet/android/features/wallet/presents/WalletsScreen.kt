@@ -10,6 +10,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -54,7 +55,8 @@ fun WalletsScreen(onCreateWallet: () -> Unit, onImportWallet: () -> Unit, onEdit
         }
     }
 
-    var deleteRow by remember { mutableStateOf<GemWalletRow?>(null) }
+    var deleteRowId by rememberSaveable { mutableStateOf<String?>(null) }
+    val deleteRow = sections.flatMap { it.rows }.firstOrNull { it.id == deleteRowId }
 
     WalletsScene(
         sections = sections,
@@ -65,7 +67,7 @@ fun WalletsScreen(onCreateWallet: () -> Unit, onImportWallet: () -> Unit, onEdit
                 WalletsAction.Import -> onImportWallet()
                 is WalletsAction.Edit -> onEditWallet(WalletId(action.row.id))
                 is WalletsAction.Select -> viewModel.selectWallet(action.row)
-                is WalletsAction.Delete -> deleteRow = action.row
+                is WalletsAction.Delete -> deleteRowId = action.row.id
                 is WalletsAction.TogglePin -> viewModel.togglePin(action.row)
                 WalletsAction.Cancel -> onCancel()
             }
@@ -76,11 +78,11 @@ fun WalletsScreen(onCreateWallet: () -> Unit, onImportWallet: () -> Unit, onEdit
         ConfirmWalletDeleteDialog(
             prompt = row.deletePrompt.string(LocalContext.current),
             onConfirm = {
-                deleteRow = null
+                deleteRowId = null
                 viewModel.deleteWallet(row)
             },
         ) {
-            deleteRow = null
+            deleteRowId = null
         }
     }
 }

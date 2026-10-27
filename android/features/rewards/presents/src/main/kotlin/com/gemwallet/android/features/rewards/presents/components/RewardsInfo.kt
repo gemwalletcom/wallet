@@ -9,7 +9,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -48,7 +48,7 @@ internal fun LazyListScope.rewardsInfo(sections: List<RewardsSectionUIModel>, re
 @Composable
 private fun RewardRedemptionOptionItem(item: GemRewardsRedemption, listPosition: ListPosition, onClick: () -> Unit) {
     val context = LocalContext.current
-    var showConfirm by remember { mutableStateOf(false) }
+    var showConfirm by rememberSaveable { mutableStateOf(false) }
     ListItem(
         model = ListItemModel(title = item.title.string(context), subtitle = item.points.text(), image = ListItemImage.Asset(item.icon)),
         listPosition = listPosition,

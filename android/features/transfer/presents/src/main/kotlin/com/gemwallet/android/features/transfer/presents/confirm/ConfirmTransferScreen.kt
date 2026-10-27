@@ -19,6 +19,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -119,10 +120,10 @@ fun ConfirmTransferScreen(
     val verification by viewModel.verification.collectAsStateWithLifecycle()
     val isVerificationVisible by viewModel.isVerificationVisible.collectAsStateWithLifecycle()
 
-    var showSelectTxSpeed by remember { mutableStateOf(false) }
-    var showSimulationDetails by remember { mutableStateOf(false) }
-    var isVerificationInfoVisible by remember { mutableStateOf(false) }
-    var selectedDetailElement by remember(input) { mutableStateOf<GemConfirmDetails?>(null) }
+    var showSelectTxSpeed by rememberSaveable { mutableStateOf(false) }
+    var showSimulationDetails by rememberSaveable { mutableStateOf(false) }
+    var isVerificationInfoVisible by rememberSaveable { mutableStateOf(false) }
+    var isDetailsVisible by rememberSaveable(input) { mutableStateOf(false) }
     val payload = sections.filterIsInstance<GemConfirmSection.Payload>().firstOrNull()
     val openPayloadAddress = payloadChain?.let { chain ->
         { address: String ->
@@ -238,7 +239,7 @@ fun ConfirmTransferScreen(
                             ConfirmDetailsRow(
                                 item = item,
                                 listPosition = listPosition,
-                                onClick = { selectedDetailElement = item },
+                                onClick = { isDetailsVisible = true },
                             )
                         }
                     }
@@ -323,8 +324,8 @@ fun ConfirmTransferScreen(
         }
 
         ConfirmDetailsSheet(
-            item = selectedDetailElement,
-            onDismiss = { selectedDetailElement = null },
+            item = detailElements.firstOrNull().takeIf { isDetailsVisible },
+            onDismiss = { isDetailsVisible = false },
         )
 
         ModalBottomSheet(

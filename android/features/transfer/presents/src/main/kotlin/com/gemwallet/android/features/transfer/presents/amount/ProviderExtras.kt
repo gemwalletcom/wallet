@@ -5,7 +5,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -66,7 +66,7 @@ fun ProviderExtras(extras: GemAmountExtras, onPickValidator: () -> Unit, onSelec
 @Composable
 private fun PerpetualSections(leverage: GemAmountLeverage?, autoclose: GemListRow?, onSelectLeverage: (UByte) -> Unit, onOpenAutoclose: () -> Unit) {
     val context = LocalContext.current
-    var showLeverageSelect by remember { mutableStateOf(false) }
+    var showLeverageSelect by rememberSaveable { mutableStateOf(false) }
     leverage?.let {
         ListItem(
             model = ListItemModel(

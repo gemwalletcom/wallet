@@ -6,6 +6,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.AcquireAssetRequest
@@ -26,7 +27,7 @@ internal fun ConfirmErrorInfo(
     onDismissAcquire: () -> Unit,
     onGetAsset: (GetAssetAction, AssetId) -> Unit,
 ) {
-    var isShowInfoSheet by remember { mutableStateOf(false) }
+    var isShowInfoSheet by rememberSaveable { mutableStateOf(false) }
     var info by remember { mutableStateOf(error?.info) }
     if (error != null) info = error.info
 

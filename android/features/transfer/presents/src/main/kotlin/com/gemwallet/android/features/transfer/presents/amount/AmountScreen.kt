@@ -6,7 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -36,8 +36,8 @@ fun AmountScreen(onCancel: () -> Unit, onConfirm: (ConfirmTransferInput) -> Unit
         return
     }
 
-    var isSelectValidator by remember { mutableStateOf(false) }
-    var showsAutoclose by remember { mutableStateOf(false) }
+    var isSelectValidator by rememberSaveable { mutableStateOf(false) }
+    var showsAutoclose by rememberSaveable { mutableStateOf(false) }
     val canPickValidator = (uiState.extras as? GemAmountExtras.Validator)?.canSelect == true
     BackHandler(isSelectValidator && canPickValidator) { isSelectValidator = false }
 
