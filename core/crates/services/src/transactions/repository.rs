@@ -3,10 +3,10 @@ use std::time::Duration;
 
 use async_trait::async_trait;
 use chrono::NaiveDateTime;
-use primitives::{Asset, AssetAddress, AssetBasic, AssetId, AssetPriceMetadata, Chain, ChainAddress, Device, MAX_QUERY_LIMIT, NFTAssetId, PriceData, ScanAddress, ScanVerdict, Transaction, TransactionId, TransactionsResponse};
+use primitives::{Asset, AssetBasic, AssetId, AssetPriceMetadata, Chain, ChainAddress, Device, MAX_QUERY_LIMIT, NFTAssetId, PriceData, ScanAddress, ScanVerdict, Transaction, TransactionId, TransactionsResponse};
 use storage::{
-    AssetFilter, AssetsAddressesRepository, AssetsRepository, ChartResult, Database, DatabaseError, DevicesRepository, NftRepository, ParserState, ParserStateRepository, PricesRepository, ScanAddressesRepository, ScanDetectionsRepository,
-    TransactionFilter, TransactionPerpetualRecord, TransactionSwapRecord, TransactionUpdate, TransactionsPerpetualsRepository, TransactionsRepository, TransactionsSwapsRepository, WalletRecord, WalletsRepository,
+    AssetFilter, AssetsRepository, ChartResult, Database, DatabaseError, DevicesRepository, NftRepository, ParserState, ParserStateRepository, PricesRepository, ScanAddressesRepository, ScanDetectionsRepository, TransactionFilter,
+    TransactionPerpetualRecord, TransactionSwapRecord, TransactionUpdate, TransactionsPerpetualsRepository, TransactionsRepository, TransactionsSwapsRepository, WalletRecord, WalletsRepository,
 };
 
 pub(crate) struct WalletTransactionsQuery {
@@ -51,7 +51,6 @@ pub(crate) trait Repository: Send + Sync {
     async fn get_asset_price_history(&self, asset_id: AssetId, at: NaiveDateTime) -> Result<AssetPriceHistory, DatabaseError>;
     async fn get_nft_asset_ids(&self, identifiers: Vec<String>) -> Result<Vec<NFTAssetId>, DatabaseError>;
     async fn set_transactions(&self, transactions: Vec<Transaction>, batch_size: usize) -> Result<HashSet<TransactionId>, DatabaseError>;
-    async fn add_asset_addresses(&self, addresses: Vec<AssetAddress>) -> Result<usize, DatabaseError>;
     async fn get_transactions(&self, filters: Vec<TransactionFilter>, limit: i64) -> Result<Vec<Transaction>, DatabaseError>;
     async fn update_transactions(&self, filters: Vec<TransactionFilter>, updates: Vec<TransactionUpdate>) -> Result<usize, DatabaseError>;
     async fn get_transaction_exists(&self, id: TransactionId) -> Result<bool, DatabaseError>;
@@ -195,10 +194,6 @@ impl Repository for PostgresRepository {
                 })
             })
             .await
-    }
-
-    async fn add_asset_addresses(&self, addresses: Vec<AssetAddress>) -> Result<usize, DatabaseError> {
-        self.database.run(move |client| client.add_assets_addresses(addresses)).await
     }
 
     async fn get_transactions(&self, filters: Vec<TransactionFilter>, limit: i64) -> Result<Vec<Transaction>, DatabaseError> {

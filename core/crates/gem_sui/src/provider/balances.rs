@@ -24,8 +24,8 @@ impl ChainBalances for SuiProvider {
         Ok(Some(map_balance_staking(self.get_stake_delegations(address).await?)))
     }
 
-    async fn get_balance_assets(&self, address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>> {
-        Ok(map_assets_balances(self.get_all_balances(address).await?))
+    async fn get_balance_assets(&self, address: String) -> Result<Option<Vec<AssetBalance>>, Box<dyn Error + Send + Sync>> {
+        Ok(Some(map_assets_balances(self.get_all_balances(address).await?)))
     }
 }
 

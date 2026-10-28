@@ -15,6 +15,7 @@ use swapper::cross_chain::{self, DepositAddressMap, SendAddressMap};
 use super::StoreTransactionsConsumerConfig;
 use super::SwapVaultAddressClient;
 use super::repository::Repository;
+use crate::assets::AssetsClient;
 use crate::config::ConfigCacher;
 use crate::notifications::Pusher;
 use crate::subscriptions::SubscriptionLookup;
@@ -24,6 +25,7 @@ const CROSS_CHAIN_SOURCE_TYPES: [TransactionType; 3] = [TransactionType::Transfe
 
 pub struct StoreTransactionsConsumer {
     pub(crate) repository: Arc<dyn Repository>,
+    pub assets: AssetsClient,
     pub stream_producer: Arc<dyn StreamProducerQueue>,
     pub pusher: Pusher,
     pub config: Arc<ConfigCacher>,
@@ -84,7 +86,7 @@ impl StoreTransactionsConsumer {
         let wallet_events = Self::wallet_events(&subscriptions, &subscribed_transactions, &publishable_transactions);
 
         if !assets_addresses.is_empty() {
-            self.repository.add_asset_addresses(assets_addresses).await?;
+            self.assets.add_asset_addresses(assets_addresses).await?;
         }
         self.stream_producer.publish_notifications_transactions(notifications).await?;
         self.stream_producer.publish_wallet_stream_events(wallet_events).await?;
