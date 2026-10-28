@@ -93,6 +93,7 @@ struct AddressInputViewModelTests {
         model.inputModel.text = " \n\(address)\r "
         #expect(model.resolvedAddress == checksummed)
 
+        model.inputModel.text = "test.eth"
         model.nameRecordViewModel.state = .complete(record: NameRecord.mock(name: "test.eth", chain: Chain.ethereum.rawValue, address: address))
         #expect(model.resolvedAddress == checksummed)
     }
