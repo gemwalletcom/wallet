@@ -481,8 +481,8 @@ mod tests {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemWalletSearchLimits {
-    pub fetch: u32,
-    pub results: u32,
+    pub fetch: usize,
+    pub results: usize,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
@@ -595,13 +595,13 @@ pub enum GemHeaderButtonKind {
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct WalletSearchCounts {
-    pub recents: u32,
-    pub pinned_assets: u32,
-    pub assets: u32,
-    pub pinned_perpetuals: u32,
-    pub perpetuals: u32,
-    pub lists: u32,
-    pub nfts: u32,
+    pub recents: usize,
+    pub pinned_assets: usize,
+    pub assets: usize,
+    pub pinned_perpetuals: usize,
+    pub perpetuals: usize,
+    pub lists: usize,
+    pub nfts: usize,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
@@ -621,7 +621,7 @@ pub struct GemWalletSearchInput {
     pub wallet: Wallet,
     pub query: String,
     pub is_loading: bool,
-    pub recents: u32,
+    pub recents: usize,
     pub asset_ids: Vec<AssetId>,
     pub pinned_asset_ids: Vec<AssetId>,
     pub perpetuals: Vec<PerpetualData>,

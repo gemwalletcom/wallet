@@ -34,7 +34,7 @@ flowchart LR
 
 A quote lives `1 minute` when the swap stays on one network and `5 minutes` when it crosses networks, because a cross-network provider gives a new deposit with every answer.
 
-1. The user opens Swap from the wallet screen, an asset, or Swap Again on a past swap; the pair is filled in, never the same asset on both sides.
+1. The user opens Swap from the wallet screen, an asset, or Swap Again on a past swap; the pair is filled in, never the same asset on both sides; when the wallet has no address on the receive asset's network, only the pay side is filled in.
 2. The user types an amount or taps 25%, 50% or 100%; every provider that serves the pair is asked at once and You Receive shows the best quote so far, see [Asking the providers](#asking-the-providers).
 3. Details lists the Provider, the Rate, the Estimated Time, the Minimum Receive and the Slippage; Providers lets the user pick another provider.
 4. Slippage is Auto (`1%`, `3%` on Solana) or a chosen value between `0.1%` and `20%`.
@@ -190,7 +190,7 @@ flowchart LR
 
 | On Dynode | Kept for |
 |---|---|
-| Uniswap v3, PancakeSwap, Aerodrome Slipstream and classic, Oku and Wagmi pool lookups | `1 day` |
+| Uniswap v3, PancakeSwap, Aerodrome Slipstream and classic, Aero, Oku and Wagmi pool lookups | `1 day` |
 | Uniswap v4 pool lookups | `1 day` |
 | Cetus pool lookups | `1 day` |
 | SunSwap pool lookups | `1 day` |
@@ -275,9 +275,9 @@ The swap calls each pool's `swap_exact_quantity` with an empty DEEP coin, the fi
 
 ### Aero
 
-Aero, the MetaDEX that launched on 2026-10-21, quotes its Slipstream v3 pools on Base, Robinhood Chain and Arc as a provider of its own, next to Aerodrome, whose pools still hold most of Base's liquidity. Its pools are found with the factory's `getPool` by tick spacing, `1`, `10`, `50`, `100` and `200`, and kept like Aerodrome's; on 2026-10-25 those held all of Aero's liquidity on Base, while its `150` and `250` tick spacings held none. A pool's address is computed on the device from its two tokens and tick spacing, and Aero's Metaquoter prices every route, one pool or two through a base token, from those addresses in one request, so a first quote takes two requests and a repeat quote one (`test_get_quote`).
+Aero, the MetaDEX that launched on 2026-10-21, quotes its Slipstream v3 pools on Base, Optimism, Ink, Robinhood Chain and Arc as a provider of its own, next to Aerodrome, whose pools still hold most of Base's liquidity. Its pools are found with the factory's `getPool` by tick spacing, `1`, `10`, `50`, `100` and `200`, and kept like Aerodrome's; on 2026-10-25 those held all of Aero's liquidity on Base, while its `150` and `250` tick spacings held none. A pool's address is computed on the device from its two tokens and tick spacing, and Aero's Metaquoter prices every route, one pool or two through a base token, from those addresses in one request, so a first quote takes two requests and a repeat quote one (`test_get_quote`).
 
-The swap goes through Aero's Metarouter, which a token swap approves directly, with no Permit2. Gem's fee is taken on the side the fee rules pick: an exact amount of what is paid, sent before the swap, or a share of what the swap returns, sent before the rest goes to the wallet, and the Minimum Receive is checked on what the wallet gets after the fee (`test_build_commands`, `test_get_quote_data`). On 2026-10-25, 0.1 cbBTC to USDC on Base received `8,044.43` USDC through Aero, against `8,037.86` through Uniswap and `8,037.75` through Aerodrome. History reads an Aero swap from its receipt: the token the wallet sent or the coin it paid, the token it received or the WETH unwrapped for it, and Gem's fee (`test_map_aero_swap`).
+The swap goes through Aero's Metarouter, which a token swap approves directly, with no Permit2. Gem's fee is taken on the side the fee rules pick: an exact amount of what is paid, sent before the swap, or a share of what the swap returns, sent before the rest goes to the wallet, and the Minimum Receive is checked on what the wallet gets after the fee (`test_build_commands`, `test_get_quote_data`). On 2026-10-25, 0.1 cbBTC to USDC on Base received `8,044.43` USDC through Aero, against `8,037.86` through Uniswap and `8,037.75` through Aerodrome. On 2026-10-26 Aero's pools gave `11` to `34` basis points more than Uniswap's for ETH to USDC and back on Optimism up to $50,000, and on Ink, where Uniswap v4 holds almost no liquidity, $1,000 of USDC bought `1,001.23` USDT0 through Aero against `1.51` through Uniswap. Ethereum and Arbitrum are left out: that day Aero gave at most `3` basis points more than Uniswap there, and less for ETH to USDC and back above $10,000. History reads an Aero swap from its receipt: the token the wallet sent or the coin it paid, the token it received or the WETH unwrapped for it, and Gem's fee (`test_map_aero_swap`).
 
 A two-pool Aero swap needs more gas than the `750,000` default for a swap waiting on its approval: on 2026-10-25 a one-pool swap needed `520,000` to `590,000` and a two-pool swap about `845,000`, so a swap signed together with its approval asks for `300,000` plus `450,000` per pool.
 
@@ -443,7 +443,7 @@ A deposit no relayer fills is refunded once its fill deadline passes. The deadli
 | Every provider answered or the round closed and the best quote still loses more than `1%` | it shows with its Price Impact | the user still decides (`test_a_held_quote_shows_once_the_round_ends`) |
 | A refresh while Details is open | Details shows the loading indicator until the new quote arrives, never the old quote's details | it matches You Receive |
 | A refresh fails while Details is open | Details stays open and shows the error, as the Swap screen does | |
-| The selected quote's `get_quote_data` call fails | an error alert; the quote, Details and the Swap button stay, so tapping Swap prepares it again, with no inline error row and no Try Again | quote fetching succeeded; only the later transaction-data preparation failed, and Try Again belongs to a failed quote |
+| The selected quote's `get_quote_data` call fails | an error alert; transaction-preparation failures keep their error message, not No quote available; the quote, Details and the Swap button stay, so tapping Swap prepares it again, with no inline error row and no Try Again | quote fetching succeeded; only the later transaction-data preparation failed, and Try Again belongs to a failed quote (`test_transaction_preparation_errors_preserve_the_message`) |
 | The amount, an asset or the slippage changes | You Receive clears | |
 | An answer arrives for an amount or pair the user has already changed | it is thrown away | |
 | The price impact is a loss of more than `1%` | Details shows the Price Impact after the rate, on one line, and a long rate shrinks to fit, down to `12` on both apps | the row keeps its height |
@@ -498,12 +498,14 @@ A provider's API may only move funds into contracts the app ships for it. Before
 | Bridgers | EVM, TON coin | The router | At Confirm, plus its own check that the API named the same router |
 | Bridgers | TON tokens, XRP | The user's own jetton wallet, or a transfer to the router | Not bound |
 | Jupiter, Orca, Raydium, PumpSwap, Meteora | Solana | Their program, for every pool type a grouped provider asks (`test_group_binds_every_member_on_the_chain`); standard programs pass | At Confirm, program level only |
-| Aero | EVM | The Metarouter as the contract called and the only spender, on Base, Robinhood Chain and Arc | At Confirm |
+| Aero | EVM | The Metarouter as the contract called and the only spender, on Base, Optimism, Ink, Robinhood Chain and Arc | At Confirm |
 | Uniswap family, Across, SunSwap, STON.fi, DeDust, Hyperion, Cetus, DeepBook, Hyperliquid | All | Built on the device against shipped contracts | Not bound by the check |
 | Stellar DEX | Stellar | Built on the device: a path payment to the wallet's own account and Gem's fee payment; no contract is called | Not bound by the check |
 | XRP Ledger DEX | XRP Ledger | No contract: built on the device as a Batch of a payment to the wallet itself and Gem's fee to Gem's address | Not bound by the check |
 
 A provider that names anything outside its list is left out of the quote list where its quote already names the contract (THORChain, Relay), and refused at Confirm everywhere. When a provider upgrades a contract, its swaps stop until the app update that ships the new address.
+
+Known Relay, Bridgers and Mayan EVM contracts use the provider's name. Shared Uniswap Permit2 deployments are named `Permit2`; separate provider deployments keep the provider name, such as `SunSwap Permit2`. SunSwap's router is named `SunSwap Router`.
 
 ## Rules
 

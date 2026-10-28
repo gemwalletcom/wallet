@@ -106,6 +106,7 @@ import uniffi.gemstone.GemRecipientSectionKind
 import uniffi.gemstone.GemRewardsIntroItem
 import uniffi.gemstone.GemRowText
 import uniffi.gemstone.GemSecurityReminderItem
+import uniffi.gemstone.GemSelectAssetSection
 import uniffi.gemstone.GemSelectAssetTitle
 import uniffi.gemstone.GemSlippageFooter
 import uniffi.gemstone.GemStakeSection
@@ -1175,6 +1176,12 @@ fun GemSelectAssetTitle.stringRes(): Int = when (this) {
     GemSelectAssetTitle.SEARCH -> R.string.assets_select_asset
 }
 
+@StringRes
+fun GemSelectAssetSection.stringRes(): Int = when (this) {
+    GemSelectAssetSection.ASSETS -> R.string.assets_title
+    GemSelectAssetSection.NETWORKS -> R.string.settings_networks_title
+}
+
 fun GemWalletConnectFailure.text(context: Context): String = when (this) {
     GemWalletConnectFailure.MaliciousOrigin -> context.getString(R.string.errors_connections_malicious_origin)
     GemWalletConnectFailure.Expired -> context.getString(R.string.wallet_connect_request_expired)
@@ -1542,6 +1549,7 @@ fun GemSwapErrorDisplay.text(context: Context): String = when (this) {
     is GemSwapErrorDisplay.Offline -> context.getString(R.string.errors_network_offline)
     is GemSwapErrorDisplay.MinimumAmount -> context.getString(R.string.errors_swap_minimum_amount, minimum.text().boldMarkdown())
     is GemSwapErrorDisplay.AmountTooSmall -> context.getString(R.string.errors_swap_amount_too_small)
+    is GemSwapErrorDisplay.Message -> msg
 }
 
 fun GemAmountTitle.text(context: Context): String = when (this) {

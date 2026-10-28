@@ -1,7 +1,7 @@
 use gem_sui::SUI_COIN_TYPE_FULL;
 use primitives::asset_constants::SUI_USDC_TOKEN_ID;
 
-pub(super) const CETUS_CLMM_PUBLISHED_AT: &str = "0x25ebb9a7c50eb17b3fa9c5a30fb8b5ad8f97caaf4928943acbcff7153dfee5e3";
+pub(super) const CETUS_CLMM_PUBLISHED_AT: &str = "0x260693ec785a6e6c9d81d58c7d2ff72f1288ae0fa6a9725abe05a6478b11f084";
 
 pub(super) const CETUS_SHARED_INIT_VERSION: u64 = 1_574_190;
 

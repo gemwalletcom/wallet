@@ -577,6 +577,7 @@ fun uniffi.gemstone.PlatformStore.toPrimitives(): com.wallet.core.primitives.Pla
     uniffi.gemstone.PlatformStore.SAMSUNG_STORE -> com.wallet.core.primitives.PlatformStore.SamsungStore
     uniffi.gemstone.PlatformStore.APK_UNIVERSAL -> com.wallet.core.primitives.PlatformStore.ApkUniversal
     uniffi.gemstone.PlatformStore.EMERALD -> com.wallet.core.primitives.PlatformStore.Emerald
+    uniffi.gemstone.PlatformStore.MAC_DMG -> com.wallet.core.primitives.PlatformStore.MacDmg
     uniffi.gemstone.PlatformStore.LOCAL -> com.wallet.core.primitives.PlatformStore.Local
 }
 
@@ -589,6 +590,7 @@ fun com.wallet.core.primitives.PlatformStore.toGem(): uniffi.gemstone.PlatformSt
     com.wallet.core.primitives.PlatformStore.SamsungStore -> uniffi.gemstone.PlatformStore.SAMSUNG_STORE
     com.wallet.core.primitives.PlatformStore.ApkUniversal -> uniffi.gemstone.PlatformStore.APK_UNIVERSAL
     com.wallet.core.primitives.PlatformStore.Emerald -> uniffi.gemstone.PlatformStore.EMERALD
+    com.wallet.core.primitives.PlatformStore.MacDmg -> uniffi.gemstone.PlatformStore.MAC_DMG
     com.wallet.core.primitives.PlatformStore.Local -> uniffi.gemstone.PlatformStore.LOCAL
 }
 
@@ -2077,6 +2079,7 @@ fun uniffi.gemstone.TransactionsFilter.toPrimitives(): com.wallet.core.primitive
     transactionTypes = transactionTypes.map { it.toPrimitives() },
     states = states.map { it.toPrimitives() },
     assetRankGreaterThan = assetRankGreaterThan,
+    createdFrom = createdFrom,
 )
 
 fun com.wallet.core.primitives.TransactionsFilter.toGem(): uniffi.gemstone.TransactionsFilter = uniffi.gemstone.TransactionsFilter(
@@ -2085,6 +2088,7 @@ fun com.wallet.core.primitives.TransactionsFilter.toGem(): uniffi.gemstone.Trans
     transactionTypes = transactionTypes.map { it.toGem() },
     states = states.map { it.toGem() },
     assetRankGreaterThan = assetRankGreaterThan,
+    createdFrom = createdFrom,
 )
 
 fun uniffi.gemstone.Wallet.toPrimitives(): com.wallet.core.primitives.Wallet = com.wallet.core.primitives.Wallet(

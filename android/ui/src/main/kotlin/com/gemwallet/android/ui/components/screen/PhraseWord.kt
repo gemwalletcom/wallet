@@ -12,7 +12,7 @@ sealed interface PhraseRow {
     data class Single(val word: PhraseWord) : PhraseRow
 }
 
-fun phraseRows(words: List<String>): List<PhraseRow> = phraseRows(secretPhraseRows(words.size.toUInt()), words)
+fun phraseRows(words: List<String>): List<PhraseRow> = phraseRows(secretPhraseRows(words.size), words)
 
 fun phraseRows(rows: List<GemSecretPhraseRow>, words: List<String>): List<PhraseRow> = rows.map { row ->
     when (row) {
@@ -21,4 +21,4 @@ fun phraseRows(rows: List<GemSecretPhraseRow>, words: List<String>): List<Phrase
     }
 }
 
-private fun List<String>.phraseWord(index: UInt) = PhraseWord(index = index.toInt(), word = this[index.toInt()])
+private fun List<String>.phraseWord(index: Int) = PhraseWord(index = index, word = this[index])

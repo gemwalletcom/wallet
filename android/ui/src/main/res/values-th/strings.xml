@@ -60,7 +60,6 @@
   <string name="common_suspicious_address_description">ที่อยู่นี้เกี่ยวข้องกับกิจกรรมที่น่าสงสัยหรือเป็นอันตราย</string>
   <string name="common_refresh">รีเฟรช</string>
   <string name="common_grant_permission">ให้สิทธิ์</string>
-  <string name="common_required_field">จำเป็นต้องระบุ %1$s</string>
   <string name="welcome_title">ยินดีต้อนรับสู่ Gem Family</string>
   <string name="wallet_create_new_wallet">สร้างกระเป๋าเงินใหม่</string>
   <string name="wallet_import_existing_wallet">นำเข้ากระเป๋าเงินที่มีอยู่</string>
@@ -144,7 +143,6 @@
   <string name="transfer_freeze_title">ฟรีซ</string>
   <string name="transfer_unfreeze_title">ยกเลิกการฟรีซ</string>
   <string name="transfer_review_request">คำขอตรวจสอบ</string>
-  <string name="transfer_amount">จำนวน</string>
   <string name="settings_terms_of_services">ข้อกำหนดในการให้บริการ</string>
   <string name="settings_privacy_policy">นโยบายความเป็นส่วนตัว</string>
   <string name="settings_title">การตั้งค่า</string>
@@ -225,7 +223,6 @@
   <string name="errors_swap_minimum_amount">จำนวนเงินขั้นต่ำในการซื้อขายคือ %1$s กรุณาป้อนจำนวนเงินที่สูงกว่านี้</string>
   <string name="errors_perpetual_trigger_price_lower">ราคา Trigger ควรต่ำกว่าราคาตลาด</string>
   <string name="errors_perpetual_trigger_price_higher">ราคา Trigger ควรสูงกว่าราคาตลาด</string>
-  <string name="errors_unknown_try_again">เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ โปรดลองอีกครั้ง</string>
   <string name="errors_network_error">เกิดข้อผิดพลาดเครือข่าย: %1$s</string>
   <string name="errors_network_offline">ดูเหมือนว่าการเชื่อมต่ออินเทอร์เน็ตจะออฟไลน์</string>
   <string name="errors_no_internet_connection">ไม่มีการเชื่อมต่ออินเทอร์เน็ต</string>
@@ -285,7 +282,6 @@
   <string name="asset_get_asset">รับ %1$s</string>
   <string name="asset_add_to_wallet">เพิ่มลงในกระเป๋าสตางค์</string>
   <string name="asset_added_to_wallet">เพิ่มลงในกระเป๋าสตางค์แล้ว</string>
-  <string name="asset_hidden_from_wallet">ซ่อนจากกระเป๋าสตางค์แล้ว</string>
   <string name="asset_resources">ทรัพยากร</string>
   <string name="asset_verification_verified">ได้รับการยืนยันแล้ว</string>
   <string name="asset_all_time_high">สูงสุดตลอดกาล</string>

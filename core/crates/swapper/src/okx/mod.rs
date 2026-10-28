@@ -10,6 +10,7 @@ mod target;
 #[cfg(test)]
 mod testkit;
 
+pub use constants::DEPLOYMENTS;
 pub use model::{OkxClientConfig, QuoteParams, SwapParams};
 pub use provider::OkxProvider;
 pub use provider_proxy::{OkxProviderProxy, error_response};

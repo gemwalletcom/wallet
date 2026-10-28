@@ -46,8 +46,8 @@ pub struct GemChartSelection {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemChartBounds {
-    pub lower_index: u32,
-    pub upper_index: u32,
+    pub lower_index: usize,
+    pub upper_index: usize,
     pub y_min: f64,
     pub y_max: f64,
     pub low: GemFormattedNumber,
@@ -56,15 +56,15 @@ pub struct GemChartBounds {
 
 #[uniffi::export]
 impl GemChartData {
-    pub fn selection(&self, index: u32) -> Option<GemChartSelection> {
-        let point = self.values.get(index as usize).filter(|point| (self.start..=self.end).contains(&point.date))?;
+    pub fn selection(&self, index: usize) -> Option<GemChartSelection> {
+        let point = self.values.get(index).filter(|point| (self.start..=self.end).contains(&point.date))?;
         Some(GemChartSelection {
             header: rules::header(self, point.value, None),
             date: point.date,
         })
     }
 
-    pub fn index_at(&self, fraction: f64) -> Option<u32> {
+    pub fn index_at(&self, fraction: f64) -> Option<usize> {
         rules::nearest_index(self.values.iter().map(|point| point.date), self.start..=self.end, fraction)
     }
 }

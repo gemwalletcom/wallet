@@ -6,8 +6,8 @@ import enum Gemstone.GemPrecision
 public extension GemPrecision {
     var formatStyle: NumberFormatStyleConfiguration.Precision {
         switch self {
-        case let .fraction(min, max): .fractionLength(Int(min) ... Int(max))
-        case let .significant(max): .significantDigits(1 ... Int(max))
+        case let .fraction(min, max): .fractionLength(min ... max)
+        case let .significant(max): .significantDigits(1 ... max)
         }
     }
 }

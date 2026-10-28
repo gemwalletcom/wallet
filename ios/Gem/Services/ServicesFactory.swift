@@ -50,7 +50,7 @@ struct ServicesFactory {
             ],
         )
         let apiClient = Gemstone.GemApiClient(provider: nativeProvider)
-        let configService = Gemstone.GemConfigService(api: apiClient, preferences: preferencesService)
+        let configService = Gemstone.GemConfigService(api: apiClient, preferences: preferencesService, store: Primitives.PlatformStore.current.toGem())
         let staticApiClient = Gemstone.GemStaticApiClient(provider: nativeProvider)
         let priceService = Gemstone.GemPriceService(
             store: GemstonePriceStore(priceStore: stores.priceStore),
@@ -154,7 +154,7 @@ struct ServicesFactory {
 
         let bannerService = Gemstone.GemBannerService(store: gemstoneBannerStore, platform: .ios)
         let navigationService = Gemstone.GemNavigationService(assets: assetsService, balance: balanceService, preferences: preferencesService, session: walletSessionService)
-        let navigationPresenter = NavigationPresenter(assetsService: assetsService, navigationService: navigationService)
+        let navigationPresenter = NavigationPresenter(assetsService: assetsService)
         let gemstonePerpetualStore = GemstonePerpetualStore(store: stores.perpetualStore)
         let perpetualService = gatewayService.perpetualService(
             price: priceService,

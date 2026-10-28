@@ -330,7 +330,7 @@ impl GemWalletConnectService {
         let transaction = self.wallet_connect.decode_send_transaction(transaction_type.clone(), data.clone())?;
         rules::validate_transaction_sender(&transaction, &account)?;
         let simulation = self.simulation.simulate_send_transaction(chain, transaction_type, data).await?;
-        let transfer = rules::transfer_data(chain, connection.session.metadata.clone(), transaction, action)?;
+        let transfer = rules::transfer_data(connection.session.metadata.clone(), transaction, &account, action)?;
         self.ensure_live(expiry)?;
         self.session.set_current_wallet_id(Some(connection.wallet.id.clone()))?;
         self.signer

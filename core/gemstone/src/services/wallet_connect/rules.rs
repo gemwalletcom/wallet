@@ -6,8 +6,9 @@ use crate::application::url_host;
 use crate::services::collections::{stale, unique};
 
 use chrono::{DateTime, Utc};
+use gem_solana::{Pubkey, SolanaTransfer, VersionedTransaction, VersionedTransactionExt};
 use gem_ton::models::decode_wallet_connect_transfer;
-use gem_tron::decode_wallet_connect_approval;
+use gem_tron::decode_wallet_connect_contract;
 use primitives::ChainType;
 use primitives::WalletConnectionVerificationStatus;
 use primitives::{
@@ -308,7 +309,7 @@ pub fn validate_transaction_sender(transaction: &WalletConnectTransaction, accou
     }
 }
 
-pub fn transfer_data(chain: Chain, metadata: ApplicationMetadata, transaction: WalletConnectTransaction, action: GemWalletConnectTransactionAction) -> Result<GemTransferData, GemServiceError> {
+pub fn transfer_data(metadata: ApplicationMetadata, transaction: WalletConnectTransaction, account: &Account, action: GemWalletConnectTransactionAction) -> Result<GemTransferData, GemServiceError> {
     let output_action = match action {
         GemWalletConnectTransactionAction::Sign => TransferDataOutputAction::Sign,
         GemWalletConnectTransactionAction::Send => TransferDataOutputAction::Send,
@@ -341,18 +342,30 @@ pub fn transfer_data(chain: Chain, metadata: ApplicationMetadata, transaction: W
             };
             (extra, value)
         }
-        WalletConnectTransaction::Solana { data, output_type, transaction_type } => (encoded_extra(data.transaction, output_type, output_action, transaction_type), BigInt::ZERO),
+        WalletConnectTransaction::Solana { data, output_type } => {
+            let (to, value) = match solana_native_transfer(&data.decoded, &account.address) {
+                Some(transfer) => (transfer.recipient, BigInt::from(transfer.value)),
+                None => (String::new(), BigInt::ZERO),
+            };
+            let extra = TransferDataExtra {
+                to,
+                ..encoded_extra(data.transaction, output_type, output_action, data.decoded.transaction_type())
+            };
+            (extra, value)
+        }
         WalletConnectTransaction::Sui { data, output_type } => (encoded_extra(data.transaction, output_type, output_action, TransactionType::SmartContractCall), BigInt::ZERO),
         WalletConnectTransaction::Tron { data, output_type } => {
-            let approval = decode_wallet_connect_approval(&data).map_err(|error| GemServiceError::InvalidInput { msg: error.to_string() })?;
+            let (to, value, approval) = match decode_wallet_connect_contract(&data).map_err(|error| GemServiceError::InvalidInput { msg: error.to_string() })? {
+                Some(contract) => (contract.to, BigInt::from(contract.value), contract.approval),
+                None => (String::new(), BigInt::ZERO, None),
+            };
             let transaction_type = if approval.is_some() { TransactionType::TokenApproval } else { TransactionType::SmartContractCall };
-            let to = approval.as_ref().map(|decoded| decoded.contract.clone()).unwrap_or_default();
             let extra = TransferDataExtra {
                 to,
                 approval: approval.map(|decoded| decoded.approval),
                 ..encoded_extra(data, output_type, output_action, transaction_type)
             };
-            (extra, BigInt::ZERO)
+            (extra, value)
         }
         WalletConnectTransaction::Ton { data, output_type } => {
             let transfer = decode_wallet_connect_transfer(&data).map_err(|msg| GemServiceError::InvalidInput { msg })?;
@@ -371,13 +384,18 @@ pub fn transfer_data(chain: Chain, metadata: ApplicationMetadata, transaction: W
             references: vec![],
         },
         input_type: TransactionInputType::Generic {
-            asset: Asset::from_chain(chain),
+            asset: Asset::from_chain(account.chain),
             metadata,
             extra,
         },
         value,
         use_max_amount: false,
     })
+}
+
+fn solana_native_transfer(transaction: &VersionedTransaction, sender: &str) -> Option<SolanaTransfer> {
+    let sender = Pubkey::from_base58(sender).ok()?;
+    transaction.simple_transfer(&sender).filter(|transfer| transfer.asset_id.is_native())
 }
 
 fn encoded_extra(encoded: String, output_type: TransferDataOutputType, output_action: TransferDataOutputAction, transaction_type: TransactionType) -> TransferDataExtra {
@@ -669,12 +687,12 @@ mod tests {
         let data = include_str!("../../../../crates/gem_wallet_connect/testdata/tron_send_transaction.json");
         for action in [GemWalletConnectTransactionAction::Sign, GemWalletConnectTransactionAction::Send] {
             let transfer = transfer_data(
-                Chain::Tron,
                 application_metadata("app".into(), String::new(), "https://app.example".into(), vec![]),
                 WalletConnectTransaction::Tron {
                     data: data.to_string(),
                     output_type: TransferDataOutputType::EncodedTransaction,
                 },
+                &Account::mock(Chain::Tron, "sender"),
                 action,
             )
             .unwrap();
@@ -682,7 +700,7 @@ mod tests {
             assert_eq!(transfer.value, BigInt::ZERO);
             let extra = transfer.input_type.get_generic_data().unwrap();
             assert_eq!(extra.transaction_type, TransactionType::TokenApproval);
-            assert_eq!(extra.approval, decode_wallet_connect_approval(data).unwrap().map(|decoded| decoded.approval));
+            assert_eq!(extra.approval, gem_tron::decode_wallet_connect_approval(data).unwrap().map(|decoded| decoded.approval));
             assert_eq!(extra.data.as_deref(), Some(data.as_bytes()));
             assert_eq!(extra.output_type, TransferDataOutputType::EncodedTransaction);
             assert_eq!(
@@ -696,6 +714,59 @@ mod tests {
     }
 
     #[test]
+    fn test_transfer_data_maps_tron_outflow() {
+        let transaction: serde_json::Value = serde_json::from_str(include_str!("../../../../crates/gem_tron/testdata/wallet_connect_transfer_transaction.json")).unwrap();
+        let data = serde_json::json!({ "transaction": transaction }).to_string();
+        let transfer = transfer_data(
+            application_metadata("app".into(), String::new(), "https://app.example".into(), vec![]),
+            WalletConnectTransaction::Tron {
+                data,
+                output_type: TransferDataOutputType::EncodedTransaction,
+            },
+            &Account::mock(Chain::Tron, "sender"),
+            GemWalletConnectTransactionAction::Send,
+        )
+        .unwrap();
+
+        assert_eq!(transfer.value, BigInt::from(2_000_000));
+        assert_eq!(transfer.recipient.address, "THTR75o8xXAgCTQqpiot2AFRAjvW1tSbVV");
+        assert_eq!(transfer.input_type.get_generic_data().unwrap().transaction_type, TransactionType::SmartContractCall);
+    }
+
+    #[test]
+    fn test_transfer_data_maps_solana_native_outflow() {
+        let sender = Pubkey::new([1; 32]);
+        let recipient = Pubkey::new([5; 32]);
+        let transfer = |instruction: gem_solana::Instruction| {
+            let mut builder = gem_solana::TransactionBuilder::new(sender, [7; 32]);
+            builder.add_instruction(instruction);
+            let solana = WalletConnectTransaction::Solana {
+                data: gem_wallet_connect::WCSolanaTransactionData {
+                    transaction: String::new(),
+                    decoded: builder.build().unwrap(),
+                },
+                output_type: TransferDataOutputType::EncodedTransaction,
+            };
+            let metadata = application_metadata("app".into(), String::new(), "https://app.example".into(), vec![]);
+            transfer_data(metadata, solana, &Account::mock(Chain::Solana, &sender.to_base58()), GemWalletConnectTransactionAction::Send).unwrap()
+        };
+
+        let outflow = transfer(gem_solana::system::transfer(&sender, &recipient, 1_000_000_000));
+        assert_eq!(outflow.value, BigInt::from(1_000_000_000));
+        assert_eq!(outflow.recipient.address, recipient.to_base58());
+
+        let inflow = transfer(gem_solana::system::transfer(&recipient, &sender, 1_000_000_000));
+        assert_eq!(inflow.value, BigInt::ZERO, "coins another signer sends to the wallet never count as leaving it");
+        assert_eq!(inflow.recipient.address, "");
+
+        let mint = Pubkey::new([3; 32]);
+        let token_program = Pubkey::from_base58(gem_solana::TOKEN_PROGRAM).unwrap();
+        let token = transfer(gem_solana::token::transfer_checked_with_program_id(&Pubkey::new([2; 32]), &mint, &Pubkey::new([4; 32]), &sender, 19_000_000, 6, &token_program));
+        assert_eq!(token.value, BigInt::ZERO, "a token amount is never shown as the native coin");
+        assert_eq!(token.recipient.address, "");
+    }
+
+    #[test]
     fn test_transfer_data_maps_ton_connect_outflow() {
         let data = include_str!("../../../../crates/gem_ton/testdata/ton_connect_send_transaction.json");
         let metadata = application_metadata("Demo DApp".into(), String::new(), "https://demo.ton-connect.io".into(), vec![]);
@@ -704,7 +775,7 @@ mod tests {
             output_type: TransferDataOutputType::EncodedTransaction,
         };
 
-        let transfer = transfer_data(Chain::Ton, metadata.clone(), transaction, GemWalletConnectTransactionAction::Send).unwrap();
+        let transfer = transfer_data(metadata.clone(), transaction, &Account::mock(Chain::Ton, "sender"), GemWalletConnectTransactionAction::Send).unwrap();
 
         assert_eq!(transfer.value, BigInt::from(5_000_000));
         assert_eq!(transfer.recipient.address, "EQCKWpx7cNMpvmcN5ObM5lLUZHZRFKqYA4xmw9jOry0ZsF9M");
@@ -717,7 +788,7 @@ mod tests {
             output_type: TransferDataOutputType::EncodedTransaction,
         };
         assert!(
-            transfer_data(Chain::Ton, metadata, invalid, GemWalletConnectTransactionAction::Send).is_err(),
+            transfer_data(metadata, invalid, &Account::mock(Chain::Ton, "sender"), GemWalletConnectTransactionAction::Send).is_err(),
             "an amount the review cannot show is never sent to the signer"
         );
     }
@@ -742,7 +813,7 @@ mod tests {
             kind: EvmTransactionKind::TokenApproval(primitives::swap::ApprovalData::mock()),
         };
 
-        let transfer = transfer_data(Chain::Ethereum, metadata.clone(), evm, GemWalletConnectTransactionAction::Send).unwrap();
+        let transfer = transfer_data(metadata.clone(), evm, &Account::mock(Chain::Ethereum, "0xfrom"), GemWalletConnectTransactionAction::Send).unwrap();
 
         assert_eq!(transfer.value, BigInt::from(16));
         assert_eq!(transfer.recipient.address, "0xto");
@@ -758,11 +829,13 @@ mod tests {
         assert_eq!(extra.output_action, TransferDataOutputAction::Send);
 
         let solana = WalletConnectTransaction::Solana {
-            data: gem_wallet_connect::WCSolanaTransactionData { transaction: "AQID".to_string() },
+            data: gem_wallet_connect::WCSolanaTransactionData {
+                transaction: "AQID".to_string(),
+                decoded: gem_solana::TransactionBuilder::new(Pubkey::new([1; 32]), [7; 32]).build().unwrap(),
+            },
             output_type: TransferDataOutputType::Signature,
-            transaction_type: TransactionType::Swap,
         };
-        let transfer = transfer_data(Chain::Solana, metadata, solana, GemWalletConnectTransactionAction::Sign).unwrap();
+        let transfer = transfer_data(metadata, solana, &Account::mock(Chain::Solana, "sender"), GemWalletConnectTransactionAction::Sign).unwrap();
         assert_eq!(transfer.value, BigInt::from(0));
         assert_eq!(transfer.recipient.address, "");
         let TransactionInputType::Generic { extra, .. } = transfer.input_type else {
@@ -771,7 +844,7 @@ mod tests {
         assert_eq!(extra.data, Some(b"AQID".to_vec()));
         assert_eq!(extra.output_type, TransferDataOutputType::Signature);
         assert_eq!(extra.output_action, TransferDataOutputAction::Sign);
-        assert_eq!(extra.transaction_type, TransactionType::Swap);
+        assert_eq!(extra.transaction_type, TransactionType::SmartContractCall);
     }
 }
 

@@ -992,6 +992,7 @@ private val viewState = combine(session, isUrlLoading, assetPriceUsd) { session,
   iOS: `uniffi.toml` maps each id to its `Primitives` type and `typed_identifiers` in `remote_types.yml` passes it through the generated mappers and mocks, so Swift never parses an id Core produced.
   Android: receives the identifier string; its id types live in `:gemcore`, which depends on the `:gemstone` bindings module, so the bindings cannot name them.
   Expected: intentional until the Android id types sit below `:gemstone`.
+- A count, a limit or an index is `usize`, which reaches both apps as `Int` through the `GemInt` custom type (`core/gemstone/src/models/custom_types.rs`, `uniffi.toml`), never `u32`. A `u32` arrives as `UInt32` in Swift and `UInt` in Kotlin, and every call site then converts to and from the `Int` its lists, queries and constants use. Digit counts are counts too: `GemPrecision`, display places and input digit limits are `usize`. Decimals, basis points and durations stay `u32`, and where a place count is derived from decimals it converts once, on that line.
 - `amount` is for `f64`. `value` is for big integers. Do not mix them.
 - Full domain words, per the shared [naming rule](../skills/engineering-principles.md#clean-code-principles).
 
@@ -1077,6 +1078,14 @@ The existing hide/unpin adapters are the atomic-write example: [iOS balance upda
 Atomicity of one batch does not order overlapping operations. The [balance publication contract](#publish-each-source-of-a-refresh-as-it-answers) is how stale responses and different balance-kind updates publish without overwriting newer data. Preserve explicit wallet/asset identity and independent requests; a global lock is not a default solution.
 
 Observed queries stay native. Their product contract specifies wallet scope, inclusion, ordering, limits and missing rows; paired adapter/query fixtures verify those semantics. Do not solve query parity by copying an unbounded wallet across FFI and sorting it on every emission. `BalanceStoreTests` and `BalancesDaoTest` are those contract tests, through the real GRDB/Room adapters (MIG6).
+
+### A long list observes a growing window
+
+A list that can hold hundreds of rows observes its first page and grows as the user scrolls. [`GemListWindow`](../core/gemstone/src/models/list.rs) holds the limit and its maximum, and `on_end_reached(row_count)` adds `LIST_PAGE_SIZE` when the rows shown fill the limit, up to the maximum. When they do not, it returns the window unchanged: every stored row is already shown.
+
+The app keeps observing one query with that limit, so a new transaction, a status change or a filter change arrives exactly as before, and stable row ids keep the scroll position while rows join the end. The trigger is a row within `LIST_PREFETCH_ROWS` of the end: iOS calls `TransactionsList(onEndReached:)` from that row's `onAppear`, Android `LoadOnListEnd(listState)`. iOS grows the query with `ObservableQuery.setLimit`, which reads the larger window off the main thread and keeps the rows shown until it arrives; every other request change still reads synchronously, so a screen that sets a request and reads the value at once keeps working.
+
+Activity, the asset screen and the perpetual screen use it, with `GemListWindow.transactions` on both apps. The perpetual chart does not read the list's rows: [`GemCandleSession::markers_request`](../core/gemstone/src/services/perpetual/candles.rs) asks for the market's trades from the first loaded candle on (`TransactionsFilter.created_from`), and for none before candles load, so the markers never depend on how far the list has scrolled. iOS swaps that request with `ObservableQuery.setRequestInBackground`, so a new period's trades are read off the main thread too. Rows come from the database only. A later page from Gem's server would be written into the store and read by the same window, never shown from the response.
 
 ### Publish each source of a refresh as it answers
 
@@ -1854,7 +1863,7 @@ The table locates the existing owners and consumers; it is not proof that a scre
 | `GemAppUpdateService` | — | `AboutUsSceneViewModel`, `RootSceneViewModel` | `AboutUsViewModel`; `AppUpdateCoordinator` behind `SyncAppUpdate`, `ObserveAppUpdateOffer` and `SkipAppUpdate` (keeps the start-up offer in memory for the store prompt in `AppViewModel` and the universal-APK banner in `InAppUpdateViewModel`) |
 | `GemAssetDetailsService` | — | `AssetSceneViewModel` | `AssetViewModel` |
 | `GemAssetSelectionService` | — | `SelectAssetSceneViewModel`, `WalletSearchSceneViewModel`, `AssetsResultsSceneViewModel` | `BaseSelectAssetViewModel` and its subclasses (+ `AssetsQuery`, `WalletSearchQuery`, `RecentActivityQuery`) |
-| `GemChainService` | — | `ChainListSettingsSceneViewModel` (chain picker) | `ContactChainSelectViewModel`, `ImportWalletTypeViewModel`, `AddAssetViewModel` |
+| `GemChainService` | — | `ChainListSettingsSceneViewModel` (chain picker) | `ChainListSettingsViewModel`, `ContactChainSelectViewModel`, `ImportWalletTypeViewModel`, `AddAssetViewModel` |
 | `GemChainSettingsService` | — | `ChainSettingsSceneViewModel`, `AddNodeSceneViewModel` | `ChainSettingsViewModel`, `AddNodeViewModel` |
 | `GemChartService` | `GemChartSession` | `ChartSceneViewModel` (+ `PriceQuery`) | `ChartViewModel` (+ `PriceQuery`) |
 | `GemCollectibleService` | — | `CollectibleSceneViewModel`, `ReportNftSceneViewModel` | `CollectibleViewModel` (+ `GetNftAssetDetails`, which composes `NFTAssetQuery` with `GemNftService.ensure_asset`) |

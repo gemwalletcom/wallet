@@ -3,6 +3,7 @@
 import Components
 import Foundation
 import func Gemstone.feeAssetId
+import struct Gemstone.GemListWindow
 import struct Gemstone.GemTransactionRow
 import GemstonePrimitives
 import Primitives
@@ -28,7 +29,7 @@ public struct AssetSceneInput: Sendable {
         )
 
         transactionsRequest = MappedQuery(
-            TransactionsQuery.assetScene(walletId: wallet.id, assetId: asset.id, limit: GemConstants.transactionsListLimit),
+            TransactionsQuery.assetScene(walletId: wallet.id, assetId: asset.id, limit: GemListWindow.transactions.limit),
             transform: transactionListSections,
         )
 

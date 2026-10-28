@@ -13,7 +13,7 @@ public actor StreamObserverService: Sendable {
     private let reconnection: any Reconnectable
     private var observeTask: Task<Void, Never>?
     private var isActive = false
-    private var failedAttempts: UInt32 = 0
+    private var failedAttempts: Int = 0
     private var connectedAt: ContinuousClock.Instant?
 
     public init(

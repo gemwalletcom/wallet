@@ -76,7 +76,7 @@ Markets come from two sets on Hyperliquid:
 | The user opens or increases a position on a standard Hyperliquid account | the same Confirm also switches the account to unified, once, with no extra step; from then on the balance is its spot USDC | one USDC balance backs every market, as on Hyperliquid itself |
 | The user closes, reduces or edits a position on a standard account | it is sent without the switch | an order that lowers risk never waits on an account change |
 | The user opens the Perpetuals portfolio on a unified account | the value, its history and the margin usage cover the account's spot USDC, while volume and PnL count only perpetual trades | on a unified account the spot USDC is the perpetual balance, and each market holds only the margin in use |
-| A perpetual is opened from search, recents, a transaction, a notification or a link | its market screen | one rule decides which screen an asset opens, for both apps |
+| A perpetual is opened from search, recents, a transaction, a notification or a link | its market screen; from a notification or a link, over the Perpetuals list | one rule decides which screen an asset opens, for both apps, and Back from a market opened from outside the app lands on Perpetuals |
 | A market tracks an asset Gem lists as its official association (Bitcoin, CAKE on BNB Chain) | the asset shows under the market info, offline too, and opens its asset screen; a market without one shows nothing there; the link is checked at most once an hour | the user can buy, swap or receive the asset itself, which a perpetual cannot offer |
 
 Pinching and touching the chart follow the shared [Charts](../PRODUCT.md#charts) section.

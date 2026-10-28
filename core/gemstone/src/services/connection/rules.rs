@@ -12,7 +12,7 @@ const MARKET_REFRESH: Duration = Duration::from_secs(60);
 const WALLET_REFRESH: Duration = Duration::from_secs(300);
 const STREAMING_REFRESH: Duration = Duration::from_secs(900);
 
-pub fn reconnection(attempt: u32, connected: Duration) -> GemReconnection {
+pub fn reconnection(attempt: usize, connected: Duration) -> GemReconnection {
     let attempt = if connected >= PING_INTERVAL { 0 } else { attempt };
     GemReconnection {
         next_attempt: attempt.saturating_add(1),
@@ -20,8 +20,8 @@ pub fn reconnection(attempt: u32, connected: Duration) -> GemReconnection {
     }
 }
 
-fn reconnect_delay(attempt: u32) -> Duration {
-    Duration::from_millis((RECONNECT_MULTIPLIER_MILLISECONDS * f64::from(attempt).exp()).min(RECONNECT_MAXIMUM_MILLISECONDS) as u64)
+fn reconnect_delay(attempt: usize) -> Duration {
+    Duration::from_millis((RECONNECT_MULTIPLIER_MILLISECONDS * (attempt as f64).exp()).min(RECONNECT_MAXIMUM_MILLISECONDS) as u64)
 }
 
 pub fn refresh_interval(kind: GemRefreshKind, status: ConnectionStatus) -> Duration {
@@ -66,7 +66,7 @@ mod tests {
             Duration::from_millis(RECONNECT_MAXIMUM_MILLISECONDS as u64),
             "the curve is capped from the attempt it first exceeds the maximum"
         );
-        assert_eq!(reconnect_delay(u32::MAX), Duration::from_millis(RECONNECT_MAXIMUM_MILLISECONDS as u64), "an overflowing exponent still yields the cap");
+        assert_eq!(reconnect_delay(usize::MAX), Duration::from_millis(RECONNECT_MAXIMUM_MILLISECONDS as u64), "an overflowing exponent still yields the cap");
     }
 
     #[test]

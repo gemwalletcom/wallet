@@ -261,7 +261,7 @@ pub fn autoclose_row(asset: &Asset, data: &PerpetualModifyConfirmData) -> Option
     })
 }
 
-pub fn chart_layout(candles: &[ChartCandleStick], current: &ChartCandleStick, position: Option<&PerpetualPosition>, price_decimals: u32) -> GemPerpetualChartLayout {
+pub fn chart_layout(candles: &[ChartCandleStick], current: &ChartCandleStick, position: Option<&PerpetualPosition>, price_decimals: usize) -> GemPerpetualChartLayout {
     let candle_low = candles.iter().map(|candle| candle.low).reduce(f64::min).unwrap_or(0.0);
     let candle_high = candles.iter().map(|candle| candle.high).reduce(f64::max).unwrap_or(1.0);
     let buffer = (candle_high - candle_low) * CHART_LINE_VISIBILITY_BUFFER_FRACTION;
@@ -279,7 +279,7 @@ pub fn chart_layout(candles: &[ChartCandleStick], current: &ChartCandleStick, po
     let price_low = if lowest > 0.0 { (lowest - padding).max(lowest * CHART_RANGE_FLOOR_FRACTION) } else { lowest - padding };
     let price_high = highest + padding;
     let overlap_threshold = (price_high - price_low) * CHART_LABEL_OVERLAP_FRACTION;
-    let mut previous: Option<(f64, u32)> = None;
+    let mut previous: Option<(f64, usize)> = None;
     let lines = lines
         .into_iter()
         .map(|(kind, price)| {
@@ -309,7 +309,7 @@ pub fn chart_layout(candles: &[ChartCandleStick], current: &ChartCandleStick, po
     }
 }
 
-fn chart_levels(price_low: f64, price_high: f64, current_price: f64, price_decimals: u32) -> Vec<GemFormattedNumber> {
+fn chart_levels(price_low: f64, price_high: f64, current_price: f64, price_decimals: usize) -> Vec<GemFormattedNumber> {
     let span = price_high - price_low;
     let padding = span * CHART_RANGE_PADDING_FRACTION / (1.0 + 2.0 * CHART_RANGE_PADDING_FRACTION);
     let clearance = span * CHART_CURRENT_PRICE_CLEARANCE_FRACTION;
@@ -655,7 +655,7 @@ fn merge_candle(candles: &[ChartCandleStick], candle: ChartCandleStick) -> Vec<C
     }
 }
 
-pub const MARKETS_LIMIT: u32 = 100;
+pub const MARKETS_LIMIT: usize = 100;
 
 pub fn market_query(search: String) -> GemPerpetualMarketQuery {
     GemPerpetualMarketQuery {
@@ -686,7 +686,7 @@ pub fn market_view(counts: &GemPerpetualMarketCounts, is_searching: bool, is_que
     }
 }
 
-pub fn candle_tooltip(candle: &ChartCandleStick, price_decimals: u32) -> GemCandleTooltip {
+pub fn candle_tooltip(candle: &ChartCandleStick, price_decimals: usize) -> GemCandleTooltip {
     GemCandleTooltip {
         prices: vec![
             tooltip_cell(GemCandleTooltipRow::Open, GemFormattedNumber::plain(candle.open, price_decimals)),
@@ -1319,7 +1319,7 @@ mod tests {
 
         let candles = [ChartCandleStick::mock_range(100.0, 200.0)];
         let layout = chart_layout(&candles, &candles[0], Some(&open), 2);
-        let levels: Vec<(GemPerpetualChartLineKind, u32)> = layout.lines.iter().map(|line| (line.kind, line.overlap_level)).collect();
+        let levels: Vec<(GemPerpetualChartLineKind, usize)> = layout.lines.iter().map(|line| (line.kind, line.overlap_level)).collect();
 
         assert_eq!(levels, vec![(GemPerpetualChartLineKind::Liquidation, 0), (GemPerpetualChartLineKind::Entry, 1), (GemPerpetualChartLineKind::TakeProfit, 0)]);
     }

@@ -29,7 +29,6 @@ public struct AmountScene: View {
             .listGroupRowStyle()
             .disabled(model.isInputDisabled)
             .focused($focusedField)
-            .accessibilityIdentifier("amountInputField")
 
             if model.isBalanceViewEnabled {
                 Section {

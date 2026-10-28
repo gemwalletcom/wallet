@@ -11,5 +11,6 @@ public enum PlatformStore: String, Codable, CaseIterable, Equatable, Sendable {
 	case samsungStore
 	case apkUniversal
 	case emerald
+	case macDmg
 	case local
 }

@@ -44,7 +44,7 @@ const RECEIVERS: &[Deployment] = &[
     Deployment::new(Chain::Berachain, "0x7F4babd2C7D35221e72Ab67Ea72Cba99573A0089"),
 ];
 
-pub(super) fn contracts(chain: Chain) -> Contracts {
+pub fn contracts(chain: Chain) -> Contracts {
     let (spenders, routers): (&[&'static str], &[&'static str]) = match chain {
         Chain::Mantle | Chain::Linea => (
             &[MANTLE_LINEA_DEPOSITORY, MANTLE_LINEA_APPROVAL_PROXY, MANTLE_LINEA_APPROVAL_PROXY_V3_2],

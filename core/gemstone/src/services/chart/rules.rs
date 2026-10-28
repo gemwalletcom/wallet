@@ -94,7 +94,7 @@ pub fn chart_sections(asset: &Asset, currency: Currency, price: Option<f64>, mar
 
 fn price_alert_section(price: Option<f64>, price_alerts: Option<Vec<PriceAlert>>) -> Option<GemListSection> {
     let price_alerts = price_alerts.filter(|_| has_price(price))?;
-    let count = displayed_price_alert_ids(price_alerts).len() as u32;
+    let count = displayed_price_alert_ids(price_alerts).len();
     let row = match count {
         0 => GemListRow::Link {
             title: GemListRowTitle::SetPriceAlert,
@@ -188,8 +188,8 @@ fn chart_bounds(values: &[ChartDateValue], currency: Currency) -> GemChartBounds
         false => range * RANGE_PADDING,
     };
     GemChartBounds {
-        lower_index: lower_index as u32,
-        upper_index: upper_index as u32,
+        lower_index,
+        upper_index,
         y_min: lower - padding,
         y_max: upper + padding,
         low: GemFormattedNumber::currency(lower, currency.clone(), GemCurrencyStyle::Currency),
@@ -201,13 +201,13 @@ pub fn fraction_of(span: TimeDelta, fraction: f64) -> TimeDelta {
     TimeDelta::milliseconds((span.num_milliseconds() as f64 * fraction) as i64)
 }
 
-pub fn nearest_index(dates: impl Iterator<Item = DateTime<Utc>>, window: RangeInclusive<DateTime<Utc>>, fraction: f64) -> Option<u32> {
+pub fn nearest_index(dates: impl Iterator<Item = DateTime<Utc>>, window: RangeInclusive<DateTime<Utc>>, fraction: f64) -> Option<usize> {
     let date = *window.start() + fraction_of(*window.end() - *window.start(), fraction.clamp(0.0, 1.0));
     dates
         .enumerate()
         .filter(|(_, candidate)| window.contains(candidate))
         .min_by_key(|(_, candidate)| (*candidate - date).abs())
-        .map(|(index, _)| index as u32)
+        .map(|(index, _)| index)
 }
 
 pub fn zoomed_chart(data: GemChartData, zoom: GemChartZoom) -> GemChartData {
@@ -220,7 +220,7 @@ pub fn zoomed_chart(data: GemChartData, zoom: GemChartZoom) -> GemChartData {
     let points_range = visible_range(&points, &window);
     let values: Vec<ChartDateValue> = points[points_range.start.saturating_sub(1)..(points_range.end + 1).min(points.len())]
         .iter()
-        .chain([visible_bounds.lower_index, visible_bounds.upper_index].into_iter().filter_map(|index| visible.get(index as usize)))
+        .chain([visible_bounds.lower_index, visible_bounds.upper_index].into_iter().filter_map(|index| visible.get(index)))
         .map(|value| (value.date, value.clone()))
         .collect::<BTreeMap<_, _>>()
         .into_values()
@@ -232,8 +232,8 @@ pub fn zoomed_chart(data: GemChartData, zoom: GemChartZoom) -> GemChartData {
     let bounds = chart_bounds(&values[values_range.clone()], data.currency.clone());
     GemChartData {
         bounds: GemChartBounds {
-            lower_index: bounds.lower_index + values_range.start as u32,
-            upper_index: bounds.upper_index + values_range.start as u32,
+            lower_index: bounds.lower_index + values_range.start,
+            upper_index: bounds.upper_index + values_range.start,
             ..bounds
         },
         values,
@@ -371,14 +371,14 @@ mod tests {
         let data = price_chart_data(GemChart::mock(ChartDateValue::mock_series(600)), ChartPeriod::Day, Currency::USD).unwrap();
         let whole = zoomed_chart(data.clone(), GemChartZoom::default());
         let zoomed = zoomed_chart(data, GemChartZoom { scale: 3.0, offset: 0.25 });
-        let last = zoomed.values.len() as u32 - 1;
+        let last = zoomed.values.len() - 1;
         let gapped: Vec<ChartDateValue> = (0..300).map(|second| ChartDateValue::mock(second, 100.0)).chain((0..300).map(|second| ChartDateValue::mock(100_000 + second, 200.0))).collect();
         let gap = zoomed_chart(price_chart_data(GemChart::mock(gapped), ChartPeriod::Day, Currency::USD).unwrap(), GemChartZoom { scale: 40.0, offset: 0.5 });
 
         assert_eq!((whole.start, whole.end), (at(0), at(610_980)), "the whole period plus room after the newest point");
         assert_eq!((zoomed.start, zoomed.end), (at(249_584), at(453_243)));
         assert_eq!(
-            (zoomed.values[zoomed.bounds.lower_index as usize].value, zoomed.values[zoomed.bounds.upper_index as usize].value),
+            (zoomed.values[zoomed.bounds.lower_index].value, zoomed.values[zoomed.bounds.upper_index].value),
             (250.0, 453.0),
             "the range fits the points inside the window"
         );
@@ -386,7 +386,7 @@ mod tests {
         assert_eq!(zoomed.index_at(1.2), Some(last - 1));
         assert_eq!((whole.is_zoomed, zoomed.is_zoomed), (false, true));
         assert_eq!(
-            (gap.values[gap.bounds.lower_index as usize].value, gap.values[gap.bounds.upper_index as usize].value),
+            (gap.values[gap.bounds.lower_index].value, gap.values[gap.bounds.upper_index].value),
             (100.0, 200.0),
             "a window inside a gap fits the line crossing it"
         );

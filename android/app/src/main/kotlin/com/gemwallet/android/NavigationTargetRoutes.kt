@@ -16,19 +16,20 @@ import com.gemwallet.android.ui.navigation.routes.TransactionRoute
 import com.wallet.core.primitives.ChainAddress
 import com.wallet.core.primitives.TransactionId
 import com.wallet.core.primitives.WalletId
+import uniffi.gemstone.GemAssetDestination
 import uniffi.gemstone.GemNavigationTarget
 
 internal fun GemNavigationTarget.destination(): PendingNavigation.Routes = PendingNavigation.Routes(routes(), tab())
 
 internal fun GemNavigationTarget.routes(): List<NavKey> = when (this) {
-    is GemNavigationTarget.Asset -> assetRoutes(asset.toPrimitives().id, isPerpetual)
+    is GemNavigationTarget.Asset -> destination.routes()
     is GemNavigationTarget.Receive -> listOf(ReceiveRoute(asset.toPrimitives().id))
     is GemNavigationTarget.Fiat -> listOf(FiatRoute(asset.toPrimitives().id, amount, quoteType.toPrimitives()))
     is GemNavigationTarget.Swap -> listOf(SwapPairRoute(from.toPrimitives().id, to?.toPrimitives()?.id))
     GemNavigationTarget.Perpetuals -> listOf(PerpetualsRoute)
     is GemNavigationTarget.Rewards -> listOf(RewardsRoute(code = code))
     GemNavigationTarget.Support -> listOf(SupportRoute)
-    is GemNavigationTarget.Transaction -> assetRoutes(asset.toPrimitives().id, isPerpetual) + TransactionRoute(WalletId(walletId), TransactionId(transactionId))
+    is GemNavigationTarget.Transaction -> destination.routes() + TransactionRoute(WalletId(walletId), TransactionId(transactionId))
     is GemNavigationTarget.Address -> listOf(AddressDetailsRoute(ChainAddress(chain.toChain(), address)))
     GemNavigationTarget.None -> emptyList()
 }
@@ -49,7 +50,7 @@ internal fun GemNavigationTarget.walletId(): String? = when (this) {
     -> null
 }
 
-private fun assetRoutes(assetId: com.wallet.core.primitives.AssetId, isPerpetual: Boolean): List<NavKey> = when {
-    isPerpetual -> listOf(PerpetualsRoute, PerpetualRoute(assetId))
-    else -> listOf(AssetRoute(assetId))
+private fun GemAssetDestination.routes(): List<NavKey> = when (this) {
+    is GemAssetDestination.Asset -> listOf(AssetRoute(asset.toPrimitives().id))
+    is GemAssetDestination.Perpetual -> listOf(PerpetualsRoute, PerpetualRoute(asset.toPrimitives().id))
 }

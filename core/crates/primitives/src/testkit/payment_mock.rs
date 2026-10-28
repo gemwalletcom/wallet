@@ -20,6 +20,7 @@ impl PaymentInvoice {
             link: PaymentLink::WalletConnectPay { payment_id: "pay_123".to_string() },
             merchant: PaymentMerchant::mock(),
             price: Some(PaymentPrice::mock()),
+            message: None,
             quotes: vec![PaymentQuote::mock(AssetId::from_chain(Chain::Ethereum))],
             verification: None,
         }

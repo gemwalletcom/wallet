@@ -11,6 +11,7 @@ import SwiftUI
 import Transactions
 
 struct TransactionsNavigationView: View {
+    @Environment(\.navigationRouter) private var navigationRouter
     @Environment(\.navigationState) private var navigationState
     @Environment(\.viewModelFactory) private var viewModelFactory
     @Environment(\.navigationPresenter) private var presenter
@@ -42,12 +43,7 @@ struct TransactionsNavigationView: View {
                     onHeaderAction: { action in
                         Task {
                             do {
-                                try await presenter.openTransactionHeaderAction(
-                                    action,
-                                    wallet: model.wallet,
-                                    navigationState: navigationState,
-                                    nftDestination: navigationState.activity,
-                                )
+                                try await navigationRouter.openTransactionAction(action, collectiblePath: navigationState.activity)
                             } catch {
                                 model.isPresentingToastMessage = .error(Localized.Errors.errorOccurred)
                             }

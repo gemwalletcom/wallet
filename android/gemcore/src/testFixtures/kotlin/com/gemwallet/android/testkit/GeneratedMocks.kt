@@ -863,12 +863,14 @@ fun mockTransactionsFilter(
     transactionTypes: List<TransactionType> = emptyList(),
     states: List<TransactionState> = emptyList(),
     assetRankGreaterThan: Int? = null,
+    createdFrom: SerializedDate? = null,
 ) = TransactionsFilter(
     assetId = assetId,
     chains = chains,
     transactionTypes = transactionTypes,
     states = states,
     assetRankGreaterThan = assetRankGreaterThan,
+    createdFrom = createdFrom,
 )
 
 fun mockWcPairingProposal(
@@ -1041,18 +1043,20 @@ fun mockGemAddressRow(
     isSelectable = isSelectable,
 )
 
+fun mockGemAppUpdateDestination(): uniffi.gemstone.GemAppUpdateDestination = uniffi.gemstone.GemAppUpdateDestination.Store(url = "")
+
 fun mockGemAppUpdateOffer(
     version: String = "",
     title: uniffi.gemstone.GemLocalizedText = mockGemLocalizedText(),
     description: uniffi.gemstone.GemLocalizedText = mockGemLocalizedText(),
     actions: List<uniffi.gemstone.GemAppUpdateAction> = emptyList(),
-    apkUrl: String? = null,
+    destination: uniffi.gemstone.GemAppUpdateDestination = mockGemAppUpdateDestination(),
 ) = uniffi.gemstone.GemAppUpdateOffer(
     version = version,
     title = title,
     description = description,
     actions = actions,
-    apkUrl = apkUrl,
+    destination = destination,
 )
 
 fun mockGemAssetBalance(
@@ -1188,8 +1192,8 @@ fun mockGemChart(
 )
 
 fun mockGemChartBounds(
-    lowerIndex: UInt = 0u,
-    upperIndex: UInt = 0u,
+    lowerIndex: Int = 0,
+    upperIndex: Int = 0,
     yMin: Double = 0.0,
     yMax: Double = 0.0,
     low: uniffi.gemstone.GemFormattedNumber = mockGemFormattedNumber(),
@@ -1661,7 +1665,7 @@ fun mockGemPerpetualTransferData(
     marginType = marginType,
 )
 
-fun mockGemPrecision(): uniffi.gemstone.GemPrecision = uniffi.gemstone.GemPrecision.Fraction(min = 0u, max = 0u)
+fun mockGemPrecision(): uniffi.gemstone.GemPrecision = uniffi.gemstone.GemPrecision.Fraction(min = 0, max = 0)
 
 fun mockGemProviderKind(): uniffi.gemstone.GemProviderKind = uniffi.gemstone.GemProviderKind.Swap(provider = uniffi.gemstone.SwapProvider.UNISWAP_V3)
 
@@ -1794,6 +1798,7 @@ fun mockGemSwapSession(
     refreshPausedUntilRestart: Boolean = false,
     input: uniffi.gemstone.GemSwapQuoteInput? = null,
     payValue: java.math.BigInteger? = null,
+    answers: uniffi.gemstone.GemSwapQuoteAnswers? = null,
 ) = uniffi.gemstone.GemSwapSession(
     quotes = quotes,
     selectedProvider = selectedProvider,
@@ -1803,6 +1808,7 @@ fun mockGemSwapSession(
     refreshPausedUntilRestart = refreshPausedUntilRestart,
     input = input,
     payValue = payValue,
+    answers = answers,
 )
 
 fun mockGemTransactionAmount(
@@ -2135,12 +2141,14 @@ fun mockPaymentInvoice(
     link: uniffi.gemstone.PaymentLink = mockPaymentLink(),
     merchant: uniffi.gemstone.PaymentMerchant = mockPaymentMerchant(),
     price: uniffi.gemstone.PaymentPrice? = null,
+    message: String? = null,
     quotes: List<uniffi.gemstone.PaymentQuote> = emptyList(),
     verification: uniffi.gemstone.PaymentVerification? = null,
 ) = uniffi.gemstone.PaymentInvoice(
     link = link,
     merchant = merchant,
     price = price,
+    message = message,
     quotes = quotes,
     verification = verification,
 )

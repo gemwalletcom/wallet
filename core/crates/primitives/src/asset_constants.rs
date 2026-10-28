@@ -176,8 +176,6 @@ pub static TON_DUST_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from
 pub const NEAR_USDT_TOKEN_ID: &str = "usdt.tether-token.near";
 pub static NEAR_USDT_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Near, NEAR_USDT_TOKEN_ID));
 
-pub const INK_USDT_TOKEN_ID: &str = "0x3baD7AD0728f9917d1Bf08af5782dCbD516cDd96";
-
 pub const INK_USDT0_TOKEN_ID: &str = "0x0200C29006150606B650577BBE7B6248F58470c1";
 pub static INK_USDT0_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Ink, INK_USDT0_TOKEN_ID));
 

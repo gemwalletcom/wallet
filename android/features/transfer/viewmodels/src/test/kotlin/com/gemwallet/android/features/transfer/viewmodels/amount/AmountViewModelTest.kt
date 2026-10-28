@@ -14,7 +14,9 @@ import com.gemwallet.android.testkit.mockAssetData
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockBalance
 import com.gemwallet.android.testkit.mockDelegationValidator
+import com.gemwallet.android.testkit.mockGemStakeValidatorOptions
 import com.gemwallet.android.testkit.mockGemValidatorRow
+import com.gemwallet.android.testkit.mockGemValidatorSection
 import com.gemwallet.android.testkit.mockPrice
 import com.gemwallet.android.testkit.mockWalletId
 import com.gemwallet.android.ui.R
@@ -41,15 +43,15 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import uniffi.gemstone.GemAmountExtras
 import uniffi.gemstone.GemAmountInputType
 import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemPaymentRecipient
 import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.GemStakeAmountInput
-import uniffi.gemstone.GemStakeAmountSelection
-import uniffi.gemstone.GemStakeServiceInterface
 import uniffi.gemstone.GemTransferData
+import uniffi.gemstone.GemValidatorSectionKind
 import java.math.BigDecimal
 import java.math.BigInteger
 
@@ -72,15 +74,6 @@ class AmountViewModelTest {
     private val service = mockk<GemAmountServiceInterface>(relaxed = true) {
         every { getCurrency() } returns Currency.USD.toGem()
         coEvery { transferData(any(), any(), capture(sentValues), capture(sentIsMax)) } returns confirmInput
-    }
-    private val stakeService = mockk<GemStakeServiceInterface>(relaxed = true) {
-        every { stakeAmountSelection(any(), any()) } returns
-            GemStakeAmountSelection.Validator(
-                mockDelegationValidator(chain = Chain.Cosmos).let { validator ->
-                    mockGemValidatorRow(validator = validator.toGem(), name = validator.name, placeholder = validator.name.take(1), apr = GemLocalizedText.Apr(null))
-                },
-                true,
-            )
     }
     private val walletId = mockWalletId()
     private val getCurrentWalletId = mockk<GetCurrentWalletId> { every { this@mockk.invoke() } returns flowOf(walletId) }
@@ -217,13 +210,25 @@ class AmountViewModelTest {
         assertNotNull(viewModel.uiState.value.reserveForFee)
     }
 
+    @Test
+    fun `the validator picker marks the validator the amount screen shows`() {
+        val rows = listOf("v1", "v2").map { id ->
+            mockDelegationValidator(chain = Chain.Cosmos, id = id).let { mockGemValidatorRow(validator = it.toGem(), name = it.name, placeholder = it.name.take(1), apr = GemLocalizedText.Apr(null)) }
+        }
+        every { service.extras(any(), any()) } returns GemAmountExtras.Validator(rows[1], true)
+        every { service.stakeValidatorOptions(any(), any(), any()) } returns mockGemStakeValidatorOptions(sections = listOf(mockGemValidatorSection(kind = GemValidatorSectionKind.ACTIVE, rows = rows)))
+
+        viewModelTest(AmountParams.Stake(asset.id, GemStakeAmountInput.Stake(rows[0].validator))) { viewModel ->
+            assertEquals("v2", viewModel.validatorPicker.value?.selectedId)
+        }
+    }
+
     private fun assetInfo(available: BigInteger) = mockAssetData(asset = asset, balance = mockBalance(available = available), price = mockPrice(price = 10.0))
 
     private fun viewModelTest(params: AmountParams = AmountParams.Transfer(assetId = asset.id, payment = GemPaymentRecipient(GemRecipient(address = "to", memo = null), null)), block: suspend TestScope.(AmountViewModel) -> Unit) =
         runTest(testDispatcher) {
             val viewModel = AmountViewModel(
                 service = service,
-                stakeService = stakeService,
                 getCurrentWalletId = getCurrentWalletId,
                 assetQuery = assetQuery,
                 delegationQuery = mockk(relaxed = true),

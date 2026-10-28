@@ -8,7 +8,7 @@ const DEFAULT_EVM_GAS_LIMIT: u64 = 920_000;
 
 const SOLANA_DEX_IDS: &str = "277,278,279,343,72,103,284,338,372,403,444,483,357,345,459,457,475,342";
 
-const DEPLOYMENTS: &[Deployment] = &[
+pub const DEPLOYMENTS: &[Deployment] = &[
     Deployment::new(Chain::Solana, SOLANA_OKX_DEX_V2_PROGRAM_ID),
     Deployment::with_spender(Chain::Ethereum, "0x8feAB81D36E7576107D5dE0758c1b839Be31B4F6", "0x40aA958dd87FC8305b97f2BA922CDdCa374bcD7f"),
     Deployment::with_spender(Chain::SmartChain, "0x5994814f2C4040b863A0125A45DE152a8c2A4DEc", "0x2c34A2Fb1d0b4f55de51E1d0bDEfaDDce6b7cDD6"),

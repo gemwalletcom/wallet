@@ -22,6 +22,8 @@ object GemConstants {
     val scanTimeout: Duration = 3.seconds
     val serviceStatusTimeout: Duration = 30.seconds
     val transactionsListLimit: Int = 1000
+    val listPageSize: Int = 50
+    val listPrefetchRows: Int = 10
     val assetResultsLimit: Int = 100
     val recentAssetsLimit: Int = 10
     val supportAttachmentMaxDimension: Int = 2048

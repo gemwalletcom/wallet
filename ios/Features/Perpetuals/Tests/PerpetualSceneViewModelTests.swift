@@ -17,11 +17,11 @@ struct PerpetualSceneViewModelTests {
     func aPeriodWithoutCandlesYetShowsLoadingInsteadOfAnEmptyChart() {
         let model = PerpetualSceneViewModel.mock()
 
-        #expect(model.chart.state(position: nil, transactions: []).isLoading)
+        #expect(model.chart.state(position: nil).isLoading)
 
         model.chart.currentPeriod = .week
 
-        #expect(model.chart.state(position: nil, transactions: []).isLoading)
+        #expect(model.chart.state(position: nil).isLoading)
     }
 
     @Test(.timeLimit(.minutes(1)))

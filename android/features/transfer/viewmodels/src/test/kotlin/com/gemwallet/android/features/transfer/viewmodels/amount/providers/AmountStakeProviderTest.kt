@@ -27,10 +27,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.DelegationValidator
 import uniffi.gemstone.GemAmountRequest
+import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemStakeAmountInput
-import uniffi.gemstone.GemStakeAmountSelection
-import uniffi.gemstone.GemStakeServiceInterface
 import uniffi.gemstone.GemStakeValidatorOptions
 import uniffi.gemstone.GemValidatorSectionKind
 import java.math.BigInteger
@@ -47,9 +46,7 @@ class AmountStakeProviderTest {
         )
     private val storedValidators = MutableStateFlow(listOf(validator, otherValidator))
 
-    private val stakeService = mockk<GemStakeServiceInterface> {
-        every { stakeAmountSelection(any(), any()) } returns
-            GemStakeAmountSelection.Validator(mockGemValidatorRow(validator = validator.toGem(), name = validator.name, placeholder = validator.name.take(1), apr = GemLocalizedText.Apr(null)), true)
+    private val service = mockk<GemAmountServiceInterface> {
         every { stakeValidatorOptions(any(), any(), any()) } answers {
             mockGemStakeValidatorOptions(
                 sections = listOf(
@@ -69,7 +66,7 @@ class AmountStakeProviderTest {
     private fun makeProvider(input: GemStakeAmountInput) = AmountStakeProvider(
         params = AmountParams.Stake(asset.id, input),
         validators = storedValidators,
-        stakeService = stakeService,
+        service = service,
         scope = scope,
         ioDispatcher = Dispatchers.Unconfined,
     )
@@ -113,15 +110,6 @@ class AmountStakeProviderTest {
         storedValidators.value = listOf(validator)
 
         assertEquals(1, provider.validatorOptions.first { it?.rowCount() == 1 }?.rowCount())
-    }
-
-    @Test
-    fun `the selected validator follows what Core selected`() = runBlocking {
-        every { stakeService.stakeAmountSelection(any(), any()) } returns
-            GemStakeAmountSelection.Validator(mockGemValidatorRow(validator = validator.toGem(), name = validator.name, placeholder = validator.name.take(1), apr = GemLocalizedText.Apr(null)), false)
-        val locked = makeProvider(GemStakeAmountInput.Unstake(delegation.toGem()))
-
-        assertEquals("v1", locked.selectedValidatorId.first { it != null })
     }
 
     @Test

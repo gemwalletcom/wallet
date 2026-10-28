@@ -8,7 +8,9 @@ import com.gemwallet.android.data.services.gemstone.stream.GemstoneStreamConnect
 import com.gemwallet.android.data.services.gemstone.stream.WebSocketConnectable
 import com.gemwallet.android.data.services.nativeprovider.NativeProvider
 import com.gemwallet.android.ext.GemConstants
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.math.fromHex
+import com.wallet.core.primitives.PlatformStore
 import dagger.Lazy
 import dagger.Module
 import dagger.Provides
@@ -198,7 +200,7 @@ object GatewayModule {
 
     @Provides
     @Singleton
-    fun provideGemConfigService(apiClient: GemstoneApiClient, preferencesService: GemPreferencesService): GemConfigService = GemConfigService(apiClient, preferencesService)
+    fun provideGemConfigService(apiClient: GemstoneApiClient, preferencesService: GemPreferencesService, platformStore: PlatformStore): GemConfigService = GemConfigService(apiClient, preferencesService, platformStore.toGem())
 
     @Provides
     @Singleton

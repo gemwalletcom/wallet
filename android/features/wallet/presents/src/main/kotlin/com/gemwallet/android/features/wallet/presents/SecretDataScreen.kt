@@ -58,8 +58,8 @@ fun SecretDataScreen(onCancel: () -> Unit, viewModel: SecretDataViewModel = hilt
 
     val secret = result?.getOrNull()
     val screen = when (secret) {
-        is GemWalletSecret.Words -> secretScreen(viewModel.secretKind, secret.words.size.toUInt(), false)
-        is GemWalletSecret.PrivateKey, null -> secretScreen(viewModel.secretKind, 0u, false)
+        is GemWalletSecret.Words -> secretScreen(viewModel.secretKind, secret.words.size, false)
+        is GemWalletSecret.PrivateKey, null -> secretScreen(viewModel.secretKind, 0, false)
     }
     val title = screen.title.string(context)
     if (secret == null) {

@@ -246,8 +246,8 @@ pub fn first_supported_receive_asset(asset_ids: Vec<AssetId>, pay_asset_id: &Ass
     asset_ids.into_iter().find(|asset_id| asset_id != pay_asset_id && supported.contains(asset_id))
 }
 
-pub const CANDIDATES_LIMIT: u32 = 50;
-pub const RECENTS_LIMIT: u32 = 20;
+pub const CANDIDATES_LIMIT: usize = 50;
+pub const RECENTS_LIMIT: usize = 20;
 
 pub fn pay_candidate_filters() -> Vec<GemAssetFilter> {
     vec![GemAssetFilter::Enabled, GemAssetFilter::Swappable]

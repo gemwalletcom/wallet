@@ -1,5 +1,5 @@
 [workspace.package]
-version = "2.114.82"
+version = "2.114.83"
 edition = "2024"
 license = "MIT"
 homepage = "https://gemwallet.com/"
@@ -164,7 +164,6 @@ rust_decimal = { version = "1.42.0" }
 chrono = { version = "0.4.45", features = ["serde"] }
 clap = { version = "4.6.1", features = ["derive"] }
 config = { version = "0.15.25", default-features = false, features = ["yaml"] }
-regex = { version = "1.13.1" }
 strum = { version = "0.28.0", features = ["derive"] }
 tempfile = { version = "3.24.0" }
 unicode-normalization = { version = "0.1.25" }

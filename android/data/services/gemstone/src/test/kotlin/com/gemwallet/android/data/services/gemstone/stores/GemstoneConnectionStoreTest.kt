@@ -38,11 +38,10 @@ class GemstoneConnectionStoreTest {
     }
 
     @Test
-    fun getConnectionBySessionId_returnsNullForMissingWallet() = runTest {
+    fun getConnection_returnsNullForMissingWallet() = runTest {
         coEvery { connectionsDao.getBySessionId("topic-1") } returns mockDbConnection(id = "topic-1", walletId = "missing-wallet")
         every { walletStore.observeWallets() } returns flowOf(listOf(mockWallet(id = WalletId("wallet-1"))))
 
-        assertNull(store.getConnectionBySessionId("topic-1"))
         assertNull(store.getConnection("topic-1"))
     }
 

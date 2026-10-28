@@ -12,7 +12,7 @@ pub struct RelayProxyClient {
 impl RelayProxyClient {
     pub fn new(url: String, deposit_addresses: Arc<dyn SwapVaultAddressCacher>) -> Self {
         Self {
-            client: SwapProxyClient::new(url, deposit_addresses, SwapProvider::Relay, &["/steps/0/depositAddress", "/protocol/v2/orderId"]),
+            client: SwapProxyClient::new(url, deposit_addresses, SwapProvider::Relay),
         }
     }
 

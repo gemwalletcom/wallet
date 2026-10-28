@@ -49,7 +49,7 @@ extension CandlestickChartView {
 
     private var priceHeader: some View {
         VStack {
-            if let selection = selectedIndex.flatMap({ chart.selection(index: UInt32($0)) }) {
+            if let selection = selectedIndex.flatMap({ chart.selection(index: $0) }) {
                 ChartHeaderView(header: selection.header, date: dateFormatter.string(for: selection.date, style: chart.dateStyle))
             } else {
                 ChartHeaderView(header: chart.header)
@@ -67,13 +67,13 @@ extension CandlestickChartView {
                     in: plot.frame,
                     isZoomed: chart.isZoomed,
                     isPinching: $isPinching,
-                    onScrub: { selectedIndex = chart.indexAt(fraction: $0).map(Int.init) },
+                    onScrub: { selectedIndex = chart.indexAt(fraction: $0) },
                     onScrubEnd: { selectedIndex = nil },
                     onZoom: onZoom,
                     onPan: onPan,
                 )
                 .overlay {
-                    if let selectedCandle, let tooltip = selectedIndex.flatMap({ chart.tooltip(index: UInt32($0)) }) {
+                    if let selectedCandle, let tooltip = selectedIndex.flatMap({ chart.tooltip(index: $0) }) {
                         tooltipOverlay(tooltip, isRightHalf: plot.x(for: selectedCandle.date) > plot.frame.midX, priceColumnWidth: priceColumnWidth)
                     }
                 }

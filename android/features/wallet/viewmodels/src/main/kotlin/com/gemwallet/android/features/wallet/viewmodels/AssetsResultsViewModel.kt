@@ -78,7 +78,7 @@ class AssetsResultsViewModel @Inject constructor(
     private val isPullRefreshing = MutableStateFlow(false)
     val refreshing: StateFlow<Boolean> = isPullRefreshing
 
-    private val perpetuals: Flow<List<PerpetualData>> = perpetualMarketQuery(searchKey).let { perpetualsQuery(it.search, it.limit.toInt(), it.requiresVolume) }
+    private val perpetuals: Flow<List<PerpetualData>> = perpetualMarketQuery(searchKey).let { perpetualsQuery(it.search, it.limit, it.requiresVolume) }
 
     private val content: StateFlow<SearchContent<GemWalletSearchResultsView>?> = combine(getSession(), isSearching, sections, perpetuals) { session, searching, sections, perpetuals ->
         session?.wallet?.let { wallet ->
@@ -107,7 +107,7 @@ class AssetsResultsViewModel @Inject constructor(
         search(pull = false)
     }
 
-    override fun assetsSearchLimit(query: String): Int = service.walletSearchLimits(query).results.toInt()
+    override fun assetsSearchLimit(query: String): Int = service.walletSearchLimits(query).results
 
     fun refresh() = search(pull = true)
 

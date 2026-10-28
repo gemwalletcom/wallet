@@ -475,6 +475,7 @@ pub enum PlatformStore {
     SamsungStore,
     ApkUniversal,
     Emerald,
+    MacDmg,
     Local,
 }
 
@@ -1314,6 +1315,7 @@ pub struct PaymentInvoice {
     pub link: PaymentLink,
     pub merchant: PaymentMerchant,
     pub price: Option<PaymentPrice>,
+    pub message: Option<String>,
     pub quotes: Vec<PaymentQuote>,
     pub verification: Option<PaymentVerification>,
 }
@@ -1818,6 +1820,7 @@ pub struct TransactionsFilter {
     pub transaction_types: Vec<TransactionType>,
     pub states: Vec<TransactionState>,
     pub asset_rank_greater_than: Option<i32>,
+    pub created_from: Option<chrono::DateTime<chrono::Utc>>,
 }
 
 #[uniffi::remote(Record)]

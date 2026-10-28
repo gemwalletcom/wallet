@@ -21,6 +21,7 @@ flowchart LR
 | When | Expected | Why |
 |---|---|---|
 | A typed name is registered for the network | it resolves while typing to that address | |
+| A mixed-case EVM address has an invalid checksum | "Invalid address"; the address stays as entered and cannot continue, including in contacts, watch-only imports, scanned codes and payment links | a typo must never be silently re-checksummed into another account; single-case addresses remain accepted |
 | The recipient is one of the user's own wallets or a contact | Confirm shows its name alone; a tap shows the address | the user gave that name |
 | The recipient has any other name, such as `vitalik.eth` | the name with the short address beside it | a name the user did not give could imitate another address |
 | The recipient is flagged | a "Suspicious address" warning with one line on why, under the amount; Confirm stays disabled | |
@@ -63,6 +64,7 @@ Supported codes: a plain address; Bitcoin, Litecoin, Bitcoin Cash, Dogecoin, Das
 | A plain address that matches several networks | a pick of the asset to send, then the rows above | |
 | A token the wallet has no balance for | Confirm, with the token's balance at zero so the shortfall and the ways to get it show; the token is not added to the wallet's list | the code chooses the token, not the wallet |
 | A WalletConnect Pay link | a review of the merchant's request; once confirmed, it pays and reports the result back to the merchant | |
+| A Solana Pay transaction request | Confirm with the merchant's name and, when the merchant sends one, its message in full in a Message section, like a signed message in WalletConnect | the message says what is being paid for; Solana Pay asks the wallet to show it |
 | A code the app cannot read | "Not supported" | a scan never does nothing |
 | A code the app can read but not open: a network without an account, a payment link that fails | why it cannot open | |
 

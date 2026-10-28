@@ -1,0 +1,16 @@
+appId: ${APP_ID}
+---
+- runFlow: launch.yaml
+- scrollUntilVisible:
+    element:
+      id: "solana"
+    centerElement: true
+- tapOn:
+    id: "solana"
+- waitForAnimationToEnd
+- tapOn:
+    id: "send_button"
+- waitForAnimationToEnd
+- assertVisible:
+    id: "memoInputField"
+- takeScreenshot: ${output.journey}_send_memo

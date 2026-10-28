@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Localization
 import Primitives
 import PrimitivesComponents
 import QRScanner
@@ -73,18 +72,8 @@ public struct ConnectionsScene: View {
             content.toolbarInfoButton(url: url)
         }
         .alertSheet($model.isPresentingAlertMessage)
-        .toast(
-            isPresenting: $model.isPresentingConnectorBar,
-            message: ToastMessage(
-                title: "\(Localized.WalletConnect.brandName)...",
-                image: SystemImage.network,
-            ),
-            duration: .infinity,
-            tapToDismiss: false,
-        )
         .navigationTitle(model.title)
         .taskOnce(onLoad)
-        .onChange(of: model.walletConnectorPresenter?.isPresentingSheet?.id, model.hideConnectionBar)
     }
 }
 

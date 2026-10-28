@@ -18,7 +18,7 @@ import WalletConnectorService
 @MainActor
 public final class ConnectionsSceneViewModel {
     let connector: any WalletConnectorServiceable
-    let walletConnectorPresenter: WalletConnectorPresenter?
+    private let walletConnectorPresenter: WalletConnectorPresenter
     private let service: any GemWalletConnectServiceProtocol
 
     public let query: ObservableQuery<ConnectionsQuery>
@@ -28,12 +28,11 @@ public final class ConnectionsSceneViewModel {
 
     var isPresentingScanner: Bool = false
     var isPresentingAlertMessage: AlertMessage?
-    var isPresentingConnectorBar: Bool = false
 
     public init(
         connector: any WalletConnectorServiceable,
         service: any GemWalletConnectServiceProtocol,
-        walletConnectorPresenter: WalletConnectorPresenter? = nil,
+        walletConnectorPresenter: WalletConnectorPresenter,
     ) {
         self.connector = connector
         self.service = service
@@ -81,10 +80,6 @@ public final class ConnectionsSceneViewModel {
             debugLog("load sessions error: \(error)")
         }
     }
-
-    func hideConnectionBar() {
-        isPresentingConnectorBar = false
-    }
 }
 
 // MARK: - Actions
@@ -115,11 +110,11 @@ extension ConnectionsSceneViewModel {
     }
 
     private func connectURI(uri: String) async {
-        isPresentingConnectorBar = true
+        walletConnectorPresenter.isPresentingConnectionBar = true
         do {
             try await pair(uri: uri)
         } catch {
-            hideConnectionBar()
+            walletConnectorPresenter.isPresentingConnectionBar = false
             isPresentingAlertMessage = AlertMessage(message: walletConnectErrorText(message: error.localizedDescription).text)
             debugLog("connectURI error: \(error)")
         }

@@ -60,7 +60,6 @@ common_suspicious_address = 可疑地址
 common_suspicious_address_description = 此位址與可疑或惡意行為有關。
 common_refresh = 重新整理
 common_grant_permission = 允許
-common_required_field = %@ 為必填欄位
 
 # Welcome
 
@@ -165,7 +164,6 @@ transfer_reserved_fees = 已保留 %@ 的餘額，以支付後續網路手續費
 transfer_freeze_title = 凍結
 transfer_unfreeze_title = 解凍
 transfer_review_request = 檢視請求
-transfer_amount = 數量
 
 # Settings
 
@@ -255,7 +253,6 @@ errors_dust_threshold_short = 此網路將這筆金額視為粉塵金額，手�
 errors_swap_minimum_amount = 最低交易金額為 %@。請輸入更高的金額。
 errors_perpetual_trigger_price_lower = 觸發價格應低於市場價格
 errors_perpetual_trigger_price_higher = 觸發價格應高於市場價格
-errors_unknown_try_again = 發生未知錯誤，請重試
 errors_network_error = 網路錯誤： %@
 errors_network_offline = 網路連線似乎已斷開。
 errors_no_internet_connection = 無網際網路連線
@@ -327,7 +324,6 @@ asset_buy_asset = 購買%@
 asset_get_asset = 取得 %@
 asset_add_to_wallet = 加入錢包
 asset_added_to_wallet = 已加入錢包
-asset_hidden_from_wallet = 已從錢包隱藏
 asset_resources = 資源
 asset_verification_verified = 已驗證
 asset_all_time_high = 歷史最高點

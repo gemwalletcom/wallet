@@ -1,13 +1,14 @@
 use chrono::TimeDelta;
-use primitives::{Asset, ChartCandleUpdate, ChartPeriod, Perpetual, PerpetualPosition};
+use primitives::{Asset, AssetId, ChartCandleUpdate, ChartPeriod, Perpetual, PerpetualPosition, TransactionsFilter};
 
 use super::model::GemCandleChart;
 use super::{chart, rules};
+use crate::constants::{PERPETUAL_ACTIVITY_TYPES, TRANSACTIONS_LIST_LIMIT};
 use crate::models::perpetual::GemChartCandleStick;
 use crate::models::state::{GemLoad, GemLoadState};
 use crate::perpetual::GemPerpetual;
 use crate::services::chart::GemChartZoom;
-use crate::services::transactions::model::GemTransactionRow;
+use crate::services::transactions::model::{GemTransactionRow, GemTransactionsRequest};
 
 #[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
 pub struct GemCandleRequest {
@@ -123,6 +124,24 @@ impl GemCandleSession {
         chart::candle_chart(&self.candles, self.period, price_decimals, position.as_ref(), &transactions, self.zoom, TimeDelta::seconds(i64::from(utc_offset_seconds)))
     }
 
+    pub fn markers_request(&self, asset_id: AssetId) -> GemTransactionsRequest {
+        let created_from = self.candles.first().map(|candle| candle.date);
+        GemTransactionsRequest {
+            filter: TransactionsFilter {
+                asset_id: Some(asset_id),
+                chains: vec![],
+                transaction_types: PERPETUAL_ACTIVITY_TYPES.to_vec(),
+                states: vec![],
+                asset_rank_greater_than: None,
+                created_from,
+            },
+            limit: match created_from {
+                Some(_) => TRANSACTIONS_LIST_LIMIT,
+                None => 0,
+            },
+        }
+    }
+
     pub fn view_state(&self) -> GemCandleViewState {
         GemCandleViewState {
             period: self.period,
@@ -160,6 +179,7 @@ mod tests {
     use crate::formatted_number::GemNumberDisplay;
     use crate::precision::GemPrecision;
     use crate::services::error::GemServiceError;
+    use primitives::Chain;
 
     fn candle(timestamp: i64) -> GemChartCandleStick {
         GemChartCandleStick {
@@ -202,6 +222,29 @@ mod tests {
             state: GemLoadState::Error { error: offline() },
             candles: Vec::new(),
         }
+    }
+
+    #[test]
+    fn test_markers_request() {
+        let session = session();
+        let asset_id = AssetId::from_chain(Chain::HyperCore);
+        let shown = session.on_result(loaded(session.request().unwrap(), vec![candle(100), candle(160)]));
+
+        assert_eq!(session.markers_request(asset_id.clone()).limit, 0);
+        assert_eq!(
+            shown.markers_request(asset_id.clone()),
+            GemTransactionsRequest {
+                filter: TransactionsFilter {
+                    asset_id: Some(asset_id),
+                    chains: vec![],
+                    transaction_types: PERPETUAL_ACTIVITY_TYPES.to_vec(),
+                    states: vec![],
+                    asset_rank_greater_than: None,
+                    created_from: Some(candle(100).date),
+                },
+                limit: TRANSACTIONS_LIST_LIMIT,
+            }
+        );
     }
 
     #[test]

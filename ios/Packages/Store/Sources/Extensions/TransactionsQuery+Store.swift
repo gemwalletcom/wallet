@@ -16,7 +16,7 @@ public extension TransactionsQuery {
         TransactionsQuery(
             walletId: walletId,
             type: .asset(assetId: assetId),
-            filter: TransactionsFilter(assetId: nil, chains: [], transactionTypes: types, states: [], assetRankGreaterThan: nil),
+            filter: TransactionsFilter(assetId: nil, chains: [], transactionTypes: types, states: [], assetRankGreaterThan: nil, createdFrom: nil),
             limit: limit,
         )
     }

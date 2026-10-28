@@ -463,8 +463,8 @@ impl SendInput {
                         network_fee: self.network_fee.clone(),
                         metadata: self.confirm.metadata.clone(),
                         simulation: self.simulation.clone(),
-                        transaction_index: index as u32,
-                        transaction_count: transactions.len() as u32,
+                        transaction_index: index,
+                        transaction_count: transactions.len(),
                     }
                     .pending_transaction()
                     .map_err(|msg| GemConfirmError::Record { msg }),
@@ -698,13 +698,14 @@ pub fn submit_message(input_type: &TransactionInputType, warning: Option<GemErro
     })
 }
 
-pub fn confirm_sections(rows: Vec<GemConfirmRowContent>, warnings: Vec<GemListRow>, simulation: Option<GemConfirmSimulation>, verifies: bool, load_error: Option<GemConfirmError>) -> Vec<GemConfirmSection> {
+pub fn confirm_sections(rows: Vec<GemConfirmRowContent>, message: Option<String>, warnings: Vec<GemListRow>, simulation: Option<GemConfirmSimulation>, verifies: bool, load_error: Option<GemConfirmError>) -> Vec<GemConfirmSection> {
     let notice = load_error.as_ref().and_then(GemConfirmError::notice);
     let (primary, secondary, changes) = simulation.map(|simulation| (simulation.primary_fields, simulation.secondary_fields, simulation.balance_changes)).unwrap_or_default();
     [
         Some(GemConfirmSection::Header),
         notice.clone().map(|row| GemConfirmSection::Notice { row }),
         Some(GemConfirmSection::Details { rows }),
+        message.map(|text| GemConfirmSection::Message { text }),
         (!warnings.is_empty()).then_some(GemConfirmSection::Warnings { rows: warnings }),
         (!primary.is_empty()).then_some(GemConfirmSection::Payload { primary, secondary }),
         (!changes.is_empty()).then_some(GemConfirmSection::BalanceChanges { rows: changes }),
@@ -750,10 +751,11 @@ mod tests {
         };
 
         assert_eq!(
-            confirm_sections(vec![], vec![warning.clone()], Some(simulation), false, None),
+            confirm_sections(vec![], Some("Annual plan".to_string()), vec![warning.clone()], Some(simulation), false, None),
             vec![
                 GemConfirmSection::Header,
                 GemConfirmSection::Details { rows: vec![] },
+                GemConfirmSection::Message { text: "Annual plan".to_string() },
                 GemConfirmSection::Warnings { rows: vec![warning] },
                 GemConfirmSection::Payload {
                     primary: vec![text("approve")],
@@ -764,16 +766,16 @@ mod tests {
             ]
         );
         assert_eq!(
-            confirm_sections(vec![], vec![], None, true, None),
+            confirm_sections(vec![], None, vec![], None, true, None),
             vec![GemConfirmSection::Header, GemConfirmSection::Details { rows: vec![] }, GemConfirmSection::Verification],
-            "a payment to verify shows its verification instead of the fee, and empty simulation blocks are left out"
+            "a payment to verify shows its verification instead of the fee, and empty simulation blocks and no message are left out"
         );
     }
 
     #[test]
     fn test_a_notice_replaces_the_load_error_it_explains() {
-        let malicious = confirm_sections(vec![], vec![], None, false, Some(GemConfirmError::ScanMalicious));
-        let offline = confirm_sections(vec![], vec![], None, false, Some(GemConfirmError::Offline));
+        let malicious = confirm_sections(vec![], None, vec![], None, false, Some(GemConfirmError::ScanMalicious));
+        let offline = confirm_sections(vec![], None, vec![], None, false, Some(GemConfirmError::Offline));
 
         assert!(matches!(malicious[1], GemConfirmSection::Notice { .. }));
         assert!(!malicious.iter().any(|section| matches!(section, GemConfirmSection::Error { .. })));

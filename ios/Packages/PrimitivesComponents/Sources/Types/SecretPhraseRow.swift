@@ -10,6 +10,6 @@ public enum SecretPhraseRow: Hashable {
 
 public extension SecretPhraseRow {
     static func rows(for words: [String]) -> [SecretPhraseRow] {
-        secretPhraseRows(wordCount: UInt32(words.count)).map { $0.map(words: words) }
+        secretPhraseRows(wordCount: words.count).map { $0.map(words: words) }
     }
 }

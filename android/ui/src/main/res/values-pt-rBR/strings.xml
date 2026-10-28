@@ -60,7 +60,6 @@
   <string name="common_suspicious_address_description">Este endereço está associado a atividades suspeitas ou prejudiciais.</string>
   <string name="common_refresh">Atualizar</string>
   <string name="common_grant_permission">Conceder permissão</string>
-  <string name="common_required_field">%1$s é obrigatório</string>
   <string name="welcome_title">Bem-vindo à Gem Family</string>
   <string name="wallet_create_new_wallet">Crie uma nova carteira</string>
   <string name="wallet_import_existing_wallet">Importe uma carteira existente</string>
@@ -144,7 +143,6 @@
   <string name="transfer_freeze_title">Congelar</string>
   <string name="transfer_unfreeze_title">Descongelar</string>
   <string name="transfer_review_request">Solicitação de revisão</string>
-  <string name="transfer_amount">Quantia</string>
   <string name="settings_terms_of_services">Termos de Serviços</string>
   <string name="settings_privacy_policy">Política de Privacidade</string>
   <string name="settings_title">Configurações</string>
@@ -225,7 +223,6 @@
   <string name="errors_swap_minimum_amount">O valor mínimo de transação é %1$s. Por favor, insira um valor maior.</string>
   <string name="errors_perpetual_trigger_price_lower">O preço de acionamento deve ser menor que o preço de mercado</string>
   <string name="errors_perpetual_trigger_price_higher">O preço de acionamento deve ser maior que o preço de mercado</string>
-  <string name="errors_unknown_try_again">Ocorreu um erro desconhecido. Tente novamente.</string>
   <string name="errors_network_error">Erro de rede: %1$s</string>
   <string name="errors_network_offline">A conexão com a internet parece estar offline.</string>
   <string name="errors_no_internet_connection">Sem conexão com a internet</string>
@@ -285,7 +282,6 @@
   <string name="asset_get_asset">Obter %1$s</string>
   <string name="asset_add_to_wallet">Adicionar à carteira</string>
   <string name="asset_added_to_wallet">Adicionado à carteira</string>
-  <string name="asset_hidden_from_wallet">Oculto da carteira</string>
   <string name="asset_resources">Recursos</string>
   <string name="asset_verification_verified">Verificado</string>
   <string name="asset_all_time_high">Máxima histórica</string>

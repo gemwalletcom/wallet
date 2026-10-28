@@ -60,8 +60,8 @@ private fun percentText(value: BigDecimal, precision: GemPrecision, showsSign: B
     val formatter = (percentFormats.getOrPut(locale) { NumberFormat.getPercentInstance(locale) as DecimalFormat }.clone() as DecimalFormat).apply {
         when (precision) {
             is GemPrecision.Fraction -> {
-                minimumFractionDigits = precision.min.toInt()
-                maximumFractionDigits = precision.max.toInt()
+                minimumFractionDigits = precision.min
+                maximumFractionDigits = precision.max
             }
 
             is GemPrecision.Significant -> {

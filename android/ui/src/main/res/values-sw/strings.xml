@@ -60,7 +60,6 @@
   <string name="common_suspicious_address_description">Anwani hii inahusishwa na shughuli za kutiliwa shaka au hatari.</string>
   <string name="common_refresh">Onyesha upya</string>
   <string name="common_grant_permission">Toa ruhusa</string>
-  <string name="common_required_field">%1$s inahitajika</string>
   <string name="welcome_title">Karibu kwenye Gem Family</string>
   <string name="wallet_create_new_wallet">Unda Mkoba Mpya</string>
   <string name="wallet_import_existing_wallet">Ingiza Wallet Iliyopo</string>
@@ -144,7 +143,6 @@
   <string name="transfer_freeze_title">Kuganda</string>
   <string name="transfer_unfreeze_title">Ondoa kuganda</string>
   <string name="transfer_review_request">Ombi la Uhakiki</string>
-  <string name="transfer_amount">Kiasi</string>
   <string name="settings_terms_of_services">Masharti ya Huduma</string>
   <string name="settings_privacy_policy">Sera ya Faragha</string>
   <string name="settings_title">Mipangilio</string>
@@ -225,7 +223,6 @@
   <string name="errors_swap_minimum_amount">Kiwango cha chini cha biashara ni %1$s. Tafadhali weka kiasi cha juu zaidi.</string>
   <string name="errors_perpetual_trigger_price_lower">Bei ya kichochezi inapaswa kuwa chini ya bei ya soko</string>
   <string name="errors_perpetual_trigger_price_higher">Bei ya kichochezi inapaswa kuwa juu ya bei ya soko</string>
-  <string name="errors_unknown_try_again">Hitilafu isiyojulikana imetokea. Tafadhali jaribu tena.</string>
   <string name="errors_network_error">Hitilafu ya mtandao: %1$s</string>
   <string name="errors_network_offline">Muunganisho wa intaneti unaonekana kuwa nje ya mtandao.</string>
   <string name="errors_no_internet_connection">Hakuna muunganisho wa intaneti</string>
@@ -285,7 +282,6 @@
   <string name="asset_get_asset">Pata %1$s</string>
   <string name="asset_add_to_wallet">Ongeza kwenye mkoba</string>
   <string name="asset_added_to_wallet">Imeongezwa kwenye mkoba</string>
-  <string name="asset_hidden_from_wallet">Imefichwa kutoka kwa mkoba</string>
   <string name="asset_resources">Rasilimali</string>
   <string name="asset_verification_verified">Imethibitishwa</string>
   <string name="asset_all_time_high">Wakati Wote Juu</string>

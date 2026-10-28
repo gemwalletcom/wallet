@@ -104,20 +104,26 @@ public extension Gemstone.GemAddressRow {
     }
 }
 
+public extension Gemstone.GemAppUpdateDestination {
+    static func mock() -> Gemstone.GemAppUpdateDestination {
+        .store(url: "")
+    }
+}
+
 public extension Gemstone.GemAppUpdateOffer {
     static func mock(
         version: String = "",
         title: Gemstone.GemLocalizedText = .mock(),
         description: Gemstone.GemLocalizedText = .mock(),
         actions: [Gemstone.GemAppUpdateAction] = [],
-        apkUrl: String? = nil,
+        destination: Gemstone.GemAppUpdateDestination = .mock(),
     ) -> Gemstone.GemAppUpdateOffer {
         Gemstone.GemAppUpdateOffer(
             version: version,
             title: title,
             description: description,
             actions: actions,
-            apkUrl: apkUrl,
+            destination: destination,
         )
     }
 }
@@ -296,8 +302,8 @@ public extension Gemstone.GemChart {
 
 public extension Gemstone.GemChartBounds {
     static func mock(
-        lowerIndex: UInt32 = 0,
-        upperIndex: UInt32 = 0,
+        lowerIndex: Int = 0,
+        upperIndex: Int = 0,
         yMin: Double = 0,
         yMax: Double = 0,
         low: Gemstone.GemFormattedNumber = .mock(),
@@ -1126,6 +1132,7 @@ public extension Gemstone.GemSwapSession {
         refreshPausedUntilRestart: Bool = false,
         input: Gemstone.GemSwapQuoteInput? = nil,
         payValue: BigUInt? = nil,
+        answers: Gemstone.GemSwapQuoteAnswers? = nil,
     ) -> Gemstone.GemSwapSession {
         Gemstone.GemSwapSession(
             quotes: quotes,
@@ -1136,6 +1143,7 @@ public extension Gemstone.GemSwapSession {
             refreshPausedUntilRestart: refreshPausedUntilRestart,
             input: input,
             payValue: payValue,
+            answers: answers,
         )
     }
 }
@@ -1555,6 +1563,7 @@ public extension Gemstone.PaymentInvoice {
         link: Gemstone.PaymentLink = .mock(),
         merchant: Gemstone.PaymentMerchant = .mock(),
         price: Gemstone.PaymentPrice? = nil,
+        message: String? = nil,
         quotes: [Gemstone.PaymentQuote] = [],
         verification: Gemstone.PaymentVerification? = nil,
     ) -> Gemstone.PaymentInvoice {
@@ -1562,6 +1571,7 @@ public extension Gemstone.PaymentInvoice {
             link: link,
             merchant: merchant,
             price: price,
+            message: message,
             quotes: quotes,
             verification: verification,
         )

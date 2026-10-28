@@ -13,7 +13,6 @@ common_maximum_value = Maximum value is %@
 common_minimum_value = Minimum value is %@
 # Used in shared app UI for the secret phrase label.
 common_secret_phrase = Secret Phrase
-# Used in shared app UI for the next label.
 # Used in shared app UI for the copy label.
 common_copy = Copy
 # Used in shared app UI for the share label.
@@ -29,7 +28,6 @@ common_provider = Provider
 common_loading = Loading
 # Used in shared app UI for the address label.
 common_address = Address
-# Used in shared app UI for the back label.
 # Used in shared app UI for the try again label.
 common_try_again = Try Again
 # Used in shared app UI for the paste label.
@@ -62,7 +60,6 @@ common_manage = Manage
 common_type = Type
 # Used in shared app UI for the no results found label.
 common_no_results_found = No Results Found
-# Used in shared app UI for the yes label.
 # Used in shared app UI for the no label.
 common_no = No
 # Empty optional value shown in selection rows and detail fields.
@@ -93,15 +90,12 @@ common_skip = Skip
 common_warning = Warning
 # Used in shared app UI for the learn more label.
 common_learn_more = Learn More
-# Used in shared app UI for the short name label.
 # Used in shared app UI as a description.
 common_description = Description
 # Used in shared app UI for the emoji label.
 common_emoji = Emoji
-# Used in shared app UI for the style label.
 # Used in shared app UI for the avatar label.
 common_avatar = Avatar
-# Used in shared app UI for the edit label.
 # Used in shared app UI for the percentage label.
 common_percentage = Percentage
 # Used in shared app UI for the details label.
@@ -126,8 +120,6 @@ common_suspicious_address_description = This address is associated with suspicio
 common_refresh = Refresh
 # Used in shared app UI for the grant permission label.
 common_grant_permission = Grant permission
-# Used in shared app UI for the required field label. Contains 1 string placeholder.
-common_required_field = %@ is required
 
 # Welcome
 
@@ -310,11 +302,8 @@ transfer_reserved_fees = We've left %@ in your balance to cover future network f
 transfer_freeze_title = Freeze
 # Used in Transfer, Send, Stake, and confirmation flows for the unfreeze title.
 transfer_unfreeze_title = Unfreeze
-# Used in Transfer, Send, Stake, and confirmation flows for the sign transaction title.
 # Used in Transfer, Send, Stake, and confirmation flows for the review request label.
 transfer_review_request = Review Request
-# Used in Transfer, Send, Stake, and confirmation flows for the amount label.
-transfer_amount = Amount
 
 # Settings
 
@@ -340,7 +329,6 @@ settings_networks_source = Source
 settings_networks_explorer = Explorer
 # Used in Settings screens for the currency label.
 settings_currency = Currency
-# Used in Settings screens for the rate app label.
 # Used in Settings screens for the website label.
 settings_website = Visit Website
 # Used in Settings screens for the security label.
@@ -447,7 +435,6 @@ errors_invalid_asset_address = Invalid %@ address
 errors_dust_threshold = The transaction failed because the amount is too small to meet the %@ network's minimum requirement (dust threshold). This limit ensures the transaction value covers the fees and processing costs.
 # Swap screen error when providers cannot return a quote for the selected pair or amount.
 errors_swap_no_quote_available = No quote available.
-# Used in error cards and validation UI for the swap not supported chain label.
 # Used in error cards and validation UI for the swap not supported asset label.
 errors_swap_not_supported_asset = Not supported asset.
 # Used in error cards and validation UI for the connections no supported wallets label.
@@ -472,8 +459,6 @@ errors_swap_amount_too_small = Amount too small
 errors_scan_transaction_malicious_description = This transaction cannot be completed — the destination wallet address is linked to suspicious or harmful activity.
 # Used in error cards and validation UI for the scan transaction memo required label. Contains 1 string placeholder.
 errors_scan_transaction_memo_required = %@ destination wallet address requires a destination tag / memo
-# Used in error cards and validation UI for the wallets limit title.
-# Used in error cards and validation UI for the wallets limit description. Contains 1 integer placeholder.
 # Used in error cards and validation UI for the scan transaction malicious title.
 errors_scan_transaction_malicious_title = Suspicious Activity
 # Used in error cards and validation UI for the connections malicious origin label.
@@ -488,8 +473,6 @@ errors_swap_minimum_amount = Minimum trade amount is %@. Please enter a higher a
 errors_perpetual_trigger_price_lower = Trigger price should be lower than market price
 # Perpetual order validation when a take-profit or stop-loss trigger must be above market price.
 errors_perpetual_trigger_price_higher = Trigger price should be higher than market price
-# Used in error cards and validation UI for the unknown try again label.
-errors_unknown_try_again = An unknown error occurred. Please try again.
 # Used in error cards and validation UI for the network error label. Contains 1 string placeholder.
 errors_network_error = Network error: %@
 # Used in error cards and validation UI for the network offline label.
@@ -579,7 +562,6 @@ asset_price = Price
 asset_market_cap = Market Cap
 # Used in asset detail and asset verification screens for the trading volume label.
 asset_trading_volume = Trading Volume (24h)
-# Used in asset detail and asset verification screens for the market cap rank label.
 # Used in asset detail and asset verification screens for the total supply label.
 asset_total_supply = Total Supply
 # Used in asset detail and asset verification screens for the circulating supply label.
@@ -620,8 +602,6 @@ asset_get_asset = Get %@
 asset_add_to_wallet = Add to wallet
 # Used in toast confirmations after an asset is added to the wallet.
 asset_added_to_wallet = Added to wallet
-# Used in toast confirmations after an asset is hidden from the wallet.
-asset_hidden_from_wallet = Hidden from wallet
 # Used in asset detail and asset verification screens for the resources label.
 asset_resources = Resources
 # Used in asset detail and asset verification screens for the verification verified label.
@@ -679,14 +659,12 @@ wallet_connect_disconnect = Disconnect
 wallet_connect_connect_title = Connect
 # Used in WalletConnect connection and request screens for the app label.
 wallet_connect_app = App
-# Used in WalletConnect connection and request screens for the website label.
 # Used in WalletConnect connection and request screens for the brand name label.
 wallet_connect_brand_name = WalletConnect
 # Used in WalletConnect connection and request screens for the no active connections label.
 wallet_connect_no_active_connections = No active connections
 # Used in WalletConnect connection and request screens for the state empty description.
 wallet_connect_state_empty_description = Scan or paste code to connect to the DApp
-# Used in WalletConnect connection and request screens for the domain label.
 # Used in WalletConnect connection and request screens for the permissions title.
 wallet_connect_permissions_title = Permissions
 # Used in WalletConnect connection and request screens for the permissions view balance label.
@@ -750,8 +728,6 @@ stake_awaiting_withdrawal = Awaiting Withdrawal
 stake_active_in = Active In
 # Used in Earn, staking, delegation, and validator screens for the minimum amount label.
 stake_minimum_amount = Minimum amount
-# Used in Earn, staking, delegation, and validator screens for the viagem label.
-# Used in Earn, staking, delegation, and validator screens for the no active staking label.
 # Used in Earn, staking, delegation, and validator screens for the state empty title.
 stake_state_empty_title = Your stakes will appear here
 # Used in Earn, staking, delegation, and validator screens for the state empty description. Contains 1 string placeholder.
@@ -786,8 +762,8 @@ assets_title = Assets
 
 # Sign Message
 
-# Used in sign UI for the message title.
 # Used in sign UI for the message message.
+# Also titles the merchant's message on the payment confirmation.
 sign_message_message = Message
 # Used in sign UI for the message view full message.
 sign_message_view_full_message = View Full Message
@@ -1010,7 +986,6 @@ lock_six_hours = 6 hours
 lock_require_authentication = Require authentication
 # Used in Privacy Lock settings for the unlock label.
 lock_unlock = Unlock
-# Used in Privacy Lock settings for the privacy lock label.
 # Used in Privacy Lock settings as a footer helper text.
 lock_footer = Protect access to this app on your device
 # Title of the screen that offers to turn on app authentication on a device with a passcode and no biometrics.
@@ -1083,8 +1058,6 @@ info_account_minimum_balance_title = Minimum balance
 info_perpetual_funding_payments_title = Funding Payments
 # Used in Info bottom sheets for the perpetual funding payments description.
 info_perpetual_funding_payments_description = Funding payments are periodic payments between traders to keep the perpetual contract price close to the underlying asset's spot price. Positive funding means long positions pay short positions, while negative funding means short positions pay long positions.
-# Used in Info bottom sheets for the perpetual funding rate title.
-# Used in Info bottom sheets for the perpetual funding rate description.
 # Used in Info bottom sheets for the perpetual liquidation price title.
 info_perpetual_liquidation_price_title = Liquidation Price
 # Used in Info bottom sheets for the perpetual liquidation price description.
@@ -1251,7 +1224,6 @@ perpetual_open_direction = Open %@
 perpetual_close_direction = Close %@
 # Used in perpetual trading and position screens for the leverage label.
 perpetual_leverage = Leverage
-# Used in perpetual trading and position screens for the direction label.
 # Used in perpetual trading and position screens for the auto close label.
 perpetual_auto_close = Auto Close
 # Used in perpetual trading and position screens for the auto close take profit label.

@@ -33,25 +33,31 @@ pub fn pending_activity_filters() -> TransactionsFilter {
     rules::pending_activity_filters()
 }
 
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemTransactionsRequest {
+    pub filter: TransactionsFilter,
+    pub limit: usize,
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemChainsFilterSummary {
     All,
     Chain { chain: Chain },
-    Count { count: u32 },
+    Count { count: usize },
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemTransactionsFilterSummary {
     All,
     Filter { filter: GemTransactionFilter },
-    Count { count: u32 },
+    Count { count: usize },
 }
 
 pub fn chains_filter_summary(chains: Vec<Chain>) -> GemChainsFilterSummary {
     match chains.as_slice() {
         [] => GemChainsFilterSummary::All,
         [chain] => GemChainsFilterSummary::Chain { chain: *chain },
-        selected => GemChainsFilterSummary::Count { count: selected.len() as u32 },
+        selected => GemChainsFilterSummary::Count { count: selected.len() },
     }
 }
 

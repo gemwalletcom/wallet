@@ -58,6 +58,7 @@ import com.gemwallet.android.ui.components.simulation.simulationPayloadDetailsCo
 import com.gemwallet.android.ui.components.simulation.simulationPayloadFieldsContent
 import com.gemwallet.android.ui.components.swap.SwapDetailsBottomSheet
 import com.gemwallet.android.ui.components.swap.SwapDetailsSummaryItem
+import com.gemwallet.android.ui.components.textMessageContent
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.localization.text
@@ -234,6 +235,8 @@ fun ConfirmTransferScreen(
                         }
                     }
 
+                    is GemConfirmSection.Message -> textMessageContent(section.text)
+
                     is GemConfirmSection.Warnings -> itemsPositioned(section.rows) { position, row -> GemListRowView(row = row, listPosition = position) }
 
                     is GemConfirmSection.Payload -> simulationPayloadFieldsContent(
@@ -290,7 +293,6 @@ fun ConfirmTransferScreen(
         FeeDetails(
             isVisible = showSelectTxSpeed,
             screen = feeScreen,
-            feeListItem = feeListItem,
             onSelectPriority = viewModel::changeFeePriority,
             onSelectCustom = viewModel::changeFeeSelection,
             onSelectFeeAsset = viewModel::changeFeeAsset,

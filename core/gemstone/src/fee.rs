@@ -109,7 +109,7 @@ impl GemCustomFeeSession {
     }
 
     fn sanitized(&self, text: &str) -> String {
-        sanitize_number_input(&self.format.decimal_separator, text, Some(self.rows.unit_decimals), None)
+        sanitize_number_input(&self.format.decimal_separator, text, Some(self.rows.unit_decimals as usize), None)
     }
 
     fn read(&self, field: &GemCustomFeeField, minimum: BigInt, maximum: BigInt, hint: Option<BigInt>) -> FieldReading {

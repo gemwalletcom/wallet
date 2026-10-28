@@ -17,18 +17,22 @@ import com.gemwallet.android.features.price_alerts.presents.SetPriceAlertScreen
 import com.gemwallet.android.features.settings.presents.NotificationsScreen
 import com.gemwallet.android.features.settings.presents.PreferencesScreen
 import com.gemwallet.android.features.settings.presents.about_us.AboutUsScreen
+import com.gemwallet.android.features.settings.presents.chain_settings.ChainListSettingsScreen
 import com.gemwallet.android.features.settings.presents.chain_settings.ChainSettingsScreen
+import com.gemwallet.android.features.settings.presents.chain_settings.ServiceStatusScreen
 import com.gemwallet.android.features.settings.presents.currency.CurrencyScreen
 import com.gemwallet.android.features.settings.presents.developer.DeveloperPaymentsScene
 import com.gemwallet.android.features.settings.presents.developer.DeveloperScreen
 import com.gemwallet.android.features.settings.presents.security.SecurityScreen
 import com.gemwallet.android.features.support.presents.SupportChatScreen
 import com.gemwallet.android.ui.models.actions.PreferencesAction
+import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.navigation.RouteMessage
 import com.gemwallet.android.ui.navigation.assetIdArgument
 import com.gemwallet.android.ui.navigation.routeArguments
 import com.gemwallet.android.ui.open
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.Chain
 import kotlinx.serialization.Serializable
 import uniffi.gemstone.GemNotificationDestination
 
@@ -53,7 +57,13 @@ data object InAppNotificationsRoute : NavKey
 data object AboutUsRoute : NavKey
 
 @Serializable
-data object ChainSettingsRoute : NavKey
+data object ChainListSettingsRoute : NavKey
+
+@Serializable
+data class ChainSettingsRoute(val chain: Chain) : NavKey
+
+@Serializable
+data object ServiceStatusRoute : NavKey
 
 @Serializable
 data object PriceAlertsRoute : NavKey
@@ -122,8 +132,22 @@ fun EntryProviderScope<NavKey>.settingsScreen(onAction: (SettingsAction) -> Unit
         AboutUsScreen(onCancel = onCancel)
     }
 
-    entry<ChainSettingsRoute> {
+    entry<ChainListSettingsRoute> {
+        ChainListSettingsScreen(
+            onSelectChain = { onAction(SettingsAction.ChainSettings(it)) },
+            onShowStatus = { onAction(SettingsAction.ServiceStatus) },
+            onCancel = onCancel,
+        )
+    }
+
+    entry<ChainSettingsRoute>(
+        metadata = { key -> routeArguments(RouteArgument.Chain to key.chain.string) },
+    ) {
         ChainSettingsScreen(onCancel = onCancel)
+    }
+
+    entry<ServiceStatusRoute> {
+        ServiceStatusScreen(onCancel = onCancel)
     }
 
     entry<PriceAlertsRoute> { key ->

@@ -1482,6 +1482,7 @@ extension GemSwapErrorDisplay: @retroactive LocalizedError {
         case let .minimumAmount(minimum):
             Localized.Errors.Swap.minimumAmount(minimum.text().boldMarkdown())
         case .amountTooSmall: Localized.Errors.Swap.amountTooSmall
+        case let .message(msg): msg
         }
     }
 }

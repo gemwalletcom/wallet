@@ -69,6 +69,7 @@ fun PerpetualScreen(
             when (action) {
                 PerpetualAction.Close -> onClose()
                 PerpetualAction.Refresh -> viewModel.onRefresh()
+                PerpetualAction.TransactionsEndReached -> viewModel.onTransactionsEndReached()
                 PerpetualAction.ModifyPosition -> viewModel.modifyPosition { showModifyDialog = true }
                 PerpetualAction.IncreasePosition -> viewModel.increasePosition(amountAction)
                 PerpetualAction.ReducePosition -> viewModel.reducePosition(amountAction)

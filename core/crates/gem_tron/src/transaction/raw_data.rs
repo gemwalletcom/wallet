@@ -1,10 +1,10 @@
 use gem_encoding::protobuf::MessageEncode;
-use primitives::SignerError;
+use primitives::{Address as _, SignerError};
 use serde::Deserialize;
 use serde_json::Value;
 use serde_serializers::hex_bytes;
 
-use super::{TransactionApproval, TronContract, protobuf};
+use super::{TransactionApproval, TronContract, WalletConnectContract, protobuf};
 use crate::models::TronContractType;
 
 #[derive(Deserialize)]
@@ -22,11 +22,16 @@ pub(crate) struct RawDataJson {
 }
 
 impl RawDataJson {
-    pub(crate) fn approval(&self) -> Result<Option<TransactionApproval>, SignerError> {
+    pub(crate) fn wallet_connect_contract(&self) -> Result<Option<WalletConnectContract>, SignerError> {
         let [contract] = self.contract.as_slice() else {
             return Ok(None);
         };
         match TronContract::from_json_value(contract.contract_type, contract.parameter.value.clone())? {
+            TronContract::Transfer { to, amount, .. } => Ok(Some(WalletConnectContract {
+                to: to.encode(),
+                value: amount,
+                approval: None,
+            })),
             TronContract::TriggerSmart {
                 contract,
                 data,
@@ -34,16 +39,18 @@ impl RawDataJson {
                 call_token_value,
                 ..
             } => {
-                let Some(approval) = TransactionApproval::decode(contract, &data)? else {
-                    return Ok(None);
-                };
-                if call_value.is_some_and(|value| value != 0) || call_token_value.is_some_and(|value| value != 0) {
+                let to = contract.encode();
+                let approval = TransactionApproval::decode(contract, &data)?;
+                if approval.is_some() && (call_value.is_some_and(|value| value != 0) || call_token_value.is_some_and(|value| value != 0)) {
                     return SignerError::invalid_input_err("Approval must not transfer native tokens");
                 }
-                Ok(Some(approval))
+                Ok(Some(WalletConnectContract {
+                    to,
+                    value: call_value.unwrap_or_default(),
+                    approval,
+                }))
             }
-            TronContract::Transfer { .. }
-            | TronContract::VoteWitness { .. }
+            TronContract::VoteWitness { .. }
             | TronContract::FreezeBalanceV2 { .. }
             | TronContract::UnfreezeBalanceV2 { .. }
             | TronContract::DelegateResource { .. }

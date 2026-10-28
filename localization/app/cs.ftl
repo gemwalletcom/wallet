@@ -60,7 +60,6 @@ common_suspicious_address = Podezřelá adresa
 common_suspicious_address_description = Tato adresa je spojena s podezřelou nebo škodlivou aktivitou.
 common_refresh = Obnovit
 common_grant_permission = Udělte povolení
-common_required_field = Je vyžadováno %@
 
 # Welcome
 
@@ -165,7 +164,6 @@ transfer_reserved_fees = Na vašem zůstatku jsme nechali %@ na pokrytí budouc�
 transfer_freeze_title = Zmrazit
 transfer_unfreeze_title = Uvolnit
 transfer_review_request = Žádost o kontrolu
-transfer_amount = Množství
 
 # Settings
 
@@ -255,7 +253,6 @@ errors_dust_threshold_short = Síť toto množství považuje za prach – popla
 errors_swap_minimum_amount = Minimální částka obchodu je %@. Zadejte prosím vyšší částku.
 errors_perpetual_trigger_price_lower = Spouštěcí cena musí být nižší než tržní cena
 errors_perpetual_trigger_price_higher = Spouštěcí cena musí být vyšší než tržní cena
-errors_unknown_try_again = Došlo k neznámé chybě. Zkuste to prosím znovu.
 errors_network_error = Chyba sítě: %@
 errors_network_offline = Zdá se, že je internetové připojení offline.
 errors_no_internet_connection = Žádné připojení k internetu
@@ -327,7 +324,6 @@ asset_buy_asset = Koupit %@
 asset_get_asset = Získat %@
 asset_add_to_wallet = Přidat do peněženky
 asset_added_to_wallet = Přidáno do peněženky
-asset_hidden_from_wallet = Skryto z peněženky
 asset_resources = Zdroje
 asset_verification_verified = Ověřeno
 asset_all_time_high = Historické maximum

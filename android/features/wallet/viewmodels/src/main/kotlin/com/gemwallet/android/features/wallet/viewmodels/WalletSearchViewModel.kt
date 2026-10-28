@@ -71,7 +71,7 @@ class WalletSearchViewModel @Inject constructor(
     }
 
     private val perpetuals: Flow<List<PerpetualData>> = currentQuery
-        .flatMapLatest { query -> perpetualMarketQuery(query).let { perpetualsQuery(it.search, it.limit.toInt(), it.requiresVolume) } }
+        .flatMapLatest { query -> perpetualMarketQuery(query).let { perpetualsQuery(it.search, it.limit, it.requiresVolume) } }
 
     private val collections: Flow<List<NFTData>> = getSession()
         .filterNotNull()
@@ -104,7 +104,7 @@ class WalletSearchViewModel @Inject constructor(
     val previewNfts: StateFlow<List<GemNftEntry>> = content.select(viewModelScope, emptyList()) { it.view.nfts }
     val hasMoreNfts: StateFlow<Boolean> = content.select(viewModelScope, false) { it.view.hasMoreNfts }
 
-    override fun assetsSearchLimit(query: String): Int = service.walletSearchLimits(query).fetch.toInt()
+    override fun assetsSearchLimit(query: String): Int = service.walletSearchLimits(query).fetch
 }
 
 private class WalletSearchRows(val pinned: List<AssetInfoDataAggregate>, unpinned: List<AssetInfoDataAggregate>, val perpetuals: List<PerpetualData>, val lists: List<AssetList>, val collections: List<NFTData>) {
@@ -114,7 +114,7 @@ private class WalletSearchRows(val pinned: List<AssetInfoDataAggregate>, unpinne
         wallet = wallet.toGem(),
         query = query,
         isLoading = isLoading,
-        recents = recents.toUInt(),
+        recents = recents,
         assetIds = assets.map { it.asset.id.toIdentifier() },
         pinnedAssetIds = pinned.map { it.asset.id.toIdentifier() },
         perpetuals = perpetuals.map { it.toGem() },

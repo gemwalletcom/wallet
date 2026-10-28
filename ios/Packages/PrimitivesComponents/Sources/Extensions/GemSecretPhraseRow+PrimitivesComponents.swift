@@ -12,7 +12,7 @@ extension GemSecretPhraseRow {
 }
 
 private extension [String] {
-    func wordIndex(at index: UInt32) -> WordIndex {
-        WordIndex(index: Int(index), word: self[Int(index)])
+    func wordIndex(at index: Int) -> WordIndex {
+        WordIndex(index: index, word: self[index])
     }
 }

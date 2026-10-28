@@ -219,7 +219,7 @@ fun PreviewSwapTransactionItem() {
 private fun previewAmount(value: Double, symbol: String) = GemFormattedNumber(
     value = value,
     unit = GemNumberUnit.Symbol(symbol = symbol),
-    display = GemNumberDisplay.Number(precision = GemPrecision.Fraction(min = 0u, max = 32u)),
+    display = GemNumberDisplay.Number(precision = GemPrecision.Fraction(min = 0, max = 32)),
     notation = GemNumberNotation.PLAIN,
     tone = GemValueTone.PLAIN,
     rounding = GemNumberRounding.TOWARD_ZERO,

@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use model_derive::Model;
 use serde::{Deserialize, Serialize};
 
@@ -12,4 +13,5 @@ pub struct TransactionsFilter {
     pub transaction_types: Vec<TransactionType>,
     pub states: Vec<TransactionState>,
     pub asset_rank_greater_than: Option<i32>,
+    pub created_from: Option<DateTime<Utc>>,
 }

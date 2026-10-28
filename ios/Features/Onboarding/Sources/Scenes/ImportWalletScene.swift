@@ -32,6 +32,7 @@ struct ImportWalletScene: View {
                             }
                         }
                         .pickerStyle(.segmented)
+                        .accessibilityIdentifier("import_kinds")
                     }
                     HStack {
                         Group {
@@ -74,6 +75,7 @@ struct ImportWalletScene: View {
             } footer: {
                 if let text = model.footerText {
                     Text(.init(text))
+                        .accessibilityIdentifier("view_only_warning")
                 }
             }
 

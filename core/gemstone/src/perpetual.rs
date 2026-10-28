@@ -32,7 +32,7 @@ impl GemPerpetual {
         }
     }
 
-    pub fn price_decimals(&self, price: f64, decimals: u32) -> u32 {
+    pub fn price_decimals(&self, price: f64, decimals: u32) -> usize {
         match self.provider {
             PerpetualProvider::Hypercore => PerpetualFormatter::price_decimals(price, decimals),
         }

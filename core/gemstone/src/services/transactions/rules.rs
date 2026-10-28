@@ -753,6 +753,7 @@ pub fn activity_filters(chains: Vec<Chain>, filters: Vec<GemTransactionFilter>) 
         transaction_types,
         states: vec![],
         asset_rank_greater_than: Some(crate::models::asset::default_token_rank()),
+        created_from: None,
     }
 }
 

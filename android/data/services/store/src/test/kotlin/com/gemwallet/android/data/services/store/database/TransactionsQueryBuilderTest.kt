@@ -67,6 +67,17 @@ class TransactionsQueryBuilderTest {
     }
 
     @Test
+    fun createdFrom_keepsTransactionsFromThatTimeOn() {
+        val query = buildTransactionListSql(
+            walletId,
+            limit = limit,
+            filter = mockTransactionsFilter(createdFrom = 1_000L),
+        )
+        assertTrue(query.sql.contains("AND tx.createdAt >= ?"))
+        assertEquals(1_000L, query.args[baseArgCount])
+    }
+
+    @Test
     fun assetFilter_matchesTransactionAssetsOnly_bindsIdOnce() {
         val assetId = AssetId(chain = Chain.Ethereum, tokenId = "0xABC")
         val query = buildTransactionListSql(

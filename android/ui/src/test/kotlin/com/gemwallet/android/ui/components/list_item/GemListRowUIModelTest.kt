@@ -48,7 +48,7 @@ class GemListRowUIModelTest {
                 amount = mockGemFormattedNumber(
                     value = amount,
                     unit = GemNumberUnit.Symbol("SOL"),
-                    display = GemNumberDisplay.Number(precision = GemPrecision.Fraction(min = 0u, max = 32u)),
+                    display = GemNumberDisplay.Number(precision = GemPrecision.Fraction(min = 0, max = 32)),
                     notation = GemNumberNotation.SIGNED,
                     tone = tone,
                     exact = "0.100005",

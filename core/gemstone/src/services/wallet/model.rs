@@ -128,12 +128,12 @@ impl fmt::Debug for GemWalletSecret {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemSecretPhraseRow {
-    Pair { left: u32, right: u32 },
-    Single { index: u32 },
+    Pair { left: usize, right: usize },
+    Single { index: usize },
 }
 
 #[uniffi::export]
-pub fn secret_phrase_rows(word_count: u32) -> Vec<GemSecretPhraseRow> {
+pub fn secret_phrase_rows(word_count: usize) -> Vec<GemSecretPhraseRow> {
     rules::secret_phrase_rows(word_count)
 }
 
@@ -152,7 +152,7 @@ pub struct GemSecretScreen {
 }
 
 #[uniffi::export]
-pub fn secret_screen(kind: GemWalletSecretKind, word_count: u32, is_new: bool) -> GemSecretScreen {
+pub fn secret_screen(kind: GemWalletSecretKind, word_count: usize, is_new: bool) -> GemSecretScreen {
     rules::secret_screen(kind, word_count, is_new)
 }
 

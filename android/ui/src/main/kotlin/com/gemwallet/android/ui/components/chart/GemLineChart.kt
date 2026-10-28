@@ -105,8 +105,8 @@ fun GemLineChart(
     val labelOffsetAbovePx = with(density) { Metrics.boundLabelOffsetAbove.toPx() }
     val glowExtraPx = with(density) { Metrics.selectionGlowExtra.toPx() }
 
-    val minIndex = bounds.lowerIndex.toInt()
-    val maxIndex = bounds.upperIndex.toInt()
+    val minIndex = bounds.lowerIndex
+    val maxIndex = bounds.upperIndex
 
     val valueRange = rememberChartRange(bounds.yMin.toFloat(), bounds.yMax.toFloat())
     val viewport = valueRange.viewport

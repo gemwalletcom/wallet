@@ -1,13 +1,16 @@
 package com.gemwallet.android.features.settings.viewmodels.chain_settings
 
 import android.content.Context
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.testkit.mockGemNodeSelection
 import com.gemwallet.android.testkit.mockLatency
+import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Chain
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -17,10 +20,8 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import uniffi.gemstone.GemChainService
 import uniffi.gemstone.GemChainSettingsSection
 import uniffi.gemstone.GemChainSettingsServiceInterface
 import uniffi.gemstone.GemNodeListSession
@@ -52,8 +53,18 @@ class ChainSettingsViewModelTest {
         }
     }
 
+    private fun viewModel(service: GemChainSettingsServiceInterface, chain: Chain = Chain.Ethereum) = ChainSettingsViewModel(
+        service,
+        SavedStateHandle(mapOf(RouteArgument.Chain.key to chain.string)),
+        dispatcher,
+        mockk<Context> {
+            every { getString(any()) } returns "Error"
+            every { getString(any(), *anyVararg()) } returns "Error"
+        },
+    ).also { models.add(it) }
+
     @Test
-    fun `selecting a chain loads its nodes and a status for each`() = runTest(dispatcher) {
+    fun `opening a chain loads the route chain's nodes and a status for each`() = runTest(dispatcher) {
         val service = service(
             nodesByCall = listOf(listOf(mockGemNodeSelection(url = "a", host = "a"), mockGemNodeSelection(url = "b", host = "b"))),
             statuses = mapOf(
@@ -61,21 +72,14 @@ class ChainSettingsViewModelTest {
                 "b" to GemNodeStatusState.Result(latestBlockNumber = 11UL, latency = mockLatency(value = 10.0).toGem()),
             ),
         )
-        val viewModel = ChainSettingsViewModel(
-            service,
-            GemChainService(),
-            dispatcher,
-            mockk<Context> {
-                every { getString(any()) } returns "Error"
-                every { getString(any(), *anyVararg()) } returns "Error"
-            },
-        ).also { models.add(it) }
-
-        viewModel.onSelectedChain(Chain.Ethereum)
+        val viewModel = viewModel(service, Chain.Solana)
         advanceUntilIdle()
 
-        assertEquals(Chain.Ethereum, viewModel.uiState.value.chain)
-        assertTrue(viewModel.uiState.value.selectChain.not())
+        assertEquals(Chain.Solana, viewModel.uiState.value.chain)
+        coVerify(exactly = 1) { service.nodes(Chain.Solana.string) }
+        coVerify(exactly = 1) { service.nodeStatus(Chain.Solana.string, "a") }
+        coVerify(exactly = 1) { service.nodeStatus(Chain.Solana.string, "b") }
+        assertEquals(listOf("a", "b"), sessionUrls(viewModel))
     }
 
     @Test
@@ -87,16 +91,7 @@ class ChainSettingsViewModelTest {
                 "b" to GemNodeStatusState.Result(latestBlockNumber = 11UL, latency = mockLatency(value = 10.0).toGem()),
             ),
         )
-        val viewModel = ChainSettingsViewModel(
-            service,
-            GemChainService(),
-            dispatcher,
-            mockk<Context> {
-                every { getString(any()) } returns "Error"
-                every { getString(any(), *anyVararg()) } returns "Error"
-            },
-        ).also { models.add(it) }
-        viewModel.onSelectedChain(Chain.Ethereum)
+        val viewModel = viewModel(service)
         advanceUntilIdle()
 
         viewModel.onDeleteNode("b")

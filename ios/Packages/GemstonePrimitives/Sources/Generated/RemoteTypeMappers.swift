@@ -837,6 +837,7 @@ public extension Gemstone.PlatformStore {
         case .samsungStore: .samsungStore
         case .apkUniversal: .apkUniversal
         case .emerald: .emerald
+        case .macDmg: .macDmg
         case .local: .local
         }
     }
@@ -853,6 +854,7 @@ public extension Primitives.PlatformStore {
         case .samsungStore: .samsungStore
         case .apkUniversal: .apkUniversal
         case .emerald: .emerald
+        case .macDmg: .macDmg
         case .local: .local
         }
     }
@@ -3073,6 +3075,7 @@ public extension Gemstone.TransactionsFilter {
             transactionTypes: transactionTypes.map { $0.toPrimitives() },
             states: states.map { $0.toPrimitives() },
             assetRankGreaterThan: assetRankGreaterThan,
+            createdFrom: createdFrom,
         )
     }
 }
@@ -3085,6 +3088,7 @@ public extension Primitives.TransactionsFilter {
             transactionTypes: transactionTypes.map { $0.toGem() },
             states: states.map { $0.toGem() },
             assetRankGreaterThan: assetRankGreaterThan,
+            createdFrom: createdFrom,
         )
     }
 }

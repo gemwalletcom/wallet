@@ -27,7 +27,7 @@ public struct DateSectionBuilder<Item, T: Sendable & Identifiable> {
                 id: date.ISO8601Format(),
                 title: TransactionDateFormatter(date: date, label: section.label).section,
                 image: nil,
-                values: section.positions.map { transform(items[Int($0)]) },
+                values: section.positions.map { transform(items[$0]) },
             )
         }
     }

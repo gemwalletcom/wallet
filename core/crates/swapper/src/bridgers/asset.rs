@@ -84,6 +84,10 @@ impl Network {
     }
 }
 
+pub fn routers() -> impl Iterator<Item = (Chain, &'static str)> {
+    NETWORKS.iter().filter_map(|network| network.router.map(|router| (network.chain, router)))
+}
+
 struct TokenDecimals {
     asset: u32,
     bridgers: u32,

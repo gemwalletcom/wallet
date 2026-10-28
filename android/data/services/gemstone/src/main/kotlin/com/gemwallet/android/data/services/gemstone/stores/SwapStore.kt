@@ -23,16 +23,16 @@ class GemstoneSwapStore(private val assetsDao: AssetsDao, private val transactio
         transactionsDao.getTransactionsByType(WalletId(walletId), TransactionType.Swap).mapNotNull { transactionSwapPair(it.toDTO().toGem()) }
     }
 
-    override suspend fun getRecentAssetIds(walletId: String, types: List<RecentActivityType>, filters: List<GemAssetFilter>, limit: UInt): List<String> = withContext(Dispatchers.IO) {
+    override suspend fun getRecentAssetIds(walletId: String, types: List<RecentActivityType>, filters: List<GemAssetFilter>, limit: Int): List<String> = withContext(Dispatchers.IO) {
         assetsDao.getRecentAssets(
             walletId = walletId,
             type = types.map { it.toPrimitives() },
             filters = filters.map { it.toQueryFilter() }.toSet(),
-            limit = limit.toInt(),
+            limit = limit,
         ).firstOrNull().orEmpty().map { it.asset.id }
     }
 
-    override suspend fun getAssetIds(walletId: String, filters: List<GemAssetFilter>, limit: UInt): List<String> = withContext(Dispatchers.IO) {
-        assetsDao.filteredSearch(walletId = walletId, query = "", limit = limit.toInt(), filters = filters.map { it.toQueryFilter() }.toSet(), withPriority = false).firstOrNull().orEmpty().map { it.id }
+    override suspend fun getAssetIds(walletId: String, filters: List<GemAssetFilter>, limit: Int): List<String> = withContext(Dispatchers.IO) {
+        assetsDao.filteredSearch(walletId = walletId, query = "", limit = limit, filters = filters.map { it.toQueryFilter() }.toSet(), withPriority = false).firstOrNull().orEmpty().map { it.id }
     }
 }

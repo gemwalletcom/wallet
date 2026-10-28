@@ -36,7 +36,7 @@ import uniffi.gemstone.GemVerifyPhraseViewState
 internal fun VerifyPhraseScene(state: GemVerifyPhraseViewState, choices: List<String>, rows: List<PhraseRow>, onPick: (Int) -> Boolean, onDone: () -> Unit, onCancel: () -> Unit) {
     val isSmallScreen = isCompactDimension(WindowDimension.Height)
     val groups = if (isSmallScreen) {
-        listOfNotNull(state.currentGroup?.let { state.groups.getOrNull(it.toInt()) })
+        listOfNotNull(state.currentGroup?.let { state.groups.getOrNull(it) })
     } else {
         state.groups
     }
@@ -63,7 +63,7 @@ internal fun VerifyPhraseScene(state: GemVerifyPhraseViewState, choices: List<St
             PhraseLayout(
                 rows = rows,
                 modifier = Modifier.widthIn(max = SceneSizing.contentMaxWidth),
-                highlightIndex = state.nextIndex?.toInt(),
+                highlightIndex = state.nextIndex,
             )
             AnimatedVisibility(visible = !state.isComplete || !isSmallScreen) {
                 Column(
@@ -80,7 +80,7 @@ internal fun VerifyPhraseScene(state: GemVerifyPhraseViewState, choices: List<St
                             verticalArrangement = Arrangement.spacedBy(space8),
                         ) {
                             group.forEach { choice ->
-                                WordChip(choices.getOrElse(choice.index.toInt()) { "" }, !choice.isPicked) { onPick(choice.index.toInt()) }
+                                WordChip(choices.getOrElse(choice.index) { "" }, !choice.isPicked) { onPick(choice.index) }
                             }
                         }
                     }

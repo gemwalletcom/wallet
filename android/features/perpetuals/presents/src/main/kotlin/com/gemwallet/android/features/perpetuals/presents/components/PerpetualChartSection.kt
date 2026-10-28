@@ -37,11 +37,11 @@ internal fun PerpetualChartSection(state: StateViewType<GemCandleChart>, period:
     val safeSelectedIndex = selectedIndex?.takeIf { it in data.indices }
     val isSelectedRightHalf = chart != null && safeSelectedIndex != null && (data[safeSelectedIndex].date - chart.start) * 2 > chart.end - chart.start
 
-    val selection = remember(chart, safeSelectedIndex) { safeSelectedIndex?.let { chart?.selection(it.toUInt()) } }
+    val selection = remember(chart, safeSelectedIndex) { safeSelectedIndex?.let { chart?.selection(it) } }
     val context = LocalContext.current
     val dateFormatter = remember(context) { context.rowDateFormatter() }
     val headerDate = chart?.let { data -> selection?.let { dateFormatter.chartDate(it.date, data.dateStyle, ZoneId.systemDefault(), LocalConfiguration.current.locales[0]) } }
-    val tooltip = remember(chart, safeSelectedIndex) { safeSelectedIndex?.let { chart?.tooltip(it.toUInt()) } }
+    val tooltip = remember(chart, safeSelectedIndex) { safeSelectedIndex?.let { chart?.tooltip(it) } }
 
     ChartStateView(
         state = state,

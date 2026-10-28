@@ -64,7 +64,7 @@ public struct ShowSecretDataScene: View {
 
     private var screen: GemSecretScreen {
         switch secret {
-        case let .words(words): secretScreen(kind: .phrase, wordCount: UInt32(words.count), isNew: continueAction != nil)
+        case let .words(words): secretScreen(kind: .phrase, wordCount: words.count, isNew: continueAction != nil)
         case .privateKey: secretScreen(kind: .privateKey, wordCount: 0, isNew: continueAction != nil)
         }
     }

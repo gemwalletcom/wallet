@@ -19,7 +19,6 @@ num-traits = { workspace = true }
 gem_hash = { path = "../gem_hash" }
 hex = { workspace = true }
 chrono = { workspace = true }
-regex = { workspace = true }
 async-trait = { workspace = true }
 
 [features]

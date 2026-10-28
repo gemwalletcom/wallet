@@ -60,7 +60,6 @@ common_suspicious_address = Địa chỉ đáng ngờ
 common_suspicious_address_description = Địa chỉ này có liên quan đến hoạt động đáng ngờ hoặc có hại.
 common_refresh = Làm mới
 common_grant_permission = Cấp phép
-common_required_field = %@ là bắt buộc
 
 # Welcome
 
@@ -165,7 +164,6 @@ transfer_reserved_fees = Chúng tôi đã để lại %@ trong số dư của b�
 transfer_freeze_title = Đóng băng
 transfer_unfreeze_title = Giải đông
 transfer_review_request = Yêu cầu xem xét
-transfer_amount = Số lượng
 
 # Settings
 
@@ -255,7 +253,6 @@ errors_dust_threshold_short = Mạng lưới coi số tiền này là bụi - m�
 errors_swap_minimum_amount = Số tiền giao dịch tối thiểu là %@. Vui lòng nhập số tiền lớn hơn.
 errors_perpetual_trigger_price_lower = Giá kích hoạt phải thấp hơn giá thị trường
 errors_perpetual_trigger_price_higher = Giá kích hoạt phải cao hơn giá thị trường
-errors_unknown_try_again = Đã xảy ra lỗi không xác định. Vui lòng thử lại.
 errors_network_error = Lỗi mạng: %@
 errors_network_offline = Kết nối Internet dường như đang bị ngắt.
 errors_no_internet_connection = Không có kết nối internet
@@ -327,7 +324,6 @@ asset_buy_asset = Mua %@
 asset_get_asset = Nhận %@
 asset_add_to_wallet = Thêm vào ví
 asset_added_to_wallet = Đã thêm vào ví
-asset_hidden_from_wallet = Đã ẩn khỏi ví
 asset_resources = Tài nguyên
 asset_verification_verified = Đã xác minh
 asset_all_time_high = Mức cao nhất mọi thời đại

@@ -60,7 +60,6 @@
   <string name="common_suspicious_address_description">Questo indirizzo è associato ad attività sospette o dannose.</string>
   <string name="common_refresh">Aggiorna</string>
   <string name="common_grant_permission">Concedere l\'autorizzazione</string>
-  <string name="common_required_field">%1$s è obbligatorio</string>
   <string name="welcome_title">Benvenuti nella famiglia Gem</string>
   <string name="wallet_create_new_wallet">Crea un nuovo portafoglio</string>
   <string name="wallet_import_existing_wallet">Importa un portafoglio esistente</string>
@@ -144,7 +143,6 @@
   <string name="transfer_freeze_title">Congela</string>
   <string name="transfer_unfreeze_title">Scongela</string>
   <string name="transfer_review_request">Richiesta di revisione</string>
-  <string name="transfer_amount">Importo</string>
   <string name="settings_terms_of_services">Termini di servizio</string>
   <string name="settings_privacy_policy">Informativa sulla privacy</string>
   <string name="settings_title">Impostazioni</string>
@@ -225,7 +223,6 @@
   <string name="errors_swap_minimum_amount">L\'importo minimo di scambio è %1$s. Inserisci un importo maggiore.</string>
   <string name="errors_perpetual_trigger_price_lower">Il prezzo di attivazione deve essere inferiore al prezzo di mercato</string>
   <string name="errors_perpetual_trigger_price_higher">Il prezzo di attivazione deve essere superiore al prezzo di mercato</string>
-  <string name="errors_unknown_try_again">Si è verificato un errore sconosciuto. Per favore riprova.</string>
   <string name="errors_network_error">Errore di rete: %1$s</string>
   <string name="errors_network_offline">La connessione Internet risulta offline.</string>
   <string name="errors_no_internet_connection">Nessuna connessione a internet</string>
@@ -285,7 +282,6 @@
   <string name="asset_get_asset">Ottieni %1$s</string>
   <string name="asset_add_to_wallet">Aggiungi al portafoglio</string>
   <string name="asset_added_to_wallet">Aggiunto al portafoglio</string>
-  <string name="asset_hidden_from_wallet">Nascosto dal portafoglio</string>
   <string name="asset_resources">Risorse</string>
   <string name="asset_verification_verified">Verificato</string>
   <string name="asset_all_time_high">Massimo storico</string>

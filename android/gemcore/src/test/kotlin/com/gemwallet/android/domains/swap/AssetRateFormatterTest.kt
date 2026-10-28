@@ -37,7 +37,7 @@ class AssetRateFormatterTest {
         )
     }
 
-    private fun places(value: Double, symbol: String) = mockGemFormattedNumber(value = value, unit = GemNumberUnit.Symbol(symbol), display = GemNumberDisplay.Number(precision = GemPrecision.Fraction(min = 2u, max = 2u)))
+    private fun places(value: Double, symbol: String) = mockGemFormattedNumber(value = value, unit = GemNumberUnit.Symbol(symbol), display = GemNumberDisplay.Number(precision = GemPrecision.Fraction(min = 2, max = 2)))
 
-    private fun significant(value: Double, symbol: String) = mockGemFormattedNumber(value = value, unit = GemNumberUnit.Symbol(symbol), display = GemNumberDisplay.Number(precision = GemPrecision.Significant(4u)))
+    private fun significant(value: Double, symbol: String) = mockGemFormattedNumber(value = value, unit = GemNumberUnit.Symbol(symbol), display = GemNumberDisplay.Number(precision = GemPrecision.Significant(4)))
 }

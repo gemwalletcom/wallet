@@ -2,8 +2,8 @@ use crate::value_formatter::ValueStyle;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Precision {
-    Fraction { min: u32, max: u32 },
-    Significant { max: u32 },
+    Fraction { min: usize, max: usize },
+    Significant { max: usize },
 }
 
 impl Precision {
@@ -13,7 +13,7 @@ impl Precision {
     pub const UP_TO_FOUR_PLACES: Self = Self::Fraction { min: 0, max: 4 };
     pub const FULL: Self = Self::Fraction { min: 0, max: 32 };
 
-    pub fn fraction_places(&self, magnitude: f64) -> u32 {
+    pub fn fraction_places(&self, magnitude: f64) -> usize {
         match self {
             Self::Fraction { max, .. } => *max,
             Self::Significant { max } => zeros_after_point(magnitude).saturating_add(*max),
@@ -24,7 +24,7 @@ impl Precision {
 pub const ABBREVIATION_THRESHOLD: f64 = 100_000.0;
 pub const SMALL_AMOUNT_THRESHOLD: f64 = 0.1;
 pub const VALUE_DUST_THRESHOLD: f64 = 1e-4;
-pub const VALUE_DUST_PLACES: u32 = 4;
+pub const VALUE_DUST_PLACES: usize = 4;
 
 pub fn value(style: ValueStyle, magnitude: f64) -> Precision {
     let magnitude = magnitude.abs();
@@ -49,7 +49,7 @@ pub fn is_dust(magnitude: f64) -> bool {
     magnitude != 0.0 && magnitude.abs() < VALUE_DUST_THRESHOLD
 }
 
-pub fn round_to_places(value: f64, places: u32) -> f64 {
+pub fn round_to_places(value: f64, places: usize) -> f64 {
     let factor = 10_f64.powi(places as i32);
     (value * factor).round() / factor
 }
@@ -74,10 +74,10 @@ pub fn currency(magnitude: f64) -> Precision {
     }
 }
 
-fn zeros_after_point(magnitude: f64) -> u32 {
+fn zeros_after_point(magnitude: f64) -> usize {
     match magnitude == 0.0 {
         true => 0,
-        false => (-magnitude.abs().log10().floor() - 1.0) as u32,
+        false => (-magnitude.abs().log10().floor() - 1.0) as usize,
     }
 }
 
