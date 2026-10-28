@@ -33,6 +33,7 @@ flowchart LR
 | The wallet switches while details are open, such as a push for another wallet | the details stay on the wallet they were opened for | an open details screen never blanks or swaps |
 | A transaction is deleted while its details are open | the details keep showing it | an open details screen never blanks or swaps |
 | A transaction push is tapped | its details open at once; until the wallet has the transaction, a loader shows while it comes from Gem's server | the wallet shows only what its history or Gem's server holds, never what a push carries |
+| Transaction details are requested for an unrelated wallet | the transaction cannot be loaded or added to that wallet's history | a transaction must involve an address subscribed to that wallet on that network |
 | The transaction cannot be loaded | an error with Try Again in place of the details | the user can retry without going back |
 | The user taps an address | its page, with the name the user already sees for it: a contact or own wallet name first, a contact's picture or initials as on Confirm, a token's or validator's logo | the address is recognisable |
 | The address page opens | the full address, copied with a tap, the type and the balances | |

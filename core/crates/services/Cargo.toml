@@ -44,6 +44,9 @@ swapper = { path = "../swapper", features = ["reqwest_provider"] }
 tokio = { workspace = true, features = ["sync"] }
 uuid = { workspace = true }
 
+[features]
+database_integration_tests = ["storage/database_integration_tests"]
+
 [dev-dependencies]
 gem_client = { path = "../gem_client", features = ["testkit"] }
 storage = { path = "../storage", features = ["testkit"] }

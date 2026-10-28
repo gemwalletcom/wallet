@@ -104,13 +104,7 @@ impl Repository for PostgresRepository {
     }
 
     async fn get_wallet_transaction(&self, device_row_id: i32, wallet_id: i32, id: TransactionId) -> Result<(Vec<String>, Transaction), DatabaseError> {
-        self.database
-            .run(move |client| {
-                let addresses = client.get_subscriptions_by_wallet_id(device_row_id, wallet_id)?.into_iter().map(|subscription| subscription.address).collect::<Vec<_>>();
-                let transaction = client.get_transaction_by_id(&id, addresses.clone())?;
-                Ok((addresses, transaction))
-            })
-            .await
+        self.database.run(move |client| client.get_transaction_by_wallet_id(device_row_id, wallet_id, &id)).await
     }
 
     async fn get_transactions_by_hash(&self, hash: String) -> Result<Vec<Transaction>, DatabaseError> {
@@ -230,4 +224,85 @@ fn transactions_response(client: &mut impl ScanAddressesRepository, transactions
         .filter_map(|scan_address| scan_address.address_name())
         .collect();
     Ok(TransactionsResponse::new(transactions, address_names))
+}
+
+#[cfg(all(test, feature = "database_integration_tests"))]
+mod database_integration_tests {
+    use primitives::{Asset, Chain, Device, FiatRate, FiatRateProvider, Transaction, TransactionDirection, TransactionId, WalletId, WalletSource, WalletType, currency::Currency};
+    use storage::{AssetsRepository, ChainsRepository, Database, DatabaseError, DevicesRepository, FiatRepository, NewWallet, TransactionsRepository, WalletsRepository};
+
+    use super::{PostgresRepository, Repository};
+
+    #[tokio::test]
+    async fn test_wallet_transaction_rejects_another_wallets_hash() {
+        let database = Database::mock();
+        let (device_id, other_device_id, wallets, transaction_id, shared_transaction_id) = database
+            .run(|client| -> Result<_, DatabaseError> {
+                client.add_chains(vec![Chain::Ethereum, Chain::Arbitrum])?;
+                client.add_assets(vec![Asset::from_chain(Chain::Ethereum).as_basic_primitive()])?;
+                client.set_fiat_rates(FiatRateProvider::Coingecko, vec![FiatRate { symbol: Currency::USD, rate: 1.0 }])?;
+                let device = client.add_device(Device::mock())?;
+                let device_id = client.get_device_row_id(&device.id)?;
+                let other_device = client.add_device(Device {
+                    id: "other-device".to_string(),
+                    ..Device::mock()
+                })?;
+                let other_device_id = client.get_device_row_id(&other_device.id)?;
+                let mut wallets = Vec::new();
+                for index in 1..=5 {
+                    let address = format!("0xwallet{index}");
+                    let wallet = client.get_or_create_wallet(NewWallet {
+                        wallet_id: WalletId::Multicoin(address.clone()),
+                        wallet_type: WalletType::Multicoin,
+                        source: WalletSource::Create,
+                    })?;
+                    client.add_subscriptions(device_id, vec![(wallet.id, Chain::Ethereum, address)])?;
+                    wallets.push(wallet);
+                }
+                client.add_subscriptions(device_id, vec![(wallets[3].id, Chain::Arbitrum, "0xwallet3".to_string())])?;
+                client.add_subscriptions(other_device_id, vec![(wallets[0].id, Chain::Ethereum, "0xwallet3".to_string())])?;
+                let transaction = Transaction {
+                    id: TransactionId::new(Chain::Ethereum, "wallet3-transaction".to_string()),
+                    from: "0xwallet3".to_string(),
+                    to: "0xexternal".to_string(),
+                    ..Transaction::mock()
+                };
+                let transaction_id = transaction.id.clone();
+                let shared_transaction = Transaction {
+                    id: TransactionId::new(Chain::Ethereum, "wallet3-to-wallet5".to_string()),
+                    to: "0xwallet5".to_string(),
+                    ..transaction.clone()
+                };
+                let shared_transaction_id = shared_transaction.id.clone();
+                client.set_transactions(vec![transaction, shared_transaction])?;
+                Ok((device_id, other_device_id, wallets, transaction_id, shared_transaction_id))
+            })
+            .await
+            .unwrap();
+        let repository = PostgresRepository::new(database.clone());
+
+        let (_, transaction) = repository.get_wallet_transaction(device_id, wallets[2].id, transaction_id.clone()).await.unwrap();
+        assert_eq!(transaction.id, transaction_id);
+        for index in [4, 0, 1, 3] {
+            let result = repository.get_wallet_transaction(device_id, wallets[index].id, transaction_id.clone()).await;
+            assert!(result.unwrap_err().is_not_found(), "wallet {}", index + 1);
+        }
+        let result = repository.get_wallet_transaction(other_device_id, wallets[2].id, transaction_id.clone()).await;
+        assert!(result.unwrap_err().is_not_found());
+        let (_, transaction) = repository.get_wallet_transaction(other_device_id, wallets[0].id, transaction_id.clone()).await.unwrap();
+        assert_eq!(transaction.id, transaction_id);
+
+        let (_, sent) = repository.get_wallet_transaction(device_id, wallets[2].id, shared_transaction_id.clone()).await.unwrap();
+        let (_, received) = repository.get_wallet_transaction(device_id, wallets[4].id, shared_transaction_id.clone()).await.unwrap();
+        assert_eq!((sent.id, sent.direction), (shared_transaction_id.clone(), TransactionDirection::Outgoing));
+        assert_eq!((received.id, received.direction), (shared_transaction_id, TransactionDirection::Incoming));
+
+        let missing_id = TransactionId::new(Chain::Ethereum, "missing-transaction".to_string());
+        assert!(repository.get_wallet_transaction(device_id, wallets[2].id, missing_id).await.unwrap_err().is_not_found());
+
+        let wallet_id = wallets[2].id;
+        database.run(move |client| client.delete_wallet_chains(device_id, wallet_id, vec![Chain::Ethereum])).await.unwrap();
+        assert!(repository.get_wallet_transaction(device_id, wallet_id, transaction_id.clone()).await.unwrap_err().is_not_found());
+        assert_eq!(repository.get_transaction(transaction_id.clone()).await.unwrap().id, transaction_id);
+    }
 }
