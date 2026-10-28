@@ -32,17 +32,17 @@ struct CurrencySceneViewModelTests {
         #expect(service.queries == [" arS ", ""])
     }
 
-    @Test
-    func setNewCurrency() async throws {
+    @Test(arguments: [Currency.ars, .ron, .gel, .amd, .mdl])
+    func setNewCurrency(currency: Currency) async throws {
         let preferences = GemPreferencesService(store: GemPreferencesStoreMock())
         let observablePreferences = ObservablePreferences(preferencesService: preferences)
         let service = GemCurrencyServiceMock(preferencesService: preferences)
         let viewModel = CurrencySceneViewModel(preferences: observablePreferences, service: service)
 
-        try await viewModel.setCurrency(Currency.ars.toGem())
+        try await viewModel.setCurrency(currency.toGem())
 
-        #expect(service.setCurrencies == [Currency.ars.toGem()])
-        #expect(observablePreferences.currency == .ars)
+        #expect(service.setCurrencies == [currency.toGem()])
+        #expect(observablePreferences.currency == currency)
     }
 
     @Test

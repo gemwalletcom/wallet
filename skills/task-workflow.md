@@ -10,7 +10,7 @@ Do not hard-wrap prose in docs, skills, commit messages, or PR bodies. Keep one 
 - Confirm repository, checkout, branch, and `git status --short`. Preserve unrelated changes; avoid stashing the user's tree. If unavoidable, label the stash and verify it before restoring.
 - Fetch remote state only when needed. Record the exact base/head for a review; compare PRs against their own bases, using `git range-diff` when they differ. Inventory review threads separately.
 - Load applicable platform guides and the relevant topic sections once. Use the [architecture index](../docs/ARCHITECTURE.md#find-the-relevant-contract-and-example) instead of reading every design document. State assumptions affecting scope, security, or compatibility.
-- Before changing behavior, read the area's [Product](../docs/PRODUCT.md) page. Raise any necessary change to a stated rule with the user as a product decision before editing. Record settled important user-facing rules in that page in the same change, not every case.
+- Before changing behavior, read the area's [Product](../docs/PRODUCT.md) page. Raise any necessary change to a stated rule with the user as a product decision before editing. Record durable user-facing rules there in the same change, not release-specific additions, minimum app versions or implementation details.
 
 ## 2. Ground the Change Before Editing
 

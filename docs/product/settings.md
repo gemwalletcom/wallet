@@ -74,4 +74,5 @@ flowchart LR
 
 ## Rules
 
+- Adding a display currency must not break older app versions.
 - Nothing is pushed without the user's permission.

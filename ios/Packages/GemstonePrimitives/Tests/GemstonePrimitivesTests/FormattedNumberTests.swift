@@ -5,9 +5,20 @@ import Foundation
 import func Gemstone.formattedCurrency
 import struct Gemstone.GemFormattedNumber
 @testable import GemstonePrimitives
+import Primitives
 import Testing
 
 struct FormattedNumberTests {
+    @Test(arguments: [Currency.ron, .gel, .amd, .mdl])
+    func newCurrenciesKeepTheirCodeAndAmount(currency: Currency) throws {
+        let text = formattedCurrency(value: 1234.56, code: currency.rawValue, style: .fiat).text(locale: .US)
+        let name = try #require(Locale.US.localizedString(forCurrencyCode: currency.rawValue))
+
+        #expect(text.contains(currency.rawValue))
+        #expect(text.contains("1,234.56"))
+        #expect(name != currency.rawValue)
+    }
+
     @Test
     func anAbbreviatedValueRoundsTheWayTheRecordAsks() {
         let toNearest = GemFormattedNumber(

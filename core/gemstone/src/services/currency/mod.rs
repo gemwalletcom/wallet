@@ -98,4 +98,39 @@ mod tests {
         assert_eq!(preferences.get_currency(), Currency::EUR);
         assert_eq!(*prices.converted.lock().unwrap(), vec![(Currency::EUR, 0.9)]);
     }
+
+    #[test]
+    fn test_new_currencies_can_be_searched_selected_and_converted() {
+        for (currency, rate, name, flag) in [
+            (Currency::RON, 5.0, "Romanian Leu", "🇷🇴"),
+            (Currency::GEL, 2.5, "Georgian Lari", "🇬🇪"),
+            (Currency::AMD, 400.0, "Armenian Dram", "🇦🇲"),
+            (Currency::MDL, 20.0, "Moldovan Leu", "🇲🇩"),
+        ] {
+            let (service, prices, preferences) = service(MemoryPriceStore::with_rate(currency.clone(), rate));
+            let names = HashMap::from([(currency.to_string(), name.to_string())]);
+
+            for query in [name, currency.as_ref()] {
+                let list = block_on(service.list(Currency::USD, Some(currency.clone()), query.to_string(), names.clone())).unwrap();
+                assert_eq!(list.phase, GemListPhase::Rows);
+                assert_eq!(list.sections.len(), 1);
+                assert_eq!(list.sections[0].kind, GemCurrencySectionKind::Recommended);
+                assert_eq!(
+                    list.sections[0].rows,
+                    vec![GemCurrencyRow {
+                        currency: currency.clone(),
+                        title: format!("{flag} {currency} - {name}"),
+                        is_selected: false,
+                    }]
+                );
+            }
+
+            block_on(service.set_currency(currency.clone())).unwrap();
+
+            assert_eq!(preferences.get_currency(), currency);
+            assert_eq!(*prices.converted.lock().unwrap(), vec![(currency.clone(), rate)]);
+            let list = block_on(service.list(preferences.get_currency(), None, name.to_string(), names)).unwrap();
+            assert!(list.sections[0].rows[0].is_selected);
+        }
+    }
 }

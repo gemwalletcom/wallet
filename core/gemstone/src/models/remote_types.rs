@@ -214,6 +214,10 @@ pub enum Currency {
     MAD,
     GHS,
     PEN,
+    RON,
+    GEL,
+    AMD,
+    MDL,
 }
 
 #[uniffi::remote(Enum)]
