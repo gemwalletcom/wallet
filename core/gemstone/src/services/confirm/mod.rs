@@ -116,8 +116,8 @@ impl GemConfirmService {
             scan_future,
             self.simulate(chain, input),
         );
-        let metadata = metadata.map_err(error::load_error)?;
-        let fee_rates = fee_rates.map_err(error::load_error)?;
+        let metadata = metadata.map_err(|error| error::load_error(chain, error))?;
+        let fee_rates = fee_rates.map_err(|error| error::load_error(chain, error))?;
         let fee_rates = rules::confirmation_fee_rates(&asset.id, transfer.use_max_amount, fee_rates);
         let simulation = simulation?;
 
@@ -145,7 +145,7 @@ impl GemConfirmService {
                     },
                 )
                 .await
-                .map_err(error::load_error)?
+                .map_err(|error| error::load_error(chain, error))?
         };
 
         let mut fee = load.fee;

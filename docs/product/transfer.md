@@ -29,6 +29,7 @@ flowchart LR
 | A refresh or a fee change finds the same problem | the explanation stays as the user left it | it opens once per problem |
 | Retry, or a different problem | the explanation opens again | |
 | Any other load error | it stays in the error row | |
+| Bitcoin-family or Cardano coins cannot cover the amount and the fee, or the amount is dust | Insufficient Balance, or the dust explanation | not a network error |
 | The simulation cannot answer | sending is not blocked | |
 | The simulation finds a risk | the risk shows before the user confirms | |
 | The simulation predicts balance changes | every digit of each amount, never rounded | what the user approves is exactly what moves |

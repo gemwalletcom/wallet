@@ -94,7 +94,7 @@ impl GatewayError {
     pub fn text(&self) -> GemErrorText {
         match self {
             Self::Offline => GemErrorText::NetworkOffline,
-            Self::NetworkError { msg } | Self::PlatformError { msg } => GemErrorText::message(msg.clone()),
+            Self::NetworkError { msg } | Self::PlatformError { msg } | Self::SignerError { msg, .. } => GemErrorText::message(msg.clone()),
             Self::NetworkIdMismatch { .. } => GemErrorText::InvalidNetworkId,
         }
     }
