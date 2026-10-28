@@ -65,7 +65,8 @@ class CreateWalletViewModel @Inject constructor(
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val isCreated = MutableStateFlow(false)
+    private val _isCreated = MutableStateFlow(false)
+    val isCreated: StateFlow<Boolean> = _isCreated.asStateFlow()
 
     fun phraseCopy(): GemCopy = secretPhraseCopy(state.value.data)
 
@@ -108,7 +109,7 @@ class CreateWalletViewModel @Inject constructor(
             try {
                 service.importWallet(GemWalletImportKind.PHRASE, null, state.value.data.joinToString(" "), null, WalletSource.Create, context)
                 enablePushForNewWallet.enablePushForNewWallet()
-                isCreated.value = true
+                _isCreated.value = true
             } catch (err: CancellationException) {
                 throw err
             } catch (err: Throwable) {
@@ -116,6 +117,10 @@ class CreateWalletViewModel @Inject constructor(
                 state.update { it.copy(dataError = err.errorText()) }
             }
         }
+    }
+
+    fun onCreatedHandled() {
+        _isCreated.value = false
     }
 }
 

@@ -74,7 +74,7 @@ fun CreateWalletScreen(onCancel: () -> Unit, onCreated: () -> Unit) {
 
     LaunchedEffect(isCreated) {
         if (isCreated) {
-            viewModel.isCreated.value = false
+            viewModel.onCreatedHandled()
             onCreated()
         }
     }

@@ -9,7 +9,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
@@ -42,14 +41,14 @@ fun WalletsScreen(onCreateWallet: () -> Unit, onImportWallet: () -> Unit, onEdit
 
     LaunchedEffect(isSelected) {
         if (isSelected) {
-            viewModel.isSelected.value = false
+            viewModel.onSelectedHandled()
             onSelectWallet()
         }
     }
 
     LaunchedEffect(deletion) {
         val result = deletion ?: return@LaunchedEffect
-        viewModel.deletion.value = null
+        viewModel.onDeletionHandled()
         if (result == GemWalletDeletion.LAST_WALLET_DELETED) {
             onBoard()
         }

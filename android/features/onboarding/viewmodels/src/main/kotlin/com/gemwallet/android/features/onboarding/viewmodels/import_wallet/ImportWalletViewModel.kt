@@ -30,6 +30,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -57,7 +58,8 @@ class ImportWalletViewModel @AssistedInject constructor(
     private val state = MutableStateFlow(ImportWalletUIState())
     private val input = snapshotFlow { inputState.text.toString() to inputState.selection.end }
     private val isImporting = MutableStateFlow(false)
-    val isImported = MutableStateFlow(false)
+    private val _isImported = MutableStateFlow(false)
+    val isImported: StateFlow<Boolean> = _isImported.asStateFlow()
     val uiState = combine(state, isImporting) { state, importing -> state.copy(loading = importing) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, ImportWalletUIState())
     val suggestions: StateFlow<List<String>> = combine(input, state) { (value, cursor), state ->
@@ -106,10 +108,6 @@ class ImportWalletViewModel @AssistedInject constructor(
         }
     }
 
-    fun onHandleScan(result: String) {
-        inputState.setTextAndPlaceCursorAtEnd(result)
-    }
-
     fun selectSuggestion(word: String) {
         val value = inputState.text.toString()
         inputState.setTextAndPlaceCursorAtEnd(value.dropLast(value.lastWord().length) + word + " ")
@@ -132,10 +130,11 @@ class ImportWalletViewModel @AssistedInject constructor(
         if (isImporting.value) {
             return
         }
-        val nameRecord = nameRecordController.state.value.record()
-        clearError()
-        isImporting.value = true
         val data = inputState.text.toString()
+        // The text observer may not have seen the last edit yet, so the record could still be for the previous input.
+        onInput(data)
+        val nameRecord = nameRecordController.state.value.record()
+        isImporting.value = true
 
         viewModelScope.launch(ioDispatcher) {
             try {
@@ -145,7 +144,7 @@ class ImportWalletViewModel @AssistedInject constructor(
                 when (imported) {
                     is GemWalletImportResult.New -> {
                         enablePushForNewWallet.enablePushForNewWallet()
-                        isImported.value = true
+                        _isImported.value = true
                     }
 
                     is GemWalletImportResult.Existing -> state.update { it.copy(existingWalletName = imported.wallet.name) }
@@ -157,6 +156,10 @@ class ImportWalletViewModel @AssistedInject constructor(
                 isImporting.value = false
             }
         }
+    }
+
+    fun onImportedHandled() {
+        _isImported.value = false
     }
 
     fun dismissExistingWallet() {

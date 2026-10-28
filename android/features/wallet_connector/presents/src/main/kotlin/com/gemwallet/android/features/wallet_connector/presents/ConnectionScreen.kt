@@ -34,7 +34,7 @@ fun ConnectionScreen(onCancel: () -> Unit, viewModel: ConnectionViewModel = hilt
 
     LaunchedEffect(isDisconnected) {
         if (isDisconnected) {
-            viewModel.isDisconnected.value = false
+            viewModel.onDisconnectedHandled()
             onCancel()
         }
     }

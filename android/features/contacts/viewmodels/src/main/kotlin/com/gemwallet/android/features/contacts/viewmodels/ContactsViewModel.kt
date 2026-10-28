@@ -71,7 +71,8 @@ class ContactsViewModel @Inject constructor(
 
     private val errorState = MutableStateFlow<String?>(null)
     val errorText: StateFlow<String?> = errorState.asStateFlow()
-    val isAddressAdded = MutableStateFlow(false)
+    private val _isAddressAdded = MutableStateFlow(false)
+    val isAddressAdded: StateFlow<Boolean> = _isAddressAdded.asStateFlow()
 
     val draft: ContactAddressDraft? = savedStateHandle.optionalContactAddressDraft()
 
@@ -80,9 +81,13 @@ class ContactsViewModel @Inject constructor(
         viewModelScope.launch(ioDispatcher) {
             val input = GemContactAddressInput(contactId = contact.contact.id, chain = draft.chain.string, address = draft.address, memo = draft.memo, replacingId = null)
             runCatchingCancellable { service.updateContact(contact.contact.toGem(), input.addAddress(contact.addresses.map { it.toGem() })) }
-                .onSuccess { isAddressAdded.value = true }
+                .onSuccess { _isAddressAdded.value = true }
                 .onFailure { errorState.value = it.errorText().text(context) }
         }
+    }
+
+    fun onAddressAddedHandled() {
+        _isAddressAdded.value = false
     }
 
     fun deleteContact(contact: Contact) {

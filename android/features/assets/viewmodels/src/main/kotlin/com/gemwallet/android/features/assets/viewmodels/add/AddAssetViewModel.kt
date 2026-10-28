@@ -28,6 +28,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
@@ -56,7 +57,8 @@ class AddAssetViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val state = MutableStateFlow(State())
-    val isAdded = MutableStateFlow(false)
+    private val _isAdded = MutableStateFlow(false)
+    val isAdded: StateFlow<Boolean> = _isAdded.asStateFlow()
     val uiState = state.map { it.toUIState() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, AddAssetUIState())
 
@@ -164,7 +166,11 @@ class AddAssetViewModel @Inject constructor(
             }
         }
         state.update { it.copy(isImporting = false, error = added.exceptionOrNull()?.errorText()?.text(context)) }
-        isAdded.value = added.isSuccess
+        _isAdded.value = added.isSuccess
+    }
+
+    fun onAddedHandled() {
+        _isAdded.value = false
     }
 
     fun clearError() = state.update { it.copy(error = null) }

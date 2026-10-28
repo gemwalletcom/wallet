@@ -118,7 +118,26 @@ class AddNodeViewModelTest {
         advanceUntilIdle()
 
         coVerify(exactly = 1) { service.addNode(any(), any()) }
-        assertEquals(true, viewModel.isAdded.value)
+        assertEquals(false, viewModel.isAdded.value)
         assertEquals("https://other", viewModel.url.value)
+    }
+
+    @Test
+    fun `an import that finishes after the panel closed does not close the next one`() = runTest(dispatcher) {
+        val added = CompletableDeferred<Unit>()
+        val service = service { check }
+        coEvery { service.addNode(any(), any()) } coAnswers { added.await() }
+        val viewModel = AddNodeViewModel(Chain.Ethereum, service, dispatcher)
+        viewModel.url.value = "https://node"
+        viewModel.onUrlChange()
+        advanceUntilIdle()
+        viewModel.addUrl()
+        runCurrent()
+
+        viewModel.reset()
+        added.complete(Unit)
+        advanceUntilIdle()
+
+        assertEquals(false, viewModel.isAdded.value)
     }
 }

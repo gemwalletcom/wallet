@@ -17,6 +17,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -34,13 +35,15 @@ class AddNodeViewModel @AssistedInject constructor(@Assisted private val chain: 
     val viewState: StateFlow<GemAddNodeViewState> = session.map { it.viewState() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, session.value.viewState())
     val url = mutableStateOf("")
-    val isAdded = MutableStateFlow(false)
+    private val _isAdded = MutableStateFlow(false)
+    val isAdded: StateFlow<Boolean> = _isAdded.asStateFlow()
     private var checkUrlJob: Job? = null
     private var addUrlJob: Job? = null
 
     fun reset() {
         checkUrlJob?.cancel()
         url.value = ""
+        _isAdded.value = false
         session.value = service.newAddNodeSession(chain.string)
     }
 
@@ -74,12 +77,13 @@ class AddNodeViewModel @AssistedInject constructor(@Assisted private val chain: 
                 return@launch
             }
             if (session.value == current) {
-                url.value = ""
-                checkUrlJob?.cancel()
-                session.value = current.onImported()
+                _isAdded.value = true
             }
-            isAdded.value = true
         }
+    }
+
+    fun onAddedHandled() {
+        _isAdded.value = false
     }
 
     private suspend fun checkUrl(current: GemAddNodeSession) {

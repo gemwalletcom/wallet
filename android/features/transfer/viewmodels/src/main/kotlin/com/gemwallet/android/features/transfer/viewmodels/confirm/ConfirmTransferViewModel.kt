@@ -106,7 +106,8 @@ class ConfirmTransferViewModel @Inject constructor(
     val screen = MutableStateFlow(GemConfirmScreen(phase = GemConfirmPhase.LOADING, hasCriticalWarning = false, failure = null))
 
     val isErrorSheetVisible = MutableStateFlow(false)
-    val sentTransactionHash = MutableStateFlow<String?>(null)
+    private val _sentTransactionHash = MutableStateFlow<String?>(null)
+    val sentTransactionHash: StateFlow<String?> = _sentTransactionHash.asStateFlow()
     val isVerificationVisible = MutableStateFlow(false)
     val isVerificationFailed = MutableStateFlow(false)
     val verificationBridge = PaymentVerificationBridge(::onPaymentVerified, ::onPaymentVerificationFailed)
@@ -331,7 +332,7 @@ class ConfirmTransferViewModel @Inject constructor(
                 is GemSubmitResult.Sent -> result.hashes.last() to result.message
             }
             message?.let { toastPresenter.emitToast(ToastMessage(it.text(context), it.iconRes())) }
-            sentTransactionHash.value = transactionHash
+            _sentTransactionHash.value = transactionHash
         } catch (error: CancellationException) {
             throw error
         } catch (_: GemConfirmException.Cancelled) {
@@ -341,6 +342,10 @@ class ConfirmTransferViewModel @Inject constructor(
             screen.update { it.onExecuteFailed(confirmError) }
             executeError.value = confirmError.broadcastLabel(context)
         }
+    }
+
+    fun onSentHandled() {
+        _sentTransactionHash.value = null
     }
 }
 

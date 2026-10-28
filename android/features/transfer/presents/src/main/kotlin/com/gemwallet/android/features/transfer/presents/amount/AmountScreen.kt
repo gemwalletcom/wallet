@@ -26,7 +26,7 @@ fun AmountScreen(onCancel: () -> Unit, onConfirm: (ConfirmTransferInput) -> Unit
 
     LaunchedEffect(confirmInput) {
         confirmInput?.let {
-            viewModel.confirmInput.value = null
+            viewModel.onConfirmOpened()
             onConfirm(it)
         }
     }
@@ -94,7 +94,10 @@ fun AmountScreen(onCancel: () -> Unit, onConfirm: (ConfirmTransferInput) -> Unit
                         onPickValidator = { isSelectValidator = true },
                         onSelectResource = viewModel::selectResource,
                         onSelectLeverage = viewModel::selectLeverage,
-                        onOpenAutoclose = { showsAutoclose = true },
+                        onOpenAutoclose = {
+                            viewModel.perpetualProvider?.onAutocloseOpened(viewModel.amount)
+                            showsAutoclose = true
+                        },
                     )
                 },
             )

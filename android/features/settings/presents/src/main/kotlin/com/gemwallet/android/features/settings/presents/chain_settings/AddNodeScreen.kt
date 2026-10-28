@@ -20,7 +20,7 @@ fun AddNodeScreen(chain: Chain, onCancel: () -> Unit) {
 
     LaunchedEffect(isAdded) {
         if (isAdded) {
-            viewModel.isAdded.value = false
+            viewModel.onAddedHandled()
             close()
         }
     }

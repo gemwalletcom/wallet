@@ -136,7 +136,7 @@ fun ConfirmTransferScreen(
 
     LaunchedEffect(sentTransactionHash) {
         sentTransactionHash?.let {
-            viewModel.sentTransactionHash.value = null
+            viewModel.onSentHandled()
             finishAction(it)
         }
     }

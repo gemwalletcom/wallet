@@ -60,6 +60,17 @@ internal class SystemAuthenticator(private val activity: FragmentActivity, priva
                 }
             },
         )
+        resumeAuthRequests()
+    }
+
+    // The queue outlives a recreated activity, but the timeout and the restart after it ran in the old one's scope.
+    private fun resumeAuthRequests() {
+        val active = authRequests.active()
+        if (active != null) {
+            scheduleTimeout(active)
+        } else {
+            authRequests.startNext()?.let(::startAuthRequest)
+        }
     }
 
     fun authenticate() {
@@ -138,9 +149,13 @@ internal class SystemAuthenticator(private val activity: FragmentActivity, priva
 
     private fun startAuthRequest(request: PendingAuthRequest) {
         lockViewModel.requestAuth(requestId = request.id)
+        scheduleTimeout(request)
+    }
+
+    private fun scheduleTimeout(request: PendingAuthRequest) {
         activeAuthTimeout?.cancel()
         activeAuthTimeout = activity.lifecycleScope.launch {
-            delay(SystemAuthPolicy.authRequestTimeout)
+            delay(authRequests.activeTimeLeft() ?: return@launch)
             val timedOut = authRequests.completeActive(request.id) ?: return@launch
             lockViewModel.completeAuthRequest(timedOut.id)
             timedOut.onCancel()

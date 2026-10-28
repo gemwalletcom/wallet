@@ -20,6 +20,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -61,7 +62,7 @@ fun SupportChatScreen(message: RouteMessage?, onMessageShown: () -> Unit, onCanc
             onMessageShown()
         }
     }
-    var previewUrl by remember { mutableStateOf<String?>(null) }
+    var previewUrl by rememberSaveable { mutableStateOf<String?>(null) }
 
     val imagePicker = rememberLauncherForActivityResult(PickMultipleVisualMedia()) { uris ->
         viewModel.sendImages(uris)

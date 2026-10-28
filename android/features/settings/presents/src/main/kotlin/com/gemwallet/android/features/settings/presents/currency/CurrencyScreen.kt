@@ -18,7 +18,7 @@ fun CurrencyScreen(onCancel: () -> Unit, viewModel: CurrencyViewModel = hiltView
 
     LaunchedEffect(isSelected) {
         if (isSelected) {
-            viewModel.isSelected.value = false
+            viewModel.onSelectedHandled()
             onCancel()
         }
     }

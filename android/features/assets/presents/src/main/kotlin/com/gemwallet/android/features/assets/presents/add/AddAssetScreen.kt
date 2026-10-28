@@ -32,7 +32,7 @@ fun AddAssetScreen(onFinish: () -> Unit, onCancel: () -> Unit, viewModel: AddAss
 
     LaunchedEffect(isAdded) {
         if (isAdded) {
-            viewModel.isAdded.value = false
+            viewModel.onAddedHandled()
             onFinish()
         }
     }

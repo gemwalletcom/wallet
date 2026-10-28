@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -93,7 +94,7 @@ fun ImportWalletScreen(importType: ImportType, onImported: () -> Unit, onCancel:
 
     LaunchedEffect(isImported) {
         if (isImported) {
-            viewModel.isImported.value = false
+            viewModel.onImportedHandled()
             onImported()
         }
     }
@@ -148,7 +149,7 @@ fun ImportWalletScreen(importType: ImportType, onImported: () -> Unit, onCancel:
         onDismissRequest = { isScanning = false },
         onResult = { code ->
             isScanning = false
-            viewModel.onHandleScan(code)
+            viewModel.inputState.setTextAndPlaceCursorAtEnd(code)
         },
     )
     uiState.existingWalletName?.let { walletName ->

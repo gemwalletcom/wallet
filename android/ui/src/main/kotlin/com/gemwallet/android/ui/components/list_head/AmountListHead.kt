@@ -301,7 +301,7 @@ private fun AssetWatchOnly() {
             }
         }
     }
-    InfoBottomSheet(item = GemInfoTopic.WatchWallet.infoSheet().takeIf { showInfoSheet }, onClose = { showInfoSheet = false })
+    InfoBottomSheet(item = if (showInfoSheet) GemInfoTopic.WatchWallet.infoSheet() else null, onClose = { showInfoSheet = false })
 }
 
 @Composable

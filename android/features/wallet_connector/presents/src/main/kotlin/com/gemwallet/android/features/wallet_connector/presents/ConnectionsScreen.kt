@@ -123,9 +123,9 @@ fun ConnectionsScreen(onConnection: (String) -> Unit, onCancel: () -> Unit, view
 
     pairError?.let { error ->
         AlertDialog(
-            onDismissRequest = { viewModel.pairError.value = null },
+            onDismissRequest = viewModel::dismissPairError,
             confirmButton = {
-                Button(onClick = { viewModel.pairError.value = null }) { Text(text = stringResource(id = R.string.common_done)) }
+                Button(onClick = viewModel::dismissPairError) { Text(text = stringResource(id = R.string.common_done)) }
             },
             text = { Text(text = error) },
         )

@@ -67,6 +67,7 @@ import uniffi.gemstone.GemSwapPairSelection
 import uniffi.gemstone.GemSwapQuoteInput
 import uniffi.gemstone.GemSwapQuoteServiceInterface
 import uniffi.gemstone.GemSwapRequest
+import uniffi.gemstone.GemSwapTransferPhase
 import uniffi.gemstone.GemSwapViewState
 import uniffi.gemstone.SwapProvider
 import uniffi.gemstone.SwapperException
@@ -89,9 +90,13 @@ class SwapViewModel @Inject constructor(
 ) : ViewModel() {
 
     val infoSheet = MutableStateFlow<GemInfoTopic?>(null)
-    val quoteDataError = MutableStateFlow<GemSwapErrorDisplay?>(null)
-    val priceImpactConfirmation = MutableStateFlow<SwapPriceImpactConfirmation?>(null)
-    val confirmInput = MutableStateFlow<ConfirmTransferInput?>(null)
+    private val _quoteDataError = MutableStateFlow<GemSwapErrorDisplay?>(null)
+    val quoteDataError: StateFlow<GemSwapErrorDisplay?> = _quoteDataError.asStateFlow()
+    private val _priceImpactConfirmation = MutableStateFlow<SwapPriceImpactConfirmation?>(null)
+    val priceImpactConfirmation: StateFlow<SwapPriceImpactConfirmation?> = _priceImpactConfirmation.asStateFlow()
+    private val _confirmInput = MutableStateFlow<ConfirmTransferInput?>(null)
+    val confirmInput: StateFlow<ConfirmTransferInput?> = _confirmInput.asStateFlow()
+    private var confirmTransfer: GemSwapTransferPhase? = null
 
     private val session = MutableStateFlow(service.newSession())
 
@@ -198,6 +203,11 @@ class SwapViewModel @Inject constructor(
             .distinctUntilChanged()
             .onEach(::refreshPair)
             .launchIn(viewModelScope)
+        // A refreshed quote retires the warning for the old one; Continue on it would start nothing.
+        viewState.map { it.quote }
+            .distinctUntilChanged()
+            .onEach { quote -> _priceImpactConfirmation.update { it?.takeIf { pending -> pending.quote == quote } } }
+            .launchIn(viewModelScope)
         viewModelScope.launch { suggestPair() }
     }
 
@@ -300,7 +310,7 @@ class SwapViewModel @Inject constructor(
                         infoSheet.value = GemInfoTopic.RegionUnavailable
                         return
                     }
-                    priceImpactConfirmation.value = SwapPriceImpactConfirmation(quote, priceImpact)
+                    _priceImpactConfirmation.value = SwapPriceImpactConfirmation(quote, priceImpact)
                 } else {
                     swap(quote)
                 }
@@ -312,6 +322,10 @@ class SwapViewModel @Inject constructor(
 
             GemSwapButtonAction.InsufficientBalance -> Unit
         }
+    }
+
+    fun dismissPriceImpactConfirmation() {
+        _priceImpactConfirmation.value = null
     }
 
     fun setRefreshEnabled(isEnabled: Boolean) {
@@ -339,18 +353,25 @@ class SwapViewModel @Inject constructor(
             }
             val swapError = error as? SwapperException ?: SwapperException.TransactionException(error.message ?: error.toString())
             session.update { it.onTransferFailed(transfer, swapError) }
-            quoteDataError.value = swapErrorDisplay(swapError, payAsset.value?.asset?.toGem())
+            _quoteDataError.value = swapErrorDisplay(swapError, payAsset.value?.asset?.toGem())
             return@launch
         }
         if (session.value.transferPhase != transfer) {
             return@launch
         }
-        confirmInput.value = ConfirmTransferInput(params)
+        confirmTransfer = transfer
+        _confirmInput.value = ConfirmTransferInput(params)
+    }
+
+    fun dismissQuoteError() {
+        _quoteDataError.value = null
     }
 
     fun onConfirmOpened() {
-        confirmInput.value = null
-        session.update { it.onTransferHandedOff(it.transferPhase) }
+        _confirmInput.value = null
+        val transfer = confirmTransfer ?: return
+        confirmTransfer = null
+        session.update { it.onTransferHandedOff(transfer) }
     }
 
     private suspend fun refreshPair(assetIds: List<String>) = withContext(ioDispatcher) {

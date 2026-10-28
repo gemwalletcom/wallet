@@ -116,7 +116,8 @@ class SetPriceAlertViewModel @Inject constructor(
 
     private val errorState = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = errorState.asStateFlow()
-    val savedMessage = MutableStateFlow<String?>(null)
+    private val _savedMessage = MutableStateFlow<String?>(null)
+    val savedMessage: StateFlow<String?> = _savedMessage.asStateFlow()
 
     fun onDirection(direction: PriceAlertDirection) {
         session.update { it.onDirection(direction.toGem()) }
@@ -131,10 +132,14 @@ class SetPriceAlertViewModel @Inject constructor(
         session.update { it.onSaving(true) }
         viewModelScope.launch {
             runCatchingCancellable { withContext(ioDispatcher) { service.enablePriceAlert(priceAlert) } }
-                .onSuccess { if (it) savedMessage.value = viewState.value.savedMessage?.string(context).orEmpty() }
+                .onSuccess { if (it) _savedMessage.value = viewState.value.savedMessage?.string(context).orEmpty() }
                 .onFailure { errorState.value = it.errorText().text(context) }
             session.update { it.onSaving(false) }
         }
+    }
+
+    fun onSavedHandled() {
+        _savedMessage.value = null
     }
 
     fun clearError() = errorState.update { null }

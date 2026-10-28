@@ -54,18 +54,23 @@ class ConnectionViewModel @Inject constructor(
 
     private val errorState = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = errorState.asStateFlow()
-    val isDisconnected = MutableStateFlow(false)
+    private val _isDisconnected = MutableStateFlow(false)
+    val isDisconnected: StateFlow<Boolean> = _isDisconnected.asStateFlow()
 
     fun disconnect() {
         details.value?.connection?.connection?.session?.id?.let {
             viewModelScope.launch(ioDispatcher) {
                 disconnectWalletConnection.disconnect(
                     connectionId = it,
-                    onSuccess = { isDisconnected.value = true },
+                    onSuccess = { _isDisconnected.value = true },
                     onError = { error -> errorState.value = error.text(context) },
                 )
             }
-        } ?: run { isDisconnected.value = true }
+        } ?: run { _isDisconnected.value = true }
+    }
+
+    fun onDisconnectedHandled() {
+        _isDisconnected.value = false
     }
 
     fun clearError() = errorState.update { null }

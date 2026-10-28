@@ -136,7 +136,7 @@ private fun <T> SubFilterDialog(
     onDismiss: () -> Unit,
     content: @Composable ColumnScope.(selectedItems: List<T>, onToggle: (T) -> Unit) -> Unit,
 ) {
-    var selectedItems by remember { mutableStateOf(initialSelection) }
+    var selectedItems by rememberSaveable { mutableStateOf(initialSelection) }
     FormDialog(
         isVisible = isVisible,
         title = stringResource(R.string.filter_title),

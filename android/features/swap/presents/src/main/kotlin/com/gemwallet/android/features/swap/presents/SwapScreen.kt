@@ -89,13 +89,13 @@ fun SwapScreen(
         isVisible = priceImpactConfirmation != null,
         priceImpact = priceImpactConfirmation?.priceImpact,
         asset = pay?.asset,
-        onDismiss = { viewModel.priceImpactConfirmation.value = null },
+        onDismiss = viewModel::dismissPriceImpactConfirmation,
         onContinue = { priceImpactConfirmation?.let { confirmation -> viewModel.swap(confirmation.quote) } },
     )
 
     SwapQuoteDataErrorDialog(
         error = quoteDataError,
-        onDismiss = { viewModel.quoteDataError.value = null },
+        onDismiss = viewModel::dismissQuoteError,
     )
 
     SwapDetailsBottomSheet(

@@ -593,7 +593,7 @@ class SwapViewModelTest {
         assertEquals(2.5, viewModel.viewState.value.details?.provider?.amount?.value)
         assertEquals(GemSwapButtonAction.Swap, viewModel.viewState.value.buttonAction)
 
-        viewModel.quoteDataError.value = null
+        viewModel.dismissQuoteError()
         viewModel.onPrimaryAction()
         advanceUntilIdle()
 
@@ -726,7 +726,7 @@ class SwapViewModelTest {
     }
 
     @Test
-    fun `confirm callback runs before transfer loading clears`() = runTest(testDispatcher) {
+    fun `confirm input is published while the transfer is still loading`() = runTest(testDispatcher) {
         val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
         every { getSession() } returns MutableStateFlow(
             mockSession(wallet = wallet),
@@ -809,6 +809,25 @@ class SwapViewModelTest {
         assertNull(viewModel.confirmInput.value)
         assertEquals(ButtonState.Enabled, viewModel.viewState.value.buttonState.buttonState())
         assertFalse(viewModel.viewState.value.quotesState is GemSwapQuotesState.Failed)
+    }
+
+    @Test
+    fun `a refreshed quote retires the price impact warning for the old one`() = runTest(testDispatcher) {
+        every { assetQuery(walletId.id, solAsset.id) } returns flowOf(solInfo.copy(price = mockPrice(price = 100.0)))
+        every { assetQuery(walletId.id, usdcAsset.id) } returns flowOf(usdcInfo.copy(price = mockPrice(price = 1.0)))
+        every { getSession() } returns MutableStateFlow(mockSession(wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))))
+        val viewModel = createViewModel(swapSavedState())
+        advanceUntilIdle()
+        seedReadyQuote(viewModel)
+        viewModel.onPrimaryAction()
+        advanceUntilIdle()
+        assertNotNull(viewModel.priceImpactConfirmation.value)
+
+        viewModel.setRefreshEnabled(true)
+        quoteAnswers.trySend(Result.success(listOf(swapperQuote(toValue = BigInteger("2400000")))))
+        awaitCondition { viewModel.viewState.value.quote?.toValue == BigInteger("2400000") }
+
+        assertNull(viewModel.priceImpactConfirmation.value)
     }
 
     @Test

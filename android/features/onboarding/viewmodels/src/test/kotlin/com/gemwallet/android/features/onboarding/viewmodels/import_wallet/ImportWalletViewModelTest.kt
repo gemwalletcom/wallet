@@ -118,6 +118,23 @@ class ImportWalletViewModelTest {
     }
 
     @Test
+    fun anAddressTypedOverAResolvedNameImportsTheAddress() = runTest(dispatcher) {
+        val service = service()
+        val viewModel = viewModel(ImportType(GemWalletImportKind.ADDRESS, chain), NameServiceMock(), dispatcher, service)
+        val request = slot<GemWalletImportRequest>()
+
+        viewModel.type("vitalik.eth")
+        advanceUntilIdle()
+        viewModel.type("0x123")
+        viewModel.import()
+        advanceUntilIdle()
+
+        coVerify { service.importWallet(capture(request)) }
+        assertEquals("0x123", request.captured.input)
+        assertNull(request.captured.nameRecord)
+    }
+
+    @Test
     fun anImportTappedAsTheScreenOpensIsStillNamed() = runTest(dispatcher) {
         val service = service()
         val viewModel = viewModel(ImportType(GemWalletImportKind.PHRASE, chain), NameServiceMock(), dispatcher, service)

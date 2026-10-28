@@ -21,7 +21,7 @@ fun WalletDetailScreen(onPhraseShow: (WalletSecretInput) -> Unit, onSelectImage:
 
     LaunchedEffect(deletion) {
         val result = deletion ?: return@LaunchedEffect
-        viewModel.deletion.value = null
+        viewModel.onDeletionHandled()
         when (result) {
             GemWalletDeletion.WALLETS_REMAINING -> onCancel()
             GemWalletDeletion.LAST_WALLET_DELETED -> onBoard()

@@ -16,6 +16,7 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -69,6 +70,18 @@ class WalletsViewModelTest {
 
         coVerify(exactly = 1) { service.setCurrentWalletId("second") }
         assertTrue(model.isSelected.value)
+    }
+
+    @Test
+    fun `a wallet that cannot be made current keeps the list open`() = runTest(dispatcher) {
+        val service: GemWalletServiceInterface = mockk(relaxed = true) {
+            coEvery { setCurrentWalletId("second") } throws IllegalStateException("locked")
+        }
+        val model = viewModel(service)
+
+        model.selectWallet(mockGemWalletRow(id = "second")).join()
+
+        assertFalse(model.isSelected.value)
     }
 
     @Test

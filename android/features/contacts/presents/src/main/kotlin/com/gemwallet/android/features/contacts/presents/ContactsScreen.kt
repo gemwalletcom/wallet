@@ -42,7 +42,7 @@ fun ContactsScreen(onAction: (ContactsAction) -> Unit, viewModel: ContactsViewMo
 
     LaunchedEffect(isAddressAdded) {
         if (isAddressAdded) {
-            viewModel.isAddressAdded.value = false
+            viewModel.onAddressAddedHandled()
             onAction(ContactsAction.Cancel)
         }
     }

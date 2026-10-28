@@ -42,6 +42,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -137,7 +138,8 @@ class AmountViewModel @Inject constructor(
     val amountInputType: StateFlow<GemAmountInputType> = session.map { it.inputType }
         .stateIn(viewModelScope, SharingStarted.Eagerly, GemAmountInputType.ASSET)
     private val amountError = MutableStateFlow<Throwable?>(null)
-    val confirmInput = MutableStateFlow<ConfirmTransferInput?>(null)
+    private val _confirmInput = MutableStateFlow<ConfirmTransferInput?>(null)
+    val confirmInput: StateFlow<ConfirmTransferInput?> = _confirmInput.asStateFlow()
 
     val currency: Currency = service.getCurrency().toPrimitives()
 
@@ -267,12 +269,16 @@ class AmountViewModel @Inject constructor(
                 amountError.value = null
                 val current = assetInfo.filterNotNull().first()
                 val request = request.filterNotNull().first()
-                confirmInput.value = ConfirmTransferInput(service.transferData(current.asset.toGem(), request, value, entry.isMax))
+                _confirmInput.value = ConfirmTransferInput(service.transferData(current.asset.toGem(), request, value, entry.isMax))
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {
                 amountError.value = error
             }
         }
+    }
+
+    fun onConfirmOpened() {
+        _confirmInput.value = null
     }
 }

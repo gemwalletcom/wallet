@@ -25,7 +25,7 @@ fun SetPriceAlertScreen(onCancel: () -> Unit, onComplete: (String) -> Unit = { o
 
     LaunchedEffect(savedMessage) {
         savedMessage?.let {
-            viewModel.savedMessage.value = null
+            viewModel.onSavedHandled()
             onComplete(it)
         }
     }
