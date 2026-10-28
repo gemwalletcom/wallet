@@ -1,8 +1,8 @@
+use primitives::name::NameRecord;
 use primitives::{Asset, Chain, ChainAsset, ContactData, WalletAddressItem, WalletType};
-use primitives::{OptionStringExt, name::NameRecord};
 
 use super::model::{GemRecipientError, GemRecipientErrorDisplay, GemRecipientNext, GemRecipientRow, GemRecipientScan, GemRecipientSection, GemRecipientSectionKind, GemRecipientType, GemRecipientValidation};
-use crate::address::validate_address;
+use crate::address::parse_address;
 use crate::address_formatter::{GemAddressFormatStyle, format_address};
 use crate::models::custom_types::GemBigInt;
 use crate::payment::{GemPaymentRecipient, GemPaymentStep};
@@ -10,15 +10,14 @@ use crate::services::name::GemNameRecordState;
 use crate::services::name::rules::is_name_supported;
 use crate::services::transfer::{GemRecipient, GemTransferData};
 use crate::services::wallet::rules::sorted_by_wallet_order;
-use chain_primitives::checksum_address;
 use primitives::TransactionInputType;
 
 pub fn validation(chain: Chain, input: &str, state: &GemNameRecordState) -> GemRecipientValidation {
-    let name_record = state.record_ref();
-    let is_valid = state.can_validate_recipient() && is_valid(chain, input, name_record);
+    let address = address(chain, input, state);
+    let is_valid = address.is_some();
     GemRecipientValidation {
         is_valid,
-        address: address(chain, input, name_record),
+        address: address.unwrap_or_else(|| input.to_string()),
         error: error_display(chain, input, is_valid),
     }
 }
@@ -28,31 +27,29 @@ pub fn recipient(chain: Chain, input: &str, state: &GemNameRecordState, memo: Op
     if name_record.is_some_and(|record| !matches_input(record, chain, input)) {
         return Err(GemRecipientError::NameRecordMismatch { chain });
     }
-    if !state.can_validate_recipient() || !is_valid(chain, input, name_record) {
-        return Err(GemRecipientError::InvalidAddress { chain });
-    }
+    let address = address(chain, input, state).ok_or(GemRecipientError::InvalidAddress { chain })?;
     Ok(GemRecipient {
-        address: address(chain, input, name_record),
+        address,
         name: name_record.map(|record| record.name.clone()),
         memo: memo.map(|memo| memo.trim().to_string()).filter(|memo| !memo.is_empty()),
         references,
     })
 }
 
-fn is_valid(chain: Chain, input: &str, name_record: Option<&NameRecord>) -> bool {
-    match name_record {
-        Some(record) => matches_input(record, chain, input) && validate_address(&record.address, chain),
-        None => !input.trim().is_empty() && validate_address(&checksum_address(input, chain), chain),
-    }
-}
-
 fn matches_input(record: &NameRecord, chain: Chain, input: &str) -> bool {
     record.name == input && record.chain == chain
 }
 
-fn address(chain: Chain, input: &str, name_record: Option<&NameRecord>) -> String {
-    let address = name_record.map(|record| record.address.as_str()).non_empty().unwrap_or(input);
-    checksum_address(address, chain)
+fn address(chain: Chain, input: &str, state: &GemNameRecordState) -> Option<String> {
+    if !state.can_validate_recipient() {
+        return None;
+    }
+    let address = match state.record_ref() {
+        Some(record) if matches_input(record, chain, input) => &record.address,
+        Some(_) => return None,
+        None => input,
+    };
+    parse_address(address, chain)
 }
 
 fn error_display(chain: Chain, input: &str, is_valid: bool) -> Option<GemRecipientErrorDisplay> {
@@ -263,6 +260,24 @@ mod tests {
             recipient(Chain::Ethereum, &upper_prefix, &GemNameRecordState::None, None, vec![]),
             Err(GemRecipientError::InvalidAddress { chain: Chain::Ethereum })
         );
+    }
+
+    #[test]
+    fn test_invalid_checksum_stays_as_entered() {
+        let input = "0x5615E8AB93b9d695b6d4d6545f7792aA59e1068a";
+        for chain in [Chain::Ethereum, Chain::Arbitrum, Chain::HyperCore] {
+            assert_eq!(
+                validation(chain, input, &GemNameRecordState::None),
+                GemRecipientValidation {
+                    is_valid: false,
+                    address: input.to_string(),
+                    error: Some(GemRecipientErrorDisplay::InvalidAddress {
+                        network: ChainAsset::from_chain(chain).network_name,
+                    }),
+                }
+            );
+            assert_eq!(recipient(chain, input, &GemNameRecordState::None, None, vec![]), Err(GemRecipientError::InvalidAddress { chain }));
+        }
     }
 
     #[test]

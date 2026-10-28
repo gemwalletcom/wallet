@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -12,7 +12,6 @@ import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.features.swap.presents.dialogs.PriceImpactWarningDialog
 import com.gemwallet.android.features.swap.presents.dialogs.SwapQuoteDataErrorDialog
-import com.gemwallet.android.features.swap.viewmodels.SwapPriceImpactConfirmation
 import com.gemwallet.android.features.swap.viewmodels.SwapViewModel
 import com.gemwallet.android.ui.ObserveStartedState
 import com.gemwallet.android.ui.components.InfoBottomSheet
@@ -21,7 +20,6 @@ import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ui.components.swap.SwapDetailsBottomSheet
 import com.gemwallet.android.ui.components.swap.SwapSlippageBottomSheet
 import com.wallet.core.primitives.AssetId
-import uniffi.gemstone.GemSwapErrorDisplay
 
 @Composable
 fun SwapScreen(
@@ -39,12 +37,20 @@ fun SwapScreen(
     val receive by viewModel.receiveAsset.collectAsStateWithLifecycle()
     val viewState by viewModel.viewState.collectAsStateWithLifecycle()
     val selectedSlippage by viewModel.selectedSlippage.collectAsStateWithLifecycle()
+    val priceImpactConfirmation by viewModel.priceImpactConfirmation.collectAsStateWithLifecycle()
+    val quoteDataError by viewModel.quoteDataError.collectAsStateWithLifecycle()
+    val confirmInput by viewModel.confirmInput.collectAsStateWithLifecycle()
 
-    var priceImpactConfirmation by remember { mutableStateOf<SwapPriceImpactConfirmation?>(null) }
-    var isShowDetails by remember { mutableStateOf(false) }
-    var quoteDataError by remember { mutableStateOf<GemSwapErrorDisplay?>(null) }
+    var isShowDetails by rememberSaveable { mutableStateOf(false) }
 
     ObserveStartedState(viewModel::setRefreshEnabled)
+
+    LaunchedEffect(confirmInput) {
+        confirmInput?.let {
+            onConfirm(it)
+            viewModel.onConfirmOpened()
+        }
+    }
 
     LaunchedEffect(select, selectedAssetId) {
         select ?: return@LaunchedEffect
@@ -72,11 +78,7 @@ fun SwapScreen(
                     viewModel.openSlippage()
                 }
 
-                SwapAction.Swap -> viewModel.onPrimaryAction(
-                    onConfirm = onConfirm,
-                    onError = { quoteDataError = it },
-                    onShowPriceImpactWarning = { priceImpactConfirmation = it },
-                )
+                SwapAction.Swap -> viewModel.onPrimaryAction()
 
                 SwapAction.Cancel -> onCancel()
             }
@@ -87,13 +89,13 @@ fun SwapScreen(
         isVisible = priceImpactConfirmation != null,
         priceImpact = priceImpactConfirmation?.priceImpact,
         asset = pay?.asset,
-        onDismiss = { priceImpactConfirmation = null },
-        onContinue = { priceImpactConfirmation?.let { confirmation -> viewModel.swap(confirmation.quote, onConfirm = onConfirm, onError = { quoteDataError = it }) } },
+        onDismiss = viewModel::dismissPriceImpactConfirmation,
+        onContinue = { priceImpactConfirmation?.let { confirmation -> viewModel.swap(confirmation.quote) } },
     )
 
     SwapQuoteDataErrorDialog(
         error = quoteDataError,
-        onDismiss = { quoteDataError = null },
+        onDismiss = viewModel::dismissQuoteError,
     )
 
     SwapDetailsBottomSheet(

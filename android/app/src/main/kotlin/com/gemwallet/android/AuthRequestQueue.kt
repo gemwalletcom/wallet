@@ -1,8 +1,13 @@
 package com.gemwallet.android
 
-internal class AuthRequestQueue {
+import kotlin.time.Duration
+import kotlin.time.TimeMark
+import kotlin.time.TimeSource
+
+internal class AuthRequestQueue(private val timeout: Duration = SystemAuthPolicy.authRequestTimeout, private val timeSource: TimeSource = TimeSource.Monotonic) {
     private var nextId = 0L
     private var active: PendingAuthRequest? = null
+    private var activeExpiresAt: TimeMark? = null
     private val queued = ArrayDeque<PendingAuthRequest>()
 
     @Synchronized
@@ -19,15 +24,22 @@ internal class AuthRequestQueue {
     }
 
     @Synchronized
+    fun active(): PendingAuthRequest? = active
+
+    @Synchronized
     fun hasActive(): Boolean = active != null
 
     @Synchronized
     fun activeRequiresConfirmation(): Boolean = active?.requiresConfirmation == true
 
     @Synchronized
+    fun activeTimeLeft(): Duration? = activeExpiresAt?.let { -it.elapsedNow() }
+
+    @Synchronized
     fun completeActive(): PendingAuthRequest? {
         val request = active ?: return null
         active = null
+        activeExpiresAt = null
         return request
     }
 
@@ -42,6 +54,7 @@ internal class AuthRequestQueue {
         if (active != null || queued.isEmpty()) {
             return null
         }
+        activeExpiresAt = timeSource.markNow() + timeout
         return queued.removeFirst().also { active = it }
     }
 }

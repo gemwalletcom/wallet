@@ -12,6 +12,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.TextFieldLineLimits
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,9 +27,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.PlatformTextInputInterceptor
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.TextFieldValue
 import com.gemwallet.android.features.onboarding.viewmodels.import_wallet.ImportInputUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.FieldBottomAction
@@ -49,7 +50,7 @@ private val noPersonalizedLearning = PlatformTextInputInterceptor { request, nex
 }
 
 @Composable
-internal fun ImportInput(inputState: TextFieldValue, input: ImportInputUIModel, indicator: GemNameIndicator?, onScan: (() -> Unit)?, onValueChange: (TextFieldValue) -> Unit) {
+internal fun ImportInput(state: TextFieldState, input: ImportInputUIModel, indicator: GemNameIndicator?, onScan: (() -> Unit)?) {
     val clipboardManager = LocalContext.current.clipboardManager()
     val interactionSource = remember { MutableInteractionSource() }
 
@@ -62,15 +63,14 @@ internal fun ImportInput(inputState: TextFieldValue, input: ImportInputUIModel, 
                     modifier = Modifier
                         .fillMaxWidth()
                         .testTag("importInputField"),
-                    onValueChange = onValueChange,
-                    value = inputState,
+                    state = state,
                     textStyle = MaterialTheme.typography.bodyLarge.copy(
                         color = MaterialTheme.colorScheme.onSurface,
                     ),
-                    minLines = 2,
+                    lineLimits = TextFieldLineLimits.MultiLine(minHeightInLines = 2),
                     cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                    decorationBox = { innerTextField ->
-                        if (inputState.text.isEmpty()) {
+                    decorator = { innerTextField ->
+                        if (state.text.isEmpty()) {
                             Text(
                                 text = stringResource(input.placeholder),
                                 style = MaterialTheme.typography.bodyLarge,
@@ -106,14 +106,7 @@ internal fun ImportInput(inputState: TextFieldValue, input: ImportInputUIModel, 
                 imageVector = AppIcons.ContentPaste,
                 text = stringResource(id = R.string.common_paste),
             ) {
-                val newValue = clipboardManager.getPlainText() ?: ""
-                val pastedText = newValue.trim()
-                onValueChange(
-                    TextFieldValue(
-                        text = pastedText,
-                        selection = TextRange(pastedText.length),
-                    ),
-                )
+                state.setTextAndPlaceCursorAtEnd(clipboardManager.getPlainText().orEmpty().trim())
                 if (input.protectsInput) {
                     clipboardManager.clear()
                 }

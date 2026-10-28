@@ -10,15 +10,17 @@ import com.gemwallet.android.data.services.store.queries.PriceAlertsQuery
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ui.components.screen.message
 import com.gemwallet.android.ui.localization.footer
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.localization.title
 import com.gemwallet.android.ui.models.ListSection
+import com.gemwallet.android.ui.models.ToastEmitter
+import com.gemwallet.android.ui.models.ToastEmitterImpl
 import com.wallet.core.primitives.AssetId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -31,14 +33,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemListPhase
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemPriceAlertItem
 import uniffi.gemstone.GemPriceAlertList
 import uniffi.gemstone.GemPriceAlertSectionKind
 import uniffi.gemstone.GemPriceAlertServiceInterface
-import uniffi.gemstone.GemToast
 import uniffi.gemstone.PriceAlertFormatter
 import javax.inject.Inject
 
@@ -52,7 +52,8 @@ class PriceAlertsViewModel @Inject constructor(
     private val priceAlertFormatter: PriceAlertFormatter,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @param:ApplicationContext private val context: Context,
-) : ViewModel() {
+) : ViewModel(),
+    ToastEmitter by ToastEmitterImpl() {
 
     private val refreshState = MutableStateFlow(false)
     private val alertsEnabled = MutableStateFlow(service.isEnabled())
@@ -108,12 +109,11 @@ class PriceAlertsViewModel @Inject constructor(
             .onFailure { errorState.value = it.errorText().text(context) }
     }
 
-    fun includeAsset(assetId: AssetId, callback: (GemToast) -> Unit) = viewModelScope.launch(ioDispatcher) {
+    fun includeAsset(assetId: AssetId) = viewModelScope.launch(ioDispatcher) {
         val asset = getCurrentWalletId().flatMapLatest { walletId -> assetQuery(walletId.id, assetId) }.firstOrNull()?.asset ?: return@launch
-        val toast = runCatchingCancellable { service.setAutoAlert(asset.toGem(), true) }
+        runCatchingCancellable { service.setAutoAlert(asset.toGem(), true) }
+            .onSuccess { toast -> toast?.let { emitToast(it.message(context)) } }
             .onFailure { errorState.value = it.errorText().text(context) }
-            .getOrNull() ?: return@launch
-        withContext(Dispatchers.Main) { callback(toast) }
     }
 
     fun clearError() = errorState.update { null }

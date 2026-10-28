@@ -103,7 +103,7 @@ class MainActivity :
         splashScreen.setOnExitAnimationListener { it.remove() }
         enableEdgeToEdge()
 
-        systemAuthenticator = SystemAuthenticator(this, lockViewModel, privacyCover)
+        systemAuthenticator = SystemAuthenticator(this, lockViewModel, privacyCover, viewModel.authRequests)
         systemAuthenticator.prepare()
         systemAuthenticator.refreshEnrollment()
 

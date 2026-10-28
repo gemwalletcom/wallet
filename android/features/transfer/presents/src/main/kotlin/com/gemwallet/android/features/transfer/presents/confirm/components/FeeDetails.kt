@@ -92,6 +92,7 @@ fun FeeDetails(isVisible: Boolean, screen: GemNetworkFeeScreen?, onSelectPriorit
     val feeAsset = remember(screen.feeAsset) { screen.feeAsset?.toFeeAssetUIModel() }
     val feeAssets = remember(screen.feeAssets) { screen.feeAssets.map { it.toFeeAssetUIModel() } }
 
+    // The custom fee being typed lives in composition, so the sheet reopens on Details rather than on an emptied custom page.
     var page by remember(isVisible) { mutableStateOf(FeeDetailsPage.Details) }
     var custom by remember(page) { mutableStateOf(screen.custom) }
     val estimate = remember(custom) { custom?.viewState() }

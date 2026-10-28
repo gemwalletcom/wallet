@@ -3,9 +3,10 @@ package com.gemwallet.android.features.transfer.presents.amount
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -21,13 +22,22 @@ import uniffi.gemstone.GemAmountExtras
 @Composable
 fun AmountScreen(onCancel: () -> Unit, onConfirm: (ConfirmTransferInput) -> Unit, onBuy: (AssetId) -> Unit, viewModel: AmountViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val confirmInput by viewModel.confirmInput.collectAsStateWithLifecycle()
+
+    LaunchedEffect(confirmInput) {
+        confirmInput?.let {
+            viewModel.onConfirmOpened()
+            onConfirm(it)
+        }
+    }
+
     val asset = uiState.asset ?: run {
         LoadingScene(uiState.title, onCancel)
         return
     }
 
-    var isSelectValidator by remember { mutableStateOf(false) }
-    var showsAutoclose by remember { mutableStateOf(false) }
+    var isSelectValidator by rememberSaveable { mutableStateOf(false) }
+    var showsAutoclose by rememberSaveable { mutableStateOf(false) }
     val canPickValidator = (uiState.extras as? GemAmountExtras.Validator)?.canSelect == true
     BackHandler(isSelectValidator && canPickValidator) { isSelectValidator = false }
 
@@ -70,7 +80,7 @@ fun AmountScreen(onCancel: () -> Unit, onConfirm: (ConfirmTransferInput) -> Unit
                 buttonState = uiState.buttonState,
                 onAction = { action ->
                     when (action) {
-                        AmountAction.Next -> viewModel.onNext(onConfirm)
+                        AmountAction.Next -> viewModel.onNext()
                         is AmountAction.SetAmount -> viewModel.updateAmount(action.amount)
                         AmountAction.SwitchInputType -> viewModel.switchInputType()
                         AmountAction.SetMaxAmount -> viewModel.onMaxAmount()
@@ -84,7 +94,10 @@ fun AmountScreen(onCancel: () -> Unit, onConfirm: (ConfirmTransferInput) -> Unit
                         onPickValidator = { isSelectValidator = true },
                         onSelectResource = viewModel::selectResource,
                         onSelectLeverage = viewModel::selectLeverage,
-                        onOpenAutoclose = { showsAutoclose = true },
+                        onOpenAutoclose = {
+                            viewModel.perpetualProvider?.onAutocloseOpened(viewModel.amount)
+                            showsAutoclose = true
+                        },
                     )
                 },
             )

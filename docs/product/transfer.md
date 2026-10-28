@@ -21,6 +21,7 @@ flowchart LR
 | When | Expected | Why |
 |---|---|---|
 | A typed name is registered for the network | it resolves while typing to that address | |
+| A mixed-case EVM address has an invalid checksum | "Invalid address"; the address stays as entered and cannot continue, including in contacts, watch-only imports, scanned codes and payment links | a typo must never be silently re-checksummed into another account; single-case addresses remain accepted |
 | The recipient is one of the user's own wallets or a contact | Confirm shows its name alone; a tap shows the address | the user gave that name |
 | The recipient has any other name, such as `vitalik.eth` | the name with the short address beside it | a name the user did not give could imitate another address |
 | The recipient is flagged | a "Suspicious address" warning with one line on why, under the amount; Confirm stays disabled | |
@@ -39,6 +40,7 @@ flowchart LR
 | A Zcash send carries a memo but the recipient gets a transparent output | the fee cannot load and the send is refused | ZIP-321 memos are private; a transparent output would publish the memo on chain |
 | An address of 100 characters or more is shortened, such as a Zcash unified address or a Cardano base address | at least its first 20 characters stay visible | a long address is easier to imitate in its first few characters; ZIP-316 asks for 20 |
 | A Bitcoin-family send carries a memo, as a scanned Zcash payment code can | Confirm shows the Memo row even though the send form has no memo field | every memo that will be signed is shown first |
+| The system closes the app during Send, Swap or Stake | the flow starts again from the screen that opened it | a restored Confirm could sign a stale transfer |
 
 Names, the Network Fee, and account requirements follow the shared [Names](../PRODUCT.md#names), [Network Fee](../PRODUCT.md#network-fee), and [Network minimums and activation](../PRODUCT.md#network-minimums-and-activation) sections.
 

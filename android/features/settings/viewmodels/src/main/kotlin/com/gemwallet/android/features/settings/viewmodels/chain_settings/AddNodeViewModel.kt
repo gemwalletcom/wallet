@@ -6,6 +6,9 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.ext.GemConstants
 import com.wallet.core.primitives.Chain
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
@@ -14,6 +17,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -23,27 +27,29 @@ import uniffi.gemstone.GemAddNodeSession
 import uniffi.gemstone.GemAddNodeViewState
 import uniffi.gemstone.GemChainSettingsServiceInterface
 import uniffi.gemstone.GemServiceException
-import javax.inject.Inject
 
-@HiltViewModel
-class AddNodeViewModel @Inject constructor(private val service: GemChainSettingsServiceInterface, @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher) : ViewModel() {
+@HiltViewModel(assistedFactory = AddNodeViewModel.Factory::class)
+class AddNodeViewModel @AssistedInject constructor(@Assisted private val chain: Chain, private val service: GemChainSettingsServiceInterface, @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher) : ViewModel() {
 
-    private val session = MutableStateFlow<GemAddNodeSession?>(null)
-    val viewState: StateFlow<GemAddNodeViewState?> = session.map { it?.viewState() }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    private val session = MutableStateFlow(service.newAddNodeSession(chain.string))
+    val viewState: StateFlow<GemAddNodeViewState> = session.map { it.viewState() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, session.value.viewState())
     val url = mutableStateOf("")
+    private val _isAdded = MutableStateFlow(false)
+    val isAdded: StateFlow<Boolean> = _isAdded.asStateFlow()
     private var checkUrlJob: Job? = null
     private var addUrlJob: Job? = null
 
-    fun init(chain: Chain) {
+    fun reset() {
         checkUrlJob?.cancel()
         url.value = ""
+        _isAdded.value = false
         session.value = service.newAddNodeSession(chain.string)
     }
 
     fun onUrlChange() {
         checkUrlJob?.cancel()
-        val current = session.value?.onInput(url.value) ?: return
+        val current = session.value.onInput(url.value)
         session.value = current
         if (!current.checksUrl()) {
             return
@@ -54,9 +60,9 @@ class AddNodeViewModel @Inject constructor(private val service: GemChainSettings
         }
     }
 
-    fun addUrl(onAdded: () -> Unit) {
+    fun addUrl() {
         if (addUrlJob?.isActive == true) return
-        val current = session.value ?: return
+        val current = session.value
         val status = current.viewState().canImport.takeIf { it }?.let { (current.check) } ?: return
         addUrlJob = viewModelScope.launch {
             try {
@@ -71,12 +77,13 @@ class AddNodeViewModel @Inject constructor(private val service: GemChainSettings
                 return@launch
             }
             if (session.value == current) {
-                url.value = ""
-                checkUrlJob?.cancel()
-                session.value = current.onImported()
+                _isAdded.value = true
             }
-            onAdded()
         }
+    }
+
+    fun onAddedHandled() {
+        _isAdded.value = false
     }
 
     private suspend fun checkUrl(current: GemAddNodeSession) {
@@ -90,5 +97,10 @@ class AddNodeViewModel @Inject constructor(private val service: GemChainSettings
         } catch (_: Throwable) {
             current.onCheckFailed(current.url, null)
         }
+    }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(chain: Chain): AddNodeViewModel
     }
 }

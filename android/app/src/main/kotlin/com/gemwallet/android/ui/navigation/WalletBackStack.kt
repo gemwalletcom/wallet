@@ -3,6 +3,8 @@ package com.gemwallet.android.ui.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSerializable
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.serialization.NavKeySerializer
@@ -18,15 +20,24 @@ import kotlinx.serialization.encoding.Encoder
 
 @Composable
 internal fun rememberWalletNavBackStack(startDestination: NavKey): NavBackStack<NavKey> {
-    val serializer = remember(startDestination) {
-        WalletNavBackStackSerializer(startDestination)
+    val retention = viewModel<BackStackRetention>()
+    val serializer = remember(startDestination, retention) {
+        WalletNavBackStackSerializer(startDestination, retention)
     }
     return rememberSerializable(serializer = serializer) {
-        NavBackStack(startDestination)
+        retention.retain(NavBackStack(startDestination))
     }
 }
 
-private class WalletNavBackStackSerializer(private val startDestination: NavKey) : KSerializer<NavBackStack<NavKey>> {
+// A recreated activity, even one recreated while stopped, keeps the live stack with its open flows through this
+// retained view model. Only a restored process reads the saved stack, which never carries a confirm flow or a secret.
+internal class BackStackRetention : ViewModel() {
+    private var backStack: NavBackStack<NavKey>? = null
+
+    fun retain(restored: NavBackStack<NavKey>): NavBackStack<NavKey> = backStack ?: restored.also { backStack = it }
+}
+
+private class WalletNavBackStackSerializer(private val startDestination: NavKey, private val retention: BackStackRetention) : KSerializer<NavBackStack<NavKey>> {
 
     private val delegate = ListSerializer(NavKeySerializer<NavKey>())
 
@@ -43,7 +54,7 @@ private class WalletNavBackStackSerializer(private val startDestination: NavKey)
         val routes = decoder
             .decodeSerializableValue(deserializer = delegate)
             .dropNonRestorableRoutes(startDestination)
-        return NavBackStack(*routes.toTypedArray())
+        return retention.retain(NavBackStack(*routes.toTypedArray()))
     }
 }
 

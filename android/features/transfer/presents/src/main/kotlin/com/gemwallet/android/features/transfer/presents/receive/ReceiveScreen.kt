@@ -24,6 +24,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -83,7 +84,7 @@ fun ReceiveScreen(assetId: AssetId, closeIcon: Boolean = false, onCancel: () -> 
     ) { it.create(assetId) }
     val assetInfo by viewModel.asset.collectAsStateWithLifecycle()
     val networks by viewModel.networks.collectAsStateWithLifecycle()
-    var isShowingNetworkSelector by remember { mutableStateOf(false) }
+    var isShowingNetworkSelector by rememberSaveable { mutableStateOf(false) }
     val info = assetInfo
 
     if (info != null) {

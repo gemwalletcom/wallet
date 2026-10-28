@@ -9,8 +9,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.TextFieldLineLimits
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -19,10 +20,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -42,19 +40,11 @@ import com.gemwallet.android.ui.theme.paddingSmall
 private val messageInputCornerRadius = 24.dp
 
 @Composable
-internal fun SupportMessageInputBar(onPickImage: () -> Unit, onSend: (String) -> Unit) {
-    var input by remember { mutableStateOf("") }
-    val canSend = input.isNotBlank()
+internal fun SupportMessageInputBar(state: TextFieldState, onPickImage: () -> Unit, onSend: () -> Unit) {
+    val canSend = state.text.isNotBlank()
     val focusRequester = remember { FocusRequester() }
 
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
-
-    fun send() {
-        val text = input.trim()
-        if (text.isEmpty()) return
-        onSend(text)
-        input = ""
-    }
 
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = paddingDefault, vertical = paddingSmall),
@@ -75,20 +65,19 @@ internal fun SupportMessageInputBar(onPickImage: () -> Unit, onSend: (String) ->
                     )
                 }
                 BasicTextField(
-                    value = input,
-                    onValueChange = { input = it },
+                    state = state,
                     modifier = Modifier.weight(1f).padding(end = paddingDefault).focusRequester(focusRequester),
                     textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
                     cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                    maxLines = 5,
+                    lineLimits = TextFieldLineLimits.MultiLine(maxHeightInLines = 5),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
-                    keyboardActions = KeyboardActions(onSend = { send() }),
-                    decorationBox = { inner ->
+                    onKeyboardAction = { onSend() },
+                    decorator = { inner ->
                         Box(
                             modifier = Modifier.heightIn(min = mainActionHeight),
                             contentAlignment = Alignment.CenterStart,
                         ) {
-                            if (input.isEmpty()) {
+                            if (state.text.isEmpty()) {
                                 Text(
                                     text = stringResource(R.string.support_message_placeholder),
                                     style = MaterialTheme.typography.bodyLarge,
@@ -101,7 +90,7 @@ internal fun SupportMessageInputBar(onPickImage: () -> Unit, onSend: (String) ->
                 )
             }
         }
-        FilledIconButton(onClick = { send() }, enabled = canSend, modifier = Modifier.size(actionIconSize)) {
+        FilledIconButton(onClick = onSend, enabled = canSend, modifier = Modifier.size(actionIconSize)) {
             Icon(imageVector = AppIcons.Send, contentDescription = null)
         }
     }

@@ -7,7 +7,7 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -33,7 +33,7 @@ import com.wallet.core.primitives.ChainAddress
 @Composable
 internal fun WalletConnectReviewScene(model: WalletConnectReviewModel, buttonState: ButtonState, details: LazyListScope.() -> Unit, onApprove: () -> Unit, onReject: () -> Unit, onOpenAddress: (ChainAddress) -> Unit) {
     val context = LocalContext.current
-    var sheetType by remember { mutableStateOf<WalletConnectReviewSheetType?>(null) }
+    var sheetType by rememberSaveable { mutableStateOf<WalletConnectReviewSheetType?>(null) }
     val openAddress = { address: String ->
         sheetType = null
         onOpenAddress(ChainAddress(model.chain, address))

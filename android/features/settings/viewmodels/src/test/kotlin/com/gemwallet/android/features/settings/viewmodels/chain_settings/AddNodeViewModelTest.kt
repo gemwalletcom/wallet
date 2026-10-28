@@ -49,14 +49,13 @@ class AddNodeViewModelTest {
 
     @Test
     fun `a node that answers is ready to import`() = runTest(dispatcher) {
-        val viewModel = AddNodeViewModel(service { check }, dispatcher)
-        viewModel.init(Chain.Ethereum)
+        val viewModel = AddNodeViewModel(Chain.Ethereum, service { check }, dispatcher)
 
         viewModel.url.value = "https://node"
         viewModel.onUrlChange()
         advanceUntilIdle()
 
-        val state = viewModel.viewState.value!!
+        val state = viewModel.viewState.value
         assertEquals(true, state.canImport)
         assertEquals(true, state.showsWarning)
         val rows = (state.phase as GemAddNodePhase.Ready).rows
@@ -66,27 +65,39 @@ class AddNodeViewModelTest {
 
     @Test
     fun `a rejected network id is reported and cannot be imported`() = runTest(dispatcher) {
-        val viewModel = AddNodeViewModel(service { throw GemAddNodeException.InvalidNetworkId() }, dispatcher)
-        viewModel.init(Chain.Ethereum)
+        val viewModel = AddNodeViewModel(Chain.Ethereum, service { throw GemAddNodeException.InvalidNetworkId() }, dispatcher)
 
         viewModel.url.value = "https://node"
         viewModel.onUrlChange()
         advanceUntilIdle()
 
-        assertEquals(GemAddNodePhase.Failed(GemErrorText.InvalidNetworkId), viewModel.viewState.value?.phase)
-        assertEquals(false, viewModel.viewState.value?.canImport)
+        assertEquals(GemAddNodePhase.Failed(GemErrorText.InvalidNetworkId), viewModel.viewState.value.phase)
+        assertEquals(false, viewModel.viewState.value.canImport)
+    }
+
+    @Test
+    fun `closing the panel opens the next one empty`() = runTest(dispatcher) {
+        val viewModel = AddNodeViewModel(Chain.Ethereum, service { check }, dispatcher)
+        viewModel.url.value = "https://node"
+        viewModel.onUrlChange()
+        advanceUntilIdle()
+
+        viewModel.reset()
+        advanceUntilIdle()
+
+        assertEquals("", viewModel.url.value)
+        assertEquals(GemAddNodePhase.Idle, viewModel.viewState.value.phase)
     }
 
     @Test
     fun `clearing the field stops asking`() = runTest(dispatcher) {
-        val viewModel = AddNodeViewModel(service { check }, dispatcher)
-        viewModel.init(Chain.Ethereum)
+        val viewModel = AddNodeViewModel(Chain.Ethereum, service { check }, dispatcher)
 
         viewModel.url.value = ""
         viewModel.onUrlChange()
         advanceUntilIdle()
 
-        assertEquals(GemAddNodePhase.Idle, viewModel.viewState.value?.phase)
+        assertEquals(GemAddNodePhase.Idle, viewModel.viewState.value.phase)
     }
 
     @Test
@@ -94,15 +105,12 @@ class AddNodeViewModelTest {
         val added = CompletableDeferred<Unit>()
         val service = service { check }
         coEvery { service.addNode(any(), any()) } coAnswers { added.await() }
-        val viewModel = AddNodeViewModel(service, dispatcher)
-        viewModel.init(Chain.Ethereum)
+        val viewModel = AddNodeViewModel(Chain.Ethereum, service, dispatcher)
         viewModel.url.value = "https://node"
         viewModel.onUrlChange()
         advanceUntilIdle()
-        var navigations = 0
-
-        viewModel.addUrl { navigations++ }
-        viewModel.addUrl { navigations++ }
+        viewModel.addUrl()
+        viewModel.addUrl()
         runCurrent()
         viewModel.url.value = "https://other"
         viewModel.onUrlChange()
@@ -110,7 +118,26 @@ class AddNodeViewModelTest {
         advanceUntilIdle()
 
         coVerify(exactly = 1) { service.addNode(any(), any()) }
-        assertEquals(1, navigations)
+        assertEquals(false, viewModel.isAdded.value)
         assertEquals("https://other", viewModel.url.value)
+    }
+
+    @Test
+    fun `an import that finishes after the panel closed does not close the next one`() = runTest(dispatcher) {
+        val added = CompletableDeferred<Unit>()
+        val service = service { check }
+        coEvery { service.addNode(any(), any()) } coAnswers { added.await() }
+        val viewModel = AddNodeViewModel(Chain.Ethereum, service, dispatcher)
+        viewModel.url.value = "https://node"
+        viewModel.onUrlChange()
+        advanceUntilIdle()
+        viewModel.addUrl()
+        runCurrent()
+
+        viewModel.reset()
+        added.complete(Unit)
+        advanceUntilIdle()
+
+        assertEquals(false, viewModel.isAdded.value)
     }
 }

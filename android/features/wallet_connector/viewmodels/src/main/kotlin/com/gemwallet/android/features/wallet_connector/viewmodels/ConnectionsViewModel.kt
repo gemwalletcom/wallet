@@ -18,7 +18,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
@@ -64,13 +67,20 @@ class ConnectionsViewModel @Inject constructor(
     val pasteListItem = ListItemModel(title = context.getString(R.string.common_paste), image = ListItemImage.Symbol(ListItemSymbol.Paste))
     val scanListItem = ListItemModel(title = context.getString(R.string.wallet_scan_qr_code), image = ListItemImage.Symbol(ListItemSymbol.QrScanner))
 
-    fun addPairing(uri: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
+    private val _pairError = MutableStateFlow<String?>(null)
+    val pairError: StateFlow<String?> = _pairError.asStateFlow()
+
+    fun addPairing(uri: String) {
         viewModelScope.launch(ioDispatcher) {
             pairWalletConnect.pair(
                 uri = uri,
-                onSuccess = onSuccess,
-                onError = { onError(it.text(context)) },
+                onSuccess = {},
+                onError = { _pairError.value = it.text(context) },
             )
         }
+    }
+
+    fun dismissPairError() {
+        _pairError.value = null
     }
 }

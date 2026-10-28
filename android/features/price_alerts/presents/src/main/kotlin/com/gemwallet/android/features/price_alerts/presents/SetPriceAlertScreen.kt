@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.price_alerts.presents
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -20,6 +21,14 @@ fun SetPriceAlertScreen(onCancel: () -> Unit, onComplete: (String) -> Unit = { o
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     val snackbar = rememberSnackbarState(message = error, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
+    val savedMessage by viewModel.savedMessage.collectAsStateWithLifecycle()
+
+    LaunchedEffect(savedMessage) {
+        savedMessage?.let {
+            viewModel.onSavedHandled()
+            onComplete(it)
+        }
+    }
 
     SetPriceAlertScene(
         value = viewModel.value,
@@ -35,7 +44,7 @@ fun SetPriceAlertScreen(onCancel: () -> Unit, onComplete: (String) -> Unit = { o
         onType = viewModel::onType,
         onDirection = viewModel::onDirection,
         onConfirm = {
-            viewModel.onConfirm(onComplete)
+            viewModel.onConfirm()
         },
         onCancel = onCancel,
     )

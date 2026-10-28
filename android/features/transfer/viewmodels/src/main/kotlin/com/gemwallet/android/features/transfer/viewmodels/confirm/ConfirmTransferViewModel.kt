@@ -30,7 +30,6 @@ import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.ToastMessage
 import com.gemwallet.android.ui.models.ToastPresenter
-import com.gemwallet.android.ui.models.actions.FinishConfirmAction
 import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.style.iconRes
@@ -107,6 +106,8 @@ class ConfirmTransferViewModel @Inject constructor(
     val screen = MutableStateFlow(GemConfirmScreen(phase = GemConfirmPhase.LOADING, hasCriticalWarning = false, failure = null))
 
     val isErrorSheetVisible = MutableStateFlow(false)
+    private val _sentTransactionHash = MutableStateFlow<String?>(null)
+    val sentTransactionHash: StateFlow<String?> = _sentTransactionHash.asStateFlow()
     val isVerificationVisible = MutableStateFlow(false)
     val isVerificationFailed = MutableStateFlow(false)
     val verificationBridge = PaymentVerificationBridge(::onPaymentVerified, ::onPaymentVerificationFailed)
@@ -309,7 +310,7 @@ class ConfirmTransferViewModel @Inject constructor(
         executeError.value = null
     }
 
-    fun send(finishAction: FinishConfirmAction) = viewModelScope.launch {
+    fun send() = viewModelScope.launch {
         when (screen.value.action()) {
             GemConfirmAction.LOAD -> {
                 load()
@@ -331,7 +332,7 @@ class ConfirmTransferViewModel @Inject constructor(
                 is GemSubmitResult.Sent -> result.hashes.last() to result.message
             }
             message?.let { toastPresenter.emitToast(ToastMessage(it.text(context), it.iconRes())) }
-            finishAction(transactionHash)
+            _sentTransactionHash.value = transactionHash
         } catch (error: CancellationException) {
             throw error
         } catch (_: GemConfirmException.Cancelled) {
@@ -341,6 +342,10 @@ class ConfirmTransferViewModel @Inject constructor(
             screen.update { it.onExecuteFailed(confirmError) }
             executeError.value = confirmError.broadcastLabel(context)
         }
+    }
+
+    fun onSentHandled() {
+        _sentTransactionHash.value = null
     }
 }
 

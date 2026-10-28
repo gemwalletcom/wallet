@@ -8,6 +8,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -29,6 +30,14 @@ fun ConnectionScreen(onCancel: () -> Unit, viewModel: ConnectionViewModel = hilt
     val rows by viewModel.rows.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     val snackbar = rememberSnackbarState(message = error, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
+    val isDisconnected by viewModel.isDisconnected.collectAsStateWithLifecycle()
+
+    LaunchedEffect(isDisconnected) {
+        if (isDisconnected) {
+            viewModel.onDisconnectedHandled()
+            onCancel()
+        }
+    }
 
     Scene(
         title = stringResource(id = R.string.wallet_connect_title),
@@ -37,7 +46,7 @@ fun ConnectionScreen(onCancel: () -> Unit, viewModel: ConnectionViewModel = hilt
             TextButton(
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
-                onClick = { viewModel.disconnect(onCancel) },
+                onClick = viewModel::disconnect,
             ) {
                 Text(text = stringResource(id = R.string.wallet_connect_disconnect).uppercase())
             }

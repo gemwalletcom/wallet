@@ -15,10 +15,9 @@ use crate::services::onboarding::GemSecurityReminderItem;
 
 const WALLET_ADDRESS_STYLE: GemAddressFormatStyle = GemAddressFormatStyle::Extra { extra: 1 };
 const SECRET_PHRASE_COLUMNS: usize = 2;
-use crate::address::validate_address;
+use crate::address::parse_address;
 use crate::keystore::GemKeystoreAccount;
 use crate::signer::decode_private_key;
-use chain_primitives::checksum_address;
 
 impl GemWalletImportType {
     pub fn validated(self) -> Result<Self, GemWalletImportError> {
@@ -31,10 +30,7 @@ impl GemWalletImportType {
                 Ok(Self::PrivateKey { value, chain })
             }
             Self::Address { address, chain } => {
-                let address = checksum_address(address.trim(), chain);
-                if !validate_address(&address, chain) {
-                    return Err(GemWalletImportError::InvalidAddress);
-                }
+                let address = parse_address(&address, chain).ok_or(GemWalletImportError::InvalidAddress)?;
                 Ok(Self::Address { address, chain })
             }
         }
@@ -483,6 +479,15 @@ mod tests {
         .validated()
         .unwrap();
         assert!(matches!(validated, GemWalletImportType::Address { address, .. } if address == "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"));
+        assert_eq!(
+            GemWalletImportType::Address {
+                address: "0x5615E8AB93b9d695b6d4d6545f7792aA59e1068a".into(),
+                chain: Chain::Ethereum,
+            }
+            .validated()
+            .unwrap_err(),
+            GemWalletImportError::InvalidAddress
+        );
         assert_eq!(
             GemWalletImportType::Address {
                 address: "not an address".into(),

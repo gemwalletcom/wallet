@@ -3,6 +3,7 @@ package com.gemwallet.android.features.assets.presents.add
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -27,6 +28,14 @@ fun AddAssetScreen(onFinish: () -> Unit, onCancel: () -> Unit, viewModel: AddAss
     val verificationWarningRow by viewModel.verificationWarningRow.collectAsStateWithLifecycle()
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
     val snackbar = rememberSnackbarState(message = uiState.error, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
+    val isAdded by viewModel.isAdded.collectAsStateWithLifecycle()
+
+    LaunchedEffect(isAdded) {
+        if (isAdded) {
+            viewModel.onAddedHandled()
+            onFinish()
+        }
+    }
 
     BackHandler(uiState.scene != AddAssetUIState.Scene.Form) {
         viewModel.cancelSelectChain()
@@ -60,7 +69,7 @@ fun AddAssetScreen(onFinish: () -> Unit, onCancel: () -> Unit, viewModel: AddAss
                 onAction = { action ->
                     when (action) {
                         AddAssetAction.Scan -> viewModel.onQrScan()
-                        AddAssetAction.Add -> viewModel.addAsset(onFinish)
+                        AddAssetAction.Add -> viewModel.addAsset()
                         AddAssetAction.SelectChain -> viewModel.selectChain()
                         AddAssetAction.Cancel -> onCancel()
                     }

@@ -5,6 +5,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
@@ -53,7 +54,8 @@ fun PerpetualScreen(
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     val snackbar = rememberSnackbarState(message = error, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
-    var showModifyDialog by remember { mutableStateOf(false) }
+    var showModifyDialog by rememberSaveable { mutableStateOf(false) }
+    // The autoclose sheet keeps its pages and pending order in composition, so it closes on recreation rather than reopening empty.
     var showAutoclose by remember { mutableStateOf(false) }
 
     PerpetualScene(
