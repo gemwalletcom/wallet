@@ -16,6 +16,8 @@ import com.gemwallet.android.testkit.mockDelegationBase
 import com.gemwallet.android.testkit.mockDelegationValidator
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
+import com.gemwallet.android.ui.models.actions.AmountTransactionAction
+import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
@@ -33,6 +35,8 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
+import uniffi.gemstone.GemDelegationActionTarget
+import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemStakeServiceInterface
 import java.math.BigInteger
 
@@ -123,5 +127,27 @@ class DelegationViewModelTest {
         runCurrent()
 
         verify { stakeService.delegationDetails(any(), any(), any(), any(), any(), listOf(validator.toGem())) }
+    }
+
+    @Test
+    fun `an action unavailable in the region explains instead of opening`() = runTest(testDispatcher) {
+        every { delegationQuery(walletId, "v1", "d1") } returns flowOf(null)
+        val viewModel = DelegationViewModel(
+            getCurrentWalletId = getCurrentWalletId,
+            assetQuery = assetQuery,
+            delegationQuery = delegationQuery,
+            validatorsQuery = validatorsQuery,
+            stakeService = mockk<GemStakeServiceInterface>(relaxed = true),
+            getSession = mockk { every { this@mockk() } returns MutableStateFlow(mockSession(wallet = mockWallet(id = walletId))) },
+            savedStateHandle = SavedStateHandle(mapOf(RouteArgument.ValidatorId.key to "v1", RouteArgument.DelegationId.key to "d1")),
+        )
+        val amount: AmountTransactionAction = mockk(relaxed = true)
+        val confirm: ConfirmTransactionAction = mockk(relaxed = true)
+
+        viewModel.onAction(GemDelegationActionTarget.RegionUnavailable, amount, confirm)
+
+        assertEquals(GemInfoTopic.RegionUnavailable, viewModel.infoSheet.value)
+        verify(exactly = 0) { amount(any()) }
+        verify(exactly = 0) { confirm(any()) }
     }
 }

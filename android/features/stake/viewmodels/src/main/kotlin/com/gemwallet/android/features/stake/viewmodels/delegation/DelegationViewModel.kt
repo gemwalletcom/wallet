@@ -26,7 +26,9 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
+import uniffi.gemstone.GemDelegationActionTarget
 import uniffi.gemstone.GemDelegationDestination
+import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemStakeServiceInterface
 import java.math.BigInteger
 import javax.inject.Inject
@@ -42,6 +44,8 @@ class DelegationViewModel @Inject constructor(
     getSession: GetSession,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
+
+    val infoSheet = MutableStateFlow<GemInfoTopic?>(null)
 
     val validatorId = MutableStateFlow(savedStateHandle.requireString(RouteArgument.ValidatorId))
     val delegationId = MutableStateFlow(savedStateHandle.getString(RouteArgument.DelegationId))
@@ -83,11 +87,15 @@ class DelegationViewModel @Inject constructor(
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    fun onAction(destination: GemDelegationDestination, onAmount: AmountTransactionAction, onConfirm: ConfirmTransactionAction) {
-        when (destination) {
-            GemDelegationDestination.Details -> Unit
-            is GemDelegationDestination.Confirm -> onConfirm(ConfirmTransferInput(destination.transfer))
-            is GemDelegationDestination.Amount -> onAmount(destination.input.toAmountParams(destination.asset.toPrimitives().id))
+    fun onAction(target: GemDelegationActionTarget, onAmount: AmountTransactionAction, onConfirm: ConfirmTransactionAction) {
+        when (target) {
+            is GemDelegationActionTarget.Open -> when (val destination = target.destination) {
+                GemDelegationDestination.Details -> Unit
+                is GemDelegationDestination.Confirm -> onConfirm(ConfirmTransferInput(destination.transfer))
+                is GemDelegationDestination.Amount -> onAmount(destination.input.toAmountParams(destination.asset.toPrimitives().id))
+            }
+
+            GemDelegationActionTarget.RegionUnavailable -> infoSheet.value = GemInfoTopic.RegionUnavailable
         }
     }
 

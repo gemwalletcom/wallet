@@ -262,7 +262,7 @@ If an action is unavailable, show the Not Available sheet and stop. Learn More o
 | Sell | Continue on the Sell screen, before opening the provider's checkout |
 | Swap | Continue / Swap on the Swap screen, before preparing the trade |
 | Perpetuals | Deposit, Long, Short, Increase or Reduce before the amount screen; Modify before the options |
-| Staking | Stake on the staking screen, before opening the amount screen |
+| Staking | Stake on the staking screen or on a delegation, before opening the amount screen |
 | Rewards | Invite Friends, before opening the share sheet |
 
 Load config at startup and use the stored flags for actions. Features default to enabled until config is loaded. Keep quotes visible, and Withdraw and Close available.
