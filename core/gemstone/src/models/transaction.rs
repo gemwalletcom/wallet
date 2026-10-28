@@ -195,7 +195,7 @@ impl From<TransactionFee> for GemTransactionLoadFee {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{Chain, OutputMinimum};
+    use primitives::Chain;
 
     #[test]
     fn test_fee_items_preserve_total() {
@@ -230,10 +230,7 @@ mod tests {
 
     #[test]
     fn test_metadata_without_a_block_or_sequence_stores_none() {
-        let bitcoin = GemTransactionLoadMetadata::Bitcoin {
-            utxos: vec![],
-            output_minimum: OutputMinimum { payment: 294, change: 294 },
-        };
+        let bitcoin = GemTransactionLoadMetadata::Bitcoin { utxos: vec![] };
         assert_eq!(transaction_metadata_block_number(&bitcoin), None);
         assert_eq!(transaction_metadata_sequence(&bitcoin), None);
 

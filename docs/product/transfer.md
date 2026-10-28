@@ -29,10 +29,8 @@ flowchart LR
 | A refresh or a fee change finds the same problem | the explanation stays as the user left it | it opens once per problem |
 | Retry, or a different problem | the explanation opens again | |
 | Any other load error | it stays in the error row | |
-| A send would leave less than the network's minimum after its fee: dust on Bitcoin-family networks, 1 ADA on Cardano, the rent minimum on Solana, the existential deposit on Polkadot | everything there is goes, less the network fee of sending it all, never less than the amount entered, and Confirm shows exactly that amount and fee, as Max would; on Polkadot the emptied account is removed (`test_calculate_minimum_account_balance`, `test_near_empty_send_is_signed_as_shown`, `test_send_everything_input`, `test_send_everything_may_reap_the_account`) | a leftover the network cannot keep is sent along, never refused or lost to the fee |
-| The network fee doesn't fit next to the amount entered | it is refused: the minimum balance on Solana and Polkadot, Insufficient Balance elsewhere (`test_calculate_minimum_account_balance`, `test_near_empty_send_is_signed_as_shown`) | sending everything would send less than entered, which an exchange deposit or a payment code would not accept |
-| That send empties a Solana wallet that also holds SPL tokens or a stake account | it still sends everything; the wallet ends at 0 SOL, so the tokens and the stake account cannot move until SOL comes back in to pay their fees | |
-| The amount itself is under the recipient's minimum output: dust on Bitcoin-family networks, 1 ADA on Cardano | the dust explanation (`test_amount_under_dust`, `test_near_empty_send_is_signed_as_shown`) | the network rejects such an output |
+| Bitcoin-family or Cardano coins can't cover the amount and the fee | Insufficient Balance, as on every other network (`test_unaffordable_send_is_insufficient_balance`, `test_plan_transfer`) | the fee load prices the send and the amount check decides, so it is never a network error |
+| A Bitcoin-family amount, or what Max would send, is under the dust limit | the dust explanation, while Confirm loads (`test_gateway_errors_keep_their_kind`) | the network rejects such an output |
 | The simulation cannot answer | sending is not blocked | |
 | The simulation finds a risk | the risk shows before the user confirms | |
 | The simulation predicts balance changes | every digit of each amount, never rounded | what the user approves is exactly what moves |

@@ -1,4 +1,4 @@
-use crate::{AssetId, AssetType, Chain, EarnType, OutputMinimum, StakeType, SwapProvider, TransactionInputType};
+use crate::{AssetId, AssetType, Chain, EarnType, StakeType, SwapProvider, TransactionInputType};
 use num_bigint::BigInt;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -15,7 +15,6 @@ pub enum TransferAmountError {
     MinimumAccountBalanceTooLow { asset_id: AssetId, required: BigInt, available: BigInt },
     DestinationAccountActivation { asset_id: AssetId, required: BigInt, value: BigInt },
     BelowSwapMinimum { asset_id: AssetId, provider: SwapProvider, minimum: BigInt, value: BigInt },
-    DustThreshold { asset_id: AssetId, minimum: BigInt, value: BigInt },
 }
 
 impl std::fmt::Display for TransferAmountError {
@@ -36,7 +35,6 @@ impl std::fmt::Display for TransferAmountError {
             Self::BelowSwapMinimum { asset_id, provider, minimum, value } => {
                 write!(f, "{} amount {} is below the {} minimum {}", asset_id, value, provider.name(), minimum)
             }
-            Self::DustThreshold { asset_id, minimum, value } => write!(f, "{asset_id} amount {value} is below the dust threshold {minimum}"),
         }
     }
 }
@@ -83,7 +81,6 @@ pub struct TransferAmountInput {
     pub fee: BigInt,
     pub is_max_amount: bool,
     pub destination_account_exists: Option<bool>,
-    pub output_minimum: Option<OutputMinimum>,
 }
 
 impl TransactionInputType {
@@ -101,23 +98,6 @@ impl TransactionInputType {
             Self::Perpetual { .. } | Self::TokenApprove { .. } | Self::Account { .. } | Self::TransferNft { .. } => false,
         }
     }
-
-    fn sends_remainder_along(&self) -> bool {
-        match self {
-            Self::Transfer { .. } => true,
-            Self::Withdrawal { .. }
-            | Self::Deposit { .. }
-            | Self::Swap { .. }
-            | Self::Stake { .. }
-            | Self::Generic { .. }
-            | Self::Payment { .. }
-            | Self::Earn { .. }
-            | Self::Perpetual { .. }
-            | Self::TokenApprove { .. }
-            | Self::Account { .. }
-            | Self::TransferNft { .. } => false,
-        }
-    }
 }
 
 impl TransferAmountInput {
@@ -125,23 +105,12 @@ impl TransferAmountInput {
         let asset = self.input_type.get_asset();
         let spends_balance = self.input_type.spends_balance();
         let should_deduct_fee = spends_balance && asset.id == self.fee_asset;
-        let keeps_minimum = spends_balance && asset.asset_type == AssetType::NATIVE;
 
         let has_fixed_value = self.input_type.get_swap_data().is_ok_and(|swap_data| swap_data.data.data_type.has_fixed_value());
-        let minimum_value = self.output_minimum.filter(|_| keeps_minimum).map(|minimum| BigInt::from(minimum.payment));
-        let account_minimum = asset.chain().minimum_account_balance().filter(|_| keeps_minimum).map(BigInt::from);
-        let minimum_balance = match self.output_minimum {
-            Some(minimum) => keeps_minimum.then(|| BigInt::from(minimum.change)),
-            None => account_minimum.clone(),
-        };
-        let leftover = &self.available_value - &self.value - &self.fee;
-        let sends_everything = !self.is_max_amount && should_deduct_fee && self.input_type.sends_remainder_along() && leftover >= BigInt::ZERO && minimum_balance.as_ref().is_some_and(|minimum| leftover < *minimum);
-        let is_max_amount = self.is_max_amount || sends_everything;
-        let requested = if sends_everything { &self.available_value } else { &self.value };
 
-        let value = match is_max_amount && should_deduct_fee && !has_fixed_value {
-            true => requested.clone().min(&self.available_value - &self.fee),
-            false => requested.clone(),
+        let value = match self.is_max_amount && should_deduct_fee && !has_fixed_value {
+            true => self.value.clone().min(&self.available_value - &self.fee),
+            false => self.value.clone(),
         };
         let required = match (spends_balance, should_deduct_fee) {
             (false, _) => BigInt::ZERO,
@@ -149,24 +118,21 @@ impl TransferAmountInput {
             (true, true) => &value + &self.fee,
         };
         let should_skip_fee_check = asset.chain() == Chain::HyperCore && !spends_balance;
-        let minimum_account_balance = minimum_balance.filter(|_| !is_max_amount);
+        let minimum_account_balance = match asset.chain().minimum_account_balance() {
+            Some(minimum) if asset.asset_type == AssetType::NATIVE && !self.is_max_amount && spends_balance => Some(BigInt::from(minimum)),
+            _ => None,
+        };
         let remaining_balance = &self.available_value - &required;
 
         if required > self.available_value {
-            return match account_minimum.filter(|_| !is_max_amount) {
-                Some(minimum) if value <= self.available_value => Err(TransferAmountError::minimum_account_balance_too_low(&asset.id, minimum, remaining_balance)),
+            return match &minimum_account_balance {
+                Some(minimum) if value <= self.available_value => Err(TransferAmountError::minimum_account_balance_too_low(&asset.id, minimum.clone(), remaining_balance)),
                 _ => Err(TransferAmountError::insufficient_balance(&asset.id, required, self.available_value.clone())),
             };
         }
 
         if self.fee_asset_balance < self.fee && !should_skip_fee_check {
             return Err(TransferAmountError::insufficient_network_fee(&self.fee_asset, self.fee.clone(), self.fee_asset_balance.clone()));
-        }
-
-        if let Some(minimum) = minimum_value
-            && value < minimum
-        {
-            return Err(TransferAmountError::DustThreshold { asset_id: asset.id.clone(), minimum, value });
         }
 
         if let Some(minimum) = &minimum_account_balance
@@ -199,7 +165,7 @@ impl TransferAmountInput {
         Ok(TransferAmount {
             value,
             network_fee: self.fee.clone(),
-            is_max_amount,
+            is_max_amount: self.is_max_amount,
         })
     }
 }
@@ -215,20 +181,6 @@ mod tests {
 
     const SOLANA_MINIMUM_ACCOUNT_BALANCE: u64 = 890_880;
     const FEE: u64 = 5_000;
-
-    fn assert_sends_everything(input: TransferAmountInput, reason: &str) {
-        let amount = input.calculate().unwrap();
-        assert_eq!(
-            amount,
-            TransferAmount {
-                value: &input.available_value - &input.fee,
-                network_fee: input.fee.clone(),
-                is_max_amount: true,
-            },
-            "{reason}, so everything but the fee is sent"
-        );
-        assert!(amount.value >= input.value, "{reason}: never less than the amount entered");
-    }
 
     #[test]
     fn test_spends_balance() {
@@ -315,15 +267,15 @@ mod tests {
             "sending more than the balance is insufficient balance, not a reserve problem"
         );
 
-        let full_balance_payment = TransferAmountInput::mock(TransactionInputType::Transfer { asset: Asset::mock_eth() }, 100_000_000, 100_000_000, 100_000_000);
+        let full_balance_payment = TransferAmountInput::mock(TransactionInputType::Transfer { asset: Asset::mock_btc() }, 100_000_000, 100_000_000, 100_000_000);
         assert_eq!(
             full_balance_payment.calculate().unwrap_err(),
             TransferAmountError::InsufficientBalance {
-                asset_id: Asset::mock_eth().id,
+                asset_id: Asset::mock_btc().id,
                 required: BigInt::from(100_005_000u64),
                 available: BigInt::from(100_000_000u64),
             },
-            "on a chain without a minimum, a fixed amount equal to the whole balance is not treated as max, so the fee on top makes it insufficient"
+            "a fixed amount equal to the whole balance is not treated as max, so the fee on top makes it insufficient"
         );
 
         let mut insufficient_fee = TransferAmountInput::mock(transfer, 10_000_000, 100_000_000, 100_000_000);
@@ -399,7 +351,7 @@ mod tests {
 
     #[test]
     fn test_calculate_zero_value_still_spends() {
-        let below_minimum = TransferAmountInput::mock(TransactionInputType::Deposit { asset: Asset::mock_sol() }, 0, SOLANA_MINIMUM_ACCOUNT_BALANCE, SOLANA_MINIMUM_ACCOUNT_BALANCE);
+        let below_minimum = TransferAmountInput::mock(TransactionInputType::Transfer { asset: Asset::mock_sol() }, 0, SOLANA_MINIMUM_ACCOUNT_BALANCE, SOLANA_MINIMUM_ACCOUNT_BALANCE);
         assert_eq!(
             below_minimum.calculate().unwrap_err(),
             TransferAmountError::MinimumAccountBalanceTooLow {
@@ -407,7 +359,7 @@ mod tests {
                 required: BigInt::from(SOLANA_MINIMUM_ACCOUNT_BALANCE),
                 available: BigInt::from(SOLANA_MINIMUM_ACCOUNT_BALANCE - FEE),
             },
-            "a zero value deposit still spends the fee, and only a transfer sends the rest along, so the minimum balance rule applies"
+            "a zero value transfer still spends the fee, so the minimum balance rule applies"
         );
 
         let hypercore = Asset::from_chain(Chain::HyperCore);
@@ -434,29 +386,7 @@ mod tests {
                 required: BigInt::from(SOLANA_MINIMUM_ACCOUNT_BALANCE),
                 available: BigInt::from(-4_000),
             },
-            "the fee doesn't fit next to the amount, and sending everything would send less than entered"
-        );
-        let leaves_half_rent = 1_000_000_000 + FEE + 500_000;
-        assert_sends_everything(TransferAmountInput::mock(transfer.clone(), 1_000_000_000, leaves_half_rent, leaves_half_rent), "leaving 0.0005 SOL is under the rent minimum");
-        assert_eq!(
-            TransferAmountInput::mock(
-                TransactionInputType::Swap {
-                    from_asset: Asset::mock_sol(),
-                    to_asset: Asset::mock_eth(),
-                    swap_data: SwapData::mock_transfer(SwapProvider::NearIntents, "999000", "1000000", "deposit"),
-                },
-                999_000,
-                1_000_000,
-                1_000_000
-            )
-            .calculate()
-            .unwrap_err(),
-            TransferAmountError::MinimumAccountBalanceTooLow {
-                asset_id: Asset::mock_sol().id,
-                required: BigInt::from(SOLANA_MINIMUM_ACCOUNT_BALANCE),
-                available: BigInt::from(-4_000),
-            },
-            "a swap keeps its quoted amount, so it is refused instead"
+            "sending almost the whole balance is a reserve problem, not insufficient balance"
         );
 
         assert_eq!(
@@ -475,7 +405,14 @@ mod tests {
             "leaving exactly the rent-exempt minimum keeps the account, so it is allowed"
         );
 
-        assert_sends_everything(TransferAmountInput::mock(transfer.clone(), 10_000_000, exactly_minimum - 1, exactly_minimum - 1), "one lamport under the rent minimum");
+        assert_eq!(
+            TransferAmountInput::mock(transfer.clone(), 10_000_000, exactly_minimum - 1, exactly_minimum - 1).calculate().unwrap_err(),
+            TransferAmountError::MinimumAccountBalanceTooLow {
+                asset_id: Asset::mock_sol().id,
+                required: BigInt::from(SOLANA_MINIMUM_ACCOUNT_BALANCE),
+                available: BigInt::from(SOLANA_MINIMUM_ACCOUNT_BALANCE - 1),
+            }
+        );
 
         let mut max = TransferAmountInput::mock(transfer, 1_000_000_000, 1_000_000_000, 1_000_000_000);
         max.is_max_amount = true;
@@ -508,8 +445,14 @@ mod tests {
             TransferAmountInput::mock(dot.clone(), 10_000_000_000, 15_000_000_000, 15_000_000_000).calculate().is_ok(),
             "leaving 0.5 DOT keeps the account on Asset Hub"
         );
-        let leaves_half_deposit = 10_000_000_000 + FEE + 50_000_000;
-        assert_sends_everything(TransferAmountInput::mock(dot, 10_000_000_000, leaves_half_deposit, leaves_half_deposit), "leaving 0.005 DOT is under the existential deposit");
+        assert_eq!(
+            TransferAmountInput::mock(dot, 10_000_000_000, 10_100_004_999, 10_100_004_999).calculate().unwrap_err(),
+            TransferAmountError::MinimumAccountBalanceTooLow {
+                asset_id: AssetId::from_chain(Chain::Polkadot),
+                required: BigInt::from(100_000_000),
+                available: BigInt::from(99_999_999),
+            }
+        );
     }
 
     #[test]

@@ -175,7 +175,7 @@ pub use self::address_status::AddressStatus;
 pub mod wallet_configuration;
 pub use self::wallet_configuration::{WalletConfiguration, WalletConfigurationResult};
 pub mod utxo;
-pub use self::utxo::{OutputMinimum, UTXO};
+pub use self::utxo::UTXO;
 pub mod scan;
 pub use self::scan::{AddressType, ScanAddress, ScanAddressTarget, ScanOutcome, ScanProvider, ScanSource, ScanTransaction, ScanTransactionPayload, ScanType, ScanVerdict};
 pub mod hex;

@@ -14,7 +14,7 @@ use num_bigint::BigInt;
 use primitives::{AssetId, BitcoinChain, SignerError, SignerInput, TransactionFee, TransactionInputType, TransactionLoadInput};
 
 pub use chain_signer::BitcoinChainSigner;
-pub use planner::{PlanInput, PlanOutput, SpendDestination, SpendFee, SpendPlan, SpendRequest, UtxoPlanner, output_minimum};
+pub use planner::{PlanInput, PlanOutput, SpendDestination, SpendFee, SpendPlan, SpendRequest, UtxoPlanner};
 pub use transaction::{PlanSigningKey, der_signature, signature_push_bytes};
 
 #[cfg(feature = "rpc")]

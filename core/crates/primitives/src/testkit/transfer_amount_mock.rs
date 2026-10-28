@@ -13,7 +13,6 @@ impl TransferAmountInput {
             fee: BigInt::from(5_000u64),
             is_max_amount: false,
             destination_account_exists: None,
-            output_minimum: None,
         }
     }
 }

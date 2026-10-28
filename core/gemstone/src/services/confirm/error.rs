@@ -61,9 +61,6 @@ pub enum GemConfirmError {
         provider_name: String,
         requirement: GemBalanceRequirement,
     },
-    DustThreshold {
-        chain: Chain,
-    },
     SenderMismatch {
         from: String,
         signer: String,
@@ -100,7 +97,6 @@ impl GemConfirmError {
             | Self::MinimumAccountBalanceTooLow { .. }
             | Self::DestinationAccountActivation { .. }
             | Self::BelowSwapMinimum { .. }
-            | Self::DustThreshold { .. }
             | Self::SenderMismatch { .. }
             | Self::Sign { .. }
             | Self::ApprovalInvalid { .. }
@@ -125,7 +121,6 @@ impl GemConfirmError {
             | Self::BalanceMissing { .. }
             | Self::DestinationAccountActivation { .. }
             | Self::BelowSwapMinimum { .. }
-            | Self::DustThreshold { .. }
             | Self::SenderMismatch { .. }
             | Self::Sign { .. }
             | Self::ApprovalInvalid { .. }
@@ -151,7 +146,6 @@ impl GemConfirmError {
             | Self::MinimumAccountBalanceTooLow { .. }
             | Self::DestinationAccountActivation { .. }
             | Self::BelowSwapMinimum { .. }
-            | Self::DustThreshold { .. }
             | Self::SenderMismatch { .. }
             | Self::Sign { .. }
             | Self::ApprovalInvalid { .. }
@@ -315,8 +309,8 @@ impl GemConfirmError {
                 provider_name: provider_name.clone(),
                 requirement: GemConfirmRequirement::new(requirement, asset),
             },
-            Self::DustThreshold { chain } => GemConfirmErrorDisplay::DustThreshold { chain: *chain },
-            Self::Sign { error, msg, .. } => match error {
+            Self::Sign { error, chain, msg } => match error {
+                GemSignerError::DustThreshold => GemConfirmErrorDisplay::DustThreshold { chain: *chain },
                 GemSignerError::InsufficientFunds => GemConfirmErrorDisplay::InsufficientFunds,
                 GemSignerError::InvalidInput(_) | GemSignerError::SigningError(_) | GemSignerError::SwapValueBelowMinimum { .. } => GemConfirmErrorDisplay::Message { msg: msg.clone() },
             },
@@ -361,7 +355,6 @@ impl std::fmt::Display for GemConfirmError {
             Self::BelowSwapMinimum { asset, provider_name, requirement, .. } => {
                 write!(f, "{} amount is below the {} minimum {}", asset.symbol, provider_name, requirement.required)
             }
-            Self::DustThreshold { chain } => write!(f, "{chain} amount is below the dust threshold"),
             Self::SenderMismatch { from, signer } => write!(f, "transaction was built for {from} but would be signed by {signer}"),
             Self::Cancelled => write!(f, "cancelled"),
             Self::Payment { status } => write!(f, "payment is {status:?}"),
@@ -414,10 +407,11 @@ impl From<SwapperError> for GemConfirmError {
     }
 }
 
-pub(super) fn load_error(error: GatewayError) -> GemConfirmError {
+pub(super) fn load_error(chain: Chain, error: GatewayError) -> GemConfirmError {
     match error {
         GatewayError::Offline => GemConfirmError::Offline,
         GatewayError::NetworkError { msg } => GemConfirmError::Network { msg },
+        GatewayError::SignerError { error } => GemConfirmError::Sign { msg: error.to_string(), error, chain },
         error => GemConfirmError::Load { msg: error.to_string() },
     }
 }
@@ -433,6 +427,7 @@ pub(super) fn broadcast_error(hashes: Vec<String>, error: GatewayError) -> GemCo
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::gateway::map_network_error;
 
     #[test]
     fn test_only_a_flagged_recipient_shows_the_suspicious_address_notice() {
@@ -511,7 +506,11 @@ mod tests {
             }
         );
 
-        let dust = GemConfirmError::DustThreshold { chain: Chain::Bitcoin };
+        let dust = GemConfirmError::Sign {
+            error: GemSignerError::DustThreshold,
+            chain: Chain::Bitcoin,
+            msg: "dust".to_string(),
+        };
         let signing = GemConfirmError::Sign {
             error: GemSignerError::SigningError("boom".to_string()),
             chain: Chain::Bitcoin,
@@ -527,8 +526,13 @@ mod tests {
 
     #[test]
     fn test_gateway_errors_keep_their_kind() {
-        assert_eq!(load_error(GatewayError::NetworkError { msg: "timeout".to_string() }), GemConfirmError::Network { msg: "timeout".to_string() });
-        assert_eq!(load_error(GatewayError::Offline), GemConfirmError::Offline);
+        assert_eq!(load_error(Chain::Bitcoin, GatewayError::NetworkError { msg: "timeout".to_string() }), GemConfirmError::Network { msg: "timeout".to_string() });
+        assert_eq!(load_error(Chain::Bitcoin, GatewayError::Offline), GemConfirmError::Offline);
+        assert_eq!(
+            load_error(Chain::Bitcoin, map_network_error(Box::new(GemSignerError::DustThreshold))).display(),
+            GemConfirmErrorDisplay::DustThreshold { chain: Chain::Bitcoin },
+            "dust found while loading the fee shows the dust explanation, as it does at signing"
+        );
         assert_eq!(broadcast_error(vec![], GatewayError::Offline), GemConfirmError::Offline);
         assert_eq!(
             broadcast_error(vec!["h1".to_string()], GatewayError::Offline),
@@ -537,7 +541,10 @@ mod tests {
                 msg: GatewayError::Offline.to_string(),
             }
         );
-        assert_eq!(load_error(GatewayError::PlatformError { msg: "dust".to_string() }), GemConfirmError::Load { msg: "Platform error: dust".to_string() });
+        assert_eq!(
+            load_error(Chain::Bitcoin, GatewayError::PlatformError { msg: "dust".to_string() }),
+            GemConfirmError::Load { msg: "Platform error: dust".to_string() }
+        );
         assert_eq!(broadcast_error(vec![], GatewayError::NetworkError { msg: "offline".to_string() }), GemConfirmError::Network { msg: "offline".to_string() });
         assert_eq!(
             broadcast_error(vec!["h1".to_string()], GatewayError::NetworkError { msg: "offline".to_string() }),

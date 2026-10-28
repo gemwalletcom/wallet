@@ -116,8 +116,8 @@ impl GemConfirmService {
             scan_future,
             self.simulate(chain, input),
         );
-        let metadata = metadata.map_err(error::load_error)?;
-        let fee_rates = fee_rates.map_err(error::load_error)?;
+        let metadata = metadata.map_err(|error| error::load_error(chain, error))?;
+        let fee_rates = fee_rates.map_err(|error| error::load_error(chain, error))?;
         let fee_rates = rules::confirmation_fee_rates(&asset.id, transfer.use_max_amount, fee_rates);
         let simulation = simulation?;
 
@@ -145,7 +145,7 @@ impl GemConfirmService {
                     },
                 )
                 .await
-                .map_err(error::load_error)?
+                .map_err(|error| error::load_error(chain, error))?
         };
 
         let mut fee = load.fee;
@@ -164,11 +164,7 @@ impl GemConfirmService {
             metadata: load.metadata,
             simulation,
         };
-        let fee_load = confirm_data.fee_load(confirm_metadata?, fee_asset?, currency.clone());
-        match fee_load.send_everything_input() {
-            Some(input) => Box::pin(self.load(wallet_id, &input, options, currency)).await,
-            None => Ok(fee_load),
-        }
+        Ok(confirm_data.fee_load(confirm_metadata?, fee_asset?, currency))
     }
 
     pub fn simulation(&self, input_type: TransactionInputType, simulation: Option<SimulationResult>, assets: Vec<Asset>, address_url: impl Fn(Chain, String) -> BlockExplorerLink) -> GemConfirmSimulation {

@@ -190,8 +190,6 @@ Some networks require a balance to keep an account open, a minimum payment to ac
 | Polkadot Asset Hub | Minimum remaining balance | 0.01 DOT |
 | Solana | Minimum remaining balance | 0.00089088 SOL |
 | Solana | Recipient token account creation | 0.00148844 SOL |
-| Cardano | Minimum output, for the amount sent and the change kept | 1 ADA |
-| Bitcoin-family networks | Minimum output (dust), for the amount sent and the change kept | Set by the address type, such as 0.00000294 BTC for a `bc1q` address |
 | XRP | New account activation and base reserve | 1 XRP |
 | XRP | Additional reserve per owned object, including a token trust line | 0.2 XRP |
 | Stellar | New account activation | 1 XLM |
@@ -201,9 +199,7 @@ Some networks require a balance to keep an account open, a minimum payment to ac
 
 | When | Expected | Why |
 |---|---|---|
-| A send of a native coin would leave less than its minimum balance after the fee | everything is sent instead, never less than the amount entered, as [Transfer](product/transfer.md) describes | the remainder could not stay in the account |
-| Any other spending of a native coin, such as a swap or a stake, would leave less than its minimum balance after the fee | it is refused and the minimum is shown | the network can remove an account below its minimum and the remainder can be lost |
-| A swap on a Bitcoin-family network would leave dust change | the dust goes to the network fee and the swap goes ahead (`test_swap_dust_change_goes_to_the_fee`) | dust change is too small to keep as an output; on Cardano the 1 ADA minimum is refused instead, since that much is too much to lose to the fee |
+| Spending a native coin, other than Max, would leave less than its minimum balance after the fee | it is refused and the minimum is shown | the network can remove an account below its minimum and the remainder can be lost |
 | The user picks Max | the minimum remaining balance check is skipped; reserved balances stay unavailable | the user can empty an account where the network allows it |
 | A native coin send or payment to a new account is below its activation amount | it is refused and the required amount is shown | the recipient's account cannot be created with that amount |
 | A Solana token transfer needs a recipient token account | its creation amount is included in the Network Fee | the sender funds the new token account |

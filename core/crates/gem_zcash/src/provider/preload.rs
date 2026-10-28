@@ -2,18 +2,13 @@ use std::{collections::HashMap, error::Error};
 
 use async_trait::async_trait;
 use chain_traits::{ChainTransactionLoad, TransactionFeeOperation};
-use gem_bitcoin::provider::preload_mapper::{map_utxos, preload_output_minimum};
+use gem_bitcoin::provider::preload_mapper::map_utxos;
 use gem_client::Client;
 use num_bigint::BigInt;
-use primitives::{
-    AssetId, BitcoinChain, Chain, FeePriority, FeeRate, GasPriceType, SignerError, SignerInput, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput, UTXO,
-};
+use primitives::{AssetId, Chain, FeePriority, FeeRate, GasPriceType, SignerError, SignerInput, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput, UTXO};
 
 use super::ZcashProvider;
-use crate::{
-    address::{Destination, ParseAddress},
-    signer::Plan,
-};
+use crate::signer::Plan;
 
 const FEE_RATE: u64 = 10_000;
 
@@ -27,12 +22,9 @@ impl<C: Client> ChainTransactionLoad for ZcashProvider<C> {
         let utxos = self.client.get_utxos(&input.sender_address).await?;
         let node_info = self.client.get_node_info().await?;
         let branch_id = node_info.backend.consensus.ok_or("Branch ID not found")?.nextblock;
-        let (destination, _) = Destination::parse(input.input_type.swap_to_address().unwrap_or(&input.destination_address))?.into_spend();
-        let output_minimum = preload_output_minimum(BitcoinChain::Zcash, &input, &destination)?;
         Ok(TransactionLoadMetadata::Zcash {
             utxos: map_utxos(utxos, input.sender_address),
             branch_id,
-            output_minimum,
         })
     }
 
@@ -70,7 +62,7 @@ mod tests {
     };
     use gem_client::testkit::MockClient;
     use num_bigint::BigUint;
-    use primitives::testkit::zcash_mock;
+    use primitives::{BitcoinChain, testkit::zcash_mock};
 
     use super::*;
     use crate::testkit::TEST_ZCASH_UNIFIED_ADDRESS;

@@ -1,7 +1,7 @@
 use super::signer_mock::{TEST_EVM_RECIPIENT, TEST_EVM_SENDER, TEST_OSMOSIS_SENDER, TEST_POLKADOT_SENDER};
 use crate::{
-    ApplicationMetadata, Asset, AssetId, AssetType, Chain, GasPriceType, OutputMinimum, SignerInput, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransferDataExtra, TransferDataOutputAction,
-    TransferDataOutputType, UTXO, asset_constants::NEAR_USDT_ASSET_ID,
+    ApplicationMetadata, Asset, AssetId, AssetType, Chain, GasPriceType, SignerInput, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType,
+    UTXO, asset_constants::NEAR_USDT_ASSET_ID,
 };
 use num_bigint::BigInt;
 use num_bigint::BigUint;
@@ -216,7 +216,6 @@ impl TransactionLoadInput {
             is_max_value: false,
             metadata: TransactionLoadMetadata::Cardano {
                 block_number: 189_992_800,
-                output_minimum: OutputMinimum { payment: 1_000_000, change: 1_000_000 },
                 utxos: vec![
                     UTXO {
                         transaction_id: "f074134aabbfb13b8aec7cf5465b1e5a862bde5cb88532cc7e64619179b3e767".to_string(),

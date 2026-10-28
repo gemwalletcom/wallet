@@ -1,7 +1,7 @@
 use std::fmt::{self, Debug, Formatter};
 use std::sync::Arc;
 
-use crate::{OutputMinimum, UTXO, contract_call_data::ContractCallData, solana_nft::SolanaNftStandard, solana_token_program::SolanaTokenProgramId, stake_type::TronStakeData};
+use crate::{UTXO, contract_call_data::ContractCallData, solana_nft::SolanaNftStandard, solana_token_program::SolanaTokenProgramId, stake_type::TronStakeData};
 
 pub struct AgentPrivateKey(String);
 
@@ -62,17 +62,14 @@ pub enum TransactionLoadMetadata {
     },
     Bitcoin {
         utxos: Vec<UTXO>,
-        output_minimum: OutputMinimum,
     },
     Zcash {
         utxos: Vec<UTXO>,
         branch_id: String,
-        output_minimum: OutputMinimum,
     },
     Cardano {
         utxos: Vec<UTXO>,
         block_number: u64,
-        output_minimum: OutputMinimum,
     },
     Evm {
         nonce: u64,
@@ -189,17 +186,10 @@ impl TransactionLoadMetadata {
 
     pub fn get_utxos(&self) -> Result<Vec<crate::UTXO>, Box<dyn std::error::Error + Send + Sync>> {
         match self {
-            TransactionLoadMetadata::Bitcoin { utxos, .. } => Ok(utxos.clone()),
+            TransactionLoadMetadata::Bitcoin { utxos } => Ok(utxos.clone()),
             TransactionLoadMetadata::Zcash { utxos, .. } => Ok(utxos.clone()),
             TransactionLoadMetadata::Cardano { utxos, .. } => Ok(utxos.clone()),
             _ => Err("UTXOs not available for this metadata type".into()),
-        }
-    }
-
-    pub fn get_output_minimum(&self) -> Option<OutputMinimum> {
-        match self {
-            TransactionLoadMetadata::Bitcoin { output_minimum, .. } | TransactionLoadMetadata::Zcash { output_minimum, .. } | TransactionLoadMetadata::Cardano { output_minimum, .. } => Some(*output_minimum),
-            _ => None,
         }
     }
 

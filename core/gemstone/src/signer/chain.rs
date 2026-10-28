@@ -524,6 +524,13 @@ mod tests {
     #[test]
     fn test_map_signer_error() {
         assert_eq!(
+            map_signer_error(Chain::Bitcoin, "transfer", SignerError::DustThreshold),
+            GemstoneError::SignerError {
+                error: SignerError::DustThreshold,
+                msg: "transaction amount is below the dust threshold".to_string(),
+            }
+        );
+        assert_eq!(
             map_signer_error(Chain::Cardano, "transfer", SignerError::InsufficientFunds),
             GemstoneError::SignerError {
                 error: SignerError::InsufficientFunds,

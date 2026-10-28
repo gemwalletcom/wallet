@@ -3,10 +3,9 @@ use bitcoin::{
     blockdata::{opcodes::all::OP_RETURN, script::Builder},
     script::PushBytesBuf,
 };
-use primitives::{BitcoinChain, OutputMinimum, SignerError};
+use primitives::{BitcoinChain, SignerError};
 
 use super::{PlanOutput, SpendDestination};
-use crate::signer::address::script_for_address;
 
 const MAX_OP_RETURN_BYTES: usize = 80;
 
@@ -24,6 +23,13 @@ impl Payment {
                 memo_output: memo.map(op_return_output).transpose()?,
             }),
             SpendDestination::External => Ok(Self::External),
+        }
+    }
+
+    pub(super) fn dust_threshold(&self, chain: BitcoinChain) -> u64 {
+        match self {
+            Self::Script { script_pubkey, .. } => dust_threshold(chain, script_pubkey),
+            Self::External => 0,
         }
     }
 
@@ -64,32 +70,5 @@ pub(super) fn dust_threshold(chain: BitcoinChain, script_pubkey: &ScriptBuf) -> 
     match chain {
         BitcoinChain::Doge => threshold.saturating_mul(chain.minimum_byte_fee() as u64),
         BitcoinChain::Bitcoin | BitcoinChain::BitcoinCash | BitcoinChain::Litecoin | BitcoinChain::Dash | BitcoinChain::Zcash => threshold,
-    }
-}
-
-pub fn output_minimum(chain: BitcoinChain, sender_address: &str, destination: &SpendDestination) -> Result<OutputMinimum, SignerError> {
-    let payment = match destination {
-        SpendDestination::Script(script_pubkey) => dust_threshold(chain, script_pubkey),
-        SpendDestination::External => 0,
-    };
-    Ok(OutputMinimum {
-        payment,
-        change: dust_threshold(chain, &script_for_address(chain, sender_address)?.script_pubkey),
-    })
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::testkit::address_mock::{mock_destination_address, mock_sender_address};
-
-    #[test]
-    fn test_output_minimum() {
-        let chain = BitcoinChain::Bitcoin;
-        let sender_address = mock_sender_address(chain);
-        let destination = SpendDestination::script(chain, &mock_destination_address(chain)).unwrap();
-
-        assert_eq!(output_minimum(chain, &sender_address, &destination).unwrap(), OutputMinimum { payment: 546, change: 546 });
-        assert_eq!(output_minimum(chain, &sender_address, &SpendDestination::External).unwrap(), OutputMinimum { payment: 0, change: 546 });
     }
 }

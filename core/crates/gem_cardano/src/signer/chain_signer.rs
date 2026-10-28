@@ -40,13 +40,7 @@ mod tests {
 
     #[test]
     fn test_sign_transfer_vector() {
-        let input = SignerInput::new(
-            TransactionLoadInput {
-                is_max_value: true,
-                ..TransactionLoadInput::mock_cardano(WALLET_CORE_OWN_ADDRESS_1, "8000000")
-            },
-            TransactionFee::mock(),
-        );
+        let input = SignerInput::new(TransactionLoadInput::mock_cardano(WALLET_CORE_OWN_ADDRESS_1, "7000000"), TransactionFee::mock());
         let private_key = hex::decode(PRIVATE_KEY_TEST_1).unwrap();
         let plan = plan_transfer(&input.input).unwrap();
         let key_pair = CardanoExtendedKeyPair::from_private_key(&private_key).unwrap();
@@ -58,20 +52,20 @@ mod tests {
 
         assert_eq!(
             hex::encode(transaction.signed_bytes(&key_pair.public_key(), &signature)),
-            "84a40082825820f074134aabbfb13b8aec7cf5465b1e5a862bde5cb88532cc7e64619179b3e76701825820554f2fd942a23d06835d26bbd78f0106fa94c8a551114a0bef81927f66467af000018182583901558dd902616f5cd01edcc62870cb4748c45403f1228218bee5b628b526f0ca9e7a2c04d548fbd6ce86f358be139fe680652536437d1d6fd51a0077842e021a00028dd2031a032dcd55a100818258206d8a0b425bd2ec9692af39b1c0cf0e51caa07a603550e22f54091e872c7df29058409f26ddcf33abbbfd07c57271547df59e0f88df4f5baf224cb332877a56130fe5349a8b3beefb3f65409f79ad7c46f05d5a65fe7ff8cca12a8af21bc72886dd0af5f6"
+            "84a40082825820554f2fd942a23d06835d26bbd78f0106fa94c8a551114a0bef81927f66467af000825820f074134aabbfb13b8aec7cf5465b1e5a862bde5cb88532cc7e64619179b3e76701018182583901558dd902616f5cd01edcc62870cb4748c45403f1228218bee5b628b526f0ca9e7a2c04d548fbd6ce86f358be139fe680652536437d1d6fd51a006acfc0021a000f4240031a032dcd55a100818258206d8a0b425bd2ec9692af39b1c0cf0e51caa07a603550e22f54091e872c7df29058407519e5e7391f8a47f58c8ded1ce532dc80910ef25b108b1092cb58e86a318964956d00af763087fddabf631d00508d1e9c206eaf762176f538042f5c52f6d902f5f6"
         );
-        assert_eq!(hex::encode(transaction_id), "aa990256841101b285f90ff65669090afb6058478069e49019ed2da09e4c1ce9");
+        assert_eq!(hex::encode(transaction_id), "92859ce37002afc9185c5a918e6596b90258dd3b59ea686ec625bf1b15a5c101");
     }
 
     #[test]
     fn test_sign_transfer_rejects_invalid_key_length() {
-        let input = SignerInput::new(TransactionLoadInput::mock_cardano(WALLET_CORE_OWN_ADDRESS_1, "2000000"), TransactionFee::mock());
+        let input = SignerInput::new(TransactionLoadInput::mock_cardano(WALLET_CORE_OWN_ADDRESS_1, "7000000"), TransactionFee::mock());
         assert!(CardanoChainSigner.sign_transfer(&input, &[0u8; 32]).is_err());
     }
 
     #[test]
     fn test_sign_transfer_rejects_sender_key_mismatch() {
-        let input = SignerInput::new(TransactionLoadInput::mock_cardano(TO_ADDRESS, "2000000"), TransactionFee::mock());
+        let input = SignerInput::new(TransactionLoadInput::mock_cardano(TO_ADDRESS, "7000000"), TransactionFee::mock());
         let private_key = hex::decode(PRIVATE_KEY_TEST_1).unwrap();
         assert_eq!(
             CardanoChainSigner.sign_transfer(&input, &private_key).err().unwrap().to_string(),

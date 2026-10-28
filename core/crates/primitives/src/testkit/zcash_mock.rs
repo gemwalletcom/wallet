@@ -1,7 +1,7 @@
 use num_bigint::BigInt;
 use num_bigint::BigUint;
 
-use crate::{Asset, AssetId, Chain, GasPriceType, OutputMinimum, SignerInput, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, UTXO};
+use crate::{Asset, AssetId, Chain, GasPriceType, SignerInput, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, UTXO};
 
 pub const TEST_ZCASH_TRANSPARENT_ADDRESS: &str = "t1VmmGiyjVNeCjxDZzg7vZmd99WyzVby9yC";
 pub const TEST_ZCASH_TEX_ADDRESS: &str = "tex1s2rt77ggv6q989lr49rkgzmh5slsksa9khdgte";
@@ -25,7 +25,6 @@ pub fn mock_signer_input_with_branch_id(sender_address: String, destination_addr
             is_max_value: false,
             metadata: TransactionLoadMetadata::Zcash {
                 branch_id: branch_id.to_string(),
-                output_minimum: OutputMinimum { payment: 546, change: 546 },
                 utxos: vec![UTXO {
                     transaction_id: "0000000000000000000000000000000000000000000000000000000000000001".to_string(),
                     vout: 0,

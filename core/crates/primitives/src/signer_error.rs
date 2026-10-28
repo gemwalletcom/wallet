@@ -4,6 +4,7 @@ use crate::{AddressError, HexError};
 pub enum SignerError {
     InvalidInput(String),
     SigningError(String),
+    DustThreshold,
     InsufficientFunds,
     SwapValueBelowMinimum,
 }
@@ -13,6 +14,7 @@ impl std::fmt::Display for SignerError {
         match self {
             SignerError::InvalidInput(msg) => write!(f, "Invalid input: {}", msg),
             SignerError::SigningError(msg) => write!(f, "Signing error: {}", msg),
+            SignerError::DustThreshold => write!(f, "transaction amount is below the dust threshold"),
             SignerError::InsufficientFunds => write!(f, "insufficient balance"),
             SignerError::SwapValueBelowMinimum => write!(f, "swap value after fee is below the provider minimum"),
         }
