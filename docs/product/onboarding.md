@@ -50,6 +50,7 @@ The Import screen, top to bottom:
 | The user picks Multi-Coin | it takes a Secret Phrase | |
 | The user picks a single network | it takes a Secret Phrase, a private key where the network supports one, or an address for a watch-only wallet | |
 | The user taps Paste | the copied text fills the input; a pasted Secret Phrase or private key is then cleared from the clipboard | a secret must not stay on the clipboard |
+| The user taps Paste with nothing on the clipboard | the input stays as it is | there is nothing to paste over what was typed |
 | The user taps Scan | the scanner opens for the picked kind, and the scanned code fills the input | |
 | The user types a Secret Phrase | word suggestions complete the last word, and a tap replaces it | |
 | The cursor is inside the phrase | no suggestions show | a tap never changes the wrong word |

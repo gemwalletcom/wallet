@@ -106,7 +106,8 @@ internal fun ImportInput(state: TextFieldState, input: ImportInputUIModel, indic
                 imageVector = AppIcons.ContentPaste,
                 text = stringResource(id = R.string.common_paste),
             ) {
-                state.setTextAndPlaceCursorAtEnd(clipboardManager.getPlainText().orEmpty().trim())
+                val pastedText = clipboardManager.getPlainText()?.trim() ?: return@FieldBottomAction
+                state.setTextAndPlaceCursorAtEnd(pastedText)
                 if (input.protectsInput) {
                     clipboardManager.clear()
                 }

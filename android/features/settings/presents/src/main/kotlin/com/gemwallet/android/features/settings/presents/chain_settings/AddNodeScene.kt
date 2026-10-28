@@ -118,7 +118,7 @@ private fun UrlField(value: MutableState<String> = mutableStateOf(""), error: St
             TransferTextFieldActions(
                 value = value.value,
                 paste = {
-                    value.value = clipboardManager.getPlainText()?.trim().orEmpty()
+                    value.value = clipboardManager.getPlainText()?.trim() ?: return@TransferTextFieldActions
                     onValueChange()
                 },
                 onClean = {

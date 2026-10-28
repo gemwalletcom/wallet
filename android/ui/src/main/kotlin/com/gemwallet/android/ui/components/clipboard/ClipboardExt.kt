@@ -48,7 +48,7 @@ private fun ClipboardManager.clearExpiredClip(label: String) {
     }
 }
 
-fun ClipboardManager.getPlainText(): String? = primaryClip?.getItemAt(0)?.text?.toString()
+fun ClipboardManager.getPlainText(): String? = primaryClip?.getItemAt(0)?.text?.toString()?.takeIf { it.isNotEmpty() }
 
 fun ClipboardManager.clear() {
     if (Build.VERSION.SDK_INT == Build.VERSION_CODES.P) {
