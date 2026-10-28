@@ -133,12 +133,13 @@ extension RootSceneViewModel {
 
 extension RootSceneViewModel {
     func onChangeWalletId() {
-        guard let currentWallet else {
+        let wallet = currentWallet
+        navigationRouter.resetNavigation(walletId: wallet?.id)
+        guard let wallet else {
             Task { await appLifecycleService.updateWalletConnections() }
             return
         }
-        navigationRouter.resetNavigation()
-        setup(wallet: currentWallet)
+        setup(wallet: wallet)
     }
 
     func openUrl(_ url: URL) async {

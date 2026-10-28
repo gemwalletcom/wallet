@@ -309,7 +309,7 @@ extension NavigationRouter {
             return navigationState.openWallet(path: path)
         }
         try walletSessionService.setCurrentWalletId(walletId: walletId)
-        navigationState.pendingWalletPath = path
+        navigationState.pendingWalletNavigation = (walletId, path)
     }
 
     private func presentAssetInput(type: SelectedAssetType, for asset: Asset) async throws {
@@ -317,7 +317,7 @@ extension NavigationRouter {
         try presenter.presentAssetInput(type: type, for: asset, wallet: wallet)
     }
 
-    func resetNavigation() {
-        navigationState.reset()
+    func resetNavigation(walletId: WalletId?) {
+        navigationState.reset(walletId: walletId)
     }
 }

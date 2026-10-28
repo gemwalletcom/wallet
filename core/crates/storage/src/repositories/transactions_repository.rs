@@ -9,9 +9,9 @@ use primitives::{AssetId, ChainAddress, Transaction, TransactionId, TransactionS
 use crate::models::*;
 use crate::repositories::wallets_repository::wallet_addresses;
 use crate::repositories::{Condition, QueryFilter, matching};
-use crate::schema::{transactions::dsl as transactions_dsl, transactions_addresses, wallets_addresses, wallets_subscriptions};
+use crate::schema::{transactions::dsl as transactions_dsl, transactions_addresses, wallets_addresses};
 use crate::sql_types::{AssetId as AssetIdRow, ChainRow, TransactionState, TransactionType};
-use crate::{DatabaseClient, DatabaseError, DieselResultExt, WalletsRepository};
+use crate::{DatabaseClient, DatabaseError, DieselResultExt};
 
 #[derive(Debug, Clone)]
 pub enum TransactionFilter {
@@ -58,7 +58,6 @@ fn transactions_with_addresses(rows: Vec<TransactionRow>, addresses: &[String]) 
 
 pub trait TransactionsRepository {
     fn get_transaction_by_id(&mut self, id: &TransactionId, wallet_addresses: Vec<String>) -> Result<Transaction, DatabaseError>;
-    fn get_transaction_by_wallet_id(&mut self, device_id: i32, wallet_id: i32, id: &TransactionId) -> Result<(Vec<String>, Transaction), DatabaseError>;
     fn get_transactions_by_hash(&mut self, hash: &str) -> Result<Vec<Transaction>, DatabaseError>;
     fn get_transaction_exists(&mut self, id: &TransactionId) -> Result<bool, DatabaseError>;
     fn set_transactions(&mut self, transactions: Vec<Transaction>) -> Result<HashSet<TransactionId>, DatabaseError>;
@@ -200,30 +199,6 @@ impl TransactionsRepository for DatabaseClient {
     fn get_transaction_by_id(&mut self, id: &TransactionId, wallet_addresses: Vec<String>) -> Result<Transaction, DatabaseError> {
         let row = get_transaction_by_id(self, id.chain.as_ref(), &id.hash).or_not_found(id.to_string())?;
         Ok(row.as_primitive(wallet_addresses)?)
-    }
-
-    fn get_transaction_by_wallet_id(&mut self, device_id: i32, wallet_id: i32, id: &TransactionId) -> Result<(Vec<String>, Transaction), DatabaseError> {
-        let wallet_transaction_ids = transactions_addresses::table
-            .inner_join(wallets_subscriptions::table.on(transactions_addresses::address_id.eq(wallets_subscriptions::address_id)))
-            .filter(wallets_subscriptions::device_id.eq(device_id))
-            .filter(wallets_subscriptions::wallet_id.eq(wallet_id))
-            .filter(wallets_subscriptions::chain.eq(ChainRow::from(id.chain)))
-            .select(transactions_addresses::transaction_id);
-        let row = transactions_dsl::transactions
-            .filter(transactions_dsl::chain.eq(id.chain.as_ref()))
-            .filter(transactions_dsl::hash.eq(&id.hash))
-            .filter(transactions_dsl::id.eq_any(wallet_transaction_ids))
-            .select(TransactionRow::as_select())
-            .first(&mut self.connection)
-            .or_not_found(id.to_string())?;
-        let addresses = self
-            .get_subscriptions_by_wallet_id(device_id, wallet_id)?
-            .into_iter()
-            .filter(|subscription| subscription.chain == id.chain)
-            .map(|subscription| subscription.address)
-            .collect::<Vec<_>>();
-        let transaction = row.as_primitive(addresses.clone())?;
-        Ok((addresses, transaction))
     }
 
     fn get_transactions_by_hash(&mut self, transaction_hash: &str) -> Result<Vec<Transaction>, DatabaseError> {
