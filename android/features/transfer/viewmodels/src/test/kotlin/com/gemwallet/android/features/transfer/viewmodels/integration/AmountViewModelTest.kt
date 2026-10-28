@@ -15,6 +15,8 @@ import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetData
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockBalance
+import com.gemwallet.android.testkit.mockDelegation
+import com.gemwallet.android.testkit.mockDelegationBase
 import com.gemwallet.android.testkit.mockDelegationValidator
 import com.gemwallet.android.testkit.mockGemStakeValidatorOptions
 import com.gemwallet.android.testkit.mockGemValidatorRow
@@ -224,6 +226,27 @@ class AmountViewModelTest {
 
         viewModelTest(AmountParams.Stake(asset.id, GemStakeAmountInput.Stake(rows[0].validator))) { viewModel ->
             assertEquals("v2", viewModel.validatorPicker.value?.selectedId)
+        }
+    }
+
+    @Test
+    fun `a claim shows the rewards of the validator the user picks`() {
+        val validators = listOf("v1", "v2").map { mockDelegationValidator(chain = Chain.Cosmos, id = it) }
+        val delegations = validators.zip(listOf(5_000_000L, 2_000_000L)) { validator, rewards ->
+            mockDelegation(base = mockDelegationBase(rewards = BigInteger.valueOf(rewards), validatorId = validator.id), validator = validator).toGem()
+        }
+        val rows = validators.map { mockGemValidatorRow(validator = it.toGem(), name = it.name, placeholder = it.name.take(1), apr = GemLocalizedText.Apr(null)) }
+        every { service.stakeValidatorOptions(any(), any(), any()) } returns mockGemStakeValidatorOptions(sections = listOf(mockGemValidatorSection(kind = GemValidatorSectionKind.ACTIVE, rows = rows)))
+
+        viewModelTest(AmountParams.Stake(asset.id, GemStakeAmountInput.Rewards(delegations, validators[0].toGem()))) { viewModel ->
+            assertEquals("5", viewModel.amount)
+
+            viewModel.selectValidator("v2")
+            Snapshot.sendApplyNotifications()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            assertEquals("2", viewModel.amount)
+            assertEquals(ButtonState.Enabled, viewModel.uiState.value.buttonState)
         }
     }
 

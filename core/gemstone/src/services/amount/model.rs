@@ -299,6 +299,7 @@ pub struct GemAmountSession {
     pub text: String,
     pub input_type: GemAmountInputType,
     pub format: GemNumberFormat,
+    pub prefill: Option<GemAmountMaxEntry>,
 }
 
 #[uniffi::export]
@@ -307,6 +308,7 @@ pub fn new_amount_session(format: GemNumberFormat) -> GemAmountSession {
         text: String::new(),
         input_type: GemAmountInputType::Asset,
         format,
+        prefill: None,
     }
 }
 
@@ -332,10 +334,17 @@ impl GemAmountSession {
         self.filled(input.max_entry(), &asset)
     }
 
-    pub fn on_prefill(&self, input: GemAmountInput, asset: Asset) -> Self {
+    pub fn on_input_changed(&self, input: GemAmountInput, asset: Asset) -> Self {
+        if input.prefill == self.prefill {
+            return self.clone();
+        }
+        let session = Self {
+            prefill: input.prefill.clone(),
+            ..self.clone()
+        };
         match input.prefill {
-            Some(prefill) => self.filled(prefill, &asset),
-            None => self.clone(),
+            Some(prefill) => session.filled(prefill, &asset),
+            None => session,
         }
     }
 
@@ -507,7 +516,25 @@ mod tests {
 
         let toggled = max.on_toggle();
         assert_eq!((toggled.text.as_str(), toggled.input_type), ("", GemAmountInputType::Fiat), "switching sides starts over");
-        assert_eq!(session.on_prefill(input, asset).text, "", "a transfer the user types has nothing to prefill");
+        assert_eq!(session.on_input_changed(input, asset).text, "", "a transfer the user types has nothing to prefill");
+    }
+
+    #[test]
+    fn test_the_field_takes_a_new_prefill_and_keeps_the_users_text_while_the_prefill_stays() {
+        let asset = Asset::from_chain(Chain::Bitcoin);
+        let input = |prefill: u64| GemAmountInput {
+            prefill: Some(GemAmountMaxEntry {
+                input_type: GemAmountInputType::Asset,
+                value: GemBigInt::from(prefill),
+            }),
+            ..GemAmountType::Transfer.input(&asset, &GemAssetBalance::mock_with_available(0))
+        };
+        let session = new_amount_session(GemNumberFormat { decimal_separator: ".".to_string() }).on_input_changed(input(500_000_000), asset.clone());
+        assert_eq!(session.text, "5");
+
+        assert_eq!(session.on_input_changed(input(200_000_000), asset.clone()).text, "2", "a claim from another validator");
+        assert_eq!(session.on_text("0.3".to_string()).on_input_changed(input(500_000_000), asset.clone()).text, "0.3", "an edited amount");
+        assert_eq!(session.on_clear().on_input_changed(input(500_000_000), asset).text, "", "a cleared amount");
     }
 
     #[test]

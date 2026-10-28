@@ -27,6 +27,7 @@ flowchart LR
 | No other active validator exists | no Redelegate | |
 | The user redelegates | never to the validator being left | |
 | The delegation is awaiting withdrawal | Withdraw is offered | |
+| The user claims rewards on a network that claims one validator at a time and picks another validator | the amount becomes that validator's rewards | the claim takes every reward of the validator it names, so the amount is never typed |
 | The coin is TRX on TRON | the user freezes and unfreezes it, and sees Energy and Bandwidth as "available / total" | |
 | The wallet has no delegations | a loading row until the first sync answers, then the empty state or the sync's error | the screen never says nothing is staked before it knows |
 
