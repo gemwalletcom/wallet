@@ -92,6 +92,19 @@ class TinkEncryptedKeyValueStoreInstrumentedTest {
     }
 
     @Test
+    fun repair_keepsAPasswordLeftInTheLegacyStoreWhenOnlyTheGemPreferencesKeyChanged() {
+        TinkGemPreferences(context).set("instrumented_gem_preference", "preference")
+        legacyPreferences().edit().putString(PasswordStore.Keys.Password.key, "legacy-password").commit()
+        androidKeyStore().deleteEntry(GEM_PREFERENCES_STORE_CONFIG.masterKeyAlias)
+
+        assertTrue(TinkPasswordStore(context).canReadPasswords(listOf(PasswordStore.Keys.Password.key)))
+        SecureStorageRecovery(context).clearUnreadableLockStores()
+
+        assertTrue(context.getSharedPreferences(GEM_PREFERENCES_FILE_NAME, Context.MODE_PRIVATE).all.isEmpty())
+        assertEquals("legacy-password", TinkPasswordStore(context).getPassword(PasswordStore.Keys.Password.key))
+    }
+
+    @Test
     fun encryptedStore_roundTripsAndRejectsMismatchedAssociatedData() {
         val sourceKey = "source-key"
         val targetKey = "target-key"

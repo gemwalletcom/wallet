@@ -43,7 +43,7 @@ class TinkPasswordStore internal constructor(private val encryptedStore: SecureS
     fun authenticationRequired(): Boolean = keyset?.authenticationRequired == true
 
     fun canReadPasswords(keys: List<String>): Boolean = try {
-        keyset?.isKeyLost != true && keys.all { encryptedStore.getString(it) != null }
+        keyset?.isKeyLost != true && keys.all { (encryptedStore.getString(it) ?: legacyStore.getString(it)) != null }
     } catch (_: KeystoreKeyChangedException) {
         false
     }
