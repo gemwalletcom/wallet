@@ -46,9 +46,9 @@ public final class ValidatorSelectSceneViewModel {
         service.stakeValidatorOptions(chain: chain.rawValue, input: input, validators: validatorsQuery.value.map { $0.toGem() })
     }
 
-    func list(_ options: GemStakeValidatorOptions) -> [ListItemValueSection<GemValidatorRow>] {
+    func list(_ options: GemStakeValidatorOptions) -> [ListSection<GemValidatorRow>] {
         options.sections.map {
-            ListItemValueSection(section: $0.kind.title, values: $0.rows.map { ListItemValue(value: $0) })
+            ListSection(id: String(describing: $0.kind), title: $0.kind.title, image: nil, values: $0.rows)
         }
     }
 

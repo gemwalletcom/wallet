@@ -7,6 +7,7 @@ import protocol Gemstone.GemNameServiceProtocol
 import struct Gemstone.GemPaymentRecipient
 import struct Gemstone.GemRecipient
 import enum Gemstone.GemRecipientNext
+import struct Gemstone.GemRecipientRow
 import protocol Gemstone.GemRecipientServiceProtocol
 import struct Gemstone.GemRecipientSession
 import enum Gemstone.GemRecipientType
@@ -43,7 +44,7 @@ public final class RecipientSceneViewModel {
     }
 
     public let walletsQuery: ObservableQuery<WalletAddressItemsQuery>
-    private(set) var recipientSections: [ListItemValueSection<GemRecipient>] = []
+    private(set) var recipientSections: [ListSection<GemRecipientRow>] = []
 
     public init(
         asset: Asset,
@@ -102,19 +103,13 @@ public final class RecipientSceneViewModel {
         asset.chain.isMemoSupported
     }
 
-    func listItem(for item: ListItemValue<GemRecipient>) -> ListItemModel {
-        ListItemModel(title: item.title ?? item.value.name, subtitle: item.subtitle)
+    func listItem(for row: GemRecipientRow) -> ListItemModel {
+        ListItemModel(title: row.title, subtitle: row.subtitle)
     }
 
     func updateRecipientSections() {
         recipientSections = service.recipientSections(wallets: walletsQuery.value.map { $0.toGem() }, chain: asset.chain.rawValue, contacts: contacts.map { $0.toGem() })
-            .map {
-                ListItemValueSection(
-                    section: $0.kind.title,
-                    image: $0.kind.image,
-                    values: $0.rows.map { ListItemValue(title: $0.title, subtitle: $0.subtitle, value: $0.recipient) },
-                )
-            }
+            .map { ListSection(id: String(describing: $0.kind), title: $0.kind.title, image: $0.kind.image, values: $0.rows) }
     }
 
     public func scanType(for field: RecipientScene.Field) -> QRScanType {
