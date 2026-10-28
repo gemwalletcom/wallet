@@ -1,4 +1,5 @@
-use gem_xrp::models::{Amount, TransactionMemo};
+use gem_ton::tvm::BagOfCells;
+use gem_xrp::models::{Amount, TransactionMemo, memos_hash};
 use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 
@@ -47,6 +48,37 @@ pub struct SwapData {
     pub tx_data: SwapTransaction,
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub(super) struct DepositData {
+    tx_data: DepositTransaction,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(untagged)]
+enum DepositTransaction {
+    Evm {
+        data: String,
+    },
+    Ton {
+        payload: String,
+    },
+    Xrp {
+        #[serde(rename = "Memos")]
+        memos: Vec<TransactionMemo>,
+    },
+}
+
+impl DepositData {
+    pub(super) fn deposit_id(&self) -> Option<String> {
+        match &self.tx_data {
+            DepositTransaction::Evm { data } => Some(data.clone()).filter(|data| !data.is_empty()),
+            DepositTransaction::Ton { payload } => Some(hex::encode(BagOfCells::parse_base64_root(payload).ok()?.hash)),
+            DepositTransaction::Xrp { memos } => memos_hash(memos),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Deserialize)]
 #[serde(untagged)]
 pub enum SwapTransaction {
@@ -77,4 +109,27 @@ pub struct XrpTransaction {
     pub destination_tag: Option<u32>,
     pub amount: Amount,
     pub memos: Vec<TransactionMemo>,
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::bridgers::DepositResponse;
+
+    #[test]
+    fn test_deposit_id() {
+        for (json, expected) in [
+            (include_str!("../testdata/swap_ton_bsc_usdt.json"), "03649dcfca44d7fe76c5a22ff8c955097e5cb60d32fef4feb9c368bee9df9d15"),
+            (include_str!("../testdata/swap_xrp_bsc_usdt.json"), "3fed38eafa6b3bf232aaf79bd5ce2e20a8e41769eb1759a44a7f1ede8989a995"),
+            (include_str!("../testdata/swap_rlusd_bsc_usdt.json"), "6d4a249eec51b33a5dc11e60d1cc6f7653c2d85474986e7c31ac02b1ae392366"),
+        ] {
+            let response: DepositResponse = serde_json::from_str(json).unwrap();
+            assert_eq!(response.deposit_id().unwrap().as_deref(), Some(expected));
+
+            let mut minimal: serde_json::Value = serde_json::from_str(json).unwrap();
+            minimal.as_object_mut().unwrap().remove("resMsg");
+            minimal["data"]["txData"].as_object_mut().unwrap().retain(|key, _| key == "payload" || key == "Memos");
+            let response: DepositResponse = serde_json::from_value(minimal).unwrap();
+            assert_eq!(response.deposit_id().unwrap().as_deref(), Some(expected));
+        }
+    }
 }

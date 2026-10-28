@@ -28,3 +28,22 @@ impl TonScan {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use primitives::asset_constants::{TON_USDT_ASSET_ID, TON_USDT_TOKEN_ID};
+
+    use super::*;
+
+    #[test]
+    fn test_ton_viewer_urls() {
+        let explorer = new_ton_viewer();
+
+        assert_eq!(explorer.get_address_url(TON_USDT_TOKEN_ID), format!("https://tonviewer.com/{TON_USDT_TOKEN_ID}"));
+        assert_eq!(explorer.get_token_url(&TON_USDT_ASSET_ID), Some(format!("https://tonviewer.com/{TON_USDT_TOKEN_ID}")));
+        assert_eq!(
+            explorer.get_tx_url("cefe5c6d145976c434280648fae28dfdfee58002e8c4e36195550ed6cdb22aa0"),
+            "https://tonviewer.com/transaction/cefe5c6d145976c434280648fae28dfdfee58002e8c4e36195550ed6cdb22aa0"
+        );
+    }
+}

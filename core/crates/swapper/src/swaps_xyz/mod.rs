@@ -6,6 +6,7 @@ mod target;
 #[cfg(test)]
 mod testkit;
 
+pub(crate) use model::DepositResponse;
 pub use model::{ActionRequest, ActionResponse};
 pub use provider::SwapsXyz;
 

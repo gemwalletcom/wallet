@@ -1,9 +1,9 @@
 use gem_client::{Target, build_path_with_query};
-use primitives::{AssetId, Chain, ChartPeriod, FiatQuoteType};
+use primitives::{AssetId, Chain, ChartPeriod, FiatQuoteType, PlatformStore};
 
 #[derive(Clone, Debug)]
 pub enum GemApiTarget {
-    GetConfig,
+    GetConfig { store: PlatformStore },
     GetCharts { asset_id: AssetId, period: ChartPeriod },
     GetAsset { asset_id: AssetId },
     GetAssets { currency: Option<String> },
@@ -16,7 +16,7 @@ pub enum GemApiTarget {
 impl Target for GemApiTarget {
     fn path(&self) -> String {
         match self {
-            Self::GetConfig => "/v1/config".to_string(),
+            Self::GetConfig { store } => format!("/v1/config?store={}", store.as_ref()),
             Self::GetCharts { asset_id, period } => format!("/v1/charts/{asset_id}?period={}", period.as_ref()),
             Self::GetAsset { asset_id } => format!("/v1/assets/{asset_id}"),
             Self::GetAssets { currency } => match currency {

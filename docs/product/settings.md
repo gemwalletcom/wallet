@@ -55,6 +55,7 @@ flowchart LR
 | The app has offered push | it asks again no sooner than 30 days later, unless the user turned push off | |
 | The user taps a push | the app switches to the wallet the push belongs to, then opens the transaction, the asset or the chat | |
 | A newer release exists | "New update available!" at launch, with Update and Skip, and in About Us | |
+| The user taps Update in the Mac app | the DMG of that version downloads, and Update App in About Us downloads the latest DMG | the Mac app is installed from a DMG, not a store |
 | The update is required | no Skip | |
 | The user closes the update prompt | it counts as Skip | |
 | The user skipped a version | that version is not offered again | |

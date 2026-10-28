@@ -2,7 +2,7 @@ use num_bigint::BigInt;
 use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
-use primitives::{Asset, AssetBasic, AssetFull, AssetId, Chain, Wallet, WalletId};
+use primitives::{Asset, AssetBasic, AssetFull, AssetId, Chain, PlatformStore, Wallet, WalletId};
 
 use super::GemConfirmError;
 use super::{GemConfirmData, GemConfirmFee, GemConfirmFeeSelection, GemConfirmInput, GemConfirmLoad, GemConfirmMetadata, GemConfirmService, GemConfirmSimulationState, GemConfirmTransferService, GemTransferAmountResult, SendInput};
@@ -107,7 +107,7 @@ impl ConfirmTestkit {
             preferences.clone(),
             session.clone(),
             primitives::Platform::IOS,
-            Arc::new(GemConfigService::new(Arc::new(GemApiClient::new(provider.clone())), preferences.clone())),
+            Arc::new(GemConfigService::new(Arc::new(GemApiClient::new(provider.clone())), preferences.clone(), PlatformStore::Local)),
         ));
         let nft = Arc::new(GemNftService::new(device_api.clone(), Arc::new(MemoryNftStore::default()), session.clone()));
         let payment = Arc::new(GemPaymentService::new(provider.clone(), assets.clone(), balance.clone()));

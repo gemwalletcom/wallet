@@ -59,21 +59,23 @@ struct ConnectionsSceneViewModelTests {
 
     @Test
     func aScannedUriPairsAndShowsTheConnectorBar() async {
-        let model = ConnectionsSceneViewModel.mock()
+        let presenter = WalletConnectorPresenter()
+        let model = ConnectionsSceneViewModel.mock(walletConnectorPresenter: presenter)
 
         await model.onHandleScan("wc:topic@2")
 
-        #expect(model.isPresentingConnectorBar)
+        #expect(presenter.isPresentingConnectionBar)
         #expect(model.isPresentingAlertMessage == nil)
     }
 
     @Test
     func aFailedPairHidesTheBarAndShowsTheError() async {
-        let model = ConnectionsSceneViewModel.mock(connector: WalletConnectorServiceMock(pairError: AnyError("bad uri")))
+        let presenter = WalletConnectorPresenter()
+        let model = ConnectionsSceneViewModel.mock(connector: WalletConnectorServiceMock(pairError: AnyError("bad uri")), walletConnectorPresenter: presenter)
 
         await model.onHandleScan("nonsense")
 
-        #expect(model.isPresentingConnectorBar == false)
+        #expect(presenter.isPresentingConnectionBar == false)
         #expect(model.isPresentingAlertMessage?.message == "bad uri")
     }
 
@@ -84,15 +86,5 @@ struct ConnectionsSceneViewModelTests {
         await model.onSelectDisconnect(.mock())
 
         #expect(model.isPresentingAlertMessage?.message == "no session")
-    }
-
-    @Test
-    func hidingTheBarClearsIt() {
-        let model = ConnectionsSceneViewModel.mock()
-        model.isPresentingConnectorBar = true
-
-        model.hideConnectionBar()
-
-        #expect(model.isPresentingConnectorBar == false)
     }
 }

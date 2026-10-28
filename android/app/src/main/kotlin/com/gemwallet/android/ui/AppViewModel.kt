@@ -7,8 +7,8 @@ import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.PendingNavigationCoordinator
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.WalletPasswordProtection
-import com.gemwallet.android.application.security.cases.SecurityPreferences
 import com.gemwallet.android.application.assets.cases.GetWalletHomeState
+import com.gemwallet.android.application.security.cases.SecurityPreferences
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.update.cases.SkipAppUpdate
 import com.gemwallet.android.application.update.cases.SyncAppUpdate
@@ -34,6 +34,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemAppStartServiceInterface
+import uniffi.gemstone.GemAppUpdateDestination
 import uniffi.gemstone.GemAppUpdateOffer
 import uniffi.gemstone.GemWalletSessionServiceInterface
 import uniffi.gemstone.UrlAction
@@ -123,10 +124,10 @@ class AppViewModel @Inject constructor(
 
     private suspend fun offerStoreUpdate() {
         val offer = syncAppUpdate.syncAppUpdate() ?: return
-        if (offer.apkUrl != null) {
-            return
+        when (offer.destination) {
+            is GemAppUpdateDestination.File -> return
+            is GemAppUpdateDestination.Store -> state.update { it.copy(update = offer) }
         }
-        state.update { it.copy(update = offer) }
     }
 
     fun acceptTerms() {
