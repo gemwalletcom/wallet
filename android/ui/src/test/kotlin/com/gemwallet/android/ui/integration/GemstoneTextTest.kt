@@ -1,17 +1,22 @@
-package com.gemwallet.android.ui.localization
+package com.gemwallet.android.ui.integration
 
 import android.content.Context
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.gemwallet.android.model.text
 import com.gemwallet.android.testkit.mockGemFormattedNumber
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.localization.string
+import com.gemwallet.android.ui.localization.text
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import org.junit.runner.RunWith
 import uniffi.gemstone.FeeUnitType
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemNumberUnit
 
+@RunWith(AndroidJUnit4::class)
 class GemstoneTextTest {
 
     @Test

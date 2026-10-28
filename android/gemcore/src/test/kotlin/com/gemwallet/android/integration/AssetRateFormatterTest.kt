@@ -1,8 +1,11 @@
-package com.gemwallet.android.domains.swap
+package com.gemwallet.android.integration
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.gemwallet.android.domains.swap.AssetRateFormatter
 import com.gemwallet.android.testkit.mockGemFormattedNumber
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import org.junit.runner.RunWith
 import uniffi.gemstone.GemAssetRate
 import uniffi.gemstone.GemNumberDisplay
 import uniffi.gemstone.GemNumberUnit
@@ -10,6 +13,7 @@ import uniffi.gemstone.GemPrecision
 import uniffi.gemstone.GemSwapRate
 import java.util.Locale
 
+@RunWith(AndroidJUnit4::class)
 class AssetRateFormatterTest {
 
     private val formatter = AssetRateFormatter(locale = Locale.US)

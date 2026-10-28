@@ -1,5 +1,6 @@
-package com.gemwallet.android.data.coordinators.transaction
+package com.gemwallet.android.data.coordinators.integration
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.text
 import com.gemwallet.android.serializer.jsonEncoder
@@ -17,6 +18,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assume.assumeTrue
 import org.junit.Test
+import org.junit.runner.RunWith
 import uniffi.gemstone.GemTransactionRow
 import uniffi.gemstone.GemTransactionRowSubtitle
 import uniffi.gemstone.transactionRows
@@ -24,6 +26,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
+@RunWith(AndroidJUnit4::class)
 class TransactionRowTextTest {
     private val gemstoneLibraryOverrideProperty = "uniffi.component.gemstone.libraryOverride"
 

@@ -22,7 +22,7 @@ Before changing how an area works, read its page. A change that breaks a rule wr
 
 ## Numbers
 
-Both apps write every number the same way. The examples are in US English and US dollars; separators and where the currency symbol goes follow the user's locale.
+Both apps write every number the same way. The examples are in US English and US dollars; separators and where the currency symbol goes follow the user's locale, and in a right-to-left language a sign stays in front of its number, so `-3 ADA` never reads `ADA 3-`.
 
 ### Money
 
