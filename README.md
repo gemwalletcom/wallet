@@ -104,7 +104,8 @@ Platform-specific commands remain available through the [`ios`](ios/justfile) an
 Gem Wallet is self-custodial, and keeping user funds safe is our highest priority. See the [Security Overview](https://gemwallet.com/security/) for our practices around key material, signing, and secure storage.
 
 - [Responsible Disclosure](https://gemwallet.com/security/bug-bounty/) — report security vulnerabilities responsibly
-- [CertiK Security Audit (April 2026)](https://static.gemwallet.com/audits/Gem-Wallet-CertiK-Security-Audit-April-2026.pdf) — latest third-party audit report
+- [CertiK Audit (April 2026)](https://static.gemwallet.com/audits/Gem-Wallet-CertiK-Security-Audit-April-2026.pdf) — April 2026 third-party audit report
+- [Cure53 Audit (October 2026)](https://static.gemwallet.com/audits/Gem-Wallet-Cure53-Audit-Report-October-2026.pdf) - October 2026 third-party audit report
 
 ## Contributing
 

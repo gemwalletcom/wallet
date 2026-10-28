@@ -2,7 +2,7 @@ use std::{collections::HashMap, error::Error};
 
 use async_trait::async_trait;
 use chain_traits::{ChainTransactionLoad, TransactionFeeOperation};
-use gem_bitcoin::{provider::preload_mapper::map_utxos, signer::output_minimum};
+use gem_bitcoin::provider::preload_mapper::{map_utxos, preload_output_minimum};
 use gem_client::Client;
 use num_bigint::BigInt;
 use primitives::{
@@ -28,7 +28,7 @@ impl<C: Client> ChainTransactionLoad for ZcashProvider<C> {
         let node_info = self.client.get_node_info().await?;
         let branch_id = node_info.backend.consensus.ok_or("Branch ID not found")?.nextblock;
         let (destination, _) = Destination::parse(input.input_type.swap_to_address().unwrap_or(&input.destination_address))?.into_spend();
-        let output_minimum = output_minimum(BitcoinChain::Zcash, &input.sender_address, &destination)?;
+        let output_minimum = preload_output_minimum(BitcoinChain::Zcash, &input, &destination)?;
         Ok(TransactionLoadMetadata::Zcash {
             utxos: map_utxos(utxos, input.sender_address),
             branch_id,

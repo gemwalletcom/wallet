@@ -207,16 +207,17 @@ mod tests {
 
     #[test]
     fn test_near_empty_send_is_signed_as_shown() {
-        for (value, balance) in [(12_200_000u64, 12_220_000u64), (9_330_000, 10_000_000)] {
-            let input = TransactionLoadInput {
-                metadata: mock_cardano_metadata(vec![UTXO {
-                    transaction_id: "f074134aabbfb13b8aec7cf5465b1e5a862bde5cb88532cc7e64619179b3e767".to_string(),
-                    vout: 1,
-                    value: BigUint::from(balance),
-                    address: OWN_ADDRESS_1.to_string(),
-                }]),
-                ..TransactionLoadInput::mock_cardano(OWN_ADDRESS_1, &value.to_string())
-            };
+        let near_empty = |value: u64, balance: u64| TransactionLoadInput {
+            metadata: mock_cardano_metadata(vec![UTXO {
+                transaction_id: "f074134aabbfb13b8aec7cf5465b1e5a862bde5cb88532cc7e64619179b3e767".to_string(),
+                vout: 1,
+                value: BigUint::from(balance),
+                address: OWN_ADDRESS_1.to_string(),
+            }]),
+            ..TransactionLoadInput::mock_cardano(OWN_ADDRESS_1, &value.to_string())
+        };
+        for (value, balance) in [(9_330_000u64, 10_000_000u64), (9_800_000, 10_000_000)] {
+            let input = near_empty(value, balance);
             assert_eq!(plan_transfer(&input).err(), Some(SignerError::InsufficientFunds), "{value}: the requested send cannot keep a valid change");
             assert!(shown_amount(&input, balance).unwrap().is_max_amount, "{value}: what is left is under 1 ADA, so the send becomes a send of everything");
 
@@ -229,7 +230,13 @@ mod tests {
             let signed = plan_transfer(&send_everything).unwrap();
             assert_eq!((shown.value, shown.network_fee), (BigInt::from(signed.amount), BigInt::from(signed.fee)));
             assert_eq!((signed.amount + signed.fee, signed.change), (balance, 0));
+            assert!(signed.amount >= value, "{value}: never less than the amount entered");
         }
+
+        assert!(
+            matches!(shown_amount(&near_empty(12_200_000, 12_220_000), 12_220_000), Err(TransferAmountError::InsufficientBalance { .. })),
+            "12.2 of 12.22 ADA: the fee doesn't fit next to the amount, so it is refused rather than sending less"
+        );
 
         assert_eq!(
             shown_amount(&TransactionLoadInput::mock_cardano(OWN_ADDRESS_1, "999999"), 8_000_000),

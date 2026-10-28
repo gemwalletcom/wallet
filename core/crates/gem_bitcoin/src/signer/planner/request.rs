@@ -25,6 +25,7 @@ pub struct SpendRequest {
     pub is_max: bool,
     pub memo: Option<Vec<u8>>,
     pub utxos: Vec<UTXO>,
+    pub dust_change_to_fee: bool,
 }
 
 impl SpendRequest {
@@ -39,6 +40,7 @@ impl SpendRequest {
             is_max: input.is_max_value,
             memo: input.get_memo().map(|memo| memo.as_bytes().to_vec()),
             utxos: input.metadata.get_utxos()?,
+            dust_change_to_fee: false,
         })
     }
 
@@ -58,6 +60,7 @@ impl SpendRequest {
             is_max: swap.quote.use_max_amount.unwrap_or(input.is_max_value),
             memo,
             utxos: input.metadata.get_utxos()?,
+            dust_change_to_fee: true,
         })
     }
 }

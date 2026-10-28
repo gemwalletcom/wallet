@@ -129,17 +129,13 @@ impl TransferAmountInput {
 
         let has_fixed_value = self.input_type.get_swap_data().is_ok_and(|swap_data| swap_data.data.data_type.has_fixed_value());
         let minimum_value = self.output_minimum.filter(|_| keeps_minimum).map(|minimum| BigInt::from(minimum.payment));
+        let account_minimum = asset.chain().minimum_account_balance().filter(|_| keeps_minimum).map(BigInt::from);
         let minimum_balance = match self.output_minimum {
-            Some(minimum) => Some(minimum.change),
-            None => asset.chain().minimum_account_balance(),
-        }
-        .filter(|_| keeps_minimum)
-        .map(BigInt::from);
-        let sends_everything = !self.is_max_amount
-            && should_deduct_fee
-            && self.input_type.sends_remainder_along()
-            && self.value <= self.available_value
-            && minimum_balance.as_ref().is_some_and(|minimum| &self.available_value - &self.value - &self.fee < *minimum);
+            Some(minimum) => keeps_minimum.then(|| BigInt::from(minimum.change)),
+            None => account_minimum.clone(),
+        };
+        let leftover = &self.available_value - &self.value - &self.fee;
+        let sends_everything = !self.is_max_amount && should_deduct_fee && self.input_type.sends_remainder_along() && leftover >= BigInt::ZERO && minimum_balance.as_ref().is_some_and(|minimum| leftover < *minimum);
         let is_max_amount = self.is_max_amount || sends_everything;
         let requested = if sends_everything { &self.available_value } else { &self.value };
 
@@ -157,8 +153,8 @@ impl TransferAmountInput {
         let remaining_balance = &self.available_value - &required;
 
         if required > self.available_value {
-            return match &minimum_account_balance {
-                Some(minimum) if value <= self.available_value => Err(TransferAmountError::minimum_account_balance_too_low(&asset.id, minimum.clone(), remaining_balance)),
+            return match account_minimum.filter(|_| !is_max_amount) {
+                Some(minimum) if value <= self.available_value => Err(TransferAmountError::minimum_account_balance_too_low(&asset.id, minimum, remaining_balance)),
                 _ => Err(TransferAmountError::insufficient_balance(&asset.id, required, self.available_value.clone())),
             };
         }
@@ -221,8 +217,9 @@ mod tests {
     const FEE: u64 = 5_000;
 
     fn assert_sends_everything(input: TransferAmountInput, reason: &str) {
+        let amount = input.calculate().unwrap();
         assert_eq!(
-            input.calculate().unwrap(),
+            amount,
             TransferAmount {
                 value: &input.available_value - &input.fee,
                 network_fee: input.fee.clone(),
@@ -230,6 +227,7 @@ mod tests {
             },
             "{reason}, so everything but the fee is sent"
         );
+        assert!(amount.value >= input.value, "{reason}: never less than the amount entered");
     }
 
     #[test]
@@ -429,7 +427,15 @@ mod tests {
     #[test]
     fn test_calculate_minimum_account_balance() {
         let transfer = TransactionInputType::Transfer { asset: Asset::mock_sol() };
-        assert_sends_everything(TransferAmountInput::mock(transfer.clone(), 999_000, 1_000_000, 1_000_000), "the fee no longer fits next to the amount");
+        assert_eq!(
+            TransferAmountInput::mock(transfer.clone(), 999_000, 1_000_000, 1_000_000).calculate().unwrap_err(),
+            TransferAmountError::MinimumAccountBalanceTooLow {
+                asset_id: Asset::mock_sol().id,
+                required: BigInt::from(SOLANA_MINIMUM_ACCOUNT_BALANCE),
+                available: BigInt::from(-4_000),
+            },
+            "the fee doesn't fit next to the amount, and sending everything would send less than entered"
+        );
         let leaves_half_rent = 1_000_000_000 + FEE + 500_000;
         assert_sends_everything(TransferAmountInput::mock(transfer.clone(), 1_000_000_000, leaves_half_rent, leaves_half_rent), "leaving 0.0005 SOL is under the rent minimum");
         assert_eq!(
