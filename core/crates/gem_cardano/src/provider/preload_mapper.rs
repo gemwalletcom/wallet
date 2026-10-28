@@ -1,14 +1,19 @@
 use std::collections::HashMap;
 
 use num_bigint::BigInt;
-use primitives::{AssetId, Chain, GasPriceType, TransactionFee, TransactionLoadMetadata, UTXO};
+use primitives::{AssetId, Chain, GasPriceType, OutputMinimum, TransactionFee, TransactionLoadMetadata, UTXO};
 
 use crate::models::utxo::UTXO as CardanoUTXO;
+use crate::planner::MIN_OUTPUT_LOVELACE;
 
 pub(crate) fn map_transaction_preload(utxos: Vec<CardanoUTXO>, block_number: u64) -> TransactionLoadMetadata {
     TransactionLoadMetadata::Cardano {
         utxos: utxos.into_iter().map(UTXO::from).collect(),
         block_number,
+        output_minimum: OutputMinimum {
+            payment: MIN_OUTPUT_LOVELACE,
+            change: MIN_OUTPUT_LOVELACE,
+        },
     }
 }
 

@@ -46,8 +46,8 @@ final class VerifyPhraseSceneViewModel {
         Localized.VerifyPhrase.title
     }
 
-    var rows: [SecretPhraseRow] {
-        SecretPhraseRow.rows(for: words.enumerated().map { $0.offset < viewState.verifiedCount ? $0.element : .empty })
+    var verifiedWords: [String] {
+        words.enumerated().map { $0.offset < viewState.verifiedCount ? $0.element : .empty }
     }
 
     var groups: [[WordIndex]] {

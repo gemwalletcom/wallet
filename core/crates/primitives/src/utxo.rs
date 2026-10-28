@@ -17,3 +17,9 @@ impl UTXO {
         self.value.to_u64().ok_or_else(|| format!("UTXO amount is too large: {}", self.value).into())
     }
 }
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct OutputMinimum {
+    pub payment: u64,
+    pub change: u64,
+}

@@ -3,11 +3,7 @@ package com.gemwallet.android
 import java.io.File
 import java.io.IOException
 
-internal class RootChecker(
-    private val path: String? = System.getenv("PATH"),
-    private val exists: (String) -> Boolean = { File(it).exists() },
-    private val readLines: (String) -> List<String> = { File(it).readLines() },
-) {
+internal class RootChecker(private val path: String? = System.getenv("PATH"), private val exists: (String) -> Boolean = { File(it).exists() }, private val readLines: (String) -> List<String> = { File(it).readLines() }) {
     fun isDeviceRooted(): Boolean {
         val rootPaths = listOf(
             "/system/app/Superuser.apk",

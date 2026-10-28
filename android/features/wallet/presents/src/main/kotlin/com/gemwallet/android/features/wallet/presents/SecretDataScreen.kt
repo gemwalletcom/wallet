@@ -32,7 +32,6 @@ import com.gemwallet.android.ui.components.clipboard.setCopy
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.PhraseLayout
 import com.gemwallet.android.ui.components.screen.Scene
-import com.gemwallet.android.ui.components.screen.phraseRows
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.theme.adaptivePadding
 import com.gemwallet.android.ui.theme.alpha10
@@ -57,10 +56,7 @@ fun SecretDataScreen(onCancel: () -> Unit, viewModel: SecretDataViewModel = hilt
     val clipboardManager = LocalContext.current.clipboardManager()
 
     val secret = result?.getOrNull()
-    val screen = when (secret) {
-        is GemWalletSecret.Words -> secretScreen(viewModel.secretKind, secret.words.size, false)
-        is GemWalletSecret.PrivateKey, null -> secretScreen(viewModel.secretKind, 0, false)
-    }
+    val screen = secretScreen(viewModel.secretKind, false)
     val title = screen.title.string(context)
     if (secret == null) {
         if (result == null) {
@@ -120,7 +116,7 @@ fun SecretDataScreen(onCancel: () -> Unit, viewModel: SecretDataViewModel = hilt
                     textAlign = TextAlign.Center,
                 )
 
-                is GemWalletSecret.Words -> PhraseLayout(rows = phraseRows(screen.rows, secret.words))
+                is GemWalletSecret.Words -> PhraseLayout(words = secret.words)
             }
 
             CopyButton(

@@ -7,8 +7,6 @@ import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.device.cases.EnablePushForNewWallet
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
-import com.gemwallet.android.ui.components.screen.PhraseRow
-import com.gemwallet.android.ui.components.screen.phraseRows
 import com.gemwallet.android.ui.importWallet
 import com.gemwallet.android.ui.localization.text
 import com.wallet.core.primitives.WalletSource
@@ -56,12 +54,9 @@ class CreateWalletViewModel @Inject constructor(
     val verificationState: StateFlow<GemVerifyPhraseViewState?> = verification.map { it?.viewState() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val phraseRows: StateFlow<List<PhraseRow>> = state.map { phraseRows(it.data) }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-
-    val verifiedRows: StateFlow<List<PhraseRow>> = combine(verificationState, state) { verification, current ->
+    val verifiedWords: StateFlow<List<String>> = combine(verificationState, state) { verification, current ->
         val count = verification?.verifiedCount ?: 0
-        phraseRows(current.data.mapIndexed { index, word -> if (index < count) word else "" })
+        current.data.mapIndexed { index, word -> if (index < count) word else "" }
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 

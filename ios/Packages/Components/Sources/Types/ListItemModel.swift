@@ -165,7 +165,3 @@ public struct ListItemModel {
         placeholders.contains(type) && value == nil
     }
 }
-
-// MARK: - Factory Methods
-
-public extension ListItemModel {}

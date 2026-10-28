@@ -1,12 +1,30 @@
-package com.gemwallet.android.model
+package com.gemwallet.android.integration
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.gemwallet.android.model.text
+import com.wallet.core.primitives.Currency
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
 import uniffi.gemstone.GemCurrencyStyle
 import uniffi.gemstone.formattedCurrency
 import java.util.Locale
 
+@RunWith(AndroidJUnit4::class)
 class CurrencyTextTest {
+
+    @Test
+    fun newCurrenciesKeepTheirCodeAndAmount() {
+        for (currency in listOf(Currency.RON, Currency.GEL, Currency.AMD, Currency.MDL)) {
+            val text = formattedCurrency(1234.56, currency.string, GemCurrencyStyle.FIAT).text(Locale.US)
+
+            assertTrue(text, text.contains(currency.string))
+            assertTrue(text, text.contains("1,234.56"))
+            assertNotEquals(currency.string, java.util.Currency.getInstance(currency.string).getDisplayName(Locale.US))
+        }
+    }
 
     private fun currency(style: GemCurrencyStyle, code: String, locale: Locale): (Double) -> String = { formattedCurrency(it, code, style).text(locale) }
 

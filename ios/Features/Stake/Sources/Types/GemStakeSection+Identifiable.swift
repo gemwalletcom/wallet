@@ -2,8 +2,6 @@
 
 import struct Gemstone.GemStakeDelegationItem
 import enum Gemstone.GemStakeSection
-import GemstonePrimitives
-import Primitives
 import PrimitivesComponents
 
 extension GemStakeSection: @retroactive Identifiable {

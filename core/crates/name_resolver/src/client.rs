@@ -1,7 +1,7 @@
 use std::error::Error;
 
 use gem_evm::ethereum_address_checksum;
-use primitives::name::NameRecord;
+use primitives::name::{NameRecord, is_name};
 use primitives::{Chain, EVMChain};
 
 use crate::model::NameQuery;
@@ -17,6 +17,9 @@ impl NameClient {
     }
 
     pub async fn resolve(&self, name: &str, chain: Chain) -> Result<Option<NameRecord>, Box<dyn Error + Send + Sync>> {
+        if !is_name(name) {
+            return Ok(None);
+        }
         let query = NameQuery::new(name);
         let Some(provider) = self.matched_provider(name, chain) else {
             return Ok(None);
@@ -123,6 +126,13 @@ mod tests {
                 })
             );
         }
+    }
+
+    #[tokio::test]
+    async fn test_resolve_skips_input_that_is_not_a_name() {
+        let client = NameClient::new(vec![Box::new(MockNameResolver::new(NameProvider::Ud, vec!["com"], vec![Chain::Tron], Err("must be valid domain or subdomain")))]);
+
+        assert_eq!(client.resolve("yyy@gmail.com", Chain::Tron).await.unwrap(), None);
     }
 
     #[tokio::test]

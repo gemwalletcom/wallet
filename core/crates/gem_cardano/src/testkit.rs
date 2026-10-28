@@ -1,7 +1,23 @@
+use primitives::{OutputMinimum, TransactionLoadMetadata, UTXO};
+
 use crate::{
     address::ShelleyAddress,
+    planner::MIN_OUTPUT_LOVELACE,
     transaction::{TransactionInput, TransactionOutput},
 };
+
+pub(crate) const TEST_BLOCK_NUMBER: u64 = 189_992_800;
+
+pub(crate) fn mock_cardano_metadata(utxos: Vec<UTXO>) -> TransactionLoadMetadata {
+    TransactionLoadMetadata::Cardano {
+        utxos,
+        block_number: TEST_BLOCK_NUMBER,
+        output_minimum: OutputMinimum {
+            payment: MIN_OUTPUT_LOVELACE,
+            change: MIN_OUTPUT_LOVELACE,
+        },
+    }
+}
 
 impl TransactionInput {
     pub(crate) fn mock() -> Self {

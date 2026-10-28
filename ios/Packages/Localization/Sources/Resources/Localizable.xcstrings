@@ -986,7 +986,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zum Wallet hinzufügen"
+            "value": "Zur Wallet hinzufügen"
           }
         },
         "en": {
@@ -1177,7 +1177,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zum Wallet hinzugefügt"
+            "value": "Zur Wallet hinzugefügt"
           }
         },
         "en": {
@@ -2323,7 +2323,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kaufen %@"
+            "value": "%@ kaufen"
           }
         },
         "en": {
@@ -2353,7 +2353,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Achetez %@"
+            "value": "Acheter %@"
           }
         },
         "ha": {
@@ -4042,7 +4042,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Erhalten, tauschen oder kaufen %@"
+            "value": "%@ empfangen, tauschen oder kaufen"
           }
         },
         "en": {
@@ -6746,7 +6746,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Aucun élément trouvé"
+            "value": "Aucun actif trouvé"
           }
         },
         "ha": {
@@ -7098,7 +7098,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Anlage auswählen"
+            "value": "Asset auswählen"
           }
         },
         "en": {
@@ -7862,7 +7862,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Das %@ Netzwerk erfordert eine einmalige Gebühr von %@."
+            "value": "Das %@-Netzwerk erfordert eine einmalige Gebühr von %@."
           }
         },
         "en": {
@@ -8244,7 +8244,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Um das %@ -Asset zu verwenden, müssen Sie es zuerst im %@ -Netzwerk aktivieren, indem Sie die spezifischen Anforderungen des Netzwerks erfüllen."
+            "value": "Um das %@-Asset zu verwenden, müssen Sie es zuerst im %@-Netzwerk aktivieren, indem Sie die spezifischen Anforderungen des Netzwerks erfüllen."
           }
         },
         "en": {
@@ -8274,7 +8274,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pour utiliser la ressource %@, vous devez d'abord l'activer sur le réseau %@ en remplissant les exigences spécifiques du réseau."
+            "value": "Pour utiliser l'actif %@, vous devez d'abord l'activer sur le réseau %@ en remplissant les exigences spécifiques du réseau."
           }
         },
         "ha": {
@@ -8847,7 +8847,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Achetez ou recevez des cryptomonnaies pour commencer."
+            "value": "Achetez ou recevez des cryptomonnaies pour commencer"
           }
         },
         "ha": {
@@ -9581,7 +9581,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verdienen Sie %@ Prämien mit Ihrem Stake, während Sie schlafen"
+            "value": "Verdienen Sie %@-Belohnungen mit Ihrem Stake, während Sie schlafen."
           }
         },
         "en": {
@@ -9963,7 +9963,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Keine Kurse verfügbar."
+            "value": "Keine Angebote verfügbar"
           }
         },
         "en": {
@@ -10375,7 +10375,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tarif"
+            "value": "Taux"
           }
         },
         "ha": {
@@ -10536,7 +10536,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kaufen %@"
+            "value": "%@ kaufen"
           }
         },
         "en": {
@@ -10566,7 +10566,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Achetez %@"
+            "value": "Acheter %@"
           }
         },
         "ha": {
@@ -11109,7 +11109,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Eintrag"
+            "value": "Einstieg"
           }
         },
         "en": {
@@ -12828,7 +12828,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "1 Jahr"
+            "value": "1J"
           }
         },
         "en": {
@@ -14959,7 +14959,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Êtes-vous sûr de vouloir supprimer %@?"
+            "value": "Êtes-vous sûr de vouloir supprimer %@ ?"
           }
         },
         "ha": {
@@ -24700,7 +24700,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Contacter"
+            "value": "Contact"
           }
         },
         "ha": {
@@ -26198,7 +26198,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zahlen Sie Ihre erste %@"
+            "value": "Zahlen Sie Ihre ersten %@ ein"
           }
         },
         "en": {
@@ -26389,7 +26389,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ihre Positionen werden hier angezeigt."
+            "value": "Ihre Positionen werden hier angezeigt"
           }
         },
         "en": {
@@ -29445,7 +29445,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Die Transaktion ist fehlgeschlagen, da der Betrag zu gering ist, um die Mindestanforderung des %@ -Netzwerks (Dust-Schwellenwert) zu erfüllen. Dieses Limit stellt sicher, dass der Transaktionswert die Gebühren und Bearbeitungskosten deckt."
+            "value": "Die Transaktion ist fehlgeschlagen, da der Betrag zu gering ist, um die Mindestanforderung des %@-Netzwerks (Dust-Schwellenwert) zu erfüllen. Dieses Limit stellt sicher, dass der Transaktionswert die Gebühren und Bearbeitungskosten deckt."
           }
         },
         "en": {
@@ -30591,7 +30591,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ungültiges geheimes Phrasenwort: %@"
+            "value": "Ungültiges Wort in der geheimen Phrase: %@"
           }
         },
         "en": {
@@ -31164,7 +31164,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ungültige %@ Adresse"
+            "value": "Ungültige %@-Adresse"
           }
         },
         "en": {
@@ -34411,7 +34411,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ Für die Ziel-Wallet-Adresse wird ein Ziel-Tag/Memo benötigt."
+            "value": "Die Ziel-Wallet-Adresse für %@ erfordert ein Ziel-Tag/Memo"
           }
         },
         "en": {
@@ -34441,7 +34441,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ L'adresse du portefeuille de destination nécessite une étiquette/un mémo de destination"
+            "value": "L'adresse du portefeuille de destination %@ nécessite une étiquette/un mémo de destination"
           }
         },
         "ha": {
@@ -35748,7 +35748,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wir sind derzeit nicht in der Lage, die Netzgwerkebühr zu berechnen."
+            "value": "Wir sind derzeit nicht in der Lage, die Netzwerkgebühr zu berechnen."
           }
         },
         "en": {
@@ -39186,7 +39186,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nicht verifizierte Token wurden von vertrauenswürdigen Drittanbietern nicht ausreichend verifiziert. Sie können aufgrund von Airdrops, Transfers oder manuellen Importen in Ihrem Wallet erscheinen."
+            "value": "Nicht verifizierte Token wurden von vertrauenswürdigen Drittanbietern nicht ausreichend verifiziert. Sie können aufgrund von Airdrops, Transfers oder manuellen Importen in Ihrer Wallet erscheinen."
           }
         },
         "en": {
@@ -40905,7 +40905,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Die Sperrzeit, auch Unbonding- oder Unfreezing-Zeitraum genannt, ist der Zeitraum, in dem abgesteckte Vermögenswerte nicht mehr zugänglich sind, nachdem Sie sich entschieden haben, sie aufzuheben."
+            "value": "Die Sperrzeit, auch Unbonding- oder Unfreezing-Zeitraum genannt, ist der Zeitraum, in dem gestakte Vermögenswerte nicht zugänglich sind, nachdem Sie sich entschieden haben, das Staking zu beenden."
           }
         },
         "en": {
@@ -40935,7 +40935,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Le temps de verrouillage, également connu sous le nom de période de déliement ou de dégel, est la durée pendant laquelle les actifs mis en jeu sont inaccessibles après que vous ayez décidé de les débloquer."
+            "value": "Le temps de verrouillage, également connu sous le nom de période de déliement ou de dégel, est la durée pendant laquelle les actifs en staking sont inaccessibles après que vous avez décidé de les retirer du staking."
           }
         },
         "ha": {
@@ -41317,7 +41317,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Approvisionnement maximum"
+            "value": "Offre maximale"
           }
         },
         "ha": {
@@ -42051,7 +42051,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Netzwerk-Gebühr"
+            "value": "Netzwerkgebühr"
           }
         },
         "en": {
@@ -44152,7 +44152,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Das offene Interesse stellt den Gesamtwert aller ausstehenden unbefristeten Verträge dar, die noch nicht abgewickelt wurden. Es bietet Einblick in die Marktaktivität und Liquidität."
+            "value": "Das Open Interest stellt den Gesamtwert aller ausstehenden unbefristeten Verträge dar, die noch nicht abgewickelt wurden. Es bietet Einblick in die Marktaktivität und Liquidität."
           }
         },
         "en": {
@@ -44182,7 +44182,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Les intérêts ouverts représentent la valeur totale de tous les contrats perpétuels en cours qui n'ont pas été réglés. Il donne un aperçu de l'activité et de la liquidité du marché."
+            "value": "L'open interest représente la valeur totale de tous les contrats perpétuels en cours qui n'ont pas été réglés. Il donne un aperçu de l'activité et de la liquidité du marché."
           }
         },
         "ha": {
@@ -44343,7 +44343,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Offenes Interesse"
+            "value": "Open Interest"
           }
         },
         "en": {
@@ -45137,7 +45137,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Le taux annuel en pourcentage (APR) est le taux de récompense annuel pour le staking de votre crypto-monnaie."
+            "value": "Le taux annuel en pourcentage (APR) est le taux de récompense annuel pour le staking de votre cryptomonnaie."
           }
         },
         "ha": {
@@ -45298,7 +45298,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ein kleiner Betrag verbleibt in Ihrem Wallet, um Gebühren für Vorgänge wie das Aufheben der Absteckung oder das Einfordern von Prämien zu decken."
+            "value": "Ein kleiner Betrag verbleibt in Ihrer Wallet, um Gebühren für Vorgänge wie das Beenden des Stakings oder das Einfordern von Belohnungen zu decken."
           }
         },
         "en": {
@@ -45328,7 +45328,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Une petite somme reste dans votre portefeuille pour couvrir les frais d'opérations telles que le déblocage ou la réclamation de récompenses."
+            "value": "Une petite somme reste dans votre portefeuille pour couvrir les frais d'opérations telles que le retrait du staking ou la réclamation de récompenses."
           }
         },
         "ha": {
@@ -45680,7 +45680,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Staking auf TRON erfolgt in zwei Schritten. Friere zuerst TRX ein und stake es dann, um Belohnungen zu verdienen."
+            "value": "Staking auf TRON erfolgt in zwei Schritten. Frieren Sie zuerst TRX ein und staken Sie es dann, um Belohnungen zu verdienen."
           }
         },
         "en": {
@@ -46474,7 +46474,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "La transaction n'a pas pu être finalisée en raison d'une erreur, telle qu'un fonds insuffisant, une saisie non valide ou un rejet par le réseau. Veuillez vérifier les détails et réessayer."
+            "value": "La transaction n'a pas pu être finalisée en raison d'une erreur, telle que des fonds insuffisants, une saisie non valide ou un rejet par le réseau. Veuillez vérifier les détails et réessayer."
           }
         },
         "ha": {
@@ -53350,7 +53350,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "En synchronisation"
+            "value": "Synchronisé"
           }
         },
         "ha": {
@@ -56376,7 +56376,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sie erhalten eine geheime Phrase – nur so können Sie auf Ihr Wallet zugreifen."
+            "value": "Sie erhalten eine geheime Phrase – nur so können Sie auf Ihre Wallet zugreifen."
           }
         },
         "en": {
@@ -56567,7 +56567,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Der geheime Satz ist die einzige Möglichkeit, auf Ihr Wallet zuzugreifen."
+            "value": "Die geheime Phrase ist die einzige Möglichkeit, auf Ihre Wallet zuzugreifen."
           }
         },
         "en": {
@@ -57934,7 +57934,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "PnL de tous les temps"
+            "value": "PnL total"
           }
         },
         "ha": {
@@ -59050,7 +59050,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Schließen %@"
+            "value": "%@ schließen"
           }
         },
         "en": {
@@ -59432,7 +59432,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Eintrittspreis"
+            "value": "Einstiegspreis"
           }
         },
         "en": {
@@ -59623,7 +59623,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Erhöhung %@"
+            "value": "%@ erhöhen"
           }
         },
         "en": {
@@ -59653,7 +59653,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Augmentation %@"
+            "value": "Augmenter %@"
           }
         },
         "ha": {
@@ -60005,7 +60005,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hebelwirkung"
+            "value": "Hebel"
           }
         },
         "en": {
@@ -60769,7 +60769,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kreuz"
+            "value": "Cross"
           }
         },
         "en": {
@@ -61915,7 +61915,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Öffnen %@"
+            "value": "%@ eröffnen"
           }
         },
         "en": {
@@ -62679,7 +62679,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reduzieren %@"
+            "value": "%@ reduzieren"
           }
         },
         "en": {
@@ -65926,7 +65926,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bei erheblichen Preisbewegungen werden Warnungen ausgelöst."
+            "value": "Bei erheblichen Preisbewegungen werden Alarme ausgelöst."
           }
         },
         "en": {
@@ -67836,7 +67836,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wenn der Preis um"
+            "value": "Wenn der Preis steigt um"
           }
         },
         "en": {
@@ -68057,7 +68057,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lorsque le prix est dépassé"
+            "value": "Lorsque le prix est supérieur à"
           }
         },
         "ha": {
@@ -68248,7 +68248,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lorsque le prix est inférieur"
+            "value": "Lorsque le prix est inférieur à"
           }
         },
         "ha": {
@@ -71083,7 +71083,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dies ist Ihre Adresse – bitte senden Sie nur %@ auf %@ Netzwerk."
+            "value": "Dies ist Ihre Adresse – senden Sie nur %@ im %@-Netzwerk."
           }
         },
         "en": {
@@ -72038,7 +72038,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Einlösecode"
+            "value": "Code einlösen"
           }
         },
         "en": {
@@ -72068,7 +72068,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Code d'échange"
+            "value": "Utiliser un code"
           }
         },
         "ha": {
@@ -72259,7 +72259,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Obtenir %@ pour %@!"
+            "value": "Obtenir %@ pour %@ !"
           }
         },
         "ha": {
@@ -74551,7 +74551,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Votre prime est prête !"
+            "value": "Votre bonus est prêt !"
           }
         },
         "ha": {
@@ -77959,7 +77959,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Inhalte, die während der Bildschirmaufnahme ausgeblendet wurden."
+            "value": "Inhalt während der Bildschirmaufnahme ausgeblendet"
           }
         },
         "en": {
@@ -78532,7 +78532,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Speichern Sie Ihre geheime Phrase an einem sicheren Ort\n das nur Sie kontrollieren."
+            "value": "Speichern Sie Ihre geheime Phrase an einem sicheren Ort,\n den nur Sie kontrollieren."
           }
         },
         "en": {
@@ -79105,7 +79105,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verkaufen %@"
+            "value": "%@ verkaufen"
           }
         },
         "en": {
@@ -81045,7 +81045,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Activer le mot de passe"
+            "value": "Activer le code"
           }
         },
         "ha": {
@@ -82573,7 +82573,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "effet de levier par défaut"
+            "value": "Effet de levier par défaut"
           }
         },
         "ha": {
@@ -82818,7 +82818,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Standaard marge"
+            "value": "Standaardmarge"
           }
         },
         "pl": {
@@ -85026,7 +85026,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Besuche die Website"
+            "value": "Website besuchen"
           }
         },
         "en": {
@@ -85981,7 +85981,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dadurch erhält der Ausgeber Zugriff auf dieses Token, bis Sie die Genehmigung widerrufen oder es abläuft."
+            "value": "Dadurch erhält die berechtigte Adresse Zugriff auf dieses Token, bis Sie die Genehmigung widerrufen oder sie abläuft."
           }
         },
         "en": {
@@ -86011,7 +86011,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cela donne au détenteur du jeton l'accès à utiliser jusqu'à ce que vous révoquiez l'autorisation ou que celle-ci expire."
+            "value": "Cela permet à l'adresse autorisée d'utiliser ce jeton jusqu'à ce que vous révoquiez l'approbation ou qu'elle expire."
           }
         },
         "ha": {
@@ -94385,7 +94385,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Preisauswirkungen"
+            "value": "Preiseinfluss"
           }
         },
         "en": {
@@ -94415,7 +94415,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Impact sur les prix"
+            "value": "Impact sur le prix"
           }
         },
         "ha": {
@@ -94797,7 +94797,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Impact élevé sur les prix"
+            "value": "Impact élevé sur le prix"
           }
         },
         "ha": {
@@ -95531,7 +95531,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hohe Slippage. Dein Swap wird möglicherweise zu einem schlechteren Preis als erwartet ausgeführt."
+            "value": "Hohe Slippage. Ihr Swap wird möglicherweise zu einem schlechteren Preis als erwartet ausgeführt."
           }
         },
         "en": {
@@ -95722,7 +95722,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mindestmenge verwenden"
+            "value": "Mindestbetrag verwenden"
           }
         },
         "en": {
@@ -100145,7 +100145,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Réclamez des récompenses"
+            "value": "Réclamer les récompenses"
           }
         },
         "ha": {
@@ -101070,7 +101070,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unzureichendes %@ -Guthaben."
+            "value": "Unzureichendes %@-Guthaben."
           }
         },
         "en": {
@@ -101261,7 +101261,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nicht ausreichendes %@ -Guthaben zur Deckung der Netzwerkgebühren."
+            "value": "Nicht ausreichendes %@-Guthaben zur Deckung der Netzwerkgebühren."
           }
         },
         "en": {
@@ -102025,7 +102025,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Danach muss ein Mindestguthaben %@ übrig bleiben, es sei denn, Sie nutzen Ihr gesamtes Guthaben."
+            "value": "Danach muss ein Mindestguthaben von %@ übrig bleiben, es sei denn, Sie nutzen Ihr gesamtes Guthaben."
           }
         },
         "en": {
@@ -102055,7 +102055,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Un solde minimum %@ doit rester après cela, à moins que vous n'utilisiez votre solde complet."
+            "value": "Un solde minimum de %@ doit rester après cela, à moins que vous n'utilisiez votre solde complet."
           }
         },
         "ha": {
@@ -102598,7 +102598,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Netzwerk-Gebühr"
+            "value": "Netzwerkgebühr"
           }
         },
         "en": {
@@ -104699,7 +104699,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Belohnung"
+            "value": "Belohnungen"
           }
         },
         "en": {
@@ -106448,7 +106448,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mise à jour"
+            "value": "Mettre à jour"
           }
         },
         "ha": {
@@ -106609,7 +106609,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Version %@ der App ist jetzt verfügbar. Aktualisieren und genießen Sie die neuesten Funktionen und Verbesserungen."
+            "value": "Version %@ der App ist jetzt verfügbar. Aktualisieren Sie die App und genießen Sie die neuesten Funktionen und Verbesserungen."
           }
         },
         "en": {
@@ -106830,7 +106830,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nouvelle mise à jour disponible!"
+            "value": "Nouvelle mise à jour disponible !"
           }
         },
         "ha": {
@@ -108549,7 +108549,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dépôt"
+            "value": "Déposer"
           }
         },
         "ha": {
@@ -108710,7 +108710,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Aus deinen Wallet-Assets"
+            "value": "Aus Ihren Wallet-Assets"
           }
         },
         "en": {
@@ -114631,7 +114631,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zurückziehen"
+            "value": "Auszahlen"
           }
         },
         "en": {
@@ -116350,7 +116350,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sehen Sie Ihren Kontostand und Ihre Aktivitäten ein."
+            "value": "Ihren Kontostand und Ihre Aktivitäten einsehen"
           }
         },
         "en": {
@@ -116732,7 +116732,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scannen oder fügen Sie Code ein, um eine Verbindung zur DApp herzustellen"
+            "value": "Scannen Sie den Code oder fügen Sie ihn ein, um sich mit der DApp zu verbinden"
           }
         },
         "en": {
@@ -117496,7 +117496,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Willkommen zur Gem Familie"
+            "value": "Willkommen in der Gem-Familie"
           }
         },
         "en": {

@@ -61,6 +61,10 @@ pub enum Currency {
     MAD,
     GHS,
     PEN,
+    RON,
+    GEL,
+    AMD,
+    MDL,
 }
 
 impl Currency {
@@ -121,6 +125,10 @@ impl Currency {
             Self::MAD => "🇲🇦",
             Self::GHS => "🇬🇭",
             Self::PEN => "🇵🇪",
+            Self::RON => "🇷🇴",
+            Self::GEL => "🇬🇪",
+            Self::AMD => "🇦🇲",
+            Self::MDL => "🇲🇩",
         }
     }
 }

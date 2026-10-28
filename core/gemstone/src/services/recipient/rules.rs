@@ -1,4 +1,4 @@
-use primitives::name::NameRecord;
+use primitives::name::{NameRecord, is_name};
 use primitives::{Asset, Chain, ChainAsset, ContactData, WalletAddressItem, WalletType};
 
 use super::model::{GemRecipientError, GemRecipientErrorDisplay, GemRecipientNext, GemRecipientRow, GemRecipientScan, GemRecipientSection, GemRecipientSectionKind, GemRecipientType, GemRecipientValidation};
@@ -7,7 +7,6 @@ use crate::address_formatter::{GemAddressFormatStyle, format_address};
 use crate::models::custom_types::GemBigInt;
 use crate::payment::{GemPaymentRecipient, GemPaymentStep};
 use crate::services::name::GemNameRecordState;
-use crate::services::name::rules::is_name_supported;
 use crate::services::transfer::{GemRecipient, GemTransferData};
 use crate::services::wallet::rules::sorted_by_wallet_order;
 use primitives::TransactionInputType;
@@ -53,7 +52,7 @@ fn address(chain: Chain, input: &str, state: &GemNameRecordState) -> Option<Stri
 }
 
 fn error_display(chain: Chain, input: &str, is_valid: bool) -> Option<GemRecipientErrorDisplay> {
-    let shows_error = !input.trim().is_empty() && !is_name_supported(input) && !is_valid;
+    let shows_error = !input.trim().is_empty() && !is_name(input) && !is_valid;
     shows_error.then(|| GemRecipientErrorDisplay::InvalidAddress {
         network: ChainAsset::from_chain(chain).network_name,
     })
@@ -196,6 +195,13 @@ mod tests {
         );
         assert!(validation(Chain::Ethereum, "", &GemNameRecordState::None).error.is_none());
         assert!(validation(Chain::Ethereum, "vitalik.eth", &GemNameRecordState::None).error.is_none());
+        assert_eq!(
+            validation(Chain::Tron, "yyy@gmail.com", &GemNameRecordState::None).error,
+            Some(GemRecipientErrorDisplay::InvalidAddress {
+                network: ChainAsset::from_chain(Chain::Tron).network_name
+            }),
+            "an email is an invalid address, not a name to look up"
+        );
 
         let arbitrum = validation(Chain::Arbitrum, "0xinvalid", &GemNameRecordState::None);
         assert_eq!(

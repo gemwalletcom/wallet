@@ -209,6 +209,7 @@ impl<C: Client> CoinGeckoClient<C> {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::BTreeMap;
     use std::sync::{
         Arc,
         atomic::{AtomicUsize, Ordering},
@@ -217,6 +218,22 @@ mod tests {
     use gem_client::testkit::MockClient;
 
     use super::*;
+
+    #[tokio::test]
+    async fn test_get_fiat_rates_preserves_supported_fiat_and_converts_from_usd() {
+        let client = CoinGeckoClient::new_with_client(MockClient::new().with_get(|path| {
+            assert_eq!(path, "/api/v3/exchange_rates");
+            Ok(include_bytes!("../testdata/exchange_rates.json").to_vec())
+        }));
+
+        let rates = client.get_fiat_rates().await.unwrap();
+        let rates = rates.into_iter().map(|rate| (rate.symbol.as_ref().to_string(), rate.rate)).collect::<BTreeMap<_, _>>();
+
+        assert_eq!(
+            rates,
+            BTreeMap::from([("AMD".to_string(), 400.0), ("GEL".to_string(), 2.5), ("MDL".to_string(), 20.0), ("RON".to_string(), 5.0), ("USD".to_string(), 1.0)])
+        );
+    }
 
     #[tokio::test(start_paused = true)]
     async fn test_get_coin_list_retries_transient_errors() {

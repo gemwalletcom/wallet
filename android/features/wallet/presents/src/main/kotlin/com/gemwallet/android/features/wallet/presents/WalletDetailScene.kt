@@ -12,7 +12,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -56,15 +55,6 @@ internal fun WalletDetailScene(wallet: GemWalletDetails?, snackbar: SnackbarHost
     Scene(
         title = stringResource(id = R.string.common_wallet),
         snackbar = snackbar,
-        actions = {
-            TextButton(
-                onClick = { onAction(WalletDetailAction.Cancel) },
-                colors = ButtonDefaults.textButtonColors()
-                    .copy(contentColor = MaterialTheme.colorScheme.onBackground),
-            ) {
-                Text(stringResource(R.string.common_done).uppercase())
-            }
-        },
         onClose = { onAction(WalletDetailAction.Cancel) },
     ) {
         Column(

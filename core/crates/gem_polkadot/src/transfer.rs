@@ -301,6 +301,17 @@ mod tests {
     }
 
     #[test]
+    fn test_send_everything_may_reap_the_account() {
+        let input = TransactionLoadInput {
+            is_max_value: true,
+            ..TransactionLoadInput::mock_polkadot()
+        };
+        let transaction = NativeTransferTransaction::from_input(&input, [1; 32]).unwrap();
+
+        assert_eq!(transaction.call[..2], [0x0a, 0x00], "Balances.transfer_allow_death, as transfer_keep_alive refuses to go under the existential deposit");
+    }
+
+    #[test]
     fn test_fee_estimation_transaction_sends_swap_to_deposit_address() {
         let transfer = TransactionLoadInput::mock_polkadot();
         let swap = TransactionLoadInput {

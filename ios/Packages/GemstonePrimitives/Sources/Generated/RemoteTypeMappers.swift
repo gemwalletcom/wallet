@@ -370,6 +370,10 @@ public extension Gemstone.Currency {
         case .mad: .mad
         case .ghs: .ghs
         case .pen: .pen
+        case .ron: .ron
+        case .gel: .gel
+        case .amd: .amd
+        case .mdl: .mdl
         }
     }
 }
@@ -432,6 +436,10 @@ public extension Primitives.Currency {
         case .mad: .mad
         case .ghs: .ghs
         case .pen: .pen
+        case .ron: .ron
+        case .gel: .gel
+        case .amd: .amd
+        case .mdl: .mdl
         }
     }
 }

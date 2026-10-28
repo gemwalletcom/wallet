@@ -4,6 +4,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.assets.viewmodels.select.SelectAssetViewModel
@@ -21,7 +23,7 @@ fun AssetsManageScreen(onAddAsset: () -> Unit, onAssetClick: (AssetId) -> Unit, 
         onAddAsset = onAddAsset,
         actions = {
             if (isAddAssetAvailable) {
-                IconButton(onClick = onAddAsset) {
+                IconButton(modifier = Modifier.testTag("add_custom_token"), onClick = onAddAsset) {
                     Icon(imageVector = AppIcons.Add, contentDescription = "")
                 }
             }

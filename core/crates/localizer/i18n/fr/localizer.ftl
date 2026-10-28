@@ -1,12 +1,12 @@
 notification_sent_title = 💸 Envoyé : {$value}
 notification_sent_description = Pour {$address}
-notification_received_title = 💰Reçu : {$value}
+notification_received_title = 💰 Reçu : {$value}
 notification_received_description = De {$address}
 notification_unstake_title = 🔒 { notification_action_unstake } {$value}
 notification_claim_rewards_title = 🎁 { notification_action_claim_rewards } {$value}
 notification_withdraw_title = 🔓 { notification_action_withdraw } {$value}
 notification_redelegate_title = 🔄 { notification_action_redelegate } {$value}
-notification_swap_title = 🔄 Passer de {$from_symbol} à {$to_symbol}
+notification_swap_title = 🔄 Échange de {$from_symbol} contre {$to_symbol}
 notification_swap_description = {$from_value} > {$to_value}
 notification_test = Test
 notification_token_approval_title = ✅ { notification_action_token_approval } {$token}
@@ -14,8 +14,8 @@ notification_stake_title = 🔒 { notification_action_stake } {$value}
 notification_price_alert_up_title = 📈 Alerte de prix {$symbol}
 notification_price_alert_up_description = Le prix a augmenté de {$price_change} à {$price}
 notification_price_alert_down_title = 📉 Alerte de prix {$symbol}
-notification_price_alert_down_description = Prix diminué de {$price_change} à {$price}
-notification_price_alert_all_time_high_title = 🔥 {$symbol} Le plus haut historique
+notification_price_alert_down_description = Le prix a diminué de {$price_change} à {$price}
+notification_price_alert_all_time_high_title = 🔥 {$symbol} Record absolu
 notification_price_alert_all_time_high_description = {$symbol} a atteint un nouveau sommet historique à {$price}.
 notification_nft_sent_title = 🖼️ NFT envoyé : {$value}
 notification_nft_received_title = 🖼️ NFT reçu : {$value}
@@ -26,7 +26,10 @@ notification_fiat_sale_title = 💰 Vous avez vendu {$value}
 support_new_message_title = Nouveau message du support
 notification_freeze_title = { notification_action_freeze } {$value}
 notification_unfreeze_title = { notification_action_unfreeze } {$value}
-notification_reward_title = 💎 Vous avez gagné {$value} points!
+notification_reward_title = 💎 Vous avez gagné { $value ->
+     [one] {$value} point
+    *[other] {$value} points
+    } !
 notification_reward_create_username_description = Nom d'utilisateur prêt. Invitez vos amis pour gagner des récompenses.
 notification_reward_invite_description = Le parrainage a été effectué en utilisant votre code.
 notification_rewards_joined_description = Vous vous êtes inscrit en utilisant un code de parrainage.

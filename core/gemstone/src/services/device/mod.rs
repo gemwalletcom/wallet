@@ -115,8 +115,9 @@ impl GemDeviceService {
 
     async fn sync(&self, device: Device) -> Result<Device, GemServiceError> {
         let version = self.preferences.get_subscriptions_version();
+        let published = self.preferences.get_pushed_device();
         let remote = self.get_or_create(&device).await?;
-        if remote.subscriptions_version != version {
+        if published.is_none() || remote.subscriptions_version != version {
             self.subscriptions.sync().await?;
         }
 
@@ -161,5 +162,48 @@ impl WalletRequestPreflight for DeviceSyncPreflight {
             return Ok(());
         };
         service.synchronize_if_needed().await.map_err(|error| ClientError::Network(error.to_string()))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::services::preferences::testkit::MemoryPreferencesStore;
+    use crate::services::wallet::testkit::MemoryWalletStore;
+    use crate::services::wallet_session::GemWalletSessionService;
+    use crate::services::wallet_session::testkit::MemoryWalletSessionStore;
+    use crate::testkit::{EmptyPreferences, TestAlienProvider};
+    use futures::executor::block_on;
+    use primitives::Wallet;
+
+    fn synchronized_paths(preferences: Arc<GemPreferencesService>) -> Vec<String> {
+        let remote = serde_json::to_string(&Device { subscriptions_version: 1, ..Device::mock() }).unwrap();
+        let provider = Arc::new(TestAlienProvider::with_json_by_path(200, &[("devices/is-registered", "true"), ("devices/subscriptions", "[]"), ("/v3/devices", &remote)]));
+        let api = Arc::new(GemDeviceApiClient::new(provider.clone(), Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences)))));
+        let session = Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore::default()), Arc::new(MemoryWalletStore::with_wallets(vec![Wallet::mock()]))));
+        block_on(GemDeviceService::mock(api, session, preferences).synchronize()).unwrap();
+        provider.requested_paths()
+    }
+
+    #[test]
+    fn test_a_record_this_install_never_published_gets_its_subscriptions_reconciled() {
+        let preferences = Arc::new(GemPreferencesService::new(Arc::new(MemoryPreferencesStore::default())));
+        preferences.set_subscriptions_version(1).unwrap();
+
+        let paths = synchronized_paths(preferences);
+
+        assert!(paths.iter().any(|path| path.contains("devices/subscriptions")), "an equal version from another install hides its subscriptions: {paths:?}");
+    }
+
+    #[test]
+    fn test_a_published_record_with_the_same_version_skips_subscriptions() {
+        let preferences = Arc::new(GemPreferencesService::new(Arc::new(MemoryPreferencesStore::default())));
+        preferences.set_subscriptions_version(1).unwrap();
+        preferences.set_device_registered(true).unwrap();
+        preferences.set_pushed_device(&Device { subscriptions_version: 1, ..Device::mock() }).unwrap();
+
+        let paths = synchronized_paths(preferences);
+
+        assert!(!paths.iter().any(|path| path.contains("devices/subscriptions")), "{paths:?}");
     }
 }

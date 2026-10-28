@@ -171,7 +171,7 @@ pub fn map_swap_result(response: &SwapTxResponse) -> SwapResult {
     let status = response.swap_status();
     let eta_in_seconds = response.eta_in_seconds();
 
-    let metadata = if status != SwapStatus::Pending {
+    let metadata = if status == SwapStatus::Completed {
         let from_chain = response.src_chain.parse::<ChainflipChain>().ok().map(ChainflipChain::to_chain);
         let to_chain = response.dest_chain.parse::<ChainflipChain>().ok().map(ChainflipChain::to_chain);
 
@@ -192,10 +192,7 @@ pub fn map_swap_result(response: &SwapTxResponse) -> SwapResult {
 #[cfg(test)]
 pub mod test {
     use super::*;
-    use primitives::{
-        AssetId,
-        asset_constants::{ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDT_ASSET_ID},
-    };
+    use primitives::{AssetId, asset_constants::ETHEREUM_USDC_ASSET_ID};
 
     fn swap_response(json: &str) -> SwapTxResponse {
         serde_json::from_str(json).unwrap()
@@ -328,20 +325,13 @@ pub mod test {
     }
 
     #[test]
-    fn test_map_swap_result_refunded() {
-        assert_eq!(
-            map_swap_result(&swap_response(include_str!("./test/swap_btc_to_usdt_refunded.json"))),
-            SwapResult {
-                status: SwapStatus::Refunded,
-                metadata: Some(TransactionSwapMetadata::new(
-                    AssetId::from_chain(Chain::Bitcoin),
-                    BigUint::from(1508475u64),
-                    ETHEREUM_USDT_ASSET_ID.clone(),
-                    BigUint::from(0u64),
-                    SwapperProvider::Chainflip
-                )),
-                eta_in_seconds: None,
-            }
-        );
+    fn test_map_swap_result_without_metadata() {
+        assert_eq!(map_swap_result(&swap_response(include_str!("./test/swap_btc_to_usdt_refunded.json"))), SwapResult::from(SwapStatus::Refunded));
+
+        let failed = SwapTxResponse {
+            state: "FAILED".to_string(),
+            ..swap_response(include_str!("./test/swap_eth_to_btc.json"))
+        };
+        assert_eq!(map_swap_result(&failed), SwapResult::from(SwapStatus::Failed));
     }
 }

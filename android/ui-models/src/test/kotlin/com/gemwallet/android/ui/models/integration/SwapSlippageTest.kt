@@ -1,13 +1,16 @@
-package com.gemwallet.android.ui.models.swap
+package com.gemwallet.android.ui.models.integration
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.gemwallet.android.model.text
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import org.junit.runner.RunWith
 import uniffi.gemstone.GemNumberFormat
 import uniffi.gemstone.GemSlippageSelection
 import uniffi.gemstone.newSlippageSession
 import java.util.Locale
 
+@RunWith(AndroidJUnit4::class)
 class SwapSlippageTest {
 
     @Test

@@ -1,6 +1,12 @@
 package com.gemwallet.android.model
 
+import android.icu.math.BigDecimal.ROUND_DOWN
+import android.icu.math.BigDecimal.ROUND_HALF_EVEN
+import android.icu.math.BigDecimal.ROUND_UP
 import android.icu.text.CompactDecimalFormat
+import android.icu.text.DecimalFormat
+import android.icu.text.NumberFormat
+import android.icu.util.Currency
 import uniffi.gemstone.GemFormattedNumber
 import uniffi.gemstone.GemNumberDisplay
 import uniffi.gemstone.GemNumberNotation
@@ -10,8 +16,6 @@ import uniffi.gemstone.GemPrecision
 import uniffi.gemstone.GemTransactionRowValue
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.text.DecimalFormat
-import java.text.NumberFormat
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 
@@ -23,11 +27,11 @@ fun GemFormattedNumber.text(locale: Locale = Locale.getDefault()): String = when
 private val GemFormattedNumber.showsSign: Boolean
     get() = notation == GemNumberNotation.SIGNED
 
-private val GemFormattedNumber.numberRounding: RoundingMode
+private val GemFormattedNumber.numberRounding: Int
     get() = when (rounding) {
-        GemNumberRounding.TO_NEAREST -> RoundingMode.HALF_EVEN
-        GemNumberRounding.TOWARD_ZERO -> RoundingMode.DOWN
-        GemNumberRounding.AWAY_FROM_ZERO -> RoundingMode.UP
+        GemNumberRounding.TO_NEAREST -> ROUND_HALF_EVEN
+        GemNumberRounding.TOWARD_ZERO -> ROUND_DOWN
+        GemNumberRounding.AWAY_FROM_ZERO -> ROUND_UP
     }
 
 private fun GemFormattedNumber.body(locale: Locale): String = when (val display = display) {
@@ -56,8 +60,8 @@ private val GemFormattedNumber.signText: String
 private val GemFormattedNumber.currencyCode: String?
     get() = (unit as? GemNumberUnit.Currency)?.code
 
-private fun percentText(value: BigDecimal, precision: GemPrecision, showsSign: Boolean, rounding: RoundingMode, locale: Locale): String {
-    val formatter = (percentFormats.getOrPut(locale) { NumberFormat.getPercentInstance(locale) as DecimalFormat }.clone() as DecimalFormat).apply {
+private fun percentText(value: BigDecimal, precision: GemPrecision, showsSign: Boolean, rounding: Int, locale: Locale): String {
+    val formatter = (percentFormats.getOrPut(locale to showsSign) { percentFormat(locale, showsSign) }.clone() as DecimalFormat).apply {
         when (precision) {
             is GemPrecision.Fraction -> {
                 minimumFractionDigits = precision.min
@@ -70,18 +74,12 @@ private fun percentText(value: BigDecimal, precision: GemPrecision, showsSign: B
             }
         }
         roundingMode = rounding
-        val minus = decimalFormatSymbols.minusSign.toString()
-        if (showsSign) {
-            positivePrefix = "+" + positivePrefix
-        } else {
-            negativePrefix = negativePrefix.replace(minus, "")
-        }
     }
     val amount = value.movePointLeft(2)
     return formatter.format(
         when (precision) {
             is GemPrecision.Fraction -> amount
-            is GemPrecision.Significant -> amount.rounded(precision, rounding)
+            is GemPrecision.Significant -> amount.rounded(precision, RoundingMode.valueOf(rounding))
         },
     )
 }
@@ -93,12 +91,8 @@ private fun GemFormattedNumber.appendSymbol(text: String): String = when (val un
 }
 
 private fun GemFormattedNumber.numberText(value: BigDecimal, precision: GemPrecision, locale: Locale, withSign: Boolean = showsSign): String {
-    val rounding = numberRounding
-    val formatter = numberFormat(locale).apply {
-        roundingMode = rounding
-        if (withSign) {
-            positivePrefix = "+" + positivePrefix
-        }
+    val formatter = numberFormat(locale, withSign).apply {
+        roundingMode = numberRounding
     }
     return formatter.format(value, precision)
 }
@@ -108,12 +102,8 @@ private fun GemFormattedNumber.abbreviatedText(value: BigDecimal, locale: Locale
         setSignificantDigitsUsed(false)
         minimumFractionDigits = 0
         maximumFractionDigits = 2
-        roundingMode = when (rounding) {
-            GemNumberRounding.TO_NEAREST -> android.icu.math.BigDecimal.ROUND_HALF_EVEN
-            GemNumberRounding.TOWARD_ZERO -> android.icu.math.BigDecimal.ROUND_DOWN
-            GemNumberRounding.AWAY_FROM_ZERO -> android.icu.math.BigDecimal.ROUND_UP
-        }
-        currencyCode?.let { currency = android.icu.util.Currency.getInstance(it) }
+        roundingMode = numberRounding
+        currencyCode?.let { currency = Currency.getInstance(it) }
     }
     return when {
         showsSign -> "$signText${formatter.format(value.abs())}"
@@ -121,13 +111,31 @@ private fun GemFormattedNumber.abbreviatedText(value: BigDecimal, locale: Locale
     }
 }
 
-private val numberFormats = ConcurrentHashMap<Pair<Locale, String?>, DecimalFormat>()
+private val numberFormats = ConcurrentHashMap<Triple<Locale, String?, Boolean>, DecimalFormat>()
 
-private val percentFormats = ConcurrentHashMap<Locale, DecimalFormat>()
+private val percentFormats = ConcurrentHashMap<Pair<Locale, Boolean>, DecimalFormat>()
 
-private fun GemFormattedNumber.numberFormat(locale: Locale): DecimalFormat = numberFormats.getOrPut(locale to currencyCode) {
-    (currencyCode?.let { code -> NumberFormat.getCurrencyInstance(locale).apply { currency = java.util.Currency.getInstance(code) } } ?: NumberFormat.getInstance(locale)) as DecimalFormat
+private fun GemFormattedNumber.numberFormat(locale: Locale, withSign: Boolean): DecimalFormat = numberFormats.getOrPut(Triple(locale, currencyCode, withSign)) {
+    ((currencyCode?.let { code -> NumberFormat.getCurrencyInstance(locale).apply { currency = Currency.getInstance(code) } } ?: NumberFormat.getInstance(locale)) as DecimalFormat).apply {
+        if (withSign) {
+            alwaysShowSign()
+        }
+    }
 }.clone() as DecimalFormat
+
+private fun percentFormat(locale: Locale, showsSign: Boolean): DecimalFormat = (NumberFormat.getPercentInstance(locale) as DecimalFormat).apply {
+    if (showsSign) {
+        alwaysShowSign()
+    } else {
+        negativePrefix = negativePrefix.replace(decimalFormatSymbols.minusSignString, "")
+    }
+}
+
+private fun DecimalFormat.alwaysShowSign() {
+    val pattern = toPattern()
+    val negative = pattern.substringAfter(';', "-$pattern")
+    applyPattern("${negative.replace('-', '+')};$negative")
+}
 
 fun GemTransactionRowValue.text(): String? = when (this) {
     GemTransactionRowValue.None -> null

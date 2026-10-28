@@ -1,7 +1,10 @@
-package com.gemwallet.android.features.transfer.viewmodels.confirm.models
+package com.gemwallet.android.features.transfer.viewmodels.integration
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.features.transfer.viewmodels.confirm.models.AcquireAssetRequest
+import com.gemwallet.android.features.transfer.viewmodels.confirm.models.GetAssetAction
 import com.gemwallet.android.model.text
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
@@ -11,6 +14,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 import uniffi.gemstone.Currency
 import uniffi.gemstone.GemAcquireAsset
 import uniffi.gemstone.GemAcquireAssetFlow
@@ -24,6 +28,7 @@ import uniffi.gemstone.confirmErrorInfo
 import java.math.BigInteger
 import java.util.Locale
 
+@RunWith(AndroidJUnit4::class)
 class ConfirmErrorUIModelTest {
     private val asset = mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18u)
 

@@ -22,7 +22,7 @@ Before changing how an area works, read its page. A change that breaks a rule wr
 
 ## Numbers
 
-Both apps write every number the same way. The examples are in US English and US dollars; separators and where the currency symbol goes follow the user's locale.
+Both apps write every number the same way. The examples are in US English and US dollars; separators and where the currency symbol goes follow the user's locale, and in a right-to-left language a sign stays in front of its number, so `-3 ADA` never reads `ADA 3-`.
 
 ### Money
 
@@ -190,21 +190,25 @@ Some networks require a balance to keep an account open, a minimum payment to ac
 | Polkadot Asset Hub | Minimum remaining balance | 0.01 DOT |
 | Solana | Minimum remaining balance | 0.00089088 SOL |
 | Solana | Recipient token account creation | 0.00148844 SOL |
+| Cardano | Minimum output, for the amount sent and the change kept | 1 ADA |
+| Bitcoin-family networks | Minimum output (dust), for the amount sent and the change kept | Set by the address type, such as 0.00000294 BTC for a `bc1q` address |
 | XRP | New account activation and base reserve | 1 XRP |
 | XRP | Additional reserve per owned object, including a token trust line | 0.2 XRP |
-| Stellar | New account activation and base reserve | 1 XLM |
+| Stellar | New account activation | 1 XLM |
+| Stellar | Base reserve, kept twice for the account and once for each trustline, offer, signer, data entry or entry it sponsors, less each entry another account sponsors for it | 0.5 XLM |
 | Algorand | New account activation | 0.1 ALGO |
 | Tron | New account creation charge | Network's current charges and the sender's bandwidth |
 
 | When | Expected | Why |
 |---|---|---|
-| Spending a native coin, other than Max, would leave less than its minimum balance after the fee | it is refused and the minimum is shown | the network can remove an account below its minimum and the remainder can be lost |
+| A send of a native coin would leave less than its minimum balance after the fee | everything is sent instead, as [Transfer](product/transfer.md) describes | the remainder could not stay in the account |
+| Any other spending of a native coin, such as a swap or a stake, would leave less than its minimum balance after the fee | it is refused and the minimum is shown | the network can remove an account below its minimum and the remainder can be lost |
 | The user picks Max | the minimum remaining balance check is skipped; reserved balances stay unavailable | the user can empty an account where the network allows it |
 | A native coin send or payment to a new account is below its activation amount | it is refused and the required amount is shown | the recipient's account cannot be created with that amount |
 | A Solana token transfer needs a recipient token account | its creation amount is included in the Network Fee | the sender funds the new token account |
 | A Solana stake creates its stake account | the Network Fee shows only the network's charge | the stake account's rent comes out of the amount staked |
 
-Account reserves are excluded from the available balance. Algorand reports its account's reserve, which can grow with its assets. Tron account creation is included in the Network Fee using the network's current charges and the sender's bandwidth.
+Account reserves are excluded from the available balance. Algorand reports its account's reserve, which can grow with its assets. A Stellar account with one trustline keeps `1.5 XLM` ([`test_map_native_balance`](../core/crates/gem_stellar/src/provider/balances_mapper.rs)). Tron account creation is included in the Network Fee using the network's current charges and the sender's bandwidth.
 
 ## Names
 
@@ -262,7 +266,7 @@ If an action is unavailable, show the Not Available sheet and stop. Learn More o
 | Sell | Continue on the Sell screen, before opening the provider's checkout |
 | Swap | Continue / Swap on the Swap screen, before preparing the trade |
 | Perpetuals | Deposit, Long, Short, Increase or Reduce before the amount screen; Modify before the options |
-| Staking | Stake on the staking screen, before opening the amount screen |
+| Staking | Stake on the staking screen or on a delegation, before opening the amount screen |
 | Rewards | Invite Friends, before opening the share sheet |
 
 Load config at startup and use the stored flags for actions. Features default to enabled until config is loaded. Keep quotes visible, and Withdraw and Close available.

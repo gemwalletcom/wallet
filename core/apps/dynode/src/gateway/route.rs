@@ -139,10 +139,14 @@ pub(super) fn match_route<'a>(routes: &'a HashMap<String, Route>, method: &Metho
     let service_end = path.find('/').unwrap_or(path.len());
     let (service, remainder) = path.split_at(service_end);
     let route = routes.get(service).ok_or(MatchError::NotFound)?;
-    if !route.allows(method, remainder) {
+    if !is_canonical(remainder) || !route.allows(method, remainder) {
         return Err(MatchError::NotAllowed);
     }
     Ok(RouteMatch { source, route, remainder, query })
+}
+
+fn is_canonical(path: &str) -> bool {
+    path.is_empty() || Url::parse("http://0.0.0.0").and_then(|base| base.join(path)).is_ok_and(|url| url.path() == path)
 }
 
 #[cfg(test)]
@@ -224,6 +228,24 @@ mod tests {
         assert_eq!(match_route(&routes, &Method::GET, "/worker/relay/quote/v2").err(), Some(MatchError::NotAllowed));
         assert_eq!(match_route(&routes, &Method::POST, "/worker/relay/execute").err(), Some(MatchError::NotAllowed));
         assert!(match_route(&routes, &Method::POST, "/worker/jupiter/execute").is_ok());
+    }
+
+    #[test]
+    fn test_match_route_refuses_paths_the_target_url_resolves() {
+        let blockscout = Route {
+            allowlist: serde_json::from_value(json!([{ "path": "/api/v2/addresses/**", "method": "GET" }])).unwrap(),
+            ..Route::mock("indexer", "blockscout")
+        };
+        let routes = HashMap::from([("blockscout".to_string(), blockscout)]);
+        assert!(match_route(&routes, &Method::GET, "/worker/blockscout/api/v2/addresses/0xabc?limit=1").is_ok());
+        for uri in [
+            "/worker/blockscout/api/v2/addresses/../../../admin",
+            "/worker/blockscout/api/v2/addresses/%2e%2e/%2E%2e/%2e./admin",
+            "/worker/blockscout/api/v2/addresses/.%2e\\..\\admin",
+            "/worker/blockscout/api/v2/addresses/./0xabc",
+        ] {
+            assert_eq!(match_route(&routes, &Method::GET, uri).err(), Some(MatchError::NotAllowed), "{uri}");
+        }
     }
 
     #[test]

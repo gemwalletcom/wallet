@@ -38,27 +38,23 @@ pub(crate) struct Plan {
 
 impl Plan {
     pub(crate) fn transfer(input: &SignerInput) -> Result<Self, SignerError> {
-        let mut recipient = None;
-        let request = SpendRequest::transfer(BitcoinChain::Zcash, input, |address| Self::destination(address, &mut recipient))?;
-        if recipient.is_none() && request.memo.is_some() {
-            return SignerError::invalid_input_err("Zcash memo requires a shielded address");
-        }
+        let (request, recipient) = Self::transfer_request(input)?;
         Self::new(request, recipient)
     }
 
     pub(crate) fn swap(input: &SignerInput) -> Result<Self, SignerError> {
-        let mut recipient = None;
-        let request = SpendRequest::swap(BitcoinChain::Zcash, input, |address| Self::destination(address, &mut recipient))?;
+        let (request, recipient) = Self::swap_request(input)?;
         Self::new(request, recipient)
     }
 
     #[cfg(feature = "rpc")]
-    pub(crate) fn for_input(input: &SignerInput) -> Result<Self, SignerError> {
-        match &input.input_type {
-            TransactionInputType::Transfer { .. } | TransactionInputType::Withdrawal { .. } => Self::transfer(input),
-            TransactionInputType::Swap { .. } => Self::swap(input),
-            _ => SignerError::invalid_input_err("unsupported Zcash transaction type"),
-        }
+    pub(crate) fn fee(input: &SignerInput) -> Result<u64, SignerError> {
+        let (request, _) = match &input.input_type {
+            TransactionInputType::Transfer { .. } | TransactionInputType::Withdrawal { .. } => Self::transfer_request(input)?,
+            TransactionInputType::Swap { .. } => Self::swap_request(input)?,
+            _ => return SignerError::invalid_input_err("unsupported Zcash transaction type"),
+        };
+        UtxoPlanner::fee(request, &Zip317Fee)
     }
 
     fn destination(address: &str, recipient: &mut Option<OrchardAddress>) -> Result<SpendDestination, SignerError> {
@@ -67,11 +63,30 @@ impl Plan {
         Ok(destination)
     }
 
-    fn new(request: SpendRequest, recipient: Option<OrchardAddress>) -> Result<Self, SignerError> {
-        let memo = request.memo.clone();
-        if recipient.is_some() && memo.as_ref().is_some_and(|memo| memo.len() > MEMO_BYTES) {
+    fn transfer_request(input: &SignerInput) -> Result<(SpendRequest, Option<OrchardAddress>), SignerError> {
+        let mut recipient = None;
+        let request = SpendRequest::transfer(BitcoinChain::Zcash, input, |address| Self::destination(address, &mut recipient))?;
+        if recipient.is_none() && request.memo.is_some() {
+            return SignerError::invalid_input_err("Zcash memo requires a shielded address");
+        }
+        Self::checked_memo(request, recipient)
+    }
+
+    fn swap_request(input: &SignerInput) -> Result<(SpendRequest, Option<OrchardAddress>), SignerError> {
+        let mut recipient = None;
+        let request = SpendRequest::swap(BitcoinChain::Zcash, input, |address| Self::destination(address, &mut recipient))?;
+        Self::checked_memo(request, recipient)
+    }
+
+    fn checked_memo(request: SpendRequest, recipient: Option<OrchardAddress>) -> Result<(SpendRequest, Option<OrchardAddress>), SignerError> {
+        if recipient.is_some() && request.memo.as_ref().is_some_and(|memo| memo.len() > MEMO_BYTES) {
             return SignerError::invalid_input_err("Zcash memo is too large");
         }
+        Ok((request, recipient))
+    }
+
+    fn new(request: SpendRequest, recipient: Option<OrchardAddress>) -> Result<Self, SignerError> {
+        let memo = request.memo.clone();
         let spend = UtxoPlanner::plan(request, &Zip317Fee)?;
         let shielded_output = recipient.zip(spend.external_value).map(|(recipient, value)| ShieldedOutput { recipient, value, memo });
         Ok(Self { spend, shielded_output })

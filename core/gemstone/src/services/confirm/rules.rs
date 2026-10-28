@@ -222,6 +222,7 @@ impl GemConfirmData {
             fee: self.fee.fee.clone(),
             is_max_amount: transfer.use_max_amount,
             destination_account_exists: self.metadata.get_is_destination_address_exist().ok(),
+            output_minimum: self.metadata.get_output_minimum(),
         };
         match input.calculate() {
             Ok(amount) => GemTransferAmountResult::Amount { amount },
@@ -254,6 +255,24 @@ fn amount_error(error: GemTransferAmountError, asset: &Asset, fee_asset: &Asset)
             provider_name: provider.name().to_string(),
             requirement: GemBalanceRequirement::new(minimum, value),
         },
+        GemTransferAmountError::DustThreshold { asset_id, .. } => GemConfirmError::DustThreshold { chain: asset_id.chain },
+    }
+}
+
+impl GemConfirmFeeLoad {
+    pub(super) fn send_everything_input(&self) -> Option<GemConfirmInput> {
+        let input = &self.confirm_data.input;
+        match &self.fee.amount {
+            GemTransferAmountResult::Amount { amount } if amount.is_max_amount && !input.transfer.use_max_amount => Some(GemConfirmInput {
+                transfer: GemTransferData {
+                    value: input.transfer.available_value(&self.metadata.asset_balance),
+                    use_max_amount: true,
+                    ..input.transfer.clone()
+                },
+                ..input.clone()
+            }),
+            GemTransferAmountResult::Amount { .. } | GemTransferAmountResult::Error { .. } => None,
+        }
     }
 }
 
@@ -1656,6 +1675,28 @@ mod tests {
             other => panic!("expected an insufficient balance error, got {other:?}"),
         }
         assert!(matches!(data.preload_amount(&funded, &asset), GemTransferAmountResult::Amount { .. }));
+    }
+
+    #[test]
+    fn test_send_everything_input() {
+        let asset = Asset::from_chain(Chain::Solana);
+        let mut data = SendInput::mock(Chain::Solana, TransactionInputType::Transfer { asset: asset.clone() }).confirm;
+        data.input.transfer.use_max_amount = false;
+        data.input.transfer.value = BigInt::from(1_000_000_000);
+        data.fee.fee = BigInt::from(5_000);
+        let leaves_half_rent = GemConfirmMetadata::mock(&asset.id, 1_000_505_000);
+        let reloaded = |data: &GemConfirmData, metadata: &GemConfirmMetadata| {
+            data.clone()
+                .fee_load(metadata.clone(), asset.clone(), Currency::USD)
+                .send_everything_input()
+                .map(|input| (input.transfer.value, input.transfer.use_max_amount))
+        };
+
+        assert_eq!(reloaded(&data, &leaves_half_rent), Some((BigInt::from(1_000_505_000), true)), "a send under the rent minimum loads again as a Max send");
+        assert_eq!(reloaded(&data, &GemConfirmMetadata::mock(&asset.id, 2_000_000_000)), None);
+
+        data.input.transfer.use_max_amount = true;
+        assert_eq!(reloaded(&data, &leaves_half_rent), None, "a Max send is already loaded with the send-everything fee");
     }
 
     #[test]

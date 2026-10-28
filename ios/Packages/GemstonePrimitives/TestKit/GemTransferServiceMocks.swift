@@ -140,12 +140,6 @@ public final class GemNameServiceMock: GemNameServiceProtocol, @unchecked Sendab
 }
 
 public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Sendable {
-    public var isAvailableValue = true
-
-    public func isAvailable() -> Bool {
-        isAvailableValue
-    }
-
     private let claimable: Bool
     private let actions: [GemDelegationActionItem]
     private let validators: [Gemstone.DelegationValidator]

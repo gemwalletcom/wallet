@@ -48,10 +48,8 @@ import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemServiceException
-import uniffi.gemstone.GemStakeActionKind
 import uniffi.gemstone.GemStakeAmountInput
 import uniffi.gemstone.GemStakeDestination
 import uniffi.gemstone.GemStakeServiceInterface
@@ -92,7 +90,6 @@ class StakeViewModelTest {
         every { this@mockk() } returns MutableStateFlow(mockSession())
     }
     private val stakeService = mockk<GemStakeServiceInterface>(relaxed = true) {
-        every { isAvailable() } returns true
         every { stakeViewState(any()) } returns GemStakeViewState(
             asset = assetText(asset.toGem()),
             sections = emptyList(),
@@ -117,31 +114,7 @@ class StakeViewModelTest {
     }
 
     @Test
-    fun `unavailable staking shows the sheet and keeps its amount screen closed`() = runTest(testDispatcher) {
-        every { stakeService.isAvailable() } returns false
-        val viewModel = createViewModel()
-        val destination = GemStakeDestination.Amount(GemStakeAmountInput.Stake(delegation.validator.toGem()))
-        val amount: AmountTransactionAction = mockk(relaxed = true)
-        val confirm: ConfirmTransactionAction = mockk(relaxed = true)
-        try {
-            viewModel.onSelect(GemStakeActionKind.STAKE, destination, amount, confirm)
-            assertEquals(GemInfoTopic.RegionUnavailable, viewModel.infoSheet.value)
-            verify(exactly = 0) { amount(any()) }
-            verify(exactly = 0) { confirm(any()) }
-
-            viewModel.infoSheet.value = null
-            every { stakeService.isAvailable() } returns true
-            viewModel.onSelect(GemStakeActionKind.STAKE, destination, amount, confirm)
-            assertNull(viewModel.infoSheet.value)
-            verify(exactly = 1) { amount(AmountParams.Stake(asset.id, destination.input)) }
-        } finally {
-            viewModel.viewModelScope.cancel()
-        }
-    }
-
-    @Test
-    fun `unavailable staking keeps freeze unfreeze and claiming available`() = runTest(testDispatcher) {
-        every { stakeService.isAvailable() } returns false
+    fun `a stake action opens the screen Core chose`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
         val freeze = GemStakeAmountInput.Freeze(Resource.ENERGY)
         val unfreeze = GemStakeAmountInput.Unfreeze(Resource.BANDWIDTH)
@@ -149,11 +122,10 @@ class StakeViewModelTest {
         val amount: AmountTransactionAction = mockk(relaxed = true)
         val confirm: ConfirmTransactionAction = mockk(relaxed = true)
         try {
-            viewModel.onSelect(GemStakeActionKind.FREEZE, GemStakeDestination.Amount(freeze), amount, confirm)
-            viewModel.onSelect(GemStakeActionKind.UNFREEZE, GemStakeDestination.Amount(unfreeze), amount, confirm)
-            viewModel.onSelect(GemStakeActionKind.CLAIM_REWARDS, GemStakeDestination.Confirm(transfer), amount, confirm)
+            viewModel.onSelect(GemStakeDestination.Amount(freeze), amount, confirm)
+            viewModel.onSelect(GemStakeDestination.Amount(unfreeze), amount, confirm)
+            viewModel.onSelect(GemStakeDestination.Confirm(transfer), amount, confirm)
             assertNull(viewModel.infoSheet.value)
-            verify(exactly = 0) { stakeService.isAvailable() }
             verify(exactly = 1) { amount(AmountParams.Stake(asset.id, freeze)) }
             verify(exactly = 1) { amount(AmountParams.Stake(asset.id, unfreeze)) }
             verify(exactly = 1) { confirm(match { it.data == transfer }) }

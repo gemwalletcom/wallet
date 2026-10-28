@@ -2,7 +2,6 @@
 
 import Components
 import Foundation
-import Localization
 import Style
 
 extension CalloutViewStyle {

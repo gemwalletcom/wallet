@@ -1,6 +1,7 @@
-package com.gemwallet.android.ui.components.list_item
+package com.gemwallet.android.ui.integration
 
 import android.content.Context
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.text
 import com.gemwallet.android.testkit.mockAsset
@@ -9,6 +10,11 @@ import com.gemwallet.android.testkit.mockGemFormattedNumber
 import com.gemwallet.android.testkit.mockGemWalletRow
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.infoSheet
+import com.gemwallet.android.ui.components.list_item.GemListRowMenuItem
+import com.gemwallet.android.ui.components.list_item.GemListRowUIModel
+import com.gemwallet.android.ui.components.list_item.ListItemTagType
+import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
+import com.gemwallet.android.ui.components.list_item.uiModel
 import com.gemwallet.android.ui.localization.label
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.style.textStyle
@@ -17,6 +23,7 @@ import io.mockk.mockk
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import org.junit.runner.RunWith
 import uniffi.gemstone.BlockExplorerLink
 import uniffi.gemstone.GemCopy
 import uniffi.gemstone.GemCopyKind
@@ -38,6 +45,7 @@ import uniffi.gemstone.Latency
 import uniffi.gemstone.LatencyType
 import java.math.BigInteger
 
+@RunWith(AndroidJUnit4::class)
 class GemListRowUIModelTest {
     @Test
     fun `an asset change keeps its sign tone and asset`() {

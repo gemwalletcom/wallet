@@ -53,21 +53,24 @@ struct WalletNavigationView: View {
             model.perpetualBalanceQuery,
             model.collectionsQuery,
         )
+        .navigationTitle(Localized.Wallet.title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            ToolbarItem(placement: .principal) {
+                if !model.isPresentingSearch {
+                    WalletBarView(
+                        row: model.walletRow,
+                        action: model.onSelectWalletBar,
+                    )
+                    .liquidGlass()
+                }
+            }
             if !model.isPresentingSearch {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button(action: model.onSelectScanner) {
                         model.scannerImage
                     }
                     .accessibilityIdentifier("scan")
-                }
-                ToolbarItem(placement: .principal) {
-                    WalletBarView(
-                        row: model.walletRow,
-                        action: model.onSelectWalletBar,
-                    )
-                    .liquidGlass()
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: model.onToggleSearch) {

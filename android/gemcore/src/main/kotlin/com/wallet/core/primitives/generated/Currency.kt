@@ -117,5 +117,13 @@ enum class Currency(val string: String) {
 	GHS("GHS"),
 	@SerialName("PEN")
 	PEN("PEN"),
+	@SerialName("RON")
+	RON("RON"),
+	@SerialName("GEL")
+	GEL("GEL"),
+	@SerialName("AMD")
+	AMD("AMD"),
+	@SerialName("MDL")
+	MDL("MDL"),
 }
 

@@ -125,6 +125,20 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_transaction_currency_is_kept_as_a_provider_string() {
+        for currency in ["RON", "GEL", "AMD", "MDL", "UNKNOWN"] {
+            let transaction = FiatTransaction {
+                fiat_currency: currency.to_string(),
+                ..FiatTransaction::mock()
+            };
+            let value = serde_json::to_value(&transaction).unwrap();
+
+            assert_eq!(value["fiatCurrency"], currency);
+            assert_eq!(serde_json::from_value::<FiatTransaction>(value).unwrap().fiat_currency, currency);
+        }
+    }
+
+    #[test]
     fn test_transaction_data_json_decodes_back() {
         let data = FiatTransactionData {
             transaction: FiatTransaction::mock(),

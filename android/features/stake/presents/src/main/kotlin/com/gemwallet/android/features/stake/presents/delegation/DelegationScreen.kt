@@ -12,6 +12,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.stake.viewmodels.delegation.DelegationViewModel
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.InfoBottomSheet
+import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.components.list_head.ValueListHead
 import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.ListItem
@@ -31,6 +33,8 @@ import com.wallet.core.primitives.ChainAddress
 
 @Composable
 fun DelegationScreen(onAmount: AmountTransactionAction, onConfirm: ConfirmTransactionAction, onOpenAddress: (ChainAddress) -> Unit, onCancel: () -> Unit, viewModel: DelegationViewModel = hiltViewModel()) {
+    val infoSheet by viewModel.infoSheet.collectAsStateWithLifecycle()
+    InfoBottomSheet(item = infoSheet?.infoSheet(), onClose = { viewModel.infoSheet.value = null })
     val current by viewModel.details.collectAsStateWithLifecycle()
     val currentAssetInfo by viewModel.assetInfo.collectAsStateWithLifecycle()
     val details = current
@@ -79,7 +83,7 @@ fun DelegationScreen(onAmount: AmountTransactionAction, onConfirm: ConfirmTransa
                 ListItem(
                     model = ListItemModel(title = stringResource(item.action.stringRes())),
                     listPosition = position,
-                    modifier = Modifier.clickable { viewModel.onAction(item.destination, onAmount, onConfirm) },
+                    modifier = Modifier.clickable { viewModel.onAction(item.target, onAmount, onConfirm) },
                     accessory = { DataBadgeChevron() },
                 )
             }

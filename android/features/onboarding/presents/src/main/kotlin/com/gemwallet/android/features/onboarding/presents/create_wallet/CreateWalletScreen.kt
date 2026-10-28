@@ -40,9 +40,7 @@ import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
 import com.gemwallet.android.ui.components.clipboard.setCopy
 import com.gemwallet.android.ui.components.screen.PhraseLayout
-import com.gemwallet.android.ui.components.screen.PhraseRow
 import com.gemwallet.android.ui.components.screen.Scene
-import com.gemwallet.android.ui.components.screen.phraseRows
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.requestAuth
 import com.gemwallet.android.ui.theme.SceneSizing
@@ -67,8 +65,7 @@ fun CreateWalletScreen(onCancel: () -> Unit, onCreated: () -> Unit) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val errorText by viewModel.errorText.collectAsStateWithLifecycle()
     val verificationState by viewModel.verificationState.collectAsStateWithLifecycle()
-    val phraseRows by viewModel.phraseRows.collectAsStateWithLifecycle()
-    val verifiedRows by viewModel.verifiedRows.collectAsStateWithLifecycle()
+    val verifiedWords by viewModel.verifiedWords.collectAsStateWithLifecycle()
     val verificationChoices by viewModel.verificationChoices.collectAsStateWithLifecycle()
     val isCreated by viewModel.isCreated.collectAsStateWithLifecycle()
 
@@ -95,7 +92,7 @@ fun CreateWalletScreen(onCancel: () -> Unit, onCreated: () -> Unit) {
                 VerifyPhraseScene(
                     state = verification,
                     choices = verificationChoices,
-                    rows = verifiedRows,
+                    words = verifiedWords,
                     onPick = viewModel::onPickWord,
                     onDone = { context.requestAuth(AuthRequest.Default) { viewModel.createWallet() } },
                     onCancel = viewModel::dismissSafeMessage,
@@ -103,7 +100,7 @@ fun CreateWalletScreen(onCancel: () -> Unit, onCreated: () -> Unit) {
             }
 
             false -> CreateWalletScene(
-                rows = phraseRows,
+                words = uiState.data,
                 onCopy = viewModel::phraseCopy,
                 dataError = errorText,
                 onCreate = viewModel::confirmPhrase,
@@ -132,7 +129,7 @@ fun CreateWalletScreen(onCancel: () -> Unit, onCreated: () -> Unit) {
 }
 
 @Composable
-private fun CreateWalletScene(rows: List<PhraseRow>, onCopy: () -> GemCopy, dataError: String?, onCreate: () -> Unit, onCancel: () -> Unit) {
+private fun CreateWalletScene(words: List<String>, onCopy: () -> GemCopy, dataError: String?, onCreate: () -> Unit, onCancel: () -> Unit) {
     val context = LocalContext.current
     val clipboardManager = LocalContext.current.clipboardManager()
     Scene(
@@ -162,7 +159,7 @@ private fun CreateWalletScene(rows: List<PhraseRow>, onCopy: () -> GemCopy, data
                 )
                 Spacer16()
                 PhraseLayout(
-                    rows = rows,
+                    words = words,
                     modifier = Modifier.widthIn(max = SceneSizing.contentMaxWidth),
                 )
             }
@@ -180,15 +177,14 @@ private fun CreateWalletScene(rows: List<PhraseRow>, onCopy: () -> GemCopy, data
 @Preview(name = "Nexus 5", device = Devices.NEXUS_5)
 @Preview(name = "Nexus 7", device = Devices.NEXUS_7)
 fun PreviewCreateWalletScene() {
+    val words = listOf(
+        "cinnamon", "two", "three", "cinnamon", "five", "six",
+        "seven", "eight", "cinnamon", "ten", "eleven", "twelve",
+    )
     WalletTheme {
         Column {
             CreateWalletScene(
-                rows = phraseRows(
-                    listOf(
-                        "cinnamon", "two", "three", "cinnamon", "five", "six",
-                        "seven", "eight", "cinnamon", "ten", "eleven", "twelve",
-                    ),
-                ),
+                words = words,
                 onCopy = { secretPhraseCopy(emptyList()) },
                 dataError = null,
                 onCreate = {},

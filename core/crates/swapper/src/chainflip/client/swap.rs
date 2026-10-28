@@ -20,7 +20,11 @@ where
         Self { client }
     }
 
-    pub async fn get_tx_status(&self, tx_hash: &str) -> Result<SwapTxResponse, SwapperError> {
-        self.client.get(ChainflipTarget::SwapStatus { tx_hash: tx_hash.to_string() }).await.map_err(SwapperError::from)
+    pub async fn get_tx_status(&self, tx_hash: &str) -> Result<Option<SwapTxResponse>, SwapperError> {
+        match self.client.get(ChainflipTarget::SwapStatus { tx_hash: tx_hash.to_string() }).await {
+            Ok(response) => Ok(Some(response)),
+            Err(error) if error.status() == Some(404) => Ok(None),
+            Err(error) => Err(error.into()),
+        }
     }
 }

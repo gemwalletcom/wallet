@@ -6,7 +6,6 @@ pub type GemSignerError = SignerError;
 pub enum GemSignerError {
     InvalidInput(String),
     SigningError(String),
-    DustThreshold,
     InsufficientFunds,
     SwapValueBelowMinimum,
 }

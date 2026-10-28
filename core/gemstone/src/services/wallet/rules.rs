@@ -138,7 +138,7 @@ pub fn secret_phrase_rows(word_count: usize) -> Vec<GemSecretPhraseRow> {
     pairs.chain(odd_last).collect()
 }
 
-pub fn secret_screen(kind: GemWalletSecretKind, word_count: usize, is_new: bool) -> GemSecretScreen {
+pub fn secret_screen(kind: GemWalletSecretKind, is_new: bool) -> GemSecretScreen {
     GemSecretScreen {
         title: match is_new {
             true => GemLocalizedText::NewWallet,
@@ -148,10 +148,6 @@ pub fn secret_screen(kind: GemWalletSecretKind, word_count: usize, is_new: bool)
             (true, _) => GemSecretWarning::SaveSafely,
             (false, GemWalletSecretKind::Phrase) => GemSecretWarning::DoNotShare,
             (false, GemWalletSecretKind::PrivateKey) => GemSecretWarning::DoNotSharePrivateKey,
-        },
-        rows: match kind {
-            GemWalletSecretKind::Phrase => secret_phrase_rows(word_count),
-            GemWalletSecretKind::PrivateKey => Vec::new(),
         },
     }
 }
@@ -531,17 +527,15 @@ mod tests {
 
     #[test]
     fn test_the_secret_screen_frames_an_export_and_a_new_phrase_differently() {
-        let export = secret_screen(GemWalletSecretKind::Phrase, 12, false);
+        let export = secret_screen(GemWalletSecretKind::Phrase, false);
         assert_eq!(export.title, GemLocalizedText::SecretKind { kind: GemWalletSecretKind::Phrase });
         assert_eq!(export.warning, GemSecretWarning::DoNotShare);
-        assert_eq!(export.rows, secret_phrase_rows(12));
 
-        let new = secret_screen(GemWalletSecretKind::Phrase, 12, true);
+        let new = secret_screen(GemWalletSecretKind::Phrase, true);
         assert_eq!(new.title, GemLocalizedText::NewWallet);
         assert_eq!(new.warning, GemSecretWarning::SaveSafely);
 
-        let key = secret_screen(GemWalletSecretKind::PrivateKey, 0, false);
-        assert!(key.rows.is_empty(), "a key has no word grid");
+        let key = secret_screen(GemWalletSecretKind::PrivateKey, false);
         assert_eq!(key.warning, GemSecretWarning::DoNotSharePrivateKey, "a key screen never warns about a Secret Phrase (#1394)");
     }
 

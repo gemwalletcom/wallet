@@ -63,7 +63,7 @@ common_grant_permission = Erlaubnis erteilen
 
 # Welcome
 
-welcome_title = Willkommen zur Gem Familie
+welcome_title = Willkommen in der Gem-Familie
 
 # Wallet
 
@@ -100,12 +100,12 @@ wallet_more = Mehr
 wallet_import_contract_address_field = Vertrag oder Token-ID
 wallet_import_address_warning = Sie können Guthaben und Transaktionen für diese Adresse anzeigen, aber **kein Geld senden oder verkaufen**.
 wallet_deposit = Einzahlen
-wallet_withdraw = Zurückziehen
+wallet_withdraw = Auszahlen
 wallet_available_balance = Verfügbar: %@
 # Used in the insufficient network fee sheet for the buy option subtitle.
 wallet_pay_with_card_or_bank = Mit Karte oder Bank bezahlen
 # Used in the insufficient network fee sheet for the swap option subtitle.
-wallet_from_your_wallet_assets = Aus deinen Wallet-Assets
+wallet_from_your_wallet_assets = Aus Ihren Wallet-Assets
 # Used in the insufficient network fee sheet for the receive option subtitle.
 wallet_transfer_from_another_wallet = Von einer anderen Wallet übertragen
 wallet_portfolio_title = Portfolio
@@ -117,18 +117,18 @@ wallets_title = Wallets
 
 # Receive
 
-receive_warning = Dies ist Ihre Adresse – bitte senden Sie nur %@ auf %@ Netzwerk.
+receive_warning = Dies ist Ihre Adresse – senden Sie nur %@ im %@-Netzwerk.
 
 # Buy
 
-buy_title = Kaufen %@
+buy_title = %@ kaufen
 buy_providers_title = Anbieter
 buy_rate = Kurs
-buy_no_results = Keine Kurse verfügbar.
+buy_no_results = Keine Angebote verfügbar
 
 # Transfer
 
-transfer_network_fee = Netzwerk-Gebühr
+transfer_network_fee = Netzwerkgebühr
 transfer_pay_with = Bezahlen mit
 transfer_payment_title = Zahlung
 transfer_memo = Memo
@@ -142,20 +142,20 @@ transfer_balance = Saldo: %@
 transfer_title = Übertragen
 transfer_recipient_address_field = Adresse oder Name
 transfer_send_title = Senden
-transfer_insufficient_balance = Unzureichendes %@ -Guthaben.
-transfer_insufficient_network_fee_balance = Nicht ausreichendes %@ -Guthaben zur Deckung der Netzwerkgebühren.
+transfer_insufficient_balance = Unzureichendes %@-Guthaben.
+transfer_insufficient_network_fee_balance = Nicht ausreichendes %@-Guthaben zur Deckung der Netzwerkgebühren.
 transfer_approve_title = Genehmigen
 transfer_stake_title = Staking
 transfer_claim_rewards_title = Staking-Belohnungen einfordern
 transfer_unstake_title = Staking beenden
 transfer_redelegate_title = Umdelegieren
 transfer_withdraw_title = Auszahlen
-transfer_rewards_title = Belohnung
+transfer_rewards_title = Belohnungen
 transfer_minimum_amount = Mindestbetrag ist %@
 transfer_activate_asset_title = Asset aktivieren
 transfer_recipient_my_wallets = Meine Wallets
 transfer_recipient_view_wallets = Wallets anzeigen
-transfer_minimum_account_balance = Danach muss ein Mindestguthaben %@ übrig bleiben, es sei denn, Sie nutzen Ihr gesamtes Guthaben.
+transfer_minimum_account_balance = Danach muss ein Mindestguthaben von %@ übrig bleiben, es sei denn, Sie nutzen Ihr gesamtes Guthaben.
 transfer_destination_account_activation = Die Zieladresse erfordert ein Minimum von %@.
 transfer_smart_contract_title = Smart Contract
 transfer_other_title = Andere
@@ -178,7 +178,7 @@ settings_networks_title = Netzwerke
 settings_networks_source = Quelle
 settings_networks_explorer = Explorer
 settings_currency = Währung
-settings_website = Besuche die Website
+settings_website = Website besuchen
 settings_security = Sicherheit
 settings_enable_value = %@ aktivieren
 settings_enable_passcode = Passcode aktivieren
@@ -213,7 +213,7 @@ errors_invalid_address_name = Ungültige Adresse oder ungültiger Name
 errors_invalid_amount = Ungültiger Betrag
 errors_token_invalid_id = Ungültige Token-ID
 errors_import_invalid_secret_phrase = Ungültige geheime Phrase
-errors_import_invalid_secret_phrase_word = Ungültiges geheimes Phrasenwort: %@
+errors_import_invalid_secret_phrase_word = Ungültiges Wort in der geheimen Phrase: %@
 errors_import_invalid_private_key = Ungültiger privater Schlüssel
 errors_keystore_access = Auf die Schlüssel dieser Wallet konnte auf diesem Gerät nicht zugegriffen werden. Wenn Sie Ihre Wiederherstellungsphrase haben, entfernen Sie diese Wallet und importieren Sie sie erneut, um den Zugriff wiederherzustellen.
 errors_wallet_account_missing = Diese Wallet hat kein Konto für dieses Netzwerk
@@ -230,9 +230,9 @@ errors_not_supported_qr = Dieses Gerät unterstützt keine QR-Code-Scans. Sie k�
 errors_camera_permissions_not_granted = Kameraerlaubnis nicht erteilt. Bitte aktivieren Sie den Kamerazugriff in den Einstellungen, um den QR-Code zu scannen.
 errors_decoding_qr = Der QR-Code konnte nicht entschlüsselt werden. Bitte versuchen Sie es erneut mit einem anderen QR-Code.
 errors_transfer_error = Übertragungsfehler
-errors_unable_estimate_network_fee = Wir sind derzeit nicht in der Lage, die Netzgwerkebühr zu berechnen.
-errors_invalid_asset_address = Ungültige %@ Adresse
-errors_dust_threshold = Die Transaktion ist fehlgeschlagen, da der Betrag zu gering ist, um die Mindestanforderung des %@ -Netzwerks (Dust-Schwellenwert) zu erfüllen. Dieses Limit stellt sicher, dass der Transaktionswert die Gebühren und Bearbeitungskosten deckt.
+errors_unable_estimate_network_fee = Wir sind derzeit nicht in der Lage, die Netzwerkgebühr zu berechnen.
+errors_invalid_asset_address = Ungültige %@-Adresse
+errors_dust_threshold = Die Transaktion ist fehlgeschlagen, da der Betrag zu gering ist, um die Mindestanforderung des %@-Netzwerks (Dust-Schwellenwert) zu erfüllen. Dieses Limit stellt sicher, dass der Transaktionswert die Gebühren und Bearbeitungskosten deckt.
 errors_swap_no_quote_available = Kein Angebot verfügbar.
 errors_swap_not_supported_asset = Nicht unterstütztes Asset.
 errors_connections_no_supported_wallets = Es sind keine unterstützten Wallets verfügbar.
@@ -245,7 +245,7 @@ errors_connections_not_found = Diese Verbindung besteht nicht mehr.
 errors_connections_relay_unavailable = WalletConnect ist nicht erreichbar. Prüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.
 errors_swap_amount_too_small = Menge zu gering
 errors_scan_transaction_malicious_description = Diese Transaktion kann nicht abgeschlossen werden – die Ziel-Wallet-Adresse ist mit verdächtigen oder schädlichen Aktivitäten verknüpft.
-errors_scan_transaction_memo_required = %@ Für die Ziel-Wallet-Adresse wird ein Ziel-Tag/Memo benötigt.
+errors_scan_transaction_memo_required = Die Ziel-Wallet-Adresse für %@ erfordert ein Ziel-Tag/Memo
 errors_scan_transaction_malicious_title = Verdächtige Aktivitäten
 errors_connections_malicious_origin = Diese Verbindung stammt aus einer nicht vertrauenswürdigen Quelle.
 errors_no_data_available = Keine Daten verfügbar
@@ -271,7 +271,7 @@ activity_state_empty_search_title = Keine Aktivitäten gefunden
 # Update App
 
 update_app_title = Neues Update verfügbar!
-update_app_description = Version %@ der App ist jetzt verfügbar. Aktualisieren und genießen Sie die neuesten Funktionen und Verbesserungen.
+update_app_description = Version %@ der App ist jetzt verfügbar. Aktualisieren Sie die App und genießen Sie die neuesten Funktionen und Verbesserungen.
 update_app_action = Aktualisieren
 update_app_permission_title = Installation zulassen
 update_app_permission_description = Gehen Sie zu den Einstellungen und erlauben Sie die Installation aus externen Quellen
@@ -315,15 +315,15 @@ asset_decimals = Dezimalstellen
 asset_token_id = Token-ID
 asset_contract = Vertrag
 asset_state_empty_title = Ihre Transaktionen werden hier angezeigt
-asset_state_empty_description = Erhalten, tauschen oder kaufen %@
+asset_state_empty_description = %@ empfangen, tauschen oder kaufen
 asset_verification_unverified = Unbestätigt
 asset_verification_suspicious = Verdächtig
 asset_verification_warning_title = Wissen Sie, was Sie hinzufügen
 asset_verification_warning_message = Jeder kann einen erstellen – auch gefälschte oder böswillige Token.
-asset_buy_asset = Kaufen %@
+asset_buy_asset = %@ kaufen
 asset_get_asset = %@ erhalten
-asset_add_to_wallet = Zum Wallet hinzufügen
-asset_added_to_wallet = Zum Wallet hinzugefügt
+asset_add_to_wallet = Zur Wallet hinzufügen
+asset_added_to_wallet = Zur Wallet hinzugefügt
 asset_resources = Ressourcen
 asset_verification_verified = Bestätigt
 asset_all_time_high = Allzeithoch
@@ -335,9 +335,9 @@ charts_day = 1T
 charts_hour = 1S
 charts_week = 1W
 charts_month = 1M
-charts_year = 1 Jahr
+charts_year = 1J
 charts_all = Alle
-charts_entry = Eintrag
+charts_entry = Einstieg
 charts_price_open = Eröffnung
 charts_price_close = Schluss
 charts_price_high = Hoch
@@ -359,9 +359,9 @@ wallet_connect_connect_title = Verbinden
 wallet_connect_app = App
 wallet_connect_brand_name = WalletConnect
 wallet_connect_no_active_connections = Keine aktiven Verbindungen
-wallet_connect_state_empty_description = Scannen oder fügen Sie Code ein, um eine Verbindung zur DApp herzustellen
+wallet_connect_state_empty_description = Scannen Sie den Code oder fügen Sie ihn ein, um sich mit der DApp zu verbinden
 wallet_connect_permissions_title = Berechtigungen
-wallet_connect_permissions_view_balance = Sehen Sie Ihren Kontostand und Ihre Aktivitäten ein.
+wallet_connect_permissions_view_balance = Ihren Kontostand und Ihre Aktivitäten einsehen
 wallet_connect_permissions_approval_requests = Genehmigungsanfragen senden
 wallet_connect_request_expired = Anfrage abgelaufen
 
@@ -369,16 +369,16 @@ wallet_connect_request_expired = Anfrage abgelaufen
 
 swap_you_pay = Sie bezahlen
 swap_you_receive = Sie erhalten
-swap_price_impact = Preisauswirkungen
+swap_price_impact = Preiseinfluss
 swap_slippage = Slippage
-swap_slippage_warning = Hohe Slippage. Dein Swap wird möglicherweise zu einem schlechteren Preis als erwartet ausgeführt.
+swap_slippage_warning = Hohe Slippage. Ihr Swap wird möglicherweise zu einem schlechteren Preis als erwartet ausgeführt.
 swap_slippage_auto = Auto
 swap_slippage_auto_description = Legt automatisch die beste Slippage für einen erfolgreichen Swap fest.
 swap_price_impact_warning_description = Sie verlieren bei diesem Handel %@ Ihrer %@. Möchten Sie wirklich fortfahren?
 swap_price_impact_warning_title = Hoher Preiseinfluss
 swap_estimated_time_title = Geschätzte Zeit
 swap_min_receive = Mindestbetrag erhalten
-swap_use_minimum_amount = Mindestmenge verwenden
+swap_use_minimum_amount = Mindestbetrag verwenden
 
 # Stake
 
@@ -408,7 +408,7 @@ stake_delegations = Delegationen
 
 assets_no_assets_found = Keine Assets gefunden
 assets_add_custom_token = Benutzerdefinierten Token hinzufügen
-assets_select_asset = Anlage auswählen
+assets_select_asset = Asset auswählen
 assets_popular = Beliebte Assets
 assets_tags_new = Neu
 assets_state_empty_search_description = Sie können versuchen, es manuell hinzuzufügen
@@ -423,11 +423,11 @@ sign_message_view_full_message = Vollständige Nachricht anzeigen
 
 secret_phrase_do_not_share_title = Geben Sie Ihre geheime Phrase nicht weiter!
 secret_phrase_do_not_share_description = Wenn jemand Ihre geheime Phrase hat, hat er die vollständige Kontrolle über Ihre Wallet!
-secret_phrase_save_phrase_safely = Speichern Sie Ihre geheime Phrase an einem sicheren Ort\n das nur Sie kontrollieren.
+secret_phrase_save_phrase_safely = Speichern Sie Ihre geheime Phrase an einem sicheren Ort,\n den nur Sie kontrollieren.
 secret_phrase_confirm_quick_test_title = Führen Sie diesen Kurztest durch, um zu bestätigen, dass Sie alles richtig gespeichert haben.
 secret_phrase_screenshot_detected_title = Screenshot erkannt
 secret_phrase_screenshot_detected_description = Screenshots können von anderen Apps eingesehen werden und gefährden so Ihre geheime Phrase.
-secret_phrase_content_hidden_description = Inhalte, die während der Bildschirmaufnahme ausgeblendet wurden.
+secret_phrase_content_hidden_description = Inhalt während der Bildschirmaufnahme ausgeblendet
 
 # Private Key
 
@@ -492,10 +492,10 @@ fee_rate_base = Grundgebühr
 # Banner
 
 banner_account_activation_title = Kontoaktivierungsgebühr
-banner_account_activation_description = Das %@ Netzwerk erfordert eine einmalige Gebühr von %@.
+banner_account_activation_description = Das %@-Netzwerk erfordert eine einmalige Gebühr von %@.
 banner_stake_title = Starten Sie mit %@ Staking
-banner_stake_description = Verdienen Sie %@ Prämien mit Ihrem Stake, während Sie schlafen
-banner_activate_asset_description = Um das %@ -Asset zu verwenden, müssen Sie es zuerst im %@ -Netzwerk aktivieren, indem Sie die spezifischen Anforderungen des Netzwerks erfüllen.
+banner_stake_description = Verdienen Sie %@-Belohnungen mit Ihrem Stake, während Sie schlafen.
+banner_activate_asset_description = Um das %@-Asset zu verwenden, müssen Sie es zuerst im %@-Netzwerk aktivieren, indem Sie die spezifischen Anforderungen des Netzwerks erfüllen.
 banner_asset_status_title = Verdächtiger Vermögenswert
 banner_asset_status_description = Token kann unsicher oder irreführend sein. Fahren Sie nur fort, wenn Sie ihm voll und ganz vertrauen.
 banner_onboarding_title = Ihre Wallet ist bereit
@@ -521,7 +521,7 @@ price_alerts_direction_increases_by = Erhöht sich um
 price_alerts_direction_decreases_by = Verringert sich um
 price_alerts_set_alert_price_over = Wenn der Preis über
 price_alerts_set_alert_price_under = Wenn der Preis unter
-price_alerts_set_alert_price_increases_by = Wenn der Preis um
+price_alerts_set_alert_price_increases_by = Wenn der Preis steigt um
 price_alerts_set_alert_price_decreases_by = Wenn der Preis sinkt um
 price_alerts_set_alert_set_target_price = Zielpreis festlegen
 price_alerts_set_alert_current_price = Aktueller Preis
@@ -531,7 +531,7 @@ price_alerts_added_increases_by = Alarm hinzugefügt für Preisanstieg um %@
 price_alerts_added_decreases_by = Alarm hinzugefügt für Preisrückgang um %@
 price_alerts_state_empty_title = Ihre Preisalarme werden hier angezeigt
 price_alerts_state_empty_description = Aktivieren Sie sie, indem Sie Münzen zur Verfolgung hinzufügen
-price_alerts_auto_footer = Bei erheblichen Preisbewegungen werden Warnungen ausgelöst.
+price_alerts_auto_footer = Bei erheblichen Preisbewegungen werden Alarme ausgelöst.
 price_alerts_set_alert_title = Preisalarm einstellen
 
 # Lock
@@ -559,13 +559,13 @@ warnings_externally_controlled_account = Dieses %@-Konto kann von jemand anderem
 
 # Sell
 
-sell_title = Verkaufen %@
+sell_title = %@ verkaufen
 
 # Info
 
 info_region_unavailable_description = Diese Funktion ist in Ihrer Region nicht verfügbar. Die Verfügbarkeit hängt von lokalen Vorschriften und den Anforderungen der Anbieter ab.
 
-info_network_fee_title = Netzwerk-Gebühr
+info_network_fee_title = Netzwerkgebühr
 info_watch_wallet_title = Beobachtungs-Wallet
 info_watch_wallet_description = Eine Wallet, auf die Sie keinen Zugriff haben, deren Transaktionen und Bewegungen Sie jedoch beobachten können.
 info_payment_verification_title = Zahlungsverifizierung
@@ -575,10 +575,10 @@ info_transaction_error_description = Die Transaktion konnte aufgrund eines Fehle
 info_transaction_pending_description = Die Transaktion wurde übermittelt und wartet auf die Bestätigung im Netzwerk. Die Bearbeitungszeit kann variieren. Bitte schauen Sie später noch einmal vorbei, um Updates zu erhalten.
 info_estimated_confirmation_description = Dies ist eine Schätzung auf Grundlage der Transaktionsgebühr und der aktuellen Auslastung des %@-Netzwerks. Die tatsächliche Bestätigungszeit kann sich ändern und ist nicht garantiert.
 info_transaction_success_description = Die Transaktion wurde abgeschlossen und im Netzwerk bestätigt. Sie können die Details überprüfen, um den Status zu verifizieren.
-info_lock_time_description = Die Sperrzeit, auch Unbonding- oder Unfreezing-Zeitraum genannt, ist der Zeitraum, in dem abgesteckte Vermögenswerte nicht mehr zugänglich sind, nachdem Sie sich entschieden haben, sie aufzuheben.
+info_lock_time_description = Die Sperrzeit, auch Unbonding- oder Unfreezing-Zeitraum genannt, ist der Zeitraum, in dem gestakte Vermögenswerte nicht zugänglich sind, nachdem Sie sich entschieden haben, das Staking zu beenden.
 info_price_impact_description = Der Preiseinfluss ist die Änderung des Token-Preises, die durch Ihre Handelsgröße verursacht wird. Ein höherer Preiseinfluss bedeutet, dass Sie aufgrund geringer Liquidität oder einer großen Auftragsgröße weniger Token erhalten.
 info_slippage_description = Slippage bezeichnet die Differenz zwischen dem erwarteten Preis eines Handels und dem tatsächlichen Preis, zu dem er ausgeführt wird.
-info_asset_status_unverified_description = Nicht verifizierte Token wurden von vertrauenswürdigen Drittanbietern nicht ausreichend verifiziert. Sie können aufgrund von Airdrops, Transfers oder manuellen Importen in Ihrem Wallet erscheinen.
+info_asset_status_unverified_description = Nicht verifizierte Token wurden von vertrauenswürdigen Drittanbietern nicht ausreichend verifiziert. Sie können aufgrund von Airdrops, Transfers oder manuellen Importen in Ihrer Wallet erscheinen.
 info_asset_status_suspicious_description = Verdächtige oder Spam-Token werden als potenzieller Betrug oder schädliche Vermögenswerte identifiziert. Sie können aufgrund von Airdrops, Transfers oder manuellen Importen in Ihrer Wallet erscheinen.
 info_balance_required_title = %@ erforderlich
 info_insufficient_network_fee_balance_description = Diese Transaktion erfordert %@ für die %@-Netzwerkgebühr, aber nur %@ sind verfügbar. Sie benötigen noch %@, um fortzufahren.
@@ -589,14 +589,14 @@ info_perpetual_funding_payments_title = Finanzierungszahlungen
 info_perpetual_funding_payments_description = Finanzierungszahlungen sind regelmäßige Zahlungen zwischen Händlern, um den Preis des unbefristeten Vertrags nahe am Spotpreis des zugrunde liegenden Vermögenswerts zu halten. Positive Finanzierung bedeutet, dass Long-Positionen Short-Positionen bezahlen, während negative Finanzierung bedeutet, dass Short-Positionen Long-Positionen bezahlen.
 info_perpetual_liquidation_price_title = Liquidationspreis
 info_perpetual_liquidation_price_description = Der Liquidationspreis ist das Preisniveau, bei dem Ihre Position automatisch geschlossen wird, um weitere Verluste zu verhindern. Wenn der Marktpreis dieses Niveau erreicht, wird Ihre Position liquidiert und Sie verlieren Ihre Marge.
-info_perpetual_open_interest_title = Offenes Interesse
-info_perpetual_open_interest_description = Das offene Interesse stellt den Gesamtwert aller ausstehenden unbefristeten Verträge dar, die noch nicht abgewickelt wurden. Es bietet Einblick in die Marktaktivität und Liquidität.
+info_perpetual_open_interest_title = Open Interest
+info_perpetual_open_interest_description = Das Open Interest stellt den Gesamtwert aller ausstehenden unbefristeten Verträge dar, die noch nicht abgewickelt wurden. Es bietet Einblick in die Marktaktivität und Liquidität.
 info_no_quote_description = Für das ausgewählte Token-Paar kann kein Angebot zurückgegeben werden, möglicherweise aufgrund eines geringen Betrags, mangelnder Liquidität oder technischer Einschränkungen.
 info_stake_reserved_title = Reserviert für Netzwerkgebühr
-info_stake_reserved_description = Ein kleiner Betrag verbleibt in Ihrem Wallet, um Gebühren für Vorgänge wie das Aufheben der Absteckung oder das Einfordern von Prämien zu decken.
+info_stake_reserved_description = Ein kleiner Betrag verbleibt in Ihrer Wallet, um Gebühren für Vorgänge wie das Beenden des Stakings oder das Einfordern von Belohnungen zu decken.
 info_stake_apr_description = Der effektive Jahreszins (APR) ist der jährliche Belohnungssatz für das Staking Ihrer Kryptowährung.
 info_stake_frozen_required_title = TRX zum Staking einfrieren
-info_stake_frozen_required_description = Staking auf TRON erfolgt in zwei Schritten. Friere zuerst TRX ein und stake es dann, um Belohnungen zu verdienen.
+info_stake_frozen_required_description = Staking auf TRON erfolgt in zwei Schritten. Frieren Sie zuerst TRX ein und staken Sie es dann, um Belohnungen zu verdienen.
 info_perpetual_auto_close_description = Schließen Sie Ihre Position automatisch bei festgelegten Preisniveaus. Take Profit sichert Gewinne, Stop Loss begrenzt Verluste.
 info_fully_diluted_valuation_title = Vollständig verwässerte Bewertung
 info_fully_diluted_valuation_description = Der theoretische Marktwert, wenn alle Münzen im Umlauf wären. Berechnet als Preis multipliziert mit der maximalen Gesamtmenge.
@@ -649,10 +649,10 @@ networks_state_empty_search_title = Keine Netzwerke gefunden
 
 # Onboarding
 
-onboarding_security_create_wallet_intro_title = Sie erhalten eine geheime Phrase – nur so können Sie auf Ihr Wallet zugreifen.
+onboarding_security_create_wallet_intro_title = Sie erhalten eine geheime Phrase – nur so können Sie auf Ihre Wallet zugreifen.
 onboarding_security_create_wallet_do_not_share_title = Geben Sie es an niemanden weiter
 onboarding_security_create_wallet_do_not_share_subtitle = Jeder, der Ihre geheime Phrase erhält, kann die vollständige Kontrolle über Ihre Wallet übernehmen.
-onboarding_security_create_wallet_keep_safe_subtitle = Der geheime Satz ist die einzige Möglichkeit, auf Ihr Wallet zuzugreifen.
+onboarding_security_create_wallet_keep_safe_subtitle = Die geheime Phrase ist die einzige Möglichkeit, auf Ihre Wallet zuzugreifen.
 onboarding_security_create_wallet_no_recovery_subtitle = Wenn Sie Ihre geheime Phrase verlieren, verlieren Sie den Zugriff auf Ihre Wallet.
 onboarding_security_create_wallet_keep_safe_title = Bewahren Sie es an einem sicheren Ort auf
 onboarding_security_create_wallet_no_recovery_title = Wir können Ihnen nicht bei der Wiederherstellung helfen
@@ -676,21 +676,21 @@ perpetual_close_position = Position schließen
 perpetual_pnl = PnL
 perpetual_long = Long
 perpetual_short = Short
-perpetual_entry_price = Eintrittspreis
+perpetual_entry_price = Einstiegspreis
 perpetual_modify = Ändern
 perpetual_reduce_position = Position reduzieren
 perpetual_increase_position = Position erhöhen
-perpetual_open_direction = Öffnen %@
-perpetual_close_direction = Schließen %@
-perpetual_leverage = Hebelwirkung
+perpetual_open_direction = %@ eröffnen
+perpetual_close_direction = %@ schließen
+perpetual_leverage = Hebel
 perpetual_auto_close = Automatisches Schließen
 perpetual_auto_close_take_profit = Gewinn mitnehmen
 perpetual_market_price = Marktpreis
 perpetual_take_profit = TP
 perpetual_stop_loss = SL
 perpetual_liquidation = Liq
-perpetual_increase_direction = Erhöhung %@
-perpetual_reduce_direction = Reduzieren %@
+perpetual_increase_direction = %@ erhöhen
+perpetual_reduce_direction = %@ reduzieren
 perpetual_auto_close_expected_profit = Erwarteter Gewinn
 perpetual_auto_close_expected_loss = Erwarteter Verlust
 perpetual_modify_position = Position ändern
@@ -701,7 +701,7 @@ perpetual_volume = Volumen
 perpetual_all_time_pnl = Gesamt-PnL
 perpetual_margin_usage = Margennutzung
 perpetual_account_leverage = Kontohebel
-perpetual_margin_cross = Kreuz
+perpetual_margin_cross = Cross
 perpetual_margin_isolated = Isoliert
 
 # Perpetuals
@@ -726,7 +726,7 @@ rewards_referrals = Empfehlungen
 rewards_earn_points_title = Punkte sammeln
 rewards_get_rewards_title = Prämien sichern
 rewards_activate_referral_code_description = Haben Sie einen Empfehlungscode von einem Freund?
-rewards_activate_referral_code_title = Einlösecode
+rewards_activate_referral_code_title = Code einlösen
 rewards_create_referral_code_title = Benutzername erstellen
 rewards_create_referral_code_info = Dies wird Ihr persönlicher Spitzname für die aktuelle Wallet sein.
 rewards_username = Benutzername
@@ -756,8 +756,8 @@ notifications_inapp_state_empty_description = Hier sehen Sie Aktualisierungen zu
 
 # Earn
 
-earn_state_empty_title = Ihre Positionen werden hier angezeigt.
-earn_state_empty_description = Zahlen Sie Ihre erste %@
+earn_state_empty_title = Ihre Positionen werden hier angezeigt
+earn_state_empty_description = Zahlen Sie Ihre ersten %@ ein
 
 # Contacts
 
@@ -772,7 +772,7 @@ contacts_add_to_existing_contact = Zu Kontakt hinzufügen
 # Simulation
 
 simulation_header_unlimited_asset = Unbegrenzt %@
-simulation_warning_unlimited_token_approval_description = Dadurch erhält der Ausgeber Zugriff auf dieses Token, bis Sie die Genehmigung widerrufen oder es abläuft.
+simulation_warning_unlimited_token_approval_description = Dadurch erhält die berechtigte Adresse Zugriff auf dieses Token, bis Sie die Genehmigung widerrufen oder sie abläuft.
 simulation_warning_externally_owned_spender_description = Diese Genehmigung erlaubt einer normalen Wallet-Adresse (EOA), Ihre Assets zu verwenden. Bestätigen Sie nur, wenn Sie dieser Adresse vertrauen.
 simulation_warning_nft_collection_approval_title = Vollständiger Zugriff auf die NFT-Sammlung angefordert
 simulation_warning_unlimited_token_approval_title = Unbegrenzte Token-Genehmigung

@@ -9,17 +9,7 @@ use strum::AsRefStr;
 #[derive(Clone, Debug)]
 enum JobInterval {
     Config(ConfigKey),
-}
-
-impl JobInterval {
-    async fn duration(self, config: Option<&ConfigCacher>) -> Result<Duration, Box<dyn Error + Send + Sync>> {
-        match self {
-            JobInterval::Config(key) => {
-                let config = config.ok_or_else(|| format!("ConfigCacher required for {:?}", key))?;
-                Ok(config.get_duration(key).await?)
-            }
-        }
-    }
+    Provider,
 }
 
 #[derive(Clone, Debug)]
@@ -191,12 +181,12 @@ impl WorkerJob {
             UpdateValidatorsFromStaticAssets => JobSpec::new(WorkerService::Assets, JobInterval::Config(ConfigKey::ScanTimerUpdateValidatorsStatic)),
             CheckRewardsAbuse => JobSpec::new(WorkerService::Rewards, JobInterval::Config(ConfigKey::RewardsTimerAbuseChecker)),
             CheckRewardsEligibility => JobSpec::new(WorkerService::Rewards, JobInterval::Config(ConfigKey::RewardsTimerEligibilityChecker)),
-            CleanupOutdatedAssets => JobSpec::new(WorkerService::Prices, JobInterval::Config(ConfigKey::PriceTimerCleanOutdated)),
+            CleanupOutdatedAssets => JobSpec::new(WorkerService::Prices, JobInterval::Provider),
             UpdateFiatRates => JobSpec::new(WorkerService::Fiat, JobInterval::Config(ConfigKey::PriceTimerFiatRates)),
             UpdatePricesTop => JobSpec::new(WorkerService::Prices, JobInterval::Config(ConfigKey::PriceTimerTopMarketCap)),
             UpdatePricesHigh => JobSpec::new(WorkerService::Prices, JobInterval::Config(ConfigKey::PriceTimerHighMarketCap)),
             UpdatePricesLow => JobSpec::new(WorkerService::Prices, JobInterval::Config(ConfigKey::PriceTimerLowMarketCap)),
-            UpdatePrices => JobSpec::new(WorkerService::Prices, JobInterval::Config(ConfigKey::PriceTimerPrices)),
+            UpdatePrices => JobSpec::new(WorkerService::Prices, JobInterval::Provider),
             AggregateHourlyCharts => JobSpec::new(WorkerService::Prices, JobInterval::Config(ConfigKey::PriceTimerChartsHourly)),
             AggregateDailyCharts => JobSpec::new(WorkerService::Prices, JobInterval::Config(ConfigKey::PriceTimerChartsDaily)),
             CleanupChartsRaw => JobSpec::new(WorkerService::Prices, JobInterval::Config(ConfigKey::PriceTimerCleanupChartsRaw)),
@@ -204,19 +194,19 @@ impl WorkerJob {
             UpdateMarkets => JobSpec::new(WorkerService::Prices, JobInterval::Config(ConfigKey::PriceTimerMarkets)),
             UpdateChartsHistory => JobSpec::new(WorkerService::Prices, JobInterval::Config(ConfigKey::PriceTimerChartsHistory)),
             UpdateObservedPrices => JobSpec::new(WorkerService::Prices, JobInterval::Config(ConfigKey::PriceObservedFetchInterval)),
-            UpdatePricesAssets => JobSpec::new(WorkerService::Prices, JobInterval::Config(ConfigKey::PriceTimerAssets)),
-            UpdatePricesAssetsNew => JobSpec::new(WorkerService::Prices, JobInterval::Config(ConfigKey::PriceTimerAssetsNew)),
+            UpdatePricesAssets => JobSpec::new(WorkerService::Prices, JobInterval::Provider),
+            UpdatePricesAssetsNew => JobSpec::new(WorkerService::Prices, JobInterval::Provider),
             PublishPricesAssetsMetadata => JobSpec::new(WorkerService::Prices, JobInterval::Config(ConfigKey::PriceMetadataPublishInterval)),
             PublishMissingPrices => JobSpec::new(WorkerService::Prices, JobInterval::Config(ConfigKey::PriceMissingPublishInterval)),
             UpdateInTransitTransactions => JobSpec::new(WorkerService::Transactions, JobInterval::Config(ConfigKey::TransactionTimerInTransitUpdate)),
             UpdatePendingTransactions => JobSpec::new(WorkerService::Transactions, JobInterval::Config(ConfigKey::TransactionPendingTimer)),
-            UpdateSwapVaultAddresses => JobSpec::new(WorkerService::Transactions, JobInterval::Config(ConfigKey::TransactionTimerSwapVaultAddresses)),
+            UpdateSwapVaultAddresses => JobSpec::new(WorkerService::Transactions, JobInterval::Provider),
             AlertStakeRewards => JobSpec::new(WorkerService::Alerter, JobInterval::Config(ConfigKey::AlerterStakeRewardsTimer)),
             ClassifyPerpetualAddresses => JobSpec::new(WorkerService::Perpetuals, JobInterval::Config(ConfigKey::PerpetualClassifierInterval)),
             ObservePerpetualActiveAddresses => JobSpec::new(WorkerService::Perpetuals, JobInterval::Config(ConfigKey::PerpetualObserverInterval)),
             ObservePerpetualPriorityAddresses => JobSpec::new(WorkerService::Perpetuals, JobInterval::Config(ConfigKey::PerpetualPriorityObserverInterval)),
             RefreshPerpetualTrackedAddresses => JobSpec::new(WorkerService::Perpetuals, JobInterval::Config(ConfigKey::PerpetualAddressRefreshInterval)),
-            UpdateLists => JobSpec::new(WorkerService::Lists, JobInterval::Config(ConfigKey::ListsTimerUpdateLists)),
+            UpdateLists => JobSpec::new(WorkerService::Lists, JobInterval::Provider),
         }
     }
 
@@ -233,29 +223,25 @@ impl WorkerJob {
 pub struct JobVariant {
     job: WorkerJob,
     label: Option<String>,
-    override_interval: Option<Duration>,
+    provider_interval: Option<ConfigParamKey>,
 }
 
 impl JobVariant {
     pub fn new(job: WorkerJob) -> Self {
-        Self { job, label: None, override_interval: None }
+        Self { job, label: None, provider_interval: None }
     }
 
     pub fn labeled(job: WorkerJob, label: impl JobLabel) -> Self {
         Self {
             job,
             label: Some(label.job_label()),
-            override_interval: None,
+            provider_interval: None,
         }
     }
 
-    pub fn every(mut self, interval: Duration) -> Self {
-        self.override_interval = Some(interval);
+    pub fn provider_interval(mut self, key: ConfigParamKey) -> Self {
+        self.provider_interval = Some(key);
         self
-    }
-
-    pub async fn with_param_duration(self, config: &ConfigCacher, key: &ConfigParamKey) -> Result<Self, Box<dyn Error + Send + Sync>> {
-        Ok(self.every(config.get_param_duration(key).await?))
     }
 
     pub fn name(&self) -> String {
@@ -266,8 +252,13 @@ impl JobVariant {
         self.job.worker()
     }
 
-    pub async fn interval_duration(&self, config: Option<&ConfigCacher>) -> Result<Duration, Box<dyn Error + Send + Sync>> {
-        if let Some(duration) = self.override_interval { Ok(duration) } else { self.job.interval().duration(config).await }
+    pub async fn interval_duration(&self, config: &ConfigCacher) -> Result<Duration, Box<dyn Error + Send + Sync>> {
+        match (self.job.interval(), &self.provider_interval) {
+            (JobInterval::Config(key), None) => Ok(config.get_duration(key).await?),
+            (JobInterval::Provider, Some(key)) => Ok(config.get_param_duration(key).await?),
+            (JobInterval::Config(_), Some(_)) => Err(format!("job {} has a global interval and takes no provider interval", self.name()).into()),
+            (JobInterval::Provider, None) => Err(format!("job {} needs a provider interval", self.name()).into()),
+        }
     }
 }
 

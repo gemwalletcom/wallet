@@ -78,22 +78,25 @@ public struct RecipientScene: View {
 
             ForEach(model.recipientSections) { section in
                 Section {
-                    ForEach(section.values) {
-                        let recipient = $0.value
+                    ForEach(section.values) { row in
                         NavigationCustomLink(
-                            with: ListItemView(model: model.listItem(for: $0)),
+                            with: ListItemView(model: model.listItem(for: row)),
                             action: {
                                 focusedField = nil
-                                model.onSelectRecipient(recipient)
+                                model.onSelectRecipient(row.recipient)
                             },
                         )
                         .accessibilityIdentifier("recipient_row")
                     }
                 } header: {
                     HStack {
-                        section.image
-                            .frame(size: .image.small)
-                        Text(section.section)
+                        if let image = section.image {
+                            image
+                                .frame(size: .image.small)
+                        }
+                        if let title = section.title {
+                            Text(title)
+                        }
                     }
                 }
             }

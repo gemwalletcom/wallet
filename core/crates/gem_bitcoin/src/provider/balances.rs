@@ -39,7 +39,7 @@ mod chain_integration_tests {
         let address = TEST_ADDRESS.to_string();
         let assets = client.get_balance_assets(address).await?;
 
-        assert_eq!(assets.len(), 0);
+        assert!(assets.is_none());
         Ok(())
     }
 }

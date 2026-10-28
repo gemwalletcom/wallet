@@ -17,7 +17,7 @@ notification_price_alert_down_title = 📉 {$symbol} Preisalarm
 notification_price_alert_down_description = Preis um {$price_change} auf {$price} gesunken
 notification_price_alert_all_time_high_title = 🔥 {$symbol} Allzeithoch
 notification_price_alert_all_time_high_description = {$symbol} hat mit {$price} ein neues Allzeithoch erreicht.
-notification_nft_sent_title = 🖼️ Gesendetes NFT: {$value}
+notification_nft_sent_title = 🖼️ NFT gesendet: {$value}
 notification_nft_received_title = 🖼️ NFT erhalten: {$value}
 notification_onboarding_buy_asset_title = 🚀 Kaufen Sie {$name}
 notification_onboarding_buy_asset_description = Kaufen Sie {$name} noch heute sicher – einfach, zuverlässig und sofort.
@@ -26,10 +26,13 @@ notification_fiat_sale_title = 💰 {$value} verkauft
 support_new_message_title = Neue Nachricht vom Support
 notification_freeze_title = {$value} einfrieren
 notification_unfreeze_title = {$value} freigeben
-notification_reward_title = 💎 Sie haben {$value} Punkte verdient!
-notification_reward_create_username_description = Benutzername bereit. Lade Freunde ein, um Belohnungen zu erhalten.
+notification_reward_title = 💎 Sie haben { $value ->
+     [one] {$value} Punkt
+    *[other] {$value} Punkte
+    } verdient!
+notification_reward_create_username_description = Benutzername bereit. Laden Sie Freunde ein, um Prämien zu verdienen.
 notification_reward_invite_description = Ein geworbener Nutzer hat sich über Ihren Code angemeldet.
-notification_rewards_joined_description = Du hast dich mit einem Empfehlungscode angemeldet.
+notification_rewards_joined_description = Sie haben sich mit einem Empfehlungscode angemeldet.
 rewards_error_referral_code_not_exist = Dieser Empfehlungscode existiert nicht.
 rewards_error_referral_device_already_used = Dieses Gerät wurde bereits zur Anwendung eines Empfehlungscodes verwendet.
 rewards_error_referral_cannot_refer_self = Sie können keinen eigenen Empfehlungscode verwenden.
@@ -64,7 +67,7 @@ rewards_error_redemption_no_username = Erstellen Sie einen Benutzernamen, um Pr�
 notification_price_alert_target_title = 🎯 {$symbol} erreicht {$price}
 notification_price_alert_target_description = Jetzt bei {$price} ({$change}).
 notification_stake_rewards_title = 🎁 Staking-Belohnungen
-notification_stake_rewards_description = {$value} verfügbare Prämien für {$chain}
+notification_stake_rewards_description = {$value} Belohnungen auf {$chain} verfügbar
 notification_rewards_enabled_title = 💎 Prämien freigeschaltet
 notification_rewards_enabled_description = Sie können jetzt Prämien verdienen, indem Sie Freunde einladen.
 notification_rewards_redeem_points_title = 🎁 Prämie eingelöst

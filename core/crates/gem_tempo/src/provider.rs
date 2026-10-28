@@ -48,7 +48,7 @@ impl<C: Client + Clone> ChainBalances for TempoProvider<C> {
         self.provider.get_balance_tokens(address, token_ids).await
     }
 
-    async fn get_balance_assets(&self, address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>> {
+    async fn get_balance_assets(&self, address: String) -> Result<Option<Vec<AssetBalance>>, Box<dyn Error + Send + Sync>> {
         self.provider.get_balance_assets(address).await
     }
 

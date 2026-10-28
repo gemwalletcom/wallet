@@ -20,15 +20,19 @@ public struct ValidatorSelectScene: View {
         let options = model.options
         return List {
             ForEach(model.list(options)) { section in
-                Section(section.section) {
-                    ForEach(section.values) { value in
-                        ValidatorSelectionView(row: value.value, isSelected: model.isSelected(value.value)) {
-                            model.onSelect(value.value)
+                Section {
+                    ForEach(section.values) { row in
+                        ValidatorSelectionView(row: row, isSelected: model.isSelected(row)) {
+                            model.onSelect(row)
                             dismiss()
                         }
-                        .ifLet(model.explorerContext(for: value.value)) { view, explorerContext in
+                        .ifLet(model.explorerContext(for: row)) { view, explorerContext in
                             view.explorerContext(explorerContext)
                         }
+                    }
+                } header: {
+                    if let title = section.title {
+                        Text(title)
                     }
                 }
             }

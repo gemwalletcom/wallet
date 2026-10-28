@@ -1,12 +1,14 @@
-package com.gemwallet.android.features.transfer.viewmodels.amount
+package com.gemwallet.android.features.transfer.viewmodels.integration
 
 import android.content.Context
 import androidx.compose.runtime.snapshots.Snapshot
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.data.services.store.queries.AssetQuery
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.features.transfer.viewmodels.amount.AmountViewModel
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.testkit.mockAsset
@@ -43,6 +45,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
 import uniffi.gemstone.GemAmountExtras
 import uniffi.gemstone.GemAmountInputType
 import uniffi.gemstone.GemAmountServiceInterface
@@ -56,6 +59,7 @@ import java.math.BigDecimal
 import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(AndroidJUnit4::class)
 class AmountViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()

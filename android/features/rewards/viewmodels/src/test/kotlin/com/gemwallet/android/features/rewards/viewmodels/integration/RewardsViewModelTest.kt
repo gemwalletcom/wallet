@@ -1,10 +1,12 @@
-package com.gemwallet.android.features.rewards.viewmodels
+package com.gemwallet.android.features.rewards.viewmodels.integration
 
 import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.store.queries.WalletsQuery
+import com.gemwallet.android.features.rewards.viewmodels.RewardsViewModel
 import com.gemwallet.android.features.rewards.viewmodels.models.RewardsSheetType
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.MainDispatcherRule
@@ -38,6 +40,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
 import uniffi.gemstone.GemIncomingCode
 import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemLoadState
@@ -47,6 +50,7 @@ import uniffi.gemstone.RewardStatus
 import uniffi.gemstone.Rewards
 
 @OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(AndroidJUnit4::class)
 class RewardsViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
