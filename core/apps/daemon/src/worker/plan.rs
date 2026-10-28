@@ -99,10 +99,11 @@ impl<'a> JobPlanBuilder<'a> {
             return self;
         }
         for item in items {
-            let mut variant = JobVariant::labeled(job, item.job_label());
-            if let Some(key) = interval_param(item.clone()) {
-                variant = variant.provider_interval(key);
-            }
+            let labeled = JobVariant::labeled(job, item.job_label());
+            let variant = match interval_param(item.clone()) {
+                Some(key) => labeled.provider_interval(key),
+                None => labeled,
+            };
             if !should_include(&variant.name(), self.filter.as_deref()) {
                 continue;
             }
