@@ -265,6 +265,7 @@ mod tests {
             code: ERROR_CLIENT_ERROR,
             message: "no endpoint is available".to_string(),
             cause: None,
+            data: None,
         });
         let rate_limited: Box<dyn std::error::Error + Send + Sync> = Box::new(ClientError::Http {
             status: 429,
@@ -274,6 +275,7 @@ mod tests {
             code: -32000,
             message: "execution reverted".to_string(),
             cause: None,
+            data: None,
         });
 
         let unavailable = ApiError::from(no_endpoint);

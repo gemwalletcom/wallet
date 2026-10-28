@@ -118,6 +118,7 @@ mod tests {
                 code: ERROR_CLIENT_ERROR,
                 message: "Network error: network offline".to_string(),
                 cause: None,
+                data: None,
             })),
             GatewayError::Offline
         );
@@ -143,6 +144,7 @@ mod tests {
             code: ERROR_CLIENT_ERROR,
             message: "HTTP error: status 404".to_string(),
             cause: None,
+            data: None,
         };
         let mapped = map_network_error(Box::new(error));
 

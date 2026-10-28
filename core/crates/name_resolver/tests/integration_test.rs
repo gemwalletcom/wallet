@@ -17,6 +17,21 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_resolve_ens_v2_name() {
+        let provider = EnsProvider::new(ReqwestClient::new(get_nodes_for_chain(Chain::Ethereum)[0].url.clone(), reqwest_client()));
+        let address = provider.resolve(&NameQuery::new("nick.eth"), Chain::Ethereum).await.unwrap();
+        assert_eq!(address.as_deref(), Some("0xb8c2C29ee19D8307cb7255e1Cd9CbDE883A267d5"));
+    }
+
+    #[tokio::test]
+    async fn test_resolve_ens_unresolved_names() {
+        let provider = EnsProvider::new(ReqwestClient::new(get_nodes_for_chain(Chain::Ethereum)[0].url.clone(), reqwest_client()));
+        for name in ["nevernevernotregistered12345.eth", "gregskril.uni.eth"] {
+            assert_eq!(provider.resolve(&NameQuery::new(name), Chain::Ethereum).await.unwrap(), None, "{name}");
+        }
+    }
+
+    #[tokio::test]
     async fn test_resolve_ens_imported_name() {
         let client = NameClient::new(vec![Box::new(EnsProvider::new(ReqwestClient::new(get_nodes_for_chain(Chain::Ethereum)[0].url.clone(), reqwest_client())))]);
         let record = client.resolve("farcaster.xyz", Chain::Ethereum).await.unwrap().unwrap();

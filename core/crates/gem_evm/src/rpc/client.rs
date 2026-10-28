@@ -121,6 +121,7 @@ impl<C: Client + Clone> EthereumClient<C> {
             code: ERROR_INTERNAL_ERROR,
             message: format!("Failed to parse gas price: {value}"),
             cause: None,
+            data: None,
         })?;
         Ok(BigInt::from_biguint(Sign::Plus, biguint))
     }

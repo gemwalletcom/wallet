@@ -177,6 +177,7 @@ mod tests {
                     code: -32000,
                     message: "upstream unavailable".into(),
                     cause: None,
+                    data: None,
                 },
             }),
         ]

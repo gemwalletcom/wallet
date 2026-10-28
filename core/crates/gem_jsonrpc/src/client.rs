@@ -29,6 +29,7 @@ impl From<ClientError> for JsonRpcError {
             code: ERROR_CLIENT_ERROR,
             message: value.to_string(),
             cause: None,
+            data: None,
         }
     }
 }
@@ -58,6 +59,7 @@ impl<C: Client + Clone> JsonRpcClient<C> {
                 message: "Invalid batch response IDs".into(),
                 code: ERROR_INTERNAL_ERROR,
                 cause: None,
+                data: None,
             });
         }
 
@@ -120,18 +122,21 @@ mod tests {
 
     #[test]
     fn test_http_status_preserves_jsonrpc_error() {
+        let errors = [
+            serde_json::json!({"code":-32000,"message":"Account not found","cause":{"name":"UNKNOWN_ACCOUNT"}}),
+            serde_json::json!({"code":3,"message":"execution reverted","data":"0x77209fe8"}),
+        ];
         for status in [None, Some(200), Some(400), Some(404), Some(500)] {
             for id in [serde_json::json!(1), serde_json::json!("1"), Value::Null] {
-                let response = Response {
-                    status,
-                    data: serde_json::to_vec(&serde_json::json!({"jsonrpc":"2.0","id":id,"error":{"code":-32000,"message":"Account not found","cause":{"name":"UNKNOWN_ACCOUNT"}}})).unwrap(),
-                };
-                let error = deserialize_response::<JsonRpcResult<Value>>(&response).map_err(JsonRpcError::from).and_then(JsonRpcResult::take).unwrap_err();
+                for expected in &errors {
+                    let response = Response {
+                        status,
+                        data: serde_json::to_vec(&serde_json::json!({"jsonrpc":"2.0","id":id,"error":expected})).unwrap(),
+                    };
+                    let error = deserialize_response::<JsonRpcResult<Value>>(&response).map_err(JsonRpcError::from).and_then(JsonRpcResult::take).unwrap_err();
 
-                assert_eq!(
-                    serde_json::to_value(error).unwrap(),
-                    serde_json::from_str::<Value>(r#"{"code":-32000,"message":"Account not found","cause":{"name":"UNKNOWN_ACCOUNT"}}"#).unwrap()
-                );
+                    assert_eq!(&serde_json::to_value(error).unwrap(), expected);
+                }
             }
         }
     }
@@ -141,11 +146,14 @@ mod tests {
         for status in [400, 404, 500] {
             let response = Response {
                 status: Some(status),
-                data: br#"[{"id":2,"error":{"code":-32000,"message":"Provider detail","cause":{"name":"X"}}},{"id":1,"result":7}]"#.to_vec(),
+                data: br#"[{"id":2,"error":{"code":-32000,"message":"Provider detail","cause":{"name":"X"},"data":"0x01"}},{"id":1,"result":7}]"#.to_vec(),
             };
             let error = deserialize_response::<Vec<JsonRpcResult<Value>>>(&response).map_err(JsonRpcError::from).unwrap_err();
 
-            assert_eq!(serde_json::to_value(error).unwrap(), serde_json::json!({"code":-32000,"message":"batch request [1]: Provider detail","cause":{"name":"X"}}));
+            assert_eq!(
+                serde_json::to_value(error).unwrap(),
+                serde_json::json!({"code":-32000,"message":"batch request [1]: Provider detail","cause":{"name":"X"},"data":"0x01"})
+            );
         }
     }
 

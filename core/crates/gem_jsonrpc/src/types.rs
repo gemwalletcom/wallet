@@ -44,6 +44,8 @@ pub struct JsonRpcError {
     pub message: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub cause: Option<Value>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub data: Option<Box<Value>>,
 }
 
 impl Display for JsonRpcError {
@@ -126,6 +128,7 @@ impl<T> JsonRpcResults<T> {
                     code: error.code,
                     message: format!("batch request [{}]: {}", i, error.message),
                     cause: error.cause,
+                    data: error.data,
                 })
             })
             .collect()
@@ -163,6 +166,7 @@ mod tests {
             code: ERROR_CLIENT_ERROR,
             message: String::new(),
             cause: None,
+            data: None,
         };
 
         assert_eq!(format!("{error}"), "Client error (-32900)");
@@ -174,6 +178,7 @@ mod tests {
             code: ERROR_METHOD_NOT_FOUND,
             message: "Method not found".into(),
             cause: None,
+            data: None,
         };
 
         assert_eq!(format!("{error}"), "Method not found (-32601)");
@@ -256,6 +261,7 @@ mod tests {
                     code: ERROR_INVALID_REQUEST,
                     message: "Invalid".into(),
                     cause: None,
+                    data: None,
                 },
             }),
         ]
