@@ -1875,7 +1875,6 @@ dependencies = [
 name = "coinmarketcap"
 version = "2.114.84"
 dependencies = [
- "futures",
  "gem_client",
  "primitives",
  "reqwest",
