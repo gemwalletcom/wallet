@@ -57,7 +57,7 @@ The Import screen, top to bottom:
 | An address is typed as a name | the resolved name becomes the wallet name | |
 | The wallet already exists | it is simply opened | |
 | The wallet already exists and the app lock offer is due | the "already imported" sheet closes, then the offer opens | the offer must not open behind the sheet |
-| An import fails | its error shows under the input after every failed attempt, and clears as soon as the input changes | a retry with the same mistake must not look like nothing happened |
+| An import fails | its error shows in an alert after every failed attempt | a retry with the same mistake must not look like nothing happened |
 | A Secret Phrase has words outside the word list | those words turn red in the input until it changes | the user sees which word to fix without matching the list to the phrase |
 | The system closes the app after the first wallet and the user returns | the screen the user left opens | |
 

@@ -63,7 +63,7 @@ class ImportWalletViewModel @AssistedInject constructor(
     val isImported: StateFlow<Boolean> = _isImported.asStateFlow()
     val uiState = combine(state, isImporting) { state, importing -> state.copy(loading = importing) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, ImportWalletUIState())
-    val errorText: StateFlow<String?> = state.map { it.dataError?.text(context) }
+    val errorText: StateFlow<String?> = state.map { it.errorAlert?.text(context) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
     val suggestions: StateFlow<List<String>> = combine(input, state) { (value, cursor), state ->
         if (cursor >= value.length && state.importType.kind.supportsPhraseSuggestions()) phraseSuggestions(value.lastWord()) else emptyList()
@@ -97,6 +97,7 @@ class ImportWalletViewModel @AssistedInject constructor(
             it.copy(
                 importType = type,
                 dataError = null,
+                errorAlert = null,
             )
         }
     }
@@ -151,7 +152,8 @@ class ImportWalletViewModel @AssistedInject constructor(
             } catch (err: CancellationException) {
                 throw err
             } catch (err: Throwable) {
-                state.update { it.copy(dataError = err.errorText()) }
+                val error = err.errorText()
+                state.update { it.copy(dataError = error, errorAlert = error) }
                 isImporting.value = false
             }
         }
@@ -159,6 +161,10 @@ class ImportWalletViewModel @AssistedInject constructor(
 
     fun onImportedHandled() {
         _isImported.value = false
+    }
+
+    fun dismissError() {
+        state.update { it.copy(errorAlert = null) }
     }
 
     fun dismissExistingWallet() {
@@ -184,6 +190,7 @@ data class ImportWalletUIState(
     val kinds: List<GemWalletImportKind> = emptyList(),
     val showsTabs: Boolean = false,
     val dataError: GemErrorText? = null,
+    val errorAlert: GemErrorText? = null,
     val existingWalletName: String? = null,
 ) {
     val tabs: List<ImportTabUIModel>
