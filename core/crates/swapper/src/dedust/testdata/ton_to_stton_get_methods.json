@@ -370,26 +370,5 @@
         }
       ]
     }
-  },
-  {
-    "request": {
-      "address": "EQBfBWT7X2BHg9tXAxzhz2aKiNTU1tpt5NsiK0uSDW_YAJ67",
-      "method": "get_vault_address",
-      "stack": [
-        {
-          "type": "slice",
-          "value": "te6cckEBAQEAAwAAAQiFl+L/"
-        }
-      ]
-    },
-    "response": {
-      "exit_code": 0,
-      "stack": [
-        {
-          "type": "cell",
-          "value": "te6cckEBAQEAJAAAQ4AbXCp06bEpd4ZOkDMZrE3J676U01pfStnQH4TIlq4RpBBb+TkS"
-        }
-      ]
-    }
   }
 ]
