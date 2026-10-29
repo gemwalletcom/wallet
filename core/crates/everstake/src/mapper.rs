@@ -63,32 +63,32 @@ pub fn map_balance_to_delegation(balance: &BigUint, restaked_reward: &BigUint, s
 #[cfg(test)]
 mod tests {
     use alloy_primitives::U256;
-    use num_bigint::BigUint;
 
     use super::*;
 
     #[test]
     fn test_map_withdraw_request_to_delegations() {
-        let withdraw_request = WithdrawRequest {
-            requested: U256::from_str_radix("1000000000000000000", 10).unwrap(),
-            readyForClaim: U256::from_str_radix("500000000000000000", 10).unwrap(),
-        };
+        let requested = 1_000_000_000_000_000_000u64;
+        let cases = [
+            (
+                300_000_000_000_000_000,
+                vec![
+                    map_balance_to_delegation(&BigUint::from(700_000_000_000_000_000u64), &BigUint::zero(), DelegationState::Deactivating),
+                    map_balance_to_delegation(&BigUint::from(300_000_000_000_000_000u64), &BigUint::zero(), DelegationState::AwaitingWithdrawal),
+                ],
+            ),
+            (requested, vec![map_balance_to_delegation(&BigUint::from(requested), &BigUint::zero(), DelegationState::AwaitingWithdrawal)]),
+            (0, vec![map_balance_to_delegation(&BigUint::from(requested), &BigUint::zero(), DelegationState::Deactivating)]),
+        ];
 
-        let delegations = map_withdraw_request_to_delegations(&withdraw_request);
+        for (ready_for_claim, expected) in cases {
+            let delegations = map_withdraw_request_to_delegations(&WithdrawRequest {
+                requested: U256::from(requested),
+                readyForClaim: U256::from(ready_for_claim),
+            });
 
-        assert_eq!(delegations.len(), 2);
-
-        let pending = delegations.iter().find(|d| d.state == DelegationState::Deactivating).unwrap();
-        assert_eq!(pending.balance, BigUint::from(500000000000000000_u64));
-        assert_eq!(pending.delegation_id, delegation_id(EVERSTAKE_POOL_ADDRESS, DelegationState::Deactivating));
-
-        let awaiting = delegations.iter().find(|d| d.state == DelegationState::AwaitingWithdrawal).unwrap();
-        assert_eq!(awaiting.balance, BigUint::from(500000000000000000_u64));
-        assert_eq!(awaiting.delegation_id, delegation_id(EVERSTAKE_POOL_ADDRESS, DelegationState::AwaitingWithdrawal));
-
-        let balance = map_staking_balance(&delegations);
-        assert_eq!(balance.pending, BigUint::from(1_000_000_000_000_000_000u64));
-        assert_eq!(balance.staked, BigUint::from(0u32));
-        assert_eq!(balance.rewards, BigUint::from(0u32));
+            assert_eq!(delegations, expected);
+            assert_eq!(map_staking_balance(&delegations), Balance::stake_balance(BigUint::zero(), BigUint::from(requested), Some(BigUint::zero())));
+        }
     }
 }
