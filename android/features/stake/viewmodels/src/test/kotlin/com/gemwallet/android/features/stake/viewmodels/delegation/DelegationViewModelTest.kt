@@ -58,7 +58,7 @@ class DelegationViewModelTest {
         every { this@mockk(walletId.id, asset.id) } returns flowOf(mockAssetData(asset = asset))
     }
     private val delegationQuery = mockk<DelegationQuery>()
-    private val validator = mockDelegationValidator(chain = asset.id.chain, id = "v2")
+    private val validator = mockDelegationValidator(chain = asset.id.chain, id = "v2", name = "Validator 2", isActive = true)
     private val validatorsQuery = mockk<ValidatorsQuery> {
         every { this@mockk(asset.id, StakeProviderType.Stake) } returns flowOf(listOf(validator))
     }

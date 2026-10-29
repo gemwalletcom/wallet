@@ -54,7 +54,6 @@ import uniffi.gemstone.GemStakeAmountInput
 import uniffi.gemstone.GemStakeDestination
 import uniffi.gemstone.GemStakeServiceInterface
 import uniffi.gemstone.GemStakeViewState
-import uniffi.gemstone.Resource
 import uniffi.gemstone.assetText
 import java.math.BigInteger
 import kotlin.time.Duration.Companion.seconds
@@ -116,18 +115,15 @@ class StakeViewModelTest {
     @Test
     fun `a stake action opens the screen Core chose`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
-        val freeze = GemStakeAmountInput.Freeze(Resource.ENERGY)
-        val unfreeze = GemStakeAmountInput.Unfreeze(Resource.BANDWIDTH)
+        val stake = GemStakeAmountInput.Stake(mockDelegationValidator(chain = asset.id.chain, id = "v1", name = "Validator 1", isActive = true).toGem())
         val transfer = mockGemTransferData()
         val amount: AmountTransactionAction = mockk(relaxed = true)
         val confirm: ConfirmTransactionAction = mockk(relaxed = true)
         try {
-            viewModel.onSelect(GemStakeDestination.Amount(freeze), amount, confirm)
-            viewModel.onSelect(GemStakeDestination.Amount(unfreeze), amount, confirm)
+            viewModel.onSelect(GemStakeDestination.Amount(stake), amount, confirm)
             viewModel.onSelect(GemStakeDestination.Confirm(transfer), amount, confirm)
             assertNull(viewModel.infoSheet.value)
-            verify(exactly = 1) { amount(AmountParams.Stake(asset.id, freeze)) }
-            verify(exactly = 1) { amount(AmountParams.Stake(asset.id, unfreeze)) }
+            verify(exactly = 1) { amount(AmountParams.Stake(asset.id, stake)) }
             verify(exactly = 1) { confirm(match { it.data == transfer }) }
         } finally {
             viewModel.viewModelScope.cancel()

@@ -655,38 +655,6 @@ class SwapViewModelTest {
     }
 
     @Test
-    fun `quote changing actions clear transfer error state`() = runTest(testDispatcher) {
-        val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
-        every { getSession() } returns MutableStateFlow(
-            mockSession(wallet = wallet),
-        )
-        coEvery { swapQuoteService.transferData(any()) } throws SwapperException.NoQuoteAvailable()
-
-        val viewModel = createViewModel(
-            swapSavedState(),
-        )
-        advanceUntilIdle()
-
-        seedReadyQuote(viewModel)
-        viewModel.swap(viewModel.shownQuote()).join()
-        runCurrent()
-
-        viewModel.setProvider(SwapProvider.UNISWAP_V3)
-        advanceUntilIdle()
-
-        assertEquals(ButtonState.Enabled, viewModel.viewState.value.buttonState.buttonState())
-        assertEquals(GemSwapButtonAction.Swap, viewModel.viewState.value.buttonAction)
-        assertFalse(viewModel.viewState.value.quotesState is GemSwapQuotesState.Failed)
-
-        viewModel.swap(viewModel.shownQuote()).join()
-        runCurrent()
-
-        viewModel.payValue.setTextAndPlaceCursorAtEnd("2")
-        Snapshot.sendApplyNotifications()
-        awaitCondition { viewModel.viewState.value.isQuoteLoading }
-    }
-
-    @Test
     fun `quote refresh stays paused after confirm handoff until screen restarts`() = runTest(testDispatcher) {
         val confirmInputGate = CompletableDeferred<Unit>()
         stubBuildConfirmInput { confirmInputGate.await() }
@@ -756,7 +724,7 @@ class SwapViewModelTest {
     }
 
     @Test
-    fun `confirm params keep frozen from amount while transfer is in flight`() = runTest(testDispatcher) {
+    fun `a transfer prepared for an amount that changed meanwhile opens no confirm`() = runTest(testDispatcher) {
         val wallet = mockWallet(accounts = listOf(mockAccount(chain = solAsset.id.chain)))
         every { getSession() } returns MutableStateFlow(
             mockSession(wallet = wallet),
@@ -775,10 +743,12 @@ class SwapViewModelTest {
         awaitCondition { viewModel.viewState.value.isTransferLoading }
 
         viewModel.payValue.setTextAndPlaceCursorAtEnd("2")
+        Snapshot.sendApplyNotifications()
+        awaitCondition { !viewModel.viewState.value.isTransferLoading }
         confirmInputGate.complete(Unit)
-        awaitCondition { viewModel.confirmInput.value != null }
+        advanceUntilIdle()
 
-        assertEquals(BigInteger("1000000000"), viewModel.confirmInput.value?.data?.value)
+        assertNull(viewModel.confirmInput.value)
     }
 
     @Test

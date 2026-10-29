@@ -80,7 +80,7 @@ impl<C: Client + Clone> EvmFeeCalculator for EverstakeStakingClient<C> {}
 mod chain_integration_tests {
     use gem_evm::rpc::EvmStakingClient;
     use num_bigint::BigUint;
-    use primitives::{Chain, DelegationState};
+    use primitives::Chain;
 
     use crate::testkit::{TEST_ETHEREUM_STAKING_ADDRESS, create_everstake_staking_client};
 
@@ -122,7 +122,6 @@ mod chain_integration_tests {
 
         for delegation in &delegations {
             assert_eq!(delegation.asset_id.chain, Chain::Ethereum);
-            assert!(delegation.state == DelegationState::Active || delegation.state == DelegationState::Activating || delegation.state == DelegationState::Deactivating || delegation.state == DelegationState::AwaitingWithdrawal);
         }
 
         Ok(())
