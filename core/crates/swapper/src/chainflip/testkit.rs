@@ -1,8 +1,15 @@
 use super::ChainflipRouteData;
 use super::broker::{AssetsResponse, ChainflipAsset, DepositChannelRequest, QuoteRequest, RefundParameters};
+use super::destination::VaultSwapDestination;
 use crate::fees::DEFAULT_CHAINFLIP_FEE_BPS;
 use crate::{Quote, Route};
+use primitives::known_assets::ARBITRUM_USDC;
 use primitives::testkit::signer_mock::{TEST_EVM_RECIPIENT, TEST_POLKADOT_SENDER};
+use primitives::{AssetId, Chain};
+
+pub const TRON_NOTE: &str = "0x0703514bcb1f9aabb904e6106bd1052b66d2706dbbb70089010196000000eca9bc828a3005b9a3b909f2cc5c2a54794de05f0000000000000000000000000000000000000000000000000000000000000000000000001e83d2972d3dca3a330d60c2777ee5b8d25683c63fa359116985609830f42054050004002d";
+pub const BITCOIN_DESTINATION: &str = "bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq";
+pub const ARBITRUM_DESTINATION: &str = "0x514bcb1f9aabb904e6106bd1052b66d2706dbbb7";
 
 impl AssetsResponse {
     pub fn mock() -> Self {
@@ -44,6 +51,14 @@ impl DepositChannelRequest {
             dca_parameters: None,
         }
     }
+}
+
+pub fn bitcoin_destination() -> VaultSwapDestination {
+    VaultSwapDestination::new(&AssetId::from_chain(Chain::Bitcoin), BITCOIN_DESTINATION).unwrap()
+}
+
+pub fn arbitrum_usdc_destination() -> VaultSwapDestination {
+    VaultSwapDestination::new(&ARBITRUM_USDC.id, ARBITRUM_DESTINATION).unwrap()
 }
 
 pub fn mock_routes(quote: &Quote, estimated_price: f64) -> Vec<Route> {
