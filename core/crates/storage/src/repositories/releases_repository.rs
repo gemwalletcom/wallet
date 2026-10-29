@@ -32,7 +32,7 @@ impl ReleasesRepository for DatabaseClient {
             .values(&release)
             .on_conflict(platform_store)
             .do_update()
-            .set(version.eq(excluded(version)))
+            .set((version.eq(excluded(version)), upgrade_required.eq(excluded(upgrade_required))))
             .execute(&mut self.connection)?)
     }
 
@@ -41,5 +41,29 @@ impl ReleasesRepository for DatabaseClient {
         use crate::schema::releases::dsl::*;
         let release = releases.filter(platform_store.eq(&store)).select(ReleaseRow::as_select()).first(&mut self.connection).optional()?;
         Ok(release.map(|r| r.update_enabled).unwrap_or(true))
+    }
+}
+
+#[cfg(all(test, feature = "database_integration_tests"))]
+mod database_integration_tests {
+    use diesel::prelude::*;
+    use primitives::{PlatformStore, Release};
+
+    use crate::{Database, DatabaseError, ReleasesRepository};
+
+    #[tokio::test]
+    async fn test_a_new_version_is_not_required_unless_marked() {
+        let release = Database::mock()
+            .run(|client| -> Result<_, DatabaseError> {
+                use crate::schema::releases::dsl::*;
+                diesel::delete(releases).execute(&mut client.connection)?;
+                client.add_releases(vec![Release::new(PlatformStore::AppStore, "2.0.0".into(), true)])?;
+                client.update_release(Release::new(PlatformStore::AppStore, "2.1.0".into(), false))?;
+                Ok(client.get_releases()?.into_iter().find(|release| release.store == PlatformStore::AppStore))
+            })
+            .await
+            .unwrap();
+
+        assert_eq!(release, Some(Release::new(PlatformStore::AppStore, "2.1.0".into(), false)));
     }
 }
