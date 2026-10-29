@@ -4,7 +4,7 @@ Thank you for your interest in contributing to Gem Wallet! If you have any quest
 
 ## Feature Requests and Bug Reports
 
-Feature requests and bug reports should be posted as [Github Issues](issues/new).
+Feature requests and bug reports should be posted as [GitHub Issues](https://github.com/gemwalletcom/wallet/issues/new).
 In an issue, please describe what you did, what you expected, and what happened instead.
 
 If you think that you have identified an issue with Gem Wallet that might compromise
@@ -30,4 +30,4 @@ This repository is a monorepo:
 
 * iOS application code lives under `ios/`
 * Android application code lives under `android/`
-* Shared Rust core is the `core/` submodule
+* Shared Rust core lives under `core/`

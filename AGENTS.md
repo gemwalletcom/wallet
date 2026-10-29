@@ -38,7 +38,7 @@ If a task spans platforms, read every affected guide. Generation and parity requ
 
 Cross-platform subsystem references live in [docs/](docs). Read the relevant one before changing that area:
 
-- [Product](docs/PRODUCT.md) — User-facing rules, rationale, guarding tests, failure behavior, platform differences, and open decisions, organized by area under [docs/product/](docs/product)
+- [Product](docs/PRODUCT.md) — User-facing rules and their reasons, failure behavior, platform differences, and open decisions, organized by area under [docs/product/](docs/product)
 - [Architecture](docs/ARCHITECTURE.md) — Ownership contracts, worked examples, and the screen-service map
 - [Open work](docs/TODO.md) — Every open item, ordered, with the exemplar to copy for each; delete an item's line in the commit that lands it
 - [Performance](docs/PERFORMANCE.md) — responsiveness principles, budgets, and testing for wallet, asset, transaction, confirmation, and swap screens on both apps

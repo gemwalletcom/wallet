@@ -20,23 +20,21 @@ flowchart LR
 
 | When | Expected | Why |
 |---|---|---|
-| A typed name is registered for the network | it resolves while typing to that address | |
-| A mixed-case EVM address has an invalid checksum | "Invalid address"; the address stays as entered and cannot continue, including in contacts, watch-only imports, scanned codes and payment links | a typo must never be silently re-checksummed into another account; single-case addresses remain accepted |
+| A typed name is registered for the network | it resolves to that address while typing | |
+| A mixed-case EVM address has an invalid checksum | "Invalid address" wherever an address is typed, pasted or scanned | a typo must never turn into another account; single-case addresses are accepted |
 | The recipient is one of the user's own wallets or a contact | Confirm shows its name alone; a tap shows the address | the user gave that name |
 | The recipient has any other name, such as `vitalik.eth` | the name with the short address beside it | a name the user did not give could imitate another address |
-| The recipient is flagged | a "Suspicious address" warning with one line on why, under the amount; Confirm stays disabled | |
-| Confirm loads with a problem the user can act on: not enough balance or network fee, a required memo, a risky transaction | its explanation opens by itself | the user sees what to do before looking for it |
-| A refresh or a fee change finds the same problem | the explanation stays as the user left it | it opens once per problem |
-| Retry, or a different problem | the explanation opens again | |
+| The recipient is flagged | "Suspicious address" with one line on why, under the amount; Confirm stays disabled | |
+| The balance can't cover the amount and the Network Fee, on any network | Insufficient Balance | the user sees what to fix, never a network error |
+| A Bitcoin-family amount, or what Max would send, is under the dust limit | the dust explanation | the network rejects such a small output |
+| Confirm loads with a problem the user can act on: not enough balance or network fee, dust, a required memo, a risky transaction | its explanation opens by itself, once per problem; a refresh leaves it as the user left it, and Retry or a different problem opens it again | the user sees what to do before looking for it |
 | Any other load error | it stays in the error row | |
-| Bitcoin-family or Cardano coins can't cover the amount and the fee | Insufficient Balance, as on every other network (`test_unaffordable_send_is_insufficient_balance`, `test_plan_transfer`) | the fee load prices the send and the amount check decides, so it is never a network error |
-| A Bitcoin-family amount, or what Max would send, is under the dust limit | the dust explanation, while Confirm loads (`test_gateway_errors_keep_their_kind`) | the network rejects such an output |
 | The simulation cannot answer | sending is not blocked | |
 | The simulation finds a risk | the risk shows before the user confirms | |
 | The simulation predicts balance changes | every digit of each amount, never rounded | what the user approves is exactly what moves |
+| Sending fails after Confirm | an error alert; the fee and amounts stay and the button stays Confirm, so a tap sends again | Try Again is only for a failed load |
 | The network rejects the sent transaction | the network's own reason | it is often the only explanation there is |
-| Sending fails after Confirm | an error alert; the screen keeps its fee and amounts with no reload, and the button stays Confirm, so every tap sends again, as Swap keeps its Swap button | Try Again belongs to a failed load |
-| A Dash payment is sent | Pending until the transaction is mined | the network may lock it with InstantSend, but the provider does not report that lock yet |
+| A Dash payment is sent | Pending until it is mined | the provider does not report InstantSend locks yet |
 | The recipient is a Zcash unified address (`u1…`) with an Orchard receiver | the transparent balance pays that receiver in the shielded Ironwood pool, a memo travels encrypted in the note, and the Network Fee covers the two shielded actions; sending takes a few seconds longer while the proof is built | since NU6.3 a payment to someone else's shielded address can only land in Ironwood |
 | A Zcash unified address whose only shielded receiver is Sapling | its transparent receiver is paid; without one the address is not valid for Zcash | Sapling outputs need proving parameters Gem does not ship |
 | A Zcash send carries a memo but the recipient gets a transparent output | the fee cannot load and the send is refused | ZIP-321 memos are private; a transparent output would publish the memo on chain |

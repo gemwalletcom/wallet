@@ -40,6 +40,9 @@ impl ChatwootWebhookVerifier {
     }
 
     fn verify_at(&self, headers: &HashMap<String, String>, data: &str, now: i64) -> Result<(), ChatwootWebhookError> {
+        if self.secret.is_empty() {
+            return Err(ChatwootWebhookError::InvalidRequest("Missing Chatwoot webhook secret".to_string()));
+        }
         let timestamp = headers.get(TIMESTAMP_HEADER).ok_or_else(|| ChatwootWebhookError::InvalidRequest("Missing Chatwoot webhook timestamp".to_string()))?;
         let signed_at = timestamp.parse::<i64>().map_err(|_| ChatwootWebhookError::InvalidRequest("Invalid Chatwoot webhook timestamp".to_string()))?;
         if now.abs_diff(signed_at) > MAX_SIGNATURE_AGE_SECONDS as u64 {
@@ -85,6 +88,9 @@ mod tests {
         let mut malformed_signature = headers.clone();
         malformed_signature.insert(SIGNATURE_HEADER.to_string(), "invalid".to_string());
         assert!(verifier.verify_at(&malformed_signature, TEST_DATA, TEST_NOW).is_err());
+
+        let unset = chatwoot_webhook_headers("", TEST_DATA, TEST_NOW);
+        assert!(ChatwootWebhookVerifier::new(String::new()).verify_at(&unset, TEST_DATA, TEST_NOW).is_err(), "an unset secret verifies nothing");
 
         let mut missing_timestamp = headers;
         missing_timestamp.remove(TIMESTAMP_HEADER);

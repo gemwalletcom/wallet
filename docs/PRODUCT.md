@@ -205,7 +205,7 @@ Some networks require a balance to keep an account open, a minimum payment to ac
 | A Solana token transfer needs a recipient token account | its creation amount is included in the Network Fee | the sender funds the new token account |
 | A Solana stake creates its stake account | the Network Fee shows only the network's charge | the stake account's rent comes out of the amount staked |
 
-Account reserves are excluded from the available balance. Algorand reports its account's reserve, which can grow with its assets. A Stellar account with one trustline keeps `1.5 XLM` ([`test_map_native_balance`](../core/crates/gem_stellar/src/provider/balances_mapper.rs)). Tron account creation is included in the Network Fee using the network's current charges and the sender's bandwidth.
+Account reserves are excluded from the available balance. Algorand reports its account's reserve, which can grow with its assets. A Stellar account with one trustline keeps `1.5 XLM`. Tron account creation is included in the Network Fee using the network's current charges and the sender's bandwidth.
 
 ## Names
 
