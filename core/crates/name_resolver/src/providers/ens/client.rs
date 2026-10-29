@@ -2,7 +2,7 @@ use std::error::Error;
 
 use alloy_ens::{UNIVERSAL_RESOLVER_ADDRESS, coin_type, namehash, try_dns_encode};
 use alloy_primitives::{Address, Bytes, U256, hex};
-use alloy_sol_types::{SolCall, SolInterface};
+use alloy_sol_types::{SolCall, SolInterface, SolValue};
 use gem_client::Client;
 use gem_evm::jsonrpc::EthereumRpc;
 use gem_jsonrpc::JsonRpcClient;
@@ -10,7 +10,10 @@ use gem_jsonrpc::types::TypedJsonRpcError;
 use primitives::Chain;
 use serde::Deserialize;
 
+use super::ccip;
 use super::contract::{ENSMulticoinResolver, ENSResolver, UniversalResolver, UniversalResolver::UniversalResolverErrors};
+
+const MAX_OFFCHAIN_LOOKUPS: usize = 2;
 
 #[derive(Debug, Default, Deserialize)]
 struct RevertData {
@@ -21,11 +24,17 @@ type EnsRpcError = TypedJsonRpcError<RevertData>;
 
 pub struct EnsClient<C: Client + Clone> {
     client: JsonRpcClient<C>,
+    ccip: C,
+    ccip_url: String,
 }
 
 impl<C: Client + Clone> EnsClient<C> {
-    pub fn new(client: C) -> Self {
-        Self { client: JsonRpcClient::new(client) }
+    pub fn new(client: C, ccip: C, ccip_url: String) -> Self {
+        Self {
+            client: JsonRpcClient::new(client),
+            ccip,
+            ccip_url,
+        }
     }
 
     pub async fn get_address(&self, name: &str, chain: Chain) -> Result<Option<Address>, Box<dyn Error + Send + Sync>> {
@@ -49,18 +58,31 @@ impl<C: Client + Clone> EnsClient<C> {
     }
 
     async fn resolve(&self, name: &str, data: Vec<u8>) -> Result<Option<Bytes>, Box<dyn Error + Send + Sync>> {
-        let call = UniversalResolver::resolveCall {
+        let mut call = UniversalResolver::resolveCall {
             name: try_dns_encode(name)?.into(),
             data: data.into(),
         }
         .abi_encode();
-        match self.client.request_with_error::<String, _, EnsRpcError>(EthereumRpc::call(&UNIVERSAL_RESOLVER_ADDRESS.to_string(), call)).await {
-            Ok(result) => Ok(Some(UniversalResolver::resolveCall::abi_decode_returns(&hex::decode(result)?)?._0)),
-            Err(error) => match resolver_error(&error) {
-                Some(UniversalResolverErrors::ResolverNotFound(_) | UniversalResolverErrors::UnsupportedResolverProfile(_) | UniversalResolverErrors::OffchainLookup(_)) => Ok(None),
-                None => Err(error.into()),
-            },
+        for lookups in 0.. {
+            let error = match self.client.request_with_error::<String, _, EnsRpcError>(EthereumRpc::call(&UNIVERSAL_RESOLVER_ADDRESS.to_string(), call)).await {
+                Ok(result) => return Ok(Some(UniversalResolver::resolveCall::abi_decode_returns(&hex::decode(result)?)?._0)),
+                Err(error) => error,
+            };
+            let lookup = match resolver_error(&error) {
+                Some(UniversalResolverErrors::ResolverNotFound(_) | UniversalResolverErrors::UnsupportedResolverProfile(_)) => return Ok(None),
+                Some(UniversalResolverErrors::OffchainLookup(lookup)) => lookup,
+                None => return Err(error.into()),
+            };
+            if lookup.sender != UNIVERSAL_RESOLVER_ADDRESS {
+                return Err("ENS offchain lookup sender does not match Universal Resolver".into());
+            }
+            if lookups == MAX_OFFCHAIN_LOOKUPS {
+                break;
+            }
+            let response = ccip::lookup(&self.ccip, &self.ccip_url, &lookup).await?;
+            call = [lookup.callbackFunction.as_slice(), &(response, lookup.extraData).abi_encode_params()].concat();
         }
+        Err("ENS offchain lookup limit exceeded".into())
     }
 }
 

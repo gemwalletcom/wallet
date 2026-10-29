@@ -9,23 +9,32 @@ mod tests {
     use primitives::{Chain, NameProvider, node_config::get_nodes_for_chain};
     use settings::testkit::get_test_settings;
 
+    fn ens_provider() -> EnsProvider<ReqwestClient> {
+        let ccip_url = get_test_settings().name.ens_ccip.url;
+        EnsProvider::new(
+            ReqwestClient::new(get_nodes_for_chain(Chain::Ethereum)[0].url.clone(), reqwest_client()),
+            ReqwestClient::new(ccip_url.clone(), reqwest_client()),
+            ccip_url,
+        )
+    }
+
     #[tokio::test]
     async fn test_resolve_ens() {
-        let provider = EnsProvider::new(ReqwestClient::new(get_nodes_for_chain(Chain::Ethereum)[0].url.clone(), reqwest_client()));
+        let provider = ens_provider();
         let address = provider.resolve(&NameQuery::new("vitalik.eth"), Chain::Ethereum).await.unwrap().unwrap();
         assert_eq!(address, "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045");
     }
 
     #[tokio::test]
     async fn test_resolve_ens_v2_name() {
-        let provider = EnsProvider::new(ReqwestClient::new(get_nodes_for_chain(Chain::Ethereum)[0].url.clone(), reqwest_client()));
+        let provider = ens_provider();
         let address = provider.resolve(&NameQuery::new("nick.eth"), Chain::Ethereum).await.unwrap();
         assert_eq!(address.as_deref(), Some("0xb8c2C29ee19D8307cb7255e1Cd9CbDE883A267d5"));
     }
 
     #[tokio::test]
     async fn test_resolve_ens_network_address() {
-        let provider = EnsProvider::new(ReqwestClient::new(get_nodes_for_chain(Chain::Ethereum)[0].url.clone(), reqwest_client()));
+        let provider = ens_provider();
         for (name, chain, expected) in [
             ("gemcoder.eth", Chain::Ethereum, Some("0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4")),
             ("gemcoder.eth", Chain::Polygon, Some("0xD8EB1Fd839BD04f1A1e04b173101f7AD59Dd88EA")),
@@ -38,15 +47,20 @@ mod tests {
 
     #[tokio::test]
     async fn test_resolve_ens_unresolved_names() {
-        let provider = EnsProvider::new(ReqwestClient::new(get_nodes_for_chain(Chain::Ethereum)[0].url.clone(), reqwest_client()));
-        for name in ["nevernevernotregistered12345.eth", "gregskril.uni.eth"] {
-            assert_eq!(provider.resolve(&NameQuery::new(name), Chain::Ethereum).await.unwrap(), None, "{name}");
-        }
+        let provider = ens_provider();
+        assert_eq!(provider.resolve(&NameQuery::new("nevernevernotregistered12345.eth"), Chain::Ethereum).await.unwrap(), None);
+    }
+
+    #[tokio::test]
+    async fn test_resolve_ens_offchain_name() {
+        let provider = ens_provider();
+        let address = provider.resolve(&NameQuery::new("gregskril.uni.eth"), Chain::Ethereum).await.unwrap().unwrap();
+        assert_eq!(address, "0x179A862703a4adfb29896552DF9e307980D19285");
     }
 
     #[tokio::test]
     async fn test_resolve_ens_imported_name() {
-        let client = NameClient::new(vec![Box::new(EnsProvider::new(ReqwestClient::new(get_nodes_for_chain(Chain::Ethereum)[0].url.clone(), reqwest_client())))]);
+        let client = NameClient::new(vec![Box::new(ens_provider())]);
         let record = client.resolve("farcaster.xyz", Chain::Ethereum).await.unwrap().unwrap();
         assert_eq!(record.address, "0xF12E89805E10d96c0CDf22da88aED361eD9329cA");
     }

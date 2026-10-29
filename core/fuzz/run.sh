@@ -18,6 +18,12 @@ seed solana_transaction '(AQ|Ag|Aw|gA)[A-Za-z0-9+/]{200,}={0,2}' 'base64 -d'
 seed ton_boc 'te6cc[A-Za-z0-9+/]+={0,2}' 'base64 -d'
 seed payment_url '(bitcoin|ethereum|solana|ton|xrp|wc):[^" ]+' cat
 
+mkdir -p corpus/ens_resolution
+for response in ../crates/name_resolver/testdata/ens_*response.json; do
+    size=$(wc -c < "$response")
+    { printf "\\$(printf %o $((size & 255)))\\$(printf %o $((size >> 8)))"; cat "$response" ../crates/name_resolver/testdata/ens_ccip_response.json; } > "corpus/ens_resolution/$(basename "$response" .json)"
+done
+
 mkdir -p artifacts
 for target in $(cargo fuzz list); do
     cargo fuzz run -s none -a "$target" -- -max_total_time="${1:-600}" -timeout=10 -fork=1 -ignore_crashes=1 -ignore_timeouts=1 -ignore_ooms=1 > "artifacts/$target.log" 2>&1 &

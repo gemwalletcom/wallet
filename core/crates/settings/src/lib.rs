@@ -261,6 +261,7 @@ pub struct Defi {
 #[derive(Debug, Deserialize, Clone)]
 pub struct Name {
     pub ens: URL,
+    pub ens_ccip: URL,
     pub ud: URL,
     pub sns: URL,
     pub ton: URL,

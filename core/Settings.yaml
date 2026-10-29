@@ -191,6 +191,8 @@ everstake:
 name:
   ens:
     url: https://ethereum.publicnode.com
+  ens_ccip:
+    url: https://ccip-v3.ens.xyz
   ud:
     url: https://api.unstoppabledomains.com
   sns:
