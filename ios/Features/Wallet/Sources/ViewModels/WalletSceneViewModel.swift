@@ -72,10 +72,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
             initialValue: nil,
         )
         assetsQuery = ObservableQuery(AssetsQuery(walletId: wallet.id, filters: [.enabledBalance], limit: nil), initialValue: [])
-        bannersQuery = ObservableQuery(
-            BannersQuery(walletId: wallet.id, assetId: .none, events: GemConstants.walletBannerEvents),
-            initialValue: [],
-        )
+        bannersQuery = ObservableQuery(BannersQuery(), initialValue: [])
         collectionsQuery = ObservableQuery(MappedQuery(NFTQuery(walletId: wallet.id, filter: .all)) { [service] in service.collections(nfts: $0.map { $0.toGem() }) }, initialValue: [])
         self.isPresentingSelectedAssetInput = isPresentingSelectedAssetInput
         self.isPresentingWallets = isPresentingWallets

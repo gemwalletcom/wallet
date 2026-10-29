@@ -1668,11 +1668,11 @@ try store.addBanners([NewBanner(id: id, walletId: walletId, assetId: assetId, ev
 ```
 
 ```kotlin
-// worth keeping — the rows the query selects, which Core cannot reach
+// worth keeping — the stored asset joined back onto each row, which Core cannot reach
 database.bannersDao().addBanners(listOf(warning.copy(id = "other-wallet", walletId = "wallet-2")))
-val banners = BannersQuery(database.bannersDao())("wallet-1", tokenId).first()
+val banners = BannersQuery(database.bannersDao())().first()
 
-assertEquals(setOf(BannerEvent.AccountBlockedMultiSignature), banners.map { it.event }.toSet())
+assertEquals(listOf(asset, asset), banners.map { it.asset })
 ```
 
 - **Never mock a dependency-free constructible service** (`GemChainService`, `GemAssetConfigService`, …). Construct the real one. An app test may substitute an I/O screen service to test mapping or state; the returned Core answer is then a stated premise, not a rule assertion.

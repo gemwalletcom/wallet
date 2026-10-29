@@ -52,7 +52,7 @@ class BannersDaoTest {
     @Test
     fun walletWarningIncludesStoredAsset() = runBlocking(Dispatchers.IO) {
         val banner = database.bannersDao()
-            .observeWalletBanners("wallet-1", listOf(BannerEvent.AccountBlockedMultiSignature))
+            .observeBanners()
             .first().single().toDTO()
 
         assertEquals(asset, banner.asset)
@@ -69,8 +69,8 @@ class BannersDaoTest {
     fun walletKeepsAssetlessOnboarding() = runBlocking(Dispatchers.IO) {
         database.bannersDao().saveBanner(warning.copy(id = "onboarding", assetId = null, event = BannerEvent.Onboarding))
         val banner = database.bannersDao()
-            .observeWalletBanners("wallet-1", listOf(BannerEvent.Onboarding))
-            .first().single().toDTO()
+            .observeBanners()
+            .first().single { it.banner.event == BannerEvent.Onboarding }.toDTO()
 
         assertEquals(BannerEvent.Onboarding, banner.event)
         assertNull(banner.asset)

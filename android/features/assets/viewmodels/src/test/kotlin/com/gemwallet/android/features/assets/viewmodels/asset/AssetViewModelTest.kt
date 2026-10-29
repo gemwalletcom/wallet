@@ -92,7 +92,7 @@ class AssetViewModelTest {
         every { getSession() } returns sessionFlow
         every { getTransactions.getTransactions(any(), any()) } returns MutableStateFlow(emptyList())
         every { getTransactions.stored(any(), any()) } returns emptyList()
-        every { bannersQuery(mockSession().wallet.id.id, asset.id) } returns banners
+        every { bannersQuery() } returns banners
         every { priceAlertsQuery(asset.id) } returns priceAlerts
         every { service.details(any()) } answers {
             val input = firstArg<GemAssetDetailsInput>()
