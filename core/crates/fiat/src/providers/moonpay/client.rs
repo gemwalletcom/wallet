@@ -1,13 +1,12 @@
 use crate::model::{FiatProviderAsset, filter_token_id};
 
-use super::mapper::map_asset_chain;
-use super::models::{Asset, BuyQuoteQuery, Country, MoonPayBuyQuote, MoonPayIpAddress, MoonPayResponse, MoonPaySellQuote, SellQuoteQuery};
+use super::mapper::{map_asset_chain, map_limits};
+use super::models::{Asset, BuyQuoteQuery, Country, FiatCurrencyType, MoonPayBuyQuote, MoonPayIpAddress, MoonPayResponse, MoonPaySellQuote, SellQuoteQuery};
 use super::target::MoonPayTarget;
 use super::widget::MoonPayWidget;
 use gem_client::{ClientError, ClientExt, ReqwestClient};
-use primitives::currency::Currency;
 use primitives::fiat_assets::FiatAssetLimits;
-use primitives::{FiatProviderName, FiatQuoteType, PaymentType};
+use primitives::{FiatProviderName, FiatQuoteType};
 
 #[derive(Clone)]
 pub struct MoonPayClient {
@@ -69,7 +68,14 @@ impl MoonPayClient {
         self.client.get(MoonPayTarget::Countries).await
     }
 
-    pub fn map_asset(asset: Asset) -> Option<FiatProviderAsset> {
+    pub fn map_assets(currencies: Vec<Asset>) -> Vec<FiatProviderAsset> {
+        let (fiat_currencies, assets): (Vec<Asset>, Vec<Asset>) = currencies.into_iter().partition(|currency| currency.currency_type == FiatCurrencyType::Fiat);
+        let buy_limits = map_limits(&fiat_currencies, FiatQuoteType::Buy);
+        let sell_limits = map_limits(&fiat_currencies, FiatQuoteType::Sell);
+        assets.into_iter().filter_map(|asset| Self::map_asset(asset, &buy_limits, &sell_limits)).collect()
+    }
+
+    pub fn map_asset(asset: Asset, buy_limits: &[FiatAssetLimits], sell_limits: &[FiatAssetLimits]) -> Option<FiatProviderAsset> {
         let chain = map_asset_chain(asset.clone())?;
         let contract_address = match asset.metadata.as_ref().map(|m| m.network_code.as_str()) {
             Some("ripple") => asset.metadata.as_ref().and_then(|m| m.contract_address.as_deref().and_then(|s| s.split('.').next_back().map(String::from))),
@@ -82,39 +88,8 @@ impl MoonPayClient {
             return None;
         }
         let enabled = !asset.is_suspended.unwrap_or(true);
-
-        let payment_types = [PaymentType::Card, PaymentType::GooglePay, PaymentType::ApplePay];
-
-        let buy_limits = if asset.min_buy_amount.is_some() || asset.max_buy_amount.is_some() {
-            payment_types
-                .iter()
-                .map(|x| FiatAssetLimits {
-                    currency: Currency::USD,
-                    payment_type: x.clone(),
-                    min_amount: asset.min_buy_amount,
-                    max_amount: asset.max_buy_amount,
-                })
-                .collect()
-        } else {
-            vec![]
-        };
-
-        let sell_limits = if asset.min_sell_amount.is_some() || asset.max_sell_amount.is_some() {
-            payment_types
-                .iter()
-                .map(|x| FiatAssetLimits {
-                    currency: Currency::USD,
-                    payment_type: x.clone(),
-                    min_amount: asset.min_sell_amount,
-                    max_amount: asset.max_sell_amount,
-                })
-                .collect()
-        } else {
-            vec![]
-        };
-
-        let is_buy_enabled = asset.min_buy_amount.is_some() || asset.max_buy_amount.is_some();
         let is_sell_enabled = asset.is_sell_supported.unwrap_or(false);
+        let sell_limits = if is_sell_enabled { sell_limits.to_vec() } else { vec![] };
 
         Some(FiatProviderAsset {
             id: asset.clone().code,
@@ -124,10 +99,10 @@ impl MoonPayClient {
             symbol: asset.clone().code,
             network: asset.clone().metadata.map(|x| x.network_code),
             enabled,
-            is_buy_enabled,
+            is_buy_enabled: !buy_limits.is_empty(),
             is_sell_enabled,
             unsupported_countries: Some(asset.unsupported_countries()),
-            buy_limits,
+            buy_limits: buy_limits.to_vec(),
             sell_limits,
         })
     }

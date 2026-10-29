@@ -5,6 +5,8 @@ use crate::webhook::FiatWebhookRequest;
 use async_trait::async_trait;
 use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteRequest, FiatQuoteResponse, FiatQuoteUrl, FiatQuoteUrlData, FiatTransactionUpdate, FiatWebhook, PaymentType};
 
+pub const DEFAULT_PAYMENT_METHODS: [PaymentType; 3] = [PaymentType::Card, PaymentType::ApplePay, PaymentType::GooglePay];
+
 pub(crate) fn generate_quote_id() -> String {
     uuid::Uuid::new_v4().to_string()
 }
@@ -28,7 +30,7 @@ pub trait FiatProvider: Send + Sync {
     async fn get_quote_url(&self, data: FiatQuoteUrlData) -> Result<FiatQuoteUrl, Box<dyn std::error::Error + Send + Sync>>;
 
     async fn payment_methods(&self) -> Vec<PaymentType> {
-        vec![PaymentType::Card, PaymentType::ApplePay, PaymentType::GooglePay]
+        DEFAULT_PAYMENT_METHODS.to_vec()
     }
 }
 
