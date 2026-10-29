@@ -92,8 +92,8 @@ mod tests {
     #[tokio::test]
     async fn test_resolve_suins() {
         let provider = SuinsProvider::new(get_nodes_for_chain(Chain::Sui)[0].url.clone());
-        let address = provider.resolve(&NameQuery::new("alpha.sui"), Chain::Sui).await.unwrap().unwrap();
-        assert_eq!(address, "0x54e5c2a6f1276ac2ff623ac54e53e5a61a576906b3ec42fac8fe8bf5615d0957");
+        let address = provider.resolve(&NameQuery::new("aftermath.sui"), Chain::Sui).await.unwrap().unwrap();
+        assert_eq!(address, "0x4b02b9b45f2a9597363fbaacb2fd6e7fb8ed9329bb6f716631b5717048908ace");
     }
 
     #[tokio::test]
