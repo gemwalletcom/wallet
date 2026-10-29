@@ -7,6 +7,7 @@ use super::{
 };
 use crate::{
     FetchQuoteData, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData, amount_to_value,
+    contract_check::verify_value,
     cross_chain::VaultAddresses,
     fees::default_referral_fees,
     fees::{DEFAULT_REFERRER, bps_of},
@@ -268,6 +269,7 @@ where
         let QuoteResponse { quote_request: _, quote: near_quote } = response;
 
         let deposit_address = near_quote.deposit_address.ok_or_else(|| SwapperError::ComputeQuoteError("Missing depositAddress in Near Intents response".into()))?;
+        verify_value(&quote.from_value, &near_quote.amount_in)?;
         let amount_in = near_quote.amount_in.to_string();
         let deposit_mode = near_quote
             .deposit_mode
@@ -364,6 +366,18 @@ mod tests {
                 data: data.data.clone(),
                 ..SwapperQuoteData::new_transfer("0x1085c5f70F7F7591D97da281A64688385455c2bD".into(), BigUint::from(10002430500_u64), None)
             }
+        );
+    }
+
+    #[tokio::test]
+    async fn test_quote_data_binds_the_amount_sent() {
+        let provider = NearIntents::new(Arc::new(ProviderMock::new(include_str!("testdata/quote_hypercore_to_ethereum_usdc.json").to_string())));
+        let mut quote = provider.get_quote(&mock_hypercore_quote_request()).await.unwrap();
+        quote.from_value = BigUint::from(10_000_000_000_u64);
+
+        assert_eq!(
+            provider.get_quote_data(&quote, FetchQuoteData::None).await,
+            Err(SwapperError::TransactionError("swap value mismatch: quote=10000000000, provider=10002430500".to_string()))
         );
     }
 

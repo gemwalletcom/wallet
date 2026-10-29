@@ -1,10 +1,11 @@
 use std::str::FromStr;
 
 use gem_ton::models::TonConnectMessage;
+use gem_tron::models::TriggerSmartContractData;
 use num_bigint::BigUint;
 use num_traits::Zero;
 use primitives::{
-    TransactionSwapMetadata, TransactionSwapReferralFee,
+    AssetId, TransactionSwapMetadata, TransactionSwapReferralFee,
     swap::{ApprovalData, EVM_REFERRAL_ADDRESS},
 };
 
@@ -12,19 +13,57 @@ use super::{
     asset::map_currency_to_asset_id,
     chain::RelayChain,
     contracts,
-    model::{RelayQuoteResponse, RelayRequest, RelayRequestAppFees},
+    model::{EvmStepData, RelayQuoteResponse, RelayRequest, RelayRequestAppFees},
 };
 use crate::{
     Deployment, SwapResult, SwapperError, SwapperProvider, SwapperQuoteData,
     approval::{DEFAULT_EVM_SWAP_GAS_LIMIT, DEFAULT_TRON_SWAP_ENERGY_LIMIT, get_swap_gas_limit_with_approval},
+    contract_check::{expected_native_value, verify_value},
 };
 
-pub fn validate_quote_response(from_chain: RelayChain, quote_response: &RelayQuoteResponse, value: &BigUint) -> Result<(), SwapperError> {
+pub fn validate_quote_response(from_asset: &AssetId, quote_response: &RelayQuoteResponse, value: &BigUint) -> Result<(), SwapperError> {
+    let from_chain = RelayChain::from_chain(&from_asset.chain).ok_or(SwapperError::NotSupportedChain)?;
     match from_chain {
         RelayChain::Bitcoin => map_bitcoin_quote_data(quote_response, value).map(drop),
-        RelayChain::Evm(_) | RelayChain::Tron | RelayChain::Ton => validate_targets(from_chain, quote_response),
+        RelayChain::Evm(_) | RelayChain::Tron | RelayChain::Ton => {
+            validate_targets(from_chain, quote_response)?;
+            verify_value(&expected_native_value(from_asset, value), &sent_value(from_chain, quote_response)?)
+        }
         RelayChain::Solana => Ok(()),
     }
+}
+
+fn sent_value(from_chain: RelayChain, quote_response: &RelayQuoteResponse) -> Result<BigUint, SwapperError> {
+    match from_chain {
+        RelayChain::Evm(_) => evm_value(quote_response.get_evm_step().ok_or(SwapperError::InvalidRoute)?),
+        RelayChain::Tron => Ok(tron_value(tron_transaction(quote_response)?)),
+        RelayChain::Ton => {
+            let messages = ton_messages(quote_response)?;
+            TonConnectMessage::total_amount(&messages).map_err(|_| SwapperError::InvalidRoute)
+        }
+        RelayChain::Bitcoin | RelayChain::Solana => Err(SwapperError::NotSupportedChain),
+    }
+}
+
+fn evm_value(evm: &EvmStepData) -> Result<BigUint, SwapperError> {
+    BigUint::from_str(&evm.value).map_err(SwapperError::compute_quote_error)
+}
+
+fn tron_transaction(quote_response: &RelayQuoteResponse) -> Result<&TriggerSmartContractData, SwapperError> {
+    let tron = quote_response.get_tron_step().ok_or(SwapperError::InvalidRoute)?;
+    tron.trigger_smart_contract().ok_or(SwapperError::InvalidRoute)
+}
+
+fn tron_value(transaction: &TriggerSmartContractData) -> BigUint {
+    BigUint::from(transaction.call_value.unwrap_or_default())
+}
+
+fn ton_messages(quote_response: &RelayQuoteResponse) -> Result<Vec<TonConnectMessage>, SwapperError> {
+    let ton = quote_response.get_ton_step().ok_or(SwapperError::InvalidRoute)?;
+    ton.messages
+        .iter()
+        .map(|message| Ok(TonConnectMessage::new(RelayChain::Ton.contract_address(&message.to)?, &BigUint::from_str(&message.value)?, Some(message.body.clone()))))
+        .collect()
 }
 
 fn validate_targets(from_chain: RelayChain, quote_response: &RelayQuoteResponse) -> Result<(), SwapperError> {
@@ -50,37 +89,18 @@ pub fn map_evm_quote_data(quote_response: &RelayQuoteResponse, approval: Option<
     let evm = quote_response.get_evm_step().ok_or(SwapperError::InvalidRoute)?;
     let gas_limit = get_swap_gas_limit_with_approval(&approval, evm.gas_limit_with_buffer(), DEFAULT_EVM_SWAP_GAS_LIMIT);
     let call_data = evm.data.clone().unwrap_or_default();
-    Ok(SwapperQuoteData::new_contract(
-        evm.to.clone(),
-        BigUint::from_str(&evm.value).map_err(SwapperError::compute_quote_error)?,
-        call_data,
-        approval,
-        gas_limit,
-    ))
+    Ok(SwapperQuoteData::new_contract(evm.to.clone(), evm_value(evm)?, call_data, approval, gas_limit))
 }
 
 pub fn map_tron_quote_data(quote_response: &RelayQuoteResponse, approval: Option<ApprovalData>) -> Result<SwapperQuoteData, SwapperError> {
-    let tron = quote_response.get_tron_step().ok_or(SwapperError::InvalidRoute)?;
-    let transaction = tron.trigger_smart_contract().ok_or(SwapperError::InvalidRoute)?;
+    let transaction = tron_transaction(quote_response)?;
     let contract = RelayChain::Tron.contract_address(&transaction.contract_address)?;
     let gas_limit = get_swap_gas_limit_with_approval(&approval, None, DEFAULT_TRON_SWAP_ENERGY_LIMIT);
-    Ok(SwapperQuoteData::new_contract(
-        contract,
-        BigUint::from(transaction.call_value.unwrap_or_default()),
-        transaction.data.clone(),
-        approval,
-        gas_limit,
-    ))
+    Ok(SwapperQuoteData::new_contract(contract, tron_value(transaction), transaction.data.clone(), approval, gas_limit))
 }
 
 pub fn map_ton_quote_data(quote_response: &RelayQuoteResponse) -> Result<SwapperQuoteData, SwapperError> {
-    let ton = quote_response.get_ton_step().ok_or(SwapperError::InvalidRoute)?;
-    let messages = ton
-        .messages
-        .iter()
-        .map(|message| Ok(TonConnectMessage::new(RelayChain::Ton.contract_address(&message.to)?, &BigUint::from_str(&message.value)?, Some(message.body.clone()))))
-        .collect::<Result<Vec<_>, SwapperError>>()?;
-    TonConnectMessage::swap_quote_data(&messages).map_err(|_| SwapperError::InvalidRoute)
+    TonConnectMessage::swap_quote_data(&ton_messages(quote_response)?).map_err(|_| SwapperError::InvalidRoute)
 }
 
 fn map_referral_fee(app_fees: Option<&RelayRequestAppFees>) -> Option<TransactionSwapReferralFee> {
@@ -135,7 +155,6 @@ mod tests {
     use primitives::{
         AssetId, Chain,
         asset_constants::{BASE_USDC_ASSET_ID, ETHEREUM_USDC_ASSET_ID},
-        chain_evm::EVMChain,
         swap::SwapStatus,
     };
 
@@ -143,17 +162,20 @@ mod tests {
     fn test_validate_quote_response_binds_targets_to_shipped_contracts() {
         let celo = include_str!("testdata/quote_celo_native_to_bsc_usdt.json");
         let shipped: RelayQuoteResponse = serde_json::from_str(celo).unwrap();
-        assert!(validate_quote_response(RelayChain::Evm(EVMChain::Celo), &shipped, &BigUint::ZERO).is_ok());
+        assert!(validate_quote_response(&AssetId::from_chain(Chain::Celo), &shipped, &BigUint::from(1_000_000_000_000_000_000u64)).is_ok());
 
         let tron: RelayQuoteResponse = serde_json::from_str(include_str!("testdata/quote_tron_to_base_usdc.json")).unwrap();
-        assert!(validate_quote_response(RelayChain::Tron, &tron, &BigUint::ZERO).is_ok(), "a hex Tron contract matches the shipped base58 depository");
+        assert!(
+            validate_quote_response(&AssetId::from_chain(Chain::Tron), &tron, &BigUint::from(10_000_000u64)).is_ok(),
+            "a hex Tron contract matches the shipped base58 depository"
+        );
 
         let foreign: RelayQuoteResponse = serde_json::from_str(&celo.replace("0xccc88a9d1b4ed6b0eaba998850414b24f1c315be", "0x0000000000000000000000000000000000000001")).unwrap();
-        assert_eq!(validate_quote_response(RelayChain::Evm(EVMChain::Celo), &foreign, &BigUint::ZERO).unwrap_err(), SwapperError::InvalidRoute);
+        assert_eq!(validate_quote_response(&AssetId::from_chain(Chain::Celo), &foreign, &BigUint::ZERO).unwrap_err(), SwapperError::InvalidRoute);
 
         let mut ton: serde_json::Value = serde_json::from_str(include_str!("testdata/quote_ton_to_base_usdc.json")).unwrap();
         let shipped_ton: RelayQuoteResponse = serde_json::from_value(ton.clone()).unwrap();
-        assert!(validate_quote_response(RelayChain::Ton, &shipped_ton, &BigUint::ZERO).is_ok());
+        assert!(validate_quote_response(&AssetId::from_chain(Chain::Ton), &shipped_ton, &BigUint::from(5_000_000_000u64)).is_ok());
         let step = ton["steps"].as_array_mut().unwrap().iter_mut().find(|step| step["items"][0]["data"]["messages"].is_array()).unwrap();
         let messages = step["items"][0]["data"]["messages"].as_array_mut().unwrap();
         let mut drain = messages[0].clone();
@@ -161,10 +183,42 @@ mod tests {
         messages.push(drain);
         let drained: RelayQuoteResponse = serde_json::from_value(ton).unwrap();
         assert_eq!(
-            validate_quote_response(RelayChain::Ton, &drained, &BigUint::ZERO).unwrap_err(),
+            validate_quote_response(&AssetId::from_chain(Chain::Ton), &drained, &BigUint::from(5_000_000_000u64)).unwrap_err(),
             SwapperError::InvalidRoute,
             "a second message paying elsewhere is refused"
         );
+    }
+
+    #[test]
+    fn test_validate_quote_response_binds_the_native_value_sent() {
+        let eth = AssetId::from_chain(Chain::Ethereum);
+        let usdc = ETHEREUM_USDC_ASSET_ID.clone();
+        let amount = BigUint::from(10_000_000_000_000_000u64);
+        let native = RelayQuoteResponse::mock_with_steps(vec![Step::mock_transaction("deposit", "0x4cD00E387622C35bDDB9b4c962C136462338BC31", "10000000000000000", "0x")]);
+        let drain = RelayQuoteResponse::mock_with_steps(vec![Step::mock_transaction("deposit", "0x4cD00E387622C35bDDB9b4c962C136462338BC31", "50000000000000000000", "0x")]);
+        let token = RelayQuoteResponse::mock_with_steps(vec![Step::mock_transaction("deposit", "0x4cD00E387622C35bDDB9b4c962C136462338BC31", "0", "0x")]);
+        let token_with_value = RelayQuoteResponse::mock_with_steps(vec![Step::mock_transaction("deposit", "0x4cD00E387622C35bDDB9b4c962C136462338BC31", "1", "0x")]);
+
+        assert_eq!(validate_quote_response(&eth, &native, &amount), Ok(()));
+        assert_eq!(
+            validate_quote_response(&eth, &drain, &amount),
+            Err(SwapperError::TransactionError("swap value mismatch: quote=10000000000000000, provider=50000000000000000000".to_string()))
+        );
+        assert_eq!(validate_quote_response(&usdc, &token, &BigUint::from(5_000_000u64)), Ok(()));
+        assert!(validate_quote_response(&usdc, &token_with_value, &BigUint::from(5_000_000u64)).is_err());
+
+        let tron: RelayQuoteResponse = serde_json::from_str(include_str!("testdata/quote_tron_to_base_usdc.json")).unwrap();
+        assert!(validate_quote_response(&AssetId::from_chain(Chain::Tron), &tron, &BigUint::from(9_999_999u64)).is_err());
+
+        let celo: RelayQuoteResponse = serde_json::from_str(include_str!("testdata/quote_celo_native_to_bsc_usdt.json")).unwrap();
+        assert_eq!(
+            validate_quote_response(&AssetId::from_chain(Chain::Celo), &celo, &BigUint::from(1u32)),
+            Ok(()),
+            "native CELO is pulled as an ERC-20, so no value is sent"
+        );
+
+        let ton: RelayQuoteResponse = serde_json::from_str(include_str!("testdata/quote_ton_to_base_usdc.json")).unwrap();
+        assert!(validate_quote_response(&AssetId::from_chain(Chain::Ton), &ton, &BigUint::from(4_000_000_000u64)).is_err());
     }
 
     #[test]
@@ -182,10 +236,10 @@ mod tests {
         assert_eq!(map_bitcoin_quote_data(&missing, &value), Err(SwapperError::InvalidRoute));
         let evm = RelayQuoteResponse::mock_with_steps(vec![Step::mock_transaction("deposit", "0xrouter", "0", "0x")]);
         assert_eq!(map_bitcoin_quote_data(&evm, &value), Err(SwapperError::InvalidRoute));
-        assert_eq!(validate_quote_response(RelayChain::Bitcoin, &evm, &value), Err(SwapperError::InvalidRoute));
-        assert_eq!(validate_quote_response(RelayChain::Tron, &evm, &value), Err(SwapperError::InvalidRoute));
-        assert_eq!(validate_quote_response(RelayChain::Solana, &evm, &value), Ok(()));
-        assert_eq!(validate_quote_response(RelayChain::Bitcoin, &response, &value), Ok(()));
+        assert_eq!(validate_quote_response(&AssetId::from_chain(Chain::Bitcoin), &evm, &value), Err(SwapperError::InvalidRoute));
+        assert_eq!(validate_quote_response(&AssetId::from_chain(Chain::Tron), &evm, &value), Err(SwapperError::InvalidRoute));
+        assert_eq!(validate_quote_response(&AssetId::from_chain(Chain::Solana), &evm, &value), Ok(()));
+        assert_eq!(validate_quote_response(&AssetId::from_chain(Chain::Bitcoin), &response, &value), Ok(()));
     }
 
     #[test]

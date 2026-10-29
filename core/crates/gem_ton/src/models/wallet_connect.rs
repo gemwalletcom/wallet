@@ -52,7 +52,7 @@ impl TonConnectMessage {
         Ok(SwapQuoteData::new_contract(first.address.clone(), value, data, None, None))
     }
 
-    fn total_amount(messages: &[Self]) -> Result<BigUint, String> {
+    pub fn total_amount(messages: &[Self]) -> Result<BigUint, String> {
         messages
             .iter()
             .try_fold(BigUint::ZERO, |total, message| BigUint::from_str(&message.amount).map(|amount| total + amount))

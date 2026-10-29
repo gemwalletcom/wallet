@@ -4,8 +4,9 @@ use gem_evm::contracts::IERC20;
 use gem_solana::{Pubkey, decode_transaction, instructions};
 use gem_ton::models::TonConnectMessage;
 use gem_tron::address::TronAddress;
+use num_bigint::BigUint;
 use primitives::{
-    AssetId, Chain, ChainType,
+    AssetId, Chain, ChainType, EVMChain, EvmNativeCurrency,
     contract_constants::{SOLANA_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID, SOLANA_COMPUTE_BUDGET_PROGRAM_ID, SOLANA_MEMO_PROGRAM_ID, SOLANA_SYSTEM_PROGRAM_ID, SOLANA_TOKEN_2022_PROGRAM_ID, SOLANA_TOKEN_PROGRAM_ID},
     decode_hex,
     swap::SwapQuoteDataType,
@@ -29,6 +30,23 @@ pub(crate) fn verify(from_asset: &AssetId, contracts: &Contracts, data: &Swapper
         ChainType::Ton => verify_ton_messages(&data.data, &contracts.targets),
         _ => verify_targets(from_asset, contracts, data),
     }
+}
+
+pub(crate) fn expected_native_value(from_asset: &AssetId, from_value: &BigUint) -> BigUint {
+    if !from_asset.is_native() {
+        return BigUint::ZERO;
+    }
+    match EVMChain::from_chain(from_asset.chain).map(|chain| chain.native_currency()) {
+        Some(EvmNativeCurrency::Token(_) | EvmNativeCurrency::None) => BigUint::ZERO,
+        Some(EvmNativeCurrency::Wrapped(_) | EvmNativeCurrency::Mirrored { .. }) | None => from_value.clone(),
+    }
+}
+
+pub(crate) fn verify_value(expected: &BigUint, value: &BigUint) -> Result<(), SwapperError> {
+    if value != expected {
+        return Err(SwapperError::TransactionError(format!("swap value mismatch: quote={expected}, provider={value}")));
+    }
+    Ok(())
 }
 
 fn verify_targets(from_asset: &AssetId, contracts: &Contracts, data: &SwapperQuoteData) -> Result<(), SwapperError> {
@@ -123,6 +141,20 @@ mod tests {
             verify(&Chain::Tron.as_asset_id(), &Contracts::new(vec![vault]), &transfer(vault)),
             Err(SwapperError::InvalidRoute),
             "a coin swap may not call a token contract"
+        );
+    }
+
+    #[test]
+    fn test_expected_native_value() {
+        let value = BigUint::from(1_000u32);
+
+        assert_eq!(expected_native_value(&AssetId::from_chain(Chain::Ethereum), &value), value);
+        assert_eq!(expected_native_value(&AssetId::from_chain(Chain::Arc), &value), value, "native USDC on Arc is still paid as value");
+        assert_eq!(expected_native_value(&AssetId::from_chain(Chain::Celo), &value), BigUint::ZERO, "native CELO is pulled as an ERC-20");
+        assert_eq!(expected_native_value(&AssetId::from_token(Chain::Tron, TRON_USDT_TOKEN_ID), &value), BigUint::ZERO);
+        assert_eq!(
+            verify_value(&value, &BigUint::from(1_001u32)),
+            Err(SwapperError::TransactionError("swap value mismatch: quote=1000, provider=1001".to_string()))
         );
     }
 

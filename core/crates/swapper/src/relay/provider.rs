@@ -112,7 +112,7 @@ where
         };
 
         let response = self.client.get_quote(relay_request).await?;
-        mapper::validate_quote_response(from_chain, &response, &from_value)?;
+        mapper::validate_quote_response(&from_asset_id, &response, &from_value)?;
 
         let to_value = BigUint::from_str(&response.details.currency_out.amount).map_err(SwapperError::compute_quote_error)?;
 

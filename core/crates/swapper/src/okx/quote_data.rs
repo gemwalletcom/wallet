@@ -6,6 +6,7 @@ use crate::{
     SwapperError,
     alien::RpcProvider,
     approval::{check_approval_erc20, get_swap_gas_limit_with_approval},
+    contract_check::{expected_native_value, verify_value},
 };
 use alloy_primitives::U256;
 use gem_encoding::encode_base64;
@@ -28,15 +29,17 @@ pub(super) async fn build_swap_quote_data(transaction_data: &TransactionData, fr
 }
 
 pub(super) async fn build_evm_quote_data(transaction_data: &TransactionData, from_asset: &QuoteAsset, from_value: &str, chain: Chain, owner: &str, rpc_provider: Arc<dyn RpcProvider>) -> Result<SwapQuoteData, SwapperError> {
+    let value = evm_value(transaction_data, from_asset, from_value)?;
     let approval = build_evm_approval(from_asset, transaction_data, from_value, chain, owner, rpc_provider).await?;
     let gas_limit = get_swap_gas_limit_with_approval(&approval, buffered_gas_limit(&transaction_data.gas), evm_gas_limit(chain));
-    Ok(SwapQuoteData::new_contract(
-        transaction_data.to.clone(),
-        transaction_data.get_value().ok_or_else(|| SwapperError::ComputeQuoteError("invalid OKX transaction value".to_string()))?,
-        transaction_data.data.clone(),
-        approval,
-        gas_limit,
-    ))
+    Ok(SwapQuoteData::new_contract(transaction_data.to.clone(), value, transaction_data.data.clone(), approval, gas_limit))
+}
+
+fn evm_value(transaction_data: &TransactionData, from_asset: &QuoteAsset, from_value: &str) -> Result<BigUint, SwapperError> {
+    let value = transaction_data.get_value().ok_or_else(|| SwapperError::ComputeQuoteError("invalid OKX transaction value".to_string()))?;
+    let from_value = BigUint::from_str(from_value).map_err(SwapperError::compute_quote_error)?;
+    verify_value(&expected_native_value(&from_asset.asset_id(), &from_value), &value)?;
+    Ok(value)
 }
 
 pub(super) fn build_solana_quote_data(transaction_data: &TransactionData, owner: &str) -> Result<SwapQuoteData, SwapperError> {
@@ -78,6 +81,7 @@ fn get_spender(signature_data: Option<&[String]>) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::{AssetId, asset_constants::ETHEREUM_USDC_ASSET_ID};
 
     #[test]
     fn test_solana_quote_data_requires_the_wallet_as_the_only_signer() {
@@ -103,6 +107,27 @@ mod tests {
             matches!(build_solana_quote_data(&two_signers, &owner), Err(SwapperError::TransactionError(_))),
             "a second signer slot could carry a stranger's pre-signed instruction"
         );
+    }
+
+    #[test]
+    fn test_evm_value_binds_the_native_value_sent() {
+        let native = QuoteAsset::from(AssetId::from_chain(Chain::Ethereum));
+        let usdc = QuoteAsset::from(ETHEREUM_USDC_ASSET_ID.clone());
+        let transaction = |value: &str| TransactionData {
+            data: "0x".to_string(),
+            to: String::new(),
+            value: value.to_string(),
+            gas: String::new(),
+            signature_data: None,
+        };
+
+        assert_eq!(evm_value(&transaction("1000"), &native, "1000").unwrap(), BigUint::from(1000u32));
+        assert_eq!(
+            evm_value(&transaction("5000"), &native, "1000"),
+            Err(SwapperError::TransactionError("swap value mismatch: quote=1000, provider=5000".to_string()))
+        );
+        assert_eq!(evm_value(&transaction(""), &usdc, "1000").unwrap(), BigUint::ZERO);
+        assert!(evm_value(&transaction("1"), &usdc, "1000").is_err());
     }
 
     #[test]

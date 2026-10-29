@@ -212,6 +212,8 @@ A provider may only move funds into contracts the app ships for it. Before Confi
 | Mayan on Sui; Bridgers for TON tokens and XRP | | Not bound | |
 | Uniswap family, Across, SunSwap, STON.fi, DeDust, Hyperion, Cetus, DeepBook, Hyperliquid, Stellar DEX, XRP Ledger DEX | All | Built on the device against shipped contracts | |
 
+Where the provider writes the transaction, as Relay, OKX, Near Intents and Chainflip do, the coin it sends must be exactly the amount quoted for a native coin and none for a token; Celo's native coin is pulled as a token, so it sends none.
+
 A known contract shows under its provider's name, such as `SunSwap Router`; the shared Uniswap Permit2 shows as `Permit2`.
 
 ## Platform differences
