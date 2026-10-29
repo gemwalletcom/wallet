@@ -138,6 +138,10 @@ final class NavigationRouter: Sendable {
 @MainActor
 extension NavigationRouter {
     private func open(target: GemNavigationTarget) async throws {
+        if case .none = target {
+            return
+        }
+        presenter.reset()
         switch target {
         case let .asset(destination, walletId):
             try openTarget(path: Self.assetPath(destination), walletId: walletId)
@@ -218,7 +222,9 @@ extension NavigationRouter {
         }
         let target = try await paymentService.prepare(payment: payment, wallet: wallet)
         toastPresenter.toastMessage = nil
-        presenter.isPresentingPayment.wrappedValue = try paymentDestination(target, wallet: wallet.toPrimitives())
+        let destination = try paymentDestination(target, wallet: wallet.toPrimitives())
+        presenter.reset()
+        presenter.isPresentingPayment.wrappedValue = destination
     }
 
     private func paymentDestination(_ target: GemPaymentTarget, wallet: Primitives.Wallet) throws -> PaymentDestination {
