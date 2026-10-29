@@ -8,7 +8,6 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.store.queries.AssetsQuery
-import com.gemwallet.android.data.services.store.queries.PerpetualsQuery
 import com.gemwallet.android.data.services.store.queries.RecentActivityQuery
 import com.gemwallet.android.data.services.store.queries.WalletSearchQuery
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
@@ -44,7 +43,6 @@ import uniffi.gemstone.GemSelectAssetState
 import uniffi.gemstone.GemSelectAssetType
 import uniffi.gemstone.GemWalletSearchResultsInput
 import uniffi.gemstone.GemWalletSearchResultsView
-import uniffi.gemstone.perpetualMarketQuery
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -55,7 +53,6 @@ class AssetsResultsViewModel @Inject constructor(
     walletSearchQuery: WalletSearchQuery,
     recentActivityQuery: RecentActivityQuery,
     service: GemAssetSelectionServiceInterface,
-    perpetualsQuery: PerpetualsQuery,
     @IoDispatcher ioDispatcher: CoroutineDispatcher,
     @ApplicationContext context: Context,
     savedStateHandle: SavedStateHandle,
@@ -78,7 +75,7 @@ class AssetsResultsViewModel @Inject constructor(
     private val isPullRefreshing = MutableStateFlow(false)
     val refreshing: StateFlow<Boolean> = isPullRefreshing
 
-    private val perpetuals: Flow<List<PerpetualData>> = perpetualMarketQuery(searchKey).let { perpetualsQuery(it.search, it.limit, it.requiresVolume) }
+    private val perpetuals: Flow<List<PerpetualData>> = walletSearchQuery.perpetuals(searchKey, scope, assetsSearchLimit(savedStateHandle.get<String?>(RouteArgument.Query.key).orEmpty()))
 
     private val content: StateFlow<SearchContent<GemWalletSearchResultsView>?> = combine(getSession(), isSearching, sections, perpetuals) { session, searching, sections, perpetuals ->
         session?.wallet?.let { wallet ->

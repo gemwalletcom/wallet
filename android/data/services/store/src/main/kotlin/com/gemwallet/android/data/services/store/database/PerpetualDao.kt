@@ -51,6 +51,18 @@ interface PerpetualDao {
     )
     fun searchPerpetualsData(search: String, limit: Int): Flow<List<DbPerpetualData>>
 
+    @Transaction
+    @Query(
+        """
+        SELECT perpetuals.* FROM perpetuals
+        JOIN search ON search.perpetualId = perpetuals.id
+        WHERE search.`query` = :query AND perpetuals.isEnabled
+        ORDER BY search.priority ASC, perpetuals.volume24h DESC
+        LIMIT :limit
+    """,
+    )
+    fun searchWithPriority(query: String, limit: Int): Flow<List<DbPerpetualData>>
+
     @Query("SELECT * FROM perpetuals WHERE name IN (:names)")
     suspend fun getPerpetualsByNames(names: List<String>): List<DbPerpetual>
 
