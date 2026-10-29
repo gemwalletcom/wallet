@@ -216,6 +216,7 @@ Wherever the user types an address (Send, Import Wallet, Contacts), a name such 
 | A registered name is longer than 20 characters | it resolves according to its name service’s rules | name services have different length rules |
 | A typed name is not registered, or has no address for the network | not found | a name never becomes an empty or zero address |
 | An ENS name (`.eth`, `.com`, `.xyz`, `.dev`) with characters beyond a–z, 0–9 and hyphen, such as an emoji | not found | ENS keeps records under the Unicode name; its punycode form is a different name anyone can register |
+| An ENS name is sent to on an EVM network other than Ethereum | the address its owner set for that network, or the owner's address for all EVM networks; otherwise not found | its Ethereum address can be a smart wallet that does not exist on the other network (#1692) |
 | A `.sol` name is typed while SRS resolution is paused | not found | `.sol` is never guessed from `.sns`; the two names can have different owners |
 | The name service cannot be reached | an error, not a missing name | |
 

@@ -1,15 +1,16 @@
 use std::error::Error;
 
-use alloy_ens::{UNIVERSAL_RESOLVER_ADDRESS, namehash, try_dns_encode};
-use alloy_primitives::{Address, hex};
+use alloy_ens::{UNIVERSAL_RESOLVER_ADDRESS, coin_type, namehash, try_dns_encode};
+use alloy_primitives::{Address, Bytes, U256, hex};
 use alloy_sol_types::{SolCall, SolInterface};
 use gem_client::Client;
 use gem_evm::jsonrpc::EthereumRpc;
 use gem_jsonrpc::JsonRpcClient;
 use gem_jsonrpc::types::TypedJsonRpcError;
+use primitives::Chain;
 use serde::Deserialize;
 
-use super::contract::{ENSResolver, UniversalResolver, UniversalResolver::UniversalResolverErrors};
+use super::contract::{ENSMulticoinResolver, ENSResolver, UniversalResolver, UniversalResolver::UniversalResolverErrors};
 
 #[derive(Debug, Default, Deserialize)]
 struct RevertData {
@@ -27,19 +28,36 @@ impl<C: Client + Clone> EnsClient<C> {
         Self { client: JsonRpcClient::new(client) }
     }
 
-    pub async fn get_address(&self, name: &str) -> Result<Option<Address>, Box<dyn Error + Send + Sync>> {
+    pub async fn get_address(&self, name: &str, chain: Chain) -> Result<Option<Address>, Box<dyn Error + Send + Sync>> {
+        let node = namehash(name);
+        let coin_type = chain.network_id_value().and_then(coin_type::evm_chain).ok_or("ENS has no coin type for this network")?;
+        if coin_type == coin_type::ETH {
+            let Some(result) = self.resolve(name, ENSResolver::addrCall { node }.abi_encode()).await? else {
+                return Ok(None);
+            };
+            return Ok(Some(ENSResolver::addrCall::abi_decode_returns(&result)?));
+        }
+        let call = ENSMulticoinResolver::addrCall { node, coinType: U256::from(coin_type) };
+        let Some(result) = self.resolve(name, call.abi_encode()).await? else {
+            return Ok(None);
+        };
+        match ENSMulticoinResolver::addrCall::abi_decode_returns(&result)?.as_ref() {
+            [] => Ok(None),
+            address if address.len() == Address::len_bytes() => Ok(Some(Address::from_slice(address))),
+            _ => Err("ENS address record is not an EVM address".into()),
+        }
+    }
+
+    async fn resolve(&self, name: &str, data: Vec<u8>) -> Result<Option<Bytes>, Box<dyn Error + Send + Sync>> {
         let call = UniversalResolver::resolveCall {
             name: try_dns_encode(name)?.into(),
-            data: ENSResolver::addrCall { node: namehash(name) }.abi_encode().into(),
+            data: data.into(),
         }
         .abi_encode();
         match self.client.request_with_error::<String, _, EnsRpcError>(EthereumRpc::call(&UNIVERSAL_RESOLVER_ADDRESS.to_string(), call)).await {
-            Ok(result) => {
-                let resolved = UniversalResolver::resolveCall::abi_decode_returns(&hex::decode(result)?)?;
-                Ok(Some(ENSResolver::addrCall::abi_decode_returns(&resolved._0)?))
-            }
+            Ok(result) => Ok(Some(UniversalResolver::resolveCall::abi_decode_returns(&hex::decode(result)?)?._0)),
             Err(error) => match resolver_error(&error) {
-                Some(UniversalResolverErrors::ResolverNotFound(_) | UniversalResolverErrors::OffchainLookup(_)) => Ok(None),
+                Some(UniversalResolverErrors::ResolverNotFound(_) | UniversalResolverErrors::UnsupportedResolverProfile(_) | UniversalResolverErrors::OffchainLookup(_)) => Ok(None),
                 None => Err(error.into()),
             },
         }
