@@ -74,6 +74,7 @@ for flow in "$ROOT_DIR"/maestro/smoke/*.yaml; do
     maestro --device "$DEVICE" test \
         -e APP_ID="$APP_ID" \
         -e TEST_PHRASE="$(constant words)" \
+        -e INVALID_PHRASE="$(constant invalidWords)" \
         -e BITCOIN_ADDRESS="$(constant bitcoinAddress)" \
         -e BITCOIN_ADDRESS_2="$(constant bitcoinAddress2)" \
         -e ETHEREUM_ADDRESS="$(constant ethereumAddress)" \

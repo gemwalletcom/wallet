@@ -1,0 +1,40 @@
+appId: ${APP_ID}
+---
+- runFlow: launch.yaml
+- tapOn:
+    id: "settingsTab"
+- tapOn:
+    id: "wallets"
+- waitForAnimationToEnd
+- tapOn:
+    id: "import"
+- waitForAnimationToEnd
+- tapOn:
+    id: "multicoin_item"
+- tapOn:
+    id: "importInputField"
+- inputText: ${INVALID_PHRASE}
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- tapOn:
+    id: "main_action"
+- extendedWaitUntil:
+    visible:
+      text: "Validation Error.*"
+    timeout: 15000
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn: "OK"
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - tapOn: "Done"
+- assertNotVisible:
+    text: "Validation Error.*"
+- runFlow: launch.yaml
