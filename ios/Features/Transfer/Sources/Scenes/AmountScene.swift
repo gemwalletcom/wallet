@@ -132,7 +132,6 @@ public struct AmountScene: View {
         .navigationTitle(model.title)
         .onChange(of: model.amountInputModel.text, model.onChangeAmountText)
         .taskOnce {
-            model.prefillAmount()
             if model.input.focusesInput {
                 focusedField = true
             }

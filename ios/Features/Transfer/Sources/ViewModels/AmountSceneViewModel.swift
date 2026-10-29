@@ -90,10 +90,11 @@ public final class AmountSceneViewModel {
         let request = stake?.request ?? perpetual?.request ?? baseRequest
         let amountInput = Self.input(request: request, asset: input.asset, assetData: assetQuery.value)
         self.input = amountInput
-        let session = newAmountSession(format: NumberInput.format())
+        let session = newAmountSession(format: NumberInput.format()).onInputChanged(input: amountInput, asset: input.asset.toGem())
         self.session = session
         entry = Self.entry(session: session, amountType: request.amountType(), asset: input.asset, assetData: assetQuery.value, input: amountInput, currency: currency)
         amountInputModel = InputValidationViewModel()
+        amountInputModel.text = session.text
     }
 
     var request: GemAmountRequest {
@@ -195,10 +196,6 @@ public final class AmountSceneViewModel {
 }
 
 extension AmountSceneViewModel {
-    func prefillAmount() {
-        showSession(session.onPrefill(input: input, asset: asset.toGem()))
-    }
-
     public func onChangeAssetBalance(_: AssetData, _: AssetData) {
         refreshEntry()
     }
@@ -298,6 +295,10 @@ private extension AmountSceneViewModel {
 
     func refreshEntry() {
         input = Self.input(request: request, asset: asset, assetData: assetData)
+        let session = session.onInputChanged(input: input, asset: asset.toGem())
+        guard session == self.session else {
+            return showSession(session)
+        }
         entry = Self.entry(session: session, amountType: amountType, asset: asset, assetData: assetData, input: input, currency: currency)
         amountInputModel.update(error: entry.error)
     }

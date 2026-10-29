@@ -229,12 +229,14 @@ class AmountViewModel @Inject constructor(
             .onEach { amountError.value = it?.error }
             .launchIn(viewModelScope)
 
-        viewModelScope.launch { prefillAmount(input.filterNotNull().first()) }
+        input.filterNotNull()
+            .onEach(::onInputChanged)
+            .launchIn(viewModelScope)
     }
 
-    private fun prefillAmount(input: GemAmountInput) {
+    private fun onInputChanged(input: GemAmountInput) {
         val current = assetInfo.value ?: return
-        showSession(session.value.onPrefill(input, current.asset.toGem()))
+        showSession(session.value.onInputChanged(input, current.asset.toGem()))
     }
 
     fun updateAmount(input: String) {

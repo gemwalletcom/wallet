@@ -139,10 +139,25 @@ struct AmountSceneViewModelTests {
         )
 
         #expect(model.isInputDisabled == true)
-
-        model.prefillAmount()
         #expect(model.amountInputModel.text.isEmpty == false)
         #expect(model.input.focusesInput == false)
+    }
+
+    @Test
+    func aClaimShowsTheRewardsOfTheSelectedValidator() {
+        let first = Delegation.mock(base: .mock(rewards: 5_000_000_000_000_000_000), validator: .mock(id: "first"))
+        let second = Delegation.mock(base: .mock(rewards: 2_000_000_000_000_000_000), validator: .mock(id: "second"))
+        let model = AmountSceneViewModel.mock(
+            type: .stake(.rewards(delegations: [first.toGem(), second.toGem()], validator: first.validator.toGem())),
+            assetData: .mock(asset: .mock(id: .mock(chain: .monad), name: "Monad", symbol: "MON", decimals: 18)),
+        )
+        #expect(model.amountInputModel.text == "5")
+
+        model.onValidatorSelected(.mock(validator: second.validator.toGem()))
+
+        #expect(model.amountInputModel.text == "2")
+        #expect(model.amountInputModel.error == nil)
+        #expect(model.isNextEnabled)
     }
 
     @Test

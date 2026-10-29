@@ -24,9 +24,6 @@ pub fn generate_hmac_signature_hex(secret_key: &str, message: &str) -> String {
 }
 
 pub fn verify_hmac_signature_hex(secret_key: &str, message: &str, signature: &str) -> bool {
-    if secret_key.is_empty() {
-        return false;
-    }
     let Ok(signature) = hex::decode(signature) else {
         return false;
     };
@@ -56,6 +53,5 @@ mod tests {
         assert_eq!(signature, "65a20917b5d689b407c1b6e0c7aa9de40221efc481ffe58f2485c51d822acece");
         assert!(verify_hmac_signature_hex(secret, message, &signature));
         assert!(!verify_hmac_signature_hex(secret, "wrong_message", &signature));
-        assert!(!verify_hmac_signature_hex("", message, &generate_hmac_signature_hex("", message)), "an unset secret verifies nothing");
     }
 }

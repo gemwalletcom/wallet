@@ -27,6 +27,7 @@ impl UtxoPlanner {
         Self::plan(request, &VirtualSizeFee::for_input(chain, input)?)
     }
 
+    #[cfg(any(test, feature = "rpc"))]
     pub fn fee(request: SpendRequest, fee: &impl SpendFee) -> Result<u64, SignerError> {
         match Self::plan(request.clone(), fee) {
             Err(SignerError::InsufficientFunds) => Self::fee_spending_all_inputs(request, fee),
@@ -34,6 +35,7 @@ impl UtxoPlanner {
         }
     }
 
+    #[cfg(any(test, feature = "rpc"))]
     fn fee_spending_all_inputs(request: SpendRequest, fee: &impl SpendFee) -> Result<u64, SignerError> {
         let payment = Payment::new(request.destination, request.memo.as_deref())?;
         let (mut outputs, _) = payment.outputs(request.amount);
