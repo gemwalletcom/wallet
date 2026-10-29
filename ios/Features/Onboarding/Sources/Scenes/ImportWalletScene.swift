@@ -36,10 +36,12 @@ struct ImportWalletScene: View {
                     }
                     HStack {
                         Group {
-                            if #available(iOS 18.0, *) {
-                                PhraseTextField(title: model.importType.description, text: $model.input, cursor: $model.inputCursor)
+                            if #available(iOS 26.0, *), model.highlightsWords {
+                                PhraseTextEditor(model: PhraseTextEditorViewModel(placeholder: model.importType.description, input: model.inputModel))
+                            } else if #available(iOS 18.0, *) {
+                                PhraseTextField(title: model.importType.description, model: $model.inputModel)
                             } else {
-                                TextField(model.importType.description, text: $model.input, axis: .vertical)
+                                TextField(model.importType.description, text: $model.inputModel.text, axis: .vertical)
                             }
                         }
                         .accessibilityIdentifier("importInputField")
@@ -116,7 +118,7 @@ struct ImportWalletScene: View {
         .sheet(isPresented: $model.isPresentingScanner) {
             QRScannerNavigationStack(scanType: scanType, action: model.onHandleScan)
         }
-        .onChange(of: model.input, model.onChangeInput)
+        .onChange(of: model.inputModel.text, model.onChangeInput)
         .taskOnce {
             focusedField = .input
         }

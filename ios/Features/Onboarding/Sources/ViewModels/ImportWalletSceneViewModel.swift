@@ -23,23 +23,15 @@ final class ImportWalletSceneViewModel {
     let type: ImportWalletType
     private let importScreen: GemWalletImportScreen
 
-    var input: String = "" {
-        didSet { refreshSuggestions() }
-    }
-
-    var inputCursor: Int? {
-        didSet { refreshSuggestions() }
-    }
+    var inputModel = ImportInputViewModel()
 
     var importType: GemWalletImportKind = .phrase {
         didSet {
-            input = ""
-            inputCursor = nil
+            inputModel.update(text: "")
             isImporting = false
         }
     }
 
-    private(set) var wordsSuggestion: [String] = []
     private var isImporting = false
     let nameRecordViewModel: NameRecordViewModel
 
@@ -64,6 +56,11 @@ final class ImportWalletSceneViewModel {
 
     var title: String {
         importScreen.title.text
+    }
+
+    var wordsSuggestion: [String] {
+        guard importType.supportsPhraseSuggestions(), inputModel.isTypingLastWord else { return [] }
+        return phraseSuggestions(word: inputModel.lastWord)
     }
 
     var showsPhraseSuggestions: Bool {
@@ -113,6 +110,10 @@ final class ImportWalletSceneViewModel {
     var showsNameRecord: Bool {
         importType.resolvesNames()
     }
+
+    var highlightsWords: Bool {
+        importType == .phrase
+    }
 }
 
 // MARK: - Business Logic
@@ -133,6 +134,7 @@ extension ImportWalletSceneViewModel {
             try await importWallet()
         } catch {
             isImporting = false
+            inputModel.update(error: error)
             isPresentingAlertMessage = AlertMessage(title: alertTitle, error: error)
         }
     }
@@ -142,13 +144,11 @@ extension ImportWalletSceneViewModel {
     }
 
     func onHandleScan(_ result: String) {
-        input = result
-        inputCursor = nil
+        inputModel.update(text: result)
     }
 
     func onSelectWord(_ word: String) {
-        input = String(input.dropLast(lastWord.count)) + word + " "
-        inputCursor = input.utf16.count
+        inputModel.complete(word: word)
     }
 
     func onPaste() {
@@ -156,8 +156,7 @@ extension ImportWalletSceneViewModel {
             UINotificationFeedbackGenerator().notificationOccurred(.error)
             return
         }
-        input = string.trim()
-        inputCursor = nil
+        inputModel.update(text: string.trim())
 
         if shouldProtectInput {
             Clipboard.clear()
@@ -177,7 +176,7 @@ extension ImportWalletSceneViewModel {
         let result = try await service.importWallet(
             kind: importType,
             chain: type.chain,
-            input: input,
+            input: inputModel.text,
             nameRecord: showsNameRecord ? nameRecordViewModel.state.record() : nil,
             source: .import,
         )
@@ -186,23 +185,5 @@ extension ImportWalletSceneViewModel {
         case .new: onComplete?()
         case let .existing(wallet): isPresentingExistingWallet = GemInfoTopic.existingWalletImported(name: wallet.name).infoSheet
         }
-    }
-}
-
-extension ImportWalletSceneViewModel {
-    private var lastWord: String {
-        input.split(omittingEmptySubsequences: false, whereSeparator: \.isWhitespace).last.map(String.init) ?? ""
-    }
-
-    private var isTypingLastWord: Bool {
-        inputCursor.map { $0 >= input.utf16.count } ?? true
-    }
-
-    private func refreshSuggestions() {
-        guard importType.supportsPhraseSuggestions(), isTypingLastWord else {
-            wordsSuggestion = []
-            return
-        }
-        wordsSuggestion = phraseSuggestions(word: lastWord)
     }
 }

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.OutputTransformation
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
@@ -21,12 +22,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.InterceptPlatformTextInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.PlatformTextInputInterceptor
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.input.KeyboardType
 import com.gemwallet.android.features.onboarding.viewmodels.import_wallet.ImportInputUIModel
 import com.gemwallet.android.ui.R
@@ -53,6 +56,8 @@ private val noPersonalizedLearning = PlatformTextInputInterceptor { request, nex
 internal fun ImportInput(state: TextFieldState, input: ImportInputUIModel, indicator: GemNameIndicator?, onScan: (() -> Unit)?) {
     val clipboardManager = LocalContext.current.clipboardManager()
     val interactionSource = remember { MutableInteractionSource() }
+    val errorColor = MaterialTheme.colorScheme.error
+    val highlight = remember(input, errorColor) { invalidWordsHighlight(input, errorColor) }
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -69,6 +74,7 @@ internal fun ImportInput(state: TextFieldState, input: ImportInputUIModel, indic
                     ),
                     lineLimits = TextFieldLineLimits.MultiLine(minHeightInLines = 2),
                     cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                    outputTransformation = highlight,
                     decorator = { innerTextField ->
                         if (state.text.isEmpty()) {
                             Text(
@@ -122,4 +128,8 @@ internal fun ImportInput(state: TextFieldState, input: ImportInputUIModel, indic
             }
         }
     }
+}
+
+private fun invalidWordsHighlight(input: ImportInputUIModel, color: Color) = OutputTransformation {
+    input.invalidWordRanges(asCharSequence()).forEach { addStyle(SpanStyle(color = color), it.first, it.last + 1) }
 }

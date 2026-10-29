@@ -86,6 +86,7 @@ fun ImportWalletScreen(importType: ImportType, onImported: () -> Unit, onCancel:
     val context = LocalContext.current
     val viewModel = hiltViewModel<ImportWalletViewModel, ImportWalletViewModel.Factory> { it.create(importType) }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val errorText by viewModel.errorText.collectAsStateWithLifecycle()
     DetectScreenshot(uiState.importType.kind.secretKind())
     val nameResolveIndicator by viewModel.nameResolveIndicator.collectAsStateWithLifecycle()
     val suggestions by viewModel.suggestions.collectAsStateWithLifecycle()
@@ -107,7 +108,7 @@ fun ImportWalletScreen(importType: ImportType, onImported: () -> Unit, onCancel:
         showsTabs = uiState.showsTabs,
         showsScan = uiState.showsScan,
         nameResolveIndicator = nameResolveIndicator,
-        dataError = uiState.dataError,
+        dataError = errorText,
         buttonState = buttonState(loading = uiState.loading),
         suggestions = suggestions,
     ) { action ->
