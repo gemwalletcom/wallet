@@ -5,6 +5,7 @@
 [![Android CI](https://github.com/gemwalletcom/wallet/actions/workflows/android-ci.yml/badge.svg)](https://github.com/gemwalletcom/wallet/actions/workflows/android-ci.yml)
 [![License](https://badgen.net/github/license/gemwalletcom/wallet)](https://github.com/gemwalletcom/wallet/blob/main/LICENSE)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/gemwalletcom/wallet/badge)](https://scorecard.dev/viewer/?uri=github.com/gemwalletcom/wallet)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/16038/badge)](https://www.bestpractices.dev/projects/16038)
 [![Ask DeepWiki](https://img.shields.io/badge/Ask-DeepWiki-blue)](https://deepwiki.com/gemwalletcom/wallet)
 [![Gem Wallet Discord](https://img.shields.io/discord/974531300394434630?style=plastic)](https://discord.gg/aWkq5sj7SY)
 [![X (formerly Twitter) Follow](https://img.shields.io/twitter/follow/GemWallet)](https://x.com/GemWallet)
@@ -104,7 +105,8 @@ Platform-specific commands remain available through the [`ios`](ios/justfile) an
 Gem Wallet is self-custodial, and keeping user funds safe is our highest priority. See the [Security Overview](https://gemwallet.com/security/) for our practices around key material, signing, and secure storage.
 
 - [Responsible Disclosure](https://gemwallet.com/security/bug-bounty/) — report security vulnerabilities responsibly
-- [CertiK Security Audit (April 2026)](https://static.gemwallet.com/audits/Gem-Wallet-CertiK-Security-Audit-April-2026.pdf) — latest third-party audit report
+- [CertiK Audit (April 2026)](https://static.gemwallet.com/audits/Gem-Wallet-CertiK-Security-Audit-April-2026.pdf) — April 2026 third-party audit report
+- [Cure53 Audit (October 2026)](https://static.gemwallet.com/audits/Gem-Wallet-Cure53-Audit-Report-October-2026.pdf) - October 2026 third-party audit report
 
 ## Contributing
 

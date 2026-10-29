@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.IconWithBadge
@@ -32,7 +33,7 @@ fun PropertyValidatorItem(validator: GemValidatorRow, listPosition: ListPosition
             ) {
                 IconWithBadge(image = validator.image)
                 Text(
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f).testTag("validator_row"),
                     text = validator.name,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,

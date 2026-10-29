@@ -5,6 +5,12 @@ use serde_serializers::deserialize_u64_from_str;
 pub struct Account {
     #[serde(deserialize_with = "deserialize_u64_from_str")]
     pub sequence: u64,
+    #[serde(default)]
+    pub subentry_count: u32,
+    #[serde(default)]
+    pub num_sponsoring: u32,
+    #[serde(default)]
+    pub num_sponsored: u32,
     pub balances: Vec<Balance>,
     pub thresholds: Thresholds,
     pub signers: Vec<Signer>,

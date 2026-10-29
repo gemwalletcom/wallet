@@ -1,7 +1,9 @@
-package com.gemwallet.android.data.coordinators.asset
+package com.gemwallet.android.data.coordinators.integration
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
+import com.gemwallet.android.data.coordinators.asset.GetActiveAssetsInfoImpl
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.asset.aggregates.toAssetInfoDataAggregates
@@ -25,8 +27,10 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotSame
 import org.junit.Assert.assertSame
 import org.junit.Test
+import org.junit.runner.RunWith
 import uniffi.gemstone.GemLocalizedText
 
+@RunWith(AndroidJUnit4::class)
 class GetActiveAssetsInfoImplTest {
     private val assets = listOf(
         mockAssetData(asset = mockAsset(id = mockAssetId(chain = Chain.Bitcoin)), price = mockPrice(price = 50000.0, priceChangePercentage24h = 2.5)),

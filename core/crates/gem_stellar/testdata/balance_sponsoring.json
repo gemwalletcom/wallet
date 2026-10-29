@@ -1,0 +1,69 @@
+{
+  "id": "GD3ZN2T6QQMKLAGKKMWHHY4FITANVJBTREEJERHTWGWF2GSBPOSHGCLU",
+  "account_id": "GD3ZN2T6QQMKLAGKKMWHHY4FITANVJBTREEJERHTWGWF2GSBPOSHGCLU",
+  "sequence": "183565459124448146",
+  "sequence_ledger": 65188123,
+  "sequence_time": "1793226398",
+  "subentry_count": 4,
+  "last_modified_ledger": 65188123,
+  "last_modified_time": "2026-10-28T22:26:38Z",
+  "thresholds": {
+    "low_threshold": 1,
+    "med_threshold": 1,
+    "high_threshold": 1
+  },
+  "flags": {
+    "auth_required": true,
+    "auth_revocable": false,
+    "auth_immutable": false,
+    "auth_clawback_enabled": false
+  },
+  "balances": [
+    {
+      "balance": "1.3721180",
+      "limit": "922337203685.4775807",
+      "buying_liabilities": "0.0000000",
+      "selling_liabilities": "0.0000000",
+      "last_modified_ledger": 65180000,
+      "is_authorized": true,
+      "is_authorized_to_maintain_liabilities": true,
+      "asset_type": "credit_alphanum12",
+      "asset_code": "yUSDC",
+      "asset_issuer": "GDGTVWSM4MGS4T7Z6W4RPWOCHE2I6RDFCIFZGS3DOA63LWQTRNZNTTFF"
+    },
+    {
+      "balance": "29.9411793",
+      "limit": "922337203685.4775807",
+      "buying_liabilities": "0.0000000",
+      "selling_liabilities": "0.0000000",
+      "last_modified_ledger": 65175930,
+      "is_authorized": true,
+      "is_authorized_to_maintain_liabilities": true,
+      "asset_type": "credit_alphanum4",
+      "asset_code": "yXLM",
+      "asset_issuer": "GARDNV3Q7YGT4AKSDF25LT32YSCCW4EV22Y2TV3I2PU2MMXJTEDL5T55"
+    },
+    {
+      "balance": "440.9209334",
+      "buying_liabilities": "0.0000000",
+      "selling_liabilities": "2.0000000",
+      "asset_type": "native"
+    }
+  ],
+  "signers": [
+    {
+      "weight": 1,
+      "key": "GD3ZN2T6QQMKLAGKKMWHHY4FITANVJBTREEJERHTWGWF2GSBPOSHGCLU",
+      "type": "ed25519_public_key"
+    },
+    {
+      "weight": 1,
+      "key": "GDRIVZBGD4AMF4ZVDHYA6LNC6UKVBL6ZEU33GDDT2FRZBFVUBWDONATE",
+      "type": "ed25519_public_key"
+    }
+  ],
+  "data": {},
+  "num_sponsoring": 138,
+  "num_sponsored": 0,
+  "paging_token": "GD3ZN2T6QQMKLAGKKMWHHY4FITANVJBTREEJERHTWGWF2GSBPOSHGCLU"
+}

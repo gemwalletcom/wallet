@@ -18,6 +18,26 @@ enum SpendTarget {
 }
 
 impl UtxoPlanner {
+    #[cfg(any(test, feature = "rpc"))]
+    pub(crate) fn fee(request: SpendRequest) -> Result<u64, SignerError> {
+        match Self::plan(request.clone()) {
+            Err(SignerError::InsufficientFunds) => Self::fee_spending_all_inputs(request),
+            plan => plan.map(|plan| plan.fee),
+        }
+    }
+
+    #[cfg(any(test, feature = "rpc"))]
+    fn fee_spending_all_inputs(request: SpendRequest) -> Result<u64, SignerError> {
+        let payment_script = script_for_address(request.chain, &request.destination_address)?.script_pubkey;
+        let memo_output = request.memo.as_deref().map(op_return_output).transpose()?;
+        let mut outputs = spend_outputs(request.amount, payment_script, memo_output);
+        if !request.is_max {
+            outputs.push(PlanOutput::new(0, script_for_address(request.chain, &request.sender_address)?.script_pubkey));
+        }
+        let inputs = spendable_inputs(request.chain, &request.sender_address, request.utxos)?;
+        Ok(estimate_fee(request.chain, &inputs, &outputs, request.fee_rate))
+    }
+
     pub(crate) fn plan(request: SpendRequest) -> Result<SpendPlan, SignerError> {
         if request.utxos.is_empty() {
             return SignerError::invalid_input_err("missing input UTXOs");
@@ -79,9 +99,9 @@ impl UtxoPlanner {
         // Output value doesn't affect fee size; size the fee from the output shape, then spend the rest.
         let mut outputs = spend_outputs(0, payment_script.clone(), memo_output.clone());
         let fee = estimate_fee(chain, selected, &outputs, fee_rate);
-        let value = selected_amount.checked_sub(fee).ok_or(SignerError::InsufficientFunds)?;
-        if value == 0 || value < dust_threshold(chain, payment_script) {
-            return Err(SignerError::InsufficientFunds);
+        let value = selected_amount.checked_sub(fee).filter(|value| *value > 0).ok_or(SignerError::InsufficientFunds)?;
+        if value < dust_threshold(chain, payment_script) {
+            return Err(SignerError::DustThreshold);
         }
         outputs[0].value = bitcoin::Amount::from_sat(value);
         Ok(SpendPlan { inputs: selected.to_vec(), outputs, fee })
@@ -178,14 +198,15 @@ mod tests {
         assert_eq!(plan.outputs[1].value.to_sat(), 0);
 
         let request = SpendRequest::transfer(BitcoinChain::Bitcoin, &mock_signer_input("50000", false)).unwrap();
-        assert_eq!(UtxoPlanner::plan(request).unwrap_err(), SignerError::InsufficientFunds);
+        assert_eq!(UtxoPlanner::plan(request.clone()).unwrap_err(), SignerError::InsufficientFunds);
+        assert_eq!(UtxoPlanner::fee(request).unwrap(), 454, "the fee load prices a send the coins can't cover, so the amount check can say Insufficient Balance");
 
         let request = SpendRequest::transfer(BitcoinChain::Bitcoin, &mock_signer_input("545", false)).unwrap();
-        assert_eq!(UtxoPlanner::plan(request).unwrap_err(), SignerError::DustThreshold);
+        assert_eq!(UtxoPlanner::fee(request).unwrap_err(), SignerError::DustThreshold);
 
         let dust_max_utxos = vec![mock_utxo_with(TEST_UTXO_TXID, 0, "600", TEST_BITCOIN_P2WPKH_ADDRESS)];
         let request = SpendRequest::transfer(BitcoinChain::Bitcoin, &mock_signer_input_with("0", true, None, dust_max_utxos)).unwrap();
-        assert_eq!(UtxoPlanner::plan(request).unwrap_err(), SignerError::InsufficientFunds);
+        assert_eq!(UtxoPlanner::fee(request).unwrap_err(), SignerError::DustThreshold, "a Max that leaves only dust to send is dust");
 
         let request = SpendRequest::transfer(BitcoinChain::Bitcoin, &mock_signer_input_with("1000", false, Some("a".repeat(81)), mock_spend_utxos())).unwrap();
         assert_eq!(UtxoPlanner::plan(request).unwrap_err(), SignerError::invalid_input("Bitcoin memo is too large"));

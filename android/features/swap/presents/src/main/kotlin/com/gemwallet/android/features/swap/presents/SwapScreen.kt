@@ -16,7 +16,6 @@ import com.gemwallet.android.features.swap.viewmodels.SwapViewModel
 import com.gemwallet.android.ui.ObserveStartedState
 import com.gemwallet.android.ui.components.InfoBottomSheet
 import com.gemwallet.android.ui.components.infoSheet
-import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ui.components.swap.SwapDetailsBottomSheet
 import com.gemwallet.android.ui.components.swap.SwapSlippageBottomSheet
 import com.wallet.core.primitives.AssetId
@@ -106,7 +105,6 @@ fun SwapScreen(
         pendingProviders = viewState.pendingProviders,
         isProviderSelectable = viewState.allowsProviderSelection,
         onDismiss = { isShowDetails = false },
-        expansion = SheetExpansion.Full,
         onProviderSelect = if (!viewState.isTransferLoading) viewModel::setProvider else null,
     )
 

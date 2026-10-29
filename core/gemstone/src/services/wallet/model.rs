@@ -148,12 +148,11 @@ pub enum GemSecretWarning {
 pub struct GemSecretScreen {
     pub title: GemLocalizedText,
     pub warning: GemSecretWarning,
-    pub rows: Vec<GemSecretPhraseRow>,
 }
 
 #[uniffi::export]
-pub fn secret_screen(kind: GemWalletSecretKind, word_count: usize, is_new: bool) -> GemSecretScreen {
-    rules::secret_screen(kind, word_count, is_new)
+pub fn secret_screen(kind: GemWalletSecretKind, is_new: bool) -> GemSecretScreen {
+    rules::secret_screen(kind, is_new)
 }
 
 #[uniffi::export]

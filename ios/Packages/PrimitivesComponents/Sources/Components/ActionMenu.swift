@@ -32,7 +32,11 @@ struct ActionMenu<Label: View>: View {
 
     var body: some View {
         Menu {
-            ForEach(items) { ActionMenuItemView(item: $0) }
+            ForEach(Array(items.runs(by: \.isDestructive).enumerated()), id: \.offset) { _, group in
+                Section {
+                    ForEach(group) { ActionMenuItemView(item: $0) }
+                }
+            }
         } label: {
             label
         }

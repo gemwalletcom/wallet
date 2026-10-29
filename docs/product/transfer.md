@@ -20,21 +20,21 @@ flowchart LR
 
 | When | Expected | Why |
 |---|---|---|
-| A typed name is registered for the network | it resolves while typing to that address | |
-| A mixed-case EVM address has an invalid checksum | "Invalid address"; the address stays as entered and cannot continue, including in contacts, watch-only imports, scanned codes and payment links | a typo must never be silently re-checksummed into another account; single-case addresses remain accepted |
+| A typed name is registered for the network | it resolves to that address while typing | |
+| A mixed-case EVM address has an invalid checksum | "Invalid address" wherever an address is typed, pasted or scanned | a typo must never turn into another account; single-case addresses are accepted |
 | The recipient is one of the user's own wallets or a contact | Confirm shows its name alone; a tap shows the address | the user gave that name |
 | The recipient has any other name, such as `vitalik.eth` | the name with the short address beside it | a name the user did not give could imitate another address |
-| The recipient is flagged | a "Suspicious address" warning with one line on why, under the amount; Confirm stays disabled | |
-| Confirm loads with a problem the user can act on: not enough balance or network fee, a required memo, a risky transaction | its explanation opens by itself | the user sees what to do before looking for it |
-| A refresh or a fee change finds the same problem | the explanation stays as the user left it | it opens once per problem |
-| Retry, or a different problem | the explanation opens again | |
+| The recipient is flagged | "Suspicious address" with one line on why, under the amount; Confirm stays disabled | |
+| The balance can't cover the amount and the Network Fee, on any network | Insufficient Balance | the user sees what to fix, never a network error |
+| A Bitcoin-family amount, or what Max would send, is under the dust limit | the dust explanation | the network rejects such a small output |
+| Confirm loads with a problem the user can act on: not enough balance or network fee, dust, a required memo, a risky transaction | its explanation opens by itself, once per problem; a refresh leaves it as the user left it, and Retry or a different problem opens it again | the user sees what to do before looking for it |
 | Any other load error | it stays in the error row | |
 | The simulation cannot answer | sending is not blocked | |
 | The simulation finds a risk | the risk shows before the user confirms | |
 | The simulation predicts balance changes | every digit of each amount, never rounded | what the user approves is exactly what moves |
+| Sending fails after Confirm | an error alert; the fee and amounts stay and the button stays Confirm, so a tap sends again | Try Again is only for a failed load |
 | The network rejects the sent transaction | the network's own reason | it is often the only explanation there is |
-| Sending fails after Confirm | an error alert; the screen keeps its fee and amounts with no reload, and the button stays Confirm, so every tap sends again, as Swap keeps its Swap button | Try Again belongs to a failed load |
-| A Dash payment is sent | Pending until the transaction is mined | the network may lock it with InstantSend, but the provider does not report that lock yet |
+| A Dash payment is sent | Pending until it is mined | the provider does not report InstantSend locks yet |
 | The system closes the app during Send, Swap or Stake | the flow starts again from the screen that opened it | a restored Confirm could sign a stale transfer |
 
 Names, the Network Fee, and account requirements follow the shared [Names](../PRODUCT.md#names), [Network Fee](../PRODUCT.md#network-fee), and [Network minimums and activation](../PRODUCT.md#network-minimums-and-activation) sections.

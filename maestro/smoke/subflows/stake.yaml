@@ -9,5 +9,6 @@ appId: ${APP_ID}
 - waitForAnimationToEnd
 - tapOn:
     id: "stake_action"
+- runFlow: stake_validator.yaml
 - runFlow: amount_over_balance.yaml
 - takeScreenshot: ${output.journey}_stake

@@ -25,5 +25,7 @@ struct ValidatorSelectionView: View {
             }
         }
         .contentShape(Rectangle())
+        .accessibilityIdentifier("validator_item")
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }

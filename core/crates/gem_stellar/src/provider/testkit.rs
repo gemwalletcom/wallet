@@ -27,6 +27,9 @@ impl Account {
     pub fn mock(address: &str) -> Self {
         Self {
             sequence: 1,
+            subentry_count: 0,
+            num_sponsoring: 0,
+            num_sponsored: 0,
             balances: vec![],
             thresholds: Thresholds { med_threshold: 0 },
             signers: vec![Signer { key: address.to_string(), weight: 1 }],

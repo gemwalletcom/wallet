@@ -33,9 +33,9 @@ impl<C: Client> ChainBalances for HyperCoreClient<C> {
         Ok(Some(map_balance_staking(&balance, self.chain)?))
     }
 
-    async fn get_balance_assets(&self, address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>> {
+    async fn get_balance_assets(&self, address: String) -> Result<Option<Vec<AssetBalance>>, Box<dyn Error + Send + Sync>> {
         let (spot_balances, spot_meta) = try_join!(self.get_spot_balances(&address), self.get_spot_meta())?;
-        Ok(map_balance_assets(&spot_balances, &spot_meta.tokens, self.chain))
+        Ok(Some(map_balance_assets(&spot_balances, &spot_meta.tokens, self.chain)))
     }
 }
 
@@ -88,7 +88,7 @@ mod chain_integration_tests {
     async fn test_hypercore_get_balance_assets() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_hypercore_test_client();
         let address = TEST_ADDRESS.to_string();
-        let assets = client.get_balance_assets(address).await?;
+        let assets = client.get_balance_assets(address).await?.unwrap();
 
         println!("Hypercore asset balances: {:?}", assets);
 

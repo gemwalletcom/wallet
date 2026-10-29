@@ -32,7 +32,7 @@ public struct ShowSecretDataScene: View {
             .cleanListRow()
 
             Section {
-                SecretDataTypeView(type: type(screen))
+                SecretDataTypeView(secret: secret)
             }
             .cleanListRow()
 
@@ -63,17 +63,7 @@ public struct ShowSecretDataScene: View {
     }
 
     private var screen: GemSecretScreen {
-        switch secret {
-        case let .words(words): secretScreen(kind: .phrase, wordCount: words.count, isNew: continueAction != nil)
-        case .privateKey: secretScreen(kind: .privateKey, wordCount: 0, isNew: continueAction != nil)
-        }
-    }
-
-    private func type(_ screen: GemSecretScreen) -> SecretPhraseDataType {
-        switch secret {
-        case let .words(words): .words(rows: screen.rows.map { $0.map(words: words) })
-        case let .privateKey(key): .privateKey(key: key)
-        }
+        secretScreen(kind: secret.kind, isNew: continueAction != nil)
     }
 
     private var secretCopy: GemCopy {

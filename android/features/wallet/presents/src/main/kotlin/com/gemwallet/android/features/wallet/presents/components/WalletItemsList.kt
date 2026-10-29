@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -58,6 +59,7 @@ internal fun LazyListScope.wallets(
                     onEdit(row)
                     longPressedWallet.value = ""
                 }
+                HorizontalDivider()
                 WalletDropDownItem(R.string.common_delete, AppIcons.Delete, MaterialTheme.colorScheme.error) {
                     onDeleteWallet(row)
                     longPressedWallet.value = ""

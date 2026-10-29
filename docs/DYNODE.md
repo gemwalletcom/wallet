@@ -66,7 +66,7 @@ A JSON-RPC batch is checked call by call: cached calls are answered from memory,
 
 A batch follows a chain's overrides call by call. When every call goes to the same override, or to none, the batch goes upstream whole. Otherwise it is split into one batch per override, sent at the same time, and the answers are put back in call order; a part that fails answers each of its calls with a JSON-RPC error, and the other parts still answer (`test_batch_calls_follow_their_overrides`).
 
-Swaps rely on Dynode only for lookups that do not price a quote, what a pool is and which pools a pair has, so a quote is still priced on live state ([Swap](product/swap.md#on-chain-quotes)). Which pools lost to a better one stays on the device: it depends on the amount, and Dynode keeps responses, not comparisons between them.
+Swaps rely on Dynode only for lookups that do not price a quote, what a pool is and which pools a pair has, so a quote is still priced on live state ([Swap](product/swap.md#rules)). Which pools lost to a better one stays on the device: it depends on the amount, and Dynode keeps responses, not comparisons between them.
 
 | Chain | Request | TTL |
 |---|---|---|

@@ -1,4 +1,4 @@
-use primitives::name::NameRecord;
+use primitives::name::{NameRecord, is_name};
 use primitives::{AddressName, AddressType, Chain, ChainAddress};
 
 use super::model::{GemAddressNameUpdate, GemNameInputStep, GemNameRecordState};
@@ -25,11 +25,6 @@ pub(crate) fn names_the_user_owns(address_type: &AddressType) -> bool {
     }
 }
 
-pub fn is_name_supported(name: &str) -> bool {
-    let parts: Vec<&str> = name.split('.').collect();
-    parts.len() >= 2 && parts.last().is_some_and(|suffix| !suffix.is_empty())
-}
-
 pub fn name_input_step(state: &GemNameRecordState, name: &str, chain: Option<Chain>) -> GemNameInputStep {
     if name.is_empty() {
         return GemNameInputStep::Reset;
@@ -40,7 +35,7 @@ pub fn name_input_step(state: &GemNameRecordState, name: &str, chain: Option<Cha
     if state.requested() == Some((name.to_string(), chain)) {
         return GemNameInputStep::Unchanged;
     }
-    if !is_name_supported(name) {
+    if !is_name(name) {
         return GemNameInputStep::Reset;
     }
     GemNameInputStep::Resolve {
@@ -93,6 +88,7 @@ mod tests {
 
         assert_eq!(name_input_step(&idle, "", Some(Chain::Ethereum)), GemNameInputStep::Reset);
         assert_eq!(name_input_step(&idle, "vitalik", Some(Chain::Ethereum)), GemNameInputStep::Reset, "a name without a suffix resolves nowhere");
+        assert_eq!(name_input_step(&idle, "yyy@gmail.com", Some(Chain::Tron)), GemNameInputStep::Reset, "an email is not a name");
         assert_eq!(name_input_step(&idle, "vitalik.eth", None), GemNameInputStep::Reset, "no chain, nothing to resolve against");
         assert_eq!(
             name_input_step(&loading("vitalik.eth", Chain::Ethereum), "vitalik.eth", Some(Chain::Ethereum)),
@@ -154,15 +150,6 @@ mod tests {
         assert_eq!(resolved(None), GemNameRecordState::Error);
         assert_eq!(loading("vitalik.eth", Chain::Ethereum).requested(), Some(("vitalik.eth".to_string(), Chain::Ethereum)));
         assert_eq!(GemNameRecordState::None.requested(), None);
-    }
-
-    #[test]
-    fn test_is_name_supported() {
-        assert!(is_name_supported("vitalik.eth"));
-        assert!(is_name_supported("a.b.sol"));
-        assert!(!is_name_supported("vitalik"));
-        assert!(!is_name_supported("vitalik."));
-        assert!(!is_name_supported("0x1234"));
     }
 
     #[test]

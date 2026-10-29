@@ -128,11 +128,14 @@ impl DevicesRepository for DatabaseClient {
 
     fn delete_devices_subscriptions_after_days(&mut self, days: i64) -> Result<usize, DatabaseError> {
         let cutoff_date = Utc::now() - Duration::days(days);
-        let device_ids: Vec<i32> = {
+        self.transaction(|client| {
             use crate::schema::devices::dsl::*;
-            devices.filter(updated_at.lt(cutoff_date.naive_utc())).select(id).load(&mut self.connection)?
-        };
-        Ok(delete_subscriptions_for_device_ids(self, device_ids)?)
+            let device_ids: Vec<i32> = devices.filter(updated_at.lt(cutoff_date.naive_utc())).select(id).load(&mut client.connection)?;
+            diesel::update(devices.filter(id.eq_any(&device_ids)).filter(subscriptions_version.ne(0)))
+                .set(subscriptions_version.eq(0))
+                .execute(&mut client.connection)?;
+            Ok(delete_subscriptions_for_device_ids(client, device_ids)?)
+        })
     }
 
     fn get_inactive_devices(&mut self, min_days: i64, max_days: i64, push_enabled: Option<bool>) -> Result<Vec<Device>, DatabaseError> {
@@ -158,12 +161,40 @@ impl DevicesRepository for DatabaseClient {
 
 #[cfg(all(test, feature = "database_integration_tests"))]
 mod database_integration_tests {
-    use crate::{Database, DevicesRepository};
+    use chrono::{Duration, Utc};
+    use diesel::prelude::*;
+    use primitives::{Currency, Device, FiatRate, FiatRateProvider};
+
+    use crate::{Database, DatabaseError, DevicesRepository, FiatRepository};
 
     #[tokio::test]
     async fn test_get_device_record_missing_row_is_not_found() {
         let error = Database::mock().run(|client| client.get_device_record("missing-device")).await.unwrap_err();
 
         assert!(error.is_not_found());
+    }
+
+    #[tokio::test]
+    async fn test_dropping_dormant_subscriptions_resets_the_subscriptions_version() {
+        let versions = Database::mock()
+            .run(|client| {
+                client.set_fiat_rates(FiatRateProvider::Coingecko, vec![FiatRate { symbol: Currency::USD, rate: 1.0 }])?;
+                client.add_device(Device { id: "dormant".to_string(), ..Device::mock() })?;
+                client.add_device(Device { id: "active".to_string(), ..Device::mock() })?;
+                {
+                    use crate::schema::devices::dsl::*;
+                    diesel::update(devices.filter(identifier.eq("dormant")))
+                        .set(updated_at.eq((Utc::now() - Duration::days(121)).naive_utc()))
+                        .execute(&mut client.connection)?;
+                }
+
+                client.delete_devices_subscriptions_after_days(120)?;
+
+                Ok::<_, DatabaseError>((client.get_device("dormant")?.subscriptions_version, client.get_device("active")?.subscriptions_version))
+            })
+            .await
+            .unwrap();
+
+        assert_eq!(versions, (0, 1));
     }
 }

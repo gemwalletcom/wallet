@@ -1,7 +1,10 @@
-package com.gemwallet.android.model
+package com.gemwallet.android.integration
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.gemwallet.android.model.text
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import org.junit.runner.RunWith
 import uniffi.gemstone.GemFormattedNumber
 import uniffi.gemstone.GemNumberDisplay
 import uniffi.gemstone.GemNumberNotation
@@ -11,6 +14,7 @@ import uniffi.gemstone.GemPrecision
 import uniffi.gemstone.GemValueTone
 import java.util.Locale
 
+@RunWith(AndroidJUnit4::class)
 class FormattedNumberTest {
 
     @Test
@@ -79,5 +83,39 @@ class FormattedNumberTest {
 
         assertEquals("every digit past what a double holds", "-123.456789012345678901 ETH", spent.text(Locale.US))
         assertEquals("the digits follow the reader's separator", "0,5 SOL", spent.copy(value = 0.5, unit = GemNumberUnit.Symbol(symbol = "SOL"), notation = GemNumberNotation.PLAIN, exact = "0.5").text(Locale.GERMANY))
+    }
+
+    @Test
+    fun `a sign stays in front of the number in a right-to-left language`() {
+        val arabic = Locale.forLanguageTag("ar-u-nu-latn")
+        val change = GemFormattedNumber(
+            value = 0.03,
+            unit = GemNumberUnit.Currency(code = "USD"),
+            display = GemNumberDisplay.Number(precision = GemPrecision.Fraction(min = 2, max = 2)),
+            notation = GemNumberNotation.SIGNED,
+            tone = GemValueTone.POSITIVE,
+            rounding = GemNumberRounding.TO_NEAREST,
+            exact = null,
+        )
+
+        assertEquals("\u200f\u200e+0.03\u00a0US$", change.text(arabic))
+        assertEquals("\u200e+1.06\u200e%\u200e", change.copy(value = 1.06, unit = GemNumberUnit.Percent).text(arabic))
+        assertEquals("\u200e-3 ADA", change.copy(value = -3.0, unit = GemNumberUnit.Symbol(symbol = "ADA"), display = GemNumberDisplay.Number(precision = GemPrecision.Fraction(min = 0, max = 2))).text(arabic))
+    }
+
+    @Test
+    fun `a sign takes the place and spacing the reader's locale gives it`() {
+        val change = GemFormattedNumber(
+            value = 0.03,
+            unit = GemNumberUnit.Currency(code = "USD"),
+            display = GemNumberDisplay.Number(precision = GemPrecision.Fraction(min = 2, max = 2)),
+            notation = GemNumberNotation.SIGNED,
+            tone = GemValueTone.POSITIVE,
+            rounding = GemNumberRounding.TO_NEAREST,
+            exact = null,
+        )
+
+        assertEquals("US$\u00a0+0,03", change.text(Locale.forLanguageTag("nl")))
+        assertEquals("+USD\u00a00.03", change.text(Locale.forLanguageTag("ms")))
     }
 }

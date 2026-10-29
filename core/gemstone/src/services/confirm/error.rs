@@ -407,10 +407,11 @@ impl From<SwapperError> for GemConfirmError {
     }
 }
 
-pub(super) fn load_error(error: GatewayError) -> GemConfirmError {
+pub(super) fn load_error(chain: Chain, error: GatewayError) -> GemConfirmError {
     match error {
         GatewayError::Offline => GemConfirmError::Offline,
         GatewayError::NetworkError { msg } => GemConfirmError::Network { msg },
+        GatewayError::SignerError { error } => GemConfirmError::Sign { msg: error.to_string(), error, chain },
         error => GemConfirmError::Load { msg: error.to_string() },
     }
 }
@@ -426,6 +427,7 @@ pub(super) fn broadcast_error(hashes: Vec<String>, error: GatewayError) -> GemCo
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::gateway::map_network_error;
 
     #[test]
     fn test_only_a_flagged_recipient_shows_the_suspicious_address_notice() {
@@ -524,8 +526,13 @@ mod tests {
 
     #[test]
     fn test_gateway_errors_keep_their_kind() {
-        assert_eq!(load_error(GatewayError::NetworkError { msg: "timeout".to_string() }), GemConfirmError::Network { msg: "timeout".to_string() });
-        assert_eq!(load_error(GatewayError::Offline), GemConfirmError::Offline);
+        assert_eq!(load_error(Chain::Bitcoin, GatewayError::NetworkError { msg: "timeout".to_string() }), GemConfirmError::Network { msg: "timeout".to_string() });
+        assert_eq!(load_error(Chain::Bitcoin, GatewayError::Offline), GemConfirmError::Offline);
+        assert_eq!(
+            load_error(Chain::Bitcoin, map_network_error(Box::new(GemSignerError::DustThreshold))).display(),
+            GemConfirmErrorDisplay::DustThreshold { chain: Chain::Bitcoin },
+            "dust found while loading the fee shows the dust explanation, as it does at signing"
+        );
         assert_eq!(broadcast_error(vec![], GatewayError::Offline), GemConfirmError::Offline);
         assert_eq!(
             broadcast_error(vec!["h1".to_string()], GatewayError::Offline),
@@ -534,7 +541,10 @@ mod tests {
                 msg: GatewayError::Offline.to_string(),
             }
         );
-        assert_eq!(load_error(GatewayError::PlatformError { msg: "dust".to_string() }), GemConfirmError::Load { msg: "Platform error: dust".to_string() });
+        assert_eq!(
+            load_error(Chain::Bitcoin, GatewayError::PlatformError { msg: "dust".to_string() }),
+            GemConfirmError::Load { msg: "Platform error: dust".to_string() }
+        );
         assert_eq!(broadcast_error(vec![], GatewayError::NetworkError { msg: "offline".to_string() }), GemConfirmError::Network { msg: "offline".to_string() });
         assert_eq!(
             broadcast_error(vec!["h1".to_string()], GatewayError::NetworkError { msg: "offline".to_string() }),

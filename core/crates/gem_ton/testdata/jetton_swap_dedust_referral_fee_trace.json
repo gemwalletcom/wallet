@@ -1,0 +1,90 @@
+{
+  "traces": [
+    {
+      "is_incomplete": false,
+      "actions": [
+        {
+          "success": true,
+          "type": "jetton_swap",
+          "details": {
+            "dex": "dedust",
+            "sender": "0:39A2585850B1E4BA2E264D03342E87561B412A51AC662BAF9EDE61EB09914ED9",
+            "asset_in": null,
+            "asset_out": "0:B113A994B5024A16719F69139328EB759596C38A25F59028B146FECDC3621DFE",
+            "dex_incoming_transfer": {
+              "asset": null,
+              "source": "0:39A2585850B1E4BA2E264D03342E87561B412A51AC662BAF9EDE61EB09914ED9",
+              "destination": "0:DAE153A74D894BBC32748198CD626E4F5DF4A69AD2FA56CE80FC2644B5708D20",
+              "source_jetton_wallet": null,
+              "destination_jetton_wallet": null,
+              "amount": "995000000"
+            },
+            "dex_outgoing_transfer": {
+              "asset": "0:B113A994B5024A16719F69139328EB759596C38A25F59028B146FECDC3621DFE",
+              "source": "0:18AA8E2EED51747DAE033C079B93883D941CAD8F65459F2EE9CD7474B6B8ED5D",
+              "destination": "0:39A2585850B1E4BA2E264D03342E87561B412A51AC662BAF9EDE61EB09914ED9",
+              "source_jetton_wallet": "0:88DAC67CCEADB9CAE6FAAC7118F05C0FA95DF36C2A92E686AC39D96310D0A387",
+              "destination_jetton_wallet": "0:2212BE5EA836B53744BB6C520608AF26678139F2A15B6ADF4F39C46E79BE92F0",
+              "amount": "1343904"
+            },
+            "peer_swaps": []
+          }
+        },
+        {
+          "success": true,
+          "type": "ton_transfer",
+          "details": {
+            "source": "0:39A2585850B1E4BA2E264D03342E87561B412A51AC662BAF9EDE61EB09914ED9",
+            "destination": "0:F124A6AB3D2A746C2B5AF43160A7CD4CA6DE61A466EE55C4B1C1F7B36B40629F",
+            "value": "5000000",
+            "comment": null,
+            "encrypted": false
+          }
+        }
+      ],
+      "transactions_order": [
+        "QFiAFd0OFOreKdzkeR1LUWlYyzmlDkvxjLEzn4jD+pM="
+      ],
+      "transactions": {
+        "QFiAFd0OFOreKdzkeR1LUWlYyzmlDkvxjLEzn4jD+pM=": {
+          "hash": "QFiAFd0OFOreKdzkeR1LUWlYyzmlDkvxjLEzn4jD+pM=",
+          "now": 1792614170,
+          "total_fees": "8310551",
+          "description": {
+            "aborted": false,
+            "compute_ph": {
+              "success": true,
+              "exit_code": 0
+            },
+            "action": {
+              "success": true
+            }
+          },
+          "out_msgs": [
+            {
+              "source": "0:39A2585850B1E4BA2E264D03342E87561B412A51AC662BAF9EDE61EB09914ED9",
+              "destination": "0:DAE153A74D894BBC32748198CD626E4F5DF4A69AD2FA56CE80FC2644B5708D20",
+              "value": "1245000000",
+              "op_code": "0xea06185d",
+              "decoded_op_name": null,
+              "body": null,
+              "comment": null,
+              "decoded_body": null
+            },
+            {
+              "source": "0:39A2585850B1E4BA2E264D03342E87561B412A51AC662BAF9EDE61EB09914ED9",
+              "destination": "0:F124A6AB3D2A746C2B5AF43160A7CD4CA6DE61A466EE55C4B1C1F7B36B40629F",
+              "value": "5000000",
+              "op_code": null,
+              "decoded_op_name": null,
+              "body": null,
+              "comment": null,
+              "decoded_body": null
+            }
+          ],
+          "in_msg": null
+        }
+      }
+    }
+  ]
+}

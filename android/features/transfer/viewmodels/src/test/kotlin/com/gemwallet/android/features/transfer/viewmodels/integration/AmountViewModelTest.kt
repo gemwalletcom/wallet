@@ -1,18 +1,22 @@
-package com.gemwallet.android.features.transfer.viewmodels.amount
+package com.gemwallet.android.features.transfer.viewmodels.integration
 
 import android.content.Context
 import androidx.compose.runtime.snapshots.Snapshot
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.data.services.store.queries.AssetQuery
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.features.transfer.viewmodels.amount.AmountViewModel
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetData
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockBalance
+import com.gemwallet.android.testkit.mockDelegation
+import com.gemwallet.android.testkit.mockDelegationBase
 import com.gemwallet.android.testkit.mockDelegationValidator
 import com.gemwallet.android.testkit.mockGemStakeValidatorOptions
 import com.gemwallet.android.testkit.mockGemValidatorRow
@@ -43,6 +47,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
 import uniffi.gemstone.GemAmountExtras
 import uniffi.gemstone.GemAmountInputType
 import uniffi.gemstone.GemAmountServiceInterface
@@ -56,6 +61,7 @@ import java.math.BigDecimal
 import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(AndroidJUnit4::class)
 class AmountViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
@@ -220,6 +226,27 @@ class AmountViewModelTest {
 
         viewModelTest(AmountParams.Stake(asset.id, GemStakeAmountInput.Stake(rows[0].validator))) { viewModel ->
             assertEquals("v2", viewModel.validatorPicker.value?.selectedId)
+        }
+    }
+
+    @Test
+    fun `a claim shows the rewards of the validator the user picks`() {
+        val validators = listOf("v1", "v2").map { mockDelegationValidator(chain = Chain.Cosmos, id = it) }
+        val delegations = validators.zip(listOf(5_000_000L, 2_000_000L)) { validator, rewards ->
+            mockDelegation(base = mockDelegationBase(rewards = BigInteger.valueOf(rewards), validatorId = validator.id), validator = validator).toGem()
+        }
+        val rows = validators.map { mockGemValidatorRow(validator = it.toGem(), name = it.name, placeholder = it.name.take(1), apr = GemLocalizedText.Apr(null)) }
+        every { service.stakeValidatorOptions(any(), any(), any()) } returns mockGemStakeValidatorOptions(sections = listOf(mockGemValidatorSection(kind = GemValidatorSectionKind.ACTIVE, rows = rows)))
+
+        viewModelTest(AmountParams.Stake(asset.id, GemStakeAmountInput.Rewards(delegations, validators[0].toGem()))) { viewModel ->
+            assertEquals("5", viewModel.amount)
+
+            viewModel.selectValidator("v2")
+            Snapshot.sendApplyNotifications()
+            testDispatcher.scheduler.advanceUntilIdle()
+
+            assertEquals("2", viewModel.amount)
+            assertEquals(ButtonState.Enabled, viewModel.uiState.value.buttonState)
         }
     }
 

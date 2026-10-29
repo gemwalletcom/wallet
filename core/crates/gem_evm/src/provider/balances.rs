@@ -26,7 +26,7 @@ impl<C: Client + Clone> ChainBalances for EthereumProvider<C> {
         self.provider.get_staking_balance(&address).await
     }
 
-    async fn get_balance_assets(&self, address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>> {
+    async fn get_balance_assets(&self, address: String) -> Result<Option<Vec<AssetBalance>>, Box<dyn Error + Send + Sync>> {
         self.get_asset_balances(address).await
     }
 }

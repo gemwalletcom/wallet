@@ -25,7 +25,7 @@ impl ChainClient {
     }
 
     pub async fn get_balances_assets(&self, request: ChainAddress) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>> {
-        self.providers.get_balance_assets(request.chain, request.address).await
+        Ok(self.providers.get_balance_assets(request.chain, request.address).await?.unwrap_or_default())
     }
 
     pub async fn get_transactions(&self, request: ChainAddress, from_timestamp: Option<u64>, limit: usize) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {

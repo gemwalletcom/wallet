@@ -55,7 +55,7 @@ internal fun WelcomeBanner(content: GemBannerContent, onBuy: () -> Unit, onRecei
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onBackground,
+                    color = MaterialTheme.colorScheme.secondary,
                     textAlign = TextAlign.Center,
                 )
             }

@@ -66,6 +66,7 @@ public struct AmountScene: View {
                         NavigationLink(value: row.validator.toPrimitives()) {
                             ValidatorView(row: row)
                         }
+                        .accessibilityIdentifier("validator_row")
                     } else {
                         ValidatorView(row: row)
                     }
@@ -131,7 +132,6 @@ public struct AmountScene: View {
         .navigationTitle(model.title)
         .onChange(of: model.amountInputModel.text, model.onChangeAmountText)
         .taskOnce {
-            model.prefillAmount()
             if model.input.focusesInput {
                 focusedField = true
             }

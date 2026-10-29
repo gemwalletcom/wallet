@@ -4,7 +4,7 @@ use std::sync::Arc;
 use chrono::{DateTime, Utc};
 use config_keys::ConfigKey;
 use primitives::asset_score::AssetRank;
-use primitives::{Asset, AssetBasic, AssetFull, AssetId};
+use primitives::{Asset, AssetAddress, AssetBasic, AssetFull, AssetId};
 use storage::AssetFilter;
 
 use super::repository::Repository;
@@ -43,6 +43,10 @@ impl AssetsClient {
         let filters = vec![AssetFilter::IsEnabled(true), AssetFilter::HasPrice(true), AssetFilter::RankGt(AssetRank::Trivial.threshold())];
         let assets = self.repository.get_wallet_assets_with_prices(device_id, wallet_id, since, filters, max_age).await?;
         Ok(assets.into_iter().map(|asset| asset.asset.asset.id).collect())
+    }
+
+    pub async fn add_asset_addresses(&self, addresses: Vec<AssetAddress>) -> Result<usize, Box<dyn Error + Send + Sync>> {
+        Ok(self.repository.add_asset_addresses(addresses).await?)
     }
 }
 

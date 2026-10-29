@@ -1,14 +1,18 @@
-package com.gemwallet.android.model
+package com.gemwallet.android.integration
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.gemwallet.android.model.text
 import com.wallet.core.primitives.Currency
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
 import uniffi.gemstone.GemCurrencyStyle
 import uniffi.gemstone.formattedCurrency
 import java.util.Locale
 
+@RunWith(AndroidJUnit4::class)
 class CurrencyTextTest {
 
     @Test

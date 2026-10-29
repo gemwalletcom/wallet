@@ -120,8 +120,8 @@ pub trait ChainBalances: Send + Sync {
     async fn get_balance_staking(&self, _address: String) -> Result<Option<AssetBalance>, Box<dyn Error + Sync + Send>> {
         Ok(None)
     }
-    async fn get_balance_assets(&self, _address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>> {
-        Ok(vec![])
+    async fn get_balance_assets(&self, _address: String) -> Result<Option<Vec<AssetBalance>>, Box<dyn Error + Send + Sync>> {
+        Ok(None)
     }
 }
 

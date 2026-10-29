@@ -4,7 +4,7 @@ use std::time::Duration;
 use async_trait::async_trait;
 use chrono::NaiveDateTime;
 use primitives::{
-    Asset, AssetAssociation, AssetBalance, AssetBasic, AssetFull, AssetId, AssetIdVecExt, AssetPriceMetadata, AssetVecExt, Chain, ChainAddress, ListId, Perpetual, ScanAddress, asset_score::AssetRank, fiat_assets::AssetCatalog,
+    Asset, AssetAddress, AssetAssociation, AssetBalance, AssetBasic, AssetFull, AssetId, AssetIdVecExt, AssetPriceMetadata, AssetVecExt, Chain, ChainAddress, ListId, Perpetual, ScanAddress, asset_score::AssetRank, fiat_assets::AssetCatalog,
 };
 use storage::{
     AssetFilter, AssetUpdate, AssetsAddressesRepository, AssetsRepository, AssetsUsageRanksRepository, Database, DatabaseError, PerpetualsRepository, PricesRepository, ScanAddressesRepository, Tag, TagRepository, TransactionsRepository,
@@ -34,6 +34,7 @@ pub(crate) trait Repository: Send + Sync {
     async fn update_assets(&self, filters: Vec<AssetFilter>, updates: Vec<AssetUpdate>) -> Result<usize, DatabaseError>;
     async fn set_asset_associations(&self, id: String, associations: Vec<AssetAssociation>) -> Result<usize, DatabaseError>;
     async fn add_scan_addresses(&self, addresses: Vec<ScanAddress>) -> Result<usize, DatabaseError>;
+    async fn add_asset_addresses(&self, addresses: Vec<AssetAddress>) -> Result<usize, DatabaseError>;
     async fn update_coin_address(&self, chain_address: ChainAddress, balance: AssetBalance) -> Result<(), DatabaseError>;
     async fn update_token_addresses(&self, chain_address: ChainAddress, balances: Vec<AssetBalance>) -> Result<TokenAddressesUpdate, DatabaseError>;
     async fn update_image_flags(&self, chain: Chain, asset_ids: HashSet<AssetId>) -> Result<(usize, usize), DatabaseError>;
@@ -116,6 +117,10 @@ impl Repository for PostgresRepository {
 
     async fn add_scan_addresses(&self, addresses: Vec<ScanAddress>) -> Result<usize, DatabaseError> {
         self.database.run(move |client| client.add_scan_addresses(addresses)).await
+    }
+
+    async fn add_asset_addresses(&self, addresses: Vec<AssetAddress>) -> Result<usize, DatabaseError> {
+        self.database.run(move |client| client.add_assets_addresses(addresses)).await
     }
 
     async fn update_coin_address(&self, chain_address: ChainAddress, balance: AssetBalance) -> Result<(), DatabaseError> {

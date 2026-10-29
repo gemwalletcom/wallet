@@ -64,7 +64,20 @@ impl OkxParser {
             return None;
         }
 
-        Some(TransactionSwapMetadata::new(from_asset, u256_to_biguint(&event.fromAmount), to_asset, u256_to_biguint(&event.returnAmount), SwapProvider::Okx))
+        let from_value = u256_to_biguint(&event.fromAmount) + Self::input_commission(context, event.fromToken);
+        Some(TransactionSwapMetadata::new(from_asset, from_value, to_asset, u256_to_biguint(&event.returnAmount), SwapProvider::Okx))
+    }
+
+    fn input_commission(context: &ParseContext<'_>, from_token: Address) -> BigUint {
+        context
+            .metadata
+            .receipt
+            .logs
+            .iter()
+            .filter_map(Log::decode_event::<IOkxDexRouter::CommissionFromTokenRecord>)
+            .filter(|event| event.fromTokenAddress == from_token)
+            .map(|event| u256_to_biguint(&event.commissionAmount))
+            .sum()
     }
 
     fn referral_fee_from_commissions(context: &ParseContext<'_>) -> Option<TransactionSwapReferralFee> {
@@ -134,6 +147,18 @@ mod tests {
         );
         assert_eq!(swap_metadata.from_value, BigUint::from(995000u64));
         assert_eq!(swap_metadata.to_value, BigUint::from(928345u64));
+
+        let commission_receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../testdata/okx_base_swap_commission_tx_receipt.json"));
+        let commission_metadata = map_transaction(&Chain::Base, &receipt_tx, &commission_receipt).swap_metadata().unwrap();
+        assert_eq!(commission_metadata.from_value, BigUint::from(1_000_000u64));
+        assert_eq!(commission_metadata.to_value, BigUint::from(928345u64));
+        assert_eq!(
+            commission_metadata.referral_fee,
+            Some(TransactionSwapReferralFee {
+                asset_id: AssetId::from_token(Chain::Base, BASE_USDC_TOKEN_ID),
+                value: BigUint::from(5000u64)
+            })
+        );
 
         let transfer_tx = Transaction {
             from: "0x8d7460E51bCf4eD26877cb77E56f3ce7E9f5EB8F".to_string(),

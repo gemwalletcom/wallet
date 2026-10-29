@@ -1,11 +1,15 @@
-package com.gemwallet.android.ui.localization
+package com.gemwallet.android.ui.integration
 
 import android.content.Context
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.gemwallet.android.model.text
+import com.gemwallet.android.ui.localization.string
+import com.gemwallet.android.ui.localization.text
 import com.wallet.core.primitives.Currency
 import io.mockk.mockk
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import org.junit.runner.RunWith
 import uniffi.gemstone.GemCurrencyStyle
 import uniffi.gemstone.GemFormattedNumber
 import uniffi.gemstone.GemLocalizedText
@@ -14,6 +18,7 @@ import uniffi.gemstone.GemPercentageStyle
 import uniffi.gemstone.formattedCurrency
 import uniffi.gemstone.formattedPercentage
 
+@RunWith(AndroidJUnit4::class)
 class WalletTotalHeaderTest {
 
     private val context = mockk<Context>(relaxed = true)

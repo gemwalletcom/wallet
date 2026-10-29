@@ -20,11 +20,12 @@ impl BalanceCommand {
         }
 
         match providers.get_balance_assets(chain, address.clone()).await {
-            Ok(balances) => {
+            Ok(Some(balances)) => {
                 for balance in balances {
                     println!("{}: {}", balance.asset_id, balance.balance.available);
                 }
             }
+            Ok(None) => {}
             Err(error) => eprintln!("Assets balance error: {}", error),
         }
 

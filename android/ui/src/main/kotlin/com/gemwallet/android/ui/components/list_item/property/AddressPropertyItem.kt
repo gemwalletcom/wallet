@@ -1,6 +1,7 @@
 package com.gemwallet.android.ui.components.list_item.property
 
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -91,6 +92,7 @@ fun AddressPropertyItem(row: GemAddressRow, listPosition: ListPosition = ListPos
             }
             val contact = row.contact
             if (contact != null && onCreateContact != null && onAddToContact != null) {
+                if (row.menu.isNotEmpty()) HorizontalDivider()
                 DropdownMenuItem(
                     text = { Text(text = stringResource(id = R.string.contacts_create_new_contact)) },
                     trailingIcon = { Icon(AppIcons.Add, contentDescription = null) },

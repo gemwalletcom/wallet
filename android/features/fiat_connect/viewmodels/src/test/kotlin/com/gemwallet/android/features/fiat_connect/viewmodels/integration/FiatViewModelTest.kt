@@ -1,15 +1,17 @@
-package com.gemwallet.android.features.fiat_connect.viewmodels
+package com.gemwallet.android.features.fiat_connect.viewmodels.integration
 
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.store.queries.AssetQueryOptional
 import com.gemwallet.android.data.services.store.queries.PriceUsdQuery
 import com.gemwallet.android.domains.asset.aggregates.trailingValue
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.features.fiat_connect.viewmodels.FiatViewModel
 import com.gemwallet.android.model.text
 import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.testkit.mockAccount
@@ -61,6 +63,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
 import uniffi.gemstone.FiatQuote
 import uniffi.gemstone.FiatQuoteUrl
 import uniffi.gemstone.GemCurrencyStyle
@@ -77,6 +80,7 @@ import uniffi.gemstone.formattedCurrency
 import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(AndroidJUnit4::class)
 class FiatViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()

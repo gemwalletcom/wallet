@@ -1,0 +1,45 @@
+{
+  "id": "GBMXZMI6SY6YVCXKKMWIQX7YHU4ZRV7PRNWLTKPA3ZDJ7KWSM6LP2XLX",
+  "account_id": "GBMXZMI6SY6YVCXKKMWIQX7YHU4ZRV7PRNWLTKPA3ZDJ7KWSM6LP2XLX",
+  "sequence": "279980538545045504",
+  "subentry_count": 1,
+  "last_modified_ledger": 65188123,
+  "last_modified_time": "2026-10-28T22:26:38Z",
+  "thresholds": {
+    "low_threshold": 1,
+    "med_threshold": 1,
+    "high_threshold": 1
+  },
+  "flags": {
+    "auth_required": false,
+    "auth_revocable": false,
+    "auth_immutable": false,
+    "auth_clawback_enabled": false
+  },
+  "balances": [
+    {
+      "balance": "0.0737762",
+      "buying_liabilities": "0.0000000",
+      "selling_liabilities": "0.0000000",
+      "asset_type": "native"
+    }
+  ],
+  "signers": [
+    {
+      "weight": 1,
+      "key": "GD3ZN2T6QQMKLAGKKMWHHY4FITANVJBTREEJERHTWGWF2GSBPOSHGCLU",
+      "type": "ed25519_public_key",
+      "sponsor": "GD3ZN2T6QQMKLAGKKMWHHY4FITANVJBTREEJERHTWGWF2GSBPOSHGCLU"
+    },
+    {
+      "weight": 0,
+      "key": "GBMXZMI6SY6YVCXKKMWIQX7YHU4ZRV7PRNWLTKPA3ZDJ7KWSM6LP2XLX",
+      "type": "ed25519_public_key"
+    }
+  ],
+  "data": {},
+  "num_sponsoring": 0,
+  "num_sponsored": 3,
+  "sponsor": "GD3ZN2T6QQMKLAGKKMWHHY4FITANVJBTREEJERHTWGWF2GSBPOSHGCLU",
+  "paging_token": "GBMXZMI6SY6YVCXKKMWIQX7YHU4ZRV7PRNWLTKPA3ZDJ7KWSM6LP2XLX"
+}

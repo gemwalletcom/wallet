@@ -58,8 +58,8 @@ impl<C: Client> ChainBalances for TronProvider<C> {
         }
     }
 
-    async fn get_balance_assets(&self, address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>> {
-        Ok(self.get_indexer_accounts(&address).await?.into_iter().next().map(TronGridMapper::map_asset_balances).unwrap_or_default())
+    async fn get_balance_assets(&self, address: String) -> Result<Option<Vec<AssetBalance>>, Box<dyn Error + Send + Sync>> {
+        Ok(Some(self.get_indexer_accounts(&address).await?.into_iter().next().map(TronGridMapper::map_asset_balances).unwrap_or_default()))
     }
 }
 
@@ -152,7 +152,7 @@ mod chain_integration_tests {
     async fn test_tron_get_balance_assets() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_test_client();
         let address = TEST_ADDRESS.to_string();
-        let assets = client.get_balance_assets(address).await?;
+        let assets = client.get_balance_assets(address).await?.unwrap();
 
         assert!(!assets.is_empty(), "TRON test address should have TRC20 tokens");
 

@@ -28,6 +28,8 @@ appId: ${APP_ID}
 - tapOn:
     id: "main_action"
 - runFlow: finish_onboarding.yaml
+- assertVisible:
+    id: "bitcoin"
 - tapOn:
     id: "settingsTab"
 - tapOn:

@@ -429,7 +429,7 @@ where
             return Ok(response.map_or_else(SwapResult::pending, |response| response.status.swap_result(&assets)));
         }
         let response = self.chainflip_client.get_tx_status(&request.transaction_hash).await?;
-        Ok(map_swap_result(&response))
+        Ok(response.as_ref().map_or_else(SwapResult::pending, map_swap_result))
     }
 }
 
@@ -576,6 +576,17 @@ mod tests {
         assert_eq!(result.metadata.unwrap().from_asset, AssetId::from_chain(Chain::Polkadot));
 
         assert_eq!(provider.get_swap_result(&SwapResultRequest::new(Chain::Polkadot, "0xunknown")).await.unwrap(), SwapResult::pending());
+    }
+
+    #[tokio::test]
+    async fn test_vault_swap_result_pending_until_witnessed() {
+        let client = MockClient::new().with_get(|path| match path {
+            "/v2/swaps/0xunknown" => Err(gem_client::ClientError::Http { status: 404, body: vec![] }),
+            _ => panic!("unexpected path: {path}"),
+        });
+        let provider = ChainflipProvider::with_clients(ChainflipClient::new(client), BrokerClient::new(MockClient::new(), MockClient::new()), Arc::new(ProviderMock::new(String::new())));
+
+        assert_eq!(provider.get_swap_result(&SwapResultRequest::new(Chain::Tron, "0xunknown")).await.unwrap(), SwapResult::pending());
     }
 
     #[test]

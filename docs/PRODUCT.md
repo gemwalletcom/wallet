@@ -10,7 +10,7 @@ Before changing how an area works, read its page. A change that breaks a rule wr
 
 **Fast.** Whatever the app already knows shows at once; a refresh updates it in place and never blanks the screen. Independent requests start together and none waits for a slower one. When one source fails, the others still show; the failed one keeps its last known values. Speed of use comes first: the app is kept small only where that costs no noticeable speed.
 
-**Native.** Each app looks and feels like a first-class app of its platform: system navigation, sheets, share, paste, biometrics and the user's locale for numbers and dates. Both apps follow the same rules and make the same decisions; only the drawing is platform-specific. Where the apps differ, the area's Platform differences table says so and why; any other difference is a bug.
+**Native.** Each app looks and feels like a first-class app of its platform: system navigation, sheets, share, paste, biometrics and the user's locale for numbers and dates. A menu, long-press or toolbar, splits its actions into groups with the platform's own divider: copying and opening, then the actions on the item, then anything destructive, last. Both apps follow the same rules and make the same decisions; only the drawing is platform-specific. Where the apps differ, the area's Platform differences table says so and why; any other difference is a bug.
 
 **Simple.** Every screen uses patterns the user already knows: a list of rows, a sheet, a segmented picker, a button that says what it does. The same thing looks and works the same everywhere in the app: one asset row, one address row, one confirmation screen, one way to copy, one way to pick an asset. A new screen copies an existing one rather than inventing a layout. Each screen asks for one decision at a time, shows the outcome where the action happened, and needs no explanation to use. If something needs a tooltip to be understood, the screen is wrong, not the user.
 
@@ -22,7 +22,7 @@ Before changing how an area works, read its page. A change that breaks a rule wr
 
 ## Numbers
 
-Both apps write every number the same way. The examples are in US English and US dollars; separators and where the currency symbol goes follow the user's locale.
+Both apps write every number the same way. The examples are in US English and US dollars; separators and where the currency symbol goes follow the user's locale, and in a right-to-left language a sign stays in front of its number, so `-3 ADA` never reads `ADA 3-`.
 
 ### Money
 
@@ -192,7 +192,8 @@ Some networks require a balance to keep an account open, a minimum payment to ac
 | Solana | Recipient token account creation | 0.00148844 SOL |
 | XRP | New account activation and base reserve | 1 XRP |
 | XRP | Additional reserve per owned object, including a token trust line | 0.2 XRP |
-| Stellar | New account activation and base reserve | 1 XLM |
+| Stellar | New account activation | 1 XLM |
+| Stellar | Base reserve, kept twice for the account and once for each trustline, offer, signer, data entry or entry it sponsors, less each entry another account sponsors for it | 0.5 XLM |
 | Algorand | New account activation | 0.1 ALGO |
 | Tron | New account creation charge | Network's current charges and the sender's bandwidth |
 
@@ -204,7 +205,7 @@ Some networks require a balance to keep an account open, a minimum payment to ac
 | A Solana token transfer needs a recipient token account | its creation amount is included in the Network Fee | the sender funds the new token account |
 | A Solana stake creates its stake account | the Network Fee shows only the network's charge | the stake account's rent comes out of the amount staked |
 
-Account reserves are excluded from the available balance. Algorand reports its account's reserve, which can grow with its assets. Tron account creation is included in the Network Fee using the network's current charges and the sender's bandwidth.
+Account reserves are excluded from the available balance. Algorand reports its account's reserve, which can grow with its assets. A Stellar account with one trustline keeps `1.5 XLM`. Tron account creation is included in the Network Fee using the network's current charges and the sender's bandwidth.
 
 ## Names
 

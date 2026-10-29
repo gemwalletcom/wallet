@@ -21,7 +21,7 @@ struct VerifyPhraseScene: View {
             Section {
                 CaptureProtectedView {
                     SecretPhraseGridView(
-                        rows: model.rows,
+                        words: model.verifiedWords,
                         highlightIndex: model.wordsIndex,
                     )
                 }
