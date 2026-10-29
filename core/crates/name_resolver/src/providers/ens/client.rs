@@ -6,9 +6,17 @@ use alloy_sol_types::{SolCall, SolInterface};
 use gem_client::Client;
 use gem_evm::jsonrpc::EthereumRpc;
 use gem_jsonrpc::JsonRpcClient;
-use gem_jsonrpc::types::JsonRpcError;
+use gem_jsonrpc::types::TypedJsonRpcError;
+use serde::Deserialize;
 
 use super::contract::{ENSResolver, UniversalResolver, UniversalResolver::UniversalResolverErrors};
+
+#[derive(Debug, Default, Deserialize)]
+struct RevertData {
+    data: Option<String>,
+}
+
+type EnsRpcError = TypedJsonRpcError<RevertData>;
 
 pub struct EnsClient<C: Client + Clone> {
     client: JsonRpcClient<C>,
@@ -25,7 +33,7 @@ impl<C: Client + Clone> EnsClient<C> {
             data: ENSResolver::addrCall { node: namehash(name) }.abi_encode().into(),
         }
         .abi_encode();
-        match self.client.request::<String, _>(EthereumRpc::call(&UNIVERSAL_RESOLVER_ADDRESS.to_string(), call)).await {
+        match self.client.request_with_error::<String, _, EnsRpcError>(EthereumRpc::call(&UNIVERSAL_RESOLVER_ADDRESS.to_string(), call)).await {
             Ok(result) => {
                 let resolved = UniversalResolver::resolveCall::abi_decode_returns(&hex::decode(result)?)?;
                 Ok(Some(ENSResolver::addrCall::abi_decode_returns(&resolved._0)?))
@@ -38,7 +46,7 @@ impl<C: Client + Clone> EnsClient<C> {
     }
 }
 
-fn resolver_error(error: &JsonRpcError) -> Option<UniversalResolverErrors> {
-    let data = hex::decode(error.data.as_ref()?.as_str()?).ok()?;
+fn resolver_error(error: &EnsRpcError) -> Option<UniversalResolverErrors> {
+    let data = hex::decode(error.payload.data.as_ref()?).ok()?;
     UniversalResolverErrors::abi_decode(&data).ok()
 }

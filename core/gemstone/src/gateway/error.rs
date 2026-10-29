@@ -44,10 +44,14 @@ pub(crate) fn map_network_error(error: Box<dyn Error + Send + Sync>) -> GatewayE
     if is_offline(error.as_ref()) {
         return GatewayError::Offline;
     }
-    if let Some(jsonrpc_error) = error.downcast_ref::<JsonRpcError>()
-        && jsonrpc_error.code == ERROR_CLIENT_ERROR
-    {
-        return GatewayError::NetworkError { msg: jsonrpc_error.message.clone() };
+    let mut current_error: Option<&(dyn Error + 'static)> = Some(error.as_ref());
+    while let Some(current) = current_error {
+        if let Some(jsonrpc_error) = current.downcast_ref::<JsonRpcError>()
+            && jsonrpc_error.code == ERROR_CLIENT_ERROR
+        {
+            return GatewayError::NetworkError { msg: jsonrpc_error.message.clone() };
+        }
+        current_error = current.source();
     }
 
     let message = if let Some(status) = http_status_from_error(error.as_ref()) {
@@ -96,7 +100,18 @@ fn http_status_from_error(error: &(dyn Error + 'static)) -> Option<u16> {
 
 #[cfg(test)]
 mod tests {
+    use gem_near::rpc::NearRpcError;
+
     use super::*;
+
+    #[test]
+    fn test_map_network_error_with_typed_jsonrpc_error() {
+        for (code, message, expected) in [(ERROR_CLIENT_ERROR, "HTTP error: status 404", "HTTP error: status 404"), (-32000, "Server error", "Server error (-32000)")] {
+            let error = NearRpcError::from(JsonRpcError { code, message: message.to_string() });
+
+            assert_eq!(map_network_error(Box::new(error)), GatewayError::NetworkError { msg: expected.to_string() });
+        }
+    }
 
     #[test]
     fn test_map_network_error_with_status_code() {
@@ -117,8 +132,6 @@ mod tests {
             map_network_error(Box::new(JsonRpcError {
                 code: ERROR_CLIENT_ERROR,
                 message: "Network error: network offline".to_string(),
-                cause: None,
-                data: None,
             })),
             GatewayError::Offline
         );
@@ -143,8 +156,6 @@ mod tests {
         let error = JsonRpcError {
             code: ERROR_CLIENT_ERROR,
             message: "HTTP error: status 404".to_string(),
-            cause: None,
-            data: None,
         };
         let mapped = map_network_error(Box::new(error));
 

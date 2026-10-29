@@ -120,8 +120,6 @@ impl<C: Client + Clone> EthereumClient<C> {
         let biguint = biguint_from_hex_str(&value).map_err(|_| JsonRpcError {
             code: ERROR_INTERNAL_ERROR,
             message: format!("Failed to parse gas price: {value}"),
-            cause: None,
-            data: None,
         })?;
         Ok(BigInt::from_biguint(Sign::Plus, biguint))
     }

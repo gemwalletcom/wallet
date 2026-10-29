@@ -11,27 +11,33 @@ pub struct JsonRpcClient<C: Client + Clone> {
 
 impl From<ClientError> for JsonRpcError {
     fn from(value: ClientError) -> Self {
-        match &value {
-            ClientError::Http { body, .. } | ClientError::Response { body, .. } => {
-                if let Ok(JsonRpcResult::Error(response)) = serde_json::from_slice::<JsonRpcResult<Value>>(body) {
-                    return response.error;
-                }
-                if let Ok(mut responses) = serde_json::from_slice::<Vec<JsonRpcResult<Value>>>(body) {
-                    responses.sort_by_key(JsonRpcResult::id);
-                    if let Err(error) = JsonRpcResults(responses).take_all() {
-                        return error;
-                    }
+        decode_client_error(value)
+    }
+}
+
+fn decode_client_error<E>(value: ClientError) -> E
+where
+    E: DeserializeOwned + From<JsonRpcError> + AsMut<JsonRpcError> + Send,
+{
+    match &value {
+        ClientError::Http { body, .. } | ClientError::Response { body, .. } => {
+            if let Ok(JsonRpcResult::Error(response)) = serde_json::from_slice::<JsonRpcResult<Value, E>>(body) {
+                return response.error;
+            }
+            if let Ok(mut responses) = serde_json::from_slice::<Vec<JsonRpcResult<Value, E>>>(body) {
+                responses.sort_by_key(JsonRpcResult::id);
+                if let Err(error) = JsonRpcResults(responses).take_all() {
+                    return error;
                 }
             }
-            ClientError::Network(_) | ClientError::Timeout | ClientError::Serialization(_) => {}
         }
-        JsonRpcError {
-            code: ERROR_CLIENT_ERROR,
-            message: value.to_string(),
-            cause: None,
-            data: None,
-        }
+        ClientError::Network(_) | ClientError::Timeout | ClientError::Serialization(_) => {}
     }
+    JsonRpcError {
+        code: ERROR_CLIENT_ERROR,
+        message: value.to_string(),
+    }
+    .into()
 }
 
 impl<C: Client + Clone> JsonRpcClient<C> {
@@ -40,8 +46,17 @@ impl<C: Client + Clone> JsonRpcClient<C> {
     }
 
     pub async fn request<U: DeserializeOwned + Send, T: ToJsonRpcRequest>(&self, request: T) -> Result<U, JsonRpcError> {
+        self.request_with_error(request).await
+    }
+
+    pub async fn request_with_error<U, T, E>(&self, request: T) -> Result<U, E>
+    where
+        U: DeserializeOwned + Send,
+        T: ToJsonRpcRequest,
+        E: DeserializeOwned + From<JsonRpcError> + AsMut<JsonRpcError> + Send,
+    {
         let timestamp = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap_or_default().as_secs();
-        let result: JsonRpcResult<U> = self.send_request(&request.to_jsonrpc_request(timestamp)).await?;
+        let result: JsonRpcResult<U, E> = self.send_request::<U, E>(&request.to_jsonrpc_request(timestamp)).await?;
         result.take()
     }
 
@@ -58,16 +73,18 @@ impl<C: Client + Clone> JsonRpcClient<C> {
             return Err(JsonRpcError {
                 message: "Invalid batch response IDs".into(),
                 code: ERROR_INTERNAL_ERROR,
-                cause: None,
-                data: None,
             });
         }
 
         Ok(JsonRpcResults(results))
     }
 
-    async fn send_request<T: DeserializeOwned + Send>(&self, request: &JsonRpcRequest) -> Result<JsonRpcResult<T>, JsonRpcError> {
-        Ok(self.client.post("", request).await?)
+    async fn send_request<T, E>(&self, request: &JsonRpcRequest) -> Result<JsonRpcResult<T, E>, E>
+    where
+        T: DeserializeOwned + Send,
+        E: DeserializeOwned + From<JsonRpcError> + AsMut<JsonRpcError> + Send,
+    {
+        self.client.post::<_, JsonRpcResult<T, E>>("", request).await.map_err(decode_client_error)
     }
 }
 
@@ -83,8 +100,20 @@ impl JsonRpcClient<gem_client::ReqwestClient> {
 #[cfg(test)]
 mod tests {
     use gem_client::{Response, deserialize_response, testkit::MockClient};
+    use serde::{Deserialize, Serialize};
 
     use super::*;
+    use crate::types::TypedJsonRpcError;
+
+    #[derive(Debug, Default, Deserialize, Serialize)]
+    struct Payload {
+        #[serde(skip_serializing_if = "Option::is_none")]
+        cause: Option<Value>,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        data: Option<String>,
+    }
+
+    type MockRpcError = TypedJsonRpcError<Payload>;
 
     struct Method(&'static str);
 
@@ -96,6 +125,15 @@ mod tests {
         fn params(&self) -> Value {
             Value::Array(vec![])
         }
+    }
+
+    #[tokio::test]
+    async fn test_request_with_error_preserves_transport_failure() {
+        let client = JsonRpcClient::new(MockClient::new().with_post(|_, _| Err(ClientError::Timeout)));
+
+        let error = client.request_with_error::<Value, _, MockRpcError>(Method("eth_call")).await.unwrap_err();
+
+        assert_eq!(serde_json::to_value(error).unwrap(), serde_json::json!({"code":ERROR_CLIENT_ERROR,"message":"Timeout error"}));
     }
 
     #[tokio::test]
@@ -133,7 +171,7 @@ mod tests {
                         status,
                         data: serde_json::to_vec(&serde_json::json!({"jsonrpc":"2.0","id":id,"error":expected})).unwrap(),
                     };
-                    let error = deserialize_response::<JsonRpcResult<Value>>(&response).map_err(JsonRpcError::from).and_then(JsonRpcResult::take).unwrap_err();
+                    let error = deserialize_response::<JsonRpcResult<Value, MockRpcError>>(&response).map_err(decode_client_error).and_then(JsonRpcResult::take).unwrap_err();
 
                     assert_eq!(&serde_json::to_value(error).unwrap(), expected);
                 }
@@ -148,7 +186,7 @@ mod tests {
                 status: Some(status),
                 data: br#"[{"id":2,"error":{"code":-32000,"message":"Provider detail","cause":{"name":"X"},"data":"0x01"}},{"id":1,"result":7}]"#.to_vec(),
             };
-            let error = deserialize_response::<Vec<JsonRpcResult<Value>>>(&response).map_err(JsonRpcError::from).unwrap_err();
+            let error = deserialize_response::<Vec<JsonRpcResult<Value, MockRpcError>>>(&response).map_err(decode_client_error::<MockRpcError>).unwrap_err();
 
             assert_eq!(
                 serde_json::to_value(error).unwrap(),
@@ -166,7 +204,7 @@ mod tests {
             };
             let error = deserialize_response::<Vec<JsonRpcResult<u64>>>(&response).map_err(JsonRpcError::from).unwrap_err();
 
-            assert_eq!((error.code, error.message, error.cause), (ERROR_CLIENT_ERROR, format!("HTTP error: status {status}"), None));
+            assert_eq!((error.code, error.message), (ERROR_CLIENT_ERROR, format!("HTTP error: status {status}")));
         }
     }
 
@@ -179,7 +217,7 @@ mod tests {
             };
             let error = deserialize_response::<JsonRpcResult<u64>>(&response).map_err(JsonRpcError::from).and_then(JsonRpcResult::take).unwrap_err();
 
-            assert_eq!((error.code, error.message, error.cause), (ERROR_CLIENT_ERROR, format!("HTTP error: status {status}"), None));
+            assert_eq!((error.code, error.message), (ERROR_CLIENT_ERROR, format!("HTTP error: status {status}")));
         }
     }
 
@@ -191,6 +229,6 @@ mod tests {
         };
         let error = deserialize_response::<JsonRpcResult<Value>>(&response).map_err(JsonRpcError::from).unwrap_err();
 
-        assert_eq!((error.code, error.message, error.cause), (ERROR_CLIENT_ERROR, "Invalid request".to_string(), None));
+        assert_eq!((error.code, error.message), (ERROR_CLIENT_ERROR, "Invalid request".to_string()));
     }
 }

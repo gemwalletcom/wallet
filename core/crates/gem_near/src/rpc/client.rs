@@ -1,3 +1,4 @@
+use super::NearRpcError;
 use crate::{
     jsonrpc::NearRpc,
     models::{Account, AccountAccessKey, AccountAccessKeyList, Block, BroadcastResult, GasPrice, NodeStatus, ProtocolConfig},
@@ -27,11 +28,11 @@ impl<C: Client + Clone> NearClient<C> {
         Self { client, chain: Chain::Near }
     }
 
-    pub async fn get_account(&self, address: &str) -> Result<Account, JsonRpcError> {
-        self.client.request(NearRpc::GetAccount { account_id: address.to_string() }).await
+    pub async fn get_account(&self, address: &str) -> Result<Account, NearRpcError> {
+        self.client.request_with_error(NearRpc::GetAccount { account_id: address.to_string() }).await
     }
 
-    pub async fn account_exists(&self, address: &str) -> Result<bool, JsonRpcError> {
+    pub async fn account_exists(&self, address: &str) -> Result<bool, NearRpcError> {
         match self.get_account(address).await {
             Ok(_) => Ok(true),
             Err(error) if is_account_missing(&error) => Ok(false),
@@ -99,6 +100,6 @@ impl<C: Client + Clone> NearClient<C> {
     }
 }
 
-pub(crate) fn is_account_missing(error: &JsonRpcError) -> bool {
-    error.code == ACCOUNT_NOT_FOUND_ERROR_CODE
+pub(crate) fn is_account_missing(error: &NearRpcError) -> bool {
+    error.error.code == ACCOUNT_NOT_FOUND_ERROR_CODE
 }

@@ -42,10 +42,6 @@ impl JsonRpcRequest {
 pub struct JsonRpcError {
     pub code: i32,
     pub message: String,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub cause: Option<Value>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub data: Option<Box<Value>>,
 }
 
 impl Display for JsonRpcError {
@@ -59,6 +55,44 @@ impl Display for JsonRpcError {
 
 impl std::error::Error for JsonRpcError {}
 
+impl AsMut<JsonRpcError> for JsonRpcError {
+    fn as_mut(&mut self) -> &mut JsonRpcError {
+        self
+    }
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct TypedJsonRpcError<T> {
+    #[serde(flatten)]
+    pub error: JsonRpcError,
+    #[serde(flatten)]
+    pub payload: T,
+}
+
+impl<T: Default> From<JsonRpcError> for TypedJsonRpcError<T> {
+    fn from(error: JsonRpcError) -> Self {
+        Self { error, payload: T::default() }
+    }
+}
+
+impl<T> AsMut<JsonRpcError> for TypedJsonRpcError<T> {
+    fn as_mut(&mut self) -> &mut JsonRpcError {
+        &mut self.error
+    }
+}
+
+impl<T> Display for TypedJsonRpcError<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        Display::fmt(&self.error, f)
+    }
+}
+
+impl<T: Debug> std::error::Error for TypedJsonRpcError<T> {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(&self.error)
+    }
+}
+
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct JsonRpcResponse<T> {
     pub id: Option<u64>,
@@ -66,19 +100,19 @@ pub struct JsonRpcResponse<T> {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct JsonRpcErrorResponse {
+pub struct JsonRpcErrorResponse<E = JsonRpcError> {
     pub id: Option<u64>,
-    pub error: JsonRpcError,
+    pub error: E,
 }
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(untagged)]
-pub enum JsonRpcResult<T> {
+pub enum JsonRpcResult<T, E = JsonRpcError> {
     Value(JsonRpcResponse<T>),
-    Error(JsonRpcErrorResponse),
+    Error(JsonRpcErrorResponse<E>),
 }
 
-impl<'de, T: Deserialize<'de>> Deserialize<'de> for JsonRpcResult<T> {
+impl<'de, T: Deserialize<'de>, E: Deserialize<'de>> Deserialize<'de> for JsonRpcResult<T, E> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
@@ -87,7 +121,7 @@ impl<'de, T: Deserialize<'de>> Deserialize<'de> for JsonRpcResult<T> {
         let id = raw.get("id").and_then(Value::as_u64);
 
         if let Some(error) = raw.get("error") {
-            let error: JsonRpcError = serde_json::from_value(error.clone()).map_err(serde::de::Error::custom)?;
+            let error = E::deserialize(error.clone()).map_err(serde::de::Error::custom)?;
             return Ok(JsonRpcResult::Error(JsonRpcErrorResponse { id, error }));
         }
 
@@ -100,7 +134,7 @@ impl<'de, T: Deserialize<'de>> Deserialize<'de> for JsonRpcResult<T> {
     }
 }
 
-impl<T> JsonRpcResult<T> {
+impl<T, E> JsonRpcResult<T, E> {
     pub fn id(&self) -> Option<u64> {
         match self {
             Self::Value(response) => response.id,
@@ -108,7 +142,7 @@ impl<T> JsonRpcResult<T> {
         }
     }
 
-    pub fn take(self) -> Result<T, JsonRpcError> {
+    pub fn take(self) -> Result<T, E> {
         match self {
             JsonRpcResult::Value(value) => Ok(value.result),
             JsonRpcResult::Error(error) => Err(error.error),
@@ -116,40 +150,39 @@ impl<T> JsonRpcResult<T> {
     }
 }
 
-pub struct JsonRpcResults<T>(pub Vec<JsonRpcResult<T>>);
+pub struct JsonRpcResults<T, E = JsonRpcError>(pub Vec<JsonRpcResult<T, E>>);
 
-impl<T> JsonRpcResults<T> {
-    pub fn take_all(self) -> Result<Vec<T>, JsonRpcError> {
+impl<T, E: AsMut<JsonRpcError>> JsonRpcResults<T, E> {
+    pub fn take_all(self) -> Result<Vec<T>, E> {
         self.0
             .into_iter()
             .enumerate()
-            .map(|(i, r)| {
-                r.take().map_err(|error| JsonRpcError {
-                    code: error.code,
-                    message: format!("batch request [{}]: {}", i, error.message),
-                    cause: error.cause,
-                    data: error.data,
+            .map(|(i, result)| {
+                result.take().map_err(|mut error| {
+                    let base = error.as_mut();
+                    base.message = format!("batch request [{}]: {}", i, base.message);
+                    error
                 })
             })
             .collect()
     }
 }
 
-impl<T> Default for JsonRpcResults<T> {
+impl<T, E> Default for JsonRpcResults<T, E> {
     fn default() -> Self {
-        JsonRpcResults(Vec::new())
+        Self(Vec::new())
     }
 }
 
-impl<T> From<Vec<JsonRpcResult<T>>> for JsonRpcResults<T> {
-    fn from(vec: Vec<JsonRpcResult<T>>) -> Self {
-        JsonRpcResults(vec)
+impl<T, E> From<Vec<JsonRpcResult<T, E>>> for JsonRpcResults<T, E> {
+    fn from(vec: Vec<JsonRpcResult<T, E>>) -> Self {
+        Self(vec)
     }
 }
 
-impl<T> IntoIterator for JsonRpcResults<T> {
-    type Item = JsonRpcResult<T>;
-    type IntoIter = std::vec::IntoIter<JsonRpcResult<T>>;
+impl<T, E> IntoIterator for JsonRpcResults<T, E> {
+    type Item = JsonRpcResult<T, E>;
+    type IntoIter = std::vec::IntoIter<JsonRpcResult<T, E>>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
@@ -165,8 +198,6 @@ mod tests {
         let error = JsonRpcError {
             code: ERROR_CLIENT_ERROR,
             message: String::new(),
-            cause: None,
-            data: None,
         };
 
         assert_eq!(format!("{error}"), "Client error (-32900)");
@@ -177,8 +208,6 @@ mod tests {
         let error = JsonRpcError {
             code: ERROR_METHOD_NOT_FOUND,
             message: "Method not found".into(),
-            cause: None,
-            data: None,
         };
 
         assert_eq!(format!("{error}"), "Method not found (-32601)");
@@ -260,8 +289,6 @@ mod tests {
                 error: JsonRpcError {
                     code: ERROR_INVALID_REQUEST,
                     message: "Invalid".into(),
-                    cause: None,
-                    data: None,
                 },
             }),
         ]
