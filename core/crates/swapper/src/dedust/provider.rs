@@ -131,12 +131,10 @@ where
     async fn get_quote_data(&self, quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
         let swap = DedustSwap::new(quote, &quote.route_data()?, &quote.request.on_chain_referral_fee())?;
         let from = DedustAsset::from_asset_id(&quote.request.from_asset.asset_id())?;
+        let vault = from.vault_address()?;
         let messages = match &from {
-            DedustAsset::Native => swap.native_messages(&self.client.vault_address(&from).await?)?,
-            DedustAsset::Jetton(jetton) => {
-                let (vault, jetton_wallet) = futures::try_join!(self.client.vault_address(&from), self.client.jetton_wallet(&quote.request.wallet_address, jetton))?;
-                swap.jetton_messages(&vault, &jetton_wallet)?
-            }
+            DedustAsset::Native => swap.native_messages(&vault)?,
+            DedustAsset::Jetton(jetton) => swap.jetton_messages(&vault, &self.client.jetton_wallet(&quote.request.wallet_address, jetton).await?)?,
         };
         TonConnectMessage::swap_quote_data(&messages).map_err(SwapperError::compute_quote_error)
     }
@@ -195,6 +193,23 @@ mod tests {
         assert_eq!(data.to, NATIVE_VAULT);
         assert_eq!(data.value, BigUint::from(1_250_000_000u64));
         assert_eq!(quote_messages(&data).len(), 2);
+    }
+
+    #[tokio::test]
+    async fn test_quote_data_refuses_a_vault_the_app_does_not_ship() {
+        let mut records: Vec<serde_json::Value> = serde_json::from_str(include_str!("testdata/ton_to_usdt_get_methods.json")).unwrap();
+        records.push(serde_json::json!({
+            "request": {"address": "EQBfBWT7X2BHg9tXAxzhz2aKiNTU1tpt5NsiK0uSDW_YAJ67", "method": "get_vault_address", "stack": [{"type": "slice", "value": "te6cckEBAQEAAwAAAQiFl+L/"}]},
+            "response": {"exit_code": 0, "stack": [{"type": "cell", "value": Address::parse(TEST_USDT_WALLET).unwrap().to_boc_base64().unwrap()}]}
+        }));
+        let calls = Arc::new(Mutex::new(Vec::new()));
+        let provider = Dedust::with_client(mock_ton_client_with_calls(&serde_json::to_string(&records).unwrap(), calls.clone()));
+
+        let quote = provider.get_quote(&mock_request(ton(), usdt(), 1_000_000_000)).await.unwrap();
+        let data = provider.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
+
+        assert_eq!(data.to, NATIVE_VAULT);
+        assert!(!calls.lock().unwrap().iter().any(|method| method == "get_vault_address"));
     }
 
     #[tokio::test]

@@ -187,27 +187,6 @@
   },
   {
     "request": {
-      "address": "EQBfBWT7X2BHg9tXAxzhz2aKiNTU1tpt5NsiK0uSDW_YAJ67",
-      "method": "get_vault_address",
-      "stack": [
-        {
-          "type": "slice",
-          "value": "te6cckEBAQEAJAAAQxALETqZS1AkoWcZ9pE5Mo63WVlsOKJfWQKLFG/s3DYh3+iNJO1L"
-        }
-      ]
-    },
-    "response": {
-      "exit_code": 0,
-      "stack": [
-        {
-          "type": "cell",
-          "value": "te6cckEBAQEAJAAAQ4ADFVHF3aouj7XAZ4DzcnEHsoOVseyos+XdOa6Oltcdq7AgtXUP"
-        }
-      ]
-    }
-  },
-  {
-    "request": {
       "address": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
       "method": "get_wallet_address",
       "stack": [
