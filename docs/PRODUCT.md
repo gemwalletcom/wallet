@@ -1,6 +1,6 @@
 # Product behavior
 
-This is the high-level definition of how the wallet behaves, from the user's side. The principles below apply to every screen, and so do the shared sections after them: numbers, asset logos, the Network Fee, names, asset search, charts, secrets, feature availability and toasts. Each area has its own short page under [product/](product/): the success path as steps, a diagram where it reads faster than words, the expected results and the platform differences as tables, and the few rules no table can hold. How the code delivers it lives in [ARCHITECTURE.md](ARCHITECTURE.md); the gaps live in [TODO.md](TODO.md).
+This is the high-level definition of how the wallet behaves, from the user's side. The principles below apply to every screen, and so do the shared sections after them: numbers, asset logos, the Network Fee, names, asset search, charts, secrets, feature availability and feedback: toasts and haptics. Each area has its own short page under [product/](product/): the success path as steps, a diagram where it reads faster than words, the expected results and the platform differences as tables, and the few rules no table can hold. How the code delivers it lives in [ARCHITECTURE.md](ARCHITECTURE.md); the gaps live in [TODO.md](TODO.md).
 
 Before changing how an area works, read its page. A change that breaks a rule written there is a product decision, not a cleanup: ask first, and update the page in the same change when the intent moves.
 
@@ -269,7 +269,11 @@ If an action is unavailable, show the Not Available sheet and stop. Learn More o
 
 Load config at startup and use the stored flags for actions. Features default to enabled until config is loaded. Keep quotes visible, and Withdraw and Close available.
 
-## Toasts
+## Feedback
+
+The app answers what the user just did with a toast, a haptic or both: pinning an asset shows a toast, sliding along a chart ticks, and a scanned QR code that cannot be read shows the reason and plays an error haptic.
+
+### Toasts
 
 A toast is the short message at the bottom of the screen that confirms what the user just did, or says why it failed. Each area lists the toasts it shows in a Toasts section on its page, and the ones no area owns are below. Anything not listed shows no toast.
 
@@ -310,6 +314,44 @@ The emoji in a Toast column stands for the icon the toast shows:
 - A transaction never shows a toast: its Pending row in Activity and its push say how it went. Only an action that leaves no transaction to follow, such as a perpetual order, shows one after Confirm.
 - When the screen the action happened on closes, the toast shows on the screen the user lands on, whichever it is; it is never lost because that screen has nowhere to show it.
 - A failure shows ❌ with the reason; a success never shows ❌.
+
+### Haptics
+
+A haptic is the short vibration that confirms what the user's finger just did, or warns before a step that is hard to take back. Anything not listed has no haptic.
+
+| Haptic | Means |
+|---|---|
+| Success | it worked |
+| Error | it did not work |
+| Warning | the next tap is hard to take back |
+| Tap | a control moved under the finger |
+| Tick | the value under the finger changed |
+
+| When | Haptic | Why |
+|---|---|---|
+| A value is copied | Success, with its toast | |
+| The user taps the wallet balance to hide or show it | Tap | |
+| The user slides along the price chart, a portfolio chart or a market's candlestick chart | Tick each time the point under the finger changes, not when it first shows | the first point shows on its own; a tick marks each step after it |
+| The user taps a word that is not the next one on "Confirm", in [Onboarding](product/onboarding.md) | Error, and the word shakes | |
+| A scanned QR code cannot be read | Error, with its toast | |
+| Any Paste finds nothing on the clipboard | Error | nothing else shows that the tap did nothing; a copied Secret Phrase leaves the clipboard after a minute or once it is pasted, so this happens on real devices |
+| An alert asks to confirm a step that cannot be undone or changes money: deleting a wallet or a node the user added, a high Price Impact on Swap, Modify on a perpetual position | Warning | it marks the one tap to think about; an action with no confirmation, such as disconnecting a dapp, has none |
+| Confirm sends or signs a transaction | Success | the one moment money moves; the transaction itself still shows no toast |
+| Confirm fails to send | Error, with its alert | |
+| Import finds the Secret Phrase, private key or address invalid | Error, with the error | the error marks the wrong words, so the field does not shake |
+
+| When | iOS | Android | Expected |
+|---|---|---|---|
+| A value is copied | Success | none | as iOS, [TODO.md](TODO.md) BD531 |
+| An alert asks to confirm a step that cannot be undone or changes money | Warning | none | as iOS, [TODO.md](TODO.md) BD531 |
+| Any Paste finds nothing on the clipboard | Error on Import Wallet only; the other Paste buttons do nothing | nothing happens | Error on every Paste, [TODO.md](TODO.md) D534 |
+| Confirm sends, signs or fails | none | none | Success or Error, [TODO.md](TODO.md) D532 |
+| Import finds the input invalid | none | none | Error, [TODO.md](TODO.md) D533 |
+
+- A haptic only answers the user's own touch; a refresh, a price change or a push never plays one.
+- Typing, scrolling and plain buttons have none, so a haptic keeps its meaning. Validation while the user types is silent; only a tap that fails plays Error.
+- Leverage, price alerts and dapp connections play none: they already show their result, and a haptic on every success stops meaning anything.
+- The system's own haptics, on a long-press menu, Face ID or pull to refresh, are never doubled.
 
 ## Areas
 

@@ -156,6 +156,17 @@ Taps on rows that already exist, not new row types.
 
 Differences between the apps, or between an app and the server, each with its decision.
 
+- **BD531** **S** **Android has no haptic on copy or on warnings.**
+  - **iOS:** a success haptic on every copy ([`View+CopyToast.swift`](../ios/Packages/PrimitivesComponents/Sources/Extensions/View+CopyToast.swift)); a warning haptic when deleting a wallet or a node, on a high Price Impact and on a position's Modify options.
+  - **Android:** none of them.
+  - **Expected:** as iOS, see [PRODUCT.md § Haptics](PRODUCT.md#haptics). iOS plays the warning from its one shared alert ([`View+Alert.swift`](../ios/Packages/PrimitivesComponents/Sources/Extensions/View+Alert.swift), `sensoryFeedback`), while Android builds each of these dialogs on its own `AlertDialog`; the haptic goes in one shared place on Android too, not in each screen.
+- **D532** **S** **Confirm plays Success when it sends or signs and Error when it fails**, on both apps ([`ConfirmTransferSceneViewModel.swift`](../ios/Features/Transfer/Sources/ViewModels/ConfirmTransferSceneViewModel.swift) `confirm()`, [`ConfirmTransferViewModel.kt`](../android/features/transfer/viewmodels/src/main/kotlin/com/gemwallet/android/features/transfer/viewmodels/confirm/ConfirmTransferViewModel.kt)). Send, swap, stake and perpetuals all finish there, so one change covers them. See [PRODUCT.md § Haptics](PRODUCT.md#haptics).
+- **D533** **S** **Import plays Error when the Secret Phrase, private key or address is invalid**, with the error it already shows and no shake, on both apps ([`ImportWalletSceneViewModel.swift`](../ios/Features/Onboarding/Sources/ViewModels/ImportWalletSceneViewModel.swift), [`ImportWalletViewModel.kt`](../android/features/onboarding/viewmodels/src/main/kotlin/com/gemwallet/android/features/onboarding/viewmodels/import_wallet/ImportWalletViewModel.kt)).
+- **D534** **S** **Every Paste that finds nothing plays Error.**
+  - **iOS:** only Paste on Import Wallet does ([`ImportWalletSceneViewModel.swift`](../ios/Features/Onboarding/Sources/ViewModels/ImportWalletSceneViewModel.swift)); the recipient address, contact, Add node, Add Token and WalletConnect Paste do nothing.
+  - **Android:** every Paste does nothing ([`ImportInput.kt`](../android/features/onboarding/presents/src/main/kotlin/com/gemwallet/android/features/onboarding/presents/import_wallet/components/ImportInput.kt), [`ClipboardExt.kt`](../android/ui/src/main/kotlin/com/gemwallet/android/ui/components/clipboard/ClipboardExt.kt)).
+  - **Expected:** Error on every Paste, played from one shared paste path per app, not from each screen.
+
 ## 10. Module layout and names
 
 A feature module is one product area, and both apps give it the same name. iOS groups by product area and is the reference; Android splits many areas into one module per screen.
