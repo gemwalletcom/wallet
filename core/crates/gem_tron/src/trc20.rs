@@ -5,7 +5,8 @@ use crate::address::TronAddress;
 
 const ABI_WORD_LEN: usize = 32;
 const GASFREE_PERMIT_TRANSFER_SELECTOR: [u8; 4] = [0x6f, 0x21, 0xb8, 0x98];
-pub(crate) const TRC20_APPROVE_SELECTOR: [u8; 4] = [0x09, 0x5e, 0xa7, 0xb3];
+const TRC20_APPROVE_SELECTOR: [u8; 4] = [0x09, 0x5e, 0xa7, 0xb3];
+const TRC20_INCREASE_APPROVAL_SELECTOR: [u8; 4] = [0xd7, 0x3d, 0xd6, 0x23];
 const TRC20_TRANSFER_SELECTOR: [u8; 4] = [0xa9, 0x05, 0x9c, 0xbb];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -29,12 +30,16 @@ pub fn encode_approval_max(spender: &TronAddress) -> Result<Vec<u8>, &'static st
     Ok(data)
 }
 
+pub(crate) fn is_approval_call(data: &[u8]) -> bool {
+    data.starts_with(&TRC20_APPROVE_SELECTOR) || data.starts_with(&TRC20_INCREASE_APPROVAL_SELECTOR)
+}
+
 pub fn decode_approval_hex(data: &str) -> Option<ApprovalCall> {
     decode_approval(&hex::decode(data).ok()?)
 }
 
 pub fn decode_approval(data: &[u8]) -> Option<ApprovalCall> {
-    if data.len() != TRC20_APPROVE_SELECTOR.len() + ABI_WORD_LEN * 2 || !data.starts_with(&TRC20_APPROVE_SELECTOR) {
+    if data.len() != TRC20_APPROVE_SELECTOR.len() + ABI_WORD_LEN * 2 || !is_approval_call(data) {
         return None;
     }
 
@@ -86,7 +91,13 @@ mod tests {
             decode_approval_hex("87517c45000000000000000000000000a614f803b6fd780986a42c78ec9c7f77e6ded13c000000000000000000000000a31d689a84244bc01be56e07aeafb7686f56bb89"),
             None
         );
+        let increase = decode_approval_hex("d73dd623000000000000000000000041c148af9b50bc03cc0c616cd85c66aae9bd90cd80ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap();
+
+        assert_eq!(increase.spender.encode(), "TTbCVPfUZmPhrB9sYC8GKgGBQQEdZovkmS");
+        assert_eq!(increase.value, BigUint::from_bytes_be(&[0xff; ABI_WORD_LEN]));
+
         assert_eq!(decode_approval_hex("095ea7b3"), None);
+        assert_eq!(decode_approval_hex("d73dd623"), None);
         assert_eq!(
             decode_approval_hex("095ea7b3000000000000000000010000019e353a35efaa8e27c2a602a791ae1b19d9c9fa0000000000000000000000000000000000000000000000000000000000000000",),
             None

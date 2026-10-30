@@ -13,7 +13,7 @@ use crate::models::{TriggerSmartContractData, TronRpcError};
 use crate::provider::simulation_mapper::{map_approval_simulation, map_execution_error, map_simulation_result};
 use crate::rpc::TronProvider;
 use crate::transaction::approval::PERMIT2_APPROVE_SELECTOR;
-use crate::trc20::TRC20_APPROVE_SELECTOR;
+use crate::trc20::is_approval_call;
 
 #[async_trait]
 impl<C: Client> ChainSimulation for TronProvider<C> {
@@ -24,7 +24,7 @@ impl<C: Client> ChainSimulation for TronProvider<C> {
         };
 
         let data = hex::decode(&contract_data.data)?;
-        if (data.starts_with(&TRC20_APPROVE_SELECTOR) || data.starts_with(&PERMIT2_APPROVE_SELECTOR))
+        if (is_approval_call(&data) || data.starts_with(&PERMIT2_APPROVE_SELECTOR))
             && let Some(approval) = decode_wallet_connect_approval(&input.encoded_transaction)?
         {
             return Ok(map_approval_simulation(approval));
@@ -87,6 +87,27 @@ mod tests {
         );
         assert_eq!(result.payload[0].value, "approve");
         assert_eq!(result.payload[2].value, "TJoSEwEqt7cT3TUwmEoUYnYs5cZR3xSukM");
+    }
+
+    #[tokio::test]
+    async fn test_simulate_transaction_decodes_increase_approval() {
+        let client = TronProvider::new_rpc_only(TronClient::new(MockClient::new()));
+        let mut data: serde_json::Value = serde_json::from_str(include_str!("../../../gem_wallet_connect/testdata/tron_send_transaction.json")).unwrap();
+        let spender_word = "00000000000000000000000060e00625a95cbc180f290e2611c826f90eeba56f";
+        data["transaction"]["raw_data"]["contract"][0]["parameter"]["value"]["data"] = format!("d73dd623{spender_word}{}", "ff".repeat(32)).into();
+        data["transaction"].as_object_mut().unwrap().remove("raw_data_hex");
+        data["transaction"].as_object_mut().unwrap().remove("txID");
+        let result = client.simulate_transaction(SimulationInput::new(data.to_string())).await.unwrap();
+        assert_eq!(
+            result.header,
+            Some(SimulationHeader {
+                asset_id: AssetId::from_token(Chain::Tron, "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"),
+                value: None,
+                is_unlimited: true,
+            })
+        );
+        assert_eq!(result.payload[2].value, "TJoSEwEqt7cT3TUwmEoUYnYs5cZR3xSukM");
+        assert_eq!(result.warnings.len(), 1);
     }
 
     #[tokio::test]

@@ -111,6 +111,20 @@ mod tests {
         without_hex["transaction"].as_object_mut().unwrap().remove("raw_data_hex");
         assert_eq!(decode_wallet_connect_approval(&without_hex.to_string()).unwrap(), decode_wallet_connect_approval(PAYLOAD).unwrap());
         assert_eq!(decode_wallet_connect_approval(&payload_with_calldata(PAYLOAD, "deadbeef")).unwrap(), None);
+        assert_eq!(
+            decode_wallet_connect_approval(&payload_with_calldata(PAYLOAD, &format!("d73dd62300000000000000000000000060e00625a95cbc180f290e2611c826f90eeba56f{}", "ff".repeat(32)))).unwrap(),
+            Some(TransactionApproval {
+                approval: ApprovalData {
+                    token: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t".to_string(),
+                    spender: "TJoSEwEqt7cT3TUwmEoUYnYs5cZR3xSukM".to_string(),
+                    value: BigUint::from_bytes_be(&[0xff; 32]),
+                    is_unlimited: true,
+                },
+                contract: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t".to_string(),
+                expiration: None,
+            })
+        );
+        assert!(decode_wallet_connect_approval(&payload_with_calldata(PAYLOAD, "d73dd623abcd")).is_err());
         assert!(decode_wallet_connect_approval(&payload_with_calldata(PAYLOAD, "095ea7b3abcd")).is_err());
         assert!(decode_wallet_connect_approval(&payload_with_calldata(PAYLOAD, &format!("095ea7b3{}{}", "ff".repeat(32), "00".repeat(32)))).is_err());
     }
