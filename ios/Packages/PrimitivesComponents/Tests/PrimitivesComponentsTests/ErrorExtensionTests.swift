@@ -3,6 +3,8 @@
 import Foundation
 import enum Gemstone.GemErrorText
 import enum Gemstone.GemServiceError
+import enum Gemstone.GemWalletConnectFailure
+import Localization
 @testable import PrimitivesComponents
 import Testing
 
@@ -23,5 +25,15 @@ struct ErrorExtensionTests {
     func coreOfflineErrorDescription() {
         #expect(GemServiceError.Offline.networkOrNoDataDescription == GemErrorText.networkOffline.text)
         #expect(GemServiceError.Api(msg: "Price not found").networkOrNoDataDescription == "No data available")
+    }
+
+    @Test
+    func walletConnectFailureDescription() {
+        let errors: [any Error] = [GemWalletConnectFailure.maliciousOrigin, GemWalletConnectFailure.expired, GemWalletConnectFailure.failed(error: .networkOffline)]
+        #expect(errors.map(\.localizedDescription) == [
+            Localized.Errors.Connections.maliciousOrigin,
+            Localized.WalletConnect.requestExpired,
+            GemErrorText.networkOffline.text,
+        ])
     }
 }

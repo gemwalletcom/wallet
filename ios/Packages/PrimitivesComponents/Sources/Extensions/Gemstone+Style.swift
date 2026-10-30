@@ -514,11 +514,7 @@ public extension GemWalletRow {
 
 public extension GemSecretWarning {
     var calloutViewStyle: CalloutViewStyle {
-        switch self {
-        case .doNotShare: .secretDataWarning(title: Localized.SecretPhrase.DoNotShare.title, description: Localized.SecretPhrase.DoNotShare.description)
-        case .doNotSharePrivateKey: .secretDataWarning(title: Localized.PrivateKey.DoNotShare.title, description: Localized.PrivateKey.DoNotShare.description)
-        case .saveSafely: .header(title: Localized.SecretPhrase.savePhraseSafely)
-        }
+        description.map { .secretDataWarning(title: title, description: $0) } ?? .header(title: title)
     }
 }
 
@@ -633,14 +629,13 @@ public extension GemHeaderActions {
 public extension GemLatencyStatus {
     func listItem(title: String, titleExtra: String?) -> ListItemModel {
         let color = tone().color
-        let badge: (text: String, type: TitleTagType, background: Color) = switch self {
-        case let .result(latency): (Localized.Common.latencyInMs(Int(latency.value)), .none, color.opacity(.light))
-        case .error: (Localized.Errors.error, .none, color.opacity(.light))
-        case .loading: ("", .progressView(scale: 1.24), .clear)
+        let badge: (type: TitleTagType, background: Color) = switch self {
+        case .result, .error: (.none, color.opacity(.light))
+        case .loading: (.progressView(scale: 1.24), .clear)
         }
         return ListItemModel(
             title: title,
-            titleTag: badge.text,
+            titleTag: text,
             titleTagStyle: TextStyle(font: .footnote.weight(.medium), color: color, background: badge.background),
             titleTagType: badge.type,
             titleExtra: titleExtra,

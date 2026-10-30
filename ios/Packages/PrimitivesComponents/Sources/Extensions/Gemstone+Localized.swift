@@ -51,6 +51,7 @@ import struct Gemstone.GemInfoAmount
 import enum Gemstone.GemInfoDescription
 import enum Gemstone.GemInfoTitle
 import enum Gemstone.GemKeystoreAuthentication
+import enum Gemstone.GemLatencyStatus
 import enum Gemstone.GemListRowTitle
 import enum Gemstone.GemListSectionFooter
 import enum Gemstone.GemListSectionTitle
@@ -70,6 +71,7 @@ import enum Gemstone.GemRecipientError
 import enum Gemstone.GemRecipientErrorDisplay
 import enum Gemstone.GemRecipientSectionKind
 import enum Gemstone.GemRewardsIntroItem
+import enum Gemstone.GemSecretWarning
 import enum Gemstone.GemSecurityReminderItem
 import enum Gemstone.GemSelectAssetSection
 import enum Gemstone.GemSelectAssetTitle
@@ -87,6 +89,7 @@ import enum Gemstone.GemTransactionTitle
 import enum Gemstone.GemTriggerOrder
 import enum Gemstone.GemValidatorSectionKind
 import enum Gemstone.GemVerificationLevel
+import enum Gemstone.GemWalletConnectFailure
 import enum Gemstone.GemWalletImportKind
 import enum Gemstone.GemWalletSecret
 import enum Gemstone.GemWalletSecretKind
@@ -777,6 +780,16 @@ extension GemErrorText: @retroactive LocalizedError {
     }
 }
 
+extension GemWalletConnectFailure: @retroactive LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case .maliciousOrigin: Localized.Errors.Connections.maliciousOrigin
+        case .expired: Localized.WalletConnect.requestExpired
+        case let .failed(error): error.text
+        }
+    }
+}
+
 extension GemRecipientError: @retroactive LocalizedError {
     public var errorDescription: String? { display().errorDescription }
 }
@@ -1163,6 +1176,31 @@ public extension GemWalletSecretKind {
         case .privateKey: Localized.PrivateKey.ScreenshotDetected.description
         }
     }
+
+    var reminderIntro: String {
+        switch self {
+        case .phrase: Localized.Onboarding.Security.CreateWallet.Intro.title
+        case .privateKey: Localized.PrivateKey.Reminder.intro
+        }
+    }
+}
+
+public extension GemSecretWarning {
+    var title: String {
+        switch self {
+        case .doNotShare: Localized.SecretPhrase.DoNotShare.title
+        case .doNotSharePrivateKey: Localized.PrivateKey.DoNotShare.title
+        case .saveSafely: Localized.SecretPhrase.savePhraseSafely
+        }
+    }
+
+    var description: String? {
+        switch self {
+        case .doNotShare: Localized.SecretPhrase.DoNotShare.description
+        case .doNotSharePrivateKey: Localized.PrivateKey.DoNotShare.description
+        case .saveSafely: nil
+        }
+    }
 }
 
 public extension ReportReason {
@@ -1391,6 +1429,16 @@ public extension GemNodeCheckRow {
         case let .latestBlock(value): value.text()
         case let .inSync(state): state.symbol
         case let .latency(milliseconds): Localized.Common.latencyInMs(Int(milliseconds))
+        }
+    }
+}
+
+public extension GemLatencyStatus {
+    var text: String {
+        switch self {
+        case let .result(latency): Localized.Common.latencyInMs(Int(latency.value))
+        case .error: Localized.Errors.error
+        case .loading: ""
         }
     }
 }

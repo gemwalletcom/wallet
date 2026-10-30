@@ -10,4 +10,11 @@ public extension GemWalletSecretKind {
         case .privateKey: AppUrl.docs(.whatIsPrivateKey)
         }
     }
+
+    var reminderDocsUrl: URL {
+        switch self {
+        case .phrase: AppUrl.docs(.whatIsSecretPhrase)
+        case .privateKey: AppUrl.docs(.whatIsPrivateKey)
+        }
+    }
 }

@@ -187,7 +187,7 @@ extension WalletConnectorService {
             case let .fail(error, failure):
                 await respond(request, response: .error(error: error))
                 debugLog("Session request failed: \(String(describing: failure)) params: \(params)")
-                await walletConnectorInteractor.sessionReject(error: failure.error)
+                await walletConnectorInteractor.sessionReject(error: failure)
             case let .addSessionAccount(account):
                 await addSessionAccount(account, topic: request.topic)
                 await respond(request, response: .null)
