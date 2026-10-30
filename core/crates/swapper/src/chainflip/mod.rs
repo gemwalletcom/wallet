@@ -7,6 +7,7 @@ mod destination;
 pub mod model;
 pub mod price;
 pub mod provider;
+mod refund;
 pub mod seed;
 #[cfg(any(test, feature = "testkit"))]
 pub mod testkit;
