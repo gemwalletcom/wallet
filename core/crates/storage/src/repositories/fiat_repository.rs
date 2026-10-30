@@ -180,29 +180,28 @@ fn get_fiat_rate(client: &mut DatabaseClient, currency: &Currency) -> Result<Fia
     fiat_rates.find(CurrencyRow(currency.clone())).filter(is_enabled.eq(true)).select(FiatRateRow::as_select()).first(&mut client.connection)
 }
 
-fn update_by_provider_transaction_id(client: &mut DatabaseClient, provider: &FiatProviderNameRow, provider_transaction_id_value: &str, changeset: &UpdateFiatTransactionRow) -> Result<Option<FiatTransactionRow>, diesel::result::Error> {
+fn get_fiat_transaction_by_provider_transaction_id(client: &mut DatabaseClient, provider: &FiatProviderNameRow, provider_transaction_id_value: &str) -> Result<Option<FiatTransactionRow>, diesel::result::Error> {
     use crate::schema::fiat_transactions::dsl::*;
 
-    diesel::update(fiat_transactions.filter(provider_id.eq(provider)).filter(provider_transaction_id.eq(provider_transaction_id_value)))
-        .set(changeset)
-        .returning(FiatTransactionRow::as_returning())
-        .get_result(&mut client.connection)
+    fiat_transactions
+        .filter(provider_id.eq(provider))
+        .filter(provider_transaction_id.eq(provider_transaction_id_value))
+        .select(FiatTransactionRow::as_select())
+        .for_update()
+        .first(&mut client.connection)
         .optional()
 }
 
-fn update_by_quote_id(
-    client: &mut DatabaseClient,
-    provider: &FiatProviderNameRow,
-    target_quote_id: &str,
-    provider_transaction_id_value: &str,
-    changeset: &UpdateFiatTransactionRow,
-) -> Result<Option<FiatTransactionRow>, diesel::result::Error> {
+fn get_unlinked_fiat_transaction_for_quote(client: &mut DatabaseClient, provider: &FiatProviderNameRow, target_quote_id: &str) -> Result<Option<FiatTransactionRow>, diesel::result::Error> {
     use crate::schema::fiat_transactions::dsl::*;
 
-    diesel::update(fiat_transactions.filter(provider_id.eq(provider)).filter(quote_id.eq(target_quote_id)).filter(provider_transaction_id.is_null()))
-        .set((provider_transaction_id.eq(provider_transaction_id_value), changeset))
-        .returning(FiatTransactionRow::as_returning())
-        .get_result(&mut client.connection)
+    fiat_transactions
+        .filter(provider_id.eq(provider))
+        .filter(quote_id.eq(target_quote_id))
+        .filter(provider_transaction_id.is_null())
+        .select(FiatTransactionRow::as_select())
+        .for_update()
+        .first(&mut client.connection)
         .optional()
 }
 
@@ -218,11 +217,11 @@ fn get_fiat_transaction_for_quote(client: &mut DatabaseClient, provider: &FiatPr
         .optional()
 }
 
-fn update_fiat_transaction_by_id(client: &mut DatabaseClient, transaction_id: i32, changeset: UpdateFiatTransactionRow) -> Result<FiatTransactionRow, diesel::result::Error> {
+fn update_fiat_transaction_by_id(client: &mut DatabaseClient, existing: &FiatTransactionRow, update: &FiatTransactionUpdate, provider_transaction_id_value: Option<String>) -> Result<FiatTransactionRow, diesel::result::Error> {
     use crate::schema::fiat_transactions::dsl::*;
 
-    diesel::update(fiat_transactions.find(transaction_id))
-        .set(changeset)
+    diesel::update(fiat_transactions.find(existing.id))
+        .set(UpdateFiatTransactionRow::new(existing, update, provider_transaction_id_value))
         .returning(FiatTransactionRow::as_returning())
         .get_result(&mut client.connection)
 }
@@ -390,36 +389,39 @@ fn update_fiat_transaction(client: &mut DatabaseClient, provider: FiatProviderNa
     use crate::schema::fiat_transactions::dsl::*;
 
     let provider = FiatProviderNameRow::from(provider);
-    let changeset = UpdateFiatTransactionRow::from_primitive(&update);
 
-    if let Some(row) = update_by_provider_transaction_id(client, &provider, &update.transaction_id, &changeset)? {
-        return Ok(row);
-    }
+    client.transaction(|client| {
+        if let Some(existing) = get_fiat_transaction_by_provider_transaction_id(client, &provider, &update.transaction_id)? {
+            return Ok(update_fiat_transaction_by_id(client, &existing, &update, None)?);
+        }
 
-    Ok(match update.provider_transaction_id.as_deref() {
-        Some(provider_transaction_id_value) => {
-            if let Some(row) = update_by_provider_transaction_id(client, &provider, provider_transaction_id_value, &changeset)? {
-                return Ok(row);
+        Ok(match update.provider_transaction_id.as_deref() {
+            Some(provider_transaction_id_value) => {
+                if let Some(existing) = get_fiat_transaction_by_provider_transaction_id(client, &provider, provider_transaction_id_value)? {
+                    return Ok(update_fiat_transaction_by_id(client, &existing, &update, None)?);
+                }
+                if let Some(existing) = get_unlinked_fiat_transaction_for_quote(client, &provider, &update.transaction_id)? {
+                    return Ok(update_fiat_transaction_by_id(client, &existing, &update, Some(provider_transaction_id_value.to_string()))?);
+                }
+                let existing = get_fiat_transaction_for_quote(client, &provider, &update.transaction_id)?.ok_or(diesel::result::Error::NotFound)?;
+                let new_row = NewFiatTransactionRow::from_existing(&existing, &update, provider_transaction_id_value.to_string());
+                diesel::insert_into(fiat_transactions).values(&new_row).returning(FiatTransactionRow::as_returning()).get_result(&mut client.connection)
             }
-            if let Some(row) = update_by_quote_id(client, &provider, &update.transaction_id, provider_transaction_id_value, &changeset)? {
-                return Ok(row);
+            None => {
+                let existing = get_fiat_transaction_for_quote(client, &provider, &update.transaction_id)?.ok_or(diesel::result::Error::NotFound)?;
+                update_fiat_transaction_by_id(client, &existing, &update, None)
             }
-            let existing = get_fiat_transaction_for_quote(client, &provider, &update.transaction_id)?.ok_or(diesel::result::Error::NotFound)?;
-            let new_row = NewFiatTransactionRow::from_existing(&existing, &update, provider_transaction_id_value.to_string());
-            diesel::insert_into(fiat_transactions).values(&new_row).returning(FiatTransactionRow::as_returning()).get_result(&mut client.connection)
-        }
-        None => {
-            let existing = get_fiat_transaction_for_quote(client, &provider, &update.transaction_id)?.ok_or(diesel::result::Error::NotFound)?;
-            update_fiat_transaction_by_id(client, existing.id, changeset)
-        }
-    }?)
+        }?)
+    })
 }
 
 #[cfg(all(test, feature = "database_integration_tests"))]
 mod database_integration_tests {
-    use primitives::{Asset, AssetId, Chain, FiatAsset, FiatProviderCountry, FiatProviderName};
+    use primitives::{
+        Asset, AssetId, Chain, Currency, Device, FiatAsset, FiatProviderCountry, FiatProviderName, FiatRate, FiatRateProvider, FiatTransaction, FiatTransactionStatus, FiatTransactionUpdate, WalletId, WalletSource, WalletType,
+    };
 
-    use crate::{AssetsRepository, ChainsRepository, Database, DatabaseError, FiatRepository};
+    use crate::{AssetsRepository, ChainsRepository, Database, DatabaseError, DevicesRepository, FiatRepository, NewWallet, WalletsRepository};
 
     const PROVIDER: FiatProviderName = FiatProviderName::MoonPay;
 
@@ -485,5 +487,95 @@ mod database_integration_tests {
         let allowed = |alpha2: &str| countries.iter().find(|country| country.provider == PROVIDER && country.alpha2 == alpha2).map(|country| country.is_allowed);
         assert_eq!(allowed("FR"), Some(true));
         assert_eq!(allowed("DE"), Some(false));
+    }
+
+    fn status_update(status: FiatTransactionStatus) -> FiatTransactionUpdate {
+        FiatTransactionUpdate {
+            transaction_id: "tx_123".to_string(),
+            provider_transaction_id: None,
+            status,
+            transaction_hash: None,
+            fiat_amount: None,
+            fiat_currency: None,
+        }
+    }
+
+    async fn apply_updates(provider_transaction_id: Option<String>, updates: Vec<FiatTransactionUpdate>) -> FiatTransaction {
+        Database::mock()
+            .run(move |client| -> Result<_, DatabaseError> {
+                client.add_chains(vec![Chain::Ethereum])?;
+                client.add_assets(vec![Asset::from_chain(Chain::Ethereum).as_basic_primitive()])?;
+                client.add_fiat_providers(vec![PROVIDER])?;
+                client.set_fiat_rates(FiatRateProvider::Coingecko, vec![FiatRate { symbol: Currency::USD, rate: 1.0 }])?;
+                client.add_device(Device {
+                    id: "fiat-test-device".to_string(),
+                    ..Device::mock()
+                })?;
+                let device_id = client.get_device_row_id("fiat-test-device")?;
+                let wallet = client.get_or_create_wallet(NewWallet {
+                    wallet_id: WalletId::Multicoin("0xfiat".to_string()),
+                    wallet_type: WalletType::Multicoin,
+                    source: WalletSource::Import,
+                })?;
+                let address_id = client.add_wallet_addresses(vec!["0xfiat".to_string()])?["0xfiat"];
+                let transaction = FiatTransaction {
+                    asset_id: AssetId::from_chain(Chain::Ethereum),
+                    provider_transaction_id,
+                    ..FiatTransaction::mock()
+                };
+                client.add_fiat_transaction(transaction, device_id, wallet.id, address_id)?;
+                for update in updates {
+                    client.update_fiat_transaction(PROVIDER, update)?;
+                }
+                Ok(client.get_fiat_transactions_by_device_id(device_id)?.remove(0))
+            })
+            .await
+            .unwrap()
+    }
+
+    #[tokio::test]
+    async fn test_update_fiat_transaction_keeps_completed_status() {
+        use FiatTransactionStatus::*;
+
+        for (first, late, expected) in [(Complete, Pending, Complete), (Complete, Unknown, Complete), (Pending, Complete, Complete), (Failed, Pending, Failed)] {
+            let transaction = apply_updates(Some("tx_123".to_string()), vec![status_update(first.clone()), status_update(late.clone())]).await;
+
+            assert_eq!(transaction.status, expected, "{first:?} then {late:?}");
+        }
+    }
+
+    #[tokio::test]
+    async fn test_update_fiat_transaction_late_event_keeps_fields() {
+        let complete = FiatTransactionUpdate {
+            transaction_hash: Some("0xhash".to_string()),
+            fiat_amount: Some(150.0),
+            fiat_currency: Some("EUR".to_string()),
+            ..status_update(FiatTransactionStatus::Complete)
+        };
+
+        let transaction = apply_updates(Some("tx_123".to_string()), vec![complete, status_update(FiatTransactionStatus::Pending)]).await;
+
+        assert_eq!(transaction.status, FiatTransactionStatus::Complete);
+        assert_eq!(transaction.transaction_hash.as_deref(), Some("0xhash"));
+        assert_eq!(transaction.fiat_amount, 150.0);
+        assert_eq!(transaction.fiat_currency, "EUR");
+    }
+
+    #[tokio::test]
+    async fn test_update_fiat_transaction_links_quote_and_keeps_completed_status() {
+        let link = FiatTransactionUpdate {
+            transaction_id: "quote_123".to_string(),
+            provider_transaction_id: Some("tx_456".to_string()),
+            ..status_update(FiatTransactionStatus::Complete)
+        };
+        let late = FiatTransactionUpdate {
+            transaction_id: "tx_456".to_string(),
+            ..status_update(FiatTransactionStatus::Pending)
+        };
+
+        let transaction = apply_updates(None, vec![link, late]).await;
+
+        assert_eq!(transaction.provider_transaction_id.as_deref(), Some("tx_456"));
+        assert_eq!(transaction.status, FiatTransactionStatus::Complete);
     }
 }

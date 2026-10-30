@@ -109,6 +109,24 @@ pub enum FiatTransactionStatus {
     Unknown,
 }
 
+impl FiatTransactionStatus {
+    pub fn is_completed(&self) -> bool {
+        match self {
+            Self::Complete | Self::Failed => true,
+            Self::Pending | Self::Unknown => false,
+        }
+    }
+
+    pub fn merged_with(self, updated: Self) -> Self {
+        let replaces = match self {
+            Self::Unknown => true,
+            Self::Pending => updated != Self::Unknown,
+            Self::Complete | Self::Failed => updated.is_completed(),
+        };
+        if replaces { updated } else { self }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, AsRefStr, EnumString, Model)]
 #[model(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "lowercase")]
@@ -172,5 +190,19 @@ mod tests {
                 ..FiatTransaction::mock()
             }
         );
+    }
+
+    #[test]
+    fn test_status_merged_with() {
+        use FiatTransactionStatus::*;
+
+        assert_eq!(Complete.merged_with(Pending), Complete);
+        assert_eq!(Complete.merged_with(Unknown), Complete);
+        assert_eq!(Complete.merged_with(Failed), Failed);
+        assert_eq!(Failed.merged_with(Pending), Failed);
+        assert_eq!(Failed.merged_with(Complete), Complete);
+        assert_eq!(Pending.merged_with(Complete), Complete);
+        assert_eq!(Pending.merged_with(Unknown), Pending);
+        assert_eq!(Unknown.merged_with(Pending), Pending);
     }
 }

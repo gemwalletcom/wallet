@@ -312,6 +312,7 @@ impl FiatProviderCountryRow {
 #[derive(AsChangeset)]
 #[diesel(table_name = crate::schema::fiat_transactions)]
 pub(crate) struct UpdateFiatTransactionRow {
+    pub provider_transaction_id: Option<String>,
     pub status: FiatTransactionStatusRow,
     pub fiat_amount: Option<f64>,
     pub fiat_currency: Option<String>,
@@ -319,9 +320,10 @@ pub(crate) struct UpdateFiatTransactionRow {
 }
 
 impl UpdateFiatTransactionRow {
-    pub fn from_primitive(transaction: &FiatTransactionUpdate) -> Self {
+    pub fn new(existing: &FiatTransactionRow, transaction: &FiatTransactionUpdate, provider_transaction_id: Option<String>) -> Self {
         Self {
-            status: transaction.status.clone().into(),
+            provider_transaction_id,
+            status: existing.status.0.clone().merged_with(transaction.status.clone()).into(),
             fiat_amount: transaction.fiat_amount,
             fiat_currency: transaction.fiat_currency.clone(),
             transaction_hash: transaction.transaction_hash.clone(),
@@ -366,7 +368,7 @@ mod tests {
             fiat_currency: Some("EUR".to_string()),
         };
 
-        let row = UpdateFiatTransactionRow::from_primitive(&update);
+        let row = UpdateFiatTransactionRow::new(&FiatTransactionRow::mock(), &update, None);
 
         assert_eq!(row.fiat_currency, Some("EUR".to_string()));
         assert_eq!(row.fiat_amount, Some(100.0));
