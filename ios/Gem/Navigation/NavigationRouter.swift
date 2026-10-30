@@ -145,6 +145,8 @@ extension NavigationRouter {
         switch target {
         case let .asset(destination, walletId):
             try openTarget(path: Self.assetPath(destination), walletId: walletId)
+        case let .chart(asset):
+            navigationState.openWallet(path: [Scenes.Chart(asset: asset.toPrimitives())])
         case let .receive(asset):
             try await presentAssetInput(type: .receive(.asset), for: asset.toPrimitives())
         case let .fiat(asset, amount, quoteType):

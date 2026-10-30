@@ -46,6 +46,7 @@ impl From<Asset> for GemAssetDestination {
 #[allow(clippy::large_enum_variant)]
 pub enum GemNavigationTarget {
     Asset { destination: GemAssetDestination, wallet_id: Option<WalletId> },
+    Chart { asset: Asset },
     Receive { asset: Asset },
     Fiat { asset: Asset, amount: Option<i32>, quote_type: FiatQuoteType },
     Swap { from: Asset, to: Option<Asset> },
@@ -76,7 +77,7 @@ pub enum GemNavigationTab {
 impl GemNavigationTarget {
     pub fn tab(&self) -> Option<GemNavigationTab> {
         match self {
-            Self::Asset { .. } | Self::Transaction { .. } | Self::Perpetuals => Some(GemNavigationTab::Wallet),
+            Self::Asset { .. } | Self::Chart { .. } | Self::Transaction { .. } | Self::Perpetuals => Some(GemNavigationTab::Wallet),
             Self::Rewards { .. } | Self::Support => Some(GemNavigationTab::Settings),
             Self::Receive { .. } | Self::Fiat { .. } | Self::Swap { .. } | Self::Address { .. } | Self::None => None,
         }
@@ -134,7 +135,8 @@ impl GemNavigationService {
 
     pub async fn open_notification(&self, notification: GemPushNotification) -> Result<GemNavigationTarget, GemServiceError> {
         match notification {
-            GemPushNotification::Asset { asset_id } | GemPushNotification::PriceAlert { asset_id } => self.open_asset(asset_id).await,
+            GemPushNotification::Asset { asset_id } => self.open_asset(asset_id).await,
+            GemPushNotification::PriceAlert { asset_id } => self.open_price_alert(asset_id).await,
             GemPushNotification::BuyAsset { asset_id } => self.fiat(asset_id, None, FiatQuoteType::Buy).await,
             GemPushNotification::SwapAsset { from_asset_id, to_asset_id } => self.swap(from_asset_id, Some(to_asset_id)).await,
             GemPushNotification::FiatTransaction { wallet_id, asset_id } | GemPushNotification::Stake { wallet_id, asset_id } => self.open_wallet_asset(wallet_id, asset_id).await,
@@ -183,6 +185,16 @@ impl GemNavigationService {
             true => GemNavigationTarget::None,
             false => target(asset, wallet_id),
         }
+    }
+
+    async fn open_price_alert(&self, asset_id: AssetId) -> Result<GemNavigationTarget, GemServiceError> {
+        let wallet = self.session.require_current_wallet().await?;
+        if wallet.account(asset_id.chain).is_some() {
+            return self.open_asset(asset_id).await;
+        }
+        Ok(GemNavigationTarget::Chart {
+            asset: self.assets.ensure_asset(asset_id).await?,
+        })
     }
 
     async fn open_wallet_asset(&self, wallet_id: WalletId, asset_id: AssetId) -> Result<GemNavigationTarget, GemServiceError> {
@@ -261,6 +273,7 @@ mod tests {
     fn test_a_target_opens_on_the_tab_that_holds_it() {
         let asset = Asset::from_chain(primitives::Chain::Ethereum);
         assert_eq!(GemNavigationTarget::Perpetuals.tab(), Some(GemNavigationTab::Wallet));
+        assert_eq!(GemNavigationTarget::Chart { asset: asset.clone() }.tab(), Some(GemNavigationTab::Wallet));
         assert_eq!(GemNavigationTarget::Support.tab(), Some(GemNavigationTab::Settings));
         assert_eq!(GemNavigationTarget::Rewards { code: None }.tab(), Some(GemNavigationTab::Settings));
         assert_eq!(GemNavigationTarget::Receive { asset }.tab(), None, "a sheet keeps the tab it opens over");
@@ -516,6 +529,29 @@ mod tests {
                     transaction_id,
                 }
             );
+        });
+    }
+
+    #[test]
+    fn test_a_price_alert_push_opens_the_chart_where_the_wallet_has_no_account() {
+        block_on(async {
+            let testkit = DiscoveryTestkit::with_status(200);
+            let service = GemNavigationService::mock(&testkit);
+            let ethereum = Asset::from_chain(Chain::Ethereum);
+            let bitcoin = Asset::from_chain(Chain::Bitcoin);
+            save_asset(&testkit, ethereum.clone(), false, false).await;
+            save_asset(&testkit, bitcoin.clone(), false, false).await;
+            testkit.select_wallet(&Wallet::mock_with_type(WalletType::View, &[Chain::Ethereum]));
+            let open = |asset: &Asset| service.open_notification(GemPushNotification::PriceAlert { asset_id: asset.id.clone() });
+
+            assert_eq!(
+                open(&ethereum).await.unwrap(),
+                GemNavigationTarget::Asset {
+                    destination: GemAssetDestination::Asset { asset: ethereum },
+                    wallet_id: None,
+                }
+            );
+            assert_eq!(open(&bitcoin).await.unwrap(), GemNavigationTarget::Chart { asset: bitcoin }, "the alert is for the device, not the wallet");
         });
     }
 
