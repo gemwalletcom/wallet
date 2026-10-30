@@ -3,10 +3,10 @@ use chain_traits::{ChainTransactionLoad, TransactionFeeOperation};
 use std::error::Error;
 
 use gem_client::Client;
-use primitives::{AssetId, Chain, FeePriority, FeeRate, GasPriceType, StakeType, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput};
+use primitives::{AssetId, Chain, FeePriority, FeeRate, GasPriceType, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput};
 
 use super::preload_mapper::map_transaction_preload;
-use crate::provider::payload_builder::{build_stake_payload_data, build_unstake_payload_data, build_withdraw_payload_data};
+use crate::provider::payload_builder::build_delegation_pool_payload_data;
 use crate::rpc::client::AptosClient;
 
 #[async_trait]
@@ -28,12 +28,7 @@ impl<C: Client> ChainTransactionLoad for AptosClient<C> {
         let fee = TransactionFee::calculate(gas_limit, &input.gas_price, AssetId::from_chain(Chain::Aptos));
 
         let data = match &input.input_type {
-            TransactionInputType::Stake { stake_type, .. } => match stake_type {
-                StakeType::Stake(validator) => Some(build_stake_payload_data(&validator.id, &input.value.to_string())?),
-                StakeType::Unstake(delegation) => Some(build_unstake_payload_data(&delegation.validator.id, &input.value.to_string())?),
-                StakeType::Withdraw(delegation) => Some(build_withdraw_payload_data(&delegation.validator.id, &input.value.to_string())?),
-                StakeType::Redelegate(_) | StakeType::Rewards(_) | StakeType::Freeze(_) | StakeType::Unfreeze(_) => None,
-            },
+            TransactionInputType::Stake { stake_type, .. } => build_delegation_pool_payload_data(stake_type, &input.value.to_string())?,
             _ => None,
         };
 
@@ -53,6 +48,92 @@ impl<C: Client> ChainTransactionLoad for AptosClient<C> {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use std::sync::{Arc, Mutex};
+
+    use gem_client::testkit::MockClient;
+    use num_bigint::BigUint;
+    use primitives::{Asset, ChainSigner, Delegation, DelegationValidator, SignerInput, StakeType};
+    use serde_json::Value;
+
+    use super::*;
+    use crate::KNOWN_VALIDATOR_POOL;
+    use crate::models::{SignedTransaction, SubmitTransactionBcsRequest, TransactionPayloadBCS};
+    use crate::signer::{AptosChainSigner, EntryFunctionPayload};
+
+    const TEST_PRIVATE_KEY: &str = "1e9d38b5274152a78dff1a86fa464ceadc1f4238ca2c17060c3c507349424a34";
+    const TEST_TOKEN_ID: &str = "0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b";
+    const TEST_TRANSFER_ABI: &[&str] = &["address", "u64"];
+    const TEST_FUNGIBLE_TRANSFER_ABI: &[&str] = &["address", "address", "u64"];
+    const TEST_DELEGATION_POOL_ABI: &[&str] = &["address", "u64"];
+
+    async fn assert_signs_simulated_payload(input_type: TransactionInputType, abi: &[&str]) {
+        let simulated = Arc::new(Mutex::new(None));
+        let client = AptosClient::new(MockClient::new().with_post({
+            let simulated = simulated.clone();
+            move |_, body| {
+                *simulated.lock().unwrap() = Some(serde_json::from_slice::<Value>(body).unwrap()["payload"].clone());
+                Ok(br#"[{"success":true,"vm_status":"Executed successfully","gas_used":"5075"}]"#.to_vec())
+            }
+        }));
+        let input = TransactionLoadInput {
+            input_type,
+            value: BigUint::from(1_102_185_008u64),
+            ..TransactionLoadInput::mock_aptos_token_transfer(TEST_TOKEN_ID)
+        };
+
+        let load = client.get_transaction_load(input.clone()).await.unwrap();
+        let input = SignerInput::new(TransactionLoadInput { metadata: load.metadata, ..input }, load.fee);
+        let private_key = hex::decode(TEST_PRIVATE_KEY).unwrap();
+        let signed = match &input.input_type {
+            TransactionInputType::Transfer { asset } if asset.id.token_id.is_none() => AptosChainSigner.sign_transfer(&input, &private_key).unwrap(),
+            TransactionInputType::Transfer { .. } => AptosChainSigner.sign_token_transfer(&input, &private_key).unwrap(),
+            _ => AptosChainSigner.sign_stake(&input, &private_key).unwrap().remove(0),
+        };
+        let request: SubmitTransactionBcsRequest = serde_json::from_str(&signed).unwrap();
+        let signed: SignedTransaction = bcs::from_bytes(&hex::decode(request.bcs).unwrap()).unwrap();
+
+        let simulated = simulated.lock().unwrap().take().unwrap();
+        let simulated = serde_json::from_value::<EntryFunctionPayload>(simulated).unwrap().to_entry_function(Some(abi)).unwrap();
+
+        assert_eq!(signed.raw_tx.payload, TransactionPayloadBCS::EntryFunction(simulated));
+    }
+
+    #[tokio::test]
+    async fn test_get_transaction_load_simulates_the_signed_payload() {
+        let pool = DelegationValidator::stake(Chain::Aptos, KNOWN_VALIDATOR_POOL.to_string(), String::new(), true, 0.0, 0.0);
+        let asset = Asset::from_chain(Chain::Aptos);
+
+        assert_signs_simulated_payload(TransactionInputType::Transfer { asset: asset.clone() }, TEST_TRANSFER_ABI).await;
+        assert_signs_simulated_payload(TransactionLoadInput::mock_aptos_token_transfer(TEST_TOKEN_ID).input_type, TEST_FUNGIBLE_TRANSFER_ABI).await;
+        assert_signs_simulated_payload(
+            TransactionInputType::Stake {
+                asset: asset.clone(),
+                stake_type: StakeType::Stake(pool.clone()),
+            },
+            TEST_DELEGATION_POOL_ABI,
+        )
+        .await;
+        assert_signs_simulated_payload(
+            TransactionInputType::Stake {
+                asset: asset.clone(),
+                stake_type: StakeType::Unstake(Delegation::mock_with_validator(pool.clone())),
+            },
+            TEST_DELEGATION_POOL_ABI,
+        )
+        .await;
+        assert_signs_simulated_payload(
+            TransactionInputType::Stake {
+                asset,
+                stake_type: StakeType::Withdraw(Delegation::mock_with_validator(pool)),
+            },
+            TEST_DELEGATION_POOL_ABI,
+        )
+        .await;
+    }
+}
+
 #[cfg(all(test, feature = "chain_integration_tests"))]
 mod chain_integration_tests {
     use super::*;
@@ -60,7 +141,7 @@ mod chain_integration_tests {
     use crate::provider::testkit::{TEST_ADDRESS_STAKING, create_aptos_test_client};
     use num_bigint::BigInt;
     use num_bigint::BigUint;
-    use primitives::{Asset, Chain, DelegationValidator};
+    use primitives::{Asset, Chain, DelegationValidator, StakeType};
     use serde_json::Value;
 
     #[tokio::test]
