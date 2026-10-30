@@ -535,7 +535,7 @@ struct ConfirmTransferSceneViewModelTests {
             Issue.record("Expected fiatConnect sheet")
             return
         }
-        #expect(amount != nil, "a fee sheet buys the fee amount Core names")
+        #expect(amount == 10, "a fee sheet buys the small fee amount Core names, not the default buy amount")
     }
 
     @Test

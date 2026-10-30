@@ -294,7 +294,9 @@ public final class GemReceiveServiceMock: GemReceiveServiceProtocol, @unchecked 
     public var warningsValue: [GemReceiveWarning] = []
     public var assetResult: Result<Gemstone.Asset, Error> = .success(Primitives.Asset.mock().toGem())
     public var assetsById: [Gemstone.AssetId: Gemstone.Asset] = [:]
+    public var heldAssetId: Gemstone.AssetId?
     public var enableAssetError: Error?
+    private let (heldAsset, releaseHeld) = AsyncStream<Void>.makeStream()
 
     public private(set) var enabledAssetIds: [Gemstone.AssetId] = []
     public private(set) var requestedAssetIds: [Gemstone.AssetId] = []
@@ -304,10 +306,17 @@ public final class GemReceiveServiceMock: GemReceiveServiceProtocol, @unchecked 
 
     public func asset(assetId: Gemstone.AssetId) async throws -> Gemstone.Asset {
         requestedAssetIds.append(assetId)
+        if assetId == heldAssetId {
+            await Task { [heldAsset] in for await _ in heldAsset {} }.value
+        }
         if let asset = assetsById[assetId] {
             return asset
         }
         return try assetResult.get()
+    }
+
+    public func releaseHeldAsset() {
+        releaseHeld.finish()
     }
 
     public func enableAsset(walletId _: Gemstone.WalletId, assetId: Gemstone.AssetId) async throws {

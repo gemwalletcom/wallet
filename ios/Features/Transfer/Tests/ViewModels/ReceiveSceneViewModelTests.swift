@@ -133,15 +133,19 @@ struct ReceiveSceneViewModelTests {
         #expect(model.networkSelectorModel.items == [bitcoin.id, ethereumToken.id], "the network the screen opened on stays pickable")
     }
 
-    @Test
+    @Test(.timeLimit(.minutes(1)))
     func aSlowerNetworkSwapDoesNotReplaceTheOneChosenAfterIt() async {
         let service = GemReceiveServiceMock()
         service.assetsById = [ethereum.id: ethereum.toGem(), solana.id: solana.toGem()]
+        service.heldAssetId = ethereum.id
         let model = ReceiveSceneViewModel.mock(service: service)
 
         model.onFinishNetworkSelection([ethereum.id])
+        let ethereumSwap = model.selectNetworkTask
         model.onFinishNetworkSelection([solana.id])
         await model.selectNetworkTask?.value
+        service.releaseHeldAsset()
+        await ethereumSwap?.value
         await model.onChangeAsset()
 
         #expect(model.asset.chain == .solana)
