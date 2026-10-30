@@ -12,4 +12,15 @@ public extension View {
                 .id($0)
         }
     }
+
+    func navigationDestination<D: Hashable>(
+        keyedBy data: D.Type,
+        in scope: some Hashable,
+        @ViewBuilder destination: @escaping (D) -> some View,
+    ) -> some View {
+        navigationDestination(keyedBy: data) {
+            destination($0)
+                .id(scope)
+        }
+    }
 }

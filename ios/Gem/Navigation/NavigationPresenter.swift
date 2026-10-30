@@ -9,6 +9,7 @@ import Primitives
 import PrimitivesComponents
 import SwiftUI
 import Transfer
+import Wallet
 
 @Observable
 final class NavigationPresenter: Sendable {
@@ -18,6 +19,7 @@ final class NavigationPresenter: Sendable {
     @MainActor private var _isPresentingPriceAlert: Asset?
     @MainActor private var _isPresentingSupport: Bool = false
     @MainActor private var _isPresentingWallets: Bool = false
+    @MainActor private var _isPresentingWalletSheet: WalletSheetType?
     private let assetsService: any GemAssetsServiceProtocol
 
     init(assetsService: any GemAssetsServiceProtocol) {
@@ -51,6 +53,10 @@ extension NavigationPresenter {
         Binding(get: { self._isPresentingWallets }, set: { self._isPresentingWallets = $0 })
     }
 
+    var isPresentingWalletSheet: Binding<WalletSheetType?> {
+        Binding(get: { self._isPresentingWalletSheet }, set: { self._isPresentingWalletSheet = $0 })
+    }
+
     func reset() {
         _isPresentingAddressDetails = nil
         _isPresentingAssetInput = nil
@@ -58,6 +64,7 @@ extension NavigationPresenter {
         _isPresentingPriceAlert = nil
         _isPresentingSupport = false
         _isPresentingWallets = false
+        _isPresentingWalletSheet = nil
     }
 
     func presentAssetInput(type: SelectedAssetType, for asset: Asset, wallet: Wallet) throws {

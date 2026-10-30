@@ -110,6 +110,7 @@
 		E1B4C7092E85B00000EARN02 /* Stake in Frameworks */ = {isa = PBXBuildFile; productRef = E1B4C70A2E85B00000EARN03 /* Stake */; };
 		E875F6030F5E49CD8D30D5F9 /* PaymentNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A7C385E02EC48AEBB1D4039 /* PaymentNavigationStack.swift */; };
 		F02557C19C03CD9DA036C0B5 /* ScanReceiveNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = B35C39A8F4EB047A5DA1106A /* ScanReceiveNavigationStack.swift */; };
+		A1C0DE5A11E7A11E7000B001 /* WalletNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1C0DE5A11E7A11E7000F001 /* WalletNavigationStack.swift */; };
 		F02BCC3D305F39AF007BEE31 /* SwiftHTTPClient in Frameworks */ = {isa = PBXBuildFile; productRef = D8WIDGETHTTPCLIENT000001 /* SwiftHTTPClient */; };
 		F1A7B80C2F0C000000FIAT01 /* GemstoneServices in Frameworks */ = {isa = PBXBuildFile; productRef = F1A7B80D2F0C000000FIAT01 /* GemstoneServices */; };
 		FADEC0DE000000000000B002 /* AddContactNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = FADEC0DE000000000000B001 /* AddContactNavigationStack.swift */; };
@@ -185,6 +186,7 @@
 		A1B2C3D42F400000000000A2 /* NativeProviderService */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = NativeProviderService; sourceTree = "<group>"; };
 		A1D0E5512F00000100ADD001 /* AddressDetailsDestination.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddressDetailsDestination.swift; sourceTree = "<group>"; };
 		B35C39A8F4EB047A5DA1106A /* ScanReceiveNavigationStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanReceiveNavigationStack.swift; sourceTree = "<group>"; };
+		A1C0DE5A11E7A11E7000F001 /* WalletNavigationStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletNavigationStack.swift; sourceTree = "<group>"; };
 		B604C2E72F3F537800CBAFDC /* Contacts */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Contacts; sourceTree = "<group>"; };
 		B67ED5462DDB5DCC009F74E6 /* NavigationRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationRouter.swift; sourceTree = "<group>"; };
 		B67ED5492DDB5DCD009F74E6 /* NavigationPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationPresenter.swift; sourceTree = "<group>"; };
@@ -355,6 +357,7 @@
 			children = (
 				D807004D2BBB283400ED770B /* WalletNavigationView.swift */,
 				B35C39A8F4EB047A5DA1106A /* ScanReceiveNavigationStack.swift */,
+				A1C0DE5A11E7A11E7000F001 /* WalletNavigationStack.swift */,
 				DB63698068D10CFB743007B3 /* ScanReceiveSheet.swift */,
 			);
 			path = Wallet;
@@ -958,6 +961,7 @@
 				83B08BDB2D0B4AE200CA1B33 /* AppResolver+Storages.swift in Sources */,
 				D807004E2BBB283400ED770B /* WalletNavigationView.swift in Sources */,
 				F02557C19C03CD9DA036C0B5 /* ScanReceiveNavigationStack.swift in Sources */,
+				A1C0DE5A11E7A11E7000B001 /* WalletNavigationStack.swift in Sources */,
 				BD953F7FE9F1DB860BBB3737 /* ScanReceiveSheet.swift in Sources */,
 				AD9CF68E48644ED7CA027260 /* ScanReceiveViewModel.swift in Sources */,
 				D8BAC9592BD0CDC8001608BC /* SelectAssetNavigationStack.swift in Sources */,

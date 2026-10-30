@@ -45,7 +45,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
     public var isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>
     public var isPresentingScanner = false
     public var isPresentingWallets: Binding<Bool>
-    public var isPresentingSheet: WalletSheetType?
+    public var isPresentingSheet: Binding<WalletSheetType?>
     public var isPresentingSearch = false
     public var isPresentingUrl: URL?
     public var isPresentingToastMessage: ToastMessage?
@@ -58,6 +58,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
         wallet: Wallet,
         isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>,
         isPresentingWallets: Binding<Bool>,
+        isPresentingSheet: Binding<WalletSheetType?>,
     ) {
         self.service = service
         self.observablePreferences = observablePreferences
@@ -76,6 +77,7 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
         collectionsQuery = ObservableQuery(MappedQuery(NFTQuery(walletId: wallet.id, filter: .all)) { [service] in service.collections(nfts: $0.map { $0.toGem() }) }, initialValue: [])
         self.isPresentingSelectedAssetInput = isPresentingSelectedAssetInput
         self.isPresentingWallets = isPresentingWallets
+        self.isPresentingSheet = isPresentingSheet
     }
 
     public var assets: [AssetData] {
@@ -138,7 +140,7 @@ public extension WalletSceneViewModel {
     }
 
     func onSelectManage(chains: [Chain] = []) {
-        isPresentingSheet = .selectAsset(.manage, chains: chains)
+        isPresentingSheet.wrappedValue = .selectAsset(.manage, chains: chains)
     }
 
     func onToggleSearch() {
@@ -150,25 +152,25 @@ public extension WalletSceneViewModel {
     }
 
     func onSelectAddCustomToken() {
-        isPresentingSheet = .addAsset
+        isPresentingSheet.wrappedValue = .addAsset
     }
 
     internal func onSelectPortfolio() {
-        isPresentingSheet = .portfolio(.wallet)
+        isPresentingSheet.wrappedValue = .portfolio(.wallet)
     }
 
     internal func onHeaderAction(_ action: GemHeaderButtonAction) {
         switch action {
-        case .buy: isPresentingSheet = .selectAsset(.buy, chains: [])
-        case .send: isPresentingSheet = .selectAsset(.send(.none), chains: [])
-        case .receive: isPresentingSheet = .selectAsset(.receive(.asset), chains: [])
-        case .swap: isPresentingSheet = .swap
+        case .buy: isPresentingSheet.wrappedValue = .selectAsset(.buy, chains: [])
+        case .send: isPresentingSheet.wrappedValue = .selectAsset(.send(.none), chains: [])
+        case .receive: isPresentingSheet.wrappedValue = .selectAsset(.receive(.asset), chains: [])
+        case .swap: isPresentingSheet.wrappedValue = .swap
         case .deposit, .withdraw, .sendCollectible, .collectibleMenu: break
         }
     }
 
     internal func onSelectWatchWalletInfo() {
-        isPresentingSheet = .infoSheet(GemInfoTopic.watchWallet.infoSheet)
+        isPresentingSheet.wrappedValue = .infoSheet(GemInfoTopic.watchWallet.infoSheet)
     }
 
     internal func onSelectBanner(destination: GemBannerDestination) {
@@ -180,8 +182,8 @@ public extension WalletSceneViewModel {
 
     internal func onSelectBanner(button: GemBannerButton) {
         switch button {
-        case .buy: isPresentingSheet = .selectAsset(.buy, chains: [])
-        case .receive: isPresentingSheet = .selectAsset(.receive(.asset), chains: [])
+        case .buy: isPresentingSheet.wrappedValue = .selectAsset(.buy, chains: [])
+        case .receive: isPresentingSheet.wrappedValue = .selectAsset(.receive(.asset), chains: [])
         }
     }
 
@@ -201,10 +203,6 @@ public extension WalletSceneViewModel {
 
     func onWalletTabReselected(_: Bool, _: Bool) {
         isPresentingSearch = false
-    }
-
-    func onTransferComplete() {
-        isPresentingSheet = nil
     }
 }
 

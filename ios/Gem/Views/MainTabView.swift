@@ -37,20 +37,11 @@ struct MainTabView: View {
 
     var body: some View {
         TabView(selection: tabViewSelection) {
-            NavigationStack(path: navigationState.wallet.binding) {
-                WalletNavigationView(
-                    model: viewModelFactory.walletScene(
-                        wallet: wallet,
-                        isPresentingSelectedAssetInput: presenter.isPresentingAssetInput,
-                        isPresentingWallets: presenter.isPresentingWallets,
-                    ),
-                )
-                .id(wallet.id)
-            }
-            .tabItem {
-                tabItem(Localized.Wallet.title, Images.Tabs.wallet, id: "mainTab")
-            }
-            .tag(TabItem.wallet)
+            WalletNavigationStack(wallet: wallet)
+                .tabItem {
+                    tabItem(Localized.Wallet.title, Images.Tabs.wallet, id: "mainTab")
+                }
+                .tag(TabItem.wallet)
 
             NavigationStack(path: navigationState.activity.binding) {
                 TransactionsNavigationView(

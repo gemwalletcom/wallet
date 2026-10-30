@@ -326,6 +326,7 @@ extension NavigationRouter {
     }
 
     func resetNavigation() {
+        presenter.isPresentingWalletSheet.wrappedValue = nil
         navigationState.reset()
     }
 }
