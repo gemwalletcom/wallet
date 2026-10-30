@@ -113,6 +113,8 @@
 		F02BCC3D305F39AF007BEE31 /* SwiftHTTPClient in Frameworks */ = {isa = PBXBuildFile; productRef = D8WIDGETHTTPCLIENT000001 /* SwiftHTTPClient */; };
 		F1A7B80C2F0C000000FIAT01 /* GemstoneServices in Frameworks */ = {isa = PBXBuildFile; productRef = F1A7B80D2F0C000000FIAT01 /* GemstoneServices */; };
 		FADEC0DE000000000000B002 /* AddContactNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = FADEC0DE000000000000B001 /* AddContactNavigationStack.swift */; };
+		D0A180DA0000000000000005 /* NavigationStateManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0A180DA0000000000000004 /* NavigationStateManagerTests.swift */; };
+		D0A180DA000000000000000D /* Primitives in Frameworks */ = {isa = PBXBuildFile; productRef = C3CF3B7A29A98C7B00E96586 /* Primitives */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -136,6 +138,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = D83819482E256A5A0076CDB3;
 			remoteInfo = GemPriceWidget;
+		};
+		D0A180DA000000000000000B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C30952A8299C39D70004C0F9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C30952AF299C39D70004C0F9;
+			remoteInfo = Gem;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -260,6 +269,8 @@
 		E1B4C7082E85B00000EARN01 /* Stake */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Stake; sourceTree = "<group>"; };
 		F1A7B80E2F0C000000FIAT02 /* GemstoneServices */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = GemstoneServices; sourceTree = "<group>"; };
 		FADEC0DE000000000000B001 /* AddContactNavigationStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddContactNavigationStack.swift; sourceTree = "<group>"; };
+		D0A180DA0000000000000004 /* NavigationStateManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationStateManagerTests.swift; sourceTree = "<group>"; };
+		D0A180DA0000000000000002 /* GemAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GemAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -344,6 +355,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				D8D726BD2C7157A000A6B559 /* Primitives in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D0A180DA0000000000000006 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D0A180DA000000000000000D /* Primitives in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -523,6 +542,7 @@
 				C3CF3B6E29A98BFD00E96586 /* Packages */,
 				C30952B2299C39D70004C0F9 /* Gem */,
 				C30952C4299C39D80004C0F9 /* GemTests */,
+				D0A180DA0000000000000003 /* GemAppTests */,
 				B69D9C862ED85EA000A04F7F /* GemUITestsAppTests */,
 				D838194C2E256A5A0076CDB3 /* GemPriceWidget */,
 				C30952B1299C39D70004C0F9 /* Products */,
@@ -534,6 +554,7 @@
 			isa = PBXGroup;
 			children = (
 				C30952B0299C39D70004C0F9 /* Gem.app */,
+				D0A180DA0000000000000002 /* GemAppTests.xctest */,
 				D8A1F8732B17F21E00B15F54 /* Screenshots.xctest */,
 				D83096AC2D5D4F1E00FFEE3E /* GemUITests.xctest */,
 				D83819492E256A5A0076CDB3 /* GemPriceWidget.appex */,
@@ -695,6 +716,14 @@
 			path = Resources;
 			sourceTree = "<group>";
 		};
+		D0A180DA0000000000000003 /* GemAppTests */ = {
+			isa = PBXGroup;
+			children = (
+				D0A180DA0000000000000004 /* NavigationStateManagerTests.swift */,
+			);
+			path = GemAppTests;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -821,6 +850,26 @@
 			productReference = D8A1F8732B17F21E00B15F54 /* Screenshots.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		D0A180DA0000000000000001 /* GemAppTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D0A180DA000000000000000A /* Build configuration list for PBXNativeTarget "GemAppTests" */;
+			buildPhases = (
+				D0A180DA0000000000000007 /* Sources */,
+				D0A180DA0000000000000006 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D0A180DA000000000000000C /* PBXTargetDependency */,
+			);
+			name = GemAppTests;
+			packageProductDependencies = (
+				C3CF3B7A29A98C7B00E96586 /* Primitives */,
+			);
+			productName = GemAppTests;
+			productReference = D0A180DA0000000000000002 /* GemAppTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -831,6 +880,10 @@
 				LastSwiftUpdateCheck = 1640;
 				LastUpgradeCheck = 1640;
 				TargetAttributes = {
+					D0A180DA0000000000000001 = {
+						CreatedOnToolsVersion = 26.0;
+						TestTargetID = C30952AF299C39D70004C0F9;
+					};
 					C30952AF299C39D70004C0F9 = {
 						CreatedOnToolsVersion = 14.2;
 					};
@@ -892,6 +945,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
+				D0A180DA0000000000000001 /* GemAppTests */,
 				C30952AF299C39D70004C0F9 /* Gem */,
 				D83096AB2D5D4F1E00FFEE3E /* GemUITests */,
 				D8A1F8722B17F21E00B15F54 /* Screenshots */,
@@ -1023,6 +1077,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D0A180DA0000000000000007 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D0A180DA0000000000000005 /* NavigationStateManagerTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -1041,6 +1103,11 @@
 			platformFilter = ios;
 			target = D83819482E256A5A0076CDB3 /* GemPriceWidget */;
 			targetProxy = D8D5DF0A2E2A1CFE00BFDDCB /* PBXContainerItemProxy */;
+		};
+		D0A180DA000000000000000C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C30952AF299C39D70004C0F9 /* Gem */;
+			targetProxy = D0A180DA000000000000000B /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -1480,6 +1547,40 @@
 			};
 			name = Release;
 		};
+		D0A180DA0000000000000008 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.gemwallet.ios.GemAppTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Gem.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Gem";
+			};
+			name = Debug;
+		};
+		D0A180DA0000000000000009 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.gemwallet.ios.GemAppTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Gem.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Gem";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1524,6 +1625,15 @@
 			buildConfigurations = (
 				D8A1F87C2B17F21E00B15F54 /* Debug */,
 				D8A1F87D2B17F21E00B15F54 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D0A180DA000000000000000A /* Build configuration list for PBXNativeTarget "GemAppTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D0A180DA0000000000000008 /* Debug */,
+				D0A180DA0000000000000009 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

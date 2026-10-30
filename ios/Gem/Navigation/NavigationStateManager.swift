@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import Primitives
 import SwiftUI
 
 @Observable
@@ -21,7 +22,7 @@ final class NavigationStateManager: Sendable {
     var walletTabReselected = false
 
     @MainActor
-    var pendingWalletPath: [any Hashable & Codable] = []
+    var pendingWalletNavigation: (walletId: WalletId, path: [any Hashable & Codable])?
 
     init() {}
 }
@@ -51,13 +52,15 @@ extension NavigationStateManager {
         }
     }
 
-    func reset() {
+    func reset(walletId: WalletId?) {
         for tabItem in TabItem.allCases {
             backToRoot(tab: tabItem)
         }
         selectedTab = .wallet
-        wallet.setPath(pendingWalletPath)
-        pendingWalletPath = []
+        if let pendingWalletNavigation, pendingWalletNavigation.walletId == walletId {
+            wallet.setPath(pendingWalletNavigation.path)
+        }
+        pendingWalletNavigation = nil
     }
 
     func appendWallet(_ scene: any Hashable & Codable) {

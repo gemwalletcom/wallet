@@ -216,6 +216,13 @@
         "identifier": "GemstoneServicesTests",
         "name": "GemstoneServicesTests"
       }
+    },
+    {
+      "target": {
+        "containerPath": "container:Gem.xcodeproj",
+        "identifier": "D0A180DA0000000000000001",
+        "name": "GemAppTests"
+      }
     }
   ],
   "version": 1
