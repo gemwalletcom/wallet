@@ -65,9 +65,7 @@ extension WalletSearchQuery {
         guard hasPriority || scope.isAll else { return [] }
 
         let balanceAlias = TableAlias(name: BalanceRecord.databaseTableName)
-        let priceAlias = TableAlias(name: PriceRecord.databaseTableName)
         let searchAlias = TableAlias(name: SearchRecord.databaseTableName)
-        let totalFiatValue = balanceAlias[BalanceRecord.Columns.totalAmount] * (priceAlias[PriceRecord.Columns.price] ?? 0)
 
         var request = AssetRecord
             .including(optional: AssetRecord.account)
@@ -80,11 +78,11 @@ extension WalletSearchQuery {
         if hasPriority {
             request = request
                 .joining(required: AssetRecord.search.filter(SearchRecord.Columns.query == searchKey))
-                .order(totalFiatValue.desc, searchAlias[SearchRecord.Columns.priority].ascNullsLast, AssetRecord.Columns.rank.desc)
+                .order(AssetRecord.fiatValue.desc, searchAlias[SearchRecord.Columns.priority].ascNullsLast, AssetRecord.Columns.rank.desc)
         } else {
             request = request
                 .filter(AssetRecord.textSearchFilter(query: query))
-                .order(balanceAlias[BalanceRecord.Columns.isPinned].desc, balanceAlias[BalanceRecord.Columns.isEnabled].desc, totalFiatValue.desc, AssetRecord.Columns.rank.desc)
+                .order(balanceAlias[BalanceRecord.Columns.isPinned].desc, balanceAlias[BalanceRecord.Columns.isEnabled].desc, AssetRecord.fiatValue.desc, AssetRecord.Columns.rank.desc)
         }
 
         return try request.limit(limit).asRequest(of: AssetRecordInfo.self).fetchAll(db).map(\.assetData)

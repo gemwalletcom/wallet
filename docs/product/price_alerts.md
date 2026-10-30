@@ -17,6 +17,7 @@ flowchart LR
 
 | When | Expected | Why |
 |---|---|---|
+| The user opens Add an asset | any asset can be picked; pinned assets come first, then the wallet's visible assets by value, then the rest by rank, as in the wallet | the list is capped, so ordering by rank alone can leave out an asset the user holds |
 | The user sets a target | the direction (over or under, increase or decrease) follows the value against the current price | |
 | A target is hit | the alert fires once and is then removed from the list | |
 | The price crosses a round number | the push names the round number and the current price in the user's currency | the milestone is counted in that currency, so both numbers read in one currency |

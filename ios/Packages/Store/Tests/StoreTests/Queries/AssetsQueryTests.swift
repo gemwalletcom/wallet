@@ -226,6 +226,31 @@ struct AssetsQueryTests {
         }
     }
 
+    @Test func allAssetsKeepTheWalletOrder() throws {
+        let bitcoin = AssetBasic.mock(asset: .mock(id: AssetId(chain: .bitcoin)), score: .mock(rank: 100))
+        let solana = AssetBasic.mock(asset: .mock(id: AssetId(chain: .solana)), score: .mock(rank: 90))
+        let tron = AssetBasic.mock(asset: .mock(id: AssetId(chain: .tron)), score: .mock(rank: 50))
+        let ethereum = AssetBasic.mock(asset: .mock(id: AssetId(chain: .ethereum)), score: .mock(rank: 10))
+        let assets = [bitcoin, solana, tron, ethereum]
+        let db = DB.mock(wallets: [.mock(accounts: assets.map { .mock(chain: $0.asset.chain) })], assets: assets, balances: [.mock(assetId: tron.asset.id, available: 2)])
+        let balanceStore = BalanceStore(db: db)
+        let priceStore = PriceStore(db: db)
+
+        try balanceStore.setConfiguration(walletId: .mock(), assetIds: [ethereum.asset.id], configuration: .pinned(true))
+        try balanceStore.setConfiguration(walletId: .mock(), assetIds: [solana.asset.id], configuration: .disabled)
+        try priceStore.saveRates([.mock()])
+        try priceStore.updatePrices([.mock(assetId: tron.asset.id, price: 1, priceChangePercentage24h: 0)])
+
+        try db.dbQueue.read { db in
+            let wallet = try AssetsQuery.mock().fetch(db)
+            let allAssets = try AssetsQuery.mock(scope: .allAssets).fetch(db)
+
+            #expect(allAssets.map(\.asset.id) == [ethereum, tron, bitcoin, solana].map(\.asset.id))
+            #expect(allAssets.map(\.asset.id) == wallet.map(\.asset.id))
+            #expect(allAssets.map(\.metadata.isPinned) == wallet.map(\.metadata.isPinned))
+        }
+    }
+
     @Test func searchNativeAssetByChainDoesNotMatchChainTokens() throws {
         let db = DB.mock(wallets: [.mock(accounts: [.mock(chain: .ton), .mock(chain: .base)])], assets: [
             .mock(asset: .mock(id: AssetId(chain: .ton), name: "Gram", symbol: "GRAM", decimals: 9, type: .native)),

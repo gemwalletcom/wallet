@@ -14,4 +14,8 @@ extension AssetRecord {
                     Columns.chain.like("%%\(query)%%")
             )
     }
+
+    static var fiatValue: SQLExpression {
+        TableAlias(name: BalanceRecord.databaseTableName)[BalanceRecord.Columns.totalAmount] * (TableAlias(name: PriceRecord.databaseTableName)[PriceRecord.Columns.price] ?? 0)
+    }
 }

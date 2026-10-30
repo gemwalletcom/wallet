@@ -159,6 +159,14 @@ class AssetsQueryTest {
     }
 
     @Test
+    fun allAssetsArePinnedFirstThenVisibleThenByFiatValueThenByRank() = runBlocking(Dispatchers.IO) {
+        assertEquals(
+            listOf(AssetId(Chain.Solana), AssetId(Chain.Bitcoin), AssetId(Chain.Ethereum), AssetId(Chain.Tron), AssetId(Chain.Ethereum, "0xdAC17F958D2ee523a2206206994597C13D831ec7")),
+            query(WalletId("wallet-1"), "", AssetsQueryScope.AllAssets, emptySet(), 10).first().map { it.asset.id },
+        )
+    }
+
+    @Test
     fun anAllAssetsSearchAppliesTheFilters() = runBlocking(Dispatchers.IO) {
         database.searchDao().insert(listOf(DbSearch(query = "stable", assetId = "ethereum_0xdAC17F958D2ee523a2206206994597C13D831ec7", priority = 0)))
         val bitcoinOnly = setOf(AssetsQueryFilter.Chains(listOf(Chain.Bitcoin)))
