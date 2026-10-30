@@ -1,5 +1,6 @@
 use crate::models::{Address, Transaction};
 use chrono::{TimeZone, Utc};
+use num_bigint::BigUint;
 use primitives::{TransactionState, TransactionType, chain::Chain, transaction_utxo::TransactionUtxoInput};
 use std::error::Error;
 
@@ -23,30 +24,27 @@ fn op_return_memo(transaction: &Transaction) -> Option<String> {
 }
 
 pub fn map_transaction(chain: Chain, transaction: &Transaction) -> Option<primitives::Transaction> {
-    let inputs: Vec<TransactionUtxoInput> = transaction
-        .vin
-        .iter()
-        .filter(|i| i.is_address)
-        .map(|input| {
-            Some(TransactionUtxoInput {
-                address: Address::new(input.addresses.as_deref().and_then(|addresses| addresses.first())?, chain).short().to_string(),
-                value: input.value.clone(),
-            })
-        })
-        .collect::<Option<Vec<_>>>()?;
+    let inputs = map_utxo_inputs(chain, transaction)?;
+    let outputs = map_utxo_outputs(chain, transaction)?;
+    map_utxo_transaction(chain, transaction, inputs, outputs, transaction.value.clone(), transaction.fees.clone())
+}
 
-    let outputs: Vec<TransactionUtxoInput> = transaction
-        .vout
-        .iter()
-        .filter(|o| o.is_address)
-        .map(|output| {
-            Some(TransactionUtxoInput {
-                address: Address::new(output.addresses.as_deref().and_then(|addresses| addresses.first())?, chain).short().to_string(),
-                value: output.value.clone(),
-            })
-        })
-        .collect::<Option<Vec<_>>>()?;
+pub fn map_utxo_inputs(chain: Chain, transaction: &Transaction) -> Option<Vec<TransactionUtxoInput>> {
+    transaction.vin.iter().filter(|i| i.is_address).map(|input| map_utxo(chain, input.addresses.as_deref(), &input.value)).collect()
+}
 
+pub fn map_utxo_outputs(chain: Chain, transaction: &Transaction) -> Option<Vec<TransactionUtxoInput>> {
+    transaction.vout.iter().filter(|o| o.is_address).map(|output| map_utxo(chain, output.addresses.as_deref(), &output.value)).collect()
+}
+
+fn map_utxo(chain: Chain, addresses: Option<&[String]>, value: &BigUint) -> Option<TransactionUtxoInput> {
+    Some(TransactionUtxoInput {
+        address: Address::new(addresses.and_then(|addresses| addresses.first())?, chain).short().to_string(),
+        value: value.clone(),
+    })
+}
+
+pub fn map_utxo_transaction(chain: Chain, transaction: &Transaction, inputs: Vec<TransactionUtxoInput>, outputs: Vec<TransactionUtxoInput>, value: BigUint, fee: BigUint) -> Option<primitives::Transaction> {
     if inputs.is_empty() || outputs.is_empty() {
         return None;
     }
@@ -60,9 +58,9 @@ pub fn map_transaction(chain: Chain, transaction: &Transaction) -> Option<primit
         chain.as_asset_id(),
         TransactionType::Transfer,
         state,
-        transaction.fees.clone(),
+        fee,
         chain.as_asset_id(),
-        transaction.value.clone(),
+        value,
         memo,
         inputs.into(),
         outputs.into(),
@@ -79,7 +77,6 @@ mod tests {
     use crate::models::Transaction as BitcoinTransaction;
     use crate::models::transaction::{Input, Output};
     use crate::provider::testkit::TEST_TRANSACTION_ID;
-    use num_bigint::BigUint;
 
     #[test]
     fn test_map_transaction() {

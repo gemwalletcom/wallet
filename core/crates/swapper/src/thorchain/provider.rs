@@ -2,8 +2,8 @@ use std::{collections::HashSet, fmt::Debug, sync::Arc, time::Duration};
 
 use alloy_primitives::U256;
 use async_trait::async_trait;
-use gem_bitcoin::address::zcash_transparent_address;
 use gem_client::Client;
+use gem_zcash::transparent_address as zcash_transparent_address;
 use primitives::{AssetId, Chain, ChainType, MINUTE, swap::ApprovalData};
 
 use num_bigint::BigInt;

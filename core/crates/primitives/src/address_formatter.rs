@@ -13,6 +13,8 @@ pub struct AddressFormatter;
 impl AddressFormatter {
     const CONNECTOR: &str = "...";
     const EDGE_CHARS: usize = 5;
+    const LONG_ADDRESS_CHARS: usize = 100;
+    const LONG_ADDRESS_LEADING_CHARS: usize = 20;
 
     pub fn format(address: &str, chain: Option<Chain>, style: AddressFormatStyle) -> String {
         match style {
@@ -23,10 +25,10 @@ impl AddressFormatter {
     }
 
     fn truncate(address: &str, chain: Option<Chain>, extra: usize) -> String {
-        let leading = Self::leading_chars(chain) + extra;
-        let trailing = Self::EDGE_CHARS + extra;
         let chars = address.chars().collect::<Vec<_>>();
         let char_count = chars.len();
+        let leading = Self::leading_chars(char_count, chain) + extra;
+        let trailing = Self::EDGE_CHARS + extra;
 
         if char_count <= leading + trailing {
             return address.to_string();
@@ -37,11 +39,15 @@ impl AddressFormatter {
         format!("{start}{}{end}", Self::CONNECTOR)
     }
 
-    fn leading_chars(chain: Option<Chain>) -> usize {
-        match chain.map(|chain| chain.chain_type()) {
+    fn leading_chars(char_count: usize, chain: Option<Chain>) -> usize {
+        let leading = match chain.map(|chain| chain.chain_type()) {
             Some(ChainType::Ethereum) => Self::EDGE_CHARS + "0x".len(),
             Some(ChainType::Bitcoin | ChainType::Aptos) => Self::EDGE_CHARS + 1,
             Some(_) | None => Self::EDGE_CHARS,
+        };
+        match char_count >= Self::LONG_ADDRESS_CHARS {
+            true => leading.max(Self::LONG_ADDRESS_LEADING_CHARS),
+            false => leading,
         }
     }
 }
@@ -64,5 +70,30 @@ mod tests {
         assert_eq!(AddressFormatter::format("0x1231232221321312", Some(Chain::Ethereum), AddressFormatStyle::Full), "0x1231232221321312");
         assert_eq!(AddressFormatter::format("bc1short", Some(Chain::Bitcoin), AddressFormatStyle::Short), "bc1short");
         assert_eq!(AddressFormatter::format("abcXXmiddleXXcba", Some(Chain::Solana), AddressFormatStyle::Short), "abcXX...XXcba");
+        assert_eq!(
+            AddressFormatter::format(
+                "u1qhwq6evpqq04ga6dn06mexlk6pcarhru4mhpkv63ar7nsmqvk5057lgtuj2yx6nhxlu0wuhzuw74v4q0eskt7gxy2xplq4qe5m560gukxtnx86mu5qljhgygyxzy7ulavg02qc42hxs",
+                Some(Chain::Zcash),
+                AddressFormatStyle::Short
+            ),
+            "u1qhwq6evpqq04ga6dn0...42hxs"
+        );
+        assert_eq!(
+            AddressFormatter::format(
+                "U1QHWQ6EVPQQ04GA6DN06MEXLK6PCARHRU4MHPKV63AR7NSMQVK5057LGTUJ2YX6NHXLU0WUHZUW74V4Q0ESKT7GXY2XPLQ4QE5M560GUKXTNX86MU5QLJHGYGYXZY7ULAVG02QC42HXS",
+                Some(Chain::Zcash),
+                AddressFormatStyle::Short
+            ),
+            "U1QHWQ6EVPQQ04GA6DN0...42HXS"
+        );
+        assert_eq!(AddressFormatter::format("t1SdZhkr3TmiHttYNL6y4qsK5N7nMDoPHm8", Some(Chain::Zcash), AddressFormatStyle::Short), "t1SdZh...oPHm8");
+        assert_eq!(
+            AddressFormatter::format(
+                "addr1qx2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3n0d3vllmyqwsx5wktcd8cc3sq835lu7drv2xwl2wywfgse35a3x",
+                Some(Chain::Cardano),
+                AddressFormatStyle::Short
+            ),
+            "addr1qx2fxv2umyhttkx...35a3x"
+        );
     }
 }

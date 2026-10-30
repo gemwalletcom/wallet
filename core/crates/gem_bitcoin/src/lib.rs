@@ -17,7 +17,7 @@ pub mod rpc;
 #[cfg(feature = "signer")]
 pub mod signer;
 
-#[cfg(test)]
+#[cfg(any(test, feature = "testkit"))]
 pub mod testkit;
 
 #[cfg(feature = "rpc")]

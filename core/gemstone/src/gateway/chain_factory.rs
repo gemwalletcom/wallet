@@ -22,6 +22,7 @@ use gem_tempo::TempoProvider;
 use gem_ton::rpc::client::TonClient;
 use gem_tron::rpc::{TronProvider, client::TronClient};
 use gem_xrp::rpc::XrpClient;
+use gem_zcash::ZcashProvider;
 use primitives::{BitcoinChain, Chain, ChainType, EVMChain, chain_cosmos::CosmosChain};
 
 use super::{GatewayError, PreferencesWrapper, SecureStoreWrapper};
@@ -59,7 +60,7 @@ impl ChainClientFactory {
                 let secure_preferences = Arc::new(SecureStoreWrapper { store: self.secure_preferences.clone() });
                 Ok(Arc::new(HyperCoreClient::new_with_preferences(alien_client, preferences, secure_preferences)))
             }
-            ChainType::Bitcoin => Ok(Arc::new(BitcoinClient::new(alien_client, BitcoinChain::from_chain(chain).unwrap()))),
+            ChainType::Bitcoin => Ok(Arc::from(ZcashProvider::new_or_else(BitcoinClient::new(alien_client, BitcoinChain::from_chain(chain).unwrap()), |client| Box::new(client)))),
             ChainType::Cardano => Ok(Arc::new(CardanoClient::new(alien_client))),
             ChainType::Stellar => Ok(Arc::new(StellarClient::new(alien_client))),
             ChainType::Sui => Ok(Arc::new(SuiProvider::new_rpc_only(SuiClient::new_with_transport(

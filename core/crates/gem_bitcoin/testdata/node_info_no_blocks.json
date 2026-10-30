@@ -7,7 +7,8 @@
   },
   "backend": {
     "consensus": {
-      "chaintip": "c2d6d0b4"
+      "chaintip": "37a5165b",
+      "nextblock": "77190ad9"
     }
   }
 }

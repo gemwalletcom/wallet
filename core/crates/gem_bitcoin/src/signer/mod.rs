@@ -1,11 +1,9 @@
-pub(crate) mod address;
+pub mod address;
 mod bitcoin_cash;
 mod chain_signer;
-mod encoding;
-mod personalization;
+pub mod encoding;
 mod planner;
 mod transaction;
-mod zcash;
 
 #[cfg(feature = "rpc")]
 use std::collections::HashMap;
@@ -16,19 +14,21 @@ use num_bigint::BigInt;
 use primitives::{AssetId, BitcoinChain, SignerError, SignerInput, TransactionFee, TransactionInputType, TransactionLoadInput};
 
 pub use chain_signer::BitcoinChainSigner;
-#[cfg(test)]
-pub(crate) use planner::PlanInput;
+pub use planner::{PlanInput, PlanOutput, SpendDestination, SpendFee, SpendPlan, SpendRequest, UtxoPlanner};
+pub use transaction::{PlanSigningKey, der_signature, signature_push_bytes};
 
 #[cfg(feature = "rpc")]
 pub(crate) fn estimate_transaction_fee(chain: BitcoinChain, input: &TransactionLoadInput) -> Result<TransactionFee, SignerError> {
     let signer_input = SignerInput::new(input.clone(), input.default_fee());
+    let destination = |address: &str| SpendDestination::script(chain, address);
     let request = match &input.input_type {
-        TransactionInputType::Transfer { .. } | TransactionInputType::Withdrawal { .. } => planner::SpendRequest::transfer(chain, &signer_input)?,
-        TransactionInputType::Swap { .. } => planner::SpendRequest::swap(chain, &signer_input)?,
+        TransactionInputType::Transfer { .. } | TransactionInputType::Withdrawal { .. } => SpendRequest::transfer(chain, &signer_input, destination)?,
+        TransactionInputType::Swap { .. } => SpendRequest::swap(chain, &signer_input, destination)?,
         _ => return SignerError::invalid_input_err("unsupported Bitcoin transaction type"),
     };
+
     Ok(TransactionFee {
-        fee: BigInt::from(planner::UtxoPlanner::fee(request)?),
+        fee: BigInt::from(UtxoPlanner::fee(request, &planner::VirtualSizeFee::for_input(chain, &signer_input)?)?),
         gas_price_type: input.gas_price.clone(),
         gas_limit: BigInt::from(1u8),
         options: HashMap::new(),
@@ -39,8 +39,7 @@ pub(crate) fn estimate_transaction_fee(chain: BitcoinChain, input: &TransactionL
 #[cfg(test)]
 mod tests {
     use bitcoin::{blockdata::transaction::Version, consensus::encode::deserialize};
-    use primitives::testkit::zcash_mock::{TEST_ZCASH_TEX_ADDRESS, TEST_ZCASH_TRANSPARENT_ADDRESS};
-    use primitives::{BitcoinChain, ChainSigner, TransactionInputType};
+    use primitives::{BitcoinChain, ChainSigner};
 
     use super::BitcoinChainSigner;
     use crate::testkit::signer_mock::{TEST_PRIVATE_KEY, mock_contract_swap_input, mock_funded_transfer_input, mock_p2wpkh_transfer_input, mock_transfer_input, mock_transfer_swap_input};
@@ -114,13 +113,6 @@ mod tests {
     }
 
     #[test]
-    fn test_sign_transfer_zcash() {
-        let raw = sign_transfer(BitcoinChain::Zcash);
-        let zcash_bytes = hex::decode(raw).unwrap();
-        assert_eq!(&zcash_bytes[..20], hex::decode("050000800a27a726f04dec4d0000000000000000").unwrap().as_slice());
-    }
-
-    #[test]
     fn test_sign_transfer_vectors() {
         // Test vectors are checked against BitGoJS.
         let cases = [
@@ -154,12 +146,6 @@ mod tests {
                 mock_transfer_input(BitcoinChain::BitcoinCash),
                 "02000000010100000000000000000000000000000000000000000000000000000000000000000000006a47304402202454d9566a573c0d47f6c2ee32e29fe946da4d859cf49d046b737fbc497070a6022077f20c9841368e646948066a0583b4f6aabeef0c2baff4c9e8733c1b3d98f5444121031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078ffdffffff0210270000000000001976a914020202020202020202020202020202020202020288acd6970000000000001976a91479b000887626b294a914501a4cd226b58b23598388ac00000000",
             ),
-            (
-                "zcash",
-                BitcoinChain::Zcash,
-                mock_transfer_input(BitcoinChain::Zcash),
-                "050000800a27a726f04dec4d0000000000000000010100000000000000000000000000000000000000000000000000000000000000000000006a473044022004354fd389558909b1ccfb05dd2f3c324423efcad18eb50a42cb65ebdd17513d02207dac81ff91f4108b4017329e55971c2bd6a213cf925886b95513519bd806fd9a0121031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078fffffffff0210270000000000001976a914030303030303030303030303030303030303030388ac30750000000000001976a91479b000887626b294a914501a4cd226b58b23598388ac000000",
-            ),
         ];
 
         for (name, chain, input, expected) in cases {
@@ -177,20 +163,6 @@ mod tests {
         let memo_output = transaction.output.iter().find(|output| output.script_pubkey.is_op_return()).unwrap();
         assert_eq!(memo_output.value.to_sat(), 0);
         assert_op_return_payload(&memo_output.script_pubkey, memo.as_bytes());
-    }
-
-    #[test]
-    fn test_sign_zcash_tex_swap() {
-        let mut input = mock_transfer_swap_input(BitcoinChain::Zcash, "=:b:bc1qdestination:0/1/0:g1:50");
-        let signer = BitcoinChainSigner::new(BitcoinChain::Zcash);
-        if let TransactionInputType::Swap { swap_data, .. } = &mut input.input.input_type {
-            swap_data.data.to = TEST_ZCASH_TRANSPARENT_ADDRESS.to_string();
-        }
-        let expected = signer.sign_swap(&input, &TEST_PRIVATE_KEY).unwrap();
-        if let TransactionInputType::Swap { swap_data, .. } = &mut input.input.input_type {
-            swap_data.data.to = TEST_ZCASH_TEX_ADDRESS.to_string();
-        }
-        assert_eq!(signer.sign_swap(&input, &TEST_PRIVATE_KEY).unwrap(), expected);
     }
 
     #[test]

@@ -20,7 +20,10 @@ pub fn validate_address(address: &str, chain: Chain) -> bool {
         ChainType::Algorand => gem_algorand::validate_address(address),
         ChainType::Xrp => gem_xrp::validate_address(address),
         ChainType::Polkadot => gem_polkadot::validate_address(address),
-        ChainType::Bitcoin => gem_bitcoin::validate_address(address, chain),
+        ChainType::Bitcoin => match chain {
+            Chain::Zcash => gem_zcash::validate_address(address),
+            _ => gem_bitcoin::validate_address(address, chain),
+        },
         ChainType::Cardano => gem_cardano::validate_address(address),
     }
 }
@@ -34,6 +37,10 @@ mod tests {
         assert!(validate_address("0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a", Chain::Ethereum));
         assert!(!validate_address("0X5615e8ab93b9d695b6d4d6545f7792aa59e1069a", Chain::Ethereum));
         assert!(validate_address("cosmos1h3laqcrmul79zwtw6j63ncsl0adfj07wgupylj", Chain::Cosmos));
+        assert!(validate_address(
+            "u1qhwq6evpqq04ga6dn06mexlk6pcarhru4mhpkv63ar7nsmqvk5057lgtuj2yx6nhxlu0wuhzuw74v4q0eskt7gxy2xplq4qe5m560gukxtnx86mu5qljhgygyxzy7ulavg02qc42hxs",
+            Chain::Zcash
+        ));
         assert!(validate_address("GvhwZwtV32kYUXUw965CUM3KGPdtBsDwPVpi92brY5R2", Chain::Solana));
         assert!(validate_address("rnBFvgZphmN39GWzUJeUitaP22Fr9be75H", Chain::Xrp));
         assert!(!validate_address("rnBFvgZphmN39GWzUJeUitaP22Fr9be75J", Chain::Xrp));

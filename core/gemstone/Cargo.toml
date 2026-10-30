@@ -46,6 +46,7 @@ gem_jsonrpc = { path = "../crates/gem_jsonrpc", features = ["uniffi"] }
 gem_client = { path = "../crates/gem_client" }
 gem_hypercore = { path = "../crates/gem_hypercore", features = ["signer"] }
 gem_bitcoin = { path = "../crates/gem_bitcoin", features = ["rpc", "signer"] }
+gem_zcash = { path = "../crates/gem_zcash", features = ["rpc", "signer"] }
 gem_cardano = { path = "../crates/gem_cardano", features = ["rpc", "signer"] }
 gem_algorand = { path = "../crates/gem_algorand", features = ["rpc", "signer"] }
 gem_stellar = { path = "../crates/gem_stellar", features = ["rpc", "signer"] }
@@ -89,6 +90,7 @@ large_futures = "warn"
 uniffi = { workspace = true, features = ["build"] }
 
 [dev-dependencies]
+gem_bitcoin = { path = "../crates/gem_bitcoin", features = ["testkit"] }
 gem_evm = { path = "../crates/gem_evm", features = ["testkit"] }
 gem_wallet_connect = { path = "../crates/gem_wallet_connect", features = ["testkit"] }
 primitives = { path = "../crates/primitives", features = ["testkit"] }

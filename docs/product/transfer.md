@@ -35,6 +35,11 @@ flowchart LR
 | Sending fails after Confirm | an error alert; the fee and amounts stay and the button stays Confirm, so a tap sends again | Try Again is only for a failed load |
 | The network rejects the sent transaction | the network's own reason | it is often the only explanation there is |
 | A Dash payment is sent | Pending until it is mined | the provider does not report InstantSend locks yet |
+| The recipient is a Zcash unified address (`u1…`) with an Orchard receiver | the transparent balance pays that receiver in the shielded Ironwood pool, a memo travels encrypted in the note, and the Network Fee covers the two shielded actions; sending takes a few seconds longer while the proof is built | since NU6.3 a payment to someone else's shielded address can only land in Ironwood |
+| A Zcash unified address whose only shielded receiver is Sapling | its transparent receiver is paid; without one the address is not valid for Zcash | Sapling outputs need proving parameters Gem does not ship |
+| A Zcash send carries a memo but the recipient gets a transparent output | the fee cannot load and the send is refused | ZIP-321 memos are private; a transparent output would publish the memo on chain |
+| An address of 100 characters or more is shortened, such as a Zcash unified address or a Cardano base address | at least its first 20 characters stay visible | a long address is easier to imitate in its first few characters; ZIP-316 asks for 20 |
+| A Bitcoin-family send carries a memo, as a scanned Zcash payment code can | Confirm shows the Memo row even though the send form has no memo field | every memo that will be signed is shown first |
 | The system closes the app during Send, Swap or Stake | the flow starts again from the screen that opened it | a restored Confirm could sign a stale transfer |
 
 Names, the Network Fee, and account requirements follow the shared [Names](../PRODUCT.md#names), [Network Fee](../PRODUCT.md#network-fee), and [Network minimums and activation](../PRODUCT.md#network-minimums-and-activation) sections.
@@ -52,7 +57,7 @@ flowchart LR
     B -- WalletConnect code --> G[Connection proposal]
 ```
 
-Supported codes: a plain address; Bitcoin, Litecoin, Bitcoin Cash, Dogecoin, Dash and Zcash payment codes (amount, memo, label); XRP with a destination tag; Ethereum coin and token transfers; Solana Pay; TON coin and token transfers with a comment; WalletConnect Pay links. The scanner reads them from the camera or a picked image.
+Supported codes: a plain address; Bitcoin, Litecoin, Bitcoin Cash, Dogecoin, Dash and Zcash payment codes (amount, memo, label; a Zcash code may give its address as `address=`, and its memo is decoded from base64url as ZIP-321 specifies); XRP with a destination tag; Ethereum coin and token transfers; Solana Pay; TON coin and token transfers with a comment; WalletConnect Pay links. The scanner reads them from the camera or a picked image.
 
 | When the code is | Expected | Why |
 |---|---|---|
@@ -65,6 +70,7 @@ Supported codes: a plain address; Bitcoin, Litecoin, Bitcoin Cash, Dogecoin, Das
 | A plain address that matches several networks | a pick of the asset to send, then the rows above | |
 | A token the wallet has no balance for | Confirm, with the token's balance at zero so the shortfall and the ways to get it show; the token is not added to the wallet's list | the code chooses the token, not the wallet |
 | A WalletConnect Pay link | a review of the merchant's request; once confirmed, it pays and reports the result back to the merchant | |
+| A Zcash code that asks for several payments, or names the address twice | "Not supported" | paying only one of several requested payments would look like a complete payment |
 | A Solana Pay transaction request | Confirm with the merchant's name and, when the merchant sends one, its message in full in a Message section, like a signed message in WalletConnect | the message says what is being paid for; Solana Pay asks the wallet to show it |
 | A code the app cannot read | "Not supported" | a scan never does nothing |
 | A code the app can read but not open: a network without an account, a payment link that fails | why it cannot open | |

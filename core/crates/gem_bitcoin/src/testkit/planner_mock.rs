@@ -14,10 +14,10 @@ use crate::{
     },
 };
 
-pub(crate) const TEST_SPEND_RECIPIENT: &str = "1BoatSLRHtKNngkdXEeobR76b53LETtpyT";
+pub const TEST_SPEND_RECIPIENT: &str = "1BoatSLRHtKNngkdXEeobR76b53LETtpyT";
 
 impl PlanInput {
-    pub(crate) fn mock_with_unlocking_script(unlocking_script: UnlockingScript) -> Self {
+    pub fn mock_with_unlocking_script(unlocking_script: UnlockingScript) -> Self {
         Self {
             previous_output: OutPoint::null(),
             value: Amount::from_sat(50_000),
@@ -28,11 +28,11 @@ impl PlanInput {
     }
 }
 
-pub(crate) fn mock_signer_input(value: &str, is_max: bool) -> SignerInput {
+pub fn mock_signer_input(value: &str, is_max: bool) -> SignerInput {
     mock_signer_input_with(value, is_max, Some("memo".to_string()), mock_spend_utxos())
 }
 
-pub(crate) fn mock_signer_input_with(value: &str, is_max: bool, memo: Option<String>, utxos: Vec<UTXO>) -> SignerInput {
+pub fn mock_signer_input_with(value: &str, is_max: bool, memo: Option<String>, utxos: Vec<UTXO>) -> SignerInput {
     let mut input = mock_transfer_input_with_utxos(BitcoinChain::Bitcoin, TEST_BITCOIN_P2WPKH_ADDRESS, TEST_SPEND_RECIPIENT, value, utxos);
     input.input.gas_price = GasPriceType::regular(BigInt::from(20u64));
     input.input.memo = memo;
@@ -41,19 +41,19 @@ pub(crate) fn mock_signer_input_with(value: &str, is_max: bool, memo: Option<Str
     input
 }
 
-pub(crate) fn mock_spend_utxos() -> Vec<UTXO> {
+pub fn mock_spend_utxos() -> Vec<UTXO> {
     vec![
         mock_utxo_with(TEST_UTXO_TXID, 0, "10000", TEST_BITCOIN_P2WPKH_ADDRESS),
         mock_utxo_with("0000000000000000000000000000000000000000000000000000000000000002", 1, "20000", TEST_BITCOIN_P2WPKH_ADDRESS),
     ]
 }
 
-pub(crate) fn op_return_script(bytes: usize) -> ScriptBuf {
+pub fn op_return_script(bytes: usize) -> ScriptBuf {
     let push = PushBytesBuf::try_from(vec![0u8; bytes]).unwrap();
     Builder::new().push_opcode(OP_RETURN).push_slice(push).into_script()
 }
 
-pub(crate) fn sum_inputs(inputs: &[PlanInput]) -> Result<u64, SignerError> {
+pub fn sum_inputs(inputs: &[PlanInput]) -> Result<u64, SignerError> {
     inputs
         .iter()
         .try_fold(0u64, |sum, input| sum.checked_add(input.value.to_sat()).ok_or_else(|| SignerError::invalid_input("Bitcoin amount overflow")))

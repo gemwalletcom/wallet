@@ -147,11 +147,14 @@ alloy-rlp = { version = "0.3.16" }
 alloy-sol-types = { version = "1.7.3", features = ["eip712-serde"] }
 bitcoin = { version = "0.32.102" }
 bitcoincash-addr = { version = "0.5.2" }
+orchard = { version = "0.16.0", default-features = false }
 sui-transaction-builder = { version = "0.4.0", default-features = false }
 sui-types = { package = "sui-sdk-types", version = "0.4.0", features = [
     "hash",
     "serde",
 ] }
+zcash_address = { version = "0.13.0" }
+zcash_protocol = { version = "0.10.6" }
 
 # Numbers
 bigdecimal = { version = "0.4.10" }
@@ -200,7 +203,13 @@ debug = "line-tables-only"
 [profile.dev.package.argon2]
 opt-level = 3
 
+[profile.dev.package.halo2_proofs]
+opt-level = 3
+
 [profile.dev.package.hmac]
+opt-level = 3
+
+[profile.dev.package.pasta_curves]
 opt-level = 3
 
 [profile.dev.package.pbkdf2]
