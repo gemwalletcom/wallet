@@ -1,5 +1,5 @@
 use gem_client::{ClientError, ClientExt, ReqwestClient};
-use primitives::FiatProviderName;
+use primitives::{FiatProviderName, FiatQuoteType};
 use std::collections::HashMap;
 
 use super::mapper::map_sell_quote;
@@ -63,8 +63,13 @@ impl MercuryoClient {
         self.client.get(MercuryoTarget::CardCountries).await
     }
 
-    pub async fn get_currency_limits(&self, from: String, to: String) -> Result<Response<HashMap<String, CurrencyLimits>>, ClientError> {
-        let target = MercuryoTarget::CurrencyLimits { from, to, widget_id: self.widget_id.clone() };
+    pub async fn get_currency_limits(&self, from: String, to: String, quote_type: FiatQuoteType) -> Result<Response<HashMap<String, CurrencyLimits>>, ClientError> {
+        let target = MercuryoTarget::CurrencyLimits {
+            from,
+            to,
+            widget_id: self.widget_id.clone(),
+            quote_type,
+        };
         self.client.get(target).await
     }
 }

@@ -8,14 +8,29 @@ use crate::{
 use async_trait::async_trait;
 use futures::future;
 use primitives::currency::Currency;
+use primitives::fiat_assets::FiatAssetLimits;
 use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteRequest, FiatQuoteResponse, FiatQuoteType, FiatQuoteUrl, FiatQuoteUrlData, FiatWebhook};
+use std::collections::HashMap;
 use std::error::Error;
 
 use super::{
     client::MercuryoClient,
     mapper::{map_order_from_webhook, map_webhook_data},
+    models::FiatPaymentMethod,
     widget::MercuryoWidget,
 };
+
+impl MercuryoClient {
+    async fn get_asset_limits(&self, symbol: &str, currency: &Currency, quote_type: FiatQuoteType, is_enabled: bool, fiat_payment_methods: &HashMap<String, FiatPaymentMethod>) -> Vec<FiatAssetLimits> {
+        if !is_enabled {
+            return vec![];
+        }
+        match self.get_currency_limits(symbol.to_string(), currency.as_ref().to_string(), quote_type).await {
+            Ok(response) => map_asset_limits(response.data.get(currency.as_ref()), currency.clone(), fiat_payment_methods),
+            Err(_) => map_asset_limits(None, currency.clone(), fiat_payment_methods),
+        }
+    }
+}
 
 #[async_trait]
 impl FiatProvider for MercuryoClient {
@@ -25,24 +40,20 @@ impl FiatProvider for MercuryoClient {
 
     async fn get_assets(&self) -> Result<Vec<FiatProviderAsset>, Box<dyn std::error::Error + Send + Sync>> {
         let currencies = self.get_currencies().await?;
-        let currency = Currency::USD;
+        let currency = &Currency::USD;
+        let fiat_payment_methods = &currencies.fiat_payment_methods;
 
-        let assets_with_limits = future::join_all(currencies.config.crypto_currencies.into_iter().map(|asset| {
-            let fiat_payment_methods = currencies.fiat_payment_methods.clone();
-            let currency = currency.clone();
-            async move {
-                if !asset.widget_onramp_enabled {
-                    return (asset, map_asset_limits(None, currency, &fiat_payment_methods));
-                }
-                match self.get_currency_limits(asset.currency.clone(), currency.as_ref().to_string()).await {
-                    Ok(response) => (asset, map_asset_limits(response.data.get(currency.as_ref()), currency.clone(), &fiat_payment_methods)),
-                    Err(_) => (asset, map_asset_limits(None, currency, &fiat_payment_methods)),
-                }
-            }
+        let assets = future::join_all(currencies.config.crypto_currencies.into_iter().map(|asset| async move {
+            let (buy_limits, sell_limits) = future::join(
+                self.get_asset_limits(&asset.currency, currency, FiatQuoteType::Buy, asset.widget_onramp_enabled, fiat_payment_methods),
+                self.get_asset_limits(&asset.currency, currency, FiatQuoteType::Sell, asset.widget_offramp_enabled, fiat_payment_methods),
+            )
+            .await;
+            map_asset_with_limits(asset, buy_limits, sell_limits)
         }))
         .await;
 
-        Ok(assets_with_limits.into_iter().map(|(asset, limits)| map_asset_with_limits(asset, limits.clone(), limits)).collect())
+        Ok(assets)
     }
 
     async fn get_countries(&self) -> Result<Vec<FiatProviderCountry>, Box<dyn std::error::Error + Send + Sync>> {

@@ -193,6 +193,16 @@ mod tests {
     }
 
     #[test]
+    fn test_map_asset_limits() {
+        let response: Response<HashMap<String, CurrencyLimits>> = serde_json::from_str(include_str!("../../../testdata/mercuryo/currency_limits_sell.json")).unwrap();
+
+        let limits = map_asset_limits(response.data.get(Currency::USD.as_ref()), Currency::USD, &HashMap::new());
+
+        let limits: Vec<_> = limits.into_iter().map(|x| (x.currency, x.payment_type, x.min_amount, x.max_amount)).collect();
+        assert_eq!(limits, vec![(Currency::USD, PaymentType::Card, Some(27.98), Some(11191.7))]);
+    }
+
+    #[test]
     fn test_map_order_from_webhook_payloads() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let buy: Webhook = serde_json::from_str(include_str!("../../../testdata/mercuryo/webhook_buy_complete.json"))?;
         let mobile_pay: Webhook = serde_json::from_str(include_str!("../../../testdata/mercuryo/webhook_mobile_pay_complete.json"))?;
