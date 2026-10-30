@@ -100,6 +100,8 @@ wallet_add_token_title = Ƙara Token
 wallet_sell = Sayarwa
 wallet_receive_collection = Karɓi Tarin
 wallet_more = Kara
+wallet_backup = Ajiya
+wallet_advanced = Na Ci Gaba
 wallet_import_contract_address_field = Kwangila ko Token ID
 wallet_import_address_warning = Kuna iya duba ma'auni da ma'amaloli don wannan adireshin, amma ** ba za ku iya aikawa ko siyar da kuɗi ba**.
 wallet_deposit = Ajiya
@@ -444,6 +446,17 @@ private_key_reminder_no_recovery_subtitle = Idan kun rasa keɓaɓɓen maɓallink
 private_key_do_not_share_title = Kada ku raba Keɓaɓɓen Maɓallinku!
 private_key_do_not_share_description = Idan wani yana da keɓaɓɓen maɓallinku zai sami cikakken iko akan wannan asusun!
 private_key_screenshot_detected_description = Hotunan allo na iya kasancewa a bayyane ga wasu app, kuma za su iya sanya keɓaɓɓen maɓallin ku cikin haɗari idan an ajiye shi ta wannan hanyar.
+private_key_export_reminder_intro = Keɓaɓɓen maɓallinku yana ba da cikakken damar shiga wannan asusun.
+private_key_export_reminder_keep_safe_title = Ajiye Shi Wani Wuri Mai Aminci
+private_key_export_reminder_keep_safe_subtitle = Duk wanda ke da shi zai iya amfani da wannan asusun.
+private_key_export_reminder_do_not_share_title = Kada Ku Raba Shi Ga Kowa
+private_key_export_reminder_do_not_share_subtitle = Babu mutum, gidan yanar gizo, ko manhaja da ya kamata ya nema.
+private_key_export_reminder_no_recovery_title = Ba Za Mu Iya Taimaka Muku Dawo Da Su Ba
+private_key_export_reminder_no_recovery_subtitle = Idan wani ya kwashe kuɗinku, ba za a iya dawo da su ba.
+private_key_select_account = Zaɓi asusunku
+private_key_scope_evm = Wannan maɓalli kuma yana sarrafa asusunku a duk hanyoyin sadarwa na EVM.
+private_key_scope_cosmos = Wannan maɓalli kuma yana sarrafa asusunku a duk hanyoyin sadarwa na Cosmos.
+private_key_accounts_info = Kalmar sirrinku ta riga ta adana waɗannan asusun. Fitar da maɓalli kawai don amfani da asusu ɗaya a wata walat.
 
 # Social
 

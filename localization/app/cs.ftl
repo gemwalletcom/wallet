@@ -100,6 +100,8 @@ wallet_add_token_title = Přidat token
 wallet_sell = Prodat
 wallet_receive_collection = Přijmout sbírku
 wallet_more = Více
+wallet_backup = Záloha
+wallet_advanced = Pokročilé
 wallet_import_contract_address_field = Kontrakt nebo token ID
 wallet_import_address_warning = Pro tuto adresu si můžete prohlížet zůstatky a transakce, ale **nemůžete posílat ani prodávat finanční prostředky**.
 wallet_deposit = Vklad
@@ -444,6 +446,17 @@ private_key_reminder_no_recovery_subtitle = Pokud ztratíte soukromý klíč, zt
 private_key_do_not_share_title = Nesdílejte svůj soukromý klíč!
 private_key_do_not_share_description = Pokud má někdo váš soukromý klíč, bude mít plnou kontrolu nad tímto účtem!
 private_key_screenshot_detected_description = Snímky obrazovky mohou být přístupné jiným aplikacím, pokud se uloží tímto způsobem, mohou ohrozit váš soukromý klíč.
+private_key_export_reminder_intro = Váš soukromý klíč dává plný přístup k tomuto účtu.
+private_key_export_reminder_keep_safe_title = Uložte ho na bezpečné místo
+private_key_export_reminder_keep_safe_subtitle = Kdokoli ho má, může tento účet používat.
+private_key_export_reminder_do_not_share_title = S nikým ho nesdílejte
+private_key_export_reminder_do_not_share_subtitle = Žádná osoba, web ani aplikace by o něj neměla žádat.
+private_key_export_reminder_no_recovery_title = Nemůžeme vám pomoci je získat zpět
+private_key_export_reminder_no_recovery_subtitle = Pokud vám někdo vezme prostředky, nelze je vrátit.
+private_key_select_account = Vyberte svůj účet
+private_key_scope_evm = Tento klíč ovládá také vaše účty ve všech sítích EVM.
+private_key_scope_cosmos = Tento klíč ovládá také vaše účty ve všech sítích Cosmos.
+private_key_accounts_info = Vaše tajná fráze už tyto účty zálohuje. Klíč exportujte, jen pokud chcete jeden účet použít v jiné peněžence.
 
 # Social
 

@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import enum Gemstone.GemSecurityReminderKind
 import enum Gemstone.GemWalletSecretKind
 
 public extension GemWalletSecretKind {
@@ -10,11 +11,13 @@ public extension GemWalletSecretKind {
         case .privateKey: AppUrl.docs(.whatIsPrivateKey)
         }
     }
+}
 
+public extension GemSecurityReminderKind {
     var reminderDocsUrl: URL {
         switch self {
         case .phrase: AppUrl.docs(.whatIsSecretPhrase)
-        case .privateKey: AppUrl.docs(.whatIsPrivateKey)
+        case .privateKey, .accountKey: AppUrl.docs(.whatIsPrivateKey)
         }
     }
 }

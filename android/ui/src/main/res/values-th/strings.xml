@@ -94,6 +94,8 @@
   <string name="wallet_sell">ขาย</string>
   <string name="wallet_receive_collection">รับการรวบรวม</string>
   <string name="wallet_more">มากกว่า</string>
+  <string name="wallet_backup">สำรองข้อมูล</string>
+  <string name="wallet_advanced">ขั้นสูง</string>
   <string name="wallet_import_contract_address_field">สัญญาหรือรหัสโทเคน</string>
   <string name="wallet_import_address_warning">คุณสามารถดูยอดคงเหลือและธุรกรรมสำหรับที่อยู่นี้ แต่ **ไม่สามารถส่งหรือขายเงินได้**</string>
   <string name="wallet_deposit">เงินฝาก</string>
@@ -375,6 +377,17 @@
   <string name="private_key_do_not_share_title">อย่าเปิดเผยคีย์ส่วนตัวของคุณ!</string>
   <string name="private_key_do_not_share_description">หากมีใครมีคีย์ส่วนตัวของคุณ พวกเขาจะควบคุมบัญชีนี้ได้อย่างเต็มที่!</string>
   <string name="private_key_screenshot_detected_description">ภาพหน้าจออาจเข้าถึงได้จากแอปอื่น หากบันทึกในลักษณะนี้ อาจทำให้คีย์ส่วนตัวของคุณตกอยู่ในความเสี่ยง</string>
+  <string name="private_key_export_reminder_intro">คีย์ส่วนตัวของคุณให้สิทธิ์เข้าถึงบัญชีนี้ได้ทั้งหมด</string>
+  <string name="private_key_export_reminder_keep_safe_title">เก็บไว้ในที่ปลอดภัย</string>
+  <string name="private_key_export_reminder_keep_safe_subtitle">ใครก็ตามที่มีคีย์นี้สามารถใช้บัญชีนี้ได้</string>
+  <string name="private_key_export_reminder_do_not_share_title">อย่าแบ่งปันกับใคร</string>
+  <string name="private_key_export_reminder_do_not_share_subtitle">ไม่ควรมีบุคคล เว็บไซต์ หรือแอปใดขอคีย์นี้จากคุณ</string>
+  <string name="private_key_export_reminder_no_recovery_title">เราไม่สามารถช่วยกู้คืนได้</string>
+  <string name="private_key_export_reminder_no_recovery_subtitle">หากมีผู้นำเงินของคุณไป จะไม่สามารถคืนได้</string>
+  <string name="private_key_select_account">เลือกบัญชีของคุณ</string>
+  <string name="private_key_scope_evm">คีย์นี้ยังควบคุมบัญชีของคุณบนเครือข่าย EVM ทั้งหมดด้วย</string>
+  <string name="private_key_scope_cosmos">คีย์นี้ยังควบคุมบัญชีของคุณบนเครือข่าย Cosmos ทั้งหมดด้วย</string>
+  <string name="private_key_accounts_info">วลีลับของคุณสำรองบัญชีเหล่านี้ไว้แล้ว ส่งออกคีย์เฉพาะเมื่อต้องการใช้บัญชีเดียวในกระเป๋าเงินอื่น</string>
   <string name="social_x">X (เดิมคือ Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>
