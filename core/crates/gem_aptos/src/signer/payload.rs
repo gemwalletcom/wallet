@@ -62,23 +62,11 @@ fn build_payload(function: &str, first_argument: &str, amount: &str) -> EntryFun
     }
 }
 
-fn build_stake_transaction_payload(pool_address: &str, amount: &str) -> EntryFunctionPayload {
-    build_payload(DELEGATION_POOL_ADD_STAKE_FUNCTION, pool_address, amount)
-}
-
-fn build_unstake_transaction_payload(pool_address: &str, amount: &str) -> EntryFunctionPayload {
-    build_payload(DELEGATION_POOL_UNLOCK_FUNCTION, pool_address, amount)
-}
-
-fn build_withdraw_transaction_payload(pool_address: &str, amount: &str) -> EntryFunctionPayload {
-    build_payload(DELEGATION_POOL_WITHDRAW_FUNCTION, pool_address, amount)
-}
-
 pub fn build_delegation_pool_transaction_payload(stake_type: &StakeType, amount: &str) -> Option<EntryFunctionPayload> {
     match stake_type {
-        StakeType::Stake(validator) => Some(build_stake_transaction_payload(&validator.id, amount)),
-        StakeType::Unstake(delegation) => Some(build_unstake_transaction_payload(&delegation.validator.id, amount)),
-        StakeType::Withdraw(delegation) => Some(build_withdraw_transaction_payload(&delegation.validator.id, amount)),
+        StakeType::Stake(validator) => Some(build_payload(DELEGATION_POOL_ADD_STAKE_FUNCTION, &validator.id, amount)),
+        StakeType::Unstake(delegation) => Some(build_payload(DELEGATION_POOL_UNLOCK_FUNCTION, &delegation.validator.id, amount)),
+        StakeType::Withdraw(delegation) => Some(build_payload(DELEGATION_POOL_WITHDRAW_FUNCTION, &delegation.validator.id, amount)),
         StakeType::Redelegate(_) | StakeType::Rewards(_) | StakeType::Freeze(_) | StakeType::Unfreeze(_) => None,
     }
 }

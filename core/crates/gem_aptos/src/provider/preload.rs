@@ -54,6 +54,7 @@ mod tests {
 
     use gem_client::testkit::MockClient;
     use num_bigint::BigUint;
+    use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
     use primitives::{Asset, ChainSigner, Delegation, DelegationValidator, SignerInput, StakeType};
     use serde_json::Value;
 
@@ -62,7 +63,6 @@ mod tests {
     use crate::models::{SignedTransaction, SubmitTransactionBcsRequest, TransactionPayloadBCS};
     use crate::signer::{AptosChainSigner, EntryFunctionPayload};
 
-    const TEST_PRIVATE_KEY: &str = "1e9d38b5274152a78dff1a86fa464ceadc1f4238ca2c17060c3c507349424a34";
     const TEST_TOKEN_ID: &str = "0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b";
     const TEST_TRANSFER_ABI: &[&str] = &["address", "u64"];
     const TEST_FUNGIBLE_TRANSFER_ABI: &[&str] = &["address", "address", "u64"];
@@ -85,11 +85,10 @@ mod tests {
 
         let load = client.get_transaction_load(input.clone()).await.unwrap();
         let input = SignerInput::new(TransactionLoadInput { metadata: load.metadata, ..input }, load.fee);
-        let private_key = hex::decode(TEST_PRIVATE_KEY).unwrap();
         let signed = match &input.input_type {
-            TransactionInputType::Transfer { asset } if asset.id.token_id.is_none() => AptosChainSigner.sign_transfer(&input, &private_key).unwrap(),
-            TransactionInputType::Transfer { .. } => AptosChainSigner.sign_token_transfer(&input, &private_key).unwrap(),
-            _ => AptosChainSigner.sign_stake(&input, &private_key).unwrap().remove(0),
+            TransactionInputType::Transfer { asset } if asset.id.token_id.is_none() => AptosChainSigner.sign_transfer(&input, &TEST_PRIVATE_KEY).unwrap(),
+            TransactionInputType::Transfer { .. } => AptosChainSigner.sign_token_transfer(&input, &TEST_PRIVATE_KEY).unwrap(),
+            _ => AptosChainSigner.sign_stake(&input, &TEST_PRIVATE_KEY).unwrap().remove(0),
         };
         let request: SubmitTransactionBcsRequest = serde_json::from_str(&signed).unwrap();
         let signed: SignedTransaction = bcs::from_bytes(&hex::decode(request.bcs).unwrap()).unwrap();
