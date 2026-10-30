@@ -36,7 +36,7 @@ struct TransactionsNavigationView: View {
             }
             .navigationBarTitleDisplayMode(.inline)
             .navigationTitle(model.title)
-            .navigationDestination(for: Scenes.Transaction.self) {
+            .navigationDestination(keyedBy: Scenes.Transaction.self) {
                 TransactionNavigationView(model: viewModelFactory.transactionScene(
                     transactionId: $0.id,
                     wallet: model.wallet,
@@ -53,7 +53,7 @@ struct TransactionsNavigationView: View {
                     onSelectAddress: { model.isPresentingSheet = .addressDetails($0) },
                 ))
             }
-            .navigationDestination(for: Scenes.Collectible.self) {
+            .navigationDestination(keyedBy: Scenes.Collectible.self) {
                 CollectibleScene(
                     model: viewModelFactory.collectibleScene(
                         wallet: model.wallet,

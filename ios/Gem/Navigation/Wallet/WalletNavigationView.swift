@@ -80,7 +80,7 @@ struct WalletNavigationView: View {
                 }
             }
         }
-        .navigationDestination(for: Scenes.Asset.self) {
+        .navigationDestination(keyedBy: Scenes.Asset.self) {
             AssetNavigationView(
                 model: viewModelFactory.assetScene(
                     wallet: model.wallet,
@@ -90,7 +90,7 @@ struct WalletNavigationView: View {
                 ),
             )
         }
-        .navigationDestination(for: Scenes.NetworkAssets.self) { destination in
+        .navigationDestination(keyedBy: Scenes.NetworkAssets.self) { destination in
             NetworkAssetsScene(
                 model: viewModelFactory.networkAssetsScene(
                     wallet: model.wallet,
@@ -99,7 +99,7 @@ struct WalletNavigationView: View {
                 ),
             )
         }
-        .navigationDestination(for: Scenes.Transaction.self) {
+        .navigationDestination(keyedBy: Scenes.Transaction.self) {
             TransactionNavigationView(model: viewModelFactory.transactionScene(
                 transactionId: $0.id,
                 wallet: model.wallet,
@@ -116,7 +116,7 @@ struct WalletNavigationView: View {
                 onSelectAddress: { model.isPresentingSheet = .addressDetails($0) },
             ))
         }
-        .navigationDestination(for: Scenes.Collectible.self) {
+        .navigationDestination(keyedBy: Scenes.Collectible.self) {
             CollectibleScene(
                 model: viewModelFactory.collectibleScene(
                     wallet: model.wallet,
@@ -126,22 +126,22 @@ struct WalletNavigationView: View {
                 ),
             )
         }
-        .navigationDestination(for: Scenes.Collections.self) { _ in
+        .navigationDestination(keyedBy: Scenes.Collections.self) { _ in
             CollectionsNavigationView(
                 model: viewModelFactory.collectionsScene(wallet: model.wallet),
             )
         }
-        .navigationDestination(for: Scenes.Collection.self) { scene in
+        .navigationDestination(keyedBy: Scenes.Collection.self) { scene in
             CollectionsNavigationView(
                 model: viewModelFactory.collectionScene(wallet: model.wallet, collectionId: scene.id),
             )
         }
-        .navigationDestination(for: Scenes.UnverifiedCollections.self) { _ in
+        .navigationDestination(keyedBy: Scenes.UnverifiedCollections.self) { _ in
             CollectionsNavigationView(
                 model: viewModelFactory.unverifiedCollectionsScene(wallet: model.wallet),
             )
         }
-        .navigationDestination(for: Scenes.Chart.self) {
+        .navigationDestination(keyedBy: Scenes.Chart.self) {
             ChartScene(
                 model: viewModelFactory.chartScene(
                     asset: $0.asset,
@@ -150,7 +150,7 @@ struct WalletNavigationView: View {
                 ),
             )
         }
-        .navigationDestination(for: Scenes.Perpetuals.self) { _ in
+        .navigationDestination(keyedBy: Scenes.Perpetuals.self) { _ in
             PerpetualsNavigationView(
                 model: viewModelFactory.perpetualsScene(
                     wallet: model.wallet,
@@ -161,7 +161,7 @@ struct WalletNavigationView: View {
                 ),
             )
         }
-        .navigationDestination(for: Scenes.AssetsResults.self) { destination in
+        .navigationDestination(keyedBy: Scenes.AssetsResults.self) { destination in
             AssetsResultsScene(
                 model: viewModelFactory.assetsResultsScene(
                     wallet: model.wallet,
@@ -175,7 +175,7 @@ struct WalletNavigationView: View {
                 ),
             )
         }
-        .navigationDestination(for: Scenes.Perpetual.self) {
+        .navigationDestination(keyedBy: Scenes.Perpetual.self) {
             PerpetualNavigationView(
                 model: viewModelFactory.perpetualScene(
                     asset: $0.asset,
@@ -186,7 +186,7 @@ struct WalletNavigationView: View {
                 isPresentingSheet: $model.isPresentingSheet,
             )
         }
-        .navigationDestination(for: Scenes.AssetPriceAlert.self) {
+        .navigationDestination(keyedBy: Scenes.AssetPriceAlert.self) {
             AssetPriceAlertsScene(
                 model: viewModelFactory.assetPriceAlertsScene(walletId: model.wallet.id, asset: $0.asset),
             )

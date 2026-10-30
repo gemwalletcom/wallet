@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import Foundation
 import Onboarding
 import Primitives
@@ -26,10 +27,10 @@ struct WalletsNavigationStack: View {
                     isPresentingImportWalletSheet: $isPresentingImportWalletSheet,
                 ),
             )
-            .navigationDestination(for: Scenes.WalletDetail.self) {
+            .navigationDestination(keyedBy: Scenes.WalletDetail.self) {
                 WalletDetailScene(model: viewModelFactory.walletDetailScene(navigationPath: $navigationPath, wallet: $0.wallet))
             }
-            .navigationDestination(for: Scenes.WalletImage.self) {
+            .navigationDestination(keyedBy: Scenes.WalletImage.self) {
                 WalletImageScene(model: viewModelFactory.walletImageScene(wallet: $0.wallet))
             }
             .sheet(isPresented: $isPresentingCreateWalletSheet) {

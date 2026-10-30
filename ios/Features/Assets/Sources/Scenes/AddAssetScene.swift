@@ -46,7 +46,7 @@ public struct AddAssetScene: View {
             .listSectionSpacing(.compact)
             .navigationTitle(model.title)
             .alertSheet($model.isPresentingAlertMessage)
-            .navigationDestination(for: Scenes.NetworksSelector.self) { _ in
+            .navigationDestination(keyedBy: Scenes.NetworksSelector.self) { _ in
                 NetworkSelectorScene(
                     model: model.networksModel,
                     onFinishSelection: onFinishChainSelection(chains:),

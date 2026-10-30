@@ -47,7 +47,7 @@ struct ContactAddressEditorScene: View {
         .sheet(isPresented: $model.isPresentingScanner) {
             QRScannerNavigationStack(scanType: .address, action: onScan)
         }
-        .navigationDestination(for: Scenes.NetworksSelector.self) { _ in
+        .navigationDestination(keyedBy: Scenes.NetworksSelector.self) { _ in
             NetworkSelectorScene(
                 model: model.networkSelectorModel,
                 onFinishSelection: onFinishChainSelection(chains:),

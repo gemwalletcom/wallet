@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import FiatConnect
 import GemstonePrimitives
 import Primitives
@@ -95,7 +96,7 @@ struct SelectedAssetNavigationStack: View {
             }
             .toolbarDismissItem(type: .close, placement: .topBarLeading)
             .navigationBarTitleDisplayMode(.inline)
-            .navigationDestination(for: ConfirmTransferInput.self) { confirm in
+            .navigationDestination(keyedBy: ConfirmTransferInput.self) { confirm in
                 ConfirmTransferNavigationView(
                     model: viewModelFactory.confirmTransferScene(
                         wallet: wallet,
@@ -104,7 +105,7 @@ struct SelectedAssetNavigationStack: View {
                     ),
                 )
             }
-            .navigationDestination(for: AmountInput.self) { amount in
+            .navigationDestination(keyedBy: AmountInput.self) { amount in
                 AmountNavigationView(
                     model: viewModelFactory.amountScene(
                         input: amount,
@@ -113,7 +114,7 @@ struct SelectedAssetNavigationStack: View {
                     ),
                 )
             }
-            .navigationDestination(for: Delegation.self) { delegation in
+            .navigationDestination(keyedBy: Delegation.self) { delegation in
                 DelegationScene(
                     model: viewModelFactory.delegationScene(
                         wallet: wallet,

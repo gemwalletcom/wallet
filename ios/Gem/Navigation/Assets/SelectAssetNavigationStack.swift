@@ -53,7 +53,7 @@ struct SelectAssetNavigationStack: View {
                     }
                 }
             }
-            .navigationDestination(for: SelectAssetInput.self) { input in
+            .navigationDestination(keyedBy: SelectAssetInput.self) { input in
                 Group {
                     switch input.type {
                     case let .send(recipient):
@@ -96,7 +96,7 @@ struct SelectAssetNavigationStack: View {
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
-            .navigationDestination(for: AmountInput.self) { amount in
+            .navigationDestination(keyedBy: AmountInput.self) { amount in
                 AmountNavigationView(
                     model: viewModelFactory.amountScene(
                         input: amount,
@@ -105,7 +105,7 @@ struct SelectAssetNavigationStack: View {
                     ),
                 )
             }
-            .navigationDestination(for: ConfirmTransferInput.self) { confirm in
+            .navigationDestination(keyedBy: ConfirmTransferInput.self) { confirm in
                 ConfirmTransferNavigationView(
                     model: viewModelFactory.confirmTransferScene(
                         wallet: model.wallet,

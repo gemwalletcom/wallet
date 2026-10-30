@@ -48,3 +48,4 @@ Features/[FeatureName]/
 - Navigation is tab-based with independent `NavigationPath` stacks per tab
 - `NavigationStateManager` coordinates navigation state
 - Deep links route through the centralized navigation layer
+- Register destinations with `navigationDestination(keyedBy:)`, never bare `navigationDestination(for:)`: SwiftUI matches a stack entry by position and type, so replacing a path with a same-type value at the same index keeps the old screen and its `@State` model. `keyedBy:` keys the screen by its route value, as Android keys an entry's ViewModel by its route
