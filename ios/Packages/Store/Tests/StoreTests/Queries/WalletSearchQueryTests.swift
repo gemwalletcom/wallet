@@ -70,6 +70,24 @@ struct WalletSearchQueryTests {
     }
 
     @Test
+    func listAssetsComeOnlyFromTheServer() throws {
+        let db = DB.mock(wallets: [wallet], assets: walletAssets, balances: walletBalances)
+        let searchStore = SearchStore(db: db)
+        let expectedOrder = walletAssets.reversed().map(\.asset.id.identifier)
+        try searchStore.add(type: .asset, query: "tag:stocks", ids: expectedOrder)
+
+        try db.dbQueue.read { db in
+            let withResults = try WalletSearchQuery(walletId: .mock(), searchBy: "", searchKey: "tag:stocks", scope: .list("stocks"), limit: 10).fetch(db)
+            let withoutResults = try WalletSearchQuery(walletId: .mock(), searchBy: "", searchKey: "tag:stocks_ai", scope: .list("stocks_ai")).fetch(db)
+            let typedWithoutResults = try WalletSearchQuery(walletId: .mock(), searchBy: "btc", searchKey: "btc", scope: .list("stocks")).fetch(db)
+
+            #expect(withResults.assets.map(\.asset.id.identifier) == expectedOrder)
+            #expect(withoutResults.assets.isEmpty)
+            #expect(typedWithoutResults.assets.isEmpty)
+        }
+    }
+
+    @Test
     func searchNativeAssetByChainDoesNotMatchChainTokens() throws {
         let db = DB.mock(wallets: [.mock(accounts: [.mock(chain: .ton), .mock(chain: .base)])], assets: [
             .mock(asset: .mock(id: AssetId(chain: .ton), name: "Gram", symbol: "GRAM", decimals: 9, type: .native)),
