@@ -13,15 +13,11 @@ use crate::{
     route_path::RoutePath,
 };
 use async_trait::async_trait;
-use futures::{
-    StreamExt, TryStreamExt,
-    future::{join_all, try_join_all},
-    stream,
-};
+use futures::{TryStreamExt, future::join_all, stream};
 use gem_client::Client;
 use gem_ton::{address::Address, models::TonConnectMessage, rpc::client::TonClient};
 use num_bigint::BigUint;
-use primitives::{AssetId, Chain, asset_constants::TON_USDT_ASSET_ID};
+use primitives::{Chain, asset_constants::TON_USDT_ASSET_ID};
 use std::{fmt::Debug, iter::once, sync::Arc};
 
 #[derive(Debug)]
@@ -62,7 +58,10 @@ impl<C: Client> Dedust<C> {
 
     async fn quote_path(&self, path: RoutePath<DedustAsset>, from: &DedustAsset, to: &DedustAsset, value: &BigUint) -> Result<(Vec<Address>, BigUint), SwapperError> {
         let pairs = path.pairs(from, to);
-        let hops = try_join_all(pairs.iter().map(|(asset_in, asset_out)| try_join_all(PoolType::ALL.map(|pool_type| self.client.pool_address(pool_type, asset_in, asset_out))))).await?;
+        let hops = pairs
+            .iter()
+            .map(|(asset_in, asset_out)| PoolType::ALL.into_iter().map(|pool_type| pool_type.pool_address(asset_in, asset_out)).collect())
+            .collect::<Result<Vec<Vec<Address>>, _>>()?;
         stream::iter(hops.iter().zip(&pairs).map(Ok))
             .try_fold((vec![], value.clone()), |(route, value_in), (pools, (asset_in, _))| async move {
                 let (pool, value_out) = self.quote_hop(pools, asset_in, &value_in).await?;
@@ -101,21 +100,6 @@ where
 
     fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {
         SwapAmountMode::Fixed
-    }
-
-    async fn preload_routes(&self, from_asset: &AssetId, to_asset: &AssetId) {
-        if from_asset.chain != Chain::Ton || to_asset.chain != Chain::Ton {
-            return;
-        }
-        let (Ok(from), Ok(to)) = (DedustAsset::from_asset_id(from_asset), DedustAsset::from_asset_id(to_asset)) else {
-            return;
-        };
-        let pairs = RoutePath::all_pairs(&route_paths(&from, &to), &from, &to);
-        stream::iter(pairs)
-            .for_each_concurrent(None, |(asset_in, asset_out)| async move {
-                _ = try_join_all(PoolType::ALL.map(|pool_type| self.client.pool_address(pool_type, &asset_in, &asset_out))).await
-            })
-            .await;
     }
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {

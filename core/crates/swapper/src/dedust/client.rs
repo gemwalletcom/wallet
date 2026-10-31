@@ -1,27 +1,16 @@
 use super::{
-    constants::{ESTIMATE_SWAP_OUT_METHOD, FACTORY, GET_POOL_ADDRESS_METHOD, UNINITIALIZED_EXIT_CODE},
-    model::{DedustAsset, PoolType},
+    constants::{ESTIMATE_SWAP_OUT_METHOD, UNINITIALIZED_EXIT_CODE},
+    model::DedustAsset,
 };
 use crate::{SwapperError, route_cache::Cache};
 use gem_client::Client;
-use gem_ton::{address::Address, models::StackArg, rpc::client::TonClient, tvm::TvmError};
+use gem_ton::{address::Address, models::StackArg, rpc::client::TonClient};
 use num_bigint::BigUint;
-use primitives::{HOUR, WEEK};
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-struct PoolKey(PoolType, DedustAsset, DedustAsset);
-
-impl PoolKey {
-    fn stack(&self) -> Result<Vec<StackArg>, TvmError> {
-        let Self(pool_type, from, to) = self;
-        Ok(vec![pool_type.stack_arg(), from.stack_arg()?, to.stack_arg()?])
-    }
-}
+use primitives::HOUR;
 
 #[derive(Debug)]
 pub(super) struct DedustClient<C: Client> {
     ton_client: TonClient<C>,
-    addresses: Cache<PoolKey, Address>,
     undeployed_pools: Cache<Address, ()>,
 }
 
@@ -29,20 +18,8 @@ impl<C: Client> DedustClient<C> {
     pub fn new(ton_client: TonClient<C>) -> Self {
         Self {
             ton_client,
-            addresses: Cache::new(WEEK),
             undeployed_pools: Cache::new(HOUR),
         }
-    }
-
-    pub async fn pool_address(&self, pool_type: PoolType, from: &DedustAsset, to: &DedustAsset) -> Result<Address, SwapperError> {
-        let key = PoolKey(pool_type, from.clone(), to.clone());
-        if let Some(address) = self.addresses.get(&key) {
-            return Ok(address);
-        }
-        let result = self.ton_client.run_get_method(FACTORY, GET_POOL_ADDRESS_METHOD, key.stack()?).await.map_err(SwapperError::compute_quote_error)?;
-        let address = result.ok(GET_POOL_ADDRESS_METHOD)?.stack_address(0)?;
-        self.addresses.put(key, address);
-        Ok(address)
     }
 
     pub async fn estimate_swap_out(&self, pool: &Address, asset_in: &DedustAsset, amount: &BigUint) -> Result<BigUint, SwapperError> {
