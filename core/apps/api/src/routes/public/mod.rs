@@ -24,6 +24,7 @@ pub fn router() -> Router<AppState> {
         .route("/prices/{asset_id}", get(prices::get_price))
         .route("/prices", post(prices::get_assets_prices))
         .route("/charts/{asset_id}", get(prices::get_charts))
+        .route("/charts/{asset_id}/candles", get(prices::get_candles))
         .route("/fiat_rates", get(prices::get_fiat_rates))
         .route("/fiat/assets/{quote_type}", get(fiat::get_fiat_assets))
         .route("/config", get(config::get_config))

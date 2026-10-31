@@ -14,7 +14,7 @@ use gem_evm::rpc::{EthereumClient, EthereumProvider};
 use gem_jsonrpc::JsonRpcClient;
 use lists::CoinGeckoListProvider;
 use nft::{NFTProviderClient, NFTProviderConfig};
-use primitives::{AccessTokenCacher, Chain, ChainType, EVMChain, FiatProviderName};
+use primitives::{AccessTokenCacher, Chain, ChainType, EVMChain, FiatProviderName, PriceProvider};
 use pusher::{PushProvider, PusherClient};
 use rewards::{AbuseIPDBClient, EvmClientProvider, IpApiClient, IpCheckProvider, TransferRedemptionService, WalletConfig};
 use search_index::{SearchIndexClient, SearchIndexConfig};
@@ -175,8 +175,8 @@ impl Services {
         PriceClient::new(self.prices_repository(), self.config(), Arc::new(cacher))
     }
 
-    pub fn charts(&self) -> ChartClient {
-        ChartClient::new(self.prices_repository(), self.config())
+    pub fn charts(&self, cacher: CacherClient) -> ChartClient {
+        ChartClient::new(self.prices_repository(), self.config(), Arc::new(self.price_providers(PriceProvider::all())), Arc::new(cacher))
     }
 
     pub fn markets(&self, cacher: CacherClient) -> MarketsClient {

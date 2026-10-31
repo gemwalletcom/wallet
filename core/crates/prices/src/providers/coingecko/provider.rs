@@ -6,11 +6,11 @@ use async_trait::async_trait;
 use coingecko::{CoinGeckoErrorResponse, CoinInfo, MAX_MARKETS_PER_PAGE, client::CoinGeckoClient, get_coingecko_market_id_for_chain, get_coingecko_platform_id_for_chain};
 use gem_client::{Client, RemoteProviderConfig, ReqwestClient};
 use gem_tracing::warn_with_fields;
-use primitives::{AssetId, Chain, ChartValue, DurationExt, FiatRate, FiatRateProvider};
+use primitives::{AssetId, Chain, ChartCandleStick, ChartPeriod, ChartValue, DurationExt, FiatRate, FiatRateProvider};
 
 use crate::{AssetPriceFull, AssetPriceMapping, FiatRatesProvider, PriceAssetsProvider, PriceProvider, PriceProviderAsset, PriceProviderAssetMetadata};
 
-use super::mapper::{map_coin_info_metadata, map_coin_mappings, map_coin_markets, map_coins_to_assets, map_coins_to_mappings, map_market_chart};
+use super::mapper::{map_coin_info_metadata, map_coin_mappings, map_coin_markets, map_coins_to_assets, map_coins_to_mappings, map_market_chart, map_ohlc, ohlc_days};
 
 pub struct CoinGeckoPricesProvider<C: Client = ReqwestClient> {
     client: CoinGeckoClient<C>,
@@ -140,6 +140,14 @@ impl<C: Client + 'static> PriceAssetsProvider for CoinGeckoPricesProvider<C> {
         let chart = self.client.get_market_chart(provider_price_id, "hourly", &days).await?;
         Ok(map_market_chart(chart))
     }
+
+    fn has_candles(&self) -> bool {
+        true
+    }
+
+    async fn get_candles(&self, provider_price_id: &str, period: ChartPeriod) -> Result<Vec<ChartCandleStick>, Box<dyn Error + Send + Sync>> {
+        Ok(map_ohlc(self.client.get_ohlc(provider_price_id, ohlc_days(period)).await?))
+    }
 }
 
 fn optional_coin(result: Result<CoinInfo, Box<dyn Error + Send + Sync>>) -> Result<Option<CoinInfo>, Box<dyn Error + Send + Sync>> {
@@ -257,5 +265,31 @@ mod tests {
         let mappings = provider.get_mappings_for_asset_id(&asset_id).await.unwrap();
 
         assert!(mappings.is_empty());
+    }
+
+    #[tokio::test]
+    async fn test_get_candles_asks_for_the_period_and_maps_the_response() {
+        let client = MockClient::new().with_get(|path| {
+            assert_eq!(path, "/api/v3/coins/bitcoin/ohlc?vs_currency=usd&days=7&precision=full");
+            Ok(br#"[[1700000000000,1.5,3.0,1.0,2.5]]"#.to_vec())
+        });
+        let provider = CoinGeckoPricesProvider {
+            client: CoinGeckoClient::new_with_client(client),
+        };
+
+        let candles = provider.get_candles("bitcoin", ChartPeriod::Week).await.unwrap();
+
+        assert_eq!(
+            candles,
+            vec![ChartCandleStick {
+                date: chrono::DateTime::from_timestamp(1_700_000_000, 0).unwrap(),
+                open: 1.5,
+                high: 3.0,
+                low: 1.0,
+                close: 2.5,
+                volume: 0.0,
+            }]
+        );
+        assert!(provider.has_candles());
     }
 }

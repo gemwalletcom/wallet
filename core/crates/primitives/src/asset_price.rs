@@ -107,6 +107,8 @@ pub struct Charts {
     pub prices: Vec<ChartValue>,
     pub market_caps: Vec<ChartValue>,
     pub total_volumes: Vec<ChartValue>,
+    #[serde(default)]
+    pub has_candles: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -9,7 +9,7 @@ use std::error::Error;
 use std::time::Duration;
 
 use async_trait::async_trait;
-use primitives::{AssetId, ChartValue, FiatRate, FiatRateProvider};
+use primitives::{AssetId, ChartCandleStick, ChartPeriod, ChartValue, FiatRate, FiatRateProvider};
 
 pub use alerts::{PriceAlertNotification, PriceAlertRules, PriceAlertTrigger};
 pub use config::{FiatRatesProviderConfig, PriceProviderConfig, PriceProviders, build_fiat_rates_providers, build_price_providers};
@@ -45,6 +45,12 @@ pub trait PriceAssetsProvider: Send + Sync {
         Ok(vec![])
     }
     async fn get_charts_hourly(&self, _provider_price_id: &str, _duration: Duration) -> Result<Vec<ChartValue>, Box<dyn Error + Send + Sync>> {
+        Ok(vec![])
+    }
+    fn has_candles(&self) -> bool {
+        false
+    }
+    async fn get_candles(&self, _provider_price_id: &str, _period: ChartPeriod) -> Result<Vec<ChartCandleStick>, Box<dyn Error + Send + Sync>> {
         Ok(vec![])
     }
 }

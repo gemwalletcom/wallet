@@ -10,7 +10,8 @@ use reqwest::{
 use serde::de::DeserializeOwned;
 
 use crate::model::{
-    Coin, CoinCategory, CoinGeckoErrorResponse, CoinGeckoResponse, CoinIds, CoinInfo, CoinMarket, CoinMarketsQuery, CoinQuery, CointListQuery, Data, ExchangeRates, Global, MarketChart, MarketChartQuery, SearchTrending, TopGainersLosers,
+    Coin, CoinCategory, CoinGeckoErrorResponse, CoinGeckoResponse, CoinIds, CoinInfo, CoinMarket, CoinMarketsQuery, CoinQuery, CointListQuery, Data, ExchangeRates, Global, MarketChart, MarketChartQuery, Ohlc, OhlcQuery, SearchTrending,
+    TopGainersLosers,
 };
 use crate::target::CoinGeckoTarget;
 
@@ -202,6 +203,14 @@ impl<C: Client> CoinGeckoClient<C> {
         self.get_json(CoinGeckoTarget::MarketChart {
             id: coin_id.to_string(),
             query: MarketChartQuery::usd(days, interval),
+        })
+        .await
+    }
+
+    pub async fn get_ohlc(&self, coin_id: &str, days: &str) -> Result<Vec<Ohlc>, Box<dyn Error + Send + Sync>> {
+        self.get_json(CoinGeckoTarget::Ohlc {
+            id: coin_id.to_string(),
+            query: OhlcQuery::usd(days),
         })
         .await
     }

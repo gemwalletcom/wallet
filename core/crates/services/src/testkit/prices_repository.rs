@@ -15,6 +15,7 @@ use crate::prices::repository::{ChartData, PortfolioPrice, Repository};
 pub(crate) struct MemoryPricesRepository {
     fiat_rates: Vec<FiatRate>,
     charts: Vec<ChartResult>,
+    prices: Vec<PriceData>,
     price_assets: Vec<PriceAsset>,
     portfolio: Mutex<Vec<Option<PortfolioPrice>>>,
     saved: Mutex<Vec<(Vec<PriceData>, Vec<PriceAsset>)>>,
@@ -25,6 +26,10 @@ pub(crate) struct MemoryPricesRepository {
 }
 
 impl MemoryPricesRepository {
+    pub(crate) fn with_prices(self, prices: Vec<PriceData>) -> Self {
+        Self { prices, ..self }
+    }
+
     pub(crate) fn with_providers(self, providers: Vec<PriceProviderConfig>) -> Self {
         Self { providers, ..self }
     }
@@ -85,7 +90,7 @@ impl Repository for MemoryPricesRepository {
     }
 
     async fn get_prices_for_asset(&self, _asset_id: AssetId) -> Result<Vec<PriceData>, DatabaseError> {
-        Ok(vec![])
+        Ok(self.prices.clone())
     }
 
     async fn get_prices(&self, _filters: Vec<PriceFilter>) -> Result<Vec<PriceData>, DatabaseError> {

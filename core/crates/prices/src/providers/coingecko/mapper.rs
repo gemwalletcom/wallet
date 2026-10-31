@@ -1,10 +1,39 @@
 use std::collections::HashMap;
 
 use chrono::{DateTime, Utc};
-use coingecko::{Coin, CoinInfo, CoinMarket, get_asset_ids_for_coin, model::MarketChart};
-use primitives::{AssetId, AssetLink, AssetMarket, ChartValue, ChartValuePercentage, LinkType, OptionStringExt, PriceProvider};
+use coingecko::{
+    Coin, CoinInfo, CoinMarket, get_asset_ids_for_coin,
+    model::{MarketChart, Ohlc},
+};
+use primitives::{AssetId, AssetLink, AssetMarket, ChartCandleStick, ChartPeriod, ChartValue, ChartValuePercentage, LinkType, OptionStringExt, PriceProvider};
 
 use crate::{AssetPriceFull, AssetPriceMapping, PriceProviderAsset, PriceProviderAssetMetadata};
+
+pub fn ohlc_days(period: ChartPeriod) -> &'static str {
+    match period {
+        ChartPeriod::Hour | ChartPeriod::Day => "1",
+        ChartPeriod::Week => "7",
+        ChartPeriod::Month => "30",
+        ChartPeriod::Year => "365",
+        ChartPeriod::All => "max",
+    }
+}
+
+pub fn map_ohlc(candles: Vec<Ohlc>) -> Vec<ChartCandleStick> {
+    candles
+        .into_iter()
+        .filter_map(|(timestamp, open, high, low, close)| {
+            Some(ChartCandleStick {
+                date: DateTime::<Utc>::from_timestamp_millis(timestamp)?,
+                open,
+                high,
+                low,
+                close,
+                volume: 0.0,
+            })
+        })
+        .collect()
+}
 
 pub fn map_market_chart(chart: MarketChart) -> Vec<ChartValue> {
     chart

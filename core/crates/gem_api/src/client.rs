@@ -1,5 +1,5 @@
 use gem_client::{Client, ClientError, ClientExt};
-use primitives::{AssetBasic, AssetFull, AssetId, Chain, ChartPeriod, Charts, ConfigResponse, FiatAssets, FiatQuoteType, PlatformStore, SearchResponse};
+use primitives::{AssetBasic, AssetFull, AssetId, Chain, ChartCandleStick, ChartPeriod, Charts, ConfigResponse, FiatAssets, FiatQuoteType, PlatformStore, SearchResponse};
 
 use crate::target::GemApiTarget;
 
@@ -19,6 +19,10 @@ impl<C: Client> GemApiClient<C> {
 
     pub async fn get_charts(&self, asset_id: AssetId, period: ChartPeriod) -> Result<Charts, ClientError> {
         self.client.get(GemApiTarget::GetCharts { asset_id, period }).await
+    }
+
+    pub async fn get_candles(&self, asset_id: AssetId, period: ChartPeriod) -> Result<Vec<ChartCandleStick>, ClientError> {
+        self.client.get(GemApiTarget::GetCandles { asset_id, period }).await
     }
 
     pub async fn get_asset(&self, asset_id: AssetId) -> Result<AssetFull, ClientError> {
