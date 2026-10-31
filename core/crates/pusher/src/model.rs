@@ -57,6 +57,7 @@ mod tests {
             },
             device_id: device_id.to_string(),
             dry_run: None,
+            sound: None,
         }
     }
 

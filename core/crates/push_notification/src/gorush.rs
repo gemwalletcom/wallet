@@ -1,7 +1,9 @@
 use serde::{Deserialize, Serialize};
 
 use crate::notification::PushNotification;
-use primitives::Device;
+use primitives::{Device, Platform};
+
+const DEFAULT_SOUND: &str = "default";
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GorushNotifications {
@@ -19,6 +21,8 @@ pub struct GorushNotification {
     pub device_id: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub dry_run: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sound: Option<String>,
 }
 
 impl GorushNotification {
@@ -26,6 +30,10 @@ impl GorushNotification {
         if !device.can_receive_push_notification() {
             return None;
         }
+        let sound = match device.platform {
+            Platform::IOS => Some(DEFAULT_SOUND.to_string()),
+            Platform::Android => None,
+        };
         Some(Self {
             tokens: vec![device.token.clone()],
             platform: device.platform.as_i32(),
@@ -35,6 +43,7 @@ impl GorushNotification {
             data,
             device_id: device.id,
             dry_run: None,
+            sound,
         })
     }
 
@@ -51,6 +60,7 @@ impl GorushNotification {
             },
             device_id: String::new(),
             dry_run: Some(true),
+            sound: None,
         }
     }
 
@@ -95,7 +105,8 @@ impl PushErrorLog {
 
 #[cfg(test)]
 mod tests {
-    use primitives::{Currency, DeviceLocale, Platform, PlatformStore};
+    use primitives::{Currency, DeviceLocale, PlatformStore};
+    use serde_json::{Value, to_value};
 
     use super::*;
 
@@ -126,6 +137,14 @@ mod tests {
         assert_eq!(notification.title, "title");
         assert_eq!(notification.message, "msg");
         assert_eq!(notification.device_id, "test-device-id");
+        assert_eq!(to_value(&notification).unwrap()["sound"], Value::from("default"));
+
+        let android = Device {
+            platform: Platform::Android,
+            ..device(true, "token")
+        };
+        let android_notification = GorushNotification::from_device(android, "t".to_string(), "m".to_string(), PushNotification::mock()).unwrap();
+        assert_eq!(to_value(&android_notification).unwrap().get("sound"), None);
 
         assert!(GorushNotification::from_device(device(false, "token"), "t".to_string(), "m".to_string(), PushNotification::mock()).is_none());
         assert!(GorushNotification::from_device(device(true, ""), "t".to_string(), "m".to_string(), PushNotification::mock()).is_none());

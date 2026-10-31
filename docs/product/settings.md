@@ -76,3 +76,4 @@ flowchart LR
 
 - Adding a display currency must not break older app versions.
 - Nothing is pushed without the user's permission.
+- Every push plays the phone's default sound; the user turns it off in the phone's settings.
