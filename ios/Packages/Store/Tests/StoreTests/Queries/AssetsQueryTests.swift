@@ -97,8 +97,9 @@ struct AssetsQueryTests {
         let assetStore = AssetStore(db: db)
 
         let assetId = AssetId(chain: .bitcoin)
-        try assetStore.setAssetIsBuyable(for: [assetId], value: false)
-        try assetStore.setAssetIsSwappable(for: [assetId], value: false)
+        let otherAssetIds = walletAssets.map(\.asset.id).filter { $0 != assetId }
+        try assetStore.updateBuyableAssets(assetIds: otherAssetIds)
+        try assetStore.updateSwappableAssets(assetIds: otherAssetIds)
 
         try db.dbQueue.read { db in
             let assets = try AssetsQuery.mock(filters: [.buyable, .swappable]).fetch(db)
@@ -156,11 +157,11 @@ struct AssetsQueryTests {
         try searchStore.add(type: .asset, query: "T", ids: walletAssets.reversed().map(\.asset.id.identifier))
 
         try db.dbQueue.read { db in
-            let btc = try AssetsQuery.mock(filters: [.search("btc", hasPriorityAssets: false)]).fetch(db)
-            let bnb = try AssetsQuery.mock(filters: [.search("bNb", hasPriorityAssets: false)]).fetch(db)
-            let tron = try AssetsQuery.mock(filters: [.search("0xdAC17F958D2ee523a2206206994597C13D831ec7", hasPriorityAssets: false)]).fetch(db)
+            let btc = try AssetsQuery.mock(searchBy: "btc").fetch(db)
+            let bnb = try AssetsQuery.mock(searchBy: "bNb").fetch(db)
+            let tron = try AssetsQuery.mock(searchBy: "0xdAC17F958D2ee523a2206206994597C13D831ec7").fetch(db)
             let searchAssets = try AssetsQuery.mock(searchBy: query).fetch(db)
-            let prioritySearchAssets = try AssetsQuery.mock(filters: [.search("T", hasPriorityAssets: true)]).fetch(db)
+            let prioritySearchAssets = try AssetsQuery.mock(searchBy: "T").fetch(db)
 
             #expect(btc.count == 1)
             #expect(btc.first?.asset.symbol == "BTC")
@@ -203,7 +204,7 @@ struct AssetsQueryTests {
         try searchStore.add(type: .asset, query: query, ids: assets.map(\.asset.id.identifier))
 
         try db.dbQueue.read { db in
-            let result = try AssetsQuery.mock(filters: [.search(query, hasPriorityAssets: true)]).fetch(db)
+            let result = try AssetsQuery.mock(searchBy: query).fetch(db)
 
             #expect(result.map(\.asset.id) == assets.reversed().map(\.asset.id))
         }

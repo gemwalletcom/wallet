@@ -40,7 +40,7 @@ public struct WalletSearchQuery: DatabaseQueryable, Hashable {
     public func fetch(_ db: Database) throws -> WalletSearchResult {
         let query = searchBy.trim()
 
-        let assets = types.contains(.asset) ? try loadAssets(db, query: query, searchKey: searchKey, scope: scope) : []
+        let assets = types.contains(.asset) ? try loadAssets(db, searchKey: searchKey, scope: scope) : []
         let perpetuals = types.contains(.perpetual) ? try loadPerpetuals(db, query: query, searchKey: searchKey, scope: scope) : []
         let collections = types.contains(.nft) && scope.isAll && query.isNotEmpty ? try NFTQuery(walletId: walletId, filter: .all).fetch(db) : []
         let lists = types.contains(.list) && scope.isAll ? try loadLists(db, searchKey: searchKey) : []
@@ -60,32 +60,17 @@ extension WalletSearchQuery {
             .fetchOne(db) != nil
     }
 
-    private func loadAssets(_ db: Database, query: String, searchKey: String, scope: WalletSearchTag) throws -> [AssetData] {
-        let hasPriority = try hasPriority(db, searchKey: searchKey, column: SearchRecord.Columns.assetId)
-        guard hasPriority || scope.isAll else { return [] }
-
-        let balanceAlias = TableAlias(name: BalanceRecord.databaseTableName)
-        let searchAlias = TableAlias(name: SearchRecord.databaseTableName)
-
-        var request = AssetRecord
-            .including(optional: AssetRecord.account)
-            .including(optional: AssetRecord.balance)
-            .including(optional: AssetRecord.price)
-            .filter(AssetRecord.Columns.rank >= 0)
-            .joining(optional: AssetRecord.balance.filter(BalanceRecord.Columns.walletId == walletId.id))
-            .filter(TableAlias(name: AccountRecord.databaseTableName)[AccountRecord.Columns.walletId] == walletId.id)
-
-        if hasPriority {
-            request = request
-                .joining(required: AssetRecord.search.filter(SearchRecord.Columns.query == searchKey))
-                .order(AssetRecord.fiatValue.desc, searchAlias[SearchRecord.Columns.priority].ascNullsLast, AssetRecord.Columns.rank.desc)
-        } else {
-            request = request
-                .filter(AssetRecord.textSearchFilter(query: query))
-                .order(balanceAlias[BalanceRecord.Columns.isPinned].desc, balanceAlias[BalanceRecord.Columns.isEnabled].desc, AssetRecord.fiatValue.desc, AssetRecord.Columns.rank.desc)
+    private func loadAssets(_ db: Database, searchKey: String, scope: WalletSearchTag) throws -> [AssetData] {
+        switch scope {
+        case .all:
+            try AssetsQuery(walletId: walletId, searchBy: searchBy, limit: limit).fetch(db)
+        case .list:
+            try AssetsQuery.prioritized(request: AssetsQuery.walletAssets(walletId: walletId), searchKey: searchKey)
+                .limit(limit)
+                .asRequest(of: AssetRecordInfo.self)
+                .fetchAll(db)
+                .map(\.assetData)
         }
-
-        return try request.limit(limit).asRequest(of: AssetRecordInfo.self).fetchAll(db).map(\.assetData)
     }
 
     private func loadPerpetuals(_ db: Database, query: String, searchKey: String, scope: WalletSearchTag) throws -> [PerpetualData] {

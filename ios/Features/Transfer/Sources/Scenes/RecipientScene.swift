@@ -104,7 +104,7 @@ public struct RecipientScene: View {
         .safeAreaButton {
             StateButton(
                 text: model.actionButtonTitle,
-                type: .primary(model.actionButtonState),
+                state: model.actionButtonState,
                 action: onSelectContinue,
             )
         }

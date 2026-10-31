@@ -188,7 +188,7 @@ struct RewardsSceneViewModelTests {
         let model = RewardsSceneViewModel.mock(service: service, wallets: [first, second])
         await model.refresh()
 
-        #expect(model.activatePendingButtonType == .primary())
+        #expect(model.activatePendingButtonState == .normal)
     }
 
     @Test
@@ -198,7 +198,7 @@ struct RewardsSceneViewModelTests {
         let model = RewardsSceneViewModel.mock(service: service, wallets: [first, second])
         await model.refresh()
 
-        #expect(model.activatePendingButtonType == .primary(.disabled))
+        #expect(model.activatePendingButtonState == .disabled)
     }
 
     @Test

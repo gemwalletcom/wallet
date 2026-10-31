@@ -10,4 +10,8 @@ public enum ButtonState: Hashable, Sendable {
     public var showProgress: Bool {
         self == .loading(showProgress: true)
     }
+
+    public var isDisabled: Bool {
+        self != .normal
+    }
 }

@@ -46,11 +46,13 @@ struct ChainAssetQueryTests {
 
     @Test
     func tokenWithoutBalance() throws {
-        let db = DB.mock(wallets: [wallet], assets: walletAssets, balances: walletBalances)
         let token = Asset.mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20)
-        let balanceStore = BalanceStore(db: db)
-
-        try balanceStore.deleteBalance(assetId: token.id)
+        let db = DB.mock(
+            wallets: [wallet],
+            assets: walletAssets.filter { $0.asset.id != token.id },
+            balances: walletBalances.filter { $0.assetId != token.id },
+        )
+        try AssetStore(db: db).add(assets: [.mock(asset: token)])
 
         try db.dbQueue.read { db in
             let result = try ChainAssetQuery(walletId: .mock(), assetId: token.id, feeAssetId: token.chain.assetId).fetch(db)

@@ -79,7 +79,7 @@ extension SetPriceAlertScene {
             onDone: { focusedField = false },
             button: StateButton(
                 text: Localized.Transfer.confirm,
-                type: .primary(model.confirmButtonState(viewState)),
+                state: model.confirmButtonState(viewState),
                 action: confirm,
             ),
         )

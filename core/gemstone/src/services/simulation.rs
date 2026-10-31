@@ -61,14 +61,19 @@ impl GemSimulationService {
         Ok(simulation.prepend_warnings(validation_warnings))
     }
 
-    pub async fn simulate_send_transaction(&self, chain: Chain, transaction_type: WalletConnectTransactionType, data: String) -> Result<SimulationResult, GemstoneError> {
+    pub async fn simulate_send_transaction(&self, chain: Chain, transaction_type: WalletConnectTransactionType, data: String, signer_address: &str) -> Result<SimulationResult, GemstoneError> {
         let validation_warnings = simulation::send_transaction_validation_warnings(&transaction_type, &data);
+
+        let session_input = || SimulationInput {
+            encoded_transaction: data.clone(),
+            signer_address: Some(signer_address.to_string()),
+        };
 
         let simulation = match &transaction_type {
             WalletConnectTransactionType::Ethereum => self.simulate_ethereum_transaction(chain, &data).await,
             WalletConnectTransactionType::Solana { .. } | WalletConnectTransactionType::Sui { .. } => self.simulate_encoded_transaction(&transaction_type, &data).await,
-            WalletConnectTransactionType::Ton { .. } => self.simulate_chain_transaction(Chain::Ton, SimulationInput::new(&data)).await,
-            WalletConnectTransactionType::Tron { .. } => self.simulate_chain_transaction(Chain::Tron, SimulationInput::new(&data)).await,
+            WalletConnectTransactionType::Ton { .. } => self.simulate_chain_transaction(Chain::Ton, session_input()).await,
+            WalletConnectTransactionType::Tron { .. } => self.simulate_chain_transaction(Chain::Tron, session_input()).await,
         }
         .unwrap_or_default();
 
@@ -638,11 +643,38 @@ mod tests {
                         output_type: primitives::TransferDataOutputType::EncodedTransaction,
                     },
                     "invalid simulation input".to_string(),
+                    "",
                 )
                 .await;
 
             assert!(result.is_ok());
             assert!(provider.requested_paths().is_empty());
+        });
+    }
+
+    #[test]
+    fn test_wallet_connect_ton_send_without_sender_simulates_as_the_session_account() {
+        futures::executor::block_on(async {
+            let provider = Arc::new(TestAlienProvider::with_status(200));
+            let service = GemSimulationService::new(provider.clone(), Arc::new(GemNodeService::mock()));
+            let data = serde_json::json!({
+                "messages": [{"address": "EQDa4VOnTYlLvDJ0gZjNYm5PXfSmmtL6Vs6A_CZEtXCNICq_", "amount": "1"}],
+                "valid_until": 1785452240,
+            });
+
+            service
+                .simulate_send_transaction(
+                    Chain::Ton,
+                    WalletConnectTransactionType::Ton {
+                        output_type: primitives::TransferDataOutputType::EncodedTransaction,
+                    },
+                    data.to_string(),
+                    "0:33a14a5a9406979d59b9328898591660b8b1736342b11632efdcc911ab9057cf",
+                )
+                .await
+                .unwrap();
+
+            assert!(provider.requested_paths().iter().any(|path| path.contains("emulateTonConnect")));
         });
     }
 }

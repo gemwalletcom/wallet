@@ -59,7 +59,7 @@ public struct AutocloseScene: View {
                 onDone: { focusedField = nil },
                 button: StateButton(
                     text: Localized.Transfer.confirm,
-                    type: model.confirmButtonType(viewState),
+                    state: model.confirmButtonState(viewState),
                     action: onSelectConfirm,
                 ),
             )

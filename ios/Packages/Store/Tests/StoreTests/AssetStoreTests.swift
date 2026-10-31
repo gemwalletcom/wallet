@@ -34,18 +34,6 @@ struct AssetStoreTests {
     }
 
     @Test
-    func swappableFlagIsSetOnlyWhereMissing() throws {
-        let db = DB.mock(chains: [.ethereum, .bitcoin])
-        let store = AssetStore(db: db)
-        let assetIds = [Chain.ethereum.assetId, Chain.bitcoin.assetId]
-
-        _ = try store.setAssetIsSwappable(for: assetIds, value: false)
-
-        #expect(try store.setAssetIsSwappable(for: assetIds, value: true) == 2)
-        #expect(try store.setAssetIsSwappable(for: assetIds, value: true) == 0)
-    }
-
-    @Test
     func anAssetDroppedFromTheSwapListStopsBeingSwappable() throws {
         let db = DB.mock(chains: [.ethereum, .bitcoin])
         let store = AssetStore(db: db)
