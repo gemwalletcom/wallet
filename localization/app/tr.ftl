@@ -346,6 +346,8 @@ charts_price_close = Kapanış
 charts_price_high = Yüksek
 charts_price_low = Düşük
 charts_price_change = Değişim
+charts_candlestick = Mum grafiği
+charts_line = Çizgi grafiği
 
 # Date
 

@@ -346,6 +346,8 @@ charts_price_close = Đóng
 charts_price_high = Cao
 charts_price_low = Thấp
 charts_price_change = Thay đổi
+charts_candlestick = Biểu đồ nến
+charts_line = Biểu đồ đường
 
 # Date
 

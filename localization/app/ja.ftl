@@ -346,6 +346,8 @@ charts_price_close = 終値
 charts_price_high = 高値
 charts_price_low = 安値
 charts_price_change = 変動
+charts_candlestick = ローソク足チャート
+charts_line = ラインチャート
 
 # Date
 

@@ -301,6 +301,8 @@
   <string name="charts_price_high">Yüksek</string>
   <string name="charts_price_low">Düşük</string>
   <string name="charts_price_change">Değişim</string>
+  <string name="charts_candlestick">Mum grafiği</string>
+  <string name="charts_line">Çizgi grafiği</string>
   <string name="date_today">Bugün</string>
   <string name="date_yesterday">Dün</string>
   <string name="date_day_time">%1$s, %2$s</string>

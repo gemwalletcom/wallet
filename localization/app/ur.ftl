@@ -346,6 +346,8 @@ charts_price_close = بند
 charts_price_high = اعلی
 charts_price_low = کم
 charts_price_change = تبدیلی
+charts_candlestick = کینڈل سٹک چارٹ
+charts_line = لائن چارٹ
 
 # Date
 

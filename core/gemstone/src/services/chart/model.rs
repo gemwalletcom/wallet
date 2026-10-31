@@ -10,6 +10,12 @@ pub enum GemChartValueType {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemChartStyle {
+    Line,
+    Candles,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemChartDateStyle {
     Relative,
     DayTime,

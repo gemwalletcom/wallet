@@ -301,6 +301,8 @@
   <string name="charts_price_high">높은</string>
   <string name="charts_price_low">낮은</string>
   <string name="charts_price_change">변화</string>
+  <string name="charts_candlestick">캔들스틱 차트</string>
+  <string name="charts_line">라인 차트</string>
   <string name="date_today">오늘</string>
   <string name="date_yesterday">어제</string>
   <string name="date_day_time">%1$s, %2$s</string>

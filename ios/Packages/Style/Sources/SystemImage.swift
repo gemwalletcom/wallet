@@ -60,6 +60,8 @@ public enum SystemImage {
     public static let personCircleFill = "person.crop.circle.fill"
     public static let personBadgePlus = "person.crop.circle.badge.plus"
     public static let chartLineUptrendXyaxis = "chart.line.uptrend.xyaxis"
+    public static let chartXyaxisLine = "chart.xyaxis.line"
+    public static let chartBarXaxis = "chart.bar.xaxis"
     public static let checkmarkSealFill = "checkmark.seal.fill"
 
     public static let errorOccurred = exclamationmarkTriangleFill

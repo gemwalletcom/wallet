@@ -346,6 +346,8 @@ charts_price_close = Закрытие
 charts_price_high = Максимум
 charts_price_low = Минимум
 charts_price_change = Изменение
+charts_candlestick = Свечной график
+charts_line = Линейный график
 
 # Date
 

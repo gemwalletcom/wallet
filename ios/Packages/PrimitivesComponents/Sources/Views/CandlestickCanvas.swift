@@ -5,7 +5,6 @@ import struct Gemstone.GemFormattedNumber
 import struct Gemstone.GemPerpetualChartLayout
 import enum Gemstone.PerpetualDirection
 import GemstonePrimitives
-import PrimitivesComponents
 import Style
 import SwiftUI
 

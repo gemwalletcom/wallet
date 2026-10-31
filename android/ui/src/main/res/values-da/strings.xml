@@ -301,6 +301,8 @@
   <string name="charts_price_high">Høj</string>
   <string name="charts_price_low">Lav</string>
   <string name="charts_price_change">Forandring</string>
+  <string name="charts_candlestick">Candlestick-diagram</string>
+  <string name="charts_line">Linjediagram</string>
   <string name="date_today">I dag</string>
   <string name="date_yesterday">I går</string>
   <string name="date_day_time">%1$s, %2$s</string>

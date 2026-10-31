@@ -346,6 +346,8 @@ charts_price_close = Penutupan
 charts_price_high = Tinggi
 charts_price_low = Rendah
 charts_price_change = Perubahan
+charts_candlestick = Grafik candlestick
+charts_line = Grafik garis
 
 # Date
 

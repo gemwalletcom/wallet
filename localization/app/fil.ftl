@@ -346,6 +346,8 @@ charts_price_close = Isara
 charts_price_high = Mataas
 charts_price_low = Mababa
 charts_price_change = Pagbabago
+charts_candlestick = Candlestick chart
+charts_line = Line chart
 
 # Date
 

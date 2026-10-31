@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import enum Gemstone.GemChartStyle
 import Primitives
 import SwiftUI
 
@@ -44,8 +45,14 @@ private struct ChartListHeader<Model: ChartListViewable>: View {
     @Binding var isPinching: Bool
 
     var body: some View {
-        ChartStateView(state: model.chartState, selectedPeriod: $model.selectedPeriod, periods: model.periods) { chart in
-            ChartView(chart: chart, isPinching: $isPinching, onZoom: model.onZoom, onPan: model.onPan)
+        if let candleChart = model.candleChart {
+            ChartStateView(state: .data(candleChart), selectedPeriod: $model.selectedPeriod, periods: model.periods, styleSwitch: model.styleSwitch, onSwitchStyle: model.onSwitchStyle) { chart in
+                CandlestickChartView(chart: chart, isPinching: $isPinching, onZoom: model.onZoom, onPan: model.onPan)
+            }
+        } else {
+            ChartStateView(state: model.chartState, selectedPeriod: $model.selectedPeriod, periods: model.periods, styleSwitch: model.styleSwitch, onSwitchStyle: model.onSwitchStyle) { chart in
+                ChartView(chart: chart, isPinching: $isPinching, onZoom: model.onZoom, onPan: model.onPan)
+            }
         }
     }
 }
@@ -55,8 +62,13 @@ private struct ChartPeriodLoader<Model: ChartListViewable>: View {
 
     var body: some View {
         Color.clear
-            .task(id: model.selectedPeriod) {
+            .task(id: ChartLoadID(period: model.selectedPeriod, style: model.chartStyle)) {
                 await model.load()
             }
     }
+}
+
+private struct ChartLoadID: Hashable {
+    let period: ChartPeriod
+    let style: GemChartStyle
 }

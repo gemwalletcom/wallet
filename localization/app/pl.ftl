@@ -346,6 +346,8 @@ charts_price_close = Zamknięcie
 charts_price_high = Wysoki
 charts_price_low = Niski
 charts_price_change = Zmiana
+charts_candlestick = Wykres świecowy
+charts_line = Wykres liniowy
 
 # Date
 

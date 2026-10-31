@@ -346,6 +346,8 @@ charts_price_close = বন্ধ
 charts_price_high = উচ্চ
 charts_price_low = কম
 charts_price_change = পরিবর্তন
+charts_candlestick = ক্যান্ডেলস্টিক চার্ট
+charts_line = লাইন চার্ট
 
 # Date
 

@@ -643,6 +643,10 @@ charts_price_high = High
 charts_price_low = Low
 # Used in chart controls and chart tooltips for the price change label.
 charts_price_change = Change
+# Accessibility label for the icon-only button on a price chart that switches it to candlesticks.
+charts_candlestick = Candlestick chart
+# Accessibility label for the icon-only button on a price chart that switches it back to a line.
+charts_line = Line chart
 
 # Date
 

@@ -31,13 +31,23 @@ struct ChartSceneViewModelTests {
         #expect(model.selectedPeriod == .week)
         #expect(model.chartState.isLoading == false)
     }
+
+    @Test
+    func switchingStyleGoesThroughTheService() {
+        let model = ChartSceneViewModel.mock()
+        #expect(model.chartStyle == .line)
+
+        model.onSwitchStyle(.candles)
+
+        #expect(model.chartStyle == .candles)
+    }
 }
 
 private extension GemChartRequest {
     var period: ChartPeriod? {
         switch self {
         case .rate: nil
-        case let .chart(period, _): period.toPrimitives()
+        case let .chart(period, _), let .candles(period, _): period.toPrimitives()
         }
     }
 }

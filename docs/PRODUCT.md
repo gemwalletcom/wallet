@@ -236,8 +236,8 @@ Wallet search, every asset picker and its recents match typed text the same way.
 | When | Expected | Why |
 |---|---|---|
 | The price chart, a portfolio chart or the price widget cannot load | it shows that there is no data; only being offline shows an error | server text is not written for users |
-| The user pinches the price chart or a market's candlestick chart | it zooms toward the newest point while that point is on screen, and around the fingers once panned back, down to 14 points on screen; a zoomed chart pans back in time with a swipe; pinching out stops at the whole period | the newest point is what the user watches, and fewer points stop reading as a trend |
-| The user touches the price chart or a market's candlestick chart | a short hold shows the point under the finger; a sideways slide shows it at once while the chart is not zoomed and pans a zoomed chart; a drag that starts upright scrolls the page, and once the point shows the page stays put; a second finger hides the point | the price is read by sliding along the line; the short hold lets a pinch or a page scroll start without the point flashing |
+| The user pinches the price chart or a candlestick chart | it zooms toward the newest point while that point is on screen, and around the fingers once panned back, down to 14 points on screen; a zoomed chart pans back in time with a swipe; pinching out stops at the whole period | the newest point is what the user watches, and fewer points stop reading as a trend |
+| The user touches the price chart or a candlestick chart | a short hold shows the point under the finger; a sideways slide shows it at once while the chart is not zoomed and pans a zoomed chart; a drag that starts upright scrolls the page, and once the point shows the page stays put; a second finger hides the point | the price is read by sliding along the line; the short hold lets a pinch or a page scroll start without the point flashing |
 
 ## Secrets
 
@@ -332,7 +332,7 @@ A haptic is the short vibration that confirms what the user's finger just did, o
 |---|---|---|
 | A value is copied | Success, with its toast | |
 | The user taps the wallet balance to hide or show it | Tap | |
-| The user slides along the price chart, a portfolio chart or a market's candlestick chart | Tick each time the point under the finger changes, not when it first shows | the first point shows on its own; a tick marks each step after it |
+| The user slides along the price chart, a portfolio chart or a candlestick chart | Tick each time the point under the finger changes, not when it first shows | the first point shows on its own; a tick marks each step after it |
 | The user taps a word that is not the next one on "Confirm", in [Onboarding](product/onboarding.md) | Error, and the word shakes | |
 | A scanned QR code cannot be read | Error, with its toast | |
 | Any Paste finds nothing on the clipboard | Error | nothing else shows that the tap did nothing; a copied Secret Phrase leaves the clipboard after a minute or once it is pasted, so this happens on real devices |

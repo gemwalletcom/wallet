@@ -346,6 +346,8 @@ charts_price_close = Závěrečná
 charts_price_high = Vysoký
 charts_price_low = Nízký
 charts_price_change = Změna
+charts_candlestick = Svíčkový graf
+charts_line = Čárový graf
 
 # Date
 

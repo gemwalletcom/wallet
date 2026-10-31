@@ -301,6 +301,8 @@
   <string name="charts_price_high">Cao</string>
   <string name="charts_price_low">Thấp</string>
   <string name="charts_price_change">Thay đổi</string>
+  <string name="charts_candlestick">Biểu đồ nến</string>
+  <string name="charts_line">Biểu đồ đường</string>
   <string name="date_today">Hôm nay</string>
   <string name="date_yesterday">Hôm qua</string>
   <string name="date_day_time">%1$s, %2$s</string>

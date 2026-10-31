@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Charts
 import Style
 import SwiftUI
 

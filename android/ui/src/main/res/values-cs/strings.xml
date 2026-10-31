@@ -301,6 +301,8 @@
   <string name="charts_price_high">Vysoký</string>
   <string name="charts_price_low">Nízký</string>
   <string name="charts_price_change">Změna</string>
+  <string name="charts_candlestick">Svíčkový graf</string>
+  <string name="charts_line">Čárový graf</string>
   <string name="date_today">Dnes</string>
   <string name="date_yesterday">Včera</string>
   <string name="date_day_time">%1$s, %2$s</string>

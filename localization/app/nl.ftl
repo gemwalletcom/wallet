@@ -346,6 +346,8 @@ charts_price_close = Slot
 charts_price_high = Hoog
 charts_price_low = Laag
 charts_price_change = Wijziging
+charts_candlestick = Candlestick-grafiek
+charts_line = Lijngrafiek
 
 # Date
 

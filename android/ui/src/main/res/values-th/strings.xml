@@ -301,6 +301,8 @@
   <string name="charts_price_high">สูง</string>
   <string name="charts_price_low">ต่ำ</string>
   <string name="charts_price_change">เปลี่ยน</string>
+  <string name="charts_candlestick">กราฟแท่งเทียน</string>
+  <string name="charts_line">กราฟเส้น</string>
   <string name="date_today">วันนี้</string>
   <string name="date_yesterday">เมื่อวาน</string>
   <string name="date_day_time">%1$s %2$s</string>

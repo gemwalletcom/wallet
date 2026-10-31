@@ -301,6 +301,8 @@
   <string name="charts_price_high">اعلی</string>
   <string name="charts_price_low">کم</string>
   <string name="charts_price_change">تبدیلی</string>
+  <string name="charts_candlestick">کینڈل سٹک چارٹ</string>
+  <string name="charts_line">لائن چارٹ</string>
   <string name="date_today">آج</string>
   <string name="date_yesterday">کل</string>
   <string name="date_day_time">%1$s، %2$s</string>

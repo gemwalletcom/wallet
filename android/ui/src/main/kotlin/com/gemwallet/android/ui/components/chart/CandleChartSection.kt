@@ -1,4 +1,4 @@
-package com.gemwallet.android.features.perpetuals.presents.components
+package com.gemwallet.android.ui.components.chart
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -15,9 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.gemwallet.android.ui.components.chart.CandlestickTooltip
-import com.gemwallet.android.ui.components.chart.ChartStateView
-import com.gemwallet.android.ui.components.chart.GemCandlestickChart
 import com.gemwallet.android.ui.format.rowDateFormatter
 import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.dataOrNull
@@ -25,12 +22,23 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.ChartPeriod
 import uniffi.gemstone.GemCandleChart
 import uniffi.gemstone.GemCandleTooltip
+import uniffi.gemstone.GemChartStyle
 import java.time.ZoneId
 
 private val TooltipRightSafeArea = 96.dp
 
 @Composable
-internal fun PerpetualChartSection(state: StateViewType<GemCandleChart>, period: ChartPeriod, onPeriodSelect: (ChartPeriod) -> Unit, onZoom: (Float, Float) -> Unit, onPan: (Float) -> Unit, modifier: Modifier = Modifier) {
+fun CandleChartSection(
+    state: StateViewType<GemCandleChart>,
+    period: ChartPeriod,
+    onPeriodSelect: (ChartPeriod) -> Unit,
+    onZoom: (Float, Float) -> Unit,
+    onPan: (Float) -> Unit,
+    modifier: Modifier = Modifier,
+    periods: List<ChartPeriod> = ChartPeriod.entries,
+    styleSwitch: GemChartStyle? = null,
+    onSwitchStyle: (GemChartStyle) -> Unit = {},
+) {
     val chart = state.dataOrNull
     val data = chart?.candles.orEmpty()
     var selectedIndex by remember(period) { mutableStateOf<Int?>(null) }
@@ -50,6 +58,9 @@ internal fun PerpetualChartSection(state: StateViewType<GemCandleChart>, period:
         period = period,
         onPeriodSelect = onPeriodSelect,
         modifier = modifier,
+        periods = periods,
+        styleSwitch = styleSwitch,
+        onSwitchStyle = onSwitchStyle,
     ) { _ ->
         if (chart != null) {
             GemCandlestickChart(

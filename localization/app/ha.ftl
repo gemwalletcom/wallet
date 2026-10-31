@@ -346,6 +346,8 @@ charts_price_close = Rufe
 charts_price_high = Babban
 charts_price_low = Ƙasa
 charts_price_change = Sauyi
+charts_candlestick = Jadawalin kyandir
+charts_line = Jadawalin layi
 
 # Date
 

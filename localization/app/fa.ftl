@@ -346,6 +346,8 @@ charts_price_close = بسته شدن
 charts_price_high = بالا
 charts_price_low = کم
 charts_price_change = تغییر
+charts_candlestick = نمودار شمعی
+charts_line = نمودار خطی
 
 # Date
 

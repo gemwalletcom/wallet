@@ -346,6 +346,8 @@ charts_price_close = Fechamento
 charts_price_high = Alto
 charts_price_low = Baixo
 charts_price_change = Variação
+charts_candlestick = Gráfico de velas
+charts_line = Gráfico de linhas
 
 # Date
 

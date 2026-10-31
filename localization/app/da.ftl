@@ -346,6 +346,8 @@ charts_price_close = Lukning
 charts_price_high = Høj
 charts_price_low = Lav
 charts_price_change = Forandring
+charts_candlestick = Candlestick-diagram
+charts_line = Linjediagram
 
 # Date
 

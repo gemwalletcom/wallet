@@ -4,11 +4,10 @@ import Components
 import struct Gemstone.ChartCandleStick
 import struct Gemstone.GemCandleChart
 import struct Gemstone.GemCandleTooltip
-import PrimitivesComponents
 import Style
 import SwiftUI
 
-struct CandlestickChartView: View {
+public struct CandlestickChartView: View {
     private let chart: GemCandleChart
     private let dateFormatter = ChartDateFormatter()
     private let onZoom: @MainActor (Double, Double) -> Void
@@ -21,7 +20,7 @@ struct CandlestickChartView: View {
     @State private var priceRange: ClosedRange<Double>
     @State private var volumeRange: ClosedRange<Double>
 
-    init(chart: GemCandleChart, isPinching: Binding<Bool>, onZoom: @escaping @MainActor (Double, Double) -> Void, onPan: @escaping @MainActor (Double) -> Void) {
+    public init(chart: GemCandleChart, isPinching: Binding<Bool>, onZoom: @escaping @MainActor (Double, Double) -> Void, onPan: @escaping @MainActor (Double) -> Void) {
         self.chart = chart
         _isPinching = isPinching
         self.onZoom = onZoom
@@ -30,7 +29,7 @@ struct CandlestickChartView: View {
         _volumeRange = State(initialValue: 0 ... chart.layout.volumeHigh)
     }
 
-    var body: some View {
+    public var body: some View {
         VStack(spacing: .zero) {
             priceHeader
             chartView

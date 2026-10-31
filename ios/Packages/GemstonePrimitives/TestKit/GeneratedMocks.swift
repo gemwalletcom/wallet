@@ -291,11 +291,13 @@ public extension Gemstone.GemChart {
         values: [Gemstone.ChartDateValue] = [],
         baseValue: Double = 0,
         current: Gemstone.GemChartCurrent? = nil,
+        hasCandles: Bool = false,
     ) -> Gemstone.GemChart {
         Gemstone.GemChart(
             values: values,
             baseValue: baseValue,
             current: current,
+            hasCandles: hasCandles,
         )
     }
 }

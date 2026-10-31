@@ -1,5 +1,5 @@
 use chrono::TimeDelta;
-use primitives::{Asset, AssetId, ChartCandleUpdate, ChartPeriod, Perpetual, PerpetualPosition, TransactionsFilter};
+use primitives::{Asset, AssetId, ChartCandleUpdate, ChartPeriod, Currency, Perpetual, PerpetualPosition, TransactionsFilter};
 
 use super::model::GemCandleChart;
 use super::{chart, rules};
@@ -121,7 +121,16 @@ impl GemCandleSession {
     pub fn chart(&self, asset: Asset, position: Option<PerpetualPosition>, transactions: Vec<GemTransactionRow>, utc_offset_seconds: i32) -> Option<GemCandleChart> {
         let provider = rules::provider(asset.chain())?;
         let price_decimals = GemPerpetual::new(provider).price_decimals(self.candles.last()?.close, asset.decimals);
-        chart::candle_chart(&self.candles, self.period, price_decimals, position.as_ref(), &transactions, self.zoom, TimeDelta::seconds(i64::from(utc_offset_seconds)))
+        chart::candle_chart(
+            &self.candles,
+            self.period,
+            price_decimals,
+            Currency::USD,
+            position.as_ref(),
+            &transactions,
+            self.zoom,
+            TimeDelta::seconds(i64::from(utc_offset_seconds)),
+        )
     }
 
     pub fn markers_request(&self, asset_id: AssetId) -> GemTransactionsRequest {

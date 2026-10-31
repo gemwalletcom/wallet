@@ -301,6 +301,8 @@
   <string name="charts_price_high">Haut</string>
   <string name="charts_price_low">Bas</string>
   <string name="charts_price_change">Changement</string>
+  <string name="charts_candlestick">Graphique en chandeliers</string>
+  <string name="charts_line">Graphique en courbe</string>
   <string name="date_today">Aujourd\'hui</string>
   <string name="date_yesterday">Hier</string>
   <string name="date_day_time">%1$s, %2$s</string>

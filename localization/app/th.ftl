@@ -346,6 +346,8 @@ charts_price_close = ปิด
 charts_price_high = สูง
 charts_price_low = ต่ำ
 charts_price_change = เปลี่ยน
+charts_candlestick = กราฟแท่งเทียน
+charts_line = กราฟเส้น
 
 # Date
 

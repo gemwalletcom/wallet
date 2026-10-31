@@ -8,6 +8,8 @@ use crate::services::error::GemServiceError;
 use std::sync::{Arc, Mutex};
 
 use primitives::ChartPeriod;
+
+use crate::services::chart::GemChartStyle;
 use primitives::currency::Currency;
 use primitives::{Appearance, AssetId, Chain, ConfigResponse, Device, PerpetualMarginType, WalletType};
 
@@ -20,6 +22,7 @@ pub use store::{GemPreferencesStore, GemSecureStore};
 const PRICE_ALERTS_ENABLED: &str = "price_alerts_enabled";
 const CURRENCY: &str = "currency";
 const CHART_PERIOD: &str = "chart_period";
+const CHART_STYLE_CANDLES: &str = "chart_style_candles";
 const PERPETUAL_CHART_PERIOD: &str = "perpetual_chart_period";
 const PUSH_NOTIFICATIONS_ENABLED: &str = "is_push_notifications_enabled";
 const LAUNCHES_COUNT: &str = "launches_count";
@@ -186,6 +189,17 @@ impl GemPreferencesService {
 
     pub fn set_chart_period(&self, period: ChartPeriod) -> Result<(), GemServiceError> {
         self.store.set(CHART_PERIOD.to_string(), period.as_ref().to_string())
+    }
+
+    pub fn get_chart_style(&self) -> GemChartStyle {
+        match self.store.get(CHART_STYLE_CANDLES.to_string()).as_deref() {
+            Some("true") => GemChartStyle::Candles,
+            _ => GemChartStyle::Line,
+        }
+    }
+
+    pub fn set_chart_style(&self, style: GemChartStyle) -> Result<(), GemServiceError> {
+        self.store.set(CHART_STYLE_CANDLES.to_string(), (style == GemChartStyle::Candles).to_string())
     }
 
     pub fn clear(&self) -> Result<(), GemServiceError> {

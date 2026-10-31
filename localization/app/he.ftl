@@ -346,6 +346,8 @@ charts_price_close = סגירה
 charts_price_high = גבוה
 charts_price_low = נמוך
 charts_price_change = שינוי
+charts_candlestick = גרף נרות
+charts_line = גרף קווי
 
 # Date
 

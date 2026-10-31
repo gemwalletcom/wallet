@@ -10,7 +10,7 @@ use std::sync::Arc;
 
 use chrono::{DateTime, Utc};
 use primitives::currency::Currency;
-use primitives::{AssetId, ChartDateValue, ChartPeriod};
+use primitives::{AssetId, ChartCandleStick, ChartDateValue, ChartPeriod};
 
 use crate::api::{GemApiClient, GemApiError};
 use crate::models::state::GemLoadState;
@@ -21,11 +21,11 @@ use crate::services::price::{GemPriceService, rules as price_rules};
 use crate::services::price_alert::GemPriceAlertService;
 use session::{GemChartInput, GemChartRequest, GemChartResult, GemChartSession, GemChartView};
 
-pub use model::{GemChartBounds, GemChartData, GemChartHeader, GemChartValueType};
+pub use model::{GemChartBounds, GemChartData, GemChartHeader, GemChartStyle, GemChartValueType};
 pub use zoom::GemChartZoom;
 
-pub fn candlestick_header(base: f64, value: f64, price_decimals: usize) -> GemChartHeader {
-    let header = rules::series_header(GemChartValueType::Price, base, false, &Currency::USD, value, None);
+pub fn candlestick_header(base: f64, value: f64, price_decimals: usize, currency: &Currency) -> GemChartHeader {
+    let header = rules::series_header(GemChartValueType::Price, base, false, currency, value, None);
     GemChartHeader {
         value: header.value.with_places(price_decimals),
         ..header
@@ -37,6 +37,7 @@ pub struct GemChart {
     pub values: Vec<ChartDateValue>,
     pub base_value: f64,
     pub current: Option<GemChartCurrent>,
+    pub has_candles: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -69,7 +70,15 @@ impl GemChartService {
     }
 
     pub fn new_session(&self) -> GemChartSession {
-        GemChartSession::new(self.preferences.get_chart_period(), self.preferences.get_currency())
+        GemChartSession::new(self.preferences.get_chart_period(), self.preferences.get_currency()).with_style(self.preferences.get_chart_style())
+    }
+
+    pub fn select_style(&self, session: GemChartSession, style: GemChartStyle) -> GemChartSession {
+        let selected = session.on_select_style(style);
+        if selected.style != session.style {
+            self.preferences.set_chart_style(selected.style).ok();
+        }
+        selected
     }
 
     pub fn view_state(&self, session: GemChartSession, input: GemChartInput) -> GemChartView {
@@ -80,8 +89,10 @@ impl GemChartService {
         let contract_explorer = self.explorer.get_token_url(&input.asset.id);
         GemChartView {
             period: session.period,
-            phase: session.phase(input.asset_price()),
+            phase: session.phase(input.asset_price(), input.utc_offset_seconds),
             is_refreshing: session.is_refreshing,
+            style_switch: session.style_switch(),
+            periods: session.periods(),
             sections: rules::chart_sections(
                 &input.asset,
                 session.currency,
@@ -103,6 +114,7 @@ impl GemChartService {
                     state: GemLoadState::of(&rate),
                     rate: rate.ok().flatten(),
                     chart: None,
+                    candles: vec![],
                 }
             }
             GemChartRequest::Chart { period, currency } => {
@@ -117,6 +129,22 @@ impl GemChartService {
                     rate: rate.ok().flatten(),
                     state: GemLoadState::of(&chart),
                     chart: chart.ok(),
+                    candles: vec![],
+                }
+            }
+            GemChartRequest::Candles { period, currency } => {
+                self.remember_period(period);
+                let rate = self.rate(currency.clone()).await;
+                let candles = match &rate {
+                    Ok(rate) => self.sync_candles(asset_id, period, currency, *rate).await,
+                    Err(error) => Err(error.clone()),
+                };
+                GemChartResult {
+                    request,
+                    rate: rate.ok().flatten(),
+                    state: GemLoadState::of(&candles),
+                    chart: None,
+                    candles: candles.unwrap_or_default(),
                 }
             }
         }
@@ -146,7 +174,20 @@ impl GemChartService {
         let values = rules::converted_values(charts.prices, rate);
         let base_value = rules::base_value(&values);
         let current = rules::current_value(&values, latest, Utc::now(), period, base_value);
-        Ok(GemChart { values, base_value, current })
+        Ok(GemChart {
+            values,
+            base_value,
+            current,
+            has_candles: charts.has_candles,
+        })
+    }
+
+    async fn sync_candles(&self, asset_id: AssetId, period: ChartPeriod, currency: Currency, rate: Option<f64>) -> Result<Vec<ChartCandleStick>, GemServiceError> {
+        let candles = self.api.client.get_candles(asset_id, period).await.map_err(GemApiError::from)?;
+        let rate = rate.ok_or_else(|| GemServiceError::InvalidInput {
+            msg: format!("unknown currency: {currency}"),
+        })?;
+        Ok(rules::converted_candles(candles, rate))
     }
 }
 
@@ -180,6 +221,7 @@ mod tests {
             market: Some(AssetMarket::mock()),
             price_alerts: vec![],
             links: vec![],
+            utc_offset_seconds: 0,
         }
     }
 
@@ -215,6 +257,21 @@ mod tests {
             Some(GemListRow::Ranked { amount, .. }) => assert_eq!(amount.value, 50.0, "the market cap is converted with the session's rate"),
             other => panic!("expected a market cap row, got {other:?}"),
         }
+    }
+
+    #[test]
+    fn test_a_selected_style_is_remembered_for_the_next_session() {
+        let service = service(200);
+        let session = service.new_session();
+        assert_eq!(session.style, GemChartStyle::Line);
+
+        let unavailable = service.select_style(session.clone(), GemChartStyle::Candles);
+        assert_eq!(unavailable.style, GemChartStyle::Line, "an asset without candles keeps the line");
+        assert_eq!(service.new_session().style, GemChartStyle::Line);
+
+        let session = GemChartSession { has_candles: true, ..session };
+        assert_eq!(service.select_style(session, GemChartStyle::Candles).style, GemChartStyle::Candles);
+        assert_eq!(service.new_session().style, GemChartStyle::Candles);
     }
 
     #[test]

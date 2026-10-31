@@ -346,6 +346,8 @@ charts_price_close = Funga
 charts_price_high = Juu
 charts_price_low = Chini
 charts_price_change = Mabadiliko
+charts_candlestick = Chati ya mishumaa
+charts_line = Chati ya mstari
 
 # Date
 

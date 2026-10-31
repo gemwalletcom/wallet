@@ -346,6 +346,8 @@ charts_price_close = الإغلاق
 charts_price_high = الأعلى
 charts_price_low = الأدنى
 charts_price_change = التغيير
+charts_candlestick = مخطط الشموع
+charts_line = مخطط خطي
 
 # Date
 

@@ -2,11 +2,13 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemCandleChart
 import struct Gemstone.GemChartData
 import struct Gemstone.GemChartInput
 import enum Gemstone.GemChartPhase
 import protocol Gemstone.GemChartServiceProtocol
 import struct Gemstone.GemChartSession
+import enum Gemstone.GemChartStyle
 import struct Gemstone.GemChartView
 import struct Gemstone.GemInfoSheet
 import enum Gemstone.GemInfoTopic
@@ -55,6 +57,23 @@ public final class ChartSceneViewModel: ChartListViewable {
         view.phase.map()
     }
 
+    public var candleChart: GemCandleChart? {
+        guard case let .candles(chart) = view.phase else { return nil }
+        return chart
+    }
+
+    public var chartStyle: GemChartStyle {
+        session.style
+    }
+
+    public var styleSwitch: GemChartStyle? {
+        view.styleSwitch
+    }
+
+    public var periods: [ChartPeriod] {
+        view.periods.map { $0.toPrimitives() }
+    }
+
     var sections: [GemListSection] {
         view.sections
     }
@@ -100,6 +119,10 @@ public extension ChartSceneViewModel {
         session = zoomed
     }
 
+    func onSwitchStyle(_ style: GemChartStyle) {
+        session = service.selectStyle(session: session, style: style)
+    }
+
     func onPan(_ fraction: Double) {
         let panned = session.onPan(fraction: fraction)
         guard panned.zoom != session.zoom else { return }
@@ -142,6 +165,7 @@ private extension PriceData {
             market: market?.toGem(),
             priceAlerts: priceAlerts.map { $0.toGem() },
             links: links.map { $0.toGem() },
+            utcOffsetSeconds: Int32(TimeZone.current.secondsFromGMT()),
         )
     }
 }
@@ -151,6 +175,7 @@ private extension GemChartPhase {
         switch self {
         case .loading: .loading
         case let .data(data): .data(data)
+        case .candles: .loading
         case .noData: .noData
         case let .failed(error): .error(error)
         }

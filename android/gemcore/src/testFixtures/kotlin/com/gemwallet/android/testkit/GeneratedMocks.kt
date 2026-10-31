@@ -1185,10 +1185,12 @@ fun mockGemChart(
     values: List<uniffi.gemstone.ChartDateValue> = emptyList(),
     baseValue: Double = 0.0,
     current: uniffi.gemstone.GemChartCurrent? = null,
+    hasCandles: Boolean = false,
 ) = uniffi.gemstone.GemChart(
     values = values,
     baseValue = baseValue,
     current = current,
+    hasCandles = hasCandles,
 )
 
 fun mockGemChartBounds(

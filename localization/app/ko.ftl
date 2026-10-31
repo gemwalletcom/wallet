@@ -346,6 +346,8 @@ charts_price_close = 종가
 charts_price_high = 높은
 charts_price_low = 낮은
 charts_price_change = 변화
+charts_candlestick = 캔들스틱 차트
+charts_line = 라인 차트
 
 # Date
 

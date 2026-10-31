@@ -346,6 +346,8 @@ charts_price_close = Schluss
 charts_price_high = Hoch
 charts_price_low = Niedrig
 charts_price_change = Veränderung
+charts_candlestick = Kerzendiagramm
+charts_line = Liniendiagramm
 
 # Date
 

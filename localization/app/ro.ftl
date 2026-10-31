@@ -346,6 +346,8 @@ charts_price_close = Închidere
 charts_price_high = Ridicat
 charts_price_low = Scăzut
 charts_price_change = Variație
+charts_candlestick = Grafic cu lumânări
+charts_line = Grafic liniar
 
 # Date
 
