@@ -186,7 +186,6 @@ fn get_fiat_transaction_by_provider_transaction_id(client: &mut DatabaseClient, 
         .filter(provider_id.eq(provider))
         .filter(provider_transaction_id.eq(provider_transaction_id_value))
         .select(FiatTransactionRow::as_select())
-        .for_update()
         .first(&mut client.connection)
         .optional()
 }
@@ -199,7 +198,6 @@ fn get_unlinked_fiat_transaction_for_quote(client: &mut DatabaseClient, provider
         .filter(quote_id.eq(target_quote_id))
         .filter(provider_transaction_id.is_null())
         .select(FiatTransactionRow::as_select())
-        .for_update()
         .first(&mut client.connection)
         .optional()
 }
@@ -212,7 +210,6 @@ fn get_fiat_transaction_for_quote(client: &mut DatabaseClient, provider: &FiatPr
         .filter(quote_id.eq(target_quote_id))
         .order((created_at.desc(), id.desc()))
         .select(FiatTransactionRow::as_select())
-        .for_update()
         .first(&mut client.connection)
         .optional()
 }
@@ -370,7 +367,7 @@ impl FiatRepository for DatabaseClient {
     }
 
     fn update_fiat_transaction(&mut self, provider: FiatProviderName, update: FiatTransactionUpdate) -> Result<(FiatTransactionRecord, FiatTransactionRecord), DatabaseError> {
-        let (previous, updated) = update_fiat_transaction(self, provider, update)?;
+        let (previous, updated) = update_fiat_transaction(self, &FiatProviderNameRow::from(provider), &update)?;
         Ok((FiatTransactionRecord::from_row(previous), FiatTransactionRecord::from_row(updated)))
     }
 
@@ -382,12 +379,7 @@ impl FiatRepository for DatabaseClient {
     }
 }
 
-fn update_fiat_transaction(client: &mut DatabaseClient, provider: FiatProviderName, update: FiatTransactionUpdate) -> Result<(FiatTransactionRow, FiatTransactionRow), DatabaseError> {
-    let provider = FiatProviderNameRow::from(provider);
-    client.transaction(|client| Ok(update_locked_fiat_transaction(client, &provider, &update)?))
-}
-
-fn update_locked_fiat_transaction(client: &mut DatabaseClient, provider: &FiatProviderNameRow, update: &FiatTransactionUpdate) -> Result<(FiatTransactionRow, FiatTransactionRow), diesel::result::Error> {
+fn update_fiat_transaction(client: &mut DatabaseClient, provider: &FiatProviderNameRow, update: &FiatTransactionUpdate) -> Result<(FiatTransactionRow, FiatTransactionRow), diesel::result::Error> {
     use crate::schema::fiat_transactions::dsl::*;
 
     let linked_id = update.provider_transaction_id.as_deref();
