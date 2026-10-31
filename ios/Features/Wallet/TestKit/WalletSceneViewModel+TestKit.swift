@@ -20,6 +20,7 @@ public extension WalletSceneViewModel {
             wallet: wallet,
             isPresentingSelectedAssetInput: .constant(.none),
             isPresentingWallets: .constant(false),
+            isPresentingSheet: .constant(.none),
         )
         if let db {
             model.walletQuery.bind(dbQueue: db.dbQueue)

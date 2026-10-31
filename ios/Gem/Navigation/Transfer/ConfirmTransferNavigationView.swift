@@ -116,7 +116,7 @@ private struct GetAssetNavigationStack: View {
                     destination(for: action)
                         .toolbarDismissItem(type: .close, placement: .topBarLeading)
                         .navigationBarTitleDisplayMode(.inline)
-                        .navigationDestination(for: ConfirmTransferInput.self) { input in
+                        .navigationDestination(keyedBy: ConfirmTransferInput.self) { input in
                             ConfirmTransferNavigationView(
                                 model: viewModelFactory.confirmTransferScene(
                                     wallet: model.assetAcquisitionWallet,

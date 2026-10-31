@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Assets
+import Components
 import Contacts
 import GemstoneServices
 import InAppNotifications
@@ -45,25 +46,25 @@ struct SettingsNavigationView: View {
             isPresentingSupport: $isPresentingSupport,
         )
         .navigationBarTitleDisplayMode(.inline)
-        .navigationDestination(for: Scenes.Security.self) { _ in
+        .navigationDestination(keyedBy: Scenes.Security.self) { _ in
             SecurityScene(model: viewModelFactory.securityScene())
         }
-        .navigationDestination(for: Scenes.Notifications.self) { _ in
+        .navigationDestination(keyedBy: Scenes.Notifications.self) { _ in
             NotificationsScene(
                 model: viewModelFactory.notificationsScene(),
             )
         }
-        .navigationDestination(for: Scenes.PriceAlerts.self) { _ in
+        .navigationDestination(keyedBy: Scenes.PriceAlerts.self) { _ in
             PriceAlertsNavigationView(
                 model: viewModelFactory.priceAlertsScene(),
             )
         }
-        .navigationDestination(for: Scenes.AssetPriceAlert.self) {
+        .navigationDestination(keyedBy: Scenes.AssetPriceAlert.self) {
             AssetPriceAlertsScene(
                 model: viewModelFactory.assetPriceAlertsScene(walletId: walletId, asset: $0.asset),
             )
         }
-        .navigationDestination(for: Scenes.Chart.self) { scene in
+        .navigationDestination(keyedBy: Scenes.Chart.self) { scene in
             ChartScene(
                 model: viewModelFactory.chartScene(
                     asset: scene.asset,
@@ -72,18 +73,18 @@ struct SettingsNavigationView: View {
                 ),
             )
         }
-        .navigationDestination(for: Scenes.Chains.self) { _ in
+        .navigationDestination(keyedBy: Scenes.Chains.self) { _ in
             ChainListSettingsScene(model: viewModelFactory.chainListSettingsScene())
         }
-        .navigationDestination(for: Scenes.ServiceStatus.self) { _ in
+        .navigationDestination(keyedBy: Scenes.ServiceStatus.self) { _ in
             ServiceStatusScene(model: viewModelFactory.serviceStatusScene())
         }
-        .navigationDestination(for: Scenes.AboutUs.self) { _ in
+        .navigationDestination(keyedBy: Scenes.AboutUs.self) { _ in
             AboutUsScene(
                 model: viewModelFactory.aboutUsScene(),
             )
         }
-        .navigationDestination(for: Scenes.WalletConnect.self) { _ in
+        .navigationDestination(keyedBy: Scenes.WalletConnect.self) { _ in
             ConnectionsScene(
                 model: viewModelFactory.connectionsScene(
                     connector: walletConnector,
@@ -91,35 +92,35 @@ struct SettingsNavigationView: View {
                 ),
             )
         }
-        .navigationDestination(for: Scenes.Developer.self) { _ in
+        .navigationDestination(keyedBy: Scenes.Developer.self) { _ in
             DeveloperScene(model: viewModelFactory.developerScene(walletId: walletId))
         }
-        .navigationDestination(for: Scenes.DeveloperPayments.self) { _ in
+        .navigationDestination(keyedBy: Scenes.DeveloperPayments.self) { _ in
             DeveloperPaymentsScene { payload in
                 Task { await navigationRouter.open(code: payload) }
             }
         }
-        .navigationDestination(for: Scenes.InAppNotifications.self) { _ in
+        .navigationDestination(keyedBy: Scenes.InAppNotifications.self) { _ in
             if let model = viewModelFactory.inAppNotificationsScene() {
                 InAppNotificationsScene(model: model)
             }
         }
-        .navigationDestination(for: Scenes.Currency.self) { _ in
+        .navigationDestination(keyedBy: Scenes.Currency.self) { _ in
             CurrencyScene(model: currencyModel)
         }
-        .navigationDestination(for: Scenes.Preferences.self) { _ in
+        .navigationDestination(keyedBy: Scenes.Preferences.self) { _ in
             PreferencesScene(model: viewModelFactory.preferencesScene())
         }
-        .navigationDestination(for: Scenes.Appearance.self) { _ in
+        .navigationDestination(keyedBy: Scenes.Appearance.self) { _ in
             AppearanceScene(model: viewModelFactory.appearanceScene())
         }
-        .navigationDestination(for: Scenes.Rewards.self) { scene in
+        .navigationDestination(keyedBy: Scenes.Rewards.self) { scene in
             RewardsScene(model: viewModelFactory.rewardsScene(activateCode: scene.code))
         }
-        .navigationDestination(for: Scenes.ChainSettings.self) {
+        .navigationDestination(keyedBy: Scenes.ChainSettings.self) {
             ChainSettingsScene(model: viewModelFactory.chainSettingsScene(chain: $0.chain))
         }
-        .navigationDestination(for: Scenes.Contacts.self) { _ in
+        .navigationDestination(keyedBy: Scenes.Contacts.self) { _ in
             ContactsNavigationView(model: viewModelFactory.contactsScene())
         }
         .sheet(isPresented: Binding(get: { isPresentingAddressDetails != nil }, set: {

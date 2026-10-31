@@ -49,7 +49,7 @@ public struct ContactEditorScene: View {
                 focusedField = .name
             }
         }
-        .navigationDestination(for: Scenes.ContactAddress.self) {
+        .navigationDestination(keyedBy: Scenes.ContactAddress.self) {
             contactAddressScene(mode: .edit($0.address))
         }
         .sheet(item: $model.isPresentingAddress) { mode in

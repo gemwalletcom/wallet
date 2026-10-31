@@ -31,7 +31,7 @@ public struct ContactsNavigationView: View {
                         .toolbarDismissItem(type: .close, placement: .cancellationAction)
                 }
             }
-            .navigationDestination(for: Scenes.Contact.self) {
+            .navigationDestination(keyedBy: Scenes.Contact.self) {
                 contactEditor(for: .edit($0.contact))
             }
     }
