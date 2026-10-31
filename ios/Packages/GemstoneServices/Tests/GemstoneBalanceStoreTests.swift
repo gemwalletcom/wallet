@@ -21,8 +21,8 @@ struct GemstoneBalanceStoreTests {
         try await adapter.addBalances(walletId: wallet.id, assetIds: [ethereum], enabled: true)
         try await adapter.addBalances(walletId: wallet.id, assetIds: [cosmos], enabled: false)
 
-        #expect(try balanceStore.getBalanceRecord(walletId: wallet.id, assetId: ethereum)?.isEnabled == true)
-        #expect(try balanceStore.getBalanceRecord(walletId: wallet.id, assetId: cosmos)?.isEnabled == false)
+        #expect(try Set(balanceStore.getBalanceAssetIds(walletId: wallet.id, assetIds: [ethereum, cosmos])) == [ethereum, cosmos])
+        #expect(try balanceStore.getEnabledAssetIds(walletId: wallet.id) == [ethereum])
     }
 
     @Test
@@ -34,7 +34,7 @@ struct GemstoneBalanceStoreTests {
 
         try await adapter.addBalances(walletId: wallet.id, assetIds: [ethereum, cosmos], enabled: false)
 
-        #expect(try balanceStore.getBalanceRecord(walletId: wallet.id, assetId: ethereum)?.isEnabled == true)
-        #expect(try balanceStore.getBalanceRecord(walletId: wallet.id, assetId: cosmos)?.isEnabled == false)
+        #expect(try Set(balanceStore.getBalanceAssetIds(walletId: wallet.id, assetIds: [ethereum, cosmos])) == [ethereum, cosmos])
+        #expect(try balanceStore.getEnabledAssetIds(walletId: wallet.id) == [ethereum])
     }
 }

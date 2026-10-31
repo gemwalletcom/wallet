@@ -15,6 +15,5 @@ struct AssetRecordInfo: FetchableRecord, Codable {
 struct AssetRecordInfoMinimal: FetchableRecord, Codable {
     var asset: AssetRecord
     var price: PriceRecord?
-    var rate: FiatRateRecord?
     var balance: BalanceRecord
 }
