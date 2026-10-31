@@ -110,7 +110,7 @@ public struct RecipientScene: View {
         }
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .listSectionSpacing(.compact)
-        .navigationTitle(model.tittle)
+        .navigationTitle(model.title)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button(model.actionButtonTitle, action: onSelectContinue)

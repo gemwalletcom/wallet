@@ -69,7 +69,7 @@ public final class RecipientSceneViewModel {
         }
     }
 
-    var tittle: String {
+    var title: String {
         Localized.Transfer.Recipient.title
     }
 
