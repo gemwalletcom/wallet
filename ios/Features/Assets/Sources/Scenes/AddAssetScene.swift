@@ -29,7 +29,7 @@ public struct AddAssetScene: View {
             .safeAreaButton {
                 StateButton(
                     text: model.actionButtonTitle,
-                    type: .primary(model.buttonState),
+                    state: model.buttonState,
                     action: onSelectImportToken,
                 )
             }

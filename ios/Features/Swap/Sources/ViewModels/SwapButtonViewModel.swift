@@ -37,8 +37,8 @@ struct SwapButtonViewModel: StateButtonViewable {
         nil
     }
 
-    var type: ButtonType {
-        .primary(state.buttonState.state)
+    var buttonState: ButtonState {
+        state.buttonState.state
     }
 
     var isVisible: Bool {

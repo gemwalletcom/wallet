@@ -85,7 +85,7 @@ struct ImportWalletScene: View {
                 VStack(alignment: .center) {
                     StateButton(
                         text: Localized.Wallet.Import.action,
-                        type: .primary(model.buttonState),
+                        state: model.buttonState,
                         action: onSelectActionButton,
                     )
                     .frame(height: .scene.button.height)

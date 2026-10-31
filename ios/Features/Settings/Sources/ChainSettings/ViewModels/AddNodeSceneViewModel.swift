@@ -42,6 +42,10 @@ final class AddNodeSceneViewModel {
         }
     }
 
+    var buttonState: ButtonState {
+        ButtonState(state)
+    }
+
     var showsWarning: Bool {
         session.viewState().showsWarning
     }

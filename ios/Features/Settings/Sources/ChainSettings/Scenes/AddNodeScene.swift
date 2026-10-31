@@ -37,7 +37,7 @@ struct AddNodeScene: View {
         .safeAreaButton {
             StateButton(
                 text: model.actionButtonTitle,
-                type: .primary(model.state),
+                state: model.buttonState,
                 action: onSelectImport,
             )
         }

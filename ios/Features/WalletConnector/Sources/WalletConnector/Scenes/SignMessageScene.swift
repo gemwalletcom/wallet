@@ -61,7 +61,7 @@ public struct SignMessageScene: View {
         .safeAreaButton {
             StateButton(
                 text: model.buttonTitle,
-                type: model.buttonType,
+                state: model.buttonState,
                 action: sign,
             )
         }

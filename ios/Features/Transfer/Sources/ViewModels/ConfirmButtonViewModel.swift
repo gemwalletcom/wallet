@@ -27,8 +27,8 @@ struct ConfirmButtonViewModel: StateButtonViewable {
         button.icon.image
     }
 
-    var type: ButtonType {
-        .primary(button.state.state)
+    var buttonState: ButtonState {
+        button.state.state
     }
 
     func action() {

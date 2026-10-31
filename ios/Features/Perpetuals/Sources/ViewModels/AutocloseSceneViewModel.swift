@@ -70,8 +70,8 @@ public final class AutocloseSceneViewModel {
         }
     }
 
-    func confirmButtonType(_ viewState: GemAutocloseViewState) -> ButtonType {
-        .primary(viewState.confirmEnabled ? .normal : .disabled)
+    func confirmButtonState(_ viewState: GemAutocloseViewState) -> ButtonState {
+        viewState.confirmEnabled ? .normal : .disabled
     }
 }
 

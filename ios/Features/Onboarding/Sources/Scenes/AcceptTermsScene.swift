@@ -34,7 +34,7 @@ struct AcceptTermsScene: View {
         .safeAreaButton {
             StateButton(
                 text: Localized.Onboarding.AcceptTerms.continue,
-                type: .primary(model.state),
+                state: model.buttonState,
                 action: model.accept,
             )
         }
