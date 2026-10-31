@@ -15,6 +15,7 @@ pub const NATIVE_VAULT: &str = "EQDa4VOnTYlLvDJ0gZjNYm5PXfSmmtL6Vs6A_CZEtXCNICq_
 pub const USDT_VAULT: &str = "EQAYqo4u7VF0fa4DPAebk4g9lBytj2VFny7pzXR0trjtXQaO";
 pub const TON_USDT_POOL: &str = "EQA-X_yo3fzzbDbJ_0bzFWKqtRuZFIRa1sJsveZJ1YpViO3r";
 pub const TON_NOT_POOL: &str = "EQCUhnOllvxtLDEj3_9k0yMeTQ4Wv6rFBtXr2wnzKzucZeER";
+pub const USDT_NOT_POOL: &str = "EQA26n1eVOKbzxZQr7hIswf7_kykj8gGhybp_7w5FFmwyA21";
 pub const TON_STTON_STABLE_POOL: &str = "EQCHFiQM_TTSIiKhUCmWSN4aPSTqxJ4VSBEyDFaZ4izyq95Y";
 
 pub fn ton() -> AssetId {
