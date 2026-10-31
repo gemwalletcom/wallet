@@ -13,15 +13,11 @@ use crate::{
     route_path::RoutePath,
 };
 use async_trait::async_trait;
-use futures::{
-    StreamExt, TryStreamExt,
-    future::{join_all, try_join_all},
-    stream,
-};
+use futures::{TryStreamExt, future::join_all, stream};
 use gem_client::Client;
 use gem_ton::{address::Address, models::TonConnectMessage, rpc::client::TonClient};
 use num_bigint::BigUint;
-use primitives::{AssetId, Chain, asset_constants::TON_USDT_ASSET_ID};
+use primitives::{Chain, asset_constants::TON_USDT_ASSET_ID};
 use std::{fmt::Debug, iter::once, sync::Arc};
 
 #[derive(Debug)]
@@ -62,7 +58,10 @@ impl<C: Client> Dedust<C> {
 
     async fn quote_path(&self, path: RoutePath<DedustAsset>, from: &DedustAsset, to: &DedustAsset, value: &BigUint) -> Result<(Vec<Address>, BigUint), SwapperError> {
         let pairs = path.pairs(from, to);
-        let hops = try_join_all(pairs.iter().map(|(asset_in, asset_out)| try_join_all(PoolType::ALL.map(|pool_type| self.client.pool_address(pool_type, asset_in, asset_out))))).await?;
+        let hops = pairs
+            .iter()
+            .map(|(asset_in, asset_out)| PoolType::ALL.into_iter().map(|pool_type| pool_type.pool_address(asset_in, asset_out)).collect())
+            .collect::<Result<Vec<Vec<Address>>, _>>()?;
         stream::iter(hops.iter().zip(&pairs).map(Ok))
             .try_fold((vec![], value.clone()), |(route, value_in), (pools, (asset_in, _))| async move {
                 let (pool, value_out) = self.quote_hop(pools, asset_in, &value_in).await?;
@@ -103,21 +102,6 @@ where
         SwapAmountMode::Fixed
     }
 
-    async fn preload_routes(&self, from_asset: &AssetId, to_asset: &AssetId) {
-        if from_asset.chain != Chain::Ton || to_asset.chain != Chain::Ton {
-            return;
-        }
-        let (Ok(from), Ok(to)) = (DedustAsset::from_asset_id(from_asset), DedustAsset::from_asset_id(to_asset)) else {
-            return;
-        };
-        let pairs = RoutePath::all_pairs(&route_paths(&from, &to), &from, &to);
-        stream::iter(pairs)
-            .for_each_concurrent(None, |(asset_in, asset_out)| async move {
-                _ = try_join_all(PoolType::ALL.map(|pool_type| self.client.pool_address(pool_type, &asset_in, &asset_out))).await
-            })
-            .await;
-    }
-
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
         let request = request.reserve_native_attachment(&BigUint::from(SWAP_GAS))?;
         let from = DedustAsset::from_asset_id(&request.from_asset.asset_id())?;
@@ -131,12 +115,10 @@ where
     async fn get_quote_data(&self, quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
         let swap = DedustSwap::new(quote, &quote.route_data()?, &quote.request.on_chain_referral_fee())?;
         let from = DedustAsset::from_asset_id(&quote.request.from_asset.asset_id())?;
+        let vault = from.vault_address()?;
         let messages = match &from {
-            DedustAsset::Native => swap.native_messages(&self.client.vault_address(&from).await?)?,
-            DedustAsset::Jetton(jetton) => {
-                let (vault, jetton_wallet) = futures::try_join!(self.client.vault_address(&from), self.client.jetton_wallet(&quote.request.wallet_address, jetton))?;
-                swap.jetton_messages(&vault, &jetton_wallet)?
-            }
+            DedustAsset::Native => swap.native_messages(&vault)?,
+            DedustAsset::Jetton(jetton) => swap.jetton_messages(&vault, &self.client.jetton_wallet(&quote.request.wallet_address, jetton).await?)?,
         };
         TonConnectMessage::swap_quote_data(&messages).map_err(SwapperError::compute_quote_error)
     }
@@ -195,6 +177,23 @@ mod tests {
         assert_eq!(data.to, NATIVE_VAULT);
         assert_eq!(data.value, BigUint::from(1_250_000_000u64));
         assert_eq!(quote_messages(&data).len(), 2);
+    }
+
+    #[tokio::test]
+    async fn test_quote_data_refuses_a_vault_the_app_does_not_ship() {
+        let mut records: Vec<serde_json::Value> = serde_json::from_str(include_str!("testdata/ton_to_usdt_get_methods.json")).unwrap();
+        records.push(serde_json::json!({
+            "request": {"address": "EQBfBWT7X2BHg9tXAxzhz2aKiNTU1tpt5NsiK0uSDW_YAJ67", "method": "get_vault_address", "stack": [{"type": "slice", "value": "te6cckEBAQEAAwAAAQiFl+L/"}]},
+            "response": {"exit_code": 0, "stack": [{"type": "cell", "value": Address::parse(TEST_USDT_WALLET).unwrap().to_boc_base64().unwrap()}]}
+        }));
+        let calls = Arc::new(Mutex::new(Vec::new()));
+        let provider = Dedust::with_client(mock_ton_client_with_calls(&serde_json::to_string(&records).unwrap(), calls.clone()));
+
+        let quote = provider.get_quote(&mock_request(ton(), usdt(), 1_000_000_000)).await.unwrap();
+        let data = provider.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
+
+        assert_eq!(data.to, NATIVE_VAULT);
+        assert!(!calls.lock().unwrap().iter().any(|method| method == "get_vault_address"));
     }
 
     #[tokio::test]
