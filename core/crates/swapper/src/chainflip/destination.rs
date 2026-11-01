@@ -76,12 +76,12 @@ mod tests {
     use super::*;
     use crate::chainflip::testkit::bitcoin_destination;
     use primitives::Chain;
-    use primitives::testkit::signer_mock::{TEST_BITCOIN_ADDRESS, TEST_EVM_WALLET};
+    use primitives::testkit::signer_mock::{TEST_BITCOIN_SENDER, TEST_EVM_SENDER};
 
     #[test]
     fn test_validate_tron_note_bitcoin_destination() {
         let destination = bitcoin_destination();
-        let note = [&[5u8, 2, (TEST_BITCOIN_ADDRESS.len() as u8) << 2][..], TEST_BITCOIN_ADDRESS.as_bytes(), &[0, 0x91, 1], &[7; 100]].concat();
+        let note = [&[5u8, 2, (TEST_BITCOIN_SENDER.len() as u8) << 2][..], TEST_BITCOIN_SENDER.as_bytes(), &[0, 0x91, 1], &[7; 100]].concat();
 
         assert_eq!(destination.validate_tron(&note), Ok(&[7; 100][..]));
         assert!(destination.validate_tron(&note[..note.len() - 1]).is_err());
@@ -89,7 +89,7 @@ mod tests {
 
     #[test]
     fn test_new_rejects_invalid_address() {
-        assert!(VaultSwapDestination::new(&AssetId::from_chain(Chain::Ethereum), TEST_BITCOIN_ADDRESS).is_err());
-        assert!(VaultSwapDestination::new(&AssetId::from_chain(Chain::Solana), TEST_EVM_WALLET).is_err());
+        assert!(VaultSwapDestination::new(&AssetId::from_chain(Chain::Ethereum), TEST_BITCOIN_SENDER).is_err());
+        assert!(VaultSwapDestination::new(&AssetId::from_chain(Chain::Solana), TEST_EVM_SENDER).is_err());
     }
 }

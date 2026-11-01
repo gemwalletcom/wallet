@@ -40,17 +40,17 @@ impl VaultSwapRefund {
 mod tests {
     use super::*;
     use crate::chainflip::testkit::mock_refund;
-    use primitives::testkit::signer_mock::{TEST_BITCOIN_ADDRESS, TEST_EVM_WALLET};
+    use primitives::testkit::signer_mock::{TEST_BITCOIN_SENDER, TEST_EVM_SENDER};
 
     #[test]
     fn test_validate() {
-        let refund = mock_refund(Chain::Ethereum, TEST_EVM_WALLET, "0x0102");
-        let parameters = [&[1u8, 150, 0, 0, 0][..], &hex::decode(&TEST_EVM_WALLET[2..]).unwrap(), &[2, 1], &[0; 30], &[9]].concat();
+        let refund = mock_refund(Chain::Ethereum, TEST_EVM_SENDER, "0x0102");
+        let parameters = [&[1u8, 150, 0, 0, 0][..], &hex::decode(&TEST_EVM_SENDER[2..]).unwrap(), &[2, 1], &[0; 30], &[9]].concat();
 
         assert_eq!(refund.validate(&parameters), Ok(()));
-        assert!(mock_refund(Chain::Ethereum, TEST_EVM_WALLET, "0x0103").validate(&parameters).is_err(), "a different minimum price is refused");
+        assert!(mock_refund(Chain::Ethereum, TEST_EVM_SENDER, "0x0103").validate(&parameters).is_err(), "a different minimum price is refused");
         assert!(mock_refund(Chain::Ethereum, "0x1111111111111111111111111111111111111111", "0x0102").validate(&parameters).is_err());
-        assert!(mock_refund(Chain::Ethereum, TEST_BITCOIN_ADDRESS, "0x0102").validate(&parameters).is_err(), "an address the chain can't read is refused");
+        assert!(mock_refund(Chain::Ethereum, TEST_BITCOIN_SENDER, "0x0102").validate(&parameters).is_err(), "an address the chain can't read is refused");
         assert!(refund.validate(&parameters[1..]).is_err());
         assert!(refund.validate(&[&[2u8][..], &parameters[1..]].concat()).is_err(), "a layout this app can't read is refused");
     }
