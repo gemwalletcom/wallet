@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
@@ -42,7 +43,7 @@ struct AmountNavigationStack: View {
                     placement: .topBarLeading,
                 )
             }
-            .navigationDestination(for: ConfirmTransferInput.self) {
+            .navigationDestination(keyedBy: ConfirmTransferInput.self) {
                 ConfirmTransferNavigationView(
                     model: viewModelFactory.confirmTransferScene(
                         wallet: wallet,

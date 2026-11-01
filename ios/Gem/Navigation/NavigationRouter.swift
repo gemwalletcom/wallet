@@ -81,7 +81,7 @@ final class NavigationRouter: Sendable {
         do {
             try await open(notification: notification)
         } catch {
-            debugLog("NavigationRouter push error: \(error)")
+            showError(error)
         }
     }
 
@@ -326,6 +326,7 @@ extension NavigationRouter {
     }
 
     func resetNavigation() {
+        presenter.isPresentingWalletSheet.wrappedValue = nil
         navigationState.reset()
     }
 }
