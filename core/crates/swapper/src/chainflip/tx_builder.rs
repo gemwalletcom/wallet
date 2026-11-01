@@ -62,6 +62,7 @@ mod tests {
     use gem_jsonrpc::types::JsonRpcResponse;
     use gem_solana::decode_transaction;
     use num_bigint::BigUint;
+    use primitives::testkit::signer_mock::TEST_TRON_WALLET;
 
     #[test]
     fn test_build_tron_quote_data_maps_trc20_contract_call_fields() {
@@ -74,13 +75,13 @@ mod tests {
                 note: note.to_string(),
                 source_token_address: Some("0xeca9bc828a3005b9a3b909f2cc5c2a54794de05f".to_string()),
             },
-            TronAddress::parse("TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf").unwrap(),
+            TronAddress::parse(TEST_TRON_WALLET).unwrap(),
             BigUint::ZERO,
         )
         .unwrap();
 
         assert_eq!(data.data_type, Contract);
-        assert_eq!(data.to, "TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf");
+        assert_eq!(data.to, TEST_TRON_WALLET);
         assert_eq!(data.memo, Some(note.to_string()));
         assert_eq!(data.value, BigUint::from(0u64));
         assert_eq!(data.data, "a9059cbb");

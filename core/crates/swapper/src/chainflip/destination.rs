@@ -74,13 +74,14 @@ fn tron_cf_parameters(data: &[u8]) -> Option<&[u8]> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::chainflip::testkit::{ARBITRUM_DESTINATION, BITCOIN_DESTINATION, bitcoin_destination};
+    use crate::chainflip::testkit::bitcoin_destination;
     use primitives::Chain;
+    use primitives::testkit::signer_mock::{TEST_BITCOIN_ADDRESS, TEST_EVM_WALLET};
 
     #[test]
     fn test_validate_tron_note_bitcoin_destination() {
         let destination = bitcoin_destination();
-        let note = [&[5u8, 2, (BITCOIN_DESTINATION.len() as u8) << 2][..], BITCOIN_DESTINATION.as_bytes(), &[0, 0x91, 1], &[7; 100]].concat();
+        let note = [&[5u8, 2, (TEST_BITCOIN_ADDRESS.len() as u8) << 2][..], TEST_BITCOIN_ADDRESS.as_bytes(), &[0, 0x91, 1], &[7; 100]].concat();
 
         assert_eq!(destination.validate_tron(&note), Ok(&[7; 100][..]));
         assert!(destination.validate_tron(&note[..note.len() - 1]).is_err());
@@ -88,7 +89,7 @@ mod tests {
 
     #[test]
     fn test_new_rejects_invalid_address() {
-        assert!(VaultSwapDestination::new(&AssetId::from_chain(Chain::Ethereum), BITCOIN_DESTINATION).is_err());
-        assert!(VaultSwapDestination::new(&AssetId::from_chain(Chain::Solana), ARBITRUM_DESTINATION).is_err());
+        assert!(VaultSwapDestination::new(&AssetId::from_chain(Chain::Ethereum), TEST_BITCOIN_ADDRESS).is_err());
+        assert!(VaultSwapDestination::new(&AssetId::from_chain(Chain::Solana), TEST_EVM_WALLET).is_err());
     }
 }

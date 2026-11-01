@@ -379,7 +379,7 @@ where
         }
         let source_chain_type = from_asset.chain.chain_type();
         let destination = VaultSwapDestination::new(&quote.request.to_asset.asset_id(), &quote.request.destination_address)?;
-        let refund = VaultSwapRefund::new(from_asset.chain, &refund_parameters)?;
+        let refund = VaultSwapRefund::new(from_asset.chain, refund_parameters.clone());
         let extra_params = match source_chain_type {
             ChainType::Ethereum => VaultSwapExtras::Evm(VaultSwapChainExtras {
                 chain,
@@ -454,10 +454,7 @@ mod tests {
     use crate::{
         ProviderData, SwapperQuoteAsset,
         alien::mock::ProviderMock,
-        chainflip::testkit::{
-            ARBITRUM_DESTINATION, ETHEREUM_NATIVE_MIN_PRICE, SOLANA_MIN_PRICE, TRON_NOTE, TRON_REFUND_ADDRESS, arbitrum_usdc_destination, bitcoin_destination, ethereum_native_refund, ethereum_usdc_refund, mock_refund, mock_routes,
-            solana_refund, tron_refund,
-        },
+        chainflip::testkit::{ETHEREUM_NATIVE_MIN_PRICE, SOLANA_MIN_PRICE, TRON_NOTE, arbitrum_usdc_destination, bitcoin_destination, ethereum_native_refund, ethereum_usdc_refund, mock_refund, mock_routes, solana_refund, tron_refund},
     };
     use gem_client::testkit::MockClient;
     use primitives::AssetId;
@@ -465,7 +462,7 @@ mod tests {
     use primitives::asset_constants::TRON_USDT_TOKEN_ID;
     use primitives::known_assets::ARBITRUM_USDC;
     use primitives::swap::SwapStatus;
-    use primitives::testkit::signer_mock::{TEST_EVM_RECIPIENT, TEST_POLKADOT_SENDER};
+    use primitives::testkit::signer_mock::{TEST_EVM_RECIPIENT, TEST_EVM_WALLET, TEST_POLKADOT_SENDER, TEST_TRON_WALLET};
     use std::sync::atomic::{AtomicUsize, Ordering};
 
     #[test]
@@ -746,8 +743,8 @@ mod tests {
         let quote = Quote {
             request: QuoteRequest {
                 to_asset: SwapperQuoteAsset::from(ARBITRUM_USDC.id.clone()),
-                destination_address: ARBITRUM_DESTINATION.to_string(),
-                wallet_address: TRON_REFUND_ADDRESS.to_string(),
+                destination_address: TEST_EVM_WALLET.to_string(),
+                wallet_address: TEST_TRON_WALLET.to_string(),
                 ..QuoteRequest::mock(Chain::Tron, None)
             },
             ..Quote::mock(Chain::Tron, None)
@@ -839,7 +836,7 @@ mod tests {
         let usdc_id = Some(primitives::asset_constants::ETHEREUM_USDC_TOKEN_ID);
         let eth_amount = BigUint::from(100_000_000_000_000_000u64);
         let other_refund = mock_refund(Chain::Ethereum, other_address, ETHEREUM_NATIVE_MIN_PRICE);
-        let other_price = mock_refund(Chain::Ethereum, ARBITRUM_DESTINATION, "0x3292bb84399604d6d7d2345");
+        let other_price = mock_refund(Chain::Ethereum, TEST_EVM_WALLET, "0x3292bb84399604d6d7d2345");
         assert_eq!(validate_evm_vault_swap(Chain::Ethereum, None, &eth_amount, &bitcoin_destination(), &other_refund, &native), Err(mismatch.clone()));
         assert_eq!(validate_evm_vault_swap(Chain::Ethereum, None, &eth_amount, &bitcoin_destination(), &other_price, &native), Err(mismatch.clone()));
         assert_eq!(
@@ -901,8 +898,8 @@ mod tests {
         let provider = ChainflipProvider::with_clients(ChainflipClient::new(MockClient::new()), BrokerClient::new(broker, MockClient::new()), Arc::new(ProviderMock::new(String::new())));
         let mut quote = Quote::mock(Chain::Tron, None);
         quote.request.to_asset = SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ethereum));
-        quote.request.destination_address = ARBITRUM_DESTINATION.to_string();
-        quote.request.wallet_address = TRON_REFUND_ADDRESS.to_string();
+        quote.request.destination_address = TEST_EVM_WALLET.to_string();
+        quote.request.wallet_address = TEST_TRON_WALLET.to_string();
         quote.data.routes = mock_routes(&quote, 1.0);
 
         assert_eq!(provider.get_quote_data(&quote, FetchQuoteData::None).await.unwrap_err(), SwapperError::InvalidRoute);

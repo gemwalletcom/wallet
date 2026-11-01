@@ -7,9 +7,10 @@ use primitives::{
     asset_constants::{BASE_USDC_ASSET_ID, SMARTCHAIN_USDT_ASSET_ID, TON_USDT_ASSET_ID, XRP_RLUSD_ASSET_ID},
 };
 
+pub use primitives::testkit::signer_mock::TEST_EVM_WALLET;
+
 use super::model::{BridgersResponse, QuoteRequest as BridgersQuoteRequest, SwapData, SwapRequest, SwapTransaction, XrpTransaction};
 
-pub const TEST_EVM_WALLET: &str = "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7";
 pub const TEST_XRP_WALLET: &str = "rJ9L1E8CTfz8XXADbV4LJe5nxWhnA4SBfW";
 #[cfg(feature = "swap_integration_tests")]
 const TEST_XRP_FUNDED_WALLET: &str = "rM27yzkCw6WA3T4g1sPaeC1kpxHUhuxRWn";
