@@ -277,29 +277,28 @@ mod tests {
     }
 
     #[test]
-    fn test_litecoin_plan_refuses_amount_below_litecoin_dust() {
+    fn test_plan_litecoin_dust() {
         let sender_address = mock_sender_address(BitcoinChain::Litecoin);
         let destination_address = mock_destination_address(BitcoinChain::Litecoin);
-        let input = mock_transfer_input_with_utxos(BitcoinChain::Litecoin, &sender_address, &destination_address, "5459", vec![mock_utxo_with(TEST_UTXO_TXID, 0, "100000", &sender_address)]);
-        let request = SpendRequest::transfer(BitcoinChain::Litecoin, &input).unwrap();
 
-        assert_eq!(UtxoPlanner::plan(request).unwrap_err(), SignerError::DustThreshold);
-    }
+        let below_dust = mock_transfer_input_with_utxos(BitcoinChain::Litecoin, &sender_address, &destination_address, "5459", vec![mock_utxo_with(TEST_UTXO_TXID, 0, "100000", &sender_address)]);
+        assert_eq!(UtxoPlanner::plan(SpendRequest::transfer(BitcoinChain::Litecoin, &below_dust).unwrap()).unwrap_err(), SignerError::DustThreshold);
 
-    #[test]
-    fn test_litecoin_plan_absorbs_change_below_litecoin_dust() {
-        let sender_address = mock_sender_address(BitcoinChain::Litecoin);
-        let destination_address = mock_destination_address(BitcoinChain::Litecoin);
-        let plan_for = |amount: String| {
-            let input = mock_transfer_input_with_utxos(BitcoinChain::Litecoin, &sender_address, &destination_address, &amount, vec![mock_utxo_with(TEST_UTXO_TXID, 0, "100000", &sender_address)]);
-            UtxoPlanner::plan(SpendRequest::transfer(BitcoinChain::Litecoin, &input).unwrap()).unwrap()
-        };
-        let fee_with_change = plan_for("10000".to_string()).fee;
+        let with_change = mock_transfer_input_with_utxos(BitcoinChain::Litecoin, &sender_address, &destination_address, "10000", vec![mock_utxo_with(TEST_UTXO_TXID, 0, "100000", &sender_address)]);
+        let fee_with_change = UtxoPlanner::plan(SpendRequest::transfer(BitcoinChain::Litecoin, &with_change).unwrap()).unwrap().fee;
+        let amount = 100_000 - fee_with_change - 1_000;
 
-        let plan = plan_for((100_000 - fee_with_change - 1_000).to_string());
-
+        let change_below_dust = mock_transfer_input_with_utxos(
+            BitcoinChain::Litecoin,
+            &sender_address,
+            &destination_address,
+            &amount.to_string(),
+            vec![mock_utxo_with(TEST_UTXO_TXID, 0, "100000", &sender_address)],
+        );
+        let plan = UtxoPlanner::plan(SpendRequest::transfer(BitcoinChain::Litecoin, &change_below_dust).unwrap()).unwrap();
         assert_eq!(plan.outputs.len(), 1);
-        assert_eq!(plan.fee, 100_000 - plan.outputs[0].value.to_sat());
+        assert_eq!(plan.outputs[0].value.to_sat(), amount);
+        assert_eq!(plan.fee, fee_with_change + 1_000);
     }
 
     #[test]
