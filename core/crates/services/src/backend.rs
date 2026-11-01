@@ -176,7 +176,7 @@ impl Services {
     }
 
     pub fn charts(&self, cacher: CacherClient) -> ChartClient {
-        ChartClient::new(self.prices_repository(), self.config(), Arc::new(self.price_providers(PriceProvider::all())), Arc::new(cacher))
+        ChartClient::new(self.prices_repository(), self.config(), Arc::new(self.price_providers(PriceProvider::all())), Arc::new(cacher.clone()), Arc::new(cacher))
     }
 
     pub fn markets(&self, cacher: CacherClient) -> MarketsClient {

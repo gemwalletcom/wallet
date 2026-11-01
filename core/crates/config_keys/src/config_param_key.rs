@@ -32,6 +32,8 @@ pub enum RateLimitKey {
     ReferralPerUserLimit,
 
     RedemptionPerUserLimit,
+
+    ChartCandlesPerIpLimit,
 }
 
 impl RateLimitKey {
@@ -51,6 +53,7 @@ impl RateLimitKey {
             Self::ReferralPerIpLimit => RateLimit::new(3, 3, 3, 10),
             Self::ReferralPerUserLimit => RateLimit::new(2, 2, 5, 15),
             Self::RedemptionPerUserLimit => RateLimit::new(1, 1, 1, 3),
+            Self::ChartCandlesPerIpLimit => RateLimit::scaled(60),
         }
     }
 }

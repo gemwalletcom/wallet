@@ -7,6 +7,23 @@ use crate::solana_pay::client::SolanaPayClient;
 use crate::solana_pay::transaction::prepare;
 use crate::{PaymentError, PaymentLoad, PaymentTransaction};
 
+const MAX_MERCHANT_CHARS: usize = 64;
+const MAX_MESSAGE_CHARS: usize = 280;
+
+fn is_direction_character(character: char) -> bool {
+    matches!(character, '\u{061c}' | '\u{200e}' | '\u{200f}' | '\u{202a}'..='\u{202e}' | '\u{2066}'..='\u{2069}')
+}
+
+/// Merchant text shows above the warnings on Confirm, so it stays short, on one line and in reading order.
+fn merchant_text(text: &str, max_chars: usize) -> String {
+    let readable: String = text.chars().filter(|character| character.is_whitespace() || !(character.is_control() || is_direction_character(*character))).collect();
+    let line = readable.split_whitespace().collect::<Vec<_>>().join(" ");
+    match line.chars().nth(max_chars) {
+        Some(_) => format!("{}…", line.chars().take(max_chars).collect::<String>()),
+        None => line,
+    }
+}
+
 #[derive(Debug)]
 pub(crate) struct SolanaPayProvider<C: Client> {
     client: SolanaPayClient<C>,
@@ -34,9 +51,12 @@ impl<C: Client> PaymentProvider for SolanaPayProvider<C> {
             transaction: PaymentTransaction {
                 invoice: PaymentInvoice {
                     link: PaymentLink::SolanaPay { url: self.url.clone() },
-                    merchant: PaymentMerchant { name: info.label, icon: info.icon },
+                    merchant: PaymentMerchant {
+                        name: merchant_text(&info.label, MAX_MERCHANT_CHARS),
+                        icon: info.icon,
+                    },
                     price: None,
-                    message: response.message.non_empty(),
+                    message: response.message.map(|message| merchant_text(&message, MAX_MESSAGE_CHARS)).non_empty(),
                     quotes: vec![],
                     verification: None,
                 },
@@ -119,6 +139,28 @@ mod tests {
                 },
             }
         );
+    }
+
+    #[tokio::test]
+    async fn test_merchant_text_reads_as_it_will_show() {
+        assert_eq!(
+            message(format!(r#"{{"message":"Annual\n\n\nplan\u202e\u0000 for \u2066you\u2069","transaction":"{TRANSACTION}"}}"#)).await,
+            Some("Annual plan for you".to_string()),
+            "line breaks fold to a space, and direction and control characters are gone"
+        );
+        assert_eq!(message(format!(r#"{{"message":"\u202e\n","transaction":"{TRANSACTION}"}}"#)).await, None, "nothing readable is no message");
+
+        let shown = message(format!(r#"{{"message":"{}","transaction":"{TRANSACTION}"}}"#, "é".repeat(MAX_MESSAGE_CHARS + 1))).await.unwrap();
+        assert_eq!(shown, format!("{}…", "é".repeat(MAX_MESSAGE_CHARS)));
+
+        let exact = "é".repeat(MAX_MESSAGE_CHARS);
+        assert_eq!(message(format!(r#"{{"message":"{exact}","transaction":"{TRANSACTION}"}}"#)).await, Some(exact));
+    }
+
+    #[test]
+    fn test_merchant_name_drops_direction_characters() {
+        assert_eq!(merchant_text("Constant\u{202e} K", MAX_MERCHANT_CHARS), "Constant K");
+        assert_eq!(merchant_text(&"k".repeat(MAX_MERCHANT_CHARS + 1), MAX_MERCHANT_CHARS), format!("{}…", "k".repeat(MAX_MERCHANT_CHARS)));
     }
 
     #[tokio::test]

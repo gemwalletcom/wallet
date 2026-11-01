@@ -156,6 +156,9 @@ impl From<Box<dyn std::error::Error + Send + Sync>> for ApiError {
             if let Some(db_error) = current_error.downcast_ref::<DatabaseError>() {
                 return db_error.clone().into();
             }
+            if let Some(RequestError::LimitReached) = current_error.downcast_ref::<RequestError>() {
+                return ApiError::from_status(StatusCode::TOO_MANY_REQUESTS);
+            }
             if current_error.downcast_ref::<JsonRpcError>().is_some_and(|rpc| rpc.code == ERROR_CLIENT_ERROR) {
                 return ApiError::unavailable(error.to_string());
             }
@@ -217,6 +220,13 @@ mod tests {
             ApiError::from(FiatServiceError::Request(RequestError::LimitReached)),
             ApiError::ok("Too many quote requests. Please try again in a few minutes.")
         );
+    }
+
+    #[test]
+    fn test_a_boxed_rate_limit_is_a_too_many_requests_answer() {
+        let limited: Box<dyn std::error::Error + Send + Sync> = Box::new(RequestError::LimitReached);
+
+        assert_eq!(ApiError::from(limited), ApiError::from_status(StatusCode::TOO_MANY_REQUESTS));
     }
 
     #[test]

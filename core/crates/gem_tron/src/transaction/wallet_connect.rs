@@ -52,7 +52,14 @@ impl WalletConnectTransaction {
 pub struct WalletConnectContract {
     pub to: String,
     pub value: u64,
+    pub token: Option<WalletConnectToken>,
     pub approval: Option<TransactionApproval>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct WalletConnectToken {
+    pub id: u64,
+    pub value: u64,
 }
 
 pub fn decode_wallet_connect_approval(data: &str) -> Result<Option<TransactionApproval>, SignerError> {
@@ -140,13 +147,17 @@ mod tests {
         let mut contract_call: Value = serde_json::from_str(&payload_with_calldata(PAYLOAD, "deadbeef")).unwrap();
         contract_call["transaction"]["raw_data"]["contract"][0]["parameter"]["value"]["call_value"] = json!(27_334_102);
         assert_eq!(
-            decode_wallet_connect_contract(&encode_payload(contract_call)).unwrap(),
+            decode_wallet_connect_contract(&encode_payload(contract_call.clone())).unwrap(),
             Some(WalletConnectContract {
                 to: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t".to_string(),
                 value: 27_334_102,
+                token: None,
                 approval: None,
             })
         );
+        contract_call["transaction"]["raw_data"]["contract"][0]["parameter"]["value"]["call_token_value"] = json!(1_500);
+        contract_call["transaction"]["raw_data"]["contract"][0]["parameter"]["value"]["token_id"] = json!(1_002_000);
+        assert_eq!(decode_wallet_connect_contract(&encode_payload(contract_call)).unwrap().unwrap().token, Some(WalletConnectToken { id: 1_002_000, value: 1_500 }));
 
         let vote: Value = serde_json::from_str(include_str!("../../testdata/wallet_connect_vote_witness_contract.json")).unwrap();
         let mut vote_payload: Value = serde_json::from_str(PAYLOAD).unwrap();
