@@ -1,6 +1,5 @@
 use std::error::Error;
 
-use crate::models::account::BitcoinAccount;
 use crate::models::block::{BitcoinNodeInfo, Block};
 use crate::models::fee::BitcoinFeeResult;
 use crate::models::transaction::{AddressDetails, BitcoinTransactionBroadcastResult, BitcoinUTXO, Transaction};
@@ -44,10 +43,6 @@ impl<C: Client> BitcoinClient<C> {
             Err(error) if error.status() == Some(400) => Ok(None),
             Err(error) => Err(error.into()),
         }
-    }
-
-    pub async fn get_balance(&self, address: &str) -> Result<BitcoinAccount, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(BlockbookTarget::GetAddress { address: address.to_string() }).await?)
     }
 
     pub async fn get_node_info(&self) -> Result<BitcoinNodeInfo, Box<dyn Error + Send + Sync>> {
