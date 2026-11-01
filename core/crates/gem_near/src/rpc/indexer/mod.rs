@@ -78,9 +78,7 @@ impl<C: Client> NearIndexer<C> {
             with_transactions: true,
         };
         let response: FastNearBlockResponse = self.transactions_client.post(FastNearTarget::Block, &request).await?;
-        let Some(block) = response.block else {
-            return Ok(Vec::new());
-        };
+        let block = response.block.ok_or_else(|| format!("FastNear block {block_number} is not indexed"))?;
         if block.block_height != block_number {
             return Err(format!("FastNear block mismatch: expected {block_number}, got {}", block.block_height).into());
         }
@@ -141,7 +139,7 @@ impl<C: Client> NearIndexer<C> {
 mod tests {
     use std::sync::{Arc, Mutex};
 
-    use chain_traits::{ChainBlockTransactions, ChainTransaction};
+    use chain_traits::ChainTransaction;
     use gem_client::testkit::MockClient;
     use primitives::{Chain, Transaction, TransactionIdRequest, TransactionType, asset_constants::NEAR_USDT_ASSET_ID};
     use serde_json::Value;
@@ -331,24 +329,6 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_get_transactions_in_blocks() {
-        let requests = MockRequests::default();
-        let client = mock_client(
-            requests.clone(),
-            MockResponses {
-                block: Some(include_str!("../../../testdata/fastnear_block.json")),
-                transactions: Some(include_str!("../../../testdata/fastnear_usdt_transaction.json")),
-                ..Default::default()
-            },
-        );
-        let transactions = NearIndexer::new(client.clone(), client).get_transactions_in_blocks(vec![211048907, 211048907]).await.unwrap();
-        let expected_block_request: Value = serde_json::from_str(include_str!("../../../testdata/fastnear_block_request.json")).unwrap();
-
-        assert_eq!(transactions.len(), 2);
-        assert_eq!(*requests.blocks.lock().unwrap(), vec![expected_block_request.clone(), expected_block_request]);
-    }
-
-    #[tokio::test]
     async fn test_get_transactions_by_empty_block() {
         let client = mock_client(
             MockRequests::default(),
@@ -363,7 +343,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_get_transactions_by_missing_block() {
+    async fn test_get_transactions_by_unindexed_block() {
         let client = mock_client(
             MockRequests::default(),
             MockResponses {
@@ -371,9 +351,9 @@ mod tests {
                 ..Default::default()
             },
         );
-        let transactions = NearIndexer::new(client.clone(), client).get_transactions_by_block(212520205).await.unwrap();
+        let error = NearIndexer::new(client.clone(), client).get_transactions_by_block(212520205).await.unwrap_err();
 
-        assert!(transactions.is_empty());
+        assert_eq!(error.to_string(), "FastNear block 212520205 is not indexed");
     }
 
     #[tokio::test]

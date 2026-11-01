@@ -66,6 +66,18 @@ impl<C: Client + Clone> NearClient<C> {
         self.client.request(NearRpc::GetAccountAccessKeys { address: address.to_string() }).await
     }
 
+    pub async fn get_block(&self, height: u64) -> Result<Block, NearRpcError> {
+        self.client.request_with_error(NearRpc::GetBlock { height }).await
+    }
+
+    pub async fn is_skipped_block(&self, height: u64) -> Result<bool, Box<dyn Error + Sync + Send>> {
+        match self.get_block(height).await {
+            Ok(_) => Ok(false),
+            Err(error) if error.payload.is_unknown_block() => Ok(self.get_latest_block().await?.header.height >= height),
+            Err(error) => Err(Box::new(error)),
+        }
+    }
+
     pub async fn get_latest_block(&self) -> Result<Block, JsonRpcError> {
         self.client.request(NearRpc::GetLatestBlock).await
     }

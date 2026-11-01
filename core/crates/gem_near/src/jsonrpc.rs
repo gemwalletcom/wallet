@@ -9,6 +9,7 @@ pub enum NearRpc {
     GetAccount { account_id: String },
     GetAccountAccessKey { address: String, public_key: String },
     GetAccountAccessKeys { address: String },
+    GetBlock { height: u64 },
     GetGasPrice,
     GetLatestBlock,
     GetProtocolConfig,
@@ -22,7 +23,7 @@ impl ToJsonRpcRequest for NearRpc {
         match self {
             Self::CallFunction { .. } | Self::GetAccount { .. } | Self::GetAccountAccessKey { .. } | Self::GetAccountAccessKeys { .. } => method::QUERY,
             Self::GetGasPrice => method::GAS_PRICE,
-            Self::GetLatestBlock => method::BLOCK,
+            Self::GetBlock { .. } | Self::GetLatestBlock => method::BLOCK,
             Self::GetProtocolConfig => method::PROTOCOL_CONFIG,
             Self::GetStatus => method::STATUS,
             Self::GetTransactionStatus { .. } => method::TRANSACTION,
@@ -55,6 +56,7 @@ impl ToJsonRpcRequest for NearRpc {
                 "finality": "final",
                 "account_id": address
             }),
+            Self::GetBlock { height } => json!({"block_id": height}),
             Self::GetGasPrice => json!([null]),
             Self::GetLatestBlock => json!({"finality": "final"}),
             Self::GetProtocolConfig => json!({"finality": "final"}),
@@ -139,6 +141,11 @@ mod tests {
             method::TRANSACTION,
             json!({"tx_hash": "hash", "sender_account_id": "account.near", "wait_until": "EXECUTED"}),
         );
+    }
+
+    #[test]
+    fn builds_block_request() {
+        assert_request(NearRpc::GetBlock { height: 212520205 }, method::BLOCK, json!({"block_id": 212520205}));
     }
 
     #[test]

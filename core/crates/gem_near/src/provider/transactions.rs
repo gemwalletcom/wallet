@@ -13,14 +13,6 @@ impl<C: Client> ChainBlockTransactions for NearIndexer<C> {
     async fn get_transactions_by_block(&self, block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
         NearIndexer::get_transactions_by_block(self, block).await
     }
-
-    async fn get_transactions_in_blocks(&self, blocks: Vec<u64>) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {
-        let mut transactions = Vec::new();
-        for block in blocks {
-            transactions.extend(NearIndexer::get_transactions_by_block(self, block).await?);
-        }
-        Ok(transactions)
-    }
 }
 
 #[async_trait]
@@ -100,10 +92,13 @@ mod chain_integration_tests {
     }
 
     #[tokio::test]
-    async fn test_near_get_transactions_by_missing_block() -> Result<(), Box<dyn Error + Send + Sync>> {
-        let transactions = create_near_test_client().get_transactions_in_blocks(vec![212520205, 999999999]).await?;
+    async fn test_near_get_transactions_by_skipped_and_future_block() -> Result<(), Box<dyn Error + Send + Sync>> {
+        let client = create_near_test_client();
+        let transactions = client.get_transactions_by_block(212520205).await?;
+        let error = client.get_transactions_by_block(999999999).await.unwrap_err();
 
         assert!(transactions.is_empty());
+        assert_eq!(error.to_string(), "FastNear block 999999999 is not indexed");
         Ok(())
     }
 }
