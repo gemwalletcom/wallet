@@ -1,5 +1,5 @@
 use num_bigint::BigInt;
-use primitives::{AssetId, AssetSubtype, AssetType, Chain, FeeOption, FeePriority, FeeRate, GasPriceType, SOLANA_PRIORITY_FEE_SCALE, TransactionFee, TransactionInputType};
+use primitives::{AssetId, AssetSubtype, Chain, FeeOption, FeePriority, FeeRate, GasPriceType, SOLANA_PRIORITY_FEE_SCALE, TransactionFee, TransactionInputType};
 use std::collections::HashMap;
 
 use crate::{
@@ -8,10 +8,6 @@ use crate::{
 };
 
 const PRIORITY_FEE_DIVISOR: i64 = 2;
-
-pub fn sends_native_to_destination(input_type: &TransactionInputType) -> bool {
-    matches!(input_type, TransactionInputType::Transfer { .. } | TransactionInputType::Payment { .. }) && input_type.get_asset().asset_type == AssetType::NATIVE
-}
 
 pub fn calculate_transaction_fee(input_type: &TransactionInputType, gas_price_type: &GasPriceType, recipient_token_address: Option<String>) -> TransactionFee {
     let mut options = HashMap::new();
@@ -101,17 +97,6 @@ mod tests {
     use super::*;
     use primitives::swap::SwapData;
     use primitives::{Asset, AssetId, AssetType, Chain, DelegationValidator, StakeType, SwapProvider, asset_constants::SOLANA_USDC_ASSET_ID};
-
-    #[test]
-    fn test_sends_native_to_destination() {
-        assert!(sends_native_to_destination(&TransactionInputType::Transfer { asset: Asset::mock_sol() }));
-        assert!(!sends_native_to_destination(&TransactionInputType::Transfer { asset: Asset::mock_spl_token() }));
-        assert!(!sends_native_to_destination(&TransactionInputType::Swap {
-            from_asset: Asset::mock_sol(),
-            to_asset: Asset::mock_spl_token(),
-            swap_data: SwapData::mock_with_provider(SwapProvider::Jupiter),
-        }));
-    }
 
     #[test]
     fn test_calculate_transaction_fee() {

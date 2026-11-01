@@ -3,7 +3,7 @@ use chain_traits::{ChainTransactionLoad, TransactionFeeOperation};
 use std::error::Error;
 
 use crate::constants::{DEFAULT_GAS_LIMIT, DEFAULT_SWAP_GAS_LIMIT};
-use crate::provider::preload_mapper::{calculate_fee_rates, calculate_transaction_fee, sends_native_to_destination};
+use crate::provider::preload_mapper::{calculate_fee_rates, calculate_transaction_fee};
 use gem_client::Client;
 use primitives::{Chain, FeeRate, SolanaNftStandard, SolanaTokenProgramId, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput};
 
@@ -73,15 +73,14 @@ impl<C: Client + Clone> ChainTransactionLoad for SolanaProvider<C> {
             }
         };
 
-        // Only a native send can leave the recipient below rent; a token send pays the recipient's rent as a fee.
-        let destination_exists_future = async {
-            match sends_native_to_destination(&input_type) {
-                true => self.get_balance(&destination_address).await.map(|balance| balance.value > 0),
-                false => Ok(true),
+        let destination_balance_future = async {
+            match &input_type {
+                TransactionInputType::Transfer { .. } | TransactionInputType::Payment { .. } => self.get_balance(&destination_address).await.map(Some),
+                _ => Ok(None),
             }
         };
 
-        let (block_hash, sender_token_address, recipient_token_address, is_destination_address_exist) = futures::try_join!(self.get_latest_blockhash(), sender_token_future, recipient_token_future, destination_exists_future)?;
+        let (block_hash, sender_token_address, recipient_token_address, destination_balance) = futures::try_join!(self.get_latest_blockhash(), sender_token_future, recipient_token_future, destination_balance_future)?;
 
         if let TransactionInputType::TransferNft { .. } = input_type
             && sender_mint.is_some()
@@ -97,7 +96,7 @@ impl<C: Client + Clone> ChainTransactionLoad for SolanaProvider<C> {
             nft,
             block_hash: block_hash.value.blockhash,
             references,
-            is_destination_address_exist,
+            is_destination_address_exist: destination_balance.map(|balance| balance.value > 0),
         })
     }
 
