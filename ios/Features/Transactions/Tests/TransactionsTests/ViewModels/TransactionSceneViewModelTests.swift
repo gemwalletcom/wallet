@@ -4,7 +4,6 @@ import struct Gemstone.GemCopy
 import enum Gemstone.GemListRow
 import struct Gemstone.GemSwapAgain
 import enum Gemstone.GemTransactionDetailRow
-import class Gemstone.GemTransactionDetailsService
 import enum Gemstone.GemTransactionHeaderAction
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
@@ -187,13 +186,7 @@ struct TransactionSceneViewModelLoadTests {
     @Test
     func aTransactionTheWalletLacksShowsNothingUntilItLoads() async {
         let service = GemTransactionsServiceMock()
-        let model = TransactionSceneViewModel(
-            transactionId: .mock(),
-            transaction: nil,
-            wallet: .mock(),
-            service: GemTransactionDetailsService.mock(),
-            transactionsService: service,
-        )
+        let model = TransactionSceneViewModel.mock(isStored: false, transactionsService: service)
 
         #expect(model.details == nil)
         #expect(model.loadState == .loading)
@@ -206,13 +199,7 @@ struct TransactionSceneViewModelLoadTests {
 
     @Test
     func aLoadedTransactionIsFollowedByItsRecord() {
-        let model = TransactionSceneViewModel(
-            transactionId: .mock(),
-            transaction: nil,
-            wallet: .mock(),
-            service: GemTransactionDetailsService.mock(),
-            transactionsService: GemTransactionsServiceMock(),
-        )
+        let model = TransactionSceneViewModel.mock(isStored: false)
         #expect(model.query.request.base == TransactionQuery(walletId: Wallet.mock().id, key: .transaction(.mock())))
 
         model.onRecordChange(7)
@@ -224,13 +211,7 @@ struct TransactionSceneViewModelLoadTests {
     func aFailedLoadKeepsItsErrorForTryAgain() async {
         let service = GemTransactionsServiceMock()
         service.loadState = .error(error: .Api(msg: "not found"))
-        let model = TransactionSceneViewModel(
-            transactionId: .mock(),
-            transaction: nil,
-            wallet: .mock(),
-            service: GemTransactionDetailsService.mock(),
-            transactionsService: service,
-        )
+        let model = TransactionSceneViewModel.mock(isStored: false, transactionsService: service)
 
         await model.load()
         #expect(model.loadState == .error(error: .Api(msg: "not found")))
