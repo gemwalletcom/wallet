@@ -18,7 +18,6 @@
 		833809D12D273E450055D91F /* WalletConnector in Frameworks */ = {isa = PBXBuildFile; productRef = 83FE37B32D273CC80048D54C /* WalletConnector */; };
 		833931A52D2D5B1D0063BB6A /* PriceAlerts in Frameworks */ = {isa = PBXBuildFile; productRef = 833931A42D2D5B1D0063BB6A /* PriceAlerts */; };
 		833CDFD02D10622D00DAABEE /* ServicesFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 833CDFCF2D10622D00DAABEE /* ServicesFactory.swift */; };
-		E1B4C7082E85B00000RWD002 /* Rewards in Frameworks */ = {isa = PBXBuildFile; productRef = E1B4C7082E85B00000RWD003 /* Rewards */; };
 		8358DBBD2EA6AD31007A4DC7 /* AutocloseNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8358DBBC2EA6AD31007A4DC7 /* AutocloseNavigationStack.swift */; };
 		8358DBBF2EA6AE59007A4DC7 /* PerpetualNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8358DBBE2EA6AE59007A4DC7 /* PerpetualNavigationView.swift */; };
 		8361BB612D3FE5F2008D89CF /* Transactions in Frameworks */ = {isa = PBXBuildFile; productRef = 8361BB602D3FE5F2008D89CF /* Transactions */; };
@@ -107,6 +106,7 @@
 		DF1167112BC36240000F8C8C /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = DF486B6D2BBE320800B95732 /* PrivacyInfo.xcprivacy */; };
 		DF8421EE2C1526ED003F558C /* GemstonePrimitives in Frameworks */ = {isa = PBXBuildFile; productRef = DF8421ED2C1526ED003F558C /* GemstonePrimitives */; };
 		DF93C4EE2C969F4F00204ABD /* Gemstone in Frameworks */ = {isa = PBXBuildFile; productRef = DF93C4ED2C969F4F00204ABD /* Gemstone */; };
+		E1B4C7082E85B00000RWD002 /* Rewards in Frameworks */ = {isa = PBXBuildFile; productRef = E1B4C7082E85B00000RWD003 /* Rewards */; };
 		E1B4C7092E85B00000EARN02 /* Stake in Frameworks */ = {isa = PBXBuildFile; productRef = E1B4C70A2E85B00000EARN03 /* Stake */; };
 		E875F6030F5E49CD8D30D5F9 /* PaymentNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A7C385E02EC48AEBB1D4039 /* PaymentNavigationStack.swift */; };
 		F02557C19C03CD9DA036C0B5 /* ScanReceiveNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = B35C39A8F4EB047A5DA1106A /* ScanReceiveNavigationStack.swift */; };
@@ -163,7 +163,6 @@
 		830FDA472C22EEC4003DA605 /* TabItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabItem.swift; sourceTree = "<group>"; };
 		833931A32D2D54060063BB6A /* PriceAlerts */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = PriceAlerts; sourceTree = "<group>"; };
 		833CDFCF2D10622D00DAABEE /* ServicesFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServicesFactory.swift; sourceTree = "<group>"; };
-		E1B4C7082E85B00000RWD001 /* Rewards */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Rewards; sourceTree = "<group>"; };
 		83518CCC2D1C998300B339E5 /* PrimitivesComponents */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = PrimitivesComponents; sourceTree = "<group>"; };
 		8358DBBC2EA6AD31007A4DC7 /* AutocloseNavigationStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutocloseNavigationStack.swift; sourceTree = "<group>"; };
 		8358DBBE2EA6AE59007A4DC7 /* PerpetualNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerpetualNavigationView.swift; sourceTree = "<group>"; };
@@ -258,6 +257,7 @@
 		DBA467CA776E4FE56A659D9C /* ConfirmTransferNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfirmTransferNavigationView.swift; sourceTree = "<group>"; };
 		DF486B6D2BBE320800B95732 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		E1B4C7082E85B00000EARN01 /* Stake */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Stake; sourceTree = "<group>"; };
+		E1B4C7082E85B00000RWD001 /* Rewards */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Rewards; sourceTree = "<group>"; };
 		F1A7B80E2F0C000000FIAT02 /* GemstoneServices */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = GemstoneServices; sourceTree = "<group>"; };
 		FADEC0DE000000000000B001 /* AddContactNavigationStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddContactNavigationStack.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -1547,10 +1547,6 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = PriceAlerts;
 		};
-		E1B4C7082E85B00000RWD003 /* Rewards */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = Rewards;
-		};
 		8361BB602D3FE5F2008D89CF /* Transactions */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Transactions;
@@ -1682,6 +1678,10 @@
 		DF93C4ED2C969F4F00204ABD /* Gemstone */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Gemstone;
+		};
+		E1B4C7082E85B00000RWD003 /* Rewards */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Rewards;
 		};
 		E1B4C70A2E85B00000EARN03 /* Stake */ = {
 			isa = XCSwiftPackageProductDependency;
