@@ -277,6 +277,32 @@ mod tests {
     }
 
     #[test]
+    fn test_litecoin_plan_refuses_amount_below_litecoin_dust() {
+        let sender_address = mock_sender_address(BitcoinChain::Litecoin);
+        let destination_address = mock_destination_address(BitcoinChain::Litecoin);
+        let input = mock_transfer_input_with_utxos(BitcoinChain::Litecoin, &sender_address, &destination_address, "5459", vec![mock_utxo_with(TEST_UTXO_TXID, 0, "100000", &sender_address)]);
+        let request = SpendRequest::transfer(BitcoinChain::Litecoin, &input).unwrap();
+
+        assert_eq!(UtxoPlanner::plan(request).unwrap_err(), SignerError::DustThreshold);
+    }
+
+    #[test]
+    fn test_litecoin_plan_absorbs_change_below_litecoin_dust() {
+        let sender_address = mock_sender_address(BitcoinChain::Litecoin);
+        let destination_address = mock_destination_address(BitcoinChain::Litecoin);
+        let plan_for = |amount: String| {
+            let input = mock_transfer_input_with_utxos(BitcoinChain::Litecoin, &sender_address, &destination_address, &amount, vec![mock_utxo_with(TEST_UTXO_TXID, 0, "100000", &sender_address)]);
+            UtxoPlanner::plan(SpendRequest::transfer(BitcoinChain::Litecoin, &input).unwrap()).unwrap()
+        };
+        let fee_with_change = plan_for("10000".to_string()).fee;
+
+        let plan = plan_for((100_000 - fee_with_change - 1_000).to_string());
+
+        assert_eq!(plan.outputs.len(), 1);
+        assert_eq!(plan.fee, 100_000 - plan.outputs[0].value.to_sat());
+    }
+
+    #[test]
     fn test_dust_threshold_is_script_aware() {
         let p2wpkh = script_for_address(BitcoinChain::Bitcoin, TEST_BITCOIN_P2WPKH_ADDRESS).unwrap().script_pubkey;
         let p2pkh = script_for_address(BitcoinChain::Bitcoin, "1BoatSLRHtKNngkdXEeobR76b53LETtpyT").unwrap().script_pubkey;
@@ -284,6 +310,10 @@ mod tests {
 
         assert_eq!(dust_threshold(BitcoinChain::Bitcoin, &p2pkh), 546);
         assert_eq!(dust_threshold(BitcoinChain::Doge, &doge_p2pkh), 546_000);
+        let litecoin_p2wpkh = script_for_address(BitcoinChain::Litecoin, "ltc1qhzjptwpym9afcdjhs7jcz6fd0jma0l0rc0e5yr").unwrap().script_pubkey;
+        let litecoin_p2pkh = script_for_address(BitcoinChain::Litecoin, &mock_destination_address(BitcoinChain::Litecoin)).unwrap().script_pubkey;
+        assert_eq!(dust_threshold(BitcoinChain::Litecoin, &litecoin_p2wpkh), 2_940);
+        assert_eq!(dust_threshold(BitcoinChain::Litecoin, &litecoin_p2pkh), 5_460);
         assert!(dust_threshold(BitcoinChain::Bitcoin, &p2wpkh) > 0 && dust_threshold(BitcoinChain::Bitcoin, &p2wpkh) < dust_threshold(BitcoinChain::Bitcoin, &p2pkh));
     }
 }

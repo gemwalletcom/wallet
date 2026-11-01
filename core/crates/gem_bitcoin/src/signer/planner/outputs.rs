@@ -8,6 +8,8 @@ use primitives::{BitcoinChain, SignerError};
 use super::PlanOutput;
 
 const MAX_OP_RETURN_BYTES: usize = 80;
+// Litecoin Core's DUST_RELAY_TX_FEE is 30,000, ten times Bitcoin's 3,000.
+const LITECOIN_DUST_MULTIPLIER: u64 = 10;
 
 // OP_RETURN is placed at output index 1 (after the destination): required by Chainflip's
 // vault-swap scanner, accepted by Thorchain which scans all outputs.
@@ -34,6 +36,7 @@ pub(super) fn dust_threshold(chain: BitcoinChain, script_pubkey: &ScriptBuf) -> 
     let threshold = script_pubkey.minimal_non_dust().to_sat();
     match chain {
         BitcoinChain::Doge => threshold.saturating_mul(chain.minimum_byte_fee() as u64),
-        BitcoinChain::Bitcoin | BitcoinChain::BitcoinCash | BitcoinChain::Litecoin | BitcoinChain::Dash | BitcoinChain::Zcash => threshold,
+        BitcoinChain::Litecoin => threshold.saturating_mul(LITECOIN_DUST_MULTIPLIER),
+        BitcoinChain::Bitcoin | BitcoinChain::BitcoinCash | BitcoinChain::Dash | BitcoinChain::Zcash => threshold,
     }
 }
