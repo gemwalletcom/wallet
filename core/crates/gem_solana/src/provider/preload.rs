@@ -73,7 +73,14 @@ impl<C: Client + Clone> ChainTransactionLoad for SolanaProvider<C> {
             }
         };
 
-        let (block_hash, sender_token_address, recipient_token_address) = futures::try_join!(self.get_latest_blockhash(), sender_token_future, recipient_token_future)?;
+        let destination_balance_future = async {
+            match &input_type {
+                TransactionInputType::Transfer { .. } | TransactionInputType::Payment { .. } => self.get_balance(&destination_address).await.map(Some),
+                _ => Ok(None),
+            }
+        };
+
+        let (block_hash, sender_token_address, recipient_token_address, destination_balance) = futures::try_join!(self.get_latest_blockhash(), sender_token_future, recipient_token_future, destination_balance_future)?;
 
         if let TransactionInputType::TransferNft { .. } = input_type
             && sender_mint.is_some()
@@ -89,6 +96,7 @@ impl<C: Client + Clone> ChainTransactionLoad for SolanaProvider<C> {
             nft,
             block_hash: block_hash.value.blockhash,
             references,
+            is_destination_address_exist: destination_balance.map(|balance| balance.value > 0),
         })
     }
 
@@ -164,6 +172,24 @@ mod chain_integration_tests {
         assert!(result.get_sender_token_address()?.is_none());
         assert!(result.get_recipient_token_address()?.is_none());
         assert_eq!(result.get_solana_references()?, references);
+        assert!(result.get_is_destination_address_exist()?);
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_get_solana_transaction_preload_transfer_sol_to_empty_address() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let client = create_solana_test_client();
+        let input = TransactionPreloadInput {
+            input_type: TransactionInputType::Transfer { asset: Asset::mock_sol() },
+            sender_address: TEST_SOLANA_SENDER.to_string(),
+            destination_address: TEST_EMPTY_ADDRESS.to_string(),
+            references: vec![],
+        };
+
+        let result = client.get_transaction_preload(input).await?;
+
+        assert!(!result.get_is_destination_address_exist()?);
 
         Ok(())
     }

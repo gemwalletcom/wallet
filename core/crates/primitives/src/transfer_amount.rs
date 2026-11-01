@@ -179,7 +179,7 @@ mod tests {
         swap::{ApprovalData, SwapData},
     };
 
-    const SOLANA_MINIMUM_ACCOUNT_BALANCE: u64 = 890_880;
+    const SOLANA_MINIMUM_ACCOUNT_BALANCE: u64 = 650_240;
     const FEE: u64 = 5_000;
 
     #[test]
@@ -609,6 +609,26 @@ mod tests {
                 value: BigInt::from(5_000_000),
             }
         );
+
+        let solana = TransactionInputType::Transfer { asset: Asset::mock_sol() };
+        let mut empty = TransferAmountInput::mock(solana.clone(), SOLANA_MINIMUM_ACCOUNT_BALANCE - 1, 5_000_000, 5_000_000);
+        empty.destination_account_exists = Some(false);
+        assert_eq!(
+            empty.calculate().unwrap_err(),
+            TransferAmountError::DestinationAccountActivation {
+                asset_id: Asset::mock_sol().id,
+                required: BigInt::from(SOLANA_MINIMUM_ACCOUNT_BALANCE),
+                value: BigInt::from(SOLANA_MINIMUM_ACCOUNT_BALANCE - 1),
+            }
+        );
+
+        let mut at_rent = TransferAmountInput::mock(solana.clone(), SOLANA_MINIMUM_ACCOUNT_BALANCE, 5_000_000, 5_000_000);
+        at_rent.destination_account_exists = Some(false);
+        assert!(at_rent.calculate().is_ok());
+
+        let mut funded = TransferAmountInput::mock(solana, 1, 5_000_000, 5_000_000);
+        funded.destination_account_exists = Some(true);
+        assert!(funded.calculate().is_ok());
 
         let mut ethereum = TransferAmountInput::mock(TransactionInputType::Transfer { asset: Asset::mock() }, 1, 100_000, 100_000);
         ethereum.destination_account_exists = Some(false);
