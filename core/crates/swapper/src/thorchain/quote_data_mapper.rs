@@ -46,11 +46,13 @@ pub fn map_quote_data(from_asset: &THORChainAsset, route_data: &RouteData, token
 mod tests {
     use super::*;
     use num_bigint::BigUint;
-    use primitives::{Chain, asset_constants::ETHEREUM_USDC_TOKEN_ID, swap::ApprovalData};
+    use primitives::{Chain, asset_constants::ETHEREUM_USDC_TOKEN_ID, decode_hex, swap::ApprovalData};
 
     #[test]
     fn evm_router() {
         let usdc_eth = ETHEREUM_USDC_TOKEN_ID.to_string();
+        let inbound_address = "0x1234567890123456789012345678901234567890";
+        let memo = "=:ETH.ETH:0x1111111111111111111111111111111111111111:0/1/0:g1:50";
         let result = map_quote_data(
             &THORChainAsset {
                 token_id: Some(usdc_eth.clone()),
@@ -58,20 +60,28 @@ mod tests {
             },
             &RouteData {
                 router_address: Some("0xD37BbE5744D730a1d98d8DC97c42F0Ca46aD7146".to_string()),
-                inbound_address: "0x1234567890123456789012345678901234567890".to_string(),
+                inbound_address: inbound_address.to_string(),
             },
-            Some(usdc_eth),
-            BigUint::from(1000000u64),
-            "memo".to_string(),
+            Some(usdc_eth.clone()),
+            BigUint::from(1234567u64),
+            memo.to_string(),
             None,
         )
         .unwrap();
 
         assert_eq!(result.to, "0xD37BbE5744D730a1d98d8DC97c42F0Ca46aD7146");
         assert_eq!(result.value, BigUint::from(0u64));
-        assert!(result.data.starts_with("0x"));
         assert_eq!(result.memo, None);
         assert_eq!(result.gas_limit, None);
+
+        let deposit = RouterInterface::depositWithExpiryCall::abi_decode(&decode_hex(&result.data).unwrap()).unwrap();
+        let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+
+        assert_eq!(deposit.inbound_address, Address::from_str(inbound_address).unwrap());
+        assert_eq!(deposit.token_address, Address::from_str(&usdc_eth).unwrap());
+        assert_eq!(deposit.amount, U256::from(1234567u64));
+        assert_eq!(deposit.memo, memo);
+        assert!(deposit.expiry > U256::from(now));
     }
 
     #[test]
