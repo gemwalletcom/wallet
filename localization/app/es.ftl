@@ -100,6 +100,8 @@ wallet_add_token_title = Agregar token
 wallet_sell = Vender
 wallet_receive_collection = Recibir colección
 wallet_more = Más
+wallet_backup = Copia de seguridad
+wallet_advanced = Avanzado
 wallet_import_contract_address_field = Contrato o ID de token
 wallet_import_address_warning = Puedes ver los saldos y las transacciones de esta dirección, pero **no puedes enviar ni vender fondos**.
 wallet_deposit = Depósito
@@ -446,6 +448,17 @@ private_key_reminder_no_recovery_subtitle = Si pierdes tu clave privada, perder�
 private_key_do_not_share_title = ¡No compartas tu clave privada!
 private_key_do_not_share_description = ¡Si alguien tiene tu clave privada tendrá control total de esta cuenta!
 private_key_screenshot_detected_description = Las capturas de pantalla pueden ser accesibles a otras aplicaciones y, si se guardan de esta manera, pueden poner en riesgo tu clave privada.
+private_key_export_reminder_intro = Tu clave privada da acceso total a esta cuenta.
+private_key_export_reminder_keep_safe_title = Guárdala en un lugar seguro
+private_key_export_reminder_keep_safe_subtitle = Cualquiera que la tenga puede usar esta cuenta.
+private_key_export_reminder_do_not_share_title = No la compartas con nadie
+private_key_export_reminder_do_not_share_subtitle = Ninguna persona, sitio web ni aplicación debería pedírtela.
+private_key_export_reminder_no_recovery_title = No podemos ayudarte a recuperarlos
+private_key_export_reminder_no_recovery_subtitle = Si alguien se lleva tus fondos, no se pueden devolver.
+private_key_select_account = Selecciona tu cuenta
+private_key_scope_evm = Esta clave también controla tus cuentas en todas las redes EVM.
+private_key_scope_cosmos = Esta clave también controla tus cuentas en todas las redes Cosmos.
+private_key_accounts_info = Tu Frase Secreta ya respalda estas cuentas. Exporta una clave solo para usar una cuenta en otra billetera.
 
 # Social
 

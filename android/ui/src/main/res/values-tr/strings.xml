@@ -94,6 +94,8 @@
   <string name="wallet_sell">Sat</string>
   <string name="wallet_receive_collection">Koleksiyon Al</string>
   <string name="wallet_more">Daha Fazla</string>
+  <string name="wallet_backup">Yedekleme</string>
+  <string name="wallet_advanced">Gelişmiş</string>
   <string name="wallet_import_contract_address_field">Sözleşme veya Token ID</string>
   <string name="wallet_import_address_warning">Bu adrese ait bakiyeleri ve işlemleri görüntüleyebilirsiniz, ancak **para gönderemez veya satamazsınız**.</string>
   <string name="wallet_deposit">Para Yatır</string>
@@ -377,6 +379,17 @@
   <string name="private_key_do_not_share_title">Özel Anahtarınızı paylaşmayın!</string>
   <string name="private_key_do_not_share_description">Birisi özel anahtarınızı ele geçirirse, bu hesabın tam kontrolüne sahip olacaktır!</string>
   <string name="private_key_screenshot_detected_description">Ekran görüntüleri diğer uygulamalar tarafından erişilebilir olabilir, bu şekilde kaydedilirse özel anahtarınız riske girebilir.</string>
+  <string name="private_key_export_reminder_intro">Özel anahtarınız bu hesaba tam erişim sağlar.</string>
+  <string name="private_key_export_reminder_keep_safe_title">Güvenli Bir Yerde Saklayın</string>
+  <string name="private_key_export_reminder_keep_safe_subtitle">Ona sahip olan herkes bu hesabı kullanabilir.</string>
+  <string name="private_key_export_reminder_do_not_share_title">Kimseyle Paylaşmayın</string>
+  <string name="private_key_export_reminder_do_not_share_subtitle">Hiçbir kişi, web sitesi veya uygulama onu istememeli.</string>
+  <string name="private_key_export_reminder_no_recovery_title">Geri Almanıza Yardımcı Olamayız</string>
+  <string name="private_key_export_reminder_no_recovery_subtitle">Biri fonlarınızı alırsa, geri verilemez.</string>
+  <string name="private_key_select_account">Hesabınızı seçin</string>
+  <string name="private_key_scope_evm">Bu anahtar, tüm EVM ağlarındaki hesaplarınızı da kontrol eder.</string>
+  <string name="private_key_scope_cosmos">Bu anahtar, tüm Cosmos ağlarındaki hesaplarınızı da kontrol eder.</string>
+  <string name="private_key_accounts_info">Gizli İfadeniz bu hesapları zaten yedekliyor. Anahtarı yalnızca bir hesabı başka bir cüzdanda kullanmak için dışa aktarın.</string>
   <string name="social_x">X (eski adıyla Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

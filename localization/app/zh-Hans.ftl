@@ -100,6 +100,8 @@ wallet_add_token_title = 添加代币
 wallet_sell = 出售
 wallet_receive_collection = 接收 NFT 藏品
 wallet_more = 更多
+wallet_backup = 备份
+wallet_advanced = 高级
 wallet_import_contract_address_field = 合约或代币ID
 wallet_import_address_warning = 可以查看此地址的余额和交易，但**不能发送或出售资金**。
 wallet_deposit = 充值
@@ -446,6 +448,17 @@ private_key_reminder_no_recovery_subtitle = 如果丢失私钥，将无法访问
 private_key_do_not_share_title = 切勿泄露私钥！
 private_key_do_not_share_description = 任何人只要拥有私钥，就能完全控制这个账户！
 private_key_screenshot_detected_description = 屏幕截图可能会被其他应用访问；以此方式保存私钥会带来泄露风险。
+private_key_export_reminder_intro = 私钥可完全访问此账户。
+private_key_export_reminder_keep_safe_title = 妥善备份私钥
+private_key_export_reminder_keep_safe_subtitle = 任何拥有私钥的人都能使用此账户。
+private_key_export_reminder_do_not_share_title = 切勿泄露私钥
+private_key_export_reminder_do_not_share_subtitle = 任何人、网站或应用都不应向您索要私钥。
+private_key_export_reminder_no_recovery_title = 我们无法帮您找回
+private_key_export_reminder_no_recovery_subtitle = 资金一旦被他人转走，将无法退回。
+private_key_select_account = 选择账户
+private_key_scope_evm = 此私钥同时控制您在所有 EVM 网络上的账户。
+private_key_scope_cosmos = 此私钥同时控制您在所有 Cosmos 网络上的账户。
+private_key_accounts_info = 助记词已经备份了这些账户。只有需要在其他钱包中使用某个账户时，才导出私钥。
 
 # Social
 

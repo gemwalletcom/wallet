@@ -100,6 +100,8 @@ wallet_add_token_title = Adăugați un token
 wallet_sell = Vinde
 wallet_receive_collection = Primește colecția
 wallet_more = Mai mult
+wallet_backup = Copie de rezervă
+wallet_advanced = Avansat
 wallet_import_contract_address_field = Contract sau ID token
 wallet_import_address_warning = Puteți vizualiza soldurile și tranzacțiile pentru această adresă, dar **nu puteți trimite sau vinde fonduri**.
 wallet_deposit = Depozit
@@ -446,6 +448,17 @@ private_key_reminder_no_recovery_subtitle = Dacă îți pierzi cheia privată, p
 private_key_do_not_share_title = Nu împărtăși cheia ta privată!
 private_key_do_not_share_description = Dacă cineva are cheia ta privată, va avea control total asupra acestui cont!
 private_key_screenshot_detected_description = Capturile de ecran pot fi accesibile altor aplicații și pot pune în pericol cheia ta privată dacă sunt salvate în acest fel.
+private_key_export_reminder_intro = Cheia ta privată oferă acces complet la acest cont.
+private_key_export_reminder_keep_safe_title = Păstreaz-o într-un loc sigur
+private_key_export_reminder_keep_safe_subtitle = Oricine o are poate folosi acest cont.
+private_key_export_reminder_do_not_share_title = Nu o împărtăși cu nimeni
+private_key_export_reminder_do_not_share_subtitle = Nicio persoană, site web sau aplicație nu ar trebui să ți-o ceară.
+private_key_export_reminder_no_recovery_title = Nu te putem ajuta să le recuperezi
+private_key_export_reminder_no_recovery_subtitle = Dacă cineva îți ia fondurile, acestea nu pot fi returnate.
+private_key_select_account = Selectează-ți contul
+private_key_scope_evm = Această cheie controlează și conturile tale din toate rețelele EVM.
+private_key_scope_cosmos = Această cheie controlează și conturile tale din toate rețelele Cosmos.
+private_key_accounts_info = Expresia ta secretă face deja backup acestor conturi. Exportă o cheie doar pentru a folosi un cont într-un alt portofel.
 
 # Social
 

@@ -94,6 +94,8 @@
   <string name="wallet_sell">Prodat</string>
   <string name="wallet_receive_collection">Přijmout sbírku</string>
   <string name="wallet_more">Více</string>
+  <string name="wallet_backup">Záloha</string>
+  <string name="wallet_advanced">Pokročilé</string>
   <string name="wallet_import_contract_address_field">Kontrakt nebo token ID</string>
   <string name="wallet_import_address_warning">Pro tuto adresu si můžete prohlížet zůstatky a transakce, ale **nemůžete posílat ani prodávat finanční prostředky**.</string>
   <string name="wallet_deposit">Vklad</string>
@@ -377,6 +379,17 @@
   <string name="private_key_do_not_share_title">Nesdílejte svůj soukromý klíč!</string>
   <string name="private_key_do_not_share_description">Pokud má někdo váš soukromý klíč, bude mít plnou kontrolu nad tímto účtem!</string>
   <string name="private_key_screenshot_detected_description">Snímky obrazovky mohou být přístupné jiným aplikacím, pokud se uloží tímto způsobem, mohou ohrozit váš soukromý klíč.</string>
+  <string name="private_key_export_reminder_intro">Váš soukromý klíč dává plný přístup k tomuto účtu.</string>
+  <string name="private_key_export_reminder_keep_safe_title">Uložte ho na bezpečné místo</string>
+  <string name="private_key_export_reminder_keep_safe_subtitle">Kdokoli ho má, může tento účet používat.</string>
+  <string name="private_key_export_reminder_do_not_share_title">S nikým ho nesdílejte</string>
+  <string name="private_key_export_reminder_do_not_share_subtitle">Žádná osoba, web ani aplikace by o něj neměla žádat.</string>
+  <string name="private_key_export_reminder_no_recovery_title">Nemůžeme vám pomoci je získat zpět</string>
+  <string name="private_key_export_reminder_no_recovery_subtitle">Pokud vám někdo vezme prostředky, nelze je vrátit.</string>
+  <string name="private_key_select_account">Vyberte svůj účet</string>
+  <string name="private_key_scope_evm">Tento klíč ovládá také vaše účty ve všech sítích EVM.</string>
+  <string name="private_key_scope_cosmos">Tento klíč ovládá také vaše účty ve všech sítích Cosmos.</string>
+  <string name="private_key_accounts_info">Vaše tajná fráze už tyto účty zálohuje. Klíč exportujte, jen pokud chcete jeden účet použít v jiné peněžence.</string>
   <string name="social_x">X (dříve Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

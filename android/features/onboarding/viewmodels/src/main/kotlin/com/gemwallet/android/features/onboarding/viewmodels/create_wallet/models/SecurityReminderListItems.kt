@@ -6,10 +6,10 @@ import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.localization.subtitleRes
 import com.gemwallet.android.ui.localization.titleRes
 import com.gemwallet.android.ui.style.emoji
-import uniffi.gemstone.GemWalletSecretKind
+import uniffi.gemstone.GemSecurityReminderKind
 import uniffi.gemstone.securityReminderItems
 
-fun securityReminderListItems(context: Context, kind: GemWalletSecretKind): List<ListItemModel> = securityReminderItems(kind).map { item ->
+fun securityReminderListItems(context: Context, kind: GemSecurityReminderKind): List<ListItemModel> = securityReminderItems(kind).map { item ->
     ListItemModel(
         title = context.getString(item.titleRes()),
         titleExtra = context.getString(item.subtitleRes()),

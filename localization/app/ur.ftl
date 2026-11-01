@@ -100,6 +100,8 @@ wallet_add_token_title = ٹوکن شامل کریں
 wallet_sell = بیچنا
 wallet_receive_collection = مجموعہ وصول کریں
 wallet_more = مزید
+wallet_backup = بیک اپ
+wallet_advanced = ایڈوانسڈ
 wallet_import_contract_address_field = کنٹریکٹ یا ٹوکن ID
 wallet_import_address_warning = آپ اس پتے کے بیلنس اور لین دین دیکھ سکتے ہیں، لیکن **فنڈز بھیج یا فروخت نہیں کر سکتے**۔
 wallet_deposit = جمع
@@ -446,6 +448,17 @@ private_key_reminder_no_recovery_subtitle = اگر آپ اپنی نجی کلید
 private_key_do_not_share_title = اپنی نجی کلید شیئر نہ کریں!
 private_key_do_not_share_description = اگر کسی کے پاس آپ کی نجی کلید ہے تو اس کے پاس اس اکاؤنٹ کا مکمل کنٹرول ہوگا!
 private_key_screenshot_detected_description = اسکرین شاٹس دیگر ایپس کے لیے قابل رسائی ہو سکتے ہیں، اگر اس طرح محفوظ کیا جائے تو وہ آپ کی نجی کلید کو خطرے میں ڈال سکتے ہیں۔
+private_key_export_reminder_intro = آپ کی نجی کلید اس اکاؤنٹ تک مکمل رسائی دیتی ہے۔
+private_key_export_reminder_keep_safe_title = اسے کہیں محفوظ رکھیں
+private_key_export_reminder_keep_safe_subtitle = جس کے پاس یہ ہو، وہ اس اکاؤنٹ کو استعمال کر سکتا ہے۔
+private_key_export_reminder_do_not_share_title = اسے کسی کے ساتھ شیئر نہ کریں
+private_key_export_reminder_do_not_share_subtitle = کسی شخص، ویب سائٹ یا ایپ کو اسے نہیں مانگنا چاہیے۔
+private_key_export_reminder_no_recovery_title = ہم انہیں واپس دلانے میں مدد نہیں کر سکتے
+private_key_export_reminder_no_recovery_subtitle = اگر کوئی آپ کے فنڈز لے جائے تو انہیں واپس نہیں کیا جا سکتا۔
+private_key_select_account = اپنا اکاؤنٹ منتخب کریں
+private_key_scope_evm = یہ کلید تمام EVM نیٹ ورکس پر آپ کے اکاؤنٹس کو بھی کنٹرول کرتی ہے۔
+private_key_scope_cosmos = یہ کلید تمام Cosmos نیٹ ورکس پر آپ کے اکاؤنٹس کو بھی کنٹرول کرتی ہے۔
+private_key_accounts_info = آپ کا خفیہ جملہ پہلے ہی ان اکاؤنٹس کا بیک اپ ہے۔ کسی اور والیٹ میں ایک اکاؤنٹ استعمال کرنے کے لیے ہی کلید ایکسپورٹ کریں۔
 
 # Social
 

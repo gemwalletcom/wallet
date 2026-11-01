@@ -100,6 +100,8 @@ wallet_add_token_title = টোকেন যোগ করুন
 wallet_sell = বিক্রয়
 wallet_receive_collection = সংগ্রহ গ্রহণ
 wallet_more = আরও
+wallet_backup = ব্যাকআপ
+wallet_advanced = উন্নত
 wallet_import_contract_address_field = কনট্রাক্ট বা টোকেন আইডি
 wallet_import_address_warning = আপনি এই ঠিকানার ব্যালেন্স এবং লেনদেন দেখতে পারবেন, কিন্তু **তহবিল পাঠাতে বা বিক্রি করতে পারবেন না**।
 wallet_deposit = জমা
@@ -446,6 +448,17 @@ private_key_reminder_no_recovery_subtitle = আপনি যদি আপনা�
 private_key_do_not_share_title = আপনার ব্যক্তিগত কী শেয়ার করবেন না!
 private_key_do_not_share_description = কারো কাছে আপনার ব্যক্তিগত কী থাকলে তারা এই অ্যাকাউন্টের সম্পূর্ণ নিয়ন্ত্রণ পাবে!
 private_key_screenshot_detected_description = স্ক্রিনশটগুলি অন্যান্য অ্যাপের কাছে অ্যাক্সেসযোগ্য হতে পারে, যদি এইভাবে সংরক্ষণ করা হয় তবে এগুলি আপনার ব্যক্তিগত কী ঝুঁকির মধ্যে ফেলতে পারে।
+private_key_export_reminder_intro = আপনার ব্যক্তিগত কী এই অ্যাকাউন্টে পূর্ণ অ্যাক্সেস দেয়।
+private_key_export_reminder_keep_safe_title = এটি কোথাও নিরাপদে সংরক্ষণ করুন
+private_key_export_reminder_keep_safe_subtitle = যার কাছে এটি থাকবে, সে এই অ্যাকাউন্ট ব্যবহার করতে পারবে।
+private_key_export_reminder_do_not_share_title = কারো সাথে শেয়ার করবেন না
+private_key_export_reminder_do_not_share_subtitle = কোনো ব্যক্তি, ওয়েবসাইট বা অ্যাপের এটি চাওয়া উচিত নয়।
+private_key_export_reminder_no_recovery_title = আমরা এটি পুনরুদ্ধারে সাহায্য করতে পারি না
+private_key_export_reminder_no_recovery_subtitle = কেউ আপনার তহবিল নিয়ে গেলে তা আর ফেরত পাওয়া যাবে না।
+private_key_select_account = আপনার অ্যাকাউন্ট নির্বাচন করুন
+private_key_scope_evm = এই কী সব EVM নেটওয়ার্কে আপনার অ্যাকাউন্টগুলোও নিয়ন্ত্রণ করে।
+private_key_scope_cosmos = এই কী সব Cosmos নেটওয়ার্কে আপনার অ্যাকাউন্টগুলোও নিয়ন্ত্রণ করে।
+private_key_accounts_info = আপনার গোপন বাক্যাংশ ইতিমধ্যে এই অ্যাকাউন্টগুলোর ব্যাকআপ রাখে। শুধু অন্য ওয়ালেটে একটি অ্যাকাউন্ট ব্যবহার করতে কী এক্সপোর্ট করুন।
 
 # Social
 

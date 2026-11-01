@@ -33,6 +33,7 @@ import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.PhraseLayout
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.localization.string
+import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.theme.adaptivePadding
 import com.gemwallet.android.ui.theme.alpha10
 import com.gemwallet.android.ui.theme.paddingDefault
@@ -110,11 +111,20 @@ fun SecretDataScreen(onCancel: () -> Unit, viewModel: SecretDataViewModel = hilt
             }
 
             when (secret) {
-                is GemWalletSecret.PrivateKey -> Text(
-                    text = secret.key,
-                    style = MaterialTheme.typography.titleMedium,
-                    textAlign = TextAlign.Center,
-                )
+                is GemWalletSecret.PrivateKey -> {
+                    Text(
+                        text = secret.key,
+                        style = MaterialTheme.typography.titleMedium,
+                        textAlign = TextAlign.Center,
+                    )
+                    secret.scope.stringRes()?.let { scope ->
+                        Text(
+                            text = stringResource(scope),
+                            color = MaterialTheme.colorScheme.secondary,
+                            textAlign = TextAlign.Center,
+                        )
+                    }
+                }
 
                 is GemWalletSecret.Words -> PhraseLayout(words = secret.words)
             }
@@ -150,7 +160,7 @@ private fun DoNotShareWarning(@StringRes title: Int, @StringRes description: Int
 }
 
 @Composable
-private fun SecretDataErrorScene(title: String, onCancel: () -> Unit) {
+internal fun SecretDataErrorScene(title: String, onCancel: () -> Unit) {
     Scene(
         title = title,
         padding = sceneContentPaddingValues(),

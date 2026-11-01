@@ -100,6 +100,8 @@ wallet_add_token_title = 토큰 추가하기
 wallet_sell = 팔다
 wallet_receive_collection = 컬렉션 수신
 wallet_more = 더 보기
+wallet_backup = 백업
+wallet_advanced = 고급
 wallet_import_contract_address_field = 계약 또는 토큰 ID
 wallet_import_address_warning = 이 주소에 대한 잔액과 거래 내역은 볼 수 있지만, **자금을 보내거나 판매할 수는 없습니다**.
 wallet_deposit = 입금
@@ -446,6 +448,17 @@ private_key_reminder_no_recovery_subtitle = 개인 키를 잃어버리면 지갑
 private_key_do_not_share_title = 개인 키를 공유하지 마세요!
 private_key_do_not_share_description = 누군가 개인 키를 알고 있다면 이 계정을 완전히 통제하게 됩니다!
 private_key_screenshot_detected_description = 스크린샷은 다른 앱에서 접근할 수 있으며, 이런 방식으로 저장할 경우 개인 키가 위험에 노출될 수 있습니다.
+private_key_export_reminder_intro = 개인 키가 있으면 이 계정에 완전히 접근할 수 있습니다.
+private_key_export_reminder_keep_safe_title = 안전한 곳에 보관하세요
+private_key_export_reminder_keep_safe_subtitle = 키를 가진 사람은 누구나 이 계정을 사용할 수 있습니다.
+private_key_export_reminder_do_not_share_title = 누구와도 공유하지 마세요
+private_key_export_reminder_do_not_share_subtitle = 어떤 사람, 웹사이트, 앱도 이 키를 요구해서는 안 됩니다.
+private_key_export_reminder_no_recovery_title = 저희가 되찾아 드릴 수 없습니다
+private_key_export_reminder_no_recovery_subtitle = 누군가 자금을 가져가면 되돌릴 수 없습니다.
+private_key_select_account = 계정 선택
+private_key_scope_evm = 이 키는 모든 EVM 네트워크의 계정도 제어합니다.
+private_key_scope_cosmos = 이 키는 모든 Cosmos 네트워크의 계정도 제어합니다.
+private_key_accounts_info = 비밀 문구로 이미 이 계정들이 백업되어 있습니다. 다른 지갑에서 계정 하나를 사용할 때만 키를 내보내세요.
 
 # Social
 

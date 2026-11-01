@@ -94,6 +94,8 @@
   <string name="wallet_sell">売却する</string>
   <string name="wallet_receive_collection">コレクションを受け取る</string>
   <string name="wallet_more">もっと見る</string>
+  <string name="wallet_backup">バックアップ</string>
+  <string name="wallet_advanced">詳細設定</string>
   <string name="wallet_import_contract_address_field">コントラクトまたはトークンID</string>
   <string name="wallet_import_address_warning">このアドレスの残高と取引履歴は確認できますが、**送金や売却はできません**。</string>
   <string name="wallet_deposit">入金</string>
@@ -377,6 +379,17 @@
   <string name="private_key_do_not_share_title">プライベートキーを共有しないでください。</string>
   <string name="private_key_do_not_share_description">プライベートキーを知った人は、このアカウントを完全に操作できます。</string>
   <string name="private_key_screenshot_detected_description">スクリーンショットは他のアプリからアクセスされる可能性があります。この方法でプライベートキーを保存すると、漏えいするおそれがあります。</string>
+  <string name="private_key_export_reminder_intro">プライベートキーがあれば、このアカウントのすべてを操作できます。</string>
+  <string name="private_key_export_reminder_keep_safe_title">安全な場所に保管する</string>
+  <string name="private_key_export_reminder_keep_safe_subtitle">キーを持っている人は誰でも、このアカウントを使えます。</string>
+  <string name="private_key_export_reminder_do_not_share_title">誰とも共有しないでください</string>
+  <string name="private_key_export_reminder_do_not_share_subtitle">人、ウェブサイト、アプリから求められても教えないでください。</string>
+  <string name="private_key_export_reminder_no_recovery_title">当社では取り戻せません</string>
+  <string name="private_key_export_reminder_no_recovery_subtitle">資金を移されると、元に戻すことはできません。</string>
+  <string name="private_key_select_account">アカウントを選択</string>
+  <string name="private_key_scope_evm">このキーは、すべてのEVMネットワーク上のアカウントも操作できます。</string>
+  <string name="private_key_scope_cosmos">このキーは、すべてのCosmosネットワーク上のアカウントも操作できます。</string>
+  <string name="private_key_accounts_info">これらのアカウントはリカバリーフレーズですでにバックアップされています。キーのエクスポートは、別のウォレットで1つのアカウントを使う場合のみ行ってください。</string>
   <string name="social_x">エックス（旧ツイッター）</string>
   <string name="social_discord">ディスコード</string>
   <string name="social_reddit">レディット</string>

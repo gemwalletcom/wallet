@@ -94,6 +94,8 @@
   <string name="wallet_sell">Sell</string>
   <string name="wallet_receive_collection">Receive Collection</string>
   <string name="wallet_more">More</string>
+  <string name="wallet_backup">Backup</string>
+  <string name="wallet_advanced">Advanced</string>
   <string name="wallet_import_contract_address_field">Contract or Token ID</string>
   <string name="wallet_import_address_warning">You can view balances and transactions for this address, but **cannot send or sell funds**.</string>
   <string name="wallet_deposit">Deposit</string>
@@ -377,6 +379,17 @@
   <string name="private_key_do_not_share_title">Do not share your Private Key!</string>
   <string name="private_key_do_not_share_description">If someone has your private key they will have full control of this account!</string>
   <string name="private_key_screenshot_detected_description">Screenshots may be accessible to other apps, they can put your private key at risk if saved this way.</string>
+  <string name="private_key_export_reminder_intro">Your private key gives full access to this account.</string>
+  <string name="private_key_export_reminder_keep_safe_title">Store It Somewhere Safe</string>
+  <string name="private_key_export_reminder_keep_safe_subtitle">Anyone who has it can use this account.</string>
+  <string name="private_key_export_reminder_do_not_share_title">Do Not Share It With Anyone</string>
+  <string name="private_key_export_reminder_do_not_share_subtitle">No person, website, or app should ask for it.</string>
+  <string name="private_key_export_reminder_no_recovery_title">We Can\'t Help You Recover It</string>
+  <string name="private_key_export_reminder_no_recovery_subtitle">If someone takes your funds, they can\'t be returned.</string>
+  <string name="private_key_select_account">Select your account</string>
+  <string name="private_key_scope_evm">This key also controls your accounts on all EVM networks.</string>
+  <string name="private_key_scope_cosmos">This key also controls your accounts on all Cosmos networks.</string>
+  <string name="private_key_accounts_info">Your Secret Phrase already backs up these accounts. Export a key only to use one account in another wallet.</string>
   <string name="social_x">X (formerly Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>
