@@ -2,27 +2,11 @@ use async_trait::async_trait;
 use gem_client::Client;
 use primitives::{Chain, ChainAddress, OptionStringExt, PaymentInvoice, PaymentLink, PaymentMerchant, TransferDataOutputType};
 
+use crate::merchant_text::{merchant_message, merchant_name};
 use crate::provider::PaymentProvider;
 use crate::solana_pay::client::SolanaPayClient;
 use crate::solana_pay::transaction::prepare;
 use crate::{PaymentError, PaymentLoad, PaymentTransaction};
-
-const MAX_MERCHANT_CHARS: usize = 64;
-const MAX_MESSAGE_CHARS: usize = 280;
-
-fn is_direction_character(character: char) -> bool {
-    matches!(character, '\u{061c}' | '\u{200e}' | '\u{200f}' | '\u{202a}'..='\u{202e}' | '\u{2066}'..='\u{2069}')
-}
-
-/// Merchant text shows above the warnings on Confirm, so it stays short, on one line and in reading order.
-fn merchant_text(text: &str, max_chars: usize) -> String {
-    let readable: String = text.chars().filter(|character| character.is_whitespace() || !(character.is_control() || is_direction_character(*character))).collect();
-    let line = readable.split_whitespace().collect::<Vec<_>>().join(" ");
-    match line.chars().nth(max_chars) {
-        Some(_) => format!("{}…", line.chars().take(max_chars).collect::<String>()),
-        None => line,
-    }
-}
 
 #[derive(Debug)]
 pub(crate) struct SolanaPayProvider<C: Client> {
@@ -52,11 +36,11 @@ impl<C: Client> PaymentProvider for SolanaPayProvider<C> {
                 invoice: PaymentInvoice {
                     link: PaymentLink::SolanaPay { url: self.url.clone() },
                     merchant: PaymentMerchant {
-                        name: merchant_text(&info.label, MAX_MERCHANT_CHARS),
+                        name: merchant_name(&info.label),
                         icon: info.icon,
                     },
                     price: None,
-                    message: response.message.map(|message| merchant_text(&message, MAX_MESSAGE_CHARS)).non_empty(),
+                    message: response.message.as_deref().map(merchant_message).non_empty(),
                     quotes: vec![],
                     verification: None,
                 },
@@ -79,6 +63,7 @@ impl<C: Client> PaymentProvider for SolanaPayProvider<C> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::merchant_text::MAX_MESSAGE_CHARS;
     use gem_client::testkit::MockClient;
 
     const ACCOUNT: &str = "mvines9iiHiQTysrwkJjGf2gb9Ex9jXJX8ns3qwf2kN";
@@ -155,12 +140,6 @@ mod tests {
 
         let exact = "é".repeat(MAX_MESSAGE_CHARS);
         assert_eq!(message(format!(r#"{{"message":"{exact}","transaction":"{TRANSACTION}"}}"#)).await, Some(exact));
-    }
-
-    #[test]
-    fn test_merchant_name_drops_direction_characters() {
-        assert_eq!(merchant_text("Constant\u{202e} K", MAX_MERCHANT_CHARS), "Constant K");
-        assert_eq!(merchant_text(&"k".repeat(MAX_MERCHANT_CHARS + 1), MAX_MERCHANT_CHARS), format!("{}…", "k".repeat(MAX_MERCHANT_CHARS)));
     }
 
     #[tokio::test]

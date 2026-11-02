@@ -193,6 +193,8 @@ pub mod account;
 pub use self::account::Account;
 pub mod application_metadata;
 pub use self::application_metadata::{ApplicationMetadata, ApplicationMetadataSource};
+pub mod display_text;
+pub use self::display_text::single_line;
 pub mod wallet;
 pub use self::wallet::{Wallet, WalletSource};
 pub mod wallet_type;

@@ -1,6 +1,8 @@
 use model_derive::Model;
 use serde::{Deserialize, Serialize};
 
+use crate::single_line;
+
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Model)]
 #[model(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
@@ -24,7 +26,7 @@ const SHORT_NAME_MAX_LENGTH: usize = 80;
 
 impl ApplicationMetadata {
     pub fn short_name(&self) -> String {
-        let name = self.name.trim();
+        let name = single_line(&self.name);
         for separator in SHORT_NAME_SEPARATORS {
             if let Some(index) = name.find(separator) {
                 return name[..index].trim().to_string();
@@ -33,7 +35,7 @@ impl ApplicationMetadata {
         if let Some((index, _)) = name.char_indices().nth(SHORT_NAME_MAX_LENGTH) {
             return name[..index].to_string();
         }
-        name.to_string()
+        name
     }
 }
 
@@ -99,5 +101,19 @@ mod tests {
             .short_name(),
             "é".repeat(80)
         );
+    }
+
+    #[test]
+    fn short_name_reads_on_one_line_in_order() {
+        let name = |name: &str| {
+            ApplicationMetadata {
+                name: name.to_string(),
+                ..ApplicationMetadata::mock()
+            }
+            .short_name()
+        };
+
+        assert_eq!(name("Uni\u{202e}swap\n\n\nDEX\u{0}"), "Uniswap DEX");
+        assert_eq!(name("\u{2066}OpenSea\u{2069} | NFT"), "OpenSea");
     }
 }

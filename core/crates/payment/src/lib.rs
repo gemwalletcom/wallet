@@ -1,5 +1,6 @@
 mod decoder;
 mod error;
+mod merchant_text;
 mod model;
 mod provider;
 mod service;

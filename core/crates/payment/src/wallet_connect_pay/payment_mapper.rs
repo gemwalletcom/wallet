@@ -6,6 +6,7 @@ use url::Url;
 use crate::PaymentTransaction;
 use crate::decoder::is_payment_host;
 use crate::error::PaymentError;
+use crate::merchant_text::merchant_name;
 use crate::wallet_connect_pay::model::{Invoice, Options, PaymentAction, PaymentOption, PaymentOptionsResponse, PaymentPriceAmount, Quote};
 
 const CAIP19_PREFIX: &str = "caip19/";
@@ -39,7 +40,7 @@ pub(super) fn map_invoice(invoice: &Invoice, payment_id: &str) -> PaymentInvoice
     PaymentInvoice {
         link: PaymentLink::WalletConnectPay { payment_id: payment_id.to_string() },
         merchant: PaymentMerchant {
-            name: invoice.merchant.name.clone(),
+            name: merchant_name(&invoice.merchant.name),
             icon: invoice.merchant.icon_url.clone().unwrap_or_default(),
         },
         price: Some(invoice.price.clone()),
@@ -262,5 +263,18 @@ mod tests {
                 verification: None,
             }
         );
+    }
+
+    #[test]
+    fn test_map_invoice_merchant_name_reads_as_it_will_show() {
+        let invoice = |name: String| Invoice {
+            merchant: Merchant { name, ..Merchant::mock() },
+            price: PaymentPrice::mock(),
+            quotes: vec![],
+            collect_data_url: None,
+        };
+
+        assert_eq!(map_invoice(&invoice("Coffee\u{202e}\n\nShop".to_string()), "pay_1").merchant.name, "Coffee Shop");
+        assert_eq!(map_invoice(&invoice("k".repeat(65)), "pay_1").merchant.name, format!("{}…", "k".repeat(64)));
     }
 }
