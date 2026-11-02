@@ -40,38 +40,31 @@ impl<C: Client> ChainStaking for CosmosClient<C> {
 
     async fn get_staking_validators(&self, apy: Option<f64>) -> Result<Vec<DelegationValidator>, Box<dyn Error + Sync + Send>> {
         let chain = self.get_chain();
-        match chain {
-            CosmosChain::Noble | CosmosChain::Thorchain | CosmosChain::Mayachain => Ok(vec![]),
-            CosmosChain::Cosmos | CosmosChain::Injective | CosmosChain::Osmosis | CosmosChain::Celestia | CosmosChain::Sei => {
-                let validators = self.get_validators().await?;
-                Ok(map_staking_validators(validators.validators, chain, apy))
-            }
+        if !chain.as_chain().is_stake_supported() {
+            return Ok(vec![]);
         }
+        let validators = self.get_validators().await?;
+        Ok(map_staking_validators(validators.validators, chain, apy))
     }
 
     async fn get_staking_delegation_validators(&self, address: String) -> Result<Vec<DelegationValidator>, Box<dyn Error + Sync + Send>> {
         let chain = self.get_chain();
-        match chain {
-            CosmosChain::Noble | CosmosChain::Thorchain | CosmosChain::Mayachain => Ok(vec![]),
-            CosmosChain::Cosmos | CosmosChain::Injective | CosmosChain::Osmosis | CosmosChain::Celestia | CosmosChain::Sei => {
-                let validators = self.get_delegations_validators(&address).await?;
-                Ok(map_staking_validators(validators.validators, chain, None))
-            }
+        if !chain.as_chain().is_stake_supported() {
+            return Ok(vec![]);
         }
+        let validators = self.get_delegations_validators(&address).await?;
+        Ok(map_staking_validators(validators.validators, chain, None))
     }
 
     async fn get_staking_delegations(&self, address: String) -> Result<Vec<DelegationBase>, Box<dyn Error + Sync + Send>> {
         let chain = self.get_chain().as_chain();
-        let denom = chain.as_denom().unwrap_or_default();
-        let chain = self.get_chain();
-        match chain {
-            CosmosChain::Noble | CosmosChain::Thorchain | CosmosChain::Mayachain => Ok(vec![]),
-            CosmosChain::Cosmos | CosmosChain::Injective | CosmosChain::Osmosis | CosmosChain::Celestia | CosmosChain::Sei => {
-                let (active_delegations, unbonding, rewards) = try_join!(self.get_delegations(&address), self.get_unbonding_delegations(&address), self.get_delegation_rewards(&address),)?;
-
-                Ok(map_staking_delegations(active_delegations, unbonding, rewards, chain, denom))
-            }
+        if !chain.is_stake_supported() {
+            return Ok(vec![]);
         }
+        let denom = chain.as_denom().unwrap_or_default();
+        let (active_delegations, unbonding, rewards) = try_join!(self.get_delegations(&address), self.get_unbonding_delegations(&address), self.get_delegation_rewards(&address),)?;
+
+        Ok(map_staking_delegations(active_delegations, unbonding, rewards, self.get_chain(), denom))
     }
 }
 
