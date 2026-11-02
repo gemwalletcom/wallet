@@ -17,4 +17,8 @@ impl NearErrorCause {
     pub fn is_unknown_account(&self) -> bool {
         self.cause.as_ref().is_some_and(|cause| cause.name == "UNKNOWN_ACCOUNT")
     }
+
+    pub fn is_unknown_block(&self) -> bool {
+        self.cause.as_ref().is_some_and(|cause| cause.name == "UNKNOWN_BLOCK")
+    }
 }
