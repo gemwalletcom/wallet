@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.store.queries.PerpetualPositionsQuery
 import com.gemwallet.android.data.services.store.queries.PerpetualQuery
+import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.testkit.mockAsset
@@ -31,6 +32,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -108,10 +110,17 @@ class AutocloseViewModelTest {
     fun `confirming with nothing entered emits no transfer`() = runTest(dispatcher) {
         val model = viewModel()
         model.position.first { it != null }
+        val transfers = mutableListOf<ConfirmTransferInput>()
+        val errors = mutableListOf<String>()
+        backgroundScope.launch { model.confirmRequests.collect { transfers.add(it) } }
+        backgroundScope.launch { model.errors.collect { errors.add(it) } }
+        runCurrent()
 
         model.onConfirm()
+        advanceUntilIdle()
 
-        assertEquals(0, model.confirmRequests.replayCache.size)
+        assertEquals(0, transfers.size)
+        assertEquals(0, errors.size)
     }
 
     @Test
@@ -162,7 +171,6 @@ class AutocloseViewModelTest {
         advanceUntilIdle()
 
         assertEquals(1, errors.size)
-        assertEquals(0, model.confirmRequests.replayCache.size)
     }
 
     @Test

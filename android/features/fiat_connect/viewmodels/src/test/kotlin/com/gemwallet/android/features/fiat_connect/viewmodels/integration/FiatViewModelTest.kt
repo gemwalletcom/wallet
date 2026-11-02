@@ -116,7 +116,7 @@ class FiatViewModelTest {
                 val value = amount?.takeIf { type == quoteType } ?: default
                 mockGemFiatOperation(quoteType = type, amount = value.toString(), phase = GemFiatQuotePhase.Loading(value.toDouble()))
             }
-            mockGemFiatSession(quoteType = quoteType, buy = operation(uniffi.gemstone.FiatQuoteType.BUY, 50u), sell = operation(uniffi.gemstone.FiatQuoteType.SELL, 100u), format = thirdArg())
+            mockGemFiatSession(quoteType = quoteType, buy = operation(uniffi.gemstone.FiatQuoteType.BUY, MockBuyAmount), sell = operation(uniffi.gemstone.FiatQuoteType.SELL, MockSellAmount), format = thirdArg())
         }
         every { isAvailable(any()) } returns true
         coEvery { quotes(any(), any()) } returnsQuotes
@@ -157,7 +157,7 @@ class FiatViewModelTest {
             runCurrent()
 
             coVerify(exactly = 1) {
-                service.quotes(GemFiatQuoteRequest(FiatQuoteType.Buy.toGem(), 50.0), asset.id.toIdentifier())
+                service.quotes(GemFiatQuoteRequest(FiatQuoteType.Buy.toGem(), MockBuyAmount.toDouble()), asset.id.toIdentifier())
             }
         } finally {
             viewModel.viewModelScope.cancel()
@@ -180,7 +180,7 @@ class FiatViewModelTest {
             runCurrent()
 
             coVerify(exactly = 1) {
-                service.quotes(GemFiatQuoteRequest(FiatQuoteType.Buy.toGem(), 50.0), asset.id.toIdentifier())
+                service.quotes(GemFiatQuoteRequest(FiatQuoteType.Buy.toGem(), MockBuyAmount.toDouble()), asset.id.toIdentifier())
             }
         } finally {
             viewModel.viewModelScope.cancel()
@@ -239,12 +239,12 @@ class FiatViewModelTest {
             advanceTimeBy(DebounceSettleMs)
             runCurrent()
 
-            assertEquals("100", viewModel.amount.value)
+            assertEquals(MockSellAmount.toString(), viewModel.amount.value)
             coVerify(exactly = 0) {
-                service.quotes(GemFiatQuoteRequest(FiatQuoteType.Sell.toGem(), 50.0), asset.id.toIdentifier())
+                service.quotes(GemFiatQuoteRequest(FiatQuoteType.Sell.toGem(), MockBuyAmount.toDouble()), asset.id.toIdentifier())
             }
             coVerify(exactly = 1) {
-                service.quotes(GemFiatQuoteRequest(FiatQuoteType.Sell.toGem(), 100.0), asset.id.toIdentifier())
+                service.quotes(GemFiatQuoteRequest(FiatQuoteType.Sell.toGem(), MockSellAmount.toDouble()), asset.id.toIdentifier())
             }
         } finally {
             viewModel.viewModelScope.cancel()
@@ -305,7 +305,7 @@ class FiatViewModelTest {
             assertFalse((viewModel.viewState.value.buttonAction == GemFiatButtonAction.RETRY_QUOTE))
             assertTrue(viewModel.providers.value.isNotEmpty())
             coVerify(exactly = 2) {
-                service.quotes(GemFiatQuoteRequest(FiatQuoteType.Buy.toGem(), 50.0), asset.id.toIdentifier())
+                service.quotes(GemFiatQuoteRequest(FiatQuoteType.Buy.toGem(), MockBuyAmount.toDouble()), asset.id.toIdentifier())
             }
         } finally {
             viewModel.viewModelScope.cancel()
@@ -626,6 +626,8 @@ class FiatViewModelTest {
 
     private companion object {
         val OneBitcoin: BigInteger = BigInteger("100000000")
+        const val MockBuyAmount = 20u
+        const val MockSellAmount = 40u
         const val DebounceSettleMs = 300L
         const val RefreshIntervalMs = 300_000L
         const val QuoteLifetimeMs = 16 * 60_000L
