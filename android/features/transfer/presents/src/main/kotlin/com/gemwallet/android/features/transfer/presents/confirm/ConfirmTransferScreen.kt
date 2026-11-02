@@ -170,11 +170,14 @@ fun ConfirmTransferScreen(
                 icon = button.icon.icon(),
                 onClick = {
                     when (viewModel.action()) {
-                        GemConfirmAction.EXECUTE -> context.requestAuth(AuthRequest.Confirmation) {
-                            viewModel.send()
+                        GemConfirmAction.EXECUTE -> {
+                            viewModel.startExecute()
+                            context.requestAuth(AuthRequest.Confirmation, onCancel = viewModel::cancelExecute, onSuccess = viewModel::submit)
                         }
 
-                        GemConfirmAction.LOAD, null -> viewModel.send()
+                        GemConfirmAction.LOAD -> viewModel.load()
+
+                        null -> Unit
                     }
                 },
             )

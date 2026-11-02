@@ -32,7 +32,10 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.GemConfirmAction
@@ -96,7 +99,7 @@ class ConfirmTransferViewModelRetryTest {
         coVerify(exactly = 1) { confirmation.load(any()) }
         assertEquals(GemConfirmPhase.FAILED, viewModel.screen.value.phase)
 
-        viewModel.send()
+        viewModel.load()
         advanceUntilIdle()
 
         coVerify(exactly = 2) { confirmation.load(any()) }
@@ -114,10 +117,11 @@ class ConfirmTransferViewModelRetryTest {
     fun aFailedSendShowsItsErrorAndConfirmSendsAgainWithoutReloading() = runTest(testDispatcher) {
         val viewModel = viewModel(mockGemTransferData(inputType = TransactionInputType.Transfer(asset.toGem()), recipient = GemRecipient(address = "recipient"), value = BigInteger.ONE))
         coEvery { confirmation.submit() } throws GemConfirmException.Broadcast(emptyList(), "rejected")
-        viewModel.send()
+        viewModel.load()
         advanceUntilIdle()
 
-        viewModel.send()
+        viewModel.startExecute()
+        viewModel.submit()
         advanceUntilIdle()
 
         assertNotNull(viewModel.executeErrorText.value)
@@ -126,12 +130,31 @@ class ConfirmTransferViewModelRetryTest {
         coVerify(exactly = 2) { confirmation.load(any()) }
 
         viewModel.dismissExecuteError()
-        viewModel.send()
+        viewModel.startExecute()
+        viewModel.submit()
         advanceUntilIdle()
 
         assertNotNull(viewModel.executeErrorText.value)
         coVerify(exactly = 2) { confirmation.submit() }
         coVerify(exactly = 2) { confirmation.load(any()) }
+    }
+
+    @Test
+    fun aConfirmWaitingOnAuthStopsRefreshingAndCancelReturnsToALiveConfirm() = runTest(testDispatcher) {
+        val viewModel = viewModel(mockGemTransferData(inputType = TransactionInputType.Transfer(asset.toGem()), recipient = GemRecipient(address = "recipient"), value = BigInteger.ONE))
+        viewModel.load()
+        advanceUntilIdle()
+
+        viewModel.startExecute()
+        assertEquals(GemConfirmPhase.CONFIRMING, viewModel.screen.value.phase)
+        assertFalse(viewModel.screen.value.refreshes())
+        assertNull(viewModel.action())
+
+        viewModel.cancelExecute()
+        assertEquals(GemConfirmPhase.READY, viewModel.screen.value.phase)
+        assertTrue(viewModel.screen.value.refreshes())
+        assertEquals(GemConfirmAction.EXECUTE, viewModel.action())
+        coVerify(exactly = 0) { confirmation.submit() }
     }
 
     @Test
@@ -141,9 +164,10 @@ class ConfirmTransferViewModelRetryTest {
             hashes = listOf("0xhash"),
             message = GemSubmitMessage.Confirmed(GemLocalizedText.PerpetualConfirmed(GemPerpetualConfirmedAction.Open(uniffi.gemstone.PerpetualDirection.LONG))),
         )
-        viewModel.send()
+        viewModel.load()
         advanceUntilIdle()
-        viewModel.send()
+        viewModel.startExecute()
+        viewModel.submit()
         advanceUntilIdle()
 
         assertEquals("0xhash", viewModel.sentTransactionHash.value)
