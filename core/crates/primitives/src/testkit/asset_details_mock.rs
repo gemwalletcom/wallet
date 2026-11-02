@@ -1,6 +1,6 @@
 use chrono::Utc;
 
-use crate::{Asset, AssetAssociation, AssetAssociationType, AssetBasic, AssetFull, AssetId, AssetProperties, AssetScore, AssetType, Chain, Price, PriceProvider};
+use crate::{Asset, AssetAssociation, AssetAssociationType, AssetBasic, AssetFull, AssetProperties, AssetScore, Chain, Price, PriceProvider};
 
 impl AssetAssociation {
     pub fn mock() -> Self {
@@ -34,13 +34,5 @@ impl AssetBasic {
             price: Some(Price::new(price, price_change_percentage_24h, Utc::now(), PriceProvider::Coingecko)),
             ..Asset::from_chain(chain).as_basic_primitive()
         }
-    }
-
-    pub fn mock_swappable_token(asset_id: AssetId, rank: i32) -> Self {
-        let properties = AssetProperties {
-            is_swapable: true,
-            ..AssetProperties::default(asset_id.clone())
-        };
-        Self::new(Asset::new(asset_id, "Token".to_string(), "TKN".to_string(), 18, AssetType::ERC20), properties, AssetScore::new(rank))
     }
 }

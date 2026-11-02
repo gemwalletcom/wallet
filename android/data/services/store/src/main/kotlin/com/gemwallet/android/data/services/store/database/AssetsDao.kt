@@ -27,8 +27,6 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.RecentActivityType
 import kotlinx.coroutines.flow.Flow
 
-internal const val MAX_IDS_PER_STATEMENT = 900
-
 private const val ASSET_INFO_COLUMNS = """
     asset.id AS id,
     asset.name AS name,
@@ -134,7 +132,7 @@ interface AssetsDao {
 
     @Transaction
     suspend fun setAssetConfiguration(walletId: String, assetIds: List<String>, isVisible: Boolean?, isPinned: Boolean?) {
-        assetIds.chunked(MAX_IDS_PER_STATEMENT).forEach { setAssetConfigurationQuery(walletId, it, isVisible, isPinned) }
+        assetIds.statementChunks().forEach { setAssetConfigurationQuery(walletId, it, isVisible, isPinned) }
     }
 
     @Update(entity = DbAsset::class)
@@ -152,7 +150,7 @@ interface AssetsDao {
     @Transaction
     suspend fun setSwappableAssets(ids: List<String>) {
         disableSwap()
-        ids.chunked(MAX_IDS_PER_STATEMENT).forEach { enableSwap(it) }
+        ids.statementChunks().forEach { enableSwap(it) }
     }
 
     @Query("UPDATE asset SET is_buy_enabled = 1 WHERE id IN (:ids)")
@@ -164,7 +162,7 @@ interface AssetsDao {
     @Transaction
     suspend fun setBuyableAssets(ids: List<String>) {
         disableBuy()
-        ids.chunked(MAX_IDS_PER_STATEMENT).forEach { enableBuy(it) }
+        ids.statementChunks().forEach { enableBuy(it) }
     }
 
     @Query("UPDATE asset SET is_sell_enabled = 1 WHERE id IN (:ids)")
@@ -176,7 +174,7 @@ interface AssetsDao {
     @Transaction
     suspend fun setSellableAssets(ids: List<String>) {
         disableSell()
-        ids.chunked(MAX_IDS_PER_STATEMENT).forEach { enableSell(it) }
+        ids.statementChunks().forEach { enableSell(it) }
     }
 
     @Query("SELECT * FROM asset WHERE id = :id")
@@ -185,7 +183,7 @@ interface AssetsDao {
     @Query("SELECT * FROM asset WHERE id IN (:ids)")
     suspend fun getAssetsByIdsQuery(ids: List<String>): List<DbAsset>
 
-    suspend fun getAssetsByIds(ids: List<String>): List<DbAsset> = ids.chunked(MAX_IDS_PER_STATEMENT).flatMap { getAssetsByIdsQuery(it) }
+    suspend fun getAssetsByIds(ids: List<String>): List<DbAsset> = ids.statementChunks().flatMap { getAssetsByIdsQuery(it) }
 
     @Query("SELECT * FROM asset WHERE id IN (:ids)")
     fun getAssets(ids: List<String>): Flow<List<DbAsset>>
@@ -193,7 +191,7 @@ interface AssetsDao {
     @Query("SELECT id FROM asset WHERE id IN (:ids)")
     suspend fun getAssetIdsQuery(ids: List<String>): List<String>
 
-    suspend fun getAssetIds(ids: List<String>): List<String> = ids.chunked(MAX_IDS_PER_STATEMENT).flatMap { getAssetIdsQuery(it) }
+    suspend fun getAssetIds(ids: List<String>): List<String> = ids.statementChunks().flatMap { getAssetIdsQuery(it) }
 
     @Query("SELECT * FROM $ASSET_INFO WHERE chain = :chain AND id = :assetId AND walletId = :walletId")
     fun getAssetInfo(walletId: String, assetId: String, chain: Chain): Flow<DbAssetInfo?>

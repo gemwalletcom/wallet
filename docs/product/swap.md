@@ -222,7 +222,7 @@ None recorded.
 ## Rules
 
 - Regional restrictions follow the shared [Feature availability](../PRODUCT.md#feature-availability) table.
-- The asset pickers offer every network's coin and the `512` highest-ranked swappable assets; any other swappable asset joins them once the user searches for it or opens it.
+- The asset pickers offer every network's coin and the highest-ranked swappable assets, up to a limit set in the backend config; any other swappable asset joins them once the user searches for it or opens it.
 - A quote is never cached: every provider is asked again for the live amount, priced on live chain state; only facts that never change, such as a pool's address and tokens, are kept.
 - A slow provider never holds back a quote another provider already gave.
 - Swap never signs anything: the confirmation screen holds the only authentication and signs the trade it showed.

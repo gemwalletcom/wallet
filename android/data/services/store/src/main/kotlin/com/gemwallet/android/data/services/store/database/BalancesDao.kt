@@ -28,12 +28,12 @@ interface BalancesDao {
     @Query("SELECT * FROM balances WHERE wallet_id = :walletId AND asset_id IN (:assetIds)")
     fun getByAssetsQuery(walletId: String, assetIds: List<String>): List<DbBalance>
 
-    fun getByAssets(walletId: String, assetIds: List<String>): List<DbBalance> = assetIds.chunked(MAX_IDS_PER_STATEMENT).flatMap { getByAssetsQuery(walletId, it) }
+    fun getByAssets(walletId: String, assetIds: List<String>): List<DbBalance> = assetIds.statementChunks().flatMap { getByAssetsQuery(walletId, it) }
 
     @Query("SELECT asset_id FROM balances WHERE wallet_id = :walletId AND asset_id IN (:assetIds)")
     suspend fun getAssetIdsQuery(walletId: String, assetIds: List<String>): List<String>
 
-    suspend fun getAssetIds(walletId: String, assetIds: List<String>): List<String> = assetIds.chunked(MAX_IDS_PER_STATEMENT).flatMap { getAssetIdsQuery(walletId, it) }
+    suspend fun getAssetIds(walletId: String, assetIds: List<String>): List<String> = assetIds.statementChunks().flatMap { getAssetIdsQuery(walletId, it) }
 
     @Query("SELECT asset_id FROM balances WHERE wallet_id = :walletId AND is_visible != 0")
     suspend fun getEnabledAssetIds(walletId: String): List<String>

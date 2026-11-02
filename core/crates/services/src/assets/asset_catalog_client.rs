@@ -36,7 +36,8 @@ impl AssetCatalogClient {
             return Ok(catalog);
         }
 
-        let catalog = self.repository.get_asset_catalog().await?;
+        let swap_limit = self.config.get_usize(ConfigKey::AssetsCatalogSwapLimit).await?;
+        let catalog = self.repository.get_asset_catalog().await?.limit_swap_assets(swap_limit);
         match self.config.get_duration(ConfigKey::AssetsCatalogCacheDuration).await {
             Ok(ttl) if !ttl.is_zero() => {
                 if let Err(error) = self.cacher.set_asset_catalog(&catalog, ttl).await {
@@ -107,5 +108,15 @@ mod tests {
         assert_eq!(client.get().await.unwrap(), catalog);
         assert_eq!(repository.catalog_reads(), 1);
         assert_eq!(*cacher.ttl.lock().unwrap(), Some(Duration::from_secs(15 * 60)));
+    }
+
+    #[tokio::test]
+    async fn test_get_reads_swap_limit_from_config() {
+        let catalog = AssetCatalog::new(vec![], vec![], vec!["bitcoin".into(), "ethereum".into(), "solana".into()]);
+        let repository = Arc::new(MemoryAssetRepository::new(vec![]).with_catalog(catalog));
+        let config = MemoryConfigRepository::new().with_value(ConfigKey::AssetsCatalogSwapLimit.as_ref(), "2");
+        let client = AssetCatalogClient::new(repository.clone(), Arc::new(MemoryCacher::default()), Arc::new(ConfigCacher::new(Arc::new(config))));
+
+        assert_eq!(client.get().await.unwrap(), AssetCatalog::new(vec![], vec![], vec!["bitcoin".into(), "ethereum".into()]));
     }
 }

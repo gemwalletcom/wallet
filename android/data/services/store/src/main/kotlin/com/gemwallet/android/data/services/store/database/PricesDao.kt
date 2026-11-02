@@ -39,7 +39,7 @@ interface PricesDao {
     @Query("SELECT * FROM prices WHERE asset_id IN (:assetsId)")
     suspend fun getByAssetsQuery(assetsId: List<String>): List<DbPrice>
 
-    suspend fun getByAssets(assetsId: List<String>): List<DbPrice> = assetsId.chunked(MAX_IDS_PER_STATEMENT).flatMap { getByAssetsQuery(it) }
+    suspend fun getByAssets(assetsId: List<String>): List<DbPrice> = assetsId.statementChunks().flatMap { getByAssetsQuery(it) }
 
     @Query("SELECT usd_value FROM prices WHERE asset_id = :assetId LIMIT 1")
     fun getUsdPrice(assetId: String): Flow<Double?>

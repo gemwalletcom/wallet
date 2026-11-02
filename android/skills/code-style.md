@@ -38,5 +38,6 @@ Use for any Kotlin or Compose change.
 - Entity fields are Kotlin `camelCase` and the column keeps the property name. `@ColumnInfo` maps only the older entities that already own `snake_case` columns; a new entity does not add it. Reference: `data/services/store/src/main/kotlin/com/gemwallet/android/data/services/store/database/entities/DbContact.kt`
 - When an equivalent iOS store model exists, mirror its schema naming instead of inventing Android-only variants; keep one naming scheme within a table
 - Queries use Room's API: one plain `@Query` select per DAO method, and `@Embedded`/`@Relation` for related rows. Never hand-written joins, subqueries or `COALESCE` in a query string; when Room cannot express a relation, compose plain DAO reads in the store
+- An id list with no fixed size never goes straight into a query: SQLite on Android 11 and older allows 999 variables per statement. The DAO's `@Query` takes one chunk and its public method runs it over `statementChunks()`; never bind such a list to `NOT IN`, clear the flag and set it in chunks inside one `@Transaction`
 
 Shared clean-code principles live in `../../skills/engineering-principles.md`.
