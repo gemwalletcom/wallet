@@ -203,19 +203,27 @@ impl GemAssetsService {
         self.preferences.set_assets_version(list, assets.version.to_string())
     }
 
-    pub async fn search_tokens(&self, token_id: String, chains: Vec<Chain>) -> Vec<AssetBasic> {
+    pub async fn search_tokens(&self, token_id: String, chains: Vec<Chain>) -> Result<Vec<AssetBasic>, GemServiceError> {
         let lookups = chains.into_iter().filter(|chain| chain.default_asset_type().is_some()).map(|chain| {
             let token_id = token_id.clone();
             async move {
                 if self.gateway.get_is_token_address(chain, token_id.clone()).ok()? {
                     let asset = self.gateway.get_token_data(chain, token_id).await.ok()?;
-                    (!asset.id.is_native_mirror()).then(|| rules::default_asset_basic(asset))
+                    (!asset.id.is_native_mirror()).then_some(asset)
                 } else {
                     None
                 }
             }
         });
-        futures::future::join_all(lookups).await.into_iter().flatten().collect()
+        let tokens: Vec<Asset> = futures::future::join_all(lookups).await.into_iter().flatten().collect();
+        if tokens.is_empty() {
+            return Ok(vec![]);
+        }
+        let asset_ids: Vec<AssetId> = tokens.iter().map(|asset| asset.id.clone()).collect();
+        let stored = self.store.get_asset_basics(asset_ids.clone()).await?;
+        let missing_ids = missing(asset_ids, stored.iter().map(|basic| basic.asset.id.clone()));
+        let synced = if missing_ids.is_empty() { vec![] } else { self.api.client.get_assets(missing_ids, None).await.unwrap_or_default() };
+        Ok(rules::merge_assets(stored.into_iter().chain(synced).collect(), tokens.into_iter().map(rules::default_asset_basic).collect()))
     }
 
     pub async fn sync_default_assets(&self) -> Result<(), GemServiceError> {

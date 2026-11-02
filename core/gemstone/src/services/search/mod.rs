@@ -56,7 +56,7 @@ impl GemSearchService {
             self.assets.search_tokens(query.clone(), scope.token_chains(&wallet_chains)),
         );
         let response = response.map_err(GemApiError::from)?;
-        let assets = assets_rules::merge_assets(response.assets, tokens);
+        let assets = assets_rules::merge_assets(response.assets, tokens?);
         let key = scope.search_key(query);
         self.save_assets(&wallet, &assets, &key).await?;
         self.save_perpetuals(&response.perpetuals, &key).await?;
@@ -73,7 +73,7 @@ impl GemSearchService {
             self.api.client.get_search_assets(query.clone(), wallet_chains.clone()),
             self.assets.search_tokens(query.clone(), scope.token_chains(&wallet_chains)),
         );
-        let assets = assets_rules::merge_assets(assets.map_err(GemApiError::from)?, tokens);
+        let assets = assets_rules::merge_assets(assets.map_err(GemApiError::from)?, tokens?);
         self.save_assets(&wallet, &assets, &scope.search_key(query)).await?;
         Ok(assets)
     }
@@ -95,7 +95,7 @@ impl GemSearchService {
 #[cfg(test)]
 mod tests {
     use futures::executor::block_on;
-    use primitives::asset_constants::ETHEREUM_USDT_ASSET_ID;
+    use primitives::asset_constants::{ETHEREUM_USDT_ASSET_ID, NEAR_USDT_ASSET_ID, NEAR_USDT_TOKEN_ID};
     use primitives::{AssetList, Chain};
 
     use super::testkit::SearchTestkit;
@@ -174,6 +174,44 @@ mod tests {
             assert_eq!(testkit.provider.requested_paths(), vec!["/v1/assets/search?query=eth&chains=".to_string(), fallback_node(Chain::Near).url]);
             assert_eq!(*testkit.store.assets.lock().unwrap(), vec![("eth".to_string(), vec![ethereum])]);
             assert!(testkit.store.lists.lock().unwrap().is_empty());
+        })
+    }
+
+    const EMPTY_SEARCH_RESPONSE: &str = r#"{"assets": [], "perpetuals": [], "nfts": [], "lists": []}"#;
+
+    const NEAR_USDT_METADATA: &str = include_str!("../../../../crates/gem_near/testdata/ft_metadata_usdt.json");
+
+    const NEAR_SPAM_ASSETS: &str = r#"[{
+        "asset": {"id": "near_usdt.tether-token.near", "name": "Tether USD", "symbol": "USDt", "decimals": 6, "type": "TOKEN"},
+        "properties": {"isEnabled": false, "isBuyable": false, "isSellable": false, "isSwapable": false, "isStakeable": false, "isEarnable": false, "hasImage": false, "hasPrice": false},
+        "score": {"rank": -20, "type": "unknown"}
+    }]"#;
+
+    #[test]
+    fn test_a_contract_search_keeps_the_stored_rank_and_flags_of_a_spam_token() {
+        block_on(async {
+            let node = fallback_node(Chain::Near).url;
+            let testkit = SearchTestkit::with_bodies(&[("/v1/search?", EMPTY_SEARCH_RESPONSE), (node.as_str(), NEAR_USDT_METADATA)]);
+            let spam: Vec<AssetBasic> = serde_json::from_str(NEAR_SPAM_ASSETS).unwrap();
+            testkit.service.assets.save_assets(spam.clone()).await.unwrap();
+
+            testkit.service.search(testkit.wallet.clone(), NEAR_USDT_TOKEN_ID.to_string(), GemSearchScope::All).await.unwrap();
+
+            assert_eq!(*testkit.asset_store.asset_writes.lock().unwrap(), vec![spam], "the search writes nothing over the stored row");
+            assert_eq!(*testkit.store.assets.lock().unwrap(), vec![(NEAR_USDT_TOKEN_ID.to_string(), vec![NEAR_USDT_ASSET_ID.clone()])]);
+        })
+    }
+
+    #[test]
+    fn test_a_contract_search_asks_the_backend_before_storing_a_node_token() {
+        block_on(async {
+            let node = fallback_node(Chain::Near).url;
+            let testkit = SearchTestkit::with_bodies(&[("/v1/search?", EMPTY_SEARCH_RESPONSE), ("/v1/assets", NEAR_SPAM_ASSETS), (node.as_str(), NEAR_USDT_METADATA)]);
+            let spam: Vec<AssetBasic> = serde_json::from_str(NEAR_SPAM_ASSETS).unwrap();
+
+            testkit.service.search(testkit.wallet.clone(), NEAR_USDT_TOKEN_ID.to_string(), GemSearchScope::All).await.unwrap();
+
+            assert_eq!(*testkit.asset_store.asset_writes.lock().unwrap(), vec![spam], "the backend copy is stored, not the node defaults");
         })
     }
 
