@@ -7,6 +7,7 @@ use super::{broker::RefundParameters, chain::ChainflipChain};
 use crate::SwapperError;
 
 const CF_PARAMETERS_VERSION: u8 = 1;
+const NO_REFUND_CCM: u8 = 0;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct VaultSwapRefund {
@@ -32,7 +33,7 @@ impl VaultSwapRefund {
             .encode_address(&self.refund.refund_address)
             .ok_or_else(|| SwapperError::TransactionError(format!("invalid Chainflip refund address: {}", self.refund.refund_address)))?;
         let min_price = U256::from_str(&self.refund.min_price).map_err(SwapperError::transaction_error)?;
-        Ok([&[CF_PARAMETERS_VERSION], &self.refund.retry_duration.to_le_bytes()[..], &address, &min_price.to_le_bytes::<32>()].concat())
+        Ok([&[CF_PARAMETERS_VERSION], &self.refund.retry_duration.to_le_bytes()[..], &address, &min_price.to_le_bytes::<32>(), &[NO_REFUND_CCM]].concat())
     }
 }
 
@@ -45,9 +46,11 @@ mod tests {
     #[test]
     fn test_validate() {
         let refund = mock_refund(Chain::Ethereum, TEST_EVM_SENDER, "0x0102");
-        let parameters = [&[1u8, 150, 0, 0, 0][..], &hex::decode(&TEST_EVM_SENDER[2..]).unwrap(), &[2, 1], &[0; 30], &[9]].concat();
+        let refund_fields = [&[1u8, 150, 0, 0, 0][..], &hex::decode(&TEST_EVM_SENDER[2..]).unwrap(), &[2, 1], &[0; 30]].concat();
+        let parameters = [&refund_fields[..], &[0, 9]].concat();
 
         assert_eq!(refund.validate(&parameters), Ok(()));
+        assert!(refund.validate(&[&refund_fields[..], &[1, 9]].concat()).is_err(), "a refund that also makes a call is refused");
         assert!(mock_refund(Chain::Ethereum, TEST_EVM_SENDER, "0x0103").validate(&parameters).is_err(), "a different minimum price is refused");
         assert!(mock_refund(Chain::Ethereum, "0x1111111111111111111111111111111111111111", "0x0102").validate(&parameters).is_err());
         assert!(mock_refund(Chain::Ethereum, TEST_BITCOIN_SENDER, "0x0102").validate(&parameters).is_err(), "an address the chain can't read is refused");

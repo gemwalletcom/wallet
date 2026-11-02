@@ -202,7 +202,7 @@ A provider may only move funds into contracts the app ships for it. Before Confi
 | Relay | EVM | Its deposit contract, approval proxies and routers; only the deposit contract and approval proxies as spenders | In the quote list and at Confirm |
 | Relay | Tron, TON | Its depository | In the quote list and at Confirm |
 | Relay | Solana | Its depository and forwarder programs, and Jupiter's | At Confirm |
-| Chainflip | EVM, Tron, Solana | The vault, exactly the amount and token quoted, the asset, network and address the swap pays out to, and the refund address and minimum price | At Confirm |
+| Chainflip | EVM, Tron, Solana | The vault, exactly the amount and token quoted, the asset, network and address the swap pays out to, and the refund address, minimum price and a refund that makes no call; the broker's fee is not bound, because the minimum price is checked after it | At Confirm |
 | Mayan | EVM | The forwarder | At Confirm |
 | Mayan | Solana | Its programs, and Jupiter's | At Confirm |
 | Bridgers | EVM, TON coin | The router | At Confirm |
