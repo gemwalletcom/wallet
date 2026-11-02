@@ -7,7 +7,6 @@ pub enum StoreTarget {
     GithubReleases,
     FdroidPackage { package: String },
     HuaweiApp,
-    SamsungDetail { package: String },
     SolanaRelease { package: String },
 }
 
@@ -18,7 +17,6 @@ impl StoreTarget {
             Self::GithubReleases => "https://api.github.com",
             Self::FdroidPackage { .. } => "https://f-droid.org",
             Self::HuaweiApp => "https://web-dre.hispace.dbankcloud.com",
-            Self::SamsungDetail { .. } => "https://galaxystore.samsung.com",
             Self::SolanaRelease { .. } => "https://publish.solanamobile.com",
         }
     }
@@ -31,7 +29,6 @@ impl Target for StoreTarget {
             Self::GithubReleases => "/repos/gemwalletcom/wallet/releases".to_string(),
             Self::FdroidPackage { package } => format!("/api/v1/packages/{package}"),
             Self::HuaweiApp => "/edge/single/filtered".to_string(),
-            Self::SamsungDetail { package } => format!("/api/detail/{package}"),
             Self::SolanaRelease { package } => format!("/api/{package}/release"),
         }
     }

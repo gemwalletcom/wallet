@@ -24,20 +24,6 @@ pub struct GitHubRepositoryAsset {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SamsungStoreDetail {
-    #[serde(rename = "DetailMain")]
-    pub details: Option<SamsungStoreDetails>,
-    #[serde(rename = "errMsg")]
-    pub error_message: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SamsungStoreDetails {
-    #[serde(rename = "contentBinaryVersion")]
-    pub version: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SolanaStoreRelease {
     pub version_name: String,

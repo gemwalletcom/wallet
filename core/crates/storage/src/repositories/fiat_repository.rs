@@ -16,7 +16,6 @@ use crate::{DatabaseClient, DatabaseError, DieselResultExt};
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum FiatAssetFilter {
     HasAssetId,
-    Provider(FiatProviderName),
     IsEnabled(bool),
     IsEnabledByProvider(bool),
     IsBuyEnabled(bool),
@@ -310,7 +309,6 @@ impl FiatRepository for DatabaseClient {
         for filter in filters {
             query = match filter {
                 FiatAssetFilter::HasAssetId => query.filter(fiat_assets::asset_id.is_not_null()),
-                FiatAssetFilter::Provider(value) => query.filter(fiat_assets::provider.eq(FiatProviderNameRow::from(value))),
                 FiatAssetFilter::IsEnabled(value) => query.filter(fiat_assets::is_enabled.eq(value)),
                 FiatAssetFilter::IsEnabledByProvider(value) => query.filter(fiat_assets::is_enabled_by_provider.eq(value)),
                 FiatAssetFilter::IsBuyEnabled(value) => query.filter(fiat_assets::is_buy_enabled.eq(value)),
