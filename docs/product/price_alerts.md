@@ -21,6 +21,7 @@ flowchart LR
 | The user sets a target | the direction (over or under, increase or decrease) follows the value against the current price | |
 | A target is hit | the alert fires once and is then removed from the list | |
 | The price crosses a round number | the push names the round number and the current price in the user's currency | the milestone is counted in that currency, so both numbers read in one currency |
+| The price sets a new all-time high | the automatic alert pushes the new high, at most once per day; a price still above the old high but below the new one sends nothing | the server raises the stored high to each new price as it saves it, so a price at that high is the new high |
 | An asset's automatic alert and targets are both off | its Price Alerts screen shows the empty state, and only then | |
 | The user turns Enable Price Alerts off or on | the server is told at once; if it cannot be reached, the choice is kept, the error is shown and the next sync sends it | price alerts are pushed while the app is closed, so waiting for the next app open would keep pushing alerts the user turned off |
 | The user enables an alert but refuses notifications | nothing changes: no alert is kept, no confirmation is shown, the Enable Price Alerts switch stays off | an alert that can never be delivered is not kept |
