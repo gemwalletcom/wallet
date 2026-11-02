@@ -2,8 +2,8 @@ use std::time::Instant;
 
 use primitives::swap::SwapQuoteDataType;
 use primitives::{TransactionInputType, Wallet};
+use swapper::Quote;
 use swapper::fees::max_amount_spends_all_but_fee;
-use swapper::{ProviderType, Quote};
 
 use super::error::sign_error;
 use super::{GemConfirmData, GemConfirmError, GemConfirmFeeLoad, GemConfirmInput, GemConfirmMetadata, GemConfirmTransferService, SendInput};
@@ -40,7 +40,7 @@ impl ConfirmSwapQuote {
         if self.quote.is_none() && swap_data.data.permit2.is_some() {
             return true;
         }
-        now.saturating_duration_since(self.quoted_at) >= ProviderType::mode(swap_data.quote.provider_data.provider).quote_lifetime()
+        now.saturating_duration_since(self.quoted_at) >= swap_data.quote.provider_data.provider.mode().quote_lifetime()
     }
 }
 

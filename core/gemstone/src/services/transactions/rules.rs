@@ -30,7 +30,7 @@ use crate::services::perpetual::rules as perpetual_rules;
 use crate::services::swap::model::GemSwapRate;
 use crate::services::swap::rules as swap_rules;
 use crate::services::transfer::GemRecipient;
-use swapper::{ProviderType as SwapperProviderType, SwapperProvider, SwapperProviderMode};
+use swapper::{ProviderType as SwapperProviderType, SwapperProvider};
 
 fn transaction_filter(transaction_type: &TransactionType) -> GemTransactionFilter {
     match transaction_type {
@@ -691,7 +691,7 @@ fn swap_again(transaction: &Transaction, metadata: Option<&TransactionSwapMetada
 
 fn swap_progress(extended: &TransactionExtended, metadata: Option<&TransactionSwapMetadata>, provider: Option<&SwapperProviderType>) -> Option<GemSwapProgress> {
     let metadata = metadata?;
-    let provider = provider.filter(|provider| provider.mode != SwapperProviderMode::OnChain)?;
+    let provider = provider.filter(|provider| provider.id.is_cross_chain())?;
     let from_asset = extended.assets.iter().chain([&extended.asset]).find(|asset| asset.id == metadata.from_asset)?;
     let (transfer, swap) = match extended.transaction.state {
         TransactionState::Pending => (GemSwapProgressStep::Pending, GemSwapProgressStep::Waiting),

@@ -1,5 +1,5 @@
 use super::{
-    Contracts, SwapperProviderMode, SwapperQuoteData, contract_check,
+    Contracts, SwapperQuoteData, contract_check,
     cross_chain::VaultAddresses,
     error::SwapperError,
     models::{FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, SwapResult, SwapResultRequest, SwapperChainAsset},
@@ -24,7 +24,7 @@ pub trait Swapper: Send + Sync + Debug {
         Ok(VaultAddresses { deposit: vec![], send: vec![] })
     }
     async fn get_swap_result(&self, _request: &SwapResultRequest) -> Result<SwapResult, SwapperError> {
-        if self.provider().mode == SwapperProviderMode::OnChain {
+        if !self.provider().id.is_cross_chain() {
             Ok(SwapResult::from(SwapStatus::Completed))
         } else {
             Err(SwapperError::NotSupportedAsset)
