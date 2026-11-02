@@ -24,8 +24,8 @@ fn build_split_and_stake_ptb(input: &StakeInput) -> Result<TransactionBuilder, B
         return Err("Sui stake: amount requires combining Address Balance with Coin<SUI> objects, which is not supported".into());
     }
 
-    let stake_chain = primitives::StakeChain::Sui;
-    if input.stake_amount < stake_chain.get_min_stake_amount() {
+    let min_stake_amount = primitives::Chain::Sui.stake_config().map(|config| config.min_stake_amount).ok_or("Sui has no stake config")?;
+    if input.stake_amount < min_stake_amount {
         return Err("stake amount is too small".into());
     }
 

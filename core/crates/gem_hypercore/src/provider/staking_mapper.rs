@@ -43,7 +43,7 @@ pub fn map_staking_delegations(delegations: Vec<DelegationBalance>, history: Vec
 }
 
 fn map_pending_withdrawals(history: Vec<DelegatorHistoryUpdate>, now: DateTime<Utc>, chain: Chain, native_decimals: u32) -> Vec<DelegationBase> {
-    let lock = Duration::seconds(chain.config().stake.as_ref().map(|stake| stake.lock_time).unwrap_or_default() as i64);
+    let lock = Duration::seconds(chain.stake_config().map(|stake| stake.lock_time).unwrap_or_default() as i64);
 
     history
         .into_iter()
