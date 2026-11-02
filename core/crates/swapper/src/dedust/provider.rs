@@ -34,7 +34,7 @@ impl Dedust<RpcClient> {
 }
 
 impl<C: Client> Dedust<C> {
-    pub fn with_client(ton_client: TonClient<C>) -> Self {
+    fn with_client(ton_client: TonClient<C>) -> Self {
         Self {
             provider: ProviderType::new(SwapperProvider::Dedust),
             client: DedustClient::new(ton_client),

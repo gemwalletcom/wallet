@@ -35,7 +35,7 @@ impl Hyperion<RpcClient> {
 }
 
 impl<C: Client> Hyperion<C> {
-    pub fn with_client(client: AptosClient<C>) -> Self {
+    fn with_client(client: AptosClient<C>) -> Self {
         Self {
             provider: ProviderType::new(SwapperProvider::Hyperion),
             client,

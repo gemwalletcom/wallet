@@ -68,8 +68,8 @@ impl Swapper for ProviderGroup {
         member.get_quote_data(&quote.with_provider(member.provider().clone()), data).await
     }
 
-    async fn get_vault_addresses(&self, from_timestamp: Option<u64>) -> Result<VaultAddresses, SwapperError> {
-        let addresses = try_join_all(self.members.iter().map(|(_, member)| member.get_vault_addresses(from_timestamp))).await?;
+    async fn get_vault_addresses(&self) -> Result<VaultAddresses, SwapperError> {
+        let addresses = try_join_all(self.members.iter().map(|(_, member)| member.get_vault_addresses())).await?;
         Ok(VaultAddresses {
             deposit: addresses.iter().flat_map(|addresses| addresses.deposit.clone()).collect(),
             send: addresses.iter().flat_map(|addresses| addresses.send.clone()).collect(),

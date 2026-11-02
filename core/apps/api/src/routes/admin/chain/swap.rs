@@ -40,7 +40,7 @@ pub async fn get_swap_result(
 }
 
 pub async fn get_vault_addresses(_permission: ChainRead, Path(provider): Path<SwapProviderParam>, State(swapper): State<Arc<GemSwapper>>) -> Result<ApiResponse<VaultAddresses>, ApiError> {
-    Ok(swapper.get_vault_addresses(&provider.0, None).await?.into())
+    Ok(swapper.get_vault_addresses(&provider.0).await?.into())
 }
 
 pub async fn get_swap_quote(_permission: ChainRead, Query(query): Query<QuoteQuery>, State(swapper): State<Arc<GemSwapper>>) -> Result<ApiResponse<SwapQuotes>, ApiError> {
