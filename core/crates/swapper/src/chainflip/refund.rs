@@ -3,11 +3,10 @@ use std::str::FromStr;
 use alloy_primitives::U256;
 use primitives::Chain;
 
-use super::{broker::RefundParameters, chain::ChainflipChain};
+use super::{broker::RefundParameters, chain::ChainflipChain, destination::NO_CCM};
 use crate::SwapperError;
 
 const CF_PARAMETERS_VERSION: u8 = 1;
-const NO_REFUND_CCM: u8 = 0;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct VaultSwapRefund {
@@ -33,7 +32,7 @@ impl VaultSwapRefund {
             .encode_address(&self.refund.refund_address)
             .ok_or_else(|| SwapperError::TransactionError(format!("invalid Chainflip refund address: {}", self.refund.refund_address)))?;
         let min_price = U256::from_str(&self.refund.min_price).map_err(SwapperError::transaction_error)?;
-        Ok([&[CF_PARAMETERS_VERSION], &self.refund.retry_duration.to_le_bytes()[..], &address, &min_price.to_le_bytes::<32>(), &[NO_REFUND_CCM]].concat())
+        Ok([&[CF_PARAMETERS_VERSION], &self.refund.retry_duration.to_le_bytes()[..], &address, &min_price.to_le_bytes::<32>(), &[NO_CCM]].concat())
     }
 }
 
