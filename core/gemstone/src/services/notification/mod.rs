@@ -49,8 +49,8 @@ impl GemNotificationService {
         let last_visit = self.preferences.get_notifications_timestamp(wallet_id.clone());
         self.store.mark_notifications_read(wallet_id.clone(), DateTime::from_timestamp(last_visit as i64, 0).unwrap_or_default()).await?;
         self.sync(wallet_id.clone(), last_visit).await?;
-        if self.store.has_unread_notifications(wallet_id).await? {
-            self.api.client.mark_notifications_read().await.map_err(GemApiError::from)?;
+        if self.store.has_unread_notifications(wallet_id.clone()).await? {
+            self.api.client.mark_notifications_read(wallet_id.id()).await.map_err(GemApiError::from)?;
         }
         Ok(())
     }
@@ -79,6 +79,7 @@ mod tests {
             let unread = Arc::new(TestAlienProvider::with_json(200, "[]"));
             GemNotificationService::mock(unread.clone(), Arc::new(MemoryNotificationStore { unread: true, ..Default::default() })).open().await.unwrap();
             assert_eq!(unread.requested_paths(), vec!["/v3/devices/notifications?from_timestamp=0", "/v3/devices/notifications/read"]);
+            assert_eq!(unread.signed_wallet_ids(), vec!["", "multicoin_wallet"], "only the opened wallet is marked read");
         });
     }
 

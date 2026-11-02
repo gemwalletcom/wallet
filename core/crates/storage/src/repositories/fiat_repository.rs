@@ -407,9 +407,7 @@ fn update_fiat_transaction(client: &mut DatabaseClient, provider: &FiatProviderN
 
 #[cfg(all(test, feature = "database_integration_tests"))]
 mod database_integration_tests {
-    use primitives::{
-        Asset, AssetId, Chain, Currency, Device, FiatAsset, FiatProviderCountry, FiatProviderName, FiatRate, FiatRateProvider, FiatTransaction, FiatTransactionStatus, FiatTransactionUpdate, WalletId, WalletSource, WalletType,
-    };
+    use primitives::{Asset, AssetId, Chain, Currency, Device, FiatAsset, FiatProviderCountry, FiatProviderName, FiatRate, FiatRateProvider, FiatTransaction, FiatTransactionStatus, FiatTransactionUpdate};
 
     use crate::{AssetsRepository, ChainsRepository, Database, DatabaseError, DevicesRepository, FiatRepository, NewWallet, WalletsRepository};
 
@@ -502,11 +500,7 @@ mod database_integration_tests {
                     ..Device::mock()
                 })?;
                 let device_id = client.get_device_row_id("fiat-test-device")?;
-                let wallet = client.get_or_create_wallet(NewWallet {
-                    wallet_id: WalletId::Multicoin("0xfiat".to_string()),
-                    wallet_type: WalletType::Multicoin,
-                    source: WalletSource::Import,
-                })?;
+                let wallet = client.get_or_create_wallet(NewWallet::mock("0xfiat"))?;
                 let address_id = client.add_wallet_addresses(vec!["0xfiat".to_string()])?["0xfiat"];
                 let transaction = FiatTransaction {
                     asset_id: AssetId::from_chain(Chain::Ethereum),
