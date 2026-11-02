@@ -14,6 +14,8 @@ use crate::repositories::tag_repository::asset_tag_ids;
 use crate::repositories::{Condition, QueryFilter, matching};
 use crate::{DatabaseClient, DatabaseError, DieselResultExt};
 
+const SWAP_ASSETS_LIMIT: usize = 512;
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum AssetUpdate {
     IsEnabled(bool),
@@ -277,11 +279,41 @@ impl AssetsRepository for DatabaseClient {
             if enabled && sellable {
                 off_ramp.push(asset_id.clone());
             }
-            if swappable && asset_rank > 21 {
+            if swappable && asset_rank > 21 && swap.len() < SWAP_ASSETS_LIMIT {
                 swap.push(asset_id);
             }
         }
 
         Ok(AssetCatalog::new(on_ramp, off_ramp, swap))
+    }
+}
+
+#[cfg(all(test, feature = "database_integration_tests"))]
+mod database_integration_tests {
+    use primitives::{AssetBasic, AssetId, Chain};
+
+    use super::{AssetUpdate, SWAP_ASSETS_LIMIT};
+    use crate::{AssetsRepository, ChainsRepository, Database, DatabaseError};
+
+    #[tokio::test]
+    async fn test_get_asset_catalog() {
+        let database = Database::mock();
+        let asset_ids: Vec<AssetId> = (0..=SWAP_ASSETS_LIMIT).map(|index| AssetId::from_token(Chain::Ethereum, &format!("0x{index:040x}"))).collect();
+        let assets = asset_ids
+            .iter()
+            .enumerate()
+            .map(|(index, asset_id)| AssetBasic::mock_swappable_token(asset_id.clone(), if index == 0 { 22 } else { 23 }))
+            .collect();
+        let catalog = database
+            .run(|client| -> Result<_, DatabaseError> {
+                client.add_chains(vec![Chain::Ethereum])?;
+                client.update_assets(vec![], vec![AssetUpdate::IsSwappable(false)])?;
+                client.add_assets(assets)?;
+                client.get_asset_catalog()
+            })
+            .await
+            .unwrap();
+
+        assert_eq!(catalog.swap_assets.asset_ids, asset_ids[1..].iter().map(ToString::to_string).collect::<Vec<_>>());
     }
 }

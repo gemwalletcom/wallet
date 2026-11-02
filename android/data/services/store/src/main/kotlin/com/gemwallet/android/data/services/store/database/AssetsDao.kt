@@ -27,6 +27,8 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.RecentActivityType
 import kotlinx.coroutines.flow.Flow
 
+internal const val MAX_IDS_PER_STATEMENT = 900
+
 private const val ASSET_INFO_COLUMNS = """
     asset.id AS id,
     asset.name AS name,
@@ -128,7 +130,12 @@ interface AssetsDao {
             AND (is_visible IS NOT COALESCE(:isVisible, is_visible) OR is_pinned IS NOT COALESCE(:isPinned, is_pinned))
     """,
     )
-    suspend fun setAssetConfiguration(walletId: String, assetIds: List<String>, isVisible: Boolean?, isPinned: Boolean?)
+    suspend fun setAssetConfigurationQuery(walletId: String, assetIds: List<String>, isVisible: Boolean?, isPinned: Boolean?)
+
+    @Transaction
+    suspend fun setAssetConfiguration(walletId: String, assetIds: List<String>, isVisible: Boolean?, isPinned: Boolean?) {
+        assetIds.chunked(MAX_IDS_PER_STATEMENT).forEach { setAssetConfigurationQuery(walletId, it, isVisible, isPinned) }
+    }
 
     @Update(entity = DbAsset::class)
     suspend fun updateBasicAssets(assets: List<DbAssetBasicUpdate>)
@@ -136,53 +143,57 @@ interface AssetsDao {
     @Query("UPDATE asset SET is_stake_enabled = 1 WHERE id IN (:ids) AND is_stake_enabled = 0")
     suspend fun setStakeEnabled(ids: List<String>)
 
-    @Query("UPDATE asset SET is_swap_enabled = 1 WHERE id IN (:ids) AND is_swap_enabled = 0")
+    @Query("UPDATE asset SET is_swap_enabled = 1 WHERE id IN (:ids)")
     suspend fun enableSwap(ids: List<String>)
 
-    @Query("UPDATE asset SET is_swap_enabled = 0 WHERE id NOT IN (:ids) AND is_swap_enabled = 1")
-    suspend fun disableSwapExcept(ids: List<String>)
+    @Query("UPDATE asset SET is_swap_enabled = 0 WHERE is_swap_enabled = 1")
+    suspend fun disableSwap()
 
     @Transaction
     suspend fun setSwappableAssets(ids: List<String>) {
-        enableSwap(ids)
-        disableSwapExcept(ids)
+        disableSwap()
+        ids.chunked(MAX_IDS_PER_STATEMENT).forEach { enableSwap(it) }
     }
 
-    @Query("UPDATE asset SET is_buy_enabled = 1 WHERE id IN (:ids) AND is_buy_enabled = 0")
+    @Query("UPDATE asset SET is_buy_enabled = 1 WHERE id IN (:ids)")
     suspend fun enableBuy(ids: List<String>)
 
-    @Query("UPDATE asset SET is_buy_enabled = 0 WHERE id NOT IN (:ids) AND is_buy_enabled = 1")
-    suspend fun disableBuyExcept(ids: List<String>)
+    @Query("UPDATE asset SET is_buy_enabled = 0 WHERE is_buy_enabled = 1")
+    suspend fun disableBuy()
 
     @Transaction
     suspend fun setBuyableAssets(ids: List<String>) {
-        enableBuy(ids)
-        disableBuyExcept(ids)
+        disableBuy()
+        ids.chunked(MAX_IDS_PER_STATEMENT).forEach { enableBuy(it) }
     }
 
-    @Query("UPDATE asset SET is_sell_enabled = 1 WHERE id IN (:ids) AND is_sell_enabled = 0")
+    @Query("UPDATE asset SET is_sell_enabled = 1 WHERE id IN (:ids)")
     suspend fun enableSell(ids: List<String>)
 
-    @Query("UPDATE asset SET is_sell_enabled = 0 WHERE id NOT IN (:ids) AND is_sell_enabled = 1")
-    suspend fun disableSellExcept(ids: List<String>)
+    @Query("UPDATE asset SET is_sell_enabled = 0 WHERE is_sell_enabled = 1")
+    suspend fun disableSell()
 
     @Transaction
     suspend fun setSellableAssets(ids: List<String>) {
-        enableSell(ids)
-        disableSellExcept(ids)
+        disableSell()
+        ids.chunked(MAX_IDS_PER_STATEMENT).forEach { enableSell(it) }
     }
 
     @Query("SELECT * FROM asset WHERE id = :id")
     fun getAsset(id: String): Flow<DbAsset?>
 
     @Query("SELECT * FROM asset WHERE id IN (:ids)")
-    suspend fun getAssetsByIds(ids: List<String>): List<DbAsset>
+    suspend fun getAssetsByIdsQuery(ids: List<String>): List<DbAsset>
+
+    suspend fun getAssetsByIds(ids: List<String>): List<DbAsset> = ids.chunked(MAX_IDS_PER_STATEMENT).flatMap { getAssetsByIdsQuery(it) }
 
     @Query("SELECT * FROM asset WHERE id IN (:ids)")
     fun getAssets(ids: List<String>): Flow<List<DbAsset>>
 
     @Query("SELECT id FROM asset WHERE id IN (:ids)")
-    suspend fun getAssetIds(ids: List<String>): List<String>
+    suspend fun getAssetIdsQuery(ids: List<String>): List<String>
+
+    suspend fun getAssetIds(ids: List<String>): List<String> = ids.chunked(MAX_IDS_PER_STATEMENT).flatMap { getAssetIdsQuery(it) }
 
     @Query("SELECT * FROM $ASSET_INFO WHERE chain = :chain AND id = :assetId AND walletId = :walletId")
     fun getAssetInfo(walletId: String, assetId: String, chain: Chain): Flow<DbAssetInfo?>
