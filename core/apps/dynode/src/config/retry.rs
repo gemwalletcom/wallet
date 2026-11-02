@@ -31,6 +31,7 @@ pub struct RetryConfig {
     pub enabled: bool,
     pub max_attempts: usize,
     pub errors: Vec<ErrorMatcherConfig>,
+    pub ignore: Vec<ErrorMatcherConfig>,
     #[serde(deserialize_with = "duration::deserialize")]
     pub cooldown: Duration,
     pub statuses: Vec<u16>,
@@ -42,6 +43,7 @@ impl Default for RetryConfig {
             enabled: false,
             max_attempts: 0,
             errors: Vec::new(),
+            ignore: Vec::new(),
             cooldown: Duration::from_secs(60),
             statuses: vec![403, 429],
         }

@@ -33,9 +33,6 @@ mod batch;
 mod error;
 mod upstream;
 
-const ERROR_EXECUTION_REVERTED: i64 = 3;
-const EXECUTION_REVERTED: &str = "execution reverted";
-
 pub struct NodeService {
     pub(crate) chains: HashMap<Chain, ChainConfig>,
     nodes: Arc<RwLock<HashMap<Chain, Url>>>,
@@ -339,13 +336,11 @@ impl NodeService {
         let Ok(body) = serde_json::from_slice::<Value>(&response.body) else {
             return false;
         };
-        let Some(error) = body.get("error") else {
-            return false;
-        };
-        if is_contract_revert(error) {
+        let message = body.get("error").and_then(|error| error.as_str().or_else(|| error.get("message").and_then(Value::as_str)));
+        if self.retry_config.ignore.iter().any(|rule| rule.matches(response.status, message)) {
             return false;
         }
-        self.retry_config.errors.iter().any(|rule| rule.matches(response.status, error_message(error)))
+        self.retry_config.errors.iter().any(|rule| rule.matches(response.status, message))
     }
 
     fn log_and_create_error_response(&self, request: &ProxyRequest, host: Option<&str>, error: NodeServiceError, upstream_data: Option<Value>) -> Result<ProxyResponse, BoxError> {
@@ -382,14 +377,6 @@ impl NodeService {
 
         Ok(ProxyResponse::with_content_type(status, body, JSON_CONTENT_TYPE).with_proxy_headers(request.id.as_str(), response_latency, CacheStatus::Miss))
     }
-}
-
-fn error_message(error: &Value) -> Option<&str> {
-    error.as_str().or_else(|| error.get("message").and_then(Value::as_str))
-}
-
-fn is_contract_revert(error: &Value) -> bool {
-    error.get("code").and_then(Value::as_i64) == Some(ERROR_EXECUTION_REVERTED) || error_message(error).is_some_and(|message| message.to_ascii_lowercase().starts_with(EXECUTION_REVERTED))
 }
 
 #[cfg(test)]
@@ -618,28 +605,33 @@ mod tests {
     }
 
     #[test]
-    fn test_a_contract_revert_skips_the_message_rules() {
+    fn test_matches_retry_ignore_rules() {
         let service = NodeService {
-            retry_config: RetryConfig::mock_with_errors(vec![
-                ErrorMatcherConfig {
-                    status: Some(429),
+            retry_config: RetryConfig {
+                ignore: vec![ErrorMatcherConfig {
+                    message: Some("execution reverted".to_string()),
                     ..ErrorMatcherConfig::default()
-                },
-                ErrorMatcherConfig {
-                    message: Some("rate limit".to_string()),
-                    ..ErrorMatcherConfig::default()
-                },
-                ErrorMatcherConfig {
-                    message: Some("Unauthorized".to_string()),
-                    ..ErrorMatcherConfig::default()
-                },
-            ]),
+                }],
+                ..RetryConfig::mock_with_errors(vec![
+                    ErrorMatcherConfig {
+                        status: Some(429),
+                        ..ErrorMatcherConfig::default()
+                    },
+                    ErrorMatcherConfig {
+                        message: Some("rate limit".to_string()),
+                        ..ErrorMatcherConfig::default()
+                    },
+                    ErrorMatcherConfig {
+                        message: Some("Unauthorized".to_string()),
+                        ..ErrorMatcherConfig::default()
+                    },
+                ])
+            },
             ..NodeService::mock(ChainConfig::mock(Chain::Ethereum))
         };
 
         for (status, body, retry) in [
             (200, br#"{"error":{"code":3,"message":"execution reverted: Unauthorized","data":"0x"}}"#.as_slice(), false),
-            (200, br#"{"error":{"code":3,"message":"rate limit"}}"#.as_slice(), false),
             (200, br#"{"error":{"code":-32000,"message":"Execution reverted: rate limit"}}"#.as_slice(), false),
             (429, br#"{"error":{"code":3,"message":"execution reverted"}}"#.as_slice(), true),
             (200, br#"{"error":{"code":-32000,"message":"rate limit exceeded"}}"#.as_slice(), true),
