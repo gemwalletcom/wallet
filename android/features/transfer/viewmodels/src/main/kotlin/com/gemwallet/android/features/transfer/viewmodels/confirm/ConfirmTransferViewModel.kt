@@ -310,20 +310,14 @@ class ConfirmTransferViewModel @Inject constructor(
         executeError.value = null
     }
 
-    fun send() = viewModelScope.launch {
-        when (screen.value.action()) {
-            GemConfirmAction.LOAD -> {
-                load()
-                return@launch
-            }
+    fun startExecute() {
+        executeError.value = null
+        screen.update { it.onExecuteStarted() }
+    }
 
-            GemConfirmAction.EXECUTE -> {
-                executeError.value = null
-                screen.update { it.onExecuteStarted() }
-            }
+    fun cancelExecute() = screen.update { it.onExecuteCancelled() }
 
-            null -> return@launch
-        }
+    fun submit() = viewModelScope.launch {
         val session = confirmation.value ?: return@launch
 
         try {
