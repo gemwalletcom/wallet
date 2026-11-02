@@ -33,8 +33,8 @@ mod batch;
 mod error;
 mod upstream;
 
-const EVM_REVERT_CODE: i64 = 3;
-const EVM_REVERT_MESSAGE: &str = "execution reverted";
+const ERROR_EXECUTION_REVERTED: i64 = 3;
+const EXECUTION_REVERTED: &str = "execution reverted";
 
 pub struct NodeService {
     pub(crate) chains: HashMap<Chain, ChainConfig>,
@@ -342,11 +342,10 @@ impl NodeService {
         let Some(error) = body.get("error") else {
             return false;
         };
-        let message = error.as_str().or_else(|| error.get("message").and_then(Value::as_str));
-        if is_contract_revert(error, message) {
+        if is_contract_revert(error) {
             return false;
         }
-        self.retry_config.errors.iter().any(|rule| rule.matches(response.status, message))
+        self.retry_config.errors.iter().any(|rule| rule.matches(response.status, error_message(error)))
     }
 
     fn log_and_create_error_response(&self, request: &ProxyRequest, host: Option<&str>, error: NodeServiceError, upstream_data: Option<Value>) -> Result<ProxyResponse, BoxError> {
@@ -385,9 +384,12 @@ impl NodeService {
     }
 }
 
-/// A revert's text comes from the called contract, so it says nothing about the upstream.
-fn is_contract_revert(error: &Value, message: Option<&str>) -> bool {
-    error.get("code").and_then(Value::as_i64) == Some(EVM_REVERT_CODE) || message.is_some_and(|message| message.to_ascii_lowercase().starts_with(EVM_REVERT_MESSAGE))
+fn error_message(error: &Value) -> Option<&str> {
+    error.as_str().or_else(|| error.get("message").and_then(Value::as_str))
+}
+
+fn is_contract_revert(error: &Value) -> bool {
+    error.get("code").and_then(Value::as_i64) == Some(ERROR_EXECUTION_REVERTED) || error_message(error).is_some_and(|message| message.to_ascii_lowercase().starts_with(EXECUTION_REVERTED))
 }
 
 #[cfg(test)]
@@ -616,7 +618,7 @@ mod tests {
     }
 
     #[test]
-    fn test_a_contract_revert_is_never_an_upstream_failure() {
+    fn test_a_contract_revert_skips_the_message_rules() {
         let service = NodeService {
             retry_config: RetryConfig::mock_with_errors(vec![
                 ErrorMatcherConfig {
