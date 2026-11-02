@@ -1,4 +1,4 @@
-use super::ActionResponse;
+use super::model::ActionResponse;
 use crate::{Options, ProviderType, Quote, QuoteRequest, SwapperProvider, SwapperQuoteAsset};
 use num_bigint::BigUint;
 use primitives::{AssetId, Chain};

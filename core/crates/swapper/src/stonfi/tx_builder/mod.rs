@@ -29,10 +29,8 @@ pub fn build_swap_transaction(params: SwapTransactionParams<'_>) -> Result<TxPar
 fn router_version(router: &Router) -> Result<RouterVersion, SwapperError> {
     match router.major_version {
         1 => Ok(RouterVersion::V1),
-        2 => match router.minor_version {
-            1 | 2 => Ok(RouterVersion::V2),
-            minor => Err(SwapperError::ComputeQuoteError(format!("Unsupported STON.fi v2 router minor version: {minor}"))),
-        },
+        2 if router.is_supported_v2() => Ok(RouterVersion::V2),
+        2 => Err(SwapperError::ComputeQuoteError(format!("Unsupported STON.fi v2 router minor version: {}", router.minor_version))),
         major => Err(SwapperError::ComputeQuoteError(format!("Unsupported STON.fi router major version: {major}"))),
     }
 }

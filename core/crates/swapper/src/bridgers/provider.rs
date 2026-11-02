@@ -170,7 +170,7 @@ impl Swapper for Bridgers {
         })
     }
 
-    async fn get_vault_addresses(&self, _from_timestamp: Option<u64>) -> Result<VaultAddresses, SwapperError> {
+    async fn get_vault_addresses(&self) -> Result<VaultAddresses, SwapperError> {
         Ok(vault_addresses())
     }
 

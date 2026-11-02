@@ -111,7 +111,7 @@ where
         _ = self.get_inbound_addresses().await;
     }
 
-    async fn get_vault_addresses(&self, _from_timestamp: Option<u64>) -> Result<VaultAddresses, SwapperError> {
+    async fn get_vault_addresses(&self) -> Result<VaultAddresses, SwapperError> {
         let vaults = self.client.get_asgard_vaults().await?;
         let zcash_addresses = vaults
             .iter()
@@ -262,7 +262,7 @@ mod tests {
             assert_eq!(path, "/thorchain/vaults/asgard");
             Ok(include_str!("testdata/asgard_vaults_zcash.json").as_bytes().to_vec())
         });
-        let addresses = ThorChain::mock(client).get_vault_addresses(None).await.unwrap();
+        let addresses = ThorChain::mock(client).get_vault_addresses().await.unwrap();
         let expected = HashSet::from([TEST_ZCASH_TEX_ADDRESS.to_string(), TEST_ZCASH_TRANSPARENT_ADDRESS.to_string()]);
         assert_eq!(addresses.send.into_iter().collect::<HashSet<_>>(), expected);
         assert_eq!(

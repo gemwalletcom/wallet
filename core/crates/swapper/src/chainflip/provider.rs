@@ -431,7 +431,7 @@ where
         }
     }
 
-    async fn get_vault_addresses(&self, _from_timestamp: Option<u64>) -> Result<VaultAddresses, SwapperError> {
+    async fn get_vault_addresses(&self) -> Result<VaultAddresses, SwapperError> {
         Ok(VaultAddresses {
             deposit: VAULT_ADDRESSES.iter().map(|vault| vault.contract.to_string()).collect(),
             send: vec![],

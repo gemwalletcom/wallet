@@ -32,7 +32,7 @@ impl XrpLedger<RpcClient> {
 }
 
 impl<C: Client + Clone> XrpLedger<C> {
-    pub fn with_client(client: XrpClient<C>) -> Self {
+    fn with_client(client: XrpClient<C>) -> Self {
         Self {
             provider: ProviderType::new(SwapperProvider::XrpLedger),
             client,
