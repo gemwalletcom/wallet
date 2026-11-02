@@ -104,7 +104,7 @@ mod tests {
     }
 
     #[test]
-    fn short_name_reads_on_one_line_in_order() {
+    fn test_short_name_reads_on_one_line_in_order() {
         let name = |name: &str| {
             ApplicationMetadata {
                 name: name.to_string(),
