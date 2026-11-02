@@ -33,6 +33,9 @@ mod batch;
 mod error;
 mod upstream;
 
+const EVM_REVERT_CODE: i64 = 3;
+const EVM_REVERT_MESSAGE: &str = "execution reverted";
+
 pub struct NodeService {
     pub(crate) chains: HashMap<Chain, ChainConfig>,
     nodes: Arc<RwLock<HashMap<Chain, Url>>>,
@@ -336,7 +339,13 @@ impl NodeService {
         let Ok(body) = serde_json::from_slice::<Value>(&response.body) else {
             return false;
         };
-        let message = body.get("error").and_then(|error| error.as_str().or_else(|| error.get("message").and_then(Value::as_str)));
+        let Some(error) = body.get("error") else {
+            return false;
+        };
+        let message = error.as_str().or_else(|| error.get("message").and_then(Value::as_str));
+        if is_contract_revert(error, message) {
+            return false;
+        }
         self.retry_config.errors.iter().any(|rule| rule.matches(response.status, message))
     }
 
@@ -374,6 +383,11 @@ impl NodeService {
 
         Ok(ProxyResponse::with_content_type(status, body, JSON_CONTENT_TYPE).with_proxy_headers(request.id.as_str(), response_latency, CacheStatus::Miss))
     }
+}
+
+/// A revert's text comes from the called contract, so it says nothing about the upstream.
+fn is_contract_revert(error: &Value, message: Option<&str>) -> bool {
+    error.get("code").and_then(Value::as_i64) == Some(EVM_REVERT_CODE) || message.is_some_and(|message| message.to_ascii_lowercase().starts_with(EVM_REVERT_MESSAGE))
 }
 
 #[cfg(test)]
@@ -598,6 +612,40 @@ mod tests {
         ] {
             let response = ProxyResponse::new(status, HeaderMap::new(), Bytes::copy_from_slice(body));
             assert_eq!(service.matches_response_error_signal(&response), retry);
+        }
+    }
+
+    #[test]
+    fn test_a_contract_revert_is_never_an_upstream_failure() {
+        let service = NodeService {
+            retry_config: RetryConfig::mock_with_errors(vec![
+                ErrorMatcherConfig {
+                    status: Some(429),
+                    ..ErrorMatcherConfig::default()
+                },
+                ErrorMatcherConfig {
+                    message: Some("rate limit".to_string()),
+                    ..ErrorMatcherConfig::default()
+                },
+                ErrorMatcherConfig {
+                    message: Some("Unauthorized".to_string()),
+                    ..ErrorMatcherConfig::default()
+                },
+            ]),
+            ..NodeService::mock(ChainConfig::mock(Chain::Ethereum))
+        };
+
+        for (status, body, retry) in [
+            (200, br#"{"error":{"code":3,"message":"execution reverted: Unauthorized","data":"0x"}}"#.as_slice(), false),
+            (200, br#"{"error":{"code":3,"message":"rate limit"}}"#.as_slice(), false),
+            (200, br#"{"error":{"code":-32000,"message":"Execution reverted: rate limit"}}"#.as_slice(), false),
+            (429, br#"{"error":{"code":3,"message":"execution reverted"}}"#.as_slice(), true),
+            (200, br#"{"error":{"code":-32000,"message":"rate limit exceeded"}}"#.as_slice(), true),
+            (200, br#"{"error":{"code":-32001,"message":"Unauthorized"}}"#.as_slice(), true),
+            (200, br#"{"error":"Unauthorized"}"#.as_slice(), true),
+        ] {
+            let response = ProxyResponse::new(status, HeaderMap::new(), Bytes::copy_from_slice(body));
+            assert_eq!(service.matches_response_error_signal(&response), retry, "{}", String::from_utf8_lossy(body));
         }
     }
 
