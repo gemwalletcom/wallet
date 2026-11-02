@@ -46,6 +46,8 @@ retry:
     - message: "rate limit"
     - message: "Exceeded the quota usage"
     - message: "Unauthorized"
+  ignore:
+    - message: "execution reverted"
 
 chain_types:
   ethereum:
