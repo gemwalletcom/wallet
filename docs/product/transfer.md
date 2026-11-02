@@ -22,6 +22,7 @@ flowchart LR
 |---|---|---|
 | A typed name is registered for the network | it resolves to that address while typing | |
 | A mixed-case EVM address has an invalid checksum | "Invalid address" wherever an address is typed, pasted or scanned | a typo must never turn into another account; single-case addresses are accepted |
+| A TON address is marked for testnet or names a workchain other than 0 or -1 | "Invalid address" wherever an address is typed, pasted or scanned | sending on mainnet to an address meant elsewhere can strand the funds |
 | The recipient is one of the user's own wallets or a contact | Confirm shows its name alone; a tap shows the address | the user gave that name |
 | The recipient has any other name, such as `vitalik.eth` | the name with the short address beside it | a name the user did not give could imitate another address |
 | The recipient is flagged | "Suspicious address" with one line on why, under the amount; Confirm stays disabled | |
