@@ -73,6 +73,7 @@ impl ConfirmTestkit {
                 txid: "0".repeat(64),
                 vout: 0,
                 value: (*value).into(),
+                coinbase: false,
             })
             .collect();
         let utxos = serde_json::to_string(&utxos).unwrap();
