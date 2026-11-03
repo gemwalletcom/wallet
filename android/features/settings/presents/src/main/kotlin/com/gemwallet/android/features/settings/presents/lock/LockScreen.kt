@@ -25,11 +25,6 @@ fun LockScreen(darkTheme: Boolean, onLeave: () -> Unit, content: @Composable () 
     }
 }
 
-/**
- * Composes [content] once the app is unlocked in this window and keeps it composed under a later lock.
- * The lock covers only the windows opened before it, so content composed while locked, such as a sheet
- * restored when the activity is recreated, waits for the unlock.
- */
 @Composable
 fun UnlockedContent(isUnlocked: Boolean, content: @Composable () -> Unit) {
     var hasUnlocked by remember { mutableStateOf(isUnlocked) }
