@@ -133,7 +133,7 @@ A stablecoin is one on the official list, USDT, USDC, USDS, USDe, USD1, USDG and
 | An answer arrives for an amount or pair the user has already changed | it is thrown away | |
 | The user picks another provider | the choice survives refreshes, and a better quote does not replace it | the user's choice wins |
 | The user picked a provider and changes the amount, and other providers answer first | You Receive keeps its spinner until the picked provider answers; if it has no quote, the best one shows | Swap never offers another provider's quote in place of the picked one |
-| Preparing the chosen quote fails after Swap is tapped | an error alert with the provider's message; the quote, Details and Swap stay, so tapping Swap prepares it again | the quote itself succeeded; Try Again is only for a failed quote |
+| Preparing the chosen quote fails after Swap is tapped | an error alert with the provider's message; the quote, Details and Swap stay, so tapping Swap prepares it again, and the next refresh replaces the quote | the quote itself succeeded; Try Again is only for a failed quote, and a failure caused by the quote's age does not repeat |
 
 ### Slippage and price impact
 
