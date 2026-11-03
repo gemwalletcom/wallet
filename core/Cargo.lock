@@ -2877,6 +2877,7 @@ dependencies = [
  "chain_primitives",
  "futures",
  "gem_client",
+ "gem_crypto",
  "gem_encoding",
  "hex",
  "hmac 0.13.0",

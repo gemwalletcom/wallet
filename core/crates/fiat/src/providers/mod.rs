@@ -15,3 +15,6 @@ pub use self::paybis::client::PaybisClient;
 
 pub mod flashnet;
 pub use self::flashnet::client::FlashnetClient;
+
+pub mod fonbnk;
+pub use self::fonbnk::client::FonbnkClient;

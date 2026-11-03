@@ -88,6 +88,7 @@ pub struct Fiat {
     pub banxa: Banxa,
     pub paybis: Paybis,
     pub flashnet: Flashnet,
+    pub fonbnk: Fonbnk,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -165,6 +166,14 @@ pub struct Mercuryo {
 pub struct Flashnet {
     pub url: String,
     pub key: Key,
+    pub webhook: SecretKeySettings,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct Fonbnk {
+    pub url: String,
+    pub key: Key,
+    pub widget: UrlSecretKeySettings,
     pub webhook: SecretKeySettings,
 }
 

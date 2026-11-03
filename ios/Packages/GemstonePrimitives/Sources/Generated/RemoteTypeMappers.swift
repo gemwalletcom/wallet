@@ -593,6 +593,7 @@ public extension Gemstone.FiatProviderName {
         case .banxa: .banxa
         case .paybis: .paybis
         case .flashnet: .flashnet
+        case .fonbnk: .fonbnk
         }
     }
 }
@@ -606,6 +607,7 @@ public extension Primitives.FiatProviderName {
         case .banxa: .banxa
         case .paybis: .paybis
         case .flashnet: .flashnet
+        case .fonbnk: .fonbnk
         }
     }
 }

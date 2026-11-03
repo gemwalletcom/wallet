@@ -57,6 +57,7 @@ pub enum FiatProviderName {
     Banxa,
     Paybis,
     Flashnet,
+    Fonbnk,
 }
 
 impl FiatProviderName {
@@ -72,6 +73,7 @@ impl FiatProviderName {
             FiatProviderName::Banxa => "Banxa",
             FiatProviderName::Paybis => "Paybis",
             FiatProviderName::Flashnet => "Cash App",
+            FiatProviderName::Fonbnk => "Fonbnk",
         }
     }
     pub fn as_fiat_provider(&self) -> FiatProvider {
@@ -89,7 +91,7 @@ impl FiatProviderName {
     }
 
     pub fn all() -> Vec<Self> {
-        vec![Self::Mercuryo, Self::Transak, Self::MoonPay, Self::Banxa, Self::Paybis, Self::Flashnet]
+        vec![Self::Mercuryo, Self::Transak, Self::MoonPay, Self::Banxa, Self::Paybis, Self::Flashnet, Self::Fonbnk]
     }
 }
 

@@ -71,7 +71,7 @@ Individual `gem_*` crates for each blockchain with unified RPC client patterns:
 
 ### Integrations & Services
 - `services/`: Backend orchestration and the only crate that builds storage, cache, queue, push and search clients ([Architecture § Backend Layers](architecture.md#backend-layers))
-- `fiat/`: Fiat on-ramp/off-ramp providers (MoonPay, Transak, Mercuryo, Paybis, Flashnet)
+- `fiat/`: Fiat on-ramp/off-ramp providers (MoonPay, Transak, Mercuryo, Paybis, Flashnet, Fonbnk)
 - `name_resolver/`: Blockchain naming service integrations (ENS, SNS, etc.)
 - `security/`: Security and fraud detection provider integrations
 - `pusher/`: Gorush push gateway client

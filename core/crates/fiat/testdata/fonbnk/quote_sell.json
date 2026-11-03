@@ -1,0 +1,147 @@
+{
+  "quoteId": "6aea4648af419a12b8b36f78",
+  "quoteExpiresAt": "2026-11-03T21:08:32.663Z",
+  "deposit": {
+    "paymentChannel": "crypto",
+    "currencyType": "crypto",
+    "currencyCode": "ETHEREUM_NATIVE",
+    "currencyDetails": {
+      "network": "ETHEREUM",
+      "asset": "NATIVE"
+    },
+    "cashout": {
+      "amountBeforeFees": 0.0219,
+      "amountAfterFees": 0.0219,
+      "chargedFees": [],
+      "totalChargedFees": 0,
+      "chargedFeesPerRecipient": {},
+      "amountBeforeFeesUsd": 50,
+      "amountAfterFeesUsd": 50,
+      "chargedFeesUsd": [],
+      "totalChargedFeesUsd": 0,
+      "exchangeRate": 0.000438,
+      "exchangeRateAfterFees": 0.0004,
+      "chargedFeesPerRecipientUsd": {},
+      "feeSettings": []
+    },
+    "fieldsToCreateOrder": [
+      {
+        "key": "blockchainWalletAddress",
+        "type": "string",
+        "label": "Your wallet address",
+        "required": false
+      }
+    ],
+    "transferType": "manual"
+  },
+  "payout": {
+    "paymentChannel": "mobile_money",
+    "currencyType": "fiat",
+    "currencyCode": "KES",
+    "currencyDetails": {
+      "countryIsoCode": "KE"
+    },
+    "cashout": {
+      "amountBeforeFees": 6286,
+      "amountAfterFees": 6084,
+      "chargedFees": [
+        {
+          "id": "provider_fee",
+          "type": "flat_amount",
+          "recipient": "provider",
+          "amount": 45
+        },
+        {
+          "id": "service_fee",
+          "type": "percentage",
+          "recipient": "platform",
+          "amount": 157.15
+        }
+      ],
+      "totalChargedFees": 202.15,
+      "chargedFeesPerRecipient": {
+        "provider": 45,
+        "platform": 157.15
+      },
+      "amountBeforeFeesUsd": 49.99491,
+      "amountAfterFeesUsd": 48.388328,
+      "chargedFeesUsd": [
+        {
+          "id": "provider_fee",
+          "type": "flat_amount",
+          "recipient": "provider",
+          "amount": 0.357902
+        },
+        {
+          "id": "service_fee",
+          "type": "percentage",
+          "recipient": "platform",
+          "amount": 1.249873
+        }
+      ],
+      "totalChargedFeesUsd": 1.607775,
+      "exchangeRate": 125.7328,
+      "exchangeRateAfterFees": 129.9074,
+      "chargedFeesPerRecipientUsd": {
+        "provider": 0.357902,
+        "platform": 1.249873
+      },
+      "feeSettings": [
+        {
+          "id": "provider_fee",
+          "type": "flat_amount",
+          "recipient": "provider",
+          "value": 15,
+          "min": 100,
+          "max": 1000
+        },
+        {
+          "id": "provider_fee",
+          "type": "flat_amount",
+          "recipient": "provider",
+          "value": 30,
+          "min": 1001,
+          "max": 2500
+        },
+        {
+          "id": "provider_fee",
+          "type": "flat_amount",
+          "recipient": "provider",
+          "value": 45,
+          "min": 2501,
+          "max": 10000
+        },
+        {
+          "id": "provider_fee",
+          "type": "flat_amount",
+          "recipient": "provider",
+          "value": 55,
+          "min": 10001,
+          "max": 250000
+        },
+        {
+          "id": "service_fee",
+          "type": "percentage",
+          "recipient": "platform",
+          "value": 2.5,
+          "min": 0,
+          "max": "Infinity"
+        }
+      ]
+    },
+    "fieldsToCreateOrder": [
+      {
+        "key": "phoneNumber",
+        "label": "Phone Number",
+        "required": true,
+        "type": "phone"
+      },
+      {
+        "key": "accountHolderName",
+        "label": "Account name",
+        "required": true,
+        "type": "string"
+      }
+    ]
+  }
+}

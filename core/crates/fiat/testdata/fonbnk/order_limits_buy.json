@@ -1,0 +1,19 @@
+{
+  "deposit": {
+    "min": 1435,
+    "max": 717051,
+    "minUsd": 1,
+    "maxUsd": 500,
+    "supportsDecimals": false,
+    "step": 1
+  },
+  "payout": {
+    "min": 0.999148,
+    "max": 499.999148,
+    "minUsd": 1,
+    "maxUsd": 500,
+    "supportsDecimals": true,
+    "step": 1e-06
+  },
+  "supported": true
+}

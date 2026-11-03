@@ -104,6 +104,18 @@ fiat:
     webhook:
       key:
         secret: ""
+  fonbnk:
+    url: "https://api.fonbnk.com"
+    key:
+      public: ""
+      secret: ""
+    widget:
+      url: "https://pay.fonbnk.com"
+      key:
+        secret: ""
+    webhook:
+      key:
+        secret: ""
 swap:
   nearintents:
     url: "https://1click.chaindefuser.com"

@@ -12,7 +12,7 @@ pub mod webhook;
 pub use provider::FiatProvider;
 pub use webhook::FiatWebhookRequest;
 
-use crate::providers::{BanxaClient, FlashnetClient, MercuryoClient, MoonPayClient, PaybisClient, TransakClient};
+use crate::providers::{BanxaClient, FlashnetClient, FonbnkClient, MercuryoClient, MoonPayClient, PaybisClient, TransakClient};
 use gem_client::ReqwestClient;
 use primitives::AccessTokenCacher;
 use settings::Settings;
@@ -63,18 +63,31 @@ impl FiatProviderFactory {
             settings.fiat.paybis.key.secret.clone(),
         );
         let flashnet = FlashnetClient::new(
-            ReqwestClient::new(settings.fiat.flashnet.url.clone(), request_client),
+            ReqwestClient::new(settings.fiat.flashnet.url.clone(), request_client.clone()),
             settings.fiat.flashnet.key.secret.clone(),
             settings.fiat.flashnet.key.public.clone(),
             settings.fiat.flashnet.webhook.key.secret.clone(),
         );
+        let fonbnk = fonbnk_client(settings, request_client);
 
-        vec![Box::new(moonpay), Box::new(mercuryo), Box::new(transak), Box::new(banxa), Box::new(paybis), Box::new(flashnet)]
+        vec![Box::new(moonpay), Box::new(mercuryo), Box::new(transak), Box::new(banxa), Box::new(paybis), Box::new(flashnet), Box::new(fonbnk)]
     }
 
     pub fn new_ip_check_client(settings: &Settings) -> IPCheckClient {
         IPCheckClient::new(moonpay_client(settings, request_client(settings.fiat.timeout)))
     }
+}
+
+fn fonbnk_client(settings: &Settings, request_client: reqwest::Client) -> FonbnkClient {
+    let fonbnk = &settings.fiat.fonbnk;
+    FonbnkClient::new(
+        ReqwestClient::new(fonbnk.url.clone(), request_client),
+        fonbnk.key.public.clone(),
+        fonbnk.key.secret.clone(),
+        fonbnk.widget.url.clone(),
+        fonbnk.widget.key.secret.clone(),
+        fonbnk.webhook.key.secret.clone(),
+    )
 }
 
 fn moonpay_client(settings: &Settings, request_client: reqwest::Client) -> MoonPayClient {

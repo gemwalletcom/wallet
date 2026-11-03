@@ -11,7 +11,7 @@ flowchart LR
 
 1. The user taps Buy on the wallet screen, an asset or the welcome banner and picks an asset; the screen opens as "Buy X", with a Buy | Sell switch when the asset can be sold.
 2. The amount is in US dollars, with `$100` and `$250` presets.
-3. Shortly after typing stops, every provider (MoonPay, Mercuryo, Transak, Banxa, Paybis, Cash App) is asked at once; the Provider row shows the best one with its Rate and about how much crypto that is.
+3. Shortly after typing stops, every provider (MoonPay, Mercuryo, Transak, Banxa, Paybis, Cash App, Fonbnk) is asked at once; the Provider row shows the best one with its Rate and about how much crypto that is.
 4. Continue opens the provider's page.
 5. The activity icon lists every buy and sell with its provider, amounts and status; a row opens the provider's order page.
 
@@ -31,6 +31,7 @@ flowchart LR
 | A shown quote is up to `15 minutes` old, even after a network change | it stays usable on the device that asked for it | Buy never fails just because the refresh came late |
 | The user taps Continue | the asset is already switched on in the wallet | the coins are visible on return |
 | A provider completes a purchase in another fiat currency | Activity shows the provider-reported fiat amount and currency | the wallet's display currency does not change the purchase |
+| The user is in a country Fonbnk serves | Fonbnk quotes the dollar amount at its own exchange rate, and the user pays or is paid in local currency by mobile money or bank transfer | the amount stays in US dollars for every provider, so quotes compare like for like |
 
 ## Platform differences
 

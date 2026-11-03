@@ -126,6 +126,7 @@ public enum Images {
         public static let mercuryo = Image(.mercuryo)
         public static let cashapp = Image(.cashapp)
         public static let paybis = Image(.paybis)
+        public static let fonbnk = Image(.fonbnk)
     }
 
     public enum Actions {
