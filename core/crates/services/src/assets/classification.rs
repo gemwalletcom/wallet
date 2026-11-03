@@ -71,6 +71,7 @@ fn is_address(value: &str) -> bool {
 mod tests {
     use super::*;
     use primitives::Asset;
+    use primitives::testkit::signer_mock::{TEST_EVM_SENDER, TEST_SOLANA_SENDER, TEST_TRON_SENDER};
 
     #[test]
     fn test_asset_classification_rules() {
@@ -86,17 +87,17 @@ mod tests {
         assert_eq!(rules.classify(15, "Tether", "USDT"), Some(AssetRank::Fraudulent));
         assert_eq!(rules.classify(25, "www.example.com", "URL"), None);
         assert_eq!(rules.classify(15, "Bitcoin", "BTC"), None);
-        assert_eq!(rules.classify(15, "0xdAC17F958D2ee523a2206206994597C13D831ec7", "0xdAC17F958D2ee523a2206206994597C13D831ec7"), Some(AssetRank::Fraudulent));
-        assert_eq!(rules.classify(15, "Tether", "0xdac17f958d2ee523a2206206994597c13d831ec7"), Some(AssetRank::Fraudulent));
-        assert_eq!(rules.classify(15, "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", "USDC"), Some(AssetRank::Fraudulent));
-        assert_eq!(rules.classify(15, "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t", "USDT"), Some(AssetRank::Fraudulent));
+        assert_eq!(rules.classify(15, TEST_EVM_SENDER, TEST_EVM_SENDER), Some(AssetRank::Fraudulent));
+        assert_eq!(rules.classify(15, "Tether", &TEST_EVM_SENDER.to_lowercase()), Some(AssetRank::Fraudulent));
+        assert_eq!(rules.classify(15, TEST_SOLANA_SENDER, "USDC"), Some(AssetRank::Fraudulent));
+        assert_eq!(rules.classify(15, TEST_TRON_SENDER, "USDT"), Some(AssetRank::Fraudulent));
         assert_eq!(rules.classify(15, "Sui", "0x2::sui::SUI"), None);
         assert_eq!(rules.classify(15, "0x Protocol Token", "ZRX"), None);
         assert_eq!(rules.classify(15, "0x0", "ZERO"), None);
         assert_eq!(rules.classify(15, "SuperMegaUltraHyperDogeCatFrogCoin", "SMUH"), None);
         assert_eq!(rules.classify(15, "BabyDogeCoinBaseChainV2TokenMoonx", "BDC"), None);
-        assert_eq!(rules.classify(15, " TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t ", "USDT"), Some(AssetRank::Fraudulent));
-        assert_eq!(rules.classify(25, "0xdAC17F958D2ee523a2206206994597C13D831ec7", "USDT"), None);
+        assert_eq!(rules.classify(15, &format!(" {TEST_TRON_SENDER} "), "USDT"), Some(AssetRank::Fraudulent));
+        assert_eq!(rules.classify(25, TEST_EVM_SENDER, "USDT"), None);
 
         let mut asset = Asset::mock_erc20().as_basic_primitive();
         asset.asset.name = "www.example.com".to_string();
