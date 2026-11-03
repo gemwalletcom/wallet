@@ -70,7 +70,6 @@ pub fn v2_router(state: &AppState, limit: usize) -> Router<AppState> {
         .route("/", post(device::register).get(device::get_device).put(device::update))
         .route("/is_registered", get(device::is_registered))
         .route("/push-notification", post(device::send_push_notification))
-        .route("/token", get(auth::get_token))
         .route("/auth/nonce", get(auth::get_nonce))
         .route("/assets", get(assets::get_assets))
         .route("/transactions", get(transactions::get_transactions))

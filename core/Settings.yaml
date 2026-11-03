@@ -32,9 +32,6 @@ api:
     enabled: true
   auth:
     tolerance: 5m
-    jwt:
-      secret: ""
-      expiry: 1h
 parser:
   timeout: 1s
   shutdown:

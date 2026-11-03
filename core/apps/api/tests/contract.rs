@@ -465,7 +465,6 @@ fn registered_device_cases(harness: &Harness) -> Vec<Case> {
         Case::new("v2_notifications_read", Method::POST, "/v2/devices/notifications/read").wallet(),
         Case::new("v2_notifications_read_as_get", Method::GET, "/v2/devices/notifications/read").device(),
         Case::new("v2_auth_nonce", Method::GET, "/v2/devices/auth/nonce").device(),
-        Case::new("v2_token", Method::GET, "/v2/devices/token").device(),
         Case::new("v2_price_alerts_add", Method::POST, "/v2/devices/price_alerts").device().json(json!([price_alert()])),
         Case::new("v2_price_alerts", Method::GET, "/v2/devices/price_alerts").device(),
         Case::new("v2_price_alerts_asset", Method::GET, "/v2/devices/price_alerts?asset_id=ethereum").device(),

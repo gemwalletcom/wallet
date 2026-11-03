@@ -411,14 +411,6 @@ pub struct API {
 pub struct Auth {
     #[serde(deserialize_with = "duration::deserialize")]
     pub tolerance: Duration,
-    pub jwt: Jwt,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct Jwt {
-    pub secret: String,
-    #[serde(deserialize_with = "duration::deserialize")]
-    pub expiry: Duration,
 }
 
 #[derive(Debug, Deserialize, Clone)]

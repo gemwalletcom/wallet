@@ -30,17 +30,13 @@ use tokio_util::task::TaskTracker;
 use tower::Layer;
 use tower_http::normalize_path::NormalizePathLayer;
 
-use crate::auth::device::{DeviceAuthConfig, JwtConfig};
+use crate::auth::device::DeviceAuthConfig;
 use crate::routes::devices::support::SupportImageUploadConfig;
 use crate::state::{AppState, Clients};
 use crate::stream::{StreamObserverConfig, StreamPricesConfig, StreamState};
 
 fn device_auth_config(settings: &Settings) -> Arc<DeviceAuthConfig> {
-    let jwt = JwtConfig {
-        secret: settings.api.auth.jwt.secret.clone(),
-        expiry: settings.api.auth.jwt.expiry,
-    };
-    Arc::new(DeviceAuthConfig::new(settings.api.auth.tolerance, jwt))
+    Arc::new(DeviceAuthConfig::new(settings.api.auth.tolerance))
 }
 
 async fn api_clients(settings: &Settings) -> Result<Clients, Box<dyn Error + Send + Sync>> {

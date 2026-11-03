@@ -46,7 +46,7 @@ swapper = { path = "../../crates/swapper", features = ["reqwest_provider"] }
 localizer = { path = "../../crates/localizer" }
 
 security = { path = "../../crates/security" }
-gem_auth = { path = "../../crates/gem_auth", features = ["jwt"] }
+gem_auth = { path = "../../crates/gem_auth" }
 
 [dev-dependencies]
 primitives = { path = "../../crates/primitives", features = ["testkit"] }

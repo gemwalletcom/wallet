@@ -1,6 +1,5 @@
 use axum::response::{IntoResponse, Response};
 use fiat::error::FiatQuoteError;
-use gem_auth::JwtError;
 use gem_client::ClientError;
 use gem_jsonrpc::types::{ERROR_CLIENT_ERROR, JsonRpcError};
 use http::StatusCode;
@@ -111,12 +110,6 @@ impl From<CacheError> for ApiError {
             CacheError::NotFound { .. } | CacheError::ResourceNotFound(_) => ApiError::not_found(error.to_string()),
             CacheError::KeyNotFound(_) => ApiError::internal("Unexpected cache miss"),
         }
-    }
-}
-
-impl From<JwtError> for ApiError {
-    fn from(error: JwtError) -> Self {
-        ApiError::internal(error.to_string())
     }
 }
 
