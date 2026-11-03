@@ -3,6 +3,9 @@ use crate::models::{TronAccount, TronReward, TronUnfrozen, TronVote, WitnessesLi
 use chrono::{DateTime, Utc};
 use num_bigint::BigUint;
 use primitives::{Address as _, Asset, AssetId, Chain, DelegationBase, DelegationState, DelegationValidator};
+use std::cmp::Reverse;
+
+const WITNESS_STANDBY_LENGTH: usize = 127;
 
 pub fn map_staking_delegations(account: TronAccount, reward: TronReward, validators: &[DelegationValidator], now: DateTime<Utc>) -> Vec<DelegationBase> {
     let asset_id = Chain::Tron.as_asset_id();
@@ -72,15 +75,17 @@ fn unfreeze_delegation(asset_id: &AssetId, state: DelegationState, balance: BigU
 
 pub fn map_staking_validators(witnesses: WitnessesList, apy: Option<f64>) -> Vec<DelegationValidator> {
     let default_apy = apy.unwrap_or(0.0);
+    let mut witnesses = witnesses.witnesses;
+    witnesses.sort_by_key(|witness| Reverse(witness.vote_count.unwrap_or(0)));
     let mut validators: Vec<DelegationValidator> = witnesses
-        .witnesses
         .into_iter()
-        .filter_map(|witness| {
+        .enumerate()
+        .filter_map(|(rank, witness)| {
             Some(DelegationValidator::stake(
                 Chain::Tron,
                 TronAddress::from_hex(&witness.address)?.encode(),
                 String::new(),
-                witness.is_jobs.unwrap_or(false),
+                rank < WITNESS_STANDBY_LENGTH,
                 0.0,
                 default_apy,
             ))
@@ -95,6 +100,7 @@ pub fn map_staking_validators(witnesses: WitnessesList, apy: Option<f64>) -> Vec
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::models::WitnessAccount;
 
     #[test]
     fn test_every_expired_unfreeze_is_one_withdrawal() {
@@ -137,10 +143,21 @@ mod tests {
         assert_eq!(validators[0].apr, 4.2);
 
         assert_eq!(validators[1].id, "TEqyWRKCzREYC2bK2fc3j7pp8XjAa6tJK1");
-        assert!(!validators[1].is_active);
+        assert!(validators[1].is_active);
 
         assert_eq!(validators[2].id, DelegationValidator::SYSTEM_ID);
         assert_eq!(validators[2].name, DelegationValidator::SYSTEM_NAME);
         assert!(validators[2].is_active);
+    }
+
+    #[test]
+    fn test_map_staking_validators_by_vote_rank() {
+        let witnesses = WitnessesList {
+            witnesses: (1..=128).map(WitnessAccount::mock_with_vote_count).collect(),
+        };
+        let validators = map_staking_validators(witnesses, None);
+
+        assert_eq!(validators[0].id, TronAddress::from_hex(&WitnessAccount::mock_with_vote_count(128).address).unwrap().encode());
+        assert_eq!(validators.iter().map(|validator| validator.is_active).collect::<Vec<_>>(), [vec![true; 127], vec![false, true]].concat());
     }
 }
