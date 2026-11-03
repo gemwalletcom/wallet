@@ -17,7 +17,9 @@ futures = { workspace = true }
 gem_client = { path = "../gem_client", features = ["reqwest"] }
 gem_evm = { path = "../gem_evm", features = ["rpc", "reqwest"] }
 gem_jsonrpc = { path = "../gem_jsonrpc", features = ["client", "reqwest"] }
+gem_solana = { path = "../gem_solana" }
 gem_tracing = { path = "../gem_tracing" }
+gem_tron = { path = "../gem_tron" }
 in_app_notifications = { path = "../in_app_notifications" }
 job_runner = { path = "../job_runner" }
 lists = { path = "../lists" }

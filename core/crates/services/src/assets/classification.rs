@@ -4,8 +4,6 @@ use primitives::{AssetBasic, AssetScore, asset_score::AssetRank};
 use serde::Deserialize;
 use storage::DatabaseError;
 
-const BASE58_ALPHABET: &str = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
-
 #[derive(Clone, Deserialize)]
 struct FraudulentAssetRule {
     name: String,
@@ -65,10 +63,8 @@ impl AssetClassificationRules {
 }
 
 fn is_address(value: &str) -> bool {
-    match value.strip_prefix("0x") {
-        Some(hex) => matches!(hex.len(), 40 | 64) && hex.bytes().all(|byte| byte.is_ascii_hexdigit()),
-        None => (32..=44).contains(&value.len()) && value.chars().all(|character| BASE58_ALPHABET.contains(character)) && value.bytes().any(|byte| byte.is_ascii_digit()),
-    }
+    let value = value.trim();
+    gem_evm::validate_address(value) || gem_solana::validate_address(value) || gem_tron::validate_address(value)
 }
 
 #[cfg(test)]
@@ -98,6 +94,8 @@ mod tests {
         assert_eq!(rules.classify(15, "0x Protocol Token", "ZRX"), None);
         assert_eq!(rules.classify(15, "0x0", "ZERO"), None);
         assert_eq!(rules.classify(15, "SuperMegaUltraHyperDogeCatFrogCoin", "SMUH"), None);
+        assert_eq!(rules.classify(15, "BabyDogeCoinBaseChainV2TokenMoonx", "BDC"), None);
+        assert_eq!(rules.classify(15, " TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t ", "USDT"), Some(AssetRank::Fraudulent));
         assert_eq!(rules.classify(25, "0xdAC17F958D2ee523a2206206994597C13D831ec7", "USDT"), None);
 
         let mut asset = Asset::mock_erc20().as_basic_primitive();
