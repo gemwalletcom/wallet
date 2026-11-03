@@ -35,6 +35,7 @@ impl AssetClassificationRules {
         if rank > AssetRank::Trivial.threshold() {
             return None;
         }
+        let (name, symbol) = (name.trim(), symbol.trim());
         let metadata = [name.to_ascii_lowercase(), symbol.to_ascii_lowercase()];
         if self.spam_markers.iter().any(|marker| metadata.iter().any(|value| value.contains(marker))) {
             return Some(AssetRank::Spam);
@@ -63,7 +64,6 @@ impl AssetClassificationRules {
 }
 
 fn is_address(value: &str) -> bool {
-    let value = value.trim();
     gem_evm::validate_address(value) || gem_solana::validate_address(value) || gem_tron::validate_address(value)
 }
 
@@ -85,6 +85,7 @@ mod tests {
         assert_eq!(rules.classify(15, "www.example.com", "URL"), Some(AssetRank::Spam));
         assert_eq!(rules.classify(15, "Example", "WWW.EXAMPLE.COM"), Some(AssetRank::Spam));
         assert_eq!(rules.classify(15, "Tether", "USDT"), Some(AssetRank::Fraudulent));
+        assert_eq!(rules.classify(15, " Tether ", "USDT "), Some(AssetRank::Fraudulent));
         assert_eq!(rules.classify(25, "www.example.com", "URL"), None);
         assert_eq!(rules.classify(15, "Bitcoin", "BTC"), None);
         assert_eq!(rules.classify(15, TEST_EVM_SENDER, TEST_EVM_SENDER), Some(AssetRank::Fraudulent));
