@@ -5,13 +5,7 @@ import enum Gemstone.GemKeystoreAuthentication
 import Keychain
 import LocalAuthentication
 
-public enum KeystoreAuthentication: String, Sendable {
-    case biometrics
-    case passcode
-    case none
-}
-
-extension KeystoreAuthentication {
+extension GemKeystoreAuthentication {
     var policy: AuthenticationPolicy {
         switch self {
         case .biometrics:
@@ -23,7 +17,7 @@ extension KeystoreAuthentication {
         }
     }
 
-    static var availableAuthenticationType: KeystoreAuthentication {
+    static var availableAuthenticationType: GemKeystoreAuthentication {
         let context = LAContext()
         do {
             try context.canEvaluatePolicyThrowing(policy: .deviceOwnerAuthenticationWithBiometrics)
@@ -39,12 +33,12 @@ extension KeystoreAuthentication {
     }
 }
 
-extension KeystoreAuthentication {
-    func toGem() -> GemKeystoreAuthentication {
-        switch self {
-        case .biometrics: .biometrics
-        case .passcode: .passcode
-        case .none: .none
+private extension LAContext {
+    func canEvaluatePolicyThrowing(policy: LAPolicy) throws {
+        var error: NSError?
+        canEvaluatePolicy(policy, error: &error)
+        if let error {
+            throw error
         }
     }
 }

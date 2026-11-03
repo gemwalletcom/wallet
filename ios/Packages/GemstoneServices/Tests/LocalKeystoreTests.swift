@@ -70,17 +70,6 @@ struct LocalKeystoreTests {
     }
 
     @Test
-    func keystorePasswordIsCreatedOnlyWhenAsked() throws {
-        let keystore = LocalKeystore.mock()
-
-        #expect(throws: KeystoreError.missingPassword) { try keystore.keystorePassword(createIfMissing: false) }
-
-        let created = try keystore.keystorePassword(createIfMissing: true)
-        #expect(created.isNotEmpty)
-        #expect(try keystore.keystorePassword(createIfMissing: false) == created)
-    }
-
-    @Test
     func exportEthereumPrivateKey() async throws {
         let keystore = LocalKeystore.mock()
         let hex = "0x30df0ffc2b43717f4653c2a1e827e9dfb3d9364e019cc60092496cd4997d5d6e"

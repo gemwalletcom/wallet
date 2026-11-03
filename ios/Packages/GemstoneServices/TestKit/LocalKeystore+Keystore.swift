@@ -39,7 +39,7 @@ public extension LocalKeystore {
     }
 
     private func importWallet(name: String, import: GemImportType) throws -> Primitives.Wallet {
-        let password = try keystorePassword(createIfMissing: true)
+        let password = try keystorePassword.getPassword(createIfMissing: true)
         return try gemKeystore.createStore(import: `import`, password: gemKeystore.decodePassword(password: password)).mapToWallet(name: name, source: .import)
     }
 }

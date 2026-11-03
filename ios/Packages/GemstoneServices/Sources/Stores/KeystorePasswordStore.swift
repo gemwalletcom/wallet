@@ -7,16 +7,16 @@ import enum Gemstone.GemServiceError
 import typealias Gemstone.WalletId
 import Primitives
 
-public final class GemstoneKeystorePassword: GemKeystorePassword, @unchecked Sendable {
-    private let keystore: any Keystore
+public final class GemstoneKeystorePassword: GemKeystorePassword, Sendable {
+    private let password: any KeystorePassword
 
-    public init(keystore: any Keystore) {
-        self.keystore = keystore
+    public init(password: any KeystorePassword) {
+        self.password = password
     }
 
     public func getPassword(createIfMissing: Bool) throws -> String {
         do {
-            return try keystore.keystorePassword(createIfMissing: createIfMissing)
+            return try password.getPassword(createIfMissing: createIfMissing)
         } catch where error.isAuthenticationCancelled {
             throw GemServiceError.Cancelled
         }
@@ -29,6 +29,6 @@ public final class GemstoneKeystorePassword: GemKeystorePassword, @unchecked Sen
     public func deleteWalletPassword(walletId _: Gemstone.WalletId) throws {}
 
     public func authentication() throws -> GemKeystoreAuthentication {
-        try keystore.getPasswordAuthentication().toGem()
+        try password.getAuthentication()
     }
 }
