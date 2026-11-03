@@ -147,13 +147,14 @@ impl GemConfirmation {
         let state = self.stored().clone();
         let load = state.as_ref().map(|state| &state.load);
         let transfer = self.transfer();
+        let is_confirming = screen.phase == super::model::GemConfirmPhase::Confirming;
         let rows = self
             .row_contents(load.and_then(|load| load.address_name.clone()))
             .into_iter()
             .map(|content| match content {
                 GemConfirmRowContent::PaymentAsset { title, symbol, selectable, asset_ids } => GemConfirmRowContent::PaymentAsset {
                     title,
-                    selectable: selectable && screen.phase != super::model::GemConfirmPhase::Loading,
+                    selectable: selectable && screen.phase != super::model::GemConfirmPhase::Loading && !is_confirming,
                     symbol,
                     asset_ids,
                 },
@@ -169,7 +170,7 @@ impl GemConfirmation {
             fee_row: GemConfirmFeeRow::new(
                 screen.fee_value(load.cloned()),
                 load.map(|load| load.fee_asset.clone()).unwrap_or_else(|| transfer.fee_asset()),
-                state.as_ref().is_some_and(|state| state.confirm_data.is_some() || state.load.shows_fee_assets()),
+                !is_confirming && state.as_ref().is_some_and(|state| state.confirm_data.is_some() || state.load.shows_fee_assets()),
             ),
             title: transfer.title(),
             sections: super::rules::confirm_sections(
@@ -280,7 +281,7 @@ impl GemConfirmation {
 mod tests {
     use futures::executor::block_on;
     use num_bigint::BigInt;
-    use primitives::{Account, Asset, AssetId, Chain, FeePriority, SimulationBalanceChange, SimulationResult, SimulationWarning, TransactionInputType, TransferDataExtra, Wallet, WalletId};
+    use primitives::{Account, Asset, AssetId, Chain, FeePriority, PaymentInvoice, PaymentQuote, SimulationBalanceChange, SimulationResult, SimulationWarning, TransactionInputType, TransferDataExtra, Wallet, WalletId};
 
     use std::sync::atomic::Ordering;
 
@@ -293,7 +294,7 @@ mod tests {
     use crate::models::placeholder::EMPTY_VALUE;
     use crate::services::amount::model::GemNumberFormat;
     use crate::services::balance::GemBalanceRequirement;
-    use crate::services::confirm::{ConfirmState, GemConfirmDetails, GemConfirmError, GemConfirmFeeSelection, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmRowContent, GemConfirmSection, GemConfirmViewState};
+    use crate::services::confirm::{ConfirmState, GemConfirmDetails, GemConfirmError, GemConfirmFeeSelection, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmRowContent, GemConfirmScreen, GemConfirmSection, GemConfirmViewState};
     use crate::services::simulation::warning_rows;
     use crate::services::swap::model::swap_quote_details;
     use crate::services::transfer::GemTransferData;
@@ -424,6 +425,51 @@ mod tests {
 
             assert!(!state.fee_row.opens_details);
         });
+    }
+
+    #[test]
+    fn test_a_sending_screen_keeps_the_fee_row_closed() {
+        block_on(async {
+            let testkit = ConfirmTestkit::with_bitcoin_utxos(100_000, &[100_000]);
+            let confirmation = testkit.service.confirmation(mock_bitcoin_wallet(), mock_bitcoin_transfer(10_000.into()), None);
+            let ready = confirmation.screen().on_loaded(confirmation.load(confirmation.load_options()).await.unwrap());
+            let sending = ready.on_execute_started();
+
+            assert!(confirmation.view_state(ready).fee_row.opens_details);
+            assert!(!confirmation.view_state(sending.clone()).fee_row.opens_details, "a new fee would reload the screen under the transaction being sent");
+            assert!(confirmation.view_state(sending.on_execute_failed(GemConfirmError::Offline)).fee_row.opens_details);
+        });
+    }
+
+    #[test]
+    fn test_a_sending_screen_keeps_the_payment_asset_closed() {
+        let wallet = Wallet::mock_with_accounts(vec![Account::mock(Chain::Ethereum, "0x0000000000000000000000000000000000000001")]);
+        let testkit = ConfirmTestkit::new(wallet.clone(), wallet.clone());
+        let invoice = PaymentInvoice {
+            quotes: vec![PaymentQuote::mock(AssetId::from_chain(Chain::Ethereum)), PaymentQuote::mock(AssetId::from_chain(Chain::SmartChain))],
+            ..PaymentInvoice::mock()
+        };
+        let transfer = GemTransferData::mock(TransactionInputType::Payment {
+            asset: Asset::mock_eth(),
+            invoice,
+            extra: TransferDataExtra::mock(),
+        });
+        let confirmation = testkit.service.confirmation(wallet, transfer, None);
+        let selectable = |screen: GemConfirmScreen| {
+            details(&confirmation.view_state(screen)).into_iter().find_map(|row| match row {
+                GemConfirmRowContent::PaymentAsset { selectable, .. } => Some(selectable),
+                _ => None,
+            })
+        };
+        let ready = GemConfirmScreen {
+            phase: GemConfirmPhase::Ready,
+            ..GemConfirmScreen::initial(None)
+        };
+        let sending = ready.on_execute_started();
+
+        assert_eq!(selectable(ready), Some(true));
+        assert_eq!(selectable(sending.clone()), Some(false), "another asset would reload the screen under the payment being sent");
+        assert_eq!(selectable(sending.on_execute_failed(GemConfirmError::Offline)), Some(true));
     }
 
     #[test]
