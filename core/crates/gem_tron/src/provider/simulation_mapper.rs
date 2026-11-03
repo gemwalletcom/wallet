@@ -1,14 +1,16 @@
-use num_bigint::BigInt;
+use num_bigint::{BigInt, BigUint};
 use num_traits::Zero;
+use primitives::Address as _;
 use primitives::{
-    AssetId, Chain, SimulationBalanceChange, SimulationHeader, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult, SimulationSeverity, SimulationWarning,
-    SimulationWarningApproval, SimulationWarningType,
+    Asset, AssetId, Chain, Resource, SimulationBalanceChange, SimulationHeader, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult, SimulationSeverity,
+    SimulationWarning, SimulationWarningApproval, SimulationWarningType, TransactionType,
 };
 
 use crate::TransactionApproval;
 use crate::address::TronAddress;
 use crate::models::{TriggerConstantContractResponse, TronRpcError};
 use crate::provider::balance_diff::token_balance_deltas;
+use crate::transaction::TronContract;
 
 pub fn map_simulation_result(owner: &TronAddress, response: &TriggerConstantContractResponse, call_value: Option<u64>) -> SimulationResult {
     SimulationResult {
@@ -55,6 +57,81 @@ pub(crate) fn map_approval_simulation(decoded: TransactionApproval) -> Simulatio
     result
 }
 
+const DEFAULT_DELEGATE_LOCK_BLOCKS: u64 = 86_400;
+
+pub(crate) fn map_stake_simulation(contract: &TronContract, withdrawal: Option<BigUint>) -> Option<SimulationResult> {
+    let (value, fields) = match contract {
+        TronContract::Transfer { .. } | TronContract::TriggerSmart { .. } => return None,
+        TronContract::VoteWitness { votes, .. } => (
+            Some(votes.iter().map(|vote| BigUint::from(vote.count)).sum::<BigUint>() * BigUint::from(10u64).pow(Asset::from_chain(Chain::Tron).decimals)),
+            votes.iter().map(|vote| address_field(SimulationPayloadFieldKind::Validator, vote.address.encode())).collect(),
+        ),
+        TronContract::FreezeBalanceV2 { frozen_balance, resource, .. } => (Some(BigUint::from(*frozen_balance)), vec![resource_field((*resource).into())]),
+        TronContract::UnfreezeBalanceV2 { unfreeze_balance, resource, .. } => (Some(BigUint::from(*unfreeze_balance)), vec![resource_field((*resource).into())]),
+        TronContract::DelegateResource {
+            receiver,
+            balance,
+            resource,
+            lock,
+            lock_period,
+            ..
+        } => (
+            Some(BigUint::from(*balance)),
+            [
+                Some(address_field(SimulationPayloadFieldKind::Recipient, receiver.encode())),
+                Some(resource_field((*resource).into())),
+                lock.then(|| lock_time_field(*lock_period)),
+            ]
+            .into_iter()
+            .flatten()
+            .collect(),
+        ),
+        TronContract::UnDelegateResource { receiver, balance, resource, .. } => (Some(BigUint::from(*balance)), vec![address_field(SimulationPayloadFieldKind::Recipient, receiver.encode()), resource_field((*resource).into())]),
+        TronContract::WithdrawBalance { .. } | TronContract::WithdrawExpireUnfreeze { .. } => (withdrawal, vec![]),
+    };
+    Some(SimulationResult {
+        payload: [action_field(contract)].into_iter().chain(fields).collect(),
+        header: value.map(|value| SimulationHeader {
+            asset_id: AssetId::from_chain(Chain::Tron),
+            value: Some(value),
+            is_unlimited: false,
+        }),
+        ..SimulationResult::default()
+    })
+}
+
+fn action_field(contract: &TronContract) -> SimulationPayloadField {
+    match stake_transaction_type(contract) {
+        Some(transaction_type) => SimulationPayloadField::standard(SimulationPayloadFieldKind::Action, transaction_type.as_ref(), SimulationPayloadFieldType::Text, SimulationPayloadFieldDisplay::Primary),
+        None => SimulationPayloadField::standard(SimulationPayloadFieldKind::Method, contract.kind().to_string(), SimulationPayloadFieldType::Text, SimulationPayloadFieldDisplay::Primary),
+    }
+}
+
+fn stake_transaction_type(contract: &TronContract) -> Option<TransactionType> {
+    match contract {
+        TronContract::VoteWitness { .. } => Some(TransactionType::StakeDelegate),
+        TronContract::FreezeBalanceV2 { .. } => Some(TransactionType::StakeFreeze),
+        TronContract::UnfreezeBalanceV2 { .. } => Some(TransactionType::StakeUnfreeze),
+        TronContract::WithdrawBalance { .. } => Some(TransactionType::StakeRewards),
+        TronContract::WithdrawExpireUnfreeze { .. } => Some(TransactionType::StakeWithdraw),
+        TronContract::Transfer { .. } | TronContract::TriggerSmart { .. } | TronContract::DelegateResource { .. } | TronContract::UnDelegateResource { .. } => None,
+    }
+}
+
+fn address_field(kind: SimulationPayloadFieldKind, address: String) -> SimulationPayloadField {
+    SimulationPayloadField::standard(kind, address, SimulationPayloadFieldType::Address, SimulationPayloadFieldDisplay::Primary)
+}
+
+fn resource_field(resource: Resource) -> SimulationPayloadField {
+    SimulationPayloadField::standard(SimulationPayloadFieldKind::Resource, resource.as_ref(), SimulationPayloadFieldType::Text, SimulationPayloadFieldDisplay::Primary)
+}
+
+fn lock_time_field(lock_period: u64) -> SimulationPayloadField {
+    let blocks = if lock_period == 0 { DEFAULT_DELEGATE_LOCK_BLOCKS } else { lock_period };
+    let seconds = blocks.saturating_mul(u64::from(Chain::Tron.block_time()) / 1_000);
+    SimulationPayloadField::standard(SimulationPayloadFieldKind::LockTime, seconds.to_string(), SimulationPayloadFieldType::Text, SimulationPayloadFieldDisplay::Primary)
+}
+
 fn map_balance_changes(owner: &TronAddress, response: &TriggerConstantContractResponse, call_value: Option<u64>) -> Vec<SimulationBalanceChange> {
     let mut changes = Vec::new();
     if let Some(value) = call_value.filter(|value| *value > 0) {
@@ -75,8 +152,9 @@ fn map_balance_changes(owner: &TronAddress, response: &TriggerConstantContractRe
 #[cfg(test)]
 mod tests {
     use super::*;
-    use num_bigint::BigUint;
-    use primitives::{Address as _, ApprovalData};
+    use crate::transaction::TronContractVote;
+    use crate::transaction::contract::TronResource;
+    use primitives::ApprovalData;
 
     #[test]
     fn test_map_approval_simulation() {
@@ -104,6 +182,175 @@ mod tests {
                 vec![SimulationPayloadFieldDisplay::Primary, SimulationPayloadFieldDisplay::Primary, SimulationPayloadFieldDisplay::Primary]
             );
         }
+    }
+
+    #[test]
+    fn test_map_stake_simulation() {
+        const OWNER: &str = "TJoSEwEqt7cT3TUwmEoUYnYs5cZR3xSukM";
+        const RECEIVER: &str = "THTR75o8xXAgCTQqpiot2AFRAjvW1tSbVV";
+        let owner = TronAddress::from_hex_or_base58(OWNER).unwrap();
+        let receiver = TronAddress::from_hex_or_base58(RECEIVER).unwrap();
+        let primary = SimulationPayloadFieldDisplay::Primary;
+        let cases = [
+            (
+                TronContract::DelegateResource {
+                    owner,
+                    receiver,
+                    balance: 2_000_000,
+                    resource: TronResource::Energy,
+                    lock: false,
+                    lock_period: 864_000,
+                },
+                None,
+                Some(2_000_000u64),
+                vec![
+                    SimulationPayloadField::standard(SimulationPayloadFieldKind::Method, "DelegateResourceContract", SimulationPayloadFieldType::Text, primary.clone()),
+                    SimulationPayloadField::standard(SimulationPayloadFieldKind::Recipient, RECEIVER, SimulationPayloadFieldType::Address, primary.clone()),
+                    SimulationPayloadField::standard(SimulationPayloadFieldKind::Resource, "energy", SimulationPayloadFieldType::Text, primary.clone()),
+                ],
+            ),
+            (
+                TronContract::DelegateResource {
+                    owner,
+                    receiver,
+                    balance: 2_000_000,
+                    resource: TronResource::Energy,
+                    lock: true,
+                    lock_period: 864_000,
+                },
+                None,
+                Some(2_000_000),
+                vec![
+                    SimulationPayloadField::standard(SimulationPayloadFieldKind::Method, "DelegateResourceContract", SimulationPayloadFieldType::Text, primary.clone()),
+                    SimulationPayloadField::standard(SimulationPayloadFieldKind::Recipient, RECEIVER, SimulationPayloadFieldType::Address, primary.clone()),
+                    SimulationPayloadField::standard(SimulationPayloadFieldKind::Resource, "energy", SimulationPayloadFieldType::Text, primary.clone()),
+                    SimulationPayloadField::standard(SimulationPayloadFieldKind::LockTime, "2592000", SimulationPayloadFieldType::Text, primary.clone()),
+                ],
+            ),
+            (
+                TronContract::DelegateResource {
+                    owner,
+                    receiver,
+                    balance: 2_000_000,
+                    resource: TronResource::Energy,
+                    lock: true,
+                    lock_period: 0,
+                },
+                None,
+                Some(2_000_000),
+                vec![
+                    SimulationPayloadField::standard(SimulationPayloadFieldKind::Method, "DelegateResourceContract", SimulationPayloadFieldType::Text, primary.clone()),
+                    SimulationPayloadField::standard(SimulationPayloadFieldKind::Recipient, RECEIVER, SimulationPayloadFieldType::Address, primary.clone()),
+                    SimulationPayloadField::standard(SimulationPayloadFieldKind::Resource, "energy", SimulationPayloadFieldType::Text, primary.clone()),
+                    SimulationPayloadField::standard(SimulationPayloadFieldKind::LockTime, "259200", SimulationPayloadFieldType::Text, primary.clone()),
+                ],
+            ),
+            (
+                TronContract::UnDelegateResource {
+                    owner,
+                    receiver,
+                    balance: 3_000_000,
+                    resource: TronResource::Bandwidth,
+                },
+                None,
+                Some(3_000_000),
+                vec![
+                    SimulationPayloadField::standard(SimulationPayloadFieldKind::Method, "UnDelegateResourceContract", SimulationPayloadFieldType::Text, primary.clone()),
+                    SimulationPayloadField::standard(SimulationPayloadFieldKind::Recipient, RECEIVER, SimulationPayloadFieldType::Address, primary.clone()),
+                    SimulationPayloadField::standard(SimulationPayloadFieldKind::Resource, "bandwidth", SimulationPayloadFieldType::Text, primary.clone()),
+                ],
+            ),
+            (
+                TronContract::VoteWitness {
+                    owner,
+                    votes: vec![TronContractVote { address: receiver, count: 2 }, TronContractVote { address: owner, count: 3 }],
+                    support: false,
+                },
+                None,
+                Some(5_000_000),
+                vec![
+                    SimulationPayloadField::standard(SimulationPayloadFieldKind::Action, "stakeDelegate", SimulationPayloadFieldType::Text, primary.clone()),
+                    SimulationPayloadField::standard(SimulationPayloadFieldKind::Validator, RECEIVER, SimulationPayloadFieldType::Address, primary.clone()),
+                    SimulationPayloadField::standard(SimulationPayloadFieldKind::Validator, OWNER, SimulationPayloadFieldType::Address, primary.clone()),
+                ],
+            ),
+            (
+                TronContract::FreezeBalanceV2 {
+                    owner,
+                    frozen_balance: 4_000_000,
+                    resource: TronResource::Energy,
+                },
+                None,
+                Some(4_000_000),
+                vec![
+                    SimulationPayloadField::standard(SimulationPayloadFieldKind::Action, "stakeFreeze", SimulationPayloadFieldType::Text, primary.clone()),
+                    SimulationPayloadField::standard(SimulationPayloadFieldKind::Resource, "energy", SimulationPayloadFieldType::Text, primary.clone()),
+                ],
+            ),
+            (
+                TronContract::UnfreezeBalanceV2 {
+                    owner,
+                    unfreeze_balance: 5_000_000,
+                    resource: TronResource::Bandwidth,
+                },
+                None,
+                Some(5_000_000),
+                vec![
+                    SimulationPayloadField::standard(SimulationPayloadFieldKind::Action, "stakeUnfreeze", SimulationPayloadFieldType::Text, primary.clone()),
+                    SimulationPayloadField::standard(SimulationPayloadFieldKind::Resource, "bandwidth", SimulationPayloadFieldType::Text, primary.clone()),
+                ],
+            ),
+            (
+                TronContract::WithdrawBalance { owner },
+                Some(7_000_000u64),
+                Some(7_000_000),
+                vec![SimulationPayloadField::standard(SimulationPayloadFieldKind::Action, "stakeRewards", SimulationPayloadFieldType::Text, primary.clone())],
+            ),
+            (
+                TronContract::WithdrawBalance { owner },
+                None,
+                None,
+                vec![SimulationPayloadField::standard(SimulationPayloadFieldKind::Action, "stakeRewards", SimulationPayloadFieldType::Text, primary.clone())],
+            ),
+            (
+                TronContract::WithdrawExpireUnfreeze { owner },
+                Some(8_000_000),
+                Some(8_000_000),
+                vec![SimulationPayloadField::standard(SimulationPayloadFieldKind::Action, "stakeWithdraw", SimulationPayloadFieldType::Text, primary.clone())],
+            ),
+        ];
+        for (contract, withdrawal, value, payload) in cases {
+            assert_eq!(
+                map_stake_simulation(&contract, withdrawal.map(BigUint::from)),
+                Some(SimulationResult {
+                    payload,
+                    header: value.map(|value| SimulationHeader {
+                        asset_id: AssetId::from_chain(Chain::Tron),
+                        value: Some(BigUint::from(value)),
+                        is_unlimited: false,
+                    }),
+                    ..SimulationResult::default()
+                }),
+                "{:?}",
+                contract.kind()
+            );
+        }
+
+        assert_eq!(map_stake_simulation(&TronContract::Transfer { owner, to: receiver, amount: 1 }, None), None);
+        assert_eq!(
+            map_stake_simulation(
+                &TronContract::TriggerSmart {
+                    owner,
+                    contract: receiver,
+                    data: vec![],
+                    call_value: None,
+                    call_token_value: None,
+                    token_id: None,
+                },
+                None
+            ),
+            None
+        );
     }
 
     #[test]

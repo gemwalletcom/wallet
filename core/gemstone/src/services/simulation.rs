@@ -1,4 +1,5 @@
 use std::collections::HashSet;
+use std::str::FromStr;
 use std::sync::Arc;
 
 use ::simulation::evm::SimulationClient;
@@ -13,10 +14,12 @@ use gem_ton::rpc::client::TonClient;
 use gem_tron::rpc::{TronProvider, client::TronClient};
 use gem_wallet_connect::{EvmTransactionKind, SignDigestType, WCEthereumTransactionData, WalletConnectTransactionType};
 use primitives::{
-    AddressName, AssetId, BlockExplorerLink, Chain, ChainAddress, EVMChain, SimulationInput, SimulationPayloadField, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult, SimulationSeverity, SimulationWarning,
-    SimulationWarningType,
+    AddressName, AssetId, BlockExplorerLink, Chain, ChainAddress, EVMChain, Resource, SimulationInput, SimulationPayloadField, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult, SimulationSeverity, SimulationWarning,
+    SimulationWarningType, TransactionType,
 };
 
+use crate::duration_formatter::{GemDurationPart, countdown_parts};
+use crate::formatted_number::GemValueTone;
 use crate::models::copy::{GemCopy, address_copy};
 use crate::models::custom_types::GemBigInt;
 use crate::models::list::{GemListFieldValue, GemListRow, GemListRowTitle, GemNoticeKind, GemRowMenuItem, suspicious_address_title};
@@ -255,6 +258,9 @@ pub fn address_requests(rows: &[GemListRow], chain: Chain) -> Vec<ChainAddress> 
 }
 
 fn payload_row(field: &SimulationPayloadField, chain: Chain, address_url: impl Fn(Chain, String) -> BlockExplorerLink) -> GemListRow {
+    if let Some(row) = stake_payload_row(field) {
+        return row;
+    }
     GemListRow::Field {
         title: payload_title(field),
         value: match field.field_type {
@@ -268,14 +274,73 @@ fn payload_row(field: &SimulationPayloadField, chain: Chain, address_url: impl F
     }
 }
 
+fn stake_payload_row(field: &SimulationPayloadField) -> Option<GemListRow> {
+    match field.kind {
+        SimulationPayloadFieldKind::Resource => Resource::from_str(&field.value).ok().map(|resource| GemListRow::Label {
+            title: GemListRowTitle::Resource,
+            text: GemLocalizedText::Resource { resource },
+            tone: GemValueTone::Plain,
+            info: None,
+            progress: false,
+        }),
+        SimulationPayloadFieldKind::Action => TransactionType::from_str(&field.value).ok().and_then(stake_action_title).map(|title| GemListRow::Label {
+            title: GemListRowTitle::Method,
+            text: GemLocalizedText::RowTitle { title },
+            tone: GemValueTone::Plain,
+            info: None,
+            progress: false,
+        }),
+        SimulationPayloadFieldKind::LockTime => field.value.parse::<i64>().ok().map(|seconds| GemListRow::Duration {
+            title: GemListRowTitle::LockTime,
+            parts: lock_time_parts(seconds),
+            info: None,
+            estimate: false,
+        }),
+        _ => None,
+    }
+}
+
+fn stake_action_title(transaction_type: TransactionType) -> Option<GemListRowTitle> {
+    match transaction_type {
+        TransactionType::StakeDelegate => Some(GemListRowTitle::Stake),
+        TransactionType::StakeFreeze => Some(GemListRowTitle::Freeze),
+        TransactionType::StakeUnfreeze => Some(GemListRowTitle::Unfreeze),
+        TransactionType::StakeRewards => Some(GemListRowTitle::ClaimRewards),
+        TransactionType::StakeWithdraw => Some(GemListRowTitle::Withdraw),
+        TransactionType::Transfer
+        | TransactionType::TransferNFT
+        | TransactionType::Swap
+        | TransactionType::TokenApproval
+        | TransactionType::StakeUndelegate
+        | TransactionType::StakeRedelegate
+        | TransactionType::AssetActivation
+        | TransactionType::SmartContractCall
+        | TransactionType::PerpetualOpenPosition
+        | TransactionType::PerpetualClosePosition
+        | TransactionType::PerpetualModifyPosition
+        | TransactionType::EarnDeposit
+        | TransactionType::EarnWithdraw => None,
+    }
+}
+
+fn lock_time_parts(seconds: i64) -> Vec<GemDurationPart> {
+    let parts = countdown_parts(seconds);
+    let nonzero: Vec<GemDurationPart> = parts.iter().filter(|part| part.value != 0).cloned().collect();
+    if nonzero.is_empty() { parts } else { nonzero }
+}
+
 fn payload_title(field: &SimulationPayloadField) -> GemLocalizedText {
     let title = match field.kind {
         SimulationPayloadFieldKind::Contract => GemListRowTitle::Contract,
-        SimulationPayloadFieldKind::Method => GemListRowTitle::Method,
+        SimulationPayloadFieldKind::Method | SimulationPayloadFieldKind::Action => GemListRowTitle::Method,
         SimulationPayloadFieldKind::Token => GemListRowTitle::Token,
         SimulationPayloadFieldKind::Spender => GemListRowTitle::Spender,
         SimulationPayloadFieldKind::Value => GemListRowTitle::Value,
         SimulationPayloadFieldKind::Expiration => GemListRowTitle::Expiration,
+        SimulationPayloadFieldKind::Recipient => GemListRowTitle::Recipient,
+        SimulationPayloadFieldKind::Validator => GemListRowTitle::Validator,
+        SimulationPayloadFieldKind::Resource => GemListRowTitle::Resource,
+        SimulationPayloadFieldKind::LockTime => GemListRowTitle::LockTime,
         SimulationPayloadFieldKind::Custom => {
             return GemLocalizedText::Text {
                 text: field.label.clone().unwrap_or_default(),
@@ -380,6 +445,7 @@ pub struct GemSimulationChange {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::duration_formatter::GemDurationUnit;
     use crate::models::list::suspicious_address_notice;
     use crate::services::node::GemNodeService;
     use crate::testkit::{TestAlienProvider, mock_wc_ethereum_transaction_data};
@@ -583,6 +649,54 @@ mod tests {
                 GemListRow::Field {
                     title: GemLocalizedText::Text { text: "statement".to_string() },
                     value: GemListFieldValue::Text { text: "Sign in".to_string() },
+                },
+            ]
+        );
+    }
+
+    #[test]
+    fn test_payload_rows_show_a_stake_request_with_localized_action_resource_and_lock_time() {
+        let receiver = "TJoSEwEqt7cT3TUwmEoUYnYs5cZR3xSukM";
+        let fields = vec![
+            SimulationPayloadField::standard(SimulationPayloadFieldKind::Action, "stakeRewards", SimulationPayloadFieldType::Text, SimulationPayloadFieldDisplay::Primary),
+            SimulationPayloadField::standard(SimulationPayloadFieldKind::Recipient, receiver, SimulationPayloadFieldType::Address, SimulationPayloadFieldDisplay::Primary),
+            SimulationPayloadField::standard(SimulationPayloadFieldKind::Resource, "energy", SimulationPayloadFieldType::Text, SimulationPayloadFieldDisplay::Primary),
+            SimulationPayloadField::standard(SimulationPayloadFieldKind::LockTime, "2592000", SimulationPayloadFieldType::Text, SimulationPayloadFieldDisplay::Primary),
+        ];
+        let copy = address_copy(Chain::Tron, receiver.to_string());
+        let explorer = link(Chain::Tron, receiver.to_string());
+
+        assert_eq!(
+            payload_rows(&fields, Chain::Tron, link),
+            vec![
+                GemListRow::Label {
+                    title: GemListRowTitle::Method,
+                    text: GemLocalizedText::RowTitle { title: GemListRowTitle::ClaimRewards },
+                    tone: GemValueTone::Plain,
+                    info: None,
+                    progress: false,
+                },
+                GemListRow::Field {
+                    title: GemLocalizedText::RowTitle { title: GemListRowTitle::Recipient },
+                    value: GemListFieldValue::Address {
+                        display: copy.display.clone(),
+                        menu: vec![GemRowMenuItem::Copy { copy: copy.clone() }, GemRowMenuItem::view_on(&explorer)],
+                        copy,
+                        explorer,
+                    },
+                },
+                GemListRow::Label {
+                    title: GemListRowTitle::Resource,
+                    text: GemLocalizedText::Resource { resource: Resource::Energy },
+                    tone: GemValueTone::Plain,
+                    info: None,
+                    progress: false,
+                },
+                GemListRow::Duration {
+                    title: GemListRowTitle::LockTime,
+                    parts: vec![GemDurationPart { value: 30, unit: GemDurationUnit::Day }],
+                    info: None,
+                    estimate: false,
                 },
             ]
         );

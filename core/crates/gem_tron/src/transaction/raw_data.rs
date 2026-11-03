@@ -22,11 +22,18 @@ pub(crate) struct RawDataJson {
 }
 
 impl RawDataJson {
-    pub(crate) fn wallet_connect_contract(&self) -> Result<Option<WalletConnectContract>, SignerError> {
+    pub(crate) fn single_contract(&self) -> Result<Option<TronContract>, SignerError> {
         let [contract] = self.contract.as_slice() else {
             return Ok(None);
         };
-        match TronContract::from_json_value(contract.contract_type, contract.parameter.value.clone())? {
+        TronContract::from_json_value(contract.contract_type, contract.parameter.value.clone()).map(Some)
+    }
+
+    pub(crate) fn wallet_connect_contract(&self) -> Result<Option<WalletConnectContract>, SignerError> {
+        let Some(contract) = self.single_contract()? else {
+            return Ok(None);
+        };
+        match contract {
             TronContract::Transfer { to, amount, .. } => Ok(Some(WalletConnectContract {
                 to: to.encode(),
                 value: amount,
@@ -53,13 +60,13 @@ impl RawDataJson {
                     approval,
                 }))
             }
-            TronContract::VoteWitness { .. }
-            | TronContract::FreezeBalanceV2 { .. }
-            | TronContract::UnfreezeBalanceV2 { .. }
-            | TronContract::DelegateResource { .. }
-            | TronContract::UnDelegateResource { .. }
-            | TronContract::WithdrawBalance { .. }
-            | TronContract::WithdrawExpireUnfreeze { .. } => Ok(None),
+            TronContract::DelegateResource { receiver, .. } | TronContract::UnDelegateResource { receiver, .. } => Ok(Some(WalletConnectContract {
+                to: receiver.encode(),
+                value: 0,
+                token: None,
+                approval: None,
+            })),
+            TronContract::VoteWitness { .. } | TronContract::FreezeBalanceV2 { .. } | TronContract::UnfreezeBalanceV2 { .. } | TronContract::WithdrawBalance { .. } | TronContract::WithdrawExpireUnfreeze { .. } => Ok(None),
         }
     }
 

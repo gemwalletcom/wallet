@@ -23,6 +23,15 @@ impl From<&Resource> for TronResource {
     }
 }
 
+impl From<TronResource> for Resource {
+    fn from(resource: TronResource) -> Self {
+        match resource {
+            TronResource::Bandwidth => Self::Bandwidth,
+            TronResource::Energy => Self::Energy,
+        }
+    }
+}
+
 impl From<TronResource> for u64 {
     fn from(resource: TronResource) -> Self {
         resource as u64

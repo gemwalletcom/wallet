@@ -3,16 +3,20 @@ use std::error::Error;
 
 use async_trait::async_trait;
 use chain_traits::ChainSimulation;
+use chrono::Utc;
 use futures::future::join_all;
 use gem_client::Client;
+use primitives::Address as _;
 use primitives::{Asset, AssetId, Chain, SimulationBalanceChange, SimulationHeader, SimulationInput, SimulationResult};
 
 use crate::address::TronAddress;
 use crate::decode_wallet_connect_approval;
 use crate::models::{TriggerSmartContractData, TronRpcError};
-use crate::provider::simulation_mapper::{map_approval_simulation, map_execution_error, map_simulation_result};
+use crate::provider::simulation_mapper::{map_approval_simulation, map_execution_error, map_simulation_result, map_stake_simulation};
+use crate::provider::staking_mapper::map_withdrawable_unfreeze;
 use crate::rpc::TronProvider;
 use crate::transaction::approval::PERMIT2_APPROVE_SELECTOR;
+use crate::transaction::{TronContract, decode_wallet_connect_single_contract};
 use crate::trc20::is_approval_call;
 
 #[async_trait]
@@ -20,7 +24,7 @@ impl<C: Client> ChainSimulation for TronProvider<C> {
     async fn simulate_transaction(&self, input: SimulationInput) -> Result<SimulationResult, Box<dyn Error + Send + Sync>> {
         let signer_address = input.signer_address.as_deref().unwrap_or_default();
         let Some(contract_data) = TriggerSmartContractData::from_payload(Some(input.encoded_transaction.as_bytes()), signer_address)? else {
-            return Ok(SimulationResult::default());
+            return Ok(self.stake_simulation(&input.encoded_transaction).await.unwrap_or_default());
         };
 
         let data = hex::decode(&contract_data.data)?;
@@ -63,14 +67,25 @@ impl<C: Client> ChainSimulation for TronProvider<C> {
     }
 }
 
+impl<C: Client> TronProvider<C> {
+    async fn stake_simulation(&self, encoded_transaction: &str) -> Option<SimulationResult> {
+        let contract = decode_wallet_connect_single_contract(encoded_transaction).ok().flatten()?;
+        let withdrawal = match &contract {
+            TronContract::WithdrawBalance { owner } => self.get_reward(&owner.encode()).await.ok().map(|reward| BigUint::from(reward.reward)),
+            TronContract::WithdrawExpireUnfreeze { owner } => self.get_account(&owner.encode()).await.ok().map(|account| map_withdrawable_unfreeze(account, Utc::now())),
+            _ => None,
+        };
+        map_stake_simulation(&contract, withdrawal)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::rpc::TronClient;
     use gem_client::testkit::MockClient;
     use num_bigint::BigInt;
-    use primitives::Address as _;
-    use primitives::SimulationWarning;
+    use primitives::{SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationWarning};
 
     #[tokio::test]
     async fn test_simulate_transaction_decodes_approval() {
@@ -209,7 +224,83 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_simulate_transaction_non_trigger_smart_contract_returns_default() {
+    async fn test_simulate_transaction_describes_a_resource_delegation() {
+        let client = TronProvider::new_rpc_only(TronClient::new(MockClient::new()));
+        let fixtures: Vec<serde_json::Value> = serde_json::from_str(include_str!("../../testdata/wallet_connect_resource_delegation.json")).unwrap();
+        let locked = fixtures.into_iter().find(|fixture| fixture["name"] == "delegate_energy_locked").unwrap();
+        let input = SimulationInput::new(serde_json::json!({ "transaction": locked["transaction"] }).to_string());
+
+        let result = client.simulate_transaction(input).await.unwrap();
+
+        let primary = SimulationPayloadFieldDisplay::Primary;
+        assert_eq!(
+            result,
+            SimulationResult {
+                payload: vec![
+                    SimulationPayloadField::standard(SimulationPayloadFieldKind::Method, "DelegateResourceContract", SimulationPayloadFieldType::Text, primary.clone()),
+                    SimulationPayloadField::standard(SimulationPayloadFieldKind::Recipient, "THTR75o8xXAgCTQqpiot2AFRAjvW1tSbVV", SimulationPayloadFieldType::Address, primary.clone()),
+                    SimulationPayloadField::standard(SimulationPayloadFieldKind::Resource, "energy", SimulationPayloadFieldType::Text, primary.clone()),
+                    SimulationPayloadField::standard(SimulationPayloadFieldKind::LockTime, "86400", SimulationPayloadFieldType::Text, primary),
+                ],
+                header: Some(SimulationHeader {
+                    asset_id: AssetId::from_chain(Chain::Tron),
+                    value: Some(BigUint::from(2_000_000u32)),
+                    is_unlimited: false,
+                }),
+                ..SimulationResult::default()
+            }
+        );
+    }
+
+    #[tokio::test]
+    async fn test_simulate_transaction_shows_the_rewards_a_withdrawal_claims() {
+        let fixtures: Vec<serde_json::Value> = serde_json::from_str(include_str!("../../testdata/wallet_connect_resource_delegation.json")).unwrap();
+        let mut transaction = fixtures[0]["transaction"].clone();
+        transaction["raw_data"]["contract"][0] = serde_json::json!({
+            "type": "WithdrawBalanceContract",
+            "parameter": {
+                "type_url": "type.googleapis.com/protocol.WithdrawBalanceContract",
+                "value": { "owner_address": transaction["raw_data"]["contract"][0]["parameter"]["value"]["owner_address"].clone() }
+            }
+        });
+        let raw_data = serde_json::from_value::<crate::transaction::RawDataJson>(transaction["raw_data"].clone()).unwrap().encode().unwrap();
+        transaction["raw_data_hex"] = serde_json::json!(hex::encode(&raw_data));
+        transaction["txID"] = serde_json::json!(hex::encode(gem_hash::sha2::sha256(&raw_data)));
+        let input = SimulationInput::new(serde_json::json!({ "transaction": transaction }).to_string());
+
+        let rewarded = TronProvider::new_rpc_only(TronClient::new(MockClient::new().with_post(|_, _| Ok(br#"{"reward":7000000}"#.to_vec()))));
+        let failing = TronProvider::new_rpc_only(TronClient::new(MockClient::new()));
+        let action = vec![SimulationPayloadField::standard(
+            SimulationPayloadFieldKind::Action,
+            "stakeRewards",
+            SimulationPayloadFieldType::Text,
+            SimulationPayloadFieldDisplay::Primary,
+        )];
+
+        assert_eq!(
+            rewarded.simulate_transaction(input.clone()).await.unwrap(),
+            SimulationResult {
+                payload: action.clone(),
+                header: Some(SimulationHeader {
+                    asset_id: AssetId::from_chain(Chain::Tron),
+                    value: Some(BigUint::from(7_000_000u32)),
+                    is_unlimited: false,
+                }),
+                ..SimulationResult::default()
+            }
+        );
+        assert_eq!(
+            failing.simulate_transaction(input).await.unwrap(),
+            SimulationResult {
+                payload: action,
+                ..SimulationResult::default()
+            },
+            "a node that cannot answer still leaves the action on the review"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_simulate_transaction_undecodable_contract_returns_default() {
         let mock = MockClient::new().with_post(|_, _| Ok(Vec::new()));
         let client = TronProvider::new_rpc_only(TronClient::new(mock));
         let encoded_transaction = include_str!("../../testdata/wallet_connect_vote_witness_contract.json");

@@ -57,6 +57,17 @@ pub fn map_unfreeze_delegations(unfrozen: Vec<TronUnfrozen>, asset_id: &AssetId,
         .collect()
 }
 
+pub fn map_withdrawable_unfreeze(account: TronAccount, now: DateTime<Utc>) -> BigUint {
+    account
+        .unfrozen_v2
+        .map(|unfrozen| map_unfreeze_delegations(unfrozen, &Chain::Tron.as_asset_id(), now))
+        .unwrap_or_default()
+        .into_iter()
+        .filter(|delegation| delegation.state == DelegationState::AwaitingWithdrawal)
+        .map(|delegation| delegation.balance)
+        .sum()
+}
+
 fn unfreeze_delegation(asset_id: &AssetId, state: DelegationState, balance: BigUint, completion_date: DateTime<Utc>) -> DelegationBase {
     DelegationBase {
         asset_id: asset_id.clone(),
@@ -120,6 +131,18 @@ mod tests {
         assert_eq!(delegations[0].balance, BigUint::from(4u32));
         assert_eq!(delegations[1].state, DelegationState::AwaitingWithdrawal);
         assert_eq!(delegations[1].balance, BigUint::from(6u32));
+    }
+
+    #[test]
+    fn test_map_withdrawable_unfreeze() {
+        let now = DateTime::from_timestamp(1_000_000, 0).unwrap();
+        let account = TronAccount {
+            unfrozen_v2: Some(vec![TronUnfrozen::mock(6, 900_000_000), TronUnfrozen::mock(5, 800_000_000), TronUnfrozen::mock(4, 2_000_000_000)]),
+            ..TronAccount::mock("TJoSEwEqt7cT3TUwmEoUYnYs5cZR3xSukM")
+        };
+
+        assert_eq!(map_withdrawable_unfreeze(account, now), BigUint::from(11u32));
+        assert_eq!(map_withdrawable_unfreeze(TronAccount::mock("TJoSEwEqt7cT3TUwmEoUYnYs5cZR3xSukM"), now), BigUint::ZERO);
     }
 
     #[test]
