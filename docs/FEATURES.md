@@ -353,7 +353,7 @@ CoinGecko and CoinMarketCap provide USD-based rates with a provider assigned per
 
 ## Fiat providers
 
-All providers below are active except Fonbnk, which stays disabled until the app release that knows it has rolled out. Order lookup and webhooks provide payment-status updates.
+All providers below are active except Fonbnk and Topper, which stay disabled until the app release that knows them has rolled out. Order lookup and webhooks provide payment-status updates.
 
 | Provider | Buy quotes | Sell quotes | Asset catalog | Countries | Checkout | Webhooks | Order lookup |
 | --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
@@ -364,6 +364,7 @@ All providers below are active except Fonbnk, which stays disabled until the app
 | [Paybis](../core/crates/fiat/src/providers/paybis/provider.rs) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
 | [Cash App / Flashnet](../core/crates/fiat/src/providers/flashnet/provider.rs) | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ | ❌ |
 | [Fonbnk](../core/crates/fiat/src/providers/fonbnk/provider.rs) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
+| [Topper](../core/crates/fiat/src/providers/topper/provider.rs) | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ | ❌ |
 
 Payment methods include cards, Apple Pay, and Google Pay. Flashnet supports Cash App in the US only. Fonbnk supports mobile money and bank transfer in local currency, mostly across Africa. Availability varies by provider and country.
 

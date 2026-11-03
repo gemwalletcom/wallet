@@ -86,6 +86,7 @@ fun FiatProviderName.iconResource(): Int = when (this) {
     FiatProviderName.Paybis -> R.drawable.fiat_provider_paybis
     FiatProviderName.Flashnet -> R.drawable.fiat_provider_cashapp
     FiatProviderName.Fonbnk -> R.drawable.fiat_provider_fonbnk
+    FiatProviderName.Topper -> R.drawable.fiat_provider_topper
 }
 
 @DrawableRes

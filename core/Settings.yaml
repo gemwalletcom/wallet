@@ -116,6 +116,17 @@ fiat:
     webhook:
       key:
         secret: ""
+  topper:
+    url: "https://api.topperpay.com"
+    widget:
+      url: "https://app.topperpay.com"
+    key:
+      id: ""
+      public: ""
+      secret: ""
+    webhook:
+      key:
+        public: ""
 swap:
   nearintents:
     url: "https://1click.chaindefuser.com"

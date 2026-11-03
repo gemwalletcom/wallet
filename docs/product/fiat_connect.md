@@ -11,7 +11,7 @@ flowchart LR
 
 1. The user taps Buy on the wallet screen, an asset or the welcome banner and picks an asset; the screen opens as "Buy X", with a Buy | Sell switch when the asset can be sold.
 2. The amount is in US dollars, with `$100` and `$250` presets.
-3. Shortly after typing stops, every provider (MoonPay, Mercuryo, Transak, Banxa, Paybis, Cash App, Fonbnk) is asked at once; the Provider row shows the best one with its Rate and about how much crypto that is.
+3. Shortly after typing stops, every provider (MoonPay, Mercuryo, Transak, Banxa, Paybis, Cash App, Fonbnk, Topper) is asked at once; the Provider row shows the best one with its Rate and about how much crypto that is.
 4. Continue opens the provider's page.
 5. The activity icon lists every buy and sell with its provider, amounts and status; a row opens the provider's order page.
 

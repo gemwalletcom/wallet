@@ -21,5 +21,7 @@ enum class FiatProviderName(val string: String) {
 	Flashnet("flashnet"),
 	@SerialName("fonbnk")
 	Fonbnk("fonbnk"),
+	@SerialName("topper")
+	Topper("topper"),
 }
 

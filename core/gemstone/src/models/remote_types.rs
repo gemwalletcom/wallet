@@ -293,6 +293,7 @@ pub enum FiatProviderName {
     Paybis,
     Flashnet,
     Fonbnk,
+    Topper,
 }
 
 #[uniffi::remote(Enum)]

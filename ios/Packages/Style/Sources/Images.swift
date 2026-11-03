@@ -127,6 +127,7 @@ public enum Images {
         public static let cashapp = Image(.cashapp)
         public static let paybis = Image(.paybis)
         public static let fonbnk = Image(.fonbnk)
+        public static let topper = Image(.topper)
     }
 
     public enum Actions {

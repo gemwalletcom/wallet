@@ -1,0 +1,212 @@
+{
+  "paymentMethods": [
+    {
+      "billingAsset": "USD",
+      "countries": [
+        "AE",
+        "AR"
+      ],
+      "type": "apple-pay",
+      "limits": [
+        {
+          "asset": "EUR",
+          "maximum": "44678.22",
+          "minimum": "8.94"
+        },
+        {
+          "asset": "USD",
+          "maximum": "50000.00",
+          "minimum": "10.00"
+        }
+      ],
+      "network": "apple-pay",
+      "periodicities": [
+        {
+          "applicableCountries": [
+            "AE",
+            "AR"
+          ],
+          "availablePeriodicities": [
+            "once"
+          ]
+        }
+      ]
+    },
+    {
+      "billingAsset": "GBP",
+      "countries": [
+        "GB",
+        "GG"
+      ],
+      "type": "apple-pay",
+      "limits": [
+        {
+          "asset": "EUR",
+          "maximum": "59881.96",
+          "minimum": "11.98"
+        },
+        {
+          "asset": "USD",
+          "maximum": "67014.71",
+          "minimum": "13.41"
+        }
+      ],
+      "network": "apple-pay",
+      "periodicities": [
+        {
+          "applicableCountries": [
+            "GB",
+            "GG"
+          ],
+          "availablePeriodicities": [
+            "once"
+          ]
+        }
+      ]
+    },
+    {
+      "billingAsset": "USD",
+      "countries": [
+        "AE",
+        "AG"
+      ],
+      "type": "credit-card",
+      "limits": [
+        {
+          "asset": "EUR",
+          "maximum": "44678.22",
+          "minimum": "8.94"
+        },
+        {
+          "asset": "USD",
+          "maximum": "50000.00",
+          "minimum": "10.00"
+        }
+      ],
+      "network": "card",
+      "periodicities": [
+        {
+          "applicableCountries": [
+            "AE",
+            "AG"
+          ],
+          "availablePeriodicities": [
+            "once"
+          ]
+        },
+        {
+          "applicableCountries": [
+            "US"
+          ],
+          "availablePeriodicities": [
+            "once",
+            "weekly",
+            "monthly"
+          ]
+        }
+      ]
+    },
+    {
+      "billingAsset": "USD",
+      "countries": [
+        "AE",
+        "AG"
+      ],
+      "type": "debit-card",
+      "limits": [
+        {
+          "asset": "EUR",
+          "maximum": "44678.22",
+          "minimum": "8.94"
+        },
+        {
+          "asset": "USD",
+          "maximum": "50000.00",
+          "minimum": "10.00"
+        }
+      ],
+      "network": "card",
+      "periodicities": [
+        {
+          "applicableCountries": [
+            "AE",
+            "AG"
+          ],
+          "availablePeriodicities": [
+            "once"
+          ]
+        },
+        {
+          "applicableCountries": [
+            "US"
+          ],
+          "availablePeriodicities": [
+            "once",
+            "weekly",
+            "monthly"
+          ]
+        }
+      ]
+    },
+    {
+      "billingAsset": "USD",
+      "countries": [
+        "US"
+      ],
+      "type": "paypal",
+      "limits": [
+        {
+          "asset": "EUR",
+          "maximum": "44678.22",
+          "minimum": "8.94"
+        },
+        {
+          "asset": "USD",
+          "maximum": "50000.00",
+          "minimum": "10.00"
+        }
+      ],
+      "network": "paypal",
+      "periodicities": [
+        {
+          "applicableCountries": [
+            "US"
+          ],
+          "availablePeriodicities": [
+            "once"
+          ]
+        }
+      ]
+    },
+    {
+      "billingAsset": "USD",
+      "countries": [
+        "US"
+      ],
+      "type": "venmo",
+      "limits": [
+        {
+          "asset": "EUR",
+          "maximum": "44678.22",
+          "minimum": "8.94"
+        },
+        {
+          "asset": "USD",
+          "maximum": "50000.00",
+          "minimum": "10.00"
+        }
+      ],
+      "network": "venmo",
+      "periodicities": [
+        {
+          "applicableCountries": [
+            "US"
+          ],
+          "availablePeriodicities": [
+            "once"
+          ]
+        }
+      ]
+    }
+  ]
+}

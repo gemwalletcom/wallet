@@ -89,6 +89,7 @@ pub struct Fiat {
     pub paybis: Paybis,
     pub flashnet: Flashnet,
     pub fonbnk: Fonbnk,
+    pub topper: Topper,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -178,6 +179,21 @@ pub struct Fonbnk {
 }
 
 #[derive(Debug, Deserialize, Clone)]
+pub struct Topper {
+    pub url: String,
+    pub widget: URL,
+    pub key: TopperKey,
+    pub webhook: PublicKeySettings,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct TopperKey {
+    pub id: String,
+    pub public: String,
+    pub secret: String,
+}
+
+#[derive(Debug, Deserialize, Clone)]
 pub struct Banxa {
     pub api: URL,
     pub redirect: URL,
@@ -201,6 +217,16 @@ pub struct MercuryoKey {
 #[derive(Debug, Deserialize, Clone)]
 pub struct SecretKeySettings {
     pub key: KeySecret,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct KeyPublic {
+    pub public: String,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct PublicKeySettings {
+    pub key: KeyPublic,
 }
 pub type CoinGecko = ProviderSettings;
 pub type CoinMarketCap = ProviderSettings;
