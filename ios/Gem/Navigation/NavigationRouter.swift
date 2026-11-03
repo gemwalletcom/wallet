@@ -107,7 +107,16 @@ final class NavigationRouter: Sendable {
 
     @MainActor
     func openAsset(_ asset: Asset) {
-        appendAsset(target: navigationService.assetTarget(asset: asset.toGem()))
+        Task { await open(assetId: asset.id) }
+    }
+
+    @MainActor
+    private func open(assetId: AssetId) async {
+        do {
+            try await appendAsset(target: navigationService.openAsset(assetId: assetId))
+        } catch {
+            showError(error)
+        }
     }
 
     @MainActor
@@ -327,5 +336,9 @@ extension NavigationRouter {
 
     func resetNavigation() {
         navigationState.reset()
+    }
+
+    func backToRoot(tab: TabItem) {
+        navigationState.backToRoot(tab: tab)
     }
 }
