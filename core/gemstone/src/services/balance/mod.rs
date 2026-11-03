@@ -71,7 +71,6 @@ impl GemBalanceService {
         Ok(())
     }
 
-    // introduces assets the wallet has no row for yet; an asset with a stored row, shown or hidden, keeps the user's choice
     pub async fn enable_new_assets(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
         if asset_ids.is_empty() {
             return Ok(());
