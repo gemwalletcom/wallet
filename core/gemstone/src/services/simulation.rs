@@ -296,7 +296,15 @@ fn stake_payload_row(field: &SimulationPayloadField) -> Option<GemListRow> {
             info: None,
             estimate: false,
         }),
-        _ => None,
+        SimulationPayloadFieldKind::Contract
+        | SimulationPayloadFieldKind::Method
+        | SimulationPayloadFieldKind::Token
+        | SimulationPayloadFieldKind::Spender
+        | SimulationPayloadFieldKind::Value
+        | SimulationPayloadFieldKind::Expiration
+        | SimulationPayloadFieldKind::Recipient
+        | SimulationPayloadFieldKind::Validator
+        | SimulationPayloadFieldKind::Custom => None,
     }
 }
 

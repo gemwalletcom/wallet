@@ -73,7 +73,13 @@ impl<C: Client> TronProvider<C> {
         let withdrawal = match &contract {
             TronContract::WithdrawBalance { owner } => self.get_reward(&owner.encode()).await.ok().map(|reward| BigUint::from(reward.reward)),
             TronContract::WithdrawExpireUnfreeze { owner } => self.get_account(&owner.encode()).await.ok().map(|account| map_withdrawable_unfreeze(account, Utc::now())),
-            _ => None,
+            TronContract::Transfer { .. }
+            | TronContract::TriggerSmart { .. }
+            | TronContract::VoteWitness { .. }
+            | TronContract::FreezeBalanceV2 { .. }
+            | TronContract::UnfreezeBalanceV2 { .. }
+            | TronContract::DelegateResource { .. }
+            | TronContract::UnDelegateResource { .. } => None,
         };
         map_stake_simulation(&contract, withdrawal)
     }
