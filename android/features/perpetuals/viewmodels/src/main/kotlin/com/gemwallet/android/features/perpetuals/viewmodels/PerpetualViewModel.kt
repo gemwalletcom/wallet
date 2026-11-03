@@ -18,6 +18,7 @@ import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.ext.transactions
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.StateViewType
@@ -58,6 +59,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemCandleChart
 import uniffi.gemstone.GemInfoTopic
+import uniffi.gemstone.GemListWindow
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemPerpetualDetails
 import uniffi.gemstone.GemPerpetualDetailsServiceInterface
@@ -113,11 +115,19 @@ class PerpetualViewModel @Inject constructor(
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val transactions = getTransactions.getTransactions(transactionsFilter, GemConstants.transactionsListLimit)
+    private val transactionsWindow = MutableStateFlow(GemListWindow.transactions)
+
+    val transactions = transactionsWindow.map { it.limit }
+        .flatMapLatest { limit -> getTransactions.getTransactions(transactionsFilter, limit) }
         .flowOn(ioDispatcher)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, getTransactions.stored(transactionsFilter, GemConstants.transactionsListLimit))
+        .stateIn(viewModelScope, SharingStarted.Eagerly, getTransactions.stored(transactionsFilter, transactionsWindow.value.limit))
 
     private val candles = MutableStateFlow(candleSession(service.chartPeriod()))
+
+    private val markers = candles.map { it.markersRequest(assetId.toIdentifier()) }
+        .distinctUntilChanged()
+        .flatMapLatest { request -> getTransactions.getTransactions(request.filter.toPrimitives(), request.limit) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val period: StateFlow<ChartPeriod> = candles.map { it.period.toPrimitives() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, candles.value.period.toPrimitives())
@@ -125,7 +135,7 @@ class PerpetualViewModel @Inject constructor(
     private val refreshingState = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = refreshingState.asStateFlow()
 
-    val chart: StateFlow<StateViewType<GemCandleChart>> = combine(candles, perpetual.map { it?.asset }.distinctUntilChanged(), position, transactions) { session, asset, position, transactions ->
+    val chart: StateFlow<StateViewType<GemCandleChart>> = combine(candles, perpetual.map { it?.asset }.distinctUntilChanged(), position, markers) { session, asset, position, markers ->
         when (val state = session.viewState().state) {
             GemLoadState.Loading -> StateViewType.Loading
 
@@ -135,7 +145,7 @@ class PerpetualViewModel @Inject constructor(
 
             GemLoadState.Data ->
                 asset
-                    ?.let { session.chart(it.toGem(), position?.toGem(), transactions, ZoneId.systemDefault().rules.getOffset(Instant.now()).totalSeconds) }
+                    ?.let { session.chart(it.toGem(), position?.toGem(), markers, ZoneId.systemDefault().rules.getOffset(Instant.now()).totalSeconds) }
                     ?.let { StateViewType.Data(it) } ?: StateViewType.NoData
         }
     }
@@ -266,4 +276,8 @@ class PerpetualViewModel @Inject constructor(
     }
 
     fun clearError() = errorState.update { null }
+
+    fun onTransactionsEndReached() {
+        transactionsWindow.update { it.onEndReached(transactions.value.size) }
+    }
 }

@@ -35,7 +35,8 @@ fun GemConfirmFeeRow.listItem(context: Context): ListItemModel {
 
 fun GemFeeAmount?.networkFeeListItem(context: Context, feeAsset: Asset): ListItemModel = ListItemModel(
     title = context.getString(R.string.transfer_network_fee),
-    subtitle = this?.let { fee -> fee.fiat?.text() ?: fee.amount.text() },
+    subtitle = this?.amount?.text(),
+    subtitleExtra = this?.fiat?.text(),
     info = networkFeeInfo(feeAsset),
 )
 

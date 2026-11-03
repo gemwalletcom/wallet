@@ -413,7 +413,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verfolgen Sie die Preise der wichtigsten Kryptowährungen"
+            "value": "Preise der wichtigsten Kryptowährungen verfolgen"
           }
         },
         "en": {
@@ -443,7 +443,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Suivez les prix des principales crypto-monnaies"
+            "value": "Suivez les prix des principales cryptomonnaies"
           }
         },
         "ha": {

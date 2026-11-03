@@ -5,7 +5,7 @@ pub(crate) fn redemption_rejection(points: i32, option: &RewardRedemptionOption)
     if points < option.points {
         return Some(RewardsRedemptionError::NotEnoughPoints);
     }
-    if option.remaining == Some(0) {
+    if !option.is_available() {
         return Some(RewardsRedemptionError::OptionNotAvailable);
     }
     None
@@ -17,7 +17,10 @@ mod tests {
 
     #[test]
     fn test_redemption_rejection() {
-        let option = RewardRedemptionOption::mock(None);
+        let option = RewardRedemptionOption {
+            remaining: Some(1),
+            ..RewardRedemptionOption::mock(None)
+        };
 
         assert!(redemption_rejection(option.points, &option).is_none());
         assert_eq!(redemption_rejection(option.points - 1, &option), Some(RewardsRedemptionError::NotEnoughPoints));
@@ -25,6 +28,6 @@ mod tests {
             redemption_rejection(option.points, &RewardRedemptionOption { remaining: Some(0), ..option.clone() }),
             Some(RewardsRedemptionError::OptionNotAvailable)
         );
-        assert!(redemption_rejection(option.points, &RewardRedemptionOption { remaining: None, ..option }).is_none());
+        assert_eq!(redemption_rejection(option.points, &RewardRedemptionOption { remaining: None, ..option }), Some(RewardsRedemptionError::OptionNotAvailable));
     }
 }

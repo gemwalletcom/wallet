@@ -13,19 +13,10 @@ pub trait AssetBalanceProvider: Send + Sync {
     async fn get_asset_balances(&self, address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>>;
 }
 
-struct EmptyAssetBalanceProvider;
-
-#[async_trait]
-impl AssetBalanceProvider for EmptyAssetBalanceProvider {
-    async fn get_asset_balances(&self, _address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>> {
-        Ok(Vec::new())
-    }
-}
-
 pub struct EthereumProvider<C: Client + Clone> {
     client: EthereumClient<C>,
     transactions_by_address_provider: Box<dyn ChainTransactions>,
-    asset_balance_provider: Box<dyn AssetBalanceProvider>,
+    asset_balance_provider: Option<Box<dyn AssetBalanceProvider>>,
     pub(crate) provider: Box<dyn EvmChainProvider>,
 }
 
@@ -44,7 +35,7 @@ impl<C: Client + Clone> EthereumProvider<C> {
         Self {
             client,
             transactions_by_address_provider,
-            asset_balance_provider,
+            asset_balance_provider: Some(asset_balance_provider),
             provider,
         }
     }
@@ -53,18 +44,26 @@ impl<C: Client + Clone> EthereumProvider<C> {
     where
         C: 'static,
     {
-        Self::new(client, Box::new(EmptyTransactionsProvider), Box::new(EmptyAssetBalanceProvider))
+        Self::new_rpc_only_with_provider(client.clone(), Box::new(client))
     }
 
     pub fn new_rpc_only_with_provider(client: EthereumClient<C>, provider: Box<dyn EvmChainProvider>) -> Self
     where
         C: 'static,
     {
-        Self::new_with_provider(client, Box::new(EmptyTransactionsProvider), Box::new(EmptyAssetBalanceProvider), provider)
+        Self {
+            client,
+            transactions_by_address_provider: Box::new(EmptyTransactionsProvider),
+            asset_balance_provider: None,
+            provider,
+        }
     }
 
-    pub(crate) async fn get_asset_balances(&self, address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>> {
-        self.asset_balance_provider.get_asset_balances(address).await
+    pub(crate) async fn get_asset_balances(&self, address: String) -> Result<Option<Vec<AssetBalance>>, Box<dyn Error + Send + Sync>> {
+        match &self.asset_balance_provider {
+            Some(provider) => Ok(Some(provider.get_asset_balances(address).await?)),
+            None => Ok(None),
+        }
     }
 }
 
@@ -92,7 +91,7 @@ mod tests {
     use crate::testkit::chain_provider_mock::MockChainProvider;
 
     #[tokio::test]
-    async fn test_rpc_only_provider_returns_empty_transactions_and_asset_balances() {
+    async fn test_rpc_only_provider_returns_empty_transactions_and_no_asset_balances() {
         let client = EthereumClient::mock(EVMChain::OpBNB);
         let provider: Box<dyn ChainTraits> = Box::new(EthereumProvider::new_rpc_only(client));
 
@@ -102,7 +101,7 @@ mod tests {
         };
         assert!(transactions.is_empty());
 
-        assert!(provider.get_balance_assets("0x123".to_string()).await.unwrap().is_empty());
+        assert!(provider.get_balance_assets("0x123".to_string()).await.unwrap().is_none());
     }
 
     #[tokio::test]

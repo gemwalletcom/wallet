@@ -28,7 +28,6 @@ public struct PerpetualScene: View {
                 PerpetualChartSection(
                     chart: model.chart,
                     position: details.position,
-                    transactions: model.transactions,
                     onPeriodChange: model.onPeriodChange,
                 )
             }
@@ -65,7 +64,7 @@ public struct PerpetualScene: View {
             }
 
             if !model.transactionSections.isEmpty {
-                TransactionsList(sections: model.transactionSections)
+                TransactionsList(sections: model.transactionSections, onEndReached: model.onTransactionsEndReached)
                     .listRowInsets(.assetListRowInsets)
             }
         }

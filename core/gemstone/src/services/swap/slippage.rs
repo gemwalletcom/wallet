@@ -70,7 +70,7 @@ impl GemSlippageSession {
     }
 
     pub fn on_input(&self, text: String) -> Self {
-        let maximum_integer_digits = rules::slippage_percent(get_swap_config().max_slippage_bps).trunc().to_string().len() as u32;
+        let maximum_integer_digits = rules::slippage_percent(get_swap_config().max_slippage_bps).trunc().to_string().len();
         Self {
             input: sanitize_number_input(&self.format.decimal_separator, &text, Some(SLIPPAGE_FRACTION_DIGITS), Some(maximum_integer_digits)),
             ..self.clone()
@@ -113,7 +113,7 @@ fn percent(bps: u32) -> GemFormattedNumber {
     GemFormattedNumber::percentage(rules::slippage_percent(bps), GemPercentageStyle::UnsignedCompact)
 }
 
-const SLIPPAGE_FRACTION_DIGITS: u32 = 2;
+const SLIPPAGE_FRACTION_DIGITS: usize = 2;
 
 #[cfg(test)]
 mod tests {

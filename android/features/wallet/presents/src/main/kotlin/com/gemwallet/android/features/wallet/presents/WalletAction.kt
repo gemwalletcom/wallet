@@ -2,21 +2,28 @@ package com.gemwallet.android.features.wallet.presents
 
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.NFTAssetId
+import uniffi.gemstone.GemBannerKey
 
 sealed interface WalletAction {
-    data object ShowWallets : WalletAction
-    data object Manage : WalletAction
-    data object Search : WalletAction
-    data object Scan : WalletAction
-    data object Send : WalletAction
-    data object Receive : WalletAction
-    data object Buy : WalletAction
-    data object Swap : WalletAction
-    data object Portfolio : WalletAction
-    data object Perpetuals : WalletAction
-    data class OpenPerpetual(val assetId: AssetId) : WalletAction
-    data class OpenAsset(val assetId: AssetId) : WalletAction
-    data object OpenCollections : WalletAction
-    data class OpenNftCollection(val collectionId: String) : WalletAction
-    data class OpenNftAsset(val assetId: NFTAssetId) : WalletAction
+    sealed interface Navigation : WalletAction
+
+    data object ShowWallets : Navigation
+    data object Manage : Navigation
+    data object Search : Navigation
+    data object Scan : Navigation
+    data object Send : Navigation
+    data object Receive : Navigation
+    data object Buy : Navigation
+    data object Swap : Navigation
+    data object Portfolio : Navigation
+    data object Perpetuals : Navigation
+    data class OpenPerpetual(val assetId: AssetId) : Navigation
+    data class OpenAsset(val assetId: AssetId) : Navigation
+    data object OpenCollections : Navigation
+    data class OpenNftCollection(val collectionId: String) : Navigation
+    data class OpenNftAsset(val assetId: NFTAssetId) : Navigation
+
+    data object Refresh : WalletAction
+    data object HideBalances : WalletAction
+    data class CloseBanner(val key: GemBannerKey) : WalletAction
 }

@@ -3,6 +3,9 @@
   <string name="common_cancel">キャンセル</string>
   <string name="common_hidden">非表示</string>
   <string name="common_done">完了</string>
+  <string name="common_add">追加</string>
+  <string name="common_close">閉じる</string>
+  <string name="common_back">戻る</string>
   <string name="common_maximum_value">最大値は %1$s です</string>
   <string name="common_minimum_value">最小値は %1$s です</string>
   <string name="common_secret_phrase">リカバリーフレーズ</string>
@@ -60,7 +63,6 @@
   <string name="common_suspicious_address_description">このアドレスは不審または悪意のある活動に関連しています。</string>
   <string name="common_refresh">更新</string>
   <string name="common_grant_permission">許可する</string>
-  <string name="common_required_field">%1$sは必須です</string>
   <string name="welcome_title">Gemファミリーへようこそ</string>
   <string name="wallet_create_new_wallet">新しいウォレットを作成する</string>
   <string name="wallet_import_existing_wallet">既存のウォレットをインポートする</string>
@@ -144,7 +146,6 @@
   <string name="transfer_freeze_title">凍結</string>
   <string name="transfer_unfreeze_title">凍結解除</string>
   <string name="transfer_review_request">リクエストを確認</string>
-  <string name="transfer_amount">金額</string>
   <string name="settings_terms_of_services">利用規約</string>
   <string name="settings_privacy_policy">プライバシーポリシー</string>
   <string name="settings_title">設定</string>
@@ -225,7 +226,6 @@
   <string name="errors_swap_minimum_amount">最低取引金額は %1$s です。これより大きい金額を入力してください。</string>
   <string name="errors_perpetual_trigger_price_lower">トリガー価格は市場価格より低くする必要があります</string>
   <string name="errors_perpetual_trigger_price_higher">トリガー価格は市場価格より高くする必要があります</string>
-  <string name="errors_unknown_try_again">不明なエラーが発生しました。もう一度お試しください。</string>
   <string name="errors_network_error">ネットワークエラー: %1$s</string>
   <string name="errors_network_offline">インターネット接続が切断されているようです。</string>
   <string name="errors_no_internet_connection">インターネット接続がありません</string>
@@ -285,7 +285,6 @@
   <string name="asset_get_asset">%1$sを入手</string>
   <string name="asset_add_to_wallet">ウォレットに追加</string>
   <string name="asset_added_to_wallet">ウォレットに追加しました</string>
-  <string name="asset_hidden_from_wallet">ウォレットから非表示にしました</string>
   <string name="asset_resources">リソース</string>
   <string name="asset_verification_verified">検証済み</string>
   <string name="asset_all_time_high">史上最高値</string>
@@ -302,6 +301,8 @@
   <string name="charts_price_high">高値</string>
   <string name="charts_price_low">安値</string>
   <string name="charts_price_change">変動</string>
+  <string name="charts_candlestick">ローソク足チャート</string>
+  <string name="charts_line">ラインチャート</string>
   <string name="date_today">今日</string>
   <string name="date_yesterday">昨日</string>
   <string name="date_day_time">%1$s %2$s</string>

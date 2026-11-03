@@ -34,10 +34,12 @@ struct QRScannerDisplayView: View {
             ZStack {
                 configuration.overlayColor
 
-                QRScannerViewWrapper(
-                    isScannerReady: $isScannerReady,
-                    scanResult: scanResult,
-                )
+                #if !targetEnvironment(macCatalyst)
+                    QRScannerViewWrapper(
+                        isScannerReady: $isScannerReady,
+                        scanResult: scanResult,
+                    )
+                #endif
 
                 configuration.overlayColor
                     .opacity(configuration.dimmedViewOpacity)

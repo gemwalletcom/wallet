@@ -39,7 +39,9 @@ impl MessageConsumer<ChainAddressPayload, usize> for FetchTokenAddressesConsumer
 
     async fn consume(&self, payload: ChainAddressPayload) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let chain_address = payload.value;
-        let balances = self.provider.get_balance_assets(chain_address.chain, chain_address.address.clone()).await?;
+        let Some(balances) = self.provider.get_balance_assets(chain_address.chain, chain_address.address.clone()).await? else {
+            return Ok(0);
+        };
         let update = self.repository.update_token_addresses(chain_address, balances).await?;
         self.stream_producer.publish_fetch_assets(update.unknown_asset_ids).await?;
         Ok(update.added)

@@ -10,10 +10,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.toChain
 import com.gemwallet.android.features.transactions.presents.transaction.components.TransactionSwapProgressItem
 import com.gemwallet.android.features.transactions.viewmodels.models.TransactionHeaderTarget
+import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.list_head.TransactionListHead
 import com.gemwallet.android.ui.components.list_item.GemListRowView
@@ -39,7 +41,7 @@ internal fun TransactionScene(title: String, sections: List<ListSection<GemTrans
         title = title,
         actions = {
             IconButton(onClick = { onAction(TransactionAction.Share) }) {
-                Icon(AppIcons.Share, "")
+                Icon(AppIcons.Share, stringResource(R.string.common_share))
             }
         },
         onClose = { onAction(TransactionAction.Close) },

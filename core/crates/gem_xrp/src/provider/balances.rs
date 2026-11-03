@@ -40,9 +40,9 @@ impl<C: Client + Clone> ChainBalances for XrpClient<C> {
         Ok(map_balance_tokens(&objects, &address, token_ids, self.get_chain()))
     }
 
-    async fn get_balance_assets(&self, address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>> {
+    async fn get_balance_assets(&self, address: String) -> Result<Option<Vec<AssetBalance>>, Box<dyn Error + Send + Sync>> {
         let objects = default_if_account_not_found(self.get_account_objects(&address).await)?;
-        Ok(map_balance_assets(&objects, &address, self.get_chain()))
+        Ok(Some(map_balance_assets(&objects, &address, self.get_chain())))
     }
 }
 
@@ -82,7 +82,7 @@ mod tests {
         assert_eq!(token_balances.len(), 1);
         assert_eq!(token_balances[0].asset_id, AssetId::from_token(Chain::Xrp, token_id));
         assert_eq!(token_balances[0].balance.available, BigUint::ZERO);
-        assert_eq!(asset_balances, vec![]);
+        assert_eq!(asset_balances, Some(vec![]));
     }
 }
 
@@ -143,7 +143,7 @@ mod chain_integration_tests {
     async fn test_xrp_get_balance_assets() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_xrp_test_client();
         let address = TEST_ADDRESS.to_string();
-        let assets = client.get_balance_assets(address).await?;
+        let assets = client.get_balance_assets(address).await?.unwrap();
 
         println!("Assets: {}", assets.len());
 

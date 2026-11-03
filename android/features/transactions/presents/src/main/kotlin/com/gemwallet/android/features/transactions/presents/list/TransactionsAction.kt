@@ -6,6 +6,7 @@ import uniffi.gemstone.GemTransactionFilter
 
 internal sealed interface TransactionsAction {
     data object Refresh : TransactionsAction
+    data object EndReached : TransactionsAction
     data object ClearFilters : TransactionsAction
     data object Buy : TransactionsAction
     data object Receive : TransactionsAction

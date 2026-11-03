@@ -3,7 +3,7 @@ use std::{error::Error, sync::Arc};
 use cacher::SwapVaultAddressCacher;
 use gem_jsonrpc::types::ToJsonRpcRequest;
 use primitives::SwapProvider;
-use swapper::chainflip::broker::{DepositChannelRequest, DepositChannelResponse};
+use swapper::chainflip::broker::DepositChannelRequest;
 use swapper::chainflip::chain::ChainflipChain;
 
 use super::proxy_client::SwapProxyClient;
@@ -15,17 +15,13 @@ pub struct ChainflipProxyClient {
 impl ChainflipProxyClient {
     pub fn new(url: String, deposit_addresses: Arc<dyn SwapVaultAddressCacher>) -> Self {
         Self {
-            client: SwapProxyClient::new(url, deposit_addresses, SwapProvider::Chainflip, &[]),
+            client: SwapProxyClient::new(url, deposit_addresses, SwapProvider::Chainflip),
         }
     }
 
     pub async fn deposit_channel(&self, request: &DepositChannelRequest) -> Result<gem_client::Response, Box<dyn Error + Send + Sync>> {
         validate_source(request)?;
-        let response = self.client.post("", &request.to_jsonrpc_request(1)).await?;
-        if let Some(deposit_address) = DepositChannelResponse::from_jsonrpc(&response.data).and_then(|channel| channel.deposit_address().ok()) {
-            self.client.cache_deposit_id(deposit_address).await;
-        }
-        Ok(response)
+        Ok(self.client.post("", &request.to_jsonrpc_request(1)).await?)
     }
 }
 

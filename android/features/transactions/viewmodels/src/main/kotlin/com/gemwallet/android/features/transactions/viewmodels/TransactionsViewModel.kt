@@ -6,9 +6,9 @@ import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.connection.cases.ObserveRefreshInterval
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
-import com.gemwallet.android.ext.GemConstants
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.ext.transactions
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletType
@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemListPhase
+import uniffi.gemstone.GemListWindow
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemRefreshKind
 import uniffi.gemstone.GemTransactionFilter
@@ -74,14 +75,14 @@ class TransactionsViewModel @Inject constructor(
     private var syncedWalletId: WalletId? = null
     private var refreshJob: Job? = null
 
-    val transactions = filterView
-        .map { it.filter.toPrimitives() }
-        .distinctUntilChanged()
-        .flatMapLatest { filter -> getTransactions.getTransactions(filter, GemConstants.transactionsListLimit) }
+    private val window = MutableStateFlow(GemListWindow.transactions)
+
+    val transactions = combine(filterView.map { it.filter.toPrimitives() }.distinctUntilChanged(), window.map { it.limit }, ::Pair)
+        .flatMapLatest { (filter, limit) -> getTransactions.getTransactions(filter, limit) }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.Eagerly,
-            initialValue = getTransactions.stored(filterView.value.filter.toPrimitives(), GemConstants.transactionsListLimit).takeIf { it.isNotEmpty() },
+            initialValue = getTransactions.stored(filterView.value.filter.toPrimitives(), window.value.limit).takeIf { it.isNotEmpty() },
         )
 
     private val transactionsState = MutableStateFlow<GemLoadState>(GemLoadState.Loading)
@@ -143,5 +144,9 @@ class TransactionsViewModel @Inject constructor(
 
     fun clearFilters() {
         _filter.update { it.onClear() }
+    }
+
+    fun onEndReached() {
+        window.update { it.onEndReached(transactions.value.orEmpty().size) }
     }
 }

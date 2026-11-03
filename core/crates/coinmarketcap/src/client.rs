@@ -1,11 +1,9 @@
-use crate::mapper::map_fiat_rates;
+use crate::mapper::map_fiat_rate;
 use crate::model::{Info, Listing, ListingsResponse, PriceConversionResponse};
 use crate::target::CoinMarketCapTarget;
-use futures::{StreamExt, TryStreamExt, stream};
 use gem_client::{Client, ClientExt, RemoteProviderConfig, ReqwestClient};
 use primitives::{Currency, FiatRate};
 use serde_json::Value;
-use std::slice::from_ref;
 use std::{collections::HashMap, error::Error};
 
 const API_KEY_HEADER: &str = "X-CMC_PRO_API_KEY";
@@ -34,19 +32,9 @@ impl<C: Client> CoinMarketCapClient<C> {
         }
     }
 
-    pub async fn get_fiat_rates(&self, currencies: &[Currency]) -> Result<Vec<FiatRate>, Box<dyn Error + Send + Sync>> {
-        stream::iter(currencies)
-            .then(|currency| async move {
-                self.client
-                    .get::<PriceConversionResponse>(CoinMarketCapTarget::FiatRate { currency: currency.clone() })
-                    .headers(self.headers())
-                    .await
-                    .map(|response| map_fiat_rates(response.data, from_ref(currency)))
-            })
-            .boxed()
-            .try_concat()
-            .await
-            .map_err(Into::into)
+    pub async fn get_fiat_rate(&self, currency: &Currency) -> Result<Option<FiatRate>, Box<dyn Error + Send + Sync>> {
+        let response = self.client.get::<PriceConversionResponse>(CoinMarketCapTarget::FiatRate { currency: currency.clone() }).headers(self.headers()).await?;
+        Ok(map_fiat_rate(response.data, currency))
     }
 
     pub async fn get_latest_listings(&self, limit: usize) -> Result<Vec<Listing>, Box<dyn Error + Send + Sync>> {
@@ -105,7 +93,7 @@ mod tests {
     use std::sync::{Arc, Mutex};
 
     #[tokio::test]
-    async fn test_get_fiat_rates_authentication_and_usd_conversion() {
+    async fn test_get_fiat_rate_authentication_and_usd_conversion() {
         let paths = Arc::new(Mutex::new(Vec::new()));
         let requests = paths.clone();
         let client = MockClient::new().with_get_with_headers(move |path, headers| {
@@ -114,28 +102,25 @@ mod tests {
             Ok(include_str!("../testdata/fiat_rates.json").as_bytes().to_vec())
         });
         let client = CoinMarketCapClient::new_with_client_and_api_key(client, "test-api-key");
-        assert_eq!(
-            client.get_fiat_rates(&[Currency::EUR, Currency::GBP, Currency::BYN]).await.unwrap(),
-            vec![
-                FiatRate { symbol: Currency::EUR, rate: 0.85 },
-                FiatRate { symbol: Currency::GBP, rate: 0.75 },
-                FiatRate { symbol: Currency::BYN, rate: 3.034959 }
-            ]
-        );
+        assert_eq!(client.get_fiat_rate(&Currency::EUR).await.unwrap(), Some(FiatRate { symbol: Currency::EUR, rate: 0.85 }));
+        assert_eq!(client.get_fiat_rate(&Currency::GBP).await.unwrap(), Some(FiatRate { symbol: Currency::GBP, rate: 0.75 }));
+        assert_eq!(client.get_fiat_rate(&Currency::BYN).await.unwrap(), Some(FiatRate { symbol: Currency::BYN, rate: 3.034959 }));
+        assert_eq!(client.get_fiat_rate(&Currency::KZT).await.unwrap(), None);
         assert_eq!(
             *paths.lock().unwrap(),
             vec![
                 "/v2/tools/price-conversion?amount=1&id=2781&convert=EUR",
                 "/v2/tools/price-conversion?amount=1&id=2781&convert=GBP",
                 "/v2/tools/price-conversion?amount=1&id=2781&convert=BYN",
+                "/v2/tools/price-conversion?amount=1&id=2781&convert=KZT",
             ]
         );
     }
 
     #[tokio::test]
-    async fn test_get_fiat_rates_propagates_provider_errors() {
+    async fn test_get_fiat_rate_propagates_provider_errors() {
         let client = CoinMarketCapClient::new_with_client(MockClient::new().with_get(|_| Err(ClientError::Http { status: 429, body: b"rate limited".to_vec() })));
-        assert!(client.get_fiat_rates(&[Currency::BYN]).await.is_err());
+        assert!(client.get_fiat_rate(&Currency::BYN).await.is_err());
     }
 
     #[tokio::test]

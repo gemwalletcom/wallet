@@ -1,6 +1,7 @@
 package com.gemwallet.android.ui.theme
 
 import android.os.Build
+import android.view.Window
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
@@ -14,6 +15,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowCompat
 
 val pendingColor = Color(0xffff9314)
 val emptyImageColor = Color(0xFF767A81)
@@ -78,6 +80,13 @@ fun isCompactDimension(dimension: WindowDimension): Boolean {
 }
 
 fun walletSurfaceColor(darkTheme: Boolean): Color = if (darkTheme) DarkColorScheme.surface else LightColorScheme.surface
+
+fun Window.setSystemBarsAppearance(darkTheme: Boolean) {
+    WindowCompat.getInsetsController(this, decorView).apply {
+        isAppearanceLightStatusBars = !darkTheme
+        isAppearanceLightNavigationBars = !darkTheme
+    }
+}
 
 @Composable
 fun WalletTheme(darkTheme: Boolean = isSystemInDarkTheme(), dynamicColor: Boolean = false, content: @Composable () -> Unit) {

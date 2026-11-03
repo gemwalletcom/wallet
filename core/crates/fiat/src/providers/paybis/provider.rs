@@ -9,18 +9,14 @@ use std::error::Error;
 use super::models::country::country_status;
 use super::{
     client::PaybisClient,
-    mapper::{map_assets, map_webhook, supported_payment_methods},
+    mapper::{map_assets, map_webhook},
 };
-use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteRequest, FiatQuoteResponse, FiatQuoteUrl, FiatQuoteUrlData, FiatWebhook, PaymentType};
+use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteRequest, FiatQuoteResponse, FiatQuoteUrl, FiatQuoteUrlData, FiatWebhook};
 
 #[async_trait]
 impl FiatProvider for PaybisClient {
     fn name(&self) -> FiatProviderName {
         Self::NAME
-    }
-
-    async fn payment_methods(&self) -> Vec<PaymentType> {
-        supported_payment_methods()
     }
 
     async fn get_assets(&self) -> Result<Vec<FiatProviderAsset>, Box<dyn std::error::Error + Send + Sync>> {

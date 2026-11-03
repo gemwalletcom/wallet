@@ -92,7 +92,7 @@ struct TransactionStoreTests {
             ),
         ])
 
-        let assetIds = try store.getTransactionAssetAssociations(for: transactionId).map(\.assetId)
+        let assetIds = try store.getTransaction(walletId: walletId, transactionId: transactionId).assets.map(\.id)
 
         #expect(assetIds.count == 2)
         #expect(Set(assetIds) == Set([btc, sol]))

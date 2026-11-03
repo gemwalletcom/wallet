@@ -3,6 +3,9 @@
 common_cancel = Annulla
 common_hidden = Nascosti
 common_done = Fatto
+common_add = Aggiungi
+common_close = Chiudi
+common_back = Indietro
 common_maximum_value = Il valore massimo è %@
 common_minimum_value = Il valore minimo è %@
 common_secret_phrase = Frase segreta
@@ -60,7 +63,6 @@ common_suspicious_address = Indirizzo sospetto
 common_suspicious_address_description = Questo indirizzo è associato ad attività sospette o dannose.
 common_refresh = Aggiorna
 common_grant_permission = Concedere l'autorizzazione
-common_required_field = %@ è obbligatorio
 
 # Welcome
 
@@ -165,7 +167,6 @@ transfer_reserved_fees = Abbiamo lasciato %@ nel tuo saldo per coprire le future
 transfer_freeze_title = Congela
 transfer_unfreeze_title = Scongela
 transfer_review_request = Richiesta di revisione
-transfer_amount = Importo
 
 # Settings
 
@@ -255,7 +256,6 @@ errors_dust_threshold_short = La rete considera questa cifra come polvere: la co
 errors_swap_minimum_amount = L'importo minimo di scambio è %@. Inserisci un importo maggiore.
 errors_perpetual_trigger_price_lower = Il prezzo di attivazione deve essere inferiore al prezzo di mercato
 errors_perpetual_trigger_price_higher = Il prezzo di attivazione deve essere superiore al prezzo di mercato
-errors_unknown_try_again = Si è verificato un errore sconosciuto. Per favore riprova.
 errors_network_error = Errore di rete: %@
 errors_network_offline = La connessione Internet risulta offline.
 errors_no_internet_connection = Nessuna connessione a internet
@@ -327,7 +327,6 @@ asset_buy_asset = Acquista %@
 asset_get_asset = Ottieni %@
 asset_add_to_wallet = Aggiungi al portafoglio
 asset_added_to_wallet = Aggiunto al portafoglio
-asset_hidden_from_wallet = Nascosto dal portafoglio
 asset_resources = Risorse
 asset_verification_verified = Verificato
 asset_all_time_high = Massimo storico
@@ -347,6 +346,8 @@ charts_price_close = Chiusura
 charts_price_high = Alto
 charts_price_low = Basso
 charts_price_change = Variazione
+charts_candlestick = Grafico a candele
+charts_line = Grafico a linee
 
 # Date
 

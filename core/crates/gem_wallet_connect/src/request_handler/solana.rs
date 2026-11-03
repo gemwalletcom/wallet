@@ -1,6 +1,6 @@
 use crate::actions::{WCSolanaTransactionData, WalletConnectAction, WalletConnectTransaction, WalletConnectTransactionType};
 use crate::sign_type::SignDigestType;
-use gem_solana::{VersionedTransactionExt, decode_transaction};
+use gem_solana::decode_transaction;
 use primitives::{Chain, TransferDataOutputType, ValueAccess, WalletConnectionMethods};
 use serde_json::Value;
 
@@ -54,11 +54,10 @@ impl SolanaRequestHandler {
     pub fn decode_send_transaction(data: String, output_type: TransferDataOutputType) -> Result<WalletConnectTransaction, String> {
         let json: Value = serde_json::from_str(&data).map_err(|e| e.to_string())?;
         let transaction = json.get("transaction").and_then(|value| value.as_str()).ok_or_else(|| "Missing transaction field".to_string())?.to_string();
-        let transaction_type = decode_transaction(&transaction)?.transaction_type();
+        let decoded = decode_transaction(&transaction)?;
         Ok(WalletConnectTransaction::Solana {
-            data: WCSolanaTransactionData { transaction },
+            data: WCSolanaTransactionData { transaction, decoded },
             output_type,
-            transaction_type,
         })
     }
 
@@ -89,6 +88,7 @@ impl SolanaRequestHandler {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use gem_solana::VersionedTransactionExt;
 
     #[test]
     fn test_parse_sign_message() {
@@ -125,12 +125,9 @@ mod tests {
 
         let decoded = SolanaRequestHandler::decode_send_transaction(serde_json::json!({ "transaction": TRANSACTION }).to_string(), TransferDataOutputType::EncodedTransaction).unwrap();
 
-        assert!(matches!(
-            decoded,
-            WalletConnectTransaction::Solana {
-                transaction_type: primitives::TransactionType::Transfer,
-                ..
-            }
-        ));
+        let WalletConnectTransaction::Solana { data, .. } = decoded else {
+            panic!("expected a Solana transaction");
+        };
+        assert_eq!(data.decoded.transaction_type(), primitives::TransactionType::Transfer);
     }
 }

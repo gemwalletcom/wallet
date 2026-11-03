@@ -14,6 +14,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -25,24 +26,27 @@ import com.gemwallet.android.ui.theme.space10
 import com.gemwallet.android.ui.theme.space2
 import com.gemwallet.android.ui.theme.space6
 import com.gemwallet.android.ui.theme.space8
+import uniffi.gemstone.GemSecretPhraseRow
+import uniffi.gemstone.secretPhraseRows
 
 @Composable
-fun PhraseLayout(rows: List<PhraseRow>, modifier: Modifier = Modifier, highlightIndex: Int? = null) {
+fun PhraseLayout(words: List<String>, modifier: Modifier = Modifier, highlightIndex: Int? = null) {
+    val rows = remember(words.size) { secretPhraseRows(words.size) }
     Column(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         for (row in rows) {
             when (row) {
-                is PhraseRow.Pair -> Row(
+                is GemSecretPhraseRow.Pair -> Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(space8),
                 ) {
-                    PhraseWordItem(row.left, isHighlighted = row.left.index == highlightIndex, modifier = Modifier.weight(1f))
-                    PhraseWordItem(row.right, isHighlighted = row.right.index == highlightIndex, modifier = Modifier.weight(1f))
+                    PhraseWordItem(row.left, words[row.left], isHighlighted = row.left == highlightIndex, modifier = Modifier.weight(1f))
+                    PhraseWordItem(row.right, words[row.right], isHighlighted = row.right == highlightIndex, modifier = Modifier.weight(1f))
                 }
 
-                is PhraseRow.Single -> PhraseWordItem(row.word, isHighlighted = row.word.index == highlightIndex)
+                is GemSecretPhraseRow.Single -> PhraseWordItem(row.index, words[row.index], isHighlighted = row.index == highlightIndex)
             }
             Spacer(modifier = Modifier.height(space8))
         }
@@ -50,7 +54,7 @@ fun PhraseLayout(rows: List<PhraseRow>, modifier: Modifier = Modifier, highlight
 }
 
 @Composable
-private fun PhraseWordItem(word: PhraseWord, isHighlighted: Boolean, modifier: Modifier = Modifier) {
+private fun PhraseWordItem(index: Int, word: String, isHighlighted: Boolean, modifier: Modifier = Modifier) {
     val verticalPadding = adaptivePadding(default = space10, compact = space6)
 
     Surface(
@@ -65,13 +69,13 @@ private fun PhraseWordItem(word: PhraseWord, isHighlighted: Boolean, modifier: M
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "${word.index + 1}.",
+                text = "${index + 1}.",
                 color = MaterialTheme.colorScheme.secondary,
             )
             Spacer(modifier = Modifier.width(space6))
             Text(
-                text = word.word,
-                modifier = Modifier.testTag("word_${word.index}"),
+                text = word,
+                modifier = Modifier.testTag("word_$index"),
                 color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.SemiBold,

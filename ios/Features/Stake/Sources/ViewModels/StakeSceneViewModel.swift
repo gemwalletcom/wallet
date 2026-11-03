@@ -5,7 +5,6 @@ import struct Gemstone.GemEmptyState
 import struct Gemstone.GemInfoSheet
 import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemLoadState
-import enum Gemstone.GemStakeActionKind
 import struct Gemstone.GemStakeDelegationItem
 import enum Gemstone.GemStakeDestination
 import struct Gemstone.GemStakeInput
@@ -92,15 +91,7 @@ extension StakeSceneViewModel {
         delegationsState = await service.refresh(chain: chain.chain.rawValue, delegations: viewState.delegations.map(\.delegation))
     }
 
-    func onSelect(kind: GemStakeActionKind, destination: GemStakeDestination) {
-        switch kind {
-        case .stake:
-            guard service.isAvailable() else {
-                isPresentingInfoSheet = GemInfoTopic.regionUnavailable.infoSheet
-                return
-            }
-        case .freeze, .unfreeze, .claimRewards: break
-        }
+    func onSelect(destination: GemStakeDestination) {
         onNavigate?(route(destination: destination))
     }
 
@@ -114,6 +105,10 @@ extension StakeSceneViewModel {
 
     func onStakeFrozenInfo() {
         isPresentingInfoSheet = GemInfoTopic.stakeFrozenRequired.infoSheet
+    }
+
+    func onRegionUnavailable() {
+        isPresentingInfoSheet = GemInfoTopic.regionUnavailable.infoSheet
     }
 }
 

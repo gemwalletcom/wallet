@@ -20,7 +20,6 @@ import com.wallet.core.primitives.ContactData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -30,7 +29,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemContactAddressInput
 import uniffi.gemstone.GemContactList
 import uniffi.gemstone.GemContactRow
@@ -73,17 +71,23 @@ class ContactsViewModel @Inject constructor(
 
     private val errorState = MutableStateFlow<String?>(null)
     val errorText: StateFlow<String?> = errorState.asStateFlow()
+    private val _isAddressAdded = MutableStateFlow(false)
+    val isAddressAdded: StateFlow<Boolean> = _isAddressAdded.asStateFlow()
 
     val draft: ContactAddressDraft? = savedStateHandle.optionalContactAddressDraft()
 
-    fun addAddress(contact: ContactData, onAdded: () -> Unit) {
+    fun addAddress(contact: ContactData) {
         val draft = draft ?: return
         viewModelScope.launch(ioDispatcher) {
             val input = GemContactAddressInput(contactId = contact.contact.id, chain = draft.chain.string, address = draft.address, memo = draft.memo, replacingId = null)
             runCatchingCancellable { service.updateContact(contact.contact.toGem(), input.addAddress(contact.addresses.map { it.toGem() })) }
-                .onSuccess { withContext(Dispatchers.Main) { onAdded() } }
+                .onSuccess { _isAddressAdded.value = true }
                 .onFailure { errorState.value = it.errorText().text(context) }
         }
+    }
+
+    fun onAddressAddedHandled() {
+        _isAddressAdded.value = false
     }
 
     fun deleteContact(contact: Contact) {

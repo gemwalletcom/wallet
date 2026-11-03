@@ -3,6 +3,9 @@
   <string name="common_cancel">Zrušit</string>
   <string name="common_hidden">Skryté</string>
   <string name="common_done">Hotovo</string>
+  <string name="common_add">Přidat</string>
+  <string name="common_close">Zavřít</string>
+  <string name="common_back">Zpět</string>
   <string name="common_maximum_value">Maximální hodnota je %1$s</string>
   <string name="common_minimum_value">Minimální hodnota je %1$s</string>
   <string name="common_secret_phrase">Tajná fráze</string>
@@ -60,7 +63,6 @@
   <string name="common_suspicious_address_description">Tato adresa je spojena s podezřelou nebo škodlivou aktivitou.</string>
   <string name="common_refresh">Obnovit</string>
   <string name="common_grant_permission">Udělte povolení</string>
-  <string name="common_required_field">Je vyžadováno %1$s</string>
   <string name="welcome_title">Vítejte v Gem Family</string>
   <string name="wallet_create_new_wallet">Vytvořte novou peněženku</string>
   <string name="wallet_import_existing_wallet">Importovat existující peněženku</string>
@@ -144,7 +146,6 @@
   <string name="transfer_freeze_title">Zmrazit</string>
   <string name="transfer_unfreeze_title">Uvolnit</string>
   <string name="transfer_review_request">Žádost o kontrolu</string>
-  <string name="transfer_amount">Množství</string>
   <string name="settings_terms_of_services">Podmínky služeb</string>
   <string name="settings_privacy_policy">Zásady ochrany osobních údajů</string>
   <string name="settings_title">Nastavení</string>
@@ -225,7 +226,6 @@
   <string name="errors_swap_minimum_amount">Minimální částka obchodu je %1$s. Zadejte prosím vyšší částku.</string>
   <string name="errors_perpetual_trigger_price_lower">Spouštěcí cena musí být nižší než tržní cena</string>
   <string name="errors_perpetual_trigger_price_higher">Spouštěcí cena musí být vyšší než tržní cena</string>
-  <string name="errors_unknown_try_again">Došlo k neznámé chybě. Zkuste to prosím znovu.</string>
   <string name="errors_network_error">Chyba sítě: %1$s</string>
   <string name="errors_network_offline">Zdá se, že je internetové připojení offline.</string>
   <string name="errors_no_internet_connection">Žádné připojení k internetu</string>
@@ -285,7 +285,6 @@
   <string name="asset_get_asset">Získat %1$s</string>
   <string name="asset_add_to_wallet">Přidat do peněženky</string>
   <string name="asset_added_to_wallet">Přidáno do peněženky</string>
-  <string name="asset_hidden_from_wallet">Skryto z peněženky</string>
   <string name="asset_resources">Zdroje</string>
   <string name="asset_verification_verified">Ověřeno</string>
   <string name="asset_all_time_high">Historické maximum</string>
@@ -302,6 +301,8 @@
   <string name="charts_price_high">Vysoký</string>
   <string name="charts_price_low">Nízký</string>
   <string name="charts_price_change">Změna</string>
+  <string name="charts_candlestick">Svíčkový graf</string>
+  <string name="charts_line">Čárový graf</string>
   <string name="date_today">Dnes</string>
   <string name="date_yesterday">Včera</string>
   <string name="date_day_time">%1$s, %2$s</string>

@@ -72,11 +72,27 @@ pub fn find_field_string(fields: &[EIP712Field], name: &str) -> Option<String> {
 }
 
 pub fn find_field_biguint(fields: &[EIP712Field], name: &str) -> Option<BigUint> {
-    let value = find_field_string(fields, name)?;
+    parse_biguint(&find_field_string(fields, name)?)
+}
+
+pub fn parse_biguint(value: &str) -> Option<BigUint> {
     match value.strip_prefix("0x") {
         Some(hex) => BigUint::parse_bytes(hex.as_bytes(), 16),
         None => value.parse().ok(),
     }
+}
+
+pub fn find_field_bool(fields: &[EIP712Field], name: &str) -> Option<bool> {
+    fields.iter().find(|field| field.name == name).and_then(|field| match &field.value {
+        EIP712TypedValue::Bool { value } => Some(*value),
+        EIP712TypedValue::Address { .. }
+        | EIP712TypedValue::Uint256 { .. }
+        | EIP712TypedValue::Int256 { .. }
+        | EIP712TypedValue::String { .. }
+        | EIP712TypedValue::Struct { .. }
+        | EIP712TypedValue::Bytes { .. }
+        | EIP712TypedValue::Array { .. } => None,
+    })
 }
 
 pub fn find_field_struct<'a>(fields: &'a [EIP712Field], name: &str) -> Option<&'a [EIP712Field]> {

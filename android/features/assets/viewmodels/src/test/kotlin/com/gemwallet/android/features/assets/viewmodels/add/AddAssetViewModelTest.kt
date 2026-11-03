@@ -84,11 +84,10 @@ class AddAssetViewModelTest {
             }
             viewModel.token.first { it != null }
 
-            var finished = false
-            viewModel.addAsset { finished = true }.join()
+            viewModel.addAsset().join()
 
             coVerify(exactly = 1) { service.add(wallet.toGem(), token.id.toIdentifier()) }
-            assertEquals(true, finished)
+            assertEquals(true, viewModel.isAdded.value)
         } finally {
             viewModel.viewModelScope.coroutineContext.job.cancelAndJoin()
         }
@@ -105,10 +104,9 @@ class AddAssetViewModelTest {
             }
             viewModel.token.first { it != null }
 
-            var finished = false
-            viewModel.addAsset { finished = true }.join()
+            viewModel.addAsset().join()
 
-            assertEquals(false, finished)
+            assertEquals(false, viewModel.isAdded.value)
             val failed = viewModel.uiState.first { it.error != null }
             assertEquals("disk full", failed.error)
             assertEquals(false, failed.isLoading)

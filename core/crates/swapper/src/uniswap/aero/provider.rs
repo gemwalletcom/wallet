@@ -370,12 +370,14 @@ mod swap_integration_tests {
     use super::*;
     use crate::testkit::{dynode_provider, mock_quote, simulate_swap};
     use num_bigint::BigUint;
-    use primitives::asset_constants::{ARC_EURC_ASSET_ID, BASE_USDC_ASSET_ID, ROBINHOOD_USDG_ASSET_ID};
+    use primitives::asset_constants::{ARC_EURC_ASSET_ID, BASE_USDC_ASSET_ID, INK_USDT0_ASSET_ID, OPTIMISM_OP_ASSET_ID, ROBINHOOD_USDG_ASSET_ID};
 
     #[tokio::test]
     async fn test_native_swaps_simulate() -> Result<(), SwapperError> {
         let cases = [
             (Chain::Base, BASE_USDC_ASSET_ID.clone(), 10_000_000_000_000_000u128),
+            (Chain::Optimism, OPTIMISM_OP_ASSET_ID.clone(), 10_000_000_000_000_000u128),
+            (Chain::Ink, INK_USDT0_ASSET_ID.clone(), 10_000_000_000_000_000u128),
             (Chain::Robinhood, ROBINHOOD_USDG_ASSET_ID.clone(), 10_000_000_000_000_000u128),
             (Chain::Arc, ARC_EURC_ASSET_ID.clone(), 10_000_000_000_000_000_000u128),
         ];

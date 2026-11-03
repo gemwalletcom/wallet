@@ -18,8 +18,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.ListItemImageView
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.icons.AppIcons
@@ -112,7 +114,7 @@ private fun BannerText(content: GemBannerContent, onCancel: () -> Unit) {
             ) {
                 Icon(
                     imageVector = AppIcons.Close,
-                    contentDescription = "cancel_banner",
+                    contentDescription = stringResource(R.string.common_close),
                     tint = MaterialTheme.colorScheme.secondary,
                 )
             }

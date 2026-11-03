@@ -17,6 +17,7 @@ sealed interface AssetAction {
     sealed interface Navigation : AssetAction
 
     data object Refresh : AssetAction
+    data object TransactionsEndReached : AssetAction
     data object Pin : AssetAction
     data object Add : AssetAction
     data object TogglePriceAlert : AssetAction

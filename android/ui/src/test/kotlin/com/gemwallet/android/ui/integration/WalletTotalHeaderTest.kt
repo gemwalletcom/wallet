@@ -1,0 +1,43 @@
+package com.gemwallet.android.ui.integration
+
+import android.content.Context
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.gemwallet.android.model.text
+import com.gemwallet.android.ui.localization.string
+import com.gemwallet.android.ui.localization.text
+import com.wallet.core.primitives.Currency
+import io.mockk.mockk
+import org.junit.Assert.assertEquals
+import org.junit.Test
+import org.junit.runner.RunWith
+import uniffi.gemstone.GemCurrencyStyle
+import uniffi.gemstone.GemFormattedNumber
+import uniffi.gemstone.GemLocalizedText
+import uniffi.gemstone.GemNumberNotation
+import uniffi.gemstone.GemPercentageStyle
+import uniffi.gemstone.formattedCurrency
+import uniffi.gemstone.formattedPercentage
+
+@RunWith(AndroidJUnit4::class)
+class WalletTotalHeaderTest {
+
+    private val context = mockk<Context>(relaxed = true)
+
+    @Test
+    fun `a small total keeps two decimals and an empty wallet reads as zero`() {
+        assertEquals("$0.10", total(0.1041).text())
+        assertEquals("$0.00", total(0.0).text())
+    }
+
+    @Test
+    fun `a change reads as its amount and an unsigned percent`() {
+        assertEquals("-$140.57 (2.84%)", change(-140.5699884368446, -2.84).string(context))
+        assertEquals("+$140.57 (2.84%)", change(140.5699884368446, 2.84).string(context))
+    }
+
+    private fun total(value: Double): GemFormattedNumber = formattedCurrency(value, Currency.USD.string, GemCurrencyStyle.FIAT)
+
+    private fun amount(value: Double): GemFormattedNumber = total(value).copy(notation = GemNumberNotation.SIGNED)
+
+    private fun change(value: Double, percent: Double): GemLocalizedText = GemLocalizedText.Pnl(amount(value), formattedPercentage(percent, GemPercentageStyle.UNSIGNED))
+}

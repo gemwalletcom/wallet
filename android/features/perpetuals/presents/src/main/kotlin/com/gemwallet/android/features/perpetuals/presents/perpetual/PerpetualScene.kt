@@ -2,6 +2,7 @@ package com.gemwallet.android.features.perpetuals.presents.perpetual
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -9,10 +10,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.perpetuals.presents.components.PerpetualActions
-import com.gemwallet.android.features.perpetuals.presents.components.PerpetualChartSection
 import com.gemwallet.android.features.perpetuals.presents.components.PerpetualModifyBottomSheet
 import com.gemwallet.android.features.perpetuals.presents.components.positionProperties
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.LoadOnListEnd
+import com.gemwallet.android.ui.components.chart.CandleChartSection
 import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.components.list_item.GemListRowView
@@ -78,11 +80,14 @@ internal fun PerpetualScene(
             isRefreshing = isRefreshing,
             onRefresh = { onAction(PerpetualAction.Refresh) },
         ) {
+            val listState = rememberLazyListState()
+            LoadOnListEnd(listState) { onAction(PerpetualAction.TransactionsEndReached) }
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
+                state = listState,
             ) {
                 item {
-                    PerpetualChartSection(
+                    CandleChartSection(
                         state = chart,
                         period = period,
                         onPeriodSelect = { onAction(PerpetualAction.SelectChartPeriod(it)) },

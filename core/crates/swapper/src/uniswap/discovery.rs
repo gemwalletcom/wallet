@@ -176,7 +176,6 @@ mod tests {
                 error: JsonRpcError {
                     code: -32000,
                     message: "upstream unavailable".into(),
-                    cause: None,
                 },
             }),
         ]

@@ -182,7 +182,7 @@ fun GemCandlestickChart(chart: GemCandleChart, onZoom: (Float, Float) -> Unit, o
         val priceViewport = priceRange.viewport ?: return@Box
         val plot = CandlestickPlot(chart, frame, volumeBandGapPx, minWickWidthPx, maxWickWidthPx, markerSizePx, markerGapPx, priceViewport, volumeRange.viewport)
 
-        val candleIndex by rememberUpdatedState { fraction: Float -> chart.indexAt(fraction.toDouble())?.toInt() }
+        val candleIndex by rememberUpdatedState { fraction: Float -> chart.indexAt(fraction.toDouble()) }
         val selectionChanged by rememberUpdatedState(onSelectionChanged)
         val zoom by rememberUpdatedState(onZoom)
         val pan by rememberUpdatedState(onPan)
@@ -360,7 +360,7 @@ private fun DrawScope.drawReferenceLines(
     }
     var previousBadgeEndX = plot.frame.left
     visible.forEach { (line, label, y) ->
-        val anchorX = if (line.overlapLevel == 0u) plot.frame.left else previousBadgeEndX + labelGapPx
+        val anchorX = if (line.overlapLevel == 0) plot.frame.left else previousBadgeEndX + labelGapPx
         drawBadgeLabel(
             textMeasurer = textMeasurer,
             text = label,

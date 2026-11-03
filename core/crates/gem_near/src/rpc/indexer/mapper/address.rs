@@ -66,7 +66,7 @@ mod tests {
         assert_eq!(map_asset_id(NATIVE_ASSET_ID), Some(Chain::Near.as_asset_id()));
         assert_eq!(map_asset_id("nep141:usdt.tether-token.near"), Some(NEAR_USDT_ASSET_ID.clone()));
 
-        for invalid_asset_id in ["native:near", "native:ethereum", "nep141:", "nep245:contract.near:nep141:token.near", "nep245:v2_1.omni.hot.tg:56_11111111111111111111"] {
+        for invalid_asset_id in ["near", "native:ethereum", "nep141:", "nep245:contract.near:nep141:token.near", "nep245:v2_1.omni.hot.tg:56_11111111111111111111"] {
             assert_eq!(map_asset_id(invalid_asset_id), None);
         }
     }

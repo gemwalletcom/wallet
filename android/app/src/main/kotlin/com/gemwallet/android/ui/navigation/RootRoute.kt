@@ -3,7 +3,6 @@ package com.gemwallet.android.ui.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
@@ -28,18 +27,16 @@ fun rememberWalletNavigationState(startDestination: NavKey, currentTab: MutableS
     val navigationService = LocalNavigationService.current
     val scope = rememberCoroutineScope()
     val currentOnOpenAction by rememberUpdatedState(onOpenAction)
-    return key(startDestination) {
-        val backStack = rememberWalletNavBackStack(startDestination)
-        remember(backStack, currentTab, deeplinkService, navigationService, session, scope) {
-            WalletNavigator(
-                backStack = backStack,
-                currentTab = currentTab,
-                deeplinkService = deeplinkService,
-                navigationService = navigationService,
-                session = session,
-                scope = scope,
-                onOpenAction = { currentOnOpenAction(it) },
-            )
-        }
+    val backStack = rememberWalletNavBackStack(startDestination)
+    return remember(backStack, currentTab, deeplinkService, navigationService, session, scope) {
+        WalletNavigator(
+            backStack = backStack,
+            currentTab = currentTab,
+            deeplinkService = deeplinkService,
+            navigationService = navigationService,
+            session = session,
+            scope = scope,
+            onOpenAction = { currentOnOpenAction(it) },
+        )
     }
 }

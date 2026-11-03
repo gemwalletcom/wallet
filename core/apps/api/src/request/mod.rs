@@ -11,8 +11,8 @@ pub use client_country::ClientCountry;
 pub use client_ip::ClientIp;
 pub use json::Json;
 pub use params::{
-    AddressParam, AssetIdParam, ChainParam, ChartPeriodParam, CurrencyParam, FiatProviderIdParam, FiatQuoteTypeParam, NftAssetIdParam, NftCollectionIdParam, QueryLimitParam, SearchQueryParam, SwapProviderParam, TransactionIdParam,
-    WebhookKindParam, lenient,
+    AddressParam, AssetIdParam, ChainParam, ChartPeriodParam, CurrencyParam, FiatProviderIdParam, FiatQuoteTypeParam, NftAssetIdParam, NftCollectionIdParam, PlatformStoreParam, QueryLimitParam, SearchQueryParam, SwapProviderParam,
+    TransactionIdParam, WebhookKindParam, lenient,
 };
 pub use path::Path;
 pub use queries::{ChainQuery, CurrencyQuery, FromTimestampQuery};

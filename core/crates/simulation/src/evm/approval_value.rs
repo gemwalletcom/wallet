@@ -1,3 +1,4 @@
+use gem_evm::eip712::parse_biguint;
 use num_bigint::BigUint;
 use num_traits::One;
 use primitives::SimulationHeader;
@@ -10,9 +11,7 @@ pub(crate) enum ApprovalValue {
 
 impl ApprovalValue {
     pub(crate) fn from_raw(raw_value: &str) -> Option<Self> {
-        let Ok(value) = raw_value.parse::<BigUint>() else {
-            return None;
-        };
+        let value = parse_biguint(raw_value)?;
 
         if Self::is_unlimited(&value) {
             return Some(Self::Unlimited);

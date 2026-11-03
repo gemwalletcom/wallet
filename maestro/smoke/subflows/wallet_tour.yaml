@@ -6,13 +6,17 @@ appId: ${APP_ID}
 - runFlow: price_target_alert.yaml
 - runFlow: manage_assets.yaml
 - runFlow: add_token.yaml
+- runFlow: add_custom_token.yaml
 - runFlow: search_list.yaml
 - runFlow: pin_asset.yaml
 - runFlow: hide_balance.yaml
 - runFlow: buy.yaml
 - runFlow: sell.yaml
 - runFlow: send.yaml
+- runFlow: send_memo.yaml
+- runFlow: send_name.yaml
 - runFlow: send_to_contact.yaml
+- runFlow: send_wrong_network.yaml
 - runFlow: swap.yaml
 - runFlow: swap_pair.yaml
 - runFlow: stake.yaml
@@ -20,5 +24,7 @@ appId: ${APP_ID}
 - runFlow: currency.yaml
 - runFlow: networks.yaml
 - runFlow: wallet_connect.yaml
+- runFlow: import_error.yaml
 - runFlow: appearance.yaml
 - runFlow: language.yaml
+- runFlow: phrase_suggestions.yaml

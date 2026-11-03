@@ -169,6 +169,12 @@ pub struct RewardRedemptionOption {
     pub remaining: Option<i32>,
 }
 
+impl RewardRedemptionOption {
+    pub fn is_available(&self) -> bool {
+        self.remaining.is_some_and(|remaining| remaining > 0)
+    }
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RedemptionRequest {

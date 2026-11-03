@@ -26,12 +26,13 @@ pub(crate) trait TransferInput {
     fn fee_asset(&self) -> Asset;
     fn default_fee_priority(&self) -> FeePriority;
     fn application_short_name(&self) -> Option<String>;
+    fn payment_message(&self) -> Option<String>;
     fn output(&self) -> GemTransferOutput;
     fn asset_ids(&self) -> Vec<AssetId>;
     fn recent_activity(&self) -> Option<GemRecentActivity>;
     fn approval(&self, transaction_type: TransactionType) -> Result<Option<ApprovalData>, String>;
     fn metadata(&self) -> Result<Option<serde_json::Value>, serde_json::Error>;
-    fn is_tracked(&self, transaction_type: &TransactionType, hash: &str, index: u32, count: u32) -> bool;
+    fn is_tracked(&self, transaction_type: &TransactionType, hash: &str, index: usize, count: usize) -> bool;
 }
 
 #[uniffi::export]
@@ -180,6 +181,23 @@ impl TransferInput for TransactionInputType {
         }
     }
 
+    fn payment_message(&self) -> Option<String> {
+        match self {
+            Self::Payment { invoice, .. } => invoice.message.clone(),
+            Self::Transfer { .. }
+            | Self::Deposit { .. }
+            | Self::Swap { .. }
+            | Self::Stake { .. }
+            | Self::TokenApprove { .. }
+            | Self::TransferNft { .. }
+            | Self::Account { .. }
+            | Self::Perpetual { .. }
+            | Self::Earn { .. }
+            | Self::Withdrawal { .. }
+            | Self::Generic { .. } => None,
+        }
+    }
+
     fn output(&self) -> GemTransferOutput {
         match self {
             Self::Generic { extra, .. } | Self::Payment { extra, .. } => GemTransferOutput {
@@ -283,7 +301,7 @@ impl TransferInput for TransactionInputType {
         Ok(value)
     }
 
-    fn is_tracked(&self, transaction_type: &TransactionType, hash: &str, index: u32, count: u32) -> bool {
+    fn is_tracked(&self, transaction_type: &TransactionType, hash: &str, index: usize, count: usize) -> bool {
         if *transaction_type == TransactionType::PerpetualModifyPosition {
             return false;
         }
@@ -482,6 +500,10 @@ impl GemTransferData {
         self.input_type.application_short_name()
     }
 
+    pub fn payment_message(&self) -> Option<String> {
+        self.input_type.payment_message()
+    }
+
     pub(crate) fn fee_available_value(&self, balance: &GemAssetBalance) -> BigInt {
         match &self.input_type {
             TransactionInputType::Withdrawal { .. } => self.available_value(balance),
@@ -498,7 +520,7 @@ impl GemTransferData {
                 StakeType::Redelegate(data) => BigInt::from(data.delegation.base.balance.clone()),
                 StakeType::Rewards(_) => self.value.clone(),
                 StakeType::Unfreeze(resource) => unfreeze_available(resource, balance),
-                StakeType::Stake(_) if asset.chain() == Chain::Tron => tron_stake_available(asset, balance),
+                StakeType::Stake(_) if crate::services::stake::rules::uses_freeze(asset.chain()) => tron_stake_available(asset, balance),
                 StakeType::Stake(_) | StakeType::Freeze(_) => BigInt::from(balance.available.clone()),
             },
             TransactionInputType::Earn { earn_type, .. } => match earn_type {
@@ -1063,6 +1085,21 @@ mod tests {
             .output_action,
             TransferDataOutputAction::Send
         );
+    }
+
+    #[test]
+    fn test_only_a_payment_carries_the_merchant_message() {
+        let payment = TransactionInputType::Payment {
+            asset: Asset::from_chain(Chain::Solana),
+            invoice: PaymentInvoice {
+                message: Some("Annual plan".to_string()),
+                ..PaymentInvoice::mock()
+            },
+            extra: TransferDataExtra::mock(),
+        };
+
+        assert_eq!(payment.payment_message().as_deref(), Some("Annual plan"));
+        assert_eq!(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Solana) }.payment_message(), None);
     }
 
     #[test]

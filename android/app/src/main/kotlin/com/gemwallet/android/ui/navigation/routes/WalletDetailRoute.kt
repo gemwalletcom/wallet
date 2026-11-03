@@ -1,6 +1,5 @@
 package com.gemwallet.android.ui.navigation.routes
 
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
@@ -13,7 +12,7 @@ import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.navigation.routeArguments
-import com.gemwallet.android.ui.requestAuth
+import com.gemwallet.android.ui.rememberAuthorizedAction
 import com.wallet.core.primitives.WalletId
 import kotlinx.serialization.Serializable
 
@@ -48,11 +47,10 @@ fun EntryProviderScope<NavKey>.walletDetailScreen(onBoard: () -> Unit, onCancel:
     }
 
     entry<SecurityReminderRoute> { key ->
-        val context = LocalContext.current
         SecurityReminderScene(
             title = stringResource(key.input.kind.stringRes()),
             kind = key.input.kind,
-            onAccept = { context.requestAuth(AuthRequest.Default) { onSecurityReminderAccepted(key.input) } },
+            onAccept = rememberAuthorizedAction(AuthRequest.Default) { onSecurityReminderAccepted(key.input) },
             onCancel = onCancel,
         )
     }

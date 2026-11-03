@@ -39,6 +39,7 @@ dependencies {
 
     implementation(libs.ktx.core)
     implementation(libs.lifecycle.runtime)
+    implementation(libs.lifecycle.runtime.compose)
     implementation(libs.lifecycle.viewmodel.compose)
     implementation(libs.navigation3.runtime)
     implementation(libs.material)

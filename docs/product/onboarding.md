@@ -18,7 +18,7 @@ flowchart LR
 |---|---|---|
 | The terms were already accepted on this install | they are not asked again; the security reminder still shows on every create | |
 | The user accepts the terms | the next screen opens once; whether the terms are asked is decided when create or import opens, not while it is open | accepting must not also replace the screen underneath |
-| The user taps a word that is not the next one on "Confirm" | the word shakes, turns red for a moment and the phone vibrates; nothing is filled in | a tap that did nothing read as slow or broken |
+| The user taps a word that is not the next one on "Confirm" | the word shakes, turns red for a moment and plays the error [haptic](../PRODUCT.md#haptics); nothing is filled in | a tap that did nothing read as slow or broken |
 | The Secret Phrase holds the same word twice | either of its two buttons fills either place, and each button is used once | the two words are the same, so neither tap is wrong |
 
 ## Import wallet
@@ -50,13 +50,16 @@ The Import screen, top to bottom:
 | The user picks Multi-Coin | it takes a Secret Phrase | |
 | The user picks a single network | it takes a Secret Phrase, a private key where the network supports one, or an address for a watch-only wallet | |
 | The user taps Paste | the copied text fills the input; a pasted Secret Phrase or private key is then cleared from the clipboard | a secret must not stay on the clipboard |
+| The user taps Paste with nothing on the clipboard | the input stays as it is | there is nothing to paste over what was typed |
 | The user taps Scan | the scanner opens for the picked kind, and the scanned code fills the input | |
 | The user types a Secret Phrase | word suggestions complete the last word, and a tap replaces it | |
 | The cursor is inside the phrase | no suggestions show | a tap never changes the wrong word |
 | An address is typed as a name | the resolved name becomes the wallet name | |
 | The wallet already exists | it is simply opened | |
 | The wallet already exists and the app lock offer is due | the "already imported" sheet closes, then the offer opens | the offer must not open behind the sheet |
-| An import fails | its error shows under the input after every failed attempt, and clears as soon as the input changes | a retry with the same mistake must not look like nothing happened |
+| An import fails | its error shows in an alert after every failed attempt | a retry with the same mistake must not look like nothing happened |
+| A Secret Phrase has words outside the word list | those words turn red in the input until it changes | the user sees which word to fix without matching the list to the phrase |
+| The system closes the app after the first wallet and the user returns | the screen the user left opens | |
 
 Names follow the shared [Names](../PRODUCT.md#names) section.
 
@@ -106,7 +109,7 @@ flowchart TD
 
 | When | iOS | Android | Expected |
 |---|---|---|---|
-| The user types an invalid word while importing a Secret Phrase | no per-word highlight | highlights the invalid word | Intentional: a one-sided feature, added to iOS only when required |
+| A Secret Phrase has words outside the word list | from iOS 26 they turn red in the input; before, only the alert names them | they turn red in the input | Intentional: SwiftUI colors part of an editable text only from iOS 26 |
 | The app lock offer opens on a device with biometrics | Face ID, Touch ID or Optic ID, with that symbol | Passcode, with a lock | Intentional: Android has no single name for its unlock methods, and its Security settings already call it Passcode |
 
 ## Rules

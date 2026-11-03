@@ -20,20 +20,25 @@ flowchart LR
 
 | When | Expected | Why |
 |---|---|---|
-| A typed name is registered for the network | it resolves while typing to that address | |
+| A typed name is registered for the network | it resolves to that address while typing | |
+| A mixed-case EVM address has an invalid checksum | "Invalid address" wherever an address is typed, pasted or scanned | a typo must never turn into another account; single-case addresses are accepted |
+| A TON address is marked for testnet or names a workchain other than 0 or -1 | "Invalid address" wherever an address is typed, pasted or scanned | sending on mainnet to an address meant elsewhere can strand the funds |
 | The recipient is one of the user's own wallets or a contact | Confirm shows its name alone; a tap shows the address | the user gave that name |
 | The recipient has any other name, such as `vitalik.eth` | the name with the short address beside it | a name the user did not give could imitate another address |
-| The recipient is flagged | a "Suspicious address" warning with one line on why, under the amount; Confirm stays disabled | |
-| Confirm loads with a problem the user can act on: not enough balance or network fee, a required memo, a risky transaction | its explanation opens by itself | the user sees what to do before looking for it |
-| A refresh or a fee change finds the same problem | the explanation stays as the user left it | it opens once per problem |
-| Retry, or a different problem | the explanation opens again | |
+| The recipient is flagged | "Suspicious address" with one line on why, under the amount; Confirm stays disabled | |
+| The balance can't cover the amount and the Network Fee, on any network | Insufficient Balance | the user sees what to fix, never a network error |
+| A pending send has spent Bitcoin-family coins the wallet still shows | Confirm counts only the coins left unspent: Insufficient Balance when they can't cover the amount and the Network Fee, and Max sends what they hold less the fee; the Network Fee options stay open | the balance updates only when the network confirms, but only unspent coins can be signed |
+| A Bitcoin-family amount, or what Max would send, is under the dust limit | the dust explanation | the network rejects such a small output |
+| Confirm loads with a problem the user can act on: not enough balance or network fee, dust, a required memo, a risky transaction | its explanation opens by itself, once per problem; a refresh leaves it as the user left it, and Retry or a different problem opens it again | the user sees what to do before looking for it |
 | Any other load error | it stays in the error row | |
 | The simulation cannot answer | sending is not blocked | |
 | The simulation finds a risk | the risk shows before the user confirms | |
 | The simulation predicts balance changes | every digit of each amount, never rounded | what the user approves is exactly what moves |
+| Confirm is sending | the Network Fee and payment asset rows do not open until the send ends | a new fee or asset would reload Confirm and offer it again while the first transaction is still being sent |
+| Sending fails after Confirm | an error alert; the fee and amounts stay and the button stays Confirm, so a tap sends again | Try Again is only for a failed load |
 | The network rejects the sent transaction | the network's own reason | it is often the only explanation there is |
-| Sending fails after Confirm | an error alert; the screen keeps its fee and amounts with no reload, and the button stays Confirm, so every tap sends again, as Swap keeps its Swap button | Try Again belongs to a failed load |
-| A Dash payment is sent | Pending until the transaction is mined | the network may lock it with InstantSend, but the provider does not report that lock yet |
+| A Dash payment is sent | Pending until it is mined | the provider does not report InstantSend locks yet |
+| The system closes the app during Send, Swap or Stake | the flow starts again from the screen that opened it | a restored Confirm could sign a stale transfer |
 
 Names, the Network Fee, and account requirements follow the shared [Names](../PRODUCT.md#names), [Network Fee](../PRODUCT.md#network-fee), and [Network minimums and activation](../PRODUCT.md#network-minimums-and-activation) sections.
 
@@ -63,6 +68,7 @@ Supported codes: a plain address; Bitcoin, Litecoin, Bitcoin Cash, Dogecoin, Das
 | A plain address that matches several networks | a pick of the asset to send, then the rows above | |
 | A token the wallet has no balance for | Confirm, with the token's balance at zero so the shortfall and the ways to get it show; the token is not added to the wallet's list | the code chooses the token, not the wallet |
 | A WalletConnect Pay link | a review of the merchant's request; once confirmed, it pays and reports the result back to the merchant | |
+| A Solana Pay transaction request | Confirm with the merchant's name and, when the merchant sends one, its message in a Message section, like a signed message in WalletConnect; the message reads as one line of up to 280 characters | the message says what is being paid for and Solana Pay asks the wallet to show it, but it comes from the merchant, so it can't push the warnings below it off the screen or reorder its text |
 | A code the app cannot read | "Not supported" | a scan never does nothing |
 | A code the app can read but not open: a network without an account, a payment link that fails | why it cannot open | |
 

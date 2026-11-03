@@ -30,6 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -55,7 +56,6 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.DisplayText
 import com.gemwallet.android.ui.components.HideToggle
 import com.gemwallet.android.ui.components.InfoBottomSheet
-import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.NumericText
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.components.image.IconWithBadge
@@ -253,8 +253,8 @@ fun AssetHeadActions(actions: GemHeaderActions, onAction: (GemHeaderButtonAction
 
 @Composable
 private fun AssetWatchOnly() {
-    var showInfoSheet by remember { mutableStateOf<InfoSheetEntity?>(null) }
-    val openWatchWalletInfo = { showInfoSheet = GemInfoTopic.WatchWallet.infoSheet() }
+    var showInfoSheet by rememberSaveable { mutableStateOf(false) }
+    val openWatchWalletInfo = { showInfoSheet = true }
     Button(
         modifier = Modifier
             .fillMaxWidth()
@@ -301,7 +301,7 @@ private fun AssetWatchOnly() {
             }
         }
     }
-    InfoBottomSheet(item = showInfoSheet, onClose = { showInfoSheet = null })
+    InfoBottomSheet(item = if (showInfoSheet) GemInfoTopic.WatchWallet.infoSheet() else null, onClose = { showInfoSheet = false })
 }
 
 @Composable

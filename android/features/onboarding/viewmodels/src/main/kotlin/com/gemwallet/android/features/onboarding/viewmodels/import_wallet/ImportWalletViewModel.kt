@@ -2,7 +2,11 @@ package com.gemwallet.android.features.onboarding.viewmodels.import_wallet
 
 import android.content.Context
 import androidx.annotation.StringRes
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.clearText
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
@@ -16,21 +20,23 @@ import com.gemwallet.android.ui.localization.tabStringRes
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.name.NameRecordController
 import com.wallet.core.primitives.WalletSource
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemNameIndicator
 import uniffi.gemstone.GemNameRecordState
 import uniffi.gemstone.GemNameServiceInterface
@@ -38,10 +44,10 @@ import uniffi.gemstone.GemWalletImportKind
 import uniffi.gemstone.GemWalletImportResult
 import uniffi.gemstone.GemWalletServiceInterface
 import uniffi.gemstone.phraseSuggestions
-import javax.inject.Inject
 
-@HiltViewModel
-class ImportWalletViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = ImportWalletViewModel.Factory::class)
+class ImportWalletViewModel @AssistedInject constructor(
+    @Assisted importType: ImportType,
     private val service: GemWalletServiceInterface,
     nameService: GemNameServiceInterface,
     private val enablePushForNewWallet: EnablePushForNewWallet,
@@ -49,14 +55,18 @@ class ImportWalletViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
+    val inputState = TextFieldState()
     private val state = MutableStateFlow(ImportWalletUIState())
-    private val input = MutableStateFlow("")
-    private val isTypingLastWord = MutableStateFlow(true)
+    private val input = snapshotFlow { inputState.text.toString() to inputState.selection.end }
     private val isImporting = MutableStateFlow(false)
+    private val _isImported = MutableStateFlow(false)
+    val isImported: StateFlow<Boolean> = _isImported.asStateFlow()
     val uiState = combine(state, isImporting) { state, importing -> state.copy(loading = importing) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, ImportWalletUIState())
-    val suggestions: StateFlow<List<String>> = combine(input, isTypingLastWord, state) { input, isTypingLastWord, state ->
-        if (isTypingLastWord && state.importType.kind.supportsPhraseSuggestions()) phraseSuggestions(input.lastWord()) else emptyList()
+    val errorText: StateFlow<String?> = state.map { it.errorAlert?.text(context) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    val suggestions: StateFlow<List<String>> = combine(input, state) { (value, cursor), state ->
+        if (cursor >= value.length && state.importType.kind.supportsPhraseSuggestions()) phraseSuggestions(value.lastWord()) else emptyList()
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
@@ -65,51 +75,7 @@ class ImportWalletViewModel @Inject constructor(
     val nameResolveIndicator: StateFlow<GemNameIndicator?> = nameResolveState.map { it.indicator() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    fun importKind(type: ImportType) {
-        nameRecordController.reset()
-        resetInput()
-        state.update {
-            it.copy(
-                importType = type,
-                dataError = null,
-            )
-        }
-    }
-
-    fun onInput(value: String, cursor: Int) {
-        input.value = value
-        clearError()
-        isTypingLastWord.value = cursor >= value.length
-        val importType = state.value.importType
-        if (importType.kind.resolvesNames()) {
-            nameRecordController.getNameRecord(value, importType.chain)
-        } else {
-            nameRecordController.reset()
-        }
-    }
-
-    fun selectSuggestion(word: String): String {
-        isTypingLastWord.value = true
-        clearError()
-        return input.updateAndGet { it.dropLast(it.lastWord().length) + word + " " }
-    }
-
-    private fun clearError() {
-        state.update { it.copy(dataError = null) }
-    }
-
-    fun clearInput() {
-        input.value = ""
-        isTypingLastWord.value = true
-    }
-
-    private fun resetInput() {
-        clearInput()
-        isImporting.value = false
-    }
-
-    fun importSelect(importType: ImportType) {
-        resetInput()
+    init {
         val screen = service.importScreen(importType.chain?.string)
         state.update {
             it.copy(
@@ -119,39 +85,86 @@ class ImportWalletViewModel @Inject constructor(
                 showsTabs = screen.showsKinds,
             )
         }
+        viewModelScope.launch {
+            snapshotFlow { inputState.text.toString() }.collect(::onInput)
+        }
     }
 
-    fun import(onImported: () -> Unit) {
+    fun importKind(type: ImportType) {
+        nameRecordController.reset()
+        resetInput()
+        state.update {
+            it.copy(
+                importType = type,
+                dataError = null,
+                errorAlert = null,
+            )
+        }
+    }
+
+    private fun onInput(value: String) {
+        clearError()
+        val importType = state.value.importType
+        if (importType.kind.resolvesNames()) {
+            nameRecordController.getNameRecord(value, importType.chain)
+        } else {
+            nameRecordController.reset()
+        }
+    }
+
+    fun selectSuggestion(word: String) {
+        val value = inputState.text.toString()
+        inputState.setTextAndPlaceCursorAtEnd(value.dropLast(value.lastWord().length) + word + " ")
+    }
+
+    private fun clearError() {
+        state.update { it.copy(dataError = null) }
+    }
+
+    private fun resetInput() {
+        inputState.clearText()
+        isImporting.value = false
+    }
+
+    fun import() {
         if (isImporting.value) {
             return
         }
+        val data = inputState.text.toString()
+        // The text observer may not have seen the last edit yet, so the record could still be for the previous input.
+        onInput(data)
         val nameRecord = nameRecordController.state.value.record()
-        clearError()
         isImporting.value = true
-        val data = input.value
 
         viewModelScope.launch(ioDispatcher) {
             try {
                 val importType = state.value.importType
                 val imported = service.importWallet(importType.kind, importType.chain, data, nameRecord, WalletSource.Import, context)
                 isImporting.value = false
-                withContext(Dispatchers.Main) {
-                    when (imported) {
-                        is GemWalletImportResult.New -> {
-                            enablePushForNewWallet.enablePushForNewWallet()
-                            onImported()
-                        }
-
-                        is GemWalletImportResult.Existing -> state.update { it.copy(existingWalletName = imported.wallet.name) }
+                when (imported) {
+                    is GemWalletImportResult.New -> {
+                        enablePushForNewWallet.enablePushForNewWallet()
+                        _isImported.value = true
                     }
+
+                    is GemWalletImportResult.Existing -> state.update { it.copy(existingWalletName = imported.wallet.name) }
                 }
             } catch (err: CancellationException) {
                 throw err
             } catch (err: Throwable) {
-                state.update { it.copy(dataError = err.errorText().text(context)) }
+                val error = err.errorText()
+                state.update { it.copy(dataError = error, errorAlert = error) }
                 isImporting.value = false
             }
         }
+    }
+
+    fun onImportedHandled() {
+        _isImported.value = false
+    }
+
+    fun dismissError() {
+        state.update { it.copy(errorAlert = null) }
     }
 
     fun dismissExistingWallet() {
@@ -163,6 +176,11 @@ class ImportWalletViewModel @Inject constructor(
         enablePushForNewWallet.enablePushForNewWallet()
         onImported()
     }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(importType: ImportType): ImportWalletViewModel
+    }
 }
 
 data class ImportWalletUIState(
@@ -171,14 +189,15 @@ data class ImportWalletUIState(
     val title: String = "",
     val kinds: List<GemWalletImportKind> = emptyList(),
     val showsTabs: Boolean = false,
-    val dataError: String? = null,
+    val dataError: GemErrorText? = null,
+    val errorAlert: GemErrorText? = null,
     val existingWalletName: String? = null,
 ) {
     val tabs: List<ImportTabUIModel>
         get() = kinds.map { kind -> ImportTabUIModel(type = importType.copy(kind = kind), title = kind.tabStringRes(), isSelected = kind == importType.kind) }
 
     val input: ImportInputUIModel
-        get() = importType.kind.inputUiModel()
+        get() = importType.kind.inputUiModel(dataError)
 
     val showsScan: Boolean
         get() = importType.chain != null
@@ -188,13 +207,18 @@ data class ImportWalletUIState(
 data class ImportTabUIModel(val type: ImportType, @param:StringRes val title: Int, val isSelected: Boolean)
 
 @Immutable
-data class ImportInputUIModel(@param:StringRes val placeholder: Int, val protectsInput: Boolean, val supportsPhraseSuggestions: Boolean, val showsViewOnlyWarning: Boolean)
+data class ImportInputUIModel(@param:StringRes val placeholder: Int, val protectsInput: Boolean, val supportsPhraseSuggestions: Boolean, val showsViewOnlyWarning: Boolean, val invalidWords: Set<String> = emptySet()) {
+    fun invalidWordRanges(text: CharSequence): List<IntRange> = word.findAll(text).filter { it.value.lowercase() in invalidWords }.map { it.range }.toList()
+}
 
-internal fun GemWalletImportKind.inputUiModel() = ImportInputUIModel(
+internal fun GemWalletImportKind.inputUiModel(error: GemErrorText?) = ImportInputUIModel(
     placeholder = fieldStringRes(),
     protectsInput = protectsInput(),
     supportsPhraseSuggestions = supportsPhraseSuggestions(),
     showsViewOnlyWarning = showsViewOnlyWarning(),
+    invalidWords = (error as? GemErrorText.InvalidSecretPhraseWords)?.words.orEmpty().toSet(),
 )
 
 private fun String.lastWord(): String = takeLastWhile { !it.isWhitespace() }
+
+private val word = Regex("\\S+")

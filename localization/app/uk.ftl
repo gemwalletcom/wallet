@@ -3,6 +3,9 @@
 common_cancel = Скасувати
 common_hidden = Приховані
 common_done = Готово
+common_add = Додати
+common_close = Закрити
+common_back = Назад
 common_maximum_value = Максимальне значення %@
 common_minimum_value = Мінімальне значення %@
 common_secret_phrase = Секретна фраза
@@ -60,7 +63,6 @@ common_suspicious_address = Підозріла адреса
 common_suspicious_address_description = Ця адреса пов'язана з підозрілою або шкідливою активністю.
 common_refresh = Оновити
 common_grant_permission = Надати дозвіл
-common_required_field = %@ є обов'язковим
 
 # Welcome
 
@@ -165,7 +167,6 @@ transfer_reserved_fees = Ми залишили на вашому балансі 
 transfer_freeze_title = Заморозити
 transfer_unfreeze_title = Розморозити
 transfer_review_request = Переглянути запит
-transfer_amount = Сума
 
 # Settings
 
@@ -255,7 +256,6 @@ errors_dust_threshold_short = Мережа вважає цю кількість 
 errors_swap_minimum_amount = Мінімально дозволена сума угоди становить %@. Будь ласка, введіть більшу суму.
 errors_perpetual_trigger_price_lower = Ціна спрацювання має бути нижчою за ринкову ціну
 errors_perpetual_trigger_price_higher = Ціна спрацювання має бути вищою за ринкову ціну
-errors_unknown_try_again = Сталася невідома помилка. Будь ласка, спробуйте ще раз.
 errors_network_error = Помилка мережі: %@
 errors_network_offline = Здається, підключення до Інтернету відсутнє.
 errors_no_internet_connection = Немає підключення до інтернету
@@ -327,7 +327,6 @@ asset_buy_asset = Купити %@
 asset_get_asset = Отримати %@
 asset_add_to_wallet = Додати до гаманця
 asset_added_to_wallet = Додано до гаманця
-asset_hidden_from_wallet = Приховано з гаманця
 asset_resources = Ресурси
 asset_verification_verified = Перевірено
 asset_all_time_high = Історичний максимум
@@ -347,6 +346,8 @@ charts_price_close = Закриття
 charts_price_high = Максимум
 charts_price_low = Мінімум
 charts_price_change = Зміна
+charts_candlestick = Свічковий графік
+charts_line = Лінійний графік
 
 # Date
 

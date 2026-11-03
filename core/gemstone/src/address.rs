@@ -1,6 +1,12 @@
+use chain_primitives::checksum_address;
 use primitives::{Chain, ChainType};
 
+pub fn parse_address(address: &str, chain: Chain) -> Option<String> {
+    validate_address(address, chain).then(|| checksum_address(address, chain))
+}
+
 pub fn validate_address(address: &str, chain: Chain) -> bool {
+    let address = address.trim();
     match chain.chain_type() {
         ChainType::Ethereum | ChainType::HyperCore => gem_evm::validate_address(address),
         ChainType::Solana => gem_solana::validate_address(address),

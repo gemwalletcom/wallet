@@ -39,20 +39,20 @@ final class VerifyPhraseSceneViewModel {
     }
 
     var wordsIndex: Int? {
-        viewState.nextIndex.map(Int.init)
+        viewState.nextIndex
     }
 
     var title: String {
         Localized.VerifyPhrase.title
     }
 
-    var rows: [SecretPhraseRow] {
-        SecretPhraseRow.rows(for: words.enumerated().map { $0.offset < Int(viewState.verifiedCount) ? $0.element : .empty })
+    var verifiedWords: [String] {
+        words.enumerated().map { $0.offset < viewState.verifiedCount ? $0.element : .empty }
     }
 
     var groups: [[WordIndex]] {
         viewState.groups.map { group in
-            group.map { WordIndex(index: Int($0.index), word: choices[Int($0.index)]) }
+            group.map { WordIndex(index: $0.index, word: choices[$0.index]) }
         }
     }
 
@@ -61,7 +61,7 @@ final class VerifyPhraseSceneViewModel {
     }
 
     func pickWord(index: WordIndex) -> Bool {
-        let picked = session.onPick(choice: UInt32(index.index))
+        let picked = session.onPick(choice: index.index)
         guard picked != session else { return false }
         session = picked
         return true

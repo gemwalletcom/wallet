@@ -61,12 +61,14 @@ public final class PriceAlertsSceneViewModel: Sendable {
         PriceAlertFormatter.shared.list(alerts: priceAlerts.map { $0.toGem() }, priceCurrency: currency.toGem(), state: loadState)
     }
 
-    func sections(_ list: GemPriceAlertList) -> [ListItemValueSection<GemPriceAlertItem>] {
+    func sections(_ list: GemPriceAlertList) -> [ListSection<GemPriceAlertItem>] {
         list.sections.map { section in
-            ListItemValueSection(
-                section: section.kind.title,
+            ListSection(
+                id: section.kind.id,
+                title: section.kind.title,
+                image: nil,
+                values: section.items,
                 footer: section.kind.footer,
-                values: section.items.map { ListItemValue(value: $0) },
             )
         }
     }

@@ -587,6 +587,12 @@ mod tests {
 
         assert_eq!(confirmed.transaction_type, TransactionType::TokenApproval);
         assert_eq!(confirmed.state, TransactionState::Confirmed);
+
+        let increase: TronTransaction = serde_json::from_str(&include_str!("../../testdata/transaction_token_approval.json").replace("095ea7b3", "d73dd623")).unwrap();
+        let increase = map_transaction(Chain::Tron, increase, TransactionReceiptData::mock_with_result("SUCCESS")).unwrap();
+
+        assert_eq!(increase.transaction_type, TransactionType::TokenApproval);
+        assert_eq!(increase.to, "TA7mCjHFfo68FG3wc6pDCeRGbJSPZkBfL7");
     }
 
     #[test]

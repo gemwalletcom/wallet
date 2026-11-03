@@ -27,7 +27,7 @@ impl GemTransferData {
 }
 
 impl GemPendingTransactionInput {
-    pub fn mock(input_type: TransactionInputType, transaction_type: TransactionType, hash: &str, transaction_index: u32, transaction_count: u32) -> Self {
+    pub fn mock(input_type: TransactionInputType, transaction_type: TransactionType, hash: &str, transaction_index: usize, transaction_count: usize) -> Self {
         Self {
             sender: "sender".to_string(),
             transfer: GemTransferData::mock(input_type),

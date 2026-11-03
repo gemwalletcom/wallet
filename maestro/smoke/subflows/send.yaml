@@ -7,6 +7,8 @@ appId: ${APP_ID}
 - tapOn:
     id: "send_button"
 - waitForAnimationToEnd
+- assertNotVisible:
+    id: "memoInputField"
 - tapOn:
     id: "addressInputField"
 - inputText: ${BITCOIN_ADDRESS}
@@ -19,4 +21,5 @@ appId: ${APP_ID}
 - tapOn:
     id: "main_action"
 - runFlow: amount_over_balance.yaml
+- runFlow: amount_fiat_switch.yaml
 - takeScreenshot: ${output.journey}_send

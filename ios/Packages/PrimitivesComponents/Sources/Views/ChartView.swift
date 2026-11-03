@@ -55,7 +55,7 @@ public struct ChartView: View {
 extension ChartView {
     private var priceHeader: some View {
         Group {
-            if let selection = selectedIndex.flatMap({ chart.selection(index: UInt32($0)) }) {
+            if let selection = selectedIndex.flatMap({ chart.selection(index: $0) }) {
                 ChartHeaderView(header: selection.header, date: dateFormatter.string(for: selection.date, style: chart.dateStyle))
             } else if let header = chart.header {
                 ChartHeaderView(header: header)
@@ -119,7 +119,7 @@ extension ChartView {
                             in: geometry[plotFrame],
                             isZoomed: chart.isZoomed,
                             isPinching: $isPinching,
-                            onScrub: { selectedIndex = chart.indexAt(fraction: $0).map(Int.init) },
+                            onScrub: { selectedIndex = chart.indexAt(fraction: $0) },
                             onScrubEnd: { selectedIndex = nil },
                             onZoom: onZoom,
                             onPan: onPan,
@@ -154,12 +154,12 @@ extension ChartView {
                 if let plotFrame = proxy.plotFrame {
                     let chartBounds = geometry[plotFrame]
 
-                    if let lowerBoundX = proxy.position(forX: chart.values[Int(chart.bounds.lowerIndex)].date) {
+                    if let lowerBoundX = proxy.position(forX: chart.values[chart.bounds.lowerIndex].date) {
                         boundLabel(chart.bounds.low.text())
                             .offset(x: labelX(lowerBoundX, geoWidth: geometry.size.width), y: chartBounds.maxY + Spacing.small)
                     }
 
-                    if let upperBoundX = proxy.position(forX: chart.values[Int(chart.bounds.upperIndex)].date) {
+                    if let upperBoundX = proxy.position(forX: chart.values[chart.bounds.upperIndex].date) {
                         boundLabel(chart.bounds.high.text())
                             .offset(x: labelX(upperBoundX, geoWidth: geometry.size.width), y: chartBounds.minY - Spacing.large)
                     }

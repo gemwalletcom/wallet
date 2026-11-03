@@ -68,7 +68,7 @@ public struct AssetScene: View {
 
             switch model.transactionsPhase(details) {
             case .rows:
-                TransactionsList(sections: model.transactionSections)
+                TransactionsList(sections: model.transactionSections, onEndReached: model.onTransactionsEndReached)
                     .listRowInsets(.assetListRowInsets)
             case let .error(error):
                 Section {

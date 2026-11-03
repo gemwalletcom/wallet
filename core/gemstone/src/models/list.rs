@@ -3,6 +3,7 @@ use primitives::{Asset, BlockExplorerLink, Chain, TransactionState, Verification
 
 use crate::address_formatter::{GemAddressFormatStyle, format_address};
 use crate::config::social::GemSocialLink;
+use crate::constants::LIST_PAGE_SIZE;
 use crate::duration_formatter::GemDurationPart;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::copy::{GemCopy, GemCopyKind, address_copy};
@@ -634,5 +635,52 @@ impl GemListSection {
 
     pub fn untitled(rows: Vec<GemListRow>) -> Self {
         Self::new(GemListSectionTitle::None, rows)
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
+pub struct GemListWindow {
+    pub limit: usize,
+    pub maximum: usize,
+}
+
+#[uniffi::export]
+impl GemListWindow {
+    pub fn on_end_reached(&self, row_count: usize) -> GemListWindow {
+        match row_count >= self.limit {
+            true => Self {
+                limit: (self.limit + LIST_PAGE_SIZE).min(self.maximum),
+                ..*self
+            },
+            false => *self,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_on_end_reached() {
+        let first = GemListWindow {
+            limit: LIST_PAGE_SIZE,
+            maximum: LIST_PAGE_SIZE * 3,
+        };
+
+        assert_eq!(first.on_end_reached(LIST_PAGE_SIZE), GemListWindow { limit: LIST_PAGE_SIZE * 2, ..first });
+        assert_eq!(first.on_end_reached(LIST_PAGE_SIZE - 1), first);
+        assert_eq!(
+            GemListWindow {
+                limit: LIST_PAGE_SIZE * 2,
+                maximum: LIST_PAGE_SIZE * 2 + 1
+            }
+            .on_end_reached(LIST_PAGE_SIZE * 2),
+            GemListWindow {
+                limit: LIST_PAGE_SIZE * 2 + 1,
+                maximum: LIST_PAGE_SIZE * 2 + 1
+            }
+        );
+        assert_eq!(GemListWindow { limit: LIST_PAGE_SIZE * 3, ..first }.on_end_reached(LIST_PAGE_SIZE * 3), GemListWindow { limit: LIST_PAGE_SIZE * 3, ..first });
     }
 }

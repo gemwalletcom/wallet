@@ -3,6 +3,9 @@
 common_cancel = Annuller
 common_hidden = Skjulte
 common_done = Færdig
+common_add = Tilføj
+common_close = Luk
+common_back = Tilbage
 common_maximum_value = Maksimal værdi er %@
 common_minimum_value = Minimumsværdi er %@
 common_secret_phrase = Hemmelig sætning
@@ -60,7 +63,6 @@ common_suspicious_address = Mistænkelig adresse
 common_suspicious_address_description = Denne adresse er forbundet med mistænkelig eller skadelig aktivitet.
 common_refresh = Opdater
 common_grant_permission = Giv tilladelse
-common_required_field = %@ er påkrævet
 
 # Welcome
 
@@ -165,7 +167,6 @@ transfer_reserved_fees = Vi har efterladt %@ på din saldo til dækning af fremt
 transfer_freeze_title = Fryse
 transfer_unfreeze_title = Optø
 transfer_review_request = Anmodning om gennemgang
-transfer_amount = Beløb
 
 # Settings
 
@@ -255,7 +256,6 @@ errors_dust_threshold_short = Netværket anser denne mængde for støv – gebyr
 errors_swap_minimum_amount = Minimumsbeløbet for handel er %@. Indtast venligst et højere beløb.
 errors_perpetual_trigger_price_lower = Triggerprisen skal være lavere end markedsprisen
 errors_perpetual_trigger_price_higher = Triggerprisen skal være højere end markedsprisen
-errors_unknown_try_again = Der opstod en ukendt fejl. Prøv venligst igen.
 errors_network_error = Netværksfejl: %@
 errors_network_offline = Internetforbindelsen ser ud til at være offline.
 errors_no_internet_connection = Ingen internetforbindelse
@@ -327,7 +327,6 @@ asset_buy_asset = Køb %@
 asset_get_asset = Få %@
 asset_add_to_wallet = Tilføj til tegnebog
 asset_added_to_wallet = Tilføjet til tegnebogen
-asset_hidden_from_wallet = Skjult fra tegnebogen
 asset_resources = Ressourcer
 asset_verification_verified = Bekræftet
 asset_all_time_high = Højeste nogensinde
@@ -347,6 +346,8 @@ charts_price_close = Lukning
 charts_price_high = Høj
 charts_price_low = Lav
 charts_price_change = Forandring
+charts_candlestick = Candlestick-diagram
+charts_line = Linjediagram
 
 # Date
 

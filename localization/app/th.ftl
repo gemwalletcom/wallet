@@ -3,6 +3,9 @@
 common_cancel = ยกเลิก
 common_hidden = ที่ซ่อนไว้
 common_done = เสร็จแล้ว
+common_add = เพิ่ม
+common_close = ปิด
+common_back = ย้อนกลับ
 common_maximum_value = ค่าสูงสุดคือ %@
 common_minimum_value = ค่าต่ำสุดคือ %@
 common_secret_phrase = วลีลับ
@@ -60,7 +63,6 @@ common_suspicious_address = ที่อยู่น่าสงสัย
 common_suspicious_address_description = ที่อยู่นี้เกี่ยวข้องกับกิจกรรมที่น่าสงสัยหรือเป็นอันตราย
 common_refresh = รีเฟรช
 common_grant_permission = ให้สิทธิ์
-common_required_field = จำเป็นต้องระบุ %@
 
 # Welcome
 
@@ -165,7 +167,6 @@ transfer_reserved_fees = เราได้เหลือ %@ ไว้ในย
 transfer_freeze_title = ฟรีซ
 transfer_unfreeze_title = ยกเลิกการฟรีซ
 transfer_review_request = คำขอตรวจสอบ
-transfer_amount = จำนวน
 
 # Settings
 
@@ -255,7 +256,6 @@ errors_dust_threshold_short = เครือข่ายถือว่าจ�
 errors_swap_minimum_amount = จำนวนเงินขั้นต่ำในการซื้อขายคือ %@ กรุณาป้อนจำนวนเงินที่สูงกว่านี้
 errors_perpetual_trigger_price_lower = ราคา Trigger ควรต่ำกว่าราคาตลาด
 errors_perpetual_trigger_price_higher = ราคา Trigger ควรสูงกว่าราคาตลาด
-errors_unknown_try_again = เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ โปรดลองอีกครั้ง
 errors_network_error = เกิดข้อผิดพลาดเครือข่าย: %@
 errors_network_offline = ดูเหมือนว่าการเชื่อมต่ออินเทอร์เน็ตจะออฟไลน์
 errors_no_internet_connection = ไม่มีการเชื่อมต่ออินเทอร์เน็ต
@@ -327,7 +327,6 @@ asset_buy_asset = ซื้อ %@
 asset_get_asset = รับ %@
 asset_add_to_wallet = เพิ่มลงในกระเป๋าสตางค์
 asset_added_to_wallet = เพิ่มลงในกระเป๋าสตางค์แล้ว
-asset_hidden_from_wallet = ซ่อนจากกระเป๋าสตางค์แล้ว
 asset_resources = ทรัพยากร
 asset_verification_verified = ได้รับการยืนยันแล้ว
 asset_all_time_high = สูงสุดตลอดกาล
@@ -347,6 +346,8 @@ charts_price_close = ปิด
 charts_price_high = สูง
 charts_price_low = ต่ำ
 charts_price_change = เปลี่ยน
+charts_candlestick = กราฟแท่งเทียน
+charts_line = กราฟเส้น
 
 # Date
 

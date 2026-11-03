@@ -11,6 +11,7 @@ data class TransactionsFilter (
 	val chains: List<Chain>,
 	val transactionTypes: List<TransactionType>,
 	val states: List<TransactionState>,
-	val assetRankGreaterThan: Int? = null
+	val assetRankGreaterThan: Int? = null,
+	val createdFrom: SerializedDate? = null
 )
 

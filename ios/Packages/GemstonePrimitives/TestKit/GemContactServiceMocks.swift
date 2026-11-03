@@ -22,7 +22,6 @@ public final class GemWalletConnectServiceMock: GemWalletConnectServiceProtocol,
     public var connectionRowValue = GemConnectionRow(title: "", host: nil, initial: "WC", iconUrl: nil)
     public var connectionDetailRows: [GemListRow] = []
     public var hasSessionsValue = false
-    public var signatureResult: Result<String, Error> = .success("0x")
 
     public private(set) var addedConnections: [Gemstone.WalletConnection] = []
     public private(set) var deletedSessionIds: [String] = []
@@ -129,10 +128,6 @@ public final class GemWalletConnectServiceMock: GemWalletConnectServiceProtocol,
         let seen = seenMessageIds.contains(messageId)
         seenMessageIds.append(messageId)
         return !seen
-    }
-
-    public func signMessage(walletId _: Gemstone.WalletId, message _: Gemstone.SignMessage) async throws -> String {
-        try signatureResult.get()
     }
 
     public func updateSessions(sessions: [Gemstone.WalletConnectionSession]) async throws {

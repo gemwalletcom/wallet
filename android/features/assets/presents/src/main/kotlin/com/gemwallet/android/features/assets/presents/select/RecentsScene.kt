@@ -32,16 +32,15 @@ import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.SheetSizing
 import com.gemwallet.android.ui.theme.paddingDefault
-import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import uniffi.gemstone.GemEmptyStateKind
 import uniffi.gemstone.GemRecentsViewState
 
 @Composable
-fun RecentsScene(isVisible: Boolean, viewState: GemRecentsViewState, query: TextFieldState, onDismissRequest: () -> Unit, onClear: () -> Unit, onSelect: (Asset) -> Unit) {
+internal fun RecentsScene(isVisible: Boolean, viewState: GemRecentsViewState, query: TextFieldState, onAction: (RecentsAction) -> Unit) {
     ModalBottomSheet(
         isVisible = isVisible,
-        onDismissRequest = onDismissRequest,
+        onDismissRequest = { onAction(RecentsAction.Dismiss) },
         expansion = SheetExpansion.Full,
     ) {
         Column(
@@ -56,12 +55,12 @@ fun RecentsScene(isVisible: Boolean, viewState: GemRecentsViewState, query: Text
                 contentAlignment = Alignment.Center,
             ) {
                 IconButton(
-                    onClick = onDismissRequest,
+                    onClick = { onAction(RecentsAction.Dismiss) },
                     modifier = Modifier.align(Alignment.CenterStart),
                 ) {
                     Icon(
                         imageVector = AppIcons.Close,
-                        contentDescription = null,
+                        contentDescription = stringResource(R.string.common_close),
                     )
                 }
                 Text(
@@ -70,7 +69,7 @@ fun RecentsScene(isVisible: Boolean, viewState: GemRecentsViewState, query: Text
                 )
                 if (viewState.sections.showsClear) {
                     TextButton(
-                        onClick = onClear,
+                        onClick = { onAction(RecentsAction.Clear) },
                         modifier = Modifier.align(Alignment.CenterEnd),
                     ) {
                         Text(stringResource(R.string.filter_clear))
@@ -91,7 +90,7 @@ fun RecentsScene(isVisible: Boolean, viewState: GemRecentsViewState, query: Text
                         AssetListItem(
                             asset = recent.asset,
                             listPosition = position,
-                            modifier = Modifier.clickable { onSelect(recent.asset) },
+                            modifier = Modifier.clickable { onAction(RecentsAction.Select(recent.asset)) },
                             trailing = { DataBadgeChevron() },
                         )
                     }

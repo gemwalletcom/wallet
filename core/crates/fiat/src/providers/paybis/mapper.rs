@@ -1,19 +1,16 @@
 use std::collections::HashSet;
 
 use crate::model::FiatProviderAsset;
+use crate::provider::DEFAULT_PAYMENT_METHODS;
 use primitives::asset_constants::{
     ARBITRUM_ARB_ASSET_ID, BASE_USDC_ASSET_ID, ETHEREUM_AAVE_ASSET_ID, ETHEREUM_DAI_ASSET_ID, ETHEREUM_LINK_ASSET_ID, ETHEREUM_UNI_ASSET_ID, ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDT_ASSET_ID, OPTIMISM_OP_ASSET_ID, POLYGON_USDC_ASSET_ID,
     POLYGON_USDT_ASSET_ID, SOLANA_USDC_ASSET_ID, SOLANA_USDT_ASSET_ID, STELLAR_USDC_ASSET_ID, TRON_USDT_ASSET_ID,
 };
 use primitives::currency::Currency;
 use primitives::fiat_assets::FiatAssetLimits;
-use primitives::{AssetId, Chain, FiatProviderName, FiatTransactionStatus, FiatTransactionUpdate, FiatWebhook, PaymentType};
+use primitives::{AssetId, Chain, FiatProviderName, FiatTransactionStatus, FiatTransactionUpdate, FiatWebhook};
 
 use super::models::{Currency as PaybisCurrency, PaybisAmount, PaybisWebhook, PaybisWebhookData};
-
-pub fn supported_payment_methods() -> Vec<PaymentType> {
-    vec![PaymentType::Card, PaymentType::ApplePay, PaymentType::GooglePay]
-}
 
 fn map_symbol_to_asset_id(symbol: &str) -> Option<AssetId> {
     match symbol.to_ascii_uppercase().as_str() {
@@ -157,7 +154,7 @@ fn fiat_side(webhook_data: &PaybisWebhookData) -> Option<&PaybisAmount> {
 }
 
 fn default_limits() -> Vec<FiatAssetLimits> {
-    supported_payment_methods()
+    DEFAULT_PAYMENT_METHODS
         .into_iter()
         .map(|payment_type| FiatAssetLimits {
             currency: Currency::USD,
@@ -202,6 +199,7 @@ pub fn map_assets(buy_currencies: Vec<PaybisCurrency>, sell_codes: HashSet<Strin
 mod tests {
     use super::*;
     use crate::providers::paybis::models::{PaybisAmount, PaybisTransaction, PaybisWebhookData, PaybisWebhookQuote};
+    use primitives::PaymentType;
     use primitives::asset_constants::{
         ARBITRUM_ARB_ASSET_ID, BASE_USDC_ASSET_ID, ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDT_ASSET_ID, OPTIMISM_OP_ASSET_ID, POLYGON_USDC_ASSET_ID, POLYGON_USDT_ASSET_ID, SOLANA_USDC_ASSET_ID, SOLANA_USDT_ASSET_ID, TRON_USDT_ASSET_ID,
     };

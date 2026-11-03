@@ -15,12 +15,12 @@ import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.data.services.store.queries.BannersQuery
 import com.gemwallet.android.data.services.store.queries.ChainAssetQuery
 import com.gemwallet.android.data.services.store.queries.PriceAlertsQuery
-import com.gemwallet.android.ext.GemConstants
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.ext.transactions
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.assetAddedToast
@@ -48,7 +48,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
@@ -62,6 +61,7 @@ import uniffi.gemstone.GemAssetDetailsInput
 import uniffi.gemstone.GemAssetDetailsServiceInterface
 import uniffi.gemstone.GemBannerKey
 import uniffi.gemstone.GemListPhase
+import uniffi.gemstone.GemListWindow
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemPriceAlertToggle
 import uniffi.gemstone.GemRefreshKind
@@ -105,10 +105,13 @@ class AssetViewModel @Inject constructor(
 
     private val transactionsFilter = TransactionsFilter(assetId = assetId, chains = emptyList(), transactionTypes = emptyList(), states = emptyList())
 
-    val transactions = getTransactions.getTransactions(transactionsFilter, GemConstants.transactionsListLimit)
+    private val transactionsWindow = MutableStateFlow(GemListWindow.transactions)
+
+    val transactions = transactionsWindow.map { it.limit }
+        .flatMapLatest { limit -> getTransactions.getTransactions(transactionsFilter, limit) }
         .map { it.toImmutableList() }
         .flowOn(ioDispatcher)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, getTransactions.stored(transactionsFilter, GemConstants.transactionsListLimit).toImmutableList())
+        .stateIn(viewModelScope, SharingStarted.Eagerly, getTransactions.stored(transactionsFilter, transactionsWindow.value.limit).toImmutableList())
 
     private val transactionsState = MutableStateFlow<GemLoadState>(GemLoadState.Loading)
 
@@ -125,12 +128,7 @@ class AssetViewModel @Inject constructor(
         return ChainAssetData(assetInfo, feeInfo)
     }
 
-    private val banners = chainAssetInfo.filterNotNull()
-        .map { it.assetData.asset }
-        .distinctUntilChanged()
-        .flatMapLatest { asset ->
-            session.flatMapLatest { bannersQuery(it?.wallet?.id?.id, asset.id) }
-        }
+    private val banners = bannersQuery()
 
     private val priceAlerts = priceAlertsQuery(assetId).map { alerts -> alerts.map { it.priceAlert } }
 
@@ -224,6 +222,10 @@ class AssetViewModel @Inject constructor(
     }
 
     fun clearError() = errorState.update { null }
+
+    fun onTransactionsEndReached() {
+        transactionsWindow.update { it.onEndReached(transactions.value.size) }
+    }
 
     private companion object {
         const val TAG = "AssetDetails"

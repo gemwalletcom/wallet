@@ -6,16 +6,14 @@ import WidgetKit
 
 struct WidgetContentView: View {
     private let viewModel: PriceWidgetViewModel
-    private let showErrorMessage: Bool
 
-    init(viewModel: PriceWidgetViewModel, showErrorMessage: Bool = true) {
+    init(viewModel: PriceWidgetViewModel) {
         self.viewModel = viewModel
-        self.showErrorMessage = showErrorMessage
     }
 
     var body: some View {
         if viewModel.entry.error != nil {
-            WidgetErrorView(error: viewModel.entry.error, showMessage: showErrorMessage)
+            WidgetErrorView(error: viewModel.entry.error, showMessage: viewModel.showsErrorMessage)
         } else if !viewModel.prices.isEmpty {
             switch viewModel.widgetFamily {
             case .systemSmall:

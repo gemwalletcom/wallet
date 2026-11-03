@@ -9,7 +9,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.localization.string
@@ -68,7 +70,7 @@ private fun WalletEditButton(onClick: () -> Unit) {
     IconButton(onClick = onClick, modifier = Modifier.testTag("wallet_edit")) {
         Icon(
             imageVector = AppIcons.SettingsOutlined,
-            contentDescription = "edit",
+            contentDescription = stringResource(R.string.common_details),
             tint = MaterialTheme.colorScheme.secondary,
         )
     }

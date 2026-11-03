@@ -26,6 +26,7 @@ pub struct TestAlienProvider {
     by_request_type: Vec<(String, Arc<AlienResponse>)>,
     requested: Mutex<Vec<String>>,
     requested_types: Mutex<Vec<String>>,
+    signed_wallet_ids: Mutex<Vec<String>>,
     error: Option<AlienError>,
 }
 
@@ -37,6 +38,7 @@ impl TestAlienProvider {
             by_request_type: Vec::new(),
             requested: Mutex::new(Vec::new()),
             requested_types: Mutex::new(Vec::new()),
+            signed_wallet_ids: Mutex::new(Vec::new()),
             error: None,
         }
     }
@@ -77,6 +79,10 @@ impl TestAlienProvider {
     pub fn requested_types(&self) -> Vec<String> {
         self.requested_types.lock().unwrap().clone()
     }
+
+    pub fn signed_wallet_ids(&self) -> Vec<String> {
+        self.signed_wallet_ids.lock().unwrap().clone()
+    }
 }
 
 #[async_trait]
@@ -84,6 +90,9 @@ impl AlienProvider for TestAlienProvider {
     async fn request(&self, target: AlienTarget) -> Result<Arc<AlienResponse>, AlienError> {
         let path = target.url.find("/v").map(|index| target.url[index..].to_string()).unwrap_or(target.url);
         self.requested.lock().unwrap().push(path.clone());
+        if let Some(payload) = target.headers.as_ref().and_then(|headers| headers.get(gem_auth::AUTHORIZATION_HEADER)).and_then(|header| gem_auth::parse_device_auth(header)) {
+            self.signed_wallet_ids.lock().unwrap().push(payload.wallet_id.unwrap_or_default());
+        }
         if let Some(error) = &self.error {
             return Err(error.clone());
         }

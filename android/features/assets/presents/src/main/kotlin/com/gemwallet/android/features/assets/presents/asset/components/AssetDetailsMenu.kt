@@ -42,13 +42,13 @@ fun RowScope.AssetDetailsMenu(details: GemAssetDetails, onPriceAlert: () -> Unit
 
     details.state.priceAlert?.let { priceAlert ->
         IconButton(onClick = onPriceAlert, modifier = Modifier.testTag("price_alert_button")) {
-            Icon(priceAlert.symbol().vector(), "")
+            Icon(priceAlert.symbol().vector(), stringResource(R.string.settings_price_alerts_title))
         }
     }
     IconButton(onClick = { menuExpanded = !menuExpanded }) {
         Icon(
             imageVector = AppIcons.MoreVert,
-            contentDescription = "More",
+            contentDescription = stringResource(R.string.wallet_more),
         )
     }
     DropdownMenu(

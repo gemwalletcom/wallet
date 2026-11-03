@@ -187,7 +187,9 @@ fn jetton_swap_metadata(trace: &Trace) -> Option<(String, TransactionSwapMetadat
         return None;
     };
     let referral_fee = map_referral_fee(trace, &sender, &to_asset);
-    let metadata = TransactionSwapMetadata::from_provider_id(from_asset, swap.dex_incoming_transfer.amount.clone(), to_asset, swap.dex_outgoing_transfer.amount.clone(), swap.provider()).with_referral_fee(referral_fee);
+    let input_fee = referral_fee.as_ref().filter(|fee| fee.asset_id == from_asset).map_or(BigUint::ZERO, |fee| fee.value.clone());
+    let from_value = &swap.dex_incoming_transfer.amount + input_fee;
+    let metadata = TransactionSwapMetadata::from_provider_id(from_asset, from_value, to_asset, swap.dex_outgoing_transfer.amount.clone(), swap.provider()).with_referral_fee(referral_fee);
     Some((sender, metadata))
 }
 
@@ -446,6 +448,22 @@ mod tests {
             Some(TransactionSwapReferralFee {
                 asset_id: Chain::Ton.as_asset_id(),
                 value: BigUint::from(17456959u64),
+            })
+        );
+    }
+
+    #[test]
+    fn test_map_trace_transactions_dedust_from_value_includes_input_fee() {
+        let traces: TraceResponse = serde_json::from_str(include_str!("../../testdata/jetton_swap_dedust_referral_fee_trace.json")).unwrap();
+        let metadata = map_trace_transactions(traces.traces)[0].swap_metadata().unwrap();
+
+        assert_eq!(metadata.from_asset, Chain::Ton.as_asset_id());
+        assert_eq!(metadata.from_value, BigUint::from(1_000_000_000u64));
+        assert_eq!(
+            metadata.referral_fee,
+            Some(TransactionSwapReferralFee {
+                asset_id: Chain::Ton.as_asset_id(),
+                value: BigUint::from(5_000_000u64),
             })
         );
     }

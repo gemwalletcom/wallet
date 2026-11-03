@@ -13,8 +13,8 @@ import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.domains.wallet.WalletSecretInput
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
-import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.assets.presents.select.AssetsManageRoute
 import com.gemwallet.android.features.onboarding.presents.authentication.EnableAuthenticationRoute
 import com.gemwallet.android.features.onboarding.presents.create_wallet.CreateWalletRoute
@@ -39,6 +39,7 @@ import com.gemwallet.android.ui.navigation.routes.AmountRoute
 import com.gemwallet.android.ui.navigation.routes.AssetPriceAlertsRoute
 import com.gemwallet.android.ui.navigation.routes.AssetRoute
 import com.gemwallet.android.ui.navigation.routes.AssetsResultsRoute
+import com.gemwallet.android.ui.navigation.routes.ChainListSettingsRoute
 import com.gemwallet.android.ui.navigation.routes.ChainSettingsRoute
 import com.gemwallet.android.ui.navigation.routes.ChartRoute
 import com.gemwallet.android.ui.navigation.routes.CollectibleRoute
@@ -77,6 +78,7 @@ import com.gemwallet.android.ui.navigation.routes.RewardsRoute
 import com.gemwallet.android.ui.navigation.routes.SecurityReminderRoute
 import com.gemwallet.android.ui.navigation.routes.SecurityRoute
 import com.gemwallet.android.ui.navigation.routes.SendSelectRoute
+import com.gemwallet.android.ui.navigation.routes.ServiceStatusRoute
 import com.gemwallet.android.ui.navigation.routes.SetPriceAlertRoute
 import com.gemwallet.android.ui.navigation.routes.SettingsRoute
 import com.gemwallet.android.ui.navigation.routes.StakeRoute
@@ -92,7 +94,6 @@ import com.gemwallet.android.ui.navigation.routes.WalletImageRoute
 import com.gemwallet.android.ui.navigation.routes.WalletRoute
 import com.gemwallet.android.ui.navigation.routes.WalletSearchRoute
 import com.gemwallet.android.ui.navigation.routes.WalletsRoute
-import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChainAddress
@@ -111,6 +112,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemAssetDestination
 import uniffi.gemstone.GemDeeplinkServiceInterface
 import uniffi.gemstone.GemNavigationServiceInterface
 import uniffi.gemstone.GemNavigationTab
@@ -141,10 +143,10 @@ class WalletNavigator(
         pop()
     }
 
-    private fun openAssetRoute(route: AssetRoute) = scope.launch {
-        runCatchingCancellable { withContext(Dispatchers.IO) { navigationService.openAsset(route.assetId.toIdentifier()) } }
-            .onSuccess { target -> if (target is GemNavigationTarget.Asset) push(route) }
-            .onFailure { Log.e(TAG, "opening an asset failed", it) }
+    private fun openTarget(open: suspend () -> GemNavigationTarget, onTarget: (GemNavigationTarget) -> Unit) = scope.launch {
+        runCatchingCancellable { withContext(Dispatchers.IO) { open() } }
+            .onSuccess(onTarget)
+            .onFailure { Log.e(TAG, "opening a target failed", it) }
     }
 
     private fun replaceTop(route: NavKey) {
@@ -240,7 +242,13 @@ class WalletNavigator(
     fun openWalletSecurityReminder(input: WalletSecretInput) = push(SecurityReminderRoute(input))
     fun finishWalletSecurityReminder(input: WalletSecretInput) = replaceTop(ExportWalletRoute(input))
     fun openAddAsset() = push(AddAssetRoute)
-    fun openAsset(assetId: AssetId) = openAssetRoute(AssetRoute(assetId))
+    fun openAsset(assetId: AssetId) = openTarget({ navigationService.openAsset(assetId.toIdentifier()) }) { target ->
+        when ((target as? GemNavigationTarget.Asset)?.destination) {
+            is GemAssetDestination.Asset -> push(AssetRoute(assetId))
+            is GemAssetDestination.Perpetual -> push(PerpetualRoute(assetId))
+            null -> Unit
+        }
+    }
     fun openNetworkAssets(chain: Chain) = push(NetworkAssetsRoute(chain))
     fun openChart(assetId: AssetId) = push(ChartRoute(assetId))
     fun openPortfolio(type: PortfolioType = PortfolioType.Wallet) = push(PortfolioRoute(type))
@@ -283,7 +291,9 @@ class WalletNavigator(
         return true
     }
     fun openAboutUs() = push(AboutUsRoute)
-    fun openChainSettings() = push(ChainSettingsRoute)
+    fun openChainListSettings() = push(ChainListSettingsRoute)
+    fun openChainSettings(chain: Chain) = push(ChainSettingsRoute(chain))
+    fun openServiceStatus() = push(ServiceStatusRoute)
     fun openNotifications() = push(NotificationsRoute)
     fun openPreferences() = push(PreferencesRoute)
     fun openSupport() = push(SupportRoute)
@@ -296,10 +306,6 @@ class WalletNavigator(
 
     fun openPerpetualDepositSelect() = push(PerpetualDepositSelectRoute)
 
-    fun openRecent(asset: Asset) {
-        val target = navigationService.assetTarget(asset.toGem()) as? GemNavigationTarget.Asset ?: return
-        if (target.isPerpetual) openPerpetual(asset.id) else openAsset(asset.id)
-    }
     fun openEarn(assetId: AssetId) = push(EarnRoute(assetId))
 
     fun openStake(assetId: AssetId) = push(StakeRoute(assetId))
@@ -321,6 +327,9 @@ class WalletNavigator(
     fun openSwap(from: AssetId?, to: AssetId? = null) {
         clearSwapSelections()
         push(SwapPairRoute(from, to))
+    }
+    fun openTransactionSwap(from: AssetId, to: AssetId) = openTarget({ navigationService.openSwap(from.toIdentifier(), to.toIdentifier()) }) { target ->
+        if (target is GemNavigationTarget.Swap) openSwap(target.from.toPrimitives().id, target.to?.toPrimitives()?.id)
     }
     fun openSwapSelect(itemType: SwapItemType, payAssetId: AssetId?, receiveAssetId: AssetId?) {
         push(SwapSelectRoute(itemType, payAssetId, receiveAssetId))

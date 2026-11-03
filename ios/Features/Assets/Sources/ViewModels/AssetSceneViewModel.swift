@@ -14,6 +14,7 @@ import struct Gemstone.GemEmptyState
 import enum Gemstone.GemHeaderButtonAction
 import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemListPhase
+import struct Gemstone.GemListWindow
 import enum Gemstone.GemLoadState
 import enum Gemstone.GemServiceError
 import struct Gemstone.GemTransactionRow
@@ -40,6 +41,7 @@ public final class AssetSceneViewModel: Sendable {
     public var isPresentingAssetSheet: AssetSheetType?
 
     private var transactionsState: GemLoadState = .loading
+    private var transactionsWindow: GemListWindow = .transactions
 
     var input: AssetSceneInput
     public let assetQuery: ObservableQuery<ChainAssetQuery>
@@ -178,6 +180,11 @@ public extension AssetSceneViewModel {
         Task {
             await refresh()
         }
+    }
+
+    internal func onTransactionsEndReached() {
+        transactionsWindow = transactionsWindow.onEndReached(rowCount: transactionSections.rowCount())
+        transactionsQuery.setLimit(transactionsWindow.limit)
     }
 
     internal func onSelectHeader(_ action: GemHeaderButtonAction) {

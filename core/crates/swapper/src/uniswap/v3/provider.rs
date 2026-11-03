@@ -520,7 +520,7 @@ mod tests {
         assert_eq!(execute.commands.to_vec(), vec![WRAP_ETH_COMMAND, TRANSFER_COMMAND, V2_SWAP_EXACT_IN_COMMAND]);
         assert_eq!(
             parsed.swap_metadata().unwrap(),
-            TransactionSwapMetadata::new(request.from_asset.asset_id(), BigUint::from(995_000_000_000_000_000u64), request.to_asset.asset_id(), BigUint::from(1_990_000u64), provider,)
+            TransactionSwapMetadata::new(request.from_asset.asset_id(), request.value.clone(), request.to_asset.asset_id(), BigUint::from(1_990_000u64), provider,)
         );
         execute.inputs[2].clone()
     }

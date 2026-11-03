@@ -13,6 +13,7 @@ private fun TransactionsFilter?.toSqlClauses(): List<SqlClause> = if (this == nu
         SqlClause.inList("tx.type", transactionTypes.map { it.name }),
         assetRankGreaterThan?.let { SqlClause.greaterThan("asset.rank", it) },
         SqlClause.inList("tx.state", states.map { it.name }),
+        createdFrom?.let { SqlClause.atLeast("tx.createdAt", it) },
     )
 }
 

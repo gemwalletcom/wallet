@@ -2,7 +2,6 @@ package com.gemwallet.android.data.coordinators.di
 
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
 import com.gemwallet.android.application.wallet_connect.WalletConnectClient
-import com.gemwallet.android.application.wallet_connect.cases.AddWalletConnectSessionAccount
 import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnectAuthentication
 import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnection
 import com.gemwallet.android.application.wallet_connect.cases.DisconnectWalletConnection
@@ -11,7 +10,6 @@ import com.gemwallet.android.application.wallet_connect.cases.PairWalletConnect
 import com.gemwallet.android.application.wallet_connect.cases.RespondWalletConnectRequest
 import com.gemwallet.android.application.wallet_connect.cases.SyncWalletConnectSessions
 import com.gemwallet.android.data.coordinators.wallet_connect.WalletConnectCoordinator
-import com.gemwallet.android.data.services.gemstone.stores.GemstoneConnectionStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -25,13 +23,11 @@ import javax.inject.Singleton
 object WalletConnectModule {
     @Singleton
     @Provides
-    fun provideWalletConnectCoordinator(connectionStore: GemstoneConnectionStore, walletConnectClient: WalletConnectClient, walletConnectService: GemWalletConnectService, chainService: GemChainService): WalletConnectCoordinator =
-        WalletConnectCoordinator(
-            connectionStore = connectionStore,
-            walletConnectClient = walletConnectClient,
-            walletConnectService = walletConnectService,
-            chainService = chainService,
-        )
+    fun provideWalletConnectCoordinator(walletConnectClient: WalletConnectClient, walletConnectService: GemWalletConnectService, chainService: GemChainService): WalletConnectCoordinator = WalletConnectCoordinator(
+        walletConnectClient = walletConnectClient,
+        walletConnectService = walletConnectService,
+        chainService = chainService,
+    )
 
     @Singleton
     @Provides
@@ -57,7 +53,4 @@ object WalletConnectModule {
 
     @Provides
     fun provideRespondWalletConnectRequest(coordinator: WalletConnectCoordinator): RespondWalletConnectRequest = coordinator
-
-    @Provides
-    fun provideAddWalletConnectSessionAccount(coordinator: WalletConnectCoordinator): AddWalletConnectSessionAccount = coordinator
 }

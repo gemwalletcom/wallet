@@ -58,4 +58,8 @@ public enum Currency: String, Codable, CaseIterable, Equatable, Sendable {
 	case mad = "MAD"
 	case ghs = "GHS"
 	case pen = "PEN"
+	case ron = "RON"
+	case gel = "GEL"
+	case amd = "AMD"
+	case mdl = "MDL"
 }

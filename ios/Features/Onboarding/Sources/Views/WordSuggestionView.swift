@@ -18,6 +18,7 @@ struct WordSuggestionView: View {
                     }
                     .buttonStyle(.blue(paddingHorizontal: 10, paddingVertical: 6, glassEffect: .enabled))
                     .fixedSize(horizontal: true, vertical: false)
+                    .accessibilityIdentifier("word_suggestion")
                 }
             }
         }

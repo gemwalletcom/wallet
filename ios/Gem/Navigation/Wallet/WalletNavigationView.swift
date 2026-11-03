@@ -53,21 +53,24 @@ struct WalletNavigationView: View {
             model.perpetualBalanceQuery,
             model.collectionsQuery,
         )
+        .navigationTitle(Localized.Wallet.title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            ToolbarItem(placement: .principal) {
+                if !model.isPresentingSearch {
+                    WalletBarView(
+                        row: model.walletRow,
+                        action: model.onSelectWalletBar,
+                    )
+                    .liquidGlass()
+                }
+            }
             if !model.isPresentingSearch {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button(action: model.onSelectScanner) {
                         model.scannerImage
                     }
                     .accessibilityIdentifier("scan")
-                }
-                ToolbarItem(placement: .principal) {
-                    WalletBarView(
-                        row: model.walletRow,
-                        action: model.onSelectWalletBar,
-                    )
-                    .liquidGlass()
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: model.onToggleSearch) {
@@ -103,12 +106,7 @@ struct WalletNavigationView: View {
                 onHeaderAction: { action in
                     Task {
                         do {
-                            try await presenter.openTransactionHeaderAction(
-                                action,
-                                wallet: model.wallet,
-                                navigationState: navigationState,
-                                nftDestination: navigationState.wallet,
-                            )
+                            try await navigationRouter.openTransactionAction(action, collectiblePath: navigationState.wallet)
                         } catch {
                             model.isPresentingToastMessage = .error(Localized.Errors.errorOccurred)
                         }

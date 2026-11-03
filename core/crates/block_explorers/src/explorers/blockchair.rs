@@ -98,3 +98,18 @@ pub fn new_aptos() -> Box<dyn BlockExplorer> {
 pub fn new_polkadot() -> Box<dyn BlockExplorer> {
     Metadata::blockchair(NAME, "https://blockchair.com/polkadot").explorer()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_blockchair_urls() {
+        assert_eq!(
+            new_bitcoin().get_tx_url("813d80363c09b1c4d3f0c6ce3382a048b320edefb573a8aedbc7ddd4c65cf7e4"),
+            "https://blockchair.com/bitcoin/transaction/813d80363c09b1c4d3f0c6ce3382a048b320edefb573a8aedbc7ddd4c65cf7e4"
+        );
+        assert_eq!(new_dash().get_tx_url("transaction_id"), "https://blockchair.com/dash/transaction/transaction_id");
+        assert_eq!(new_dash().get_address_url("address"), "https://blockchair.com/dash/address/address");
+    }
+}

@@ -651,6 +651,24 @@ mod tests {
     }
 
     #[test]
+    fn sign_raw_json_without_raw_data_hex_signs_the_encoded_raw_data() {
+        let request = serde_json::from_str::<Value>(include_str!("../../../gem_wallet_connect/testdata/tron_send_transaction.json")).unwrap();
+        let sign = |request: &Value| TronChainSigner.sign_data(&SignerInput::mock_sign_data(Chain::Tron, SENDER, &request.to_string(), TransferDataOutputType::EncodedTransaction), &private_key());
+        let without_hex = |mut request: Value| {
+            request["transaction"].as_object_mut().unwrap().remove("raw_data_hex");
+            request
+        };
+
+        assert_eq!(signed_json(sign(&without_hex(request.clone())).unwrap()), signed_json(sign(&request).unwrap()));
+
+        let mut changed = without_hex(request);
+        changed["transaction"]["raw_data"]["expiration"] = json!(1);
+        assert_eq!(sign(&changed).unwrap_err().to_string(), "Invalid input: transaction ID does not match hash of raw_data_hex");
+        changed["transaction"].as_object_mut().unwrap().remove("txID");
+        assert_eq!(signed_json(sign(&changed).unwrap())["raw_data"]["expiration"], 1, "without a txID the encoded raw_data is what gets signed");
+    }
+
+    #[test]
     fn sign_raw_json_rejects_transaction_id_mismatch() {
         let mut transaction = serde_json::from_str::<Value>(include_str!("../../testdata/wallet_connect_transfer_transaction.json")).unwrap();
         transaction["txID"] = json!("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");

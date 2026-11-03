@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -37,7 +38,7 @@ fun RewardsScreen(onClose: () -> Unit, viewModel: RewardsViewModel = hiltViewMod
     ToastEffect(viewModel.toastEvents, snackbar)
     val context = LocalContext.current
 
-    var isShowSelectWallets by remember { mutableStateOf(false) }
+    var isShowSelectWallets by rememberSaveable { mutableStateOf(false) }
 
     val error by viewModel.error.collectAsStateWithLifecycle()
     val sheet by viewModel.sheet.collectAsStateWithLifecycle()
@@ -74,6 +75,7 @@ fun RewardsScreen(onClose: () -> Unit, viewModel: RewardsViewModel = hiltViewMod
         redemptions = redemptions,
         sheet = sheet,
         isLoading = isLoading,
+        rewardsUrl = viewModel.rewardsUrl,
         snackbar = snackbar,
         onAction = { action ->
             when (action) {
@@ -122,9 +124,10 @@ fun RewardsScreen(onClose: () -> Unit, viewModel: RewardsViewModel = hiltViewMod
         AlertDialog(
             containerColor = MaterialTheme.colorScheme.background,
             onDismissRequest = viewModel::clearError,
+            title = { Text(stringResource(R.string.errors_error_occurred)) },
             text = { Text(message) },
             confirmButton = {
-                Button(viewModel::clearError) { Text(stringResource(R.string.common_cancel)) }
+                Button(viewModel::clearError) { Text(stringResource(R.string.common_done)) }
             },
         )
     }

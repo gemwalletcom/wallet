@@ -13,12 +13,11 @@ use std::sync::{Arc, Mutex};
 
 use chrono::{DateTime, Utc};
 use gem_wallet_connect::{WalletConnectVerifier, validate_domain, validate_sign_message_account};
-use primitives::{Account, ApplicationMetadata, Chain, Platform, Wallet, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionVerificationStatus, WalletId};
+use primitives::{Account, ApplicationMetadata, Chain, Platform, Wallet, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionVerificationStatus};
 
 use crate::application;
 use crate::config::docs::DocsUrl;
 use crate::gateway::GemGateway;
-use crate::message::sign_type::SignMessage;
 use crate::models::state::GemListPhase;
 use crate::services::GemScanService;
 use crate::services::assets::GemAssetsService;
@@ -44,7 +43,6 @@ pub use store::GemConnectionStore;
 #[derive(uniffi::Object)]
 pub struct GemWalletConnectService {
     wallet_connect: WalletConnect,
-    sign_message: Arc<GemSignMessageService>,
     simulation: Arc<GemSimulationService>,
     scanner: Arc<GemScanService>,
     store: Arc<dyn GemConnectionStore>,
@@ -74,12 +72,10 @@ impl GemWalletConnectService {
         session: Arc<GemWalletSessionService>,
         assets: Arc<GemAssetsService>,
         gateway: Arc<GemGateway>,
-        sign_message: Arc<GemSignMessageService>,
         platform: Platform,
     ) -> Self {
         Self {
             wallet_connect: WalletConnect::new(),
-            sign_message,
             simulation,
             scanner,
             store,
@@ -90,10 +86,6 @@ impl GemWalletConnectService {
             seen_messages: Mutex::new(Vec::new()),
             platform,
         }
-    }
-
-    pub async fn sign_message(&self, wallet_id: WalletId, message: SignMessage) -> Result<String, GemServiceError> {
-        self.sign_message.sign(wallet_id, message).await
     }
 
     pub fn should_process_proposal(&self, proposer_public_key: String) -> bool {
@@ -329,8 +321,8 @@ impl GemWalletConnectService {
         let (connection, account) = self.connection_account(&session_id, chain).await?;
         let transaction = self.wallet_connect.decode_send_transaction(transaction_type.clone(), data.clone())?;
         rules::validate_transaction_sender(&transaction, &account)?;
-        let simulation = self.simulation.simulate_send_transaction(chain, transaction_type, data).await?;
-        let transfer = rules::transfer_data(chain, connection.session.metadata.clone(), transaction, action)?;
+        let simulation = self.simulation.simulate_send_transaction(chain, transaction_type, data, &account.address).await?;
+        let transfer = rules::transfer_data(connection.session.metadata.clone(), transaction, &account, action)?;
         self.ensure_live(expiry)?;
         self.session.set_current_wallet_id(Some(connection.wallet.id.clone()))?;
         self.signer
@@ -395,8 +387,8 @@ mod tests {
     use futures::executor::block_on;
     use gem_wallet_connect::WalletConnectResponseType;
     use num_bigint::BigUint;
-    use primitives::ApprovalData;
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY_SOLANA_ADDRESS;
+    use primitives::{ApprovalData, WalletId};
 
     #[test]
     fn test_the_connections_view_links_the_walletconnect_guide() {

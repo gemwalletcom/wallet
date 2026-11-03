@@ -15,6 +15,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,9 +40,7 @@ import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
 import com.gemwallet.android.ui.components.clipboard.setCopy
 import com.gemwallet.android.ui.components.screen.PhraseLayout
-import com.gemwallet.android.ui.components.screen.PhraseRow
 import com.gemwallet.android.ui.components.screen.Scene
-import com.gemwallet.android.ui.components.screen.phraseRows
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.requestAuth
 import com.gemwallet.android.ui.theme.SceneSizing
@@ -50,9 +49,7 @@ import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.sceneContentPaddingValues
 import uniffi.gemstone.GemButtonState
-import uniffi.gemstone.GemCopy
 import uniffi.gemstone.GemWalletSecretKind
-import uniffi.gemstone.secretPhraseCopy
 
 private val loadingDialogSize = 100.dp
 
@@ -62,13 +59,21 @@ fun CreateWalletScreen(onCancel: () -> Unit, onCreated: () -> Unit) {
     DetectScreenshot(GemWalletSecretKind.PHRASE)
 
     val context = LocalContext.current
+    val clipboardManager = context.clipboardManager()
     val viewModel: CreateWalletViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val errorText by viewModel.errorText.collectAsStateWithLifecycle()
     val verificationState by viewModel.verificationState.collectAsStateWithLifecycle()
-    val phraseRows by viewModel.phraseRows.collectAsStateWithLifecycle()
-    val verifiedRows by viewModel.verifiedRows.collectAsStateWithLifecycle()
+    val verifiedWords by viewModel.verifiedWords.collectAsStateWithLifecycle()
     val verificationChoices by viewModel.verificationChoices.collectAsStateWithLifecycle()
+    val isCreated by viewModel.isCreated.collectAsStateWithLifecycle()
+
+    LaunchedEffect(isCreated) {
+        if (isCreated) {
+            viewModel.onCreatedHandled()
+            onCreated()
+        }
+    }
 
     BackHandler(uiState.isShowSafeMessage) {
         viewModel.dismissSafeMessage()
@@ -86,20 +91,20 @@ fun CreateWalletScreen(onCancel: () -> Unit, onCreated: () -> Unit) {
                 VerifyPhraseScene(
                     state = verification,
                     choices = verificationChoices,
-                    rows = verifiedRows,
+                    words = verifiedWords,
                     onPick = viewModel::onPickWord,
-                    onDone = { context.requestAuth(AuthRequest.Default) { viewModel.createWallet(onCreated) } },
+                    onDone = { context.requestAuth(AuthRequest.Default) { viewModel.createWallet() } },
                     onCancel = viewModel::dismissSafeMessage,
                 )
             }
 
-            false -> CreateWalletScene(
-                rows = phraseRows,
-                onCopy = viewModel::phraseCopy,
-                dataError = errorText,
-                onCreate = viewModel::confirmPhrase,
-                onCancel = onCancel,
-            )
+            false -> CreateWalletScene(words = uiState.data, dataError = errorText) { action ->
+                when (action) {
+                    CreateWalletAction.Copy -> clipboardManager.setCopy(context, viewModel.phraseCopy())
+                    CreateWalletAction.Continue -> viewModel.confirmPhrase()
+                    CreateWalletAction.Cancel -> onCancel()
+                }
+            }
         }
     }
     if (verificationState?.button == GemButtonState.LOADING) {
@@ -123,17 +128,15 @@ fun CreateWalletScreen(onCancel: () -> Unit, onCreated: () -> Unit) {
 }
 
 @Composable
-private fun CreateWalletScene(rows: List<PhraseRow>, onCopy: () -> GemCopy, dataError: String?, onCreate: () -> Unit, onCancel: () -> Unit) {
-    val context = LocalContext.current
-    val clipboardManager = LocalContext.current.clipboardManager()
+private fun CreateWalletScene(words: List<String>, dataError: String?, onAction: (CreateWalletAction) -> Unit) {
     Scene(
         title = stringResource(id = R.string.wallet_new_title),
-        onClose = onCancel,
+        onClose = { onAction(CreateWalletAction.Cancel) },
         padding = sceneContentPaddingValues(),
         mainAction = {
             MainActionButton(
                 title = stringResource(id = R.string.common_continue),
-                onClick = onCreate,
+                onClick = { onAction(CreateWalletAction.Continue) },
             )
         },
     ) {
@@ -153,12 +156,12 @@ private fun CreateWalletScene(rows: List<PhraseRow>, onCopy: () -> GemCopy, data
                 )
                 Spacer16()
                 PhraseLayout(
-                    rows = rows,
+                    words = words,
                     modifier = Modifier.widthIn(max = SceneSizing.contentMaxWidth),
                 )
             }
             Spacer16()
-            CopyButton(onClick = { clipboardManager.setCopy(context, onCopy()) })
+            CopyButton(onClick = { onAction(CreateWalletAction.Copy) })
         }
     }
 }
@@ -171,19 +174,16 @@ private fun CreateWalletScene(rows: List<PhraseRow>, onCopy: () -> GemCopy, data
 @Preview(name = "Nexus 5", device = Devices.NEXUS_5)
 @Preview(name = "Nexus 7", device = Devices.NEXUS_7)
 fun PreviewCreateWalletScene() {
+    val words = listOf(
+        "cinnamon", "two", "three", "cinnamon", "five", "six",
+        "seven", "eight", "cinnamon", "ten", "eleven", "twelve",
+    )
     WalletTheme {
         Column {
             CreateWalletScene(
-                rows = phraseRows(
-                    listOf(
-                        "cinnamon", "two", "three", "cinnamon", "five", "six",
-                        "seven", "eight", "cinnamon", "ten", "eleven", "twelve",
-                    ),
-                ),
-                onCopy = { secretPhraseCopy(emptyList()) },
+                words = words,
                 dataError = null,
-                onCreate = {},
-                onCancel = {},
+                onAction = {},
             )
         }
     }

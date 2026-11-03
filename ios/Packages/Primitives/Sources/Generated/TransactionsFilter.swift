@@ -8,12 +8,14 @@ public struct TransactionsFilter: Codable, Equatable, Hashable, Sendable {
 	public let transactionTypes: [TransactionType]
 	public let states: [TransactionState]
 	public let assetRankGreaterThan: Int32?
+	public let createdFrom: Date?
 
-	public init(assetId: AssetId?, chains: [Chain], transactionTypes: [TransactionType], states: [TransactionState], assetRankGreaterThan: Int32?) {
+	public init(assetId: AssetId?, chains: [Chain], transactionTypes: [TransactionType], states: [TransactionState], assetRankGreaterThan: Int32?, createdFrom: Date?) {
 		self.assetId = assetId
 		self.chains = chains
 		self.transactionTypes = transactionTypes
 		self.states = states
 		self.assetRankGreaterThan = assetRankGreaterThan
+		self.createdFrom = createdFrom
 	}
 }

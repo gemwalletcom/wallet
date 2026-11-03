@@ -3,6 +3,9 @@
   <string name="common_cancel">İptal</string>
   <string name="common_hidden">Gizli</string>
   <string name="common_done">Tamam</string>
+  <string name="common_add">Ekle</string>
+  <string name="common_close">Kapat</string>
+  <string name="common_back">Geri</string>
   <string name="common_maximum_value">Maksimum değer %1$s</string>
   <string name="common_minimum_value">Minimum değer %1$s</string>
   <string name="common_secret_phrase">Gizli İfade</string>
@@ -60,7 +63,6 @@
   <string name="common_suspicious_address_description">Bu adres şüpheli veya zararlı bir etkinlikle ilişkili.</string>
   <string name="common_refresh">Yenile</string>
   <string name="common_grant_permission">İzin ver</string>
-  <string name="common_required_field">%1$s gerekli</string>
   <string name="welcome_title">Gem Ailesine Hoş Geldiniz</string>
   <string name="wallet_create_new_wallet">Yeni Cüzdan Oluştur</string>
   <string name="wallet_import_existing_wallet">Mevcut Bir Cüzdanı İçe Aktar</string>
@@ -144,7 +146,6 @@
   <string name="transfer_freeze_title">Dondur</string>
   <string name="transfer_unfreeze_title">Çöz</string>
   <string name="transfer_review_request">İnceleme Talebi</string>
-  <string name="transfer_amount">Miktar</string>
   <string name="settings_terms_of_services">Hizmet Şartları</string>
   <string name="settings_privacy_policy">Gizlilik Politikası</string>
   <string name="settings_title">Ayarlar</string>
@@ -225,7 +226,6 @@
   <string name="errors_swap_minimum_amount">Minimum işlem tutarı %1$s. Lütfen daha yüksek bir tutar girin.</string>
   <string name="errors_perpetual_trigger_price_lower">Tetikleme fiyatı piyasa fiyatından düşük olmalıdır</string>
   <string name="errors_perpetual_trigger_price_higher">Tetikleme fiyatı piyasa fiyatından yüksek olmalıdır</string>
-  <string name="errors_unknown_try_again">Bilinmeyen bir hata oluştu. Lütfen tekrar deneyin.</string>
   <string name="errors_network_error">Ağ hatası: %1$s</string>
   <string name="errors_network_offline">İnternet bağlantısı kesilmiş gibi görünüyor.</string>
   <string name="errors_no_internet_connection">İnternet bağlantısı yok</string>
@@ -285,7 +285,6 @@
   <string name="asset_get_asset">%1$s al</string>
   <string name="asset_add_to_wallet">Cüzdana ekle</string>
   <string name="asset_added_to_wallet">Cüzdana eklendi</string>
-  <string name="asset_hidden_from_wallet">Cüzdandan gizlendi</string>
   <string name="asset_resources">Kaynaklar</string>
   <string name="asset_verification_verified">Doğrulandı</string>
   <string name="asset_all_time_high">Tarihi zirve</string>
@@ -302,6 +301,8 @@
   <string name="charts_price_high">Yüksek</string>
   <string name="charts_price_low">Düşük</string>
   <string name="charts_price_change">Değişim</string>
+  <string name="charts_candlestick">Mum grafiği</string>
+  <string name="charts_line">Çizgi grafiği</string>
   <string name="date_today">Bugün</string>
   <string name="date_yesterday">Dün</string>
   <string name="date_day_time">%1$s, %2$s</string>

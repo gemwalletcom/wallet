@@ -2,8 +2,8 @@ use number_formatter::{Precision, ValueStyle};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemPrecision {
-    Fraction { min: u32, max: u32 },
-    Significant { max: u32 },
+    Fraction { min: usize, max: usize },
+    Significant { max: usize },
 }
 
 impl From<Precision> for GemPrecision {
@@ -41,7 +41,7 @@ impl GemValueStyle {
         number_formatter::precision::value((*self).into(), magnitude).into()
     }
 
-    pub fn fraction_places(&self, magnitude: f64) -> u32 {
+    pub fn fraction_places(&self, magnitude: f64) -> usize {
         number_formatter::precision::value((*self).into(), magnitude).fraction_places(magnitude)
     }
 

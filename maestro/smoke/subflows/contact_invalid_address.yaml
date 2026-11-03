@@ -1,0 +1,31 @@
+appId: ${APP_ID}
+---
+- runFlow: launch.yaml
+- tapOn:
+    id: "settingsTab"
+- tapOn:
+    id: "preferences"
+- tapOn:
+    id: "contacts"
+- waitForAnimationToEnd
+- tapOn:
+    id: "add_contact"
+- waitForAnimationToEnd
+- tapOn:
+    id: "add_address"
+- waitForAnimationToEnd
+- runFlow:
+    when:
+      visible:
+        id: "bitcoin"
+    commands:
+      - tapOn:
+          id: "bitcoin"
+- tapOn:
+    id: "addressInputField"
+- inputText: "bc1qinvalidaddress"
+- pressKey: Enter
+- extendedWaitUntil:
+    visible: "Invalid.*address"
+    timeout: 5000
+- takeScreenshot: ${output.journey}_contact_invalid_address

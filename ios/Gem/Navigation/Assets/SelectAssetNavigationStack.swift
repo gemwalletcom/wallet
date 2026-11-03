@@ -49,6 +49,7 @@ struct SelectAssetNavigationStack: View {
                         } label: {
                             Images.System.plus
                         }
+                        .accessibilityIdentifier("add_custom_token")
                     }
                 }
             }

@@ -19,7 +19,6 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.CenteredDescriptionText
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.screen.PhraseLayout
-import com.gemwallet.android.ui.components.screen.PhraseRow
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.buttonState
 import com.gemwallet.android.ui.theme.SceneSizing
@@ -33,10 +32,10 @@ import uniffi.gemstone.GemVerifyPhraseViewState
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-internal fun VerifyPhraseScene(state: GemVerifyPhraseViewState, choices: List<String>, rows: List<PhraseRow>, onPick: (Int) -> Boolean, onDone: () -> Unit, onCancel: () -> Unit) {
+internal fun VerifyPhraseScene(state: GemVerifyPhraseViewState, choices: List<String>, words: List<String>, onPick: (Int) -> Boolean, onDone: () -> Unit, onCancel: () -> Unit) {
     val isSmallScreen = isCompactDimension(WindowDimension.Height)
     val groups = if (isSmallScreen) {
-        listOfNotNull(state.currentGroup?.let { state.groups.getOrNull(it.toInt()) })
+        listOfNotNull(state.currentGroup?.let { state.groups.getOrNull(it) })
     } else {
         state.groups
     }
@@ -61,9 +60,9 @@ internal fun VerifyPhraseScene(state: GemVerifyPhraseViewState, choices: List<St
             CenteredDescriptionText(stringResource(R.string.secret_phrase_confirm_quick_test_title))
             Spacer16()
             PhraseLayout(
-                rows = rows,
+                words = words,
                 modifier = Modifier.widthIn(max = SceneSizing.contentMaxWidth),
-                highlightIndex = state.nextIndex?.toInt(),
+                highlightIndex = state.nextIndex,
             )
             AnimatedVisibility(visible = !state.isComplete || !isSmallScreen) {
                 Column(
@@ -80,7 +79,7 @@ internal fun VerifyPhraseScene(state: GemVerifyPhraseViewState, choices: List<St
                             verticalArrangement = Arrangement.spacedBy(space8),
                         ) {
                             group.forEach { choice ->
-                                WordChip(choices.getOrElse(choice.index.toInt()) { "" }, !choice.isPicked) { onPick(choice.index.toInt()) }
+                                WordChip(choices.getOrElse(choice.index) { "" }, !choice.isPicked) { onPick(choice.index) }
                             }
                         }
                     }

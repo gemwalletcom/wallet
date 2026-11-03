@@ -27,15 +27,25 @@ public struct PriceAlertsScene: View {
                 }
             }
 
-            ListItemValueSectionList(
-                list: model.sections(list),
-                content: { item in
-                    NavigationLink(value: model.chart(item)) {
-                        PriceAlertItemView(item: item, onDelete: { onDelete(alert: $0) })
+            ForEach(model.sections(list)) { section in
+                Section {
+                    ForEach(section.values) { item in
+                        NavigationLink(value: model.chart(item)) {
+                            PriceAlertItemView(item: item, onDelete: { onDelete(alert: $0) })
+                        }
+                        .assetIdentifier(item.data.asset.toPrimitives().id)
                     }
-                    .assetIdentifier(item.data.asset.toPrimitives().id)
-                },
-            )
+                } header: {
+                    if let title = section.title, !title.isEmpty {
+                        Text(title)
+                    }
+                } footer: {
+                    if let footer = section.footer, !section.values.isEmpty {
+                        Text(footer)
+                    }
+                }
+                .listRowInsets(.assetListRowInsets)
+            }
         }
         .bindQuery(model.query)
         .contentMargins(.top, .scene.top, for: .scrollContent)

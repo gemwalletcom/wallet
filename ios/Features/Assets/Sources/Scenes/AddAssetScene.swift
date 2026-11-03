@@ -29,7 +29,7 @@ public struct AddAssetScene: View {
             .safeAreaButton {
                 StateButton(
                     text: model.actionButtonTitle,
-                    type: .primary(model.buttonState),
+                    state: model.buttonState,
                     action: onSelectImportToken,
                 )
             }
@@ -83,6 +83,7 @@ extension AddAssetScene {
                     }
                 }
                 .focused($focusedField, equals: .address)
+                .accessibilityIdentifier("contractInputField")
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .submitLabel(.search)

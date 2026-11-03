@@ -12,8 +12,12 @@ import SwiftUI
 
 extension GemTransactionRow: @retroactive Identifiable {}
 
+public func transactionListRows(_ transactions: [TransactionListItem]) -> [GemTransactionRow] {
+    transactionRows(items: transactions.map { $0.toGem() })
+}
+
 public func transactionListSections(_ transactions: [TransactionListItem]) -> [ListSection<GemTransactionRow>] {
-    DateSectionBuilder(items: transactionRows(items: transactions.map { $0.toGem() }), dateKeyPath: \.createdAt).build()
+    DateSectionBuilder(items: transactionListRows(transactions), dateKeyPath: \.createdAt).build()
 }
 
 public extension GemTransactionRow {

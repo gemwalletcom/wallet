@@ -4,7 +4,7 @@ use num_bigint::BigUint;
 use primitives::{Address as _, ApprovalData, SignerError, contract_constants::TRON_SUNSWAP_PERMIT2_CONTRACT};
 
 use crate::address::TronAddress;
-use crate::trc20::{TRC20_APPROVE_SELECTOR, decode_approval};
+use crate::trc20::{decode_approval, is_approval_call};
 
 pub(crate) const PERMIT2_APPROVE_SELECTOR: [u8; 4] = IAllowanceTransfer::approveCall::SELECTOR;
 
@@ -18,7 +18,7 @@ pub struct TransactionApproval {
 impl TransactionApproval {
     pub(crate) fn decode(contract: TronAddress, data: &[u8]) -> Result<Option<Self>, SignerError> {
         let contract = contract.encode();
-        if data.starts_with(&TRC20_APPROVE_SELECTOR) {
+        if is_approval_call(data) {
             let approval = decode_approval(data).ok_or_else(|| SignerError::invalid_input("Invalid TRC20 approval calldata"))?;
             return Ok(Some(Self {
                 approval: ApprovalData {

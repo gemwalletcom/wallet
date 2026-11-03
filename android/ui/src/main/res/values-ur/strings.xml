@@ -3,6 +3,9 @@
   <string name="common_cancel">منسوخ کریں</string>
   <string name="common_hidden">پوشیدہ</string>
   <string name="common_done">ہو گیا</string>
+  <string name="common_add">شامل کریں</string>
+  <string name="common_close">بند کریں</string>
+  <string name="common_back">واپس جائیں</string>
   <string name="common_maximum_value">زیادہ سے زیادہ قدر %1$s ہے</string>
   <string name="common_minimum_value">کم از کم قدر %1$s ہے</string>
   <string name="common_secret_phrase">خفیہ جملہ</string>
@@ -60,7 +63,6 @@
   <string name="common_suspicious_address_description">یہ پتہ مشکوک یا نقصان دہ سرگرمی سے وابستہ ہے۔</string>
   <string name="common_refresh">ریفریش کریں</string>
   <string name="common_grant_permission">اجازت دیں</string>
-  <string name="common_required_field">%1$s درکار ہے</string>
   <string name="welcome_title">Gem Family میں خوش آمدید</string>
   <string name="wallet_create_new_wallet">ایک نیا والیٹ بنائیں</string>
   <string name="wallet_import_existing_wallet">ایک موجودہ والیٹ درآمد کریں</string>
@@ -144,7 +146,6 @@
   <string name="transfer_freeze_title">منجمد کریں</string>
   <string name="transfer_unfreeze_title">غیر منجمد کریں</string>
   <string name="transfer_review_request">درخواست کا جائزہ لیں</string>
-  <string name="transfer_amount">رقم</string>
   <string name="settings_terms_of_services">سروس کی شرائط</string>
   <string name="settings_privacy_policy">رازداری کی پالیسی</string>
   <string name="settings_title">ترتیبات</string>
@@ -225,7 +226,6 @@
   <string name="errors_swap_minimum_amount">کم از کم تجارتی رقم %1$s ہے۔ براہ کرم زیادہ رقم درج کریں۔</string>
   <string name="errors_perpetual_trigger_price_lower">ٹرگر قیمت مارکیٹ قیمت سے کم ہونی چاہیے</string>
   <string name="errors_perpetual_trigger_price_higher">ٹرگر قیمت مارکیٹ قیمت سے زیادہ ہونی چاہیے</string>
-  <string name="errors_unknown_try_again">ایک نامعلوم خرابی پیش آگئی۔ براہ کرم دوبارہ کوشش کریں۔</string>
   <string name="errors_network_error">نیٹ ورک کی خرابی: %1$s</string>
   <string name="errors_network_offline">انٹرنیٹ کنکشن آف لائن معلوم ہوتا ہے۔</string>
   <string name="errors_no_internet_connection">انٹرنیٹ کنکشن نہیں ہے</string>
@@ -285,7 +285,6 @@
   <string name="asset_get_asset">%1$s حاصل کریں</string>
   <string name="asset_add_to_wallet">بٹوے میں شامل کریں</string>
   <string name="asset_added_to_wallet">بٹوے میں شامل کر دیا گیا</string>
-  <string name="asset_hidden_from_wallet">بٹوے سے چھپا دیا گیا</string>
   <string name="asset_resources">وسائل</string>
   <string name="asset_verification_verified">تصدیق شدہ</string>
   <string name="asset_all_time_high">آل ٹائم ہائی</string>
@@ -302,6 +301,8 @@
   <string name="charts_price_high">اعلی</string>
   <string name="charts_price_low">کم</string>
   <string name="charts_price_change">تبدیلی</string>
+  <string name="charts_candlestick">کینڈل سٹک چارٹ</string>
+  <string name="charts_line">لائن چارٹ</string>
   <string name="date_today">آج</string>
   <string name="date_yesterday">کل</string>
   <string name="date_day_time">%1$s، %2$s</string>

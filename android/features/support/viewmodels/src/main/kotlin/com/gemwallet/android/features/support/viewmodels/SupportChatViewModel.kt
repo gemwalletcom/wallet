@@ -3,12 +3,15 @@ package com.gemwallet.android.features.support.viewmodels
 import android.content.Context
 import android.net.Uri
 import android.util.Log
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.clearText
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.device.cases.EnablePushForSupport
 import com.gemwallet.android.application.support.cases.ClearSupportTyping
 import com.gemwallet.android.application.support.cases.GetSupportTyping
+import com.gemwallet.android.application.support.cases.SendSupportMessage
 import com.gemwallet.android.data.services.store.queries.SupportMessagesQuery
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
@@ -42,6 +45,7 @@ import javax.inject.Inject
 @HiltViewModel
 class SupportChatViewModel @Inject constructor(
     private val supportService: GemSupportServiceInterface,
+    private val sendSupportMessage: SendSupportMessage,
     private val supportMessagesQuery: SupportMessagesQuery,
     private val getSupportTyping: GetSupportTyping,
     private val clearSupportTyping: ClearSupportTyping,
@@ -61,6 +65,8 @@ class SupportChatViewModel @Inject constructor(
     val typingAgentName = getSupportTyping.typingAgent()
         .map { it?.name }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val messageState = TextFieldState()
 
     private val errorState = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = errorState.asStateFlow()
@@ -83,25 +89,27 @@ class SupportChatViewModel @Inject constructor(
         loadState.update { supportService.refresh(fromTimestamp) }
     }
 
-    fun sendText(content: String) = viewModelScope.launch(ioDispatcher) {
-        alertOnFailure { supportService.sendText(content) }
+    fun sendMessage() {
+        val text = messageState.text.trim().toString()
+        if (text.isEmpty()) return
+        messageState.clearText()
+        viewModelScope.launch(ioDispatcher) {
+            alertOnFailure { sendSupportMessage.sendText(text) }
+        }
     }
 
     fun sendImages(uris: List<Uri>) = viewModelScope.launch(ioDispatcher) {
-        for (uri in uris) {
-            alertOnFailure {
-                val image = imageAttachmentFactory.fromUri(uri)
-                if (image == null) {
-                    errorState.value = GemErrorText.NotSupported.text(context)
-                    return@alertOnFailure
-                }
-                supportService.sendImage(image)
+        alertOnFailure {
+            val images = uris.map { imageAttachmentFactory.fromUri(it) }
+            if (images.contains(null)) {
+                errorState.value = GemErrorText.NotSupported.text(context)
             }
+            sendSupportMessage.sendImages(images.filterNotNull())
         }
     }
 
     fun retry(message: SupportMessage) = viewModelScope.launch(ioDispatcher) {
-        alertOnFailure { supportService.retryMessage(message.toGem()) }
+        alertOnFailure { sendSupportMessage.retry(message) }
     }
 
     override fun onCleared() {

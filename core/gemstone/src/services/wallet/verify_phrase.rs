@@ -5,9 +5,9 @@ use crate::models::button::GemButtonState;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemVerifyPhraseSession {
-    pub expected: Vec<u32>,
-    pub chips: Vec<u32>,
-    pub picked: Vec<u32>,
+    pub expected: Vec<usize>,
+    pub chips: Vec<usize>,
+    pub picked: Vec<usize>,
     pub is_creating: bool,
 }
 
@@ -19,16 +19,16 @@ pub struct GemVerifyPhraseSetup {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemVerifyPhraseChoice {
-    pub index: u32,
+    pub index: usize,
     pub is_picked: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemVerifyPhraseViewState {
-    pub verified_count: u32,
+    pub verified_count: usize,
     pub groups: Vec<Vec<GemVerifyPhraseChoice>>,
-    pub current_group: Option<u32>,
-    pub next_index: Option<u32>,
+    pub current_group: Option<usize>,
+    pub next_index: Option<usize>,
     pub is_complete: bool,
     pub button: GemButtonState,
 }
@@ -46,7 +46,7 @@ impl GemVerifyPhraseSetup {
     }
 
     fn shuffled(words: &[String], choices: Vec<String>) -> Self {
-        let identity = |word: &String| words.iter().position(|candidate| candidate == word).unwrap_or(words.len()) as u32;
+        let identity = |word: &String| words.iter().position(|candidate| candidate == word).unwrap_or(words.len());
         Self {
             session: GemVerifyPhraseSession {
                 expected: words.iter().map(identity).collect(),
@@ -60,16 +60,16 @@ impl GemVerifyPhraseSetup {
 }
 
 impl GemVerifyPhraseSession {
-    fn accepts(&self, choice: u32) -> bool {
+    fn accepts(&self, choice: usize) -> bool {
         let expected = self.expected.get(self.picked.len());
-        let chip = self.chips.get(choice as usize);
+        let chip = self.chips.get(choice);
         chip.is_some() && chip == expected && !self.picked.contains(&choice)
     }
 }
 
 #[uniffi::export]
 impl GemVerifyPhraseSession {
-    pub fn on_pick(&self, choice: u32) -> Self {
+    pub fn on_pick(&self, choice: usize) -> Self {
         if !self.accepts(choice) {
             return self.clone();
         }
@@ -86,17 +86,17 @@ impl GemVerifyPhraseSession {
     pub fn view_state(&self) -> GemVerifyPhraseViewState {
         let verified_count = self.picked.len();
         let is_complete = !self.expected.is_empty() && verified_count == self.expected.len();
-        let next_index = (verified_count < self.expected.len()).then_some(verified_count as u32);
-        let choices: Vec<GemVerifyPhraseChoice> = (0..self.chips.len() as u32)
+        let next_index = (verified_count < self.expected.len()).then_some(verified_count);
+        let choices: Vec<GemVerifyPhraseChoice> = (0..self.chips.len())
             .map(|index| GemVerifyPhraseChoice {
                 index,
                 is_picked: self.picked.contains(&index),
             })
             .collect();
         GemVerifyPhraseViewState {
-            verified_count: verified_count as u32,
+            verified_count,
             groups: choices.chunks(PHRASE_VERIFICATION_GROUP).map(<[GemVerifyPhraseChoice]>::to_vec).collect(),
-            current_group: next_index.map(|index| index / PHRASE_VERIFICATION_GROUP as u32),
+            current_group: next_index.map(|index| index / PHRASE_VERIFICATION_GROUP),
             next_index,
             is_complete,
             button: match (self.is_creating, is_complete) {
@@ -175,11 +175,11 @@ mod tests {
         let state = setup.session.view_state();
         assert_eq!(state.groups.len(), 6);
         assert!(state.groups.iter().all(|group| group.len() == PHRASE_VERIFICATION_GROUP));
-        assert_eq!(state.groups.iter().flatten().map(|choice| choice.index).collect::<Vec<_>>(), (0..24).collect::<Vec<u32>>());
+        assert_eq!(state.groups.iter().flatten().map(|choice| choice.index).collect::<Vec<_>>(), (0..24).collect::<Vec<usize>>());
         assert_eq!(state.current_group, Some(0));
 
         let picked = (0..5).fold(setup.session.clone(), |session, position| {
-            let choice = setup.choices.iter().position(|word| *word == words[position]).unwrap() as u32;
+            let choice = setup.choices.iter().position(|word| *word == words[position]).unwrap();
             session.on_pick(choice)
         });
         assert_eq!(picked.view_state().current_group, Some(1));

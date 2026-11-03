@@ -1,13 +1,9 @@
 use std::fmt::Debug;
 
 use gem_client::{Client, ClientExt, Target};
-use serde::de::DeserializeOwned;
 
 use super::model::{BridgersResponse, QuoteData, QuoteRequest, RecordsData, RecordsRequest, SwapData, SwapRequest};
 use crate::SwapperError;
-
-const SUCCESS_CODE: u64 = 100;
-const QUOTE_FAIL_CODE: u64 = 412;
 
 #[derive(Clone, Debug)]
 enum BridgersTarget {
@@ -43,22 +39,14 @@ where
     }
 
     pub async fn get_quote(&self, request: &QuoteRequest) -> Result<QuoteData, SwapperError> {
-        Self::data(self.client.post(BridgersTarget::Quote, request).await?)
+        BridgersResponse::data(self.client.post(BridgersTarget::Quote, request).await?)
     }
 
     pub async fn get_swap(&self, request: &SwapRequest) -> Result<SwapData, SwapperError> {
-        Self::data(self.client.post(BridgersTarget::Swap, request).await?)
+        BridgersResponse::data(self.client.post(BridgersTarget::Swap, request).await?)
     }
 
     pub async fn get_records(&self, request: &RecordsRequest) -> Result<RecordsData, SwapperError> {
-        Self::data(self.client.post(BridgersTarget::Records, request).await?)
-    }
-
-    fn data<T: DeserializeOwned>(response: BridgersResponse) -> Result<T, SwapperError> {
-        match response.res_code {
-            SUCCESS_CODE => Ok(serde_json::from_value(response.data)?),
-            QUOTE_FAIL_CODE => Err(SwapperError::NoQuoteAvailable),
-            _ => Err(SwapperError::ComputeQuoteError(response.res_msg)),
-        }
+        BridgersResponse::data(self.client.post(BridgersTarget::Records, request).await?)
     }
 }

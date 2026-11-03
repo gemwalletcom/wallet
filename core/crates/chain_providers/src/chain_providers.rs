@@ -42,7 +42,7 @@ impl ChainProviders {
         self.get_provider(chain)?.get_balance_coin(address).await
     }
 
-    pub async fn get_balance_assets(&self, chain: Chain, address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>> {
+    pub async fn get_balance_assets(&self, chain: Chain, address: String) -> Result<Option<Vec<AssetBalance>>, Box<dyn Error + Send + Sync>> {
         self.get_provider(chain)?.get_balance_assets(address).await
     }
 

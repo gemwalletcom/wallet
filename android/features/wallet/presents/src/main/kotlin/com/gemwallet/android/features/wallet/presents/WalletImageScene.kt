@@ -20,7 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,7 +53,7 @@ private enum class WalletImageTab { EMOJI, COLLECTIONS }
 @Composable
 internal fun WalletImageScene(wallet: GemWalletDetails?, emojis: List<String>, avatars: GemAvatarList?, snackbar: SnackbarHostState? = null, onAction: (WalletImageAction) -> Unit) {
     wallet ?: return
-    var selectedTab by remember { mutableStateOf(WalletImageTab.EMOJI) }
+    var selectedTab by rememberSaveable { mutableStateOf(WalletImageTab.EMOJI) }
     val emojiBackground = MaterialTheme.colorScheme.secondaryFaded
     val onEmoji: (String) -> Unit = { onAction(WalletImageAction.SetEmoji(it, emojiBackground.toArgb())) }
 

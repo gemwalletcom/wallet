@@ -147,7 +147,6 @@ pub struct WitnessAccount {
     pub address: String,
     pub vote_count: Option<i64>,
     pub url: String,
-    pub is_jobs: Option<bool>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

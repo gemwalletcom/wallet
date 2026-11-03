@@ -204,7 +204,7 @@ impl FiatTransactionRow {
             transaction_type: self.transaction_type.0,
             provider: self.provider_id.0,
             provider_transaction_id: self.provider_transaction_id.clone(),
-            status: self.status.0.clone(),
+            status: self.status.0,
             country: self.country.clone(),
             fiat_amount: self.fiat_amount,
             fiat_currency: self.fiat_currency.clone(),
@@ -262,7 +262,7 @@ impl NewFiatTransactionRow {
             transaction_type: existing.transaction_type.clone(),
             provider_id: existing.provider_id.clone(),
             provider_transaction_id: Some(provider_transaction_id),
-            status: update.status.clone().into(),
+            status: update.status.into(),
             country: existing.country.clone(),
             fiat_amount: update.fiat_amount.unwrap_or(existing.fiat_amount),
             fiat_currency: update.fiat_currency.clone().unwrap_or_else(|| existing.fiat_currency.clone()),
@@ -312,6 +312,7 @@ impl FiatProviderCountryRow {
 #[derive(AsChangeset)]
 #[diesel(table_name = crate::schema::fiat_transactions)]
 pub(crate) struct UpdateFiatTransactionRow {
+    pub provider_transaction_id: Option<String>,
     pub status: FiatTransactionStatusRow,
     pub fiat_amount: Option<f64>,
     pub fiat_currency: Option<String>,
@@ -319,9 +320,10 @@ pub(crate) struct UpdateFiatTransactionRow {
 }
 
 impl UpdateFiatTransactionRow {
-    pub fn from_primitive(transaction: &FiatTransactionUpdate) -> Self {
+    pub fn from_primitive(transaction: &FiatTransactionUpdate, provider_transaction_id: Option<String>) -> Self {
         Self {
-            status: transaction.status.clone().into(),
+            provider_transaction_id,
+            status: transaction.status.into(),
             fiat_amount: transaction.fiat_amount,
             fiat_currency: transaction.fiat_currency.clone(),
             transaction_hash: transaction.transaction_hash.clone(),
@@ -366,7 +368,7 @@ mod tests {
             fiat_currency: Some("EUR".to_string()),
         };
 
-        let row = UpdateFiatTransactionRow::from_primitive(&update);
+        let row = UpdateFiatTransactionRow::from_primitive(&update, None);
 
         assert_eq!(row.fiat_currency, Some("EUR".to_string()));
         assert_eq!(row.fiat_amount, Some(100.0));

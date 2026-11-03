@@ -75,9 +75,6 @@ internal fun WalletScene(
     snackbar: SnackbarHostState,
     listState: LazyListState,
     assetActions: AssetContextActions,
-    onRefresh: () -> Unit,
-    onHideBalances: () -> Unit,
-    onCloseBanner: (GemBannerKey) -> Unit,
     onAction: (WalletAction) -> Unit,
 ) {
     val context = LocalContext.current
@@ -100,7 +97,7 @@ internal fun WalletScene(
         PullToRefreshBox(
             modifier = Modifier.padding(top = it.calculateTopPadding()),
             isRefreshing = isRefreshing,
-            onRefresh = onRefresh,
+            onRefresh = { onAction(WalletAction.Refresh) },
         ) {
             val longPressedAsset = remember { mutableStateOf<AssetId?>(null) }
             val onAssetClick: (AssetId) -> Unit = { onAction(WalletAction.OpenAsset(it)) }
@@ -119,7 +116,7 @@ internal fun WalletScene(
                         onBuyClick = { onAction(WalletAction.Buy) },
                         onSwapClick = { onAction(WalletAction.Swap) },
                         onPortfolio = { onAction(WalletAction.Portfolio) },
-                        onHideBalances = onHideBalances,
+                        onHideBalances = { onAction(WalletAction.HideBalances) },
                     )
                 }
                 item(key = InAppUpdateBannerItemKey) {
@@ -139,7 +136,7 @@ internal fun WalletScene(
                                     -> Unit
                                 }
                             },
-                            onClose = onCloseBanner,
+                            onClose = { onAction(WalletAction.CloseBanner(it)) },
                             onBuy = { onAction(WalletAction.Buy) },
                             onReceive = { onAction(WalletAction.Receive) },
                         )

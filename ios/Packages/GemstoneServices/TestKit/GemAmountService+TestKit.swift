@@ -24,7 +24,7 @@ public extension GemAmountService {
                 explorer: .mock(),
                 preferences: preferences,
                 session: .mock(),
-                config: GemConfigService(api: GemApiClient(provider: StubAlienProvider()), preferences: preferences),
+                config: GemConfigService(api: GemApiClient(provider: StubAlienProvider()), preferences: preferences, store: .local),
             ),
             preferences: preferences,
             session: session,

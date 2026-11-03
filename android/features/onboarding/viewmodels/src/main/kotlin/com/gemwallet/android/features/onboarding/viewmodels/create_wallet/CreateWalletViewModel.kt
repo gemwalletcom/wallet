@@ -7,8 +7,6 @@ import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.device.cases.EnablePushForNewWallet
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
-import com.gemwallet.android.ui.components.screen.PhraseRow
-import com.gemwallet.android.ui.components.screen.phraseRows
 import com.gemwallet.android.ui.importWallet
 import com.gemwallet.android.ui.localization.text
 import com.wallet.core.primitives.WalletSource
@@ -16,7 +14,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -26,7 +23,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemCopy
 import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemVerifyPhraseSession
@@ -58,20 +54,20 @@ class CreateWalletViewModel @Inject constructor(
     val verificationState: StateFlow<GemVerifyPhraseViewState?> = verification.map { it?.viewState() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val phraseRows: StateFlow<List<PhraseRow>> = state.map { phraseRows(it.data) }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
-
-    val verifiedRows: StateFlow<List<PhraseRow>> = combine(verificationState, state) { verification, current ->
-        val count = verification?.verifiedCount?.toInt() ?: 0
-        phraseRows(current.data.mapIndexed { index, word -> if (index < count) word else "" })
+    val verifiedWords: StateFlow<List<String>> = combine(verificationState, state) { verification, current ->
+        val count = verification?.verifiedCount ?: 0
+        current.data.mapIndexed { index, word -> if (index < count) word else "" }
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    private val _isCreated = MutableStateFlow(false)
+    val isCreated: StateFlow<Boolean> = _isCreated.asStateFlow()
 
     fun phraseCopy(): GemCopy = secretPhraseCopy(state.value.data)
 
     fun onPickWord(choice: Int): Boolean {
         val current = verification.value ?: return false
-        val next = current.onPick(choice.toUInt())
+        val next = current.onPick(choice)
         verification.value = next
         return next != current
     }
@@ -97,7 +93,7 @@ class CreateWalletViewModel @Inject constructor(
         state.update { it.copy(isShowSafeMessage = true) }
     }
 
-    fun createWallet(onCreated: () -> Unit) {
+    fun createWallet() {
         val current = verification.value ?: return
         if (current.isCreating) {
             return
@@ -108,7 +104,7 @@ class CreateWalletViewModel @Inject constructor(
             try {
                 service.importWallet(GemWalletImportKind.PHRASE, null, state.value.data.joinToString(" "), null, WalletSource.Create, context)
                 enablePushForNewWallet.enablePushForNewWallet()
-                withContext(Dispatchers.Main) { onCreated() }
+                _isCreated.value = true
             } catch (err: CancellationException) {
                 throw err
             } catch (err: Throwable) {
@@ -116,6 +112,10 @@ class CreateWalletViewModel @Inject constructor(
                 state.update { it.copy(dataError = err.errorText()) }
             }
         }
+    }
+
+    fun onCreatedHandled() {
+        _isCreated.value = false
     }
 }
 

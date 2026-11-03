@@ -2,10 +2,14 @@ use alloy_sol_types::SolCall;
 use num_bigint::BigUint;
 use primitives::{Chain, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult, contract_constants::UNISWAP_PERMIT2_CONTRACT};
 
-use super::{approval_method::ApprovalMethod, approval_request::ApprovalRequest, approval_value::ApprovalValue};
+use super::{
+    approval_method::ApprovalMethod,
+    approval_request::{ApprovalRequest, NEVER_EXPIRES},
+    approval_value::ApprovalValue,
+};
 use gem_evm::{
     contracts::{IERC20, IERC721, IERC1155},
-    eip712::{EIP712Field, EIP712Message, EIP712TypedValue, find_field_string, find_field_struct},
+    eip712::{EIP712Field, EIP712Message, EIP712TypedValue, find_field_biguint, find_field_bool, find_field_string, find_field_struct},
     ethereum_address_checksum,
     permit2::IAllowanceTransfer,
 };
@@ -63,6 +67,12 @@ pub(crate) fn decode_evm_approval(chain: Chain, calldata: &[u8], contract_addres
         return ApprovalRequest::erc20(chain, contract_address, format!("{:#x}", call.spender), call.addedValue.to_string());
     }
 
+    if calldata.starts_with(&<IERC20::increaseApprovalCall as SolCall>::SELECTOR)
+        && let Ok(call) = <IERC20::increaseApprovalCall as SolCall>::abi_decode(calldata)
+    {
+        return ApprovalRequest::erc20(chain, contract_address, format!("{:#x}", call.spender), call.addedValue.to_string());
+    }
+
     if calldata.starts_with(&<IAllowanceTransfer::approveCall as SolCall>::SELECTOR)
         && contract_address.eq_ignore_ascii_case(UNISWAP_PERMIT2_CONTRACT)
         && let Ok(call) = <IAllowanceTransfer::approveCall as SolCall>::abi_decode_validate(calldata)
@@ -71,8 +81,8 @@ pub(crate) fn decode_evm_approval(chain: Chain, calldata: &[u8], contract_addres
             chain,
             contract_address.to_string(),
             format!("{:#x}", call.spender),
-            call.amount.to_string(),
-            Some(call.expiration.to_string()),
+            ApprovalValue::from_raw(&call.amount.to_string()),
+            Some(call.expiration.to::<u64>()),
             Some(format!("{:#x}", call.token)),
             ApprovalMethod::Approve,
         );
@@ -95,8 +105,8 @@ pub(crate) fn decode_evm_approval(chain: Chain, calldata: &[u8], contract_addres
     None
 }
 
-fn find_field_u64(fields: &[EIP712Field], name: &str) -> Option<u64> {
-    find_field_string(fields, name)?.parse().ok()
+fn find_field_expiration(fields: &[EIP712Field], name: &str) -> Option<u64> {
+    find_field_biguint(fields, name).map(|expiration| u64::try_from(&expiration).unwrap_or(NEVER_EXPIRES))
 }
 
 fn find_field_struct_array<'a>(fields: &'a [EIP712Field], name: &str) -> Option<Vec<&'a [EIP712Field]>> {
@@ -127,41 +137,47 @@ fn find_field_struct_array<'a>(fields: &'a [EIP712Field], name: &str) -> Option<
 }
 
 fn decode_permit_approval(chain: Chain, message: &EIP712Message, contract_address: String, method: ApprovalMethod) -> Option<ApprovalRequest> {
-    ApprovalRequest::permit(
-        chain,
-        contract_address,
-        find_field_string(&message.message, "spender")?,
-        find_field_string(&message.message, "value")?,
-        find_field_string(&message.message, "deadline"),
-        None,
-        method,
-    )
+    let fields = &message.message;
+    let (approval_value, expiration) = match find_field_bool(fields, "allowed") {
+        Some(false) => return None,
+        Some(true) => (Some(ApprovalValue::Unlimited), dai_expiration(fields)),
+        None => (read_approval_value(fields), find_field_expiration(fields, "deadline")),
+    };
+
+    ApprovalRequest::permit(chain, contract_address, find_field_string(fields, "spender")?, approval_value, expiration, None, method)
+}
+
+fn dai_expiration(fields: &[EIP712Field]) -> Option<u64> {
+    find_field_expiration(fields, "expiry").filter(|expiry| *expiry != 0)
+}
+
+fn read_approval_value(fields: &[EIP712Field]) -> Option<ApprovalValue> {
+    ApprovalValue::from_raw(&find_field_string(fields, "amount").or_else(|| find_field_string(fields, "value"))?)
 }
 
 fn decode_permit2_approval(chain: Chain, message: &EIP712Message, contract_address: String, method: ApprovalMethod) -> Option<ApprovalRequest> {
-    if method == ApprovalMethod::PermitBatch {
-        return decode_permit2_batch_approval(chain, message, contract_address);
+    let batch_details = find_field_struct_array(&message.message, "details").or_else(|| find_field_struct_array(&message.message, "permitted"));
+    if let Some(details) = batch_details {
+        return decode_permit2_batch_approval(chain, message, contract_address, details);
     }
 
     let details = find_permit_details(&message.message)?;
-    let approval_value = find_field_string(details, "amount").or_else(|| find_field_string(details, "value"))?;
-    let expiration = find_field_string(details, "expiration")
-        .or_else(|| find_field_string(&message.message, "sigDeadline"))
-        .or_else(|| find_field_string(&message.message, "deadline"));
+    let expiration = find_field_expiration(details, "expiration")
+        .or_else(|| find_field_expiration(&message.message, "sigDeadline"))
+        .or_else(|| find_field_expiration(&message.message, "deadline"));
 
     ApprovalRequest::permit(
         chain,
         contract_address,
         find_field_string(&message.message, "spender")?,
-        approval_value,
+        read_approval_value(details),
         expiration,
         find_field_string(details, "token"),
         method,
     )
 }
 
-fn decode_permit2_batch_approval(chain: Chain, message: &EIP712Message, contract_address: String) -> Option<ApprovalRequest> {
-    let details = find_field_struct_array(&message.message, "details")?;
+fn decode_permit2_batch_approval(chain: Chain, message: &EIP712Message, contract_address: String, details: Vec<&[EIP712Field]>) -> Option<ApprovalRequest> {
     if details.is_empty() {
         return None;
     }
@@ -172,13 +188,10 @@ fn decode_permit2_batch_approval(chain: Chain, message: &EIP712Message, contract
     let mut total_value = BigUint::ZERO;
 
     for detail in details {
-        let raw_value = find_field_string(detail, "amount").or_else(|| find_field_string(detail, "value"))?;
-        match ApprovalValue::from_raw(&raw_value)? {
-            ApprovalValue::Unlimited => {
+        match read_approval_value(detail) {
+            Some(ApprovalValue::Exact(value)) => total_value += value,
+            Some(ApprovalValue::Unlimited) | None => {
                 return ApprovalRequest::permit_batch(chain, contract_address, spender_address, ApprovalValue::Unlimited, token_address, warning_expiration);
-            }
-            ApprovalValue::Exact(value) => {
-                total_value += value;
             }
         }
     }
@@ -233,8 +246,8 @@ fn single_token_address(details: &[&[EIP712Field]]) -> Option<String> {
 fn batch_warning_expiration(details: &[&[EIP712Field]], message_fields: &[EIP712Field]) -> Option<u64> {
     details
         .iter()
-        .filter_map(|detail| find_field_u64(detail, "expiration"))
-        .chain(find_field_u64(message_fields, "sigDeadline").into_iter().chain(find_field_u64(message_fields, "deadline")))
+        .filter_map(|detail| find_field_expiration(detail, "expiration"))
+        .chain(find_field_expiration(message_fields, "sigDeadline").into_iter().chain(find_field_expiration(message_fields, "deadline")))
         .max()
 }
 
@@ -242,13 +255,16 @@ fn batch_warning_expiration(details: &[&[EIP712Field]], message_fields: &[EIP712
 mod tests {
     use alloy_primitives::{U160, U256, address, aliases::U48};
     use alloy_sol_types::SolCall;
-    use gem_evm::{eip712::parse_eip712_json, permit2::IAllowanceTransfer};
+    use gem_evm::{
+        eip712::{EIP712Message, parse_eip712_json},
+        permit2::IAllowanceTransfer,
+    };
     use primitives::{
         Chain, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationResult, SimulationWarningType,
         asset_constants::{ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDC_TOKEN_ID},
         contract_constants::UNISWAP_PERMIT2_CONTRACT,
     };
-    use serde_json::Value;
+    use serde_json::{Value, json};
 
     use super::{decode_eip712_approval, simulate_eip712_message, simulate_evm_calldata};
 
@@ -287,6 +303,12 @@ mod tests {
 
     fn primary_kinds(result: &SimulationResult) -> Vec<SimulationPayloadFieldKind> {
         result.payload.iter().filter(|field| field.display == SimulationPayloadFieldDisplay::Primary).map(|field| field.kind.clone()).collect()
+    }
+
+    fn permit_message(field: &str, value: Value) -> EIP712Message {
+        let mut json: Value = serde_json::from_str(include_str!("../../testdata/permit_excessive_expiration.json")).unwrap();
+        json["message"][field] = value;
+        parse_eip712_json(&json).unwrap()
     }
 
     #[test]
@@ -330,6 +352,81 @@ mod tests {
 
         assert_eq!(result.warnings.len(), 2);
         assert!(is_permit_warning(&result.warnings[0].warning));
+        assert_eq!(warning_messages(&result), vec![None, Some("Excessive expiration")]);
+    }
+
+    #[test]
+    fn eip712_permit_with_a_deadline_beyond_u64_warns_and_hides_the_expiration() {
+        let deadline = "115792089237316195423570985008687907853269984665640564039457584007913129639935";
+        let result = simulate_eip712_message(Chain::Ethereum, &permit_message("deadline", json!(deadline)));
+
+        assert!(is_permit_warning(&result.warnings[0].warning));
+        assert_eq!(warning_messages(&result), vec![None, Some("Excessive expiration")]);
+        assert!(!kinds(&result).contains(&SimulationPayloadFieldKind::Expiration));
+    }
+
+    #[test]
+    fn eip712_permit_reads_hex_values_and_deadlines() {
+        let result = simulate_eip712_message(Chain::Ethereum, &permit_message("deadline", json!("0x2540be3ff")));
+        assert_eq!(warning_messages(&result), vec![None, Some("Excessive expiration")]);
+        assert_eq!(result.payload.iter().find(|field| field.kind == SimulationPayloadFieldKind::Expiration).map(|field| field.value.as_str()), Some("9999999999"));
+
+        let result = simulate_eip712_message(Chain::Ethereum, &permit_message("value", json!("0x3e8")));
+        assert_eq!(result.payload.iter().find(|field| field.kind == SimulationPayloadFieldKind::Value).map(|field| field.value.as_str()), Some("1000"));
+    }
+
+    #[test]
+    fn eip712_permit_with_an_unreadable_value_or_deadline_still_warns() {
+        for field in ["value", "deadline"] {
+            let result = simulate_eip712_message(Chain::Ethereum, &permit_message(field, json!("not a number")));
+            assert!(is_permit_warning(&result.warnings[0].warning), "{field}");
+        }
+    }
+
+    #[test]
+    fn eip712_dai_permit_is_an_unlimited_approval() {
+        let json: Value = serde_json::from_str(include_str!("../../testdata/permit_dai.json")).unwrap();
+        let result = simulate_eip712_message(Chain::Ethereum, &parse_eip712_json(&json).unwrap());
+
+        assert!(is_unlimited_permit_warning(warning(&result)));
+        assert_eq!(
+            kinds(&result),
+            vec![SimulationPayloadFieldKind::Method, SimulationPayloadFieldKind::Contract, SimulationPayloadFieldKind::Spender, SimulationPayloadFieldKind::Value,]
+        );
+    }
+
+    #[test]
+    fn eip712_dai_permit_that_revokes_is_not_an_approval() {
+        let mut json: Value = serde_json::from_str(include_str!("../../testdata/permit_dai.json")).unwrap();
+        json["message"]["allowed"] = json!(false);
+
+        assert_eq!(simulate_eip712_message(Chain::Ethereum, &parse_eip712_json(&json).unwrap()), SimulationResult::default());
+    }
+
+    #[test]
+    fn eip712_permit2_batch_transfer_warns_with_its_total() {
+        let json: Value = serde_json::from_str(include_str!("../../testdata/permit2_batch_transfer.json")).unwrap();
+        let result = simulate_eip712_message(Chain::Ethereum, &parse_eip712_json(&json).unwrap());
+
+        assert_eq!(warning(&result), &SimulationWarningType::PermitBatchApproval(Some(3000_u32.into())));
+        assert_eq!(result.payload[0].value, "Permit Batch");
+    }
+
+    #[test]
+    fn eip712_permit2_batch_with_an_unreadable_amount_warns_as_unlimited() {
+        let mut json: Value = serde_json::from_str(include_str!("../../testdata/permit2_batch_transfer.json")).unwrap();
+        json["message"]["permitted"][1]["amount"] = json!("not a number");
+        let result = simulate_eip712_message(Chain::Ethereum, &parse_eip712_json(&json).unwrap());
+
+        assert!(is_unlimited_permit_warning(warning(&result)));
+    }
+
+    #[test]
+    fn eip712_permit2_batch_with_a_deadline_beyond_u64_warns() {
+        let mut json: Value = serde_json::from_str(include_str!("../../testdata/permit2_batch_transfer.json")).unwrap();
+        json["message"]["deadline"] = json!("115792089237316195423570985008687907853269984665640564039457584007913129639935");
+        let result = simulate_eip712_message(Chain::Ethereum, &parse_eip712_json(&json).unwrap());
+
         assert_eq!(warning_messages(&result), vec![None, Some("Excessive expiration")]);
     }
 
@@ -430,17 +527,22 @@ mod tests {
     }
 
     #[test]
-    fn erc20_increase_allowance_simulates_as_approve() {
+    fn erc20_allowance_increases_simulate_as_approve() {
         let spender = address!("1111111111111111111111111111111111111111");
-        let calldata = gem_evm::contracts::IERC20::increaseAllowanceCall { spender, addedValue: U256::from(100) }.abi_encode();
+        let increases = [
+            gem_evm::contracts::IERC20::increaseAllowanceCall { spender, addedValue: U256::from(100) }.abi_encode(),
+            gem_evm::contracts::IERC20::increaseApprovalCall { spender, addedValue: U256::from(100) }.abi_encode(),
+        ];
 
-        let result = simulate_evm_calldata(Chain::Ethereum, &calldata, ETHEREUM_USDC_TOKEN_ID);
+        for calldata in increases {
+            let result = simulate_evm_calldata(Chain::Ethereum, &calldata, ETHEREUM_USDC_TOKEN_ID);
 
-        assert!(is_token_warning(warning(&result)));
-        assert_eq!(result.payload[0].value, "Approve");
-        assert_eq!(result.payload[2].value, "0x1111111111111111111111111111111111111111");
-        assert_eq!(result.payload[3].value, "100");
-        assert_eq!(result.header.as_ref().map(|header| header.asset_id.clone()), Some(ETHEREUM_USDC_ASSET_ID.clone()));
+            assert!(is_token_warning(warning(&result)));
+            assert_eq!(result.payload[0].value, "Approve");
+            assert_eq!(result.payload[2].value, "0x1111111111111111111111111111111111111111");
+            assert_eq!(result.payload[3].value, "100");
+            assert_eq!(result.header.as_ref().map(|header| header.asset_id.clone()), Some(ETHEREUM_USDC_ASSET_ID.clone()));
+        }
     }
 
     #[test]

@@ -28,7 +28,7 @@ extension WalletConnectorInteractor: WalletConnectorInteractable {
         }
         await MainActor.run { [weak self] in
             guard let self else { return }
-            presenter.isPresentingError = error.localizedDescription
+            presenter.presentError(error.localizedDescription)
         }
     }
 

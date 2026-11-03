@@ -7,7 +7,7 @@ use gem_client::Client;
 use primitives::{FeePriority, FeeRate, GasPriceType, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput, UTXO};
 
 use super::preload_mapper::{map_transaction_fee, map_transaction_preload};
-use crate::planner::{FEE_ESTIMATE_LOVELACE, plan_transfer};
+use crate::planner::{FEE_ESTIMATE_LOVELACE, transfer_fee};
 use crate::rpc::client::CardanoClient;
 
 #[async_trait]
@@ -22,9 +22,8 @@ impl<C: Client> ChainTransactionLoad for CardanoClient<C> {
     }
 
     async fn get_transaction_load(&self, input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Sync + Send>> {
-        let plan = plan_transfer(&input)?;
         Ok(TransactionLoadData {
-            fee: map_transaction_fee(plan.fee),
+            fee: map_transaction_fee(transfer_fee(&input)?),
             metadata: input.metadata,
         })
     }

@@ -29,6 +29,16 @@ imports = ["BigInt"]
 lift = "BigUInt(stringLiteral: {})"
 lower = "{}.description"
 
+[bindings.kotlin.custom_types.GemInt]
+type_name = "Int"
+lift = "{}.toInt()"
+lower = "{}.toLong()"
+
+[bindings.swift.custom_types.GemInt]
+type_name = "Int"
+lift = "Int({})"
+lower = "Int64({})"
+
 [bindings.kotlin.custom_types.DateTimeUtc]
 type_name = "Long"
 lift = "{} * 1000"

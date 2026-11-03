@@ -1,4 +1,4 @@
-use crate::constants::{ASSET_TYPE_CREDIT_ALPHANUM4, ASSET_TYPE_CREDIT_ALPHANUM12, ASSET_TYPE_NATIVE, STELLAR_DECIMALS};
+use crate::constants::{ACCOUNT_BASE_RESERVES, ASSET_TYPE_CREDIT_ALPHANUM4, ASSET_TYPE_CREDIT_ALPHANUM12, ASSET_TYPE_NATIVE, BASE_RESERVE, STELLAR_DECIMALS};
 use crate::models::account::Account;
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
@@ -6,21 +6,13 @@ use primitives::{AssetBalance, AssetId, Balance, Chain};
 use std::error::Error;
 
 pub fn map_native_balance(account: &Account) -> Result<AssetBalance, Box<dyn Error + Sync + Send>> {
-    let chain = Chain::Stellar;
-    let reserved_amount = chain.account_activation_fee().unwrap_or(0) as u64;
-    let native_balance = account.balances.iter().find(|b| b.asset_type == "native").map(|b| b.balance.clone()).unwrap_or_default();
+    let native_balance = account.balances.iter().find(|b| b.asset_type == ASSET_TYPE_NATIVE).map(|b| b.balance.as_str()).unwrap_or_default();
+    let balance = BigNumberFormatter::value_from_amount_biguint(native_balance, STELLAR_DECIMALS)?;
+    let reserves = (ACCOUNT_BASE_RESERVES + u64::from(account.subentry_count) + u64::from(account.num_sponsoring)).saturating_sub(u64::from(account.num_sponsored));
+    let reserved = BigUint::from(reserves * BASE_RESERVE);
+    let available = if balance > reserved { balance - &reserved } else { BigUint::ZERO };
 
-    let balance_stroops_str = BigNumberFormatter::value_from_amount(&native_balance, STELLAR_DECIMALS)?;
-    let balance_decimal = BigNumberFormatter::big_decimal_value(&balance_stroops_str, 0).unwrap_or_default();
-    let reserved_decimal = BigNumberFormatter::big_decimal_value(reserved_amount, 0).unwrap_or_default();
-    let available_decimal = balance_decimal - reserved_decimal;
-    let available = available_decimal.to_string();
-    let reserved_str = reserved_amount.to_string();
-
-    let available_biguint = available.parse::<BigUint>().unwrap_or_default();
-    let reserved_biguint = reserved_str.parse::<BigUint>().unwrap_or_default();
-
-    Ok(AssetBalance::new_balance(chain.as_asset_id(), Balance::with_reserved(available_biguint, reserved_biguint)))
+    Ok(AssetBalance::new_balance(Chain::Stellar.as_asset_id(), Balance::with_reserved(available, reserved)))
 }
 
 pub fn map_token_balances(account: &Account, token_ids: Vec<String>, chain: Chain) -> Vec<AssetBalance> {
@@ -69,31 +61,35 @@ pub fn map_asset_id(chain: Chain, asset_type: &str, issuer: Option<&String>, cod
 mod tests {
     use super::*;
     use crate::models::account::Account;
-    use serde_json;
 
     #[test]
     fn test_map_native_balance() {
-        let account: Account = serde_json::from_str(include_str!("../../testdata/balance.json")).unwrap();
-        let chain = Chain::Stellar;
-        let asset_id = AssetId::from_chain(chain);
+        let trustline: Account = serde_json::from_str(include_str!("../../testdata/balance.json")).unwrap();
+        let minimal: Account = serde_json::from_str(include_str!("../../testdata/balance_coin.json")).unwrap();
+        let sponsoring: Account = serde_json::from_str(include_str!("../../testdata/balance_sponsoring.json")).unwrap();
+        let sponsored: Account = serde_json::from_str(include_str!("../../testdata/balance_sponsored.json")).unwrap();
+        let without_counts: Account = serde_json::from_str(r#"{"sequence":"1","balances":[{"balance":"1.5000000","asset_type":"native"}],"thresholds":{"med_threshold":0},"signers":[]}"#).unwrap();
+        let asset_id = Chain::Stellar.as_asset_id();
 
-        let result = map_native_balance(&account).unwrap();
-
-        assert_eq!(result.asset_id, asset_id);
-        assert_eq!(result.balance.available, BigUint::from(299999077_u64));
-        assert_eq!(result.balance.reserved, BigUint::from(10000000_u64));
-    }
-
-    #[test]
-    fn test_map_native_balance_with_minimal_balance() {
-        let account: Account = serde_json::from_str(include_str!("../../testdata/balance_coin.json")).unwrap();
-        let chain = Chain::Stellar;
-        let asset_id = AssetId::from_chain(chain);
-
-        let result = map_native_balance(&account).unwrap();
-
-        assert_eq!(result.asset_id, asset_id);
-        assert_eq!(result.balance.available, BigUint::from(0u32));
-        assert_eq!(result.balance.reserved, BigUint::from(10000000_u64));
+        assert_eq!(
+            map_native_balance(&trustline).unwrap(),
+            AssetBalance::new_balance(asset_id.clone(), Balance::with_reserved(BigUint::from(294_999_077_u64), BigUint::from(15_000_000_u64)))
+        );
+        assert_eq!(
+            map_native_balance(&minimal).unwrap(),
+            AssetBalance::new_balance(asset_id.clone(), Balance::with_reserved(BigUint::ZERO, BigUint::from(10_000_000_u64)))
+        );
+        assert_eq!(
+            map_native_balance(&sponsoring).unwrap(),
+            AssetBalance::new_balance(asset_id.clone(), Balance::with_reserved(BigUint::from(3_689_209_334_u64), BigUint::from(720_000_000_u64)))
+        );
+        assert_eq!(
+            map_native_balance(&sponsored).unwrap(),
+            AssetBalance::new_balance(asset_id.clone(), Balance::with_reserved(BigUint::from(737_762_u64), BigUint::ZERO))
+        );
+        assert_eq!(
+            map_native_balance(&without_counts).unwrap(),
+            AssetBalance::new_balance(asset_id, Balance::with_reserved(BigUint::from(5_000_000_u64), BigUint::from(10_000_000_u64)))
+        );
     }
 }

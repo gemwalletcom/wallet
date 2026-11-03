@@ -23,6 +23,8 @@ enum class PlatformStore(val string: String) {
 	ApkUniversal("apkUniversal"),
 	@SerialName("emerald")
 	Emerald("emerald"),
+	@SerialName("macDmg")
+	MacDmg("macDmg"),
 	@SerialName("local")
 	Local("local"),
 }

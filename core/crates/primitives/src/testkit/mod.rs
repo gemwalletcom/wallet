@@ -50,6 +50,7 @@ pub mod transaction_mock;
 pub mod transaction_state_request_mock;
 pub mod transfer_amount_mock;
 pub mod transfer_data_extra_mock;
+pub mod utxo_mock;
 pub mod wallet_connect_mock;
 pub mod wallet_mock;
 pub mod zcash_mock;

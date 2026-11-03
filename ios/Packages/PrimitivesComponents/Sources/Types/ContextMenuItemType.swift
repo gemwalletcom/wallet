@@ -15,6 +15,21 @@ public enum ContextMenuItemType {
         role: ButtonRole? = nil,
         action: VoidAction,
     )
+
+    var group: ContextMenuGroup {
+        switch self {
+        case .copy, .url: .view
+        case .pin: .actions
+        case .delete: .destructive
+        case let .custom(_, _, role, _): role == .destructive ? .destructive : .actions
+        }
+    }
+}
+
+enum ContextMenuGroup {
+    case view
+    case actions
+    case destructive
 }
 
 public extension [GemRowMenuItem] {

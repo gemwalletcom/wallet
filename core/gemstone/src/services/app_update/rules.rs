@@ -1,5 +1,5 @@
-use super::{GemAppUpdateAction, GemAppUpdateOffer};
-use crate::config::public::apk_download_url;
+use super::{GemAppUpdateAction, GemAppUpdateDestination, GemAppUpdateOffer};
+use crate::config::public::{PublicUrl, apk_download_url, dmg_download_url};
 use crate::services::localization::GemLocalizedText;
 use primitives::{PlatformStore, Release, is_version_higher};
 
@@ -19,7 +19,15 @@ pub fn update_offer(release: Release) -> GemAppUpdateOffer {
             true => vec![GemAppUpdateAction::Update],
             false => vec![GemAppUpdateAction::Skip, GemAppUpdateAction::Update],
         },
-        apk_url: (release.store == PlatformStore::ApkUniversal).then(|| apk_download_url(&release.version)),
+        destination: match release.store {
+            PlatformStore::ApkUniversal => GemAppUpdateDestination::File { url: apk_download_url(&release.version) },
+            PlatformStore::MacDmg => GemAppUpdateDestination::File { url: dmg_download_url(&release.version) },
+            PlatformStore::AppStore | PlatformStore::GooglePlay | PlatformStore::Fdroid | PlatformStore::Huawei | PlatformStore::SolanaStore | PlatformStore::SamsungStore | PlatformStore::Emerald | PlatformStore::Local => {
+                GemAppUpdateDestination::Store {
+                    url: PublicUrl::for_store(release.store).url(),
+                }
+            }
+        },
         version: release.version,
     }
 }
@@ -46,13 +54,33 @@ mod tests {
     }
 
     #[test]
-    fn test_update_offer_apk_url() {
+    fn test_update_offer_destination() {
+        let destination = |store: PlatformStore| update_offer(Release::new(store, "2.29".into(), false)).destination;
+
         assert_eq!(
-            update_offer(Release::new(PlatformStore::ApkUniversal, "2.29".into(), false)).apk_url,
-            Some("https://apk.gemwallet.com/gem_wallet_universal_2.29.apk".into())
+            destination(PlatformStore::ApkUniversal),
+            GemAppUpdateDestination::File {
+                url: "https://downloads.gemwallet.com/apk/gem_wallet_universal_2.29.apk".into()
+            }
         );
-        assert_eq!(update_offer(Release::new(PlatformStore::GooglePlay, "2.29".into(), true)).apk_url, None);
-        assert_eq!(update_offer(Release::new(PlatformStore::Huawei, "2.29".into(), false)).apk_url, None);
+        assert_eq!(
+            destination(PlatformStore::MacDmg),
+            GemAppUpdateDestination::File {
+                url: "https://downloads.gemwallet.com/dmg/gem_wallet_2.29.dmg".into()
+            }
+        );
+        assert_eq!(
+            destination(PlatformStore::AppStore),
+            GemAppUpdateDestination::Store {
+                url: "https://apps.apple.com/app/apple-store/id6448712670".into()
+            }
+        );
+        assert_eq!(
+            destination(PlatformStore::GooglePlay),
+            GemAppUpdateDestination::Store {
+                url: "https://play.google.com/store/apps/details?id=com.gemwallet.android".into()
+            }
+        );
     }
 
     #[test]

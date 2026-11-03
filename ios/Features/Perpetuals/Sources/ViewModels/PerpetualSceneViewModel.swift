@@ -3,6 +3,7 @@
 import Components
 import Foundation
 import enum Gemstone.GemInfoTopic
+import struct Gemstone.GemListWindow
 import enum Gemstone.GemPerpetualButton
 import struct Gemstone.GemPerpetualDetails
 import protocol Gemstone.GemPerpetualDetailsServiceProtocol
@@ -48,11 +49,9 @@ public final class PerpetualSceneViewModel {
         transactionsQuery.value
     }
 
-    var transactions: [GemTransactionRow] {
-        transactionSections.flatMap(\.values)
-    }
-
     let chart: PerpetualChartViewModel
+
+    private var transactionsWindow: GemListWindow = .transactions
 
     public var isPresentingInfoSheet: InfoSheetModel?
     public var isPresentingModifyAlert: Bool?
@@ -70,7 +69,7 @@ public final class PerpetualSceneViewModel {
         self.asset = asset
         self.service = service
         self.observerService = observerService
-        chart = PerpetualChartViewModel(service: service, observerService: observerService, asset: asset)
+        chart = PerpetualChartViewModel(service: service, observerService: observerService, walletId: wallet.id, asset: asset)
         self.onTransferData = onTransferData
         self.onPerpetualPosition = onPerpetualPosition
 
@@ -78,7 +77,7 @@ public final class PerpetualSceneViewModel {
         perpetualQuery = ObservableQuery(PerpetualQuery(assetId: asset.id), initialValue: .empty)
         transactionsQuery = ObservableQuery(
             MappedQuery(
-                TransactionsQuery.perpetualScene(walletId: wallet.id, assetId: asset.id, types: GemConstants.perpetualActivityTypes, limit: GemConstants.transactionsListLimit),
+                TransactionsQuery.perpetualScene(walletId: wallet.id, assetId: asset.id, types: GemConstants.perpetualActivityTypes, limit: GemListWindow.transactions.limit),
                 transform: transactionListSections,
             ),
             initialValue: [],
@@ -130,6 +129,11 @@ public final class PerpetualSceneViewModel {
 // MARK: - Actions
 
 public extension PerpetualSceneViewModel {
+    func onTransactionsEndReached() {
+        transactionsWindow = transactionsWindow.onEndReached(rowCount: transactionSections.rowCount())
+        transactionsQuery.setLimit(transactionsWindow.limit)
+    }
+
     func load() async {
         async let refresh: () = refreshStored()
         async let refreshCandlesticks: () = chart.refresh(perpetual: perpetual)

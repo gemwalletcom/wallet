@@ -5,7 +5,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -25,15 +25,15 @@ import com.wallet.core.primitives.QRScanType
 import uniffi.gemstone.chainRow
 
 @Composable
-fun ContactAddressEditorScene(input: ContactAddressInput, onAddressChange: (String) -> Unit, onMemoChange: (String) -> Unit, onScan: (String) -> Unit, onPaste: (String) -> Unit, onAction: (ContactAddressEditorAction) -> Unit) {
-    var scanning by remember { mutableStateOf(false) }
+fun ContactAddressEditorScene(input: ContactAddressInput, onAction: (ContactAddressEditorAction) -> Unit) {
+    var scanning by rememberSaveable { mutableStateOf(false) }
 
     Scene(
         title = stringResource(R.string.common_address),
         onClose = { onAction(ContactAddressEditorAction.Cancel) },
         actions = {
             IconButton(onClick = { onAction(ContactAddressEditorAction.Confirm) }, enabled = input.isAddressValid, modifier = Modifier.testTag("save_address")) {
-                Icon(imageVector = AppIcons.Check, contentDescription = "")
+                Icon(imageVector = AppIcons.Check, contentDescription = stringResource(R.string.common_done))
             }
         },
     ) {
@@ -48,17 +48,18 @@ fun ContactAddressEditorScene(input: ContactAddressInput, onAddressChange: (Stri
             value = input.address,
             label = stringResource(R.string.common_address),
             indicator = input.nameResolveIndicator,
-            onValueChange = onAddressChange,
+            onValueChange = { onAction(ContactAddressEditorAction.SetAddress(it)) },
             modifier = Modifier.testTag("addressInputField"),
             error = input.addressError,
-            onPaste = onPaste,
+            onPaste = { onAction(ContactAddressEditorAction.Paste(it)) },
             onQrScanner = { scanning = true },
+            onSubmit = { onAction(ContactAddressEditorAction.ValidateAddress) },
         )
         if (input.showsMemo) {
             MemoTextField(
                 value = input.memo,
                 label = stringResource(R.string.transfer_memo),
-                onValueChange = onMemoChange,
+                onValueChange = { onAction(ContactAddressEditorAction.SetMemo(it)) },
             )
         }
     }
@@ -68,7 +69,7 @@ fun ContactAddressEditorScene(input: ContactAddressInput, onAddressChange: (Stri
         scanType = QRScanType.Address,
         onDismissRequest = { scanning = false },
         onResult = {
-            onScan(it)
+            onAction(ContactAddressEditorAction.Scan(it))
             scanning = false
         },
     )

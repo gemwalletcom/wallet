@@ -190,6 +190,10 @@ class ContactEditorViewModel @Inject constructor(
 
     fun setAddress(value: String) = addressInput.onTextChange(value)
 
+    fun validateAddress() {
+        addressInput.validate()
+    }
+
     fun setMemo(value: String) = updateAddressSession { it.onMemoChanged(value) }
 
     fun scanAddress(data: String) = setScannedAddress(data)

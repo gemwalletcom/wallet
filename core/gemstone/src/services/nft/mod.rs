@@ -69,16 +69,16 @@ impl GemNftService {
         Ok(())
     }
 
-    pub async fn sync_wallet(&self, wallet_id: WalletId) -> Result<u32, GemServiceError> {
+    pub async fn sync_wallet(&self, wallet_id: WalletId) -> Result<usize, GemServiceError> {
         let data = self.api.client.get_nft_assets(wallet_id.id()).await.map_err(GemApiError::from)?;
-        let count = data.len() as u32;
+        let count = data.len();
         self.store.save_nfts(wallet_id, data).await?;
         Ok(count)
     }
 }
 
 impl GemNftService {
-    async fn sync(&self) -> Result<u32, GemServiceError> {
+    async fn sync(&self) -> Result<usize, GemServiceError> {
         self.sync_wallet(self.session.current_wallet_id()?).await
     }
 }

@@ -63,8 +63,7 @@ async fn add_provider_jobs<'a>(builder: JobPlanBuilder<'a>, prices: &PriceJobs, 
         WorkerJob::UpdatePricesAssets,
         ConfigParamKey::PriceProviderAssetsDuration(kind),
         move |updater| async move { updater.update_assets(assets_limit).await },
-    )
-    .await?;
+    );
     builder = add_updater_job(
         builder,
         prices,
@@ -73,8 +72,7 @@ async fn add_provider_jobs<'a>(builder: JobPlanBuilder<'a>, prices: &PriceJobs, 
         WorkerJob::UpdatePricesAssetsNew,
         ConfigParamKey::PriceProviderAssetsNewDuration(kind),
         |updater| async move { updater.update_assets_new().await },
-    )
-    .await?;
+    );
     builder = builder.job(JobVariant::labeled(WorkerJob::PublishPricesAssetsMetadata, kind), {
         let prices = prices.clone();
         move |_| {
@@ -83,9 +81,7 @@ async fn add_provider_jobs<'a>(builder: JobPlanBuilder<'a>, prices: &PriceJobs, 
         }
     });
 
-    let cleanup_variant = JobVariant::labeled(WorkerJob::CleanupOutdatedAssets, kind)
-        .with_param_duration(&config, &ConfigParamKey::PriceProviderCleanOutdatedDuration(kind))
-        .await?;
+    let cleanup_variant = JobVariant::labeled(WorkerJob::CleanupOutdatedAssets, kind).provider_interval(ConfigParamKey::PriceProviderCleanOutdatedDuration(kind));
     builder = builder.job(cleanup_variant, {
         let prices = prices.clone();
         move |_| {
@@ -126,18 +122,15 @@ async fn add_provider_jobs<'a>(builder: JobPlanBuilder<'a>, prices: &PriceJobs, 
                     Box::pin(async move { updater.update_markets().await })
                 }
             }),
-        PriceProvider::Pyth | PriceProvider::Jupiter | PriceProvider::DefiLlama | PriceProvider::TonApi => {
-            add_updater_job(
-                builder,
-                prices,
-                kind,
-                UpdaterProducer::Prices,
-                WorkerJob::UpdatePrices,
-                ConfigParamKey::PriceProviderPricesDuration(kind),
-                |updater| async move { updater.update_prices_all().await },
-            )
-            .await?
-        }
+        PriceProvider::Pyth | PriceProvider::Jupiter | PriceProvider::DefiLlama | PriceProvider::TonApi => add_updater_job(
+            builder,
+            prices,
+            kind,
+            UpdaterProducer::Prices,
+            WorkerJob::UpdatePrices,
+            ConfigParamKey::PriceProviderPricesDuration(kind),
+            |updater| async move { updater.update_prices_all().await },
+        ),
     };
     Ok(builder)
 }
@@ -148,21 +141,12 @@ enum UpdaterProducer {
     Prices,
 }
 
-async fn add_updater_job<'a, F, Fut>(
-    builder: JobPlanBuilder<'a>,
-    prices: &PriceJobs,
-    kind: PriceProvider,
-    producer: UpdaterProducer,
-    job: WorkerJob,
-    interval: ConfigParamKey,
-    run: F,
-) -> Result<JobPlanBuilder<'a>, Box<dyn Error + Send + Sync>>
+fn add_updater_job<'a, F, Fut>(builder: JobPlanBuilder<'a>, prices: &PriceJobs, kind: PriceProvider, producer: UpdaterProducer, job: WorkerJob, interval: ConfigParamKey, run: F) -> JobPlanBuilder<'a>
 where
     F: Fn(PricesUpdater) -> Fut + Clone + Send + Sync + 'static,
     Fut: Future<Output = Result<usize, Box<dyn Error + Send + Sync>>> + Send + 'static,
 {
-    let variant = JobVariant::labeled(job, kind).with_param_duration(&prices.config(), &interval).await?;
-    Ok(builder.job(variant, updater_job(prices, kind, producer, run)))
+    builder.job(JobVariant::labeled(job, kind).provider_interval(interval), updater_job(prices, kind, producer, run))
 }
 
 fn updater_job<F, Fut>(prices: &PriceJobs, kind: PriceProvider, producer: UpdaterProducer, run: F) -> impl Fn(JobContext) -> JobFuture + Clone + Send + Sync + 'static

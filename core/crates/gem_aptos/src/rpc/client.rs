@@ -5,17 +5,16 @@ use std::str::FromStr;
 use gem_client::{Client, ClientExt};
 use num_bigint::BigUint;
 use primitives::chain::Chain;
-use primitives::{StakeType, TransactionInputType, TransactionLoadInput};
+use primitives::{TransactionInputType, TransactionLoadInput};
 use serde::Serialize;
 use serde::de::DeserializeOwned;
 
 use crate::models::{
     Account, Block, DelegationPoolStake, GasFee, Ledger, Resource, RewardRate, SimulateTransactionQuery, SponsoredSimulationSignature, Transaction, TransactionPayload, TransactionResponse, TransactionSimulation, ValidatorSet, ViewRequest,
 };
-use crate::provider::payload_builder::{
-    build_stake_transaction_payload, build_swap_transaction_payload, build_token_transfer_transaction_payload, build_transfer_transaction_payload, build_unstake_transaction_payload, build_withdraw_transaction_payload,
-};
+use crate::provider::payload_builder::build_swap_transaction_payload;
 use crate::rpc::target::AptosTarget;
+use crate::signer::{build_delegation_pool_transaction_payload, build_token_transfer_transaction_payload, build_transfer_transaction_payload};
 use crate::{DEFAULT_MAX_GAS_AMOUNT, DEFAULT_SWAP_MAX_GAS_AMOUNT, SIMULATION_MAX_GAS_AMOUNT};
 
 #[derive(Debug)]
@@ -103,7 +102,7 @@ impl<C: Client> AptosClient<C> {
                     Some(token_id) => build_token_transfer_transaction_payload(token_id, &input.destination_address, &input.value.to_string())?,
                 };
 
-                self.simulate_transaction(&input.sender_address, sequence, payload, &input.gas_price.gas_price().to_string()).await
+                self.simulate_transaction(&input.sender_address, sequence, payload.into(), &input.gas_price.gas_price().to_string()).await
             }
             TransactionInputType::Swap { from_asset: asset, swap_data, .. } => match &swap_data.data.gas_limit {
                 Some(gas_limit) => gas_limit.parse::<u64>().map_err(|_| "Invalid Aptos gas limit".into()),
@@ -116,15 +115,8 @@ impl<C: Client> AptosClient<C> {
                 }
             },
             TransactionInputType::Stake { stake_type, .. } => {
-                let payload = match stake_type {
-                    StakeType::Stake(validator) => Some(build_stake_transaction_payload(&validator.id, &input.value.to_string())),
-                    StakeType::Unstake(delegation) => Some(build_unstake_transaction_payload(&delegation.validator.id, &input.value.to_string())),
-                    StakeType::Withdraw(delegation) => Some(build_withdraw_transaction_payload(&delegation.validator.id, &input.value.to_string())),
-                    StakeType::Redelegate(_) | StakeType::Rewards(_) | StakeType::Freeze(_) | StakeType::Unfreeze(_) => None,
-                };
-
-                let payload = payload.ok_or("Unsupported Aptos stake type")?;
-                self.simulate_transaction(&input.sender_address, sequence, payload, &input.gas_price.gas_price().to_string()).await
+                let payload = build_delegation_pool_transaction_payload(stake_type, &input.value.to_string()).ok_or("Unsupported Aptos stake type")?;
+                self.simulate_transaction(&input.sender_address, sequence, payload.into(), &input.gas_price.gas_price().to_string()).await
             }
             TransactionInputType::Generic { .. } | TransactionInputType::Payment { .. } => Ok(DEFAULT_MAX_GAS_AMOUNT),
             TransactionInputType::TokenApprove { .. } | TransactionInputType::Perpetual { .. } | TransactionInputType::Earn { .. } => Err("Unsupported Aptos transaction type".into()),
@@ -258,7 +250,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_gas_is_measured_as_a_sponsored_transaction_so_an_unfunded_sender_still_gets_a_fee() {
-        let payload = build_transfer_transaction_payload("0x2", "1");
+        let payload = TransactionPayload::from(build_transfer_transaction_payload("0x2", "1"));
         let client = AptosClient::new(MockClient::new().with_post(|path, body| {
             assert_eq!(path, "/v1/transactions/simulate?estimate_max_gas_amount=false&estimate_gas_unit_price=false&estimate_prioritized_gas_unit_price=false");
             let request = serde_json::from_slice::<Value>(body).unwrap();

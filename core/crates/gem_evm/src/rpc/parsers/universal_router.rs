@@ -14,8 +14,8 @@ use crate::{
     uniswap::{
         actions::{V4Action, decode_action_data},
         command::{
-            ADDRESS_THIS, CONTRACT_BALANCE, MSG_SENDER, PAY_PORTION_COMMAND, PayPortion, SWEEP_COMMAND, Sweep, TRANSFER_COMMAND, Transfer, UNWRAP_WETH_COMMAND, UnwrapWeth, V2_SWAP_EXACT_IN_COMMAND, V2SwapExactIn, V2SwapExactInSolidly,
-            V3_SWAP_EXACT_IN_COMMAND, V3SwapExactIn, V4_SWAP_COMMAND, WRAP_ETH_COMMAND, WrapEth,
+            ADDRESS_THIS, CONTRACT_BALANCE, MSG_SENDER, PAY_PORTION_COMMAND, PERMIT2_TRANSFER_FROM_COMMAND, PayPortion, SWEEP_COMMAND, Sweep, TRANSFER_COMMAND, Transfer, UNWRAP_WETH_COMMAND, UnwrapWeth, V2_SWAP_EXACT_IN_COMMAND,
+            V2SwapExactIn, V2SwapExactInSolidly, V3_SWAP_EXACT_IN_COMMAND, V3SwapExactIn, V4_SWAP_COMMAND, WRAP_ETH_COMMAND, WrapEth,
         },
         contracts::{
             IUniversalRouter,
@@ -90,7 +90,7 @@ pub(crate) fn decode_execute_swap(chain: &Chain, universal_router_abi: Universal
 fn decode_execute_swap_call(chain: &Chain, router_abi: RouterAbi, provider: SwapProvider, from: &str, execute_call: &IUniversalRouter::executeCall, receipt: &TransactionReceipt) -> Option<TransactionSwapMetadata> {
     let commands = &execute_call.commands;
     let inputs = &execute_call.inputs;
-    let mut swap_input: Option<(AssetId, U256)> = None;
+    let mut swap_input: Option<(AssetId, U256, Address)> = None;
     let mut swap_output = None;
     let mut swap_provider = provider;
 
@@ -107,6 +107,7 @@ fn decode_execute_swap_call(chain: &Chain, router_abi: RouterAbi, provider: Swap
     let mut sweep_minimum = None;
     let mut native_referral_value = None;
     let mut native_referral_bips = None;
+    let mut input_referral = None;
 
     for (command, input) in commands.iter().zip(inputs.iter()) {
         if command == &UNWRAP_WETH_COMMAND {
@@ -115,12 +116,14 @@ fn decode_execute_swap_call(chain: &Chain, router_abi: RouterAbi, provider: Swap
         } else if command == &SWEEP_COMMAND {
             let sweep = Sweep::abi_decode(input).ok()?;
             sweep_minimum = Some(sweep.amount_min);
-        } else if command == &TRANSFER_COMMAND
+        } else if (command == &TRANSFER_COMMAND || command == &PERMIT2_TRANSFER_FROM_COMMAND)
             && let Ok(transfer) = Transfer::abi_decode(input)
-            && transfer.token.is_zero()
             && transfer.recipient == referral
         {
-            native_referral_value = Some(transfer.value);
+            if transfer.token.is_zero() {
+                native_referral_value = Some(transfer.value);
+            }
+            input_referral = Some((transfer.token, transfer.value));
         } else if command == &PAY_PORTION_COMMAND
             && let Ok(pay_portion) = PayPortion::abi_decode(input)
             && pay_portion.token.is_zero()
@@ -163,8 +166,8 @@ fn decode_execute_swap_call(chain: &Chain, router_abi: RouterAbi, provider: Swap
             };
             match (&mut swap_input, leg_amount_in) {
                 (_, None) => {}
-                (Some((from_asset, from_value)), Some(amount_in)) if from_asset == &leg_from_asset => *from_value = from_value.checked_add(amount_in)?,
-                (None, Some(amount_in)) => swap_input = Some((leg_from_asset, amount_in)),
+                (Some((from_asset, from_value, _)), Some(amount_in)) if from_asset == &leg_from_asset => *from_value = from_value.checked_add(amount_in)?,
+                (None, Some(amount_in)) => swap_input = Some((leg_from_asset, amount_in, token_in)),
                 (Some(_), Some(_)) => {}
             }
             swap_output = Some((leg_to_asset, leg_to_value));
@@ -204,8 +207,8 @@ fn decode_execute_swap_call(chain: &Chain, router_abi: RouterAbi, provider: Swap
                 let leg_to_asset = AssetId::from(*chain, to_token_id);
                 let leg_from_value = U256::from(amount_in);
                 match &mut swap_input {
-                    Some((from_asset, from_value)) if from_asset == &leg_from_asset => *from_value = from_value.checked_add(leg_from_value)?,
-                    None if !leg_from_value.is_zero() => swap_input = Some((leg_from_asset, leg_from_value)),
+                    Some((from_asset, from_value, _)) if from_asset == &leg_from_asset => *from_value = from_value.checked_add(leg_from_value)?,
+                    None if !leg_from_value.is_zero() => swap_input = Some((leg_from_asset, leg_from_value, from_token)),
                     _ => {}
                 }
                 swap_output = Some((leg_to_asset, leg_to_value));
@@ -214,7 +217,9 @@ fn decode_execute_swap_call(chain: &Chain, router_abi: RouterAbi, provider: Swap
         }
     }
 
-    let (from_asset, from_value) = swap_input?;
+    let (from_asset, swapped_value, input_token) = swap_input?;
+    let input_fee = input_referral.filter(|(token, _)| *token == input_token).map_or(U256::ZERO, |(_, value)| value);
+    let from_value = swapped_value.checked_add(input_fee)?;
     let (to_asset, to_value) = swap_output?;
     let referral_fee = native_referral_value
         .map(|value| TransactionSwapReferralFee {
@@ -344,6 +349,23 @@ mod tests {
     }
 
     #[test]
+    fn test_map_swap_from_value_includes_input_fee() {
+        let transaction = load_json_rpc_result::<Transaction>(include_str!("../../../testdata/v3_base_eth_input_fee_tx.json"));
+        let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../testdata/v3_base_eth_input_fee_tx_receipt.json"));
+        let metadata = map_swap(&Chain::Base, &transaction, &receipt).swap_metadata().unwrap();
+
+        assert_eq!(metadata.from_asset, AssetId::from_chain(Chain::Base));
+        assert_eq!(metadata.from_value, BigUint::from(3_500_000_000_000_000u64));
+        assert_eq!(
+            metadata.referral_fee,
+            Some(TransactionSwapReferralFee {
+                asset_id: AssetId::from_chain(Chain::Base),
+                value: BigUint::from(17_500_000_000_000u64),
+            })
+        );
+    }
+
+    #[test]
     fn test_map_v4_swap_cake_bnb() {
         let transaction = load_json_rpc_result::<Transaction>(include_str!("../../../testdata/v4_cake_bnb_transaction.json"));
         let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../testdata/v4_cake_bnb_transaction_receipt.json"));
@@ -447,7 +469,7 @@ mod tests {
         assert_eq!(swap_tx.value, BigUint::from(1000000000000000u64));
 
         assert_eq!(metadata.from_asset, AssetId { chain: Chain::Unichain, token_id: None });
-        assert_eq!(metadata.from_value, BigUint::from(995000000000000u64));
+        assert_eq!(metadata.from_value, BigUint::from(1000000000000000u64));
         assert_eq!(
             metadata.to_asset,
             AssetId {
@@ -661,7 +683,7 @@ mod tests {
         assert_eq!(swap_tx.value, BigUint::from(18000000000000000u64));
 
         assert_eq!(metadata.from_asset, AssetId { chain: Chain::Ethereum, token_id: None });
-        assert_eq!(metadata.from_value, BigUint::from(17910000000000000u64));
+        assert_eq!(metadata.from_value, BigUint::from(18000000000000000u64));
         assert_eq!(
             metadata.to_asset,
             AssetId {
@@ -769,7 +791,7 @@ mod tests {
                 token_id: Some(TOKEN_USDC_ADDRESS.to_string())
             }
         );
-        assert_eq!(metadata.from_value, BigUint::from(29850000u64));
+        assert_eq!(metadata.from_value, BigUint::from(30000000u64));
         assert_eq!(
             metadata.to_asset,
             AssetId {

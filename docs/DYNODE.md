@@ -66,11 +66,11 @@ A JSON-RPC batch is checked call by call: cached calls are answered from memory,
 
 A batch follows a chain's overrides call by call. When every call goes to the same override, or to none, the batch goes upstream whole. Otherwise it is split into one batch per override, sent at the same time, and the answers are put back in call order; a part that fails answers each of its calls with a JSON-RPC error, and the other parts still answer (`test_batch_calls_follow_their_overrides`).
 
-Swaps rely on Dynode only for lookups that do not price a quote, what a pool is and which pools a pair has, so a quote is still priced on live state ([Swap](product/swap.md#on-chain-quotes)). Which pools lost to a better one stays on the device: it depends on the amount, and Dynode keeps responses, not comparisons between them.
+Swaps rely on Dynode only for lookups that do not price a quote, what a pool is and which pools a pair has, so a quote is still priced on live state ([Swap](product/swap.md#rules)). Which pools lost to a better one stays on the device: it depends on the amount, and Dynode keeps responses, not comparisons between them.
 
 | Chain | Request | TTL |
 |---|---|---|
-| Ethereum and EVM networks | `eth_call` `getPool` to the Uniswap v3, PancakeSwap, Aerodrome, Oku and Wagmi factories | `1d` |
+| Ethereum and EVM networks | `eth_call` `getPool` to the Uniswap v3, PancakeSwap, Aerodrome, Aero, Oku and Wagmi factories | `1d` |
 | Ethereum and EVM networks | `eth_call` `getSlot0` to the Uniswap v4 StateView; the wallet reads it only to learn whether a pool exists, never for its price | `1d` |
 | Sui | `SimulateTransaction` calling Cetus `factory::new_pool_key`, `factory::pool_simple_info` or `factory::pool_id` | `1d` |
 | Solana | `getProgramAccounts` of the Meteora DAMM v2 and DLMM, Raydium CPMM and Raydium AMM v4 programs, the pools that hold a pair | `1d` |
@@ -113,7 +113,7 @@ Dynode also starts a monitoring cycle when the active URL reaches either configu
 - `trigger.rate`: retryable failure percentage within `trigger.window`, after at least `trigger.failures` failed requests.
 - `trigger.latency`: maximum acceptable latency for one node monitoring observation before alternatives are checked.
 
-Transport errors always count. Responses count when any `retry.errors` rule matches. Each rule has an optional HTTP `status` and an optional `message` substring matched case-insensitively against JSON `error` or `error.message`. When both are configured, both must match; a message-only rule applies at any HTTP status. Empty rules and blank message patterns never match. Cache hits and fallback attempts do not count. The window also acts as the cooldown between triggered checks for the active URL.
+Transport errors always count. Responses count when any `retry.errors` rule matches. Each rule has an optional HTTP `status` and an optional `message` substring matched case-insensitively against JSON `error` or `error.message`. When both are configured, both must match; a message-only rule applies at any HTTP status. After status-only rules, a response matching a `retry.ignore` rule never counts: a contract writes its own revert text, so a revert reading "rate limit" is the contract's answer, not the node's. Empty rules and blank message patterns never match. Cache hits and fallback attempts do not count. The window also acts as the cooldown between triggered checks for the active URL.
 
 ```yaml
 retry:
@@ -122,6 +122,8 @@ retry:
     - message: "rate limit"
     - status: 400
       message: "502 Bad Gateway"
+  ignore:
+    - message: "execution reverted"
 ```
 
 The rolling rate uses bounded time buckets, so memory use does not grow with request volume.

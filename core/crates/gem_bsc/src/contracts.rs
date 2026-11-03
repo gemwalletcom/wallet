@@ -40,5 +40,6 @@ sol! {
         function redelegate(address srcValidator, address dstValidator, uint256 shares, bool delegateVotePower) external;
         function claim(address operatorAddress, uint256 requestNumber) external;
         function claimBatch(address[] calldata operatorAddresses, uint256[] calldata requestNumbers) external;
+        function maxElectedValidators() external view returns (uint256);
     }
 }

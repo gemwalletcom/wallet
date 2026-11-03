@@ -35,6 +35,7 @@ struct ImportWalletTypeScene: View {
                         NavigationLink(value: ImportWalletType.chain(Chain(core: row.chain))) {
                             ChainView(model: row)
                         }
+                        .accessibilityIdentifier(row.chain)
                     }
                 }
             }

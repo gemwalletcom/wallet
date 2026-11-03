@@ -28,8 +28,7 @@ impl FiatProvider for MoonPayClient {
     }
 
     async fn get_assets(&self) -> Result<Vec<FiatProviderAsset>, Box<dyn std::error::Error + Send + Sync>> {
-        let assets = self.get_assets().await?.into_iter().flat_map(Self::map_asset).collect::<Vec<FiatProviderAsset>>();
-        Ok(assets)
+        Ok(Self::map_assets(self.get_assets().await?))
     }
 
     async fn get_countries(&self) -> Result<Vec<FiatProviderCountry>, Box<dyn std::error::Error + Send + Sync>> {

@@ -2,12 +2,15 @@ package com.gemwallet.android.data.coordinators.di
 
 import com.gemwallet.android.application.support.cases.ClearSupportTyping
 import com.gemwallet.android.application.support.cases.GetSupportTyping
+import com.gemwallet.android.application.support.cases.SendSupportMessage
+import com.gemwallet.android.data.coordinators.support.SupportMessagesCoordinator
 import com.gemwallet.android.data.coordinators.support.SupportTypingCoordinator
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneSupportStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import uniffi.gemstone.GemSupportServiceInterface
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -25,4 +28,8 @@ object SupportModule {
     @Provides
     @Singleton
     fun provideClearSupportTyping(coordinator: SupportTypingCoordinator): ClearSupportTyping = coordinator
+
+    @Provides
+    @Singleton
+    fun provideSendSupportMessage(supportService: GemSupportServiceInterface): SendSupportMessage = SupportMessagesCoordinator(supportService)
 }

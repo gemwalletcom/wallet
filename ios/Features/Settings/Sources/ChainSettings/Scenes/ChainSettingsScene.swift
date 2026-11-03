@@ -3,6 +3,7 @@
 import Components
 import Foundation
 import enum Gemstone.GemChainSettingsSection
+import struct Gemstone.GemNodeRow
 import PrimitivesComponents
 import Style
 import SwiftUI
@@ -29,11 +30,11 @@ public struct ChainSettingsScene: View {
             model.nodeDelete?.deletePrompt.text ?? "",
             presenting: $model.nodeDelete,
             sensoryFeedback: .warning,
-            actions: { _ in
+            actions: { row in
                 Button(
                     model.deleteButtonTitle,
                     role: .destructive,
-                    action: onDeleteNode,
+                    action: { onDeleteNode(row) },
                 )
             },
         )
@@ -71,7 +72,7 @@ public struct ChainSettingsScene: View {
                 )
                 .if(row.canDelete) {
                     $0.swipeActions(edge: .trailing) {
-                        Button(model.deleteButtonTitle, role: .destructive) {
+                        Button(model.deleteButtonTitle) {
                             model.onSelectNodeForDeletion(row)
                         }
                         .tint(Colors.red)
@@ -99,7 +100,7 @@ public struct ChainSettingsScene: View {
 // MARK: - Actions
 
 extension ChainSettingsScene {
-    private func onDeleteNode() {
-        Task { await model.onDeleteNode() }
+    private func onDeleteNode(_ row: GemNodeRow) {
+        Task { await model.onDeleteNode(row) }
     }
 }

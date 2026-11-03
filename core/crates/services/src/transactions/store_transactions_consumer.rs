@@ -15,6 +15,7 @@ use swapper::cross_chain::{self, DepositAddressMap, SendAddressMap};
 use super::StoreTransactionsConsumerConfig;
 use super::SwapVaultAddressClient;
 use super::repository::Repository;
+use crate::assets::AssetsClient;
 use crate::config::ConfigCacher;
 use crate::notifications::Pusher;
 use crate::subscriptions::SubscriptionLookup;
@@ -24,6 +25,7 @@ const CROSS_CHAIN_SOURCE_TYPES: [TransactionType; 3] = [TransactionType::Transfe
 
 pub struct StoreTransactionsConsumer {
     pub(crate) repository: Arc<dyn Repository>,
+    pub assets: AssetsClient,
     pub stream_producer: Arc<dyn StreamProducerQueue>,
     pub pusher: Pusher,
     pub config: Arc<ConfigCacher>,
@@ -84,7 +86,7 @@ impl StoreTransactionsConsumer {
         let wallet_events = Self::wallet_events(&subscriptions, &subscribed_transactions, &publishable_transactions);
 
         if !assets_addresses.is_empty() {
-            self.repository.add_asset_addresses(assets_addresses).await?;
+            self.assets.add_asset_addresses(assets_addresses).await?;
         }
         self.stream_producer.publish_notifications_transactions(notifications).await?;
         self.stream_producer.publish_wallet_stream_events(wallet_events).await?;
@@ -371,7 +373,7 @@ mod tests {
     use super::*;
     use gem_solana::{
         models::{BlockTransaction, SingleTransaction},
-        provider::transaction_mapper::map_transaction,
+        provider::transaction_mapper::{map_single_transaction, map_transaction},
     };
     use num_bigint::BigUint;
     use primitives::{
@@ -385,11 +387,7 @@ mod tests {
     #[test]
     fn test_mayan_swift_deposit_enters_cross_chain_processing() {
         let response: JsonRpcResult<SingleTransaction> = serde_json::from_str(include_str!("../../../gem_solana/testdata/mayan_swift_deposit_token.json")).unwrap();
-        let source = BlockTransaction {
-            meta: response.result.meta,
-            transaction: response.result.transaction,
-        };
-        let transaction = map_transaction(&source, response.result.block_time).unwrap();
+        let transaction = map_single_transaction(response.result).unwrap();
         let deposit_addresses = DepositAddressMap::from([(SOLANA_MAYAN_CPI_PROXY_PROGRAM_ID.to_string(), SwapProvider::Mayan)]);
         let transactions = StoreTransactionsConsumer::transactions_for_storage(vec![transaction], &deposit_addresses, &SendAddressMap::new(), &TransactionNotificationType::NewTransaction);
 
@@ -428,11 +426,7 @@ mod tests {
     #[test]
     fn test_relay_forward_token_enters_cross_chain_processing() {
         let response: JsonRpcResult<SingleTransaction> = serde_json::from_str(include_str!("../../../gem_solana/testdata/relay_forward_token.json")).unwrap();
-        let source = BlockTransaction {
-            meta: response.result.meta,
-            transaction: response.result.transaction,
-        };
-        let transaction = map_transaction(&source, response.result.block_time).unwrap();
+        let transaction = map_single_transaction(response.result).unwrap();
         let deposit_addresses = DepositAddressMap::from([("0xf9acf2b30950256def67cea790e16eaaa70a9f91bf4b4d64f33e9a217f8a42f6".to_string(), SwapProvider::Relay)]);
         let transactions = StoreTransactionsConsumer::transactions_for_storage(vec![transaction], &deposit_addresses, &SendAddressMap::new(), &TransactionNotificationType::NewTransaction);
 
@@ -445,11 +439,7 @@ mod tests {
     #[test]
     fn test_relay_lookup_table_deposit_enters_cross_chain_processing() {
         let response: JsonRpcResult<SingleTransaction> = serde_json::from_str(include_str!("../../../gem_solana/testdata/relay_deposit_token_lookup_table.json")).unwrap();
-        let source = BlockTransaction {
-            meta: response.result.meta,
-            transaction: response.result.transaction,
-        };
-        let transaction = map_transaction(&source, response.result.block_time).unwrap();
+        let transaction = map_single_transaction(response.result).unwrap();
         let mut deposit_addresses = DepositAddressMap::from([("0xc6a8c2d31b9e05f9f719c821dff2de43bc811d4efabd39565a355977c7143370".to_string(), SwapProvider::Relay)]);
         let transactions = StoreTransactionsConsumer::transactions_for_storage(vec![transaction], &deposit_addresses, &SendAddressMap::new(), &TransactionNotificationType::NewTransaction);
 

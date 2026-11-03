@@ -120,17 +120,11 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
     }
 
     private func feeRow(screen: GemConfirmScreen) -> GemConfirmFeeRow {
-        let value = screen.feeValue(load: loaded)
-        let isUnavailable = if case .unavailable = value {
-            true
-        } else {
-            false
-        }
-        return GemConfirmFeeRow(
+        GemConfirmFeeRow(
             title: .networkFee,
-            value: value,
+            value: screen.feeValue(load: loaded),
             info: .networkFee(asset: loaded?.feeAsset ?? transfer().feeAsset()),
-            opensDetails: feeRates != nil && !isUnavailable,
+            opensDetails: feeRates != nil,
         )
     }
 

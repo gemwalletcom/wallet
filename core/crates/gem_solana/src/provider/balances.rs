@@ -27,7 +27,7 @@ impl<C: Client + Clone> ChainBalances for SolanaProvider<C> {
         Ok(map_balance_staking(accounts))
     }
 
-    async fn get_balance_assets(&self, address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>> {
+    async fn get_balance_assets(&self, address: String) -> Result<Option<Vec<AssetBalance>>, Box<dyn Error + Send + Sync>> {
         let token_accounts_result = self.get_token_accounts_by_owner(&address, crate::TOKEN_PROGRAM).await?;
         let balances: Vec<AssetBalance> = token_accounts_result
             .value
@@ -47,7 +47,7 @@ impl<C: Client + Clone> ChainBalances for SolanaProvider<C> {
             })
             .collect();
 
-        Ok(balances)
+        Ok(Some(balances))
     }
 }
 
@@ -104,7 +104,7 @@ mod chain_integration_tests {
     async fn test_solana_get_balance_assets() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_solana_test_client();
         let address = TEST_SOLANA_SENDER.to_string();
-        let assets = client.get_balance_assets(address).await?;
+        let assets = client.get_balance_assets(address).await?.unwrap();
 
         for asset in assets {
             assert_eq!(asset.asset_id.chain, Chain::Solana);

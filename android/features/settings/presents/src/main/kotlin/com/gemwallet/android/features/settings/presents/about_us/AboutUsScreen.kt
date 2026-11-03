@@ -12,7 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -34,7 +34,7 @@ import com.gemwallet.android.ui.localization.titleRes
 fun AboutUsScreen(onCancel: () -> Unit, viewModel: AboutUsViewModel = hiltViewModel()) {
     val context = LocalContext.current
     val viewState by viewModel.viewState.collectAsStateWithLifecycle()
-    var isShowDevelopEnable by remember { mutableStateOf(false) }
+    var isShowDevelopEnable by rememberSaveable { mutableStateOf(false) }
 
     Scene(title = stringResource(id = R.string.settings_aboutus), onClose = onCancel) {
         LazyColumn {

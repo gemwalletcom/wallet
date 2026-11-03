@@ -31,7 +31,7 @@ struct FiatScene: View {
         .safeAreaButton {
             StateButton(
                 text: viewState.buttonAction.title,
-                type: .primary(viewState.buttonState.state),
+                state: viewState.buttonState.state,
                 action: { Task { await model.onSelectContinue() } },
             )
         }
@@ -65,6 +65,7 @@ extension FiatScene {
                             }
                             .font(.subheadline.weight(.semibold))
                             .buttonStyle(.amount())
+                            .accessibilityIdentifier("fiat_preset_\(suggestion.amount)")
                         }
                     }
                     .fixedSize()

@@ -31,7 +31,7 @@ appId: ${APP_ID}
                 id: "bitcoin"
       - tapOn:
           id: "addressInputField"
-      - inputText: "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"
+      - inputText: ${BITCOIN_ADDRESS_2}
       - pressKey: Enter
       - tapOn:
           id: "save_address"

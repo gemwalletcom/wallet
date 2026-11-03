@@ -958,6 +958,7 @@ public extension TransactionsFilter {
         transactionTypes: [TransactionType] = [],
         states: [TransactionState] = [],
         assetRankGreaterThan: Int32? = nil,
+        createdFrom: Date? = nil,
     ) -> TransactionsFilter {
         TransactionsFilter(
             assetId: assetId,
@@ -965,6 +966,7 @@ public extension TransactionsFilter {
             transactionTypes: transactionTypes,
             states: states,
             assetRankGreaterThan: assetRankGreaterThan,
+            createdFrom: createdFrom,
         )
     }
 }

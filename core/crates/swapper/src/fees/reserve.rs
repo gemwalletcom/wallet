@@ -7,6 +7,7 @@ pub fn reserved_transaction_fees(chain: Chain) -> Option<BigUint> {
         Chain::Arbitrum => 300_000_000_000_000,
         Chain::Base => 300_000_000_000_000,
         Chain::Optimism => 500_000_000_000_000,
+        Chain::Ink => 500_000_000_000_000,
         Chain::AvalancheC => 3_000_000_000_000_000,
         Chain::SmartChain => 2_000_000_000_000_000,
         Chain::Polygon => 20_000_000_000_000_000,

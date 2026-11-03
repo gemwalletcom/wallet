@@ -36,7 +36,8 @@ fun StakeScreen(amountAction: AmountTransactionAction, onConfirm: ConfirmTransac
             onAction = { action ->
                 when (action) {
                     StakeAction.Refresh -> viewModel.onRefresh()
-                    is StakeAction.Open -> viewModel.onSelect(action.kind, action.destination, amountAction, onConfirm)
+                    is StakeAction.Open -> viewModel.onSelect(action.destination, amountAction, onConfirm)
+                    StakeAction.RegionUnavailable -> viewModel.onRegionUnavailable()
                     is StakeAction.OpenDelegation -> viewModel.onDelegation(action.delegation, onDelegation, amountAction, onConfirm)
                     StakeAction.Cancel -> onCancel()
                 }

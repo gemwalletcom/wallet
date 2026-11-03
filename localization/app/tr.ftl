@@ -3,6 +3,9 @@
 common_cancel = İptal
 common_hidden = Gizli
 common_done = Tamam
+common_add = Ekle
+common_close = Kapat
+common_back = Geri
 common_maximum_value = Maksimum değer %@
 common_minimum_value = Minimum değer %@
 common_secret_phrase = Gizli İfade
@@ -60,7 +63,6 @@ common_suspicious_address = Şüpheli adres
 common_suspicious_address_description = Bu adres şüpheli veya zararlı bir etkinlikle ilişkili.
 common_refresh = Yenile
 common_grant_permission = İzin ver
-common_required_field = %@ gerekli
 
 # Welcome
 
@@ -165,7 +167,6 @@ transfer_reserved_fees = Gelecekteki ağ ücretlerini karşılamak için bakiyen
 transfer_freeze_title = Dondur
 transfer_unfreeze_title = Çöz
 transfer_review_request = İnceleme Talebi
-transfer_amount = Miktar
 
 # Settings
 
@@ -255,7 +256,6 @@ errors_dust_threshold_short = Ağ bu miktarı toz olarak değerlendiriyor; ücre
 errors_swap_minimum_amount = Minimum işlem tutarı %@. Lütfen daha yüksek bir tutar girin.
 errors_perpetual_trigger_price_lower = Tetikleme fiyatı piyasa fiyatından düşük olmalıdır
 errors_perpetual_trigger_price_higher = Tetikleme fiyatı piyasa fiyatından yüksek olmalıdır
-errors_unknown_try_again = Bilinmeyen bir hata oluştu. Lütfen tekrar deneyin.
 errors_network_error = Ağ hatası: %@
 errors_network_offline = İnternet bağlantısı kesilmiş gibi görünüyor.
 errors_no_internet_connection = İnternet bağlantısı yok
@@ -327,7 +327,6 @@ asset_buy_asset = %@ satın al
 asset_get_asset = %@ al
 asset_add_to_wallet = Cüzdana ekle
 asset_added_to_wallet = Cüzdana eklendi
-asset_hidden_from_wallet = Cüzdandan gizlendi
 asset_resources = Kaynaklar
 asset_verification_verified = Doğrulandı
 asset_all_time_high = Tarihi zirve
@@ -347,6 +346,8 @@ charts_price_close = Kapanış
 charts_price_high = Yüksek
 charts_price_low = Düşük
 charts_price_change = Değişim
+charts_candlestick = Mum grafiği
+charts_line = Çizgi grafiği
 
 # Date
 

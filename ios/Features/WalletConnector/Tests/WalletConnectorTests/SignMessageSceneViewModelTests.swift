@@ -98,11 +98,13 @@ struct SignMessageSceneViewModelTests {
 
     @Test
     @MainActor
-    func payloadStoresValidatedChainNotMessageChain() {
+    func payloadAddressOpensOnTheValidatedChainNotTheMessageChain() {
         let payload = GemWalletConnectMessageRequest.mock(chain: Chain.ethereum.rawValue, message: .mock(chain: "bitcoin"))
+        let viewModel = SignMessageSceneViewModel.mock(request: payload)
 
-        #expect(payload.chain == Chain.ethereum.rawValue)
-        #expect(payload.message.chain == "bitcoin")
+        viewModel.onSelectPayloadAddress("0xabc")
+
+        #expect(viewModel.presentedSheet?.id == SignMessageSheet.addressDetails(ChainAddress(chain: .ethereum, address: "0xabc")).id)
     }
 
     @Test

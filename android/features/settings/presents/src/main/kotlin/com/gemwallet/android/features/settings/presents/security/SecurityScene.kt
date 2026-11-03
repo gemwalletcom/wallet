@@ -22,18 +22,7 @@ import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListSection
 
 @Composable
-fun SecurityScene(
-    sections: List<GemListSection>,
-    lockInterval: Int?,
-    lockPeriods: List<LockPeriodOption>,
-    error: String?,
-    isUpdatingAuthentication: Boolean,
-    onErrorShown: () -> Unit,
-    onAuthRequired: (Boolean) -> Unit,
-    onHideBalances: () -> Unit,
-    onLockInterval: (Int) -> Unit,
-    onCancel: () -> Unit,
-) {
+internal fun SecurityScene(sections: List<GemListSection>, lockInterval: Int?, lockPeriods: List<LockPeriodOption>, error: String?, isUpdatingAuthentication: Boolean, onErrorShown: () -> Unit, onAction: (SecurityAction) -> Unit) {
     val context = LocalContext.current
 
     val snackbar = remember { SnackbarHostState() }
@@ -46,7 +35,7 @@ fun SecurityScene(
 
     Scene(
         title = stringResource(id = (R.string.settings_security)),
-        onClose = onCancel,
+        onClose = { onAction(SecurityAction.Cancel) },
         snackbar = snackbar,
     ) {
         LazyColumn {
@@ -59,7 +48,7 @@ fun SecurityScene(
                             current = lockPeriods.firstOrNull { it.minutes == lockInterval },
                             options = lockPeriods,
                             label = { stringResource(it.title) },
-                            onSelect = { onLockInterval(it.minutes) },
+                            onSelect = { onAction(SecurityAction.SetLockInterval(it.minutes)) },
                         )
                     } else {
                         GemListRowView(
@@ -68,10 +57,10 @@ fun SecurityScene(
                             onToggle = { action, isOn ->
                                 when (action.securityAction()) {
                                     SecurityRowAction.Authentication -> if (!isUpdatingAuthentication) {
-                                        context.requestAuth(AuthRequest.Required) { onAuthRequired(isOn) }
+                                        context.requestAuth(AuthRequest.Required) { onAction(SecurityAction.SetAuthRequired(isOn)) }
                                     }
 
-                                    SecurityRowAction.HideBalance -> onHideBalances()
+                                    SecurityRowAction.HideBalance -> onAction(SecurityAction.HideBalances)
 
                                     null -> Unit
                                 }

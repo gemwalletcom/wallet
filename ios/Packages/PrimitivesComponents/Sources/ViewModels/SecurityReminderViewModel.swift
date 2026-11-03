@@ -6,7 +6,6 @@ import enum Gemstone.GemSecurityReminderItem
 import enum Gemstone.GemWalletSecretKind
 import func Gemstone.securityReminderItems
 import GemstonePrimitives
-import Localization
 import Style
 
 @Observable
@@ -26,10 +25,7 @@ public final class SecurityReminderViewModel {
     }
 
     var message: String {
-        switch kind {
-        case .phrase: Localized.Onboarding.Security.CreateWallet.Intro.title
-        case .privateKey: Localized.PrivateKey.Reminder.intro
-        }
+        kind.reminderIntro
     }
 
     func listItem(for item: GemSecurityReminderItem) -> ListItemModel {
@@ -41,9 +37,6 @@ public final class SecurityReminderViewModel {
     }
 
     var docsUrl: URL {
-        switch kind {
-        case .phrase: AppUrl.docs(.whatIsSecretPhrase)
-        case .privateKey: AppUrl.docs(.whatIsPrivateKey)
-        }
+        kind.reminderDocsUrl
     }
 }

@@ -91,7 +91,7 @@ class ConnectionsViewModelTest {
         }
         val model = ConnectionsViewModel(connectionsQuery, mockk(relaxed = true), pair, mockk(relaxed = true), dispatcher, mockk(relaxed = true)).also { scopes.add(it) }
 
-        model.addPairing("wc:topic@2", onSuccess = {}, onError = {})
+        model.addPairing("wc:topic@2")
         advanceUntilIdle()
 
         verify { pair.pair(uri = "wc:topic@2", onSuccess = any(), onError = any()) }
@@ -136,10 +136,9 @@ class ConnectionsViewModelTest {
             mockk(relaxed = true),
         ).also { scopes.add(it) }
 
-        var finished = false
-        model.disconnect { finished = true }
+        model.disconnect()
 
-        assertTrue(finished)
+        assertTrue(model.isDisconnected.value)
         assertNull(model.details.value)
         coVerify(exactly = 0) { disconnect.disconnect(any(), any(), any()) }
     }
@@ -169,11 +168,10 @@ class ConnectionsViewModelTest {
         ).also { scopes.add(it) }
         model.details.first { it != null }
 
-        var finished = false
-        model.disconnect { finished = true }
+        model.disconnect()
         advanceUntilIdle()
 
-        assertEquals(false, finished)
+        assertEquals(false, model.isDisconnected.value)
         assertEquals("session gone", model.error.value)
 
         model.clearError()

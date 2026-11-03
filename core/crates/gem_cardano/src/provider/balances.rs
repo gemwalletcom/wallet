@@ -58,7 +58,7 @@ mod chain_integration_tests {
     async fn test_cardano_get_balance_assets() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_test_client();
         let assets = client.get_balance_assets(TEST_ADDRESS.to_string()).await?;
-        assert!(assets.is_empty());
+        assert!(assets.is_none());
         Ok(())
     }
 }

@@ -275,7 +275,7 @@ pub struct GemNumberFormat {
 
 #[uniffi::export]
 impl GemNumberFormat {
-    pub fn sanitize(&self, input: String, maximum_fraction_digits: Option<u32>, maximum_integer_digits: Option<u32>) -> String {
+    pub fn sanitize(&self, input: String, maximum_fraction_digits: Option<usize>, maximum_integer_digits: Option<usize>) -> String {
         super::rules::sanitize_number_input(&self.decimal_separator, &input, maximum_fraction_digits, maximum_integer_digits)
     }
 
@@ -299,6 +299,7 @@ pub struct GemAmountSession {
     pub text: String,
     pub input_type: GemAmountInputType,
     pub format: GemNumberFormat,
+    pub prefill: Option<GemAmountMaxEntry>,
 }
 
 #[uniffi::export]
@@ -307,6 +308,7 @@ pub fn new_amount_session(format: GemNumberFormat) -> GemAmountSession {
         text: String::new(),
         input_type: GemAmountInputType::Asset,
         format,
+        prefill: None,
     }
 }
 
@@ -332,10 +334,17 @@ impl GemAmountSession {
         self.filled(input.max_entry(), &asset)
     }
 
-    pub fn on_prefill(&self, input: GemAmountInput, asset: Asset) -> Self {
+    pub fn on_input_changed(&self, input: GemAmountInput, asset: Asset) -> Self {
+        if input.prefill == self.prefill {
+            return self.clone();
+        }
+        let session = Self {
+            prefill: input.prefill.clone(),
+            ..self.clone()
+        };
         match input.prefill {
-            Some(prefill) => self.filled(prefill, &asset),
-            None => self.clone(),
+            Some(prefill) => session.filled(prefill, &asset),
+            None => session,
         }
     }
 
@@ -440,9 +449,7 @@ impl GemPerpetualAmountSession {
 
     pub fn autoclose_session(&self, amount: String) -> GemAutocloseSession {
         let data = self.action.data();
-        autoclose_open_session(data.direction.clone(), data.price, self.size(amount), self.leverage(), data.asset.decimals, data.provider.clone(), self.format.clone())
-            .on_input(TpslType::TakeProfit, self.autoclose.take_profit.value.clone().unwrap_or_default())
-            .on_input(TpslType::StopLoss, self.autoclose.stop_loss.value.clone().unwrap_or_default())
+        autoclose_open_session(data.direction.clone(), data.price, self.size(amount), self.leverage(), data.asset.decimals, data.provider.clone(), self.format.clone()).on_draft(&self.autoclose)
     }
 
     pub fn open_row(&self, amount: String) -> GemAssetItemRow {
@@ -507,7 +514,25 @@ mod tests {
 
         let toggled = max.on_toggle();
         assert_eq!((toggled.text.as_str(), toggled.input_type), ("", GemAmountInputType::Fiat), "switching sides starts over");
-        assert_eq!(session.on_prefill(input, asset).text, "", "a transfer the user types has nothing to prefill");
+        assert_eq!(session.on_input_changed(input, asset).text, "", "a transfer the user types has nothing to prefill");
+    }
+
+    #[test]
+    fn test_the_field_takes_a_new_prefill_and_keeps_the_users_text_while_the_prefill_stays() {
+        let asset = Asset::from_chain(Chain::Bitcoin);
+        let input = |prefill: u64| GemAmountInput {
+            prefill: Some(GemAmountMaxEntry {
+                input_type: GemAmountInputType::Asset,
+                value: GemBigInt::from(prefill),
+            }),
+            ..GemAmountType::Transfer.input(&asset, &GemAssetBalance::mock_with_available(0))
+        };
+        let session = new_amount_session(GemNumberFormat { decimal_separator: ".".to_string() }).on_input_changed(input(500_000_000), asset.clone());
+        assert_eq!(session.text, "5");
+
+        assert_eq!(session.on_input_changed(input(200_000_000), asset.clone()).text, "2", "a claim from another validator");
+        assert_eq!(session.on_text("0.3".to_string()).on_input_changed(input(500_000_000), asset.clone()).text, "0.3", "an edited amount");
+        assert_eq!(session.on_clear().on_input_changed(input(500_000_000), asset).text, "", "a cleared amount");
     }
 
     #[test]
@@ -612,6 +637,16 @@ mod tests {
         assert_eq!(sheet.stop_loss_text, "98");
         assert_eq!(sheet.modify.take_profit.price, Some(105.0));
         assert_eq!(session.autoclose_session("abc".to_string()).estimate.size, 0.0);
+    }
+
+    #[test]
+    fn test_clearing_the_default_take_profit_and_stop_loss_confirms_an_open_without_auto_close() {
+        let sheet = perpetual_session(open(20), ".").autoclose_session("1000".to_string());
+        let cleared = sheet.on_input(TpslType::TakeProfit, String::new()).on_input(TpslType::StopLoss, String::new());
+
+        assert!(cleared.view_state().confirm_enabled);
+        assert!(cleared.on_submit_attempt().view_state().confirm_enabled);
+        assert!(!sheet.view_state().confirm_enabled, "the defaults as they are have nothing to confirm");
     }
 
     #[test]

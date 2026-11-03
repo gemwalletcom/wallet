@@ -4,7 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -17,21 +17,22 @@ import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import uniffi.gemstone.GemStakeAction
 import uniffi.gemstone.GemStakeActionItem
-import uniffi.gemstone.GemStakeActionKind
 import uniffi.gemstone.GemStakeDestination
 
-internal fun LazyListScope.stakeActions(actions: List<GemStakeActionItem>, onOpen: (GemStakeActionKind, GemStakeDestination) -> Unit) {
+internal fun LazyListScope.stakeActions(actions: List<GemStakeActionItem>, onOpen: (GemStakeDestination) -> Unit, onRegionUnavailable: () -> Unit) {
     itemsPositioned(actions) { position, item ->
         val model = item.row.listItemModel(LocalContext.current) ?: ListItemModel(title = "")
-        var showInfo by remember { mutableStateOf(false) }
+        var showInfo by rememberSaveable { mutableStateOf(false) }
         val onClick: (() -> Unit)? = when (val action = item.action) {
             is GemStakeAction.Open -> {
-                { onOpen(item.kind, action.destination) }
+                { onOpen(action.destination) }
             }
 
             GemStakeAction.FrozenBalanceInfo -> {
                 { showInfo = true }
             }
+
+            GemStakeAction.RegionUnavailable -> onRegionUnavailable
 
             GemStakeAction.Disabled -> null
         }

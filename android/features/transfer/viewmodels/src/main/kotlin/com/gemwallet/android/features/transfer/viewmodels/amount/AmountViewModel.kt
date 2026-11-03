@@ -42,6 +42,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -68,7 +69,6 @@ import uniffi.gemstone.GemAmountSession
 import uniffi.gemstone.GemAmountTitle
 import uniffi.gemstone.GemAmountTransfer
 import uniffi.gemstone.GemAmountType
-import uniffi.gemstone.GemStakeServiceInterface
 import uniffi.gemstone.newAmountSession
 import javax.inject.Inject
 
@@ -76,7 +76,6 @@ import javax.inject.Inject
 @HiltViewModel
 class AmountViewModel @Inject constructor(
     private val service: GemAmountServiceInterface,
-    stakeService: GemStakeServiceInterface,
     getCurrentWalletId: GetCurrentWalletId,
     assetQuery: AssetQuery,
     delegationQuery: DelegationQuery,
@@ -90,7 +89,7 @@ class AmountViewModel @Inject constructor(
 
     private val params: AmountParams = savedStateHandle.requireAmountParams()
 
-    private val stakeProvider = (params as? AmountParams.Stake)?.let { AmountStakeProvider(it, validatorsQuery(it.assetId, StakeProviderType.Stake), stakeService, viewModelScope, ioDispatcher) }
+    private val stakeProvider = (params as? AmountParams.Stake)?.let { AmountStakeProvider(it, validatorsQuery(it.assetId, StakeProviderType.Stake), service, viewModelScope, ioDispatcher) }
 
     val perpetualProvider = (params as? AmountParams.Perpetual)?.let { AmountPerpetualProvider(it, service, getCurrentWalletId, assetQuery, viewModelScope) }
 
@@ -139,6 +138,8 @@ class AmountViewModel @Inject constructor(
     val amountInputType: StateFlow<GemAmountInputType> = session.map { it.inputType }
         .stateIn(viewModelScope, SharingStarted.Eagerly, GemAmountInputType.ASSET)
     private val amountError = MutableStateFlow<Throwable?>(null)
+    private val _confirmInput = MutableStateFlow<ConfirmTransferInput?>(null)
+    val confirmInput: StateFlow<ConfirmTransferInput?> = _confirmInput.asStateFlow()
 
     val currency: Currency = service.getCurrency().toPrimitives()
 
@@ -206,8 +207,8 @@ class AmountViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, AmountUIState())
 
     val validatorPicker: StateFlow<ValidatorSelectUIModel?> = stakeProvider?.let { stake ->
-        combine(stake.validatorOptions, stake.selectedValidatorId) { options, selectedId ->
-            options?.let { ValidatorSelectUIModel(selection = it, selectedId = selectedId.orEmpty()) }
+        combine(stake.validatorOptions, extras) { options, extras ->
+            options?.let { ValidatorSelectUIModel(selection = it, selectedId = (extras as? GemAmountExtras.Validator)?.row?.validator?.id.orEmpty()) }
         }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
     } ?: MutableStateFlow(null)
 
@@ -228,12 +229,14 @@ class AmountViewModel @Inject constructor(
             .onEach { amountError.value = it?.error }
             .launchIn(viewModelScope)
 
-        viewModelScope.launch { prefillAmount(input.filterNotNull().first()) }
+        input.filterNotNull()
+            .onEach(::onInputChanged)
+            .launchIn(viewModelScope)
     }
 
-    private fun prefillAmount(input: GemAmountInput) {
+    private fun onInputChanged(input: GemAmountInput) {
         val current = assetInfo.value ?: return
-        showSession(session.value.onPrefill(input, current.asset.toGem()))
+        showSession(session.value.onInputChanged(input, current.asset.toGem()))
     }
 
     fun updateAmount(input: String) {
@@ -256,7 +259,7 @@ class AmountViewModel @Inject constructor(
         amount = next.text
     }
 
-    fun onNext(onConfirm: (ConfirmTransferInput) -> Unit) {
+    fun onNext() {
         viewModelScope.launch {
             val entry = entry.value ?: return@launch
             entry.error?.let {
@@ -268,12 +271,16 @@ class AmountViewModel @Inject constructor(
                 amountError.value = null
                 val current = assetInfo.filterNotNull().first()
                 val request = request.filterNotNull().first()
-                onConfirm(ConfirmTransferInput(service.transferData(current.asset.toGem(), request, value, entry.isMax)))
+                _confirmInput.value = ConfirmTransferInput(service.transferData(current.asset.toGem(), request, value, entry.isMax))
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Throwable) {
                 amountError.value = error
             }
         }
+    }
+
+    fun onConfirmOpened() {
+        _confirmInput.value = null
     }
 }

@@ -7,7 +7,7 @@ import Primitives
 import WebSocketClient
 
 extension GemConnectionService: @retroactive Reconnectable {
-    public func reconnection(attempt: UInt32, connectedFor duration: Duration) -> Reconnection {
+    public func reconnection(attempt: Int, connectedFor duration: Duration) -> Reconnection {
         let next = reconnection(attempt: attempt, connected: duration.timeInterval)
         return Reconnection(nextAttempt: next.nextAttempt, delay: .seconds(next.delay))
     }

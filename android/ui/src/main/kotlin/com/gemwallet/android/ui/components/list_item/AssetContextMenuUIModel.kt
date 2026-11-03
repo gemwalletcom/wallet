@@ -15,7 +15,12 @@ import uniffi.gemstone.addressCopy
 import uniffi.gemstone.assetMenuRows
 
 @Immutable
-class AssetContextMenuItem(@get:StringRes val titleRes: Int, @get:DrawableRes val iconRes: Int, val onClick: () -> Unit)
+class AssetContextMenuItem(@get:StringRes val titleRes: Int, @get:DrawableRes val iconRes: Int, val group: ContextMenuGroup, val onClick: () -> Unit)
+
+enum class ContextMenuGroup {
+    View,
+    Actions,
+}
 
 fun assetContextMenuItems(context: Context, assetId: AssetId, address: String?, isPinned: Boolean, isBalanceEnabled: Boolean, actions: AssetContextActions): List<AssetContextMenuItem> {
     if (actions.isEmpty) return emptyList()
@@ -40,6 +45,11 @@ fun assetContextMenuItems(context: Context, assetId: AssetId, address: String?, 
                 { clipboard.setCopy(context, addressCopy(assetId.chain.string, action.address)) }
             }
         }
-        onClick?.let { AssetContextMenuItem(titleRes = row.action.stringRes(), iconRes = row.icon.iconRes(), onClick = it) }
+        onClick?.let { AssetContextMenuItem(titleRes = row.action.stringRes(), iconRes = row.icon.iconRes(), group = row.action.group(), onClick = it) }
     }
+}
+
+private fun GemAssetMenuAction.group(): ContextMenuGroup = when (this) {
+    is GemAssetMenuAction.CopyAddress -> ContextMenuGroup.View
+    is GemAssetMenuAction.Pin, GemAssetMenuAction.Hide, GemAssetMenuAction.AddToWallet -> ContextMenuGroup.Actions
 }

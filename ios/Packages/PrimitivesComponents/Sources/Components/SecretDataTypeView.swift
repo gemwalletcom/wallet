@@ -1,21 +1,22 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemWalletSecret
 import Primitives
 import Style
 import SwiftUI
 
 struct SecretDataTypeView: View {
-    private let type: SecretPhraseDataType
+    private let secret: GemWalletSecret
 
-    init(type: SecretPhraseDataType) {
-        self.type = type
+    init(secret: GemWalletSecret) {
+        self.secret = secret
     }
 
     var body: some View {
         CaptureProtectedView {
-            switch type {
-            case let .words(rows):
-                SecretPhraseGridView(rows: rows)
+            switch secret {
+            case let .words(words):
+                SecretPhraseGridView(words: words)
             case let .privateKey(key):
                 Text(key.preventingHyphenation)
                     .multilineTextAlignment(.center)

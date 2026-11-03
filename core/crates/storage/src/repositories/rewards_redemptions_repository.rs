@@ -56,15 +56,9 @@ fn insert_redemption(client: &mut DatabaseClient, username: &str, points: i32, r
     }
 
     client.connection.transaction(|conn| {
-        let rows_updated = diesel::update(
-            rewards_redemption_options::table.filter(
-                rewards_redemption_options::id
-                    .eq(&redemption.option_id)
-                    .and(rewards_redemption_options::remaining.is_null().or(rewards_redemption_options::remaining.gt(0))),
-            ),
-        )
-        .set(rewards_redemption_options::remaining.eq(rewards_redemption_options::remaining - 1))
-        .execute(conn)?;
+        let rows_updated = diesel::update(rewards_redemption_options::table.filter(rewards_redemption_options::id.eq(&redemption.option_id).and(rewards_redemption_options::remaining.gt(0))))
+            .set(rewards_redemption_options::remaining.eq(rewards_redemption_options::remaining - 1))
+            .execute(conn)?;
 
         if rows_updated == 0 {
             return Err(DieselError::NotFound);
@@ -99,6 +93,7 @@ fn redemption_option(client: &mut DatabaseClient, id: &str) -> Result<Redemption
 impl RewardsRedemptionsRepository for DatabaseClient {
     fn add_redemption(&mut self, username: &str, option_id: &str, device_id: i32, wallet_id: i32) -> Result<RewardRedemption, DatabaseError> {
         let redemption_option = redemption_option(self, option_id).or_not_found(option_id.to_string())?;
+        let option = redemption_option.as_primitive()?;
         let rewards = get_rewards_by_filter(self, vec![RewardsFilter::Username(username.to_string())])?
             .into_iter()
             .next()
@@ -108,7 +103,7 @@ impl RewardsRedemptionsRepository for DatabaseClient {
             return Err(DatabaseError::Error("Not enough points".into()));
         }
 
-        if redemption_option.option.remaining == Some(0) {
+        if !option.is_available() {
             return Err(DatabaseError::Error("Redemption option is no longer available".into()));
         }
 
@@ -125,7 +120,6 @@ impl RewardsRedemptionsRepository for DatabaseClient {
             },
         )?;
 
-        let option = redemption_option.as_primitive()?;
         let redemption_row = redemption_row(self, redemption_id).or_not_found_internal(redemption_id.to_string())?;
         Ok(redemption_row.as_primitive(option))
     }

@@ -75,6 +75,23 @@ pub struct QuoteResponse {
     pub quote: Quote,
 }
 
+#[derive(Debug, Deserialize)]
+pub(crate) struct DepositResponse {
+    quote: DepositQuote,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct DepositQuote {
+    deposit_address: Option<String>,
+}
+
+impl DepositResponse {
+    pub(crate) fn deposit_id(&self) -> Option<String> {
+        self.quote.deposit_address.clone().filter(|address| !address.is_empty())
+    }
+}
+
 #[derive(Debug, Clone, Deserialize)]
 pub struct QuoteResponseError {
     pub message: String,
@@ -129,4 +146,16 @@ pub struct ExplorerTransaction {
 pub struct ExplorerTransactionsQuery {
     pub search: String,
     pub number_of_transactions: usize,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_deposit_id() {
+        let response: DepositResponse = serde_json::from_str(include_str!("testdata/quote_hypercore_to_ethereum_usdc.json")).unwrap();
+
+        assert_eq!(response.deposit_id().as_deref(), Some("0x1085c5f70f7f7591d97da281a64688385455c2bd"));
+    }
 }

@@ -19,9 +19,9 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **App models to Core records:** VM269 to VM287 (second round) area by area as grouped in section 5, then VM294 (scenes) in the same way.
+1. **App models to Core records:** VM269 to VM287 (second round) area by area as grouped in section 5.
 
-Waiting on the owner: BD29 (server), VM79, VM296 (review first), VM181, VM183, D175 (on hold), X171, CLN455, and everything under [Needs review](#needs-review). Waiting on a date or a release: X168, X169, X170, X163, X172, X173, X174, X176, X526.
+Waiting on the owner: VM79, VM296 (review first), VM181, VM183, D175 (on hold), X171, CLN455, and everything under [Needs review](#needs-review). Waiting on a date or a release: X168, X169, X170, X163, X172, X173, X174, X176, X526.
 
 ## Screen coverage and existing infrastructure
 
@@ -30,8 +30,8 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Screens / entry points | Existing owner or infrastructure to extend | Open work |
 |---|---|---|
 | App start, foreground, wallet switch, deep links and pushes | `GemAppStartService`, `GemWalletSessionService`, `GemNavigationService`, `GemAppUpdateService`, native lifecycle hosts | VM79 |
-| Create/import wallet, terms, phrase generation and verification | `GemWalletService`, `GemVerifyPhraseSession`, `phrase_suggestions`, keystore and native auth ports | VM183, VM294 |
-| Wallet list/detail, rename, avatar, secret export | Wallet rows/details, existing export flow and NFT avatar selection | VM294 |
+| Create/import wallet, terms, phrase generation and verification | `GemWalletService`, `GemVerifyPhraseSession`, `phrase_suggestions`, keystore and native auth ports | VM183 |
+| Wallet list/detail, rename, avatar, secret export | Wallet rows/details, existing export flow and NFT avatar selection | — |
 | Wallet home, header, network assets, banners | `GemWalletHomeService`, `GemBalanceService`, `GemBannerService`, shared asset rows and banner context | VM269 |
 | Asset search/select, add token, recents | `GemAssetSelectionService`, `GemSelectAssetFlow`, `GemAddAssetService`, recent activity | VM286 |
 | Asset details and asset actions | `GemAssetDetailsService`, shared rows, copy, info and load state | — |
@@ -133,13 +133,6 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Android:** `AmountParams` (and `toAmountParams`) is rebuilt into a request in `AmountViewModel`.
   - **Expected:** routes carry `GemAmountRequest` (on `GemAmountSession`).
 
-### Scenes
-
-- **VM294** **S** **Secret phrase rows are filled with words in the apps.**
-  - **iOS:** `SecretPhraseRow` and `GemSecretPhraseRow+PrimitivesComponents` map Core's index rows to words.
-  - **Android:** `PhraseWord.phraseRows` does the same.
-  - **Expected:** Core returns the rows with their words; both mappings go.
-
 ### Twins and dead code
 
 - **VM181** **S** **Keystore secrets are exported only for the flows that need them.** `GemKeystore.create_store`, `export_private_key`, `export_recovery_phrase` and `keystore_id` are exported for app tests alone (iOS `LocalKeystore+Export.swift`, `LocalKeystore+Keystore.swift`; Android `MigrateV3KeystoreFilesTest`, `GemKeystoreBenchmarkTest`, `GemKeystoreConcurrencyTest`), while the apps import and export through the wallet service. Move those tests onto the production path, then make the four methods a plain `impl`, so no secret-exporting symbol exists that no flow uses ([security](../skills/security.md)). `check-ffi-surface.py` allows the four until then. Needs a decision: no production flow reaches these four, but `GemWalletService.export_secret` returns the same secrets in the same process, so dropping them narrows the binding rather than closing a path, and it costs rewriting the iOS keystore test kit (`LocalKeystore+Keystore.swift`, which most wallet tests use to create a wallet) and the keystore integration, benchmark and v3-migration tests on both apps onto `import_wallet` and `export_secret`. Drop them, or keep them for those tests?
@@ -163,9 +156,16 @@ Taps on rows that already exist, not new row types.
 
 Differences between the apps, or between an app and the server, each with its decision.
 
-### Same rule, different answers
-
-- **BD29** **S** **Redemption options with unlimited stock are never listed.** `summary.rs:18` (`remaining.unwrap_or_default() > 0` drops `None`) vs storage `rewards_redemptions_repository.rs:48,96` and Core `rules.rs:146` (`None` = unlimited). Needs a decision: `test_available_redemption_options` pins a `None` stock as hidden, so confirm whether options stored without a stock are meant to be offered before changing the server.
+- **BD531** **S** **Android has no haptic on copy or on warnings.**
+  - **iOS:** a success haptic on every copy ([`View+CopyToast.swift`](../ios/Packages/PrimitivesComponents/Sources/Extensions/View+CopyToast.swift)); a warning haptic when deleting a wallet or a node, on a high Price Impact and on a position's Modify options.
+  - **Android:** none of them.
+  - **Expected:** as iOS, see [PRODUCT.md § Haptics](PRODUCT.md#haptics). iOS plays the warning from its one shared alert ([`View+Alert.swift`](../ios/Packages/PrimitivesComponents/Sources/Extensions/View+Alert.swift), `sensoryFeedback`), while Android builds each of these dialogs on its own `AlertDialog`; the haptic goes in one shared place on Android too, not in each screen.
+- **D532** **S** **Confirm plays Success when it sends or signs and Error when it fails**, on both apps ([`ConfirmTransferSceneViewModel.swift`](../ios/Features/Transfer/Sources/ViewModels/ConfirmTransferSceneViewModel.swift) `confirm()`, [`ConfirmTransferViewModel.kt`](../android/features/transfer/viewmodels/src/main/kotlin/com/gemwallet/android/features/transfer/viewmodels/confirm/ConfirmTransferViewModel.kt)). Send, swap, stake and perpetuals all finish there, so one change covers them. See [PRODUCT.md § Haptics](PRODUCT.md#haptics).
+- **D533** **S** **Import plays Error when the Secret Phrase, private key or address is invalid**, with the error it already shows and no shake, on both apps ([`ImportWalletSceneViewModel.swift`](../ios/Features/Onboarding/Sources/ViewModels/ImportWalletSceneViewModel.swift), [`ImportWalletViewModel.kt`](../android/features/onboarding/viewmodels/src/main/kotlin/com/gemwallet/android/features/onboarding/viewmodels/import_wallet/ImportWalletViewModel.kt)).
+- **D534** **S** **Every Paste that finds nothing plays Error.**
+  - **iOS:** only Paste on Import Wallet does ([`ImportWalletSceneViewModel.swift`](../ios/Features/Onboarding/Sources/ViewModels/ImportWalletSceneViewModel.swift)); the recipient address, contact, Add node, Add Token and WalletConnect Paste do nothing.
+  - **Android:** every Paste does nothing ([`ImportInput.kt`](../android/features/onboarding/presents/src/main/kotlin/com/gemwallet/android/features/onboarding/presents/import_wallet/components/ImportInput.kt), [`ClipboardExt.kt`](../android/ui/src/main/kotlin/com/gemwallet/android/ui/components/clipboard/ClipboardExt.kt)).
+  - **Expected:** Error on every Paste, played from one shared paste path per app, not from each screen.
 
 ## 10. Module layout and names
 
@@ -184,7 +184,7 @@ Findings from reviewing commits that nobody has accepted yet, and not all of the
 - **AUD499** **S** **Confirm re-sends a transaction that already went out.** Since e31e2bd7ea a failed send returns to Ready and Confirm runs the same load again ([`screen.rs`](../core/gemstone/src/services/confirm/screen.rs)). After a partial multi-transaction send (approval broadcast, swap rejected) the next tap re-signs and re-broadcasts the approval, which the node rejects, until the 60 s refresh reloads; before, a tap reloaded first. Wallet-critical.
 - **AUD501** **S** **THORChain vault addresses fail on one bad Zcash TEX address.** `get_vault_addresses` ([`swapper.rs`](../core/crates/swapper/src/swapper.rs)) fails as a whole when one TEX address doesn't parse (d1c16e81aa). Wallet-critical.
 - **BD508** **S** **Perpetual chart markers differ in colour** (477993aef7).
-  - **iOS:** [`CandlestickCanvas.swift`](../ios/Features/Perpetuals/Sources/Views/CandlestickCanvas.swift) draws the ring and arrow in `Colors.white`.
+  - **iOS:** [`CandlestickCanvas.swift`](../ios/Packages/PrimitivesComponents/Sources/Views/CandlestickCanvas.swift) draws the ring and arrow in `Colors.white`.
   - **Android:** [`GemCandlestickChart.kt`](../android/ui/src/main/kotlin/com/gemwallet/android/ui/components/chart/GemCandlestickChart.kt) draws the ring in `colorScheme.surface`.
   - **Expected:** needs a decision (design).
 - **CLN510** **S** **Orca and Raydium each build their swap instruction.** `whirlpool_instruction` ([`orca/swap.rs`](../core/crates/swapper/src/orca/swap.rs)) and `raydium_instruction` ([`raydium_clmm/swap.rs`](../core/crates/swapper/src/raydium_clmm/swap.rs)) are the same body over a different program id (68d9dfe937, f22d437b75). Wallet-critical.

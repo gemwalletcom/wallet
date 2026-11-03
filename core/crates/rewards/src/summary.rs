@@ -15,7 +15,7 @@ pub fn offers_redemptions(status: RewardStatus) -> bool {
 }
 
 pub fn available_redemption_options(options: Vec<RewardRedemptionOption>) -> Vec<RewardRedemptionOption> {
-    options.into_iter().filter(|option| option.remaining.unwrap_or_default() > 0).collect()
+    options.into_iter().filter(RewardRedemptionOption::is_available).collect()
 }
 
 #[cfg(test)]

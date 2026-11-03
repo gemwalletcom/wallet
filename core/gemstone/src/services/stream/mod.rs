@@ -147,8 +147,8 @@ impl GemStreamService {
         match event {
             StreamEvent::Prices(payload) => {
                 let handled = GemStreamEvent::Prices {
-                    prices: payload.prices.len() as u32,
-                    rates: payload.rates.len() as u32,
+                    prices: payload.prices.len(),
+                    rates: payload.rates.len(),
                 };
                 self.price.update_rates_and_prices(payload.rates, payload.prices).await?;
                 Ok(handled)
@@ -175,7 +175,7 @@ impl GemStreamService {
             StreamEvent::Support(SupportStreamEvent::Message(message)) => {
                 let handled = GemStreamEvent::SupportMessage {
                     message_id: message.id.clone(),
-                    images: message.images.len() as u32,
+                    images: message.images.len(),
                 };
                 let from_agent = matches!(message.sender, SupportMessageSender::Agent(_));
                 self.support.save_messages(vec![message]).await?;

@@ -3,6 +3,9 @@
   <string name="common_cancel">Cancelar</string>
   <string name="common_hidden">Ocultos</string>
   <string name="common_done">Hecho</string>
+  <string name="common_add">Añadir</string>
+  <string name="common_close">Cerrar</string>
+  <string name="common_back">Atrás</string>
   <string name="common_maximum_value">El valor máximo es %1$s</string>
   <string name="common_minimum_value">El valor mínimo es %1$s</string>
   <string name="common_secret_phrase">Frase secreta</string>
@@ -60,7 +63,6 @@
   <string name="common_suspicious_address_description">Esta dirección está asociada con actividades sospechosas o dañinas.</string>
   <string name="common_refresh">Refrescar</string>
   <string name="common_grant_permission">Conceder permiso</string>
-  <string name="common_required_field">%1$s es obligatorio</string>
   <string name="welcome_title">Bienvenido a la familia Gem</string>
   <string name="wallet_create_new_wallet">Crear una nueva billetera</string>
   <string name="wallet_import_existing_wallet">Importar una billetera existente</string>
@@ -144,7 +146,6 @@
   <string name="transfer_freeze_title">Congelar</string>
   <string name="transfer_unfreeze_title">Descongelar</string>
   <string name="transfer_review_request">Revisar solicitud</string>
-  <string name="transfer_amount">Cantidad</string>
   <string name="settings_terms_of_services">Términos de servicios</string>
   <string name="settings_privacy_policy">Política de privacidad</string>
   <string name="settings_title">Ajustes</string>
@@ -225,7 +226,6 @@
   <string name="errors_swap_minimum_amount">La cantidad mínima de operación es %1$s. Introduce una cantidad mayor.</string>
   <string name="errors_perpetual_trigger_price_lower">El precio de activación debe ser inferior al precio de mercado</string>
   <string name="errors_perpetual_trigger_price_higher">El precio de activación debe ser superior al precio de mercado</string>
-  <string name="errors_unknown_try_again">Se produjo un error desconocido. Por favor inténtalo de nuevo.</string>
   <string name="errors_network_error">Error de red: %1$s</string>
   <string name="errors_network_offline">La conexión a Internet parece estar fuera de línea.</string>
   <string name="errors_no_internet_connection">Sin conexión a internet</string>
@@ -285,7 +285,6 @@
   <string name="asset_get_asset">Obtener %1$s</string>
   <string name="asset_add_to_wallet">Añadir a la billetera</string>
   <string name="asset_added_to_wallet">Añadido a la billetera</string>
-  <string name="asset_hidden_from_wallet">Oculto de la billetera</string>
   <string name="asset_resources">Recursos</string>
   <string name="asset_verification_verified">Verificado</string>
   <string name="asset_all_time_high">Máximo histórico</string>
@@ -302,6 +301,8 @@
   <string name="charts_price_high">Alto</string>
   <string name="charts_price_low">Bajo</string>
   <string name="charts_price_change">Cambio</string>
+  <string name="charts_candlestick">Gráfico de velas</string>
+  <string name="charts_line">Gráfico de líneas</string>
   <string name="date_today">Hoy</string>
   <string name="date_yesterday">Ayer</string>
   <string name="date_day_time">%1$s, %2$s</string>

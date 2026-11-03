@@ -41,6 +41,10 @@ impl EthereumAddress {
 }
 
 pub fn validate_address(address: &str) -> bool {
+    let payload = address.strip_prefix("0x").unwrap_or(address);
+    if payload.bytes().any(|byte| byte.is_ascii_lowercase()) && payload.bytes().any(|byte| byte.is_ascii_uppercase()) {
+        return Address::parse_checksummed(format!("0x{payload}"), None).is_ok();
+    }
     EthereumAddress::is_valid(address)
 }
 
@@ -71,6 +75,22 @@ mod tests {
         assert!(matches!(ethereum_address_checksum(&uppercase_prefix).unwrap_err(), AddressError::InvalidChecksum));
         assert!(EthereumAddress::try_parse(&uppercase_prefix).is_none());
         assert!(!validate_address(&uppercase_prefix));
+    }
+
+    #[test]
+    fn test_ethereum_address_checksum_validation() {
+        for address in [VALID_ADDRESS.to_string(), VALID_ADDRESS.to_lowercase(), format!("0x{}", VALID_ADDRESS[2..].to_uppercase())] {
+            for input in [&address, address.trim_start_matches("0x")] {
+                assert!(validate_address(input), "{input}");
+                assert_eq!(ethereum_address_checksum(input).unwrap(), VALID_ADDRESS);
+            }
+        }
+
+        for address in ["0x5615E8AB93b9d695b6d4d6545f7792aA59e1068a", "0x5615e8AB93b9d695b6d4d6545f7792aA59e1069a"] {
+            for input in [address, address.trim_start_matches("0x")] {
+                assert!(!validate_address(input), "{input}");
+            }
+        }
     }
 
     #[test]

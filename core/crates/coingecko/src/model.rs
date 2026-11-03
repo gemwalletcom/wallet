@@ -130,6 +130,26 @@ pub struct MarketChartQuery {
     pub precision: &'static str,
 }
 
+/// Close time in milliseconds, open, high, low, close.
+pub type Ohlc = (i64, f64, f64, f64, f64);
+
+#[derive(Debug, Serialize, Clone)]
+pub struct OhlcQuery {
+    pub vs_currency: &'static str,
+    pub days: String,
+    pub precision: &'static str,
+}
+
+impl OhlcQuery {
+    pub fn usd(days: &str) -> Self {
+        Self {
+            vs_currency: "usd",
+            days: days.to_string(),
+            precision: "full",
+        }
+    }
+}
+
 impl MarketChartQuery {
     pub fn usd(days: &str, interval: &str) -> Self {
         Self {

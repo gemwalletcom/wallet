@@ -9,7 +9,7 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,7 +44,7 @@ private fun VerificationStatusItem(status: VerificationStatus, listPosition: Lis
     val labelRes = status.labelRes() ?: return
     val badgeIconRes = status.badgeIconRes() ?: return
     val infoSheetEntity = GemInfoTopic.AssetStatus(status.toGem()).infoSheet()
-    var showInfoSheet by remember { mutableStateOf(false) }
+    var showInfoSheet by rememberSaveable { mutableStateOf(false) }
 
     ListItem(
         model = ListItemModel(

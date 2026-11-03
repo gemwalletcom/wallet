@@ -9,7 +9,6 @@ pub fn alchemy_url(chain: Chain, base_url: &str, api: AlchemyApi, key: &str) -> 
     let network = match chain {
         Chain::Ethereum => "eth-mainnet",
         Chain::SmartChain => "bnb-mainnet",
-        Chain::Solana => "solana-mainnet",
         Chain::Polygon => "polygon-mainnet",
         Chain::Plasma => "plasma-mainnet",
         Chain::Arbitrum => "arb-mainnet",
@@ -54,8 +53,8 @@ mod tests {
 
     #[test]
     fn test_alchemy_url() {
-        assert_eq!(alchemy_url(Chain::Solana, "https://alchemy.example/{chain}", AlchemyApi::JsonRpc, "key"), "https://alchemy.example/solana/v2/key");
-        assert_eq!(alchemy_url(Chain::Solana, "https://{network}.g.alchemy.com", AlchemyApi::JsonRpc, "key"), "https://solana-mainnet.g.alchemy.com/v2/key");
+        assert_eq!(alchemy_url(Chain::Ethereum, "https://alchemy.example/{chain}", AlchemyApi::JsonRpc, "key"), "https://alchemy.example/ethereum/v2/key");
+        assert_eq!(alchemy_url(Chain::Ethereum, "https://{network}.g.alchemy.com", AlchemyApi::JsonRpc, "key"), "https://eth-mainnet.g.alchemy.com/v2/key");
         assert_eq!(alchemy_url(Chain::SmartChain, "https://{network}.g.alchemy.com", AlchemyApi::Nft, "key"), "https://bnb-mainnet.g.alchemy.com/nft/v3/key");
     }
 }

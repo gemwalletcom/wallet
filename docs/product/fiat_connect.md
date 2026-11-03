@@ -30,6 +30,7 @@ flowchart LR
 | The user comes back to the screen after a refresh was due | quotes are fetched again at once, unless the last request failed | a quote kept while the app was away could expire before Continue |
 | A shown quote is up to `15 minutes` old, even after a network change | it stays usable on the device that asked for it | Buy never fails just because the refresh came late |
 | The user taps Continue | the asset is already switched on in the wallet | the coins are visible on return |
+| A provider completes a purchase in another fiat currency | Activity shows the provider-reported fiat amount and currency | the wallet's display currency does not change the purchase |
 
 ## Platform differences
 

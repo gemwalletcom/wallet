@@ -80,12 +80,14 @@ extension StakeScene {
         switch item.action {
         case .frozenBalanceInfo:
             NavigationCustomLink(with: GemListRowView(row: item.row, onInfo: { _ in model.onStakeFrozenInfo() }), action: model.onStakeFrozenInfo)
+        case .regionUnavailable:
+            NavigationCustomLink(with: GemListRowView(row: item.row), action: model.onRegionUnavailable)
         case .disabled:
             NavigationCustomLink(with: GemListRowView(row: item.row)) {}
                 .enabled(false)
         case let .open(destination):
             NavigationCustomLink(with: GemListRowView(row: item.row)) {
-                model.onSelect(kind: item.kind, destination: destination)
+                model.onSelect(destination: destination)
             }
         }
     }

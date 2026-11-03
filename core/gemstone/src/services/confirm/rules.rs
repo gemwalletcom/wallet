@@ -17,11 +17,12 @@ use crate::services::transfer::model::{GemConfirmDestination, GemConfirmRow, Gem
 use crate::services::wallet::model::wallet_row;
 use primitives::{AddressName, AssetType, BlockExplorerLink, FeeRate, PaymentVerification, PerpetualType};
 use primitives::{
-    Asset, AssetId, Chain, ChainType, EVMChain, FeePriority, FeeUnitType, GasPriceType, ScanTransaction, SimulationResult, SimulationWarningType, Transaction, TransactionType, TransferDataOutputAction, TransferDataOutputType, Wallet,
+    Asset, AssetId, Chain, ChainAsset, ChainType, EVMChain, FeePriority, FeeUnitType, GasPriceType, ScanTransaction, SimulationResult, SimulationWarningType, Transaction, TransactionType, TransferDataOutputAction, TransferDataOutputType,
+    Wallet,
 };
 use primitives::{OptionStringExt, currency::Currency};
 
-use super::error::{GemConfirmError, GemConfirmErrorDisplay, GemConfirmErrorInfo, GemConfirmErrorSheet, GemConfirmRequirement};
+use super::error::{GemConfirmError, GemConfirmErrorInfo, GemConfirmErrorSheet, balance_required_description, minimum_account_balance_description, network_fee_description, swap_minimum_description};
 use super::model::{
     ConfirmState, GemAcquireAsset, GemAcquireAssetFlow, GemAcquireOption, GemApprovalValue, GemConfirmData, GemConfirmFee, GemConfirmFeeLoad, GemConfirmFeeSelection, GemConfirmInput, GemConfirmLoad, GemConfirmMetadata,
     GemConfirmSimulationState, GemFeeAsset, GemFeeRateKind, GemFeeRateRow, GemFeeRateRows, GemSubmitMessage, GemTransferAmountResult, SendInput,
@@ -36,10 +37,12 @@ use crate::models::transaction::{GemSignedTransaction, GemSignerInput, GemTransa
 use crate::services::balance::GemAssetBalance;
 use crate::services::balance::GemBalanceRequirement;
 use crate::services::collections::unique;
+use crate::services::info_sheet::GemInfoDescription;
 use crate::services::swap::model::GemSwapPairSelection;
 use crate::services::transactions::GemAmountSign;
 use crate::services::transfer::GemPendingTransactionInput;
 use crate::services::transfer::rules::TransferInput;
+use crate::signer::GemSignerError;
 use crate::transfer_amount::GemTransferAmountError;
 use num_bigint::{BigInt, Sign};
 use primitives::AssetPrice;
@@ -212,13 +215,12 @@ impl GemConfirmData {
 
     pub(super) fn preload_amount(&self, metadata: &GemConfirmMetadata, fee_asset: &Asset) -> GemTransferAmountResult {
         let transfer = &self.input.transfer;
-        let available_value = transfer.available_value(&metadata.asset_balance);
         let input = TransferAmountInput {
             input_type: transfer.input_type.clone(),
             value: transfer.value.clone(),
-            available_value,
+            available_value: self.spendable_value(transfer.available_value(&metadata.asset_balance)),
             fee_asset: fee_asset.id.clone(),
-            fee_asset_balance: transfer.fee_available_value(&metadata.fee_asset_balance),
+            fee_asset_balance: self.spendable_value(transfer.fee_available_value(&metadata.fee_asset_balance)),
             fee: self.fee.fee.clone(),
             is_max_amount: transfer.use_max_amount,
             destination_account_exists: self.metadata.get_is_destination_address_exist().ok(),
@@ -228,6 +230,13 @@ impl GemConfirmData {
             Err(error) => GemTransferAmountResult::Error {
                 error: amount_error(error, transfer.input_type.get_asset(), fee_asset),
             },
+        }
+    }
+
+    fn spendable_value(&self, balance: GemBigInt) -> GemBigInt {
+        match self.metadata.get_bitcoin_family_utxo_value() {
+            Some(value) => balance.min(GemBigInt::from(value)),
+            None => balance,
         }
     }
 }
@@ -356,55 +365,56 @@ fn acquire_options(flow: GemAcquireAssetFlow) -> Vec<GemAcquireOption> {
     }
 }
 
-pub fn error_info(display: &GemConfirmErrorDisplay, prices: &[AssetPrice], currency: Currency, input_asset_id: &AssetId, fee_asset_id: &AssetId) -> Option<GemConfirmErrorInfo> {
-    let info = |sheet: GemConfirmErrorSheet, asset: Option<&Asset>, title: String, requirement: Option<&GemConfirmRequirement>, required: Option<&GemFormattedNumber>| {
-        let required = required.or_else(|| requirement.map(|requirement| &requirement.required)).cloned();
-        let price = asset.and_then(|asset| prices.iter().find(|price| price.asset_id == asset.id)).map(|price| price.price);
-        let buy_amount = matches!(sheet, GemConfirmErrorSheet::NetworkFeeRequired | GemConfirmErrorSheet::NetworkFeeMissing).then(|| get_fiat_config().insufficient_network_fee_buy_amount);
-        GemConfirmErrorInfo {
-            sheet,
-            asset: asset.cloned(),
-            title,
-            required_fiat: required.as_ref().zip(price).map(|(required, price)| GemFormattedNumber::currency(required.value * price, currency, GemCurrencyStyle::Currency)),
-            required,
-            available: requirement.map(|requirement| requirement.available.clone()),
-            shortfall: requirement.map(|requirement| requirement.shortfall.clone()),
-            acquire: asset.filter(|asset| asset.asset_type != AssetType::PERPETUAL).map(|asset| GemAcquireAsset {
-                flow: acquire_asset_flow(asset.chain()),
-                options: acquire_options(acquire_asset_flow(asset.chain())),
-                buy_amount,
-                swap_pair: acquire_swap_pair(input_asset_id, fee_asset_id, asset.id.clone()),
-            }),
-        }
+pub fn error_info(error: &GemConfirmError, prices: &[AssetPrice], currency: Currency, input_asset_id: &AssetId, fee_asset_id: &AssetId) -> Option<GemConfirmErrorInfo> {
+    let sheet = error.sheet()?;
+    let required_fiat = |asset: &Asset| {
+        let price = prices.iter().find(|price| price.asset_id == asset.id).map(|price| price.price);
+        move |required: &GemFormattedNumber| price.map(|price| GemFormattedNumber::currency(required.value * price, currency.clone(), GemCurrencyStyle::Currency))
     };
-    match display {
-        GemConfirmErrorDisplay::BalanceRequired { asset, requirement } => Some(info(GemConfirmErrorSheet::BalanceRequired, Some(asset), asset.symbol.clone(), Some(requirement), None)),
-        GemConfirmErrorDisplay::NetworkFeeRequired { asset, title, requirement } => Some(info(GemConfirmErrorSheet::NetworkFeeRequired, Some(asset), title.clone(), Some(requirement), None)),
-        GemConfirmErrorDisplay::NetworkFeeMissing { asset, title } => Some(info(GemConfirmErrorSheet::NetworkFeeMissing, Some(asset), title.clone(), None, None)),
-        GemConfirmErrorDisplay::MinimumAccountBalance { asset, required } => Some(info(GemConfirmErrorSheet::MinimumAccountBalance, Some(asset), asset.symbol.clone(), None, Some(required))),
-        GemConfirmErrorDisplay::SwapMinimum { asset, provider, provider_name, requirement } => Some(info(
-            GemConfirmErrorSheet::SwapMinimum {
-                provider: *provider,
-                provider_name: provider_name.clone(),
-            },
-            Some(asset),
-            asset.symbol.clone(),
-            Some(requirement),
+    let (asset, title, description) = match error {
+        GemConfirmError::InsufficientBalance { asset, requirement } => (Some(asset), asset.symbol.clone(), balance_required_description(asset, requirement)),
+        GemConfirmError::InsufficientNetworkFee { asset, requirement } => (Some(asset), asset.display_title(), network_fee_description(asset, requirement.as_ref(), required_fiat(asset))),
+        GemConfirmError::MinimumAccountBalanceTooLow { asset, requirement } => (Some(asset), asset.symbol.clone(), minimum_account_balance_description(asset, requirement)),
+        GemConfirmError::BelowSwapMinimum { asset, provider_name, requirement, .. } => (Some(asset), asset.symbol.clone(), swap_minimum_description(asset, provider_name, requirement, required_fiat(asset))),
+        GemConfirmError::Sign {
+            error: GemSignerError::DustThreshold, chain, ..
+        } => (
             None,
-        )),
-        GemConfirmErrorDisplay::DustThreshold { chain } => Some(info(GemConfirmErrorSheet::DustThreshold { chain: *chain }, None, chain.as_ref().to_string(), None, None)),
-        GemConfirmErrorDisplay::Malicious => Some(info(GemConfirmErrorSheet::Malicious, None, String::new(), None, None)),
-        GemConfirmErrorDisplay::MemoRequired { symbol } => Some(info(GemConfirmErrorSheet::MemoRequired { symbol: symbol.clone() }, None, symbol.clone(), None, None)),
-        GemConfirmErrorDisplay::Offline
-        | GemConfirmErrorDisplay::FeeRatesMissing
-        | GemConfirmErrorDisplay::Cancelled
-        | GemConfirmErrorDisplay::AccountMissing
-        | GemConfirmErrorDisplay::Unknown
-        | GemConfirmErrorDisplay::InsufficientFunds
-        | GemConfirmErrorDisplay::DestinationAccountActivation { .. }
-        | GemConfirmErrorDisplay::Payment { .. }
-        | GemConfirmErrorDisplay::Message { .. } => None,
-    }
+            chain.as_ref().to_string(),
+            GemInfoDescription::DustThreshold {
+                network: ChainAsset::from_chain(*chain).network_name,
+            },
+        ),
+        GemConfirmError::ScanMalicious => (None, String::new(), GemInfoDescription::MaliciousTransaction),
+        GemConfirmError::ScanMemoRequired { symbol } => (None, symbol.clone(), GemInfoDescription::MemoRequired { symbol: symbol.clone() }),
+        GemConfirmError::Offline
+        | GemConfirmError::FeeRatesMissing
+        | GemConfirmError::Cancelled
+        | GemConfirmError::AccountMissing { .. }
+        | GemConfirmError::SenderMismatch { .. }
+        | GemConfirmError::DestinationAccountActivation { .. }
+        | GemConfirmError::Sign { .. }
+        | GemConfirmError::Payment { .. }
+        | GemConfirmError::BalanceMissing { .. }
+        | GemConfirmError::Network { .. }
+        | GemConfirmError::Load { .. }
+        | GemConfirmError::Broadcast { .. }
+        | GemConfirmError::Record { .. }
+        | GemConfirmError::ApprovalInvalid { .. } => return None,
+    };
+    let buy_amount = matches!(sheet, GemConfirmErrorSheet::NetworkFeeRequired | GemConfirmErrorSheet::NetworkFeeMissing).then(|| get_fiat_config().insufficient_network_fee_buy_amount);
+    Some(GemConfirmErrorInfo {
+        sheet,
+        asset: asset.cloned(),
+        title,
+        description,
+        acquire: asset.filter(|asset| asset.asset_type != AssetType::PERPETUAL).map(|asset| GemAcquireAsset {
+            flow: acquire_asset_flow(asset.chain()),
+            options: acquire_options(acquire_asset_flow(asset.chain())),
+            buy_amount,
+            swap_pair: acquire_swap_pair(input_asset_id, fee_asset_id, asset.id.clone()),
+        }),
+    })
 }
 
 fn acquire_asset_flow(chain: Chain) -> GemAcquireAssetFlow {
@@ -463,8 +473,8 @@ impl SendInput {
                         network_fee: self.network_fee.clone(),
                         metadata: self.confirm.metadata.clone(),
                         simulation: self.simulation.clone(),
-                        transaction_index: index as u32,
-                        transaction_count: transactions.len() as u32,
+                        transaction_index: index,
+                        transaction_count: transactions.len(),
                     }
                     .pending_transaction()
                     .map_err(|msg| GemConfirmError::Record { msg }),
@@ -698,13 +708,14 @@ pub fn submit_message(input_type: &TransactionInputType, warning: Option<GemErro
     })
 }
 
-pub fn confirm_sections(rows: Vec<GemConfirmRowContent>, warnings: Vec<GemListRow>, simulation: Option<GemConfirmSimulation>, verifies: bool, load_error: Option<GemConfirmError>) -> Vec<GemConfirmSection> {
+pub fn confirm_sections(rows: Vec<GemConfirmRowContent>, message: Option<String>, warnings: Vec<GemListRow>, simulation: Option<GemConfirmSimulation>, verifies: bool, load_error: Option<GemConfirmError>) -> Vec<GemConfirmSection> {
     let notice = load_error.as_ref().and_then(GemConfirmError::notice);
     let (primary, secondary, changes) = simulation.map(|simulation| (simulation.primary_fields, simulation.secondary_fields, simulation.balance_changes)).unwrap_or_default();
     [
         Some(GemConfirmSection::Header),
         notice.clone().map(|row| GemConfirmSection::Notice { row }),
         Some(GemConfirmSection::Details { rows }),
+        message.map(|text| GemConfirmSection::Message { text }),
         (!warnings.is_empty()).then_some(GemConfirmSection::Warnings { rows: warnings }),
         (!primary.is_empty()).then_some(GemConfirmSection::Payload { primary, secondary }),
         (!changes.is_empty()).then_some(GemConfirmSection::BalanceChanges { rows: changes }),
@@ -723,7 +734,9 @@ mod tests {
     use super::*;
     use crate::models::copy::GemCopy;
     use crate::models::list::{GemListFieldValue, GemRowMenuItem};
-    use crate::services::confirm::testkit::gwei;
+    use crate::services::confirm::error::GemConfirmErrorDisplay;
+    use crate::services::confirm::testkit::{TEST_BITCOIN_FEE, gwei};
+    use crate::services::info_sheet::GemInfoAmount;
 
     #[test]
     fn test_the_confirm_screen_lists_its_blocks_in_one_order() {
@@ -750,10 +763,11 @@ mod tests {
         };
 
         assert_eq!(
-            confirm_sections(vec![], vec![warning.clone()], Some(simulation), false, None),
+            confirm_sections(vec![], Some("Annual plan".to_string()), vec![warning.clone()], Some(simulation), false, None),
             vec![
                 GemConfirmSection::Header,
                 GemConfirmSection::Details { rows: vec![] },
+                GemConfirmSection::Message { text: "Annual plan".to_string() },
                 GemConfirmSection::Warnings { rows: vec![warning] },
                 GemConfirmSection::Payload {
                     primary: vec![text("approve")],
@@ -764,16 +778,16 @@ mod tests {
             ]
         );
         assert_eq!(
-            confirm_sections(vec![], vec![], None, true, None),
+            confirm_sections(vec![], None, vec![], None, true, None),
             vec![GemConfirmSection::Header, GemConfirmSection::Details { rows: vec![] }, GemConfirmSection::Verification],
-            "a payment to verify shows its verification instead of the fee, and empty simulation blocks are left out"
+            "a payment to verify shows its verification instead of the fee, and empty simulation blocks and no message are left out"
         );
     }
 
     #[test]
     fn test_a_notice_replaces_the_load_error_it_explains() {
-        let malicious = confirm_sections(vec![], vec![], None, false, Some(GemConfirmError::ScanMalicious));
-        let offline = confirm_sections(vec![], vec![], None, false, Some(GemConfirmError::Offline));
+        let malicious = confirm_sections(vec![], None, vec![], None, false, Some(GemConfirmError::ScanMalicious));
+        let offline = confirm_sections(vec![], None, vec![], None, false, Some(GemConfirmError::Offline));
 
         assert!(matches!(malicious[1], GemConfirmSection::Notice { .. }));
         assert!(!malicious.iter().any(|section| matches!(section, GemConfirmSection::Error { .. })));
@@ -1365,29 +1379,31 @@ mod tests {
     fn test_an_error_sheet_carries_the_requirement_its_fiat_and_the_way_to_acquire() {
         let asset = Asset::from_chain(Chain::Ethereum);
         let requirement = GemBalanceRequirement::new(GemBigInt::from(3_000_000_000_000_000_000u64), GemBigInt::from(1_000_000_000_000_000_000u64));
-        let display = GemConfirmErrorDisplay::NetworkFeeRequired {
+        let error = GemConfirmError::InsufficientNetworkFee {
             asset: asset.clone(),
-            title: asset.display_title(),
-            requirement: GemConfirmRequirement::new(&requirement, &asset),
+            requirement: Some(requirement.clone()),
         };
 
         let prices = vec![AssetPrice::new(asset.id.clone(), 2_000.0, 0.0, chrono::Utc::now())];
         let token = AssetId::from_token(Chain::Ethereum, "0xtoken");
-        let info = error_info(&display, &prices, Currency::USD, &token, &asset.id).unwrap();
+        let info = error_info(&error, &prices, Currency::USD, &token, &asset.id).unwrap();
 
         assert_eq!(info.sheet, GemConfirmErrorSheet::NetworkFeeRequired);
-        assert_eq!(info.required.as_ref().map(|number| number.value), Some(3.0), "the sheet names what the transaction requires, not the fee alone");
-        assert_eq!(info.available.as_ref().map(|number| number.value), Some(1.0));
-        assert_eq!(info.shortfall.as_ref().map(|number| number.value), Some(2.0));
-        assert_eq!(info.required_fiat.as_ref().map(|number| number.value), Some(6_000.0));
+        let GemInfoDescription::InsufficientNetworkFeeBalance { required, available, shortfall, .. } = &info.description else {
+            panic!("{:?}", info.description)
+        };
+        assert_eq!(required.as_ref().map(|required| required.amount.value), Some(3.0), "the sheet names what the transaction requires, not the fee alone");
+        assert_eq!(available.value, 1.0);
+        assert_eq!(shortfall.as_ref().map(|number| number.value), Some(2.0));
+        assert_eq!(required.as_ref().and_then(|required| required.fiat.as_ref()).map(|number| number.value), Some(6_000.0));
         let acquire = info.acquire.unwrap();
         assert_eq!(acquire.flow, GemAcquireAssetFlow::Fiat);
         assert_eq!(acquire.buy_amount, Some(get_fiat_config().insufficient_network_fee_buy_amount), "a fee sheet buys the fee amount");
         assert_eq!(acquire.swap_pair, acquire_swap_pair(&token, &asset.id, asset.id.clone()));
 
-        let balance = GemConfirmErrorDisplay::BalanceRequired {
-            requirement: GemConfirmRequirement::new(&requirement, &asset),
+        let balance = GemConfirmError::InsufficientBalance {
             asset: asset.clone(),
+            requirement: requirement.clone(),
         };
         assert_eq!(
             error_info(&balance, &prices, Currency::USD, &token, &asset.id).unwrap().acquire.unwrap().buy_amount,
@@ -1396,42 +1412,115 @@ mod tests {
         );
 
         let usdc = HYPERCORE_PERPETUAL_USDC.clone();
-        let perpetual_balance = GemConfirmErrorDisplay::BalanceRequired {
-            requirement: GemConfirmRequirement::new(&requirement, &usdc),
-            asset: usdc.clone(),
-        };
+        let perpetual_balance = GemConfirmError::InsufficientBalance { asset: usdc.clone(), requirement };
         assert_eq!(
             error_info(&perpetual_balance, &prices, Currency::USD, &usdc.id, &usdc.id).unwrap().acquire,
             None,
             "a perpetual balance is funded by a deposit, never bought"
         );
 
-        let without_price = error_info(&display, &[], Currency::USD, &token, &asset.id).unwrap();
-        assert_eq!(without_price.required_fiat, None, "no price means no fiat, never a zero");
+        let without_price = error_info(&error, &[], Currency::USD, &token, &asset.id).unwrap();
+        assert!(
+            matches!(
+                without_price.description,
+                GemInfoDescription::InsufficientNetworkFeeBalance {
+                    required: Some(GemInfoAmount { fiat: None, .. }),
+                    ..
+                }
+            ),
+            "no price means no fiat, never a zero"
+        );
     }
 
     #[test]
-    fn test_an_error_the_user_cannot_act_on_opens_no_sheet() {
-        for display in [
-            GemConfirmErrorDisplay::Offline,
-            GemConfirmErrorDisplay::FeeRatesMissing,
-            GemConfirmErrorDisplay::Cancelled,
-            GemConfirmErrorDisplay::AccountMissing,
-            GemConfirmErrorDisplay::Unknown,
-            GemConfirmErrorDisplay::InsufficientFunds,
-            GemConfirmErrorDisplay::Message { msg: "boom".to_string() },
+    fn test_the_inline_error_reads_the_sheet_description_without_its_fiat() {
+        let asset = Asset::from_chain(Chain::Ethereum);
+        let requirement = GemBalanceRequirement::new(GemBigInt::from(3_000_000_000_000_000_000u64), GemBigInt::from(1_000_000_000_000_000_000u64));
+        let prices = vec![AssetPrice::new(asset.id.clone(), 2_000.0, 0.0, chrono::Utc::now())];
+        let without_fiat = |description: GemInfoDescription| match description {
+            GemInfoDescription::InsufficientNetworkFeeBalance { required, network, available, shortfall } => GemInfoDescription::InsufficientNetworkFeeBalance {
+                required: required.map(|required| GemInfoAmount { fiat: None, ..required }),
+                network,
+                available,
+                shortfall,
+            },
+            GemInfoDescription::SwapMinimumAmount { provider, required, available, shortfall } => GemInfoDescription::SwapMinimumAmount {
+                provider,
+                required: required.map(|required| GemInfoAmount { fiat: None, ..required }),
+                available,
+                shortfall,
+            },
+            description => description,
+        };
+
+        for error in [
+            GemConfirmError::InsufficientBalance {
+                asset: asset.clone(),
+                requirement: requirement.clone(),
+            },
+            GemConfirmError::InsufficientNetworkFee {
+                asset: asset.clone(),
+                requirement: Some(requirement.clone()),
+            },
+            GemConfirmError::InsufficientNetworkFee { asset: asset.clone(), requirement: None },
+            GemConfirmError::MinimumAccountBalanceTooLow {
+                asset: asset.clone(),
+                requirement: requirement.clone(),
+            },
+            GemConfirmError::BelowSwapMinimum {
+                asset: asset.clone(),
+                provider: SwapProvider::NearIntents,
+                provider_name: "NEAR Intents".to_string(),
+                requirement: requirement.clone(),
+            },
+            GemConfirmError::ScanMalicious,
+            GemConfirmError::ScanMemoRequired { symbol: "XRP".to_string() },
         ] {
-            assert_eq!(error_info(&display, &[], Currency::USD, &AssetId::from_chain(Chain::Ethereum), &AssetId::from_chain(Chain::Ethereum)), None, "{display:?}");
+            let sheet = error_info(&error, &prices, Currency::USD, &asset.id, &asset.id).unwrap().description;
+            assert_eq!(error.display(), GemConfirmErrorDisplay::Description { description: without_fiat(sheet) }, "{error:?}");
         }
     }
 
     #[test]
-    fn test_a_sheet_without_an_asset_carries_no_amount_and_no_acquire() {
+    fn test_an_error_the_user_cannot_act_on_opens_no_sheet() {
+        for error in [
+            GemConfirmError::Offline,
+            GemConfirmError::FeeRatesMissing,
+            GemConfirmError::Cancelled,
+            GemConfirmError::AccountMissing { chain: Chain::Ethereum },
+            GemConfirmError::SenderMismatch {
+                from: "a".to_string(),
+                signer: "b".to_string(),
+            },
+            GemConfirmError::Sign {
+                error: GemSignerError::InsufficientFunds,
+                chain: Chain::Bitcoin,
+                msg: "funds".to_string(),
+            },
+            GemConfirmError::Load { msg: "boom".to_string() },
+        ] {
+            assert_eq!(error_info(&error, &[], Currency::USD, &AssetId::from_chain(Chain::Ethereum), &AssetId::from_chain(Chain::Ethereum)), None, "{error:?}");
+        }
+    }
+
+    #[test]
+    fn test_a_sheet_without_an_asset_carries_no_acquire() {
         let bitcoin = AssetId::from_chain(Chain::Bitcoin);
-        let info = error_info(&GemConfirmErrorDisplay::DustThreshold { chain: Chain::Bitcoin }, &[], Currency::USD, &bitcoin, &bitcoin).unwrap();
+        let dust = GemConfirmError::Sign {
+            error: GemSignerError::DustThreshold,
+            chain: Chain::Bitcoin,
+            msg: "dust".to_string(),
+        };
+        let info = error_info(&dust, &[], Currency::USD, &bitcoin, &bitcoin).unwrap();
 
         assert_eq!(info.sheet, GemConfirmErrorSheet::DustThreshold { chain: Chain::Bitcoin });
-        assert!(info.required.is_none() && info.available.is_none() && info.shortfall.is_none() && info.acquire.is_none());
+        assert_eq!(
+            info.description,
+            GemInfoDescription::DustThreshold {
+                network: ChainAsset::from_chain(Chain::Bitcoin).network_name
+            }
+        );
+        assert!(info.asset.is_none() && info.acquire.is_none());
     }
 
     #[test]
@@ -1654,6 +1743,61 @@ mod tests {
             other => panic!("expected an insufficient balance error, got {other:?}"),
         }
         assert!(matches!(data.preload_amount(&funded, &asset), GemTransferAmountResult::Amount { .. }));
+    }
+
+    #[test]
+    fn test_preload_amount_counts_only_what_the_utxos_hold() {
+        let asset = Asset::mock_btc();
+        let wallet_shows = GemConfirmMetadata::mock(&asset.id, 129_576);
+
+        for (utxos, available, spendable, reason) in [
+            (vec![], 129_576, 0u64, "a pending send spent every UTXO, while the balance still shows them"),
+            (vec![5_000], 129_576, 5_000, "the balance looks fine but the UTXOs can't cover the send"),
+            (vec![129_576], 5_000, 5_000, "an unconfirmed deposit in the UTXOs is not available balance yet"),
+        ] {
+            assert_eq!(
+                GemConfirmData::mock_bitcoin(10_000, false, &utxos).preload_amount(&GemConfirmMetadata::mock(&asset.id, available), &asset),
+                GemTransferAmountResult::Error {
+                    error: GemConfirmError::InsufficientBalance {
+                        asset: asset.clone(),
+                        requirement: GemBalanceRequirement::new((10_000 + TEST_BITCOIN_FEE).into(), spendable.into()),
+                    },
+                },
+                "{reason}"
+            );
+        }
+        assert_eq!(
+            GemConfirmData::mock_bitcoin(10_000, false, &[5_000, 20_000]).preload_amount(&wallet_shows, &asset),
+            GemTransferAmountResult::Amount {
+                amount: TransferAmount {
+                    value: BigInt::from(10_000),
+                    network_fee: BigInt::from(TEST_BITCOIN_FEE),
+                    is_max_amount: false,
+                },
+            },
+            "UTXOs that cover the send change nothing"
+        );
+        assert_eq!(
+            GemConfirmData::mock_bitcoin(129_576, true, &[5_000]).preload_amount(&wallet_shows, &asset),
+            GemTransferAmountResult::Amount {
+                amount: TransferAmount {
+                    value: BigInt::from(5_000 - TEST_BITCOIN_FEE),
+                    network_fee: BigInt::from(TEST_BITCOIN_FEE),
+                    is_max_amount: true,
+                },
+            },
+            "a Max send shows what the transaction will send, not the balance"
+        );
+        assert_eq!(
+            GemConfirmData::mock_bitcoin(129_576, true, &[]).preload_amount(&wallet_shows, &asset),
+            GemTransferAmountResult::Error {
+                error: GemConfirmError::InsufficientNetworkFee {
+                    asset: asset.clone(),
+                    requirement: Some(GemBalanceRequirement::new(TEST_BITCOIN_FEE.into(), 0u64.into())),
+                },
+            },
+            "a Max send with nothing unspent can't pay the fee"
+        );
     }
 
     #[test]

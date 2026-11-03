@@ -88,6 +88,7 @@ fun SelectAssetScreen(
             }
         },
         actions = actions,
+        assetsHeaderRes = viewModel.flow.assetsSection.stringRes(),
     )
 
     if (onSelectRecent != null) {

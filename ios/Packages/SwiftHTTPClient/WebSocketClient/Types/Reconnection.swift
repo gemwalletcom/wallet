@@ -3,10 +3,10 @@
 import Foundation
 
 public struct Reconnection: Sendable, Equatable {
-    public let nextAttempt: UInt32
+    public let nextAttempt: Int
     public let delay: Duration
 
-    public init(nextAttempt: UInt32, delay: Duration) {
+    public init(nextAttempt: Int, delay: Duration) {
         self.nextAttempt = nextAttempt
         self.delay = delay
     }

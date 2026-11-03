@@ -12,11 +12,11 @@ import uniffi.gemstone.GemListSection
 import uniffi.gemstone.GemRowAction
 
 @Composable
-fun NotificationsScene(sections: List<GemListSection>, snackbar: SnackbarHostState, onEnableNotifications: () -> Unit, onDisableNotifications: () -> Unit, onPriceAlerts: () -> Unit, onCancel: () -> Unit) {
+internal fun NotificationsScene(sections: List<GemListSection>, snackbar: SnackbarHostState, onAction: (NotificationsAction) -> Unit) {
     Scene(
         title = stringResource(id = R.string.settings_notifications_title),
         snackbar = snackbar,
-        onClose = onCancel,
+        onClose = { onAction(NotificationsAction.Cancel) },
     ) {
         LazyColumn {
             sections.forEach { section ->
@@ -26,13 +26,13 @@ fun NotificationsScene(sections: List<GemListSection>, snackbar: SnackbarHostSta
                         listPosition = position,
                         onToggle = { action, isOn ->
                             when (action) {
-                                GemRowAction.PushNotifications -> if (isOn) onEnableNotifications() else onDisableNotifications()
+                                GemRowAction.PushNotifications -> onAction(NotificationsAction.SetEnabled(isOn))
                                 else -> Unit
                             }
                         },
                         onSelect = { action ->
                             when (action) {
-                                GemRowAction.PriceAlerts -> onPriceAlerts()
+                                GemRowAction.PriceAlerts -> onAction(NotificationsAction.PriceAlerts)
                                 else -> Unit
                             }
                         },

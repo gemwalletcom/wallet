@@ -122,6 +122,7 @@ impl Services {
         let cacher = self.cacher().await?;
         Ok(StoreTransactionsConsumer {
             repository: self.transactions_repository(),
+            assets: self.assets(),
             stream_producer: Arc::new(stream_producer),
             pusher: Pusher::new(self.notifications_repository()),
             config: self.config(),

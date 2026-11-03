@@ -6,18 +6,15 @@ import com.gemwallet.android.data.services.store.database.entities.toRecord
 import com.gemwallet.android.data.services.store.database.entities.toWalletConnectionSession
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
-import com.wallet.core.primitives.WalletConnection
 import kotlinx.coroutines.flow.firstOrNull
 import uniffi.gemstone.GemConnectionStore
 
 class GemstoneConnectionStore(private val walletStore: GemstoneWalletStore, private val connectionsDao: ConnectionsDao) : GemConnectionStore {
 
-    suspend fun getConnectionBySessionId(sessionId: String): WalletConnection? {
+    override suspend fun getConnection(sessionId: String): uniffi.gemstone.WalletConnection? {
         val record = connectionsDao.getBySessionId(sessionId) ?: return null
-        return record.toDTO(walletStore.observeWallets().firstOrNull().orEmpty())
+        return record.toDTO(walletStore.observeWallets().firstOrNull().orEmpty())?.toGem()
     }
-
-    override suspend fun getConnection(sessionId: String): uniffi.gemstone.WalletConnection? = getConnectionBySessionId(sessionId)?.toGem()
 
     override suspend fun getSessions(): List<uniffi.gemstone.WalletConnectionSession> = connectionsDao.getConnections().map { it.toWalletConnectionSession().toGem() }
 

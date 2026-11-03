@@ -8,6 +8,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import com.gemwallet.android.ui.R
@@ -24,7 +27,10 @@ import uniffi.gemstone.StakeProviderType
 @Composable
 fun ValidatorItem(data: GemValidatorRow, listPosition: ListPosition, isSelected: Boolean = false, onClick: ((String) -> Unit)?) {
     ListItem(
-        modifier = Modifier.clickable(enabled = onClick != null) { onClick?.invoke(data.validator.id) },
+        modifier = Modifier
+            .testTag("validator_item")
+            .semantics { selected = isSelected }
+            .clickable(enabled = onClick != null) { onClick?.invoke(data.validator.id) },
         leading = {
             ValidatorIcon(data = data, isSelected = isSelected)
         },

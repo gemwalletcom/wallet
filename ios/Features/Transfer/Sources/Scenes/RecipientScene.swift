@@ -69,6 +69,7 @@ public struct RecipientScene: View {
                         },
                     )
                     .focused($focusedField, equals: .memo)
+                    .accessibilityIdentifier("memoInputField")
                     .keyboardType(.alphabet)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
@@ -77,22 +78,25 @@ public struct RecipientScene: View {
 
             ForEach(model.recipientSections) { section in
                 Section {
-                    ForEach(section.values) {
-                        let recipient = $0.value
+                    ForEach(section.values) { row in
                         NavigationCustomLink(
-                            with: ListItemView(model: model.listItem(for: $0)),
+                            with: ListItemView(model: model.listItem(for: row)),
                             action: {
                                 focusedField = nil
-                                model.onSelectRecipient(recipient)
+                                model.onSelectRecipient(row.recipient)
                             },
                         )
                         .accessibilityIdentifier("recipient_row")
                     }
                 } header: {
                     HStack {
-                        section.image
-                            .frame(size: .image.small)
-                        Text(section.section)
+                        if let image = section.image {
+                            image
+                                .frame(size: .image.small)
+                        }
+                        if let title = section.title {
+                            Text(title)
+                        }
                     }
                 }
             }
@@ -100,13 +104,13 @@ public struct RecipientScene: View {
         .safeAreaButton {
             StateButton(
                 text: model.actionButtonTitle,
-                type: .primary(model.actionButtonState),
+                state: model.actionButtonState,
                 action: onSelectContinue,
             )
         }
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .listSectionSpacing(.compact)
-        .navigationTitle(model.tittle)
+        .navigationTitle(model.title)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button(model.actionButtonTitle, action: onSelectContinue)

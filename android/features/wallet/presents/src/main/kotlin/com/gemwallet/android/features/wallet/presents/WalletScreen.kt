@@ -18,7 +18,7 @@ import com.gemwallet.android.ui.components.list_item.AssetContextActions
 import com.gemwallet.android.ui.components.screen.ToastEffect
 
 @Composable
-fun WalletScreen(onAction: (WalletAction) -> Unit, onContentReady: () -> Unit = {}, listState: LazyListState = rememberLazyListState(), viewModel: WalletViewModel = hiltViewModel()) {
+fun WalletScreen(onAction: (WalletAction.Navigation) -> Unit, onContentReady: () -> Unit = {}, listState: LazyListState = rememberLazyListState(), viewModel: WalletViewModel = hiltViewModel()) {
     val importing by viewModel.isLoadingAssets.collectAsStateWithLifecycle()
     val pinnedAssets by viewModel.pinnedAssets.collectAsStateWithLifecycle()
     val unpinnedAssets by viewModel.unpinnedAssets.collectAsStateWithLifecycle()
@@ -63,9 +63,12 @@ fun WalletScreen(onAction: (WalletAction) -> Unit, onContentReady: () -> Unit = 
         snackbar = snackbar,
         listState = listState,
         assetActions = assetActions,
-        onRefresh = viewModel::onRefresh,
-        onHideBalances = viewModel::hideBalances,
-        onCloseBanner = viewModel::closeBanner,
-        onAction = onAction,
-    )
+    ) { action ->
+        when (action) {
+            WalletAction.Refresh -> viewModel.onRefresh()
+            WalletAction.HideBalances -> viewModel.hideBalances()
+            is WalletAction.CloseBanner -> viewModel.closeBanner(action.key)
+            is WalletAction.Navigation -> onAction(action)
+        }
+    }
 }

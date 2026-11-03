@@ -22,13 +22,14 @@ object GemConstants {
     val scanTimeout: Duration = 3.seconds
     val serviceStatusTimeout: Duration = 30.seconds
     val transactionsListLimit: Int = 1000
+    val listPageSize: Int = 50
+    val listPrefetchRows: Int = 10
     val assetResultsLimit: Int = 100
     val recentAssetsLimit: Int = 10
     val supportAttachmentMaxDimension: Int = 2048
     val supportAttachmentJpegQuality: Int = 90
     val walletConnectUserRejectedErrorCode: Int = 4001
     val walletConnectUserRejectedErrorMessage: String = "User rejected the request"
-    val walletBannerEvents: List<com.wallet.core.primitives.BannerEvent> = listOf<com.wallet.core.primitives.BannerEvent>(com.wallet.core.primitives.BannerEvent.AccountBlockedMultiSignature, com.wallet.core.primitives.BannerEvent.Onboarding)
     val perpetualActivityTypes: List<com.wallet.core.primitives.TransactionType> = listOf<com.wallet.core.primitives.TransactionType>(com.wallet.core.primitives.TransactionType.PerpetualOpenPosition, com.wallet.core.primitives.TransactionType.PerpetualClosePosition, com.wallet.core.primitives.TransactionType.PerpetualModifyPosition)
     val lockPeriods: List<uniffi.gemstone.GemLockPeriod> = listOf<uniffi.gemstone.GemLockPeriod>(uniffi.gemstone.GemLockPeriod.IMMEDIATE, uniffi.gemstone.GemLockPeriod.ONE_MINUTE, uniffi.gemstone.GemLockPeriod.FIVE_MINUTES, uniffi.gemstone.GemLockPeriod.FIFTEEN_MINUTES, uniffi.gemstone.GemLockPeriod.ONE_HOUR, uniffi.gemstone.GemLockPeriod.SIX_HOURS)
     val walletAvatarEmojis: List<String> = listOf<String>("💎", "🦄", "🚀", "❤️", "😍", "🔥", "💩", "😭", "🏆", "🏴‍☠️", "✅", "⚠️", "💰", "🎁", "🎈", "🌈", "⭐️", "👑", "💔", "🔒", "🏦", "🥷", "👨‍💻", "🛢", "🔑", "🛡", "📈", "📉", "💥", "👽", "🔮", "⚡️", "🌍", "⏳", "🤖", "🛰", "🐉", "🐙", "🦅", "👀", "💪", "🔷", "👻", "🌪", "🕶", "👾", "🕵️‍♂️", "⌛️", "✨", "🍀", "☠️", "💀", "🕸", "🕷", "🎰", "☄️", "🏔", "🏜", "🌊", "🎆", "🎖", "🔭", "⛽️", "🏭", "🌉", "🏰", "🔨", "🧰", "💼", "🏷", "♟", "⚓️", "🎡", "🎢", "🎃", "📦")

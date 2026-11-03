@@ -23,11 +23,11 @@ impl PerpetualFormatter {
         (min_usd * USDC_DECIMALS_MULTIPLIER) as u64
     }
 
-    pub fn price_decimals(price: f64, sz_decimals: u32) -> u32 {
+    pub fn price_decimals(price: f64, sz_decimals: u32) -> usize {
         let max_decimals = 6u32.saturating_sub(sz_decimals);
         let magnitude = price.abs().log10().floor();
         let sig_fig_decimals = (4.0 - magnitude).max(0.0);
-        sig_fig_decimals.min(f64::from(max_decimals)) as u32
+        sig_fig_decimals.min(f64::from(max_decimals)) as usize
     }
 
     pub fn format_price(price: f64, sz_decimals: u32) -> String {
@@ -35,7 +35,7 @@ impl PerpetualFormatter {
             return "0".to_string();
         }
 
-        format_and_trim(price, Self::price_decimals(price, sz_decimals) as usize)
+        format_and_trim(price, Self::price_decimals(price, sz_decimals))
     }
 
     pub fn format_input_price(price: f64, sz_decimals: u32, decimal_separator: char) -> String {

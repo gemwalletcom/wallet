@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -51,23 +52,27 @@ fun CollectibleScreen(cancelAction: CancelAction, onRecipient: (NFTAsset) -> Uni
         )
 
         is StateViewType.Data -> {
-            var isReportVisible by remember { mutableStateOf(false) }
+            var isReportVisible by rememberSaveable { mutableStateOf(false) }
             CollectibleScene(
                 assetData = current.data.assetData,
                 details = current.data.details,
                 snackbar = snackbar,
-                onClose = { cancelAction() },
-                onSend = { onRecipient(current.data.assetData.asset) },
-                onAction = { action ->
-                    when (action) {
+            ) { action ->
+                when (action) {
+                    CollectibleAction.Close -> cancelAction()
+
+                    CollectibleAction.Send -> onRecipient(current.data.assetData.asset)
+
+                    is CollectibleAction.HeaderAction -> when (action.action) {
                         GemCollectibleAction.REFRESH -> viewModel.refresh()
                         GemCollectibleAction.SAVE_IMAGE -> viewModel.saveImage()
                         GemCollectibleAction.SET_AVATAR -> viewModel.setAsAvatar()
                         GemCollectibleAction.REPORT -> isReportVisible = true
                     }
-                },
-                onOpenAddress = onOpenAddress,
-            )
+
+                    is CollectibleAction.OpenAddress -> onOpenAddress(action.address)
+                }
+            }
             ReportReasonSheet(
                 isVisible = isReportVisible,
                 reasons = viewModel.reportReasons,

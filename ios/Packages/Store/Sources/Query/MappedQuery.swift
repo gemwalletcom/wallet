@@ -20,3 +20,9 @@ public struct MappedQuery<Base: DatabaseQueryable, Value: Equatable & Sendable>:
         lhs.base == rhs.base
     }
 }
+
+extension MappedQuery: LimitedQuery where Base: LimitedQuery {
+    public func with(limit: Int) -> Self {
+        MappedQuery(base.with(limit: limit), transform: transform)
+    }
+}

@@ -24,7 +24,7 @@ pub enum GemDayLabel {
 pub struct GemDaySection {
     pub day: GemDay,
     pub label: GemDayLabel,
-    pub positions: Vec<u32>,
+    pub positions: Vec<usize>,
 }
 
 #[uniffi::export]
@@ -41,11 +41,11 @@ impl GemDayBoundaries {
         let mut sections: Vec<GemDaySection> = vec![];
         for (position, day) in days.into_iter().enumerate() {
             match sections.iter_mut().find(|section| section.day == day) {
-                Some(section) => section.positions.push(position as u32),
+                Some(section) => section.positions.push(position),
                 None => sections.push(GemDaySection {
                     day,
                     label: self.label(day),
-                    positions: vec![position as u32],
+                    positions: vec![position],
                 }),
             }
         }

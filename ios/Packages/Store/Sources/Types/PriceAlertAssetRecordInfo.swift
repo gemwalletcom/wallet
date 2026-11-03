@@ -8,6 +8,7 @@ struct PriceAlertAssetRecordInfo: FetchableRecord, Codable {
     let asset: AssetRecord
     let priceAlerts: [PriceAlertRecord]?
     let price: PriceRecord?
+    let balance: BalanceRecord?
 }
 
 extension PriceAlertAssetRecordInfo {
@@ -31,7 +32,7 @@ extension PriceAlertAssetRecordInfo {
                 isSwapEnabled: asset.isSwappable,
                 isStakeEnabled: asset.isStakeable,
                 isEarnEnabled: asset.isEarnable,
-                isPinned: false,
+                isPinned: balance?.isPinned ?? false,
                 isActive: false,
                 stakingApr: asset.stakingApr,
                 earnApr: asset.earnApr,

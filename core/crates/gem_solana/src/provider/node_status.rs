@@ -30,7 +30,9 @@ impl<C: Client + Clone> ChainNodeStatus for SolanaProvider<C> {
             .record_timed(method::GET_BALANCE, async { self.get_balance_coin(address.to_string()).await.map(|result| result.balance.available) })
             .await;
         let recorder = recorder
-            .record_timed(GET_TOKEN_ACCOUNTS_BY_OWNER_PROGRAM_ID_CHECK, async { self.get_balance_assets(address.to_string()).await.map(|assets| assets.len()) })
+            .record_timed(GET_TOKEN_ACCOUNTS_BY_OWNER_PROGRAM_ID_CHECK, async {
+                self.get_balance_assets(address.to_string()).await.map(|assets| assets.map_or(0, |assets| assets.len()))
+            })
             .await;
         let recorder = recorder
             .record_timed(GET_TOKEN_ACCOUNTS_BY_OWNER_MINT_CHECK, async {

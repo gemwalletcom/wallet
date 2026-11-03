@@ -42,7 +42,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemLoadState
-import uniffi.gemstone.GemStakeActionKind
 import uniffi.gemstone.GemStakeDestination
 import uniffi.gemstone.GemStakeInput
 import uniffi.gemstone.GemStakeServiceInterface
@@ -137,19 +136,15 @@ class StakeViewModel @Inject constructor(
         sync.update { true }
     }
 
-    fun onSelect(kind: GemStakeActionKind, destination: GemStakeDestination, onAmount: AmountTransactionAction, onConfirm: ConfirmTransactionAction) {
-        when (kind) {
-            GemStakeActionKind.STAKE -> if (!service.isAvailable()) {
-                infoSheet.value = GemInfoTopic.RegionUnavailable
-                return
-            }
-
-            GemStakeActionKind.FREEZE, GemStakeActionKind.UNFREEZE, GemStakeActionKind.CLAIM_REWARDS -> Unit
-        }
+    fun onSelect(destination: GemStakeDestination, onAmount: AmountTransactionAction, onConfirm: ConfirmTransactionAction) {
         when (destination) {
             is GemStakeDestination.Amount -> onAmount(AmountParams.Stake(assetId.value, destination.input))
             is GemStakeDestination.Confirm -> onConfirm(ConfirmTransferInput(destination.transfer))
         }
+    }
+
+    fun onRegionUnavailable() {
+        infoSheet.value = GemInfoTopic.RegionUnavailable
     }
 
     fun onDelegation(delegation: Delegation, onOpenDetail: (String, String) -> Unit, onAmount: AmountTransactionAction, onConfirm: ConfirmTransactionAction) {

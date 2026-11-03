@@ -37,6 +37,7 @@ fun TransactionsScreen(onTransaction: (TransactionId) -> Unit, onBuy: (() -> Uni
         onAction = { action ->
             when (action) {
                 TransactionsAction.Refresh -> viewModel.refresh()
+                TransactionsAction.EndReached -> viewModel.onEndReached()
                 is TransactionsAction.OpenTransaction -> onTransaction(action.transactionId)
                 is TransactionsAction.SelectChainsFilter -> viewModel.setChainsFilter(action.chains)
                 is TransactionsAction.SelectTypesFilter -> viewModel.setTypesFilter(action.types)

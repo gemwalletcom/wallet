@@ -73,7 +73,6 @@ public actor GatewayService: Sendable {
         signer: any GemWalletConnectSigner,
         session: GemWalletSessionService,
         assets: GemAssetsService,
-        signMessage: GemSignMessageService,
     ) -> GemWalletConnectService {
         GemWalletConnectService(
             simulation: simulation,
@@ -83,7 +82,6 @@ public actor GatewayService: Sendable {
             session: session,
             assets: assets,
             gateway: gateway,
-            signMessage: signMessage,
             platform: .ios,
         )
     }

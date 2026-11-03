@@ -333,6 +333,7 @@ fn public_cases() -> Vec<Case> {
         Case::new("health", Method::GET, "/health"),
         Case::new("metrics", Method::GET, "/metrics"),
         Case::new("v1_config", Method::GET, "/v1/config"),
+        Case::new("v1_config_bad_store", Method::GET, "/v1/config?store=invalid"),
         Case::new("v1_asset", Method::GET, "/v1/assets/ethereum"),
         Case::new("v1_asset_currency", Method::GET, "/v1/assets/ethereum?currency=EUR"),
         Case::new("v1_asset_bad_currency", Method::GET, "/v1/assets/ethereum?currency=BAD"),
@@ -461,7 +462,7 @@ fn registered_device_cases(harness: &Harness) -> Vec<Case> {
             .volatile(),
         Case::new("v2_wallet_configuration", Method::GET, "/v2/devices/wallet_configuration").wallet().volatile(),
         Case::new("v2_notifications", Method::GET, "/v2/devices/notifications?limit=10").device(),
-        Case::new("v2_notifications_read", Method::POST, "/v2/devices/notifications/read").device(),
+        Case::new("v2_notifications_read", Method::POST, "/v2/devices/notifications/read").wallet(),
         Case::new("v2_notifications_read_as_get", Method::GET, "/v2/devices/notifications/read").device(),
         Case::new("v2_auth_nonce", Method::GET, "/v2/devices/auth/nonce").device(),
         Case::new("v2_token", Method::GET, "/v2/devices/token").device(),
@@ -509,7 +510,7 @@ fn v3_cases(harness: &Harness) -> Vec<Case> {
         Case::new("v3_address_names", Method::POST, "/v3/devices/address-names")
             .device()
             .json(json!([{"chain": "ethereum", "address": TEST_PRIVATE_KEY_ETHEREUM_ADDRESS}])),
-        Case::new("v3_notifications_read", Method::POST, "/v3/devices/notifications/read").device(),
+        Case::new("v3_notifications_read", Method::POST, "/v3/devices/notifications/read").wallet(),
         Case::new("v3_subscriptions_repeat_get", Method::GET, "/v3/devices/subscriptions").device(),
         Case::new("v3_dropped_token", Method::GET, "/v3/devices/token").device(),
         Case::new("v3_dropped_legacy_transaction", Method::GET, &format!("/v3/devices/transaction/{TRANSACTION_ID}")).device(),

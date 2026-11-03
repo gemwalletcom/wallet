@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import InfoSheet
 import PrimitivesComponents
 import Store
 import SwiftUI
@@ -56,6 +57,9 @@ public struct DelegationScene: View {
             }
         }
         .bindQuery(model.validatorsQuery)
+        .sheet(item: $model.isPresentingInfoSheet) {
+            InfoSheetScene(sheet: $0)
+        }
         .navigationTitle(details.title.text)
         .listSectionSpacing(.compact)
     }

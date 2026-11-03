@@ -1,0 +1,11 @@
+{
+  "rates": {
+    "usd": { "name": "US Dollar", "unit": "$", "value": 80000.0, "type": "fiat" },
+    "ron": { "name": "Romanian Leu", "unit": "lei", "value": 400000.0, "type": "fiat" },
+    "gel": { "name": "Georgian Lari", "unit": "₾", "value": 200000.0, "type": "fiat" },
+    "amd": { "name": "Armenian Dram", "unit": "֏", "value": 32000000.0, "type": "fiat" },
+    "mdl": { "name": "Moldovan Leu", "unit": "L", "value": 1600000.0, "type": "fiat" },
+    "btc": { "name": "Bitcoin", "unit": "BTC", "value": 1.0, "type": "crypto" },
+    "unknown": { "name": "Unknown currency", "unit": "?", "value": 160000.0, "type": "fiat" }
+  }
+}

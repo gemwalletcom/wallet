@@ -11,7 +11,8 @@ public extension ConnectionsSceneViewModel {
     static func mock(
         connector: any WalletConnectorServiceable = WalletConnectorServiceMock(),
         service: any GemWalletConnectServiceProtocol = GemWalletConnectServiceMock(),
+        walletConnectorPresenter: WalletConnectorPresenter = WalletConnectorPresenter(),
     ) -> ConnectionsSceneViewModel {
-        ConnectionsSceneViewModel(connector: connector, service: service)
+        ConnectionsSceneViewModel(connector: connector, service: service, walletConnectorPresenter: walletConnectorPresenter)
     }
 }

@@ -12,6 +12,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -32,7 +33,7 @@ import com.gemwallet.android.ui.theme.paddingDefault
 
 @Composable
 internal fun RewardsCodeDialog(isVisible: Boolean, title: String, label: String, text: String, isLoading: Boolean, onDone: (String) -> Unit, onDismiss: () -> Unit, info: String? = null) {
-    var input by remember(isVisible, text) { mutableStateOf(text) }
+    var input by rememberSaveable(isVisible, text) { mutableStateOf(text) }
     val context = LocalContext.current
 
     val focusRequester = remember { FocusRequester() }

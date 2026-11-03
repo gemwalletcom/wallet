@@ -30,9 +30,9 @@ struct BalanceStoreTests {
 
         try store.addBalance(assetIds: [ethereum], isEnabled: false, for: wallet)
 
-        let record = try #require(try store.getBalanceRecord(walletId: wallet, assetId: ethereum))
-        #expect(record.availableAmount == 5, "a second add never clears what the lane published")
-        #expect(record.isEnabled, "a second add never flips the configuration")
+        let balance = try #require(try store.getBalances(walletId: wallet, assetIds: [ethereum]).first)
+        #expect(balance.balance.available == 5, "a second add never clears what the lane published")
+        #expect(try store.getEnabledAssetIds(walletId: wallet) == [ethereum], "a second add never flips the configuration")
     }
 
     @Test
@@ -42,10 +42,10 @@ struct BalanceStoreTests {
         let metadata = BalanceMetadata(votes: 1, energyAvailable: 2, energyTotal: 3, bandwidthAvailable: 4, bandwidthTotal: 5)
 
         try store.updateBalances([.mock(assetId: ethereum, metadata: metadata)], for: wallet)
-        #expect(try store.getBalanceRecord(walletId: wallet, assetId: ethereum)?.metadata == metadata)
+        #expect(try store.getBalances(walletId: wallet, assetIds: [ethereum]).first?.balance.metadata == metadata)
 
         try store.updateBalances([.mock(assetId: ethereum)], for: wallet)
-        #expect(try store.getBalanceRecord(walletId: wallet, assetId: ethereum)?.metadata == nil, "Core merges the stored metadata before writing, so none means none")
+        #expect(try store.getBalances(walletId: wallet, assetIds: [ethereum]).first?.balance.metadata == nil, "Core merges the stored metadata before writing, so none means none")
     }
 
     @Test
@@ -54,7 +54,6 @@ struct BalanceStoreTests {
 
         try store.updateBalances([.mock(assetId: ethereum, available: 5)], for: wallet)
 
-        #expect(try store.getBalanceRecord(walletId: wallet, assetId: ethereum) == nil)
         #expect(try store.getBalances(walletId: wallet, assetIds: [ethereum]).isEmpty)
     }
 
@@ -67,9 +66,8 @@ struct BalanceStoreTests {
         try store.updateBalances([.mock(assetId: ethereum, available: 7)], for: wallet)
         _ = try store.setConfiguration(walletId: wallet, assetIds: [ethereum], configuration: .disabled)
 
-        let other = try #require(try store.getBalanceRecord(walletId: otherWallet, assetId: ethereum))
-        #expect(other.availableAmount == 0)
-        #expect(other.isEnabled)
+        let other = try #require(try store.getBalances(walletId: otherWallet, assetIds: [ethereum]).first)
+        #expect(other.balance.available == 0)
         #expect(try store.getEnabledAssetIds(walletId: otherWallet) == [ethereum])
         #expect(try store.getEnabledAssetIds(walletId: wallet).isEmpty)
     }
@@ -83,17 +81,6 @@ struct BalanceStoreTests {
         #expect(try store.setConfiguration(walletId: wallet, assetIds: [ethereum], configuration: AssetConfiguration(isEnabled: nil, isPinned: nil)) == 0)
         #expect(try store.setConfiguration(walletId: wallet, assetIds: [ethereum], configuration: .disabled) == 1)
         #expect(try store.setConfiguration(walletId: wallet, assetIds: [ethereum], configuration: .disabled) == 0)
-    }
-
-    @Test
-    func onlyTheMissingBalancesAreAdded() throws {
-        let store = try store()
-        try store.addBalance(assetIds: [ethereum], isEnabled: true, for: wallet)
-
-        try store.addMissingBalances(walletId: wallet, assetIds: [ethereum, solana])
-
-        #expect(try store.getEnabledAssetIds(walletId: wallet) == [ethereum], "the asset that was already there keeps its configuration")
-        #expect(try store.getBalances(walletId: wallet, assetIds: [ethereum, solana]).count == 2)
     }
 
     @Test

@@ -59,6 +59,13 @@ pub(crate) fn plan_transfer(input: &TransactionLoadInput) -> Result<TransactionP
     Ok(TransactionPlan { utxos: selected_utxos, amount, fee, change })
 }
 
+pub(crate) fn transfer_fee(input: &TransactionLoadInput) -> Result<u64, SignerError> {
+    match plan_transfer(input) {
+        Err(SignerError::InsufficientFunds) => estimate_fee(input, &utxos_from_metadata(&input.metadata, &input.sender_address)?, input.value_as_u64()?, input.is_max_value),
+        plan => plan.map(|plan| plan.fee),
+    }
+}
+
 pub(crate) fn transaction_from_plan(input: &TransactionLoadInput, plan: &TransactionPlan) -> Result<Transaction, SignerError> {
     let destination = ShelleyAddress::parse(transaction_destination_address(input))?;
     let expiration_block_number = input.metadata.get_block_number()? + CARDANO_EXPIRATION_BLOCK_OFFSET;
@@ -182,8 +189,8 @@ fn sum_amounts(utxos: &[UTXO]) -> Result<u64, SignerError> {
 
 #[cfg(test)]
 mod tests {
-    use num_bigint::BigUint;
-    use primitives::{Asset, AssetType, Chain, SwapProvider, TransactionInputType, TransactionLoadMetadata, swap::SwapData};
+    use num_bigint::{BigInt, BigUint};
+    use primitives::{Asset, AssetType, Chain, SwapProvider, TransactionInputType, TransactionLoadMetadata, TransferAmountError, TransferAmountInput, swap::SwapData};
 
     use super::*;
 
@@ -229,6 +236,38 @@ mod tests {
         assert_eq!(plan.change, 0);
         assert_eq!(plan.utxos[0].value, BigUint::from(1500000u64));
         assert_eq!(plan.utxos[1].value, BigUint::from(6500000u64));
+    }
+
+    #[test]
+    fn test_unaffordable_send_is_insufficient_balance() {
+        let input = TransactionLoadInput {
+            metadata: TransactionLoadMetadata::Cardano {
+                block_number: TEST_BLOCK_NUMBER,
+                utxos: vec![UTXO {
+                    transaction_id: "f074134aabbfb13b8aec7cf5465b1e5a862bde5cb88532cc7e64619179b3e767".to_string(),
+                    vout: 1,
+                    value: BigUint::from(12_220_000u64),
+                    address: OWN_ADDRESS_1.to_string(),
+                }],
+            },
+            ..TransactionLoadInput::mock_cardano(OWN_ADDRESS_1, "12200000")
+        };
+        assert_eq!(plan_transfer(&input).err(), Some(SignerError::InsufficientFunds));
+
+        let fee = transfer_fee(&input).unwrap();
+        let amount = TransferAmountInput {
+            fee: BigInt::from(fee),
+            ..TransferAmountInput::mock(input.input_type.clone(), 12_200_000, 12_220_000, 12_220_000)
+        };
+        assert_eq!(
+            amount.calculate().unwrap_err(),
+            TransferAmountError::InsufficientBalance {
+                asset_id: Asset::from_chain(Chain::Cardano).id,
+                required: BigInt::from(12_200_000 + fee),
+                available: BigInt::from(12_220_000u64),
+            },
+            "12.2 of 12.22 ADA: the fee load prices the send and the amount check says Insufficient Balance"
+        );
     }
 
     #[test]

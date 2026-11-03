@@ -244,6 +244,7 @@ impl FiatClient {
         let cached_quote = self.cached_quote(context, quote_id).await?;
         let quote = CachedFiatQuote { url: Some(url.clone()), ..cached_quote };
         self.quote_cacher.set_quotes(context.device_id, context.wallet_id, &[(quote_id.to_string(), quote)]).await?;
+        info_with_fields!("fiat quote url created", provider = data.quote.provider.id.as_ref(), quote_id = quote_id);
 
         Ok(url)
     }

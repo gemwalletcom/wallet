@@ -14,12 +14,11 @@ fun NotificationsScreen(onPriceAlerts: () -> Unit, onCancel: () -> Unit, viewMod
     val error by viewModel.error.collectAsStateWithLifecycle()
     val snackbar = rememberSnackbarState(message = error, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
 
-    NotificationsScene(
-        sections = sections,
-        snackbar = snackbar,
-        onEnableNotifications = { viewModel.enableNotifications() },
-        onDisableNotifications = { viewModel.disableNotifications() },
-        onPriceAlerts = onPriceAlerts,
-        onCancel = onCancel,
-    )
+    NotificationsScene(sections = sections, snackbar = snackbar) { action ->
+        when (action) {
+            is NotificationsAction.SetEnabled -> if (action.enabled) viewModel.enableNotifications() else viewModel.disableNotifications()
+            NotificationsAction.PriceAlerts -> onPriceAlerts()
+            NotificationsAction.Cancel -> onCancel()
+        }
+    }
 }

@@ -3,6 +3,9 @@
 common_cancel = Kanselahin
 common_hidden = Nakatago
 common_done = Tapos na
+common_add = Idagdag
+common_close = Isara
+common_back = Bumalik
 common_maximum_value = Ang maximum na halaga ay %@
 common_minimum_value = Ang minimum na halaga ay %@
 common_secret_phrase = Lihim na Parirala
@@ -60,7 +63,6 @@ common_suspicious_address = Kahina-hinalang address
 common_suspicious_address_description = Ang address na ito ay nauugnay sa kahina-hinala o nakakapinsalang aktibidad.
 common_refresh = I-refresh
 common_grant_permission = Magbigay ng pahintulot
-common_required_field = Kinakailangan ang %@
 
 # Welcome
 
@@ -165,7 +167,6 @@ transfer_reserved_fees = Iniwan namin ang %@ sa iyong balanse upang mabayaran an
 transfer_freeze_title = I-freeze
 transfer_unfreeze_title = I-unfreeze
 transfer_review_request = Suriin ang Kahilingan
-transfer_amount = Halaga
 
 # Settings
 
@@ -255,7 +256,6 @@ errors_dust_threshold_short = Itinuturing ng network ang halagang ito bilang ali
 errors_swap_minimum_amount = Ang minimum na halaga ng kalakalan ay %@. Mangyaring maglagay ng mas mataas na halaga.
 errors_perpetual_trigger_price_lower = Dapat mas mababa sa presyo sa merkado ang trigger price
 errors_perpetual_trigger_price_higher = Dapat mas mataas sa presyo sa merkado ang trigger price
-errors_unknown_try_again = May naganap na hindi kilalang error. Pakisubukang muli.
 errors_network_error = Error sa network: %@
 errors_network_offline = Mukhang offline ang koneksyon sa internet.
 errors_no_internet_connection = Walang koneksyon sa internet
@@ -327,7 +327,6 @@ asset_buy_asset = Bumili ng %@
 asset_get_asset = Kumuha ng %@
 asset_add_to_wallet = Idagdag sa wallet
 asset_added_to_wallet = Naidagdag sa wallet
-asset_hidden_from_wallet = Naitago sa wallet
 asset_resources = Mga mapagkukunan
 asset_verification_verified = Na-verify
 asset_all_time_high = Mataas sa Lahat ng Panahon
@@ -347,6 +346,8 @@ charts_price_close = Isara
 charts_price_high = Mataas
 charts_price_low = Mababa
 charts_price_change = Pagbabago
+charts_candlestick = Candlestick chart
+charts_line = Line chart
 
 # Date
 

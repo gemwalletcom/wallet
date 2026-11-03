@@ -79,7 +79,7 @@ class WebSocketConnection(private val requestProvider: suspend () -> WebSocketRe
     }
 
     override fun connect(): Flow<WebSocketEvent> = channelFlow {
-        var reconnectAttempt = 0u
+        var reconnectAttempt = 0
         while (isActive) {
             var connectedAt: TimeMark? = null
             runCatchingCancellable {

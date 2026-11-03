@@ -6,7 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -53,24 +53,20 @@ fun AuthRequestScreen(request: WalletConnectAuthenticationRequest, verifyContext
         is AuthRequestUIState.Content -> AuthRequestContent(
             state = currentState,
             buttonState = buttonState,
-            onApprove = viewModel::onApprove,
-            onReject = viewModel::onReject,
             onWalletSelected = viewModel::onWalletSelected,
-            onOpenAddress = onOpenAddress,
-        )
+        ) { action ->
+            when (action) {
+                WalletConnectReviewAction.Approve -> viewModel.onApprove()
+                WalletConnectReviewAction.Reject -> viewModel.onReject()
+                is WalletConnectReviewAction.OpenAddress -> onOpenAddress(action.address)
+            }
+        }
     }
 }
 
 @Composable
-private fun AuthRequestContent(
-    state: AuthRequestUIState.Content,
-    buttonState: ButtonState,
-    onApprove: () -> Unit,
-    onReject: () -> Unit,
-    onWalletSelected: (com.wallet.core.primitives.WalletId) -> Unit,
-    onOpenAddress: (ChainAddress) -> Unit,
-) {
-    var isShowSelectWallets by remember { mutableStateOf(false) }
+private fun AuthRequestContent(state: AuthRequestUIState.Content, buttonState: ButtonState, onWalletSelected: (com.wallet.core.primitives.WalletId) -> Unit, onAction: (WalletConnectReviewAction) -> Unit) {
+    var isShowSelectWallets by rememberSaveable { mutableStateOf(false) }
     val canSelectWallet = state.canChooseWallet
 
     WalletConnectReviewScene(
@@ -99,9 +95,7 @@ private fun AuthRequestContent(
             }
             item { PropertyNetworkItem(state.chain, listPosition = ListPosition.Last) }
         },
-        onApprove = onApprove,
-        onReject = onReject,
-        onOpenAddress = onOpenAddress,
+        onAction = onAction,
     )
 
     SelectWalletSheet(

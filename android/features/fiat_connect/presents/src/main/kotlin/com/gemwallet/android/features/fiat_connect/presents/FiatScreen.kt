@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -80,7 +81,6 @@ fun FiatScreen(cancelAction: CancelAction, onFiatTransactions: () -> Unit, viewM
         selectedProvider = selectedProvider,
         providerListItem = providerListItem,
         rateRow = rateRow,
-        cancelAction = cancelAction,
         fiatAmount = amount,
         suggestedAmounts = viewModel.suggestedAmounts,
         titleContent = {
@@ -91,18 +91,26 @@ fun FiatScreen(cancelAction: CancelAction, onFiatTransactions: () -> Unit, viewM
                 onTypeClick = viewModel::setType,
             )
         },
-        onAmount = viewModel::updateAmount,
-        onLotSelect = viewModel::selectAmount,
-        onProviderSelect = viewModel::setProvider,
-        onRetry = viewModel::retry,
-        onFiatTransactions = onFiatTransactions,
-        onBuy = {
-            scope.launch {
+    ) { action ->
+        when (action) {
+            is FiatAction.SetAmount -> viewModel.updateAmount(action.amount)
+
+            is FiatAction.SelectAmount -> viewModel.selectAmount(action.amount)
+
+            is FiatAction.SelectProvider -> viewModel.setProvider(action.provider)
+
+            FiatAction.RetryQuote -> viewModel.retry()
+
+            FiatAction.Continue -> scope.launch {
                 viewModel.continueToProvider { uriHandler.open(context, it) }
                     .onFailure { snackbar.showSnackbar(it.errorText().text(context), R.drawable.ic_error) }
             }
-        },
-    )
+
+            FiatAction.OpenTransactions -> onFiatTransactions()
+
+            FiatAction.Cancel -> cancelAction()
+        }
+    }
 }
 
 @Composable
@@ -126,6 +134,7 @@ fun LotButton(fiatSuggestion: GemFiatSuggestedAmount, onLotClick: (GemFiatSugges
         modifier = Modifier
             .clip(RoundedCornerShape(paddingSmall))
             .clickable { onLotClick(fiatSuggestion) }
+            .testTag("fiat_preset_${fiatSuggestion.amount}")
             .background(MaterialTheme.colorScheme.surfaceContainerHighest)
             .heightIn(min = iconSize)
             .padding(horizontal = space6),

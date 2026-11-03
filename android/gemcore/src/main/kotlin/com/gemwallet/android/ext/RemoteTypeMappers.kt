@@ -254,6 +254,10 @@ fun uniffi.gemstone.Currency.toPrimitives(): com.wallet.core.primitives.Currency
     uniffi.gemstone.Currency.MAD -> com.wallet.core.primitives.Currency.MAD
     uniffi.gemstone.Currency.GHS -> com.wallet.core.primitives.Currency.GHS
     uniffi.gemstone.Currency.PEN -> com.wallet.core.primitives.Currency.PEN
+    uniffi.gemstone.Currency.RON -> com.wallet.core.primitives.Currency.RON
+    uniffi.gemstone.Currency.GEL -> com.wallet.core.primitives.Currency.GEL
+    uniffi.gemstone.Currency.AMD -> com.wallet.core.primitives.Currency.AMD
+    uniffi.gemstone.Currency.MDL -> com.wallet.core.primitives.Currency.MDL
 }
 
 fun com.wallet.core.primitives.Currency.toGem(): uniffi.gemstone.Currency = when (this) {
@@ -312,6 +316,10 @@ fun com.wallet.core.primitives.Currency.toGem(): uniffi.gemstone.Currency = when
     com.wallet.core.primitives.Currency.MAD -> uniffi.gemstone.Currency.MAD
     com.wallet.core.primitives.Currency.GHS -> uniffi.gemstone.Currency.GHS
     com.wallet.core.primitives.Currency.PEN -> uniffi.gemstone.Currency.PEN
+    com.wallet.core.primitives.Currency.RON -> uniffi.gemstone.Currency.RON
+    com.wallet.core.primitives.Currency.GEL -> uniffi.gemstone.Currency.GEL
+    com.wallet.core.primitives.Currency.AMD -> uniffi.gemstone.Currency.AMD
+    com.wallet.core.primitives.Currency.MDL -> uniffi.gemstone.Currency.MDL
 }
 
 fun uniffi.gemstone.DelegationState.toPrimitives(): com.wallet.core.primitives.DelegationState = when (this) {
@@ -577,6 +585,7 @@ fun uniffi.gemstone.PlatformStore.toPrimitives(): com.wallet.core.primitives.Pla
     uniffi.gemstone.PlatformStore.SAMSUNG_STORE -> com.wallet.core.primitives.PlatformStore.SamsungStore
     uniffi.gemstone.PlatformStore.APK_UNIVERSAL -> com.wallet.core.primitives.PlatformStore.ApkUniversal
     uniffi.gemstone.PlatformStore.EMERALD -> com.wallet.core.primitives.PlatformStore.Emerald
+    uniffi.gemstone.PlatformStore.MAC_DMG -> com.wallet.core.primitives.PlatformStore.MacDmg
     uniffi.gemstone.PlatformStore.LOCAL -> com.wallet.core.primitives.PlatformStore.Local
 }
 
@@ -589,6 +598,7 @@ fun com.wallet.core.primitives.PlatformStore.toGem(): uniffi.gemstone.PlatformSt
     com.wallet.core.primitives.PlatformStore.SamsungStore -> uniffi.gemstone.PlatformStore.SAMSUNG_STORE
     com.wallet.core.primitives.PlatformStore.ApkUniversal -> uniffi.gemstone.PlatformStore.APK_UNIVERSAL
     com.wallet.core.primitives.PlatformStore.Emerald -> uniffi.gemstone.PlatformStore.EMERALD
+    com.wallet.core.primitives.PlatformStore.MacDmg -> uniffi.gemstone.PlatformStore.MAC_DMG
     com.wallet.core.primitives.PlatformStore.Local -> uniffi.gemstone.PlatformStore.LOCAL
 }
 
@@ -2077,6 +2087,7 @@ fun uniffi.gemstone.TransactionsFilter.toPrimitives(): com.wallet.core.primitive
     transactionTypes = transactionTypes.map { it.toPrimitives() },
     states = states.map { it.toPrimitives() },
     assetRankGreaterThan = assetRankGreaterThan,
+    createdFrom = createdFrom,
 )
 
 fun com.wallet.core.primitives.TransactionsFilter.toGem(): uniffi.gemstone.TransactionsFilter = uniffi.gemstone.TransactionsFilter(
@@ -2085,6 +2096,7 @@ fun com.wallet.core.primitives.TransactionsFilter.toGem(): uniffi.gemstone.Trans
     transactionTypes = transactionTypes.map { it.toGem() },
     states = states.map { it.toGem() },
     assetRankGreaterThan = assetRankGreaterThan,
+    createdFrom = createdFrom,
 )
 
 fun uniffi.gemstone.Wallet.toPrimitives(): com.wallet.core.primitives.Wallet = com.wallet.core.primitives.Wallet(

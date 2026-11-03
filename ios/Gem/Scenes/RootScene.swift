@@ -86,6 +86,7 @@ struct RootScene: View {
                 title: "\(Localized.WalletConnect.brandName)...",
                 image: SystemImage.network,
             ),
+            duration: .infinity,
             offsetY: -model.toastOffset,
         )
         .toast(message: $model.isPresentingToastMessage, offsetY: -model.toastOffset)

@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.services.gemstone.di
 
-import com.gemwallet.android.data.services.store.database.NftDao
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneNftStore
+import com.gemwallet.android.data.services.store.database.NftDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

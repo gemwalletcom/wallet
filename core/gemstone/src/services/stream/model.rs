@@ -2,7 +2,7 @@ use primitives::{AssetId, TransactionId, WalletId};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemStreamEvent {
-    Prices { prices: u32, rates: u32 },
+    Prices { prices: usize, rates: usize },
     Balances { wallet_id: WalletId, asset_ids: Vec<AssetId> },
     Transactions { wallet_id: WalletId, transaction_ids: Vec<TransactionId>, asset_ids: Vec<AssetId> },
     PriceAlerts { asset_ids: Vec<AssetId> },
@@ -11,6 +11,6 @@ pub enum GemStreamEvent {
     Notification { wallet_id: WalletId },
     FiatTransaction { wallet_id: WalletId },
     WalletConfiguration { wallet_id: WalletId },
-    SupportMessage { message_id: String, images: u32 },
+    SupportMessage { message_id: String, images: usize },
     SupportTyping { is_typing: bool },
 }

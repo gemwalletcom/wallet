@@ -170,7 +170,7 @@ fn info_rows(referral_code: Option<&str>, referral_count: i32, points: i32, used
 }
 
 fn can_redeem(rewards: &Rewards, option: &RewardRedemptionOption) -> bool {
-    rewards.points >= option.points && option.remaining.is_none_or(|remaining| remaining > 0)
+    rewards.points >= option.points
 }
 
 fn has_value(code: Option<&str>) -> bool {
@@ -294,18 +294,6 @@ mod tests {
                 RewardRedemptionOption {
                     id: "too-expensive".to_string(),
                     points: 101,
-                    ..RewardRedemptionOption::mock(asset.clone())
-                },
-                RewardRedemptionOption {
-                    id: "sold-out".to_string(),
-                    points: 10,
-                    remaining: Some(0),
-                    ..RewardRedemptionOption::mock(asset.clone())
-                },
-                RewardRedemptionOption {
-                    id: "last-one".to_string(),
-                    points: 10,
-                    remaining: Some(1),
                     ..RewardRedemptionOption::mock(asset)
                 },
                 RewardRedemptionOption {
@@ -321,10 +309,10 @@ mod tests {
 
         assert_eq!(
             redemptions.iter().map(|redemption| redemption.id.as_str()).collect::<Vec<_>>(),
-            vec!["affordable", "too-expensive", "sold-out", "last-one"],
+            vec!["affordable", "too-expensive"],
             "an option that pays out nothing the wallet can hold is not a row"
         );
-        assert_eq!(redemptions.iter().map(|redemption| redemption.can_redeem).collect::<Vec<_>>(), vec![true, false, false, true]);
+        assert_eq!(redemptions.iter().map(|redemption| redemption.can_redeem).collect::<Vec<_>>(), vec![true, false]);
         assert!(
             redemptions.iter().all(|redemption| redemption.title == GemLocalizedText::RewardsRedeemAsset { value: redemption.value.clone() }),
             "the row title names the value it pays out"

@@ -4,7 +4,7 @@ use model_derive::Model;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator};
 
-use crate::chain_config::{ChainConfig, NO_NATIVE_ASSET_RANK, get_chain_config};
+use crate::chain_config::{ChainConfig, NO_NATIVE_ASSET_RANK, StakeChainConfig, get_chain_config};
 use crate::{AssetId, AssetType, ChainType, FeeUnitType};
 
 #[derive(Copy, Clone, Serialize, Deserialize, EnumIter, AsRefStr, EnumString, PartialEq, Ord, PartialOrd, Eq, Hash, Model)]
@@ -149,8 +149,12 @@ impl Chain {
         self.config().is_swap_supported
     }
 
+    pub fn stake_config(&self) -> Option<&'static StakeChainConfig> {
+        self.config().stake.as_ref()
+    }
+
     pub fn is_stake_supported(&self) -> bool {
-        self.config().stake.is_some()
+        self.stake_config().is_some()
     }
 
     pub fn is_nft_supported(&self) -> bool {

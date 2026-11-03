@@ -6,10 +6,10 @@ import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.store.queries.AssetsQuery
 import com.gemwallet.android.data.services.store.queries.NFTQuery
-import com.gemwallet.android.data.services.store.queries.PerpetualsQuery
 import com.gemwallet.android.data.services.store.queries.RecentActivityQuery
 import com.gemwallet.android.data.services.store.queries.WalletSearchQuery
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
+import com.gemwallet.android.domains.search.WalletSearchTag
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.assets.viewmodels.select.BaseSelectAssetViewModel
@@ -41,7 +41,6 @@ import uniffi.gemstone.GemSelectAssetState
 import uniffi.gemstone.GemSelectAssetType
 import uniffi.gemstone.GemWalletSearchInput
 import uniffi.gemstone.GemWalletSearchView
-import uniffi.gemstone.perpetualMarketQuery
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -52,7 +51,6 @@ class WalletSearchViewModel @Inject constructor(
     walletSearchQuery: WalletSearchQuery,
     recentActivityQuery: RecentActivityQuery,
     service: GemAssetSelectionServiceInterface,
-    perpetualsQuery: PerpetualsQuery,
     nftQuery: NFTQuery,
     @IoDispatcher ioDispatcher: CoroutineDispatcher,
     @ApplicationContext context: Context,
@@ -71,7 +69,7 @@ class WalletSearchViewModel @Inject constructor(
     }
 
     private val perpetuals: Flow<List<PerpetualData>> = currentQuery
-        .flatMapLatest { query -> perpetualMarketQuery(query).let { perpetualsQuery(it.search, it.limit.toInt(), it.requiresVolume) } }
+        .flatMapLatest { query -> walletSearchQuery.perpetuals(GemSearchScope.All.searchKey(query), WalletSearchTag.All, assetsSearchLimit(query)) }
 
     private val collections: Flow<List<NFTData>> = getSession()
         .filterNotNull()
@@ -104,7 +102,7 @@ class WalletSearchViewModel @Inject constructor(
     val previewNfts: StateFlow<List<GemNftEntry>> = content.select(viewModelScope, emptyList()) { it.view.nfts }
     val hasMoreNfts: StateFlow<Boolean> = content.select(viewModelScope, false) { it.view.hasMoreNfts }
 
-    override fun assetsSearchLimit(query: String): Int = service.walletSearchLimits(query).fetch.toInt()
+    override fun assetsSearchLimit(query: String): Int = service.walletSearchLimits(query).fetch
 }
 
 private class WalletSearchRows(val pinned: List<AssetInfoDataAggregate>, unpinned: List<AssetInfoDataAggregate>, val perpetuals: List<PerpetualData>, val lists: List<AssetList>, val collections: List<NFTData>) {
@@ -114,7 +112,7 @@ private class WalletSearchRows(val pinned: List<AssetInfoDataAggregate>, unpinne
         wallet = wallet.toGem(),
         query = query,
         isLoading = isLoading,
-        recents = recents.toUInt(),
+        recents = recents,
         assetIds = assets.map { it.asset.id.toIdentifier() },
         pinnedAssetIds = pinned.map { it.asset.id.toIdentifier() },
         perpetuals = perpetuals.map { it.toGem() },

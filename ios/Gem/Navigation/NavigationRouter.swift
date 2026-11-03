@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import enum Gemstone.GemAssetDestination
 import enum Gemstone.GemCodeOutcome
 import protocol Gemstone.GemDeeplinkServiceProtocol
 import enum Gemstone.GemErrorText
@@ -12,6 +13,7 @@ import protocol Gemstone.GemPaymentServiceProtocol
 import enum Gemstone.GemPaymentTarget
 import enum Gemstone.GemPushNotification
 import protocol Gemstone.GemPushNotificationServiceProtocol
+import enum Gemstone.GemTransactionHeaderAction
 import protocol Gemstone.GemWalletSessionServiceProtocol
 import enum Gemstone.Payment
 import enum Gemstone.UrlAction
@@ -105,7 +107,16 @@ final class NavigationRouter: Sendable {
 
     @MainActor
     func openAsset(_ asset: Asset) {
-        navigationState.openAsset(target: navigationService.assetTarget(asset: asset.toGem()))
+        Task { await open(assetId: asset.id) }
+    }
+
+    @MainActor
+    private func open(assetId: AssetId) async {
+        do {
+            try await appendAsset(target: navigationService.openAsset(assetId: assetId))
+        } catch {
+            showError(error)
+        }
     }
 
     @MainActor
@@ -136,9 +147,15 @@ final class NavigationRouter: Sendable {
 @MainActor
 extension NavigationRouter {
     private func open(target: GemNavigationTarget) async throws {
+        if case .none = target {
+            return
+        }
+        presenter.reset()
         switch target {
-        case let .asset(asset, walletId, isPerpetual):
-            try openTarget(path: [NavigationStateManager.assetScene(asset.toPrimitives(), isPerpetual: isPerpetual)], walletId: walletId)
+        case let .asset(destination, walletId):
+            try openTarget(path: Self.assetPath(destination), walletId: walletId)
+        case let .chart(asset):
+            navigationState.openWallet(path: [Scenes.Chart(asset: asset.toPrimitives())])
         case let .receive(asset):
             try await presentAssetInput(type: .receive(.asset), for: asset.toPrimitives())
         case let .fiat(asset, amount, quoteType):
@@ -149,7 +166,8 @@ extension NavigationRouter {
             }
             try await presentAssetInput(type: type, for: asset)
         case let .swap(from, to):
-            try await presentSwap(from: from.toPrimitives().id, to: to?.toPrimitives().id)
+            let from = from.toPrimitives()
+            try await presentAssetInput(type: .swap(from.id, to?.toPrimitives().id), for: from)
         case .perpetuals:
             navigationState.wallet.append(Scenes.Perpetuals())
         case let .rewards(code):
@@ -158,12 +176,42 @@ extension NavigationRouter {
             presenter.isPresentingSupport.wrappedValue = true
         case let .address(chain, address):
             presenter.isPresentingAddressDetails.wrappedValue = ChainAddress(chain: Chain(core: chain), address: address)
-        case let .transaction(asset, walletId, transactionId, isPerpetual):
-            try openTarget(path: transactionPath(asset: asset.toPrimitives(), isPerpetual: isPerpetual, transactionId: transactionId), walletId: walletId)
+        case let .transaction(destination, walletId, transactionId):
+            try openTarget(path: Self.assetPath(destination) + [Scenes.Transaction(id: transactionId)], walletId: walletId)
         case .none:
             break
         }
         selectTab(target.tab())
+    }
+
+    func openTransactionAction(_ action: GemTransactionHeaderAction, collectiblePath: NavigationPathState) async throws {
+        switch action {
+        case let .asset(assetId), let .perpetual(assetId):
+            try await appendAsset(target: navigationService.openAsset(assetId: assetId))
+        case let .swap(fromAssetId, toAssetId):
+            try await open(target: navigationService.openSwap(fromAssetId: fromAssetId, toAssetId: toAssetId))
+        case let .nft(assetId):
+            try collectiblePath.append(Scenes.Collectible.assetId(NFTAssetId.from(id: assetId)))
+        }
+    }
+
+    private func appendAsset(target: GemNavigationTarget) {
+        guard case let .asset(destination, _) = target else { return }
+        navigationState.appendWallet(Self.assetScene(destination))
+    }
+
+    private static func assetScene(_ destination: GemAssetDestination) -> any Hashable & Codable {
+        switch destination {
+        case let .asset(asset): Scenes.Asset(asset: asset.toPrimitives())
+        case let .perpetual(asset): Scenes.Perpetual(asset.toPrimitives())
+        }
+    }
+
+    private static func assetPath(_ destination: GemAssetDestination) -> [any Hashable & Codable] {
+        switch destination {
+        case .asset: [assetScene(destination)]
+        case .perpetual: [Scenes.Perpetuals(), assetScene(destination)]
+        }
     }
 
     private func openTarget(path: [any Hashable & Codable], walletId: WalletId?) throws {
@@ -185,7 +233,9 @@ extension NavigationRouter {
         }
         let target = try await paymentService.prepare(payment: payment, wallet: wallet)
         toastPresenter.toastMessage = nil
-        presenter.isPresentingPayment.wrappedValue = try paymentDestination(target, wallet: wallet.toPrimitives())
+        let destination = try paymentDestination(target, wallet: wallet.toPrimitives())
+        presenter.reset()
+        presenter.isPresentingPayment.wrappedValue = destination
     }
 
     private func paymentDestination(_ target: GemPaymentTarget, wallet: Primitives.Wallet) throws -> PaymentDestination {
@@ -224,11 +274,10 @@ extension NavigationRouter {
 @MainActor
 extension NavigationRouter {
     private func openWalletConnect(_ link: WalletConnectLink) async {
-        walletConnectorPresenter.isPresentingConnectionBar = true
-
         do {
             switch link {
             case let .connect(uri):
+                walletConnectorPresenter.isPresentingConnectionBar = true
                 try await walletConnector.pair(uri: uri)
             case .request:
                 break
@@ -237,7 +286,7 @@ extension NavigationRouter {
             }
         } catch {
             debugLog("NavigationRouter walletConnect error: \(error)")
-            walletConnectorPresenter.isPresentingError = error.localizedDescription
+            walletConnectorPresenter.presentError(error.localizedDescription)
         }
     }
 }
@@ -280,18 +329,6 @@ extension NavigationRouter {
         navigationState.pendingWalletPath = path
     }
 
-    private func transactionPath(asset: Asset, isPerpetual: Bool, transactionId: TransactionId) -> [any Hashable & Codable] {
-        switch isPerpetual {
-        case true: [Scenes.Perpetuals(), Scenes.Perpetual(asset), Scenes.Transaction(id: transactionId)]
-        case false: [Scenes.Asset(asset: asset), Scenes.Transaction(id: transactionId)]
-        }
-    }
-
-    private func presentSwap(from fromId: AssetId, to toId: AssetId?) async throws {
-        let wallet = try await walletSessionService.requireCurrentWallet().toPrimitives()
-        try await presenter.presentSwap(from: fromId, to: toId, wallet: wallet)
-    }
-
     private func presentAssetInput(type: SelectedAssetType, for asset: Asset) async throws {
         let wallet = try await walletSessionService.requireCurrentWallet().toPrimitives()
         try presenter.presentAssetInput(type: type, for: asset, wallet: wallet)
@@ -299,5 +336,9 @@ extension NavigationRouter {
 
     func resetNavigation() {
         navigationState.reset()
+    }
+
+    func backToRoot(tab: TabItem) {
+        navigationState.backToRoot(tab: tab)
     }
 }

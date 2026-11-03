@@ -9,6 +9,7 @@ impl GemChart {
             base_value: base_value(&values),
             values,
             current: None,
+            has_candles: false,
         }
     }
 }

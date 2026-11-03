@@ -60,6 +60,8 @@ extension ConfirmTransferScene {
                 isEnabled: selectable,
                 action: self.model.onSelectPaymentAsset,
             )
+        case let .message(text):
+            Text(text)
         case let .swapDetails(details):
             NavigationCustomLink(
                 with: SwapDetailsListView(details: details),

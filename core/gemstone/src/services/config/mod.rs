@@ -3,7 +3,7 @@ pub(crate) mod testkit;
 
 use std::sync::Arc;
 
-use primitives::{ConfigResponse, Feature};
+use primitives::{ConfigResponse, Feature, PlatformStore};
 
 use crate::api::{GemApiClient, GemApiError};
 use crate::services::error::GemServiceError;
@@ -15,13 +15,14 @@ type ConfigResult = Result<ConfigResponse, GemServiceError>;
 pub struct GemConfigService {
     api: Arc<GemApiClient>,
     preferences: Arc<GemPreferencesService>,
+    store: PlatformStore,
 }
 
 #[uniffi::export]
 impl GemConfigService {
     #[uniffi::constructor]
-    pub fn new(api: Arc<GemApiClient>, preferences: Arc<GemPreferencesService>) -> Self {
-        Self { api, preferences }
+    pub fn new(api: Arc<GemApiClient>, preferences: Arc<GemPreferencesService>, store: PlatformStore) -> Self {
+        Self { api, preferences, store }
     }
 }
 
@@ -31,7 +32,7 @@ impl GemConfigService {
     }
 
     pub async fn update_config(&self) -> ConfigResult {
-        let config = self.api.client.get_config().await.map_err(GemApiError::from)?;
+        let config = self.api.client.get_config(self.store).await.map_err(GemApiError::from)?;
         self.preferences.set_config(&config)?;
         Ok(config)
     }
@@ -48,6 +49,8 @@ impl GemConfigService {
 mod tests {
     use super::*;
     use crate::alien::{AlienError, AlienProvider, AlienResponse, AlienTarget};
+    use crate::services::preferences::testkit::MemoryPreferencesStore;
+    use crate::testkit::TestAlienProvider;
     use async_trait::async_trait;
     use primitives::{ConfigVersions, Features, SwapConfig};
     use std::future::Future;
@@ -92,6 +95,17 @@ mod tests {
                 swap: SwapConfig { enabled_providers: vec![] },
             };
             Ok(Arc::new(AlienResponse::new(Some(200), serde_json::to_vec(&config).unwrap())))
+        }
+    }
+
+    #[test]
+    fn test_update_config_requests_current_store() {
+        for store in PlatformStore::all() {
+            let provider = Arc::new(TestAlienProvider::with_status(500));
+            let service = GemConfigService::new(Arc::new(GemApiClient::new(provider.clone())), Arc::new(GemPreferencesService::new(Arc::new(MemoryPreferencesStore::default()))), store);
+
+            assert!(futures::executor::block_on(service.update_config()).is_err());
+            assert_eq!(provider.requested_paths(), vec![format!("/v1/config?store={}", store.as_ref())]);
         }
     }
 

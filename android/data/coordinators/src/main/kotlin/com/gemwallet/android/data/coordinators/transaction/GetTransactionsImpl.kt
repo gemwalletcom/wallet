@@ -4,9 +4,9 @@ import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.data.services.store.queries.TransactionsQuery
-import com.gemwallet.android.ext.GemConstants
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
+import com.gemwallet.android.ext.transactions
 import com.wallet.core.primitives.TransactionListItem
 import com.wallet.core.primitives.TransactionsFilter
 import com.wallet.core.primitives.WalletId
@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
+import uniffi.gemstone.GemListWindow
 import uniffi.gemstone.GemTransactionRow
 import uniffi.gemstone.activityFilters
 import uniffi.gemstone.transactionRows
@@ -37,7 +38,7 @@ class GetTransactionsImpl(
     private val observations = RecentRequests<Flow<List<GemTransactionRow>>>()
 
     init {
-        getTransactions(activityFilters(emptyList(), emptyList()).toPrimitives(), GemConstants.transactionsListLimit).launchIn(scope)
+        getTransactions(TransactionsRequest.activity.filter, TransactionsRequest.activity.limit).launchIn(scope)
     }
 
     override fun getTransactions(filter: TransactionsFilter?, limit: Int): Flow<List<GemTransactionRow>> = TransactionsRequest(filter, limit).let { request ->
@@ -54,7 +55,11 @@ class GetTransactionsImpl(
     override fun stored(filter: TransactionsFilter?, limit: Int): List<GemTransactionRow> = getSession().value?.wallet?.id?.let { rowCache.stored(it, TransactionsRequest(filter, limit)) }.orEmpty()
 }
 
-internal data class TransactionsRequest(val filter: TransactionsFilter?, val limit: Int)
+internal data class TransactionsRequest(val filter: TransactionsFilter?, val limit: Int) {
+    companion object {
+        val activity = TransactionsRequest(activityFilters(emptyList(), emptyList()).toPrimitives(), GemListWindow.transactions.limit)
+    }
+}
 
 internal class TransactionRows {
 
@@ -80,7 +85,7 @@ internal class TransactionRows {
 internal class RecentRequests<T>(private val limit: Int = LIMIT) {
 
     private val entries = LinkedHashMap<TransactionsRequest, T>(limit, 0.75f, true)
-    private val pinned = TransactionsRequest(activityFilters(emptyList(), emptyList()).toPrimitives(), GemConstants.transactionsListLimit)
+    private val pinned = TransactionsRequest.activity
 
     @Synchronized
     fun get(request: TransactionsRequest): T? = entries[request]

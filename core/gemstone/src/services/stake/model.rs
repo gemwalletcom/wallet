@@ -48,7 +48,7 @@ pub struct GemDelegationListRow {
 
 #[uniffi::export]
 pub fn delegation_details(wallet_type: WalletType, delegation: Delegation, asset: Asset, price: Option<f64>, currency: Currency) -> GemDelegationDetails {
-    rules::delegation_details(wallet_type, &delegation, &asset, price, currency, Vec::new(), &[])
+    rules::delegation_details(wallet_type, &delegation, &asset, price, currency, Vec::new(), &[], true)
 }
 
 #[uniffi::export]
@@ -80,7 +80,14 @@ impl GemDelegationRecord {
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemDelegationActionItem {
     pub action: GemDelegationAction,
-    pub destination: GemDelegationDestination,
+    pub target: GemDelegationActionTarget,
+}
+
+#[derive(Debug, Clone, uniffi::Enum)]
+#[allow(clippy::large_enum_variant)]
+pub enum GemDelegationActionTarget {
+    Open { destination: GemDelegationDestination },
+    RegionUnavailable,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -103,6 +110,7 @@ pub struct GemStakeActionItem {
 pub enum GemStakeAction {
     Open { destination: GemStakeDestination },
     FrozenBalanceInfo,
+    RegionUnavailable,
     Disabled,
 }
 

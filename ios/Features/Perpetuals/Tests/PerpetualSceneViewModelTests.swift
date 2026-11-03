@@ -14,14 +14,17 @@ import Testing
 @MainActor
 struct PerpetualSceneViewModelTests {
     @Test
-    func aPeriodWithoutCandlesYetShowsLoadingInsteadOfAnEmptyChart() {
-        let model = PerpetualSceneViewModel.mock()
+    func aPeriodWithoutCandlesYetShowsLoadingInsteadOfAnEmptyChart() async {
+        let service = GemPerpetualDetailsServiceMock()
+        service.candlesticksValue = [ChartCandleStick(date: .now, open: 100, high: 110, low: 90, close: 105, volume: 1).toGem()]
+        let model = PerpetualSceneViewModel.mock(service: service)
+        await model.chart.loadCandles(perpetual: model.perpetual)
 
-        #expect(model.chart.state(position: nil, transactions: []).isLoading)
+        #expect(!model.chart.state(position: nil).isLoading)
 
         model.chart.currentPeriod = .week
 
-        #expect(model.chart.state(position: nil, transactions: []).isLoading)
+        #expect(model.chart.state(position: nil).isLoading)
     }
 
     @Test(.timeLimit(.minutes(1)))
@@ -85,6 +88,8 @@ struct PerpetualSceneViewModelTests {
     @Test
     func modifyingOffersTheChoiceThenClosesItOnPick() {
         let service = GemPerpetualDetailsServiceMock()
+        let position = Primitives.PerpetualPosition.mock().toGem()
+        service.detailsValue = .mock(sections: [.position(rows: [])], position: position)
         let model = PerpetualSceneViewModel.mock(service: service)
 
         model.onSelectButton(.modify)
@@ -98,6 +103,7 @@ struct PerpetualSceneViewModelTests {
         model.onSelectButton(.reduce)
         #expect(model.isPresentingModifyAlert == false)
         #expect(service.positionKinds == [.increase, .reduce])
+        #expect(service.positionActionPositions == [position, position])
     }
 
     @Test
@@ -114,13 +120,16 @@ struct PerpetualSceneViewModelTests {
     }
 
     @Test
-    func closingSendsTheTransferCoreBuilt() {
+    func closingSendsTheTransferCoreBuiltForTheShownPosition() {
         let service = GemPerpetualDetailsServiceMock()
+        let position = Primitives.PerpetualPosition.mock().toGem()
+        service.detailsValue = .mock(sections: [.position(rows: [])], position: position)
         var transfers: [GemTransferData] = []
         let model = PerpetualSceneViewModel.mock(service: service, onTransferData: { transfers.append($0) })
 
         model.onSelectButton(.close)
 
+        #expect(service.closeTransferPositions == [position])
         #expect(transfers.count == 1)
         #expect(model.isPresentingInfoSheet == nil)
     }

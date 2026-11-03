@@ -99,9 +99,13 @@ impl BrokerSwapStatus {
 
     pub fn swap_result(&self, assets: &AssetsResponse) -> SwapResult {
         let status = self.swap_status();
-        if status == SwapStatus::Pending {
-            let eta_in_seconds = self.estimated_duration_seconds.filter(|seconds| seconds.is_finite() && *seconds > 0.0).and_then(|seconds| seconds.ceil().to_u32());
-            return SwapResult { status, metadata: None, eta_in_seconds };
+        match status {
+            SwapStatus::Pending => {
+                let eta_in_seconds = self.estimated_duration_seconds.filter(|seconds| seconds.is_finite() && *seconds > 0.0).and_then(|seconds| seconds.ceil().to_u32());
+                return SwapResult { status, metadata: None, eta_in_seconds };
+            }
+            SwapStatus::Failed | SwapStatus::Refunded => return SwapResult::from(status),
+            SwapStatus::Completed => {}
         }
 
         let metadata = (|| {
@@ -148,7 +152,7 @@ mod tests {
     }
 
     #[test]
-    fn test_swap_result_pending_and_refunded() {
+    fn test_swap_result_without_metadata() {
         let pending = status(r#"{"id":1,"status":{"state":"receiving","sourceAsset":"dot.hub","destinationAsset":"eth.eth","estimatedDurationSeconds":102.26}}"#);
         assert_eq!(
             pending.swap_result(&AssetsResponse::mock()),
@@ -160,6 +164,9 @@ mod tests {
         );
 
         let refunded = status(r#"{"id":1,"status":{"state":"completed","sourceAsset":"dot.hub","destinationAsset":"eth.eth","deposit":{"amountNative":"50000000000"},"refundEgress":{"amountNative":"49800000000"}}}"#);
-        assert_eq!(refunded.swap_result(&AssetsResponse::mock()).status, SwapStatus::Refunded);
+        assert_eq!(refunded.swap_result(&AssetsResponse::mock()), SwapResult::from(SwapStatus::Refunded));
+
+        let failed = status(r#"{"id":1,"status":{"state":"failed","sourceAsset":"dot.hub","destinationAsset":"eth.eth","deposit":{"amountNative":"50000000000"},"swap":{"swappedOutputAmountNative":"1000"}}}"#);
+        assert_eq!(failed.swap_result(&AssetsResponse::mock()), SwapResult::from(SwapStatus::Failed));
     }
 }

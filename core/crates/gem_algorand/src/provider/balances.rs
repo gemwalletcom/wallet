@@ -21,7 +21,7 @@ impl<C: Client> ChainBalances for AlgorandProvider<C> {
         Ok(map_balance_tokens(&account, token_ids, self.get_chain()))
     }
 
-    async fn get_balance_assets(&self, address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>> {
+    async fn get_balance_assets(&self, address: String) -> Result<Option<Vec<AssetBalance>>, Box<dyn Error + Send + Sync>> {
         let account = self.get_account(&address).await?;
         let asset_balances: Vec<AssetBalance> = account
             .assets
@@ -29,7 +29,7 @@ impl<C: Client> ChainBalances for AlgorandProvider<C> {
             .map(|asset| AssetBalance::new(AssetId::from(self.get_chain(), Some(asset.asset_id.to_string())), BigUint::from(asset.amount)))
             .collect();
 
-        Ok(asset_balances)
+        Ok(Some(asset_balances))
     }
 }
 
@@ -69,7 +69,7 @@ mod chain_integration_tests {
     async fn test_algorand_get_balance_assets() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_algorand_test_client();
         let address = TEST_ADDRESS.to_string();
-        let assets = client.get_balance_assets(address).await?;
+        let assets = client.get_balance_assets(address).await?.unwrap();
 
         assert!(assets.is_empty());
 

@@ -12,6 +12,6 @@ appId: ${APP_ID}
     id: "stablecoins"
 - extendedWaitUntil:
     visible:
-      id: "ethereum_0xdAC17F958D2ee523a2206206994597C13D831ec7"
+      id: "ethereum_${USDT_CONTRACT}"
     timeout: 15000
 - takeScreenshot: ${output.journey}_search_list

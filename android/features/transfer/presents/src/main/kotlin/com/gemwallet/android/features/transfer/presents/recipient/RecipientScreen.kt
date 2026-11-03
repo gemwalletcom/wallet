@@ -3,7 +3,7 @@ package com.gemwallet.android.features.transfer.presents.recipient
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -27,7 +27,7 @@ fun RecipientScreen(cancelAction: CancelAction, amountAction: AmountTransactionA
     val memo by viewModel.memo.collectAsStateWithLifecycle()
     val nameResolveIndicator by viewModel.nameResolveIndicator.collectAsStateWithLifecycle()
 
-    var scan by remember { mutableStateOf(QrScanField.None) }
+    var scan by rememberSaveable { mutableStateOf(QrScanField.None) }
 
     when (val currentState = state) {
         RecipientUIState.Loading -> Unit

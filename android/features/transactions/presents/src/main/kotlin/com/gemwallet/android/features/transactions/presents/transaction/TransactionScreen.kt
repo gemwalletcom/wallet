@@ -3,7 +3,7 @@ package com.gemwallet.android.features.transactions.presents.transaction
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -24,7 +24,7 @@ fun TransactionScreen(onAction: (TransactionAction.Navigation) -> Unit, viewMode
     val sections by viewModel.sections.collectAsStateWithLifecycle()
     val headerTarget by viewModel.headerTarget.collectAsStateWithLifecycle()
     val loadState by viewModel.loadState.collectAsStateWithLifecycle()
-    var isShowFeeDetails by remember { mutableStateOf(false) }
+    var isShowFeeDetails by rememberSaveable { mutableStateOf(false) }
     val context = LocalContext.current
 
     fun onShare(url: String, name: String) {

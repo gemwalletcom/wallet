@@ -43,6 +43,7 @@ pub(super) fn map_invoice(invoice: &Invoice, payment_id: &str) -> PaymentInvoice
             icon: invoice.merchant.icon_url.clone().unwrap_or_default(),
         },
         price: Some(invoice.price.clone()),
+        message: None,
         quotes: invoice.quotes.iter().map(map_payment_quote).collect(),
         verification: None,
     }
@@ -252,6 +253,7 @@ mod tests {
                 link: PaymentLink::WalletConnectPay { payment_id: "pay_1".to_string() },
                 merchant: PaymentMerchant::mock(),
                 price: Some(PaymentPrice::mock()),
+                message: None,
                 quotes: vec![PaymentQuote {
                     id: quotes[0].id.clone(),
                     asset_id: AssetId::from_chain(Chain::Optimism),

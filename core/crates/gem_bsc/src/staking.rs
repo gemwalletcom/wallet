@@ -10,7 +10,7 @@ use num_bigint::BigInt;
 use primitives::{AssetBalance, AssetId, Chain, DelegationBase, DelegationValidator, StakeType};
 
 use crate::constants::{HUB_READER_ADDRESS, STAKE_HUB_ADDRESS, STAKING_VALIDATORS_LIMIT};
-use crate::encode::{decode_delegations, decode_undelegations, decode_validators, encode_delegations_call, encode_stake, encode_undelegations_call, encode_validators_call};
+use crate::encode::{decode_delegations, decode_max_elected_validators, decode_undelegations, decode_validators, encode_delegations_call, encode_max_elected_validators_call, encode_stake, encode_undelegations_call, encode_validators_call};
 use crate::mapper::{map_delegations, map_staking_balance, map_validators};
 use crate::model::{BscDelegation, BscUndelegation};
 use crate::parser::BscParser;
@@ -40,9 +40,7 @@ impl<C: Client + Clone> BscStakingClient<C> {
     }
 
     async fn get_max_elected_validators(&self) -> Result<u16, Box<dyn Error + Sync + Send>> {
-        let result_data = self.client.eth_call(STAKE_HUB_ADDRESS, &hex::decode("c473318f")?).await?;
-        let bytes: [u8; 4] = result_data.get(28..32).ok_or("Invalid response format for maxElectedValidators")?.try_into()?;
-        Ok(u32::from_be_bytes(bytes) as u16)
+        decode_max_elected_validators(&self.client.eth_call(STAKE_HUB_ADDRESS, &encode_max_elected_validators_call()).await?)
     }
 }
 

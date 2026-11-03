@@ -51,6 +51,7 @@ import struct Gemstone.GemInfoAmount
 import enum Gemstone.GemInfoDescription
 import enum Gemstone.GemInfoTitle
 import enum Gemstone.GemKeystoreAuthentication
+import enum Gemstone.GemLatencyStatus
 import enum Gemstone.GemListRowTitle
 import enum Gemstone.GemListSectionFooter
 import enum Gemstone.GemListSectionTitle
@@ -70,6 +71,7 @@ import enum Gemstone.GemRecipientError
 import enum Gemstone.GemRecipientErrorDisplay
 import enum Gemstone.GemRecipientSectionKind
 import enum Gemstone.GemRewardsIntroItem
+import enum Gemstone.GemSecretWarning
 import enum Gemstone.GemSecurityReminderItem
 import enum Gemstone.GemSelectAssetSection
 import enum Gemstone.GemSelectAssetTitle
@@ -87,6 +89,7 @@ import enum Gemstone.GemTransactionTitle
 import enum Gemstone.GemTriggerOrder
 import enum Gemstone.GemValidatorSectionKind
 import enum Gemstone.GemVerificationLevel
+import enum Gemstone.GemWalletConnectFailure
 import enum Gemstone.GemWalletImportKind
 import enum Gemstone.GemWalletSecret
 import enum Gemstone.GemWalletSecretKind
@@ -777,6 +780,16 @@ extension GemErrorText: @retroactive LocalizedError {
     }
 }
 
+extension GemWalletConnectFailure: @retroactive LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case .maliciousOrigin: Localized.Errors.Connections.maliciousOrigin
+        case .expired: Localized.WalletConnect.requestExpired
+        case let .failed(error): error.text
+        }
+    }
+}
+
 extension GemRecipientError: @retroactive LocalizedError {
     public var errorDescription: String? { display().errorDescription }
 }
@@ -1163,6 +1176,31 @@ public extension GemWalletSecretKind {
         case .privateKey: Localized.PrivateKey.ScreenshotDetected.description
         }
     }
+
+    var reminderIntro: String {
+        switch self {
+        case .phrase: Localized.Onboarding.Security.CreateWallet.Intro.title
+        case .privateKey: Localized.PrivateKey.Reminder.intro
+        }
+    }
+}
+
+public extension GemSecretWarning {
+    var title: String {
+        switch self {
+        case .doNotShare: Localized.SecretPhrase.DoNotShare.title
+        case .doNotSharePrivateKey: Localized.PrivateKey.DoNotShare.title
+        case .saveSafely: Localized.SecretPhrase.savePhraseSafely
+        }
+    }
+
+    var description: String? {
+        switch self {
+        case .doNotShare: Localized.SecretPhrase.DoNotShare.description
+        case .doNotSharePrivateKey: Localized.PrivateKey.DoNotShare.description
+        case .saveSafely: nil
+        }
+    }
 }
 
 public extension ReportReason {
@@ -1395,6 +1433,16 @@ public extension GemNodeCheckRow {
     }
 }
 
+public extension GemLatencyStatus {
+    var text: String {
+        switch self {
+        case let .result(latency): Localized.Common.latencyInMs(Int(latency.value))
+        case .error: Localized.Errors.error
+        case .loading: ""
+        }
+    }
+}
+
 public extension GemNodeSubtitle {
     var title: String {
         switch self {
@@ -1482,6 +1530,7 @@ extension GemSwapErrorDisplay: @retroactive LocalizedError {
         case let .minimumAmount(minimum):
             Localized.Errors.Swap.minimumAmount(minimum.text().boldMarkdown())
         case .amountTooSmall: Localized.Errors.Swap.amountTooSmall
+        case let .message(msg): msg
         }
     }
 }
@@ -1637,38 +1686,13 @@ extension GemConfirmErrorDisplay: @retroactive LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .offline: Localized.Errors.networkOffline
-        case .malicious: Localized.Errors.ScanTransaction.Malicious.description
-        case let .memoRequired(symbol): Localized.Errors.ScanTransaction.memoRequired(symbol.boldMarkdown())
         case .feeRatesMissing: Localized.Errors.unableEstimateNetworkFee
         case .cancelled: Localized.Errors.cancelled
         case .accountMissing: Localized.Errors.walletAccountMissing
         case .unknown: Localized.Errors.unknown
-        case let .balanceRequired(_, requirement):
-            Localized.Info.balanceRequiredDescription(
-                requirement.required.text().boldMarkdown(),
-                requirement.available.text().boldMarkdown(),
-                requirement.shortfall.text().boldMarkdown(),
-            )
-        case let .networkFeeRequired(asset, _, requirement):
-            Localized.Info.InsufficientNetworkFeeBalance.description(
-                requirement.required.text().boldMarkdown(),
-                asset.toPrimitives().chain.networkName.boldMarkdown(),
-                requirement.available.text().boldMarkdown(),
-                requirement.shortfall.text().boldMarkdown(),
-            )
-        case let .networkFeeMissing(_, title):
-            Localized.Transfer.insufficientNetworkFeeBalance(title.boldMarkdown())
-        case let .minimumAccountBalance(_, required):
-            Localized.Transfer.minimumAccountBalance(required.text().boldMarkdown())
+        case let .description(description): description.text
         case let .destinationAccountActivation(_, required):
             Localized.Transfer.destinationAccountActivation(required.text().boldMarkdown())
-        case let .swapMinimum(_, _, providerName, requirement):
-            Localized.Info.swapMinimumAmountDescription(
-                providerName.boldMarkdown(),
-                requirement.required.text().boldMarkdown(),
-                requirement.available.text().boldMarkdown(),
-                requirement.shortfall.text().boldMarkdown(),
-            )
         case .dustThreshold: Localized.Errors.dustThresholdShort
         case .insufficientFunds: Localized.Info.InsufficientBalance.title
         case let .payment(status): status.errorText

@@ -98,7 +98,7 @@ pub fn transaction_status(status: FiatTransactionStatus) -> GemFiatTransactionSt
 }
 
 pub fn transaction_row(data: &FiatTransactionAssetData) -> GemFiatTransactionRow {
-    let status = transaction_status(data.status.clone());
+    let status = transaction_status(data.status);
     GemFiatTransactionRow {
         id: data.id.clone(),
         created_at: data.created_at,

@@ -4,7 +4,6 @@ import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.store.queries.TransactionsQuery
 import com.gemwallet.android.ext.GemConstants
-import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockTransactionsFilter
 import com.gemwallet.android.testkit.mockWallet
@@ -25,7 +24,6 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import uniffi.gemstone.activityFilters
 import java.util.concurrent.atomic.AtomicInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -51,7 +49,7 @@ class GetTransactionsImplTest {
     fun screensOnOneFilterShareOneQuery() = runTest {
         val subject = GetTransactionsImpl(getSession, getCurrentWalletId, transactionsQuery, backgroundScope)
         val filters = mockTransactionsFilter(chains = listOf(Chain.Bitcoin))
-        subject.getTransactions(activityFilters(emptyList(), emptyList()).toPrimitives(), GemConstants.transactionsListLimit).first()
+        subject.getTransactions(TransactionsRequest.activity.filter, TransactionsRequest.activity.limit).first()
         val baseline = subscriptions.get()
 
         backgroundScope.launch { subject.getTransactions(filters, GemConstants.transactionsListLimit).collect {} }
@@ -65,8 +63,8 @@ class GetTransactionsImplTest {
     fun theActivityScreenSharesTheDefaultObservation() = runTest {
         val subject = GetTransactionsImpl(getSession, getCurrentWalletId, transactionsQuery, backgroundScope)
 
-        subject.getTransactions(activityFilters(emptyList(), emptyList()).toPrimitives(), GemConstants.transactionsListLimit).first()
-        subject.getTransactions(activityFilters(emptyList(), emptyList()).toPrimitives(), GemConstants.transactionsListLimit).first()
+        subject.getTransactions(TransactionsRequest.activity.filter, TransactionsRequest.activity.limit).first()
+        subject.getTransactions(TransactionsRequest.activity.filter, TransactionsRequest.activity.limit).first()
 
         assertEquals(1, subscriptions.get())
     }

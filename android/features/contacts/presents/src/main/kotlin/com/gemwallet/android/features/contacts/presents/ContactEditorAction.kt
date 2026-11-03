@@ -3,6 +3,8 @@ package com.gemwallet.android.features.contacts.presents
 import com.wallet.core.primitives.ContactAddress
 
 sealed interface ContactEditorAction {
+    data class SetName(val name: String) : ContactEditorAction
+    data class SetDescription(val description: String) : ContactEditorAction
     data object SelectAvatar : ContactEditorAction
     data object RemoveAvatar : ContactEditorAction
     data object AddAddress : ContactEditorAction

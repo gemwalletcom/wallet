@@ -10,10 +10,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -46,27 +48,26 @@ import uniffi.gemstone.GemListPhase
 @Composable
 fun ConnectionsScreen(onConnection: (String) -> Unit, onCancel: () -> Unit, viewModel: ConnectionsViewModel = hiltViewModel()) {
     val clipboardManager = LocalContext.current.clipboardManager()
-    var scannerShowed by remember { mutableStateOf(false) }
+    var scannerShowed by rememberSaveable { mutableStateOf(false) }
 
     val sections by viewModel.sections.collectAsStateWithLifecycle()
     val phase by viewModel.phase.collectAsStateWithLifecycle()
     val docsUrl by viewModel.docsUrl.collectAsStateWithLifecycle()
 
-    var pairError by remember { mutableStateOf("") }
+    val pairError by viewModel.pairError.collectAsStateWithLifecycle()
 
     val connectingText = "${stringResource(id = R.string.wallet_connect_brand_name)}..."
     val scope = rememberCoroutineScope()
     val snackbar = remember { SnackbarHostState() }
     val connect: (String) -> Unit = { uri ->
         scope.launch { snackbar.showSnackbar(connectingText, R.drawable.ic_refresh) }
-        viewModel.addPairing(
-            uri,
-            onSuccess = {},
-            onError = { error ->
-                snackbar.currentSnackbarData?.dismiss()
-                pairError = error
-            },
-        )
+        viewModel.addPairing(uri)
+    }
+
+    LaunchedEffect(pairError) {
+        if (pairError != null) {
+            snackbar.currentSnackbarData?.dismiss()
+        }
     }
 
     Scene(
@@ -120,13 +121,13 @@ fun ConnectionsScreen(onConnection: (String) -> Unit, onCancel: () -> Unit, view
         },
     )
 
-    if (pairError.isNotEmpty()) {
+    pairError?.let { error ->
         AlertDialog(
-            onDismissRequest = { pairError = "" },
+            onDismissRequest = viewModel::dismissPairError,
             confirmButton = {
-                Button(onClick = { pairError = "" }) { Text(text = stringResource(id = R.string.common_done)) }
+                Button(onClick = viewModel::dismissPairError) { Text(text = stringResource(id = R.string.common_done)) }
             },
-            text = { Text(text = pairError) },
+            text = { Text(text = error) },
         )
     }
 }

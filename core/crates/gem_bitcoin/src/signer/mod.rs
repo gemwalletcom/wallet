@@ -27,10 +27,8 @@ pub(crate) fn estimate_transaction_fee(chain: BitcoinChain, input: &TransactionL
         TransactionInputType::Swap { .. } => planner::SpendRequest::swap(chain, &signer_input)?,
         _ => return SignerError::invalid_input_err("unsupported Bitcoin transaction type"),
     };
-    let plan = planner::UtxoPlanner::plan(request)?;
-
     Ok(TransactionFee {
-        fee: BigInt::from(plan.fee),
+        fee: BigInt::from(planner::UtxoPlanner::fee(request)?),
         gas_price_type: input.gas_price.clone(),
         gas_limit: BigInt::from(1u8),
         options: HashMap::new(),

@@ -12,11 +12,9 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -34,9 +32,11 @@ import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemImageStyle
 import com.gemwallet.android.ui.components.list_item.ListItemModel
+import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.localization.string
+import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.style.listItemImage
 import com.gemwallet.android.ui.theme.Spacer16
@@ -49,21 +49,12 @@ import uniffi.gemstone.GemWalletDetails
 @Composable
 internal fun WalletDetailScene(wallet: GemWalletDetails?, snackbar: SnackbarHostState? = null, onAction: (WalletDetailAction) -> Unit) {
     wallet ?: return
-    var showDeleteDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
 
     var walletName by rememberSaveable { mutableStateOf(wallet.row.name) }
     Scene(
         title = stringResource(id = R.string.common_wallet),
         snackbar = snackbar,
-        actions = {
-            TextButton(
-                onClick = { onAction(WalletDetailAction.Cancel) },
-                colors = ButtonDefaults.textButtonColors()
-                    .copy(contentColor = MaterialTheme.colorScheme.onBackground),
-            ) {
-                Text(stringResource(R.string.common_done).uppercase())
-            }
-        },
         onClose = { onAction(WalletDetailAction.Cancel) },
     ) {
         Column(
@@ -86,6 +77,7 @@ internal fun WalletDetailScene(wallet: GemWalletDetails?, snackbar: SnackbarHost
             val secretKind = wallet.secretKind
             val showSecret = wallet.showSecret
             if (secretKind != null && showSecret != null) {
+                SubheaderItem(secretKind.stringRes())
                 ListItem(
                     model = ListItemModel(title = showSecret.string(LocalContext.current)),
                     listPosition = ListPosition.Single,

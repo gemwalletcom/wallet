@@ -337,6 +337,9 @@ impl NodeService {
             return false;
         };
         let message = body.get("error").and_then(|error| error.as_str().or_else(|| error.get("message").and_then(Value::as_str)));
+        if self.retry_config.ignore.iter().any(|rule| rule.matches(response.status, message)) {
+            return false;
+        }
         self.retry_config.errors.iter().any(|rule| rule.matches(response.status, message))
     }
 
@@ -598,6 +601,45 @@ mod tests {
         ] {
             let response = ProxyResponse::new(status, HeaderMap::new(), Bytes::copy_from_slice(body));
             assert_eq!(service.matches_response_error_signal(&response), retry);
+        }
+    }
+
+    #[test]
+    fn test_matches_retry_ignore_rules() {
+        let service = NodeService {
+            retry_config: RetryConfig {
+                ignore: vec![ErrorMatcherConfig {
+                    message: Some("execution reverted".to_string()),
+                    ..ErrorMatcherConfig::default()
+                }],
+                ..RetryConfig::mock_with_errors(vec![
+                    ErrorMatcherConfig {
+                        status: Some(429),
+                        ..ErrorMatcherConfig::default()
+                    },
+                    ErrorMatcherConfig {
+                        message: Some("rate limit".to_string()),
+                        ..ErrorMatcherConfig::default()
+                    },
+                    ErrorMatcherConfig {
+                        message: Some("Unauthorized".to_string()),
+                        ..ErrorMatcherConfig::default()
+                    },
+                ])
+            },
+            ..NodeService::mock(ChainConfig::mock(Chain::Ethereum))
+        };
+
+        for (status, body, retry) in [
+            (200, br#"{"error":{"code":3,"message":"execution reverted: Unauthorized","data":"0x"}}"#.as_slice(), false),
+            (200, br#"{"error":{"code":-32000,"message":"Execution reverted: rate limit"}}"#.as_slice(), false),
+            (429, br#"{"error":{"code":3,"message":"execution reverted"}}"#.as_slice(), true),
+            (200, br#"{"error":{"code":-32000,"message":"rate limit exceeded"}}"#.as_slice(), true),
+            (200, br#"{"error":{"code":-32001,"message":"Unauthorized"}}"#.as_slice(), true),
+            (200, br#"{"error":"Unauthorized"}"#.as_slice(), true),
+        ] {
+            let response = ProxyResponse::new(status, HeaderMap::new(), Bytes::copy_from_slice(body));
+            assert_eq!(service.matches_response_error_signal(&response), retry, "{}", String::from_utf8_lossy(body));
         }
     }
 

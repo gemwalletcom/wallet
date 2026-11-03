@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemNumberFormat
 import struct Gemstone.GemPriceAlertInput
 import GemstonePrimitives
 import Primitives
@@ -10,6 +11,7 @@ import SwiftUI
 
 struct SetPriceAlertCurrencyInputConfig: CurrencyInputConfigurable {
     let input: GemPriceAlertInput
+    let numberFormat: GemNumberFormat
     let secondaryText: String
     let formatter: CurrencyFormatter
     let onTapActionButton: VoidAction
@@ -37,7 +39,7 @@ struct SetPriceAlertCurrencyInputConfig: CurrencyInputConfigurable {
     }
 
     func sanitize(_ text: String) -> String {
-        text
+        numberFormat.sanitize(input: text, maximumFractionDigits: nil, maximumIntegerDigits: nil)
     }
 
     var actionStyle: CurrencyInputActionStyle? {

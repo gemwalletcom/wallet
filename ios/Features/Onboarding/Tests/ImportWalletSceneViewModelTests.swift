@@ -42,7 +42,7 @@ struct ImportWalletSceneViewModelTests {
         #expect(try session.getCurrentWalletId() == walletB.id, "an import needs no second call to become current")
 
         let model = ImportWalletSceneViewModel.mock(service: service)
-        model.input = LocalKeystore.words.joined(separator: " ")
+        model.inputModel.text = LocalKeystore.words.joined(separator: " ")
         await model.onSelectActionButton()
 
         #expect(try session.getCurrentWalletId() == walletA.id)
@@ -55,7 +55,7 @@ struct ImportWalletSceneViewModelTests {
         _ = try await service.importWallet(kind: .phrase, chain: .ethereum, input: phrase, nameRecord: .none, source: .import)
         var completed = false
         let model = ImportWalletSceneViewModel.mock(service: service, onComplete: { completed = true })
-        model.input = phrase
+        model.inputModel.text = phrase
 
         await model.onSelectActionButton()
 
@@ -66,6 +66,24 @@ struct ImportWalletSceneViewModelTests {
 
         #expect(model.isPresentingExistingWallet == nil)
         #expect(completed)
+    }
+
+    @Test
+    @available(iOS 26.0, *)
+    func theWordsTheImportRefusesAreHighlightedUntilTheInputChanges() async {
+        let model = ImportWalletSceneViewModel.mock()
+        let editor = PhraseTextEditorViewModel(placeholder: "", input: model.inputModel)
+        let highlighted = { editor.content.runs.filter { $0.foregroundColor != nil }.map { String(editor.content[$0.range].characters) } }
+        model.inputModel.text = "Maestro abandon maestro"
+        editor.onChangeText()
+
+        await model.onSelectActionButton()
+        editor.onChangeInvalidWords()
+        #expect(highlighted() == ["Maestro", "maestro"])
+
+        model.inputModel.text = "Maestro abandon"
+        editor.onChangeText()
+        #expect(highlighted().isEmpty)
     }
 
     @Test
@@ -87,27 +105,27 @@ struct ImportWalletSceneViewModelTests {
     func aSuggestionCompletesTheLastWord() {
         let model = ImportWalletSceneViewModel.mock()
 
-        model.input = "abandon woo"
+        model.inputModel.text = "abandon woo"
 
         #expect(model.wordsSuggestion == ["wood", "wool"])
 
         model.onSelectWord("wood")
 
-        #expect(model.input == "abandon wood ")
-        #expect(model.inputCursor == 13)
+        #expect(model.inputModel.text == "abandon wood ")
+        #expect(model.inputModel.cursor == 13)
         #expect(model.wordsSuggestion.isEmpty)
     }
 
     @Test
     func aCursorInsideThePhraseHidesSuggestions() {
         let model = ImportWalletSceneViewModel.mock()
-        model.input = "abandon woo"
+        model.inputModel.text = "abandon woo"
 
-        model.inputCursor = 3
+        model.inputModel.cursor = 3
 
         #expect(model.wordsSuggestion.isEmpty)
 
-        model.inputCursor = 11
+        model.inputModel.cursor = 11
 
         #expect(model.wordsSuggestion == ["wood", "wool"])
     }

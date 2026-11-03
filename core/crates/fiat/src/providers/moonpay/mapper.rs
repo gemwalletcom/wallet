@@ -1,4 +1,7 @@
+use crate::provider::DEFAULT_PAYMENT_METHODS;
 use crate::providers::moonpay::models::{Asset, FiatCurrencyType, Transaction, WebhookEvent, WebhookPayload};
+use primitives::currency::Currency;
+use primitives::fiat_assets::FiatAssetLimits;
 use primitives::{Chain, FiatQuoteType, FiatTransactionStatus, FiatTransactionUpdate, FiatWebhook};
 
 #[cfg(test)]
@@ -10,6 +13,26 @@ pub fn map_webhook(data: serde_json::Value) -> Result<FiatWebhook, serde_json::E
         WebhookPayload::Bare(payload) => FiatWebhook::Transaction(map_order(payload)),
         WebhookPayload::Event(WebhookEvent::TransactionAbandoned) => FiatWebhook::None,
     })
+}
+
+pub fn map_limits(fiat_currencies: &[Asset], quote_type: FiatQuoteType) -> Vec<FiatAssetLimits> {
+    fiat_currencies
+        .iter()
+        .filter(|fiat_currency| quote_type == FiatQuoteType::Buy || fiat_currency.is_sell_supported.unwrap_or(false))
+        .filter_map(|fiat_currency| fiat_currency.code.to_uppercase().parse::<Currency>().ok().map(|currency| (currency, fiat_currency)))
+        .flat_map(|(currency, fiat_currency)| {
+            let (min_amount, max_amount) = match quote_type {
+                FiatQuoteType::Buy => (fiat_currency.min_buy_amount, fiat_currency.max_buy_amount),
+                FiatQuoteType::Sell => (fiat_currency.min_sell_amount, fiat_currency.max_sell_amount),
+            };
+            DEFAULT_PAYMENT_METHODS.map(|payment_type| FiatAssetLimits {
+                currency: currency.clone(),
+                payment_type,
+                min_amount,
+                max_amount,
+            })
+        })
+        .collect()
 }
 
 pub fn map_asset_chain(asset: Asset) -> Option<Chain> {
@@ -112,6 +135,8 @@ mod tests {
     #[test]
     fn test_map_catalog_assets() {
         let assets: Vec<Asset> = serde_json::from_str(include_str!("../../../testdata/moonpay/assets_new_networks.json")).unwrap();
+        let fiat_currencies: Vec<Asset> = serde_json::from_str(include_str!("../../../testdata/moonpay/assets.json")).unwrap();
+        let buy_limits = map_limits(&fiat_currencies, FiatQuoteType::Buy);
         let expected = [
             ("eth_robinhood", AssetId::from_chain(Chain::Robinhood)),
             ("hype_hyperevm", AssetId::from_chain(Chain::Hyperliquid)),
@@ -129,12 +154,12 @@ mod tests {
 
         for (asset, (code, asset_id)) in assets.into_iter().zip(expected) {
             let network = asset.metadata.as_ref().unwrap().network_code.clone();
-            let mapped = MoonPayClient::map_asset(asset).unwrap();
+            let mapped = MoonPayClient::map_asset(asset, &buy_limits, &[]).unwrap();
 
             assert_eq!(mapped.asset_id(), Some(asset_id));
             assert_eq!((mapped.id.as_str(), mapped.symbol.as_str(), mapped.network), (code, code, Some(network)));
             assert_eq!((mapped.enabled, mapped.is_buy_enabled, mapped.is_sell_enabled), (true, true, false));
-            assert_eq!((mapped.buy_limits.len(), mapped.sell_limits.len()), (3, 0));
+            assert_eq!((mapped.buy_limits.len(), mapped.sell_limits.len()), (6, 0));
         }
     }
 
@@ -243,36 +268,31 @@ mod tests {
     }
 
     #[test]
-    fn test_map_asset_with_limits() {
-        let assets: Vec<Asset> = serde_json::from_str(include_str!("../../../testdata/moonpay/assets.json")).unwrap();
-        let cardano = assets.iter().find(|a| a.code == "ada").unwrap();
+    fn test_map_assets_limits_in_fiat_currency() {
+        let currencies: Vec<Asset> = serde_json::from_str(include_str!("../../../testdata/moonpay/assets.json")).unwrap();
 
-        let result = MoonPayClient::map_asset(cardano.clone()).unwrap();
+        let assets = MoonPayClient::map_assets(currencies);
+        let cardano = assets.iter().find(|asset| asset.id == "ada").unwrap();
+        let limit = |limits: &[FiatAssetLimits], currency: Currency| {
+            limits
+                .iter()
+                .find(|limit| limit.currency == currency && limit.payment_type == PaymentType::Card)
+                .map(|limit| (limit.min_amount, limit.max_amount))
+        };
 
-        assert_eq!(result.symbol, "ada");
-        assert_eq!(result.chain, Some(Chain::Cardano));
-        assert!(result.enabled);
-
-        assert_eq!(result.buy_limits.len(), 3);
-        let card_limit = result.buy_limits.iter().find(|limit| limit.payment_type == PaymentType::Card).unwrap();
-        assert_eq!(card_limit.min_amount, Some(6.1));
-        assert_eq!(card_limit.max_amount, None);
-
-        assert!(result.buy_limits.iter().any(|limit| limit.payment_type == PaymentType::ApplePay));
-        assert!(result.buy_limits.iter().any(|limit| limit.payment_type == PaymentType::GooglePay));
-
-        assert_eq!(result.sell_limits.len(), 3);
-        let sell_card_limit = result.sell_limits.iter().find(|limit| limit.payment_type == PaymentType::Card).unwrap();
-        assert_eq!(sell_card_limit.min_amount, Some(24.3607));
-        assert_eq!(sell_card_limit.max_amount, Some(12000.0));
-
-        assert!(result.sell_limits.iter().any(|limit| limit.payment_type == PaymentType::ApplePay));
-        assert!(result.sell_limits.iter().any(|limit| limit.payment_type == PaymentType::GooglePay));
+        assert_eq!(assets.len(), 3);
+        assert_eq!((cardano.enabled, cardano.is_buy_enabled, cardano.is_sell_enabled), (true, true, true));
+        assert_eq!(limit(&cardano.buy_limits, Currency::USD), Some((Some(20.0), Some(30000.0))));
+        assert_eq!(limit(&cardano.buy_limits, Currency::BRL), Some((Some(130.0), Some(65000.0))));
+        assert_eq!(limit(&cardano.sell_limits, Currency::USD), Some((None, None)));
+        assert_eq!(limit(&cardano.sell_limits, Currency::BRL), None);
+        assert_eq!((cardano.buy_limits.len(), cardano.sell_limits.len()), (6, 3));
+        assert!(assets.iter().filter(|asset| !asset.is_sell_enabled).all(|asset| asset.sell_limits.is_empty()));
     }
 
     #[test]
     fn test_skip_token_without_contract() {
-        assert!(MoonPayClient::map_asset(Asset::mock("sweat_near", "near", None, false)).is_none());
-        assert!(MoonPayClient::map_asset(Asset::mock("near", "near", None, true)).is_some());
+        assert!(MoonPayClient::map_asset(Asset::mock("sweat_near", "near", None, false), &[], &[]).is_none());
+        assert!(MoonPayClient::map_asset(Asset::mock("near", "near", None, true), &[], &[]).is_some());
     }
 }

@@ -16,7 +16,7 @@ struct SupportChatDayBuilder {
             return SupportChatDay(
                 date: date,
                 title: TransactionDateFormatter(date: date, label: section.label).section,
-                groups: supportChatGroups(messages: section.positions.map { messages[Int($0)].toGem() }),
+                groups: supportChatGroups(messages: section.positions.map { messages[$0].toGem() }),
             )
         }
     }

@@ -14,4 +14,5 @@ pub(super) struct TransactionRequest<'a> {
 #[derive(Debug, Deserialize)]
 pub(super) struct TransactionResponse {
     pub transaction: String,
+    pub message: Option<String>,
 }

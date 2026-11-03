@@ -2,7 +2,8 @@ use num_bigint::BigInt;
 use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
-use primitives::{Asset, AssetBasic, AssetFull, AssetId, Chain, Wallet, WalletId};
+use gem_bitcoin::models::BitcoinUTXO;
+use primitives::{Asset, AssetBasic, AssetFull, AssetId, Chain, PlatformStore, Wallet, WalletId};
 
 use super::GemConfirmError;
 use super::{GemConfirmData, GemConfirmFee, GemConfirmFeeSelection, GemConfirmInput, GemConfirmLoad, GemConfirmMetadata, GemConfirmService, GemConfirmSimulationState, GemConfirmTransferService, GemTransferAmountResult, SendInput};
@@ -40,7 +41,7 @@ use crate::services::{GemScanService, GemSimulationService};
 use crate::testkit::{EmptyPreferences, TestAlienProvider};
 use crate::transfer_amount::GemTransferAmount;
 use primitives::swap::{Permit2ApprovalData, SwapData, SwapQuoteData};
-use primitives::{Account, FeePriority, GasPriceType, SwapProvider, TransactionInputType};
+use primitives::{Account, FeePriority, GasPriceType, SwapProvider, TransactionInputType, UTXO};
 use swapper::Quote;
 use tempfile::TempDir;
 
@@ -63,6 +64,29 @@ impl ConfirmTestkit {
 
     pub fn with_provider(wallet: Wallet, selected_wallet: Wallet, provider: Arc<TestAlienProvider>) -> Self {
         Self::build(wallet, selected_wallet, provider, Arc::new(GemSwapService::mock(Arc::new(MemorySwapStore::default()))))
+    }
+
+    pub fn with_bitcoin_utxos(available: u64, utxo_values: &[u64]) -> Self {
+        let wallet = mock_bitcoin_wallet();
+        let utxos: Vec<BitcoinUTXO> = utxo_values
+            .iter()
+            .map(|value| BitcoinUTXO {
+                txid: "0".repeat(64),
+                vout: 0,
+                value: (*value).into(),
+            })
+            .collect();
+        let utxos = serde_json::to_string(&utxos).unwrap();
+        let provider = Arc::new(TestAlienProvider::with_json_by_path(200, &[("/utxo/", utxos.as_str()), ("/estimatefee/", r#"{"result":"0.00002"}"#)]));
+        let testkit = Self::with_provider(wallet.clone(), wallet.clone(), provider);
+        testkit.balances.balances.lock().unwrap().insert(
+            wallet.id,
+            vec![GemAssetBalance {
+                asset_id: AssetId::from_chain(Chain::Bitcoin),
+                ..GemAssetBalance::mock_with_available(available)
+            }],
+        );
+        testkit
     }
 
     pub fn with_swap(wallet: Wallet, swap: Arc<GemSwapService>) -> Self {
@@ -107,7 +131,7 @@ impl ConfirmTestkit {
             preferences.clone(),
             session.clone(),
             primitives::Platform::IOS,
-            Arc::new(GemConfigService::new(Arc::new(GemApiClient::new(provider.clone())), preferences.clone())),
+            Arc::new(GemConfigService::new(Arc::new(GemApiClient::new(provider.clone())), preferences.clone(), PlatformStore::Local)),
         ));
         let nft = Arc::new(GemNftService::new(device_api.clone(), Arc::new(MemoryNftStore::default()), session.clone()));
         let payment = Arc::new(GemPaymentService::new(provider.clone(), assets.clone(), balance.clone()));
@@ -210,6 +234,22 @@ impl GemConfirmData {
             fee_rates: vec![],
             metadata: GemTransactionLoadMetadata::None,
             simulation: None,
+        }
+    }
+
+    pub fn mock_bitcoin(value: u64, use_max_amount: bool, utxo_values: &[u64]) -> Self {
+        let transfer = GemTransferData {
+            use_max_amount,
+            ..mock_bitcoin_transfer(value.into())
+        };
+        let data = Self::mock(Chain::Bitcoin, transfer.input_type.clone());
+        GemConfirmData {
+            input: GemConfirmInput { transfer, ..data.input },
+            fee: GemTransactionLoadFee { fee: TEST_BITCOIN_FEE.into(), ..data.fee },
+            metadata: GemTransactionLoadMetadata::Bitcoin {
+                utxos: utxo_values.iter().map(|value| UTXO::mock_with_value(*value)).collect(),
+            },
+            ..data
         }
     }
 }
@@ -321,6 +361,22 @@ pub fn mock_tron_transfer(value: BigInt) -> GemTransferData {
         recipient: GemRecipient::address(TEST_TRON_RECIPIENT.into()),
         value,
         ..GemTransferData::mock(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Tron) })
+    }
+}
+
+const TEST_BITCOIN_SENDER: &str = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4";
+const TEST_BITCOIN_RECIPIENT: &str = "bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq";
+pub const TEST_BITCOIN_FEE: u64 = 423;
+
+pub fn mock_bitcoin_wallet() -> Wallet {
+    Wallet::mock_with_accounts(vec![Account::mock(Chain::Bitcoin, TEST_BITCOIN_SENDER)])
+}
+
+pub fn mock_bitcoin_transfer(value: BigInt) -> GemTransferData {
+    GemTransferData {
+        recipient: GemRecipient::address(TEST_BITCOIN_RECIPIENT.into()),
+        value,
+        ..GemTransferData::mock(TransactionInputType::Transfer { asset: Asset::mock_btc() })
     }
 }
 

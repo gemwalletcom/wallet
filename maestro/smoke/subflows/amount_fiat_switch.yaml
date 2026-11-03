@@ -1,0 +1,12 @@
+appId: ${APP_ID}
+---
+- assertVisible:
+    id: "amount_equivalent"
+    text: ".*\\$.*"
+- tapOn:
+    id: "amount_equivalent"
+- assertVisible:
+    id: "amount_equivalent"
+- assertNotVisible:
+    id: "amount_equivalent"
+    text: ".*\\$.*"

@@ -18,7 +18,6 @@
 		833809D12D273E450055D91F /* WalletConnector in Frameworks */ = {isa = PBXBuildFile; productRef = 83FE37B32D273CC80048D54C /* WalletConnector */; };
 		833931A52D2D5B1D0063BB6A /* PriceAlerts in Frameworks */ = {isa = PBXBuildFile; productRef = 833931A42D2D5B1D0063BB6A /* PriceAlerts */; };
 		833CDFD02D10622D00DAABEE /* ServicesFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 833CDFCF2D10622D00DAABEE /* ServicesFactory.swift */; };
-		E1B4C7082E85B00000RWD002 /* Rewards in Frameworks */ = {isa = PBXBuildFile; productRef = E1B4C7082E85B00000RWD003 /* Rewards */; };
 		8358DBBD2EA6AD31007A4DC7 /* AutocloseNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8358DBBC2EA6AD31007A4DC7 /* AutocloseNavigationStack.swift */; };
 		8358DBBF2EA6AE59007A4DC7 /* PerpetualNavigationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8358DBBE2EA6AE59007A4DC7 /* PerpetualNavigationView.swift */; };
 		8361BB612D3FE5F2008D89CF /* Transactions in Frameworks */ = {isa = PBXBuildFile; productRef = 8361BB602D3FE5F2008D89CF /* Transactions */; };
@@ -67,7 +66,7 @@
 		D829BF452CBDD9F700DEB2E8 /* FiatConnect in Frameworks */ = {isa = PBXBuildFile; productRef = D829BF442CBDD9F700DEB2E8 /* FiatConnect */; };
 		D838194A2E256A5A0076CDB3 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D832C80A2E246E6700871ED9 /* WidgetKit.framework */; };
 		D838194B2E256A5A0076CDB3 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D832C80C2E246E6700871ED9 /* SwiftUI.framework */; };
-		D83819562E256A5B0076CDB3 /* GemPriceWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D83819492E256A5A0076CDB3 /* GemPriceWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		D83819562E256A5B0076CDB3 /* GemPriceWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D83819492E256A5A0076CDB3 /* GemPriceWidget.appex */; platformFilter = ios; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		D83BDCB72E3E878A00E41807 /* AmountNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = D83BDCB52E3E878A00E41807 /* AmountNavigationStack.swift */; };
 		D83BDCB92E3E8AA400E41807 /* ViewModelFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = D83BDCB82E3E8AA400E41807 /* ViewModelFactory.swift */; };
 		D852CAFD2C9C9837004121D3 /* AddAssetPriceAlertsNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = D852CAFC2C9C9837004121D3 /* AddAssetPriceAlertsNavigationStack.swift */; };
@@ -107,6 +106,7 @@
 		DF1167112BC36240000F8C8C /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = DF486B6D2BBE320800B95732 /* PrivacyInfo.xcprivacy */; };
 		DF8421EE2C1526ED003F558C /* GemstonePrimitives in Frameworks */ = {isa = PBXBuildFile; productRef = DF8421ED2C1526ED003F558C /* GemstonePrimitives */; };
 		DF93C4EE2C969F4F00204ABD /* Gemstone in Frameworks */ = {isa = PBXBuildFile; productRef = DF93C4ED2C969F4F00204ABD /* Gemstone */; };
+		E1B4C7082E85B00000RWD002 /* Rewards in Frameworks */ = {isa = PBXBuildFile; productRef = E1B4C7082E85B00000RWD003 /* Rewards */; };
 		E1B4C7092E85B00000EARN02 /* Stake in Frameworks */ = {isa = PBXBuildFile; productRef = E1B4C70A2E85B00000EARN03 /* Stake */; };
 		E875F6030F5E49CD8D30D5F9 /* PaymentNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A7C385E02EC48AEBB1D4039 /* PaymentNavigationStack.swift */; };
 		F02557C19C03CD9DA036C0B5 /* ScanReceiveNavigationStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = B35C39A8F4EB047A5DA1106A /* ScanReceiveNavigationStack.swift */; };
@@ -163,7 +163,6 @@
 		830FDA472C22EEC4003DA605 /* TabItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabItem.swift; sourceTree = "<group>"; };
 		833931A32D2D54060063BB6A /* PriceAlerts */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = PriceAlerts; sourceTree = "<group>"; };
 		833CDFCF2D10622D00DAABEE /* ServicesFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServicesFactory.swift; sourceTree = "<group>"; };
-		E1B4C7082E85B00000RWD001 /* Rewards */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Rewards; sourceTree = "<group>"; };
 		83518CCC2D1C998300B339E5 /* PrimitivesComponents */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = PrimitivesComponents; sourceTree = "<group>"; };
 		8358DBBC2EA6AD31007A4DC7 /* AutocloseNavigationStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutocloseNavigationStack.swift; sourceTree = "<group>"; };
 		8358DBBE2EA6AE59007A4DC7 /* PerpetualNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerpetualNavigationView.swift; sourceTree = "<group>"; };
@@ -258,6 +257,7 @@
 		DBA467CA776E4FE56A659D9C /* ConfirmTransferNavigationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfirmTransferNavigationView.swift; sourceTree = "<group>"; };
 		DF486B6D2BBE320800B95732 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		E1B4C7082E85B00000EARN01 /* Stake */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Stake; sourceTree = "<group>"; };
+		E1B4C7082E85B00000RWD001 /* Rewards */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Rewards; sourceTree = "<group>"; };
 		F1A7B80E2F0C000000FIAT02 /* GemstoneServices */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = GemstoneServices; sourceTree = "<group>"; };
 		FADEC0DE000000000000B001 /* AddContactNavigationStack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddContactNavigationStack.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -1038,6 +1038,7 @@
 		};
 		D8D5DF0B2E2A1CFE00BFDDCB /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
+			platformFilter = ios;
 			target = D83819482E256A5A0076CDB3 /* GemPriceWidget */;
 			targetProxy = D8D5DF0A2E2A1CFE00BFDDCB /* PBXContainerItemProxy */;
 		};
@@ -1198,12 +1199,14 @@
 		C30952D6299C39D80004C0F9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				"ARCHS[sdk=macosx*]" = arm64;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Gem/Resources/Gem.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 253;
+				CURRENT_PROJECT_VERSION = 259;
 				DEAD_CODE_STRIPPING = YES;
+				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = NO;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = U2D6XV88CZ;
 				ENABLE_PREVIEWS = YES;
@@ -1227,7 +1230,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				LLVM_LTO = NO;
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				MARKETING_VERSION = 2.114.82;
+				MARKETING_VERSION = 2.114.88;
 				"OTHER_LDFLAGS[sdk=iphoneos*]" = (
 					"$(inherited)",
 					"$(SRCROOT)/../core/target/aarch64-apple-ios/debug/libgemstone.a",
@@ -1236,13 +1239,17 @@
 					"$(inherited)",
 					"$(SRCROOT)/../core/target/aarch64-apple-ios-sim/debug/libgemstone.a",
 				);
+				"OTHER_LDFLAGS[sdk=macosx*]" = (
+					"$(inherited)",
+					"$(SRCROOT)/../core/target/aarch64-apple-ios-macabi/debug/libgemstone.a",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.gemwallet.ios;
 				"PRODUCT_BUNDLE_IDENTIFIER[sdk=iphoneos*]" = com.gemwallet.ios;
 				"PRODUCT_BUNDLE_IDENTIFIER[sdk=macosx*]" = com.gemwallet.ios;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = YES;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1252,14 +1259,16 @@
 		C30952D7299C39D80004C0F9 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				"ARCHS[sdk=macosx*]" = arm64;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Gem/Resources/Gem.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 253;
+				CURRENT_PROJECT_VERSION = 259;
 				DEAD_CODE_STRIPPING = YES;
+				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = NO;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = U2D6XV88CZ;
@@ -1285,7 +1294,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				LLVM_LTO = YES_THIN;
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
-				MARKETING_VERSION = 2.114.82;
+				MARKETING_VERSION = 2.114.88;
 				"OTHER_LDFLAGS[sdk=iphoneos*]" = (
 					"$(inherited)",
 					"$(SRCROOT)/../core/target/aarch64-apple-ios/release/libgemstone.a",
@@ -1294,6 +1303,10 @@
 					"$(inherited)",
 					"$(SRCROOT)/../core/target/aarch64-apple-ios-sim/release/libgemstone.a",
 				);
+				"OTHER_LDFLAGS[sdk=macosx*]" = (
+					"$(inherited)",
+					"$(SRCROOT)/../core/target/aarch64-apple-ios-macabi/release/libgemstone.a",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.gemwallet.ios;
 				"PRODUCT_BUNDLE_IDENTIFIER[sdk=iphoneos*]" = com.gemwallet.ios;
 				"PRODUCT_BUNDLE_IDENTIFIER[sdk=macosx*]" = com.gemwallet.ios;
@@ -1301,8 +1314,8 @@
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "match AppStore com.gemwallet.ios";
 				SDKROOT = auto;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = YES;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1313,7 +1326,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 253;
+				CURRENT_PROJECT_VERSION = 259;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -1334,7 +1347,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 253;
+				CURRENT_PROJECT_VERSION = 259;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -1359,7 +1372,7 @@
 				CODE_SIGN_ENTITLEMENTS = GemPriceWidget/GemPriceWidget.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 253;
+				CURRENT_PROJECT_VERSION = 259;
 				DEVELOPMENT_TEAM = U2D6XV88CZ;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1373,7 +1386,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 2.114.82;
+				MARKETING_VERSION = 2.114.88;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gemwallet.ios.widgetprice;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1394,7 +1407,7 @@
 				CODE_SIGN_ENTITLEMENTS = GemPriceWidget/GemPriceWidget.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 253;
+				CURRENT_PROJECT_VERSION = 259;
 				DEVELOPMENT_TEAM = U2D6XV88CZ;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1408,7 +1421,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 2.114.82;
+				MARKETING_VERSION = 2.114.88;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gemwallet.ios.widgetprice;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1426,7 +1439,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 253;
+				CURRENT_PROJECT_VERSION = 259;
 				DEVELOPMENT_TEAM = U2D6XV88CZ;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1449,7 +1462,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 253;
+				CURRENT_PROJECT_VERSION = 259;
 				DEVELOPMENT_TEAM = U2D6XV88CZ;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1533,10 +1546,6 @@
 		833931A42D2D5B1D0063BB6A /* PriceAlerts */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = PriceAlerts;
-		};
-		E1B4C7082E85B00000RWD003 /* Rewards */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = Rewards;
 		};
 		8361BB602D3FE5F2008D89CF /* Transactions */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -1669,6 +1678,10 @@
 		DF93C4ED2C969F4F00204ABD /* Gemstone */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Gemstone;
+		};
+		E1B4C7082E85B00000RWD003 /* Rewards */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Rewards;
 		};
 		E1B4C70A2E85B00000EARN03 /* Stake */ = {
 			isa = XCSwiftPackageProductDependency;

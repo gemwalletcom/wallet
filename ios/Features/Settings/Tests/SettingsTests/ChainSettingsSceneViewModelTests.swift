@@ -23,15 +23,17 @@ struct ChainSettingsSceneViewModelTests {
     }
 
     @Test
-    func aDeletedNodeLeavesNoRowBehind() async throws {
+    func aNodeConfirmedAfterThePromptClosesIsDeleted() async throws {
         let service = GemChainSettingsServiceMock()
         service.nodesByCall = [[.mock(url: "a", host: "a"), .mock(url: "b", host: "b")], [.mock(url: "a", host: "a")]]
         service.statusByUrl = ["a": .error, "b": .error]
         let model = ChainSettingsSceneViewModel(chain: .ethereum, service: service)
         await model.load()
 
-        try model.onSelectNodeForDeletion(#require(model.nodeRows.first { $0.node.url == "b" }))
-        await model.onDeleteNode()
+        let row = try #require(model.nodeRows.first { $0.node.url == "b" })
+        model.onSelectNodeForDeletion(row)
+        model.nodeDelete = nil
+        await model.onDeleteNode(row)
 
         #expect(service.deletedNodes == ["b"])
         #expect(model.nodeRows.map(\.node.url) == ["a"])

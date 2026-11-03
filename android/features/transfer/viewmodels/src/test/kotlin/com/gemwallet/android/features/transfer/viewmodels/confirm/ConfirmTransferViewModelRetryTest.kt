@@ -16,7 +16,6 @@ import com.gemwallet.android.testkit.mockGemConfirmSimulationState
 import com.gemwallet.android.testkit.mockGemTransferData
 import com.gemwallet.android.testkit.mockPerpetualConfirmData
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.models.actions.FinishConfirmAction
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
@@ -33,7 +32,10 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.GemConfirmAction
@@ -97,7 +99,7 @@ class ConfirmTransferViewModelRetryTest {
         coVerify(exactly = 1) { confirmation.load(any()) }
         assertEquals(GemConfirmPhase.FAILED, viewModel.screen.value.phase)
 
-        viewModel.send(FinishConfirmAction {})
+        viewModel.load()
         advanceUntilIdle()
 
         coVerify(exactly = 2) { confirmation.load(any()) }
@@ -115,10 +117,11 @@ class ConfirmTransferViewModelRetryTest {
     fun aFailedSendShowsItsErrorAndConfirmSendsAgainWithoutReloading() = runTest(testDispatcher) {
         val viewModel = viewModel(mockGemTransferData(inputType = TransactionInputType.Transfer(asset.toGem()), recipient = GemRecipient(address = "recipient"), value = BigInteger.ONE))
         coEvery { confirmation.submit() } throws GemConfirmException.Broadcast(emptyList(), "rejected")
-        viewModel.send(FinishConfirmAction {})
+        viewModel.load()
         advanceUntilIdle()
 
-        viewModel.send(FinishConfirmAction {})
+        viewModel.startExecute()
+        viewModel.submit()
         advanceUntilIdle()
 
         assertNotNull(viewModel.executeErrorText.value)
@@ -127,12 +130,31 @@ class ConfirmTransferViewModelRetryTest {
         coVerify(exactly = 2) { confirmation.load(any()) }
 
         viewModel.dismissExecuteError()
-        viewModel.send(FinishConfirmAction {})
+        viewModel.startExecute()
+        viewModel.submit()
         advanceUntilIdle()
 
         assertNotNull(viewModel.executeErrorText.value)
         coVerify(exactly = 2) { confirmation.submit() }
         coVerify(exactly = 2) { confirmation.load(any()) }
+    }
+
+    @Test
+    fun aConfirmWaitingOnAuthStopsRefreshingAndCancelReturnsToALiveConfirm() = runTest(testDispatcher) {
+        val viewModel = viewModel(mockGemTransferData(inputType = TransactionInputType.Transfer(asset.toGem()), recipient = GemRecipient(address = "recipient"), value = BigInteger.ONE))
+        viewModel.load()
+        advanceUntilIdle()
+
+        viewModel.startExecute()
+        assertEquals(GemConfirmPhase.CONFIRMING, viewModel.screen.value.phase)
+        assertFalse(viewModel.screen.value.refreshes())
+        assertNull(viewModel.action())
+
+        viewModel.cancelExecute()
+        assertEquals(GemConfirmPhase.READY, viewModel.screen.value.phase)
+        assertTrue(viewModel.screen.value.refreshes())
+        assertEquals(GemConfirmAction.EXECUTE, viewModel.action())
+        coVerify(exactly = 0) { confirmation.submit() }
     }
 
     @Test
@@ -142,14 +164,13 @@ class ConfirmTransferViewModelRetryTest {
             hashes = listOf("0xhash"),
             message = GemSubmitMessage.Confirmed(GemLocalizedText.PerpetualConfirmed(GemPerpetualConfirmedAction.Open(uniffi.gemstone.PerpetualDirection.LONG))),
         )
-        viewModel.send(FinishConfirmAction {})
+        viewModel.load()
         advanceUntilIdle()
-        val finished = mutableListOf<String>()
-
-        viewModel.send(FinishConfirmAction(finished::add))
+        viewModel.startExecute()
+        viewModel.submit()
         advanceUntilIdle()
 
-        assertEquals(listOf("0xhash"), finished)
+        assertEquals("0xhash", viewModel.sentTransactionHash.value)
         assertEquals(R.drawable.ic_check_circle, confirm.toastPresenter.toastEvents.first().image)
     }
 

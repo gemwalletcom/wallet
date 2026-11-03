@@ -67,7 +67,7 @@ fn types_summary(types: &[GemTransactionFilter]) -> GemTransactionsFilterSummary
     match types {
         [] => GemTransactionsFilterSummary::All,
         [filter] => GemTransactionsFilterSummary::Filter { filter: *filter },
-        selected => GemTransactionsFilterSummary::Count { count: selected.len() as u32 },
+        selected => GemTransactionsFilterSummary::Count { count: selected.len() },
     }
 }
 

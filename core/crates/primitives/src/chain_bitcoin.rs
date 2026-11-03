@@ -44,6 +44,14 @@ impl BitcoinChain {
         }
     }
 
+    pub fn dust_multiplier(&self) -> u64 {
+        match self {
+            BitcoinChain::Doge => 1000,
+            BitcoinChain::Litecoin => 10,
+            BitcoinChain::Bitcoin | BitcoinChain::BitcoinCash | BitcoinChain::Dash | BitcoinChain::Zcash => 1,
+        }
+    }
+
     pub fn minimum_custom_fee_rate(&self) -> u32 {
         match self {
             BitcoinChain::Bitcoin => 1,

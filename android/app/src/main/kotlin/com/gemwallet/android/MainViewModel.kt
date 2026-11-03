@@ -58,6 +58,7 @@ class MainViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(MainUIState())
     val uiState: StateFlow<MainUIState> = _uiState.asStateFlow()
+    internal val authRequests = AuthRequestQueue()
 
     internal val pendingNavigation: StateFlow<PendingNavigation?> = pendingNavigationCoordinator.pendingNavigation
 

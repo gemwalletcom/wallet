@@ -13,12 +13,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.LoadOnListEnd
 import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.filters.TransactionsFilter
 import com.gemwallet.android.ui.components.list_item.GemListRowView
@@ -48,7 +49,7 @@ internal fun TransactionsScene(
     listState: LazyListState = rememberLazyListState(),
     onAction: (TransactionsAction) -> Unit,
 ) {
-    var showFilters by remember { mutableStateOf(false) }
+    var showFilters by rememberSaveable { mutableStateOf(false) }
 
     Scene(
         title = stringResource(id = R.string.activity_title),
@@ -62,7 +63,7 @@ internal fun TransactionsScene(
                     } else {
                         LocalContentColor.current
                     },
-                    contentDescription = "Filter by networks",
+                    contentDescription = stringResource(R.string.filter_title),
                 )
             }
         },
@@ -97,14 +98,17 @@ internal fun TransactionsScene(
                     }
                 }
 
-                GemListPhase.Rows -> LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    state = listState,
-                ) {
-                    transactionsList(
-                        sections = transactionSections,
-                        onTransactionClick = onTransactionClick,
-                    )
+                GemListPhase.Rows -> {
+                    LoadOnListEnd(listState) { onAction(TransactionsAction.EndReached) }
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        state = listState,
+                    ) {
+                        transactionsList(
+                            sections = transactionSections,
+                            onTransactionClick = onTransactionClick,
+                        )
+                    }
                 }
             }
         }

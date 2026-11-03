@@ -57,32 +57,12 @@ class BannersQueryTest {
     fun tearDown() = database.close()
 
     @Test
-    fun nativeAssetListsTheWalletAndSharedBannersWithTheStoredAsset() = runBlocking(Dispatchers.IO) {
-        val banners = BannersQuery(database.bannersDao())("wallet-1", asset.id).first()
+    fun listsEveryStoredBannerWithItsAssetForCore() = runBlocking(Dispatchers.IO) {
+        val banners = BannersQuery(database.bannersDao())().first()
 
-        assertEquals(setOf(BannerEvent.AccountBlockedMultiSignature, BannerEvent.Stake), banners.map { it.event }.toSet())
-        assertEquals(listOf(asset, asset), banners.map { it.asset })
-    }
-
-    @Test
-    fun tokenAlsoListsItsChainBanners() = runBlocking(Dispatchers.IO) {
-        val banners = BannersQuery(database.bannersDao())("wallet-1", tokenId).first()
-
-        assertEquals(setOf(BannerEvent.AccountBlockedMultiSignature, BannerEvent.Stake, BannerEvent.ActivateAsset), banners.map { it.event }.toSet())
-    }
-
-    @Test
-    fun walletBannersListTheWalletAndSharedBannersForTheEvents() = runBlocking(Dispatchers.IO) {
-        val banners = BannersQuery(database.bannersDao())("wallet-1", listOf(BannerEvent.AccountBlockedMultiSignature, BannerEvent.Stake)).first()
-
-        assertEquals(mapOf(BannerEvent.AccountBlockedMultiSignature to 2, BannerEvent.Stake to 1), banners.groupingBy { it.event }.eachCount())
-    }
-
-    @Test
-    fun withoutWalletListsOnlySharedBanners() = runBlocking(Dispatchers.IO) {
-        val banners = BannersQuery(database.bannersDao())(null, asset.id).first()
-
-        assertEquals(listOf(BannerEvent.Stake), banners.map { it.event })
+        assertEquals(5, banners.size)
+        assertEquals(setOf(WalletId("wallet-1"), WalletId("wallet-2"), null), banners.map { it.walletId }.toSet())
+        assertEquals(listOf(asset, asset, asset), banners.mapNotNull { it.asset })
     }
 
     private companion object {

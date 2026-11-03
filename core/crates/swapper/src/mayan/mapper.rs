@@ -27,7 +27,7 @@ pub fn map_swap_result(result: &MayanTransactionResult, output_decimals: Option<
 
 impl MayanTransactionResult {
     fn swap_metadata(&self, output_decimals: Option<u32>) -> Option<TransactionSwapMetadata> {
-        if self.client_status == MayanClientStatus::InProgress {
+        if self.client_status != MayanClientStatus::Completed {
             return None;
         }
 
@@ -38,7 +38,7 @@ impl MayanTransactionResult {
         let to_asset = asset_id_for_token(to_chain, &self.to_token_address)?;
         let to_value = amount_value(self.to_amount.as_deref(), self.to_amount64.as_deref(), asset_decimals(&to_asset).or(output_decimals).or_else(|| self.min_amount_decimals()))?;
 
-        let referral_fee = self.referral_fee(&from_asset, &from_value, &to_asset, &to_value).filter(|_| self.client_status.swap_status().charges_referral_fee());
+        let referral_fee = self.referral_fee(&from_asset, &from_value, &to_asset, &to_value);
         Some(TransactionSwapMetadata::new(from_asset, from_value, to_asset, to_value, SwapperProvider::Mayan).with_referral_fee(referral_fee))
     }
 
@@ -211,8 +211,7 @@ mod tests {
         assert_eq!(map_swap_result(&result(include_str!("test/mctp_pending.json")), None), SwapResult::pending());
 
         let refunded = map_swap_result(&result(include_str!("test/swift_refunded.json")), None);
-        assert_eq!(refunded.status, SwapStatus::Refunded);
-        assert_eq!(refunded.metadata.and_then(|metadata| metadata.referral_fee), None);
+        assert_eq!(refunded, SwapResult::from(SwapStatus::Refunded));
 
         let invalid = MayanTransactionResult {
             from_amount: None,

@@ -3,6 +3,9 @@
 common_cancel = 취소
 common_hidden = 숨김
 common_done = 완료
+common_add = 추가
+common_close = 닫기
+common_back = 뒤로
 common_maximum_value = 최대값은 %@입니다
 common_minimum_value = 최소값은 %@입니다
 common_secret_phrase = 비밀 문구
@@ -60,7 +63,6 @@ common_suspicious_address = 의심스러운 주소
 common_suspicious_address_description = 이 주소는 의심스럽거나 유해한 활동과 관련되어 있습니다.
 common_refresh = 새로고침
 common_grant_permission = 권한 부여
-common_required_field = %@ 이(가) 필요합니다
 
 # Welcome
 
@@ -165,7 +167,6 @@ transfer_reserved_fees = 향후 네트워크 수수료를 충당하기 위해 �
 transfer_freeze_title = 동결
 transfer_unfreeze_title = 동결 해제
 transfer_review_request = 검토 요청
-transfer_amount = 금액
 
 # Settings
 
@@ -255,7 +256,6 @@ errors_dust_threshold_short = 네트워크는 이 금액을 먼지로 간주합�
 errors_swap_minimum_amount = 최소 거래 금액은 %@. 더 높은 금액을 입력해 주세요.
 errors_perpetual_trigger_price_lower = 트리거 가격은 시장 가격보다 낮아야 합니다
 errors_perpetual_trigger_price_higher = 트리거 가격은 시장 가격보다 높아야 합니다
-errors_unknown_try_again = 알 수 없는 오류가 발생했습니다. 다시 시도해 주세요.
 errors_network_error = 네트워크 오류: %@
 errors_network_offline = 인터넷 연결이 끊긴 것 같습니다.
 errors_no_internet_connection = 인터넷 연결 없음
@@ -327,7 +327,6 @@ asset_buy_asset = %@ 구매
 asset_get_asset = %@ 받기
 asset_add_to_wallet = 지갑에 추가
 asset_added_to_wallet = 지갑에 추가됨
-asset_hidden_from_wallet = 지갑에서 숨김
 asset_resources = 자원
 asset_verification_verified = 검증됨
 asset_all_time_high = 역대 최고
@@ -347,6 +346,8 @@ charts_price_close = 종가
 charts_price_high = 높은
 charts_price_low = 낮은
 charts_price_change = 변화
+charts_candlestick = 캔들스틱 차트
+charts_line = 라인 차트
 
 # Date
 

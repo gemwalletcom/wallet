@@ -42,3 +42,13 @@ public struct ListSection<T: Identifiable>: Identifiable {
 extension ListSection: Equatable where T: Equatable {}
 
 extension ListSection: Sendable where T: Sendable {}
+
+public extension Array {
+    func rowCount<T>() -> Int where Element == ListSection<T> {
+        reduce(0) { $0 + $1.values.count }
+    }
+
+    func lastRowIds<T>(_ count: Int) -> Set<T.ID> where Element == ListSection<T> {
+        Set(reversed().lazy.flatMap { $0.values.reversed() }.prefix(count).map(\.id))
+    }
+}

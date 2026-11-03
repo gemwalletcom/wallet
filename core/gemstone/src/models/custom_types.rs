@@ -70,6 +70,14 @@ uniffi::custom_type!(GemJsonValue, String, {
     try_lift: |value: String| serde_json::from_str(&value).map_err(|error| uniffi::deps::anyhow::Error::msg(format!("invalid json value: {error}"))),
 });
 
+pub type GemInt = usize;
+
+uniffi::custom_type!(GemInt, i64, {
+    remote,
+    lower: |value: GemInt| value as i64,
+    try_lift: |value| usize::try_from(value).map_err(|_| uniffi::deps::anyhow::Error::msg("Invalid integer")),
+});
+
 pub type DateTimeUtc = DateTime<Utc>;
 
 uniffi::custom_type!(DateTimeUtc, i64, {

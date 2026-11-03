@@ -26,6 +26,21 @@ appId: ${APP_ID}
     timeout: 15000
 - assertVisible:
     text: ".*Maestro.*"
+- runFlow: launch.yaml
+- tapOn:
+    id: "bitcoin"
+- waitForAnimationToEnd
+- tapOn:
+    id: "send_button"
+- waitForAnimationToEnd
+- tapOn:
+    text: ".*Wallet #2.*"
+- extendedWaitUntil:
+    visible:
+      id: "amountInputField"
+    timeout: 15000
+- takeScreenshot: ${output.journey}_send_to_own_wallet
+- runFlow: launch.yaml
 - tapOn:
     id: "settingsTab"
 - tapOn:

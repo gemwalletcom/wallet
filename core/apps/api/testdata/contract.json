@@ -468,6 +468,15 @@
       }
     }
   },
+  "v1_config_bad_store": {
+    "status": 422,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "store: Invalid platform store: invalid"
+      }
+    }
+  },
   "v1_chain_fee_estimates": {
     "status": 200,
     "content_type": "application/json",

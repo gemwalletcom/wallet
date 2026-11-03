@@ -32,7 +32,6 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.sceneContentPadding
 import com.wallet.core.primitives.ChainAddress
 import com.wallet.core.primitives.NFTAssetData
-import uniffi.gemstone.GemCollectibleAction
 import uniffi.gemstone.GemCollectibleAttributeValue
 import uniffi.gemstone.GemCollectibleDetails
 import uniffi.gemstone.GemCollectibleSection
@@ -41,7 +40,7 @@ import java.text.DateFormat
 import java.util.Date
 
 @Composable
-internal fun CollectibleScene(assetData: NFTAssetData, details: GemCollectibleDetails, snackbar: SnackbarHostState, onClose: () -> Unit, onSend: () -> Unit, onAction: (GemCollectibleAction) -> Unit, onOpenAddress: (ChainAddress) -> Unit) {
+internal fun CollectibleScene(assetData: NFTAssetData, details: GemCollectibleDetails, snackbar: SnackbarHostState, onAction: (CollectibleAction) -> Unit) {
     Scene(
         titleContent = {
             NftTitle(
@@ -50,7 +49,7 @@ internal fun CollectibleScene(assetData: NFTAssetData, details: GemCollectibleDe
                 iconSize = compactIconSize,
             )
         },
-        onClose = onClose,
+        onClose = { onAction(CollectibleAction.Close) },
         snackbar = snackbar,
     ) {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
@@ -74,8 +73,8 @@ internal fun CollectibleScene(assetData: NFTAssetData, details: GemCollectibleDe
                     NftHeaderActions(
                         header = details.header,
                         actions = details.actions,
-                        onSend = onSend,
-                        onAction = onAction,
+                        onSend = { onAction(CollectibleAction.Send) },
+                        onAction = { onAction(CollectibleAction.HeaderAction(it)) },
                     )
                 }
             }
@@ -85,7 +84,7 @@ internal fun CollectibleScene(assetData: NFTAssetData, details: GemCollectibleDe
                     is GemCollectibleSection.Status -> verificationStatusItem(section.status.toPrimitives())
 
                     is GemCollectibleSection.Info -> itemsPositioned(section.rows) { position, row ->
-                        GemListRowView(row = row, listPosition = position, onSelectAddress = { onOpenAddress(ChainAddress(assetData.asset.chain, it)) })
+                        GemListRowView(row = row, listPosition = position, onSelectAddress = { onAction(CollectibleAction.OpenAddress(ChainAddress(assetData.asset.chain, it))) })
                     }
 
                     is GemCollectibleSection.Attributes -> {

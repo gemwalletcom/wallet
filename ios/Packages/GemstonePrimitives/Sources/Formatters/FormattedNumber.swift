@@ -110,11 +110,11 @@ private extension GemFormattedNumber {
         return appendingSymbol(signText + (formatter.string(from: magnitude, rule: roundingRule) ?? numberText(precision: .fraction(min: 2, max: 2), locale: locale)))
     }
 
-    func thresholdText(_ threshold: Double, places: UInt32, locale: Locale) -> String {
+    func thresholdText(_ threshold: Double, places: Int, locale: Locale) -> String {
         guard let currencyCode else {
-            return threshold.formatted(.number.locale(locale).precision(.fractionLength(Int(places))))
+            return threshold.formatted(.number.locale(locale).precision(.fractionLength(places)))
         }
-        return threshold.formatted(.currency(code: currencyCode).locale(locale).precision(.fractionLength(Int(places))))
+        return threshold.formatted(.currency(code: currencyCode).locale(locale).precision(.fractionLength(places)))
     }
 
     func appendingSymbol(_ text: String) -> String {

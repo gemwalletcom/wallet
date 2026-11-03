@@ -3,6 +3,8 @@ package com.gemwallet.android.features.price_alerts.presents
 import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.models.ListPosition
 import uniffi.gemstone.GemAssetItemRow
@@ -17,6 +19,7 @@ internal fun PriceAlertAutoAssetItem(row: GemAssetItemRow, enabled: Boolean, onC
             Switch(
                 checked = enabled,
                 onCheckedChange = onCheckedChange,
+                modifier = Modifier.semantics { contentDescription = row.title },
             )
         },
     )

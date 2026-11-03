@@ -40,7 +40,7 @@ fun OnboardingScene(onCreateWallet: () -> Unit, onImportWallet: () -> Unit) {
     ) {
         Image(
             painterResource(id = R.drawable.brandmark),
-            contentDescription = "welcome_icon",
+            contentDescription = null,
             modifier = Modifier
                 .align(Alignment.Center)
                 .size(extraLargeIconSize)

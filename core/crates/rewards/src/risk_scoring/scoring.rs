@@ -3,9 +3,13 @@ use std::time::Duration;
 
 use primitives::RiskSignal;
 use primitives::rewards::RewardStatus;
-use regex::Regex;
 
 use super::model::{RiskScore, RiskScoreBreakdown, RiskScoreConfig, RiskSignalInput};
+
+fn contains_any_ignoring_case(value: &str, patterns: &[String]) -> bool {
+    let value = value.to_lowercase();
+    patterns.iter().any(|pattern| value.contains(&pattern.to_lowercase()))
+}
 
 pub fn calculate_risk_score(
     input: &RiskSignalInput,
@@ -24,8 +28,8 @@ pub fn calculate_risk_score(
     let is_high_risk_platform_store = config.high_risk_platform_stores.iter().any(|s| s == input.device_platform_store.as_ref());
     let is_high_risk_country = config.high_risk_countries.iter().any(|c| c == &input.ip_country_code);
     let is_high_risk_locale = config.high_risk_locales.iter().any(|l| l == &input.device_locale);
-    let is_high_risk_device_model = config.high_risk_device_models.iter().any(|pattern| Regex::new(pattern).map(|re| re.is_match(&input.device_model)).unwrap_or(false));
-    let is_high_risk_user_agent = !input.user_agent.is_empty() && config.high_risk_user_agents.iter().any(|pattern| Regex::new(pattern).map(|re| re.is_match(&input.user_agent)).unwrap_or(false));
+    let is_high_risk_device_model = contains_any_ignoring_case(&input.device_model, &config.high_risk_device_models);
+    let is_high_risk_user_agent = !input.user_agent.is_empty() && contains_any_ignoring_case(&input.user_agent, &config.high_risk_user_agents);
 
     let mut breakdown = RiskScoreBreakdown {
         abuse_score: if is_blocked_type { input.ip_abuse_score } else { input.ip_abuse_score.min(config.max_abuse_score) },
@@ -753,14 +757,10 @@ mod tests {
     }
 
     #[test]
-    fn high_risk_device_model_regex_pattern() {
+    fn high_risk_device_model_ignores_case() {
         let mut input = RiskSignalInput::mock();
-        input.device_model = "Redmi 2201117TY".to_string();
-        let config = RiskScoreConfig {
-            high_risk_device_models: vec![r"\d{7}[A-Z]{2}".to_string()],
-            ..Default::default()
-        };
-        let result = calculate_risk_score(&input, &[], 0, 0, 0, 0, 0, &config);
+        input.device_model = "Android SDK built for arm64 (Emulator)".to_string();
+        let result = calculate_risk_score(&input, &[], 0, 0, 0, 0, 0, &RiskScoreConfig::default());
 
         assert_eq!(result.breakdown.high_risk_device_model_score, 50);
     }

@@ -31,7 +31,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.ConnectionStatusBannerHost
 import com.gemwallet.android.ui.components.keyboard
 import com.gemwallet.android.ui.icons.AppIcons
@@ -126,7 +128,7 @@ fun Scene(
                             IconButton(onClick = onClose) {
                                 Icon(
                                     imageVector = if (closeIcon) AppIcons.Close else AppIcons.ArrowBack,
-                                    contentDescription = null,
+                                    contentDescription = stringResource(if (closeIcon) R.string.common_close else R.string.common_back),
                                 )
                             }
                         }

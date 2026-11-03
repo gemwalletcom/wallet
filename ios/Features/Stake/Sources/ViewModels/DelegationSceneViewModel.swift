@@ -5,9 +5,12 @@ import Foundation
 import struct Gemstone.GemDelegationActionItem
 import struct Gemstone.GemDelegationDetails
 import struct Gemstone.GemDelegationListRow
+import struct Gemstone.GemInfoSheet
+import enum Gemstone.GemInfoTopic
 import protocol Gemstone.GemStakeServiceProtocol
 import struct Gemstone.GemTransferData
 import GemstonePrimitives
+import InfoSheet
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -21,6 +24,7 @@ public final class DelegationSceneViewModel {
     public let delegation: Delegation
     public let onNavigate: StakeRouteAction
     public let validatorsQuery: ObservableQuery<ValidatorsQuery>
+    public var isPresentingInfoSheet: GemInfoSheet?
 
     private let wallet: Wallet
     private let asset: Asset
@@ -101,10 +105,15 @@ public final class DelegationSceneViewModel {
 
 public extension DelegationSceneViewModel {
     func onSelectAction(_ item: GemDelegationActionItem) {
-        let route = item.destination.route(delegation: delegation)
-        switch route {
-        case .delegation: break
-        case .transfer: onNavigate?(route)
+        switch item.target {
+        case let .open(destination):
+            let route = destination.route(delegation: delegation)
+            switch route {
+            case .delegation: break
+            case .transfer: onNavigate?(route)
+            }
+        case .regionUnavailable:
+            isPresentingInfoSheet = GemInfoTopic.regionUnavailable.infoSheet
         }
     }
 

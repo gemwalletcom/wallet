@@ -3,6 +3,8 @@ package com.gemwallet.android
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.TestTimeSource
 
 class AuthRequestQueueTest {
 
@@ -60,5 +62,23 @@ class AuthRequestQueueTest {
 
         assertEquals(1L, chained?.id)
         assertEquals(1L, next?.id)
+    }
+
+    @Test
+    fun activeTimeLeft_countsFromWhenTheRequestStarts() {
+        val time = TestTimeSource()
+        val queue = AuthRequestQueue(timeout = 5.minutes, timeSource = time)
+
+        queue.enqueue {}
+        queue.enqueue {}
+        time += 4.minutes
+        assertEquals(1.minutes, queue.activeTimeLeft())
+
+        queue.completeActive()
+        assertNull(queue.activeTimeLeft())
+
+        queue.startNext()
+        time += 2.minutes
+        assertEquals(3.minutes, queue.activeTimeLeft())
     }
 }

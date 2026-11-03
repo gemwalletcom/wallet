@@ -8,7 +8,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -33,7 +33,6 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.style.icon
 import com.gemwallet.android.ui.theme.paddingDefault
-import com.wallet.core.primitives.WalletId
 import uniffi.gemstone.GemConnectionProposal
 import uniffi.gemstone.GemConnectionRow
 import uniffi.gemstone.GemWalletSection
@@ -48,11 +47,9 @@ internal fun ConnectionProposalScene(
     availableWallets: List<com.wallet.core.primitives.Wallet>,
     availableWalletSections: List<GemWalletSection>,
     buttonState: ButtonState,
-    onReject: () -> Unit,
-    onApprove: () -> Unit,
-    onWalletSelected: (WalletId) -> Unit,
+    onAction: (ConnectionProposalAction) -> Unit,
 ) {
-    var isShowSelectWallets by remember { mutableStateOf(false) }
+    var isShowSelectWallets by rememberSaveable { mutableStateOf(false) }
 
     Scene(
         title = stringResource(id = R.string.wallet_connect_connect_title),
@@ -62,10 +59,10 @@ internal fun ConnectionProposalScene(
             MainActionButton(
                 title = stringResource(id = R.string.transfer_confirm),
                 state = buttonState,
-                onClick = onApprove,
+                onClick = { onAction(ConnectionProposalAction.Approve) },
             )
         },
-        onClose = onReject,
+        onClose = { onAction(ConnectionProposalAction.Reject) },
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -120,7 +117,7 @@ internal fun ConnectionProposalScene(
         isVisible = isShowSelectWallets,
         walletSections = availableWalletSections,
         selectedWalletId = selectedWallet?.id,
-        onWalletSelected = onWalletSelected,
+        onWalletSelected = { onAction(ConnectionProposalAction.SelectWallet(it)) },
         onDismissRequest = { isShowSelectWallets = false },
     )
 }

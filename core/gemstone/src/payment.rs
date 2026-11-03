@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use crate::GemstoneError;
-use crate::address::validate_address;
+use crate::address::{parse_address, validate_address};
 use crate::alien::{AlienProvider, AlienProviderWrapper};
 use crate::config::chain::is_memo_supported;
 use crate::config::wallet_connect::get_wallet_connect_config;
@@ -11,7 +11,6 @@ use crate::services::balance::GemBalanceService;
 use crate::services::error::GemServiceError;
 use crate::services::transfer::model::{GemRecipient, GemTransferData};
 use crate::services::transfer::rules::TransferInput;
-use chain_primitives::checksum_address;
 use num_bigint::{BigInt, BigUint};
 use number_formatter::BigNumberFormatter;
 use payment::{PaymentLoad, PaymentService, PaymentTransaction, PaymentURLDecoder, PaymentUpdate, VerificationOutcome, WalletConnectPayAuth, verification_outcome};
@@ -353,7 +352,7 @@ fn payment_step(request: &GemPaymentRequest, asset: &Asset) -> GemPaymentStep {
         recipient: payment_recipient(request, Some(chain)),
         amount: exact_amount(request),
     };
-    if requires_memo(chain, request) || !validate_address(&checksum_address(&request.address, chain), chain) {
+    if requires_memo(chain, request) || !validate_address(&request.address, chain) {
         return GemPaymentStep::Recipient { payment: payment() };
     }
     match request_transfer(request, asset) {
@@ -379,7 +378,7 @@ fn recipient_request(payment: GemPaymentRecipient) -> GemPaymentRequest {
 
 fn payment_recipient(request: &GemPaymentRequest, chain: Option<Chain>) -> GemRecipient {
     GemRecipient {
-        address: chain.map_or_else(|| request.address.clone(), |chain| checksum_address(&request.address, chain)),
+        address: chain.and_then(|chain| parse_address(&request.address, chain)).unwrap_or_else(|| request.address.clone()),
         name: None,
         memo: request.memo.clone(),
         references: request.references.clone().unwrap_or_default(),
@@ -395,7 +394,7 @@ fn exact_amount(request: &GemPaymentRequest) -> Option<String> {
 
 fn request_transfer(request: &GemPaymentRequest, asset: &Asset) -> Option<GemTransferData> {
     let chain = asset.id.chain;
-    if !validate_address(&checksum_address(&request.address, chain), chain) {
+    if !validate_address(&request.address, chain) {
         return None;
     }
     let value = transfer_value(request, asset.decimals)?;
@@ -742,6 +741,22 @@ mod tests {
 
         let transfer = confirmed(asset_step(&request(ETHEREUM_ADDRESS, exact("1.5"), None), &ethereum).unwrap());
         assert_eq!(transfer.value, 1_500_000_000_000_000_000u64.into());
+    }
+
+    #[test]
+    fn test_invalid_checksum_requires_recipient_correction() {
+        let address = "0x5615E8AB93b9d695b6d4d6545f7792aA59e1068a";
+        let ethereum = Asset::from_chain(Chain::Ethereum);
+        let request = GemPaymentRequest {
+            asset_id: Some(ethereum.id.clone()),
+            ..request(address, exact("1.5"), Some("order 7"))
+        };
+
+        let payment = recipient(asset_step(&request, &ethereum).unwrap());
+        assert_eq!(payment.recipient.address, address);
+        assert_eq!(payment.recipient.memo.as_deref(), Some("order 7"));
+        assert_eq!(payment.amount.as_deref(), Some("1.5"));
+        assert!(request_transfer(&request, &ethereum).is_none());
     }
 
     #[test]

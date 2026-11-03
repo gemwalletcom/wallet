@@ -286,6 +286,24 @@ pub mod iso {
         name: "Kazakhstani Tenge",
         decimal_places: 2,
     };
+    pub const GEL: Currency = Currency {
+        iso_alpha_code: "GEL",
+        symbol: "₾",
+        name: "Georgian Lari",
+        decimal_places: 2,
+    };
+    pub const AMD: Currency = Currency {
+        iso_alpha_code: "AMD",
+        symbol: "֏",
+        name: "Armenian Dram",
+        decimal_places: 2,
+    };
+    pub const MDL: Currency = Currency {
+        iso_alpha_code: "MDL",
+        symbol: "L",
+        name: "Moldovan Leu",
+        decimal_places: 2,
+    };
 
     pub fn find(code: &str) -> Option<Currency> {
         match code.to_uppercase().as_str() {
@@ -340,6 +358,9 @@ pub mod iso {
             "UAH" => Some(UAH),
             "BYN" => Some(BYN),
             "KZT" => Some(KZT),
+            "GEL" => Some(GEL),
+            "AMD" => Some(AMD),
+            "MDL" => Some(MDL),
 
             _ => None,
         }

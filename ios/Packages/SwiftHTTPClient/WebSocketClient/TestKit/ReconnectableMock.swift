@@ -10,7 +10,7 @@ public struct ReconnectableMock: Reconnectable {
         self.delayMilliseconds = delayMilliseconds
     }
 
-    public func reconnection(attempt: UInt32, connectedFor _: Duration) -> Reconnection {
+    public func reconnection(attempt: Int, connectedFor _: Duration) -> Reconnection {
         Reconnection(nextAttempt: attempt + 1, delay: .milliseconds(delayMilliseconds))
     }
 

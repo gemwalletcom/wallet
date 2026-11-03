@@ -56,7 +56,7 @@ public final class WalletSearchSceneViewModel: Sendable, SearchResultActions {
         searchQuery = ObservableQuery(
             WalletSearchQuery(
                 walletId: wallet.id,
-                limit: Int(service.walletSearchLimits(query: .empty).fetch),
+                limit: service.walletSearchLimits(query: .empty).fetch,
                 types: [.asset, .perpetual, .list, .nft],
             ),
             initialValue: .empty,
@@ -85,7 +85,7 @@ public final class WalletSearchSceneViewModel: Sendable, SearchResultActions {
             wallet: wallet.toGem(),
             query: searchQuery.request.searchBy,
             isLoading: loadState.isLoading,
-            recents: UInt32(recentModel.assets.count),
+            recents: recentModel.assets.count,
             assetIds: result.assets.map(\.asset.id),
             pinnedAssetIds: result.assets.filter(\.metadata.isPinned).map(\.asset.id),
             perpetuals: result.perpetuals.map { $0.toGem() },
@@ -175,7 +175,7 @@ extension WalletSearchSceneViewModel {
         var request = searchQuery.request
         request.searchBy = searchableQuery
         request.searchKey = request.scope.gemScope.searchKey(query: searchableQuery)
-        request.limit = Int(service.walletSearchLimits(query: searchableQuery).fetch)
+        request.limit = service.walletSearchLimits(query: searchableQuery).fetch
         searchQuery.request = request
         loadState = searchableQuery.isNotEmpty ? .loading : .noData
     }

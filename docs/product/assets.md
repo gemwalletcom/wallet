@@ -46,6 +46,14 @@ flowchart LR
 
 The chart follows the shared [Charts](../PRODUCT.md#charts) section.
 
+| When | Expected | Why |
+|---|---|---|
+| The asset has candles | a button beside the periods switches the price chart between a line and candlesticks; the choice is remembered for every asset | traders read each period's open, high, low and close |
+| The asset has no candles | the line shows with no button, whatever the user picked on another asset | a button that cannot work is not offered |
+| Candlesticks show | the periods start at `1D`, and a chart on `1H` moves to `1D` | an hour holds too few candles to read |
+| Candlesticks show | prices are in the wallet's currency, and the last candle follows the latest price; there is no volume | the header must agree with the rest of the asset screen, and the source has no volume per candle |
+| Candlesticks cannot load | it shows that there is no data, only being offline shows an error, and the button still switches back to the line | the line may still be available |
+
 ## Manage tokens
 
 ```mermaid

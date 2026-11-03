@@ -87,19 +87,12 @@ import uniffi.gemstone.GemNetworkFeeScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FeeDetails(
-    isVisible: Boolean,
-    screen: GemNetworkFeeScreen?,
-    feeListItem: ListItemModel?,
-    onSelectPriority: (FeePriority) -> Unit,
-    onSelectCustom: (GemConfirmFeeSelection) -> Unit,
-    onSelectFeeAsset: (AssetId) -> Unit,
-    onCancel: () -> Unit,
-) {
+fun FeeDetails(isVisible: Boolean, screen: GemNetworkFeeScreen?, onSelectPriority: (FeePriority) -> Unit, onSelectCustom: (GemConfirmFeeSelection) -> Unit, onSelectFeeAsset: (AssetId) -> Unit, onCancel: () -> Unit) {
     screen ?: return
     val feeAsset = remember(screen.feeAsset) { screen.feeAsset?.toFeeAssetUIModel() }
     val feeAssets = remember(screen.feeAssets) { screen.feeAssets.map { it.toFeeAssetUIModel() } }
 
+    // The custom fee being typed lives in composition, so the sheet reopens on Details rather than on an emptied custom page.
     var page by remember(isVisible) { mutableStateOf(FeeDetailsPage.Details) }
     var custom by remember(page) { mutableStateOf(screen.custom) }
     val estimate = remember(custom) { custom?.viewState() }
@@ -144,8 +137,8 @@ fun FeeDetails(
         )
         when (page) {
             FeeDetailsPage.Details -> FeeRates(
-                feeItems = screen.additionalFees.map { ListItemModel(title = stringResource(it.option.stringRes()), subtitle = it.amount.amount.text()) },
-                feeListItem = feeListItem,
+                feeItems = screen.additionalFees.map { ListItemModel(title = stringResource(it.option.stringRes()), subtitle = it.amount.amount.text(), subtitleExtra = it.amount.fiat?.text()) },
+                feeListItem = screen.fee?.let { ListItemModel(title = stringResource(R.string.transfer_network_fee), subtitle = it.amount.text(), subtitleExtra = it.fiat?.text()) },
                 feeRateRows = screen.rates?.rows.orEmpty(),
                 showsOptions = screen.rates?.showsOptions == true,
                 feeAsset = feeAsset,
@@ -335,7 +328,7 @@ private fun FeeSheetHeader(title: String, onBack: (() -> Unit)?, onConfirm: (() 
                     containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = alpha10),
                 ),
             ) {
-                Icon(imageVector = AppIcons.ArrowBack, contentDescription = null)
+                Icon(imageVector = AppIcons.ArrowBack, contentDescription = stringResource(R.string.common_back))
             }
         }
         Text(text = title, style = MaterialTheme.typography.titleMedium)
@@ -348,7 +341,7 @@ private fun FeeSheetHeader(title: String, onBack: (() -> Unit)?, onConfirm: (() 
                     containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = alpha10),
                 ),
             ) {
-                Icon(imageVector = AppIcons.Check, contentDescription = null)
+                Icon(imageVector = AppIcons.Check, contentDescription = stringResource(R.string.common_done))
             }
         }
     }

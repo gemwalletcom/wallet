@@ -1,14 +1,14 @@
 package com.gemwallet.android.data.services.gemstone.di
 
 import android.content.Context
+import com.gemwallet.android.data.services.gemstone.GemstoneFileStore
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletPreferencesStore
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
 import com.gemwallet.android.data.services.store.LocalStore
 import com.gemwallet.android.data.services.store.database.AccountsDao
 import com.gemwallet.android.data.services.store.database.AssetsDao
 import com.gemwallet.android.data.services.store.database.StoreTransactionRunner
 import com.gemwallet.android.data.services.store.database.WalletsDao
-import com.gemwallet.android.data.services.gemstone.GemstoneFileStore
-import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletPreferencesStore
-import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

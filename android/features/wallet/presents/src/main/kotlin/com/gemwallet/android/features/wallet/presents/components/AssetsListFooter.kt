@@ -39,7 +39,7 @@ internal fun AssetsListFooter(onShowAssetManage: () -> Unit) {
             Icon(
                 imageVector = AppIcons.Tune,
                 tint = MaterialTheme.colorScheme.onSurface,
-                contentDescription = "asset_manager",
+                contentDescription = null,
             )
             Spacer(modifier = Modifier.size(ButtonDefaults.IconSize))
             Text(

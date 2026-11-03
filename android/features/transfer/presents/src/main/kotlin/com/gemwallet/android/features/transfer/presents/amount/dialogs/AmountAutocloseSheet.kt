@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,7 +39,6 @@ internal fun AmountAutocloseSheet(isVisible: Boolean, provider: AmountPerpetualP
     if (!isVisible) return
     var focused: TpslType? by remember { mutableStateOf(null) }
 
-    LaunchedEffect(Unit) { provider.onAutocloseOpened(amount) }
     val viewState = provider.autocloseViewState.collectAsStateWithLifecycle().value ?: return
 
     val activeField = when (focused) {

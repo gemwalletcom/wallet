@@ -49,15 +49,11 @@ impl GemRecentActivityService {
     }
 
     pub fn view_state(&self, recents: Vec<RecentAsset>, days: Vec<GemDay>, boundaries: GemDayBoundaries, query: String) -> GemRecentsViewState {
-        let count = recents.len() as u32;
+        let count = recents.len();
         let matching: HashSet<AssetId> = matching_assets(recents.iter().map(|recent| recent.asset.clone()).collect(), &query).into_iter().map(|asset| asset.id).collect();
         let dated: Vec<(GemDay, RecentAsset)> = days.into_iter().zip(recents).filter(|(_, recent)| matching.contains(&recent.asset.id)).collect();
         GemRecentsViewState {
-            sections: GemRecentsCounts {
-                recents: count,
-                matching: dated.len() as u32,
-            }
-            .sections(!query.trim().is_empty()),
+            sections: GemRecentsCounts { recents: count, matching: dated.len() }.sections(!query.trim().is_empty()),
             days: recent_days(dated, &boundaries),
         }
     }
@@ -184,8 +180,8 @@ mod tests {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct GemRecentsCounts {
-    pub recents: u32,
-    pub matching: u32,
+    pub recents: usize,
+    pub matching: usize,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

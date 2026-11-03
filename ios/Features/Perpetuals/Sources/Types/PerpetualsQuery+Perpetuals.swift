@@ -9,7 +9,7 @@ import Store
 extension PerpetualsQuery {
     static func market(search: String) -> PerpetualsQuery {
         let query = perpetualMarketQuery(search: search)
-        return PerpetualsQuery(searchQuery: query.search, limit: Int(query.limit), requiresVolume: query.requiresVolume)
+        return PerpetualsQuery(searchQuery: query.search, limit: query.limit, requiresVolume: query.requiresVolume)
     }
 }
 

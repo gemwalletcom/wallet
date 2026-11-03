@@ -13,6 +13,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -20,20 +25,18 @@ import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -83,47 +86,48 @@ fun ImportWalletScreen(importType: ImportType, onImported: () -> Unit, onCancel:
     DisableScreenShooting()
 
     val context = LocalContext.current
-    val viewModel: ImportWalletViewModel = hiltViewModel()
-
-    DisposableEffect(Unit) {
-        viewModel.importSelect(importType)
-
-        onDispose {}
-    }
+    val viewModel = hiltViewModel<ImportWalletViewModel, ImportWalletViewModel.Factory> { it.create(importType) }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val errorText by viewModel.errorText.collectAsStateWithLifecycle()
     DetectScreenshot(uiState.importType.kind.secretKind())
     val nameResolveIndicator by viewModel.nameResolveIndicator.collectAsStateWithLifecycle()
     val suggestions by viewModel.suggestions.collectAsStateWithLifecycle()
-    val inputState = remember { mutableStateOf(TextFieldValue()) }
-    var isScanning by remember { mutableStateOf(false) }
+    val isImported by viewModel.isImported.collectAsStateWithLifecycle()
+    var isScanning by rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(isImported) {
+        if (isImported) {
+            viewModel.onImportedHandled()
+            onImported()
+        }
+    }
 
     ImportWalletScene(
-        inputState = inputState,
-        importType = uiState.importType,
+        inputState = viewModel.inputState,
         tabs = uiState.tabs,
         input = uiState.input,
         title = uiState.title,
         showsTabs = uiState.showsTabs,
+        showsScan = uiState.showsScan,
         nameResolveIndicator = nameResolveIndicator,
-        dataError = uiState.dataError,
         buttonState = buttonState(loading = uiState.loading),
-        onImport = {
-            when (uiState.importType.kind) {
-                GemWalletImportKind.ADDRESS -> viewModel.import(onImported)
-                GemWalletImportKind.PHRASE, GemWalletImportKind.PRIVATE_KEY -> context.requestAuth(AuthRequest.Default) { viewModel.import(onImported) }
-            }
-        },
-        onInput = viewModel::onInput,
-        onScan = if (uiState.showsScan) {
-            { isScanning = true }
-        } else {
-            null
-        },
-        onTypeChange = viewModel::importKind,
         suggestions = suggestions,
-        onSelectSuggestion = viewModel::selectSuggestion,
-        onCancel = onCancel,
-    )
+    ) { action ->
+        when (action) {
+            ImportWalletAction.Import -> when (uiState.importType.kind) {
+                GemWalletImportKind.ADDRESS -> viewModel.import()
+                GemWalletImportKind.PHRASE, GemWalletImportKind.PRIVATE_KEY -> context.requestAuth(AuthRequest.Default) { viewModel.import() }
+            }
+
+            ImportWalletAction.Scan -> isScanning = true
+
+            is ImportWalletAction.SelectType -> viewModel.importKind(action.type)
+
+            is ImportWalletAction.SelectSuggestion -> viewModel.selectSuggestion(action.word)
+
+            ImportWalletAction.Cancel -> onCancel()
+        }
+    }
     if (uiState.loading) {
         Dialog(
             onDismissRequest = {},
@@ -148,20 +152,26 @@ fun ImportWalletScreen(importType: ImportType, onImported: () -> Unit, onCancel:
         onDismissRequest = { isScanning = false },
         onResult = { code ->
             isScanning = false
-            inputState.value = TextFieldValue(text = code, selection = TextRange(code.length))
-            viewModel.onInput(code, code.length)
+            viewModel.inputState.setTextAndPlaceCursorAtEnd(code)
         },
     )
+    errorText?.let { message ->
+        AlertDialog(
+            containerColor = MaterialTheme.colorScheme.background,
+            onDismissRequest = viewModel::dismissError,
+            title = { Text(stringResource(R.string.errors_validation, "")) },
+            text = { Text(message) },
+            confirmButton = {
+                Button(viewModel::dismissError) { Text(stringResource(R.string.common_done)) }
+            },
+        )
+    }
     uiState.existingWalletName?.let { walletName ->
         InfoBottomSheet(
             item = GemInfoTopic.ExistingWalletImported(walletName).infoSheet {
                 viewModel.continueExistingWallet(onImported)
             },
-            onClose = {
-                viewModel.dismissExistingWallet()
-                viewModel.clearInput()
-                inputState.value = TextFieldValue()
-            },
+            onClose = viewModel::dismissExistingWallet,
         )
     }
 }
@@ -169,31 +179,25 @@ fun ImportWalletScreen(importType: ImportType, onImported: () -> Unit, onCancel:
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ImportWalletScene(
-    inputState: MutableState<TextFieldValue>,
-    importType: ImportType,
+    inputState: TextFieldState,
     tabs: List<ImportTabUIModel>,
     input: ImportInputUIModel,
     title: String,
     showsTabs: Boolean,
+    showsScan: Boolean,
     nameResolveIndicator: GemNameIndicator?,
-    dataError: String?,
     buttonState: ButtonState,
-    onImport: () -> Unit,
-    onInput: (String, Int) -> Unit,
-    onScan: (() -> Unit)?,
-    onTypeChange: (ImportType) -> Unit,
     suggestions: List<String>,
-    onSelectSuggestion: (String) -> String,
-    onCancel: () -> Unit,
+    onAction: (ImportWalletAction) -> Unit,
 ) {
     Scene(
         title = title,
-        onClose = onCancel,
+        onClose = { onAction(ImportWalletAction.Cancel) },
         mainAction = {
             MainActionButton(
                 title = stringResource(id = R.string.wallet_import_action),
                 state = buttonState,
-                onClick = onImport,
+                onClick = { onAction(ImportWalletAction.Import) },
             )
         },
     ) {
@@ -209,18 +213,25 @@ private fun ImportWalletScene(
                         .padding(bottom = space0),
                     verticalArrangement = Arrangement.spacedBy(paddingHalfSmall),
                 ) {
-                    TypeSelection(tabs, showsTabs) { type ->
-                        onTypeChange(type)
-                        inputState.value = TextFieldValue()
-                    }
-                    DataInput(input, inputState, nameResolveIndicator, suggestions, onSelectSuggestion, onScan, onInput)
-                    ErrorMessage(dataError)
+                    TypeSelection(tabs, showsTabs) { onAction(ImportWalletAction.SelectType(it)) }
+                    DataInput(
+                        input = input,
+                        inputState = inputState,
+                        nameResolveIndicator = nameResolveIndicator,
+                        suggestions = suggestions,
+                        onSelectSuggestion = { onAction(ImportWalletAction.SelectSuggestion(it)) },
+                        onScan = if (showsScan) {
+                            { onAction(ImportWalletAction.Scan) }
+                        } else {
+                            null
+                        },
+                    )
                 }
             }
             if (input.showsViewOnlyWarning) {
                 item {
                     Text(
-                        modifier = Modifier.sectionHeaderItem(),
+                        modifier = Modifier.sectionHeaderItem().testTag("view_only_warning"),
                         text = parseMarkdownToAnnotatedString(
                             stringResource(R.string.wallet_import_address_warning),
                         ),
@@ -235,24 +246,12 @@ private fun ImportWalletScene(
 }
 
 @Composable
-private fun DataInput(
-    input: ImportInputUIModel,
-    inputState: MutableState<TextFieldValue>,
-    nameResolveIndicator: GemNameIndicator?,
-    suggestions: List<String>,
-    onSelectSuggestion: (String) -> String,
-    onScan: (() -> Unit)?,
-    onInput: (String, Int) -> Unit,
-) {
+private fun DataInput(input: ImportInputUIModel, inputState: TextFieldState, nameResolveIndicator: GemNameIndicator?, suggestions: List<String>, onSelectSuggestion: (String) -> Unit, onScan: (() -> Unit)?) {
     ImportInput(
-        inputState = inputState.value,
+        state = inputState,
         input = input,
         indicator = nameResolveIndicator,
         onScan = onScan,
-        onValueChange = { query ->
-            inputState.value = query
-            onInput(query.text, query.selection.start)
-        },
     )
 
     if (suggestions.isNotEmpty() && input.supportsPhraseSuggestions) {
@@ -261,10 +260,8 @@ private fun DataInput(
         ) {
             items(suggestions) { word ->
                 SuggestionChip(
-                    onClick = {
-                        val text = onSelectSuggestion(word)
-                        inputState.value = TextFieldValue(text = text, selection = TextRange(text.length))
-                    },
+                    modifier = Modifier.testTag("word_suggestion"),
+                    onClick = { onSelectSuggestion(word) },
                     label = { Text(text = word) },
                 )
             }
@@ -279,7 +276,7 @@ private fun TypeSelection(tabs: List<ImportTabUIModel>, showsTabs: Boolean, onTy
         return
     }
     PrimaryTabRow(
-        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(paddingHalfSmall)),
+        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(paddingHalfSmall)).testTag("import_kinds"),
         selectedTabIndex = tabs.indexOfFirst { it.isSelected }.coerceAtLeast(0),
         indicator = { Box {} },
         containerColor = Color.Transparent,
@@ -290,12 +287,6 @@ private fun TypeSelection(tabs: List<ImportTabUIModel>, showsTabs: Boolean, onTy
         }
     }
     Spacer16()
-}
-
-@Composable
-private fun ErrorMessage(error: String?) {
-    error ?: return
-    Text(text = error, color = MaterialTheme.colorScheme.error)
 }
 
 private fun GemWalletImportKind.scanType(): QRScanType = when (this) {
@@ -314,8 +305,7 @@ fun PreviewImportAddress() {
     WalletTheme {
         Box(modifier = Modifier.fillMaxSize()) {
             ImportWalletScene(
-                inputState = remember { mutableStateOf(TextFieldValue()) },
-                importType = ImportType(GemWalletImportKind.ADDRESS, Chain.Bitcoin),
+                inputState = rememberTextFieldState(),
                 tabs = listOf(
                     ImportTabUIModel(ImportType(GemWalletImportKind.PHRASE, Chain.Bitcoin), R.string.common_phrase, isSelected = false),
                     ImportTabUIModel(ImportType(GemWalletImportKind.ADDRESS, Chain.Bitcoin), R.string.common_address, isSelected = true),
@@ -328,16 +318,11 @@ fun PreviewImportAddress() {
                 ),
                 title = "Ethereum",
                 showsTabs = true,
+                showsScan = true,
                 nameResolveIndicator = null,
-                dataError = null,
                 buttonState = ButtonState.Enabled,
-                onImport = {},
-                onInput = { _, _ -> },
-                onScan = {},
-                onTypeChange = {},
                 suggestions = emptyList(),
-                onSelectSuggestion = { "" },
-                onCancel = {},
+                onAction = {},
             )
         }
     }

@@ -43,6 +43,9 @@ case "${PLATFORM_NAME:-}" in
     iphonesimulator)
         DEFAULT_TARGETS="aarch64-apple-ios-sim"
         ;;
+    macosx)
+        DEFAULT_TARGETS="aarch64-apple-ios-macabi"
+        ;;
     *)
         if [ "$BUILD_MODE" = "release" ]; then
             DEFAULT_TARGETS="aarch64-apple-ios"

@@ -91,7 +91,9 @@ pub enum GemDeviceApiTarget {
     GetNotifications {
         from_timestamp: u64,
     },
-    MarkNotificationsRead,
+    MarkNotificationsRead {
+        wallet_id: String,
+    },
 
     GetFiatQuotes {
         wallet_id: String,
@@ -156,7 +158,7 @@ impl GemDeviceApiTarget {
             | Self::CreateReferral { .. }
             | Self::UseReferralCode { .. }
             | Self::RedeemRewards { .. }
-            | Self::MarkNotificationsRead
+            | Self::MarkNotificationsRead { .. }
             | Self::GetAddressNames(_)
             | Self::GetPortfolioAssets { .. } => GemApiMethod::Post,
         }
@@ -195,7 +197,7 @@ impl GemDeviceApiTarget {
             Self::UseReferralCode { .. } => "/v3/devices/rewards/referrals/use".to_string(),
             Self::RedeemRewards { .. } => "/v3/devices/rewards/redemptions".to_string(),
             Self::GetNotifications { from_timestamp } => format!("/v3/devices/notifications?from_timestamp={from_timestamp}"),
-            Self::MarkNotificationsRead => "/v3/devices/notifications/read".to_string(),
+            Self::MarkNotificationsRead { .. } => "/v3/devices/notifications/read".to_string(),
             Self::GetFiatQuotes { quote_type, asset_id, amount, currency, .. } => format!("/v3/devices/fiat/quotes/{}/{asset_id}?amount={amount}&currency={currency}", quote_type.as_ref()),
             Self::GetFiatQuoteUrl { quote_id, .. } => format!("/v3/devices/fiat/quotes/{quote_id}/url"),
             Self::GetFiatTransactions { .. } => "/v3/devices/fiat/transactions".to_string(),
@@ -215,6 +217,7 @@ impl GemDeviceApiTarget {
             | Self::GetNftAssets { wallet_id }
             | Self::RefreshNftAsset { wallet_id, .. }
             | Self::GetRewards { wallet_id }
+            | Self::MarkNotificationsRead { wallet_id }
             | Self::CreateReferral { wallet_id, .. }
             | Self::UseReferralCode { wallet_id, .. }
             | Self::RedeemRewards { wallet_id, .. }

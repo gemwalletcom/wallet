@@ -6,6 +6,7 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.store.queries.AssetsQuery
 import com.gemwallet.android.data.services.store.queries.RecentActivityQuery
 import com.gemwallet.android.features.assets.viewmodels.select.models.BaseSelectSearch
+import com.wallet.core.primitives.Chain
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -18,6 +19,7 @@ import uniffi.gemstone.GemSelectAssetType
 @HiltViewModel(assistedFactory = SelectAssetViewModel.Factory::class)
 class SelectAssetViewModel @AssistedInject constructor(
     @Assisted selectType: GemSelectAssetType,
+    @Assisted chains: List<Chain>,
     getSession: GetSession,
     assetsQuery: AssetsQuery,
     recentActivityQuery: RecentActivityQuery,
@@ -32,9 +34,10 @@ class SelectAssetViewModel @AssistedInject constructor(
     selectType,
     ioDispatcher,
     context,
+    chains,
 ) {
     @AssistedFactory
     interface Factory {
-        fun create(selectType: GemSelectAssetType): SelectAssetViewModel
+        fun create(selectType: GemSelectAssetType, chains: List<Chain>): SelectAssetViewModel
     }
 }

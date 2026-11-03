@@ -2,6 +2,8 @@ package com.gemwallet.android.ui.components.list_item
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,7 +20,7 @@ import uniffi.gemstone.GemProviderLoadingRow
 import uniffi.gemstone.GemProviderRow
 
 @Composable
-fun ProviderRowView(row: GemProviderRow, listPosition: ListPosition, onClick: (() -> Unit)? = null) {
+fun ProviderRowView(row: GemProviderRow, listPosition: ListPosition, onClick: (() -> Unit)? = null, isShowChevron: Boolean = false) {
     val image = row.kind.listItemImage()
     ListItem(
         modifier = onClick?.let { Modifier.clickable(onClick = it) } ?: Modifier,
@@ -34,6 +36,10 @@ fun ProviderRowView(row: GemProviderRow, listPosition: ListPosition, onClick: ((
             Column(horizontalAlignment = Alignment.End) {
                 ListItemTitleText(row.amount.text())
                 row.fiat?.let { ListItemSupportText(it.text()) }
+            }
+            if (isShowChevron) {
+                Spacer(modifier = Modifier.width(ChevronIconDefaults.leadingSpacing))
+                ChevronIcon()
             }
         },
         listPosition = listPosition,

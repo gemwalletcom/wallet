@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Style
 import SwiftUI
 import WidgetKit
 import WidgetLocalization
@@ -26,5 +27,16 @@ final class PriceWidgetViewModel {
         case .systemSmall: WidgetLocalized.Widget.emptyShort
         default: WidgetLocalized.Widget.empty
         }
+    }
+
+    var padding: CGFloat {
+        switch widgetFamily {
+        case .systemSmall: Spacing.small
+        default: .zero
+        }
+    }
+
+    var showsErrorMessage: Bool {
+        widgetFamily != .systemSmall
     }
 }

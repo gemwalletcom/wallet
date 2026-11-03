@@ -12,6 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
@@ -55,7 +56,7 @@ fun NetworkAssetsScreen(onSelectAsset: (AssetId) -> Unit, onManageAssets: () -> 
         onClose = onCancel,
         actions = {
             IconButton(onClick = onManageAssets) {
-                Icon(imageVector = AppIcons.Tune, contentDescription = "")
+                Icon(imageVector = AppIcons.Tune, contentDescription = stringResource(R.string.wallet_manage_token_list))
             }
         },
     ) {

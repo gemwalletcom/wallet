@@ -15,6 +15,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -69,7 +70,7 @@ internal fun AmountScene(
     additionParams: (@Composable () -> Unit)? = null,
 ) {
     val focusRequester = remember { FocusRequester() }
-    var showsErrorInfo by remember { mutableStateOf(false) }
+    var showsErrorInfo by rememberSaveable { mutableStateOf(false) }
 
     ContinueScene(
         title = title,
@@ -130,7 +131,7 @@ internal fun AmountScene(
 
 @Composable
 private fun ReserveForFeeItem(asset: Asset, reserveForFee: String) {
-    var showInfoSheet by remember { mutableStateOf(false) }
+    var showInfoSheet by rememberSaveable { mutableStateOf(false) }
     Row(
         modifier = Modifier
             .fillMaxWidth()

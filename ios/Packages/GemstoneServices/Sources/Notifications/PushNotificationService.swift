@@ -25,7 +25,7 @@ public struct PushNotificationEnablerService: Sendable {
 
     public func requestPermissionsOrOpenSettings() async throws -> Bool {
         let status = try await getNotificationSettingsStatus()
-        switch preferencesService.notificationPrompt(isGranted: status.isGranted) {
+        switch preferencesService.notificationPrompt(isGranted: status.isAuthorized) {
         case .enable:
             try preferencesService.setPushNotificationsEnabled(enabled: true)
             await registerForRemoteNotifications()
@@ -62,15 +62,5 @@ public struct PushNotificationEnablerService: Sendable {
     @MainActor
     private func registerForRemoteNotifications() {
         UIApplication.shared.registerForRemoteNotifications()
-    }
-}
-
-private extension UNAuthorizationStatus {
-    var isGranted: Bool {
-        switch self {
-        case .authorized, .ephemeral, .provisional: true
-        case .denied, .notDetermined: false
-        @unknown default: false
-        }
     }
 }

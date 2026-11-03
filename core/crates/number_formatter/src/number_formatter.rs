@@ -69,4 +69,13 @@ mod tests {
         assert_eq!(formatter.percent(-6.12), "-6.12%");
         assert_eq!(formatter.percent(129.99), "129.99%");
     }
+
+    #[test]
+    fn test_new_fiat_currencies_do_not_format_as_dollars() {
+        let formatter = NumberFormatter::new();
+
+        for (currency, expected) in [("RON", "lei1,234.56"), ("GEL", "₾1,234.56"), ("AMD", "֏1,234.56"), ("MDL", "L1,234.56")] {
+            assert_eq!(formatter.currency(1234.56, currency).as_deref(), Some(expected));
+        }
+    }
 }

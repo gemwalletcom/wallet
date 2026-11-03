@@ -103,6 +103,13 @@ struct SetPriceAlertSceneViewModelTests {
         #expect(viewModel.amount == "2500")
         #expect(viewModel.confirmButtonState(viewModel.viewState) == .normal)
     }
+
+    @Test
+    func theTargetKeepsOnlyANumber() {
+        let viewModel = SetPriceAlertSceneViewModel.mock()
+
+        #expect(viewModel.currencyInputConfig(viewModel.viewState).sanitize("-5 1.2.3") == "51.23")
+    }
 }
 
 private final class MessageRecorder: @unchecked Sendable {

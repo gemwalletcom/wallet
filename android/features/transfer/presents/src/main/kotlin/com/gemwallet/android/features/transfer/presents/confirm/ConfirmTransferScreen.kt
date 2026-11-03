@@ -19,6 +19,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -58,6 +59,7 @@ import com.gemwallet.android.ui.components.simulation.simulationPayloadDetailsCo
 import com.gemwallet.android.ui.components.simulation.simulationPayloadFieldsContent
 import com.gemwallet.android.ui.components.swap.SwapDetailsBottomSheet
 import com.gemwallet.android.ui.components.swap.SwapDetailsSummaryItem
+import com.gemwallet.android.ui.components.textMessageContent
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.localization.text
@@ -118,10 +120,10 @@ fun ConfirmTransferScreen(
     val verification by viewModel.verification.collectAsStateWithLifecycle()
     val isVerificationVisible by viewModel.isVerificationVisible.collectAsStateWithLifecycle()
 
-    var showSelectTxSpeed by remember { mutableStateOf(false) }
-    var showSimulationDetails by remember { mutableStateOf(false) }
-    var isVerificationInfoVisible by remember { mutableStateOf(false) }
-    var selectedDetailElement by remember(input) { mutableStateOf<GemConfirmDetails?>(null) }
+    var showSelectTxSpeed by rememberSaveable { mutableStateOf(false) }
+    var showSimulationDetails by rememberSaveable { mutableStateOf(false) }
+    var isVerificationInfoVisible by rememberSaveable { mutableStateOf(false) }
+    var selectedDetailIndex by rememberSaveable(input) { mutableStateOf<Int?>(null) }
     val payload = sections.filterIsInstance<GemConfirmSection.Payload>().firstOrNull()
     val openPayloadAddress = payloadChain?.let { chain ->
         { address: String ->
@@ -130,6 +132,14 @@ fun ConfirmTransferScreen(
         }
     }
     val isShowBottomSheetInfo by viewModel.isErrorSheetVisible.collectAsStateWithLifecycle()
+    val sentTransactionHash by viewModel.sentTransactionHash.collectAsStateWithLifecycle()
+
+    LaunchedEffect(sentTransactionHash) {
+        sentTransactionHash?.let {
+            viewModel.onSentHandled()
+            finishAction(it)
+        }
+    }
 
     LaunchedEffect(input, simulationResult) {
         if (input == null) {
@@ -160,11 +170,14 @@ fun ConfirmTransferScreen(
                 icon = button.icon.icon(),
                 onClick = {
                     when (viewModel.action()) {
-                        GemConfirmAction.EXECUTE -> context.requestAuth(AuthRequest.Confirmation) {
-                            viewModel.send(finishAction)
+                        GemConfirmAction.EXECUTE -> {
+                            viewModel.startExecute()
+                            context.requestAuth(AuthRequest.Confirmation, onCancel = viewModel::cancelExecute, onSuccess = viewModel::submit)
                         }
 
-                        GemConfirmAction.LOAD, null -> viewModel.send(finishAction)
+                        GemConfirmAction.LOAD -> viewModel.load()
+
+                        null -> Unit
                     }
                 },
             )
@@ -229,10 +242,12 @@ fun ConfirmTransferScreen(
                             ConfirmDetailsRow(
                                 item = item,
                                 listPosition = listPosition,
-                                onClick = { selectedDetailElement = item },
+                                onClick = { selectedDetailIndex = index },
                             )
                         }
                     }
+
+                    is GemConfirmSection.Message -> textMessageContent(section.text)
 
                     is GemConfirmSection.Warnings -> itemsPositioned(section.rows) { position, row -> GemListRowView(row = row, listPosition = position) }
 
@@ -290,7 +305,6 @@ fun ConfirmTransferScreen(
         FeeDetails(
             isVisible = showSelectTxSpeed,
             screen = feeScreen,
-            feeListItem = feeListItem,
             onSelectPriority = viewModel::changeFeePriority,
             onSelectCustom = viewModel::changeFeeSelection,
             onSelectFeeAsset = viewModel::changeFeeAsset,
@@ -313,8 +327,8 @@ fun ConfirmTransferScreen(
         }
 
         ConfirmDetailsSheet(
-            item = selectedDetailElement,
-            onDismiss = { selectedDetailElement = null },
+            item = selectedDetailIndex?.let(detailElements::getOrNull),
+            onDismiss = { selectedDetailIndex = null },
         )
 
         ModalBottomSheet(
@@ -324,7 +338,7 @@ fun ConfirmTransferScreen(
             title = stringResource(R.string.info_payment_verification_title),
             actions = {
                 IconButton(onClick = { isVerificationInfoVisible = true }) {
-                    Icon(AppIcons.InfoOutlined, contentDescription = null)
+                    Icon(AppIcons.InfoOutlined, contentDescription = stringResource(R.string.common_learn_more))
                 }
             },
         ) {

@@ -25,8 +25,9 @@ use crate::services::preferences::GemPreferencesService;
 use crate::services::wallet_session::GemWalletSessionService;
 
 pub use model::{
-    GemDelegationAction, GemDelegationActionItem, GemDelegationAmountInput, GemDelegationDestination, GemDelegationDetails, GemDelegationRecord, GemDelegationStatus, GemEarnInput, GemEarnView, GemStakeAction, GemStakeActionItem,
-    GemStakeActionKind, GemStakeAmountInput, GemStakeAmountSelection, GemStakeDelegationItem, GemStakeDestination, GemStakeInput, GemStakeSection, GemStakeValidatorOptions, GemStakeViewState, GemValidatorRow, GemValidatorSection,
+    GemDelegationAction, GemDelegationActionItem, GemDelegationActionTarget, GemDelegationAmountInput, GemDelegationDestination, GemDelegationDetails, GemDelegationRecord, GemDelegationStatus, GemEarnInput, GemEarnView, GemStakeAction,
+    GemStakeActionItem, GemStakeActionKind, GemStakeAmountInput, GemStakeAmountSelection, GemStakeDelegationItem, GemStakeDestination, GemStakeInput, GemStakeSection, GemStakeValidatorOptions, GemStakeViewState, GemValidatorRow,
+    GemValidatorSection,
 };
 pub use store::GemStakeStore;
 
@@ -73,16 +74,8 @@ impl GemStakeService {
         }
     }
 
-    pub fn is_available(&self) -> bool {
-        self.config.is_feature_enabled(Feature::Staking)
-    }
-
     pub fn get_currency(&self) -> Currency {
         self.preferences.get_currency()
-    }
-
-    pub fn stake_amount_selection(&self, chain: Chain, input: GemStakeAmountInput) -> GemStakeAmountSelection {
-        rules::amount_selection(chain, &input)
     }
 
     pub fn stake_validator_options(&self, chain: Chain, input: GemStakeAmountInput, validators: Vec<DelegationValidator>) -> GemStakeValidatorOptions {
@@ -117,16 +110,20 @@ impl GemStakeService {
     }
 
     pub fn stake_view_state(&self, input: GemStakeInput) -> GemStakeViewState {
-        rules::stake_view_state(input, self.platform)
+        rules::stake_view_state(input, self.platform, self.is_stake_enabled())
     }
 
     pub fn delegation_details(&self, wallet_type: WalletType, delegation: Delegation, asset: Asset, price: Option<f64>, currency: Currency, validators: Vec<DelegationValidator>) -> GemDelegationDetails {
         let rows = self.delegation_rows(delegation.clone());
-        rules::delegation_details(wallet_type, &delegation, &asset, price, currency, rows, &validators)
+        rules::delegation_details(wallet_type, &delegation, &asset, price, currency, rows, &validators, self.is_stake_enabled())
     }
 }
 
 impl GemStakeService {
+    fn is_stake_enabled(&self) -> bool {
+        self.config.is_feature_enabled(Feature::Staking)
+    }
+
     pub async fn sync_earn(&self, asset_id: AssetId) -> Result<(), GemServiceError> {
         let (wallet_id, address) = self.current_account(asset_id.chain).await?;
         self.sync_earn_wallet(wallet_id, asset_id, address).await

@@ -1,6 +1,8 @@
 use std::fmt::{self, Debug, Formatter};
 use std::sync::Arc;
 
+use num_bigint::BigUint;
+
 use crate::{UTXO, contract_call_data::ContractCallData, solana_nft::SolanaNftStandard, solana_token_program::SolanaTokenProgramId, stake_type::TronStakeData};
 
 pub struct AgentPrivateKey(String);
@@ -190,6 +192,27 @@ impl TransactionLoadMetadata {
             TransactionLoadMetadata::Zcash { utxos, .. } => Ok(utxos.clone()),
             TransactionLoadMetadata::Cardano { utxos, .. } => Ok(utxos.clone()),
             _ => Err("UTXOs not available for this metadata type".into()),
+        }
+    }
+
+    pub fn get_bitcoin_family_utxo_value(&self) -> Option<BigUint> {
+        match self {
+            TransactionLoadMetadata::Bitcoin { utxos } | TransactionLoadMetadata::Zcash { utxos, .. } => Some(utxos.iter().map(|utxo| &utxo.value).sum()),
+            TransactionLoadMetadata::None
+            | TransactionLoadMetadata::Solana { .. }
+            | TransactionLoadMetadata::Ton { .. }
+            | TransactionLoadMetadata::Cosmos { .. }
+            | TransactionLoadMetadata::Cardano { .. }
+            | TransactionLoadMetadata::Evm { .. }
+            | TransactionLoadMetadata::Near { .. }
+            | TransactionLoadMetadata::Stellar { .. }
+            | TransactionLoadMetadata::Xrp { .. }
+            | TransactionLoadMetadata::Algorand { .. }
+            | TransactionLoadMetadata::Aptos { .. }
+            | TransactionLoadMetadata::Polkadot { .. }
+            | TransactionLoadMetadata::Tron { .. }
+            | TransactionLoadMetadata::Sui { .. }
+            | TransactionLoadMetadata::Hyperliquid { .. } => None,
         }
     }
 

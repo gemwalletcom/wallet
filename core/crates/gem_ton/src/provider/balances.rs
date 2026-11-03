@@ -20,9 +20,9 @@ impl<C: Client> ChainBalances for TonClient<C> {
         Ok(map_balance_tokens(balances, token_ids))
     }
 
-    async fn get_balance_assets(&self, address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>> {
+    async fn get_balance_assets(&self, address: String) -> Result<Option<Vec<AssetBalance>>, Box<dyn Error + Send + Sync>> {
         let jetton_wallets = self.get_jetton_wallets(address).await?;
-        Ok(map_balance_assets(jetton_wallets))
+        Ok(Some(map_balance_assets(jetton_wallets)))
     }
 }
 
@@ -62,7 +62,7 @@ mod chain_integration_tests {
     async fn test_ton_get_balance_assets() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_ton_test_client();
         let address = TEST_ADDRESS.to_string();
-        let assets = client.get_balance_assets(address).await?;
+        let assets = client.get_balance_assets(address).await?.unwrap();
 
         println!("Assets: {}", assets.len());
 

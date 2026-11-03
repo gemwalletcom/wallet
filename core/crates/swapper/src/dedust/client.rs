@@ -1,39 +1,16 @@
 use super::{
-    constants::{ESTIMATE_SWAP_OUT_METHOD, FACTORY, GET_POOL_ADDRESS_METHOD, GET_VAULT_ADDRESS_METHOD, UNINITIALIZED_EXIT_CODE},
-    model::{DedustAsset, PoolType},
+    constants::{ESTIMATE_SWAP_OUT_METHOD, UNINITIALIZED_EXIT_CODE},
+    model::DedustAsset,
 };
 use crate::{SwapperError, route_cache::Cache};
 use gem_client::Client;
-use gem_ton::{address::Address, models::StackArg, rpc::client::TonClient, tvm::TvmError};
+use gem_ton::{address::Address, models::StackArg, rpc::client::TonClient};
 use num_bigint::BigUint;
-use primitives::{HOUR, WEEK};
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-enum FactoryAddress {
-    Pool(PoolType, DedustAsset, DedustAsset),
-    Vault(DedustAsset),
-}
-
-impl FactoryAddress {
-    fn method(&self) -> &'static str {
-        match self {
-            Self::Pool(..) => GET_POOL_ADDRESS_METHOD,
-            Self::Vault(_) => GET_VAULT_ADDRESS_METHOD,
-        }
-    }
-
-    fn stack(&self) -> Result<Vec<StackArg>, TvmError> {
-        match self {
-            Self::Pool(pool_type, from, to) => Ok(vec![pool_type.stack_arg(), from.stack_arg()?, to.stack_arg()?]),
-            Self::Vault(asset) => Ok(vec![asset.stack_arg()?]),
-        }
-    }
-}
+use primitives::HOUR;
 
 #[derive(Debug)]
 pub(super) struct DedustClient<C: Client> {
     ton_client: TonClient<C>,
-    addresses: Cache<FactoryAddress, Address>,
     undeployed_pools: Cache<Address, ()>,
 }
 
@@ -41,17 +18,8 @@ impl<C: Client> DedustClient<C> {
     pub fn new(ton_client: TonClient<C>) -> Self {
         Self {
             ton_client,
-            addresses: Cache::new(WEEK),
             undeployed_pools: Cache::new(HOUR),
         }
-    }
-
-    pub async fn pool_address(&self, pool_type: PoolType, from: &DedustAsset, to: &DedustAsset) -> Result<Address, SwapperError> {
-        self.factory_address(FactoryAddress::Pool(pool_type, from.clone(), to.clone())).await
-    }
-
-    pub async fn vault_address(&self, asset: &DedustAsset) -> Result<Address, SwapperError> {
-        self.factory_address(FactoryAddress::Vault(asset.clone())).await
     }
 
     pub async fn estimate_swap_out(&self, pool: &Address, asset_in: &DedustAsset, amount: &BigUint) -> Result<BigUint, SwapperError> {
@@ -79,15 +47,5 @@ impl<C: Client> DedustClient<C> {
 
     pub async fn jetton_wallet(&self, owner: &str, jetton: &Address) -> Result<Address, SwapperError> {
         self.ton_client.get_jetton_wallet_address(owner, &jetton.encode_bounceable()).await.map_err(SwapperError::compute_quote_error)
-    }
-
-    async fn factory_address(&self, key: FactoryAddress) -> Result<Address, SwapperError> {
-        if let Some(address) = self.addresses.get(&key) {
-            return Ok(address);
-        }
-        let result = self.ton_client.run_get_method(FACTORY, key.method(), key.stack()?).await.map_err(SwapperError::compute_quote_error)?;
-        let address = result.ok(key.method())?.stack_address(0)?;
-        self.addresses.put(key, address);
-        Ok(address)
     }
 }

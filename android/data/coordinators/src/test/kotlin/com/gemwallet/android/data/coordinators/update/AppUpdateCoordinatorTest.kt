@@ -13,13 +13,14 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 import uniffi.gemstone.GemAppUpdateAction
+import uniffi.gemstone.GemAppUpdateDestination
 import uniffi.gemstone.GemAppUpdateService
 
 class AppUpdateCoordinatorTest {
 
     @Test
     fun `sync offers the release core returned`() = runTest {
-        val update = mockGemAppUpdateOffer(actions = listOf(GemAppUpdateAction.SKIP, GemAppUpdateAction.UPDATE), apkUrl = "https://apk.gemwallet.com/gem_wallet_universal_2.0.0.apk")
+        val update = mockGemAppUpdateOffer(actions = listOf(GemAppUpdateAction.SKIP, GemAppUpdateAction.UPDATE), destination = GemAppUpdateDestination.File(url = "https://apk.gemwallet.com/gem_wallet_universal_2.0.0.apk"))
         val appUpdateService = mockk<GemAppUpdateService> {
             coEvery { check(any(), any()) } returns update
         }

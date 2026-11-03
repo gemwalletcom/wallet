@@ -5,7 +5,7 @@ use std::time::Duration;
 
 use async_trait::async_trait;
 use chrono::NaiveDateTime;
-use primitives::{Asset, AssetAssociation, AssetBalance, AssetBasic, AssetFull, AssetId, AssetPriceMetadata, Chain, ChainAddress, ListId, Perpetual, ScanAddress, asset_score::AssetRank, fiat_assets::AssetCatalog};
+use primitives::{Asset, AssetAddress, AssetAssociation, AssetBalance, AssetBasic, AssetFull, AssetId, AssetPriceMetadata, Chain, ChainAddress, ListId, Perpetual, ScanAddress, asset_score::AssetRank, fiat_assets::AssetCatalog};
 use storage::{AssetFilter, AssetUpdate, DatabaseError, Tag};
 
 use crate::assets::repository::{RankChange, Repository, TokenAddressesUpdate};
@@ -140,6 +140,10 @@ impl Repository for MemoryAssetRepository {
     }
 
     async fn add_scan_addresses(&self, addresses: Vec<ScanAddress>) -> Result<usize, DatabaseError> {
+        Ok(addresses.len())
+    }
+
+    async fn add_asset_addresses(&self, addresses: Vec<AssetAddress>) -> Result<usize, DatabaseError> {
         Ok(addresses.len())
     }
 

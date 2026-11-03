@@ -62,7 +62,7 @@ async fn api_clients(settings: &Settings) -> Result<Clients, Box<dyn Error + Sen
         auth_config: device_auth_config(settings),
         access: Arc::new(services.access()),
         fiat: Arc::new(services.fiat(stream_producer.clone()).await?),
-        charts: Arc::new(services.charts()),
+        charts: Arc::new(services.charts(cacher_client.clone())),
         config: Arc::new(services.app_config().await?),
         names: Arc::new(NameClient::new(NameProviderFactory::new_providers(settings.name.clone()))),
         devices: Arc::new(services.devices()),

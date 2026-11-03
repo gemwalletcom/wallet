@@ -10,7 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.features.settings.viewmodels.models.PerpetualSetting
+import com.gemwallet.android.features.settings.viewmodels.models.PreferencesAction
 import com.gemwallet.android.features.settings.viewmodels.models.PreferencesRowAction
 import com.gemwallet.android.features.settings.viewmodels.models.of
 import com.gemwallet.android.features.settings.viewmodels.models.preferencesAction
@@ -22,23 +22,13 @@ import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.localization.stringRes
-import com.gemwallet.android.ui.models.actions.PreferencesAction
 import com.wallet.core.primitives.Appearance
 import uniffi.gemstone.GemListSection
 import uniffi.gemstone.GemPerpetualDefaults
 import uniffi.gemstone.GemPerpetualPickers
 
 @Composable
-fun PreferencesScene(
-    sections: List<GemListSection>,
-    appearance: Appearance,
-    perpetualDefaults: GemPerpetualDefaults,
-    perpetualOptions: GemPerpetualPickers,
-    onAction: (PreferencesAction) -> Unit,
-    onAppearance: (Appearance) -> Unit,
-    onPerpetualEnabled: (Boolean) -> Unit,
-    onPerpetualOption: (PerpetualSetting, Int) -> Unit,
-) {
+internal fun PreferencesScene(sections: List<GemListSection>, appearance: Appearance, perpetualDefaults: GemPerpetualDefaults, perpetualOptions: GemPerpetualPickers, onAction: (PreferencesAction) -> Unit) {
     val context = LocalContext.current
 
     Scene(
@@ -73,14 +63,14 @@ fun PreferencesScene(
                             current = appearance,
                             options = Appearance.entries,
                             label = { stringResource(it.stringRes()) },
-                            onSelect = { onAppearance(it) },
+                            onSelect = { onAction(PreferencesAction.SetAppearance(it)) },
                         )
 
                         is PreferencesRowAction.Perpetuals -> GemListRowView(
                             row = row,
                             listPosition = position,
-                            modifier = Modifier.clickable { onPerpetualEnabled(!action.isOn) },
-                            onToggle = { _, isOn -> onPerpetualEnabled(isOn) },
+                            modifier = Modifier.clickable { onAction(PreferencesAction.SetPerpetualEnabled(!action.isOn)) },
+                            onToggle = { _, isOn -> onAction(PreferencesAction.SetPerpetualEnabled(isOn)) },
                         )
 
                         is PreferencesRowAction.Option -> {
@@ -91,7 +81,7 @@ fun PreferencesScene(
                                 current = perpetualDefaults.value(action.setting),
                                 options = options.map { it.value.toInt() },
                                 label = { value -> options.first { it.value.toInt() == value }.label.string(LocalContext.current) },
-                                onSelect = { onPerpetualOption(action.setting, it) },
+                                onSelect = { onAction(PreferencesAction.SetPerpetualOption(action.setting, it)) },
                             )
                         }
 
