@@ -21,6 +21,7 @@ import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
 import com.gemwallet.android.features.settings.presents.lock.LockScene
 import com.gemwallet.android.features.settings.presents.lock.LockScreen
+import com.gemwallet.android.features.settings.presents.lock.UnlockedContent
 import com.gemwallet.android.features.settings.viewmodels.lock.models.AuthState
 import com.gemwallet.android.features.settings.viewmodels.lock.models.LockUIState
 import com.gemwallet.android.ui.R
@@ -62,7 +63,7 @@ internal fun MainContent(
     } else {
         null
     }
-    var isWalletContentReady by remember { mutableStateOf(lockState.hasUnlockedApp) }
+    var isWalletContentReady by remember { mutableStateOf(isWalletUnlocked) }
     val onWalletContentReady: () -> Unit = remember { { isWalletContentReady = true } }
 
     LaunchedEffect(requiresAuthPrompt, canAttemptSystemAuth, lockState.authPromptRequest) {
@@ -73,7 +74,7 @@ internal fun MainContent(
 
     WalletTheme(darkTheme = darkTheme) {
         Box(modifier = Modifier.fillMaxSize()) {
-            if (lockState.hasUnlockedApp) {
+            UnlockedContent(isUnlocked = isWalletUnlocked) {
                 WalletApp(
                     pendingRoutes = unlockedPendingRoutes,
                     pendingTab = pendingDestination?.tab,

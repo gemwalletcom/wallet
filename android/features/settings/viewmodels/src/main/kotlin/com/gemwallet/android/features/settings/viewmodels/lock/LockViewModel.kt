@@ -19,10 +19,7 @@ class LockViewModel @Inject constructor(private val securityPreferences: Securit
     private val isInitialAuthRequired = isAuthRequired()
 
     private val _uiState = MutableStateFlow(
-        LockUIState(
-            initialAuth = if (isInitialAuthRequired) AuthState.Required else AuthState.Success,
-            hasUnlockedApp = !isInitialAuthRequired,
-        ),
+        LockUIState(initialAuth = if (isInitialAuthRequired) AuthState.Required else AuthState.Success),
     )
     val uiState: StateFlow<LockUIState> = _uiState.asStateFlow()
 
@@ -60,10 +57,7 @@ class LockViewModel @Inject constructor(private val securityPreferences: Securit
             if (current.initialAuth == AuthState.Success) {
                 current
             } else {
-                current.copy(
-                    initialAuth = authState,
-                    hasUnlockedApp = current.hasUnlockedApp || authState == AuthState.Success,
-                )
+                current.copy(initialAuth = authState)
             }
         }
     }
