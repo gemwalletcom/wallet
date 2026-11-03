@@ -26,6 +26,7 @@ flowchart LR
 | The wallet is watch-only | a notice instead of buttons, on the wallet and asset screens and in an empty transaction list; a link to receive, buy, sell or swap opens nothing and a payment link says it is not supported; no account-control warning | it holds no key that could lose control |
 | The asset is a native coin | it is titled by its network | |
 | The wallet has no address on a network | none of that network's assets are listed | a network without an address has nothing to send, receive or refresh |
+| A received token only gets its first price after it arrived | the next wallet refresh shows it; a token the user hid stays hidden | discovery compares the listable tokens against what the wallet has held and introduces only the rest; it never re-enables a user's choice |
 | The user hides balances | one switch hides them everywhere | |
 | Prices change | they arrive live, with no timer | |
 | The user switches wallet | the screen is rebuilt for the new wallet | |

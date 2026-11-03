@@ -44,7 +44,6 @@ pub enum GemDeviceApiTarget {
     },
     GetAssetsList {
         wallet_id: String,
-        from_timestamp: u64,
     },
     GetWalletConfiguration {
         wallet_id: String,
@@ -181,7 +180,7 @@ impl GemDeviceApiTarget {
                     offset: *offset,
                 },
             ),
-            Self::GetAssetsList { from_timestamp, .. } => format!("/v3/devices/assets?from_timestamp={from_timestamp}"),
+            Self::GetAssetsList { .. } => "/v3/devices/assets".to_string(),
             Self::GetWalletConfiguration { .. } => "/v3/devices/wallet-configuration".to_string(),
             Self::GetTransaction { transaction_id, .. } => format!("/v3/devices/transactions/{transaction_id}"),
             Self::ScanTransaction(_) => "/v3/devices/transactions/scan".to_string(),

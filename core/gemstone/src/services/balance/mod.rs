@@ -71,6 +71,15 @@ impl GemBalanceService {
         Ok(())
     }
 
+    // introduces assets the wallet has no row for yet; an asset with a stored row, shown or hidden, keeps the user's choice
+    pub async fn enable_new_assets(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
+        if asset_ids.is_empty() {
+            return Ok(());
+        }
+        let seen = self.store.get_balance_asset_ids(wallet_id.clone(), asset_ids.clone()).await?;
+        self.enable_assets(wallet_id, missing(asset_ids, seen)).await
+    }
+
     async fn store_assets_enabled(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>, enabled: bool) -> Result<Vec<AssetId>, GemServiceError> {
         let asset_ids = unique(asset_ids);
         let asset_ids = if enabled { rules::exclude_native_mirrors(asset_ids) } else { asset_ids };

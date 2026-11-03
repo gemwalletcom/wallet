@@ -140,8 +140,8 @@ impl<E: RpcClientError> GemDeviceApiClient<E> {
         Ok(TransactionsResponse::new(transactions, address_names))
     }
 
-    pub async fn get_assets_list(&self, wallet_id: String, from_timestamp: u64) -> Result<Vec<String>, ClientError> {
-        self.send(GemDeviceApiTarget::GetAssetsList { wallet_id, from_timestamp }).await
+    pub async fn get_assets_list(&self, wallet_id: String) -> Result<Vec<String>, ClientError> {
+        self.send(GemDeviceApiTarget::GetAssetsList { wallet_id }).await
     }
 
     pub async fn get_wallet_configuration(&self, wallet_id: String) -> Result<WalletConfigurationResult, ClientError> {

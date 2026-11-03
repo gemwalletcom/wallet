@@ -6,7 +6,6 @@ use crate::services::error::GemServiceError;
 use std::future::Future;
 use std::sync::Arc;
 
-use chrono::Utc;
 use primitives::WalletId;
 
 pub use crate::services::wallet_preferences::GemDiscoveryStep;
@@ -65,14 +64,9 @@ impl GemAssetDiscoveryService {
         let Some(wallet) = self.session.get_wallet(wallet_id.clone()).await? else {
             return Ok(());
         };
-        let from_timestamp = self.preferences.get_assets_timestamp(wallet_id.clone());
-        let timestamp = Utc::now().timestamp() as u64;
-        let asset_ids = self.api.client.get_assets_list(wallet_id.id(), from_timestamp).await.map_err(GemApiError::from)?;
+        let asset_ids = self.api.client.get_assets_list(wallet_id.id()).await.map_err(GemApiError::from)?;
         let asset_ids = rules::discoverable_asset_ids(asset_ids, &wallet.accounts);
-        if !asset_ids.is_empty() {
-            self.balance.enable_assets(wallet_id.clone(), asset_ids.clone()).await?;
-        }
-        self.preferences.set_assets_timestamp(wallet_id.clone(), timestamp)?;
+        self.balance.enable_new_assets(wallet_id.clone(), asset_ids).await?;
         self.preferences.set_initial_load_completed(wallet_id, GemDiscoveryStep::Assets)?;
         Ok(())
     }
@@ -146,15 +140,38 @@ mod tests {
     }
 
     #[test]
-    fn test_the_assets_step_records_its_timestamp_once_the_list_arrives() {
-        block_on(async {
-            let testkit = DiscoveryTestkit::with_response(TestAlienProvider::with_json_by_path(200, &[("devices/transactions", r#"{"transactions":[],"addressNames":[]}"#), ("devices/", "[]")]));
+    fn test_discovery_enables_only_tokens_the_wallet_has_never_had() {
+        use crate::services::assets::{GemAssetStore, rules::default_asset_basic};
+        use crate::services::balance::GemAssetBalance;
+        use primitives::{Asset, AssetId, AssetType, Chain};
 
-            assert_eq!(testkit.wallet_preferences.get_assets_timestamp(testkit.wallet_id.clone()), 0);
+        block_on(async {
+            let known = AssetId::from_token(Chain::Ethereum, "0xknown");
+            let unseen = AssetId::from_token(Chain::Ethereum, "0xunseen");
+            let testkit = DiscoveryTestkit::with_response(TestAlienProvider::with_json_by_path(
+                200,
+                &[
+                    ("devices/transactions", r#"{"transactions":[],"addressNames":[]}"#),
+                    ("devices/assets", &format!("[\"{known}\",\"{unseen}\"]")),
+                    ("devices/", "[]"),
+                ],
+            ));
+            testkit.balances.balances.lock().unwrap().insert(testkit.wallet_id.clone(), vec![GemAssetBalance::zero(known.clone())]);
+            testkit
+                .asset_store
+                .save_assets(vec![default_asset_basic(Asset::new(unseen.clone(), "Unseen".into(), "UNSEEN".into(), 18, AssetType::TOKEN))])
+                .await
+                .unwrap();
 
             testkit.discovery.discover(testkit.wallet_id.clone()).await.unwrap();
 
-            assert!(testkit.wallet_preferences.get_assets_timestamp(testkit.wallet_id.clone()) > 0);
+            let paths = testkit.provider.requested_paths();
+            assert!(paths.iter().any(|path| path == "/v3/devices/assets"), "discovery must ask for the whole list, never a window: {paths:?}");
+            assert_eq!(
+                *testkit.balances.configuration_writes.lock().unwrap(),
+                vec![(vec![unseen], crate::services::balance::rules::enabled_configuration(true))],
+                "a token the wallet already has a row for, hidden or shown, must keep its own configuration"
+            );
         })
     }
 }
