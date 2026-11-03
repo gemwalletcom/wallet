@@ -158,10 +158,6 @@ impl GemNavigationService {
     pub async fn open_swap(&self, from_asset_id: AssetId, to_asset_id: AssetId) -> Result<GemNavigationTarget, GemServiceError> {
         self.swap(from_asset_id, Some(to_asset_id)).await
     }
-
-    pub fn asset_target(&self, asset: Asset) -> GemNavigationTarget {
-        target(asset, None)
-    }
 }
 
 impl GemNavigationService {
@@ -316,32 +312,6 @@ mod tests {
             assert!(!testkit.provider.requested_paths().iter().any(|path| path.contains("/v3/devices/transactions/")));
             assert!(testkit.transaction_store.added.lock().unwrap().is_empty());
         });
-    }
-
-    #[test]
-    fn test_only_a_perpetual_opens_the_perpetual_screen() {
-        let testkit = DiscoveryTestkit::with_status(200);
-        let service = GemNavigationService::mock(&testkit);
-        let coin = Asset::from_chain(Chain::Ethereum);
-        let perpetual = Asset {
-            asset_type: AssetType::PERPETUAL,
-            ..Asset::from_chain(Chain::HyperCore)
-        };
-
-        assert_eq!(
-            service.asset_target(coin.clone()),
-            GemNavigationTarget::Asset {
-                destination: GemAssetDestination::Asset { asset: coin },
-                wallet_id: None,
-            }
-        );
-        assert_eq!(
-            service.asset_target(perpetual.clone()),
-            GemNavigationTarget::Asset {
-                destination: GemAssetDestination::Perpetual { asset: perpetual },
-                wallet_id: None,
-            }
-        );
     }
 
     #[test]
