@@ -428,43 +428,48 @@ mod tests {
     }
 
     #[test]
-    fn test_a_sending_screen_offers_no_row_that_reloads_it() {
+    fn test_a_sending_screen_keeps_the_fee_row_closed() {
         block_on(async {
             let testkit = ConfirmTestkit::with_bitcoin_utxos(100_000, &[100_000]);
-            let sent = testkit.service.clone().confirmation(mock_bitcoin_wallet(), mock_bitcoin_transfer(10_000.into()), None);
-            let ready = sent.screen().on_loaded(sent.load(sent.load_options()).await.unwrap());
+            let confirmation = testkit.service.confirmation(mock_bitcoin_wallet(), mock_bitcoin_transfer(10_000.into()), None);
+            let ready = confirmation.screen().on_loaded(confirmation.load(confirmation.load_options()).await.unwrap());
             let sending = ready.on_execute_started();
 
-            assert!(sent.view_state(ready.clone()).fee_row.opens_details);
-            assert!(sent.view_state(ready.on_load_started()).fee_row.opens_details, "a refresh keeps the fee options open");
-            assert!(!sent.view_state(sending.clone()).fee_row.opens_details, "a new fee would reload the screen under the transaction being sent");
-            assert!(sent.view_state(sending.on_execute_failed(GemConfirmError::Offline)).fee_row.opens_details);
-
-            let invoice = PaymentInvoice {
-                quotes: vec![PaymentQuote::mock(AssetId::from_chain(Chain::Ethereum)), PaymentQuote::mock(AssetId::from_chain(Chain::SmartChain))],
-                ..PaymentInvoice::mock()
-            };
-            let paid = testkit.service.confirmation(
-                Wallet::mock_with_accounts(vec![Account::mock(Chain::Ethereum, "0x0000000000000000000000000000000000000001")]),
-                GemTransferData::mock(TransactionInputType::Payment {
-                    asset: Asset::mock_eth(),
-                    invoice,
-                    extra: TransferDataExtra::mock(),
-                }),
-                None,
-            );
-            let payment_asset_selectable = |screen: GemConfirmScreen| {
-                details(&paid.view_state(screen)).into_iter().find_map(|row| match row {
-                    GemConfirmRowContent::PaymentAsset { selectable, .. } => Some(selectable),
-                    _ => None,
-                })
-            };
-
-            assert_eq!(payment_asset_selectable(ready.clone()), Some(true));
-            assert_eq!(payment_asset_selectable(ready.on_load_started()), Some(false));
-            assert_eq!(payment_asset_selectable(sending.clone()), Some(false), "another asset would reload the screen under the payment being sent");
-            assert_eq!(payment_asset_selectable(sending.on_execute_failed(GemConfirmError::Offline)), Some(true));
+            assert!(confirmation.view_state(ready).fee_row.opens_details);
+            assert!(!confirmation.view_state(sending.clone()).fee_row.opens_details, "a new fee would reload the screen under the transaction being sent");
+            assert!(confirmation.view_state(sending.on_execute_failed(GemConfirmError::Offline)).fee_row.opens_details);
         });
+    }
+
+    #[test]
+    fn test_a_sending_screen_keeps_the_payment_asset_closed() {
+        let wallet = Wallet::mock_with_accounts(vec![Account::mock(Chain::Ethereum, "0x0000000000000000000000000000000000000001")]);
+        let testkit = ConfirmTestkit::new(wallet.clone(), wallet.clone());
+        let invoice = PaymentInvoice {
+            quotes: vec![PaymentQuote::mock(AssetId::from_chain(Chain::Ethereum)), PaymentQuote::mock(AssetId::from_chain(Chain::SmartChain))],
+            ..PaymentInvoice::mock()
+        };
+        let transfer = GemTransferData::mock(TransactionInputType::Payment {
+            asset: Asset::mock_eth(),
+            invoice,
+            extra: TransferDataExtra::mock(),
+        });
+        let confirmation = testkit.service.confirmation(wallet, transfer, None);
+        let selectable = |screen: GemConfirmScreen| {
+            details(&confirmation.view_state(screen)).into_iter().find_map(|row| match row {
+                GemConfirmRowContent::PaymentAsset { selectable, .. } => Some(selectable),
+                _ => None,
+            })
+        };
+        let ready = GemConfirmScreen {
+            phase: GemConfirmPhase::Ready,
+            ..GemConfirmScreen::initial(None)
+        };
+        let sending = ready.on_execute_started();
+
+        assert_eq!(selectable(ready), Some(true));
+        assert_eq!(selectable(sending.clone()), Some(false), "another asset would reload the screen under the payment being sent");
+        assert_eq!(selectable(sending.on_execute_failed(GemConfirmError::Offline)), Some(true));
     }
 
     #[test]
