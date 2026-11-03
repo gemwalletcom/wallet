@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import GemstoneServices
 import Primitives
 import PrimitivesComponents
@@ -18,13 +19,13 @@ public struct ImportWalletNavigationStack: View {
             rootScene
                 .toolbarDismissItem(type: .close, placement: .topBarLeading)
                 .navigationBarTitleDisplayMode(.inline)
-                .navigationDestination(for: ImportWalletType.self) { type in
+                .navigationDestination(keyedBy: ImportWalletType.self) { type in
                     ImportWalletScene(model: model.importWalletModel(type: type, onComplete: onImportComplete))
                 }
-                .navigationDestination(for: Scenes.ImportWalletType.self) { _ in
+                .navigationDestination(keyedBy: Scenes.ImportWalletType.self) { _ in
                     importWalletTypeScene
                 }
-                .navigationDestination(for: Scenes.EnableAuthentication.self) { _ in
+                .navigationDestination(keyedBy: Scenes.EnableAuthentication.self) { _ in
                     EnableAuthenticationScene(model: model.enableAuthenticationModel())
                 }
         }

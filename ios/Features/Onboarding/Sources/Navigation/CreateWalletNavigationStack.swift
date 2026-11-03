@@ -20,21 +20,21 @@ public struct CreateWalletNavigationStack: View {
             rootScene
                 .toolbarDismissItem(type: .close, placement: .topBarLeading)
                 .navigationBarTitleDisplayMode(.inline)
-                .navigationDestination(for: Scenes.VerifyPhrase.self) { _ in
+                .navigationDestination(keyedBy: Scenes.VerifyPhrase.self) { _ in
                     VerifyPhraseScene(
                         model: model.verifyPhraseModel(onComplete: onVerifyPhraseComplete),
                     )
                 }
-                .navigationDestination(for: Scenes.CreateWallet.self) { _ in
+                .navigationDestination(keyedBy: Scenes.CreateWallet.self) { _ in
                     ShowSecretDataScene(
                         secret: .words(words: model.words),
                         continueAction: { navigate(to: .verifyPhrase) },
                     )
                 }
-                .navigationDestination(for: Scenes.SecurityReminder.self) { _ in
+                .navigationDestination(keyedBy: Scenes.SecurityReminder.self) { _ in
                     securityReminderScene
                 }
-                .navigationDestination(for: Scenes.EnableAuthentication.self) { _ in
+                .navigationDestination(keyedBy: Scenes.EnableAuthentication.self) { _ in
                     EnableAuthenticationScene(model: model.enableAuthenticationModel())
                 }
                 .alertSheet($model.isPresentingAlertMessage)

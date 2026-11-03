@@ -39,7 +39,7 @@ struct PaymentNavigationStack: View {
 
 extension PaymentNavigationStack {
     private func onComplete() {
-        presenter.isPresentingPayment.wrappedValue = nil
+        presenter.dismiss()
     }
 
     private func onVerificationFailed() {
