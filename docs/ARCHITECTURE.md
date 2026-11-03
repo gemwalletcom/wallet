@@ -1612,17 +1612,15 @@ Cases an error enum distinguishes for control flow are rarely the cases a screen
 impl GemConfirmError {
     pub fn display(&self) -> GemConfirmErrorDisplay {
         match self {
-            Self::InsufficientNetworkFee { asset, requirement } => match requirement {
-                Some(requirement) => GemConfirmErrorDisplay::NetworkFeeRequired { .. },
-                None => GemConfirmErrorDisplay::NetworkFeeMissing { .. },
-            },
+            Self::SenderMismatch { .. } => GemConfirmErrorDisplay::Unknown,
+            Self::InsufficientNetworkFee { asset, requirement } => described(network_fee_description(asset, requirement.as_ref(), no_fiat)),
             ...
         }
     }
 }
 ```
 
-The collapse is the point. Variants that read the same to a user merge into one display case; a nested error, an optional payload or a `from`/`signer` pair the screen never shows stops reaching the app at all. Without it each app re-derives the same branch, and the two drift on the case nobody checked. Answer per-variant questions the apps would otherwise each answer — whether a case has a detail sheet, say — on the display enum, so the app reads the decision rather than repeating the list.
+The collapse is the point. Variants that read the same to a user merge into one display case; a nested error, an optional payload or a `from`/`signer` pair the screen never shows stops reaching the app at all. Without it each app re-derives the same branch, and the two drift on the case nobody checked. Answer per-variant questions the apps would otherwise each answer — whether a case has a detail sheet, say — in Core, so the app reads the decision rather than repeating the list. A case whose sentence its detail sheet also prints carries that sheet's `GemInfoDescription`, built by the same Core function with the sheet's extra fiat left out, so each app maps the sentence once.
 
 ## 10. Tests
 
