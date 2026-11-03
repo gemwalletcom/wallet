@@ -69,6 +69,7 @@ flowchart LR
 |---|---|---|
 | An asset is turned off | it leaves the list and keeps its data | |
 | The custom token is unverified | "Know What You're Adding" shows before it is added | |
+| An unverified token's name or symbol is a contract address | it is marked Suspicious wherever it shows | a name that reads as a contract can pass for the token at that contract |
 | The user picks an asset | Recents: the assets the user recently used, per wallet, most recent first | |
 | The list below Recents is filtered | Recents follow the same filters | picking an asset to sell never offers one that cannot be sold |
 
