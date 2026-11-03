@@ -8,33 +8,9 @@ import StoreTestKit
 import Testing
 
 struct RecentActivityQueryTests {
-    private let wallet = Wallet.mock(accounts: [.mock(chain: .bitcoin), .mock(chain: .smartChain), .mock(chain: .tron), .mock(chain: .ethereum)])
-    private let walletAssets: [AssetBasic] = [
-        .mock(asset: .mock(name: "Bitcoin", symbol: "BTC", decimals: 8), properties: .mock(isEnabled: true, isBuyable: true, isSellable: true, isSwapable: true, isStakeable: true, stakingApr: 13.5, hasImage: true)),
-        .mock(
-            asset: .mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18),
-            properties: .mock(isEnabled: true, isBuyable: true, isSellable: true, isSwapable: true, isStakeable: true, stakingApr: 13.5, hasImage: true),
-        ),
-        .mock(asset: .mock(id: .mock(chain: .tron), name: "TRON", symbol: "TRX", decimals: 6), properties: .mock(isEnabled: true, isBuyable: true, isSellable: true, isSwapable: true, isStakeable: true, stakingApr: 13.5, hasImage: true)),
-        .mock(
-            asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18),
-            properties: .mock(isEnabled: true, isBuyable: true, isSellable: true, isSwapable: true, isStakeable: true, stakingApr: 13.5, hasImage: true),
-        ),
-        .mock(
-            asset: .mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20),
-            properties: .mock(isEnabled: true, isBuyable: true, isSellable: true, isSwapable: true, isStakeable: true, stakingApr: 13.5, hasImage: true),
-        ),
-    ]
-    private let walletBalances: [UpdateBalance] = [
-        .mock(assetId: .mock(chain: .smartChain), available: 1),
-        .mock(assetId: .mock(chain: .tron), available: 2),
-        .mock(assetId: .mock(chain: .ethereum), available: 3),
-        .mock(assetId: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), available: 4),
-    ]
-
     @Test
     func recentAssetsAreNewestFirstAndOnePerAsset() throws {
-        let db = DB.mock(wallets: [wallet], assets: walletAssets, balances: walletBalances)
+        let db = DB.mock(wallets: [.mock(accounts: [.mock(chain: .bitcoin), .mock(chain: .smartChain)])])
         let store = RecentActivityStore(db: db)
         let btc = AssetId(chain: .bitcoin)
         let bnb = AssetId(chain: .smartChain)
@@ -55,18 +31,22 @@ struct RecentActivityQueryTests {
 
     @Test
     func filtersNarrowTheRecentAssets() throws {
-        let db = DB.mock(wallets: [wallet], assets: walletAssets, balances: walletBalances)
-        let store = RecentActivityStore(db: db)
-        let assetStore = AssetStore(db: db)
         let btc = AssetId(chain: .bitcoin)
         let bnb = AssetId(chain: .smartChain)
         let eth = AssetId(chain: .ethereum)
         let walletId = WalletId.mock()
+        let db = DB.mock(
+            wallets: [.mock(accounts: [btc, bnb, eth].map { .mock(chain: $0.chain) })],
+            assets: [btc, bnb, eth].map { .mock(asset: .mock(id: $0)) },
+            balances: [.mock(assetId: bnb, available: 1), .mock(assetId: eth, available: 3)],
+        )
+        let store = RecentActivityStore(db: db)
+        let assetStore = AssetStore(db: db)
 
         try store.add(assetId: btc, toAssetId: .none, walletId: walletId, type: .search, createdAt: Date())
         try store.add(assetId: bnb, toAssetId: .none, walletId: walletId, type: .search, createdAt: Date())
         try store.add(assetId: eth, toAssetId: .none, walletId: walletId, type: .search, createdAt: Date())
-        try assetStore.updateBuyableAssets(assetIds: walletAssets.map(\.asset.id).filter { $0 != btc })
+        try assetStore.updateBuyableAssets(assetIds: [bnb, eth])
 
         try db.dbQueue.read { db in
             let noFilter = try RecentActivityQuery(walletId: walletId, limit: 10).fetch(db)
@@ -86,13 +66,17 @@ struct RecentActivityQueryTests {
 
     @Test
     func swapPayKeepsOnlyAssetsWithAnAvailableBalance() throws {
-        let db = DB.mock(wallets: [wallet], assets: walletAssets, balances: walletBalances)
-        let store = RecentActivityStore(db: db)
-        let balanceStore = BalanceStore(db: db)
         let btc = AssetId(chain: .bitcoin)
         let bnb = AssetId(chain: .smartChain)
         let eth = AssetId(chain: .ethereum)
         let walletId = WalletId.mock()
+        let db = DB.mock(
+            wallets: [.mock(accounts: [btc, bnb, eth].map { .mock(chain: $0.chain) })],
+            assets: [btc, bnb, eth].map { .mock(asset: .mock(id: $0), properties: .mock(isEnabled: true, isSwapable: true)) },
+            balances: [.mock(assetId: bnb, available: 1), .mock(assetId: eth, available: 3)],
+        )
+        let store = RecentActivityStore(db: db)
+        let balanceStore = BalanceStore(db: db)
 
         try store.add(assetId: btc, toAssetId: .none, walletId: walletId, type: .swap, createdAt: Date())
         try store.add(assetId: bnb, toAssetId: .none, walletId: walletId, type: .swap, createdAt: Date())
