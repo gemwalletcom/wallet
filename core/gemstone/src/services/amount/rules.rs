@@ -1,14 +1,13 @@
 use std::str::FromStr;
 
 use num_bigint::{BigInt, BigUint};
-use primitives::{Asset, AutocloseEstimator, Chain, Currency, EarnType, StakeChain, TpslType};
+use primitives::{Asset, AutocloseEstimator, Currency, EarnType, TpslType};
 
 use super::model::{
     GemAmountEarnType, GemAmountEntry, GemAmountError, GemAmountInput, GemAmountInputType, GemAmountMaxEntry, GemAmountPerpetualPosition, GemAmountStakeType, GemAmountTitle, GemAmountTransfer, GemAmountType, GemLeverageSelection,
     GemPerpetualAutoclose,
 };
 use crate::config::perpetual_config::{MIN_DEPOSIT_AMOUNT, MIN_WITHDRAW_AMOUNT, leverage_options, select_leverage};
-use crate::config::stake::get_stake_config;
 use crate::formatted_number::GemFormattedNumber;
 use crate::models::custom_types::GemBigInt;
 use crate::perpetual::GemPerpetual;
@@ -275,7 +274,7 @@ impl GemAmountType {
             Self::Transfer | Self::Deposit => BigInt::from(balance.available.clone()),
             Self::Withdraw => BigInt::from(balance.withdrawable.clone()),
             Self::Stake { stake_type } => match stake_type {
-                GemAmountStakeType::Stake if asset.chain() == Chain::Tron => transfer_rules::tron_stake_available(asset, balance),
+                GemAmountStakeType::Stake if stake_rules::uses_freeze(asset.chain()) => transfer_rules::tron_stake_available(asset, balance),
                 GemAmountStakeType::Stake | GemAmountStakeType::Freeze { .. } => BigInt::from(balance.available.clone()),
                 GemAmountStakeType::Unstake { delegation } | GemAmountStakeType::Redelegate { delegation } | GemAmountStakeType::Withdraw { delegation } => BigInt::from(delegation.base.balance.clone()),
                 GemAmountStakeType::Rewards { delegations } => BigInt::from(delegations.iter().map(|delegation| delegation.base.rewards.clone()).sum::<BigUint>()),
@@ -335,15 +334,15 @@ pub fn validate(asset: &Asset, value: &BigInt, available: &BigInt, minimum: &Big
 }
 
 fn minimum_value(amount_type: &GemAmountType, asset: &Asset) -> BigInt {
-    let stake_config = stake_chain(asset.chain()).map(get_stake_config);
+    let stake_config = asset.chain().stake_config();
     match amount_type {
         GemAmountType::Transfer | GemAmountType::Earn { .. } => BigInt::from(0),
         GemAmountType::Deposit if asset.id == GemPerpetual::new(PerpetualProvider::Hypercore).deposit_asset().id => BigInt::from(MIN_DEPOSIT_AMOUNT),
         GemAmountType::Deposit => BigInt::from(0),
         GemAmountType::Withdraw => usdc_minimum(asset, MIN_WITHDRAW_AMOUNT),
         GemAmountType::Stake { stake_type } => match stake_type {
-            GemAmountStakeType::Stake | GemAmountStakeType::Freeze { .. } => stake_config.map(|config| BigInt::from(config.min_amount)).unwrap_or_default(),
-            GemAmountStakeType::Redelegate { .. } if asset.chain() == Chain::SmartChain => stake_config.map(|config| BigInt::from(config.min_amount)).unwrap_or_default(),
+            GemAmountStakeType::Stake | GemAmountStakeType::Freeze { .. } => stake_config.map(|config| BigInt::from(config.min_stake_amount)).unwrap_or_default(),
+            GemAmountStakeType::Redelegate { .. } if stake_config.is_some_and(|config| config.redelegate_requires_minimum) => stake_config.map(|config| BigInt::from(config.min_stake_amount)).unwrap_or_default(),
             GemAmountStakeType::Withdraw { .. } | GemAmountStakeType::Redelegate { .. } | GemAmountStakeType::Unstake { .. } | GemAmountStakeType::Unfreeze { .. } | GemAmountStakeType::Rewards { .. } => BigInt::from(0),
         },
         GemAmountType::Perpetual {
@@ -359,10 +358,10 @@ fn minimum_value(amount_type: &GemAmountType, asset: &Asset) -> BigInt {
 }
 
 fn reserve_for_fee(amount_type: &GemAmountType, asset: &Asset) -> BigInt {
-    let reserved = stake_chain(asset.chain()).map(|chain| BigInt::from(get_stake_config(chain).reserved_for_fees)).unwrap_or_default();
+    let reserved = asset.chain().stake_config().map(|config| BigInt::from(config.reserved_for_fees)).unwrap_or_default();
     match amount_type {
         GemAmountType::Stake { stake_type } => match stake_type {
-            GemAmountStakeType::Stake if asset.chain() != Chain::Tron => reserved,
+            GemAmountStakeType::Stake if !stake_rules::uses_freeze(asset.chain()) => reserved,
             GemAmountStakeType::Freeze { .. } => reserved,
             _ => BigInt::from(0),
         },
@@ -373,7 +372,7 @@ fn reserve_for_fee(amount_type: &GemAmountType, asset: &Asset) -> BigInt {
 fn can_change_value(amount_type: &GemAmountType, asset: &Asset) -> bool {
     match amount_type {
         GemAmountType::Stake { stake_type } => match stake_type {
-            GemAmountStakeType::Unstake { .. } => stake_chain(asset.chain()).map(|chain| get_stake_config(chain).change_amount_on_unstake).unwrap_or(true),
+            GemAmountStakeType::Unstake { .. } => asset.chain().stake_config().map(|config| config.change_amount_on_unstake).unwrap_or(true),
             GemAmountStakeType::Withdraw { .. } | GemAmountStakeType::Rewards { .. } => false,
             GemAmountStakeType::Stake | GemAmountStakeType::Redelegate { .. } | GemAmountStakeType::Freeze { .. } | GemAmountStakeType::Unfreeze { .. } => true,
         },
@@ -401,10 +400,6 @@ fn reserves_fee(amount_type: &GemAmountType, reserve: &BigInt, max_after_fee: &B
 
 fn usdc_minimum(asset: &Asset, minimum: u64) -> BigInt {
     if asset.symbol == USDC_SYMBOL { BigInt::from(minimum) } else { BigInt::from(0) }
-}
-
-fn stake_chain(chain: Chain) -> Option<StakeChain> {
-    StakeChain::from_str(chain.as_ref()).ok()
 }
 
 const SEPARATORS: [char; 2] = ['.', ','];
@@ -605,7 +600,7 @@ mod tests {
     use primitives::asset_balance::BalanceMetadata;
     use primitives::contract_constants::HYPERLIQUID_ARBITRUM_DEPOSIT_ADDRESS;
     use primitives::known_assets::{ARBITRUM_USDC, HYPERCORE_SPOT_USDC};
-    use primitives::{Delegation, DelegationBase, DelegationValidator, PerpetualDirection};
+    use primitives::{Chain, Delegation, DelegationBase, DelegationValidator, PerpetualDirection};
 
     #[test]
     fn test_input_text_is_plain_digits_with_the_callers_separator() {
@@ -758,18 +753,18 @@ mod tests {
     #[test]
     fn test_stake_rules_reserve_fees_and_minimums() {
         let cosmos = Asset::from_chain(Chain::Cosmos);
-        let config = get_stake_config(StakeChain::Cosmos);
-        assert_eq!(minimum_value(&GemAmountType::Stake { stake_type: GemAmountStakeType::Stake }, &cosmos), BigInt::from(config.min_amount));
+        let config = Chain::Cosmos.stake_config().unwrap();
+        assert_eq!(minimum_value(&GemAmountType::Stake { stake_type: GemAmountStakeType::Stake }, &cosmos), BigInt::from(config.min_stake_amount));
 
-        let stake_input = GemAmountType::Stake { stake_type: GemAmountStakeType::Stake }.input(&cosmos, &GemAssetBalance::mock_with_available(config.reserved_for_fees * 10 + config.min_amount * 10));
+        let stake_input = GemAmountType::Stake { stake_type: GemAmountStakeType::Stake }.input(&cosmos, &GemAssetBalance::mock_with_available(config.reserved_for_fees * 10 + config.min_stake_amount * 10));
         assert_eq!(stake_input.reserved_fee, Some(BigInt::from(config.reserved_for_fees)));
         assert!(stake_input.can_change_value);
         assert!(stake_input.focuses_input);
         assert_eq!(stake_input.prefill, None);
-        assert_eq!(stake_input.max_value, BigInt::from(config.reserved_for_fees * 9 + config.min_amount * 10));
+        assert_eq!(stake_input.max_value, BigInt::from(config.reserved_for_fees * 9 + config.min_stake_amount * 10));
 
         let tron = Asset::from_chain(Chain::Tron);
-        let tron_config = get_stake_config(StakeChain::Tron);
+        let tron_config = Chain::Tron.stake_config().unwrap();
         assert_eq!(reserve_for_fee(&GemAmountType::Stake { stake_type: GemAmountStakeType::Stake }, &tron), BigInt::ZERO);
         assert_eq!(
             GemAmountType::Stake { stake_type: GemAmountStakeType::Stake }.available_value(
@@ -792,12 +787,12 @@ mod tests {
             &GemAssetBalance {
                 frozen: BigUint::from(99u64),
                 locked: BigUint::from(98u64),
-                ..GemAssetBalance::mock_with_available(tron_config.reserved_for_fees + tron_config.min_amount + 1)
+                ..GemAssetBalance::mock_with_available(tron_config.reserved_for_fees + tron_config.min_stake_amount + 1)
             },
         );
-        assert_eq!(freeze_input.available_value, BigInt::from(tron_config.reserved_for_fees + tron_config.min_amount + 1));
+        assert_eq!(freeze_input.available_value, BigInt::from(tron_config.reserved_for_fees + tron_config.min_stake_amount + 1));
         assert_eq!(freeze_input.reserved_fee, Some(BigInt::from(tron_config.reserved_for_fees)));
-        assert_eq!(freeze_input.max_value, BigInt::from(tron_config.min_amount + 1));
+        assert_eq!(freeze_input.max_value, BigInt::from(tron_config.min_stake_amount + 1));
 
         let smart_chain = Asset::from_chain(Chain::SmartChain);
         let redelegate = GemAmountType::Stake {
@@ -805,7 +800,7 @@ mod tests {
                 delegation: Delegation::mock_base(DelegationBase::mock_with_balance(50, 0)),
             },
         };
-        let smart_chain_minimum = get_stake_config(StakeChain::SmartChain).min_amount;
+        let smart_chain_minimum = Chain::SmartChain.stake_config().unwrap().min_stake_amount;
         assert!(smart_chain_minimum > 0);
         assert_eq!(minimum_value(&redelegate, &smart_chain), BigInt::from(smart_chain_minimum));
         assert_eq!(minimum_value(&redelegate, &cosmos), BigInt::ZERO);
@@ -906,9 +901,9 @@ mod tests {
     #[test]
     fn test_limits_reserve_boundary() {
         let solana = Asset::from_chain(Chain::Solana);
-        let config = get_stake_config(StakeChain::Solana);
+        let config = Chain::Solana.stake_config().unwrap();
         let reserve = config.reserved_for_fees;
-        let minimum = config.min_amount;
+        let minimum = config.min_stake_amount;
         assert!(reserve > 0 && minimum > 0);
 
         let at_boundary = GemAmountType::Stake { stake_type: GemAmountStakeType::Stake }.input(&solana, &GemAssetBalance::mock_with_available(reserve + minimum));
@@ -1096,8 +1091,8 @@ mod tests {
     #[test]
     fn test_entry_max_carries_the_reserved_fee() {
         let cosmos = Asset::from_chain(Chain::Cosmos);
-        let config = get_stake_config(StakeChain::Cosmos);
-        let available = config.reserved_for_fees * 10 + config.min_amount * 10;
+        let config = Chain::Cosmos.stake_config().unwrap();
+        let available = config.reserved_for_fees * 10 + config.min_stake_amount * 10;
         let stake = GemAmountType::Stake { stake_type: GemAmountStakeType::Stake };
         let input = stake.input(&cosmos, &GemAssetBalance::mock_with_available(available));
         let max = input.max_entry();
