@@ -51,9 +51,8 @@ mod tests {
 
     use super::*;
     use crate::services::banner::testkit::MemoryBannerStore;
-    use crate::services::device::GemDeviceKeyService;
     use crate::services::wallet_preferences::testkit::MemoryWalletPreferencesStore;
-    use crate::testkit::{EmptyPreferences, TestAlienProvider};
+    use crate::testkit::TestAlienProvider;
 
     #[test]
     fn test_sync_checks_watch_only_wallet() {
@@ -72,7 +71,7 @@ mod tests {
             let provider = Arc::new(TestAlienProvider::with_json_by_path(200, &[("wallet-configuration", &serde_json::to_string(&result).unwrap())]));
             let preferences = Arc::new(GemWalletPreferencesService::new(Arc::new(MemoryWalletPreferencesStore::default())));
             let service = GemWalletConfigurationService::new(
-                Arc::new(GemDeviceApiClient::new(provider.clone(), Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences))))),
+                Arc::new(GemDeviceApiClient::mock(provider.clone())),
                 Arc::new(GemBannerService::new(Arc::new(MemoryBannerStore::default()), Platform::IOS)),
                 preferences,
             );
@@ -101,7 +100,7 @@ mod tests {
             let preferences = Arc::new(GemWalletPreferencesService::new(Arc::new(MemoryWalletPreferencesStore::default())));
             preferences.set_wallet_configuration_completed(wallet.id.clone()).unwrap();
             let service = GemWalletConfigurationService::new(
-                Arc::new(GemDeviceApiClient::new(provider.clone(), Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences))))),
+                Arc::new(GemDeviceApiClient::mock(provider.clone())),
                 Arc::new(GemBannerService::new(Arc::new(MemoryBannerStore::default()), Platform::IOS)),
                 preferences,
             );

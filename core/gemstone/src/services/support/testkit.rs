@@ -58,9 +58,8 @@ impl GemSupportStore for MemorySupportStore {
 impl super::GemSupportService {
     pub fn mock(store: Arc<MemorySupportStore>) -> Self {
         let provider = Arc::new(crate::testkit::TestAlienProvider::with_json_by_path(500, &[]));
-        let device_key = Arc::new(crate::services::device::GemDeviceKeyService::new(Arc::new(crate::testkit::EmptyPreferences)));
         Self::new(
-            Arc::new(crate::api::GemDeviceApiClient::new(provider.clone(), device_key)),
+            Arc::new(crate::api::GemDeviceApiClient::mock(provider.clone())),
             store,
             Arc::new(crate::services::file::testkit::NoopFileStore),
             provider.clone(),

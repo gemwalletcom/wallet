@@ -437,6 +437,8 @@ fun uniffi.gemstone.FiatProviderName.toPrimitives(): com.wallet.core.primitives.
     uniffi.gemstone.FiatProviderName.BANXA -> com.wallet.core.primitives.FiatProviderName.Banxa
     uniffi.gemstone.FiatProviderName.PAYBIS -> com.wallet.core.primitives.FiatProviderName.Paybis
     uniffi.gemstone.FiatProviderName.FLASHNET -> com.wallet.core.primitives.FiatProviderName.Flashnet
+    uniffi.gemstone.FiatProviderName.FONBNK -> com.wallet.core.primitives.FiatProviderName.Fonbnk
+    uniffi.gemstone.FiatProviderName.TOPPER -> com.wallet.core.primitives.FiatProviderName.Topper
 }
 
 fun com.wallet.core.primitives.FiatProviderName.toGem(): uniffi.gemstone.FiatProviderName = when (this) {
@@ -446,6 +448,8 @@ fun com.wallet.core.primitives.FiatProviderName.toGem(): uniffi.gemstone.FiatPro
     com.wallet.core.primitives.FiatProviderName.Banxa -> uniffi.gemstone.FiatProviderName.BANXA
     com.wallet.core.primitives.FiatProviderName.Paybis -> uniffi.gemstone.FiatProviderName.PAYBIS
     com.wallet.core.primitives.FiatProviderName.Flashnet -> uniffi.gemstone.FiatProviderName.FLASHNET
+    com.wallet.core.primitives.FiatProviderName.Fonbnk -> uniffi.gemstone.FiatProviderName.FONBNK
+    com.wallet.core.primitives.FiatProviderName.Topper -> uniffi.gemstone.FiatProviderName.TOPPER
 }
 
 fun uniffi.gemstone.FiatQuoteType.toPrimitives(): com.wallet.core.primitives.FiatQuoteType = when (this) {

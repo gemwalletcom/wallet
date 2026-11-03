@@ -58,6 +58,7 @@ pub trait FiatRepository {
     fn add_fiat_assets(&mut self, values: Vec<FiatAsset>) -> Result<usize, DatabaseError>;
     fn set_fiat_assets(&mut self, provider: FiatProviderName, values: Vec<FiatAsset>) -> Result<usize, DatabaseError>;
     fn add_fiat_providers(&mut self, providers: Vec<FiatProviderName>) -> Result<usize, DatabaseError>;
+    fn set_fiat_providers_enabled(&mut self, providers: Vec<FiatProviderName>, enabled: bool) -> Result<usize, DatabaseError>;
     fn add_fiat_providers_countries(&mut self, values: Vec<FiatProviderCountry>) -> Result<usize, DatabaseError>;
     fn set_fiat_providers_countries(&mut self, provider: FiatProviderName, values: Vec<FiatProviderCountry>) -> Result<usize, DatabaseError>;
     fn get_fiat_providers_countries(&mut self) -> Result<Vec<FiatProviderCountry>, DatabaseError>;
@@ -257,6 +258,14 @@ impl FiatRepository for DatabaseClient {
         Ok(add_fiat_providers(self, providers.into_iter().map(FiatProviderRow::from_primitive).collect())?)
     }
 
+    fn set_fiat_providers_enabled(&mut self, providers: Vec<FiatProviderName>, enabled_value: bool) -> Result<usize, DatabaseError> {
+        use crate::schema::fiat_providers::dsl::*;
+        let providers: Vec<FiatProviderNameRow> = providers.into_iter().map(FiatProviderNameRow::from).collect();
+        Ok(diesel::update(fiat_providers.filter(id.eq_any(providers)).filter(enabled.ne(enabled_value)))
+            .set(enabled.eq(enabled_value))
+            .execute(&mut self.connection)?)
+    }
+
     fn add_fiat_providers_countries(&mut self, values: Vec<FiatProviderCountry>) -> Result<usize, DatabaseError> {
         Ok(add_fiat_providers_countries(self, values.into_iter().map(FiatProviderCountryRow::from_primitive).collect())?)
     }
@@ -444,6 +453,7 @@ mod database_integration_tests {
                 client.add_chains(vec![Chain::Ethereum])?;
                 client.add_assets(vec![Asset::from_chain(Chain::Ethereum).as_basic_primitive()])?;
                 client.add_fiat_providers(vec![PROVIDER])?;
+                client.set_fiat_providers_enabled(vec![PROVIDER], true)?;
                 client.set_fiat_assets(PROVIDER, vec![fiat_asset("test_keep"), fiat_asset("test_drop")])?;
                 client.set_fiat_assets(PROVIDER, vec![fiat_asset("test_keep")])?;
                 client.get_fiat_assets_for_asset_id(&AssetId::from_chain(Chain::Ethereum))

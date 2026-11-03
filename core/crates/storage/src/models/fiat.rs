@@ -143,7 +143,7 @@ impl FiatProviderRow {
         Self {
             id: provider.into(),
             name: provider.name().to_string(),
-            enabled: true,
+            enabled: false,
             buy_enabled: true,
             sell_enabled: true,
             priority: None,

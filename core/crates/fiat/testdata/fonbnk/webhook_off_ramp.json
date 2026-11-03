@@ -1,0 +1,58 @@
+{
+  "event": "order-status-change",
+  "data": {
+    "order": {
+      "_id": "68e0a1b2c3d4e5f60718293a",
+      "userId": "68df8fcb372f378356ef7568",
+      "userEmail": "someuser@example.com",
+      "merchantOrderParams": "9a1c7e5b-2f4d-4c8a-b6e3-1d0f9a8b7c65",
+      "countryIsoCode": "KE",
+      "flow": "regular",
+      "type": "off_ramp",
+      "source": "widget",
+      "status": "payout_pending",
+      "deposit": {
+        "paymentChannel": "crypto",
+        "currencyType": "crypto",
+        "currencyCode": "ETHEREUM_NATIVE",
+        "currencyDetails": {
+          "network": "ETHEREUM",
+          "asset": "NATIVE"
+        },
+        "cashout": {
+          "exchangeRate": 0.000438,
+          "exchangeRateAfterFees": 0.000452,
+          "amountBeforeFees": 0.0219,
+          "amountAfterFees": 0.0219,
+          "amountBeforeFeesUsd": 50.0,
+          "amountAfterFeesUsd": 50.0
+        },
+        "transaction": {
+          "meta": {
+            "transactionHash": "4f1e5c0b2d9a8e7f6c5b4a39281706f5e4d3c2b1a09f8e7d6c5b4a3928170605",
+            "fromAddress": "0x41018795fA95783117242244303fd7e26e964eE8"
+          }
+        }
+      },
+      "payout": {
+        "paymentChannel": "mobile_money",
+        "currencyType": "fiat",
+        "currencyCode": "KES",
+        "currencyDetails": {
+          "countryIsoCode": "KE"
+        },
+        "cashout": {
+          "exchangeRate": 125.73,
+          "exchangeRateAfterFees": 125.73,
+          "amountBeforeFees": 6243,
+          "amountAfterFees": 6084,
+          "amountBeforeFeesUsd": 49.65,
+          "amountAfterFeesUsd": 48.388328
+        }
+      },
+      "createdAt": "2026-11-03T09:10:00.000Z",
+      "updatedAt": "2026-11-03T09:14:00.000Z"
+    },
+    "userKyc": {}
+  }
+}

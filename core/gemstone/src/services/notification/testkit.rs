@@ -7,16 +7,14 @@ use primitives::{InAppNotification, WalletId};
 use super::{GemNotificationService, GemNotificationStore};
 use crate::alien::AlienProvider;
 use crate::api::GemDeviceApiClient;
-use crate::services::device::GemDeviceKeyService;
 use crate::services::error::GemServiceError;
 use crate::services::wallet::testkit::MemoryWalletStore;
 use crate::services::wallet_preferences::{GemWalletPreferencesService, testkit::MemoryWalletPreferencesStore};
 use crate::services::wallet_session::{GemWalletSessionService, testkit::MemoryWalletSessionStore};
-use crate::testkit::EmptyPreferences;
 
 impl GemNotificationService {
     pub fn mock(provider: Arc<dyn AlienProvider>, store: Arc<dyn GemNotificationStore>) -> Self {
-        let api = Arc::new(GemDeviceApiClient::new(provider, Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences)))));
+        let api = Arc::new(GemDeviceApiClient::mock(provider));
         let preferences = Arc::new(GemWalletPreferencesService::new(Arc::new(MemoryWalletPreferencesStore::default())));
         let session = Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore::default()), Arc::new(MemoryWalletStore::default())));
         session.set_current_wallet_id(Some(WalletId::Multicoin("wallet".to_string()))).unwrap();

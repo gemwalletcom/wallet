@@ -14,7 +14,7 @@ use crate::gateway::GemGateway;
 use crate::services::asset_discovery::testkit::DiscoveryTestkit;
 use crate::services::banner::GemBannerService;
 use crate::services::banner::testkit::{DeniedNotificationPermissions, MemoryBannerStore};
-use crate::services::device::{GemDeviceKeyService, GemDeviceService};
+use crate::services::device::GemDeviceService;
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
 use crate::services::node::GemNodeService;
@@ -151,7 +151,7 @@ impl AssetDetailsTestkit {
         let provider = Arc::new(TestAlienProvider::with_json_by_path(status, bodies));
         let discovery = DiscoveryTestkit::with_provider(provider.clone(), Wallet::mock());
         let preferences = Arc::new(GemPreferencesService::new(Arc::new(MemoryPreferencesStore::default())));
-        let device_api = Arc::new(GemDeviceApiClient::new(provider.clone(), Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences)))));
+        let device_api = Arc::new(GemDeviceApiClient::mock(provider.clone()));
         let swap = Arc::new(GemSwapService::mock(Arc::new(MemorySwapStore::default())));
         let service = GemAssetDetailsService::new(
             discovery.assets.clone(),

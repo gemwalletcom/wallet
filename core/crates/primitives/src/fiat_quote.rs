@@ -97,5 +97,6 @@ pub struct FiatQuoteUrlData {
     pub asset_symbol: FiatAssetSymbol,
     pub wallet_address: String,
     pub ip_address: String,
+    pub country_code: String,
     pub locale: String,
 }

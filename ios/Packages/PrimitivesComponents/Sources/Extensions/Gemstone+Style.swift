@@ -536,6 +536,8 @@ public extension FiatProviderName {
         case .mercuryo: Images.Fiat.mercuryo
         case .paybis: Images.Fiat.paybis
         case .flashnet: Images.Fiat.cashapp
+        case .fonbnk: Images.Fiat.fonbnk
+        case .topper: Images.Fiat.topper
         }
     }
 }
