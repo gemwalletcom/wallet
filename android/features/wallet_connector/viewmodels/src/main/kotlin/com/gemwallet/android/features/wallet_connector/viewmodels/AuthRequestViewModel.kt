@@ -134,11 +134,7 @@ class AuthRequestViewModel @Inject constructor(
                 if (!isActiveRequest(request)) {
                     return@launch
                 }
-                val signature = signAuthMessage(
-                    wallet = approval.wallet,
-                    chain = approval.account.chain,
-                    message = approval.message,
-                )
+                val signature = signMessageService.sign(approval.wallet.id.id, approval.signMessage)
                 if (!isActiveRequest(request)) {
                     return@launch
                 }
@@ -256,15 +252,22 @@ class AuthRequestViewModel @Inject constructor(
             supportedMethods = walletConnectService.authenticationMethods(),
         )
         val issuer = selectedAccount.issuer
+        val account = selectedAccount.account.toPrimitives()
         val message = approveWalletConnectAuthentication.authMessage(payloadParams, issuer)
-        val payloadPreview = payloadPreview(selectedAccount.account.toPrimitives().chain, message)
+        val signMessage = SignMessage(
+            chain = account.chain.string,
+            signType = SignDigestType.SIWE,
+            data = message.toByteArray(),
+        )
+        val payloadPreview = payloadPreview(signMessage)
 
         return AuthApproval(
             wallet = wallet,
-            account = selectedAccount.account.toPrimitives(),
+            account = account,
             payloadParams = payloadParams,
             issuer = issuer,
             message = message,
+            signMessage = signMessage,
             title = payloadPreview.title,
             primaryPayloadFields = payloadPreview.primaryFields,
             secondaryPayloadFields = payloadPreview.secondaryFields,
@@ -273,28 +276,13 @@ class AuthRequestViewModel @Inject constructor(
 
     private fun supportedAccounts(wallet: Wallet, request: WalletConnectAuthenticationRequest): List<GemWalletConnectAuthAccount> = walletConnectService.authenticationAccounts(request.payloadParams.chains, wallet.toGem())
 
-    private fun payloadPreview(chain: Chain, message: String): AuthPayloadPreview = signMessageService.payloadPreview(
-        SignMessage(
-            chain = chain.string,
-            signType = SignDigestType.SIWE,
-            data = message.toByteArray(),
-        ),
-    )?.let { preview ->
+    private fun payloadPreview(signMessage: SignMessage): AuthPayloadPreview = signMessageService.payloadPreview(signMessage)?.let { preview ->
         AuthPayloadPreview(
             title = preview.title,
             primaryFields = preview.primary,
             secondaryFields = preview.secondary,
         )
     } ?: AuthPayloadPreview()
-
-    private suspend fun signAuthMessage(wallet: Wallet, chain: Chain, message: String): String = walletConnectService.signMessage(
-        wallet.id.id,
-        SignMessage(
-            chain = chain.string,
-            signType = SignDigestType.SIWE,
-            data = message.toByteArray(),
-        ),
-    )
 }
 
 sealed interface AuthRequestUIState {
@@ -355,6 +343,7 @@ data class AuthApproval(
     val payloadParams: WalletConnectAuthPayloadParams,
     val issuer: String,
     val message: String,
+    val signMessage: SignMessage,
     val title: GemLocalizedText,
     val primaryPayloadFields: List<GemListRow>,
     val secondaryPayloadFields: List<GemListRow>,
