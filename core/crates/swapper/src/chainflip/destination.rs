@@ -4,7 +4,7 @@ use super::{chain::ChainflipChain, client::chainflip_asset_index};
 use crate::SwapperError;
 
 const SOLANA_DESTINATION_OFFSET: usize = 16;
-const NO_CCM: u8 = 0;
+pub(super) const NO_CCM: u8 = 0;
 const SCALE_TWO_BYTE_LENGTH: u16 = 1;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
