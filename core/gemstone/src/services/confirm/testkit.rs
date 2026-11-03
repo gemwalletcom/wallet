@@ -17,7 +17,6 @@ use crate::services::assets::{GemAssetFilter, GemAssetStore, GemAssetsService};
 use crate::services::balance::testkit::MemoryBalanceStore;
 use crate::services::balance::{GemAssetBalance, GemBalanceService};
 use crate::services::config::GemConfigService;
-use crate::services::device::GemDeviceKeyService;
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
 use crate::services::name::GemNameService;
@@ -103,7 +102,7 @@ impl ConfirmTestkit {
         let session = Arc::new(GemWalletSessionService::new(selected, wallets));
         let gateway = Arc::new(GemGateway::new(provider.clone(), Arc::new(GemNodeService::mock()), preferences_store, Arc::new(EmptyPreferences)));
         let api = Arc::new(GemApiClient::new(provider.clone()));
-        let device_api = Arc::new(GemDeviceApiClient::new(provider.clone(), Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences)))));
+        let device_api = Arc::new(GemDeviceApiClient::mock(provider.clone()));
         let price = Arc::new(GemPriceService::mock(Arc::new(MemoryPriceStore::default())));
         let asset_store = Arc::new(MemoryAssetStore);
         let assets = Arc::new(GemAssetsService::new(api, gateway.clone(), asset_store, price.clone(), preferences.clone()));

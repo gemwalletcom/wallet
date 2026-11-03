@@ -2,14 +2,14 @@ use async_trait::async_trait;
 use primitives::{Currency, Device, Platform, PlatformStore};
 use std::sync::Arc;
 
-use super::GemDeviceService;
 use super::platform::{GemDeviceInfo, GemDevicePlatform};
+use super::{GemDeviceKeyService, GemDeviceService};
 use crate::api::GemDeviceApiClient;
 use crate::services::error::GemServiceError;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::subscription::GemSubscriptionService;
 use crate::services::wallet_session::GemWalletSessionService;
-use crate::testkit::TestAlienProvider;
+use crate::testkit::{EmptyPreferences, TestAlienProvider};
 
 pub struct MemoryDevicePlatform;
 
@@ -36,6 +36,12 @@ impl GemDevicePlatform for MemoryDevicePlatform {
     }
     async fn get_currency(&self) -> Result<Currency, GemServiceError> {
         Ok(Currency::USD)
+    }
+}
+
+impl GemDeviceKeyService {
+    pub fn mock() -> Self {
+        Self::new(Arc::new(EmptyPreferences))
     }
 }
 

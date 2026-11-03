@@ -172,14 +172,14 @@ mod tests {
     use crate::services::wallet::testkit::MemoryWalletStore;
     use crate::services::wallet_session::GemWalletSessionService;
     use crate::services::wallet_session::testkit::MemoryWalletSessionStore;
-    use crate::testkit::{EmptyPreferences, TestAlienProvider};
+    use crate::testkit::TestAlienProvider;
     use futures::executor::block_on;
     use primitives::Wallet;
 
     fn synchronized_paths(preferences: Arc<GemPreferencesService>) -> Vec<String> {
         let remote = serde_json::to_string(&Device { subscriptions_version: 1, ..Device::mock() }).unwrap();
         let provider = Arc::new(TestAlienProvider::with_json_by_path(200, &[("devices/is-registered", "true"), ("devices/subscriptions", "[]"), ("/v3/devices", &remote)]));
-        let api = Arc::new(GemDeviceApiClient::new(provider.clone(), Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences)))));
+        let api = Arc::new(GemDeviceApiClient::mock(provider.clone()));
         let session = Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore::default()), Arc::new(MemoryWalletStore::with_wallets(vec![Wallet::mock()]))));
         block_on(GemDeviceService::mock(api, session, preferences).synchronize()).unwrap();
         provider.requested_paths()

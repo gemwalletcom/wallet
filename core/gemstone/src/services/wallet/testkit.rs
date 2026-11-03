@@ -19,7 +19,6 @@ use crate::api::GemDeviceApiClient;
 use crate::keystore::GemKeystore;
 use crate::keystore::decode_password;
 use crate::services::avatar::GemAvatarService;
-use crate::services::device::GemDeviceKeyService;
 use crate::services::explorer::GemExplorerService;
 use crate::services::file::testkit::NoopFileStore;
 use crate::services::preferences::GemPreferencesService;
@@ -28,7 +27,7 @@ use crate::services::wallet_preferences::GemWalletPreferencesService;
 use crate::services::wallet_preferences::testkit::MemoryWalletPreferencesStore;
 use crate::services::wallet_session::GemWalletSessionService;
 use crate::services::wallet_session::testkit::MemoryWalletSessionStore;
-use crate::testkit::{EmptyPreferences, TestAlienProvider};
+use crate::testkit::TestAlienProvider;
 
 pub const TEST_PASSWORD: &str = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f";
 
@@ -171,10 +170,7 @@ impl WalletTestkit {
         let session = Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore::default()), wallets.clone()));
         let app_preferences = Arc::new(GemPreferencesService::new(preferences));
         let names = Arc::new(GemNameService::new(
-            Arc::new(GemDeviceApiClient::new(
-                Arc::new(TestAlienProvider::new(crate::alien::AlienResponse::new(None, Vec::new()))),
-                Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences))),
-            )),
+            Arc::new(GemDeviceApiClient::mock(Arc::new(TestAlienProvider::new(crate::alien::AlienResponse::new(None, Vec::new()))))),
             addresses,
         ));
         let service = Arc::new(GemWalletService::new(
