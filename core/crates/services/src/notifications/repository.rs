@@ -8,7 +8,7 @@ pub(crate) trait Repository: Send + Sync {
     async fn get_asset(&self, asset_id: AssetId) -> Result<Asset, DatabaseError>;
     async fn add_notification(&self, notification: NewNotification) -> Result<Vec<Device>, DatabaseError>;
     async fn get_device_notifications(&self, device_id: String, since: Option<NaiveDateTime>, limit: usize) -> Result<(Device, Vec<NotificationData>), DatabaseError>;
-    async fn set_notifications_read(&self, device_id: String) -> Result<usize, DatabaseError>;
+    async fn set_notifications_read(&self, wallet_id: i32) -> Result<usize, DatabaseError>;
     async fn update_devices(&self, filters: Vec<DeviceFilter>, updates: Vec<DeviceUpdate>) -> Result<usize, DatabaseError>;
     async fn get_scan_address(&self, chain: Chain, address: String) -> Result<ScanAddress, DatabaseError>;
     async fn get_addresses_with_transactions(&self, chain: Chain, kinds: Vec<TransactionType>, since: NaiveDateTime) -> Result<Vec<String>, DatabaseError>;
@@ -50,8 +50,8 @@ impl Repository for PostgresRepository {
             .await
     }
 
-    async fn set_notifications_read(&self, device_id: String) -> Result<usize, DatabaseError> {
-        self.database.run(move |client| client.set_notifications_read(&device_id)).await
+    async fn set_notifications_read(&self, wallet_id: i32) -> Result<usize, DatabaseError> {
+        self.database.run(move |client| client.set_notifications_read(wallet_id)).await
     }
 
     async fn update_devices(&self, filters: Vec<DeviceFilter>, updates: Vec<DeviceUpdate>) -> Result<usize, DatabaseError> {

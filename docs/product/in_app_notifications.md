@@ -19,6 +19,7 @@ flowchart LR
 | The link is one the app handles | that screen opens in the app | |
 | Any other link | it opens in the browser | |
 | A notification arrived since the last visit | tagged "New", for this visit only | |
+| Notifications opened on another wallet | this wallet's unseen notifications stay "New" | each wallet's list is read on its own |
 
 ## Platform differences
 
