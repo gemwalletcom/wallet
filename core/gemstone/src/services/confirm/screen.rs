@@ -18,7 +18,7 @@ impl GemConfirmScreen {
     }
 
     fn load_sheet(&self) -> Option<GemConfirmErrorSheet> {
-        self.failure.as_ref().filter(|failure| failure.stage == GemConfirmStage::Load).and_then(|failure| failure.error.display().sheet())
+        self.failure.as_ref().filter(|failure| failure.stage == GemConfirmStage::Load).and_then(|failure| failure.error.sheet())
     }
 
     fn is_account_missing(&self) -> bool {
