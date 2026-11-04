@@ -43,13 +43,13 @@ import uniffi.gemstone.GemNodeSyncState
 import uniffi.gemstone.chainRow
 
 @Composable
-fun AddNodeScene(chain: Chain, state: GemAddNodeViewState, url: MutableState<String>, onUrlChange: () -> Unit, onAdd: () -> Unit, onCancel: () -> Unit) {
+internal fun AddNodeScene(chain: Chain, state: GemAddNodeViewState, url: MutableState<String>, onAction: (AddNodeAction) -> Unit) {
     val context = LocalContext.current
     var isShowQRScan by rememberSaveable { mutableStateOf(false) }
     val phase = state.phase
 
     BackHandler {
-        onCancel()
+        onAction(AddNodeAction.Cancel)
     }
 
     Scene(
@@ -59,10 +59,10 @@ fun AddNodeScene(chain: Chain, state: GemAddNodeViewState, url: MutableState<Str
                 title = stringResource(id = R.string.wallet_import_action),
                 state = buttonState(enabled = state.canImport, loading = phase is GemAddNodePhase.Checking),
             ) {
-                onAdd()
+                onAction(AddNodeAction.Add)
             }
         },
-        onClose = onCancel,
+        onClose = { onAction(AddNodeAction.Cancel) },
     ) {
         ChainItem(
             row = chainRow(chain.string),
@@ -72,7 +72,7 @@ fun AddNodeScene(chain: Chain, state: GemAddNodeViewState, url: MutableState<Str
         UrlField(
             value = url,
             error = (phase as? GemAddNodePhase.Failed)?.error?.text(context).orEmpty(),
-            onValueChange = onUrlChange,
+            onValueChange = { onAction(AddNodeAction.UrlChange) },
             onQRScan = {
                 isShowQRScan = true
             },
@@ -94,7 +94,7 @@ fun AddNodeScene(chain: Chain, state: GemAddNodeViewState, url: MutableState<Str
         onResult = {
             isShowQRScan = false
             url.value = it.trim()
-            onUrlChange()
+            onAction(AddNodeAction.UrlChange)
         },
     )
 }
@@ -118,7 +118,7 @@ private fun UrlField(value: MutableState<String> = mutableStateOf(""), error: St
             TransferTextFieldActions(
                 value = value.value,
                 paste = {
-                    value.value = clipboardManager.getPlainText()?.trim().orEmpty()
+                    value.value = clipboardManager.getPlainText()?.trim() ?: return@TransferTextFieldActions
                     onValueChange()
                 },
                 onClean = {

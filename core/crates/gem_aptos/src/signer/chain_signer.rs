@@ -1,18 +1,20 @@
 use hex::encode;
-use primitives::{ChainSigner, SignerError, SignerInput, TransactionInputType, TransactionLoadMetadata, chain_aptos::is_fungible_asset_token_id};
+use primitives::{ChainSigner, SignerError, SignerInput, TransactionInputType, TransactionLoadMetadata};
 use serde_json::{Value, from_str};
 use std::str::from_utf8;
 
 use super::abi::{HYPERION_PARTNER_SWAP_PARAMS, PANORA_ROUTER_ENTRY_PARAMS, PANORA_ROUTER_FUNCTION, PANORA_ROUTER_MODULE};
-use super::{EntryFunction, EntryFunctionPayload, build_raw_transaction, build_submit_transaction_bcs, expiration_timestamp_secs, sign_message as sign_aptos_message, sign_raw_transaction};
-use crate::AccountAddress;
-use crate::{
-    APTOS_TRANSFER_FUNCTION, DELEGATION_POOL_ADD_STAKE_FUNCTION, DELEGATION_POOL_UNLOCK_FUNCTION, DELEGATION_POOL_WITHDRAW_FUNCTION, ENTRY_FUNCTION_PAYLOAD_TYPE, FUNGIBLE_TRANSFER_FUNCTION, HYPERION_PARTNER_SWAP_FUNCTION, OBJECT_CORE_TYPE,
+use super::{
+    EntryFunction, EntryFunctionPayload, build_raw_transaction, build_submit_transaction_bcs, build_token_transfer_transaction_payload, build_transfer_transaction_payload, expiration_timestamp_secs, sign_message as sign_aptos_message,
+    sign_raw_transaction,
 };
+use crate::AccountAddress;
+use crate::{DELEGATION_POOL_ADD_STAKE_FUNCTION, DELEGATION_POOL_UNLOCK_FUNCTION, DELEGATION_POOL_WITHDRAW_FUNCTION, HYPERION_PARTNER_SWAP_FUNCTION};
 
 const APTOS_CHAIN_ID: u8 = 1;
 
 const STAKE_ENTRY_PARAMS: [&str; 2] = ["address", "u64"];
+const TRANSFER_ENTRY_PARAMS: [&str; 2] = ["address", "u64"];
 const FUNGIBLE_TRANSFER_ENTRY_PARAMS: [&str; 3] = ["address", "address", "u64"];
 
 #[derive(Default)]
@@ -20,15 +22,10 @@ pub struct AptosChainSigner;
 
 impl ChainSigner for AptosChainSigner {
     fn sign_transfer(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
-        let payload = EntryFunctionPayload {
-            payload_type: ENTRY_FUNCTION_PAYLOAD_TYPE.to_string(),
-            function: APTOS_TRANSFER_FUNCTION.to_string(),
-            type_arguments: Vec::new(),
-            arguments: vec![Value::String(input.destination_address.clone()), Value::String(input.value.to_string())],
-        };
+        let payload = build_transfer_transaction_payload(&input.destination_address, &input.value.to_string());
 
         let gas_limit = input.fee.gas_limit()?;
-        self.sign_payload(payload, Some(&STAKE_ENTRY_PARAMS), input, private_key, gas_limit)
+        self.sign_payload(payload, Some(&TRANSFER_ENTRY_PARAMS), input, private_key, gas_limit)
     }
 
     fn sign_token_transfer(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
@@ -168,24 +165,15 @@ fn sequence_from_metadata(metadata: &TransactionLoadMetadata) -> Result<u64, Sig
 fn token_transfer_payload(input: &SignerInput) -> Result<(EntryFunctionPayload, &'static [&'static str]), SignerError> {
     let asset = input.input_type.get_asset();
     let token_id = asset.token_id().ok_or_else(|| SignerError::invalid_input("Missing Aptos token id"))?;
-    if !is_fungible_asset_token_id(token_id) {
-        return Err(SignerError::invalid_input("Invalid Aptos token ID format"));
-    }
+    let payload = build_token_transfer_transaction_payload(token_id, &input.destination_address, &input.value.to_string()).map_err(SignerError::invalid_input)?;
 
-    Ok((
-        EntryFunctionPayload {
-            payload_type: ENTRY_FUNCTION_PAYLOAD_TYPE.to_string(),
-            function: FUNGIBLE_TRANSFER_FUNCTION.to_string(),
-            type_arguments: vec![OBJECT_CORE_TYPE.to_string()],
-            arguments: vec![Value::String(token_id.to_string()), Value::String(input.destination_address.clone()), Value::String(input.value.to_string())],
-        },
-        &FUNGIBLE_TRANSFER_ENTRY_PARAMS,
-    ))
+    Ok((payload, &FUNGIBLE_TRANSFER_ENTRY_PARAMS))
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{FUNGIBLE_TRANSFER_FUNCTION, OBJECT_CORE_TYPE};
     use primitives::{AssetId, Chain, GasPriceType, SignerInput, TransactionFee, TransactionLoadInput};
 
     #[test]

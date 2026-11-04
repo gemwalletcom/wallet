@@ -274,6 +274,22 @@ impl GemAutocloseSession {
         }
     }
 
+    pub fn on_draft(&self, draft: &GemAutocloseDraft) -> Self {
+        let session = self
+            .on_input(TpslType::TakeProfit, draft.take_profit.value.clone().unwrap_or_default())
+            .on_input(TpslType::StopLoss, draft.stop_loss.value.clone().unwrap_or_default());
+        let drafted = |field: &GemAutocloseField| GemAutocloseField {
+            original_price: field.price,
+            ..field.clone()
+        };
+        let modify = GemAutocloseModify {
+            take_profit: drafted(&session.modify.take_profit),
+            stop_loss: drafted(&session.modify.stop_loss),
+            ..session.modify.clone()
+        };
+        Self { modify, ..session }
+    }
+
     fn price_row(&self, title: GemListRowTitle, price: f64) -> GemListRow {
         GemListRow::Amount {
             title,

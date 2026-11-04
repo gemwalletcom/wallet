@@ -149,6 +149,7 @@ mod tests {
                 symbol: "TRX".to_string(),
                 network: Some("TRON".to_string()),
             },
+            country_code: "US".to_string(),
             unsupported_countries: HashMap::new(),
             buy_limits: vec![FiatAssetLimits {
                 min_amount: Some(10.0),

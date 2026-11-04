@@ -301,7 +301,7 @@ impl NftRepository for DatabaseClient {
 #[cfg(all(test, feature = "database_integration_tests"))]
 mod database_integration_tests {
     use primitives::currency::Currency;
-    use primitives::{AssetLink, Chain, Device, FiatRate, FiatRateProvider, LinkType, NFTAsset, NFTAssetId, NFTCollection, NFTCollectionId, WalletId, WalletSource, WalletType};
+    use primitives::{AssetLink, Chain, Device, FiatRate, FiatRateProvider, LinkType, NFTAsset, NFTAssetId, NFTCollection, NFTCollectionId};
 
     use crate::{ChainsRepository, Database, DatabaseError, DevicesRepository, FiatRepository, NewWallet, NftCollectionFilter, NftRepository, WalletsRepository};
 
@@ -345,11 +345,7 @@ mod database_integration_tests {
                     ..Device::mock()
                 })?;
                 let device_id = client.get_device_row_id("nft-test-device")?;
-                let wallet = client.get_or_create_wallet(NewWallet {
-                    wallet_id: WalletId::Multicoin(OWNER.to_string()),
-                    wallet_type: WalletType::Multicoin,
-                    source: WalletSource::Import,
-                })?;
+                let wallet = client.get_or_create_wallet(NewWallet::mock(OWNER))?;
                 client.add_subscriptions(device_id, vec![(wallet.id, Chain::Ethereum, OWNER.to_string())])?;
                 client.set_nft_asset_associations(OWNER, vec![Chain::Ethereum], owned)?;
 

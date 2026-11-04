@@ -4,23 +4,27 @@ use sha2::Sha256;
 
 type HmacSha256 = Hmac<Sha256>;
 
-fn new_hmac_sha256(secret_key: &str) -> HmacSha256 {
-    HmacSha256::new_from_slice(secret_key.as_bytes()).expect("HMAC can take key of any size")
+fn new_hmac_sha256(key: &[u8]) -> HmacSha256 {
+    HmacSha256::new_from_slice(key).expect("HMAC can take key of any size")
 }
 
-fn generate_hmac_bytes(secret_key: &str, message: &str) -> Vec<u8> {
-    let mut mac = new_hmac_sha256(secret_key);
+fn generate_hmac_bytes(key: &[u8], message: &str) -> Vec<u8> {
+    let mut mac = new_hmac_sha256(key);
     mac.update(message.as_bytes());
     mac.finalize().into_bytes().to_vec()
 }
 
 pub fn generate_hmac_signature(secret_key: &str, message: &str) -> String {
-    encode_base64(&generate_hmac_bytes(secret_key, message))
+    generate_hmac_signature_with_key(secret_key.as_bytes(), message)
+}
+
+pub fn generate_hmac_signature_with_key(key: &[u8], message: &str) -> String {
+    encode_base64(&generate_hmac_bytes(key, message))
 }
 
 #[cfg(test)]
 pub fn generate_hmac_signature_hex(secret_key: &str, message: &str) -> String {
-    hex::encode(generate_hmac_bytes(secret_key, message))
+    hex::encode(generate_hmac_bytes(secret_key.as_bytes(), message))
 }
 
 pub fn verify_hmac_signature_hex(secret_key: &str, message: &str, signature: &str) -> bool {
@@ -28,7 +32,7 @@ pub fn verify_hmac_signature_hex(secret_key: &str, message: &str, signature: &st
         return false;
     };
 
-    let mut mac = new_hmac_sha256(secret_key);
+    let mut mac = new_hmac_sha256(secret_key.as_bytes());
     mac.update(message.as_bytes());
     mac.verify_slice(&signature).is_ok()
 }

@@ -1,11 +1,11 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Components
 import Foundation
 import GemstoneServices
 import GemstoneServicesTestKit
 @testable import Onboarding
 import Primitives
+import Style
 import Testing
 
 struct AcceptTermsSceneViewModelTests {
@@ -15,7 +15,7 @@ struct AcceptTermsSceneViewModelTests {
 
         #expect(model.viewState.rows.isNotEmpty)
         #expect(model.viewState.isAccepted == false)
-        #expect(model.state.isNoData)
+        #expect(model.buttonState == .disabled)
     }
 
     @Test
@@ -41,6 +41,6 @@ struct AcceptTermsSceneViewModelTests {
 
         model.viewState.rows.filter { !$0.isAccepted }.forEach { model.onToggle($0.item) }
         #expect(model.viewState.isAccepted)
-        #expect(model.state.isNoData == false)
+        #expect(model.buttonState == .normal)
     }
 }

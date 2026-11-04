@@ -4,7 +4,6 @@ use serde_serializers::{deserialize_biguint_from_str, serialize_biguint};
 
 #[cfg(feature = "signer")]
 use super::{ExecuteContractValue, IbcTransferValue};
-use crate::constants;
 #[cfg(feature = "signer")]
 use crate::constants::{MESSAGE_DELEGATE, MESSAGE_EXECUTE_CONTRACT, MESSAGE_IBC_TRANSFER, MESSAGE_REDELEGATE, MESSAGE_REWARD_BETA, MESSAGE_SEND, MESSAGE_SEND_BETA, MESSAGE_UNDELEGATE};
 #[cfg(feature = "signer")]
@@ -144,17 +143,6 @@ pub enum CosmosMessage {
         delegator_address: String,
         validator_address: String,
     },
-}
-
-pub fn send_msg_json(from: &str, to: &str, denom: &str, amount: &str) -> serde_json::Value {
-    serde_json::json!({
-        "typeUrl": constants::MESSAGE_SEND_BETA,
-        "value": {
-            "from_address": from,
-            "to_address": to,
-            "amount": [{"denom": denom, "amount": amount}]
-        }
-    })
 }
 
 #[cfg(feature = "signer")]

@@ -27,7 +27,6 @@ enum RewardsUpdate {
 pub enum RewardsFilter {
     Username(String),
     Statuses(Vec<PrimitiveRewardStatus>),
-    Limit(i64),
 }
 
 diesel::define_sql_function!(fn lower(x: Text) -> Text);
@@ -131,9 +130,6 @@ pub(crate) fn get_rewards_by_filter(client: &mut DatabaseClient, filters: Vec<Re
             }
             RewardsFilter::Statuses(statuses) => {
                 query = query.filter(dsl::status.eq_any(statuses.into_iter().map(RewardStatus::from).collect::<Vec<_>>()));
-            }
-            RewardsFilter::Limit(limit) => {
-                query = query.limit(limit);
             }
         }
     }

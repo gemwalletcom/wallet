@@ -15,8 +15,8 @@ pub(crate) struct WalletConnectRequest {
 pub(crate) struct WalletConnectTransaction {
     #[serde(skip_serializing_if = "Option::is_none")]
     raw_data: Option<Value>,
-    #[serde(with = "hex_bytes")]
-    raw_data_hex: Vec<u8>,
+    #[serde(default, with = "hex_bytes::option")]
+    pub(crate) raw_data_hex: Option<Vec<u8>>,
     #[serde(rename = "txID", skip_serializing_if = "Option::is_none")]
     pub(crate) transaction_id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -28,20 +28,19 @@ pub(crate) struct WalletConnectTransaction {
 
 impl WalletConnectTransaction {
     pub(crate) fn validate(&self) -> Result<([u8; 32], RawDataJson), SignerError> {
-        let raw_data = self.raw_data_hex.as_slice();
-        let transaction_hash = sha256(raw_data);
-        let transaction_id = hex::encode(transaction_hash);
-
         let raw_data_json = self.raw_data.as_ref().ok_or_else(|| SignerError::invalid_input("Missing raw_data"))?;
+        let decoded = serde_json::from_value::<RawDataJson>(raw_data_json.clone())?;
+        let encoded = decoded.encode()?;
+        let raw_data = self.raw_data_hex.as_deref().unwrap_or(&encoded);
+        let transaction_hash = sha256(raw_data);
 
         if let Some(provided_transaction_id) = &self.transaction_id
-            && !provided_transaction_id.eq_ignore_ascii_case(&transaction_id)
+            && !provided_transaction_id.eq_ignore_ascii_case(&hex::encode(transaction_hash))
         {
             return SignerError::invalid_input_err("transaction ID does not match hash of raw_data_hex");
         }
 
-        let decoded = serde_json::from_value::<RawDataJson>(raw_data_json.clone())?;
-        if decoded.encode()? != raw_data {
+        if raw_data != encoded {
             return SignerError::invalid_input_err("raw_data does not match raw_data_hex");
         }
 
@@ -53,7 +52,14 @@ impl WalletConnectTransaction {
 pub struct WalletConnectContract {
     pub to: String,
     pub value: u64,
+    pub token: Option<WalletConnectToken>,
     pub approval: Option<TransactionApproval>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct WalletConnectToken {
+    pub id: u64,
+    pub value: u64,
 }
 
 pub fn decode_wallet_connect_approval(data: &str) -> Result<Option<TransactionApproval>, SignerError> {
@@ -64,6 +70,12 @@ pub fn decode_wallet_connect_contract(data: &str) -> Result<Option<WalletConnect
     let payload: WalletConnectRequest = serde_json::from_str(data)?;
     let (_, raw_data) = payload.transaction.validate()?;
     raw_data.wallet_connect_contract()
+}
+
+pub fn decode_wallet_connect_owners(data: &str) -> Result<Vec<String>, SignerError> {
+    let payload: WalletConnectRequest = serde_json::from_str(data)?;
+    let (_, raw_data) = payload.transaction.validate()?;
+    raw_data.owners()
 }
 
 #[cfg(test)]
@@ -108,7 +120,24 @@ mod tests {
             );
         }
         assert!(decode_wallet_connect_approval(PAYLOAD).unwrap().is_some());
+        let mut without_hex: Value = serde_json::from_str(PAYLOAD).unwrap();
+        without_hex["transaction"].as_object_mut().unwrap().remove("raw_data_hex");
+        assert_eq!(decode_wallet_connect_approval(&without_hex.to_string()).unwrap(), decode_wallet_connect_approval(PAYLOAD).unwrap());
         assert_eq!(decode_wallet_connect_approval(&payload_with_calldata(PAYLOAD, "deadbeef")).unwrap(), None);
+        assert_eq!(
+            decode_wallet_connect_approval(&payload_with_calldata(PAYLOAD, &format!("d73dd62300000000000000000000000060e00625a95cbc180f290e2611c826f90eeba56f{}", "ff".repeat(32)))).unwrap(),
+            Some(TransactionApproval {
+                approval: ApprovalData {
+                    token: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t".to_string(),
+                    spender: "TJoSEwEqt7cT3TUwmEoUYnYs5cZR3xSukM".to_string(),
+                    value: BigUint::from_bytes_be(&[0xff; 32]),
+                    is_unlimited: true,
+                },
+                contract: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t".to_string(),
+                expiration: None,
+            })
+        );
+        assert!(decode_wallet_connect_approval(&payload_with_calldata(PAYLOAD, "d73dd623abcd")).is_err());
         assert!(decode_wallet_connect_approval(&payload_with_calldata(PAYLOAD, "095ea7b3abcd")).is_err());
         assert!(decode_wallet_connect_approval(&payload_with_calldata(PAYLOAD, &format!("095ea7b3{}{}", "ff".repeat(32), "00".repeat(32)))).is_err());
     }
@@ -118,13 +147,17 @@ mod tests {
         let mut contract_call: Value = serde_json::from_str(&payload_with_calldata(PAYLOAD, "deadbeef")).unwrap();
         contract_call["transaction"]["raw_data"]["contract"][0]["parameter"]["value"]["call_value"] = json!(27_334_102);
         assert_eq!(
-            decode_wallet_connect_contract(&encode_payload(contract_call)).unwrap(),
+            decode_wallet_connect_contract(&encode_payload(contract_call.clone())).unwrap(),
             Some(WalletConnectContract {
                 to: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t".to_string(),
                 value: 27_334_102,
+                token: None,
                 approval: None,
             })
         );
+        contract_call["transaction"]["raw_data"]["contract"][0]["parameter"]["value"]["call_token_value"] = json!(1_500);
+        contract_call["transaction"]["raw_data"]["contract"][0]["parameter"]["value"]["token_id"] = json!(1_002_000);
+        assert_eq!(decode_wallet_connect_contract(&encode_payload(contract_call)).unwrap().unwrap().token, Some(WalletConnectToken { id: 1_002_000, value: 1_500 }));
 
         let vote: Value = serde_json::from_str(include_str!("../../testdata/wallet_connect_vote_witness_contract.json")).unwrap();
         let mut vote_payload: Value = serde_json::from_str(PAYLOAD).unwrap();

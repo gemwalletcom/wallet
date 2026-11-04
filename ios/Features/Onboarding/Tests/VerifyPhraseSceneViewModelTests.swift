@@ -71,10 +71,21 @@ struct VerifyPhraseSceneViewModelTests {
 
     @Test
     func verifiedRowsShowTheAppsOwnWordsUpToTheLastPick() {
-        let model = VerifyPhraseSceneViewModel(words: words, setup: session) { _ in }
+        let setup = GemVerifyPhraseSetup(
+            choices: ["gamma", "alpha", "delta", "beta"],
+            session: GemVerifyPhraseSession(expected: [0, 1, 2, 3], chips: [2, 0, 3, 1], picked: [], isCreating: false),
+        )
+        let model = VerifyPhraseSceneViewModel(words: words, setup: setup) { _ in }
+        let chips = Array(model.groups.joined())
 
-        #expect(model.pickWord(index: Array(model.groups.joined())[0]))
-        #expect(model.groups.joined().map(\.word) == words)
+        #expect(chips.map(\.word) == ["gamma", "alpha", "delta", "beta"])
+        #expect(model.verifiedWords == ["", "", "", ""])
+
+        #expect(model.pickWord(index: chips[1]))
+        #expect(model.verifiedWords == ["alpha", "", "", ""])
         #expect(model.wordsIndex == 1)
+
+        #expect([3, 0, 2].map { model.pickWord(index: chips[$0]) } == [true, true, true])
+        #expect(model.verifiedWords == words)
     }
 }

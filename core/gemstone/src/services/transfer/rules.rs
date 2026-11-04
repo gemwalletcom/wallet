@@ -526,7 +526,7 @@ impl GemTransferData {
                 StakeType::Redelegate(data) => BigInt::from(data.delegation.base.balance.clone()),
                 StakeType::Rewards(_) => self.value.clone(),
                 StakeType::Unfreeze(resource) => unfreeze_available(resource, balance),
-                StakeType::Stake(_) if asset.chain() == Chain::Tron => tron_stake_available(asset, balance),
+                StakeType::Stake(_) if crate::services::stake::rules::uses_freeze(asset.chain()) => tron_stake_available(asset, balance),
                 StakeType::Stake(_) | StakeType::Freeze(_) => BigInt::from(balance.available.clone()),
             },
             TransactionInputType::Earn { earn_type, .. } => match earn_type {

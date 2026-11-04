@@ -18,7 +18,7 @@ pub(super) fn spendable_inputs(chain: BitcoinChain, sender_address: &str, utxos:
         .unlocking_script()
         .zip(sender.public_key_hash())
         .map(|(_, public_key_hash)| public_key_hash)
-        .ok_or_else(|| SignerError::invalid_input(message("sender address type is unsupported")))?;
+        .ok_or_else(|| unsupported_sender_error(chain))?;
     // Dash Core uses the highest non-final sequence for standard payments; it does not signal RBF.
     let sequence = match chain {
         BitcoinChain::Bitcoin | BitcoinChain::BitcoinCash | BitcoinChain::Litecoin | BitcoinChain::Doge => RBF_SEQUENCE,
@@ -52,6 +52,23 @@ pub(super) fn spendable_inputs(chain: BitcoinChain, sender_address: &str, utxos:
     }
 
     Ok(inputs)
+}
+
+#[cfg(any(test, feature = "rpc"))]
+pub(super) fn unfunded_sender_input(chain: BitcoinChain, sender_address: &str) -> Result<PlanInput, SignerError> {
+    let sender = script_for_address(chain, sender_address)?;
+    let unlocking_script = sender.unlocking_script().ok_or_else(|| unsupported_sender_error(chain))?;
+    Ok(PlanInput {
+        previous_output: OutPoint::null(),
+        value: Amount::ZERO,
+        script_pubkey: sender.script_pubkey,
+        unlocking_script,
+        sequence: FINAL_SEQUENCE,
+    })
+}
+
+fn unsupported_sender_error(chain: BitcoinChain) -> SignerError {
+    SignerError::invalid_input(format!("{} sender address type is unsupported", chain.get_chain()))
 }
 
 #[cfg(test)]

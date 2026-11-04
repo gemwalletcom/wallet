@@ -3,6 +3,9 @@
 common_cancel = Отмена
 common_hidden = Скрытые
 common_done = Готово
+common_add = Добавить
+common_close = Закрыть
+common_back = Назад
 common_maximum_value = Максимальное значение %@
 common_minimum_value = Минимальное значение %@
 common_secret_phrase = Секретная фраза
@@ -343,6 +346,8 @@ charts_price_close = Закрытие
 charts_price_high = Максимум
 charts_price_low = Минимум
 charts_price_change = Изменение
+charts_candlestick = Свечной график
+charts_line = Линейный график
 
 # Date
 

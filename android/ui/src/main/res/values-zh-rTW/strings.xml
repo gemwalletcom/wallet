@@ -3,6 +3,9 @@
   <string name="common_cancel">取消</string>
   <string name="common_hidden">已隱藏</string>
   <string name="common_done">完畢</string>
+  <string name="common_add">新增</string>
+  <string name="common_close">關閉</string>
+  <string name="common_back">返回</string>
   <string name="common_maximum_value">最大值為 %1$s</string>
   <string name="common_minimum_value">最小值為 %1$s</string>
   <string name="common_secret_phrase">助記詞</string>
@@ -298,6 +301,8 @@
   <string name="charts_price_high">最高價</string>
   <string name="charts_price_low">最低價</string>
   <string name="charts_price_change">漲跌幅</string>
+  <string name="charts_candlestick">K 線圖</string>
+  <string name="charts_line">折線圖</string>
   <string name="date_today">今天</string>
   <string name="date_yesterday">昨天</string>
   <string name="date_day_time">%1$s %2$s</string>

@@ -6,7 +6,6 @@ mod model;
 mod provider;
 mod target;
 
-pub use client::base_url;
 pub use model::{QuoteResponse, QuoteResponseError, QuoteResponseResult};
 pub use provider::{NearIntents, TREASURY_ADDRESSES};
 

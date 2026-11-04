@@ -3,6 +3,9 @@
   <string name="common_cancel">Скасувати</string>
   <string name="common_hidden">Приховані</string>
   <string name="common_done">Готово</string>
+  <string name="common_add">Додати</string>
+  <string name="common_close">Закрити</string>
+  <string name="common_back">Назад</string>
   <string name="common_maximum_value">Максимальне значення %1$s</string>
   <string name="common_minimum_value">Мінімальне значення %1$s</string>
   <string name="common_secret_phrase">Секретна фраза</string>
@@ -298,6 +301,8 @@
   <string name="charts_price_high">Максимум</string>
   <string name="charts_price_low">Мінімум</string>
   <string name="charts_price_change">Зміна</string>
+  <string name="charts_candlestick">Свічковий графік</string>
+  <string name="charts_line">Лінійний графік</string>
   <string name="date_today">Сьогодні</string>
   <string name="date_yesterday">Вчора</string>
   <string name="date_day_time">%1$s, %2$s</string>

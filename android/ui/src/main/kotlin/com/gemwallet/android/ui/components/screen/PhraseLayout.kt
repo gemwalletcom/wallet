@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import com.gemwallet.android.ui.components.sensitiveData
 import com.gemwallet.android.ui.theme.adaptivePadding
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.space1
@@ -70,12 +71,13 @@ private fun PhraseWordItem(index: Int, word: String, isHighlighted: Boolean, mod
         ) {
             Text(
                 text = "${index + 1}.",
+                modifier = Modifier.sensitiveData(),
                 color = MaterialTheme.colorScheme.secondary,
             )
             Spacer(modifier = Modifier.width(space6))
             Text(
                 text = word,
-                modifier = Modifier.testTag("word_$index"),
+                modifier = Modifier.testTag("word_$index").sensitiveData(),
                 color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.SemiBold,

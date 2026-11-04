@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 use std::ops::{Range, RangeInclusive};
 
 use chrono::{DateTime, TimeDelta, Utc};
-use primitives::{Asset, AssetLink, AssetMarket, AssetPrice, BlockExplorerLink, ChartDateValue, ChartPeriod, ChartValue, ChartValuePercentage, Currency, PriceAlert, PriceChangeCalculator};
+use primitives::{Asset, AssetLink, AssetMarket, AssetPrice, BlockExplorerLink, ChartCandleStick, ChartDateValue, ChartPeriod, ChartValue, ChartValuePercentage, Currency, PriceAlert, PriceChangeCalculator};
 
 use super::model::{GemChartBounds, GemChartData, GemChartDateStyle, GemChartHeader, GemChartValueType};
 use super::points::reduced_points;
@@ -33,6 +33,9 @@ const RANGE_PADDING: f64 = 0.05;
 const FLAT_LINE_PADDING: f64 = 0.01;
 const FLAT_LINE_MIN_PADDING: f64 = 0.01;
 pub const RIGHT_PADDING: f64 = 0.02;
+const CANDLE_SIGNIFICANT_FIGURES: i32 = 5;
+const CANDLE_MIN_DECIMALS: usize = 2;
+const CANDLE_MAX_DECIMALS: usize = 12;
 
 pub fn converted_values(prices: Vec<ChartValue>, rate: f64) -> Vec<ChartDateValue> {
     let mut values: Vec<ChartDateValue> = prices
@@ -41,6 +44,47 @@ pub fn converted_values(prices: Vec<ChartValue>, rate: f64) -> Vec<ChartDateValu
         .collect();
     values.sort_by_key(|value| value.date);
     values
+}
+
+pub fn converted_candles(candles: Vec<ChartCandleStick>, rate: f64) -> Vec<ChartCandleStick> {
+    let mut candles: Vec<ChartCandleStick> = candles
+        .into_iter()
+        .map(|candle| ChartCandleStick {
+            open: candle.open * rate,
+            high: candle.high * rate,
+            low: candle.low * rate,
+            close: candle.close * rate,
+            ..candle
+        })
+        .collect();
+    candles.sort_by_key(|candle| candle.date);
+    candles
+}
+
+pub fn candles_with_price(candles: &[ChartCandleStick], latest: Option<AssetPrice>) -> Vec<ChartCandleStick> {
+    let mut candles = candles.to_vec();
+    if let (Some(last), Some(latest)) = (candles.last_mut(), latest.filter(|latest| latest.price > 0.0))
+        && latest.updated_at > last.date
+    {
+        last.close = latest.price;
+        last.high = last.high.max(latest.price);
+        last.low = last.low.min(latest.price);
+    }
+    candles
+}
+
+pub const DEFAULT_CANDLE_PERIOD: ChartPeriod = ChartPeriod::Day;
+
+pub fn has_candle_period(period: ChartPeriod) -> bool {
+    period != ChartPeriod::Hour
+}
+
+pub fn candle_price_decimals(price: f64) -> usize {
+    if price <= 0.0 {
+        return CANDLE_MIN_DECIMALS;
+    }
+    let decimals = CANDLE_SIGNIFICANT_FIGURES - 1 - price.log10().floor() as i32;
+    decimals.clamp(CANDLE_MIN_DECIMALS as i32, CANDLE_MAX_DECIMALS as i32) as usize
 }
 
 pub fn base_value(values: &[ChartDateValue]) -> f64 {
@@ -422,6 +466,7 @@ mod tests {
             change_percentage: 4.2,
         };
         let chart = GemChart {
+            has_candles: false,
             current: Some(current),
             ..GemChart::mock(vec![ChartDateValue::mock(1_000, 100.0)])
         };
@@ -508,8 +553,8 @@ mod tests {
 
     #[test]
     fn test_header_hides_the_percentage_of_a_zero_value() {
-        assert_eq!(super::super::candlestick_header(100.0, 0.0, 2).change, None);
-        assert_eq!(super::super::candlestick_header(100.0, 150.0, 2).change, Some(GemFormattedNumber::percentage(50.0, GemPercentageStyle::Signed)));
+        assert_eq!(super::super::candlestick_header(100.0, 0.0, 2, &Currency::USD).change, None);
+        assert_eq!(super::super::candlestick_header(100.0, 150.0, 2, &Currency::USD).change, Some(GemFormattedNumber::percentage(50.0, GemPercentageStyle::Signed)));
     }
 
     #[test]
@@ -713,5 +758,50 @@ mod tests {
     #[test]
     fn test_chart_sections_offer_no_price_alerts_when_the_app_cannot_push() {
         assert_eq!(chart_sections(&Asset::mock(), Currency::USD, Some(1.0), None, None, vec![], None), vec![]);
+    }
+
+    fn candle(open: f64, high: f64, low: f64, close: f64) -> ChartCandleStick {
+        ChartCandleStick {
+            date: DateTime::from_timestamp(1_000, 0).unwrap(),
+            open,
+            high,
+            low,
+            close,
+            volume: 0.0,
+        }
+    }
+
+    #[test]
+    fn test_converted_candles_converts_every_price_and_sorts_by_date() {
+        let later = ChartCandleStick {
+            date: DateTime::from_timestamp(2_000, 0).unwrap(),
+            ..candle(1.0, 2.0, 0.5, 1.5)
+        };
+
+        let candles = converted_candles(vec![later, candle(2.0, 4.0, 1.0, 3.0)], 0.5);
+
+        assert_eq!(candles[0], candle(1.0, 2.0, 0.5, 1.5));
+        assert_eq!(candles[1].close, 0.75);
+    }
+
+    #[test]
+    fn test_candles_with_price_moves_the_last_candle_to_a_newer_price() {
+        let candles = vec![candle(1.0, 2.0, 0.5, 1.5)];
+        let price = |price: f64, seconds: i64| Some(AssetPrice::new(AssetId::from_chain(primitives::Chain::Bitcoin), price, 0.0, DateTime::from_timestamp(seconds, 0).unwrap()));
+
+        assert_eq!(candles_with_price(&candles, price(3.0, 2_000)), vec![candle(1.0, 3.0, 0.5, 3.0)]);
+        assert_eq!(candles_with_price(&candles, price(0.25, 2_000)), vec![candle(1.0, 2.0, 0.25, 0.25)]);
+        assert_eq!(candles_with_price(&candles, price(3.0, 500)), candles, "an older price leaves the candle alone");
+        assert_eq!(candles_with_price(&candles, price(0.0, 2_000)), candles, "no price leaves the candle alone");
+        assert_eq!(candles_with_price(&candles, None), candles);
+    }
+
+    #[test]
+    fn test_candle_price_decimals_keeps_five_significant_figures() {
+        assert_eq!(candle_price_decimals(80_812.2), 2);
+        assert_eq!(candle_price_decimals(1.4251), 4);
+        assert_eq!(candle_price_decimals(0.0001234), 8);
+        assert_eq!(candle_price_decimals(0.000000000001), 12);
+        assert_eq!(candle_price_decimals(0.0), 2);
     }
 }

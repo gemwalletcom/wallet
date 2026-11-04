@@ -49,7 +49,7 @@ impl PriceAlertRules {
             };
         }
 
-        if price_data.all_time_high > 0.0 && price_data.price > price_data.all_time_high {
+        if price_data.all_time_high > 0.0 && price_data.price >= price_data.all_time_high {
             return Some((PriceAlertType::AllTimeHigh, None));
         }
 
@@ -185,6 +185,28 @@ mod tests {
             ),
             trigger(PriceAlertType::AllTimeHigh, EUR)
         );
+    }
+
+    #[test]
+    fn test_evaluate_all_time_high_as_stored() {
+        let rules = PriceAlertRules::mock();
+        let usd = device(Currency::USD);
+        let auto = PriceAlert::new_auto(AssetId::from_chain(Chain::Bitcoin), Currency::USD);
+        let new_high = PriceData {
+            all_time_high: 130_000.0,
+            ..PriceData::mock_with(130_000.0, 1.0)
+        };
+        let below_new_high = PriceData {
+            all_time_high: 130_000.0,
+            ..PriceData::mock_with(129_000.0, 1.0)
+        };
+        let target_up = PriceAlert::new_price(auto.asset_id.clone(), Currency::USD, 100_000.0, PriceAlertDirection::Up);
+        let percent_up = PriceAlert::new_price_percent(auto.asset_id.clone(), Currency::USD, 5.0, PriceAlertDirection::Up);
+
+        assert_eq!(rules.evaluate(&auto, &usd, &new_high, &TEST_RATES), trigger(PriceAlertType::AllTimeHigh, USD));
+        assert_eq!(rules.evaluate(&auto, &usd, &below_new_high, &TEST_RATES), None);
+        assert_eq!(rules.evaluate(&target_up, &usd, &new_high, &TEST_RATES), target(PriceAlertType::PriceUp, 100_000.0, USD));
+        assert_eq!(rules.evaluate(&percent_up, &usd, &new_high, &TEST_RATES), None);
     }
 
     #[test]

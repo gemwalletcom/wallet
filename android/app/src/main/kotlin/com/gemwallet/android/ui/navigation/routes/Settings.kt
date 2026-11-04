@@ -24,8 +24,8 @@ import com.gemwallet.android.features.settings.presents.currency.CurrencyScreen
 import com.gemwallet.android.features.settings.presents.developer.DeveloperPaymentsScene
 import com.gemwallet.android.features.settings.presents.developer.DeveloperScreen
 import com.gemwallet.android.features.settings.presents.security.SecurityScreen
+import com.gemwallet.android.features.settings.viewmodels.models.PreferencesAction
 import com.gemwallet.android.features.support.presents.SupportChatScreen
-import com.gemwallet.android.ui.models.actions.PreferencesAction
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.navigation.RouteMessage
 import com.gemwallet.android.ui.navigation.assetIdArgument

@@ -324,6 +324,7 @@ fun GemLocalizedText.string(context: Context): String = when (this) {
     is GemLocalizedText.Pnl -> GemPriceChangeCalculator().use { it.pnlText(amount.text(), percent.text()) }
 
     is GemLocalizedText.Margin -> "${amount.text()} (${context.getString(marginType.stringRes())})"
+
     is GemLocalizedText.MarginType -> context.getString(marginType.stringRes())
 
     is GemLocalizedText.Position -> "${context.getString(direction.toPrimitives().stringRes()).uppercase()} ${leverage.text()}"
@@ -1259,10 +1260,6 @@ fun FeeUnitType.suffix(assetSymbol: String): String = when (this) {
 fun GemConfirmErrorDisplay.text(context: Context): String = when (this) {
     is GemConfirmErrorDisplay.Offline -> context.getString(R.string.errors_network_offline)
 
-    is GemConfirmErrorDisplay.Malicious -> context.getString(R.string.errors_scan_transaction_malicious_description)
-
-    is GemConfirmErrorDisplay.MemoRequired -> context.getString(R.string.errors_scan_transaction_memo_required, symbol)
-
     is GemConfirmErrorDisplay.FeeRatesMissing -> context.getString(R.string.errors_unable_estimate_network_fee)
 
     is GemConfirmErrorDisplay.Cancelled -> context.getString(R.string.errors_cancelled)
@@ -1271,37 +1268,10 @@ fun GemConfirmErrorDisplay.text(context: Context): String = when (this) {
 
     is GemConfirmErrorDisplay.Unknown -> context.getString(R.string.errors_unknown)
 
-    is GemConfirmErrorDisplay.BalanceRequired -> context.getString(
-        R.string.info_balance_required_description,
-        requirement.required.text().boldMarkdown(),
-        requirement.available.text().boldMarkdown(),
-        requirement.shortfall.text().boldMarkdown(),
-    )
-
-    is GemConfirmErrorDisplay.NetworkFeeRequired -> context.getString(
-        R.string.info_insufficient_network_fee_balance_description,
-        requirement.required.text().boldMarkdown(),
-        asset.toPrimitives().id.chain.networkName().boldMarkdown(),
-        requirement.available.text().boldMarkdown(),
-        requirement.shortfall.text().boldMarkdown(),
-    )
-
-    is GemConfirmErrorDisplay.NetworkFeeMissing ->
-        context.getString(R.string.transfer_insufficient_network_fee_balance, title.boldMarkdown())
-
-    is GemConfirmErrorDisplay.MinimumAccountBalance ->
-        context.getString(R.string.transfer_minimum_account_balance, required.text().boldMarkdown())
+    is GemConfirmErrorDisplay.Description -> description.string(context)
 
     is GemConfirmErrorDisplay.DestinationAccountActivation ->
         context.getString(R.string.transfer_destination_account_activation, required.text().boldMarkdown())
-
-    is GemConfirmErrorDisplay.SwapMinimum -> context.getString(
-        R.string.info_swap_minimum_amount_description,
-        providerName.boldMarkdown(),
-        requirement.required.text().boldMarkdown(),
-        requirement.available.text().boldMarkdown(),
-        requirement.shortfall.text().boldMarkdown(),
-    )
 
     is GemConfirmErrorDisplay.DustThreshold -> context.getString(R.string.errors_dust_threshold_short)
 
@@ -1342,10 +1312,12 @@ fun GemSecurityReminderItem.titleRes(): Int = when (this) {
         GemWalletSecretKind.PHRASE -> R.string.onboarding_security_create_wallet_keep_safe_title
         GemWalletSecretKind.PRIVATE_KEY -> R.string.private_key_reminder_keep_safe_title
     }
+
     is GemSecurityReminderItem.DoNotShare -> when (kind) {
         GemWalletSecretKind.PHRASE -> R.string.onboarding_security_create_wallet_do_not_share_title
         GemWalletSecretKind.PRIVATE_KEY -> R.string.private_key_reminder_do_not_share_title
     }
+
     is GemSecurityReminderItem.NoRecovery -> when (kind) {
         GemWalletSecretKind.PHRASE -> R.string.onboarding_security_create_wallet_no_recovery_title
         GemWalletSecretKind.PRIVATE_KEY -> R.string.private_key_reminder_no_recovery_title
@@ -1358,10 +1330,12 @@ fun GemSecurityReminderItem.subtitleRes(): Int = when (this) {
         GemWalletSecretKind.PHRASE -> R.string.onboarding_security_create_wallet_keep_safe_subtitle
         GemWalletSecretKind.PRIVATE_KEY -> R.string.private_key_reminder_keep_safe_subtitle
     }
+
     is GemSecurityReminderItem.DoNotShare -> when (kind) {
         GemWalletSecretKind.PHRASE -> R.string.onboarding_security_create_wallet_do_not_share_subtitle
         GemWalletSecretKind.PRIVATE_KEY -> R.string.private_key_reminder_do_not_share_subtitle
     }
+
     is GemSecurityReminderItem.NoRecovery -> when (kind) {
         GemWalletSecretKind.PHRASE -> R.string.onboarding_security_create_wallet_no_recovery_subtitle
         GemWalletSecretKind.PRIVATE_KEY -> R.string.private_key_reminder_no_recovery_subtitle
@@ -1535,11 +1509,8 @@ fun Appearance.stringRes(): Int = when (this) {
 @StringRes
 fun GemSwapButtonAction.stringRes(): Int = when (this) {
     GemSwapButtonAction.InsufficientBalance -> R.string.transfer_insufficient_balance
-
     is GemSwapButtonAction.UseMinimumAmount -> R.string.swap_use_minimum_amount
-
     GemSwapButtonAction.RetryQuote -> R.string.common_try_again
-
     GemSwapButtonAction.Swap -> R.string.wallet_swap
 }
 

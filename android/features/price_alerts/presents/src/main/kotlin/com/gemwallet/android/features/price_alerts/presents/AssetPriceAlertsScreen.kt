@@ -26,13 +26,14 @@ fun AssetPriceAlertsScreen(message: RouteMessage?, onMessageShown: () -> Unit, o
         error = error,
         onErrorShown = viewModel::clearError,
         header = { assetAlerts?.let { autoAlertToggle(it, viewModel::toggleAutoAlert) } },
-        onChart = null,
+        showsChart = false,
     ) { action ->
         when (action) {
             PriceAlertsAction.Refresh -> viewModel.refresh()
             PriceAlertsAction.Close -> onCancel()
             PriceAlertsAction.Add -> onSetPriceAlert(viewModel.assetId)
             is PriceAlertsAction.Exclude -> viewModel.excludeAsset(action.id)
+            is PriceAlertsAction.OpenChart -> Unit
         }
     }
 }

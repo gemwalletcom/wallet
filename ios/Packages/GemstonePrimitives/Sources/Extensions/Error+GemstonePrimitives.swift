@@ -3,8 +3,10 @@
 import Foundation
 import enum Gemstone.GemErrorText
 import enum Gemstone.GemServiceError
+import enum Gemstone.GemWalletConnectFailure
 
 extension GemErrorText: @retroactive Error {}
+extension GemWalletConnectFailure: @retroactive Error {}
 
 public extension Error {
     var isCancelled: Bool {

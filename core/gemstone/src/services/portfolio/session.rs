@@ -18,6 +18,7 @@ pub struct GemPortfolioRequest {
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemPortfolioLoad {
     pub period: ChartPeriod,
+    pub periods: Vec<ChartPeriod>,
     pub state: GemLoadState,
     pub data: Option<PortfolioData>,
 }
@@ -26,8 +27,16 @@ impl GemPortfolioLoad {
     fn loading(period: ChartPeriod) -> Self {
         Self {
             period,
+            periods: rules::wallet_periods(),
             state: GemLoadState::Loading,
             data: None,
+        }
+    }
+
+    fn reloading(&self, period: ChartPeriod) -> Self {
+        Self {
+            periods: self.periods.clone(),
+            ..Self::loading(period)
         }
     }
 
@@ -39,6 +48,10 @@ impl GemPortfolioLoad {
         .data(state.into_result(data));
         Self {
             period,
+            periods: match shown.value.as_ref().map(|data| data.available_periods.clone()) {
+                Some(periods) if !periods.is_empty() => periods,
+                _ => self.periods.clone(),
+            },
             state: shown.state,
             data: shown.value,
         }
@@ -81,7 +94,6 @@ pub struct GemPortfolioSession {
     pub portfolio_type: PortfolioType,
     pub period: ChartPeriod,
     pub chart_type: PortfolioChartType,
-    pub periods: Vec<ChartPeriod>,
     pub wallet: GemPortfolioLoad,
     pub perpetuals: GemPortfolioLoad,
     pub is_refreshing: bool,
@@ -99,6 +111,7 @@ impl GemPortfolioSession {
             zoom: GemChartZoom::default(),
             ..self.clone()
         }
+        .settled()
     }
 
     pub fn on_select_chart_type(&self, chart_type: PortfolioChartType) -> Self {
@@ -132,8 +145,8 @@ impl GemPortfolioSession {
         }
         Self {
             period,
-            wallet: GemPortfolioLoad::loading(period),
-            perpetuals: GemPortfolioLoad::loading(period),
+            wallet: self.wallet.reloading(period),
+            perpetuals: self.perpetuals.reloading(period),
             zoom: GemChartZoom::default(),
             ..self.clone()
         }
@@ -150,18 +163,11 @@ impl GemPortfolioSession {
         if !self.accepts(&result.request) {
             return self.clone();
         }
-        let periods = result.data.as_ref().map(|data| data.available_periods.clone()).unwrap_or_default();
-        let received = Self {
-            is_refreshing: false,
-            periods: match periods.is_empty() {
-                true => self.periods.clone(),
-                false => periods.clone(),
-            },
-            ..self.with_load(result.request.portfolio_type, self.load(result.request.portfolio_type).received(result.request.period, result.state, result.data))
-        };
-        match rules::fallback_period(result.request.period, &periods) {
-            Some(period) => received.on_select_period(period),
-            None => received,
+        let portfolio_type = result.request.portfolio_type;
+        let received = self.with_load(portfolio_type, self.load(portfolio_type).received(result.request.period, result.state, result.data));
+        match portfolio_type == self.portfolio_type {
+            true => Self { is_refreshing: false, ..received }.settled(),
+            false => received,
         }
     }
 
@@ -193,7 +199,7 @@ impl GemPortfolioSession {
             portfolio_type: self.portfolio_type,
             period: self.period,
             chart_type: self.chart_type,
-            periods: self.periods.clone(),
+            periods: load.periods.clone(),
             statistics: rules::statistic_rows(load.data.as_ref().map(|data| data.statistics.clone()).unwrap_or_default(), currency.clone()),
             phase: self.phase(load),
             shows_chart_type_picker: self.portfolio_type == PortfolioType::Perpetuals,
@@ -211,7 +217,6 @@ impl GemPortfolioSession {
             portfolio_type,
             period,
             chart_type,
-            periods: rules::wallet_periods(),
             wallet: GemPortfolioLoad::loading(period),
             perpetuals: GemPortfolioLoad::loading(period),
             is_refreshing: false,
@@ -230,6 +235,13 @@ impl GemPortfolioSession {
         match portfolio_type {
             PortfolioType::Wallet => Self { wallet: load, ..self.clone() },
             PortfolioType::Perpetuals => Self { perpetuals: load, ..self.clone() },
+        }
+    }
+
+    fn settled(self) -> Self {
+        match rules::fallback_period(self.period, &self.load(self.portfolio_type).periods) {
+            Some(period) => self.on_select_period(period),
+            None => self,
         }
     }
 
@@ -375,6 +387,24 @@ mod tests {
         assert_eq!(shown.period, ChartPeriod::Day);
         assert!(shown.needs_load(), "the fallback period has nothing shown yet");
         assert_eq!(shown.view_state().periods, vec![ChartPeriod::Day, ChartPeriod::Week]);
+    }
+
+    #[test]
+    fn test_an_answer_for_the_other_type_keeps_the_shown_periods() {
+        let wallet = session().on_select_period(ChartPeriod::Week).on_refresh();
+        let perpetuals = GemPortfolioRequest {
+            portfolio_type: PortfolioType::Perpetuals,
+            ..wallet.request()
+        };
+        let landed = wallet.on_result(loaded(perpetuals, data(vec![ChartPeriod::Day, ChartPeriod::All])));
+
+        assert_eq!(landed.period, ChartPeriod::Week, "the wallet chart keeps its period");
+        assert_eq!(landed.view_state().periods, rules::wallet_periods());
+        assert!(landed.view_state().is_refreshing, "the wallet refresh is still running");
+
+        let switched = landed.on_select_type(PortfolioType::Perpetuals);
+        assert_eq!(switched.period, ChartPeriod::Day, "the perpetuals tab falls back to a period it offers");
+        assert_eq!(switched.view_state().periods, vec![ChartPeriod::Day, ChartPeriod::All]);
     }
 
     #[test]

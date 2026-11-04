@@ -164,7 +164,7 @@ extension SwapScene {
     private var swapButton: StateButton {
         StateButton(
             text: model.buttonViewModel.title,
-            type: model.buttonViewModel.type,
+            state: model.buttonViewModel.buttonState,
             image: model.buttonViewModel.icon,
             infoTitle: model.buttonViewModel.infoText,
             action: onSelectActionButton,

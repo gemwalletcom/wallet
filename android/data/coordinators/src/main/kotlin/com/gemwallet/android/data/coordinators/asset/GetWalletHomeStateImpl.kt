@@ -8,7 +8,6 @@ import com.gemwallet.android.data.services.store.queries.AssetFiatValuesQuery
 import com.gemwallet.android.data.services.store.queries.BannersQuery
 import com.gemwallet.android.data.services.store.queries.NFTQuery
 import com.gemwallet.android.data.services.store.queries.PerpetualWalletBalanceQuery
-import com.gemwallet.android.ext.GemConstants
 import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
@@ -53,7 +52,7 @@ class GetWalletHomeStateImpl(
         combine(
             assetFiatValuesQuery(wallet.id),
             perpetualCollateral,
-            bannersQuery(wallet.id.id, GemConstants.walletBannerEvents),
+            bannersQuery(),
             getActiveAssetsInfo.assetsInfo(),
         ) { balances, perpetualBalance, banners, assets ->
             walletHomeService.viewState(

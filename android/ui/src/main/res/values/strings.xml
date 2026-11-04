@@ -3,6 +3,9 @@
   <string name="common_cancel">Cancel</string>
   <string name="common_hidden">Hidden</string>
   <string name="common_done">Done</string>
+  <string name="common_add">Add</string>
+  <string name="common_close">Close</string>
+  <string name="common_back">Back</string>
   <string name="common_maximum_value">Maximum value is %1$s</string>
   <string name="common_minimum_value">Minimum value is %1$s</string>
   <string name="common_secret_phrase">Secret Phrase</string>
@@ -298,6 +301,8 @@
   <string name="charts_price_high">High</string>
   <string name="charts_price_low">Low</string>
   <string name="charts_price_change">Change</string>
+  <string name="charts_candlestick">Candlestick chart</string>
+  <string name="charts_line">Line chart</string>
   <string name="date_today">Today</string>
   <string name="date_yesterday">Yesterday</string>
   <string name="date_day_time">%1$s, %2$s</string>

@@ -30,7 +30,7 @@ pub(crate) trait Repository: Send + Sync {
     async fn update_payment_methods(&self, provider: FiatProviderName, payment_methods: serde_json::Value) -> Result<usize, DatabaseError>;
     async fn set_fiat_assets(&self, provider: FiatProviderName, assets: Vec<FiatAsset>) -> Result<usize, DatabaseError>;
     async fn set_countries(&self, provider: FiatProviderName, countries: Vec<FiatProviderCountry>) -> Result<usize, DatabaseError>;
-    async fn update_fiat_transaction(&self, provider: FiatProviderName, update: FiatTransactionUpdate) -> Result<(Option<FiatTransactionRecord>, FiatTransactionRecord), DatabaseError>;
+    async fn update_fiat_transaction(&self, provider: FiatProviderName, update: FiatTransactionUpdate) -> Result<(FiatTransactionRecord, FiatTransactionRecord), DatabaseError>;
     async fn get_notification_context(&self, asset_id: AssetId, wallet_row_id: i32) -> Result<NotificationContext, DatabaseError>;
 }
 
@@ -116,14 +116,8 @@ impl Repository for PostgresRepository {
         self.database.run(move |client| client.set_fiat_providers_countries(provider, countries)).await
     }
 
-    async fn update_fiat_transaction(&self, provider: FiatProviderName, update: FiatTransactionUpdate) -> Result<(Option<FiatTransactionRecord>, FiatTransactionRecord), DatabaseError> {
-        self.database
-            .run(move |client| {
-                let existing = client.get_fiat_transaction(provider, &update.transaction_id)?;
-                let updated = client.update_fiat_transaction(provider, update)?;
-                Ok((existing, updated))
-            })
-            .await
+    async fn update_fiat_transaction(&self, provider: FiatProviderName, update: FiatTransactionUpdate) -> Result<(FiatTransactionRecord, FiatTransactionRecord), DatabaseError> {
+        self.database.run(move |client| client.update_fiat_transaction(provider, update)).await
     }
 
     async fn get_notification_context(&self, asset_id: AssetId, wallet_row_id: i32) -> Result<NotificationContext, DatabaseError> {

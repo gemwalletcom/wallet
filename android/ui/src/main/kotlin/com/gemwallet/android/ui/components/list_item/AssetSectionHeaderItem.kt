@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.localization.titleRes
 import com.gemwallet.android.ui.style.icon
 import com.gemwallet.android.ui.theme.paddingDefault
@@ -31,7 +32,7 @@ fun AssetSectionHeaderItem(kind: GemAssetSectionKind) {
             modifier = Modifier.size(paddingDefault),
             imageVector = icon,
             tint = MaterialTheme.colorScheme.secondary,
-            contentDescription = "pinned_section",
+            contentDescription = null,
         )
         Text(
             modifier = Modifier

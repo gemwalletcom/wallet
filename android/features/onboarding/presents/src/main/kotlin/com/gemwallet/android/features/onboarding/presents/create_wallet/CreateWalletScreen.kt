@@ -49,9 +49,7 @@ import com.gemwallet.android.ui.theme.WalletTheme
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.sceneContentPaddingValues
 import uniffi.gemstone.GemButtonState
-import uniffi.gemstone.GemCopy
 import uniffi.gemstone.GemWalletSecretKind
-import uniffi.gemstone.secretPhraseCopy
 
 private val loadingDialogSize = 100.dp
 
@@ -61,6 +59,7 @@ fun CreateWalletScreen(onCancel: () -> Unit, onCreated: () -> Unit) {
     DetectScreenshot(GemWalletSecretKind.PHRASE)
 
     val context = LocalContext.current
+    val clipboardManager = context.clipboardManager()
     val viewModel: CreateWalletViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val errorText by viewModel.errorText.collectAsStateWithLifecycle()
@@ -99,13 +98,13 @@ fun CreateWalletScreen(onCancel: () -> Unit, onCreated: () -> Unit) {
                 )
             }
 
-            false -> CreateWalletScene(
-                words = uiState.data,
-                onCopy = viewModel::phraseCopy,
-                dataError = errorText,
-                onCreate = viewModel::confirmPhrase,
-                onCancel = onCancel,
-            )
+            false -> CreateWalletScene(words = uiState.data, dataError = errorText) { action ->
+                when (action) {
+                    CreateWalletAction.Copy -> clipboardManager.setCopy(context, viewModel.phraseCopy())
+                    CreateWalletAction.Continue -> viewModel.confirmPhrase()
+                    CreateWalletAction.Cancel -> onCancel()
+                }
+            }
         }
     }
     if (verificationState?.button == GemButtonState.LOADING) {
@@ -129,17 +128,15 @@ fun CreateWalletScreen(onCancel: () -> Unit, onCreated: () -> Unit) {
 }
 
 @Composable
-private fun CreateWalletScene(words: List<String>, onCopy: () -> GemCopy, dataError: String?, onCreate: () -> Unit, onCancel: () -> Unit) {
-    val context = LocalContext.current
-    val clipboardManager = LocalContext.current.clipboardManager()
+private fun CreateWalletScene(words: List<String>, dataError: String?, onAction: (CreateWalletAction) -> Unit) {
     Scene(
         title = stringResource(id = R.string.wallet_new_title),
-        onClose = onCancel,
+        onClose = { onAction(CreateWalletAction.Cancel) },
         padding = sceneContentPaddingValues(),
         mainAction = {
             MainActionButton(
                 title = stringResource(id = R.string.common_continue),
-                onClick = onCreate,
+                onClick = { onAction(CreateWalletAction.Continue) },
             )
         },
     ) {
@@ -164,7 +161,7 @@ private fun CreateWalletScene(words: List<String>, onCopy: () -> GemCopy, dataEr
                 )
             }
             Spacer16()
-            CopyButton(onClick = { clipboardManager.setCopy(context, onCopy()) })
+            CopyButton(onClick = { onAction(CreateWalletAction.Copy) })
         }
     }
 }
@@ -185,10 +182,8 @@ fun PreviewCreateWalletScene() {
         Column {
             CreateWalletScene(
                 words = words,
-                onCopy = { secretPhraseCopy(emptyList()) },
                 dataError = null,
-                onCreate = {},
-                onCancel = {},
+                onAction = {},
             )
         }
     }

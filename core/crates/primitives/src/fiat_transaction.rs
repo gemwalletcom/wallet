@@ -32,7 +32,7 @@ pub struct FiatTransaction {
 }
 
 impl FiatTransaction {
-    pub fn new_pending(data: &FiatQuoteUrlData, country: Option<String>, provider_transaction_id: Option<String>) -> Self {
+    pub fn new_pending(data: &FiatQuoteUrlData, provider_transaction_id: Option<String>) -> Self {
         let quote = &data.quote;
         let now = Utc::now();
 
@@ -43,7 +43,7 @@ impl FiatTransaction {
             provider: quote.provider.id,
             provider_transaction_id,
             status: FiatTransactionStatus::Pending,
-            country,
+            country: Some(data.country_code.clone()),
             fiat_amount: quote.fiat_amount,
             fiat_currency: quote.fiat_currency.clone(),
             value: quote.value.clone(),
@@ -98,7 +98,7 @@ pub struct FiatTransactionAssetData {
     pub details_url: Option<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, AsRefStr, EnumString, Model)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, AsRefStr, EnumString, Model)]
 #[model(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
@@ -107,6 +107,23 @@ pub enum FiatTransactionStatus {
     Pending,
     Failed,
     Unknown,
+}
+
+impl FiatTransactionStatus {
+    pub fn is_completed(&self) -> bool {
+        match self {
+            Self::Complete | Self::Failed => true,
+            Self::Pending | Self::Unknown => false,
+        }
+    }
+
+    pub fn accepts(&self, updated: Self) -> bool {
+        match self {
+            Self::Unknown => true,
+            Self::Pending => updated != Self::Unknown,
+            Self::Complete | Self::Failed => updated.is_completed(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, AsRefStr, EnumString, Model)]
@@ -172,5 +189,19 @@ mod tests {
                 ..FiatTransaction::mock()
             }
         );
+    }
+
+    #[test]
+    fn test_status_accepts() {
+        use FiatTransactionStatus::*;
+
+        assert!(!Complete.accepts(Pending));
+        assert!(!Complete.accepts(Unknown));
+        assert!(Complete.accepts(Failed));
+        assert!(!Failed.accepts(Pending));
+        assert!(Failed.accepts(Complete));
+        assert!(Pending.accepts(Complete));
+        assert!(!Pending.accepts(Unknown));
+        assert!(Unknown.accepts(Pending));
     }
 }

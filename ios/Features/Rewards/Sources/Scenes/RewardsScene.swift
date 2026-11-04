@@ -248,7 +248,7 @@ public struct RewardsScene: View {
                         Spacer()
                         StateButton(
                             text: model.pendingReferralButtonTitle,
-                            type: model.activatePendingButtonType,
+                            state: model.activatePendingButtonState,
                         ) {
                             Task { await model.activatePendingReferral() }
                         }

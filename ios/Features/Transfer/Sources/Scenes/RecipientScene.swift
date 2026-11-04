@@ -104,13 +104,13 @@ public struct RecipientScene: View {
         .safeAreaButton {
             StateButton(
                 text: model.actionButtonTitle,
-                type: .primary(model.actionButtonState),
+                state: model.actionButtonState,
                 action: onSelectContinue,
             )
         }
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .listSectionSpacing(.compact)
-        .navigationTitle(model.tittle)
+        .navigationTitle(model.title)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button(model.actionButtonTitle, action: onSelectContinue)

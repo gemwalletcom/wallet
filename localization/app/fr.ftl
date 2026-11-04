@@ -3,6 +3,9 @@
 common_cancel = Annuler
 common_hidden = Masqués
 common_done = Terminé
+common_add = Ajouter
+common_close = Fermer
+common_back = Retour
 common_maximum_value = La valeur maximale est %@
 common_minimum_value = La valeur minimale est %@
 common_secret_phrase = Phrase secrète
@@ -343,6 +346,8 @@ charts_price_close = Clôture
 charts_price_high = Haut
 charts_price_low = Bas
 charts_price_change = Changement
+charts_candlestick = Graphique en chandeliers
+charts_line = Graphique en courbe
 
 # Date
 

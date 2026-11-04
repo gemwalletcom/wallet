@@ -7,10 +7,10 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.settings.viewmodels.PreferencesViewModel
-import com.gemwallet.android.ui.models.actions.PreferencesAction
+import com.gemwallet.android.features.settings.viewmodels.models.PreferencesAction
 
 @Composable
-fun PreferencesScreen(onAction: (PreferencesAction) -> Unit, viewModel: PreferencesViewModel = hiltViewModel()) {
+fun PreferencesScreen(onAction: (PreferencesAction.Navigation) -> Unit, viewModel: PreferencesViewModel = hiltViewModel()) {
     val sections by viewModel.sections.collectAsStateWithLifecycle()
     val appearance by viewModel.appearance.collectAsStateWithLifecycle()
     val perpetualDefaults by viewModel.perpetualDefaults.collectAsStateWithLifecycle()
@@ -23,9 +23,12 @@ fun PreferencesScreen(onAction: (PreferencesAction) -> Unit, viewModel: Preferen
         appearance = appearance,
         perpetualDefaults = perpetualDefaults,
         perpetualOptions = viewModel.perpetualOptions,
-        onAction = onAction,
-        onAppearance = { viewModel.setAppearance(it) },
-        onPerpetualEnabled = { viewModel.setPerpetualEnabled(it) },
-        onPerpetualOption = { setting, value -> viewModel.setPerpetualOption(setting, value) },
-    )
+    ) { action ->
+        when (action) {
+            is PreferencesAction.SetAppearance -> viewModel.setAppearance(action.appearance)
+            is PreferencesAction.SetPerpetualEnabled -> viewModel.setPerpetualEnabled(action.enabled)
+            is PreferencesAction.SetPerpetualOption -> viewModel.setPerpetualOption(action.setting, action.value)
+            is PreferencesAction.Navigation -> onAction(action)
+        }
+    }
 }

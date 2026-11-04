@@ -1,6 +1,6 @@
 use primitives::{AssetId, Chain, ChainAsset, Platform, StakeChain};
 
-use super::model::{GemInfoAction, GemInfoAmount, GemInfoDescription, GemInfoImage, GemInfoSheet, GemInfoTitle};
+use super::model::{GemInfoAction, GemInfoDescription, GemInfoImage, GemInfoSheet, GemInfoTitle};
 use crate::config::docs::DocsUrl;
 use crate::formatted_number::GemFormattedNumber;
 use crate::models::list::GemInfoTopic;
@@ -74,62 +74,30 @@ pub fn sheet(topic: &GemInfoTopic, platform: Platform) -> GemInfoSheet {
 pub fn confirm_error_sheet(info: &GemConfirmErrorInfo, platform: Platform) -> GemInfoSheet {
     let acquire = info.asset.clone().zip(info.acquire.clone()).map(|(asset, acquire)| GemInfoAction::Acquire { asset, acquire });
     let asset_image = info.asset.as_ref().map_or(GemInfoImage::Logo, |asset| GemInfoImage::Asset { icon: asset_icon(&asset.id) });
-    let required = info.required.clone().map(|amount| GemInfoAmount { amount, fiat: info.required_fiat.clone() });
-    let balance_required = GemInfoTitle::BalanceRequired { symbol: info.title.clone() };
+    let description = info.description.clone();
     match &info.sheet {
-        GemConfirmErrorSheet::BalanceRequired => info_sheet(
-            balance_required,
-            GemInfoDescription::BalanceRequired {
-                required: info.required.clone(),
-                available: info.available.clone(),
-                shortfall: info.shortfall.clone(),
-            },
-            asset_image,
-            acquire,
-        ),
-        GemConfirmErrorSheet::NetworkFeeRequired | GemConfirmErrorSheet::NetworkFeeMissing => info_sheet(
-            balance_required,
-            match &info.available {
-                Some(available) => GemInfoDescription::InsufficientNetworkFeeBalance {
-                    required,
-                    network: info.asset.as_ref().map_or_else(|| info.title.clone(), |asset| network_name(asset.chain())),
-                    available: available.clone(),
-                    shortfall: info.shortfall.clone(),
-                },
-                None => GemInfoDescription::InsufficientNetworkFee { title: info.title.clone() },
-            },
-            asset_image,
-            acquire,
-        ),
+        GemConfirmErrorSheet::BalanceRequired | GemConfirmErrorSheet::NetworkFeeRequired | GemConfirmErrorSheet::NetworkFeeMissing => {
+            info_sheet(GemInfoTitle::BalanceRequired { symbol: info.title.clone() }, description, asset_image, acquire)
+        }
         GemConfirmErrorSheet::MinimumAccountBalance => info_sheet(
             GemInfoTitle::AccountMinimumBalance,
-            GemInfoDescription::AccountMinimumBalance { amount: info.required.clone() },
+            description,
             GemInfoImage::Logo,
             Some(GemInfoAction::LearnMore {
                 url: DocsUrl::AccountMinimalBalance.url_for(platform),
             }),
         ),
-        GemConfirmErrorSheet::SwapMinimum { provider, provider_name } => info_sheet(
-            GemInfoTitle::MinimumAmount,
-            GemInfoDescription::SwapMinimumAmount {
-                provider: provider_name.clone(),
-                required,
-                available: info.available.clone(),
-                shortfall: info.shortfall.clone(),
-            },
-            GemInfoImage::SwapProvider { provider: *provider },
-            acquire,
-        ),
+        GemConfirmErrorSheet::SwapMinimum { provider, .. } => info_sheet(GemInfoTitle::MinimumAmount, description, GemInfoImage::SwapProvider { provider: *provider }, acquire),
         GemConfirmErrorSheet::DustThreshold { chain } => info_sheet(
             GemInfoTitle::TransferError,
-            GemInfoDescription::DustThreshold { network: network_name(*chain) },
+            description,
             GemInfoImage::Asset {
                 icon: asset_icon(&AssetId::from_chain(*chain)),
             },
             Some(GemInfoAction::LearnMore { url: DocsUrl::Dust.url_for(platform) }),
         ),
-        GemConfirmErrorSheet::Malicious => info_sheet(GemInfoTitle::MaliciousTransaction, GemInfoDescription::MaliciousTransaction, GemInfoImage::Logo, None),
-        GemConfirmErrorSheet::MemoRequired { symbol } => info_sheet(GemInfoTitle::Warning, GemInfoDescription::MemoRequired { symbol: symbol.clone() }, GemInfoImage::Logo, None),
+        GemConfirmErrorSheet::Malicious => info_sheet(GemInfoTitle::MaliciousTransaction, description, GemInfoImage::Logo, None),
+        GemConfirmErrorSheet::MemoRequired { .. } => info_sheet(GemInfoTitle::Warning, description, GemInfoImage::Logo, None),
     }
 }
 
@@ -153,10 +121,13 @@ fn chain_logo(chain: Chain) -> GemInfoImage {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::models::custom_types::GemBigInt;
+    use crate::services::balance::GemBalanceRequirement;
     use crate::services::confirm::GemAcquireAssetFlow;
-    use crate::services::confirm::error::{GemConfirmErrorDisplay, GemConfirmRequirement};
+    use crate::services::confirm::error::GemConfirmError;
     use crate::services::confirm::rules::error_info;
     use crate::services::transactions::GemTransactionStateTone;
+    use crate::signer::GemSignerError;
     use primitives::{Asset, Currency, SwapProvider, TransactionState, VerificationStatus};
 
     #[test]
@@ -252,24 +223,20 @@ mod tests {
         );
     }
 
-    fn confirm_sheet(display: GemConfirmErrorDisplay) -> GemInfoSheet {
+    fn confirm_sheet(error: GemConfirmError) -> GemInfoSheet {
         let ethereum = Asset::from_chain(Chain::Ethereum).id;
-        let info = error_info(&display, &[], Currency::USD, &ethereum, &ethereum).expect("a sheet");
+        let info = error_info(&error, &[], Currency::USD, &ethereum, &ethereum).expect("a sheet");
         confirm_error_sheet(&info, Platform::IOS)
     }
 
-    fn requirement() -> GemConfirmRequirement {
-        GemConfirmRequirement {
-            required: GemFormattedNumber::amount(2.0, Some("ETH".to_string()), GemValueStyle::Full),
-            available: GemFormattedNumber::amount(1.0, Some("ETH".to_string()), GemValueStyle::Full),
-            shortfall: GemFormattedNumber::amount(1.0, Some("ETH".to_string()), GemValueStyle::Full),
-        }
+    fn requirement() -> GemBalanceRequirement {
+        GemBalanceRequirement::new(GemBigInt::from(2_000_000_000_000_000_000u64), GemBigInt::from(1_000_000_000_000_000_000u64))
     }
 
     #[test]
     fn test_a_balance_shortfall_offers_to_acquire_the_asset_it_names() {
         let ethereum = Asset::from_chain(Chain::Ethereum);
-        let sheet = confirm_sheet(GemConfirmErrorDisplay::BalanceRequired {
+        let sheet = confirm_sheet(GemConfirmError::InsufficientBalance {
             asset: ethereum.clone(),
             requirement: requirement(),
         });
@@ -281,29 +248,29 @@ mod tests {
     #[test]
     fn test_a_missing_network_fee_balance_reads_the_short_explanation() {
         let ethereum = Asset::from_chain(Chain::Ethereum);
-        let missing = confirm_sheet(GemConfirmErrorDisplay::NetworkFeeMissing {
+        let missing = confirm_sheet(GemConfirmError::InsufficientNetworkFee { asset: ethereum.clone(), requirement: None });
+        let short = confirm_sheet(GemConfirmError::InsufficientNetworkFee {
             asset: ethereum.clone(),
-            title: "Ethereum".to_string(),
-        });
-        let short = confirm_sheet(GemConfirmErrorDisplay::NetworkFeeRequired {
-            asset: ethereum,
-            title: "Ethereum".to_string(),
-            requirement: requirement(),
+            requirement: Some(requirement()),
         });
 
-        assert_eq!(missing.description, GemInfoDescription::InsufficientNetworkFee { title: "Ethereum".to_string() });
+        assert_eq!(missing.description, GemInfoDescription::InsufficientNetworkFee { title: ethereum.display_title() });
         assert!(matches!(short.description, GemInfoDescription::InsufficientNetworkFeeBalance { ref network, .. } if *network == network_name(Chain::Ethereum)));
     }
 
     #[test]
     fn test_a_swap_minimum_shows_the_provider_and_the_dust_sheet_links_its_docs() {
-        let swap = confirm_sheet(GemConfirmErrorDisplay::SwapMinimum {
+        let swap = confirm_sheet(GemConfirmError::BelowSwapMinimum {
             asset: Asset::from_chain(Chain::Ethereum),
             provider: SwapProvider::NearIntents,
             provider_name: "NEAR Intents".to_string(),
             requirement: requirement(),
         });
-        let dust = confirm_sheet(GemConfirmErrorDisplay::DustThreshold { chain: Chain::Bitcoin });
+        let dust = confirm_sheet(GemConfirmError::Sign {
+            error: GemSignerError::DustThreshold,
+            chain: Chain::Bitcoin,
+            msg: "dust".to_string(),
+        });
 
         assert_eq!(swap.image, GemInfoImage::SwapProvider { provider: SwapProvider::NearIntents });
         assert_eq!(dust.action, Some(GemInfoAction::LearnMore { url: DocsUrl::Dust.url_for(Platform::IOS) }));

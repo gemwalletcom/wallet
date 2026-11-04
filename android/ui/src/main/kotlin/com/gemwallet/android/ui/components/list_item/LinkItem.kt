@@ -67,7 +67,7 @@ fun LinkItem(
                     Image(
                         modifier = Modifier.size(iconSize),
                         painter = painter,
-                        contentDescription = "setting_item",
+                        contentDescription = null,
                     )
                 }
             }

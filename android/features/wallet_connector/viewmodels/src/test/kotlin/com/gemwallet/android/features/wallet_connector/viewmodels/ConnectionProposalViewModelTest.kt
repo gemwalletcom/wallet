@@ -128,8 +128,24 @@ class ConnectionProposalViewModelTest {
 
         model.onReject()
         advanceUntilIdle()
+        model.onReject()
 
-        verify { approve.rejectConnection(proposal, GemWalletConnectRejectionReason.USER_REJECTED, any(), any()) }
+        verify(exactly = 1) { approve.rejectConnection(proposal, GemWalletConnectRejectionReason.USER_REJECTED, any(), any()) }
+    }
+
+    @Test
+    fun `an approval in progress still reaches the dapp after its screen is gone`() = runTest(dispatcher) {
+        val approve: ApproveWalletConnection = mockk(relaxed = true)
+        val model = viewModel(approve = approve)
+        model.selectedWallet.first { it != null }
+
+        model.onApprove {}
+        model.viewModelScope.cancel()
+        model.onReject()
+        advanceUntilIdle()
+
+        verify { approve.approveConnection(main, proposal, any(), any()) }
+        verify(exactly = 0) { approve.rejectConnection(any(), any(), any(), any()) }
     }
 
     @Test

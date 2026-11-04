@@ -88,7 +88,7 @@ struct AmountPerpetualViewModelTests {
         #expect(viewState.takeProfit.text == "110")
         #expect(viewState.stopLoss.text == "90")
         #expect(viewState.takeProfit.estimate != nil)
-        #expect(viewState.confirmEnabled)
+        #expect(!viewState.confirmEnabled)
     }
 
     @Test

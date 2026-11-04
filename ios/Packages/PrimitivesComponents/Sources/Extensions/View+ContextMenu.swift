@@ -24,8 +24,12 @@ private struct ContextMenuItems: View {
     let items: () -> [ContextMenuItemType]
 
     var body: some View {
-        ForEach(Array(items().enumerated()), id: \.offset) {
-            build($0.element)
+        ForEach(Array(items().runs(by: \.group).enumerated()), id: \.offset) { _, group in
+            Section {
+                ForEach(Array(group.enumerated()), id: \.offset) {
+                    build($0.element)
+                }
+            }
         }
     }
 

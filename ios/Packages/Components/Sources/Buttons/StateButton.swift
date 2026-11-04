@@ -5,7 +5,7 @@ import SwiftUI
 
 public protocol StateButtonViewable: Sendable {
     var title: String { get }
-    var type: ButtonType { get }
+    var buttonState: ButtonState { get }
     var icon: Image? { get }
     var infoText: String? { get }
 
@@ -24,14 +24,14 @@ public struct StateButton: View {
     public let textValue: TextValue
     public let image: Image?
     public let infoTextValue: TextValue?
-    public let type: ButtonType
+    public let state: ButtonState
 
     private let action: () -> Void
 
     public init(
         text: String,
         textStyle: TextStyle = StateButton.defaultTextStyle,
-        type: ButtonType = .primary(),
+        state: ButtonState = .normal,
         image: Image? = nil,
         infoTitle: String? = nil,
         infoTitleStyle: TextStyle = .calloutSecondary,
@@ -39,7 +39,7 @@ public struct StateButton: View {
         action: @escaping () -> Void,
     ) {
         textValue = TextValue(text: text, style: textStyle, truncationMode: truncationMode)
-        self.type = type
+        self.state = state
         infoTextValue = infoTitle.map { TextValue(text: $0, style: infoTitleStyle) }
         self.action = action
         self.image = image
@@ -65,8 +65,8 @@ public struct StateButton: View {
                 }
                 .font(textValue.style.font)
             }
-            .buttonStyle(.variant(type))
-            .disabled(type.isDisabled)
+            .buttonStyle(.primary(state))
+            .disabled(state.isDisabled)
             .accessibilityIdentifier("main_action")
         }
     }
@@ -76,7 +76,7 @@ public extension StateButton {
     init(_ model: StateButtonViewable) {
         self.init(
             text: model.title,
-            type: model.type,
+            state: model.buttonState,
             image: model.icon,
             infoTitle: model.infoText,
             action: model.action,
@@ -84,24 +84,26 @@ public extension StateButton {
     }
 }
 
-public extension ButtonType {
-    static func primary(
+public extension ButtonState {
+    init(
         _ viewState: StateViewType<some Any>,
         showProgress: Bool = true,
         isDisabled: Bool? = nil,
-    ) -> Self {
+    ) {
         if let isDisabled, isDisabled {
-            return .primary(.disabled)
+            self = .disabled
+            return
         }
         switch viewState {
-        case .loading: return .primary(.loading(showProgress: showProgress))
-        case .noData: return .primary(.disabled)
-        case .data: return .primary(.normal)
+        case .loading: self = .loading(showProgress: showProgress)
+        case .noData: self = .disabled
+        case .data: self = .normal
         case .error:
             if let isDisabled, !isDisabled {
-                return .primary(.normal)
+                self = .normal
+                return
             }
-            return .primary(.disabled)
+            self = .disabled
         }
     }
 }
@@ -112,21 +114,21 @@ public extension ButtonType {
     List {
         Section(header: Text("Primary · normal")) {
             StateButton(text: "Submit",
-                        type: .primary(),
+                        state: .normal,
                         action: {})
             StateButton(text: "Submit",
-                        type: .primary(),
+                        state: .normal,
                         image: Images.System.settings,
                         action: {})
         }
 
         Section(header: Text("Primary · normal + info")) {
             StateButton(text: "Submit",
-                        type: .primary(),
+                        state: .normal,
                         infoTitle: "Approve token",
                         action: {})
             StateButton(text: "Submit",
-                        type: .primary(),
+                        state: .normal,
                         image: Images.System.settings,
                         infoTitle: "Long info title Long info title Long info title",
                         action: {})
@@ -134,20 +136,20 @@ public extension ButtonType {
 
         Section(header: Text("Primary · loading")) {
             StateButton(text: "Submit",
-                        type: .primary(.loading()),
+                        state: .loading(),
                         image: Images.System.settings,
                         action: {})
         }
 
         Section(header: Text("Primary · disabled")) {
             StateButton(text: "Submit",
-                        type: .primary(),
+                        state: .normal,
                         image: Images.System.settings,
                         action: {})
                 .disabled(true)
 
             StateButton(text: "Submit",
-                        type: .primary(.disabled),
+                        state: .disabled,
                         action: {})
         }
     }

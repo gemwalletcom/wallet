@@ -33,10 +33,6 @@ public struct AssetSceneInput: Sendable {
             transform: transactionListSections,
         )
 
-        bannersRequest = BannersQuery(
-            walletId: wallet.id,
-            assetId: asset.id,
-            events: BannerEvent.allCases,
-        )
+        bannersRequest = BannersQuery()
     }
 }

@@ -5,7 +5,7 @@ use crate::{
     panora, provider_group::ProviderGroup, pump_swap, raydium_amm, raydium_clmm, raydium_cpmm, relay, solana_dex, squid, stellar_dex, stonfi, swaps_xyz, thorchain, uniswap, xrp_ledger,
 };
 use primitives::{AssetId, Chain, EVMChain};
-use std::{collections::HashSet, fmt::Debug, sync::Arc};
+use std::{fmt::Debug, sync::Arc};
 
 #[derive(Debug)]
 pub struct GemSwapper {
@@ -112,10 +112,6 @@ impl GemSwapper {
         Self { swappers }
     }
 
-    pub fn supported_chains(&self) -> Vec<Chain> {
-        self.swappers.iter().flat_map(|x| x.supported_chains()).collect::<HashSet<_>>().into_iter().collect()
-    }
-
     pub fn supported_chains_for_from_asset(&self, asset_id: &AssetId) -> AssetList {
         let asset_ids = self
             .swappers
@@ -209,8 +205,8 @@ impl GemSwapper {
         self.get_swapper_by_provider(&provider)?.get_swap_result(request).await
     }
 
-    pub async fn get_vault_addresses(&self, provider: &SwapperProvider, from_timestamp: Option<u64>) -> Result<VaultAddresses, SwapperError> {
-        self.get_swapper_by_provider(provider)?.get_vault_addresses(from_timestamp).await
+    pub async fn get_vault_addresses(&self, provider: &SwapperProvider) -> Result<VaultAddresses, SwapperError> {
+        self.get_swapper_by_provider(provider)?.get_vault_addresses().await
     }
 }
 

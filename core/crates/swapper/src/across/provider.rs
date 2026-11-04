@@ -61,10 +61,6 @@ impl Across {
         }
     }
 
-    pub fn boxed(rpc_provider: Arc<dyn RpcProvider>) -> Box<dyn Swapper> {
-        Box::new(Self::new(rpc_provider))
-    }
-
     fn is_supported_route(from_asset: &AssetId, to_asset: &AssetId) -> bool {
         if !AcrossDeployment::is_supported_asset(from_asset) || !AcrossDeployment::is_supported_asset(to_asset) || AcrossDeployment::fill_cost(&to_asset.chain).is_none() {
             return false;
@@ -388,7 +384,7 @@ impl Swapper for Across {
         Ok(SwapperQuoteData::new_contract(deployment.spoke_pool.into(), value, HexEncode(deposit_v3_call), approval, gas_limit))
     }
 
-    async fn get_vault_addresses(&self, _from_timestamp: Option<u64>) -> Result<VaultAddresses, SwapperError> {
+    async fn get_vault_addresses(&self) -> Result<VaultAddresses, SwapperError> {
         Ok(VaultAddresses {
             deposit: AcrossDeployment::deposit_addresses(),
             send: AcrossDeployment::send_addresses(),
@@ -611,7 +607,7 @@ mod tests {
         #[tokio::test]
         async fn test_across_quote() -> Result<(), SwapperError> {
             let network_provider = Arc::new(NativeProvider::default());
-            let swap_provider = Across::boxed(network_provider.clone());
+            let swap_provider = Across::new(network_provider.clone());
             let options = Options { slippage: 100.into(), use_max_amount: false };
 
             let request = QuoteRequest {
@@ -640,7 +636,7 @@ mod tests {
         #[tokio::test]
         async fn test_across_quote_eth_usdc_to_monad_usdc() -> Result<(), SwapperError> {
             let network_provider = Arc::new(NativeProvider::default());
-            let swap_provider = Across::boxed(network_provider.clone());
+            let swap_provider = Across::new(network_provider.clone());
             let options = Options { slippage: 100.into(), use_max_amount: false };
 
             let wallet = "0x9b1fe00135e0ff09389bfaeff0c8f299ec818d4a";
@@ -672,7 +668,7 @@ mod tests {
         #[tokio::test]
         async fn test_across_quote_ethereum_usdc_to_avalanche_usdc() -> Result<(), SwapperError> {
             let network_provider = Arc::new(NativeProvider::default());
-            let swap_provider = Across::boxed(network_provider);
+            let swap_provider = Across::new(network_provider);
             let wallet = "0x9b1fe00135e0ff09389bfaeff0c8f299ec818d4a";
             let request = QuoteRequest {
                 from_asset: ETHEREUM_USDC_ASSET_ID.clone().into(),
@@ -696,7 +692,7 @@ mod tests {
         #[tokio::test]
         async fn test_across_quote_eth_to_robinhood() -> Result<(), SwapperError> {
             let network_provider = Arc::new(NativeProvider::default());
-            let swap_provider = Across::boxed(network_provider);
+            let swap_provider = Across::new(network_provider);
             let wallet = "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7";
             let request = QuoteRequest {
                 from_asset: AssetId::from_chain(Chain::Ethereum).into(),
@@ -716,7 +712,7 @@ mod tests {
 
         #[tokio::test]
         async fn test_across_quote_arc_usdc_to_base_usdc() -> Result<(), SwapperError> {
-            let swap_provider = Across::boxed(Arc::new(NativeProvider::default()));
+            let swap_provider = Across::new(Arc::new(NativeProvider::default()));
             let wallet = "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7";
             let request = QuoteRequest {
                 from_asset: AssetId::from_chain(Chain::Arc).into(),

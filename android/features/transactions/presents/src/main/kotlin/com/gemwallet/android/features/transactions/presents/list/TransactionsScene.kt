@@ -63,7 +63,7 @@ internal fun TransactionsScene(
                     } else {
                         LocalContentColor.current
                     },
-                    contentDescription = "Filter by networks",
+                    contentDescription = stringResource(R.string.filter_title),
                 )
             }
         },

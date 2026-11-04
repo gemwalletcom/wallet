@@ -17,8 +17,11 @@ fun SignMessageScreen(request: WalletConnectPendingRequest.SignMessage, onSigned
     SignMessageScene(
         state = uiState,
         buttonState = buttonState,
-        onSign = { viewModel.onSign(onSigned = onSigned, onError = onError) },
-        onReject = { viewModel.onReject(onReject) },
-        onOpenAddress = onOpenAddress,
-    )
+    ) { action ->
+        when (action) {
+            WalletConnectReviewAction.Approve -> viewModel.onSign(onSigned = onSigned, onError = onError)
+            WalletConnectReviewAction.Reject -> viewModel.onReject(onReject)
+            is WalletConnectReviewAction.OpenAddress -> onOpenAddress(action.address)
+        }
+    }
 }

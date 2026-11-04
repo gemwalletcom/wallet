@@ -3,6 +3,9 @@
 common_cancel = Anulează
 common_hidden = Ascunse
 common_done = Gata
+common_add = Adaugă
+common_close = Închide
+common_back = Înapoi
 common_maximum_value = Valoarea maximă este %@
 common_minimum_value = Valoarea minimă este %@
 common_secret_phrase = Frază secretă
@@ -343,6 +346,8 @@ charts_price_close = Închidere
 charts_price_high = Ridicat
 charts_price_low = Scăzut
 charts_price_change = Variație
+charts_candlestick = Grafic cu lumânări
+charts_line = Grafic liniar
 
 # Date
 

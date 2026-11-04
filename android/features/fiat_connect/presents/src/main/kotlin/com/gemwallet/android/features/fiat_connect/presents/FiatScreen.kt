@@ -81,7 +81,6 @@ fun FiatScreen(cancelAction: CancelAction, onFiatTransactions: () -> Unit, viewM
         selectedProvider = selectedProvider,
         providerListItem = providerListItem,
         rateRow = rateRow,
-        cancelAction = cancelAction,
         fiatAmount = amount,
         suggestedAmounts = viewModel.suggestedAmounts,
         titleContent = {
@@ -92,18 +91,26 @@ fun FiatScreen(cancelAction: CancelAction, onFiatTransactions: () -> Unit, viewM
                 onTypeClick = viewModel::setType,
             )
         },
-        onAmount = viewModel::updateAmount,
-        onLotSelect = viewModel::selectAmount,
-        onProviderSelect = viewModel::setProvider,
-        onRetry = viewModel::retry,
-        onFiatTransactions = onFiatTransactions,
-        onBuy = {
-            scope.launch {
+    ) { action ->
+        when (action) {
+            is FiatAction.SetAmount -> viewModel.updateAmount(action.amount)
+
+            is FiatAction.SelectAmount -> viewModel.selectAmount(action.amount)
+
+            is FiatAction.SelectProvider -> viewModel.setProvider(action.provider)
+
+            FiatAction.RetryQuote -> viewModel.retry()
+
+            FiatAction.Continue -> scope.launch {
                 viewModel.continueToProvider { uriHandler.open(context, it) }
                     .onFailure { snackbar.showSnackbar(it.errorText().text(context), R.drawable.ic_error) }
             }
-        },
-    )
+
+            FiatAction.OpenTransactions -> onFiatTransactions()
+
+            FiatAction.Cancel -> cancelAction()
+        }
+    }
 }
 
 @Composable

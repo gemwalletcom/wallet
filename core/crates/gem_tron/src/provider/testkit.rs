@@ -78,15 +78,24 @@ impl WitnessesList {
                     address: "4159f3440fd40722f716144e4490a4de162d3b3fcb".to_string(),
                     vote_count: Some(1000000),
                     url: "https://validator1.com".to_string(),
-                    is_jobs: Some(true),
                 },
                 WitnessAccount {
                     address: "41357a7401a0f0c2d4a44a1881a0c622f15d986291".to_string(),
                     vote_count: Some(500000),
                     url: "https://validator2.com".to_string(),
-                    is_jobs: Some(false),
                 },
             ],
+        }
+    }
+}
+
+#[cfg(test)]
+impl WitnessAccount {
+    pub fn mock_with_vote_count(vote_count: i64) -> Self {
+        Self {
+            address: format!("41{vote_count:040x}"),
+            vote_count: Some(vote_count),
+            url: String::new(),
         }
     }
 }

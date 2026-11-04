@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use primitives::{BannerEvent, Currency, TransactionType};
+use primitives::{Currency, TransactionType};
 
 use crate::services::security::GemLockPeriod;
 
@@ -26,7 +26,6 @@ pub const SUPPORT_ATTACHMENT_MAX_DIMENSION: usize = 2048;
 pub const SUPPORT_ATTACHMENT_JPEG_QUALITY: usize = 90;
 pub const WALLET_CONNECT_USER_REJECTED_ERROR_CODE: i32 = 4001;
 pub const WALLET_CONNECT_USER_REJECTED_ERROR_MESSAGE: &str = "User rejected the request";
-pub const WALLET_BANNER_EVENTS: &[BannerEvent] = &[BannerEvent::AccountBlockedMultiSignature, BannerEvent::Onboarding];
 pub const PERPETUAL_ACTIVITY_TYPES: &[TransactionType] = &[TransactionType::PerpetualOpenPosition, TransactionType::PerpetualClosePosition, TransactionType::PerpetualModifyPosition];
 pub const LOCK_PERIODS: &[GemLockPeriod] = &[
     GemLockPeriod::Immediate,

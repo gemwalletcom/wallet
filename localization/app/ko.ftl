@@ -3,6 +3,9 @@
 common_cancel = 취소
 common_hidden = 숨김
 common_done = 완료
+common_add = 추가
+common_close = 닫기
+common_back = 뒤로
 common_maximum_value = 최대값은 %@입니다
 common_minimum_value = 최소값은 %@입니다
 common_secret_phrase = 비밀 문구
@@ -343,6 +346,8 @@ charts_price_close = 종가
 charts_price_high = 높은
 charts_price_low = 낮은
 charts_price_change = 변화
+charts_candlestick = 캔들스틱 차트
+charts_line = 라인 차트
 
 # Date
 

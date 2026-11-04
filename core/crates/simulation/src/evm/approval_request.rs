@@ -10,6 +10,7 @@ use super::{approval_method::ApprovalMethod, approval_value::ApprovalValue};
 use gem_evm::ethereum_address_checksum;
 
 const EXCESSIVE_EXPIRATION_WINDOW: Duration = MONTH;
+pub(crate) const NEVER_EXPIRES: u64 = u64::MAX;
 
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) struct ApprovalRequest {
@@ -56,16 +57,16 @@ impl ApprovalRequest {
         )
     }
 
-    pub(crate) fn permit(chain: Chain, contract_address: String, spender_address: String, approval_value: String, expiration: Option<String>, token_address: Option<String>, method: ApprovalMethod) -> Option<Self> {
+    pub(crate) fn permit(chain: Chain, contract_address: String, spender_address: String, approval_value: Option<ApprovalValue>, expiration: Option<u64>, token_address: Option<String>, method: ApprovalMethod) -> Option<Self> {
         Self::new(
             chain,
             ApprovalContext {
                 contract_address,
                 spender_address,
                 token_address,
-                approval_value: ApprovalValue::from_raw(&approval_value),
-                display_expiration: expiration.as_deref().map(str::parse).transpose().ok()?,
-                warning_expiration: expiration.as_deref().map(str::parse).transpose().ok()?,
+                approval_value,
+                display_expiration: expiration.filter(|expiration| *expiration != NEVER_EXPIRES),
+                warning_expiration: expiration,
                 method,
                 token_field: TokenField::HideWhenMatchingContract,
             },

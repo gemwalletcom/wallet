@@ -12,7 +12,6 @@ use crate::services::assets::testkit::MemoryAssetStore;
 use crate::services::balance::GemBalanceService;
 use crate::services::balance::testkit::MemoryBalanceStore;
 use crate::services::config::GemConfigService;
-use crate::services::device::GemDeviceKeyService;
 use crate::services::error::GemServiceError;
 use crate::services::node::GemNodeService;
 use crate::services::preferences::{GemPreferencesService, testkit::MemoryPreferencesStore};
@@ -85,11 +84,7 @@ impl FiatQuoteTestkit {
         let balances = Arc::new(MemoryBalanceStore::default());
         let recents = Arc::new(MemoryRecentActivityStore::default());
         let balance = Arc::new(GemBalanceService::new(gateway, balances.clone(), assets.clone(), session.clone(), Arc::new(SubscriptionTestkit::new(&[], &[]).service)));
-        let fiat = Arc::new(GemFiatService::new(
-            Arc::new(GemDeviceApiClient::new(provider.clone(), Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences))))),
-            assets,
-            Arc::new(MemoryFiatStore::default()),
-        ));
+        let fiat = Arc::new(GemFiatService::new(Arc::new(GemDeviceApiClient::mock(provider.clone())), assets, Arc::new(MemoryFiatStore::default())));
         Self {
             service: GemFiatQuoteService::new(fiat, balance, session.clone(), Arc::new(GemRecentActivityService::new(recents.clone(), session)), Arc::new(GemConfigService::mock(provider))),
             balances,

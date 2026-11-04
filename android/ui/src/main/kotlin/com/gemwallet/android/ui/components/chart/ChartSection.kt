@@ -12,13 +12,28 @@ import androidx.compose.ui.platform.LocalContext
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.format.rowDateFormatter
 import com.gemwallet.android.ui.models.ChartUIState
+import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.dataOrNull
 import com.wallet.core.primitives.ChartPeriod
 import uniffi.gemstone.GemChartData
+import uniffi.gemstone.GemChartStyle
 import java.time.ZoneId
 
 @Composable
-fun ChartSection(state: ChartUIState, onPeriodSelect: (ChartPeriod) -> Unit, onZoom: (Float, Float) -> Unit, onPan: (Float) -> Unit, periods: List<ChartPeriod> = ChartPeriod.entries) {
+fun ChartSection(state: ChartUIState, onPeriodSelect: (ChartPeriod) -> Unit, onZoom: (Float, Float) -> Unit, onPan: (Float) -> Unit, periods: List<ChartPeriod> = state.periods, onSwitchStyle: (GemChartStyle) -> Unit = {}) {
+    state.candles?.let { candles ->
+        CandleChartSection(
+            state = StateViewType.Data(candles),
+            period = state.period,
+            onPeriodSelect = onPeriodSelect,
+            onZoom = onZoom,
+            onPan = onPan,
+            periods = periods,
+            styleSwitch = state.styleSwitch,
+            onSwitchStyle = onSwitchStyle,
+        )
+        return
+    }
     key(state.period) {
         var selectedIndex by remember { mutableStateOf<Int?>(null) }
         val context = LocalContext.current
@@ -35,6 +50,8 @@ fun ChartSection(state: ChartUIState, onPeriodSelect: (ChartPeriod) -> Unit, onZ
             period = state.period,
             onPeriodSelect = onPeriodSelect,
             periods = periods,
+            styleSwitch = state.styleSwitch,
+            onSwitchStyle = onSwitchStyle,
         ) { model ->
             val points = remember(model) { model.linePoints() }
             val minLabel = remember(model) { model.bounds.low.text() }

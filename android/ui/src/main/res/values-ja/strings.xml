@@ -3,6 +3,9 @@
   <string name="common_cancel">キャンセル</string>
   <string name="common_hidden">非表示</string>
   <string name="common_done">完了</string>
+  <string name="common_add">追加</string>
+  <string name="common_close">閉じる</string>
+  <string name="common_back">戻る</string>
   <string name="common_maximum_value">最大値は %1$s です</string>
   <string name="common_minimum_value">最小値は %1$s です</string>
   <string name="common_secret_phrase">リカバリーフレーズ</string>
@@ -298,6 +301,8 @@
   <string name="charts_price_high">高値</string>
   <string name="charts_price_low">安値</string>
   <string name="charts_price_change">変動</string>
+  <string name="charts_candlestick">ローソク足チャート</string>
+  <string name="charts_line">ラインチャート</string>
   <string name="date_today">今日</string>
   <string name="date_yesterday">昨日</string>
   <string name="date_day_time">%1$s %2$s</string>

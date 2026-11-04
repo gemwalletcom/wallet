@@ -58,8 +58,11 @@ public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchec
         [100, 250].map { GemFiatSuggestedAmount(amount: $0, value: .mock(value: Double($0), unit: .currency(code: "USD"), display: .number(precision: .fraction(min: 0, max: 0)), notation: .plain, tone: .plain, rounding: .toNearest)) }
     }
 
+    public static let defaultBuyAmount: UInt32 = 20
+    public static let defaultSellAmount: UInt32 = 40
+
     private func defaultAmount(quoteType: Gemstone.FiatQuoteType) -> UInt32 {
-        quoteType.toPrimitives() == .sell ? 100 : 50
+        quoteType.toPrimitives() == .sell ? Self.defaultSellAmount : Self.defaultBuyAmount
     }
 
     public func newSession(quoteType: Gemstone.FiatQuoteType, amount: UInt32?, format: GemNumberFormat) -> GemFiatSession {
@@ -294,7 +297,9 @@ public final class GemReceiveServiceMock: GemReceiveServiceProtocol, @unchecked 
     public var warningsValue: [GemReceiveWarning] = []
     public var assetResult: Result<Gemstone.Asset, Error> = .success(Primitives.Asset.mock().toGem())
     public var assetsById: [Gemstone.AssetId: Gemstone.Asset] = [:]
+    public var heldAssetId: Gemstone.AssetId?
     public var enableAssetError: Error?
+    private let (heldAsset, releaseHeld) = AsyncStream<Void>.makeStream()
 
     public private(set) var enabledAssetIds: [Gemstone.AssetId] = []
     public private(set) var requestedAssetIds: [Gemstone.AssetId] = []
@@ -304,10 +309,17 @@ public final class GemReceiveServiceMock: GemReceiveServiceProtocol, @unchecked 
 
     public func asset(assetId: Gemstone.AssetId) async throws -> Gemstone.Asset {
         requestedAssetIds.append(assetId)
+        if assetId == heldAssetId {
+            await Task { [heldAsset] in for await _ in heldAsset {} }.value
+        }
         if let asset = assetsById[assetId] {
             return asset
         }
         return try assetResult.get()
+    }
+
+    public func releaseHeldAsset() {
+        releaseHeld.finish()
     }
 
     public func enableAsset(walletId _: Gemstone.WalletId, assetId: Gemstone.AssetId) async throws {

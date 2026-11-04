@@ -3,6 +3,9 @@
   <string name="common_cancel">Hủy bỏ</string>
   <string name="common_hidden">Đã ẩn</string>
   <string name="common_done">Xong</string>
+  <string name="common_add">Thêm</string>
+  <string name="common_close">Đóng</string>
+  <string name="common_back">Quay lại</string>
   <string name="common_maximum_value">Giá trị tối đa là %1$s</string>
   <string name="common_minimum_value">Giá trị tối thiểu là %1$s</string>
   <string name="common_secret_phrase">Cụm từ bí mật</string>
@@ -298,6 +301,8 @@
   <string name="charts_price_high">Cao</string>
   <string name="charts_price_low">Thấp</string>
   <string name="charts_price_change">Thay đổi</string>
+  <string name="charts_candlestick">Biểu đồ nến</string>
+  <string name="charts_line">Biểu đồ đường</string>
   <string name="date_today">Hôm nay</string>
   <string name="date_yesterday">Hôm qua</string>
   <string name="date_day_time">%1$s, %2$s</string>

@@ -267,13 +267,7 @@ extension SelectAssetSceneViewModel {
 
     private func recordSelection(asset: Asset) {
         if let action = flow.action {
-            Task { [service] in
-                do {
-                    try await service.addRecent(action: action, asset: asset.toGem())
-                } catch {
-                    debugLog("Failed to update recent activity: \(error)")
-                }
-            }
+            recentModel.add(action: action, asset: asset)
         }
     }
 

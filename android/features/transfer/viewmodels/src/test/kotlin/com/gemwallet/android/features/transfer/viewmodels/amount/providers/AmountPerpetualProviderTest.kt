@@ -22,9 +22,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.flowOf
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import uniffi.gemstone.AutocloseValidation
 import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemAmountTitle
 import uniffi.gemstone.GemAmountType
@@ -61,15 +61,17 @@ class AmountPerpetualProviderTest {
     }
 
     @Test
-    fun `the autoclose sheet checks triggers against the order price`() {
+    fun `triggers on the wrong side of the order price are not submitted`() {
         val provider = makeProvider()
         provider.onAutocloseOpened("1000")
+        provider.onAutocloseChanged(TpslType.TakeProfit, "99")
+        provider.onAutocloseChanged(TpslType.StopLoss, "101")
 
-        provider.onAutocloseChanged(TpslType.TakeProfit, "101")
-        provider.onAutocloseChanged(TpslType.StopLoss, "99")
+        assertFalse(provider.onAutocloseSubmitted())
 
-        assertEquals(AutocloseValidation.VALID, provider.autocloseViewState.value?.takeProfit?.validation)
-        assertEquals(AutocloseValidation.VALID, provider.autocloseViewState.value?.stopLoss?.validation)
+        provider.onAutocloseOpened("1000")
+        assertEquals("", provider.autocloseViewState.value?.takeProfit?.text)
+        assertEquals("", provider.autocloseViewState.value?.stopLoss?.text)
     }
 
     @Test

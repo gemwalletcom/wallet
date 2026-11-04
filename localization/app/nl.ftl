@@ -3,6 +3,9 @@
 common_cancel = Annuleren
 common_hidden = Verborgen
 common_done = Klaar
+common_add = Toevoegen
+common_close = Sluiten
+common_back = Terug
 common_maximum_value = Maximale waarde is %@
 common_minimum_value = Minimale waarde is %@
 common_secret_phrase = Geheime zin
@@ -343,6 +346,8 @@ charts_price_close = Slot
 charts_price_high = Hoog
 charts_price_low = Laag
 charts_price_change = Wijziging
+charts_candlestick = Candlestick-grafiek
+charts_line = Lijngrafiek
 
 # Date
 

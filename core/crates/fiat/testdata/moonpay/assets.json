@@ -125,5 +125,33 @@
             "chainId": null,
             "networkCode": "cardano"
         }
+    },
+    {
+        "id": "7d189686-5b3a-4bee-aef1-725e9826ce66",
+        "type": "fiat",
+        "name": "Brazilian Real",
+        "code": "brl",
+        "precision": 2,
+        "decimals": null,
+        "maxAmount": 65000,
+        "minAmount": 150,
+        "minBuyAmount": 130,
+        "maxBuyAmount": 65000,
+        "isSellSupported": false,
+        "isSuspended": false
+    },
+    {
+        "id": "edd81f1f-f735-4692-b410-6def107f17d2",
+        "type": "fiat",
+        "name": "US Dollar",
+        "code": "usd",
+        "precision": 2,
+        "decimals": null,
+        "maxAmount": 12000,
+        "minAmount": 30,
+        "minBuyAmount": 20,
+        "maxBuyAmount": 30000,
+        "isSellSupported": true,
+        "isSuspended": false
     }
 ]

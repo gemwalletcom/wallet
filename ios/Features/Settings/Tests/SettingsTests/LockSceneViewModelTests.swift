@@ -324,29 +324,15 @@ struct LockSceneViewModelTests {
     }
 
     @Test
-    func togglingAuthOffResetsViewModel() async throws {
+    func turningAuthOffUnlocksOnTheNextSceneChange() async throws {
         let mockService = BiometryAuthenticationMock()
         let viewModel = LockSceneViewModel(service: mockService)
-        viewModel.onScenePhase(.inactive)
+        #expect(viewModel.state == .locked)
 
         try await mockService.enableAuthentication(false, reason: "unit")
-        viewModel.resetLockState()
+        viewModel.onScenePhase(.active)
 
         #expect(viewModel.state == .unlocked)
-        #expect(!viewModel.isLocked)
-    }
-
-    @Test
-    func changingLockPeriodDoesNotTriggerImmediateLock() throws {
-        let mockService = BiometryAuthenticationMock(lockPeriod: .oneMinute)
-        let viewModel = LockSceneViewModel(service: mockService)
-        viewModel.state = .unlocked
-        viewModel.leftAt = nil
-
-        try mockService.update(period: .fiveMinutes)
-
-        #expect(viewModel.state == .unlocked)
-        #expect(viewModel.leftAt == nil)
     }
 
     @Test

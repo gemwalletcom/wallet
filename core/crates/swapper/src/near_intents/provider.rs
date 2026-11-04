@@ -311,7 +311,7 @@ where
         Ok(SwapResult { status, metadata, eta_in_seconds: None })
     }
 
-    async fn get_vault_addresses(&self, _from_timestamp: Option<u64>) -> Result<VaultAddresses, SwapperError> {
+    async fn get_vault_addresses(&self) -> Result<VaultAddresses, SwapperError> {
         Ok(VaultAddresses {
             deposit: vec![],
             send: TREASURY_ADDRESSES.iter().map(|(_, address)| address.to_string()).collect(),

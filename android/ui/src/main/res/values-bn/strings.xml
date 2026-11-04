@@ -3,6 +3,9 @@
   <string name="common_cancel">বাতিল করুন</string>
   <string name="common_hidden">লুকানো</string>
   <string name="common_done">সম্পন্ন</string>
+  <string name="common_add">যোগ করুন</string>
+  <string name="common_close">বন্ধ করুন</string>
+  <string name="common_back">ফিরে যান</string>
   <string name="common_maximum_value">সর্বোচ্চ মান %1$s</string>
   <string name="common_minimum_value">সর্বনিম্ন মান %1$s</string>
   <string name="common_secret_phrase">গোপন বাক্যাংশ</string>
@@ -298,6 +301,8 @@
   <string name="charts_price_high">উচ্চ</string>
   <string name="charts_price_low">কম</string>
   <string name="charts_price_change">পরিবর্তন</string>
+  <string name="charts_candlestick">ক্যান্ডেলস্টিক চার্ট</string>
+  <string name="charts_line">লাইন চার্ট</string>
   <string name="date_today">আজ</string>
   <string name="date_yesterday">গতকাল</string>
   <string name="date_day_time">%1$s, %2$s</string>

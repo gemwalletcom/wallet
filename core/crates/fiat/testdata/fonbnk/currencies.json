@@ -1,0 +1,433 @@
+[
+  {
+    "currencyType": "fiat",
+    "currencyCode": "NGN",
+    "paymentChannels": [
+      {
+        "name": "Bank transfer",
+        "type": "bank",
+        "transferTypes": [
+          "manual"
+        ],
+        "isDepositAllowed": true,
+        "isPayoutAllowed": true
+      },
+      {
+        "name": "Airtime",
+        "type": "airtime",
+        "transferTypes": [],
+        "isDepositAllowed": false,
+        "isPayoutAllowed": true,
+        "carriers": [
+          {
+            "code": "ng_mtn",
+            "name": "MTN Nigeria"
+          },
+          {
+            "code": "ng_glo",
+            "name": "Glo Mobile Nigeria"
+          },
+          {
+            "code": "ng_airtel",
+            "name": "Airtel Nigeria"
+          },
+          {
+            "code": "ng_9mobile",
+            "name": "9Mobile Nigeria"
+          }
+        ]
+      }
+    ],
+    "currencyDetails": {
+      "countryIsoCode": "NG"
+    },
+    "pairs": [
+      "crypto",
+      "merchant_balance"
+    ]
+  },
+  {
+    "currencyType": "fiat",
+    "currencyCode": "KES",
+    "paymentChannels": [
+      {
+        "name": "Bank transfer",
+        "type": "bank",
+        "transferTypes": [],
+        "isDepositAllowed": false,
+        "isPayoutAllowed": true
+      },
+      {
+        "name": "M-PESA",
+        "type": "mobile_money",
+        "transferTypes": [
+          "stk_push",
+          "otp_stk_push"
+        ],
+        "isDepositAllowed": true,
+        "isPayoutAllowed": true,
+        "carriers": [
+          {
+            "code": "ke_safaricom",
+            "name": "Safaricom Kenya"
+          }
+        ]
+      },
+      {
+        "name": "Paybill",
+        "type": "paybill",
+        "transferTypes": [],
+        "isDepositAllowed": false,
+        "isPayoutAllowed": true
+      },
+      {
+        "name": "Buy goods",
+        "type": "buy_goods",
+        "transferTypes": [],
+        "isDepositAllowed": false,
+        "isPayoutAllowed": true
+      },
+      {
+        "name": "Airtime",
+        "type": "airtime",
+        "transferTypes": [],
+        "isDepositAllowed": false,
+        "isPayoutAllowed": true,
+        "carriers": [
+          {
+            "code": "ke_safaricom",
+            "name": "Safaricom Kenya"
+          },
+          {
+            "code": "ke_airtel",
+            "name": "Airtel Kenya"
+          },
+          {
+            "code": "ke_telkom",
+            "name": "Telkom Kenya"
+          }
+        ]
+      }
+    ],
+    "currencyDetails": {
+      "countryIsoCode": "KE"
+    },
+    "pairs": [
+      "crypto",
+      "merchant_balance"
+    ]
+  },
+  {
+    "currencyType": "fiat",
+    "currencyCode": "XOF",
+    "paymentChannels": [
+      {
+        "name": "Mobile money",
+        "type": "mobile_money",
+        "transferTypes": [
+          "stk_push"
+        ],
+        "isDepositAllowed": true,
+        "isPayoutAllowed": true,
+        "carriers": [
+          {
+            "code": "sn_orange",
+            "name": "Orange Senegal"
+          }
+        ]
+      },
+      {
+        "name": "Airtime",
+        "type": "airtime",
+        "transferTypes": [],
+        "isDepositAllowed": false,
+        "isPayoutAllowed": true,
+        "carriers": [
+          {
+            "code": "sn_orange",
+            "name": "Orange Senegal"
+          },
+          {
+            "code": "sn_expresso",
+            "name": "Expresso Senegal"
+          },
+          {
+            "code": "sn_free",
+            "name": "Yas Senegal"
+          },
+          {
+            "code": "sn_promobile",
+            "name": "Promobile Senegal"
+          }
+        ]
+      },
+      {
+        "name": "Wave",
+        "type": "digital_wallet",
+        "transferTypes": [
+          "redirect"
+        ],
+        "isDepositAllowed": true,
+        "isPayoutAllowed": true
+      }
+    ],
+    "currencyDetails": {
+      "countryIsoCode": "SN"
+    },
+    "pairs": [
+      "crypto",
+      "merchant_balance"
+    ]
+  },
+  {
+    "currencyType": "merchant_balance",
+    "currencyCode": "USD",
+    "paymentChannels": [
+      {
+        "name": "Merchant balance",
+        "type": "merchant_balance",
+        "transferTypes": [
+          "manual"
+        ],
+        "isDepositAllowed": true,
+        "isPayoutAllowed": true
+      }
+    ],
+    "currencyDetails": {
+      "merchantName": "Fonbnk"
+    },
+    "pairs": [
+      "fiat",
+      "crypto"
+    ]
+  },
+  {
+    "currencyType": "crypto",
+    "currencyCode": "TRON_USDT",
+    "paymentChannels": [
+      {
+        "name": "Crypto",
+        "type": "crypto",
+        "transferTypes": [
+          "manual"
+        ],
+        "isDepositAllowed": true,
+        "isPayoutAllowed": true
+      }
+    ],
+    "currencyDetails": {
+      "network": "TRON",
+      "asset": "USDT",
+      "contractAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+    },
+    "pairs": [
+      "fiat",
+      "merchant_balance"
+    ]
+  },
+  {
+    "currencyType": "crypto",
+    "currencyCode": "BASE_USDC",
+    "paymentChannels": [
+      {
+        "name": "Crypto",
+        "type": "crypto",
+        "transferTypes": [
+          "manual"
+        ],
+        "isDepositAllowed": true,
+        "isPayoutAllowed": true
+      }
+    ],
+    "currencyDetails": {
+      "network": "BASE",
+      "asset": "USDC",
+      "contractAddress": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+    },
+    "pairs": [
+      "fiat",
+      "merchant_balance"
+    ]
+  },
+  {
+    "currencyType": "crypto",
+    "currencyCode": "TON_NATIVE",
+    "paymentChannels": [
+      {
+        "name": "Crypto",
+        "type": "crypto",
+        "transferTypes": [
+          "manual"
+        ],
+        "isDepositAllowed": true,
+        "isPayoutAllowed": false
+      }
+    ],
+    "currencyDetails": {
+      "network": "TON",
+      "asset": "NATIVE",
+      "contractAddress": ""
+    },
+    "pairs": [
+      "fiat",
+      "merchant_balance"
+    ]
+  },
+  {
+    "currencyType": "crypto",
+    "currencyCode": "LISK_USDT",
+    "paymentChannels": [
+      {
+        "name": "Crypto",
+        "type": "crypto",
+        "transferTypes": [
+          "manual"
+        ],
+        "isDepositAllowed": false,
+        "isPayoutAllowed": false
+      }
+    ],
+    "currencyDetails": {
+      "network": "LISK",
+      "asset": "USDT",
+      "contractAddress": "0x05D032ac25d322df992303dCa074EE7392C117b9"
+    },
+    "pairs": [
+      "fiat",
+      "merchant_balance"
+    ]
+  },
+  {
+    "currencyType": "crypto",
+    "currencyCode": "XRP_RLUSD",
+    "paymentChannels": [
+      {
+        "name": "Crypto",
+        "type": "crypto",
+        "transferTypes": [
+          "manual"
+        ],
+        "isDepositAllowed": true,
+        "isPayoutAllowed": true
+      }
+    ],
+    "currencyDetails": {
+      "network": "XRP",
+      "asset": "RLUSD",
+      "contractAddress": "524C555344000000000000000000000000000000"
+    },
+    "pairs": [
+      "fiat",
+      "merchant_balance"
+    ]
+  },
+  {
+    "currencyType": "crypto",
+    "currencyCode": "ETHEREUM_NATIVE",
+    "paymentChannels": [
+      {
+        "name": "Crypto",
+        "type": "crypto",
+        "transferTypes": [
+          "manual"
+        ],
+        "isDepositAllowed": true,
+        "isPayoutAllowed": true
+      }
+    ],
+    "currencyDetails": {
+      "network": "ETHEREUM",
+      "asset": "NATIVE"
+    },
+    "pairs": [
+      "fiat",
+      "merchant_balance"
+    ]
+  },
+  {
+    "currencyType": "fiat",
+    "currencyCode": "PHP",
+    "paymentChannels": [
+      {
+        "name": "Bank transfer",
+        "type": "bank",
+        "transferTypes": [
+          "manual"
+        ],
+        "isDepositAllowed": false,
+        "isPayoutAllowed": true,
+        "carriers": [
+          {
+            "code": "ph_gcash",
+            "name": "GCash"
+          },
+          {
+            "code": "ph_grabpay",
+            "name": "GrabPay"
+          },
+          {
+            "code": "ph_paymaya",
+            "name": "PayMaya"
+          },
+          {
+            "code": "ph_shopeepay",
+            "name": "ShopeePay"
+          }
+        ]
+      }
+    ],
+    "currencyDetails": {
+      "countryIsoCode": "PH"
+    },
+    "pairs": [
+      "crypto",
+      "merchant_balance"
+    ]
+  },
+  {
+    "currencyType": "crypto",
+    "currencyCode": "POLYGON_NATIVE",
+    "paymentChannels": [
+      {
+        "name": "Crypto",
+        "type": "crypto",
+        "transferTypes": [
+          "manual"
+        ],
+        "isDepositAllowed": true,
+        "isPayoutAllowed": true
+      }
+    ],
+    "currencyDetails": {
+      "network": "POLYGON",
+      "asset": "NATIVE",
+      "contractAddress": null
+    },
+    "pairs": [
+      "fiat",
+      "merchant_balance"
+    ]
+  },
+  {
+    "currencyType": "fiat",
+    "currencyCode": "COP",
+    "paymentChannels": [
+      {
+        "name": "Bank transfer",
+        "type": "bank",
+        "transferTypes": [
+          "redirect"
+        ],
+        "isDepositAllowed": false,
+        "isPayoutAllowed": false
+      }
+    ],
+    "currencyDetails": {
+      "countryIsoCode": "CO"
+    },
+    "pairs": [
+      "crypto",
+      "merchant_balance"
+    ]
+  }
+]

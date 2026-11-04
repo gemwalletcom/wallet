@@ -3,6 +3,9 @@
 common_cancel = منسوخ کریں
 common_hidden = پوشیدہ
 common_done = ہو گیا
+common_add = شامل کریں
+common_close = بند کریں
+common_back = واپس جائیں
 common_maximum_value = زیادہ سے زیادہ قدر %@ ہے
 common_minimum_value = کم از کم قدر %@ ہے
 common_secret_phrase = خفیہ جملہ
@@ -343,6 +346,8 @@ charts_price_close = بند
 charts_price_high = اعلی
 charts_price_low = کم
 charts_price_change = تبدیلی
+charts_candlestick = کینڈل سٹک چارٹ
+charts_line = لائن چارٹ
 
 # Date
 

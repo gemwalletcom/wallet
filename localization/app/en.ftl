@@ -7,6 +7,12 @@ common_cancel = Cancel
 common_hidden = Hidden
 # Used in shared app UI for the done label.
 common_done = Done
+# Accessibility label for an icon-only button that adds an item.
+common_add = Add
+# Accessibility label for an icon-only button that closes a screen, sheet or banner.
+common_close = Close
+# Accessibility label for the navigation button that goes back to the previous screen.
+common_back = Back
 # Generic validation error for a value above the allowed maximum. Contains 1 string placeholder.
 common_maximum_value = Maximum value is %@
 # Generic validation error for a value below the allowed minimum. Contains 1 string placeholder.
@@ -637,6 +643,10 @@ charts_price_high = High
 charts_price_low = Low
 # Used in chart controls and chart tooltips for the price change label.
 charts_price_change = Change
+# Accessibility label for the icon-only button on a price chart that switches it to candlesticks.
+charts_candlestick = Candlestick chart
+# Accessibility label for the icon-only button on a price chart that switches it back to a line.
+charts_line = Line chart
 
 # Date
 

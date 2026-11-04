@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -63,7 +64,8 @@ fun NftHeaderActions(header: GemHeaderActions, actions: List<GemCollectibleMenuR
                         expanded = isMenuExpanded,
                         onDismissRequest = { isMenuExpanded = false },
                     ) {
-                        actions.forEach { item ->
+                        actions.forEachIndexed { index, item ->
+                            if (index > 0 && item.isDestructive != actions[index - 1].isDestructive) HorizontalDivider()
                             val color = if (item.isDestructive) MaterialTheme.colorScheme.error else Color.Unspecified
                             DropdownMenuItem(
                                 text = { Text(stringResource(item.action.stringRes()), color = color) },

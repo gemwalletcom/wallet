@@ -51,6 +51,15 @@ extension NavigationPresenter {
         Binding(get: { self._isPresentingWallets }, set: { self._isPresentingWallets = $0 })
     }
 
+    func reset() {
+        _isPresentingAddressDetails = nil
+        _isPresentingAssetInput = nil
+        _isPresentingPayment = nil
+        _isPresentingPriceAlert = nil
+        _isPresentingSupport = false
+        _isPresentingWallets = false
+    }
+
     func presentAssetInput(type: SelectedAssetType, for asset: Asset, wallet: Wallet) throws {
         guard let account = try? wallet.account(for: asset.chain) else {
             throw GemErrorText.noAccountForChain

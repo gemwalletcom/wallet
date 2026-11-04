@@ -129,6 +129,9 @@ impl Repository for PostgresRepository {
                 client.set_fiat_rates(FiatRateProvider::Coingecko, vec![FiatRate { symbol: Currency::USD, rate: 1.0 }])?;
                 client.set_fiat_rates_enabled(vec![Currency::USD], true)?;
 
+                info_with_fields!("setup_dev", step = "enable fiat providers");
+                client.set_fiat_providers_enabled(FiatProviderName::all(), true)?;
+
                 info_with_fields!("setup_dev", step = "api clients");
                 client.add_api_client_grants(api_client_access_grants(SETUP_DEV_API_CLIENT_NAME))?;
                 client.set_api_client_secret(SETUP_DEV_API_CLIENT_NAME, SETUP_DEV_API_CLIENT_SECRET)?;

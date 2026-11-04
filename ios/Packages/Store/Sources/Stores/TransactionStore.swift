@@ -24,14 +24,6 @@ public struct TransactionStore: Sendable {
         }
     }
 
-    func getTransactionAssetAssociations(for transactionId: TransactionId) throws -> [TransactionAssetAssociationRecord] {
-        try db.read { db in
-            try TransactionAssetAssociationRecord
-                .joining(required: TransactionAssetAssociationRecord.transaction.filter(TransactionRecord.Columns.transactionId == transactionId.identifier))
-                .fetchAll(db)
-        }
-    }
-
     public func getTransaction(walletId: WalletId, transactionId: TransactionId) throws -> TransactionExtended {
         try db.read { db in
             let request = TransactionsQuery.query(walletId: walletId, type: .transaction(id: transactionId.identifier), filter: nil)

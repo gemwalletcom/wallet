@@ -6,9 +6,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.assets.viewmodels.select.SelectAssetViewModel
+import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.icons.AppIcons
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
@@ -24,7 +26,7 @@ fun AssetsManageScreen(onAddAsset: () -> Unit, onAssetClick: (AssetId) -> Unit, 
         actions = {
             if (isAddAssetAvailable) {
                 IconButton(modifier = Modifier.testTag("add_custom_token"), onClick = onAddAsset) {
-                    Icon(imageVector = AppIcons.Add, contentDescription = "")
+                    Icon(imageVector = AppIcons.Add, contentDescription = stringResource(R.string.assets_add_custom_token))
                 }
             }
         },

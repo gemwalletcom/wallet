@@ -48,7 +48,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
@@ -129,12 +128,7 @@ class AssetViewModel @Inject constructor(
         return ChainAssetData(assetInfo, feeInfo)
     }
 
-    private val banners = chainAssetInfo.filterNotNull()
-        .map { it.assetData.asset }
-        .distinctUntilChanged()
-        .flatMapLatest { asset ->
-            session.flatMapLatest { bannersQuery(it?.wallet?.id?.id, asset.id) }
-        }
+    private val banners = bannersQuery()
 
     private val priceAlerts = priceAlertsQuery(assetId).map { alerts -> alerts.map { it.priceAlert } }
 

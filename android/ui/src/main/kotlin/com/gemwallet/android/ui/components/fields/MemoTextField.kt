@@ -32,7 +32,7 @@ fun MemoTextField(value: String, label: String, onValueChange: (String) -> Unit,
             trailing = {
                 TransferTextFieldActions(
                     value = value,
-                    paste = { onValueChange(clipboardManager.getPlainText() ?: "") },
+                    paste = { clipboardManager.getPlainText()?.let(onValueChange) },
                     qrScanner = onQrScanner,
                     onClean = {
                         onValueChange("")

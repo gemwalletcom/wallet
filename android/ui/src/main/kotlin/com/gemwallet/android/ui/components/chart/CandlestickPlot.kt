@@ -24,7 +24,7 @@ internal class CandlestickPlot(
 ) {
     private val span = (chart.end - chart.start).coerceAtLeast(1L).toFloat()
 
-    val volumeBand = Rect(frame.left, frame.bottom - frame.height * VOLUME_BAND_FRACTION, frame.right, frame.bottom)
+    val volumeBand = Rect(frame.left, frame.bottom - if (chart.layout.volumeHigh > 0.0) frame.height * VOLUME_BAND_FRACTION else 0f, frame.right, frame.bottom)
     val priceBottom = volumeBand.top - volumeBandGap
     val bodyWidth = max(1f, chart.bodyWidth.toFloat() * frame.width)
 

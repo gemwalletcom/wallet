@@ -1,6 +1,5 @@
 use axum::response::{IntoResponse, Response};
 use fiat::error::FiatQuoteError;
-use gem_auth::JwtError;
 use gem_client::ClientError;
 use gem_jsonrpc::types::{ERROR_CLIENT_ERROR, JsonRpcError};
 use http::StatusCode;
@@ -114,12 +113,6 @@ impl From<CacheError> for ApiError {
     }
 }
 
-impl From<JwtError> for ApiError {
-    fn from(error: JwtError) -> Self {
-        ApiError::internal(error.to_string())
-    }
-}
-
 impl From<DatabaseError> for ApiError {
     fn from(error: DatabaseError) -> Self {
         match error {
@@ -155,6 +148,9 @@ impl From<Box<dyn std::error::Error + Send + Sync>> for ApiError {
             }
             if let Some(db_error) = current_error.downcast_ref::<DatabaseError>() {
                 return db_error.clone().into();
+            }
+            if let Some(RequestError::LimitReached) = current_error.downcast_ref::<RequestError>() {
+                return ApiError::from_status(StatusCode::TOO_MANY_REQUESTS);
             }
             if current_error.downcast_ref::<JsonRpcError>().is_some_and(|rpc| rpc.code == ERROR_CLIENT_ERROR) {
                 return ApiError::unavailable(error.to_string());
@@ -220,6 +216,13 @@ mod tests {
     }
 
     #[test]
+    fn test_a_boxed_rate_limit_is_a_too_many_requests_answer() {
+        let limited: Box<dyn std::error::Error + Send + Sync> = Box::new(RequestError::LimitReached);
+
+        assert_eq!(ApiError::from(limited), ApiError::from_status(StatusCode::TOO_MANY_REQUESTS));
+    }
+
+    #[test]
     fn test_cache_errors_map_to_public_statuses() {
         assert_eq!(ApiError::from(CacheError::not_found("FiatQuote", "abc")), ApiError::not_found("FiatQuote abc not found"));
         assert_eq!(ApiError::from(CacheError::KeyNotFound("fiat:quote:abc".to_string())), ApiError::internal("Unexpected cache miss"));
@@ -264,7 +267,6 @@ mod tests {
         let no_endpoint: Box<dyn std::error::Error + Send + Sync> = Box::new(JsonRpcError {
             code: ERROR_CLIENT_ERROR,
             message: "no endpoint is available".to_string(),
-            cause: None,
         });
         let rate_limited: Box<dyn std::error::Error + Send + Sync> = Box::new(ClientError::Http {
             status: 429,
@@ -273,7 +275,6 @@ mod tests {
         let reverted: Box<dyn std::error::Error + Send + Sync> = Box::new(JsonRpcError {
             code: -32000,
             message: "execution reverted".to_string(),
-            cause: None,
         });
 
         let unavailable = ApiError::from(no_endpoint);

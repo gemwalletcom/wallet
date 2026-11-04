@@ -48,7 +48,7 @@ struct VerifyPhraseScene: View {
         .safeAreaButton {
             StateButton(
                 text: Localized.Common.continue,
-                type: .primary(model.buttonState),
+                state: model.buttonState,
                 action: model.onContinue,
             )
         }

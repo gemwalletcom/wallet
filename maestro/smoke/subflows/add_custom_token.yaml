@@ -19,6 +19,7 @@ appId: ${APP_ID}
       enabled: true
     timeout: 30000
 - takeScreenshot: ${output.journey}_add_custom_token
+- waitForAnimationToEnd
 - tapOn:
     id: "main_action"
 - runFlow: launch.yaml

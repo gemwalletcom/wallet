@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Components
 import Foundation
 import enum Gemstone.GemAcceptTermsItem
 import struct Gemstone.GemTermsSession
@@ -10,6 +9,7 @@ import GemstonePrimitives
 import GemstoneServices
 import Localization
 import Primitives
+import Style
 
 @Observable
 final class AcceptTermsSceneViewModel {
@@ -42,7 +42,7 @@ final class AcceptTermsSceneViewModel {
         session.viewState()
     }
 
-    var state: StateViewType<Bool> {
-        viewState.isAccepted ? .data(true) : .noData
+    var buttonState: ButtonState {
+        viewState.isAccepted ? .normal : .disabled
     }
 }

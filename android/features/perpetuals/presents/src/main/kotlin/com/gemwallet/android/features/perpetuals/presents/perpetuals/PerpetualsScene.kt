@@ -98,7 +98,7 @@ internal fun PerpetualsScene(
         actions = {
             if (!isSearching) {
                 IconButton(onClick = { onAction(PerpetualsAction.SetSearching(true)) }) {
-                    Icon(imageVector = AppIcons.Search, contentDescription = "search")
+                    Icon(imageVector = AppIcons.Search, contentDescription = stringResource(android.R.string.search_go))
                 }
             }
         },

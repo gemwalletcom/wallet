@@ -3,6 +3,9 @@
 common_cancel = 取消
 common_hidden = 已隱藏
 common_done = 完畢
+common_add = 新增
+common_close = 關閉
+common_back = 返回
 common_maximum_value = 最大值為 %@
 common_minimum_value = 最小值為 %@
 common_secret_phrase = 助記詞
@@ -343,6 +346,8 @@ charts_price_close = 收盤價
 charts_price_high = 最高價
 charts_price_low = 最低價
 charts_price_change = 漲跌幅
+charts_candlestick = K 線圖
+charts_line = 折線圖
 
 # Date
 

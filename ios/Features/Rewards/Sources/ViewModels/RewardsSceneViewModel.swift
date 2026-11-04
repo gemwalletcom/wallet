@@ -129,8 +129,8 @@ public final class RewardsSceneViewModel: Sendable {
         Localized.Transfer.confirm
     }
 
-    var activatePendingButtonType: ButtonType {
-        pendingReferral?.isEnabled == true ? .primary() : .primary(.disabled)
+    var activatePendingButtonState: ButtonState {
+        pendingReferral?.isEnabled == true ? .normal : .disabled
     }
 
     var rewardsUrl: URL {

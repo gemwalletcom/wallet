@@ -26,6 +26,8 @@ fn details_url(provider: &FiatProviderName, transaction_type: &FiatQuoteType, pr
         FiatProviderName::Transak => None,
         FiatProviderName::Banxa => Some(format!("https://gemwallet.banxa.com/status/{provider_transaction_id}")),
         FiatProviderName::Paybis => None,
+        FiatProviderName::Fonbnk => None,
+        FiatProviderName::Topper => None,
         FiatProviderName::Flashnet => Some(format!("https://orchestra.flashnet.xyz/explorer/{provider_transaction_id}")),
     }
 }

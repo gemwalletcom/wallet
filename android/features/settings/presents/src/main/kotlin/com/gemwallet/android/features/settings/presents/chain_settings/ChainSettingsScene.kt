@@ -60,7 +60,7 @@ internal fun ChainSettingsScene(state: ChainSettingsUIState, snackbar: SnackbarH
         snackbar = snackbar,
         actions = {
             IconButton(onClick = { isShowAddSource = true }) {
-                Icon(imageVector = AppIcons.Add, contentDescription = "")
+                Icon(imageVector = AppIcons.Add, contentDescription = stringResource(R.string.nodes_import_node_title))
             }
         },
         onClose = { onAction(ChainSettingsAction.Cancel) },

@@ -8,8 +8,9 @@ use crate::precision::GemValueStyle;
 use crate::services::balance::GemBalanceRequirement;
 use crate::services::confirm::model::GemAcquireAsset;
 use crate::services::error::GemServiceError;
+use crate::services::info_sheet::{GemInfoAmount, GemInfoDescription};
 use crate::signer::GemSignerError;
-use primitives::{Asset, AssetId, Chain, PaymentStatus, SwapProvider};
+use primitives::{Asset, AssetId, Chain, ChainAsset, PaymentStatus, SwapProvider};
 use swapper::SwapperError;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Error)]
@@ -155,57 +156,23 @@ impl GemConfirmError {
     }
 }
 
+#[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemConfirmErrorDisplay {
     Offline,
-    Malicious,
-    MemoRequired {
-        symbol: String,
-    },
     FeeRatesMissing,
     Cancelled,
     AccountMissing,
     Unknown,
-    BalanceRequired {
-        asset: Asset,
-        requirement: GemConfirmRequirement,
-    },
-    NetworkFeeRequired {
-        asset: Asset,
-        title: String,
-        requirement: GemConfirmRequirement,
-    },
-    NetworkFeeMissing {
-        asset: Asset,
-        title: String,
-    },
-    MinimumAccountBalance {
-        asset: Asset,
-        required: GemFormattedNumber,
-    },
-    DestinationAccountActivation {
-        asset: Asset,
-        required: GemFormattedNumber,
-    },
-    SwapMinimum {
-        asset: Asset,
-        provider: SwapProvider,
-        provider_name: String,
-        requirement: GemConfirmRequirement,
-    },
-    DustThreshold {
-        chain: Chain,
-    },
+    Description { description: GemInfoDescription },
+    DestinationAccountActivation { asset: Asset, required: GemFormattedNumber },
+    DustThreshold { chain: Chain },
     InsufficientFunds,
-    Payment {
-        status: PaymentStatus,
-    },
-    Message {
-        msg: String,
-    },
+    Payment { status: PaymentStatus },
+    Message { msg: String },
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GemConfirmRequirement {
     pub required: GemFormattedNumber,
     pub available: GemFormattedNumber,
@@ -257,58 +224,36 @@ pub struct GemConfirmErrorInfo {
     pub sheet: GemConfirmErrorSheet,
     pub asset: Option<Asset>,
     pub title: String,
-    pub required: Option<GemFormattedNumber>,
-    pub required_fiat: Option<GemFormattedNumber>,
-    pub available: Option<GemFormattedNumber>,
-    pub shortfall: Option<GemFormattedNumber>,
+    pub description: GemInfoDescription,
     pub acquire: Option<GemAcquireAsset>,
 }
 
 #[uniffi::export]
 pub fn confirm_error_info(error: GemConfirmError, prices: Vec<primitives::AssetPrice>, currency: primitives::currency::Currency, input_asset_id: AssetId, fee_asset_id: AssetId) -> Option<GemConfirmErrorInfo> {
-    super::rules::error_info(&error.display(), &prices, currency, &input_asset_id, &fee_asset_id)
+    super::rules::error_info(&error, &prices, currency, &input_asset_id, &fee_asset_id)
 }
 
 #[uniffi::export]
 impl GemConfirmError {
     pub fn display(&self) -> GemConfirmErrorDisplay {
+        let no_fiat = |_: &GemFormattedNumber| None;
+        let described = |description: GemInfoDescription| GemConfirmErrorDisplay::Description { description };
         match self {
             Self::Offline => GemConfirmErrorDisplay::Offline,
-            Self::ScanMalicious => GemConfirmErrorDisplay::Malicious,
-            Self::ScanMemoRequired { symbol } => GemConfirmErrorDisplay::MemoRequired { symbol: symbol.clone() },
+            Self::ScanMalicious => described(GemInfoDescription::MaliciousTransaction),
+            Self::ScanMemoRequired { symbol } => described(GemInfoDescription::MemoRequired { symbol: symbol.clone() }),
             Self::FeeRatesMissing => GemConfirmErrorDisplay::FeeRatesMissing,
             Self::Cancelled => GemConfirmErrorDisplay::Cancelled,
             Self::AccountMissing { .. } => GemConfirmErrorDisplay::AccountMissing,
             Self::SenderMismatch { .. } => GemConfirmErrorDisplay::Unknown,
-            Self::InsufficientBalance { asset, requirement } => GemConfirmErrorDisplay::BalanceRequired {
-                asset: asset.clone(),
-                requirement: GemConfirmRequirement::new(requirement, asset),
-            },
-            Self::InsufficientNetworkFee { asset, requirement } => match requirement {
-                Some(requirement) => GemConfirmErrorDisplay::NetworkFeeRequired {
-                    title: asset.display_title(),
-                    asset: asset.clone(),
-                    requirement: GemConfirmRequirement::new(requirement, asset),
-                },
-                None => GemConfirmErrorDisplay::NetworkFeeMissing {
-                    title: asset.display_title(),
-                    asset: asset.clone(),
-                },
-            },
-            Self::MinimumAccountBalanceTooLow { asset, requirement } => GemConfirmErrorDisplay::MinimumAccountBalance {
-                asset: asset.clone(),
-                required: GemFormattedNumber::asset_amount(&requirement.required, asset, GemValueStyle::Auto),
-            },
+            Self::InsufficientBalance { asset, requirement } => described(balance_required_description(asset, requirement)),
+            Self::InsufficientNetworkFee { asset, requirement } => described(network_fee_description(asset, requirement.as_ref(), no_fiat)),
+            Self::MinimumAccountBalanceTooLow { asset, requirement } => described(minimum_account_balance_description(asset, requirement)),
             Self::DestinationAccountActivation { asset, required } => GemConfirmErrorDisplay::DestinationAccountActivation {
                 asset: asset.clone(),
                 required: GemFormattedNumber::asset_amount(required, asset, GemValueStyle::Auto),
             },
-            Self::BelowSwapMinimum { asset, provider, provider_name, requirement } => GemConfirmErrorDisplay::SwapMinimum {
-                asset: asset.clone(),
-                provider: *provider,
-                provider_name: provider_name.clone(),
-                requirement: GemConfirmRequirement::new(requirement, asset),
-            },
+            Self::BelowSwapMinimum { asset, provider_name, requirement, .. } => described(swap_minimum_description(asset, provider_name, requirement, no_fiat)),
             Self::Sign { error, chain, msg } => match error {
                 GemSignerError::DustThreshold => GemConfirmErrorDisplay::DustThreshold { chain: *chain },
                 GemSignerError::InsufficientFunds => GemConfirmErrorDisplay::InsufficientFunds,
@@ -320,22 +265,83 @@ impl GemConfirmError {
     }
 }
 
-impl GemConfirmErrorDisplay {
+impl GemConfirmError {
     pub(crate) fn sheet(&self) -> Option<GemConfirmErrorSheet> {
         match self {
-            Self::Malicious => Some(GemConfirmErrorSheet::Malicious),
-            Self::MemoRequired { symbol } => Some(GemConfirmErrorSheet::MemoRequired { symbol: symbol.clone() }),
-            Self::BalanceRequired { .. } => Some(GemConfirmErrorSheet::BalanceRequired),
-            Self::NetworkFeeRequired { .. } => Some(GemConfirmErrorSheet::NetworkFeeRequired),
-            Self::NetworkFeeMissing { .. } => Some(GemConfirmErrorSheet::NetworkFeeMissing),
-            Self::MinimumAccountBalance { .. } => Some(GemConfirmErrorSheet::MinimumAccountBalance),
-            Self::SwapMinimum { provider, provider_name, .. } => Some(GemConfirmErrorSheet::SwapMinimum {
+            Self::ScanMalicious => Some(GemConfirmErrorSheet::Malicious),
+            Self::ScanMemoRequired { symbol } => Some(GemConfirmErrorSheet::MemoRequired { symbol: symbol.clone() }),
+            Self::InsufficientBalance { .. } => Some(GemConfirmErrorSheet::BalanceRequired),
+            Self::InsufficientNetworkFee { requirement: Some(_), .. } => Some(GemConfirmErrorSheet::NetworkFeeRequired),
+            Self::InsufficientNetworkFee { requirement: None, .. } => Some(GemConfirmErrorSheet::NetworkFeeMissing),
+            Self::MinimumAccountBalanceTooLow { .. } => Some(GemConfirmErrorSheet::MinimumAccountBalance),
+            Self::BelowSwapMinimum { provider, provider_name, .. } => Some(GemConfirmErrorSheet::SwapMinimum {
                 provider: *provider,
                 provider_name: provider_name.clone(),
             }),
-            Self::DustThreshold { chain } => Some(GemConfirmErrorSheet::DustThreshold { chain: *chain }),
-            Self::Offline | Self::FeeRatesMissing | Self::Cancelled | Self::AccountMissing | Self::Unknown | Self::InsufficientFunds | Self::DestinationAccountActivation { .. } | Self::Payment { .. } | Self::Message { .. } => None,
+            Self::Sign { error, chain, .. } => match error {
+                GemSignerError::DustThreshold => Some(GemConfirmErrorSheet::DustThreshold { chain: *chain }),
+                GemSignerError::InsufficientFunds | GemSignerError::InvalidInput(_) | GemSignerError::SigningError(_) | GemSignerError::SwapValueBelowMinimum { .. } => None,
+            },
+            Self::Offline
+            | Self::FeeRatesMissing
+            | Self::Cancelled
+            | Self::AccountMissing { .. }
+            | Self::SenderMismatch { .. }
+            | Self::DestinationAccountActivation { .. }
+            | Self::Payment { .. }
+            | Self::BalanceMissing { .. }
+            | Self::Network { .. }
+            | Self::Load { .. }
+            | Self::Broadcast { .. }
+            | Self::Record { .. }
+            | Self::ApprovalInvalid { .. } => None,
         }
+    }
+}
+
+pub(super) fn balance_required_description(asset: &Asset, requirement: &GemBalanceRequirement) -> GemInfoDescription {
+    let requirement = GemConfirmRequirement::new(requirement, asset);
+    GemInfoDescription::BalanceRequired {
+        required: Some(requirement.required),
+        available: Some(requirement.available),
+        shortfall: Some(requirement.shortfall),
+    }
+}
+
+pub(super) fn network_fee_description(asset: &Asset, requirement: Option<&GemBalanceRequirement>, required_fiat: impl Fn(&GemFormattedNumber) -> Option<GemFormattedNumber>) -> GemInfoDescription {
+    match requirement {
+        Some(requirement) => {
+            let requirement = GemConfirmRequirement::new(requirement, asset);
+            GemInfoDescription::InsufficientNetworkFeeBalance {
+                required: Some(GemInfoAmount {
+                    fiat: required_fiat(&requirement.required),
+                    amount: requirement.required,
+                }),
+                network: ChainAsset::from_chain(asset.chain()).network_name,
+                available: requirement.available,
+                shortfall: Some(requirement.shortfall),
+            }
+        }
+        None => GemInfoDescription::InsufficientNetworkFee { title: asset.display_title() },
+    }
+}
+
+pub(super) fn minimum_account_balance_description(asset: &Asset, requirement: &GemBalanceRequirement) -> GemInfoDescription {
+    GemInfoDescription::AccountMinimumBalance {
+        amount: Some(GemFormattedNumber::asset_amount(&requirement.required, asset, GemValueStyle::Auto)),
+    }
+}
+
+pub(super) fn swap_minimum_description(asset: &Asset, provider_name: &str, requirement: &GemBalanceRequirement, required_fiat: impl Fn(&GemFormattedNumber) -> Option<GemFormattedNumber>) -> GemInfoDescription {
+    let requirement = GemConfirmRequirement::new(requirement, asset);
+    GemInfoDescription::SwapMinimumAmount {
+        provider: provider_name.to_string(),
+        required: Some(GemInfoAmount {
+            fiat: required_fiat(&requirement.required),
+            amount: requirement.required,
+        }),
+        available: Some(requirement.available),
+        shortfall: Some(requirement.shortfall),
     }
 }
 
@@ -490,19 +496,14 @@ mod tests {
             requirement: Some(requirement.clone()),
         };
         let without = GemConfirmError::InsufficientNetworkFee { asset: asset.clone(), requirement: None };
-        assert_eq!(
-            with_requirement.display(),
-            GemConfirmErrorDisplay::NetworkFeeRequired {
-                asset: asset.clone(),
-                title: asset.display_title(),
-                requirement: GemConfirmRequirement::new(&requirement, &asset),
-            }
+        assert!(
+            matches!(with_requirement.display(), GemConfirmErrorDisplay::Description { description: GemInfoDescription::InsufficientNetworkFeeBalance { ref network, .. } } if *network == ChainAsset::from_chain(Chain::Ethereum).network_name),
+            "Core names the network, so neither app works it out"
         );
         assert_eq!(
             without.display(),
-            GemConfirmErrorDisplay::NetworkFeeMissing {
-                asset: asset.clone(),
-                title: asset.display_title(),
+            GemConfirmErrorDisplay::Description {
+                description: GemInfoDescription::InsufficientNetworkFee { title: asset.display_title() }
             }
         );
 
@@ -519,9 +520,9 @@ mod tests {
         assert_eq!(dust.display(), GemConfirmErrorDisplay::DustThreshold { chain: Chain::Bitcoin });
         assert_eq!(signing.display(), GemConfirmErrorDisplay::Message { msg: "boom".to_string() });
 
-        assert!(dust.display().sheet().is_some());
-        assert!(signing.display().sheet().is_none());
-        assert!(GemConfirmError::Cancelled.display().sheet().is_none());
+        assert!(dust.sheet().is_some());
+        assert!(signing.sheet().is_none());
+        assert!(GemConfirmError::Cancelled.sheet().is_none());
     }
 
     #[test]

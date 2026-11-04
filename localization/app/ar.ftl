@@ -3,6 +3,9 @@
 common_cancel = يلغي
 common_hidden = مخفية
 common_done = تم
+common_add = إضافة
+common_close = إغلاق
+common_back = رجوع
 common_maximum_value = القيمة القصوى هي %@
 common_minimum_value = القيمة الدنيا هي %@
 common_secret_phrase = العبارة السرية
@@ -343,6 +346,8 @@ charts_price_close = الإغلاق
 charts_price_high = الأعلى
 charts_price_low = الأدنى
 charts_price_change = التغيير
+charts_candlestick = مخطط الشموع
+charts_line = مخطط خطي
 
 # Date
 

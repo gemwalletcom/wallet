@@ -60,7 +60,7 @@ internal fun PriceAlertsScene(
     error: String?,
     onErrorShown: () -> Unit,
     header: LazyListScope.() -> Unit,
-    onChart: ((AssetId) -> Unit)?,
+    showsChart: Boolean,
     onAction: (PriceAlertsAction) -> Unit,
 ) {
     val revealable = remember { mutableStateOf<String?>(null) }
@@ -74,7 +74,7 @@ internal fun PriceAlertsScene(
         title = stringResource(R.string.settings_price_alerts_title),
         actions = @Composable {
             IconButton(onClick = { onAction(PriceAlertsAction.Add) }, modifier = Modifier.testTag("add_price_alert")) {
-                Icon(imageVector = AppIcons.Add, contentDescription = "")
+                Icon(imageVector = AppIcons.Add, contentDescription = stringResource(R.string.common_add))
             }
         },
         snackbar = snackbar,
@@ -86,6 +86,11 @@ internal fun PriceAlertsScene(
             onRefresh = { onAction(PriceAlertsAction.Refresh) },
         ) {
             val onExclude: (String) -> Unit = { onAction(PriceAlertsAction.Exclude(it)) }
+            val onChart: ((AssetId) -> Unit)? = if (showsChart) {
+                { onAction(PriceAlertsAction.OpenChart(it)) }
+            } else {
+                null
+            }
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 (phase as? GemListPhase.Error)?.let { item { GemListRowView(row = GemListRow.Error(it.error), listPosition = ListPosition.Single) } }
                 header()

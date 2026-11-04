@@ -60,7 +60,7 @@ internal fun SupportMessageInputBar(state: TextFieldState, onPickImage: () -> Un
                 IconButton(onClick = onPickImage) {
                     Icon(
                         imageVector = AppIcons.AddCircleOutlined,
-                        contentDescription = null,
+                        contentDescription = stringResource(R.string.library_select_from_photo_library),
                         tint = MaterialTheme.colorScheme.secondary,
                     )
                 }
@@ -91,7 +91,7 @@ internal fun SupportMessageInputBar(state: TextFieldState, onPickImage: () -> Un
             }
         }
         FilledIconButton(onClick = onSend, enabled = canSend, modifier = Modifier.size(actionIconSize)) {
-            Icon(imageVector = AppIcons.Send, contentDescription = null)
+            Icon(imageVector = AppIcons.Send, contentDescription = stringResource(R.string.wallet_send))
         }
     }
 }

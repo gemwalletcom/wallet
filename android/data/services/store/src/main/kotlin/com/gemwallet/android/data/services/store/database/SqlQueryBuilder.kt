@@ -3,6 +3,10 @@ package com.gemwallet.android.data.services.store.database
 import androidx.sqlite.db.SimpleSQLiteQuery
 import androidx.sqlite.db.SupportSQLiteQuery
 
+private const val IDS_WITHIN_SQLITE_VARIABLE_LIMIT = 900
+
+internal fun <T> List<T>.statementChunks(): List<List<T>> = chunked(IDS_WITHIN_SQLITE_VARIABLE_LIMIT)
+
 data class SqlQuery(val sql: String, val args: List<Any>) {
     fun toSupportSQLiteQuery(): SupportSQLiteQuery = SimpleSQLiteQuery(sql, args.toTypedArray())
 }

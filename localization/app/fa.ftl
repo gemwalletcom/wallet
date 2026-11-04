@@ -3,6 +3,9 @@
 common_cancel = لغو کردن
 common_hidden = مخفی
 common_done = انجام شد
+common_add = افزودن
+common_close = بستن
+common_back = بازگشت
 common_maximum_value = حداکثر مقدار %@ است
 common_minimum_value = حداقل مقدار %@ است
 common_secret_phrase = عبارت مخفی
@@ -343,6 +346,8 @@ charts_price_close = بسته شدن
 charts_price_high = بالا
 charts_price_low = کم
 charts_price_change = تغییر
+charts_candlestick = نمودار شمعی
+charts_line = نمودار خطی
 
 # Date
 

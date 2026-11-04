@@ -11,6 +11,7 @@ use std::collections::HashMap;
 pub struct FiatMapping {
     pub asset: Asset,
     pub asset_symbol: FiatAssetSymbol,
+    pub country_code: String,
     pub unsupported_countries: HashMap<String, Vec<String>>,
     pub buy_limits: Vec<FiatAssetLimits>,
     pub sell_limits: Vec<FiatAssetLimits>,

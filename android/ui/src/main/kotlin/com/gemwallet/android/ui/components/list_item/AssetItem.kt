@@ -16,6 +16,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -23,6 +26,7 @@ import androidx.compose.ui.unit.Dp
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.domains.balance.hiddenWhen
 import com.gemwallet.android.model.text
+import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.NumericText
 import com.gemwallet.android.ui.components.image.AssetIcon
 import com.gemwallet.android.ui.icons.AppIcons
@@ -65,7 +69,7 @@ fun AssetListItem(row: GemAssetItemRow, listPosition: ListPosition, modifier: Mo
         is GemAssetItemTrailing.Value -> getBalanceInfo(value.value, value.extra, hidden)
 
         is GemAssetItemTrailing.Toggle -> {
-            { Switch(checked = value.isOn, onCheckedChange = { onAction?.invoke(AssetItemAction.Switch(it)) }, modifier = Modifier.testTag("asset_toggle")) }
+            { Switch(checked = value.isOn, onCheckedChange = { onAction?.invoke(AssetItemAction.Switch(it)) }, modifier = Modifier.testTag("asset_toggle").semantics { contentDescription = row.title }) }
         }
 
         GemAssetItemTrailing.Copy -> {
@@ -73,7 +77,7 @@ fun AssetListItem(row: GemAssetItemRow, listPosition: ListPosition, modifier: Mo
                 IconButton(onClick = { onAction?.invoke(AssetItemAction.Copy) }, modifier = Modifier.size(iconSize)) {
                     Icon(
                         imageVector = AppIcons.ContentCopyOutlined,
-                        contentDescription = "",
+                        contentDescription = stringResource(R.string.common_copy),
                         modifier = Modifier.size(compactIconSize),
                         tint = MaterialTheme.colorScheme.secondary,
                     )

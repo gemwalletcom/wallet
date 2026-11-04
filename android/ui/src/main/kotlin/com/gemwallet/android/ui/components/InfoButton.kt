@@ -12,6 +12,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
+import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.secondaryFaded
 import com.gemwallet.android.ui.theme.smallIconSize
@@ -25,7 +27,7 @@ fun InfoButton(entity: InfoSheetEntity) {
             .clip(CircleShape)
             .clickable(onClick = { showBottomSheet = true }),
         imageVector = AppIcons.InfoOutlined,
-        contentDescription = "",
+        contentDescription = stringResource(R.string.common_learn_more),
         tint = MaterialTheme.colorScheme.secondaryFaded,
     )
     if (showBottomSheet) {

@@ -13,6 +13,7 @@ sol! {
         function transferFrom(address from, address to, uint256 value) external returns (bool);
         function approve(address spender, uint256 value) external returns (bool);
         function increaseAllowance(address spender, uint256 addedValue) external returns (bool);
+        function increaseApproval(address spender, uint256 addedValue) external returns (bool);
     }
 }
 

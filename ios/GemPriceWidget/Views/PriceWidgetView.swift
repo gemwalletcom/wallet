@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Style
 import SwiftUI
 import WidgetKit
 
@@ -12,14 +11,11 @@ struct PriceWidgetView: View {
     }
 
     var body: some View {
-        Group {
-            switch viewModel.widgetFamily {
-            case .systemSmall:
-                SmallPriceWidgetView(viewModel: viewModel)
-            default:
-                MediumPriceWidgetView(viewModel: viewModel)
-            }
+        VStack(spacing: .zero) {
+            WidgetContentView(viewModel: viewModel)
         }
+        .padding(viewModel.padding)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .containerBackground(for: .widget) {
             Color.clear
         }

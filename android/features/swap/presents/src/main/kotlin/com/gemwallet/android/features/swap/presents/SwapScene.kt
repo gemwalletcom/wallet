@@ -57,6 +57,7 @@ internal fun SwapScene(viewState: GemSwapViewState, pay: AssetData?, receive: As
         actions = {
             IndicatorButton(
                 imageVector = AppIcons.Tune,
+                contentDescription = stringResource(R.string.swap_slippage),
                 showsIndicator = showsSlippageIndicator,
                 onClick = { onAction(SwapAction.Slippage) },
             )

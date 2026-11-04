@@ -41,11 +41,12 @@ fun SetPriceAlertScreen(onCancel: () -> Unit, onComplete: (String) -> Unit = { o
         assetRow = assetRow,
         buttonState = buttonState,
         snackbar = snackbar,
-        onType = viewModel::onType,
-        onDirection = viewModel::onDirection,
-        onConfirm = {
-            viewModel.onConfirm()
-        },
-        onCancel = onCancel,
-    )
+    ) { action ->
+        when (action) {
+            is SetPriceAlertAction.SelectType -> viewModel.onType(action.type)
+            is SetPriceAlertAction.SelectDirection -> viewModel.onDirection(action.direction)
+            SetPriceAlertAction.Confirm -> viewModel.onConfirm()
+            SetPriceAlertAction.Cancel -> onCancel()
+        }
+    }
 }

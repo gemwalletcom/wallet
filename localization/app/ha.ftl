@@ -3,6 +3,9 @@
 common_cancel = Soke
 common_hidden = Ɓoyayye
 common_done = Anyi
+common_add = Ƙara
+common_close = Rufe
+common_back = Koma baya
 common_maximum_value = Matsakaicin ƙima shine %@
 common_minimum_value = Mafi ƙarancin ƙima shine %@
 common_secret_phrase = Kalmomin Sirri
@@ -343,6 +346,8 @@ charts_price_close = Rufe
 charts_price_high = Babban
 charts_price_low = Ƙasa
 charts_price_change = Sauyi
+charts_candlestick = Jadawalin kyandir
+charts_line = Jadawalin layi
 
 # Date
 

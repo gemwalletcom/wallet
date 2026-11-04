@@ -49,9 +49,12 @@ fun ConnectionProposalScreen(proposal: WalletConnectSessionProposal, verifyConte
             availableWallets = availableWallets,
             availableWalletSections = availableWalletSections,
             buttonState = buttonState,
-            onReject = viewModel::onReject,
-            onApprove = { viewModel.onApprove { error -> onError(error.text(context)) } },
-            onWalletSelected = viewModel::onWalletSelected,
-        )
+        ) { action ->
+            when (action) {
+                ConnectionProposalAction.Approve -> viewModel.onApprove { error -> onError(error.text(context)) }
+                ConnectionProposalAction.Reject -> viewModel.onReject()
+                is ConnectionProposalAction.SelectWallet -> viewModel.onWalletSelected(action.walletId)
+            }
+        }
     }
 }

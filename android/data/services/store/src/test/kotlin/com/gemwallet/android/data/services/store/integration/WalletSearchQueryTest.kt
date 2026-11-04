@@ -9,12 +9,21 @@ import com.gemwallet.android.data.services.store.database.entities.DbAssetList
 import com.gemwallet.android.data.services.store.database.entities.DbBalance
 import com.gemwallet.android.data.services.store.database.entities.DbSearch
 import com.gemwallet.android.data.services.store.database.entities.DbWallet
+import com.gemwallet.android.data.services.store.database.entities.toRecord
 import com.gemwallet.android.data.services.store.database.mockGemDatabase
 import com.gemwallet.android.data.services.store.queries.WalletSearchQuery
+import com.gemwallet.android.domains.search.WalletSearchTag
+import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.testkit.mockAsset
+import com.gemwallet.android.testkit.mockAssetId
+import com.gemwallet.android.testkit.mockPerpetual
+import com.gemwallet.android.testkit.mockPerpetualData
+import com.gemwallet.android.testkit.mockPerpetualId
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetList
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.PerpetualData
 import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletSource
 import com.wallet.core.primitives.WalletType
@@ -32,13 +41,16 @@ class WalletSearchQueryTest {
     private lateinit var database: GemDatabase
     private lateinit var query: WalletSearchQuery
 
-    private val usdt = AssetId(Chain.Ethereum, "0xdAC17F958D2ee523a2206206994597C13D831ec7")
-    private val usdc = AssetId(Chain.Ethereum, "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48")
+    private val usdt = mockAssetId(chain = Chain.Ethereum, tokenId = "0xdAC17F958D2ee523a2206206994597C13D831ec7")
+    private val usdc = mockAssetId(chain = Chain.Ethereum, tokenId = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48")
+    private val bitcoinPerpetual = perpetual("BTC", volume24h = 900.0)
+    private val ethereumPerpetual = perpetual("ETH", volume24h = 500.0)
+    private val solanaPerpetual = perpetual("SOL", volume24h = 100.0)
 
     @Before
     fun setUp() = runBlocking(Dispatchers.IO) {
         database = mockGemDatabase()
-        query = WalletSearchQuery(database.assetsDao(), database.searchDao(), database.assetListDao())
+        query = WalletSearchQuery(database.assetsDao(), database.searchDao(), database.assetListDao(), database.perpetualDao())
         database.walletsDao().insert(DbWallet(id = "wallet-1", name = "wallet-1", domainName = null, type = WalletType.Multicoin, position = 0, pinned = false, index = 0, source = WalletSource.Import))
         database.assetsDao().insert(
             listOf(
@@ -70,6 +82,8 @@ class WalletSearchQueryTest {
                 DbSearch(query = "stable", listId = "stablecoins", priority = 0),
             ),
         )
+        listOf(bitcoinPerpetual, ethereumPerpetual, solanaPerpetual).forEach { database.assetsDao().insert(it.asset.toRecord()) }
+        database.perpetualDao().insert(listOf(bitcoinPerpetual, ethereumPerpetual, solanaPerpetual).map { it.perpetual.toRecord() })
     }
 
     @After
@@ -100,5 +114,50 @@ class WalletSearchQueryTest {
             query.lists(" stable ").first(),
         )
         assertEquals(emptyList<AssetList>(), query.lists("tether").first())
+    }
+
+    @Test
+    fun thePerpetualsOfAKeyAreItsPrioritisedEnabledMarketsInPriorityOrder() = runBlocking(Dispatchers.IO) {
+        database.perpetualDao().upsert(listOf(bitcoinPerpetual.perpetual.copy(isEnabled = false).toRecord()))
+        database.searchDao().putPerpetuals(
+            "tag:trending",
+            listOf(solanaPerpetual, bitcoinPerpetual, ethereumPerpetual).mapIndexed { index, item ->
+                DbSearch(query = "tag:trending", perpetualId = item.perpetual.id.toIdentifier(), priority = index)
+            },
+        )
+
+        assertEquals(listOf(solanaPerpetual, ethereumPerpetual), query.perpetuals("tag:trending", WalletSearchTag.List("trending"), 100).first())
+    }
+
+    @Test
+    fun thePerpetualsOfATypedKeyFollowTheRankingOverTheTextMatch() = runBlocking(Dispatchers.IO) {
+        assertEquals(emptyList<PerpetualData>(), query.perpetuals("ethereum", WalletSearchTag.All, 100).first())
+
+        database.searchDao().putPerpetuals("ethereum", listOf(DbSearch(query = "ethereum", perpetualId = ethereumPerpetual.perpetual.id.toIdentifier(), priority = 0)))
+
+        assertEquals(listOf(ethereumPerpetual), query.perpetuals("ethereum", WalletSearchTag.All, 100).first())
+    }
+
+    @Test
+    fun withoutPerpetualPrioritiesTheWalletScopeFallsBackToTheMarketSearchAndAListHasNone() = runBlocking(Dispatchers.IO) {
+        assertEquals(listOf(ethereumPerpetual), query.perpetuals("ETH", WalletSearchTag.All, 100).first())
+        assertEquals(emptyList<PerpetualData>(), query.perpetuals("ETH", WalletSearchTag.List("trending"), 100).first())
+    }
+
+    @Test
+    fun anEmptyWalletKeyListsEveryEnabledMarketByVolumeIncludingIdleOnes() = runBlocking(Dispatchers.IO) {
+        val idlePerpetual = perpetual("IDLE", volume24h = 0.0)
+        database.assetsDao().insert(idlePerpetual.asset.toRecord())
+        database.perpetualDao().insert(listOf(idlePerpetual.perpetual.toRecord()))
+
+        assertEquals(listOf(bitcoinPerpetual, ethereumPerpetual, solanaPerpetual, idlePerpetual), query.perpetuals("", WalletSearchTag.All, 100).first())
+    }
+
+    private fun perpetual(symbol: String, volume24h: Double): PerpetualData {
+        val asset = mockAsset(id = mockAssetId(chain = Chain.HyperCore, tokenId = "perpetual::$symbol"), name = symbol, symbol = symbol, decimals = 4u)
+        return mockPerpetualData(
+            perpetual = mockPerpetual(id = mockPerpetualId(symbol = symbol), name = symbol, assetId = asset.id, identifier = symbol, volume24h = volume24h),
+            asset = asset,
+        )
     }
 }

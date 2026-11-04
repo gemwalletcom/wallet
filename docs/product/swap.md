@@ -133,7 +133,7 @@ A stablecoin is one on the official list, USDT, USDC, USDS, USDe, USD1, USDG and
 | An answer arrives for an amount or pair the user has already changed | it is thrown away | |
 | The user picks another provider | the choice survives refreshes, and a better quote does not replace it | the user's choice wins |
 | The user picked a provider and changes the amount, and other providers answer first | You Receive keeps its spinner until the picked provider answers; if it has no quote, the best one shows | Swap never offers another provider's quote in place of the picked one |
-| Preparing the chosen quote fails after Swap is tapped | an error alert with the provider's message; the quote, Details and Swap stay, so tapping Swap prepares it again | the quote itself succeeded; Try Again is only for a failed quote |
+| Preparing the chosen quote fails after Swap is tapped | an error alert with the provider's message; the quote, Details and Swap stay, so tapping Swap prepares it again, and the next refresh replaces the quote | the quote itself succeeded; Try Again is only for a failed quote, and a failure caused by the quote's age does not repeat |
 
 ### Slippage and price impact
 
@@ -202,7 +202,7 @@ A provider may only move funds into contracts the app ships for it. Before Confi
 | Relay | EVM | Its deposit contract, approval proxies and routers; only the deposit contract and approval proxies as spenders | In the quote list and at Confirm |
 | Relay | Tron, TON | Its depository | In the quote list and at Confirm |
 | Relay | Solana | Its depository and forwarder programs, and Jupiter's | At Confirm |
-| Chainflip | EVM, Tron, Solana | The vault, and exactly the amount and token quoted | At Confirm |
+| Chainflip | EVM, Tron, Solana | The vault, exactly the amount and token quoted, the asset, network and address the swap pays out to, and the refund address, minimum price, and a refund sent as a plain transfer, with no contract message | At Confirm |
 | Mayan | EVM | The forwarder | At Confirm |
 | Mayan | Solana | Its programs, and Jupiter's | At Confirm |
 | Bridgers | EVM, TON coin | The router | At Confirm |
@@ -210,6 +210,7 @@ A provider may only move funds into contracts the app ships for it. Before Confi
 | Aero | EVM | The Metarouter | At Confirm |
 | Relay, Chainflip, Near Intents, swaps.xyz | Bitcoin and other deposit-address swaps | Not bound: a deposit address made per swap | |
 | Mayan on Sui; Bridgers for TON tokens and XRP | | Not bound | |
+| DeDust, STON.fi | TON tokens | Not bound: the sender's own jetton wallet, which comes from the TON node | |
 | Uniswap family, Across, SunSwap, STON.fi, DeDust, Hyperion, Cetus, DeepBook, Hyperliquid, Stellar DEX, XRP Ledger DEX | All | Built on the device against shipped contracts | |
 
 A known contract shows under its provider's name, such as `SunSwap Router`; the shared Uniswap Permit2 shows as `Permit2`.
@@ -221,6 +222,7 @@ None recorded.
 ## Rules
 
 - Regional restrictions follow the shared [Feature availability](../PRODUCT.md#feature-availability) table.
+- The asset pickers offer every network's coin and the highest-ranked swappable assets, up to a limit set in the backend config; any other swappable asset joins them once the user searches for it or opens it.
 - A quote is never cached: every provider is asked again for the live amount, priced on live chain state; only facts that never change, such as a pool's address and tokens, are kept.
 - A slow provider never holds back a quote another provider already gave.
 - Swap never signs anything: the confirmation screen holds the only authentication and signs the trade it showed.

@@ -85,7 +85,7 @@ impl MessageConsumer<FiatWebhookPayload, bool> for FiatWebhookConsumer {
             }
         };
 
-        let (existing, updated) = self.repository.update_fiat_transaction(provider_name, transaction_update).await?;
+        let (previous, updated) = self.repository.update_fiat_transaction(provider_name, transaction_update).await?;
 
         info_with_fields!(
             "processed webhook",
@@ -96,7 +96,7 @@ impl MessageConsumer<FiatWebhookPayload, bool> for FiatWebhookConsumer {
             transaction_hash = updated.transaction_hash.as_deref().unwrap_or("")
         );
 
-        if updated.status == FiatTransactionStatus::Complete && !existing.is_some_and(|record| record.status == FiatTransactionStatus::Complete) {
+        if updated.status == FiatTransactionStatus::Complete && previous.status != FiatTransactionStatus::Complete {
             if let Some(hash) = &updated.transaction_hash {
                 let transaction_id = TransactionId::new(updated.asset_id.chain, hash.clone());
                 let _ = self.stream_producer.publish_pending_transaction(transaction_id.clone()).await;

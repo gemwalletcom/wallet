@@ -1,6 +1,8 @@
 use bitcoin::ScriptBuf;
 use primitives::{BitcoinChain, SignerError, SignerInput};
 
+#[cfg(any(test, feature = "rpc"))]
+use super::inputs::unfunded_sender_input;
 use super::{
     PlanInput, PlanOutput, SpendDestination, SpendFee, SpendPlan, SpendRequest, VirtualSizeFee,
     inputs::spendable_inputs,
@@ -42,14 +44,15 @@ impl UtxoPlanner {
         if !request.is_max {
             outputs.push(PlanOutput::new(0, script_for_address(request.chain, &request.sender_address)?.script_pubkey));
         }
-        let inputs = spendable_inputs(request.chain, &request.sender_address, request.utxos)?;
+        let inputs = if request.utxos.is_empty() {
+            vec![unfunded_sender_input(request.chain, &request.sender_address)?]
+        } else {
+            spendable_inputs(request.chain, &request.sender_address, request.utxos)?
+        };
         Ok(fee.estimate_fee(&inputs, &outputs, payment.external_outputs()))
     }
 
     pub fn plan(request: SpendRequest, fee: &impl SpendFee) -> Result<SpendPlan, SignerError> {
-        if request.utxos.is_empty() {
-            return SignerError::invalid_input_err("missing input UTXOs");
-        }
         if !request.is_max && request.amount == 0 {
             return SignerError::invalid_input_err("invalid transaction amount");
         }
@@ -151,7 +154,7 @@ mod tests {
     use crate::testkit::{
         address_mock::{TEST_BITCOIN_P2WPKH_ADDRESS, mock_destination_address, mock_sender_address},
         planner_mock::{mock_signer_input, mock_signer_input_with, mock_spend_utxos, sum_inputs},
-        signer_mock::{TEST_UTXO_TXID, mock_transfer_input_with_utxos, mock_utxo_with},
+        signer_mock::{TEST_UTXO_TXID, mock_funded_transfer_input, mock_transfer_input_with_utxos, mock_utxo_with},
     };
     use num_bigint::BigInt;
     use primitives::{AssetId, Chain, GasPriceType, TransactionFee};
@@ -163,10 +166,13 @@ mod tests {
         UtxoPlanner::transfer(BitcoinChain::Bitcoin, &input).unwrap()
     }
 
+    fn transfer_request(chain: BitcoinChain, input: &SignerInput) -> SpendRequest {
+        SpendRequest::transfer(chain, input, |address| SpendDestination::script(chain, address)).unwrap()
+    }
+
     fn transfer_fee(input: &SignerInput) -> Result<u64, SignerError> {
         let chain = BitcoinChain::Bitcoin;
-        let request = SpendRequest::transfer(chain, input, |address| SpendDestination::script(chain, address))?;
-        UtxoPlanner::fee(request, &VirtualSizeFee::for_input(chain, input)?)
+        UtxoPlanner::fee(transfer_request(chain, input), &VirtualSizeFee::for_input(chain, input)?)
     }
 
     #[test]
@@ -228,6 +234,27 @@ mod tests {
     }
 
     #[test]
+    fn test_fee_without_utxos_prices_a_single_input_send() {
+        for chain in [BitcoinChain::Bitcoin, BitcoinChain::Doge, BitcoinChain::Zcash] {
+            let input = mock_funded_transfer_input(chain);
+            let fee = VirtualSizeFee::for_input(chain, &input).unwrap();
+            let funded = transfer_request(chain, &input);
+            for request in [funded.clone(), SpendRequest { is_max: true, ..funded }] {
+                let without_utxos = SpendRequest { utxos: vec![], ..request.clone() };
+
+                assert_eq!(UtxoPlanner::plan(without_utxos.clone(), &fee).unwrap_err(), SignerError::InsufficientFunds);
+                assert_eq!(UtxoPlanner::fee(without_utxos, &fee).unwrap(), UtxoPlanner::plan(request, &fee).unwrap().fee);
+            }
+        }
+
+        assert_eq!(
+            transfer_fee(&mock_signer_input_with("545", false, None, vec![])).unwrap_err(),
+            SignerError::DustThreshold,
+            "an amount under the dust limit is dust with or without coins"
+        );
+    }
+
+    #[test]
     fn test_plan_absorbs_sub_dust_change_into_fee() {
         let input = mock_signer_input("9600", false);
         let change_script = script_for_address(BitcoinChain::Bitcoin, &input.sender_address).unwrap().script_pubkey;
@@ -266,6 +293,31 @@ mod tests {
     }
 
     #[test]
+    fn test_plan_litecoin_dust() {
+        let sender_address = mock_sender_address(BitcoinChain::Litecoin);
+        let destination_address = mock_destination_address(BitcoinChain::Litecoin);
+
+        let below_dust = mock_transfer_input_with_utxos(BitcoinChain::Litecoin, &sender_address, &destination_address, "5459", vec![mock_utxo_with(TEST_UTXO_TXID, 0, "100000", &sender_address)]);
+        assert_eq!(UtxoPlanner::transfer(BitcoinChain::Litecoin, &below_dust).unwrap_err(), SignerError::DustThreshold);
+
+        let with_change = mock_transfer_input_with_utxos(BitcoinChain::Litecoin, &sender_address, &destination_address, "10000", vec![mock_utxo_with(TEST_UTXO_TXID, 0, "100000", &sender_address)]);
+        let fee_with_change = UtxoPlanner::transfer(BitcoinChain::Litecoin, &with_change).unwrap().fee;
+        let amount = 100_000 - fee_with_change - 1_000;
+
+        let change_below_dust = mock_transfer_input_with_utxos(
+            BitcoinChain::Litecoin,
+            &sender_address,
+            &destination_address,
+            &amount.to_string(),
+            vec![mock_utxo_with(TEST_UTXO_TXID, 0, "100000", &sender_address)],
+        );
+        let plan = UtxoPlanner::transfer(BitcoinChain::Litecoin, &change_below_dust).unwrap();
+        assert_eq!(plan.outputs.len(), 1);
+        assert_eq!(plan.outputs[0].value.to_sat(), amount);
+        assert_eq!(plan.fee, fee_with_change + 1_000);
+    }
+
+    #[test]
     fn test_dust_threshold_is_script_aware() {
         let p2wpkh = script_for_address(BitcoinChain::Bitcoin, TEST_BITCOIN_P2WPKH_ADDRESS).unwrap().script_pubkey;
         let p2pkh = script_for_address(BitcoinChain::Bitcoin, "1BoatSLRHtKNngkdXEeobR76b53LETtpyT").unwrap().script_pubkey;
@@ -273,6 +325,10 @@ mod tests {
 
         assert_eq!(dust_threshold(BitcoinChain::Bitcoin, &p2pkh), 546);
         assert_eq!(dust_threshold(BitcoinChain::Doge, &doge_p2pkh), 546_000);
+        let litecoin_p2wpkh = script_for_address(BitcoinChain::Litecoin, "ltc1qhzjptwpym9afcdjhs7jcz6fd0jma0l0rc0e5yr").unwrap().script_pubkey;
+        let litecoin_p2pkh = script_for_address(BitcoinChain::Litecoin, &mock_destination_address(BitcoinChain::Litecoin)).unwrap().script_pubkey;
+        assert_eq!(dust_threshold(BitcoinChain::Litecoin, &litecoin_p2wpkh), 2_940);
+        assert_eq!(dust_threshold(BitcoinChain::Litecoin, &litecoin_p2pkh), 5_460);
         assert!(dust_threshold(BitcoinChain::Bitcoin, &p2wpkh) > 0 && dust_threshold(BitcoinChain::Bitcoin, &p2wpkh) < dust_threshold(BitcoinChain::Bitcoin, &p2pkh));
     }
 }

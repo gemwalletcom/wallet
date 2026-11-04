@@ -31,12 +31,12 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.ChainAddress
 
 @Composable
-internal fun WalletConnectReviewScene(model: WalletConnectReviewModel, buttonState: ButtonState, details: LazyListScope.() -> Unit, onApprove: () -> Unit, onReject: () -> Unit, onOpenAddress: (ChainAddress) -> Unit) {
+internal fun WalletConnectReviewScene(model: WalletConnectReviewModel, buttonState: ButtonState, details: LazyListScope.() -> Unit, onAction: (WalletConnectReviewAction) -> Unit) {
     val context = LocalContext.current
     var sheetType by rememberSaveable { mutableStateOf<WalletConnectReviewSheetType?>(null) }
     val openAddress = { address: String ->
         sheetType = null
-        onOpenAddress(ChainAddress(model.chain, address))
+        onAction(WalletConnectReviewAction.OpenAddress(ChainAddress(model.chain, address)))
     }
 
     Scene(
@@ -49,11 +49,11 @@ internal fun WalletConnectReviewScene(model: WalletConnectReviewModel, buttonSta
                 state = buttonState,
             ) {
                 context.requestAuth(AuthRequest.Confirmation) {
-                    onApprove()
+                    onAction(WalletConnectReviewAction.Approve)
                 }
             }
         },
-        onClose = onReject,
+        onClose = { onAction(WalletConnectReviewAction.Reject) },
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier.fillMaxSize(),

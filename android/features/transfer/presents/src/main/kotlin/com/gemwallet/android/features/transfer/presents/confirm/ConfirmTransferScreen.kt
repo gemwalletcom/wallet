@@ -170,11 +170,14 @@ fun ConfirmTransferScreen(
                 icon = button.icon.icon(),
                 onClick = {
                     when (viewModel.action()) {
-                        GemConfirmAction.EXECUTE -> context.requestAuth(AuthRequest.Confirmation) {
-                            viewModel.send()
+                        GemConfirmAction.EXECUTE -> {
+                            viewModel.startExecute()
+                            context.requestAuth(AuthRequest.Confirmation, onCancel = viewModel::cancelExecute, onSuccess = viewModel::submit)
                         }
 
-                        GemConfirmAction.LOAD, null -> viewModel.send()
+                        GemConfirmAction.LOAD -> viewModel.load()
+
+                        null -> Unit
                     }
                 },
             )
@@ -335,7 +338,7 @@ fun ConfirmTransferScreen(
             title = stringResource(R.string.info_payment_verification_title),
             actions = {
                 IconButton(onClick = { isVerificationInfoVisible = true }) {
-                    Icon(AppIcons.InfoOutlined, contentDescription = null)
+                    Icon(AppIcons.InfoOutlined, contentDescription = stringResource(R.string.common_learn_more))
                 }
             },
         ) {

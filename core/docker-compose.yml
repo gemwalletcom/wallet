@@ -5,6 +5,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: core
+    command: ["true"]
 
   setup:
     image: app
@@ -14,7 +16,7 @@ services:
       POSTGRES_URL: postgres://username:password@postgres/api
       MEILISEARCH_URL: http://meilisearch:7700
       RABBITMQ_URL: amqp://username:password@rabbitmq:5672
-    command: ["sh", "-c", "/app/setup"]
+    command: ["sh", "-c", "/app/daemon setup"]
     depends_on:
       - app_build
       - redis
@@ -73,7 +75,7 @@ services:
       POSTGRES_URL: postgres://username:password@postgres/api
       MEILISEARCH_URL: http://meilisearch:7700
       RABBITMQ_URL: amqp://username:password@rabbitmq:5672
-    command: ["sh", "-c", "/app/daemon search"]
+    command: ["sh", "-c", "/app/daemon worker search"]
     depends_on:
       - app_build
       - setup
@@ -90,7 +92,7 @@ services:
       POSTGRES_URL: postgres://username:password@postgres/api
       RABBITMQ_URL: amqp://username:password@rabbitmq:5672
       CHAINS_BITCOIN_URL: http://bitcoin.dynode.internal:8002
-    command: ["sh", "-c", "/app/parser bitcoin"]
+    command: ["sh", "-c", "/app/daemon parser bitcoin"]
     depends_on:
       - app_build
       - setup

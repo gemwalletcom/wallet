@@ -3,6 +3,7 @@ package com.gemwallet.android.ui.components.list_item
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,7 +32,8 @@ private fun ColumnScope.AssetContextMenuItems(assetId: AssetId, address: String?
     val items = remember(assetId, address, isPinned, isBalanceEnabled, actions) {
         assetContextMenuItems(context, assetId, address, isPinned, isBalanceEnabled, actions)
     }
-    items.forEach { item ->
+    items.forEachIndexed { index, item ->
+        if (index > 0 && item.group != items[index - 1].group) HorizontalDivider()
         DropdownMenuItem(
             text = { Text(stringResource(item.titleRes)) },
             trailingIcon = { Icon(painterResource(item.iconRes), null) },

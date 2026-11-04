@@ -17,4 +17,10 @@ public enum ActionMenuItemType: Identifiable {
         case let .button(title, _, _, _): "button-\(title)"
         }
     }
+
+    var isDestructive: Bool {
+        switch self {
+        case let .button(_, _, role, _): role == .destructive
+        }
+    }
 }

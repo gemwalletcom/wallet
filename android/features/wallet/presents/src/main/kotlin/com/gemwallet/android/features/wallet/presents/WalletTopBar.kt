@@ -49,7 +49,7 @@ internal fun WalletTopBar(walletRow: GemWalletRow?, onShowWallets: () -> Unit, o
                     Icon(
                         imageVector = AppIcons.ExpandMore,
                         tint = MaterialTheme.colorScheme.onSurface,
-                        contentDescription = "select_wallet",
+                        contentDescription = null,
                     )
                 }
             }
@@ -74,7 +74,7 @@ internal fun WalletTopBar(walletRow: GemWalletRow?, onShowWallets: () -> Unit, o
                 Icon(
                     imageVector = AppIcons.Search,
                     tint = MaterialTheme.colorScheme.onSurface,
-                    contentDescription = "asset_select",
+                    contentDescription = stringResource(android.R.string.search_go),
                 )
             }
         },

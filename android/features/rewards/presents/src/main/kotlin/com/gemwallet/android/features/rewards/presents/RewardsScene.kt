@@ -20,7 +20,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -35,6 +34,7 @@ import com.gemwallet.android.features.rewards.viewmodels.models.RewardsSheetType
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.DocsInfoButton
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.buttons.mainActionButtonColors
 import com.gemwallet.android.ui.components.clickable
@@ -80,6 +80,7 @@ internal fun RewardsScene(
     redemptions: List<GemRewardsRedemption>,
     sheet: RewardsSheetType?,
     isLoading: Boolean,
+    rewardsUrl: String,
     incomingCode: GemIncomingCode? = null,
     snackbar: SnackbarHostState = remember { SnackbarHostState() },
     onAction: (RewardsAction) -> Unit,
@@ -122,6 +123,8 @@ internal fun RewardsScene(
                         tint = MaterialTheme.colorScheme.onPrimary,
                     )
                 }
+            } else {
+                DocsInfoButton(rewardsUrl)
             }
         },
         onClose = { onAction(RewardsAction.Close) },
@@ -168,8 +171,8 @@ internal fun RewardsScene(
                             MainActionButton(
                                 title = stringResource(R.string.rewards_activate_referral_code_title),
                                 colors = mainActionButtonColors(
-                                    containerColor = Color.White,
-                                    contentColor = Color.Black,
+                                    containerColor = MaterialTheme.colorScheme.background,
+                                    contentColor = MaterialTheme.colorScheme.onSurface,
                                 ),
                             ) { onAction(RewardsAction.ShowSheet(RewardsSheetType.ActivateCode(""))) }
                         }
@@ -245,6 +248,7 @@ private fun RewardsScenePreview() {
             redemptions = emptyList(),
             sheet = null,
             isLoading = false,
+            rewardsUrl = "",
             onAction = {},
         )
     }
@@ -268,6 +272,7 @@ private fun RewardsSceneNoRewardsPreview() {
             redemptions = emptyList(),
             sheet = null,
             isLoading = false,
+            rewardsUrl = "",
             onAction = {},
         )
     }

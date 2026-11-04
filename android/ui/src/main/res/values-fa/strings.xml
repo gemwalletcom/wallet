@@ -3,6 +3,9 @@
   <string name="common_cancel">لغو کردن</string>
   <string name="common_hidden">مخفی</string>
   <string name="common_done">انجام شد</string>
+  <string name="common_add">افزودن</string>
+  <string name="common_close">بستن</string>
+  <string name="common_back">بازگشت</string>
   <string name="common_maximum_value">حداکثر مقدار %1$s است</string>
   <string name="common_minimum_value">حداقل مقدار %1$s است</string>
   <string name="common_secret_phrase">عبارت مخفی</string>
@@ -298,6 +301,8 @@
   <string name="charts_price_high">بالا</string>
   <string name="charts_price_low">کم</string>
   <string name="charts_price_change">تغییر</string>
+  <string name="charts_candlestick">نمودار شمعی</string>
+  <string name="charts_line">نمودار خطی</string>
   <string name="date_today">امروز</string>
   <string name="date_yesterday">دیروز</string>
   <string name="date_day_time">%1$s، %2$s</string>

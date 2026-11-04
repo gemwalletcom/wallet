@@ -13,7 +13,7 @@ use crate::services::localization::GemLocalizedText;
 use chrono::{DateTime, Utc};
 use primitives::chart::{ChartCandleStick, ChartCandleUpdate};
 use primitives::perpetual::{PerpetualBalance, PerpetualData, PerpetualPositionData};
-use primitives::{Asset, AssetId, PerpetualDirection, PerpetualId, PerpetualMarginType, PerpetualPosition, PerpetualProvider, PerpetualType, WalletType};
+use primitives::{Asset, AssetId, Currency, PerpetualDirection, PerpetualId, PerpetualMarginType, PerpetualPosition, PerpetualProvider, PerpetualType, WalletType};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq)]
@@ -282,6 +282,7 @@ pub struct GemCandleChart {
     pub date_style: GemChartDateStyle,
     pub base: f64,
     pub price_decimals: usize,
+    pub currency: Currency,
     pub start: DateTime<Utc>,
     pub end: DateTime<Utc>,
     pub body_width: f64,
@@ -303,7 +304,7 @@ impl GemCandleChart {
     pub fn selection(&self, index: usize) -> Option<GemChartSelection> {
         let candle = self.candles.get(index)?;
         Some(GemChartSelection {
-            header: candlestick_header(self.base, candle.close, self.price_decimals),
+            header: candlestick_header(self.base, candle.close, self.price_decimals, &self.currency),
             date: candle.date,
         })
     }

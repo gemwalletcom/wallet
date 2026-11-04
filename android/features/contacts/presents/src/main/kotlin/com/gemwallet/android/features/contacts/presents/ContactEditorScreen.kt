@@ -30,10 +30,10 @@ fun ContactEditorScreen(onSaved: () -> Unit, onCancel: () -> Unit, viewModel: Co
             ContactEditorPage.Form -> ContactEditorScene(
                 state = uiState,
                 snackbar = snackbar,
-                onNameChange = viewModel::setName,
-                onDescriptionChange = viewModel::setDescription,
                 onAction = { action ->
                     when (action) {
+                        is ContactEditorAction.SetName -> viewModel.setName(action.name)
+                        is ContactEditorAction.SetDescription -> viewModel.setDescription(action.description)
                         ContactEditorAction.SelectAvatar -> viewModel.selectAvatar()
                         ContactEditorAction.RemoveAvatar -> viewModel.removeAvatar()
                         ContactEditorAction.AddAddress -> viewModel.addAddress()
@@ -48,12 +48,12 @@ fun ContactEditorScreen(onSaved: () -> Unit, onCancel: () -> Unit, viewModel: Co
             ContactEditorPage.Address -> uiState.addressInput?.let { input ->
                 ContactAddressEditorScene(
                     input = input,
-                    onAddressChange = viewModel::setAddress,
-                    onMemoChange = viewModel::setMemo,
-                    onScan = viewModel::scanAddress,
-                    onPaste = viewModel::pasteAddress,
                     onAction = { action ->
                         when (action) {
+                            is ContactAddressEditorAction.SetAddress -> viewModel.setAddress(action.address)
+                            is ContactAddressEditorAction.SetMemo -> viewModel.setMemo(action.memo)
+                            is ContactAddressEditorAction.Scan -> viewModel.scanAddress(action.address)
+                            is ContactAddressEditorAction.Paste -> viewModel.pasteAddress(action.address)
                             ContactAddressEditorAction.SelectChain -> viewModel.selectChain()
                             ContactAddressEditorAction.ValidateAddress -> viewModel.validateAddress()
                             ContactAddressEditorAction.Confirm -> viewModel.confirmAddress()

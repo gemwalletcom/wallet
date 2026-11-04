@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.transfer.presents.receive
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,6 +29,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -141,7 +143,7 @@ private fun ReceiveScene(closeIcon: Boolean, assetInfo: AssetData, header: GemAs
         closeIcon = closeIcon,
         actions = {
             IconButton(onShare) {
-                Icon(AppIcons.Share, "")
+                Icon(AppIcons.Share, shareTitle)
             }
         },
         mainAction = {
@@ -187,8 +189,8 @@ private fun ReceiveScene(closeIcon: Boolean, assetInfo: AssetData, header: GemAs
                 modifier = Modifier.width(imageSize),
                 elevation = CardDefaults.cardElevation(defaultElevation = qrCardElevation),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color.White,
-                    contentColor = Color.White,
+                    containerColor = MaterialTheme.colorScheme.background,
+                    contentColor = MaterialTheme.colorScheme.onSurface,
                 ),
             ) {
                 Box(
@@ -196,7 +198,10 @@ private fun ReceiveScene(closeIcon: Boolean, assetInfo: AssetData, header: GemAs
                         .widthIn(qrMinSize, imageSize)
                         .aspectRatio(1f)
                         .padding(imagePadding)
-                        .clickable(onCopyClick),
+                        .clip(MaterialTheme.shapes.small)
+                        .background(Color.White)
+                        .clickable(onCopyClick)
+                        .padding(paddingHalfSmall),
                 ) {
                     rememberQRCodePainter(
                         content = assetInfo.account.address,
@@ -205,7 +210,7 @@ private fun ReceiveScene(closeIcon: Boolean, assetInfo: AssetData, header: GemAs
                         Image(
                             modifier = Modifier.fillMaxSize(),
                             painter = painter,
-                            contentDescription = null,
+                            contentDescription = stringResource(R.string.common_copy),
                             contentScale = ContentScale.FillWidth,
                         )
                     }

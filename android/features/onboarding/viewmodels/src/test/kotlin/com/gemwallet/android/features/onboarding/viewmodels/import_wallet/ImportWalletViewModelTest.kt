@@ -223,6 +223,25 @@ class ImportWalletViewModelTest {
     }
 
     @Test
+    fun theWordsTheImportRefusesStayHighlightedAfterTheAlertUntilTheInputChanges() = runTest(dispatcher) {
+        val service = service()
+        coEvery { service.importWallet(any()) } throws GemServiceException.WalletImport(GemWalletImportException.InvalidSecretPhraseWords(listOf("abandom")))
+        val viewModel = viewModel(ImportType(GemWalletImportKind.PHRASE), NameServiceMock(), dispatcher, service)
+
+        viewModel.type("Abandom ability abandom")
+        viewModel.import()
+        advanceUntilIdle()
+        viewModel.dismissError()
+        advanceUntilIdle()
+        assertNull(viewModel.errorText.value)
+        assertEquals(listOf(0..6, 16..22), viewModel.uiState.value.input.invalidWordRanges(viewModel.inputState.text))
+
+        viewModel.type("abandon ability abandom")
+        advanceUntilIdle()
+        assertEquals(emptyList<IntRange>(), viewModel.uiState.value.input.invalidWordRanges(viewModel.inputState.text))
+    }
+
+    @Test
     fun onlyASingleChainImportOffersScanning() {
         assertFalse(ImportWalletUIState(importType = ImportType.phrase()).showsScan)
         assertTrue(ImportWalletUIState(importType = ImportType.phrase(chain)).showsScan)

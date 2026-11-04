@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextRange
@@ -138,7 +139,7 @@ fun ColumnScope.AmountField(
                         .clip(CircleShape)
                         .clickable(onClick = onInfo),
                     imageVector = AppIcons.InfoOutlined,
-                    contentDescription = null,
+                    contentDescription = stringResource(R.string.common_learn_more),
                     tint = MaterialTheme.colorScheme.secondaryFaded,
                 )
             }

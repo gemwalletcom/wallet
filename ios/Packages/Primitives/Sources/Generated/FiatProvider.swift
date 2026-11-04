@@ -9,4 +9,6 @@ public enum FiatProviderName: String, Codable, Equatable, Hashable, Sendable {
 	case banxa
 	case paybis
 	case flashnet
+	case fonbnk
+	case topper
 }

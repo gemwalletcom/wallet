@@ -30,7 +30,7 @@ struct HyperliquidObserverServiceTests {
         await service.setup(for: wallet)
         for await _ in opened.stream.prefix(2) {}
         await socket.simulateConnected()
-        try await Task.sleep(for: .milliseconds(200))
+        try await eventually { streamService.addresses.count == 1 }
 
         #expect(streamService.addresses.count == 1)
     }
@@ -51,6 +51,7 @@ struct HyperliquidObserverServiceTests {
         await service.setup(for: wallet)
         preparation?.resume()
         await first.value
+        try? await eventually { opened.wrappedValue >= 1 }
         try? await Task.sleep(for: .milliseconds(100))
 
         #expect(perpetualService.connectionCount == 1)
@@ -78,6 +79,7 @@ struct HyperliquidObserverServiceTests {
         for await _ in opened.stream.prefix(2) {}
         await socket.simulateConnected()
         preparationA?.resume()
+        try? await eventually { streamService.addresses.contains("0xb") }
         try? await Task.sleep(for: .milliseconds(100))
 
         #expect(streamService.addresses == ["0xb"])
@@ -96,7 +98,7 @@ struct HyperliquidObserverServiceTests {
         let preparation = await gate.stream.first { _ in true }
         await service.disconnect()
         preparation?.resume()
-        try? await Task.sleep(for: .milliseconds(100))
+        try? await eventually { await socket.state == .disconnected }
 
         #expect(await socket.state == .disconnected)
     }
@@ -120,7 +122,7 @@ struct HyperliquidObserverServiceTests {
         #expect(streamService.addresses.isEmpty)
 
         preparation?.resume()
-        try await Task.sleep(for: .milliseconds(100))
+        try await eventually { streamService.addresses == ["0xa"] }
         #expect(streamService.addresses == ["0xa"])
     }
 
@@ -138,9 +140,13 @@ struct HyperliquidObserverServiceTests {
         #expect(streamService.subscriptionChanges.isEmpty)
 
         subscribe?.resume()
-        while streamService.subscriptionChanges.count < 2 {
-            try await Task.sleep(for: .milliseconds(10))
-        }
+        try await eventually { streamService.subscriptionChanges.count == 2 }
         #expect(streamService.subscriptionChanges == ["subscribe marketPrices", "unsubscribe marketPrices"])
+    }
+}
+
+private func eventually(_ condition: () async -> Bool) async throws {
+    while await !condition() {
+        try await Task.sleep(for: .milliseconds(10))
     }
 }

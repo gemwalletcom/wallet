@@ -468,9 +468,9 @@ impl GemConfirmFeeRow {
     pub(super) fn new(value: GemConfirmFeeValue, fee_asset: Asset, opens_details: bool) -> Self {
         Self {
             title: GemListRowTitle::NetworkFee,
-            opens_details: opens_details && !matches!(value, GemConfirmFeeValue::Unavailable { .. }),
             value,
             info: GemInfoTopic::NetworkFee { asset: fee_asset },
+            opens_details,
         }
     }
 }
@@ -527,17 +527,6 @@ mod tests {
         assert_eq!(icon(GemConfirmButtonKind::Confirm, GemButtonState::Enabled), GemKeystoreAuthentication::Biometrics);
         assert_eq!(icon(GemConfirmButtonKind::Confirm, GemButtonState::Loading), GemKeystoreAuthentication::None);
         assert_eq!(icon(GemConfirmButtonKind::Retry, GemButtonState::Enabled), GemKeystoreAuthentication::None);
-    }
-
-    #[test]
-    fn test_the_fee_row_opens_details_only_while_it_has_a_fee_to_show() {
-        let asset = Asset::mock_eth();
-        let reloading = GemConfirmFeeRow::new(GemConfirmFeeValue::Loading, asset.clone(), true);
-
-        assert!(reloading.opens_details, "a reload keeps the fee sheet reachable");
-        assert_eq!((reloading.title, reloading.info), (GemListRowTitle::NetworkFee, GemInfoTopic::NetworkFee { asset: asset.clone() }));
-        assert!(!GemConfirmFeeRow::new(GemConfirmFeeValue::Unavailable { text: "-".to_string() }, asset.clone(), true).opens_details);
-        assert!(!GemConfirmFeeRow::new(GemConfirmFeeValue::Loading, asset, false).opens_details, "nothing loaded, nothing to open");
     }
 
     #[test]

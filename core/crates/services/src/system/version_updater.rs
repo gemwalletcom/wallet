@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use super::repository::Repository;
 
-use super::model::{FdroidPackageResponse, GitHubRepository, HuaweiStoreResponse, ITunesLookupResponse, SamsungStoreDetail, SolanaStoreRelease};
+use super::model::{FdroidPackageResponse, GitHubRepository, HuaweiStoreResponse, ITunesLookupResponse, SolanaStoreRelease};
 use super::store_target::{HuaweiAppRequest, StoreTarget};
 
 pub struct VersionUpdater {
@@ -50,7 +50,6 @@ impl VersionUpdater {
             PlatformStore::MacDmg => self.get_github_version(".dmg").await,
             PlatformStore::Fdroid => self.get_fdroid_version().await,
             PlatformStore::Huawei => self.get_huawei_version().await,
-            PlatformStore::SamsungStore => self.get_samsung_version().await,
             PlatformStore::SolanaStore => self.get_solana_store_version().await,
             _ => Err(format!("unsupported store: {:?}", store).into()),
         }
@@ -89,15 +88,6 @@ impl VersionUpdater {
         };
         let response: HuaweiStoreResponse = self.store(&target).post(target, &request).await?;
         response.app_info.map(|app| app.version).ok_or_else(|| "huawei version not found".into())
-    }
-
-    async fn get_samsung_version(&self) -> Result<String, Box<dyn Error + Send + Sync>> {
-        let target = StoreTarget::SamsungDetail { package: GEM_ANDROID_PACKAGE_ID.to_string() };
-        let response: SamsungStoreDetail = self.store(&target).get(target).await?;
-        match response.details {
-            Some(details) => Ok(details.version),
-            None => Err(response.error_message.unwrap_or_else(|| "no version found".to_string()).into()),
-        }
     }
 
     async fn get_solana_store_version(&self) -> Result<String, Box<dyn Error + Send + Sync>> {

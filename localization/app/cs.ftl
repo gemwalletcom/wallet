@@ -3,6 +3,9 @@
 common_cancel = Zrušit
 common_hidden = Skryté
 common_done = Hotovo
+common_add = Přidat
+common_close = Zavřít
+common_back = Zpět
 common_maximum_value = Maximální hodnota je %@
 common_minimum_value = Minimální hodnota je %@
 common_secret_phrase = Tajná fráze
@@ -343,6 +346,8 @@ charts_price_close = Závěrečná
 charts_price_high = Vysoký
 charts_price_low = Nízký
 charts_price_change = Změna
+charts_candlestick = Svíčkový graf
+charts_line = Čárový graf
 
 # Date
 

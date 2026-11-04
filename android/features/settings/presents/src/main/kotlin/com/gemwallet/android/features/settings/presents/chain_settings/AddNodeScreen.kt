@@ -25,12 +25,11 @@ fun AddNodeScreen(chain: Chain, onCancel: () -> Unit) {
         }
     }
 
-    AddNodeScene(
-        chain = chain,
-        state = state,
-        url = viewModel.url,
-        onUrlChange = viewModel::onUrlChange,
-        onAdd = viewModel::addUrl,
-        onCancel = close,
-    )
+    AddNodeScene(chain = chain, state = state, url = viewModel.url) { action ->
+        when (action) {
+            AddNodeAction.UrlChange -> viewModel.onUrlChange()
+            AddNodeAction.Add -> viewModel.addUrl()
+            AddNodeAction.Cancel -> close()
+        }
+    }
 }

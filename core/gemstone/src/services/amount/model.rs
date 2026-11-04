@@ -449,9 +449,7 @@ impl GemPerpetualAmountSession {
 
     pub fn autoclose_session(&self, amount: String) -> GemAutocloseSession {
         let data = self.action.data();
-        autoclose_open_session(data.direction.clone(), data.price, self.size(amount), self.leverage(), data.asset.decimals, data.provider.clone(), self.format.clone())
-            .on_input(TpslType::TakeProfit, self.autoclose.take_profit.value.clone().unwrap_or_default())
-            .on_input(TpslType::StopLoss, self.autoclose.stop_loss.value.clone().unwrap_or_default())
+        autoclose_open_session(data.direction.clone(), data.price, self.size(amount), self.leverage(), data.asset.decimals, data.provider.clone(), self.format.clone()).on_draft(&self.autoclose)
     }
 
     pub fn open_row(&self, amount: String) -> GemAssetItemRow {
@@ -639,6 +637,16 @@ mod tests {
         assert_eq!(sheet.stop_loss_text, "98");
         assert_eq!(sheet.modify.take_profit.price, Some(105.0));
         assert_eq!(session.autoclose_session("abc".to_string()).estimate.size, 0.0);
+    }
+
+    #[test]
+    fn test_clearing_the_default_take_profit_and_stop_loss_confirms_an_open_without_auto_close() {
+        let sheet = perpetual_session(open(20), ".").autoclose_session("1000".to_string());
+        let cleared = sheet.on_input(TpslType::TakeProfit, String::new()).on_input(TpslType::StopLoss, String::new());
+
+        assert!(cleared.view_state().confirm_enabled);
+        assert!(cleared.on_submit_attempt().view_state().confirm_enabled);
+        assert!(!sheet.view_state().confirm_enabled, "the defaults as they are have nothing to confirm");
     }
 
     #[test]

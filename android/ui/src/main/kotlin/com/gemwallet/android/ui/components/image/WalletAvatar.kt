@@ -17,8 +17,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.paddingSmall
@@ -67,7 +69,7 @@ fun BoxScope.RemoveBadge(onClick: () -> Unit) {
         ) {
             Icon(
                 imageVector = AppIcons.Close,
-                contentDescription = null,
+                contentDescription = stringResource(R.string.common_delete),
                 modifier = Modifier.size(tinyIconSize),
             )
         }

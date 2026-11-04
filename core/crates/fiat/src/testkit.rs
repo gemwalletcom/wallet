@@ -27,7 +27,9 @@ impl FiatDeviceContext {
 #[cfg(all(test, feature = "fiat_integration_tests"))]
 use crate::model::FiatMapping;
 #[cfg(all(test, feature = "fiat_integration_tests"))]
-use crate::providers::{banxa::client::BanxaClient, mercuryo::client::MercuryoClient, moonpay::client::MoonPayClient, paybis::client::PaybisClient, transak::client::TransakClient};
+use crate::providers::{
+    banxa::client::BanxaClient, fonbnk::client::FonbnkClient, mercuryo::client::MercuryoClient, moonpay::client::MoonPayClient, paybis::client::PaybisClient, topper::client::TopperClient, transak::client::TransakClient,
+};
 #[cfg(all(test, feature = "fiat_integration_tests"))]
 use gem_client::ReqwestClient;
 #[cfg(all(test, feature = "fiat_integration_tests"))]
@@ -109,6 +111,18 @@ pub fn create_banxa_test_client() -> BanxaClient {
 }
 
 #[cfg(all(test, feature = "fiat_integration_tests"))]
+pub fn create_fonbnk_test_client() -> FonbnkClient {
+    let settings = get_test_settings();
+    crate::fonbnk_client(&settings, crate::request_client(settings.fiat.timeout))
+}
+
+#[cfg(all(test, feature = "fiat_integration_tests"))]
+pub fn create_topper_test_client() -> TopperClient {
+    let settings = get_test_settings();
+    crate::topper_client(&settings, crate::request_client(settings.fiat.timeout))
+}
+
+#[cfg(all(test, feature = "fiat_integration_tests"))]
 pub fn create_mercuryo_test_client() -> MercuryoClient {
     let settings = get_test_settings();
     let client = crate::request_client(settings.fiat.timeout);
@@ -129,6 +143,7 @@ impl FiatMapping {
                 symbol: "BTC".to_string(),
                 network: Some("BITCOIN".to_string()),
             },
+            country_code: "US".to_string(),
             unsupported_countries: std::collections::HashMap::new(),
             buy_limits: vec![],
             sell_limits: vec![],

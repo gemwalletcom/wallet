@@ -32,7 +32,7 @@ impl Repository for MemoryNotificationsRepository {
         Err(DatabaseError::not_found("Device", device_id))
     }
 
-    async fn set_notifications_read(&self, _device_id: String) -> Result<usize, DatabaseError> {
+    async fn set_notifications_read(&self, _wallet_id: i32) -> Result<usize, DatabaseError> {
         Ok(0)
     }
 

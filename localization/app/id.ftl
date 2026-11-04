@@ -3,6 +3,9 @@
 common_cancel = Batalkan
 common_hidden = Tersembunyi
 common_done = Selesai
+common_add = Tambah
+common_close = Tutup
+common_back = Kembali
 common_maximum_value = Nilai maksimum adalah %@
 common_minimum_value = Nilai minimum adalah %@
 common_secret_phrase = Frasa Rahasia
@@ -343,6 +346,8 @@ charts_price_close = Penutupan
 charts_price_high = Tinggi
 charts_price_low = Rendah
 charts_price_change = Perubahan
+charts_candlestick = Grafik candlestick
+charts_line = Grafik garis
 
 # Date
 

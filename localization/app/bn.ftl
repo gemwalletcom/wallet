@@ -3,6 +3,9 @@
 common_cancel = বাতিল করুন
 common_hidden = লুকানো
 common_done = সম্পন্ন
+common_add = যোগ করুন
+common_close = বন্ধ করুন
+common_back = ফিরে যান
 common_maximum_value = সর্বোচ্চ মান %@
 common_minimum_value = সর্বনিম্ন মান %@
 common_secret_phrase = গোপন বাক্যাংশ
@@ -343,6 +346,8 @@ charts_price_close = বন্ধ
 charts_price_high = উচ্চ
 charts_price_low = কম
 charts_price_change = পরিবর্তন
+charts_candlestick = ক্যান্ডেলস্টিক চার্ট
+charts_line = লাইন চার্ট
 
 # Date
 

@@ -58,7 +58,7 @@ fun ColumnScope.AddressChainField(
                 NameResolveIndicator(indicator)
                 TransferTextFieldActions(
                     value = value,
-                    paste = { (onPaste ?: onValueChange)(clipboardManager.getPlainText() ?: "") },
+                    paste = { clipboardManager.getPlainText()?.let(onPaste ?: onValueChange) },
                     qrScanner = onQrScanner,
                     onClean = { onValueChange("") },
                 )

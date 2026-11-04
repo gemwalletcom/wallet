@@ -3,6 +3,9 @@
 common_cancel = בטל
 common_hidden = מוסתרים
 common_done = בוצע
+common_add = הוספה
+common_close = סגירה
+common_back = חזרה
 common_maximum_value = הערך המקסימלי הוא %@
 common_minimum_value = הערך המינימלי הוא %@
 common_secret_phrase = ביטוי סודי
@@ -343,6 +346,8 @@ charts_price_close = סגירה
 charts_price_high = גבוה
 charts_price_low = נמוך
 charts_price_change = שינוי
+charts_candlestick = גרף נרות
+charts_line = גרף קווי
 
 # Date
 

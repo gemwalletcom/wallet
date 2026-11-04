@@ -1248,15 +1248,6 @@
     "content_type": "application/json",
     "body": "<volatile>"
   },
-  "v2_token": {
-    "status": 500,
-    "content_type": "application/json",
-    "body": {
-      "error": {
-        "message": "Internal server error"
-      }
-    }
-  },
   "v2_transaction_by_id": {
     "status": 404,
     "content_type": "application/json",

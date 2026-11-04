@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.settings.viewmodels.models
 
-import com.gemwallet.android.ui.models.actions.PreferencesAction
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemPerpetualDefaults
 import uniffi.gemstone.GemPerpetualPickers
@@ -8,7 +7,7 @@ import uniffi.gemstone.GemPickerOption
 import uniffi.gemstone.GemRowAction
 
 sealed interface PreferencesRowAction {
-    data class Open(val action: PreferencesAction) : PreferencesRowAction
+    data class Open(val action: PreferencesAction.Navigation) : PreferencesRowAction
     data object Language : PreferencesRowAction
     data object Appearance : PreferencesRowAction
     data class Perpetuals(val isOn: Boolean) : PreferencesRowAction

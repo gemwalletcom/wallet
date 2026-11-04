@@ -41,9 +41,12 @@ import uniffi.gemstone.GemChartInput
 import uniffi.gemstone.GemChartPhase
 import uniffi.gemstone.GemChartRequest
 import uniffi.gemstone.GemChartServiceInterface
+import uniffi.gemstone.GemChartStyle
 import uniffi.gemstone.GemChartView
 import uniffi.gemstone.GemListSection
 import uniffi.gemstone.GemRefreshKind
+import java.time.Instant
+import java.time.ZoneId
 import javax.inject.Inject
 
 private const val StopTimeoutMillis = 5_000L
@@ -100,15 +103,23 @@ class ChartViewModel internal constructor(
             chart = when (val phase = view?.phase) {
                 null, GemChartPhase.Loading -> StateViewType.Loading
                 is GemChartPhase.Data -> StateViewType.Data(phase.data)
+                is GemChartPhase.Candles -> StateViewType.Loading
                 GemChartPhase.NoData -> StateViewType.NoData
                 is GemChartPhase.Failed -> StateViewType.Error(phase.error.errorText().text(context))
             },
+            candles = (view?.phase as? GemChartPhase.Candles)?.chart,
+            styleSwitch = view?.styleSwitch,
+            periods = view?.periods?.map { it.toPrimitives() } ?: ChartPeriod.entries,
         )
     }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMillis), ChartUIState(period = session.value.period.toPrimitives()))
 
     fun setPeriod(period: ChartPeriod) {
         session.update { it.onSelectPeriod(period.toGem()) }
+    }
+
+    fun selectStyle(style: GemChartStyle) {
+        session.update { chartService.selectStyle(it, style) }
     }
 
     fun refresh() {
@@ -131,6 +142,7 @@ class ChartViewModel internal constructor(
             market = data?.market?.toGem(),
             priceAlerts = data?.priceAlerts.orEmpty().map { it.toGem() },
             links = data?.links.orEmpty().map { it.toGem() },
+            utcOffsetSeconds = ZoneId.systemDefault().rules.getOffset(Instant.now()).totalSeconds,
         )
     }
 

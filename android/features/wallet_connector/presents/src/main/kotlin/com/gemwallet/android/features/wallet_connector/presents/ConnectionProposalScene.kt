@@ -33,7 +33,6 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.style.icon
 import com.gemwallet.android.ui.theme.paddingDefault
-import com.wallet.core.primitives.WalletId
 import uniffi.gemstone.GemConnectionProposal
 import uniffi.gemstone.GemConnectionRow
 import uniffi.gemstone.GemWalletSection
@@ -48,9 +47,7 @@ internal fun ConnectionProposalScene(
     availableWallets: List<com.wallet.core.primitives.Wallet>,
     availableWalletSections: List<GemWalletSection>,
     buttonState: ButtonState,
-    onReject: () -> Unit,
-    onApprove: () -> Unit,
-    onWalletSelected: (WalletId) -> Unit,
+    onAction: (ConnectionProposalAction) -> Unit,
 ) {
     var isShowSelectWallets by rememberSaveable { mutableStateOf(false) }
 
@@ -62,10 +59,10 @@ internal fun ConnectionProposalScene(
             MainActionButton(
                 title = stringResource(id = R.string.transfer_confirm),
                 state = buttonState,
-                onClick = onApprove,
+                onClick = { onAction(ConnectionProposalAction.Approve) },
             )
         },
-        onClose = onReject,
+        onClose = { onAction(ConnectionProposalAction.Reject) },
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -120,7 +117,7 @@ internal fun ConnectionProposalScene(
         isVisible = isShowSelectWallets,
         walletSections = availableWalletSections,
         selectedWalletId = selectedWallet?.id,
-        onWalletSelected = onWalletSelected,
+        onWalletSelected = { onAction(ConnectionProposalAction.SelectWallet(it)) },
         onDismissRequest = { isShowSelectWallets = false },
     )
 }

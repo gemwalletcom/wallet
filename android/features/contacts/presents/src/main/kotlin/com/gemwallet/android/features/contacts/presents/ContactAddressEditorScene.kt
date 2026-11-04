@@ -25,7 +25,7 @@ import com.wallet.core.primitives.QRScanType
 import uniffi.gemstone.chainRow
 
 @Composable
-fun ContactAddressEditorScene(input: ContactAddressInput, onAddressChange: (String) -> Unit, onMemoChange: (String) -> Unit, onScan: (String) -> Unit, onPaste: (String) -> Unit, onAction: (ContactAddressEditorAction) -> Unit) {
+fun ContactAddressEditorScene(input: ContactAddressInput, onAction: (ContactAddressEditorAction) -> Unit) {
     var scanning by rememberSaveable { mutableStateOf(false) }
 
     Scene(
@@ -33,7 +33,7 @@ fun ContactAddressEditorScene(input: ContactAddressInput, onAddressChange: (Stri
         onClose = { onAction(ContactAddressEditorAction.Cancel) },
         actions = {
             IconButton(onClick = { onAction(ContactAddressEditorAction.Confirm) }, enabled = input.isAddressValid, modifier = Modifier.testTag("save_address")) {
-                Icon(imageVector = AppIcons.Check, contentDescription = "")
+                Icon(imageVector = AppIcons.Check, contentDescription = stringResource(R.string.common_done))
             }
         },
     ) {
@@ -48,10 +48,10 @@ fun ContactAddressEditorScene(input: ContactAddressInput, onAddressChange: (Stri
             value = input.address,
             label = stringResource(R.string.common_address),
             indicator = input.nameResolveIndicator,
-            onValueChange = onAddressChange,
+            onValueChange = { onAction(ContactAddressEditorAction.SetAddress(it)) },
             modifier = Modifier.testTag("addressInputField"),
             error = input.addressError,
-            onPaste = onPaste,
+            onPaste = { onAction(ContactAddressEditorAction.Paste(it)) },
             onQrScanner = { scanning = true },
             onSubmit = { onAction(ContactAddressEditorAction.ValidateAddress) },
         )
@@ -59,7 +59,7 @@ fun ContactAddressEditorScene(input: ContactAddressInput, onAddressChange: (Stri
             MemoTextField(
                 value = input.memo,
                 label = stringResource(R.string.transfer_memo),
-                onValueChange = onMemoChange,
+                onValueChange = { onAction(ContactAddressEditorAction.SetMemo(it)) },
             )
         }
     }
@@ -69,7 +69,7 @@ fun ContactAddressEditorScene(input: ContactAddressInput, onAddressChange: (Stri
         scanType = QRScanType.Address,
         onDismissRequest = { scanning = false },
         onResult = {
-            onScan(it)
+            onAction(ContactAddressEditorAction.Scan(it))
             scanning = false
         },
     )

@@ -155,6 +155,8 @@ fn network_name(chain: Chain) -> String {
 }
 
 pub(super) fn visible_banners(stored: Vec<Banner>, context: &GemBannerContext) -> Vec<Banner> {
+    let wallet_id = context.wallet.as_ref().map(|wallet| &wallet.id);
+    let stored: Vec<Banner> = stored.into_iter().filter(|banner| banner.wallet_id.is_none() || banner.wallet_id.as_ref() == wallet_id).collect();
     let asset_id = context.asset_id();
     let mut banners: Vec<GemBannerItem> = Vec::new();
     for item in stored.iter().map(banner_item).chain(extra_banners(asset_id.clone())) {
@@ -227,10 +229,9 @@ fn event_priority(event: BannerEvent) -> u8 {
 
 #[cfg(test)]
 mod tests {
-    use super::super::model::{BannerScope, banner_scope};
     use super::*;
     use primitives::known_assets::TRON_USDT;
-    use primitives::{AccountDataType, TransactionInputType, WalletType};
+    use primitives::{AccountDataType, TransactionInputType, WalletId, WalletType};
 
     #[test]
     fn test_setup_keys() {
@@ -361,8 +362,39 @@ mod tests {
         ];
 
         assert_eq!(events(&visible_banners(stored, &context)), vec![BannerEvent::AccountBlockedMultiSignature, BannerEvent::Onboarding]);
-        let wallet_events: Vec<BannerEvent> = BannerEvent::all().into_iter().filter(|event| banner_scope(*event) != BannerScope::Asset).collect();
-        assert_eq!(wallet_events, crate::constants::WALLET_BANNER_EVENTS, "the apps ask their stores for every banner that is not an asset's");
+    }
+
+    #[test]
+    fn test_a_wallet_sees_only_its_own_and_shared_banners() {
+        let wallet = Wallet::mock_with_id(WalletId::Multicoin("wallet-1".to_string()), &[Chain::Ethereum, Chain::HyperCore]);
+        let other = WalletId::Multicoin("wallet-2".to_string());
+        let onboarding = |wallet_id: &WalletId, state| Banner {
+            wallet_id: Some(wallet_id.clone()),
+            asset: None,
+            ..Banner::mock(BannerEvent::Onboarding, state)
+        };
+        let warning = |wallet_id: &WalletId| Banner {
+            wallet_id: Some(wallet_id.clone()),
+            ..Banner::mock(BannerEvent::AccountBlockedMultiSignature, BannerState::AlwaysActive)
+        };
+        let stake = Banner::mock(BannerEvent::Stake, BannerState::Active);
+        let stored = vec![onboarding(&other, BannerState::Cancelled), onboarding(&wallet.id, BannerState::Active), warning(&other), stake.clone()];
+
+        assert_eq!(visible_banners(stored.clone(), &GemBannerContext::wallet(wallet.clone(), true)), vec![onboarding(&wallet.id, BannerState::Active)]);
+
+        let asset = GemBannerContext {
+            wallet: Some(wallet.clone()),
+            ..GemBannerContext::mock()
+        };
+        assert_eq!(visible_banners(stored.clone(), &asset), vec![stake.clone()]);
+
+        let no_wallet = GemBannerContext {
+            wallet: None,
+            asset: None,
+            is_wallet_empty: true,
+            ..GemBannerContext::mock()
+        };
+        assert!(visible_banners(stored, &no_wallet).is_empty());
     }
 
     #[test]

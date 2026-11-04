@@ -15,9 +15,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil3.compose.SubcomposeAsyncImage
+import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.icons.AppIcons
 
 @Composable
@@ -32,7 +34,7 @@ internal fun SupportImagePreviewDialog(url: String, onDismiss: () -> Unit) {
                 contentAlignment = Alignment.CenterEnd,
             ) {
                 IconButton(onClick = onDismiss) {
-                    Icon(imageVector = AppIcons.Close, contentDescription = null, tint = Color.White)
+                    Icon(imageVector = AppIcons.Close, contentDescription = stringResource(R.string.common_close), tint = Color.White)
                 }
             }
             SubcomposeAsyncImage(

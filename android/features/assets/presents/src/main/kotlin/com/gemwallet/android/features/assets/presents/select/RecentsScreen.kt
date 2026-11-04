@@ -29,11 +29,16 @@ fun RecentsScreen(viewModel: RecentsViewModel, onSelect: (Asset) -> Unit) {
         isVisible = isVisible,
         viewState = viewState,
         query = viewModel.query,
-        onDismissRequest = viewModel::dismiss,
-        onClear = viewModel::onClear,
-        onSelect = { asset ->
-            pendingAsset = asset
-            viewModel.dismiss()
-        },
-    )
+    ) { action ->
+        when (action) {
+            RecentsAction.Dismiss -> viewModel.dismiss()
+
+            RecentsAction.Clear -> viewModel.onClear()
+
+            is RecentsAction.Select -> {
+                pendingAsset = action.asset
+                viewModel.dismiss()
+            }
+        }
+    }
 }

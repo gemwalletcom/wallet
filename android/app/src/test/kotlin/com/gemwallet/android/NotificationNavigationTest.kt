@@ -9,6 +9,7 @@ import com.gemwallet.android.testkit.mockTransaction
 import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.testkit.mockWalletId
 import com.gemwallet.android.ui.navigation.routes.AssetRoute
+import com.gemwallet.android.ui.navigation.routes.ChartRoute
 import com.gemwallet.android.ui.navigation.routes.PerpetualRoute
 import com.gemwallet.android.ui.navigation.routes.PerpetualsRoute
 import com.gemwallet.android.ui.navigation.routes.RewardsRoute
@@ -50,6 +51,15 @@ class NotificationNavigationTest {
         val routes = navigation(GemNavigationTarget.Asset(GemAssetDestination.Asset(asset.toGem()), walletId = null)).prepareNavigation(GemPushNotification.Rewards).routes
 
         assertEquals(listOf(AssetRoute(asset.id)), routes)
+    }
+
+    @Test
+    fun `a chart Core opened becomes its route on the wallet tab`() = runBlocking {
+        val asset = mockAsset(id = mockAssetId(chain = Chain.Bitcoin))
+
+        val destination = navigation(GemNavigationTarget.Chart(asset.toGem())).prepareNavigation(GemPushNotification.PriceAlert(asset.id.toIdentifier()))
+
+        assertEquals(PendingNavigation.Routes(listOf(ChartRoute(asset.id)), GemNavigationTab.WALLET), destination)
     }
 
     @Test

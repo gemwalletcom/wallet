@@ -1,6 +1,6 @@
 # Product behavior
 
-This is the high-level definition of how the wallet behaves, from the user's side. The principles below apply to every screen, and so do the shared sections after them: numbers, asset logos, the Network Fee, names, asset search, charts, secrets, feature availability and toasts. Each area has its own short page under [product/](product/): the success path as steps, a diagram where it reads faster than words, the expected results and the platform differences as tables, and the few rules no table can hold. How the code delivers it lives in [ARCHITECTURE.md](ARCHITECTURE.md); the gaps live in [TODO.md](TODO.md).
+This is the high-level definition of how the wallet behaves, from the user's side. The principles below apply to every screen, and so do the shared sections after them: numbers, asset logos, the Network Fee, names, asset search, charts, secrets, feature availability and feedback: toasts and haptics. Each area has its own short page under [product/](product/): the success path as steps, a diagram where it reads faster than words, the expected results and the platform differences as tables, and the few rules no table can hold. How the code delivers it lives in [ARCHITECTURE.md](ARCHITECTURE.md); the gaps live in [TODO.md](TODO.md).
 
 Before changing how an area works, read its page. A change that breaks a rule written there is a product decision, not a cleanup: ask first, and update the page in the same change when the intent moves.
 
@@ -10,7 +10,7 @@ Before changing how an area works, read its page. A change that breaks a rule wr
 
 **Fast.** Whatever the app already knows shows at once; a refresh updates it in place and never blanks the screen. Independent requests start together and none waits for a slower one. When one source fails, the others still show; the failed one keeps its last known values. Speed of use comes first: the app is kept small only where that costs no noticeable speed.
 
-**Native.** Each app looks and feels like a first-class app of its platform: system navigation, sheets, share, paste, biometrics and the user's locale for numbers and dates. Both apps follow the same rules and make the same decisions; only the drawing is platform-specific. Where the apps differ, the area's Platform differences table says so and why; any other difference is a bug.
+**Native.** Each app looks and feels like a first-class app of its platform: system navigation, sheets, share, paste, biometrics and the user's locale for numbers and dates. A menu, long-press or toolbar, splits its actions into groups with the platform's own divider: copying and opening, then the actions on the item, then anything destructive, last. Both apps follow the same rules and make the same decisions; only the drawing is platform-specific. Where the apps differ, the area's Platform differences table says so and why; any other difference is a bug.
 
 **Simple.** Every screen uses patterns the user already knows: a list of rows, a sheet, a segmented picker, a button that says what it does. The same thing looks and works the same everywhere in the app: one asset row, one address row, one confirmation screen, one way to copy, one way to pick an asset. A new screen copies an existing one rather than inventing a layout. Each screen asks for one decision at a time, shows the outcome where the action happened, and needs no explanation to use. If something needs a tooltip to be understood, the screen is wrong, not the user.
 
@@ -175,6 +175,7 @@ Confirm and Transaction details show the Network Fee the same way.
 | There is not enough of the coin that pays the fee | the fee in that coin above its value: `0.0000129 BNB` over `$0.01` | that is the amount the user has to add |
 | The user can pick which asset pays the fee | its value and the asset: `$0.01` with `USDC` | |
 | The user taps Network Fee on Confirm | the fee in its coin above its value, and faster, slower or custom fees where the network allows | |
+| Confirm fails to load after an earlier load found fee options | the row reads `-` until a fee loads and still opens those options, showing the last fee that loaded; picking another fee loads again | the fee the user picked can be what made the load fail, and Try Again would only repeat it |
 | Confirm refreshes while the user types a custom fee | the typed value stays until they confirm it or leave the custom fee screen | a refresh never takes back what the user typed |
 | The fee rows are built on an EVM network | the price that is signed: the network's current base fee with 20% headroom, plus a tip | the base fee can rise by up to 12.5% per block and Confirm refreshes once a minute, so without headroom a transaction that misses the next block gets stuck; the user pays only the actual base fee, so the headroom is never charged |
 | The fee rows are built on Ethereum | the next block's base fee with no headroom; Normal adds a small tip and Fast a larger one, following Etherscan's gas tracker (Average and High) | the fee shown matches what Etherscan quotes; a base fee rise in the next block can delay the transaction until it falls again |
@@ -216,6 +217,7 @@ Wherever the user types an address (Send, Import Wallet, Contacts), a name such 
 | A registered name is longer than 20 characters | it resolves according to its name service’s rules | name services have different length rules |
 | A typed name is not registered, or has no address for the network | not found | a name never becomes an empty or zero address |
 | An ENS name (`.eth`, `.com`, `.xyz`, `.dev`) with characters beyond a–z, 0–9 and hyphen, such as an emoji | not found | ENS keeps records under the Unicode name; its punycode form is a different name anyone can register |
+| An ENS name is sent to on an EVM network other than Ethereum | the address its owner set for that network, or the owner's address for all EVM networks; otherwise not found | its Ethereum address can be a smart wallet that does not exist on the other network (#1692) |
 | A `.sol` name is typed while SRS resolution is paused | not found | `.sol` is never guessed from `.sns`; the two names can have different owners |
 | The name service cannot be reached | an error, not a missing name | |
 
@@ -234,8 +236,8 @@ Wallet search, every asset picker and its recents match typed text the same way.
 | When | Expected | Why |
 |---|---|---|
 | The price chart, a portfolio chart or the price widget cannot load | it shows that there is no data; only being offline shows an error | server text is not written for users |
-| The user pinches the price chart or a market's candlestick chart | it zooms toward the newest point while that point is on screen, and around the fingers once panned back, down to 14 points on screen; a zoomed chart pans back in time with a swipe; pinching out stops at the whole period | the newest point is what the user watches, and fewer points stop reading as a trend |
-| The user touches the price chart or a market's candlestick chart | a short hold shows the point under the finger; a sideways slide shows it at once while the chart is not zoomed and pans a zoomed chart; a drag that starts upright scrolls the page, and once the point shows the page stays put; a second finger hides the point | the price is read by sliding along the line; the short hold lets a pinch or a page scroll start without the point flashing |
+| The user pinches the price chart or a candlestick chart | it zooms toward the newest point while that point is on screen, and around the fingers once panned back, down to 14 points on screen; a zoomed chart pans back in time with a swipe; pinching out stops at the whole period | the newest point is what the user watches, and fewer points stop reading as a trend |
+| The user touches the price chart or a candlestick chart | a short hold shows the point under the finger; a sideways slide shows it at once while the chart is not zoomed and pans a zoomed chart; a drag that starts upright scrolls the page, and once the point shows the page stays put; a second finger hides the point | the price is read by sliding along the line; the short hold lets a pinch or a page scroll start without the point flashing |
 
 ## Secrets
 
@@ -250,6 +252,7 @@ A Secret Phrase or private key shows when a wallet is created and from "Show Sec
 | When | iOS | Android | Expected |
 |---|---|---|---|
 | The user takes a screenshot of the Secret Phrase or private key screen, or of the quick test that confirms a new Secret Phrase | the screenshot is taken without the words or key, and the user is warned | the screenshot is blocked | Intentional |
+| An accessibility service reads the Secret Phrase, private key or quick test | VoiceOver reads them; no other app can read the screen | from Android 14 only accessibility tools such as TalkBack read them; below 14 they are hidden from every accessibility service | Intentional: other services, which malware uses to steal phrases, read nothing; below 14 Android can't tell a tool from other services |
 
 - The Secret Phrase and private key screens and the quick test hide their content during screen recording and whenever the app is not active, also from VoiceOver. On iOS the words and key are drawn in a secure layer that the system leaves out of screenshots, recordings and mirroring (GEM-01-018). If that secure layer is unavailable, the words and key show as before and a screenshot is still warned about: hiding them would leave Copy, which puts the secret on the clipboard, as the only way to read it, and would stop wallet creation at the quick test.
 
@@ -268,7 +271,11 @@ If an action is unavailable, show the Not Available sheet and stop. Learn More o
 
 Load config at startup and use the stored flags for actions. Features default to enabled until config is loaded. Keep quotes visible, and Withdraw and Close available.
 
-## Toasts
+## Feedback
+
+The app answers what the user just did with a toast, a haptic or both: pinning an asset shows a toast, sliding along a chart ticks, and a scanned QR code that cannot be read shows the reason and plays an error haptic.
+
+### Toasts
 
 A toast is the short message at the bottom of the screen that confirms what the user just did, or says why it failed. Each area lists the toasts it shows in a Toasts section on its page, and the ones no area owns are below. Anything not listed shows no toast.
 
@@ -309,6 +316,44 @@ The emoji in a Toast column stands for the icon the toast shows:
 - A transaction never shows a toast: its Pending row in Activity and its push say how it went. Only an action that leaves no transaction to follow, such as a perpetual order, shows one after Confirm.
 - When the screen the action happened on closes, the toast shows on the screen the user lands on, whichever it is; it is never lost because that screen has nowhere to show it.
 - A failure shows ❌ with the reason; a success never shows ❌.
+
+### Haptics
+
+A haptic is the short vibration that confirms what the user's finger just did, or warns before a step that is hard to take back. Anything not listed has no haptic.
+
+| Haptic | Means |
+|---|---|
+| Success | it worked |
+| Error | it did not work |
+| Warning | the next tap is hard to take back |
+| Tap | a control moved under the finger |
+| Tick | the value under the finger changed |
+
+| When | Haptic | Why |
+|---|---|---|
+| A value is copied | Success, with its toast | |
+| The user taps the wallet balance to hide or show it | Tap | |
+| The user slides along the price chart, a portfolio chart or a candlestick chart | Tick each time the point under the finger changes, not when it first shows | the first point shows on its own; a tick marks each step after it |
+| The user taps a word that is not the next one on "Confirm", in [Onboarding](product/onboarding.md) | Error, and the word shakes | |
+| A scanned QR code cannot be read | Error, with its toast | |
+| Any Paste finds nothing on the clipboard | Error | nothing else shows that the tap did nothing; a copied Secret Phrase leaves the clipboard after a minute or once it is pasted, so this happens on real devices |
+| An alert asks to confirm a step that cannot be undone or changes money: deleting a wallet or a node the user added, a high Price Impact on Swap, Modify on a perpetual position | Warning | it marks the one tap to think about; an action with no confirmation, such as disconnecting a dapp, has none |
+| Confirm sends or signs a transaction | Success | the one moment money moves; the transaction itself still shows no toast |
+| Confirm fails to send | Error, with its alert | |
+| Import finds the Secret Phrase, private key or address invalid | Error, with the error | the error marks the wrong words, so the field does not shake |
+
+| When | iOS | Android | Expected |
+|---|---|---|---|
+| A value is copied | Success | none | as iOS, [TODO.md](TODO.md) BD531 |
+| An alert asks to confirm a step that cannot be undone or changes money | Warning | none | as iOS, [TODO.md](TODO.md) BD531 |
+| Any Paste finds nothing on the clipboard | Error on Import Wallet only; the other Paste buttons do nothing | nothing happens | Error on every Paste, [TODO.md](TODO.md) D534 |
+| Confirm sends, signs or fails | none | none | Success or Error, [TODO.md](TODO.md) D532 |
+| Import finds the input invalid | none | none | Error, [TODO.md](TODO.md) D533 |
+
+- A haptic only answers the user's own touch; a refresh, a price change or a push never plays one.
+- Typing, scrolling and plain buttons have none, so a haptic keeps its meaning. Validation while the user types is silent; only a tap that fails plays Error.
+- Leverage, price alerts and dapp connections play none: they already show their result, and a haptic on every success stops meaning anything.
+- The system's own haptics, on a long-press menu, Face ID or pull to refresh, are never doubled.
 
 ## Areas
 

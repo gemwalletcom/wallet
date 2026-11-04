@@ -204,7 +204,7 @@ where
         Ok(map_swap_result(&result, output_decimals))
     }
 
-    async fn get_vault_addresses(&self, _from_timestamp: Option<u64>) -> Result<VaultAddresses, SwapperError> {
+    async fn get_vault_addresses(&self) -> Result<VaultAddresses, SwapperError> {
         let api_addresses = MayanChain::unique_addresses(self.price_client.get_chains().await?);
         let deposit: BTreeSet<String> = MAYAN_DEPOSIT_CONTRACTS.iter().map(|contract| contract.contract.to_string()).chain(api_addresses.iter().cloned()).collect();
         let send: BTreeSet<String> = MAYAN_SEND_CONTRACTS.iter().map(|contract| contract.contract.to_string()).chain(api_addresses).collect();
@@ -306,7 +306,7 @@ mod tests {
         });
         let provider = Mayan::with_clients(MayanClient::new(price_client), MayanClient::new(MockClient::new()), Arc::new(ProviderMock::new("{}".to_string())));
 
-        let addresses = provider.get_vault_addresses(None).await.unwrap();
+        let addresses = provider.get_vault_addresses().await.unwrap();
         let api_address = "0xaAaAaAaaAaAaAaaAaAAAAAAAAaaaAaAaAaaAaaAa".to_string();
 
         assert_eq!(addresses.deposit.iter().filter(|address| *address == &api_address).count(), 1);

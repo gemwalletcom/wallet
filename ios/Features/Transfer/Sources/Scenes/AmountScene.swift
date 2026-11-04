@@ -111,7 +111,7 @@ public struct AmountScene: View {
         .safeAreaButton {
             StateButton(
                 text: model.continueTitle,
-                type: .primary(model.actionButtonState),
+                state: model.actionButtonState,
                 action: onSelectNextButton,
             )
         }

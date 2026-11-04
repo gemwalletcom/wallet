@@ -7,7 +7,6 @@ import androidx.room.Query
 import androidx.room.Transaction
 import com.gemwallet.android.data.services.store.database.entities.DbBanner
 import com.gemwallet.android.data.services.store.database.entities.DbBannerWithAsset
-import com.wallet.core.primitives.BannerEvent
 import com.wallet.core.primitives.BannerState
 import kotlinx.coroutines.flow.Flow
 
@@ -17,28 +16,8 @@ interface BannersDao {
     suspend fun getBanner(id: String): DbBanner?
 
     @Transaction
-    @Query(
-        """
-        SELECT * FROM
-            banners
-        WHERE
-            (wallet_id IS NULL OR wallet_id = :walletId)
-            AND asset_id IN (:assetId, :chainAssetId)
-    """,
-    )
-    fun observeAssetBanners(walletId: String?, assetId: String, chainAssetId: String): Flow<List<DbBannerWithAsset>>
-
-    @Transaction
-    @Query(
-        """
-        SELECT * FROM
-            banners
-        WHERE
-            (wallet_id IS NULL OR wallet_id = :walletId)
-            AND event IN (:events)
-    """,
-    )
-    fun observeWalletBanners(walletId: String, events: List<BannerEvent>): Flow<List<DbBannerWithAsset>>
+    @Query("SELECT * FROM banners")
+    fun observeBanners(): Flow<List<DbBannerWithAsset>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun saveBanner(banner: DbBanner)

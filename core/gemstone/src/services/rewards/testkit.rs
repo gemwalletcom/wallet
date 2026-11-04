@@ -12,7 +12,7 @@ use crate::services::device::GemDeviceKeyService;
 use crate::services::wallet::testkit::{PHRASE, WalletTestkit};
 use crate::services::wallet_session::GemWalletSessionService;
 use crate::services::wallet_session::testkit::MemoryWalletSessionStore;
-use crate::testkit::{EmptyPreferences, TestAlienProvider};
+use crate::testkit::TestAlienProvider;
 
 pub const TEST_NONCE: &str = r#"{"nonce":"nonce-1","timestamp":1}"#;
 
@@ -37,13 +37,8 @@ impl RewardsTestkit {
         let wallets = WalletTestkit::new();
         let wallet = wallets.import("Rewards", PHRASE).await;
         let discovery = DiscoveryTestkit::with_provider(provider.clone(), wallet.clone());
-        let api = Arc::new(GemDeviceApiClient::new(provider.clone(), Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences)))));
-        let auth = Arc::new(GemAuthService::new(
-            api.clone(),
-            wallets.keystore.clone(),
-            wallets.passwords.clone(),
-            Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences))),
-        ));
+        let api = Arc::new(GemDeviceApiClient::mock(provider.clone()));
+        let auth = Arc::new(GemAuthService::new(api.clone(), wallets.keystore.clone(), wallets.passwords.clone(), Arc::new(GemDeviceKeyService::mock())));
         let session = Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore::default()), wallets.wallets.clone()));
         let service = GemRewardsService::new(api, auth, discovery.balance.clone(), session, Arc::new(GemConfigService::mock(provider.clone())));
         Self {

@@ -40,6 +40,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.TabsBar
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.clickable
+import com.gemwallet.android.ui.components.fields.AmountInputTransformation
 import com.gemwallet.android.ui.components.fields.requestFocusIfAttached
 import com.gemwallet.android.ui.components.list_item.AssetListItem
 import com.gemwallet.android.ui.components.screen.Scene
@@ -65,7 +66,7 @@ private val tabs = listOf(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun SetPriceAlertScene(
+internal fun SetPriceAlertScene(
     value: TextFieldState = rememberTextFieldState(),
     type: PriceAlertNotificationType,
     direction: PriceAlertDirection,
@@ -76,10 +77,7 @@ fun SetPriceAlertScene(
     assetRow: GemAssetItemRow? = null,
     buttonState: ButtonState,
     snackbar: SnackbarHostState? = null,
-    onType: (PriceAlertNotificationType) -> Unit,
-    onDirection: (PriceAlertDirection) -> Unit,
-    onConfirm: () -> Unit,
-    onCancel: () -> Unit,
+    onAction: (SetPriceAlertAction) -> Unit,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val focusRequester = remember { FocusRequester() }
@@ -95,7 +93,7 @@ fun SetPriceAlertScene(
                 tabs = tabs,
                 selected = type,
                 onSelect = {
-                    onType(it)
+                    onAction(SetPriceAlertAction.SelectType(it))
                     value.clearText()
                 },
             ) { item ->
@@ -128,11 +126,11 @@ fun SetPriceAlertScene(
                 MainActionButton(
                     title = stringResource(R.string.transfer_confirm),
                     state = buttonState,
-                    onClick = onConfirm,
+                    onClick = { onAction(SetPriceAlertAction.Confirm) },
                 )
             }
         },
-        onClose = onCancel,
+        onClose = { onAction(SetPriceAlertAction.Cancel) },
     ) {
         Spacer(modifier = Modifier.size(paddingLarge * 2))
         LazyColumn(
@@ -160,13 +158,18 @@ fun SetPriceAlertScene(
                                         PriceAlertDirection.Up -> PriceAlertDirection.Down
                                         PriceAlertDirection.Down -> PriceAlertDirection.Up
                                     }
-                                    onDirection(direction)
+                                    onAction(SetPriceAlertAction.SelectDirection(direction))
                                 },
                                 imageVector = when (directionButton) {
                                     uniffi.gemstone.PriceAlertDirection.UP -> AppIcons.ArrowCircleUp
                                     uniffi.gemstone.PriceAlertDirection.DOWN -> AppIcons.ArrowCircleDown
                                 },
-                                contentDescription = "",
+                                contentDescription = stringResource(
+                                    when (directionButton) {
+                                        uniffi.gemstone.PriceAlertDirection.UP -> R.string.price_alerts_direction_increases_by
+                                        uniffi.gemstone.PriceAlertDirection.DOWN -> R.string.price_alerts_direction_decreases_by
+                                    },
+                                ),
                                 tint = when (directionButton) {
                                     uniffi.gemstone.PriceAlertDirection.UP -> MaterialTheme.colorScheme.tertiary
                                     uniffi.gemstone.PriceAlertDirection.DOWN -> MaterialTheme.colorScheme.error
@@ -184,6 +187,7 @@ fun SetPriceAlertScene(
                         modifier = Modifier.width(IntrinsicSize.Min).focusRequester(focusRequester),
                         state = value,
                         lineLimits = TextFieldLineLimits.SingleLine,
+                        inputTransformation = AmountInputTransformation(),
                         textStyle = MaterialTheme.typography.displaySmall.copy(
                             textAlign = TextAlign.Center,
                             color = if (value.text.isEmpty()) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurface,
@@ -236,10 +240,7 @@ fun SetPriceAlertScenePricePreview() {
             prompt = R.string.price_alerts_set_alert_price_over,
             suggestions = listOf("$850" to "850", "$950" to "950"),
             buttonState = ButtonState.Enabled,
-            onType = {},
-            onDirection = {},
-            onConfirm = {},
-            onCancel = {},
+            onAction = {},
         )
     }
 }
@@ -257,10 +258,7 @@ fun SetPriceAlertScenePercentagePreview() {
             prompt = R.string.price_alerts_set_alert_price_over,
             suggestions = listOf("3%" to "3", "6%" to "6", "9%" to "9"),
             buttonState = ButtonState.Enabled,
-            onType = {},
-            onDirection = {},
-            onConfirm = {},
-            onCancel = {},
+            onAction = {},
         )
     }
 }

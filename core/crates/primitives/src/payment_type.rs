@@ -15,4 +15,6 @@ pub enum PaymentType {
     Sepa,
     Ach,
     Wire,
+    MobileMoney,
+    BankTransfer,
 }
