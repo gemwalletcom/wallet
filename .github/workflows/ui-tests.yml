@@ -1,0 +1,136 @@
+name: UI Tests
+
+run-name: "UI Tests: ${{ inputs.platform }} (${{ inputs.suite }})"
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Platform to test'
+        required: false
+        type: choice
+        options:
+          - both
+          - ios
+          - android
+        default: both
+      suite:
+        description: 'Which suite to run'
+        required: false
+        type: choice
+        options:
+          - all
+          - native
+          - maestro
+        default: all
+  workflow_call:
+    inputs:
+      platform:
+        required: false
+        type: string
+        default: both
+      suite:
+        required: false
+        type: string
+        default: all
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ui-tests-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+env:
+  MAESTRO_CLI_NO_ANALYTICS: 1
+
+jobs:
+  ios:
+    if: ${{ inputs.platform == 'ios' || inputs.platform == 'both' }}
+    runs-on: macos-26
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+          submodules: recursive
+
+      - name: Setup iOS CI
+        uses: ./.github/actions/setup-ios-ci
+
+      - name: Install dependencies
+        run: just install-toolchains
+
+      - name: Build Core
+        run: just generate-stone
+
+      - name: Resolve SPM Dependencies
+        run: just spm-resolve
+
+      - name: Build for Testing
+        run: just build-for-testing-integration
+
+      - name: Native UI Tests
+        if: ${{ inputs.suite != 'maestro' }}
+        run: just test-integration-without-building
+
+      - name: Install Maestro
+        if: ${{ inputs.suite != 'native' }}
+        run: |
+          curl -Ls https://get.maestro.mobile.dev | bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
+      - name: Maestro flows
+        if: ${{ inputs.suite != 'native' }}
+        run: just maestro-smoke ios
+
+      - name: Upload Maestro artifacts
+        if: ${{ failure() && inputs.suite != 'native' }}
+        uses: actions/upload-artifact@330a09c2b24228d5653ee8a98ff9e872de8b3e10 # v5.1.1
+        with:
+          name: maestro-ios
+          path: build/maestro/ios
+          if-no-files-found: ignore
+
+  android:
+    if: ${{ inputs.platform == 'android' || inputs.platform == 'both' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+          submodules: recursive
+
+      - name: Setup Android CI
+        uses: ./.github/actions/setup-android-ci
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+
+      - name: Install Android toolchains
+        run: |
+          just install-toolchains
+          just install-ndk
+
+      - name: Build the app
+        working-directory: android
+        run: just build
+
+      - name: Install Maestro
+        if: ${{ inputs.suite != 'native' }}
+        run: |
+          curl -Ls https://get.maestro.mobile.dev | bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
+      - name: Maestro flows
+        if: ${{ inputs.suite != 'native' }}
+        run: just maestro-smoke android
+
+      - name: Upload Maestro artifacts
+        if: ${{ failure() && inputs.suite != 'native' }}
+        uses: actions/upload-artifact@330a09c2b24228d5653ee8a98ff9e872de8b3e10 # v5.1.1
+        with:
+          name: maestro-android
+          path: build/maestro/android
+          if-no-files-found: ignore

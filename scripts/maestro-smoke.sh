@@ -40,7 +40,7 @@ android_device() {
     local serial
     if [ -z "$(android_serial)" ]; then
         "$EMULATOR" -list-avds | grep -qx "$AVD" || echo no | "$ANDROID_SDK/cmdline-tools/latest/bin/avdmanager" create avd -n "$AVD" -d pixel_9 \
-            -k "$(cd "$ANDROID_SDK" && ls -d system-images/android-*/google_apis/arm64-v8a | newest | tr / ';')" >/dev/null
+            -k "$(cd "$ANDROID_SDK" && ls -d system-images/android-*/google_apis/* | newest | tr / ';')" >/dev/null
         nohup "$EMULATOR" -avd "$AVD" -no-window -no-audio -no-boot-anim -no-snapshot-save >/dev/null 2>&1 &
     fi
     until serial="$(android_serial)"; [ -n "$serial" ]; do sleep 2; done
