@@ -9,7 +9,7 @@ use super::contracts::{
     multicall_handler,
 };
 use crate::{contracts::IERC20, u256::u256_to_biguint};
-use primitives::{AssetId, TransactionSwapReferralFee, swap::EVM_REFERRAL_ADDRESS};
+use primitives::{AssetId, Chain, SwapProvider, TransactionSwapMetadata, TransactionSwapReferralFee, swap::EVM_REFERRAL_ADDRESS};
 use std::str::FromStr;
 
 pub struct RelayData {
@@ -28,18 +28,29 @@ pub struct RelayData {
 }
 
 impl RelayData {
-    pub fn referral_fee(&self, to_asset: &AssetId) -> Option<TransactionSwapReferralFee> {
+    fn referral_fee(&self, to_asset: &AssetId) -> Option<TransactionSwapReferralFee> {
+        let amount = self.referral_fee_amount()?;
+        Some(TransactionSwapReferralFee {
+            asset_id: to_asset.clone(),
+            value: u256_to_biguint(&(amount * AcrossAsset::from_asset(to_asset)?.scale)),
+        })
+    }
+
+    fn user_output_amount(&self) -> Option<U256> {
+        match self.referral_fee_amount() {
+            Some(fee) => self.output_amount.checked_sub(fee),
+            None => Some(self.output_amount),
+        }
+    }
+
+    fn referral_fee_amount(&self) -> Option<U256> {
         let referral = Address::from_str(EVM_REFERRAL_ADDRESS).ok()?;
         let instructions = multicall_handler::Instructions::abi_decode(&self.message).ok()?;
-        let amount = instructions.calls.into_iter().find_map(|call| {
+        instructions.calls.into_iter().find_map(|call| {
             if call.target == referral && !call.value.is_zero() {
                 return Some(call.value);
             }
             IERC20::transferCall::abi_decode(&call.callData).ok().filter(|transfer| transfer.to == referral).map(|transfer| transfer.value)
-        })?;
-        Some(TransactionSwapReferralFee {
-            asset_id: to_asset.clone(),
-            value: u256_to_biguint(&(amount * AcrossAsset::from_asset(to_asset)?.scale)),
         })
     }
 }
@@ -50,6 +61,16 @@ pub struct Deposit {
 }
 
 impl Deposit {
+    pub fn swap_metadata(&self, asset_for_token: impl Fn(Chain, Address) -> Option<AssetId>) -> Option<TransactionSwapMetadata> {
+        let relay_data = &self.relay_data;
+        let from_asset = asset_for_token(Chain::from_chain_id(relay_data.origin_chain_id.to::<u64>())?, Address::from_word(relay_data.input_token))?;
+        let to_asset = asset_for_token(Chain::from_chain_id(self.destination_chain_id)?, Address::from_word(relay_data.output_token))?;
+        let from_value = u256_to_biguint(&(relay_data.input_amount * AcrossAsset::from_asset(&from_asset)?.scale));
+        let to_value = u256_to_biguint(&(relay_data.user_output_amount()? * AcrossAsset::from_asset(&to_asset)?.scale));
+        let referral_fee = relay_data.referral_fee(&to_asset);
+        Some(TransactionSwapMetadata::new(from_asset, from_value, to_asset, to_value, SwapProvider::Across).with_referral_fee(referral_fee))
+    }
+
     fn from_v3(event: V3FundsDeposited, origin_chain_id: u64) -> Self {
         Self {
             destination_chain_id: event.destinationChainId.to::<u64>(),

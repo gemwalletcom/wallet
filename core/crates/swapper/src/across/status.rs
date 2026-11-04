@@ -1,19 +1,17 @@
-use gem_evm::u256::u256_to_biguint;
 use std::{str::FromStr, sync::Arc};
 
-use alloy_primitives::{Address, B256, U256, hex::encode_prefixed as HexEncode, keccak256};
+use alloy_primitives::{Address, B256, U256, keccak256};
 use alloy_sol_types::SolValue;
 use gem_evm::across::{
-    asset::AcrossAsset,
     contracts::V3SpokePoolInterface,
     deployment::AcrossDeployment,
     deposit::{Deposit, RelayData, parse_deposit},
 };
-use primitives::{Chain, TransactionSwapMetadata, swap::SwapStatus};
+use primitives::{Chain, swap::SwapStatus};
 
 use super::asset::supported_asset_for_token;
 use crate::{
-    SwapResult, SwapperError, SwapperProvider,
+    SwapResult, SwapperError,
     alien::RpcProvider,
     client_factory::{create_eth_client, create_tron_client},
 };
@@ -37,7 +35,7 @@ pub(super) async fn get_swap_result(rpc_provider: Arc<dyn RpcProvider>, chain: C
 
     Ok(SwapResult {
         status: SwapStatus::Completed,
-        metadata: swap_metadata(&deposit),
+        metadata: deposit.swap_metadata(supported_asset_for_token),
         eta_in_seconds: None,
     })
 }
@@ -112,20 +110,4 @@ fn relay_hash(relay_data: &RelayData, destination_chain_id: u64) -> B256 {
         relay_data.message.clone(),
     );
     keccak256((relay_data, U256::from(destination_chain_id)).abi_encode_sequence())
-}
-
-pub(in crate::across) fn swap_metadata(deposit: &Deposit) -> Option<TransactionSwapMetadata> {
-    let relay_data = &deposit.relay_data;
-    let origin_chain = Chain::from_chain_id(relay_data.origin_chain_id.to::<u64>())?;
-    let from_asset = supported_asset_for_token(origin_chain, &word_address(relay_data.input_token))?;
-    let to_chain = Chain::from_chain_id(deposit.destination_chain_id)?;
-    let to_asset = supported_asset_for_token(to_chain, &word_address(relay_data.output_token))?;
-    let from_value = u256_to_biguint(&(relay_data.input_amount * AcrossAsset::from_asset(&from_asset)?.scale));
-    let to_value = u256_to_biguint(&(relay_data.output_amount * AcrossAsset::from_asset(&to_asset)?.scale));
-    let referral_fee = relay_data.referral_fee(&to_asset);
-    Some(TransactionSwapMetadata::new(from_asset, from_value, to_asset, to_value, SwapperProvider::Across).with_referral_fee(referral_fee))
-}
-
-fn word_address(word: B256) -> String {
-    HexEncode(Address::from_word(word))
 }
