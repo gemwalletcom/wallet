@@ -32,6 +32,7 @@ import com.gemwallet.android.ui.components.clipboard.setCopy
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.PhraseLayout
 import com.gemwallet.android.ui.components.screen.Scene
+import com.gemwallet.android.ui.components.sensitiveData
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.theme.adaptivePadding
@@ -114,6 +115,7 @@ fun SecretDataScreen(onCancel: () -> Unit, viewModel: SecretDataViewModel = hilt
                 is GemWalletSecret.PrivateKey -> {
                     Text(
                         text = secret.key,
+                        modifier = Modifier.sensitiveData(),
                         style = MaterialTheme.typography.titleMedium,
                         textAlign = TextAlign.Center,
                     )
