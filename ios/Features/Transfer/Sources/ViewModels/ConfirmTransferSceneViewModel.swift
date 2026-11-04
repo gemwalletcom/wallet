@@ -390,18 +390,9 @@ extension ConfirmTransferSceneViewModel {
 
 extension ConfirmTransferSceneViewModel {
     func submit(request: ConfirmTransferRequest) async throws -> GemSubmitResult {
-        let result: GemSubmitResult
-        do {
-            result = try await confirmation.submit()
-        } catch let GemConfirmError.Broadcast(hashes, msg) {
-            hashes.forEach { request.delegate?(.success($0)) }
-            throw GemConfirmError.Broadcast(hashes: hashes, msg: msg)
-        }
-        switch result {
-        case let .signed(data, _):
-            data.forEach { request.delegate?(.success($0)) }
-        case let .sent(hashes, _):
-            hashes.forEach { request.delegate?(.success($0)) }
+        let result = try await confirmation.submit()
+        if let transactionId = result.transactionId() {
+            request.delegate?(.success(transactionId))
         }
         return result
     }

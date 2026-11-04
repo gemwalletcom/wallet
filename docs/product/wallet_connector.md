@@ -37,6 +37,8 @@ flowchart LR
 | A permit to sign names a flagged spender | a critical warning on the review | |
 | A permit to sign has an amount or deadline Gem can't read, or lets a spender take several tokens at once | the review still warns about the approval, as unlimited when the amount can't be read | a drainer shouldn't escape the warning by writing its permit differently |
 | A transaction names a sender other than the session's account, on an EVM network, Tron or Sui | it is refused before anything is signed | the review reads as a send from the session's account |
+| A transaction on an EVM network names its own gas limit | the fee shown, the balance check and the signature all use the dapp's gas limit; with no limit, or an empty or zero one, they use Gem's estimate | the user approves the fee that is signed, as in other wallets |
+| An approved transaction fails to send | the dapp is never told it was sent | a failed send must not reach the dapp as a transaction hash |
 | A one-click sign-in names a different site than the app asking | it is refused and the app is told so | the signature would log the user in to that other site |
 | A one-click sign-in is approved while another dapp connects with another wallet | each connection is listed under, and signs with, the wallet it was approved with | a sign-in keeps only the connections of the wallet that signed in |
 | A transaction approves a token: an approval, an allowance increase or a Permit2 approval | the review shows a token approval with the token, spender and amount; a flagged spender or token stops Confirm | the spender is who can move the token afterwards |
