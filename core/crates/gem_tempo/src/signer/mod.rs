@@ -56,12 +56,8 @@ impl ChainSigner for TempoSigner {
     fn sign_data(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
         let extra = input.input_type.get_generic_data()?;
         require_zero_call_value(&input.value)?;
-        let gas_limit = match &extra.gas_limit {
-            Some(gas_limit) => u64::try_from(gas_limit).map_err(SignerError::from_display)?,
-            None => input.fee.gas_limit()?,
-        };
         let call = TransactionCall::new(&extra.to, extra.data.clone().unwrap_or_default())?;
-        sign_calls(input, vec![call], gas_limit, private_key)
+        sign_calls(input, vec![call], input.fee.gas_limit()?, private_key)
     }
 
     fn sign_message(&self, message: &[u8], private_key: &[u8]) -> Result<String, SignerError> {
@@ -105,7 +101,7 @@ mod tests {
     use gem_evm::constants::TOKEN_TRANSFER_GAS_LIMIT;
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
     use primitives::{
-        Asset, AssetId, AssetType, Chain, TransactionInputType,
+        Asset, AssetId, AssetType, Chain, TransactionInputType, TransferDataExtra,
         asset_constants::{TEMPO_BRIDGED_USDC_TOKEN_ID, TEMPO_PATHUSD_TOKEN_ID, TEMPO_USDT0_ASSET_ID, TEMPO_USDT0_TOKEN_ID},
         known_assets::{TEMPO_BRIDGED_USDC, TEMPO_PATHUSD},
         swap::{ApprovalData, SwapData, SwapQuoteData},
@@ -150,10 +146,17 @@ mod tests {
 
     #[test]
     fn test_sign_data() {
-        let input = mock_tempo_signer_input(mock_tempo_generic_input(TEMPO_TEST_ROUTER_ADDRESS, vec![0xab, 0xcd]), "0", 100_000, TEMPO_USDT0_ASSET_ID.clone());
+        let extra = TransferDataExtra {
+            to: TEMPO_TEST_ROUTER_ADDRESS.to_string(),
+            data: Some(vec![0xab, 0xcd]),
+            gas_limit: Some(300_000.into()),
+            ..TransferDataExtra::mock()
+        };
+        let input = mock_tempo_signer_input(TransactionInputType::mock_generic(TEMPO_PATHUSD.clone(), extra), "0", 100_000, TEMPO_USDT0_ASSET_ID.clone());
         assert_eq!(
             TempoSigner.sign_data(&input, &TEST_PRIVATE_KEY).unwrap(),
-            "76f88c821079843b9aca008504a817c800830186a0dad994a2dc7d0266f0cc50b3eeaf36c9bfcecff1beea918082abcdc0808080809420c00000000000000000000014f22ca97301eb7380c0b841c04a35dd140d1713a54fcdc2ed189b611f4be76c2e1efa68614b3190375e989b030cbbacd46652c0f4f52166ec832cb3e8639eaf6c7d9a77a349ca837df10c5f1c"
+            "76f88c821079843b9aca008504a817c800830186a0dad994a2dc7d0266f0cc50b3eeaf36c9bfcecff1beea918082abcdc0808080809420c00000000000000000000014f22ca97301eb7380c0b841c04a35dd140d1713a54fcdc2ed189b611f4be76c2e1efa68614b3190375e989b030cbbacd46652c0f4f52166ec832cb3e8639eaf6c7d9a77a349ca837df10c5f1c",
+            "the fee's gas limit is signed, the one shown and balance-checked"
         );
 
         let value_input = mock_tempo_signer_input(mock_tempo_generic_input(TEMPO_TEST_ROUTER_ADDRESS, vec![0xab, 0xcd]), "1", 100_000, TEMPO_USDT0_ASSET_ID.clone());

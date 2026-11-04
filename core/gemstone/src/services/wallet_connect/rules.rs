@@ -328,7 +328,7 @@ pub fn transfer_data(metadata: ApplicationMetadata, transaction: WalletConnectTr
     let (extra, value) = match transaction {
         WalletConnectTransaction::Ethereum { data, kind } => {
             let value = data.value.map(BigInt::from).unwrap_or(BigInt::ZERO);
-            let gas_limit = data.gas_limit.as_deref().or(data.gas.as_deref()).map(hex_value).transpose()?;
+            let gas_limit = data.gas_limit.as_deref().or(data.gas.as_deref()).map(hex_value).transpose()?.filter(|gas_limit| *gas_limit > BigInt::ZERO);
             let gas_price = match (data.max_fee_per_gas.as_deref(), data.max_priority_fee_per_gas.as_deref()) {
                 (Some(max_fee), Some(priority_fee)) => Some(GasPriceType::Eip1559 {
                     gas_price: hex_value(max_fee)?,
@@ -839,6 +839,28 @@ mod tests {
             transfer_data(metadata, invalid, &Account::mock(Chain::Ton, "sender"), GemWalletConnectTransactionAction::Send).is_err(),
             "an amount the review cannot show is never sent to the signer"
         );
+    }
+
+    #[test]
+    fn test_transfer_data_drops_an_empty_evm_gas_limit() {
+        let gas_limit = |gas: &str| {
+            let transaction = WalletConnectTransaction::Ethereum {
+                data: WCEthereumTransactionData {
+                    gas: Some(gas.to_string()),
+                    ..mock_wc_ethereum_transaction_data()
+                },
+                kind: EvmTransactionKind::Transfer,
+            };
+            let transfer = transfer_data(ApplicationMetadata::mock(), transaction, &Account::mock(Chain::Ethereum, "0xfrom"), GemWalletConnectTransactionAction::Send).unwrap();
+            let TransactionInputType::Generic { extra, .. } = transfer.input_type else {
+                panic!("expected a generic input");
+            };
+            extra.gas_limit
+        };
+
+        assert_eq!(gas_limit("0x30d40"), Some(BigInt::from(200_000)));
+        assert_eq!(gas_limit("0x"), None, "an empty gas limit leaves the estimate in place");
+        assert_eq!(gas_limit("0x0"), None, "a zero gas limit is never signed");
     }
 
     #[test]
