@@ -292,6 +292,8 @@ pub enum FiatProviderName {
     Banxa,
     Paybis,
     Flashnet,
+    Fonbnk,
+    Topper,
 }
 
 #[uniffi::remote(Enum)]
@@ -417,6 +419,8 @@ pub enum PaymentType {
     Sepa,
     Ach,
     Wire,
+    MobileMoney,
+    BankTransfer,
 }
 
 #[uniffi::remote(Enum)]

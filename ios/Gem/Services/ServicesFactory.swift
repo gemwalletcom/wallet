@@ -244,7 +244,6 @@ struct ServicesFactory {
             signer: walletConnectorInteractor,
             session: walletSessionService,
             assets: assetsService,
-            signMessage: signMessageService,
         )
         let walletConnector = WalletConnectorService(
             walletSessionService: walletSessionService,

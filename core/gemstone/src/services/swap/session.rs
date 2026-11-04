@@ -435,7 +435,7 @@ impl GemSwapSession {
         GemSwapSession {
             quote_phase: GemSwapQuotePhase::Loading { request },
             answers: None,
-            ..self.clone()
+            ..self.on_quote_invalidated()
         }
     }
 
@@ -1103,6 +1103,21 @@ mod tests {
         assert_eq!(failed.on_provider_selected(SwapperProvider::Jupiter).transfer_phase, GemSwapTransferPhase::Idle);
         assert_eq!(failed.on_refresh_requested(GemSwapRequest::mock()).transfer_phase, GemSwapTransferPhase::Idle);
         assert_eq!(failed.on_quote_invalidated().transfer_phase, GemSwapTransferPhase::Idle);
+    }
+
+    #[test]
+    fn test_a_refresh_round_after_a_failed_transfer_shows_the_new_quote() {
+        let started = start(&GemSwapSession::mock_ready()).unwrap();
+        let failed = started.on_transfer_failed(started.transfer_phase.clone(), SwapperError::TransactionError("nonce".into()));
+        assert!(failed.refreshes_quotes(true));
+
+        let refreshed = failed
+            .on_fetch_started(GemSwapRequest::mock())
+            .on_quote_results(GemSwapQuotesResult::mock(vec![SwapperQuote::mock_with_provider(SwapperProvider::Okx, "99")]));
+
+        assert_eq!(refreshed.transfer_phase, GemSwapTransferPhase::Idle);
+        assert_eq!(refreshed.quote().unwrap().to_value, BigUint::from(99u32));
+        assert_eq!(refreshed.action(), GemSwapSessionAction::Ready);
     }
 
     #[test]

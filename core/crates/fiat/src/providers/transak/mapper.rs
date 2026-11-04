@@ -268,6 +268,7 @@ mod tests {
             },
             wallet_address: "0x123".to_string(),
             ip_address: "192.0.2.1".to_string(),
+            country_code: "US".to_string(),
             locale: "en".to_string(),
         };
         let quote = TransakQuote {

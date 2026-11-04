@@ -79,16 +79,10 @@ pub fn quote_input(pay_asset: &Asset, receive_asset: &Asset, value: &str, availa
     })
 }
 
-const BASIS_POINTS: u32 = 10_000;
 const BPS_PER_PERCENT: f64 = 100.0;
 
 pub fn selected_quote(quotes: &[Quote], preferred: Option<SwapperProvider>) -> Option<Quote> {
     quotes.iter().find(|quote| Some(quote.data.provider.id) == preferred).or_else(|| quotes.first()).cloned()
-}
-
-pub fn min_receive_value(value: &BigUint, slippage_bps: u32) -> BigUint {
-    let kept = BASIS_POINTS.saturating_sub(slippage_bps);
-    value * BigUint::from(kept) / BigUint::from(BASIS_POINTS)
 }
 
 pub fn slippage_bps_from_percent(percent: f64) -> Option<u32> {
@@ -408,17 +402,6 @@ mod tests {
 
         assert!(swap_rate(&eth, &BigUint::from(0u32), &usdc, &two_thousand_usdc).is_none());
         assert!(swap_rate(&eth, &one_eth, &usdc, &BigUint::from(0u32)).is_none());
-    }
-
-    #[test]
-    fn test_min_receive_value_keeps_the_slippage_share() {
-        let value = BigUint::from(1_000_000u32);
-        assert_eq!(min_receive_value(&value, 0), value);
-        assert_eq!(min_receive_value(&value, 100), BigUint::from(990_000u32));
-        assert_eq!(min_receive_value(&value, 50), BigUint::from(995_000u32));
-        assert_eq!(min_receive_value(&value, BASIS_POINTS), BigUint::from(0u32));
-        assert_eq!(min_receive_value(&value, BASIS_POINTS + 1), BigUint::from(0u32));
-        assert_eq!(min_receive_value(&BigUint::from(1u32), 100), BigUint::from(0u32), "a single atomic unit floors to nothing");
     }
 
     #[test]

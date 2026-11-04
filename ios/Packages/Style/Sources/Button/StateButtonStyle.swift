@@ -4,11 +4,11 @@ import SwiftUI
 
 public struct StateButtonStyle: ButtonStyle {
     public static let maxHeight: CGFloat = 50
-    private let variant: ButtonType
+    private let state: ButtonState
     private let palette: ButtonStylePalette
 
-    public init(_ variant: ButtonType, palette: ButtonStylePalette) {
-        self.variant = variant
+    public init(_ state: ButtonState, palette: ButtonStylePalette) {
+        self.state = state
         self.palette = palette
     }
 
@@ -20,7 +20,7 @@ public struct StateButtonStyle: ButtonStyle {
 
     @ViewBuilder
     private func content(configuration: Configuration) -> some View {
-        if variant.state.showProgress {
+        if state.showProgress {
             ButtonProgressView()
         } else {
             configuration.label
@@ -36,7 +36,7 @@ public struct StateButtonStyle: ButtonStyle {
             DefaultGlassEffectShape()
                 .fill(background(configuration: configuration))
                 .frame(maxHeight: Self.maxHeight)
-                .glassEffect(.regular.interactive(!variant.isDisabled))
+                .glassEffect(.regular.interactive(!state.isDisabled))
         } else {
             RoundedRectangle(cornerRadius: Sizing.space12)
                 .fill(background(configuration: configuration))
@@ -45,7 +45,7 @@ public struct StateButtonStyle: ButtonStyle {
     }
 
     private func background(configuration: Configuration) -> Color {
-        switch variant.state {
+        switch state {
         case .normal: configuration.isPressed ? palette.backgroundPressed : palette.background
         case let .loading(show): show ? palette.background : palette.backgroundDisabled
         case .disabled: palette.backgroundDisabled
@@ -53,7 +53,7 @@ public struct StateButtonStyle: ButtonStyle {
     }
 
     private func foreground(configuration: Configuration) -> Color {
-        switch variant.state {
+        switch state {
         case .normal: configuration.isPressed ? palette.foregroundPressed : palette.foreground
         case let .loading(show): show ? palette.foreground : palette.foreground.opacity(.semi)
         case .disabled: palette.foreground
@@ -65,13 +65,7 @@ public struct StateButtonStyle: ButtonStyle {
 
 public extension ButtonStyle where Self == StateButtonStyle {
     static func primary(_ state: ButtonState = .normal) -> Self {
-        .init(.primary(state), palette: .primary)
-    }
-
-    static func variant(_ variant: ButtonType) -> Self {
-        switch variant {
-        case let .primary(state): .primary(state)
-        }
+        .init(state, palette: .primary)
     }
 }
 

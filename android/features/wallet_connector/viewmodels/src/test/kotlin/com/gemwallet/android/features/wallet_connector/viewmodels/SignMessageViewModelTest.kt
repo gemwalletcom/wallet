@@ -33,7 +33,6 @@ import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemSignMessageServiceInterface
-import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.InternalException
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -58,14 +57,12 @@ class SignMessageViewModelTest {
         coEvery { withAddressNames(any(), any()) } answers { secondArg() }
     }
 
-    private fun viewModel(request: WalletConnectPendingRequest.SignMessage, service: GemWalletConnectServiceInterface = mockk(relaxed = true), signMessageService: GemSignMessageServiceInterface = signMessageService()) =
-        SignMessageViewModel(
-            request = request,
-            service = service,
-            signMessageService = signMessageService,
-            ioDispatcher = dispatcher,
-            context = mockk(relaxed = true),
-        ).also { models.add(it) }
+    private fun viewModel(request: WalletConnectPendingRequest.SignMessage, signMessageService: GemSignMessageServiceInterface = signMessageService()) = SignMessageViewModel(
+        request = request,
+        signMessageService = signMessageService,
+        ioDispatcher = dispatcher,
+        context = mockk(relaxed = true),
+    ).also { models.add(it) }
 
     private fun TestScope.pending(requests: WalletConnectPendingRequests, signature: CompletableDeferred<String>? = null): Job = launch {
         runCatching {
@@ -102,10 +99,10 @@ class SignMessageViewModelTest {
     @Test
     fun `a failed signature leaves the request open and only a cancelled one answers the dapp`() = runTest(dispatcher) {
         val requests = WalletConnectPendingRequests()
-        val service = mockk<GemWalletConnectServiceInterface>(relaxed = true)
-        coEvery { service.signMessage(any(), any()) } throws GemServiceException.Api("offline")
+        val signMessageService = signMessageService()
+        coEvery { signMessageService.sign(any(), any()) } throws GemServiceException.Api("offline")
         val job = pending(requests)
-        val model = viewModel(requests.awaitMessage(), service = service)
+        val model = viewModel(requests.awaitMessage(), signMessageService = signMessageService)
 
         val errors = mutableListOf<String>()
         val signatures = mutableListOf<String>()
@@ -115,7 +112,7 @@ class SignMessageViewModelTest {
         assertEquals(1, errors.size)
         assertNotNull(requests.current.value)
 
-        coEvery { service.signMessage(any(), any()) } throws GemServiceException.Cancelled()
+        coEvery { signMessageService.sign(any(), any()) } throws GemServiceException.Cancelled()
         model.onSign(onSigned = signatures::add, onError = errors::add)
         job.join()
 
@@ -127,10 +124,10 @@ class SignMessageViewModelTest {
     @Test
     fun `an unexpected signing failure shows an error and leaves the request open`() = runTest(dispatcher) {
         val requests = WalletConnectPendingRequests()
-        val service = mockk<GemWalletConnectServiceInterface>(relaxed = true)
-        coEvery { service.signMessage(any(), any()) } throws InternalException("panic")
+        val signMessageService = signMessageService()
+        coEvery { signMessageService.sign(any(), any()) } throws InternalException("panic")
         val job = pending(requests)
-        val model = viewModel(requests.awaitMessage(), service = service)
+        val model = viewModel(requests.awaitMessage(), signMessageService = signMessageService)
 
         val errors = mutableListOf<String>()
         model.onSign(onSigned = {}, onError = errors::add)
@@ -145,10 +142,10 @@ class SignMessageViewModelTest {
     @Test
     fun `signing hands the core signature on and keeps the button loading`() = runTest(dispatcher) {
         val requests = WalletConnectPendingRequests()
-        val service = mockk<GemWalletConnectServiceInterface>(relaxed = true)
-        coEvery { service.signMessage(any(), any()) } returns "0xdeadbeef"
+        val signMessageService = signMessageService()
+        coEvery { signMessageService.sign(any(), any()) } returns "0xdeadbeef"
         val job = pending(requests)
-        val model = viewModel(requests.awaitMessage(), service = service)
+        val model = viewModel(requests.awaitMessage(), signMessageService = signMessageService)
 
         val signed = CompletableDeferred<String>()
         model.onSign(onSigned = { signed.complete(it) }, onError = {})
@@ -162,11 +159,11 @@ class SignMessageViewModelTest {
     @Test
     fun `rejecting is ignored while the message is signing`() = runTest(dispatcher) {
         val requests = WalletConnectPendingRequests()
-        val service = mockk<GemWalletConnectServiceInterface>(relaxed = true)
+        val signMessageService = signMessageService()
         val signature = CompletableDeferred<String>()
-        coEvery { service.signMessage(any(), any()) } coAnswers { signature.await() }
+        coEvery { signMessageService.sign(any(), any()) } coAnswers { signature.await() }
         val job = pending(requests)
-        val model = viewModel(requests.awaitMessage(), service = service)
+        val model = viewModel(requests.awaitMessage(), signMessageService = signMessageService)
 
         val rejected = mutableListOf<Unit>()
         model.onReject { rejected.add(Unit) }

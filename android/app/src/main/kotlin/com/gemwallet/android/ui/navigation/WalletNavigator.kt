@@ -14,7 +14,6 @@ import com.gemwallet.android.domains.wallet.PrivateKeyExportInput
 import com.gemwallet.android.domains.wallet.WalletSecretInput
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
-import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.assets.presents.select.AssetsManageRoute
@@ -99,7 +98,6 @@ import com.gemwallet.android.ui.navigation.routes.WalletImageRoute
 import com.gemwallet.android.ui.navigation.routes.WalletRoute
 import com.gemwallet.android.ui.navigation.routes.WalletSearchRoute
 import com.gemwallet.android.ui.navigation.routes.WalletsRoute
-import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChainAddress
@@ -257,7 +255,11 @@ class WalletNavigator(
     fun openExportPrivateKey(walletId: WalletId, chain: Chain) = push(ExportPrivateKeyRoute(walletId, chain))
     fun openAddAsset() = push(AddAssetRoute)
     fun openAsset(assetId: AssetId) = openTarget({ navigationService.openAsset(assetId.toIdentifier()) }) { target ->
-        if (target is GemNavigationTarget.Asset) push(AssetRoute(assetId))
+        when ((target as? GemNavigationTarget.Asset)?.destination) {
+            is GemAssetDestination.Asset -> push(AssetRoute(assetId))
+            is GemAssetDestination.Perpetual -> push(PerpetualRoute(assetId))
+            null -> Unit
+        }
     }
     fun openNetworkAssets(chain: Chain) = push(NetworkAssetsRoute(chain))
     fun openChart(assetId: AssetId) = push(ChartRoute(assetId))
@@ -313,19 +315,9 @@ class WalletNavigator(
     fun openSetPriceAlert(assetId: AssetId) = push(SetPriceAlertRoute(assetId))
     fun openPerpetuals() = push(PerpetualsRoute)
     fun openPerpetual(assetId: AssetId) = push(PerpetualRoute(assetId))
-    fun openTransactionPerpetual(assetId: AssetId) = openTarget({ navigationService.openAsset(assetId.toIdentifier()) }) { target ->
-        if (target is GemNavigationTarget.Asset) push(PerpetualRoute(assetId))
-    }
 
     fun openPerpetualDepositSelect() = push(PerpetualDepositSelectRoute)
 
-    fun openRecent(asset: Asset) {
-        val target = navigationService.assetTarget(asset.toGem()) as? GemNavigationTarget.Asset ?: return
-        when (target.destination) {
-            is GemAssetDestination.Asset -> openAsset(asset.id)
-            is GemAssetDestination.Perpetual -> openPerpetual(asset.id)
-        }
-    }
     fun openEarn(assetId: AssetId) = push(EarnRoute(assetId))
 
     fun openStake(assetId: AssetId) = push(StakeRoute(assetId))

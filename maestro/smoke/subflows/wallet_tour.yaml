@@ -24,6 +24,7 @@ appId: ${APP_ID}
 - runFlow: currency.yaml
 - runFlow: networks.yaml
 - runFlow: wallet_connect.yaml
+- runFlow: import_error.yaml
 - runFlow: appearance.yaml
 - runFlow: language.yaml
 - runFlow: phrase_suggestions.yaml

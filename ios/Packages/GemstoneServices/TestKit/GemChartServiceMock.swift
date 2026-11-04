@@ -8,6 +8,7 @@ import enum Gemstone.GemChartRequest
 import struct Gemstone.GemChartResult
 import protocol Gemstone.GemChartServiceProtocol
 import struct Gemstone.GemChartSession
+import enum Gemstone.GemChartStyle
 import struct Gemstone.GemChartView
 import struct Gemstone.GemChartZoom
 import GemstonePrimitivesTestKit
@@ -23,12 +24,32 @@ public final class GemChartServiceMock: GemChartServiceProtocol, @unchecked Send
     }
 
     public func newSession() -> GemChartSession {
-        GemChartSession(period: .day, currency: .usd, rate: .known(rate: 1), chart: nil, error: nil, isLoading: true, isRefreshing: false, zoom: GemChartZoom(scale: 1, offset: 0))
+        GemChartSession(
+            period: .day,
+            currency: .usd,
+            rate: .known(rate: 1),
+            chart: nil,
+            error: nil,
+            isLoading: true,
+            isRefreshing: false,
+            zoom: GemChartZoom(scale: 1, offset: 0),
+            style: .line,
+            hasCandles: false,
+            candles: [],
+            candlesError: nil,
+            needsCandles: true,
+        )
+    }
+
+    public func selectStyle(session: GemChartSession, style: GemChartStyle) -> GemChartSession {
+        var selected = session
+        selected.style = style
+        return selected
     }
 
     public func load(assetId _: AssetId, request: GemChartRequest) async -> GemChartResult {
         requested.yield(request)
-        return await GemChartResult(request: request, rate: 1, state: .data, chart: charts(request))
+        return await GemChartResult(request: request, rate: 1, state: .data, chart: charts(request), candles: [])
     }
 
     public func viewState(session: GemChartSession, input _: GemChartInput) -> GemChartView {
@@ -36,6 +57,8 @@ public final class GemChartServiceMock: GemChartServiceProtocol, @unchecked Send
             period: session.period,
             phase: session.isLoading ? .loading : session.chart.map { _ in .data(data: .mock()) } ?? .noData,
             isRefreshing: session.isRefreshing,
+            styleSwitch: nil,
+            periods: [.hour, .day, .week, .month, .year, .all],
             sections: [],
         )
     }

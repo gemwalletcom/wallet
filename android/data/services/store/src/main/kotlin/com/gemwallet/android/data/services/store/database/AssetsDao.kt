@@ -128,7 +128,12 @@ interface AssetsDao {
             AND (is_visible IS NOT COALESCE(:isVisible, is_visible) OR is_pinned IS NOT COALESCE(:isPinned, is_pinned))
     """,
     )
-    suspend fun setAssetConfiguration(walletId: String, assetIds: List<String>, isVisible: Boolean?, isPinned: Boolean?)
+    suspend fun setAssetConfigurationQuery(walletId: String, assetIds: List<String>, isVisible: Boolean?, isPinned: Boolean?)
+
+    @Transaction
+    suspend fun setAssetConfiguration(walletId: String, assetIds: List<String>, isVisible: Boolean?, isPinned: Boolean?) {
+        assetIds.statementChunks().forEach { setAssetConfigurationQuery(walletId, it, isVisible, isPinned) }
+    }
 
     @Update(entity = DbAsset::class)
     suspend fun updateBasicAssets(assets: List<DbAssetBasicUpdate>)
@@ -136,53 +141,57 @@ interface AssetsDao {
     @Query("UPDATE asset SET is_stake_enabled = 1 WHERE id IN (:ids) AND is_stake_enabled = 0")
     suspend fun setStakeEnabled(ids: List<String>)
 
-    @Query("UPDATE asset SET is_swap_enabled = 1 WHERE id IN (:ids) AND is_swap_enabled = 0")
+    @Query("UPDATE asset SET is_swap_enabled = 1 WHERE id IN (:ids)")
     suspend fun enableSwap(ids: List<String>)
 
-    @Query("UPDATE asset SET is_swap_enabled = 0 WHERE id NOT IN (:ids) AND is_swap_enabled = 1")
-    suspend fun disableSwapExcept(ids: List<String>)
+    @Query("UPDATE asset SET is_swap_enabled = 0 WHERE is_swap_enabled = 1")
+    suspend fun disableSwap()
 
     @Transaction
     suspend fun setSwappableAssets(ids: List<String>) {
-        enableSwap(ids)
-        disableSwapExcept(ids)
+        disableSwap()
+        ids.statementChunks().forEach { enableSwap(it) }
     }
 
-    @Query("UPDATE asset SET is_buy_enabled = 1 WHERE id IN (:ids) AND is_buy_enabled = 0")
+    @Query("UPDATE asset SET is_buy_enabled = 1 WHERE id IN (:ids)")
     suspend fun enableBuy(ids: List<String>)
 
-    @Query("UPDATE asset SET is_buy_enabled = 0 WHERE id NOT IN (:ids) AND is_buy_enabled = 1")
-    suspend fun disableBuyExcept(ids: List<String>)
+    @Query("UPDATE asset SET is_buy_enabled = 0 WHERE is_buy_enabled = 1")
+    suspend fun disableBuy()
 
     @Transaction
     suspend fun setBuyableAssets(ids: List<String>) {
-        enableBuy(ids)
-        disableBuyExcept(ids)
+        disableBuy()
+        ids.statementChunks().forEach { enableBuy(it) }
     }
 
-    @Query("UPDATE asset SET is_sell_enabled = 1 WHERE id IN (:ids) AND is_sell_enabled = 0")
+    @Query("UPDATE asset SET is_sell_enabled = 1 WHERE id IN (:ids)")
     suspend fun enableSell(ids: List<String>)
 
-    @Query("UPDATE asset SET is_sell_enabled = 0 WHERE id NOT IN (:ids) AND is_sell_enabled = 1")
-    suspend fun disableSellExcept(ids: List<String>)
+    @Query("UPDATE asset SET is_sell_enabled = 0 WHERE is_sell_enabled = 1")
+    suspend fun disableSell()
 
     @Transaction
     suspend fun setSellableAssets(ids: List<String>) {
-        enableSell(ids)
-        disableSellExcept(ids)
+        disableSell()
+        ids.statementChunks().forEach { enableSell(it) }
     }
 
     @Query("SELECT * FROM asset WHERE id = :id")
     fun getAsset(id: String): Flow<DbAsset?>
 
     @Query("SELECT * FROM asset WHERE id IN (:ids)")
-    suspend fun getAssetsByIds(ids: List<String>): List<DbAsset>
+    suspend fun getAssetsByIdsQuery(ids: List<String>): List<DbAsset>
+
+    suspend fun getAssetsByIds(ids: List<String>): List<DbAsset> = ids.statementChunks().flatMap { getAssetsByIdsQuery(it) }
 
     @Query("SELECT * FROM asset WHERE id IN (:ids)")
     fun getAssets(ids: List<String>): Flow<List<DbAsset>>
 
     @Query("SELECT id FROM asset WHERE id IN (:ids)")
-    suspend fun getAssetIds(ids: List<String>): List<String>
+    suspend fun getAssetIdsQuery(ids: List<String>): List<String>
+
+    suspend fun getAssetIds(ids: List<String>): List<String> = ids.statementChunks().flatMap { getAssetIdsQuery(it) }
 
     @Query("SELECT * FROM $ASSET_INFO WHERE chain = :chain AND id = :assetId AND walletId = :walletId")
     fun getAssetInfo(walletId: String, assetId: String, chain: Chain): Flow<DbAssetInfo?>
@@ -193,7 +202,16 @@ interface AssetsDao {
     @Query("SELECT * FROM $ASSET_INFO WHERE walletId = :walletId AND address IS NOT NULL AND visible != 0 AND assetRank >= 0 ORDER BY pinned DESC, balanceFiatTotalAmount DESC, assetRank DESC")
     fun getAssetsInfo(walletId: String): Flow<List<DbAssetInfo>>
 
-    @Query("SELECT id AS assetId, COALESCE(balanceTotalAmount, 0) AS amount, COALESCE(priceValue, 0) AS price, COALESCE(priceDayChanges, 0) AS priceChangePercentage24h FROM $ASSET_INFO WHERE walletId = :walletId AND visible != 0 AND assetRank >= 0")
+    @Query(
+        """
+        SELECT
+            id AS assetId,
+            COALESCE(balanceTotalAmount, 0) AS amount,
+            COALESCE(priceValue, 0) AS price,
+            COALESCE(priceDayChanges, 0) AS priceChangePercentage24h
+        FROM $ASSET_INFO WHERE walletId = :walletId AND visible != 0 AND assetRank >= 0
+        """,
+    )
     fun getAssetFiatValues(walletId: String): Flow<List<DbAssetFiatValue>>
 
     @Query("SELECT * FROM $ASSET_INFO WHERE walletId = :walletId AND visible != 0 AND assetRank >= 0 AND balanceTotalAmount > 0 ORDER BY balanceFiatTotalAmount DESC, assetRank DESC")

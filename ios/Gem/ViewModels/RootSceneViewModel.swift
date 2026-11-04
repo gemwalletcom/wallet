@@ -122,7 +122,10 @@ extension RootSceneViewModel {
         }
     }
 
-    func onPerpetualEnabledChanged(_: Bool, _: Bool) {
+    func onPerpetualEnabledChanged(_: Bool, _ isEnabled: Bool) {
+        if !isEnabled {
+            navigationRouter.backToRoot(tab: .wallet)
+        }
         Task {
             await appLifecycleService.updatePerpetualConnection()
         }

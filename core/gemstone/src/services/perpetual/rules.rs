@@ -700,7 +700,10 @@ pub fn candle_tooltip(candle: &ChartCandleStick, price_decimals: usize) -> GemCa
                 GemFormattedNumber::percentage(PriceChangeCalculator::percentage(candle.open, candle.close), GemPercentageStyle::Signed),
             ),
             tooltip_cell(GemCandleTooltipRow::Volume, GemFormattedNumber::usd_abbreviated(candle.volume * candle.close)),
-        ],
+        ]
+        .into_iter()
+        .filter(|cell| cell.row != GemCandleTooltipRow::Volume || candle.volume > 0.0)
+        .collect(),
     }
 }
 

@@ -39,7 +39,7 @@ pub async fn check_approval_erc20(owner: String, token: String, spender: String,
     check_approval_erc20_with_client(owner, token, spender, amount, &client).await
 }
 
-pub async fn check_approval_permit2_with_client<C>(permit2_contract: &str, owner: String, token: String, spender: String, amount: U256, client: &JsonRpcClient<C>) -> Result<Option<Permit2ApprovalData>, SwapperError>
+async fn check_approval_permit2_with_client<C>(permit2_contract: &str, owner: String, token: String, spender: String, amount: U256, client: &JsonRpcClient<C>) -> Result<Option<Permit2ApprovalData>, SwapperError>
 where
     C: Client + Clone + std::fmt::Debug + Send + Sync + 'static,
 {

@@ -35,9 +35,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.GemSessionProposal
+import uniffi.gemstone.GemSignMessageServiceInterface
 import uniffi.gemstone.GemWalletConnectAuthAccount
 import uniffi.gemstone.GemWalletConnectException
 import uniffi.gemstone.GemWalletConnectServiceInterface
+import uniffi.gemstone.SignDigestType
 import uniffi.gemstone.WalletConnectionVerificationStatus
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -91,7 +93,11 @@ class AuthRequestViewModelTest {
         )
         every { authenticationMethods() } returns listOf("personal_sign")
         every { authenticationAccounts(any(), any()) } answers { accounts(secondArg<uniffi.gemstone.Wallet>().id) }
-        coEvery { signMessage(any(), any()) } returns "0xsignature"
+    }
+
+    private fun signMessageService(): GemSignMessageServiceInterface = mockk {
+        every { payloadPreview(any()) } returns null
+        coEvery { sign(any(), any()) } returns "0xsignature"
     }
 
     private fun approval(): ApproveWalletConnectAuthentication = mockk(relaxed = true) {
@@ -99,11 +105,11 @@ class AuthRequestViewModelTest {
         every { authMessage(any(), any()) } returns "app.uniswap.org wants you to sign in"
     }
 
-    private fun viewModel(service: GemWalletConnectServiceInterface, approve: ApproveWalletConnectAuthentication = approval()) = AuthRequestViewModel(
+    private fun viewModel(service: GemWalletConnectServiceInterface, approve: ApproveWalletConnectAuthentication = approval(), signMessageService: GemSignMessageServiceInterface = signMessageService()) = AuthRequestViewModel(
         approveWalletConnectAuthentication = approve,
         activeRequest = ActiveWalletConnectRequest(events = emptyFlow()),
         walletConnectService = service,
-        signMessageService = mockk { every { payloadPreview(any()) } returns null },
+        signMessageService = signMessageService,
         ioDispatcher = dispatcher,
         context = mockk(relaxed = true) {
             every { getString(R.string.errors_connections_malicious_origin) } returns "Malicious origin"
@@ -216,14 +222,20 @@ class AuthRequestViewModelTest {
             approved.complete(thirdArg())
         }
         val service = service { listOf(mockGemWalletConnectAuthAccount(account = mockAccount(chain = Chain.Ethereum, address = "0xabc").toGem(), chainId = "eip155:1", issuer = "did:pkh:eip155:1:0xabc")) }
-        val model = viewModel(service, approve)
+        val signMessageService = signMessageService()
+        val model = viewModel(service, approve, signMessageService)
 
         model.onRequest(request, verifyContext) {}
         model.awaitContent()
         model.onApprove()
 
         assertEquals(main, approved.await())
-        coVerify { service.signMessage("multicoin_0xabc", any()) }
+        coVerify {
+            signMessageService.sign(
+                "multicoin_0xabc",
+                match { it.chain == Chain.Ethereum.string && it.signType == SignDigestType.SIWE && it.data.contentEquals("app.uniswap.org wants you to sign in".toByteArray()) },
+            )
+        }
         verify { approve.authObject(any(), "did:pkh:eip155:1:0xabc", "0xsignature") }
     }
 

@@ -1,0 +1,53 @@
+{
+  "name": "order:crypto-onramp:completed",
+  "id": "00a991cf-a870-43af-88b8-43c51532831d",
+  "bootstrapTokenId": "3f2c1b9e-7a4d-4c8e-9b1f-5d6e7a8b9c0d",
+  "data": {
+    "id": "966b8e24-6a65-442a-942e-577f16288789",
+    "status": "completed",
+    "createdAt": "2023-06-12T17:21:21.240Z",
+    "updatedAt": "2023-06-12T17:21:21.240Z",
+    "origin": {
+      "amount": "100.00",
+      "rate": "1770.27534301775263314892",
+      "asset": "USD",
+      "paymentMethod": {
+        "type": "credit-card"
+      }
+    },
+    "destination": {
+      "amount": "0.047116964221968237",
+      "rate": "0.00056488387749632223",
+      "asset": "ETH",
+      "ledger": {
+        "txid": "0xdfa1ea4ddb841af466a5ca78c6e1f0edfaef5e54e79a28238d2a5bb2da4f1911",
+        "url": "https://etherscan.io/tx/0xdfa1ea4ddb841af466a5ca78c6e1f0edfaef5e54e79a28238d2a5bb2da4f1911"
+      },
+      "network": "ethereum",
+      "address": "0xb794F5eA0ba39494cE839613fffBA74279579268"
+    },
+    "fees": [
+      {
+        "amount": "14.17",
+        "asset": "USD",
+        "normalized": "14.17",
+        "type": "network"
+      },
+      {
+        "amount": "2.42",
+        "asset": "USD",
+        "normalized": "2.42",
+        "type": "deposit"
+      }
+    ],
+    "user": {
+      "country": "US",
+      "state": "US-CA"
+    },
+    "widget": {
+      "id": "d259f6ac-3e8d-46eb-9e6c-c92e138b7660",
+      "name": "Gem Wallet",
+      "flow": "crypto_onramp"
+    }
+  }
+}

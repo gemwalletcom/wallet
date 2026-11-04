@@ -30,17 +30,13 @@ use tokio_util::task::TaskTracker;
 use tower::Layer;
 use tower_http::normalize_path::NormalizePathLayer;
 
-use crate::auth::device::{DeviceAuthConfig, JwtConfig};
+use crate::auth::device::DeviceAuthConfig;
 use crate::routes::devices::support::SupportImageUploadConfig;
 use crate::state::{AppState, Clients};
 use crate::stream::{StreamObserverConfig, StreamPricesConfig, StreamState};
 
 fn device_auth_config(settings: &Settings) -> Arc<DeviceAuthConfig> {
-    let jwt = JwtConfig {
-        secret: settings.api.auth.jwt.secret.clone(),
-        expiry: settings.api.auth.jwt.expiry,
-    };
-    Arc::new(DeviceAuthConfig::new(settings.api.auth.tolerance, jwt))
+    Arc::new(DeviceAuthConfig::new(settings.api.auth.tolerance))
 }
 
 async fn api_clients(settings: &Settings) -> Result<Clients, Box<dyn Error + Send + Sync>> {
@@ -62,7 +58,7 @@ async fn api_clients(settings: &Settings) -> Result<Clients, Box<dyn Error + Sen
         auth_config: device_auth_config(settings),
         access: Arc::new(services.access()),
         fiat: Arc::new(services.fiat(stream_producer.clone()).await?),
-        charts: Arc::new(services.charts()),
+        charts: Arc::new(services.charts(cacher_client.clone())),
         config: Arc::new(services.app_config().await?),
         names: Arc::new(NameClient::new(NameProviderFactory::new_providers(settings.name.clone()))),
         devices: Arc::new(services.devices()),

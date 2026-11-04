@@ -16,7 +16,6 @@ use crate::{DatabaseClient, DatabaseError, DieselResultExt};
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum FiatAssetFilter {
     HasAssetId,
-    Provider(FiatProviderName),
     IsEnabled(bool),
     IsEnabledByProvider(bool),
     IsBuyEnabled(bool),
@@ -59,6 +58,7 @@ pub trait FiatRepository {
     fn add_fiat_assets(&mut self, values: Vec<FiatAsset>) -> Result<usize, DatabaseError>;
     fn set_fiat_assets(&mut self, provider: FiatProviderName, values: Vec<FiatAsset>) -> Result<usize, DatabaseError>;
     fn add_fiat_providers(&mut self, providers: Vec<FiatProviderName>) -> Result<usize, DatabaseError>;
+    fn set_fiat_providers_enabled(&mut self, providers: Vec<FiatProviderName>, enabled: bool) -> Result<usize, DatabaseError>;
     fn add_fiat_providers_countries(&mut self, values: Vec<FiatProviderCountry>) -> Result<usize, DatabaseError>;
     fn set_fiat_providers_countries(&mut self, provider: FiatProviderName, values: Vec<FiatProviderCountry>) -> Result<usize, DatabaseError>;
     fn get_fiat_providers_countries(&mut self) -> Result<Vec<FiatProviderCountry>, DatabaseError>;
@@ -186,7 +186,6 @@ fn get_fiat_transaction_by_provider_transaction_id(client: &mut DatabaseClient, 
         .filter(provider_id.eq(provider))
         .filter(provider_transaction_id.eq(provider_transaction_id_value))
         .select(FiatTransactionRow::as_select())
-        .for_update()
         .first(&mut client.connection)
         .optional()
 }
@@ -199,7 +198,6 @@ fn get_unlinked_fiat_transaction_for_quote(client: &mut DatabaseClient, provider
         .filter(quote_id.eq(target_quote_id))
         .filter(provider_transaction_id.is_null())
         .select(FiatTransactionRow::as_select())
-        .for_update()
         .first(&mut client.connection)
         .optional()
 }
@@ -212,7 +210,6 @@ fn get_fiat_transaction_for_quote(client: &mut DatabaseClient, provider: &FiatPr
         .filter(quote_id.eq(target_quote_id))
         .order((created_at.desc(), id.desc()))
         .select(FiatTransactionRow::as_select())
-        .for_update()
         .first(&mut client.connection)
         .optional()
 }
@@ -259,6 +256,14 @@ impl FiatRepository for DatabaseClient {
 
     fn add_fiat_providers(&mut self, providers: Vec<FiatProviderName>) -> Result<usize, DatabaseError> {
         Ok(add_fiat_providers(self, providers.into_iter().map(FiatProviderRow::from_primitive).collect())?)
+    }
+
+    fn set_fiat_providers_enabled(&mut self, providers: Vec<FiatProviderName>, enabled_value: bool) -> Result<usize, DatabaseError> {
+        use crate::schema::fiat_providers::dsl::*;
+        let providers: Vec<FiatProviderNameRow> = providers.into_iter().map(FiatProviderNameRow::from).collect();
+        Ok(diesel::update(fiat_providers.filter(id.eq_any(providers)).filter(enabled.ne(enabled_value)))
+            .set(enabled.eq(enabled_value))
+            .execute(&mut self.connection)?)
     }
 
     fn add_fiat_providers_countries(&mut self, values: Vec<FiatProviderCountry>) -> Result<usize, DatabaseError> {
@@ -313,7 +318,6 @@ impl FiatRepository for DatabaseClient {
         for filter in filters {
             query = match filter {
                 FiatAssetFilter::HasAssetId => query.filter(fiat_assets::asset_id.is_not_null()),
-                FiatAssetFilter::Provider(value) => query.filter(fiat_assets::provider.eq(FiatProviderNameRow::from(value))),
                 FiatAssetFilter::IsEnabled(value) => query.filter(fiat_assets::is_enabled.eq(value)),
                 FiatAssetFilter::IsEnabledByProvider(value) => query.filter(fiat_assets::is_enabled_by_provider.eq(value)),
                 FiatAssetFilter::IsBuyEnabled(value) => query.filter(fiat_assets::is_buy_enabled.eq(value)),
@@ -370,7 +374,7 @@ impl FiatRepository for DatabaseClient {
     }
 
     fn update_fiat_transaction(&mut self, provider: FiatProviderName, update: FiatTransactionUpdate) -> Result<(FiatTransactionRecord, FiatTransactionRecord), DatabaseError> {
-        let (previous, updated) = update_fiat_transaction(self, provider, update)?;
+        let (previous, updated) = update_fiat_transaction(self, &FiatProviderNameRow::from(provider), &update)?;
         Ok((FiatTransactionRecord::from_row(previous), FiatTransactionRecord::from_row(updated)))
     }
 
@@ -382,12 +386,7 @@ impl FiatRepository for DatabaseClient {
     }
 }
 
-fn update_fiat_transaction(client: &mut DatabaseClient, provider: FiatProviderName, update: FiatTransactionUpdate) -> Result<(FiatTransactionRow, FiatTransactionRow), DatabaseError> {
-    let provider = FiatProviderNameRow::from(provider);
-    client.transaction(|client| Ok(update_locked_fiat_transaction(client, &provider, &update)?))
-}
-
-fn update_locked_fiat_transaction(client: &mut DatabaseClient, provider: &FiatProviderNameRow, update: &FiatTransactionUpdate) -> Result<(FiatTransactionRow, FiatTransactionRow), diesel::result::Error> {
+fn update_fiat_transaction(client: &mut DatabaseClient, provider: &FiatProviderNameRow, update: &FiatTransactionUpdate) -> Result<(FiatTransactionRow, FiatTransactionRow), diesel::result::Error> {
     use crate::schema::fiat_transactions::dsl::*;
 
     let linked_id = update.provider_transaction_id.as_deref();
@@ -415,9 +414,7 @@ fn update_locked_fiat_transaction(client: &mut DatabaseClient, provider: &FiatPr
 
 #[cfg(all(test, feature = "database_integration_tests"))]
 mod database_integration_tests {
-    use primitives::{
-        Asset, AssetId, Chain, Currency, Device, FiatAsset, FiatProviderCountry, FiatProviderName, FiatRate, FiatRateProvider, FiatTransaction, FiatTransactionStatus, FiatTransactionUpdate, WalletId, WalletSource, WalletType,
-    };
+    use primitives::{Asset, AssetId, Chain, Currency, Device, FiatAsset, FiatProviderCountry, FiatProviderName, FiatRate, FiatRateProvider, FiatTransaction, FiatTransactionStatus, FiatTransactionUpdate};
 
     use crate::{AssetsRepository, ChainsRepository, Database, DatabaseError, DevicesRepository, FiatRepository, NewWallet, WalletsRepository};
 
@@ -456,6 +453,7 @@ mod database_integration_tests {
                 client.add_chains(vec![Chain::Ethereum])?;
                 client.add_assets(vec![Asset::from_chain(Chain::Ethereum).as_basic_primitive()])?;
                 client.add_fiat_providers(vec![PROVIDER])?;
+                client.set_fiat_providers_enabled(vec![PROVIDER], true)?;
                 client.set_fiat_assets(PROVIDER, vec![fiat_asset("test_keep"), fiat_asset("test_drop")])?;
                 client.set_fiat_assets(PROVIDER, vec![fiat_asset("test_keep")])?;
                 client.get_fiat_assets_for_asset_id(&AssetId::from_chain(Chain::Ethereum))
@@ -510,11 +508,7 @@ mod database_integration_tests {
                     ..Device::mock()
                 })?;
                 let device_id = client.get_device_row_id("fiat-test-device")?;
-                let wallet = client.get_or_create_wallet(NewWallet {
-                    wallet_id: WalletId::Multicoin("0xfiat".to_string()),
-                    wallet_type: WalletType::Multicoin,
-                    source: WalletSource::Import,
-                })?;
+                let wallet = client.get_or_create_wallet(NewWallet::mock("0xfiat"))?;
                 let address_id = client.add_wallet_addresses(vec!["0xfiat".to_string()])?["0xfiat"];
                 let transaction = FiatTransaction {
                     asset_id: AssetId::from_chain(Chain::Ethereum),

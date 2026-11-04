@@ -1,0 +1,18 @@
+{
+  "iat": 1800000000,
+  "jti": "3f2c1b9e-7a4d-4c8e-9b1f-5d6e7a8b9c0d",
+  "sub": "d259f6ac-3e8d-46eb-9e6c-c92e138b7660",
+  "source": {
+    "amount": "100",
+    "asset": "USD"
+  },
+  "target": {
+    "asset": "ETH",
+    "network": "ethereum",
+    "address": "0xb794f5ea0ba39494ce839613fffba74279579268",
+    "recipientEditMode": "not-editable"
+  },
+  "simulation": {
+    "country": "US"
+  }
+}

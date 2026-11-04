@@ -24,44 +24,43 @@ public struct AssetsQuery: DatabaseQueryable {
     }
 
     public func fetch(_ db: Database) throws -> [AssetData] {
-        let searchBy = searchBy.trim()
-
-        let filters = if searchBy.isEmpty {
-            filters
-        } else {
-            try filters + [.search(searchBy, hasPriorityAssets: hasPriorityAssets(db, query: searchBy))]
-        }
-
         switch scope {
         case .wallet:
-            return try loadAssetsSearch(walletId: walletId, filters: filters)
+            try filtered(db, request: Self.walletAssets(walletId: walletId))
+                .asRequest(of: AssetRecordInfo.self)
                 .fetchAll(db)
                 .map(\.assetData)
         case .allAssets:
-            return try allAssetRecords(db, filters: filters)
+            try allAssetRecords(db)
                 .map { $0.mapToEmptyAssetData() }
         }
     }
 
     static func filtered(request: QueryInterfaceRequest<AssetRecord>, _ filters: [AssetsQueryFilter]) -> QueryInterfaceRequest<AssetRecord> {
-        var request: QueryInterfaceRequest<AssetRecord> = request
-        for filter in filters {
-            switch filter {
-            case .enabled,
-                 .buyable,
-                 .sellable,
-                 .swappable,
-                 .chains,
-                 .chainsOrAssets,
-                 .search,
-                 .enabledBalance,
-                 .disabledBalance,
-                 .hasBalance,
-                 .hasAvailableBalance:
-                request = Self.filtered(request: request, filter)
-            }
-        }
-        return request
+        filters.reduce(request) { Self.filtered(request: $0, $1) }
+    }
+
+    static func walletAssets(walletId: WalletId) -> QueryInterfaceRequest<AssetRecord> {
+        ordered(request: AssetRecord
+            .including(optional: AssetRecord.account)
+            .including(optional: AssetRecord.balance)
+            .including(optional: AssetRecord.price)
+            .filter(AssetRecord.Columns.rank >= 0)
+            .joining(optional: AssetRecord.balance
+                .filter(BalanceRecord.Columns.walletId == walletId.id))
+            .filter(
+                TableAlias(name: AccountRecord.databaseTableName)[BalanceRecord.Columns.walletId] == walletId.id,
+            ))
+    }
+
+    static func prioritized(request: QueryInterfaceRequest<AssetRecord>, searchKey: String) -> QueryInterfaceRequest<AssetRecord> {
+        request.joining(required: AssetRecord.search
+            .filter(SearchRecord.Columns.query == searchKey))
+            .order(
+                AssetRecord.fiatValue.desc,
+                TableAlias(name: SearchRecord.databaseTableName)[SearchRecord.Columns.priority].ascNullsLast,
+                TableAlias(name: AssetRecord.databaseTableName)[AssetRecord.Columns.rank].desc,
+            )
     }
 }
 
@@ -72,22 +71,20 @@ extension AssetsQuery {
         try SearchRecord
             .filter(SearchRecord.Columns.query == query)
             .filter(SearchRecord.Columns.assetId != nil)
-            .limit(1).fetchOne(db) != nil
+            .fetchOne(db) != nil
+    }
+
+    private func filtered(_ db: Database, request: QueryInterfaceRequest<AssetRecord>) throws -> QueryInterfaceRequest<AssetRecord> {
+        let request = Self.filtered(request: limit.map { request.limit($0) } ?? request, filters)
+        let query = searchBy.trim()
+        guard query.isNotEmpty else { return request }
+        return try hasPriorityAssets(db, query: query)
+            ? Self.prioritized(request: request, searchKey: query)
+            : request.filter(AssetRecord.textSearchFilter(query: query))
     }
 
     private static func filtered(request: QueryInterfaceRequest<AssetRecord>, _ filter: AssetsQueryFilter) -> QueryInterfaceRequest<AssetRecord> {
         switch filter {
-        case let .search(query, hasPriorityAssets):
-            if hasPriorityAssets {
-                return request.joining(required: AssetRecord.search
-                    .filter(SearchRecord.Columns.query == query))
-                    .order(
-                        AssetRecord.fiatValue.desc,
-                        TableAlias(name: SearchRecord.databaseTableName)[SearchRecord.Columns.priority].ascNullsLast,
-                        TableAlias(name: AssetRecord.databaseTableName)[AssetRecord.Columns.rank].desc,
-                    )
-            }
-            return request.filter(AssetRecord.textSearchFilter(query: query))
         case .hasBalance:
             return request
                 .filter(
@@ -147,41 +144,17 @@ extension AssetsQuery {
             AssetRecord.Columns.rank.desc,
         )
     }
-
-    private func loadAssetsSearch(
-        walletId: WalletId,
-        filters: [AssetsQueryFilter],
-    ) -> QueryInterfaceRequest<AssetRecordInfo> {
-        let request = Self.ordered(request: AssetRecord
-            .including(optional: AssetRecord.account)
-            .including(optional: AssetRecord.balance)
-            .including(optional: AssetRecord.price)
-            .filter(AssetRecord.Columns.rank >= 0)
-            .joining(optional: AssetRecord.balance
-                .filter(BalanceRecord.Columns.walletId == walletId.id))
-            .filter(
-                TableAlias(name: AccountRecord.databaseTableName)[BalanceRecord.Columns.walletId] == walletId.id,
-            ))
-
-        return Self.filtered(request: limit.map { request.limit($0) } ?? request, filters)
-            .asRequest(of: AssetRecordInfo.self)
-    }
 }
 
 extension AssetsQuery {
-    private func allAssetRecords(
-        _ db: Database,
-        filters: [AssetsQueryFilter],
-    ) throws -> [PriceAlertAssetRecordInfo] {
-        var request = Self.ordered(request: AssetRecord
+    private func allAssetRecords(_ db: Database) throws -> [PriceAlertAssetRecordInfo] {
+        let request = Self.ordered(request: AssetRecord
             .including(all: AssetRecord.priceAlerts)
             .including(optional: AssetRecord.price)
             .including(optional: AssetRecord.balance.filter(BalanceRecord.Columns.walletId == walletId.id))
             .filter(AssetRecord.Columns.rank >= 0))
 
-        request = Self.filtered(request: limit.map { request.limit($0) } ?? request, filters)
-
-        return try request
+        return try filtered(db, request: request)
             .asRequest(of: PriceAlertAssetRecordInfo.self)
             .fetchAll(db)
     }
@@ -197,8 +170,6 @@ extension AssetsQueryFilter {
              .enabledBalance,
              .disabledBalance:
             true
-        case let .search(_, hasPriorityAssets):
-            hasPriorityAssets
         case .enabled,
              .buyable,
              .sellable,

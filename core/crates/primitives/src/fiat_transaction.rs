@@ -32,7 +32,7 @@ pub struct FiatTransaction {
 }
 
 impl FiatTransaction {
-    pub fn new_pending(data: &FiatQuoteUrlData, country: Option<String>, provider_transaction_id: Option<String>) -> Self {
+    pub fn new_pending(data: &FiatQuoteUrlData, provider_transaction_id: Option<String>) -> Self {
         let quote = &data.quote;
         let now = Utc::now();
 
@@ -43,7 +43,7 @@ impl FiatTransaction {
             provider: quote.provider.id,
             provider_transaction_id,
             status: FiatTransactionStatus::Pending,
-            country,
+            country: Some(data.country_code.clone()),
             fiat_amount: quote.fiat_amount,
             fiat_currency: quote.fiat_currency.clone(),
             value: quote.value.clone(),

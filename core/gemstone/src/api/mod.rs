@@ -2,6 +2,8 @@ pub mod client;
 pub mod device_client;
 pub mod error;
 pub mod static_client;
+#[cfg(test)]
+pub(crate) mod testkit;
 
 pub use client::GemApiClient;
 pub use device_client::GemDeviceApiClient;

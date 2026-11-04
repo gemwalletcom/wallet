@@ -115,8 +115,8 @@ public final class SignMessageSceneViewModel {
         preview.hasCriticalWarning
     }
 
-    public var buttonType: ButtonType {
-        .primary(isButtonDisabled ? .disabled : .normal)
+    public var buttonState: ButtonState {
+        isButtonDisabled ? .disabled : .normal
     }
 
     func signMessage() async throws {

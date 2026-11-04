@@ -1,0 +1,155 @@
+{
+  "quoteId": "6aea4551af419a12b8b36d34",
+  "quoteExpiresAt": "2026-11-03T21:04:25.353Z",
+  "deposit": {
+    "paymentChannel": "bank",
+    "currencyType": "fiat",
+    "currencyCode": "NGN",
+    "currencyDetails": {
+      "countryIsoCode": "NG"
+    },
+    "cashout": {
+      "amountBeforeFees": 71705,
+      "amountAfterFees": 69912,
+      "chargedFees": [
+        {
+          "id": "service_fee",
+          "type": "percentage",
+          "recipient": "platform",
+          "amount": 1792.63
+        }
+      ],
+      "totalChargedFees": 1792.63,
+      "chargedFeesPerRecipient": {
+        "platform": 1792.63
+      },
+      "amountBeforeFeesUsd": 51.28196,
+      "amountAfterFeesUsd": 49.999642,
+      "chargedFeesUsd": [
+        {
+          "id": "service_fee",
+          "type": "percentage",
+          "recipient": "platform",
+          "amount": 1.282053
+        }
+      ],
+      "totalChargedFeesUsd": 1.282053,
+      "exchangeRate": 1398.25,
+      "exchangeRateAfterFees": 1434.1103,
+      "chargedFeesPerRecipientUsd": {
+        "platform": 1.282053
+      },
+      "feeSettings": [
+        {
+          "id": "service_fee",
+          "type": "percentage",
+          "recipient": "platform",
+          "value": 2.5,
+          "min": 0,
+          "max": "Infinity"
+        }
+      ]
+    },
+    "fieldsToCreateOrder": [
+      {
+        "key": "phoneNumber",
+        "label": "Phone Number",
+        "required": true,
+        "type": "phone"
+      },
+      {
+        "key": "bankCode",
+        "label": "Bank name",
+        "required": true,
+        "type": "enum",
+        "options": [
+          {
+            "label": "OPay",
+            "value": "999992",
+            "iconUrl": "https://storage.googleapis.com/fonbnk-public/banks%2FNG%2Fopay-1ec18c777f6c8eadc1e3262f5919399b18457416a3e5322814d4d3cab5ada2e1.png",
+            "featured": true
+          },
+          {
+            "label": "PalmPay",
+            "value": "999991",
+            "iconUrl": "https://storage.googleapis.com/fonbnk-public/banks%2FNG%2Fpalmpay-ad17b036a470de1a8bbbc1bdaf67bd1766d4b96ab23400e4518589f203a282a7.png",
+            "featured": true
+          }
+        ]
+      },
+      {
+        "key": "bankAccountNumber",
+        "label": "Bank Account Number",
+        "required": true,
+        "type": "string"
+      }
+    ],
+    "transferType": "manual"
+  },
+  "payout": {
+    "paymentChannel": "crypto",
+    "currencyType": "crypto",
+    "currencyCode": "BASE_USDC",
+    "currencyDetails": {
+      "network": "BASE",
+      "asset": "USDC",
+      "contractAddress": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+    },
+    "cashout": {
+      "amountBeforeFees": 49.999642,
+      "amountAfterFees": 49.99879,
+      "chargedFees": [
+        {
+          "id": "gas",
+          "type": "flat_amount",
+          "recipient": "blockchain",
+          "amount": 0.000852
+        }
+      ],
+      "totalChargedFees": 0.000852,
+      "chargedFeesPerRecipient": {
+        "blockchain": 0.000852
+      },
+      "amountBeforeFeesUsd": 49.999642,
+      "amountAfterFeesUsd": 49.99879,
+      "chargedFeesUsd": [
+        {
+          "id": "gas",
+          "type": "flat_amount",
+          "recipient": "blockchain",
+          "amount": 0.000852
+        }
+      ],
+      "totalChargedFeesUsd": 0.000852,
+      "exchangeRate": 1,
+      "exchangeRateAfterFees": 1,
+      "chargedFeesPerRecipientUsd": {
+        "blockchain": 0.000852
+      },
+      "feeSettings": [
+        {
+          "id": "gas",
+          "recipient": "blockchain",
+          "type": "flat_amount",
+          "value": 0.000852,
+          "min": 0,
+          "max": "Infinity"
+        }
+      ]
+    },
+    "fieldsToCreateOrder": [
+      {
+        "key": "blockchainWalletAddress",
+        "type": "string",
+        "label": "Your wallet address",
+        "required": true
+      },
+      {
+        "key": "blockchainMemo",
+        "type": "string",
+        "label": "Memo",
+        "required": false
+      }
+    ]
+  }
+}

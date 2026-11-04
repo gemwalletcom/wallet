@@ -85,6 +85,11 @@ mod tests {
     }
 
     #[test]
+    fn test_usdc_mint() {
+        assert_eq!(USDC_MINT.to_base58(), USDC_TOKEN_MINT);
+    }
+
+    #[test]
     fn test_decode_mint() {
         let non_transferable = [[0; 165].as_slice(), &[1], &[9, 0, 0, 0]].concat();
 

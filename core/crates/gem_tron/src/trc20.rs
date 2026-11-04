@@ -6,6 +6,7 @@ use crate::address::TronAddress;
 const ABI_WORD_LEN: usize = 32;
 const GASFREE_PERMIT_TRANSFER_SELECTOR: [u8; 4] = [0x6f, 0x21, 0xb8, 0x98];
 const TRC20_APPROVE_SELECTOR: [u8; 4] = [0x09, 0x5e, 0xa7, 0xb3];
+const TRC20_INCREASE_ALLOWANCE_SELECTOR: [u8; 4] = [0x39, 0x50, 0x93, 0x51];
 const TRC20_INCREASE_APPROVAL_SELECTOR: [u8; 4] = [0xd7, 0x3d, 0xd6, 0x23];
 const TRC20_TRANSFER_SELECTOR: [u8; 4] = [0xa9, 0x05, 0x9c, 0xbb];
 
@@ -31,7 +32,7 @@ pub fn encode_approval_max(spender: &TronAddress) -> Result<Vec<u8>, &'static st
 }
 
 pub(crate) fn is_approval_call(data: &[u8]) -> bool {
-    data.starts_with(&TRC20_APPROVE_SELECTOR) || data.starts_with(&TRC20_INCREASE_APPROVAL_SELECTOR)
+    [TRC20_APPROVE_SELECTOR, TRC20_INCREASE_ALLOWANCE_SELECTOR, TRC20_INCREASE_APPROVAL_SELECTOR].iter().any(|selector| data.starts_with(selector))
 }
 
 pub fn decode_approval_hex(data: &str) -> Option<ApprovalCall> {
@@ -91,13 +92,15 @@ mod tests {
             decode_approval_hex("87517c45000000000000000000000000a614f803b6fd780986a42c78ec9c7f77e6ded13c000000000000000000000000a31d689a84244bc01be56e07aeafb7686f56bb89"),
             None
         );
-        let increase = decode_approval_hex("d73dd623000000000000000000000041c148af9b50bc03cc0c616cd85c66aae9bd90cd80ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff").unwrap();
+        for selector in ["d73dd623", "39509351"] {
+            let increase = decode_approval_hex(&format!("{selector}000000000000000000000041c148af9b50bc03cc0c616cd85c66aae9bd90cd80{}", "ff".repeat(ABI_WORD_LEN))).unwrap();
 
-        assert_eq!(increase.spender.encode(), "TTbCVPfUZmPhrB9sYC8GKgGBQQEdZovkmS");
-        assert_eq!(increase.value, BigUint::from_bytes_be(&[0xff; ABI_WORD_LEN]));
+            assert_eq!(increase.spender.encode(), "TTbCVPfUZmPhrB9sYC8GKgGBQQEdZovkmS");
+            assert_eq!(increase.value, BigUint::from_bytes_be(&[0xff; ABI_WORD_LEN]));
+            assert_eq!(decode_approval_hex(selector), None);
+        }
 
         assert_eq!(decode_approval_hex("095ea7b3"), None);
-        assert_eq!(decode_approval_hex("d73dd623"), None);
         assert_eq!(
             decode_approval_hex("095ea7b3000000000000000000010000019e353a35efaa8e27c2a602a791ae1b19d9c9fa0000000000000000000000000000000000000000000000000000000000000000",),
             None

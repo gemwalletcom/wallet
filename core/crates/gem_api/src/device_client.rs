@@ -200,8 +200,8 @@ impl<E: RpcClientError> GemDeviceApiClient<E> {
         self.send(GemDeviceApiTarget::GetNotifications { from_timestamp }).await
     }
 
-    pub async fn mark_notifications_read(&self) -> Result<(), ClientError> {
-        self.send_ignoring_body(GemDeviceApiTarget::MarkNotificationsRead).await
+    pub async fn mark_notifications_read(&self, wallet_id: String) -> Result<(), ClientError> {
+        self.send_ignoring_body(GemDeviceApiTarget::MarkNotificationsRead { wallet_id }).await
     }
 
     pub async fn get_fiat_quotes(&self, wallet_id: String, quote_type: FiatQuoteType, asset_id: String, amount: f64, currency: String) -> Result<FiatQuotes, ClientError> {

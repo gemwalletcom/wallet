@@ -197,7 +197,7 @@ class WalletNavigatorTest {
     }
 
     @Test
-    fun openTransactionPerpetual_opensOnlyWhereCoreShowsPerpetuals() = runTest {
+    fun openAsset_opensAPerpetualOnlyWhereCoreShowsPerpetuals() = runTest {
         val assetId = mockAssetId(Chain.HyperCore)
         val navigationService = mockk<GemNavigationServiceInterface> {
             coEvery { openAsset(assetId.toIdentifier()) } returnsMany listOf(
@@ -207,10 +207,10 @@ class WalletNavigatorTest {
         }
         val navigator = navigatorWith(WalletRootRoute, navigationService = navigationService, scope = this)
 
-        navigator.openTransactionPerpetual(assetId).join()
+        navigator.openAsset(assetId).join()
         assertEquals(listOf(WalletRootRoute), navigator.backStack.toList())
 
-        navigator.openTransactionPerpetual(assetId).join()
+        navigator.openAsset(assetId).join()
         assertEquals(listOf(WalletRootRoute, PerpetualRoute(assetId)), navigator.backStack.toList())
     }
 

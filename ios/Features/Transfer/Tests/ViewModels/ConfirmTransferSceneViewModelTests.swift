@@ -214,7 +214,7 @@ struct ConfirmTransferSceneViewModelTests {
         if case let .networkFee(listItem, selectable) = errorFeeItem {
             #expect(listItem.subtitle == "-")
             #expect(listItem.subtitleExtra == nil)
-            #expect(selectable == false)
+            #expect(selectable)
         } else {
             Issue.record("Expected network fee item model for error state")
         }

@@ -5,7 +5,6 @@ use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumIter, EnumString};
 
 use crate::Chain;
-use crate::chain_config::StakeChainConfig;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, EnumIter, AsRefStr, EnumString, Model)]
 #[model(swift = "Equatable, CaseIterable, Sendable")]
@@ -28,12 +27,6 @@ pub enum StakeChain {
 }
 
 impl StakeChain {
-    fn config(&self) -> &'static StakeChainConfig {
-        let chain = self.chain();
-        let config = chain.config();
-        config.stake.as_ref().unwrap_or_else(|| panic!("Missing stake config for {chain}"))
-    }
-
     pub fn chain(&self) -> Chain {
         Chain::from_str(self.as_ref()).unwrap()
     }
@@ -41,50 +34,14 @@ impl StakeChain {
     pub fn from_chain(chain: Chain) -> Option<Self> {
         Self::from_str(chain.as_ref()).ok()
     }
-
-    pub fn get_lock_time(&self) -> u64 {
-        self.config().lock_time
-    }
-
-    pub fn get_min_stake_amount(&self) -> u64 {
-        self.config().min_stake_amount
-    }
-
-    pub fn get_change_amount_on_unstake(&self) -> bool {
-        self.config().change_amount_on_unstake
-    }
-
-    pub fn get_uses_freeze(&self) -> bool {
-        matches!(self, Self::Tron)
-    }
-
-    pub fn get_uses_whole_amounts(&self) -> bool {
-        matches!(self, Self::Tron)
-    }
-
-    pub fn get_can_redelegate(&self) -> bool {
-        self.config().can_redelegate
-    }
-
-    pub fn get_can_withdraw(&self) -> bool {
-        self.config().can_withdraw
-    }
-
-    pub fn get_can_claim_rewards(&self) -> bool {
-        self.config().can_claim_rewards
-    }
-
-    pub fn get_can_claim_all_rewards(&self) -> bool {
-        self.config().can_claim_all_rewards
-    }
-
-    pub fn get_reserved_for_fees(&self) -> u64 {
-        self.config().reserved_for_fees
-    }
 }
 
 #[cfg(test)]
 mod tests {
+    use std::collections::BTreeSet;
+
+    use strum::IntoEnumIterator;
+
     use super::StakeChain;
     use crate::Chain;
 
@@ -97,6 +54,11 @@ mod tests {
 
     #[test]
     fn test_ethereum_min_stake_amount() {
-        assert_eq!(StakeChain::Ethereum.get_min_stake_amount(), 10u64.pow(16));
+        assert_eq!(Chain::Ethereum.stake_config().map(|config| config.min_stake_amount), Some(10u64.pow(16)));
+    }
+
+    #[test]
+    fn test_stake_chains_are_the_chains_with_a_stake_config() {
+        assert_eq!(StakeChain::iter().map(|stake_chain| stake_chain.chain()).collect::<BTreeSet<_>>(), Chain::stakeable().into_iter().collect());
     }
 }

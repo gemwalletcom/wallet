@@ -50,6 +50,7 @@ import uniffi.gemstone.GemChartRequest
 import uniffi.gemstone.GemChartResult
 import uniffi.gemstone.GemChartService
 import uniffi.gemstone.GemChartSession
+import uniffi.gemstone.GemChartStyle
 import uniffi.gemstone.GemChartView
 import uniffi.gemstone.GemChartZoom
 import uniffi.gemstone.GemListRow
@@ -58,6 +59,8 @@ import uniffi.gemstone.GemListSection
 import uniffi.gemstone.GemListSectionFooter
 import uniffi.gemstone.GemListSectionTitle
 import uniffi.gemstone.GemLoadState
+import java.time.Instant
+import java.time.ZoneId
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ChartViewModelTest {
@@ -83,11 +86,20 @@ class ChartViewModelTest {
     private val chartService = mockk<GemChartService>(relaxed = true)
     private var savedPeriod = ChartPeriod.Day
     private var sections = emptyList<GemListSection>()
+    private var styleSwitch: GemChartStyle? = null
+    private var periods = ChartPeriod.entries.map { it.toGem() }
 
     @Before
     fun setUp() {
         every { chartService.newSession() } answers {
-            GemChartSession(savedPeriod.toGem(), currencyFlow.value.toGem(), rate = GemChartRate.Pending, chart = null, error = null, isLoading = true, isRefreshing = false, zoom = GemChartZoom(scale = 1.0, offset = 0.0))
+            GemChartSession(
+                savedPeriod.toGem(), currencyFlow.value.toGem(), rate = GemChartRate.Pending, chart = null, error = null, isLoading = true, isRefreshing = false,
+                zoom = GemChartZoom(
+                    scale = 1.0,
+                    offset = 0.0,
+                ),
+                style = GemChartStyle.LINE, hasCandles = false, candles = emptyList(), candlesError = null, needsCandles = true,
+            )
         }
         every { chartService.viewState(any(), any()) } answers {
             val session = firstArg<GemChartSession>()
@@ -99,12 +111,14 @@ class ChartViewModelTest {
                     else -> GemChartPhase.NoData
                 },
                 isRefreshing = session.isRefreshing,
+                styleSwitch = styleSwitch,
+                periods = periods,
                 sections = sections,
             )
         }
         coEvery { chartService.load(asset.id.toIdentifier(), any()) } answers {
             val request = secondArg<GemChartRequest>()
-            GemChartResult(request = request, rate = 1.0, state = GemLoadState.Data, chart = (request as? GemChartRequest.Chart)?.let { mockGemChart() })
+            GemChartResult(request = request, rate = 1.0, state = GemLoadState.Data, chart = (request as? GemChartRequest.Chart)?.let { mockGemChart() }, candles = emptyList())
         }
     }
 
@@ -129,6 +143,7 @@ class ChartViewModelTest {
             rate = 1.0,
             state = GemLoadState.Data,
             chart = chart,
+            candles = emptyList(),
         )
 
         val viewModel = createViewModel()
@@ -152,7 +167,7 @@ class ChartViewModelTest {
         val week = GemChartRequest.Chart(ChartPeriod.Week.toGem(), Currency.USD.toGem())
         coEvery { chartService.load(asset.id.toIdentifier(), week) } coAnswers {
             inFlight.await()
-            GemChartResult(request = week, rate = 1.0, state = GemLoadState.Data, chart = mockGemChart())
+            GemChartResult(request = week, rate = 1.0, state = GemLoadState.Data, chart = mockGemChart(), candles = emptyList())
         }
         viewModel.setPeriod(ChartPeriod.Week)
         testDispatcher.scheduler.advanceUntilIdle()
@@ -180,7 +195,7 @@ class ChartViewModelTest {
         val day = GemChartRequest.Chart(ChartPeriod.Day.toGem(), Currency.USD.toGem())
         coEvery { chartService.load(asset.id.toIdentifier(), day) } coAnswers {
             inFlight.await()
-            GemChartResult(request = day, rate = 1.0, state = GemLoadState.Data, chart = mockGemChart())
+            GemChartResult(request = day, rate = 1.0, state = GemLoadState.Data, chart = mockGemChart(), candles = emptyList())
         }
         viewModel.refresh()
         testDispatcher.scheduler.advanceUntilIdle()
@@ -207,7 +222,7 @@ class ChartViewModelTest {
         val day = GemChartRequest.Chart(ChartPeriod.Day.toGem(), Currency.USD.toGem())
         coEvery { chartService.load(asset.id.toIdentifier(), day) } coAnswers {
             inFlight.await()
-            GemChartResult(request = day, rate = 1.0, state = GemLoadState.Data, chart = mockGemChart())
+            GemChartResult(request = day, rate = 1.0, state = GemLoadState.Data, chart = mockGemChart(), candles = emptyList())
         }
         viewModel.refresh()
         testDispatcher.scheduler.advanceUntilIdle()
@@ -256,9 +271,34 @@ class ChartViewModelTest {
         verify {
             chartService.viewState(
                 any(),
-                GemChartInput(asset = asset.toGem(), price = mockPrice(price = 2.5).toGem(), market = market.toGem(), priceAlerts = listOf(alert.toGem()), links = listOf(link.toGem())),
+                GemChartInput(
+                    asset = asset.toGem(),
+                    price = mockPrice(price = 2.5).toGem(),
+                    market = market.toGem(),
+                    priceAlerts = listOf(alert.toGem()),
+                    links = listOf(link.toGem()),
+                    utcOffsetSeconds = ZoneId.systemDefault().rules.getOffset(Instant.now()).totalSeconds,
+                ),
             )
         }
+    }
+
+    @Test
+    fun `the chart offers the switch core allows and selecting it goes through the service`() = runTest(testDispatcher) {
+        styleSwitch = GemChartStyle.CANDLES
+        periods = listOf(ChartPeriod.Day.toGem())
+        every { chartService.selectStyle(any(), GemChartStyle.CANDLES) } answers { firstArg<GemChartSession>().copy(style = GemChartStyle.CANDLES) }
+        val viewModel = createViewModel()
+        backgroundScope.launch { viewModel.chartUIState.collect {} }
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        val state = viewModel.chartUIState.first { it.chart is StateViewType.Data }
+        viewModel.selectStyle(GemChartStyle.CANDLES)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(GemChartStyle.CANDLES, state.styleSwitch)
+        assertEquals(listOf(ChartPeriod.Day), state.periods)
+        verify { chartService.selectStyle(any(), GemChartStyle.CANDLES) }
     }
 
     private fun createViewModel(): ChartViewModel = ChartViewModel(

@@ -11,7 +11,6 @@ import dagger.hilt.components.SingletonComponent
 import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemGateway
 import uniffi.gemstone.GemScanService
-import uniffi.gemstone.GemSignMessageService
 import uniffi.gemstone.GemSimulationService
 import uniffi.gemstone.GemWalletConnectService
 import uniffi.gemstone.GemWalletConnectServiceInterface
@@ -43,7 +42,6 @@ object BridgesModule {
         walletSessionService: GemWalletSessionService,
         assetsService: GemAssetsService,
         gateway: GemGateway,
-        signMessageService: GemSignMessageService,
     ): GemWalletConnectService = GemWalletConnectService(
         simulation = simulationService,
         scanner = scanService,
@@ -52,7 +50,6 @@ object BridgesModule {
         session = walletSessionService,
         assets = assetsService,
         gateway = gateway,
-        signMessage = signMessageService,
         platform = Platform.ANDROID,
     )
 

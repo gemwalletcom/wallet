@@ -13,30 +13,7 @@ import org.junit.Test
 class LockViewModelTest {
 
     @Test
-    fun authRequired_keepsWalletUnmountedBeforeFirstUnlock() {
-        val viewModel = lockViewModel(authRequired = true)
-
-        assertFalse(viewModel.uiState.value.hasUnlockedApp)
-    }
-
-    @Test
-    fun initialAuthSuccess_allowsWalletToStayMountedForFutureLocks() {
-        val viewModel = lockViewModel(authRequired = true)
-
-        viewModel.onInitialAuth(AuthState.Success)
-
-        assertTrue(viewModel.uiState.value.hasUnlockedApp)
-    }
-
-    @Test
-    fun authDisabled_mountsWalletImmediately() {
-        val viewModel = lockViewModel(authRequired = false)
-
-        assertTrue(viewModel.uiState.value.hasUnlockedApp)
-    }
-
-    @Test
-    fun relock_clearsStaleAuthStateAndRepromptsWithoutRemountingWallet() {
+    fun relock_clearsStaleAuthStateAndReprompts() {
         val viewModel = lockViewModel(authRequired = true)
         viewModel.onInitialAuth(AuthState.Success)
         viewModel.requestAuth(requestId = 42L)
@@ -51,7 +28,6 @@ class LockViewModelTest {
             "prompt request must bump so the auth LaunchedEffect refires",
             state.authPromptRequest > promptCountBefore,
         )
-        assertTrue("wallet stays mounted underneath the lock screen", state.hasUnlockedApp)
         assertFalse(
             "the cancelled secondary auth request must not be completable",
             viewModel.completeAuthRequest(requestId = 42L),

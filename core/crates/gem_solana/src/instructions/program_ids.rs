@@ -28,12 +28,16 @@ program_id!(sysvar_clock, "06a7d51718c774c928566398691d5eb68b5eb8a39b4b6d5c73555
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{METEORA_DLMM_PROGRAM_ID, RAYDIUM_AMM_PROGRAM_ID, RAYDIUM_CPMM_PROGRAM_ID};
+    use crate::{METEORA_DAMM_V2_PROGRAM_ID, METEORA_DLMM_PROGRAM_ID, ORCA_WHIRLPOOL_PROGRAM_ID, PUMP_AMM_PROGRAM_ID, RAYDIUM_AMM_PROGRAM_ID, RAYDIUM_CLMM_PROGRAM_ID, RAYDIUM_CPMM_PROGRAM_ID};
 
     #[test]
     fn test_pool_program_ids_match_their_addresses() {
         assert_eq!(meteora_dlmm_program().to_base58(), METEORA_DLMM_PROGRAM_ID);
         assert_eq!(raydium_amm_program().to_base58(), RAYDIUM_AMM_PROGRAM_ID);
         assert_eq!(raydium_cpmm_program().to_base58(), RAYDIUM_CPMM_PROGRAM_ID);
+        assert_eq!(raydium_clmm_program().to_base58(), RAYDIUM_CLMM_PROGRAM_ID);
+        assert_eq!(pump_amm_program().to_base58(), PUMP_AMM_PROGRAM_ID);
+        assert_eq!(meteora_damm_v2_program().to_base58(), METEORA_DAMM_V2_PROGRAM_ID);
+        assert_eq!(orca_whirlpool_program().to_base58(), ORCA_WHIRLPOOL_PROGRAM_ID);
     }
 }

@@ -16,6 +16,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -86,6 +88,7 @@ fun ImportWalletScreen(importType: ImportType, onImported: () -> Unit, onCancel:
     val context = LocalContext.current
     val viewModel = hiltViewModel<ImportWalletViewModel, ImportWalletViewModel.Factory> { it.create(importType) }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val errorText by viewModel.errorText.collectAsStateWithLifecycle()
     DetectScreenshot(uiState.importType.kind.secretKind())
     val nameResolveIndicator by viewModel.nameResolveIndicator.collectAsStateWithLifecycle()
     val suggestions by viewModel.suggestions.collectAsStateWithLifecycle()
@@ -107,7 +110,6 @@ fun ImportWalletScreen(importType: ImportType, onImported: () -> Unit, onCancel:
         showsTabs = uiState.showsTabs,
         showsScan = uiState.showsScan,
         nameResolveIndicator = nameResolveIndicator,
-        dataError = uiState.dataError,
         buttonState = buttonState(loading = uiState.loading),
         suggestions = suggestions,
     ) { action ->
@@ -153,6 +155,17 @@ fun ImportWalletScreen(importType: ImportType, onImported: () -> Unit, onCancel:
             viewModel.inputState.setTextAndPlaceCursorAtEnd(code)
         },
     )
+    errorText?.let { message ->
+        AlertDialog(
+            containerColor = MaterialTheme.colorScheme.background,
+            onDismissRequest = viewModel::dismissError,
+            title = { Text(stringResource(R.string.errors_validation, "")) },
+            text = { Text(message) },
+            confirmButton = {
+                Button(viewModel::dismissError) { Text(stringResource(R.string.common_done)) }
+            },
+        )
+    }
     uiState.existingWalletName?.let { walletName ->
         InfoBottomSheet(
             item = GemInfoTopic.ExistingWalletImported(walletName).infoSheet {
@@ -173,7 +186,6 @@ private fun ImportWalletScene(
     showsTabs: Boolean,
     showsScan: Boolean,
     nameResolveIndicator: GemNameIndicator?,
-    dataError: String?,
     buttonState: ButtonState,
     suggestions: List<String>,
     onAction: (ImportWalletAction) -> Unit,
@@ -214,7 +226,6 @@ private fun ImportWalletScene(
                             null
                         },
                     )
-                    ErrorMessage(dataError)
                 }
             }
             if (input.showsViewOnlyWarning) {
@@ -278,12 +289,6 @@ private fun TypeSelection(tabs: List<ImportTabUIModel>, showsTabs: Boolean, onTy
     Spacer16()
 }
 
-@Composable
-private fun ErrorMessage(error: String?) {
-    error ?: return
-    Text(text = error, color = MaterialTheme.colorScheme.error)
-}
-
 private fun GemWalletImportKind.scanType(): QRScanType = when (this) {
     GemWalletImportKind.PHRASE -> QRScanType.SecretPhrase
     GemWalletImportKind.PRIVATE_KEY -> QRScanType.PrivateKey
@@ -315,7 +320,6 @@ fun PreviewImportAddress() {
                 showsTabs = true,
                 showsScan = true,
                 nameResolveIndicator = null,
-                dataError = null,
                 buttonState = ButtonState.Enabled,
                 suggestions = emptyList(),
                 onAction = {},

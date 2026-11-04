@@ -462,10 +462,9 @@ fn registered_device_cases(harness: &Harness) -> Vec<Case> {
             .volatile(),
         Case::new("v2_wallet_configuration", Method::GET, "/v2/devices/wallet_configuration").wallet().volatile(),
         Case::new("v2_notifications", Method::GET, "/v2/devices/notifications?limit=10").device(),
-        Case::new("v2_notifications_read", Method::POST, "/v2/devices/notifications/read").device(),
+        Case::new("v2_notifications_read", Method::POST, "/v2/devices/notifications/read").wallet(),
         Case::new("v2_notifications_read_as_get", Method::GET, "/v2/devices/notifications/read").device(),
         Case::new("v2_auth_nonce", Method::GET, "/v2/devices/auth/nonce").device(),
-        Case::new("v2_token", Method::GET, "/v2/devices/token").device(),
         Case::new("v2_price_alerts_add", Method::POST, "/v2/devices/price_alerts").device().json(json!([price_alert()])),
         Case::new("v2_price_alerts", Method::GET, "/v2/devices/price_alerts").device(),
         Case::new("v2_price_alerts_asset", Method::GET, "/v2/devices/price_alerts?asset_id=ethereum").device(),
@@ -510,7 +509,7 @@ fn v3_cases(harness: &Harness) -> Vec<Case> {
         Case::new("v3_address_names", Method::POST, "/v3/devices/address-names")
             .device()
             .json(json!([{"chain": "ethereum", "address": TEST_PRIVATE_KEY_ETHEREUM_ADDRESS}])),
-        Case::new("v3_notifications_read", Method::POST, "/v3/devices/notifications/read").device(),
+        Case::new("v3_notifications_read", Method::POST, "/v3/devices/notifications/read").wallet(),
         Case::new("v3_subscriptions_repeat_get", Method::GET, "/v3/devices/subscriptions").device(),
         Case::new("v3_dropped_token", Method::GET, "/v3/devices/token").device(),
         Case::new("v3_dropped_legacy_transaction", Method::GET, &format!("/v3/devices/transaction/{TRANSACTION_ID}")).device(),

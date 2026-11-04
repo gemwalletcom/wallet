@@ -22,17 +22,8 @@ impl<C: Client> ChainTransactionLoad for CosmosClient<C> {
     }
 
     async fn get_transaction_load(&self, input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Sync + Send>> {
-        let account = self.get_account_info(&input.sender_address).await?;
         let fee = calculate_transaction_fee(&input.input_type, self.get_chain(), &input.gas_price)?;
-
-        Ok(TransactionLoadData {
-            fee,
-            metadata: TransactionLoadMetadata::Cosmos {
-                account_number: account.account_number,
-                sequence: account.sequence,
-                chain_id: self.get_chain().as_chain().network_id().to_string(),
-            },
-        })
+        Ok(TransactionLoadData { fee, metadata: input.metadata })
     }
 
     async fn get_transaction_fee_rates(&self, _input_type: TransactionInputType) -> Result<Vec<FeeRate>, Box<dyn Error + Sync + Send>> {

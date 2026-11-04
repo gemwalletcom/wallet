@@ -1612,17 +1612,15 @@ Cases an error enum distinguishes for control flow are rarely the cases a screen
 impl GemConfirmError {
     pub fn display(&self) -> GemConfirmErrorDisplay {
         match self {
-            Self::InsufficientNetworkFee { asset, requirement } => match requirement {
-                Some(requirement) => GemConfirmErrorDisplay::NetworkFeeRequired { .. },
-                None => GemConfirmErrorDisplay::NetworkFeeMissing { .. },
-            },
+            Self::SenderMismatch { .. } => GemConfirmErrorDisplay::Unknown,
+            Self::InsufficientNetworkFee { asset, requirement } => described(network_fee_description(asset, requirement.as_ref(), no_fiat)),
             ...
         }
     }
 }
 ```
 
-The collapse is the point. Variants that read the same to a user merge into one display case; a nested error, an optional payload or a `from`/`signer` pair the screen never shows stops reaching the app at all. Without it each app re-derives the same branch, and the two drift on the case nobody checked. Answer per-variant questions the apps would otherwise each answer — whether a case has a detail sheet, say — on the display enum, so the app reads the decision rather than repeating the list.
+The collapse is the point. Variants that read the same to a user merge into one display case; a nested error, an optional payload or a `from`/`signer` pair the screen never shows stops reaching the app at all. Without it each app re-derives the same branch, and the two drift on the case nobody checked. Answer per-variant questions the apps would otherwise each answer — whether a case has a detail sheet, say — in Core, so the app reads the decision rather than repeating the list. A case whose sentence its detail sheet also prints carries that sheet's `GemInfoDescription`, built by the same Core function with the sheet's extra fiat left out, so each app maps the sentence once.
 
 ## 10. Tests
 
@@ -1887,13 +1885,13 @@ The table locates the existing owners and consumers; it is not proof that a scre
 | `GemRewardsService` | — | `RewardsSceneViewModel`, `CreateRewardsCodeViewModel`, `RedeemRewardsCodeViewModel` | `RewardsViewModel` |
 | `GemServiceStatus` | — | `ServiceStatusSceneViewModel` | `ServiceStatusViewModel` |
 | `GemSettingsService` | — | `SettingsSceneViewModel`, `PreferencesSceneViewModel`, `SecuritySceneViewModel` | `SettingsViewModel`, `PreferencesViewModel`, `SecurityViewModel` |
-| `GemSignMessageService` | — | `SignMessageSceneViewModel` | `SignMessageViewModel` |
+| `GemSignMessageService` | — | `SignMessageSceneViewModel` | `SignMessageViewModel`, `AuthRequestViewModel` |
 | `GemStakeService` | — | `StakeSceneViewModel`, `DelegationSceneViewModel`, `EarnSceneViewModel` | `StakeViewModel`, `DelegationViewModel`, `EarnViewModel` |
 | `GemSupportService` | — | `SupportChatSceneViewModel` (+ `SupportMessagesQuery`) | `SupportChatViewModel` (+ `SupportMessagesQuery`); sends go through `SupportMessagesCoordinator` behind `SendSupportMessage` |
 | `GemSwapQuoteService` | `GemSwapSession` | `SwapSceneViewModel` | `SwapViewModel` |
 | `GemTransactionDetailsService` | — | `TransactionSceneViewModel` | `TransactionViewModel` (with `WalletQuery`, `TransactionQuery`) |
 | `GemTransactionsService` | — | `TransactionsSceneViewModel` | `TransactionsViewModel` |
-| `GemWalletConnectService` | — | `WalletConnectorService`, `ConnectionsSceneViewModel` (+ `ConnectionsQuery`) | `SignMessageViewModel`, `ConnectionProposalViewModel`, `AuthRequestViewModel`, `ConnectionsViewModel` (+ `ConnectionsQuery`), `ConnectionViewModel` (+ `ConnectionQuery`); `WalletConnectCoordinator` behind `IsWalletConnectEnabled`, `PairWalletConnect`, `SyncWalletConnectSessions`, `DisconnectWalletConnection`, `ApproveWalletConnection`, `ApproveWalletConnectAuthentication` and `RespondWalletConnectRequest` (the Android counterpart of iOS `WalletConnectorService`: it initializes the Reown or no-op `WalletConnectClient` flavor port, pairs, approves, rejects and responds through it, and stores the sessions it settles) |
+| `GemWalletConnectService` | — | `WalletConnectorService`, `ConnectionsSceneViewModel` (+ `ConnectionsQuery`) | `ConnectionProposalViewModel`, `AuthRequestViewModel`, `ConnectionsViewModel` (+ `ConnectionsQuery`), `ConnectionViewModel` (+ `ConnectionQuery`); `WalletConnectCoordinator` behind `IsWalletConnectEnabled`, `PairWalletConnect`, `SyncWalletConnectSessions`, `DisconnectWalletConnection`, `ApproveWalletConnection`, `ApproveWalletConnectAuthentication` and `RespondWalletConnectRequest` (the Android counterpart of iOS `WalletConnectorService`: it initializes the Reown or no-op `WalletConnectClient` flavor port, pairs, approves, rejects and responds through it, and stores the sessions it settles) |
 | `GemWalletHomeService` | — | `WalletSceneViewModel`, `NetworkAssetsSceneViewModel` | `WalletViewModel`, `NetworkAssetsViewModel` (+ `AssetsQuery`); `GetWalletHomeState` (keeps the wallet home state, composed from `AssetFiatValuesQuery`, `PerpetualWalletBalanceQuery`, `BannersQuery`, `NFTQuery` and the `GetActiveAssetsInfo` rows, in memory from start for `WalletViewModel` and `AppViewModel`), `GetWalletAssets` (keeps the wallet's asset rows, read through `AssetsQuery`, in memory from start for the stored first frame of the asset, chart, stake and receive screens) and `GetActiveAssetsInfo` (keeps the wallet list rows built from them, warmed at start for `WalletViewModel` and `GetWalletHomeState`) |
 | `GemWalletService` | — | onboarding and manage-wallet view models, and `WalletImageSceneViewModel` for the avatar (`WalletDetailSceneViewModel` exports the secret through `export_secret`) | `CreateWalletViewModel`, `ImportWalletViewModel`, `WalletsViewModel` (`set_current_wallet_id`, `delete_wallet`, `set_pinned`), `WalletDetailViewModel` (`rename`, `delete_wallet`, with `WalletQuery`), `SecretDataViewModel` (`export_secret`), `WalletImageViewModel` (with `WalletQuery`, `NFTQuery`); `GetAllWallets` (keeps the Core wallet sections, read through `WalletListItemsQuery`, in memory for `WalletsViewModel`) |
 | `GemWalletSessionService` | — | `RootSceneViewModel`, `NavigationRouter` | `AppViewModel`, `NotificationNavigation`; `SessionCoordinator` behind `GetSession`, `GetCurrentWalletId`, `GetCurrentCurrency` and `SetCurrentCurrency` (keeps the current wallet, observed through the stored wallet id and `WalletQuery`, and the currency set up from `GemPreferencesService` in one eagerly shared `StateFlow` that screens and coordinators read synchronously) |

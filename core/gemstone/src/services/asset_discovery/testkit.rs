@@ -9,7 +9,6 @@ use crate::services::assets::GemAssetsService;
 use crate::services::assets::testkit::MemoryAssetStore;
 use crate::services::balance::GemBalanceService;
 use crate::services::balance::testkit::MemoryBalanceStore;
-use crate::services::device::GemDeviceKeyService;
 use crate::services::name::GemNameService;
 use crate::services::nft::GemNftService;
 use crate::services::nft::testkit::MemoryNftStore;
@@ -61,7 +60,7 @@ impl DiscoveryTestkit {
             wallets.clone(),
         ));
         let gateway = Arc::new(GemGateway::new(provider.clone(), Arc::new(GemNodeService::mock()), preferences_store, Arc::new(EmptyPreferences)));
-        let device_api = Arc::new(GemDeviceApiClient::new(provider.clone(), Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences)))));
+        let device_api = Arc::new(GemDeviceApiClient::mock(provider.clone()));
         let asset_store = Arc::new(MemoryAssetStore::default());
         let assets: Arc<GemAssetsService> = Arc::new(GemAssetsService::new(
             Arc::new(GemApiClient::new(provider.clone())),

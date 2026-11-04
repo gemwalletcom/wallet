@@ -35,42 +35,8 @@ impl ProviderType {
             name: id.name().to_string(),
             protocol: id.name().to_string(),
             protocol_id: id.id().to_string(),
-            mode: ProviderType::mode(id),
+            mode: id.mode(),
             slippage_mode: ProviderType::slippage_mode(id),
-        }
-    }
-
-    pub fn mode(id: SwapperProvider) -> SwapProviderMode {
-        match id {
-            SwapperProvider::UniswapV3
-            | SwapperProvider::UniswapV4
-            | SwapperProvider::PancakeswapV3
-            | SwapperProvider::Panora
-            | SwapperProvider::Jupiter
-            | SwapperProvider::Oku
-            | SwapperProvider::Wagmi
-            | SwapperProvider::CetusClmm
-            | SwapperProvider::StonfiV2
-            | SwapperProvider::Aerodrome
-            | SwapperProvider::Orca
-            | SwapperProvider::RaydiumClmm
-            | SwapperProvider::Hyperion
-            | SwapperProvider::Dedust
-            | SwapperProvider::PumpSwap
-            | SwapperProvider::MeteoraDammV2
-            | SwapperProvider::SunswapV3
-            | SwapperProvider::StellarDex
-            | SwapperProvider::DeepbookV3
-            | SwapperProvider::Aero
-            | SwapperProvider::XrpLedger
-            | SwapperProvider::Okx => SwapProviderMode::OnChain,
-            SwapperProvider::Mayan | SwapperProvider::Mayachain | SwapperProvider::Squid | SwapperProvider::SwapsXyz | SwapperProvider::Bridgers => SwapProviderMode::CrossChain,
-            SwapperProvider::Chainflip => SwapProviderMode::OmniChain(vec![Chain::Tron]),
-            SwapperProvider::Thorchain => SwapProviderMode::OmniChain(vec![Chain::Thorchain, Chain::Tron]),
-            SwapperProvider::NearIntents => SwapProviderMode::OmniChain(vec![Chain::Near, Chain::Tron]),
-            SwapperProvider::Relay => SwapProviderMode::OmniChain(vec![Chain::Hyperliquid, Chain::Berachain]),
-            SwapperProvider::Across => SwapProviderMode::Bridge,
-            SwapperProvider::Hyperliquid => SwapProviderMode::OmniChain(vec![Chain::HyperCore, Chain::Hyperliquid]),
         }
     }
 

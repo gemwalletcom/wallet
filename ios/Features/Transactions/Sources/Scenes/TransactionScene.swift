@@ -47,7 +47,7 @@ public struct TransactionScene: View {
         case let .swapAgain(title, swap):
             let button = StateButton(
                 text: title.text,
-                type: .primary(.normal),
+                state: .normal,
                 action: { model.onSelectSwapAgain(swap) },
             )
             .cleanListRow(topOffset: .zero)

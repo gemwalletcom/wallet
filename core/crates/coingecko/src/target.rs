@@ -1,6 +1,6 @@
 use gem_client::{Target, build_path_with_query};
 
-use crate::model::{CoinMarketsQuery, CoinQuery, CointListQuery, MarketChartQuery};
+use crate::model::{CoinMarketsQuery, CoinQuery, CointListQuery, MarketChartQuery, OhlcQuery};
 
 #[derive(Clone, Debug)]
 pub enum CoinGeckoTarget {
@@ -15,6 +15,7 @@ pub enum CoinGeckoTarget {
     CoinByContract { platform_id: String, contract_address: String },
     ExchangeRates,
     MarketChart { id: String, query: MarketChartQuery },
+    Ohlc { id: String, query: OhlcQuery },
 }
 
 impl Target for CoinGeckoTarget {
@@ -31,6 +32,7 @@ impl Target for CoinGeckoTarget {
             Self::CoinByContract { platform_id, contract_address } => format!("/api/v3/coins/{platform_id}/contract/{contract_address}"),
             Self::ExchangeRates => "/api/v3/exchange_rates".to_string(),
             Self::MarketChart { id, query } => build_path_with_query(&format!("/api/v3/coins/{id}/market_chart"), query),
+            Self::Ohlc { id, query } => build_path_with_query(&format!("/api/v3/coins/{id}/ohlc"), query),
         }
     }
 }

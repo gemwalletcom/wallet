@@ -1707,38 +1707,13 @@ extension GemConfirmErrorDisplay: @retroactive LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .offline: Localized.Errors.networkOffline
-        case .malicious: Localized.Errors.ScanTransaction.Malicious.description
-        case let .memoRequired(symbol): Localized.Errors.ScanTransaction.memoRequired(symbol.boldMarkdown())
         case .feeRatesMissing: Localized.Errors.unableEstimateNetworkFee
         case .cancelled: Localized.Errors.cancelled
         case .accountMissing: Localized.Errors.walletAccountMissing
         case .unknown: Localized.Errors.unknown
-        case let .balanceRequired(_, requirement):
-            Localized.Info.balanceRequiredDescription(
-                requirement.required.text().boldMarkdown(),
-                requirement.available.text().boldMarkdown(),
-                requirement.shortfall.text().boldMarkdown(),
-            )
-        case let .networkFeeRequired(asset, _, requirement):
-            Localized.Info.InsufficientNetworkFeeBalance.description(
-                requirement.required.text().boldMarkdown(),
-                asset.toPrimitives().chain.networkName.boldMarkdown(),
-                requirement.available.text().boldMarkdown(),
-                requirement.shortfall.text().boldMarkdown(),
-            )
-        case let .networkFeeMissing(_, title):
-            Localized.Transfer.insufficientNetworkFeeBalance(title.boldMarkdown())
-        case let .minimumAccountBalance(_, required):
-            Localized.Transfer.minimumAccountBalance(required.text().boldMarkdown())
+        case let .description(description): description.text
         case let .destinationAccountActivation(_, required):
             Localized.Transfer.destinationAccountActivation(required.text().boldMarkdown())
-        case let .swapMinimum(_, _, providerName, requirement):
-            Localized.Info.swapMinimumAmountDescription(
-                providerName.boldMarkdown(),
-                requirement.required.text().boldMarkdown(),
-                requirement.available.text().boldMarkdown(),
-                requirement.shortfall.text().boldMarkdown(),
-            )
         case .dustThreshold: Localized.Errors.dustThresholdShort
         case .insufficientFunds: Localized.Info.InsufficientBalance.title
         case let .payment(status): status.errorText

@@ -175,7 +175,7 @@ impl FiatClient {
             fiat_assets,
             providers: db_providers,
         } = self.repository.get_quote_context(asset.id.clone()).await?;
-        let fiat_mapping_map = fiat_mapping(asset, request.quote_type, fiat_assets);
+        let fiat_mapping_map = fiat_mapping(asset, request.quote_type, country_code, fiat_assets);
         if !is_country_allowed(&providers_countries, country_code, request.provider_id.as_deref()) {
             return Err(FiatQuoteError::RegionUnavailable.into());
         }
@@ -223,11 +223,16 @@ impl FiatClient {
         let CachedFiatQuote { quote, asset_symbol, country_code, .. } = cached_quote;
         let provider = self.provider(quote.provider.id.as_ref())?;
         let wallet_address = self.subscription_address(context, quote.asset.chain()).await?;
+        let country_code = match country_code {
+            Some(country_code) => country_code,
+            None => self.country(&context.ip_address, context.country.as_deref()).await?,
+        };
         let data = FiatQuoteUrlData {
             quote,
             asset_symbol,
             wallet_address: wallet_address.address,
             ip_address: context.ip_address.clone(),
+            country_code,
             locale: locale.to_string(),
         };
 
@@ -235,11 +240,7 @@ impl FiatClient {
             info_with_fields!("fiat quote url failed", provider = data.quote.provider.id.as_ref(), quote_id = quote_id, error = error.to_string());
             FiatServiceError::provider(error)
         })?;
-        let country = match country_code {
-            Some(country_code) => country_code,
-            None => self.country(&context.ip_address, context.country.as_deref()).await?,
-        };
-        let pending_transaction = FiatTransaction::new_pending(&data, Some(country), url.provider_transaction_id.clone());
+        let pending_transaction = FiatTransaction::new_pending(&data, url.provider_transaction_id.clone());
         self.repository.add_fiat_transaction(pending_transaction, context.device_id, context.wallet_id, wallet_address.id).await?;
         let cached_quote = self.cached_quote(context, quote_id).await?;
         let quote = CachedFiatQuote { url: Some(url.clone()), ..cached_quote };
@@ -287,7 +288,7 @@ impl FiatClient {
     }
 }
 
-fn fiat_mapping(asset: &Asset, quote_type: FiatQuoteType, fiat_assets: Vec<FiatAsset>) -> FiatMappingMap {
+fn fiat_mapping(asset: &Asset, quote_type: FiatQuoteType, country_code: &str, fiat_assets: Vec<FiatAsset>) -> FiatMappingMap {
     fiat_assets
         .into_iter()
         .filter(|fiat_asset| match quote_type {
@@ -303,6 +304,7 @@ fn fiat_mapping(asset: &Asset, quote_type: FiatQuoteType, fiat_assets: Vec<FiatA
                         symbol: fiat_asset.symbol,
                         network: fiat_asset.network,
                     },
+                    country_code: country_code.to_string(),
                     unsupported_countries: fiat_asset.unsupported_countries,
                     buy_limits: fiat_asset.buy_limits,
                     sell_limits: fiat_asset.sell_limits,

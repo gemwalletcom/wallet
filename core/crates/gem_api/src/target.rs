@@ -5,6 +5,7 @@ use primitives::{AssetId, Chain, ChartPeriod, FiatQuoteType, PlatformStore};
 pub enum GemApiTarget {
     GetConfig { store: PlatformStore },
     GetCharts { asset_id: AssetId, period: ChartPeriod },
+    GetCandles { asset_id: AssetId, period: ChartPeriod },
     GetAsset { asset_id: AssetId },
     GetAssets { currency: Option<String> },
     GetSearchAssets { query: String, chains: Vec<Chain> },
@@ -18,6 +19,7 @@ impl Target for GemApiTarget {
         match self {
             Self::GetConfig { store } => format!("/v1/config?store={}", store.as_ref()),
             Self::GetCharts { asset_id, period } => format!("/v1/charts/{asset_id}?period={}", period.as_ref()),
+            Self::GetCandles { asset_id, period } => format!("/v1/charts/{asset_id}/candles?period={}", period.as_ref()),
             Self::GetAsset { asset_id } => format!("/v1/assets/{asset_id}"),
             Self::GetAssets { currency } => match currency {
                 Some(currency) => format!("/v1/assets?currency={currency}"),

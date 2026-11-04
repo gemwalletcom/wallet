@@ -188,6 +188,8 @@ public final class GemPerpetualDetailsServiceMock: GemPerpetualDetailsServicePro
     public private(set) var syncPositionsCount = 0
     public private(set) var syncedTransactionAssetIds: [Gemstone.AssetId] = []
     public private(set) var positionKinds: [GemPerpetualPositionKind] = []
+    public private(set) var positionActionPositions: [Gemstone.PerpetualPosition?] = []
+    public private(set) var closeTransferPositions: [Gemstone.PerpetualPosition?] = []
 
     public init() {}
 
@@ -206,8 +208,9 @@ public final class GemPerpetualDetailsServiceMock: GemPerpetualDetailsServicePro
         chartPeriodValue
     }
 
-    public func closeTransfer(perpetual _: Gemstone.Perpetual, asset _: Gemstone.Asset, position _: Gemstone.PerpetualPosition?) throws -> Gemstone.GemTransferData {
-        try closeTransferResult.get()
+    public func closeTransfer(perpetual _: Gemstone.Perpetual, asset _: Gemstone.Asset, position: Gemstone.PerpetualPosition?) throws -> Gemstone.GemTransferData {
+        closeTransferPositions.append(position)
+        return try closeTransferResult.get()
     }
 
     public func marketSubscription(perpetual: Gemstone.Perpetual) -> GemPerpetualSubscription {
@@ -217,10 +220,11 @@ public final class GemPerpetualDetailsServiceMock: GemPerpetualDetailsServicePro
     public func positionAction(
         perpetual _: Gemstone.Perpetual,
         asset _: Gemstone.Asset,
-        position _: Gemstone.PerpetualPosition?,
+        position: Gemstone.PerpetualPosition?,
         kind: GemPerpetualPositionKind,
     ) throws -> GemPerpetualPositionAction {
         positionKinds.append(kind)
+        positionActionPositions.append(position)
         return try positionActionResult.get()
     }
 

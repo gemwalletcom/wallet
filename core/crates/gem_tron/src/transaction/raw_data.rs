@@ -4,7 +4,7 @@ use serde::Deserialize;
 use serde_json::Value;
 use serde_serializers::hex_bytes;
 
-use super::{TransactionApproval, TronContract, WalletConnectContract, protobuf};
+use super::{TransactionApproval, TronContract, WalletConnectContract, WalletConnectToken, protobuf};
 use crate::models::TronContractType;
 
 #[derive(Deserialize)]
@@ -30,6 +30,7 @@ impl RawDataJson {
             TronContract::Transfer { to, amount, .. } => Ok(Some(WalletConnectContract {
                 to: to.encode(),
                 value: amount,
+                token: None,
                 approval: None,
             })),
             TronContract::TriggerSmart {
@@ -37,6 +38,7 @@ impl RawDataJson {
                 data,
                 call_value,
                 call_token_value,
+                token_id,
                 ..
             } => {
                 let to = contract.encode();
@@ -47,6 +49,7 @@ impl RawDataJson {
                 Ok(Some(WalletConnectContract {
                     to,
                     value: call_value.unwrap_or_default(),
+                    token: call_token_value.filter(|value| *value != 0).map(|value| WalletConnectToken { id: token_id.unwrap_or_default(), value }),
                     approval,
                 }))
             }
@@ -58,6 +61,13 @@ impl RawDataJson {
             | TronContract::WithdrawBalance { .. }
             | TronContract::WithdrawExpireUnfreeze { .. } => Ok(None),
         }
+    }
+
+    pub(crate) fn owners(&self) -> Result<Vec<String>, SignerError> {
+        self.contract
+            .iter()
+            .map(|contract| TronContract::from_json_value(contract.contract_type, contract.parameter.value.clone()).map(|contract| contract.owner().encode()))
+            .collect()
     }
 
     pub(crate) fn encode(&self) -> Result<Vec<u8>, SignerError> {

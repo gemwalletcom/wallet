@@ -29,15 +29,13 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemSignMessageServiceInterface
 import uniffi.gemstone.GemSignerFailure
-import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.applicationConnectionRow
 import uniffi.gemstone.signerFailure
 
 @HiltViewModel(assistedFactory = SignMessageViewModel.Factory::class)
 class SignMessageViewModel @AssistedInject constructor(
     @Assisted private val request: WalletConnectPendingRequest.SignMessage,
-    private val service: GemWalletConnectServiceInterface,
-    signMessageService: GemSignMessageServiceInterface,
+    private val signMessageService: GemSignMessageServiceInterface,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
@@ -61,7 +59,7 @@ class SignMessageViewModel @AssistedInject constructor(
         val state = uiState.value
         viewModelScope.launch(ioDispatcher) {
             val signature = try {
-                service.signMessage(state.wallet.id.id, state.signMessage)
+                signMessageService.sign(state.wallet.id.id, state.signMessage)
             } catch (err: CancellationException) {
                 throw err
             } catch (err: Exception) {

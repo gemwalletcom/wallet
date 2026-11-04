@@ -41,6 +41,10 @@ fn decode_calldata_kind(to: &str, calldata: &[u8]) -> Result<EvmTransactionKind,
             let approval = IERC20::increaseAllowanceCall::abi_decode(calldata).map_err(|error| error.to_string())?;
             Ok(token_approval(to.to_string(), approval.spender, approval.addedValue))
         }
+        selector if selector.starts_with(&IERC20::increaseApprovalCall::SELECTOR) => {
+            let approval = IERC20::increaseApprovalCall::abi_decode(calldata).map_err(|error| error.to_string())?;
+            Ok(token_approval(to.to_string(), approval.spender, approval.addedValue))
+        }
         selector if selector.starts_with(&IAllowanceTransfer::approveCall::SELECTOR) && to.eq_ignore_ascii_case(UNISWAP_PERMIT2_CONTRACT) => {
             let approval = IAllowanceTransfer::approveCall::abi_decode_validate(calldata).map_err(|error| error.to_string())?;
             Ok(token_approval(approval.token.to_string(), approval.spender, U256::from(approval.amount)))
@@ -111,7 +115,10 @@ mod tests {
     fn test_decode_allowance_approvals() {
         let token = address!("0x111122223333444455556666777788889999aaaa");
         let spender = address!("0x22223333444455556666777788889999aaaabbbb");
-        let increase = hex::encode_prefixed(IERC20::increaseAllowanceCall { spender, addedValue: U256::from(100) }.abi_encode());
+        let increases = [
+            hex::encode_prefixed(IERC20::increaseAllowanceCall { spender, addedValue: U256::from(100) }.abi_encode()),
+            hex::encode_prefixed(IERC20::increaseApprovalCall { spender, addedValue: U256::from(100) }.abi_encode()),
+        ];
         let permit2 = hex::encode_prefixed(
             IAllowanceTransfer::approveCall {
                 token,
@@ -122,15 +129,17 @@ mod tests {
             .abi_encode(),
         );
 
-        assert_eq!(
-            decode_transaction_kind(&token.to_string(), Some(&increase), None).unwrap(),
-            EvmTransactionKind::TokenApproval(ApprovalData {
-                token: token.to_string(),
-                spender: spender.to_string(),
-                value: BigUint::from(100u64),
-                is_unlimited: false,
-            })
-        );
+        for increase in increases {
+            assert_eq!(
+                decode_transaction_kind(&token.to_string(), Some(&increase), None).unwrap(),
+                EvmTransactionKind::TokenApproval(ApprovalData {
+                    token: token.to_string(),
+                    spender: spender.to_string(),
+                    value: BigUint::from(100u64),
+                    is_unlimited: false,
+                })
+            );
+        }
         assert_eq!(
             decode_transaction_kind(UNISWAP_PERMIT2_CONTRACT, Some(&permit2), None).unwrap(),
             EvmTransactionKind::TokenApproval(ApprovalData {

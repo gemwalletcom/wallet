@@ -8,18 +8,14 @@ use super::{GemConnectionStore, GemWalletConnectMessageRequest, GemWalletConnect
 use crate::alien::AlienProvider;
 use crate::api::GemDeviceApiClient;
 use crate::gateway::GemGateway;
-use crate::keystore::GemKeystore;
 use crate::services::GemScanService;
 use crate::services::assets::GemAssetsService;
 use crate::services::assets::testkit::MemoryAssetStore;
 use crate::services::device::GemDeviceKeyService;
 use crate::services::error::GemServiceError;
-use crate::services::explorer::GemExplorerService;
-use crate::services::name::GemNameService;
 use crate::services::node::GemNodeService;
 use crate::services::simulation::GemSimulationService;
-use crate::services::wallet::testkit::{MemoryAddressStore, MemoryKeystorePassword, MemoryWalletStore};
-use crate::services::wallet_connect::sign_message::GemSignMessageService;
+use crate::services::wallet::testkit::MemoryWalletStore;
 use crate::services::wallet_session::GemWalletSessionService;
 use crate::services::wallet_session::testkit::MemoryWalletSessionStore;
 use crate::testkit::{EmptyPreferences, TestAlienProvider};
@@ -125,15 +121,6 @@ impl GemWalletConnectService {
             .unwrap();
         let provider: Arc<dyn AlienProvider> = provider;
         let wallet_session = Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore::default()), Arc::new(MemoryWalletStore::with_wallets(vec![wallet]))));
-        let sign_message = Arc::new(GemSignMessageService::new(
-            Arc::new(GemNameService::new(
-                Arc::new(GemDeviceApiClient::new(provider.clone(), Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences))))),
-                Arc::new(MemoryAddressStore::default()),
-            )),
-            Arc::new(GemExplorerService::mock()),
-            GemKeystore::new(std::env::temp_dir().to_string_lossy().to_string()).unwrap(),
-            Arc::new(MemoryKeystorePassword::default()),
-        ));
         Self::new(
             Arc::new(GemSimulationService::new(provider.clone(), Arc::new(GemNodeService::mock()))),
             Arc::new(GemScanService::new(Arc::new(GemDeviceApiClient::new(provider.clone(), Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences))))))),
@@ -142,7 +129,6 @@ impl GemWalletConnectService {
             wallet_session,
             Arc::new(GemAssetsService::mock(provider.clone(), Arc::new(MemoryAssetStore::default()))),
             Arc::new(GemGateway::new(provider, Arc::new(GemNodeService::mock()), Arc::new(EmptyPreferences), Arc::new(EmptyPreferences))),
-            sign_message,
             primitives::Platform::IOS,
         )
     }

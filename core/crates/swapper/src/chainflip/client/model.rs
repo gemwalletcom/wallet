@@ -118,32 +118,32 @@ pub struct SwapDetail {
     pub swapped_output_amount: String,
 }
 
-static ASSETS: LazyLock<Vec<(&'static str, AssetId)>> = LazyLock::new(|| {
+static ASSETS: LazyLock<Vec<(&'static str, u8, AssetId)>> = LazyLock::new(|| {
     vec![
-        ("BTC", AssetId::from_chain(Chain::Bitcoin)),
-        ("DOT", AssetId::from_chain(Chain::Polkadot)),
-        ("ETH", AssetId::from_chain(Chain::Ethereum)),
-        ("USDC", ETHEREUM_USDC.id.clone()),
-        ("USDT", ETHEREUM_USDT.id.clone()),
-        ("WBTC", ETHEREUM_WBTC.id.clone()),
-        ("CBBTC", ETHEREUM_CBBTC.id.clone()),
-        ("FLIP", ETHEREUM_FLIP.id.clone()),
-        ("BNB", AssetId::from_chain(Chain::SmartChain)),
-        ("USDT", SMARTCHAIN_USDT.id.clone()),
-        ("SOL", AssetId::from_chain(Chain::Solana)),
-        ("USDC", SOLANA_USDC.id.clone()),
-        ("USDT", SOLANA_USDT.id.clone()),
-        ("TRX", AssetId::from_chain(Chain::Tron)),
-        ("USDT", TRON_USDT.id.clone()),
-        ("ETH", AssetId::from_chain(Chain::Arbitrum)),
-        ("USDC", ARBITRUM_USDC.id.clone()),
-        ("USDT", ARBITRUM_USDT.id.clone()),
+        ("BTC", 5, AssetId::from_chain(Chain::Bitcoin)),
+        ("DOT", 11, AssetId::from_chain(Chain::Polkadot)),
+        ("ETH", 1, AssetId::from_chain(Chain::Ethereum)),
+        ("USDC", 3, ETHEREUM_USDC.id.clone()),
+        ("USDT", 8, ETHEREUM_USDT.id.clone()),
+        ("WBTC", 14, ETHEREUM_WBTC.id.clone()),
+        ("CBBTC", 21, ETHEREUM_CBBTC.id.clone()),
+        ("FLIP", 2, ETHEREUM_FLIP.id.clone()),
+        ("BNB", 19, AssetId::from_chain(Chain::SmartChain)),
+        ("USDT", 20, SMARTCHAIN_USDT.id.clone()),
+        ("SOL", 9, AssetId::from_chain(Chain::Solana)),
+        ("USDC", 10, SOLANA_USDC.id.clone()),
+        ("USDT", 16, SOLANA_USDT.id.clone()),
+        ("TRX", 17, AssetId::from_chain(Chain::Tron)),
+        ("USDT", 18, TRON_USDT.id.clone()),
+        ("ETH", 6, AssetId::from_chain(Chain::Arbitrum)),
+        ("USDC", 7, ARBITRUM_USDC.id.clone()),
+        ("USDT", 15, ARBITRUM_USDT.id.clone()),
     ]
 });
 
 impl ChainflipAsset {
     pub(crate) fn from_asset_id(asset_id: &AssetId) -> Result<Self, SwapperError> {
-        let (symbol, _) = ASSETS.iter().find(|(_, id)| id == asset_id).ok_or(SwapperError::NotSupportedAsset)?;
+        let (symbol, ..) = ASSETS.iter().find(|(.., id)| id == asset_id).ok_or(SwapperError::NotSupportedAsset)?;
         let chain = ChainflipChain::from_chain(asset_id.chain).ok_or(SwapperError::NotSupportedChain)?;
         Ok(Self {
             chain: chain.as_ref().to_string(),
@@ -152,9 +152,13 @@ impl ChainflipAsset {
     }
 }
 
+pub(crate) fn chainflip_asset_index(asset_id: &AssetId) -> Option<u8> {
+    ASSETS.iter().find(|(.., id)| id == asset_id).map(|(_, index, _)| *index)
+}
+
 pub static SUPPORTED_ASSETS: LazyLock<Vec<SwapperChainAsset>> = LazyLock::new(|| {
     let mut chains: BTreeMap<Chain, Vec<AssetId>> = BTreeMap::new();
-    for (_, asset_id) in ASSETS.iter() {
+    for (.., asset_id) in ASSETS.iter() {
         let tokens = chains.entry(asset_id.chain).or_default();
         if asset_id.token_id.is_some() {
             tokens.push(asset_id.clone());
@@ -164,7 +168,7 @@ pub static SUPPORTED_ASSETS: LazyLock<Vec<SwapperChainAsset>> = LazyLock::new(||
 });
 
 pub(crate) fn chainflip_asset_to_asset_id(chain: Chain, asset: &str) -> Option<AssetId> {
-    ASSETS.iter().find(|(symbol, id)| id.chain == chain && *symbol == asset).map(|(_, id)| id.clone())
+    ASSETS.iter().find(|(symbol, _, id)| id.chain == chain && *symbol == asset).map(|(.., id)| id.clone())
 }
 
 pub fn map_swap_result(response: &SwapTxResponse) -> SwapResult {

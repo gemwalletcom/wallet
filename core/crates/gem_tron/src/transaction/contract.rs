@@ -88,6 +88,20 @@ pub(crate) enum TronContract {
 }
 
 impl TronContract {
+    pub(crate) fn owner(&self) -> &TronAddress {
+        match self {
+            Self::Transfer { owner, .. }
+            | Self::TriggerSmart { owner, .. }
+            | Self::VoteWitness { owner, .. }
+            | Self::FreezeBalanceV2 { owner, .. }
+            | Self::UnfreezeBalanceV2 { owner, .. }
+            | Self::DelegateResource { owner, .. }
+            | Self::UnDelegateResource { owner, .. }
+            | Self::WithdrawBalance { owner }
+            | Self::WithdrawExpireUnfreeze { owner } => owner,
+        }
+    }
+
     pub(crate) fn kind(&self) -> TronContractType {
         match self {
             Self::Transfer { .. } => TronContractType::Transfer,

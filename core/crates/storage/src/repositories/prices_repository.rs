@@ -24,7 +24,6 @@ diesel::define_sql_function! {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum AssetsWithPricesFilter {
-    Ids(Vec<String>),
     UpdatedSince(NaiveDateTime),
 }
 
@@ -319,11 +318,9 @@ impl PricesRepository for DatabaseClient {
     }
 
     fn get_assets_markets(&mut self, filters: Vec<AssetsWithPricesFilter>, max_age: Duration) -> Result<Vec<AssetWithMarket>, DatabaseError> {
-        let mut ids = None;
         let mut since = None;
         for filter in filters {
             match filter {
-                AssetsWithPricesFilter::Ids(values) => ids = Some(values),
                 AssetsWithPricesFilter::UpdatedSince(value) => since = Some(value),
             }
         }
@@ -334,16 +331,9 @@ impl PricesRepository for DatabaseClient {
                 asset_ids.extend(price_asset_ids_updated_since(self, value)?);
                 asset_ids.sort();
                 asset_ids.dedup();
-                if let Some(ids) = ids {
-                    let ids = ids.into_iter().collect::<HashSet<_>>();
-                    asset_ids.retain(|id| ids.contains(id));
-                }
                 asset_ids
             }
-            None => match ids {
-                Some(ids) => ids,
-                None => all_asset_ids(self)?,
-            },
+            None => all_asset_ids(self)?,
         };
 
         if asset_ids.is_empty() {

@@ -25,7 +25,7 @@ impl NotificationsClient {
         Ok(notifications.into_iter().filter_map(|notification| map_notification(notification, &localizer)).collect())
     }
 
-    pub async fn mark_all_as_read(&self, device_id: &str) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        Ok(self.repository.set_notifications_read(device_id.to_string()).await?)
+    pub async fn mark_as_read(&self, wallet_id: i32) -> Result<usize, Box<dyn Error + Send + Sync>> {
+        Ok(self.repository.set_notifications_read(wallet_id).await?)
     }
 }

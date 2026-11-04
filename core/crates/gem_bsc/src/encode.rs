@@ -16,6 +16,14 @@ pub fn encode_validators_call(offset: u16, limit: u16) -> Vec<u8> {
     IHubReader::getValidatorsCall { offset, limit }.abi_encode()
 }
 
+pub fn encode_max_elected_validators_call() -> Vec<u8> {
+    IStakeHub::maxElectedValidatorsCall {}.abi_encode()
+}
+
+pub fn decode_max_elected_validators(result: &[u8]) -> Result<u16, Box<dyn Error + Send + Sync>> {
+    Ok(u16::try_from(IStakeHub::maxElectedValidatorsCall::abi_decode_returns(result)?)?)
+}
+
 pub fn decode_validators(result: &[u8]) -> Result<Vec<BscValidator>, Box<dyn Error + Send + Sync>> {
     Ok(IHubReader::getValidatorsCall::abi_decode_returns(result)?
         .into_iter()
@@ -131,6 +139,14 @@ mod tests {
 
     use super::*;
     use crate::testkit::mock_delegation;
+
+    #[test]
+    fn test_max_elected_validators() {
+        assert_eq!(hex::encode(encode_max_elected_validators_call()), "c473318f");
+
+        let result = hex::decode("000000000000000000000000000000000000000000000000000000000000002d").unwrap();
+        assert_eq!(decode_max_elected_validators(&result).unwrap(), 45);
+    }
 
     #[test]
     fn test_decode_validators() {

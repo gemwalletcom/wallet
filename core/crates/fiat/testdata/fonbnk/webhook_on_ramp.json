@@ -1,0 +1,63 @@
+{
+  "event": "order-status-change",
+  "data": {
+    "order": {
+      "_id": "68df90a2372f378356ef75c1",
+      "userId": "68df8fcb372f378356ef7568",
+      "userEmail": "someuser@example.com",
+      "merchantOrderParams": "4f6b2c1e-8d3a-4b5e-9f7a-2c1d0e9b8a76",
+      "countryIsoCode": "NG",
+      "flow": "regular",
+      "type": "on_ramp",
+      "source": "widget",
+      "status": "payout_successful",
+      "deposit": {
+        "paymentChannel": "bank",
+        "currencyType": "fiat",
+        "currencyCode": "NGN",
+        "currencyDetails": {
+          "countryIsoCode": "NG"
+        },
+        "cashout": {
+          "exchangeRate": 1398.25,
+          "exchangeRateAfterFees": 1434.1103,
+          "amountBeforeFees": 71705,
+          "amountAfterFees": 69912,
+          "amountBeforeFeesUsd": 51.28196,
+          "amountAfterFeesUsd": 49.999642
+        }
+      },
+      "payout": {
+        "paymentChannel": "crypto",
+        "currencyType": "crypto",
+        "currencyCode": "BASE_USDC",
+        "currencyDetails": {
+          "network": "BASE",
+          "asset": "USDC",
+          "contractAddress": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+        },
+        "cashout": {
+          "exchangeRate": 1,
+          "exchangeRateAfterFees": 1,
+          "amountBeforeFees": 49.999642,
+          "amountAfterFees": 49.99879,
+          "amountBeforeFeesUsd": 49.999642,
+          "amountAfterFeesUsd": 49.99879
+        },
+        "transaction": {
+          "meta": {
+            "transactionHash": "0x5c504ed432cb51138bcf09aa5e8a410dd4a1e204ef84bfed1be16dfba1b22060",
+            "toAddress": "0x41018795fA95783117242244303fd7e26e964eE8"
+          }
+        }
+      },
+      "createdAt": "2026-11-03T08:56:43.212Z",
+      "updatedAt": "2026-11-03T08:57:03.247Z"
+    },
+    "userKyc": {
+      "passedKycType": "basic",
+      "latestKycType": "basic",
+      "latestKycStatus": "approved"
+    }
+  }
+}

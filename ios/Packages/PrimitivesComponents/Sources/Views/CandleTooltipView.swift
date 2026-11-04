@@ -3,7 +3,6 @@
 import Components
 import struct Gemstone.GemCandleTooltip
 import struct Gemstone.GemCandleTooltipCell
-import PrimitivesComponents
 import Style
 import SwiftUI
 

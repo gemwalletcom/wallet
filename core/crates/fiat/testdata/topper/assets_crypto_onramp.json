@@ -1,0 +1,181 @@
+{
+  "assets": {
+    "source": [
+      {
+        "code": "USD",
+        "name": "US Dollar",
+        "symbol": "$"
+      }
+    ],
+    "target": [
+      {
+        "code": "BTC",
+        "name": "Bitcoin",
+        "networks": [
+          {
+            "code": "bitcoin",
+            "priorities": [
+              "normal"
+            ],
+            "tagTypes": [],
+            "assetType": "coin",
+            "name": "Bitcoin"
+          }
+        ],
+        "symbol": "₿"
+      },
+      {
+        "code": "DOT",
+        "name": "Polkadot",
+        "networks": [
+          {
+            "code": "asset-hub",
+            "priorities": [
+              "normal"
+            ],
+            "tagTypes": [],
+            "assetType": "coin",
+            "name": "Polkadot"
+          }
+        ]
+      },
+      {
+        "code": "ETH",
+        "name": "Ether",
+        "networks": [
+          {
+            "code": "arbitrum",
+            "priorities": [
+              "normal"
+            ],
+            "tagTypes": [],
+            "assetType": "coin",
+            "name": "Arbitrum One"
+          },
+          {
+            "code": "base",
+            "priorities": [
+              "normal"
+            ],
+            "tagTypes": [],
+            "assetType": "coin",
+            "name": "Base"
+          },
+          {
+            "code": "ethereum",
+            "priorities": [
+              "normal"
+            ],
+            "tagTypes": [],
+            "assetType": "coin",
+            "name": "Ethereum"
+          }
+        ],
+        "symbol": "Ξ"
+      },
+      {
+        "code": "GRAM",
+        "name": "Gram",
+        "networks": [
+          {
+            "code": "ton",
+            "priorities": [
+              "normal"
+            ],
+            "tagTypes": [
+              "memo"
+            ],
+            "assetType": "coin",
+            "name": "TON"
+          }
+        ]
+      },
+      {
+        "code": "STX",
+        "name": "Stacks",
+        "networks": [
+          {
+            "code": "stacks",
+            "priorities": [
+              "normal"
+            ],
+            "tagTypes": [
+              "memo"
+            ],
+            "assetType": "coin",
+            "name": "Stacks"
+          }
+        ]
+      },
+      {
+        "code": "USDC",
+        "name": "USDC",
+        "networks": [
+          {
+            "code": "asset-hub",
+            "priorities": [
+              "normal"
+            ],
+            "tagTypes": [],
+            "assetType": "coin",
+            "name": "Polkadot"
+          },
+          {
+            "code": "base",
+            "priorities": [
+              "normal"
+            ],
+            "tagTypes": [],
+            "assetContractAddress": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+            "assetType": "token",
+            "name": "Base"
+          },
+          {
+            "code": "hyperliquid-hypercore",
+            "priorities": [
+              "normal"
+            ],
+            "tagTypes": [],
+            "assetType": "coin",
+            "name": "Hyperliquid HyperCore"
+          },
+          {
+            "code": "solana",
+            "priorities": [
+              "normal"
+            ],
+            "tagTypes": [],
+            "assetContractAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+            "assetType": "token",
+            "name": "Solana"
+          },
+          {
+            "code": "stellar",
+            "priorities": [
+              "normal"
+            ],
+            "tagTypes": [
+              "memo"
+            ],
+            "assetContractAddress": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+            "assetType": "token",
+            "name": "Stellar"
+          },
+          {
+            "code": "xrp-ledger",
+            "priorities": [
+              "normal"
+            ],
+            "tagTypes": [
+              "destination-tag"
+            ],
+            "assetContractAddress": "rGm7WCVp9gb4jZHWTEtGUr4dd74z2XuWhE:5553444300000000000000000000000000000000",
+            "assetType": "token",
+            "name": "XRP Ledger"
+          }
+        ],
+        "symbol": "$"
+      }
+    ]
+  }
+}

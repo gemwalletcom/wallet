@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import enum Gemstone.GemChartStyle
 import Localization
 import Primitives
 import Style
@@ -9,6 +10,8 @@ import SwiftUI
 public struct ChartStateView<Chart: Sendable, Content: View>: View {
     private let state: StateViewType<Chart>
     private let periods: [ChartPeriod]
+    private let styleSwitch: GemChartStyle?
+    private let onSwitchStyle: @MainActor (GemChartStyle) -> Void
     private let content: (Chart) -> Content
 
     @Binding private var selectedPeriod: ChartPeriod
@@ -17,11 +20,15 @@ public struct ChartStateView<Chart: Sendable, Content: View>: View {
         state: StateViewType<Chart>,
         selectedPeriod: Binding<ChartPeriod>,
         periods: [ChartPeriod] = [.hour, .day, .week, .month, .year, .all],
+        styleSwitch: GemChartStyle? = nil,
+        onSwitchStyle: @escaping @MainActor (GemChartStyle) -> Void = { _ in },
         @ViewBuilder content: @escaping (Chart) -> Content,
     ) {
         self.state = state
         _selectedPeriod = selectedPeriod
         self.periods = periods
+        self.styleSwitch = styleSwitch
+        self.onSwitchStyle = onSwitchStyle
         self.content = content
     }
 
@@ -44,8 +51,13 @@ public struct ChartStateView<Chart: Sendable, Content: View>: View {
             }
             .frame(height: Sizing.chart.height)
 
-            PeriodSelectorView(selectedPeriod: $selectedPeriod, periods: periods)
-                .padding(.horizontal, Spacing.medium)
+            HStack(alignment: .top, spacing: Spacing.small) {
+                PeriodSelectorView(selectedPeriod: $selectedPeriod, periods: periods)
+                if let styleSwitch {
+                    ChartStyleButton(style: styleSwitch, action: onSwitchStyle)
+                }
+            }
+            .padding(.horizontal, Spacing.medium)
         }
     }
 }

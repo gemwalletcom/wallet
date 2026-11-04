@@ -156,6 +156,17 @@ Taps on rows that already exist, not new row types.
 
 Differences between the apps, or between an app and the server, each with its decision.
 
+- **BD531** **S** **Android has no haptic on copy or on warnings.**
+  - **iOS:** a success haptic on every copy ([`View+CopyToast.swift`](../ios/Packages/PrimitivesComponents/Sources/Extensions/View+CopyToast.swift)); a warning haptic when deleting a wallet or a node, on a high Price Impact and on a position's Modify options.
+  - **Android:** none of them.
+  - **Expected:** as iOS, see [PRODUCT.md § Haptics](PRODUCT.md#haptics). iOS plays the warning from its one shared alert ([`View+Alert.swift`](../ios/Packages/PrimitivesComponents/Sources/Extensions/View+Alert.swift), `sensoryFeedback`), while Android builds each of these dialogs on its own `AlertDialog`; the haptic goes in one shared place on Android too, not in each screen.
+- **D532** **S** **Confirm plays Success when it sends or signs and Error when it fails**, on both apps ([`ConfirmTransferSceneViewModel.swift`](../ios/Features/Transfer/Sources/ViewModels/ConfirmTransferSceneViewModel.swift) `confirm()`, [`ConfirmTransferViewModel.kt`](../android/features/transfer/viewmodels/src/main/kotlin/com/gemwallet/android/features/transfer/viewmodels/confirm/ConfirmTransferViewModel.kt)). Send, swap, stake and perpetuals all finish there, so one change covers them. See [PRODUCT.md § Haptics](PRODUCT.md#haptics).
+- **D533** **S** **Import plays Error when the Secret Phrase, private key or address is invalid**, with the error it already shows and no shake, on both apps ([`ImportWalletSceneViewModel.swift`](../ios/Features/Onboarding/Sources/ViewModels/ImportWalletSceneViewModel.swift), [`ImportWalletViewModel.kt`](../android/features/onboarding/viewmodels/src/main/kotlin/com/gemwallet/android/features/onboarding/viewmodels/import_wallet/ImportWalletViewModel.kt)).
+- **D534** **S** **Every Paste that finds nothing plays Error.**
+  - **iOS:** only Paste on Import Wallet does ([`ImportWalletSceneViewModel.swift`](../ios/Features/Onboarding/Sources/ViewModels/ImportWalletSceneViewModel.swift)); the recipient address, contact, Add node, Add Token and WalletConnect Paste do nothing.
+  - **Android:** every Paste does nothing ([`ImportInput.kt`](../android/features/onboarding/presents/src/main/kotlin/com/gemwallet/android/features/onboarding/presents/import_wallet/components/ImportInput.kt), [`ClipboardExt.kt`](../android/ui/src/main/kotlin/com/gemwallet/android/ui/components/clipboard/ClipboardExt.kt)).
+  - **Expected:** Error on every Paste, played from one shared paste path per app, not from each screen.
+
 ## 10. Module layout and names
 
 A feature module is one product area, and both apps give it the same name. iOS groups by product area and is the reference; Android splits many areas into one module per screen.
@@ -173,7 +184,7 @@ Findings from reviewing commits that nobody has accepted yet, and not all of the
 - **AUD499** **S** **Confirm re-sends a transaction that already went out.** Since e31e2bd7ea a failed send returns to Ready and Confirm runs the same load again ([`screen.rs`](../core/gemstone/src/services/confirm/screen.rs)). After a partial multi-transaction send (approval broadcast, swap rejected) the next tap re-signs and re-broadcasts the approval, which the node rejects, until the 60 s refresh reloads; before, a tap reloaded first. Wallet-critical.
 - **AUD501** **S** **THORChain vault addresses fail on one bad Zcash TEX address.** `get_vault_addresses` ([`swapper.rs`](../core/crates/swapper/src/swapper.rs)) fails as a whole when one TEX address doesn't parse (d1c16e81aa). Wallet-critical.
 - **BD508** **S** **Perpetual chart markers differ in colour** (477993aef7).
-  - **iOS:** [`CandlestickCanvas.swift`](../ios/Features/Perpetuals/Sources/Views/CandlestickCanvas.swift) draws the ring and arrow in `Colors.white`.
+  - **iOS:** [`CandlestickCanvas.swift`](../ios/Packages/PrimitivesComponents/Sources/Views/CandlestickCanvas.swift) draws the ring and arrow in `Colors.white`.
   - **Android:** [`GemCandlestickChart.kt`](../android/ui/src/main/kotlin/com/gemwallet/android/ui/components/chart/GemCandlestickChart.kt) draws the ring in `colorScheme.surface`.
   - **Expected:** needs a decision (design).
 - **CLN510** **S** **Orca and Raydium each build their swap instruction.** `whirlpool_instruction` ([`orca/swap.rs`](../core/crates/swapper/src/orca/swap.rs)) and `raydium_instruction` ([`raydium_clmm/swap.rs`](../core/crates/swapper/src/raydium_clmm/swap.rs)) are the same body over a different program id (68d9dfe937, f22d437b75). Wallet-critical.

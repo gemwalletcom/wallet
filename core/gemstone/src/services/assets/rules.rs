@@ -1,10 +1,9 @@
 use std::collections::{HashMap, HashSet};
-use std::str::FromStr;
 
 use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
 use primitives::{
     Asset, AssetBasic, AssetData, AssetId, AssetMetaData, AssetPrice, AssetProperties, AssetRank, AssetScore, AssetSubtype, BalanceMetadata, BannerEvent, BlockExplorerLink, Chain, ChainAsset, ConfigVersions, Currency, PerpetualAccountMode,
-    PerpetualProvider, PriceAlert, StakeChain, VerificationStatus, Wallet, WalletType,
+    PerpetualProvider, PriceAlert, VerificationStatus, Wallet, WalletType,
 };
 
 use super::model::{
@@ -696,7 +695,7 @@ pub fn details_sections(input: DetailsSectionsInput) -> Vec<GemAssetDetailSectio
         false => link(GemListRowTitle::Pin, None, GemListRowIcon::Pin, GemRowAction::Pin),
     };
     let shows_earn = EARN_OFFERED && metadata.is_earn_enabled && wallet_type != WalletType::View && allows_actions && balance.earn == GemBigUint::ZERO;
-    let shows_resources = StakeChain::from_str(chain.as_ref()).is_ok_and(|stake_chain| stake_chain.get_uses_freeze());
+    let shows_resources = crate::services::stake::rules::uses_freeze(chain);
     [
         section(
             GemListSectionTitle::Manage,

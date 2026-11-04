@@ -58,8 +58,11 @@ public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchec
         [100, 250].map { GemFiatSuggestedAmount(amount: $0, value: .mock(value: Double($0), unit: .currency(code: "USD"), display: .number(precision: .fraction(min: 0, max: 0)), notation: .plain, tone: .plain, rounding: .toNearest)) }
     }
 
+    public static let defaultBuyAmount: UInt32 = 20
+    public static let defaultSellAmount: UInt32 = 40
+
     private func defaultAmount(quoteType: Gemstone.FiatQuoteType) -> UInt32 {
-        quoteType.toPrimitives() == .sell ? 100 : 50
+        quoteType.toPrimitives() == .sell ? Self.defaultSellAmount : Self.defaultBuyAmount
     }
 
     public func newSession(quoteType: Gemstone.FiatQuoteType, amount: UInt32?, format: GemNumberFormat) -> GemFiatSession {

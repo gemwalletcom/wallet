@@ -8,7 +8,7 @@ use crate::services::collections::{stale, unique};
 use chrono::{DateTime, Utc};
 use gem_solana::{Pubkey, SolanaTransfer, VersionedTransaction, VersionedTransactionExt};
 use gem_ton::models::decode_wallet_connect_transfer;
-use gem_tron::decode_wallet_connect_contract;
+use gem_tron::{decode_wallet_connect_contract, decode_wallet_connect_owners};
 use primitives::ChainType;
 use primitives::WalletConnectionVerificationStatus;
 use primitives::{
@@ -305,6 +305,15 @@ pub fn validate_transaction_sender(transaction: &WalletConnectTransaction, accou
         WalletConnectTransaction::Ethereum { data, .. } if !data.from.eq_ignore_ascii_case(&account.address) => Err(GemServiceError::InvalidInput {
             msg: format!("transaction sender {} is not the session account {}", data.from, account.address),
         }),
+        WalletConnectTransaction::Tron { data, .. } => {
+            let owners = decode_wallet_connect_owners(data).map_err(|error| GemServiceError::InvalidInput { msg: error.to_string() })?;
+            match owners.iter().find(|owner| **owner != account.address) {
+                Some(owner) => Err(GemServiceError::InvalidInput {
+                    msg: format!("transaction sender {owner} is not the session account {}", account.address),
+                }),
+                None => Ok(()),
+            }
+        }
         _ => Ok(()),
     }
 }
@@ -680,6 +689,20 @@ mod tests {
 
         assert!(validate_transaction_sender(&matching, &account).is_ok(), "EVM addresses compare without case");
         assert!(validate_transaction_sender(&other, &account).is_err(), "a dapp cannot simulate for one account and sign with another");
+    }
+
+    #[test]
+    fn test_validate_transaction_sender_binds_a_tron_request_to_the_session_account() {
+        let transaction = WalletConnectTransaction::Tron {
+            data: include_str!("../../../../crates/gem_wallet_connect/testdata/tron_send_transaction.json").to_string(),
+            output_type: TransferDataOutputType::EncodedTransaction,
+        };
+
+        assert!(validate_transaction_sender(&transaction, &Account::mock(Chain::Tron, "TJoSEwEqt7cT3TUwmEoUYnYs5cZR3xSukM")).is_ok());
+        assert!(
+            validate_transaction_sender(&transaction, &Account::mock(Chain::Tron, "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t")).is_err(),
+            "the review reads as a send from the session account, so the transaction must be one"
+        );
     }
 
     #[test]

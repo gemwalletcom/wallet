@@ -9,7 +9,7 @@ use crate::services::assets::testkit::MemoryAssetStore;
 use crate::services::banner::GemBannerService;
 use crate::services::banner::testkit::MemoryBannerStore;
 use crate::services::config::GemConfigService;
-use crate::services::device::{GemDeviceKeyService, GemDeviceService};
+use crate::services::device::GemDeviceService;
 use crate::services::file::testkit::NoopFileStore;
 use crate::services::node::GemNodeService;
 use crate::services::node::testkit::MemoryNodeStore;
@@ -19,7 +19,7 @@ use crate::services::support::GemSupportService;
 use crate::services::support::testkit::MemorySupportStore;
 use crate::services::wallet::testkit::{OTHER_PHRASE, PHRASE, WalletTestkit};
 use crate::services::wallet_configuration::GemWalletConfigurationService;
-use crate::testkit::{EmptyPreferences, TestAlienProvider};
+use crate::testkit::TestAlienProvider;
 
 pub struct AppStartTestkit {
     pub service: GemAppStartService,
@@ -42,8 +42,7 @@ impl AppStartTestkit {
         let discovery = DiscoveryTestkit::with_provider(provider.clone(), first.clone());
         *discovery.wallets.wallets.lock().unwrap() = vec![first.clone(), second.clone()];
         let preferences = Arc::new(GemPreferencesService::new(Arc::new(MemoryPreferencesStore::default())));
-        let device_key = Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences)));
-        let device_api = Arc::new(GemDeviceApiClient::new(provider.clone(), device_key));
+        let device_api = Arc::new(GemDeviceApiClient::mock(provider.clone()));
         let banner_store = Arc::new(MemoryBannerStore::default());
         let banners = Arc::new(GemBannerService::new(banner_store.clone(), primitives::Platform::IOS));
         let support_store = Arc::new(MemorySupportStore::default());

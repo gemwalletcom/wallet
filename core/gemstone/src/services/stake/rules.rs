@@ -37,7 +37,6 @@ use number_formatter::BigNumberFormatter;
 
 use crate::config::chain::account_activation_fee_url;
 use crate::config::docs::DocsUrl;
-use crate::config::stake::{StakeChainConfig, get_stake_config};
 use crate::config::validators::get_validators;
 
 fn delegation_destination(wallet_type: WalletType, asset: Asset, delegation: Delegation) -> GemDelegationDestination {
@@ -106,7 +105,7 @@ fn delegation_actions(wallet_type: WalletType, delegation: &Delegation) -> Vec<G
     let state = delegation.base.state;
     match delegation.validator.provider_type {
         StakeProviderType::Stake => {
-            let Some(config) = stake_config(delegation.base.asset_id.chain) else {
+            let Some(config) = delegation.base.asset_id.chain.stake_config() else {
                 return vec![];
             };
             match state {
@@ -146,7 +145,7 @@ pub fn earn_apr_row(providers: &[DelegationValidator], asset_apr: Option<f64>) -
 }
 
 pub fn can_claim_rewards(wallet_type: WalletType, delegation: &Delegation) -> bool {
-    let Some(config) = stake_config(delegation.base.asset_id.chain) else {
+    let Some(config) = delegation.base.asset_id.chain.stake_config() else {
         return false;
     };
     wallet_type != WalletType::View && config.can_claim_rewards && shows_rewards(&delegation.base)
@@ -295,15 +294,11 @@ fn requires_frozen_balance(chain: Chain, frozen_value: &BigUint) -> bool {
 }
 
 fn can_claim_stake_rewards(chain: Chain, rewards_value: &BigUint) -> bool {
-    stake_config(chain).is_some_and(|config| config.can_claim_rewards) && *rewards_value > BigUint::ZERO
+    chain.stake_config().is_some_and(|config| config.can_claim_rewards) && *rewards_value > BigUint::ZERO
 }
 
 pub fn can_claim_all_rewards(chain: Chain, delegations_with_rewards: usize) -> bool {
-    stake_config(chain).is_some_and(|config| config.can_claim_all_rewards) || delegations_with_rewards == 1
-}
-
-fn stake_config(chain: Chain) -> Option<StakeChainConfig> {
-    StakeChain::from_chain(chain).map(get_stake_config)
+    chain.stake_config().is_some_and(|config| config.can_claim_all_rewards) || delegations_with_rewards == 1
 }
 
 pub fn stake_view_state(input: GemStakeInput, platform: Platform, is_stake_enabled: bool) -> GemStakeViewState {
@@ -429,7 +424,7 @@ pub fn positions(delegations: Vec<Delegation>) -> Vec<Delegation> {
 }
 
 fn lock_time_seconds(chain: Chain) -> u64 {
-    stake_config(chain).map(|config| config.time_lock).unwrap_or_default()
+    chain.stake_config().map(|config| config.lock_time).unwrap_or_default()
 }
 
 fn lock_time_parts(chain: Chain) -> Option<Vec<GemDurationPart>> {
@@ -442,19 +437,19 @@ fn completion_countdown_parts(delegation: &Delegation, now: DateTime<Utc>) -> Op
 }
 
 fn min_stake_amount(chain: Chain) -> BigInt {
-    stake_config(chain).map(|config| BigInt::from(config.min_amount)).unwrap_or_default()
+    chain.stake_config().map(|config| BigInt::from(config.min_stake_amount)).unwrap_or_default()
 }
 
 fn can_change_amount_on_unstake(chain: Chain) -> bool {
-    stake_config(chain).is_some_and(|config| config.change_amount_on_unstake)
+    chain.stake_config().is_some_and(|config| config.change_amount_on_unstake)
 }
 
 pub fn uses_freeze(chain: Chain) -> bool {
-    stake_config(chain).is_some_and(|config| config.uses_freeze)
+    chain.stake_config().is_some_and(|config| config.uses_freeze)
 }
 
 pub fn uses_whole_amounts(chain: Chain) -> bool {
-    stake_config(chain).is_some_and(|config| config.uses_whole_amounts)
+    chain.stake_config().is_some_and(|config| config.uses_whole_amounts)
 }
 
 fn rewards_value(delegations: &[Delegation]) -> BigUint {
@@ -462,7 +457,7 @@ fn rewards_value(delegations: &[Delegation]) -> BigUint {
 }
 
 fn resource_options(chain: Chain) -> Vec<Resource> {
-    match stake_config(chain).is_some_and(|config| config.uses_freeze) {
+    match uses_freeze(chain) {
         true => vec![Resource::Bandwidth, Resource::Energy],
         false => Vec::new(),
     }
@@ -473,7 +468,7 @@ fn default_resource(chain: Chain) -> Resource {
 }
 
 fn stake_actions(wallet_type: WalletType, chain: Chain, validators: &[DelegationValidator], balance: &GemAssetBalance, delegations: &[Delegation], is_stake_enabled: bool) -> Vec<GemStakeActionItem> {
-    let Some(config) = stake_config(chain).filter(|_| wallet_type != WalletType::View) else {
+    let Some(config) = chain.stake_config().filter(|_| wallet_type != WalletType::View) else {
         return vec![];
     };
     let uses_freeze = config.uses_freeze;
@@ -585,7 +580,7 @@ impl GemAssetBalance {
     }
 
     fn shows_stake_balance(&self, chain: Chain, is_stake_enabled: bool) -> bool {
-        StakeChain::from_chain(chain).is_some() && (is_stake_enabled || self.staked_value(chain) > GemBigUint::ZERO)
+        chain.is_stake_supported() && (is_stake_enabled || self.staked_value(chain) > GemBigUint::ZERO)
     }
 }
 
@@ -984,6 +979,15 @@ mod tests {
         assert!(uses_whole_amounts(Chain::Tron));
         assert!(lock_time_seconds(Chain::Sui) > 0);
         assert!(min_stake_amount(Chain::Sui) > BigInt::ZERO);
+    }
+
+    #[test]
+    fn test_only_tron_stakes_by_freezing_in_whole_amounts() {
+        assert!(uses_whole_amounts(Chain::Tron));
+        assert!(!uses_whole_amounts(Chain::Solana));
+        assert!(uses_freeze(Chain::Tron));
+        assert!(!uses_freeze(Chain::Cosmos));
+        assert!(!uses_freeze(Chain::Solana));
     }
 
     #[test]

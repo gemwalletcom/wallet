@@ -8,14 +8,14 @@ use crate::api::GemDeviceApiClient;
 use crate::services::assets::GemAssetsService;
 use crate::services::assets::testkit::MemoryAssetStore;
 use crate::services::banner::GemNotificationPermissions;
-use crate::services::device::{GemDeviceKeyService, GemDeviceService};
+use crate::services::device::GemDeviceService;
 use crate::services::error::GemServiceError;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::preferences::testkit::MemoryPreferencesStore;
 use crate::services::wallet::testkit::MemoryWalletStore;
 use crate::services::wallet_session::GemWalletSessionService;
 use crate::services::wallet_session::testkit::MemoryWalletSessionStore;
-use crate::testkit::{EmptyPreferences, TestAlienProvider};
+use crate::testkit::TestAlienProvider;
 
 impl GemPriceAlertSession {
     pub fn mock() -> Self {
@@ -83,7 +83,7 @@ pub fn price_alert_service(store: Arc<dyn GemPriceAlertStore>) -> Arc<super::Gem
 
 fn price_alert_service_with(provider: Arc<TestAlienProvider>, store: Arc<dyn GemPriceAlertStore>, asset_store: Arc<MemoryAssetStore>, permissions: Arc<dyn GemNotificationPermissions>) -> super::GemPriceAlertService {
     let preferences = Arc::new(GemPreferencesService::new(Arc::new(MemoryPreferencesStore::default())));
-    let api = Arc::new(GemDeviceApiClient::new(provider.clone(), Arc::new(GemDeviceKeyService::new(Arc::new(EmptyPreferences)))));
+    let api = Arc::new(GemDeviceApiClient::mock(provider.clone()));
     let wallets = Arc::new(MemoryWalletStore::with_wallets(vec![Wallet::mock()]));
     let session = Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore::default()), wallets));
     let device = GemDeviceService::mock(api.clone(), session, preferences.clone());

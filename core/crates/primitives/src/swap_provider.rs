@@ -1,3 +1,4 @@
+use crate::{Chain, swap::SwapProviderMode};
 use model_derive::Model;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator};
@@ -53,23 +54,21 @@ impl SwapProvider {
         Self::iter().collect::<Vec<_>>()
     }
 
-    pub fn is_cross_chain(&self) -> bool {
+    pub fn mode(&self) -> SwapProviderMode {
         match self {
-            Self::Thorchain | Self::Mayachain | Self::Across | Self::Mayan | Self::Chainflip | Self::NearIntents | Self::Relay | Self::Hyperliquid | Self::Squid | Self::SwapsXyz | Self::Bridgers => true,
             Self::UniswapV3
             | Self::UniswapV4
             | Self::PancakeswapV3
             | Self::Panora
             | Self::Jupiter
-            | Self::Okx
             | Self::Oku
             | Self::Wagmi
             | Self::CetusClmm
             | Self::StonfiV2
             | Self::Aerodrome
             | Self::Orca
-            | Self::Hyperion
             | Self::RaydiumClmm
+            | Self::Hyperion
             | Self::Dedust
             | Self::PumpSwap
             | Self::MeteoraDammV2
@@ -77,8 +76,20 @@ impl SwapProvider {
             | Self::StellarDex
             | Self::DeepbookV3
             | Self::Aero
-            | Self::XrpLedger => false,
+            | Self::XrpLedger
+            | Self::Okx => SwapProviderMode::OnChain,
+            Self::Mayan | Self::Mayachain | Self::Squid | Self::SwapsXyz | Self::Bridgers => SwapProviderMode::CrossChain,
+            Self::Chainflip => SwapProviderMode::OmniChain(vec![Chain::Tron]),
+            Self::Thorchain => SwapProviderMode::OmniChain(vec![Chain::Thorchain, Chain::Tron]),
+            Self::NearIntents => SwapProviderMode::OmniChain(vec![Chain::Near, Chain::Tron]),
+            Self::Relay => SwapProviderMode::OmniChain(vec![Chain::Hyperliquid, Chain::Berachain]),
+            Self::Across => SwapProviderMode::Bridge,
+            Self::Hyperliquid => SwapProviderMode::OmniChain(vec![Chain::HyperCore, Chain::Hyperliquid]),
         }
+    }
+
+    pub fn is_cross_chain(&self) -> bool {
+        self.mode() != SwapProviderMode::OnChain
     }
 
     pub fn cross_chain_providers() -> Vec<Self> {

@@ -36,6 +36,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemNameIndicator
 import uniffi.gemstone.GemNameRecordState
 import uniffi.gemstone.GemNameServiceInterface
@@ -62,6 +63,8 @@ class ImportWalletViewModel @AssistedInject constructor(
     val isImported: StateFlow<Boolean> = _isImported.asStateFlow()
     val uiState = combine(state, isImporting) { state, importing -> state.copy(loading = importing) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, ImportWalletUIState())
+    val errorText: StateFlow<String?> = state.map { it.errorAlert?.text(context) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
     val suggestions: StateFlow<List<String>> = combine(input, state) { (value, cursor), state ->
         if (cursor >= value.length && state.importType.kind.supportsPhraseSuggestions()) phraseSuggestions(value.lastWord()) else emptyList()
     }
@@ -94,6 +97,7 @@ class ImportWalletViewModel @AssistedInject constructor(
             it.copy(
                 importType = type,
                 dataError = null,
+                errorAlert = null,
             )
         }
     }
@@ -148,7 +152,8 @@ class ImportWalletViewModel @AssistedInject constructor(
             } catch (err: CancellationException) {
                 throw err
             } catch (err: Throwable) {
-                state.update { it.copy(dataError = err.errorText().text(context)) }
+                val error = err.errorText()
+                state.update { it.copy(dataError = error, errorAlert = error) }
                 isImporting.value = false
             }
         }
@@ -156,6 +161,10 @@ class ImportWalletViewModel @AssistedInject constructor(
 
     fun onImportedHandled() {
         _isImported.value = false
+    }
+
+    fun dismissError() {
+        state.update { it.copy(errorAlert = null) }
     }
 
     fun dismissExistingWallet() {
@@ -180,14 +189,15 @@ data class ImportWalletUIState(
     val title: String = "",
     val kinds: List<GemWalletImportKind> = emptyList(),
     val showsTabs: Boolean = false,
-    val dataError: String? = null,
+    val dataError: GemErrorText? = null,
+    val errorAlert: GemErrorText? = null,
     val existingWalletName: String? = null,
 ) {
     val tabs: List<ImportTabUIModel>
         get() = kinds.map { kind -> ImportTabUIModel(type = importType.copy(kind = kind), title = kind.tabStringRes(), isSelected = kind == importType.kind) }
 
     val input: ImportInputUIModel
-        get() = importType.kind.inputUiModel()
+        get() = importType.kind.inputUiModel(dataError)
 
     val showsScan: Boolean
         get() = importType.chain != null
@@ -197,13 +207,18 @@ data class ImportWalletUIState(
 data class ImportTabUIModel(val type: ImportType, @param:StringRes val title: Int, val isSelected: Boolean)
 
 @Immutable
-data class ImportInputUIModel(@param:StringRes val placeholder: Int, val protectsInput: Boolean, val supportsPhraseSuggestions: Boolean, val showsViewOnlyWarning: Boolean)
+data class ImportInputUIModel(@param:StringRes val placeholder: Int, val protectsInput: Boolean, val supportsPhraseSuggestions: Boolean, val showsViewOnlyWarning: Boolean, val invalidWords: Set<String> = emptySet()) {
+    fun invalidWordRanges(text: CharSequence): List<IntRange> = word.findAll(text).filter { it.value.lowercase() in invalidWords }.map { it.range }.toList()
+}
 
-internal fun GemWalletImportKind.inputUiModel() = ImportInputUIModel(
+internal fun GemWalletImportKind.inputUiModel(error: GemErrorText?) = ImportInputUIModel(
     placeholder = fieldStringRes(),
     protectsInput = protectsInput(),
     supportsPhraseSuggestions = supportsPhraseSuggestions(),
     showsViewOnlyWarning = showsViewOnlyWarning(),
+    invalidWords = (error as? GemErrorText.InvalidSecretPhraseWords)?.words.orEmpty().toSet(),
 )
 
 private fun String.lastWord(): String = takeLastWhile { !it.isWhitespace() }
+
+private val word = Regex("\\S+")

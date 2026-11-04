@@ -67,6 +67,12 @@ pub(crate) fn decode_evm_approval(chain: Chain, calldata: &[u8], contract_addres
         return ApprovalRequest::erc20(chain, contract_address, format!("{:#x}", call.spender), call.addedValue.to_string());
     }
 
+    if calldata.starts_with(&<IERC20::increaseApprovalCall as SolCall>::SELECTOR)
+        && let Ok(call) = <IERC20::increaseApprovalCall as SolCall>::abi_decode(calldata)
+    {
+        return ApprovalRequest::erc20(chain, contract_address, format!("{:#x}", call.spender), call.addedValue.to_string());
+    }
+
     if calldata.starts_with(&<IAllowanceTransfer::approveCall as SolCall>::SELECTOR)
         && contract_address.eq_ignore_ascii_case(UNISWAP_PERMIT2_CONTRACT)
         && let Ok(call) = <IAllowanceTransfer::approveCall as SolCall>::abi_decode_validate(calldata)
@@ -521,17 +527,22 @@ mod tests {
     }
 
     #[test]
-    fn erc20_increase_allowance_simulates_as_approve() {
+    fn erc20_allowance_increases_simulate_as_approve() {
         let spender = address!("1111111111111111111111111111111111111111");
-        let calldata = gem_evm::contracts::IERC20::increaseAllowanceCall { spender, addedValue: U256::from(100) }.abi_encode();
+        let increases = [
+            gem_evm::contracts::IERC20::increaseAllowanceCall { spender, addedValue: U256::from(100) }.abi_encode(),
+            gem_evm::contracts::IERC20::increaseApprovalCall { spender, addedValue: U256::from(100) }.abi_encode(),
+        ];
 
-        let result = simulate_evm_calldata(Chain::Ethereum, &calldata, ETHEREUM_USDC_TOKEN_ID);
+        for calldata in increases {
+            let result = simulate_evm_calldata(Chain::Ethereum, &calldata, ETHEREUM_USDC_TOKEN_ID);
 
-        assert!(is_token_warning(warning(&result)));
-        assert_eq!(result.payload[0].value, "Approve");
-        assert_eq!(result.payload[2].value, "0x1111111111111111111111111111111111111111");
-        assert_eq!(result.payload[3].value, "100");
-        assert_eq!(result.header.as_ref().map(|header| header.asset_id.clone()), Some(ETHEREUM_USDC_ASSET_ID.clone()));
+            assert!(is_token_warning(warning(&result)));
+            assert_eq!(result.payload[0].value, "Approve");
+            assert_eq!(result.payload[2].value, "0x1111111111111111111111111111111111111111");
+            assert_eq!(result.payload[3].value, "100");
+            assert_eq!(result.header.as_ref().map(|header| header.asset_id.clone()), Some(ETHEREUM_USDC_ASSET_ID.clone()));
+        }
     }
 
     #[test]

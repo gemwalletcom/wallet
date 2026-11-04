@@ -28,6 +28,13 @@ impl AssetCatalog {
             swap_assets: FiatAssets::new(swap_asset_ids),
         }
     }
+
+    pub fn limit_swap_assets(self, limit: usize) -> Self {
+        Self {
+            swap_assets: FiatAssets::new(self.swap_assets.asset_ids.into_iter().take(limit).collect()),
+            ..self
+        }
+    }
 }
 
 impl FiatAssets {
@@ -99,5 +106,12 @@ mod tests {
         assert_ne!(base, FiatAssets::version(&ids(&["bitcoin"])));
         assert_ne!(base, FiatAssets::version(&ids(&["bitcoin", "ethereum", "solana"])));
         assert_eq!(base, FiatAssets::new(ids(&["ethereum", "bitcoin"])).version);
+    }
+
+    #[test]
+    fn test_limit_swap_assets() {
+        let catalog = AssetCatalog::new(ids(&["bitcoin", "ethereum"]), ids(&["bitcoin", "ethereum"]), ids(&["bitcoin", "ethereum", "solana"]));
+
+        assert_eq!(catalog.limit_swap_assets(2), AssetCatalog::new(ids(&["bitcoin", "ethereum"]), ids(&["bitcoin", "ethereum"]), ids(&["bitcoin", "ethereum"])));
     }
 }

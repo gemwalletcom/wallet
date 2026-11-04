@@ -31,7 +31,7 @@ struct CandlestickPlot {
     }
 
     var volumeBand: CGRect {
-        let height = frame.height * Metrics.volumeBandFraction
+        let height = chart.layout.volumeHigh > 0 ? frame.height * Metrics.volumeBandFraction : 0
         return CGRect(x: frame.minX, y: frame.maxY - height, width: frame.width, height: height)
     }
 

@@ -52,7 +52,6 @@ pub struct WalletAddress {
 }
 
 pub trait WalletsRepository {
-    fn get_wallet(&mut self, identifier: &str) -> Result<WalletRecord, DatabaseError>;
     fn get_wallet_by_device_and_identifier(&mut self, device_id: i32, identifier: &str) -> Result<WalletRecord, DatabaseError>;
     fn get_wallet_by_id(&mut self, id: i32) -> Result<WalletRecord, DatabaseError>;
     fn get_wallets(&mut self, identifiers: Vec<String>) -> Result<Vec<WalletRecord>, DatabaseError>;
@@ -136,10 +135,6 @@ fn delete_address_subscriptions(client: &mut DatabaseClient, device_id: i32, wal
 }
 
 impl WalletsRepository for DatabaseClient {
-    fn get_wallet(&mut self, identifier: &str) -> Result<WalletRecord, DatabaseError> {
-        Ok(WalletRecord::from_row(wallet_row(self, identifier).or_not_found(identifier.to_string())?))
-    }
-
     fn get_wallet_by_device_and_identifier(&mut self, device_id: i32, identifier: &str) -> Result<WalletRecord, DatabaseError> {
         let row = wallets::table
             .inner_join(wallets_subscriptions::table.on(wallets_subscriptions::wallet_id.eq(wallets::id)))

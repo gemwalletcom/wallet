@@ -17,6 +17,7 @@ const TAG_BOUNCEABLE_MAINNET: u8 = 0x11;
 const TAG_NON_BOUNCEABLE_MAINNET: u8 = TAG_BOUNCEABLE_MAINNET | 0x40;
 const RAW_ADDRESS_LEN: usize = 33;
 const USER_FRIENDLY_ADDRESS_LEN: usize = 36;
+const WORKCHAINS: [Workchain; 2] = [0, -1];
 
 #[derive(Clone, Copy)]
 enum UserFriendlyAddressType {
@@ -26,7 +27,7 @@ enum UserFriendlyAddressType {
 
 impl UserFriendlyAddressType {
     fn from_tag(tag: u8) -> Option<Self> {
-        match tag & 0x7f {
+        match tag {
             TAG_BOUNCEABLE_MAINNET => Some(Self::Bounceable),
             TAG_NON_BOUNCEABLE_MAINNET => Some(Self::NonBounceable),
             _ => None,
@@ -85,14 +86,15 @@ impl Address {
         }
         let address_type = UserFriendlyAddressType::from_tag(bytes[0])?;
         let raw_bytes: RawBytes = bytes[1..RAW_ADDRESS_LEN + 1].try_into().ok()?;
-        Some((Self { bytes: raw_bytes }, address_type.is_bounceable()))
+        let address = Self { bytes: raw_bytes };
+        WORKCHAINS.contains(&address.workchain()).then_some((address, address_type.is_bounceable()))
     }
 
     pub fn try_parse_hex(hex_str: &str) -> Option<Self> {
         let (workchain, hash_part) = hex_str.split_once(':')?;
         let workchain = workchain.parse::<i32>().ok()?;
         let hash_part: HashPart = hex::decode(hash_part).ok()?.try_into().ok()?;
-        Some(Self::new(workchain, hash_part))
+        WORKCHAINS.contains(&workchain).then(|| Self::new(workchain, hash_part))
     }
 
     pub fn parse(value: &str) -> Result<Self, AddressError> {
@@ -283,6 +285,33 @@ mod tests {
         assert!(!Address::is_valid("invalid"));
         assert!(!validate_address("invalid"));
         assert!(Address::try_parse("invalid").is_none());
+    }
+
+    #[test]
+    fn test_parse_user_friendly() {
+        let masterchain = Address::try_parse_hex("-1:8e874b7ad9bbebbfc48810b8939c98f50580246f19982040dbcb253c4c3daf78").unwrap();
+
+        assert_eq!(Address::parse_user_friendly("Ef-Oh0t62bvrv8SIELiTnJj1BYAkbxmYIEDbyyU8TD2veC-0"), Some((masterchain, true)));
+        assert_eq!(Address::parse_user_friendly("kQCOh0t62bvrv8SIELiTnJj1BYAkbxmYIEDbyyU8TD2veGt2"), None);
+        assert_eq!(Address::parse_user_friendly("0QCOh0t62bvrv8SIELiTnJj1BYAkbxmYIEDbyyU8TD2veDaz"), None);
+        assert_eq!(Address::parse_user_friendly("EgCOh0t62bvrv8SIELiTnJj1BYAkbxmYIEDbyyU8TD2veGSy"), None);
+        assert_eq!(Address::parse_user_friendly("EQGOh0t62bvrv8SIELiTnJj1BYAkbxmYIEDbyyU8TD2veF0g"), None);
+        assert_eq!(Address::parse_user_friendly("EX-Oh0t62bvrv8SIELiTnJj1BYAkbxmYIEDbyyU8TD2veOm2"), None);
+        assert!(!validate_address("kQCOh0t62bvrv8SIELiTnJj1BYAkbxmYIEDbyyU8TD2veGt2"));
+        assert!(!validate_address("0QCOh0t62bvrv8SIELiTnJj1BYAkbxmYIEDbyyU8TD2veDaz"));
+    }
+
+    #[test]
+    fn test_try_parse_hex() {
+        assert_eq!(Address::try_parse_hex("0:8e874b7ad9bbebbfc48810b8939c98f50580246f19982040dbcb253c4c3daf78").unwrap().workchain(), 0);
+        assert_eq!(Address::try_parse_hex("-1:8e874b7ad9bbebbfc48810b8939c98f50580246f19982040dbcb253c4c3daf78").unwrap().workchain(), -1);
+        assert!(Address::try_parse_hex("1:8e874b7ad9bbebbfc48810b8939c98f50580246f19982040dbcb253c4c3daf78").is_none());
+        assert!(Address::try_parse_hex("127:8e874b7ad9bbebbfc48810b8939c98f50580246f19982040dbcb253c4c3daf78").is_none());
+        assert!(Address::try_parse_hex("255:8e874b7ad9bbebbfc48810b8939c98f50580246f19982040dbcb253c4c3daf78").is_none());
+        assert!(Address::try_parse_hex("256:8e874b7ad9bbebbfc48810b8939c98f50580246f19982040dbcb253c4c3daf78").is_none());
+        assert!(Address::try_parse_hex("-256:8e874b7ad9bbebbfc48810b8939c98f50580246f19982040dbcb253c4c3daf78").is_none());
+        assert!(Address::try_parse_hex("65536:8e874b7ad9bbebbfc48810b8939c98f50580246f19982040dbcb253c4c3daf78").is_none());
+        assert!(!validate_address("256:8e874b7ad9bbebbfc48810b8939c98f50580246f19982040dbcb253c4c3daf78"));
     }
 
     #[test]
