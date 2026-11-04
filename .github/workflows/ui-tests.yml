@@ -86,7 +86,7 @@ jobs:
 
       - name: Upload Maestro artifacts
         if: ${{ failure() && inputs.suite != 'native' }}
-        uses: actions/upload-artifact@330a09c2b24228d5653ee8a98ff9e872de8b3e10 # v5.1.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: maestro-ios
           path: build/maestro/ios
@@ -129,7 +129,7 @@ jobs:
 
       - name: Upload Maestro artifacts
         if: ${{ failure() && inputs.suite != 'native' }}
-        uses: actions/upload-artifact@330a09c2b24228d5653ee8a98ff9e872de8b3e10 # v5.1.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: maestro-android
           path: build/maestro/android
