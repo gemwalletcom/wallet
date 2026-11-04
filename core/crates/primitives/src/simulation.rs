@@ -162,6 +162,11 @@ pub enum SimulationPayloadFieldKind {
     Spender,
     Value,
     Expiration,
+    Action,
+    Recipient,
+    Validator,
+    Resource,
+    LockTime,
     Custom,
 }
 
