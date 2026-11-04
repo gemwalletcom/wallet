@@ -24,7 +24,7 @@ common_delete_confirmation = Ви впевнені, що хочете видал
 common_hide = Сховати
 common_wallet = Гаманець
 common_show = Показати %@
-common_copied = Скопійовано: %@.
+common_copied = Скопійовано: %@
 common_copied_to_clipboard = Скопійовано в буфер обміну
 common_recommended = Рекомендовано
 common_all = Всі
@@ -34,7 +34,7 @@ common_manage = Керувати
 common_type = Тип
 common_no_results_found = Нічого не знайдено
 common_no = Ні
-common_none = Жодного
+common_none = Немає
 common_url = URL-адреса
 common_private_key = Приватний ключ
 common_latency_in_ms = %d мс
@@ -47,7 +47,7 @@ common_pinned_asset = Закріплено: %@
 common_unpinned_asset = Відкріплено: %@
 common_skip = Пропустити
 common_warning = Попередження
-common_learn_more = Дізнайтеся більше
+common_learn_more = Докладніше
 common_description = Опис
 common_emoji = Емодзі
 common_avatar = Аватар
@@ -66,12 +66,12 @@ common_grant_permission = Надати дозвіл
 
 # Welcome
 
-welcome_title = Ласкаво просимо до Gem Сім'ї
+welcome_title = Ласкаво просимо до родини Gem
 
 # Wallet
 
 wallet_create_new_wallet = Створити новий гаманець
-wallet_import_existing_wallet = Імпорт існуючого гаманця
+wallet_import_existing_wallet = Імпортувати наявний гаманець
 wallet_send = Надіслати
 wallet_receive = Отримати
 wallet_buy = Купити
@@ -81,18 +81,18 @@ wallet_new_title = Новий гаманець
 wallet_name = Ім'я
 wallet_import_action = Імпорт
 wallet_multicoin = Мультимонетний
-wallet_import_address_field = Адреса або Ім'я
+wallet_import_address_field = Адреса або ім'я
 wallet_manage_token_list = Керування токенами
 wallet_scan_qr_code = Сканувати QR-код
 wallet_scan = Сканувати
 wallet_scan_hint = Надішліть, оплатіть або підключіться до DApp
 wallet_scan_hint_address = Адреса гаманця
 wallet_default_name = Гаманець № %d
-wallet_default_name_chain = %@ Гаманець № %d
+wallet_default_name_chain = Гаманець %@ № %d
 wallet_copy_address = Копіювати адресу
 wallet_watch_tooltip_title = Гаманець лише для спостереження. Ви не контролюєте ці кошти.
 wallet_watch_empty_state_title = Ви спостерігаєте за цим гаманцем.
-wallet_stake = Стейкнути
+wallet_stake = Стейкінг
 wallet_receive_no_memo_required = Memo не потрібен
 wallet_receive_no_destination_tag_required = Тег призначення не потрібен
 wallet_title = Гаманець
@@ -120,7 +120,7 @@ wallets_title = Гаманці
 
 # Receive
 
-receive_warning = Це ваша адреса - надсилайте тільки %@ в мережі %@.
+receive_warning = Це ваша адреса — надсилайте тільки %@ в мережі %@.
 
 # Buy
 
@@ -143,17 +143,17 @@ transfer_network = Мережа
 transfer_recipient_title = Одержувач
 transfer_balance = Баланс: %@
 transfer_title = Переказ
-transfer_recipient_address_field = Адреса або Ім'я
-transfer_send_title = Відправити
+transfer_recipient_address_field = Адреса або ім'я
+transfer_send_title = Надіслати
 transfer_insufficient_balance = Недостатній баланс %@.
 transfer_insufficient_network_fee_balance = Недостатній баланс %@ для покриття плати за мережу.
 transfer_approve_title = Дозволити
 transfer_stake_title = Стейкінг
 transfer_claim_rewards_title = Отримати винагороду
-transfer_unstake_title = Скасувати Стейкінг
+transfer_unstake_title = Скасувати стейкінг
 transfer_redelegate_title = Делегувати повторно
-transfer_withdraw_title = Зняти стейк
-transfer_rewards_title = Нагороди
+transfer_withdraw_title = Зняти
+transfer_rewards_title = Винагороди
 transfer_minimum_amount = Мінімальна сума становить %@
 transfer_activate_asset_title = Активувати актив
 transfer_recipient_my_wallets = Мої гаманці
@@ -163,7 +163,7 @@ transfer_destination_account_activation = Адреса призначення в
 transfer_smart_contract_title = Смартконтракт
 transfer_other_title = Інше
 transfer_maximum_amount = Максимальна сума %@
-transfer_reserved_fees = Ми залишили на вашому балансі %@ для покриття майбутніх мережевих платежів.
+transfer_reserved_fees = Ми залишили на вашому балансі %@ для покриття майбутніх комісій мережі.
 transfer_freeze_title = Заморозити
 transfer_unfreeze_title = Розморозити
 transfer_review_request = Переглянути запит
@@ -185,18 +185,18 @@ settings_website = Відвідати вебсайт
 settings_security = Безпека
 settings_enable_value = Увімкнути %@
 settings_enable_passcode = Увімкнути пароль
-settings_security_authentication = Аутентифікація
+settings_security_authentication = Автентифікація
 settings_notifications_title = Сповіщення
 settings_language = Мова
 settings_support = Підтримка
-settings_price_alerts_title = Оповіщення про ціни
+settings_price_alerts_title = Сповіщення про ціни
 settings_hide_balance = Приховати баланс
 settings_disable_value = Вимкнути %@
 settings_preferences_title = Налаштування
 settings_preferences_perpetual_default_leverage = Плече за замовчуванням
 settings_preferences_perpetual_default_margin = Маржа за замовчуванням
 settings_preferences_perpetual_default_take_profit = Тейк-профіт за замовчуванням
-settings_preferences_perpetual_default_stop_loss = Стоп-лосс за замовчуванням
+settings_preferences_perpetual_default_stop_loss = Стоп-лос за замовчуванням
 settings_appearance_title = Оформлення
 settings_appearance_system = Системне
 settings_appearance_light = Світле
@@ -214,9 +214,9 @@ errors_validation = Помилка перевірки: %@
 errors_create_wallet = Помилка створення гаманця: %@
 errors_invalid_address_name = Недійсна адреса або ім'я
 errors_invalid_amount = Недійсна сума
-errors_token_invalid_id = Невірний ідентифікатор токену
+errors_token_invalid_id = Недійсний ID токена
 errors_import_invalid_secret_phrase = Недійсна секретна фраза
-errors_import_invalid_secret_phrase_word = Невірне слово секретної фрази: %@
+errors_import_invalid_secret_phrase_word = Недійсне слово секретної фрази: %@
 errors_import_invalid_private_key = Недійсний приватний ключ
 errors_keystore_access = Не вдалося отримати доступ до ключів цього гаманця на цьому пристрої. Якщо у вас є фраза відновлення, видаліть цей гаманець і імпортуйте його знову, щоб відновити доступ.
 errors_wallet_account_missing = У цьому гаманці немає рахунку для цієї мережі
@@ -232,14 +232,14 @@ errors_unknown = Невідомий
 errors_not_supported_qr = Цей пристрій не підтримує сканування QR-коду. Ви можете вибрати лише зображення QR-коду з бібліотеки.
 errors_camera_permissions_not_granted = Дозвіл на камеру не надано. Будь ласка, увімкніть доступ до камери в налаштуваннях, щоб відсканувати QR-код.
 errors_decoding_qr = Не вдалося розшифрувати QR-код. Будь ласка, спробуйте ще раз з іншим QR-кодом.
-errors_transfer_error = Помилка передачі
+errors_transfer_error = Помилка переказу
 errors_unable_estimate_network_fee = Наразі ми не можемо розрахувати мережеву плату.
 errors_invalid_asset_address = Недійсна адреса %@
 errors_dust_threshold = Транзакцію не вдалося виконати, оскільки сума занадто мала, щоб відповідати мінімальним вимогам мережі %@ (поріг пилу). Це обмеження гарантує, що сума транзакції покриває комісії та витрати на обробку.
 errors_swap_no_quote_available = Котирування недоступне.
-errors_swap_not_supported_asset = Не підтримуваний актив.
+errors_swap_not_supported_asset = Непідтримуваний актив.
 errors_connections_no_supported_wallets = Немає підтримуваних гаманців.
-errors_connections_unsupported_chain = Наданий ланцюжок не підтримується.
+errors_connections_unsupported_chain = Ця мережа не підтримується.
 errors_authentication_unavailable = На цьому пристрої не налаштовано автентифікацію. Увімкніть біометрію або код-пароль у налаштуваннях пристрою.
 errors_authentication_locked_out = Забагато невдалих спроб. Будь ласка, спробуйте пізніше.
 errors_authentication_failed = Не вдалося пройти автентифікацію. Будь ласка, спробуйте ще раз.
@@ -250,14 +250,14 @@ errors_swap_amount_too_small = Сума занадто мала
 errors_scan_transaction_malicious_description = Цю транзакцію неможливо завершити — адреса гаманця призначення пов'язана з підозрілою або шкідливою активністю.
 errors_scan_transaction_memo_required = %@ адреса гаманця призначення вимагає тегу / мемо призначення
 errors_scan_transaction_malicious_title = Підозріла активність
-errors_connections_malicious_origin = Цей зв'язок походить з ненадійного джерела.
+errors_connections_malicious_origin = Це підключення походить з ненадійного джерела.
 errors_no_data_available = Дані недоступні
-errors_dust_threshold_short = Мережа вважає цю кількість пилом - плата вища за саму суму.
+errors_dust_threshold_short = Мережа вважає цю кількість пилом — плата вища за саму суму.
 errors_swap_minimum_amount = Мінімально дозволена сума угоди становить %@. Будь ласка, введіть більшу суму.
 errors_perpetual_trigger_price_lower = Ціна спрацювання має бути нижчою за ринкову ціну
 errors_perpetual_trigger_price_higher = Ціна спрацювання має бути вищою за ринкову ціну
 errors_network_error = Помилка мережі: %@
-errors_network_offline = Здається, підключення до Інтернету відсутнє.
+errors_network_offline = Здається, підключення до інтернету відсутнє.
 errors_no_internet_connection = Немає підключення до інтернету
 errors_no_service_connection = Немає підключення до сервісу
 errors_balances_activity_outdated = Баланси та активність можуть бути застарілими.
@@ -268,8 +268,8 @@ errors_payment_status = Платіж: %@
 activity_title = Активність
 activity_state_empty_title = Ваша активність відображатиметься тут
 activity_state_empty_description = Зробіть свою першу транзакцію
-activity_state_empty_search_description = Очистіть фільтри, щоб оновити свої дії
-activity_state_empty_search_title = Немає заходів
+activity_state_empty_search_description = Очистіть фільтри, щоб побачити всю активність
+activity_state_empty_search_title = Активність не знайдено
 
 # Update App
 
@@ -285,7 +285,7 @@ update_app_permission_open_settings = Відкрити налаштування
 transaction_recipient = Одержувач
 transaction_sender = Відправник
 transaction_date = Дата
-transaction_view_on = Переглянути %@
+transaction_view_on = Переглянути на %@
 transaction_status = Статус
 transaction_estimated_confirmation = Орієнтовне підтвердження
 transaction_status_confirmed = Успішно
@@ -306,23 +306,23 @@ asset_balances = Залишки
 asset_balances_available = Доступно
 asset_price = Ціна
 asset_market_cap = Ринкова капіталізація
-asset_trading_volume = Обсяг Торгів (24г)
+asset_trading_volume = Обсяг торгів (24 год)
 asset_total_supply = Загальна пропозиція
 asset_circulating_supply = В обігу
 asset_balances_reserved = Зарезервовано
 asset_view_token_on = Переглянути токен на %@
 asset_view_address_on = Переглянути адресу на %@
-asset_name = Ім'я
+asset_name = Назва
 asset_symbol = Символ
 asset_decimals = Десяткові знаки
-asset_token_id = Токен ID
+asset_token_id = ID токена
 asset_contract = Контракт
-asset_state_empty_title = Ваші транзакції з'являться тут 
+asset_state_empty_title = Ваші транзакції з'являться тут
 asset_state_empty_description = Отримати, обміняти або купити %@
-asset_verification_unverified = Неперевірено
+asset_verification_unverified = Не перевірено
 asset_verification_suspicious = Підозрілий
 asset_verification_warning_title = Знайте, що ви додаєте
-asset_verification_warning_message = Будь-хто може створити його, включно з підробленими чи шкідливими маркерами.
+asset_verification_warning_message = Будь-хто може створити токен, зокрема підроблений чи шкідливий.
 asset_buy_asset = Купити %@
 asset_get_asset = Отримати %@
 asset_add_to_wallet = Додати до гаманця
@@ -336,7 +336,7 @@ asset_all_time_low = Історичний мінімум
 
 charts_day = 1Д
 charts_hour = 1Г
-charts_week = 1Н
+charts_week = 1Т
 charts_month = 1М
 charts_year = 1Р
 charts_all = Всі
@@ -374,32 +374,32 @@ wallet_connect_request_expired = Термін запиту минув
 
 swap_you_pay = Ви платите
 swap_you_receive = Ви отримуєте
-swap_price_impact = Вплив ціни
+swap_price_impact = Вплив на ціну
 swap_slippage = Прослизання
 swap_slippage_warning = Високе прослизання. Обмін може відбутися за гіршою ціною, ніж очікувалося.
 swap_slippage_auto = Авто
 swap_slippage_auto_description = Автоматично встановлює найкраще прослизання для успішного обміну.
-swap_price_impact_warning_description = Ви втратите %@ із своїх %@ у цій торгівлі. Ви впевнені, що бажаєте продовжити?
-swap_price_impact_warning_title = Високий ціновий вплив
-swap_estimated_time_title = Розрахунковий час
+swap_price_impact_warning_description = Ви втратите %@ зі своїх %@ у цьому обміні. Ви впевнені, що бажаєте продовжити?
+swap_price_impact_warning_title = Високий вплив на ціну
+swap_estimated_time_title = Орієнтовний час
 swap_min_receive = Мінімум до отримання
-swap_use_minimum_amount = Використовуйте мінімальну суму
+swap_use_minimum_amount = Використати мінімальну суму
 
 # Stake
 
 stake_active = Активний
-stake_pending = В Очікуванні
-stake_rewards = Нагороди
+stake_pending = В очікуванні
+stake_rewards = Винагороди
 stake_validator = Валідатор
 stake_validators = Валідатори
 stake_apr = APR %@
 stake_available_in = Доступно через
 stake_inactive = Неактивний
-stake_lock_time = Час Блокування
+stake_lock_time = Час блокування
 stake_activating = Активація
 stake_deactivating = Деактивація
 stake_awaiting_withdrawal = В очікуванні виведення коштів
-stake_active_in = Активний в
+stake_active_in = Активний через
 stake_minimum_amount = Мінімальна сума
 stake_state_empty_title = Ваші стейкінги з'являться тут
 stake_state_empty_description = Зробіть свій перший стейкінг %@
@@ -412,7 +412,7 @@ stake_delegations = Делегації
 # Assets
 
 assets_no_assets_found = Активи не знайдено
-assets_add_custom_token = Додайте власний токен
+assets_add_custom_token = Додати власний токен
 assets_select_asset = Виберіть актив
 assets_popular = Популярні
 assets_tags_new = Нові
@@ -467,24 +467,24 @@ social_coinmarketcap = CoinMarketCap
 
 # Nodes
 
-nodes_import_node_title = Додати нод
+nodes_import_node_title = Додати вузол
 nodes_import_node_chain_id = Ідентифікатор мережі
-nodes_import_node_in_sync = У режимі синхронізації
+nodes_import_node_in_sync = Синхронізовано
 nodes_import_node_latest_block = Останній блок
 nodes_import_node_latency = Затримка
-nodes_gem_wallet_node = Gem нода
+nodes_gem_wallet_node = Вузол Gem Wallet
 nodes_stream = Потік
 nodes_import_node_warning_message = Користувацькі вузли можуть бути шкідливими та розкривати дані ваших транзакцій або надавати неправдиву інформацію.
 
 # Library
 
-library_select_from_photo_library = Виберіть з фототеки
+library_select_from_photo_library = Вибрати з фототеки
 
 # Fee Rates
 
 fee_rates_info = Швидкість транзакції визначається мережевою комісією, яка виплачується майнерам мережі.
-fee_rates_fast = Швидко
-fee_rates_normal = Нормальний
+fee_rates_fast = Швидка
+fee_rates_normal = Звичайна
 
 # Fee Rate
 
@@ -500,9 +500,9 @@ banner_account_activation_title = Плата за активацію рахун�
 banner_account_activation_description = Мережа %@ вимагає одноразової оплати в розмірі %@.
 banner_stake_title = Почніть стейкінг %@
 banner_stake_description = Заробляйте %@ винагороди на свій стейк, поки ви спите.
-banner_activate_asset_description = Щоб використовувати ресурс %@, ви повинні спочатку ввімкнути його в мережі %@ виконавши спеціальні вимоги мережі.
+banner_activate_asset_description = Щоб використовувати актив %@, ви повинні спочатку ввімкнути його в мережі %@, виконавши спеціальні вимоги мережі.
 banner_asset_status_title = Підозрілий актив
-banner_asset_status_description = Маркер може бути небезпечним або оманливим. Продовжуйте, лише якщо ви повністю довіряєте цьому.
+banner_asset_status_description = Токен може бути небезпечним або оманливим. Продовжуйте, лише якщо повністю йому довіряєте.
 banner_onboarding_title = Ваш гаманець готовий
 banner_onboarding_description = Купуйте або отримуйте криптовалюту, щоб розпочати
 banner_perpetuals_title = Торгуйте перпетуалами на Hyperliquid
@@ -577,11 +577,11 @@ info_payment_verification_title = Перевірка платежу
 info_payment_verification_description = Продавцю потрібна додаткова інформація перед оплатою.
 info_network_fee_description = Кожна транзакція в мережі %@ вимагає комісію в %@, яка сплачується майнерам за обробку вашої транзакції, а не Gem Wallet. Розмір мережевої комісії залежить від використання мережі.
 info_transaction_error_description = Транзакцію не вдалося завершити через помилку, таку як недостатня кількість коштів, недійсні дані або відхилення мережею. Перегляньте деталі та повторіть спробу.
-info_transaction_pending_description = Транзакцію надіслано та очікує підтвердження в мережі. Час обробки може змінюватися. Будь ласка, слідкуйте за оновленнями.
+info_transaction_pending_description = Транзакцію надіслано, і вона очікує підтвердження в мережі. Час обробки може змінюватися. Будь ласка, слідкуйте за оновленнями.
 info_estimated_confirmation_description = Ця оцінка базується на комісії транзакції та поточній активності мережі %@. Фактичний час підтвердження може змінюватися й не гарантується.
 info_transaction_success_description = Транзакцію завершено та підтверджено в мережі. Ви можете переглянути деталі, щоб перевірити її статус.
 info_lock_time_description = Час блокування, також відомий як період розблокування або розморожування, — це період, протягом якого активи в стейкінгу недоступні після того, як ви вирішили вивести їх зі стейкінгу.
-info_price_impact_description = Вплив ціни — це зміна ціни токена, спричинена розміром вашої торгівлі. Більший вплив на ціну означає, що ви отримуєте менше токенів через низьку ліквідність або великий розмір замовлення.
+info_price_impact_description = Вплив на ціну — це зміна ціни токена, спричинена розміром вашої угоди. Більший вплив на ціну означає, що ви отримуєте менше токенів через низьку ліквідність або великий розмір ордера.
 info_slippage_description = Прослизання стосується різниці між очікуваною ціною угоди та фактичною ціною, за якою вона виконується.
 info_asset_status_unverified_description = Неперевірені токени не були достатньо перевірені надійними сторонніми сервісами. Вони можуть з'явитися у вашому гаманці через аїрдропи, перекази або ручний імпорт.
 info_asset_status_suspicious_description = Підозрілі або спам-токени ідентифікуються як потенційні шахрайські або шкідливі активи. Вони можуть з'явитися у вашому гаманці через аїрдропи, перекази або ручний імпорт.
@@ -590,13 +590,13 @@ info_insufficient_network_fee_balance_description = Для цієї транза
 info_insufficient_balance_title = Недостатній баланс
 info_balance_required_description = Для цієї транзакції потрібно %@, але доступно лише %@. Щоб продовжити, вам потрібно ще %@.
 info_account_minimum_balance_title = Мінімальний баланс
-info_perpetual_funding_payments_title = Фінансування платежів
-info_perpetual_funding_payments_description = Платежі фінансування — це періодичні платежі між трейдерами, щоб підтримувати постійну ціну контракту близькою до спотової ціни базового активу. Позитивне фінансування означає, що довгі позиції оплачують короткі позиції, тоді як негативне фінансування означає, що короткі позиції оплачують довгі позиції.
+info_perpetual_funding_payments_title = Платежі фінансування
+info_perpetual_funding_payments_description = Платежі фінансування — це періодичні платежі між трейдерами, щоб утримувати ціну безстрокового контракту близькою до спотової ціни базового активу. Позитивне фінансування означає, що довгі позиції платять коротким, тоді як негативне фінансування означає, що короткі позиції платять довгим.
 info_perpetual_liquidation_price_title = Ліквідаційна ціна
 info_perpetual_liquidation_price_description = Ліквідаційна ціна – це рівень ціни, на якому ваша позиція буде автоматично закрита, щоб запобігти подальшим втратам. Коли ринкова ціна досягає цього рівня, ваша позиція ліквідується, і ви втрачаєте маржу.
 info_perpetual_open_interest_title = Відкритий інтерес
-info_perpetual_open_interest_description = Відкритий інтерес представляє собою загальну вартість усіх незавершених безстрокових контрактів, які не були розраховані. Він дає уявлення про ринкову активність і ліквідність.
-info_no_quote_description = Неможливо повернути котирування для вибраної пари токенів, можливо через малу суму, брак ліквідності або технічні обмеження.
+info_perpetual_open_interest_description = Відкритий інтерес — це загальна вартість усіх незавершених безстрокових контрактів, які не були розраховані. Він дає уявлення про ринкову активність і ліквідність.
+info_no_quote_description = Не вдалося отримати котирування для вибраної пари токенів, можливо, через малу суму, брак ліквідності або технічні обмеження.
 info_stake_reserved_title = Зарезервовано для комісії мережі
 info_stake_reserved_description = Невелика сума залишається у вашому гаманці для покриття комісій за такі операції, як зняття коштів зі стейкінгу або отримання винагород.
 info_stake_apr_description = Річна процентна ставка (APR) – це річна ставка винагороди за стейкінг вашої криптовалюти.
@@ -609,8 +609,8 @@ info_circulating_supply_description = Кількість монет, що нар
 info_total_supply_description = Загальна кількість існуючих монет, включаючи заблоковані або зарезервовані монети.
 info_max_supply_title = Максимальна пропозиція
 info_max_supply_description = Максимальна кількість монет, яка коли-небудь існуватиме.
-info_perpetual_funding_apr_title = Фінансування річних
-info_perpetual_funding_apr_description = Річна ставка, за якою довгі позиції платять за короткі позиції (якщо від'ємна, короткі позиції платять за довгі позики). Немає жодної комісії, пов'язаної з фінансуванням, яке є одноранговою передачею між користувачами для підвищення цін до спотової ціни.
+info_perpetual_funding_apr_title = APR фінансування
+info_perpetual_funding_apr_description = Річна ставка, за якою довгі позиції платять коротким (якщо ставка від'ємна — короткі платять довгим). Немає жодної комісії, пов'язаної з фінансуванням, яке є одноранговою передачею між користувачами, щоб наблизити ціну до спотової.
 info_minimum_amount_title = Мінімальна сума
 info_minimum_amount_description = У мережі %@ мінімальна сума для цієї транзакції становить %@.
 info_swap_minimum_amount_description = %@ вимагає щонайменше %@, але сума становить %@. Збільште її на %@, щоб продовжити.
@@ -626,7 +626,7 @@ nft_collections = Колекції
 nft_collection = Колекція
 nft_save_to_photos = Зберегти до фотографій
 nft_set_as_avatar = Встановити як аватар
-nft_state_empty_title = Ваші NFT з'являться тут 
+nft_state_empty_title = Ваші NFT з'являться тут
 nft_state_empty_description = Отримайте свій перший NFT
 nft_report_reason_spam = Спам
 nft_report_reason_malicious = Шкідливий
@@ -657,16 +657,16 @@ networks_state_empty_search_title = Мереж не знайдено
 onboarding_security_create_wallet_intro_title = Ви отримаєте секретну фразу — це єдиний спосіб отримати доступ до вашого гаманця.
 onboarding_security_create_wallet_do_not_share_title = Ні з ким нею не діліться
 onboarding_security_create_wallet_do_not_share_subtitle = Кожен, хто дізнається вашу секретну фразу, може повністю контролювати ваш гаманець.
-onboarding_security_create_wallet_keep_safe_subtitle = Секретна фраза - це єдиний спосіб отримати доступ до вашого гаманця.
+onboarding_security_create_wallet_keep_safe_subtitle = Секретна фраза — це єдиний спосіб отримати доступ до вашого гаманця.
 onboarding_security_create_wallet_no_recovery_subtitle = Якщо ви втратите секретну фразу, ви втратите доступ до свого гаманця.
-onboarding_security_create_wallet_keep_safe_title = Зберігайте це в безпечному місці
-onboarding_security_create_wallet_no_recovery_title = Ми не можемо допомогти вам його відновити
+onboarding_security_create_wallet_keep_safe_title = Зберігайте її в безпечному місці
+onboarding_security_create_wallet_no_recovery_title = Ми не можемо допомогти вам її відновити
 onboarding_accept_terms_title = Прийняти умови
 onboarding_accept_terms_message = Будь ласка, прочитайте та погодьтеся з наступними умовами, перш ніж продовжити.
-onboarding_accept_terms_item1_message = Я розумію, що несу повну відповідальність за безпеку та резервне копіювання своїх гаманців, а не Gem.
+onboarding_accept_terms_item1_message = Я розумію, що лише я, а не Gem, несу відповідальність за безпеку та резервне копіювання своїх гаманців.
 onboarding_accept_terms_item2_message = Я розумію, що Gem не є банком чи біржею, і його використання в незаконних цілях суворо заборонено.
 onboarding_accept_terms_item3_message = Я розумію, що якщо я коли-небудь втрачу доступ до своїх гаманців, Gem не несе відповідальності та не зможе жодним чином допомогти.
-onboarding_accept_terms_continue = Погодьтеся та продовжуйте
+onboarding_accept_terms_continue = Погодитися й продовжити
 
 # Brand
 
@@ -681,15 +681,15 @@ perpetual_close_position = Закрити позицію
 perpetual_pnl = PnL
 perpetual_long = Лонг
 perpetual_short = Шорт
-perpetual_entry_price = Вхідна ціна
+perpetual_entry_price = Ціна входу
 perpetual_modify = Змінити
 perpetual_reduce_position = Зменшити позицію
 perpetual_increase_position = Збільшити позицію
 perpetual_open_direction = Відкрити %@
 perpetual_close_direction = Закрити %@
 perpetual_leverage = Кредитне плече
-perpetual_auto_close = Авто закриття
-perpetual_auto_close_take_profit = Зафіксуйте прибуток
+perpetual_auto_close = Автозакриття
+perpetual_auto_close_take_profit = Тейк-профіт
 perpetual_market_price = Ринкова ціна
 perpetual_take_profit = TP
 perpetual_stop_loss = SL
@@ -699,15 +699,15 @@ perpetual_reduce_direction = Зменшити %@
 perpetual_auto_close_expected_profit = Очікуваний прибуток
 perpetual_auto_close_expected_loss = Очікувані втрати
 perpetual_modify_position = Змінити позицію
-perpetual_auto_close_stop_loss = Стоп-лосс
-perpetual_value = Значення
+perpetual_auto_close_stop_loss = Стоп-лос
+perpetual_value = Вартість
 perpetual_unrealized_pnl = Нереалізований PnL
 perpetual_volume = Обсяг
 perpetual_all_time_pnl = PnL за весь час
 perpetual_margin_usage = Використання маржі
 perpetual_account_leverage = Кредитне плече рахунку
 perpetual_margin_cross = Крос
-perpetual_margin_isolated = Ізольовані
+perpetual_margin_isolated = Ізольована
 
 # Perpetuals
 
@@ -719,7 +719,7 @@ perpetuals_empty_state_no_markets_found = Ринків не знайдено
 
 # Rewards
 
-rewards_title = Нагороди
+rewards_title = Винагороди
 rewards_share_text = Приєднуйтеся до Gem Wallet за моїм реферальним посиланням та отримуйте винагороди: %@
 rewards_my_referral_code = Мій реферальний код
 rewards_invite_friends_title = Запросити друзів
@@ -739,13 +739,13 @@ rewards_ways_spend_title = Способи витрат
 rewards_ways_spend_asset_title = Отримати %@
 rewards_insufficient_points = Недостатньо балів
 rewards_confirm_redeem = Отримати %@ за %@!
-rewards_pending_title = Бонус очікує на розгляд
+rewards_pending_title = Бонус в очікуванні
 rewards_pending_description = Доступно через %@
 rewards_pending_description_ready = Ваш бонус готовий!
-rewards_nickname = Прізвисько
-rewards_unverified_title = Нагороди ще не активні.
+rewards_nickname = Псевдонім
+rewards_unverified_title = Винагороди ще не активні.
 rewards_unverified_description = Винагороди активуються автоматично, коли ви більше користуєтеся додатком.
-rewards_state_empty_title = Для нагород потрібен мультимонетний гаманець
+rewards_state_empty_title = Для винагород потрібен мультимонетний гаманець
 rewards_state_empty_description = Створіть або імпортуйте мультимонетний гаманець, щоб запрошувати друзів і отримувати бали.
 
 # Recent Activity
@@ -767,7 +767,7 @@ earn_state_empty_description = Внесіть свій перший депози
 # Contacts
 
 contacts_title = Контакти
-contacts_contact = Контакти
+contacts_contact = Контакт
 contacts_addresses = Адреси
 contacts_state_empty_title = Немає контактів
 contacts_state_empty_description = Збережіть часто використовувані адреси
@@ -777,8 +777,8 @@ contacts_add_to_existing_contact = Додати до контакту
 # Simulation
 
 simulation_header_unlimited_asset = Безлімітний %@
-simulation_warning_unlimited_token_approval_description = Це надає отримувачу доступ до використання цього токена, доки ви не скасуєте схвалення або термін його дії не закінчиться.
-simulation_warning_externally_owned_spender_description = Це схвалення дозволяє звичайній адресі гаманця (EOA) використовувати ваші активи. Підтверджуйте лише якщо довіряєте цій адресі.
+simulation_warning_unlimited_token_approval_description = Це надає уповноваженій адресі доступ до використання цього токена, доки ви не скасуєте схвалення або термін його дії не закінчиться.
+simulation_warning_externally_owned_spender_description = Це схвалення дозволяє звичайній адресі гаманця (EOA) використовувати ваші активи. Підтверджуйте, лише якщо довіряєте цій адресі.
 simulation_warning_nft_collection_approval_title = Запитується повний доступ до колекції NFT
 simulation_warning_unlimited_token_approval_title = Необмежене схвалення токенів
 
@@ -799,6 +799,6 @@ application_name = Gem
 
 rootcheck_security_alert = Попередження безпеки
 rootcheck_jailbreak_body = Схоже, на вашому пристрої виконано джейлбрейк. Це може поставити під загрозу гаманець і кошти.
-rootcheck_body = Схоже, ваш пристрій має кореневий доступ, що може значно збільшити ризики для безпеки. Використання цієї програми на пристрої з root-доступом може наражати ваші активи на несанкціонований доступ і потенційну втрату. Для безпеки ваших коштів ми наполегливо рекомендуємо використовувати пристрій без рутованих прав.
+rootcheck_body = Схоже, ваш пристрій має root-доступ, що може значно збільшити ризики для безпеки. Використання цієї програми на пристрої з root-доступом може наражати ваші активи на несанкціонований доступ і потенційну втрату. Для безпеки ваших коштів ми наполегливо рекомендуємо використовувати пристрій без root-доступу.
 rootcheck_ignore = Ігнорувати
-rootcheck_exit = Вихід
+rootcheck_exit = Вийти
