@@ -522,6 +522,60 @@ public extension Gemstone.GemConnectionRow {
     }
 }
 
+public extension Gemstone.GemContactAddressSession {
+    static func mock(
+        contactId: String = "",
+        replacingId: String? = nil,
+        chain: String = Primitives.Chain.bitcoin.rawValue,
+        memo: String = "",
+        fields: [Gemstone.GemContactAddressField] = [],
+    ) -> Gemstone.GemContactAddressSession {
+        Gemstone.GemContactAddressSession(
+            contactId: contactId,
+            replacingId: replacingId,
+            chain: chain,
+            memo: memo,
+            fields: fields,
+        )
+    }
+}
+
+public extension Gemstone.GemContactScannedAddress {
+    static func mock(
+        address: String = "",
+        chain: String? = nil,
+        memo: String? = nil,
+    ) -> Gemstone.GemContactScannedAddress {
+        Gemstone.GemContactScannedAddress(
+            address: address,
+            chain: chain,
+            memo: memo,
+        )
+    }
+}
+
+public extension Gemstone.GemContactSession {
+    static func mock(
+        id: String = "",
+        existing: Gemstone.Contact? = nil,
+        name: String = "",
+        description: String = "",
+        avatar: Gemstone.GemContactAvatarChoice = .empty,
+        addresses: [Gemstone.ContactAddress] = [],
+        isSaving: Bool = false,
+    ) -> Gemstone.GemContactSession {
+        Gemstone.GemContactSession(
+            id: id,
+            existing: existing,
+            name: name,
+            description: description,
+            avatar: avatar,
+            addresses: addresses,
+            isSaving: isSaving,
+        )
+    }
+}
+
 public extension Gemstone.GemCustomFeeField {
     static func mock(
         title: Gemstone.GemListRowTitle = .api,
@@ -990,6 +1044,20 @@ public extension Gemstone.GemRecipient {
             name: name,
             memo: memo,
             references: references,
+        )
+    }
+}
+
+public extension Gemstone.GemRecipientValidation {
+    static func mock(
+        isValid: Bool = false,
+        address: String = "",
+        error: Gemstone.GemRecipientErrorDisplay? = nil,
+    ) -> Gemstone.GemRecipientValidation {
+        Gemstone.GemRecipientValidation(
+            isValid: isValid,
+            address: address,
+            error: error,
         )
     }
 }

@@ -202,8 +202,10 @@ class ContactEditorViewModel @Inject constructor(
 
     private fun setScannedAddress(data: String) {
         val scan = service.scannedAddress(data)
+        val addressSession = state.value.addressSession?.onScanned(scan) ?: return
+        addressInput.setChain(addressSession.chain.requireChain())
         addressInput.setScannedAddress(scan.address)
-        updateAddressSession { it.onScanned(scan) }
+        state.update { it.copy(addressSession = addressSession) }
     }
 
     fun selectChain() = state.update { it.copy(page = ContactEditorPage.SelectChain) }

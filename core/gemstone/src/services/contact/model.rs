@@ -127,6 +127,7 @@ impl GemContactSession {
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemContactScannedAddress {
     pub address: String,
+    pub chain: Option<Chain>,
     pub memo: Option<String>,
 }
 
@@ -165,9 +166,10 @@ impl GemContactAddressSession {
     }
 
     pub fn on_scanned(&self, scan: GemContactScannedAddress) -> Self {
+        let session = self.on_chain_changed(rules::chain_for(&scan, self.chain));
         Self {
-            memo: scan.memo.unwrap_or_else(|| self.memo.clone()),
-            ..self.clone()
+            memo: scan.memo.unwrap_or_else(|| session.memo.clone()),
+            ..session
         }
     }
 
@@ -283,11 +285,22 @@ mod tests {
 
         let typed = cosmos.on_memo_changed("typed".into());
         assert_eq!(typed.on_chain_changed(Chain::Cosmos).memo, "typed", "picking the network already selected keeps the memo");
-        assert_eq!(typed.on_scanned(GemContactScannedAddress { address: "cosmos1".into(), memo: None }).memo, "typed", "a scan without a memo keeps the typed one");
         assert_eq!(
             typed
                 .on_scanned(GemContactScannedAddress {
                     address: "cosmos1".into(),
+                    chain: None,
+                    memo: None
+                })
+                .memo,
+            "typed",
+            "a scan without a memo keeps the typed one"
+        );
+        assert_eq!(
+            typed
+                .on_scanned(GemContactScannedAddress {
+                    address: "cosmos1".into(),
+                    chain: None,
                     memo: Some("tag".into())
                 })
                 .memo,
@@ -303,12 +316,53 @@ mod tests {
     }
 
     #[test]
+    fn test_a_scanned_code_moves_the_address_to_its_network_and_keeps_its_memo() {
+        let session = rules::new_address_session("contact".into(), None).on_memo_changed("note".into());
+        let scan = |chain: Option<Chain>, memo: Option<&str>| GemContactScannedAddress {
+            address: "UQaddress".into(),
+            chain,
+            memo: memo.map(Into::into),
+        };
+
+        let scanned = session.on_scanned(scan(Some(Chain::Ton), Some("1234567")));
+        assert_eq!((scanned.chain, scanned.memo.as_str()), (Chain::Ton, "1234567"));
+        assert_eq!(scanned.fields, rules::contact_address_fields(Chain::Ton));
+        assert_eq!(scanned.on_chain_changed(Chain::Ton).input("UQaddress".into()).memo.as_deref(), Some("1234567"));
+
+        let without_memo = session.on_scanned(scan(Some(Chain::Ton), None));
+        assert_eq!((without_memo.chain, without_memo.memo.as_str()), (Chain::Ton, ""), "a code for another network drops the old memo");
+        assert_eq!(session.on_scanned(scan(None, None)).chain, session.chain, "a plain address keeps the network");
+
+        let arbitrum = session.on_chain_changed(Chain::Arbitrum);
+        let ethereum_code = GemContactScannedAddress {
+            address: "0xcB3028d6120802148f03d6c884D6AD6A210Df62A".into(),
+            chain: Some(Chain::Ethereum),
+            memo: None,
+        };
+        assert_eq!(arbitrum.on_scanned(ethereum_code).chain, Chain::Arbitrum, "an address that fits the picked network keeps it");
+    }
+
+    #[test]
+    fn test_a_network_without_a_memo_saves_no_memo() {
+        let bitcoin = rules::new_address_session("contact".into(), None);
+        let address = "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh";
+        let scanned = bitcoin.on_scanned(GemContactScannedAddress {
+            address: address.into(),
+            chain: Some(Chain::Bitcoin),
+            memo: Some("see http://x.com".into()),
+        });
+
+        assert_eq!(scanned.chain, Chain::Bitcoin);
+        assert_eq!(scanned.input(address.into()).add_address(vec![])[0].memo, None);
+    }
+
+    #[test]
     fn test_add_address_replaces_the_selected_address() {
         let existing = ContactAddress::mock("old");
         let input = GemContactAddressInput {
             contact_id: "contact".into(),
-            chain: Chain::Ethereum,
-            address: "0xnew".into(),
+            chain: Chain::Cosmos,
+            address: "cosmos1new".into(),
             memo: Some(" note ".into()),
             replacing_id: Some(existing.id.clone()),
         };
@@ -316,7 +370,7 @@ mod tests {
         let addresses = input.add_address(vec![existing]);
 
         assert_eq!(addresses.len(), 1);
-        assert_eq!(addresses[0].id, "contact_ethereum_0xnew");
+        assert_eq!(addresses[0].id, "contact_cosmos_cosmos1new");
         assert_eq!(addresses[0].memo.as_deref(), Some("note"));
     }
 }

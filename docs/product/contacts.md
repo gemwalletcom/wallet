@@ -18,6 +18,8 @@ flowchart LR
 |---|---|---|
 | The sender of a received transfer is saved as a contact | the contact gets no memo; a sent transfer keeps its memo | a received memo identifies the user's own account, so sending with it would credit the wrong one |
 | The user picks another network for an address | the memo is cleared; picking the network already selected keeps it | a memo belongs to one network, and the form does not show it, so a lost one goes unnoticed |
+| An address is saved on a network without a memo | it is saved with no memo, even when the scanned code or the source transfer carried one | the form shows no memo there, so a hidden one could never be seen or removed |
+| The user scans or pastes a code that names its network | when the address does not fit the picked network, the address moves to the code's network and keeps the code's memo; an address that fits the picked network stays there | an exchange deposit code carries the memo the exchange needs to credit the send, and a plain EVM link must not move an address off the network the user picked |
 
 Names follow the shared [Names](../PRODUCT.md#names) section.
 

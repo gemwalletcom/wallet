@@ -65,12 +65,17 @@ struct ContactAddressEditorSceneViewModelTests {
     }
 
     @Test
-    func aPaymentUriFillsTheAddressAndMemo() {
+    func aPaymentUriMovesToItsNetworkAndKeepsItsMemo() {
         let model = ContactAddressEditorSceneViewModel.mock()
 
-        model.onScan("ripple:rLpq5RcRzA5FLmVp8jZmdvfMiRZ2xtVvZK?dt=5")
+        model.onScan("ripple:rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De?dt=5")
 
-        #expect(model.addressInputModel.text == "rLpq5RcRzA5FLmVp8jZmdvfMiRZ2xtVvZK")
+        #expect(model.addressInputModel.text == "rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De")
+        #expect(model.chain == .xrp)
+        #expect(model.fields == [.network, .address, .memo])
+        #expect(model.buttonState == .normal)
+
+        model.onSelectChain(.xrp)
         #expect(model.memo == "5")
     }
 
