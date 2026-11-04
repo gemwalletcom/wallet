@@ -130,7 +130,6 @@ pub struct MarketChartQuery {
     pub precision: &'static str,
 }
 
-/// Close time in milliseconds, open, high, low, close.
 pub type Ohlc = (i64, f64, f64, f64, f64);
 
 #[derive(Debug, Serialize, Clone)]

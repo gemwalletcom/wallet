@@ -14,7 +14,6 @@ fn is_direction_character(character: char) -> bool {
     matches!(character, '\u{061c}' | '\u{200e}' | '\u{200f}' | '\u{202a}'..='\u{202e}' | '\u{2066}'..='\u{2069}')
 }
 
-/// Merchant text shows above the warnings on Confirm, so it stays short, on one line and in reading order.
 fn merchant_text(text: &str, max_chars: usize) -> String {
     let readable: String = text.chars().filter(|character| character.is_whitespace() || !(character.is_control() || is_direction_character(*character))).collect();
     let line = readable.split_whitespace().collect::<Vec<_>>().join(" ");
