@@ -210,7 +210,7 @@ fn info_rows(data: &NFTAssetData, contract_explorer: Option<BlockExplorerLink>, 
         format!("#{token_id}")
     };
     [
-        Some(GemListRow::Text {
+        (data.collection.name != data.asset.name).then(|| GemListRow::Text {
             title: GemListRowTitle::Collection,
             value: data.collection.name.clone(),
         }),
@@ -505,6 +505,15 @@ mod tests {
             asset: NFTAsset::mock_ton(),
         };
         assert_eq!(row_names(&info_rows(&ton, None, None)), vec!["collection", "network", "token_id"]);
+
+        let standalone = NFTAssetData {
+            collection: NFTCollection {
+                name: data.asset.name.clone(),
+                ..data.collection.clone()
+            },
+            ..data
+        };
+        assert_eq!(row_names(&info_rows(&standalone, None, None)), vec!["network", "token_id"]);
     }
 
     #[test]
