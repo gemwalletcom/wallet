@@ -1,6 +1,7 @@
 #[cfg(feature = "tvm")]
 use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
 #[cfg(feature = "tvm")]
 use crate::{address::Address, tvm::TvmError};
@@ -62,6 +63,14 @@ impl RunGetMethodResult {
         let bytes = self.stack.get(index).and_then(StackEntry::as_cell_bytes).ok_or_else(|| TvmError::new("missing TON address stack cell"))?;
         Address::from_boc_base64(bytes)
     }
+
+    pub fn stack_maybe_address(&self, index: usize) -> Result<Option<Address>, TvmError> {
+        match self.stack.get(index) {
+            Some(StackEntry::Cell(bytes) | StackEntry::Slice(bytes)) => Ok(Some(Address::from_boc_base64(bytes)?)),
+            Some(StackEntry::List(_) | StackEntry::Unsupported) => Ok(None),
+            Some(StackEntry::Num(_) | StackEntry::Tuple(_)) | None => Err(TvmError::new("missing TON address stack entry")),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -70,6 +79,8 @@ pub enum StackEntry {
     Num(String),
     Cell(String),
     Slice(String),
+    Tuple(Value),
+    List(Value),
     #[serde(other)]
     Unsupported,
 }
@@ -78,14 +89,14 @@ impl StackEntry {
     pub fn as_num(&self) -> Option<&str> {
         match self {
             Self::Num(value) => Some(value),
-            Self::Cell(_) | Self::Slice(_) | Self::Unsupported => None,
+            Self::Cell(_) | Self::Slice(_) | Self::Tuple(_) | Self::List(_) | Self::Unsupported => None,
         }
     }
 
     pub fn as_cell_bytes(&self) -> Option<&str> {
         match self {
             Self::Cell(bytes) | Self::Slice(bytes) => Some(bytes),
-            Self::Num(_) | Self::Unsupported => None,
+            Self::Num(_) | Self::Tuple(_) | Self::List(_) | Self::Unsupported => None,
         }
     }
 }

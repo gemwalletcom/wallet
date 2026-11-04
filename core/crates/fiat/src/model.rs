@@ -104,7 +104,7 @@ pub fn filter_token_id(chain: Option<Chain>, token_id: Option<String>) -> Option
     {
         return match chain {
             Chain::HyperCore => hypercore_token_id(token_id),
-            _ => format_token_id(chain, token_id).filter(|token_id| !AssetId::from_token(chain, token_id).is_native_mirror()),
+            _ => format_token_id(chain, token_id).filter(|token_id| !AssetId::from_token(chain, token_id).is_mirror()),
         };
     }
     token_id

@@ -103,7 +103,7 @@ impl AssetProperties {
     pub fn default(asset_id: AssetId) -> Self {
         let is_enabled = match asset_id.token_subtype() {
             AssetSubtype::NATIVE => asset_id.chain.rank() >= 0,
-            AssetSubtype::TOKEN => !asset_id.is_native_mirror(),
+            AssetSubtype::TOKEN => !asset_id.is_mirror(),
         };
         let is_stakeable = is_enabled && asset_id.is_native() && asset_id.chain.is_stake_supported();
         let is_swapable = is_enabled && asset_id.chain.is_swap_supported();

@@ -25,6 +25,7 @@ pub enum TonCenterTarget {
     GetTracesByAddress { query: TraceByAddressQuery },
     GetJettonWallets { owner: String },
     GetNftItemsByOwner { owner: String },
+    GetNftItemsByOwnerInCollection { owner: String, collection: String },
     GetNftItem { address: String },
     GetNftCollection { address: String },
 }
@@ -46,6 +47,9 @@ impl Target for TonCenterTarget {
             Self::GetTracesByAddress { query } => build_path_with_query("/api/v3/traces", query),
             Self::GetJettonWallets { owner } => format!("/api/v3/jetton/wallets?owner_address={owner}&limit={JETTON_WALLETS_LIMIT}&offset=0"),
             Self::GetNftItemsByOwner { owner } => format!("/api/v3/nft/items?owner_address={owner}&limit={NFT_ITEMS_LIMIT}&offset=0"),
+            Self::GetNftItemsByOwnerInCollection { owner, collection } => {
+                format!("/api/v3/nft/items?owner_address={owner}&collection_address={collection}&limit={NFT_ITEMS_LIMIT}&offset=0")
+            }
             Self::GetNftItem { address } => format!("/api/v3/nft/items?address={address}"),
             Self::GetNftCollection { address } => format!("/api/v3/nft/collections?collection_address={address}"),
         }

@@ -8,6 +8,8 @@ pub mod nft;
 pub mod rpc;
 #[cfg(feature = "rpc")]
 pub(crate) mod simulation;
+#[cfg(feature = "rpc")]
+pub mod staking;
 pub mod transaction;
 #[cfg(any(feature = "rpc", feature = "signer"))]
 pub(crate) mod wallet_connect;
@@ -20,6 +22,8 @@ pub use dns::*;
 pub use jetton::JettonTransfer;
 pub use nft::*;
 pub use rpc::*;
+#[cfg(feature = "rpc")]
+pub use staking::*;
 pub use transaction::*;
 #[cfg(any(feature = "rpc", feature = "signer"))]
 pub use wallet_connect::{TonConnectMessage, TonConnectTransfer, decode_wallet_connect_transfer};

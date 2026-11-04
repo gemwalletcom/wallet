@@ -166,6 +166,8 @@ pub const TRON_WTRX_TOKEN_ID: &str = "TNUC9Qb1rRpS5CbWLmNMxXBjyFoydXjWFR";
 
 pub const TON_USDT_TOKEN_ID: &str = "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs";
 pub static TON_USDT_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Ton, TON_USDT_TOKEN_ID));
+pub const TON_TSTON_TOKEN_ID: &str = "EQC98_qAmNEptUtPc7W6xdHh_ZHrBUFpw5Ft_IzNU20QAJav";
+pub static TON_TSTON_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Ton, TON_TSTON_TOKEN_ID));
 
 pub const TON_STON_TOKEN_ID: &str = "EQA2kCVNwVsil2EM2mB0SkXytxCqQjS4mttjDpnXmwG9T6bO";
 pub static TON_STON_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Ton, TON_STON_TOKEN_ID));

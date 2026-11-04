@@ -4,7 +4,7 @@ use model_derive::Model;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumIter, EnumString};
 
-use crate::Chain;
+use crate::{Chain, asset_constants::TON_TSTON_TOKEN_ID};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize, EnumIter, AsRefStr, EnumString, Model)]
 #[model(swift = "Equatable, CaseIterable, Sendable")]
@@ -24,6 +24,7 @@ pub enum StakeChain {
     Tron,
     Aptos,
     HyperCore,
+    Ton,
 }
 
 impl StakeChain {
@@ -33,6 +34,13 @@ impl StakeChain {
 
     pub fn from_chain(chain: Chain) -> Option<Self> {
         Self::from_str(chain.as_ref()).ok()
+    }
+
+    pub fn staked_token(self) -> Option<&'static str> {
+        match self {
+            Self::Ton => Some(TON_TSTON_TOKEN_ID),
+            Self::Cosmos | Self::Osmosis | Self::Injective | Self::Sei | Self::Celestia | Self::Ethereum | Self::Solana | Self::Sui | Self::SmartChain | Self::Monad | Self::Tron | Self::Aptos | Self::HyperCore => None,
+        }
     }
 }
 

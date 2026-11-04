@@ -27,6 +27,10 @@ impl ChainSigner for TonChainSigner {
         TonSigner::new(private_key)?.sign_swap(input, None)
     }
 
+    fn sign_stake(&self, input: &SignerInput, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
+        Ok(vec![TonSigner::new(private_key)?.sign_stake(input, None)?])
+    }
+
     fn sign_data(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
         TonSigner::new(private_key)?.sign_wallet_connect(input)
     }

@@ -1,0 +1,73 @@
+{
+  "exit_code": 0,
+  "stack": [
+    {
+      "type": "num",
+      "value": "0x0"
+    },
+    {
+      "type": "num",
+      "value": "0x0"
+    },
+    {
+      "type": "num",
+      "value": "0x20eb1f6345aeae2"
+    },
+    {
+      "type": "num",
+      "value": "0x24fa"
+    },
+    {
+      "type": "num",
+      "value": "-0x1"
+    },
+    {
+      "type": "num",
+      "value": "-0x1"
+    },
+    {
+      "type": "num",
+      "value": "0x50349940fd5620948dfcc2f725d3938dd2e037316d07edfef4081ecce84e4d3b"
+    },
+    {
+      "type": "tuple",
+      "value": []
+    },
+    {
+      "type": "tuple",
+      "value": []
+    },
+    {
+      "type": "num",
+      "value": "0x9184e72a000"
+    },
+    {
+      "type": "num",
+      "value": "0xaa87bee538000"
+    },
+    {
+      "type": "num",
+      "value": "0x28f5c3"
+    },
+    {
+      "type": "cell",
+      "value": "te6cckEBAQEAJAAAQ4AXvn9QExolNqlp7na3WLo8P7I9YKgtOHItv5GZqm2iABA2643j"
+    },
+    {
+      "type": "num",
+      "value": "0x1c04a929ce35125"
+    },
+    {
+      "type": "list",
+      "value": []
+    },
+    {
+      "type": "num",
+      "value": "0x0"
+    },
+    {
+      "type": "cell",
+      "value": "te6cckEBAQEAJAAAQ4AFlNWn7l//RkmwS6YxMKLJdCnBg7XpMldCYlLsZnS3CvCtzWjE"
+    }
+  ]
+}

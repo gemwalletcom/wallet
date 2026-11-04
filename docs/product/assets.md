@@ -71,6 +71,7 @@ flowchart LR
 | The custom token is unverified | "Know What You're Adding" shows before it is added | |
 | The user picks an asset | Recents: the assets the user recently used, per wallet, most recent first | |
 | The list below Recents is filtered | Recents follow the same filters | picking an asset to sell never offers one that cannot be sold |
+| A token mirrors a coin's balance or its staked balance (USDC on Arc, USDT0 on Stable, tsTON on TON) | it is never discovered, added, searched or listed, and the wallet total leaves it out | its value is already in the coin, so showing it would count it twice |
 
 ## Toasts
 

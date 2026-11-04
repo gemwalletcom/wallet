@@ -12,3 +12,9 @@ pub const TON_PROXY_JETTON_ADDRESS: &str = "EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 pub(crate) const STONFI_PTON_ADDRESSES: &[&str] = &["EQCM3B12QK1e4yZSf8GtBRT0aLMNyEsBc_DhVfRRtOEffLez", "EQBnGWMCf3-FZZq1W4IWcWiGAc3PHuZ0_H-7sad2oY00o83S"];
 
 pub const FAILED_OPERATION_OPCODES: &[&str] = &["0x93be2305", "0xd6182fce", "0x77d0fee6", "0x98ce9044"];
+
+pub const TONSTAKERS_POOL_ADDRESS: &str = "EQCkWxfyhAkim3g2DjKQQg8T5P4g-Q1-K_jErGcDJZ4i-vqR";
+#[cfg(any(test, feature = "rpc"))]
+pub(crate) const TONSTAKERS_STAKE_ATTACHMENT: u64 = 1_000_000_000;
+#[cfg(any(test, feature = "rpc"))]
+pub(crate) const TONSTAKERS_UNSTAKE_ATTACHMENT: u64 = 1_050_000_000;

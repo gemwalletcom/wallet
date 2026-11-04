@@ -71,7 +71,7 @@ impl TonSigner {
     }
 }
 
-fn optional_ton_attachment(input: &SignerInput) -> Result<BigUint, SignerError> {
+pub(super) fn optional_ton_attachment(input: &SignerInput) -> Result<BigUint, SignerError> {
     let Some(value) = input.fee.options.get(&FeeOption::TokenAccountCreation) else {
         return Ok(BigUint::ZERO);
     };

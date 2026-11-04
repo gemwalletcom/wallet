@@ -1,11 +1,12 @@
 use async_trait::async_trait;
-use chain_traits::ChainBalances;
+use chain_traits::{ChainBalances, ChainStaking};
 use std::error::Error;
 
 use gem_client::Client;
 use primitives::AssetBalance;
 
 use crate::provider::balances_mapper::{map_balance_assets, map_balance_tokens, map_coin_balance};
+use crate::provider::staking_mapper::map_balance_staking;
 use crate::rpc::client::TonClient;
 
 #[async_trait]
@@ -18,6 +19,11 @@ impl<C: Client> ChainBalances for TonClient<C> {
     async fn get_balance_tokens(&self, address: String, token_ids: Vec<String>) -> Result<Vec<AssetBalance>, Box<dyn Error + Sync + Send>> {
         let balances = self.get_jetton_wallets(address).await?;
         Ok(map_balance_tokens(balances, token_ids))
+    }
+
+    async fn get_balance_staking(&self, address: String) -> Result<Option<AssetBalance>, Box<dyn Error + Sync + Send>> {
+        let delegations = self.get_staking_delegations(address).await?;
+        Ok(Some(map_balance_staking(&delegations)))
     }
 
     async fn get_balance_assets(&self, address: String) -> Result<Option<Vec<AssetBalance>>, Box<dyn Error + Send + Sync>> {

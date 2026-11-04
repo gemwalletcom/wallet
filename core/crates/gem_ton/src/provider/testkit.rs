@@ -2,7 +2,10 @@
 use std::collections::HashMap;
 
 #[cfg(test)]
-use crate::models::{Trace, TraceAction, TraceResponse, TransactionMessage};
+use num_bigint::BigUint;
+
+#[cfg(test)]
+use crate::models::{PoolFullData, Trace, TraceAction, TraceResponse, TransactionMessage};
 #[cfg(test)]
 use crate::rpc::client::TonClient;
 #[cfg(all(test, feature = "chain_integration_tests"))]
@@ -62,6 +65,20 @@ impl TraceResponse {
 
     pub fn mock_jetton_transfer() -> Self {
         serde_json::from_str(include_str!("../../testdata/jetton_transfer_trace.json")).unwrap()
+    }
+}
+
+#[cfg(test)]
+impl PoolFullData {
+    pub fn mock() -> Self {
+        Self {
+            total_balance: BigUint::from(148_251_508_748_249_826u64),
+            interest_rate: 9466,
+            governance_fee: 2_684_355,
+            supply: BigUint::from(126_182_783_124_197_669u64),
+            deposit_payout: None,
+            withdrawal_payout: None,
+        }
     }
 }
 

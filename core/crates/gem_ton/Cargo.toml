@@ -11,6 +11,7 @@ rpc = [
     "dep:gem_client",
     "dep:chain_traits",
     "dep:futures",
+    "tvm",
 ]
 tvm = ["dep:gem_hash"]
 signer = ["tvm", "dep:signer"]

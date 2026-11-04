@@ -29,6 +29,7 @@ flowchart LR
 | The delegation is awaiting withdrawal | Withdraw is offered | |
 | The user claims rewards on a network that claims one validator at a time and picks another validator | the amount becomes that validator's rewards | the claim takes every reward of the validator it names, so the amount is never typed |
 | The coin is TRX on TRON | the user freezes and unfreezes it, and sees Energy and Bandwidth as "available / total" | |
+| The coin is TON | the user stakes into the Tonstakers liquid staking pool and holds tsTON for it; Unstake pays out at once when the pool has enough TON, otherwise the amount shows as Deactivating until the validation round ends, with no Withdraw step | Tonstakers sends the TON itself at the end of the round |
 | The wallet has no delegations | a loading row until the first sync answers, then the empty state or the sync's error | the screen never says nothing is staked before it knows |
 
 ## Rules

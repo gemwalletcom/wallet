@@ -3,7 +3,7 @@ use std::fmt;
 use num_bigint::BigUint;
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
 
-use crate::{Asset, AssetSubtype, ChainType, EVMChain, EvmNativeCurrency, chain::Chain, known_assets};
+use crate::{Asset, AssetSubtype, ChainType, EVMChain, EvmNativeCurrency, StakeChain, chain::Chain, known_assets};
 
 pub const CHAIN_SEPARATOR: &str = "_";
 pub const TOKEN_ID_SEPARATOR: &str = "::";
@@ -149,6 +149,10 @@ impl AssetId {
         self.native_mirror_exponent().is_some()
     }
 
+    pub fn is_mirror(&self) -> bool {
+        self.is_native_mirror() || self.token_id.as_deref().is_some_and(|token_id| StakeChain::from_chain(self.chain).and_then(StakeChain::staked_token) == Some(token_id))
+    }
+
     pub fn mirror_to_native(self, value: BigUint) -> (AssetId, BigUint) {
         match self.native_mirror_exponent() {
             Some(exponent) => (AssetId::from_chain(self.chain), value * BigUint::from(10u32).pow(exponent)),
@@ -203,7 +207,7 @@ impl AssetIdVecExt for Vec<AssetId> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::asset_constants::{ARC_EURC_ASSET_ID, ARC_USDC_ASSET_ID, ETHEREUM_USDT_ASSET_ID, ETHEREUM_USDT_TOKEN_ID, HYPERCORE_SPOT_HYPE_ASSET_ID, STABLE_USDT0_ASSET_ID, STELLAR_USDC_ASSET_ID};
+    use crate::asset_constants::{ARC_EURC_ASSET_ID, ARC_USDC_ASSET_ID, ETHEREUM_USDT_ASSET_ID, ETHEREUM_USDT_TOKEN_ID, HYPERCORE_SPOT_HYPE_ASSET_ID, STABLE_USDT0_ASSET_ID, STELLAR_USDC_ASSET_ID, TON_TSTON_ASSET_ID, TON_USDT_ASSET_ID};
 
     #[test]
     fn test_new_asset_id_with_coin() {
@@ -238,6 +242,13 @@ mod tests {
         let asset_id: AssetId = serde_json::from_str(r#"{"chain":"ethereum"}"#).unwrap();
         assert_eq!(asset_id.chain, Chain::Ethereum);
         assert_eq!(asset_id.token_id, None);
+    }
+
+    #[test]
+    fn test_is_mirror() {
+        assert!(TON_TSTON_ASSET_ID.is_mirror());
+        assert!(!TON_USDT_ASSET_ID.is_mirror());
+        assert!(!AssetId::from_chain(Chain::Ton).is_mirror());
     }
 
     #[test]
