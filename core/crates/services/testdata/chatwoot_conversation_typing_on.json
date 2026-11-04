@@ -11,7 +11,8 @@
       "sender": {
         "custom_attributes": {
           "device_id": "test-device-id"
-        }
+        },
+        "identifier": "test-device-id"
       }
     }
   }

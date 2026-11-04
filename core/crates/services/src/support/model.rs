@@ -108,14 +108,9 @@ pub struct Meta {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CustomAttributes {
-    pub device_id: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Sender {
     pub name: Option<String>,
-    pub custom_attributes: Option<CustomAttributes>,
+    pub identifier: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -139,8 +134,7 @@ pub struct Attachment {
 
 impl ChatwootWebhookPayload {
     pub fn get_device_id(&self) -> Option<String> {
-        let attrs = self.conversation.as_ref().map(|c| &c.meta).or(self.meta.as_ref())?.sender.custom_attributes.as_ref()?;
-        attrs.device_id.clone()
+        self.conversation.as_ref().map(|c| &c.meta).or(self.meta.as_ref())?.sender.identifier.clone()
     }
 
     pub fn is_public_outgoing_message(&self) -> bool {
@@ -485,8 +479,11 @@ mod tests {
 
     #[test]
     fn test_parse_device_id() {
-        let payload: ChatwootWebhookPayload = serde_json::from_str(r#"{"event": "conversation_updated", "meta": {"sender": {"custom_attributes": {"device_id": "test-device"}}}}"#).unwrap();
-        assert_eq!(payload.get_device_id(), Some("test-device".to_string()));
+        let bound: ChatwootWebhookPayload = serde_json::from_str(r#"{"event": "conversation_updated", "meta": {"sender": {"identifier": "test-device"}}}"#).unwrap();
+        let claimed: ChatwootWebhookPayload = serde_json::from_str(r#"{"event": "conversation_updated", "meta": {"sender": {"identifier": null, "custom_attributes": {"device_id": "test-device"}}}}"#).unwrap();
+
+        assert_eq!(bound.get_device_id(), Some("test-device".to_string()));
+        assert_eq!(claimed.get_device_id(), None);
     }
 
     #[test]
