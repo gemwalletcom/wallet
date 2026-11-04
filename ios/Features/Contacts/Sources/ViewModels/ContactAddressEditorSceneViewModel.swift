@@ -131,8 +131,11 @@ extension ContactAddressEditorSceneViewModel {
 
     func onScan(_ result: String) {
         let scan = service.scannedAddress(input: result)
-        addressInputModel.update(text: scan.address)
         session = session.onScanned(scan: scan)
+        if chain != Chain(core: session.chain) {
+            addressInputModel.chain = Chain(core: session.chain)
+        }
+        addressInputModel.update(text: scan.address)
     }
 
     func complete() {
