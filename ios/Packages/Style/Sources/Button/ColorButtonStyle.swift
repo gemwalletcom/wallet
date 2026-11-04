@@ -78,24 +78,6 @@ public extension ButtonStyle where Self == ColorButtonStyle {
         .styled(.blue, paddingHorizontal: paddingHorizontal, paddingVertical: paddingVertical, cornerRadius: cornerRadius, glassEffect: glassEffect)
     }
 
-    static func blueGrayPressed(
-        paddingHorizontal: CGFloat = .button.paddingHorizontal,
-        paddingVertical: CGFloat = .button.paddingVertical,
-        cornerRadius: CGFloat = Sizing.space12,
-        glassEffect: GlassEffectSettings = .isInteractive,
-    ) -> ColorButtonStyle {
-        .styled(.blueGrayPressed, paddingHorizontal: paddingHorizontal, paddingVertical: paddingVertical, cornerRadius: cornerRadius, glassEffect: glassEffect)
-    }
-
-    static func lightGray(
-        paddingHorizontal: CGFloat = .button.paddingHorizontal,
-        paddingVertical: CGFloat = .button.paddingVertical,
-        cornerRadius: CGFloat = Sizing.space12,
-        glassEffect: GlassEffectSettings = .isInteractive,
-    ) -> ColorButtonStyle {
-        .styled(.lightGray, paddingHorizontal: paddingHorizontal, paddingVertical: paddingVertical, cornerRadius: cornerRadius, glassEffect: glassEffect)
-    }
-
     static func empty(
         paddingHorizontal: CGFloat = .space12,
         paddingVertical: CGFloat = .small,
@@ -149,10 +131,6 @@ public extension ButtonStyle where Self == ColorButtonStyle {
         Section("ColorButtonStyle presets") {
             Button("Blue") {}
                 .buttonStyle(.blue())
-            Button("Blue Gray Pressed") {}
-                .buttonStyle(.blueGrayPressed())
-            Button("Light Gray") {}
-                .buttonStyle(.lightGray())
             Button("List Style Color") {}
                 .buttonStyle(.listStyleColor())
             Button("Empty") {}
