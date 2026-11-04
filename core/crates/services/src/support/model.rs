@@ -269,13 +269,15 @@ pub(crate) struct ChatwootMessagesResponse {
 #[derive(Debug, Clone, Serialize)]
 pub(crate) struct ChatwootContactUpdate {
     pub(crate) identifier: String,
+    pub(crate) identifier_hash: String,
     pub(crate) custom_attributes: HashMap<String, String>,
 }
 
 impl ChatwootContactUpdate {
-    pub(crate) fn new(device: &Device) -> Self {
+    pub(crate) fn new(device: &Device, identifier_hash: String) -> Self {
         Self {
             identifier: device.id.clone(),
+            identifier_hash,
             custom_attributes: HashMap::from([
                 ("device_id".to_string(), device.id.clone()),
                 ("app".to_string(), format!("Version {}, {}, {}", device.version, device.os, device.platform_store.name())),
@@ -388,9 +390,10 @@ mod tests {
             ..Device::mock()
         };
 
-        let update = ChatwootContactUpdate::new(&device);
+        let update = ChatwootContactUpdate::new(&device, "test-identifier-hash".to_string());
 
         assert_eq!(update.identifier, "test-device-id");
+        assert_eq!(serde_json::to_value(&update).unwrap()["identifier_hash"], "test-identifier-hash");
         assert_eq!(update.custom_attributes.get("device_id").map(String::as_str), Some("test-device-id"));
         assert_eq!(update.custom_attributes.get("app").map(String::as_str), Some("Version 2.93, Android 11, APK Universal"));
         assert_eq!(update.custom_attributes.get("device").map(String::as_str), Some("Xiaomi Redmi Note 8 Pro"));
