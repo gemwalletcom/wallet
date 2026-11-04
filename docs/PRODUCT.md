@@ -189,7 +189,8 @@ Some networks require a balance to keep an account open, a minimum payment to ac
 | Network | Requirement | Amount |
 |---|---|---|
 | Polkadot Asset Hub | Minimum remaining balance | 0.01 DOT |
-| Solana | Minimum remaining balance | 0.00089088 SOL |
+| Solana | Minimum remaining balance | 0.00065024 SOL |
+| Solana | New account activation | 0.00065024 SOL |
 | Solana | Recipient token account creation | 0.00148844 SOL |
 | XRP | New account activation and base reserve | 1 XRP |
 | XRP | Additional reserve per owned object, including a token trust line | 0.2 XRP |

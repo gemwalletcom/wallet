@@ -72,7 +72,7 @@ struct TransferDetails {
 }
 
 fn map_root_trace_transaction(trace: Trace) -> Option<Transaction> {
-    let state = if trace.is_incomplete || trace.has_actions() { Some(trace.action_state()) } else { None };
+    let state = trace.state();
     let root = trace.root_transaction()?;
 
     let details = jetton_swap_details(&trace, root)
@@ -721,6 +721,16 @@ mod tests {
         assert_eq!(hashes, vec![SUCCESS_SWAP_ROOT_TRANSACTION_HEX_HASH, FAILED_SWAP_ROOT_TRANSACTION_HEX_HASH]);
         assert_eq!(transactions[0].state, TransactionState::Confirmed);
         assert_eq!(transactions[1].state, TransactionState::Reverted);
+    }
+
+    #[test]
+    fn test_map_trace_transactions_by_block_unclassified() {
+        let mut traces = TraceResponse::mock_block_traces();
+        traces.traces.iter_mut().for_each(|trace| trace.actions.clear());
+
+        let states = map_trace_transactions(traces.traces).into_iter().map(|transaction| transaction.state).collect::<Vec<_>>();
+
+        assert_eq!(states, vec![TransactionState::Confirmed, TransactionState::Pending]);
     }
 
     #[test]

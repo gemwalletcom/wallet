@@ -851,6 +851,7 @@ public extension GemListRowTitle {
         case .freeze: Localized.Transfer.Freeze.title
         case .unfreeze: Localized.Transfer.Unfreeze.title
         case .claimRewards: Localized.Transfer.ClaimRewards.title
+        case .withdraw: Localized.Transfer.Withdraw.title
         case .earn: Localized.Common.earn
         case .pendingUnconfirmed: Localized.Stake.pending
         case .reserved: Localized.Asset.Balances.reserved
@@ -965,6 +966,7 @@ public extension GemListRowTitle {
         case .method: Localized.Common.method
         case .token: Localized.Common.token
         case .spender: Localized.Transfer.to
+        case .recipient: Localized.Transfer.Recipient.title
         case .value: Localized.Perpetual.value
         case .expiration: Localized.Common.expiration
         case .tokenId: Localized.Asset.tokenId

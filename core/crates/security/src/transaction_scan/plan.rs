@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 
+use chain_primitives::checksum_address;
 use primitives::asset_score::AssetRank;
 use primitives::{ChainAddress, ScanProvider, ScanTransactionPayload, ScanType, TransactionType};
 
@@ -9,7 +10,9 @@ use crate::{AddressPoisoningTarget, AddressTarget, WebsiteTarget};
 
 pub fn plan_transaction_scan(input: &TransactionScanInput, enabled_providers: &HashSet<ScanProvider>) -> ScanPlan {
     let payload = &input.payload;
-    let is_target_verified = input.addresses.iter().any(|address| address.is_verified_for(payload.target.asset_id.chain, &payload.target.address));
+    let chain = payload.target.asset_id.chain;
+    let target = checksum_address(&payload.target.address, chain);
+    let is_target_verified = input.addresses.iter().any(|address| address.is_verified_for(chain, &target));
     let subjects = scan_subjects(payload);
     let cached = cached_detections(input, &subjects, is_target_verified)
         .into_iter()
@@ -251,6 +254,15 @@ mod tests {
                 website: "https://bnbdaily.finance/".to_string()
             })
         );
+    }
+
+    #[test]
+    fn test_plan_verified_checksummed_row_matches_lowercase_target() {
+        let mut input = TransactionScanInput::mock(payload(TransactionType::SmartContractCall, None));
+        input.payload.target.address = "0x8feab81d36e7576107d5de0758c1b839be31b4f6".to_string();
+        input.addresses = vec![verified("0x8feAB81D36E7576107D5dE0758c1b839Be31B4F6")];
+
+        assert_eq!(plan_all(&input).targets, None);
     }
 
     #[test]

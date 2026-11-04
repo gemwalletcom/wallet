@@ -60,7 +60,7 @@
         },
         "email": null,
         "id": 1,
-        "identifier": null,
+        "identifier": "test-device-id",
         "name": "test-user",
         "phone_number": null,
         "thumbnail": "",

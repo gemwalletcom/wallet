@@ -144,8 +144,10 @@ mod tests {
 
     #[test]
     fn test_user_message_is_not_streamed() {
-        let payload: ChatwootWebhookPayload =
-            serde_json::from_str(r#"{"id":1,"conversation":{"id":2,"meta":{"sender":{"custom_attributes":{"device_id":"test-device"}}}},"event":"message_created","message_type":"incoming","private":false,"content":"from user","content_type":"text","created_at":1780601365}"#).unwrap();
+        let payload: ChatwootWebhookPayload = serde_json::from_str(
+            r#"{"id":1,"conversation":{"id":2,"meta":{"sender":{"identifier":"test-device"}}},"event":"message_created","message_type":"incoming","private":false,"content":"from user","content_type":"text","created_at":1780601365}"#,
+        )
+        .unwrap();
 
         let message = payload.support_message().unwrap();
 

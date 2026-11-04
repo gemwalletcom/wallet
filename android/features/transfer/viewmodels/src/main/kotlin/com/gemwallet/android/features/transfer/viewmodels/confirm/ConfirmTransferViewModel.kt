@@ -321,12 +321,13 @@ class ConfirmTransferViewModel @Inject constructor(
         val session = confirmation.value ?: return@launch
 
         try {
-            val (transactionHash, message) = when (val result = withContext(ioDispatcher) { session.submit() }) {
-                is GemSubmitResult.Signed -> result.data.first() to result.message
-                is GemSubmitResult.Sent -> result.hashes.last() to result.message
+            val result = withContext(ioDispatcher) { session.submit() }
+            val message = when (result) {
+                is GemSubmitResult.Signed -> result.message
+                is GemSubmitResult.Sent -> result.message
             }
             message?.let { toastPresenter.emitToast(ToastMessage(it.text(context), it.iconRes())) }
-            _sentTransactionHash.value = transactionHash
+            _sentTransactionHash.value = checkNotNull(result.transactionId())
         } catch (error: CancellationException) {
             throw error
         } catch (_: GemConfirmException.Cancelled) {

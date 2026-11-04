@@ -2,10 +2,10 @@ import Foundation
 import Gemstone
 import Primitives
 
-public final class LocalKeystore: Keystore, @unchecked Sendable {
+public final class LocalKeystore: @unchecked Sendable {
     package let gemKeystore: GemKeystore
     private let keystoreURL: URL
-    private let keystorePassword: KeystorePassword
+    package let keystorePassword: KeystorePassword
     private let queue = DispatchQueue(label: "com.gemwallet.keystore", qos: .userInitiated)
 
     public init(
@@ -29,10 +29,7 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
         self.keystorePassword = keystorePassword
     }
 
-    public func keystorePassword(createIfMissing: Bool) throws -> String {
-        try keystorePassword.getPassword(createIfMissing: createIfMissing)
-    }
-
+    /// Migrates pending v3 keystores to v4, reading the password at most once; returns per-wallet failures.
     public func migrateV3Keystores(for wallets: [Primitives.Wallet]) async throws -> [KeystoreMigrationFailure] {
         let pendingWallets = pendingV3Migrations(for: wallets)
         guard pendingWallets.isNotEmpty else {
@@ -56,17 +53,6 @@ public final class LocalKeystore: Keystore, @unchecked Sendable {
             }
         }
         return failures
-    }
-
-    public func getPasswordAuthentication() throws -> KeystoreAuthentication {
-        try keystorePassword.getAuthentication()
-    }
-
-    public func destroy() throws {
-        guard FileManager.default.fileExists(atPath: keystoreURL.path) else {
-            return
-        }
-        try FileManager.default.removeItem(at: keystoreURL)
     }
 
     func getPassword() async throws -> String {

@@ -3,7 +3,9 @@ use std::sync::Arc;
 
 use localizer::{LanguageLocalizer, TransactionAction};
 use number_formatter::{ValueFormatter, ValueStyle};
-use primitives::{AddressFormatStyle, AddressFormatter, Asset, AssetVecExt, Chain, DeviceSubscription, FiatQuoteType, Transaction, TransactionNFTTransferMetadata, TransactionPerpetualMetadata, TransactionSwapMetadata, TransactionType};
+use primitives::{
+    AddressFormatStyle, AddressFormatter, Asset, AssetVecExt, Chain, DeviceSubscription, FiatQuoteType, Transaction, TransactionNFTTransferMetadata, TransactionPerpetualMetadata, TransactionSwapMetadata, TransactionType, VerificationStatus,
+};
 use push_notification::{GorushNotification, PushNotification};
 use storage::DatabaseError;
 
@@ -25,11 +27,15 @@ impl Pusher {
     }
 
     pub async fn get_address(&self, chain: Chain, address: &str) -> Result<String, Box<dyn Error + Send + Sync>> {
-        match self.repository.get_scan_address(chain, address.to_string()).await {
-            Ok(address) => Ok(address.name.unwrap_or_default()),
-            Err(DatabaseError::ConnectionPool) => Err(DatabaseError::ConnectionPool.into()),
-            Err(_) => Ok(AddressFormatter::format(address, Some(chain), AddressFormatStyle::Short)),
-        }
+        let scan_address = match self.repository.get_scan_address(chain, address.to_string()).await {
+            Ok(scan_address) => Some(scan_address),
+            Err(DatabaseError::ConnectionPool) => return Err(DatabaseError::ConnectionPool.into()),
+            Err(_) => None,
+        };
+        let name = scan_address
+            .filter(|scan_address| scan_address.verification_status() != VerificationStatus::Suspicious)
+            .and_then(|scan_address| scan_address.name);
+        Ok(name.unwrap_or_else(|| AddressFormatter::format(address, Some(chain), AddressFormatStyle::Short)))
     }
 
     pub fn fiat_transaction_message(localizer: &LanguageLocalizer, quote_type: &FiatQuoteType, provider_name: &str, asset: &Asset, crypto_value: &str) -> Result<Message, Box<dyn Error + Send + Sync>> {
@@ -185,7 +191,8 @@ impl Pusher {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::TransactionState;
+    use crate::testkit::MemoryNotificationsRepository;
+    use primitives::{ScanAddress, TransactionState};
 
     #[test]
     fn test_message_failed() {
@@ -204,6 +211,26 @@ mod tests {
         };
         let transfer = Pusher::message(LanguageLocalizer::new(), &failed_transfer, "0xfrom", &assets, "0xto", "0xfrom").unwrap();
         assert_eq!((transfer.title.as_str(), transfer.message.as_deref()), ("❌ \u{2068}Transfer\u{2069}: Failed", Some("To \u{2068}0xto\u{2069}")));
+    }
+
+    #[tokio::test]
+    async fn test_get_address() {
+        let named = ScanAddress::contract(Chain::Ethereum, "0x1111111111111111111111111111111111111111", "Uniswap Router");
+        let fraudulent = ScanAddress {
+            is_malicious: Some(true),
+            is_verified: Some(false),
+            ..ScanAddress::contract(Chain::Ethereum, "0x2222222222222222222222222222222222222222", "Fake Router")
+        };
+        let nameless = ScanAddress {
+            name: None,
+            ..ScanAddress::contract(Chain::Ethereum, "0x3333333333333333333333333333333333333333", "")
+        };
+        let pusher = Pusher::new(Arc::new(MemoryNotificationsRepository::new(vec![named.clone(), fraudulent.clone(), nameless.clone()])));
+
+        assert_eq!(pusher.get_address(Chain::Ethereum, &named.address).await.unwrap(), "Uniswap Router");
+        assert_eq!(pusher.get_address(Chain::Ethereum, &fraudulent.address).await.unwrap(), "0x22222...22222");
+        assert_eq!(pusher.get_address(Chain::Ethereum, &nameless.address).await.unwrap(), "0x33333...33333");
+        assert_eq!(pusher.get_address(Chain::Ethereum, "0x4444444444444444444444444444444444444444").await.unwrap(), "0x44444...44444");
     }
 
     #[test]

@@ -17,4 +17,5 @@ fuzz_target!(|input: (u8, &str)| {
     let _ = validate_send_transaction(&transaction_type, data);
     let _ = WalletConnectRequestHandler::decode_send_transaction(transaction_type, data.to_string());
     let _ = gem_tron::decode_wallet_connect_contract(data);
+    let _ = gem_sui::tx_builder::validate_wallet_connect_sender(data, "0x93f65b8c16c263343bbf66cf9f8eef69cb1dbc92d13f0c331b0dcaeb76b4aab6");
 });

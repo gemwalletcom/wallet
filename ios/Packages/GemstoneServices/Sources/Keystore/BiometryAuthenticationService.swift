@@ -54,7 +54,7 @@ public struct BiometryAuthenticationService: BiometryAuthenticatable {
     }
 
     public var availableAuthentication: GemKeystoreAuthentication {
-        keystorePassword.getAvailableAuthentication().toGem()
+        keystorePassword.getAvailableAuthentication()
     }
 
     public var isPasscodeSet: Bool {

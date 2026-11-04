@@ -19,6 +19,7 @@ gem_ton = { path = "../gem_ton", features = ["rpc"] }
 settings = { path = "../settings" }
 
 [dev-dependencies]
+gem_client = { path = "../gem_client", features = ["testkit"] }
 tokio = { workspace = true }
 blockscout = { path = "../blockscout", features = ["testkit"] }
 gem_ton = { path = "../gem_ton", features = ["rpc", "testkit"] }

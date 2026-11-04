@@ -1,12 +1,7 @@
 appId: ${APP_ID}
 ---
 - runFlow: launch.yaml
-- scrollUntilVisible:
-    element:
-      id: "manage"
-    centerElement: true
-- tapOn:
-    id: "manage"
+- runFlow: open_manage.yaml
 - tapOn:
     id: "asset_toggle"
     checked: true
@@ -24,12 +19,7 @@ appId: ${APP_ID}
     timeout: 15000
 - assertNotVisible:
     id: "ethereum"
-- scrollUntilVisible:
-    element:
-      id: "manage"
-    centerElement: true
-- tapOn:
-    id: "manage"
+- runFlow: open_manage.yaml
 - tapOn:
     id: "asset_toggle"
     checked: false

@@ -1361,6 +1361,48 @@ fun mockGemConnectionRow(
     iconUrl = iconUrl,
 )
 
+fun mockGemContactAddressSession(
+    contactId: String = "",
+    replacingId: String? = null,
+    chain: String = com.wallet.core.primitives.Chain.Bitcoin.string,
+    memo: String = "",
+    fields: List<uniffi.gemstone.GemContactAddressField> = emptyList(),
+) = uniffi.gemstone.GemContactAddressSession(
+    contactId = contactId,
+    replacingId = replacingId,
+    chain = chain,
+    memo = memo,
+    fields = fields,
+)
+
+fun mockGemContactScannedAddress(
+    address: String = "",
+    chain: String? = null,
+    memo: String? = null,
+) = uniffi.gemstone.GemContactScannedAddress(
+    address = address,
+    chain = chain,
+    memo = memo,
+)
+
+fun mockGemContactSession(
+    id: String = "",
+    existing: uniffi.gemstone.Contact? = null,
+    name: String = "",
+    description: String = "",
+    avatar: uniffi.gemstone.GemContactAvatarChoice = uniffi.gemstone.GemContactAvatarChoice.Empty,
+    addresses: List<uniffi.gemstone.ContactAddress> = emptyList(),
+    isSaving: Boolean = false,
+) = uniffi.gemstone.GemContactSession(
+    id = id,
+    existing = existing,
+    name = name,
+    description = description,
+    avatar = avatar,
+    addresses = addresses,
+    isSaving = isSaving,
+)
+
 fun mockGemCustomFeeField(
     title: uniffi.gemstone.GemListRowTitle = uniffi.gemstone.GemListRowTitle.API,
     input: String = "",
@@ -1695,6 +1737,16 @@ fun mockGemRecipient(
     name = name,
     memo = memo,
     references = references,
+)
+
+fun mockGemRecipientValidation(
+    isValid: Boolean = false,
+    address: String = "",
+    error: uniffi.gemstone.GemRecipientErrorDisplay? = null,
+) = uniffi.gemstone.GemRecipientValidation(
+    isValid = isValid,
+    address = address,
+    error = error,
 )
 
 fun mockGemRewardsResult(

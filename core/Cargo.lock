@@ -6853,6 +6853,7 @@ version = "2.114.88"
 dependencies = [
  "async-trait",
  "cacher",
+ "chain_primitives",
  "chain_providers",
  "chain_traits",
  "chrono",

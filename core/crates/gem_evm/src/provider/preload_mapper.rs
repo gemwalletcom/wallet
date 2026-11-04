@@ -123,6 +123,13 @@ pub fn pending_permit_gas_limit(input: &TransactionLoadInput) -> Result<Option<B
     Ok(Some(BigInt::from_str_radix(gas_limit, 10)?))
 }
 
+pub fn requested_gas_limit(input: &TransactionLoadInput) -> Option<BigInt> {
+    let TransactionInputType::Generic { extra, .. } = &input.input_type else {
+        return None;
+    };
+    extra.gas_limit.clone()
+}
+
 pub fn get_extra_fee_gas_limit(input: &TransactionLoadInput) -> Result<BigInt, Box<dyn Error + Send + Sync>> {
     match &input.input_type {
         TransactionInputType::Swap { swap_data, .. } => {

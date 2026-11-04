@@ -54,6 +54,13 @@ pub fn scan_subjects(payload: &ScanTransactionPayload) -> Vec<ScanSubject> {
     addresses.chain(website).collect()
 }
 
+pub fn scan_addresses(payload: &ScanTransactionPayload) -> Vec<(Chain, String)> {
+    [&payload.origin, &payload.target]
+        .into_iter()
+        .map(|target| (target.asset_id.chain, checksum_address(&target.address, target.asset_id.chain)))
+        .collect()
+}
+
 pub fn website_host(payload: &ScanTransactionPayload) -> Option<String> {
     Url::parse(payload.website.as_deref()?).ok()?.host_str().map(str::to_string)
 }
@@ -119,6 +126,26 @@ mod tests {
         assert_eq!(lower.target, "0x938915Fd4b7C188A211113Ed655ae1F18c334146");
         assert_eq!(subject("0x938915FD4B7C188A211113ED655AE1F18C334146").target, lower.target);
         assert_eq!(lower.finding, ScanFinding::Address(ChainAddress::new(Chain::SmartChain, "0x938915fd4b7c188a211113ed655ae1f18c334146".to_string())));
+    }
+
+    #[test]
+    fn test_scan_addresses() {
+        let mut payload = ScanTransactionPayload::mock_with_assets(AssetId::from_chain(Chain::Ethereum), AssetId::from_chain(Chain::Ethereum));
+        payload.origin.address = "0x8feab81d36e7576107d5de0758c1b839be31b4f6".to_string();
+        payload.target.address = "0x4cd00e387622c35bddb9b4c962c136462338bc31".to_string();
+
+        assert_eq!(
+            scan_addresses(&payload),
+            vec![
+                (Chain::Ethereum, "0x8feAB81D36E7576107D5dE0758c1b839Be31B4F6".to_string()),
+                (Chain::Ethereum, "0x4cD00E387622C35bDDB9b4c962C136462338BC31".to_string()),
+            ]
+        );
+
+        let mut payload = ScanTransactionPayload::mock_with_assets(AssetId::from_chain(Chain::Solana), AssetId::from_chain(Chain::Solana));
+        payload.target.address = "So11111111111111111111111111111111111111112".to_string();
+
+        assert_eq!(scan_addresses(&payload)[1], (Chain::Solana, "So11111111111111111111111111111111111111112".to_string()));
     }
 
     #[test]

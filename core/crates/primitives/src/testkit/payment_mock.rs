@@ -1,4 +1,4 @@
-use crate::{Asset, AssetId, Chain, PaymentInvoice, PaymentLink, PaymentMerchant, PaymentPrice, PaymentQuote, PaymentRequest, TransactionInputType, TransferDataExtra};
+use crate::{ApplicationMetadata, Asset, AssetId, Chain, PaymentInvoice, PaymentLink, PaymentMerchant, PaymentPrice, PaymentQuote, PaymentRequest, TransactionInputType, TransferDataExtra};
 use num_bigint::BigUint;
 
 impl PaymentRequest {
@@ -43,6 +43,14 @@ impl PaymentPrice {
 }
 
 impl TransactionInputType {
+    pub fn mock_generic(asset: Asset, extra: TransferDataExtra) -> Self {
+        Self::Generic {
+            asset,
+            metadata: ApplicationMetadata::mock(),
+            extra,
+        }
+    }
+
     pub fn mock_payment(asset: Asset, extra: TransferDataExtra) -> Self {
         Self::Payment {
             asset,

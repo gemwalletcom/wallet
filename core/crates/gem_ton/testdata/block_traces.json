@@ -49,7 +49,9 @@
         }
       ],
       "transactions_order": [
-        "L5Egpf9I3suIl6CdddcmMS44geWLFKgHi3EbBDz7qy8="
+        "L5Egpf9I3suIl6CdddcmMS44geWLFKgHi3EbBDz7qy8=",
+        "wxE69pJLaGxAFyMpRbGpy/IlTcdHRM3RAE75g7/ZO8I=",
+        "ldlYcNA0QTgdaFUAED9IoESC1kFGlHFkZRtCsUEUATk="
       ],
       "transactions": {
         "L5Egpf9I3suIl6CdddcmMS44geWLFKgHi3EbBDz7qy8=": {
@@ -79,6 +81,18 @@
             }
           ],
           "in_msg": null
+        },
+        "wxE69pJLaGxAFyMpRbGpy/IlTcdHRM3RAE75g7/ZO8I=": {
+          "hash": "wxE69pJLaGxAFyMpRbGpy/IlTcdHRM3RAE75g7/ZO8I=",
+          "now": 1778106088,
+          "total_fees": "88890",
+          "out_msgs": []
+        },
+        "ldlYcNA0QTgdaFUAED9IoESC1kFGlHFkZRtCsUEUATk=": {
+          "hash": "ldlYcNA0QTgdaFUAED9IoESC1kFGlHFkZRtCsUEUATk=",
+          "now": 1778106088,
+          "total_fees": "44601",
+          "out_msgs": []
         }
       }
     }

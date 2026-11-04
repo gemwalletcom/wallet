@@ -2,10 +2,11 @@ use std::collections::HashSet;
 
 use futures::try_join;
 use sui_transaction_builder::ObjectInput;
-use sui_types::Address;
+use sui_types::{Address, Transaction};
 
 use super::{
     builder::digest,
+    is_transaction_json,
     model::{GasData, ObjectRef, TransactionBuilderJson, TransactionInput},
     replay::{TransactionJsonReplay, parse_transaction_json, prepare_replay},
 };
@@ -14,7 +15,7 @@ use crate::{
     address::SuiAddress,
     gas_budget::GAS_BUDGET_MULTIPLIER,
     models::{Coin, TxOutput},
-    tx_builder::{TransactionBuilderInput, finish_transaction},
+    tx_builder::{TransactionBuilderInput, decode_transaction, finish_transaction},
 };
 
 pub async fn finish_transaction_json(client: &SuiClient, transaction_json: &str, sender: &str) -> Result<TxOutput, SuiError> {
@@ -45,11 +46,23 @@ async fn finish_parsed(client: &SuiClient, transaction: TransactionBuilderJson, 
     finish_transaction(replay.replay()?.txb, builder_input.with_gas_budget(budget))
 }
 
+pub fn validate_wallet_connect_sender(transaction: &str, sender: &str) -> Result<(), SuiError> {
+    if is_transaction_json(transaction.as_bytes()) {
+        return validate_sender(&parse_transaction_json(transaction)?, sender);
+    }
+    let transaction: Transaction = decode_transaction(transaction).map_err(SuiError::from_display)?;
+    validate_sender_address(transaction.sender, sender)
+}
+
 fn validate_sender(transaction: &TransactionBuilderJson, sender: &str) -> Result<(), SuiError> {
     let Some(transaction_sender) = transaction.sender.as_deref() else {
         return Ok(());
     };
-    if Address::from(SuiAddress::parse(transaction_sender)?) != Address::from(SuiAddress::parse(sender)?) {
+    validate_sender_address(SuiAddress::parse(transaction_sender)?.into(), sender)
+}
+
+fn validate_sender_address(transaction_sender: Address, sender: &str) -> Result<(), SuiError> {
+    if transaction_sender != Address::from(SuiAddress::parse(sender)?) {
         return Err(SuiError::invalid_input(format!("Sui transaction sender mismatch: {transaction_sender}")));
     }
     Ok(())

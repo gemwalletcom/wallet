@@ -4,6 +4,7 @@ use primitives::{AddressName, AddressType, Chain, Contact, PaymentRequest, Verif
 use primitives::{OptionStringExt, contact::ContactAddress};
 
 use super::model::{GemContactAddressField, GemContactAddressSession, GemContactAvatarChoice, GemContactScannedAddress, GemContactSession};
+use crate::address::validate_address;
 use crate::config::chain::is_memo_supported;
 use std::collections::HashSet;
 
@@ -56,7 +57,15 @@ pub fn scanned_address(input: &str, payment: Option<&PaymentRequest>) -> GemCont
     let address = payment.map(|payment| payment.address.trim()).non_empty().unwrap_or_else(|| input.trim());
     GemContactScannedAddress {
         address: address.to_string(),
+        chain: payment.and_then(|payment| payment.asset_id.as_ref()).map(|asset_id| asset_id.chain),
         memo: payment.and_then(|payment| payment.memo.clone()),
+    }
+}
+
+pub fn chain_for(scan: &GemContactScannedAddress, current: Chain) -> Chain {
+    match scan.chain {
+        Some(chain) if !validate_address(&scan.address, current) => chain,
+        _ => current,
     }
 }
 
@@ -66,7 +75,7 @@ pub fn contact_address(contact_id: String, chain: Chain, address: String, memo: 
         contact_id,
         address,
         chain,
-        memo: memo.and_then(blank_to_none),
+        memo: memo.filter(|_| is_memo_supported(chain)).and_then(blank_to_none),
     }
 }
 
@@ -167,7 +176,7 @@ mod tests {
     }
     use super::*;
     use chrono::Utc;
-    use primitives::Chain;
+    use primitives::{AssetId, Chain};
 
     #[test]
     fn test_contact_rules() {
@@ -196,26 +205,37 @@ mod tests {
         assert_eq!(address.id, "contact_ethereum_0xabc");
         assert_eq!(address.contact_id, "contact");
         assert_eq!(address.memo, None);
-        assert_eq!(contact_address("contact".into(), Chain::Ethereum, "0xabc".into(), Some(" note ".into())).memo.as_deref(), Some("note"));
+        assert_eq!(contact_address("contact".into(), Chain::Cosmos, "cosmos1".into(), Some(" note ".into())).memo.as_deref(), Some("note"));
+        assert_eq!(contact_address("contact".into(), Chain::Ethereum, "0xabc".into(), Some("note".into())).memo, None, "a network without a memo saves no memo");
     }
 
     #[test]
-    fn test_scanned_address_prefers_the_payment_address_and_memo() {
+    fn test_scanned_address_prefers_the_payment_address_network_and_memo() {
         let payment = PaymentRequest {
-            address: " 0xabc ".into(),
+            address: " rAddress ".into(),
             memo: Some("tag".into()),
+            asset_id: Some(AssetId::from_chain(Chain::Xrp)),
             ..PaymentRequest::mock()
         };
         assert_eq!(
-            scanned_address("bitcoin:0xabc?dt=tag", Some(&payment)),
+            scanned_address("xrpl:rAddress?dt=tag", Some(&payment)),
             GemContactScannedAddress {
-                address: "0xabc".into(),
+                address: "rAddress".into(),
+                chain: Some(Chain::Xrp),
                 memo: Some("tag".into())
             }
         );
         let blank = PaymentRequest { address: "  ".into(), ..payment };
         assert_eq!(scanned_address(" raw ", Some(&blank)).address, "raw");
-        assert_eq!(scanned_address(" raw ", None), GemContactScannedAddress { address: "raw".into(), memo: None });
+        assert_eq!(scanned_address(" raw ", Some(&PaymentRequest::mock())).chain, None, "a code without a network leaves it to the user");
+        assert_eq!(
+            scanned_address(" raw ", None),
+            GemContactScannedAddress {
+                address: "raw".into(),
+                chain: None,
+                memo: None
+            }
+        );
     }
 
     #[test]

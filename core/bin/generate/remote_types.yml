@@ -281,6 +281,9 @@ mocks:
   - GemConfirmSimulation
   - GemConfirmSimulationState
   - GemConnectionRow
+  - GemContactAddressSession
+  - GemContactScannedAddress
+  - GemContactSession
   - GemCustomFeeField
   - GemCustomFeeSession
   - GemEmptyState
@@ -316,6 +319,7 @@ mocks:
   - GemProviderKind
   - GemProviderRow
   - GemRecipient
+  - GemRecipientValidation
   - GemRewardsResult
   - GemRowText
   - GemSignMessagePreview

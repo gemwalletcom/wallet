@@ -7,6 +7,7 @@ use gem_client::{CONTENT_TYPE, ClientError, ClientExt, MultipartForm, ReqwestCli
 use primitives::{Device, SupportMessage, SupportTypingStatus};
 use serde::Serialize;
 use serde_json::Value;
+use support::identifier_hash;
 
 use super::chatwoot_target::ChatwootTarget;
 use super::constants::QUERY_WIDGET_PUBLIC_TOKEN;
@@ -22,15 +23,17 @@ pub struct ChatwootClient {
     client: ReqwestClient,
     url: String,
     widget_public_token: String,
+    identity: String,
 }
 
 impl ChatwootClient {
-    pub fn new(url: String, widget_public_token: String) -> Self {
+    pub fn new(url: String, widget_public_token: String, identity: String) -> Self {
         let url = url.trim_end_matches('/').to_string();
         Self {
             client: ReqwestClient::new(url.clone(), reqwest_client()),
             url,
             widget_public_token,
+            identity,
         }
     }
 
@@ -47,7 +50,7 @@ impl ChatwootClient {
     }
 
     async fn set_contact(&self, device: &Device, auth_token: &str) -> Result<Option<ChatwootSession>, Box<dyn Error + Send + Sync>> {
-        let update = ChatwootContactUpdate::new(device);
+        let update = ChatwootContactUpdate::new(device, identifier_hash(&self.identity, &device.id)?);
         let contact: ChatwootContactResponse = match self.client.patch(ChatwootTarget::SetContact, &update).query(&self.token_query()).headers(Self::auth_headers(auth_token)).await {
             Ok(contact) => contact,
             Err(ClientError::Http { status: 404, .. }) => return Ok(None),

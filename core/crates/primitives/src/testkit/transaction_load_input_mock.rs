@@ -1,7 +1,7 @@
 use super::signer_mock::{TEST_EVM_RECIPIENT, TEST_EVM_SENDER, TEST_OSMOSIS_SENDER, TEST_POLKADOT_SENDER};
 use crate::{
-    ApplicationMetadata, Asset, AssetId, AssetType, Chain, GasPriceType, SignerInput, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType,
-    UTXO, asset_constants::NEAR_USDT_ASSET_ID,
+    Asset, AssetId, AssetType, Chain, GasPriceType, SignerInput, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, UTXO,
+    asset_constants::NEAR_USDT_ASSET_ID,
 };
 use num_bigint::BigInt;
 use num_bigint::BigUint;
@@ -235,11 +235,7 @@ impl TransactionLoadInput {
     }
 
     pub fn mock_sign_data(chain: Chain, data: &str, output_type: TransferDataOutputType) -> Self {
-        Self::mock_sign_data_with_input_type(TransactionInputType::Generic {
-            asset: Asset::from_chain(chain),
-            metadata: ApplicationMetadata::mock(),
-            extra: Self::sign_data_extra(data, output_type),
-        })
+        Self::mock_sign_data_with_input_type(TransactionInputType::mock_generic(Asset::from_chain(chain), Self::sign_data_extra(data, output_type)))
     }
 
     pub fn mock_sign_data_payment(chain: Chain, data: &str, output_type: TransferDataOutputType) -> Self {

@@ -443,6 +443,7 @@ pub struct Security {
 pub struct Support {
     pub url: String,
     pub widget: SupportWidget,
+    pub identity: SupportWidget,
     pub webhook: SecretKeySettings,
     pub types: SupportTypes,
 }

@@ -51,6 +51,7 @@ pub enum TransactionLoadMetadata {
         nft: Option<SolanaNftStandard>,
         block_hash: String,
         references: Vec<String>,
+        is_destination_address_exist: Option<bool>,
     },
     Ton {
         sender_token_address: Option<String>,
@@ -218,6 +219,10 @@ impl TransactionLoadMetadata {
 
     pub fn get_is_destination_address_exist(&self) -> Result<bool, Box<dyn std::error::Error + Send + Sync>> {
         match self {
+            TransactionLoadMetadata::Solana {
+                is_destination_address_exist: Some(is_destination_address_exist),
+                ..
+            } => Ok(*is_destination_address_exist),
             TransactionLoadMetadata::Stellar { is_destination_address_exist, .. } | TransactionLoadMetadata::Xrp { is_destination_address_exist, .. } => Ok(*is_destination_address_exist),
             _ => Err("Destination existence flag not available for this metadata type".into()),
         }
@@ -314,8 +319,10 @@ mod tests {
             nft: None,
             block_hash: "block_hash".into(),
             references: vec![],
+            is_destination_address_exist: Some(false),
         };
         assert_eq!(metadata.get_solana_token_program_id().unwrap(), Some(SolanaTokenProgramId::Token2022));
+        assert!(!metadata.get_is_destination_address_exist().unwrap());
         assert_eq!(
             TransactionLoadMetadata::None.get_solana_token_program_id().unwrap_err().to_string(),
             "Solana token program not available for this metadata type"
