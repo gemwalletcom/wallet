@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+public import enum Gemstone.GemKeystoreAuthentication
 public import enum Gemstone.GemLockPeriod
 import Foundation
 import Keychain
@@ -23,15 +24,15 @@ public final class LocalKeystorePassword: KeystorePassword {
         self.systemPrompt = systemPrompt
     }
 
-    public func getAvailableAuthentication() -> KeystoreAuthentication {
-        KeystoreAuthentication.availableAuthenticationType
+    public func getAvailableAuthentication() -> GemKeystoreAuthentication {
+        GemKeystoreAuthentication.availableAuthenticationType
     }
 
-    public func getAuthentication() throws -> KeystoreAuthentication {
+    public func getAuthentication() throws -> GemKeystoreAuthentication {
         guard let value = try keychain.get(Keys.passwordAuthentication) else {
             return .none
         }
-        return KeystoreAuthentication(rawValue: value) ?? .none
+        return GemKeystoreAuthentication(keychainValue: value) ?? .none
     }
 
     public func getAuthenticationLockPeriod() throws -> GemLockPeriod? {
@@ -101,7 +102,7 @@ extension LocalKeystorePassword {
 
     private func setPassword(
         _ password: String,
-        authentication: KeystoreAuthentication,
+        authentication: GemKeystoreAuthentication,
         context: LAContext,
     ) throws {
         try keychain
@@ -125,7 +126,7 @@ extension LocalKeystorePassword {
         try systemPrompt.presenting { try keychain.authenticationContext(context).get(key) }
     }
 
-    private func setLockKey(_ lockKey: String, authentication: KeystoreAuthentication, context: LAContext) throws {
+    private func setLockKey(_ lockKey: String, authentication: GemKeystoreAuthentication, context: LAContext) throws {
         try keychain.remove(Keys.lockKey)
         try keychain
             .accessibility(.whenUnlockedThisDeviceOnly, authenticationPolicy: authentication.policy)
@@ -133,10 +134,10 @@ extension LocalKeystorePassword {
             .set(lockKey, key: Keys.lockKey)
     }
 
-    private func changeAuthentication(authentication: KeystoreAuthentication, context: LAContext) throws {
+    private func changeAuthentication(authentication: GemKeystoreAuthentication, context: LAContext) throws {
         let password = try storedPassword(context: context)
         let lockKey = try storedLockKey(context: context) ?? generateSecret()
-        try keychain.set(authentication.rawValue, key: Keys.passwordAuthentication)
+        try keychain.set(authentication.keychainValue, key: Keys.passwordAuthentication)
         if let password {
             try setPassword(password, authentication: authentication, context: context)
         }
@@ -146,12 +147,21 @@ extension LocalKeystorePassword {
 
 // MARK: - Models extensions
 
-extension LAContext {
-    func canEvaluatePolicyThrowing(policy: LAPolicy) throws {
-        var error: NSError?
-        canEvaluatePolicy(policy, error: &error)
-        if let error {
-            throw error
+private extension GemKeystoreAuthentication {
+    init?(keychainValue: String) {
+        switch keychainValue {
+        case "biometrics": self = .biometrics
+        case "passcode": self = .passcode
+        case "none": self = .none
+        default: return nil
+        }
+    }
+
+    var keychainValue: String {
+        switch self {
+        case .biometrics: "biometrics"
+        case .passcode: "passcode"
+        case .none: "none"
         }
     }
 }

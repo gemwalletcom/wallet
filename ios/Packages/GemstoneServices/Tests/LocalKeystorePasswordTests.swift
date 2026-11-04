@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import enum Gemstone.GemKeystoreAuthentication
 @testable import GemstoneServices
 import Keychain
 import LocalAuthentication
@@ -22,6 +23,20 @@ struct LocalKeystorePasswordTests {
         #expect(storage.value(for: "password_authentication") == nil)
     }
 
+    @Test(arguments: [
+        ("biometrics", GemKeystoreAuthentication.biometrics),
+        ("passcode", .passcode),
+        ("none", .none),
+        ("unknown", .none),
+    ])
+    func authenticationReadsTheStoredPolicy(stored: String, expected: GemKeystoreAuthentication) throws {
+        let storage = KeychainStorage()
+        storage.set(Data(stored.utf8), key: "password_authentication", accessibility: .afterFirstUnlock)
+        let keystorePassword = LocalKeystorePassword(keychain: RecordingKeychain(storage: storage), systemPrompt: SystemPrompt())
+
+        #expect(try keystorePassword.getAuthentication() == expected)
+    }
+
     @Test
     func authenticationChangeWithoutPasswordKeepsThePolicy() throws {
         let storage = KeychainStorage()
@@ -30,6 +45,7 @@ struct LocalKeystorePasswordTests {
         try keystorePassword.enableAuthentication(false, context: LAContext())
 
         #expect(storage.value(for: "password") == nil)
+        #expect(storage.value(for: "password_authentication") == Data("none".utf8))
         #expect(try keystorePassword.getAuthentication() == .none)
     }
 

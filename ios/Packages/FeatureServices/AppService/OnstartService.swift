@@ -11,13 +11,13 @@ import Primitives
 public struct OnstartService: Sendable {
     private let appStartService: any GemAppStartServiceProtocol
     private let preferencesService: any GemPreferencesServiceProtocol
-    private let keystore: any Keystore
+    private let keystore: LocalKeystore
     private let session: any GemWalletSessionServiceProtocol
 
     public init(
         appStartService: any GemAppStartServiceProtocol,
         preferencesService: any GemPreferencesServiceProtocol,
-        keystore: any Keystore,
+        keystore: LocalKeystore,
         session: any GemWalletSessionServiceProtocol,
     ) {
         self.appStartService = appStartService

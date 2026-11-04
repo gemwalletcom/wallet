@@ -29,7 +29,7 @@ public extension GemWalletService {
         let appPreferences = GemPreferencesService(store: GemPreferencesStoreMock())
         return GemWalletService(
             keystore: keystore.gemKeystore,
-            password: GemstoneKeystorePassword(keystore: keystore),
+            password: GemstoneKeystorePassword(password: keystore.keystorePassword),
             store: gemWalletStore,
             session: GemWalletSessionService(store: sessionStore, wallets: gemWalletStore),
             appPreferences: appPreferences,
@@ -69,7 +69,7 @@ public extension GemSignMessageService {
             names: GemNameService.mock(),
             explorer: GemExplorerService(preferences: GemPreferencesService(store: GemPreferencesStoreMock())),
             keystore: keystore.gemKeystore,
-            password: GemstoneKeystorePassword(keystore: keystore),
+            password: GemstoneKeystorePassword(password: keystore.keystorePassword),
         )
     }
 }
