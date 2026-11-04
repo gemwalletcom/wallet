@@ -152,6 +152,12 @@ impl Across {
         native_fee * gas_token_usd * scale(decimals) / (output_usd * scale(GAS_TOKEN_DECIMALS))
     }
 
+    fn message_and_to_value(output_amount: &U256, output: &AcrossAsset, output_token: &Address, user_address: &Address, output_chain: Chain) -> Result<(Vec<u8>, U256), SwapperError> {
+        let referral_config = referral_fees(BRIDGE_FEE_BPS).for_chain(output_chain).cloned().unwrap_or_default();
+        let (message, referral_fee) = Self::message_for_multicall_handler(output_amount, output.funding, output_token, user_address, output_chain, &referral_config)?;
+        Ok((message, (*output_amount - referral_fee) * output.scale))
+    }
+
     fn message_for_multicall_handler(amount: &U256, output_funding: Funding, output_token: &Address, user_address: &Address, output_chain: Chain, referral_fee: &ReferralFee) -> Result<(Vec<u8>, U256), SwapperError> {
         if referral_fee.bps == 0 {
             return Ok((vec![], U256::from(0)));
@@ -289,8 +295,7 @@ impl Swapper for Across {
             .filter(|amount| !amount.is_zero())
             .ok_or(SwapperError::InputAmountError { min_amount: None })?;
 
-        let referral_config = referral_fees(BRIDGE_FEE_BPS).for_chain(to_chain).cloned().unwrap_or_default();
-        let (message, referral_fee) = Self::message_for_multicall_handler(&output_amount, output.funding, &output_token, &recipient_address, to_chain, &referral_config)?;
+        let (message, to_value) = Self::message_and_to_value(&output_amount, &output, &output_token, &recipient_address, to_chain)?;
         let recipient = if message.is_empty() {
             recipient_address
         } else {
@@ -310,8 +315,6 @@ impl Swapper for Across {
             exclusivityDeadline: 0,
             message: message.into(),
         };
-        let to_value = (output_amount - referral_fee) * output.scale;
-
         Ok(Quote {
             from_value: request.value.clone(),
             min_from_value: None,
@@ -398,9 +401,14 @@ impl Swapper for Across {
 
 #[cfg(test)]
 mod tests {
-    use super::super::testkit::{TEST_FILL_DEADLINE, mock_v3_relay_data};
+    use super::super::{
+        asset::supported_asset_for_token,
+        testkit::{TEST_FILL_DEADLINE, mock_v3_relay_data},
+    };
     use super::*;
     use crate::alien::mock::ProviderMock;
+    use alloy_primitives::B256;
+    use gem_evm::across::deposit::{Deposit, RelayData};
     use num_bigint::BigUint;
     use primitives::{
         asset_constants::*,
@@ -533,6 +541,47 @@ mod tests {
                 is_unlimited: true,
             })
         );
+    }
+
+    #[test]
+    fn test_completed_deposit_reports_quoted_to_value() {
+        let user_address = eth_address::parse_str("0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7").unwrap();
+        let output_amount = U256::from(4_984_358u64);
+        let chain_id = |chain: Chain| AcrossDeployment::deployment_by_chain(&chain).unwrap().chain_id;
+        let routes = [
+            (ARBITRUM_USDC_ASSET_ID.clone(), ETHEREUM_USDC_ASSET_ID.clone()),
+            (AssetId::from_chain(Chain::Arbitrum), AssetId::from_chain(Chain::Ethereum)),
+            (ETHEREUM_USDC_ASSET_ID.clone(), AssetId::from_chain(Chain::Arc)),
+        ];
+
+        for (from_asset, to_asset) in routes {
+            let input = AcrossAsset::from_asset(&from_asset).unwrap();
+            let output = AcrossAsset::from_asset(&to_asset).unwrap();
+            let output_token = eth_address::parse_asset_id(&output.asset_id).unwrap();
+            let (message, to_value) = Across::message_and_to_value(&output_amount, &output, &output_token, &user_address, to_asset.chain).unwrap();
+            let deposit = Deposit {
+                destination_chain_id: u64::from(chain_id(to_asset.chain)),
+                relay_data: RelayData {
+                    depositor: user_address.into_word(),
+                    recipient: user_address.into_word(),
+                    exclusive_relayer: B256::ZERO,
+                    input_token: eth_address::parse_asset_id(&input.asset_id).unwrap().into_word(),
+                    output_token: output_token.into_word(),
+                    input_amount: output_amount,
+                    output_amount,
+                    origin_chain_id: U256::from(chain_id(from_asset.chain)),
+                    deposit_id: U256::ZERO,
+                    fill_deadline: TEST_FILL_DEADLINE,
+                    exclusivity_deadline: 0,
+                    message: message.into(),
+                },
+            };
+            let metadata = deposit.swap_metadata(supported_asset_for_token).unwrap();
+
+            assert_eq!(metadata.to_asset, to_asset);
+            assert_eq!(metadata.to_value, u256_to_biguint(&to_value), "{to_asset}");
+            assert!(metadata.referral_fee.is_some(), "{to_asset}");
+        }
     }
 
     #[test]
@@ -746,7 +795,7 @@ mod tests {
             assert_eq!(metadata.from_asset, AssetId::from_chain(Chain::Arc));
             assert_eq!(metadata.from_value, BigUint::from(5_000_000_000_000_000_000u64));
             assert_eq!(metadata.to_asset, ETHEREUM_USDC_ASSET_ID.clone());
-            assert_eq!(metadata.to_value, BigUint::from(4_984_358u64));
+            assert_eq!(metadata.to_value, BigUint::from(4_959_437u64));
 
             Ok(())
         }
