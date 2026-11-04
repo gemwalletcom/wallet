@@ -1,6 +1,7 @@
 use std::error::Error;
 use std::sync::Arc;
 
+use chain_primitives::checksum_address;
 use config_keys::ConfigKey;
 use gem_tracing::error_with_fields;
 use primitives::{AddressDetails, AddressDetailsBalances, AddressType, Asset, ChainAddress, ScanAddress, ScanType, ScanVerdict, VerificationStatus};
@@ -22,6 +23,7 @@ impl AddressDetailsClient {
     }
 
     pub async fn get_address_details(&self, request: ChainAddress) -> Result<AddressDetails, Box<dyn Error + Send + Sync>> {
+        let request = ChainAddress::new(request.chain, checksum_address(&request.address, request.chain));
         let detection_max_age = self.config.get_duration(ConfigKey::ScanDetectionMaxAge).await?;
         let AddressRecords { assets, scan_addresses, verdicts } = self.repository.get_address_records(request.clone(), detection_max_age).await?;
         let details = map_address_details(request, assets.into_iter().next(), scan_addresses.into_iter().next(), &verdicts);
