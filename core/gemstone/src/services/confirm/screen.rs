@@ -84,7 +84,7 @@ impl GemConfirmScreen {
             GemConfirmPhase::Loading | GemConfirmPhase::Confirming => None,
             GemConfirmPhase::Failed if self.is_account_missing() => None,
             GemConfirmPhase::Failed => Some(GemConfirmAction::Load),
-            GemConfirmPhase::Ready if !self.has_fee || self.has_load_failure() => None,
+            GemConfirmPhase::Ready if !self.has_fee || self.has_load_failure() || self.has_critical_warning => None,
             GemConfirmPhase::Ready => Some(GemConfirmAction::Execute),
         }
     }
@@ -308,6 +308,7 @@ mod tests {
                 icon: GemKeystoreAuthentication::None,
             }
         );
+        assert_eq!(GemConfirmScreen { has_critical_warning: true, ..ready.clone() }.action(), None);
         assert_eq!(
             GemConfirmScreen { has_critical_warning: true, ..ready.clone() }.button(),
             GemConfirmButton {
