@@ -1,17 +1,17 @@
 use super::{
-    asset::{supported_assets as mayan_supported_assets, token_id_for_asset},
+    asset::{asset_id_for_token, supported_assets as mayan_supported_assets, token_id_for_asset},
     client::MayanClient,
     constants::{
         MAYAN_CPI_PROXY_PROGRAM_ID, MAYAN_DEPOSIT_CONTRACTS, MAYAN_FAST_MCTP_PROGRAM_ID, MAYAN_FEE_MANAGER_PROGRAM_ID, MAYAN_FORWARDER, MAYAN_MAX_SLIPPAGE_BPS, MAYAN_MCTP_PROGRAM_ID, MAYAN_PAYLOAD_WRITER_PROGRAM_ID, MAYAN_PROGRAM_ID,
         MAYAN_SEND_CONTRACTS,
     },
     mapper::map_swap_result,
-    model::{MayanChain, MayanQuote, MayanTransactionResult, QuoteParams, SwiftVersion},
+    model::{MayanChain, MayanClientStatus, MayanQuote, MayanTransactionResult, QuoteParams, SwiftVersion},
     tx_builder::{fast_mctp, mctp, mono_chain, swift},
     wormhole_chain,
 };
 use crate::amount_to_value;
-use crate::client_factory::create_eth_client;
+use crate::client_factory::{create_client_with_chain, create_eth_client, create_sui_client};
 use crate::{
     Contracts, FetchQuoteData, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
     config::get_swap_proxy_url,
@@ -22,11 +22,8 @@ use crate::{
 use async_trait::async_trait;
 use gem_client::Client;
 use gem_evm::rpc::client::FUNCTION_ERC20_DECIMALS;
-use primitives::{
-    AssetId, Chain, ChainType, HOUR,
-    contract_constants::{EVM_ZERO_ADDRESS, SOLANA_JUPITER_PROGRAM_ID},
-    decode_hex,
-};
+use gem_solana::SolanaClient;
+use primitives::{AssetId, Chain, ChainType, HOUR, contract_constants::SOLANA_JUPITER_PROGRAM_ID, decode_hex};
 use std::{collections::BTreeSet, fmt::Debug, sync::Arc};
 
 #[derive(Debug)]
@@ -56,15 +53,31 @@ where
     C: Client + Clone + Send + Sync + Debug + 'static,
 {
     async fn output_token_decimals(&self, result: &MayanTransactionResult) -> Option<u32> {
-        if result.to_token_address == EVM_ZERO_ADDRESS {
-            return None;
-        }
         let chain = result.to_token_chain.parse::<u16>().ok().and_then(wormhole_chain::chain_from_id)?;
-        if chain.chain_type() != ChainType::Ethereum {
+        let token = &result.to_token_address;
+        if asset_id_for_token(chain, token)?.is_native() {
             return None;
         }
-        let [decimals] = create_eth_client(self.rpc_provider.clone(), chain).ok()?.batch_eth_call(&result.to_token_address, [FUNCTION_ERC20_DECIMALS]).await.ok()?;
-        decode_hex(&decimals).ok()?.last().map(|decimals| u32::from(*decimals))
+        match chain.chain_type() {
+            ChainType::Ethereum => {
+                let [decimals] = create_eth_client(self.rpc_provider.clone(), chain).ok()?.batch_eth_call(token, [FUNCTION_ERC20_DECIMALS]).await.ok()?;
+                decode_hex(&decimals).ok()?.last().map(|decimals| u32::from(*decimals))
+            }
+            ChainType::Solana => Some(SolanaClient::new(create_client_with_chain(self.rpc_provider.clone(), chain).ok()?).get_token_mint_info(token).await.ok()?.info().decimals),
+            ChainType::Sui => Some(create_sui_client(self.rpc_provider.clone()).ok()?.get_coin_metadata(token.clone()).await.ok()?.decimals),
+            ChainType::Bitcoin
+            | ChainType::Cosmos
+            | ChainType::Ton
+            | ChainType::Tron
+            | ChainType::Aptos
+            | ChainType::Xrp
+            | ChainType::Near
+            | ChainType::Stellar
+            | ChainType::Algorand
+            | ChainType::Polkadot
+            | ChainType::Cardano
+            | ChainType::HyperCore => None,
+        }
     }
 
     pub fn with_clients(price_client: MayanClient<C>, explorer_client: MayanClient<C>, rpc_provider: Arc<dyn RpcProvider>) -> Self {
@@ -200,7 +213,10 @@ where
 
     async fn get_swap_result(&self, request: &SwapResultRequest) -> Result<SwapResult, SwapperError> {
         let result = self.explorer_client.get_transaction_status(&request.transaction_hash).await?;
-        let output_decimals = self.output_token_decimals(&result).await;
+        let output_decimals = match result.client_status {
+            MayanClientStatus::Completed => self.output_token_decimals(&result).await,
+            MayanClientStatus::InProgress | MayanClientStatus::Refunded => None,
+        };
         Ok(map_swap_result(&result, output_decimals))
     }
 
@@ -290,6 +306,7 @@ mod tests {
     use primitives::{
         AssetId, AssetType,
         asset_constants::{ARBITRUM_USDC_ASSET_ID, HYPERCORE_SPOT_USDC_ASSET_ID},
+        contract_constants::EVM_ZERO_ADDRESS,
     };
 
     #[tokio::test]
@@ -314,6 +331,22 @@ mod tests {
         assert!(addresses.deposit.iter().any(|address| address == MAYAN_CPI_PROXY_PROGRAM_ID));
         assert!(addresses.send.iter().any(|address| address == "0xD78D199f8C402e7B5Cc2abE278dF0412400a3BAe"));
         assert!(!addresses.deposit.iter().chain(&addresses.send).any(|address| address == EVM_ZERO_ADDRESS));
+    }
+
+    #[tokio::test]
+    async fn test_get_swap_result_reads_solana_output_token_decimals() {
+        let hash = "0xba0281c8056bc28ee876834853fc54f71539fc1e1101d042e102d24866c6ba98";
+        let explorer_client = MockClient::new().with_get(move |path| {
+            assert_eq!(path, format!("/swap/trx/{hash}"));
+            Ok(include_bytes!("test/pepe_to_zcat_fast_mctp.json").to_vec())
+        });
+        let rpc_provider = ProviderMock::new(include_str!("test/solana_zcat_mint.json").to_string());
+        let provider = Mayan::with_clients(MayanClient::new(MockClient::new()), MayanClient::new(explorer_client), Arc::new(rpc_provider));
+
+        let metadata = provider.get_swap_result(&SwapResultRequest::new(Chain::Ethereum, hash)).await.unwrap().metadata.unwrap();
+
+        assert_eq!(metadata.to_asset, AssetId::from_token(Chain::Solana, "HcRLc9VDgjLeK154xDawfb1dmVJ98DoSqcwTHGqiDeJR"));
+        assert_eq!(metadata.to_value, BigUint::from(47_773_455_561_638u64));
     }
 
     #[tokio::test]

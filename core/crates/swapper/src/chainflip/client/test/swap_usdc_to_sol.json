@@ -5,9 +5,9 @@
   "destAsset": "SOL",
   "destChain": "Solana",
   "deposit": {
-    "amount": "100000000"
+    "amount": "39991656"
   },
-  "swap": {
-    "swappedOutputAmount": "1143469990"
+  "swapEgress": {
+    "amount": "505634558"
   }
 }

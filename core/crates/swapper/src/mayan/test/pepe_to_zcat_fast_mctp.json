@@ -1,0 +1,16 @@
+{
+  "sourceTxHash": "0xba0281c8056bc28ee876834853fc54f71539fc1e1101d042e102d24866c6ba98",
+  "fromTokenAddress": "0x6982508145454Ce325dDbE47a25d4ec3d2311933",
+  "toTokenAddress": "HcRLc9VDgjLeK154xDawfb1dmVJ98DoSqcwTHGqiDeJR",
+  "fromTokenChain": "2",
+  "toTokenChain": "1",
+  "fromAmount": "237900000",
+  "fromAmount64": "237900000000000000000000000",
+  "toAmount": "47773.455561638",
+  "toAmount64": "47773.455561638",
+  "clientStatus": "COMPLETED",
+  "service": "MCTP_FAST_SWAP",
+  "referrerAddress": "4cLUBQKZgCv2AqGXbh8ncGhrDRcicUe3WSDzjgPY2oTA",
+  "referrerBps": 0,
+  "mayanBps": 3
+}

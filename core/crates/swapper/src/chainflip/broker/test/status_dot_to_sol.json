@@ -37,8 +37,8 @@
     "deposit": {
       "amountNative": "100000000000"
     },
-    "swap": {
-      "swappedOutputAmountNative": "102937756"
+    "swapEgress": {
+      "amountNative": "102923756"
     }
   }
 }

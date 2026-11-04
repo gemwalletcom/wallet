@@ -1,7 +1,6 @@
 use num_bigint::BigUint;
 use serde_serializers::deserialize_biguint_from_str;
 use std::collections::BTreeMap;
-use std::str::FromStr;
 use std::sync::LazyLock;
 
 use num_traits::ToPrimitive;
@@ -23,7 +22,7 @@ pub struct SwapTxResponse {
     pub dest_asset: String,
     pub dest_chain: String,
     pub deposit: Option<SwapDeposit>,
-    pub swap: Option<SwapDetail>,
+    swap_egress: Option<SwapEgress>,
     pub refund_egress: Option<serde_json::Value>,
     estimated_durations_seconds: Option<EstimatedDurations>,
     #[serde(default)]
@@ -114,8 +113,9 @@ pub struct SwapDeposit {
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct SwapDetail {
-    pub swapped_output_amount: String,
+struct SwapEgress {
+    #[serde(deserialize_with = "deserialize_biguint_from_str")]
+    amount: BigUint,
 }
 
 static ASSETS: LazyLock<Vec<(&'static str, u8, AssetId)>> = LazyLock::new(|| {
@@ -183,7 +183,7 @@ pub fn map_swap_result(response: &SwapTxResponse) -> SwapResult {
             let from_asset = chainflip_asset_to_asset_id(fc, &response.src_asset)?;
             let to_asset = chainflip_asset_to_asset_id(tc, &response.dest_asset)?;
             let from_value = response.deposit.as_ref()?.amount.clone();
-            let to_value = response.swap.as_ref().map(|swap| BigUint::from_str(&swap.swapped_output_amount)).transpose().ok()?.unwrap_or_default();
+            let to_value = response.swap_egress.as_ref()?.amount.clone();
             Some(TransactionSwapMetadata::new(from_asset, from_value, to_asset, to_value, SwapperProvider::Chainflip).with_referral_fee(response.referral_fee()))
         })
     } else {
@@ -210,9 +210,9 @@ pub mod test {
                 status: SwapStatus::Completed,
                 metadata: Some(TransactionSwapMetadata::new(
                     AssetId::from_chain(Chain::Ethereum),
-                    BigUint::from(140000000000000000u64),
+                    BigUint::from(3190309612162680465u64),
                     AssetId::from_chain(Chain::Bitcoin),
-                    BigUint::from(405772u64),
+                    BigUint::from(9294445u64),
                     SwapperProvider::Chainflip
                 )),
                 eta_in_seconds: None,
@@ -227,7 +227,7 @@ pub mod test {
         assert_eq!(metadata.from_asset, AssetId::from_chain(Chain::Solana));
         assert_eq!(metadata.from_value, BigUint::from(150000000u64));
         assert_eq!(metadata.to_asset, AssetId::from_chain(Chain::Bitcoin));
-        assert_eq!(metadata.to_value, BigUint::from(17567u64));
+        assert_eq!(metadata.to_value, BigUint::from(17057u64));
         assert_eq!(
             metadata.referral_fee,
             Some(TransactionSwapReferralFee {
@@ -245,9 +245,9 @@ pub mod test {
                 status: SwapStatus::Completed,
                 metadata: Some(TransactionSwapMetadata::new(
                     ETHEREUM_USDC_ASSET_ID.clone(),
-                    BigUint::from(100000000u64),
+                    BigUint::from(39991656u64),
                     AssetId::from_chain(Chain::Solana),
-                    BigUint::from(1143469990u64),
+                    BigUint::from(505634558u64),
                     SwapperProvider::Chainflip
                 )),
                 eta_in_seconds: None,
@@ -265,7 +265,7 @@ pub mod test {
                     AssetId::from_chain(Chain::Solana),
                     BigUint::from(150000000u64),
                     AssetId::from_chain(Chain::Bitcoin),
-                    BigUint::from(17567u64),
+                    BigUint::from(17057u64),
                     SwapperProvider::Chainflip
                 )),
                 eta_in_seconds: None,
