@@ -449,15 +449,11 @@ private_key_do_not_share_title = אל תשתף את המפתח הפרטי שלך
 private_key_do_not_share_description = אם למישהו יש את המפתח הפרטי שלך, תהיה לו שליטה מלאה בחשבון הזה!
 private_key_screenshot_detected_description = צילומי מסך עשויים להיות נגישים לאפליקציות אחרות, והם עלולים לסכן את המפתח הפרטי שלך אם יישמרו בדרך זו.
 private_key_export_reminder_intro = המפתח הפרטי שלך מעניק גישה מלאה לחשבון הזה.
-private_key_export_reminder_keep_safe_title = אחסן אותו במקום בטוח
 private_key_export_reminder_keep_safe_subtitle = כל מי שמחזיק בו יכול להשתמש בחשבון הזה.
-private_key_export_reminder_do_not_share_title = אל תשתף אותו עם אף אחד
 private_key_export_reminder_do_not_share_subtitle = אף אדם, אתר או אפליקציה לא אמורים לבקש אותו.
-private_key_export_reminder_no_recovery_title = אנחנו לא יכולים לעזור לך לשחזר אותם
+private_key_export_reminder_no_recovery_title = איננו יכולים לבטל גניבה
 private_key_export_reminder_no_recovery_subtitle = אם מישהו ייקח את הכספים שלך, לא ניתן להחזיר אותם.
-private_key_select_account = בחר את החשבון שלך
 private_key_scope_evm = מפתח זה שולט גם בחשבונות שלך בכל רשתות EVM.
-private_key_scope_cosmos = מפתח זה שולט גם בחשבונות שלך בכל רשתות Cosmos.
 private_key_accounts_info = הביטוי הסודי שלך כבר מגבה את החשבונות האלה. ייצא מפתח רק כדי להשתמש בחשבון אחד בארנק אחר.
 
 # Social

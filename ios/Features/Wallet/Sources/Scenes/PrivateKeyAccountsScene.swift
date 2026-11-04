@@ -29,7 +29,7 @@ struct PrivateKeyAccountsScene: View {
                     }
                 }
             } header: {
-                Text(model.selectAccountTitle)
+                Text(model.accountsTitle)
             }
         }
         .contentMargins([.top], .extraSmall, for: .scrollContent)

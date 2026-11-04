@@ -449,15 +449,11 @@ private_key_do_not_share_title = Usishiriki Ufunguo wako wa Kibinafsi!
 private_key_do_not_share_description = Ikiwa mtu ana ufunguo wako wa kibinafsi atakuwa na udhibiti kamili wa akaunti hii!
 private_key_screenshot_detected_description = Picha za skrini zinaweza kupatikana kwa programu zingine, zinaweza kuweka ufunguo wako wa kibinafsi hatarini ikiwa zimehifadhiwa kwa njia hii.
 private_key_export_reminder_intro = Ufunguo wako wa kibinafsi unatoa ufikiaji kamili wa akaunti hii.
-private_key_export_reminder_keep_safe_title = Uhifadhi Mahali Salama
 private_key_export_reminder_keep_safe_subtitle = Yeyote aliye nao anaweza kutumia akaunti hii.
-private_key_export_reminder_do_not_share_title = Usimshirikishe Mtu Yeyote
 private_key_export_reminder_do_not_share_subtitle = Hakuna mtu, tovuti, au programu inayopaswa kuuomba.
-private_key_export_reminder_no_recovery_title = Hatuwezi Kukusaidia Kuzirejesha
+private_key_export_reminder_no_recovery_title = Hatuwezi Kubatilisha Wizi
 private_key_export_reminder_no_recovery_subtitle = Mtu akichukua fedha zako, haziwezi kurejeshwa.
-private_key_select_account = Chagua akaunti yako
 private_key_scope_evm = Ufunguo huu pia unadhibiti akaunti zako kwenye mitandao yote ya EVM.
-private_key_scope_cosmos = Ufunguo huu pia unadhibiti akaunti zako kwenye mitandao yote ya Cosmos.
 private_key_accounts_info = Maneno yako ya siri tayari yanahifadhi akaunti hizi. Hamisha ufunguo tu ili kutumia akaunti moja kwenye pochi nyingine.
 
 # Social

@@ -70289,197 +70289,6 @@
         }
       }
     },
-    "private_key.export_reminder.do_not_share.title": {
-      "extractionState": "manual",
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "لا تشاركه مع أي شخص"
-          }
-        },
-        "bn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "কারো সাথে শেয়ার করবেন না"
-          }
-        },
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "S nikým ho nesdílejte"
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Del den ikke med nogen"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Geben Sie ihn an niemanden weiter"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Do Not Share It With Anyone"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No la compartas con nadie"
-          }
-        },
-        "fa": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "آن را با کسی به اشتراک نگذارید"
-          }
-        },
-        "fil": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Huwag Ibahagi Ito Kaninuman"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ne la partagez avec personne"
-          }
-        },
-        "ha": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kada Ku Raba Shi Ga Kowa"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "אל תשתף אותו עם אף אחד"
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "इसे किसी के साथ साझा न करें"
-          }
-        },
-        "id": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Jangan Bagikan Kepada Siapa Pun"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Non condividerla con nessuno"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "誰とも共有しないでください"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "누구와도 공유하지 마세요"
-          }
-        },
-        "ms": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Jangan Kongsi Dengan Sesiapa"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Deel hem met niemand"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nie udostępniaj go nikomu"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Não a compartilhe com ninguém"
-          }
-        },
-        "ro": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nu o împărtăși cu nimeni"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Никому его не передавайте"
-          }
-        },
-        "sw": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Usimshirikishe Mtu Yeyote"
-          }
-        },
-        "th": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "อย่าแบ่งปันกับใคร"
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kimseyle Paylaşmayın"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Нікому його не передавайте"
-          }
-        },
-        "ur": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "اسے کسی کے ساتھ شیئر نہ کریں"
-          }
-        },
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Không Chia Sẻ Với Bất Kỳ Ai"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "切勿泄露私钥"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "切勿洩漏私鑰"
-          }
-        }
-      }
-    },
     "private_key.export_reminder.intro": {
       "extractionState": "manual",
       "localizations": {
@@ -70862,197 +70671,6 @@
         }
       }
     },
-    "private_key.export_reminder.keep_safe.title": {
-      "extractionState": "manual",
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "خزّنه في مكان آمن"
-          }
-        },
-        "bn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "এটি কোথাও নিরাপদে সংরক্ষণ করুন"
-          }
-        },
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Uložte ho na bezpečné místo"
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Opbevar den et sikkert sted"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bewahren Sie ihn an einem sicheren Ort auf"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Store It Somewhere Safe"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Guárdala en un lugar seguro"
-          }
-        },
-        "fa": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "آن را در جایی امن ذخیره کنید"
-          }
-        },
-        "fil": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Itago Ito sa Ligtas na Lugar"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Rangez-la dans un endroit sûr"
-          }
-        },
-        "ha": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ajiye Shi Wani Wuri Mai Aminci"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "אחסן אותו במקום בטוח"
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "इसे किसी सुरक्षित स्थान पर रखें"
-          }
-        },
-        "id": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Simpan di Tempat yang Aman"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Conservala in un posto sicuro"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "安全な場所に保管する"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "안전한 곳에 보관하세요"
-          }
-        },
-        "ms": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Simpan Di Tempat yang Selamat"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bewaar hem op een veilige plek"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Przechowuj go w bezpiecznym miejscu"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Guarde em algum lugar seguro"
-          }
-        },
-        "ro": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Păstreaz-o într-un loc sigur"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Храните в безопасном месте"
-          }
-        },
-        "sw": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Uhifadhi Mahali Salama"
-          }
-        },
-        "th": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "เก็บไว้ในที่ปลอดภัย"
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Güvenli Bir Yerde Saklayın"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Зберігайте його в безпечному місці"
-          }
-        },
-        "ur": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "اسے کہیں محفوظ رکھیں"
-          }
-        },
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lưu trữ nó ở nơi an toàn"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "妥善备份私钥"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "妥善備份私鑰"
-          }
-        }
-      }
-    },
     "private_key.export_reminder.no_recovery.subtitle": {
       "extractionState": "manual",
       "localizations": {
@@ -71250,187 +70868,187 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "لا يمكننا مساعدتك في استعادتها"
+            "value": "لا يمكننا التراجع عن السرقة"
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "আমরা এটি পুনরুদ্ধারে সাহায্য করতে পারি না"
+            "value": "চুরি হওয়া তহবিল আমরা ফেরাতে পারি না"
           }
         },
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nemůžeme vám pomoci je získat zpět"
+            "value": "Krádež nemůžeme vrátit zpět"
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vi kan ikke hjælpe dig med at få dem tilbage"
+            "value": "Vi kan ikke omgøre et tyveri"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wir können Ihnen nicht bei der Wiederherstellung helfen"
+            "value": "Wir können einen Diebstahl nicht rückgängig machen"
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "We Can't Help You Recover It"
+            "value": "We Can't Reverse a Theft"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "No podemos ayudarte a recuperarlos"
+            "value": "No podemos revertir un robo"
           }
         },
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "ما نمی‌توانیم به بازیابی آن‌ها کمک کنیم"
+            "value": "ما نمی‌توانیم سرقت را برگردانیم"
           }
         },
         "fil": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hindi Ka Namin Matutulungang Mabawi Ito"
+            "value": "Hindi Namin Mababawi ang Ninakaw"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nous ne pouvons pas vous aider à les récupérer"
+            "value": "Nous ne pouvons pas annuler un vol"
           }
         },
         "ha": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ba Za Mu Iya Taimaka Muku Dawo Da Su Ba"
+            "value": "Ba Za Mu Iya Mayar Da Abin Da Aka Sace Ba"
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "אנחנו לא יכולים לעזור לך לשחזר אותם"
+            "value": "איננו יכולים לבטל גניבה"
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "हम इन्हें वापस पाने में आपकी मदद नहीं कर सकते"
+            "value": "हम चोरी हुए फंड वापस नहीं ला सकते"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kami Tidak Dapat Membantu Anda Memulihkannya"
+            "value": "Kami Tidak Dapat Membatalkan Pencurian"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Non possiamo aiutarti a recuperarli"
+            "value": "Non possiamo annullare un furto"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "当社では取り戻せません"
+            "value": "盗まれた資金は取り戻せません"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "저희가 되찾아 드릴 수 없습니다"
+            "value": "도난당한 자금은 되돌릴 수 없습니다"
           }
         },
         "ms": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kami Tidak Dapat Membantu Anda Memulihkannya"
+            "value": "Kami Tidak Dapat Membatalkan Kecurian"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wij kunnen u niet helpen het terug te krijgen"
+            "value": "Wij kunnen een diefstal niet terugdraaien"
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nie możemy pomóc Ci ich odzyskać"
+            "value": "Nie możemy cofnąć kradzieży"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Não podemos ajudar você a recuperá-los"
+            "value": "Não podemos reverter um roubo"
           }
         },
         "ro": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nu te putem ajuta să le recuperezi"
+            "value": "Nu putem anula un furt"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Мы не сможем их вернуть"
+            "value": "Мы не можем отменить кражу"
           }
         },
         "sw": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hatuwezi Kukusaidia Kuzirejesha"
+            "value": "Hatuwezi Kubatilisha Wizi"
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "เราไม่สามารถช่วยกู้คืนได้"
+            "value": "เราไม่สามารถย้อนกลับการโจรกรรมได้"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Geri Almanıza Yardımcı Olamayız"
+            "value": "Hırsızlığı Geri Alamayız"
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ми не зможемо їх повернути"
+            "value": "Ми не можемо скасувати крадіжку"
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "ہم انہیں واپس دلانے میں مدد نہیں کر سکتے"
+            "value": "ہم چوری شدہ فنڈز واپس نہیں لا سکتے"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chúng tôi không thể giúp bạn lấy lại"
+            "value": "Chúng tôi không thể đảo ngược vụ trộm"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "我们无法帮您找回"
+            "value": "被盗资金无法追回"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "我們無法幫您找回"
+            "value": "被盜資金無法追回"
           }
         }
       }
@@ -72772,197 +72390,6 @@
         }
       }
     },
-    "private_key.scope.cosmos": {
-      "extractionState": "manual",
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "يتحكم هذا المفتاح أيضًا في حساباتك على جميع شبكات Cosmos."
-          }
-        },
-        "bn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "এই কী সব Cosmos নেটওয়ার্কে আপনার অ্যাকাউন্টগুলোও নিয়ন্ত্রণ করে।"
-          }
-        },
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tento klíč ovládá také vaše účty ve všech sítích Cosmos."
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Denne nøgle styrer også dine konti på alle Cosmos-netværk."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dieser Schlüssel steuert auch Ihre Konten in allen Cosmos-Netzwerken."
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "This key also controls your accounts on all Cosmos networks."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Esta clave también controla tus cuentas en todas las redes Cosmos."
-          }
-        },
-        "fa": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "این کلید حساب‌های شما در همه شبکه‌های Cosmos را نیز کنترل می‌کند."
-          }
-        },
-        "fil": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kontrolado rin ng susing ito ang iyong mga account sa lahat ng Cosmos network."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cette clé contrôle aussi vos comptes sur tous les réseaux Cosmos."
-          }
-        },
-        "ha": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Wannan maɓalli kuma yana sarrafa asusunku a duk hanyoyin sadarwa na Cosmos."
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "מפתח זה שולט גם בחשבונות שלך בכל רשתות Cosmos."
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "यह कुंजी सभी Cosmos नेटवर्क पर आपके खातों को भी नियंत्रित करती है।"
-          }
-        },
-        "id": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kunci ini juga mengendalikan akun Anda di semua jaringan Cosmos."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Questa chiave controlla anche i tuoi account su tutte le reti Cosmos."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "このキーは、すべてのCosmosネットワーク上のアカウントも操作できます。"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "이 키는 모든 Cosmos 네트워크의 계정도 제어합니다."
-          }
-        },
-        "ms": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kunci ini juga mengawal akaun anda di semua rangkaian Cosmos."
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Deze sleutel beheert ook uw accounts op alle Cosmos-netwerken."
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ten klucz kontroluje również Twoje konta we wszystkich sieciach Cosmos."
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Esta chave também controla suas contas em todas as redes Cosmos."
-          }
-        },
-        "ro": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Această cheie controlează și conturile tale din toate rețelele Cosmos."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Этот ключ также управляет вашими аккаунтами во всех сетях Cosmos."
-          }
-        },
-        "sw": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ufunguo huu pia unadhibiti akaunti zako kwenye mitandao yote ya Cosmos."
-          }
-        },
-        "th": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "คีย์นี้ยังควบคุมบัญชีของคุณบนเครือข่าย Cosmos ทั้งหมดด้วย"
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bu anahtar, tüm Cosmos ağlarındaki hesaplarınızı da kontrol eder."
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Цей ключ також керує вашими обліковими записами в усіх мережах Cosmos."
-          }
-        },
-        "ur": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "یہ کلید تمام Cosmos نیٹ ورکس پر آپ کے اکاؤنٹس کو بھی کنٹرول کرتی ہے۔"
-          }
-        },
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Khóa này cũng kiểm soát các tài khoản của bạn trên tất cả mạng Cosmos."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "此私钥同时控制您在所有 Cosmos 网络上的账户。"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "此私鑰同時控制您在所有 Cosmos 網路上的帳戶。"
-          }
-        }
-      }
-    },
     "private_key.scope.evm": {
       "extractionState": "manual",
       "localizations": {
@@ -73341,197 +72768,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "螢幕截圖可能會被其他應用程式存取；以此方式儲存私鑰會帶來外洩風險。"
-          }
-        }
-      }
-    },
-    "private_key.select_account": {
-      "extractionState": "manual",
-      "localizations": {
-        "ar": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "اختر حسابك"
-          }
-        },
-        "bn": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "আপনার অ্যাকাউন্ট নির্বাচন করুন"
-          }
-        },
-        "cs": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vyberte svůj účet"
-          }
-        },
-        "da": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vælg din konto"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Wählen Sie Ihr Konto"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Select your account"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Selecciona tu cuenta"
-          }
-        },
-        "fa": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "حساب خود را انتخاب کنید"
-          }
-        },
-        "fil": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Piliin ang iyong account"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sélectionnez votre compte"
-          }
-        },
-        "ha": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zaɓi asusunku"
-          }
-        },
-        "he": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "בחר את החשבון שלך"
-          }
-        },
-        "hi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "अपना खाता चुनें"
-          }
-        },
-        "id": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pilih akun Anda"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Seleziona il tuo account"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "アカウントを選択"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "계정 선택"
-          }
-        },
-        "ms": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pilih akaun anda"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Selecteer uw account"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Wybierz swoje konto"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Selecione sua conta"
-          }
-        },
-        "ro": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Selectează-ți contul"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Выберите аккаунт"
-          }
-        },
-        "sw": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Chagua akaunti yako"
-          }
-        },
-        "th": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "เลือกบัญชีของคุณ"
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hesabınızı seçin"
-          }
-        },
-        "uk": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Виберіть обліковий запис"
-          }
-        },
-        "ur": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "اپنا اکاؤنٹ منتخب کریں"
-          }
-        },
-        "vi": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Chọn tài khoản của bạn"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "选择账户"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "選擇帳戶"
           }
         }
       }

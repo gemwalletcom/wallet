@@ -1069,8 +1069,6 @@ public enum Localized {
   public enum PrivateKey {
     /// Your Secret Phrase already backs up these accounts. Export a key only to use one account in another wallet.
     public static let accountsInfo = Localized.tr("Localizable", "private_key.accounts_info", fallback: "Your Secret Phrase already backs up these accounts. Export a key only to use one account in another wallet.")
-    /// Select your account
-    public static let selectAccount = Localized.tr("Localizable", "private_key.select_account", fallback: "Select your account")
     public enum DoNotShare {
       /// If someone has your private key they will have full control of this account!
       public static let description = Localized.tr("Localizable", "private_key.do_not_share.description", fallback: "If someone has your private key they will have full control of this account!")
@@ -1083,20 +1081,16 @@ public enum Localized {
       public enum DoNotShare {
         /// No person, website, or app should ask for it.
         public static let subtitle = Localized.tr("Localizable", "private_key.export_reminder.do_not_share.subtitle", fallback: "No person, website, or app should ask for it.")
-        /// Do Not Share It With Anyone
-        public static let title = Localized.tr("Localizable", "private_key.export_reminder.do_not_share.title", fallback: "Do Not Share It With Anyone")
       }
       public enum KeepSafe {
         /// Anyone who has it can use this account.
         public static let subtitle = Localized.tr("Localizable", "private_key.export_reminder.keep_safe.subtitle", fallback: "Anyone who has it can use this account.")
-        /// Store It Somewhere Safe
-        public static let title = Localized.tr("Localizable", "private_key.export_reminder.keep_safe.title", fallback: "Store It Somewhere Safe")
       }
       public enum NoRecovery {
         /// If someone takes your funds, they can't be returned.
         public static let subtitle = Localized.tr("Localizable", "private_key.export_reminder.no_recovery.subtitle", fallback: "If someone takes your funds, they can't be returned.")
-        /// We Can't Help You Recover It
-        public static let title = Localized.tr("Localizable", "private_key.export_reminder.no_recovery.title", fallback: "We Can't Help You Recover It")
+        /// We Can't Reverse a Theft
+        public static let title = Localized.tr("Localizable", "private_key.export_reminder.no_recovery.title", fallback: "We Can't Reverse a Theft")
       }
     }
     public enum Reminder {
@@ -1122,8 +1116,6 @@ public enum Localized {
       }
     }
     public enum Scope {
-      /// This key also controls your accounts on all Cosmos networks.
-      public static let cosmos = Localized.tr("Localizable", "private_key.scope.cosmos", fallback: "This key also controls your accounts on all Cosmos networks.")
       /// This key also controls your accounts on all EVM networks.
       public static let evm = Localized.tr("Localizable", "private_key.scope.evm", fallback: "This key also controls your accounts on all EVM networks.")
     }

@@ -64,7 +64,7 @@ fun PrivateKeyAccountsScreen(onSelect: (Chain) -> Unit, onCancel: () -> Unit, vi
                     Text(stringResource(R.string.private_key_accounts_info), color = MaterialTheme.colorScheme.secondary)
                 }
             }
-            item { SubheaderItem(R.string.private_key_select_account) }
+            item { SubheaderItem(R.string.settings_networks_title) }
             itemsIndexed(accounts) { index, account ->
                 ChainItem(
                     title = account.row.title,

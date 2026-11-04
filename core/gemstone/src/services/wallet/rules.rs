@@ -153,7 +153,6 @@ pub fn private_key_scope(wallet: &Wallet, chain: Chain) -> GemPrivateKeyScope {
     let shared = wallet.accounts.iter().any(|account| account.chain != chain && family.contains(&account.chain));
     match family.first().map(Chain::chain_type) {
         Some(ChainType::Ethereum) if shared => GemPrivateKeyScope::EvmChains,
-        Some(ChainType::Cosmos) if shared => GemPrivateKeyScope::CosmosChains,
         _ => GemPrivateKeyScope::OneChain,
     }
 }
@@ -614,7 +613,7 @@ mod tests {
         let multicoin = Wallet::mock_with_id(WalletId::Multicoin("0x1".to_string()), &[Chain::Ethereum, Chain::SmartChain, Chain::Injective, Chain::Cosmos, Chain::Osmosis, Chain::Solana]);
         assert_eq!(private_key_scope(&multicoin, Chain::Ethereum), GemPrivateKeyScope::EvmChains);
         assert_eq!(private_key_scope(&multicoin, Chain::Injective), GemPrivateKeyScope::EvmChains);
-        assert_eq!(private_key_scope(&multicoin, Chain::Osmosis), GemPrivateKeyScope::CosmosChains);
+        assert_eq!(private_key_scope(&multicoin, Chain::Osmosis), GemPrivateKeyScope::OneChain);
         assert_eq!(private_key_scope(&multicoin, Chain::Solana), GemPrivateKeyScope::OneChain);
 
         let private_key = Wallet::mock_with_id(WalletId::PrivateKey(Chain::Ethereum, "0x2".to_string()), &[Chain::Ethereum]);

@@ -449,15 +449,11 @@ private_key_do_not_share_title = Jangan bagikan Kunci Privat Anda!
 private_key_do_not_share_description = Jika seseorang memiliki kunci privat Anda, mereka akan memiliki kendali penuh atas akun ini!
 private_key_screenshot_detected_description = Tangkapan layar mungkin dapat diakses oleh aplikasi lain dan dapat membahayakan kunci privat Anda jika disimpan dengan cara ini.
 private_key_export_reminder_intro = Kunci privat Anda memberi akses penuh ke akun ini.
-private_key_export_reminder_keep_safe_title = Simpan di Tempat yang Aman
 private_key_export_reminder_keep_safe_subtitle = Siapa pun yang memilikinya dapat menggunakan akun ini.
-private_key_export_reminder_do_not_share_title = Jangan Bagikan Kepada Siapa Pun
 private_key_export_reminder_do_not_share_subtitle = Tidak ada orang, situs web, atau aplikasi yang seharusnya memintanya.
-private_key_export_reminder_no_recovery_title = Kami Tidak Dapat Membantu Anda Memulihkannya
+private_key_export_reminder_no_recovery_title = Kami Tidak Dapat Membatalkan Pencurian
 private_key_export_reminder_no_recovery_subtitle = Jika seseorang mengambil dana Anda, dana tersebut tidak dapat dikembalikan.
-private_key_select_account = Pilih akun Anda
 private_key_scope_evm = Kunci ini juga mengendalikan akun Anda di semua jaringan EVM.
-private_key_scope_cosmos = Kunci ini juga mengendalikan akun Anda di semua jaringan Cosmos.
 private_key_accounts_info = Frasa Rahasia Anda sudah mencadangkan akun-akun ini. Ekspor kunci hanya untuk memakai satu akun di dompet lain.
 
 # Social

@@ -449,15 +449,11 @@ private_key_do_not_share_title = プライベートキーを共有しないで�
 private_key_do_not_share_description = プライベートキーを知った人は、このアカウントを完全に操作できます。
 private_key_screenshot_detected_description = スクリーンショットは他のアプリからアクセスされる可能性があります。この方法でプライベートキーを保存すると、漏えいするおそれがあります。
 private_key_export_reminder_intro = プライベートキーがあれば、このアカウントのすべてを操作できます。
-private_key_export_reminder_keep_safe_title = 安全な場所に保管する
 private_key_export_reminder_keep_safe_subtitle = キーを持っている人は誰でも、このアカウントを使えます。
-private_key_export_reminder_do_not_share_title = 誰とも共有しないでください
 private_key_export_reminder_do_not_share_subtitle = 人、ウェブサイト、アプリから求められても教えないでください。
-private_key_export_reminder_no_recovery_title = 当社では取り戻せません
+private_key_export_reminder_no_recovery_title = 盗まれた資金は取り戻せません
 private_key_export_reminder_no_recovery_subtitle = 資金を移されると、元に戻すことはできません。
-private_key_select_account = アカウントを選択
 private_key_scope_evm = このキーは、すべてのEVMネットワーク上のアカウントも操作できます。
-private_key_scope_cosmos = このキーは、すべてのCosmosネットワーク上のアカウントも操作できます。
 private_key_accounts_info = これらのアカウントはリカバリーフレーズですでにバックアップされています。キーのエクスポートは、別のウォレットで1つのアカウントを使う場合のみ行ってください。
 
 # Social

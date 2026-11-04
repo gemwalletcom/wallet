@@ -449,15 +449,11 @@ private_key_do_not_share_title = Не делитесь своим приватн
 private_key_do_not_share_description = Если кто-то узнает ваш приватный ключ, он получит полный контроль над этим аккаунтом!
 private_key_screenshot_detected_description = Скриншоты могут быть доступны другим приложениям, и если сохранить их таким образом, они могут поставить под угрозу ваш приватный ключ.
 private_key_export_reminder_intro = Приватный ключ даёт полный доступ к этому аккаунту.
-private_key_export_reminder_keep_safe_title = Храните в безопасном месте
 private_key_export_reminder_keep_safe_subtitle = Любой, у кого он есть, может пользоваться этим аккаунтом.
-private_key_export_reminder_do_not_share_title = Никому его не передавайте
 private_key_export_reminder_do_not_share_subtitle = Ни люди, ни сайты, ни приложения не должны его запрашивать.
-private_key_export_reminder_no_recovery_title = Мы не сможем их вернуть
+private_key_export_reminder_no_recovery_title = Мы не можем отменить кражу
 private_key_export_reminder_no_recovery_subtitle = Если кто-то заберёт ваши средства, вернуть их будет невозможно.
-private_key_select_account = Выберите аккаунт
 private_key_scope_evm = Этот ключ также управляет вашими аккаунтами во всех сетях EVM.
-private_key_scope_cosmos = Этот ключ также управляет вашими аккаунтами во всех сетях Cosmos.
 private_key_accounts_info = Ваша секретная фраза уже служит резервной копией этих аккаунтов. Экспортируйте ключ, только чтобы использовать один аккаунт в другом кошельке.
 
 # Social

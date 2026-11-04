@@ -449,15 +449,11 @@ private_key_do_not_share_title = Não compartilhe sua chave privada!
 private_key_do_not_share_description = Se alguém tiver sua chave privada, terá controle total desta conta!
 private_key_screenshot_detected_description = Capturas de tela podem ser acessíveis a outros aplicativos e, se salvas dessa forma, podem colocar sua chave privada em risco.
 private_key_export_reminder_intro = Sua chave privada dá acesso total a esta conta.
-private_key_export_reminder_keep_safe_title = Guarde em algum lugar seguro
 private_key_export_reminder_keep_safe_subtitle = Qualquer pessoa que a tenha pode usar esta conta.
-private_key_export_reminder_do_not_share_title = Não a compartilhe com ninguém
 private_key_export_reminder_do_not_share_subtitle = Nenhuma pessoa, site ou aplicativo deve pedi-la.
-private_key_export_reminder_no_recovery_title = Não podemos ajudar você a recuperá-los
+private_key_export_reminder_no_recovery_title = Não podemos reverter um roubo
 private_key_export_reminder_no_recovery_subtitle = Se alguém levar seus fundos, eles não poderão ser devolvidos.
-private_key_select_account = Selecione sua conta
 private_key_scope_evm = Esta chave também controla suas contas em todas as redes EVM.
-private_key_scope_cosmos = Esta chave também controla suas contas em todas as redes Cosmos.
 private_key_accounts_info = Sua frase secreta já faz backup destas contas. Exporte uma chave apenas para usar uma conta em outra carteira.
 
 # Social

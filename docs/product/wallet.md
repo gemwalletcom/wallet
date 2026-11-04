@@ -92,7 +92,7 @@ flowchart LR
 | The wallet has a single network | its screen shows the address with an explorer link | |
 | The wallet is watch-only | no "Show Secret Phrase" or "Show Private Key" row | |
 | A Secret Phrase wallet lists accounts for a private key | only networks whose raw key another wallet can import; no Bitcoin-family or Cardano account, EVM networks one row each | a Bitcoin key would be raw, not WIF, and Cardano has no raw-key import |
-| A private key is shown | its warning names the key, not the Secret Phrase; when the wallet holds another account on a network sharing the key, it adds that the key also controls the wallet's accounts on all EVM or all Cosmos networks | one key unlocks every network that shares its derivation path; a single-network wallet has no other account to warn about |
+| A private key is shown | its warning names the key, not the Secret Phrase; when the wallet holds another account on a network sharing the key, it adds that the key also controls the wallet's accounts on all EVM networks | one key unlocks every network that shares its derivation path; a single-network wallet has no other account to warn about |
 | A wallet imported from a private key shows its key | the security reminders and the warning above the key name the private key, never the Secret Phrase | the phrase wording on a key screen misled users (#1394) |
 | A wallet is deleted | the app switches to the next wallet: Multi-Coin first, then the oldest | |
 | The last wallet is deleted | the app returns to onboarding | |

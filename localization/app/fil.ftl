@@ -449,15 +449,11 @@ private_key_do_not_share_title = Huwag ibahagi ang iyong Pribadong Susi!
 private_key_do_not_share_description = Kung may hawak ng iyong pribadong susi, magkakaroon sila ng ganap na kontrol sa account na ito!
 private_key_screenshot_detected_description = Maaaring ma-access ang mga screenshot sa iba pang apps, maaari nilang ilagay sa panganib ang iyong pribadong susi kung ise-save sa ganitong paraan.
 private_key_export_reminder_intro = Ang iyong pribadong susi ay nagbibigay ng buong access sa account na ito.
-private_key_export_reminder_keep_safe_title = Itago Ito sa Ligtas na Lugar
 private_key_export_reminder_keep_safe_subtitle = Sinumang may hawak nito ay magagamit ang account na ito.
-private_key_export_reminder_do_not_share_title = Huwag Ibahagi Ito Kaninuman
 private_key_export_reminder_do_not_share_subtitle = Walang tao, website, o app ang dapat humingi nito.
-private_key_export_reminder_no_recovery_title = Hindi Ka Namin Matutulungang Mabawi Ito
+private_key_export_reminder_no_recovery_title = Hindi Namin Mababawi ang Ninakaw
 private_key_export_reminder_no_recovery_subtitle = Kapag kinuha ng iba ang iyong pondo, hindi na ito maibabalik.
-private_key_select_account = Piliin ang iyong account
 private_key_scope_evm = Kontrolado rin ng susing ito ang iyong mga account sa lahat ng EVM network.
-private_key_scope_cosmos = Kontrolado rin ng susing ito ang iyong mga account sa lahat ng Cosmos network.
 private_key_accounts_info = Naka-back up na ang mga account na ito sa iyong Lihim na Parirala. Mag-export lang ng susi para gamitin ang isang account sa ibang wallet.
 
 # Social

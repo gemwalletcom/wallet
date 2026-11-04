@@ -449,15 +449,11 @@ private_key_do_not_share_title = Geben Sie Ihren privaten Schlüssel nicht weite
 private_key_do_not_share_description = Wenn jemand Ihren privaten Schlüssel hat, hat er die vollständige Kontrolle über dieses Konto!
 private_key_screenshot_detected_description = Screenshots können von anderen Apps eingesehen werden und gefährden so Ihren privaten Schlüssel.
 private_key_export_reminder_intro = Ihr privater Schlüssel gewährt vollen Zugriff auf dieses Konto.
-private_key_export_reminder_keep_safe_title = Bewahren Sie ihn an einem sicheren Ort auf
 private_key_export_reminder_keep_safe_subtitle = Wer ihn hat, kann dieses Konto nutzen.
-private_key_export_reminder_do_not_share_title = Geben Sie ihn an niemanden weiter
 private_key_export_reminder_do_not_share_subtitle = Keine Person, Website oder App sollte danach fragen.
-private_key_export_reminder_no_recovery_title = Wir können Ihnen nicht bei der Wiederherstellung helfen
+private_key_export_reminder_no_recovery_title = Wir können einen Diebstahl nicht rückgängig machen
 private_key_export_reminder_no_recovery_subtitle = Wenn jemand Ihr Guthaben abzieht, kann es nicht zurückgeholt werden.
-private_key_select_account = Wählen Sie Ihr Konto
 private_key_scope_evm = Dieser Schlüssel steuert auch Ihre Konten in allen EVM-Netzwerken.
-private_key_scope_cosmos = Dieser Schlüssel steuert auch Ihre Konten in allen Cosmos-Netzwerken.
 private_key_accounts_info = Ihre geheime Phrase sichert diese Konten bereits. Exportieren Sie einen Schlüssel nur, um ein Konto in einer anderen Wallet zu nutzen.
 
 # Social

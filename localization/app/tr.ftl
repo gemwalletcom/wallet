@@ -449,15 +449,11 @@ private_key_do_not_share_title = Özel Anahtarınızı paylaşmayın!
 private_key_do_not_share_description = Birisi özel anahtarınızı ele geçirirse, bu hesabın tam kontrolüne sahip olacaktır!
 private_key_screenshot_detected_description = Ekran görüntüleri diğer uygulamalar tarafından erişilebilir olabilir, bu şekilde kaydedilirse özel anahtarınız riske girebilir.
 private_key_export_reminder_intro = Özel anahtarınız bu hesaba tam erişim sağlar.
-private_key_export_reminder_keep_safe_title = Güvenli Bir Yerde Saklayın
 private_key_export_reminder_keep_safe_subtitle = Ona sahip olan herkes bu hesabı kullanabilir.
-private_key_export_reminder_do_not_share_title = Kimseyle Paylaşmayın
 private_key_export_reminder_do_not_share_subtitle = Hiçbir kişi, web sitesi veya uygulama onu istememeli.
-private_key_export_reminder_no_recovery_title = Geri Almanıza Yardımcı Olamayız
+private_key_export_reminder_no_recovery_title = Hırsızlığı Geri Alamayız
 private_key_export_reminder_no_recovery_subtitle = Biri fonlarınızı alırsa, geri verilemez.
-private_key_select_account = Hesabınızı seçin
 private_key_scope_evm = Bu anahtar, tüm EVM ağlarındaki hesaplarınızı da kontrol eder.
-private_key_scope_cosmos = Bu anahtar, tüm Cosmos ağlarındaki hesaplarınızı da kontrol eder.
 private_key_accounts_info = Gizli İfadeniz bu hesapları zaten yedekliyor. Anahtarı yalnızca bir hesabı başka bir cüzdanda kullanmak için dışa aktarın.
 
 # Social

@@ -449,15 +449,11 @@ private_key_do_not_share_title = อย่าเปิดเผยคีย์�
 private_key_do_not_share_description = หากมีใครมีคีย์ส่วนตัวของคุณ พวกเขาจะควบคุมบัญชีนี้ได้อย่างเต็มที่!
 private_key_screenshot_detected_description = ภาพหน้าจออาจเข้าถึงได้จากแอปอื่น หากบันทึกในลักษณะนี้ อาจทำให้คีย์ส่วนตัวของคุณตกอยู่ในความเสี่ยง
 private_key_export_reminder_intro = คีย์ส่วนตัวของคุณให้สิทธิ์เข้าถึงบัญชีนี้ได้ทั้งหมด
-private_key_export_reminder_keep_safe_title = เก็บไว้ในที่ปลอดภัย
 private_key_export_reminder_keep_safe_subtitle = ใครก็ตามที่มีคีย์นี้สามารถใช้บัญชีนี้ได้
-private_key_export_reminder_do_not_share_title = อย่าแบ่งปันกับใคร
 private_key_export_reminder_do_not_share_subtitle = ไม่ควรมีบุคคล เว็บไซต์ หรือแอปใดขอคีย์นี้จากคุณ
-private_key_export_reminder_no_recovery_title = เราไม่สามารถช่วยกู้คืนได้
+private_key_export_reminder_no_recovery_title = เราไม่สามารถย้อนกลับการโจรกรรมได้
 private_key_export_reminder_no_recovery_subtitle = หากมีผู้นำเงินของคุณไป จะไม่สามารถคืนได้
-private_key_select_account = เลือกบัญชีของคุณ
 private_key_scope_evm = คีย์นี้ยังควบคุมบัญชีของคุณบนเครือข่าย EVM ทั้งหมดด้วย
-private_key_scope_cosmos = คีย์นี้ยังควบคุมบัญชีของคุณบนเครือข่าย Cosmos ทั้งหมดด้วย
 private_key_accounts_info = วลีลับของคุณสำรองบัญชีเหล่านี้ไว้แล้ว ส่งออกคีย์เฉพาะเมื่อต้องการใช้บัญชีเดียวในกระเป๋าเงินอื่น
 
 # Social

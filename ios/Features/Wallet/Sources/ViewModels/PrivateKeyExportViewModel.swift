@@ -36,8 +36,8 @@ final class PrivateKeyExportViewModel {
         Localized.PrivateKey.accountsInfo
     }
 
-    var selectAccountTitle: String {
-        Localized.PrivateKey.selectAccount
+    var accountsTitle: String {
+        Localized.Settings.Networks.title
     }
 
     func listItem(for account: GemPrivateKeyAccount) -> ListItemModel {

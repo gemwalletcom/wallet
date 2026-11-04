@@ -449,15 +449,11 @@ private_key_do_not_share_title = لا تشارك مفتاحك الخاص!
 private_key_do_not_share_description = إذا حصل شخص ما على مفتاحك الخاص، فسيكون لديه السيطرة الكاملة على هذا الحساب!
 private_key_screenshot_detected_description = قد تكون لقطات الشاشة متاحة لتطبيقات أخرى، وقد تعرّض مفتاحك الخاص للخطر إذا تم حفظه بهذه الطريقة.
 private_key_export_reminder_intro = مفتاحك الخاص يمنح وصولًا كاملًا إلى هذا الحساب.
-private_key_export_reminder_keep_safe_title = خزّنه في مكان آمن
 private_key_export_reminder_keep_safe_subtitle = يمكن لأي شخص يملكه استخدام هذا الحساب.
-private_key_export_reminder_do_not_share_title = لا تشاركه مع أي شخص
 private_key_export_reminder_do_not_share_subtitle = لا ينبغي لأي شخص أو موقع أو تطبيق أن يطلبه منك.
-private_key_export_reminder_no_recovery_title = لا يمكننا مساعدتك في استعادتها
+private_key_export_reminder_no_recovery_title = لا يمكننا التراجع عن السرقة
 private_key_export_reminder_no_recovery_subtitle = إذا أخذ أحدٌ أموالك، فلا يمكن إرجاعها.
-private_key_select_account = اختر حسابك
 private_key_scope_evm = يتحكم هذا المفتاح أيضًا في حساباتك على جميع شبكات EVM.
-private_key_scope_cosmos = يتحكم هذا المفتاح أيضًا في حساباتك على جميع شبكات Cosmos.
 private_key_accounts_info = عبارتك السرية تحتفظ بنسخة احتياطية من هذه الحسابات بالفعل. صدّر مفتاحًا فقط لاستخدام حساب واحد في محفظة أخرى.
 
 # Social

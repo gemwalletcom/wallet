@@ -1254,11 +1254,9 @@ public extension GemSecurityReminderItem {
     var title: String {
         switch self {
         case .keepSafe(.phrase): Localized.Onboarding.Security.CreateWallet.KeepSafe.title
-        case .keepSafe(.privateKey): Localized.PrivateKey.Reminder.KeepSafe.title
-        case .keepSafe(.accountKey): Localized.PrivateKey.ExportReminder.KeepSafe.title
+        case .keepSafe(.privateKey), .keepSafe(.accountKey): Localized.PrivateKey.Reminder.KeepSafe.title
         case .doNotShare(.phrase): Localized.Onboarding.Security.CreateWallet.DoNotShare.title
-        case .doNotShare(.privateKey): Localized.PrivateKey.Reminder.DoNotShare.title
-        case .doNotShare(.accountKey): Localized.PrivateKey.ExportReminder.DoNotShare.title
+        case .doNotShare(.privateKey), .doNotShare(.accountKey): Localized.PrivateKey.Reminder.DoNotShare.title
         case .noRecovery(.phrase): Localized.Onboarding.Security.CreateWallet.NoRecovery.title
         case .noRecovery(.privateKey): Localized.PrivateKey.Reminder.NoRecovery.title
         case .noRecovery(.accountKey): Localized.PrivateKey.ExportReminder.NoRecovery.title
@@ -1301,7 +1299,6 @@ public extension GemPrivateKeyScope {
         switch self {
         case .oneChain: nil
         case .evmChains: Localized.PrivateKey.Scope.evm
-        case .cosmosChains: Localized.PrivateKey.Scope.cosmos
         }
     }
 }

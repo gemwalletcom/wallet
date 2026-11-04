@@ -449,15 +449,11 @@ private_key_do_not_share_title = Nie udostępniaj swojego klucza prywatnego!
 private_key_do_not_share_description = Jeśli ktoś zna Twój klucz prywatny, będzie miał pełną kontrolę nad tym kontem!
 private_key_screenshot_detected_description = Zrzuty ekranu mogą być dostępne dla innych aplikacji, a zapisanie ich w ten sposób może narazić Twój klucz prywatny na ryzyko.
 private_key_export_reminder_intro = Twój klucz prywatny daje pełny dostęp do tego konta.
-private_key_export_reminder_keep_safe_title = Przechowuj go w bezpiecznym miejscu
 private_key_export_reminder_keep_safe_subtitle = Każdy, kto go ma, może korzystać z tego konta.
-private_key_export_reminder_do_not_share_title = Nie udostępniaj go nikomu
 private_key_export_reminder_do_not_share_subtitle = Żadna osoba, strona ani aplikacja nie powinna o niego prosić.
-private_key_export_reminder_no_recovery_title = Nie możemy pomóc Ci ich odzyskać
+private_key_export_reminder_no_recovery_title = Nie możemy cofnąć kradzieży
 private_key_export_reminder_no_recovery_subtitle = Jeśli ktoś zabierze Twoje środki, nie da się ich zwrócić.
-private_key_select_account = Wybierz swoje konto
 private_key_scope_evm = Ten klucz kontroluje również Twoje konta we wszystkich sieciach EVM.
-private_key_scope_cosmos = Ten klucz kontroluje również Twoje konta we wszystkich sieciach Cosmos.
 private_key_accounts_info = Twoje tajne wyrażenie już tworzy kopię zapasową tych kont. Eksportuj klucz tylko, aby użyć jednego konta w innym portfelu.
 
 # Social

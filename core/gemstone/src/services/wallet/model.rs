@@ -240,7 +240,6 @@ pub struct GemPrivateKeyAccount {
 pub enum GemPrivateKeyScope {
     OneChain,
     EvmChains,
-    CosmosChains,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]

@@ -762,7 +762,6 @@ fun GemFiatButtonAction.stringRes(): Int = when (this) {
 fun GemPrivateKeyScope.stringRes(): Int? = when (this) {
     GemPrivateKeyScope.ONE_CHAIN -> null
     GemPrivateKeyScope.EVM_CHAINS -> R.string.private_key_scope_evm
-    GemPrivateKeyScope.COSMOS_CHAINS -> R.string.private_key_scope_cosmos
 }
 
 @StringRes
@@ -1315,14 +1314,12 @@ fun FiatQuoteType.titleRes(): Int = when (this) {
 fun GemSecurityReminderItem.titleRes(): Int = when (this) {
     is GemSecurityReminderItem.KeepSafe -> when (kind) {
         GemSecurityReminderKind.PHRASE -> R.string.onboarding_security_create_wallet_keep_safe_title
-        GemSecurityReminderKind.PRIVATE_KEY -> R.string.private_key_reminder_keep_safe_title
-        GemSecurityReminderKind.ACCOUNT_KEY -> R.string.private_key_export_reminder_keep_safe_title
+        GemSecurityReminderKind.PRIVATE_KEY, GemSecurityReminderKind.ACCOUNT_KEY -> R.string.private_key_reminder_keep_safe_title
     }
 
     is GemSecurityReminderItem.DoNotShare -> when (kind) {
         GemSecurityReminderKind.PHRASE -> R.string.onboarding_security_create_wallet_do_not_share_title
-        GemSecurityReminderKind.PRIVATE_KEY -> R.string.private_key_reminder_do_not_share_title
-        GemSecurityReminderKind.ACCOUNT_KEY -> R.string.private_key_export_reminder_do_not_share_title
+        GemSecurityReminderKind.PRIVATE_KEY, GemSecurityReminderKind.ACCOUNT_KEY -> R.string.private_key_reminder_do_not_share_title
     }
 
     is GemSecurityReminderItem.NoRecovery -> when (kind) {

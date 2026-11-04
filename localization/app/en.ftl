@@ -823,24 +823,16 @@ private_key_do_not_share_description = If someone has your private key they will
 private_key_screenshot_detected_description = Screenshots may be accessible to other apps, they can put your private key at risk if saved this way.
 # Used as the intro text of the security reminder shown before revealing one account's private key from a Secret Phrase wallet.
 private_key_export_reminder_intro = Your private key gives full access to this account.
-# Used as the title of the first exported account key reminder item; mirrors private_key_reminder_keep_safe_title.
-private_key_export_reminder_keep_safe_title = Store It Somewhere Safe
 # Used as the description of the first exported account key reminder item.
 private_key_export_reminder_keep_safe_subtitle = Anyone who has it can use this account.
-# Used as the title of the second exported account key reminder item; mirrors private_key_reminder_do_not_share_title.
-private_key_export_reminder_do_not_share_title = Do Not Share It With Anyone
 # Used as the description of the second exported account key reminder item.
 private_key_export_reminder_do_not_share_subtitle = No person, website, or app should ask for it.
-# Used as the title of the third exported account key reminder item; the Secret Phrase still backs the account up, so it is about stolen funds.
-private_key_export_reminder_no_recovery_title = We Can't Help You Recover It
+# Used as the title of the third exported account key reminder item; the Secret Phrase still backs the key up, so it is about stolen funds, not a lost key.
+private_key_export_reminder_no_recovery_title = We Can't Reverse a Theft
 # Used as the description of the third exported account key reminder item, about stolen funds.
 private_key_export_reminder_no_recovery_subtitle = If someone takes your funds, they can't be returned.
-# Used as the header of the account list where the user picks which network's private key to reveal.
-private_key_select_account = Select your account
 # Used on the private key reveal screen when the key is shared by every EVM network.
 private_key_scope_evm = This key also controls your accounts on all EVM networks.
-# Used on the private key reveal screen when the key is shared by the Cosmos networks.
-private_key_scope_cosmos = This key also controls your accounts on all Cosmos networks.
 # Used in the neutral info card above the account list where the user picks which network's private key to reveal.
 private_key_accounts_info = Your Secret Phrase already backs up these accounts. Export a key only to use one account in another wallet.
 
