@@ -63,14 +63,13 @@ mod tests {
 
     #[test]
     fn test_sign_swap() {
-        let mut input = mock_transfer_swap_input(BitcoinChain::Zcash, "=:b:bc1qdestination:0/1/0:g1:50");
-        if let TransactionInputType::Swap { swap_data, .. } = &mut input.input.input_type {
-            swap_data.data.to = TEST_ZCASH_TRANSPARENT_ADDRESS.to_string();
-        }
-        let expected = ZcashChainSigner.sign_swap(&input, &TEST_PRIVATE_KEY).unwrap();
-        if let TransactionInputType::Swap { swap_data, .. } = &mut input.input.input_type {
-            swap_data.data.to = TEST_ZCASH_TEX_ADDRESS.to_string();
-        }
-        assert_eq!(ZcashChainSigner.sign_swap(&input, &TEST_PRIVATE_KEY).unwrap(), expected);
+        let sign_swap_to = |to: &str| {
+            let mut input = mock_transfer_swap_input(BitcoinChain::Zcash, "=:b:bc1qdestination:0/1/0:g1:50");
+            if let TransactionInputType::Swap { swap_data, .. } = &mut input.input.input_type {
+                swap_data.data.to = to.to_string();
+            }
+            ZcashChainSigner.sign_swap(&input, &TEST_PRIVATE_KEY).unwrap()
+        };
+        assert_eq!(sign_swap_to(TEST_ZCASH_TEX_ADDRESS), sign_swap_to(TEST_ZCASH_TRANSPARENT_ADDRESS));
     }
 }

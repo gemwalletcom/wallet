@@ -1,11 +1,11 @@
-use std::{collections::HashMap, error::Error};
+use std::error::Error;
 
 use async_trait::async_trait;
 use chain_traits::{ChainTransactionLoad, TransactionFeeOperation};
-use gem_bitcoin::provider::preload_mapper::map_utxos;
+use gem_bitcoin::{provider::preload_mapper::map_utxos, signer::load_fee};
 use gem_client::Client;
 use num_bigint::BigInt;
-use primitives::{AssetId, Chain, FeePriority, FeeRate, GasPriceType, SignerError, SignerInput, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput, UTXO};
+use primitives::{FeePriority, FeeRate, GasPriceType, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput, UTXO};
 
 use super::ZcashProvider;
 use crate::signer::Plan;
@@ -29,7 +29,7 @@ impl<C: Client> ChainTransactionLoad for ZcashProvider<C> {
     }
 
     async fn get_transaction_load(&self, input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Sync + Send>> {
-        let fee = Self::transaction_fee(&input)?;
+        let fee = load_fee(&input, Plan::fee)?;
         Ok(TransactionLoadData { fee, metadata: input.metadata })
     }
 
@@ -39,18 +39,6 @@ impl<C: Client> ChainTransactionLoad for ZcashProvider<C> {
 
     async fn get_utxos(&self, address: String) -> Result<Vec<UTXO>, Box<dyn Error + Sync + Send>> {
         ChainTransactionLoad::get_utxos(&self.client, address).await
-    }
-}
-
-impl<C: Client> ZcashProvider<C> {
-    fn transaction_fee(input: &TransactionLoadInput) -> Result<TransactionFee, SignerError> {
-        Ok(TransactionFee {
-            fee: BigInt::from(Plan::fee(&SignerInput::new(input.clone(), input.default_fee()))?),
-            gas_price_type: input.gas_price.clone(),
-            gas_limit: BigInt::from(1u8),
-            options: HashMap::new(),
-            fee_asset: AssetId::from_chain(Chain::Zcash),
-        })
     }
 }
 

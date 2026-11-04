@@ -83,22 +83,22 @@ mod tests {
     use crate::{
         address::ParseAddress,
         testkit::{
-            TEST_ZCASH_UNIFIED_ADDRESS, TEST_ZCASH_UNIFIED_ORCHARD_ADDRESS, TEST_ZCASH_UNIFIED_SAPLING_ADDRESS, TEST_ZCASH_UNIFIED_SAPLING_TRANSPARENT_ADDRESS, TEST_ZCASH_UNIFIED_TESTNET_ADDRESS, mock_orchard_recipient,
-            mock_transparent_script,
+            TEST_ZCASH_P2SH_ADDRESS, TEST_ZCASH_UNIFIED_ADDRESS, TEST_ZCASH_UNIFIED_ORCHARD_ADDRESS, TEST_ZCASH_UNIFIED_SAPLING_ADDRESS, TEST_ZCASH_UNIFIED_SAPLING_TRANSPARENT_ADDRESS, TEST_ZCASH_UNIFIED_TESTNET_ADDRESS,
+            mock_orchard_recipient, mock_transparent_script,
         },
     };
 
     #[test]
     fn test_parse() {
         let transparent_script = mock_transparent_script(TEST_ZCASH_TRANSPARENT_ADDRESS);
-        let p2sh_script = mock_transparent_script("t3Vz22vK5z2LcKEdg16Yv4FFneEL1zg9ojd");
+        let p2sh_script = mock_transparent_script(TEST_ZCASH_P2SH_ADDRESS);
         let fallback_script = mock_transparent_script(&mock_sender_address(BitcoinChain::Zcash));
         let cases = [
             (TEST_ZCASH_UNIFIED_ADDRESS.to_string(), Destination::Shielded(mock_orchard_recipient())),
             (TEST_ZCASH_UNIFIED_ORCHARD_ADDRESS.to_string(), Destination::Shielded(mock_orchard_recipient())),
             (TEST_ZCASH_UNIFIED_SAPLING_TRANSPARENT_ADDRESS.to_string(), Destination::Transparent(fallback_script)),
             (TEST_ZCASH_TRANSPARENT_ADDRESS.to_string(), Destination::Transparent(transparent_script.clone())),
-            ("t3Vz22vK5z2LcKEdg16Yv4FFneEL1zg9ojd".to_string(), Destination::Transparent(p2sh_script)),
+            (TEST_ZCASH_P2SH_ADDRESS.to_string(), Destination::Transparent(p2sh_script)),
             (TEST_ZCASH_TEX_ADDRESS.to_string(), Destination::Transparent(transparent_script.clone())),
             (TEST_ZCASH_TEX_ADDRESS.to_uppercase(), Destination::Transparent(transparent_script)),
         ];

@@ -45,9 +45,7 @@ pub fn decode(path: &str) -> Result<Payment> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{AssetId, payment::PaymentAmount};
-
-    const ADDRESS: &str = "u1qhwq6evpqq04ga6dn06mexlk6pcarhru4mhpkv63ar7nsmqvk5057lgtuj2yx6nhxlu0wuhzuw74v4q0eskt7gxy2xplq4qe5m560gukxtnx86mu5qljhgygyxzy7ulavg02qc42hxs";
+    use primitives::{AssetId, payment::PaymentAmount, testkit::zcash_mock::TEST_ZCASH_UNIFIED_ADDRESS as ADDRESS};
 
     #[test]
     fn test_decode() {

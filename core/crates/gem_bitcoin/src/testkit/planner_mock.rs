@@ -7,7 +7,10 @@ use num_bigint::BigInt;
 use primitives::{AssetId, BitcoinChain, Chain, GasPriceType, SignerError, SignerInput, TransactionFee, UTXO};
 
 use crate::{
-    signer::{PlanInput, address::UnlockingScript},
+    signer::{
+        PlanInput, PlanOutput,
+        address::{UnlockingScript, script_for_public_key_hash},
+    },
     testkit::{
         address_mock::TEST_BITCOIN_P2WPKH_ADDRESS,
         signer_mock::{TEST_UTXO_TXID, mock_transfer_input_with_utxos, mock_utxo_with},
@@ -25,6 +28,12 @@ impl PlanInput {
             unlocking_script,
             sequence: u32::MAX,
         }
+    }
+}
+
+impl PlanOutput {
+    pub fn mock_with_unlocking_script(unlocking_script: UnlockingScript, value: u64) -> Self {
+        Self::new(value, script_for_public_key_hash(unlocking_script, [0u8; 20]))
     }
 }
 

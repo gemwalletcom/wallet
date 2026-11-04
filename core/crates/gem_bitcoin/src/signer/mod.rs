@@ -19,16 +19,21 @@ pub use transaction::{PlanSigningKey, der_signature, signature_push_bytes};
 
 #[cfg(feature = "rpc")]
 pub(crate) fn estimate_transaction_fee(chain: BitcoinChain, input: &TransactionLoadInput) -> Result<TransactionFee, SignerError> {
-    let signer_input = SignerInput::new(input.clone(), input.default_fee());
-    let destination = |address: &str| SpendDestination::script(chain, address);
-    let request = match &input.input_type {
-        TransactionInputType::Transfer { .. } | TransactionInputType::Withdrawal { .. } => SpendRequest::transfer(chain, &signer_input, destination)?,
-        TransactionInputType::Swap { .. } => SpendRequest::swap(chain, &signer_input, destination)?,
-        _ => return SignerError::invalid_input_err("unsupported Bitcoin transaction type"),
-    };
+    load_fee(input, |signer_input| {
+        let destination = |address: &str| SpendDestination::script(chain, address);
+        let request = match &signer_input.input_type {
+            TransactionInputType::Transfer { .. } | TransactionInputType::Withdrawal { .. } => SpendRequest::transfer(chain, signer_input, destination)?,
+            TransactionInputType::Swap { .. } => SpendRequest::swap(chain, signer_input, destination)?,
+            _ => return SignerError::invalid_input_err("unsupported Bitcoin transaction type"),
+        };
+        UtxoPlanner::fee(request, &planner::VirtualSizeFee::for_input(chain, signer_input)?)
+    })
+}
 
+#[cfg(feature = "rpc")]
+pub fn load_fee(input: &TransactionLoadInput, fee: impl FnOnce(&SignerInput) -> Result<u64, SignerError>) -> Result<TransactionFee, SignerError> {
     Ok(TransactionFee {
-        fee: BigInt::from(UtxoPlanner::fee(request, &planner::VirtualSizeFee::for_input(chain, &signer_input)?)?),
+        fee: BigInt::from(fee(&SignerInput::new(input.clone(), input.default_fee()))?),
         gas_price_type: input.gas_price.clone(),
         gas_limit: BigInt::from(1u8),
         options: HashMap::new(),

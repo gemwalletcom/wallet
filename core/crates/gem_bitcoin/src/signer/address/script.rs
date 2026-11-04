@@ -89,7 +89,7 @@ impl AddressScript {
     }
 }
 
-pub fn script_for_public_key_hash(unlocking_script: UnlockingScript, hash: [u8; HASH160_LEN]) -> ScriptBuf {
+pub(crate) fn script_for_public_key_hash(unlocking_script: UnlockingScript, hash: [u8; HASH160_LEN]) -> ScriptBuf {
     match unlocking_script {
         UnlockingScript::P2pkh => p2pkh_script(hash),
         UnlockingScript::P2wpkh => p2wpkh_script(hash),

@@ -34,7 +34,7 @@ mod tests {
     use primitives::testkit::zcash_mock::{TEST_ZCASH_TEX_ADDRESS, TEST_ZCASH_TRANSPARENT_ADDRESS};
 
     use super::*;
-    use crate::testkit::{TEST_ZCASH_UNIFIED_ADDRESS, TEST_ZCASH_UNIFIED_SAPLING_ADDRESS};
+    use crate::testkit::{TEST_ZCASH_P2SH_ADDRESS, TEST_ZCASH_UNIFIED_ADDRESS, TEST_ZCASH_UNIFIED_SAPLING_ADDRESS};
 
     #[test]
     fn test_validate_address() {
@@ -49,7 +49,7 @@ mod tests {
     fn test_transparent_address() {
         assert_eq!(transparent_address(TEST_ZCASH_TEX_ADDRESS).unwrap(), TEST_ZCASH_TRANSPARENT_ADDRESS);
         assert_eq!(transparent_address(TEST_ZCASH_TRANSPARENT_ADDRESS).unwrap(), TEST_ZCASH_TRANSPARENT_ADDRESS);
-        assert_eq!(transparent_address("t3Vz22vK5z2LcKEdg16Yv4FFneEL1zg9ojd").unwrap(), "t3Vz22vK5z2LcKEdg16Yv4FFneEL1zg9ojd");
+        assert_eq!(transparent_address(TEST_ZCASH_P2SH_ADDRESS).unwrap(), TEST_ZCASH_P2SH_ADDRESS);
         assert_eq!(transparent_address(TEST_ZCASH_UNIFIED_ADDRESS).unwrap_err(), SignerError::invalid_input("unsupported Zcash address"));
     }
 }

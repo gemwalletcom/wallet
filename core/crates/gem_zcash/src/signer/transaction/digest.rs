@@ -31,8 +31,8 @@ impl SignatureDigests {
         let shielded = [blake2b_256_personal(&[], TXID_SAPLING_HASH_PERSONALIZATION).as_slice(), empty_orchard.as_bytes()]
             .into_iter()
             .chain(ironwood)
-            .map(|digest| digest.try_into().unwrap_or_default())
-            .collect();
+            .map(|digest| digest.try_into().map_err(|_| SignerError::signing_error("invalid Zcash shielded digest")))
+            .collect::<Result<_, _>>()?;
 
         Ok(Self {
             branch_id: transaction.branch_id,
