@@ -46,7 +46,7 @@ impl PushNotification {
             wallet_id,
             asset_id: transaction.asset_id.clone(),
             transaction_id: transaction.id.to_string(),
-            transaction: carries_transaction(platform, app_version).then(|| transaction.clone()),
+            transaction: carries_transaction(platform, app_version).then(|| transaction.clone().with_data(None)),
         };
         Self {
             notification_type: PushNotificationTypes::Transaction,
@@ -139,5 +139,14 @@ mod tests {
         assert_eq!(payload(Platform::IOS, "unknown").transaction, Some(transaction.clone()), "an unreadable version keeps the payload old apps need");
         assert_eq!(payload(Platform::IOS, "2.114.74").transaction_id, transaction.id.to_string());
         assert_eq!(payload(Platform::IOS, "2.114.74").asset_id, transaction.asset_id);
+    }
+
+    #[test]
+    fn test_new_transaction_leaves_out_call_data() {
+        let transaction = Transaction::mock().with_data(Some("0xa9059cbb".to_string()));
+
+        let data = PushNotification::new_transaction(WalletId::Multicoin("0x1".to_string()), &transaction, Platform::Android, "2.114.72").data.unwrap();
+
+        assert_eq!(serde_json::from_value::<PushNotificationTransaction>(data).unwrap().transaction, Some(transaction.with_data(None)));
     }
 }
