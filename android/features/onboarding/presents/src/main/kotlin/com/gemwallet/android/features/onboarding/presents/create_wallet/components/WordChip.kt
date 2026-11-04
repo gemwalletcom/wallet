@@ -20,6 +20,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.semantics
+import com.gemwallet.android.ui.components.sensitiveData
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space12
@@ -75,7 +76,8 @@ internal fun WordChip(word: String, isEnable: Boolean, onClick: (String) -> Bool
             modifier = Modifier
                 .padding(horizontal = paddingSmall, vertical = paddingHalfSmall)
                 .testTag("word_option")
-                .semantics { if (!isEnable) disabled() },
+                .semantics { if (!isEnable) disabled() }
+                .sensitiveData(),
         )
     }
 }
