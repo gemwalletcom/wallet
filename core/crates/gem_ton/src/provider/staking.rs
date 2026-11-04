@@ -28,7 +28,12 @@ impl<C: Client> ChainStaking for TonClient<C> {
     }
 
     async fn get_staking_delegations(&self, address: String) -> Result<Vec<DelegationBase>, Box<dyn Error + Sync + Send>> {
-        let (staked_shares, pool) = try_join!(self.get_jetton_balance(&address, TON_TSTON_TOKEN_ID), self.get_pool_full_data(TONSTAKERS_POOL_ADDRESS))?;
+        let wallets = self.get_jetton_wallets_by_jetton(&address, TON_TSTON_TOKEN_ID).await?.jetton_wallets;
+        if wallets.is_empty() {
+            return Ok(vec![]);
+        }
+        let (wallet, pool) = try_join!(self.get_jetton_wallet_address(&address, TON_TSTON_TOKEN_ID), self.get_pool_full_data(TONSTAKERS_POOL_ADDRESS))?;
+        let staked_shares = wallets.into_iter().find(|row| Address::parse(&row.address).is_ok_and(|address| address == wallet)).map(|row| row.balance).unwrap_or_default();
         let (deposit_bills, withdrawal_bills) = try_join!(self.get_bill_amounts(&address, pool.deposit_payout.as_ref()), self.get_bill_amounts(&address, pool.withdrawal_payout.as_ref()))?;
         Ok(map_delegations(staked_shares, &pool, &deposit_bills, &withdrawal_bills))
     }
@@ -74,6 +79,9 @@ mod tests {
         let client = TonClient::new(
             MockClient::new()
                 .with_get(|path| match path {
+                    "/api/v3/jetton/wallets?owner_address=0:0CE8D22B5718169E80D0D3B9E344861D874E0C0D6F892B7966D8F29979A7636B&jetton_address=EQC98_qAmNEptUtPc7W6xdHh_ZHrBUFpw5Ft_IzNU20QAJav&limit=100&offset=0" => Ok(
+                        br#"{"jetton_wallets":[{"address":"0:1111111111111111111111111111111111111111111111111111111111111111","balance":"9000000000","jetton":"0:BDF3FA8098D129B54B4F73B5BAC5D1E1FD91EB054169C3916DFC8CCD536D1000"},{"address":"EQAlgB03OjJKdXrlwZiGJD5snSzPKF2VL5bErJn_cqJANGH9","balance":"1000000000","jetton":"0:BDF3FA8098D129B54B4F73B5BAC5D1E1FD91EB054169C3916DFC8CCD536D1000"}]}"#.to_vec(),
+                    ),
                     "/api/v3/nft/items?owner_address=0:0CE8D22B5718169E80D0D3B9E344861D874E0C0D6F892B7966D8F29979A7636B&collection_address=0:2ca6ad3f72fffa324d825d318985164ba14e0c1daf4992ba1312976333a5b857&limit=1000&offset=0" => Ok(
                         br#"{"nft_items":[{"address":"0:7B990536CE680CBCC0199F015A236054CBA32D67D779A6FCFD8AC74CCC913D33","index":"0"},{"address":"0:1111111111111111111111111111111111111111111111111111111111111111","index":"1"}],"metadata":{}}"#.to_vec(),
                     ),
@@ -83,7 +91,6 @@ mod tests {
                     let request: serde_json::Value = serde_json::from_slice(body).unwrap();
                     match (request["address"].as_str().unwrap(), request["method"].as_str().unwrap()) {
                         (TON_TSTON_TOKEN_ID, "get_wallet_address") => Ok(wallet_response.clone().into_bytes()),
-                        (TEST_TSTON_WALLET, "get_wallet_data") => Ok(br#"{"exit_code":0,"stack":[{"type":"num","value":"0x3b9aca00"}]}"#.to_vec()),
                         (TONSTAKERS_POOL_ADDRESS, "get_pool_full_data") => Ok(include_bytes!("../../testdata/tonstakers_pool_full_data.json").to_vec()),
                         (_, "get_nft_address_by_index") => Ok(bill_response.clone().into_bytes()),
                         (TEST_BILL, "get_bill_amount") => Ok(br#"{"exit_code":0,"stack":[{"type":"num","value":"0x84e2b0219"}]}"#.to_vec()),
@@ -101,6 +108,18 @@ mod tests {
                 (DelegationState::Deactivating, BigUint::from(41_909_887_334u64), BigUint::from(35_671_179_801u64)),
             ]
         );
+    }
+
+    #[tokio::test]
+    async fn test_get_staking_delegations_without_tston_wallet() {
+        let client = TonClient::new(MockClient::new().with_get(|path| match path {
+            "/api/v3/jetton/wallets?owner_address=0:0CE8D22B5718169E80D0D3B9E344861D874E0C0D6F892B7966D8F29979A7636B&jetton_address=EQC98_qAmNEptUtPc7W6xdHh_ZHrBUFpw5Ft_IzNU20QAJav&limit=100&offset=0" => {
+                Ok(br#"{"jetton_wallets":[]}"#.to_vec())
+            }
+            path => panic!("unexpected path {path}"),
+        }));
+
+        assert_eq!(client.get_staking_delegations(TEST_OWNER.to_string()).await.unwrap(), vec![]);
     }
 }
 

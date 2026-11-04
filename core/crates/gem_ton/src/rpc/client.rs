@@ -20,9 +20,7 @@ const TONCENTER_SORT_ASC: &str = "asc";
 const GET_WALLET_ADDRESS_METHOD: &str = "get_wallet_address";
 const GET_POOL_FULL_DATA_METHOD: &str = "get_pool_full_data";
 const GET_BILL_AMOUNT_METHOD: &str = "get_bill_amount";
-const GET_WALLET_DATA_METHOD: &str = "get_wallet_data";
 const GET_NFT_ADDRESS_BY_INDEX_METHOD: &str = "get_nft_address_by_index";
-const UNINITIALIZED_EXIT_CODE: i32 = -13;
 
 #[derive(Debug)]
 pub struct TonClient<C: Client> {
@@ -75,15 +73,6 @@ impl<C: Client> TonClient<C> {
         let owner = Address::parse(owner)?;
         let result = self.run_get_method(jetton, GET_WALLET_ADDRESS_METHOD, vec![StackArg::slice(owner.to_boc_base64()?)]).await?;
         Ok(result.ok(GET_WALLET_ADDRESS_METHOD)?.stack_address(0)?)
-    }
-
-    pub async fn get_jetton_balance(&self, owner: &str, jetton: &str) -> Result<BigUint, Box<dyn Error + Send + Sync>> {
-        let wallet = self.get_jetton_wallet_address(owner, jetton).await?.encode_bounceable();
-        let result = self.run_get_method(&wallet, GET_WALLET_DATA_METHOD, vec![]).await?;
-        if result.exit_code == UNINITIALIZED_EXIT_CODE {
-            return Ok(BigUint::ZERO);
-        }
-        Ok(result.ok(GET_WALLET_DATA_METHOD)?.stack_num(0)?)
     }
 
     pub async fn get_nft_address_by_index(&self, collection: &str, index: &str) -> Result<Address, Box<dyn Error + Send + Sync>> {
@@ -149,6 +138,16 @@ impl<C: Client> TonClient<C> {
 
     pub async fn get_jetton_wallets(&self, address: String) -> Result<JettonWalletsResponse, Box<dyn Error + Send + Sync>> {
         Ok(self.client.get(TonCenterTarget::GetJettonWallets { owner: address }).await?)
+    }
+
+    pub async fn get_jetton_wallets_by_jetton(&self, owner: &str, jetton: &str) -> Result<JettonWalletsResponse, Box<dyn Error + Send + Sync>> {
+        Ok(self
+            .client
+            .get(TonCenterTarget::GetJettonWalletsByJetton {
+                owner: owner.to_string(),
+                jetton: jetton.to_string(),
+            })
+            .await?)
     }
 
     pub async fn get_nft_items_by_owner(&self, owner_address: &str) -> Result<NftItemsResponse, Box<dyn Error + Send + Sync>> {
