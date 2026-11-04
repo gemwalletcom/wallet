@@ -7,6 +7,7 @@ use crate::services::collections::{stale, unique};
 
 use chrono::{DateTime, Utc};
 use gem_solana::{Pubkey, SolanaTransfer, VersionedTransaction, VersionedTransactionExt};
+use gem_sui::tx_builder::validate_wallet_connect_sender;
 use gem_ton::models::decode_wallet_connect_transfer;
 use gem_tron::{decode_wallet_connect_contract, decode_wallet_connect_owners};
 use primitives::ChainType;
@@ -314,6 +315,7 @@ pub fn validate_transaction_sender(transaction: &WalletConnectTransaction, accou
                 None => Ok(()),
             }
         }
+        WalletConnectTransaction::Sui { data, .. } => validate_wallet_connect_sender(&data.transaction, &account.address).map_err(|error| GemServiceError::InvalidInput { msg: error.to_string() }),
         _ => Ok(()),
     }
 }
@@ -451,7 +453,7 @@ mod tests {
     }
 
     use super::*;
-    use gem_wallet_connect::WCEthereumTransactionData;
+    use gem_wallet_connect::{WCEthereumTransactionData, WCSuiTransactionData};
     use num_bigint::BigUint;
     use primitives::Account;
 
@@ -703,6 +705,29 @@ mod tests {
             validate_transaction_sender(&transaction, &Account::mock(Chain::Tron, "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t")).is_err(),
             "the review reads as a send from the session account, so the transaction must be one"
         );
+    }
+
+    #[test]
+    fn test_validate_transaction_sender_binds_a_sui_request_to_the_session_account() {
+        let session_account = Account::mock(Chain::Sui, "0x93f65b8c16c263343bbf66cf9f8eef69cb1dbc92d13f0c331b0dcaeb76b4aab6");
+        let other_account = Account::mock(Chain::Sui, "0xa9bd0493f9bd1f792a4aedc1f99d54535a75a46c38fd56a8f2c6b7c8d75817a1");
+        let sui_transaction = |transaction: &str| WalletConnectTransaction::Sui {
+            data: WCSuiTransactionData {
+                transaction: transaction.to_string(),
+                wallet_address: session_account.address.clone(),
+            },
+            output_type: TransferDataOutputType::EncodedTransaction,
+        };
+        let bcs = sui_transaction(include_str!("../../../../crates/gem_sui/testdata/wc_sign_transaction_bcs.txt"));
+        let json = sui_transaction(include_str!("../../../../crates/gem_sui/testdata/wc_sign_transaction_cetus.json"));
+
+        assert!(validate_transaction_sender(&bcs, &session_account).is_ok());
+        assert!(
+            validate_transaction_sender(&bcs, &other_account).is_err(),
+            "the review reads as a send from the session account, so the transaction must be one"
+        );
+        assert!(validate_transaction_sender(&json, &other_account).is_ok());
+        assert!(validate_transaction_sender(&json, &session_account).is_err());
     }
 
     #[test]
