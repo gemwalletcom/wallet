@@ -7,6 +7,7 @@ version = { workspace = true }
 async-trait = { workspace = true }
 chrono = { workspace = true }
 cacher = { path = "../cacher" }
+chain_primitives = { path = "../chain_primitives" }
 chain_providers = { path = "../chain_providers" }
 chain_traits = { path = "../chain_traits" }
 coingecko = { path = "../coingecko" }
