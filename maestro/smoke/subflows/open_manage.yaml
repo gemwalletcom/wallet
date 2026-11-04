@@ -1,0 +1,19 @@
+appId: ${APP_ID}
+---
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: "manage"
+          centerElement: true
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: "manage"
+- tapOn:
+    id: "manage"
