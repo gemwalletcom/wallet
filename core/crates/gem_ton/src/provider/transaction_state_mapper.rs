@@ -7,7 +7,7 @@ use crate::provider::transactions_mapper::{base64_hash_to_hex, map_transaction_s
 
 pub fn map_transaction_status(request: TransactionStateRequest, traces: TraceResponse) -> Result<TransactionUpdate, Box<dyn Error + Sync + Send>> {
     let transaction = traces.root_transaction().ok_or("Transaction not found")?;
-    let state = if traces.has_actions() { traces.action_state().ok_or("Trace not found")? } else { map_transaction_state(transaction) };
+    let state = traces.state().unwrap_or_else(|| map_transaction_state(transaction));
 
     let mut changes = vec![TransactionChange::NetworkFee(transaction.total_fees.clone().into())];
     if let Some(transaction_hash) = base64_hash_to_hex(&transaction.hash)
@@ -63,10 +63,6 @@ mod tests {
     fn test_map_transaction_status_failed_trace_action() {
         let request = TransactionStateRequest::mock_with_id(FAILED_SWAP_MESSAGE_HASH);
         let traces = TraceResponse::mock_block_trace(1);
-        let transaction = traces.root_transaction().unwrap().clone();
-
-        let root_update = map_transaction_status(request.clone(), TraceResponse::mock(transaction, false, vec![])).unwrap();
-        assert_eq!(root_update.state, TransactionState::Confirmed);
 
         let update = map_transaction_status(request, traces).unwrap();
         assert_eq!(update.state, TransactionState::Reverted);
@@ -77,6 +73,16 @@ mod tests {
             _ => None,
         });
         assert_eq!(hash_change, Some((FAILED_SWAP_MESSAGE_HASH, FAILED_SWAP_ROOT_TRANSACTION_HEX_HASH)));
+    }
+
+    #[test]
+    fn test_map_transaction_status_unclassified_trace() {
+        let request = TransactionStateRequest::mock_with_id(FAILED_SWAP_MESSAGE_HASH);
+        let mut traces = TraceResponse::mock_block_trace(1);
+        traces.traces[0].actions.clear();
+
+        let update = map_transaction_status(request, traces).unwrap();
+        assert_eq!(update.state, TransactionState::Pending);
     }
 
     #[test]
