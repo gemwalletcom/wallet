@@ -89,3 +89,35 @@ mod nft_integration_tests {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use gem_client::{ClientError, testkit::MockClient};
+    use primitives::VerificationStatus;
+
+    use super::*;
+
+    const OWNER: &str = "FJ1n8eKmh17NK6ZEjG8Q842TBaqabJ8k6MS1N21ps2rN";
+    const MINT: &str = "W1iLZMsRanht4urj4Vra2JqgeKoLkP5LaPerzpsu8iw";
+
+    #[tokio::test]
+    async fn test_an_nft_without_collection_is_its_own_unverified_collection() {
+        let tokens: Vec<serde_json::Value> = serde_json::from_str(include_str!("../../../../testdata/magiceden/assets_uncollected.json")).unwrap();
+        let client = MagicEdenSolanaClient::new(MockClient::new().with_get(move |path| match path {
+            "/v2/wallets/FJ1n8eKmh17NK6ZEjG8Q842TBaqabJ8k6MS1N21ps2rN/tokens" => Ok(serde_json::to_vec(&tokens[..1]).unwrap()),
+            "/collections/W1iLZMsRanht4urj4Vra2JqgeKoLkP5LaPerzpsu8iw" => Ok(include_bytes!("../../../../testdata/magiceden/collection_uncollected.json").to_vec()),
+            "/v2/tokens/W1iLZMsRanht4urj4Vra2JqgeKoLkP5LaPerzpsu8iw" => Ok(serde_json::to_vec(&tokens[0]).unwrap()),
+            _ => Err(ClientError::Http { status: 404, body: vec![] }),
+        }));
+
+        let data = client.get_nft_data(Chain::Solana, OWNER.to_string()).await.unwrap();
+        assert_eq!(data.len(), 1);
+        assert_eq!(data[0].collection.id, NFTCollectionId::new(Chain::Solana, MINT));
+        assert_eq!(data[0].collection.status, VerificationStatus::Unverified);
+        assert_eq!(data[0].assets[0].id, NFTAssetId::new(Chain::Solana, MINT, MINT));
+
+        let asset = client.get_asset(NFTAssetId::new(Chain::Solana, MINT, MINT)).await.unwrap();
+        assert_eq!(asset.collection_id, data[0].collection.id);
+        assert_eq!(asset.name, "NFT Coins");
+    }
+}
