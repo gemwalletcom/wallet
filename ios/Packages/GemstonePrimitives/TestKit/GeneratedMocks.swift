@@ -1431,6 +1431,7 @@ public extension Gemstone.GemWalletConnectAuthAccount {
 public extension Gemstone.GemWalletConnectMessageRequest {
     static func mock(
         sessionId: String = "",
+        requestId: String = "",
         chain: String = Primitives.Chain.bitcoin.rawValue,
         wallet: Gemstone.Wallet = Primitives.Wallet.mock().toGem(),
         account: Gemstone.Account = Primitives.Account.mock().toGem(),
@@ -1441,6 +1442,7 @@ public extension Gemstone.GemWalletConnectMessageRequest {
     ) -> Gemstone.GemWalletConnectMessageRequest {
         Gemstone.GemWalletConnectMessageRequest(
             sessionId: sessionId,
+            requestId: requestId,
             chain: chain,
             wallet: wallet,
             account: account,
@@ -1455,6 +1457,7 @@ public extension Gemstone.GemWalletConnectMessageRequest {
 public extension Gemstone.GemWalletConnectTransactionRequest {
     static func mock(
         sessionId: String = "",
+        requestId: String = "",
         chain: String = Primitives.Chain.bitcoin.rawValue,
         wallet: Gemstone.Wallet = Primitives.Wallet.mock().toGem(),
         account: Gemstone.Account = Primitives.Account.mock().toGem(),
@@ -1465,6 +1468,7 @@ public extension Gemstone.GemWalletConnectTransactionRequest {
     ) -> Gemstone.GemWalletConnectTransactionRequest {
         Gemstone.GemWalletConnectTransactionRequest(
             sessionId: sessionId,
+            requestId: requestId,
             chain: chain,
             wallet: wallet,
             account: account,

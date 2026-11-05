@@ -17,6 +17,14 @@ public enum WalletConnectorSheetType: Sendable, Identifiable {
         }
     }
 
+    var requestId: String? {
+        switch self {
+        case let .transferData(callback): callback.payload.requestId
+        case let .signMessage(callback): callback.payload.requestId
+        case .connectionProposal: nil
+        }
+    }
+
     public func reject(_ error: Error) {
         switch self {
         case let .transferData(callback):

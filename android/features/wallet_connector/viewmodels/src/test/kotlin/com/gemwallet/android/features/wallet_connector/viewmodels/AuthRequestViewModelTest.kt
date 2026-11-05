@@ -4,6 +4,7 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
 import com.gemwallet.android.application.wallet_connect.WalletConnectAuthPayloadParams
 import com.gemwallet.android.application.wallet_connect.WalletConnectAuthenticationRequest
+import com.gemwallet.android.application.wallet_connect.WalletConnectPendingRequests
 import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnectAuthentication
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.MainDispatcherRule
@@ -107,7 +108,7 @@ class AuthRequestViewModelTest {
 
     private fun viewModel(service: GemWalletConnectServiceInterface, approve: ApproveWalletConnectAuthentication = approval(), signMessageService: GemSignMessageServiceInterface = signMessageService()) = AuthRequestViewModel(
         approveWalletConnectAuthentication = approve,
-        activeRequest = ActiveWalletConnectRequest(events = emptyFlow()),
+        activeRequest = ActiveWalletConnectRequest(events = emptyFlow(), pendingRequests = WalletConnectPendingRequests()),
         walletConnectService = service,
         signMessageService = signMessageService,
         ioDispatcher = dispatcher,

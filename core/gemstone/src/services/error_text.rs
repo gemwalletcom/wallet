@@ -61,7 +61,7 @@ impl GemServiceError {
             Self::NoAccountForChain { .. } => GemErrorText::NoAccountForChain,
             Self::Offline => GemErrorText::NetworkOffline,
             Self::WalletImport { error } => error.text(),
-            Self::Cancelled => GemErrorText::Cancelled,
+            Self::Cancelled | Self::Expired => GemErrorText::Cancelled,
         }
     }
 }

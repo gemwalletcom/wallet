@@ -19,6 +19,7 @@ pub enum GemServiceError {
     Offline,
     WalletImport { error: GemWalletImportError },
     Cancelled,
+    Expired,
 }
 
 pub fn required_account(wallet: &Wallet, chain: Chain) -> Result<Account, GemServiceError> {
@@ -33,6 +34,7 @@ impl std::fmt::Display for GemServiceError {
             Self::Offline => write!(f, "network offline"),
             Self::WalletImport { error } => write!(f, "{error}"),
             Self::Cancelled => write!(f, "cancelled"),
+            Self::Expired => write!(f, "expired"),
         }
     }
 }
