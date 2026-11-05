@@ -33,3 +33,31 @@ impl Drop for TempDir {
         let _ = std::fs::remove_dir_all(&self.path);
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::TempDir;
+
+    #[test]
+    fn test_temp_dir_is_unique_and_removed_on_drop() {
+        let first = TempDir::new().unwrap();
+        let second = TempDir::new().unwrap();
+        assert_ne!(first.path(), second.path());
+        assert!(first.path().is_dir());
+
+        std::fs::write(first.path().join("keystore.json"), b"{}").unwrap();
+        let path = first.path().to_path_buf();
+        drop(first);
+        assert!(!path.exists());
+        assert!(second.path().is_dir());
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn test_temp_dir_is_private() {
+        use std::os::unix::fs::PermissionsExt;
+
+        let dir = TempDir::new().unwrap();
+        assert_eq!(std::fs::metadata(dir.path()).unwrap().permissions().mode() & 0o777, 0o700);
+    }
+}
