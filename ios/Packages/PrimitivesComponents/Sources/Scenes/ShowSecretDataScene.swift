@@ -36,6 +36,14 @@ public struct ShowSecretDataScene: View {
             }
             .cleanListRow()
 
+            if let scope {
+                Text(scope)
+                    .textStyle(.calloutSecondary)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
+                    .cleanListRow()
+            }
+
             ListButton(
                 title: Localized.Common.copy,
                 image: Images.System.copy,
@@ -66,10 +74,17 @@ public struct ShowSecretDataScene: View {
         secretScreen(kind: secret.kind, isNew: continueAction != nil)
     }
 
+    private var scope: String? {
+        switch secret {
+        case .words: nil
+        case let .privateKey(_, scope): scope.description
+        }
+    }
+
     private var secretCopy: GemCopy {
         switch secret {
         case let .words(words): secretPhraseCopy(words: words)
-        case let .privateKey(key): privateKeyCopy(key: key)
+        case let .privateKey(key, _): privateKeyCopy(key: key)
         }
     }
 

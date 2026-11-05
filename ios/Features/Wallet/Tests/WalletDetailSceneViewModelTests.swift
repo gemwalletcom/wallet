@@ -143,4 +143,31 @@ struct WalletDetailSceneViewModelTests {
         #expect(model.isPresentingExportWallet == nil)
         #expect(model.isPresentingAlertMessage != nil)
     }
+
+    @Test
+    func aPhraseWalletBacksUpTheSecretPhraseAndExportsKeysUnderAdvanced() {
+        let model = WalletDetailSceneViewModel.mock(wallet: .mock(type: .multicoin, accounts: [.mock(chain: .bitcoin), .mock(chain: .ethereum), .mock(chain: .solana)]))
+
+        #expect(model.details.backup?.export == .secret(kind: .phrase))
+        #expect(model.details.advanced?.export == .privateKeyAccounts)
+    }
+
+    @Test
+    func aPrivateKeyWalletBacksUpItsKeyThroughTheReminderWithoutAnAdvancedSection() {
+        let model = WalletDetailSceneViewModel.mock(wallet: .mock(id: .privateKey(chain: .ethereum, address: "0x1"), type: .privateKey, accounts: [.mock(chain: .ethereum)]))
+
+        #expect(model.details.backup?.export == .secret(kind: .privateKey))
+        #expect(model.details.advanced == nil)
+    }
+
+    @Test
+    func selectingAPrivateKeyExportPresentsItsFlowWithoutReadingTheSecret() async {
+        let model = WalletDetailSceneViewModel.mock(wallet: .mock(id: .multicoin(address: "0xmissing")))
+
+        await model.onSelect(export: .privateKeyAccounts)
+
+        #expect(model.isPresentingPrivateKeyExport == .privateKeyAccounts)
+        #expect(model.isPresentingExportWallet == nil)
+        #expect(model.isPresentingAlertMessage == nil)
+    }
 }
