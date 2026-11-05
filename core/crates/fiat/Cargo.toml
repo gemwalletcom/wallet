@@ -14,7 +14,6 @@ sha2 = { workspace = true }
 gem_encoding = { path = "../gem_encoding" }
 gem_crypto = { path = "../gem_crypto" }
 ring = { workspace = true }
-pem-rfc7468 = { workspace = true }
 futures = { workspace = true }
 async-trait = { workspace = true }
 hex = { workspace = true }

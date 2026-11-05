@@ -1,11 +1,11 @@
 use std::error::Error;
 
-use alloy_ens::try_dns_encode;
 use async_trait::async_trait;
 use gem_client::Client;
 use primitives::{Chain, NameProvider};
 
 use super::client::EnsClient;
+use super::name::dns_encode;
 use crate::model::NameQuery;
 use crate::resolver::NameResolver;
 
@@ -53,7 +53,7 @@ impl<C: Client + Clone> NameResolver for EnsProvider<C> {
 }
 
 fn ens_name(query: &NameQuery) -> Option<String> {
-    query.ascii_domain().ok().filter(|name| !name.split('.').any(|label| label.starts_with("xn--")) && try_dns_encode(name).is_ok())
+    query.ascii_domain().ok().filter(|name| !name.split('.').any(|label| label.starts_with("xn--")) && dns_encode(name).is_ok())
 }
 
 #[cfg(test)]

@@ -208,15 +208,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "alloy-ens"
-version = "2.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "22fad0811d511f8bb0d64599b9ea885282f61be924e36cee3362667115482e2b"
-dependencies = [
- "alloy-primitives",
-]
-
-[[package]]
 name = "alloy-json-abi"
 version = "1.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -858,12 +849,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7d902e3d592a523def97af8f317b08ce16b7ab854c1985a0c671e6f15cebc236"
 
 [[package]]
-name = "arrayref"
-version = "0.3.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "76a2e8124351fda1ef8aaaa3bbd7ebbcb486bbcd4225aca0aa0d84bb2db8fecb"
-
-[[package]]
 name = "arrayvec"
 version = "0.7.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1143,7 +1128,7 @@ dependencies = [
  "serde_json",
  "serde_path_to_error",
  "serde_urlencoded",
- "sha1 0.10.7",
+ "sha1",
  "sync_wrapper",
  "tokio",
  "tokio-tungstenite",
@@ -1391,17 +1376,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5b5d4d889834ee8ecfc0f8426ad30faf7cdcb10f741a8e6d7224d95325479f6f"
 dependencies = [
  "digest 0.11.3",
-]
-
-[[package]]
-name = "blake2b_simd"
-version = "1.0.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b79834656f71332577234b50bfc009996f7449e0c056884e6a02492ded0ca2f3"
-dependencies = [
- "arrayref",
- "arrayvec",
- "constant_time_eq",
 ]
 
 [[package]]
@@ -1997,12 +1971,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "constant_time_eq"
-version = "0.4.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3d52eff69cd5e647efe296129160853a42795992097e8af39800e1060caeea9b"
-
-[[package]]
 name = "convert_case"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2349,7 +2317,7 @@ dependencies = [
  "const-oid 0.9.6",
  "der_derive",
  "flagset",
- "pem-rfc7468 0.7.0",
+ "pem-rfc7468",
  "zeroize",
 ]
 
@@ -2884,7 +2852,6 @@ dependencies = [
  "jsonwebtoken",
  "num-bigint 0.5.1",
  "number_formatter",
- "pem-rfc7468 1.0.0",
  "primitives",
  "reqwest",
  "ring",
@@ -3448,7 +3415,7 @@ dependencies = [
 name = "gem_hash"
 version = "2.114.88"
 dependencies = [
- "blake2b_simd",
+ "blake2 0.11.0",
  "hex",
  "hmac 0.13.0",
  "ripemd",
@@ -3473,7 +3440,6 @@ dependencies = [
  "num-bigint 0.5.1",
  "number_formatter",
  "primitives",
- "rmp-serde",
  "serde",
  "serde_json",
  "serde_serializers",
@@ -5041,7 +5007,6 @@ dependencies = [
 name = "name_resolver"
 version = "2.114.88"
 dependencies = [
- "alloy-ens",
  "alloy-primitives",
  "alloy-sol-types",
  "async-trait",
@@ -5266,7 +5231,7 @@ dependencies = [
  "pkcs5",
  "rand 0.10.2",
  "rc2",
- "sha1 0.10.7",
+ "sha1",
  "sha2 0.10.9",
  "thiserror 2.0.19",
  "x509-parser",
@@ -5408,15 +5373,6 @@ name = "pem-rfc7468"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "88b39c9bfcfc231068454382784bb460aae594343fb030d46e9f50a645418412"
-dependencies = [
- "base64ct",
-]
-
-[[package]]
-name = "pem-rfc7468"
-version = "1.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a6305423e0e7738146434843d1694d621cce767262b2a86910beab705e4493d9"
 dependencies = [
  "base64ct",
 ]
@@ -6166,25 +6122,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rmp"
-version = "0.8.15"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4ba8be72d372b2c9b35542551678538b562e7cf86c3315773cae48dfbfe7790c"
-dependencies = [
- "num-traits",
-]
-
-[[package]]
-name = "rmp-serde"
-version = "1.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "72f81bee8c8ef9b577d1681a70ebbc962c232461e397b22c208c43c04b67a155"
-dependencies = [
- "rmp",
- "serde",
-]
-
-[[package]]
 name = "roaring"
 version = "0.11.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6654,10 +6591,10 @@ dependencies = [
  "hex",
  "jupiter",
  "primitives",
+ "ring",
  "serde",
  "serde_json",
  "settings",
- "sha1 0.11.0",
  "tokio",
  "url",
 ]
@@ -6914,17 +6851,6 @@ dependencies = [
  "cfg-if",
  "cpufeatures 0.2.17",
  "digest 0.10.7",
-]
-
-[[package]]
-name = "sha1"
-version = "0.11.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aacc4cc499359472b4abe1bf11d0b12e688af9a805fa5e3016f9a386dc2d0214"
-dependencies = [
- "cfg-if",
- "cpufeatures 0.3.0",
- "digest 0.11.3",
 ]
 
 [[package]]
@@ -7875,7 +7801,7 @@ dependencies = [
  "httparse",
  "log",
  "rand 0.9.5",
- "sha1 0.10.7",
+ "sha1",
  "thiserror 2.0.19",
 ]
 
