@@ -16,6 +16,7 @@ use serde_json::Value;
 use std::collections::HashMap;
 use std::future::Future;
 use std::pin::Pin;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::task::{Context, Poll};
 
@@ -28,6 +29,7 @@ pub struct TestAlienProvider {
     requested_types: Mutex<Vec<String>>,
     signed_wallet_ids: Mutex<Vec<String>>,
     error: Option<AlienError>,
+    pub yields_while_requesting: AtomicBool,
 }
 
 impl TestAlienProvider {
@@ -40,6 +42,7 @@ impl TestAlienProvider {
             requested_types: Mutex::new(Vec::new()),
             signed_wallet_ids: Mutex::new(Vec::new()),
             error: None,
+            yields_while_requesting: AtomicBool::new(false),
         }
     }
 
@@ -92,6 +95,9 @@ impl AlienProvider for TestAlienProvider {
         self.requested.lock().unwrap().push(path.clone());
         if let Some(payload) = target.headers.as_ref().and_then(|headers| headers.get(gem_auth::AUTHORIZATION_HEADER)).and_then(|header| gem_auth::parse_device_auth(header)) {
             self.signed_wallet_ids.lock().unwrap().push(payload.wallet_id.unwrap_or_default());
+        }
+        if self.yields_while_requesting.load(Ordering::SeqCst) {
+            YieldOnce::default().await;
         }
         if let Some(error) = &self.error {
             return Err(error.clone());
