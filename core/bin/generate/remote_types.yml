@@ -483,7 +483,7 @@ declared:
 type_mappings:
   swift:
     BigInt: String
-    BigIntValue: BigIntValue
+    BigIntValue: BigInt
     BigUint: String
     DateTime: Date
     Value: AnyCodableValue
