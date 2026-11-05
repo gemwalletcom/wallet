@@ -169,9 +169,9 @@ extension NavigationRouter {
             let from = from.toPrimitives()
             try await presentAssetInput(type: .swap(from.id, to?.toPrimitives().id), for: from)
         case .perpetuals:
-            navigationState.wallet.append(Scenes.Perpetuals())
+            navigationState.openWallet(path: [Scenes.Perpetuals()])
         case let .rewards(code):
-            navigationState.settings.append(Scenes.Rewards(code: code))
+            navigationState.settings.setPath([Scenes.Rewards(code: code)])
         case .support:
             presenter.sheet.wrappedValue = .support
         case let .address(chain, address):
