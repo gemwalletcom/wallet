@@ -31,6 +31,9 @@ runs:
     - name: Run sccache-cache
       if: ${{ inputs.sccache == 'true' }}
       uses: mozilla-actions/sccache-action@9e7fa8a12102821edf02ca5dbea1acd0f89a2696 # v0.0.10
+      with:
+        # Pin the sccache binary itself; the action otherwise downloads the newest release (S55).
+        version: "v0.19.0"
 
     - name: Install just
       uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4.0.0
