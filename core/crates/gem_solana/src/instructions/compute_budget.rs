@@ -67,7 +67,6 @@ pub fn with_compute_unit_price(instructions: Vec<Instruction>, micro_lamports: u
 
 #[cfg(test)]
 mod tests {
-    use hex_lit::hex;
 
     use super::*;
     use crate::Pubkey;
@@ -77,15 +76,15 @@ mod tests {
     #[test]
     fn test_compute_budget_wire_formats_and_parsing() {
         let limit = set_compute_unit_limit(200_000);
-        assert_eq!(limit.data, hex!("02400d0300"));
+        assert_eq!(limit.data, hex::decode("02400d0300").unwrap());
         assert_eq!(parse_compute_unit_limit_data(&limit.data), Some(200_000));
-        assert_eq!(parse_compute_unit_limit_data(&hex!("02400d0300ff")), Some(200_000));
+        assert_eq!(parse_compute_unit_limit_data(&hex::decode("02400d0300ff").unwrap()), Some(200_000));
         assert_eq!(parse_compute_unit_limit_data(&[2, 1]), None);
 
         let price = set_compute_unit_price(1_000);
-        assert_eq!(price.data, hex!("03e803000000000000"));
+        assert_eq!(price.data, hex::decode("03e803000000000000").unwrap());
         assert_eq!(parse_compute_unit_price_data(&price.data), Some(1_000));
-        assert_eq!(parse_compute_unit_price_data(&hex!("03e803000000000000ff")), Some(1_000));
+        assert_eq!(parse_compute_unit_price_data(&hex::decode("03e803000000000000ff").unwrap()), Some(1_000));
         assert_eq!(parse_compute_unit_price_data(&[3, 1]), None);
     }
 

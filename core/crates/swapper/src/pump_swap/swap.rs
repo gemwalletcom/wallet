@@ -4,7 +4,7 @@ use gem_solana::{
     find_program_address,
     instructions::program_ids::{pump_amm_program, system_program},
 };
-use hex_lit::hex;
+use primitives::decode_hex_literal;
 
 use super::{fee_config::FEE_CONFIG, pool::Pool};
 use crate::{
@@ -14,9 +14,9 @@ use crate::{
 
 const SELL_V2: &str = "sell_v2";
 const BUY_EXACT_QUOTE_IN_V2: &str = "buy_exact_quote_in_v2";
-const GLOBAL_CONFIG: Pubkey = Pubkey::new(hex!("890ba644fe1f55aa19f11cd2d2ec14d3233b6e0a4beaeef72b69858e21e170d6"));
-const EVENT_AUTHORITY: Pubkey = Pubkey::new(hex!("e54a709528839f61c0b9b86079891c139216e47a71b62fb73bec72169458745e"));
-const BUYBACK_FEE_RECIPIENT: Pubkey = Pubkey::new(hex!("439e6510c03d65fad931e89d04be0bb70d51971f51c415fb344c07db419f2122"));
+const GLOBAL_CONFIG: Pubkey = Pubkey::new(decode_hex_literal("890ba644fe1f55aa19f11cd2d2ec14d3233b6e0a4beaeef72b69858e21e170d6"));
+const EVENT_AUTHORITY: Pubkey = Pubkey::new(decode_hex_literal("e54a709528839f61c0b9b86079891c139216e47a71b62fb73bec72169458745e"));
+const BUYBACK_FEE_RECIPIENT: Pubkey = Pubkey::new(decode_hex_literal("439e6510c03d65fad931e89d04be0bb70d51971f51c415fb344c07db419f2122"));
 const MIN_BUY_OUTPUT: u64 = 1;
 
 pub(super) fn swap_v2_instruction(address: &Pubkey, pool: &Pool, swap: &PoolSwap) -> Result<Instruction, SwapperError> {
@@ -132,9 +132,9 @@ mod tests {
                 AccountMeta::new_readonly(pump_amm_program()),
             ]
         );
-        assert_eq!(sell_instruction.data, hex!("5df6823ce7e940b200ca9a3b000000004081ba0100000000"));
+        assert_eq!(sell_instruction.data, hex::decode("5df6823ce7e940b200ca9a3b000000004081ba0100000000").unwrap());
         assert_eq!(swap_v2_instruction(&address, &pool, &buy).unwrap().accounts, sell_instruction.accounts);
-        assert_eq!(swap_v2_instruction(&address, &pool, &buy).unwrap().data, hex!("c2ab1c46684d5b2f80969800000000000100000000000000"));
+        assert_eq!(swap_v2_instruction(&address, &pool, &buy).unwrap().data, hex::decode("c2ab1c46684d5b2f80969800000000000100000000000000").unwrap());
         assert_eq!(swap_v2_instruction(&address, &pool, &PoolSwap { output: &tos, ..sell }), Err(SwapperError::InvalidRoute));
     }
 

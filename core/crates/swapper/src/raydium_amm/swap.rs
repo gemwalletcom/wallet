@@ -3,7 +3,7 @@ use gem_solana::{
     AccountMeta, Instruction, Pubkey,
     instructions::program_ids::{raydium_amm_program, token_program},
 };
-use hex_lit::hex;
+use primitives::decode_hex_literal;
 
 use super::pool::Pool;
 use crate::{
@@ -12,7 +12,7 @@ use crate::{
 };
 
 const SWAP_BASE_IN_V2: u8 = 16;
-const AUTHORITY: Pubkey = Pubkey::new(hex!("4157b0580f31c5fce44a62582dbcf9d78ee75943a084a393b350368d22899308"));
+const AUTHORITY: Pubkey = Pubkey::new(decode_hex_literal("4157b0580f31c5fce44a62582dbcf9d78ee75943a084a393b350368d22899308"));
 
 pub(super) fn swap_base_in_v2_instruction(address: &Pubkey, pool: &Pool, swap: &PoolSwap) -> Result<Instruction, SwapperError> {
     pool.swap_direction(&swap.input.mint, &swap.output.mint)?;

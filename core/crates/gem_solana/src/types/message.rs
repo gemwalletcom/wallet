@@ -244,7 +244,6 @@ fn push_compact_slice(bytes: &mut Vec<u8>, slice: &[u8]) -> Result<()> {
 
 #[cfg(test)]
 mod tests {
-    use hex_lit::hex;
 
     use super::*;
     use crate::testkit::TEST_BLOCKHASH;
@@ -261,13 +260,13 @@ mod tests {
             address_table_lookups: vec![MessageAddressTableLookup::new(Pubkey::new([2; 32]), vec![0, 1], vec![2])],
         };
 
-        let mut expected = hex!("8001000102").to_vec();
+        let mut expected = hex::decode("8001000102").unwrap().to_vec();
         expected.extend_from_slice(&[0; 32]);
         expected.extend_from_slice(&[1; 32]);
         expected.extend_from_slice(&[0; 32]);
-        expected.extend_from_slice(&hex!("010101000001"));
+        expected.extend_from_slice(&hex::decode("010101000001").unwrap());
         expected.extend_from_slice(&[2; 32]);
-        expected.extend_from_slice(&hex!("0200010102"));
+        expected.extend_from_slice(&hex::decode("0200010102").unwrap());
 
         assert_eq!(v0_message.serialize_for_signing().unwrap(), expected);
     }
@@ -285,12 +284,12 @@ mod tests {
             },
         );
 
-        let mut expected = hex!("8101000107000000").to_vec();
+        let mut expected = hex::decode("8101000107000000").unwrap().to_vec();
         expected.extend_from_slice(&TEST_BLOCKHASH);
-        expected.extend_from_slice(&hex!("0102"));
+        expected.extend_from_slice(&hex::decode("0102").unwrap());
         expected.extend_from_slice(&[1; 32]);
         expected.extend_from_slice(&[2; 32]);
-        expected.extend_from_slice(&hex!("08070605040302014433221101000000"));
+        expected.extend_from_slice(&hex::decode("08070605040302014433221101000000").unwrap());
 
         let grouped_message = VersionedMessageV1::mock(
             1,
@@ -299,13 +298,13 @@ mod tests {
             TransactionConfig::default(),
         );
 
-        let mut grouped_expected = hex!("8101000200000000").to_vec();
+        let mut grouped_expected = hex::decode("8101000200000000").unwrap().to_vec();
         grouped_expected.extend_from_slice(&TEST_BLOCKHASH);
-        grouped_expected.extend_from_slice(&hex!("0203"));
+        grouped_expected.extend_from_slice(&hex::decode("0203").unwrap());
         grouped_expected.extend_from_slice(&[1; 32]);
         grouped_expected.extend_from_slice(&[2; 32]);
         grouped_expected.extend_from_slice(&[3; 32]);
-        grouped_expected.extend_from_slice(&hex!("010102000202010000aabb0001cc"));
+        grouped_expected.extend_from_slice(&hex::decode("010102000202010000aabb0001cc").unwrap());
 
         assert_eq!(message.serialize_for_signing().unwrap(), expected);
         assert_eq!(grouped_message.serialize_for_signing().unwrap(), grouped_expected);

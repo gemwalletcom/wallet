@@ -1,4 +1,4 @@
-use hex_lit::hex;
+use primitives::decode_hex_literal;
 
 use crate::{
     Result,
@@ -7,7 +7,7 @@ use crate::{
 };
 
 pub const fn wrapped_sol_mint() -> Pubkey {
-    Pubkey::new(hex!("069b8857feab8184fb687f634618c035dac439dc1aeb3b5598a0f00000000001"))
+    Pubkey::new(const { decode_hex_literal("069b8857feab8184fb687f634618c035dac439dc1aeb3b5598a0f00000000001") })
 }
 
 pub fn wrapped_sol_account(owner: &Pubkey) -> Result<Pubkey> {

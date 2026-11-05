@@ -177,7 +177,7 @@ pub use self::utxo::UTXO;
 pub mod scan;
 pub use self::scan::{AddressType, ScanAddress, ScanAddressTarget, ScanOutcome, ScanProvider, ScanSource, ScanTransaction, ScanTransactionPayload, ScanType, ScanVerdict};
 pub mod hex;
-pub use self::hex::{HexError, decode_hex, decode_hex_array};
+pub use self::hex::{HexError, decode_hex, decode_hex_array, decode_hex_literal};
 pub mod transaction_metadata_types;
 pub use self::transaction_metadata_types::{
     TransactionNFTTransferMetadata, TransactionPaymentMetadata, TransactionPerpetualMetadata, TransactionResourceTypeMetadata, TransactionSmartContractMetadata, TransactionSwapMetadata, TransactionSwapReferralFee,

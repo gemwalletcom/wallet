@@ -54,7 +54,6 @@ impl AddressLookupTableAccount {
 
 #[cfg(test)]
 mod tests {
-    use hex_lit::hex;
 
     use super::*;
     use crate::types::Pubkey;
@@ -87,7 +86,7 @@ mod tests {
     fn test_address_lookup_table_from_account_data_rejects_invalid_discriminant() {
         let key = Pubkey::new([9; 32]);
         let mut data = vec![0u8; LOOKUP_TABLE_META_SIZE];
-        data[0..4].copy_from_slice(&hex!("deadbeef"));
+        data[0..4].copy_from_slice(&hex::decode("deadbeef").unwrap());
         data.extend_from_slice(&[2u8; 32]);
 
         let result = AddressLookupTableAccount::from_account_data(key, &data);

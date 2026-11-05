@@ -53,7 +53,6 @@ num-traits.workspace = true
 futures.workspace = true
 bs58 = { workspace = true }
 borsh = { workspace = true }
-hex_lit = { workspace = true }
 hmac = { workspace = true }
 sha2 = { workspace = true }
 bigdecimal.workspace = true

@@ -1,6 +1,6 @@
 use borsh::BorshDeserialize;
 use gem_solana::{Pubkey, anchor::AnchorAccount, find_program_address, instructions::program_ids::orca_whirlpool_program};
-use hex_lit::hex;
+use primitives::decode_hex_literal;
 
 use crate::{
     SwapperError,
@@ -8,7 +8,7 @@ use crate::{
     solana_dex::DexPool,
 };
 
-const WHIRLPOOLS_CONFIG: Pubkey = Pubkey::new(hex!("13e441f83913ca68b0634fb025fdeaa88737e84110d1255e357b3377ddee1ccd"));
+const WHIRLPOOLS_CONFIG: Pubkey = Pubkey::new(decode_hex_literal("13e441f83913ca68b0634fb025fdeaa88737e84110d1255e357b3377ddee1ccd"));
 pub(super) const FEE_TIER_INDEXES: [u16; 9] = [1, 4, 8, 16, 64, 1025, 1026, 1028, 1030];
 pub(super) const TICK_ARRAY_SIZE: i32 = 88;
 

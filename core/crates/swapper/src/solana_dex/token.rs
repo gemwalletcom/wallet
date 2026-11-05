@@ -1,6 +1,6 @@
 use gem_solana::{Pubkey, SolanaTokenProgramIdExt, associated_token::get_associated_token_address_with_program_id, get_pubkey_by_asset, instructions::program_ids::token_program, models::Mint, wrapped_sol::wrapped_sol_mint};
-use hex_lit::hex;
 use primitives::SolanaTokenProgramId;
+use primitives::decode_hex_literal;
 
 use crate::{SwapperError, SwapperQuoteAsset};
 
@@ -12,7 +12,7 @@ pub(crate) struct SwapToken {
     pub is_native: bool,
 }
 
-pub(crate) const USDC_MINT: Pubkey = Pubkey::new(hex!("c6fa7af3bedbad3a3d65f36aabc97431b1bbe4c2d2f6e0e47ca60203452f5d61"));
+pub(crate) const USDC_MINT: Pubkey = Pubkey::new(decode_hex_literal("c6fa7af3bedbad3a3d65f36aabc97431b1bbe4c2d2f6e0e47ca60203452f5d61"));
 
 const WRAPPED_SOL: SwapToken = SwapToken {
     mint: wrapped_sol_mint(),

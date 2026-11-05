@@ -1,6 +1,6 @@
 use borsh::BorshDeserialize;
 use gem_solana::{Pubkey, anchor::AnchorAccount, find_program_address, instructions::program_ids::pump_amm_program, wrapped_sol::wrapped_sol_mint};
-use hex_lit::hex;
+use primitives::decode_hex_literal;
 use std::iter::repeat;
 
 use super::fee_config::{FeeConfig, Fees};
@@ -10,7 +10,7 @@ use crate::{
     solana_dex::{DexPool, USDC_MINT},
 };
 
-const PUMP_PROGRAM: Pubkey = Pubkey::new(hex!("0156e0f693665acf44db1568bf175baa5189cb97f5d2ff3b655d2bb6fd6d18b0"));
+const PUMP_PROGRAM: Pubkey = Pubkey::new(decode_hex_literal("0156e0f693665acf44db1568bf175baa5189cb97f5d2ff3b655d2bb6fd6d18b0"));
 const CANONICAL_POOL_INDEX: u16 = 0;
 const POOL_ACCOUNT_LEN: usize = 287;
 const MAYHEM_TOKEN_SUPPLY: u128 = 1_000_000_000_000_000;

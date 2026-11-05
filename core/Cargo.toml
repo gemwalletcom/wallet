@@ -80,7 +80,6 @@ bs58 = { version = "0.5.1", features = ["check"] }
 bytes = { version = "1.10.1" }
 data-encoding = { version = "2.11.1" }
 hex = { version = "0.4.3" }
-hex_lit = { version = "0.1.1", features = ["rust_v_1_46"] }
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = { version = "1.0.151", features = ["preserve_order"] }
 serde_urlencoded = { version = "0.7.1" }
