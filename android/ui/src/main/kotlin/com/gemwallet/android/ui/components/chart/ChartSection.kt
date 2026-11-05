@@ -20,7 +20,7 @@ import uniffi.gemstone.GemChartStyle
 import java.time.ZoneId
 
 @Composable
-fun ChartSection(state: ChartUIState, onPeriodSelect: (ChartPeriod) -> Unit, onZoom: (Float, Float) -> Unit, onPan: (Float) -> Unit, periods: List<ChartPeriod> = state.periods, onSwitchStyle: (GemChartStyle) -> Unit = {}) {
+fun ChartSection(state: ChartUIState, onPeriodSelect: (ChartPeriod) -> Unit, onZoom: (Float, Float) -> Unit, onPan: (Float) -> Unit, onSwitchStyle: (GemChartStyle) -> Unit = {}) {
     state.candles?.let { candles ->
         CandleChartSection(
             state = StateViewType.Data(candles),
@@ -28,7 +28,7 @@ fun ChartSection(state: ChartUIState, onPeriodSelect: (ChartPeriod) -> Unit, onZ
             onPeriodSelect = onPeriodSelect,
             onZoom = onZoom,
             onPan = onPan,
-            periods = periods,
+            periods = state.periods,
             styleSwitch = state.styleSwitch,
             onSwitchStyle = onSwitchStyle,
         )
@@ -49,7 +49,7 @@ fun ChartSection(state: ChartUIState, onPeriodSelect: (ChartPeriod) -> Unit, onZ
             date = date,
             period = state.period,
             onPeriodSelect = onPeriodSelect,
-            periods = periods,
+            periods = state.periods,
             styleSwitch = state.styleSwitch,
             onSwitchStyle = onSwitchStyle,
         ) { model ->

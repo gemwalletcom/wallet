@@ -8,6 +8,7 @@ use crate::models::perpetual::GemChartCandleStick;
 use crate::models::state::{GemLoad, GemLoadState};
 use crate::perpetual::GemPerpetual;
 use crate::services::chart::GemChartZoom;
+use crate::services::chart::rules as chart_rules;
 use crate::services::transactions::model::{GemTransactionRow, GemTransactionsRequest};
 
 #[derive(Debug, Clone, PartialEq, Eq, uniffi::Record)]
@@ -52,6 +53,10 @@ impl GemCandleSession {
             symbol: Some(symbol),
             ..Self::empty(self.period)
         }
+    }
+
+    pub fn periods(&self) -> Vec<ChartPeriod> {
+        chart_rules::CHART_PERIODS.to_vec()
     }
 
     pub fn on_select_period(&self, period: ChartPeriod) -> Self {

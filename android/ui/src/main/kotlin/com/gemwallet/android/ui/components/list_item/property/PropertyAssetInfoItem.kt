@@ -55,7 +55,7 @@ fun PropertyAssetBalanceItem(asset: Asset, amount: GemFormattedNumber, fiat: Gem
         listPosition = listPosition,
         trailing = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                getBalanceInfo(amount.text(), fiat?.text().orEmpty(), isZero = false)()
+                getBalanceInfo(amount.text(), fiat?.text().orEmpty())()
                 if (showChevron) {
                     DataBadgeChevron()
                 }

@@ -132,6 +132,9 @@ class PerpetualViewModel @Inject constructor(
     val period: StateFlow<ChartPeriod> = candles.map { it.period.toPrimitives() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, candles.value.period.toPrimitives())
 
+    val periods: StateFlow<List<ChartPeriod>> = candles.map { session -> session.periods().map { it.toPrimitives() } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, candles.value.periods().map { it.toPrimitives() })
+
     private val refreshingState = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = refreshingState.asStateFlow()
 

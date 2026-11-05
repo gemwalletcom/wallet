@@ -38,6 +38,10 @@ public final class PerpetualChartViewModel {
         set { session = session.onSelectPeriod(period: newValue.toGem()) }
     }
 
+    public var periods: [ChartPeriod] {
+        session.periods().map { $0.toPrimitives() }
+    }
+
     public init(service: any GemPerpetualDetailsServiceProtocol, observerService: any PerpetualObservable, walletId: WalletId, asset: Asset) {
         self.service = service
         self.observerService = observerService

@@ -10,7 +10,7 @@ public struct PeriodSelectorView: View {
 
     public init(
         selectedPeriod: Binding<ChartPeriod>,
-        periods: [ChartPeriod] = [.hour, .day, .week, .month, .year, .all],
+        periods: [ChartPeriod],
     ) {
         _selectedPeriod = selectedPeriod
         self.periods = periods
