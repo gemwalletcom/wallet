@@ -66,6 +66,7 @@ pub struct GemPerpetualService {
     recent_activity: Arc<GemRecentActivityService>,
     config: Arc<GemConfigService>,
     writes: Mutex<()>,
+    account_writes: Mutex<()>,
     markets_sync: Mutex<()>,
     pub(crate) perp_dexes: Vec<PerpDex>,
     dex_balances: std::sync::Mutex<HashMap<(WalletId, PerpDex), PerpetualBalance>>,
@@ -99,6 +100,7 @@ impl GemPerpetualService {
             recent_activity,
             config,
             writes: Mutex::new(()),
+            account_writes: Mutex::new(()),
             markets_sync: Mutex::new(()),
             perp_dexes: HypercoreConfig::default().perp_dexes,
             dex_balances: std::sync::Mutex::new(HashMap::new()),
@@ -219,6 +221,7 @@ impl GemPerpetualService {
         let message = parse_websocket_data(&data).map_err(GemServiceError::core)?;
         match message {
             HyperliquidSocketMessage::AccountState { dex, balance, positions } => {
+                let _writes = self.account_writes.lock().await;
                 if !rules::spot_is_perpetual_collateral(self.wallet_preferences.get_perpetual_account_mode(wallet_id.clone()))
                     && let Some(total) = self.total_balance(wallet_id.clone(), dex, balance)
                 {
@@ -231,12 +234,14 @@ impl GemPerpetualService {
                 Ok(GemPerpetualSocketUpdate::Applied)
             }
             HyperliquidSocketMessage::SpotState { balance } => {
+                let _writes = self.account_writes.lock().await;
                 if rules::spot_is_perpetual_collateral(self.wallet_preferences.get_perpetual_account_mode(wallet_id.clone())) {
                     self.update_balance(wallet_id, balance).await?;
                 }
                 Ok(GemPerpetualSocketUpdate::Applied)
             }
             HyperliquidSocketMessage::OpenOrders { dex, orders } => {
+                let _writes = self.account_writes.lock().await;
                 let existing = self.store.get_positions(wallet_id.clone(), PerpetualProvider::Hypercore).await?;
                 let diff = diff_open_orders_positions(dex, &orders, existing);
                 self.store.update_positions(wallet_id, diff.positions, diff.delete_position_ids).await?;
@@ -264,6 +269,7 @@ impl GemPerpetualService {
 
 impl GemPerpetualService {
     pub async fn sync_positions(&self, wallet_id: WalletId, chain: Chain, address: String) -> Result<PerpetualAccountMode, GemServiceError> {
+        let _writes = self.account_writes.lock().await;
         let PerpetualAccountPositions { mode, summary, is_complete } = self.gateway.get_positions(chain, address).await?;
         self.wallet_preferences.set_perpetual_account_mode(wallet_id.clone(), mode)?;
         if is_complete || rules::spot_is_perpetual_collateral(mode) {
@@ -570,6 +576,30 @@ mod tests {
         assert_eq!(withdrawable, "14400000000", "Hyperliquid pays a withdrawal from the main dex only");
         let held: Vec<String> = testkit.store.positions.lock().unwrap().iter().map(|position| position.perpetual_id.symbol.clone()).collect();
         assert_eq!(held, vec!["ETH".to_string(), "xyz:NVDA".to_string()], "the xyz snapshot does not delete the main dex position");
+    }
+
+    #[test]
+    fn test_a_socket_frame_during_a_refresh_lands_after_the_refresh() {
+        block_on(async {
+            let testkit = PerpetualTestkit::with_provider(TestAlienProvider::with_json_by_request_type(&[
+                ("userAbstraction", r#""default""#),
+                ("clearinghouseState", include_str!("../../../../crates/gem_hypercore/testdata/perpetual_positions_response_clearinghouse_state.json")),
+                ("clearinghouseState:xyz", EMPTY_CLEARINGHOUSE_STATE),
+                ("frontendOpenOrders", "[]"),
+            ]));
+            *testkit.store.stored.lock().unwrap() = vec![primitives::perpetual::Perpetual::mock()];
+            testkit.provider.yields_while_requesting.store(true, Ordering::SeqCst);
+            let closed = format!(r#"{{"channel":"clearinghouseState","data":{{"dex":"","user":"0x123","clearinghouseState":{EMPTY_CLEARINGHOUSE_STATE}}}}}"#);
+
+            let (refresh, frame) = futures::join!(
+                testkit.service.sync_positions(testkit.wallet_id.clone(), Chain::HyperCore, "0x123".to_string()),
+                testkit.service.on_socket_message(testkit.wallet_id.clone(), closed.into_bytes()),
+            );
+
+            refresh.unwrap();
+            frame.unwrap();
+            assert!(testkit.store.positions.lock().unwrap().is_empty(), "a frame that arrives during a refresh lands after it");
+        })
     }
 
     #[test]
