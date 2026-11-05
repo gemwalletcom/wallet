@@ -6,10 +6,11 @@ pub fn encode_base64(bytes: &[u8]) -> String {
 }
 
 pub fn decode_base64(value: &str) -> Result<Vec<u8>, EncodingError> {
-    if value.trim_end_matches('=').contains('=') {
-        return Err(EncodingError::Invalid(EncodingType::Base64, "padding before the end".to_string()));
+    let bytes = decode(&BASE64, value)?;
+    if BASE64.encode(&bytes) != value {
+        return Err(EncodingError::Invalid(EncodingType::Base64, "non-canonical encoding".to_string()));
     }
-    decode(&BASE64, value)
+    Ok(bytes)
 }
 
 pub fn decode_base64_no_pad(value: &str) -> Result<Vec<u8>, EncodingError> {
