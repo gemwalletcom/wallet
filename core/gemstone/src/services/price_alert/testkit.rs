@@ -14,7 +14,6 @@ use crate::services::preferences::GemPreferencesService;
 use crate::services::preferences::testkit::MemoryPreferencesStore;
 use crate::services::wallet::testkit::MemoryWalletStore;
 use crate::services::wallet_session::GemWalletSessionService;
-use crate::services::wallet_session::testkit::MemoryWalletSessionStore;
 use crate::testkit::TestAlienProvider;
 
 impl GemPriceAlertSession {
@@ -85,7 +84,7 @@ fn price_alert_service_with(provider: Arc<TestAlienProvider>, store: Arc<dyn Gem
     let preferences = Arc::new(GemPreferencesService::new(Arc::new(MemoryPreferencesStore::default())));
     let api = Arc::new(GemDeviceApiClient::mock(provider.clone()));
     let wallets = Arc::new(MemoryWalletStore::with_wallets(vec![Wallet::mock()]));
-    let session = Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore::default()), wallets));
+    let session = Arc::new(GemWalletSessionService::mock(wallets, None));
     let device = GemDeviceService::mock(api.clone(), session, preferences.clone());
     let assets = Arc::new(GemAssetsService::mock(provider, asset_store));
     super::GemPriceAlertService::new(api, preferences, store, assets, device, permissions)

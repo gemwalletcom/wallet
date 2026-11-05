@@ -10,14 +10,13 @@ use crate::api::GemDeviceApiClient;
 use crate::services::error::GemServiceError;
 use crate::services::wallet::testkit::MemoryWalletStore;
 use crate::services::wallet_preferences::{GemWalletPreferencesService, testkit::MemoryWalletPreferencesStore};
-use crate::services::wallet_session::{GemWalletSessionService, testkit::MemoryWalletSessionStore};
+use crate::services::wallet_session::GemWalletSessionService;
 
 impl GemNotificationService {
     pub fn mock(provider: Arc<dyn AlienProvider>, store: Arc<dyn GemNotificationStore>) -> Self {
         let api = Arc::new(GemDeviceApiClient::mock(provider));
         let preferences = Arc::new(GemWalletPreferencesService::new(Arc::new(MemoryWalletPreferencesStore::default())));
-        let session = Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore::default()), Arc::new(MemoryWalletStore::default())));
-        session.set_current_wallet_id(Some(WalletId::Multicoin("wallet".to_string()))).unwrap();
+        let session = Arc::new(GemWalletSessionService::mock(Arc::new(MemoryWalletStore::default()), Some(WalletId::Multicoin("wallet".to_string()))));
         Self::new(api, store, preferences, session)
     }
 }

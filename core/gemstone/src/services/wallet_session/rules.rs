@@ -22,20 +22,18 @@ mod tests {
     use super::*;
     use primitives::Chain;
 
-    fn multicoin(id: &str) -> Wallet {
-        Wallet {
-            id: WalletId::Multicoin(id.to_string()),
-            ..Wallet::mock_with_type(WalletType::Multicoin, &[])
-        }
-    }
-
     #[test]
     fn test_rewards_wallet_keeps_the_chosen_wallet_then_the_current_one_then_the_first() {
         let single = Wallet::mock_with_type(WalletType::Single, &[]);
-        let wallets = rewards_wallets(vec![single.clone(), multicoin("first"), multicoin("current"), multicoin("chosen")]);
         let chosen = WalletId::Multicoin("chosen".to_string());
         let current = WalletId::Multicoin("current".to_string());
         let first = WalletId::Multicoin("first".to_string());
+        let wallets = rewards_wallets(vec![
+            single.clone(),
+            Wallet::mock_with_id(first.clone(), &[]),
+            Wallet::mock_with_id(current.clone(), &[]),
+            Wallet::mock_with_id(chosen.clone(), &[]),
+        ]);
         let selected = |requested: Option<&WalletId>, current: Option<&WalletId>| rewards_wallet(&wallets, requested, current).map(|wallet| wallet.id.clone());
 
         assert_eq!(wallets.iter().map(|wallet| wallet.id.clone()).collect::<Vec<_>>(), vec![first.clone(), current.clone(), chosen.clone()]);
