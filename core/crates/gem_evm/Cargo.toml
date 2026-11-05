@@ -8,7 +8,7 @@ default = []
 rpc = ["dep:async-trait", "dep:chain_traits", "dep:futures", "dep:gem_client", "gem_jsonrpc/client"]
 indexer = ["rpc", "dep:alchemy", "dep:ankr", "dep:blockscout", "dep:etherscan"]
 reqwest = ["rpc", "gem_jsonrpc/reqwest", "gem_client/reqwest"]
-signer = ["dep:alloy-consensus", "dep:signer"]
+signer = ["dep:alloy-rlp", "alloy-primitives/rlp", "dep:signer"]
 chain_integration_tests = ["indexer", "reqwest", "primitives/testkit", "settings/testkit"]
 testkit = ["gem_client?/testkit", "gem_jsonrpc/testkit"]
 
@@ -28,7 +28,7 @@ hex = { workspace = true }
 futures = { workspace = true, optional = true }
 alloy-primitives = { workspace = true }
 alloy-sol-types = { workspace = true, features = ["eip712-serde"] }
-alloy-consensus = { workspace = true, optional = true }
+alloy-rlp = { workspace = true, optional = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 num-bigint = { workspace = true }
