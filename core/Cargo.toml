@@ -73,7 +73,6 @@ members = [
 
 [workspace.dependencies]
 # Serialization and encoding
-base64 = { version = "0.23.0" }
 bcs = { version = "0.2.1" }
 bech32 = { version = "0.12.0" }
 borsh = { version = "1.8.0", features = ["derive"] }

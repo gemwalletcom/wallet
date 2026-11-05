@@ -6,9 +6,8 @@ edition = { workspace = true }
 [features]
 default = ["base64"]
 base32 = ["dep:data-encoding"]
-base64 = ["dep:base64"]
+base64 = ["dep:data-encoding"]
 protobuf = []
 
 [dependencies]
-base64 = { workspace = true, optional = true }
 data-encoding = { workspace = true, optional = true }
