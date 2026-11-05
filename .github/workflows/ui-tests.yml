@@ -127,6 +127,15 @@ jobs:
       - name: Build the app
         run: just build
 
+      # ubuntu-latest ships the SDK without the emulator package, so the runner adds it
+      - name: Install the Android emulator
+        if: ${{ inputs.suite != 'native' }}
+        working-directory: .
+        run: |
+          sdkmanager="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$sdkmanager" --licenses > /dev/null
+          "$sdkmanager" --install "emulator" "platform-tools" "system-images;android-35;google_apis;x86_64" | tail -2
+
       - name: Install Maestro
         if: ${{ inputs.suite != 'native' }}
         run: |

@@ -9,6 +9,8 @@ SIMULATOR="Gem Maestro"
 AVD="Gem_Maestro"
 ANDROID_SDK="${ANDROID_HOME:-$HOME/Library/Android/sdk}"
 EMULATOR="$ANDROID_SDK/emulator/emulator"
+# a CI runner ships platform-tools inside the SDK and off PATH
+ADB="${ADB:-$(command -v adb || echo "$ANDROID_SDK/platform-tools/adb")}"
 PROXYMAN_CA="$HOME/Library/Application Support/com.proxyman.NSProxy/app-data/proxyman-ca.pem"
 
 constant() {
@@ -32,15 +34,16 @@ ios_device() {
 }
 
 android_serial() {
-    for serial in $(adb devices | awk '/^emulator-/ { print $1 }'); do
-        [ "$(adb -s "$serial" emu avd name | head -1 | tr -d '\r')" != "$AVD" ] || echo "$serial"
+    for serial in $("$ADB" devices | awk '/^emulator-/ { print $1 }'); do
+        [ "$("$ADB" -s "$serial" emu avd name | head -1 | tr -d '\r')" != "$AVD" ] || echo "$serial"
     done
 }
 
 android_device() {
     local serial deadline image
     if [ -z "$(android_serial)" ]; then
-        [ -x "$EMULATOR" ] || { echo "no emulator at $EMULATOR, ANDROID_HOME=$ANDROID_HOME" >&2; exit 1; }
+        [ -x "$EMULATOR" ] || { echo "no emulator package at $EMULATOR: sdkmanager \"emulator\" \"platform-tools\"" >&2; exit 1; }
+        [ -x "$ADB" ] || { echo "no adb at $ADB: sdkmanager \"platform-tools\"" >&2; exit 1; }
         if ! "$EMULATOR" -list-avds | grep -qx "$AVD"; then
             image="$(cd "$ANDROID_SDK" && ls -d system-images/android-*/google_apis/* 2>/dev/null | newest || true)"
             [ -n "$image" ] || { echo "no google_apis system image under $ANDROID_SDK/system-images" >&2; exit 1; }
@@ -55,7 +58,7 @@ android_device() {
         sleep 2
     done
     deadline=$((SECONDS + 420))
-    until [ "$(adb -s "$serial" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = 1 ]; do
+    until [ "$("$ADB" -s "$serial" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = 1 ]; do
         [ "$SECONDS" -lt "$deadline" ] || { echo "$AVD never finished booting; emulator log:" >&2; cat "$EMULATOR_LOG" >&2; exit 1; }
         sleep 5
     done
