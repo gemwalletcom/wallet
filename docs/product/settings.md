@@ -45,6 +45,7 @@ flowchart LR
 | A sheet or dialog is open when the lock re-engages | the lock covers it, cancelled prompt or not, and it is still open after unlocking | nothing Gem shows sits above the lock |
 | The phone is turned or the appearance changes while the unlock prompt is open | the same prompt stays open and unlocks the app | Android recreates the screen; cancelling the prompt then crashed the app |
 | The phone is turned or the appearance changes while Gem is locked with a sheet or dialog open | the lock covers everything, cancelled prompt or not, and the sheet or dialog is open again after unlocking | Android recreates the screen, and its content waits for the unlock |
+| The phone is turned, or the appearance, text size or language changes, while Gem is unlocked | Gem stays unlocked, and a transaction prompt open at the time still completes | that is not leaving Gem; Android recreates the screen, and counting it as leaving asked to unlock again with Immediately and kept Confirm loading for 5 minutes |
 | The lock is on but the device passcode was turned off | the lock stays and says the device passcode is off and must be turned on to open Gem | the lock relies on the device passcode, so there is nothing else to unlock with |
 | The user turns the push switch on | the app asks the system for permission | |
 | A wallet is created or imported, including one that was already on the device | the app offers push right after | |

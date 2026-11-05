@@ -243,7 +243,7 @@ class MainActivity :
     override fun onStop() {
         super.onStop()
         privacyCover.onStop()
-        lockViewModel.onLeave()
+        if (!isChangingConfigurations) lockViewModel.onLeave()
     }
 
     override fun onResume() {
