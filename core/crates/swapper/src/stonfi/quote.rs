@@ -5,7 +5,6 @@ use super::{
 use crate::{SwapperError, SwapperQuoteAsset};
 use gem_ton::{address::Address, constants::TON_PROXY_JETTON_ADDRESS};
 use num_bigint::BigUint;
-use num_integer::Integer;
 use primitives::swap::HUNDRED_PERCENT_IN_BPS;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -97,7 +96,7 @@ pub(super) fn compute_amount_out(pool: &PoolData, offer_wallet: &str, amount: &B
     let divider = BigUint::from(HUNDRED_PERCENT_IN_BPS);
     let amount_in_with_fee = amount * (HUNDRED_PERCENT_IN_BPS - pool.lp_fee);
     let base_out = reserve_out * &amount_in_with_fee / (reserve_in * &divider + &amount_in_with_fee);
-    let fee_out = |bps: u32| (&base_out * bps).div_ceil(&divider);
+    let fee_out = |bps: u32| (&base_out * bps + &divider - 1u32) / &divider;
     let fees_out = fee_out(pool.protocol_fee) + fee_out(referral_bps);
     Ok(if base_out > fees_out { &base_out - fees_out } else { BigUint::ZERO })
 }

@@ -2,7 +2,6 @@ use std::{cmp::Ordering, str::FromStr};
 
 use bigdecimal::{BigDecimal, Zero};
 use num_bigint::BigUint;
-use num_integer::Integer;
 use num_traits::{ToPrimitive, Zero as NumZero};
 use number_formatter::{BigNumberFormatter, precision::round_to_places};
 
@@ -49,11 +48,10 @@ pub fn scale_units(value: BigUint, from_decimals: u32, to_decimals: u32) -> Resu
         }
         Ordering::Greater => {
             let factor = BigUint::from(10u32).pow(from_decimals - to_decimals);
-            let (quotient, remainder) = value.div_rem(&factor);
-            if !NumZero::is_zero(&remainder) {
+            if !NumZero::is_zero(&(&value % &factor)) {
                 return Err(SwapperError::ComputeQuoteError("amount precision loss".into()));
             }
-            Ok(quotient)
+            Ok(value / factor)
         }
     }
 }
