@@ -359,6 +359,21 @@ mod tests {
         assert!(!bsc_address.is_swap_available());
         assert_eq!(bitcoin_address.chain, "BTC");
         assert!(bitcoin_address.is_swap_available());
+        assert!(!InboundAddress { halted: true, ..bitcoin_address.clone() }.is_swap_available());
+        assert!(
+            !InboundAddress {
+                global_trading_paused: Some(true),
+                ..bitcoin_address.clone()
+            }
+            .is_swap_available()
+        );
+        assert!(
+            !InboundAddress {
+                chain_trading_paused: Some(true),
+                ..bitcoin_address.clone()
+            }
+            .is_swap_available()
+        );
         assert!(inbound_addresses.inbound_address_for_asset(THORChainNetwork::Thorchain, &rune).unwrap().is_none());
         assert_eq!(inbound_addresses.inbound_address_for_asset(THORChainNetwork::Thorchain, &ethereum).unwrap_err(), SwapperError::InvalidRoute);
     }
