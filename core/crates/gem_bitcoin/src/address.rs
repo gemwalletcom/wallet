@@ -3,8 +3,7 @@ use bitcoin::{Address as BitcoinNativeAddress, CompressedPublicKey, Network, Scr
 use primitives::{Address as AddressTrait, BitcoinChain, Chain, SignerError};
 
 use crate::hash::hash160;
-use crate::models::address::Address as ModelAddress;
-use crate::signer::address::{DASH_P2PKH_PREFIX, DOGE_P2PKH_PREFIX, LITECOIN_HRP, ZCASH_TRANSPARENT_P2PKH_PREFIX, script_for_address};
+use crate::signer::address::{DASH_P2PKH_PREFIX, DOGE_P2PKH_PREFIX, LITECOIN_HRP, ZCASH_TRANSPARENT_P2PKH_PREFIX, bitcoin_cash_address, script_for_address};
 
 #[derive(Debug, Clone)]
 pub struct BitcoinAddress {
@@ -27,7 +26,7 @@ impl BitcoinAddress {
         let public_key_hash = hash160(&public_key.to_bytes());
         let address = match chain {
             BitcoinChain::Bitcoin => BitcoinNativeAddress::p2wpkh(&public_key, Network::Bitcoin).to_string(),
-            BitcoinChain::BitcoinCash => bitcoin_cash_address(public_key_hash)?,
+            BitcoinChain::BitcoinCash => bitcoin_cash_address(public_key_hash),
             BitcoinChain::Litecoin => segwit_address(LITECOIN_HRP, &public_key_hash)?,
             BitcoinChain::Doge => prefixed_base58_address(&DOGE_P2PKH_PREFIX, &public_key_hash),
             BitcoinChain::Dash => prefixed_base58_address(&DASH_P2PKH_PREFIX, &public_key_hash),
@@ -65,19 +64,12 @@ pub fn zcash_transparent_address(address: &str) -> Result<String, SignerError> {
     })
 }
 
-fn bitcoin_cash_address(public_key_hash: [u8; 20]) -> Result<String, SignerError> {
-    let address = bitcoincash_addr::Address::new(public_key_hash.to_vec(), bitcoincash_addr::Scheme::CashAddr, bitcoincash_addr::HashType::Key, bitcoincash_addr::Network::Main)
-        .encode()
-        .map_err(SignerError::from_display)?;
-    Ok(ModelAddress::new(address, Chain::BitcoinCash).short().to_string())
-}
-
 fn segwit_address(hrp: &str, public_key_hash: &[u8; 20]) -> Result<String, SignerError> {
     let hrp = Hrp::parse(hrp).map_err(SignerError::from_display)?;
     segwit::encode_v0(hrp, public_key_hash).map_err(SignerError::from_display)
 }
 
-fn prefixed_base58_address(prefix: &[u8], public_key_hash: &[u8; 20]) -> String {
+pub(crate) fn prefixed_base58_address(prefix: &[u8], public_key_hash: &[u8; 20]) -> String {
     let mut payload = Vec::with_capacity(prefix.len() + public_key_hash.len());
     payload.extend_from_slice(prefix);
     payload.extend_from_slice(public_key_hash);
