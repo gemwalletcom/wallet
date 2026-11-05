@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 PLATFORM="${1:?usage: maestro-smoke.sh ios|android}"
 OUTPUT_DIR="${MAESTRO_OUTPUT:-$ROOT_DIR/build/maestro/$PLATFORM}"
+EMULATOR_LOG="$OUTPUT_DIR/emulator.log"
 SIMULATOR="Gem Maestro"
 AVD="Gem_Maestro"
 ANDROID_SDK="${ANDROID_HOME:-$HOME/Library/Android/sdk}"
@@ -37,14 +38,27 @@ android_serial() {
 }
 
 android_device() {
-    local serial
+    local serial deadline image
     if [ -z "$(android_serial)" ]; then
-        "$EMULATOR" -list-avds | grep -qx "$AVD" || echo no | "$ANDROID_SDK/cmdline-tools/latest/bin/avdmanager" create avd -n "$AVD" -d pixel_9 \
-            -k "$(cd "$ANDROID_SDK" && ls -d system-images/android-*/google_apis/* | newest | tr / ';')" >/dev/null
-        nohup "$EMULATOR" -avd "$AVD" -no-window -no-audio -no-boot-anim -no-snapshot-save >/dev/null 2>&1 &
+        [ -x "$EMULATOR" ] || { echo "no emulator at $EMULATOR, ANDROID_HOME=$ANDROID_HOME" >&2; exit 1; }
+        if ! "$EMULATOR" -list-avds | grep -qx "$AVD"; then
+            image="$(cd "$ANDROID_SDK" && ls -d system-images/android-*/google_apis/* 2>/dev/null | newest || true)"
+            [ -n "$image" ] || { echo "no google_apis system image under $ANDROID_SDK/system-images" >&2; exit 1; }
+            echo no | "$ANDROID_SDK/cmdline-tools/latest/bin/avdmanager" create avd -n "$AVD" -d pixel_9 -k "$(tr / ';' <<<"$image")" >/dev/null
+        fi
+        nohup "$EMULATOR" -avd "$AVD" -no-window -no-audio -no-boot-anim -no-snapshot-save >"$EMULATOR_LOG" 2>&1 &
     fi
-    until serial="$(android_serial)"; [ -n "$serial" ]; do sleep 2; done
-    adb -s "$serial" wait-for-device shell 'while [ "$(getprop sys.boot_completed)" != 1 ]; do sleep 1; done'
+    # a dead emulator would otherwise spin here forever, so both waits are bounded and print its log
+    deadline=$((SECONDS + 180))
+    until serial="$(android_serial)" && [ -n "$serial" ]; do
+        [ "$SECONDS" -lt "$deadline" ] || { echo "no $AVD device in adb; emulator log:" >&2; cat "$EMULATOR_LOG" >&2; exit 1; }
+        sleep 2
+    done
+    deadline=$((SECONDS + 420))
+    until [ "$(adb -s "$serial" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = 1 ]; do
+        [ "$SECONDS" -lt "$deadline" ] || { echo "$AVD never finished booting; emulator log:" >&2; cat "$EMULATOR_LOG" >&2; exit 1; }
+        sleep 5
+    done
     adb -s "$serial" install -r "$BUILD" >/dev/null
     echo "$serial"
 }
@@ -60,6 +74,7 @@ mkdir "$LOCK" 2>/dev/null || { echo "another maestro-smoke run is in progress (r
 trap 'rmdir "$LOCK"' EXIT
 
 [ -e "$BUILD" ] || { echo "no build at $BUILD, run: just $PLATFORM build" >&2; exit 1; }
+mkdir -p "$OUTPUT_DIR"
 DEVICE="$("${PLATFORM}_device")"
 
 mkdir -p "$OUTPUT_DIR"
