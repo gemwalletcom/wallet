@@ -15,9 +15,15 @@ concurrency:
   group: publish-containers-${{ github.ref }}
 
 jobs:
+  # One job per image, so each is attested seconds after its push rather than
+  # after the slower one finishes: deploys refuse an image with no attestation.
   build:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        image: [core, dynode]
     permissions:
       contents: read
       packages: write
@@ -38,22 +44,16 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push core containers
+      - name: Build and push ${{ matrix.image }}
         id: bake
         uses: docker/bake-action@59cb1203cd42bcefd40a1b6d73b589e48c86040e # v7.5.0
         with:
           files: .github/docker-bake.hcl
-          targets: default
+          targets: ${{ matrix.image }}
           push: true
 
-      - name: Attest core provenance
+      - name: Attest ${{ matrix.image }} provenance
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
-          subject-name: ghcr.io/gemwalletcom/wallet/core
-          subject-digest: ${{ fromJSON(steps.bake.outputs.metadata).core['containerimage.digest'] }}
-
-      - name: Attest dynode provenance
-        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
-        with:
-          subject-name: ghcr.io/gemwalletcom/wallet/dynode
-          subject-digest: ${{ fromJSON(steps.bake.outputs.metadata).dynode['containerimage.digest'] }}
+          subject-name: ghcr.io/gemwalletcom/wallet/${{ matrix.image }}
+          subject-digest: ${{ fromJSON(steps.bake.outputs.metadata)[matrix.image]['containerimage.digest'] }}
