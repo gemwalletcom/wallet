@@ -128,6 +128,23 @@ mod tests {
     }
 
     #[test]
+    fn test_clean_accepts_unicode_separators() {
+        for separator in ["\t", "\n", "\r\n", "\u{a0}", "\u{2009}", "\u{3000}"] {
+            let phrase = ABANDON_PHRASE.replace(' ', separator);
+            assert_eq!(Mnemonic::clean(&phrase).unwrap().as_str(), ABANDON_PHRASE, "{separator:?}");
+        }
+    }
+
+    #[test]
+    fn test_compatibility_characters_are_invalid_words() {
+        let full_width_abandon = "\u{ff41}\u{ff42}\u{ff41}\u{ff4e}\u{ff44}\u{ff4f}\u{ff4e}";
+        assert!(!Mnemonic::is_valid_word(full_width_abandon));
+        assert!(!Mnemonic::is_valid_word("\u{fb01}nal"));
+        assert!(Mnemonic::clean(&ABANDON_PHRASE.replacen("abandon", full_width_abandon, 1)).is_err());
+        assert_eq!(Mnemonic::invalid_words(&format!("abandon {full_width_abandon}")), vec![full_width_abandon]);
+    }
+
+    #[test]
     fn test_seed() {
         let seed = Mnemonic::seed(ABANDON_PHRASE).unwrap();
         assert_eq!(
