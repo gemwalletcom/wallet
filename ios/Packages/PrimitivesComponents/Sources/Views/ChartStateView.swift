@@ -19,7 +19,7 @@ public struct ChartStateView<Chart: Sendable, Content: View>: View {
     public init(
         state: StateViewType<Chart>,
         selectedPeriod: Binding<ChartPeriod>,
-        periods: [ChartPeriod] = [.hour, .day, .week, .month, .year, .all],
+        periods: [ChartPeriod],
         styleSwitch: GemChartStyle? = nil,
         onSwitchStyle: @escaping @MainActor (GemChartStyle) -> Void = { _ in },
         @ViewBuilder content: @escaping (Chart) -> Content,

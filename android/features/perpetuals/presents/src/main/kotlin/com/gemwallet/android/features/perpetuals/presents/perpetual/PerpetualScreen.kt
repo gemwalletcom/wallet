@@ -51,6 +51,7 @@ fun PerpetualScreen(
     val transactions by viewModel.transactions.collectAsStateWithLifecycle()
     val chart by viewModel.chart.collectAsStateWithLifecycle()
     val period by viewModel.period.collectAsStateWithLifecycle()
+    val periods by viewModel.periods.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     val snackbar = rememberSnackbarState(message = error, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
@@ -63,6 +64,7 @@ fun PerpetualScreen(
         transactions = transactions,
         chart = chart,
         period = period,
+        periods = periods,
         isRefreshing = isRefreshing,
         showModifyDialog = showModifyDialog,
         onDismissModify = { showModifyDialog = false },

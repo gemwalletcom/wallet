@@ -51,6 +51,7 @@ internal fun PerpetualScene(
     transactions: List<GemTransactionRow>,
     chart: StateViewType<GemCandleChart>,
     period: ChartPeriod,
+    periods: List<ChartPeriod>,
     isRefreshing: Boolean,
     showModifyDialog: Boolean = false,
     onDismissModify: () -> Unit,
@@ -90,6 +91,7 @@ internal fun PerpetualScene(
                     CandleChartSection(
                         state = chart,
                         period = period,
+                        periods = periods,
                         onPeriodSelect = { onAction(PerpetualAction.SelectChartPeriod(it)) },
                         onZoom = { magnification, anchor -> onAction(PerpetualAction.ZoomChart(magnification, anchor)) },
                         onPan = { onAction(PerpetualAction.PanChart(it)) },
@@ -179,6 +181,7 @@ private fun PerpetualScenePreview() {
             transactions = emptyList(),
             chart = StateViewType.Loading,
             period = ChartPeriod.Day,
+            periods = ChartPeriod.entries,
             isRefreshing = false,
             onDismissModify = {},
             onAction = {},
