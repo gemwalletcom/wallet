@@ -14,7 +14,7 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(name: "BigInt", path: "../../Submodules/BigInt"),
+        .package(name: "BigInt", path: "../BigInt"),
         .package(name: "Primitives", path: "../Primitives"),
     ],
     targets: [

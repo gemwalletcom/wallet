@@ -1,4 +1,5 @@
 --exclude ./Submodules
+--exclude ./Packages/BigInt
 --exclude ./Packages/Primitives/Sources/Generated
 --exclude ./Packages/GemstonePrimitives/Sources/Generated
 --exclude ./Packages/Store/Sources/Generated

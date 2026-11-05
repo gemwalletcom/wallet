@@ -18,7 +18,7 @@ let package = Package(
         .package(name: "Gemstone", path: "../Gemstone"),
         .package(name: "Primitives", path: "../Primitives"),
         .package(name: "Formatters", path: "../Formatters"),
-        .package(name: "BigInt", path: "../../Submodules/BigInt"),
+        .package(name: "BigInt", path: "../BigInt"),
     ],
     targets: [
         .target(

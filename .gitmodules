@@ -1,6 +1,3 @@
-[submodule "ios/Submodules/BigInt"]
-	path = ios/Submodules/BigInt
-	url = https://github.com/gemwalletcom/BigInt.git
 [submodule "ios/Submodules/GRDB"]
 	path = ios/Submodules/GRDB
 	url = https://github.com/gemwalletcom/GRDB.swift.git
