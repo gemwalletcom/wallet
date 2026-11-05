@@ -28,7 +28,7 @@ impl NameProviderFactory {
         let client_with_url = |url: String| client.clone().with_base_url(url);
 
         vec![
-            Box::new(EnsProvider::new(client_with_url(config.ens.url), CcipClient::new(client_with_url(config.ens_ccip.url.clone()), &config.ens_ccip.url))),
+            Box::new(EnsProvider::new(client_with_url(config.ens.url), CcipClient::new(client_with_url(config.ensccip.url.clone()), &config.ensccip.url))),
             Box::new(UdProvider::new(client_with_url(config.ud.url))),
             Box::new(SnsProvider::new(client_with_url(config.sns.url))),
             Box::new(TonProvider::new(client_with_url(config.ton.url))),

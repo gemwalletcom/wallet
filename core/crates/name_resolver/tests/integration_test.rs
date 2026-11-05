@@ -19,7 +19,7 @@ mod tests {
     use settings::testkit::get_test_settings;
 
     fn ens_provider() -> EnsProvider<ReqwestClient> {
-        let ccip_url = get_test_settings().name.ens_ccip.url;
+        let ccip_url = get_test_settings().name.ensccip.url;
         EnsProvider::new(
             ReqwestClient::new(get_nodes_for_chain(Chain::Ethereum)[0].url.clone(), reqwest_client()),
             CcipClient::new(ReqwestClient::new(ccip_url.clone(), reqwest_client()), &ccip_url),
