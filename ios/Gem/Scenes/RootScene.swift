@@ -14,7 +14,6 @@ struct RootScene: View {
     private let connectionStatusObserver = AppResolver.main.services.connectionStatusObserver
 
     @Environment(\.scenePhase) private var scenePhase
-    @Environment(\.navigationPresenter) private var presenter
 
     @State private var model: RootSceneViewModel
 
@@ -43,9 +42,6 @@ struct RootScene: View {
         }
         .sheet(isPresented: $model.isPresentingRootWarning) {
             JailbreakWarningView()
-        }
-        .sheet(isPresented: presenter.isPresentingWallets) {
-            WalletsNavigationStack()
         }
         .sheet(item: $model.isPresentingConnectorSheet) { type in
             WalletConnectorNavigationStack(

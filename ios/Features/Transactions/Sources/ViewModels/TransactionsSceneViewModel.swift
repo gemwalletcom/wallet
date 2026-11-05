@@ -29,7 +29,6 @@ public final class TransactionsSceneViewModel {
     public var filterModel: TransactionsFilterSceneViewModel
 
     public var isPresentingSheet: TransactionsSheetType?
-    public var isPresentingToastMessage: ToastMessage?
 
     private var transactionsState: GemLoadState = .loading
 

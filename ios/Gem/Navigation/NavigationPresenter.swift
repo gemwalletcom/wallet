@@ -1,86 +1,40 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Components
-import protocol Gemstone.GemAssetsServiceProtocol
-import enum Gemstone.GemErrorText
 import GemstonePrimitives
-import GemstoneServices
 import Primitives
-import PrimitivesComponents
 import SwiftUI
-import Transfer
+import Wallet
 
 @Observable
 final class NavigationPresenter: Sendable {
-    @MainActor private var _isPresentingAddressDetails: ChainAddress?
-    @MainActor private var _isPresentingAssetInput: SelectedAssetInput?
-    @MainActor private var _isPresentingPayment: PaymentDestination?
-    @MainActor private var _isPresentingPriceAlert: Asset?
-    @MainActor private var _isPresentingSupport: Bool = false
-    @MainActor private var _isPresentingWallets: Bool = false
-    private let assetsService: any GemAssetsServiceProtocol
+    @MainActor private var _sheet: NavigationSheetType?
 
-    init(assetsService: any GemAssetsServiceProtocol) {
-        self.assetsService = assetsService
-    }
+    init() {}
 }
 
 @MainActor
 extension NavigationPresenter {
-    var isPresentingAddressDetails: Binding<ChainAddress?> {
-        Binding(get: { self._isPresentingAddressDetails }, set: { self._isPresentingAddressDetails = $0 })
+    var sheet: Binding<NavigationSheetType?> {
+        Binding(get: { self._sheet }, set: { self._sheet = $0 })
     }
 
     var isPresentingAssetInput: Binding<SelectedAssetInput?> {
-        Binding(get: { self._isPresentingAssetInput }, set: { self._isPresentingAssetInput = $0 })
+        Binding(get: { self._sheet?.assetInput }, set: { self._sheet = $0.map(NavigationSheetType.assetInput) })
     }
 
-    var isPresentingPayment: Binding<PaymentDestination?> {
-        Binding(get: { self._isPresentingPayment }, set: { self._isPresentingPayment = $0 })
-    }
-
-    var isPresentingPriceAlert: Binding<Asset?> {
-        Binding(get: { self._isPresentingPriceAlert }, set: { self._isPresentingPriceAlert = $0 })
-    }
-
-    var isPresentingSupport: Binding<Bool> {
-        Binding(get: { self._isPresentingSupport }, set: { self._isPresentingSupport = $0 })
+    var isPresentingWalletSheet: Binding<WalletSheetType?> {
+        Binding(get: { self._sheet?.walletSheet }, set: { self._sheet = $0.map(NavigationSheetType.wallet) })
     }
 
     var isPresentingWallets: Binding<Bool> {
-        Binding(get: { self._isPresentingWallets }, set: { self._isPresentingWallets = $0 })
+        Binding(get: { self._sheet?.id == NavigationSheetType.wallets.id }, set: { self._sheet = $0 ? .wallets : nil })
     }
 
-    func reset() {
-        _isPresentingAddressDetails = nil
-        _isPresentingAssetInput = nil
-        _isPresentingPayment = nil
-        _isPresentingPriceAlert = nil
-        _isPresentingSupport = false
-        _isPresentingWallets = false
+    var isPresentingSupport: Binding<Bool> {
+        Binding(get: { self._sheet?.id == NavigationSheetType.support.id }, set: { self._sheet = $0 ? .support : nil })
     }
 
-    func presentAssetInput(type: SelectedAssetType, for asset: Asset, wallet: Wallet) throws {
-        guard let account = try? wallet.account(for: asset.chain) else {
-            throw GemErrorText.noAccountForChain
-        }
-        isPresentingAssetInput.wrappedValue = SelectedAssetInput(
-            type: type,
-            assetData: .with(asset: asset, account: account),
-        )
-    }
-
-    func completeSwap(fromAssetId: AssetId, navigationState: NavigationStateManager) async throws {
-        let asset = try await assetsService.ensureAsset(assetId: fromAssetId).toPrimitives()
-        switch navigationState.selectedTab {
-        case .wallet:
-            navigationState.wallet.setPath([Scenes.Asset(asset: asset)])
-        case .activity:
-            navigationState.wallet.setPath([Scenes.Asset(asset: asset)])
-            navigationState.selectedTab = .wallet
-        case .settings:
-            break
-        }
-        isPresentingAssetInput.wrappedValue = nil
+    func dismiss() {
+        _sheet = nil
     }
 }

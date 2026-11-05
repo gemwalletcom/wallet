@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import GemstonePrimitives
 import Primitives
 import Swap
@@ -30,7 +31,7 @@ struct SwapNavigationStack: View {
             )
             .toolbarDismissItem(type: .close, placement: .topBarLeading)
             .navigationBarTitleDisplayMode(.inline)
-            .navigationDestination(for: ConfirmTransferInput.self) { input in
+            .navigationDestination(keyedBy: ConfirmTransferInput.self) { input in
                 ConfirmTransferNavigationView(
                     model: viewModelFactory.confirmTransferScene(
                         wallet: wallet,

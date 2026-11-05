@@ -43,7 +43,6 @@ struct TransactionsSceneViewModelTests {
         await model.load()
 
         #expect(model.phase == .error(error: .Gateway(msg: "offline")))
-        #expect(model.isPresentingToastMessage == nil)
     }
 
     @Test

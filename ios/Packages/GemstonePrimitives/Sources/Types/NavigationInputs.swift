@@ -24,7 +24,7 @@ public struct SelectedAssetInput: Sendable, Hashable, Identifiable {
     }
 
     public var id: String {
-        type.id
+        "\(type.id)_\(assetData.asset.id.identifier)"
     }
 
     public var asset: Asset {

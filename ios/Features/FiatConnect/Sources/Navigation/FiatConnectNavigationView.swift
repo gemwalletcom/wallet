@@ -30,7 +30,7 @@ public struct FiatConnectNavigationView: View {
                 }
             }
         }
-        .navigationDestination(for: Scenes.FiatTransactions.self) { _ in
+        .navigationDestination(keyedBy: Scenes.FiatTransactions.self) { _ in
             FiatTransactionsScene(model: model.fiatTransactionsModel())
         }
         .sheet(isPresented: $model.isPresentingFiatProvider) {
