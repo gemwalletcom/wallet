@@ -218,9 +218,11 @@ final class FiatSceneViewModelTests {
 
         model.amount = "4"
         #expect(model.amountError(model.viewState)?.localizedDescription == Localized.Transfer.minimumAmount("$5.00"))
+        #expect(model.emptyTitle(model.viewState) == nil)
 
         model.amount = "10001"
         #expect(model.amountError(model.viewState)?.localizedDescription == Localized.Transfer.maximumAmount("$10,000.00"))
+        #expect(model.emptyTitle(model.viewState) == nil)
 
         model.amount = "100"
         #expect(model.quotesState(model.viewState).isLoading)
