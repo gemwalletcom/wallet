@@ -3,6 +3,7 @@ package com.gemwallet.android.data.services.gemstone.device
 import com.gemwallet.android.application.device.cases.EnablePushForNewWallet
 import com.gemwallet.android.application.device.cases.EnablePushForSupport
 import com.gemwallet.android.application.device.cases.GetPushEnabled
+import com.gemwallet.android.application.device.cases.RefreshPushEnabled
 import com.gemwallet.android.application.device.cases.SetPushToken
 import com.gemwallet.android.application.device.cases.SwitchPushEnabled
 import com.gemwallet.android.data.services.store.ConfigStore
@@ -34,6 +35,7 @@ class DevicePushSettings(
     EnablePushForSupport,
     EnablePushForNewWallet,
     GetPushEnabled,
+    RefreshPushEnabled,
     SetPushToken {
 
     private val pushEnabledState = MutableStateFlow(false)
@@ -54,6 +56,10 @@ class DevicePushSettings(
         val state = notificationsService.get().setEnabled(enabled)
         pushEnabledState.value = state.isEnabled
         state
+    }
+
+    override suspend fun refreshPushEnabled() = withContext(ioDispatcher) {
+        pushEnabledState.value = notificationsService.get().refresh()
     }
 
     override fun getPushEnabled(): Flow<Boolean> = pushEnabledState.onStart {

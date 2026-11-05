@@ -35,7 +35,7 @@ class GemstoneNotificationPermissions(
         }
     }
 
-    private fun isGranted(): Boolean = NotificationManagerCompat.from(context).areNotificationsEnabled() && hasNotificationPermission()
+    override suspend fun isGranted(): Boolean = NotificationManagerCompat.from(context).areNotificationsEnabled() && hasNotificationPermission()
 
     private fun openSettings() {
         context.startActivity(notificationSettingsIntent(context.packageName, notificationSettingsTarget(hasNotificationPermission())))

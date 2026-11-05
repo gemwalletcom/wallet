@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.device.cases.GetPushEnabled
+import com.gemwallet.android.application.device.cases.RefreshPushEnabled
 import com.gemwallet.android.application.device.cases.SwitchPushEnabled
 import com.gemwallet.android.application.preferences.cases.ObservablePreferences
 import com.gemwallet.android.application.wallet_connect.cases.IsWalletConnectEnabled
@@ -38,6 +39,7 @@ class SettingsViewModel @Inject constructor(
     private val walletListItemsQuery: WalletListItemsQuery,
     private val switchPushEnabled: SwitchPushEnabled,
     private val getPushEnabled: GetPushEnabled,
+    private val refreshPushEnabled: RefreshPushEnabled,
     val notificationsAvailable: NotificationsAvailable,
     private val settingsService: GemSettingsServiceInterface,
     private val isWalletConnectEnabled: IsWalletConnectEnabled,
@@ -78,6 +80,10 @@ class SettingsViewModel @Inject constructor(
     fun disableNotifications() = switchNotifications(false)
 
     fun clearError() = errorState.update { null }
+
+    fun refreshNotifications() {
+        viewModelScope.launch(ioDispatcher) { refreshPushEnabled.refreshPushEnabled() }
+    }
 
     private fun switchNotifications(enabled: Boolean) {
         switchedPush.tryEmit(enabled)

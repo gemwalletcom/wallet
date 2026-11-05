@@ -35,6 +35,10 @@ final class GemNotificationPermissionsMock: GemNotificationPermissions, @uncheck
         false
     }
 
+    func isGranted() async -> Bool {
+        false
+    }
+
     func requestPermissionsOrOpenSettings() async throws -> Bool {
         false
     }

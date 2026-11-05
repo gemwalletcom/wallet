@@ -8,6 +8,7 @@ import Style
 import SwiftUI
 
 public struct NotificationsScene: View {
+    @Environment(\.scenePhase) private var scenePhase
     @State private var model: NotificationsSceneViewModel
 
     public init(model: NotificationsSceneViewModel) {
@@ -20,9 +21,10 @@ public struct NotificationsScene: View {
         }
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .listSectionSpacing(.compact)
-        .onChange(of: model.isEnabled) { _, newValue in
-            Task { await model.enable(isEnabled: newValue) }
+        .task {
+            await model.refresh()
         }
+        .onChange(of: scenePhase, model.onScenePhaseChange)
         .alertSheet($model.isPresentingAlertMessage)
         .navigationTitle(model.title)
     }

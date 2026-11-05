@@ -55,6 +55,9 @@ impl GemNotificationPermissions for DeniedNotificationPermissions {
     fn is_available(&self) -> bool {
         false
     }
+    async fn is_granted(&self) -> bool {
+        false
+    }
     async fn request_permissions_or_open_settings(&self) -> Result<bool, GemServiceError> {
         Ok(false)
     }

@@ -9,6 +9,7 @@ import func Gemstone.notificationsSections
 import Localization
 import Primitives
 import PrimitivesComponents
+import SwiftUI
 
 @Observable
 @MainActor
@@ -39,9 +40,23 @@ public extension NotificationsSceneViewModel {
 extension NotificationsSceneViewModel {
     func onToggle(_ action: GemRowAction, _ isOn: Bool) {
         switch action {
-        case .pushNotifications: isEnabled = isOn
+        case .pushNotifications:
+            isEnabled = isOn
+            Task { await enable(isEnabled: isOn) }
         default: break
         }
+    }
+
+    func onScenePhaseChange(_: ScenePhase, _ newPhase: ScenePhase) {
+        switch newPhase {
+        case .active: Task { await refresh() }
+        case .inactive, .background: break
+        @unknown default: break
+        }
+    }
+
+    func refresh() async {
+        isEnabled = await service.refresh()
     }
 
     func enable(isEnabled: Bool) async {

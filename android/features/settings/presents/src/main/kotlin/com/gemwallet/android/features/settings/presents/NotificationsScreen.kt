@@ -3,6 +3,7 @@ package com.gemwallet.android.features.settings.presents
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.settings.viewmodels.SettingsViewModel
 import com.gemwallet.android.ui.R
@@ -13,6 +14,11 @@ fun NotificationsScreen(onPriceAlerts: () -> Unit, onCancel: () -> Unit, viewMod
     val sections by viewModel.notificationsSections.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     val snackbar = rememberSnackbarState(message = error, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
+
+    LifecycleResumeEffect(Unit) {
+        viewModel.refreshNotifications()
+        onPauseOrDispose { }
+    }
 
     NotificationsScene(sections = sections, snackbar = snackbar) { action ->
         when (action) {

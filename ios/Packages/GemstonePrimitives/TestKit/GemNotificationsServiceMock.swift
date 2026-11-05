@@ -16,6 +16,10 @@ public final class GemNotificationsServiceMock: GemNotificationsServiceProtocol,
         state.isEnabled
     }
 
+    public func refresh() async -> Bool {
+        state.isEnabled
+    }
+
     public func setEnabled(enabled: Bool) async -> GemPushState {
         requested.append(enabled)
         return state
