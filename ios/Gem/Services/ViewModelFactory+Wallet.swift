@@ -115,6 +115,7 @@ public extension ViewModelFactory {
             perpetuals: perpetualService,
             session: walletSessionService,
             swap: swapService,
+            lightning: lightningService,
         )
     }
 

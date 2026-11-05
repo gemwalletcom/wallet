@@ -124,6 +124,14 @@ wallets_title = ארנקים
 # Receive
 
 receive_warning = זוהי הכתובת שלך — יש לשלוח אליה רק %@ ברשת %@.
+receive_lightning_create_invoice = יצירת חשבונית
+receive_lightning_change_amount = שינוי סכום
+receive_lightning_amount_hint = השאירו ריק כדי שהשולח יבחר את הסכום.
+receive_lightning_any_amount = כל סכום
+receive_lightning_invoice_hint = שלמו את החשבונית הזו מכל ארנק Lightning. בתוקף עד %@.
+receive_lightning_payment_received = התשלום התקבל
+receive_lightning_unavailable = Lightning אינו זמין. נסו שוב מאוחר יותר.
+receive_lightning_unlock_required = בטלו את נעילת הארנק כדי לקבל ב-Lightning.
 
 # Buy
 
@@ -147,6 +155,7 @@ transfer_recipient_title = נמען
 transfer_balance = יתרה: %@
 transfer_title = העברה
 transfer_recipient_address_field = כתובת או שם
+transfer_recipient_lightning_invoice = חשבונית Lightning
 transfer_send_title = שליחה
 transfer_insufficient_balance = יתרת %@ לא מספקת.
 transfer_insufficient_network_fee_balance = יתרת %@ לא מספקת לכיסוי עמלות הרשת.
@@ -309,6 +318,7 @@ transaction_status_expired = פג תוקף
 asset_balances = יתרות
 asset_balances_available = זמין
 asset_price = מחיר
+asset_lightning_instant_payments = תשלומים מיידיים
 asset_market_cap = שווי שוק
 asset_trading_volume = נפח מסחר (24 שעות)
 asset_total_supply = אספקה כוללת

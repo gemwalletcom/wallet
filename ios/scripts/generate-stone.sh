@@ -68,7 +68,7 @@ build_ios_static_libraries() {
 
     echo "note: Building Gemstone iOS static libraries ($PROFILE: $TARGETS)"
     for rust_target in $TARGETS; do
-        (cd "$STONE_DIR" && IPHONEOS_DEPLOYMENT_TARGET="$(read_deployment_target)" \
+        (cd "$STONE_DIR" && IPHONEOS_DEPLOYMENT_TARGET="$(read_deployment_target)" LIBSQLITE3_SYS_USE_PKG_CONFIG=1 \
             cargo rustc --target "$rust_target" --lib ${BUILD_FLAG} --crate-type staticlib)
     done
 }

@@ -124,6 +124,14 @@ wallets_title = Portofele
 # Receive
 
 receive_warning = Aceasta este adresa dvs. — trimiteți doar %@ în rețeaua %@.
+receive_lightning_create_invoice = Creează factură
+receive_lightning_change_amount = Schimbă suma
+receive_lightning_amount_hint = Lasă gol ca expeditorul să aleagă suma.
+receive_lightning_any_amount = Orice sumă
+receive_lightning_invoice_hint = Plătește această factură din orice portofel Lightning. Valabilă până la %@.
+receive_lightning_payment_received = Plată primită
+receive_lightning_unavailable = Lightning nu este disponibil. Încearcă din nou mai târziu.
+receive_lightning_unlock_required = Deblochează portofelul pentru a primi prin Lightning.
 
 # Buy
 
@@ -147,6 +155,7 @@ transfer_recipient_title = Destinatar
 transfer_balance = Sold: %@
 transfer_title = Transfer
 transfer_recipient_address_field = Adresă sau Nume
+transfer_recipient_lightning_invoice = Factură Lightning
 transfer_send_title = Trimite
 transfer_insufficient_balance = Sold %@ insuficient.
 transfer_insufficient_network_fee_balance = Sold %@ insuficient pentru a acoperi taxele de rețea.
@@ -309,6 +318,7 @@ transaction_status_expired = Expirat
 asset_balances = Solduri
 asset_balances_available = Disponibil
 asset_price = Preț
+asset_lightning_instant_payments = Plăți instantanee
 asset_market_cap = Capitalizarea pieței
 asset_trading_volume = Volumul tranzacțiilor (24h)
 asset_total_supply = Aprovizionare totală

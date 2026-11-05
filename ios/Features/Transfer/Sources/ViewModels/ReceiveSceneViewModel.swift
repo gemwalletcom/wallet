@@ -19,10 +19,6 @@ import SwiftUI
 @Observable
 @MainActor
 public final class ReceiveSceneViewModel: Sendable {
-    var qrSize: CGFloat {
-        UIDevice.current.userInterfaceIdiom == .pad ? 180 : 260
-    }
-
     private(set) var assetState: GemReceiveAssetState
     private(set) var address: String
     private var session: GemReceiveSession
@@ -165,8 +161,8 @@ public final class ReceiveSceneViewModel: Sendable {
         await generator.generate(
             from: address,
             size: CGSize(
-                width: qrSize,
-                height: qrSize,
+                width: ReceiveQRCodeCard.size,
+                height: ReceiveQRCodeCard.size,
             ),
             logo: UIImage.name("logo-dark"),
         )

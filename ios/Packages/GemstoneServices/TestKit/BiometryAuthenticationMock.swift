@@ -23,6 +23,7 @@ public final class BiometryAuthenticationMock: BiometryAuthenticatable, @uncheck
     public private(set) var authenticateCallsCount = 0
     public private(set) var enableCalls: [Bool] = []
     public private(set) var lockPeriodCalls: [GemLockPeriod] = []
+    public private(set) var didLockCallsCount = 0
 
     private var holdContinuations: [CheckedContinuation<Void, Never>] = []
 
@@ -44,6 +45,10 @@ public final class BiometryAuthenticationMock: BiometryAuthenticatable, @uncheck
             lockIntervalMinutes: lockPeriod.minutes(),
             authRequired: requiresAuthentication,
         )
+    }
+
+    public func didLock() {
+        didLockCallsCount += 1
     }
 
     public func hasPresentedSystemPrompt(since instant: ContinuousClock.Instant) -> Bool {

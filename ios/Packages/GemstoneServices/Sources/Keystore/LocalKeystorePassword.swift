@@ -80,6 +80,15 @@ public final class LocalKeystorePassword: KeystorePassword {
         }
     }
 
+    public func getPassword(context: LAContext) throws -> String {
+        try Self.lock.withLock {
+            guard let password = try storedPassword(context: context) else {
+                throw KeystoreError.missingPassword
+            }
+            return password
+        }
+    }
+
     public func unlock(context: LAContext) throws {
         try Self.lock.withLock {
             guard try storedLockKey(context: context) == nil else {

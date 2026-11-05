@@ -124,6 +124,14 @@ wallets_title = Гаманці
 # Receive
 
 receive_warning = Це ваша адреса — надсилайте тільки %@ в мережі %@.
+receive_lightning_create_invoice = Створити рахунок
+receive_lightning_change_amount = Змінити суму
+receive_lightning_amount_hint = Залиште порожнім, щоб суму обрав відправник.
+receive_lightning_any_amount = Будь-яка сума
+receive_lightning_invoice_hint = Оплатіть цей рахунок з будь-якого гаманця Lightning. Дійсний до %@.
+receive_lightning_payment_received = Платіж отримано
+receive_lightning_unavailable = Lightning недоступний. Спробуйте пізніше.
+receive_lightning_unlock_required = Розблокуйте гаманець, щоб отримувати через Lightning.
 
 # Buy
 
@@ -147,6 +155,7 @@ transfer_recipient_title = Одержувач
 transfer_balance = Баланс: %@
 transfer_title = Переказ
 transfer_recipient_address_field = Адреса або ім'я
+transfer_recipient_lightning_invoice = Рахунок Lightning
 transfer_send_title = Надіслати
 transfer_insufficient_balance = Недостатній баланс %@.
 transfer_insufficient_network_fee_balance = Недостатній баланс %@ для покриття плати за мережу.
@@ -309,6 +318,7 @@ transaction_status_expired = Прострочено
 asset_balances = Залишки
 asset_balances_available = Доступно
 asset_price = Ціна
+asset_lightning_instant_payments = Миттєві платежі
 asset_market_cap = Ринкова капіталізація
 asset_trading_volume = Обсяг торгів (24 год)
 asset_total_supply = Загальна пропозиція

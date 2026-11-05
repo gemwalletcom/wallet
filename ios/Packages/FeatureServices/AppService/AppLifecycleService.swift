@@ -3,6 +3,7 @@
 import ConnectionStatusService
 import Foundation
 import protocol Gemstone.GemDeviceServiceProtocol
+import protocol Gemstone.GemLightningServiceProtocol
 import protocol Gemstone.GemPerpetualServiceProtocol
 import protocol Gemstone.GemTransactionStateServiceProtocol
 import protocol Gemstone.GemWalletSessionServiceProtocol
@@ -24,6 +25,7 @@ public actor AppLifecycleService: Sendable {
     private let perpetualObserver: any PerpetualObservable
     private let walletSessionService: any GemWalletSessionServiceProtocol
     private let transactionStateService: any GemTransactionStateServiceProtocol
+    private let lightningService: any GemLightningServiceProtocol
 
     public init(
         walletConnector: any WalletConnectorServiceable,
@@ -35,6 +37,7 @@ public actor AppLifecycleService: Sendable {
         perpetualObserver: any PerpetualObservable,
         walletSessionService: any GemWalletSessionServiceProtocol,
         transactionStateService: any GemTransactionStateServiceProtocol,
+        lightningService: any GemLightningServiceProtocol,
     ) {
         self.walletConnector = walletConnector
         self.connectionStatusObserver = connectionStatusObserver
@@ -45,6 +48,7 @@ public actor AppLifecycleService: Sendable {
         self.perpetualObserver = perpetualObserver
         self.walletSessionService = walletSessionService
         self.transactionStateService = transactionStateService
+        self.lightningService = lightningService
     }
 
     public func setup() async {
@@ -69,13 +73,26 @@ public actor AppLifecycleService: Sendable {
         await streamObserverService.updateSession()
     }
 
-    public func onScenePhase(_ phase: ScenePhase) async {
+    public func openLightning(unlocked: @Sendable () async -> Void) async {
+        await unlocked()
+        do {
+            guard let walletId = try walletSessionService.getCurrentWalletId() else { return }
+            _ = try await lightningService.openEnabled(walletId: walletId)
+        } catch {
+            debugLog("AppLifecycleService lightning open error: \(error)")
+        }
+    }
+
+    public func onScenePhase(_ phase: ScenePhase, unlocked: @Sendable () async -> Void) async {
         switch phase {
         case .active:
             debugLog("AppLifecycleService: App active — connecting observers")
-            await connectObservers()
+            async let observers: () = connectObservers()
+            async let lightning: () = openLightning(unlocked: unlocked)
+            _ = await (observers, lightning)
         case .background:
             debugLog("AppLifecycleService: App background — disconnecting observers")
+            lightningService.lockAll()
             await disconnectObservers()
         case .inactive:
             debugLog("AppLifecycleService: App inactive")

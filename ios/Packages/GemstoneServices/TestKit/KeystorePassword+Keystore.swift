@@ -9,6 +9,7 @@ import Primitives
 
 public final class MockKeystorePassword: KeystorePassword, @unchecked Sendable {
     public private(set) var getPasswordCallsCount = 0
+    public private(set) var passwordContext: LAContext?
     public var getAuthenticationError: (any Error)?
 
     private let passwordLock = NSLock()
@@ -27,6 +28,11 @@ public final class MockKeystorePassword: KeystorePassword, @unchecked Sendable {
         self.isAuthenticationEnabled = isAuthenticationEnabled
         self.availableAuthentication = availableAuthentication
         self.lockPeriod = lockPeriod
+    }
+
+    public func getPassword(context: LAContext) throws -> String {
+        passwordContext = context
+        return try getPassword(createIfMissing: false)
     }
 
     public func getPassword(createIfMissing: Bool) throws -> String {

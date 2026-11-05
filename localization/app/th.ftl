@@ -124,6 +124,14 @@ wallets_title = กระเป๋าสตางค์
 # Receive
 
 receive_warning = นี่คือที่อยู่ของคุณ — ส่งเฉพาะ %@ บนเครือข่าย %@ เท่านั้น
+receive_lightning_create_invoice = สร้างใบแจ้งหนี้
+receive_lightning_change_amount = เปลี่ยนจำนวน
+receive_lightning_amount_hint = เว้นว่างไว้เพื่อให้ผู้ส่งเลือกจำนวนเอง
+receive_lightning_any_amount = จำนวนใดก็ได้
+receive_lightning_invoice_hint = ชำระใบแจ้งหนี้นี้จากกระเป๋า Lightning ใดก็ได้ ใช้ได้ถึง %@
+receive_lightning_payment_received = ได้รับการชำระเงินแล้ว
+receive_lightning_unavailable = Lightning ไม่พร้อมใช้งาน โปรดลองอีกครั้งภายหลัง
+receive_lightning_unlock_required = ปลดล็อกกระเป๋าเพื่อรับผ่าน Lightning
 
 # Buy
 
@@ -147,6 +155,7 @@ transfer_recipient_title = ผู้รับ
 transfer_balance = ยอดคงเหลือ: %@
 transfer_title = โอน
 transfer_recipient_address_field = ที่อยู่หรือชื่อ
+transfer_recipient_lightning_invoice = ใบแจ้งหนี้ Lightning
 transfer_send_title = ส่ง
 transfer_insufficient_balance = ยอดคงเหลือ %@ ไม่เพียงพอ
 transfer_insufficient_network_fee_balance = ยอดคงเหลือ %@ ไม่เพียงพอที่จะครอบคลุมค่าธรรมเนียมเครือข่าย
@@ -309,6 +318,7 @@ transaction_status_expired = หมดอายุ
 asset_balances = ยอดคงเหลือ
 asset_balances_available = มีจำหน่าย
 asset_price = ราคา
+asset_lightning_instant_payments = ชำระเงินทันที
 asset_market_cap = มูลค่าตลาด
 asset_trading_volume = ปริมาณการซื้อขาย (24 ชม.)
 asset_total_supply = อุปทานทั้งหมด

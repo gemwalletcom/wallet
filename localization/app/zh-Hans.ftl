@@ -124,6 +124,14 @@ wallets_title = 钱包
 # Receive
 
 receive_warning = 请仅向此地址发送 %2$@ 网络上的 %1$@。
+receive_lightning_create_invoice = 创建账单
+receive_lightning_change_amount = 更改金额
+receive_lightning_amount_hint = 留空则由付款方决定金额。
+receive_lightning_any_amount = 任意金额
+receive_lightning_invoice_hint = 可使用任意 Lightning 钱包支付此账单。有效期至 %@。
+receive_lightning_payment_received = 已收到付款
+receive_lightning_unavailable = Lightning 暂不可用，请稍后重试。
+receive_lightning_unlock_required = 解锁钱包后即可通过 Lightning 收款。
 
 # Buy
 
@@ -147,6 +155,7 @@ transfer_recipient_title = 接收地址
 transfer_balance = 余额：%@
 transfer_title = 转账
 transfer_recipient_address_field = 地址或域名
+transfer_recipient_lightning_invoice = Lightning 账单
 transfer_send_title = 发送
 transfer_insufficient_balance = %@余额不足
 transfer_insufficient_network_fee_balance = %@ 余额不足，无法支付网络费用。
@@ -309,6 +318,7 @@ transaction_status_expired = 已过期
 asset_balances = 余额
 asset_balances_available = 可用余额
 asset_price = 价格
+asset_lightning_instant_payments = 即时支付
 asset_market_cap = 市值
 asset_trading_volume = 24小时交易量
 asset_total_supply = 总供应量

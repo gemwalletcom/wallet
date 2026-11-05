@@ -124,6 +124,14 @@ wallets_title = 지갑
 # Receive
 
 receive_warning = 이 주소는 귀하의 주소입니다. %@만 %@ 네트워크에서 보내세요.
+receive_lightning_create_invoice = 인보이스 만들기
+receive_lightning_change_amount = 금액 변경
+receive_lightning_amount_hint = 비워 두면 보내는 사람이 금액을 정합니다.
+receive_lightning_any_amount = 금액 자유
+receive_lightning_invoice_hint = 아무 Lightning 지갑에서나 이 인보이스를 결제하세요. %@까지 유효합니다.
+receive_lightning_payment_received = 결제를 받았습니다
+receive_lightning_unavailable = Lightning을 사용할 수 없습니다. 나중에 다시 시도하세요.
+receive_lightning_unlock_required = Lightning으로 받으려면 지갑 잠금을 해제하세요.
 
 # Buy
 
@@ -147,6 +155,7 @@ transfer_recipient_title = 받는 사람
 transfer_balance = 잔액: %@
 transfer_title = 전송
 transfer_recipient_address_field = 주소 또는 이름
+transfer_recipient_lightning_invoice = Lightning 인보이스
 transfer_send_title = 보내기
 transfer_insufficient_balance = %@ 잔액이 부족합니다.
 transfer_insufficient_network_fee_balance = 네트워크 수수료를 충당하기에는 %@ 잔액이 부족합니다.
@@ -309,6 +318,7 @@ transaction_status_expired = 만료됨
 asset_balances = 잔액
 asset_balances_available = 사용 가능
 asset_price = 가격
+asset_lightning_instant_payments = 즉시 결제
 asset_market_cap = 시가총액
 asset_trading_volume = 거래량(24시간)
 asset_total_supply = 총 공급량

@@ -8,6 +8,7 @@ import Primitives
 
 public protocol KeystorePassword: Sendable {
     func getPassword(createIfMissing: Bool) throws -> String
+    func getPassword(context: LAContext) throws -> String
     func getAuthentication() throws -> GemKeystoreAuthentication
     func getAvailableAuthentication() -> GemKeystoreAuthentication
     func enableAuthentication(_ enable: Bool, context: LAContext) throws

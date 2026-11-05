@@ -46,6 +46,8 @@ public enum Localized {
     public static func getAsset(_ p1: Any) -> String {
       return Localized.tr("Localizable", "asset.get_asset", String(describing: p1), fallback: "Get %@")
     }
+    /// Instant payments
+    public static let lightningInstantPayments = Localized.tr("Localizable", "asset.lightning_instant_payments", fallback: "Instant payments")
     /// Market Cap
     public static let marketCap = Localized.tr("Localizable", "asset.market_cap", fallback: "Market Cap")
     /// Name
@@ -1128,6 +1130,24 @@ public enum Localized {
     }
   }
   public enum Receive {
+    /// Leave empty to let the sender choose the amount.
+    public static let lightningAmountHint = Localized.tr("Localizable", "receive.lightning_amount_hint", fallback: "Leave empty to let the sender choose the amount.")
+    /// Any amount
+    public static let lightningAnyAmount = Localized.tr("Localizable", "receive.lightning_any_amount", fallback: "Any amount")
+    /// Change Amount
+    public static let lightningChangeAmount = Localized.tr("Localizable", "receive.lightning_change_amount", fallback: "Change Amount")
+    /// Create Invoice
+    public static let lightningCreateInvoice = Localized.tr("Localizable", "receive.lightning_create_invoice", fallback: "Create Invoice")
+    /// Pay this invoice from any Lightning wallet. Valid until %@.
+    public static func lightningInvoiceHint(_ p1: Any) -> String {
+      return Localized.tr("Localizable", "receive.lightning_invoice_hint", String(describing: p1), fallback: "Pay this invoice from any Lightning wallet. Valid until %@.")
+    }
+    /// Payment received
+    public static let lightningPaymentReceived = Localized.tr("Localizable", "receive.lightning_payment_received", fallback: "Payment received")
+    /// Lightning is unavailable. Try again later.
+    public static let lightningUnavailable = Localized.tr("Localizable", "receive.lightning_unavailable", fallback: "Lightning is unavailable. Try again later.")
+    /// Unlock the wallet to receive with Lightning.
+    public static let lightningUnlockRequired = Localized.tr("Localizable", "receive.lightning_unlock_required", fallback: "Unlock the wallet to receive with Lightning.")
     /// This is your address — send only %@ on the %@ network.
     public static func warning(_ p1: Any, _ p2: Any) -> String {
       return Localized.tr("Localizable", "receive.warning", String(describing: p1), String(describing: p2), fallback: "This is your address — send only %@ on the %@ network.")
@@ -1632,6 +1652,8 @@ public enum Localized {
     public enum Recipient {
       /// Address or Name
       public static let addressField = Localized.tr("Localizable", "transfer.recipient.address_field", fallback: "Address or Name")
+      /// Lightning Invoice
+      public static let lightningInvoice = Localized.tr("Localizable", "transfer.recipient.lightning_invoice", fallback: "Lightning Invoice")
       /// My Wallets
       public static let myWallets = Localized.tr("Localizable", "transfer.recipient.my_wallets", fallback: "My Wallets")
       /// Recipient

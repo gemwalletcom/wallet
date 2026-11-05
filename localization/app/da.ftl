@@ -124,6 +124,14 @@ wallets_title = Tegnebøger
 # Receive
 
 receive_warning = Dette er din adresse — kun forsendelse %@ på %@ netværk.
+receive_lightning_create_invoice = Opret faktura
+receive_lightning_change_amount = Skift beløb
+receive_lightning_amount_hint = Lad feltet stå tomt, så afsenderen vælger beløbet.
+receive_lightning_any_amount = Valgfrit beløb
+receive_lightning_invoice_hint = Betal denne faktura fra en hvilken som helst Lightning-wallet. Gyldig indtil %@.
+receive_lightning_payment_received = Betaling modtaget
+receive_lightning_unavailable = Lightning er ikke tilgængelig. Prøv igen senere.
+receive_lightning_unlock_required = Lås walleten op for at modtage med Lightning.
 
 # Buy
 
@@ -147,6 +155,7 @@ transfer_recipient_title = Modtager
 transfer_balance = Saldo: %@
 transfer_title = Overførsel
 transfer_recipient_address_field = Adresse eller Navn
+transfer_recipient_lightning_invoice = Lightning-faktura
 transfer_send_title = Sende
 transfer_insufficient_balance = Utilstrækkelig %@ saldo.
 transfer_insufficient_network_fee_balance = Utilstrækkelig %@ saldo til at dække netværksgebyrer.
@@ -309,6 +318,7 @@ transaction_status_expired = Udløbet
 asset_balances = Balancer
 asset_balances_available = Tilgængelig
 asset_price = Pris
+asset_lightning_instant_payments = Øjeblikkelige betalinger
 asset_market_cap = Markedsværdi
 asset_trading_volume = Handelsvolumen (24 timer)
 asset_total_supply = Samlet Udbud

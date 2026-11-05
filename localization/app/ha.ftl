@@ -124,6 +124,14 @@ wallets_title = Wallets
 # Receive
 
 receive_warning = Wannan shine adireshinka — aika kawai %@ a kan %@ hanyar sadarwa.
+receive_lightning_create_invoice = Ƙirƙiri Takardar Biyan Kuɗi
+receive_lightning_change_amount = Canza Adadi
+receive_lightning_amount_hint = Bar shi babu komai don mai aikawa ya zaɓi adadin.
+receive_lightning_any_amount = Kowane adadi
+receive_lightning_invoice_hint = Biya wannan takardar daga kowace walat ɗin Lightning. Tana aiki har zuwa %@.
+receive_lightning_payment_received = An karɓi biyan kuɗi
+receive_lightning_unavailable = Lightning ba ya samuwa. Sake gwadawa daga baya.
+receive_lightning_unlock_required = Buɗe walat don karɓa ta Lightning.
 
 # Buy
 
@@ -147,6 +155,7 @@ transfer_recipient_title = Mai karɓa
 transfer_balance = Ma'auni: %@
 transfer_title = Canja wuri
 transfer_recipient_address_field = Adireshi ko Suna
+transfer_recipient_lightning_invoice = Takardar biyan kuɗi ta Lightning
 transfer_send_title = Aika
 transfer_insufficient_balance = Rashin isassun ma'auni %@.
 transfer_insufficient_network_fee_balance = Rashin isassun ma'auni %@ don biyan kuɗin hanyar sadarwa.
@@ -309,6 +318,7 @@ transaction_status_expired = Ya ƙare
 asset_balances = Ma'auni
 asset_balances_available = Akwai
 asset_price = Farashin
+asset_lightning_instant_payments = Biyan kuɗi nan take
 asset_market_cap = Ƙimar Kasuwa
 asset_trading_volume = Girman Kasuwanci (24h)
 asset_total_supply = Jimlar Wadata

@@ -59,7 +59,7 @@ public final class RecipientSceneViewModel {
         self.type = type
         self.onNavigate = onNavigate
 
-        addressInputModel = AddressInputViewModel(chain: asset.chain, nameService: nameService, placeholder: recipientField)
+        addressInputModel = AddressInputViewModel(chain: asset.chain, nameService: nameService, placeholder: Self.recipientField(chain: asset.chain))
 
         contactsQuery = ObservableQuery(ContactsQuery(chain: asset.chain), initialValue: [])
         walletsQuery = ObservableQuery(WalletAddressItemsQuery(chain: asset.chain), initialValue: [])
@@ -73,7 +73,13 @@ public final class RecipientSceneViewModel {
         Localized.Transfer.Recipient.title
     }
 
-    let recipientField = Localized.Transfer.Recipient.addressField
+    static func recipientField(chain: Chain) -> String {
+        switch chain {
+        case .lightning: Localized.Transfer.Recipient.lightningInvoice
+        default: Localized.Transfer.Recipient.addressField
+        }
+    }
+
     var memoField: String {
         Localized.Transfer.memo
     }

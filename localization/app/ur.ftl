@@ -124,6 +124,14 @@ wallets_title = والیٹس
 # Receive
 
 receive_warning = یہ آپ کا پتہ ہے - صرف بھیجیں۔ %@ پر %@ نیٹ ورک
+receive_lightning_create_invoice = انوائس بنائیں
+receive_lightning_change_amount = رقم تبدیل کریں
+receive_lightning_amount_hint = بھیجنے والے کو رقم منتخب کرنے دینے کے لیے خالی چھوڑ دیں۔
+receive_lightning_any_amount = کوئی بھی رقم
+receive_lightning_invoice_hint = کسی بھی Lightning والیٹ سے یہ انوائس ادا کریں۔ %@ تک درست۔
+receive_lightning_payment_received = ادائیگی موصول ہو گئی
+receive_lightning_unavailable = Lightning دستیاب نہیں ہے۔ بعد میں دوبارہ کوشش کریں۔
+receive_lightning_unlock_required = Lightning سے وصول کرنے کے لیے والیٹ ان لاک کریں۔
 
 # Buy
 
@@ -147,6 +155,7 @@ transfer_recipient_title = وصول کنندہ
 transfer_balance = بیلنس: %@
 transfer_title = منتقلی
 transfer_recipient_address_field = پتہ یا نام
+transfer_recipient_lightning_invoice = Lightning انوائس
 transfer_send_title = بھیجیں
 transfer_insufficient_balance = ناکافی %@ بیلنس۔
 transfer_insufficient_network_fee_balance = نیٹ ورک فیس کو پورا کرنے کے لیے ناکافی %@ بیلنس۔
@@ -309,6 +318,7 @@ transaction_status_expired = میعاد ختم
 asset_balances = بیلنس
 asset_balances_available = دستیاب
 asset_price = قیمت
+asset_lightning_instant_payments = فوری ادائیگیاں
 asset_market_cap = مارکیٹ کیپ
 asset_trading_volume = تجارتی حجم (24h)
 asset_total_supply = کل سپلائی

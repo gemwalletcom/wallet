@@ -54,6 +54,14 @@ public struct AssetScene: View {
                 }
             }
 
+            if model.showsLightning {
+                Section {
+                    NavigationLink(value: Scenes.Asset(asset: model.lightningAsset)) {
+                        ListItemView(title: model.lightningAsset.name, subtitle: model.lightningSubtitle, imageStyle: model.lightningImageStyle)
+                    }
+                }
+            }
+
             ForEach(Array(details.sections.enumerated()), id: \.offset) { _, section in
                 Section {
                     ForEach(Array(section.rows.enumerated()), id: \.offset) { _, row in

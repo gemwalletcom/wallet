@@ -124,6 +124,14 @@ wallets_title = Cüzdanlar
 # Receive
 
 receive_warning = Bu sizin adresiniz — yalnızca %@ varlığını %@ ağında gönderin.
+receive_lightning_create_invoice = Fatura Oluştur
+receive_lightning_change_amount = Tutarı Değiştir
+receive_lightning_amount_hint = Tutarı gönderenin seçmesi için boş bırakın.
+receive_lightning_any_amount = Herhangi bir tutar
+receive_lightning_invoice_hint = Bu faturayı herhangi bir Lightning cüzdanından ödeyin. %@ tarihine kadar geçerli.
+receive_lightning_payment_received = Ödeme alındı
+receive_lightning_unavailable = Lightning kullanılamıyor. Daha sonra tekrar deneyin.
+receive_lightning_unlock_required = Lightning ile almak için cüzdanın kilidini açın.
 
 # Buy
 
@@ -147,6 +155,7 @@ transfer_recipient_title = Alıcı
 transfer_balance = Bakiye: %@
 transfer_title = Aktar
 transfer_recipient_address_field = Adres veya Ad
+transfer_recipient_lightning_invoice = Lightning faturası
 transfer_send_title = Gönder
 transfer_insufficient_balance = Yetersiz %@ bakiye.
 transfer_insufficient_network_fee_balance = Ağ ücretlerini karşılamak için yetersiz %@ bakiyesi.
@@ -309,6 +318,7 @@ transaction_status_expired = Süresi doldu
 asset_balances = Bakiyeler
 asset_balances_available = Mevcut
 asset_price = Fiyat
+asset_lightning_instant_payments = Anında ödemeler
 asset_market_cap = Piyasa değeri
 asset_trading_volume = İşlem Hacmi (24 saat)
 asset_total_supply = Toplam Arz

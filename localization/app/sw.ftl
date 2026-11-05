@@ -124,6 +124,14 @@ wallets_title = Pochi
 # Receive
 
 receive_warning = Hii ni anwani yako — tuma pekee %@ kwenye %@ mtandao.
+receive_lightning_create_invoice = Unda Ankara
+receive_lightning_change_amount = Badilisha Kiasi
+receive_lightning_amount_hint = Acha wazi ili mtumaji achague kiasi.
+receive_lightning_any_amount = Kiasi chochote
+receive_lightning_invoice_hint = Lipa ankara hii kutoka pochi yoyote ya Lightning. Inatumika hadi %@.
+receive_lightning_payment_received = Malipo yamepokelewa
+receive_lightning_unavailable = Lightning haipatikani. Jaribu tena baadaye.
+receive_lightning_unlock_required = Fungua pochi ili kupokea kwa Lightning.
 
 # Buy
 
@@ -147,6 +155,7 @@ transfer_recipient_title = Mpokeaji
 transfer_balance = Salio: %@
 transfer_title = Uhamisho
 transfer_recipient_address_field = Anwani au Jina
+transfer_recipient_lightning_invoice = Ankara ya Lightning
 transfer_send_title = Tuma
 transfer_insufficient_balance = Salio la %@ halitoshi.
 transfer_insufficient_network_fee_balance = Salio la %@ halitoshi kulipia ada za mtandao.
@@ -309,6 +318,7 @@ transaction_status_expired = Imeisha muda
 asset_balances = Salio
 asset_balances_available = Inapatikana
 asset_price = Bei
+asset_lightning_instant_payments = Malipo ya papo hapo
 asset_market_cap = Thamani ya Soko
 asset_trading_volume = Kiasi cha Biashara (saa 24)
 asset_total_supply = Jumla ya Ugavi

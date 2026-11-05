@@ -124,6 +124,14 @@ wallets_title = Portemonnees
 # Receive
 
 receive_warning = Dit is uw adres — alleen verzenden %@ op de %@ netwerk.
+receive_lightning_create_invoice = Factuur maken
+receive_lightning_change_amount = Bedrag wijzigen
+receive_lightning_amount_hint = Laat leeg zodat de verzender het bedrag kiest.
+receive_lightning_any_amount = Vrij bedrag
+receive_lightning_invoice_hint = Betaal deze factuur met een willekeurige Lightning-wallet. Geldig tot %@.
+receive_lightning_payment_received = Betaling ontvangen
+receive_lightning_unavailable = Lightning is niet beschikbaar. Probeer het later opnieuw.
+receive_lightning_unlock_required = Ontgrendel de wallet om met Lightning te ontvangen.
 
 # Buy
 
@@ -147,6 +155,7 @@ transfer_recipient_title = Ontvanger
 transfer_balance = Saldo: %@
 transfer_title = Overdracht
 transfer_recipient_address_field = Adres of naam
+transfer_recipient_lightning_invoice = Lightning-factuur
 transfer_send_title = Versturen
 transfer_insufficient_balance = Onvoldoende saldo %@.
 transfer_insufficient_network_fee_balance = Onvoldoende saldo van %@ om de netwerkkosten te dekken.
@@ -309,6 +318,7 @@ transaction_status_expired = Verlopen
 asset_balances = Saldi
 asset_balances_available = Beschikbaar
 asset_price = Prijs
+asset_lightning_instant_payments = Directe betalingen
 asset_market_cap = Marktkapitalisatie
 asset_trading_volume = Handelsvolume (24 uur)
 asset_total_supply = Totaal aanbod

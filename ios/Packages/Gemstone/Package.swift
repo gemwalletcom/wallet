@@ -32,7 +32,10 @@ let package = Package(
         .target(
             name: "GemstoneFFI",
             path: "Sources/GemstoneFFI",
-            publicHeadersPath: "include"
+            publicHeadersPath: "include",
+            linkerSettings: [
+                .linkedLibrary("sqlite3")
+            ]
         )
     ]
 )

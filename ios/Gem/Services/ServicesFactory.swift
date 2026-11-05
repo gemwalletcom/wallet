@@ -89,16 +89,6 @@ struct ServicesFactory {
         let recentAssetsService = GemRecentActivityService(store: GemstoneRecentActivityStore(store: stores.recentActivityStore), session: walletSessionService)
         let explorerService = Gemstone.GemExplorerService(preferences: preferencesService)
         let avatarService = Gemstone.GemAvatarService(wallets: gemstoneWalletStore, files: gemstoneFileStore, provider: nativeProvider)
-        let walletService = storages.keystore.walletService(
-            store: gemstoneWalletStore,
-            session: walletSessionService,
-            appPreferences: preferencesService,
-            files: gemstoneFileStore,
-            preferences: walletPreferencesService,
-            explorer: explorerService,
-            names: nameService,
-            avatar: avatarService,
-        )
         let pushNotificationEnablerService = PushNotificationEnablerService(preferencesService: preferencesService, systemPrompt: storages.systemPrompt)
         let notificationPermissions = GemstoneNotificationPermissions(service: pushNotificationEnablerService)
         let priceAlertService = Gemstone.GemPriceAlertService(
@@ -151,6 +141,25 @@ struct ServicesFactory {
             walletPreferences: walletPreferencesService,
             session: walletSessionService,
             transactionStatus: GemstoneTransactionStatusService(service: transactionStateService),
+        )
+        let unlockContext = UnlockContextStore()
+        let lightningService = storages.keystore.lightningService(
+            storageDir: URL.applicationSupportDirectory.appending(path: "lightning").path(percentEncoded: false),
+            balances: balanceService,
+            transactions: transactionsService,
+            session: walletSessionService,
+            unlockContext: unlockContext,
+        )
+        let walletService = storages.keystore.walletService(
+            store: gemstoneWalletStore,
+            session: walletSessionService,
+            appPreferences: preferencesService,
+            files: gemstoneFileStore,
+            preferences: walletPreferencesService,
+            explorer: explorerService,
+            names: nameService,
+            avatar: avatarService,
+            lightning: lightningService,
         )
 
         let bannerService = Gemstone.GemBannerService(store: gemstoneBannerStore, platform: .ios)
@@ -330,6 +339,7 @@ struct ServicesFactory {
             keystorePassword: storages.keystorePassword,
             securityService: Gemstone.GemSecurityService(),
             systemPrompt: storages.systemPrompt,
+            unlockContext: unlockContext,
         )
         let lockModel = MainActor.assumeIsolated { LockSceneViewModel(service: biometryService) }
         let navigationRouter = NavigationRouter(
@@ -370,6 +380,7 @@ struct ServicesFactory {
             perpetualObserver: hyperliquidObserverService,
             walletSessionService: walletSessionService,
             transactionStateService: transactionStateService,
+            lightningService: lightningService,
         )
 
         let confirmTransferService = storages.keystore.confirmTransferService(
@@ -410,6 +421,7 @@ struct ServicesFactory {
             fiatService: fiatService,
             gatewayService: gatewayService,
             hyperliquidObserverService: hyperliquidObserverService,
+            lightningService: lightningService,
             nameService: nameService,
             nftService: nftService,
             nodeService: nodeService,

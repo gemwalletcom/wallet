@@ -1680,6 +1680,48 @@ public extension Gemstone.GemWalletSearchView {
     }
 }
 
+public extension Gemstone.LightningInvoice {
+    static func mock(
+        invoice: String = "",
+        network: Gemstone.LightningNetwork = .mainnet,
+        amountSats: UInt64? = nil,
+        paymentHash: String = "",
+        createdAt: UInt64 = 0,
+        expiresAt: UInt64 = 0,
+    ) -> Gemstone.LightningInvoice {
+        Gemstone.LightningInvoice(
+            invoice: invoice,
+            network: network,
+            amountSats: amountSats,
+            paymentHash: paymentHash,
+            createdAt: createdAt,
+            expiresAt: expiresAt,
+        )
+    }
+}
+
+public extension Gemstone.LightningPayment {
+    static func mock(
+        id: String = "",
+        direction: Gemstone.LightningPaymentDirection = .incoming,
+        status: Gemstone.LightningPaymentStatus = .pending,
+        amountSats: UInt64 = 0,
+        feeSats: UInt64 = 0,
+        createdAt: UInt64 = 0,
+        invoice: String? = nil,
+    ) -> Gemstone.LightningPayment {
+        Gemstone.LightningPayment(
+            id: id,
+            direction: direction,
+            status: status,
+            amountSats: amountSats,
+            feeSats: feeSats,
+            createdAt: createdAt,
+            invoice: invoice,
+        )
+    }
+}
+
 public extension Gemstone.NameRecord {
     static func mock(
         name: String = "",

@@ -124,6 +124,14 @@ wallets_title = المحافظ
 # Receive
 
 receive_warning = هذا عنوانك — أرسل فقط %@ على %@ شبكة.
+receive_lightning_create_invoice = إنشاء فاتورة
+receive_lightning_change_amount = تغيير المبلغ
+receive_lightning_amount_hint = اتركه فارغًا ليختار المرسل المبلغ.
+receive_lightning_any_amount = أي مبلغ
+receive_lightning_invoice_hint = ادفع هذه الفاتورة من أي محفظة Lightning. صالحة حتى %@.
+receive_lightning_payment_received = تم استلام الدفعة
+receive_lightning_unavailable = Lightning غير متاح. حاول مرة أخرى لاحقًا.
+receive_lightning_unlock_required = افتح قفل المحفظة للاستلام عبر Lightning.
 
 # Buy
 
@@ -147,6 +155,7 @@ transfer_recipient_title = متلقي
 transfer_balance = الرصيد: %@
 transfer_title = تحويل
 transfer_recipient_address_field = العنوان أو الاسم
+transfer_recipient_lightning_invoice = فاتورة Lightning
 transfer_send_title = يرسل
 transfer_insufficient_balance = رصيد %@ غير كافٍ.
 transfer_insufficient_network_fee_balance = رصيد %@ غير كافٍ لتغطية رسوم الشبكة.
@@ -309,6 +318,7 @@ transaction_status_expired = منتهي الصلاحية
 asset_balances = أرصدة
 asset_balances_available = متاح
 asset_price = سعر
+asset_lightning_instant_payments = مدفوعات فورية
 asset_market_cap = القيمة السوقية
 asset_trading_volume = حجم التداول (24 ساعة)
 asset_total_supply = إجمالي العرض

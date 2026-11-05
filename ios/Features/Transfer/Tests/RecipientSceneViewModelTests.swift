@@ -6,6 +6,7 @@ import struct Gemstone.GemTransferData
 import struct Gemstone.NameRecord
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
+import Localization
 import Primitives
 @testable import PrimitivesComponents
 import PrimitivesTestKit
@@ -199,5 +200,11 @@ struct RecipientSceneViewModelTests {
         let nftAsset = NFTAsset.mock(id: NFTAssetId(chain: .ethereum, contractAddress: "0x123", tokenId: "1"))
         let image = RecipientSceneViewModel.mock().nftAssetImage(for: nftAsset)
         #expect(image.imageURL?.absoluteString.contains("ethereum_0x123::1") == true)
+    }
+
+    @Test
+    func recipientFieldAsksForAnInvoiceOnLightning() {
+        #expect(RecipientSceneViewModel.recipientField(chain: .lightning) == Localized.Transfer.Recipient.lightningInvoice)
+        #expect(RecipientSceneViewModel.recipientField(chain: .bitcoin) == Localized.Transfer.Recipient.addressField)
     }
 }
