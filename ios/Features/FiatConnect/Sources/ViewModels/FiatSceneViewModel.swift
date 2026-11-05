@@ -111,8 +111,8 @@ public final class FiatSceneViewModel {
         Localized.Errors.errorOccurred
     }
 
-    func emptyTitle(_ viewState: GemFiatViewState) -> String {
-        viewState.quotesMessage()?.title(action: type.action) ?? .empty
+    func emptyTitle(_ viewState: GemFiatViewState) -> String? {
+        viewState.quotesMessage()?.title(action: type.action)
     }
 
     var assetTitle: String {

@@ -189,9 +189,9 @@ impl GemFiatViewState {
     pub fn quotes_message(&self) -> Option<GemFiatQuotesMessage> {
         match &self.phase {
             GemFiatQuotePhase::NoInput | GemFiatQuotePhase::InvalidInput => Some(GemFiatQuotesMessage::EnterAmount),
-            GemFiatQuotePhase::Invalid { .. } | GemFiatQuotePhase::NoQuotes => Some(GemFiatQuotesMessage::NoResults),
+            GemFiatQuotePhase::NoQuotes => Some(GemFiatQuotesMessage::NoResults),
             GemFiatQuotePhase::Failed { error } => Some(GemFiatQuotesMessage::Failed { error: error.text() }),
-            GemFiatQuotePhase::Loading { .. } | GemFiatQuotePhase::Ready => None,
+            GemFiatQuotePhase::Invalid { .. } | GemFiatQuotePhase::Loading { .. } | GemFiatQuotePhase::Ready => None,
         }
     }
 }
@@ -683,6 +683,11 @@ mod tests {
         assert_eq!(state(GemFiatQuotePhase::InvalidInput).quotes_message(), Some(GemFiatQuotesMessage::EnterAmount));
         assert_eq!(state(GemFiatQuotePhase::NoQuotes).quotes_message(), Some(GemFiatQuotesMessage::NoResults));
         assert_eq!(state(GemFiatQuotePhase::Ready).quotes_message(), None);
+        for amount in ["4", "10001"] {
+            let invalid = GemFiatSession::mock(FiatQuoteType::Buy, None).on_amount_changed(amount.to_string()).view_state(None, false, false);
+            assert!(invalid.amount_error.is_some());
+            assert_eq!(invalid.quotes_message(), None, "{amount} shows only the amount error, never no quotes beside it");
+        }
         assert_eq!(
             state(GemFiatQuotePhase::Failed { error: GemServiceError::Offline }).quotes_message(),
             Some(GemFiatQuotesMessage::Failed { error: GemErrorText::NetworkOffline }),

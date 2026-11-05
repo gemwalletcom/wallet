@@ -274,6 +274,29 @@ class FiatViewModelTest {
     }
 
     @Test
+    fun `returning to the quoted amount within the debounce asks for its quotes again`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+
+        try {
+            advanceTimeBy(DebounceSettleMs)
+            runCurrent()
+
+            viewModel.updateAmount("200")
+            advanceTimeBy(DebounceSettleMs / 2)
+            viewModel.updateAmount(MockBuyAmount.toString())
+            advanceTimeBy(DebounceSettleMs)
+            runCurrent()
+
+            coVerify(exactly = 2) { service.quotes(GemFiatQuoteRequest(FiatQuoteType.Buy.toGem(), MockBuyAmount.toDouble()), any()) }
+            coVerify(exactly = 0) { service.quotes(GemFiatQuoteRequest(FiatQuoteType.Buy.toGem(), 200.0), any()) }
+            assertEquals(GemFiatQuotePhase.Ready, viewModel.viewState.value.phase)
+            assertTrue(viewModel.providers.value.isNotEmpty())
+        } finally {
+            viewModel.viewModelScope.cancel()
+        }
+    }
+
+    @Test
     fun `quote request failure is distinct from an empty quote list and can retry`() = runTest(testDispatcher) {
         coEvery { service.quotes(any(), any()) } failsWith GemServiceException.Api("offline")
         val viewModel = createViewModel()
@@ -435,6 +458,55 @@ class FiatViewModelTest {
             var redirect: String? = null
             viewModel.continueToProvider { redirect = it }.getOrThrow()
             assertEquals("https://provider.test/checkout", redirect)
+        } finally {
+            viewModel.viewModelScope.cancel()
+        }
+    }
+
+    @Test
+    fun `continue while the quotes refresh opens nothing`() = runTest(testDispatcher) {
+        val viewModel = createViewModel()
+
+        try {
+            advanceTimeBy(DebounceSettleMs)
+            runCurrent()
+            coEvery { service.quotes(any(), any()) } coAnswers { CompletableDeferred<GemFiatQuotesResult>().await() }
+            viewModel.retry()
+            runCurrent()
+            assertTrue(viewModel.viewState.value.phase is GemFiatQuotePhase.Loading)
+
+            var redirects = 0
+            viewModel.continueToProvider { redirects += 1 }.getOrThrow()
+
+            assertEquals(0, redirects)
+            assertNull(viewModel.infoSheet.value)
+            coVerify(exactly = 0) { service.quoteUrl(any(), any()) }
+        } finally {
+            viewModel.viewModelScope.cancel()
+        }
+    }
+
+    @Test
+    fun `a second continue while the checkout loads opens the provider once`() = runTest(testDispatcher) {
+        val checkout = CompletableDeferred<FiatQuoteUrl>()
+        coEvery { service.quoteUrl(any(), any()) } coAnswers { checkout.await() }
+        val viewModel = createViewModel()
+        var redirects = 0
+
+        try {
+            advanceTimeBy(DebounceSettleMs)
+            runCurrent()
+
+            val first = async { viewModel.continueToProvider { redirects += 1 } }
+            runCurrent()
+            val second = async { viewModel.continueToProvider { redirects += 1 } }
+            runCurrent()
+            checkout.complete(FiatQuoteUrl(redirectUrl = "https://provider.test/checkout", providerTransactionId = null))
+            first.await().getOrThrow()
+            second.await().getOrThrow()
+
+            assertEquals(1, redirects)
+            coVerify(exactly = 1) { service.quoteUrl(any(), any()) }
         } finally {
             viewModel.viewModelScope.cancel()
         }

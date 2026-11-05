@@ -161,8 +161,7 @@ class FiatViewModel @Inject constructor(
             assetInfo.filterNotNull().map { it.asset.id }.distinctUntilChanged(),
             ticker,
             quoteRefresh,
-        ) { request, assetId, tick, refresh -> request?.let { QuoteFetch(it, assetId, tick, refresh) } }
-            .distinctUntilChanged()
+        ) { request, assetId, _, _ -> request?.let { QuoteFetch(it, assetId) } }
             .mapLatest { fetch -> fetch?.let { loadQuotes(it.request, it.assetId) } }
             .launchIn(viewModelScope)
     }
@@ -201,16 +200,17 @@ class FiatViewModel @Inject constructor(
     }
 
     suspend fun continueToProvider(onUrl: (String) -> Unit): Result<Unit> {
-        val request = session.value.quoteRequest() ?: return Result.success(Unit)
+        val quote = viewState.value.selectedQuoteRow
+        val request = session.value.quoteRequest()
+        if (isUrlLoading.value || quote == null || request == null) return Result.success(Unit)
         if (!service.isAvailable(request.quoteType)) {
             infoSheet.value = GemInfoTopic.RegionUnavailable
             return Result.success(Unit)
         }
-        val quoteId = requireNotNull(viewState.value.selectedQuoteRow).quoteId
         isUrlLoading.value = true
         return try {
             runCatchingCancellable {
-                val url = withContext(ioDispatcher) { service.quoteUrl(assetId.toIdentifier(), quoteId) }
+                val url = withContext(ioDispatcher) { service.quoteUrl(assetId.toIdentifier(), quote.quoteId) }
                 if (session.value.quoteRequest() != request) return@runCatchingCancellable
                 onUrl(url.redirectUrl)
             }.onFailure { Log.e(TAG, "fiat continuation failed", it) }
@@ -223,5 +223,5 @@ class FiatViewModel @Inject constructor(
         const val TAG = "FiatViewModel"
     }
 
-    private data class QuoteFetch(val request: GemFiatQuoteRequest, val assetId: AssetId, val ticker: Long, val refresh: Long)
+    private data class QuoteFetch(val request: GemFiatQuoteRequest, val assetId: AssetId)
 }
