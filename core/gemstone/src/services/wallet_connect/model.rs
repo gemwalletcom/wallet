@@ -128,6 +128,7 @@ pub struct GemSessionApproval {
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemWalletConnectMessageRequest {
     pub session_id: String,
+    pub request_id: String,
     pub chain: Chain,
     pub wallet: Wallet,
     pub account: Account,
@@ -140,6 +141,7 @@ pub struct GemWalletConnectMessageRequest {
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemWalletConnectTransactionRequest {
     pub session_id: String,
+    pub request_id: String,
     pub chain: Chain,
     pub wallet: Wallet,
     pub account: Account,

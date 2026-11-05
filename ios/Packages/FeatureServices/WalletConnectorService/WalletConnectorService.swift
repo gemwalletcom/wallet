@@ -49,6 +49,7 @@ extension WalletConnectorService: WalletConnectorServiceable {
             let sessionProposalStream = UncheckedSendable(value: self.interactor.sessionProposalStream)
             let sessionRequestStream = UncheckedSendable(value: self.interactor.sessionRequestStream)
             let sessionDeleteStream = UncheckedSendable(value: self.interactor.sessionDeleteStream)
+            let requestExpirationStream = UncheckedSendable(value: self.interactor.requestExpirationStream)
 
             _ = Task {
                 await self.observeSessions(sessionsStream.value)
@@ -61,6 +62,9 @@ extension WalletConnectorService: WalletConnectorServiceable {
             }
             _ = Task {
                 await self.observeSessionDeletes(sessionDeleteStream.value)
+            }
+            _ = Task {
+                await self.observeRequestExpirations(requestExpirationStream.value)
             }
         }
     }
@@ -226,6 +230,12 @@ extension WalletConnectorService {
             debugLog("Error rejecting request: \(error)")
         }
         await walletConnectorInteractor.sessionReject(error: error)
+    }
+
+    private func observeRequestExpirations(_ stream: AsyncStream<RPCID>) async {
+        for await requestId in stream {
+            await walletConnectorInteractor.requestExpired(requestId: requestId.string)
+        }
     }
 
     private func observeSessionDeletes(_ stream: AsyncStream<(topic: String, code: Int, message: String)>) async {

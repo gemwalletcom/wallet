@@ -70,7 +70,7 @@ class WalletConnectorRequestViewModelTest {
     private fun viewModel(respond: RespondWalletConnectRequest = respond(), requests: WalletConnectPendingRequests = WalletConnectPendingRequests()) = WalletConnectorRequestViewModel(
         respondWalletConnectRequest = respond,
         pendingRequests = requests,
-        activeRequest = ActiveWalletConnectRequest(events = emptyFlow()),
+        activeRequest = ActiveWalletConnectRequest(events = emptyFlow(), pendingRequests = requests),
         context = mockk(relaxed = true) {
             every { getString(R.string.errors_connections_malicious_origin) } returns "Malicious origin"
             every { getString(R.string.wallet_connect_request_expired) } returns "Request expired"

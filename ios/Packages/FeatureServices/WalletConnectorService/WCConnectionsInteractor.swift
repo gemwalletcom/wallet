@@ -15,6 +15,10 @@ final class WCConnectionsInteractor: Sendable {
         WalletKit.instance.sessionRequestPublisher.asAsyncStream()
     }
 
+    var requestExpirationStream: AsyncStream<RPCID> {
+        WalletKit.instance.requestExpirationPublisher.asAsyncStream()
+    }
+
     var sessionDeleteStream: AsyncStream<(topic: String, code: Int, message: String)> {
         WalletKit.instance.sessionDeletePublisher
             .map { topic, reason in

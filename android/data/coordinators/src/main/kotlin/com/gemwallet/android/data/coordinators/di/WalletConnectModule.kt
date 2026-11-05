@@ -2,6 +2,7 @@ package com.gemwallet.android.data.coordinators.di
 
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
 import com.gemwallet.android.application.wallet_connect.WalletConnectClient
+import com.gemwallet.android.application.wallet_connect.WalletConnectPendingRequests
 import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnectAuthentication
 import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnection
 import com.gemwallet.android.application.wallet_connect.cases.DisconnectWalletConnection
@@ -31,7 +32,10 @@ object WalletConnectModule {
 
     @Singleton
     @Provides
-    fun provideActiveWalletConnectRequest(coordinator: WalletConnectCoordinator): ActiveWalletConnectRequest = ActiveWalletConnectRequest(events = coordinator.bridgeEvents)
+    fun provideActiveWalletConnectRequest(coordinator: WalletConnectCoordinator, pendingRequests: WalletConnectPendingRequests): ActiveWalletConnectRequest = ActiveWalletConnectRequest(
+        events = coordinator.bridgeEvents,
+        pendingRequests = pendingRequests,
+    )
 
     @Provides
     fun provideIsWalletConnectEnabled(coordinator: WalletConnectCoordinator): IsWalletConnectEnabled = coordinator

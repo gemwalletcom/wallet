@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemServiceError
 import SwiftUI
 
 @Observable
@@ -33,6 +34,16 @@ public final class WalletConnectorPresenter: Sendable {
         guard isPresentingSheet?.id == type.id else {
             return
         }
+        isPresentingSheet = nil
+    }
+
+    @MainActor
+    public func expire(requestId: String) {
+        guard let presented = isPresentingSheet, presented.requestId == requestId else {
+            return
+        }
+
+        presented.reject(GemServiceError.Expired)
         isPresentingSheet = nil
     }
 

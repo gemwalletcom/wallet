@@ -8,11 +8,13 @@ import GemstonePrimitives
 import Primitives
 
 public struct WCTransferData: Sendable {
+    public let requestId: String
     public let transferData: GemTransferData
     public let wallet: Wallet
     public let simulation: SimulationResult
 
-    public init(transferData: GemTransferData, wallet: Wallet, simulation: SimulationResult) {
+    public init(requestId: String, transferData: GemTransferData, wallet: Wallet, simulation: SimulationResult) {
+        self.requestId = requestId
         self.transferData = transferData
         self.wallet = wallet
         self.simulation = simulation
@@ -20,6 +22,7 @@ public struct WCTransferData: Sendable {
 
     public init(_ request: GemWalletConnectTransactionRequest) {
         self.init(
+            requestId: request.requestId,
             transferData: request.transfer,
             wallet: request.wallet.toPrimitives(),
             simulation: request.simulation,

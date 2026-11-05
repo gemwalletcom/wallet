@@ -33,6 +33,7 @@ flowchart LR
 | A second connection is approved before the first dapp confirms its own | each connection is listed under, and signs with, the wallet it was approved with | a request is reviewed and signed by its connection's wallet (`sessions that settle out of order are stored for the wallet that approved each`) |
 | The app is opened with a dapp already connected and a new dapp's code arrives at once | the new proposal shows and can be approved | the SDK is set up once; set up twice, it delivered the proposal twice and refused the copy, so the dapp saw the connection fail |
 | A request has expired | "Request expired"; it cannot be approved and is never signed | |
+| A request expires while its review is open, including while the review offers Buy or Receive | the review closes within a few seconds with "Request expired" and nothing is signed | the dapp has stopped waiting; a send it never hears about invites the user to pay twice |
 | A message to sign comes from a site flagged as malicious | it is refused before anything is signed | a message to sign is checked like a transaction |
 | A permit to sign names a flagged spender | a critical warning on the review | |
 | A permit to sign has an amount or deadline Gem can't read, or lets a spender take several tokens at once | the review still warns about the approval, as unlimited when the amount can't be read | a drainer shouldn't escape the warning by writing its permit differently |

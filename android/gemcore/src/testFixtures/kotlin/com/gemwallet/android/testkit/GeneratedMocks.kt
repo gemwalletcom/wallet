@@ -2029,6 +2029,7 @@ fun mockGemWalletConnectAuthAccount(
 
 fun mockGemWalletConnectMessageRequest(
     sessionId: String = "",
+    requestId: String = "",
     chain: String = com.wallet.core.primitives.Chain.Bitcoin.string,
     wallet: uniffi.gemstone.Wallet = mockWallet().toGem(),
     account: uniffi.gemstone.Account = mockAccount().toGem(),
@@ -2038,6 +2039,7 @@ fun mockGemWalletConnectMessageRequest(
     assets: List<uniffi.gemstone.Asset> = emptyList(),
 ) = uniffi.gemstone.GemWalletConnectMessageRequest(
     sessionId = sessionId,
+    requestId = requestId,
     chain = chain,
     wallet = wallet,
     account = account,
@@ -2049,6 +2051,7 @@ fun mockGemWalletConnectMessageRequest(
 
 fun mockGemWalletConnectTransactionRequest(
     sessionId: String = "",
+    requestId: String = "",
     chain: String = com.wallet.core.primitives.Chain.Bitcoin.string,
     wallet: uniffi.gemstone.Wallet = mockWallet().toGem(),
     account: uniffi.gemstone.Account = mockAccount().toGem(),
@@ -2058,6 +2061,7 @@ fun mockGemWalletConnectTransactionRequest(
     action: uniffi.gemstone.GemWalletConnectTransactionAction = uniffi.gemstone.GemWalletConnectTransactionAction.SIGN,
 ) = uniffi.gemstone.GemWalletConnectTransactionRequest(
     sessionId = sessionId,
+    requestId = requestId,
     chain = chain,
     wallet = wallet,
     account = account,
