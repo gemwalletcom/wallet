@@ -52,7 +52,7 @@ fn validate_grpc_status(response: &reqwest::Response) -> Result<(), Box<dyn Erro
 }
 
 fn decode_grpc_status_message(value: &str) -> String {
-    percent_encoding::percent_decode_str(value).decode_utf8_lossy().into_owned()
+    gem_encoding::percent_decode_lossy(value)
 }
 
 #[cfg(test)]

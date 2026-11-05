@@ -191,7 +191,7 @@ impl GemDeviceApiTarget {
             Self::ReportNft(_) => "/v3/devices/nft-assets/report".to_string(),
             Self::GetSupportMessages { from_timestamp } => format!("/v3/devices/support/messages?from_timestamp={from_timestamp}"),
             Self::SendSupportMessage(_) => "/v3/devices/support/messages".to_string(),
-            Self::SendSupportImage { file_name, .. } => format!("/v3/devices/support/messages/images?file_name={}", percent_encoding::utf8_percent_encode(file_name, percent_encoding::NON_ALPHANUMERIC)),
+            Self::SendSupportImage { file_name, .. } => format!("/v3/devices/support/messages/images?file_name={}", gem_encoding::percent_encode(file_name)),
             Self::GetRewards { .. } => "/v3/devices/rewards".to_string(),
             Self::CreateReferral { .. } => "/v3/devices/rewards/referrals".to_string(),
             Self::UseReferralCode { .. } => "/v3/devices/rewards/referrals/use".to_string(),

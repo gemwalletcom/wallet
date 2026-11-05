@@ -12,4 +12,4 @@ strum = { workspace = true }
 async-trait = { workspace = true }
 gem_client = { path = "../gem_client" }
 gem_jsonrpc = { path = "../gem_jsonrpc", features = ["client"] }
-percent-encoding = { workspace = true }
+gem_encoding = { path = "../gem_encoding", default-features = false }

@@ -2916,8 +2916,8 @@ dependencies = [
  "async-trait",
  "gem_auth",
  "gem_client",
+ "gem_encoding",
  "gem_jsonrpc",
- "percent-encoding",
  "primitives",
  "serde",
  "serde_json",
@@ -3189,7 +3189,7 @@ version = "2.114.88"
 dependencies = [
  "async-trait",
  "gem_client",
- "percent-encoding",
+ "gem_encoding",
  "primitives",
  "reqwest",
  "serde",
