@@ -12,7 +12,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use primitives::WalletSource;
-use tempfile::TempDir;
+use primitives::testkit::temp_dir::TempDir;
 
 use super::{GemWalletImportType, GemWalletService, keystore_id_for_wallet};
 use crate::api::GemDeviceApiClient;

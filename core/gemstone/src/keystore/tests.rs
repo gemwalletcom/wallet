@@ -1,5 +1,5 @@
+use primitives::testkit::temp_dir::TempDir;
 use primitives::{Chain, WalletType};
-use tempfile::TempDir;
 use zeroize::Zeroizing;
 
 use super::testkit::mock_phrase_words;

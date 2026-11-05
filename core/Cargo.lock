@@ -3216,7 +3216,6 @@ dependencies = [
  "serde_json",
  "sha3 0.12.0",
  "strum",
- "tempfile",
  "uuid",
  "zeroize",
 ]
@@ -3564,7 +3563,6 @@ dependencies = [
  "sui-sdk-types",
  "support",
  "swapper",
- "tempfile",
  "tracing",
  "uniffi",
  "url",

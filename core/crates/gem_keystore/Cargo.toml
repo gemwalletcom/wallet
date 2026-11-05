@@ -30,7 +30,6 @@ gem_crypto = { path = "../gem_crypto", default-features = false, features = ["ra
 hex = { workspace = true }
 primitives = { path = "../primitives", features = ["testkit"] }
 serde_json = { workspace = true }
-tempfile = { workspace = true }
 
 [[bench]]
 name = "keystore_v4"

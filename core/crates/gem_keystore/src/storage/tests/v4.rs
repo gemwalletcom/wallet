@@ -26,7 +26,7 @@ fn test_v4_secret_file_is_owner_read_write_only() {
     let mode = fs::metadata(&path).unwrap().permissions().mode();
 
     assert_eq!(mode & 0o777, 0o600, "secret file must not be readable or writable by group/others");
-    assert_eq!(fs::read_dir(&dir).unwrap().count(), 1, "no temp file may survive a write");
+    assert_eq!(fs::read_dir(dir.path()).unwrap().count(), 1, "no temp file may survive a write");
 }
 
 #[test]
@@ -45,13 +45,13 @@ fn test_v4_import_reports_whether_it_wrote_the_file() {
 fn test_v4_lookup_failure_is_an_error_not_absence() {
     let (dir, keystore) = FileKeystore::mock();
     let meta = keystore.import_mnemonic(PHRASE, b"password", None).unwrap();
-    let permissions = fs::metadata(&dir).unwrap().permissions();
-    fs::set_permissions(&dir, fs::Permissions::from_mode(0o000)).unwrap();
-    let lookup_denied = fs::metadata(dir.as_ref().join("probe")).err().map(|error| error.kind()) == Some(std::io::ErrorKind::PermissionDenied);
+    let permissions = fs::metadata(dir.path()).unwrap().permissions();
+    fs::set_permissions(dir.path(), fs::Permissions::from_mode(0o000)).unwrap();
+    let lookup_denied = fs::metadata(dir.path().join("probe")).err().map(|error| error.kind()) == Some(std::io::ErrorKind::PermissionDenied);
 
     let lookup = keystore.get_meta(&meta.keystore_id);
     let import = keystore.import_mnemonic(PHRASE, b"password", Some(meta.keystore_id.clone()));
-    fs::set_permissions(&dir, permissions).unwrap();
+    fs::set_permissions(dir.path(), permissions).unwrap();
 
     if !lookup_denied {
         return;
@@ -266,7 +266,7 @@ fn test_v4_rejects_payload_that_would_exceed_the_read_cap() {
     assert!(keystore.list().unwrap().is_empty());
 }
 
-fn read_file_v4(dir: &tempfile::TempDir, keystore_id: &str) -> FileV4 {
+fn read_file_v4(dir: &primitives::testkit::temp_dir::TempDir, keystore_id: &str) -> FileV4 {
     serde_json::from_slice(&fs::read(v4_path(dir, keystore_id)).unwrap()).unwrap()
 }
 

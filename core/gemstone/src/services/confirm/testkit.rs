@@ -40,9 +40,9 @@ use crate::services::{GemScanService, GemSimulationService};
 use crate::testkit::{EmptyPreferences, TestAlienProvider};
 use crate::transfer_amount::GemTransferAmount;
 use primitives::swap::{Permit2ApprovalData, SwapData, SwapQuoteData};
+use primitives::testkit::temp_dir::TempDir;
 use primitives::{Account, FeePriority, GasPriceType, SwapProvider, TransactionInputType, UTXO};
 use swapper::Quote;
-use tempfile::TempDir;
 
 pub struct ConfirmTestkit {
     pub service: Arc<GemConfirmTransferService>,
