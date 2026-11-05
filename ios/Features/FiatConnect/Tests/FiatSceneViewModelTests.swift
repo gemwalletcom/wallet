@@ -37,7 +37,7 @@ final class FiatSceneViewModelTests {
 
         model.assetQuery.value = .mock(
             asset: asset,
-            balance: .mock(available: BigInt(66_670_000)),
+            balance: .mock(available: BigUInt(66_670_000)),
         )
 
         #expect(model.assetBalance == "66.67 TRX")
@@ -83,7 +83,7 @@ final class FiatSceneViewModelTests {
 
         model.onAssetDataChange(
             .mock(asset: asset),
-            .mock(asset: asset, balance: .mock(available: BigInt(415_650_000))),
+            .mock(asset: asset, balance: .mock(available: BigUInt(415_650_000))),
         )
 
         #expect(model.session.available == 415_650_000)
@@ -98,7 +98,7 @@ final class FiatSceneViewModelTests {
 
         model.onAssetDataChange(
             .mock(asset: asset, metadata: .mock(isSellEnabled: true)),
-            .mock(asset: asset, balance: .mock(available: BigInt(200_000_000)), metadata: .mock(isSellEnabled: true)),
+            .mock(asset: asset, balance: .mock(available: BigUInt(200_000_000)), metadata: .mock(isSellEnabled: true)),
         )
         model.session = model.session.onQuoteResults(results: .mock(request: .mock(quoteType: .sell, amount: 100), quotes: [affordable, unaffordable]))
 
@@ -273,7 +273,7 @@ final class FiatSceneViewModelTests {
         ))
         let trigger = model.loadTrigger
 
-        model.onAssetDataChange(.mock(metadata: .mock(isSellEnabled: true)), .mock(balance: .mock(available: BigInt(500_000_000)), metadata: .mock(isSellEnabled: true)))
+        model.onAssetDataChange(.mock(metadata: .mock(isSellEnabled: true)), .mock(balance: .mock(available: BigUInt(500_000_000)), metadata: .mock(isSellEnabled: true)))
         #expect(model.loadTrigger == trigger)
 
         model.onSelectQuotes([GemProviderRow(kind: .fiat(provider: .transak), name: "Transak", amount: .mock(unit: .symbol(symbol: "BTC")), fiat: nil, isSelected: false)])

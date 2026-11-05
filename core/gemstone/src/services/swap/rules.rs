@@ -63,13 +63,13 @@ pub fn pay_value(pay_asset: &Asset, value: &str, format: &GemNumberFormat) -> Op
     value_from_input(&format.decimal_separator, value, pay_asset.decimals).ok()?.to_biguint().filter(|value| *value > BigUint::ZERO)
 }
 
-pub fn quote_input(pay_asset: &Asset, receive_asset: &Asset, value: &str, available_value: &BigInt, slippage_bps: Option<u32>, format: &GemNumberFormat) -> Option<GemSwapQuoteInput> {
+pub fn quote_input(pay_asset: &Asset, receive_asset: &Asset, value: &str, available_value: &BigUint, slippage_bps: Option<u32>, format: &GemNumberFormat) -> Option<GemSwapQuoteInput> {
     if pay_asset.id == receive_asset.id {
         return None;
     }
     let atomic = pay_value(pay_asset, value, format)?;
     Some(GemSwapQuoteInput {
-        use_max_amount: BigInt::from(atomic.clone()) == *available_value,
+        use_max_amount: atomic == *available_value,
         request: GemSwapRequest {
             pay_asset_id: pay_asset.id.clone(),
             receive_asset_id: receive_asset.id.clone(),
@@ -92,8 +92,8 @@ pub fn slippage_bps_from_percent(percent: f64) -> Option<u32> {
     }
 }
 
-pub fn amount_for_percent(available: &BigInt, percent: u32) -> BigInt {
-    available * BigInt::from(percent) / BigInt::from(100u32)
+pub fn amount_for_percent(available: &BigUint, percent: u32) -> BigUint {
+    available * BigUint::from(percent) / BigUint::from(100u32)
 }
 
 pub fn slippage_percent(bps: u32) -> f64 {
@@ -361,7 +361,7 @@ mod tests {
         let pay = Asset::from_chain(Chain::Ethereum);
         let receive = Asset::from_chain(Chain::Bitcoin);
         let format = GemNumberFormat { decimal_separator: ".".to_string() };
-        let available = BigInt::from(2_000_000_000_000_000_000u128);
+        let available = BigUint::from(2_000_000_000_000_000_000u128);
 
         let input = quote_input(&pay, &receive, "1", &available, None, &format).unwrap();
         assert_eq!(input.request.pay_asset_id, pay.id);
@@ -406,12 +406,12 @@ mod tests {
 
     #[test]
     fn test_a_percent_button_takes_that_share_of_the_balance() {
-        let available = BigInt::from(1_000_000_000u64);
+        let available = BigUint::from(1_000_000_000u64);
         assert_eq!(amount_for_percent(&available, 100), available);
-        assert_eq!(amount_for_percent(&available, 50), BigInt::from(500_000_000u64));
-        assert_eq!(amount_for_percent(&available, 25), BigInt::from(250_000_000u64));
-        assert_eq!(amount_for_percent(&available, 0), BigInt::from(0u32));
-        assert_eq!(amount_for_percent(&BigInt::from(3u32), 50), BigInt::from(1u32), "a share that does not divide evenly rounds down, never up past the balance");
+        assert_eq!(amount_for_percent(&available, 50), BigUint::from(500_000_000u64));
+        assert_eq!(amount_for_percent(&available, 25), BigUint::from(250_000_000u64));
+        assert_eq!(amount_for_percent(&available, 0), BigUint::from(0u32));
+        assert_eq!(amount_for_percent(&BigUint::from(3u32), 50), BigUint::from(1u32), "a share that does not divide evenly rounds down, never up past the balance");
     }
 
     #[test]

@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
 import Components
 import Foundation
 import func Gemstone.assetListRow
@@ -178,7 +177,7 @@ extension FiatSceneViewModel {
     func onAssetDataChange(_: AssetData, _ newValue: AssetData) {
         let type = type
         session = session
-            .onBalanceChanged(available: BigUInt(newValue.balance.available))
+            .onBalanceChanged(available: newValue.balance.available)
             .onSellEnabledChanged(isSellEnabled: newValue.metadata.isSellEnabled)
         if session.quoteType.toPrimitives() != type {
             loadTrigger = FiatLoadTrigger(session: session, isImmediate: true)

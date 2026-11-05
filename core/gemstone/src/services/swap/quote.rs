@@ -7,7 +7,7 @@ use super::model::{GemSwapPairSelection, GemSwapSide};
 use super::rules;
 use super::session::GemSwapQuoteInput;
 use super::{GemSwapPairSuggestion, GemSwapProviderAnswer, GemSwapQuoteProviders, GemSwapService, GemSwapSession};
-use crate::models::custom_types::GemBigInt;
+use crate::models::custom_types::GemBigUint;
 use crate::services::assets::GemAssetsService;
 use crate::services::balance::GemBalanceService;
 use crate::services::config::GemConfigService;
@@ -96,7 +96,7 @@ impl GemSwapQuoteService {
         rules::select_pair_asset(selection, side, asset_id)
     }
 
-    pub fn amount_for_percent(&self, available: GemBigInt, percent: u32) -> GemBigInt {
+    pub fn amount_for_percent(&self, available: GemBigUint, percent: u32) -> GemBigUint {
         rules::amount_for_percent(&available, percent)
     }
 

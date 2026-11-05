@@ -20,19 +20,19 @@ public struct BalanceMetadata: Codable, Equatable, Hashable, Sendable {
 }
 
 public struct Balance: Codable, Equatable, Hashable, Sendable {
-	public let available: BigInt
-	public let frozen: BigInt
-	public let locked: BigInt
-	public let staked: BigInt
-	public let pending: BigInt
-	public let pendingUnconfirmed: BigInt
-	public let rewards: BigInt
-	public let reserved: BigInt
-	public let earn: BigInt
-	public let withdrawable: BigInt
+	public let available: BigUInt
+	public let frozen: BigUInt
+	public let locked: BigUInt
+	public let staked: BigUInt
+	public let pending: BigUInt
+	public let pendingUnconfirmed: BigUInt
+	public let rewards: BigUInt
+	public let reserved: BigUInt
+	public let earn: BigUInt
+	public let withdrawable: BigUInt
 	public let metadata: BalanceMetadata?
 
-	public init(available: BigInt, frozen: BigInt, locked: BigInt, staked: BigInt, pending: BigInt, pendingUnconfirmed: BigInt, rewards: BigInt, reserved: BigInt, earn: BigInt, withdrawable: BigInt, metadata: BalanceMetadata?) {
+	public init(available: BigUInt, frozen: BigUInt, locked: BigUInt, staked: BigUInt, pending: BigUInt, pendingUnconfirmed: BigUInt, rewards: BigUInt, reserved: BigUInt, earn: BigUInt, withdrawable: BigUInt, metadata: BalanceMetadata?) {
 		self.available = available
 		self.frozen = frozen
 		self.locked = locked

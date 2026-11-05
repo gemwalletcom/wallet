@@ -15,14 +15,14 @@ public enum DelegationState: String, Codable, CaseIterable, Equatable, Sendable 
 public struct DelegationBase: Codable, Equatable, Hashable, Sendable {
 	public let assetId: AssetId
 	public let state: DelegationState
-	public let balance: BigInt
-	public let shares: BigInt
-	public let rewards: BigInt
+	public let balance: BigUInt
+	public let shares: BigUInt
+	public let rewards: BigUInt
 	public let completionDate: Date?
 	public let delegationId: String
 	public let validatorId: String
 
-	public init(assetId: AssetId, state: DelegationState, balance: BigInt, shares: BigInt, rewards: BigInt, completionDate: Date?, delegationId: String, validatorId: String) {
+	public init(assetId: AssetId, state: DelegationState, balance: BigUInt, shares: BigUInt, rewards: BigUInt, completionDate: Date?, delegationId: String, validatorId: String) {
 		self.assetId = assetId
 		self.state = state
 		self.balance = balance

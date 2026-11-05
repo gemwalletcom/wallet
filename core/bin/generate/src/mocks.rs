@@ -81,7 +81,7 @@ pub(crate) const SWIFT_MOCKS: MockSyntax = MockSyntax {
         ("BigUint", "String", "\"0\""),
         ("DateTime<Utc>", "Date", "Date(timeIntervalSince1970: 0)"),
         ("serde_json::Value", "AnyCodableValue", ""),
-        ("BigIntValue", "BigInt", "0"),
+        ("BigIntValue", "BigUInt", "0"),
     ],
     app_type_imports: &[],
     core_qualifier: "Gemstone.",

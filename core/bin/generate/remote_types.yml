@@ -459,10 +459,6 @@ conversions:
     swift:
       - "{}.description"
       - "BigUInt(stringLiteral: {})"
-  BigIntValue:
-    swift:
-      - "BigInt({})"
-      - "{}.magnitude"
   serde_json::Value:
     swift:
       - "AnyCodableValue(core: {})"
@@ -483,7 +479,7 @@ declared:
 type_mappings:
   swift:
     BigInt: String
-    BigIntValue: BigInt
+    BigIntValue: BigUInt
     BigUint: String
     DateTime: Date
     Value: AnyCodableValue

@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
 import Foundation
 import Gemstone
 import class Gemstone.GemAssetConfigService
