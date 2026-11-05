@@ -44,6 +44,7 @@ import uniffi.gemstone.GemFiatTransactionBadge
 import uniffi.gemstone.GemHeaderButtonKind
 import uniffi.gemstone.GemInfoImage
 import uniffi.gemstone.GemKeystoreAuthentication
+import uniffi.gemstone.GemListRowIcon
 import uniffi.gemstone.GemNameIndicator
 import uniffi.gemstone.GemNoticeKind
 import uniffi.gemstone.GemNotificationIcon
@@ -152,10 +153,39 @@ fun GemValueTone.textStyle(): ListItemTextStyle = when (this) {
     GemValueTone.NEGATIVE -> ListItemTextStyle.Negative
 }
 
+fun GemValueTone.subtitleStyle(): ListItemTextStyle = when (this) {
+    GemValueTone.PLAIN -> ListItemTextStyle.Secondary
+    GemValueTone.NEUTRAL, GemValueTone.POSITIVE, GemValueTone.WARNING, GemValueTone.NEGATIVE -> textStyle()
+}
+
 @Composable
 fun GemNoticeKind.color(): Color = when (this) {
     GemNoticeKind.ERROR -> MaterialTheme.colorScheme.error
     GemNoticeKind.WARNING, GemNoticeKind.INFO -> pendingColor
+}
+
+fun GemListRowIcon.image(): ListItemImage? = when (this) {
+    GemListRowIcon.NONE -> null
+    GemListRowIcon.APP_LOGO -> ListItemImage.Drawable(R.drawable.ic_gem_foreground)
+    GemListRowIcon.WALLETS -> ListItemImage.Drawable(R.drawable.settings_wallets)
+    GemListRowIcon.SECURITY -> ListItemImage.Drawable(R.drawable.settings_security)
+    GemListRowIcon.NOTIFICATIONS -> ListItemImage.Drawable(R.drawable.settings_notifications)
+    GemListRowIcon.PRICE_ALERTS -> ListItemImage.Drawable(R.drawable.settings_pricealert)
+    GemListRowIcon.PREFERENCES -> ListItemImage.Drawable(R.drawable.settings_preferences)
+    GemListRowIcon.WALLET_CONNECT -> ListItemImage.Drawable(R.drawable.settings_wc)
+    GemListRowIcon.SUPPORT -> ListItemImage.Drawable(R.drawable.settings_support)
+    GemListRowIcon.REWARDS -> ListItemImage.Drawable(R.drawable.settings_wallets)
+    GemListRowIcon.ABOUT_US -> ListItemImage.Drawable(R.drawable.settings_about_us)
+    GemListRowIcon.DEVELOPER -> ListItemImage.Drawable(R.drawable.settings_developer)
+    GemListRowIcon.CURRENCY -> ListItemImage.Drawable(R.drawable.settings_currency)
+    GemListRowIcon.LANGUAGE -> ListItemImage.Drawable(R.drawable.settings_language)
+    GemListRowIcon.APPEARANCE -> ListItemImage.Drawable(R.drawable.settings_appearance)
+    GemListRowIcon.NETWORKS -> ListItemImage.Drawable(R.drawable.settings_networks)
+    GemListRowIcon.CONTACTS -> ListItemImage.Drawable(R.drawable.settings_contacts)
+    GemListRowIcon.PERPETUALS -> ListItemImage.Drawable(R.drawable.settings_perpetuals)
+    GemListRowIcon.PIN -> ListItemImage.Symbol(ListItemSymbol.Pin)
+    GemListRowIcon.UNPIN -> ListItemImage.Symbol(ListItemSymbol.Unpin)
+    GemListRowIcon.ADD_TO_WALLET -> ListItemImage.Symbol(ListItemSymbol.AddCircle)
 }
 
 fun GemAcquireOption.image(): ListItemImage = ListItemImage.Symbol(
