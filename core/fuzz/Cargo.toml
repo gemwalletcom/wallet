@@ -12,11 +12,13 @@ cargo-fuzz = true
 [dependencies]
 libfuzzer-sys = "0.4"
 serde_json = "1.0.151"
+tokio = { version = "1.53.1", features = ["rt-multi-thread"] }
 
 gemstone = { path = "../gemstone" }
 primitives = { path = "../crates/primitives" }
 payment = { path = "../crates/payment" }
 signer = { path = "../crates/signer" }
+gem_client = { path = "../crates/gem_client", features = ["testkit"] }
 gem_encoding = { path = "../crates/gem_encoding", features = ["protobuf"] }
 gem_keystore = { path = "../crates/gem_keystore", features = ["v3"] }
 gem_solana = { path = "../crates/gem_solana" }
@@ -24,10 +26,15 @@ gem_sui = { path = "../crates/gem_sui", features = ["rpc"] }
 gem_ton = { path = "../crates/gem_ton", features = ["tvm"] }
 gem_tron = { path = "../crates/gem_tron" }
 gem_wallet_connect = { path = "../crates/gem_wallet_connect" }
+name_resolver = { path = "../crates/name_resolver" }
 
 [[bin]]
 name = "address"
 path = "fuzz_targets/address.rs"
+
+[[bin]]
+name = "ens_resolution"
+path = "fuzz_targets/ens_resolution.rs"
 
 [[bin]]
 name = "keystore_file"

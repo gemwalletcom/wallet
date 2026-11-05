@@ -10,6 +10,7 @@ async-trait = { workspace = true }
 alloy-primitives = { workspace = true }
 alloy-sol-types = { workspace = true }
 idna = { workspace = true }
+url = { workspace = true }
 
 gem_client = { path = "../gem_client", features = ["reqwest"] }
 gem_jsonrpc = { path = "../gem_jsonrpc", features = ["reqwest"] }
