@@ -45,7 +45,8 @@ die_emulator() {
     echo "$1" >&2
     [ ! -s "$AVD_LOG" ] || { echo "--- avd.log" >&2; cat "$AVD_LOG" >&2; }
     [ ! -s "$EMULATOR_LOG" ] || { echo "--- emulator.log" >&2; cat "$EMULATOR_LOG" >&2; }
-    echo "--- /dev/kvm $([ -e /dev/kvm ] && echo present || echo absent)" >&2
+    echo "--- /dev/kvm $([ -e /dev/kvm ] && echo present || echo absent), avd home ${ANDROID_AVD_HOME:-$HOME/.android/avd} (ANDROID_AVD_HOME=${ANDROID_AVD_HOME:-unset} ANDROID_SDK_HOME=${ANDROID_SDK_HOME:-unset})" >&2
+    ls -l "${ANDROID_AVD_HOME:-$HOME/.android/avd}" >&2 || true
     exit 1
 }
 
@@ -57,6 +58,8 @@ android_device() {
         if ! "$EMULATOR" -list-avds | grep -qx "$AVD"; then
             image="$(cd "$ANDROID_SDK" && ls -d system-images/android-*/google_apis/* 2>/dev/null | newest || true)"
             [ -n "$image" ] || { echo "no google_apis system image under $ANDROID_SDK/system-images" >&2; exit 1; }
+            # avdmanager exits 0 having created nothing when the AVD home is missing, so make it first
+            mkdir -p "${ANDROID_AVD_HOME:-$HOME/.android/avd}"
             echo no | "$ANDROID_SDK/cmdline-tools/latest/bin/avdmanager" create avd -n "$AVD" -d pixel_9 -k "$(tr / ';' <<<"$image")" >"$AVD_LOG" 2>&1
             # avdmanager can exit 0 without creating anything, which would leave nothing to wait for
             "$EMULATOR" -list-avds | grep -qx "$AVD" || die_emulator "avdmanager produced no $AVD from $image"
