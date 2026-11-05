@@ -73,6 +73,8 @@ pub fn candles_with_price(candles: &[ChartCandleStick], latest: Option<AssetPric
     candles
 }
 
+pub const CHART_PERIODS: [ChartPeriod; 6] = [ChartPeriod::Hour, ChartPeriod::Day, ChartPeriod::Week, ChartPeriod::Month, ChartPeriod::Year, ChartPeriod::All];
+
 pub const DEFAULT_CANDLE_PERIOD: ChartPeriod = ChartPeriod::Day;
 
 pub fn has_candle_period(period: ChartPeriod) -> bool {

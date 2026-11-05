@@ -142,13 +142,6 @@ impl GemChartSession {
         })
     }
 
-    pub fn periods(&self) -> Vec<ChartPeriod> {
-        [ChartPeriod::Hour, ChartPeriod::Day, ChartPeriod::Week, ChartPeriod::Month, ChartPeriod::Year, ChartPeriod::All]
-            .into_iter()
-            .filter(|period| !self.shows_candles() || rules::has_candle_period(*period))
-            .collect()
-    }
-
     pub(super) fn on_select_style(&self, style: GemChartStyle) -> Self {
         if style == self.style || (style == GemChartStyle::Candles && !self.has_candles) {
             return self.clone();
@@ -246,6 +239,10 @@ impl GemChartSession {
 
 #[uniffi::export]
 impl GemChartSession {
+    pub fn periods(&self) -> Vec<ChartPeriod> {
+        rules::CHART_PERIODS.into_iter().filter(|period| !self.shows_candles() || rules::has_candle_period(*period)).collect()
+    }
+
     pub fn on_select_period(&self, period: ChartPeriod) -> Self {
         if period == self.period {
             return self.clone();
