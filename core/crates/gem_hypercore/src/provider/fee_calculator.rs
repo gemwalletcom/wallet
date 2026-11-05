@@ -1,58 +1,21 @@
 use num_bigint::BigInt;
 use number_formatter::BigNumberFormatter;
-use primitives::{Asset, asset_constants::HYPERCORE_SPOT_USDC_ASSET_ID, known_assets::HYPERCORE_PERPETUAL_USDC, swap::SwapData};
+use primitives::{Asset, asset_constants::HYPERCORE_SPOT_USDC_ASSET_ID, swap::SwapData};
 use std::error::Error;
-use std::fmt::Display;
 
 use crate::perpetual_formatter::USDC_DECIMALS_MULTIPLIER;
 
-const HYPERCORE_BUILDER_FEE_RATE_SCALE: f64 = 100_000.0;
+pub const BUILDER_FEE_RATE_SCALE: u32 = 100_000;
 
 pub fn calculate_perpetual_fee_amount(fiat_value: f64, fee_rate: f64, builder_fee_bps: u32) -> BigInt {
     fee_amount_in_usdc(fiat_value, fee_rate + builder_fee_rate(builder_fee_bps))
 }
 
-pub fn calculate_spot_fee_amount(swap_data: &SwapData, from_asset: &Asset, to_asset: &Asset, fee_rate: f64, builder_fee_bps: u32) -> Result<BigInt, Box<dyn Error + Send + Sync>> {
-    let fiat_value = calculate_spot_usdc_value(swap_data, from_asset, to_asset, builder_fee_bps)?;
-    let usdc_decimals = spot_usdc_decimals(from_asset, to_asset)?;
-    let value = fiat_value * decimal_scale(usdc_decimals.saturating_sub(HYPERCORE_PERPETUAL_USDC.decimals));
-    let trade_fee = fee_amount_in_usdc(value, fee_rate);
-    let builder_fee = fee_amount_in_usdc(value, builder_fee_rate(builder_fee_bps));
+pub fn calculate_spot_fee_amount(swap_data: &SwapData, to_asset: &Asset, fee_rate: f64, builder_fee_bps: u32) -> Result<BigInt, Box<dyn Error + Send + Sync>> {
+    let builder_rate = if to_asset.id == *HYPERCORE_SPOT_USDC_ASSET_ID { builder_fee_rate(builder_fee_bps) } else { 0.0 };
+    let received = BigNumberFormatter::value_as_f64(&swap_data.quote.to_value, 0)? / (1.0 - builder_rate);
 
-    Ok(trade_fee + builder_fee)
-}
-
-fn calculate_spot_usdc_value(swap_data: &SwapData, from_asset: &Asset, to_asset: &Asset, builder_fee_bps: u32) -> Result<f64, Box<dyn Error + Send + Sync>> {
-    let usdc_from = from_asset.id == *HYPERCORE_SPOT_USDC_ASSET_ID;
-    let usdc_to = to_asset.id == *HYPERCORE_SPOT_USDC_ASSET_ID;
-
-    match (usdc_from, usdc_to) {
-        (true, false) => quote_value(&swap_data.quote.from_value, from_asset.decimals),
-        (false, true) => {
-            let net_output = quote_value(&swap_data.quote.to_value, to_asset.decimals)?;
-            let fee_factor = 1.0 - builder_fee_rate(builder_fee_bps);
-            Ok(net_output / fee_factor)
-        }
-        _ => Err("spot swap quote must have exactly one USDC leg".into()),
-    }
-}
-
-fn quote_value(value: impl Display, decimals: u32) -> Result<f64, Box<dyn Error + Send + Sync>> {
-    Ok(BigNumberFormatter::value_as_f64(value, decimals)?)
-}
-
-fn spot_usdc_decimals(from_asset: &Asset, to_asset: &Asset) -> Result<u32, Box<dyn Error + Send + Sync>> {
-    if from_asset.id == *HYPERCORE_SPOT_USDC_ASSET_ID {
-        return Ok(from_asset.decimals);
-    }
-    if to_asset.id == *HYPERCORE_SPOT_USDC_ASSET_ID {
-        return Ok(to_asset.decimals);
-    }
-    Err("spot swap quote must have exactly one USDC leg".into())
-}
-
-fn decimal_scale(power: u32) -> f64 {
-    10_i64.pow(power) as f64
+    Ok(BigInt::from((received * (fee_rate + builder_rate)) as i64))
 }
 
 fn fee_amount_in_usdc(value: f64, fee_rate: f64) -> BigInt {
@@ -60,7 +23,7 @@ fn fee_amount_in_usdc(value: f64, fee_rate: f64) -> BigInt {
 }
 
 pub(crate) fn builder_fee_rate(builder_fee_bps: u32) -> f64 {
-    f64::from(builder_fee_bps) / HYPERCORE_BUILDER_FEE_RATE_SCALE
+    f64::from(builder_fee_bps) / f64::from(BUILDER_FEE_RATE_SCALE)
 }
 
 #[cfg(test)]
@@ -68,7 +31,7 @@ mod tests {
     use super::*;
     use primitives::{
         SwapProvider,
-        known_assets::{HYPERCORE_SPOT_HYPE, HYPERCORE_SPOT_USDC},
+        known_assets::{HYPERCORE_HYPE, HYPERCORE_SPOT_USDC},
     };
 
     #[test]
@@ -88,13 +51,15 @@ mod tests {
     }
 
     #[test]
-    fn calculate_spot_fee_amount_cases() {
-        for (swap_data, from_asset, to_asset, expected) in [
-            (SwapData::mock_with_values(SwapProvider::Hyperliquid, "30000000", "1181917897"), &HYPERCORE_SPOT_HYPE, &HYPERCORE_SPOT_USDC, 1_194_273_u64),
-            (SwapData::mock_with_values(SwapProvider::Hyperliquid, "1197900000", "29986500"), &HYPERCORE_SPOT_USDC, &HYPERCORE_SPOT_HYPE, 1_209_878_u64),
-        ] {
-            let result = calculate_spot_fee_amount(&swap_data, from_asset, to_asset, 0.00056, 45).unwrap();
-            assert_eq!(result, BigInt::from(expected));
-        }
+    fn test_spot_fee_is_charged_in_the_received_token() {
+        let sell = SwapData::mock_with_values(SwapProvider::Hyperliquid, "30000000", "1181917897");
+        let buy = SwapData::mock_with_values(SwapProvider::Hyperliquid, "1197900000", "29986500");
+
+        assert_eq!(
+            calculate_spot_fee_amount(&sell, &HYPERCORE_SPOT_USDC, 0.00056, 45).unwrap(),
+            BigInt::from(1_194_274),
+            "a sell pays the trade and builder fees in USDC"
+        );
+        assert_eq!(calculate_spot_fee_amount(&buy, &HYPERCORE_HYPE, 0.00056, 45).unwrap(), BigInt::from(16_792), "a buy pays only the trade fee, in HYPE");
     }
 }

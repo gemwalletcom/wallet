@@ -7,6 +7,8 @@ use gem_hypercore::{
         spot::{SpotMarket, SpotMeta},
         token::SpotToken,
     },
+    perpetual_formatter::MIN_ORDER_VALUE_USD,
+    provider::fee_calculator::BUILDER_FEE_RATE_SCALE,
     rpc::client::HyperCoreClient,
 };
 use num_bigint::BigUint;
@@ -28,8 +30,6 @@ use super::{
     math::{SpotSide, format_decimal, format_order_size, limit_price_with_slippage, round_size_down, scale_units, spot_asset_index},
     simulator::{simulate_buy, simulate_sell},
 };
-
-const MIN_QUOTE_AMOUNT: i64 = 10;
 
 fn compute_actual_from(use_max_amount: bool, amount: &str, decimals: u32) -> Result<Option<BigUint>, NumberFormatterError> {
     if !use_max_amount {
@@ -108,10 +108,7 @@ impl Swapper for HyperCoreSpot {
     }
 
     fn supported_assets(&self) -> Vec<SwapperChainAsset> {
-        vec![SwapperChainAsset::Assets(
-            Chain::HyperCore,
-            vec![HYPERCORE_SPOT_HYPE.id.clone(), HYPERCORE_SPOT_USDC.id.clone(), HYPERCORE_SPOT_UBTC.id.clone()],
-        )]
+        vec![SwapperChainAsset::Assets(Chain::HyperCore, vec![HYPERCORE_SPOT_USDC.id.clone(), HYPERCORE_SPOT_UBTC.id.clone()])]
     }
 
     fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {
@@ -157,17 +154,14 @@ impl Swapper for HyperCoreSpot {
             }
         };
 
-        let quote_amount = match side {
-            SpotSide::Sell => &raw_output,
-            SpotSide::Buy => &amount_in,
+        let output_amount = match side {
+            SpotSide::Sell => {
+                let builder_fee = i64::from(client.config.max_builder_fee_bps);
+                let scale = i64::from(BUILDER_FEE_RATE_SCALE);
+                &raw_output * Decimal::from(scale - builder_fee) / Decimal::from(scale)
+            }
+            SpotSide::Buy => raw_output,
         };
-        if quote_amount < &Decimal::from(MIN_QUOTE_AMOUNT) {
-            return Err(SwapperError::InputAmountError { min_amount: None });
-        }
-
-        let builder_fee = client.config.max_builder_fee_bps;
-        let fee_factor = Decimal::from(100_000 - builder_fee as i64) / Decimal::from(100_000);
-        let output_amount = &raw_output * fee_factor;
 
         let token_decimals = to_token.wei_decimals;
 
@@ -177,6 +171,9 @@ impl Swapper for HyperCoreSpot {
 
         let price_decimals = 8u32.saturating_sub(base_token.sz_decimals);
         let limit_price = limit_price_with_slippage(&base_limit_price, side, request.options.slippage.bps, price_decimals)?;
+        if &size_rounded * &limit_price < Decimal::from(i64::from(MIN_ORDER_VALUE_USD)) {
+            return Err(SwapperError::InputAmountError { min_amount: None });
+        }
         let limit_price = BigNumberFormatter::decimal_to_string(&limit_price, price_decimals);
 
         let order_size = format_order_size(&size_rounded, base_token.sz_decimals);
@@ -217,6 +214,7 @@ mod unit_tests {
     use crate::{
         Route,
         alien::mock::{MockFn, ProviderMock},
+        testkit::mock_quote,
     };
 
     use super::*;
@@ -238,6 +236,44 @@ mod unit_tests {
         spot.get_spot_meta(&client).await.unwrap();
 
         assert_eq!(requests.load(Ordering::Relaxed), 1);
+    }
+
+    fn spot_with_orderbook() -> HyperCoreSpot {
+        HyperCoreSpot::new(Arc::new(ProviderMock {
+            response: MockFn(Box::new(|target| {
+                let body = serde_json::from_slice::<serde_json::Value>(&target.body.unwrap_or_default()).unwrap();
+                match body["type"].as_str() {
+                    Some("l2Book") => include_str!("../../../../../gem_hypercore/testdata/l2_book_spot_swap.json"),
+                    _ => include_str!("../../../../../gem_hypercore/testdata/spot_meta_spot_swap.json"),
+                }
+                .to_string()
+            })),
+        }))
+    }
+
+    #[tokio::test]
+    async fn test_an_order_worth_less_than_the_minimum_after_size_rounding_is_refused() {
+        let spot = spot_with_orderbook();
+        let mut below = mock_quote(SwapperQuoteAsset::from(&*HYPERCORE_SPOT_USDC), SwapperQuoteAsset::from(&*HYPERCORE_HYPE));
+        below.value = BigUint::from(1_000_000_000u64);
+        let mut above = below.clone();
+        above.value = BigUint::from(1_100_000_000u64);
+
+        assert_eq!(spot.get_quote(&below).await.err(), Some(SwapperError::InputAmountError { min_amount: None }));
+        let order: PlaceOrder = spot.get_quote(&above).await.unwrap().route_data().unwrap();
+        assert_eq!((order.orders[0].price.as_str(), order.orders[0].size.as_str()), ("87.134", "0.12"));
+    }
+
+    #[tokio::test]
+    async fn test_the_builder_fee_comes_off_a_sell_only() {
+        let spot = spot_with_orderbook();
+        let mut buy = mock_quote(SwapperQuoteAsset::from(&*HYPERCORE_SPOT_USDC), SwapperQuoteAsset::from(&*HYPERCORE_HYPE));
+        buy.value = BigUint::from(1_100_000_000u64);
+        let mut sell = mock_quote(SwapperQuoteAsset::from(&*HYPERCORE_HYPE), SwapperQuoteAsset::from(&*HYPERCORE_SPOT_USDC));
+        sell.value = BigUint::from(12_000_000u64);
+
+        assert_eq!(spot.get_quote(&buy).await.unwrap().to_value, BigUint::from(12_000_000u64));
+        assert_eq!(spot.get_quote(&sell).await.unwrap().to_value, BigUint::from(1_038_732_400u64));
     }
 
     #[tokio::test]
@@ -302,8 +338,8 @@ mod swap_integration_tests {
 
     #[tokio::test]
     async fn test_spot_quote_hype_usdc() {
-        assert_spot_quote(&HYPERCORE_SPOT_HYPE, &HYPERCORE_SPOT_USDC).await;
-        assert_spot_quote(&HYPERCORE_SPOT_USDC, &HYPERCORE_SPOT_HYPE).await;
+        assert_spot_quote(&HYPERCORE_HYPE, &HYPERCORE_SPOT_USDC).await;
+        assert_spot_quote(&HYPERCORE_SPOT_USDC, &HYPERCORE_HYPE).await;
     }
 
     #[tokio::test]

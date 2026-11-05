@@ -117,7 +117,11 @@ impl TransferAmountInput {
             (true, false) => value.clone(),
             (true, true) => &value + &self.fee,
         };
-        let should_skip_fee_check = asset.chain() == Chain::HyperCore && !spends_balance;
+        let should_skip_fee_check = match (asset.chain(), &self.input_type) {
+            (Chain::HyperCore, TransactionInputType::Swap { .. }) => true,
+            (Chain::HyperCore, _) => !spends_balance,
+            _ => false,
+        };
         let minimum_account_balance = match asset.chain().minimum_account_balance() {
             Some(minimum) if asset.asset_type == AssetType::NATIVE && !self.is_max_amount && spends_balance => Some(BigInt::from(minimum)),
             _ => None,
@@ -175,6 +179,7 @@ mod tests {
     use super::*;
     use crate::{
         AccountDataType, Asset, Delegation, DelegationValidator, PerpetualConfirmData, PerpetualDirection, PerpetualType, Resource, SwapProvider,
+        known_assets::{HYPERCORE_HYPE, HYPERCORE_SPOT_USDC},
         nft::NFTAsset,
         swap::{ApprovalData, SwapData},
     };
@@ -633,6 +638,24 @@ mod tests {
         let mut ethereum = TransferAmountInput::mock(TransactionInputType::Transfer { asset: Asset::mock() }, 1, 100_000, 100_000);
         ethereum.destination_account_exists = Some(false);
         assert!(ethereum.calculate().is_ok());
+    }
+
+    #[test]
+    fn test_calculate_a_hypercore_swap_pays_its_fee_out_of_the_received_token() {
+        let sell = TransactionInputType::Swap {
+            from_asset: HYPERCORE_HYPE.clone(),
+            to_asset: HYPERCORE_SPOT_USDC.clone(),
+            swap_data: SwapData::mock_with_values(SwapProvider::Hyperliquid, "12000000", "1038732400"),
+        };
+        let amount = TransferAmountInput {
+            fee_asset: HYPERCORE_SPOT_USDC.id.clone(),
+            is_max_amount: true,
+            ..TransferAmountInput::mock(sell, 12_000_000, 12_000_000, 0)
+        }
+        .calculate()
+        .unwrap();
+
+        assert_eq!(amount.value, BigInt::from(12_000_000), "selling all HYPE with no USDC on hand still sends the whole amount");
     }
 
     #[test]

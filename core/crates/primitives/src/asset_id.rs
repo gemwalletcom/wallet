@@ -3,7 +3,7 @@ use std::fmt;
 use num_bigint::BigUint;
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de};
 
-use crate::{Asset, AssetSubtype, ChainType, EVMChain, EvmNativeCurrency, chain::Chain, known_assets};
+use crate::{Asset, AssetSubtype, ChainType, EVMChain, EvmNativeCurrency, asset_constants::HYPERCORE_SPOT_HYPE_TOKEN_ID, chain::Chain, known_assets};
 
 pub const CHAIN_SEPARATOR: &str = "_";
 pub const TOKEN_ID_SEPARATOR: &str = "::";
@@ -158,10 +158,17 @@ impl AssetId {
 
     fn native_mirror_exponent(&self) -> Option<u32> {
         let token_id = self.token_id.as_deref()?;
-        match EVMChain::from_chain(self.chain)?.native_currency() {
-            EvmNativeCurrency::Mirrored { token, decimals } if token == token_id => Asset::from_chain(self.chain).decimals.checked_sub(decimals),
-            EvmNativeCurrency::Mirrored { .. } | EvmNativeCurrency::Wrapped(_) | EvmNativeCurrency::Token(_) | EvmNativeCurrency::None => None,
+        let (token, decimals) = match self.chain {
+            Chain::HyperCore => (HYPERCORE_SPOT_HYPE_TOKEN_ID, known_assets::HYPERCORE_SPOT_HYPE.decimals),
+            _ => match EVMChain::from_chain(self.chain)?.native_currency() {
+                EvmNativeCurrency::Mirrored { token, decimals } => (token, decimals),
+                EvmNativeCurrency::Wrapped(_) | EvmNativeCurrency::Token(_) | EvmNativeCurrency::None => return None,
+            },
+        };
+        if token != token_id {
+            return None;
         }
+        Asset::from_chain(self.chain).decimals.checked_sub(decimals)
     }
 
     pub fn token_subtype(&self) -> AssetSubtype {
@@ -203,7 +210,7 @@ impl AssetIdVecExt for Vec<AssetId> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::asset_constants::{ARC_EURC_ASSET_ID, ARC_USDC_ASSET_ID, ETHEREUM_USDT_ASSET_ID, ETHEREUM_USDT_TOKEN_ID, HYPERCORE_SPOT_HYPE_ASSET_ID, STABLE_USDT0_ASSET_ID, STELLAR_USDC_ASSET_ID};
+    use crate::asset_constants::{ARC_EURC_ASSET_ID, ARC_USDC_ASSET_ID, ETHEREUM_USDT_ASSET_ID, ETHEREUM_USDT_TOKEN_ID, HYPERCORE_SPOT_HYPE_ASSET_ID, HYPERCORE_SPOT_USDC_ASSET_ID, STABLE_USDT0_ASSET_ID, STELLAR_USDC_ASSET_ID};
 
     #[test]
     fn test_new_asset_id_with_coin() {
@@ -247,6 +254,8 @@ mod tests {
         assert_eq!(ARC_USDC_ASSET_ID.clone().mirror_to_native(value.clone()), (AssetId::from_chain(Chain::Arc), BigUint::from(5_000_000_000_000_000_000u64)));
         assert_eq!(ARC_EURC_ASSET_ID.clone().mirror_to_native(value.clone()), (ARC_EURC_ASSET_ID.clone(), value.clone()));
         assert_eq!(STABLE_USDT0_ASSET_ID.clone().mirror_to_native(value.clone()), (AssetId::from_chain(Chain::Stable), BigUint::from(5_000_000_000_000_000_000u64)));
+        assert_eq!(HYPERCORE_SPOT_HYPE_ASSET_ID.clone().mirror_to_native(value.clone()), (AssetId::from_chain(Chain::HyperCore), value.clone()));
+        assert_eq!(HYPERCORE_SPOT_USDC_ASSET_ID.clone().mirror_to_native(value.clone()), (HYPERCORE_SPOT_USDC_ASSET_ID.clone(), value.clone()));
         assert_eq!(AssetId::from_chain(Chain::Arc).mirror_to_native(value.clone()), (AssetId::from_chain(Chain::Arc), value));
     }
 
