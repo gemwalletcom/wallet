@@ -34,6 +34,7 @@ struct ScreenRecordingProtectionModifier: ViewModifier {
         .onAppear {
             updateRecordingState()
         }
+        .excludeFromWindowCapture()
     }
 
     private func updateRecordingState() {

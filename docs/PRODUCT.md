@@ -256,6 +256,7 @@ A Secret Phrase or private key shows when a wallet is created and from "Show Sec
 | An accessibility service reads the Secret Phrase, private key or quick test | VoiceOver reads them; no other app can read the screen | from Android 14 only accessibility tools such as TalkBack read them; below 14 they are hidden from every accessibility service | Intentional: other services, which malware uses to steal phrases, read nothing; below 14 Android can't tell a tool from other services |
 
 - The Secret Phrase and private key screens and the quick test hide their content during screen recording and whenever the app is not active, also from VoiceOver. On iOS the words and key are drawn in a secure layer that the system leaves out of screenshots, recordings and mirroring (GEM-01-018). If that secure layer is unavailable, the words and key show as before and a screenshot is still warned about: hiding them would leave Copy, which puts the secret on the clipboard, as the only way to read it, and would stop wallet creation at the quick test.
+- On Mac the secure layer, the recording state and the screenshot warning are unavailable, so while one of these screens or Import is shown, the app asks macOS to leave its windows out of screen capture. This is best effort: it relies on a legacy window setting that macOS 27 honors for screenshots, recordings and ScreenCaptureKit, but a capture app or a later macOS may not, so a recording or screen share can still show the words or key.
 
 ## Feature availability
 
