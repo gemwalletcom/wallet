@@ -20,9 +20,11 @@ use crate::models::list::{GemListRow, GemListRowTitle};
 use crate::services::error::GemServiceError;
 use crate::services::error_text::GemErrorText;
 use crate::services::transfer::{GemRecipient, GemTransferData};
-use crate::services::wallet_connect::model::{GemSignerFailure, GemWalletConnectAuthAccount, GemWalletConnectOutcome, GemWalletConnectRejection, GemWalletConnectRejectionReason, GemWalletConnectRpcError, GemWalletConnectTransactionAction};
+use crate::services::wallet_connect::model::{
+    GemSignerFailure, GemWalletConnectAuthAccount, GemWalletConnectOutcome, GemWalletConnectRejection, GemWalletConnectRejectionReason, GemWalletConnectResponse, GemWalletConnectRpcError, GemWalletConnectTransactionAction,
+};
 use crate::wallet_connect::WalletConnect;
-use gem_wallet_connect::{EvmTransactionKind, WalletConnectTransaction};
+use gem_wallet_connect::{EvmTransactionKind, WalletConnectResponseType, WalletConnectTransaction};
 use num_bigint::BigInt;
 use primitives::GasPriceType;
 use primitives::TransactionInputType;
@@ -88,6 +90,14 @@ pub fn switch_chain_outcome(connection: &WalletConnection, chain_id: u64) -> Gem
     match WalletConnectCAIP2::format_account(account.chain, &account.address) {
         Some(account) => GemWalletConnectOutcome::AddSessionAccount { account },
         None => GemWalletConnectOutcome::respond_error(unrecognized_chain_error()),
+    }
+}
+
+pub fn chain_id_outcome(chain_id: u64) -> GemWalletConnectOutcome {
+    GemWalletConnectOutcome::Respond {
+        response: GemWalletConnectResponse::Response {
+            value: WalletConnectResponseType::String { value: format!("0x{chain_id:x}") },
+        },
     }
 }
 

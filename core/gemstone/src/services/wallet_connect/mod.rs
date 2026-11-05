@@ -365,7 +365,7 @@ impl GemWalletConnectService {
         Ok(match operation {
             WalletConnectChainOperation::AddChain { chain_id } => rules::add_chain_outcome(&self.connection(session_id).await?, chain_id),
             WalletConnectChainOperation::SwitchChain { chain_id } => rules::switch_chain_outcome(&self.connection(session_id).await?, chain_id),
-            WalletConnectChainOperation::GetChainId => GemWalletConnectOutcome::respond_error(rules::method_not_found_error()),
+            WalletConnectChainOperation::GetChainId { chain_id } => rules::chain_id_outcome(chain_id),
         })
     }
 
@@ -584,13 +584,21 @@ mod tests {
                 .await;
             assert_eq!(no_chain, GemWalletConnectOutcome::rejected());
 
-            let unsupported = service
+            let chain_id = service
                 .request_outcome(GemWalletConnectSessionRequest {
                     method: "eth_chainId".to_string(),
+                    chain_id: Some("eip155:42161".to_string()),
                     ..GemWalletConnectSessionRequest::mock("6")
                 })
                 .await;
-            assert_eq!(unsupported, GemWalletConnectOutcome::respond_error(rules::method_not_found_error()));
+            assert_eq!(
+                chain_id,
+                GemWalletConnectOutcome::Respond {
+                    response: GemWalletConnectResponse::Response {
+                        value: WalletConnectResponseType::String { value: "0xa4b1".to_string() }
+                    }
+                }
+            );
 
             let cancelled = GemWalletConnectService::mock(Err(GemServiceError::Cancelled), Wallet::mock())
                 .await
