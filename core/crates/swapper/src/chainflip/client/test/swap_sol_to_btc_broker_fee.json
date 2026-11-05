@@ -64,5 +64,8 @@
       "executedBlockIndex": "11979415-1596",
       "retryCount": 0
     }
+  },
+  "swapEgress": {
+    "amount": "17057"
   }
 }

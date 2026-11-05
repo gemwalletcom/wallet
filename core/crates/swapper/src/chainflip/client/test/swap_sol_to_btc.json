@@ -7,7 +7,7 @@
   "deposit": {
     "amount": "150000000"
   },
-  "swap": {
-    "swappedOutputAmount": "17567"
+  "swapEgress": {
+    "amount": "17057"
   }
 }

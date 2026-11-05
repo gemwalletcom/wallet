@@ -33,7 +33,7 @@ pub struct BrokerSwapStatus {
     #[serde(default)]
     fees: Vec<BrokerSwapFee>,
     deposit: Option<BrokerAmount>,
-    swap: Option<BrokerSwapOutput>,
+    swap_egress: Option<BrokerAmount>,
     refund_egress: Option<IgnoredAny>,
 }
 
@@ -67,13 +67,6 @@ struct BrokerSwapFee {
 struct BrokerAmount {
     #[serde(deserialize_with = "deserialize_biguint_from_str")]
     amount_native: BigUint,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct BrokerSwapOutput {
-    #[serde(deserialize_with = "deserialize_biguint_from_str")]
-    swapped_output_amount_native: BigUint,
 }
 
 impl BrokerSwapStatus {
@@ -112,7 +105,7 @@ impl BrokerSwapStatus {
             let from_asset = asset_id(assets, &self.source_asset)?;
             let to_asset = asset_id(assets, &self.destination_asset)?;
             let from_value = self.deposit.as_ref()?.amount_native.clone();
-            let to_value = self.swap.as_ref().map(|swap| swap.swapped_output_amount_native.clone()).unwrap_or_default();
+            let to_value = self.swap_egress.as_ref()?.amount_native.clone();
             Some(TransactionSwapMetadata::new(from_asset, from_value, to_asset, to_value, SwapperProvider::Chainflip).with_referral_fee(self.referral_fee(assets)))
         })();
 
@@ -145,7 +138,7 @@ mod tests {
         assert_eq!(metadata.from_asset, AssetId::from_chain(Chain::Polkadot));
         assert_eq!(metadata.from_value, BigUint::from(100_000_000_000u64));
         assert_eq!(metadata.to_asset, AssetId::from_chain(Chain::Solana));
-        assert_eq!(metadata.to_value, BigUint::from(102_937_756u64));
+        assert_eq!(metadata.to_value, BigUint::from(102_923_756u64));
         let referral_fee = metadata.referral_fee.unwrap();
         assert_eq!(referral_fee.asset_id, primitives::known_assets::ETHEREUM_USDC.id.clone());
         assert_eq!(referral_fee.value, BigUint::from(47_576u32));
