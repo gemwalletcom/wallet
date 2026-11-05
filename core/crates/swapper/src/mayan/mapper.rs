@@ -35,7 +35,7 @@ impl MayanTransactionResult {
         let from_asset = asset_id_for_token(from_chain, &self.from_token_address)?;
         let from_value = amount_value(self.from_amount.as_deref(), self.from_amount64.as_deref(), asset_decimals(&from_asset))?;
         let to_asset = asset_id_for_token(to_chain, &self.to_token_address)?;
-        let to_value = amount_value(self.to_amount.as_deref(), self.to_amount64.as_deref(), asset_decimals(&to_asset).or(output_decimals))?;
+        let to_value = amount_value(self.to_amount.as_deref(), self.to_amount64.as_deref(), asset_decimals(&to_asset)).or_else(|| amount_value(self.to_amount.as_deref(), None, output_decimals))?;
 
         let referral_fee = self.referral_fee(&from_asset, &from_value, &to_asset, &to_value);
         Some(TransactionSwapMetadata::new(from_asset, from_value, to_asset, to_value, SwapperProvider::Mayan).with_referral_fee(referral_fee))
@@ -182,6 +182,9 @@ mod tests {
 
     #[test]
     fn test_map_swap_result_with_output_token_decimals() {
+        let grass = result(include_str!("test/base_usdc_to_grass_swift.json"));
+        assert_eq!(map_swap_result(&grass, Some(8)).metadata.unwrap().to_value, "442972740000".parse::<BigUint>().unwrap());
+
         let usdt = result(include_str!("test/eth_to_arbitrum_usdt_swift_v1_decimal_output.json"));
 
         assert!(map_swap_result(&usdt, None).metadata.is_none());
