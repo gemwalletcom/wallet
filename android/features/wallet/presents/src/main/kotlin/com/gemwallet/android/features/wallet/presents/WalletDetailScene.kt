@@ -73,8 +73,8 @@ internal fun WalletDetailScene(wallet: GemWalletDetails?, snackbar: SnackbarHost
                 },
                 singleLine = true,
             )
-            SecretSection(title = R.string.wallet_backup, row = wallet.backup, onAction = onAction)
-            SecretSection(title = R.string.wallet_advanced, row = wallet.advanced, onAction = onAction)
+            SecretSection(title = R.string.wallet_backup, tag = "backup", row = wallet.backup, onAction = onAction)
+            SecretSection(title = R.string.wallet_advanced, tag = "advanced", row = wallet.advanced, onAction = onAction)
             WalletAddress(wallet.address)
 
             Spacer16()
@@ -105,13 +105,13 @@ internal fun WalletDetailScene(wallet: GemWalletDetails?, snackbar: SnackbarHost
 }
 
 @Composable
-private fun SecretSection(@StringRes title: Int, row: GemSecretRow?, onAction: (WalletDetailAction) -> Unit) {
+private fun SecretSection(@StringRes title: Int, tag: String, row: GemSecretRow?, onAction: (WalletDetailAction) -> Unit) {
     row ?: return
     SubheaderItem(title)
     ListItem(
         model = ListItemModel(title = row.title.string(LocalContext.current)),
         listPosition = ListPosition.Single,
-        modifier = Modifier.clickable { onAction(WalletDetailAction.ShowSecret(row.export)) },
+        modifier = Modifier.clickable { onAction(WalletDetailAction.ShowSecret(row.export)) }.testTag(tag),
         accessory = { DataBadgeChevron() },
     )
 }

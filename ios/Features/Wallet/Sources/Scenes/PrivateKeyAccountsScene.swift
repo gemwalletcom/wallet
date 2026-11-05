@@ -27,6 +27,7 @@ struct PrivateKeyAccountsScene: View {
                     NavigationCustomLink(with: ListItemView(model: model.listItem(for: account))) {
                         Task { await model.onSelect(chain: account.row.chain) }
                     }
+                    .accessibilityIdentifier(account.row.chain)
                 }
             } header: {
                 Text(model.accountsTitle)
