@@ -1,6 +1,7 @@
 mod chain_signer;
 mod eip1559;
 mod model;
+pub mod rlp;
 mod transaction;
 
 pub use chain_signer::EvmChainSigner;

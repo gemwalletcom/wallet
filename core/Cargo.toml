@@ -135,7 +135,6 @@ zeroize = { version = "1.9.0" }
 
 # Blockchain
 alloy-primitives = { version = "1.7.3" }
-alloy-rlp = { version = "0.3.16" }
 alloy-sol-types = { version = "1.7.3", features = ["eip712-serde"] }
 bitcoin = { version = "0.32.102" }
 bitcoin_hashes = { version = "0.14.101" }

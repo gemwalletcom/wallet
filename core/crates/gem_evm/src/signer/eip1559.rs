@@ -1,7 +1,8 @@
 use alloy_primitives::{Address, B256, Bytes, Signature, U256, keccak256};
-use alloy_rlp::{Encodable, Header};
 use primitives::SignerError;
 use signer::{SignatureScheme, Signer};
+
+use super::rlp;
 
 const EIP1559_TX_TYPE_ID: u8 = 0x02;
 
@@ -29,22 +30,23 @@ impl Eip1559Transaction {
 
     fn encoded(&self, signature: Option<&Signature>) -> Vec<u8> {
         let mut payload = Vec::new();
-        self.chain_id.encode(&mut payload);
-        self.nonce.encode(&mut payload);
-        self.max_priority_fee_per_gas.encode(&mut payload);
-        self.max_fee_per_gas.encode(&mut payload);
-        self.gas_limit.encode(&mut payload);
-        self.to.encode(&mut payload);
-        self.value.encode(&mut payload);
-        self.input.encode(&mut payload);
-        Header { list: true, payload_length: 0 }.encode(&mut payload);
+        rlp::encode_uint(&mut payload, &self.chain_id.to_be_bytes());
+        rlp::encode_uint(&mut payload, &self.nonce.to_be_bytes());
+        rlp::encode_uint(&mut payload, &self.max_priority_fee_per_gas.to_be_bytes());
+        rlp::encode_uint(&mut payload, &self.max_fee_per_gas.to_be_bytes());
+        rlp::encode_uint(&mut payload, &self.gas_limit.to_be_bytes());
+        rlp::encode_bytes(&mut payload, self.to.as_slice());
+        rlp::encode_uint(&mut payload, &self.value.to_be_bytes::<32>());
+        rlp::encode_bytes(&mut payload, &self.input);
+        rlp::encode_list(&mut payload, &[]);
         if let Some(signature) = signature {
-            signature.write_rlp_vrs(&mut payload, signature.v());
+            rlp::encode_uint(&mut payload, &[u8::from(signature.v())]);
+            rlp::encode_uint(&mut payload, &signature.r().to_be_bytes::<32>());
+            rlp::encode_uint(&mut payload, &signature.s().to_be_bytes::<32>());
         }
 
         let mut encoded = vec![EIP1559_TX_TYPE_ID];
-        Header { list: true, payload_length: payload.len() }.encode(&mut encoded);
-        encoded.extend_from_slice(&payload);
+        rlp::encode_list(&mut encoded, &payload);
         encoded
     }
 }

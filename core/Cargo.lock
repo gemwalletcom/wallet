@@ -3120,7 +3120,6 @@ version = "2.114.88"
 dependencies = [
  "alchemy",
  "alloy-primitives",
- "alloy-rlp",
  "alloy-sol-types",
  "ankr",
  "async-trait",
@@ -3387,7 +3386,6 @@ name = "gem_tempo"
 version = "2.114.88"
 dependencies = [
  "alloy-primitives",
- "alloy-rlp",
  "alloy-sol-types",
  "async-trait",
  "chain_traits",
