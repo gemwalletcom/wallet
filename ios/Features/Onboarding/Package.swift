@@ -73,7 +73,6 @@ let package = Package(
                 "GemstonePrimitives",
                 "Primitives",
                 "Store",
-                "Components",
             ],
             path: "Tests",
         ),

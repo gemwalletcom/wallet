@@ -45,7 +45,6 @@ let package = Package(
                 "Store",
                 "PrimitivesComponents",
                 .product(name: "GemstoneServices", package: "GemstoneServices"),
-                .product(name: "BigInt", package: "BigInt"),
             ],
             path: "Sources",
         ),

@@ -122,8 +122,6 @@ let package = Package(
                 "GemstonePrimitives",
                 .product(name: "WalletConnect", package: "reown-swift"),
                 .product(name: "ReownWalletKit", package: "reown-swift"),
-                .product(name: "WalletConnectNetworking", package: "reown-swift"),
-                .product(name: "WalletConnectPairing", package: "reown-swift"),
             ],
             path: "WalletConnectorService",
             exclude: ["TestKit", "Tests"],

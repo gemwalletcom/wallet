@@ -37,7 +37,6 @@ let package = Package(
                 "Localization",
                 "Components",
                 "Style",
-                .product(name: "BigInt", package: "BigInt"),
             ],
             path: "Sources",
         ),
