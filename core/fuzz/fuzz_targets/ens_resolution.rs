@@ -4,7 +4,10 @@ use std::sync::{Arc, OnceLock};
 
 use gem_client::testkit::MockClient;
 use libfuzzer_sys::fuzz_target;
-use name_resolver::{NameQuery, NameResolver, providers::ens::EnsProvider};
+use name_resolver::{
+    NameQuery, NameResolver,
+    providers::ens::{CcipClient, EnsProvider},
+};
 use primitives::Chain;
 use tokio::runtime::Runtime;
 
@@ -23,7 +26,7 @@ fuzz_target!(|data: &[u8]| {
     let get_response = ccip_response.clone();
     let client = MockClient::new().with_post(move |_, _| Ok(response.to_vec()));
     let ccip = MockClient::new().with_get(move |_| Ok(get_response.to_vec())).with_post(move |_, _| Ok(ccip_response.to_vec()));
-    let provider = EnsProvider::new(client, ccip, "https://ccip-v3.ens.xyz".to_string());
+    let provider = EnsProvider::new(client, CcipClient::new(ccip, "https://ccip-v3.ens.xyz"));
 
     let _ = RUNTIME.get_or_init(|| Runtime::new().unwrap()).block_on(provider.resolve(&NameQuery::new("fuzz.eth"), Chain::Ethereum));
 });

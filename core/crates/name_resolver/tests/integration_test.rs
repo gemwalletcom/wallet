@@ -2,8 +2,17 @@
 mod tests {
     use gem_client::{ReqwestClient, reqwest_client};
     use name_resolver::providers::{
-        alldomains::AllDomainsProvider, aptos::AptosProvider, basenames::BasenamesProvider, ens::EnsProvider, hyperliquid::HyperliquidProvider, icns::IcnsProvider, injective::InjectiveProvider, lens::LensProvider, near::NearProvider,
-        sns::SnsProvider, suins::SuinsProvider,
+        alldomains::AllDomainsProvider,
+        aptos::AptosProvider,
+        basenames::BasenamesProvider,
+        ens::{CcipClient, EnsProvider},
+        hyperliquid::HyperliquidProvider,
+        icns::IcnsProvider,
+        injective::InjectiveProvider,
+        lens::LensProvider,
+        near::NearProvider,
+        sns::SnsProvider,
+        suins::SuinsProvider,
     };
     use name_resolver::{NameClient, NameQuery, NameResolver};
     use primitives::{Chain, NameProvider, node_config::get_nodes_for_chain};
@@ -13,8 +22,7 @@ mod tests {
         let ccip_url = get_test_settings().name.ens_ccip.url;
         EnsProvider::new(
             ReqwestClient::new(get_nodes_for_chain(Chain::Ethereum)[0].url.clone(), reqwest_client()),
-            ReqwestClient::new(ccip_url.clone(), reqwest_client()),
-            ccip_url,
+            CcipClient::new(ReqwestClient::new(ccip_url.clone(), reqwest_client()), &ccip_url),
         )
     }
 

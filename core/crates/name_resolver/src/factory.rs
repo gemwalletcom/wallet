@@ -2,8 +2,21 @@ use gem_client::{ReqwestClient, reqwest_client};
 use settings::Name;
 
 use crate::providers::{
-    alldomains::AllDomainsProvider, aptos::AptosProvider, basenames::BasenamesProvider, did::DidProvider, ens::EnsProvider, hyperliquid::HyperliquidProvider, icns::IcnsProvider, injective::InjectiveProvider, lens::LensProvider,
-    near::NearProvider, sns::SnsProvider, spaceid::SpaceIdProvider, suins::SuinsProvider, ton::TonProvider, ud::UdProvider,
+    alldomains::AllDomainsProvider,
+    aptos::AptosProvider,
+    basenames::BasenamesProvider,
+    did::DidProvider,
+    ens::{CcipClient, EnsProvider},
+    hyperliquid::HyperliquidProvider,
+    icns::IcnsProvider,
+    injective::InjectiveProvider,
+    lens::LensProvider,
+    near::NearProvider,
+    sns::SnsProvider,
+    spaceid::SpaceIdProvider,
+    suins::SuinsProvider,
+    ton::TonProvider,
+    ud::UdProvider,
 };
 use crate::resolver::NameResolver;
 
@@ -15,7 +28,7 @@ impl NameProviderFactory {
         let client_with_url = |url: String| client.clone().with_base_url(url);
 
         vec![
-            Box::new(EnsProvider::new(client_with_url(config.ens.url), client_with_url(config.ens_ccip.url.clone()), config.ens_ccip.url)),
+            Box::new(EnsProvider::new(client_with_url(config.ens.url), CcipClient::new(client_with_url(config.ens_ccip.url.clone()), &config.ens_ccip.url))),
             Box::new(UdProvider::new(client_with_url(config.ud.url))),
             Box::new(SnsProvider::new(client_with_url(config.sns.url))),
             Box::new(TonProvider::new(client_with_url(config.ton.url))),

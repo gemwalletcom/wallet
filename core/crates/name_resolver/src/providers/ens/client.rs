@@ -2,7 +2,7 @@ use std::error::Error;
 
 use alloy_ens::{UNIVERSAL_RESOLVER_ADDRESS, coin_type, namehash, try_dns_encode};
 use alloy_primitives::{Address, Bytes, U256, hex};
-use alloy_sol_types::{SolCall, SolInterface, SolValue};
+use alloy_sol_types::{SolCall, SolError, SolInterface};
 use gem_client::Client;
 use gem_evm::jsonrpc::EthereumRpc;
 use gem_jsonrpc::JsonRpcClient;
@@ -10,8 +10,8 @@ use gem_jsonrpc::types::TypedJsonRpcError;
 use primitives::Chain;
 use serde::Deserialize;
 
-use super::ccip;
-use super::contract::{ENSMulticoinResolver, ENSResolver, UniversalResolver, UniversalResolver::UniversalResolverErrors};
+use super::ccip::CcipClient;
+use super::contract::{ENSMulticoinResolver, ENSResolver, HttpError, UniversalResolver, UniversalResolver::UniversalResolverErrors};
 
 const MAX_OFFCHAIN_LOOKUPS: usize = 2;
 
@@ -24,17 +24,12 @@ type EnsRpcError = TypedJsonRpcError<RevertData>;
 
 pub struct EnsClient<C: Client + Clone> {
     client: JsonRpcClient<C>,
-    ccip: C,
-    ccip_url: String,
+    ccip: CcipClient<C>,
 }
 
 impl<C: Client + Clone> EnsClient<C> {
-    pub fn new(client: C, ccip: C, ccip_url: String) -> Self {
-        Self {
-            client: JsonRpcClient::new(client),
-            ccip,
-            ccip_url,
-        }
+    pub fn new(client: C, ccip: CcipClient<C>) -> Self {
+        Self { client: JsonRpcClient::new(client), ccip }
     }
 
     pub async fn get_address(&self, name: &str, chain: Chain) -> Result<Option<Address>, Box<dyn Error + Send + Sync>> {
@@ -71,6 +66,10 @@ impl<C: Client + Clone> EnsClient<C> {
             let lookup = match resolver_error(&error) {
                 Some(UniversalResolverErrors::ResolverNotFound(_) | UniversalResolverErrors::UnsupportedResolverProfile(_)) => return Ok(None),
                 Some(UniversalResolverErrors::OffchainLookup(lookup)) => lookup,
+                Some(UniversalResolverErrors::ResolverError(resolver_error)) => match HttpError::abi_decode(&resolver_error.errorData) {
+                    Ok(HttpError { status, message }) => return Err(format!("ENS offchain lookup failed: HTTP {status} {message}").into()),
+                    Err(_) => return Err(error.into()),
+                },
                 None => return Err(error.into()),
             };
             if lookup.sender != UNIVERSAL_RESOLVER_ADDRESS {
@@ -79,8 +78,7 @@ impl<C: Client + Clone> EnsClient<C> {
             if lookups == MAX_OFFCHAIN_LOOKUPS {
                 break;
             }
-            let response = ccip::lookup(&self.ccip, &self.ccip_url, &lookup).await?;
-            call = [lookup.callbackFunction.as_slice(), &(response, lookup.extraData).abi_encode_params()].concat();
+            call = lookup.callback(self.ccip.lookup(&lookup).await?);
         }
         Err("ENS offchain lookup limit exceeded".into())
     }
