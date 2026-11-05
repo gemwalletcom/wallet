@@ -1,8 +1,7 @@
 use std::borrow::Cow;
 
-use base64::Engine;
-use base64::engine::general_purpose::STANDARD as BASE64;
 use bs58;
+use gem_encoding::encode_base64;
 use gem_evm::eip712::hash_typed_data;
 use gem_evm::message::eip191_hash_message;
 use gem_evm::siwe::SiweMessage;
@@ -198,7 +197,7 @@ impl MessageSigner {
         let raw_address = TonAddress::parse(&data.address).map_err(|_| GemstoneError::from("Invalid TON address"))?.encode_raw();
 
         let response = TonSignDataResponse {
-            signature: BASE64.encode(&result.signature),
+            signature: encode_base64(&result.signature),
             address: raw_address,
             timestamp: result.timestamp,
             domain: data.domain,

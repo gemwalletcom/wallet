@@ -12,7 +12,7 @@ gem_evm = { path = "../gem_evm" }
 gem_solana = { path = "../gem_solana" }
 gem_ton = { path = "../gem_ton", features = ["signer"] }
 
-base64 = { workspace = true }
+gem_encoding = { path = "../gem_encoding" }
 chrono = { workspace = true }
 hex = { workspace = true }
 num-bigint = { workspace = true }

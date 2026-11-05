@@ -62,7 +62,7 @@ number_formatter = { path = "../crates/number_formatter" }
 yielder = { path = "../crates/yielder" }
 
 sui-types = { workspace = true }
-base64 = { workspace = true }
+gem_encoding = { path = "../crates/gem_encoding" }
 
 # uniffi
 uniffi.workspace = true

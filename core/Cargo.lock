@@ -2039,9 +2039,9 @@ name = "defi"
 version = "2.114.88"
 dependencies = [
  "async-trait",
- "base64 0.23.0",
  "futures",
  "gem_client",
+ "gem_encoding",
  "jupiter",
  "num-bigint 0.5.1",
  "number_formatter",
@@ -3476,9 +3476,9 @@ dependencies = [
 name = "gem_wallet_connect"
 version = "2.114.88"
 dependencies = [
- "base64 0.23.0",
  "bs58",
  "chrono",
+ "gem_encoding",
  "gem_evm",
  "gem_solana",
  "gem_ton",
@@ -3520,7 +3520,6 @@ name = "gemstone"
 version = "2.114.88"
 dependencies = [
  "async-trait",
- "base64 0.23.0",
  "block_explorers",
  "bs58",
  "chain_primitives",
@@ -3539,6 +3538,7 @@ dependencies = [
  "gem_cosmos",
  "gem_crypto",
  "gem_derivation",
+ "gem_encoding",
  "gem_evm",
  "gem_hash",
  "gem_hypercore",
