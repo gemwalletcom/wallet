@@ -59,6 +59,7 @@ pub(crate) fn plan_transfer(input: &TransactionLoadInput) -> Result<TransactionP
     Ok(TransactionPlan { utxos: selected_utxos, amount, fee, change })
 }
 
+#[cfg(any(test, feature = "rpc"))]
 pub(crate) fn transfer_fee(input: &TransactionLoadInput) -> Result<u64, SignerError> {
     match plan_transfer(input) {
         Err(SignerError::InsufficientFunds) => estimate_fee(input, &utxos_from_metadata(&input.metadata, &input.sender_address)?, input.value_as_u64()?, input.is_max_value),
