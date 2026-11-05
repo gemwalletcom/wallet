@@ -8,7 +8,7 @@ async-trait = { workspace = true }
 serde = { workspace = true }
 primitives = { path = "../primitives" }
 hex = { workspace = true }
-ring = { workspace = true }
+aws-lc-rs = { workspace = true }
 gem_client = { path = "../gem_client", features = ["reqwest"] }
 jupiter = { path = "../jupiter" }
 gem_tracing = { path = "../gem_tracing" }

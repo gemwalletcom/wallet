@@ -1,8 +1,8 @@
 use std::error::Error;
 
+use aws_lc_rs::rand::SystemRandom;
+use aws_lc_rs::signature::{RSA_PSS_2048_8192_SHA512, RSA_PSS_SHA512, RsaKeyPair, UnparsedPublicKey};
 use gem_encoding::{decode_base64, encode_base64};
-use ring::rand::SystemRandom;
-use ring::signature::{RSA_PSS_2048_8192_SHA512, RSA_PSS_SHA512, RsaKeyPair, UnparsedPublicKey};
 
 fn decode_pem(pem: &[u8]) -> Result<Vec<u8>, Box<dyn Error + Send + Sync>> {
     let body = std::str::from_utf8(pem)?
@@ -20,7 +20,7 @@ pub fn generate_rsa_pss_signature(private_key_base_64: &str, message: &str) -> R
     let key_der = decode_pem(&decoded)?;
 
     let key_pair = RsaKeyPair::from_pkcs8(&key_der)?;
-    let mut signature = vec![0u8; key_pair.public().modulus_len()];
+    let mut signature = vec![0u8; key_pair.public_modulus_len()];
     let rng = SystemRandom::new();
     key_pair.sign(&RSA_PSS_SHA512, &rng, message.as_bytes(), &mut signature)?;
 

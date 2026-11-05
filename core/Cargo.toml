@@ -118,6 +118,7 @@ redis = { version = "1.4.1", default-features = false, features = [
 aes = { version = "0.9.3" }
 aes-gcm = { version = "0.11.0", default-features = false, features = ["aes", "alloc"] }
 argon2 = { version = "0.6.0" }
+aws-lc-rs = { version = "1.19.0" }
 bip39 = { version = "3.0.0", default-features = false, features = ["zeroize"] }
 blake2 = { version = "0.11.0" }
 ctr = { version = "0.10.1" }
@@ -128,7 +129,6 @@ hmac = { version = "0.13.0" }
 jsonwebtoken = { version = "11.1.0", features = ["aws_lc_rs"] }
 k256 = { version = "0.14.0", features = ["ecdsa", "sha256"] }
 rand = { version = "0.10.2" }
-ring = { version = "0.17.14", features = ["std"] }
 scrypt = { version = "0.12.0" }
 sha2 = { version = "0.11.0" }
 sha3 = { version = "0.12.0" }

@@ -5,9 +5,9 @@ use crate::providers::goplus::{
 };
 use crate::{AddressScanProvider, AddressTarget, ScanResult, TokenScanProvider, TokenTarget};
 use async_trait::async_trait;
+use aws_lc_rs::digest::{SHA1_FOR_LEGACY_USE_ONLY, digest};
 use gem_client::{Client, ClientExt};
 use primitives::{AccessTokenCacher, Chain, ScanProvider};
-use ring::digest::{SHA1_FOR_LEGACY_USE_ONLY, digest};
 use std::collections::HashMap;
 use std::error::Error;
 use std::sync::Arc;
