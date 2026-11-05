@@ -1,6 +1,6 @@
+use bitcoin_hashes::{Hash, hash160::Hash as Hash160};
 use hmac::digest::InvalidLength;
 use hmac::{Hmac, KeyInit, Mac};
-use ripemd::Ripemd160;
 use sha2::{Digest as Sha2Digest, Sha256, Sha512, Sha512_256};
 use zeroize::{Zeroize, Zeroizing};
 
@@ -17,14 +17,7 @@ pub fn sha256(bytes: &[u8]) -> [u8; 32] {
 }
 
 pub fn hash160(bytes: &[u8]) -> [u8; 20] {
-    let sha256_hash = sha256(bytes);
-    let mut hasher = Ripemd160::new();
-    hasher.update(sha256_hash);
-    let result = hasher.finalize();
-
-    let mut hash = [0u8; 20];
-    hash.copy_from_slice(&result);
-    hash
+    Hash160::hash(bytes).to_byte_array()
 }
 
 pub fn sha512_256(bytes: &[u8]) -> [u8; 32] {
