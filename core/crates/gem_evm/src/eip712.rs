@@ -11,8 +11,9 @@ use serde_json::Value;
 use serde_serializers::deserialize_option_u64_from_str_or_int;
 use std::collections::HashMap;
 
-use crate::address::ethereum_address_checksum;
+use crate::{address::ethereum_address_checksum, u256::u256_to_biguint};
 use hash_impl::validate_eip712_domain_chain_id_binding;
+use parse::parse_uint_str;
 
 pub use hash_impl::hash_typed_data;
 
@@ -76,10 +77,7 @@ pub fn find_field_biguint(fields: &[EIP712Field], name: &str) -> Option<BigUint>
 }
 
 pub fn parse_biguint(value: &str) -> Option<BigUint> {
-    match value.strip_prefix("0x") {
-        Some(hex) => BigUint::parse_bytes(hex.as_bytes(), 16),
-        None => value.parse().ok(),
-    }
+    parse_uint_str(value).ok().map(|value| u256_to_biguint(&value))
 }
 
 pub fn find_field_bool(fields: &[EIP712Field], name: &str) -> Option<bool> {

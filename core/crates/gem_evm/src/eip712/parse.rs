@@ -59,9 +59,13 @@ pub fn parse_fixed_bytes_size(type_name: &str) -> Result<usize, SignerError> {
     Ok(size)
 }
 
+pub fn parse_uint_str(value: &str) -> Result<U256, SignerError> {
+    U256::from_str(value).map_err(SignerError::from_display)
+}
+
 pub fn parse_uint_value(value: Option<&Value>) -> Result<U256, SignerError> {
     match value {
-        Some(Value::String(s)) => U256::from_str(s).map_err(SignerError::from_display),
+        Some(Value::String(s)) => parse_uint_str(s),
         Some(Value::Number(num)) => {
             if let Some(u) = num.as_u64() {
                 return Ok(U256::from(u));
