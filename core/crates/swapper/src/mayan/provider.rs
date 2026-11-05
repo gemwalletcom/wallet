@@ -91,7 +91,8 @@ where
             | ChainType::Algorand
             | ChainType::Polkadot
             | ChainType::Cardano
-            | ChainType::HyperCore => false,
+            | ChainType::HyperCore
+            | ChainType::Lightning => false,
         }
     }
 
@@ -192,7 +193,8 @@ where
                 | ChainType::Algorand
                 | ChainType::Polkadot
                 | ChainType::Cardano
-                | ChainType::HyperCore,
+                | ChainType::HyperCore
+                | ChainType::Lightning,
                 _,
             ) => Err(SwapperError::NotSupportedChain),
         }

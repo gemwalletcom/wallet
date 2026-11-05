@@ -46,6 +46,7 @@ Cross-platform subsystem references live in [docs/](docs). Read the relevant one
 - [Device](docs/DEVICE.md) — device authentication, registration and subscription sync, and the WebSocket stream
 - [WalletConnect Pay](docs/WALLETCONNECT_PAY.md) — payment links: gateway protocol, actions, identity verification, on-chain settlement, activity record and tracking
 - [Dynode](docs/DYNODE.md) — local proxy usage and configuration
+- [Lightning](docs/LIGHTNING.md) — the Bitcoin Lightning coin through Spark: why Spark, sessions and unlock, send and receive flow, payment types, trust model, keys, derivation, storage and recovery
 
 Core-owned subsystems (keystore, device and wallet authentication, WebSockets, provider coverage) are listed in [core/AGENTS.md](core/AGENTS.md).
 

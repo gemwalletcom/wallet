@@ -354,6 +354,8 @@ mocks:
   - GemWalletSearchState
   - GemWalletSearchView
   - Latency
+  - LightningInvoice
+  - LightningPayment
   - NameRecord
   - NFTAsset
   - NFTAssetData

@@ -45,6 +45,7 @@ impl ChainTransactionSigner {
             ChainType::Xrp => Box::new(XrpChainSigner),
             ChainType::Polkadot => Box::new(PolkadotChainSigner),
             ChainType::Cardano => Box::new(CardanoChainSigner),
+            ChainType::Lightning => Box::new(gem_spark::provider::LightningChainSigner),
             ChainType::Bitcoin => match chain {
                 Chain::Zcash => Box::new(ZcashChainSigner),
                 _ => Box::new(BitcoinChainSigner::new(BitcoinChain::from_chain(chain).unwrap())),

@@ -71,6 +71,9 @@ pub fn scan_route(step: GemPaymentStep, recipient_type: &GemRecipientType) -> Ge
 }
 
 pub fn next_step(recipient_type: GemRecipientType, payment: GemPaymentRecipient) -> GemRecipientNext {
+    if let Some(step) = lightning_step(&recipient_type, &payment.recipient) {
+        return step;
+    }
     match recipient_type {
         GemRecipientType::Asset { .. } => GemRecipientNext::Amount { payment },
         GemRecipientType::Nft { nft_asset } => GemRecipientNext::Confirm {
@@ -96,6 +99,47 @@ pub fn select_step(recipient_type: GemRecipientType, recipient: GemRecipient) ->
             amount: None,
         },
     ))
+}
+
+fn lightning_step(recipient_type: &GemRecipientType, recipient: &GemRecipient) -> Option<GemRecipientNext> {
+    let GemRecipientType::Asset { asset } = recipient_type else {
+        return None;
+    };
+    if asset.chain() != Chain::Lightning {
+        return None;
+    }
+    let invoice = gem_spark::decode_invoice(&recipient.address).ok()?;
+    let recipient = GemRecipient {
+        address: invoice.invoice,
+        memo: None,
+        ..recipient.clone()
+    };
+    Some(match invoice.amount_sats {
+        Some(amount) => GemRecipientNext::Confirm {
+            transfer: GemTransferData {
+                input_type: TransactionInputType::Transfer { asset: asset.clone() },
+                recipient,
+                value: GemBigInt::from(amount),
+                use_max_amount: false,
+            },
+        },
+        None => GemRecipientNext::Amount {
+            payment: GemPaymentRecipient { recipient, amount: None },
+        },
+    })
+}
+
+pub fn lightning_scan(recipient_type: &GemRecipientType, url: &str) -> Option<GemRecipientScan> {
+    let recipient = GemRecipient {
+        address: url.to_string(),
+        name: None,
+        memo: None,
+        references: vec![],
+    };
+    match lightning_step(recipient_type, &recipient)? {
+        GemRecipientNext::Confirm { transfer } => Some(GemRecipientScan::Confirm { transfer }),
+        GemRecipientNext::Amount { payment } => Some(GemRecipientScan::Recipient { payment }),
+    }
 }
 
 pub fn contact_recipients(contacts: Vec<ContactData>, chain: Chain) -> Vec<GemRecipient> {
@@ -159,6 +203,42 @@ mod tests {
     use super::*;
     use crate::services::recipient::model::GemRecipientSession;
     use primitives::WalletId;
+
+    use gem_spark::testkit::{INVOICE_2000_SATS, INVOICE_AMOUNTLESS};
+
+    fn lightning_recipient(address: &str) -> GemRecipient {
+        GemRecipient {
+            address: address.to_string(),
+            name: None,
+            memo: None,
+            references: vec![],
+        }
+    }
+
+    #[test]
+    fn test_lightning_invoice_with_amount_goes_to_confirm() {
+        let recipient_type = GemRecipientType::Asset { asset: Asset::from_chain(Chain::Lightning) };
+        let invoice = format!("lightning:{}", INVOICE_2000_SATS);
+
+        let GemRecipientNext::Confirm { transfer } = select_step(recipient_type.clone(), lightning_recipient(&invoice)).unwrap() else {
+            panic!()
+        };
+        assert_eq!(transfer.value, GemBigInt::from(2000u64));
+        assert_eq!(transfer.recipient.address, INVOICE_2000_SATS);
+        assert!(matches!(lightning_scan(&recipient_type, &invoice), Some(GemRecipientScan::Confirm { .. })));
+        let session = GemRecipientSession { address: invoice, ..Default::default() };
+        assert!(matches!(session.next(recipient_type, GemNameRecordState::None).unwrap(), GemRecipientNext::Confirm { .. }));
+    }
+
+    #[test]
+    fn test_lightning_amountless_invoice_asks_for_an_amount() {
+        let recipient_type = GemRecipientType::Asset { asset: Asset::from_chain(Chain::Lightning) };
+
+        assert!(matches!(select_step(recipient_type.clone(), lightning_recipient(INVOICE_AMOUNTLESS)).unwrap(), GemRecipientNext::Amount { .. }));
+        assert!(matches!(lightning_scan(&recipient_type, INVOICE_AMOUNTLESS), Some(GemRecipientScan::Recipient { .. })));
+        assert!(lightning_scan(&recipient_type, "spark1pgss9qfk8ygtphqqzkj2yhn43k3s7r3g8z822ffvpcm38ym094800574x5numh").is_none());
+        assert!(select_step(recipient_type, lightning_recipient("spark1pgss9qfk8ygtphqqzkj2yhn43k3s7r3g8z822ffvpcm38ym094800574x5numh")).is_err());
+    }
 
     const ADDRESS: &str = "0x1f9090aae28b8a3dceadf281b0f12828e676c326";
     const CHECKSUMMED: &str = "0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326";

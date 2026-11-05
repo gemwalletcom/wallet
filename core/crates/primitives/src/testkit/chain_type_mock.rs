@@ -20,7 +20,7 @@ impl ChainType {
             ChainType::Stellar => Some(STELLAR_USDC_TOKEN_ID),
             ChainType::HyperCore => Some(HYPERCORE_SPOT_USDC_TOKEN_ID),
             ChainType::Cosmos => Some("ibc/F082B65C88E4B6D5EF1DB243CDA1D331D002759E938A0F5CD3FFDC5D53B3E349"),
-            ChainType::Bitcoin | ChainType::Polkadot | ChainType::Cardano => None,
+            ChainType::Bitcoin | ChainType::Polkadot | ChainType::Cardano | ChainType::Lightning => None,
         }
     }
 }

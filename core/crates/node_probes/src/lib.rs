@@ -65,6 +65,7 @@ fn wallet_node_check_request(chain: Chain) -> NodeCheckRequest {
         Chain::Unichain => (DEFAULT_EVM_ADDRESS, Some("0x2f931c88701faffc04dd65d5d05857dbaa76ec43a62116c6a69071c827d9c99e")),
         Chain::Hyperliquid => (DEFAULT_EVM_ADDRESS, Some("0x4785e5c28dbc8ec640b00a4985cf518926a5364a6843a48fe0e84edee3952093")),
         Chain::HyperCore => (DEFAULT_EVM_ADDRESS, None),
+        Chain::Lightning => ("", None),
         Chain::Monad => (DEFAULT_EVM_ADDRESS, Some("0xae2fe7ab7d6920d84b78126dc2ce82a1e227e4f70bd7f037c3747396d5a73c57")),
         Chain::XLayer => (DEFAULT_EVM_ADDRESS, Some("0xa6e649c54eaf86b5bb51e0230bf97499ff348e2e5e6527aaddc55183b7ec8211")),
         Chain::Robinhood => (DEFAULT_EVM_ADDRESS, Some("0xdd81e20bb08437587dc6f6e2a7f0d43bd96101ca51f051c42806a307636f10db")),

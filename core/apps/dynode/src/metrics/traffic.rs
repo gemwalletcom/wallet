@@ -110,6 +110,7 @@ pub(super) fn chain_group(chain: Chain) -> &'static str {
         ChainType::Polkadot => "polkadot",
         ChainType::Cardano => "cardano",
         ChainType::HyperCore => "hypercore",
+        ChainType::Lightning => "lightning",
     }
 }
 

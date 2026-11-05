@@ -396,7 +396,14 @@ fn value_tone(value: &GemTransactionRowValue) -> GemValueTone {
 
 fn amount_value(sign: GemAmountSign, value: &GemBigUint, asset: &Asset) -> GemTransactionRowValue {
     GemTransactionRowValue::Number {
-        number: sign.amount(value, asset, ValueStyle::Short),
+        number: sign.amount(value, asset, row_value_style(asset)),
+    }
+}
+
+fn row_value_style(asset: &Asset) -> ValueStyle {
+    match asset.chain() {
+        Chain::Lightning => ValueStyle::Auto,
+        _ => ValueStyle::Short,
     }
 }
 
@@ -571,6 +578,9 @@ fn transfer_title(transaction: &Transaction) -> GemTransactionTitle {
 }
 
 fn transaction_subtitle(transaction: &Transaction) -> GemTransactionSubtitle {
+    if transaction.asset_id.chain == Chain::Lightning {
+        return GemTransactionSubtitle::None;
+    }
     match transaction.transaction_type {
         TransactionType::Transfer | TransactionType::TransferNFT | TransactionType::TokenApproval | TransactionType::SmartContractCall => match transaction.direction {
             TransactionDirection::Incoming => GemTransactionSubtitle::FromAddress { address: transaction.from.clone() },
@@ -1251,6 +1261,24 @@ mod tests {
                 },
             },
             "a transfer row shows its amount"
+        );
+    }
+
+    #[test]
+    fn test_lightning_row_reads_small_amounts_without_a_counterparty() {
+        let payment = gem_spark::LightningPayment::mock(gem_spark::LightningPaymentDirection::Incoming, gem_spark::LightningPaymentStatus::Completed);
+        let lightning = row(&TransactionListItem::mock_transaction(gem_spark::provider::map_payment("spark1address", &payment)));
+
+        assert_eq!(lightning.subtitle, GemTransactionRowSubtitle::None);
+        assert_eq!(
+            lightning.value,
+            GemTransactionRowValue::Number {
+                number: GemFormattedNumber {
+                    notation: GemNumberNotation::Signed,
+                    tone: GemValueTone::Positive,
+                    ..GemFormattedNumber::amount(0.00001, Some("BTC".to_string()), ValueStyle::Auto)
+                },
+            }
         );
     }
 

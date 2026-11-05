@@ -69,6 +69,7 @@ pub enum Chain {
     Stable,
     Tempo,
     Arc,
+    Lightning,
 }
 
 impl fmt::Debug for Chain {

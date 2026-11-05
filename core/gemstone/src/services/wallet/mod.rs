@@ -35,6 +35,7 @@ use primitives::{Chain, ChainAsset, NFTData, Wallet, WalletId, WalletSource, Wal
 
 use crate::keystore::decode_password;
 use crate::keystore::{GemImportType, GemKeystore, GemWalletImport, keystore_id_for_wallet};
+use crate::lightning::GemLightningService;
 use crate::models::state::GemListPhase;
 use crate::services::avatar::GemAvatarService;
 use crate::services::empty_state::{GemEmptyStateKind, screen_empty_state};
@@ -46,6 +47,7 @@ use crate::services::name::GemNameService;
 use crate::services::nft::model::GemNftList;
 use crate::services::nft::rules as nft_rules;
 use crate::services::preferences::GemPreferencesService;
+use crate::services::subscription::rules as subscription_rules;
 use crate::services::wallet_preferences::GemWalletPreferencesService;
 use crate::services::wallet_session::GemWalletSessionService;
 
@@ -75,6 +77,7 @@ pub struct GemWalletService {
     explorer: Arc<GemExplorerService>,
     names: Arc<GemNameService>,
     avatar: Arc<GemAvatarService>,
+    lightning: Arc<GemLightningService>,
 }
 
 #[uniffi::export]
@@ -91,6 +94,7 @@ impl GemWalletService {
         explorer: Arc<GemExplorerService>,
         names: Arc<GemNameService>,
         avatar: Arc<GemAvatarService>,
+        lightning: Arc<GemLightningService>,
     ) -> Self {
         Self {
             keystore,
@@ -103,6 +107,7 @@ impl GemWalletService {
             explorer,
             names,
             avatar,
+            lightning,
         }
     }
 
@@ -152,7 +157,7 @@ impl GemWalletService {
     pub async fn delete_wallet(&self, wallet_id: WalletId) -> Result<GemWalletDeletion, GemServiceError> {
         let wallet = self.wallet(wallet_id.clone()).await?;
         if wallet.wallet_type != WalletType::View {
-            self.keystore.delete_wallet_secrets(wallet.id.id(), rules::legacy_keystore_id(&wallet))?;
+            self.lightning.delete_wallet(&wallet, || Ok(self.keystore.delete_wallet_secrets(wallet.id.id(), rules::legacy_keystore_id(&wallet))?)).await?;
         }
         self.store.delete_wallet(wallet.id.clone()).await?;
         self.names.delete_names(rules::wallet_address_names(&wallet)).await?;
@@ -367,13 +372,18 @@ impl GemWalletService {
         }
         let password = decode_password(&self.password.get_password(false)?);
         let mut outcome = SetupChainsOutcome::default();
+        let mut subscriptions_changed = false;
         for (mut wallet, missing) in candidates {
+            let subscribed = missing.iter().any(|chain| subscription_rules::is_subscribed(*chain));
             match self.add_chains(&mut wallet, missing, password.clone()).await {
-                Ok(()) => outcome.wallets.push(wallet),
+                Ok(()) => {
+                    subscriptions_changed |= subscribed;
+                    outcome.wallets.push(wallet);
+                }
                 Err(error) => outcome.failures.push((wallet.id, error)),
             }
         }
-        if !outcome.wallets.is_empty() {
+        if subscriptions_changed {
             self.invalidate_subscriptions()?;
         }
         Ok(outcome)
@@ -455,6 +465,9 @@ mod tests {
             let deleted = context.import("Deleted", PHRASE).await;
             let legacy_path = context.directory.path().join(rules::legacy_keystore_id(&deleted));
             fs::write(&legacy_path, "{}").unwrap();
+            fs::create_dir_all(context.lightning_path(&deleted)).unwrap();
+            fs::write(context.lightning_path(&deleted).join("spark.sqlite"), "").unwrap();
+            fs::create_dir_all(context.lightning_path(&kept)).unwrap();
             context.service.session.set_current_wallet_id(Some(deleted.id.clone())).unwrap();
 
             let outcome = context.service.delete_wallet(deleted.id.clone()).await.unwrap();
@@ -462,7 +475,9 @@ mod tests {
             assert_eq!(outcome, GemWalletDeletion::WalletsRemaining);
             assert!(!context.keystore_path(&deleted).exists());
             assert!(!legacy_path.exists());
+            assert!(!context.lightning_path(&deleted).exists());
             assert!(context.keystore_path(&kept).exists());
+            assert!(context.lightning_path(&kept).exists());
             assert_eq!(context.service.session.get_current_wallet_id().unwrap(), Some(kept.id.clone()));
 
             context.service.app_preferences.set_currency(Currency::EUR).unwrap();
@@ -740,6 +755,11 @@ mod tests {
             let before = context.service.app_preferences.get_subscriptions_version();
             context.service.setup_chains_outcome(vec![Chain::Ethereum, Chain::Solana]).await.unwrap();
             assert_eq!(context.service.app_preferences.get_subscriptions_version(), before, "a setup that adds no chain must not bump");
+
+            let before = context.service.app_preferences.get_subscriptions_version();
+            context.service.setup_chains_outcome(vec![Chain::Ethereum, Chain::Solana, Chain::Lightning]).await.unwrap();
+            assert_eq!(context.service.app_preferences.get_subscriptions_version(), before, "adding only unsubscribed chains must not bump");
+            assert!(context.service.wallets().await.unwrap()[0].account(Chain::Lightning).is_some());
 
             let second = context.import("Second", OTHER_PHRASE).await;
             let before = context.service.app_preferences.get_subscriptions_version();

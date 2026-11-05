@@ -106,6 +106,7 @@ pub fn get_block_explorers(chain: Chain) -> Vec<Box<dyn BlockExplorer>> {
         Chain::Unichain => vec![EtherScan::boxed(EVMChain::Unichain)],
         Chain::Hyperliquid => vec![EtherScan::boxed(EVMChain::Hyperliquid)],
         Chain::HyperCore => vec![HyperliquidExplorer::boxed(), HypurrScan::boxed(), FlowScan::boxed()],
+        Chain::Lightning => vec![Explorer::boxed(Metadata::new("SparkScan", "https://www.sparkscan.io"))],
         Chain::Monad => vec![EtherScan::boxed(EVMChain::Monad), BlockVision::new_monad()],
         Chain::XLayer => vec![OkxExplorer::new_xlayer()],
         Chain::Robinhood => vec![EtherScan::boxed(EVMChain::Robinhood), BlockScout::new_robinhood()],

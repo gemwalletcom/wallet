@@ -73,7 +73,7 @@ pub fn get_asset_ids_for_coin(id: &str, platforms: &HashMap<String, Option<Strin
 
 pub fn get_coingecko_market_id_for_chain(chain: Chain) -> Option<&'static str> {
     let id = match chain {
-        Chain::Bitcoin => "bitcoin",
+        Chain::Bitcoin | Chain::Lightning => "bitcoin",
         Chain::BitcoinCash => "bitcoin-cash",
         Chain::Litecoin => "litecoin",
         Chain::Ethereum | Chain::Base | Chain::Arbitrum | Chain::Optimism | Chain::ZkSync | Chain::Blast | Chain::Linea | Chain::Manta | Chain::World | Chain::Abstract | Chain::Ink | Chain::Unichain | Chain::Robinhood => "ethereum",

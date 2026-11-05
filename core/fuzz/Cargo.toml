@@ -24,6 +24,7 @@ gem_client = { path = "../crates/gem_client", features = ["testkit"] }
 gem_encoding = { path = "../crates/gem_encoding", features = ["protobuf"] }
 gem_evm = { path = "../crates/gem_evm" }
 gem_keystore = { path = "../crates/gem_keystore", features = ["v3"] }
+gem_spark = { path = "../crates/gem_spark", features = ["rpc"] }
 gem_solana = { path = "../crates/gem_solana" }
 gem_sui = { path = "../crates/gem_sui", features = ["rpc"] }
 gem_ton = { path = "../crates/gem_ton", features = ["tvm"] }
@@ -49,6 +50,14 @@ path = "fuzz_targets/ens_resolution.rs"
 [[bin]]
 name = "keystore_file"
 path = "fuzz_targets/keystore_file.rs"
+
+[[bin]]
+name = "lightning_invoice"
+path = "fuzz_targets/lightning_invoice.rs"
+
+[[bin]]
+name = "lightning_transfer"
+path = "fuzz_targets/lightning_transfer.rs"
 
 [[bin]]
 name = "payment_url"

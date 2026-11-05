@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::services::collections::unique;
 use primitives::currency::Currency;
-use primitives::{AssetId, AssetMarket, AssetPrice, FiatRate};
+use primitives::{AssetId, AssetMarket, AssetPrice, Chain, FiatRate};
 
 use super::model::GemPriceUpdate;
 
@@ -57,13 +57,52 @@ pub fn changed_prices(stored: Vec<AssetPrice>, updates: Vec<GemPriceUpdate>) -> 
 }
 
 pub fn observable_asset_ids(enabled: Vec<AssetId>, alerts: Vec<AssetId>, defaults: Vec<AssetId>) -> Vec<AssetId> {
-    let asset_ids = unique(enabled.into_iter().chain(alerts));
+    let asset_ids = unique(enabled.into_iter().chain(alerts).map(price_source));
     if asset_ids.is_empty() { defaults } else { asset_ids }
+}
+
+pub fn price_source(asset_id: AssetId) -> AssetId {
+    match asset_id.chain {
+        Chain::Lightning if asset_id.is_native() => AssetId::from_chain(Chain::Bitcoin),
+        _ => asset_id,
+    }
+}
+
+pub fn mirrored_prices(prices: Vec<AssetPrice>) -> Vec<AssetPrice> {
+    let lightning = AssetId::from_chain(Chain::Lightning);
+    let source = price_source(lightning.clone());
+    let mirrors: Vec<AssetPrice> = prices
+        .iter()
+        .filter(|price| price.asset_id == source)
+        .map(|price| AssetPrice {
+            asset_id: lightning.clone(),
+            ..price.clone()
+        })
+        .collect();
+    prices.into_iter().filter(|price| price.asset_id != lightning).chain(mirrors).collect()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_lightning_follows_bitcoin_price() {
+        let bitcoin = AssetPrice::new(AssetId::from_chain(Chain::Bitcoin), 80_000.0, 2.0, chrono::DateTime::from_timestamp(0, 0).unwrap());
+        let prices = mirrored_prices(vec![bitcoin.clone(), AssetPrice::empty(AssetId::from_chain(Chain::Lightning))]);
+
+        assert_eq!(
+            prices,
+            vec![
+                bitcoin.clone(),
+                AssetPrice {
+                    asset_id: AssetId::from_chain(Chain::Lightning),
+                    ..bitcoin
+                }
+            ]
+        );
+        assert_eq!(observable_asset_ids(vec![AssetId::from_chain(Chain::Lightning)], vec![], vec![]), vec![AssetId::from_chain(Chain::Bitcoin)]);
+    }
 
     #[test]
     fn test_has_price_needs_a_positive_price() {

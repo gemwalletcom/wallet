@@ -55,5 +55,6 @@
   "robinhood": { "address": "0x9858EfFD232B4033E47d90003D41EC34EcaEda94", "path": "m/44'/60'/0'/0/0" },
   "stable": { "address": "0x9858EfFD232B4033E47d90003D41EC34EcaEda94", "path": "m/44'/60'/0'/0/0" },
   "tempo": { "address": "0x9858EfFD232B4033E47d90003D41EC34EcaEda94", "path": "m/44'/60'/0'/0/0" },
-  "arc": { "address": "0x9858EfFD232B4033E47d90003D41EC34EcaEda94", "path": "m/44'/60'/0'/0/0" }
+  "arc": { "address": "0x9858EfFD232B4033E47d90003D41EC34EcaEda94", "path": "m/44'/60'/0'/0/0" },
+  "lightning": { "address": "spark1pgss9qfk8ygtphqqzkj2yhn43k3s7r3g8z822ffvpcm38ym094800574x5numh", "path": "m/8797555'/1'/0'" }
 }

@@ -121,5 +121,7 @@ enum class Chain(val string: String) {
 	Tempo("tempo"),
 	@SerialName("arc")
 	Arc("arc"),
+	@SerialName("lightning")
+	Lightning("lightning"),
 }
 

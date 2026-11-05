@@ -32,6 +32,7 @@ fun Chain.iconResource(): Int? = when (string) {
     "hyperliquid" -> R.drawable.chain_hyperliquid
     "injective" -> R.drawable.chain_injective
     "ink" -> R.drawable.chain_ink
+    "lightning" -> R.drawable.chain_lightning
     "linea" -> R.drawable.chain_linea
     "litecoin" -> R.drawable.chain_litecoin
     "manta" -> R.drawable.chain_manta

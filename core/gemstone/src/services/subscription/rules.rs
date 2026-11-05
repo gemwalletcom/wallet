@@ -14,13 +14,24 @@ impl SubscriptionChanges {
     }
 }
 
+pub fn is_subscribed(chain: Chain) -> bool {
+    chain != Chain::Lightning
+}
+
 pub fn wallet_subscriptions(wallets: &[Wallet]) -> Vec<WalletSubscription> {
     wallets
         .iter()
         .map(|wallet| WalletSubscription {
             wallet_id: wallet.id.clone(),
             source: Some(wallet.source.clone()),
-            subscriptions: wallet.address_chains(),
+            subscriptions: wallet
+                .address_chains()
+                .into_iter()
+                .filter_map(|address| {
+                    let chains: Vec<Chain> = address.chains.into_iter().filter(|chain| is_subscribed(*chain)).collect();
+                    (!chains.is_empty()).then(|| AddressChains::new(address.address, chains))
+                })
+                .collect(),
         })
         .collect()
 }
@@ -76,6 +87,14 @@ pub fn subscription_changes(local: Vec<WalletSubscription>, remote: Vec<WalletSu
 mod tests {
     use super::*;
     use primitives::{Account, WalletId};
+
+    #[test]
+    fn test_lightning_is_never_subscribed() {
+        let wallet = Wallet::mock_with_accounts(vec![Account::mock(Chain::Bitcoin, "bc1address"), Account::mock(Chain::Lightning, "spark1address")]);
+        let subscriptions = wallet_subscriptions(&[wallet]);
+
+        assert_eq!(subscriptions[0].subscriptions, vec![AddressChains::new("bc1address".to_string(), vec![Chain::Bitcoin])]);
+    }
 
     #[test]
     fn test_add_new_chain_to_existing_wallet() {

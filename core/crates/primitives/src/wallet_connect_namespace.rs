@@ -30,7 +30,7 @@ impl WalletConnectCAIP2 {
             ChainType::Ton => Some(WalletConnectCAIP2::Ton.as_ref().to_string()),
             ChainType::Tron => Some(WalletConnectCAIP2::Tron.as_ref().to_string()),
             ChainType::Bitcoin => (chain == Chain::Bitcoin).then(|| WalletConnectCAIP2::Bip122.as_ref().to_string()),
-            ChainType::Aptos | ChainType::Xrp | ChainType::Near | ChainType::Stellar | ChainType::Polkadot | ChainType::Cardano | ChainType::HyperCore => None,
+            ChainType::Aptos | ChainType::Xrp | ChainType::Near | ChainType::Stellar | ChainType::Polkadot | ChainType::Cardano | ChainType::HyperCore | ChainType::Lightning => None,
         }
     }
 
@@ -58,7 +58,7 @@ impl WalletConnectCAIP2 {
             ChainType::Ton => Some("-239".to_string()),
             ChainType::Tron => chain.network_id_value().map(|value| value.to_string()),
             ChainType::Bitcoin => (chain == Chain::Bitcoin).then(|| BITCOIN_GENESIS_REFERENCE.to_string()),
-            ChainType::Aptos | ChainType::Xrp | ChainType::Near | ChainType::Stellar | ChainType::Polkadot | ChainType::Cardano | ChainType::HyperCore => None,
+            ChainType::Aptos | ChainType::Xrp | ChainType::Near | ChainType::Stellar | ChainType::Polkadot | ChainType::Cardano | ChainType::HyperCore | ChainType::Lightning => None,
         }
     }
 

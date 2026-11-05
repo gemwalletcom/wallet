@@ -520,7 +520,8 @@ pub(super) fn broadcast_delay_milliseconds(chain: Chain) -> u64 {
         | ChainType::Algorand
         | ChainType::Xrp
         | ChainType::Polkadot
-        | ChainType::Cardano => 500,
+        | ChainType::Cardano
+        | ChainType::Lightning => 500,
     }
 }
 
