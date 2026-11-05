@@ -1,5 +1,4 @@
 use bip39::{Language, Mnemonic as Bip39Mnemonic};
-use unicode_normalization::UnicodeNormalization;
 use zeroize::Zeroizing;
 
 use crate::KeystoreError;
@@ -20,8 +19,7 @@ impl Mnemonic {
     }
 
     pub fn clean(phrase: &str) -> Result<Zeroizing<String>, KeystoreError> {
-        let cleaned = Zeroizing::new(phrase.nfkd().collect::<String>());
-        let cleaned = Zeroizing::new(cleaned.split_whitespace().map(str::to_lowercase).collect::<Vec<_>>().join(" "));
+        let cleaned = Zeroizing::new(phrase.split_whitespace().map(str::to_lowercase).collect::<Vec<_>>().join(" "));
         let mnemonic = Bip39Mnemonic::parse_in_normalized(Language::English, &cleaned).map_err(|_| KeystoreError::invalid_input("mnemonic"))?;
         Ok(Zeroizing::new(mnemonic.words().collect::<Vec<_>>().join(" ")))
     }
@@ -31,7 +29,7 @@ impl Mnemonic {
     }
 
     pub fn is_valid_word(word: &str) -> bool {
-        let word = word.nfkd().collect::<String>().trim().to_lowercase();
+        let word = word.trim().to_lowercase();
         !word.is_empty() && Language::English.find_word(&word).is_some()
     }
 
