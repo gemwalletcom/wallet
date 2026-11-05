@@ -28,9 +28,11 @@ fn map_balance_changes(chain: Chain, signer: &str, trace: &TraceCallResult) -> V
         changes.push(SimulationBalanceChange::new(AssetId::from_chain(chain), diff));
     }
 
+    let reverted_frames: Vec<&[usize]> = trace.trace.iter().filter(|entry| entry.error.is_some()).map(|entry| entry.trace_address.as_slice()).collect();
+
     let mut token_deltas: HashMap<&str, BigInt> = HashMap::new();
     for entry in &trace.trace {
-        if entry.error.is_some() || entry.action.call_type.as_deref() != Some("call") {
+        if reverted_frames.iter().any(|frame| entry.trace_address.starts_with(frame)) || entry.action.call_type.as_deref() != Some("call") {
             continue;
         }
         let Some(token) = entry.action.to.as_deref() else { continue };
