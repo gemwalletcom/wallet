@@ -1815,16 +1815,16 @@ public extension Primitives.AssetScore {
 public extension Gemstone.Balance {
     func toPrimitives() -> Primitives.Balance {
         Primitives.Balance(
-            available: BigInt(available),
-            frozen: BigInt(frozen),
-            locked: BigInt(locked),
-            staked: BigInt(staked),
-            pending: BigInt(pending),
-            pendingUnconfirmed: BigInt(pendingUnconfirmed),
-            rewards: BigInt(rewards),
-            reserved: BigInt(reserved),
-            earn: BigInt(earn),
-            withdrawable: BigInt(withdrawable),
+            available: available,
+            frozen: frozen,
+            locked: locked,
+            staked: staked,
+            pending: pending,
+            pendingUnconfirmed: pendingUnconfirmed,
+            rewards: rewards,
+            reserved: reserved,
+            earn: earn,
+            withdrawable: withdrawable,
             metadata: metadata.map { $0.toPrimitives() },
         )
     }
@@ -1833,16 +1833,16 @@ public extension Gemstone.Balance {
 public extension Primitives.Balance {
     func toGem() -> Gemstone.Balance {
         Gemstone.Balance(
-            available: available.magnitude,
-            frozen: frozen.magnitude,
-            locked: locked.magnitude,
-            staked: staked.magnitude,
-            pending: pending.magnitude,
-            pendingUnconfirmed: pendingUnconfirmed.magnitude,
-            rewards: rewards.magnitude,
-            reserved: reserved.magnitude,
-            earn: earn.magnitude,
-            withdrawable: withdrawable.magnitude,
+            available: available,
+            frozen: frozen,
+            locked: locked,
+            staked: staked,
+            pending: pending,
+            pendingUnconfirmed: pendingUnconfirmed,
+            rewards: rewards,
+            reserved: reserved,
+            earn: earn,
+            withdrawable: withdrawable,
             metadata: metadata.map { $0.toGem() },
         )
     }
@@ -2137,9 +2137,9 @@ public extension Gemstone.DelegationBase {
         Primitives.DelegationBase(
             assetId: assetId,
             state: state.toPrimitives(),
-            balance: BigInt(balance),
-            shares: BigInt(shares),
-            rewards: BigInt(rewards),
+            balance: balance,
+            shares: shares,
+            rewards: rewards,
             completionDate: completionDate,
             delegationId: delegationId,
             validatorId: validatorId,
@@ -2152,9 +2152,9 @@ public extension Primitives.DelegationBase {
         Gemstone.DelegationBase(
             assetId: assetId,
             state: state.toGem(),
-            balance: balance.magnitude,
-            shares: shares.magnitude,
-            rewards: rewards.magnitude,
+            balance: balance,
+            shares: shares,
+            rewards: rewards,
             completionDate: completionDate,
             delegationId: delegationId,
             validatorId: validatorId,

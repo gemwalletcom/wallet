@@ -1,4 +1,4 @@
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 use primitives::{Wallet, WalletId};
 
@@ -24,7 +24,6 @@ use crate::services::wallet::testkit::{MemoryAddressStore, MemoryWalletStore};
 use crate::services::wallet_preferences::GemWalletPreferencesService;
 use crate::services::wallet_preferences::testkit::MemoryWalletPreferencesStore;
 use crate::services::wallet_session::GemWalletSessionService;
-use crate::services::wallet_session::testkit::MemoryWalletSessionStore;
 use crate::testkit::{EmptyPreferences, TestAlienProvider};
 
 pub struct DiscoveryTestkit {
@@ -53,12 +52,7 @@ impl DiscoveryTestkit {
         let preferences_store = Arc::new(MemoryPreferencesStore::default());
         let preferences = Arc::new(GemPreferencesService::new(preferences_store.clone()));
         let wallets = Arc::new(MemoryWalletStore::with_wallets(vec![wallet.clone()]));
-        let session = Arc::new(GemWalletSessionService::new(
-            Arc::new(MemoryWalletSessionStore {
-                current: Mutex::new(Some(wallet.id.clone())),
-            }),
-            wallets.clone(),
-        ));
+        let session = Arc::new(GemWalletSessionService::mock(wallets.clone(), Some(wallet.id.clone())));
         let gateway = Arc::new(GemGateway::new(provider.clone(), Arc::new(GemNodeService::mock()), preferences_store, Arc::new(EmptyPreferences)));
         let device_api = Arc::new(GemDeviceApiClient::mock(provider.clone()));
         let asset_store = Arc::new(MemoryAssetStore::default());

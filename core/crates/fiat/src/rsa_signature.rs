@@ -1,22 +1,34 @@
-use gem_encoding::{decode_base64, encode_base64};
-use pem_rfc7468::decode_vec;
-use ring::rand::SystemRandom;
-use ring::signature::{RSA_PSS_2048_8192_SHA512, RSA_PSS_SHA512, RsaKeyPair, UnparsedPublicKey};
+use std::error::Error;
 
-pub fn generate_rsa_pss_signature(private_key_base_64: &str, message: &str) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {
+use aws_lc_rs::rand::SystemRandom;
+use aws_lc_rs::signature::{RSA_PSS_2048_8192_SHA512, RSA_PSS_SHA512, RsaKeyPair, UnparsedPublicKey};
+use gem_encoding::{decode_base64, encode_base64};
+
+fn decode_pem(pem: &[u8]) -> Result<Vec<u8>, Box<dyn Error + Send + Sync>> {
+    let body = std::str::from_utf8(pem)?
+        .trim()
+        .strip_prefix("-----BEGIN ")
+        .and_then(|pem| pem.split_once('\n'))
+        .and_then(|(_, pem)| pem.rsplit_once("-----END "))
+        .ok_or("invalid PEM")?
+        .0;
+    Ok(decode_base64(&body.split_whitespace().collect::<String>())?)
+}
+
+pub fn generate_rsa_pss_signature(private_key_base_64: &str, message: &str) -> Result<String, Box<dyn Error + Send + Sync>> {
     let decoded = decode_base64(private_key_base_64)?;
-    let (_, key_der) = decode_vec(&decoded)?;
+    let key_der = decode_pem(&decoded)?;
 
     let key_pair = RsaKeyPair::from_pkcs8(&key_der)?;
-    let mut signature = vec![0u8; key_pair.public().modulus_len()];
+    let mut signature = vec![0u8; key_pair.public_modulus_len()];
     let rng = SystemRandom::new();
     key_pair.sign(&RSA_PSS_SHA512, &rng, message.as_bytes(), &mut signature)?;
 
     Ok(encode_base64(&signature))
 }
 
-pub fn verify_rsa_pss_signature(public_key: &str, message: &str, signature_base64: &str) -> Result<bool, Box<dyn std::error::Error + Send + Sync>> {
-    let (_, key_der) = decode_vec(public_key.as_bytes())?;
+pub fn verify_rsa_pss_signature(public_key: &str, message: &str, signature_base64: &str) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    let key_der = decode_pem(public_key.as_bytes())?;
     let signature = decode_base64(signature_base64)?;
     let public_key = UnparsedPublicKey::new(&RSA_PSS_2048_8192_SHA512, key_der);
 

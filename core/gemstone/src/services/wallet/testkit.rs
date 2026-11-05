@@ -26,7 +26,6 @@ use crate::services::preferences::testkit::MemoryPreferencesStore;
 use crate::services::wallet_preferences::GemWalletPreferencesService;
 use crate::services::wallet_preferences::testkit::MemoryWalletPreferencesStore;
 use crate::services::wallet_session::GemWalletSessionService;
-use crate::services::wallet_session::testkit::MemoryWalletSessionStore;
 use crate::testkit::TestAlienProvider;
 
 pub const TEST_PASSWORD: &str = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f";
@@ -167,7 +166,7 @@ impl WalletTestkit {
         let addresses = Arc::new(MemoryAddressStore::default());
         let preferences = Arc::new(MemoryPreferencesStore::default());
         let keystore = GemKeystore::new(directory.path().to_string_lossy().to_string()).unwrap();
-        let session = Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore::default()), wallets.clone()));
+        let session = Arc::new(GemWalletSessionService::mock(wallets.clone(), None));
         let app_preferences = Arc::new(GemPreferencesService::new(preferences));
         let names = Arc::new(GemNameService::new(
             Arc::new(GemDeviceApiClient::mock(Arc::new(TestAlienProvider::new(crate::alien::AlienResponse::new(None, Vec::new()))))),

@@ -6,7 +6,7 @@ version = { workspace = true }
 [dependencies]
 num-bigint = { workspace = true }
 async-trait = { workspace = true }
-base64 = { workspace = true }
+gem_encoding = { path = "../gem_encoding" }
 futures = { workspace = true }
 gem_client = { path = "../gem_client", features = ["reqwest"] }
 jupiter = { path = "../jupiter" }

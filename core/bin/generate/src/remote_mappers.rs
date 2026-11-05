@@ -985,8 +985,8 @@ mod tests {
         assert_eq!(fields[1].type_name, "BigUint", "the override belongs to the next field only");
 
         let config = Config::from_yaml(CONFIG);
-        assert_eq!(SWIFT.convert(&config, "BigIntValue", "value", 0), "BigInt(value)");
-        assert_eq!(SWIFT.convert(&config, "BigIntValue", "value", 1), "value.magnitude");
+        assert_eq!(SWIFT.convert(&config, "BigIntValue", "value", 0), "value");
+        assert_eq!(SWIFT.convert(&config, "BigIntValue", "value", 1), "value");
         assert_eq!(KOTLIN.convert(&config, "BigIntValue", "value", 0), "value");
     }
 }

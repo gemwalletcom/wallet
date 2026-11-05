@@ -1,4 +1,4 @@
-FROM mirror.gcr.io/library/rust:1.99.0-trixie@sha256:81015672d6939b0265f09adf96d5de125482bb1330106076956b0518e74edc90 AS chef
+FROM mirror.gcr.io/library/rust:1.99.1-trixie@sha256:bc2c4c21d4467cdbbac0ee7b95a6deb742a3467dfe0ff7647916c4b42ca56372 AS chef
 RUN cargo install --locked cargo-chef --version 0.1.77
 WORKDIR /app
 ENV CARGO_INCREMENTAL=0 \
@@ -23,7 +23,7 @@ COPY . .
 RUN cargo build --release --package dynode && cp target/release/dynode /app/
 
 # Shared runtime base
-FROM mirror.gcr.io/library/debian:trixie-slim@sha256:f6b08b09a05725f9431502d3b5714f5c4576e82c1a84fa1debe0c24a7e0c3ec4 AS runtime-base
+FROM mirror.gcr.io/library/debian:trixie-slim@sha256:a72b4433de1cf7d6bae0c4cee74d0547f58601a643b3375f070c51600d63b6b2 AS runtime-base
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 

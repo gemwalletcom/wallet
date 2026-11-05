@@ -1,0 +1,22 @@
+appId: ${APP_ID}
+---
+- runFlow: launch.yaml
+- tapOn:
+    id: "settingsTab"
+- tapOn:
+    id: "wallets"
+- waitForAnimationToEnd
+- tapOn:
+    id: "wallet_edit"
+- waitForAnimationToEnd
+- tapOn:
+    id: "advanced"
+- tapOn:
+    id: "main_action"
+- tapOn:
+    id: "ethereum"
+- extendedWaitUntil:
+    visible:
+      id: "private_key_scope"
+    timeout: 15000
+- runFlow: launch.yaml

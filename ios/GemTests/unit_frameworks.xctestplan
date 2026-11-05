@@ -107,6 +107,13 @@
     },
     {
       "target": {
+        "containerPath": "container:Packages/BigInt",
+        "identifier": "BigIntTests",
+        "name": "BigIntTests"
+      }
+    },
+    {
+      "target": {
         "containerPath": "container:Features/Transactions",
         "identifier": "TransactionsTests",
         "name": "TransactionsTests"

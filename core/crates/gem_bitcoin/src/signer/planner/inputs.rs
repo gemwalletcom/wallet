@@ -74,9 +74,10 @@ fn unsupported_sender_error(chain: BitcoinChain) -> SignerError {
 #[cfg(test)]
 mod tests {
     use crate::{
+        address::prefixed_base58_address,
         signer::address::UnlockingScript,
         testkit::{
-            address_mock::{TEST_BITCOIN_P2WPKH_ADDRESS, TEST_BITCOIN_P2WPKH_HASH, prefixed_address},
+            address_mock::{TEST_BITCOIN_P2WPKH_ADDRESS, TEST_BITCOIN_P2WPKH_HASH},
             signer_mock::mock_utxo_with_address,
         },
     };
@@ -87,7 +88,7 @@ mod tests {
 
     #[test]
     fn test_spendable_inputs_address_type_validation() {
-        let legacy_address = prefixed_address(&[0], TEST_BITCOIN_P2WPKH_HASH);
+        let legacy_address = prefixed_base58_address(&[0], &TEST_BITCOIN_P2WPKH_HASH);
         let inputs = spendable_inputs(
             BitcoinChain::Bitcoin,
             TEST_BITCOIN_P2WPKH_ADDRESS,
@@ -97,7 +98,7 @@ mod tests {
         assert_eq!(inputs[0].unlocking_script, UnlockingScript::P2pkh);
         assert_eq!(inputs[1].unlocking_script, UnlockingScript::P2wpkh);
 
-        let different_legacy_address = prefixed_address(&[0], [9u8; 20]);
+        let different_legacy_address = prefixed_base58_address(&[0], &[9u8; 20]);
         assert_eq!(
             spendable_inputs(BitcoinChain::Bitcoin, TEST_BITCOIN_P2WPKH_ADDRESS, vec![mock_utxo_with_address(&different_legacy_address)],).err(),
             Some(SignerError::invalid_input("bitcoin UTXO address does not match sender address")),

@@ -1,5 +1,5 @@
 use num_bigint::BigInt;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 use async_trait::async_trait;
 use gem_bitcoin::models::BitcoinUTXO;
@@ -35,7 +35,7 @@ use crate::services::transfer::{GemRecentActivityService, testkit::MemoryRecentA
 use crate::services::transfer::{GemRecipient, GemTransferData};
 use crate::services::wallet::testkit::{MemoryAddressStore, MemoryKeystorePassword, MemoryWalletStore, TEST_PASSWORD};
 use crate::services::wallet_preferences::{GemWalletPreferencesService, testkit::MemoryWalletPreferencesStore};
-use crate::services::wallet_session::{GemWalletSessionService, testkit::MemoryWalletSessionStore};
+use crate::services::wallet_session::GemWalletSessionService;
 use crate::services::{GemScanService, GemSimulationService};
 use crate::testkit::{EmptyPreferences, TestAlienProvider};
 use crate::transfer_amount::GemTransferAmount;
@@ -95,11 +95,9 @@ impl ConfirmTestkit {
     fn build(wallet: Wallet, selected_wallet: Wallet, provider: Arc<TestAlienProvider>, swap: Arc<GemSwapService>) -> Self {
         let preferences_store = Arc::new(MemoryPreferencesStore::default());
         let preferences = Arc::new(GemPreferencesService::new(preferences_store.clone()));
-        let selected = Arc::new(MemoryWalletSessionStore {
-            current: Mutex::new(Some(selected_wallet.id.clone())),
-        });
+        let selected = Some(selected_wallet.id.clone());
         let wallets = Arc::new(MemoryWalletStore::with_wallets(vec![wallet.clone(), selected_wallet]));
-        let session = Arc::new(GemWalletSessionService::new(selected, wallets));
+        let session = Arc::new(GemWalletSessionService::mock(wallets, selected));
         let gateway = Arc::new(GemGateway::new(provider.clone(), Arc::new(GemNodeService::mock()), preferences_store, Arc::new(EmptyPreferences)));
         let api = Arc::new(GemApiClient::new(provider.clone()));
         let device_api = Arc::new(GemDeviceApiClient::mock(provider.clone()));

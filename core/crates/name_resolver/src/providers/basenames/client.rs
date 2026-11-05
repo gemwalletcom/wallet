@@ -1,6 +1,5 @@
 use std::error::Error;
 
-use alloy_ens::namehash;
 use alloy_primitives::Address;
 use alloy_sol_types::SolCall;
 use gem_client::ReqwestClient;
@@ -9,6 +8,7 @@ use gem_jsonrpc::JsonRpcClient;
 use primitives::EVMChain;
 
 use super::contract::L2Resolver;
+use crate::providers::ens::namehash;
 
 const L2_RESOLVER_ADDRESS: &str = "0xC6d566A56A1aFf6508b41f6c90ff131615583BCD";
 

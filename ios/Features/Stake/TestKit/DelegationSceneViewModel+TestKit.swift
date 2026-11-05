@@ -12,7 +12,7 @@ public extension DelegationSceneViewModel {
         wallet: Wallet = .mock(),
         chain: Chain = .cosmos,
         state: DelegationState = .active,
-        rewards: BigInt = .zero,
+        rewards: BigUInt = .zero,
         providerType: StakeProviderType = .stake,
         stakeService: any GemStakeServiceProtocol = GemStakeServiceMock(),
         onNavigate: StakeRouteAction = nil,

@@ -48,6 +48,10 @@ jobs:
   ios:
     if: ${{ inputs.platform == 'ios' || inputs.platform == 'both' }}
     runs-on: macos-26
+    # the ios recipes live in ios/justfile; only the root justfile has maestro-smoke
+    defaults:
+      run:
+        working-directory: ios
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -63,6 +67,8 @@ jobs:
 
       - name: Build Core
         run: just generate-stone
+        env:
+          GEMSTONE_IOS_TARGETS: "aarch64-apple-ios-sim"
 
       - name: Resolve SPM Dependencies
         run: just spm-resolve
@@ -82,6 +88,7 @@ jobs:
 
       - name: Maestro flows
         if: ${{ inputs.suite != 'native' }}
+        working-directory: .
         run: just maestro-smoke ios
 
       - name: Upload Maestro artifacts
@@ -95,6 +102,10 @@ jobs:
   android:
     if: ${{ inputs.platform == 'android' || inputs.platform == 'both' }}
     runs-on: ubuntu-latest
+    # the android recipes live in android/justfile; only the root justfile has maestro-smoke
+    defaults:
+      run:
+        working-directory: android
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -114,8 +125,16 @@ jobs:
           just install-ndk
 
       - name: Build the app
-        working-directory: android
         run: just build
+
+      # ubuntu-latest ships the SDK without the emulator package, so the runner adds it
+      - name: Install the Android emulator
+        if: ${{ inputs.suite != 'native' }}
+        working-directory: .
+        run: |
+          sdkmanager="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$sdkmanager" --licenses > /dev/null
+          "$sdkmanager" --install "emulator" "platform-tools" "system-images;android-35;google_apis;x86_64" | tail -2
 
       - name: Install Maestro
         if: ${{ inputs.suite != 'native' }}
@@ -125,6 +144,7 @@ jobs:
 
       - name: Maestro flows
         if: ${{ inputs.suite != 'native' }}
+        working-directory: .
         run: just maestro-smoke android
 
       - name: Upload Maestro artifacts

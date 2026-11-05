@@ -9,6 +9,7 @@ mod zcash;
 use primitives::{BitcoinChain, SignerError};
 
 pub(crate) use crate::hash::public_key_hash;
+pub(crate) use bitcoin_cash::address as bitcoin_cash_address;
 pub(crate) use dash::P2PKH_VERSIONS as DASH_P2PKH_PREFIX;
 pub(crate) use doge::P2PKH_VERSIONS as DOGE_P2PKH_PREFIX;
 pub(crate) use litecoin::HRP as LITECOIN_HRP;

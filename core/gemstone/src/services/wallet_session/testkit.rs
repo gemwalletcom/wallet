@@ -1,9 +1,16 @@
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 use primitives::WalletId;
 
-use super::GemWalletSessionStore;
+use super::{GemWalletSessionService, GemWalletSessionStore};
 use crate::services::error::GemServiceError;
+use crate::services::wallet::GemWalletStore;
+
+impl GemWalletSessionService {
+    pub fn mock(wallets: Arc<dyn GemWalletStore>, current: Option<WalletId>) -> Self {
+        Self::new(Arc::new(MemoryWalletSessionStore { current: Mutex::new(current) }), wallets)
+    }
+}
 
 #[derive(Default)]
 pub struct MemoryWalletSessionStore {

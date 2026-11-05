@@ -212,6 +212,7 @@
 		C366791B2A1860E500F1D74D /* QRScanner */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = QRScanner; sourceTree = "<group>"; };
 		C370289B2A9C3B0E009AE123 /* Settings */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Settings; sourceTree = "<group>"; };
 		C3CF3B7529A98C5D00E96586 /* Primitives */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Primitives; sourceTree = "<group>"; };
+		B1610BB12F50000000000B01 /* BigInt */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = BigInt; sourceTree = "<group>"; };
 		C3CF3B8629AC2B5500E96586 /* Components */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Components; sourceTree = "<group>"; };
 		C3CF3BD929BBE40300E96586 /* Style */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Style; sourceTree = "<group>"; };
 		C3FA949529DD50E200BFC23D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -593,6 +594,7 @@
 				D8D203D12AE0813E00261CA2 /* SwiftHTTPClient */,
 				C3549B4C29CA3A9000B4BE01 /* Store */,
 				C3CF3B7529A98C5D00E96586 /* Primitives */,
+				B1610BB12F50000000000B01 /* BigInt */,
 				C3CF3BD929BBE40300E96586 /* Style */,
 				C3CF3B8629AC2B5500E96586 /* Components */,
 				D829BF2B2CBDB82600DEB2E8 /* Localization */,

@@ -2,11 +2,11 @@ use bitcoin::{
     PublicKey,
     secp256k1::{PublicKey as Secp256k1PublicKey, Secp256k1, SecretKey},
 };
-use primitives::{BitcoinChain, testkit::signer_mock::TEST_PRIVATE_KEY};
+use primitives::{BITCOINCASH_PREFIX, BitcoinChain, testkit::signer_mock::TEST_PRIVATE_KEY};
 
 use crate::{
-    address::BitcoinAddress,
-    signer::address::{UnlockingScript, ZCASH_TRANSPARENT_P2PKH_PREFIX, public_key_hash, script_for_public_key_hash},
+    address::{BitcoinAddress, prefixed_base58_address},
+    signer::address::{DASH_P2PKH_PREFIX, DOGE_P2PKH_PREFIX, UnlockingScript, ZCASH_TRANSPARENT_P2PKH_PREFIX, bitcoin_cash_address, public_key_hash, script_for_public_key_hash},
 };
 
 pub(crate) const TEST_BITCOIN_P2WPKH_ADDRESS: &str = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4";
@@ -35,29 +35,13 @@ impl BitcoinAddress {
 
 pub(crate) fn mock_addr_by_hash(chain: BitcoinChain, hash: [u8; 20]) -> String {
     match chain {
-        BitcoinChain::Bitcoin => prefixed_address(&[0], hash),
-        BitcoinChain::BitcoinCash => mock_bch_address(hash),
-        BitcoinChain::Litecoin => prefixed_address(&[48], hash),
-        BitcoinChain::Doge => prefixed_address(&[30], hash),
-        BitcoinChain::Dash => prefixed_address(&[76], hash),
-        BitcoinChain::Zcash => mock_zec_address(hash),
+        BitcoinChain::Bitcoin => prefixed_base58_address(&[0], &hash),
+        BitcoinChain::BitcoinCash => format!("{BITCOINCASH_PREFIX}{}", bitcoin_cash_address(hash)),
+        BitcoinChain::Litecoin => prefixed_base58_address(&[48], &hash),
+        BitcoinChain::Doge => prefixed_base58_address(&DOGE_P2PKH_PREFIX, &hash),
+        BitcoinChain::Dash => prefixed_base58_address(&DASH_P2PKH_PREFIX, &hash),
+        BitcoinChain::Zcash => prefixed_base58_address(&ZCASH_TRANSPARENT_P2PKH_PREFIX, &hash),
     }
-}
-
-pub(crate) fn mock_bch_address(hash: [u8; 20]) -> String {
-    bitcoincash_addr::Address::new(hash.to_vec(), bitcoincash_addr::Scheme::CashAddr, bitcoincash_addr::HashType::Key, bitcoincash_addr::Network::Main)
-        .encode()
-        .unwrap()
-}
-
-pub(crate) fn mock_zec_address(hash: [u8; 20]) -> String {
-    prefixed_address(&ZCASH_TRANSPARENT_P2PKH_PREFIX, hash)
-}
-
-pub(crate) fn prefixed_address(prefix: &[u8], hash: [u8; 20]) -> String {
-    let mut payload = prefix.to_vec();
-    payload.extend(hash);
-    bs58::encode(payload).with_check().into_string()
 }
 
 pub fn mock_public_key() -> PublicKey {

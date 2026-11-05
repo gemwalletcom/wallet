@@ -4,7 +4,7 @@ use alloy_primitives::hex;
 use chain_traits::ChainTransactionLoad;
 use gem_client::ReqwestClient;
 use gem_evm::rpc::EthereumProvider;
-use gem_evm::signer::{create_transfer_tx, sign_eip1559_tx};
+use gem_evm::signer::create_transfer_tx;
 use num_traits::ToPrimitive;
 use primitives::{ChainType, EVMChain, FeePriority, FeeRate, TransactionInputType, TransactionLoadInput, TransactionPreloadInput};
 use std::collections::HashMap;
@@ -89,7 +89,7 @@ impl EvmTransferProvider {
 
         let tx = create_transfer_tx(&asset.id, &request.recipient_address, &value.to_string(), nonce, chain_id, max_fee_per_gas, max_priority_fee_per_gas, gas_limit)?;
 
-        let signed_tx = sign_eip1559_tx(&tx, &private_key)?;
+        let signed_tx = tx.sign(&private_key)?;
         let signed_tx_hex = format!("0x{}", hex::encode(&signed_tx));
         let transaction_id = client.broadcast_transaction(&signed_tx_hex).await?;
 

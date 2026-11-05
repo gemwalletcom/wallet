@@ -1,4 +1,3 @@
-use crc::Crc;
 use gem_hash::sha2::sha256;
 use primitives::SignerError;
 use serde::{Deserialize, Serialize};
@@ -6,12 +5,12 @@ use serde::{Deserialize, Serialize};
 use super::payload::TonSignDataPayload;
 use crate::{
     address::Address,
-    tvm::{BagOfCells, CellBuilder},
+    tvm::{BagOfCells, CellBuilder, crc32},
 };
 
 const SIGN_DATA_PREFIX: &[u8] = b"\xff\xffton-connect/sign-data/";
 const CELL_SIGN_PREFIX: u32 = 0x75569022;
-const SCHEMA_CRC32: Crc<u32> = Crc::<u32>::new(&crc::CRC_32_ISO_HDLC);
+const SCHEMA_CRC32_POLYNOMIAL: u32 = 0xEDB8_8320;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TonSignMessageData {
@@ -71,7 +70,7 @@ impl TonSignMessageData {
 
         let cell = CellBuilder::new()
             .store_u32(32, CELL_SIGN_PREFIX)?
-            .store_u32(32, SCHEMA_CRC32.checksum(schema.as_bytes()))?
+            .store_u32(32, crc32(schema.as_bytes(), SCHEMA_CRC32_POLYNOMIAL))?
             .store_u64(64, timestamp)?
             .store_address(address)?
             .store_child(CellBuilder::new().store_slice_snake(&domain)?.end_cell()?)?

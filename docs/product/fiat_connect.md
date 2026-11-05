@@ -21,6 +21,7 @@ flowchart LR
 |---|---|---|
 | The screen opens | the amount starts at `$50` for Buy and `$100` for Sell | |
 | The user types an amount | whole dollars between `$5` and `$10,000` | |
+| The amount is below `$5` or above `$10,000` | only the amount error shows, with no "no quotes" message beside it | no provider is asked for that amount, so a quotes message would blame the providers for the amount |
 | The user types the amount with their keyboard's own digits (Arabic, Persian, Devanagari, …) | it reads as the same amount, so `٥٠` asks for `$50` quotes | the field accepts those digits, so rejecting them leaves the user with only the preset amounts |
 | Gem disables a provider for a country | the provider receives no new quote requests there; the screen shows a localized region-unavailable message when no provider serves the country; provider country syncs preserve the block | Gem controls availability independently of provider-reported coverage |
 | The asset row | the asset and its balance with the symbol on the left, and the `$100` and `$250` presets on the right | the balance is what the user checks before buying or selling, so the row holds nothing else |

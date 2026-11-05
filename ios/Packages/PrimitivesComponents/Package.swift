@@ -25,7 +25,7 @@ let package = Package(
         .package(name: "Localization", path: "../Localization"),
         .package(name: "Components", path: "../Components"),
         .package(name: "Style", path: "../Style"),
-        .package(name: "BigInt", path: "../../Submodules/BigInt"),
+        .package(name: "BigInt", path: "../BigInt"),
     ],
     targets: [
         .target(
@@ -37,7 +37,6 @@ let package = Package(
                 "Localization",
                 "Components",
                 "Style",
-                .product(name: "BigInt", package: "BigInt"),
             ],
             path: "Sources",
         ),

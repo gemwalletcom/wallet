@@ -1,4 +1,4 @@
-use base64::{Engine, engine::general_purpose::STANDARD};
+use gem_encoding::encode_base64;
 use primitives::{Account, Chain, hex};
 use serde_json::Value;
 
@@ -16,7 +16,7 @@ fn sui_account_value(account: &Account) -> Option<Value> {
         return None;
     }
     let flagged_key = [&[SUI_ED25519_SCHEME_FLAG][..], &public_key].concat();
-    Some(serde_json::json!({ "pubkey": STANDARD.encode(flagged_key), "address": account.address }))
+    Some(serde_json::json!({ "pubkey": encode_base64(&flagged_key), "address": account.address }))
 }
 
 #[cfg(test)]

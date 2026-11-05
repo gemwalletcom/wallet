@@ -47,14 +47,14 @@ public struct WalletDetailScene: View {
                 }
                 if let backup = model.details.backup {
                     Section {
-                        secretRow(backup)
+                        secretRow(backup, id: "backup")
                     } header: {
                         Text(Localized.Wallet.backup)
                     }
                 }
                 if let advanced = model.details.advanced {
                     Section {
-                        secretRow(advanced)
+                        secretRow(advanced, id: "advanced")
                     } header: {
                         Text(Localized.Wallet.advanced)
                     }
@@ -110,11 +110,12 @@ public struct WalletDetailScene: View {
         }
     }
 
-    private func secretRow(_ row: GemSecretRow) -> some View {
+    private func secretRow(_ row: GemSecretRow, id: String) -> some View {
         NavigationCustomLink(
             with: ListItemView(model: ListItemModel(title: row.title.text)),
             action: { onSelect(row.export) },
         )
+        .accessibilityIdentifier(id)
     }
 }
 

@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -68,6 +69,7 @@ fun PrivateKeyAccountsScreen(onSelect: (Chain) -> Unit, onCancel: () -> Unit, vi
             itemsIndexed(accounts) { index, account ->
                 ChainItem(
                     title = account.row.title,
+                    modifier = Modifier.testTag(account.row.chain),
                     icon = ListItemImage.Asset(account.row.icon),
                     subtitle = account.address,
                     listPosition = ListPosition.getPosition(index, accounts.size),

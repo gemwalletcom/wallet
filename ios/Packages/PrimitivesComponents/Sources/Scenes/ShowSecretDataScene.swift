@@ -41,6 +41,7 @@ public struct ShowSecretDataScene: View {
                     .textStyle(.calloutSecondary)
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity)
+                    .accessibilityIdentifier("private_key_scope")
                     .cleanListRow()
             }
 

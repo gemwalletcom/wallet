@@ -1,7 +1,6 @@
 use std::error::Error;
 
-use alloy_ens::{UNIVERSAL_RESOLVER_ADDRESS, coin_type, namehash, try_dns_encode};
-use alloy_primitives::{Address, Bytes, U256, hex};
+use alloy_primitives::{Address, Bytes, U256, address, hex};
 use alloy_sol_types::{SolCall, SolError, SolInterface};
 use gem_client::Client;
 use gem_evm::jsonrpc::EthereumRpc;
@@ -12,7 +11,10 @@ use serde::Deserialize;
 
 use super::ccip::CcipClient;
 use super::contract::{ENSMulticoinResolver, ENSResolver, HttpError, UniversalResolver, UniversalResolver::UniversalResolverErrors};
+use super::name::{dns_encode, namehash};
 
+const UNIVERSAL_RESOLVER_ADDRESS: Address = address!("0xeEeEEEeE14D718C2B47D9923Deab1335E144EeEe");
+const ETH_COIN_TYPE: u64 = 60;
 const MAX_OFFCHAIN_LOOKUPS: usize = 2;
 
 #[derive(Debug, Default, Deserialize)]
@@ -34,8 +36,8 @@ impl<C: Client + Clone> EnsClient<C> {
 
     pub async fn get_address(&self, name: &str, chain: Chain) -> Result<Option<Address>, Box<dyn Error + Send + Sync>> {
         let node = namehash(name);
-        let coin_type = chain.network_id_value().and_then(coin_type::evm_chain).ok_or("ENS has no coin type for this network")?;
-        if coin_type == coin_type::ETH {
+        let coin_type = chain.network_id_value().and_then(evm_coin_type).ok_or("ENS has no coin type for this network")?;
+        if coin_type == ETH_COIN_TYPE {
             let Some(result) = self.resolve(name, ENSResolver::addrCall { node }.abi_encode()).await? else {
                 return Ok(None);
             };
@@ -54,7 +56,7 @@ impl<C: Client + Clone> EnsClient<C> {
 
     async fn resolve(&self, name: &str, data: Vec<u8>) -> Result<Option<Bytes>, Box<dyn Error + Send + Sync>> {
         let mut call = UniversalResolver::resolveCall {
-            name: try_dns_encode(name)?.into(),
+            name: dns_encode(name)?.into(),
             data: data.into(),
         }
         .abi_encode();
@@ -81,6 +83,14 @@ impl<C: Client + Clone> EnsClient<C> {
             call = lookup.callback(self.ccip.lookup(&lookup).await?);
         }
         Err("ENS offchain lookup limit exceeded".into())
+    }
+}
+
+fn evm_coin_type(chain_id: u64) -> Option<u64> {
+    match chain_id {
+        1 => Some(ETH_COIN_TYPE),
+        0..0x8000_0000 => Some(0x8000_0000 | chain_id),
+        _ => None,
     }
 }
 

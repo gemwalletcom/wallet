@@ -28,7 +28,7 @@ let package = Package(
         .package(name: "Store", path: "../../Packages/Store"),
         .package(name: "PrimitivesComponents", path: "../../Packages/PrimitivesComponents"),
         .package(name: "InfoSheet", path: "../../Packages/InfoSheet"),
-        .package(name: "BigInt", path: "../../Submodules/BigInt"),
+        .package(name: "BigInt", path: "../../Packages/BigInt"),
         .package(name: "Style", path: "../../Packages/Style"),
     ],
     targets: [

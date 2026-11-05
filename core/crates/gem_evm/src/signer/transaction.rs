@@ -1,12 +1,12 @@
 use crate::contracts::IERC20;
-use alloy_consensus::TxEip1559;
-use alloy_primitives::{Address, Bytes, TxKind, U256};
+use crate::signer::Eip1559Transaction;
+use alloy_primitives::{Address, Bytes, U256};
 use alloy_sol_types::SolCall;
 use primitives::AssetId;
 use std::error::Error;
 use std::str::FromStr;
 
-pub fn create_transfer_tx(asset_id: &AssetId, recipient: &str, amount: &str, nonce: u64, chain_id: u64, max_fee_per_gas: u128, max_priority_fee_per_gas: u128, gas_limit: u64) -> Result<TxEip1559, Box<dyn Error + Send + Sync>> {
+pub fn create_transfer_tx(asset_id: &AssetId, recipient: &str, amount: &str, nonce: u64, chain_id: u64, max_fee_per_gas: u128, max_priority_fee_per_gas: u128, gas_limit: u64) -> Result<Eip1559Transaction, Box<dyn Error + Send + Sync>> {
     let amount_u256 = U256::from_str(amount)?;
     let recipient_address = Address::from_str(recipient)?;
 
@@ -18,15 +18,14 @@ pub fn create_transfer_tx(asset_id: &AssetId, recipient: &str, amount: &str, non
         (recipient_address, amount_u256, Bytes::new())
     };
 
-    Ok(TxEip1559 {
+    Ok(Eip1559Transaction {
         chain_id,
         nonce,
         gas_limit,
         max_fee_per_gas,
         max_priority_fee_per_gas,
-        to: TxKind::Call(to),
+        to,
         value,
-        access_list: Default::default(),
         input,
     })
 }

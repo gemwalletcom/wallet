@@ -223,16 +223,16 @@ public extension AssetScore {
 
 public extension Balance {
     static func mock(
-        available: BigIntValue = 0,
-        frozen: BigIntValue = 0,
-        locked: BigIntValue = 0,
-        staked: BigIntValue = 0,
-        pending: BigIntValue = 0,
-        pendingUnconfirmed: BigIntValue = 0,
-        rewards: BigIntValue = 0,
-        reserved: BigIntValue = 0,
-        earn: BigIntValue = 0,
-        withdrawable: BigIntValue = 0,
+        available: BigUInt = 0,
+        frozen: BigUInt = 0,
+        locked: BigUInt = 0,
+        staked: BigUInt = 0,
+        pending: BigUInt = 0,
+        pendingUnconfirmed: BigUInt = 0,
+        rewards: BigUInt = 0,
+        reserved: BigUInt = 0,
+        earn: BigUInt = 0,
+        withdrawable: BigUInt = 0,
         metadata: BalanceMetadata? = nil,
     ) -> Balance {
         Balance(
@@ -393,9 +393,9 @@ public extension DelegationBase {
     static func mock(
         assetId: AssetId = .mock(),
         state: DelegationState = .active,
-        balance: BigIntValue = 0,
-        shares: BigIntValue = 0,
-        rewards: BigIntValue = 0,
+        balance: BigUInt = 0,
+        shares: BigUInt = 0,
+        rewards: BigUInt = 0,
         completionDate: Date? = nil,
         delegationId: String = "",
         validatorId: String = "",
