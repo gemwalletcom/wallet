@@ -43,11 +43,12 @@ concurrency:
 
 env:
   MAESTRO_CLI_NO_ANALYTICS: 1
+  SIMULATOR_OS: "27.0"
 
 jobs:
   ios:
     if: ${{ inputs.platform == 'ios' || inputs.platform == 'both' }}
-    runs-on: macos-26
+    runs-on: xcode-27
     # the ios recipes live in ios/justfile; only the root justfile has maestro-smoke
     defaults:
       run:
