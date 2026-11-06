@@ -71,6 +71,7 @@ pub struct BalanceRequest {
     pub chain: Chain,
     pub address: String,
     pub coin: bool,
+    pub stake: bool,
     pub token_ids: Vec<AssetId>,
 }
 
@@ -90,7 +91,11 @@ pub fn kind_balances<E>(kind: BalanceKind, balances: Result<Vec<AssetBalance>, E
     balances.map(|balances| balances.into_iter().map(|balance| (kind, balance)).collect())
 }
 
-pub fn balance_requests(accounts: &[Account], asset_ids: &[AssetId]) -> Vec<BalanceRequest> {
+pub fn staked_token_ids(asset_ids: &[AssetId]) -> Vec<AssetId> {
+    asset_ids.iter().filter(|asset_id| asset_id.is_native()).filter_map(|asset_id| AssetId::staked_token(asset_id.chain)).collect()
+}
+
+pub fn balance_requests(accounts: &[Account], asset_ids: &[AssetId], stored_ids: &[AssetId]) -> Vec<BalanceRequest> {
     accounts
         .iter()
         .filter_map(|account| {
@@ -99,10 +104,12 @@ pub fn balance_requests(accounts: &[Account], asset_ids: &[AssetId]) -> Vec<Bala
             if chain_asset_ids.is_empty() {
                 return None;
             }
+            let coin = chain_asset_ids.iter().any(|asset_id| asset_id.is_native());
             Some(BalanceRequest {
                 chain,
                 address: account.address.clone(),
-                coin: chain_asset_ids.iter().any(|asset_id| asset_id.is_native()),
+                coin,
+                stake: coin && AssetId::staked_token(chain).is_none_or(|staked_token| asset_ids.contains(&staked_token) || stored_ids.contains(&staked_token)),
                 token_ids: chain_asset_ids.into_iter().filter(|asset_id| asset_id.is_token()).cloned().collect(),
             })
         })
@@ -264,6 +271,7 @@ mod tests {
 
     use super::*;
     use num_bigint::BigUint;
+    use primitives::asset_constants::TON_TSTON_ASSET_ID;
 
     #[test]
     fn test_changed_balances_keeps_only_what_differs_from_the_stored_row() {
@@ -340,7 +348,7 @@ mod tests {
         let sei_evm_token = AssetId::from_token(Chain::SeiEvm, "0xtoken");
         let ethereum_token = AssetId::from_token(Chain::Ethereum, "0xusdc");
 
-        let requests = balance_requests(&[Account::mock(Chain::Sei, "sei-address"), Account::mock(Chain::Ethereum, "0xaddress")], &[sei, sei_evm_token, ethereum_token.clone()]);
+        let requests = balance_requests(&[Account::mock(Chain::Sei, "sei-address"), Account::mock(Chain::Ethereum, "0xaddress")], &[sei, sei_evm_token, ethereum_token.clone()], &[]);
 
         assert_eq!(
             requests,
@@ -349,16 +357,33 @@ mod tests {
                     chain: Chain::Sei,
                     address: "sei-address".into(),
                     coin: true,
+                    stake: true,
                     token_ids: vec![],
                 },
                 BalanceRequest {
                     chain: Chain::Ethereum,
                     address: "0xaddress".into(),
                     coin: false,
+                    stake: false,
                     token_ids: vec![ethereum_token],
                 },
             ]
         );
+    }
+
+    #[test]
+    fn test_ton_staking_is_requested_only_with_a_tston_row() {
+        let ton = AssetId::from_chain(Chain::Ton);
+        let tston = TON_TSTON_ASSET_ID.clone();
+        let accounts = [Account::mock(Chain::Ton, "ton-address")];
+        let stake = |asset_ids: Vec<AssetId>, stored_ids: Vec<AssetId>| balance_requests(&accounts, &asset_ids, &stored_ids).into_iter().map(|request| request.stake).collect::<Vec<_>>();
+
+        assert_eq!(stake(vec![ton.clone()], vec![]), vec![false]);
+        assert_eq!(stake(vec![ton.clone()], vec![tston.clone()]), vec![true]);
+        assert_eq!(stake(vec![ton.clone(), tston.clone()], vec![]), vec![true]);
+        assert_eq!(stake(vec![tston.clone()], vec![tston.clone()]), vec![false]);
+        assert_eq!(staked_token_ids(&[ton, tston.clone(), AssetId::from_chain(Chain::Cosmos)]), vec![tston.clone()]);
+        assert_eq!(staked_token_ids(&[tston]), vec![]);
     }
 
     #[test]

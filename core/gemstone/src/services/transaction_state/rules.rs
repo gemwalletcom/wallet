@@ -37,6 +37,7 @@ pub fn post_processing(transaction: &Transaction, previous_state: TransactionSta
         | TransactionType::StakeFreeze
         | TransactionType::StakeUnfreeze => {
             processing.stake_chains = unique(transaction.asset_ids().into_iter().map(|asset_id| asset_id.chain));
+            processing.balance_asset_ids.extend(processing.stake_chains.iter().filter_map(|chain| AssetId::staked_token(*chain)));
         }
         TransactionType::EarnDeposit | TransactionType::EarnWithdraw => processing.earn_asset_ids = transaction.asset_ids(),
         TransactionType::TransferNFT => processing.sync_nfts = true,
@@ -161,5 +162,16 @@ mod tests {
         chains.sort();
         assert_eq!(processing.stake_chains.len(), 2);
         assert_eq!(chains, vec![Chain::Ethereum, Chain::Solana]);
+    }
+
+    #[test]
+    fn test_post_processing_a_ton_stake_refreshes_tston() {
+        let mut transaction = Transaction::mock();
+        transaction.transaction_type = TransactionType::StakeDelegate;
+        transaction.asset_id = AssetId::from_chain(Chain::Ton);
+
+        let processing = post_processing(&transaction, TransactionState::Pending, TransactionState::Confirmed).unwrap();
+
+        assert!(processing.balance_asset_ids.contains(&AssetId::staked_token(Chain::Ton).unwrap()));
     }
 }
