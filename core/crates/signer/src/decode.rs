@@ -128,10 +128,7 @@ fn validate_key(bytes: &[u8], scheme: SignatureScheme) -> Result<(), SignerError
             ed25519_dalek::SigningKey::from_bytes(arr);
             Ok(())
         }
-        SignatureScheme::Secp256k1 => {
-            k256::ecdsa::SigningKey::from_slice(bytes).map_err(|_| SignerError::invalid_input("Invalid secp256k1 private key"))?;
-            Ok(())
-        }
+        SignatureScheme::Secp256k1 => crate::secp256k1::validate_private_key(bytes),
         SignatureScheme::Ed25519CardanoExtended => {
             if bytes.len() != CARDANO_EXTENDED_PRIVATE_KEY_LENGTH {
                 return Err(SignerError::invalid_input("Invalid Cardano extended private key"));

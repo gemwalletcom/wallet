@@ -22,7 +22,6 @@ futures = { workspace = true, optional = true }
 number_formatter = { path = "../number_formatter", optional = true }
 
 signer = { path = "../signer", optional = true }
-k256 = { workspace = true, optional = true }
 
 num-bigint = { workspace = true }
 
@@ -36,7 +35,7 @@ rpc = [
     "dep:futures",
     "dep:number_formatter",
 ]
-signer = ["dep:signer", "dep:k256", "gem_encoding/protobuf"]
+signer = ["dep:signer", "gem_encoding/protobuf"]
 reqwest = ["gem_client/reqwest"]
 chain_integration_tests = ["rpc", "reqwest", "settings/testkit"]
 

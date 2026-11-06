@@ -5,7 +5,8 @@ edition = { workspace = true }
 
 [dependencies]
 ed25519-dalek = { workspace = true, default-features = false, features = ["zeroize"] }
-k256 = { workspace = true }
+secp256k1 = { workspace = true }
+getrandom = { workspace = true }
 primitives = { path = "../primitives" }
 bs58 = { workspace = true }
 alloy-primitives = { workspace = true }
