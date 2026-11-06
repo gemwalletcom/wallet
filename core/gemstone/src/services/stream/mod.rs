@@ -12,8 +12,6 @@ pub use subscription::GemStreamSubscriptionService;
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
-use tracing::error;
-
 use primitives::{Chain, StreamEvent, SupportMessageSender, SupportStreamEvent, SupportTypingStatus};
 
 use crate::services::balance::GemBalanceService;
@@ -86,9 +84,7 @@ impl GemStreamService {
         if !self.subscriptions.prepare_session(self.session.get_current_wallet_id()?).await? {
             return Ok(false);
         }
-        if let Err(error) = self.device.synchronize_if_needed().await {
-            error!(%error, "stream device synchronization failed");
-        }
+        let _ = self.device.synchronize_if_needed().await;
         Ok(true)
     }
 
@@ -102,9 +98,7 @@ impl GemStreamService {
 
     pub async fn disconnected(&self) {
         self.subscriptions.reset().await;
-        if let Err(error) = self.support.clear_typing() {
-            error!(%error, "stream support typing reset failed");
-        }
+        let _ = self.support.clear_typing();
     }
 
     pub async fn decode_event(&self, event: String) -> Result<GemStreamEvent, GemServiceError> {
