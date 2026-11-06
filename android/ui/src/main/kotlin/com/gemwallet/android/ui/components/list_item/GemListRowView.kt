@@ -92,7 +92,7 @@ fun GemListRowView(
     val uriHandler = LocalUriHandler.current
     val clipboardManager = context.clipboardManager()
     val selectAction = onSelect?.let { action ?: row.action() }
-    val rowModifier = row.action()?.let { modifier.testTag(it.testTag) } ?: modifier
+    val rowModifier = row.action()?.let { modifier.testTag(it.identifier()) } ?: modifier
 
     when (val row = row.uiModel(context)) {
         is GemListRowUIModel.Notice -> WarningItem(
@@ -258,6 +258,3 @@ private fun GemListRowMenu(items: List<GemListRowMenuItem>, onClick: () -> Unit 
         },
     )
 }
-
-val GemRowAction.testTag: String
-    get() = javaClass.simpleName.replaceFirstChar { it.lowercase() }

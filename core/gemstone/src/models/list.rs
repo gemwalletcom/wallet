@@ -1,5 +1,6 @@
 use chrono::{DateTime, Utc};
 use primitives::{Asset, BlockExplorerLink, Chain, TransactionState, VerificationStatus};
+use strum::AsRefStr;
 
 use crate::address_formatter::{GemAddressFormatStyle, format_address};
 use crate::config::social::GemSocialLink;
@@ -254,7 +255,8 @@ pub enum GemListRowIcon {
     AddToWallet,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, uniffi::Enum)]
+#[derive(Debug, Clone, PartialEq, Eq, AsRefStr, uniffi::Enum)]
+#[strum(serialize_all = "camelCase")]
 pub enum GemRowAction {
     Wallets,
     Security,
@@ -288,6 +290,13 @@ pub enum GemRowAction {
     Pin,
     AddToWallet,
     Explorer { url: String },
+}
+
+#[uniffi::export]
+impl GemRowAction {
+    pub fn identifier(&self) -> String {
+        self.as_ref().to_string()
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -684,5 +693,11 @@ mod tests {
             }
         );
         assert_eq!(GemListWindow { limit: LIST_PAGE_SIZE * 3, ..first }.on_end_reached(LIST_PAGE_SIZE * 3), GemListWindow { limit: LIST_PAGE_SIZE * 3, ..first });
+    }
+
+    #[test]
+    fn test_row_action_identifier() {
+        assert_eq!(GemRowAction::PriceAlerts.identifier(), "priceAlerts");
+        assert_eq!(GemRowAction::Explorer { url: "https://example.com".to_string() }.identifier(), "explorer");
     }
 }
