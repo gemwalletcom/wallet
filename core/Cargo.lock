@@ -1066,12 +1066,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32637268377fc7b10a8c6d51de3e7fba1ce5dd371a96e342b34e6078db558e7f"
 
 [[package]]
-name = "bech32"
-version = "0.12.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "efbd3e1070bbdf4cd88a75264e18e8a26f7cb5c6949eadf0ceb85fb159cf08f8"
-
-[[package]]
 name = "bip39"
 version = "3.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1088,7 +1082,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bb0ce8bd5baaa0d303a19915a6d93afed161f528654e42da2a7a97d05c59499a"
 dependencies = [
  "base58ck",
- "bech32 0.11.1",
+ "bech32",
  "bitcoin-io",
  "bitcoin-units",
  "bitcoin_hashes",
@@ -2953,7 +2947,7 @@ name = "gem_bitcoin"
 version = "2.114.88"
 dependencies = [
  "async-trait",
- "bech32 0.12.0",
+ "bech32",
  "bitcoin",
  "bs58",
  "chain_traits",
@@ -2994,7 +2988,7 @@ name = "gem_cardano"
 version = "2.114.88"
 dependencies = [
  "async-trait",
- "bech32 0.12.0",
+ "bech32",
  "chain_traits",
  "chrono",
  "curve25519-dalek",
@@ -3033,7 +3027,7 @@ name = "gem_cosmos"
 version = "2.114.88"
 dependencies = [
  "async-trait",
- "bech32 0.12.0",
+ "bech32",
  "chain_traits",
  "chrono",
  "futures",
