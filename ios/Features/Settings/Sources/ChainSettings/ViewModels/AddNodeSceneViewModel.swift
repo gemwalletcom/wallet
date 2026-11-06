@@ -35,7 +35,7 @@ final class AddNodeSceneViewModel {
 
     var state: StateViewType<[ListItemField]> {
         switch session.viewState().phase {
-        case .idle: .noData
+        case .idle, .invalidUrl: .noData
         case .checking: .loading
         case let .ready(rows): .data(rows.map { ListItemField(title: $0.title, value: $0.text) })
         case let .failed(error): .error(AnyError(error.text))
@@ -134,5 +134,6 @@ extension AddNodeSceneViewModel {
         } catch {
             session = session.onCheckFailed(url: url, error: nil)
         }
+        urlInputModel.update(error: session.viewState().urlError)
     }
 }

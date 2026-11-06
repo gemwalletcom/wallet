@@ -87,7 +87,11 @@ pub fn node_url(input: &str) -> Option<String> {
         false => format!("{NODE_URL_SCHEME}://{input}"),
     };
     let url = Url::parse(&candidate).ok()?;
-    (url.scheme() == NODE_URL_SCHEME && url.host_str().is_some_and(|host| host.contains('.'))).then_some(candidate)
+    (url.scheme() == NODE_URL_SCHEME && url.host_str().is_some_and(is_valid_host)).then_some(candidate)
+}
+
+fn is_valid_host(host: &str) -> bool {
+    host.contains('.') && host.split('.').all(|label| !label.is_empty())
 }
 
 pub fn websocket_url(url: &str) -> String {
@@ -159,6 +163,10 @@ mod tests {
         assert_eq!(node_url("ws://rpc.example.com"), None);
         assert_eq!(node_url("https:///missing-host"), None);
         assert_eq!(node_url("localhost:8545"), None);
+        assert_eq!(node_url("https://rpc..example.com"), None);
+        assert_eq!(node_url("https://.."), None);
+        assert_eq!(node_url("https://."), None);
+        assert_eq!(node_url("rpc.example.com."), None);
         assert_eq!(node_url("not-a-url"), None);
         assert_eq!(node_url(""), None);
     }
