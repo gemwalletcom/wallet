@@ -161,8 +161,6 @@ tower-http = { version = "0.6.11", features = ["timeout", "catch-panic", "set-he
 
 # Logging and metrics
 prometheus-client = { version = "0.25.0" }
-tracing = { version = "0.1.44" }
-tracing-subscriber = { version = "0.3.23" }
 
 # Localization and embedded assets
 fluent-syntax = { version = "0.12.0" }
