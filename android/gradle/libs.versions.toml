@@ -92,7 +92,6 @@ walletconnect-web3wallet = { module = "com.reown:walletkit" }
 
 # qr code scanning
 zxing-core = { module = "com.google.zxing:core", version.ref = "zxing-core" }
-camera-view = { module = "androidx.camera:camera-view", version.ref = "camera2" }
 camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "camera2" }
 camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "camera2" }
 
