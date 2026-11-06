@@ -84,6 +84,7 @@ extension TextInputScene {
     }
 
     private func onSubmit() {
+        guard !model.isLoading, !model.isActionDisabled else { return }
         Task {
             model.errorMessage = nil
             await model.action()
