@@ -255,9 +255,9 @@ impl GemConfirmService {
                 self.store_pending(input, &hashes, &signed).await;
                 Ok(hashes)
             }
-            Err(GemConfirmError::Broadcast { hashes, msg }) => {
+            Err(GemConfirmError::PartialBroadcast { hashes, msg }) => {
                 self.store_pending(input, &hashes, &signed).await;
-                Err(GemConfirmError::Broadcast { hashes, msg })
+                Err(GemConfirmError::PartialBroadcast { hashes, msg })
             }
             Err(error) => Err(error),
         }
@@ -459,7 +459,10 @@ mod tests {
         assert!(!paths.contains(&info), "a sent switch is stored without asking");
 
         let (failed, mode, _) = send_unified_account_switch(accepted, r#""unifiedAccount""#, &[switch, "unsigned order"]);
-        assert!(matches!(failed, Err(GemConfirmError::Broadcast { ref hashes, .. }) if hashes.len() == 1));
+        let Err(GemConfirmError::PartialBroadcast { hashes, .. }) = failed else {
+            panic!("an order that fails after its switch landed is a partial broadcast: {failed:?}");
+        };
+        assert_eq!(hashes.len(), 1);
         assert_eq!(mode, PerpetualAccountMode::Unified, "a switch that landed before its order failed is still stored");
 
         let (failed, mode, _) = send_unified_account_switch(r#"{"status":"err","response":"User or API Wallet does not exist."}"#, r#""default""#, &[switch]);

@@ -36,6 +36,7 @@ flowchart LR
 | The simulation predicts balance changes | every digit of each amount, never rounded | what the user approves is exactly what moves |
 | Confirm is sending | the Network Fee and payment asset rows do not open until the send ends | a new fee or asset would reload Confirm and offer it again while the first transaction is still being sent |
 | Sending fails after Confirm | an error alert; the fee and amounts stay and the button stays Confirm, so a tap sends again | Try Again is only for a failed load |
+| A send of several transactions fails after the network accepted one of them | an error alert; Confirm stays disabled, the Network Fee and payment asset rows stay closed, and the accepted transactions show in activity | sending again would repeat the accepted ones; a new Confirm sends only what is still missing |
 | The network rejects the sent transaction | the network's own reason | it is often the only explanation there is |
 | A Dash payment is sent | Pending until it is mined | the provider does not report InstantSend locks yet |
 | The system closes the app during Send, Swap or Stake | the flow starts again from the screen that opened it | a restored Confirm could sign a stale transfer |

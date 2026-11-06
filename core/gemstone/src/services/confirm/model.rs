@@ -392,6 +392,7 @@ pub enum GemConfirmPhase {
     Ready,
     Confirming,
     Failed,
+    Sent,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]

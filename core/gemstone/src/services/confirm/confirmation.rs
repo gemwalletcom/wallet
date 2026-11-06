@@ -147,14 +147,14 @@ impl GemConfirmation {
         let state = self.stored().clone();
         let load = state.as_ref().map(|state| &state.load);
         let transfer = self.transfer();
-        let is_confirming = screen.phase == super::model::GemConfirmPhase::Confirming;
+        let send_started = screen.send_started();
         let rows = self
             .row_contents(load.and_then(|load| load.address_name.clone()))
             .into_iter()
             .map(|content| match content {
                 GemConfirmRowContent::PaymentAsset { title, symbol, selectable, asset_ids } => GemConfirmRowContent::PaymentAsset {
                     title,
-                    selectable: selectable && screen.phase != super::model::GemConfirmPhase::Loading && !is_confirming,
+                    selectable: selectable && screen.phase != super::model::GemConfirmPhase::Loading && !send_started,
                     symbol,
                     asset_ids,
                 },
@@ -170,7 +170,7 @@ impl GemConfirmation {
             fee_row: GemConfirmFeeRow::new(
                 screen.fee_value(load.cloned()),
                 load.map(|load| load.fee_asset.clone()).unwrap_or_else(|| transfer.fee_asset()),
-                !is_confirming && state.as_ref().is_some_and(|state| state.confirm_data.is_some() || state.load.shows_fee_assets()),
+                !send_started && state.as_ref().is_some_and(|state| state.confirm_data.is_some() || state.load.shows_fee_assets()),
             ),
             title: transfer.title(),
             sections: super::rules::confirm_sections(

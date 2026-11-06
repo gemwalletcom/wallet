@@ -49,7 +49,7 @@ struct ConfirmSubmissionTests {
             let request = ConfirmTransferRequest.mock(delegate: { reported.append(try? $0.get()) })
             try await ConfirmTransferSceneViewModel.mock(
                 request: request,
-                execute: .failure(GemConfirmError.Broadcast(hashes: ["hash-1"], msg: "second leg failed")),
+                execute: .failure(GemConfirmError.PartialBroadcast(hashes: ["hash-1"], msg: "second leg failed")),
             ).submit(request: request)
         }
 

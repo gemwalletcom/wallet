@@ -111,7 +111,7 @@ class ConfirmTransferViewModelRetryTest {
     @Test
     fun aFailedSendShowsItsErrorAndConfirmSendsAgainWithoutReloading() = runTest(testDispatcher) {
         val viewModel = viewModel(mockGemTransferData(inputType = TransactionInputType.Transfer(asset.toGem()), recipient = GemRecipient(address = "recipient"), value = BigInteger.ONE))
-        coEvery { confirmation.submit() } throws GemConfirmException.Broadcast(emptyList(), "rejected")
+        coEvery { confirmation.submit() } throws GemConfirmException.Broadcast("rejected")
         viewModel.load()
         advanceUntilIdle()
 

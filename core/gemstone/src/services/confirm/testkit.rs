@@ -378,7 +378,26 @@ pub fn mock_bitcoin_transfer(value: BigInt) -> GemTransferData {
 }
 
 pub fn broadcast_failed(error: &GemConfirmError) -> bool {
-    matches!(error, GemConfirmError::Offline | GemConfirmError::Network { .. } | GemConfirmError::Broadcast { .. })
+    match error {
+        GemConfirmError::Offline | GemConfirmError::Network { .. } | GemConfirmError::Broadcast { .. } | GemConfirmError::PartialBroadcast { .. } => true,
+        GemConfirmError::ScanMalicious
+        | GemConfirmError::ScanMemoRequired { .. }
+        | GemConfirmError::FeeRatesMissing
+        | GemConfirmError::Load { .. }
+        | GemConfirmError::Record { .. }
+        | GemConfirmError::AccountMissing { .. }
+        | GemConfirmError::BalanceMissing { .. }
+        | GemConfirmError::InsufficientBalance { .. }
+        | GemConfirmError::InsufficientNetworkFee { .. }
+        | GemConfirmError::MinimumAccountBalanceTooLow { .. }
+        | GemConfirmError::DestinationAccountActivation { .. }
+        | GemConfirmError::BelowSwapMinimum { .. }
+        | GemConfirmError::SenderMismatch { .. }
+        | GemConfirmError::Sign { .. }
+        | GemConfirmError::ApprovalInvalid { .. }
+        | GemConfirmError::Payment { .. }
+        | GemConfirmError::Cancelled => false,
+    }
 }
 
 impl ConfirmTestkit {
