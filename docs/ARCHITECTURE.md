@@ -11,6 +11,7 @@ Read the contract and the named implementation, then the actual owner and caller
 | Pure feature rule | [§ 1](#1-rules-are-pure-and-have-a-test-that-flips), [§ 6](#6-where-derived-domain-answers-live) | [`price_alert/rules.rs`](../core/gemstone/src/services/price_alert/rules.rs), including its tests |
 | Service orchestration and store port | [§ 2](#2-the-service-orchestrates-it-owns-its-store-and-depends-on-services), [§ 4](#4-the-store-trait-is-the-apps-only-persistence-obligation) | [`price_alert/mod.rs`](../core/gemstone/src/services/price_alert/mod.rs), [`store.rs`](../core/gemstone/src/services/price_alert/store.rs) |
 | Screen state, list rows, or what a view may name | [§ 3](#3-return-one-record-that-answers-the-whole-question), [§ 5](#5-the-app-maps-it-does-not-decide) | [`fiat/session.rs`](../core/gemstone/src/services/fiat/session.rs), [`assets/model.rs`](../core/gemstone/src/services/assets/model.rs) |
+| Sheets, dialogs, and in-flight actions | [App-side state](#the-apps-hold-one-value-per-fact-too) | [`PreferencesSceneViewModel.swift`](../ios/Features/Settings/Sources/Settings/ViewModels/PreferencesSceneViewModel.swift), [`SignMessageViewModel.kt`](../android/features/wallet_connector/viewmodels/src/main/kotlin/com/gemwallet/android/features/wallet_connector/viewmodels/SignMessageViewModel.kt) |
 | App mapping, dependency ownership, or construction | [§ 5](#5-the-app-maps-it-does-not-decide), [§ 7](#7-at-most-one-core-service-observed-reads-are-queries), [§ 8](#8-services-are-injected-never-constructed-at-a-call-site) | The changed screen's view model and its factory/Hilt provider; follow the examples in those sections |
 | List rows and sections | [§ 5](#a-list-row-renders-from-one-shared-row-model) | [`ListItemModel.swift`](../ios/Packages/Components/Sources/Types/ListItemModel.swift), [`ListItemModel.kt`](../android/ui/src/main/kotlin/com/gemwallet/android/ui/components/list_item/ListItemModel.kt), [`ListSections.kt`](../android/ui/src/main/kotlin/com/gemwallet/android/ui/components/list_item/ListSections.kt) |
 | Loading UI | Shared [reuse rule](../skills/engineering-principles.md#clean-code-principles) | Current screen state first; [`LoadingView.swift`](../ios/Packages/Components/Sources/LoadingView.swift), [`LoadingScene.kt`](../android/ui/src/main/kotlin/com/gemwallet/android/ui/components/screen/LoadingScene.kt) |
@@ -760,6 +761,29 @@ Four rules keep the collapse honest:
 - **Everything the phase needs is inside the session.** The chart session carries its display currency because the phase cannot be computed without it, so no caller supplies a currency. The observed price record (`GemChartInput`: the asset, its stored price, market, alerts and links) is the one `view_state` argument: the session cannot read the store, and a price older than the last chart point leaves the header where it is. The service answers the phase and the market, alert and link sections from that one record in one `GemChartView`, converting the market with the rate the session holds, so the sections never run on a second async path beside the chart. A `view_state` that takes what the screen already asked Core for is a parameter the session should own. The pinch zoom and pan are session state for the same reason: the drawn window cannot be computed without them, `on_zoom` and `on_pan` clamp against the points the session holds, and a new period starts unzoomed by construction.
 
 The app switches and stops. No `if isLoading` ahead of the switch, no `default:` inside it: the exhaustiveness is what makes a new variant a compile error on both platforms instead of a blank screen on one.
+
+### The apps hold one value per fact too
+
+Presentation and in-flight state stay in the app, and they follow the same rule as the phase: values that can never hold together are one optional enum, and independent facts stay separate fields.
+
+- **A screen's sheets are one optional type.** Each sheet is a case of `isPresentingSheet: XSheetType?` on iOS, presented with one `sheet(item:)`, or of one `rememberSaveable` enum on Android. Only `nil` closes it: a `Bool?` set to `false` is still non-nil and still reads as presented.
+- **An action in flight is one flag, owned by the action.** The action checks it before it starts and clears it on a failure the user can retry; a success that closes the screen leaves it set, so the result cannot be sent twice. Resetting the input never clears it, because the work it guards is still running. `SignMessageSceneViewModel` and `SignMessageViewModel` hold the same flag on both apps.
+- **Independent facts stay fields.** An alert for an async failure, a progress flag beside content and a run-once guard answer separate questions. Folding the alert into the sheet type would let an error close a sheet the user opened.
+
+```swift
+enum PreferencesSheetType: Identifiable {
+    case leverage
+    case marginType
+    case takeProfit
+    case stopLoss
+
+    var id: Self { self }
+}
+
+var isPresentingSheet: PreferencesSheetType?
+```
+
+`PreferencesSceneViewModel` held four `isPresenting…Picker` Bools that could all be true at once; the enum leaves no such state to represent.
 
 ### A number crosses as a value and a style, never as a string or a callback
 
