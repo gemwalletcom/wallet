@@ -174,16 +174,9 @@ fun Badge(text: String?) {
     )
 }
 
-fun getBalanceInfo(crypto: String, equivalent: String, isZero: Boolean): @Composable () -> Unit = (
+fun getBalanceInfo(crypto: String, equivalent: String): @Composable () -> Unit = (
     @Composable {
-        val color = MaterialTheme.colorScheme.let {
-            if (isZero) it.secondary else it.onSurface
-        }
-        BalanceInfo(
-            crypto = crypto,
-            equivalent = equivalent.takeIf { !isZero }.orEmpty(),
-            color = color,
-        )
+        BalanceInfo(crypto = crypto, equivalent = equivalent, color = MaterialTheme.colorScheme.onSurface)
     }
     )
 

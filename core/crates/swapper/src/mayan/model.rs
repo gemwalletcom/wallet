@@ -466,8 +466,6 @@ pub struct MayanTransactionResult {
     pub from_amount64: Option<String>,
     pub to_amount: Option<String>,
     pub to_amount64: Option<String>,
-    pub min_amount_out: Option<String>,
-    pub min_amount_out64: Option<String>,
     pub client_status: MayanClientStatus,
     pub service: Option<String>,
     pub referrer_address: Option<String>,

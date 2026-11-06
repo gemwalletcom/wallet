@@ -41,13 +41,13 @@ fn account_body<'a>(data: &'a [u8], name: &str) -> Result<&'a [u8]> {
 
 #[cfg(test)]
 mod tests {
-    use hex_lit::hex;
 
     use super::*;
+    use primitives::decode_hex_literal;
 
     #[test]
     fn test_global_discriminator() {
-        assert_eq!(global_discriminator("init_order"), hex!("204c290c27a284db"));
+        assert_eq!(global_discriminator("init_order"), decode_hex_literal("204c290c27a284db"));
     }
 
     #[derive(Debug, PartialEq, BorshDeserialize)]
@@ -61,14 +61,17 @@ mod tests {
 
     #[test]
     fn test_decode() {
-        assert_eq!(Whirlpool::decode(&hex!("3f95d10ce18063090102")), Ok(Whirlpool { value: 0x0201 }));
-        assert_eq!(Whirlpool::decode(&hex!("3f95d10ce180630901")), Err(SolanaError::invalid_input("Invalid Whirlpool account: Unexpected length of input")));
+        assert_eq!(Whirlpool::decode(&hex::decode("3f95d10ce18063090102").unwrap()), Ok(Whirlpool { value: 0x0201 }));
+        assert_eq!(
+            Whirlpool::decode(&hex::decode("3f95d10ce180630901").unwrap()),
+            Err(SolanaError::invalid_input("Invalid Whirlpool account: Unexpected length of input"))
+        );
     }
 
     #[test]
     fn test_account_body() {
-        assert_eq!(account_body(&hex!("3f95d10ce18063090102"), "Whirlpool"), Ok([1, 2].as_slice()));
-        assert_eq!(account_body(&hex!("3f95d10ce18063090102"), "TickArray"), Err(SolanaError::invalid_input("Invalid TickArray account")));
-        assert_eq!(account_body(&hex!("3f95d10c"), "Whirlpool"), Err(SolanaError::invalid_input("Invalid Whirlpool account")));
+        assert_eq!(account_body(&hex::decode("3f95d10ce18063090102").unwrap(), "Whirlpool"), Ok([1, 2].as_slice()));
+        assert_eq!(account_body(&hex::decode("3f95d10ce18063090102").unwrap(), "TickArray"), Err(SolanaError::invalid_input("Invalid TickArray account")));
+        assert_eq!(account_body(&hex::decode("3f95d10c").unwrap(), "Whirlpool"), Err(SolanaError::invalid_input("Invalid Whirlpool account")));
     }
 }

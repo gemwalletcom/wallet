@@ -27,7 +27,7 @@ mod chain_integration_tests {
         let traces = client.get_traces_by_message(FAILED_SWAP_MESSAGE_HASH.to_string()).await?;
         let transaction = traces.root_transaction().ok_or("missing root transaction")?;
 
-        assert!(traces.has_actions());
+        assert_eq!(traces.state(), Some(TransactionState::Reverted));
         assert_eq!(transaction.hash.as_str(), FAILED_SWAP_ROOT_TRANSACTION_HASH);
 
         Ok(())

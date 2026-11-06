@@ -7,6 +7,7 @@ use crate::services::collections::{stale, unique};
 
 use chrono::{DateTime, Utc};
 use gem_solana::{Pubkey, SolanaTransfer, VersionedTransaction, VersionedTransactionExt};
+use gem_sui::tx_builder::validate_wallet_connect_sender;
 use gem_ton::models::decode_wallet_connect_transfer;
 use gem_tron::{decode_wallet_connect_contract, decode_wallet_connect_owners};
 use primitives::ChainType;
@@ -19,9 +20,11 @@ use crate::models::list::{GemListRow, GemListRowTitle};
 use crate::services::error::GemServiceError;
 use crate::services::error_text::GemErrorText;
 use crate::services::transfer::{GemRecipient, GemTransferData};
-use crate::services::wallet_connect::model::{GemSignerFailure, GemWalletConnectAuthAccount, GemWalletConnectOutcome, GemWalletConnectRejection, GemWalletConnectRejectionReason, GemWalletConnectRpcError, GemWalletConnectTransactionAction};
+use crate::services::wallet_connect::model::{
+    GemSignerFailure, GemWalletConnectAuthAccount, GemWalletConnectOutcome, GemWalletConnectRejection, GemWalletConnectRejectionReason, GemWalletConnectResponse, GemWalletConnectRpcError, GemWalletConnectTransactionAction,
+};
 use crate::wallet_connect::WalletConnect;
-use gem_wallet_connect::{EvmTransactionKind, WalletConnectTransaction};
+use gem_wallet_connect::{EvmTransactionKind, WalletConnectResponseType, WalletConnectTransaction};
 use num_bigint::BigInt;
 use primitives::GasPriceType;
 use primitives::TransactionInputType;
@@ -87,6 +90,14 @@ pub fn switch_chain_outcome(connection: &WalletConnection, chain_id: u64) -> Gem
     match WalletConnectCAIP2::format_account(account.chain, &account.address) {
         Some(account) => GemWalletConnectOutcome::AddSessionAccount { account },
         None => GemWalletConnectOutcome::respond_error(unrecognized_chain_error()),
+    }
+}
+
+pub fn chain_id_outcome(chain_id: u64) -> GemWalletConnectOutcome {
+    GemWalletConnectOutcome::Respond {
+        response: GemWalletConnectResponse::Response {
+            value: WalletConnectResponseType::String { value: format!("0x{chain_id:x}") },
+        },
     }
 }
 
@@ -314,6 +325,7 @@ pub fn validate_transaction_sender(transaction: &WalletConnectTransaction, accou
                 None => Ok(()),
             }
         }
+        WalletConnectTransaction::Sui { data, .. } => validate_wallet_connect_sender(&data.transaction, &account.address).map_err(|error| GemServiceError::InvalidInput { msg: error.to_string() }),
         _ => Ok(()),
     }
 }
@@ -326,7 +338,7 @@ pub fn transfer_data(metadata: ApplicationMetadata, transaction: WalletConnectTr
     let (extra, value) = match transaction {
         WalletConnectTransaction::Ethereum { data, kind } => {
             let value = data.value.map(BigInt::from).unwrap_or(BigInt::ZERO);
-            let gas_limit = data.gas_limit.as_deref().or(data.gas.as_deref()).map(hex_value).transpose()?;
+            let gas_limit = data.gas_limit.as_deref().or(data.gas.as_deref()).map(hex_value).transpose()?.filter(|gas_limit| *gas_limit > BigInt::ZERO);
             let gas_price = match (data.max_fee_per_gas.as_deref(), data.max_priority_fee_per_gas.as_deref()) {
                 (Some(max_fee), Some(priority_fee)) => Some(GasPriceType::Eip1559 {
                     gas_price: hex_value(max_fee)?,
@@ -451,7 +463,7 @@ mod tests {
     }
 
     use super::*;
-    use gem_wallet_connect::WCEthereumTransactionData;
+    use gem_wallet_connect::{WCEthereumTransactionData, WCSuiTransactionData};
     use num_bigint::BigUint;
     use primitives::Account;
 
@@ -706,6 +718,29 @@ mod tests {
     }
 
     #[test]
+    fn test_validate_transaction_sender_binds_a_sui_request_to_the_session_account() {
+        let session_account = Account::mock(Chain::Sui, "0x93f65b8c16c263343bbf66cf9f8eef69cb1dbc92d13f0c331b0dcaeb76b4aab6");
+        let other_account = Account::mock(Chain::Sui, "0xa9bd0493f9bd1f792a4aedc1f99d54535a75a46c38fd56a8f2c6b7c8d75817a1");
+        let sui_transaction = |transaction: &str| WalletConnectTransaction::Sui {
+            data: WCSuiTransactionData {
+                transaction: transaction.to_string(),
+                wallet_address: session_account.address.clone(),
+            },
+            output_type: TransferDataOutputType::EncodedTransaction,
+        };
+        let bcs = sui_transaction(include_str!("../../../../crates/gem_sui/testdata/wc_sign_transaction_bcs.txt"));
+        let json = sui_transaction(include_str!("../../../../crates/gem_sui/testdata/wc_sign_transaction_cetus.json"));
+
+        assert!(validate_transaction_sender(&bcs, &session_account).is_ok());
+        assert!(
+            validate_transaction_sender(&bcs, &other_account).is_err(),
+            "the review reads as a send from the session account, so the transaction must be one"
+        );
+        assert!(validate_transaction_sender(&json, &other_account).is_ok());
+        assert!(validate_transaction_sender(&json, &session_account).is_err());
+    }
+
+    #[test]
     fn test_transfer_data_maps_tron_approval() {
         let data = include_str!("../../../../crates/gem_wallet_connect/testdata/tron_send_transaction.json");
         for action in [GemWalletConnectTransactionAction::Sign, GemWalletConnectTransactionAction::Send] {
@@ -814,6 +849,28 @@ mod tests {
             transfer_data(metadata, invalid, &Account::mock(Chain::Ton, "sender"), GemWalletConnectTransactionAction::Send).is_err(),
             "an amount the review cannot show is never sent to the signer"
         );
+    }
+
+    #[test]
+    fn test_transfer_data_drops_an_empty_evm_gas_limit() {
+        let gas_limit = |gas: &str| {
+            let transaction = WalletConnectTransaction::Ethereum {
+                data: WCEthereumTransactionData {
+                    gas: Some(gas.to_string()),
+                    ..mock_wc_ethereum_transaction_data()
+                },
+                kind: EvmTransactionKind::Transfer,
+            };
+            let transfer = transfer_data(ApplicationMetadata::mock(), transaction, &Account::mock(Chain::Ethereum, "0xfrom"), GemWalletConnectTransactionAction::Send).unwrap();
+            let TransactionInputType::Generic { extra, .. } = transfer.input_type else {
+                panic!("expected a generic input");
+            };
+            extra.gas_limit
+        };
+
+        assert_eq!(gas_limit("0x30d40"), Some(BigInt::from(200_000)));
+        assert_eq!(gas_limit("0x"), None, "an empty gas limit leaves the estimate in place");
+        assert_eq!(gas_limit("0x0"), None, "a zero gas limit is never signed");
     }
 
     #[test]

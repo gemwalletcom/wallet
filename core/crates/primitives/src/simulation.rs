@@ -61,7 +61,7 @@ impl SimulationWarningType {
 
     fn collapse_priority(&self, severity: SimulationSeverity) -> u8 {
         match self {
-            Self::ValidationError if severity == SimulationSeverity::Critical => 3,
+            _ if severity == SimulationSeverity::Critical => 3,
             Self::ExternallyOwnedSpender => 2,
             _ if self.approval_value().is_some_and(Option::is_none) => 1,
             _ => 0,
@@ -162,6 +162,11 @@ pub enum SimulationPayloadFieldKind {
     Spender,
     Value,
     Expiration,
+    Action,
+    Recipient,
+    Validator,
+    Resource,
+    LockTime,
     Custom,
 }
 
@@ -441,6 +446,14 @@ mod tests {
                 Some("Unable to verify spender is a contract".to_string()),
             )]
         );
+    }
+
+    #[test]
+    fn critical_suspicious_spender_warning_survives_a_later_collapse() {
+        let suspicious = SimulationWarning::new(SimulationSeverity::Critical, SimulationWarningType::SuspiciousSpender, None);
+        let result = SimulationResult::new(vec![suspicious.clone()], vec![]).prepend_warnings(vec![SimulationWarning::mock(SimulationWarningType::ExternallyOwnedSpender)]);
+
+        assert_eq!(result.warnings, vec![suspicious]);
     }
 
     #[test]

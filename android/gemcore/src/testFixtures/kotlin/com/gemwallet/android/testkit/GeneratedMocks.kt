@@ -1361,6 +1361,48 @@ fun mockGemConnectionRow(
     iconUrl = iconUrl,
 )
 
+fun mockGemContactAddressSession(
+    contactId: String = "",
+    replacingId: String? = null,
+    chain: String = com.wallet.core.primitives.Chain.Bitcoin.string,
+    memo: String = "",
+    fields: List<uniffi.gemstone.GemContactAddressField> = emptyList(),
+) = uniffi.gemstone.GemContactAddressSession(
+    contactId = contactId,
+    replacingId = replacingId,
+    chain = chain,
+    memo = memo,
+    fields = fields,
+)
+
+fun mockGemContactScannedAddress(
+    address: String = "",
+    chain: String? = null,
+    memo: String? = null,
+) = uniffi.gemstone.GemContactScannedAddress(
+    address = address,
+    chain = chain,
+    memo = memo,
+)
+
+fun mockGemContactSession(
+    id: String = "",
+    existing: uniffi.gemstone.Contact? = null,
+    name: String = "",
+    description: String = "",
+    avatar: uniffi.gemstone.GemContactAvatarChoice = uniffi.gemstone.GemContactAvatarChoice.Empty,
+    addresses: List<uniffi.gemstone.ContactAddress> = emptyList(),
+    isSaving: Boolean = false,
+) = uniffi.gemstone.GemContactSession(
+    id = id,
+    existing = existing,
+    name = name,
+    description = description,
+    avatar = avatar,
+    addresses = addresses,
+    isSaving = isSaving,
+)
+
 fun mockGemCustomFeeField(
     title: uniffi.gemstone.GemListRowTitle = uniffi.gemstone.GemListRowTitle.API,
     input: String = "",
@@ -1697,6 +1739,16 @@ fun mockGemRecipient(
     references = references,
 )
 
+fun mockGemRecipientValidation(
+    isValid: Boolean = false,
+    address: String = "",
+    error: uniffi.gemstone.GemRecipientErrorDisplay? = null,
+) = uniffi.gemstone.GemRecipientValidation(
+    isValid = isValid,
+    address = address,
+    error = error,
+)
+
 fun mockGemRewardsResult(
     walletId: String = mockWalletId().id,
     state: uniffi.gemstone.GemLoadState = uniffi.gemstone.GemLoadState.NoData,
@@ -1977,6 +2029,7 @@ fun mockGemWalletConnectAuthAccount(
 
 fun mockGemWalletConnectMessageRequest(
     sessionId: String = "",
+    requestId: String = "",
     chain: String = com.wallet.core.primitives.Chain.Bitcoin.string,
     wallet: uniffi.gemstone.Wallet = mockWallet().toGem(),
     account: uniffi.gemstone.Account = mockAccount().toGem(),
@@ -1986,6 +2039,7 @@ fun mockGemWalletConnectMessageRequest(
     assets: List<uniffi.gemstone.Asset> = emptyList(),
 ) = uniffi.gemstone.GemWalletConnectMessageRequest(
     sessionId = sessionId,
+    requestId = requestId,
     chain = chain,
     wallet = wallet,
     account = account,
@@ -1997,6 +2051,7 @@ fun mockGemWalletConnectMessageRequest(
 
 fun mockGemWalletConnectTransactionRequest(
     sessionId: String = "",
+    requestId: String = "",
     chain: String = com.wallet.core.primitives.Chain.Bitcoin.string,
     wallet: uniffi.gemstone.Wallet = mockWallet().toGem(),
     account: uniffi.gemstone.Account = mockAccount().toGem(),
@@ -2006,6 +2061,7 @@ fun mockGemWalletConnectTransactionRequest(
     action: uniffi.gemstone.GemWalletConnectTransactionAction = uniffi.gemstone.GemWalletConnectTransactionAction.SIGN,
 ) = uniffi.gemstone.GemWalletConnectTransactionRequest(
     sessionId = sessionId,
+    requestId = requestId,
     chain = chain,
     wallet = wallet,
     account = account,
@@ -2017,13 +2073,13 @@ fun mockGemWalletConnectTransactionRequest(
 
 fun mockGemWalletDetails(
     row: uniffi.gemstone.GemWalletRow = mockGemWalletRow(),
-    secretKind: uniffi.gemstone.GemWalletSecretKind? = null,
-    showSecret: uniffi.gemstone.GemLocalizedText? = null,
+    backup: uniffi.gemstone.GemSecretRow? = null,
+    advanced: uniffi.gemstone.GemSecretRow? = null,
     address: uniffi.gemstone.GemAddressRow? = null,
 ) = uniffi.gemstone.GemWalletDetails(
     row = row,
-    secretKind = secretKind,
-    showSecret = showSecret,
+    backup = backup,
+    advanced = advanced,
     address = address,
 )
 

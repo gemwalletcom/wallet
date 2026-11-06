@@ -19,7 +19,6 @@ dependencies {
     implementation(project(":gemcore"))
     implementation(project(":data:services:store"))
 
-    implementation(libs.lifecycle.viewmodel)
     implementation(libs.lifecycle.viewmodel.savedstate)
 
     implementation(libs.hilt.android)

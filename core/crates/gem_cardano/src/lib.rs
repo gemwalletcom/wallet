@@ -12,7 +12,7 @@ pub mod rpc;
 #[cfg(any(feature = "rpc", feature = "signer"))]
 mod transaction;
 
-#[cfg(all(test, any(feature = "rpc", feature = "signer")))]
+#[cfg(all(test, feature = "signer"))]
 mod testkit;
 
 #[cfg(feature = "rpc")]

@@ -10,9 +10,14 @@ use crate::notifications::repository::Repository;
 #[derive(Default)]
 pub(crate) struct MemoryNotificationsRepository {
     device_updates: Mutex<Vec<(Vec<DeviceFilter>, Vec<DeviceUpdate>)>>,
+    scan_addresses: Vec<ScanAddress>,
 }
 
 impl MemoryNotificationsRepository {
+    pub(crate) fn new(scan_addresses: Vec<ScanAddress>) -> Self {
+        Self { scan_addresses, ..Self::default() }
+    }
+
     pub(crate) fn device_updates(&self) -> Vec<(Vec<DeviceFilter>, Vec<DeviceUpdate>)> {
         self.device_updates.lock().unwrap().clone()
     }
@@ -41,8 +46,12 @@ impl Repository for MemoryNotificationsRepository {
         Ok(1)
     }
 
-    async fn get_scan_address(&self, _chain: Chain, address: String) -> Result<ScanAddress, DatabaseError> {
-        Err(DatabaseError::not_found("ScanAddress", address))
+    async fn get_scan_address(&self, chain: Chain, address: String) -> Result<ScanAddress, DatabaseError> {
+        self.scan_addresses
+            .iter()
+            .find(|scan_address| scan_address.chain == chain && scan_address.address == address)
+            .cloned()
+            .ok_or_else(|| DatabaseError::not_found("ScanAddress", address))
     }
 
     async fn get_addresses_with_transactions(&self, _chain: Chain, _kinds: Vec<TransactionType>, _since: NaiveDateTime) -> Result<Vec<String>, DatabaseError> {

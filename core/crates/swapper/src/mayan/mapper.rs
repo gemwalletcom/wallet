@@ -9,7 +9,6 @@ use primitives::{
 use crate::{SwapResult, SwapperProvider, fees::bps_of};
 
 const MAYAN_SWIFT_V1_SERVICE: &str = "SWIFT_SWAP";
-const MAX_TOKEN_DECIMALS: u32 = 36;
 
 use super::{
     asset::asset_id_for_token,
@@ -36,16 +35,10 @@ impl MayanTransactionResult {
         let from_asset = asset_id_for_token(from_chain, &self.from_token_address)?;
         let from_value = amount_value(self.from_amount.as_deref(), self.from_amount64.as_deref(), asset_decimals(&from_asset))?;
         let to_asset = asset_id_for_token(to_chain, &self.to_token_address)?;
-        let to_value = amount_value(self.to_amount.as_deref(), self.to_amount64.as_deref(), asset_decimals(&to_asset).or(output_decimals).or_else(|| self.min_amount_decimals()))?;
+        let to_value = amount_value(self.to_amount.as_deref(), self.to_amount64.as_deref(), asset_decimals(&to_asset)).or_else(|| amount_value(self.to_amount.as_deref(), None, output_decimals))?;
 
         let referral_fee = self.referral_fee(&from_asset, &from_value, &to_asset, &to_value);
         Some(TransactionSwapMetadata::new(from_asset, from_value, to_asset, to_value, SwapperProvider::Mayan).with_referral_fee(referral_fee))
-    }
-
-    fn min_amount_decimals(&self) -> Option<u32> {
-        let amount = self.min_amount_out.as_deref()?;
-        let value = self.min_amount_out64.as_deref()?.parse::<BigUint>().ok().filter(|value| *value > BigUint::ZERO)?;
-        (0..=MAX_TOKEN_DECIMALS).find(|decimals| decimal_value(amount, *decimals).as_ref() == Some(&value))
     }
 
     fn referral_fee(&self, from_asset: &AssetId, from_value: &BigUint, to_asset: &AssetId, to_value: &BigUint) -> Option<TransactionSwapReferralFee> {
@@ -135,14 +128,6 @@ mod tests {
                 Some((AssetId::from_chain(Chain::Hyperliquid), "770500000000000000")),
             ),
             (
-                include_str!("test/eth_to_arbitrum_usdt_swift_v1_decimal_output.json"),
-                AssetId::from_chain(Chain::Ethereum),
-                "1450000000000000",
-                ARBITRUM_USDT_ASSET_ID.clone(),
-                "4696204",
-                Some((ARBITRUM_USDT_ASSET_ID.clone(), "23718")),
-            ),
-            (
                 include_str!("test/eth_to_sui_swift.json"),
                 AssetId::from_chain(Chain::Ethereum),
                 "10000000000000000",
@@ -174,6 +159,14 @@ mod tests {
                 "398724622644505839482",
                 None,
             ),
+            (
+                include_str!("test/base_usdc_to_grass_swift.json"),
+                BASE_USDC_ASSET_ID.clone(),
+                "246875000",
+                AssetId::from_token(Chain::Solana, "Grass7B4RdKfBCjTKgSqnXkqjwiGvQyFbuSCUJr3XXjs"),
+                "442972740000",
+                None,
+            ),
         ] {
             let referral_fee = referral_fee.map(|(asset_id, value)| TransactionSwapReferralFee { asset_id, value: value.parse().unwrap() });
             assert_eq!(
@@ -189,6 +182,29 @@ mod tests {
 
     #[test]
     fn test_map_swap_result_with_output_token_decimals() {
+        let grass = result(include_str!("test/base_usdc_to_grass_swift.json"));
+        assert_eq!(map_swap_result(&grass, Some(8)).metadata.unwrap().to_value, "442972740000".parse::<BigUint>().unwrap());
+
+        let usdt = result(include_str!("test/eth_to_arbitrum_usdt_swift_v1_decimal_output.json"));
+
+        assert!(map_swap_result(&usdt, None).metadata.is_none());
+        assert_eq!(
+            map_swap_result(&usdt, Some(6)).metadata,
+            Some(
+                TransactionSwapMetadata::new(
+                    AssetId::from_chain(Chain::Ethereum),
+                    "1450000000000000".parse().unwrap(),
+                    ARBITRUM_USDT_ASSET_ID.clone(),
+                    "4696204".parse().unwrap(),
+                    SwapperProvider::Mayan
+                )
+                .with_referral_fee(Some(TransactionSwapReferralFee {
+                    asset_id: ARBITRUM_USDT_ASSET_ID.clone(),
+                    value: "23718".parse().unwrap(),
+                }))
+            )
+        );
+
         let result = result(include_str!("test/eth_to_base_aero_swift_v1_decimal_output.json"));
         let to_asset = AssetId::from_token(Chain::Base, "0x940181a94A35A4569E4529A3CDfB74e38FD98631");
 

@@ -1,0 +1,16 @@
+{
+  "sourceTxHash": "0x7c359a03577ebe7dc366fbffd91c0019eb00b0e112d92701e5a82fdaf25c4a6b",
+  "fromTokenAddress": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+  "toTokenAddress": "Grass7B4RdKfBCjTKgSqnXkqjwiGvQyFbuSCUJr3XXjs",
+  "fromTokenChain": "30",
+  "toTokenChain": "1",
+  "fromAmount": "246.875",
+  "fromAmount64": "246875000",
+  "toAmount": "442.97274",
+  "toAmount64": "442972740000",
+  "clientStatus": "COMPLETED",
+  "service": "SWIFT_V2",
+  "referrerAddress": "0x9f460567312d297108f27848cd93f068747cf4d1",
+  "referrerBps": 0,
+  "mayanBps": 0
+}

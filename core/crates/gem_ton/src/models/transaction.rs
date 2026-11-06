@@ -30,12 +30,8 @@ impl TraceResponse {
         self.traces.first()?.root_transaction()
     }
 
-    pub fn action_state(&self) -> Option<TransactionState> {
-        self.traces.first().map(Trace::action_state)
-    }
-
-    pub fn has_actions(&self) -> bool {
-        self.traces.first().is_some_and(Trace::has_actions)
+    pub fn state(&self) -> Option<TransactionState> {
+        self.traces.first().and_then(Trace::state)
     }
 }
 
@@ -92,20 +88,27 @@ impl Trace {
         None
     }
 
-    pub fn has_actions(&self) -> bool {
+    fn has_actions(&self) -> bool {
         !self.actions.is_empty()
     }
 
-    pub fn action_state(&self) -> TransactionState {
-        if self.is_incomplete {
-            return TransactionState::Pending;
+    pub fn state(&self) -> Option<TransactionState> {
+        if self.is_incomplete || self.is_unclassified() {
+            return Some(TransactionState::Pending);
+        }
+        if !self.has_actions() {
+            return None;
         }
         for action in &self.actions {
             if action.success == Some(false) {
-                return TransactionState::Reverted;
+                return Some(TransactionState::Reverted);
             }
         }
-        TransactionState::Confirmed
+        Some(TransactionState::Confirmed)
+    }
+
+    fn is_unclassified(&self) -> bool {
+        !self.has_actions() && self.transactions.len() > 1
     }
 }
 

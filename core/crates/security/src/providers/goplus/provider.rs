@@ -5,9 +5,9 @@ use crate::providers::goplus::{
 };
 use crate::{AddressScanProvider, AddressTarget, ScanResult, TokenScanProvider, TokenTarget};
 use async_trait::async_trait;
+use aws_lc_rs::digest::{SHA1_FOR_LEGACY_USE_ONLY, digest};
 use gem_client::{Client, ClientExt};
 use primitives::{AccessTokenCacher, Chain, ScanProvider};
-use sha1::{Digest, Sha1};
 use std::collections::HashMap;
 use std::error::Error;
 use std::sync::Arc;
@@ -33,7 +33,7 @@ impl<C: Client> GoPlusProvider<C> {
     }
 
     fn sign(app_key: &str, time: u64, app_secret: &str) -> String {
-        hex::encode(Sha1::digest(format!("{app_key}{time}{app_secret}").as_bytes()))
+        hex::encode(digest(&SHA1_FOR_LEGACY_USE_ONLY, format!("{app_key}{time}{app_secret}").as_bytes()))
     }
 
     async fn access_token(&self) -> Result<String, Box<dyn std::error::Error + Send + Sync>> {

@@ -5,9 +5,9 @@
   "destAsset": "BTC",
   "destChain": "Bitcoin",
   "deposit": {
-    "amount": "140000000000000000"
+    "amount": "3190309612162680465"
   },
-  "swap": {
-    "swappedOutputAmount": "405772"
+  "swapEgress": {
+    "amount": "9294445"
   }
 }

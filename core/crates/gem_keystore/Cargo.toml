@@ -5,7 +5,7 @@ edition = { workspace = true }
 
 [features]
 default = ["mnemonic"]
-mnemonic = ["dep:bip39", "dep:gem_crypto", "gem_crypto/random", "dep:unicode-normalization", "dep:zeroize"]
+mnemonic = ["dep:bip39", "dep:gem_crypto", "gem_crypto/random", "dep:zeroize"]
 storage = ["mnemonic", "dep:aes-gcm", "dep:argon2", "dep:hex", "dep:serde", "dep:serde_json", "dep:strum", "dep:uuid", "dep:zeroize"]
 v3 = ["storage", "dep:aes", "dep:ctr", "dep:scrypt", "dep:sha3"]
 
@@ -22,7 +22,6 @@ serde = { workspace = true, optional = true }
 serde_json = { workspace = true, optional = true }
 sha3 = { workspace = true, optional = true }
 strum = { workspace = true, optional = true }
-unicode-normalization = { workspace = true, optional = true }
 uuid = { workspace = true, optional = true }
 zeroize = { workspace = true, optional = true }
 
@@ -31,7 +30,6 @@ gem_crypto = { path = "../gem_crypto", default-features = false, features = ["ra
 hex = { workspace = true }
 primitives = { path = "../primitives", features = ["testkit"] }
 serde_json = { workspace = true }
-tempfile = { workspace = true }
 
 [[bench]]
 name = "keystore_v4"

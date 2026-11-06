@@ -10,12 +10,12 @@ use gem_evm::rpc::EthereumClient;
 use gem_jsonrpc::testkit::mock_jsonrpc_client;
 #[cfg(feature = "rpc")]
 use primitives::EVMChain;
-use primitives::{ApplicationMetadata, TransactionInputType, TransferDataExtra, known_assets::TEMPO_PATHUSD};
 #[cfg(any(feature = "rpc", feature = "signer"))]
 use primitives::{
     Asset, AssetId, Chain, SignerInput, TransactionFee, TransactionLoadMetadata,
     swap::{ApprovalData, SwapData, SwapQuoteData},
 };
+use primitives::{TransactionInputType, TransferDataExtra, known_assets::TEMPO_PATHUSD};
 #[cfg(feature = "rpc")]
 use serde_json::Value;
 
@@ -24,15 +24,14 @@ pub(crate) const TEMPO_TEST_ADDRESS: &str = "0x514BCb1F9AAbb904e6106Bd1052B66d27
 #[cfg(any(feature = "rpc", feature = "signer"))]
 pub(crate) const TEMPO_TEST_ROUTER_ADDRESS: &str = "0xA2Dc7d0266f0CC50b3eEaF36c9BFCeCFF1BEea91";
 pub(crate) fn mock_tempo_generic_input(to: &str, data: Vec<u8>) -> TransactionInputType {
-    TransactionInputType::Generic {
-        asset: TEMPO_PATHUSD.clone(),
-        metadata: ApplicationMetadata::mock(),
-        extra: TransferDataExtra {
+    TransactionInputType::mock_generic(
+        TEMPO_PATHUSD.clone(),
+        TransferDataExtra {
             to: to.to_string(),
             data: Some(data),
             ..TransferDataExtra::mock()
         },
-    }
+    )
 }
 
 #[cfg(any(feature = "rpc", feature = "signer"))]

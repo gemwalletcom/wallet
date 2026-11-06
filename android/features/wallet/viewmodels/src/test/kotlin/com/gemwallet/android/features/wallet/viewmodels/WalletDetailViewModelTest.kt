@@ -5,7 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.data.services.store.queries.NFTQuery
 import com.gemwallet.android.data.services.store.queries.WalletQuery
 import com.gemwallet.android.testkit.MainDispatcherRule
+import com.gemwallet.android.testkit.mockGemChainRow
 import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.wallet.core.primitives.Chain
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -27,8 +29,11 @@ import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.GemAvatarList
 import uniffi.gemstone.GemListPhase
+import uniffi.gemstone.GemPrivateKeyAccount
+import uniffi.gemstone.GemPrivateKeyScope
 import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemWalletDeletion
+import uniffi.gemstone.GemWalletSecret
 import uniffi.gemstone.GemWalletSecretKind
 import uniffi.gemstone.GemWalletServiceInterface
 
@@ -152,6 +157,60 @@ class WalletDetailViewModelTest {
 
         assertTrue(result!!.isFailure)
         assertEquals(GemWalletSecretKind.PHRASE, model.secretKind)
+    }
+
+    @Test
+    fun `a phrase route exports the secret`() = runTest(dispatcher) {
+        val service: GemWalletServiceInterface = mockk {
+            coEvery { exportSecret(walletId) } returns GemWalletSecret.Words(listOf("abandon"))
+        }
+        val model = SecretDataViewModel(service, route(RouteArgument.Type.key to GemWalletSecretKind.PHRASE), dispatcher).also { models.add(it) }
+
+        advanceUntilIdle()
+
+        assertEquals(GemWalletSecret.Words(listOf("abandon")), model.secret.value!!.getOrThrow())
+    }
+
+    @Test
+    fun `a private key route exports the key of its chain`() = runTest(dispatcher) {
+        val service: GemWalletServiceInterface = mockk {
+            coEvery { exportPrivateKey(walletId, Chain.Ethereum.string) } returns GemWalletSecret.PrivateKey("0xkey", GemPrivateKeyScope.ONE_CHAIN)
+        }
+        val model = SecretDataViewModel(
+            service,
+            route(RouteArgument.Type.key to GemWalletSecretKind.PRIVATE_KEY, RouteArgument.Chain.key to Chain.Ethereum.string),
+            dispatcher,
+        ).also { models.add(it) }
+
+        advanceUntilIdle()
+
+        assertEquals(GemWalletSecret.PrivateKey("0xkey", GemPrivateKeyScope.ONE_CHAIN), model.secret.value!!.getOrThrow())
+        assertEquals(GemWalletSecretKind.PRIVATE_KEY, model.secretKind)
+    }
+
+    @Test
+    fun `private key accounts load from Core`() = runTest(dispatcher) {
+        val accounts = listOf(GemPrivateKeyAccount(mockGemChainRow(chain = Chain.Ethereum.string), "0x12...34"))
+        val service: GemWalletServiceInterface = mockk {
+            coEvery { privateKeyAccounts(walletId) } returns accounts
+        }
+        val model = PrivateKeyAccountsViewModel(service, route(), dispatcher).also { models.add(it) }
+
+        advanceUntilIdle()
+
+        assertEquals(accounts, model.accounts.value!!.getOrThrow())
+    }
+
+    @Test
+    fun `private key accounts Core refuses are captured, not thrown`() = runTest(dispatcher) {
+        val service: GemWalletServiceInterface = mockk {
+            coEvery { privateKeyAccounts(walletId) } throws IllegalStateException("locked")
+        }
+        val model = PrivateKeyAccountsViewModel(service, route(), dispatcher).also { models.add(it) }
+
+        advanceUntilIdle()
+
+        assertTrue(model.accounts.value!!.isFailure)
     }
 
     @Test

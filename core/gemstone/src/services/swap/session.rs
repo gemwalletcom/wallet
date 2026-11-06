@@ -407,7 +407,7 @@ impl GemSwapSession {
         format.input_text(minimum.to_string(), pay_asset.decimals)
     }
 
-    pub fn on_input_changed(&self, amount: String, pay_asset: Option<Asset>, receive_asset: Option<Asset>, available_value: GemBigInt, slippage_bps: Option<u32>, format: GemNumberFormat) -> GemSwapSession {
+    pub fn on_input_changed(&self, amount: String, pay_asset: Option<Asset>, receive_asset: Option<Asset>, available_value: GemBigUint, slippage_bps: Option<u32>, format: GemNumberFormat) -> GemSwapSession {
         let input = match (&pay_asset, &receive_asset) {
             (Some(pay), Some(receive)) => rules::quote_input(pay, receive, &amount, &available_value, slippage_bps, &format),
             _ => None,
@@ -1146,7 +1146,7 @@ mod tests {
         let pay = Asset::from_chain(Chain::Ethereum);
         let receive = Asset::from_chain(Chain::Bitcoin);
         let format = GemNumberFormat { decimal_separator: ".".to_string() };
-        let available = GemBigInt::from(2_000_000_000_000_000_000u128);
+        let available = GemBigUint::from(2_000_000_000_000_000_000u128);
         let changed = |session: &GemSwapSession, amount: &str| session.on_input_changed(amount.to_string(), Some(pay.clone()), Some(receive.clone()), available.clone(), None, format.clone());
 
         assert!(GemSwapSession::default().input.is_none(), "no amount, no input");
@@ -1231,7 +1231,7 @@ mod tests {
             price: Some(Price::new(2.0, 0.0, Utc::now(), PriceProvider::Coingecko)),
             ..mock_asset_data(Chain::Ethereum, 1000)
         };
-        let typed = GemSwapSession::default().on_input_changed("1".to_string(), Some(pay.asset.clone()), None, GemBigInt::from(1000), None, GemNumberFormat { decimal_separator: ".".to_string() });
+        let typed = GemSwapSession::default().on_input_changed("1".to_string(), Some(pay.asset.clone()), None, GemBigUint::from(1000u32), None, GemNumberFormat { decimal_separator: ".".to_string() });
         let state = typed.view_state(Some(pay), None, Currency::USD);
 
         assert_eq!(state.pay.fiat.map(|fiat| fiat.value), Some(2.0));

@@ -2,7 +2,7 @@ use std::hint::black_box;
 use std::time::{Duration, Instant};
 
 use gem_keystore::{FileKeystore, Keystore, Mnemonic};
-use tempfile::TempDir;
+use primitives::testkit::temp_dir::TempDir;
 
 const ITERATIONS: usize = 5;
 

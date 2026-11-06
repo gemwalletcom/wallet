@@ -1,6 +1,5 @@
 use std::error::Error;
 
-use alloy_ens::namehash;
 use alloy_primitives::Address;
 use alloy_sol_types::SolCall;
 use gem_client::ReqwestClient;
@@ -11,6 +10,7 @@ use primitives::EVMChain;
 
 use super::contract::{Registrator, Router};
 use super::model::Record;
+use crate::providers::ens::namehash;
 
 const ROUTER_ADDRESS: &str = "0x25d1971d6dc9812ea1111662008f07735c74bff5";
 const ERROR_EXECUTION_REVERTED: i32 = 3;

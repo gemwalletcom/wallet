@@ -1,11 +1,11 @@
 use std::collections::HashSet;
 
 use super::TvmError;
-use crc::Crc;
 use gem_encoding::{decode_base64, encode_base64};
 
 use super::{
     cell::{Cell, CellArc},
+    crc32,
     header::{BOC_MAGIC, BocHeader},
     indexed_cell::{build_index, ordered_indexed_cells},
     invalid,
@@ -13,7 +13,7 @@ use super::{
     reader::BitReader,
 };
 
-const CRC32C: Crc<u32> = Crc::<u32>::new(&crc::CRC_32_ISCSI);
+const CRC32C_POLYNOMIAL: u32 = 0x82F6_3B78;
 
 #[derive(Clone, Debug, Default)]
 pub struct BagOfCells {
@@ -105,7 +105,7 @@ impl BagOfCells {
         }
 
         if with_crc32c {
-            output.extend_from_slice(&CRC32C.checksum(&output).to_le_bytes());
+            output.extend_from_slice(&crc32(&output, CRC32C_POLYNOMIAL).to_le_bytes());
         }
 
         Ok(output)
@@ -115,7 +115,7 @@ impl BagOfCells {
 fn validate_crc32c(reader: &mut BitReader<'_>, bytes: &[u8]) -> Result<(), TvmError> {
     let expected = reader.read_u32_le()?;
     let payload_end = bytes.len().checked_sub(4).ok_or_else(|| invalid("invalid BoC length"))?;
-    if expected != CRC32C.checksum(&bytes[..payload_end]) {
+    if expected != crc32(&bytes[..payload_end], CRC32C_POLYNOMIAL) {
         return Err(invalid("invalid BoC crc32c"));
     }
     Ok(())

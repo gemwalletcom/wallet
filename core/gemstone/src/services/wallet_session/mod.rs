@@ -80,21 +80,10 @@ impl GemWalletSessionService {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::Mutex;
-
     use futures::executor::block_on;
 
-    use super::testkit::MemoryWalletSessionStore;
     use super::*;
     use crate::services::wallet::testkit::MemoryWalletStore;
-
-    fn service(wallet: Option<Wallet>, current: Option<WalletId>) -> GemWalletSessionService {
-        service_with(wallet.into_iter().collect(), current)
-    }
-
-    fn service_with(wallets: Vec<Wallet>, current: Option<WalletId>) -> GemWalletSessionService {
-        GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore { current: Mutex::new(current) }), Arc::new(MemoryWalletStore::with_wallets(wallets)))
-    }
 
     #[test]
     fn test_a_launch_without_a_current_wallet_recovers_one_from_the_stored_wallets() {
@@ -104,17 +93,17 @@ mod tests {
             let mut multicoin = Wallet::mock_with_id(WalletId::Multicoin("0x1".to_string()), &[primitives::Chain::Ethereum]);
             multicoin.index = 1;
 
-            let missing = service_with(vec![view.clone(), multicoin.clone()], None);
+            let missing = GemWalletSessionService::mock(Arc::new(MemoryWalletStore::with_wallets(vec![view.clone(), multicoin.clone()])), None);
             assert_eq!(missing.ensure_current_wallet().await.unwrap(), Some(multicoin.id.clone()));
             assert_eq!(missing.get_current_wallet_id().unwrap(), Some(multicoin.id.clone()));
 
-            let stale = service_with(vec![view.clone()], Some(multicoin.id.clone()));
+            let stale = GemWalletSessionService::mock(Arc::new(MemoryWalletStore::with_wallets(vec![view.clone()])), Some(multicoin.id.clone()));
             assert_eq!(stale.ensure_current_wallet().await.unwrap(), Some(view.id.clone()), "a current id whose wallet is gone is replaced");
 
-            let kept = service_with(vec![view.clone(), multicoin], Some(view.id.clone()));
+            let kept = GemWalletSessionService::mock(Arc::new(MemoryWalletStore::with_wallets(vec![view.clone(), multicoin])), Some(view.id.clone()));
             assert_eq!(kept.ensure_current_wallet().await.unwrap(), Some(view.id));
 
-            let none = service_with(vec![], None);
+            let none = GemWalletSessionService::mock(Arc::new(MemoryWalletStore::default()), None);
             assert_eq!(none.ensure_current_wallet().await.unwrap(), None);
         })
     }
@@ -123,12 +112,12 @@ mod tests {
     fn test_a_missing_current_wallet_is_an_error_the_apps_can_show() {
         block_on(async {
             let wallet = Wallet::mock();
-            let current = service(Some(wallet.clone()), Some(wallet.id.clone()));
+            let current = GemWalletSessionService::mock(Arc::new(MemoryWalletStore::with_wallets(vec![wallet.clone()])), Some(wallet.id.clone()));
 
             assert_eq!(current.require_current_wallet().await.unwrap().id, wallet.id);
             assert!(current.get_current_wallet().await.unwrap().is_some());
 
-            let empty = service(None, None);
+            let empty = GemWalletSessionService::mock(Arc::new(MemoryWalletStore::default()), None);
             assert!(matches!(empty.require_current_wallet().await, Err(GemServiceError::NotFound { .. })));
             assert!(empty.get_current_wallet().await.unwrap().is_none(), "the optional read stays optional");
         })
@@ -138,7 +127,7 @@ mod tests {
     fn test_a_wallet_that_is_gone_names_itself_in_the_error() {
         block_on(async {
             let wallet = Wallet::mock();
-            let removed = service(None, Some(wallet.id.clone()));
+            let removed = GemWalletSessionService::mock(Arc::new(MemoryWalletStore::default()), Some(wallet.id.clone()));
 
             let error = removed.require_wallet(wallet.id.clone()).await.unwrap_err();
 

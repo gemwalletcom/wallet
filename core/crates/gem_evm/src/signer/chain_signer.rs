@@ -1,12 +1,11 @@
 use std::str::FromStr;
 
-use alloy_consensus::TxEip1559;
-use alloy_primitives::{Address, Bytes, TxKind, U256};
+use alloy_primitives::{Address, Bytes, U256};
 use primitives::{ChainSigner, NFTType, SignerError, SignerInput, StakeType, decode_hex, swap::SwapQuoteDataType};
 use signer::Signer;
 
+use super::Eip1559Transaction;
 use super::model::TransactionParams;
-use super::sign_eip1559_tx;
 use crate::eip712::hash_typed_data;
 use crate::encode::{encode_erc20_approve_max_value, encode_erc20_transfer, encode_erc721_transfer, encode_erc1155_transfer};
 
@@ -97,9 +96,7 @@ impl ChainSigner for EvmChainSigner {
 
     fn sign_data(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
         let extra = input.input_type.get_generic_data()?;
-        let base = TransactionParams::from_input(input)?;
-        let gas_limit = extra.gas_limit.as_ref().and_then(|gl| gl.to_string().parse().ok()).unwrap_or(base.gas_limit);
-        let params = TransactionParams { gas_limit, ..base };
+        let params = TransactionParams::from_input(input)?;
         sign_and_encode(
             &build_eip1559_transaction(&params, &extra.to, value_u256(&input.value.to_string())?, Bytes::from(extra.data.clone().unwrap_or_default()))?,
             private_key,
@@ -118,24 +115,23 @@ fn value_u256(value: &str) -> Result<U256, SignerError> {
     U256::from_str(value).map_err(SignerError::from_display)
 }
 
-fn build_eip1559_transaction(params: &TransactionParams, to: &str, value: U256, input: Bytes) -> Result<TxEip1559, SignerError> {
+fn build_eip1559_transaction(params: &TransactionParams, to: &str, value: U256, input: Bytes) -> Result<Eip1559Transaction, SignerError> {
     let to_address = Address::parse_checksummed(to, None).or_else(|_| to.parse::<Address>()).map_err(|_| SignerError::invalid_input("invalid to address"))?;
 
-    Ok(TxEip1559 {
+    Ok(Eip1559Transaction {
         chain_id: params.chain_id,
         nonce: params.nonce,
         gas_limit: params.gas_limit,
         max_fee_per_gas: params.max_fee_per_gas,
         max_priority_fee_per_gas: params.max_priority_fee_per_gas,
-        to: TxKind::Call(to_address),
+        to: to_address,
         value,
-        access_list: Default::default(),
         input,
     })
 }
 
-fn sign_and_encode(transaction: &TxEip1559, private_key: &[u8]) -> Result<String, SignerError> {
-    Ok(hex::encode(sign_eip1559_tx(transaction, private_key)?))
+fn sign_and_encode(transaction: &Eip1559Transaction, private_key: &[u8]) -> Result<String, SignerError> {
+    Ok(hex::encode(transaction.sign(private_key)?))
 }
 
 fn sign_contract_call(input: &SignerInput, contract_address: &str, call_data: Vec<u8>, gas_limit: u64, value: U256, approval: Option<&primitives::swap::ApprovalData>, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
@@ -162,9 +158,7 @@ mod tests {
     use gem_hash::keccak::keccak256;
     use num_bigint::BigUint;
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
-    use primitives::{
-        ApplicationMetadata, Asset, Chain, ChainSigner, DelegationValidator, NFTType, SignerInput, TransactionInputType, TransactionLoadMetadata, TransferDataExtra, contract_call_data::ContractCallData, nft::NFTAsset, swap::*,
-    };
+    use primitives::{Asset, Chain, ChainSigner, DelegationValidator, NFTType, SignerInput, TransactionInputType, TransactionLoadMetadata, TransferDataExtra, contract_call_data::ContractCallData, nft::NFTAsset, swap::*};
 
     #[test]
     fn test_sign_message_matches_eip712_reference_vector() {
@@ -336,19 +330,15 @@ mod tests {
     #[test]
     fn test_sign_data() {
         let signer = EvmChainSigner;
-        let extra = TransferDataExtra::mock_encoded_transaction(vec![0xab, 0xcd]);
-        let input = SignerInput::mock_evm(
-            TransactionInputType::Generic {
-                asset: Asset::from_chain(Chain::Ethereum),
-                metadata: ApplicationMetadata::mock(),
-                extra,
-            },
-            "0",
-            100000,
-        );
+        let extra = TransferDataExtra {
+            gas_limit: Some(300_000.into()),
+            ..TransferDataExtra::mock_encoded_transaction(vec![0xab, 0xcd])
+        };
+        let input = SignerInput::mock_evm(TransactionInputType::mock_generic(Asset::from_chain(Chain::Ethereum), extra), "0", 100000);
         assert_eq!(
             signer.sign_data(&input, &TEST_PRIVATE_KEY).unwrap(),
-            "02f86e0180843b9aca008504a817c800830186a0942b5ad5c4795c026514f8317c7a215e218dccd6cf8082abcdc080a085087f2d3c999ea4e253274ed68a9e58cc7eb9f2ee7e037897ce371ddc74f0bea06613bd4201e26f5738ca375fcbd19ee8e8a1fd633e7d2f2061a14f3d0ee1173a"
+            "02f86e0180843b9aca008504a817c800830186a0942b5ad5c4795c026514f8317c7a215e218dccd6cf8082abcdc080a085087f2d3c999ea4e253274ed68a9e58cc7eb9f2ee7e037897ce371ddc74f0bea06613bd4201e26f5738ca375fcbd19ee8e8a1fd633e7d2f2061a14f3d0ee1173a",
+            "the fee's gas limit is signed, the one shown and balance-checked"
         );
     }
 

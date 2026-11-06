@@ -10,7 +10,6 @@ use crate::services::preferences::GemPreferencesService;
 use crate::services::preferences::testkit::MemoryPreferencesStore;
 use crate::services::wallet::testkit::MemoryWalletStore;
 use crate::services::wallet_session::GemWalletSessionService;
-use crate::services::wallet_session::testkit::MemoryWalletSessionStore;
 use crate::testkit::TestAlienProvider;
 
 impl GemNotificationsService {
@@ -18,7 +17,7 @@ impl GemNotificationsService {
         let preferences = Arc::new(GemPreferencesService::new(Arc::new(MemoryPreferencesStore::default())));
         let device_api = Arc::new(GemDeviceApiClient::mock(provider));
         let wallets = Arc::new(MemoryWalletStore::with_wallets(vec![Wallet::mock()]));
-        let session = Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore::default()), wallets));
+        let session = Arc::new(GemWalletSessionService::mock(wallets, None));
         let device = GemDeviceService::mock(device_api, session, preferences.clone());
         Self::new(device, preferences, permissions)
     }

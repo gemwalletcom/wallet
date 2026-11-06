@@ -100,6 +100,7 @@ class ChartViewModel internal constructor(
     val chartUIState: StateFlow<ChartUIState> = combine(session, view) { session, view ->
         ChartUIState(
             period = session.period.toPrimitives(),
+            periods = (view?.periods ?: session.periods()).map { it.toPrimitives() },
             chart = when (val phase = view?.phase) {
                 null, GemChartPhase.Loading -> StateViewType.Loading
                 is GemChartPhase.Data -> StateViewType.Data(phase.data)
@@ -109,10 +110,9 @@ class ChartViewModel internal constructor(
             },
             candles = (view?.phase as? GemChartPhase.Candles)?.chart,
             styleSwitch = view?.styleSwitch,
-            periods = view?.periods?.map { it.toPrimitives() } ?: ChartPeriod.entries,
         )
     }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMillis), ChartUIState(period = session.value.period.toPrimitives()))
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMillis), ChartUIState(period = session.value.period.toPrimitives(), periods = session.value.periods().map { it.toPrimitives() }))
 
     fun setPeriod(period: ChartPeriod) {
         session.update { it.onSelectPeriod(period.toGem()) }

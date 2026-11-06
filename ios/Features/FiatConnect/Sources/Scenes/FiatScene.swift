@@ -78,7 +78,9 @@ extension FiatScene {
         Section {
             switch model.quotesState(viewState) {
             case .noData:
-                StateEmptyView(title: model.emptyTitle(viewState))
+                if let title = model.emptyTitle(viewState) {
+                    StateEmptyView(title: title)
+                }
             case .loading:
                 ListItemLoadingView()
                     .id(UUID())

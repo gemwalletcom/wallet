@@ -46,7 +46,7 @@ impl GemDeviceRequestSigner {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use base64::{Engine, engine::general_purpose::STANDARD};
+    use gem_encoding::decode_base64;
 
     #[test]
     fn test_sign_header_uses_signer_key() {
@@ -55,7 +55,7 @@ mod tests {
         assert_eq!(signer.public_key_hex(), hex::encode(&key_pair.public_key));
 
         let header = signer.sign("GET".into(), "/v3/devices".into(), "wallet".into(), Vec::new()).unwrap();
-        let payload = STANDARD.decode(header.strip_prefix("Gem ").unwrap()).unwrap();
+        let payload = decode_base64(header.strip_prefix("Gem ").unwrap()).unwrap();
         let parts: Vec<&str> = std::str::from_utf8(&payload).unwrap().splitn(5, '.').collect();
         assert_eq!(parts[0], signer.public_key_hex());
         assert_eq!(parts[2], "wallet");

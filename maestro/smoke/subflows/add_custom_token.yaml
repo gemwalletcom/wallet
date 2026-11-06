@@ -1,12 +1,7 @@
 appId: ${APP_ID}
 ---
 - runFlow: launch.yaml
-- scrollUntilVisible:
-    element:
-      id: "manage"
-    centerElement: true
-- tapOn:
-    id: "manage"
+- runFlow: open_manage.yaml
 - tapOn:
     id: "add_custom_token"
 - waitForAnimationToEnd
@@ -28,12 +23,7 @@ appId: ${APP_ID}
       id: "ethereum_${USDC_CONTRACT}"
     centerElement: true
 - runFlow: launch.yaml
-- scrollUntilVisible:
-    element:
-      id: "manage"
-    centerElement: true
-- tapOn:
-    id: "manage"
+- runFlow: open_manage.yaml
 - tapOn:
     id: "asset_toggle"
     checked: true

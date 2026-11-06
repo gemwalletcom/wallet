@@ -9,7 +9,7 @@ mod base32;
 mod base64;
 
 pub use error::{EncodingError, EncodingType};
-pub use percent_encoding::is_valid_percent_encoding;
+pub use percent_encoding::{is_valid_percent_encoding, percent_decode_lossy, percent_encode};
 
 #[cfg(feature = "base32")]
 pub use crate::base32::{decode_base32, encode_base32};

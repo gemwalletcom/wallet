@@ -29,7 +29,7 @@ import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
-import com.gemwallet.android.ui.localization.reminderIntroRes
+import com.gemwallet.android.ui.localization.introRes
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.open
@@ -38,10 +38,10 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.sceneContentPadding
 import uniffi.gemstone.DocsUrl
-import uniffi.gemstone.GemWalletSecretKind
+import uniffi.gemstone.GemSecurityReminderKind
 
 @Composable
-fun SecurityReminderScene(title: String = stringResource(R.string.wallet_new_title), kind: GemWalletSecretKind = GemWalletSecretKind.PHRASE, onAccept: () -> Unit, onCancel: CancelAction) {
+fun SecurityReminderScene(title: String = stringResource(R.string.wallet_new_title), kind: GemSecurityReminderKind = GemSecurityReminderKind.PHRASE, onAccept: () -> Unit, onCancel: CancelAction) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
     val items = remember(kind) { securityReminderListItems(context, kind) }
@@ -72,7 +72,7 @@ fun SecurityReminderScene(title: String = stringResource(R.string.wallet_new_tit
         ) {
             CenteredDescriptionText(
                 modifier = Modifier.padding(start = sceneContentPadding(), end = sceneContentPadding(), bottom = paddingDefault),
-                text = stringResource(kind.reminderIntroRes()),
+                text = stringResource(kind.introRes()),
             )
             items.forEach { item ->
                 SecurityReminderItem(item)
@@ -94,9 +94,9 @@ private fun SecurityReminderItem(item: ListItemModel) {
     )
 }
 
-private fun GemWalletSecretKind.docsUrl(): DocsUrl = when (this) {
-    GemWalletSecretKind.PHRASE -> DocsUrl.WhatIsSecretPhrase
-    GemWalletSecretKind.PRIVATE_KEY -> DocsUrl.WhatIsPrivateKey
+private fun GemSecurityReminderKind.docsUrl(): DocsUrl = when (this) {
+    GemSecurityReminderKind.PHRASE -> DocsUrl.WhatIsSecretPhrase
+    GemSecurityReminderKind.PRIVATE_KEY, GemSecurityReminderKind.ACCOUNT_KEY -> DocsUrl.WhatIsPrivateKey
 }
 
 @Preview

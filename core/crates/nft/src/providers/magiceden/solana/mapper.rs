@@ -18,7 +18,11 @@ pub fn map_asset(nft: Nft, asset_id: NFTAssetId, owner: String) -> Option<NFTAss
 
 impl Nft {
     pub fn as_asset_id(&self, chain: Chain) -> Option<NFTAssetId> {
-        Some(NFTAssetId::new(chain, &self.collection, &self.mint_address))
+        Some(NFTAssetId::new(chain, self.collection_address(), &self.mint_address))
+    }
+
+    pub fn collection_address(&self) -> &str {
+        self.collection.as_deref().filter(|collection| !collection.is_empty()).unwrap_or(&self.mint_address)
     }
 
     pub fn as_primitive(&self, asset: NFTAssetId, owner: String) -> Option<NFTAsset> {
@@ -57,8 +61,18 @@ impl Collection {
             symbol: self.symbol.clone(),
             description: Some(self.description.clone()),
             images: NFTImages { preview: NFTResource::from_url(&self.image) },
-            status: VerificationStatus::Verified,
+            status: self.status(),
             links: self.as_links(),
+        }
+    }
+
+    fn status(&self) -> VerificationStatus {
+        if self.is_blacklisted {
+            VerificationStatus::Suspicious
+        } else if self.is_unverified {
+            VerificationStatus::Unverified
+        } else {
+            VerificationStatus::Verified
         }
     }
 
@@ -99,6 +113,32 @@ mod tests {
     }
 
     #[test]
+    fn test_map_assets_without_collection() {
+        let response: Vec<model::Nft> = serde_json::from_str(include_str!("../../../../testdata/magiceden/assets_uncollected.json")).unwrap();
+        let mint = "W1iLZMsRanht4urj4Vra2JqgeKoLkP5LaPerzpsu8iw";
+        for collection in [None, Some(String::new())] {
+            let nft = model::Nft { collection, ..response[0].clone() };
+            assert_eq!(map_assets(vec![nft], Chain::Solana), vec![NFTAssetId::new(Chain::Solana, mint, mint)]);
+        }
+    }
+
+    #[test]
+    fn test_map_collection_of_an_nft_without_collection() {
+        let collection: model::Collection = serde_json::from_str(include_str!("../../../../testdata/magiceden/collection_uncollected.json")).unwrap();
+        let mint = "W1iLZMsRanht4urj4Vra2JqgeKoLkP5LaPerzpsu8iw";
+        let nft_collection = map_collection(collection, NFTCollectionId::new(Chain::Solana, mint));
+
+        assert_eq!(nft_collection.name, "NFT Coins");
+        assert_eq!(nft_collection.contract_address, mint);
+        assert_eq!(nft_collection.status, VerificationStatus::Unverified);
+
+        let mut blacklisted: serde_json::Value = serde_json::from_str(include_str!("../../../../testdata/magiceden/collection_uncollected.json")).unwrap();
+        blacklisted["isBlacklisted"] = true.into();
+        let blacklisted: model::Collection = serde_json::from_value(blacklisted).unwrap();
+        assert_eq!(map_collection(blacklisted, NFTCollectionId::new(Chain::Solana, mint)).status, VerificationStatus::Suspicious);
+    }
+
+    #[test]
     fn test_map_collection() {
         let collection: model::Collection = serde_json::from_str(include_str!("../../../../testdata/magiceden/collection.json")).unwrap();
         let collection_id = NFTCollectionId::new(Chain::Solana, TEST_SOLANA_COLLECTION);
@@ -106,6 +146,7 @@ mod tests {
 
         assert_eq!(nft_collection.chain, Chain::Solana);
         assert_eq!(nft_collection.name, "Okay Bears");
+        assert_eq!(nft_collection.status, VerificationStatus::Verified);
         assert!(nft_collection.description.is_some());
         assert!(nft_collection.description.as_ref().unwrap().contains("10,000 diverse bears"));
         assert!(!nft_collection.links.is_empty());

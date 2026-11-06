@@ -17,7 +17,7 @@ use crate::services::preferences::{GemPreferencesService, testkit::MemoryPrefere
 use crate::services::price::{GemPriceService, testkit::MemoryPriceStore};
 use crate::services::stream::testkit::SubscriptionTestkit;
 use crate::services::wallet::testkit::MemoryWalletStore;
-use crate::services::wallet_session::{GemWalletSessionService, testkit::MemoryWalletSessionStore};
+use crate::services::wallet_session::GemWalletSessionService;
 use crate::testkit::{EmptyPreferences, TestAlienProvider, YieldOnce};
 
 impl GemAssetBalance {
@@ -162,7 +162,7 @@ impl BalanceTestkit {
         let preferences = Arc::new(GemPreferencesService::new(preferences_store.clone()));
         let gateway = Arc::new(GemGateway::new(provider.clone(), Arc::new(GemNodeService::mock()), preferences_store, Arc::new(EmptyPreferences)));
         let wallets = Arc::new(MemoryWalletStore::default());
-        let session = Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore::default()), wallets));
+        let session = Arc::new(GemWalletSessionService::mock(wallets, None));
         let assets = Arc::new(MemoryAssetStore::default());
         let assets_service = Arc::new(GemAssetsService::new(
             Arc::new(GemApiClient::new(provider)),

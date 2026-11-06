@@ -1,8 +1,8 @@
 use gem_aptos::AccountAddress;
-use hex_lit::hex;
+use primitives::decode_hex_literal;
 
 pub(super) const MODULE_POOL: &str = "pool_v3";
-pub(super) const POOL_CREATOR: AccountAddress = AccountAddress::new(hex!("4ea3c7d6fd8ee6e752ca70420d4aac1fda379db4475520249faf8e04ad31c5a4"));
+pub(super) const POOL_CREATOR: AccountAddress = AccountAddress::new(decode_hex_literal("4ea3c7d6fd8ee6e752ca70420d4aac1fda379db4475520249faf8e04ad31c5a4"));
 
 pub(super) const FUNCTION_GET_AMOUNT_OUT: &str = "get_amount_out";
 pub(super) const FUNCTION_POOL_RESERVE_AMOUNT: &str = "pool_reserve_amount";

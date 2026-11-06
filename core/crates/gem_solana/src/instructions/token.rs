@@ -62,7 +62,6 @@ pub fn sync_native(account: &Pubkey) -> Instruction {
 
 #[cfg(test)]
 mod tests {
-    use hex_lit::hex;
 
     use super::*;
     use crate::instructions::program_ids::token_2022_program;
@@ -85,11 +84,11 @@ mod tests {
 
         let instruction = transfer(&source, &destination, &owner, 1_000);
         assert_eq!(instruction.program_id, token_program());
-        assert_eq!(instruction.data, hex!("03e803000000000000"));
+        assert_eq!(instruction.data, hex::decode("03e803000000000000").unwrap());
 
         let instruction = transfer_checked_with_program_id(&source, &mint, &destination, &owner, 1_000, 6, &token_2022_program());
         assert_eq!(instruction.program_id, token_2022_program());
-        assert_eq!(instruction.data, hex!("0ce80300000000000006"));
+        assert_eq!(instruction.data, hex::decode("0ce80300000000000006").unwrap());
 
         let instruction = sync_native(&source);
         assert_eq!(instruction.accounts, vec![AccountMeta::new_writable(source)]);

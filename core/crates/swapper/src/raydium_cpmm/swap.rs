@@ -1,5 +1,5 @@
 use gem_solana::{AccountMeta, Instruction, Pubkey, anchor::instruction_data, instructions::program_ids::raydium_cpmm_program};
-use hex_lit::hex;
+use primitives::decode_hex_literal;
 
 use super::pool::Pool;
 use crate::{
@@ -8,7 +8,7 @@ use crate::{
 };
 
 const SWAP_BASE_INPUT: &str = "swap_base_input";
-const AUTHORITY: Pubkey = Pubkey::new(hex!("eb00d9f5b292b4214ac7d037b4d6f06450b964600df373052bb5e84f2f8e9a67"));
+const AUTHORITY: Pubkey = Pubkey::new(decode_hex_literal("eb00d9f5b292b4214ac7d037b4d6f06450b964600df373052bb5e84f2f8e9a67"));
 
 pub(super) fn swap_base_input_instruction(address: &Pubkey, pool: &Pool, swap: &PoolSwap) -> Result<Instruction, SwapperError> {
     let (input_vault, output_vault) = pool.vaults(pool.swap_direction(&swap.input.mint, &swap.output.mint)?);
@@ -42,7 +42,6 @@ mod tests {
         solana_dex::SwapToken,
     };
     use gem_solana::{anchor::global_discriminator, find_program_address, wrapped_sol::wrapped_sol_mint};
-    use hex_lit::hex;
 
     #[test]
     fn test_program_addresses() {
@@ -53,7 +52,7 @@ mod tests {
         assert_eq!(pda(&[b"vault_and_lp_mint_auth_seed"]), AUTHORITY);
         assert_eq!(pda(&[b"pool_vault", address.as_bytes(), pool.token_0_mint.as_bytes()]), pool.token_0_vault);
         assert_eq!(pda(&[b"observation", address.as_bytes()]), pool.observation_key);
-        assert_eq!(global_discriminator(SWAP_BASE_INPUT), hex!("8fbe5adac41e33de"));
+        assert_eq!(global_discriminator(SWAP_BASE_INPUT), decode_hex_literal("8fbe5adac41e33de"));
     }
 
     #[test]
@@ -83,7 +82,10 @@ mod tests {
         let accounts = instruction.accounts.iter().map(|account| (account.pubkey, account.is_signer, account.is_writable)).collect::<Vec<_>>();
 
         assert_eq!(instruction.program_id, raydium_cpmm_program());
-        assert_eq!(instruction.data, [hex!("8fbe5adac41e33de").to_vec(), 1_000_000_000u64.to_le_bytes().to_vec(), 340_000_000u64.to_le_bytes().to_vec()].concat());
+        assert_eq!(
+            instruction.data,
+            [hex::decode("8fbe5adac41e33de").unwrap().to_vec(), 1_000_000_000u64.to_le_bytes().to_vec(), 340_000_000u64.to_le_bytes().to_vec()].concat()
+        );
         assert_eq!(
             accounts,
             vec![

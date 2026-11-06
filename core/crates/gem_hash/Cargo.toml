@@ -4,9 +4,9 @@ version = { workspace = true }
 edition = { workspace = true }
 
 [dependencies]
-blake2b_simd = { workspace = true }
+bitcoin_hashes = { workspace = true }
+blake2 = { workspace = true }
 hmac = { workspace = true }
-ripemd = { workspace = true }
 sha2 = { workspace = true }
 sha3 = { workspace = true }
 zeroize = { workspace = true }

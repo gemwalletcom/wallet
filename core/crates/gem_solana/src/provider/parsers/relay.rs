@@ -1,6 +1,6 @@
 use borsh::BorshDeserialize;
-use hex_lit::hex;
 use num_bigint::{BigUint, Sign};
+use primitives::decode_hex_literal;
 use primitives::{AssetId, Chain, Transaction};
 
 use crate::{
@@ -10,9 +10,9 @@ use crate::{
 
 use super::{ParseContext, ParseContextExt, TransactionParser};
 
-const DEPOSIT_NATIVE_DISCRIMINATOR: [u8; 8] = hex!("0d9e0ddf5fd51c06");
-const DEPOSIT_TOKEN_DISCRIMINATOR: [u8; 8] = hex!("0b9c60da27a3b413");
-const FORWARD_TOKEN_DISCRIMINATOR: [u8; 8] = hex!("9d537021bf32ab25");
+const DEPOSIT_NATIVE_DISCRIMINATOR: [u8; 8] = decode_hex_literal("0d9e0ddf5fd51c06");
+const DEPOSIT_TOKEN_DISCRIMINATOR: [u8; 8] = decode_hex_literal("0b9c60da27a3b413");
+const FORWARD_TOKEN_DISCRIMINATOR: [u8; 8] = decode_hex_literal("9d537021bf32ab25");
 const SENDER_ACCOUNT_INDEX: usize = 1;
 const FORWARDER_SENDER_ACCOUNT_INDEX: usize = 0;
 const TOKEN_MINT_ACCOUNT_INDEX: usize = 4;

@@ -22,7 +22,6 @@ pub(in crate::signer) fn native_transfer(input: &SignerInput, sender: Pubkey) ->
 
 #[cfg(test)]
 mod tests {
-    use hex_lit::hex;
 
     use crate::signer::{SolanaChainSigner, testkit::*};
     use crate::{
@@ -38,7 +37,7 @@ mod tests {
     const REFERENCE_TRANSFER_TX: &str = "3p2kzZ1DvquqC6LApPuxpTg5CCDVPqJFokGSnGhnBHrta4uq7S2EyehV1XNUVXp51D69GxGzQZUjikfDzbWBG2aFtG3gHT1QfLzyFKHM4HQtMQMNXqay1NAeiiYZjNhx9UvMX4uAQZ4Q6rx6m2AYfQ7aoMUrejq298q1wBFdtS9XVB5QTiStnzC7zs97FUEK2T4XapjF1519EyFBViTfHpGpnf5bfizDzsW9kYUtRDW1UC2LgHr7npgq5W9TBmHf9hSmRgM9XXucjXLqubNWE7HUMhbKjuBqkirRM";
 
     fn transfer_data(lamports: u64) -> Vec<u8> {
-        let mut data = hex!("02000000").to_vec();
+        let mut data = hex::decode("02000000").unwrap().to_vec();
         data.extend_from_slice(&lamports.to_le_bytes());
         data
     }

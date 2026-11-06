@@ -4,3 +4,4 @@ only_rules:
 
 excluded: 
   - Submodules
+  - Packages/BigInt

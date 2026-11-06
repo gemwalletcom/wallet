@@ -20,7 +20,7 @@ import uniffi.gemstone.GemWalletConnectTransactionRequest
 import uniffi.gemstone.SimulationResult
 import uniffi.gemstone.SignMessage as GemSignMessage
 
-sealed class WalletConnectPendingRequest(val sessionId: String, chainId: String, val wallet: Wallet, session: uniffi.gemstone.WalletConnectionSession, val simulation: SimulationResult) {
+sealed class WalletConnectPendingRequest(val sessionId: String, val requestId: String, chainId: String, val wallet: Wallet, session: uniffi.gemstone.WalletConnectionSession, val simulation: SimulationResult) {
     internal val result = CompletableDeferred<String>()
 
     val chain: Chain by lazy { chainId.requireChain() }
@@ -35,12 +35,16 @@ sealed class WalletConnectPendingRequest(val sessionId: String, chainId: String,
         result.completeExceptionally(GemServiceException.Cancelled())
     }
 
-    class SignMessage(val request: GemWalletConnectMessageRequest) : WalletConnectPendingRequest(request.sessionId, request.chain, request.wallet.toPrimitives(), request.session, request.simulation) {
+    fun expire() {
+        result.completeExceptionally(GemServiceException.Expired())
+    }
+
+    class SignMessage(val request: GemWalletConnectMessageRequest) : WalletConnectPendingRequest(request.sessionId, request.requestId, request.chain, request.wallet.toPrimitives(), request.session, request.simulation) {
         val message: GemSignMessage get() = request.message
         val assets: List<Asset> get() = request.assets
     }
 
-    class Transaction(private val request: GemWalletConnectTransactionRequest) : WalletConnectPendingRequest(request.sessionId, request.chain, request.wallet.toPrimitives(), request.session, request.simulation) {
+    class Transaction(private val request: GemWalletConnectTransactionRequest) : WalletConnectPendingRequest(request.sessionId, request.requestId, request.chain, request.wallet.toPrimitives(), request.session, request.simulation) {
         val transfer: GemTransferData get() = request.transfer
     }
 }
@@ -52,6 +56,12 @@ class WalletConnectPendingRequests : GemWalletConnectSigner {
     override suspend fun signMessage(request: GemWalletConnectMessageRequest): String = await(WalletConnectPendingRequest.SignMessage(request))
 
     override suspend fun signTransaction(request: GemWalletConnectTransactionRequest): String = await(WalletConnectPendingRequest.Transaction(request))
+
+    fun expire(requestId: String): Boolean {
+        val request = _current.value?.takeIf { it.requestId == requestId } ?: return false
+        request.expire()
+        return true
+    }
 
     private suspend fun await(request: WalletConnectPendingRequest): String {
         _current.value = request

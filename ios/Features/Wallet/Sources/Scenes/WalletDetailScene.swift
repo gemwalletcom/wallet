@@ -2,6 +2,8 @@
 
 import Components
 import Foundation
+import enum Gemstone.GemSecretExport
+import struct Gemstone.GemSecretRow
 import Localization
 import Primitives
 import PrimitivesComponents
@@ -43,14 +45,18 @@ public struct WalletDetailScene: View {
                         Spacer()
                     }
                 }
-                if let secretKind = model.details.secretKind, let showSecret = model.details.showSecret {
+                if let backup = model.details.backup {
                     Section {
-                        NavigationCustomLink(
-                            with: ListItemView(model: ListItemModel(title: showSecret.text)),
-                            action: onShowSecret,
-                        )
+                        secretRow(backup, id: "backup")
                     } header: {
-                        Text(secretKind.title)
+                        Text(Localized.Wallet.backup)
+                    }
+                }
+                if let advanced = model.details.advanced {
+                    Section {
+                        secretRow(advanced, id: "advanced")
+                    } header: {
+                        Text(Localized.Wallet.advanced)
                     }
                 }
                 if let addressRow = model.details.address {
@@ -99,13 +105,24 @@ public struct WalletDetailScene: View {
         .sheet(item: $model.isPresentingExportWallet) {
             ExportWalletNavigationStack(flow: $0)
         }
+        .sheet(item: $model.isPresentingPrivateKeyExport) {
+            PrivateKeyExportNavigationStack(walletId: model.walletId, export: $0, service: model.service)
+        }
+    }
+
+    private func secretRow(_ row: GemSecretRow, id: String) -> some View {
+        NavigationCustomLink(
+            with: ListItemView(model: ListItemModel(title: row.title.text)),
+            action: { onSelect(row.export) },
+        )
+        .accessibilityIdentifier(id)
     }
 }
 
 // MARK: - Actions
 
 extension WalletDetailScene {
-    private func onShowSecret() {
-        Task { await model.onShowSecret() }
+    private func onSelect(_ export: GemSecretExport) {
+        Task { await model.onSelect(export: export) }
     }
 }

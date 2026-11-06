@@ -4,7 +4,7 @@ use gem_solana::{
     anchor::instruction_data,
     instructions::program_ids::{memo_program, meteora_dlmm_program},
 };
-use hex_lit::hex;
+use primitives::decode_hex_literal;
 
 use super::{bin::BinArray, pair::Pair};
 use crate::{
@@ -13,7 +13,7 @@ use crate::{
 };
 
 const SWAP2: &str = "swap2";
-const EVENT_AUTHORITY: Pubkey = Pubkey::new(hex!("b270d67fa98c51cf0213051358962baf35742bed59c9d9445e9c0d0c85c7cd91"));
+const EVENT_AUTHORITY: Pubkey = Pubkey::new(decode_hex_literal("b270d67fa98c51cf0213051358962baf35742bed59c9d9445e9c0d0c85c7cd91"));
 pub(super) const SWAP_BIN_ARRAYS: usize = 3;
 
 #[derive(BorshSerialize)]
@@ -81,7 +81,7 @@ mod tests {
         assert_eq!(pda(&[b"__event_authority"]), EVENT_AUTHORITY);
         assert_eq!(pda(&[b"oracle", address.as_bytes()]), pair.oracle);
         assert_eq!(pda(&[address.as_bytes(), pair.token_x_mint.as_bytes()]), pair.reserve_x);
-        assert_eq!(global_discriminator(SWAP2), hex!("414b3f4ceb5b5b88"));
+        assert_eq!(global_discriminator(SWAP2), decode_hex_literal("414b3f4ceb5b5b88"));
     }
 
     #[test]
@@ -114,7 +114,7 @@ mod tests {
         assert_eq!(instruction.program_id, meteora_dlmm_program());
         assert_eq!(
             instruction.data,
-            [hex!("414b3f4ceb5b5b88").to_vec(), 1_000_000_000u64.to_le_bytes().to_vec(), 100_000_000u64.to_le_bytes().to_vec(), vec![0; 4]].concat()
+            [hex::decode("414b3f4ceb5b5b88").unwrap().to_vec(), 1_000_000_000u64.to_le_bytes().to_vec(), 100_000_000u64.to_le_bytes().to_vec(), vec![0; 4]].concat()
         );
         assert_eq!(
             accounts,

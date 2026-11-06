@@ -20,7 +20,7 @@ use crate::services::stream::testkit::SubscriptionTestkit;
 use crate::services::transfer::GemRecentActivityService;
 use crate::services::transfer::testkit::MemoryRecentActivityStore;
 use crate::services::wallet::testkit::MemoryWalletStore;
-use crate::services::wallet_session::{GemWalletSessionService, testkit::MemoryWalletSessionStore};
+use crate::services::wallet_session::GemWalletSessionService;
 use crate::testkit::{EmptyPreferences, TestAlienProvider};
 
 impl GemFiatSession {
@@ -67,7 +67,7 @@ impl FiatQuoteTestkit {
         let preferences_store = Arc::new(MemoryPreferencesStore::default());
         let preferences = Arc::new(GemPreferencesService::new(preferences_store.clone()));
         let wallets = Arc::new(MemoryWalletStore::with_wallets(vec![wallet.clone()]));
-        let session = Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore { current: Mutex::new(Some(wallet.id)) }), wallets));
+        let session = Arc::new(GemWalletSessionService::mock(wallets, Some(wallet.id)));
         let provider = Arc::new(TestAlienProvider::with_json(200, r#"{"redirectUrl":"https://provider.example/checkout"}"#));
         let gateway = Arc::new(GemGateway::new(provider.clone(), Arc::new(GemNodeService::mock()), preferences_store, Arc::new(EmptyPreferences)));
         let asset_store = Arc::new(MemoryAssetStore {

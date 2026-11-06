@@ -1,5 +1,4 @@
 use bip39::{Language, Mnemonic as Bip39Mnemonic};
-use unicode_normalization::UnicodeNormalization;
 use zeroize::Zeroizing;
 
 use crate::KeystoreError;
@@ -20,8 +19,7 @@ impl Mnemonic {
     }
 
     pub fn clean(phrase: &str) -> Result<Zeroizing<String>, KeystoreError> {
-        let cleaned = Zeroizing::new(phrase.nfkd().collect::<String>());
-        let cleaned = Zeroizing::new(cleaned.split_whitespace().map(str::to_lowercase).collect::<Vec<_>>().join(" "));
+        let cleaned = Zeroizing::new(phrase.split_whitespace().map(str::to_lowercase).collect::<Vec<_>>().join(" "));
         let mnemonic = Bip39Mnemonic::parse_in_normalized(Language::English, &cleaned).map_err(|_| KeystoreError::invalid_input("mnemonic"))?;
         Ok(Zeroizing::new(mnemonic.words().collect::<Vec<_>>().join(" ")))
     }
@@ -31,7 +29,7 @@ impl Mnemonic {
     }
 
     pub fn is_valid_word(word: &str) -> bool {
-        let word = word.nfkd().collect::<String>().trim().to_lowercase();
+        let word = word.trim().to_lowercase();
         !word.is_empty() && Language::English.find_word(&word).is_some()
     }
 
@@ -127,6 +125,23 @@ mod tests {
         assert!(Mnemonic::is_valid_word(" ABANDON "));
         assert!(!Mnemonic::is_valid_word("abandon1"));
         assert_eq!(Mnemonic::invalid_words("abandon test1 about nope"), vec!["test1", "nope"]);
+    }
+
+    #[test]
+    fn test_clean_accepts_unicode_separators() {
+        for separator in ["\t", "\n", "\r\n", "\u{a0}", "\u{2009}", "\u{3000}"] {
+            let phrase = ABANDON_PHRASE.replace(' ', separator);
+            assert_eq!(Mnemonic::clean(&phrase).unwrap().as_str(), ABANDON_PHRASE, "{separator:?}");
+        }
+    }
+
+    #[test]
+    fn test_compatibility_characters_are_invalid_words() {
+        let full_width_abandon = "\u{ff41}\u{ff42}\u{ff41}\u{ff4e}\u{ff44}\u{ff4f}\u{ff4e}";
+        assert!(!Mnemonic::is_valid_word(full_width_abandon));
+        assert!(!Mnemonic::is_valid_word("\u{fb01}nal"));
+        assert!(Mnemonic::clean(&ABANDON_PHRASE.replacen("abandon", full_width_abandon, 1)).is_err());
+        assert_eq!(Mnemonic::invalid_words(&format!("abandon {full_width_abandon}")), vec![full_width_abandon]);
     }
 
     #[test]

@@ -1,12 +1,12 @@
-use hex_lit::hex;
 use num_bigint::{BigInt, Sign};
+use primitives::decode_hex_literal;
 use primitives::{AssetId, Chain, Transaction};
 
 use crate::{MAYAN_CPI_PROXY_PROGRAM_ID, MAYAN_SWIFT_V2_PROGRAM_ID, WSOL_TOKEN_ADDRESS, models::Instruction};
 
 use super::{ParseContext, ParseContextExt, TransactionParser};
 
-const INIT_ORDER_DISCRIMINATOR: [u8; 8] = hex!("204c290c27a284db");
+const INIT_ORDER_DISCRIMINATOR: [u8; 8] = decode_hex_literal("204c290c27a284db");
 const SWIFT_PROGRAM_ACCOUNT_INDEX: usize = 0;
 const TRADER_ACCOUNT_INDEX: usize = 1;
 const ORDER_STATE_ACCOUNT_INDEX: usize = 3;

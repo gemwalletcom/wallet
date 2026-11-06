@@ -72,10 +72,6 @@ class PortfolioViewModel internal constructor(
         .map { it.chartType }
         .stateIn(viewModelScope, SharingStarted.Eagerly, viewState.value.chartType)
 
-    val availablePeriods: StateFlow<List<ChartPeriod>> = viewState
-        .map { state -> state.periods.map { it.toPrimitives() } }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, viewState.value.periods.map { it.toPrimitives() })
-
     val statistics: StateFlow<List<GemListRow>> = viewState
         .map { it.statistics }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
@@ -89,8 +85,8 @@ class PortfolioViewModel internal constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val chartUIState: StateFlow<ChartUIState> = viewState
-        .map { state -> ChartUIState(period = state.period.toPrimitives(), chart = state.phase.chartState()) }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, ChartUIState())
+        .map { it.chartUIState() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, viewState.value.chartUIState())
 
     val showSegmentedControl: StateFlow<Boolean> = wallet
         .map { wallet -> wallet?.let { service.showPerpetuals(it.type.toGem(), it.chainIds) } ?: false }
@@ -135,6 +131,8 @@ class PortfolioViewModel internal constructor(
         val result = withContext(ioDispatcher) { service.refresh(current.toGem(), session.value.request()) }
         session.update { it.onResult(result) }
     }
+
+    private fun GemPortfolioViewState.chartUIState(): ChartUIState = ChartUIState(period = period.toPrimitives(), periods = periods.map { it.toPrimitives() }, chart = phase.chartState())
 
     private fun GemPortfolioPhase.chartState(): StateViewType<GemChartData> = when (this) {
         GemPortfolioPhase.Loading -> StateViewType.Loading

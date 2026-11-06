@@ -358,7 +358,15 @@ impl PayloadMergeKey {
     fn is_contract_action_key(&self) -> bool {
         match self {
             Self::Kind(SimulationPayloadFieldKind::Contract) | Self::Kind(SimulationPayloadFieldKind::Method) | Self::Kind(SimulationPayloadFieldKind::Token) | Self::Kind(SimulationPayloadFieldKind::Spender) => true,
-            Self::Kind(SimulationPayloadFieldKind::Value) | Self::Kind(SimulationPayloadFieldKind::Expiration) | Self::Kind(SimulationPayloadFieldKind::Custom) | Self::Label(_) => false,
+            Self::Kind(SimulationPayloadFieldKind::Value)
+            | Self::Kind(SimulationPayloadFieldKind::Expiration)
+            | Self::Kind(SimulationPayloadFieldKind::Action)
+            | Self::Kind(SimulationPayloadFieldKind::Recipient)
+            | Self::Kind(SimulationPayloadFieldKind::Validator)
+            | Self::Kind(SimulationPayloadFieldKind::Resource)
+            | Self::Kind(SimulationPayloadFieldKind::LockTime)
+            | Self::Kind(SimulationPayloadFieldKind::Custom)
+            | Self::Label(_) => false,
         }
     }
 }

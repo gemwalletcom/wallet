@@ -50,7 +50,7 @@ use crate::services::wallet_preferences::GemWalletPreferencesService;
 use crate::services::wallet_session::GemWalletSessionService;
 
 pub use error::GemWalletImportError;
-pub use model::{GemAvatarList, GemWalletDeletion, GemWalletDetails, GemWalletImportKind, GemWalletImportRequest, GemWalletImportResult, GemWalletImportScreen, GemWalletImportType, GemWalletSecret};
+pub use model::{GemAvatarList, GemPrivateKeyAccount, GemWalletDeletion, GemWalletDetails, GemWalletImportKind, GemWalletImportRequest, GemWalletImportResult, GemWalletImportScreen, GemWalletImportType, GemWalletSecret};
 pub use password::{GemKeystoreAuthentication, GemKeystorePassword};
 pub use store::GemWalletStore;
 pub use verify_phrase::{GemVerifyPhraseSession, GemVerifyPhraseSetup};
@@ -181,11 +181,30 @@ impl GemWalletService {
             }),
             rules::SecretExport::PrivateKey(chain) => Ok(GemWalletSecret::PrivateKey {
                 key: self.keystore.export_private_key(keystore_id, chain, password)?,
+                scope: rules::private_key_scope(&wallet, chain),
             }),
             rules::SecretExport::None => Err(GemServiceError::Core {
                 msg: format!("wallet {} keeps no secret", wallet.id.id()),
             }),
         }
+    }
+
+    pub async fn private_key_accounts(&self, wallet_id: WalletId) -> Result<Vec<GemPrivateKeyAccount>, GemServiceError> {
+        Ok(rules::private_key_accounts(&self.wallet(wallet_id).await?))
+    }
+
+    pub async fn export_private_key(&self, wallet_id: WalletId, chain: Chain) -> Result<GemWalletSecret, GemServiceError> {
+        let wallet = self.wallet(wallet_id).await?;
+        if !rules::private_key_chains(&wallet).contains(&chain) {
+            return Err(GemServiceError::Core {
+                msg: format!("wallet {} has no {chain} private key to export", wallet.id.id()),
+            });
+        }
+        let password = decode_password(&self.password.get_password(false)?);
+        Ok(GemWalletSecret::PrivateKey {
+            key: self.keystore.export_private_key(keystore_id_for_wallet(wallet.id.id()), chain, password)?,
+            scope: rules::private_key_scope(&wallet, chain),
+        })
     }
 
     pub async fn migrate_to_shared_password(&self) -> Result<u32, GemServiceError> {
@@ -629,8 +648,40 @@ mod tests {
                     words: PHRASE.iter().map(ToString::to_string).collect()
                 }
             );
-            assert_eq!(context.service.export_secret(private.id.clone()).await.unwrap(), GemWalletSecret::PrivateKey { key });
+            assert_eq!(
+                context.service.export_secret(private.id.clone()).await.unwrap(),
+                GemWalletSecret::PrivateKey {
+                    key,
+                    scope: model::GemPrivateKeyScope::OneChain
+                }
+            );
             assert!(context.service.export_secret(view.id.clone()).await.is_err());
+        });
+    }
+
+    #[test]
+    fn test_export_private_key_matches_the_phrase_account() {
+        block_on(async {
+            let context = WalletTestkit::new();
+            let phrase = context.import("Phrase", PHRASE).await;
+            let GemWalletSecret::PrivateKey { key, .. } = context.service.export_private_key(phrase.id.clone(), Chain::Ethereum).await.unwrap() else {
+                panic!("expected a private key");
+            };
+
+            let import = GemWalletImportType::PrivateKey { value: key.clone(), chain: Chain::Ethereum };
+            let GemWalletImportResult::New { wallet: private, .. } = context.service.store_import("Key".to_string(), import, WalletSource::Import).await.unwrap() else {
+                panic!("expected a new wallet");
+            };
+            assert_eq!(private.accounts[0].address, phrase.account(Chain::Ethereum).unwrap().address);
+            assert_eq!(
+                context.service.export_private_key(private.id.clone(), Chain::Ethereum).await.unwrap(),
+                GemWalletSecret::PrivateKey {
+                    key,
+                    scope: model::GemPrivateKeyScope::OneChain
+                }
+            );
+            assert!(context.service.export_private_key(phrase.id.clone(), Chain::Bitcoin).await.is_err());
+            assert!(context.service.export_private_key(private.id.clone(), Chain::Solana).await.is_err());
         });
     }
 

@@ -100,6 +100,7 @@ impl TransactionLoadMetadata {
             nft: None,
             block_hash: block_hash.to_string(),
             references: vec![],
+            is_destination_address_exist: None,
         }
     }
 
@@ -111,6 +112,7 @@ impl TransactionLoadMetadata {
             nft: None,
             block_hash: "11111111111111111111111111111111".to_string(),
             references: references.iter().map(ToString::to_string).collect(),
+            is_destination_address_exist: None,
         }
     }
 
@@ -122,6 +124,7 @@ impl TransactionLoadMetadata {
             nft: Some(nft),
             block_hash: "11111111111111111111111111111111".to_string(),
             references: vec![],
+            is_destination_address_exist: None,
         }
     }
 
@@ -133,6 +136,7 @@ impl TransactionLoadMetadata {
             nft: Some(SolanaNftStandard::Core { collection: collection.map(String::from) }),
             block_hash: "11111111111111111111111111111111".to_string(),
             references: vec![],
+            is_destination_address_exist: None,
         }
     }
 }

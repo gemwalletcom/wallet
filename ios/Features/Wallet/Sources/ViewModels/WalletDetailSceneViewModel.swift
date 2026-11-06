@@ -1,4 +1,5 @@
 import Components
+import enum Gemstone.GemSecretExport
 import enum Gemstone.GemServiceError
 import struct Gemstone.GemWalletDetails
 import enum Gemstone.GemWalletSecret
@@ -16,13 +17,14 @@ import SwiftUI
 @MainActor
 public final class WalletDetailSceneViewModel {
     private let navigationPath: Binding<NavigationPath>
-    private let service: any GemWalletServiceProtocol
+    let service: any GemWalletServiceProtocol
     private let biometry: any BiometryAuthenticatable
 
     var nameInput: String
     var isPresentingAlertMessage: AlertMessage?
     var isPresentingDeleteConfirmation: Bool?
     var isPresentingExportWallet: GemWalletSecret?
+    var isPresentingPrivateKeyExport: GemSecretExport?
 
     private let wallet: Wallet
 
@@ -42,6 +44,7 @@ public final class WalletDetailSceneViewModel {
         isPresentingAlertMessage = nil
         isPresentingDeleteConfirmation = nil
         isPresentingExportWallet = nil
+        isPresentingPrivateKeyExport = nil
         let details: @Sendable (Wallet) -> GemWalletDetails = { [service] in
             service.walletDetails(wallet: $0.toGem())
         }
@@ -50,6 +53,10 @@ public final class WalletDetailSceneViewModel {
 
     var details: GemWalletDetails {
         detailsQuery.value
+    }
+
+    var walletId: WalletId {
+        wallet.id
     }
 
     var name: String {
@@ -97,6 +104,13 @@ extension WalletDetailSceneViewModel {
             isPresentingAlertMessage = AlertMessage(message: error.localizedDescription)
         } catch {
             debugLog("wallet detail error: \(error)")
+        }
+    }
+
+    func onSelect(export: GemSecretExport) async {
+        switch export {
+        case .secret: await onShowSecret()
+        case .privateKey, .privateKeyAccounts: isPresentingPrivateKeyExport = export
         }
     }
 

@@ -17,7 +17,9 @@ import com.gemwallet.android.ui.format.rowDateFormatter
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.localization.text
+import com.gemwallet.android.ui.style.image
 import com.gemwallet.android.ui.style.listItemImage
+import com.gemwallet.android.ui.style.subtitleStyle
 import com.gemwallet.android.ui.style.textStyle
 import com.gemwallet.android.ui.style.walletListItemImage
 import com.wallet.core.primitives.Asset
@@ -237,35 +239,6 @@ private fun listItemModel(context: Context, title: GemListRowTitle, value: Strin
 private fun GemRowMenuItem.uiModel(context: Context): GemListRowMenuItem = when (this) {
     is GemRowMenuItem.Copy -> GemListRowMenuItem.Copy(context.getString(R.string.common_copy), copy.value)
     is GemRowMenuItem.Open -> GemListRowMenuItem.Open(title.string(context), url)
-}
-
-private fun GemValueTone.subtitleStyle(): ListItemTextStyle = when (this) {
-    GemValueTone.PLAIN -> ListItemTextStyle.Secondary
-    GemValueTone.NEUTRAL, GemValueTone.POSITIVE, GemValueTone.WARNING, GemValueTone.NEGATIVE -> textStyle()
-}
-
-private fun GemListRowIcon.image(): ListItemImage? = when (this) {
-    GemListRowIcon.NONE -> null
-    GemListRowIcon.APP_LOGO -> ListItemImage.Drawable(R.drawable.ic_gem_foreground)
-    GemListRowIcon.WALLETS -> ListItemImage.Drawable(R.drawable.settings_wallets)
-    GemListRowIcon.SECURITY -> ListItemImage.Drawable(R.drawable.settings_security)
-    GemListRowIcon.NOTIFICATIONS -> ListItemImage.Drawable(R.drawable.settings_notifications)
-    GemListRowIcon.PRICE_ALERTS -> ListItemImage.Drawable(R.drawable.settings_pricealert)
-    GemListRowIcon.PREFERENCES -> ListItemImage.Drawable(R.drawable.settings_preferences)
-    GemListRowIcon.WALLET_CONNECT -> ListItemImage.Drawable(R.drawable.settings_wc)
-    GemListRowIcon.SUPPORT -> ListItemImage.Drawable(R.drawable.settings_support)
-    GemListRowIcon.REWARDS -> ListItemImage.Drawable(R.drawable.settings_wallets)
-    GemListRowIcon.ABOUT_US -> ListItemImage.Drawable(R.drawable.settings_about_us)
-    GemListRowIcon.DEVELOPER -> ListItemImage.Drawable(R.drawable.settings_developer)
-    GemListRowIcon.CURRENCY -> ListItemImage.Drawable(R.drawable.settings_currency)
-    GemListRowIcon.LANGUAGE -> ListItemImage.Drawable(R.drawable.settings_language)
-    GemListRowIcon.APPEARANCE -> ListItemImage.Drawable(R.drawable.settings_appearance)
-    GemListRowIcon.NETWORKS -> ListItemImage.Drawable(R.drawable.settings_networks)
-    GemListRowIcon.CONTACTS -> ListItemImage.Drawable(R.drawable.settings_contacts)
-    GemListRowIcon.PERPETUALS -> ListItemImage.Drawable(R.drawable.settings_perpetuals)
-    GemListRowIcon.PIN -> ListItemImage.Symbol(ListItemSymbol.Pin)
-    GemListRowIcon.UNPIN -> ListItemImage.Symbol(ListItemSymbol.Unpin)
-    GemListRowIcon.ADD_TO_WALLET -> ListItemImage.Symbol(ListItemSymbol.AddCircle)
 }
 
 fun GemListRow.listItemModel(context: Context): ListItemModel? = (uiModel(context) as? GemListRowUIModel.Item)?.model

@@ -7,7 +7,7 @@ edition = { workspace = true }
 default = ["types"]
 types = []
 client = ["dep:gem_client", "dep:async-trait", "dep:primitives"]
-reqwest = ["client", "dep:reqwest", "dep:percent-encoding", "gem_client/reqwest"]
+reqwest = ["client", "dep:reqwest", "dep:gem_encoding", "gem_client/reqwest"]
 testkit = ["client", "gem_client/testkit"]
 uniffi = ["client", "dep:uniffi"]
 
@@ -19,7 +19,7 @@ gem_client = { path = "../gem_client", optional = true }
 async-trait = { workspace = true, optional = true }
 primitives = { path = "../primitives", optional = true }
 reqwest = { workspace = true, optional = true }
-percent-encoding = { workspace = true, optional = true }
+gem_encoding = { path = "../gem_encoding", default-features = false, optional = true }
 uniffi = { workspace = true, optional = true }
 
 [dev-dependencies]

@@ -1,7 +1,7 @@
 use crate::constants::{DEFAULT_SWAP_GAS_LIMIT, TOKEN_TRANSFER_GAS_LIMIT, TRANSFER_GAS_LIMIT};
 use crate::fee_calculator::{get_fee_history_blocks, get_reward_percentiles};
 use crate::provider::preload_mapper::{
-    bigint_to_hex_string, bytes_to_hex_string, calculate_gas_limit_with_increase, get_extra_fee_gas_limit, get_transaction_params, map_transaction_fee_rates, map_transaction_preload, pending_permit_gas_limit,
+    bigint_to_hex_string, bytes_to_hex_string, calculate_gas_limit_with_increase, get_extra_fee_gas_limit, get_transaction_params, map_transaction_fee_rates, map_transaction_preload, pending_permit_gas_limit, requested_gas_limit,
 };
 use crate::rpc::EthereumProvider;
 #[cfg(feature = "rpc")]
@@ -58,7 +58,7 @@ impl<C: Client + Clone> EthereumProvider<C> {
             _ => get_transaction_params(&input)?,
         };
 
-        let gas_limit = match pending_permit_gas_limit(&input)? {
+        let gas_limit = match pending_permit_gas_limit(&input)?.or_else(|| requested_gas_limit(&input)) {
             Some(gas_limit) => gas_limit,
             None => {
                 let estimate = self
@@ -108,7 +108,10 @@ pub fn calculate_fee(input: &TransactionLoadInput, gas_limit: &BigInt) -> Result
 #[cfg(all(test, feature = "rpc"))]
 mod tests {
     use super::*;
-    use primitives::{Asset, AssetId, Chain, TransactionInputType, swap::SwapData};
+    use crate::rpc::EthereumClient;
+    use gem_jsonrpc::testkit::mock_jsonrpc_client;
+    use primitives::{Asset, AssetId, Chain, EVMChain, TransactionInputType, TransferDataExtra, swap::SwapData};
+    use serde_json::Value;
 
     #[test]
     fn test_calculate_fee_swap_approval_keeps_transaction_gas_limit() -> Result<(), Box<dyn std::error::Error + Sync + Send>> {
@@ -128,6 +131,23 @@ mod tests {
         assert_eq!(fee.gas_limit, approval_gas_limit);
         assert_eq!(fee.fee, input.gas_price.total_fee() * (&approval_gas_limit + swap_gas_limit));
         assert_eq!(fee.fee_asset, AssetId::from_chain(Chain::Ethereum));
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_map_transaction_load_uses_the_requested_gas_limit() -> Result<(), Box<dyn std::error::Error + Sync + Send>> {
+        let provider = EthereumProvider::new_rpc_only(EthereumClient::new(mock_jsonrpc_client(|_, _| Ok(Value::from("0xc350"))), EVMChain::Ethereum));
+        let load = |gas_limit: Option<u64>| {
+            let extra = TransferDataExtra {
+                gas_limit: gas_limit.map(BigInt::from),
+                ..TransferDataExtra::mock()
+            };
+            provider.map_transaction_load(TransactionLoadInput::mock_evm(TransactionInputType::mock_generic(Asset::mock_eth(), extra), "0"))
+        };
+
+        assert_eq!(load(Some(300_000)).await?.fee.gas_limit, BigInt::from(300_000), "the dapp's gas limit is shown and signed, not the estimate");
+        assert_eq!(load(None).await?.fee.gas_limit, BigInt::from(75_000), "without a dapp limit the estimate with its increase is used");
 
         Ok(())
     }

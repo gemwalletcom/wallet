@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Components
 import Foundation
 import func Gemstone.pendingActivityFilters
 import GemstonePrimitives
@@ -15,8 +14,6 @@ final class MainTabViewModel {
     var transactions: Int {
         transactionsQuery.value
     }
-
-    var isPresentingToastMessage: ToastMessage?
 
     init(wallet: Wallet) {
         transactionsQuery = ObservableQuery(

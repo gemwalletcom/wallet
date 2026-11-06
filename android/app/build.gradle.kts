@@ -284,8 +284,6 @@ dependencies {
 
     // Tests
 
-    implementation(libs.lifecycle.runtime)
-    implementation(libs.lifecycle.viewmodel)
 
     testImplementation(testFixtures(project(":gemcore")))
     testImplementation(libs.mockk.android)

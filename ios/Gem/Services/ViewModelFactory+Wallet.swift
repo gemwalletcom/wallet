@@ -61,6 +61,7 @@ public extension ViewModelFactory {
         wallet: Wallet,
         isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>,
         isPresentingWallets: Binding<Bool>,
+        isPresentingSheet: Binding<WalletSheetType?>,
     ) -> WalletSceneViewModel {
         WalletSceneViewModel(
             service: walletHomeService(),
@@ -68,6 +69,7 @@ public extension ViewModelFactory {
             wallet: wallet,
             isPresentingSelectedAssetInput: isPresentingSelectedAssetInput,
             isPresentingWallets: isPresentingWallets,
+            isPresentingSheet: isPresentingSheet,
         )
     }
 

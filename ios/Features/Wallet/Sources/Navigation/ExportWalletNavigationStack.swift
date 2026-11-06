@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import enum Gemstone.GemWalletSecret
 import Primitives
 import PrimitivesComponents
@@ -18,13 +19,13 @@ struct ExportWalletNavigationStack: View {
             SecurityReminderScene(
                 model: SecurityReminderViewModel(
                     title: flow.title,
-                    kind: flow.kind,
+                    kind: flow.securityReminderKind,
                     onNext: onNext,
                 ),
             )
             .toolbarDismissItem(type: .close, placement: .topBarLeading)
             .navigationBarTitleDisplayMode(.inline)
-            .navigationDestination(for: GemWalletSecret.self) {
+            .navigationDestination(keyedBy: GemWalletSecret.self) {
                 ShowSecretDataScene(secret: $0)
             }
         }

@@ -27,7 +27,6 @@ bs58 = { workspace = true }
 borsh = { workspace = true }
 gem_encoding = { path = "../gem_encoding" }
 hex.workspace = true
-hex_lit = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 num-bigint = { workspace = true }

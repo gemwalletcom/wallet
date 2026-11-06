@@ -1,0 +1,43 @@
+{
+  "requests": [
+    {
+      "id": "0x17938404540b364f35389df54d38cd808b5ec21f88892d396e35fcb2dec78eaa",
+      "status": "success",
+      "data": {
+        "route": {
+          "actual": {
+            "origin": {
+              "inputCurrency": {
+                "currency": {
+                  "chainId": 8453,
+                  "address": "0x0000000000000000000000000000000000000000"
+                },
+                "amount": "8267617258926616"
+              },
+              "outputCurrency": {
+                "currency": {
+                  "chainId": 8453,
+                  "address": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+                },
+                "amount": "19956521"
+              }
+            },
+            "destination": null
+          }
+        },
+        "appFees": {
+          "actual": [
+            {
+              "recipient": "0x6b84012351fddc6676d9b5f0db54dc729142d600",
+              "amount": "4133808629463"
+            }
+          ],
+          "currency": {
+            "chainId": 8453,
+            "address": "0x0000000000000000000000000000000000000000"
+          }
+        }
+      }
+    }
+  ]
+}

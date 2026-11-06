@@ -17,7 +17,6 @@ dependencies {
     implementation(project(":data:services:gemstone"))
     implementation(project(":data:services:store"))
 
-    compileOnly(libs.compose.runtime.annotation)
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

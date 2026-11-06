@@ -11,7 +11,7 @@ import PrimitivesTestKit
 extension SwapButtonViewModel {
     static func mock(
         session: GemSwapSession = .mock(),
-        availableBalance: BigInt = .zero,
+        availableBalance: BigUInt = .zero,
         fromAsset: AssetData? = .mock(),
     ) -> SwapButtonViewModel {
         SwapButtonViewModel(

@@ -367,9 +367,15 @@ mod tests {
 
     #[test]
     fn eip712_permit_reads_hex_values_and_deadlines() {
-        let result = simulate_eip712_message(Chain::Ethereum, &permit_message("deadline", json!("0x2540be3ff")));
-        assert_eq!(warning_messages(&result), vec![None, Some("Excessive expiration")]);
-        assert_eq!(result.payload.iter().find(|field| field.kind == SimulationPayloadFieldKind::Expiration).map(|field| field.value.as_str()), Some("9999999999"));
+        for deadline in ["0x2540be3ff", "0X2540BE3FF", "0o112402761777", "0b1001010100000010111110001111111111", "9_999_999_999"] {
+            let result = simulate_eip712_message(Chain::Ethereum, &permit_message("deadline", json!(deadline)));
+            assert_eq!(warning_messages(&result), vec![None, Some("Excessive expiration")], "{deadline}");
+            assert_eq!(
+                result.payload.iter().find(|field| field.kind == SimulationPayloadFieldKind::Expiration).map(|field| field.value.as_str()),
+                Some("9999999999"),
+                "{deadline}"
+            );
+        }
 
         let result = simulate_eip712_message(Chain::Ethereum, &permit_message("value", json!("0x3e8")));
         assert_eq!(result.payload.iter().find(|field| field.kind == SimulationPayloadFieldKind::Value).map(|field| field.value.as_str()), Some("1000"));

@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 
-class ActiveWalletConnectRequest(events: Flow<WalletConnectEvent>, scope: CoroutineScope = CoroutineScope(Dispatchers.Main.immediate + SupervisorJob())) {
+class ActiveWalletConnectRequest(events: Flow<WalletConnectEvent>, pendingRequests: WalletConnectPendingRequests, scope: CoroutineScope = CoroutineScope(Dispatchers.Main.immediate + SupervisorJob())) {
 
     private val _current = MutableStateFlow<WalletConnectUserRequest?>(null)
     val current: StateFlow<WalletConnectUserRequest?> = _current.asStateFlow()
@@ -21,7 +21,11 @@ class ActiveWalletConnectRequest(events: Flow<WalletConnectEvent>, scope: Corout
         events.onEach { event ->
             when (event) {
                 is WalletConnectEvent.SessionDeleted -> _current.update { null }
-                is WalletConnectEvent.RequestExpired -> _current.update { current -> current?.takeUnless { it.isRequest(event) } }
+
+                is WalletConnectEvent.RequestExpired -> if (!pendingRequests.expire(event.id.toString())) {
+                    _current.update { current -> current?.takeUnless { it.isRequest(event) } }
+                }
+
                 else -> event.toUserRequest()?.let { request -> _current.update { request } }
             }
         }.launchIn(scope)

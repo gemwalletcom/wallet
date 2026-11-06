@@ -369,8 +369,8 @@ impl Services {
     pub fn support_api(&self) -> SupportApiClient {
         let support = &self.settings.support;
         SupportApiClient::new(
-            ChatwootClient::new(support.url.clone(), support.widget.ios.clone()),
-            ChatwootClient::new(support.url.clone(), support.widget.android.clone()),
+            ChatwootClient::new(support.url.clone(), support.widget.ios.clone(), support.identity.ios.clone()),
+            ChatwootClient::new(support.url.clone(), support.widget.android.clone(), support.identity.android.clone()),
             self.support_repository(),
         )
     }

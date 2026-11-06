@@ -8,7 +8,7 @@ use super::{GemPendingTransactionInput, GemRecentActivity, GemRecentActivityScop
 use crate::models::transaction::{GemTransactionLoadFee, GemTransactionLoadMetadata};
 use crate::services::error::GemServiceError;
 use crate::services::wallet::testkit::MemoryWalletStore;
-use crate::services::wallet_session::{GemWalletSessionService, testkit::MemoryWalletSessionStore};
+use crate::services::wallet_session::GemWalletSessionService;
 
 impl GemTransferData {
     pub fn mock(input_type: TransactionInputType) -> Self {
@@ -46,8 +46,7 @@ impl GemPendingTransactionInput {
 
 impl GemRecentActivityService {
     pub fn mock(store: Arc<dyn GemRecentActivityStore>, wallet_id: Option<WalletId>) -> Self {
-        let session = Arc::new(GemWalletSessionService::new(Arc::new(MemoryWalletSessionStore::default()), Arc::new(MemoryWalletStore::default())));
-        session.set_current_wallet_id(wallet_id).unwrap();
+        let session = Arc::new(GemWalletSessionService::mock(Arc::new(MemoryWalletStore::default()), wallet_id));
         Self::new(store, session)
     }
 }

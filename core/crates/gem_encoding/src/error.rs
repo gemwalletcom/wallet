@@ -37,10 +37,3 @@ impl From<EncodingError> for String {
         err.to_string()
     }
 }
-
-#[cfg(feature = "base64")]
-impl From<base64::DecodeError> for EncodingError {
-    fn from(err: base64::DecodeError) -> Self {
-        Self::Invalid(EncodingType::Base64, err.to_string())
-    }
-}

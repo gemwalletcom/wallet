@@ -59,7 +59,7 @@ public struct ConnectionsScene: View {
                     .padding(.horizontal, .medium)
             }
         }
-        .navigationDestination(for: WalletConnection.self) { connection in
+        .navigationDestination(keyedBy: WalletConnection.self) { connection in
             ConnectionScene(
                 details: model.connectionDetails(connection: connection),
                 onDisconnect: { onSelectDisconnect(connection) },

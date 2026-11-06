@@ -121,7 +121,6 @@ pub(crate) fn compile_legacy(fee_payer: Pubkey, recent_blockhash: [u8; 32], acco
 #[cfg(test)]
 mod tests {
     use gem_encoding::decode_base64;
-    use hex_lit::hex;
 
     use super::TransactionBuilder;
     use crate::{
@@ -338,11 +337,16 @@ mod tests {
         ];
 
         let instructions = vec![
-            Instruction::mock(5, &hex!("001011130607"), "2", &combined_accounts),
+            Instruction::mock(5, &hex::decode("001011130607").unwrap(), "2", &combined_accounts),
             Instruction::mock(6, &[1, 2], "3Bxs4NNfTBw5NH5H", &combined_accounts),
             Instruction::mock(7, &[2], "J", &combined_accounts),
-            Instruction::mock(8, &hex!("07090102030410141308080a0815160d090e0f03041413070717"), "7UR2vxkjV6WhbmWvkCZQvQJKVhT964yPqVRoTBAPv678iyHS8LF", &combined_accounts),
-            Instruction::mock(11, &hex!("00011118191310121a070506"), "8pPpkivb1mTLA5APTUWQU2CsG1oYxcnh5C8fQsYux2BVVxSXuFvWtLx", &combined_accounts),
+            Instruction::mock(
+                8,
+                &hex::decode("07090102030410141308080a0815160d090e0f03041413070717").unwrap(),
+                "7UR2vxkjV6WhbmWvkCZQvQJKVhT964yPqVRoTBAPv678iyHS8LF",
+                &combined_accounts,
+            ),
+            Instruction::mock(11, &hex::decode("00011118191310121a070506").unwrap(), "8pPpkivb1mTLA5APTUWQU2CsG1oYxcnh5C8fQsYux2BVVxSXuFvWtLx", &combined_accounts),
             Instruction::mock(12, &[], "KszMTKrqxdHWZULtjrD9cmodXEnC1UboEfkgMRLSGuuPLDYWo8BrqcbfRddG4w18gsf1sZR69vK1mKhXyvNCTZxwsq", &combined_accounts),
         ];
 

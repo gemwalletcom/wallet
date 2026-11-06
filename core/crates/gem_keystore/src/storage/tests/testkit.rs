@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use tempfile::TempDir;
+use primitives::testkit::temp_dir::TempDir;
 
 use crate::KeystoreError;
 

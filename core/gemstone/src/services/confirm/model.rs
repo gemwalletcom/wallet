@@ -96,6 +96,16 @@ pub enum GemSubmitResult {
     Sent { hashes: Vec<String>, message: Option<GemSubmitMessage> },
 }
 
+#[uniffi::export]
+impl GemSubmitResult {
+    pub fn transaction_id(&self) -> Option<String> {
+        match self {
+            Self::Signed { data, .. } => data.last().cloned(),
+            Self::Sent { hashes, .. } => hashes.last().cloned(),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemSubmitMessage {
     Warning { text: GemErrorText },
@@ -511,6 +521,22 @@ pub struct GemConfirmViewState {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_submit_result_transaction_id_is_the_requested_transaction() {
+        let sent = GemSubmitResult::Sent {
+            hashes: vec!["approval".to_string(), "swap".to_string()],
+            message: None,
+        };
+        let signed = GemSubmitResult::Signed {
+            data: vec!["signed".to_string()],
+            message: None,
+        };
+
+        assert_eq!(sent.transaction_id(), Some("swap".to_string()), "an approval Gem adds goes first, the requested transaction last");
+        assert_eq!(signed.transaction_id(), Some("signed".to_string()));
+        assert_eq!(GemSubmitResult::Sent { hashes: vec![], message: None }.transaction_id(), None);
+    }
 
     #[test]
     fn test_only_an_enabled_confirm_button_shows_how_it_authenticates() {

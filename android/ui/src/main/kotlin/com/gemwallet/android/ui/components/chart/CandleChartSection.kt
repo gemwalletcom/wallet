@@ -34,8 +34,8 @@ fun CandleChartSection(
     onPeriodSelect: (ChartPeriod) -> Unit,
     onZoom: (Float, Float) -> Unit,
     onPan: (Float) -> Unit,
+    periods: List<ChartPeriod>,
     modifier: Modifier = Modifier,
-    periods: List<ChartPeriod> = ChartPeriod.entries,
     styleSwitch: GemChartStyle? = null,
     onSwitchStyle: (GemChartStyle) -> Unit = {},
 ) {
@@ -57,8 +57,8 @@ fun CandleChartSection(
         date = headerDate,
         period = period,
         onPeriodSelect = onPeriodSelect,
-        modifier = modifier,
         periods = periods,
+        modifier = modifier,
         styleSwitch = styleSwitch,
         onSwitchStyle = onSwitchStyle,
     ) { _ ->

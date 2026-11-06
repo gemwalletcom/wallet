@@ -19,7 +19,7 @@ import TransferTestKit
 @MainActor
 struct ConfirmSubmissionTests {
     @Test
-    func confirmReportsEveryHashAndTracksSentTransactions() async throws {
+    func confirmReportsTheRequestedTransactionHash() async throws {
         let reported = ReportedValues()
 
         let request = ConfirmTransferRequest.mock(delegate: { reported.append(try? $0.get()) })
@@ -28,7 +28,7 @@ struct ConfirmSubmissionTests {
             execute: .success(.sent(hashes: ["hash-1", "hash-2"], message: nil)),
         ).submit(request: request)
 
-        #expect(reported.values == ["hash-1", "hash-2"])
+        #expect(reported.values == ["hash-2"])
     }
 
     @Test
@@ -42,7 +42,7 @@ struct ConfirmSubmissionTests {
     }
 
     @Test
-    func partialBroadcastReportsBroadcastHashesAndRethrows() async throws {
+    func partialBroadcastReportsNothingAndRethrows() async throws {
         let reported = ReportedValues()
 
         await #expect(throws: GemConfirmError.self) {
@@ -53,7 +53,7 @@ struct ConfirmSubmissionTests {
             ).submit(request: request)
         }
 
-        #expect(reported.values == ["hash-1"])
+        #expect(reported.values.isEmpty)
     }
 
     @Test

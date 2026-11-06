@@ -1,4 +1,4 @@
-use tempfile::TempDir;
+use primitives::testkit::temp_dir::TempDir;
 
 use super::{
     constants::{ARGON2_SALT_LEN, DEFAULT_ARGON2_ITERATIONS, DEFAULT_ARGON2_MEMORY_KIB, DEFAULT_ARGON2_OUTPUT_LEN, DEFAULT_ARGON2_PARALLELISM},

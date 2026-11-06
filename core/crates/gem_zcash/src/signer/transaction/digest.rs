@@ -96,7 +96,7 @@ impl SignatureDigests {
 
 #[cfg(test)]
 mod tests {
-    use gem_bitcoin::testkit::address_mock::{mock_sender_address, mock_zec_address};
+    use gem_bitcoin::testkit::address_mock::{mock_addr_by_hash, mock_sender_address};
     use primitives::{BitcoinChain, hex, testkit::zcash_mock};
 
     use super::*;
@@ -104,7 +104,7 @@ mod tests {
 
     #[test]
     fn test_signature() {
-        let input = zcash_mock::mock_signer_input(mock_sender_address(BitcoinChain::Zcash), mock_zec_address([2u8; 20]));
+        let input = zcash_mock::mock_signer_input(mock_sender_address(BitcoinChain::Zcash), mock_addr_by_hash(BitcoinChain::Zcash, [2u8; 20]));
         let plan = Plan::transfer(&input).unwrap().spend;
         let transaction = Transaction::unsigned(TransactionVersion::V5, &plan, input.metadata.get_zcash_branch_id().unwrap());
         let digests = SignatureDigests::new(&transaction, &plan, None).unwrap();

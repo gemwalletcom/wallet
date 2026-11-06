@@ -36,6 +36,12 @@ extension WalletConnectorInteractor: WalletConnectorInteractable {
         let value = try await presentSheet(payload: payload, sheetType: { .connectionProposal($0) })
         return try WalletId.from(id: value)
     }
+
+    public func requestExpired(requestId: String) async {
+        await MainActor.run { [weak self] in
+            self?.presenter.expire(requestId: requestId)
+        }
+    }
 }
 
 // MARK: - GemWalletConnectSigner

@@ -1,15 +1,15 @@
-use hex_lit::hex;
+use primitives::decode_hex_literal;
 
 use crate::{
     instructions::program_ids::system_program,
     types::{AccountMeta, Instruction, Pubkey},
 };
 
-const TRANSFER_DISCRIMINANT: [u8; 4] = hex!("02000000");
-pub const ADVANCE_NONCE_ACCOUNT_DISCRIMINANT: [u8; 4] = hex!("04000000");
-const ASSIGN_DISCRIMINANT: [u8; 4] = hex!("01000000");
-const AUTHORIZE_NONCE_ACCOUNT_DISCRIMINANT: [u8; 4] = hex!("07000000");
-const ASSIGN_WITH_SEED_DISCRIMINANT: [u8; 4] = hex!("0a000000");
+const TRANSFER_DISCRIMINANT: [u8; 4] = decode_hex_literal("02000000");
+pub const ADVANCE_NONCE_ACCOUNT_DISCRIMINANT: [u8; 4] = decode_hex_literal("04000000");
+const ASSIGN_DISCRIMINANT: [u8; 4] = decode_hex_literal("01000000");
+const AUTHORIZE_NONCE_ACCOUNT_DISCRIMINANT: [u8; 4] = decode_hex_literal("07000000");
+const ASSIGN_WITH_SEED_DISCRIMINANT: [u8; 4] = decode_hex_literal("0a000000");
 
 pub fn grants_authority_data(data: &[u8]) -> bool {
     [ASSIGN_DISCRIMINANT, AUTHORIZE_NONCE_ACCOUNT_DISCRIMINANT, ASSIGN_WITH_SEED_DISCRIMINANT]
@@ -57,6 +57,6 @@ mod tests {
 
         assert_eq!(instruction.program_id, system_program());
         assert_eq!(instruction.accounts, vec![AccountMeta::new_signer_writable(from), AccountMeta::new_writable(to)]);
-        assert_eq!(instruction.data, hex!("0200000040420f0000000000"));
+        assert_eq!(instruction.data, hex::decode("0200000040420f0000000000").unwrap());
     }
 }

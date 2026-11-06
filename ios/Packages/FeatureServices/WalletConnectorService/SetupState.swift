@@ -2,7 +2,8 @@
 
 import Foundation
 
-actor SetupState {
+@MainActor
+final class SetupState {
     private var isSetup = false
 
     func start(_ operation: @Sendable () throws -> Void) rethrows {

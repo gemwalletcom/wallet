@@ -122,7 +122,6 @@ fn raydium_instruction(name: &str, args: &impl BorshSerialize, accounts: Vec<Acc
 mod tests {
     use super::*;
     use crate::raydium_clmm::testkit::{TEST_EXTENSION_POOL, TEST_LIMIT_ORDER_POOL, mock_pool_snapshot};
-    use hex_lit::hex;
 
     #[test]
     fn test_instruction_data() {
@@ -137,8 +136,8 @@ mod tests {
             amount_out_minimum: 2_800_000_000,
         };
 
-        assert_eq!(instruction_data(SWAP_V2, &swap_v2), hex!("2b04ed0b1ac91e62e03fee0500000000009ce4a6000000000000000000000000000000000000000001"));
-        assert_eq!(instruction_data(SWAP_ROUTER_BASE_IN, &router), hex!("457d73daf5baf2c4e03fee0500000000009ce4a600000000"));
+        assert_eq!(instruction_data(SWAP_V2, &swap_v2), hex::decode("2b04ed0b1ac91e62e03fee0500000000009ce4a6000000000000000000000000000000000000000001").unwrap());
+        assert_eq!(instruction_data(SWAP_ROUTER_BASE_IN, &router), hex::decode("457d73daf5baf2c4e03fee0500000000009ce4a600000000").unwrap());
     }
 
     #[test]

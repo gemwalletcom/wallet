@@ -1,36 +1,40 @@
-use bigdecimal::{BigDecimal, num_bigint::BigInt as DecimalBigInt};
-use num_bigint::BigInt;
+use num_bigint::{BigInt, BigUint, Sign};
+use num_traits::Zero;
+
+const ETHER_DECIMALS: u32 = 18;
+const GWEI_DECIMALS: u32 = 9;
 
 pub struct EtherConv {}
 
 impl EtherConv {
     pub fn one() -> BigInt {
-        BigInt::from(10u64.pow(18))
+        BigInt::from(10u64.pow(ETHER_DECIMALS))
     }
 
     pub fn parse_ether(ether: &str) -> BigInt {
-        to_bn_wei(ether, 18)
+        to_bn_wei(ether, ETHER_DECIMALS)
     }
 
     pub fn to_gwei(wei: &BigInt) -> String {
-        let gwei_value = BigDecimal::from_bigint(to_decimal_bigint(wei), 0) / BigDecimal::from(10u64.pow(9));
-        gwei_value.to_string()
+        let unit = BigUint::from(10u64.pow(GWEI_DECIMALS));
+        let sign = if wei.sign() == Sign::Minus { "-" } else { "" };
+        let whole = wei.magnitude() / &unit;
+        let fraction = wei.magnitude() % &unit;
+        if fraction.is_zero() {
+            return format!("{sign}{whole}");
+        }
+        let fraction = format!("{fraction:0>width$}", width = GWEI_DECIMALS as usize);
+        format!("{sign}{whole}.{}", fraction.trim_end_matches('0'))
     }
 }
 
 pub fn to_bn_wei(value: &str, decimals: u32) -> BigInt {
-    let ether_value = value.parse::<BigDecimal>().unwrap();
-    let wei_value = (&ether_value * BigDecimal::from(10u64.pow(decimals))).with_scale(0);
-
-    to_bigint(&wei_value.as_bigint_and_exponent().0)
-}
-
-fn to_decimal_bigint(value: &BigInt) -> DecimalBigInt {
-    DecimalBigInt::from_signed_bytes_be(&value.to_signed_bytes_be())
-}
-
-fn to_bigint(value: &DecimalBigInt) -> BigInt {
-    BigInt::from_signed_bytes_be(&value.to_signed_bytes_be())
+    let (whole, fraction) = value.split_once('.').unwrap_or((value, ""));
+    let fraction: String = fraction.chars().chain(std::iter::repeat('0')).take(decimals as usize).collect();
+    match format!("{whole}{fraction}").as_str() {
+        "" | "-" | "+" => BigInt::zero(),
+        digits => BigInt::parse_bytes(digits.as_bytes(), 10).unwrap(),
+    }
 }
 
 #[cfg(test)]
@@ -52,16 +56,11 @@ mod tests {
     }
 
     #[test]
-    fn test_bigint_version_conversion() {
-        let values = [
-            BigInt::from(0),
-            BigInt::from(1),
-            BigInt::from(-1),
-            BigInt::parse_bytes(b"115792089237316195423570985008687907853269984665640564039457584007913129639935", 10).unwrap(),
-        ];
-
-        for value in values {
-            assert_eq!(to_bigint(&to_decimal_bigint(&value)), value);
-        }
+    fn test_to_gwei() {
+        assert_eq!(EtherConv::to_gwei(&BigInt::from(0)), "0");
+        assert_eq!(EtherConv::to_gwei(&BigInt::from(1_500_000_000u64)), "1.5");
+        assert_eq!(EtherConv::to_gwei(&BigInt::from(30_000_000_000u64)), "30");
+        assert_eq!(EtherConv::to_gwei(&BigInt::from(1)), "0.000000001");
+        assert_eq!(EtherConv::to_gwei(&BigInt::from(-500_000_000)), "-0.5");
     }
 }

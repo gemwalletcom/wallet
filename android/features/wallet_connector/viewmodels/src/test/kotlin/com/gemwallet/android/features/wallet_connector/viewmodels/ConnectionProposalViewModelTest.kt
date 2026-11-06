@@ -2,6 +2,7 @@ package com.gemwallet.android.features.wallet_connector.viewmodels
 
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
+import com.gemwallet.android.application.wallet_connect.WalletConnectPendingRequests
 import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnection
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.MainDispatcherRule
@@ -73,7 +74,7 @@ class ConnectionProposalViewModelTest {
         proposal = proposal,
         verifyContext = verifyContext,
         approveWalletConnection = approve,
-        activeRequest = ActiveWalletConnectRequest(events = emptyFlow()),
+        activeRequest = ActiveWalletConnectRequest(events = emptyFlow(), pendingRequests = WalletConnectPendingRequests()),
         walletConnectService = service,
         ioDispatcher = dispatcher,
         context = mockk(relaxed = true) {

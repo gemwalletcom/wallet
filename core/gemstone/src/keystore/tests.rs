@@ -1,5 +1,5 @@
+use primitives::testkit::temp_dir::TempDir;
 use primitives::{Chain, WalletType};
-use tempfile::TempDir;
 use zeroize::Zeroizing;
 
 use super::testkit::mock_phrase_words;
@@ -8,6 +8,30 @@ use crate::auth::sign_auth_message_hash;
 use crate::message::sign_type::SignMessage;
 use crate::message::signer::MessageSigner;
 use gem_wallet_connect::SignDigestType;
+
+#[test]
+fn test_gem_keystore_solana_export_round_trip() {
+    let dir = TempDir::new().unwrap();
+    let keystore = GemKeystore::new(dir.path().to_string_lossy().to_string()).unwrap();
+    let stored = keystore.create_store(GemImportType::mock_single_phrase(), b"password".to_vec()).unwrap();
+    let exported = keystore.export_private_key(stored.keystore_id, Chain::Solana, b"password".to_vec()).unwrap();
+    let keypair = bs58::decode(&exported).into_vec().unwrap();
+
+    assert_eq!(keypair.len(), 64);
+    assert_eq!(bs58::encode(&keypair[32..]).into_string(), stored.accounts[0].address);
+
+    let imported = keystore
+        .create_store(
+            GemImportType::PrivateKey {
+                value: exported.clone(),
+                chain: Chain::Solana,
+            },
+            b"password".to_vec(),
+        )
+        .unwrap();
+    assert_eq!(imported.accounts[0].address, stored.accounts[0].address);
+    assert_eq!(keystore.export_private_key(imported.keystore_id, Chain::Solana, b"password".to_vec()).unwrap(), exported);
+}
 
 #[test]
 fn test_gem_keystore_private_key_create_export_delete() {
@@ -181,4 +205,17 @@ fn test_gem_keystore_survives_concurrent_create_read_and_delete() {
         }
     });
     assert!(!dir.path().join(format!("{keystore_id}.json")).exists(), "the file must be gone after a concurrent delete");
+}
+
+#[test]
+fn test_gem_keystore_near_export_round_trip() {
+    let dir = TempDir::new().unwrap();
+    let keystore = GemKeystore::new(dir.path().to_string_lossy().to_string()).unwrap();
+    let stored = keystore.create_store(GemImportType::mock_multicoin_phrase(vec![Chain::Near]), b"password".to_vec()).unwrap();
+    let exported = keystore.export_private_key(stored.keystore_id, Chain::Near, b"password".to_vec()).unwrap();
+    let keypair = bs58::decode(exported.strip_prefix("ed25519:").unwrap()).into_vec().unwrap();
+    assert_eq!(keypair.len(), 64);
+    assert_eq!(hex::encode(&keypair[32..]), stored.accounts[0].address);
+    let imported = keystore.preview_import(GemImportType::PrivateKey { value: exported, chain: Chain::Near }).unwrap();
+    assert_eq!(imported.accounts[0].address, stored.accounts[0].address);
 }

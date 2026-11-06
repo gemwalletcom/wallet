@@ -51,7 +51,7 @@ public struct ConnectionProposalScene: View {
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .listSectionSpacing(.compact)
         .navigationTitle(model.title)
-        .navigationDestination(for: Scenes.SelectWallet.self) { _ in
+        .navigationDestination(keyedBy: Scenes.SelectWallet.self) { _ in
             SelectWalletScene(model: $model.walletSelectorModel)
         }
     }

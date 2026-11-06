@@ -49,12 +49,10 @@ alloy-primitives.workspace = true
 alloy-sol-types.workspace = true
 hex.workspace = true
 num-bigint.workspace = true
-num-integer.workspace = true
 num-traits.workspace = true
 futures.workspace = true
 bs58 = { workspace = true }
 borsh = { workspace = true }
-hex_lit = { workspace = true }
 hmac = { workspace = true }
 sha2 = { workspace = true }
 bigdecimal.workspace = true

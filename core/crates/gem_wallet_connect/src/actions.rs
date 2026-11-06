@@ -50,7 +50,7 @@ pub enum WalletConnectTransactionType {
 pub enum WalletConnectChainOperation {
     AddChain { chain_id: u64 },
     SwitchChain { chain_id: u64 },
-    GetChainId,
+    GetChainId { chain_id: u64 },
 }
 
 #[derive(Debug, Clone)]

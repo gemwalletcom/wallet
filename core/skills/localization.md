@@ -10,4 +10,4 @@ To add a string:
 2. Add the same key, translated, to every other `<lang>/localizer.ftl` with identical key, placeholders, and emoji; only the prose changes. A key missing in a language silently falls back to `en`.
 3. Expose it as a typed method on `LanguageLocalizer` in `crates/localizer/src/lib.rs` via the `fl!` macro, then call that method from consumers (`services`, `rewards`, `in_app_notifications`). Never inline user-facing strings or reference raw keys outside `localizer`.
 
-Fluent wraps interpolated arguments in isolation marks (`\u{2068}…\u{2069}`); account for them in test assertions (see `crates/localizer/tests/localizer.rs`).
+Fluent wraps interpolated arguments in isolation marks (`\u{2068}…\u{2069}`); account for them in test assertions (see the tests in `crates/localizer/src/lib.rs`).

@@ -35,8 +35,11 @@ impl WalletConnectRequestHandler {
             | WalletConnectionMethods::EthSignTypedDataV4
             | WalletConnectionMethods::EthSignTransaction
             | WalletConnectionMethods::EthSendTransaction) => EthereumRequestHandler::parse_request(method, Self::parse_required_chain(chain_id, ChainType::Ethereum)?, params, &domain),
-            WalletConnectionMethods::EthChainId => Ok(WalletConnectAction::ChainOperation {
-                operation: WalletConnectChainOperation::GetChainId,
+            WalletConnectionMethods::EthChainId => Ok(match Self::parse_required_chain(chain_id, ChainType::Ethereum).ok().and_then(|chain| chain.network_id_value()) {
+                Some(chain_id) => WalletConnectAction::ChainOperation {
+                    operation: WalletConnectChainOperation::GetChainId { chain_id },
+                },
+                None => WalletConnectAction::Unsupported { method: method_name },
             }),
             WalletConnectionMethods::WalletAddEthereumChain => Ok(WalletConnectAction::ChainOperation {
                 operation: WalletConnectChainOperation::AddChain {
@@ -114,6 +117,22 @@ mod tests {
 
         let request = WalletConnectRequest::mock("sendTransfer", "{}", Some("bip122:000000000019d6689c085ae165831e93"));
         assert_eq!(WalletConnectRequestHandler::parse_request(request).unwrap(), WalletConnectAction::Unsupported { method: "sendTransfer".to_string() });
+    }
+
+    #[test]
+    fn test_eth_chain_id() {
+        let request = WalletConnectRequest::mock("eth_chainId", "[]", Some("eip155:42161"));
+        assert_eq!(
+            WalletConnectRequestHandler::parse_request(request).unwrap(),
+            WalletConnectAction::ChainOperation {
+                operation: WalletConnectChainOperation::GetChainId { chain_id: 42161 }
+            }
+        );
+
+        for chain_id in ["eip155:3735928559", "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"] {
+            let request = WalletConnectRequest::mock("eth_chainId", "[]", Some(chain_id));
+            assert_eq!(WalletConnectRequestHandler::parse_request(request).unwrap(), WalletConnectAction::Unsupported { method: "eth_chainId".to_string() });
+        }
     }
 
     #[test]

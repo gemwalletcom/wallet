@@ -4,7 +4,7 @@ pub use primitives::contract_constants::{SOLANA_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM
 macro_rules! program_id {
     ($name:ident, $hex:literal) => {
         pub const fn $name() -> Pubkey {
-            Pubkey::new(hex_lit::hex!($hex))
+            Pubkey::new(const { primitives::decode_hex_literal($hex) })
         }
     };
 }

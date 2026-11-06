@@ -281,6 +281,9 @@ mocks:
   - GemConfirmSimulation
   - GemConfirmSimulationState
   - GemConnectionRow
+  - GemContactAddressSession
+  - GemContactScannedAddress
+  - GemContactSession
   - GemCustomFeeField
   - GemCustomFeeSession
   - GemEmptyState
@@ -316,6 +319,7 @@ mocks:
   - GemProviderKind
   - GemProviderRow
   - GemRecipient
+  - GemRecipientValidation
   - GemRewardsResult
   - GemRowText
   - GemSignMessagePreview
@@ -455,10 +459,6 @@ conversions:
     swift:
       - "{}.description"
       - "BigUInt(stringLiteral: {})"
-  BigIntValue:
-    swift:
-      - "BigInt({})"
-      - "{}.magnitude"
   serde_json::Value:
     swift:
       - "AnyCodableValue(core: {})"
@@ -479,7 +479,7 @@ declared:
 type_mappings:
   swift:
     BigInt: String
-    BigIntValue: BigIntValue
+    BigIntValue: BigUInt
     BigUint: String
     DateTime: Date
     Value: AnyCodableValue

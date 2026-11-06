@@ -152,16 +152,16 @@ extension BalanceRecord: Identifiable {
 extension BalanceRecord {
     func mapToBalance() -> Balance {
         Balance(
-            available: BigInt(stringLiteral: available),
-            frozen: BigInt(stringLiteral: frozen),
-            locked: BigInt(stringLiteral: locked),
-            staked: BigInt(stringLiteral: staked),
-            pending: BigInt(stringLiteral: pending),
-            pendingUnconfirmed: BigInt(stringLiteral: pendingUnconfirmed),
-            rewards: BigInt(stringLiteral: rewards),
-            reserved: BigInt(stringLiteral: reserved),
-            earn: BigInt(stringLiteral: earn),
-            withdrawable: BigInt(stringLiteral: withdrawable),
+            available: BigUInt(stringLiteral: available),
+            frozen: BigUInt(stringLiteral: frozen),
+            locked: BigUInt(stringLiteral: locked),
+            staked: BigUInt(stringLiteral: staked),
+            pending: BigUInt(stringLiteral: pending),
+            pendingUnconfirmed: BigUInt(stringLiteral: pendingUnconfirmed),
+            rewards: BigUInt(stringLiteral: rewards),
+            reserved: BigUInt(stringLiteral: reserved),
+            earn: BigUInt(stringLiteral: earn),
+            withdrawable: BigUInt(stringLiteral: withdrawable),
             metadata: metadata,
         )
     }

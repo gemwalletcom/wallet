@@ -7,7 +7,7 @@ pub struct Nft {
     pub owner: String,
     pub name: String,
     pub image: String,
-    pub collection: String,
+    pub collection: Option<String>,
     pub attributes: Vec<Trait>,
 }
 
@@ -28,4 +28,8 @@ pub struct Collection {
     pub twitter: Option<String>,
     pub discord: Option<String>,
     pub website: Option<String>,
+    #[serde(default)]
+    pub is_unverified: bool,
+    #[serde(default)]
+    pub is_blacklisted: bool,
 }

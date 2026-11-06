@@ -354,7 +354,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Очистіть фільтри, щоб оновити свої дії"
+            "value": "Очистіть фільтри, щоб побачити всю активність"
           }
         },
         "ur": {
@@ -545,7 +545,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Немає заходів"
+            "value": "Активність не знайдено"
           }
         },
         "ur": {
@@ -3601,7 +3601,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ім'я"
+            "value": "Назва"
           }
         },
         "ur": {
@@ -4747,7 +4747,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Токен ID"
+            "value": "ID токена"
           }
         },
         "ur": {
@@ -5129,7 +5129,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Обсяг Торгів (24г)"
+            "value": "Обсяг торгів (24 год)"
           }
         },
         "ur": {
@@ -5147,7 +5147,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "交易量 (24小时)"
+            "value": "24小时交易量"
           }
         },
         "zh-Hant": {
@@ -5338,7 +5338,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "可疑的"
+            "value": "可疑"
           }
         },
         "zh-Hant": {
@@ -5511,7 +5511,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Неперевірено"
+            "value": "Не перевірено"
           }
         },
         "ur": {
@@ -5893,7 +5893,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Будь-хто може створити його, включно з підробленими чи шкідливими маркерами."
+            "value": "Будь-хто може створити токен, зокрема підроблений чи шкідливий."
           }
         },
         "ur": {
@@ -6657,7 +6657,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Додайте власний токен"
+            "value": "Додати власний токен"
           }
         },
         "ur": {
@@ -7630,7 +7630,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "新的"
+            "value": "新"
           }
         },
         "zh-Hant": {
@@ -8376,7 +8376,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Щоб використовувати ресурс %@, ви повинні спочатку ввімкнути його в мережі %@ виконавши спеціальні вимоги мережі."
+            "value": "Щоб використовувати актив %@, ви повинні спочатку ввімкнути його в мережі %@, виконавши спеціальні вимоги мережі."
           }
         },
         "ur": {
@@ -8567,7 +8567,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Маркер може бути небезпечним або оманливим. Продовжуйте, лише якщо ви повністю довіряєте цьому."
+            "value": "Токен може бути небезпечним або оманливим. Продовжуйте, лише якщо повністю йому довіряєте."
           }
         },
         "ur": {
@@ -13151,7 +13151,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "1Н"
+            "value": "1Т"
           }
         },
         "ur": {
@@ -14679,7 +14679,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Скопійовано: %@."
+            "value": "Скопійовано: %@"
           }
         },
         "ur": {
@@ -17735,7 +17735,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Дізнайтеся більше"
+            "value": "Докладніше"
           }
         },
         "ur": {
@@ -19454,7 +19454,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Жодного"
+            "value": "Немає"
           }
         },
         "ur": {
@@ -25184,7 +25184,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Контакти"
+            "value": "Контакт"
           }
         },
         "ur": {
@@ -26921,7 +26921,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "持仓将显示在此处。"
+            "value": "持仓将显示在此处"
           }
         },
         "zh-Hant": {
@@ -28431,7 +28431,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Цей зв'язок походить з ненадійного джерела."
+            "value": "Це підключення походить з ненадійного джерела."
           }
         },
         "ur": {
@@ -29195,7 +29195,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Наданий ланцюжок не підтримується."
+            "value": "Ця мережа не підтримується."
           }
         },
         "ur": {
@@ -29595,7 +29595,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "创建钱包错误： %@"
+            "value": "创建钱包错误：%@"
           }
         },
         "zh-Hant": {
@@ -30150,7 +30150,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Мережа вважає цю кількість пилом - плата вища за саму суму."
+            "value": "Мережа вважає цю кількість пилом — плата вища за саму суму."
           }
         },
         "ur": {
@@ -31105,7 +31105,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Невірне слово секретної фрази: %@"
+            "value": "Недійсне слово секретної фрази: %@"
           }
         },
         "ur": {
@@ -31314,7 +31314,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "地址或名称无效"
+            "value": "地址或域名无效"
           }
         },
         "zh-Hant": {
@@ -31505,7 +31505,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "数额无效"
+            "value": "金额无效"
           }
         },
         "zh-Hant": {
@@ -32460,7 +32460,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "网络错误： %@"
+            "value": "网络错误：%@"
           }
         },
         "zh-Hant": {
@@ -32633,7 +32633,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Здається, підключення до Інтернету відсутнє."
+            "value": "Здається, підключення до інтернету відсутнє."
           }
         },
         "ur": {
@@ -33797,7 +33797,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "付款： %@"
+            "value": "付款：%@"
           }
         },
         "zh-Hant": {
@@ -35134,7 +35134,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "金额太小，请输入更大的数额试试"
+            "value": "金额太小"
           }
         },
         "zh-Hant": {
@@ -35689,7 +35689,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Не підтримуваний актив."
+            "value": "Непідтримуваний актив."
           }
         },
         "ur": {
@@ -35880,7 +35880,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Невірний ідентифікатор токену"
+            "value": "Недійсний ID токена"
           }
         },
         "ur": {
@@ -36071,7 +36071,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Помилка передачі"
+            "value": "Помилка переказу"
           }
         },
         "ur": {
@@ -36662,7 +36662,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "验证错误： %@"
+            "value": "验证错误：%@"
           }
         },
         "zh-Hant": {
@@ -37981,7 +37981,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Швидко"
+            "value": "Швидка"
           }
         },
         "ur": {
@@ -38363,7 +38363,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Нормальний"
+            "value": "Звичайна"
           }
         },
         "ur": {
@@ -40291,7 +40291,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "目前市场上可供交易的加密货币数量。"
+            "value": "目前在市场上流通、可供交易的代币数量。"
           }
         },
         "zh-Hant": {
@@ -41437,7 +41437,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "解锁等待期（也称解质押期或解冻期）是指发起解除质押后，质押资产暂时无法使用的等待时间。"
+            "value": "锁定时间（也称解绑期或解冻期）是指发起取消质押后，质押资产无法使用的时长。"
           }
         },
         "zh-Hant": {
@@ -42392,7 +42392,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "在 %@ 网络上的每笔交易都需要以 %@ 支付给矿工的手续费，以处理交易，Gem Wallet 不收取此费用。网络手续费根据网络使用情况而变化。"
+            "value": "%@ 网络上的每笔交易都需要支付以 %@ 计价的网络费用，该费用支付给矿工用于处理交易，而非支付给 Gem Wallet。网络费用会随网络使用情况而变化。"
           }
         },
         "zh-Hant": {
@@ -42756,7 +42756,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Неможливо повернути котирування для вибраної пари токенів, можливо через малу суму, брак ліквідності або технічні обмеження."
+            "value": "Не вдалося отримати котирування для вибраної пари токенів, можливо, через малу суму, брак ліквідності або технічні обмеження."
           }
         },
         "ur": {
@@ -43520,7 +43520,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Річна ставка, за якою довгі позиції платять за короткі позиції (якщо від'ємна, короткі позиції платять за довгі позики). Немає жодної комісії, пов'язаної з фінансуванням, яке є одноранговою передачею між користувачами для підвищення цін до спотової ціни."
+            "value": "Річна ставка, за якою довгі позиції платять коротким (якщо ставка від'ємна — короткі платять довгим). Немає жодної комісії, пов'язаної з фінансуванням, яке є одноранговою передачею між користувачами, щоб наблизити ціну до спотової."
           }
         },
         "ur": {
@@ -43711,7 +43711,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Фінансування річних"
+            "value": "APR фінансування"
           }
         },
         "ur": {
@@ -43729,7 +43729,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "资金费率年化"
+            "value": "年化资金费率"
           }
         },
         "zh-Hant": {
@@ -43902,7 +43902,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Платежі фінансування — це періодичні платежі між трейдерами, щоб підтримувати постійну ціну контракту близькою до спотової ціни базового активу. Позитивне фінансування означає, що довгі позиції оплачують короткі позиції, тоді як негативне фінансування означає, що короткі позиції оплачують довгі позиції."
+            "value": "Платежі фінансування — це періодичні платежі між трейдерами, щоб утримувати ціну безстрокового контракту близькою до спотової ціни базового активу. Позитивне фінансування означає, що довгі позиції платять коротким, тоді як негативне фінансування означає, що короткі позиції платять довгим."
           }
         },
         "ur": {
@@ -44093,7 +44093,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Фінансування платежів"
+            "value": "Платежі фінансування"
           }
         },
         "ur": {
@@ -44666,7 +44666,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Відкритий інтерес представляє собою загальну вартість усіх незавершених безстрокових контрактів, які не були розраховані. Він дає уявлення про ринкову активність і ліквідність."
+            "value": "Відкритий інтерес — це загальна вартість усіх незавершених безстрокових контрактів, які не були розраховані. Він дає уявлення про ринкову активність і ліквідність."
           }
         },
         "ur": {
@@ -45048,7 +45048,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Вплив ціни — це зміна ціни токена, спричинена розміром вашої торгівлі. Більший вплив на ціну означає, що ви отримуєте менше токенів через низьку ліквідність або великий розмір замовлення."
+            "value": "Вплив на ціну — це зміна ціни токена, спричинена розміром вашої угоди. Більший вплив на ціну означає, що ви отримуєте менше токенів через низьку ліквідність або великий розмір ордера."
           }
         },
         "ur": {
@@ -45066,7 +45066,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "价格影响表示交易对价格的冲击。价格影响越大，收到的代币越少，可能由于流动性低或交易金额大。"
+            "value": "价格影响是指交易规模对代币价格造成的变动。价格影响越大，收到的代币越少，通常由流动性低或交易金额大导致。"
           }
         },
         "zh-Hant": {
@@ -47149,7 +47149,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Транзакцію надіслано та очікує підтвердження в мережі. Час обробки може змінюватися. Будь ласка, слідкуйте за оновленнями."
+            "value": "Транзакцію надіслано, і вона очікує підтвердження в мережі. Час обробки може змінюватися. Будь ласка, слідкуйте за оновленнями."
           }
         },
         "ur": {
@@ -48104,7 +48104,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Виберіть з фототеки"
+            "value": "Вибрати з фототеки"
           }
         },
         "ur": {
@@ -53452,7 +53452,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gem нода"
+            "value": "Вузол Gem Wallet"
           }
         },
         "ur": {
@@ -53834,7 +53834,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "У режимі синхронізації"
+            "value": "Синхронізовано"
           }
         },
         "ur": {
@@ -54407,7 +54407,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Додати нод"
+            "value": "Додати вузол"
           }
         },
         "ur": {
@@ -55362,7 +55362,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Погодьтеся та продовжуйте"
+            "value": "Погодитися й продовжити"
           }
         },
         "ur": {
@@ -55553,7 +55553,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Я розумію, що несу повну відповідальність за безпеку та резервне копіювання своїх гаманців, а не Gem."
+            "value": "Я розумію, що лише я, а не Gem, несу відповідальність за безпеку та резервне копіювання своїх гаманців."
           }
         },
         "ur": {
@@ -55571,7 +55571,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "我明白钱包的安全备份由我自行负责，Gem 不承担任何责任。"
+            "value": "我明白钱包的安全和备份由我自行负责，而非 Gem。"
           }
         },
         "zh-Hant": {
@@ -57081,7 +57081,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Секретна фраза - це єдиний спосіб отримати доступ до вашого гаманця."
+            "value": "Секретна фраза — це єдиний спосіб отримати доступ до вашого гаманця."
           }
         },
         "ur": {
@@ -57272,7 +57272,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Зберігайте це в безпечному місці"
+            "value": "Зберігайте її в безпечному місці"
           }
         },
         "ur": {
@@ -57654,7 +57654,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ми не можемо допомогти вам його відновити"
+            "value": "Ми не можемо допомогти вам її відновити"
           }
         },
         "ur": {
@@ -58436,7 +58436,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "总损益"
+            "value": "累计盈亏"
           }
         },
         "zh-Hant": {
@@ -58609,7 +58609,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Авто закриття"
+            "value": "Автозакриття"
           }
         },
         "ur": {
@@ -59182,7 +59182,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Стоп-лосс"
+            "value": "Стоп-лос"
           }
         },
         "ur": {
@@ -59373,7 +59373,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Зафіксуйте прибуток"
+            "value": "Тейк-профіт"
           }
         },
         "ur": {
@@ -59946,7 +59946,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Вхідна ціна"
+            "value": "Ціна входу"
           }
         },
         "ur": {
@@ -60346,7 +60346,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "增加仓位"
+            "value": "加仓"
           }
         },
         "zh-Hant": {
@@ -61474,7 +61474,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ізольовані"
+            "value": "Ізольована"
           }
         },
         "ur": {
@@ -64530,7 +64530,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Значення"
+            "value": "Вартість"
           }
         },
         "ur": {
@@ -66458,7 +66458,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当价格发生重大变动时，警报就会触发。"
+            "value": "价格大幅波动时，将向您发送提醒。"
           }
         },
         "zh-Hant": {
@@ -69525,6 +69525,197 @@
         }
       }
     },
+    "private_key.accounts_info": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "عبارتك السرية تحتفظ بنسخة احتياطية من هذه الحسابات بالفعل. صدّر مفتاحًا فقط لاستخدام حساب واحد في محفظة أخرى."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনার গোপন বাক্যাংশ ইতিমধ্যে এই অ্যাকাউন্টগুলোর ব্যাকআপ রাখে। শুধু অন্য ওয়ালেটে একটি অ্যাকাউন্ট ব্যবহার করতে কী এক্সপোর্ট করুন।"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vaše tajná fráze už tyto účty zálohuje. Klíč exportujte, jen pokud chcete jeden účet použít v jiné peněžence."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Din hemmelige sætning sikkerhedskopierer allerede disse konti. Eksportér kun en nøgle for at bruge én konto i en anden tegnebog."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ihre geheime Phrase sichert diese Konten bereits. Exportieren Sie einen Schlüssel nur, um ein Konto in einer anderen Wallet zu nutzen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your Secret Phrase already backs up these accounts. Export a key only to use one account in another wallet."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu Frase Secreta ya respalda estas cuentas. Exporta una clave solo para usar una cuenta en otra billetera."
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "عبارات خصوصی شما از قبل از این حساب‌ها پشتیبان دارد. فقط برای استفاده از یک حساب در کیف پول دیگر، کلید را خروجی بگیرید."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Naka-back up na ang mga account na ito sa iyong Lihim na Parirala. Mag-export lang ng susi para gamitin ang isang account sa ibang wallet."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Votre phrase secrète sauvegarde déjà ces comptes. Exportez une clé uniquement pour utiliser un compte dans un autre portefeuille."
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kalmar sirrinku ta riga ta adana waɗannan asusun. Fitar da maɓalli kawai don amfani da asusu ɗaya a wata walat."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "הביטוי הסודי שלך כבר מגבה את החשבונות האלה. ייצא מפתח רק כדי להשתמש בחשבון אחד בארנק אחר."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आपका गुप्त वाक्यांश इन खातों का पहले से बैकअप रखता है। किसी दूसरे वॉलेट में एक खाता इस्तेमाल करने के लिए ही कुंजी एक्सपोर्ट करें।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frasa Rahasia Anda sudah mencadangkan akun-akun ini. Ekspor kunci hanya untuk memakai satu akun di dompet lain."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La tua frase segreta fa già il backup di questi account. Esporta una chiave solo per usare un account in un altro portafoglio."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "これらのアカウントはリカバリーフレーズですでにバックアップされています。キーのエクスポートは、別のウォレットで1つのアカウントを使う場合のみ行ってください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "비밀 문구로 이미 이 계정들이 백업되어 있습니다. 다른 지갑에서 계정 하나를 사용할 때만 키를 내보내세요."
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frasa Rahsia anda sudah menyandarkan akaun ini. Eksport kunci hanya untuk menggunakan satu akaun dalam dompet lain."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uw geheime zin maakt al een back-up van deze accounts. Exporteer alleen een sleutel om één account in een andere portemonnee te gebruiken."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Twoje tajne wyrażenie już tworzy kopię zapasową tych kont. Eksportuj klucz tylko, aby użyć jednego konta w innym portfelu."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sua frase secreta já faz backup destas contas. Exporte uma chave apenas para usar uma conta em outra carteira."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expresia ta secretă face deja backup acestor conturi. Exportă o cheie doar pentru a folosi un cont într-un alt portofel."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ваша секретная фраза уже служит резервной копией этих аккаунтов. Экспортируйте ключ, только чтобы использовать один аккаунт в другом кошельке."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maneno yako ya siri tayari yanahifadhi akaunti hizi. Hamisha ufunguo tu ili kutumia akaunti moja kwenye pochi nyingine."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "วลีลับของคุณสำรองบัญชีเหล่านี้ไว้แล้ว ส่งออกคีย์เฉพาะเมื่อต้องการใช้บัญชีเดียวในกระเป๋าเงินอื่น"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gizli İfadeniz bu hesapları zaten yedekliyor. Anahtarı yalnızca bir hesabı başka bir cüzdanda kullanmak için dışa aktarın."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ваша секретна фраза вже є резервною копією цих облікових записів. Експортуйте ключ, лише щоб використати один обліковий запис в іншому гаманці."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "آپ کا خفیہ جملہ پہلے ہی ان اکاؤنٹس کا بیک اپ ہے۔ کسی اور والیٹ میں ایک اکاؤنٹ استعمال کرنے کے لیے ہی کلید ایکسپورٹ کریں۔"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cụm từ bí mật của bạn đã sao lưu các tài khoản này. Chỉ xuất khóa để dùng một tài khoản trong ví khác."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "助记词已经备份了这些账户。只有需要在其他钱包中使用某个账户时，才导出私钥。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "助記詞已經備份了這些帳戶。只有需要在其他錢包中使用某個帳戶時，才匯出私鑰。"
+          }
+        }
+      }
+    },
     "private_key.do_not_share.description": {
       "extractionState": "manual",
       "localizations": {
@@ -69903,6 +70094,961 @@
           "stringUnit": {
             "state": "translated",
             "value": "切勿洩漏私鑰！"
+          }
+        }
+      }
+    },
+    "private_key.export_reminder.do_not_share.subtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لا ينبغي لأي شخص أو موقع أو تطبيق أن يطلبه منك."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "কোনো ব্যক্তি, ওয়েবসাইট বা অ্যাপের এটি চাওয়া উচিত নয়।"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Žádná osoba, web ani aplikace by o něj neměla žádat."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ingen person, hjemmeside eller app bør bede om den."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Person, Website oder App sollte danach fragen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No person, website, or app should ask for it."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ninguna persona, sitio web ni aplicación debería pedírtela."
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "هیچ شخص، وب‌سایت یا برنامه‌ای نباید آن را از شما بخواهد."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Walang tao, website, o app ang dapat humingi nito."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune personne, aucun site web ni aucune application ne doit vous la demander."
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Babu mutum, gidan yanar gizo, ko manhaja da ya kamata ya nema."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "אף אדם, אתר או אפליקציה לא אמורים לבקש אותו."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "किसी भी व्यक्ति, वेबसाइट या ऐप को इसे नहीं मांगना चाहिए।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tidak ada orang, situs web, atau aplikasi yang seharusnya memintanya."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nessuna persona, sito web o app dovrebbe chiedertela."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "人、ウェブサイト、アプリから求められても教えないでください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "어떤 사람, 웹사이트, 앱도 이 키를 요구해서는 안 됩니다."
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tiada orang, laman web atau aplikasi yang patut memintanya."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geen persoon, website of app hoort erom te vragen."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Żadna osoba, strona ani aplikacja nie powinna o niego prosić."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nenhuma pessoa, site ou aplicativo deve pedi-la."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicio persoană, site web sau aplicație nu ar trebui să ți-o ceară."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ни люди, ни сайты, ни приложения не должны его запрашивать."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hakuna mtu, tovuti, au programu inayopaswa kuuomba."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ไม่ควรมีบุคคล เว็บไซต์ หรือแอปใดขอคีย์นี้จากคุณ"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hiçbir kişi, web sitesi veya uygulama onu istememeli."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Жодна людина, сайт чи застосунок не повинні його запитувати."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "کسی شخص، ویب سائٹ یا ایپ کو اسے نہیں مانگنا چاہیے۔"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Không người, trang web hay ứng dụng nào nên yêu cầu nó."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "任何人、网站或应用都不应向您索要私钥。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "任何人、網站或應用程式都不應向您索取私鑰。"
+          }
+        }
+      }
+    },
+    "private_key.export_reminder.intro": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مفتاحك الخاص يمنح وصولًا كاملًا إلى هذا الحساب."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আপনার ব্যক্তিগত কী এই অ্যাকাউন্টে পূর্ণ অ্যাক্সেস দেয়।"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Váš soukromý klíč dává plný přístup k tomuto účtu."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Din private nøgle giver fuld adgang til denne konto."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ihr privater Schlüssel gewährt vollen Zugriff auf dieses Konto."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your private key gives full access to this account."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu clave privada da acceso total a esta cuenta."
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "کلید خصوصی شما دسترسی کامل به این حساب را می‌دهد."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ang iyong pribadong susi ay nagbibigay ng buong access sa account na ito."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Votre clé privée donne un accès complet à ce compte."
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keɓaɓɓen maɓallinku yana ba da cikakken damar shiga wannan asusun."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "המפתח הפרטי שלך מעניק גישה מלאה לחשבון הזה."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "आपकी निजी कुंजी इस खाते तक पूरी पहुंच देती है।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kunci privat Anda memberi akses penuh ke akun ini."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La tua chiave privata dà accesso completo a questo account."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プライベートキーがあれば、このアカウントのすべてを操作できます。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "개인 키가 있으면 이 계정에 완전히 접근할 수 있습니다."
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kunci peribadi anda memberikan akses penuh kepada akaun ini."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uw privésleutel geeft volledige toegang tot dit account."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Twój klucz prywatny daje pełny dostęp do tego konta."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sua chave privada dá acesso total a esta conta."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cheia ta privată oferă acces complet la acest cont."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Приватный ключ даёт полный доступ к этому аккаунту."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ufunguo wako wa kibinafsi unatoa ufikiaji kamili wa akaunti hii."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "คีย์ส่วนตัวของคุณให้สิทธิ์เข้าถึงบัญชีนี้ได้ทั้งหมด"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Özel anahtarınız bu hesaba tam erişim sağlar."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Приватний ключ дає повний доступ до цього облікового запису."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "آپ کی نجی کلید اس اکاؤنٹ تک مکمل رسائی دیتی ہے۔"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Khóa riêng cho phép truy cập toàn bộ tài khoản này."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "私钥可完全访问此账户。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "私鑰可完全存取此帳戶。"
+          }
+        }
+      }
+    },
+    "private_key.export_reminder.keep_safe.subtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يمكن لأي شخص يملكه استخدام هذا الحساب."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "যার কাছে এটি থাকবে, সে এই অ্যাকাউন্ট ব্যবহার করতে পারবে।"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kdokoli ho má, může tento účet používat."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle, der har den, kan bruge denne konto."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wer ihn hat, kann dieses Konto nutzen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anyone who has it can use this account."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cualquiera que la tenga puede usar esta cuenta."
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "هر کسی که آن را داشته باشد، می‌تواند از این حساب استفاده کند."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sinumang may hawak nito ay magagamit ang account na ito."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quiconque la possède peut utiliser ce compte."
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duk wanda ke da shi zai iya amfani da wannan asusun."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "כל מי שמחזיק בו יכול להשתמש בחשבון הזה."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "जिसके पास यह है, वह इस खाते का उपयोग कर सकता है।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Siapa pun yang memilikinya dapat menggunakan akun ini."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chiunque la possieda può usare questo account."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "キーを持っている人は誰でも、このアカウントを使えます。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "키를 가진 사람은 누구나 이 계정을 사용할 수 있습니다."
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sesiapa yang memilikinya boleh menggunakan akaun ini."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iedereen die hem heeft, kan dit account gebruiken."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Każdy, kto go ma, może korzystać z tego konta."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Qualquer pessoa que a tenha pode usar esta conta."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oricine o are poate folosi acest cont."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Любой, у кого он есть, может пользоваться этим аккаунтом."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yeyote aliye nao anaweza kutumia akaunti hii."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ใครก็ตามที่มีคีย์นี้สามารถใช้บัญชีนี้ได้"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ona sahip olan herkes bu hesabı kullanabilir."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Будь-хто, у кого він є, може користуватися цим обліковим записом."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "جس کے پاس یہ ہو، وہ اس اکاؤنٹ کو استعمال کر سکتا ہے۔"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bất kỳ ai có nó đều có thể sử dụng tài khoản này."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "任何拥有私钥的人都能使用此账户。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "任何擁有私鑰的人都能使用此帳戶。"
+          }
+        }
+      }
+    },
+    "private_key.export_reminder.no_recovery.subtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "إذا أخذ أحدٌ أموالك، فلا يمكن إرجاعها."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "কেউ আপনার তহবিল নিয়ে গেলে তা আর ফেরত পাওয়া যাবে না।"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pokud vám někdo vezme prostředky, nelze je vrátit."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hvis nogen tager dine midler, kan de ikke returneres."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wenn jemand Ihr Guthaben abzieht, kann es nicht zurückgeholt werden."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "If someone takes your funds, they can't be returned."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Si alguien se lleva tus fondos, no se pueden devolver."
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اگر کسی دارایی‌های شما را ببرد، قابل بازگرداندن نیستند."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kapag kinuha ng iba ang iyong pondo, hindi na ito maibabalik."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Si quelqu'un prend vos fonds, ils ne peuvent pas être restitués."
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Idan wani ya kwashe kuɗinku, ba za a iya dawo da su ba."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "אם מישהו ייקח את הכספים שלך, לא ניתן להחזיר אותם."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "अगर कोई आपके फंड ले जाता है, तो उन्हें लौटाया नहीं जा सकता।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jika seseorang mengambil dana Anda, dana tersebut tidak dapat dikembalikan."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se qualcuno prende i tuoi fondi, non possono essere restituiti."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "資金を移されると、元に戻すことはできません。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "누군가 자금을 가져가면 되돌릴 수 없습니다."
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jika seseorang mengambil dana anda, ia tidak boleh dikembalikan."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Als iemand uw tegoed meeneemt, kan het niet worden teruggegeven."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jeśli ktoś zabierze Twoje środki, nie da się ich zwrócić."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se alguém levar seus fundos, eles não poderão ser devolvidos."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dacă cineva îți ia fondurile, acestea nu pot fi returnate."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Если кто-то заберёт ваши средства, вернуть их будет невозможно."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mtu akichukua fedha zako, haziwezi kurejeshwa."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "หากมีผู้นำเงินของคุณไป จะไม่สามารถคืนได้"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Biri fonlarınızı alırsa, geri verilemez."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Якщо хтось забере ваші кошти, повернути їх буде неможливо."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اگر کوئی آپ کے فنڈز لے جائے تو انہیں واپس نہیں کیا جا سکتا۔"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nếu ai đó lấy tiền của bạn, số tiền đó không thể được trả lại."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "资金一旦被他人转走，将无法退回。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "資金一旦被他人轉走，將無法退回。"
+          }
+        }
+      }
+    },
+    "private_key.export_reminder.no_recovery.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لا يمكننا التراجع عن السرقة"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "চুরি হওয়া তহবিল আমরা ফেরাতে পারি না"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Krádež nemůžeme vrátit zpět"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vi kan ikke omgøre et tyveri"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wir können einen Diebstahl nicht rückgängig machen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We Can't Reverse a Theft"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No podemos revertir un robo"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ما نمی‌توانیم سرقت را برگردانیم"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hindi Namin Mababawi ang Ninakaw"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nous ne pouvons pas annuler un vol"
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ba Za Mu Iya Mayar Da Abin Da Aka Sace Ba"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "איננו יכולים לבטל גניבה"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "हम चोरी हुए फंड वापस नहीं ला सकते"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kami Tidak Dapat Membatalkan Pencurian"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non possiamo annullare un furto"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "盗まれた資金は取り戻せません"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "도난당한 자금은 되돌릴 수 없습니다"
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kami Tidak Dapat Membatalkan Kecurian"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wij kunnen een diefstal niet terugdraaien"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie możemy cofnąć kradzieży"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não podemos reverter um roubo"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nu putem anula un furt"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Мы не можем отменить кражу"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hatuwezi Kubatilisha Wizi"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "เราไม่สามารถย้อนกลับการโจรกรรมได้"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hırsızlığı Geri Alamayız"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ми не можемо скасувати крадіжку"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ہم چوری شدہ فنڈز واپس نہیں لا سکتے"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chúng tôi không thể đảo ngược vụ trộm"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "被盗资金无法追回"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "被盜資金無法追回"
           }
         }
       }
@@ -71244,6 +72390,197 @@
         }
       }
     },
+    "private_key.scope.evm": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يتحكم هذا المفتاح أيضًا في حساباتك على جميع شبكات EVM."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এই কী সব EVM নেটওয়ার্কে আপনার অ্যাকাউন্টগুলোও নিয়ন্ত্রণ করে।"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tento klíč ovládá také vaše účty ve všech sítích EVM."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Denne nøgle styrer også dine konti på alle EVM-netværk."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser Schlüssel steuert auch Ihre Konten in allen EVM-Netzwerken."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This key also controls your accounts on all EVM networks."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta clave también controla tus cuentas en todas las redes EVM."
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "این کلید حساب‌های شما در همه شبکه‌های EVM را نیز کنترل می‌کند."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kontrolado rin ng susing ito ang iyong mga account sa lahat ng EVM network."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cette clé contrôle aussi vos comptes sur tous les réseaux EVM."
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wannan maɓalli kuma yana sarrafa asusunku a duk hanyoyin sadarwa na EVM."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "מפתח זה שולט גם בחשבונות שלך בכל רשתות EVM."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "यह कुंजी सभी EVM नेटवर्क पर आपके खातों को भी नियंत्रित करती है।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kunci ini juga mengendalikan akun Anda di semua jaringan EVM."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questa chiave controlla anche i tuoi account su tutte le reti EVM."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このキーは、すべてのEVMネットワーク上のアカウントも操作できます。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 키는 모든 EVM 네트워크의 계정도 제어합니다."
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kunci ini juga mengawal akaun anda di semua rangkaian EVM."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze sleutel beheert ook uw accounts op alle EVM-netwerken."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ten klucz kontroluje również Twoje konta we wszystkich sieciach EVM."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta chave também controla suas contas em todas as redes EVM."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Această cheie controlează și conturile tale din toate rețelele EVM."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Этот ключ также управляет вашими аккаунтами во всех сетях EVM."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ufunguo huu pia unadhibiti akaunti zako kwenye mitandao yote ya EVM."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "คีย์นี้ยังควบคุมบัญชีของคุณบนเครือข่าย EVM ทั้งหมดด้วย"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu anahtar, tüm EVM ağlarındaki hesaplarınızı da kontrol eder."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Цей ключ також керує вашими обліковими записами в усіх мережах EVM."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "یہ کلید تمام EVM نیٹ ورکس پر آپ کے اکاؤنٹس کو بھی کنٹرول کرتی ہے۔"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Khóa này cũng kiểm soát các tài khoản của bạn trên tất cả mạng EVM."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此私钥同时控制您在所有 EVM 网络上的账户。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此私鑰同時控制您在所有 EVM 網路上的帳戶。"
+          }
+        }
+      }
+    },
     "private_key.screenshot_detected.description": {
       "extractionState": "manual",
       "localizations": {
@@ -71597,7 +72934,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Це ваша адреса - надсилайте тільки %@ в мережі %@."
+            "value": "Це ваша адреса — надсилайте тільки %@ в мережі %@."
           }
         },
         "ur": {
@@ -74653,7 +75990,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Прізвисько"
+            "value": "Псевдонім"
           }
         },
         "ur": {
@@ -75226,7 +76563,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Бонус очікує на розгляд"
+            "value": "Бонус в очікуванні"
           }
         },
         "ur": {
@@ -76372,7 +77709,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Для нагород потрібен мультимонетний гаманець"
+            "value": "Для винагород потрібен мультимонетний гаманець"
           }
         },
         "ur": {
@@ -76563,7 +77900,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Нагороди"
+            "value": "Винагороди"
           }
         },
         "ur": {
@@ -76945,7 +78282,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Нагороди ще не активні."
+            "value": "Винагороди ще не активні."
           }
         },
         "ur": {
@@ -78491,7 +79828,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "屏幕录制过程中隐藏的内容"
+            "value": "屏幕录制期间内容已隐藏"
           }
         },
         "zh-Hant": {
@@ -79064,7 +80401,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请将助记词保存在安全位置，\n且只有您可以掌控。"
+            "value": "请将助记词保存在\n只有您能掌控的安全位置。"
           }
         },
         "zh-Hant": {
@@ -81356,7 +82693,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "禁用 %@"
+            "value": "禁用%@"
           }
         },
         "zh-Hant": {
@@ -83439,7 +84776,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Стоп-лосс за замовчуванням"
+            "value": "Стоп-лос за замовчуванням"
           }
         },
         "ur": {
@@ -84012,7 +85349,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Оповіщення про ціни"
+            "value": "Сповіщення про ціни"
           }
         },
         "ur": {
@@ -84585,7 +85922,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Аутентифікація"
+            "value": "Автентифікація"
           }
         },
         "ur": {
@@ -86495,7 +87832,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Це надає отримувачу доступ до використання цього токена, доки ви не скасуєте схвалення або термін його дії не закінчиться."
+            "value": "Це надає уповноваженій адресі доступ до використання цього токена, доки ви не скасуєте схвалення або термін його дії не закінчиться."
           }
         },
         "ur": {
@@ -86877,7 +88214,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Це схвалення дозволяє звичайній адресі гаманця (EOA) використовувати ваші активи. Підтверджуйте лише якщо довіряєте цій адресі."
+            "value": "Це схвалення дозволяє звичайній адресі гаманця (EOA) використовувати ваші активи. Підтверджуйте, лише якщо довіряєте цій адресі."
           }
         },
         "ur": {
@@ -86895,7 +88232,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此授权允许普通钱包地址 (EOA) 使用你的资产。仅在你信任该地址时确认。"
+            "value": "此授权允许普通钱包地址（EOA）使用您的资产。仅在您信任该地址时确认。"
           }
         },
         "zh-Hant": {
@@ -88805,7 +90142,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "红迪"
+            "value": "Reddit"
           }
         },
         "zh-Hant": {
@@ -89187,7 +90524,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "海外抖音"
+            "value": "TikTok"
           }
         },
         "zh-Hant": {
@@ -89760,7 +91097,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "油管"
+            "value": "YouTube"
           }
         },
         "zh-Hant": {
@@ -90315,7 +91652,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Активний в"
+            "value": "Активний через"
           }
         },
         "ur": {
@@ -91097,7 +92434,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "解除质押中"
+            "value": "取消质押中"
           }
         },
         "zh-Hant": {
@@ -91652,7 +92989,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Час Блокування"
+            "value": "Час блокування"
           }
         },
         "ur": {
@@ -92034,7 +93371,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "В Очікуванні"
+            "value": "В очікуванні"
           }
         },
         "ur": {
@@ -92798,7 +94135,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Нагороди"
+            "value": "Винагороди"
           }
         },
         "ur": {
@@ -94517,7 +95854,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Розрахунковий час"
+            "value": "Орієнтовний час"
           }
         },
         "ur": {
@@ -94899,7 +96236,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Вплив ціни"
+            "value": "Вплив на ціну"
           }
         },
         "ur": {
@@ -95090,7 +96427,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ви втратите %@ із своїх %@ у цій торгівлі. Ви впевнені, що бажаєте продовжити?"
+            "value": "Ви втратите %@ зі своїх %@ у цьому обміні. Ви впевнені, що бажаєте продовжити?"
           }
         },
         "ur": {
@@ -95281,7 +96618,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Високий ціновий вплив"
+            "value": "Високий вплив на ціну"
           }
         },
         "ur": {
@@ -95299,7 +96636,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "价格影响"
+            "value": "价格影响过高"
           }
         },
         "zh-Hant": {
@@ -96236,7 +97573,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Використовуйте мінімальну суму"
+            "value": "Використати мінімальну суму"
           }
         },
         "ur": {
@@ -99865,7 +101202,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Переглянути %@"
+            "value": "Переглянути на %@"
           }
         },
         "ur": {
@@ -100456,7 +101793,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "余额: %@"
+            "value": "余额：%@"
           }
         },
         "zh-Hant": {
@@ -103876,7 +105213,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Адреса або Ім'я"
+            "value": "Адреса або ім'я"
           }
         },
         "ur": {
@@ -104831,7 +106168,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ми залишили на вашому балансі %@ для покриття майбутніх мережевих платежів."
+            "value": "Ми залишили на вашому балансі %@ для покриття майбутніх комісій мережі."
           }
         },
         "ur": {
@@ -105213,7 +106550,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Нагороди"
+            "value": "Винагороди"
           }
         },
         "ur": {
@@ -105404,7 +106741,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Відправити"
+            "value": "Надіслати"
           }
         },
         "ur": {
@@ -106550,7 +107887,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Скасувати Стейкінг"
+            "value": "Скасувати стейкінг"
           }
         },
         "ur": {
@@ -106741,7 +108078,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Зняти стейк"
+            "value": "Зняти"
           }
         },
         "ur": {
@@ -107725,6 +109062,197 @@
         }
       }
     },
+    "wallet.advanced": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "متقدم"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "উন্নত"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pokročilé"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avanceret"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erweitert"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Advanced"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avanzado"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "پیشرفته"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Advanced"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avancé"
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Na Ci Gaba"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "מתקדם"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "उन्नत"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lanjutan"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avanzate"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "詳細設定"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "고급"
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lanjutan"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geavanceerd"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zaawansowane"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avançado"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avansat"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Дополнительно"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kina"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ขั้นสูง"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gelişmiş"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Додатково"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ایڈوانسڈ"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nâng cao"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "高级"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "進階"
+          }
+        }
+      }
+    },
     "wallet.available_balance": {
       "extractionState": "manual",
       "localizations": {
@@ -107905,13 +109433,204 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "可用： %@"
+            "value": "可用：%@"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
             "value": "可用： %@"
+          }
+        }
+      }
+    },
+    "wallet.backup": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "النسخ الاحتياطي"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ব্যাকআপ"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Záloha"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sikkerhedskopi"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sicherung"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Backup"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copia de seguridad"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "پشتیبان‌گیری"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Backup"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sauvegarde"
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajiya"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "גיבוי"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "बैकअप"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cadangan"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Backup"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "バックアップ"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "백업"
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sandaran"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back-up"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopia zapasowa"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Backup"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copie de rezervă"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Резервная копия"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hifadhi Nakala"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "สำรองข้อมูล"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yedekleme"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Резервна копія"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "بیک اپ"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sao lưu"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "备份"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "備份"
           }
         }
       }
@@ -108842,7 +110561,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ Гаманець № %d"
+            "value": "Гаманець %@ № %d"
           }
         },
         "ur": {
@@ -109606,7 +111325,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Адреса або Ім'я"
+            "value": "Адреса або ім'я"
           }
         },
         "ur": {
@@ -110561,7 +112280,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Імпорт існуючого гаманця"
+            "value": "Імпортувати наявний гаманець"
           }
         },
         "ur": {
@@ -111725,7 +113444,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "使用银行卡或银行付款"
+            "value": "使用银行卡或银行转账付款"
           }
         },
         "zh-Hant": {
@@ -113999,7 +115718,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Стейкнути"
+            "value": "Стейкінг"
           }
         },
         "ur": {
@@ -118010,7 +119729,7 @@
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ласкаво просимо до Gem Сім'ї"
+            "value": "Ласкаво просимо до родини Gem"
           }
         },
         "ur": {
@@ -118028,7 +119747,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "欢迎成为Gem家人"
+            "value": "欢迎加入 Gem 大家庭"
           }
         },
         "zh-Hant": {

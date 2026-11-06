@@ -34,7 +34,7 @@ let package = Package(
         .package(name: "Swap", path: "../Swap"),
 
         .package(name: "GemstoneServices", path: "../../Packages/GemstoneServices"),
-        .package(name: "BigInt", path: "../../Submodules/BigInt"),
+        .package(name: "BigInt", path: "../../Packages/BigInt"),
     ],
     targets: [
         .target(

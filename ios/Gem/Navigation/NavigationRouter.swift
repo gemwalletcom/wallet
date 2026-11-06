@@ -81,7 +81,7 @@ final class NavigationRouter: Sendable {
         do {
             try await open(notification: notification)
         } catch {
-            debugLog("NavigationRouter push error: \(error)")
+            showError(error)
         }
     }
 
@@ -150,7 +150,7 @@ extension NavigationRouter {
         if case .none = target {
             return
         }
-        presenter.reset()
+        presenter.dismiss()
         switch target {
         case let .asset(destination, walletId):
             try openTarget(path: Self.assetPath(destination), walletId: walletId)
@@ -169,13 +169,13 @@ extension NavigationRouter {
             let from = from.toPrimitives()
             try await presentAssetInput(type: .swap(from.id, to?.toPrimitives().id), for: from)
         case .perpetuals:
-            navigationState.wallet.append(Scenes.Perpetuals())
+            navigationState.openWallet(path: [Scenes.Perpetuals()])
         case let .rewards(code):
-            navigationState.settings.append(Scenes.Rewards(code: code))
+            navigationState.settings.setPath([Scenes.Rewards(code: code)])
         case .support:
-            presenter.isPresentingSupport.wrappedValue = true
+            presenter.sheet.wrappedValue = .support
         case let .address(chain, address):
-            presenter.isPresentingAddressDetails.wrappedValue = ChainAddress(chain: Chain(core: chain), address: address)
+            presenter.sheet.wrappedValue = .addressDetails(ChainAddress(chain: Chain(core: chain), address: address))
         case let .transaction(destination, walletId, transactionId):
             try openTarget(path: Self.assetPath(destination) + [Scenes.Transaction(id: transactionId)], walletId: walletId)
         case .none:
@@ -234,8 +234,7 @@ extension NavigationRouter {
         let target = try await paymentService.prepare(payment: payment, wallet: wallet)
         toastPresenter.toastMessage = nil
         let destination = try paymentDestination(target, wallet: wallet.toPrimitives())
-        presenter.reset()
-        presenter.isPresentingPayment.wrappedValue = destination
+        presenter.sheet.wrappedValue = .payment(destination)
     }
 
     private func paymentDestination(_ target: GemPaymentTarget, wallet: Primitives.Wallet) throws -> PaymentDestination {
@@ -331,14 +330,51 @@ extension NavigationRouter {
 
     private func presentAssetInput(type: SelectedAssetType, for asset: Asset) async throws {
         let wallet = try await walletSessionService.requireCurrentWallet().toPrimitives()
-        try presenter.presentAssetInput(type: type, for: asset, wallet: wallet)
+        guard let account = try? wallet.account(for: asset.chain) else {
+            throw GemErrorText.noAccountForChain
+        }
+        presenter.sheet.wrappedValue = .assetInput(SelectedAssetInput(type: type, assetData: .with(asset: asset, account: account)))
     }
 
     func resetNavigation() {
+        presenter.dismiss()
         navigationState.reset()
     }
 
     func backToRoot(tab: TabItem) {
         navigationState.backToRoot(tab: tab)
+    }
+}
+
+// MARK: - Sheet completion
+
+@MainActor
+extension NavigationRouter {
+    func completeAssetInput(_ type: SelectedAssetType) {
+        switch type {
+        case .receive, .stake, .earn, .buy, .sell, .send(.asset):
+            presenter.dismiss()
+        case .send(.nft):
+            presenter.dismiss()
+            navigationState.activity.reset()
+            navigationState.selectedTab = .activity
+        case let .swap(fromAssetId, _):
+            Task { await completeSwap(fromAssetId: fromAssetId) }
+        }
+    }
+
+    func completePriceAlert(message: String) {
+        presenter.dismiss()
+        toastPresenter.toastMessage = .priceAlert(message: message)
+    }
+
+    private func completeSwap(fromAssetId: AssetId) async {
+        do {
+            guard case let .asset(destination, _) = try await navigationService.openAsset(assetId: fromAssetId) else { return }
+            navigationState.openWallet(path: Self.assetPath(destination))
+            presenter.dismiss()
+        } catch {
+            showError(error)
+        }
     }
 }

@@ -189,7 +189,8 @@ Some networks require a balance to keep an account open, a minimum payment to ac
 | Network | Requirement | Amount |
 |---|---|---|
 | Polkadot Asset Hub | Minimum remaining balance | 0.01 DOT |
-| Solana | Minimum remaining balance | 0.00089088 SOL |
+| Solana | Minimum remaining balance | 0.00065024 SOL |
+| Solana | New account activation | 0.00065024 SOL |
 | Solana | Recipient token account creation | 0.00148844 SOL |
 | XRP | New account activation and base reserve | 1 XRP |
 | XRP | Additional reserve per owned object, including a token trust line | 0.2 XRP |
@@ -218,6 +219,8 @@ Wherever the user types an address (Send, Import Wallet, Contacts), a name such 
 | A typed name is not registered, or has no address for the network | not found | a name never becomes an empty or zero address |
 | An ENS name (`.eth`, `.com`, `.xyz`, `.dev`) with characters beyond a–z, 0–9 and hyphen, such as an emoji | not found | ENS keeps records under the Unicode name; its punycode form is a different name anyone can register |
 | An ENS name is sent to on an EVM network other than Ethereum | the address its owner set for that network, or the owner's address for all EVM networks; otherwise not found | its Ethereum address can be a smart wallet that does not exist on the other network (#1692) |
+| An ENS address record is stored offchain | it resolves after the resolver contract verifies the offchain response | an offchain response alone never supplies the recipient |
+| An ENS offchain lookup fails or its proof is rejected | an error, not a missing name | an unverified address is never used |
 | A `.sol` name is typed while SRS resolution is paused | not found | `.sol` is never guessed from `.sns`; the two names can have different owners |
 | The name service cannot be reached | an error, not a missing name | |
 
@@ -255,6 +258,7 @@ A Secret Phrase or private key shows when a wallet is created and from "Show Sec
 | An accessibility service reads the Secret Phrase, private key or quick test | VoiceOver reads them; no other app can read the screen | from Android 14 only accessibility tools such as TalkBack read them; below 14 they are hidden from every accessibility service | Intentional: other services, which malware uses to steal phrases, read nothing; below 14 Android can't tell a tool from other services |
 
 - The Secret Phrase and private key screens and the quick test hide their content during screen recording and whenever the app is not active, also from VoiceOver. On iOS the words and key are drawn in a secure layer that the system leaves out of screenshots, recordings and mirroring (GEM-01-018). If that secure layer is unavailable, the words and key show as before and a screenshot is still warned about: hiding them would leave Copy, which puts the secret on the clipboard, as the only way to read it, and would stop wallet creation at the quick test.
+- On Mac the secure layer, the recording state and the screenshot warning are unavailable, so while one of these screens or Import is shown, the app asks macOS to leave its windows out of screen capture. This is best effort: it relies on a legacy window setting that macOS 27 honors for screenshots, recordings and ScreenCaptureKit, but a capture app or a later macOS may not, so a recording or screen share can still show the words or key.
 
 ## Feature availability
 

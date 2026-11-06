@@ -31,9 +31,6 @@ import com.wallet.core.primitives.VerificationStatus
 import uniffi.gemstone.GemInfoTopic
 
 fun LazyListScope.verificationStatusItem(status: VerificationStatus, listPosition: ListPosition = ListPosition.Single) {
-    if (status == VerificationStatus.Verified) {
-        return
-    }
     item {
         VerificationStatusItem(status, listPosition)
     }

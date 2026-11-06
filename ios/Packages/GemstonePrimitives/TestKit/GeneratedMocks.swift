@@ -522,6 +522,60 @@ public extension Gemstone.GemConnectionRow {
     }
 }
 
+public extension Gemstone.GemContactAddressSession {
+    static func mock(
+        contactId: String = "",
+        replacingId: String? = nil,
+        chain: String = Primitives.Chain.bitcoin.rawValue,
+        memo: String = "",
+        fields: [Gemstone.GemContactAddressField] = [],
+    ) -> Gemstone.GemContactAddressSession {
+        Gemstone.GemContactAddressSession(
+            contactId: contactId,
+            replacingId: replacingId,
+            chain: chain,
+            memo: memo,
+            fields: fields,
+        )
+    }
+}
+
+public extension Gemstone.GemContactScannedAddress {
+    static func mock(
+        address: String = "",
+        chain: String? = nil,
+        memo: String? = nil,
+    ) -> Gemstone.GemContactScannedAddress {
+        Gemstone.GemContactScannedAddress(
+            address: address,
+            chain: chain,
+            memo: memo,
+        )
+    }
+}
+
+public extension Gemstone.GemContactSession {
+    static func mock(
+        id: String = "",
+        existing: Gemstone.Contact? = nil,
+        name: String = "",
+        description: String = "",
+        avatar: Gemstone.GemContactAvatarChoice = .empty,
+        addresses: [Gemstone.ContactAddress] = [],
+        isSaving: Bool = false,
+    ) -> Gemstone.GemContactSession {
+        Gemstone.GemContactSession(
+            id: id,
+            existing: existing,
+            name: name,
+            description: description,
+            avatar: avatar,
+            addresses: addresses,
+            isSaving: isSaving,
+        )
+    }
+}
+
 public extension Gemstone.GemCustomFeeField {
     static func mock(
         title: Gemstone.GemListRowTitle = .api,
@@ -994,6 +1048,20 @@ public extension Gemstone.GemRecipient {
     }
 }
 
+public extension Gemstone.GemRecipientValidation {
+    static func mock(
+        isValid: Bool = false,
+        address: String = "",
+        error: Gemstone.GemRecipientErrorDisplay? = nil,
+    ) -> Gemstone.GemRecipientValidation {
+        Gemstone.GemRecipientValidation(
+            isValid: isValid,
+            address: address,
+            error: error,
+        )
+    }
+}
+
 public extension Gemstone.GemRewardsResult {
     static func mock(
         walletId: Primitives.WalletId = .mock(),
@@ -1363,6 +1431,7 @@ public extension Gemstone.GemWalletConnectAuthAccount {
 public extension Gemstone.GemWalletConnectMessageRequest {
     static func mock(
         sessionId: String = "",
+        requestId: String = "",
         chain: String = Primitives.Chain.bitcoin.rawValue,
         wallet: Gemstone.Wallet = Primitives.Wallet.mock().toGem(),
         account: Gemstone.Account = Primitives.Account.mock().toGem(),
@@ -1373,6 +1442,7 @@ public extension Gemstone.GemWalletConnectMessageRequest {
     ) -> Gemstone.GemWalletConnectMessageRequest {
         Gemstone.GemWalletConnectMessageRequest(
             sessionId: sessionId,
+            requestId: requestId,
             chain: chain,
             wallet: wallet,
             account: account,
@@ -1387,6 +1457,7 @@ public extension Gemstone.GemWalletConnectMessageRequest {
 public extension Gemstone.GemWalletConnectTransactionRequest {
     static func mock(
         sessionId: String = "",
+        requestId: String = "",
         chain: String = Primitives.Chain.bitcoin.rawValue,
         wallet: Gemstone.Wallet = Primitives.Wallet.mock().toGem(),
         account: Gemstone.Account = Primitives.Account.mock().toGem(),
@@ -1397,6 +1468,7 @@ public extension Gemstone.GemWalletConnectTransactionRequest {
     ) -> Gemstone.GemWalletConnectTransactionRequest {
         Gemstone.GemWalletConnectTransactionRequest(
             sessionId: sessionId,
+            requestId: requestId,
             chain: chain,
             wallet: wallet,
             account: account,
@@ -1411,14 +1483,14 @@ public extension Gemstone.GemWalletConnectTransactionRequest {
 public extension Gemstone.GemWalletDetails {
     static func mock(
         row: Gemstone.GemWalletRow = .mock(),
-        secretKind: Gemstone.GemWalletSecretKind? = nil,
-        showSecret: Gemstone.GemLocalizedText? = nil,
+        backup: Gemstone.GemSecretRow? = nil,
+        advanced: Gemstone.GemSecretRow? = nil,
         address: Gemstone.GemAddressRow? = nil,
     ) -> Gemstone.GemWalletDetails {
         Gemstone.GemWalletDetails(
             row: row,
-            secretKind: secretKind,
-            showSecret: showSecret,
+            backup: backup,
+            advanced: advanced,
             address: address,
         )
     }

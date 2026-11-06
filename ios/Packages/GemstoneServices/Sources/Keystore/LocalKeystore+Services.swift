@@ -69,6 +69,6 @@ public extension LocalKeystore {
     }
 
     private var password: any GemKeystorePassword {
-        GemstoneKeystorePassword(keystore: self)
+        GemstoneKeystorePassword(password: keystorePassword)
     }
 }

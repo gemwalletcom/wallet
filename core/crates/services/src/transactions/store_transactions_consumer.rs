@@ -672,15 +672,18 @@ mod tests {
             TransactionState::Confirmed
         );
 
-        let pending = Transaction {
-            state: TransactionState::Pending,
-            memo: Some("=:ETH.USDT:0x858734a6353C9921a78fB3c937c8E20Ba6f36902:1635978e6/1/0".to_string()),
-            ..Transaction::mock()
-        };
-        assert_eq!(
-            StoreTransactionsConsumer::transactions_for_storage(vec![pending], &DepositAddressMap::new(), &SendAddressMap::new(), &TransactionNotificationType::NewTransaction)[0].state,
-            TransactionState::Pending
-        );
+        for state in [TransactionState::Pending, TransactionState::Failed, TransactionState::Reverted] {
+            let unconfirmed_cross_chain_swap = Transaction {
+                state,
+                transaction_type: TransactionType::Swap,
+                to: near_vault.clone(),
+                ..Transaction::mock()
+            };
+            assert_eq!(
+                StoreTransactionsConsumer::transactions_for_storage(vec![unconfirmed_cross_chain_swap], &deposit_addresses, &SendAddressMap::new(), &TransactionNotificationType::NewTransaction)[0].state,
+                state
+            );
+        }
 
         let near_intents = Transaction { to: near_vault, ..Transaction::mock() };
         assert_eq!(

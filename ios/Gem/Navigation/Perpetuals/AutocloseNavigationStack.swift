@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import GemstonePrimitives
 import Perpetuals
 import Primitives
@@ -21,7 +22,7 @@ struct AutocloseNavigationStack: View {
                     type: .modify(position, onTransferAction: { navigationPath.append(ConfirmTransferInput(data: $0)) }),
                 ),
             )
-            .navigationDestination(for: ConfirmTransferInput.self) {
+            .navigationDestination(keyedBy: ConfirmTransferInput.self) {
                 ConfirmTransferNavigationView(
                     model: viewModelFactory.confirmTransferScene(
                         wallet: wallet,

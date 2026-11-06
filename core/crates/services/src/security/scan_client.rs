@@ -10,7 +10,7 @@ use gem_client::ReqwestClient;
 use gem_tracing::{error_with_fields, info_with_fields};
 use primitives::{ScanOutcome, ScanProvider, ScanTransaction, ScanTransactionPayload, ScanType};
 use security::providers::goplus::GoPlusProvider;
-use security::transaction_scan::{ProviderCheck, ScanSubject, ScanTargets, TransactionScanInput, TransactionScanResult, evaluate_transaction_scan, plan_transaction_scan, scan_subjects, token_asset_ids, website_host};
+use security::transaction_scan::{ProviderCheck, ScanSubject, ScanTargets, TransactionScanInput, TransactionScanResult, evaluate_transaction_scan, plan_transaction_scan, scan_addresses, scan_subjects, token_asset_ids, website_host};
 use security::{ScanProviderConfig, ScanProviderFactory, ScanResult, TransactionScanProviders};
 use serde_json::json;
 use settings::Settings;
@@ -67,7 +67,7 @@ impl ScanClient {
     }
 
     async fn get_scan_input(&self, config: &ScanConfig, payload: ScanTransactionPayload, subjects: &[ScanSubject], safe: HashSet<ScanType>) -> Result<TransactionScanInput, Box<dyn Error + Send + Sync>> {
-        let addresses = vec![(payload.origin.asset_id.chain, payload.origin.address.clone()), (payload.target.asset_id.chain, payload.target.address.clone())];
+        let addresses = scan_addresses(&payload);
         let asset_ids = token_asset_ids(&payload);
         let website_hosts = subjects.iter().filter(|subject| subject.scan_type == ScanType::Website).map(|subject| subject.target.clone()).collect();
         let mut targets = subjects.iter().map(|subject| subject.target.clone()).collect::<Vec<_>>();

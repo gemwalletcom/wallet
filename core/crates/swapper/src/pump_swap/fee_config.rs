@@ -1,9 +1,9 @@
 use borsh::BorshDeserialize;
 use gem_solana::{Pubkey, anchor::AnchorAccount, wrapped_sol::wrapped_sol_mint};
-use hex_lit::hex;
+use primitives::decode_hex_literal;
 
-pub(super) const PUMP_FEES_PROGRAM: Pubkey = Pubkey::new(hex!("0c35ffa9055a8e568da8f7bc075615274cf1c92ca41f40009c516aa414c27c70"));
-pub(super) const FEE_CONFIG: Pubkey = Pubkey::new(hex!("41246ecc7d78fe81e41773a46965419937923a07644797df6f3eb514426010cb"));
+pub(super) const PUMP_FEES_PROGRAM: Pubkey = Pubkey::new(decode_hex_literal("0c35ffa9055a8e568da8f7bc075615274cf1c92ca41f40009c516aa414c27c70"));
+pub(super) const FEE_CONFIG: Pubkey = Pubkey::new(decode_hex_literal("41246ecc7d78fe81e41773a46965419937923a07644797df6f3eb514426010cb"));
 const BPS: u128 = 10_000;
 
 #[derive(Debug, Clone, Copy, PartialEq, BorshDeserialize)]

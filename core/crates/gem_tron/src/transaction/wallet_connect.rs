@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use serde_serializers::hex_bytes;
 
-use super::{RawDataJson, TransactionApproval};
+use super::{RawDataJson, TransactionApproval, TronContract};
 
 #[derive(Deserialize)]
 pub(crate) struct WalletConnectRequest {
@@ -67,15 +67,21 @@ pub fn decode_wallet_connect_approval(data: &str) -> Result<Option<TransactionAp
 }
 
 pub fn decode_wallet_connect_contract(data: &str) -> Result<Option<WalletConnectContract>, SignerError> {
-    let payload: WalletConnectRequest = serde_json::from_str(data)?;
-    let (_, raw_data) = payload.transaction.validate()?;
-    raw_data.wallet_connect_contract()
+    decode_raw_data(data)?.wallet_connect_contract()
+}
+
+pub(crate) fn decode_wallet_connect_single_contract(data: &str) -> Result<Option<TronContract>, SignerError> {
+    decode_raw_data(data)?.single_contract()
 }
 
 pub fn decode_wallet_connect_owners(data: &str) -> Result<Vec<String>, SignerError> {
+    decode_raw_data(data)?.owners()
+}
+
+fn decode_raw_data(data: &str) -> Result<RawDataJson, SignerError> {
     let payload: WalletConnectRequest = serde_json::from_str(data)?;
     let (_, raw_data) = payload.transaction.validate()?;
-    raw_data.owners()
+    Ok(raw_data)
 }
 
 #[cfg(test)]
@@ -163,6 +169,22 @@ mod tests {
         let mut vote_payload: Value = serde_json::from_str(PAYLOAD).unwrap();
         vote_payload["transaction"]["raw_data"]["contract"] = vote["transaction"]["raw_data"]["contract"].clone();
         assert_eq!(decode_wallet_connect_contract(&encode_payload(vote_payload)).unwrap(), None);
+
+        let delegations: Vec<Value> = serde_json::from_str(include_str!("../../testdata/wallet_connect_resource_delegation.json")).unwrap();
+        for delegation in delegations {
+            let payload = json!({ "transaction": delegation["transaction"] }).to_string();
+            assert_eq!(
+                decode_wallet_connect_contract(&payload).unwrap(),
+                Some(WalletConnectContract {
+                    to: "THTR75o8xXAgCTQqpiot2AFRAjvW1tSbVV".to_string(),
+                    value: 0,
+                    token: None,
+                    approval: None,
+                }),
+                "{}",
+                delegation["name"]
+            );
+        }
     }
 
     #[test]

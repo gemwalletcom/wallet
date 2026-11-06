@@ -237,6 +237,20 @@ mod tests {
     const TOKEN_B: &str = "0x00000000000000000000000000000000000000000000000000000000000000bb::coin::BBB";
 
     #[test]
+    fn test_get_fee() {
+        let gas_used = |computation_cost: u64, storage_cost: u64, storage_rebate: u64| GasUsed {
+            computation_cost: BigUint::from(computation_cost),
+            storage_cost: BigUint::from(storage_cost),
+            storage_rebate: BigUint::from(storage_rebate),
+            non_refundable_storage_fee: BigUint::from(0u32),
+        };
+
+        assert_eq!(get_fee(gas_used(750_000, 2_000_000, 1_000_000)), BigUint::from(1_750_000u32));
+        assert_eq!(get_fee(gas_used(750_000, 988_000, 1_738_000)), BigUint::from(0u32));
+        assert_eq!(get_fee(gas_used(110_000, 988_000, 1_956_240)), BigUint::from(0u32), "a rebate larger than the cost is no fee, never negative");
+    }
+
+    #[test]
     fn test_map_transaction_blocks() {
         let transaction_blocks = TransactionBlocks { data: vec![] };
         let transactions = map_transaction_blocks(transaction_blocks);

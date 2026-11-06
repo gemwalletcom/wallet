@@ -18,9 +18,9 @@ extension StakeDelegationInfo {
             base: DelegationBase(
                 assetId: delegation.assetId,
                 state: delegation.state,
-                balance: BigInt(stringLiteral: delegation.balance),
-                shares: BigInt(stringLiteral: delegation.shares ?? "0"),
-                rewards: BigInt(stringLiteral: delegation.rewards),
+                balance: BigUInt(stringLiteral: delegation.balance),
+                shares: BigUInt(stringLiteral: delegation.shares ?? "0"),
+                rewards: BigUInt(stringLiteral: delegation.rewards),
                 completionDate: delegation.completionDate,
                 delegationId: delegation.delegationId,
                 validatorId: validator.validatorId,

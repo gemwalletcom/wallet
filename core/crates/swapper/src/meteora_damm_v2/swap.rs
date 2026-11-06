@@ -1,5 +1,5 @@
 use gem_solana::{AccountMeta, Instruction, Pubkey, anchor::instruction_data, instructions::program_ids::meteora_damm_v2_program};
-use hex_lit::hex;
+use primitives::decode_hex_literal;
 
 use super::pool::Pool;
 use crate::{
@@ -8,8 +8,8 @@ use crate::{
 };
 
 const SWAP: &str = "swap";
-const POOL_AUTHORITY: Pubkey = Pubkey::new(hex!("f2ccd535aca5f1736ac822dd0773e4d92fbd8a59b29403500295a9011c73a9e5"));
-const EVENT_AUTHORITY: Pubkey = Pubkey::new(hex!("2a76e7b344640a1cfc594c8bcad0a091011cac7dd156bf83a833fb2208eb77ad"));
+const POOL_AUTHORITY: Pubkey = Pubkey::new(decode_hex_literal("f2ccd535aca5f1736ac822dd0773e4d92fbd8a59b29403500295a9011c73a9e5"));
+const EVENT_AUTHORITY: Pubkey = Pubkey::new(decode_hex_literal("2a76e7b344640a1cfc594c8bcad0a091011cac7dd156bf83a833fb2208eb77ad"));
 
 pub(super) fn swap_instruction(address: &Pubkey, pool: &Pool, swap: &PoolSwap) -> Result<Instruction, SwapperError> {
     let a_to_b = pool.swap_direction(&swap.input.mint, &swap.output.mint)?;
@@ -100,7 +100,7 @@ mod tests {
                 AccountMeta::new_readonly(meteora_damm_v2_program()),
             ]
         );
-        assert_eq!(instruction.data, hex!("f8c69e91e17587c896e2791300000000e618960000000000"));
+        assert_eq!(instruction.data, hex::decode("f8c69e91e17587c896e2791300000000e618960000000000").unwrap());
         assert_eq!(swapped_user_accounts[2..4], [instruction.accounts[3].clone(), instruction.accounts[2].clone()]);
         assert_eq!(swap_instruction(&address, &pool, &PoolSwap { output: &tos, ..sell }), Err(SwapperError::InvalidRoute));
     }

@@ -1,11 +1,13 @@
+import enum Gemstone.GemServiceError
+import GemstonePrimitivesTestKit
 import Primitives
 import PrimitivesTestKit
 import Testing
 @testable import WalletConnector
 
+@MainActor
 struct WalletConnectorPresenterTests {
     @Test
-    @MainActor
     func completeDismissesSignMessageSheet() {
         let presenter = WalletConnectorPresenter()
         let type = WalletConnectorSheetType.signMessage(
@@ -22,7 +24,6 @@ struct WalletConnectorPresenterTests {
     }
 
     @Test
-    @MainActor
     func presentRejectsDisplacedRequest() async {
         let presenter = WalletConnectorPresenter()
         let second = WalletConnectorSheetType.signMessage(
@@ -48,7 +49,29 @@ struct WalletConnectorPresenterTests {
     }
 
     @Test
-    @MainActor
+    func onlyItsOwnExpiryEndsTheReviewAsExpired() async {
+        let presenter = WalletConnectorPresenter()
+
+        await confirmation { answered in
+            presenter.present(.transferData(
+                TransferDataCallback(
+                    payload: WCTransferData(.mock(requestId: "1")),
+                    delegate: { result in
+                        #expect(throws: GemServiceError.Expired) { try result.get() }
+                        answered()
+                    },
+                ),
+            ))
+
+            presenter.expire(requestId: "2")
+            #expect(presenter.isPresentingSheet != nil)
+
+            presenter.expire(requestId: "1")
+            #expect(presenter.isPresentingSheet == nil)
+        }
+    }
+
+    @Test
     func presentKeepsRedeliveredProposal() async {
         let presenter = WalletConnectorPresenter()
 
@@ -61,7 +84,6 @@ struct WalletConnectorPresenterTests {
     }
 
     @Test
-    @MainActor
     func presentingTheProposalEndsTheConnectionBar() {
         let presenter = WalletConnectorPresenter()
         presenter.isPresentingConnectionBar = true
@@ -72,7 +94,6 @@ struct WalletConnectorPresenterTests {
     }
 
     @Test
-    @MainActor
     func aRejectedConnectionEndsTheConnectionBar() {
         let presenter = WalletConnectorPresenter()
         presenter.isPresentingConnectionBar = true

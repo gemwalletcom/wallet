@@ -147,7 +147,6 @@ mod tests {
     use super::*;
     use crate::orca::testkit::{TEST_WHIRLPOOL, mock_aqua_whirlpool};
     use gem_solana::instructions::program_ids::token_program;
-    use hex_lit::hex;
 
     #[test]
     fn test_swap_v2_data() {
@@ -163,7 +162,10 @@ mod tests {
             }]),
         };
 
-        assert_eq!(instruction_data(SWAP_V2, &args), hex!("2b04ed0b1ac91e621038120000000000abcf96000000000000000000000000000000000000000000010001010000000602"));
+        assert_eq!(
+            instruction_data(SWAP_V2, &args),
+            hex::decode("2b04ed0b1ac91e621038120000000000abcf96000000000000000000000000000000000000000000010001010000000602").unwrap()
+        );
     }
 
     #[test]
@@ -230,7 +232,7 @@ mod tests {
 
         assert_eq!(
             instruction_data(TWO_HOP_SWAP_V2, &args),
-            hex!("ba8fd11dfe02c27540420f0000000000a0bb0d0000000000010000000000000000000000000000000000000000000000000000000000000000000000")
+            hex::decode("ba8fd11dfe02c27540420f0000000000a0bb0d0000000000010000000000000000000000000000000000000000000000000000000000000000000000").unwrap()
         );
     }
 

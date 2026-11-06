@@ -260,7 +260,7 @@ pub struct Defi {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Name {
-    pub ens: URL,
+    pub ens: Ens,
     pub ud: URL,
     pub sns: URL,
     pub ton: URL,
@@ -275,6 +275,12 @@ pub struct Name {
     pub hyperliquid: URL,
     pub alldomains: URL,
     pub near: URL,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct Ens {
+    pub url: String,
+    pub ccip: String,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -443,6 +449,7 @@ pub struct Security {
 pub struct Support {
     pub url: String,
     pub widget: SupportWidget,
+    pub identity: SupportWidget,
     pub webhook: SecretKeySettings,
     pub types: SupportTypes,
 }

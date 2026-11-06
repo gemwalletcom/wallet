@@ -90,8 +90,8 @@ public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchec
         storedSlippageBps = bps
     }
 
-    public func amountForPercent(available: BigInt, percent: UInt32) -> BigInt {
-        available * BigInt(percent) / BigInt(100)
+    public func amountForPercent(available: BigUInt, percent: UInt32) -> BigUInt {
+        available * BigUInt(percent) / BigUInt(100)
     }
 
     public func selectPairAsset(selection: GemSwapPairSelection, side: GemSwapSide, assetId: AssetId) -> GemSwapPairSelection {

@@ -41,6 +41,7 @@ pub mod simulation_mock;
 pub mod subscription_mock;
 pub mod support_mock;
 pub mod swap_mock;
+pub mod temp_dir;
 mod transaction_extended_mock;
 pub mod transaction_fee_mock;
 mod transaction_list_item_mock;

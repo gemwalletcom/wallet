@@ -129,13 +129,11 @@ private fun ChartTypeSelector(selected: PortfolioChartType, onSelect: (Portfolio
 @Composable
 private fun PortfolioChart(viewModel: PortfolioViewModel) {
     val state by viewModel.chartUIState.collectAsStateWithLifecycle()
-    val periods by viewModel.availablePeriods.collectAsStateWithLifecycle()
 
     ChartSection(
         state = state,
         onPeriodSelect = viewModel::setPeriod,
         onZoom = viewModel::onZoom,
         onPan = viewModel::onPan,
-        periods = periods,
     )
 }

@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use alloy_primitives::{Address, B256, Bytes, U256, keccak256};
-use alloy_rlp::{BufMut, EMPTY_STRING_CODE, Encodable, Header};
+use gem_evm::signer::rlp;
 use primitives::SignerError;
 use signer::Signer;
 
@@ -20,24 +20,12 @@ impl TransactionCall {
         })
     }
 
-    fn header(&self) -> Header {
-        Header {
-            list: true,
-            payload_length: self.to.length() + U256::ZERO.length() + self.input.length(),
-        }
-    }
-}
-
-impl Encodable for TransactionCall {
-    fn encode(&self, out: &mut dyn BufMut) {
-        self.header().encode(out);
-        self.to.encode(out);
-        U256::ZERO.encode(out);
-        self.input.encode(out);
-    }
-
-    fn length(&self) -> usize {
-        self.header().length_with_payload()
+    fn encode(&self, out: &mut Vec<u8>) {
+        let mut payload = Vec::new();
+        rlp::encode_bytes(&mut payload, self.to.as_slice());
+        rlp::encode_uint(&mut payload, &U256::ZERO.to_be_bytes::<32>());
+        rlp::encode_bytes(&mut payload, &self.input);
+        rlp::encode_list(out, &payload);
     }
 }
 
@@ -52,57 +40,43 @@ pub(super) struct TempoTransaction {
 }
 
 impl TempoTransaction {
-    fn encode_fields(&self, out: &mut dyn BufMut) {
-        self.chain_id.encode(out);
-        self.max_priority_fee_per_gas.encode(out);
-        self.max_fee_per_gas.encode(out);
-        self.gas_limit.encode(out);
-        self.calls.encode(out);
-        Header { list: true, payload_length: 0 }.encode(out);
-        U256::ZERO.encode(out);
-        self.nonce.encode(out);
-        out.put_u8(EMPTY_STRING_CODE);
-        out.put_u8(EMPTY_STRING_CODE);
-        self.fee_token.encode(out);
-        out.put_u8(EMPTY_STRING_CODE);
-        Header { list: true, payload_length: 0 }.encode(out);
+    fn fields(&self) -> Vec<u8> {
+        let mut out = Vec::new();
+        rlp::encode_uint(&mut out, &self.chain_id.to_be_bytes());
+        rlp::encode_uint(&mut out, &self.max_priority_fee_per_gas.to_be_bytes());
+        rlp::encode_uint(&mut out, &self.max_fee_per_gas.to_be_bytes());
+        rlp::encode_uint(&mut out, &self.gas_limit.to_be_bytes());
+        let mut calls = Vec::new();
+        for call in &self.calls {
+            call.encode(&mut calls);
+        }
+        rlp::encode_list(&mut out, &calls);
+        rlp::encode_list(&mut out, &[]);
+        rlp::encode_uint(&mut out, &U256::ZERO.to_be_bytes::<32>());
+        rlp::encode_uint(&mut out, &self.nonce.to_be_bytes());
+        rlp::encode_bytes(&mut out, &[]);
+        rlp::encode_bytes(&mut out, &[]);
+        rlp::encode_bytes(&mut out, self.fee_token.as_slice());
+        rlp::encode_bytes(&mut out, &[]);
+        rlp::encode_list(&mut out, &[]);
+        out
     }
 
-    fn fields_payload_length(&self) -> usize {
-        self.chain_id.length()
-            + self.max_priority_fee_per_gas.length()
-            + self.max_fee_per_gas.length()
-            + self.gas_limit.length()
-            + self.calls.length()
-            + 1
-            + U256::ZERO.length()
-            + self.nonce.length()
-            + 1
-            + 1
-            + self.fee_token.length()
-            + 1
-            + 1
+    fn envelope(payload: &[u8]) -> Vec<u8> {
+        let mut out = vec![TEMPO_TX_TYPE_ID];
+        rlp::encode_list(&mut out, payload);
+        out
     }
 
     fn signature_hash(&self) -> B256 {
-        let payload_length = self.fields_payload_length();
-        let mut buf = Vec::with_capacity(1 + Header { list: true, payload_length }.length_with_payload());
-        buf.put_u8(TEMPO_TX_TYPE_ID);
-        Header { list: true, payload_length }.encode(&mut buf);
-        self.encode_fields(&mut buf);
-        keccak256(&buf)
+        keccak256(Self::envelope(&self.fields()))
     }
 
     pub(super) fn sign(&self, private_key: &[u8]) -> Result<Vec<u8>, SignerError> {
-        let signature = Bytes::from(Signer::sign_ethereum_digest(self.signature_hash().as_slice(), private_key)?);
-
-        let payload_length = self.fields_payload_length() + signature.length();
-        let mut buf = Vec::with_capacity(1 + Header { list: true, payload_length }.length_with_payload());
-        buf.put_u8(TEMPO_TX_TYPE_ID);
-        Header { list: true, payload_length }.encode(&mut buf);
-        self.encode_fields(&mut buf);
-        signature.encode(&mut buf);
-        Ok(buf)
+        let signature = Signer::sign_ethereum_digest(self.signature_hash().as_slice(), private_key)?;
+        let mut payload = self.fields();
+        rlp::encode_bytes(&mut payload, &signature);
+        Ok(Self::envelope(&payload))
     }
 }
 

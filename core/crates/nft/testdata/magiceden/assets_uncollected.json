@@ -1,0 +1,65 @@
+[
+  {
+    "mintAddress": "W1iLZMsRanht4urj4Vra2JqgeKoLkP5LaPerzpsu8iw",
+    "owner": "FJ1n8eKmh17NK6ZEjG8Q842TBaqabJ8k6MS1N21ps2rN",
+    "supply": 1,
+    "name": "NFT Coins",
+    "updateAuthority": "D7B9ePbERFkydaKbyeiEreWHoqG9P9jLq9Be9z9JodaW",
+    "primarySaleHappened": false,
+    "sellerFeeBasisPoints": 1000,
+    "image": "https://arweave.net/vX9_4rdkXxnhscHkTGdVj5YAlDWwspmQOHbrkH76-sw?ext=jpeg",
+    "attributes": [],
+    "properties": {
+      "files": [
+        {
+          "uri": "https://arweave.net/vX9_4rdkXxnhscHkTGdVj5YAlDWwspmQOHbrkH76-sw?ext=jpeg",
+          "type": "image/jpeg"
+        }
+      ],
+      "creators": [
+        {
+          "share": 100,
+          "address": "D7B9ePbERFkydaKbyeiEreWHoqG9P9jLq9Be9z9JodaW",
+          "verified": true
+        }
+      ]
+    },
+    "listStatus": "unlisted"
+  },
+  {
+    "mintAddress": "2HwRwV69a3TEcY3tkynbNaiAupy8DxvVBEacFweD3hYL",
+    "owner": "FJ1n8eKmh17NK6ZEjG8Q842TBaqabJ8k6MS1N21ps2rN",
+    "supply": 1,
+    "name": "ExtraMax",
+    "updateAuthority": "D7B9ePbERFkydaKbyeiEreWHoqG9P9jLq9Be9z9JodaW",
+    "primarySaleHappened": false,
+    "sellerFeeBasisPoints": 1000,
+    "image": "https://arweave.net/x3JjqtsATxYrXSye32QSnw1MFdhFrExG7BwjUqp0fyc?ext=png",
+    "attributes": [
+      {
+        "trait_type": "value",
+        "value": "2026"
+      },
+      {
+        "trait_type": "traitType",
+        "value": "Year"
+      }
+    ],
+    "properties": {
+      "files": [
+        {
+          "uri": "https://arweave.net/x3JjqtsATxYrXSye32QSnw1MFdhFrExG7BwjUqp0fyc?ext=png",
+          "type": "image/png"
+        }
+      ],
+      "creators": [
+        {
+          "share": 100,
+          "address": "D7B9ePbERFkydaKbyeiEreWHoqG9P9jLq9Be9z9JodaW",
+          "verified": true
+        }
+      ]
+    },
+    "listStatus": "unlisted"
+  }
+]

@@ -54,9 +54,65 @@ pub fn decode_hex_array<const N: usize>(value: &str) -> Result<[u8; N], HexError
     bytes.try_into().map_err(|_| HexError(format!("hex value must be {N} bytes, got {length}")))
 }
 
+pub const fn decode_hex_literal<const N: usize>(value: &str) -> [u8; N] {
+    let digits = value.as_bytes();
+    assert!(digits.len() == N * 2, "hex literal needs two digits per byte");
+    let mut bytes = [0u8; N];
+    let mut index = 0;
+    while index < N {
+        bytes[index] = hex_digit(digits[index * 2]) << 4 | hex_digit(digits[index * 2 + 1]);
+        index += 1;
+    }
+    bytes
+}
+
+const fn hex_digit(value: u8) -> u8 {
+    match value {
+        b'0'..=b'9' => value - b'0',
+        b'a'..=b'f' => value - b'a' + 10,
+        b'A'..=b'F' => value - b'A' + 10,
+        _ => panic!("invalid hex digit"),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    const PROGRAM: [u8; 4] = decode_hex_literal("deadBEEF");
+
+    #[test]
+    fn test_decode_hex_literal() {
+        assert_eq!(PROGRAM, [0xde, 0xad, 0xbe, 0xef]);
+        assert_eq!(decode_hex_literal::<0>(""), [0u8; 0]);
+        assert_eq!(decode_hex_literal::<4>("00ff7f80"), [0x00, 0xff, 0x7f, 0x80]);
+        assert_eq!(decode_hex_literal::<11>("0123456789abcdefABCDEF"), [0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef, 0xab, 0xcd, 0xef]);
+        assert_eq!(decode_hex_literal::<32>(&"ff".repeat(32)), [0xff; 32]);
+    }
+
+    #[test]
+    #[should_panic(expected = "invalid hex digit")]
+    fn test_decode_hex_literal_rejects_invalid_digit() {
+        decode_hex_literal::<1>("0g");
+    }
+
+    #[test]
+    #[should_panic(expected = "invalid hex digit")]
+    fn test_decode_hex_literal_rejects_prefix() {
+        decode_hex_literal::<2>("0x0a");
+    }
+
+    #[test]
+    #[should_panic(expected = "hex literal needs two digits per byte")]
+    fn test_decode_hex_literal_rejects_odd_length() {
+        decode_hex_literal::<2>("abc");
+    }
+
+    #[test]
+    #[should_panic(expected = "hex literal needs two digits per byte")]
+    fn test_decode_hex_literal_rejects_length_mismatch() {
+        decode_hex_literal::<4>("abcd");
+    }
 
     #[test]
     fn decode_hex_trims_and_strips_prefix() {
