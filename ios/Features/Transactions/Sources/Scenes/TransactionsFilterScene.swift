@@ -43,29 +43,31 @@ public struct TransactionsFilterScene: View {
                     .bold()
             }
         }
-        .sheet(isPresented: $model.isPresentingChains) {
-            SelectableSheet(
-                model: model.networksModel,
-                onFinishSelection: {
-                    if model.onFinishChainsSelection($0) {
-                        dismiss()
-                    }
-                },
-                listContent: { ChainView(model: chainRow(chain: $0.rawValue)).accessibilityIdentifier($0.rawValue) },
-            )
-        }
-        .sheet(isPresented: $model.isPresentingTypes) {
-            SelectableSheet(
-                model: model.typesModel,
-                onFinishSelection: {
-                    if model.onFinishTypesSelection($0) {
-                        dismiss()
-                    }
-                },
-                listContent: {
-                    ListItemView(model: $0.listItem)
-                },
-            )
+        .sheet(item: $model.isPresentingSheet) { sheet in
+            switch sheet {
+            case .chains:
+                SelectableSheet(
+                    model: model.networksModel,
+                    onFinishSelection: {
+                        if model.onFinishChainsSelection($0) {
+                            dismiss()
+                        }
+                    },
+                    listContent: { ChainView(model: chainRow(chain: $0.rawValue)).accessibilityIdentifier($0.rawValue) },
+                )
+            case .types:
+                SelectableSheet(
+                    model: model.typesModel,
+                    onFinishSelection: {
+                        if model.onFinishTypesSelection($0) {
+                            dismiss()
+                        }
+                    },
+                    listContent: {
+                        ListItemView(model: $0.listItem)
+                    },
+                )
+            }
         }
     }
 }

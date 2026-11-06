@@ -53,10 +53,9 @@ struct TransactionsFilterSceneViewModelTests {
         let model = TransactionsFilterSceneViewModel.mock()
 
         model.onSelectChainsFilter()
-        #expect(model.isPresentingChains)
-        #expect(model.isPresentingTypes == false)
+        #expect(model.isPresentingSheet == .chains)
 
         model.onSelectTypesFilter()
-        #expect(model.isPresentingTypes)
+        #expect(model.isPresentingSheet == .types)
     }
 }

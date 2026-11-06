@@ -92,13 +92,12 @@ struct PreferencesSceneViewModelTests {
         let model = PreferencesSceneViewModel.mock()
 
         model.onSelect(.perpetualLeverage)
-        #expect(model.isPresentingLeveragePicker)
-        #expect(model.isPresentingTakeProfitPicker == false)
+        #expect(model.isPresentingSheet == .leverage)
 
         model.onSelect(.perpetualTakeProfit)
-        #expect(model.isPresentingTakeProfitPicker)
+        #expect(model.isPresentingSheet == .takeProfit)
 
         model.onSelect(.perpetualStopLoss)
-        #expect(model.isPresentingStopLossPicker)
+        #expect(model.isPresentingSheet == .stopLoss)
     }
 }
