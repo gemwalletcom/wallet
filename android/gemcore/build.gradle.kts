@@ -5,17 +5,7 @@ plugins {
 
 android {
     namespace = "com.wallet.core"
-    
 
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-        }
-    }
     testFixtures {
         enable = true
     }
