@@ -18,6 +18,7 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.unmockkAll
 import io.mockk.verify
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -147,6 +148,27 @@ class ImportWalletViewModelTest {
         coVerify { service.importWallet(capture(request)) }
         assertEquals("Wallet", request.captured.defaultName)
         assertEquals("abandon ability", request.captured.input)
+    }
+
+    @Test
+    fun anImportStaysLoadingWhenTheKindChanges() = runTest(dispatcher) {
+        val service = service()
+        val pending = CompletableDeferred<GemWalletImportResult>()
+        coEvery { service.importWallet(any()) } coAnswers { pending.await() }
+        val viewModel = viewModel(ImportType(GemWalletImportKind.PHRASE, chain), NameServiceMock(), dispatcher, service)
+
+        viewModel.type("abandon ability")
+        viewModel.import()
+        advanceUntilIdle()
+        viewModel.importKind(ImportType(GemWalletImportKind.PRIVATE_KEY, chain))
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.loading)
+
+        pending.complete(GemWalletImportResult.New(mockWallet().toGem()))
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.value.loading)
     }
 
     @Test

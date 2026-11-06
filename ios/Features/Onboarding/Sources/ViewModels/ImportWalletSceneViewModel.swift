@@ -28,7 +28,6 @@ final class ImportWalletSceneViewModel {
     var importType: GemWalletImportKind = .phrase {
         didSet {
             inputModel.update(text: "")
-            isImporting = false
         }
     }
 
