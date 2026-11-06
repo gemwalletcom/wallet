@@ -1,3 +1,4 @@
+use primitives::hex;
 use std::sync::{Arc, Mutex};
 
 use gem_api::DeviceKey;

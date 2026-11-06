@@ -1,5 +1,6 @@
 use gem_hash::sha2::sha512_half;
 use primitives::SignerError;
+use primitives::hex;
 
 use crate::address::XrpAddress;
 use crate::currency::currency_code_bytes;
@@ -458,7 +459,7 @@ mod tests {
         };
         let signature = hex::decode("30440220586F2D5B3F7A4471EB4B08C29623A6D290A50148FFF4C981AE2CD2CA1E4B43A60220368170E36F1985C86F3F17DC7B19F06DAABF03E2D31943E7D105A2D62FA9395D").unwrap();
 
-        assert_eq!(hex::encode_upper(batch.encode(Some(&signature)).unwrap()), MAINNET_BATCH_WITHOUT_ITS_SECOND_PAYMENT);
+        assert_eq!(hex::encode(batch.encode(Some(&signature)).unwrap()).to_uppercase(), MAINNET_BATCH_WITHOUT_ITS_SECOND_PAYMENT);
     }
 
     #[test]

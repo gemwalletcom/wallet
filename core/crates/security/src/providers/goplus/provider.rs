@@ -7,6 +7,7 @@ use crate::{AddressScanProvider, AddressTarget, ScanResult, TokenScanProvider, T
 use async_trait::async_trait;
 use aws_lc_rs::digest::{SHA1_FOR_LEGACY_USE_ONLY, digest};
 use gem_client::{Client, ClientExt};
+use primitives::hex;
 use primitives::{AccessTokenCacher, Chain, ScanProvider};
 use std::collections::HashMap;
 use std::error::Error;

@@ -103,7 +103,7 @@ pub(super) fn encode_v4(header: &Header, ciphertext: &[u8]) -> Result<Vec<u8>, K
         crypto: CryptoV4 {
             kdf: kdf_to_wire(&header.kdf),
             cipher: cipher_to_wire(&header.cipher),
-            ciphertext: hex::encode(ciphertext),
+            ciphertext: gem_encoding::encode_hex(ciphertext),
         },
     };
     serde_json::to_vec_pretty(&file).map_err(|error| KeystoreError::corrupt_file(error.to_string()))
@@ -133,7 +133,7 @@ fn kdf_to_wire(kdf: &KdfParams) -> KdfV4 {
             memory_kib: *memory_kib,
             iterations: *iterations,
             parallelism: *parallelism,
-            salt: hex::encode(salt),
+            salt: gem_encoding::encode_hex(salt),
             output_len: *output_len,
         },
     }
@@ -143,14 +143,14 @@ fn cipher_to_wire(cipher: &CipherParams) -> CipherV4 {
     match cipher {
         CipherParams::Aes256Gcm { nonce, tag_len } => CipherV4 {
             algorithm: CIPHER_AES_256_GCM.to_string(),
-            nonce: hex::encode(nonce),
+            nonce: gem_encoding::encode_hex(nonce),
             tag_len: *tag_len,
         },
     }
 }
 
 fn decode_hex(value: &str) -> Result<Vec<u8>, KeystoreError> {
-    hex::decode(value).map_err(|_| KeystoreError::corrupt_file("invalid hex"))
+    gem_encoding::decode_hex(value).map_err(|_| KeystoreError::corrupt_file("invalid hex"))
 }
 
 pub(super) fn meta_from_header(header: &Header) -> StoredSecretMeta {

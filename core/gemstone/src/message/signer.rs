@@ -219,6 +219,7 @@ mod tests {
     use crate::services::localization::GemLocalizedText;
     use crate::signer::ChainTransactionSigner;
     use gem_evm::EIP712Domain;
+    use primitives::hex;
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
     use primitives::{Address, SimulationPayloadFieldType};
     use signer::Ed25519KeyPair;

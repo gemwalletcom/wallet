@@ -1,3 +1,4 @@
+use primitives::hex;
 use std::error::Error;
 
 use gem_hash::sha2::sha256;

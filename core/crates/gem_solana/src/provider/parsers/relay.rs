@@ -1,6 +1,7 @@
 use borsh::BorshDeserialize;
 use num_bigint::{BigUint, Sign};
 use primitives::decode_hex_literal;
+use primitives::hex;
 use primitives::{AssetId, Chain, Transaction};
 
 use crate::{

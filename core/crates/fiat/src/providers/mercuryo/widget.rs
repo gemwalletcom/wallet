@@ -1,6 +1,6 @@
 use crate::provider::generate_quote_id;
-use hex;
 use primitives::FiatQuoteType;
+use primitives::hex;
 use sha2::{Digest, Sha512};
 use url::Url;
 

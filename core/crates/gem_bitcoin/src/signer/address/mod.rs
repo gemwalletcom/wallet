@@ -31,6 +31,7 @@ pub(crate) fn script_for_address(chain: BitcoinChain, address: &str) -> Result<A
 #[cfg(test)]
 mod tests {
     use primitives::BitcoinChain;
+    use primitives::hex;
 
     use super::{
         script::{LockingScript, UnlockingScript},

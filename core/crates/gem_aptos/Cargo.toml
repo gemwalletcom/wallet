@@ -24,7 +24,6 @@ serde_json = { workspace = true }
 serde_serializers = { path = "../serde_serializers", features = ["bigint"] }
 num-bigint = { workspace = true }
 bcs = { workspace = true }
-hex = { workspace = true }
 num-traits = { workspace = true }
 signer = { path = "../signer" }
 gem_hash = { path = "../gem_hash" }

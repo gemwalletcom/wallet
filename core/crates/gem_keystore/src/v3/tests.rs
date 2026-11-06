@@ -57,7 +57,7 @@ fn test_v3_accepts_empty_and_short_scrypt_salt() {
 
     let valid = KeystoreV3::mock_json("mnemonic", ABANDON_PHRASE.as_bytes(), password);
     let mut value: Value = serde_json::from_str(&valid).unwrap();
-    value["crypto"]["kdfparams"]["salt"] = Value::String(hex::encode(vec![1u8; MAX_SALT_LEN + 1]));
+    value["crypto"]["kdfparams"]["salt"] = Value::String(gem_encoding::encode_hex(vec![1u8; MAX_SALT_LEN + 1]));
     let oversized = serde_json::to_string(&value).unwrap();
     assert_eq!(KeystoreV3::parse(oversized.as_bytes()).unwrap_err(), KeystoreError::corrupt_file("invalid v3 hex length"));
 }
@@ -110,9 +110,9 @@ fn test_v3_ios_private_key_fixture() {
     assert_eq!(parsed.kind, KindV3::PrivateKey);
     assert_eq!(parsed.crypto.kdf, "scrypt");
     assert_eq!(parsed.crypto.kdfparams.n, 16_384);
-    assert_eq!(secret, SecretV3::PrivateKey(Zeroizing::new(hex::decode(V3_PRIVATE_KEY).unwrap())));
+    assert_eq!(secret, SecretV3::PrivateKey(Zeroizing::new(gem_encoding::decode_hex(V3_PRIVATE_KEY).unwrap())));
 
     let fixture: serde_json::Value = serde_json::from_str(V3_PRIVATE_KEY_FIXTURE).unwrap();
     let ciphertext = fixture.get("crypto").unwrap().get("ciphertext").unwrap().as_str().unwrap();
-    assert_eq!(hex::decode(ciphertext).unwrap().len(), 32);
+    assert_eq!(gem_encoding::decode_hex(ciphertext).unwrap().len(), 32);
 }

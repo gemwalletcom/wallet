@@ -1,4 +1,5 @@
 use num_traits::ToPrimitive;
+use primitives::hex;
 use std::collections::HashMap;
 use std::error::Error;
 

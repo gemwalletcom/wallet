@@ -75,6 +75,7 @@ fn parse_expire_at(value: u64) -> Result<u32, SignerError> {
 
 #[cfg(test)]
 mod tests {
+    use primitives::hex;
     use primitives::{Chain, ChainSigner, TransactionLoadInput, TransactionLoadMetadata};
     use serde_json::Value;
 

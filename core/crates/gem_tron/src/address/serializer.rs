@@ -1,5 +1,6 @@
 use super::TronAddress;
 use primitives::Address as _;
+use primitives::hex;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>

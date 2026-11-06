@@ -41,6 +41,7 @@ impl ChainSigner for TronChainSigner {
 #[cfg(test)]
 mod tests {
     use num_bigint::BigUint;
+    use primitives::hex;
 
     use gem_hash::sha2::sha256;
     use primitives::{

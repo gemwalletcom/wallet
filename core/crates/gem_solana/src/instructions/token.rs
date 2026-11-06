@@ -62,6 +62,7 @@ pub fn sync_native(account: &Pubkey) -> Instruction {
 
 #[cfg(test)]
 mod tests {
+    use primitives::hex;
 
     use super::*;
     use crate::instructions::program_ids::token_2022_program;

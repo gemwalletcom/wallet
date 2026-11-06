@@ -1,3 +1,4 @@
+use primitives::hex;
 use std::error::Error;
 
 use gem_crypto::compare::constant_time_eq;

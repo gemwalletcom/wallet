@@ -1,4 +1,5 @@
 mod error;
+mod hex;
 mod percent_encoding;
 #[cfg(feature = "protobuf")]
 pub mod protobuf;
@@ -11,6 +12,7 @@ mod base64;
 mod base_n;
 
 pub use error::{EncodingError, EncodingType};
+pub use hex::{decode_hex, encode_hex};
 pub use percent_encoding::{is_valid_percent_encoding, percent_decode_lossy, percent_encode};
 
 #[cfg(feature = "base32")]

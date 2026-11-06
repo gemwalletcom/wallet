@@ -71,6 +71,7 @@ mod tests {
         instructions::program_ids::{token_2022_program, token_program},
         wrapped_sol::wrapped_sol_mint,
     };
+    use primitives::hex;
 
     #[test]
     fn test_program_addresses() {

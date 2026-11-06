@@ -1,3 +1,4 @@
+use primitives::hex;
 use primitives::{SignerError, SignerInput, TransferDataOutputType};
 
 use crate::transaction::wallet_connect::{WalletConnectRequest, WalletConnectTransaction};

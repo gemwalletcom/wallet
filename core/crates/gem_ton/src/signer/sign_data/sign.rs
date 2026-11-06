@@ -30,6 +30,7 @@ mod tests {
             testkit::{TEST_PUBLIC_KEY, mock_cell, mock_signer, mock_signer_address},
         },
     };
+    use primitives::hex;
 
     #[test]
     fn test_sign_ton_personal() {

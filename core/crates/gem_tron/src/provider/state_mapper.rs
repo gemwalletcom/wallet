@@ -1,4 +1,5 @@
 use primitives::NodeSyncStatus;
+use primitives::hex;
 use std::error::Error;
 
 pub fn map_node_status(latest_block: i64) -> Result<NodeSyncStatus, Box<dyn Error + Sync + Send>> {

@@ -66,6 +66,7 @@ fn polymod(values: impl Iterator<Item = Fe32>) -> u64 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::hex;
 
     #[test]
     fn test_address() {

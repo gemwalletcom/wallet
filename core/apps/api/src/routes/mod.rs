@@ -121,6 +121,7 @@ mod tests {
     use super::{device_fields, redacted_uri};
     use gem_auth::{build_device_auth_header, device_public_key};
     use http::{HeaderValue, Method};
+    use primitives::hex;
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
 
     #[test]

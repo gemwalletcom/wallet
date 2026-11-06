@@ -201,6 +201,7 @@ mod tests {
     use crate::rpc::model::{Log, Transaction, TransactionReceipt};
     use crate::rpc::transaction_payload::INPUT_0X;
     use num_bigint::BigUint;
+    use primitives::hex;
     use primitives::{
         Chain, JsonRpcResult,
         asset_constants::{ARBITRUM_USDC_ASSET_ID, ARBITRUM_USDT_ASSET_ID, ETHEREUM_DAI_ASSET_ID, ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDT_ASSET_ID},

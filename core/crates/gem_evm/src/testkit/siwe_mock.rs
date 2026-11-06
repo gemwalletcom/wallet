@@ -1,3 +1,5 @@
+use primitives::hex;
+
 pub fn mock_siwe_message(domain: &str, chain_id: u32) -> String {
     [
         &format!("{domain} wants you to sign in with your Ethereum account:"),

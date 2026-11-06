@@ -39,7 +39,7 @@ mod tests {
         let output = pbkdf2_hmac_sha512(b"password", b"salt", 1, HMAC_SHA512_OUTPUT_LEN).unwrap();
 
         assert_eq!(
-            hex::encode(output.as_slice()),
+            gem_encoding::encode_hex(output.as_slice()),
             "867f70cf1ade02cff3752599a3a53dc4af34c7a669815ae5d513554e1c8cf252\
              c02d470a285a0501bad999bfe943c08f050235d7d68b1da55e63f73b60a57fce"
                 .replace(char::is_whitespace, "")

@@ -224,6 +224,7 @@ impl CosmosMessage {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::hex;
 
     #[test]
     fn test_encode_execute_contract() {

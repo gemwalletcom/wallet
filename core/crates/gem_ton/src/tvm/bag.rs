@@ -149,6 +149,7 @@ fn bytes_needed(value: usize) -> usize {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::hex;
 
     #[test]
     fn test_parse_rejects_duplicate_roots() {

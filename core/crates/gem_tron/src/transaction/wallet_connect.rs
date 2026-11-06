@@ -1,5 +1,6 @@
 use gem_hash::sha2::sha256;
 use primitives::SignerError;
+use primitives::hex;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use serde_serializers::hex_bytes;

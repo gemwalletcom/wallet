@@ -25,6 +25,7 @@ proto_encode!(FieldMask {
 mod tests {
     use super::*;
     use gem_encoding::protobuf::MessageEncode;
+    use primitives::hex;
 
     #[test]
     fn test_field_mask_encode() {

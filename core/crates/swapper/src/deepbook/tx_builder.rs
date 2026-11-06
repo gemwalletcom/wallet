@@ -115,6 +115,7 @@ mod tests {
     };
     use gem_sui::{decode_transaction, sui_framework_package_address};
     use num_bigint::BigUint;
+    use primitives::hex;
     use primitives::{
         AssetId, Chain,
         asset_constants::{SUI_USDC_TOKEN_ID, SUI_WAL_TOKEN_ID},

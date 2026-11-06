@@ -22,6 +22,7 @@ pub(in crate::signer) fn native_transfer(input: &SignerInput, sender: Pubkey) ->
 
 #[cfg(test)]
 mod tests {
+    use primitives::hex;
 
     use crate::signer::{SolanaChainSigner, testkit::*};
     use crate::{

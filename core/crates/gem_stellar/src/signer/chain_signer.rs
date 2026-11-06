@@ -34,6 +34,7 @@ mod tests {
     use crate::signer::signing::sign_transaction;
     use gem_encoding::decode_base64;
     use num_bigint::BigUint;
+    use primitives::hex;
     use primitives::{
         Address, Asset, AssetId, AssetType, Chain, SwapProvider, TransactionFee, TransactionInputType, TransactionLoadMetadata, TransactionSwapReferralFee,
         asset_constants::{STELLAR_USDC_ASSET_ID, STELLAR_USDC_TOKEN_ID},

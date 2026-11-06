@@ -73,6 +73,7 @@ fn scalar_from_hash(parts: &[&[u8]]) -> Scalar {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::hex;
 
     #[test]
     fn test_cardano_extended_key_pair() {

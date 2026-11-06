@@ -86,6 +86,7 @@ impl fmt::Display for PolkadotAddress {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::hex;
 
     const VALID_ADDRESS: &str = "15e6w4u9nH4Tb9HdJco2Zua4y5DpHb1hHXBKBGkUrLMTpuXo";
     const PUBLIC_KEY: &str = "cd3cfbbaa8f217c2a29ceae4b4063b597b629861916bad98f9826e03d1ab120e";

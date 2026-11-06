@@ -39,6 +39,7 @@ pub(crate) fn estimate_transaction_fee(chain: BitcoinChain, input: &TransactionL
 #[cfg(test)]
 mod tests {
     use bitcoin::{blockdata::transaction::Version, consensus::encode::deserialize};
+    use primitives::hex;
     use primitives::testkit::zcash_mock::{TEST_ZCASH_TEX_ADDRESS, TEST_ZCASH_TRANSPARENT_ADDRESS};
     use primitives::{BitcoinChain, ChainSigner, TransactionInputType};
 

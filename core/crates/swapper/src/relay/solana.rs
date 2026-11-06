@@ -21,6 +21,7 @@ mod tests {
     use gem_solana::{AddressLookupTableAccount, Pubkey, decode_transaction};
     use num_bigint::BigUint;
     use primitives::contract_constants::SOLANA_RELAY_DEPOSITORY_PROGRAM_ID;
+    use primitives::hex;
 
     #[test]
     fn test_build_transaction() {

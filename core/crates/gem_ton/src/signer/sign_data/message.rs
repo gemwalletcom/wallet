@@ -97,6 +97,7 @@ impl TonSignMessageData {
 mod tests {
     use super::*;
     use crate::signer::testkit::{TEST_ADDRESS, mock_cell};
+    use primitives::hex;
 
     #[test]
     fn test_ton_sign_message_data() {

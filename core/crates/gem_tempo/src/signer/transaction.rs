@@ -83,6 +83,7 @@ impl TempoTransaction {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::hex;
     use primitives::{
         Chain,
         asset_constants::TEMPO_BRIDGED_USDC_TOKEN_ID,

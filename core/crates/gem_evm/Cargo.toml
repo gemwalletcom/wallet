@@ -24,7 +24,6 @@ gem_client = { path = "../gem_client", optional = true }
 gem_hash = { path = "../gem_hash" }
 signer = { path = "../signer", optional = true }
 
-hex = { workspace = true }
 futures = { workspace = true, optional = true }
 alloy-primitives = { workspace = true }
 alloy-sol-types = { workspace = true, features = ["eip712-serde"] }

@@ -1,3 +1,4 @@
+use primitives::hex;
 use std::collections::HashMap;
 
 use hmac::{Hmac, KeyInit, Mac};

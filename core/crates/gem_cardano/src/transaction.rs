@@ -137,6 +137,7 @@ fn chunk_memo_segments(memo: &str) -> Vec<&str> {
 #[cfg(all(test, feature = "signer"))]
 mod tests {
     use super::*;
+    use primitives::hex;
 
     #[test]
     fn test_transaction_encode_and_id() {

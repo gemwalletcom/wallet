@@ -1,6 +1,7 @@
 use crate::models::signing::AlgorandTransaction;
 use crate::signer::serialization::{encode_signed_transaction, encode_transaction};
 use primitives::SignerError;
+use primitives::hex;
 use signer::{SignatureScheme, Signer};
 
 const TX_TAG: &[u8; 2] = b"TX";

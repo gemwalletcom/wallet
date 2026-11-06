@@ -1,4 +1,4 @@
-use hex::encode;
+use primitives::hex::encode;
 use primitives::{ChainSigner, SignerError, SignerInput, TransactionInputType, TransactionLoadMetadata};
 use serde_json::{Value, from_str};
 use std::str::from_utf8;
@@ -174,6 +174,7 @@ fn token_transfer_payload(input: &SignerInput) -> Result<(EntryFunctionPayload, 
 mod tests {
     use super::*;
     use crate::{FUNGIBLE_TRANSFER_FUNCTION, OBJECT_CORE_TYPE};
+    use primitives::hex;
     use primitives::{AssetId, Chain, GasPriceType, SignerInput, TransactionFee, TransactionLoadInput};
 
     #[test]

@@ -61,6 +61,7 @@ impl Signer {
 mod tests {
     use super::*;
     use crate::testkit::TEST_PRIVATE_KEY;
+    use primitives::hex;
 
     #[test]
     fn ed25519_key_pair_rejects_invalid_length() {

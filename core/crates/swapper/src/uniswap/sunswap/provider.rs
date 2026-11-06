@@ -28,6 +28,7 @@ use gem_evm::uniswap::{
 };
 use gem_tron::rpc::client::TronClient;
 use num_bigint::BigUint;
+use primitives::hex;
 use primitives::{
     AssetId, Chain,
     asset_constants::{TRON_USDT_TOKEN_ID, TRON_WTRX_TOKEN_ID},

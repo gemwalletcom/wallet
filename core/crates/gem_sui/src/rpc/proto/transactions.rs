@@ -283,6 +283,7 @@ proto_decode!(Event {
 mod tests {
     use super::*;
     use gem_encoding::protobuf::{MessageDecode, MessageEncode, encode_message_field, encode_string_field};
+    use primitives::hex;
 
     #[test]
     fn test_execute_transaction_response_decode() {

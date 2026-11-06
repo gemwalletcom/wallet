@@ -10,6 +10,7 @@ pub enum EncodingType {
     Base32,
     Base58,
     Base64,
+    Hex,
 }
 
 impl fmt::Display for EncodingError {
@@ -26,6 +27,7 @@ impl fmt::Display for EncodingType {
             Self::Base32 => write!(f, "base32"),
             Self::Base58 => write!(f, "base58"),
             Self::Base64 => write!(f, "base64"),
+            Self::Hex => write!(f, "hex"),
         }
     }
 }

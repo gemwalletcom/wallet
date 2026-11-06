@@ -7,7 +7,7 @@ version = { workspace = true }
 default = []
 rpc = ["gem_evm/rpc", "dep:async-trait", "dep:chain_traits", "dep:gem_client"]
 reqwest = ["rpc", "gem_evm/reqwest"]
-signer = ["gem_evm/signer", "dep:hex", "dep:signer"]
+signer = ["gem_evm/signer", "dep:signer"]
 chain_integration_tests = ["rpc", "reqwest", "primitives/testkit", "settings/testkit"]
 
 [dependencies]
@@ -20,7 +20,6 @@ chain_traits = { path = "../chain_traits", optional = true }
 async-trait = { workspace = true, optional = true }
 alloy-primitives = { workspace = true }
 alloy-sol-types = { workspace = true }
-hex = { workspace = true, optional = true }
 num-bigint = { workspace = true }
 
 [dev-dependencies]

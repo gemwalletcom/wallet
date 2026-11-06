@@ -73,6 +73,7 @@ impl WalletV4R2 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::hex;
 
     #[test]
     fn test_wallet_state_init() {

@@ -95,6 +95,7 @@ mod tests {
         path::build_direct_pair,
     };
     use num_bigint::BigUint;
+    use primitives::hex;
     use primitives::{
         AssetId, Chain,
         asset_constants::{ARC_EURC_TOKEN_ID, ARC_USDC_TOKEN_ID, CELO_USDT_TOKEN_ID, CELO_WETH_TOKEN_ID, ROBINHOOD_USDG_TOKEN_ID, ROBINHOOD_WETH_TOKEN_ID},

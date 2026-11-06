@@ -1,6 +1,7 @@
 use gem_xrp::{TRANSACTION_TYPE_PAYMENT, models::Amount};
 use num_bigint::BigUint;
 use primitives::AssetId;
+use primitives::hex;
 
 use super::{
     model::{DepositMemo, SwapRequest, XrpTransaction},

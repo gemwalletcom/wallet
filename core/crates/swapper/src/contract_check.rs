@@ -92,6 +92,7 @@ mod tests {
     };
     use num_bigint::BigUint;
     use primitives::asset_constants::TRON_USDT_TOKEN_ID;
+    use primitives::hex;
 
     #[test]
     fn test_a_provider_that_ships_no_contracts_is_not_bound() {

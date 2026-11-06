@@ -1,7 +1,7 @@
 use crate::models::{Ed25519Authenticator, RawTransaction, SignedTransaction, SubmitTransactionBcsRequest, TransactionAuthenticator, TransactionPayloadBCS};
 use gem_hash::sha3::sha3_256;
-use hex::encode;
 use primitives::SignerError;
+use primitives::hex::encode;
 use signer::Ed25519KeyPair;
 use std::time::SystemTime;
 
@@ -80,6 +80,7 @@ fn ensure_length(input: Vec<u8>, expected: usize, label: &str) -> Result<Vec<u8>
 mod tests {
     use super::*;
     use ed25519_dalek::{Signature, SigningKey, Verifier};
+    use primitives::hex;
 
     #[test]
     fn sign_raw_transaction_verifies_against_signing_message() {

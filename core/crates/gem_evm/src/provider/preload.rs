@@ -14,6 +14,7 @@ use num_bigint::BigInt;
 #[cfg(feature = "rpc")]
 use primitives::ContractCallData;
 use primitives::GasPriceType;
+use primitives::hex;
 #[cfg(feature = "rpc")]
 use primitives::{AssetId, FeeRate, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput};
 #[cfg(feature = "rpc")]

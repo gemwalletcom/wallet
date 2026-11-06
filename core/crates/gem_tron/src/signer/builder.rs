@@ -1,6 +1,9 @@
 use gem_encoding::protobuf::{MessageEncode, proto_encode};
 use gem_hash::sha2::sha256;
-use primitives::{Address as _, SignerError, SignerInput, TransactionLoadMetadata, TronVote, hex::decode_hex_array};
+use primitives::{
+    Address as _, SignerError, SignerInput, TransactionLoadMetadata, TronVote,
+    hex::{self, decode_hex_array},
+};
 use serde::Serialize;
 
 use crate::address::TronAddress;

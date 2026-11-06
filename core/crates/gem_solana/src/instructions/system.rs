@@ -40,6 +40,7 @@ pub fn transfer(from: &Pubkey, to: &Pubkey, lamports: u64) -> Instruction {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::hex;
 
     #[test]
     fn test_grants_authority_data() {

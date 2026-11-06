@@ -6,7 +6,7 @@ edition = { workspace = true }
 [features]
 default = ["mnemonic"]
 mnemonic = ["dep:bip39", "dep:gem_crypto", "gem_crypto/random", "dep:zeroize"]
-storage = ["mnemonic", "dep:aes-gcm", "dep:argon2", "dep:hex", "dep:serde", "dep:serde_json", "dep:strum", "dep:uuid", "dep:zeroize"]
+storage = ["mnemonic", "dep:aes-gcm", "dep:argon2", "dep:gem_encoding", "dep:serde", "dep:serde_json", "dep:strum", "dep:uuid", "dep:zeroize"]
 v3 = ["storage", "dep:aes", "dep:ctr", "dep:scrypt", "dep:sha3"]
 
 [dependencies]
@@ -16,7 +16,7 @@ argon2 = { workspace = true, optional = true }
 bip39 = { workspace = true, optional = true }
 ctr = { workspace = true, optional = true }
 gem_crypto = { path = "../gem_crypto", default-features = false, optional = true }
-hex = { workspace = true, optional = true }
+gem_encoding = { path = "../gem_encoding", default-features = false, optional = true }
 scrypt = { workspace = true, optional = true }
 serde = { workspace = true, optional = true }
 serde_json = { workspace = true, optional = true }
@@ -26,8 +26,8 @@ uuid = { workspace = true, optional = true }
 zeroize = { workspace = true, optional = true }
 
 [dev-dependencies]
+gem_encoding = { path = "../gem_encoding", default-features = false }
 gem_crypto = { path = "../gem_crypto", default-features = false, features = ["random"] }
-hex = { workspace = true }
 primitives = { path = "../primitives", features = ["testkit"] }
 serde_json = { workspace = true }
 

@@ -22,6 +22,7 @@ pub(crate) fn hash20(bytes: &[u8]) -> Result<[u8; HASH160_LEN], SignerError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::hex;
 
     #[test]
     fn test_hashes() {

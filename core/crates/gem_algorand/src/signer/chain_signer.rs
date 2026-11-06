@@ -23,6 +23,7 @@ impl ChainSigner for AlgorandChainSigner {
 mod tests {
     // Tests taken from https://github.com/trustwallet/wallet-core/blob/master/tests/chains/Algorand/TWAnySignerTests.cpp
     use super::*;
+    use primitives::hex;
     use primitives::{Asset, AssetId, AssetType, Chain, TransactionFee, TransactionInputType, TransactionLoadMetadata};
 
     const PRIVATE_KEY: &str = "5a6a3cfe5ff4cc44c19381d15a0d16de2a76ee5c9b9d83b232e38cb5a2c84b04";

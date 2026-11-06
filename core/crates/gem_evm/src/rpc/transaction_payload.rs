@@ -1,5 +1,6 @@
 use num_bigint::BigUint;
 use num_traits::Num;
+use primitives::hex;
 
 use crate::{
     address::{ethereum_address_checksum, ethereum_address_from_topic},

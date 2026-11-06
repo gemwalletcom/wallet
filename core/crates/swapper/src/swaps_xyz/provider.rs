@@ -1,3 +1,4 @@
+use primitives::hex;
 use std::{fmt::Debug, sync::Arc};
 
 use async_trait::async_trait;

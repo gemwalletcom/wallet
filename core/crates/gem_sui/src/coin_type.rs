@@ -1,5 +1,5 @@
 use crate::{SUI_COIN_TYPE, SUI_COIN_TYPE_FULL};
-use primitives::hex::decode_hex;
+use primitives::hex::{self, decode_hex};
 
 const SUI_ADDRESS_LENGTH: usize = 32;
 

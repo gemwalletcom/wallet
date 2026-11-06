@@ -7,6 +7,7 @@ use crate::models::{
 use chrono::DateTime;
 use gem_encoding::decode_base64;
 use num_bigint::BigUint;
+use primitives::hex;
 use primitives::{AssetId, NFTAssetId, OptionStringExt, Transaction, TransactionNFTTransferMetadata, TransactionState, TransactionSwapMetadata, TransactionSwapReferralFee, TransactionType, chain::Chain, swap::TON_REFERRAL_ADDRESS};
 use std::error::Error;
 

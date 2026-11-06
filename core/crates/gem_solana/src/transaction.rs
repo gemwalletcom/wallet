@@ -1,5 +1,6 @@
 use gem_encoding::{decode_base64, encode_base64};
 use num_bigint::BigUint;
+use primitives::hex;
 use primitives::{AssetId, Chain, OptionStringExt, SolanaInstruction, TransactionType};
 
 use crate::{

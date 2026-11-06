@@ -6,6 +6,7 @@ use bitcoin::{
 };
 use gem_hash::blake2::blake2b_256_personal;
 use primitives::SignerError;
+use primitives::hex;
 
 use crate::signer::{
     encoding::encode_varint,

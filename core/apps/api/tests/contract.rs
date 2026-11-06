@@ -6,7 +6,7 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use futures::{SinkExt, StreamExt};
 use gem_auth::{AUTHORIZATION_HEADER, build_device_auth_header, create_auth_hash, device_public_key};
-use primitives::hex::encode_with_0x;
+use primitives::hex::{self, encode_with_0x};
 use primitives::testkit::signer_mock::{TEST_PRIVATE_KEY, TEST_PRIVATE_KEY_ETHEREUM_ADDRESS};
 use primitives::{AddressChains, AuthMessage, AuthNonce, Chain, Device, PriceAlert, WalletId, WalletSubscription, WalletSubscriptionChains};
 use reqwest::header::CONTENT_TYPE;

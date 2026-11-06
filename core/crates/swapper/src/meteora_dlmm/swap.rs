@@ -71,6 +71,7 @@ mod tests {
         solana_dex::SwapToken,
     };
     use gem_solana::{anchor::global_discriminator, find_program_address, instructions::program_ids::token_program, wrapped_sol::wrapped_sol_mint};
+    use primitives::hex;
 
     #[test]
     fn test_program_addresses() {

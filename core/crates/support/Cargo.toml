@@ -8,7 +8,6 @@ testkit = []
 
 [dependencies]
 chrono = { workspace = true }
-hex = { workspace = true }
 hmac = { workspace = true }
 sha2 = { workspace = true }
 url = { workspace = true }

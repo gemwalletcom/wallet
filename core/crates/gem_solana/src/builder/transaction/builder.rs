@@ -121,6 +121,7 @@ pub(crate) fn compile_legacy(fee_payer: Pubkey, recent_blockhash: [u8; 32], acco
 #[cfg(test)]
 mod tests {
     use gem_encoding::decode_base64;
+    use primitives::hex;
 
     use super::TransactionBuilder;
     use crate::{

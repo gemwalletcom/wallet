@@ -12,14 +12,12 @@ impl fmt::Display for HexError {
 
 impl std::error::Error for HexError {}
 
-impl From<hex::FromHexError> for HexError {
-    fn from(err: hex::FromHexError) -> Self {
-        Self(err.to_string())
-    }
+pub fn encode(data: impl AsRef<[u8]>) -> String {
+    gem_encoding::encode_hex(data)
 }
 
-pub fn encode(data: impl AsRef<[u8]>) -> String {
-    hex::encode(data)
+pub fn decode(value: impl AsRef<[u8]>) -> Result<Vec<u8>, HexError> {
+    gem_encoding::decode_hex(value).map_err(|error| HexError(error.to_string()))
 }
 
 pub fn encode_with_0x(data: &[u8]) -> String {
@@ -45,7 +43,7 @@ pub fn decode_hex(value: &str) -> Result<Vec<u8>, HexError> {
         return Ok(vec![]);
     }
     let normalized: Cow<str> = if stripped.len() % 2 == 1 { Cow::Owned(format!("0{stripped}")) } else { Cow::Borrowed(stripped) };
-    Ok(hex::decode(&*normalized)?)
+    decode(normalized.as_bytes())
 }
 
 pub fn decode_hex_array<const N: usize>(value: &str) -> Result<[u8; N], HexError> {

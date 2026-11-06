@@ -82,6 +82,7 @@ proto_decode!(CheckpointedTransactionInfo {
 mod tests {
     use super::*;
     use gem_encoding::protobuf::MessageDecode;
+    use primitives::hex;
 
     #[test]
     fn test_checkpoint_response_wire_bytes_decode() {

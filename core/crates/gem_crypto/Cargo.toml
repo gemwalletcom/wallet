@@ -15,4 +15,4 @@ getrandom = { workspace = true, optional = true }
 zeroize = { workspace = true, optional = true }
 
 [dev-dependencies]
-hex = { workspace = true }
+gem_encoding = { path = "../gem_encoding", default-features = false }

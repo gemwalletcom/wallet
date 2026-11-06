@@ -1,5 +1,6 @@
 use gem_hash::sha2::sha256;
 use num_traits::ToPrimitive;
+use primitives::hex;
 use primitives::{
     SignerError, SignerInput, StakeType, TransactionLoadMetadata, TronStakeData, decode_hex,
     swap::{ApprovalData, SwapQuoteData, SwapQuoteDataType},

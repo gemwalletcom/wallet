@@ -27,7 +27,6 @@ num-bigint = { workspace = true }
 chrono = { workspace = true, features = ["serde"] }
 bs58 = { workspace = true }
 gem_hash = { path = "../gem_hash" }
-hex = { workspace = true }
 signer = { path = "../signer" }
 rand = { workspace = true, optional = true }
 

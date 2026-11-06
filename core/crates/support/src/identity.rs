@@ -1,5 +1,6 @@
 use hmac::digest::InvalidLength;
 use hmac::{Hmac, KeyInit, Mac};
+use primitives::hex;
 use sha2::Sha256;
 
 pub fn identifier_hash(secret: &str, identifier: &str) -> Result<String, InvalidLength> {

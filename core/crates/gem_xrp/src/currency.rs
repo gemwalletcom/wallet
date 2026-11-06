@@ -1,5 +1,8 @@
 use num_bigint::BigUint;
-use primitives::{SignerError, hex::decode_hex_array};
+use primitives::{
+    SignerError,
+    hex::{self, decode_hex_array},
+};
 
 pub(crate) const CURRENCY_CODE_LENGTH: usize = 20;
 pub(crate) const MAX_IOU_PRECISION: usize = 16;
@@ -30,7 +33,7 @@ pub(crate) fn currency_code_bytes(value: &str) -> Result<[u8; CURRENCY_CODE_LENG
 }
 
 pub fn currency_code(symbol: &str) -> Result<String, SignerError> {
-    Ok(hex::encode_upper(currency_code_bytes(symbol)?))
+    Ok(hex::encode(currency_code_bytes(symbol)?).to_uppercase())
 }
 
 pub fn truncate_to_iou_precision(value: &BigUint) -> BigUint {

@@ -8,7 +8,7 @@ default = []
 bigint = ["dep:num-bigint"]
 
 [dependencies]
-hex = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 num-bigint = { workspace = true, optional = true }
+gem_encoding = { path = "../gem_encoding", default-features = false }

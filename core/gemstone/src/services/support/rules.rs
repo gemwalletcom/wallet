@@ -1,5 +1,6 @@
 use super::model::{GemSupportBubbleSide, GemSupportChatGroup, GemSupportMessageOutcome, GemSupportMessageRow};
 use chrono::{DateTime, Utc};
+use primitives::hex;
 use primitives::{SupportMessage, SupportMessageImage, SupportMessageSender, SupportMessageStatus};
 use support::parse_support_message_display_content;
 

@@ -1,3 +1,4 @@
+use primitives::hex;
 use primitives::unix_timestamp;
 
 use crate::actions::WalletConnectTransactionType;

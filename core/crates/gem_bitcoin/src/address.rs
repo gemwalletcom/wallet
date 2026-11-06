@@ -79,6 +79,7 @@ pub(crate) fn prefixed_base58_address(prefix: &[u8], public_key_hash: &[u8; 20])
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::hex;
     use primitives::{Address as AddressTrait, BITCOINCASH_PREFIX};
 
     #[test]

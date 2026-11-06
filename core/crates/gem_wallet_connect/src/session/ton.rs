@@ -1,3 +1,4 @@
+use primitives::hex;
 use std::collections::HashMap;
 
 use gem_ton::{Address as TonAddress, signer::WalletV4R2};

@@ -50,6 +50,7 @@ impl<C: Client> ChainTransactionLoad for AptosClient<C> {
 
 #[cfg(test)]
 mod tests {
+    use primitives::hex;
     use std::sync::{Arc, Mutex};
 
     use gem_client::testkit::MockClient;

@@ -2,6 +2,7 @@ use crate::{
     address::ShelleyAddress,
     transaction::{TransactionInput, TransactionOutput},
 };
+use primitives::hex;
 
 impl TransactionInput {
     pub(crate) fn mock() -> Self {

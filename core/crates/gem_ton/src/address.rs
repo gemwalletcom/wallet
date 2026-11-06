@@ -1,3 +1,4 @@
+use primitives::hex;
 use std::fmt;
 use std::str::FromStr;
 

@@ -6,6 +6,7 @@ mod parse;
 mod hash_tests;
 
 use num_bigint::BigUint;
+use primitives::hex;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use serde_serializers::deserialize_option_u64_from_str_or_int;

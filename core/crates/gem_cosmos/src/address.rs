@@ -60,6 +60,7 @@ pub fn validate_address(address: &str, chain: Chain) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::hex;
 
     #[test]
     fn test_cosmos_address_convert() {

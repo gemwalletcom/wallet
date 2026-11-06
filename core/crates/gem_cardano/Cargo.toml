@@ -14,7 +14,6 @@ rpc = [
     "dep:futures",
     "dep:gem_client",
     "dep:gem_hash",
-    "dep:hex",
     "dep:num-traits",
     "dep:serde_json",
 ]
@@ -22,7 +21,6 @@ signer = [
     "dep:bech32",
     "dep:curve25519-dalek",
     "dep:gem_hash",
-    "dep:hex",
     "dep:num-traits",
     "dep:sha2",
     "dep:zeroize",
@@ -37,7 +35,6 @@ serde_serializers = { path = "../serde_serializers" }
 bech32 = { workspace = true, optional = true }
 gem_hash = { path = "../gem_hash", optional = true }
 futures = { workspace = true, optional = true }
-hex = { workspace = true, optional = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true, optional = true }
 chrono = { workspace = true, features = ["serde"], optional = true }

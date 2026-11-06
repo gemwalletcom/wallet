@@ -18,7 +18,6 @@ reqwest = ["gem_client/reqwest"]
 chain_integration_tests = ["rpc", "reqwest", "primitives/testkit", "settings/testkit"]
 
 [dependencies]
-hex = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true, features = ["raw_value"] }
 chrono = { workspace = true, features = ["serde"] }

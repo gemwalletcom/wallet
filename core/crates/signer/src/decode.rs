@@ -193,6 +193,7 @@ pub fn encode_private_key(chain: &Chain, private_key: &[u8]) -> Result<String, S
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::hex;
 
     #[test]
     fn test_decode_solana_base58() {

@@ -67,6 +67,7 @@ pub fn with_compute_unit_price(instructions: Vec<Instruction>, micro_lamports: u
 
 #[cfg(test)]
 mod tests {
+    use primitives::hex;
 
     use super::*;
     use crate::Pubkey;

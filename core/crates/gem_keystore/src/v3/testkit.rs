@@ -35,10 +35,10 @@ impl KeystoreV3 {
         V3_MINIMAL_TEMPLATE
             .replace("__ETHEREUM_ADDRESS__", V3_ETHEREUM_ADDRESS)
             .replace("__PUBLIC_KEY_SUFFIX__", &"11".repeat(64))
-            .replace("__IV__", &hex::encode(iv))
-            .replace("__CIPHERTEXT__", &hex::encode(ciphertext))
-            .replace("__SALT__", &hex::encode(salt))
-            .replace("__MAC__", &hex::encode(mac))
+            .replace("__IV__", &gem_encoding::encode_hex(iv))
+            .replace("__CIPHERTEXT__", &gem_encoding::encode_hex(ciphertext))
+            .replace("__SALT__", &gem_encoding::encode_hex(salt))
+            .replace("__MAC__", &gem_encoding::encode_hex(mac))
             .replace("__KIND__", kind)
     }
 }

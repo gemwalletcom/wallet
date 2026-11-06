@@ -64,6 +64,7 @@ impl fmt::Display for XrpAddress {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::hex;
 
     const CLASSIC_ADDRESS: &str = "rnBFvgZphmN39GWzUJeUitaP22Fr9be75H";
 

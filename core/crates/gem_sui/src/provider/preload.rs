@@ -210,6 +210,7 @@ mod chain_integration_tests {
     use chain_traits::ChainTransactionLoad;
     use gem_encoding::decode_base64;
     use num_bigint::BigUint;
+    use primitives::hex;
     use primitives::{Asset, Chain, Delegation, DelegationState, FeePriority, StakeType, TransactionLoadInput};
 
     #[tokio::test]

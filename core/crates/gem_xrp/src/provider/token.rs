@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use chain_traits::ChainToken;
+use primitives::hex;
 use std::error::Error;
 
 use crate::XRP_DEFAULT_ASSET_DECIMALS;

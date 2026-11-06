@@ -88,6 +88,7 @@ mod tests {
         tx_builder::decode_transaction,
     };
     use gem_encoding::encode_base64;
+    use primitives::hex;
     use sui_types::Transaction;
 
     #[test]

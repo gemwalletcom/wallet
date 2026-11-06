@@ -1,6 +1,7 @@
 use primitives::Address as AddressTrait;
 #[cfg(feature = "rpc")]
 use primitives::AddressError;
+use primitives::hex;
 
 pub struct NearAddress([u8; 32]);
 

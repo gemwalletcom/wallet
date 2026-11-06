@@ -89,6 +89,7 @@ fn expire_at_or_default(sequence: u32, expire_at: Option<u32>) -> Result<u32, Si
 #[cfg(test)]
 mod tests {
     use num_bigint::{BigInt, BigUint};
+    use primitives::hex;
     use primitives::{Address as AddressTrait, Asset, AssetId, AssetType, Chain, FeeOption, NFTAsset, SignerInput, TransactionFee, TransactionInputType, TransactionLoadMetadata, asset_constants::TON_USDT_TOKEN_ID, swap::SwapData};
 
     use super::super::{

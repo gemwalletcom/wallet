@@ -1,5 +1,6 @@
 mod transaction;
 
+use primitives::hex;
 use std::str::FromStr;
 
 use alloy_primitives::Address;

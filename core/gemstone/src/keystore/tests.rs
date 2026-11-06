@@ -1,3 +1,4 @@
+use primitives::hex;
 use primitives::testkit::temp_dir::TempDir;
 use primitives::{Chain, WalletType};
 use zeroize::Zeroizing;

@@ -41,6 +41,7 @@ fn account_body<'a>(data: &'a [u8], name: &str) -> Result<&'a [u8]> {
 
 #[cfg(test)]
 mod tests {
+    use primitives::hex;
 
     use super::*;
     use primitives::decode_hex_literal;

@@ -6,7 +6,7 @@ edition = { workspace = true }
 [features]
 default = []
 rpc = ["dep:async-trait", "dep:chrono", "dep:chain_traits", "dep:gem_client"]
-signer = ["dep:hex", "dep:num-traits"]
+signer = ["dep:num-traits"]
 reqwest = ["gem_client/reqwest"]
 chain_integration_tests = ["rpc", "reqwest", "settings/testkit"]
 
@@ -24,7 +24,6 @@ primitives = { path = "../primitives" }
 chain_traits = { path = "../chain_traits", optional = true }
 gem_client = { path = "../gem_client", optional = true }
 gem_hash = { path = "../gem_hash" }
-hex = { workspace = true, optional = true }
 signer = { path = "../signer" }
 
 [dev-dependencies]
@@ -33,4 +32,3 @@ gem_client = { path = "../gem_client", features = ["testkit"] }
 tokio = { workspace = true, features = ["macros", "rt"] }
 settings = { path = "../settings", features = ["testkit"] }
 primitives = { path = "../primitives", features = ["testkit"] }
-hex = { workspace = true }

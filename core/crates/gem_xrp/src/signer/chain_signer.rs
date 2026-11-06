@@ -136,6 +136,7 @@ fn swap_memo(data: &SwapQuoteData) -> XrpPaymentMemo {
 #[cfg(test)]
 mod tests {
     use num_bigint::BigUint;
+    use primitives::hex;
     use primitives::{
         AccountDataType, Asset, AssetId, Chain, SwapProvider, TransactionFee, TransactionInputType, TransactionLoadMetadata,
         asset_constants::{XRP_RLUSD_ASSET_ID, XRP_USDC_ASSET_ID},

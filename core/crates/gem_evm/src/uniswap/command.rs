@@ -440,6 +440,7 @@ mod tests {
         aliases::U48,
         hex::{decode as HexDecode, encode_prefixed as HexEncode},
     };
+    use primitives::hex;
     use primitives::{
         asset_constants::{ETHEREUM_USDC_TOKEN_ID, ETHEREUM_WETH_TOKEN_ID, OPTIMISM_USDC_E_TOKEN_ID, OPTIMISM_USDC_TOKEN_ID, OPTIMISM_WETH_TOKEN_ID},
         contract_constants::OPTIMISM_UNISWAP_V3_UNIVERSAL_ROUTER_CONTRACT,

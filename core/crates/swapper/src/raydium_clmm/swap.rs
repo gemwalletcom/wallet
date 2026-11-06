@@ -122,6 +122,7 @@ fn raydium_instruction(name: &str, args: &impl BorshSerialize, accounts: Vec<Acc
 mod tests {
     use super::*;
     use crate::raydium_clmm::testkit::{TEST_EXTENSION_POOL, TEST_LIMIT_ORDER_POOL, mock_pool_snapshot};
+    use primitives::hex;
 
     #[test]
     fn test_instruction_data() {

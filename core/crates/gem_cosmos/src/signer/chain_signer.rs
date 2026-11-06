@@ -131,6 +131,7 @@ impl CosmosChainSigner {
 
 #[cfg(test)]
 mod tests {
+    use primitives::hex;
     use std::collections::HashMap;
 
     use num_bigint::BigInt;

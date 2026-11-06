@@ -1,3 +1,4 @@
+use primitives::hex;
 use std::time::Duration;
 
 use gem_hash::sha2::sha256;

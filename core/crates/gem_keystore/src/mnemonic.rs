@@ -148,7 +148,7 @@ mod tests {
     fn test_seed() {
         let seed = Mnemonic::seed(ABANDON_PHRASE).unwrap();
         assert_eq!(
-            hex::encode(seed.as_slice()),
+            gem_encoding::encode_hex(seed.as_slice()),
             "5eb00bbddcf069084889a8ab9155568165f5c453ccb85e70811aaed6f6da5fc19a5ac40b389cd370d086206dec8aa6c43daea6690f20ad3d8d48b2d2ce9e38e4"
         );
     }
@@ -157,6 +157,6 @@ mod tests {
     fn test_entropy() {
         let entropy = Mnemonic::entropy(ABANDON_PHRASE).unwrap();
         assert_eq!(entropy.len(), Mnemonic::MIN_ENTROPY_LEN);
-        assert_eq!(hex::encode(entropy.as_slice()), "00000000000000000000000000000000");
+        assert_eq!(gem_encoding::encode_hex(entropy.as_slice()), "00000000000000000000000000000000");
     }
 }

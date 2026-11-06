@@ -1,3 +1,4 @@
+use primitives::hex;
 use primitives::unix_milliseconds;
 
 use zeroize::Zeroizing;

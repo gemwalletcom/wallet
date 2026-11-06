@@ -14,4 +14,3 @@ zeroize = { workspace = true }
 strum = { workspace = true }
 
 [dev-dependencies]
-hex = { workspace = true }

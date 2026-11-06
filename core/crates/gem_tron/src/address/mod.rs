@@ -1,5 +1,6 @@
 pub mod serializer;
 
+use primitives::hex;
 use std::fmt;
 
 #[cfg(feature = "signer")]

@@ -3,6 +3,7 @@ use gem_encoding::decode_base64;
 use gem_hash::sha2::sha256;
 use num_bigint::BigUint;
 use primitives::chain_cosmos::CosmosChain;
+use primitives::hex;
 use primitives::{AssetId, Transaction, TransactionState, TransactionType};
 use std::error::Error;
 

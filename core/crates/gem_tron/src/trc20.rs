@@ -1,5 +1,6 @@
 use num_bigint::BigUint;
 use primitives::Address as _;
+use primitives::hex;
 
 use crate::address::TronAddress;
 

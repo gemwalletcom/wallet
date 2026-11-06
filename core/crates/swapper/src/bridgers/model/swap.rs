@@ -1,6 +1,7 @@
 use gem_ton::tvm::BagOfCells;
 use gem_xrp::models::{Amount, TransactionMemo, memos_hash};
 use num_bigint::BigUint;
+use primitives::hex;
 use serde::{Deserialize, Serialize};
 
 use super::QuoteRequest;

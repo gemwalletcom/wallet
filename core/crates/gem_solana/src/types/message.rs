@@ -244,6 +244,7 @@ fn push_compact_slice(bytes: &mut Vec<u8>, slice: &[u8]) -> Result<()> {
 
 #[cfg(test)]
 mod tests {
+    use primitives::hex;
 
     use super::*;
     use crate::testkit::TEST_BLOCKHASH;

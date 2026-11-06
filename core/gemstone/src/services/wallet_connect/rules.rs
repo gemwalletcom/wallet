@@ -1,4 +1,5 @@
 use crate::constants::{WALLET_CONNECT_USER_REJECTED_ERROR_CODE, WALLET_CONNECT_USER_REJECTED_ERROR_MESSAGE};
+use primitives::hex;
 use std::collections::HashSet;
 use std::str::FromStr;
 

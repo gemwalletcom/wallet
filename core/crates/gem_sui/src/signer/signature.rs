@@ -38,6 +38,7 @@ fn assemble_signature(signature: &[u8], public_key: &[u8]) -> Result<String, Sig
 mod tests {
     use super::*;
     use gem_encoding::decode_base64;
+    use primitives::hex;
 
     #[test]
     fn test_sui_sign_personal_message() {

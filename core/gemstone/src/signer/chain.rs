@@ -237,6 +237,7 @@ mod tests {
     use super::*;
     use gem_evm::testkit::eip712_mock::mock_eip712_json;
     use primitives::contract_constants::HYPERLIQUID_ARBITRUM_DEPOSIT_ADDRESS;
+    use primitives::hex;
     use primitives::known_assets::HYPERCORE_SPOT_USDC;
     use primitives::testkit::signer_mock::{TEST_EVM_RECIPIENT, TEST_PRIVATE_KEY, TEST_PRIVATE_KEY_ETHEREUM_ADDRESS};
     use primitives::{

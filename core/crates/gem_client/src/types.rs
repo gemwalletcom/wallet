@@ -1,4 +1,5 @@
 use primitives::ResponseError;
+use primitives::hex;
 use serde::{Serialize, de::DeserializeOwned};
 use serde_json::Value;
 use std::collections::HashMap;

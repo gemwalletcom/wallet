@@ -147,6 +147,7 @@ mod tests {
     use super::*;
     use crate::orca::testkit::{TEST_WHIRLPOOL, mock_aqua_whirlpool};
     use gem_solana::instructions::program_ids::token_program;
+    use primitives::hex;
 
     #[test]
     fn test_swap_v2_data() {

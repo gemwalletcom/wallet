@@ -8,6 +8,7 @@ use gem_sui::{
     EMPTY_ADDRESS, ESTIMATION_GAS_BUDGET, SUI_COIN_TYPE, SUI_COIN_TYPE_FULL, SuiClient, address::SuiAddress, coin_type_matches, full_coin_type, gas_budget::GAS_BUDGET_MULTIPLIER, is_sui_coin, models::TxOutput, tx_builder::ObjectResolver,
 };
 use num_bigint::BigUint;
+use primitives::hex;
 use primitives::{Address as AddressTrait, AssetId, asset_constants::SUI_USDC_TOKEN_ID};
 use std::collections::HashMap;
 use sui_transaction_builder::{Argument, ObjectInput, TransactionBuilder};

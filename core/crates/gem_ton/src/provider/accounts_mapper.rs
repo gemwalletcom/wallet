@@ -1,3 +1,4 @@
+use primitives::hex;
 use std::error::Error;
 
 use crate::models::{RunGetMethodResult, StackEntry};

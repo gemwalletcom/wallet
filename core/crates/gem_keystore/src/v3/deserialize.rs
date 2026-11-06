@@ -40,7 +40,7 @@ where
     D: serde::Deserializer<'de>,
 {
     let value = String::deserialize(deserializer)?;
-    let decoded = hex::decode(&value).map_err(|_| serde::de::Error::custom(ERROR_HEX))?;
+    let decoded = gem_encoding::decode_hex(&value).map_err(|_| serde::de::Error::custom(ERROR_HEX))?;
     if decoded.len() < min || decoded.len() > max {
         return Err(serde::de::Error::custom(length_error));
     }

@@ -1,7 +1,10 @@
 use num_traits::ToPrimitive;
 #[cfg(any(test, feature = "rpc"))]
 use primitives::TransactionInputType;
-use primitives::{SignerError, TransactionLoadInput, TransactionLoadMetadata, hex::decode_hex_array};
+use primitives::{
+    SignerError, TransactionLoadInput, TransactionLoadMetadata,
+    hex::{self, decode_hex_array},
+};
 #[cfg(any(test, feature = "rpc"))]
 use signer::Ed25519KeyPair;
 

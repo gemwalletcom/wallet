@@ -16,7 +16,6 @@ gem_crypto = { path = "../gem_crypto" }
 aws-lc-rs = { workspace = true }
 futures = { workspace = true }
 async-trait = { workspace = true }
-hex = { workspace = true }
 jsonwebtoken = { workspace = true }
 uuid = { workspace = true }
 tokio = { workspace = true }

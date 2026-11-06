@@ -51,7 +51,6 @@ gem_auth = { path = "../../crates/gem_auth" }
 [dev-dependencies]
 primitives = { path = "../../crates/primitives", features = ["testkit"] }
 rewards = { path = "../../crates/rewards" }
-hex = { workspace = true }
 reqwest = { workspace = true }
 serde_urlencoded = { workspace = true }
 signer = { path = "../../crates/signer" }

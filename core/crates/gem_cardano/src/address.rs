@@ -86,6 +86,7 @@ impl ShelleyAddress {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::hex;
 
     #[test]
     fn test_shelley_address_decode() {

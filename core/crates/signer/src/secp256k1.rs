@@ -104,6 +104,7 @@ mod tests {
     use super::*;
     use crate::testkit::{TEST_PRIVATE_KEY, TEST_PRIVATE_KEY_ETHEREUM_ADDRESS};
     use alloy_primitives::U256;
+    use primitives::hex;
 
     const DIGEST: [u8; 32] = [7u8; 32];
     const RECOVERY_ID_INDEX: usize = 64;

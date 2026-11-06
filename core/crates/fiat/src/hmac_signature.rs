@@ -1,5 +1,6 @@
 use gem_encoding::encode_base64;
 use hmac::{Hmac, KeyInit, Mac};
+use primitives::hex;
 use sha2::Sha256;
 
 type HmacSha256 = Hmac<Sha256>;

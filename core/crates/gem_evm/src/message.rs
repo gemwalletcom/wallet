@@ -9,6 +9,7 @@ pub fn eip191_hash_message(message: &[u8]) -> [u8; 32] {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::hex;
 
     #[test]
     fn test_eip191_hash_message() {

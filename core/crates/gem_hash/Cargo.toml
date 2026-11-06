@@ -12,4 +12,4 @@ sha3 = { workspace = true }
 zeroize = { workspace = true }
 
 [dev-dependencies]
-hex = { workspace = true }
+gem_encoding = { path = "../gem_encoding", default-features = false }

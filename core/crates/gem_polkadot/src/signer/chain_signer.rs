@@ -30,6 +30,7 @@ impl PolkadotChainSigner {
 
 #[cfg(test)]
 mod tests {
+    use primitives::hex;
     use primitives::{AssetId, Chain, TransactionFee};
 
     use super::*;

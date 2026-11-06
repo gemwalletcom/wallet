@@ -7,6 +7,7 @@ use bitcoin::{
     secp256k1::{Message, PublicKey as Secp256k1PublicKey, Secp256k1, SecretKey, Signing},
     sighash::{EcdsaSighashType, SighashCache},
 };
+use primitives::hex;
 use primitives::{BitcoinChain, SignerError};
 
 use crate::signer::{

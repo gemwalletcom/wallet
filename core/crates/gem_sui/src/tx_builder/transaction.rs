@@ -98,6 +98,7 @@ pub fn validate_and_hash(encoded: &str) -> Result<TxOutput, Box<dyn Error + Send
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::hex;
     use sui_types::{Transaction, TransactionKind};
 
     #[test]

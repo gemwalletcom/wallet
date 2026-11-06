@@ -14,7 +14,6 @@ gem_ton = { path = "../gem_ton", features = ["signer"] }
 
 gem_encoding = { path = "../gem_encoding" }
 chrono = { workspace = true }
-hex = { workspace = true }
 num-bigint = { workspace = true }
 serde_json = { workspace = true }
 url = { workspace = true }

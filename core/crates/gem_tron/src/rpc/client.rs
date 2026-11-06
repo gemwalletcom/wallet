@@ -1,5 +1,6 @@
 use alloy_sol_types::SolCall;
 use num_bigint::BigUint;
+use primitives::hex;
 use primitives::{Asset, AssetId, asset_type::AssetType, chain::Chain, decode_hex};
 use std::{error::Error, str::FromStr};
 

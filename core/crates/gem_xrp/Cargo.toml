@@ -14,7 +14,6 @@ chain_integration_tests = ["rpc", "reqwest", "settings/testkit"]
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 async-trait = { workspace = true }
-hex = { workspace = true }
 primitives = { path = "../primitives" }
 number_formatter = { path = "../number_formatter" }
 num-bigint = { workspace = true }

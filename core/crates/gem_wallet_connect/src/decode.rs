@@ -1,13 +1,13 @@
 use gem_evm::siwe::SiweMessage;
-use hex::FromHex;
 use primitives::Chain;
+use primitives::hex;
 
 use crate::sign_type::{SignDigestType, SignMessage};
 
 pub fn decode_sign_message(chain: Chain, sign_type: SignDigestType, data: String) -> SignMessage {
     let mut utf8_value = None;
     let message_data = if let Some(stripped) = data.strip_prefix("0x") {
-        Vec::from_hex(stripped).unwrap_or_else(|_| data.as_bytes().to_vec())
+        hex::decode(stripped).unwrap_or_else(|_| data.as_bytes().to_vec())
     } else {
         utf8_value = Some(data.clone());
         data.into_bytes()

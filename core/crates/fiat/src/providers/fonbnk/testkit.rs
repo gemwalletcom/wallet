@@ -1,4 +1,5 @@
 use gem_client::ReqwestClient;
+use primitives::hex;
 
 use crate::FiatWebhookRequest;
 

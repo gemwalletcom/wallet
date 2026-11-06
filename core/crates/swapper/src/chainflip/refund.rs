@@ -40,6 +40,7 @@ impl VaultSwapRefund {
 mod tests {
     use super::*;
     use crate::chainflip::testkit::mock_refund;
+    use primitives::hex;
     use primitives::testkit::signer_mock::{TEST_BITCOIN_SENDER, TEST_EVM_SENDER};
 
     #[test]

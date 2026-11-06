@@ -54,6 +54,7 @@ impl AddressLookupTableAccount {
 
 #[cfg(test)]
 mod tests {
+    use primitives::hex;
 
     use super::*;
     use crate::types::Pubkey;

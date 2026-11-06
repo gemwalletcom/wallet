@@ -1,4 +1,5 @@
 use gem_hash::blake2::blake2b_224;
+use primitives::hex;
 use primitives::{ChainSigner, SignerError, SignerInput};
 
 use crate::{

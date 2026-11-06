@@ -165,6 +165,7 @@ impl OwnerKind {
 mod tests {
     use super::*;
     use gem_encoding::protobuf::MessageDecode;
+    use primitives::hex;
 
     #[test]
     fn test_object_response_wire_bytes_decode() {

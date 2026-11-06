@@ -7,7 +7,7 @@ where
     T: AsRef<[u8]> + ?Sized,
     S: Serializer,
 {
-    serializer.serialize_str(&hex::encode(value.as_ref()))
+    serializer.serialize_str(&gem_encoding::encode_hex(value.as_ref()))
 }
 
 pub fn deserialize<'de, D>(deserializer: D) -> Result<Vec<u8>, D::Error>
@@ -18,7 +18,7 @@ where
     decode(&value).map_err(D::Error::custom)
 }
 
-fn decode(value: &str) -> Result<Vec<u8>, hex::FromHexError> {
+fn decode(value: &str) -> Result<Vec<u8>, gem_encoding::EncodingError> {
     let value = value.trim();
     let value = value.strip_prefix("0x").or_else(|| value.strip_prefix("0X")).unwrap_or(value);
     if value.is_empty() {
@@ -26,7 +26,7 @@ fn decode(value: &str) -> Result<Vec<u8>, hex::FromHexError> {
     }
 
     let normalized = if value.len() % 2 == 1 { Cow::Owned(format!("0{value}")) } else { Cow::Borrowed(value) };
-    hex::decode(normalized.as_ref())
+    gem_encoding::decode_hex(normalized.as_ref())
 }
 
 pub mod option {
@@ -37,7 +37,7 @@ pub mod option {
         S: Serializer,
     {
         match value {
-            Some(value) => serializer.serialize_some(&hex::encode(value)),
+            Some(value) => serializer.serialize_some(&gem_encoding::encode_hex(value)),
             None => serializer.serialize_none(),
         }
     }
