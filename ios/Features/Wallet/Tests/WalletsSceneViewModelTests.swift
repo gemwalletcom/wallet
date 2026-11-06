@@ -18,7 +18,11 @@ import WalletTestKit
 struct WalletsSceneViewModelTests {
     @Test
     func onDeleteConfirmed() async throws {
-        let db = DB.mock(wallets: ["0x1", "0x2", "0x3"].map { .mock(id: .multicoin(address: $0)) })
+        let db = DB.mock(wallets: [
+            .mock(id: .multicoin(address: "0x1"), index: 0),
+            .mock(id: .multicoin(address: "0x2"), index: 2),
+            .mock(id: .multicoin(address: "0x3"), index: 1),
+        ])
         let walletStore = WalletStore.mock(db: db)
 
         let sessionStore = GemstoneWalletSessionStore.mock()
@@ -33,13 +37,13 @@ struct WalletsSceneViewModelTests {
 
         await model.onDeleteConfirmed(row: .mock(id: .multicoin(address: "0x1")))
 
-        #expect(model.currentWalletId == .multicoin(address: "0x2"))
-
-        await model.onDeleteConfirmed(row: .mock(id: .multicoin(address: "0x2")))
-
         #expect(model.currentWalletId == .multicoin(address: "0x3"))
 
         await model.onDeleteConfirmed(row: .mock(id: .multicoin(address: "0x3")))
+
+        #expect(model.currentWalletId == .multicoin(address: "0x2"))
+
+        await model.onDeleteConfirmed(row: .mock(id: .multicoin(address: "0x2")))
 
         #expect(model.currentWalletId == .none)
     }

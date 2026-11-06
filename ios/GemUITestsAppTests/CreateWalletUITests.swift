@@ -21,6 +21,15 @@ final class CreateWalletUITests: XCTestCase {
 
         let words = creationFlow(app: app, checkShowSecretDataScene: true)
 
+        app.tap("receive_button")
+        app.tap("bitcoin")
+
+        let address = app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH %@", "bc1q")).firstMatch
+        XCTAssertTrue(address.waitForExistence(timeout: 10))
+        app.tapMainAction()
+
+        app.tapBack()
+        app.tapBack()
         app.tapWalletBar()
 
         app.tapWalletSettings()
@@ -39,6 +48,9 @@ final class CreateWalletUITests: XCTestCase {
         app.tapCreateWallet()
 
         _ = creationFlow(app: app, checkShowSecretDataScene: false)
+
+        app.tapWalletBar()
+        XCTAssertEqual(app.getWalletsCount(), 2)
     }
 
     private func creationFlow(app: XCUIApplication, checkShowSecretDataScene: Bool) -> [String] {
@@ -47,11 +59,16 @@ final class CreateWalletUITests: XCTestCase {
         app.tapMainAction()
 
         let words = app.getWords()
+        if checkShowSecretDataScene {
+            app.reopenFromBackground()
+            XCTAssertEqual(app.getWords(), words)
+        }
         app.tapMainAction()
 
         if checkShowSecretDataScene {
+            app.reopenFromBackground()
             app.tapBack()
-            words.forEach { XCTAssert(app.staticTexts[$0].exists) }
+            XCTAssertEqual(app.getWords(), words)
         }
         app.tapMainAction()
 

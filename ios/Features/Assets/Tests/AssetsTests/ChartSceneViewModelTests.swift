@@ -34,12 +34,14 @@ struct ChartSceneViewModelTests {
 
     @Test
     func switchingStyleGoesThroughTheService() {
-        let model = ChartSceneViewModel.mock()
+        let service = GemChartServiceMock()
+        let model = ChartSceneViewModel.mock(service: service)
         #expect(model.chartStyle == .line)
 
         model.onSwitchStyle(.candles)
 
         #expect(model.chartStyle == .candles)
+        #expect(ChartSceneViewModel.mock(service: service).chartStyle == .candles)
     }
 }
 

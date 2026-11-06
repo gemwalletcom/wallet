@@ -123,6 +123,20 @@ class ConfirmTransferViewModelRequestTest {
         assertEquals(GemConfirmFeeSelection.Priority(FeePriority.Fast.toGem()), options.last().feeSelection)
     }
 
+    @Test
+    fun initForTheSameTransferLeavesTheScreenItsLoadReached() = runTest(testDispatcher) {
+        val transfer = mockGemTransferData(inputType = TransactionInputType.Transfer(asset.toGem()), recipient = GemRecipient(address = account.address, memo = "reinit"), value = BigInteger.ONE)
+        val viewModel = viewModel(SavedStateHandle())
+        viewModel.init(transfer)
+        advanceUntilIdle()
+        assertEquals(GemConfirmPhase.FAILED, viewModel.screen.value.phase)
+
+        viewModel.init(transfer)
+        advanceUntilIdle()
+
+        assertEquals(GemConfirmPhase.FAILED, viewModel.screen.value.phase)
+    }
+
     private fun viewModel(handle: SavedStateHandle): ConfirmTransferViewModel {
         every { confirm.confirmService.confirmation(any(), any(), any()) } returns confirmation
         every { confirmation.screen() } returns mockGemConfirmScreen()

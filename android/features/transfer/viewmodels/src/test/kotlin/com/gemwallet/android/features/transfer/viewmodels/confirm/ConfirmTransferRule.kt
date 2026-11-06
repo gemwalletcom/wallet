@@ -40,8 +40,8 @@ class ConfirmTransferRule(dispatcher: TestDispatcher, private val account: Accou
         toastPresenter = toastPresenter,
         ioDispatcher = dispatcher,
         context = mockk<Context> {
-            every { getString(any()) } returns "Error"
-            every { getString(any(), *anyVararg()) } returns "Error"
+            every { getString(any()) } answers { "${firstArg<Int>()}" }
+            every { getString(any(), *anyVararg()) } answers { "${firstArg<Int>()}" }
         },
     ).also { model = it }
 

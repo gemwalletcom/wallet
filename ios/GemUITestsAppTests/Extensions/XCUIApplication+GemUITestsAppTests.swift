@@ -44,6 +44,13 @@ extension XCUIApplication {
         navigationBars.buttons.element(boundBy: 0).tap()
     }
 
+    func reopenFromBackground() {
+        XCUIDevice.shared.press(.home)
+        XCTAssertTrue(wait(for: .runningBackground, timeout: 10))
+        activate()
+        XCTAssertTrue(wait(for: .runningForeground, timeout: 10))
+    }
+
     func getWords() -> [String] {
         XCTAssertTrue(staticTexts["word_11"].waitForExistence(timeout: 10), "word_11 not found")
         return (0 ..< 12).map { staticTexts["word_\($0)"].label }
@@ -55,6 +62,11 @@ extension XCUIApplication {
 
     func tapWalletBar() {
         tap("walletBar")
+    }
+
+    func getWalletsCount() -> Int {
+        XCTAssertTrue(element("wallet_edit").waitForExistence(timeout: 10), "wallet_edit not found")
+        return descendants(matching: .any).matching(identifier: "wallet_edit").count
     }
 
     func tapWalletSettings() {

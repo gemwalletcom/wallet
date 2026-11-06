@@ -36,6 +36,9 @@ final class ImportWalletReceiveBitcoinUITests: XCTestCase {
         app.tapImportWallet()
 
         importFlow(app: app, words: UITestKitConstants.words2)
+
+        app.tapWalletBar()
+        XCTAssertEqual(app.getWalletsCount(), 2)
     }
 
     func importFlow(app: XCUIApplication, words: String) {

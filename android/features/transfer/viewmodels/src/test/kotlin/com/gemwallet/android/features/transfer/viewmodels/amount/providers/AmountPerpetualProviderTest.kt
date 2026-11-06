@@ -4,13 +4,11 @@ import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.data.services.store.queries.AssetQuery
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.AmountParams
-import com.gemwallet.android.testkit.mockAsset
-import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockGemPerpetualTransferData
+import com.gemwallet.android.testkit.mockHyperCoreBtc
+import com.gemwallet.android.testkit.mockHyperCoreUsdc
 import com.gemwallet.android.testkit.mockPerpetualId
 import com.gemwallet.android.testkit.mockWalletId
-import com.wallet.core.primitives.AssetType
-import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.PerpetualMarginType
 import com.wallet.core.primitives.PerpetualProvider
@@ -96,8 +94,8 @@ class AmountPerpetualProviderTest {
             mockGemPerpetualTransferData(
                 provider = PerpetualProvider.Hypercore.toGem(),
                 direction = direction.toGem(),
-                asset = mockAsset(id = mockAssetId(chain = Chain.HyperCore, tokenId = "UBTC::0x8f254b963e8468305d409b33aa137c67::197"), name = "Bitcoin", symbol = "UBTC", decimals = 10u, type = AssetType.TOKEN).toGem(),
-                baseAsset = mockAsset(id = mockAssetId(chain = Chain.HyperCore, tokenId = "USDC::0x6d1e7cde53ba9467b783cb7c530ce054::0"), name = "USDC", symbol = "USDC", decimals = 8u, type = AssetType.TOKEN).toGem(),
+                asset = mockHyperCoreBtc().toGem(),
+                baseAsset = mockHyperCoreUsdc().toGem(),
                 price = 100.0,
                 leverage = 10u,
                 marginType = PerpetualMarginType.Cross.toGem(),
@@ -114,7 +112,7 @@ class AmountPerpetualProviderTest {
             every { newPerpetualSession(any(), any()) } answers { session(firstArg(), secondArg()) }
         }
         return AmountPerpetualProvider(
-            params = AmountParams.Perpetual(assetId = mockAssetId(chain = Chain.HyperCore, tokenId = "UBTC::0x8f254b963e8468305d409b33aa137c67::197"), perpetualId = mockPerpetualId(symbol = "BTC-PERP"), positionAction = action),
+            params = AmountParams.Perpetual(assetId = mockHyperCoreBtc().id, perpetualId = mockPerpetualId(symbol = "BTC-PERP"), positionAction = action),
             service = service,
             getCurrentWalletId = getCurrentWalletId,
             assetQuery = assetQuery,

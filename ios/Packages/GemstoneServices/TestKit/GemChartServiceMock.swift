@@ -17,6 +17,7 @@ public final class GemChartServiceMock: GemChartServiceProtocol, @unchecked Send
     private let charts: @Sendable (GemChartRequest) async -> GemChart
     public let requests: AsyncStream<GemChartRequest>
     private let requested: AsyncStream<GemChartRequest>.Continuation
+    private var savedStyle: GemChartStyle = .line
 
     public init(charts: @escaping @Sendable (GemChartRequest) async -> GemChart = { _ in .mock() }) {
         self.charts = charts
@@ -33,7 +34,7 @@ public final class GemChartServiceMock: GemChartServiceProtocol, @unchecked Send
             isLoading: true,
             isRefreshing: false,
             zoom: GemChartZoom(scale: 1, offset: 0),
-            style: .line,
+            style: savedStyle,
             hasCandles: false,
             candles: [],
             candlesError: nil,
@@ -42,6 +43,7 @@ public final class GemChartServiceMock: GemChartServiceProtocol, @unchecked Send
     }
 
     public func selectStyle(session: GemChartSession, style: GemChartStyle) -> GemChartSession {
+        savedStyle = style
         var selected = session
         selected.style = style
         return selected

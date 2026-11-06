@@ -24,15 +24,18 @@ struct ConnectionsSceneViewModelTests {
         model.query.value = [connection]
 
         #expect(model.view.sections.map(\.title) == ["Active"])
+        #expect(service.viewedConnections == [connection.toGem()])
         #expect(model.view.sections.first?.connections.count == 1)
         #expect(model.view.phase == .rows)
     }
 
     @Test
     func noConnectionsMeanNoSections() {
-        let model = ConnectionsSceneViewModel.mock()
+        let service = GemWalletConnectServiceMock()
+        let model = ConnectionsSceneViewModel.mock(service: service)
 
         #expect(model.view.sections.isEmpty)
+        #expect(service.viewedConnections.isEmpty)
         #expect(model.view.phase == .empty(state: emptyState(kind: .walletConnect)))
         #expect(model.connections.isEmpty)
     }
@@ -42,10 +45,13 @@ struct ConnectionsSceneViewModelTests {
         let service = GemWalletConnectServiceMock()
         service.connectionDetailRows = [.text(title: .wallet, value: "Main Wallet")]
         let model = ConnectionsSceneViewModel.mock(service: service)
+        let connection = WalletConnection.mock(session: .mock(sessionId: "topic"))
+        model.query.value = [.mock(session: .mock(sessionId: "other")), connection]
 
-        let details = model.connectionDetails(connection: .mock())
+        let details = model.connectionDetails(connection: connection)
 
         #expect(details.rows == [.text(title: .wallet, value: "Main Wallet")])
+        #expect(details.connection.connection == connection.toGem())
     }
 
     @Test
@@ -59,11 +65,14 @@ struct ConnectionsSceneViewModelTests {
 
     @Test
     func aScannedUriPairsAndShowsTheConnectorBar() async {
+        let uri = "wc:abc@2?relay-protocol=irn&symKey=123"
+        let connector = WalletConnectorServiceMock()
         let presenter = WalletConnectorPresenter()
-        let model = ConnectionsSceneViewModel.mock(walletConnectorPresenter: presenter)
+        let model = ConnectionsSceneViewModel.mock(connector: connector, walletConnectorPresenter: presenter)
 
-        await model.onHandleScan("wc:topic@2")
+        await model.onHandleScan(uri)
 
+        #expect(await connector.pairedURIs == [uri])
         #expect(presenter.isPresentingConnectionBar)
         #expect(model.isPresentingAlertMessage == nil)
     }
