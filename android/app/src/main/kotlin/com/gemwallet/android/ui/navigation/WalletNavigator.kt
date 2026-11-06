@@ -399,7 +399,7 @@ class WalletNavigator(
     }
 
     fun popConfirmFlow() {
-        popFrom(backStack.indexOfLast { !it.isConfirmFlowSegmentRoute() } + 1)
+        popFrom(backStack.dropLast(1).indexOfLast { !it.isConfirmFlowSegmentRoute() || it is ConfirmTransferRoute } + 1)
     }
 
     private fun popFrom(index: Int) {

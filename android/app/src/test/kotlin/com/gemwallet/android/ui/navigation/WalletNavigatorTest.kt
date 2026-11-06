@@ -576,6 +576,34 @@ class WalletNavigatorTest {
     }
 
     @Test
+    fun popConfirmFlow_popsGetAssetSwapFlowToLaunchingConfirm() {
+        val assetId = mockAssetId(Chain.Solana)
+        val feeAssetId = mockAssetId(Chain.Ethereum)
+        val navigator = navigatorWith(
+            WalletRootRoute,
+            AssetRoute(assetId),
+            RecipientRoute(assetId),
+            AmountRoute("amount"),
+            ConfirmTransferRoute("confirm"),
+            SwapPairRoute(from = null, to = feeAssetId),
+            ConfirmTransferRoute("swap"),
+        )
+
+        navigator.popConfirmFlow()
+
+        assertEquals(
+            listOf(
+                WalletRootRoute,
+                AssetRoute(assetId),
+                RecipientRoute(assetId),
+                AmountRoute("amount"),
+                ConfirmTransferRoute("confirm"),
+            ),
+            navigator.backStack.toList(),
+        )
+    }
+
+    @Test
     fun popConfirmFlow_popsPerpetualDepositFlowToPerpetuals() {
         val navigator = navigatorWith(
             WalletRootRoute,
