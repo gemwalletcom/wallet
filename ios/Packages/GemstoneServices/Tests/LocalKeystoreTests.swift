@@ -58,7 +58,7 @@ struct LocalKeystoreTests {
         )
 
         let exported = try await keystore.exportedPrivateKey(wallet: wallet, chain: .solana)
-        #expect(exported == "DTJi5pMtSKZHdkLX4wxwvjGjf2xwXx1LSuuUZhugYWDV")
+        #expect(exported == "4ha2npeRkDXipjgGJ3L5LhZ9TK9dRjP2yktydkFBhAzXj3N8ytpYyTS24kxcYGEefy4WKWRcog2zSPvpPZoGmxCC")
 
         let keystore2 = LocalKeystore.mock()
         let wallet2 = try keystore2.importWallet(
