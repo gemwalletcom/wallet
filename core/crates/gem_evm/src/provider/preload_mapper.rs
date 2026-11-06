@@ -73,10 +73,10 @@ pub fn get_transaction_params(input: &TransactionLoadInput) -> Result<Transactio
                             SwapQuoteDataType::Transfer if input.is_max_value => BigInt::ZERO,
                             _ => BigInt::from(swap_data.data.value.clone()),
                         };
-                        Ok(TransactionParams::new(swap_data.data.to.clone(), hex::decode(swap_data.data.data.clone())?, value))
+                        Ok(TransactionParams::new(swap_data.data.to.clone(), decode_hex(&swap_data.data.data)?, value))
                     }
                     AssetSubtype::TOKEN => match swap_data.data.data_type {
-                        SwapQuoteDataType::Contract => Ok(TransactionParams::new(swap_data.data.to.clone(), hex::decode(swap_data.data.data.clone())?, BigInt::ZERO)),
+                        SwapQuoteDataType::Contract => Ok(TransactionParams::new(swap_data.data.to.clone(), decode_hex(&swap_data.data.data)?, BigInt::from(swap_data.data.value.clone()))),
                         SwapQuoteDataType::Transfer => {
                             let to = from_asset.token_id().ok_or("Missing token ID")?;
                             let data = encode_erc20_transfer(&swap_data.data.to, &value)?;
@@ -161,6 +161,24 @@ mod tests {
     use primitives::Asset;
     use primitives::swap::{ApprovalData, Permit2ApprovalData, SwapData, SwapQuoteData};
     use primitives::testkit::signer_mock::TEST_EVM_RECIPIENT;
+
+    #[test]
+    fn test_get_transaction_params_contract_swap() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let input = TransactionLoadInput::mock_evm(
+            TransactionInputType::Swap {
+                from_asset: Asset::mock_erc20(),
+                to_asset: Asset::mock_eth(),
+                swap_data: SwapData {
+                    data: SwapQuoteData::mock_contract_call(TEST_EVM_RECIPIENT, "500", "0xabcd", None),
+                    ..SwapData::mock()
+                },
+            },
+            "1000",
+        );
+
+        assert_eq!(get_transaction_params(&input)?, TransactionParams::new(TEST_EVM_RECIPIENT, vec![0xab, 0xcd], BigInt::from(500)));
+        Ok(())
+    }
 
     #[test]
     fn test_get_transaction_params_payment() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
