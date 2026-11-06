@@ -3,6 +3,7 @@ package com.gemwallet.android.features.settings.viewmodels
 import android.content.Context
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.device.cases.GetPushEnabled
+import com.gemwallet.android.application.device.cases.RefreshPushEnabled
 import com.gemwallet.android.application.device.cases.SwitchPushEnabled
 import com.gemwallet.android.application.preferences.cases.ObservablePreferences
 import com.gemwallet.android.data.services.store.queries.WalletListItemsQuery
@@ -66,6 +67,8 @@ class SettingsViewModelTest {
     private val getPushEnabled = object : GetPushEnabled {
         override fun getPushEnabled() = pushEnabled
     }
+
+    private val refreshPushEnabled = mockk<RefreshPushEnabled>(relaxed = true)
 
     private lateinit var viewModel: SettingsViewModel
 
@@ -157,6 +160,7 @@ class SettingsViewModelTest {
         walletListItemsQuery = walletListItemsQuery,
         switchPushEnabled = switchPushEnabled,
         getPushEnabled = getPushEnabled,
+        refreshPushEnabled = refreshPushEnabled,
         notificationsAvailable = true,
         settingsService = settingsService,
         isWalletConnectEnabled = mockk { every { isWalletConnectEnabled() } returns true },

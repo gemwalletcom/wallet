@@ -7,8 +7,13 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -88,11 +93,25 @@ class DevicePushSettingsTest {
         assertEquals(GemPushResult.NotRegistered(GemErrorText.NetworkOffline), state.result)
     }
 
-    private fun TestScope.settings(configStore: ConfigStore) = DevicePushSettings(
+    @Test
+    fun `a return to the app shows what Core reads now`() = runTest {
+        every { notificationsService.isEnabled() } returns true
+        val subject = settings(mockk<ConfigStore>(relaxed = true), ioDispatcher = UnconfinedTestDispatcher(testScheduler))
+        val shown = mutableListOf<Boolean>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { subject.getPushEnabled().toList(shown) }
+
+        coEvery { notificationsService.refresh() } returns false
+        subject.refreshPushEnabled()
+
+        assertEquals("a permission revoked in system settings turns the toggle off", listOf(true, false), shown)
+    }
+
+    private fun TestScope.settings(configStore: ConfigStore, ioDispatcher: CoroutineDispatcher = Dispatchers.IO) = DevicePushSettings(
         configStore = configStore,
         notificationsAvailable = true,
         deviceService = mockk<Lazy<GemDeviceService>> { every { get() } returns deviceService },
         notificationsService = mockk<Lazy<GemNotificationsService>> { every { get() } returns notificationsService },
+        ioDispatcher = ioDispatcher,
         scope = this,
     )
 }

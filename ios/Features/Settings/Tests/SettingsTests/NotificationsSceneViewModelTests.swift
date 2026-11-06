@@ -31,4 +31,26 @@ struct NotificationsSceneViewModelTests {
         #expect(model.isEnabled == true, "the preference Core stored is what the toggle shows")
         #expect(model.isPresentingAlertMessage?.message == GemErrorText.networkOffline.text)
     }
+
+    @Test
+    func theToggleStartsFromTheStoredChoice() {
+        let model = NotificationsSceneViewModel(service: GemNotificationsServiceMock(state: GemPushState(isEnabled: true, result: .stored)))
+
+        #expect(model.isEnabled == true, "no off-then-on flicker while the permission is read")
+    }
+
+    @Test
+    func returningToTheAppShowsWhatCoreReadsFromTheSystemPermission() async {
+        let service = GemNotificationsServiceMock(state: GemPushState(isEnabled: true, result: .stored))
+        let model = NotificationsSceneViewModel(service: service)
+
+        await model.refresh()
+        #expect(model.isEnabled == true)
+
+        service.state = GemPushState(isEnabled: false, result: .stored)
+        await model.refresh()
+
+        #expect(model.isEnabled == false, "a permission revoked in system settings turns the toggle off")
+        #expect(service.requested.isEmpty, "re-reading never stores a choice the user did not make")
+    }
 }

@@ -4,6 +4,7 @@ import android.content.Context
 import com.gemwallet.android.application.device.cases.EnablePushForNewWallet
 import com.gemwallet.android.application.device.cases.EnablePushForSupport
 import com.gemwallet.android.application.device.cases.GetPushEnabled
+import com.gemwallet.android.application.device.cases.RefreshPushEnabled
 import com.gemwallet.android.application.device.cases.RequestPushToken
 import com.gemwallet.android.application.device.cases.SetPushToken
 import com.gemwallet.android.application.device.cases.SwitchPushEnabled
@@ -93,6 +94,9 @@ object DeviceModule {
 
     @Provides
     fun provideGetPushEnabledCase(pushSettings: DevicePushSettings): GetPushEnabled = pushSettings
+
+    @Provides
+    fun provideRefreshPushEnabledCase(pushSettings: DevicePushSettings): RefreshPushEnabled = pushSettings
 
     @Provides
     fun provideSetPushTokenCase(pushSettings: DevicePushSettings): SetPushToken = pushSettings

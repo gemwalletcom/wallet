@@ -40,10 +40,15 @@ impl GemNotificationsService {
     }
 
     pub async fn ask_to_enable(&self) -> Option<GemPushState> {
-        if !self.permissions.is_available() || self.preferences.is_push_notifications_enabled() || !self.preferences.should_ask_notifications() {
+        if !self.permissions.is_available() || self.is_active().await || !self.preferences.should_ask_notifications() {
             return None;
         }
         Some(self.set_enabled(true).await)
+    }
+
+    pub async fn refresh(&self) -> bool {
+        let _ = self.device.synchronize_if_needed().await;
+        self.is_active().await
     }
 
     pub async fn set_enabled(&self, enabled: bool) -> GemPushState {
@@ -54,23 +59,30 @@ impl GemNotificationsService {
 }
 
 impl GemNotificationsService {
+    async fn is_active(&self) -> bool {
+        self.is_enabled() && self.permissions.is_granted().await
+    }
+
     async fn push_state(&self, enabled: bool) -> GemPushState {
         let wanted = enabled && self.permissions.is_available();
         if wanted {
             match self.permissions.request_permissions_or_open_settings().await {
                 Ok(true) => {}
-                Ok(false) => return self.state(GemPushResult::PermissionDenied),
-                Err(error) => return self.state(GemPushResult::NotRegistered { error: error.text() }),
+                Ok(false) => {
+                    let _ = self.device.set_push_enabled(true).await;
+                    return self.state(GemPushResult::PermissionDenied).await;
+                }
+                Err(error) => return self.state(GemPushResult::NotRegistered { error: error.text() }).await,
             }
         }
         match self.device.set_push_enabled(wanted).await {
-            Ok(()) => self.state(GemPushResult::Stored),
-            Err(error) => self.state(GemPushResult::NotRegistered { error: error.text() }),
+            Ok(()) => self.state(GemPushResult::Stored).await,
+            Err(error) => self.state(GemPushResult::NotRegistered { error: error.text() }).await,
         }
     }
 
-    fn state(&self, result: GemPushResult) -> GemPushState {
-        GemPushState { is_enabled: self.is_enabled(), result }
+    async fn state(&self, result: GemPushResult) -> GemPushState {
+        GemPushState { is_enabled: self.is_active().await, result }
     }
 }
 
@@ -96,6 +108,10 @@ mod tests {
     impl GemNotificationPermissions for TestPermissions {
         fn is_available(&self) -> bool {
             self.available.load(Ordering::SeqCst)
+        }
+
+        async fn is_granted(&self) -> bool {
+            self.granted.load(Ordering::SeqCst)
         }
 
         async fn request_permissions_or_open_settings(&self) -> Result<bool, GemServiceError> {
@@ -206,6 +222,56 @@ mod tests {
             assert!(matches!(state.result, GemPushResult::NotRegistered { .. }));
             assert!(!state.is_enabled);
             assert_eq!(permissions.requests.load(Ordering::SeqCst), 0, "an unavailable permission is never requested");
+        })
+    }
+
+    #[test]
+    fn test_a_permission_revoked_in_system_settings_turns_the_toggle_off_and_lets_the_app_ask_again() {
+        block_on(async {
+            let permissions = Arc::new(TestPermissions::default());
+            permissions.available.store(true, Ordering::SeqCst);
+            permissions.granted.store(true, Ordering::SeqCst);
+            let service = service(503, permissions.clone());
+            service.preferences.set_push_notifications_enabled(true).unwrap();
+            assert!(service.is_active().await);
+
+            permissions.granted.store(false, Ordering::SeqCst);
+
+            assert!(!service.is_active().await, "the toggle follows the system permission, not the stored preference");
+            assert!(service.ask_to_enable().await.is_some(), "a new wallet asks again");
+            assert_eq!(permissions.requests.load(Ordering::SeqCst), 1);
+        })
+    }
+
+    #[test]
+    fn test_a_permission_granted_after_the_user_turned_push_on_shows_it_on() {
+        block_on(async {
+            let permissions = Arc::new(TestPermissions::default());
+            permissions.available.store(true, Ordering::SeqCst);
+            let service = service(200, permissions.clone());
+
+            assert_eq!(service.set_enabled(true).await.result, GemPushResult::PermissionDenied);
+            assert!(service.is_enabled(), "the choice is stored without the permission");
+            assert!(!service.refresh().await, "no permission yet");
+
+            permissions.granted.store(true, Ordering::SeqCst);
+
+            assert!(service.refresh().await, "the user's choice is kept while they grant it in system settings");
+        })
+    }
+
+    #[test]
+    fn test_a_permission_granted_after_the_user_turned_push_off_keeps_it_off() {
+        block_on(async {
+            let permissions = Arc::new(TestPermissions::default());
+            permissions.available.store(true, Ordering::SeqCst);
+            let service = service(200, permissions.clone());
+
+            service.set_enabled(true).await;
+            service.set_enabled(false).await;
+            permissions.granted.store(true, Ordering::SeqCst);
+
+            assert!(!service.refresh().await);
         })
     }
 }

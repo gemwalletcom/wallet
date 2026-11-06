@@ -14,6 +14,10 @@ public final class GemstoneNotificationPermissions: GemNotificationPermissions, 
         true
     }
 
+    public func isGranted() async -> Bool {
+        await service.getNotificationSettingsStatus().isAuthorized
+    }
+
     public func requestPermissionsOrOpenSettings() async throws -> Bool {
         try await service.requestPermissionsOrOpenSettings()
     }

@@ -5,5 +5,6 @@ use async_trait::async_trait;
 #[async_trait]
 pub trait GemNotificationPermissions: Send + Sync {
     fn is_available(&self) -> bool;
+    async fn is_granted(&self) -> bool;
     async fn request_permissions_or_open_settings(&self) -> Result<bool, GemServiceError>;
 }

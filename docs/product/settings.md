@@ -48,6 +48,9 @@ flowchart LR
 | The phone is turned, or the appearance, text size or language changes, while Gem is unlocked | Gem stays unlocked, and a transaction prompt open at the time still completes | that is not leaving Gem; Android recreates the screen, and counting it as leaving asked to unlock again with Immediately and kept Confirm loading for 5 minutes |
 | The lock is on but the device passcode was turned off | the lock stays and says the device passcode is off and must be turned on to open Gem | the lock relies on the device passcode, so there is nothing else to unlock with |
 | The user turns the push switch on | the app asks the system for permission | |
+| The user turned the push switch on, allows notifications in the system settings and returns to Gem | the switch shows on | the user already chose push; only the permission was missing |
+| The user turned the push switch off and allows notifications in the system settings | the switch stays off | the system permission does not override the user's choice |
+| Notifications are turned off in the system settings and the user returns to Gem | the switch shows off, and the app offers push again like any device without the permission | the switch shows whether pushes can arrive |
 | A wallet is created or imported, including one that was already on the device | the app offers push right after | |
 | A network API does not expose a latest block, such as HyperCore | the node row shows a dash for Latest Block and still measures the API response latency | a missing capability is not a failed node |
 | A network's selected node is no longer offered, because an update removed it or the added node is gone | from the next launch the network uses the US Gem Wallet Node and Networks shows it selected | a node the app no longer lists may no longer answer |
