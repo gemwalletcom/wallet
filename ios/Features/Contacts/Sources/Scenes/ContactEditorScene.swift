@@ -52,19 +52,19 @@ public struct ContactEditorScene: View {
         .navigationDestination(keyedBy: Scenes.ContactAddress.self) {
             contactAddressScene(mode: .edit($0.address))
         }
-        .sheet(item: $model.isPresentingAddress) { mode in
+        .sheet(item: $model.isPresentingSheet) { sheet in
             NavigationStack {
-                contactAddressScene(mode: mode)
-                    .toolbarDismissItem(type: .close, placement: .cancellationAction)
-            }
-        }
-        .sheet(isPresented: $model.isPresentingAvatar) {
-            NavigationStack {
-                EmojiSelectorView(emojis: model.emojiList, onSelect: model.onSelectAvatar)
-                    .navigationTitle(Localized.Common.emoji)
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbarDismissItem(type: .close, placement: .cancellationAction)
-                    .background(Colors.grayBackground)
+                switch sheet {
+                case let .address(mode):
+                    contactAddressScene(mode: mode)
+                        .toolbarDismissItem(type: .close, placement: .cancellationAction)
+                case .avatar:
+                    EmojiSelectorView(emojis: model.emojiList, onSelect: model.onSelectAvatar)
+                        .navigationTitle(Localized.Common.emoji)
+                        .navigationBarTitleDisplayMode(.inline)
+                        .toolbarDismissItem(type: .close, placement: .cancellationAction)
+                        .background(Colors.grayBackground)
+                }
             }
         }
     }
@@ -138,12 +138,12 @@ extension ContactEditorScene {
 extension ContactEditorScene {
     private func onAddAddress() {
         focusedField = .none
-        model.isPresentingAddress = .add
+        model.isPresentingSheet = .address(.add)
     }
 
     private func onSelectAvatar() {
         focusedField = .none
-        model.isPresentingAvatar = true
+        model.isPresentingSheet = .avatar
     }
 
     private func onSave() {

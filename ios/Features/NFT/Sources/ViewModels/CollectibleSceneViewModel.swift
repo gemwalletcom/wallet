@@ -8,7 +8,6 @@ import enum Gemstone.GemCollectibleAttributeValue
 import struct Gemstone.GemCollectibleDetails
 import protocol Gemstone.GemCollectibleServiceProtocol
 import enum Gemstone.GemHeaderButtonAction
-import struct Gemstone.GemInfoSheet
 import enum Gemstone.GemInfoTopic
 import GemstonePrimitives
 import GemstoneServices
@@ -37,8 +36,7 @@ public final class CollectibleSceneViewModel {
     var isPresentingAlertMessage: AlertMessage?
     var isPresentingToast: ToastMessage?
     var isPresentingSelectedAssetInput: Binding<SelectedAssetInput?>
-    var isPresentingReportSheet = false
-    var isPresentingInfoSheet: GemInfoSheet?
+    var isPresentingSheet: CollectibleSheetType?
     var isImageLoaded = false
 
     public init(
@@ -207,7 +205,7 @@ extension CollectibleSceneViewModel {
     }
 
     func onSelectReport() {
-        isPresentingReportSheet = true
+        isPresentingSheet = .report
     }
 
     func onSelectRefresh() {
@@ -226,13 +224,13 @@ extension CollectibleSceneViewModel {
     }
 
     func onReportComplete() {
-        isPresentingReportSheet = false
+        isPresentingSheet = nil
         isPresentingToast = .success(Localized.Transaction.Status.confirmed)
     }
 
     func onSelectStatus() {
         guard let assetData else { return }
-        isPresentingInfoSheet = GemInfoTopic.assetStatus(status: assetData.collection.status.toGem()).infoSheet
+        isPresentingSheet = .info(GemInfoTopic.assetStatus(status: assetData.collection.status.toGem()).infoSheet)
     }
 }
 
