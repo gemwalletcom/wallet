@@ -33,5 +33,7 @@ enum class StakeChain(val string: String) {
 	Aptos("aptos"),
 	@SerialName("hypercore")
 	HyperCore("hypercore"),
+	@SerialName("ton")
+	Ton("ton"),
 }
 

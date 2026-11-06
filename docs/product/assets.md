@@ -71,6 +71,7 @@ flowchart LR
 | The custom token is unverified | "Know What You're Adding" shows before it is added | |
 | The user picks an asset | Recents: the assets the user recently used, per wallet, most recent first | |
 | The list below Recents is filtered | Recents follow the same filters | picking an asset to sell never offers one that cannot be sold |
+| The token is the receipt for a staked coin (tsTON on TON) | it is discovered, added, searched, sent and swapped like any token, but the wallet total and the portfolio leave it out | its value is already in the coin's staked balance, so counting it again would count it twice |
 
 ## Toasts
 

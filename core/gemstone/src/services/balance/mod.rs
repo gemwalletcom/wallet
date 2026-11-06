@@ -102,7 +102,13 @@ impl GemBalanceService {
             return Ok(());
         };
         let sequence = self.next_sequence();
-        let requests = rules::balance_requests(&wallet.accounts, &asset_ids);
+        let staked_token_ids = rules::staked_token_ids(&asset_ids);
+        let stored_ids = if staked_token_ids.is_empty() {
+            vec![]
+        } else {
+            self.store.get_balance_asset_ids(wallet_id.clone(), staked_token_ids).await?
+        };
+        let requests = rules::balance_requests(&wallet.accounts, &asset_ids, &stored_ids);
         let mut networks: FuturesUnordered<_> = requests.iter().enumerate().map(|(index, request)| async move { (index, self.chain_balances(request).await) }).collect();
         let mut failures = Vec::new();
         while let Some((index, components)) = networks.next().await {
@@ -246,7 +252,7 @@ impl GemBalanceService {
                 }
             },
             async {
-                if request.coin {
+                if request.stake {
                     self.gateway.get_balance_staking(request.chain, request.address.clone()).await.map(|balance| balance.into_iter().collect())
                 } else {
                     Ok(Vec::new())

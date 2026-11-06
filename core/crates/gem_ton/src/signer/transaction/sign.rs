@@ -71,7 +71,7 @@ impl TonSigner {
     }
 }
 
-fn optional_ton_attachment(input: &SignerInput) -> Result<BigUint, SignerError> {
+pub(super) fn optional_ton_attachment(input: &SignerInput) -> Result<BigUint, SignerError> {
     let Some(value) = input.fee.options.get(&FeeOption::TokenAccountCreation) else {
         return Ok(BigUint::ZERO);
     };
@@ -100,12 +100,12 @@ mod tests {
         constants::NFT_TRANSFER_ATTACHMENT,
         models::TonConnectMessage,
         signer::{TonSigner, testkit::mock_cell},
+        testkit::TEST_JETTON_WALLET_ADDRESS,
         tvm::BagOfCells,
     };
 
     const TEST_TON_PRIVATE_KEY: &str = "c7702dadcd00d470df27dee0ddd97fbcf9deba52b60f7dd2b296ff42bb1fcad6";
     const TRUST_WALLET_PRIVATE_KEY: &str = "63474e5fe9511f1526a50567ce142befc343e71a49b865ac3908f58667319cb8";
-    const SENDER_TOKEN_ADDRESS: &str = "EQAlgB03OjJKdXrlwZiGJD5snSzPKF2VL5bErJn_cqJANGH9";
 
     #[test]
     fn test_sign_transfer() {
@@ -125,7 +125,7 @@ mod tests {
         let address = signer.address().encode();
 
         let asset = Asset::new(AssetId::from_token(Chain::Ton, TON_USDT_TOKEN_ID), String::new(), String::new(), 8, AssetType::TOKEN);
-        let input = SignerInput::mock_with_input_type(TransactionInputType::Transfer { asset }, &address, &address, "10000", TransactionLoadMetadata::mock_ton_jetton(1, SENDER_TOKEN_ADDRESS));
+        let input = SignerInput::mock_with_input_type(TransactionInputType::Transfer { asset }, &address, &address, "10000", TransactionLoadMetadata::mock_ton_jetton(1, TEST_JETTON_WALLET_ADDRESS));
         assert_eq!(
             signer.sign_token_transfer(&input, Some(1_000_000_000)).unwrap(),
             "te6cckEBBAEA/wABRYgBkF1w67cBLG0e0D7j0y2ShzflCe2JrlAjS4pC8UHg85AMAQGcbaO6bjRLkbewbUrj8cYUocJI7vJDeXH4uoZqtTZzf5CRVBRw8rjMKMNg4MEafTwywe6wo2+BhefXkhOtdEakCympoxc7msoAAAAAAQADAgFgYgASwA6bnRklOr1y4MxDEh82TpZnlC7Kl8tiVkz/uVEgGgAAAAAAAAAAAAAAAAABAwCmD4p+pQAAAAAAAAAAInEIAZBdcOu3ASxtHtA+49Mtkoc35Qntia5QI0uKQvFB4PORADILrh124CWNo9oH3HplslDm/KE9sTXKBGlxSF4oPB5yAgKLD74O"
@@ -198,7 +198,7 @@ mod tests {
     }
 
     fn swap_message(amount: u64) -> TonConnectMessage {
-        TonConnectMessage::new(SENDER_TOKEN_ADDRESS.to_string(), &BigUint::from(amount), Some(mock_cell()))
+        TonConnectMessage::new(TEST_JETTON_WALLET_ADDRESS.to_string(), &BigUint::from(amount), Some(mock_cell()))
     }
 
     #[test]
@@ -229,7 +229,7 @@ mod tests {
 
     #[test]
     fn test_long_comments_use_snake_cells() {
-        let address = Address::parse(SENDER_TOKEN_ADDRESS).unwrap();
+        let address = Address::parse(TEST_JETTON_WALLET_ADDRESS).unwrap();
         let comment = "memo".repeat(80);
 
         let transfer = TransferRequest {

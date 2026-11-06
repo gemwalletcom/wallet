@@ -17,12 +17,12 @@ pub fn shows_initial_loading(initial_load_completed: bool, assets_timestamp: u64
 }
 
 pub fn wallet_balances(balances: Vec<AssetFiatValue>, collateral: Option<GemPerpetualCollateral>, mode: PerpetualAccountMode) -> Vec<AssetFiatValue> {
+    let balances = balances.into_iter().filter(|balance| !balance.asset_id.is_staked_token());
     let Some(collateral) = collateral else {
-        return balances;
+        return balances.collect();
     };
     let spot_is_collateral = spot_is_perpetual_collateral(mode);
     balances
-        .into_iter()
         .filter(|balance| !(spot_is_collateral && balance.asset_id == *HYPERCORE_SPOT_USDC_ASSET_ID))
         .chain([AssetFiatValue {
             asset_id: HYPERCORE_PERPETUAL_USDC_ASSET_ID.clone(),
@@ -69,6 +69,8 @@ fn swaps(wallet_type: WalletType, chains: &[Chain]) -> bool {
 
 #[cfg(test)]
 mod tests {
+    use primitives::{AssetId, asset_constants::TON_TSTON_ASSET_ID};
+
     use super::*;
     use crate::services::assets::model::GemHeaderButtonKind;
 
@@ -107,6 +109,20 @@ mod tests {
             ],
             "collateral is what is available plus what positions hold, priced like every other entry"
         );
+    }
+
+    #[test]
+    fn test_wallet_balances_leave_out_a_staked_token() {
+        let ton = AssetFiatValue {
+            asset_id: AssetId::from_chain(Chain::Ton),
+            ..AssetFiatValue::mock(10.0, 2.0, 0.0)
+        };
+        let tston = AssetFiatValue {
+            asset_id: TON_TSTON_ASSET_ID.clone(),
+            ..AssetFiatValue::mock(5.0, 2.2, 0.0)
+        };
+
+        assert_eq!(wallet_balances(vec![ton.clone(), tston], None, PerpetualAccountMode::Standard), vec![ton]);
     }
 
     #[test]

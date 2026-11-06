@@ -38,6 +38,7 @@ pub struct TokenInfoExtra {
 #[derive(Deserialize, Clone, Debug)]
 pub struct NftItem {
     pub address: String,
+    pub index: Option<String>,
     pub collection_address: Option<String>,
     pub content: Option<NftContent>,
 }

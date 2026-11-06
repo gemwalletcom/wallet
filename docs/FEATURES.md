@@ -31,7 +31,7 @@ Review cadence: weekly, and immediately when a referenced Core mapping changes.
 | Cosmos | Cosmos | ✅ | ❌ | ➖ | ✅ | ✅ | ❌ | ❌ |
 | Osmosis | Cosmos | ✅ | ❌ | ➖ | ✅ | ✅ | ❌ | ❌ |
 | Arbitrum | EVM | ✅ | ✅ | ✅ | ✅ | ➖ | ❌ | ✅ |
-| TON | TON | ✅ | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
+| TON | TON | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
 | Tron | Tron | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ |
 | Dogecoin | Bitcoin | ✅ | ➖ | ➖ | ✅ | ➖ | ➖ | ➖ |
 | Dash | Bitcoin | ✅ | ➖ | ➖ | ✅ | ➖ | ➖ | ➖ |

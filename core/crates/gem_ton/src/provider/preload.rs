@@ -3,14 +3,15 @@ use chain_traits::ChainTransactionLoad;
 use gem_client::Client;
 use num_bigint::{BigInt, BigUint};
 use primitives::{
-    Asset, AssetId, AssetSubtype, Chain, FeeOption, FeePriority, FeeRate, GasPriceType, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput,
+    Asset, AssetId, AssetSubtype, Chain, FeeOption, FeePriority, FeeRate, GasPriceType, StakeType, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput,
+    asset_constants::TON_TSTON_TOKEN_ID,
     swap::{SwapData, SwapQuoteDataType},
 };
 use std::collections::HashMap;
 use std::error::Error;
 
 use crate::address::base64_to_hex_address;
-use crate::constants::NFT_TRANSFER_ATTACHMENT;
+use crate::constants::{NFT_TRANSFER_ATTACHMENT, TONSTAKERS_STAKE_ATTACHMENT, TONSTAKERS_UNSTAKE_ATTACHMENT};
 use crate::rpc::client::TonClient;
 
 const TON_BASE_FEE: u64 = 10_000_000;
@@ -37,6 +38,10 @@ pub fn calculate_transaction_fee(input: &TransactionLoadInput, recipient_token_a
             }
             SwapQuoteDataType::Transfer => transfer_fee(from_asset.id.token_subtype(), input.memo.as_deref(), recipient_token_address.as_deref(), &base_fee, &mut options),
         },
+        TransactionInputType::Stake { stake_type, .. } => {
+            options.insert(FeeOption::TokenAccountCreation, BigInt::from(stake_attachment(stake_type)?));
+            base_fee.clone()
+        }
         TransactionInputType::TokenApprove { .. } => base_fee.clone(),
         TransactionInputType::Generic { .. } | TransactionInputType::Payment { .. } => base_fee.clone(),
         TransactionInputType::Perpetual { .. } => base_fee.clone(),
@@ -54,6 +59,14 @@ fn swap_attachment(from_asset: &Asset, swap_data: &SwapData) -> Result<BigUint, 
         return Err(format!("TON swap message value {} is below the quoted amount {}", swap_data.data.value, swap_data.quote.from_value).into());
     }
     Ok(&swap_data.data.value - &swap_data.quote.from_value)
+}
+
+fn stake_attachment(stake_type: &StakeType) -> Result<u64, Box<dyn Error + Send + Sync>> {
+    match stake_type {
+        StakeType::Stake(_) => Ok(TONSTAKERS_STAKE_ATTACHMENT),
+        StakeType::Unstake(_) => Ok(TONSTAKERS_UNSTAKE_ATTACHMENT),
+        StakeType::Redelegate(_) | StakeType::Rewards(_) | StakeType::Withdraw(_) | StakeType::Freeze(_) | StakeType::Unfreeze(_) => Err("unsupported TON stake type".into()),
+    }
 }
 
 fn transfer_fee(asset_subtype: AssetSubtype, memo: Option<&str>, recipient_token_address: Option<&str>, base_fee: &BigInt, options: &mut HashMap<FeeOption, BigInt>) -> BigInt {
@@ -106,7 +119,7 @@ impl<C: Client> ChainTransactionLoad for TonClient<C> {
                 })
             }
             AssetSubtype::NATIVE => Ok(TransactionLoadMetadata::Ton {
-                sender_token_address: None,
+                sender_token_address: self.get_unstake_jetton_wallet(&input).await?,
                 recipient_token_address: None,
                 sequence,
             }),
@@ -124,6 +137,15 @@ impl<C: Client> ChainTransactionLoad for TonClient<C> {
     }
 }
 
+impl<C: Client> TonClient<C> {
+    async fn get_unstake_jetton_wallet(&self, input: &TransactionPreloadInput) -> Result<Option<String>, Box<dyn Error + Send + Sync>> {
+        match &input.input_type {
+            TransactionInputType::Stake { stake_type: StakeType::Unstake(_), .. } => Ok(Some(self.get_jetton_wallet_address(&input.sender_address, TON_TSTON_TOKEN_ID).await?.encode_bounceable())),
+            _ => Ok(None),
+        }
+    }
+}
+
 fn get_recipient_jetton_wallet(input: &TransactionPreloadInput) -> Option<&str> {
     match &input.input_type {
         TransactionInputType::Swap { swap_data, .. } => match &swap_data.data.data_type {
@@ -138,7 +160,7 @@ fn get_recipient_jetton_wallet(input: &TransactionPreloadInput) -> Option<&str> 
 mod tests {
     use super::*;
     use num_bigint::BigInt;
-    use primitives::{Asset, Chain, NFTAsset, SwapProvider, TransactionPreloadInput, swap::SwapData};
+    use primitives::{Asset, Chain, Delegation, DelegationValidator, NFTAsset, SwapProvider, TransactionPreloadInput, swap::SwapData};
 
     #[test]
     fn test_native_ton() {
@@ -291,6 +313,25 @@ mod tests {
 
         assert_eq!(fee.fee, BigInt::from(TON_BASE_FEE + JETTON_ACCOUNT_CREATION));
         assert_eq!(fee.options.get(&FeeOption::TokenAccountCreation), Some(&BigInt::from(JETTON_ACCOUNT_CREATION)));
+    }
+
+    #[test]
+    fn test_stake_fee_attaches_the_tonstakers_message_value() {
+        let stake_input = TransactionLoadInput::mock_with_input_type(TransactionInputType::Stake {
+            asset: Asset::from_chain(Chain::Ton),
+            stake_type: StakeType::Stake(DelegationValidator::mock()),
+        });
+        let unstake_input = TransactionLoadInput::mock_with_input_type(TransactionInputType::Stake {
+            asset: Asset::from_chain(Chain::Ton),
+            stake_type: StakeType::Unstake(Delegation::mock()),
+        });
+
+        let stake = calculate_transaction_fee(&stake_input, None).unwrap();
+        assert_eq!(stake.fee, BigInt::from(TON_BASE_FEE + TONSTAKERS_STAKE_ATTACHMENT));
+        assert_eq!(stake.options.get(&FeeOption::TokenAccountCreation), Some(&BigInt::from(TONSTAKERS_STAKE_ATTACHMENT)));
+
+        let unstake = calculate_transaction_fee(&unstake_input, None).unwrap();
+        assert_eq!(unstake.fee, BigInt::from(TON_BASE_FEE + TONSTAKERS_UNSTAKE_ATTACHMENT));
     }
 
     #[test]
