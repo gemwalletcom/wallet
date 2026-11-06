@@ -171,7 +171,7 @@ rust-embed = { version = "8.11.0" }
 # Code generation and bindings
 quote = { version = "1.0.47" }
 syn = { version = "3.0.6" }
-uniffi = { version = "0.32.1" }
+uniffi = { version = "0.32.1", default-features = false }
 
 [profile.dev]
 debug = "line-tables-only"
