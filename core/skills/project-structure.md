@@ -40,7 +40,6 @@ Individual `gem_*` crates for each blockchain with unified RPC client patterns:
 - **uniffi-bindgen** (`bin/uniffi-bindgen/`): UniFFI bindings generator for iOS and Android
 - **generate** (`bin/generate/`): Code generation utilities
 - **gas-bench** (`bin/gas-bench/`): Compares Core fee rates with Etherscan, Gasflow, Helius and Jito
-- **cli** (`bin/cli/`): Command-line entry point for Core operations
 - **nodecheck** (`bin/nodecheck/`): Node availability and RPC health checks
 
 ## Core Crates
