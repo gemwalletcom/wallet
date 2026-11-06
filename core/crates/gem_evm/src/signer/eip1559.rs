@@ -24,8 +24,12 @@ impl Eip1559Transaction {
         Ok(self.encoded(Some(&signature)))
     }
 
+    pub fn encoded_unsigned(&self) -> Vec<u8> {
+        self.encoded(None)
+    }
+
     fn signature_hash(&self) -> B256 {
-        keccak256(self.encoded(None))
+        keccak256(self.encoded_unsigned())
     }
 
     fn encoded(&self, signature: Option<&Signature>) -> Vec<u8> {

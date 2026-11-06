@@ -5,7 +5,7 @@ edition = { workspace = true }
 
 [features]
 default = []
-rpc = ["gem_evm/rpc", "dep:async-trait", "dep:gem_client", "dep:alloy-sol-types"]
+rpc = ["gem_evm/rpc", "gem_evm/signer", "dep:async-trait", "dep:gem_client", "dep:alloy-sol-types"]
 
 [dependencies]
 primitives = { path = "../primitives" }
