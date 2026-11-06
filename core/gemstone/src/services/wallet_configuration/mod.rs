@@ -1,4 +1,6 @@
 pub mod rules;
+#[cfg(test)]
+pub(crate) mod testkit;
 
 use crate::services::error::GemServiceError;
 use primitives::Wallet;
@@ -47,11 +49,9 @@ impl GemWalletConfigurationService {
 #[cfg(test)]
 mod tests {
     use futures::executor::block_on;
-    use primitives::{Platform, WalletConfiguration, WalletConfigurationResult, WalletType};
+    use primitives::{WalletConfigurationResult, WalletType};
 
     use super::*;
-    use crate::services::banner::testkit::MemoryBannerStore;
-    use crate::services::wallet_preferences::testkit::MemoryWalletPreferencesStore;
     use crate::testkit::TestAlienProvider;
 
     #[test]
@@ -61,20 +61,9 @@ mod tests {
                 wallet_type: WalletType::View,
                 ..Wallet::mock()
             };
-            let result = WalletConfigurationResult {
-                wallet_id: wallet.id.clone(),
-                configuration: WalletConfiguration {
-                    multi_signature_accounts: vec![],
-                    externally_controlled_accounts: vec![],
-                },
-            };
+            let result = WalletConfigurationResult::mock(wallet.id.clone());
             let provider = Arc::new(TestAlienProvider::with_json_by_path(200, &[("wallet-configuration", &serde_json::to_string(&result).unwrap())]));
-            let preferences = Arc::new(GemWalletPreferencesService::new(Arc::new(MemoryWalletPreferencesStore::default())));
-            let service = GemWalletConfigurationService::new(
-                Arc::new(GemDeviceApiClient::mock(provider.clone())),
-                Arc::new(GemBannerService::new(Arc::new(MemoryBannerStore::default()), Platform::IOS)),
-                preferences,
-            );
+            let service = GemWalletConfigurationService::mock(provider.clone());
 
             service.sync(&wallet).await.unwrap();
 
@@ -89,21 +78,10 @@ mod tests {
                 wallet_type: WalletType::View,
                 ..Wallet::mock()
             };
-            let result = WalletConfigurationResult {
-                wallet_id: wallet.id.clone(),
-                configuration: WalletConfiguration {
-                    multi_signature_accounts: vec![],
-                    externally_controlled_accounts: vec![],
-                },
-            };
+            let result = WalletConfigurationResult::mock(wallet.id.clone());
             let provider = Arc::new(TestAlienProvider::with_json_by_path(200, &[("wallet-configuration", &serde_json::to_string(&result).unwrap())]));
-            let preferences = Arc::new(GemWalletPreferencesService::new(Arc::new(MemoryWalletPreferencesStore::default())));
-            preferences.set_wallet_configuration_completed(wallet.id.clone()).unwrap();
-            let service = GemWalletConfigurationService::new(
-                Arc::new(GemDeviceApiClient::mock(provider.clone())),
-                Arc::new(GemBannerService::new(Arc::new(MemoryBannerStore::default()), Platform::IOS)),
-                preferences,
-            );
+            let service = GemWalletConfigurationService::mock(provider.clone());
+            service.preferences.set_wallet_configuration_completed(wallet.id.clone()).unwrap();
 
             service.refresh(&wallet).await.unwrap();
 

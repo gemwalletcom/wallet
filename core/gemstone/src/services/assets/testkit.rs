@@ -13,7 +13,7 @@ use crate::deeplink::GemDeeplinkService;
 use crate::gateway::GemGateway;
 use crate::services::asset_discovery::testkit::DiscoveryTestkit;
 use crate::services::banner::GemBannerService;
-use crate::services::banner::testkit::{DeniedNotificationPermissions, MemoryBannerStore};
+use crate::services::banner::testkit::DeniedNotificationPermissions;
 use crate::services::device::GemDeviceService;
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
@@ -157,7 +157,7 @@ impl AssetDetailsTestkit {
             discovery.assets.clone(),
             discovery.balance.clone(),
             discovery.transactions.clone(),
-            Arc::new(GemBannerService::new(Arc::new(MemoryBannerStore::default()), primitives::Platform::IOS)),
+            Arc::new(GemBannerService::mock()),
             swap,
             Arc::new(GemExplorerService::new(preferences.clone())),
             Arc::new(GemPriceAlertService::new(

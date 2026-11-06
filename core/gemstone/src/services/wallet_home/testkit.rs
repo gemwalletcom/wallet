@@ -6,7 +6,6 @@ use super::GemWalletHomeService;
 use crate::services::asset_discovery::testkit::DiscoveryTestkit;
 use crate::services::balance::testkit::MemoryBalanceStore;
 use crate::services::banner::GemBannerService;
-use crate::services::banner::testkit::MemoryBannerStore;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::wallet_preferences::GemWalletPreferencesService;
 use crate::testkit::TestAlienProvider;
@@ -30,7 +29,7 @@ impl WalletHomeTestkit {
         let service = GemWalletHomeService::new(
             discovery.balance.clone(),
             discovery.discovery.clone(),
-            Arc::new(GemBannerService::new(Arc::new(MemoryBannerStore::default()), primitives::Platform::IOS)),
+            Arc::new(GemBannerService::mock()),
             discovery.wallet_preferences.clone(),
             discovery.preferences.clone(),
             discovery.session.clone(),

@@ -1,11 +1,17 @@
 use std::collections::HashMap;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
-use primitives::{Asset, BannerState, Chain, Wallet};
+use primitives::{Asset, BannerState, Chain, Platform, Wallet};
 
-use super::{GemBannerContext, GemBannerKey, GemBannerStore, GemNotificationPermissions};
+use super::{GemBannerContext, GemBannerKey, GemBannerService, GemBannerStore, GemNotificationPermissions};
 use crate::services::error::GemServiceError;
+
+impl GemBannerService {
+    pub fn mock() -> Self {
+        Self::new(Arc::new(MemoryBannerStore::default()), Platform::IOS)
+    }
+}
 
 impl GemBannerContext {
     pub fn mock() -> Self {
