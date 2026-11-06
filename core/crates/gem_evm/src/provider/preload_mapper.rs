@@ -3,8 +3,8 @@ use std::error::Error;
 use alloy_primitives::hex;
 use num_bigint::BigInt;
 use num_traits::Num;
-use primitives::swap::SwapQuoteDataType;
-use primitives::{AssetSubtype, EVMChain, FeeRate, NFTType, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransferDataExtra, decode_hex, fee::FeePriority, fee::GasPriceType};
+use primitives::swap::{SwapQuoteData, SwapQuoteDataType};
+use primitives::{Asset, AssetSubtype, ContractCallData, EVMChain, FeeRate, NFTType, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransferDataExtra, decode_hex, fee::FeePriority, fee::GasPriceType};
 
 use crate::constants::TRANSFER_GAS_LIMIT;
 use crate::encode::{encode_erc20_approve_max_value, encode_erc20_transfer, encode_erc721_transfer, encode_erc1155_transfer};
@@ -65,25 +65,9 @@ pub fn get_transaction_params(input: &TransactionLoadInput) -> Result<Transactio
         }
         TransactionInputType::Swap { from_asset, swap_data, .. } => {
             if let Some(approval) = &swap_data.data.approval {
-                Ok(TransactionParams::new(approval.token.clone(), encode_erc20_approve_max_value(&approval.spender)?, BigInt::from(0)))
+                Ok(TransactionParams::new_approval(approval.token.clone(), encode_erc20_approve_max_value(&approval.spender)?))
             } else {
-                match from_asset.id.token_subtype() {
-                    AssetSubtype::NATIVE => {
-                        let value = match swap_data.data.data_type {
-                            SwapQuoteDataType::Transfer if input.is_max_value => BigInt::ZERO,
-                            _ => BigInt::from(swap_data.data.value.clone()),
-                        };
-                        Ok(TransactionParams::new(swap_data.data.to.clone(), decode_hex(&swap_data.data.data)?, value))
-                    }
-                    AssetSubtype::TOKEN => match swap_data.data.data_type {
-                        SwapQuoteDataType::Contract => Ok(TransactionParams::new(swap_data.data.to.clone(), decode_hex(&swap_data.data.data)?, BigInt::from(swap_data.data.value.clone()))),
-                        SwapQuoteDataType::Transfer => {
-                            let to = from_asset.token_id().ok_or("Missing token ID")?;
-                            let data = encode_erc20_transfer(&swap_data.data.to, &value)?;
-                            Ok(TransactionParams::new(to, data, BigInt::ZERO))
-                        }
-                    },
-                }
+                swap_transaction_params(input, from_asset, &swap_data.data)
             }
         }
         TransactionInputType::TokenApprove { approval_data: approval, .. }
@@ -97,11 +81,40 @@ pub fn get_transaction_params(input: &TransactionLoadInput) -> Result<Transactio
             if let Some(approval) = &earn_data.approval {
                 Ok(TransactionParams::new_approval(approval.token.clone(), encode_erc20_approve_max_value(&approval.spender)?))
             } else {
-                Ok(TransactionParams::new(earn_data.contract_address.clone(), decode_hex(&earn_data.call_data)?, BigInt::from(0)))
+                earn_transaction_params(earn_data)
             }
         }
         _ => Err("Unsupported transfer type".into()),
     }
+}
+
+pub fn get_approved_transaction_params(input: &TransactionLoadInput) -> Result<Option<TransactionParams>, Box<dyn Error + Send + Sync>> {
+    match &input.input_type {
+        TransactionInputType::Swap { from_asset, swap_data, .. } if swap_data.data.approval.is_some() => Ok(Some(swap_transaction_params(input, from_asset, &swap_data.data)?)),
+        TransactionInputType::Earn { data: earn_data, .. } if earn_data.approval.is_some() => Ok(Some(earn_transaction_params(earn_data)?)),
+        _ => Ok(None),
+    }
+}
+
+fn swap_transaction_params(input: &TransactionLoadInput, from_asset: &Asset, swap_data: &SwapQuoteData) -> Result<TransactionParams, Box<dyn Error + Send + Sync>> {
+    match swap_data.data_type {
+        SwapQuoteDataType::Contract => Ok(TransactionParams::new(swap_data.to.clone(), decode_hex(&swap_data.data)?, BigInt::from(swap_data.value.clone()))),
+        SwapQuoteDataType::Transfer => match from_asset.id.token_subtype() {
+            AssetSubtype::NATIVE => {
+                let value = if input.is_max_value { BigInt::ZERO } else { BigInt::from(swap_data.value.clone()) };
+                Ok(TransactionParams::new(swap_data.to.clone(), decode_hex(&swap_data.data)?, value))
+            }
+            AssetSubtype::TOKEN => {
+                let to = from_asset.token_id().ok_or("Missing token ID")?;
+                let data = encode_erc20_transfer(&swap_data.to, &input.value_as_bigint())?;
+                Ok(TransactionParams::new(to, data, BigInt::ZERO))
+            }
+        },
+    }
+}
+
+fn earn_transaction_params(earn_data: &ContractCallData) -> Result<TransactionParams, Box<dyn Error + Send + Sync>> {
+    Ok(TransactionParams::new(earn_data.contract_address.clone(), decode_hex(&earn_data.call_data)?, BigInt::ZERO))
 }
 
 pub fn calculate_gas_limit_with_increase(gas_limit: BigInt) -> BigInt {
@@ -158,9 +171,9 @@ pub fn get_extra_fee_gas_limit(input: &TransactionLoadInput) -> Result<BigInt, B
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::Asset;
-    use primitives::swap::{ApprovalData, Permit2ApprovalData, SwapData, SwapQuoteData};
+    use primitives::swap::{ApprovalData, Permit2ApprovalData, SwapData};
     use primitives::testkit::signer_mock::TEST_EVM_RECIPIENT;
+    use primitives::{DelegationValidator, EarnType};
 
     #[test]
     fn test_get_transaction_params_contract_swap() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -177,6 +190,49 @@ mod tests {
         );
 
         assert_eq!(get_transaction_params(&input)?, TransactionParams::new(TEST_EVM_RECIPIENT, vec![0xab, 0xcd], BigInt::from(500)));
+        Ok(())
+    }
+
+    #[test]
+    fn test_get_approved_transaction_params() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let approved_swap = TransactionLoadInput::mock_evm(
+            TransactionInputType::Swap {
+                from_asset: Asset::mock_erc20(),
+                to_asset: Asset::mock_eth(),
+                swap_data: SwapData {
+                    data: SwapQuoteData {
+                        approval: Some(ApprovalData::mock()),
+                        ..SwapQuoteData::mock_contract_call(TEST_EVM_RECIPIENT, "500", "0xabcd", None)
+                    },
+                    ..SwapData::mock()
+                },
+            },
+            "1000",
+        );
+        let approved_earn = TransactionLoadInput::mock_evm(
+            TransactionInputType::Earn {
+                asset: Asset::mock_erc20(),
+                earn_type: EarnType::Deposit(DelegationValidator::mock()),
+                data: ContractCallData {
+                    approval: Some(ApprovalData::mock()),
+                    ..ContractCallData::mock()
+                },
+            },
+            "1000",
+        );
+        let swap_without_approval = TransactionLoadInput::mock_evm(
+            TransactionInputType::Swap {
+                from_asset: Asset::mock_erc20(),
+                to_asset: Asset::mock_eth(),
+                swap_data: SwapData::mock(),
+            },
+            "1000",
+        );
+
+        assert_eq!(get_approved_transaction_params(&approved_swap)?, Some(TransactionParams::new(TEST_EVM_RECIPIENT, vec![0xab, 0xcd], BigInt::from(500))));
+        assert_eq!(get_approved_transaction_params(&approved_earn)?, Some(TransactionParams::new(TEST_EVM_RECIPIENT, vec![0xab, 0xcd], BigInt::ZERO)));
+        assert_eq!(get_approved_transaction_params(&swap_without_approval)?, None);
+        assert_eq!(get_approved_transaction_params(&TransactionLoadInput::mock_evm(TransactionInputType::Transfer { asset: Asset::mock_eth() }, "1000"))?, None);
         Ok(())
     }
 

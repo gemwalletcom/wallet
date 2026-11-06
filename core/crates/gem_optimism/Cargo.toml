@@ -5,7 +5,7 @@ edition = { workspace = true }
 
 [features]
 default = []
-rpc = ["gem_evm/rpc", "gem_evm/signer", "dep:async-trait", "dep:gem_client", "dep:alloy-sol-types"]
+rpc = ["gem_evm/rpc", "gem_evm/signer", "dep:async-trait", "dep:futures", "dep:gem_client", "dep:alloy-sol-types"]
 
 [dependencies]
 primitives = { path = "../primitives" }
@@ -13,6 +13,7 @@ gem_evm = { path = "../gem_evm" }
 
 gem_client = { path = "../gem_client", optional = true }
 async-trait = { workspace = true, optional = true }
+futures = { workspace = true, optional = true }
 alloy-primitives = { workspace = true }
 alloy-sol-types = { workspace = true, optional = true }
 num-bigint = { workspace = true }

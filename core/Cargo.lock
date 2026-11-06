@@ -3270,6 +3270,7 @@ dependencies = [
  "alloy-primitives",
  "alloy-sol-types",
  "async-trait",
+ "futures",
  "gem_client",
  "gem_evm",
  "num-bigint 0.5.1",
