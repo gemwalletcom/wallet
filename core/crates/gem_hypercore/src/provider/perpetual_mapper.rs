@@ -172,7 +172,7 @@ pub fn map_perpetuals_data(metadata: HypercoreMetadataResponse, dex: PerpDex) ->
                 volume_24h,
                 funding: funding_rate,
                 max_leverage: universe_asset.max_leverage as u8,
-                is_isolated_only: dex.is_isolated_only() || universe_asset.only_isolated.unwrap_or(false),
+                is_isolated_only: universe_asset.only_isolated.unwrap_or(false),
                 is_enabled: !universe_asset.is_delisted.unwrap_or(false) && volume_24h >= dex.min_volume_24h(),
             };
 
@@ -475,7 +475,7 @@ mod tests {
         let isolated_only = |dex| map_perpetuals_data(metadata_response.clone(), dex).iter().map(|data| data.perpetual.is_isolated_only).collect::<Vec<_>>();
 
         assert_eq!(isolated_only(PerpDex::Main), vec![true, false]);
-        assert_eq!(isolated_only(PerpDex::Xyz), vec![true, true], "every xyz market trades isolated, including the ones Hyperliquid also allows cross on");
+        assert_eq!(isolated_only(PerpDex::Xyz), vec![true, false], "an xyz market Hyperliquid allows cross on can open cross");
     }
 
     #[test]
