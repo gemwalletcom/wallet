@@ -102,7 +102,7 @@ url = { version = "2.5.8" }
 # Database and messaging
 diesel = { version = "2.3.13" }
 diesel_migrations = { version = "2.3.2" }
-lapin = { version = "4.12.0" }
+lapin = { version = "4.12.0", default-features = false, features = ["tokio"] }
 r2d2 = { version = "0.8.10" }
 redis = { version = "1.4.1", default-features = false, features = [
     "tokio-comp",

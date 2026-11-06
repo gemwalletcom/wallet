@@ -4,10 +4,11 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use gem_tracing::info_with_fields;
-use lapin::{BasicProperties, Channel, Confirmation, Connection, ConnectionProperties, ErrorKind, ExchangeKind, options::*, types::FieldTable};
+use lapin::{BasicProperties, Channel, Confirmation, ErrorKind, ExchangeKind, options::*, types::FieldTable};
 use primitives::unix_seconds;
 use tokio::sync::Mutex;
 
+use crate::connection::connect;
 use crate::{ExchangeName, QueueName, Retry, ShutdownReceiver, StreamConnection, with_retry};
 
 const ROUTING_KEY_EXCHANGE_SUFFIX: &str = "_exchange";
@@ -70,8 +71,7 @@ impl StreamProducer {
     }
 
     async fn try_connect(url: &str, name: &str) -> Result<Channel, Box<dyn Error + Send + Sync>> {
-        let options = ConnectionProperties::default().with_connection_name(name.to_string().into());
-        let connection = Connection::connect(url, options).await?;
+        let connection = connect(url, name.to_string()).await?;
         Self::configure_channel(connection.create_channel().await?).await
     }
 
