@@ -17,7 +17,10 @@ pub fn decode(chain: Option<Chain>, path: &str) -> Result<Payment> {
 
 pub fn get_request(chain: Option<Chain>, path: &str) -> Result<PaymentRequest> {
     let (address, query) = path.split_once('?').unwrap_or((path, ""));
-    let parameters = query::parameters(query);
+    request(chain, address, &query::parameters(query))
+}
+
+pub fn request(chain: Option<Chain>, address: &str, parameters: &[(String, String)]) -> Result<PaymentRequest> {
     if let Some((required, _)) = parameters.iter().find(|(key, _)| key.starts_with(REQUIRED_PARAMETER_PREFIX)) {
         return Err(PaymentDecoderError::InvalidFormat(format!("Unsupported required parameter: {required}")));
     }
@@ -28,14 +31,14 @@ pub fn get_request(chain: Option<Chain>, path: &str) -> Result<PaymentRequest> {
 
     Ok(PaymentRequest {
         address: address.to_string(),
-        amount: query::value(&parameters, QUERY_AMOUNT)
+        amount: query::value(parameters, QUERY_AMOUNT)
             .and_then(|value| match chain {
                 Some(chain) => amount::exact(&value, chain),
                 None => amount::decimal(&value),
             })
             .map(|value| PaymentAmount::ExactValue { value }),
-        memo: query::value(&parameters, QUERY_MEMO),
-        label: query::value(&parameters, QUERY_LABEL),
+        memo: query::value(parameters, QUERY_MEMO),
+        label: query::value(parameters, QUERY_LABEL),
         references: None,
         asset_id: chain.map(AssetId::from_chain),
     })

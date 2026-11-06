@@ -19,12 +19,18 @@ pub fn decode(path: &str) -> Result<Payment> {
     {
         return Err(PaymentDecoderError::InvalidFormat("Multiple Zcash payments are not supported".to_string()));
     }
+    if let Some((key, _)) = parameters.iter().enumerate().find_map(|(index, (key, _))| parameters[..index].iter().find(|(previous, _)| previous == key)) {
+        return Err(PaymentDecoderError::InvalidFormat(format!("Duplicate Zcash parameter: {key}")));
+    }
     let address = match (path_address, query::values(&parameters, QUERY_ADDRESS).as_slice()) {
         (address, []) => address.to_string(),
         ("", [address]) => address.clone(),
-        _ => return Err(PaymentDecoderError::InvalidFormat("Duplicate Zcash address".to_string())),
+        _ => return Err(PaymentDecoderError::InvalidFormat(format!("Duplicate Zcash parameter: {QUERY_ADDRESS}"))),
     };
-    let request = bip21::get_request(Some(Chain::Zcash), &format!("{address}?{query}"))?;
+    if !address.bytes().all(|byte| byte.is_ascii_alphanumeric()) {
+        return Err(PaymentDecoderError::InvalidFormat("Invalid Zcash address".to_string()));
+    }
+    let request = bip21::request(Some(Chain::Zcash), &address, &parameters)?;
     Ok(Payment::Request {
         request: PaymentRequest {
             memo: request
@@ -73,12 +79,18 @@ mod tests {
     #[test]
     fn test_decode_rejects_ambiguous_payments() {
         let multiple = PaymentDecoderError::InvalidFormat("Multiple Zcash payments are not supported".to_string());
-        let duplicate = PaymentDecoderError::InvalidFormat("Duplicate Zcash address".to_string());
+        let duplicate = |key: &str| PaymentDecoderError::InvalidFormat(format!("Duplicate Zcash parameter: {key}"));
 
         assert_eq!(decode(&format!("{ADDRESS}?amount=0.5&address.1={ADDRESS}&amount.1=0.1")).unwrap_err(), multiple);
         assert_eq!(decode(&format!("?address={ADDRESS}&amount.2=0.1")).unwrap_err(), multiple);
-        assert_eq!(decode(&format!("{ADDRESS}?address={ADDRESS}")).unwrap_err(), duplicate);
-        assert_eq!(decode(&format!("?address={ADDRESS}&address={ADDRESS}")).unwrap_err(), duplicate);
+        assert_eq!(decode(&format!("{ADDRESS}?address={ADDRESS}")).unwrap_err(), duplicate("address"));
+        assert_eq!(decode(&format!("?address={ADDRESS}&address={ADDRESS}")).unwrap_err(), duplicate("address"));
+        assert_eq!(decode(&format!("?address={ADDRESS}&amount=0.5&amount=1")).unwrap_err(), duplicate("amount"));
+        assert_eq!(decode(&format!("{ADDRESS}?memo=Zmlyc3Q&MEMO=c2Vjb25k")).unwrap_err(), duplicate("memo"));
+        assert_eq!(
+            decode(&format!("?address={ADDRESS}%3Famount%3D10%26label%3Dx&amount=0.5")).unwrap_err(),
+            PaymentDecoderError::InvalidFormat("Invalid Zcash address".to_string())
+        );
         assert_eq!(decode("?amount=0.5").unwrap_err(), PaymentDecoderError::MissingField("address".to_string()));
     }
 }
