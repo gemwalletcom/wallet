@@ -28,9 +28,11 @@ fn map_balance_changes(chain: Chain, signer: &str, trace: &TraceCallResult) -> V
         changes.push(SimulationBalanceChange::new(AssetId::from_chain(chain), diff));
     }
 
+    let reverted_frames: Vec<&[usize]> = trace.trace.iter().filter(|entry| entry.error.is_some()).map(|entry| entry.trace_address.as_slice()).collect();
+
     let mut token_deltas: HashMap<&str, BigInt> = HashMap::new();
     for entry in &trace.trace {
-        if entry.error.is_some() || entry.action.call_type.as_deref() != Some("call") {
+        if reverted_frames.iter().any(|frame| entry.trace_address.starts_with(frame)) || entry.action.call_type.as_deref() != Some("call") {
             continue;
         }
         let Some(token) = entry.action.to.as_deref() else { continue };
@@ -176,5 +178,61 @@ mod tests {
         let trace: TraceCallResult = load_json_rpc_result(include_str!("../../testdata/trace_call_reverted_transfer.json"));
 
         assert_eq!(map_simulation_result(Chain::Ethereum, TEST_ADDRESS, &trace).balance_changes, vec![]);
+    }
+
+    #[test]
+    fn test_map_simulation_result_keeps_transfer_next_to_reverted_subcall() {
+        let root_call = TraceCallEntry {
+            action: TraceCallAction::mock(TEST_EVM_RECIPIENT, vec![]),
+            error: None,
+            trace_address: vec![],
+        };
+        let reverted_call = TraceCallEntry {
+            action: TraceCallAction::mock(TEST_EVM_RECIPIENT, vec![]),
+            error: Some("Reverted".to_string()),
+            trace_address: vec![0],
+        };
+        let reverted_token_transfer_call = TraceCallEntry {
+            action: TraceCallAction {
+                from: TEST_EVM_RECIPIENT.to_string(),
+                ..TraceCallAction::mock(
+                    ETHEREUM_USDC_TOKEN_ID,
+                    IERC20::transferCall {
+                        to: Address::from_str(TEST_ADDRESS).unwrap(),
+                        value: U256::from(1_000_000_000u64),
+                    }
+                    .abi_encode(),
+                )
+            },
+            error: None,
+            trace_address: vec![0, 0],
+        };
+        let token_transfer_call = TraceCallEntry {
+            action: TraceCallAction::mock(
+                ETHEREUM_USDC_TOKEN_ID,
+                IERC20::transferCall {
+                    to: Address::from_str(TEST_EVM_RECIPIENT).unwrap(),
+                    value: U256::from(1_000_000u64),
+                }
+                .abi_encode(),
+            ),
+            error: None,
+            trace_address: vec![1],
+        };
+        let trace = TraceCallResult {
+            state_diff: HashMap::new(),
+            trace: vec![root_call, reverted_call, reverted_token_transfer_call, token_transfer_call],
+        };
+
+        assert_eq!(
+            map_simulation_result(Chain::Ethereum, TEST_ADDRESS, &trace).balance_changes,
+            vec![SimulationBalanceChange {
+                asset_id: AssetId::from_token(Chain::Ethereum, ETHEREUM_USDC_TOKEN_ID),
+                value: BigInt::from(-1000000i64),
+                decimals: 0,
+                name: None,
+                symbol: None,
+            }]
+        );
     }
 }
