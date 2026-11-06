@@ -96,17 +96,15 @@ fn map_spot_fill_group(address: &str, fills: Vec<UserFill>, last_fill: &UserFill
         let size = fill.sz.parse::<f64>().ok()?;
         Some((base_sum + size, quote_sum + fill.px * size))
     })?;
-    let (fee, fee_asset_id) = map_spot_fee(&fills, base_token, quote_token)?;
+    let (fee_asset_id, fee) = map_spot_fee(&fills, base_token, quote_token)?;
 
     let ((from_token, from_amount), (to_token, to_amount)) = match &last_fill.dir {
         FillDirection::Sell => ((base_token, base_amount), (quote_token, quote_amount)),
         FillDirection::Buy => ((quote_token, quote_amount), (base_token, base_amount)),
         _ => return None,
     };
-    let from_asset = from_token.asset_id(Chain::HyperCore);
-    let from_value = amount_to_value(from_amount, from_token.wei_decimals)?;
-    let to_asset = to_token.asset_id(Chain::HyperCore);
-    let to_value = amount_to_value(to_amount, to_token.wei_decimals)?;
+    let (from_asset, from_value) = spot_value(from_token, from_amount)?;
+    let (to_asset, to_value) = spot_value(to_token, to_amount)?;
 
     let referral_fee = map_referral_fee(&fills, quote_token, quote_amount);
     let metadata = serde_json::to_value(TransactionSwapMetadata::new(from_asset.clone(), from_value.clone(), to_asset, to_value, SwapProvider::Hyperliquid).with_referral_fee(referral_fee)).ok()?;
@@ -115,11 +113,8 @@ fn map_spot_fill_group(address: &str, fills: Vec<UserFill>, last_fill: &UserFill
 }
 
 fn map_referral_fee(fills: &[UserFill], quote_token: &SpotToken, quote_amount: f64) -> Option<TransactionSwapReferralFee> {
-    let builder_fee = builder_fee_amount(fills, quote_amount)?;
-    Some(TransactionSwapReferralFee {
-        asset_id: quote_token.asset_id(Chain::HyperCore),
-        value: amount_to_value(builder_fee, quote_token.wei_decimals)?,
-    })
+    let (asset_id, value) = spot_value(quote_token, builder_fee_amount(fills, quote_amount)?)?;
+    Some(TransactionSwapReferralFee { asset_id, value })
 }
 
 pub(crate) fn builder_fee_amount<'a>(fills: impl IntoIterator<Item = &'a UserFill>, quote_amount: f64) -> Option<f64> {
@@ -132,12 +127,16 @@ pub(crate) fn builder_fee_amount<'a>(fills: impl IntoIterator<Item = &'a UserFil
     (builder_fee > 0.0 && is_builder_rate).then_some(builder_fee)
 }
 
-fn map_spot_fee(fills: &[UserFill], base_token: &SpotToken, quote_token: &SpotToken) -> Option<(BigUint, primitives::AssetId)> {
+fn map_spot_fee(fills: &[UserFill], base_token: &SpotToken, quote_token: &SpotToken) -> Option<(AssetId, BigUint)> {
     let fee_amount: f64 = fills.iter().map(|fill| fill.fee).sum();
     let fee_token = fills.iter().rev().find_map(|fill| fill.fee_token.as_deref()).unwrap_or(quote_token.name.as_str());
     let fee_token = if fee_token == base_token.name { base_token } else { quote_token };
 
-    Some((amount_to_value(fee_amount, fee_token.wei_decimals)?, fee_token.asset_id(Chain::HyperCore)))
+    spot_value(fee_token, fee_amount)
+}
+
+fn spot_value(token: &SpotToken, amount: f64) -> Option<(AssetId, BigUint)> {
+    Some(token.asset_id(Chain::HyperCore).mirror_to_native(amount_to_value(amount, token.wei_decimals)?))
 }
 
 fn amount_to_value(amount: f64, decimals: u32) -> Option<BigUint> {
@@ -180,7 +179,7 @@ mod tests {
     use crate::provider::testkit::TEST_TRANSACTION_ID;
     use primitives::{
         PerpetualDirection, TransactionType,
-        asset_constants::{HYPERCORE_PERPETUAL_USDC_ASSET_ID, HYPERCORE_SPOT_HYPE_ASSET_ID, HYPERCORE_SPOT_USDC_ASSET_ID},
+        asset_constants::{HYPERCORE_PERPETUAL_USDC_ASSET_ID, HYPERCORE_SPOT_USDC_ASSET_ID},
     };
 
     fn spot_meta() -> SpotMeta {
@@ -361,14 +360,14 @@ mod tests {
         assert_eq!(transactions.len(), 1);
         assert_eq!(transactions[0].transaction_type, TransactionType::Swap);
         assert_eq!(transactions[0].hash(), "0xd16518b18533f577d2de043763f8ad020482009720371449752dc4044437cf62:355101232455");
-        assert_eq!(transactions[0].asset_id, HYPERCORE_SPOT_HYPE_ASSET_ID.clone());
+        assert_eq!(transactions[0].asset_id, AssetId::from_chain(Chain::HyperCore));
         assert_eq!(transactions[0].fee, BigUint::from(1326708u64));
         assert_eq!(transactions[0].fee_asset_id, HYPERCORE_SPOT_USDC_ASSET_ID.clone());
         assert!(transactions[0].asset_ids().contains(&HYPERCORE_SPOT_USDC_ASSET_ID.clone()));
-        assert!(transactions[0].asset_ids().contains(&HYPERCORE_SPOT_HYPE_ASSET_ID.clone()));
+        assert!(transactions[0].asset_ids().contains(&AssetId::from_chain(Chain::HyperCore)));
 
         let metadata = transactions[0].swap_metadata().unwrap();
-        assert_eq!(metadata.from_asset, HYPERCORE_SPOT_HYPE_ASSET_ID.clone());
+        assert_eq!(metadata.from_asset, AssetId::from_chain(Chain::HyperCore));
         assert_eq!(metadata.from_value, BigUint::from(30000000u64));
         assert_eq!(metadata.to_asset, HYPERCORE_SPOT_USDC_ASSET_ID.clone());
         assert_eq!(metadata.to_value, BigUint::from(1182450000u64));
@@ -392,14 +391,14 @@ mod tests {
         assert_eq!(transactions[0].hash(), "0xbf8b52bd13095a59c105043764964e02028200a2ae0c792b6353fe0fd20d3444:355138434755");
         assert_eq!(transactions[0].asset_id, HYPERCORE_SPOT_USDC_ASSET_ID.clone());
         assert_eq!(transactions[0].fee, BigUint::from(20159u64));
-        assert_eq!(transactions[0].fee_asset_id, HYPERCORE_SPOT_HYPE_ASSET_ID.clone());
+        assert_eq!(transactions[0].fee_asset_id, AssetId::from_chain(Chain::HyperCore));
         assert!(transactions[0].asset_ids().contains(&HYPERCORE_SPOT_USDC_ASSET_ID.clone()));
-        assert!(transactions[0].asset_ids().contains(&HYPERCORE_SPOT_HYPE_ASSET_ID.clone()));
+        assert!(transactions[0].asset_ids().contains(&AssetId::from_chain(Chain::HyperCore)));
 
         let metadata = transactions[0].swap_metadata().unwrap();
         assert_eq!(metadata.from_asset, HYPERCORE_SPOT_USDC_ASSET_ID.clone());
         assert_eq!(metadata.from_value, BigUint::from(1197900000u64));
-        assert_eq!(metadata.to_asset, HYPERCORE_SPOT_HYPE_ASSET_ID.clone());
+        assert_eq!(metadata.to_asset, AssetId::from_chain(Chain::HyperCore));
         assert_eq!(metadata.to_value, BigUint::from(30000000u64));
         assert_eq!(metadata.provider.as_deref(), Some("hyperliquid"));
         assert_eq!(metadata.referral_fee, None);

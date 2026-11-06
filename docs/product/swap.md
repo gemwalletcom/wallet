@@ -188,6 +188,9 @@ A stablecoin is one on the official list, USDT, USDC, USDS, USDe, USD1, USDG and
 | An Across bridge | what arrives is the amount less the LP, relayer capital and relayer gas fees, all in the token bridged; a deposit no relayer fills is refunded after `2 hours` | |
 | THORChain or Maya halts or resumes a network | it can show up to `15 minutes` late | |
 | Near Intents with HyperCore | HyperCore spot USDC can be paid but not received | the provider pays HyperCore USDC into perps, apart from the wallet's spot balance |
+| A Hyperliquid spot swap | the Network Fee is in the token received: HYPE or UBTC when buying, USDC with Gem's fee when selling; no balance is needed for it | Hyperliquid takes the fee out of what the order receives, and Gem's fee only on sells |
+| A Hyperliquid spot order would be worth under `10 USDC` once its size is rounded to the token's step, such as 10 USDC of HYPE | Amount too small before Confirm | Hyperliquid rejects orders under `10 USDC` |
+| HyperCore spot HYPE | it is the network's HYPE: one HYPE in the wallet, in swaps and in History | the HYPE spot token and the network coin are one balance |
 
 ## Contract binding
 
