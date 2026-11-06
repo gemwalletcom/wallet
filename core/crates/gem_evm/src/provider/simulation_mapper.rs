@@ -5,12 +5,12 @@ use num_traits::Zero;
 use primitives::{AssetId, Chain, SimulationBalanceChange, SimulationResult, SimulationWarning};
 
 use crate::ethereum_address_checksum;
-use crate::provider::transfer_decoder::decode_transfer_action;
+use crate::provider::transfer_decoder::decode_transfer;
 use crate::rpc::model::TraceCallResult;
 
 pub fn map_simulation_result(chain: Chain, signer: &str, trace: &TraceCallResult) -> SimulationResult {
-    if let Some(error) = trace.root_call_error() {
-        return SimulationResult::new(vec![SimulationWarning::execution_error(error)], vec![]);
+    if trace.root_call_error().is_some() {
+        return SimulationResult::new(vec![SimulationWarning::unverified()], vec![]);
     }
 
     SimulationResult {
@@ -36,7 +36,7 @@ fn map_balance_changes(chain: Chain, signer: &str, trace: &TraceCallResult) -> V
             continue;
         }
         let Some(token) = entry.action.to.as_deref() else { continue };
-        let Some(transfer) = decode_transfer_action(&entry.action) else { continue };
+        let Some(transfer) = decode_transfer(entry) else { continue };
 
         if transfer.from.eq_ignore_ascii_case(signer) {
             *token_deltas.entry(token).or_default() -= &transfer.amount;
@@ -69,7 +69,7 @@ mod tests {
     use super::*;
     use alloy_primitives::{Address, U160, U256, address};
     use alloy_sol_types::SolCall;
-    use primitives::asset_constants::ETHEREUM_USDC_TOKEN_ID;
+    use primitives::asset_constants::{ETHEREUM_DAI_TOKEN_ID, ETHEREUM_LINK_TOKEN_ID, ETHEREUM_USDC_TOKEN_ID};
     use primitives::contract_constants::UNISWAP_PERMIT2_CONTRACT;
     use primitives::testkit::json_rpc::load_json_rpc_result;
     use primitives::testkit::signer_mock::TEST_EVM_RECIPIENT;
@@ -104,7 +104,7 @@ mod tests {
         let reverted_root: TraceCallResult = load_json_rpc_result(include_str!("../../testdata/trace_call_reverted_root.json"));
         let result = map_simulation_result(Chain::Ethereum, TEST_ADDRESS, &reverted_root);
 
-        assert_eq!(result.warnings, vec![SimulationWarning::execution_error("Reverted")]);
+        assert_eq!(result.warnings, vec![SimulationWarning::unverified()]);
         assert!(result.balance_changes.is_empty());
 
         let reverted_subcall_only: TraceCallResult = load_json_rpc_result(include_str!("../../testdata/trace_call_subcall_reverted.json"));
@@ -141,6 +141,7 @@ mod tests {
                 .abi_encode(),
             ),
             error: None,
+            result: None,
             trace_address: vec![0],
         };
         let token_transfer_call = TraceCallEntry {
@@ -154,6 +155,7 @@ mod tests {
                 .abi_encode(),
             ),
             error: None,
+            result: None,
             trace_address: vec![0, 0],
         };
         let trace = TraceCallResult {
@@ -181,15 +183,56 @@ mod tests {
     }
 
     #[test]
+    fn test_map_simulation_result_skips_transfer_that_returns_false() {
+        let trace: TraceCallResult = load_json_rpc_result(include_str!("../../testdata/trace_call_erc20_transfer_returns_false.json"));
+
+        assert_eq!(map_simulation_result(Chain::Ethereum, TEST_ADDRESS, &trace).balance_changes, vec![]);
+    }
+
+    #[test]
+    fn test_map_simulation_result_dai_push() {
+        let trace: TraceCallResult = load_json_rpc_result(include_str!("../../testdata/trace_call_dai_push.json"));
+
+        assert_eq!(
+            map_simulation_result(Chain::Ethereum, "0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf", &trace).balance_changes,
+            vec![SimulationBalanceChange {
+                asset_id: AssetId::from_token(Chain::Ethereum, ETHEREUM_DAI_TOKEN_ID),
+                value: BigInt::from(-1_000_000_000_000_000_000_000i128),
+                decimals: 0,
+                name: None,
+                symbol: None,
+            }]
+        );
+    }
+
+    #[test]
+    fn test_map_simulation_result_erc677_transfer_and_call() {
+        let trace: TraceCallResult = load_json_rpc_result(include_str!("../../testdata/trace_call_erc677_transfer_and_call.json"));
+
+        assert_eq!(
+            map_simulation_result(Chain::Ethereum, "0xF977814e90dA44bFA03b6295A0616a897441aceC", &trace).balance_changes,
+            vec![SimulationBalanceChange {
+                asset_id: AssetId::from_token(Chain::Ethereum, ETHEREUM_LINK_TOKEN_ID),
+                value: BigInt::from(-1_000_000_000_000_000_000i64),
+                decimals: 0,
+                name: None,
+                symbol: None,
+            }]
+        );
+    }
+
+    #[test]
     fn test_map_simulation_result_keeps_transfer_next_to_reverted_subcall() {
         let root_call = TraceCallEntry {
             action: TraceCallAction::mock(TEST_EVM_RECIPIENT, vec![]),
             error: None,
+            result: None,
             trace_address: vec![],
         };
         let reverted_call = TraceCallEntry {
             action: TraceCallAction::mock(TEST_EVM_RECIPIENT, vec![]),
             error: Some("Reverted".to_string()),
+            result: None,
             trace_address: vec![0],
         };
         let reverted_token_transfer_call = TraceCallEntry {
@@ -205,6 +248,7 @@ mod tests {
                 )
             },
             error: None,
+            result: None,
             trace_address: vec![0, 0],
         };
         let token_transfer_call = TraceCallEntry {
@@ -217,6 +261,7 @@ mod tests {
                 .abi_encode(),
             ),
             error: None,
+            result: None,
             trace_address: vec![1],
         };
         let trace = TraceCallResult {

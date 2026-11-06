@@ -790,6 +790,8 @@ simulation_warning_unlimited_token_approval_description = Dzięki temu osoba wyd
 simulation_warning_externally_owned_spender_description = To zatwierdzenie pozwala zwykłemu adresowi portfela (EOA) używać Twoich aktywów. Potwierdź tylko wtedy, gdy ufasz temu adresowi.
 simulation_warning_nft_collection_approval_title = Zażądano pełnego dostępu do kolekcji NFT
 simulation_warning_unlimited_token_approval_title = Nieograniczone zatwierdzanie tokenów
+simulation_warning_unverified_title = Nie udało nam się sprawdzić tej transakcji
+simulation_warning_unverified_description = Nie wiemy, co zrobi. Podpisz tylko wtedy, gdy ufasz tej aplikacji.
 
 # Application
 

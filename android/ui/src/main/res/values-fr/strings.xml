@@ -632,6 +632,8 @@
   <string name="simulation_warning_externally_owned_spender_description">Cette approbation permet à une adresse de portefeuille classique (EOA) d’utiliser vos actifs. Confirmez uniquement si vous faites confiance à cette adresse.</string>
   <string name="simulation_warning_nft_collection_approval_title">Demande d\'accès à l\'intégralité de la collection NFT</string>
   <string name="simulation_warning_unlimited_token_approval_title">Approbation illimitée des jetons</string>
+  <string name="simulation_warning_unverified_title">Nous n’avons pas pu vérifier cette transaction</string>
+  <string name="simulation_warning_unverified_description">Nous ne savons pas ce qu’elle fera. Signez uniquement si vous faites confiance à cette application.</string>
   <string name="application_name">Gem</string>
   <string name="rootcheck_security_alert">Avertissement de sécurité</string>
   <string name="rootcheck_jailbreak_body">Votre appareil semble jailbreaké. Cela peut mettre votre portefeuille et vos fonds en danger.</string>

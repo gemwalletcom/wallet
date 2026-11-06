@@ -632,6 +632,8 @@
   <string name="simulation_warning_externally_owned_spender_description">Această aprobare permite unei adrese obișnuite de portofel (EOA) să folosească activele tale. Confirmă doar dacă ai încredere în această adresă.</string>
   <string name="simulation_warning_nft_collection_approval_title">Acces complet la colecția NFT solicitat</string>
   <string name="simulation_warning_unlimited_token_approval_title">Aprobare nelimitată de tokenuri</string>
+  <string name="simulation_warning_unverified_title">Nu am putut verifica această tranzacție</string>
+  <string name="simulation_warning_unverified_description">Nu știm ce va face. Semnează doar dacă ai încredere în această aplicație.</string>
   <string name="application_name">Gem</string>
   <string name="rootcheck_security_alert">Avertisment de securitate</string>
   <string name="rootcheck_jailbreak_body">Dispozitivul dvs. pare să aibă jailbreak. Acest lucru vă poate pune portofelul și fondurile în pericol.</string>

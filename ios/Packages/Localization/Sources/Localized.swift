@@ -1371,6 +1371,10 @@ public enum Localized {
       }
     }
     public enum Warning {
+      /// We don't know what it will do. Only sign if you trust this app.
+      public static let unverifiedDescription = Localized.tr("Localizable", "simulation.warning.unverified_description", fallback: "We don't know what it will do. Only sign if you trust this app.")
+      /// We couldn't check this transaction
+      public static let unverifiedTitle = Localized.tr("Localizable", "simulation.warning.unverified_title", fallback: "We couldn't check this transaction")
       public enum NftCollectionApproval {
         /// Full NFT collection access requested
         public static let title = Localized.tr("Localizable", "simulation.warning.nft_collection_approval.title", fallback: "Full NFT collection access requested")

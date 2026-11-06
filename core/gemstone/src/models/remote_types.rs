@@ -628,6 +628,7 @@ pub enum SimulationWarningType {
     PermitApproval(SimulationWarningApproval),
     PermitBatchApproval(Option<GemBigInt>),
     ValidationError,
+    Unverified,
 }
 
 #[uniffi::remote(Enum)]

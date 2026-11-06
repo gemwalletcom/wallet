@@ -790,6 +790,8 @@ simulation_warning_unlimited_token_approval_description = Dette giver brugeren a
 simulation_warning_externally_owned_spender_description = Denne godkendelse lader en almindelig walletadresse (EOA) bruge dine aktiver. Bekræft kun, hvis du har tillid til denne adresse.
 simulation_warning_nft_collection_approval_title = Fuld adgang til NFT-samling anmodes
 simulation_warning_unlimited_token_approval_title = Ubegrænset tokengodkendelse
+simulation_warning_unverified_title = Vi kunne ikke tjekke denne transaktion
+simulation_warning_unverified_description = Vi ved ikke, hvad den vil gøre. Underskriv kun, hvis du har tillid til denne app.
 
 # Application
 

@@ -1416,6 +1416,10 @@ simulation_warning_externally_owned_spender_description = This approval lets a r
 simulation_warning_nft_collection_approval_title = Full NFT collection access requested
 # Used in simulation UI for the warning unlimited token approval title.
 simulation_warning_unlimited_token_approval_title = Unlimited token approval
+# Used in simulation UI for the warning shown when the transaction could not be checked.
+simulation_warning_unverified_title = We couldn't check this transaction
+# Used in simulation UI for the description of the warning shown when the transaction could not be checked.
+simulation_warning_unverified_description = We don't know what it will do. Only sign if you trust this app.
 
 # Application
 

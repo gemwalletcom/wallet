@@ -790,6 +790,8 @@ simulation_warning_unlimited_token_approval_description = Wannan yana ba mai kas
 simulation_warning_externally_owned_spender_description = Wannan amincewar tana ba adireshin walat na yau da kullum (EOA) damar amfani da kadarorinku. Tabbatar kawai idan kun amince da wannan adireshin.
 simulation_warning_nft_collection_approval_title = An nemi cikakken damar tattara NFT
 simulation_warning_unlimited_token_approval_title = Amincewa da alamar mara iyaka
+simulation_warning_unverified_title = Ba mu iya duba wannan ma'amala ba
+simulation_warning_unverified_description = Ba mu san abin da za ta yi ba. Sa hannu kawai idan kun amince da wannan manhaja.
 
 # Application
 

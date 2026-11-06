@@ -32,6 +32,7 @@ pub enum GemLocalizedText {
     ErrorOccurred,
     UnlimitedApprovalWarning,
     ExternallyOwnedSpenderWarning,
+    TransactionUnverifiedWarning,
     SuspiciousAddressDescription,
     AddressType { address_type: AddressType },
     InvalidTokenId,

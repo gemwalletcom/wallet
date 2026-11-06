@@ -790,6 +790,8 @@ simulation_warning_unlimited_token_approval_description = To dává utrácejíc�
 simulation_warning_externally_owned_spender_description = Toto schválení umožní běžné adrese peněženky (EOA) používat vaše aktiva. Potvrďte pouze tehdy, pokud této adrese důvěřujete.
 simulation_warning_nft_collection_approval_title = Požadován plný přístup k NFT kolekci
 simulation_warning_unlimited_token_approval_title = Neomezené schvalování tokenů
+simulation_warning_unverified_title = Tuto transakci se nám nepodařilo ověřit
+simulation_warning_unverified_description = Nevíme, co provede. Podepište ji, pouze pokud této aplikaci důvěřujete.
 
 # Application
 

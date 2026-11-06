@@ -9,8 +9,8 @@ use crate::{
 };
 
 pub(crate) fn map_simulation_result(signer: &Address, response: TonEmulationResponse) -> SimulationResult {
-    if let Some(warning) = execution_warning(&response) {
-        return SimulationResult::new(vec![warning], vec![]);
+    if execution_failed(&response) {
+        return SimulationResult::new(vec![SimulationWarning::unverified()], vec![]);
     }
 
     SimulationResult {
@@ -44,29 +44,16 @@ fn map_balance_changes(signer: &Address, response: &TonEmulationResponse) -> Vec
     balance_changes
 }
 
-fn execution_warning(response: &TonEmulationResponse) -> Option<SimulationWarning> {
-    for transaction in response.transactions.values() {
-        let Some(description) = &transaction.description else {
-            continue;
-        };
-        if description.aborted {
-            return Some(SimulationWarning::execution_error("TON transaction aborted"));
-        }
-        if let Some(compute) = &description.compute_ph
-            && (!compute.success.unwrap_or(false) || compute.exit_code.is_some_and(|code| code != 0 && code != 1))
-        {
-            return Some(SimulationWarning::execution_error("TON compute phase failed"));
-        }
-        if let Some(action) = &description.action
-            && !action.success.unwrap_or(false)
-        {
-            return Some(SimulationWarning::execution_error("TON action phase failed"));
-        }
-    }
-    if response.actions.iter().any(|action| action.success == Some(false)) {
-        return Some(SimulationWarning::execution_error("TON action failed"));
-    }
-    None
+fn execution_failed(response: &TonEmulationResponse) -> bool {
+    let transaction_failed = response.transactions.values().filter_map(|transaction| transaction.description.as_ref()).any(|description| {
+        description.aborted
+            || description
+                .compute_ph
+                .as_ref()
+                .is_some_and(|compute| !compute.success.unwrap_or(false) || compute.exit_code.is_some_and(|code| code != 0 && code != 1))
+            || description.action.as_ref().is_some_and(|action| !action.success.unwrap_or(false))
+    });
+    transaction_failed || response.actions.iter().any(|action| action.success == Some(false))
 }
 
 fn map_swap_balance_changes(signer: &Address, details: &TonEmulationJettonSwap, deltas: &mut HashMap<AssetId, BigInt>) {
@@ -109,7 +96,7 @@ mod tests {
 
         let result = map_simulation_result(&Address::parse("0:33a14a5a9406979d59b9328898591660b8b1736342b11632efdcc911ab9057cf").unwrap(), response);
 
-        assert_eq!(result.warnings, vec![SimulationWarning::execution_error("TON transaction aborted")]);
+        assert_eq!(result.warnings, vec![SimulationWarning::unverified()]);
         assert!(result.balance_changes.is_empty());
     }
 

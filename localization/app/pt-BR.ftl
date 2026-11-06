@@ -790,6 +790,8 @@ simulation_warning_unlimited_token_approval_description = Isso permite que o end
 simulation_warning_externally_owned_spender_description = Esta aprovação permite que um endereço de carteira comum (EOA) use seus ativos. Confirme somente se você confia neste endereço.
 simulation_warning_nft_collection_approval_title = Acesso total à coleção de NFTs solicitado
 simulation_warning_unlimited_token_approval_title = Aprovação ilimitada de tokens
+simulation_warning_unverified_title = Não conseguimos verificar esta transação
+simulation_warning_unverified_description = Não sabemos o que ela fará. Assine somente se você confia neste app.
 
 # Application
 

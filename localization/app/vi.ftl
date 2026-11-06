@@ -790,6 +790,8 @@ simulation_warning_unlimited_token_approval_description = Điều này cho phép
 simulation_warning_externally_owned_spender_description = Phê duyệt này cho phép một địa chỉ ví thông thường (EOA) sử dụng tài sản của bạn. Chỉ xác nhận nếu bạn tin tưởng địa chỉ này.
 simulation_warning_nft_collection_approval_title = Yêu cầu quyền truy cập đầy đủ vào bộ sưu tập NFT
 simulation_warning_unlimited_token_approval_title = Phê duyệt mã thông báo không giới hạn
+simulation_warning_unverified_title = Chúng tôi không thể kiểm tra giao dịch này
+simulation_warning_unverified_description = Chúng tôi không biết giao dịch này sẽ làm gì. Chỉ ký nếu bạn tin tưởng ứng dụng này.
 
 # Application
 

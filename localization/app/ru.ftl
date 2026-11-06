@@ -790,6 +790,8 @@ simulation_warning_unlimited_token_approval_description = Это даёт пол
 simulation_warning_externally_owned_spender_description = Это разрешение позволяет обычному адресу кошелька (EOA) использовать ваши активы. Подтверждайте только если доверяете этому адресу.
 simulation_warning_nft_collection_approval_title = Запрошен полный доступ к коллекции NFT.
 simulation_warning_unlimited_token_approval_title = Неограниченное одобрение токена
+simulation_warning_unverified_title = Нам не удалось проверить эту транзакцию
+simulation_warning_unverified_description = Мы не знаем, что она сделает. Подписывайте, только если доверяете приложению.
 
 # Application
 

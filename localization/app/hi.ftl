@@ -790,6 +790,8 @@ simulation_warning_unlimited_token_approval_description = इससे खर्
 simulation_warning_externally_owned_spender_description = यह स्वीकृति एक सामान्य वॉलेट पते (EOA) को आपकी संपत्तियों का उपयोग करने देती है। केवल तभी पुष्टि करें जब आप इस पते पर भरोसा करते हों।
 simulation_warning_nft_collection_approval_title = संपूर्ण एनएफटी संग्रह तक पहुंच का अनुरोध किया गया है
 simulation_warning_unlimited_token_approval_title = असीमित टोकन अनुमोदन
+simulation_warning_unverified_title = हम इस लेनदेन की जाँच नहीं कर सके
+simulation_warning_unverified_description = हमें नहीं पता कि यह क्या करेगा। केवल तभी साइन करें जब आपको इस ऐप पर भरोसा हो।
 
 # Application
 

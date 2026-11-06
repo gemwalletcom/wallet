@@ -790,6 +790,8 @@ simulation_warning_unlimited_token_approval_description = Це надає упо
 simulation_warning_externally_owned_spender_description = Це схвалення дозволяє звичайній адресі гаманця (EOA) використовувати ваші активи. Підтверджуйте, лише якщо довіряєте цій адресі.
 simulation_warning_nft_collection_approval_title = Запитується повний доступ до колекції NFT
 simulation_warning_unlimited_token_approval_title = Необмежене схвалення токенів
+simulation_warning_unverified_title = Нам не вдалося перевірити цю транзакцію
+simulation_warning_unverified_description = Ми не знаємо, що вона зробить. Підписуйте, лише якщо довіряєте цьому застосунку.
 
 # Application
 

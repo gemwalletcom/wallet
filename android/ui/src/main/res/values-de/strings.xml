@@ -632,6 +632,8 @@
   <string name="simulation_warning_externally_owned_spender_description">Diese Genehmigung erlaubt einer normalen Wallet-Adresse (EOA), Ihre Assets zu verwenden. Bestätigen Sie nur, wenn Sie dieser Adresse vertrauen.</string>
   <string name="simulation_warning_nft_collection_approval_title">Vollständiger Zugriff auf die NFT-Sammlung angefordert</string>
   <string name="simulation_warning_unlimited_token_approval_title">Unbegrenzte Token-Genehmigung</string>
+  <string name="simulation_warning_unverified_title">Wir konnten diese Transaktion nicht prüfen</string>
+  <string name="simulation_warning_unverified_description">Wir wissen nicht, was sie bewirkt. Signieren Sie nur, wenn Sie dieser App vertrauen.</string>
   <string name="application_name">Gem</string>
   <string name="rootcheck_security_alert">Sicherheitswarnung</string>
   <string name="rootcheck_jailbreak_body">Ihr Gerät scheint einen Jailbreak zu haben. Das kann Ihre Wallet und Ihr Guthaben gefährden.</string>

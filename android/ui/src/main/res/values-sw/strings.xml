@@ -632,6 +632,8 @@
   <string name="simulation_warning_externally_owned_spender_description">Idhini hii inaruhusu anwani ya kawaida ya pochi (EOA) kutumia mali zako. Thibitisha tu ikiwa unaiamini anwani hii.</string>
   <string name="simulation_warning_nft_collection_approval_title">Ufikiaji kamili wa ukusanyaji wa NFT umeombwa</string>
   <string name="simulation_warning_unlimited_token_approval_title">Idhini ya tokeni isiyo na kikomo</string>
+  <string name="simulation_warning_unverified_title">Hatukuweza kukagua muamala huu</string>
+  <string name="simulation_warning_unverified_description">Hatujui utafanya nini. Saini tu ikiwa unaiamini programu hii.</string>
   <string name="application_name">Gem</string>
   <string name="rootcheck_security_alert">Onyo la Usalama</string>
   <string name="rootcheck_jailbreak_body">Kifaa chako kinaonekana kimefanyiwa jailbreak. Hii inaweza kuweka mkoba na fedha zako hatarini.</string>

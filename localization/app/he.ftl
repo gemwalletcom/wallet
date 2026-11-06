@@ -790,6 +790,8 @@ simulation_warning_unlimited_token_approval_description = זה נותן למוצ
 simulation_warning_externally_owned_spender_description = אישור זה מאפשר לכתובת ארנק רגילה (EOA) להשתמש בנכסים שלך. אשר רק אם אתה סומך על כתובת זו.
 simulation_warning_nft_collection_approval_title = התבקשה גישה מלאה לאוסף NFT
 simulation_warning_unlimited_token_approval_title = אישור אסימונים ללא הגבלה
+simulation_warning_unverified_title = לא הצלחנו לבדוק את העסקה הזו
+simulation_warning_unverified_description = איננו יודעים מה היא תעשה. חתום רק אם אתה סומך על האפליקציה הזו.
 
 # Application
 

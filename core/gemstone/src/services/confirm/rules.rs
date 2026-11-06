@@ -136,7 +136,11 @@ impl ConfirmInput for TransactionInputType {
         let Self::Payment { .. } = self else {
             return Ok(());
         };
-        if let Some(warning) = simulation.warnings.iter().find(|warning| warning.warning == SimulationWarningType::ValidationError) {
+        if let Some(warning) = simulation
+            .warnings
+            .iter()
+            .find(|warning| [SimulationWarningType::ValidationError, SimulationWarningType::Unverified].contains(&warning.warning))
+        {
             return Err(GemConfirmError::Load {
                 msg: warning.message.clone().unwrap_or_else(|| "Payment simulation failed".to_string()),
             });
@@ -1248,10 +1252,12 @@ mod tests {
                 metadata: ApplicationMetadata::mock(),
                 extra: TransferDataExtra::mock(),
             };
-            for warning in [SimulationWarning::execution_error("InstructionError"), SimulationWarning::validation_error("Invalid transaction")] {
-                let message = warning.message.clone().unwrap();
+            for (warning, message) in [
+                (SimulationWarning::unverified(), "Payment simulation failed"),
+                (SimulationWarning::validation_error("Invalid transaction"), "Invalid transaction"),
+            ] {
                 let simulation = SimulationResult::new(vec![warning], vec![]);
-                assert_eq!(payment.validate_simulation(&simulation).map_err(|error| error.to_string()), Err(message));
+                assert_eq!(payment.validate_simulation(&simulation).map_err(|error| error.to_string()), Err(message.to_string()));
                 assert!(wallet_connect.validate_simulation(&simulation).is_ok());
             }
             assert!(payment.validate_simulation(&SimulationResult::default()).is_ok());

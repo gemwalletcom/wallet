@@ -36,7 +36,13 @@ impl<'a, C: Client + Clone> SimulationClient<'a, C> {
     }
 
     async fn simulate_approval(&self, approval: ApprovalRequest) -> Result<SimulationResult, Box<dyn Error + Send + Sync>> {
-        let warnings = self.approval_warnings(&approval).await?.into_iter().chain(approval.expiration_warning()).collect();
+        let warnings = self
+            .approval_warnings(&approval)
+            .await
+            .unwrap_or_else(|_| vec![SimulationWarning::unverified()])
+            .into_iter()
+            .chain(approval.expiration_warning())
+            .collect();
         Ok(approval.build_simulation_result(warnings))
     }
 
@@ -62,7 +68,7 @@ mod tests {
     use alloy_primitives::{U256, address};
     use alloy_sol_types::SolCall;
     use gem_evm::{eip712::parse_eip712_json, rpc::EthereumClient};
-    use primitives::{Chain, SimulationSeverity, SimulationWarning, SimulationWarningType, asset_constants::ETHEREUM_USDC_TOKEN_ID};
+    use primitives::{Chain, SimulationPayloadFieldKind, SimulationSeverity, SimulationWarning, SimulationWarningType, asset_constants::ETHEREUM_USDC_TOKEN_ID};
     use serde_json::Value;
 
     use super::SimulationClient;
@@ -115,14 +121,21 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn invalid_spender_code_response_returns_error() {
-        let json: Value = serde_json::from_str(include_str!("../../../gem_evm/testdata/1inch_permit.json")).unwrap();
-        let message = parse_eip712_json(&json).unwrap();
+    async fn failed_spender_check_keeps_approval_and_warns() -> Result<(), Box<dyn Error + Send + Sync>> {
+        let calldata = gem_evm::contracts::IERC20::approveCall {
+            spender: address!("3fC91A3afd70395Cd496C647d5a6CC9D4B2b7FAD"),
+            value: U256::MAX,
+        }
+        .abi_encode();
         let client = EthereumClient::mock_with_code("0xzz");
 
-        let result = SimulationClient::new(&client).simulate_eip712_message(Chain::Ethereum, &message).await;
+        let result = SimulationClient::new(&client).simulate_evm_calldata(Chain::Ethereum, &calldata, ETHEREUM_USDC_TOKEN_ID).await?;
 
-        assert!(result.is_err());
+        assert_eq!(result.warnings, vec![SimulationWarning::unverified()]);
+        assert!(result.header.is_some_and(|header| header.is_unlimited));
+        assert!(result.payload.iter().any(|field| field.kind == SimulationPayloadFieldKind::Spender));
+
+        Ok(())
     }
 
     #[tokio::test]

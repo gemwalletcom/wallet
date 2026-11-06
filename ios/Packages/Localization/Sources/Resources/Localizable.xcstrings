@@ -88052,6 +88052,388 @@
         }
       }
     },
+    "simulation.warning.unverified_description": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "لا نعرف ما الذي ستفعله. وقّع فقط إذا كنت تثق بهذا التطبيق."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আমরা জানি না এটি কী করবে। শুধু এই অ্যাপে আস্থা থাকলেই স্বাক্ষর করুন।"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nevíme, co provede. Podepište ji, pouze pokud této aplikaci důvěřujete."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vi ved ikke, hvad den vil gøre. Underskriv kun, hvis du har tillid til denne app."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wir wissen nicht, was sie bewirkt. Signieren Sie nur, wenn Sie dieser App vertrauen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We don't know what it will do. Only sign if you trust this app."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No sabemos qué hará. Firma solo si confías en esta aplicación."
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "نمی‌دانیم چه کاری انجام می‌دهد. فقط در صورتی امضا کنید که به این برنامه اعتماد دارید."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hindi namin alam kung ano ang gagawin nito. Mag-sign lang kung pinagkakatiwalaan mo ang app na ito."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nous ne savons pas ce qu’elle fera. Signez uniquement si vous faites confiance à cette application."
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ba mu san abin da za ta yi ba. Sa hannu kawai idan kun amince da wannan manhaja."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "איננו יודעים מה היא תעשה. חתום רק אם אתה סומך על האפליקציה הזו."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "हमें नहीं पता कि यह क्या करेगा। केवल तभी साइन करें जब आपको इस ऐप पर भरोसा हो।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kami tidak tahu apa yang akan dilakukannya. Tanda tangani hanya jika Anda memercayai aplikasi ini."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non sappiamo cosa farà. Firma solo se ti fidi di questa app."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この取引で何が起こるかわかりません。このアプリを信頼できる場合のみ署名してください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 거래가 무엇을 할지 알 수 없습니다. 이 앱을 신뢰하는 경우에만 서명하세요."
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kami tidak tahu apa yang akan dilakukannya. Tandatangan hanya jika anda mempercayai aplikasi ini."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We weten niet wat deze zal doen. Onderteken alleen als u deze app vertrouwt."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie wiemy, co zrobi. Podpisz tylko wtedy, gdy ufasz tej aplikacji."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não sabemos o que ela fará. Assine somente se você confia neste app."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nu știm ce va face. Semnează doar dacă ai încredere în această aplicație."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Мы не знаем, что она сделает. Подписывайте, только если доверяете приложению."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hatujui utafanya nini. Saini tu ikiwa unaiamini programu hii."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "เราไม่ทราบว่าธุรกรรมนี้จะทำอะไร ลงนามเฉพาะเมื่อคุณเชื่อถือแอปนี้เท่านั้น"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ne yapacağını bilmiyoruz. Yalnızca bu uygulamaya güveniyorsanız imzalayın."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ми не знаємо, що вона зробить. Підписуйте, лише якщо довіряєте цьому застосунку."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ہمیں نہیں معلوم کہ یہ کیا کرے گی۔ صرف اسی صورت میں دستخط کریں جب آپ کو اس ایپ پر بھروسہ ہو۔"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chúng tôi không biết giao dịch này sẽ làm gì. Chỉ ký nếu bạn tin tưởng ứng dụng này."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我们不知道它会执行什么操作。仅在您信任此应用时签名。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我們不知道它會執行什麼操作。僅在您信任此應用程式時簽署。"
+          }
+        }
+      }
+    },
+    "simulation.warning.unverified_title": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تعذّر علينا التحقق من هذه المعاملة"
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "আমরা এই লেনদেনটি যাচাই করতে পারিনি"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tuto transakci se nám nepodařilo ověřit"
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vi kunne ikke tjekke denne transaktion"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wir konnten diese Transaktion nicht prüfen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We couldn't check this transaction"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No pudimos verificar esta transacción"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "نتوانستیم این تراکنش را بررسی کنیم"
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hindi namin ma-check ang transaksyong ito"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nous n’avons pas pu vérifier cette transaction"
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ba mu iya duba wannan ma'amala ba"
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "לא הצלחנו לבדוק את העסקה הזו"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "हम इस लेनदेन की जाँच नहीं कर सके"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kami tidak dapat memeriksa transaksi ini"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non siamo riusciti a verificare questa transazione"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この取引を確認できませんでした"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 거래를 확인하지 못했습니다"
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kami tidak dapat menyemak transaksi ini"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We konden deze transactie niet controleren"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie udało nam się sprawdzić tej transakcji"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não conseguimos verificar esta transação"
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nu am putut verifica această tranzacție"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нам не удалось проверить эту транзакцию"
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hatukuweza kukagua muamala huu"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "เราไม่สามารถตรวจสอบธุรกรรมนี้ได้"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu işlemi kontrol edemedik"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нам не вдалося перевірити цю транзакцію"
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ہم اس ٹرانزیکشن کی جانچ نہیں کر سکے"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chúng tôi không thể kiểm tra giao dịch này"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我们无法检查此交易"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我們無法檢查此交易"
+          }
+        }
+      }
+    },
     "simulation.warning_externally_owned_spender_description": {
       "extractionState": "manual",
       "localizations": {
