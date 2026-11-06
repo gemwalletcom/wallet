@@ -30,6 +30,7 @@ public final class SignMessageSceneViewModel {
     public var presentedSheet: SignMessageSheet?
     public var isPresentingAlertMessage: AlertMessage?
     private var hasLoadedAddressNames = false
+    private var isSigning = false
 
     public init(
         service: any GemSignMessageServiceProtocol,
@@ -116,7 +117,10 @@ public final class SignMessageSceneViewModel {
     }
 
     public var buttonState: ButtonState {
-        isButtonDisabled ? .disabled : .normal
+        if isButtonDisabled {
+            return .disabled
+        }
+        return isSigning ? .loading() : .normal
     }
 
     func signMessage() async throws {
@@ -125,11 +129,18 @@ public final class SignMessageSceneViewModel {
     }
 
     public func onSign(onComplete: @escaping () -> Void) {
+        guard !isSigning else { return }
+        isSigning = true
         Task {
             do {
                 try await signMessage()
                 onComplete()
-            } catch let error as GemServiceError {
+            } catch {
+                isSigning = false
+                guard let error = error as? GemServiceError else {
+                    isPresentingAlertMessage = AlertMessage(error: error)
+                    return
+                }
                 switch signerFailure(error: error.text()) {
                 case let .retry(text):
                     isPresentingAlertMessage = AlertMessage(title: Localized.Errors.errorOccurred, message: text.text)
@@ -137,8 +148,6 @@ public final class SignMessageSceneViewModel {
                     confirmTransferDelegate(.failure(error))
                     onComplete()
                 }
-            } catch {
-                isPresentingAlertMessage = AlertMessage(error: error)
             }
         }
     }
