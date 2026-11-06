@@ -5,7 +5,7 @@ pub enum EncodingError {
     Invalid(EncodingType, String),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum EncodingType {
     Base32,
     Base58,

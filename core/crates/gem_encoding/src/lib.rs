@@ -7,6 +7,8 @@ pub mod protobuf;
 mod base32;
 #[cfg(feature = "base64")]
 mod base64;
+#[cfg(any(feature = "base32", feature = "base64"))]
+mod base_n;
 
 pub use error::{EncodingError, EncodingType};
 pub use percent_encoding::{is_valid_percent_encoding, percent_decode_lossy, percent_encode};

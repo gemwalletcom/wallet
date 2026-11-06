@@ -1,8 +1,11 @@
+use crate::base_n::Alphabet;
 use crate::{EncodingError, EncodingType};
-use data_encoding::{BASE64, BASE64_NOPAD, BASE64URL_NOPAD, Encoding};
+
+static STANDARD: Alphabet<3, 4> = Alphabet::new(b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/");
+static URL_SAFE: Alphabet<3, 4> = Alphabet::new(b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_");
 
 pub fn encode_base64(bytes: &[u8]) -> String {
-    BASE64.encode(bytes)
+    STANDARD.encode(bytes, true)
 }
 
 pub fn decode_base64(value: &str) -> Result<Vec<u8>, EncodingError> {
@@ -10,23 +13,19 @@ pub fn decode_base64(value: &str) -> Result<Vec<u8>, EncodingError> {
     if value.len() != unpadded.len().div_ceil(4) * 4 {
         return Err(EncodingError::Invalid(EncodingType::Base64, "invalid padding".to_string()));
     }
-    decode(&BASE64_NOPAD, unpadded)
+    STANDARD.decode(unpadded.as_bytes(), EncodingType::Base64)
 }
 
 pub fn decode_base64_no_pad(value: &str) -> Result<Vec<u8>, EncodingError> {
-    decode(&BASE64_NOPAD, value)
+    STANDARD.decode(value.as_bytes(), EncodingType::Base64)
 }
 
 pub fn encode_base64_url(bytes: &[u8]) -> String {
-    BASE64URL_NOPAD.encode(bytes)
+    URL_SAFE.encode(bytes, false)
 }
 
 pub fn decode_base64_url(value: &str) -> Result<Vec<u8>, EncodingError> {
-    decode(&BASE64URL_NOPAD, value)
-}
-
-fn decode(encoding: &Encoding, value: &str) -> Result<Vec<u8>, EncodingError> {
-    encoding.decode(value.as_bytes()).map_err(|error| EncodingError::Invalid(EncodingType::Base64, error.to_string()))
+    URL_SAFE.decode(value.as_bytes(), EncodingType::Base64)
 }
 
 #[cfg(test)]

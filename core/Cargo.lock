@@ -3089,9 +3089,6 @@ dependencies = [
 [[package]]
 name = "gem_encoding"
 version = "2.114.88"
-dependencies = [
- "data-encoding",
-]
 
 [[package]]
 name = "gem_evm"
