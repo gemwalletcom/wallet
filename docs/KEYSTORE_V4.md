@@ -107,7 +107,7 @@ New mnemonics are generated in `gem_keystore` (`Mnemonic::generate`):
 - Entropy comes from `gem_crypto::random::bytes`, which calls `getrandom::fill` — reading the OS CSPRNG directly (`getrandom(2)` / `getentropy` / `BCryptGenRandom`), not a userspace or seeded PRNG.
 - 32 random bytes are drawn and truncated to the BIP-39 entropy length for the requested word count (16 bytes / 12 words … 32 bytes / 24 words), then encoded as an English BIP-39 phrase.
 - Entropy is held in `Zeroizing` and wiped once the phrase is built.
-- Imported phrases are NFKD-normalized, lowercased, and validated against the BIP-39 English wordlist before use.
+- Imported phrases are split on any Unicode whitespace, lowercased, and validated against the BIP-39 English wordlist before use. No Unicode normalization is applied, so words containing compatibility characters (full-width letters, ligatures) are reported as invalid words.
 
 ## Password Boundary
 
