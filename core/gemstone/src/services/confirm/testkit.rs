@@ -6,7 +6,10 @@ use gem_bitcoin::models::BitcoinUTXO;
 use primitives::{Asset, AssetBasic, AssetFull, AssetId, Chain, PlatformStore, Wallet, WalletId};
 
 use super::GemConfirmError;
-use super::{GemConfirmData, GemConfirmFee, GemConfirmFeeSelection, GemConfirmInput, GemConfirmLoad, GemConfirmMetadata, GemConfirmService, GemConfirmSimulationState, GemConfirmTransferService, GemTransferAmountResult, SendInput};
+use super::error::SendFailure;
+use super::{
+    GemConfirmData, GemConfirmFee, GemConfirmFeeSelection, GemConfirmInput, GemConfirmLoad, GemConfirmMetadata, GemConfirmService, GemConfirmSimulationState, GemConfirmTransferService, GemSubmitResult, GemTransferAmountResult, SendInput,
+};
 use crate::api::{GemApiClient, GemDeviceApiClient, GemStaticApiClient};
 use crate::gateway::GemGateway;
 use crate::keystore::GemKeystore;
@@ -374,6 +377,21 @@ pub fn mock_bitcoin_transfer(value: BigInt) -> GemTransferData {
         recipient: GemRecipient::address(TEST_BITCOIN_RECIPIENT.into()),
         value,
         ..GemTransferData::mock(TransactionInputType::Transfer { asset: Asset::mock_btc() })
+    }
+}
+
+impl SendFailure {
+    pub fn error(self) -> GemConfirmError {
+        match self {
+            Self::Failed(error) | Self::Unanswered(error) => error,
+        }
+    }
+}
+
+impl GemConfirmTransferService {
+    pub async fn sign_and_deliver(&self, input: SendInput) -> Result<GemSubmitResult, GemConfirmError> {
+        let submission = Box::pin(self.sign_submission(input)).await?;
+        Box::pin(self.deliver(&submission)).await.map_err(SendFailure::error)
     }
 }
 

@@ -457,14 +457,20 @@ pub(super) fn load_error(chain: Chain, error: GatewayError) -> GemConfirmError {
     }
 }
 
-pub(super) fn broadcast_error(hashes: Vec<String>, error: GatewayError) -> GemConfirmError {
+#[derive(Debug, Clone, PartialEq)]
+pub(super) enum SendFailure {
+    Failed(GemConfirmError),
+    Unanswered(GemConfirmError),
+}
+
+pub(super) fn broadcast_failure(hashes: Vec<String>, error: GatewayError) -> SendFailure {
     if !hashes.is_empty() {
-        return GemConfirmError::PartialBroadcast { hashes, msg: error.to_string() };
+        return SendFailure::Failed(GemConfirmError::PartialBroadcast { hashes, msg: error.to_string() });
     }
     match error {
-        GatewayError::Offline => GemConfirmError::Offline,
-        GatewayError::NetworkError { msg } => GemConfirmError::Network { msg },
-        error => GemConfirmError::Broadcast { msg: error.to_string() },
+        GatewayError::Offline => SendFailure::Unanswered(GemConfirmError::Offline),
+        GatewayError::NetworkError { msg } => SendFailure::Unanswered(GemConfirmError::Network { msg }),
+        error => SendFailure::Failed(GemConfirmError::Broadcast { msg: error.to_string() }),
     }
 }
 
@@ -572,32 +578,39 @@ mod tests {
             GemConfirmErrorDisplay::DustThreshold { chain: Chain::Bitcoin },
             "dust found while loading the fee shows the dust explanation, as it does at signing"
         );
-        assert_eq!(broadcast_error(vec![], GatewayError::Offline), GemConfirmError::Offline);
         assert_eq!(
-            broadcast_error(vec!["h1".to_string()], GatewayError::Offline),
-            GemConfirmError::PartialBroadcast {
+            broadcast_failure(vec![], GatewayError::Offline),
+            SendFailure::Unanswered(GemConfirmError::Offline),
+            "a broadcast the network never answered may still have arrived"
+        );
+        assert_eq!(
+            broadcast_failure(vec!["h1".to_string()], GatewayError::Offline),
+            SendFailure::Failed(GemConfirmError::PartialBroadcast {
                 hashes: vec!["h1".to_string()],
                 msg: GatewayError::Offline.to_string(),
-            }
+            })
         );
         assert_eq!(
             load_error(Chain::Bitcoin, GatewayError::PlatformError { msg: "dust".to_string() }),
             GemConfirmError::Load { msg: "Platform error: dust".to_string() }
         );
-        assert_eq!(broadcast_error(vec![], GatewayError::NetworkError { msg: "offline".to_string() }), GemConfirmError::Network { msg: "offline".to_string() });
         assert_eq!(
-            broadcast_error(vec![], GatewayError::PlatformError { msg: "rejected".to_string() }),
-            GemConfirmError::Broadcast {
+            broadcast_failure(vec![], GatewayError::NetworkError { msg: "offline".to_string() }),
+            SendFailure::Unanswered(GemConfirmError::Network { msg: "offline".to_string() })
+        );
+        assert_eq!(
+            broadcast_failure(vec![], GatewayError::PlatformError { msg: "rejected".to_string() }),
+            SendFailure::Failed(GemConfirmError::Broadcast {
                 msg: GatewayError::PlatformError { msg: "rejected".to_string() }.to_string(),
-            },
+            }),
             "a send the network refused before accepting anything is a plain broadcast failure"
         );
         assert_eq!(
-            broadcast_error(vec!["h1".to_string()], GatewayError::NetworkError { msg: "offline".to_string() }),
-            GemConfirmError::PartialBroadcast {
+            broadcast_failure(vec!["h1".to_string()], GatewayError::NetworkError { msg: "offline".to_string() }),
+            SendFailure::Failed(GemConfirmError::PartialBroadcast {
                 hashes: vec!["h1".to_string()],
                 msg: GatewayError::NetworkError { msg: "offline".to_string() }.to_string(),
-            }
+            })
         );
     }
 }
