@@ -149,12 +149,6 @@ impl From<serde_json::Error> for SwapperError {
     }
 }
 
-impl From<serde_urlencoded::ser::Error> for SwapperError {
-    fn from(err: serde_urlencoded::ser::Error) -> Self {
-        Self::ComputeQuoteError(format!("Request query error: {err}"))
-    }
-}
-
 impl From<gem_ton::tvm::TvmError> for SwapperError {
     fn from(err: gem_ton::tvm::TvmError) -> Self {
         Self::ComputeQuoteError(format!("TVM error: {err}"))

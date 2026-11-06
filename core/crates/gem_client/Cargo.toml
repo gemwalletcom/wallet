@@ -13,7 +13,6 @@ primitives = { path = "../primitives" }
 async-trait = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
-serde_urlencoded = { workspace = true }
 reqwest = { workspace = true, optional = true }
 hex = { workspace = true }
 tokio = { workspace = true, features = ["time"], optional = true }

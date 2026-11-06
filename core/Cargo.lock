@@ -2938,7 +2938,6 @@ dependencies = [
  "reqwest",
  "serde",
  "serde_json",
- "serde_urlencoded",
  "tokio",
 ]
 
@@ -6683,7 +6682,6 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_serializers",
- "serde_urlencoded",
  "settings",
  "sha2 0.11.0",
  "strum",
