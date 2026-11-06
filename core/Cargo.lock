@@ -6870,7 +6870,6 @@ dependencies = [
  "alloy-sol-types",
  "async-trait",
  "bcs 0.2.1",
- "bigdecimal",
  "borsh",
  "bs58",
  "chain_primitives",
