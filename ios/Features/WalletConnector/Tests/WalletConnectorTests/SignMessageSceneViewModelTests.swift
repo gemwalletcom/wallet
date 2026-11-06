@@ -98,8 +98,8 @@ struct SignMessageSceneViewModelTests {
 
     @Test
     @MainActor
-    func payloadAddressOpensOnTheValidatedChainNotTheMessageChain() {
-        let payload = GemWalletConnectMessageRequest.mock(chain: Chain.ethereum.rawValue, message: .mock(chain: "bitcoin"))
+    func payloadAddressOpensOnTheRequestChain() {
+        let payload = GemWalletConnectMessageRequest.mock(chain: Chain.ethereum.rawValue, message: .mock(chain: Chain.ethereum.rawValue))
         let viewModel = SignMessageSceneViewModel.mock(request: payload)
 
         viewModel.onSelectPayloadAddress("0xabc")
@@ -110,7 +110,7 @@ struct SignMessageSceneViewModelTests {
     @Test
     @MainActor
     func networkTextUsesPayloadChain() {
-        let payload = GemWalletConnectMessageRequest.mock(chain: Chain.ethereum.rawValue, message: .mock(chain: "bitcoin"))
+        let payload = GemWalletConnectMessageRequest.mock(chain: Chain.ethereum.rawValue, message: .mock(chain: Chain.ethereum.rawValue))
 
         let viewModel = SignMessageSceneViewModel.mock(request: payload)
 
@@ -147,9 +147,21 @@ struct SignMessageSceneViewModelTests {
     func simulationWarningsHideBoundedApprovals() {
         let payload = GemWalletConnectMessageRequest.mock(
             simulation: .mock(warnings: [
-                .mock(severity: .warning, warning: .tokenApproval(.mock(value: 1000))),
-                .mock(severity: .warning),
+                .mock(severity: .warning, warning: .permitApproval(.mock(value: 1000))),
+                .mock(severity: .warning, warning: .validationError, message: "Excessive expiration"),
             ]),
+        )
+
+        let viewModel = SignMessageSceneViewModel.mock(request: payload)
+
+        #expect(viewModel.simulationWarnings == [.notice(title: .warning, message: .text(text: "Excessive expiration"), kind: .warning)])
+    }
+
+    @Test
+    @MainActor
+    func simulationWarningsShowUnlimitedApprovals() {
+        let payload = GemWalletConnectMessageRequest.mock(
+            simulation: .mock(warnings: [.mock(severity: .warning, warning: .permitApproval(.mock(value: nil)))]),
         )
 
         let viewModel = SignMessageSceneViewModel.mock(request: payload)
@@ -167,22 +179,6 @@ struct SignMessageSceneViewModelTests {
         let viewModel = SignMessageSceneViewModel.mock(request: payload)
 
         #expect(viewModel.isButtonDisabled)
-    }
-
-    @Test
-    @MainActor
-    func simulationWarningsHideBoundedApprovalsAndKeepExternallyOwnedSpenderWarnings() {
-        let payload = GemWalletConnectMessageRequest.mock(
-            simulation: .mock(warnings: [
-                .mock(severity: .warning, warning: .permitApproval(.mock(value: 1000))),
-                .mock(severity: .warning, warning: .externallyOwnedSpender),
-            ]),
-        )
-
-        let viewModel = SignMessageSceneViewModel.mock(request: payload)
-
-        #expect(viewModel.simulationWarnings == [.notice(title: .warning, message: .externallyOwnedSpenderWarning, kind: .warning)])
-        #expect(!viewModel.isButtonDisabled)
     }
 
     @Test
@@ -213,10 +209,7 @@ struct SignMessageSceneViewModelTests {
     @MainActor
     func simulationWarningsPassThroughValidationWarnings() {
         let payload = GemWalletConnectMessageRequest.mock(
-            simulation: .mock(warnings: [
-                .mock(severity: .warning, warning: .permitApproval(.mock(value: 1000))),
-                .mock(severity: .critical, warning: .validationError, message: "Unable to verify spender is a contract"),
-            ]),
+            simulation: .mock(warnings: [.mock(severity: .critical, warning: .validationError, message: "Unable to verify spender is a contract")]),
         )
 
         let viewModel = SignMessageSceneViewModel.mock(request: payload)
@@ -242,10 +235,11 @@ struct SignMessageSceneViewModelTests {
         .joined(separator: "\n")
 
         let payload = GemWalletConnectMessageRequest.mock(
+            chain: Chain.ethereum.rawValue,
             simulation: .mock(warnings: [
                 .mock(severity: .critical, warning: .validationError, message: "Chain ID mismatch"),
             ]),
-            message: .mock(data: Data(message.utf8)),
+            message: .mock(chain: Chain.ethereum.rawValue, data: Data(message.utf8)),
         )
 
         let viewModel = SignMessageSceneViewModel.mock(request: payload)

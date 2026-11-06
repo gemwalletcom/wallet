@@ -15,6 +15,7 @@ import com.gemwallet.android.testkit.mockGemConfirmMetadata
 import com.gemwallet.android.testkit.mockGemConfirmScreen
 import com.gemwallet.android.testkit.mockGemConfirmSimulationState
 import com.gemwallet.android.testkit.mockGemTransferData
+import com.gemwallet.android.ui.R
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
@@ -122,7 +123,7 @@ class ConfirmTransferViewModelNetworkFeeSheetTest {
         advanceUntilIdle()
 
         val error = requireNotNull(viewModel.loadError.value)
-        assertEquals("Error", error.text)
+        assertEquals(R.string.transfer_insufficient_network_fee_balance.toString(), error.text)
         assertTrue(error.info?.sheet?.action is GemInfoAction.Acquire)
 
         val acquire = GemAcquireAsset(GemAcquireAssetFlow.FIAT, emptyList(), 10, GemSwapPairSelection(payAssetId = payAsset.id.toIdentifier(), receiveAssetId = asset.id.toIdentifier()))

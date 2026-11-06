@@ -24,6 +24,7 @@ public final class GemWalletConnectServiceMock: GemWalletConnectServiceProtocol,
     public var hasSessionsValue = false
 
     public private(set) var addedConnections: [Gemstone.WalletConnection] = []
+    public private(set) var viewedConnections: [Gemstone.WalletConnection] = []
     public private(set) var deletedSessionIds: [String] = []
     public private(set) var updatedSessions: [[Gemstone.WalletConnectionSession]] = []
     public private(set) var processedRequests: [GemWalletConnectSessionRequest] = []
@@ -58,8 +59,9 @@ public final class GemWalletConnectServiceMock: GemWalletConnectServiceProtocol,
         )
     }
 
-    public func connectionsView(connections _: [Gemstone.WalletConnection]) -> GemConnectionsView {
-        GemConnectionsView(
+    public func connectionsView(connections: [Gemstone.WalletConnection]) -> GemConnectionsView {
+        viewedConnections = connections
+        return GemConnectionsView(
             sections: connectionSectionsValue,
             phase: connectionSectionsValue.isEmpty ? .empty(state: emptyState(kind: .walletConnect)) : .rows,
             docsUrl: "https://docs.gemwallet.com/guides/walletconnect/",

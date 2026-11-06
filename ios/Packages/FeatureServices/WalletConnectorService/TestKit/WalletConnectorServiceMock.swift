@@ -5,6 +5,7 @@ import WalletConnectorService
 
 public actor WalletConnectorServiceMock: WalletConnectorServiceable {
     public var isSetup: Bool = false
+    public private(set) var pairedURIs: [String] = []
     private let storedSessions: Bool
     private let pairError: Error?
     private let disconnectError: Error?
@@ -19,10 +20,11 @@ public actor WalletConnectorServiceMock: WalletConnectorServiceable {
         isSetup = true
     }
 
-    public func pair(uri _: String) async throws {
+    public func pair(uri: String) async throws {
         if let pairError {
             throw pairError
         }
+        pairedURIs.append(uri)
     }
 
     public func disconnect(sessionId _: String) async throws {

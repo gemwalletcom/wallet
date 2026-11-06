@@ -11,6 +11,7 @@ import com.gemwallet.android.model.BuildInfo
 import com.gemwallet.android.model.Session
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.NFTAssetId
@@ -32,6 +33,22 @@ import uniffi.gemstone.assetText
 fun mockAssetId(chain: Chain = Chain.Bitcoin, tokenId: String? = null) = AssetId(
     chain = chain,
     tokenId = tokenId,
+)
+
+fun mockHyperCoreBtc() = mockAsset(
+    id = mockAssetId(chain = Chain.HyperCore, tokenId = "UBTC::0x8f254b963e8468305d409b33aa137c67::197"),
+    name = "Bitcoin",
+    symbol = "UBTC",
+    decimals = 10u,
+    type = AssetType.TOKEN,
+)
+
+fun mockHyperCoreUsdc() = mockAsset(
+    id = mockAssetId(chain = Chain.HyperCore, tokenId = "USDC::0x6d1e7cde53ba9467b783cb7c530ce054::0"),
+    name = "USDC",
+    symbol = "USDC",
+    decimals = 8u,
+    type = AssetType.TOKEN,
 )
 
 fun mockWalletId(address: String = "0x0000000000000000000000000000000000000000") = WalletId("multicoin_$address")

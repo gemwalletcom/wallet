@@ -136,7 +136,8 @@ struct WalletDetailSceneViewModelTests {
 
     @Test
     func exportingASecretAWatchWalletDoesNotHaveShowsTheError() async {
-        let model = WalletDetailSceneViewModel.mock(wallet: .mock(id: .multicoin(address: "0xmissing")))
+        let wallet = Primitives.Wallet.mock(id: .view(chain: .ethereum, address: "0x1"), type: .view, accounts: [.mock(chain: .ethereum, address: "0x1")])
+        let model = WalletDetailSceneViewModel.mock(wallet: wallet, service: GemWalletService.mock(db: DB.mock(wallets: [wallet])))
 
         await model.onShowSecret()
 

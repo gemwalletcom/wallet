@@ -14,9 +14,10 @@ import com.gemwallet.android.testkit.mockGemConfirmMetadata
 import com.gemwallet.android.testkit.mockGemConfirmScreen
 import com.gemwallet.android.testkit.mockGemConfirmSimulationState
 import com.gemwallet.android.testkit.mockGemTransferData
+import com.gemwallet.android.testkit.mockHyperCoreBtc
+import com.gemwallet.android.testkit.mockHyperCoreUsdc
 import com.gemwallet.android.testkit.mockPerpetualConfirmData
 import com.gemwallet.android.ui.R
-import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FeePriority
@@ -60,40 +61,34 @@ import java.math.BigInteger
 class ConfirmTransferViewModelRetryTest {
 
     private val testDispatcher = UnconfinedTestDispatcher()
-    private val asset = mockAsset(id = mockAssetId(chain = Chain.HyperCore, tokenId = "UBTC::0x8f254b963e8468305d409b33aa137c67::197"), name = "Bitcoin", symbol = "UBTC", decimals = 10u, type = AssetType.TOKEN)
+    private val asset = mockHyperCoreBtc()
     private val account = mockAccount(chain = Chain.HyperCore)
     private val confirmation = mockk<GemConfirmation> {
         every { rowContents(any()) } returns emptyList()
         every { networkFeeScreen(any()) } returns null
     }.stubViewState()
 
+    private val perpetualTransfer = mockGemTransferData(
+        inputType = TransactionInputType.Perpetual(
+            asset.toGem(),
+            PerpetualType.Open(
+                mockPerpetualConfirmData(
+                    direction = PerpetualDirection.Long.toGem(), marginType = PerpetualMarginType.Cross.toGem(),
+                    baseAsset = mockHyperCoreUsdc().toGem(),
+                    price = "100.0", fiatValue = 100.0, size = "1.0", slippage = 2.0, leverage = 1u, marketPrice = 100.0, marginAmount = 100.0,
+                ),
+            ),
+        ),
+        recipient = GemRecipient(address = "recipient"),
+        value = BigInteger.TEN,
+    )
+
     @get:Rule
     val confirm = ConfirmTransferRule(testDispatcher, account)
 
     @Test
     fun retryAndRefreshUseTheCurrentFeeSelection() = runTest(testDispatcher) {
-        val transfer =
-            mockGemTransferData(
-                inputType = TransactionInputType.Perpetual(
-                    asset.toGem(),
-                    PerpetualType.Open(
-                        mockPerpetualConfirmData(
-                            direction = PerpetualDirection.Long.toGem(), marginType = PerpetualMarginType.Cross.toGem(),
-                            baseAsset = mockAsset(
-                                id = mockAssetId(chain = Chain.HyperCore, tokenId = "USDC::0x6d1e7cde53ba9467b783cb7c530ce054::0"),
-                                name = "USDC",
-                                symbol = "USDC",
-                                decimals = 8u,
-                                type = AssetType.TOKEN,
-                            ).toGem(),
-                            price = "100.0", fiatValue = 100.0, size = "1.0", slippage = 2.0, leverage = 1u, marketPrice = 100.0, marginAmount = 100.0,
-                        ),
-                    ),
-                ),
-                recipient = GemRecipient(address = "recipient"),
-                value = BigInteger.TEN,
-            )
-        val viewModel = viewModel(transfer)
+        val viewModel = viewModel(perpetualTransfer)
         advanceUntilIdle()
 
         coVerify(exactly = 1) { confirmation.load(any()) }
@@ -159,7 +154,7 @@ class ConfirmTransferViewModelRetryTest {
 
     @Test
     fun aConfirmedOrderShowsItsToastOnWhicheverScreenTheUserLandsOn() = runTest(testDispatcher) {
-        val viewModel = viewModel(mockGemTransferData(inputType = TransactionInputType.Transfer(asset.toGem()), recipient = GemRecipient(address = "recipient"), value = BigInteger.ONE))
+        val viewModel = viewModel(perpetualTransfer)
         coEvery { confirmation.submit() } returns GemSubmitResult.Sent(
             hashes = listOf("0xhash"),
             message = GemSubmitMessage.Confirmed(GemLocalizedText.PerpetualConfirmed(GemPerpetualConfirmedAction.Open(uniffi.gemstone.PerpetualDirection.LONG))),
@@ -171,7 +166,9 @@ class ConfirmTransferViewModelRetryTest {
         advanceUntilIdle()
 
         assertEquals("0xhash", viewModel.sentTransactionHash.value)
-        assertEquals(R.drawable.ic_check_circle, confirm.toastPresenter.toastEvents.first().image)
+        val toast = confirm.toastPresenter.toastEvents.first()
+        assertEquals(R.string.perpetual_open_direction.toString(), toast.title)
+        assertEquals(R.drawable.ic_check_circle, toast.image)
     }
 
     private fun viewModel(transfer: GemTransferData): ConfirmTransferViewModel {
