@@ -61,12 +61,8 @@ val buildGemstoneHost = tasks.register<Exec>("buildGemstoneHost") {
 val bindgenKotlin = tasks.register<Exec>("bindgenKotlin") {
     description = "Generate Kotlin bindings from gemstone via uniffi"
     workingDir = gemstoneRoot
-    if (isRelease) {
-        outputs.upToDateWhen { false }
-    } else {
-        dependsOn(buildGemstoneHost)
-        inputs.file(gemstoneHostLibrary)
-    }
+    dependsOn(buildGemstoneHost)
+    inputs.file(gemstoneHostLibrary)
     inputs.dir(coreRoot.resolve("bin/uniffi-bindgen"))
     inputs.files(
         coreRoot.resolve("Cargo.toml"),
@@ -76,7 +72,6 @@ val bindgenKotlin = tasks.register<Exec>("bindgenKotlin") {
         gemstoneRoot.resolve("uniffi.toml"),
         gemstoneRoot.resolve("justfile"),
     )
-    inputs.property("cargoBuildFlag", cargoBuildFlag)
     outputs.dir(generatedKotlinDir.resolve("uniffi"))
     commandLine("/bin/sh", "-l", "-c", "just bindgen-kotlin")
 }
