@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use gem_encoding::decode_base64_url;
 use primitives::{
     Chain,
@@ -19,8 +21,11 @@ pub fn decode(path: &str) -> Result<Payment> {
     {
         return Err(PaymentDecoderError::InvalidFormat("Multiple Zcash payments are not supported".to_string()));
     }
-    if let Some((key, _)) = parameters.iter().enumerate().find_map(|(index, (key, _))| parameters[..index].iter().find(|(previous, _)| previous == key)) {
-        return Err(PaymentDecoderError::InvalidFormat(format!("Duplicate Zcash parameter: {key}")));
+    let mut keys = HashSet::new();
+    for (key, _) in &parameters {
+        if !keys.insert(key) {
+            return Err(PaymentDecoderError::InvalidFormat(format!("Duplicate Zcash parameter: {key}")));
+        }
     }
     let address = match (path_address, query::values(&parameters, QUERY_ADDRESS).as_slice()) {
         (address, []) => address.to_string(),

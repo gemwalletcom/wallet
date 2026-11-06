@@ -21,18 +21,17 @@ pub(in crate::signer) struct SignatureDigests {
 }
 
 impl SignatureDigests {
-    pub(in crate::signer) fn new(transaction: &Transaction, plan: &SpendPlan, ironwood: Option<&[u8]>) -> Result<Self, SignerError> {
+    pub(in crate::signer) fn new(transaction: &Transaction, plan: &SpendPlan, ironwood: Option<&[u8; 32]>) -> Result<Self, SignerError> {
         let prevouts = plan.inputs.iter().flat_map(|input| serialize(&input.previous_output)).collect::<Vec<_>>();
         let amounts = plan.inputs.iter().map(Self::signed_value_bytes).collect::<Result<Vec<_>, _>>()?.concat();
         let script_pubkeys = plan.inputs.iter().flat_map(|input| serialize(input.script_pubkey.as_script())).collect::<Vec<_>>();
         let sequences = plan.inputs.iter().flat_map(|input| input.sequence.to_le_bytes()).collect::<Vec<_>>();
         let outputs = transaction.outputs.iter().flat_map(serialize).collect::<Vec<_>>();
         let empty_orchard = hash_bundle_txid_empty(ValuePool::Orchard, transaction.version.tx_version()).map_err(SignerError::from_display)?;
-        let shielded = [blake2b_256_personal(&[], TXID_SAPLING_HASH_PERSONALIZATION).as_slice(), empty_orchard.as_bytes()]
+        let shielded = [blake2b_256_personal(&[], TXID_SAPLING_HASH_PERSONALIZATION), Self::shielded_digest(empty_orchard.as_bytes())?]
             .into_iter()
-            .chain(ironwood)
-            .map(|digest| digest.try_into().map_err(|_| SignerError::signing_error("invalid Zcash shielded digest")))
-            .collect::<Result<_, _>>()?;
+            .chain(ironwood.copied())
+            .collect();
 
         Ok(Self {
             branch_id: transaction.branch_id,
@@ -44,6 +43,10 @@ impl SignatureDigests {
             outputs: blake2b_256_personal(&outputs, TXID_OUTPUTS_HASH_PERSONALIZATION),
             shielded,
         })
+    }
+
+    pub(in crate::signer) fn shielded_digest(bytes: &[u8]) -> Result<[u8; 32], SignerError> {
+        bytes.try_into().map_err(|_| SignerError::signing_error("invalid Zcash shielded digest"))
     }
 
     pub(in crate::signer) fn signature(&self, plan: &SpendPlan, input_index: Option<usize>) -> Result<[u8; 32], SignerError> {

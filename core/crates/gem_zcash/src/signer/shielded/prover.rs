@@ -35,7 +35,8 @@ impl Signer<'_> {
         let unauthorized = output.ironwood_bundle(rng)?;
         let commitment = unauthorized.commitment(TxVersion::V6).map_err(SignerError::from_display)?;
         let mut transaction = Transaction::unsigned(TransactionVersion::V6, plan, self.branch_id);
-        let digests = SignatureDigests::new(&transaction, plan, Some(commitment.0.as_bytes()))?;
+        let ironwood = SignatureDigests::shielded_digest(commitment.0.as_bytes())?;
+        let digests = SignatureDigests::new(&transaction, plan, Some(&ironwood))?;
         let shielded_sighash = digests.signature(plan, None)?;
         let authorized = unauthorized
             .create_proof(bundle::proving_key(), &mut *rng)

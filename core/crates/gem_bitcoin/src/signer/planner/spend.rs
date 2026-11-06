@@ -153,8 +153,8 @@ mod tests {
     use super::*;
     use crate::testkit::{
         address_mock::{TEST_BITCOIN_P2WPKH_ADDRESS, mock_destination_address, mock_sender_address},
-        planner_mock::{mock_signer_input, mock_signer_input_with, mock_spend_utxos, sum_inputs},
         signer_mock::{TEST_UTXO_TXID, mock_funded_transfer_input, mock_transfer_input_with_utxos, mock_utxo_with},
+        spend_mock::{mock_signer_input, mock_signer_input_with, mock_spend_utxos, sum_inputs},
     };
     use num_bigint::BigInt;
     use primitives::{AssetId, Chain, GasPriceType, TransactionFee};
