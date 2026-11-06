@@ -1,7 +1,5 @@
-use std::str::FromStr;
-
-use bigdecimal::{BigDecimal, Signed, Zero};
 use num_traits::ToPrimitive;
+use number_formatter::Decimal;
 use primitives::SignerError;
 
 use crate::address::XrpAddress;
@@ -23,7 +21,7 @@ pub(crate) enum XrpAmount {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct IssuedAmount {
-    value: BigDecimal,
+    value: Decimal,
     currency: [u8; CURRENCY_CODE_LENGTH],
     issuer: XrpAddress,
 }
@@ -53,7 +51,7 @@ impl XrpAmount {
 impl IssuedAmount {
     fn new(value: &str, currency: &str, issuer: &str) -> Result<Self, SignerError> {
         Ok(Self {
-            value: BigDecimal::from_str(value).map_err(|_| SignerError::invalid_input("invalid XRP token amount"))?,
+            value: value.parse().map_err(|_| SignerError::invalid_input("invalid XRP token amount"))?,
             currency: currency_code_bytes(currency)?,
             issuer: XrpAddress::parse(issuer)?,
         })
@@ -67,17 +65,21 @@ impl IssuedAmount {
     }
 
     fn encoded_value(&self) -> Result<u64, SignerError> {
-        validate_issued_value(&self.value)?;
-
         if self.value.is_zero() {
             return Ok(ISSUED_CURRENCY_ZERO);
         }
 
         let value = self.value.normalized();
-        let is_positive = value.is_positive();
-        let (mantissa, scale) = value.as_bigint_and_exponent();
-        let mut exponent = -(scale as i32);
-        let mut mantissa = mantissa.abs().to_u128().ok_or_else(|| SignerError::invalid_input("invalid XRP token amount"))?;
+        if value.digits().magnitude().to_string().len() > MAX_IOU_PRECISION {
+            return Err(SignerError::invalid_input("XRP token amount precision is too large"));
+        }
+        let is_positive = !value.is_negative();
+        let mut exponent = i32::try_from(value.scale())
+            .ok()
+            .and_then(i32::checked_neg)
+            .filter(|exponent| (MIN_IOU_EXPONENT..=MAX_IOU_EXPONENT).contains(exponent))
+            .ok_or_else(|| SignerError::invalid_input("XRP token amount exponent is out of range"))?;
+        let mut mantissa = value.digits().magnitude().to_u128().ok_or_else(|| SignerError::invalid_input("invalid XRP token amount"))?;
 
         while mantissa < MIN_MANTISSA && exponent > MIN_IOU_EXPONENT {
             mantissa *= 10;
@@ -110,54 +112,38 @@ impl IssuedAmount {
     }
 }
 
-fn validate_issued_value(value: &BigDecimal) -> Result<(), SignerError> {
-    if value.is_zero() {
-        return Ok(());
-    }
-
-    let precision = issued_amount_precision(value);
-    if precision > MAX_IOU_PRECISION {
-        return Err(SignerError::invalid_input("XRP token amount precision is too large"));
-    }
-
-    let exponent = issued_amount_exponent(value);
-    if !(MIN_IOU_EXPONENT..=MAX_IOU_EXPONENT).contains(&exponent) {
-        return Err(SignerError::invalid_input("XRP token amount exponent is out of range"));
-    }
-
-    Ok(())
-}
-
-fn issued_amount_precision(value: &BigDecimal) -> usize {
-    let (value, _) = value.normalized().into_bigint_and_exponent();
-    let (_, digits) = value.into_parts();
-    digits.to_string().len()
-}
-
-fn issued_amount_exponent(value: &BigDecimal) -> i32 {
-    let (_, scale) = value.normalized().as_bigint_and_exponent();
-    -(scale as i32)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn test_issued_amount_precision_ignores_trailing_zeros() {
-        assert_eq!(issued_amount_precision(&BigDecimal::from_str("1000").unwrap()), 1);
-    }
-
-    #[test]
-    fn test_issued_amount_value_encoding() {
-        let XrpAmount::Issued(amount) = XrpAmount::issued("10", "USD", "rf1BiGeXwwQoi8Z2ueFYTEXSwuJYfV2Jpn").unwrap() else {
-            panic!("expected issued amount");
+    fn test_encode_issued() {
+        let encoded = |value: &str| -> Result<u64, SignerError> {
+            let mut buffer = Vec::new();
+            XrpAmount::issued(value, "USD", "rf1BiGeXwwQoi8Z2ueFYTEXSwuJYfV2Jpn")?.encode(&mut buffer)?;
+            Ok(u64::from_be_bytes(buffer[..8].try_into().unwrap()))
         };
-        assert_eq!(amount.encoded_value().unwrap(), 0xd4c38d7ea4c68000);
+        let out_of_range = Err(SignerError::invalid_input("XRP token amount exponent is out of range"));
 
-        let XrpAmount::Issued(amount) = XrpAmount::issued("29.3e-1", "USD", "rf1BiGeXwwQoi8Z2ueFYTEXSwuJYfV2Jpn").unwrap() else {
-            panic!("expected issued amount");
-        };
-        assert_eq!(amount.encoded_value().unwrap(), 0xd48a68d1c9312000);
+        assert_eq!(encoded("0"), Ok(ISSUED_CURRENCY_ZERO));
+        assert_eq!(encoded("-0.000"), Ok(ISSUED_CURRENCY_ZERO));
+        assert_eq!(encoded("1e-96"), Ok(ISSUED_CURRENCY_ZERO));
+        assert_eq!(encoded("10"), Ok(0xd4c38d7ea4c68000));
+        assert_eq!(encoded("29.3e-1"), Ok(0xd48a68d1c9312000));
+        assert_eq!(encoded("1000"), Ok(0xd5438d7ea4c68000));
+        assert_eq!(encoded("-12.5"), Ok(0x94c470de4df82000));
+        assert_eq!(encoded("-12.3400"), Ok(0x94c4625103a72000));
+        assert_eq!(encoded("0.0001234567890123456"), Ok(0xd38462d53c8abac0));
+        assert_eq!(encoded("0.001"), Ok(0xd3c38d7ea4c68000));
+        assert_eq!(encoded("1234567890123456"), Ok(0xd84462d53c8abac0));
+        assert_eq!(encoded("9999999999999999e80"), Ok(0xec6386f26fc0ffff));
+        assert_eq!(encoded("12345678901234567"), Err(SignerError::invalid_input("XRP token amount precision is too large")));
+        assert_eq!(encoded("1e-97"), out_of_range);
+        assert_eq!(encoded("1e96"), out_of_range);
+        assert_eq!(encoded("1e-4294967297"), out_of_range);
+        assert_eq!(encoded("1e4294967297"), out_of_range);
+        for invalid in ["", "abc", "1_000", ".-5", "1e", "NaN"] {
+            assert_eq!(encoded(invalid), Err(SignerError::invalid_input("invalid XRP token amount")), "{invalid}");
+        }
     }
 }

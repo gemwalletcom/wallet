@@ -143,7 +143,6 @@ sui-types = { package = "sui-sdk-types", version = "0.4.0", features = [
 ] }
 
 # Numbers
-bigdecimal = { version = "0.4.10" }
 num-bigint = { version = "0.5.1", features = ["std", "serde"] }
 num-traits = { version = "0.2.19" }
 
