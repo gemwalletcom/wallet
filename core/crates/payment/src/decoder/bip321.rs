@@ -7,11 +7,17 @@ const QUERY_SEGWIT_ADDRESS: &str = "bc";
 
 pub fn decode(path: &str) -> Result<Payment> {
     let (address, query) = path.split_once('?').unwrap_or((path, ""));
-    if !address.is_empty() {
-        return bip21::decode(Some(Chain::Bitcoin), path);
+    let parameters = query::parameters(query);
+    let address = match address {
+        "" => query::value(&parameters, QUERY_SEGWIT_ADDRESS).ok_or_else(|| PaymentDecoderError::MissingField("address".to_string()))?,
+        address => address.to_string(),
+    };
+    if !address.bytes().all(|byte| byte.is_ascii_alphanumeric()) {
+        return Err(PaymentDecoderError::InvalidFormat("Invalid Bitcoin address".to_string()));
     }
-    let address = query::value(&query::parameters(query), QUERY_SEGWIT_ADDRESS).ok_or_else(|| PaymentDecoderError::MissingField("address".to_string()))?;
-    bip21::decode(Some(Chain::Bitcoin), &format!("{address}?{query}"))
+    Ok(Payment::Request {
+        request: bip21::request(Some(Chain::Bitcoin), &address, &parameters)?,
+    })
 }
 
 #[cfg(test)]
@@ -47,6 +53,10 @@ mod tests {
         assert!(decode("").is_err());
         assert!(decode("?amount=0.001").is_err());
         assert!(decode("?bc=&amount=0.001").is_err());
+        assert_eq!(
+            decode(&format!("?bc={ADDRESS}%3Famount%3D10&amount=0.001")).unwrap_err(),
+            PaymentDecoderError::InvalidFormat("Invalid Bitcoin address".to_string())
+        );
         assert!(decode("?lightning=lnbc420bogusinvoice").is_err());
         assert!(decode("?lno=lno1bogusoffer&sp=sp1qsilentpayment").is_err());
     }

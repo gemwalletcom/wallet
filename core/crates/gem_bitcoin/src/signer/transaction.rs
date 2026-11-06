@@ -13,7 +13,6 @@ use crate::signer::{
     address::{UnlockingScript, public_key_hash, script_for_public_key_hash},
     bitcoin_cash::sign_plan as sign_bitcoin_cash,
     planner::SpendPlan,
-    zcash::sign_transparent,
 };
 
 /// Wipes the secp256k1 `SecretKey` on drop (it is not `ZeroizeOnDrop`), covering early-return paths.
@@ -25,21 +24,38 @@ impl Drop for ZeroizedSecretKey {
     }
 }
 
-pub(crate) fn sign_plan(chain: BitcoinChain, plan: &SpendPlan, private_key: &[u8], zcash_branch_id: Option<u32>) -> Result<String, SignerError> {
-    let secret_key = ZeroizedSecretKey(SecretKey::from_slice(private_key).map_err(|_| SignerError::invalid_input(format!("invalid {} private key", chain.get_chain())))?);
+pub struct PlanSigningKey {
+    secret_key: ZeroizedSecretKey,
+    public_key: PublicKey,
+}
+
+impl PlanSigningKey {
+    pub fn new(chain: BitcoinChain, plan: &SpendPlan, private_key: &[u8]) -> Result<Self, SignerError> {
+        let secret_key = ZeroizedSecretKey(SecretKey::from_slice(private_key).map_err(|_| SignerError::invalid_input(format!("invalid {} private key", chain.get_chain())))?);
+        let public_key = PublicKey::new(Secp256k1PublicKey::from_secret_key(&Secp256k1::signing_only(), &secret_key.0));
+        validate_chain_input_types(chain, plan)?;
+        validate_public_key(chain, plan, &public_key)?;
+        validate_plan_amounts(chain, plan)?;
+        Ok(Self { secret_key, public_key })
+    }
+
+    pub fn secret_key(&self) -> &SecretKey {
+        &self.secret_key.0
+    }
+
+    pub fn public_key(&self) -> &PublicKey {
+        &self.public_key
+    }
+}
+
+pub(crate) fn sign_plan(chain: BitcoinChain, plan: &SpendPlan, private_key: &[u8]) -> Result<String, SignerError> {
+    let key = PlanSigningKey::new(chain, plan, private_key)?;
     let secp = Secp256k1::signing_only();
-    let public_key = PublicKey::new(Secp256k1PublicKey::from_secret_key(&secp, &secret_key.0));
-    validate_chain_input_types(chain, plan)?;
-    validate_public_key(chain, plan, &public_key)?;
-    validate_plan_amounts(chain, plan)?;
 
     let transaction = match chain {
-        BitcoinChain::BitcoinCash => sign_bitcoin_cash(plan, &secret_key.0, &public_key, &secp)?,
-        BitcoinChain::Bitcoin | BitcoinChain::Litecoin | BitcoinChain::Doge | BitcoinChain::Dash => sign_standard(plan, &secret_key.0, &public_key, &secp)?,
-        BitcoinChain::Zcash => {
-            let branch_id = zcash_branch_id.ok_or_else(|| SignerError::invalid_input("missing Zcash branch id"))?;
-            return sign_transparent(plan, branch_id, &secret_key.0, &public_key, &secp);
-        }
+        BitcoinChain::BitcoinCash => sign_bitcoin_cash(plan, key.secret_key(), key.public_key(), &secp)?,
+        BitcoinChain::Bitcoin | BitcoinChain::Litecoin | BitcoinChain::Doge | BitcoinChain::Dash => sign_standard(plan, key.secret_key(), key.public_key(), &secp)?,
+        BitcoinChain::Zcash => return SignerError::invalid_input_err("Zcash transactions are signed by gem_zcash"),
     };
 
     Ok(hex::encode(serialize(&transaction)))
@@ -140,7 +156,8 @@ fn validate_public_key(chain: BitcoinChain, plan: &SpendPlan, public_key: &Publi
 
 fn validate_plan_amounts(chain: BitcoinChain, plan: &SpendPlan) -> Result<(), SignerError> {
     let input_total: u128 = plan.inputs.iter().map(|input| input.value.to_sat() as u128).sum();
-    let output_total: u128 = plan.outputs.iter().map(|output| output.value.to_sat() as u128).sum();
+    let external_total = plan.external_value.map_or(0, u128::from);
+    let output_total: u128 = plan.outputs.iter().map(|output| output.value.to_sat() as u128).sum::<u128>() + external_total;
     let spent_total = output_total + plan.fee as u128;
     (input_total == spent_total)
         .then_some(())
@@ -148,13 +165,13 @@ fn validate_plan_amounts(chain: BitcoinChain, plan: &SpendPlan) -> Result<(), Si
     Ok(())
 }
 
-pub(super) fn der_signature<C: Signing>(secp: &Secp256k1<C>, secret_key: &SecretKey, message: Message, sighash_byte: u8) -> Vec<u8> {
+pub fn der_signature<C: Signing>(secp: &Secp256k1<C>, secret_key: &SecretKey, message: Message, sighash_byte: u8) -> Vec<u8> {
     let signature = secp.sign_ecdsa(&message, secret_key);
     let mut bytes = signature.serialize_der().to_vec();
     bytes.push(sighash_byte);
     bytes
 }
 
-pub(super) fn signature_push_bytes(signature: Vec<u8>) -> Result<PushBytesBuf, SignerError> {
+pub fn signature_push_bytes(signature: Vec<u8>) -> Result<PushBytesBuf, SignerError> {
     PushBytesBuf::try_from(signature).map_err(|_| SignerError::signing_error("invalid Bitcoin script push"))
 }

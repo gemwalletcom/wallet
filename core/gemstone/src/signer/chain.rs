@@ -18,6 +18,7 @@ use gem_tempo::TempoSigner;
 use gem_ton::signer::TonChainSigner;
 use gem_tron::signer::TronChainSigner;
 use gem_xrp::signer::XrpChainSigner;
+use gem_zcash::ZcashChainSigner;
 use primitives::swap::{ApprovalData, SwapData, SwapQuoteDataType};
 use primitives::{Asset, BitcoinChain, Chain, ChainSigner, ChainType, SignerError, SignerInput, TransactionInputType, TransactionLoadInput, TransactionType, TransferDataOutputType};
 use zeroize::Zeroizing;
@@ -47,7 +48,10 @@ impl ChainTransactionSigner {
             ChainType::Xrp => Box::new(XrpChainSigner),
             ChainType::Polkadot => Box::new(PolkadotChainSigner),
             ChainType::Cardano => Box::new(CardanoChainSigner),
-            ChainType::Bitcoin => Box::new(BitcoinChainSigner::new(BitcoinChain::from_chain(chain).unwrap())),
+            ChainType::Bitcoin => match chain {
+                Chain::Zcash => Box::new(ZcashChainSigner),
+                _ => Box::new(BitcoinChainSigner::new(BitcoinChain::from_chain(chain).unwrap())),
+            },
         };
 
         Self { chain, signer }
@@ -126,6 +130,7 @@ impl ChainTransactionSigner {
             TransactionInputType::Earn { .. } => self.many(input, private_key, "earn", |signer, i, key| signer.sign_earn(i, key)),
             TransactionInputType::Swap { from_asset, swap_data, .. } => match swap_data.data.data_type {
                 SwapQuoteDataType::Contract => self.many(input, private_key, "swap", |signer, i, key| signer.sign_swap(i, key)),
+                SwapQuoteDataType::Transfer if self.chain == Chain::Zcash => self.many(input, private_key, "swap", |signer, i, key| signer.sign_swap(i, key)),
                 SwapQuoteDataType::Transfer => self.sign_swap_transfer(input, private_key, from_asset, swap_data),
             },
         }
@@ -235,6 +240,7 @@ fn unsupported_error(chain: Chain, action: &str) -> GemstoneError {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use gem_bitcoin::testkit::signer_mock::{TEST_PRIVATE_KEY as TEST_BITCOIN_PRIVATE_KEY, mock_transfer_swap_input};
     use gem_evm::testkit::eip712_mock::mock_eip712_json;
     use primitives::contract_constants::HYPERLIQUID_ARBITRUM_DEPOSIT_ADDRESS;
     use primitives::known_assets::HYPERCORE_SPOT_USDC;
@@ -467,6 +473,17 @@ mod tests {
         let withdrawal: GemSignerInput = SignerInput::mock_evm(TransactionInputType::Withdrawal { asset: Asset::mock() }, "0", 21000).into();
         let crossed: SignerInput = withdrawal.into();
         assert!(matches!(crossed.input.input_type, TransactionInputType::Withdrawal { .. }), "a withdrawal keeps its variant across the FFI model");
+    }
+
+    #[test]
+    fn test_sign_input_zcash_transfer_swap() {
+        let input = mock_transfer_swap_input(BitcoinChain::Zcash, "=:b:bc1qdestination:0/1/0:g1:50");
+        let key = TEST_BITCOIN_PRIVATE_KEY.to_vec();
+        let expected = ZcashChainSigner.sign_swap(&input, &key).unwrap();
+
+        let signed_swap = ChainTransactionSigner::new(Chain::Zcash).sign_input(input.into(), Zeroizing::new(key)).unwrap();
+
+        assert_eq!(signed_swap, signed(expected, TransactionType::Swap));
     }
 
     #[test]

@@ -22,6 +22,7 @@ gem_bitcoin = { path = "../gem_bitcoin", features = ["rpc", "reqwest"] }
 gem_cardano = { path = "../gem_cardano", features = ["rpc", "reqwest"] }
 gem_cosmos = { path = "../gem_cosmos", features = ["rpc", "reqwest"] }
 gem_tempo = { path = "../gem_tempo", features = ["rpc"] }
+gem_zcash = { path = "../gem_zcash", features = ["rpc", "reqwest"] }
 gem_evm = { path = "../gem_evm", features = ["indexer", "reqwest"] }
 everstake = { path = "../everstake", features = ["rpc", "reqwest"] }
 gem_monad = { path = "../gem_monad", features = ["rpc", "reqwest"] }
