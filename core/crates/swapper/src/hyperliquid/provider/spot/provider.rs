@@ -238,22 +238,9 @@ mod unit_tests {
         assert_eq!(requests.load(Ordering::Relaxed), 1);
     }
 
-    fn spot_with_orderbook() -> HyperCoreSpot {
-        HyperCoreSpot::new(Arc::new(ProviderMock {
-            response: MockFn(Box::new(|target| {
-                let body = serde_json::from_slice::<serde_json::Value>(&target.body.unwrap_or_default()).unwrap();
-                match body["type"].as_str() {
-                    Some("l2Book") => include_str!("../../../../../gem_hypercore/testdata/l2_book_spot_swap.json"),
-                    _ => include_str!("../../../../../gem_hypercore/testdata/spot_meta_spot_swap.json"),
-                }
-                .to_string()
-            })),
-        }))
-    }
-
     #[tokio::test]
     async fn test_an_order_worth_less_than_the_minimum_after_size_rounding_is_refused() {
-        let spot = spot_with_orderbook();
+        let spot = HyperCoreSpot::mock();
         let mut below = mock_quote(SwapperQuoteAsset::from(&*HYPERCORE_SPOT_USDC), SwapperQuoteAsset::from(&*HYPERCORE_HYPE));
         below.value = BigUint::from(1_000_000_000u64);
         let mut above = below.clone();
@@ -266,7 +253,7 @@ mod unit_tests {
 
     #[tokio::test]
     async fn test_the_builder_fee_comes_off_a_sell_only() {
-        let spot = spot_with_orderbook();
+        let spot = HyperCoreSpot::mock();
         let mut buy = mock_quote(SwapperQuoteAsset::from(&*HYPERCORE_SPOT_USDC), SwapperQuoteAsset::from(&*HYPERCORE_HYPE));
         buy.value = BigUint::from(1_100_000_000u64);
         let mut sell = mock_quote(SwapperQuoteAsset::from(&*HYPERCORE_HYPE), SwapperQuoteAsset::from(&*HYPERCORE_SPOT_USDC));
