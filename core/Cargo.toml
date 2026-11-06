@@ -129,7 +129,7 @@ sha3 = { version = "0.12.0" }
 zeroize = { version = "1.9.0" }
 
 # Blockchain
-alloy-primitives = { version = "1.7.3" }
+alloy-primitives = { version = "1.7.3", default-features = false, features = ["std"] }
 alloy-sol-types = { version = "1.7.3", features = ["eip712-serde"] }
 bitcoin = { version = "0.32.102" }
 bitcoin_hashes = { version = "0.14.101" }
