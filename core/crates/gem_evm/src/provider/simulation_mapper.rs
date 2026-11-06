@@ -179,4 +179,60 @@ mod tests {
 
         assert_eq!(map_simulation_result(Chain::Ethereum, TEST_ADDRESS, &trace).balance_changes, vec![]);
     }
+
+    #[test]
+    fn test_map_simulation_result_keeps_transfer_next_to_reverted_subcall() {
+        let root_call = TraceCallEntry {
+            action: TraceCallAction::mock(TEST_EVM_RECIPIENT, vec![]),
+            error: None,
+            trace_address: vec![],
+        };
+        let reverted_call = TraceCallEntry {
+            action: TraceCallAction::mock(TEST_EVM_RECIPIENT, vec![]),
+            error: Some("Reverted".to_string()),
+            trace_address: vec![0],
+        };
+        let reverted_token_transfer_call = TraceCallEntry {
+            action: TraceCallAction {
+                from: TEST_EVM_RECIPIENT.to_string(),
+                ..TraceCallAction::mock(
+                    ETHEREUM_USDC_TOKEN_ID,
+                    IERC20::transferCall {
+                        to: Address::from_str(TEST_ADDRESS).unwrap(),
+                        value: U256::from(1_000_000_000u64),
+                    }
+                    .abi_encode(),
+                )
+            },
+            error: None,
+            trace_address: vec![0, 0],
+        };
+        let token_transfer_call = TraceCallEntry {
+            action: TraceCallAction::mock(
+                ETHEREUM_USDC_TOKEN_ID,
+                IERC20::transferCall {
+                    to: Address::from_str(TEST_EVM_RECIPIENT).unwrap(),
+                    value: U256::from(1_000_000u64),
+                }
+                .abi_encode(),
+            ),
+            error: None,
+            trace_address: vec![1],
+        };
+        let trace = TraceCallResult {
+            state_diff: HashMap::new(),
+            trace: vec![root_call, reverted_call, reverted_token_transfer_call, token_transfer_call],
+        };
+
+        assert_eq!(
+            map_simulation_result(Chain::Ethereum, TEST_ADDRESS, &trace).balance_changes,
+            vec![SimulationBalanceChange {
+                asset_id: AssetId::from_token(Chain::Ethereum, ETHEREUM_USDC_TOKEN_ID),
+                value: BigInt::from(-1000000i64),
+                decimals: 0,
+                name: None,
+                symbol: None,
+            }]
+        );
+    }
 }
