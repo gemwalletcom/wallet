@@ -1,7 +1,6 @@
-use bigdecimal::{BigDecimal, num_bigint::Sign};
-
 use crate::big_number_formatter::{BigNumberFormatter, NumberFormatterError};
 use crate::currency::add_thousands_separator;
+use crate::decimal::Decimal;
 use std::fmt::Display;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -15,7 +14,7 @@ pub struct ValueFormatter;
 
 impl ValueFormatter {
     pub fn format(style: ValueStyle, value: impl Display, decimals: u32) -> Result<String, NumberFormatterError> {
-        let decimal = BigNumberFormatter::big_decimal_value(value, decimals)?;
+        let decimal = BigNumberFormatter::decimal_value(value, decimals)?;
         match style {
             ValueStyle::Full => Ok(format_full(&decimal)),
             ValueStyle::Short | ValueStyle::Auto => Ok(format_auto(&decimal)),
@@ -23,7 +22,7 @@ impl ValueFormatter {
     }
 
     pub fn format_f64(style: ValueStyle, value: f64) -> String {
-        let decimal: BigDecimal = value.to_string().parse().unwrap_or_default();
+        let decimal = value.to_string().parse().unwrap_or_else(|_| Decimal::zero());
         match style {
             ValueStyle::Full => format_full(&decimal),
             ValueStyle::Short | ValueStyle::Auto => format_auto(&decimal),
@@ -43,55 +42,27 @@ impl ValueFormatter {
     }
 }
 
-fn bigdecimal_to_plain_string(decimal: &BigDecimal) -> String {
-    let (bigint, scale) = decimal.as_bigint_and_exponent();
-    let is_negative = bigint.sign() == Sign::Minus;
-    let digits = bigint.magnitude().to_string();
-
-    let result = if scale <= 0 {
-        let zeros = "0".repeat((-scale) as usize);
-        format!("{}{}", digits, zeros)
-    } else {
-        let scale = scale as usize;
-        if digits.len() <= scale {
-            let zeros = "0".repeat(scale - digits.len());
-            format!("0.{}{}", zeros, digits)
-        } else {
-            let (integer, fraction) = digits.split_at(digits.len() - scale);
-            format!("{}.{}", integer, fraction)
-        }
-    };
-
-    if is_negative { format!("-{}", result) } else { result }
+fn format_full(decimal: &Decimal) -> String {
+    with_thousands_separator(&decimal.to_plain_string())
 }
 
-fn format_full(decimal: &BigDecimal) -> String {
-    let plain = bigdecimal_to_plain_string(&decimal.normalized());
-    let plain = strip_trailing_zeros(&plain);
-    with_thousands_separator(&plain)
-}
-
-fn format_auto(decimal: &BigDecimal) -> String {
-    if decimal.sign() == Sign::NoSign {
+fn format_auto(decimal: &Decimal) -> String {
+    if decimal.is_zero() {
         return "0".to_string();
     }
 
-    let abs = decimal.abs();
-    let one = BigDecimal::from(1);
-
-    if abs >= one { format_short(decimal) } else { format_middle(decimal) }
+    if decimal.abs() >= Decimal::from(1) { format_short(decimal) } else { format_middle(decimal) }
 }
 
-fn format_short(decimal: &BigDecimal) -> String {
-    let plain = bigdecimal_to_plain_string(decimal);
+fn format_short(decimal: &Decimal) -> String {
+    let plain = decimal.to_plain_string();
     let (integer, fraction) = plain.split_once('.').unwrap_or((&plain, ""));
     let fraction = if fraction.len() > 2 { &fraction[..2] } else { fraction };
     with_thousands_separator(&format!("{}.{:0<2}", integer, fraction))
 }
 
-fn format_middle(decimal: &BigDecimal) -> String {
-    let plain = bigdecimal_to_plain_string(&decimal.normalized());
-    truncate_significant(&plain, 4)
+fn format_middle(decimal: &Decimal) -> String {
+    truncate_significant(&decimal.to_plain_string(), 4)
 }
 
 fn truncate_significant(value_str: &str, max_sig: usize) -> String {
@@ -103,14 +74,6 @@ fn truncate_significant(value_str: &str, max_sig: usize) -> String {
 
     let prefix = if is_negative { "-" } else { "" };
     format!("{}0.{}", prefix, &fraction[..sig_end])
-}
-
-fn strip_trailing_zeros(value: &str) -> String {
-    if !value.contains('.') {
-        return value.to_string();
-    }
-    let trimmed = value.trim_end_matches('0');
-    if let Some(stripped) = trimmed.strip_suffix('.') { stripped.to_string() } else { trimmed.to_string() }
 }
 
 fn with_thousands_separator(value: &str) -> String {

@@ -1,17 +1,13 @@
-use bigdecimal::{BigDecimal, RoundingMode};
 use std::fmt::Display;
-use std::num::NonZeroU64;
-use std::str::FromStr;
 
 use crate::big_number_formatter::{BigNumberFormatter, NumberFormatterError};
-
-const ENTRY_DUST_THRESHOLD: &str = "0.0001";
+use crate::decimal::{Decimal, Rounding};
 
 pub struct CryptoFiatConverter {}
 
 impl CryptoFiatConverter {
     pub fn to_fiat(value: impl Display, decimals: u32, price: f64) -> Result<String, NumberFormatterError> {
-        Ok((BigNumberFormatter::scaled_value(value, decimals)? * Self::price_value(price)?).normalized().to_string())
+        Ok((BigNumberFormatter::scaled_value(value, i64::from(decimals))? * Self::price_value(price)?).normalized().to_string())
     }
 
     pub fn to_fiat_as_f64(value: impl Display, decimals: u32, price: f64) -> Result<f64, NumberFormatterError> {
@@ -23,32 +19,28 @@ impl CryptoFiatConverter {
         if price <= 0.0 {
             return Err(NumberFormatterError::InvalidNumber(format!("invalid price: {price}")));
         }
-        let value = Self::fiat_value(fiat_amount)? / Self::price_value(price)?;
+        let value = fiat_amount.parse::<Decimal>()? / Self::price_value(price)?;
         Ok(BigNumberFormatter::decimal_to_string(&value, decimals))
     }
 
     pub fn to_crypto_at_entry_precision(fiat_amount: &str, decimals: u32, price: f64) -> Result<String, NumberFormatterError> {
-        let value = Self::fiat_value(&Self::to_crypto(fiat_amount, decimals, price)?)?;
+        let value = Self::to_crypto(fiat_amount, decimals, price)?.parse::<Decimal>()?;
         Ok(Self::entry_precision(&value).normalized().to_plain_string())
     }
 
-    fn entry_precision(value: &BigDecimal) -> BigDecimal {
+    fn entry_precision(value: &Decimal) -> Decimal {
         let magnitude = value.abs();
-        if magnitude >= 1 {
-            value.with_scale_round(2, RoundingMode::Down)
-        } else if magnitude >= BigDecimal::from_str(ENTRY_DUST_THRESHOLD).expect("valid decimal") {
-            value.with_precision_round(NonZeroU64::new(4).expect("non-zero"), RoundingMode::Down)
+        if magnitude >= Decimal::from(1) {
+            value.with_scale_round(2, Rounding::Down)
+        } else if magnitude >= Decimal::new(1, 4) {
+            value.with_precision_round(4, Rounding::Down)
         } else {
             value.clone()
         }
     }
 
-    fn fiat_value(fiat_amount: &str) -> Result<BigDecimal, NumberFormatterError> {
-        BigDecimal::from_str(fiat_amount).map_err(|_| NumberFormatterError::InvalidNumber(fiat_amount.to_string()))
-    }
-
-    fn price_value(price: f64) -> Result<BigDecimal, NumberFormatterError> {
-        BigDecimal::from_str(&price.to_string()).map_err(|_| NumberFormatterError::ConversionError(price.to_string()))
+    fn price_value(price: f64) -> Result<Decimal, NumberFormatterError> {
+        price.to_string().parse().map_err(|_| NumberFormatterError::ConversionError(price.to_string()))
     }
 }
 

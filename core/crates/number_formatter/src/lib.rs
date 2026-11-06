@@ -3,6 +3,8 @@ pub use big_number_formatter::{BigNumberFormatter, NumberFormatterError};
 pub mod crypto_fiat_converter;
 pub use crypto_fiat_converter::CryptoFiatConverter;
 pub mod currency;
+pub mod decimal;
+pub use decimal::{Decimal, Rounding, f64_parts};
 pub mod number_formatter;
 pub mod precision;
 pub use number_formatter::NumberFormatter;

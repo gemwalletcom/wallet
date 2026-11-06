@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use bigdecimal::{BigDecimal, Zero};
 use gem_hypercore::{
     core::actions::agent::order::{Builder, PlaceOrder, make_market_order},
     models::{
@@ -11,7 +10,7 @@ use gem_hypercore::{
     rpc::client::HyperCoreClient,
 };
 use num_bigint::BigUint;
-use number_formatter::{BigNumberFormatter, NumberFormatterError};
+use number_formatter::{BigNumberFormatter, Decimal, NumberFormatterError};
 use primitives::{
     Chain, HOUR,
     known_assets::{HYPERCORE_HYPE, HYPERCORE_SPOT_HYPE, HYPERCORE_SPOT_UBTC, HYPERCORE_SPOT_USDC},
@@ -125,8 +124,8 @@ impl Swapper for HyperCoreSpot {
         let from_token = self.spot_token(&meta, &request.from_asset)?;
         let to_token = self.spot_token(&meta, &request.to_asset)?;
 
-        let amount_in = BigNumberFormatter::big_decimal_value(&request.value, request.from_asset.decimals)?;
-        if amount_in <= BigDecimal::zero() {
+        let amount_in = BigNumberFormatter::decimal_value(&request.value, request.from_asset.decimals)?;
+        if amount_in <= Decimal::zero() {
             return Err(SwapperError::ComputeQuoteError("amount must be greater than zero".into()));
         }
 
@@ -140,7 +139,7 @@ impl Swapper for HyperCoreSpot {
         let (raw_output, base_limit_price, size_rounded, actual_from_value) = match side {
             SpotSide::Sell => {
                 let rounded_input = round_size_down(&amount_in, base_token.sz_decimals);
-                if rounded_input <= BigDecimal::zero() {
+                if rounded_input <= Decimal::zero() {
                     return Err(SwapperError::ComputeQuoteError("amount too small after rounding".into()));
                 }
                 let result = simulate_sell(&rounded_input, &orderbook.levels[0])?;
@@ -150,7 +149,7 @@ impl Swapper for HyperCoreSpot {
             SpotSide::Buy => {
                 let result = simulate_buy(&amount_in, &orderbook.levels[1])?;
                 let rounded_output = round_size_down(&result.amount_out, base_token.sz_decimals);
-                if rounded_output <= BigDecimal::zero() {
+                if rounded_output <= Decimal::zero() {
                     return Err(SwapperError::ComputeQuoteError("output too small after rounding".into()));
                 }
                 let actual_from = compute_actual_from(request.options.use_max_amount, &format_decimal(&(&rounded_output * &result.limit_price)), request.from_asset.decimals)?;
@@ -162,12 +161,12 @@ impl Swapper for HyperCoreSpot {
             SpotSide::Sell => &raw_output,
             SpotSide::Buy => &amount_in,
         };
-        if quote_amount < &BigDecimal::from(MIN_QUOTE_AMOUNT) {
+        if quote_amount < &Decimal::from(MIN_QUOTE_AMOUNT) {
             return Err(SwapperError::InputAmountError { min_amount: None });
         }
 
         let builder_fee = client.config.max_builder_fee_bps;
-        let fee_factor = BigDecimal::from(100_000 - builder_fee as i64) / BigDecimal::from(100_000);
+        let fee_factor = Decimal::from(100_000 - builder_fee as i64) / Decimal::from(100_000);
         let output_amount = &raw_output * fee_factor;
 
         let token_decimals = to_token.wei_decimals;
@@ -285,8 +284,8 @@ mod swap_integration_tests {
         assert!(quote.to_value > BigUint::ZERO);
         assert_eq!(quote_data.data_type, SwapQuoteDataType::Contract);
 
-        let from_amount = BigNumberFormatter::big_decimal_value(&quote.from_value, quote.request.from_asset.decimals).unwrap();
-        let to_amount = BigNumberFormatter::big_decimal_value(&quote.to_value, quote.request.to_asset.decimals).unwrap();
+        let from_amount = BigNumberFormatter::decimal_value(&quote.from_value, quote.request.from_asset.decimals).unwrap();
+        let to_amount = BigNumberFormatter::decimal_value(&quote.to_value, quote.request.to_asset.decimals).unwrap();
 
         assert!(!from_amount.is_zero());
         assert!(!to_amount.is_zero());

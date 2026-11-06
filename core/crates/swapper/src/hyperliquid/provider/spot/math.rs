@@ -1,9 +1,8 @@
-use std::{cmp::Ordering, str::FromStr};
+use std::cmp::Ordering;
 
-use bigdecimal::{BigDecimal, Zero};
 use num_bigint::BigUint;
-use num_traits::{ToPrimitive, Zero as NumZero};
-use number_formatter::{BigNumberFormatter, precision::round_to_places};
+use num_traits::Zero;
+use number_formatter::{BigNumberFormatter, Decimal, Rounding, precision::round_to_places};
 
 use crate::SwapperError;
 
@@ -22,15 +21,15 @@ impl SpotSide {
     }
 }
 
-pub(super) fn format_decimal(value: &BigDecimal) -> String {
+pub(super) fn format_decimal(value: &Decimal) -> String {
     BigNumberFormatter::decimal_to_string(value, MAX_DECIMAL_SCALE)
 }
 
-pub(super) fn round_size_down(amount: &BigDecimal, decimals: u32) -> BigDecimal {
-    amount.with_scale_round(i64::from(decimals), bigdecimal::RoundingMode::Down)
+pub(super) fn round_size_down(amount: &Decimal, decimals: u32) -> Decimal {
+    amount.with_scale_round(i64::from(decimals), Rounding::Down)
 }
 
-pub(super) fn format_order_size(amount: &BigDecimal, decimals: u32) -> String {
+pub(super) fn format_order_size(amount: &Decimal, decimals: u32) -> String {
     let rounded = round_size_down(amount, decimals);
     BigNumberFormatter::decimal_to_string(&rounded, decimals)
 }
@@ -48,7 +47,7 @@ pub fn scale_units(value: BigUint, from_decimals: u32, to_decimals: u32) -> Resu
         }
         Ordering::Greater => {
             let factor = BigUint::from(10u32).pow(from_decimals - to_decimals);
-            if !NumZero::is_zero(&(&value % &factor)) {
+            if !(&value % &factor).is_zero() {
                 return Err(SwapperError::ComputeQuoteError("amount precision loss".into()));
             }
             Ok(value / factor)
@@ -56,8 +55,8 @@ pub fn scale_units(value: BigUint, from_decimals: u32, to_decimals: u32) -> Resu
     }
 }
 
-pub(super) fn limit_price_with_slippage(limit_price: &BigDecimal, side: SpotSide, slippage_bps: u32, price_decimals: u32) -> Result<BigDecimal, SwapperError> {
-    if limit_price <= &BigDecimal::zero() {
+pub(super) fn limit_price_with_slippage(limit_price: &Decimal, side: SpotSide, slippage_bps: u32, price_decimals: u32) -> Result<Decimal, SwapperError> {
+    if limit_price <= &Decimal::zero() {
         return Err(SwapperError::ComputeQuoteError("invalid limit price".into()));
     }
 
@@ -79,7 +78,7 @@ pub(super) fn limit_price_with_slippage(limit_price: &BigDecimal, side: SpotSide
         format!("{rounded:.price_decimals$}", price_decimals = price_decimals as usize)
     };
 
-    BigDecimal::from_str(&formatted).map_err(|_| SwapperError::ComputeQuoteError("failed to format limit price".into()))
+    formatted.parse().map_err(|_| SwapperError::ComputeQuoteError("failed to format limit price".into()))
 }
 
 fn round_to_significant_and_decimal(value: f64, sig_figs: u32, max_decimals: u32) -> f64 {
@@ -97,87 +96,48 @@ fn round_to_significant_and_decimal(value: f64, sig_figs: u32, max_decimals: u32
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::str::FromStr;
+
+    fn decimal(value: &str) -> Decimal {
+        value.parse().unwrap()
+    }
 
     #[test]
-    fn test_format_order_size_rounds_down() {
-        let value = BigDecimal::from_str("0.131").unwrap();
-        assert_eq!(format_order_size(&value, 2), "0.13");
-
-        let value = BigDecimal::from_str("0.189834").unwrap();
-        assert_eq!(format_order_size(&value, 2), "0.18");
-
-        let value = BigDecimal::from_str("0.10").unwrap();
-        assert_eq!(format_order_size(&value, 2), "0.1");
-
-        let value = BigDecimal::from_str("9.999").unwrap();
-        assert_eq!(format_order_size(&value, 2), "9.99");
+    fn test_format_order_size() {
+        assert_eq!(format_order_size(&decimal("0.131"), 2), "0.13");
+        assert_eq!(format_order_size(&decimal("0.189834"), 2), "0.18");
+        assert_eq!(format_order_size(&decimal("0.10"), 2), "0.1");
+        assert_eq!(format_order_size(&decimal("9.999"), 2), "9.99");
     }
 
     #[test]
     fn test_round_size_down() {
-        let value = BigDecimal::from_str("9.523768").unwrap();
-        let rounded = round_size_down(&value, 2);
-        assert_eq!(rounded, BigDecimal::from_str("9.52").unwrap());
-
-        let value = BigDecimal::from_str("10.12345").unwrap();
-        let rounded = round_size_down(&value, 2);
-        assert_eq!(rounded, BigDecimal::from_str("10.12").unwrap());
-
-        let value = BigDecimal::from_str("123.999").unwrap();
-        let rounded = round_size_down(&value, 0);
-        assert_eq!(rounded, BigDecimal::from_str("123").unwrap());
+        assert_eq!(round_size_down(&decimal("9.523768"), 2), decimal("9.52"));
+        assert_eq!(round_size_down(&decimal("10.12345"), 2), decimal("10.12"));
+        assert_eq!(round_size_down(&decimal("123.999"), 0), decimal("123"));
     }
 
     #[test]
-    fn test_spot_asset_index_offset() {
+    fn test_spot_asset_index() {
         assert_eq!(spot_asset_index(0), SPOT_ASSET_OFFSET);
         assert_eq!(spot_asset_index(107), SPOT_ASSET_OFFSET + 107);
     }
 
     #[test]
-    fn test_limit_price_with_slippage_buy_increases_price() {
-        let price = BigDecimal::from_str("100").unwrap();
-        let adjusted = limit_price_with_slippage(&price, SpotSide::Buy, 1000, 2).unwrap();
-        assert_eq!(BigNumberFormatter::decimal_to_string(&adjusted, 2), "110");
+    fn test_limit_price_with_slippage() {
+        let limit_price =
+            |price: &str, side: SpotSide, slippage_bps: u32, price_decimals: u32| limit_price_with_slippage(&decimal(price), side, slippage_bps, price_decimals).map(|price| BigNumberFormatter::decimal_to_string(&price, price_decimals));
+        assert_eq!(limit_price("100", SpotSide::Buy, 1000, 2), Ok("110".to_string()));
+        assert_eq!(limit_price("100", SpotSide::Sell, 500, 2), Ok("95".to_string()));
+        assert_eq!(limit_price("42.123456", SpotSide::Sell, 0, 4), Ok("42.123".to_string()));
+        assert_eq!(limit_price("10", SpotSide::Sell, 10001, 2), Err(SwapperError::ComputeQuoteError("slippage multiplier not positive".into())));
+        assert_eq!(limit_price("0", SpotSide::Buy, 100, 2), Err(SwapperError::ComputeQuoteError("invalid limit price".into())));
     }
 
     #[test]
-    fn test_limit_price_with_slippage_sell_decreases_price() {
-        let price = BigDecimal::from_str("100").unwrap();
-        let adjusted = limit_price_with_slippage(&price, SpotSide::Sell, 500, 2).unwrap();
-        assert_eq!(BigNumberFormatter::decimal_to_string(&adjusted, 2), "95");
-    }
-
-    #[test]
-    fn test_limit_price_with_slippage_zero_returns_same_price() {
-        let price = BigDecimal::from_str("42.123456").unwrap();
-        let adjusted = limit_price_with_slippage(&price, SpotSide::Sell, 0, 4).unwrap();
-        assert_eq!(BigNumberFormatter::decimal_to_string(&adjusted, 4), "42.123");
-    }
-
-    #[test]
-    fn test_limit_price_with_slippage_invalid_when_multiplier_non_positive() {
-        let price = BigDecimal::from_str("10").unwrap();
-        assert!(limit_price_with_slippage(&price, SpotSide::Sell, 10001, 2).is_err());
-    }
-
-    #[test]
-    fn test_scale_units_increase_precision() {
-        let base = BigUint::from(123u32);
-        let scaled = scale_units(base.clone(), 8, 18).unwrap();
-        assert_eq!(scaled, BigUint::from(10u32).pow(10) * base);
-    }
-
-    #[test]
-    fn test_scale_units_reduce_precision() {
-        let value = BigUint::from(123u32) * BigUint::from(10u32).pow(10);
-        let scaled = scale_units(value, 18, 8).unwrap();
-        assert_eq!(scaled, BigUint::from(123u32));
-    }
-
-    #[test]
-    fn test_scale_units_precision_loss_rejected() {
-        assert!(scale_units(BigUint::from(5u32), 3, 1).is_err());
+    fn test_scale_units() {
+        assert_eq!(scale_units(BigUint::from(123u32), 8, 18), Ok(BigUint::from(123u32) * BigUint::from(10u32).pow(10)));
+        assert_eq!(scale_units(BigUint::from(123u32) * BigUint::from(10u32).pow(10), 18, 8), Ok(BigUint::from(123u32)));
+        assert_eq!(scale_units(BigUint::from(5u32), 8, 8), Ok(BigUint::from(5u32)));
+        assert_eq!(scale_units(BigUint::from(5u32), 3, 1), Err(SwapperError::ComputeQuoteError("amount precision loss".into())));
     }
 }

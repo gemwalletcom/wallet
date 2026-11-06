@@ -1,5 +1,5 @@
-use rust_decimal::Decimal;
-use std::str::FromStr;
+use crate::NumberFormatterError;
+use crate::decimal::{Decimal, Rounding};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Currency {
@@ -374,17 +374,16 @@ pub struct Money {
 }
 
 impl Money {
-    pub fn from_str(amount: &str, currency: Currency) -> Result<Self, rust_decimal::Error> {
-        let amount = Decimal::from_str(amount)?;
-        Ok(Money { amount, currency })
+    pub fn from_str(amount: &str, currency: Currency) -> Result<Self, NumberFormatterError> {
+        Ok(Money { amount: amount.parse()?, currency })
     }
 
     pub fn currency(&self) -> &Currency {
         &self.currency
     }
 
-    pub fn amount(&self) -> Decimal {
-        self.amount
+    pub fn amount(&self) -> &Decimal {
+        &self.amount
     }
 }
 
@@ -406,9 +405,9 @@ impl Formatter {
 
         let decimal_places = params.rounding.unwrap_or(currency.decimal_places);
 
-        let rounded = amount.round_dp(decimal_places.into());
+        let rounded = amount.with_scale_round(decimal_places.into(), Rounding::HalfEven);
 
-        let amount_str = Self::format_decimal(rounded, decimal_places);
+        let amount_str = Self::format_decimal(&rounded, decimal_places);
 
         let formatted_amount = add_thousands_separator(&amount_str, params.thousands_separator.unwrap_or(','), params.decimal_separator.unwrap_or('.'));
 
@@ -416,8 +415,8 @@ impl Formatter {
         format!("{}{}", symbol, formatted_amount)
     }
 
-    fn format_decimal(decimal: Decimal, max_decimal_places: u8) -> String {
-        let formatted = format!("{:.prec$}", decimal, prec = max_decimal_places as usize);
+    fn format_decimal(decimal: &Decimal, max_decimal_places: u8) -> String {
+        let formatted = decimal.to_plain_string();
 
         if max_decimal_places == 2 {
             formatted
@@ -459,8 +458,6 @@ pub fn add_thousands_separator(amount_str: &str, thousands_sep: char, decimal_se
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rust_decimal::Decimal;
-    use std::str::FromStr;
 
     #[test]
     fn test_currency_find() {
@@ -473,7 +470,7 @@ mod tests {
     #[test]
     fn test_money_creation() {
         let money = Money::from_str("100.50", iso::USD).unwrap();
-        assert_eq!(money.amount(), Decimal::from_str("100.50").unwrap());
+        assert_eq!(money.amount(), &"100.50".parse::<Decimal>().unwrap());
         assert_eq!(money.currency(), &iso::USD);
     }
 
@@ -533,6 +530,24 @@ mod tests {
 
         let formatted = Formatter::format(&money, params_9_digits);
         assert_eq!(formatted, "$0.123456");
+
+        for (amount, rounding, expected) in [
+            ("0.125", 2, "$0.12"),
+            ("0.135", 2, "$0.14"),
+            ("0.1", 2, "$0.10"),
+            ("2.5", 0, "$2"),
+            ("3.5", 0, "$4"),
+            ("0.0000000015", 9, "$0.000000002"),
+            ("-1234.567", 2, "$-1,234.57"),
+            ("1000000000000000000000000000000", 2, "$1,000,000,000,000,000,000,000,000,000,000.00"),
+        ] {
+            let money = Money::from_str(amount, iso::USD).unwrap();
+            let params = Params {
+                rounding: Some(rounding),
+                ..Default::default()
+            };
+            assert_eq!(Formatter::format(&money, params), expected, "{amount} {rounding}");
+        }
     }
 
     #[test]

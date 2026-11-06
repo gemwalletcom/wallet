@@ -60,6 +60,7 @@ mod tests {
         assert_eq!(formatter.currency(0.39, "USD"), Some("$0.39".to_string()));
         assert_eq!(formatter.currency(0.0039, "USD"), Some("$0.0039".to_string()));
         assert_eq!(formatter.currency(69.420, "USD"), Some("$69.42".to_string()));
+        assert_eq!(formatter.currency(1e30, "USD"), Some("$1,000,000,000,000,000,000,000,000,000,000.00".to_string()));
     }
 
     #[test]

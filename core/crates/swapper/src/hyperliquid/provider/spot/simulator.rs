@@ -1,25 +1,23 @@
-use std::str::FromStr;
-
-use bigdecimal::{BigDecimal, Zero};
 use gem_hypercore::models::spot::OrderbookLevel;
+use number_formatter::Decimal;
 
 use crate::SwapperError;
 
 #[derive(Debug, Clone, PartialEq)]
 pub(super) struct SimulationResult {
-    pub amount_out: BigDecimal,
-    pub limit_price: BigDecimal,
+    pub amount_out: Decimal,
+    pub limit_price: Decimal,
 }
 
-pub(super) fn simulate_sell(amount: &BigDecimal, bids: &[OrderbookLevel]) -> Result<SimulationResult, SwapperError> {
+pub(super) fn simulate_sell(amount: &Decimal, bids: &[OrderbookLevel]) -> Result<SimulationResult, SwapperError> {
     let mut remaining = amount.clone();
-    let mut quote_total = BigDecimal::zero();
-    let mut min_price: Option<BigDecimal> = None;
+    let mut quote_total = Decimal::zero();
+    let mut min_price: Option<Decimal> = None;
 
     for level in bids {
         let level_size = parse_decimal(&level.sz)?;
         let price = parse_decimal(&level.px)?;
-        if level_size <= BigDecimal::zero() {
+        if level_size <= Decimal::zero() {
             continue;
         }
 
@@ -28,7 +26,7 @@ pub(super) fn simulate_sell(amount: &BigDecimal, bids: &[OrderbookLevel]) -> Res
         remaining -= &trade_size;
         min_price = Some(min_price.map_or_else(|| price.clone(), |p| p.min(price.clone())));
 
-        if remaining <= BigDecimal::zero() {
+        if remaining <= Decimal::zero() {
             return Ok(SimulationResult {
                 amount_out: quote_total,
                 limit_price: min_price.unwrap_or(price),
@@ -39,15 +37,15 @@ pub(super) fn simulate_sell(amount: &BigDecimal, bids: &[OrderbookLevel]) -> Res
     Err(SwapperError::NoQuoteAvailable)
 }
 
-pub(super) fn simulate_buy(amount: &BigDecimal, asks: &[OrderbookLevel]) -> Result<SimulationResult, SwapperError> {
+pub(super) fn simulate_buy(amount: &Decimal, asks: &[OrderbookLevel]) -> Result<SimulationResult, SwapperError> {
     let mut remaining_quote = amount.clone();
-    let mut base_total = BigDecimal::zero();
-    let mut max_price: Option<BigDecimal> = None;
+    let mut base_total = Decimal::zero();
+    let mut max_price: Option<Decimal> = None;
 
     for level in asks {
         let level_size = parse_decimal(&level.sz)?;
         let price = parse_decimal(&level.px)?;
-        if level_size <= BigDecimal::zero() || price <= BigDecimal::zero() {
+        if level_size <= Decimal::zero() || price <= Decimal::zero() {
             continue;
         }
 
@@ -59,7 +57,7 @@ pub(super) fn simulate_buy(amount: &BigDecimal, asks: &[OrderbookLevel]) -> Resu
         } else {
             base_total += &remaining_quote / &price;
             max_price = Some(max_price.map_or_else(|| price.clone(), |p| p.max(price.clone())));
-            remaining_quote = BigDecimal::zero();
+            remaining_quote = Decimal::zero();
             break;
         }
     }
@@ -67,72 +65,44 @@ pub(super) fn simulate_buy(amount: &BigDecimal, asks: &[OrderbookLevel]) -> Resu
     let Some(limit_price) = max_price else {
         return Err(SwapperError::NoQuoteAvailable);
     };
-    if remaining_quote > BigDecimal::zero() || base_total <= BigDecimal::zero() {
+    if remaining_quote > Decimal::zero() || base_total <= Decimal::zero() {
         return Err(SwapperError::NoQuoteAvailable);
     }
 
     Ok(SimulationResult { amount_out: base_total, limit_price })
 }
 
-fn parse_decimal(value: &str) -> Result<BigDecimal, SwapperError> {
-    BigDecimal::from_str(value).map_err(|_| SwapperError::compute_quote_error("failed to parse orderbook level"))
+fn parse_decimal(value: &str) -> Result<Decimal, SwapperError> {
+    value.parse().map_err(|_| SwapperError::compute_quote_error("failed to parse orderbook level"))
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use bigdecimal::BigDecimal;
-    use number_formatter::BigNumberFormatter;
-    use std::str::FromStr;
 
     #[test]
     fn test_simulate_sell() {
-        let amount = BigDecimal::from_str("7").unwrap();
         let bids = vec![OrderbookLevel::mock("2", "3"), OrderbookLevel::mock("1.5", "5")];
-        let SimulationResult {
-            amount_out: quote_out,
-            limit_price: min_price,
-        } = simulate_sell(&amount, &bids).unwrap();
-        let expected = BigDecimal::from_str("12").unwrap();
-
-        let quote_str = BigNumberFormatter::decimal_to_string(&quote_out, 6);
-        let expected_str = BigNumberFormatter::decimal_to_string(&expected, 6);
-        assert_eq!(quote_str, expected_str);
-
-        let avg_total = quote_out / amount.clone() * amount;
-        let avg_total_str = BigNumberFormatter::decimal_to_string(&avg_total, 6);
-        assert_eq!(avg_total_str, expected_str);
-        assert_eq!(min_price, BigDecimal::from_str("1.5").unwrap());
-    }
-
-    #[test]
-    fn test_simulate_sell_insufficient_depth() {
-        let amount = BigDecimal::from_str("10").unwrap();
-        let bids = vec![OrderbookLevel::mock("2", "3"), OrderbookLevel::mock("1.5", "5")];
-        assert_eq!(simulate_sell(&amount, &bids), Err(SwapperError::NoQuoteAvailable));
+        assert_eq!(
+            simulate_sell(&Decimal::from(7), &bids),
+            Ok(SimulationResult {
+                amount_out: Decimal::from(12),
+                limit_price: Decimal::new(15, 1),
+            })
+        );
+        assert_eq!(simulate_sell(&Decimal::from(10), &bids), Err(SwapperError::NoQuoteAvailable));
     }
 
     #[test]
     fn test_simulate_buy() {
-        let amount = BigDecimal::from_str("10").unwrap();
         let asks = vec![OrderbookLevel::mock("2", "3"), OrderbookLevel::mock("3", "5")];
-        let SimulationResult {
-            amount_out: base_out,
-            limit_price: max_price,
-        } = simulate_buy(&amount, &asks).unwrap();
-        let avg_price = &amount / &base_out;
-        let product = avg_price * base_out.clone();
-        let product_str = BigNumberFormatter::decimal_to_string(&product, 6);
-        let amount_str = BigNumberFormatter::decimal_to_string(&amount, 6);
-        assert_eq!(product_str, amount_str);
-        assert!(base_out > BigDecimal::zero());
-        assert_eq!(max_price, BigDecimal::from_str("3").unwrap());
-    }
-
-    #[test]
-    fn test_simulate_buy_insufficient_depth() {
-        let amount = BigDecimal::from_str("25").unwrap();
-        let asks = vec![OrderbookLevel::mock("2", "3"), OrderbookLevel::mock("3", "5")];
-        assert_eq!(simulate_buy(&amount, &asks), Err(SwapperError::NoQuoteAvailable));
+        assert_eq!(
+            simulate_buy(&Decimal::from(10), &asks),
+            Ok(SimulationResult {
+                amount_out: Decimal::from(3) + Decimal::from(4) / Decimal::from(3),
+                limit_price: Decimal::from(3),
+            })
+        );
+        assert_eq!(simulate_buy(&Decimal::from(25), &asks), Err(SwapperError::NoQuoteAvailable));
     }
 }

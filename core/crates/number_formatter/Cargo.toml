@@ -5,5 +5,4 @@ edition = { workspace = true }
 
 [dependencies]
 num-bigint = { workspace = true }
-bigdecimal = { workspace = true }
-rust_decimal = { workspace = true }
+num-traits = { workspace = true }
