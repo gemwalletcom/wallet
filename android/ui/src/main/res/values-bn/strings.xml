@@ -109,6 +109,14 @@
   <string name="wallet_import_already_imported_message">এই ওয়ালেটটি ইতিমধ্যেই আমদানি করা হয়েছে।</string>
   <string name="wallets_title">ওয়ালেট</string>
   <string name="receive_warning">এটি আপনার ঠিকানা — শুধুমাত্র পাঠান %1$s উপরে %2$s নেটওয়ার্ক।</string>
+  <string name="receive_lightning_create_invoice">ইনভয়েস তৈরি করুন</string>
+  <string name="receive_lightning_change_amount">পরিমাণ পরিবর্তন করুন</string>
+  <string name="receive_lightning_amount_hint">প্রেরককে পরিমাণ বেছে নিতে দিতে খালি রাখুন।</string>
+  <string name="receive_lightning_any_amount">যেকোনো পরিমাণ</string>
+  <string name="receive_lightning_invoice_hint">যেকোনো Lightning ওয়ালেট থেকে এই ইনভয়েস পরিশোধ করুন। %1$s পর্যন্ত বৈধ।</string>
+  <string name="receive_lightning_payment_received">পেমেন্ট পাওয়া গেছে</string>
+  <string name="receive_lightning_unavailable">Lightning এখন উপলব্ধ নয়। পরে আবার চেষ্টা করুন।</string>
+  <string name="receive_lightning_unlock_required">Lightning-এ গ্রহণ করতে ওয়ালেট আনলক করুন।</string>
   <string name="buy_title">%1$s কিনুন</string>
   <string name="buy_providers_title">প্রদানকারী</string>
   <string name="buy_rate">হার</string>
@@ -126,6 +134,7 @@
   <string name="transfer_balance">ব্যালেন্স: %1$s</string>
   <string name="transfer_title">স্থানান্তর</string>
   <string name="transfer_recipient_address_field">ঠিকানা বা নাম</string>
+  <string name="transfer_recipient_lightning_invoice">Lightning ইনভয়েস</string>
   <string name="transfer_send_title">পাঠান</string>
   <string name="transfer_insufficient_balance">অপর্যাপ্ত %1$s ব্যালেন্স।</string>
   <string name="transfer_insufficient_network_fee_balance">নেটওয়ার্ক ফি কভার করার জন্য অপর্যাপ্ত %1$s ব্যালেন্স।</string>
@@ -267,6 +276,7 @@
   <string name="asset_balances">ভারসাম্য</string>
   <string name="asset_balances_available">পাওয়া যায়</string>
   <string name="asset_price">দাম</string>
+  <string name="asset_lightning_instant_payments">তাৎক্ষণিক পেমেন্ট</string>
   <string name="asset_market_cap">মার্কেট ক্যাপ</string>
   <string name="asset_trading_volume">ট্রেডিং ভলিউম (24 ঘন্টা)</string>
   <string name="asset_total_supply">মোট সরবরাহ</string>

@@ -109,6 +109,14 @@
   <string name="wallet_import_already_imported_message">Dompet ini telah pun diimport.</string>
   <string name="wallets_title">Dompet</string>
   <string name="receive_warning">Ini alamat anda — hantar sahaja %1$s pada %2$s rangkaian.</string>
+  <string name="receive_lightning_create_invoice">Cipta Invois</string>
+  <string name="receive_lightning_change_amount">Tukar Jumlah</string>
+  <string name="receive_lightning_amount_hint">Biarkan kosong supaya penghantar memilih jumlah.</string>
+  <string name="receive_lightning_any_amount">Sebarang jumlah</string>
+  <string name="receive_lightning_invoice_hint">Bayar invois ini daripada mana-mana dompet Lightning. Sah sehingga %1$s.</string>
+  <string name="receive_lightning_payment_received">Bayaran diterima</string>
+  <string name="receive_lightning_unavailable">Lightning tidak tersedia. Cuba lagi nanti.</string>
+  <string name="receive_lightning_unlock_required">Buka kunci dompet untuk menerima dengan Lightning.</string>
   <string name="buy_title">Beli %1$s</string>
   <string name="buy_providers_title">Pembekal</string>
   <string name="buy_rate">Kadar</string>
@@ -126,6 +134,7 @@
   <string name="transfer_balance">Baki: %1$s</string>
   <string name="transfer_title">Pemindahan</string>
   <string name="transfer_recipient_address_field">Alamat atau Nama</string>
+  <string name="transfer_recipient_lightning_invoice">Invois Lightning</string>
   <string name="transfer_send_title">Hantar</string>
   <string name="transfer_insufficient_balance">Baki %1$s tidak mencukupi.</string>
   <string name="transfer_insufficient_network_fee_balance">Baki %1$s tidak mencukupi untuk menampung yuran rangkaian.</string>
@@ -267,6 +276,7 @@
   <string name="asset_balances">Baki</string>
   <string name="asset_balances_available">Tersedia</string>
   <string name="asset_price">Harga</string>
+  <string name="asset_lightning_instant_payments">Bayaran segera</string>
   <string name="asset_market_cap">Modal Pasaran</string>
   <string name="asset_trading_volume">Jumlah dagangan (24j)</string>
   <string name="asset_total_supply">Jumlah Bekalan</string>

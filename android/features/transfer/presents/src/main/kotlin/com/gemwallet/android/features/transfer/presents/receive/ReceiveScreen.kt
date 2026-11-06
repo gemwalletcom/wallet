@@ -1,21 +1,12 @@
 package com.gemwallet.android.features.transfer.presents.receive
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -29,24 +20,19 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.features.transfer.presents.receive.components.rememberQRCodePainter
+import com.gemwallet.android.features.transfer.presents.receive.components.ReceiveQrCard
+import com.gemwallet.android.features.transfer.presents.receive.components.receiveQrPadding
+import com.gemwallet.android.features.transfer.presents.receive.components.receiveQrWidth
 import com.gemwallet.android.features.transfer.viewmodels.receive.ReceiveViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
-import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
 import com.gemwallet.android.ui.components.clipboard.setCopy
 import com.gemwallet.android.ui.components.list_head.CenteredListHead
@@ -60,27 +46,23 @@ import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.shareText
-import com.gemwallet.android.ui.theme.WindowDimension
-import com.gemwallet.android.ui.theme.isCompactDimension
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
-import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space0
 import com.wallet.core.primitives.AssetData
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemAssetText
 import uniffi.gemstone.GemChainRow
 import uniffi.gemstone.GemCopy
 import uniffi.gemstone.chainRow
 
-private val qrCardElevation = 3.dp
-
-private val qrSize = 300.dp
-private val qrSizeCompact = 220.dp
-private val qrMinSize = 100.dp
-
 @Composable
 fun ReceiveScreen(assetId: AssetId, closeIcon: Boolean = false, onCancel: () -> Unit) {
+    if (assetId.chain == Chain.Lightning) {
+        LightningReceiveScreen(onCancel = onCancel)
+        return
+    }
     val viewModel = hiltViewModel<ReceiveViewModel, ReceiveViewModel.Factory>(
         key = assetId.toIdentifier(),
     ) { it.create(assetId) }
@@ -125,9 +107,8 @@ private fun ReceiveScene(closeIcon: Boolean, assetInfo: AssetData, header: GemAs
     val context = LocalContext.current
     val clipboardManager = LocalContext.current.clipboardManager()
     val shareTitle = stringResource(R.string.common_share)
-    val isCompactHeight = isCompactDimension(WindowDimension.Height)
-    val imageSize = if (isCompactHeight) qrSizeCompact else qrSize
-    val imagePadding = if (isCompactHeight) paddingSmall else paddingDefault
+    val imageSize = receiveQrWidth()
+    val imagePadding = receiveQrPadding()
 
     val onShare = fun () {
         context.shareText(subject = null, text = shareText, chooserTitle = shareTitle)
@@ -185,50 +166,7 @@ private fun ReceiveScene(closeIcon: Boolean, assetInfo: AssetData, header: GemAs
                 bottomPadding = space0,
                 leading = { HeaderIcon(header.icon) },
             )
-            ElevatedCard(
-                modifier = Modifier.width(imageSize),
-                elevation = CardDefaults.cardElevation(defaultElevation = qrCardElevation),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    contentColor = MaterialTheme.colorScheme.onSurface,
-                ),
-            ) {
-                Box(
-                    modifier = Modifier
-                        .widthIn(qrMinSize, imageSize)
-                        .aspectRatio(1f)
-                        .padding(imagePadding)
-                        .clip(MaterialTheme.shapes.small)
-                        .background(Color.White)
-                        .clickable(onCopyClick)
-                        .padding(paddingHalfSmall),
-                ) {
-                    rememberQRCodePainter(
-                        content = assetInfo.account.address,
-                        size = qrSize,
-                    )?.let { painter ->
-                        Image(
-                            modifier = Modifier.fillMaxSize(),
-                            painter = painter,
-                            contentDescription = stringResource(R.string.common_copy),
-                            contentScale = ContentScale.FillWidth,
-                        )
-                    }
-                }
-                Text(
-                    modifier = Modifier
-                        .width(imageSize)
-                        .padding(horizontal = imagePadding)
-                        .clickable(onCopyClick)
-                        .testTag(assetInfo.account.address),
-                    text = assetInfo.account.address,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.secondary,
-                    fontWeight = FontWeight.Medium,
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-                Spacer(modifier = Modifier.size(imagePadding))
-            }
+            ReceiveQrCard(content = assetInfo.account.address, caption = assetInfo.account.address, onCopy = onCopyClick)
             Text(
                 modifier = Modifier.width(imageSize),
                 text = remember(warning) { parseMarkdownToAnnotatedString(warning) },

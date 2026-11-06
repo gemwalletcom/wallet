@@ -109,6 +109,14 @@
   <string name="wallet_import_already_imported_message">Pochi hii tayari imeingizwa.</string>
   <string name="wallets_title">Pochi</string>
   <string name="receive_warning">Hii ni anwani yako — tuma pekee %1$s kwenye %2$s mtandao.</string>
+  <string name="receive_lightning_create_invoice">Unda Ankara</string>
+  <string name="receive_lightning_change_amount">Badilisha Kiasi</string>
+  <string name="receive_lightning_amount_hint">Acha wazi ili mtumaji achague kiasi.</string>
+  <string name="receive_lightning_any_amount">Kiasi chochote</string>
+  <string name="receive_lightning_invoice_hint">Lipa ankara hii kutoka pochi yoyote ya Lightning. Inatumika hadi %1$s.</string>
+  <string name="receive_lightning_payment_received">Malipo yamepokelewa</string>
+  <string name="receive_lightning_unavailable">Lightning haipatikani. Jaribu tena baadaye.</string>
+  <string name="receive_lightning_unlock_required">Fungua pochi ili kupokea kwa Lightning.</string>
   <string name="buy_title">Nunua %1$s</string>
   <string name="buy_providers_title">Watoa huduma</string>
   <string name="buy_rate">Kiwango</string>
@@ -126,6 +134,7 @@
   <string name="transfer_balance">Salio: %1$s</string>
   <string name="transfer_title">Uhamisho</string>
   <string name="transfer_recipient_address_field">Anwani au Jina</string>
+  <string name="transfer_recipient_lightning_invoice">Ankara ya Lightning</string>
   <string name="transfer_send_title">Tuma</string>
   <string name="transfer_insufficient_balance">Salio la %1$s halitoshi.</string>
   <string name="transfer_insufficient_network_fee_balance">Salio la %1$s halitoshi kulipia ada za mtandao.</string>
@@ -267,6 +276,7 @@
   <string name="asset_balances">Salio</string>
   <string name="asset_balances_available">Inapatikana</string>
   <string name="asset_price">Bei</string>
+  <string name="asset_lightning_instant_payments">Malipo ya papo hapo</string>
   <string name="asset_market_cap">Thamani ya Soko</string>
   <string name="asset_trading_volume">Kiasi cha Biashara (saa 24)</string>
   <string name="asset_total_supply">Jumla ya Ugavi</string>

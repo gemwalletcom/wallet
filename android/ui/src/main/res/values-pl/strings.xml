@@ -109,6 +109,14 @@
   <string name="wallet_import_already_imported_message">Ten portfel został już zaimportowany.</string>
   <string name="wallets_title">Portfele</string>
   <string name="receive_warning">To jest Twój adres — wysyłaj tylko %1$s na %2$s sieć.</string>
+  <string name="receive_lightning_create_invoice">Utwórz fakturę</string>
+  <string name="receive_lightning_change_amount">Zmień kwotę</string>
+  <string name="receive_lightning_amount_hint">Pozostaw puste, aby nadawca wybrał kwotę.</string>
+  <string name="receive_lightning_any_amount">Dowolna kwota</string>
+  <string name="receive_lightning_invoice_hint">Zapłać tę fakturę z dowolnego portfela Lightning. Ważna do %1$s.</string>
+  <string name="receive_lightning_payment_received">Płatność otrzymana</string>
+  <string name="receive_lightning_unavailable">Lightning jest niedostępny. Spróbuj ponownie później.</string>
+  <string name="receive_lightning_unlock_required">Odblokuj portfel, aby odbierać przez Lightning.</string>
   <string name="buy_title">Kup %1$s</string>
   <string name="buy_providers_title">Dostawcy</string>
   <string name="buy_rate">Kurs</string>
@@ -126,6 +134,7 @@
   <string name="transfer_balance">Saldo: %1$s</string>
   <string name="transfer_title">Transfer</string>
   <string name="transfer_recipient_address_field">Adres lub nazwa</string>
+  <string name="transfer_recipient_lightning_invoice">Faktura Lightning</string>
   <string name="transfer_send_title">Wysłać</string>
   <string name="transfer_insufficient_balance">Niewystarczające %1$s saldo.</string>
   <string name="transfer_insufficient_network_fee_balance">Niewystarczające saldo %1$s na pokrycie opłat sieciowych.</string>
@@ -267,6 +276,7 @@
   <string name="asset_balances">Salda</string>
   <string name="asset_balances_available">Dostępne</string>
   <string name="asset_price">Cena</string>
+  <string name="asset_lightning_instant_payments">Natychmiastowe płatności</string>
   <string name="asset_market_cap">Kapitalizacja rynkowa</string>
   <string name="asset_trading_volume">Wolumen obrotu (24h)</string>
   <string name="asset_total_supply">Całkowita podaż</string>

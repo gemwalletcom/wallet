@@ -21,8 +21,6 @@ These need no further answer; work them in this order, one family per change.
 
 1. **App models to Core records:** VM269 to VM287 (second round) area by area as grouped in section 5.
 
-2. **Lightning on Android:** D531.
-
 Waiting on the owner: VM79, VM296 (review first), VM181, VM183, D175 (on hold), X171, CLN455, and everything under [Needs review](#needs-review). Waiting on a date or a release: X168, X169, X170, X163, X172, X173, X174, X176, X526.
 
 ## Screen coverage and existing infrastructure
@@ -107,7 +105,6 @@ The target for every item below: a model that only renames or regroups a Core re
 
 ### One generated type system
 
-- **D531** **L** **Android shows the Bitcoin Lightning coin.** iOS shipped it 2026-11-05 ([LIGHTNING.md](LIGHTNING.md#sessions)): Core owns the chain, the session registry, the provider and the send flow. Android needs the Lightning password provider on its unlock, `GemLightningService.open_enabled` on wallet refresh and foreground, `lock_all` on background, and the receive screen; copy iOS `LightningReceiveScene` and `LightningKeystorePassword`.
 - **D175** **L** **The apps use only the UniFFI-generated types.** On hold by the owner (2026-09-25). The generated Swift and Kotlin models (`Primitives/Sources/Generated`, `gemcore/.../primitives/generated`, 133 types) and the generated mappers between the two systems (`RemoteTypeMappers.swift`, `RemoteTypeMappers.kt`) go.
   - **Today:** 123 of the 133 generated model types already have a UniFFI twin (`core/bin/generate/remote_types.yml`). 936 iOS files and 638 Android files import the generated models, and about 210 files per app convert with `toPrimitives()`/`toGem()`. `Chain` crosses as its string code, and `AssetId`, `WalletId`, `TransactionId`, `NFTAssetId`, `NFTCollectionId` and `PerpetualId` cross as their stored strings. iOS `Store` depends on `Primitives` but not on `Gemstone`.
   - **Phase 1, coverage:** declare the 10 generated model types the bindings lack, or delete their app use: `AssetSubtype`, `ContactData`, `Device`, `PriceData`, `QRScanType`, `ScanReceiveMode`, `StakeChain`, `TransactionNFTTransferMetadata`, `TransactionSwapMetadata`, `WCPairingProposal`.

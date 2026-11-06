@@ -109,6 +109,14 @@
   <string name="wallet_import_already_imported_message">Esta billetera ya ha sido importada.</string>
   <string name="wallets_title">Billeteras</string>
   <string name="receive_warning">Esta es tu dirección: envía solo %1$s en la red %2$s.</string>
+  <string name="receive_lightning_create_invoice">Crear factura</string>
+  <string name="receive_lightning_change_amount">Cambiar importe</string>
+  <string name="receive_lightning_amount_hint">Déjalo vacío para que el remitente elija el importe.</string>
+  <string name="receive_lightning_any_amount">Cualquier importe</string>
+  <string name="receive_lightning_invoice_hint">Paga esta factura desde cualquier billetera Lightning. Válida hasta %1$s.</string>
+  <string name="receive_lightning_payment_received">Pago recibido</string>
+  <string name="receive_lightning_unavailable">Lightning no está disponible. Inténtalo más tarde.</string>
+  <string name="receive_lightning_unlock_required">Desbloquea la billetera para recibir con Lightning.</string>
   <string name="buy_title">Comprar %1$s</string>
   <string name="buy_providers_title">Proveedores</string>
   <string name="buy_rate">Tasa</string>
@@ -126,6 +134,7 @@
   <string name="transfer_balance">Saldo: %1$s</string>
   <string name="transfer_title">Transferir</string>
   <string name="transfer_recipient_address_field">Dirección o Nombre</string>
+  <string name="transfer_recipient_lightning_invoice">Factura Lightning</string>
   <string name="transfer_send_title">Enviar</string>
   <string name="transfer_insufficient_balance">Saldo de %1$s insuficiente.</string>
   <string name="transfer_insufficient_network_fee_balance">Saldo de %1$s insuficiente para cubrir las tarifas de la red.</string>
@@ -267,6 +276,7 @@
   <string name="asset_balances">Saldos</string>
   <string name="asset_balances_available">Disponible</string>
   <string name="asset_price">Precio</string>
+  <string name="asset_lightning_instant_payments">Pagos instantáneos</string>
   <string name="asset_market_cap">Capitalización de mercado</string>
   <string name="asset_trading_volume">Volumen de operaciones (24h)</string>
   <string name="asset_total_supply">Oferta total</string>

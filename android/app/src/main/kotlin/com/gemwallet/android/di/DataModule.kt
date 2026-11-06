@@ -20,6 +20,7 @@ import uniffi.gemstone.GemConfirmTransferServiceInterface
 import uniffi.gemstone.GemDeviceService
 import uniffi.gemstone.GemExplorerService
 import uniffi.gemstone.GemGateway
+import uniffi.gemstone.GemLightningService
 import uniffi.gemstone.GemNameService
 import uniffi.gemstone.GemNodeService
 import uniffi.gemstone.GemPaymentService
@@ -68,6 +69,7 @@ object DataModule {
         perpetualService: GemPerpetualService,
         walletSessionService: GemWalletSessionService,
         swapService: GemSwapService,
+        lightningService: GemLightningService,
     ): GemAssetSelectionServiceInterface = GemAssetSelectionService(
         searchService,
         balanceService,
@@ -76,6 +78,7 @@ object DataModule {
         perpetualService,
         walletSessionService,
         swapService,
+        lightningService,
     )
 
     @Provides

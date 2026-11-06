@@ -5,6 +5,7 @@ import androidx.lifecycle.LifecycleOwner
 import com.gemwallet.android.data.coordinators.wallet_connect.WalletConnectCoordinator
 import com.gemwallet.android.data.services.gemstone.connection.ConnectionStatusObserver
 import com.gemwallet.android.data.services.gemstone.device.DeviceObserverService
+import com.gemwallet.android.data.services.gemstone.lightning.LightningSessionObserver
 import com.gemwallet.android.data.services.gemstone.perpetual.HyperliquidObserverService
 import com.gemwallet.android.data.services.gemstone.stream.StreamObserverService
 import com.gemwallet.android.data.services.gemstone.transactions.TransactionStatusService
@@ -19,6 +20,7 @@ class AppLifecycleCoordinator @Inject constructor(
     private val connectionStatusObserver: ConnectionStatusObserver,
     private val transactionStatusService: TransactionStatusService,
     private val walletConnectCoordinator: WalletConnectCoordinator,
+    private val lightningSessionObserver: LightningSessionObserver,
 ) : DefaultLifecycleObserver {
 
     override fun onStart(owner: LifecycleOwner) {
@@ -28,6 +30,7 @@ class AppLifecycleCoordinator @Inject constructor(
         connectionStatusObserver.start()
         transactionStatusService.start()
         walletConnectCoordinator.start()
+        lightningSessionObserver.openLightning()
     }
 
     override fun onStop(owner: LifecycleOwner) {
@@ -37,5 +40,6 @@ class AppLifecycleCoordinator @Inject constructor(
         connectionStatusObserver.stop()
         transactionStatusService.stop()
         walletConnectCoordinator.stop()
+        lightningSessionObserver.lock()
     }
 }

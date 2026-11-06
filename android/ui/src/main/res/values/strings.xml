@@ -109,6 +109,14 @@
   <string name="wallet_import_already_imported_message">This wallet has already been imported.</string>
   <string name="wallets_title">Wallets</string>
   <string name="receive_warning">This is your address — send only %1$s on the %2$s network.</string>
+  <string name="receive_lightning_create_invoice">Create Invoice</string>
+  <string name="receive_lightning_change_amount">Change Amount</string>
+  <string name="receive_lightning_amount_hint">Leave empty to let the sender choose the amount.</string>
+  <string name="receive_lightning_any_amount">Any amount</string>
+  <string name="receive_lightning_invoice_hint">Pay this invoice from any Lightning wallet. Valid until %1$s.</string>
+  <string name="receive_lightning_payment_received">Payment received</string>
+  <string name="receive_lightning_unavailable">Lightning is unavailable. Try again later.</string>
+  <string name="receive_lightning_unlock_required">Unlock the wallet to receive with Lightning.</string>
   <string name="buy_title">Buy %1$s</string>
   <string name="buy_providers_title">Providers</string>
   <string name="buy_rate">Rate</string>
@@ -126,6 +134,7 @@
   <string name="transfer_balance">Balance: %1$s</string>
   <string name="transfer_title">Transfer</string>
   <string name="transfer_recipient_address_field">Address or Name</string>
+  <string name="transfer_recipient_lightning_invoice">Lightning Invoice</string>
   <string name="transfer_send_title">Send</string>
   <string name="transfer_insufficient_balance">Insufficient %1$s balance.</string>
   <string name="transfer_insufficient_network_fee_balance">Insufficient %1$s balance to cover network fees.</string>
@@ -267,6 +276,7 @@
   <string name="asset_balances">Balances</string>
   <string name="asset_balances_available">Available</string>
   <string name="asset_price">Price</string>
+  <string name="asset_lightning_instant_payments">Instant payments</string>
   <string name="asset_market_cap">Market Cap</string>
   <string name="asset_trading_volume">Trading Volume (24h)</string>
   <string name="asset_total_supply">Total Supply</string>

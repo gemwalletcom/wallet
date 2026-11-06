@@ -109,6 +109,14 @@
   <string name="wallet_import_already_imported_message">Bu cüzdan zaten içe aktarıldı.</string>
   <string name="wallets_title">Cüzdanlar</string>
   <string name="receive_warning">Bu sizin adresiniz — yalnızca %1$s varlığını %2$s ağında gönderin.</string>
+  <string name="receive_lightning_create_invoice">Fatura Oluştur</string>
+  <string name="receive_lightning_change_amount">Tutarı Değiştir</string>
+  <string name="receive_lightning_amount_hint">Tutarı gönderenin seçmesi için boş bırakın.</string>
+  <string name="receive_lightning_any_amount">Herhangi bir tutar</string>
+  <string name="receive_lightning_invoice_hint">Bu faturayı herhangi bir Lightning cüzdanından ödeyin. %1$s tarihine kadar geçerli.</string>
+  <string name="receive_lightning_payment_received">Ödeme alındı</string>
+  <string name="receive_lightning_unavailable">Lightning kullanılamıyor. Daha sonra tekrar deneyin.</string>
+  <string name="receive_lightning_unlock_required">Lightning ile almak için cüzdanın kilidini açın.</string>
   <string name="buy_title">%1$s satın al</string>
   <string name="buy_providers_title">Sağlayıcılar</string>
   <string name="buy_rate">Kur</string>
@@ -126,6 +134,7 @@
   <string name="transfer_balance">Bakiye: %1$s</string>
   <string name="transfer_title">Aktar</string>
   <string name="transfer_recipient_address_field">Adres veya Ad</string>
+  <string name="transfer_recipient_lightning_invoice">Lightning faturası</string>
   <string name="transfer_send_title">Gönder</string>
   <string name="transfer_insufficient_balance">Yetersiz %1$s bakiye.</string>
   <string name="transfer_insufficient_network_fee_balance">Ağ ücretlerini karşılamak için yetersiz %1$s bakiyesi.</string>
@@ -267,6 +276,7 @@
   <string name="asset_balances">Bakiyeler</string>
   <string name="asset_balances_available">Mevcut</string>
   <string name="asset_price">Fiyat</string>
+  <string name="asset_lightning_instant_payments">Anında ödemeler</string>
   <string name="asset_market_cap">Piyasa değeri</string>
   <string name="asset_trading_volume">İşlem Hacmi (24 saat)</string>
   <string name="asset_total_supply">Toplam Arz</string>

@@ -22,6 +22,7 @@ import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.ListSection
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.Asset
+import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemNameIndicator
 
 @Composable
@@ -43,6 +44,7 @@ internal fun RecipientScene(
         onClose = { onAction(RecipientAction.Cancel) },
         onContinue = { onAction(RecipientAction.Next) },
     ) {
+        val addressLabel = stringResource(if (asset.id.chain == Chain.Lightning) R.string.transfer_recipient_lightning_invoice else R.string.transfer_recipient_address_field)
         val onAddress: (String) -> Unit = { onAction(RecipientAction.SetAddress(it)) }
         val onMemo: (String) -> Unit = { onAction(RecipientAction.SetMemo(it)) }
         val onQrScan: (QrScanField) -> Unit = { onAction(RecipientAction.Scan(it)) }
@@ -54,6 +56,7 @@ internal fun RecipientScene(
             item { RecipientHead(head) }
             destinationView(
                 hasMemo = hasMemo,
+                addressLabel = addressLabel,
                 address = address,
                 addressError = addressError,
                 nameResolveIndicator = nameResolveIndicator,

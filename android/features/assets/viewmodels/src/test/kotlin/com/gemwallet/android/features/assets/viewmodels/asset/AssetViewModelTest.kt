@@ -13,6 +13,7 @@ import com.gemwallet.android.data.services.store.queries.PriceAlertsQuery
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.MainDispatcherRule
+import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetData
 import com.gemwallet.android.testkit.mockAssetId
@@ -21,7 +22,9 @@ import com.gemwallet.android.testkit.mockGemAssetDetails
 import com.gemwallet.android.testkit.mockGemAssetDetailsState
 import com.gemwallet.android.testkit.mockPriceAlert
 import com.gemwallet.android.testkit.mockSession
+import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Banner
 import com.wallet.core.primitives.Chain
@@ -46,7 +49,9 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -140,9 +145,30 @@ class AssetViewModelTest {
         coVerify { service.refresh(asset.id.toIdentifier()) }
     }
 
-    private fun createViewModel(ioDispatcher: CoroutineDispatcher = testDispatcher): AssetViewModel = AssetViewModel(
+    @Test
+    fun `Bitcoin shows Lightning only when the wallet has a Lightning account`() = runTest(testDispatcher) {
+        val bitcoin = mockAssetId(chain = Chain.Bitcoin)
+        val lightning = mockAssetId(chain = Chain.Lightning)
+        every { chainAssetQuery(any(), any(), any()) } returns chainAssetInfoFlow
+        every { priceAlertsQuery(any()) } returns priceAlerts
+
+        sessionFlow.value = mockSession(wallet = mockWallet(accounts = listOf(mockAccount(chain = Chain.Bitcoin), mockAccount(chain = Chain.Lightning))))
+        val onBitcoin = createViewModel(assetId = bitcoin)
+        val onLightning = createViewModel(assetId = lightning)
+        advanceUntilIdle()
+
+        assertTrue(onBitcoin.showsLightning.value)
+        assertFalse(onLightning.showsLightning.value)
+
+        sessionFlow.value = mockSession(wallet = mockWallet(accounts = listOf(mockAccount(chain = Chain.Bitcoin))))
+        advanceUntilIdle()
+
+        assertFalse(onBitcoin.showsLightning.value)
+    }
+
+    private fun createViewModel(ioDispatcher: CoroutineDispatcher = testDispatcher, assetId: AssetId = asset.id): AssetViewModel = AssetViewModel(
         getSession = getSession,
-        savedStateHandle = SavedStateHandle(mapOf(RouteArgument.AssetId.key to asset.id.toIdentifier())),
+        savedStateHandle = SavedStateHandle(mapOf(RouteArgument.AssetId.key to assetId.toIdentifier())),
         getCurrentWalletId = getCurrentWalletId,
         chainAssetQuery = chainAssetQuery,
         getWalletAssets = getWalletAssets,

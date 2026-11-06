@@ -2237,6 +2237,40 @@ fun mockGemWalletSearchView(
     emptyState = emptyState,
 )
 
+fun mockLightningInvoice(
+    invoice: String = "",
+    network: uniffi.gemstone.LightningNetwork = uniffi.gemstone.LightningNetwork.MAINNET,
+    amountSats: ULong? = null,
+    paymentHash: String = "",
+    createdAt: ULong = 0u,
+    expiresAt: ULong = 0u,
+) = uniffi.gemstone.LightningInvoice(
+    invoice = invoice,
+    network = network,
+    amountSats = amountSats,
+    paymentHash = paymentHash,
+    createdAt = createdAt,
+    expiresAt = expiresAt,
+)
+
+fun mockLightningPayment(
+    id: String = "",
+    direction: uniffi.gemstone.LightningPaymentDirection = uniffi.gemstone.LightningPaymentDirection.INCOMING,
+    status: uniffi.gemstone.LightningPaymentStatus = uniffi.gemstone.LightningPaymentStatus.PENDING,
+    amountSats: ULong = 0u,
+    feeSats: ULong = 0u,
+    createdAt: ULong = 0u,
+    invoice: String? = null,
+) = uniffi.gemstone.LightningPayment(
+    id = id,
+    direction = direction,
+    status = status,
+    amountSats = amountSats,
+    feeSats = feeSats,
+    createdAt = createdAt,
+    invoice = invoice,
+)
+
 fun mockNameRecord(
     name: String = "",
     chain: String = com.wallet.core.primitives.Chain.Bitcoin.string,

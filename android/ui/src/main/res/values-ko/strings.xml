@@ -109,6 +109,14 @@
   <string name="wallet_import_already_imported_message">이 지갑은 이미 가져왔습니다.</string>
   <string name="wallets_title">지갑</string>
   <string name="receive_warning">이 주소는 귀하의 주소입니다. %1$s만 %2$s 네트워크에서 보내세요.</string>
+  <string name="receive_lightning_create_invoice">인보이스 만들기</string>
+  <string name="receive_lightning_change_amount">금액 변경</string>
+  <string name="receive_lightning_amount_hint">비워 두면 보내는 사람이 금액을 정합니다.</string>
+  <string name="receive_lightning_any_amount">금액 자유</string>
+  <string name="receive_lightning_invoice_hint">아무 Lightning 지갑에서나 이 인보이스를 결제하세요. %1$s까지 유효합니다.</string>
+  <string name="receive_lightning_payment_received">결제를 받았습니다</string>
+  <string name="receive_lightning_unavailable">Lightning을 사용할 수 없습니다. 나중에 다시 시도하세요.</string>
+  <string name="receive_lightning_unlock_required">Lightning으로 받으려면 지갑 잠금을 해제하세요.</string>
   <string name="buy_title">%1$s 구매</string>
   <string name="buy_providers_title">공급자</string>
   <string name="buy_rate">환율</string>
@@ -126,6 +134,7 @@
   <string name="transfer_balance">잔액: %1$s</string>
   <string name="transfer_title">전송</string>
   <string name="transfer_recipient_address_field">주소 또는 이름</string>
+  <string name="transfer_recipient_lightning_invoice">Lightning 인보이스</string>
   <string name="transfer_send_title">보내기</string>
   <string name="transfer_insufficient_balance">%1$s 잔액이 부족합니다.</string>
   <string name="transfer_insufficient_network_fee_balance">네트워크 수수료를 충당하기에는 %1$s 잔액이 부족합니다.</string>
@@ -267,6 +276,7 @@
   <string name="asset_balances">잔액</string>
   <string name="asset_balances_available">사용 가능</string>
   <string name="asset_price">가격</string>
+  <string name="asset_lightning_instant_payments">즉시 결제</string>
   <string name="asset_market_cap">시가총액</string>
   <string name="asset_trading_volume">거래량(24시간)</string>
   <string name="asset_total_supply">총 공급량</string>

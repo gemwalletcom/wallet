@@ -29,6 +29,7 @@ fun AssetScreen(onAction: (AssetAction.Navigation) -> Unit) {
     ToastEffect(viewModel.toastEvents, snackBar)
     val details by viewModel.details.collectAsStateWithLifecycle()
     val asset by viewModel.asset.collectAsStateWithLifecycle()
+    val showsLightning by viewModel.showsLightning.collectAsStateWithLifecycle()
 
     val refreshIntervalMillis by viewModel.refreshIntervalMillis.collectAsStateWithLifecycle()
     RefreshOnTimer(refreshIntervalMillis, viewModel::refresh)
@@ -39,6 +40,7 @@ fun AssetScreen(onAction: (AssetAction.Navigation) -> Unit) {
         AssetScene(
             details = currentDetails,
             asset = currentAsset,
+            showsLightning = showsLightning,
             transactions = transactions,
             transactionsPhase = transactionsPhase,
             isRefreshing = isRefreshing,

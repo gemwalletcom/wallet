@@ -109,6 +109,14 @@
   <string name="wallet_import_already_imported_message">Ví này đã được nhập khẩu.</string>
   <string name="wallets_title">Ví</string>
   <string name="receive_warning">Đây là địa chỉ của bạn — chỉ gửi %1$s trên mạng %2$s.</string>
+  <string name="receive_lightning_create_invoice">Tạo hóa đơn</string>
+  <string name="receive_lightning_change_amount">Đổi số tiền</string>
+  <string name="receive_lightning_amount_hint">Để trống để người gửi tự chọn số tiền.</string>
+  <string name="receive_lightning_any_amount">Số tiền bất kỳ</string>
+  <string name="receive_lightning_invoice_hint">Thanh toán hóa đơn này từ bất kỳ ví Lightning nào. Có hiệu lực đến %1$s.</string>
+  <string name="receive_lightning_payment_received">Đã nhận thanh toán</string>
+  <string name="receive_lightning_unavailable">Lightning hiện không khả dụng. Hãy thử lại sau.</string>
+  <string name="receive_lightning_unlock_required">Mở khóa ví để nhận bằng Lightning.</string>
   <string name="buy_title">Mua %1$s</string>
   <string name="buy_providers_title">Nhà cung cấp</string>
   <string name="buy_rate">Tỷ lệ</string>
@@ -126,6 +134,7 @@
   <string name="transfer_balance">Số dư: %1$s</string>
   <string name="transfer_title">Chuyển khoản</string>
   <string name="transfer_recipient_address_field">Địa chỉ hoặc Tên</string>
+  <string name="transfer_recipient_lightning_invoice">Hóa đơn Lightning</string>
   <string name="transfer_send_title">Gửi</string>
   <string name="transfer_insufficient_balance">Số dư %1$s không đủ.</string>
   <string name="transfer_insufficient_network_fee_balance">Số dư %1$s không đủ để trả phí mạng.</string>
@@ -267,6 +276,7 @@
   <string name="asset_balances">Số dư</string>
   <string name="asset_balances_available">Có sẵn</string>
   <string name="asset_price">Giá</string>
+  <string name="asset_lightning_instant_payments">Thanh toán tức thì</string>
   <string name="asset_market_cap">Vốn hóa thị trường</string>
   <string name="asset_trading_volume">Khối lượng giao dịch (24h)</string>
   <string name="asset_total_supply">Tổng cung</string>

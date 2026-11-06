@@ -109,6 +109,14 @@
   <string name="wallet_import_already_imported_message">Dompet ini sudah diimpor.</string>
   <string name="wallets_title">Dompet</string>
   <string name="receive_warning">Ini alamat Anda — kirim saja %1$s pada %2$s jaringan.</string>
+  <string name="receive_lightning_create_invoice">Buat Invoice</string>
+  <string name="receive_lightning_change_amount">Ubah Jumlah</string>
+  <string name="receive_lightning_amount_hint">Biarkan kosong agar pengirim memilih jumlahnya.</string>
+  <string name="receive_lightning_any_amount">Jumlah bebas</string>
+  <string name="receive_lightning_invoice_hint">Bayar invoice ini dari dompet Lightning mana pun. Berlaku hingga %1$s.</string>
+  <string name="receive_lightning_payment_received">Pembayaran diterima</string>
+  <string name="receive_lightning_unavailable">Lightning tidak tersedia. Coba lagi nanti.</string>
+  <string name="receive_lightning_unlock_required">Buka kunci dompet untuk menerima dengan Lightning.</string>
   <string name="buy_title">Beli %1$s</string>
   <string name="buy_providers_title">Penyedia</string>
   <string name="buy_rate">Nilai Tukar</string>
@@ -126,6 +134,7 @@
   <string name="transfer_balance">Saldo: %1$s</string>
   <string name="transfer_title">Pemindahan</string>
   <string name="transfer_recipient_address_field">Alamat atau Nama</string>
+  <string name="transfer_recipient_lightning_invoice">Invoice Lightning</string>
   <string name="transfer_send_title">Kirim</string>
   <string name="transfer_insufficient_balance">Saldo %1$s tidak cukup</string>
   <string name="transfer_insufficient_network_fee_balance">Saldo %1$s tidak cukup untuk biaya jaringan</string>
@@ -267,6 +276,7 @@
   <string name="asset_balances">Saldo</string>
   <string name="asset_balances_available">Tersedia</string>
   <string name="asset_price">Harga</string>
+  <string name="asset_lightning_instant_payments">Pembayaran instan</string>
   <string name="asset_market_cap">Kapitalisasi Pasar</string>
   <string name="asset_trading_volume">Volume Perdagangan (24h)</string>
   <string name="asset_total_supply">Total Suplai</string>

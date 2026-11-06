@@ -109,6 +109,14 @@
   <string name="wallet_import_already_imported_message">Tato peněženka již byla importována.</string>
   <string name="wallets_title">Peněženky</string>
   <string name="receive_warning">Toto je vaše adresa – pouze pro odeslání %1$s na %2$s síť.</string>
+  <string name="receive_lightning_create_invoice">Vytvořit fakturu</string>
+  <string name="receive_lightning_change_amount">Změnit částku</string>
+  <string name="receive_lightning_amount_hint">Nechte prázdné, aby částku zvolil odesílatel.</string>
+  <string name="receive_lightning_any_amount">Libovolná částka</string>
+  <string name="receive_lightning_invoice_hint">Zaplaťte tuto fakturu z libovolné peněženky Lightning. Platí do %1$s.</string>
+  <string name="receive_lightning_payment_received">Platba přijata</string>
+  <string name="receive_lightning_unavailable">Lightning není dostupný. Zkuste to později.</string>
+  <string name="receive_lightning_unlock_required">Pro příjem přes Lightning odemkněte peněženku.</string>
   <string name="buy_title">Koupit %1$s</string>
   <string name="buy_providers_title">Poskytovatelé</string>
   <string name="buy_rate">Kurz</string>
@@ -126,6 +134,7 @@
   <string name="transfer_balance">Zůstatek: %1$s</string>
   <string name="transfer_title">Převod</string>
   <string name="transfer_recipient_address_field">Adresa nebo Jméno</string>
+  <string name="transfer_recipient_lightning_invoice">Faktura Lightning</string>
   <string name="transfer_send_title">Poslat</string>
   <string name="transfer_insufficient_balance">Nedostatečný zůstatek %1$s.</string>
   <string name="transfer_insufficient_network_fee_balance">Nedostatečný zůstatek %1$s na pokrytí síťových poplatků.</string>
@@ -267,6 +276,7 @@
   <string name="asset_balances">Zůstatky</string>
   <string name="asset_balances_available">K dispozici</string>
   <string name="asset_price">Cena</string>
+  <string name="asset_lightning_instant_payments">Okamžité platby</string>
   <string name="asset_market_cap">Tržní kapitalizace</string>
   <string name="asset_trading_volume">Objem obchodování (24 hodin)</string>
   <string name="asset_total_supply">Celková nabídka</string>

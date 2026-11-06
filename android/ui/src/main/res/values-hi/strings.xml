@@ -109,6 +109,14 @@
   <string name="wallet_import_already_imported_message">यह बटुआ पहले ही आयात किया जा चुका है।</string>
   <string name="wallets_title">बटुए</string>
   <string name="receive_warning">यह आपका पता है — केवल %1$s ही %2$s नेटवर्क पर भेजें।</string>
+  <string name="receive_lightning_create_invoice">इनवॉइस बनाएं</string>
+  <string name="receive_lightning_change_amount">राशि बदलें</string>
+  <string name="receive_lightning_amount_hint">भेजने वाले को राशि चुनने देने के लिए खाली छोड़ें।</string>
+  <string name="receive_lightning_any_amount">कोई भी राशि</string>
+  <string name="receive_lightning_invoice_hint">किसी भी Lightning वॉलेट से इस इनवॉइस का भुगतान करें। %1$s तक मान्य।</string>
+  <string name="receive_lightning_payment_received">भुगतान प्राप्त हुआ</string>
+  <string name="receive_lightning_unavailable">Lightning उपलब्ध नहीं है। बाद में फिर से कोशिश करें।</string>
+  <string name="receive_lightning_unlock_required">Lightning से प्राप्त करने के लिए वॉलेट अनलॉक करें।</string>
   <string name="buy_title">%1$s खरीदें</string>
   <string name="buy_providers_title">प्रदाता</string>
   <string name="buy_rate">दर</string>
@@ -126,6 +134,7 @@
   <string name="transfer_balance">शेष राशि: %1$s</string>
   <string name="transfer_title">स्थानांतरण</string>
   <string name="transfer_recipient_address_field">पता या नाम</string>
+  <string name="transfer_recipient_lightning_invoice">Lightning इनवॉइस</string>
   <string name="transfer_send_title">भेजना</string>
   <string name="transfer_insufficient_balance">अपर्याप्त %1$s शेष।</string>
   <string name="transfer_insufficient_network_fee_balance">नेटवर्क शुल्क को कवर करने के लिए अपर्याप्त %1$s शेष राशि।</string>
@@ -267,6 +276,7 @@
   <string name="asset_balances">शेष राशि</string>
   <string name="asset_balances_available">उपलब्ध</string>
   <string name="asset_price">कीमत</string>
+  <string name="asset_lightning_instant_payments">तुरंत भुगतान</string>
   <string name="asset_market_cap">मार्केट कैप</string>
   <string name="asset_trading_volume">ट्रेडिंग वॉल्यूम (24 घंटे)</string>
   <string name="asset_total_supply">कुल आपूर्ति</string>
