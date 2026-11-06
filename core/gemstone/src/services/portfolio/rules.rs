@@ -13,7 +13,11 @@ use crate::services::chart::GemChartData;
 use crate::services::chart::rules::{change_chart_data, converted_values};
 use crate::services::localization::GemLocalizedText;
 
-pub fn portfolio_asset(data: &AssetData) -> PortfolioAsset {
+pub fn portfolio_assets(data: &[AssetData]) -> Vec<PortfolioAsset> {
+    data.iter().filter(|data| !data.asset.id.is_staked_token()).map(portfolio_asset).collect()
+}
+
+fn portfolio_asset(data: &AssetData) -> PortfolioAsset {
     PortfolioAsset {
         asset_id: data.asset.id.clone(),
         value: GemAssetBalance::from(data).total(),
@@ -176,7 +180,7 @@ fn timeframe_data(portfolio: &PerpetualPortfolio, period: ChartPeriod) -> Option
 #[cfg(test)]
 mod tests {
     use chrono::Utc;
-    use primitives::{Asset, Balance, ChartDateValue, ChartValue, PerpetualAccountSummary};
+    use primitives::{Asset, Balance, Chain, ChartDateValue, ChartValue, PerpetualAccountSummary, asset_constants::TON_TSTON_ASSET_ID};
 
     use super::*;
 
@@ -193,6 +197,20 @@ mod tests {
 
         assert_eq!(portfolio_asset(&data).value, GemAssetBalance::from(&data).total());
         assert_eq!(portfolio_asset(&data).value, 120u32.into(), "a reserved balance is not part of the total");
+    }
+
+    #[test]
+    fn test_the_portfolio_leaves_out_a_staked_token() {
+        let ton = AssetData::mock(Asset::mock_with_chain(Chain::Ton), Balance::coin_balance(100u32.into()));
+        let tston = AssetData::mock(
+            Asset {
+                id: TON_TSTON_ASSET_ID.clone(),
+                ..Asset::mock_ton_usdt()
+            },
+            Balance::coin_balance(50u32.into()),
+        );
+
+        assert_eq!(portfolio_assets(&[ton.clone(), tston]).iter().map(|asset| asset.asset_id.clone()).collect::<Vec<_>>(), vec![ton.asset.id]);
     }
 
     #[test]

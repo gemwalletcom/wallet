@@ -64,42 +64,50 @@ impl<C: Client> TonClient<C> {
 #[cfg(test)]
 mod tests {
     use gem_client::testkit::MockClient;
-    use primitives::DelegationState;
+    use primitives::{
+        DelegationState,
+        testkit::{nft_mock::TON_NFT_ITEM_ADDRESS, signer_mock::TEST_TON_SENDER},
+    };
 
     use super::*;
+    use crate::testkit::TEST_JETTON_WALLET_ADDRESS;
 
-    const TEST_OWNER: &str = "0:0CE8D22B5718169E80D0D3B9E344861D874E0C0D6F892B7966D8F29979A7636B";
-    const TEST_BILL: &str = "0:7B990536CE680CBCC0199F015A236054CBA32D67D779A6FCFD8AC74CCC913D33";
-    const TEST_TSTON_WALLET: &str = "EQAlgB03OjJKdXrlwZiGJD5snSzPKF2VL5bErJn_cqJANGH9";
+    const FORGED_ADDRESS: &str = "0:1111111111111111111111111111111111111111111111111111111111111111";
+
+    fn jetton_wallets_path() -> String {
+        format!("/api/v3/jetton/wallets?owner_address={TEST_TON_SENDER}&jetton_address={TON_TSTON_TOKEN_ID}&limit=100&offset=0")
+    }
+
+    fn address_response(address: &str) -> Vec<u8> {
+        format!(r#"{{"exit_code":0,"stack":[{{"type":"cell","value":"{}"}}]}}"#, Address::parse(address).unwrap().to_boc_base64().unwrap()).into_bytes()
+    }
 
     #[tokio::test]
     async fn test_get_staking_delegations_skips_a_bill_the_collection_did_not_issue() {
-        let wallet_response = format!(r#"{{"exit_code":0,"stack":[{{"type":"cell","value":"{}"}}]}}"#, Address::parse(TEST_TSTON_WALLET).unwrap().to_boc_base64().unwrap());
-        let bill_response = format!(r#"{{"exit_code":0,"stack":[{{"type":"cell","value":"{}"}}]}}"#, Address::parse(TEST_BILL).unwrap().to_boc_base64().unwrap());
+        let bills_path = format!("/api/v3/nft/items?owner_address={TEST_TON_SENDER}&collection_address=0:2ca6ad3f72fffa324d825d318985164ba14e0c1daf4992ba1312976333a5b857&limit=1000&offset=0");
         let client = TonClient::new(
             MockClient::new()
-                .with_get(|path| match path {
-                    "/api/v3/jetton/wallets?owner_address=0:0CE8D22B5718169E80D0D3B9E344861D874E0C0D6F892B7966D8F29979A7636B&jetton_address=EQC98_qAmNEptUtPc7W6xdHh_ZHrBUFpw5Ft_IzNU20QAJav&limit=100&offset=0" => Ok(
-                        br#"{"jetton_wallets":[{"address":"0:1111111111111111111111111111111111111111111111111111111111111111","balance":"9000000000","jetton":"0:BDF3FA8098D129B54B4F73B5BAC5D1E1FD91EB054169C3916DFC8CCD536D1000"},{"address":"EQAlgB03OjJKdXrlwZiGJD5snSzPKF2VL5bErJn_cqJANGH9","balance":"1000000000","jetton":"0:BDF3FA8098D129B54B4F73B5BAC5D1E1FD91EB054169C3916DFC8CCD536D1000"}]}"#.to_vec(),
-                    ),
-                    "/api/v3/nft/items?owner_address=0:0CE8D22B5718169E80D0D3B9E344861D874E0C0D6F892B7966D8F29979A7636B&collection_address=0:2ca6ad3f72fffa324d825d318985164ba14e0c1daf4992ba1312976333a5b857&limit=1000&offset=0" => Ok(
-                        br#"{"nft_items":[{"address":"0:7B990536CE680CBCC0199F015A236054CBA32D67D779A6FCFD8AC74CCC913D33","index":"0"},{"address":"0:1111111111111111111111111111111111111111111111111111111111111111","index":"1"}],"metadata":{}}"#.to_vec(),
-                    ),
+                .with_get(move |path| match path {
+                    path if path == jetton_wallets_path() => Ok(format!(
+                        r#"{{"jetton_wallets":[{{"address":"{FORGED_ADDRESS}","balance":"9000000000","jetton":"{TON_TSTON_TOKEN_ID}"}},{{"address":"{TEST_JETTON_WALLET_ADDRESS}","balance":"1000000000","jetton":"{TON_TSTON_TOKEN_ID}"}}]}}"#
+                    )
+                    .into_bytes()),
+                    path if path == bills_path => Ok(format!(r#"{{"nft_items":[{{"address":"{TON_NFT_ITEM_ADDRESS}","index":"0"}},{{"address":"{FORGED_ADDRESS}","index":"1"}}],"metadata":{{}}}}"#).into_bytes()),
                     path => panic!("unexpected path {path}"),
                 })
-                .with_post(move |_, body| {
+                .with_post(|_, body| {
                     let request: serde_json::Value = serde_json::from_slice(body).unwrap();
                     match (request["address"].as_str().unwrap(), request["method"].as_str().unwrap()) {
-                        (TON_TSTON_TOKEN_ID, "get_wallet_address") => Ok(wallet_response.clone().into_bytes()),
+                        (TON_TSTON_TOKEN_ID, "get_wallet_address") => Ok(address_response(TEST_JETTON_WALLET_ADDRESS)),
                         (TONSTAKERS_POOL_ADDRESS, "get_pool_full_data") => Ok(include_bytes!("../../testdata/tonstakers_pool_full_data.json").to_vec()),
-                        (_, "get_nft_address_by_index") => Ok(bill_response.clone().into_bytes()),
-                        (TEST_BILL, "get_bill_amount") => Ok(br#"{"exit_code":0,"stack":[{"type":"num","value":"0x84e2b0219"}]}"#.to_vec()),
+                        (_, "get_nft_address_by_index") => Ok(address_response(TON_NFT_ITEM_ADDRESS)),
+                        (TON_NFT_ITEM_ADDRESS, "get_bill_amount") => Ok(br#"{"exit_code":0,"stack":[{"type":"num","value":"0x84e2b0219"}]}"#.to_vec()),
                         call => panic!("unexpected get-method {call:?}"),
                     }
                 }),
         );
 
-        let delegations = client.get_staking_delegations(TEST_OWNER.to_string()).await.unwrap();
+        let delegations = client.get_staking_delegations(TEST_TON_SENDER.to_string()).await.unwrap();
 
         assert_eq!(
             delegations.iter().map(|delegation| (delegation.state, delegation.balance.clone(), delegation.shares.clone())).collect::<Vec<_>>(),
@@ -113,13 +121,11 @@ mod tests {
     #[tokio::test]
     async fn test_get_staking_delegations_without_tston_wallet() {
         let client = TonClient::new(MockClient::new().with_get(|path| match path {
-            "/api/v3/jetton/wallets?owner_address=0:0CE8D22B5718169E80D0D3B9E344861D874E0C0D6F892B7966D8F29979A7636B&jetton_address=EQC98_qAmNEptUtPc7W6xdHh_ZHrBUFpw5Ft_IzNU20QAJav&limit=100&offset=0" => {
-                Ok(br#"{"jetton_wallets":[]}"#.to_vec())
-            }
+            path if path == jetton_wallets_path() => Ok(br#"{"jetton_wallets":[]}"#.to_vec()),
             path => panic!("unexpected path {path}"),
         }));
 
-        assert_eq!(client.get_staking_delegations(TEST_OWNER.to_string()).await.unwrap(), vec![]);
+        assert_eq!(client.get_staking_delegations(TEST_TON_SENDER.to_string()).await.unwrap(), vec![]);
     }
 }
 

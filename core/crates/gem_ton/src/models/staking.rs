@@ -23,17 +23,13 @@ impl PoolFullData {
     pub fn from_stack(result: &RunGetMethodResult) -> Result<Self, TvmError> {
         Ok(Self {
             total_balance: result.stack_num(POOL_TOTAL_BALANCE_INDEX)?,
-            interest_rate: stack_u32(result, POOL_INTEREST_RATE_INDEX)?,
-            governance_fee: stack_u32(result, POOL_GOVERNANCE_FEE_INDEX)?,
+            interest_rate: result.stack_u32(POOL_INTEREST_RATE_INDEX)?,
+            governance_fee: result.stack_u32(POOL_GOVERNANCE_FEE_INDEX)?,
             supply: result.stack_num(POOL_SUPPLY_INDEX)?,
-            deposit_payout: result.stack_maybe_address(POOL_DEPOSIT_PAYOUT_INDEX)?,
-            withdrawal_payout: result.stack_maybe_address(POOL_WITHDRAWAL_PAYOUT_INDEX)?,
+            deposit_payout: result.stack_optional_address(POOL_DEPOSIT_PAYOUT_INDEX)?,
+            withdrawal_payout: result.stack_optional_address(POOL_WITHDRAWAL_PAYOUT_INDEX)?,
         })
     }
-}
-
-fn stack_u32(result: &RunGetMethodResult, index: usize) -> Result<u32, TvmError> {
-    u32::try_from(result.stack_num(index)?).map_err(|_| TvmError::new("TON pool rate does not fit in u32"))
 }
 
 #[cfg(test)]

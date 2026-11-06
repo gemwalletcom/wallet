@@ -63,7 +63,7 @@ impl GemAssetsService {
     }
 
     pub async fn ensure_token_asset(&self, asset_id: AssetId) -> Result<Asset, GemServiceError> {
-        if asset_id.is_mirror() {
+        if asset_id.is_native_mirror() {
             return Err(GemServiceError::Unsupported {
                 msg: format!("{asset_id} mirrors the native coin"),
             });
@@ -209,7 +209,7 @@ impl GemAssetsService {
             async move {
                 if self.gateway.get_is_token_address(chain, token_id.clone()).ok()? {
                     let asset = self.gateway.get_token_data(chain, token_id).await.ok()?;
-                    (!asset.id.is_mirror()).then_some(asset)
+                    (!asset.id.is_native_mirror()).then_some(asset)
                 } else {
                     None
                 }

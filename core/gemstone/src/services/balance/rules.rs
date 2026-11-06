@@ -182,12 +182,8 @@ pub fn pinned_configuration(pinned: bool) -> GemAssetConfiguration {
     GemAssetConfiguration { is_enabled: None, is_pinned: Some(pinned) }
 }
 
-pub fn exclude_mirrors(asset_ids: Vec<AssetId>) -> Vec<AssetId> {
-    asset_ids.into_iter().filter(|asset_id| !asset_id.is_mirror()).collect()
-}
-
-pub fn mirrors(asset_ids: Vec<AssetId>) -> Vec<AssetId> {
-    asset_ids.into_iter().filter(AssetId::is_mirror).collect()
+pub fn exclude_native_mirrors(asset_ids: Vec<AssetId>) -> Vec<AssetId> {
+    asset_ids.into_iter().filter(|asset_id| !asset_id.is_native_mirror()).collect()
 }
 
 #[cfg(test)]
@@ -317,10 +313,7 @@ mod tests {
         assert_eq!(folded.len(), 1, "two updates for one asset fold into one row");
         assert_eq!(folded[0].available, BigUint::from(11u32));
     }
-    use primitives::{
-        AssetType, Balance,
-        asset_constants::{ARC_USDC_ASSET_ID, TON_TSTON_ASSET_ID},
-    };
+    use primitives::{AssetType, Balance, asset_constants::ARC_USDC_ASSET_ID};
 
     #[test]
     fn test_pnl_shows_only_for_a_funded_wallet_that_moved() {
@@ -388,13 +381,10 @@ mod tests {
     }
 
     #[test]
-    fn test_exclude_mirrors() {
+    fn test_exclude_native_mirrors() {
         let arc = AssetId::from_chain(Chain::Arc);
-        let ton = AssetId::from_chain(Chain::Ton);
 
-        assert_eq!(exclude_mirrors(vec![arc.clone(), ARC_USDC_ASSET_ID.clone()]), vec![arc]);
-        assert_eq!(exclude_mirrors(vec![ton.clone(), TON_TSTON_ASSET_ID.clone()]), vec![ton.clone()]);
-        assert_eq!(mirrors(vec![ton, TON_TSTON_ASSET_ID.clone()]), vec![TON_TSTON_ASSET_ID.clone()]);
+        assert_eq!(exclude_native_mirrors(vec![arc.clone(), ARC_USDC_ASSET_ID.clone()]), vec![arc]);
     }
 
     #[test]

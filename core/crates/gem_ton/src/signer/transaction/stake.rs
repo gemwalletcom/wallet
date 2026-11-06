@@ -88,9 +88,8 @@ mod tests {
     use crate::{
         constants::{TONSTAKERS_STAKE_ATTACHMENT, TONSTAKERS_UNSTAKE_ATTACHMENT},
         signer::testkit::{TEST_ADDRESS, mock_signer},
+        testkit::TEST_JETTON_WALLET_ADDRESS,
     };
-
-    const TEST_JETTON_WALLET: &str = "EQAlgB03OjJKdXrlwZiGJD5snSzPKF2VL5bErJn_cqJANGH9";
 
     #[test]
     fn test_sign_stake() {
@@ -130,7 +129,7 @@ mod tests {
             TEST_ADDRESS,
             TONSTAKERS_POOL_ADDRESS,
             "5000000000",
-            TransactionLoadMetadata::mock_ton_jetton(1, TEST_JETTON_WALLET),
+            TransactionLoadMetadata::mock_ton_jetton(1, TEST_JETTON_WALLET_ADDRESS),
         );
         input.fee = TransactionFee::new_from_fee_with_option(BigInt::from(0), FeeOption::TokenAccountCreation, BigInt::from(TONSTAKERS_UNSTAKE_ATTACHMENT), AssetId::from_chain(Chain::Ton));
 

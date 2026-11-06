@@ -1,5 +1,7 @@
 use crate::models::{RunGetMethodResult, StackEntry, TokenInfo, TokenInfoExtra};
 
+pub const TEST_JETTON_WALLET_ADDRESS: &str = "EQAlgB03OjJKdXrlwZiGJD5snSzPKF2VL5bErJn_cqJANGH9";
+
 impl TokenInfo {
     pub fn mock_with_marketplace(marketplace: Option<&str>) -> Self {
         Self {

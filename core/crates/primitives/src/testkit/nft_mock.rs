@@ -5,7 +5,7 @@ use crate::{
 };
 
 const TON_NFT_COLLECTION_ADDRESS: &str = "EQCA14o1-VWhS2efqoh_9M1b_A9DtKTuoqfmkn83AbJzwnPi";
-const TON_NFT_ITEM_ADDRESS: &str = "EQCvxJy4eG8hyHBFsZ7eePxrRsUQSEUTP46abUQGAcGY6mOw";
+pub const TON_NFT_ITEM_ADDRESS: &str = "EQCvxJy4eG8hyHBFsZ7eePxrRsUQSEUTP46abUQGAcGY6mOw";
 
 impl NFTAssetId {
     pub fn mock() -> Self {

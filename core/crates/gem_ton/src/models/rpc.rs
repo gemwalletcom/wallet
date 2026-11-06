@@ -59,12 +59,16 @@ impl RunGetMethodResult {
         .ok_or_else(|| TvmError::new(format!("invalid TON stack number {value}")))
     }
 
+    pub fn stack_u32(&self, index: usize) -> Result<u32, TvmError> {
+        u32::try_from(self.stack_num(index)?).map_err(|_| TvmError::new("TON stack number does not fit in u32"))
+    }
+
     pub fn stack_address(&self, index: usize) -> Result<Address, TvmError> {
         let bytes = self.stack.get(index).and_then(StackEntry::as_cell_bytes).ok_or_else(|| TvmError::new("missing TON address stack cell"))?;
         Address::from_boc_base64(bytes)
     }
 
-    pub fn stack_maybe_address(&self, index: usize) -> Result<Option<Address>, TvmError> {
+    pub fn stack_optional_address(&self, index: usize) -> Result<Option<Address>, TvmError> {
         match self.stack.get(index) {
             Some(StackEntry::Cell(bytes) | StackEntry::Slice(bytes)) => Ok(Some(Address::from_boc_base64(bytes)?)),
             Some(StackEntry::List(_) | StackEntry::Unsupported) => Ok(None),

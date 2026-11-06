@@ -73,7 +73,7 @@ impl GemBalanceService {
 
     async fn store_assets_enabled(&self, wallet_id: WalletId, asset_ids: Vec<AssetId>, enabled: bool) -> Result<Vec<AssetId>, GemServiceError> {
         let asset_ids = unique(asset_ids);
-        let asset_ids = if enabled { rules::exclude_mirrors(asset_ids) } else { asset_ids };
+        let asset_ids = if enabled { rules::exclude_native_mirrors(asset_ids) } else { asset_ids };
         if asset_ids.is_empty() {
             return Ok(vec![]);
         }
@@ -142,10 +142,6 @@ impl GemBalanceService {
         let disabled = missing(disabled, stored_ids);
         self.add_balances(wallet.id.clone(), enabled.clone(), true).await?;
         self.add_balances(wallet.id.clone(), disabled, false).await?;
-        let enabled_mirrors = rules::mirrors(self.store.get_enabled_asset_ids(wallet.id.clone()).await?);
-        if !enabled_mirrors.is_empty() {
-            self.store.set_asset_configuration(wallet.id.clone(), enabled_mirrors, rules::enabled_configuration(false)).await?;
-        }
         if wallet_rules::is_new_wallet(&wallet.source, has_synced) {
             let _ = self.stream.resubscribe().await;
         } else {

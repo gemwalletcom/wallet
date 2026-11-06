@@ -149,8 +149,8 @@ impl AssetId {
         self.native_mirror_exponent().is_some()
     }
 
-    pub fn is_mirror(&self) -> bool {
-        self.is_native_mirror() || self.token_id.as_deref().is_some_and(|token_id| StakeChain::from_chain(self.chain).and_then(StakeChain::staked_token) == Some(token_id))
+    pub fn is_staked_token(&self) -> bool {
+        self.token_id.as_deref().is_some_and(|token_id| StakeChain::from_chain(self.chain).and_then(StakeChain::staked_token) == Some(token_id))
     }
 
     pub fn mirror_to_native(self, value: BigUint) -> (AssetId, BigUint) {
@@ -245,10 +245,11 @@ mod tests {
     }
 
     #[test]
-    fn test_is_mirror() {
-        assert!(TON_TSTON_ASSET_ID.is_mirror());
-        assert!(!TON_USDT_ASSET_ID.is_mirror());
-        assert!(!AssetId::from_chain(Chain::Ton).is_mirror());
+    fn test_is_staked_token() {
+        assert!(TON_TSTON_ASSET_ID.is_staked_token());
+        assert!(!TON_USDT_ASSET_ID.is_staked_token());
+        assert!(!AssetId::from_chain(Chain::Ton).is_staked_token());
+        assert!(!ARC_USDC_ASSET_ID.is_staked_token());
     }
 
     #[test]
