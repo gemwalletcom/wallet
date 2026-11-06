@@ -35,8 +35,6 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.RecentActivityType
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -153,7 +151,7 @@ open class BaseSelectAssetViewModel(
         .flowOn(ioDispatcher)
         .shareIn(viewModelScope, SharingStarted.Eagerly, replay = 1)
 
-    protected data class AssetSections(val state: GemSelectAssetState, val popular: ImmutableList<AssetInfoDataAggregate>, val pinned: ImmutableList<AssetInfoDataAggregate>, val unpinned: ImmutableList<AssetInfoDataAggregate>)
+    protected data class AssetSections(val state: GemSelectAssetState, val popular: List<AssetInfoDataAggregate>, val pinned: List<AssetInfoDataAggregate>, val unpinned: List<AssetInfoDataAggregate>)
 
     private fun assetSections(items: List<AssetInfoDataAggregate>, isSearching: Boolean): AssetSections {
         val view = flow.view(
@@ -161,7 +159,7 @@ open class BaseSelectAssetViewModel(
             pinnedAssetIds = items.filter { it.pinned }.map { it.asset.id.toIdentifier() },
             isSearching = isSearching,
         )
-        val section = { kind: GemAssetSectionKind -> items.assets(view.sections.firstOrNull { it.kind == kind }?.assetIds.orEmpty()) { it.asset.id }.toImmutableList() }
+        val section = { kind: GemAssetSectionKind -> items.assets(view.sections.firstOrNull { it.kind == kind }?.assetIds.orEmpty()) { it.asset.id } }
         return AssetSections(
             state = view.state,
             popular = section(GemAssetSectionKind.POPULAR),
@@ -197,9 +195,9 @@ open class BaseSelectAssetViewModel(
                 walletId.flatMapLatest { recentActivityQuery(it, recentTypes, filters.map { filter -> filter.toQueryFilter() }.toSet(), GemConstants.recentAssetsLimit) }
             }
         }
-        .map { items -> items.map { it.asset }.toImmutableList() }
+        .map { items -> items.map { it.asset } }
         .flowOn(ioDispatcher)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<Asset>().toImmutableList())
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList<Asset>())
 
     val showsRecents: StateFlow<Boolean> = combine(snapshotFlow { queryState.text.isNotEmpty() }, recent) { hasQuery, recents -> flow.showsRecents(hasQuery, recents.isNotEmpty()) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)

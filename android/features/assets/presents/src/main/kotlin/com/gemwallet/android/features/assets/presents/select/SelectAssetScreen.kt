@@ -16,7 +16,6 @@ import com.gemwallet.android.ui.components.screen.SceneTitle
 import com.gemwallet.android.ui.localization.stringRes
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
-import kotlinx.collections.immutable.toImmutableList
 
 @Composable
 fun SelectAssetScreen(
@@ -60,7 +59,7 @@ fun SelectAssetScreen(
         pinned = pinned,
         popular = popular,
         unpinned = unpinned,
-        recent = if (showRecents) recent else emptyList<Asset>().toImmutableList(),
+        recent = if (showRecents) recent else emptyList(),
         state = uiStates,
         rowAction = viewModel.flow.rowAction,
         empty = searchEmptyState,

@@ -31,7 +31,6 @@ hiltAndroid = "2.60.1"
 hiltLifecycleViewModelCompose = "1.4.0"
 kotlinSerialization = "2.4.21"
 kotlinxSerializationJson = "1.11.0"
-kotlinxCollectionsImmutable = "0.5.2"
 kotlinxCoroutinesAndroid = "1.11.0"
 
 junit = "4.13.2"
@@ -52,7 +51,6 @@ ktx-core = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesAndroid" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesAndroid" }
-kotlinx-collections-immutable = { module = "org.jetbrains.kotlinx:kotlinx-collections-immutable", version.ref = "kotlinxCollectionsImmutable" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 kotlin-serialization = { module = "org.jetbrains.kotlin:kotlin-serialization", version.ref = "kotlinSerialization" }
 

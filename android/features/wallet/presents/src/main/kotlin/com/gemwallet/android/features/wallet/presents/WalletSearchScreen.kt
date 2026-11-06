@@ -11,7 +11,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.assets.presents.select.RecentsScreen
 import com.gemwallet.android.features.assets.presents.select.SelectAssetAction
@@ -37,7 +36,6 @@ import com.gemwallet.android.ui.models.NftItemTarget
 import com.gemwallet.android.ui.models.target
 import com.gemwallet.android.ui.theme.space0
 import com.wallet.core.primitives.PerpetualId
-import kotlinx.collections.immutable.toImmutableList
 import uniffi.gemstone.GemSearchListRow
 
 @Composable
@@ -171,9 +169,9 @@ fun WalletSearchScreen(onAction: (WalletSearchAction) -> Unit, viewModel: Wallet
             )
         },
         query = viewModel.queryState,
-        pinned = pinned.toImmutableList(),
-        popular = emptyList<AssetInfoDataAggregate>().toImmutableList(),
-        unpinned = previewAssets.toImmutableList(),
+        pinned = pinned,
+        popular = emptyList(),
+        unpinned = previewAssets,
         recent = recent,
         state = state,
         rowAction = viewModel.flow.rowAction,

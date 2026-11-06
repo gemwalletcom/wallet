@@ -38,7 +38,6 @@ import com.wallet.core.primitives.PriceAlert
 import com.wallet.core.primitives.TransactionsFilter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -109,9 +108,8 @@ class AssetViewModel @Inject constructor(
 
     val transactions = transactionsWindow.map { it.limit }
         .flatMapLatest { limit -> getTransactions.getTransactions(transactionsFilter, limit) }
-        .map { it.toImmutableList() }
         .flowOn(ioDispatcher)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, getTransactions.stored(transactionsFilter, transactionsWindow.value.limit).toImmutableList())
+        .stateIn(viewModelScope, SharingStarted.Eagerly, getTransactions.stored(transactionsFilter, transactionsWindow.value.limit))
 
     private val transactionsState = MutableStateFlow<GemLoadState>(GemLoadState.Loading)
 
