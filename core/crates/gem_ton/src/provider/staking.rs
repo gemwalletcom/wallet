@@ -10,7 +10,7 @@ use primitives::{DelegationBase, DelegationValidator, asset_constants::TON_TSTON
 use crate::{
     address::Address,
     constants::TONSTAKERS_POOL_ADDRESS,
-    models::NftItem,
+    models::{JettonWallet, NftItem},
     provider::staking_mapper::{map_delegations, map_staking_apy, map_validator},
     rpc::client::TonClient,
 };
@@ -28,18 +28,25 @@ impl<C: Client> ChainStaking for TonClient<C> {
     }
 
     async fn get_staking_delegations(&self, address: String) -> Result<Vec<DelegationBase>, Box<dyn Error + Sync + Send>> {
-        let wallets = self.get_jetton_wallets_by_jetton(&address, TON_TSTON_TOKEN_ID).await?.jetton_wallets;
-        if wallets.is_empty() {
+        let (wallets, pool) = try_join!(self.get_jetton_wallets_by_jetton(&address, TON_TSTON_TOKEN_ID), self.get_pool_full_data(TONSTAKERS_POOL_ADDRESS))?;
+        if wallets.jetton_wallets.is_empty() && pool.deposit_payout.is_none() {
             return Ok(vec![]);
         }
-        let (wallet, pool) = try_join!(self.get_jetton_wallet_address(&address, TON_TSTON_TOKEN_ID), self.get_pool_full_data(TONSTAKERS_POOL_ADDRESS))?;
-        let staked_shares = wallets.into_iter().find(|row| Address::parse(&row.address).is_ok_and(|address| address == wallet)).map(|row| row.balance).unwrap_or_default();
+        let staked_shares = self.get_staked_shares(&address, wallets.jetton_wallets).await?;
         let (deposit_bills, withdrawal_bills) = try_join!(self.get_bill_amounts(&address, pool.deposit_payout.as_ref()), self.get_bill_amounts(&address, pool.withdrawal_payout.as_ref()))?;
         Ok(map_delegations(staked_shares, &pool, &deposit_bills, &withdrawal_bills))
     }
 }
 
 impl<C: Client> TonClient<C> {
+    async fn get_staked_shares(&self, owner: &str, wallets: Vec<JettonWallet>) -> Result<BigUint, Box<dyn Error + Sync + Send>> {
+        if wallets.is_empty() {
+            return Ok(BigUint::ZERO);
+        }
+        let wallet = self.get_jetton_wallet_address(owner, TON_TSTON_TOKEN_ID).await?;
+        Ok(wallets.into_iter().find(|row| Address::parse(&row.address).is_ok_and(|address| address == wallet)).map(|row| row.balance).unwrap_or_default())
+    }
+
     async fn get_bill_amounts(&self, owner: &str, collection: Option<&Address>) -> Result<Vec<BigUint>, Box<dyn Error + Sync + Send>> {
         let Some(collection) = collection else {
             return Ok(vec![]);
@@ -118,14 +125,57 @@ mod tests {
         );
     }
 
+    fn pool_response(deposit_payout: Option<&str>) -> Vec<u8> {
+        let mut pool: serde_json::Value = serde_json::from_slice(include_bytes!("../../testdata/tonstakers_pool_full_data.json")).unwrap();
+        if let Some(collection) = deposit_payout {
+            pool["stack"][14] = serde_json::json!({"type": "cell", "value": Address::parse(collection).unwrap().to_boc_base64().unwrap()});
+            pool["stack"][16] = serde_json::json!({"type": "list", "value": []});
+        }
+        serde_json::to_vec(&pool).unwrap()
+    }
+
     #[tokio::test]
     async fn test_get_staking_delegations_without_tston_wallet() {
-        let client = TonClient::new(MockClient::new().with_get(|path| match path {
-            path if path == jetton_wallets_path() => Ok(br#"{"jetton_wallets":[]}"#.to_vec()),
-            path => panic!("unexpected path {path}"),
-        }));
+        let client = TonClient::new(
+            MockClient::new()
+                .with_get(|path| match path {
+                    path if path == jetton_wallets_path() => Ok(br#"{"jetton_wallets":[]}"#.to_vec()),
+                    path => panic!("unexpected path {path}"),
+                })
+                .with_post(|_, _| Ok(pool_response(None))),
+        );
 
         assert_eq!(client.get_staking_delegations(TEST_TON_SENDER.to_string()).await.unwrap(), vec![]);
+    }
+
+    #[tokio::test]
+    async fn test_get_staking_delegations_shows_a_first_deposit_before_tston_is_minted() {
+        let deposit_collection = "0:2222222222222222222222222222222222222222222222222222222222222222";
+        let bills_path = format!("/api/v3/nft/items?owner_address={TEST_TON_SENDER}&collection_address={deposit_collection}&limit=1000&offset=0");
+        let client = TonClient::new(
+            MockClient::new()
+                .with_get(move |path| match path {
+                    path if path == jetton_wallets_path() => Ok(br#"{"jetton_wallets":[]}"#.to_vec()),
+                    path if path == bills_path => Ok(format!(r#"{{"nft_items":[{{"address":"{TON_NFT_ITEM_ADDRESS}","index":"0"}}],"metadata":{{}}}}"#).into_bytes()),
+                    path => panic!("unexpected path {path}"),
+                })
+                .with_post(move |_, body| {
+                    let request: serde_json::Value = serde_json::from_slice(body).unwrap();
+                    match (request["address"].as_str().unwrap(), request["method"].as_str().unwrap()) {
+                        (TONSTAKERS_POOL_ADDRESS, "get_pool_full_data") => Ok(pool_response(Some(deposit_collection))),
+                        (_, "get_nft_address_by_index") => Ok(address_response(TON_NFT_ITEM_ADDRESS)),
+                        (TON_NFT_ITEM_ADDRESS, "get_bill_amount") => Ok(br#"{"exit_code":0,"stack":[{"type":"num","value":"0x3b9aca00"}]}"#.to_vec()),
+                        call => panic!("unexpected get-method {call:?}"),
+                    }
+                }),
+        );
+
+        let delegations = client.get_staking_delegations(TEST_TON_SENDER.to_string()).await.unwrap();
+
+        assert_eq!(
+            delegations.iter().map(|delegation| (delegation.state, delegation.balance.clone(), delegation.shares.clone())).collect::<Vec<_>>(),
+            vec![(DelegationState::Activating, BigUint::from(1_000_000_000u64), BigUint::ZERO)]
+        );
     }
 }
 
