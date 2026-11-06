@@ -27,6 +27,8 @@ import com.gemwallet.android.ui.components.keyboardFollowsFocus
 import com.gemwallet.android.ui.components.list_item.ChainItem
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemModel
+import com.gemwallet.android.ui.components.list_item.SubheaderItem
+import com.gemwallet.android.ui.components.list_item.WarningItem
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.localization.stringRes
@@ -64,6 +66,7 @@ internal fun AddNodeScene(chain: Chain, state: GemAddNodeViewState, url: Mutable
         },
         onClose = { onAction(AddNodeAction.Cancel) },
     ) {
+        SubheaderItem(R.string.transfer_network)
         ChainItem(
             row = chainRow(chain.string),
             listPosition = ListPosition.Single,
@@ -71,12 +74,20 @@ internal fun AddNodeScene(chain: Chain, state: GemAddNodeViewState, url: Mutable
         )
         UrlField(
             value = url,
-            error = (phase as? GemAddNodePhase.Failed)?.error?.text(context).orEmpty(),
+            error = state.urlError?.text(context).orEmpty(),
             onValueChange = { onAction(AddNodeAction.UrlChange) },
             onQRScan = {
                 isShowQRScan = true
             },
         )
+        (phase as? GemAddNodePhase.Failed)?.let {
+            WarningItem(
+                title = stringResource(R.string.errors_error_occurred),
+                message = it.error.text(context),
+                color = MaterialTheme.colorScheme.error,
+                position = ListPosition.Single,
+            )
+        }
         Spacer16()
         (phase as? GemAddNodePhase.Ready)?.rows.orEmpty().forEach { NodeCheckRow(it) }
         if (state.showsWarning) {

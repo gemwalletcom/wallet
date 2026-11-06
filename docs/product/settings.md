@@ -57,6 +57,8 @@ flowchart LR
 | The user confirms deleting an added node | the node is removed, and if it was selected the US Gem Wallet Node takes over | |
 | The user cancels deleting an added node | the node stays in the list as it was | |
 | The user types spaces around a node URL that was already checked | the check result and Import stay | spaces are not part of the URL, so the node is the same |
+| The user types a node URL that is not https or whose host is not a dotted name, such as `rpc..example.com` | both apps say Invalid URL under the field and Import stays off | the app rejects the address before asking any node, so the error names the address and not the connection |
+| The node does not answer, or answers for another network | both apps show the error in its own row below the field and Import stays off | the address is valid, so the error belongs to the check, as a failed token lookup does |
 | The app has offered push | it asks again no sooner than 30 days later, unless the user turned push off | |
 | The user taps a push | the app switches to the wallet the push belongs to, then opens the transaction, the asset or the chat | |
 | A newer release exists | "New update available!" at launch, with Update and Skip, and in About Us | |

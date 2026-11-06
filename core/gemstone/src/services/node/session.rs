@@ -13,12 +13,14 @@ pub enum GemAddNodePhase {
     Idle,
     Checking,
     Ready { rows: Vec<GemNodeCheckRow> },
+    InvalidUrl,
     Failed { error: GemErrorText },
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAddNodeViewState {
     pub phase: GemAddNodePhase,
+    pub url_error: Option<GemErrorText>,
     pub shows_warning: bool,
     pub can_import: bool,
 }
@@ -103,6 +105,7 @@ impl GemAddNodeSession {
     pub fn view_state(&self) -> GemAddNodeViewState {
         GemAddNodeViewState {
             phase: self.phase(),
+            url_error: self.url_error(),
             shows_warning: self.check.is_some(),
             can_import: self.check.is_some(),
         }
@@ -119,12 +122,17 @@ impl GemAddNodeSession {
         }
     }
 
+    fn url_error(&self) -> Option<GemErrorText> {
+        self.error.clone().filter(|error| *error == GemErrorText::InvalidUrl)
+    }
+
     fn phase(&self) -> GemAddNodePhase {
         if self.is_checking {
             return GemAddNodePhase::Checking;
         }
         match (&self.check, &self.error) {
             (Some(check), _) => GemAddNodePhase::Ready { rows: check.rows() },
+            (None, Some(GemErrorText::InvalidUrl)) => GemAddNodePhase::InvalidUrl,
             (None, Some(error)) => GemAddNodePhase::Failed { error: error.clone() },
             (None, None) => GemAddNodePhase::Idle,
         }
@@ -184,6 +192,20 @@ mod tests {
 
         assert_eq!(failed.view_state().phase, GemAddNodePhase::Failed { error: GemErrorText::InvalidNetworkId });
         assert!(!failed.view_state().can_import);
+    }
+
+    #[test]
+    fn test_an_invalid_url_is_told_apart_from_a_failed_check() {
+        let session = GemAddNodeSession::new(Chain::Ethereum).on_input("https://rpc..example.com".to_string()).on_checking();
+
+        let invalid = session.on_check_failed("https://rpc..example.com".to_string(), Some(GemAddNodeError::InvalidUrl));
+        let offline = session.on_check_failed("https://rpc..example.com".to_string(), Some(GemAddNodeError::Gateway(GatewayError::Offline)));
+
+        assert_eq!(invalid.view_state().phase, GemAddNodePhase::InvalidUrl);
+        assert_eq!(invalid.view_state().url_error, Some(GemErrorText::InvalidUrl));
+        assert!(!invalid.view_state().can_import);
+        assert_eq!(offline.view_state().phase, GemAddNodePhase::Failed { error: GemErrorText::NetworkOffline });
+        assert_eq!(offline.view_state().url_error, None);
     }
 
     #[test]

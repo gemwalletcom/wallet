@@ -44,8 +44,25 @@ struct AddNodeSceneViewModelTests {
         model.setInput("https://node")
         await model.load()
 
+        #expect(model.urlInputModel.error == nil)
         guard case .error = model.state else {
             Issue.record("Expected .error, got \(model.state)")
+            return
+        }
+    }
+
+    @Test
+    func anInvalidUrlShowsTheErrorUnderTheField() async {
+        let service = GemChainSettingsServiceMock()
+        service.checkResult = .failure(.InvalidUrl)
+        let model = AddNodeSceneViewModel(chain: .ethereum, service: service)
+
+        model.setInput("https://rpc..example.com")
+        await model.load()
+
+        #expect(model.urlInputModel.error != nil)
+        guard case .noData = model.state else {
+            Issue.record("Expected .noData, got \(model.state)")
             return
         }
     }

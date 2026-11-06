@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -22,8 +21,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.TransformOrigin
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -31,11 +28,8 @@ import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.Spacer4
 import com.gemwallet.android.ui.theme.paddingDefault
-import com.gemwallet.android.ui.theme.space0
-import com.gemwallet.android.ui.theme.space10
 
-private val minInputHeight = 36.dp
-private const val FloatingLabelScale = 0.8f
+private val minInputHeight = 40.dp
 
 @Composable
 fun GemTextField(
@@ -85,27 +79,25 @@ fun GemTextField(
                 keyboardOptions = keyboardOptions,
                 cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                 decorationBox = { innerTextField ->
-                    Box(
+                    Column(
                         modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.CenterStart,
+                        verticalArrangement = Arrangement.Center,
                     ) {
-                        if (label.isNotEmpty()) {
+                        if (hasFloatingLabel) {
                             Text(
-                                modifier = Modifier
-                                    .graphicsLayer {
-                                        scaleX = if (hasFloatingLabel) FloatingLabelScale else 1f
-                                        scaleY = if (hasFloatingLabel) FloatingLabelScale else 1f
-                                        transformOrigin = TransformOrigin(0f, 0f)
-                                    }
-                                    .offset(y = if (hasFloatingLabel) -space10 else space0),
                                 text = label,
                                 color = MaterialTheme.colorScheme.secondary,
-                                style = MaterialTheme.typography.bodyLarge,
+                                style = MaterialTheme.typography.bodySmall,
                             )
                         }
-                        Box(
-                            modifier = Modifier.offset(y = if (hasFloatingLabel) space10 else space0),
-                        ) {
+                        Box(contentAlignment = Alignment.CenterStart) {
+                            if (label.isNotEmpty() && !hasFloatingLabel) {
+                                Text(
+                                    text = label,
+                                    color = MaterialTheme.colorScheme.secondary,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                )
+                            }
                             innerTextField()
                         }
                     }
