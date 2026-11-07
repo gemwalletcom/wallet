@@ -9,7 +9,7 @@ runs:
 
     - name: Select Xcode
       shell: bash
-      run: sudo xcode-select -s /Applications/Xcode.app
+      run: sudo xcode-select -s /Applications/Xcode_27.2.app
 
     - name: Wait for iOS Simulator
       shell: bash

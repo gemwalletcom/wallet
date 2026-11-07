@@ -18,7 +18,7 @@ Use when versioning, tagging, committing for review, rebasing, publishing, or tr
   just bump 3.1.2
   ```
 - `just bump` commits the version, creates a signed tag, and pushes both atomically. A tag ruleset restricts this to repository admins, so a non-admin's push is rejected as a whole. Hand the bump commit to an admin to push the tag or create the GitHub release at that commit; `release_on_tag.yml` creates the release once the tag lands
-- Unrelated staged, unstaged, and untracked changes are preserved and excluded from the bump commit. The four version files (`ios/Gem.xcodeproj/project.pbxproj`, `android/app/build.gradle.kts`, `core/Cargo.toml`, and `core/Cargo.lock`) must be clean before bumping.
+- Unrelated staged, unstaged, and untracked changes are preserved and excluded from the bump commit. The four version files (`ios/Gem.xcodeproj/project.xcproj`, `android/app/build.gradle.kts`, `core/Cargo.toml`, and `core/Cargo.lock`) must be clean before bumping.
 
 ## Commits
 

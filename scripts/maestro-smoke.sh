@@ -23,10 +23,15 @@ newest() {
 }
 
 ios_device() {
-    local runtime udid
-    runtime="$(xcrun simctl list runtimes | grep -E '^iOS [0-9.]+ ' | grep -v unavailable | newest)"
+    local device_type runtime udid
     udid="$(xcrun simctl list devices available | grep -F "$SIMULATOR (" | grep -oE '[0-9A-F-]{36}' | tail -1 || true)"
-    [ -n "$udid" ] || udid="$(xcrun simctl create "$SIMULATOR" "$(xcrun simctl list devicetypes | grep -E '^iPhone [0-9]+ Pro \(' | newest | grep -oE 'com\.apple[^)]+')" "${runtime##* - }")"
+    if [ -z "$udid" ]; then
+        device_type="$(xcrun simctl list devicetypes | grep -E '^iPhone [0-9]+ Pro \(' | newest | grep -oE 'com\.apple[^)]+')"
+        for runtime in $(xcrun simctl list runtimes | grep -E '^iOS [0-9.]+ ' | grep -v unavailable | sort -rV | sed 's/.* - //'); do
+            udid="$(xcrun simctl create "$SIMULATOR" "$device_type" "$runtime" 2>/dev/null)" && break
+        done
+        [ -n "$udid" ] || { echo "no iOS runtime can create $device_type" >&2; exit 1; }
+    fi
     xcrun simctl boot "$udid" 2>/dev/null || true
     xcrun simctl bootstatus "$udid" -b >/dev/null
     xcrun simctl spawn "$udid" defaults write -g AppleLocale en_US
