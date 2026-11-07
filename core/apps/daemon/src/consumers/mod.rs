@@ -9,7 +9,7 @@ pub mod support;
 use std::error::Error;
 
 use settings::Settings;
-use streamer::{ConsumerConfig, QueueName, ShutdownReceiver, StreamReader, StreamReaderConfig};
+use streamer::{ConsumerConfig, QueueName, Retry, ShutdownReceiver, StreamConnection, StreamReader, StreamReaderConfig};
 
 pub use fiat::run_consumer_fiat;
 pub use indexer::run_consumer_indexer;
@@ -30,9 +30,17 @@ pub(crate) fn consumer_config(consumer: &settings::Consumer) -> ConsumerConfig {
     }
 }
 
+pub(crate) fn stream_retry(retry: &settings::Retry) -> Retry {
+    Retry::new(retry.delay, retry.timeout)
+}
+
 pub(crate) fn reader_config(rabbitmq: &settings::RabbitMQ, name: String) -> StreamReaderConfig {
-    let retry = streamer::Retry::new(rabbitmq.retry.delay, rabbitmq.retry.timeout);
-    StreamReaderConfig::new(rabbitmq.url.clone(), name, rabbitmq.prefetch, retry)
+    StreamReaderConfig::new(rabbitmq.url.clone(), name, rabbitmq.prefetch, stream_retry(&rabbitmq.retry))
+}
+
+pub(crate) async fn stream_connection(rabbitmq: &settings::RabbitMQ, name: String, shutdown: &ShutdownReceiver) -> Result<StreamConnection, Box<dyn Error + Send + Sync>> {
+    let connection = StreamConnection::new(&rabbitmq.url, name, &stream_retry(&rabbitmq.retry), shutdown).await?.ok_or("shutdown during connect")?;
+    Ok(connection)
 }
 
 pub(crate) async fn reader_for_queue(settings: &Settings, queue: &QueueName, shutdown: &ShutdownReceiver) -> Result<(String, StreamReader), Box<dyn Error + Send + Sync>> {

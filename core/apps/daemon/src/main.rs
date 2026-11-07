@@ -20,7 +20,8 @@ use gem_tracing::{error_with_fields, info_with_fields};
 use job_runner::JobHandle;
 use services::Services;
 use std::sync::atomic::{AtomicBool, Ordering};
-use streamer::ConsumerStatusReporter;
+use std::time::Instant;
+use streamer::{Backoff, ConsumerStatusReporter};
 
 #[tokio::main]
 pub async fn main() {
@@ -202,11 +203,12 @@ async fn run_consumer_services(settings: settings::Settings, services: &[Consume
             let options = options.clone();
             let health_state = health_state.clone();
             tokio::spawn(async move {
-                let restart_delay = settings.consumer.error.timeout;
+                let mut backoff = Backoff::new(consumers::stream_retry(&settings.consumer.restart));
                 loop {
                     if *shutdown.borrow() {
                         break;
                     }
+                    let started = Instant::now();
                     match run_consumer((*settings.as_ref()).clone(), svc, shutdown.clone(), reporter.clone(), options.clone()).await {
                         Ok(_) => {
                             info_with_fields!("consumer stopped", consumer = svc_name, status = "ok");
@@ -218,11 +220,13 @@ async fn run_consumer_services(settings: settings::Settings, services: &[Consume
                             if let Ok(mut list) = failures.lock() {
                                 list.push(format!("{}: {}", svc_name, message));
                             }
-                            health_state.set_not_ready();
-                            if shutdown::sleep_or_shutdown(restart_delay, &shutdown).await {
+                            let delay = backoff.failed(started.elapsed());
+                            health_state.mark_down();
+                            if shutdown::sleep_or_shutdown(delay, &shutdown).await {
                                 break;
                             }
-                            info_with_fields!("consumer restarting", consumer = svc_name);
+                            health_state.mark_up();
+                            info_with_fields!("consumer restarting", consumer = svc_name, attempt = backoff.failures());
                         }
                     }
                 }

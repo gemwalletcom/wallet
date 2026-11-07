@@ -4,6 +4,8 @@ use std::sync::Arc;
 use lapin::uri::{AMQPScheme, AMQPUri};
 use lapin::{Channel, Connection, ConnectionProperties};
 
+use crate::{Retry, ShutdownReceiver, with_retry};
+
 #[derive(Clone)]
 pub struct StreamConnection {
     url: String,
@@ -12,14 +14,14 @@ pub struct StreamConnection {
 }
 
 impl StreamConnection {
-    pub async fn new(url: &str, name: impl Into<String>) -> Result<Self, Box<dyn Error + Send + Sync>> {
+    pub async fn new(url: &str, name: impl Into<String>, retry: &Retry, shutdown: &ShutdownReceiver) -> Result<Option<Self>, Box<dyn Error + Send + Sync>> {
         let name: String = name.into();
-        let connection = connect(url, name.clone()).await?;
-        Ok(Self {
+        let connection = with_retry(retry, &name, shutdown, || connect(url, name.clone())).await?;
+        Ok(connection.map(|connection| Self {
             url: url.to_string(),
             name,
             connection: Arc::new(connection),
-        })
+        }))
     }
 
     pub fn url(&self) -> &str {
