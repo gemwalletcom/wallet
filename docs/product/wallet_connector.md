@@ -29,9 +29,9 @@ flowchart LR
 | The user rejects a request | a refusal goes back to the dapp | |
 | A new request arrives while another one is on screen | the new request shows and the earlier one is refused, so its dapp is told | the earlier review is gone and can no longer be approved |
 | A new request arrives while an approved request or connection is still being sent | the answer still reaches its dapp | the user already approved it |
-| The same connection code is opened again while its proposal is on screen | the proposal stays; approving or rejecting it closes it | the SDK delivers a pending proposal again when its code is paired twice |
-| A second connection is approved before the first dapp confirms its own | each connection is listed under, and signs with, the wallet it was approved with | a request is reviewed and signed by its connection's wallet (`sessions that settle out of order are stored for the wallet that approved each`) |
-| The app is opened with a dapp already connected and a new dapp's code arrives at once | the new proposal shows and can be approved | the SDK is set up once; set up twice, it delivered the proposal twice and refused the copy, so the dapp saw the connection fail |
+| The same connection code is opened again while its proposal is on screen | the proposal stays; approving or rejecting it closes it | a code opened again while its proposal is shown is subscribed to once and leaves that proposal as it is |
+| A second connection is approved before the first dapp confirms its own | each connection is listed under, and signs with, the wallet it was approved with | a request is reviewed and signed by its connection's wallet (`the connection is listed under the wallet that approved it`) |
+| The app is opened with a dapp already connected and a new dapp's code arrives at once | the new proposal shows and can be approved | the client is set up once, so the proposal arrives once and no copy of it is refused, which the dapp would see as a failed connection |
 | A request has expired | "Request expired"; it cannot be approved and is never signed | |
 | A request expires while its review is open, including while the review offers Buy or Receive | the review closes within a few seconds with "Request expired" and nothing is signed | the dapp has stopped waiting; a send it never hears about invites the user to pay twice |
 | A message to sign comes from a site flagged as malicious | it is refused before anything is signed | a message to sign is checked like a transaction |
