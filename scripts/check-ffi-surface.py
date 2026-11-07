@@ -32,6 +32,20 @@ ALLOWED = {
     "GemKeystore.export_private_key": "VM181",
     "GemKeystore.export_recovery_phrase": "VM181",
     "GemKeystore.keystore_id": "VM181",
+    "GemWalletConnectClient.answer_request": "VM559",
+    "GemWalletConnectClient.needs_connection": "VM559",
+    "wallet_connect_relay": "VM559",
+    "GemWalletConnectClient.restore": "VM559",
+    "GemWalletConnectService.application_metadata": "VM561",
+    "GemWalletConnectService.authentication_accounts": "VM561",
+    "GemWalletConnectService.authentication_methods": "VM561",
+    "GemWalletConnectService.config_session_properties": "VM561",
+    "GemWalletConnectService.delete_session": "VM561",
+    "GemWalletConnectService.request_outcome": "VM561",
+    "GemWalletConnectService.session_rejection": "VM561",
+    "GemWalletConnectService.should_process_proposal": "VM561",
+    "GemChainService.caip2_namespace": "VM561",
+    "GemChainService.caip2_references": "VM561",
     "GemConfirmation.row_contents": DOUBLE,
     "GemConfirmScreen.fee_value": DOUBLE,
     "confirm_error_info": DOUBLE,
@@ -39,6 +53,7 @@ ALLOWED = {
     "fee_amount": DOUBLE,
     "perpetual_confirm_details": DOUBLE,
     "swap_quote_details": DOUBLE,
+    "GemWalletConnectClient.authentication_message": "VM560",
 }
 
 

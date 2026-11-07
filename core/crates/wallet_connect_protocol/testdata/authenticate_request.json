@@ -1,0 +1,32 @@
+{
+  "requester": {
+    "publicKey": "ff3b9f3f8fe885b110e185c1c935167e24107ecb8d00bb79f8e75e568a920a20",
+    "metadata": {
+      "name": "Example",
+      "description": "Example dapp",
+      "url": "https://example.com",
+      "icons": [
+        "https://example.com/icon.png"
+      ]
+    }
+  },
+  "authPayload": {
+    "domain": "example.com",
+    "aud": "https://example.com/login",
+    "version": "1",
+    "nonce": "32891756",
+    "chains": [
+      "eip155:1",
+      "eip155:137"
+    ],
+    "type": "eip4361",
+    "iat": "2024-01-29T08:54:38Z",
+    "exp": "2024-01-29T09:54:38Z",
+    "statement": "Sign in to Example.",
+    "resources": [
+      "ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/",
+      "urn:recap:eyJhdHQiOnsiZWlwMTU1Ijp7InJlcXVlc3QvcGVyc29uYWxfc2lnbiI6W3t9XSwicmVxdWVzdC9ldGhfc2VuZFRyYW5zYWN0aW9uIjpbe31dLCJyZXF1ZXN0L2V0aF9zaWduIjpbe31dfX19"
+    ]
+  },
+  "expiryTimestamp": 4102444800
+}

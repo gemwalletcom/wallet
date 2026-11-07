@@ -10,7 +10,7 @@ use primitives::{Account, Asset, Chain, SimulationResult, Wallet, WalletConnecti
 use crate::message::sign_type::SignMessage;
 use gem_wallet_connect::WalletConnectResponseType;
 
-#[derive(Debug, Clone, uniffi::Record)]
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemWalletConnectSessionRequest {
     pub topic: String,
     pub request_id: String,

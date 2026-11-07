@@ -53,6 +53,7 @@ gem_xrp = { path = "../crates/gem_xrp", features = ["rpc", "signer"] }
 gem_near = { path = "../crates/gem_near", features = ["rpc", "signer"] }
 gem_polkadot = { path = "../crates/gem_polkadot", features = ["rpc", "signer"] }
 gem_wallet_connect = { path = "../crates/gem_wallet_connect" }
+wallet_connect_protocol = { path = "../crates/wallet_connect_protocol" }
 gem_keystore = { path = "../crates/gem_keystore", features = ["v3"] }
 gem_derivation = { path = "../crates/gem_derivation" }
 gem_crypto = { path = "../crates/gem_crypto", features = ["random"] }
@@ -71,7 +72,7 @@ chrono = { workspace = true }
 uuid = { workspace = true }
 
 serde.workspace = true
-serde_json.workspace = true
+serde_json = { workspace = true, features = ["raw_value"] }
 async-trait.workspace = true
 strum = { workspace = true }
 url = { workspace = true }
@@ -89,5 +90,6 @@ uniffi = { workspace = true, features = ["build"] }
 [dev-dependencies]
 gem_evm = { path = "../crates/gem_evm", features = ["testkit"] }
 gem_wallet_connect = { path = "../crates/gem_wallet_connect", features = ["testkit"] }
+wallet_connect_protocol = { path = "../crates/wallet_connect_protocol", features = ["testkit"] }
 primitives = { path = "../crates/primitives", features = ["testkit"] }
 swapper = { path = "../crates/swapper", features = ["testkit"] }

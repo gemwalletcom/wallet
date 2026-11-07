@@ -1,0 +1,15 @@
+{
+  "id": 1700000000000123456,
+  "jsonrpc": "2.0",
+  "method": "irn_subscription",
+  "params": {
+    "id": "a4a2f8e1",
+    "data": {
+      "topic": "eec4db5e6f3e1b8aab5f72a3a8f293882aad0e966f2d7170ccdbdbe1f4f5bca6",
+      "message": "AAABAg==",
+      "publishedAt": 1700000000000,
+      "tag": 1108,
+      "attestation": "eyJhbGciOiJFUzI1NiJ9.e30.c2ln"
+    }
+  }
+}

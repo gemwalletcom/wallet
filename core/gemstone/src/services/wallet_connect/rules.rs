@@ -14,7 +14,8 @@ use gem_tron::{decode_wallet_connect_contract, decode_wallet_connect_owners};
 use primitives::ChainType;
 use primitives::WalletConnectionVerificationStatus;
 use primitives::{
-    Account, ApplicationMetadata, ApplicationMetadataSource, Chain, Wallet, WalletConnectCAIP2, WalletConnection, WalletConnectionEvents, WalletConnectionMethods, WalletConnectionSession, WalletConnectionState, WalletId, WalletType,
+    Account, ApplicationMetadata, ApplicationMetadataSource, Chain, Platform, Wallet, WalletConnectCAIP2, WalletConnection, WalletConnectionEvents, WalletConnectionMethods, WalletConnectionSession, WalletConnectionState, WalletId,
+    WalletType,
 };
 
 use crate::models::list::{GemListRow, GemListRowTitle};
@@ -30,14 +31,18 @@ use num_bigint::BigInt;
 use primitives::GasPriceType;
 use primitives::TransactionInputType;
 use primitives::{Asset, TransactionType, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType};
+use wallet_connect_protocol::sign::namespaces::NamespaceError;
 
 const UNSUPPORTED_CHAINS_ERROR_CODE: i32 = 5100;
 const UNSUPPORTED_METHODS_ERROR_CODE: i32 = 5101;
 const UNSUPPORTED_ACCOUNTS_ERROR_CODE: i32 = 5103;
 const UNSUPPORTED_EVENTS_ERROR_CODE: i32 = 5102;
 const SESSION_REQUEST_EXPIRED_ERROR_CODE: i32 = 8000;
+const USER_REJECTED_SESSION_ERROR_CODE: i32 = 5000;
 const METHOD_NOT_FOUND_ERROR_CODE: i32 = -32601;
 const UNRECOGNIZED_CHAIN_ERROR_CODE: i32 = 4902;
+const IOS_REDIRECT: &str = "gem://";
+const ANDROID_REDIRECT: &str = "https://gemwallet.com/wc/";
 
 pub fn connection_groups(connections: Vec<WalletConnection>) -> Vec<(Wallet, Vec<WalletConnection>)> {
     let mut groups: Vec<(Wallet, Vec<WalletConnection>)> = Vec::new();
@@ -220,7 +225,7 @@ pub fn session(topic: String, chains: Vec<Chain>, expire_at: DateTime<Utc>, meta
 
 pub fn session_rejection(reason: GemWalletConnectRejectionReason) -> GemWalletConnectRejection {
     let (code, message) = match reason {
-        GemWalletConnectRejectionReason::UserRejected => (WALLET_CONNECT_USER_REJECTED_ERROR_CODE, "User rejected the session"),
+        GemWalletConnectRejectionReason::UserRejected => (USER_REJECTED_SESSION_ERROR_CODE, "User rejected."),
         GemWalletConnectRejectionReason::UnsupportedChains => (UNSUPPORTED_CHAINS_ERROR_CODE, "Unsupported chains"),
         GemWalletConnectRejectionReason::UnsupportedMethods => (UNSUPPORTED_METHODS_ERROR_CODE, "Unsupported methods"),
         GemWalletConnectRejectionReason::UnsupportedAccounts => (UNSUPPORTED_ACCOUNTS_ERROR_CODE, "Unsupported accounts"),
@@ -231,6 +236,36 @@ pub fn session_rejection(reason: GemWalletConnectRejectionReason) -> GemWalletCo
         code,
         message: message.to_string(),
         deletes_session: true,
+    }
+}
+
+pub fn namespace_rejection(error: NamespaceError) -> GemWalletConnectRejectionReason {
+    match error {
+        NamespaceError::UnsupportedChains => GemWalletConnectRejectionReason::UnsupportedChains,
+        NamespaceError::UnsupportedAccounts => GemWalletConnectRejectionReason::UnsupportedAccounts,
+        NamespaceError::UnsupportedMethods => GemWalletConnectRejectionReason::UnsupportedMethods,
+        NamespaceError::UnsupportedEvents => GemWalletConnectRejectionReason::UnsupportedEvents,
+    }
+}
+
+pub fn caip2_chain_ids(chain: Chain) -> Vec<String> {
+    let Some(namespace) = WalletConnectCAIP2::get_namespace(chain) else {
+        return vec![];
+    };
+    WalletConnectCAIP2::get_references(chain).into_iter().map(|reference| format!("{namespace}:{reference}")).collect()
+}
+
+pub fn supports_authentication(platform: Platform) -> bool {
+    match platform {
+        Platform::Android => true,
+        Platform::IOS => false,
+    }
+}
+
+pub fn redirect(platform: Platform) -> &'static str {
+    match platform {
+        Platform::IOS => IOS_REDIRECT,
+        Platform::Android => ANDROID_REDIRECT,
     }
 }
 
@@ -457,7 +492,7 @@ mod tests {
         assert_eq!(rejection.message, "Unsupported chains");
         assert!(rejection.deletes_session);
 
-        assert_eq!(session_rejection(GemWalletConnectRejectionReason::UserRejected).code, WALLET_CONNECT_USER_REJECTED_ERROR_CODE);
+        assert_eq!(session_rejection(GemWalletConnectRejectionReason::UserRejected).code, USER_REJECTED_SESSION_ERROR_CODE);
         assert_eq!(session_rejection(GemWalletConnectRejectionReason::UnsupportedMethods).code, 5101);
         assert_eq!(session_rejection(GemWalletConnectRejectionReason::UnsupportedEvents).code, 5102);
         assert_eq!(session_rejection(GemWalletConnectRejectionReason::UnsupportedAccounts).code, 5103);
