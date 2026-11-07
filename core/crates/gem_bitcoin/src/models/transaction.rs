@@ -30,6 +30,13 @@ pub struct BitcoinUTXO {
     pub vout: i32,
     #[serde(serialize_with = "serialize_biguint", deserialize_with = "deserialize_biguint_from_str")]
     pub value: BigUint,
+    pub confirmations: u64,
+}
+
+impl BitcoinUTXO {
+    pub fn is_confirmed(&self) -> bool {
+        self.confirmations > 0
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]

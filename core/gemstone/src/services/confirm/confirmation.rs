@@ -304,8 +304,10 @@ impl GemConfirmation {
 #[cfg(test)]
 mod tests {
     use futures::executor::block_on;
-    use num_bigint::BigInt;
-    use primitives::{Account, Asset, AssetId, Chain, FeePriority, PaymentInvoice, PaymentQuote, SimulationBalanceChange, SimulationResult, SimulationWarning, TransactionInputType, TransferDataExtra, Wallet, WalletId};
+    use num_bigint::{BigInt, BigUint};
+    use primitives::{
+        Account, Asset, AssetId, Chain, FeePriority, PaymentInvoice, PaymentQuote, SimulationBalanceChange, SimulationResult, SimulationWarning, TransactionInputType, TransactionLoadMetadata, TransferDataExtra, Wallet, WalletId,
+    };
 
     use std::sync::atomic::Ordering;
 
@@ -408,6 +410,27 @@ mod tests {
                     },
                 }),
             );
+        });
+    }
+
+    #[test]
+    fn test_a_bitcoin_max_send_signs_what_it_shows_while_a_deposit_is_pending() {
+        block_on(async {
+            let testkit = ConfirmTestkit::with_bitcoin_utxos_and_pending(100_000, &[100_000], &[50_000]);
+            let transfer = GemTransferData {
+                use_max_amount: true,
+                ..mock_bitcoin_transfer(100_000.into())
+            };
+            let confirmation = testkit.service.confirmation(mock_bitcoin_wallet(), transfer, None);
+            confirmation.load(confirmation.load_options()).await.unwrap();
+
+            let signer = confirmation.send_input().unwrap().signer_input().unwrap();
+            let TransactionLoadMetadata::Bitcoin { utxos } = signer.input.metadata else {
+                panic!("expected Bitcoin metadata");
+            };
+
+            assert_eq!(utxos.iter().map(|utxo| utxo.value.clone()).collect::<Vec<_>>(), vec![100_000u64.into()], "the pending 50,000 is not spent");
+            assert_eq!(signer.input.value, BigUint::from(100_000u64) - signer.fee.fee.to_biguint().unwrap(), "Max shows what spending every UTXO sends");
         });
     }
 
