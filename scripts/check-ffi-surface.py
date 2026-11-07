@@ -19,7 +19,7 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 CORE = ROOT / "core/gemstone/src"
-APPS = ["ios/Features", "ios/Packages", "ios/Gem", "ios/GemPriceWidget", "android"]
+APPS = ["ios/Features", "ios/Packages", "ios/Gem", "android"]
 SKIPPED_DIRS = {"build", ".build", "generated", "Submodules", ".gradle"}
 SKIPPED_FILES = {"Gemstone.swift", "gemstone.kt"}
 TEST_MARKERS = ["/Tests/", "/TestKit/", "/src/test/", "/src/androidTest/", "/testkit/", "/testFixtures/", "Mock"]

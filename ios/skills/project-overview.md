@@ -9,7 +9,7 @@ The app is organized into four main areas:
 
 1. `Features/` — Independent UI feature modules
 2. `Packages/` — Shared primitives, components, store, localization, and utilities
-3. `Gem/` and `GemPriceWidget/` — App targets and platform integration
+3. `Gem/` — App target and platform integration
 4. `../core/` — Shared Rust source at the monorepo root, exposed through FFI
 
 A feature package is one product area, named as its Android module ([Cross-Platform Awareness rule 7](../../skills/cross-platform-awareness.md)). Feature packages use the directories they need; this layout is not a scaffolding checklist:
@@ -39,8 +39,7 @@ Features/[FeatureName]/
 
 - `Features/` holds feature-specific UI, view models, services, tests, and test kits
 - `Packages/` holds shared primitives, components, formatting, localization, storage, and service layers
-- `Gem/` and widget targets handle app composition, navigation wiring, and platform integration
-- Widget targets never link `Gemstone` or `GemstonePrimitives`; they reach the API through `SwiftHTTPClient`
+- `Gem/` handles app composition, navigation wiring, and platform integration
 - `../core/` owns shared product rules and blockchain behavior; apps consume its generated bindings
 
 ## Navigation

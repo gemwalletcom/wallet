@@ -203,7 +203,6 @@ reset-simulator NAME=SIMULATOR_NAME:
 localize:
     @cd ../core && cargo run --package generate --bin generate localize ios ../localization/app ../ios/Packages/Localization/Sources
     @cd ../core && cargo run --package generate --bin generate localize ios-plist ../localization/InfoPlist ../ios/Packages/Localization/Sources/Resources
-    @cd ../core && cargo run --package generate --bin generate localize ios-widget ../localization/widget ../ios/Packages/Localization/WidgetSources
 
 generate: generate-models
 

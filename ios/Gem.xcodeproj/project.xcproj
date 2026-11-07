@@ -286,34 +286,12 @@
         { "path": "UpgradeVerificationTests.swift", "target-membership": [ "GemUITests/compile-sources" ] },
       ],
     }, {
-      "kind": "folder",
-      "path": "GemPriceWidget",
-      "target-membership": [
-        "GemPriceWidget",
-      ],
-      "membership-exceptions": [
-        {
-          "target": "GemPriceWidget",
-          "exclusions": [
-            "Info.plist",
-          ],
-        },
-      ],
-    }, {
       "kind": "group",
       "name": "Products",
       "children": [
         { "path": "<PRODUCTS>/Gem.app", "id": "C30952B0299C39D70004C0F9", "type": "wrapper.application", "index": false },
         { "path": "<PRODUCTS>/Screenshots.xctest", "id": "D8A1F8732B17F21E00B15F54", "type": "wrapper.cfbundle", "index": false },
         { "path": "<PRODUCTS>/GemUITests.xctest", "id": "D83096AC2D5D4F1E00FFEE3E", "type": "wrapper.cfbundle", "index": false },
-        { "path": "<PRODUCTS>/GemPriceWidget.appex", "id": "D83819492E256A5A0076CDB3", "type": "wrapper.app-extension", "index": false, "target-membership": [ { "build-phase": "Gem/copy/Embed Foundation Extensions", "platforms": [ "ios" ], "header-preservation": "remove-on-copy" } ] },
-      ],
-    }, {
-      "kind": "group",
-      "name": "Frameworks",
-      "children": [
-        { "path": "<SDK>/System/Library/Frameworks/WidgetKit.framework", "target-membership": [ "GemPriceWidget/frameworks" ] },
-        { "path": "<SDK>/System/Library/Frameworks/SwiftUI.framework", "target-membership": [ "GemPriceWidget/frameworks" ] },
       ],
     },
   ],
@@ -323,18 +301,10 @@
       "id": "C30952AF299C39D70004C0F9",
       "product": "Products/Gem.app",
       "product-type": "application",
-      "dependencies": [
-        { "target": "GemPriceWidget", "platforms": [ "ios" ] },
-      ],
       "build-phases": [
         "compile-sources",
         "frameworks",
         "resources",
-        {
-          "kind": "copy",
-          "name": "Embed Foundation Extensions",
-          "bundle-base-path": "plugins-directory",
-        },
       ],
       "package-product-members": [
         {
@@ -561,63 +531,6 @@
         "SWIFT_ACTIVE_COMPILATION_CONDITIONS[config=Debug]": "DEBUG $(inherited)",
         "SWIFT_VERSION": "5.0",
         "TEST_TARGET_NAME": "Gem",
-        "VALIDATE_PRODUCT[config=Release]": "YES",
-      },
-    }, {
-      "name": "GemPriceWidget",
-      "id": "D83819482E256A5A0076CDB3",
-      "product": "Products/GemPriceWidget.appex",
-      "product-type": "app-extension",
-      "build-phases": [
-        "compile-sources",
-        "frameworks",
-        "resources",
-      ],
-      "package-product-members": [
-        {
-          "product-name": "Components",
-          "build-phase": { "build-phase": "frameworks" },
-        }, {
-          "product-name": "Formatters",
-          "build-phase": { "build-phase": "frameworks" },
-        }, {
-          "product-name": "Primitives",
-          "build-phase": { "build-phase": "frameworks" },
-        }, {
-          "product-name": "Style",
-          "build-phase": { "build-phase": "frameworks" },
-        }, {
-          "product-name": "SwiftHTTPClient",
-          "build-phase": { "build-phase": "frameworks" },
-        }, {
-          "product-name": "WidgetLocalization",
-          "build-phase": { "build-phase": "frameworks" },
-        },
-      ],
-      "build-settings": {
-        "ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME": "AccentColor",
-        "ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME": "WidgetBackground",
-        "CODE_SIGN_ENTITLEMENTS": "GemPriceWidget/GemPriceWidget.entitlements",
-        "CODE_SIGN_IDENTITY": "Apple Development",
-        "CODE_SIGN_IDENTITY[config=Release][sdk=iphoneos*]": "iPhone Distribution",
-        "CODE_SIGN_STYLE[config=Debug]": "Automatic",
-        "CODE_SIGN_STYLE[config=Release]": "Manual",
-        "DEVELOPMENT_TEAM": "$(APP_TEAM_ID)",
-        "GCC_C_LANGUAGE_STANDARD": "gnu17",
-        "INFOPLIST_FILE": "GemPriceWidget/Info.plist",
-        "INFOPLIST_KEY_CFBundleDisplayName": "GemPriceWidget",
-        "LD_RUNPATH_SEARCH_PATHS": [
-          "$(inherited)",
-          "@executable_path/Frameworks",
-          "@executable_path/../../Frameworks",
-        ],
-        "LOCALIZATION_PREFERS_STRING_CATALOGS": "YES",
-        "PRODUCT_BUNDLE_IDENTIFIER": "$(APP_BUNDLE_ID).widgetprice",
-        "PROVISIONING_PROFILE_SPECIFIER[config=Release][sdk=iphoneos*]": "match AppStore $(APP_BUNDLE_ID).widgetprice",
-        "SDKROOT": "iphoneos",
-        "SWIFT_ACTIVE_COMPILATION_CONDITIONS[config=Debug]": "DEBUG $(inherited)",
-        "SWIFT_EMIT_LOC_STRINGS": "YES",
-        "SWIFT_VERSION": "5.0",
         "VALIDATE_PRODUCT[config=Release]": "YES",
       },
     },
