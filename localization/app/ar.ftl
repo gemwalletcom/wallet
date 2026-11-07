@@ -790,8 +790,10 @@ simulation_warning_unlimited_token_approval_description = يمنح هذا الم
 simulation_warning_externally_owned_spender_description = تسمح هذه الموافقة لعنوان محفظة عادي (EOA) باستخدام أصولك. أكّد فقط إذا كنت تثق بهذا العنوان.
 simulation_warning_nft_collection_approval_title = تم طلب الوصول الكامل إلى مجموعة NFT
 simulation_warning_unlimited_token_approval_title = الموافقة على الرموز المميزة غير محدودة
-simulation_warning_unverified_title = تعذّر علينا التحقق من هذه المعاملة
-simulation_warning_unverified_description = لا نعرف ما الذي ستفعله. وقّع فقط إذا كنت تثق بهذا التطبيق.
+simulation_warning_simulation_failed_title = فشلت محاكاة المعاملة
+simulation_warning_simulation_failed_description = لا نعرف ما الذي ستفعله. وقّع فقط إذا كنت تثق بهذا التطبيق.
+simulation_warning_scan_failed_title = فشل الفحص الأمني
+simulation_warning_scan_failed_description = تعذّر علينا فحص هذه المعاملة.
 
 # Application
 

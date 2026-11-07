@@ -10,7 +10,7 @@ use crate::{
 
 pub(crate) fn map_simulation_result(signer: &Address, response: TonEmulationResponse) -> SimulationResult {
     if execution_failed(&response) {
-        return SimulationResult::new(vec![SimulationWarning::unverified()], vec![]);
+        return SimulationResult::new(vec![SimulationWarning::simulation_failed()], vec![]);
     }
 
     SimulationResult {
@@ -96,7 +96,7 @@ mod tests {
 
         let result = map_simulation_result(&Address::parse("0:33a14a5a9406979d59b9328898591660b8b1736342b11632efdcc911ab9057cf").unwrap(), response);
 
-        assert_eq!(result.warnings, vec![SimulationWarning::unverified()]);
+        assert_eq!(result.warnings, vec![SimulationWarning::simulation_failed()]);
         assert!(result.balance_changes.is_empty());
     }
 

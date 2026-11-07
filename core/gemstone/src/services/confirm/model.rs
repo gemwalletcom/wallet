@@ -21,7 +21,7 @@ use crate::services::transfer::GemTransferData;
 use crate::services::transfer::model::GemConfirmTitle;
 use crate::services::wallet::GemKeystoreAuthentication;
 use crate::transfer_amount::GemTransferAmount;
-use primitives::{Account, AddressName, Asset, AssetId, Chain, ChainAddress, FeePriority, FeeRate, FeeUnitType, GasPriceType, SimulationResult, Wallet};
+use primitives::{Account, AddressName, Asset, AssetId, Chain, ChainAddress, FeePriority, FeeRate, FeeUnitType, GasPriceType, SimulationResult, SimulationWarning, Wallet};
 use primitives::{AssetPrice, Currency, PaymentVerification};
 use swapper::Quote;
 
@@ -88,6 +88,7 @@ pub struct GemConfirmData {
     pub fee_rates: Vec<FeeRate>,
     pub metadata: GemTransactionLoadMetadata,
     pub simulation: Option<SimulationResult>,
+    pub scan_warnings: Vec<SimulationWarning>,
 }
 
 #[derive(Debug, Clone, uniffi::Enum)]

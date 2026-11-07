@@ -632,8 +632,10 @@
   <string name="simulation_warning_externally_owned_spender_description">Questa approvazione consente a un normale indirizzo wallet (EOA) di usare i tuoi asset. Conferma solo se ti fidi di questo indirizzo.</string>
   <string name="simulation_warning_nft_collection_approval_title">È richiesto l\'accesso completo alla collezione NFT</string>
   <string name="simulation_warning_unlimited_token_approval_title">Approvazione token illimitata</string>
-  <string name="simulation_warning_unverified_title">Non siamo riusciti a verificare questa transazione</string>
-  <string name="simulation_warning_unverified_description">Non sappiamo cosa farà. Firma solo se ti fidi di questa app.</string>
+  <string name="simulation_warning_simulation_failed_title">Simulazione della transazione non riuscita</string>
+  <string name="simulation_warning_simulation_failed_description">Non sappiamo cosa farà. Firma solo se ti fidi di questa app.</string>
+  <string name="simulation_warning_scan_failed_title">Controllo di sicurezza non riuscito</string>
+  <string name="simulation_warning_scan_failed_description">Non siamo riusciti a verificare questa transazione.</string>
   <string name="application_name">Gem</string>
   <string name="rootcheck_security_alert">Avviso di sicurezza</string>
   <string name="rootcheck_jailbreak_body">Il tuo dispositivo sembra essere jailbroken. Questo può mettere a rischio il tuo portafoglio e i tuoi fondi.</string>

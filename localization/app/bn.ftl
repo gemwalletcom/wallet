@@ -790,8 +790,10 @@ simulation_warning_unlimited_token_approval_description = এটি ব্যয
 simulation_warning_externally_owned_spender_description = এই অনুমোদন একটি সাধারণ ওয়ালেট ঠিকানাকে (EOA) আপনার সম্পদ ব্যবহার করতে দেয়। আপনি এই ঠিকানাকে বিশ্বাস করলেই নিশ্চিত করুন।
 simulation_warning_nft_collection_approval_title = সম্পূর্ণ NFT সংগ্রহের অ্যাক্সেসের অনুরোধ করা হয়েছে
 simulation_warning_unlimited_token_approval_title = সীমাহীন টোকেন অনুমোদন
-simulation_warning_unverified_title = আমরা এই লেনদেনটি যাচাই করতে পারিনি
-simulation_warning_unverified_description = আমরা জানি না এটি কী করবে। শুধু এই অ্যাপে আস্থা থাকলেই স্বাক্ষর করুন।
+simulation_warning_simulation_failed_title = লেনদেন সিমুলেশন ব্যর্থ হয়েছে
+simulation_warning_simulation_failed_description = আমরা জানি না এটি কী করবে। শুধু এই অ্যাপে আস্থা থাকলেই স্বাক্ষর করুন।
+simulation_warning_scan_failed_title = নিরাপত্তা স্ক্যান ব্যর্থ হয়েছে
+simulation_warning_scan_failed_description = আমরা এই লেনদেনটি যাচাই করতে পারিনি।
 
 # Application
 

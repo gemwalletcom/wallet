@@ -108,7 +108,7 @@ impl GemConfirmService {
 
         let scan_future = async {
             let payload = scan_rules::transaction_payload(preload_input.clone())?;
-            self.scanner.scan(payload).await
+            Some(self.scanner.scan(payload).await)
         };
         let (metadata, fee_rates, scan, simulation) = futures::join!(
             self.gateway.get_transaction_preload(chain, preload_input.clone()),
@@ -121,7 +121,8 @@ impl GemConfirmService {
         let fee_rates = rules::confirmation_fee_rates(&asset.id, transfer.use_max_amount, fee_rates);
         let simulation = simulation?;
 
-        rules::validate_scan(scan.as_ref(), transfer.recipient.memo.as_deref(), &symbol)?;
+        rules::validate_scan(scan.as_ref().and_then(|scan| scan.as_ref().ok()), transfer.recipient.memo.as_deref(), &symbol)?;
+        let scan_warnings = scan.as_ref().map(scan_rules::scan_warnings).unwrap_or_default();
 
         let selected = options.fee_selection.select_fee_rate(&fee_rates)?;
         let load = if rules::is_signature_only(&transfer.input_type) {
@@ -163,6 +164,7 @@ impl GemConfirmService {
             fee_rates,
             metadata: load.metadata,
             simulation,
+            scan_warnings,
         };
         Ok(confirm_data.fee_load(confirm_metadata?, fee_asset?, currency))
     }

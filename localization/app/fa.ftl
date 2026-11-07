@@ -790,8 +790,10 @@ simulation_warning_unlimited_token_approval_description = این به خرج‌�
 simulation_warning_externally_owned_spender_description = این تأییدیه به یک آدرس کیف پول معمولی (EOA) اجازه می‌دهد از دارایی‌های شما استفاده کند. فقط اگر به این آدرس اعتماد دارید تأیید کنید.
 simulation_warning_nft_collection_approval_title = دسترسی کامل به مجموعه NFT درخواست شد
 simulation_warning_unlimited_token_approval_title = تایید نامحدود توکن
-simulation_warning_unverified_title = نتوانستیم این تراکنش را بررسی کنیم
-simulation_warning_unverified_description = نمی‌دانیم چه کاری انجام می‌دهد. فقط در صورتی امضا کنید که به این برنامه اعتماد دارید.
+simulation_warning_simulation_failed_title = شبیه‌سازی تراکنش ناموفق بود
+simulation_warning_simulation_failed_description = نمی‌دانیم چه کاری انجام می‌دهد. فقط در صورتی امضا کنید که به این برنامه اعتماد دارید.
+simulation_warning_scan_failed_title = بررسی امنیتی ناموفق بود
+simulation_warning_scan_failed_description = نتوانستیم این تراکنش را بررسی کنیم.
 
 # Application
 

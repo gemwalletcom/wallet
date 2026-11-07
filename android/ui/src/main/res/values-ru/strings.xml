@@ -632,8 +632,10 @@
   <string name="simulation_warning_externally_owned_spender_description">Это разрешение позволяет обычному адресу кошелька (EOA) использовать ваши активы. Подтверждайте только если доверяете этому адресу.</string>
   <string name="simulation_warning_nft_collection_approval_title">Запрошен полный доступ к коллекции NFT.</string>
   <string name="simulation_warning_unlimited_token_approval_title">Неограниченное одобрение токена</string>
-  <string name="simulation_warning_unverified_title">Нам не удалось проверить эту транзакцию</string>
-  <string name="simulation_warning_unverified_description">Мы не знаем, что она сделает. Подписывайте, только если доверяете приложению.</string>
+  <string name="simulation_warning_simulation_failed_title">Не удалось симулировать транзакцию</string>
+  <string name="simulation_warning_simulation_failed_description">Мы не знаем, что она сделает. Подписывайте, только если доверяете приложению.</string>
+  <string name="simulation_warning_scan_failed_title">Не удалось проверить безопасность</string>
+  <string name="simulation_warning_scan_failed_description">Мы не смогли проверить эту транзакцию.</string>
   <string name="application_name">Gem</string>
   <string name="rootcheck_security_alert">Предупреждение о безопасности</string>
   <string name="rootcheck_jailbreak_body">Похоже, на вашем устройстве выполнен джейлбрейк. Это может поставить под угрозу кошелёк и средства.</string>

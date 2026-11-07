@@ -632,8 +632,10 @@
   <string name="simulation_warning_externally_owned_spender_description">אישור זה מאפשר לכתובת ארנק רגילה (EOA) להשתמש בנכסים שלך. אשר רק אם אתה סומך על כתובת זו.</string>
   <string name="simulation_warning_nft_collection_approval_title">התבקשה גישה מלאה לאוסף NFT</string>
   <string name="simulation_warning_unlimited_token_approval_title">אישור אסימונים ללא הגבלה</string>
-  <string name="simulation_warning_unverified_title">לא הצלחנו לבדוק את העסקה הזו</string>
-  <string name="simulation_warning_unverified_description">איננו יודעים מה היא תעשה. חתום רק אם אתה סומך על האפליקציה הזו.</string>
+  <string name="simulation_warning_simulation_failed_title">הדמיית העסקה נכשלה</string>
+  <string name="simulation_warning_simulation_failed_description">איננו יודעים מה היא תעשה. חתום רק אם אתה סומך על האפליקציה הזו.</string>
+  <string name="simulation_warning_scan_failed_title">סריקת האבטחה נכשלה</string>
+  <string name="simulation_warning_scan_failed_description">לא הצלחנו לבדוק את העסקה הזו.</string>
   <string name="application_name">Gem</string>
   <string name="rootcheck_security_alert">אזהרת אבטחה</string>
   <string name="rootcheck_jailbreak_body">נראה שהמכשיר שלך עבר ג\'יילברייק. הדבר עלול לסכן את הארנק והכספים שלך.</string>

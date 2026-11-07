@@ -632,8 +632,10 @@
   <string name="simulation_warning_externally_owned_spender_description">この承認により、通常のウォレットアドレス（EOA）がウォレット内の資産を使用できるようになります。このアドレスを信頼できる場合のみ確認してください。</string>
   <string name="simulation_warning_nft_collection_approval_title">NFT コレクション全体へのアクセスが要求されています</string>
   <string name="simulation_warning_unlimited_token_approval_title">無制限のトークン承認</string>
-  <string name="simulation_warning_unverified_title">この取引を確認できませんでした</string>
-  <string name="simulation_warning_unverified_description">この取引で何が起こるかわかりません。このアプリを信頼できる場合のみ署名してください。</string>
+  <string name="simulation_warning_simulation_failed_title">取引のシミュレーションに失敗しました</string>
+  <string name="simulation_warning_simulation_failed_description">この取引で何が起こるかわかりません。このアプリを信頼できる場合のみ署名してください。</string>
+  <string name="simulation_warning_scan_failed_title">セキュリティスキャンに失敗しました</string>
+  <string name="simulation_warning_scan_failed_description">この取引を確認できませんでした。</string>
   <string name="application_name">Gem</string>
   <string name="rootcheck_security_alert">セキュリティ警告</string>
   <string name="rootcheck_jailbreak_body">このデバイスは脱獄されているようです。ウォレットと資産が危険にさらされる可能性があります。</string>

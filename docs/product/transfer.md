@@ -26,6 +26,7 @@ flowchart LR
 | The recipient is one of the user's own wallets or a contact | Confirm shows its name alone; a tap shows the address | the user gave that name |
 | The recipient has any other name, such as `vitalik.eth` | the name with the short address beside it | a name the user did not give could imitate another address |
 | The recipient is flagged | "Suspicious address" with one line on why, under the amount; Confirm stays disabled | |
+| The security scan of the recipient, swap or approval fails | "Security scan failed" on Confirm; Confirm stays open | a missing scan is not a clean one, and a scan outage must not stop every send |
 | The balance can't cover the amount and the Network Fee, on any network | Insufficient Balance | the user sees what to fix, never a network error |
 | A pending send has spent Bitcoin-family coins the wallet still shows | Confirm counts only the coins left unspent: Insufficient Balance when they can't cover the amount and the Network Fee, and Max sends what they hold less the fee; the Network Fee options stay open | the balance updates only when the network confirms, but only unspent coins can be signed |
 | A Bitcoin-family amount, or what Max would send, is under the dust limit | the dust explanation | the network rejects such a small output |

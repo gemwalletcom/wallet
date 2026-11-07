@@ -790,8 +790,10 @@ simulation_warning_unlimited_token_approval_description = 此授權允許被授�
 simulation_warning_externally_owned_spender_description = 此授權允許一般錢包位址（EOA）使用您的資產。僅在您信任此位址時確認。
 simulation_warning_nft_collection_approval_title = 要求存取整個 NFT 系列
 simulation_warning_unlimited_token_approval_title = 無限額代幣授權
-simulation_warning_unverified_title = 我們無法檢查此交易
-simulation_warning_unverified_description = 我們不知道它會執行什麼操作。僅在您信任此應用程式時簽署。
+simulation_warning_simulation_failed_title = 交易模擬失敗
+simulation_warning_simulation_failed_description = 我們不知道它會執行什麼操作。僅在您信任此應用程式時簽署。
+simulation_warning_scan_failed_title = 安全掃描失敗
+simulation_warning_scan_failed_description = 我們無法檢查此交易。
 
 # Application
 

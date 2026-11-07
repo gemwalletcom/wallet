@@ -39,7 +39,7 @@ impl<'a, C: Client + Clone> SimulationClient<'a, C> {
         let warnings = self
             .approval_warnings(&approval)
             .await
-            .unwrap_or_else(|_| vec![SimulationWarning::unverified()])
+            .unwrap_or_else(|_| vec![SimulationWarning::simulation_failed()])
             .into_iter()
             .chain(approval.expiration_warning())
             .collect();
@@ -131,7 +131,7 @@ mod tests {
 
         let result = SimulationClient::new(&client).simulate_evm_calldata(Chain::Ethereum, &calldata, ETHEREUM_USDC_TOKEN_ID).await?;
 
-        assert_eq!(result.warnings, vec![SimulationWarning::unverified()]);
+        assert_eq!(result.warnings, vec![SimulationWarning::simulation_failed()]);
         assert!(result.header.is_some_and(|header| header.is_unlimited));
         assert!(result.payload.iter().any(|field| field.kind == SimulationPayloadFieldKind::Spender));
 

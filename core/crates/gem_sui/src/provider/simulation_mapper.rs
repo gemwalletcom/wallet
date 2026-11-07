@@ -6,12 +6,12 @@ use crate::rpc::proto::{BalanceChange, ExecutedTransaction};
 
 pub fn map_simulation_result(sender: &str, transaction: &ExecutedTransaction) -> SimulationResult {
     if !transaction.execution_success() {
-        return SimulationResult::new(vec![SimulationWarning::unverified()], vec![]);
+        return SimulationResult::new(vec![SimulationWarning::simulation_failed()], vec![]);
     }
 
     match map_balance_changes(sender, &transaction.balance_changes) {
         Ok(balance_changes) => SimulationResult { balance_changes, ..Default::default() },
-        Err(_) => SimulationResult::new(vec![SimulationWarning::unverified()], vec![]),
+        Err(_) => SimulationResult::new(vec![SimulationWarning::simulation_failed()], vec![]),
     }
 }
 
@@ -94,7 +94,7 @@ mod tests {
 
             let result = map_simulation_result(TEST_ADDRESS, &transaction);
 
-            assert_eq!(result.warnings, vec![SimulationWarning::unverified()]);
+            assert_eq!(result.warnings, vec![SimulationWarning::simulation_failed()]);
             assert!(result.balance_changes.is_empty());
         }
 
@@ -132,11 +132,11 @@ mod tests {
 
         let result = map_simulation_result(TEST_ADDRESS, &transaction);
 
-        assert_eq!(result.warnings, vec![SimulationWarning::unverified()]);
+        assert_eq!(result.warnings, vec![SimulationWarning::simulation_failed()]);
         assert!(!result.has_critical_warning());
         assert!(result.balance_changes.is_empty());
 
         let missing_status = ExecutedTransaction::default();
-        assert_eq!(map_simulation_result(TEST_ADDRESS, &missing_status).warnings, vec![SimulationWarning::unverified()]);
+        assert_eq!(map_simulation_result(TEST_ADDRESS, &missing_status).warnings, vec![SimulationWarning::simulation_failed()]);
     }
 }

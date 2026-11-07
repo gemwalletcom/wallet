@@ -632,8 +632,10 @@
   <string name="simulation_warning_externally_owned_spender_description">یہ منظوری ایک عام والیٹ ایڈریس (EOA) کو آپ کے اثاثے استعمال کرنے دیتی ہے۔ صرف اس صورت میں تصدیق کریں جب آپ اس ایڈریس پر اعتماد کرتے ہیں۔</string>
   <string name="simulation_warning_nft_collection_approval_title">مکمل NFT جمع کرنے تک رسائی کی درخواست کی گئی۔</string>
   <string name="simulation_warning_unlimited_token_approval_title">لامحدود ٹوکن کی منظوری</string>
-  <string name="simulation_warning_unverified_title">ہم اس ٹرانزیکشن کی جانچ نہیں کر سکے</string>
-  <string name="simulation_warning_unverified_description">ہمیں نہیں معلوم کہ یہ کیا کرے گی۔ صرف اسی صورت میں دستخط کریں جب آپ کو اس ایپ پر بھروسہ ہو۔</string>
+  <string name="simulation_warning_simulation_failed_title">ٹرانزیکشن کی سمولیشن ناکام ہو گئی</string>
+  <string name="simulation_warning_simulation_failed_description">ہمیں نہیں معلوم کہ یہ کیا کرے گی۔ صرف اسی صورت میں دستخط کریں جب آپ کو اس ایپ پر بھروسہ ہو۔</string>
+  <string name="simulation_warning_scan_failed_title">سیکیورٹی اسکین ناکام ہو گیا</string>
+  <string name="simulation_warning_scan_failed_description">ہم اس ٹرانزیکشن کی جانچ نہیں کر سکے۔</string>
   <string name="application_name">Gem</string>
   <string name="rootcheck_security_alert">سیکیورٹی وارننگ</string>
   <string name="rootcheck_jailbreak_body">لگتا ہے کہ آپ کے آلے پر جیل بریک کیا گیا ہے۔ اس سے آپ کا والیٹ اور فنڈز خطرے میں پڑ سکتے ہیں۔</string>

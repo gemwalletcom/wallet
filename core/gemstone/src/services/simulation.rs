@@ -78,7 +78,7 @@ impl GemSimulationService {
             WalletConnectTransactionType::Ton { .. } => self.simulate_chain_transaction(Chain::Ton, session_input()).await,
             WalletConnectTransactionType::Tron { .. } => self.simulate_chain_transaction(Chain::Tron, session_input()).await,
         }
-        .unwrap_or_else(|_| SimulationResult::new(vec![SimulationWarning::unverified()], vec![]));
+        .unwrap_or_else(|_| SimulationResult::new(vec![SimulationWarning::simulation_failed()], vec![]));
 
         Ok(simulation.prepend_warnings(validation_warnings))
     }
@@ -103,7 +103,10 @@ impl GemSimulationService {
             EvmTransactionKind::TokenApproval(_) => Ok(SimulationClient::new(&provider).simulate_evm_calldata(chain, &calldata, &transaction.to).await?),
             EvmTransactionKind::Transfer | EvmTransactionKind::ContractCall => {
                 let (calldata_result, balance_result) = self.simulate_calldata_and_balance_changes(chain, &calldata, &provider, &transaction).await;
-                Ok(contract_call_result(calldata_result?, balance_result.unwrap_or_else(|_| SimulationResult::new(vec![SimulationWarning::unverified()], vec![]))))
+                Ok(contract_call_result(
+                    calldata_result?,
+                    balance_result.unwrap_or_else(|_| SimulationResult::new(vec![SimulationWarning::simulation_failed()], vec![])),
+                ))
             }
         }
     }
@@ -386,7 +389,8 @@ enum WarningKind {
     ExternallyOwnedSpender,
     SuspiciousSpender,
     ValidationError,
-    Unverified,
+    SimulationFailed,
+    ScanFailed,
 }
 
 impl WarningKind {
@@ -396,7 +400,8 @@ impl WarningKind {
             Self::NftCollectionApproval => GemListRowTitle::NftCollectionApproval,
             Self::ExternallyOwnedSpender => GemListRowTitle::Warning,
             Self::SuspiciousSpender => suspicious_address_title(notice_kind(severity)),
-            Self::Unverified => GemListRowTitle::TransactionUnverified,
+            Self::SimulationFailed => GemListRowTitle::SimulationFailed,
+            Self::ScanFailed => GemListRowTitle::ScanFailed,
             Self::ValidationError => match severity {
                 SimulationSeverity::Critical => GemListRowTitle::Error,
                 SimulationSeverity::Low | SimulationSeverity::Warning => GemListRowTitle::Warning,
@@ -410,7 +415,8 @@ impl WarningKind {
             Self::ExternallyOwnedSpender => Some(GemLocalizedText::ExternallyOwnedSpenderWarning),
             Self::SuspiciousSpender => Some(GemLocalizedText::SuspiciousAddressDescription),
             Self::NftCollectionApproval => None,
-            Self::Unverified => Some(GemLocalizedText::TransactionUnverifiedWarning),
+            Self::SimulationFailed => Some(GemLocalizedText::SimulationFailedWarning),
+            Self::ScanFailed => Some(GemLocalizedText::ScanFailedWarning),
             Self::ValidationError => match severity {
                 SimulationSeverity::Critical => Some(GemLocalizedText::ErrorOccurred),
                 SimulationSeverity::Low | SimulationSeverity::Warning => None,
@@ -437,7 +443,8 @@ pub fn warning_rows(warnings: &[SimulationWarning]) -> Vec<GemListRow> {
                 SimulationWarningType::ExternallyOwnedSpender => Some(WarningKind::ExternallyOwnedSpender),
                 SimulationWarningType::SuspiciousSpender => Some(WarningKind::SuspiciousSpender),
                 SimulationWarningType::ValidationError => Some(WarningKind::ValidationError),
-                SimulationWarningType::Unverified => Some(WarningKind::Unverified),
+                SimulationWarningType::SimulationFailed => Some(WarningKind::SimulationFailed),
+                SimulationWarningType::ScanFailed => Some(WarningKind::ScanFailed),
             }?;
             Some(GemListRow::Notice {
                 title: kind.title(warning.severity),
@@ -476,7 +483,8 @@ mod tests {
             SimulationWarning::mock(SimulationWarningType::NftCollectionApproval(AssetId::from_chain(Chain::Ethereum))),
             SimulationWarning::mock(SimulationWarningType::ExternallyOwnedSpender),
             SimulationWarning::mock(SimulationWarningType::SuspiciousSpender),
-            SimulationWarning::unverified(),
+            SimulationWarning::simulation_failed(),
+            SimulationWarning::scan_failed(),
             SimulationWarning::validation_error("Chain ID mismatch"),
         ]);
         let notice = |title: GemListRowTitle, message: Option<GemLocalizedText>| GemListRow::Notice {
@@ -495,7 +503,8 @@ mod tests {
                 notice(GemListRowTitle::NftCollectionApproval, None),
                 notice(GemListRowTitle::Warning, Some(GemLocalizedText::ExternallyOwnedSpenderWarning)),
                 suspicious_address_notice(GemNoticeKind::Warning),
-                notice(GemListRowTitle::TransactionUnverified, Some(GemLocalizedText::TransactionUnverifiedWarning)),
+                notice(GemListRowTitle::SimulationFailed, Some(GemLocalizedText::SimulationFailedWarning)),
+                notice(GemListRowTitle::ScanFailed, Some(GemLocalizedText::ScanFailedWarning)),
                 GemListRow::Notice {
                     title: GemListRowTitle::Error,
                     message: Some(GemLocalizedText::Text { text: "Chain ID mismatch".to_string() }),
@@ -776,7 +785,7 @@ mod tests {
                 .await
                 .unwrap();
 
-            assert_eq!(result.warnings, vec![SimulationWarning::unverified()]);
+            assert_eq!(result.warnings, vec![SimulationWarning::simulation_failed()]);
             assert!(provider.requested_paths().is_empty());
         });
     }

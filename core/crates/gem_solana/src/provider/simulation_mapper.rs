@@ -7,7 +7,7 @@ use crate::models::{SimulateTransactionResult, TokenBalance};
 
 pub fn map_simulation_result(account_keys: &[String], signer_addresses: &HashSet<String>, simulation: SimulateTransactionResult) -> SimulationResult {
     if simulation.err.is_some() {
-        return SimulationResult::new(vec![SimulationWarning::unverified()], vec![]);
+        return SimulationResult::new(vec![SimulationWarning::simulation_failed()], vec![]);
     }
 
     let balance_changes = map_balance_changes(
@@ -256,7 +256,7 @@ mod tests {
             },
         );
 
-        assert_eq!(result.warnings, vec![SimulationWarning::unverified()]);
+        assert_eq!(result.warnings, vec![SimulationWarning::simulation_failed()]);
         assert_eq!(result.balance_changes, vec![]);
     }
 }

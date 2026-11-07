@@ -1,4 +1,3 @@
-pub mod dai;
 pub mod eip3009;
 pub mod erc1155;
 pub mod erc20;
@@ -8,7 +7,6 @@ pub mod erc721;
 pub mod okx;
 pub mod sunswap;
 
-pub use dai::IDai;
 pub use eip3009::IEIP3009;
 pub use erc20::IERC20;
 pub use erc677::IERC677;

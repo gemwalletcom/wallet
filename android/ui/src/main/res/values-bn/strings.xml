@@ -632,8 +632,10 @@
   <string name="simulation_warning_externally_owned_spender_description">এই অনুমোদন একটি সাধারণ ওয়ালেট ঠিকানাকে (EOA) আপনার সম্পদ ব্যবহার করতে দেয়। আপনি এই ঠিকানাকে বিশ্বাস করলেই নিশ্চিত করুন।</string>
   <string name="simulation_warning_nft_collection_approval_title">সম্পূর্ণ NFT সংগ্রহের অ্যাক্সেসের অনুরোধ করা হয়েছে</string>
   <string name="simulation_warning_unlimited_token_approval_title">সীমাহীন টোকেন অনুমোদন</string>
-  <string name="simulation_warning_unverified_title">আমরা এই লেনদেনটি যাচাই করতে পারিনি</string>
-  <string name="simulation_warning_unverified_description">আমরা জানি না এটি কী করবে। শুধু এই অ্যাপে আস্থা থাকলেই স্বাক্ষর করুন।</string>
+  <string name="simulation_warning_simulation_failed_title">লেনদেন সিমুলেশন ব্যর্থ হয়েছে</string>
+  <string name="simulation_warning_simulation_failed_description">আমরা জানি না এটি কী করবে। শুধু এই অ্যাপে আস্থা থাকলেই স্বাক্ষর করুন।</string>
+  <string name="simulation_warning_scan_failed_title">নিরাপত্তা স্ক্যান ব্যর্থ হয়েছে</string>
+  <string name="simulation_warning_scan_failed_description">আমরা এই লেনদেনটি যাচাই করতে পারিনি।</string>
   <string name="application_name">Gem</string>
   <string name="rootcheck_security_alert">নিরাপত্তা সতর্কতা</string>
   <string name="rootcheck_jailbreak_body">আপনার ডিভাইস জেলব্রোক করা বলে মনে হচ্ছে। এতে আপনার ওয়ালেট ও তহবিল ঝুঁকিতে পড়তে পারে।</string>

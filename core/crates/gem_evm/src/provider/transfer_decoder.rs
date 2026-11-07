@@ -3,7 +3,6 @@ use alloy_sol_types::{SolCall, SolInterface};
 use num_bigint::BigInt;
 use primitives::hex;
 
-use crate::contracts::dai::IDai::IDaiCalls;
 use crate::contracts::eip3009::IEIP3009::IEIP3009Calls;
 use crate::contracts::erc20::IERC20::{self, IERC20Calls};
 use crate::contracts::erc677::IERC677;
@@ -46,18 +45,6 @@ pub fn decode_transfer(entry: &TraceCallEntry) -> Option<DecodedTransfer> {
         };
     }
 
-    if let Ok(call) = IDaiCalls::abi_decode(&calldata) {
-        return Some(match call {
-            IDaiCalls::push(call) => DecodedTransfer::new(action.from.clone(), call.usr, &call.wad),
-            IDaiCalls::pull(call) => DecodedTransfer {
-                from: call.usr.to_string(),
-                to: action.from.clone(),
-                amount: BigInt::from(u256_to_biguint(&call.wad)),
-            },
-            IDaiCalls::r#move(call) => DecodedTransfer::new(call.src.to_string(), call.dst, &call.wad),
-        });
-    }
-
     if let Ok(call) = IERC677::transferAndCallCall::abi_decode(&calldata) {
         return accepted::<IERC677::transferAndCallCall>(&output).then(|| DecodedTransfer::new(action.from.clone(), call.to, &call.value));
     }
@@ -66,7 +53,7 @@ pub fn decode_transfer(entry: &TraceCallEntry) -> Option<DecodedTransfer> {
 }
 
 fn accepted<C: SolCall<Return = bool>>(output: &[u8]) -> bool {
-    C::abi_decode_returns(output).unwrap_or(true)
+    output.is_empty() || C::abi_decode_returns(output).unwrap_or(false)
 }
 
 #[cfg(test)]
@@ -74,11 +61,11 @@ mod tests {
     use super::*;
     use alloy_primitives::B256;
     use alloy_sol_types::SolCall;
-    use primitives::asset_constants::{ETHEREUM_DAI_TOKEN_ID, ETHEREUM_USDC_TOKEN_ID};
+    use primitives::asset_constants::ETHEREUM_USDC_TOKEN_ID;
     use primitives::testkit::signer_mock::TEST_EVM_RECIPIENT;
     use std::str::FromStr;
 
-    use crate::contracts::{IDai, IEIP3009};
+    use crate::contracts::IEIP3009;
     use crate::rpc::model::TraceCallAction;
     use crate::testkit::TEST_ADDRESS;
 
@@ -105,30 +92,5 @@ mod tests {
         };
         let transfer = decode_transfer(&entry).unwrap();
         assert_eq!(transfer.amount, BigInt::from(1_000_000));
-    }
-
-    #[test]
-    fn test_decode_transfer_dai_pull_and_move() {
-        let entry = |calldata: Vec<u8>| TraceCallEntry {
-            action: TraceCallAction::mock(ETHEREUM_DAI_TOKEN_ID, calldata),
-            error: None,
-            result: None,
-            trace_address: vec![],
-        };
-        let recipient = Address::from_str(TEST_EVM_RECIPIENT).unwrap();
-
-        let pull = decode_transfer(&entry(IDai::pullCall { usr: recipient, wad: U256::from(5u64) }.abi_encode())).unwrap();
-        assert_eq!((pull.from, pull.to), (recipient.to_string(), TEST_ADDRESS.to_string()));
-
-        let moved = decode_transfer(&entry(
-            IDai::moveCall {
-                src: Address::from_str(TEST_ADDRESS).unwrap(),
-                dst: recipient,
-                wad: U256::from(5u64),
-            }
-            .abi_encode(),
-        ))
-        .unwrap();
-        assert_eq!((moved.from, moved.to), (TEST_ADDRESS.to_string(), recipient.to_string()));
     }
 }

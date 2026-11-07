@@ -790,8 +790,10 @@ simulation_warning_unlimited_token_approval_description = 이렇게 하면 사�
 simulation_warning_externally_owned_spender_description = 이 승인은 일반 지갑 주소(EOA)가 내 자산을 사용할 수 있게 합니다. 이 주소를 신뢰하는 경우에만 확인하세요.
 simulation_warning_nft_collection_approval_title = NFT 컬렉션 전체 접근 권한이 요청되었습니다.
 simulation_warning_unlimited_token_approval_title = 무제한 토큰 승인
-simulation_warning_unverified_title = 이 거래를 확인하지 못했습니다
-simulation_warning_unverified_description = 이 거래가 무엇을 할지 알 수 없습니다. 이 앱을 신뢰하는 경우에만 서명하세요.
+simulation_warning_simulation_failed_title = 거래 시뮬레이션에 실패했습니다
+simulation_warning_simulation_failed_description = 이 거래가 무엇을 할지 알 수 없습니다. 이 앱을 신뢰하는 경우에만 서명하세요.
+simulation_warning_scan_failed_title = 보안 검사에 실패했습니다
+simulation_warning_scan_failed_description = 이 거래를 확인하지 못했습니다.
 
 # Application
 

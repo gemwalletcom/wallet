@@ -4,6 +4,7 @@ use primitives::{
 };
 
 use crate::models::gateway::GemTransactionPreloadInput;
+use crate::services::error::GemServiceError;
 
 fn requires_scan(input_type: &TransactionInputType) -> bool {
     match input_type {
@@ -99,6 +100,18 @@ pub fn sign_message_verdict(scan: Option<&ScanTransaction>, payload: &ScanTransa
         true => SignMessageVerdict::SuspiciousSpender,
         false => SignMessageVerdict::Allowed,
     }
+}
+
+pub fn scan_warnings(scan: &Result<ScanTransaction, GemServiceError>) -> Vec<SimulationWarning> {
+    match scan {
+        Ok(_) => vec![],
+        Err(_) => vec![SimulationWarning::scan_failed()],
+    }
+}
+
+pub fn with_scan_warnings(mut simulation: SimulationResult, scan: &Result<ScanTransaction, GemServiceError>) -> SimulationResult {
+    simulation.warnings.extend(scan_warnings(scan));
+    simulation
 }
 
 pub fn with_suspicious_spender(mut simulation: SimulationResult) -> SimulationResult {
@@ -361,5 +374,19 @@ mod tests {
         );
         assert_eq!(sign_message_verdict(Some(&scan(r#"{"isScanComplete":true}"#)), &payload), SignMessageVerdict::Allowed);
         assert_eq!(with_suspicious_spender(permit(None)).warnings[0].severity, SimulationSeverity::Critical);
+    }
+
+    #[test]
+    fn test_only_a_failed_scan_warns() {
+        let scan = |json: &str| Ok(serde_json::from_str::<ScanTransaction>(json).unwrap());
+
+        assert!(scan_warnings(&scan(r#"{"isScanComplete":true}"#)).is_empty());
+        assert!(scan_warnings(&scan(r#"{"isScanComplete":false}"#)).is_empty());
+        assert_eq!(scan_warnings(&Err(GemServiceError::Offline)), vec![SimulationWarning::scan_failed()]);
+        assert_eq!(
+            with_scan_warnings(permit(None), &Err(GemServiceError::Offline)).warnings.last(),
+            Some(&SimulationWarning::scan_failed()),
+            "the scan warning sits next to the simulation's own warnings"
+        );
     }
 }

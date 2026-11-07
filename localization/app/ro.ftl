@@ -790,8 +790,10 @@ simulation_warning_unlimited_token_approval_description = Aceasta îi oferă che
 simulation_warning_externally_owned_spender_description = Această aprobare permite unei adrese obișnuite de portofel (EOA) să folosească activele tale. Confirmă doar dacă ai încredere în această adresă.
 simulation_warning_nft_collection_approval_title = Acces complet la colecția NFT solicitat
 simulation_warning_unlimited_token_approval_title = Aprobare nelimitată de tokenuri
-simulation_warning_unverified_title = Nu am putut verifica această tranzacție
-simulation_warning_unverified_description = Nu știm ce va face. Semnează doar dacă ai încredere în această aplicație.
+simulation_warning_simulation_failed_title = Simularea tranzacției a eșuat
+simulation_warning_simulation_failed_description = Nu știm ce va face. Semnează doar dacă ai încredere în această aplicație.
+simulation_warning_scan_failed_title = Scanarea de securitate a eșuat
+simulation_warning_scan_failed_description = Nu am putut verifica această tranzacție.
 
 # Application
 

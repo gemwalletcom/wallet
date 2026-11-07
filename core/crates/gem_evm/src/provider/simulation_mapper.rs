@@ -10,7 +10,7 @@ use crate::rpc::model::TraceCallResult;
 
 pub fn map_simulation_result(chain: Chain, signer: &str, trace: &TraceCallResult) -> SimulationResult {
     if trace.root_call_error().is_some() {
-        return SimulationResult::new(vec![SimulationWarning::unverified()], vec![]);
+        return SimulationResult::new(vec![SimulationWarning::simulation_failed()], vec![]);
     }
 
     SimulationResult {
@@ -69,7 +69,7 @@ mod tests {
     use super::*;
     use alloy_primitives::{Address, U160, U256, address};
     use alloy_sol_types::SolCall;
-    use primitives::asset_constants::{ETHEREUM_DAI_TOKEN_ID, ETHEREUM_LINK_TOKEN_ID, ETHEREUM_USDC_TOKEN_ID};
+    use primitives::asset_constants::{ETHEREUM_LINK_TOKEN_ID, ETHEREUM_USDC_TOKEN_ID};
     use primitives::contract_constants::UNISWAP_PERMIT2_CONTRACT;
     use primitives::testkit::json_rpc::load_json_rpc_result;
     use primitives::testkit::signer_mock::TEST_EVM_RECIPIENT;
@@ -104,7 +104,7 @@ mod tests {
         let reverted_root: TraceCallResult = load_json_rpc_result(include_str!("../../testdata/trace_call_reverted_root.json"));
         let result = map_simulation_result(Chain::Ethereum, TEST_ADDRESS, &reverted_root);
 
-        assert_eq!(result.warnings, vec![SimulationWarning::unverified()]);
+        assert_eq!(result.warnings, vec![SimulationWarning::simulation_failed()]);
         assert!(result.balance_changes.is_empty());
 
         let reverted_subcall_only: TraceCallResult = load_json_rpc_result(include_str!("../../testdata/trace_call_subcall_reverted.json"));
@@ -190,22 +190,6 @@ mod tests {
     }
 
     #[test]
-    fn test_map_simulation_result_dai_push() {
-        let trace: TraceCallResult = load_json_rpc_result(include_str!("../../testdata/trace_call_dai_push.json"));
-
-        assert_eq!(
-            map_simulation_result(Chain::Ethereum, "0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf", &trace).balance_changes,
-            vec![SimulationBalanceChange {
-                asset_id: AssetId::from_token(Chain::Ethereum, ETHEREUM_DAI_TOKEN_ID),
-                value: BigInt::from(-1_000_000_000_000_000_000_000i128),
-                decimals: 0,
-                name: None,
-                symbol: None,
-            }]
-        );
-    }
-
-    #[test]
     fn test_map_simulation_result_erc677_transfer_and_call() {
         let trace: TraceCallResult = load_json_rpc_result(include_str!("../../testdata/trace_call_erc677_transfer_and_call.json"));
 
@@ -219,6 +203,15 @@ mod tests {
                 symbol: None,
             }]
         );
+    }
+
+    #[test]
+    fn test_map_simulation_result_skips_transfer_with_malformed_return() {
+        let trace: TraceCallResult = load_json_rpc_result(
+            &include_str!("../../testdata/trace_call_erc677_transfer_and_call.json").replace("0x0000000000000000000000000000000000000000000000000000000000000001", "0x00"),
+        );
+
+        assert_eq!(map_simulation_result(Chain::Ethereum, "0xF977814e90dA44bFA03b6295A0616a897441aceC", &trace).balance_changes, vec![]);
     }
 
     #[test]

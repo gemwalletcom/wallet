@@ -632,8 +632,10 @@
   <string name="simulation_warning_externally_owned_spender_description">Met deze goedkeuring kan een gewoon walletadres (EOA) uw assets gebruiken. Bevestig alleen als u dit adres vertrouwt.</string>
   <string name="simulation_warning_nft_collection_approval_title">Volledige toegang tot de NFT-collectie aangevraagd</string>
   <string name="simulation_warning_unlimited_token_approval_title">Onbeperkte tokengoedkeuring</string>
-  <string name="simulation_warning_unverified_title">We konden deze transactie niet controleren</string>
-  <string name="simulation_warning_unverified_description">We weten niet wat deze zal doen. Onderteken alleen als u deze app vertrouwt.</string>
+  <string name="simulation_warning_simulation_failed_title">Simulatie van de transactie mislukt</string>
+  <string name="simulation_warning_simulation_failed_description">We weten niet wat deze zal doen. Onderteken alleen als u deze app vertrouwt.</string>
+  <string name="simulation_warning_scan_failed_title">Beveiligingscontrole mislukt</string>
+  <string name="simulation_warning_scan_failed_description">We konden deze transactie niet controleren.</string>
   <string name="application_name">Gem</string>
   <string name="rootcheck_security_alert">Beveiligingswaarschuwing</string>
   <string name="rootcheck_jailbreak_body">Uw apparaat lijkt gejailbreakt te zijn. Dit kan uw portemonnee en tegoeden in gevaar brengen.</string>

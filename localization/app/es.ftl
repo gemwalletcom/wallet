@@ -790,8 +790,10 @@ simulation_warning_unlimited_token_approval_description = Esto permite a la dire
 simulation_warning_externally_owned_spender_description = Esta aprobación permite que una dirección de billetera normal (EOA) use tus activos. Confirma solo si confías en esta dirección.
 simulation_warning_nft_collection_approval_title = Se solicita acceso completo a la colección NFT
 simulation_warning_unlimited_token_approval_title = Aprobación ilimitada de tokens
-simulation_warning_unverified_title = No pudimos verificar esta transacción
-simulation_warning_unverified_description = No sabemos qué hará. Firma solo si confías en esta aplicación.
+simulation_warning_simulation_failed_title = Falló la simulación de la transacción
+simulation_warning_simulation_failed_description = No sabemos qué hará. Firma solo si confías en esta aplicación.
+simulation_warning_scan_failed_title = Falló el análisis de seguridad
+simulation_warning_scan_failed_description = No pudimos revisar esta transacción.
 
 # Application
 

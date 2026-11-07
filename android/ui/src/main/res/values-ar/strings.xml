@@ -632,8 +632,10 @@
   <string name="simulation_warning_externally_owned_spender_description">تسمح هذه الموافقة لعنوان محفظة عادي (EOA) باستخدام أصولك. أكّد فقط إذا كنت تثق بهذا العنوان.</string>
   <string name="simulation_warning_nft_collection_approval_title">تم طلب الوصول الكامل إلى مجموعة NFT</string>
   <string name="simulation_warning_unlimited_token_approval_title">الموافقة على الرموز المميزة غير محدودة</string>
-  <string name="simulation_warning_unverified_title">تعذّر علينا التحقق من هذه المعاملة</string>
-  <string name="simulation_warning_unverified_description">لا نعرف ما الذي ستفعله. وقّع فقط إذا كنت تثق بهذا التطبيق.</string>
+  <string name="simulation_warning_simulation_failed_title">فشلت محاكاة المعاملة</string>
+  <string name="simulation_warning_simulation_failed_description">لا نعرف ما الذي ستفعله. وقّع فقط إذا كنت تثق بهذا التطبيق.</string>
+  <string name="simulation_warning_scan_failed_title">فشل الفحص الأمني</string>
+  <string name="simulation_warning_scan_failed_description">تعذّر علينا فحص هذه المعاملة.</string>
   <string name="application_name">Gem</string>
   <string name="rootcheck_security_alert">تحذير أمني</string>
   <string name="rootcheck_jailbreak_body">يبدو أن جهازك قد خضع لكسر الحماية. قد يعرض ذلك محفظتك وأموالك للخطر.</string>
