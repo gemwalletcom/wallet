@@ -267,9 +267,6 @@ dependencies {
     implementation(libs.navigation3.runtime)
     implementation(libs.navigation3.ui)
 
-    implementation(libs.widgets)
-    implementation(libs.work.runtime)
-
     // Legacy encrypted preferences migration
     implementation(libs.androidx.security.crypto)
     // Auth
