@@ -1,5 +1,5 @@
 [files.apps]
-include = ["ios/Features/**/*.swift", "ios/Packages/**/*.swift", "ios/Gem/**/*.swift", "ios/GemPriceWidget/**/*.swift", "android/**/*.kt"]
+include = ["ios/Features/**/*.swift", "ios/Packages/**/*.swift", "ios/Gem/**/*.swift", "android/**/*.kt"]
 exclude = [
     "**/build/**", "**/.build/**", "**/generated/**", "**/Submodules/**", "**/DerivedData/**",
     "**/test/**", "**/androidTest/**", "**/testFixtures/**", "**/Tests/**", "**/TestKit/**",

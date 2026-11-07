@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-IOS_FILE="$ROOT_DIR/ios/Gem.xcodeproj/project.pbxproj"
+IOS_FILE="$ROOT_DIR/ios/Gem.xcodeproj/project.xcproj"
 ANDROID_FILE="$ROOT_DIR/android/app/build.gradle.kts"
 CORE_FILE="$ROOT_DIR/core/Cargo.toml"
 CORE_LOCK_FILE="$ROOT_DIR/core/Cargo.lock"
@@ -56,7 +56,7 @@ resolve_version() {
 
 verify_latest_branch
 
-current_ios_version=$(grep -oE "MARKETING_VERSION = [0-9]+\.[0-9]+\.[0-9]+;" "$IOS_FILE" | head -n1 | grep -oE "[0-9]+\.[0-9]+\.[0-9]+")
+current_ios_version=$(grep -oE "\"MARKETING_VERSION\": \"[0-9]+\.[0-9]+\.[0-9]+\"" "$IOS_FILE" | head -n1 | grep -oE "[0-9]+\.[0-9]+\.[0-9]+")
 current_android_version=$(grep 'versionName = "' "$ANDROID_FILE" | sed 's/.*versionName = "//' | sed 's/".*//')
 current_core_version=$(grep -oE '^version = "[0-9]+\.[0-9]+\.[0-9]+"' "$CORE_FILE" | head -n1 | sed 's/version = "//; s/"//')
 
@@ -68,7 +68,7 @@ current_version="$current_ios_version"
 new_version="$(resolve_version "$TARGET")"
 new_core_version="$new_version"
 
-current_ios_build=$(grep -oE "CURRENT_PROJECT_VERSION = [0-9]+;" "$IOS_FILE" | head -n1 | grep -oE "[0-9]+")
+current_ios_build=$(grep -oE "\"CURRENT_PROJECT_VERSION\": \"[0-9]+\"" "$IOS_FILE" | head -n1 | grep -oE "[0-9]+")
 current_android_build=$(grep "versionCode = " "$ANDROID_FILE" | sed 's/.*versionCode = //' | sed 's/[^0-9].*//')
 
 new_ios_build=$((current_ios_build + 1))
@@ -76,8 +76,8 @@ new_android_build=$((current_android_build + 1))
 
 git rev-parse -q --verify "refs/tags/$new_version" >/dev/null && fail "Tag $new_version already exists."
 
-sed -i '' "s/MARKETING_VERSION = $current_version;/MARKETING_VERSION = $new_version;/g" "$IOS_FILE"
-sed -i '' "s/CURRENT_PROJECT_VERSION = $current_ios_build;/CURRENT_PROJECT_VERSION = $new_ios_build;/g" "$IOS_FILE"
+sed -i '' "s/\"MARKETING_VERSION\": \"$current_version\"/\"MARKETING_VERSION\": \"$new_version\"/g" "$IOS_FILE"
+sed -i '' "s/\"CURRENT_PROJECT_VERSION\": \"$current_ios_build\"/\"CURRENT_PROJECT_VERSION\": \"$new_ios_build\"/g" "$IOS_FILE"
 sed -i '' "s/versionName = \"$current_version\"/versionName = \"$new_version\"/" "$ANDROID_FILE"
 sed -i '' "s/versionCode = $current_android_build/versionCode = $new_android_build/" "$ANDROID_FILE"
 sed -i '' "s/^version = \"$current_core_version\"/version = \"$new_core_version\"/" "$CORE_FILE"

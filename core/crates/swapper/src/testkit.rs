@@ -8,6 +8,8 @@ use primitives::{AssetId, Chain, asset_constants::TON_USDT_TOKEN_ID};
 use std::sync::{Arc, Mutex};
 
 use super::{Options, Quote, QuoteRequest};
+#[cfg(test)]
+use crate::alien::mock::{MockFn, ProviderMock};
 #[cfg(feature = "swap_integration_tests")]
 use crate::client_factory::create_client_with_chain;
 #[cfg(feature = "swap_integration_tests")]
@@ -266,5 +268,22 @@ impl Swapper for MockSwapper {
         };
         self.builds.lock().unwrap().push(data);
         Ok(SwapperQuoteData { permit2, ..self.quote_data.clone() })
+    }
+}
+
+#[cfg(test)]
+impl crate::hyperliquid::HyperCoreSpot {
+    pub fn mock() -> Self {
+        Self::new(Arc::new(ProviderMock {
+            response: MockFn(Box::new(|target| {
+                let body = serde_json::from_slice::<serde_json::Value>(&target.body.unwrap_or_default()).unwrap();
+                match body["type"].as_str() {
+                    Some("spotMeta") => include_str!("../../gem_hypercore/testdata/spot_meta_spot_swap.json"),
+                    Some("l2Book") => include_str!("../../gem_hypercore/testdata/l2_book_spot_swap.json"),
+                    other => panic!("unexpected request: {other:?}"),
+                }
+                .to_string()
+            })),
+        }))
     }
 }

@@ -96,12 +96,12 @@ struct PerpetualSceneViewModelTests {
         #expect(model.isPresentingModifyAlert == true)
 
         model.onSelectButton(.increase)
-        #expect(model.isPresentingModifyAlert == false)
+        #expect(model.isPresentingModifyAlert == nil)
         #expect(service.positionKinds == [.increase])
 
         model.onSelectButton(.modify)
         model.onSelectButton(.reduce)
-        #expect(model.isPresentingModifyAlert == false)
+        #expect(model.isPresentingModifyAlert == nil)
         #expect(service.positionKinds == [.increase, .reduce])
         #expect(service.positionActionPositions == [position, position])
     }

@@ -2,15 +2,6 @@
 -keepattributes SourceFile
 -renamesourcefileattribute SourceFile
 
-# Allow optimization while preserving stack traces.
--optimizations !code/allocation/variable
--optimizations !class/unboxing/enum
-
--keep class com.sun.jna.** { *; }
--keep class * extends com.sun.jna.Structure { *; }
--keep class uniffi.** { *; }
--keepattributes RuntimeVisibleAnnotations
-
 -keepnames @dagger.hilt.android.lifecycle.HiltViewModel class * extends androidx.lifecycle.ViewModel
 
 # Reproducible builds: prevent R8 non-deterministic inlining of appcompat methods
@@ -21,8 +12,10 @@
     *;
 }
 
-# Room resolves its generated Database/Dao implementations by class name at runtime;
-# keep them and the annotated declarations they're generated from intact.
+# Room only looks up <Database>_Impl by name, which Room's own rule keeps. These rules came
+# back after a crash on update (#824) whose stack trace was not recorded. Each one changes
+# the release DEX: prove a removal with an upgrade install of a release build, not by
+# reading our sources.
 -keep class * extends androidx.room.RoomDatabase { *; }
 -keep @androidx.room.Dao class * { *; }
 -keep @androidx.room.Entity class * { *; }

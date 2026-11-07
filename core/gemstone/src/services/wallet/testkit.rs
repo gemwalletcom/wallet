@@ -182,11 +182,7 @@ impl WalletTestkit {
             Arc::new(GemWalletPreferencesService::new(Arc::new(MemoryWalletPreferencesStore::default()))),
             Arc::new(GemExplorerService::new(app_preferences)),
             names,
-            Arc::new(GemAvatarService::new(
-                wallets.clone(),
-                Arc::new(NoopFileStore),
-                Arc::new(TestAlienProvider::new(crate::alien::AlienResponse::new(None, Vec::new()))),
-            )),
+            Arc::new(GemAvatarService::mock(wallets.clone(), Arc::new(NoopFileStore))),
         ));
         Self {
             service,

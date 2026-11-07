@@ -1,7 +1,9 @@
 # UniFFI registers generated native methods through JNA and JNA reflects over
 # callback methods, Structure fields, and @Structure.FieldOrder annotations.
 -keep class com.sun.jna.** { *; }
--keep class uniffi.gemstone.** { *; }
+-keep class * extends com.sun.jna.Structure { *; }
+-keep class * implements com.sun.jna.Callback { *; }
+-keepclasseswithmembernames class uniffi.** { native <methods>; }
 -keepattributes RuntimeVisibleAnnotations
 
 # JNA packages desktop-only AWT helpers that are unreachable on Android.

@@ -1,6 +1,6 @@
 use num_bigint::BigUint;
 
-const MIN_ORDER_VALUE_USD: f64 = 10.0;
+pub const MIN_ORDER_VALUE_USD: u32 = 10;
 const USDC_CENTS_MULTIPLIER: f64 = 100.0;
 pub const USDC_DECIMALS_MULTIPLIER: f64 = 1_000_000.0;
 const DECIMAL_POINT: char = '.';
@@ -17,7 +17,7 @@ pub struct PerpetualFormatter;
 impl PerpetualFormatter {
     pub fn minimum_order_usd_amount(price: f64, sz_decimals: u32, leverage: u8) -> u64 {
         let size_multiplier = 10_f64.powi(sz_decimals as i32);
-        let rounded_size = ((MIN_ORDER_VALUE_USD / price) * size_multiplier).ceil() / size_multiplier;
+        let rounded_size = ((f64::from(MIN_ORDER_VALUE_USD) / price) * size_multiplier).ceil() / size_multiplier;
         let min_usd = ((rounded_size * price / f64::from(leverage)) * USDC_CENTS_MULTIPLIER).ceil() / USDC_CENTS_MULTIPLIER;
 
         (min_usd * USDC_DECIMALS_MULTIPLIER) as u64

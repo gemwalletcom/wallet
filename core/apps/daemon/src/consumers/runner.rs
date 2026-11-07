@@ -1,13 +1,14 @@
 use std::error::Error;
 use std::sync::Arc;
+use std::time::Instant;
 
 use gem_tracing::{error_with_fields, info_with_fields};
 use primitives::Chain;
 use services::Services;
 use settings::Settings;
-use streamer::{ConsumerConfig, ConsumerStatusReporter, ShutdownReceiver, StreamConnection, StreamProducer, StreamReader};
+use streamer::{Backoff, ConsumerConfig, ConsumerStatusReporter, ShutdownReceiver, StreamConnection, StreamProducer, StreamReader};
 
-use crate::consumers::{consumer_config, reader_config};
+use crate::consumers::{consumer_config, reader_config, stream_connection, stream_retry};
 
 #[derive(Clone)]
 pub struct ChainConsumerRunner {
@@ -23,7 +24,7 @@ pub struct ChainConsumerRunner {
 impl ChainConsumerRunner {
     pub async fn new(services: Services, queue: streamer::QueueName, shutdown: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>) -> Result<Self, Box<dyn Error + Send + Sync>> {
         let settings = services.settings().as_ref().clone();
-        let connection = StreamConnection::new(&settings.rabbitmq.url, queue.to_string()).await?;
+        let connection = stream_connection(&settings.rabbitmq, queue.to_string(), &shutdown).await?;
         let config = consumer_config(&settings.consumer);
         Ok(Self {
             services,
@@ -59,7 +60,7 @@ impl ChainConsumerRunner {
         Fut: std::future::Future<Output = Result<(), Box<dyn Error + Send + Sync>>> + Send + 'static,
     {
         info_with_fields!("running consumer", consumer = self.queue.to_string(), chains = chains.len());
-        let restart_delay = self.config.timeout_on_error;
+        let retry = stream_retry(&self.settings.consumer.restart);
         let retries = self.config.retries;
         let queue = self.queue.to_string();
 
@@ -68,18 +69,19 @@ impl ChainConsumerRunner {
             let runner = self.clone();
             let f = f.clone();
             let queue = queue.clone();
+            let mut backoff = Backoff::new(retry.clone());
             set.spawn(async move {
-                let mut failures: u32 = 0;
                 loop {
+                    let started = Instant::now();
                     match f(runner.clone(), chain).await {
                         Ok(()) => return Ok(()),
                         Err(error) => {
-                            failures += 1;
-                            error_with_fields!("consumer chain error", &*error, consumer = queue.as_str(), chain = chain.as_ref(), attempt = failures);
-                            if failures >= retries {
+                            let delay = backoff.failed(started.elapsed());
+                            error_with_fields!("consumer chain error", &*error, consumer = queue.as_str(), chain = chain.as_ref(), attempt = backoff.failures());
+                            if backoff.failures() >= retries {
                                 return Err(error);
                             }
-                            if crate::shutdown::sleep_or_shutdown(restart_delay, &runner.shutdown).await {
+                            if crate::shutdown::sleep_or_shutdown(delay, &runner.shutdown).await {
                                 return Ok(());
                             }
                         }

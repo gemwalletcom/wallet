@@ -132,6 +132,16 @@ struct SignMessageSceneViewModelTests {
 
     @Test
     @MainActor
+    func aSignInFlightDisablesTheButton() {
+        let viewModel = SignMessageSceneViewModel.mock()
+
+        viewModel.onSign(onComplete: {})
+
+        #expect(viewModel.buttonState == .loading())
+    }
+
+    @Test
+    @MainActor
     func buttonEnabledWithNonCriticalWarnings() {
         let payload = GemWalletConnectMessageRequest.mock(
             simulation: .mock(warnings: [.mock(severity: .warning)]),

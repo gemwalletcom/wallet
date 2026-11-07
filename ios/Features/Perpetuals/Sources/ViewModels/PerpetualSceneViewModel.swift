@@ -194,12 +194,12 @@ public extension PerpetualSceneViewModel {
     }
 
     func onIncreasePosition() {
-        isPresentingModifyAlert = false
+        isPresentingModifyAlert = nil
         onPositionAction(.increase)
     }
 
     func onReducePosition() {
-        isPresentingModifyAlert = false
+        isPresentingModifyAlert = nil
         onPositionAction(.reduce)
     }
 

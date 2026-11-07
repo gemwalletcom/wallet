@@ -408,6 +408,7 @@ pub fn error_info(error: &GemConfirmError, prices: &[AssetPrice], currency: Curr
         | GemConfirmError::Network { .. }
         | GemConfirmError::Load { .. }
         | GemConfirmError::Broadcast { .. }
+        | GemConfirmError::PartialBroadcast { .. }
         | GemConfirmError::Record { .. }
         | GemConfirmError::ApprovalInvalid { .. } => return None,
     };

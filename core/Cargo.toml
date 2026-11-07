@@ -14,7 +14,6 @@ members = [
     "apps/daemon",
     "apps/dynode",
 
-    "bin/cli",
     "bin/generate",
     "bin/uniffi-*",
     "bin/gas-bench",
@@ -102,7 +101,7 @@ url = { version = "2.5.8" }
 # Database and messaging
 diesel = { version = "2.3.13" }
 diesel_migrations = { version = "2.3.2" }
-lapin = { version = "4.12.0" }
+lapin = { version = "4.12.0", default-features = false, features = ["tokio"] }
 r2d2 = { version = "0.8.10" }
 redis = { version = "1.4.1", default-features = false, features = [
     "tokio-comp",
@@ -112,7 +111,7 @@ redis = { version = "1.4.1", default-features = false, features = [
 # Cryptography and authentication
 aes = { version = "0.9.3" }
 aes-gcm = { version = "0.11.0", default-features = false, features = ["aes", "alloc"] }
-argon2 = { version = "0.6.0" }
+argon2 = { version = "0.6.0", default-features = false, features = ["alloc"] }
 aws-lc-rs = { version = "1.19.0" }
 bip39 = { version = "3.0.0", default-features = false, features = ["zeroize"] }
 blake2 = { version = "0.11.0" }
@@ -121,7 +120,7 @@ curve25519-dalek = { version = "5.0.0" }
 ed25519-dalek = { version = "3.0.0", default-features = false }
 getrandom = { version = "0.4.3" }
 hmac = { version = "0.13.0" }
-jsonwebtoken = { version = "11.1.0", features = ["aws_lc_rs"] }
+jsonwebtoken = { version = "11.1.0", default-features = false, features = ["aws_lc_rs"] }
 secp256k1 = { version = "0.29.1", features = ["recovery", "global-context"] }
 rand = { version = "0.10.2" }
 scrypt = { version = "0.12.0" }
@@ -130,7 +129,7 @@ sha3 = { version = "0.12.0" }
 zeroize = { version = "1.9.0" }
 
 # Blockchain
-alloy-primitives = { version = "1.7.3" }
+alloy-primitives = { version = "1.7.3", default-features = false, features = ["std"] }
 alloy-sol-types = { version = "1.7.3", features = ["eip712-serde"] }
 bitcoin = { version = "0.32.102" }
 bitcoin_hashes = { version = "0.14.101" }
@@ -146,7 +145,7 @@ num-traits = { version = "0.2.19" }
 
 # Configuration and utilities
 chrono = { version = "0.4.45", default-features = false, features = ["now", "serde"] }
-clap = { version = "4.6.1", features = ["derive"] }
+clap = { version = "4.6.1", default-features = false, features = ["std", "derive", "help", "usage", "error-context"] }
 config = { version = "0.15.25", default-features = false, features = ["yaml"] }
 strum = { version = "0.28.0", features = ["derive"] }
 uuid = { version = "1.24.0", features = ["v4", "v5"] }
@@ -162,8 +161,6 @@ tower-http = { version = "0.6.11", features = ["timeout", "catch-panic", "set-he
 
 # Logging and metrics
 prometheus-client = { version = "0.25.0" }
-tracing = { version = "0.1.44" }
-tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
 
 # Localization and embedded assets
 fluent-syntax = { version = "0.12.0" }
@@ -174,7 +171,7 @@ rust-embed = { version = "8.11.0" }
 # Code generation and bindings
 quote = { version = "1.0.47" }
 syn = { version = "3.0.6" }
-uniffi = { version = "0.32.1" }
+uniffi = { version = "0.32.1", default-features = false }
 
 [profile.dev]
 debug = "line-tables-only"

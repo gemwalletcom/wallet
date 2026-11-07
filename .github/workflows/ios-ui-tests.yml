@@ -34,10 +34,11 @@ env:
   CARGO_TERM_COLOR: always
   SCCACHE_GHA_ENABLED: "true"
   RUSTC_WRAPPER: "sccache"
+  SIMULATOR_OS: "27.0"
 
 jobs:
   ui_test:
-    runs-on: macos-26
+    runs-on: xcode-27
 
     steps:
       - name: Checkout

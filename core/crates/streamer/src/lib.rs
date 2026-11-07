@@ -1,3 +1,4 @@
+pub mod backoff;
 pub mod connection;
 pub mod consumer;
 pub mod consumer_status;
@@ -40,33 +41,32 @@ where
     F: FnMut() -> Fut,
     Fut: Future<Output = Result<T, Box<dyn Error + Send + Sync>>>,
 {
-    let mut delay = retry.delay;
-    let mut attempt: u32 = 0;
+    let mut backoff = Backoff::new(retry.clone());
     loop {
         if *shutdown.borrow() {
             return Ok(None);
         }
-        attempt += 1;
         match f().await {
             Ok(result) => {
-                if attempt > 1 {
-                    info_with_fields!("rabbitmq reconnected", connection = name, attempt = attempt);
+                if backoff.failures() > 0 {
+                    info_with_fields!("rabbitmq reconnected", connection = name, attempt = backoff.failures() + 1);
                 }
                 return Ok(Some(result));
             }
             Err(error) => {
-                info_with_fields!("rabbitmq reconnect retry", connection = name, attempt = attempt, delay_secs = delay.as_secs(), error = error.to_string());
+                let delay = backoff.failed(Duration::ZERO);
+                info_with_fields!("rabbitmq reconnect retry", connection = name, attempt = backoff.failures(), delay_secs = delay.as_secs(), error = error.to_string());
                 let mut receiver = shutdown.clone();
                 tokio::select! {
                     _ = tokio::time::sleep(delay) => {}
                     _ = receiver.changed() => return Ok(None),
                 }
-                delay = (delay * 2).min(retry.timeout);
             }
         }
     }
 }
 
+pub use backoff::Backoff;
 pub use connection::StreamConnection;
 pub use consumer::ConsumerConfig;
 pub use consumer::run_consumer;

@@ -146,7 +146,7 @@ mod tests {
     use super::*;
     use crate::{
         Asset, Chain, PriceProvider,
-        asset_constants::{ARC_EURC_ASSET_ID, ARC_USDC_TOKEN_ID, CELO_WETH_TOKEN_ID, TEMPO_PATHUSD_ASSET_ID},
+        asset_constants::{ARC_EURC_ASSET_ID, ARC_USDC_TOKEN_ID, CELO_WETH_TOKEN_ID, HYPERCORE_SPOT_HYPE_ASSET_ID, TEMPO_PATHUSD_ASSET_ID},
     };
 
     #[test]
@@ -164,6 +164,7 @@ mod tests {
 
         assert!(!properties.is_enabled);
         assert!(!properties.is_swapable);
+        assert!(!AssetProperties::default(HYPERCORE_SPOT_HYPE_ASSET_ID.clone()).is_enabled);
         assert!(AssetProperties::default(AssetId::from_chain(Chain::Arc)).is_enabled);
         assert!(AssetProperties::default(ARC_EURC_ASSET_ID.clone()).is_enabled);
         assert!(AssetProperties::default(AssetId::from_token(Chain::Celo, CELO_WETH_TOKEN_ID)).is_enabled);

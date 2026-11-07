@@ -39,7 +39,6 @@ install-android-targets:
     cargo install cargo-ndk@${CARGO_NDK_VERSION}
 
 export LIB_NAME := "gemstone"
-export STATIC_LIB_NAME := "lib" + LIB_NAME + ".a"
 export DY_LIB_NAME := if os() == "macos" { "libgemstone.dylib" } else { "libgemstone.so" }
 
 export BUILD_MODE := if env("BUILD_MODE", "debug") == "release" { "release" } else { "debug" }
@@ -54,8 +53,6 @@ export IOS_PACKAGE_FOLDER := "tests/ios/Packages/Gemstone"
 export IOS_DERIVED_DATA := "tests/ios/build/DerivedData"
 export IOS_SIMULATOR_RUST_TARGET := "aarch64-apple-ios-sim"
 export IOS_RUST_TARGETS := IOS_SIMULATOR_RUST_TARGET + " aarch64-apple-ios aarch64-apple-ios-macabi aarch64-apple-darwin"
-
-export LIB_OUTPUT_PATH := TARGET_DIR + "/" + BUILD_MODE + "/" + DY_LIB_NAME
 
 build-ios-lib targets=IOS_RUST_TARGETS:
     #!/usr/bin/env bash
@@ -96,20 +93,17 @@ build-ios-lib targets=IOS_RUST_TARGETS:
 
 build-ios-simulator-lib: (build-ios-lib IOS_SIMULATOR_RUST_TARGET)
 
-bindgen-swift:
+_generate-bindings LANGUAGE OUTPUT:
     #!/usr/bin/env bash
     set -euo pipefail
-    echo "Bindgen swift $STATIC_LIB_NAME"
-    mkdir -p ${GEN_SWIFT_FOLDER}
-    if [ "${BUILD_MODE}" == "release" ]; then \
-        export RUSTFLAGS="${RUSTFLAGS:-} -C strip=none"; \
-    fi
-    cargo rustc {{CARGO_BUILD_FLAG}} --lib --crate-type cdylib
-    if [ ! -f "${LIB_OUTPUT_PATH}" ]; then \
-        echo "Failed to locate ${DY_LIB_NAME} at ${LIB_OUTPUT_PATH} (mode ${BUILD_MODE})"; \
-        exit 1; \
-    fi; \
-    cargo run {{CARGO_BUILD_FLAG}} -p uniffi-bindgen -- generate --language swift --crate ${LIB_NAME} --no-format -o ${GEN_SWIFT_FOLDER} "${LIB_OUTPUT_PATH}"
+    library="${TARGET_DIR}/debug/${DY_LIB_NAME}"
+    echo "Generating {{LANGUAGE}} bindings from $library"
+    rm -rf "{{OUTPUT}}"
+    mkdir -p "{{OUTPUT}}"
+    cargo rustc --lib --crate-type cdylib
+    cargo run -p uniffi-bindgen -- generate --language {{LANGUAGE}} --crate ${LIB_NAME} --no-format -o "{{OUTPUT}}" "$library"
+
+bindgen-swift: (_generate-bindings "swift" GEN_SWIFT_FOLDER)
 
 prepare-ios-package: bindgen-swift
     #!/usr/bin/env bash
@@ -117,21 +111,10 @@ prepare-ios-package: bindgen-swift
     cp ${GEN_SWIFT_FOLDER}/gemstone.swift ${IOS_PACKAGE_FOLDER}/Sources/Gemstone/Gemstone.swift
     cp ${GEN_SWIFT_FOLDER}/GemstoneFFI.h ${IOS_PACKAGE_FOLDER}/Sources/GemstoneFFI/include/GemstoneFFI.h
 
-bindgen-kotlin:
+bindgen-kotlin: (_generate-bindings "kotlin" GEN_KOTLIN_FOLDER)
     #!/usr/bin/env bash
     set -euo pipefail
-    echo "Bindgen kotlin BUILD_MODE: ${BUILD_MODE}"
-    rm -rf ${GEN_KOTLIN_FOLDER}
-    mkdir -p ${GEN_KOTLIN_FOLDER} ${ANDROID_MODULE_FOLDER}
-    if [ "${BUILD_MODE}" == "release" ]; then \
-        export RUSTFLAGS="${RUSTFLAGS:-} -C strip=none"; \
-    fi
-    cargo rustc {{CARGO_BUILD_FLAG}} --lib --crate-type cdylib
-    if [ ! -f "${LIB_OUTPUT_PATH}" ]; then \
-        echo "Failed to locate ${DY_LIB_NAME} at ${LIB_OUTPUT_PATH} (mode ${BUILD_MODE})"; \
-        exit 1; \
-    fi; \
-    cargo run {{CARGO_BUILD_FLAG}} -p uniffi-bindgen -- generate --language kotlin --crate ${LIB_NAME} --no-format -o ${GEN_KOTLIN_FOLDER} "${LIB_OUTPUT_PATH}"
+    mkdir -p ${ANDROID_MODULE_FOLDER}
     if ! diff -qr "${GEN_KOTLIN_FOLDER}/uniffi" "${ANDROID_MODULE_FOLDER}/uniffi" >/dev/null 2>&1; then
         rm -rf "${ANDROID_MODULE_FOLDER}/uniffi"
         cp -R "${GEN_KOTLIN_FOLDER}/uniffi" "${ANDROID_MODULE_FOLDER}/uniffi"

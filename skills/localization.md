@@ -12,8 +12,7 @@ Use this skill for shared localization flow and generated output locations.
 - Add new keys in the matching prefix section (`common_*` under `# Common`, `wallet_*` under `# Wallet`, etc.)
 - Add each new app key to every language file, translated for the context where the string is used
 - iOS InfoPlist localization source lives in `localization/InfoPlist/*.ftl`
-- iOS widget localization source lives in `localization/widget/*.ftl`
-- iOS localization output lives under `ios/Packages/Localization/`: one `.xcstrings` String Catalog per table (app, InfoPlist, widget) plus the typed accessors `Localized.swift` and `WidgetLocalized.swift`, all written by the generator
+- iOS localization output lives under `ios/Packages/Localization/`: one `.xcstrings` String Catalog per table (app, InfoPlist) plus the typed accessor `Localized.swift`, all written by the generator
 - Android localization output lives under `android/ui/src/main/res/`
 - Treat generated localization outputs as generated artifacts, not hand-edited source
 - Never resolve merge conflicts in generated localization outputs by hand: rebase, keep your side of the tree, run `just localize`, and commit the regenerated files

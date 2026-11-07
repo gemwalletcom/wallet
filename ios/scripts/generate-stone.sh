@@ -12,7 +12,7 @@ unset MACOSX_DEPLOYMENT_TARGET TVOS_DEPLOYMENT_TARGET WATCHOS_DEPLOYMENT_TARGET 
 unset SWIFT_DEBUG_INFORMATION_FORMAT SWIFT_DEBUG_INFORMATION_VERSION
 
 IOS_DIR=$(dirname "$(dirname "$(realpath "$0")")")
-PROJ_PATH="$IOS_DIR/Gem.xcodeproj/project.pbxproj"
+PROJ_PATH="$IOS_DIR/Gem.xcodeproj/project.xcproj"
 CORE_DIR=$(dirname "$IOS_DIR")/core
 STONE_DIR="$CORE_DIR/gemstone"
 PACKAGES_DIR="$IOS_DIR/Packages/Gemstone"
@@ -57,7 +57,7 @@ esac
 TARGETS="${GEMSTONE_IOS_TARGETS:-$DEFAULT_TARGETS}"
 
 read_deployment_target() {
-    /usr/libexec/PlistBuddy -c "Print" "$PROJ_PATH" | awk -F ' = ' '/IPHONEOS_DEPLOYMENT_TARGET/ { print $2; exit }'
+    grep -m1 -oE '"IPHONEOS_DEPLOYMENT_TARGET": "[0-9.]+"' "$PROJ_PATH" | grep -oE '[0-9.]+'
 }
 
 build_ios_static_libraries() {

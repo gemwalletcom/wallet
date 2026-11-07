@@ -1,6 +1,6 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 
 use axum::Router;
 use axum::extract::State;
@@ -15,6 +15,7 @@ use crate::metrics::{self, MetricsProvider};
 
 pub struct HealthState {
     ready: AtomicBool,
+    down: AtomicUsize,
 }
 
 impl Default for HealthState {
@@ -25,19 +26,26 @@ impl Default for HealthState {
 
 impl HealthState {
     pub fn new() -> Self {
-        Self { ready: AtomicBool::new(false) }
+        Self {
+            ready: AtomicBool::new(false),
+            down: AtomicUsize::new(0),
+        }
     }
 
     pub fn set_ready(&self) {
         self.ready.store(true, Ordering::Relaxed);
     }
 
-    pub fn set_not_ready(&self) {
-        self.ready.store(false, Ordering::Relaxed);
+    pub fn mark_down(&self) {
+        self.down.fetch_add(1, Ordering::Relaxed);
+    }
+
+    pub fn mark_up(&self) {
+        self.down.fetch_sub(1, Ordering::Relaxed);
     }
 
     pub fn is_ready(&self) -> bool {
-        self.ready.load(Ordering::Relaxed)
+        self.ready.load(Ordering::Relaxed) && self.down.load(Ordering::Relaxed) == 0
     }
 }
 
@@ -84,4 +92,26 @@ pub fn spawn_server(provider: Arc<dyn MetricsProvider>, bind: SocketAddr, config
         }
     });
     (state, handle)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_is_ready() {
+        let state = HealthState::new();
+        assert!(!state.is_ready());
+
+        state.set_ready();
+        assert!(state.is_ready());
+
+        state.mark_down();
+        state.mark_down();
+        state.mark_up();
+        assert!(!state.is_ready());
+
+        state.mark_up();
+        assert!(state.is_ready());
+    }
 }

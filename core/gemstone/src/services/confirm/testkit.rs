@@ -6,7 +6,10 @@ use gem_bitcoin::models::BitcoinUTXO;
 use primitives::{Asset, AssetBasic, AssetFull, AssetId, Chain, PlatformStore, Wallet, WalletId};
 
 use super::GemConfirmError;
-use super::{GemConfirmData, GemConfirmFee, GemConfirmFeeSelection, GemConfirmInput, GemConfirmLoad, GemConfirmMetadata, GemConfirmService, GemConfirmSimulationState, GemConfirmTransferService, GemTransferAmountResult, SendInput};
+use super::error::SendFailure;
+use super::{
+    GemConfirmData, GemConfirmFee, GemConfirmFeeSelection, GemConfirmInput, GemConfirmLoad, GemConfirmMetadata, GemConfirmService, GemConfirmSimulationState, GemConfirmTransferService, GemSubmitResult, GemTransferAmountResult, SendInput,
+};
 use crate::api::{GemApiClient, GemDeviceApiClient, GemStaticApiClient};
 use crate::gateway::GemGateway;
 use crate::keystore::GemKeystore;
@@ -378,8 +381,42 @@ pub fn mock_bitcoin_transfer(value: BigInt) -> GemTransferData {
     }
 }
 
+impl SendFailure {
+    pub fn error(self) -> GemConfirmError {
+        match self {
+            Self::Failed(error) | Self::Unanswered(error) => error,
+        }
+    }
+}
+
+impl GemConfirmTransferService {
+    pub async fn sign_and_deliver(&self, input: SendInput) -> Result<GemSubmitResult, GemConfirmError> {
+        let submission = Box::pin(self.sign_submission(input)).await?;
+        Box::pin(self.deliver(&submission)).await.map_err(SendFailure::error)
+    }
+}
+
 pub fn broadcast_failed(error: &GemConfirmError) -> bool {
-    matches!(error, GemConfirmError::Offline | GemConfirmError::Network { .. } | GemConfirmError::Broadcast { .. })
+    match error {
+        GemConfirmError::Offline | GemConfirmError::Network { .. } | GemConfirmError::Broadcast { .. } | GemConfirmError::PartialBroadcast { .. } => true,
+        GemConfirmError::ScanMalicious
+        | GemConfirmError::ScanMemoRequired { .. }
+        | GemConfirmError::FeeRatesMissing
+        | GemConfirmError::Load { .. }
+        | GemConfirmError::Record { .. }
+        | GemConfirmError::AccountMissing { .. }
+        | GemConfirmError::BalanceMissing { .. }
+        | GemConfirmError::InsufficientBalance { .. }
+        | GemConfirmError::InsufficientNetworkFee { .. }
+        | GemConfirmError::MinimumAccountBalanceTooLow { .. }
+        | GemConfirmError::DestinationAccountActivation { .. }
+        | GemConfirmError::BelowSwapMinimum { .. }
+        | GemConfirmError::SenderMismatch { .. }
+        | GemConfirmError::Sign { .. }
+        | GemConfirmError::ApprovalInvalid { .. }
+        | GemConfirmError::Payment { .. }
+        | GemConfirmError::Cancelled => false,
+    }
 }
 
 impl ConfirmTestkit {

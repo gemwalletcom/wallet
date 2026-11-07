@@ -7,16 +7,18 @@ import okhttp3.Protocol
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.ResponseBody.Companion.toResponseBody
+import com.gemwallet.android.testkit.AddressStoreMock
+import com.gemwallet.android.testkit.SecureStoreMock
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Test
 import uniffi.gemstone.AlienException
 import uniffi.gemstone.AlienHttpMethod
 import uniffi.gemstone.AlienTarget
-import uniffi.gemstone.GemApiClient
+import uniffi.gemstone.GemDeviceApiClient
+import uniffi.gemstone.GemDeviceKeyService
+import uniffi.gemstone.GemNameService
 import uniffi.gemstone.GemServiceException
-import uniffi.gemstone.GemWidgetService
-import uniffi.gemstone.GemWidgetSize
 import java.io.EOFException
 import java.io.IOException
 import java.net.UnknownHostException
@@ -132,9 +134,8 @@ class NativeProviderTest {
     @Test
     fun unexpectedFailureReturnsThroughRust() {
         val provider = NativeProvider(OkHttpClient.Builder().addInterceptor { throw IllegalStateException("interceptor failed") }.build())
-        val service = GemWidgetService(GemApiClient(provider))
         val error = assertThrows(GemServiceException.Api::class.java) {
-            runBlocking { service.coins(GemWidgetSize.SMALL, "USD") }
+            runBlocking { nameService(provider).getNameRecord("vitalik.eth", "ethereum") }
         }
         assertEquals("java.lang.IllegalStateException: interceptor failed", error.msg)
     }
@@ -142,10 +143,11 @@ class NativeProviderTest {
     @Test
     fun cancellationReturnsThroughRust() {
         val provider = NativeProvider(OkHttpClient.Builder().addInterceptor { throw CancellationException("callback cancelled") }.build())
-        val service = GemWidgetService(GemApiClient(provider))
         val error = assertThrows(GemServiceException.Api::class.java) {
-            runBlocking { service.coins(GemWidgetSize.SMALL, "USD") }
+            runBlocking { nameService(provider).getNameRecord("vitalik.eth", "ethereum") }
         }
         assertEquals("java.util.concurrent.CancellationException: callback cancelled", error.msg)
     }
+
+    private fun nameService(provider: NativeProvider) = GemNameService(GemDeviceApiClient(provider, GemDeviceKeyService(SecureStoreMock())), AddressStoreMock())
 }

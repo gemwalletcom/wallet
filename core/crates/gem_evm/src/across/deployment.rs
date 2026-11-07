@@ -1,9 +1,12 @@
 use super::{asset::AcrossAsset, fees::CapitalCostConfig};
 use crate::ether_conv::EtherConv;
-use alloy_primitives::{Address, map::HashSet};
+use alloy_primitives::Address;
 use num_bigint::BigInt;
 use primitives::{AssetId, Chain, asset_constants::*, contract_constants::*};
-use std::{collections::HashMap, vec};
+use std::{
+    collections::{HashMap, HashSet},
+    vec,
+};
 
 pub struct AcrossDeployment {
     pub chain_id: u32,

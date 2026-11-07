@@ -24,33 +24,33 @@ public struct PreferencesScene: View {
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .listSectionSpacing(.compact)
         .navigationTitle(model.title)
-        .sheet(isPresented: $model.isPresentingLeveragePicker) {
-            WheelPickerSheet(
-                title: model.leverageTitle,
-                options: model.leverageOptions,
-                selection: $model.perpetualLeverage,
-            )
-        }
-        .sheet(isPresented: $model.isPresentingMarginTypePicker) {
-            WheelPickerSheet(
-                title: model.marginTypeTitle,
-                options: model.marginTypeOptions,
-                selection: $model.perpetualMarginType,
-            )
-        }
-        .sheet(isPresented: $model.isPresentingTakeProfitPicker) {
-            WheelPickerSheet(
-                title: model.takeProfitTitle,
-                options: model.takeProfitOptions,
-                selection: $model.perpetualTakeProfit,
-            )
-        }
-        .sheet(isPresented: $model.isPresentingStopLossPicker) {
-            WheelPickerSheet(
-                title: model.stopLossTitle,
-                options: model.stopLossOptions,
-                selection: $model.perpetualStopLoss,
-            )
+        .sheet(item: $model.isPresentingSheet) { sheet in
+            switch sheet {
+            case .leverage:
+                WheelPickerSheet(
+                    title: model.leverageTitle,
+                    options: model.leverageOptions,
+                    selection: $model.perpetualLeverage,
+                )
+            case .marginType:
+                WheelPickerSheet(
+                    title: model.marginTypeTitle,
+                    options: model.marginTypeOptions,
+                    selection: $model.perpetualMarginType,
+                )
+            case .takeProfit:
+                WheelPickerSheet(
+                    title: model.takeProfitTitle,
+                    options: model.takeProfitOptions,
+                    selection: $model.perpetualTakeProfit,
+                )
+            case .stopLoss:
+                WheelPickerSheet(
+                    title: model.stopLossTitle,
+                    options: model.stopLossOptions,
+                    selection: $model.perpetualStopLoss,
+                )
+            }
         }
     }
 

@@ -157,6 +157,9 @@ android {
             excludes += "/META-INF/LICENSE-notice.md"
             excludes += "/META-INF/LICENSE.md"
             excludes += "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
+            excludes += "org/bouncycastle/pqc/legacy/picnic/*.properties"
+            excludes += "org/bouncycastle/x509/CertPathReviewerMessages*.properties"
+            excludes += "org/spongycastle/x509/CertPathReviewerMessages*.properties"
         }
     }
 
@@ -187,6 +190,10 @@ android {
 
     androidResources {
         generateLocaleConfig = true
+        localeFilters += listOf("en") + rootProject.file("ui/src/main/res").list().orEmpty()
+            .filter { it.startsWith("values-") }
+            .map { it.removePrefix("values-") }
+            .sorted()
     }
 
     room {
@@ -259,9 +266,6 @@ dependencies {
 
     implementation(libs.navigation3.runtime)
     implementation(libs.navigation3.ui)
-
-    implementation(libs.widgets)
-    implementation(libs.work.runtime)
 
     // Legacy encrypted preferences migration
     implementation(libs.androidx.security.crypto)

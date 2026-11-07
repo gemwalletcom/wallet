@@ -16,6 +16,7 @@ use std::time::Duration;
 
 pub use confirmation::GemConfirmation;
 pub use error::GemConfirmError;
+use error::SendFailure;
 pub use model::*;
 pub use swap::ConfirmSwapQuote;
 pub use transfer::GemConfirmTransferService;
@@ -240,7 +241,7 @@ impl GemConfirmService {
 }
 
 impl GemConfirmService {
-    async fn send(&self, input: &SendInput, signed: Vec<GemSignedTransaction>) -> Result<Vec<String>, GemConfirmError> {
+    async fn send(&self, input: &SendInput, signed: Vec<GemSignedTransaction>) -> Result<Vec<String>, SendFailure> {
         let switches_account = input.confirm.metadata.get_hyperliquid_order().is_ok_and(|order| order.unified_account_switch.is_some());
         if switches_account {
             self.store_account_mode(input, PerpetualAccountMode::Unified);
@@ -257,11 +258,11 @@ impl GemConfirmService {
                 self.store_pending(input, &hashes, &signed).await;
                 Ok(hashes)
             }
-            Err(GemConfirmError::Broadcast { hashes, msg }) => {
+            Err(SendFailure::Failed(GemConfirmError::PartialBroadcast { hashes, msg })) => {
                 self.store_pending(input, &hashes, &signed).await;
-                Err(GemConfirmError::Broadcast { hashes, msg })
+                Err(SendFailure::Failed(GemConfirmError::PartialBroadcast { hashes, msg }))
             }
-            Err(error) => Err(error),
+            Err(failure) => Err(failure),
         }
     }
 
@@ -277,7 +278,7 @@ impl GemConfirmService {
         self.transaction_status.track(input.wallet.id.clone(), stored);
     }
 
-    async fn broadcast(&self, input_type: &TransactionInputType, transactions: &[GemSignedTransaction]) -> Result<Vec<String>, GemConfirmError> {
+    async fn broadcast(&self, input_type: &TransactionInputType, transactions: &[GemSignedTransaction]) -> Result<Vec<String>, SendFailure> {
         let chain = input_type.get_asset().id.chain;
         let options = input_type.broadcast_options();
         let delay = rules::broadcast_delay_milliseconds(chain);
@@ -287,7 +288,7 @@ impl GemConfirmService {
             match self.gateway.transaction_broadcast(chain, transaction.data.clone(), options.clone()).await {
                 Ok(hash) => hashes.push(hash),
                 Err(error) => {
-                    return Err(error::broadcast_error(hashes, error));
+                    return Err(error::broadcast_failure(hashes, error));
                 }
             }
             if index < transactions.len() - 1 && delay > 0 {
@@ -343,7 +344,7 @@ mod tests {
     use num_bigint::BigInt;
 
     use super::testkit::ConfirmTestkit;
-    use super::{GemConfirmError, GemConfirmFeeLoad, GemConfirmFeeSelection, GemConfirmLoadOptions, SendInput};
+    use super::{GemConfirmError, GemConfirmFeeLoad, GemConfirmFeeSelection, GemConfirmLoadOptions, SendFailure, SendInput};
     use crate::models::transaction::GemSignedTransaction;
     use crate::services::balance::GemAssetBalance;
     use crate::services::transfer::{GemRecipient, GemTransferData};
@@ -444,7 +445,7 @@ mod tests {
                 })
                 .collect();
 
-            let result = testkit.confirm.send(&input, signed).await;
+            let result = testkit.confirm.send(&input, signed).await.map_err(SendFailure::error);
             (result, testkit.wallet_preferences.get_perpetual_account_mode(input.wallet.id.clone()), provider.requested_paths())
         })
     }
@@ -461,7 +462,10 @@ mod tests {
         assert!(!paths.contains(&info), "a sent switch is stored without asking");
 
         let (failed, mode, _) = send_unified_account_switch(accepted, r#""unifiedAccount""#, &[switch, "unsigned order"]);
-        assert!(matches!(failed, Err(GemConfirmError::Broadcast { ref hashes, .. }) if hashes.len() == 1));
+        let Err(GemConfirmError::PartialBroadcast { hashes, .. }) = failed else {
+            panic!("an order that fails after its switch landed is a partial broadcast: {failed:?}");
+        };
+        assert_eq!(hashes.len(), 1);
         assert_eq!(mode, PerpetualAccountMode::Unified, "a switch that landed before its order failed is still stored");
 
         let (failed, mode, _) = send_unified_account_switch(r#"{"status":"err","response":"User or API Wallet does not exist."}"#, r#""default""#, &[switch]);

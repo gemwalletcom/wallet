@@ -34,8 +34,7 @@ public final class ContactEditorSceneViewModel {
 
     private(set) var session: GemContactSession
     var nameInputModel: InputValidationViewModel
-    var isPresentingAddress: ContactAddressEditorSceneViewModel.Mode?
-    var isPresentingAvatar: Bool = false
+    var isPresentingSheet: ContactEditorSheetType?
     var isPresentingAlertMessage: AlertMessage?
 
     let emojiList: [EmojiValue] = GemConstants.walletAvatarEmojis.map { EmojiValue(emoji: $0, color: Colors.grayVeryLight) }
@@ -132,7 +131,7 @@ public final class ContactEditorSceneViewModel {
 
     func onSelectAvatar(_ value: EmojiValue) {
         onChangeAvatar(.emoji(emoji: value.emoji))
-        isPresentingAvatar = false
+        isPresentingSheet = nil
     }
 
     private func onChangeAvatar(_ avatar: GemContactAvatarChoice) {
@@ -165,7 +164,7 @@ public final class ContactEditorSceneViewModel {
 
     func onAddressComplete(_ input: GemContactAddressInput) {
         session = session.onAddressSaved(input: input)
-        isPresentingAddress = nil
+        isPresentingSheet = nil
     }
 
     func deleteAddress(at offsets: IndexSet) {

@@ -46,6 +46,9 @@ consumer:
     timeout: 0s
     skip: true
     retries: 5
+  restart:
+    delay: 1s
+    timeout: 30s
   delay: 0s
   shutdown:
     timeout: 15s

@@ -4,4 +4,4 @@ version = { workspace = true }
 edition = { workspace = true }
 
 [dependencies]
-uniffi = { workspace = true, features = ["cli"] }
+uniffi = { workspace = true, features = ["cli", "cargo-metadata"] }

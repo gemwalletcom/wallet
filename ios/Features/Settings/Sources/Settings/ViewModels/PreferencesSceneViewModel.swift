@@ -22,10 +22,7 @@ public final class PreferencesSceneViewModel {
     private let settings: any GemSettingsServiceProtocol
     private let pickers: GemPerpetualPickers
 
-    var isPresentingLeveragePicker = false
-    var isPresentingMarginTypePicker = false
-    var isPresentingTakeProfitPicker = false
-    var isPresentingStopLossPicker = false
+    var isPresentingSheet: PreferencesSheetType?
 
     public init(
         settings: any GemSettingsServiceProtocol,
@@ -148,10 +145,10 @@ extension PreferencesSceneViewModel {
 
     func onSelect(_ action: GemRowAction) {
         switch action {
-        case .perpetualLeverage: isPresentingLeveragePicker = true
-        case .perpetualMarginType: isPresentingMarginTypePicker = true
-        case .perpetualTakeProfit: isPresentingTakeProfitPicker = true
-        case .perpetualStopLoss: isPresentingStopLossPicker = true
+        case .perpetualLeverage: isPresentingSheet = .leverage
+        case .perpetualMarginType: isPresentingSheet = .marginType
+        case .perpetualTakeProfit: isPresentingSheet = .takeProfit
+        case .perpetualStopLoss: isPresentingSheet = .stopLoss
         default: break
         }
     }

@@ -46,13 +46,15 @@ public struct CollectibleScene: View {
         }
         .alertSheet($model.isPresentingAlertMessage)
         .toast(message: $model.isPresentingToast)
-        .sheet(isPresented: $model.isPresentingReportSheet) {
-            if let assetData = model.assetData {
-                ReportNavigationStack(model: model.reportModel(assetData))
+        .sheet(item: $model.isPresentingSheet) { sheet in
+            switch sheet {
+            case .report:
+                if let assetData = model.assetData {
+                    ReportNavigationStack(model: model.reportModel(assetData))
+                }
+            case let .info(infoSheet):
+                InfoSheetScene(sheet: infoSheet)
             }
-        }
-        .sheet(item: $model.isPresentingInfoSheet) {
-            InfoSheetScene(sheet: $0)
         }
         .bindQuery(model.query)
         .taskOnce {

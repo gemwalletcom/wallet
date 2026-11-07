@@ -92,7 +92,7 @@ class ImportWalletViewModel @AssistedInject constructor(
 
     fun importKind(type: ImportType) {
         nameRecordController.reset()
-        resetInput()
+        inputState.clearText()
         state.update {
             it.copy(
                 importType = type,
@@ -119,11 +119,6 @@ class ImportWalletViewModel @AssistedInject constructor(
 
     private fun clearError() {
         state.update { it.copy(dataError = null) }
-    }
-
-    private fun resetInput() {
-        inputState.clearText()
-        isImporting.value = false
     }
 
     fun import() {

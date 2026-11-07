@@ -69,8 +69,6 @@ import com.gemwallet.android.ui.theme.smallIconSize
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
-import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.drop
 import uniffi.gemstone.GemAssetSectionKind
 import uniffi.gemstone.GemAssetsFilterView
@@ -84,10 +82,10 @@ import uniffi.gemstone.emptyState
 @Composable
 fun SelectAssetScene(
     title: String,
-    popular: ImmutableList<AssetInfoDataAggregate>,
-    pinned: ImmutableList<AssetInfoDataAggregate>,
-    unpinned: ImmutableList<AssetInfoDataAggregate>,
-    recent: ImmutableList<Asset>,
+    popular: List<AssetInfoDataAggregate>,
+    pinned: List<AssetInfoDataAggregate>,
+    unpinned: List<AssetInfoDataAggregate>,
+    recent: List<Asset>,
     state: GemSelectAssetState,
     rowAction: GemSelectRowAction,
     query: TextFieldState,
@@ -136,10 +134,10 @@ fun SelectAssetScene(
 @Composable
 fun SelectAssetScene(
     title: @Composable () -> Unit,
-    popular: ImmutableList<AssetInfoDataAggregate>,
-    pinned: ImmutableList<AssetInfoDataAggregate>,
-    unpinned: ImmutableList<AssetInfoDataAggregate>,
-    recent: ImmutableList<Asset>,
+    popular: List<AssetInfoDataAggregate>,
+    pinned: List<AssetInfoDataAggregate>,
+    unpinned: List<AssetInfoDataAggregate>,
+    recent: List<Asset>,
     state: GemSelectAssetState,
     rowAction: GemSelectRowAction,
     query: TextFieldState,
@@ -411,10 +409,10 @@ fun LazyListScope.recentAssets(items: List<Asset>, onSelect: (Asset) -> Unit, on
 fun PreviewAssetScreenUI() {
     MaterialTheme {
         SelectAssetScene(
-            pinned = emptyList<AssetInfoDataAggregate>().toImmutableList(),
-            unpinned = emptyList<AssetInfoDataAggregate>().toImmutableList(),
-            popular = emptyList<AssetInfoDataAggregate>().toImmutableList(),
-            recent = emptyList<Asset>().toImmutableList(),
+            pinned = emptyList(),
+            unpinned = emptyList(),
+            popular = emptyList(),
+            recent = emptyList(),
             state = GemSelectAssetState.IDLE,
             rowAction = GemSelectRowAction.NAVIGATE,
             title = "Send",

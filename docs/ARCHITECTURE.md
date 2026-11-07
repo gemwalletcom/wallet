@@ -11,6 +11,7 @@ Read the contract and the named implementation, then the actual owner and caller
 | Pure feature rule | [§ 1](#1-rules-are-pure-and-have-a-test-that-flips), [§ 6](#6-where-derived-domain-answers-live) | [`price_alert/rules.rs`](../core/gemstone/src/services/price_alert/rules.rs), including its tests |
 | Service orchestration and store port | [§ 2](#2-the-service-orchestrates-it-owns-its-store-and-depends-on-services), [§ 4](#4-the-store-trait-is-the-apps-only-persistence-obligation) | [`price_alert/mod.rs`](../core/gemstone/src/services/price_alert/mod.rs), [`store.rs`](../core/gemstone/src/services/price_alert/store.rs) |
 | Screen state, list rows, or what a view may name | [§ 3](#3-return-one-record-that-answers-the-whole-question), [§ 5](#5-the-app-maps-it-does-not-decide) | [`fiat/session.rs`](../core/gemstone/src/services/fiat/session.rs), [`assets/model.rs`](../core/gemstone/src/services/assets/model.rs) |
+| Sheets, dialogs, and in-flight actions | [App-side state](#the-apps-hold-one-value-per-fact-too) | [`PreferencesSceneViewModel.swift`](../ios/Features/Settings/Sources/Settings/ViewModels/PreferencesSceneViewModel.swift), [`SignMessageViewModel.kt`](../android/features/wallet_connector/viewmodels/src/main/kotlin/com/gemwallet/android/features/wallet_connector/viewmodels/SignMessageViewModel.kt) |
 | App mapping, dependency ownership, or construction | [§ 5](#5-the-app-maps-it-does-not-decide), [§ 7](#7-at-most-one-core-service-observed-reads-are-queries), [§ 8](#8-services-are-injected-never-constructed-at-a-call-site) | The changed screen's view model and its factory/Hilt provider; follow the examples in those sections |
 | List rows and sections | [§ 5](#a-list-row-renders-from-one-shared-row-model) | [`ListItemModel.swift`](../ios/Packages/Components/Sources/Types/ListItemModel.swift), [`ListItemModel.kt`](../android/ui/src/main/kotlin/com/gemwallet/android/ui/components/list_item/ListItemModel.kt), [`ListSections.kt`](../android/ui/src/main/kotlin/com/gemwallet/android/ui/components/list_item/ListSections.kt) |
 | Loading UI | Shared [reuse rule](../skills/engineering-principles.md#clean-code-principles) | Current screen state first; [`LoadingView.swift`](../ios/Packages/Components/Sources/LoadingView.swift), [`LoadingScene.kt`](../android/ui/src/main/kotlin/com/gemwallet/android/ui/components/screen/LoadingScene.kt) |
@@ -760,6 +761,29 @@ Four rules keep the collapse honest:
 - **Everything the phase needs is inside the session.** The chart session carries its display currency because the phase cannot be computed without it, so no caller supplies a currency. The observed price record (`GemChartInput`: the asset, its stored price, market, alerts and links) is the one `view_state` argument: the session cannot read the store, and a price older than the last chart point leaves the header where it is. The service answers the phase and the market, alert and link sections from that one record in one `GemChartView`, converting the market with the rate the session holds, so the sections never run on a second async path beside the chart. A `view_state` that takes what the screen already asked Core for is a parameter the session should own. The pinch zoom and pan are session state for the same reason: the drawn window cannot be computed without them, `on_zoom` and `on_pan` clamp against the points the session holds, and a new period starts unzoomed by construction.
 
 The app switches and stops. No `if isLoading` ahead of the switch, no `default:` inside it: the exhaustiveness is what makes a new variant a compile error on both platforms instead of a blank screen on one.
+
+### The apps hold one value per fact too
+
+Presentation and in-flight state stay in the app, and they follow the same rule as the phase: values that can never hold together are one optional enum, and independent facts stay separate fields.
+
+- **A screen's sheets are one optional type.** Each sheet is a case of `isPresentingSheet: XSheetType?` on iOS, presented with one `sheet(item:)`, or of one `rememberSaveable` enum on Android. Only `nil` closes it: a `Bool?` set to `false` is still non-nil and still reads as presented.
+- **An action in flight is one flag, owned by the action.** The action checks it before it starts and clears it on a failure the user can retry; a success that closes the screen leaves it set, so the result cannot be sent twice. Resetting the input never clears it, because the work it guards is still running. `SignMessageSceneViewModel` and `SignMessageViewModel` hold the same flag on both apps.
+- **Independent facts stay fields.** An alert for an async failure, a progress flag beside content and a run-once guard answer separate questions. Folding the alert into the sheet type would let an error close a sheet the user opened.
+
+```swift
+enum PreferencesSheetType: Identifiable {
+    case leverage
+    case marginType
+    case takeProfit
+    case stopLoss
+
+    var id: Self { self }
+}
+
+var isPresentingSheet: PreferencesSheetType?
+```
+
+`PreferencesSceneViewModel` held four `isPresenting…Picker` Bools that could all be true at once; the enum leaves no such state to represent.
 
 ### A number crosses as a value and a style, never as a string or a callback
 
@@ -1595,7 +1619,7 @@ The app **localizes Core's error directly** — it does not translate it into a 
 
 State what has been saved when a later step fails, whether the action can be retried, and how reconciliation repairs partial progress. Preserve intentional local-first behavior. A matching preference or unchanged row must not skip an unfinished required effect. Return existing structured outcomes/step failures where available; keep successful work and expose required failures consistently.
 
-Wallet price requests use USD. `GemPriceService` applies the selected fiat rate once and preserves the USD price for later conversion; never pass server-converted prices into that path. The independent widget pricing path may request its display currency directly.
+Wallet price requests use USD. `GemPriceService` applies the selected fiat rate once and preserves the USD price for later conversion; never pass server-converted prices into that path.
 
 [Price updates](../core/gemstone/src/services/price/mod.rs) commit a stream tick with one `GemPriceStore.save_rates_and_prices(currency, rates, conversion, prices)` transaction: Core selects the optional current-currency conversion and converts the tick's prices at that rate, and each adapter commits the changed rates, the repricing and the prices together, so screens observe one change per tick. A failed write rolls the whole tick back so an identical-rate retry still applies. [Price-alert commands](../core/gemstone/src/services/price_alert/mod.rs) write locally first: an API refusal rolls the added or deleted row back. Turning alerts on, by the switch or by adding an alert, asks for notification permission every time, even when the preference is already on, and writes through `GemDeviceService::set_price_alerts_enabled`, which syncs the device at once; a sync that fails leaves the preference for the next device sync to send, so there is nothing to retry. Add a durable queue only if a later recovery requirement needs it.
 
@@ -1842,7 +1866,7 @@ Amount strings come from two sources that must be parsed differently. Confusing 
 
 ### iOS localization compiles to String Catalogs, accessors are generated in Core
 
-The localization generator writes one `.xcstrings` String Catalog per table (app, InfoPlist, widget) instead of per-language `.lproj/*.strings` files, and generates the typed `Localized.swift`/`WidgetLocalized.swift` accessors itself. SwiftGen is not used. Two constraints drove this:
+The localization generator writes one `.xcstrings` String Catalog per table (app, InfoPlist) instead of per-language `.lproj/*.strings` files, and generates the typed `Localized.swift` accessor itself. SwiftGen is not used. Two constraints drove this:
 
 - Xcode 26 can generate catalog symbols natively, but they are internal to the owning target; `Localization` is a shared SPM package consumed across the app, so the public accessor surface must be generated by our tooling.
 - The historical dotted iOS keys (`common.cancel`) cannot be derived from the underscore Fluent IDs (`common_maximum_value` vs `common.maximum_value`); the committed `Localizable.xcstrings` is the source of that mapping, which the generator reads back on every run. Do not delete the catalogs and regenerate from scratch — the dotted key mapping (and with it the `Localized.*` API) would be lost.
@@ -1895,7 +1919,6 @@ The table locates the existing owners and consumers; it is not proof that a scre
 | `GemWalletHomeService` | — | `WalletSceneViewModel`, `NetworkAssetsSceneViewModel` | `WalletViewModel`, `NetworkAssetsViewModel` (+ `AssetsQuery`); `GetWalletHomeState` (keeps the wallet home state, composed from `AssetFiatValuesQuery`, `PerpetualWalletBalanceQuery`, `BannersQuery`, `NFTQuery` and the `GetActiveAssetsInfo` rows, in memory from start for `WalletViewModel` and `AppViewModel`), `GetWalletAssets` (keeps the wallet's asset rows, read through `AssetsQuery`, in memory from start for the stored first frame of the asset, chart, stake and receive screens) and `GetActiveAssetsInfo` (keeps the wallet list rows built from them, warmed at start for `WalletViewModel` and `GetWalletHomeState`) |
 | `GemWalletService` | — | onboarding and manage-wallet view models, and `WalletImageSceneViewModel` for the avatar (`WalletDetailSceneViewModel` exports the secret through `export_secret`) | `CreateWalletViewModel`, `ImportWalletViewModel`, `WalletsViewModel` (`set_current_wallet_id`, `delete_wallet`, `set_pinned`), `WalletDetailViewModel` (`rename`, `delete_wallet`, with `WalletQuery`), `SecretDataViewModel` (`export_secret`), `WalletImageViewModel` (with `WalletQuery`, `NFTQuery`); `GetAllWallets` (keeps the Core wallet sections, read through `WalletListItemsQuery`, in memory for `WalletsViewModel`) |
 | `GemWalletSessionService` | — | `RootSceneViewModel`, `NavigationRouter` | `AppViewModel`, `NotificationNavigation`; `SessionCoordinator` behind `GetSession`, `GetCurrentWalletId`, `GetCurrentCurrency` and `SetCurrentCurrency` (keeps the current wallet, observed through the stored wallet id and `WalletQuery`, and the currency set up from `GemPreferencesService` in one eagerly shared `StateFlow` that screens and coordinators read synchronously) |
-| `GemWidgetService` | — | — (the iOS widget never links Gemstone; see [the iOS project overview](../ios/skills/project-overview.md)) | `WidgetCoinUIModel` and `WidgetPriceSyncWorker` through `WidgetEntryPoint` |
 
 ### Composition and lifecycle services
 

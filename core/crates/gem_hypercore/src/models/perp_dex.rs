@@ -34,13 +34,6 @@ impl PerpDex {
         coin.split_once(':').map_or("", |(dex, _)| dex) == self.as_ref()
     }
 
-    pub fn is_isolated_only(self) -> bool {
-        match self {
-            Self::Main => false,
-            Self::Xyz => true,
-        }
-    }
-
     pub fn min_volume_24h(self) -> f64 {
         match self {
             Self::Main => 0.0,

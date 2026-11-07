@@ -43,11 +43,12 @@ concurrency:
 
 env:
   MAESTRO_CLI_NO_ANALYTICS: 1
+  SIMULATOR_OS: "27.0"
 
 jobs:
   ios:
     if: ${{ inputs.platform == 'ios' || inputs.platform == 'both' }}
-    runs-on: macos-26
+    runs-on: xcode-27
     # the ios recipes live in ios/justfile; only the root justfile has maestro-smoke
     defaults:
       run:
@@ -135,6 +136,13 @@ jobs:
           sdkmanager="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
           yes | "$sdkmanager" --licenses > /dev/null
           "$sdkmanager" --install "emulator" "platform-tools" "system-images;android-35;google_apis;x86_64" | tail -2
+
+      - name: Let the runner user open /dev/kvm
+        if: ${{ inputs.suite != 'native' }}
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
 
       - name: Install Maestro
         if: ${{ inputs.suite != 'native' }}

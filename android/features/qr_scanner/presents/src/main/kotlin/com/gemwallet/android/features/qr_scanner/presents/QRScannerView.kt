@@ -24,7 +24,6 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.gemwallet.android.ui.theme.space4
@@ -44,11 +43,7 @@ private const val FINDER_DIM_ALPHA = 0.33f
 fun QRScannerView(listener: (String) -> Unit) {
     val localContext = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    val previewView = remember {
-        androidx.camera.view.PreviewView(localContext).also {
-            it.scaleType = androidx.camera.view.PreviewView.ScaleType.FILL_CENTER
-        }
-    }
+    val preview = remember { androidx.camera.core.Preview.Builder().build() }
     val analysisExecutor = remember { Executors.newSingleThreadExecutor() }
     DisposableEffect(Unit) {
         onDispose { analysisExecutor.shutdown() }
@@ -59,11 +54,6 @@ fun QRScannerView(listener: (String) -> Unit) {
                 androidx.camera.lifecycle.ProcessCameraProvider.getInstance(localContext).get()
             }
             val mainExecutor = ContextCompat.getMainExecutor(localContext)
-            val preview = androidx.camera.core.Preview.Builder()
-                .build()
-                .also {
-                    it.surfaceProvider = previewView.surfaceProvider
-                }
             val imageAnalyzer = androidx.camera.core.ImageAnalysis.Builder()
                 .setBackpressureStrategy(androidx.camera.core.ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                 .setResolutionSelector(
@@ -101,7 +91,7 @@ fun QRScannerView(listener: (String) -> Unit) {
         }
     }
     Box(modifier = Modifier.fillMaxSize()) {
-        AndroidView({ previewView }, modifier = Modifier.fillMaxSize())
+        CameraPreview(preview, modifier = Modifier.fillMaxSize())
         Box(
             modifier = Modifier
                 .fillMaxSize(),

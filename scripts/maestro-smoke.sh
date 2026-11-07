@@ -23,10 +23,15 @@ newest() {
 }
 
 ios_device() {
-    local runtime udid
-    runtime="$(xcrun simctl list runtimes | grep -E '^iOS [0-9.]+ ' | grep -v unavailable | newest)"
+    local device_type runtime udid
     udid="$(xcrun simctl list devices available | grep -F "$SIMULATOR (" | grep -oE '[0-9A-F-]{36}' | tail -1 || true)"
-    [ -n "$udid" ] || udid="$(xcrun simctl create "$SIMULATOR" "$(xcrun simctl list devicetypes | grep -E '^iPhone [0-9]+ Pro \(' | newest | grep -oE 'com\.apple[^)]+')" "${runtime##* - }")"
+    if [ -z "$udid" ]; then
+        device_type="$(xcrun simctl list devicetypes | grep -E '^iPhone [0-9]+ Pro \(' | newest | grep -oE 'com\.apple[^)]+')"
+        for runtime in $(xcrun simctl list runtimes | grep -E '^iOS [0-9.]+ ' | grep -v unavailable | sort -rV | sed 's/.* - //'); do
+            udid="$(xcrun simctl create "$SIMULATOR" "$device_type" "$runtime" 2>/dev/null)" && break
+        done
+        [ -n "$udid" ] || { echo "no iOS runtime can create $device_type" >&2; exit 1; }
+    fi
     xcrun simctl boot "$udid" 2>/dev/null || true
     xcrun simctl bootstatus "$udid" -b >/dev/null
     xcrun simctl spawn "$udid" defaults write -g AppleLocale en_US
@@ -55,11 +60,11 @@ android_device() {
     if [ -z "$(android_serial)" ]; then
         [ -x "$EMULATOR" ] || { echo "no emulator package at $EMULATOR: sdkmanager \"emulator\" \"platform-tools\"" >&2; exit 1; }
         [ -x "$ADB" ] || { echo "no adb at $ADB: sdkmanager \"platform-tools\"" >&2; exit 1; }
+        export ANDROID_AVD_HOME="${ANDROID_AVD_HOME:-$HOME/.android/avd}"
         if ! "$EMULATOR" -list-avds | grep -qx "$AVD"; then
             image="$(cd "$ANDROID_SDK" && ls -d system-images/android-*/google_apis/* 2>/dev/null | newest || true)"
             [ -n "$image" ] || { echo "no google_apis system image under $ANDROID_SDK/system-images" >&2; exit 1; }
-            # avdmanager exits 0 having created nothing when the AVD home is missing, so make it first
-            mkdir -p "${ANDROID_AVD_HOME:-$HOME/.android/avd}"
+            mkdir -p "$ANDROID_AVD_HOME"
             echo no | "$ANDROID_SDK/cmdline-tools/latest/bin/avdmanager" create avd -n "$AVD" -d pixel_9 -k "$(tr / ';' <<<"$image")" >"$AVD_LOG" 2>&1
             # avdmanager can exit 0 without creating anything, which would leave nothing to wait for
             "$EMULATOR" -list-avds | grep -qx "$AVD" || die_emulator "avdmanager produced no $AVD from $image"

@@ -3,9 +3,10 @@ use std::future::Future;
 
 use futures::StreamExt;
 use gem_tracing::{error_with_fields, info_with_fields};
-use lapin::{Channel, Connection, ConnectionProperties, options::*, types::FieldTable};
+use lapin::{Channel, options::*, types::FieldTable};
 use serde::de::DeserializeOwned;
 
+use crate::connection::connect;
 use crate::{QueueName, Retry, ShutdownReceiver, StreamConnection, with_retry};
 
 #[derive(Clone)]
@@ -49,8 +50,7 @@ impl StreamReader {
     }
 
     async fn try_connect(config: &StreamReaderConfig) -> Result<Channel, Box<dyn Error + Send + Sync>> {
-        let options = ConnectionProperties::default().with_connection_name(config.name.clone().into());
-        let connection = Connection::connect(&config.url, options).await?;
+        let connection = connect(&config.url, config.name.clone()).await?;
         Self::configure_channel(connection.create_channel().await?, config.prefetch).await
     }
 

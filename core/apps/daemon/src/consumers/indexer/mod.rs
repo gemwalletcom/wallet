@@ -11,7 +11,7 @@ use streamer::{
 };
 
 use crate::consumers::runner::ChainConsumerRunner;
-use crate::consumers::{consumer_config, consumer_user_agent, reader_config};
+use crate::consumers::{consumer_config, consumer_user_agent, reader_config, stream_connection};
 use crate::model::{IndexerConsumer, IndexerService};
 
 pub async fn run_consumer_indexer(settings: Settings, service: IndexerService, shutdown: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>, only: Option<IndexerConsumer>) -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -63,9 +63,9 @@ struct QueueReader {
     reader: StreamReader,
 }
 
-async fn queue_reader(settings: &Settings, queue: &QueueName) -> Result<QueueReader, Box<dyn Error + Send + Sync>> {
+async fn queue_reader(settings: &Settings, queue: &QueueName, shutdown: &ShutdownReceiver) -> Result<QueueReader, Box<dyn Error + Send + Sync>> {
     let name = queue.to_string();
-    let connection = StreamConnection::new(&settings.rabbitmq.url, name.clone()).await?;
+    let connection = stream_connection(&settings.rabbitmq, name.clone(), shutdown).await?;
     let reader = StreamReader::from_connection(&connection, reader_config(&settings.rabbitmq, name.clone())).await?;
     Ok(QueueReader { name, connection, reader })
 }
@@ -73,7 +73,7 @@ async fn queue_reader(settings: &Settings, queue: &QueueName) -> Result<QueueRea
 async fn run_fetch_asset_associations(services: Services, shutdown: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>) -> Result<(), Box<dyn Error + Send + Sync>> {
     let settings = services.settings();
     let queue = QueueName::FetchAssetAssociations;
-    let queue_reader = queue_reader(&settings, &queue).await?;
+    let queue_reader = queue_reader(&settings, &queue, &shutdown).await?;
     let consumer = services.fetch_asset_associations_consumer();
     run_consumer::<FetchAssetAssociationsPayload, _, usize>(&queue_reader.name, queue_reader.reader, queue, None, consumer, consumer_config(&settings.consumer), shutdown, reporter).await
 }
@@ -94,7 +94,7 @@ async fn run_fetch_blocks(services: Services, shutdown: ShutdownReceiver, report
 async fn run_fetch_assets(services: Services, shutdown: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>) -> Result<(), Box<dyn Error + Send + Sync>> {
     let settings = services.settings();
     let queue = QueueName::FetchAssets;
-    let queue_reader = queue_reader(&settings, &queue).await?;
+    let queue_reader = queue_reader(&settings, &queue, &shutdown).await?;
     let stream_producer = StreamProducer::from_connection(&queue_reader.connection, settings.rabbitmq.maxbytes, shutdown.clone()).await?;
     let consumer = services.fetch_assets_consumer(&consumer_user_agent(&queue_reader.name), stream_producer).await?;
     run_consumer::<FetchAssetsPayload, _, usize>(&queue_reader.name, queue_reader.reader, queue, None, consumer, consumer_config(&settings.consumer), shutdown, reporter).await
@@ -103,7 +103,7 @@ async fn run_fetch_assets(services: Services, shutdown: ShutdownReceiver, report
 async fn run_fetch_asset_status(services: Services, shutdown: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>) -> Result<(), Box<dyn Error + Send + Sync>> {
     let settings = services.settings();
     let queue = QueueName::FetchAssetStatus;
-    let queue_reader = queue_reader(&settings, &queue).await?;
+    let queue_reader = queue_reader(&settings, &queue, &shutdown).await?;
     let consumer = services.fetch_asset_status_consumer().await?;
     run_consumer::<AssetId, _, bool>(&queue_reader.name, queue_reader.reader, queue, None, consumer, consumer_config(&settings.consumer), shutdown, reporter).await
 }
@@ -111,7 +111,7 @@ async fn run_fetch_asset_status(services: Services, shutdown: ShutdownReceiver, 
 async fn run_fetch_lists(services: Services, shutdown: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>) -> Result<(), Box<dyn Error + Send + Sync>> {
     let settings = services.settings();
     let queue = QueueName::FetchLists;
-    let queue_reader = queue_reader(&settings, &queue).await?;
+    let queue_reader = queue_reader(&settings, &queue, &shutdown).await?;
     let consumer = services.fetch_list_consumer();
     run_consumer::<FetchListPayload, _, u32>(&queue_reader.name, queue_reader.reader, queue, None, consumer, consumer_config(&settings.consumer), shutdown, reporter).await
 }
@@ -119,7 +119,7 @@ async fn run_fetch_lists(services: Services, shutdown: ShutdownReceiver, reporte
 async fn run_fetch_prices_metadata(services: Services, shutdown: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>) -> Result<(), Box<dyn Error + Send + Sync>> {
     let settings = services.settings();
     let queue = QueueName::FetchPricesMetadata;
-    let queue_reader = queue_reader(&settings, &queue).await?;
+    let queue_reader = queue_reader(&settings, &queue, &shutdown).await?;
     let consumer = services.fetch_prices_metadata_consumer().await?;
     let config = ConsumerConfig {
         skip_on_error: true,
@@ -131,7 +131,7 @@ async fn run_fetch_prices_metadata(services: Services, shutdown: ShutdownReceive
 async fn run_fetch_prices(services: Services, shutdown: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>) -> Result<(), Box<dyn Error + Send + Sync>> {
     let settings = services.settings();
     let queue = QueueName::FetchPrices;
-    let queue_reader = queue_reader(&settings, &queue).await?;
+    let queue_reader = queue_reader(&settings, &queue, &shutdown).await?;
     let consumer = services.fetch_prices_consumer().await?;
     run_consumer::<FetchPricesPayload, _, usize>(&queue_reader.name, queue_reader.reader, queue, None, consumer, consumer_config(&settings.consumer), shutdown, reporter).await
 }
@@ -179,7 +179,7 @@ async fn run_fetch_nft_associations(services: Services, shutdown: ShutdownReceiv
 async fn run_fetch_nft_assets(services: Services, shutdown: ShutdownReceiver, reporter: Arc<dyn ConsumerStatusReporter>) -> Result<(), Box<dyn Error + Send + Sync>> {
     let settings = services.settings();
     let queue = QueueName::FetchNFTCollectionAssets;
-    let queue_reader = queue_reader(&settings, &queue).await?;
+    let queue_reader = queue_reader(&settings, &queue, &shutdown).await?;
     let consumer = services.fetch_nft_asset_consumer().await?;
     run_consumer::<FetchNFTAssetPayload, _, usize>(&queue_reader.name, queue_reader.reader, queue, None, consumer, consumer_config(&settings.consumer), shutdown, reporter).await
 }

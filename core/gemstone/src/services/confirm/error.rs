@@ -28,6 +28,9 @@ pub enum GemConfirmError {
         msg: String,
     },
     Broadcast {
+        msg: String,
+    },
+    PartialBroadcast {
         hashes: Vec<String>,
         msg: String,
     },
@@ -91,7 +94,34 @@ impl GemConfirmError {
             | Self::Network { .. }
             | Self::Load { .. }
             | Self::Broadcast { .. }
+            | Self::PartialBroadcast { .. }
             | Self::Record { .. }
+            | Self::BalanceMissing { .. }
+            | Self::InsufficientBalance { .. }
+            | Self::InsufficientNetworkFee { .. }
+            | Self::MinimumAccountBalanceTooLow { .. }
+            | Self::DestinationAccountActivation { .. }
+            | Self::BelowSwapMinimum { .. }
+            | Self::SenderMismatch { .. }
+            | Self::Sign { .. }
+            | Self::ApprovalInvalid { .. }
+            | Self::Payment { .. }
+            | Self::Cancelled => false,
+        }
+    }
+
+    pub(crate) fn has_sent_transactions(&self) -> bool {
+        match self {
+            Self::PartialBroadcast { .. } => true,
+            Self::ScanMalicious
+            | Self::Broadcast { .. }
+            | Self::ScanMemoRequired { .. }
+            | Self::FeeRatesMissing
+            | Self::Offline
+            | Self::Network { .. }
+            | Self::Load { .. }
+            | Self::Record { .. }
+            | Self::AccountMissing { .. }
             | Self::BalanceMissing { .. }
             | Self::InsufficientBalance { .. }
             | Self::InsufficientNetworkFee { .. }
@@ -117,6 +147,7 @@ impl GemConfirmError {
             | Self::Network { .. }
             | Self::Load { .. }
             | Self::Broadcast { .. }
+            | Self::PartialBroadcast { .. }
             | Self::Record { .. }
             | Self::AccountMissing { .. }
             | Self::BalanceMissing { .. }
@@ -139,6 +170,7 @@ impl GemConfirmError {
             | Self::Network { .. }
             | Self::Load { .. }
             | Self::Broadcast { .. }
+            | Self::PartialBroadcast { .. }
             | Self::Record { .. }
             | Self::AccountMissing { .. }
             | Self::BalanceMissing { .. }
@@ -260,7 +292,9 @@ impl GemConfirmError {
                 GemSignerError::InvalidInput(_) | GemSignerError::SigningError(_) | GemSignerError::SwapValueBelowMinimum { .. } => GemConfirmErrorDisplay::Message { msg: msg.clone() },
             },
             Self::Payment { status } => GemConfirmErrorDisplay::Payment { status: *status },
-            Self::BalanceMissing { .. } | Self::Network { .. } | Self::Load { .. } | Self::Broadcast { .. } | Self::Record { .. } | Self::ApprovalInvalid { .. } => GemConfirmErrorDisplay::Message { msg: self.to_string() },
+            Self::BalanceMissing { .. } | Self::Network { .. } | Self::Load { .. } | Self::Broadcast { .. } | Self::PartialBroadcast { .. } | Self::Record { .. } | Self::ApprovalInvalid { .. } => {
+                GemConfirmErrorDisplay::Message { msg: self.to_string() }
+            }
         }
     }
 }
@@ -293,6 +327,7 @@ impl GemConfirmError {
             | Self::Network { .. }
             | Self::Load { .. }
             | Self::Broadcast { .. }
+            | Self::PartialBroadcast { .. }
             | Self::Record { .. }
             | Self::ApprovalInvalid { .. } => None,
         }
@@ -364,7 +399,7 @@ impl std::fmt::Display for GemConfirmError {
             Self::SenderMismatch { from, signer } => write!(f, "transaction was built for {from} but would be signed by {signer}"),
             Self::Cancelled => write!(f, "cancelled"),
             Self::Payment { status } => write!(f, "payment is {status:?}"),
-            Self::Network { msg } | Self::Load { msg } | Self::Broadcast { msg, .. } | Self::Record { msg } | Self::Sign { msg, .. } | Self::ApprovalInvalid { msg } => {
+            Self::Network { msg } | Self::Load { msg } | Self::Broadcast { msg } | Self::PartialBroadcast { msg, .. } | Self::Record { msg } | Self::Sign { msg, .. } | Self::ApprovalInvalid { msg } => {
                 write!(f, "{msg}")
             }
         }
@@ -422,11 +457,20 @@ pub(super) fn load_error(chain: Chain, error: GatewayError) -> GemConfirmError {
     }
 }
 
-pub(super) fn broadcast_error(hashes: Vec<String>, error: GatewayError) -> GemConfirmError {
+#[derive(Debug, Clone, PartialEq)]
+pub(super) enum SendFailure {
+    Failed(GemConfirmError),
+    Unanswered(GemConfirmError),
+}
+
+pub(super) fn broadcast_failure(hashes: Vec<String>, error: GatewayError) -> SendFailure {
+    if !hashes.is_empty() {
+        return SendFailure::Failed(GemConfirmError::PartialBroadcast { hashes, msg: error.to_string() });
+    }
     match error {
-        GatewayError::Offline if hashes.is_empty() => GemConfirmError::Offline,
-        GatewayError::NetworkError { msg } if hashes.is_empty() => GemConfirmError::Network { msg },
-        error => GemConfirmError::Broadcast { hashes, msg: error.to_string() },
+        GatewayError::Offline => SendFailure::Unanswered(GemConfirmError::Offline),
+        GatewayError::NetworkError { msg } => SendFailure::Unanswered(GemConfirmError::Network { msg }),
+        error => SendFailure::Failed(GemConfirmError::Broadcast { msg: error.to_string() }),
     }
 }
 
@@ -534,25 +578,39 @@ mod tests {
             GemConfirmErrorDisplay::DustThreshold { chain: Chain::Bitcoin },
             "dust found while loading the fee shows the dust explanation, as it does at signing"
         );
-        assert_eq!(broadcast_error(vec![], GatewayError::Offline), GemConfirmError::Offline);
         assert_eq!(
-            broadcast_error(vec!["h1".to_string()], GatewayError::Offline),
-            GemConfirmError::Broadcast {
+            broadcast_failure(vec![], GatewayError::Offline),
+            SendFailure::Unanswered(GemConfirmError::Offline),
+            "a broadcast the network never answered may still have arrived"
+        );
+        assert_eq!(
+            broadcast_failure(vec!["h1".to_string()], GatewayError::Offline),
+            SendFailure::Failed(GemConfirmError::PartialBroadcast {
                 hashes: vec!["h1".to_string()],
                 msg: GatewayError::Offline.to_string(),
-            }
+            })
         );
         assert_eq!(
             load_error(Chain::Bitcoin, GatewayError::PlatformError { msg: "dust".to_string() }),
             GemConfirmError::Load { msg: "Platform error: dust".to_string() }
         );
-        assert_eq!(broadcast_error(vec![], GatewayError::NetworkError { msg: "offline".to_string() }), GemConfirmError::Network { msg: "offline".to_string() });
         assert_eq!(
-            broadcast_error(vec!["h1".to_string()], GatewayError::NetworkError { msg: "offline".to_string() }),
-            GemConfirmError::Broadcast {
+            broadcast_failure(vec![], GatewayError::NetworkError { msg: "offline".to_string() }),
+            SendFailure::Unanswered(GemConfirmError::Network { msg: "offline".to_string() })
+        );
+        assert_eq!(
+            broadcast_failure(vec![], GatewayError::PlatformError { msg: "rejected".to_string() }),
+            SendFailure::Failed(GemConfirmError::Broadcast {
+                msg: GatewayError::PlatformError { msg: "rejected".to_string() }.to_string(),
+            }),
+            "a send the network refused before accepting anything is a plain broadcast failure"
+        );
+        assert_eq!(
+            broadcast_failure(vec!["h1".to_string()], GatewayError::NetworkError { msg: "offline".to_string() }),
+            SendFailure::Failed(GemConfirmError::PartialBroadcast {
                 hashes: vec!["h1".to_string()],
                 msg: GatewayError::NetworkError { msg: "offline".to_string() }.to_string(),
-            }
+            })
         );
     }
 }

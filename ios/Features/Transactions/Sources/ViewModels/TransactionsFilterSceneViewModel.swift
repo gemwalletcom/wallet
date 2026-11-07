@@ -23,8 +23,7 @@ public final class TransactionsFilterSceneViewModel {
 
     public let query: ObservableQuery<MappedQuery<TransactionsQuery, [ListSection<GemTransactionRow>]>>
 
-    var isPresentingChains: Bool = false
-    var isPresentingTypes: Bool = false
+    var isPresentingSheet: TransactionsFilterSheetType?
 
     public init(wallet: Wallet, chains: [Chain], type: TransactionsQueryType) {
         let session = newTransactionsFilterSession(chains: chains.map(\.rawValue), walletType: wallet.type.toGem())
@@ -105,11 +104,11 @@ public final class TransactionsFilterSceneViewModel {
 
 extension TransactionsFilterSceneViewModel {
     func onSelectChainsFilter() {
-        isPresentingChains = true
+        isPresentingSheet = .chains
     }
 
     func onSelectTypesFilter() {
-        isPresentingTypes = true
+        isPresentingSheet = .types
     }
 }
 

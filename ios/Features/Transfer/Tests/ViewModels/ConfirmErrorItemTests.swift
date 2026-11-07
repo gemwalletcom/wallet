@@ -32,7 +32,7 @@ struct ConfirmErrorItemTests {
 
     @Test
     func submitFailureStaysOutOfTheList() {
-        let failure = GemConfirmFailure(stage: .execute, error: .Broadcast(hashes: [], msg: "rejected"))
+        let failure = GemConfirmFailure(stage: .execute, error: .Broadcast(msg: "rejected"))
         let state = ConfirmTransferState.mock(load: .mock(fee: .mock()), screen: .mock(phase: .failed, failure: failure))
         let item = errorItem(state)
 
