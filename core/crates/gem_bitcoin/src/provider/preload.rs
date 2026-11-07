@@ -9,7 +9,7 @@ use primitives::{BitcoinChain, FeePriority, FeeRate, FeeUnitType, GasPriceType, 
 
 use crate::constants::{LEGACY_TRANSACTION_VBYTES, SEGWIT_TRANSACTION_VBYTES};
 use crate::models::Address;
-use crate::provider::preload_mapper::{map_transaction_preload, map_transaction_preload_zcash, map_utxos};
+use crate::provider::preload_mapper::{map_confirmed_utxos, map_transaction_preload, map_transaction_preload_zcash};
 use crate::rpc::client::BitcoinClient;
 use crate::signer::estimate_transaction_fee;
 
@@ -57,7 +57,7 @@ impl<C: Client> ChainTransactionLoad for BitcoinClient<C> {
 
     async fn get_utxos(&self, address: String) -> Result<Vec<UTXO>, Box<dyn Error + Sync + Send>> {
         let utxos = BitcoinClient::get_utxos(self, &address).await?;
-        Ok(map_utxos(utxos, address))
+        Ok(map_confirmed_utxos(utxos, address))
     }
 }
 

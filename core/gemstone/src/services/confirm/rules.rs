@@ -1754,7 +1754,7 @@ mod tests {
         for (utxos, available, spendable, reason) in [
             (vec![], 129_576, 0u64, "a pending send spent every UTXO, while the balance still shows them"),
             (vec![5_000], 129_576, 5_000, "the balance looks fine but the UTXOs can't cover the send"),
-            (vec![129_576], 5_000, 5_000, "an unconfirmed deposit in the UTXOs is not available balance yet"),
+            (vec![129_576], 5_000, 5_000, "a stored balance behind the UTXOs still caps the send"),
         ] {
             assert_eq!(
                 GemConfirmData::mock_bitcoin(10_000, false, &utxos).preload_amount(&GemConfirmMetadata::mock(&asset.id, available), &asset),

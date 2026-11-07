@@ -69,15 +69,18 @@ impl ConfirmTestkit {
     }
 
     pub fn with_bitcoin_utxos(available: u64, utxo_values: &[u64]) -> Self {
+        Self::with_bitcoin_utxos_and_pending(available, utxo_values, &[])
+    }
+
+    pub fn with_bitcoin_utxos_and_pending(available: u64, utxo_values: &[u64], pending_values: &[u64]) -> Self {
         let wallet = mock_bitcoin_wallet();
-        let utxos: Vec<BitcoinUTXO> = utxo_values
-            .iter()
-            .map(|value| BitcoinUTXO {
-                txid: "0".repeat(64),
-                vout: 0,
-                value: (*value).into(),
-            })
-            .collect();
+        let utxo = |value: u64, confirmations: u64| BitcoinUTXO {
+            txid: "0".repeat(64),
+            vout: 0,
+            value: value.into(),
+            confirmations,
+        };
+        let utxos: Vec<BitcoinUTXO> = utxo_values.iter().map(|value| utxo(*value, 1)).chain(pending_values.iter().map(|value| utxo(*value, 0))).collect();
         let utxos = serde_json::to_string(&utxos).unwrap();
         let provider = Arc::new(TestAlienProvider::with_json_by_path(200, &[("/utxo/", utxos.as_str()), ("/estimatefee/", r#"{"result":"0.00002"}"#)]));
         let testkit = Self::with_provider(wallet.clone(), wallet.clone(), provider);
