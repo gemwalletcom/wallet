@@ -17,8 +17,6 @@ include(":data:services")
 include(":data:services:store")
 include(":data:services:gemstone")
 include(":data:services:native-provider")
-include(":data:services:walletconnect:noop")
-include(":data:services:walletconnect:reown")
 include(":flavors")
 include(":flavors:pushes-stub")
 if (file("flavors/fcm").isDirectory) {

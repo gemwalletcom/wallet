@@ -8,9 +8,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
-import com.gemwallet.android.application.wallet_connect.WalletConnectSessionRequest
 import com.gemwallet.android.application.wallet_connect.WalletConnectUserRequest
-import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
 import com.gemwallet.android.features.transfer.presents.confirm.ConfirmTransferScreen
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.GetAssetAction
 import com.gemwallet.android.features.wallet_connector.presents.AuthRequestScreen
@@ -24,6 +22,7 @@ import com.gemwallet.android.ui.models.actions.CancelAction
 import com.gemwallet.android.ui.models.actions.FinishConfirmAction
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.ChainAddress
+import uniffi.gemstone.GemWalletConnectSessionRequest
 
 @Composable
 internal fun WalletConnectorRequestContent(activeRequest: ActiveWalletConnectRequest, requestKey: String, onGetAsset: (GetAssetAction, AssetId) -> Unit, onOpenAddress: (ChainAddress) -> Unit, onError: (String) -> Unit) {
@@ -32,21 +31,18 @@ internal fun WalletConnectorRequestContent(activeRequest: ActiveWalletConnectReq
         null -> Unit
 
         is WalletConnectUserRequest.AuthenticationRequest -> AuthRequestScreen(
-            request = current.request,
-            verifyContext = current.verifyContext,
+            authentication = current.authentication,
             onOpenAddress = onOpenAddress,
             onError = onError,
         )
 
         is WalletConnectUserRequest.SessionProposal -> ConnectionProposalScreen(
             proposal = current.proposal,
-            verifyContext = current.verifyContext,
             onError = onError,
         )
 
         is WalletConnectUserRequest.SessionRequest -> SessionRequestContent(
             request = current.request,
-            verifyContext = current.verifyContext,
             onGetAsset = onGetAsset,
             onOpenAddress = onOpenAddress,
             onError = onError,
@@ -56,8 +52,7 @@ internal fun WalletConnectorRequestContent(activeRequest: ActiveWalletConnectReq
 
 @Composable
 private fun SessionRequestContent(
-    request: WalletConnectSessionRequest,
-    verifyContext: WalletConnectVerifyContext,
+    request: GemWalletConnectSessionRequest,
     onGetAsset: (GetAssetAction, AssetId) -> Unit,
     onOpenAddress: (ChainAddress) -> Unit,
     onError: (String) -> Unit,
@@ -65,10 +60,9 @@ private fun SessionRequestContent(
 ) {
     BackHandler(onBack = viewModel::onReject)
 
-    LaunchedEffect(request.topic, request.request.id) {
+    LaunchedEffect(request.topic, request.requestId) {
         viewModel.onRequest(
             sessionRequest = request,
-            verifyContext = verifyContext,
             onError = onError,
         )
     }

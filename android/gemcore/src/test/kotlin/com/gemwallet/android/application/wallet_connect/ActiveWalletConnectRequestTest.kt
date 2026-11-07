@@ -1,9 +1,9 @@
 package com.gemwallet.android.application.wallet_connect
 
+import com.gemwallet.android.testkit.mockGemWalletConnectAuthentication
 import com.gemwallet.android.testkit.mockGemWalletConnectMessageRequest
-import com.gemwallet.android.testkit.mockWalletConnectSessionProposal
-import com.gemwallet.android.testkit.mockWalletConnectSessionRequest
-import com.gemwallet.android.testkit.mockWalletConnectVerifyContext
+import com.gemwallet.android.testkit.mockGemWalletConnectProposal
+import com.gemwallet.android.testkit.mockGemWalletConnectSessionRequest
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.test.runTest
@@ -14,22 +14,21 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.GemServiceException
+import uniffi.gemstone.GemWalletConnectEvent
 
 class ActiveWalletConnectRequestTest {
 
-    private val events = MutableSharedFlow<WalletConnectEvent>()
-
-    private val verifyContext = mockWalletConnectVerifyContext()
+    private val events = MutableSharedFlow<GemWalletConnectEvent>()
 
     @Test
     fun finishWithPayloadClearsOnlyTheRequestThatProducedIt() = runTest {
         val activeRequest = ActiveWalletConnectRequest(events, WalletConnectPendingRequests(), backgroundScope)
         testScheduler.runCurrent()
-        val first = mockWalletConnectSessionProposal()
-        val second = mockWalletConnectSessionRequest(id = 1)
+        val first = mockGemWalletConnectProposal(id = "key")
+        val second = mockGemWalletConnectSessionRequest(topic = "topic", requestId = "1")
 
-        events.emit(WalletConnectEvent.SessionProposal(first, verifyContext))
-        events.emit(WalletConnectEvent.SessionRequest(second, verifyContext))
+        events.emit(GemWalletConnectEvent.Proposal(first))
+        events.emit(GemWalletConnectEvent.Request(second))
         testScheduler.runCurrent()
 
         assertFalse(activeRequest.finish(first))
@@ -44,11 +43,11 @@ class ActiveWalletConnectRequestTest {
     fun aDeletedSessionClearsThePendingRequest() = runTest {
         val activeRequest = ActiveWalletConnectRequest(events, WalletConnectPendingRequests(), backgroundScope)
         testScheduler.runCurrent()
-        events.emit(WalletConnectEvent.SessionProposal(mockWalletConnectSessionProposal(), verifyContext))
+        events.emit(GemWalletConnectEvent.Proposal(mockGemWalletConnectProposal()))
         testScheduler.runCurrent()
         checkNotNull(activeRequest.current.value)
 
-        events.emit(WalletConnectEvent.SessionDeleted("topic"))
+        events.emit(GemWalletConnectEvent.SessionDeleted("topic"))
         testScheduler.runCurrent()
 
         assertNull(activeRequest.current.value)
@@ -59,11 +58,11 @@ class ActiveWalletConnectRequestTest {
         val pendingRequests = WalletConnectPendingRequests()
         val activeRequest = ActiveWalletConnectRequest(events, pendingRequests, backgroundScope)
         testScheduler.runCurrent()
-        events.emit(WalletConnectEvent.SessionRequest(mockWalletConnectSessionRequest(id = 1), verifyContext))
+        events.emit(GemWalletConnectEvent.Request(mockGemWalletConnectSessionRequest(topic = "topic", requestId = "1")))
         val review = backgroundScope.async { runCatching { pendingRequests.signMessage(mockGemWalletConnectMessageRequest(sessionId = "topic", requestId = "1")) } }
         testScheduler.runCurrent()
 
-        events.emit(WalletConnectEvent.RequestExpired("topic", 1))
+        events.emit(GemWalletConnectEvent.RequestExpired("topic", "1"))
         testScheduler.runCurrent()
 
         assertTrue(review.await().exceptionOrNull() is GemServiceException.Expired)
@@ -74,10 +73,10 @@ class ActiveWalletConnectRequestTest {
     fun anExpiredRequestStillLoadingClosesItsScreen() = runTest {
         val activeRequest = ActiveWalletConnectRequest(events, WalletConnectPendingRequests(), backgroundScope)
         testScheduler.runCurrent()
-        events.emit(WalletConnectEvent.SessionRequest(mockWalletConnectSessionRequest(id = 1), verifyContext))
+        events.emit(GemWalletConnectEvent.Request(mockGemWalletConnectSessionRequest(topic = "topic", requestId = "1")))
         testScheduler.runCurrent()
 
-        events.emit(WalletConnectEvent.RequestExpired("topic", 1))
+        events.emit(GemWalletConnectEvent.RequestExpired("topic", "1"))
         testScheduler.runCurrent()
 
         assertNull(activeRequest.current.value)
@@ -88,11 +87,11 @@ class ActiveWalletConnectRequestTest {
         val pendingRequests = WalletConnectPendingRequests()
         val activeRequest = ActiveWalletConnectRequest(events, pendingRequests, backgroundScope)
         testScheduler.runCurrent()
-        events.emit(WalletConnectEvent.SessionRequest(mockWalletConnectSessionRequest(id = 1), verifyContext))
+        events.emit(GemWalletConnectEvent.Request(mockGemWalletConnectSessionRequest(topic = "topic", requestId = "1")))
         val review = backgroundScope.async { pendingRequests.signMessage(mockGemWalletConnectMessageRequest(sessionId = "topic", requestId = "1")) }
         testScheduler.runCurrent()
 
-        events.emit(WalletConnectEvent.RequestExpired("topic", 2))
+        events.emit(GemWalletConnectEvent.RequestExpired("topic", "2"))
         testScheduler.runCurrent()
 
         assertTrue(review.isActive)
@@ -103,7 +102,7 @@ class ActiveWalletConnectRequestTest {
     fun finishWithoutPayloadClearsUnconditionally() = runTest {
         val activeRequest = ActiveWalletConnectRequest(events, WalletConnectPendingRequests(), backgroundScope)
         testScheduler.runCurrent()
-        events.emit(WalletConnectEvent.SessionProposal(mockWalletConnectSessionProposal(), verifyContext))
+        events.emit(GemWalletConnectEvent.Authentication(mockGemWalletConnectAuthentication()))
         testScheduler.runCurrent()
         checkNotNull(activeRequest.current.value)
 
@@ -114,11 +113,12 @@ class ActiveWalletConnectRequestTest {
 
     @Test
     fun everyRequestKindHasItsOwnKey() {
-        val proposalKey = WalletConnectUserRequest.SessionProposal(mockWalletConnectSessionProposal(), verifyContext).key
-        val firstRequest = WalletConnectUserRequest.SessionRequest(mockWalletConnectSessionRequest(id = 1), verifyContext).key
-        val secondRequest = WalletConnectUserRequest.SessionRequest(mockWalletConnectSessionRequest(id = 2), verifyContext).key
+        val proposalKey = WalletConnectUserRequest.SessionProposal(mockGemWalletConnectProposal(id = "1")).key
+        val authenticationKey = WalletConnectUserRequest.AuthenticationRequest(mockGemWalletConnectAuthentication(id = "1")).key
+        val firstRequest = WalletConnectUserRequest.SessionRequest(mockGemWalletConnectSessionRequest(topic = "topic", requestId = "1")).key
+        val secondRequest = WalletConnectUserRequest.SessionRequest(mockGemWalletConnectSessionRequest(topic = "topic", requestId = "2")).key
 
-        assertEquals(firstRequest, WalletConnectUserRequest.SessionRequest(mockWalletConnectSessionRequest(id = 1), verifyContext).key)
-        assertEquals(3, setOf(proposalKey, firstRequest, secondRequest).size)
+        assertEquals(firstRequest, WalletConnectUserRequest.SessionRequest(mockGemWalletConnectSessionRequest(topic = "topic", requestId = "1")).key)
+        assertEquals(4, setOf(proposalKey, authenticationKey, firstRequest, secondRequest).size)
     }
 }

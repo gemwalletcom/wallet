@@ -16,7 +16,7 @@ android {
 dependencies {
     implementation(project(":data:services:gemstone"))
     implementation(project(":data:services:store"))
-
+    implementation(libs.okhttp)
 
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

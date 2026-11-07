@@ -93,6 +93,7 @@ android {
                     .replace("\\", "\\\\")
                     .replace("\"", "\\\"")
                 buildConfigField("String", "UPDATE_URL", "\"$resolvedUpdateUrl\"")
+                buildConfigField("boolean", "WALLET_CONNECT", (channel.getValue("walletConnect") as Boolean).toString())
             }
         }
     }
@@ -274,7 +275,7 @@ dependencies {
 
     gemChannels.forEach { (name, channel) ->
         val configuration = "${name}Implementation"
-        listOf("push", "review", "walletConnect").forEach { key ->
+        listOf("push", "review").forEach { key ->
             val module = channel[key] as String
             if (rootProject.findProject(module) != null) {
                 add(configuration, project(module))

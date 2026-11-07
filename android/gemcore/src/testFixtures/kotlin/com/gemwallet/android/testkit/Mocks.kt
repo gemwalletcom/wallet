@@ -1,10 +1,5 @@
 package com.gemwallet.android.testkit
 
-import com.gemwallet.android.application.wallet_connect.WalletConnectJsonRpcRequest
-import com.gemwallet.android.application.wallet_connect.WalletConnectSessionProposal
-import com.gemwallet.android.application.wallet_connect.WalletConnectSessionRequest
-import com.gemwallet.android.application.wallet_connect.WalletConnectValidation
-import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.BuildInfo
@@ -103,31 +98,4 @@ fun mockBuildInfo(platformStore: PlatformStore = PlatformStore.GooglePlay) = Bui
 fun mockSession(wallet: Wallet = mockWallet(), currency: Currency = Currency.USD) = Session(
     wallet = wallet,
     currency = currency,
-)
-
-fun mockWalletConnectSessionProposal(): WalletConnectSessionProposal {
-    val metadata = mockApplicationMetadata()
-    return WalletConnectSessionProposal(
-        name = metadata.name,
-        description = metadata.description,
-        url = metadata.url,
-        icons = listOf(metadata.icon),
-        requiredNamespaces = emptyMap(),
-        optionalNamespaces = emptyMap(),
-        proposerPublicKey = "key",
-        pairingTopic = "pairing",
-        properties = null,
-    )
-}
-
-fun mockWalletConnectSessionRequest(id: Long = 1, topic: String = "topic") = WalletConnectSessionRequest(
-    topic = topic,
-    chainId = "eip155:1",
-    request = WalletConnectJsonRpcRequest(id = id, method = "personal_sign", params = "[]"),
-)
-
-fun mockWalletConnectVerifyContext(origin: String = "", validation: WalletConnectValidation = WalletConnectValidation.Valid, isScam: Boolean = false) = WalletConnectVerifyContext(
-    origin = origin,
-    validation = validation,
-    isScam = isScam,
 )

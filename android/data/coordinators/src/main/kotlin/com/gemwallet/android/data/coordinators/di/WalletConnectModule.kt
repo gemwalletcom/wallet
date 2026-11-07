@@ -1,22 +1,32 @@
 package com.gemwallet.android.data.coordinators.di
 
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
-import com.gemwallet.android.application.wallet_connect.WalletConnectClient
 import com.gemwallet.android.application.wallet_connect.WalletConnectPendingRequests
 import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnectAuthentication
 import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnection
 import com.gemwallet.android.application.wallet_connect.cases.DisconnectWalletConnection
-import com.gemwallet.android.application.wallet_connect.cases.IsWalletConnectEnabled
 import com.gemwallet.android.application.wallet_connect.cases.PairWalletConnect
 import com.gemwallet.android.application.wallet_connect.cases.RespondWalletConnectRequest
 import com.gemwallet.android.application.wallet_connect.cases.SyncWalletConnectSessions
 import com.gemwallet.android.data.coordinators.wallet_connect.WalletConnectCoordinator
+import com.gemwallet.android.data.coordinators.wallet_connect.WalletConnectListener
+import com.gemwallet.android.data.coordinators.wallet_connect.WalletConnectRelay
+import com.gemwallet.android.data.services.gemstone.stream.WebSocketConnection
+import com.gemwallet.android.data.services.gemstone.stream.WebSocketRequest
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import uniffi.gemstone.GemChainService
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import uniffi.gemstone.AlienProvider
+import uniffi.gemstone.GemConnectionService
+import uniffi.gemstone.GemSecureStore
+import uniffi.gemstone.GemWalletConnectClient
 import uniffi.gemstone.GemWalletConnectService
+import uniffi.gemstone.Platform
+import uniffi.gemstone.walletConnectRelay
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -24,21 +34,49 @@ import javax.inject.Singleton
 object WalletConnectModule {
     @Singleton
     @Provides
-    fun provideWalletConnectCoordinator(walletConnectClient: WalletConnectClient, walletConnectService: GemWalletConnectService, chainService: GemChainService): WalletConnectCoordinator = WalletConnectCoordinator(
-        walletConnectClient = walletConnectClient,
+    fun provideWalletConnectRelay(secureStore: GemSecureStore, okHttpClient: OkHttpClient, connectionService: GemConnectionService): WalletConnectRelay = WalletConnectRelay(
+        WebSocketConnection(
+            requestProvider = {
+                withContext(Dispatchers.IO) {
+                    walletConnectRelay(secureStore, Platform.ANDROID).let { WebSocketRequest(url = it.url, headers = mapOf("Origin" to it.origin)) }
+                }
+            },
+            client = okHttpClient,
+            connectionService = connectionService,
+        ),
+    )
+
+    @Singleton
+    @Provides
+    fun provideWalletConnectListener(): WalletConnectListener = WalletConnectListener()
+
+    @Singleton
+    @Provides
+    fun provideGemWalletConnectClient(walletConnectService: GemWalletConnectService, secureStore: GemSecureStore, alienProvider: AlienProvider, relay: WalletConnectRelay, listener: WalletConnectListener): GemWalletConnectClient =
+        GemWalletConnectClient(
+            service = walletConnectService,
+            store = secureStore,
+            provider = alienProvider,
+            transport = relay,
+            listener = listener,
+            platform = Platform.ANDROID,
+        )
+
+    @Singleton
+    @Provides
+    fun provideWalletConnectCoordinator(client: GemWalletConnectClient, relay: WalletConnectRelay, listener: WalletConnectListener, walletConnectService: GemWalletConnectService): WalletConnectCoordinator = WalletConnectCoordinator(
+        client = client,
+        relay = relay,
+        events = listener.events,
         walletConnectService = walletConnectService,
-        chainService = chainService,
     )
 
     @Singleton
     @Provides
     fun provideActiveWalletConnectRequest(coordinator: WalletConnectCoordinator, pendingRequests: WalletConnectPendingRequests): ActiveWalletConnectRequest = ActiveWalletConnectRequest(
-        events = coordinator.bridgeEvents,
+        events = coordinator.events,
         pendingRequests = pendingRequests,
     )
-
-    @Provides
-    fun provideIsWalletConnectEnabled(coordinator: WalletConnectCoordinator): IsWalletConnectEnabled = coordinator
 
     @Provides
     fun providePairWalletConnect(coordinator: WalletConnectCoordinator): PairWalletConnect = coordinator

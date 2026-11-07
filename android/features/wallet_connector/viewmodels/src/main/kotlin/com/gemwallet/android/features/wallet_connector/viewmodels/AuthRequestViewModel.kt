@@ -5,11 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
-import com.gemwallet.android.application.wallet_connect.WalletConnectAuthPayloadParams
-import com.gemwallet.android.application.wallet_connect.WalletConnectAuthenticationRequest
-import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
 import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnectAuthentication
-import com.gemwallet.android.application.wallet_connect.map
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.listItem
 import com.gemwallet.android.ext.runCatchingCancellable
@@ -41,7 +37,7 @@ import uniffi.gemstone.GemConnectionRow
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemSignMessageServiceInterface
-import uniffi.gemstone.GemWalletConnectAuthAccount
+import uniffi.gemstone.GemWalletConnectAuthentication
 import uniffi.gemstone.GemWalletConnectException
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.GemWalletSection
@@ -61,7 +57,7 @@ class AuthRequestViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
-    private var authRequest: WalletConnectAuthenticationRequest? = null
+    private var authRequest: GemWalletConnectAuthentication? = null
     private var hasResponded = false
 
     private val _state = MutableStateFlow<AuthRequestUIState>(AuthRequestUIState.Loading)
@@ -71,7 +67,7 @@ class AuthRequestViewModel @Inject constructor(
         .map { buttonState(loading = it is AuthRequestUIState.Approving) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, ButtonState.Enabled)
 
-    fun onRequest(request: WalletConnectAuthenticationRequest, verifyContext: WalletConnectVerifyContext, onError: (String) -> Unit) {
+    fun onRequest(request: GemWalletConnectAuthentication, onError: (String) -> Unit) {
         if (authRequest?.id == request.id) {
             return
         }
@@ -80,7 +76,7 @@ class AuthRequestViewModel @Inject constructor(
         _state.update { AuthRequestUIState.Loading }
         viewModelScope.launch {
             val content = withContext(ioDispatcher) {
-                runCatchingCancellable { requestContent(request, verifyContext) }
+                runCatchingCancellable { requestContent(request) }
             }.getOrElse { err ->
                 if (!isActiveRequest(request)) {
                     return@launch
@@ -138,15 +134,10 @@ class AuthRequestViewModel @Inject constructor(
                 if (!isActiveRequest(request)) {
                     return@launch
                 }
-                val authObject = approveWalletConnectAuthentication.authObject(
-                    payloadParams = approval.payloadParams,
-                    issuer = approval.issuer,
-                    signature = signature,
-                )
                 approveWalletConnectAuthentication.approveAuthentication(
-                    request = request,
-                    auths = listOf(authObject),
+                    authentication = request,
                     wallet = approval.wallet,
+                    signature = signature,
                     onSuccess = {
                         if (authRequest?.id == request.id) {
                             hasResponded = true
@@ -188,7 +179,7 @@ class AuthRequestViewModel @Inject constructor(
         }
     }
 
-    private fun rejectRequest(request: WalletConnectAuthenticationRequest, errorState: AuthRequestUIState.Error) {
+    private fun rejectRequest(request: GemWalletConnectAuthentication, errorState: AuthRequestUIState.Error) {
         if (!isActiveRequest(request)) {
             return
         }
@@ -197,9 +188,9 @@ class AuthRequestViewModel @Inject constructor(
         _state.update { errorState }
     }
 
-    private fun isActiveRequest(request: WalletConnectAuthenticationRequest): Boolean = authRequest?.id == request.id && !hasResponded
+    private fun isActiveRequest(request: GemWalletConnectAuthentication): Boolean = authRequest?.id == request.id && !hasResponded
 
-    private fun finish(request: WalletConnectAuthenticationRequest) {
+    private fun finish(request: GemWalletConnectAuthentication) {
         if (activeRequest.finish(request)) {
             reset()
         }
@@ -215,18 +206,13 @@ class AuthRequestViewModel @Inject constructor(
         _state.update { AuthRequestUIState.Loading }
     }
 
-    private suspend fun requestContent(request: WalletConnectAuthenticationRequest, verifyContext: WalletConnectVerifyContext): AuthRequestUIState.Request {
+    private suspend fun requestContent(request: GemWalletConnectAuthentication): AuthRequestUIState.Request {
         val prepared = walletConnectService.prepareAuthentication(
-            chainIds = request.payloadParams.chains,
-            domain = request.payloadParams.domain,
-            metadata = walletConnectService.applicationMetadata(
-                request.metadata?.name.orEmpty(),
-                request.metadata?.description.orEmpty(),
-                request.metadata?.url.orEmpty(),
-                listOfNotNull(request.metadata?.icon),
-            ),
-            origin = verifyContext.origin,
-            validation = verifyContext.map(),
+            chainIds = request.chainIds,
+            domain = request.domain,
+            metadata = request.metadata,
+            origin = request.origin,
+            validation = request.validation,
         )
         val selectedWallet = prepared.proposal.defaultWallet.toPrimitives()
         val availableWallets = prepared.proposal.wallets.map { it.toPrimitives() }
@@ -241,19 +227,10 @@ class AuthRequestViewModel @Inject constructor(
         )
     }
 
-    private fun buildApproval(request: WalletConnectAuthenticationRequest, wallet: Wallet): AuthApproval {
-        val supportedAccounts = supportedAccounts(wallet, request)
-        val selectedAccount = supportedAccounts.firstOrNull()
-            ?: throw IllegalStateException("Requested chains are not supported")
-        val supportedChains = supportedAccounts.map { it.chainId }
-        val payloadParams = approveWalletConnectAuthentication.authPayloadParams(
-            payloadParams = request.payloadParams,
-            supportedChains = supportedChains,
-            supportedMethods = walletConnectService.authenticationMethods(),
-        )
-        val issuer = selectedAccount.issuer
-        val account = selectedAccount.account.toPrimitives()
-        val message = approveWalletConnectAuthentication.authMessage(payloadParams, issuer)
+    private fun buildApproval(request: GemWalletConnectAuthentication, wallet: Wallet): AuthApproval {
+        val authMessage = approveWalletConnectAuthentication.authMessage(request, wallet)
+        val account = authMessage.account.toPrimitives()
+        val message = authMessage.message
         val signMessage = SignMessage(
             chain = account.chain.string,
             signType = SignDigestType.SIWE,
@@ -264,8 +241,6 @@ class AuthRequestViewModel @Inject constructor(
         return AuthApproval(
             wallet = wallet,
             account = account,
-            payloadParams = payloadParams,
-            issuer = issuer,
             message = message,
             signMessage = signMessage,
             title = payloadPreview.title,
@@ -273,8 +248,6 @@ class AuthRequestViewModel @Inject constructor(
             secondaryPayloadFields = payloadPreview.secondaryFields,
         )
     }
-
-    private fun supportedAccounts(wallet: Wallet, request: WalletConnectAuthenticationRequest): List<GemWalletConnectAuthAccount> = walletConnectService.authenticationAccounts(request.payloadParams.chains, wallet.toGem())
 
     private fun payloadPreview(signMessage: SignMessage): AuthPayloadPreview = signMessageService.payloadPreview(signMessage)?.let { preview ->
         AuthPayloadPreview(
@@ -337,17 +310,7 @@ sealed interface AuthRequestUIState {
     }
 }
 
-data class AuthApproval(
-    val wallet: Wallet,
-    val account: Account,
-    val payloadParams: WalletConnectAuthPayloadParams,
-    val issuer: String,
-    val message: String,
-    val signMessage: SignMessage,
-    val title: GemLocalizedText,
-    val primaryPayloadFields: List<GemListRow>,
-    val secondaryPayloadFields: List<GemListRow>,
-) {
+data class AuthApproval(val wallet: Wallet, val account: Account, val message: String, val signMessage: SignMessage, val title: GemLocalizedText, val primaryPayloadFields: List<GemListRow>, val secondaryPayloadFields: List<GemListRow>) {
     val chain: Chain get() = account.chain
 }
 

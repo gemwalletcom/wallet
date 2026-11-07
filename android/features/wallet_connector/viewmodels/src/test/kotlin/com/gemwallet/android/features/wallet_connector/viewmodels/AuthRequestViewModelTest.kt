@@ -2,17 +2,15 @@ package com.gemwallet.android.features.wallet_connector.viewmodels
 
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
-import com.gemwallet.android.application.wallet_connect.WalletConnectAuthPayloadParams
-import com.gemwallet.android.application.wallet_connect.WalletConnectAuthenticationRequest
 import com.gemwallet.android.application.wallet_connect.WalletConnectPendingRequests
 import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnectAuthentication
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockApplicationMetadata
-import com.gemwallet.android.testkit.mockGemWalletConnectAuthAccount
+import com.gemwallet.android.testkit.mockGemWalletConnectAuthMessage
+import com.gemwallet.android.testkit.mockGemWalletConnectAuthentication
 import com.gemwallet.android.testkit.mockWallet
-import com.gemwallet.android.testkit.mockWalletConnectVerifyContext
 import com.gemwallet.android.testkit.mockWalletConnectionSessionProposal
 import com.gemwallet.android.testkit.mockWalletId
 import com.gemwallet.android.ui.R
@@ -35,9 +33,9 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemSessionProposal
 import uniffi.gemstone.GemSignMessageServiceInterface
-import uniffi.gemstone.GemWalletConnectAuthAccount
 import uniffi.gemstone.GemWalletConnectException
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.SignDigestType
@@ -62,38 +60,16 @@ class AuthRequestViewModelTest {
 
     private val secondary = mockWallet(id = mockWalletId(address = "0xdef"), name = "Second Wallet", accounts = listOf(mockAccount(chain = Chain.Ethereum, address = "0xdef")))
 
-    private val payloadParams = WalletConnectAuthPayloadParams(
-        chains = listOf("eip155:1"),
-        domain = "app.uniswap.org",
-        nonce = "nonce",
-        aud = "https://app.uniswap.org",
-        type = "caip122",
-        iat = "2026-01-01T00:00:00Z",
-        nbf = null,
-        exp = null,
-        statement = "Sign in",
-        requestId = null,
-        resources = null,
-        signatureTypes = null,
-    )
+    private val request = mockGemWalletConnectAuthentication(id = "7")
 
-    private val request = WalletConnectAuthenticationRequest(
-        id = 7L,
-        metadata = mockApplicationMetadata(),
-        payloadParams = payloadParams,
-    )
+    private val message = "app.uniswap.org wants you to sign in"
 
-    private val verifyContext = mockWalletConnectVerifyContext()
-
-    private fun service(accounts: (String) -> List<GemWalletConnectAuthAccount>): GemWalletConnectServiceInterface = mockk(relaxed = true) {
-        every { applicationMetadata(any(), any(), any(), any()) } returns mockApplicationMetadata(name = "Uniswap").toGem()
+    private fun service(): GemWalletConnectServiceInterface = mockk(relaxed = true) {
         coEvery { prepareAuthentication(any(), any(), any(), any(), any()) } returns GemSessionProposal(
             proposal = mockWalletConnectionSessionProposal(defaultWallet = main, wallets = listOf(main, secondary), metadata = mockApplicationMetadata(name = "Uniswap")).toGem(),
             verificationStatus = WalletConnectionVerificationStatus.VERIFIED,
             canChooseWallet = true,
         )
-        every { authenticationMethods() } returns listOf("personal_sign")
-        every { authenticationAccounts(any(), any()) } answers { accounts(secondArg<uniffi.gemstone.Wallet>().id) }
     }
 
     private fun signMessageService(): GemSignMessageServiceInterface = mockk {
@@ -102,11 +78,13 @@ class AuthRequestViewModelTest {
     }
 
     private fun approval(): ApproveWalletConnectAuthentication = mockk(relaxed = true) {
-        every { authPayloadParams(any(), any(), any()) } answers { firstArg() }
-        every { authMessage(any(), any()) } returns "app.uniswap.org wants you to sign in"
+        every { authMessage(request, any()) } answers {
+            val wallet = secondArg<Wallet>()
+            mockGemWalletConnectAuthMessage(account = wallet.accounts.first().toGem(), message = message)
+        }
     }
 
-    private fun viewModel(service: GemWalletConnectServiceInterface, approve: ApproveWalletConnectAuthentication = approval(), signMessageService: GemSignMessageServiceInterface = signMessageService()) = AuthRequestViewModel(
+    private fun viewModel(service: GemWalletConnectServiceInterface = service(), approve: ApproveWalletConnectAuthentication = approval(), signMessageService: GemSignMessageServiceInterface = signMessageService()) = AuthRequestViewModel(
         approveWalletConnectAuthentication = approve,
         activeRequest = ActiveWalletConnectRequest(events = emptyFlow(), pendingRequests = WalletConnectPendingRequests()),
         walletConnectService = service,
@@ -129,11 +107,11 @@ class AuthRequestViewModelTest {
     fun `a malicious origin reports an error and rejects the request`() = runTest(dispatcher) {
         val error = CompletableDeferred<String>()
         val approve = approval()
-        val service = service { listOf(mockGemWalletConnectAuthAccount(account = mockAccount(chain = Chain.Ethereum, address = "0xabc").toGem(), chainId = "eip155:1", issuer = "did:pkh:eip155:1:0xabc")) }
+        val service = service()
         coEvery { service.prepareAuthentication(any(), any(), any(), any(), any()) } throws GemWalletConnectException.InvalidOrigin()
         val model = viewModel(service, approve)
 
-        model.onRequest(request, verifyContext) { error.complete(it) }
+        model.onRequest(request) { error.complete(it) }
 
         assertEquals("Malicious origin", error.await())
         verify { approve.rejectAuthentication(request, any(), any()) }
@@ -142,9 +120,9 @@ class AuthRequestViewModelTest {
 
     @Test
     fun `a prepared request offers the default wallet and the peer`() = runTest(dispatcher) {
-        val model = viewModel(service { listOf(mockGemWalletConnectAuthAccount(account = mockAccount(chain = Chain.Ethereum, address = "0xabc").toGem(), chainId = "eip155:1", issuer = "did:pkh:eip155:1:0xabc")) })
+        val model = viewModel()
 
-        model.onRequest(request, verifyContext) {}
+        model.onRequest(request) {}
 
         val content = model.awaitContent()
         assertTrue(content is AuthRequestUIState.Request)
@@ -153,28 +131,17 @@ class AuthRequestViewModelTest {
         assertEquals(listOf(main, secondary), content.availableWallets)
         assertEquals(listOf("Main Wallet", "Second Wallet"), content.availableWalletSections.flatMap { it.rows }.map { it.name })
         assertEquals("0xabc", content.approval.account.address)
-        assertEquals("did:pkh:eip155:1:0xabc", content.approval.issuer)
-        assertEquals("app.uniswap.org wants you to sign in", content.message)
+        assertEquals(message, content.message)
     }
 
     @Test
     fun `the same authentication request keeps the selected wallet`() = runTest(dispatcher) {
-        val model = viewModel(
-            service { walletId ->
-                listOf(
-                    if (walletId == "multicoin_0xdef") {
-                        mockGemWalletConnectAuthAccount(account = mockAccount(chain = Chain.Ethereum, address = "0xdef").toGem(), chainId = "eip155:1", issuer = "did:pkh:eip155:1:0xdef")
-                    } else {
-                        mockGemWalletConnectAuthAccount(account = mockAccount(chain = Chain.Ethereum, address = "0xabc").toGem(), chainId = "eip155:1", issuer = "did:pkh:eip155:1:0xabc")
-                    },
-                )
-            },
-        )
+        val model = viewModel()
 
-        model.onRequest(request, verifyContext) {}
+        model.onRequest(request) {}
         model.awaitContent()
         model.onWalletSelected(secondary.id)
-        model.onRequest(request, verifyContext) {}
+        model.onRequest(request) {}
 
         val content = model.state.value as AuthRequestUIState.Content
         assertEquals(secondary, content.selectedWallet)
@@ -182,51 +149,40 @@ class AuthRequestViewModelTest {
 
     @Test
     fun `selecting a wallet rebuilds the approval for its account`() = runTest(dispatcher) {
-        val model = viewModel(
-            service { walletId ->
-                listOf(
-                    if (walletId == "multicoin_0xdef") {
-                        mockGemWalletConnectAuthAccount(account = mockAccount(chain = Chain.Ethereum, address = "0xdef").toGem(), chainId = "eip155:1", issuer = "did:pkh:eip155:1:0xdef")
-                    } else {
-                        mockGemWalletConnectAuthAccount(account = mockAccount(chain = Chain.Ethereum, address = "0xabc").toGem(), chainId = "eip155:1", issuer = "did:pkh:eip155:1:0xabc")
-                    },
-                )
-            },
-        )
+        val model = viewModel()
 
-        model.onRequest(request, verifyContext) {}
+        model.onRequest(request) {}
         model.awaitContent()
         model.onWalletSelected(secondary.id)
 
         val content = model.state.value as AuthRequestUIState.Content
         assertEquals(secondary, content.selectedWallet)
         assertEquals("0xdef", content.approval.account.address)
-        assertEquals("did:pkh:eip155:1:0xdef", content.approval.issuer)
     }
 
     @Test
     fun `unsupported chains reject the request and surface an error`() = runTest(dispatcher) {
         val approve = approval()
-        val model = viewModel(service { emptyList() }, approve)
+        every { approve.authMessage(any(), any()) } throws GemServiceException.Unsupported("Requested chains are not supported")
+        val model = viewModel(approve = approve)
 
-        model.onRequest(request, verifyContext) {}
+        model.onRequest(request) {}
 
         assertTrue(model.awaitSettled() is AuthRequestUIState.Error)
         verify { approve.rejectAuthentication(request, any(), any()) }
     }
 
     @Test
-    fun `approving signs the selected account issuer and sends one auth object`() = runTest(dispatcher) {
+    fun `approving signs the selected account's message and sends its signature`() = runTest(dispatcher) {
         val approved = CompletableDeferred<Wallet>()
         val approve = approval()
-        every { approve.approveAuthentication(any(), any(), any(), any(), any()) } answers {
-            approved.complete(thirdArg())
+        every { approve.approveAuthentication(request, any(), "0xsignature", any(), any()) } answers {
+            approved.complete(secondArg())
         }
-        val service = service { listOf(mockGemWalletConnectAuthAccount(account = mockAccount(chain = Chain.Ethereum, address = "0xabc").toGem(), chainId = "eip155:1", issuer = "did:pkh:eip155:1:0xabc")) }
         val signMessageService = signMessageService()
-        val model = viewModel(service, approve, signMessageService)
+        val model = viewModel(approve = approve, signMessageService = signMessageService)
 
-        model.onRequest(request, verifyContext) {}
+        model.onRequest(request) {}
         model.awaitContent()
         model.onApprove()
 
@@ -234,18 +190,17 @@ class AuthRequestViewModelTest {
         coVerify {
             signMessageService.sign(
                 "multicoin_0xabc",
-                match { it.chain == Chain.Ethereum.string && it.signType == SignDigestType.SIWE && it.data.contentEquals("app.uniswap.org wants you to sign in".toByteArray()) },
+                match { it.chain == Chain.Ethereum.string && it.signType == SignDigestType.SIWE && it.data.contentEquals(message.toByteArray()) },
             )
         }
-        verify { approve.authObject(any(), "did:pkh:eip155:1:0xabc", "0xsignature") }
     }
 
     @Test
     fun `rejecting rejects the authentication once`() = runTest(dispatcher) {
         val approve = approval()
-        val model = viewModel(service { listOf(mockGemWalletConnectAuthAccount(account = mockAccount(chain = Chain.Ethereum, address = "0xabc").toGem(), chainId = "eip155:1", issuer = "did:pkh:eip155:1:0xabc")) }, approve)
+        val model = viewModel(approve = approve)
 
-        model.onRequest(request, verifyContext) {}
+        model.onRequest(request) {}
         model.awaitContent()
         model.onReject()
         model.onReject()

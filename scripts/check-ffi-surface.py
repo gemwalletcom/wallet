@@ -49,7 +49,6 @@ ALLOWED = {
     "fee_amount": DOUBLE,
     "perpetual_confirm_details": DOUBLE,
     "swap_quote_details": DOUBLE,
-    "GemWalletConnectClient.authentication_message": "VM560",
 }
 
 

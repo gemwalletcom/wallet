@@ -3,6 +3,7 @@ package com.gemwallet.android.di
 import android.content.Context
 import com.gemwallet.android.application.device.cases.RequestPushToken
 import com.gemwallet.android.application.notifications.cases.ShowSystemNotification
+import com.gemwallet.android.application.wallet_connect.cases.IsWalletConnectEnabled
 import com.gemwallet.android.flavors.StoreRequestPushToken
 import com.gemwallet.android.flavors.isNotificationsAvailable
 import com.gemwallet.android.model.BuildInfo
@@ -39,6 +40,10 @@ object BuildInfoModule {
     @Provides
     @Singleton
     fun provideNotificationEnabled(): NotificationsAvailable = isNotificationsAvailable()
+
+    @Provides
+    @Singleton
+    fun provideIsWalletConnectEnabled(): IsWalletConnectEnabled = IsWalletConnectEnabled { com.gemwallet.android.BuildConfig.WALLET_CONNECT }
 
     @Provides
     @Singleton

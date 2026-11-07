@@ -8,7 +8,6 @@ navigation3 = "1.2.0"
 camera2 = "1.7.0-alpha03"
 browser = "1.10.0"
 uiautomator = "2.4.0"
-walletconnect = "1.6.17"
 biometric = "1.4.0-alpha07"
 coilCompose = "3.6.3"
 zxing-core = "3.5.4"
@@ -76,11 +75,6 @@ firebase-messaging = { module = "com.google.firebase:firebase-messaging", versio
 
 # network
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
-
-# wallet connect
-walletconnect-bom = { module = "com.reown:android-bom", version.ref = "walletconnect" }
-walletconnect-core = { module = "com.reown:android-core" }
-walletconnect-web3wallet = { module = "com.reown:walletkit" }
 
 # qr code scanning
 zxing-core = { module = "com.google.zxing:core", version.ref = "zxing-core" }

@@ -12,8 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.application.wallet_connect.WalletConnectAuthenticationRequest
-import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
 import com.gemwallet.android.features.wallet_connector.viewmodels.AuthRequestUIState
 import com.gemwallet.android.features.wallet_connector.viewmodels.AuthRequestViewModel
 import com.gemwallet.android.ui.R
@@ -25,16 +23,17 @@ import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.ChainAddress
+import uniffi.gemstone.GemWalletConnectAuthentication
 
 @Composable
-fun AuthRequestScreen(request: WalletConnectAuthenticationRequest, verifyContext: WalletConnectVerifyContext, onOpenAddress: (ChainAddress) -> Unit, onError: (String) -> Unit) {
+fun AuthRequestScreen(authentication: GemWalletConnectAuthentication, onOpenAddress: (ChainAddress) -> Unit, onError: (String) -> Unit) {
     val viewModel: AuthRequestViewModel = hiltViewModel()
     BackHandler(onBack = viewModel::onReject)
     val state by viewModel.state.collectAsStateWithLifecycle()
     val buttonState by viewModel.buttonState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(request.id) {
-        viewModel.onRequest(request, verifyContext, onError)
+    LaunchedEffect(authentication.id) {
+        viewModel.onRequest(authentication, onError)
     }
 
     when (val currentState = state) {

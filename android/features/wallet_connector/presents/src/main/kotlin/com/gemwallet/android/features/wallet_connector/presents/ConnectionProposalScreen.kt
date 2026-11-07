@@ -8,17 +8,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.gemwallet.android.application.wallet_connect.WalletConnectSessionProposal
-import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
 import com.gemwallet.android.features.wallet_connector.viewmodels.ConnectionProposalViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.localization.text
+import uniffi.gemstone.GemWalletConnectProposal
 
 @Composable
-fun ConnectionProposalScreen(proposal: WalletConnectSessionProposal, verifyContext: WalletConnectVerifyContext, onError: (String) -> Unit) {
+fun ConnectionProposalScreen(proposal: GemWalletConnectProposal, onError: (String) -> Unit) {
     val context = LocalContext.current
-    val viewModel = hiltViewModel<ConnectionProposalViewModel, ConnectionProposalViewModel.Factory> { it.create(proposal, verifyContext) }
+    val viewModel = hiltViewModel<ConnectionProposalViewModel, ConnectionProposalViewModel.Factory> { it.create(proposal) }
     BackHandler(onBack = viewModel::onReject)
     val state by viewModel.state.collectAsStateWithLifecycle()
     val proposalRows by viewModel.proposalRows.collectAsStateWithLifecycle()
