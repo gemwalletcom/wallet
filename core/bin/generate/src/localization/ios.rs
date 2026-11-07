@@ -12,33 +12,25 @@ const RESOURCES_DIRECTORY: &str = "Resources";
 const ESCAPED_NEWLINE: &str = "\\n";
 
 pub fn write_app(localizations: &BTreeMap<String, Vec<(String, String)>>, package_path: &Path) -> Result<(), Box<dyn Error + Send + Sync>> {
-    write_package(localizations, package_path, "Localized", "Localized.swift", ANDROID_ONLY_KEYS)
-}
-
-pub fn write_widget(localizations: &BTreeMap<String, Vec<(String, String)>>, package_path: &Path) -> Result<(), Box<dyn Error + Send + Sync>> {
-    write_package(localizations, package_path, "WidgetLocalized", "WidgetLocalized.swift", &[])
+    let missing = unknown_keys(ANDROID_ONLY_KEYS, localizations.get(DEFAULT_LANGUAGE).ok_or("default localization was checked")?);
+    if !missing.is_empty() {
+        return Err(format!("excluded keys are not in {DEFAULT_LANGUAGE}.ftl: {}", missing.join(", ")).into());
+    }
+    let catalog_path = package_path.join(RESOURCES_DIRECTORY).join(CATALOG_FILE_NAME);
+    let key_map = read_key_map(&catalog_path)?;
+    let entries = catalog_entries(localizations, ANDROID_ONLY_KEYS, &key_map);
+    let default_entries = entries.get(DEFAULT_LANGUAGE).ok_or("default localization was checked")?;
+    let swift_source = swift::source("Localized", default_entries)?;
+    fs::create_dir_all(catalog_path.parent().ok_or("invalid catalog path")?)?;
+    fs::write(&catalog_path, catalog_json(&entries)?)?;
+    fs::write(package_path.join("Localized.swift"), swift_source)?;
+    Ok(())
 }
 
 pub fn write_info_plist(localizations: &BTreeMap<String, Vec<(String, String)>>, output_path: &Path) -> Result<(), Box<dyn Error + Send + Sync>> {
     let entries = catalog_entries(localizations, &[], &BTreeMap::new());
     fs::create_dir_all(output_path)?;
     fs::write(output_path.join(INFO_PLIST_CATALOG_FILE_NAME), catalog_json(&entries)?)?;
-    Ok(())
-}
-
-fn write_package(localizations: &BTreeMap<String, Vec<(String, String)>>, package_path: &Path, enum_name: &str, swift_file_name: &str, excluded_keys: &[&str]) -> Result<(), Box<dyn Error + Send + Sync>> {
-    let missing = unknown_keys(excluded_keys, localizations.get(DEFAULT_LANGUAGE).ok_or("default localization was checked")?);
-    if !missing.is_empty() {
-        return Err(format!("excluded keys are not in {DEFAULT_LANGUAGE}.ftl: {}", missing.join(", ")).into());
-    }
-    let catalog_path = package_path.join(RESOURCES_DIRECTORY).join(CATALOG_FILE_NAME);
-    let key_map = read_key_map(&catalog_path)?;
-    let entries = catalog_entries(localizations, excluded_keys, &key_map);
-    let default_entries = entries.get(DEFAULT_LANGUAGE).ok_or("default localization was checked")?;
-    let swift_source = swift::source(enum_name, default_entries)?;
-    fs::create_dir_all(catalog_path.parent().ok_or("invalid catalog path")?)?;
-    fs::write(&catalog_path, catalog_json(&entries)?)?;
-    fs::write(package_path.join(swift_file_name), swift_source)?;
     Ok(())
 }
 

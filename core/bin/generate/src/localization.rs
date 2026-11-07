@@ -36,7 +36,6 @@ pub fn generate(args: &[String]) -> Result<(), Box<dyn Error + Send + Sync>> {
 
     match target.as_str() {
         "ios" => ios::write_app(&localizations, Path::new(output_path))?,
-        "ios-widget" => ios::write_widget(&localizations, Path::new(output_path))?,
         "ios-plist" => ios::write_info_plist(&localizations, Path::new(output_path))?,
         "android" => android::write(&localizations, Path::new(output_path))?,
         other => return Err(format!("unsupported localization target: {other}").into()),

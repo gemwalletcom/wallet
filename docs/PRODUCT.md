@@ -49,7 +49,7 @@ Fees, prices, balances and every other value in money. Money always shows its ce
 | 0.0345 | `$0.0345` | as above |
 | 0.00000783 | `<$0.0001` | under $0.0001 |
 
-**Totals and payments:** the wallet total and its gain or loss, Buy and Sell amounts, a perpetual's margin, and the medium and large price widgets. They are counted in cents.
+**Totals and payments:** the wallet total and its gain or loss, Buy and Sell amounts and a perpetual's margin. They are counted in cents.
 
 | Value | Shows as | Rule |
 |---|---|---|
@@ -57,7 +57,7 @@ Fees, prices, balances and every other value in money. Money always shows its ce
 | 0.9 | `$0.90` | |
 | 0.004 | `$0.00` | |
 
-**Large values:** market cap, fully diluted valuation, trading volume and the small price widget.
+**Large values:** market cap, fully diluted valuation and trading volume.
 
 | Value | Shows as | Rule |
 |---|---|---|
@@ -128,7 +128,7 @@ Coin and token amounts. An amount is cut, never rounded up, so the wallet never 
 - **A row is a glance.** List rows (the wallet's assets, asset lists, Activity, delegations) use the list-row formats: cut to fit, dust as `<0.0001`, large values shortened.
 - **A screen about one thing reads in full.** The asset screen, transaction details, delegation details and the amount being typed use the regular formats.
 - **What is signed is exact.** On Confirm, balance changes and approval amounts show every digit; the amount and the Network Fee use the regular formats.
-- **Totals count cents.** The wallet total and its gain or loss, Buy and Sell amounts, a perpetual position's margin and the medium and large price widgets always show two places.
+- **Totals count cents.** The wallet total and its gain or loss, Buy and Sell amounts and a perpetual position's margin always show two places.
 - **Market sizes shorten.** Market cap, valuation, volume and open interest read `$1.24M`.
 - **A change carries its sign, a level does not.** Price change, profit and loss and Price Impact show `+` or `-`; APR, Slippage and fees never do.
 - **Numbers that should add up share one precision.** When the usual precision would show two of them the same, both are cut to the places of the difference.
@@ -149,7 +149,6 @@ Coin and token amounts. An amount is cut, never rounded up, so the wallet never 
 | Balance or Network Fee required sheet | what is required, what is available, what is missing | Amounts, cut to the missing amount's places when they would read the same | `0.0664881778 ETH` `0.0664880466 ETH` `0.0000001312 ETH` |
 | Stake and Earn | APR | rate | `5.00%` |
 | Buy and Sell | the amount paid or received | Money, totals | `$100.00` |
-| Price widgets | small; medium and large | Money, large values; totals | `$97.1K`; `$1,234.56` |
 
 ## Asset logos
 
@@ -238,7 +237,7 @@ Wallet search, every asset picker and its recents match typed text the same way.
 
 | When | Expected | Why |
 |---|---|---|
-| The price chart, a portfolio chart or the price widget cannot load | it shows that there is no data; only being offline shows an error | server text is not written for users |
+| The price chart or a portfolio chart cannot load | it shows that there is no data; only being offline shows an error | server text is not written for users |
 | The user pinches the price chart or a candlestick chart | it zooms toward the newest point while that point is on screen, and around the fingers once panned back, down to 14 points on screen; a zoomed chart pans back in time with a swipe; pinching out stops at the whole period | the newest point is what the user watches, and fewer points stop reading as a trend |
 | The user touches the price chart or a candlestick chart | a short hold shows the point under the finger; a sideways slide shows it at once while the chart is not zoomed and pans a zoomed chart; a drag that starts upright scrolls the page, and once the point shows the page stays put; a second finger hides the point | the price is read by sliding along the line; the short hold lets a pinch or a page scroll start without the point flashing |
 
