@@ -342,7 +342,11 @@ mocks:
   - GemValidatorSection
   - GemValueHeader
   - GemWalletConnectAuthAccount
+  - GemWalletConnectAuthMessage
+  - GemWalletConnectAuthentication
   - GemWalletConnectMessageRequest
+  - GemWalletConnectProposal
+  - GemWalletConnectSessionRequest
   - GemWalletConnectTransactionRequest
   - GemWalletDetails
   - GemWalletHomeViewState

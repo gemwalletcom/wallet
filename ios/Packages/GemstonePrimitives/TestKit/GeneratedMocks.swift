@@ -1428,6 +1428,38 @@ public extension Gemstone.GemWalletConnectAuthAccount {
     }
 }
 
+public extension Gemstone.GemWalletConnectAuthMessage {
+    static func mock(
+        account: Gemstone.Account = Primitives.Account.mock().toGem(),
+        message: String = "",
+    ) -> Gemstone.GemWalletConnectAuthMessage {
+        Gemstone.GemWalletConnectAuthMessage(
+            account: account,
+            message: message,
+        )
+    }
+}
+
+public extension Gemstone.GemWalletConnectAuthentication {
+    static func mock(
+        id: String = "",
+        metadata: Gemstone.ApplicationMetadata = Primitives.ApplicationMetadata.mock().toGem(),
+        chainIds: [String] = [],
+        domain: String = "",
+        origin: String? = nil,
+        validation: Gemstone.WalletConnectionVerificationStatus = .verified,
+    ) -> Gemstone.GemWalletConnectAuthentication {
+        Gemstone.GemWalletConnectAuthentication(
+            id: id,
+            metadata: metadata,
+            chainIds: chainIds,
+            domain: domain,
+            origin: origin,
+            validation: validation,
+        )
+    }
+}
+
 public extension Gemstone.GemWalletConnectMessageRequest {
     static func mock(
         sessionId: String = "",
@@ -1450,6 +1482,52 @@ public extension Gemstone.GemWalletConnectMessageRequest {
             simulation: simulation,
             message: message,
             assets: assets,
+        )
+    }
+}
+
+public extension Gemstone.GemWalletConnectProposal {
+    static func mock(
+        id: String = "",
+        pairingTopic: String = "",
+        metadata: Gemstone.ApplicationMetadata = Primitives.ApplicationMetadata.mock().toGem(),
+        requiredChainIds: [String] = [],
+        optionalChainIds: [String] = [],
+        origin: String? = nil,
+        validation: Gemstone.WalletConnectionVerificationStatus = .verified,
+    ) -> Gemstone.GemWalletConnectProposal {
+        Gemstone.GemWalletConnectProposal(
+            id: id,
+            pairingTopic: pairingTopic,
+            metadata: metadata,
+            requiredChainIds: requiredChainIds,
+            optionalChainIds: optionalChainIds,
+            origin: origin,
+            validation: validation,
+        )
+    }
+}
+
+public extension Gemstone.GemWalletConnectSessionRequest {
+    static func mock(
+        topic: String = "",
+        requestId: String = "",
+        method: String = "",
+        params: String = "",
+        chainId: String? = nil,
+        origin: String? = nil,
+        validation: Gemstone.WalletConnectionVerificationStatus = .verified,
+        expiry: UInt64? = nil,
+    ) -> Gemstone.GemWalletConnectSessionRequest {
+        Gemstone.GemWalletConnectSessionRequest(
+            topic: topic,
+            requestId: requestId,
+            method: method,
+            params: params,
+            chainId: chainId,
+            origin: origin,
+            validation: validation,
+            expiry: expiry,
         )
     }
 }
