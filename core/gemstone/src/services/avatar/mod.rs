@@ -1,3 +1,6 @@
+#[cfg(test)]
+pub(crate) mod testkit;
+
 use std::sync::Arc;
 
 use primitives::WalletId;
@@ -63,33 +66,19 @@ mod tests {
     use super::*;
     use crate::services::file::testkit::MemoryFileStore;
     use crate::services::wallet::testkit::MemoryWalletStore;
-    use crate::testkit::TestAlienProvider;
     use futures::executor::block_on;
     use primitives::Wallet;
 
-    fn service(files: Arc<MemoryFileStore>, wallets: Arc<MemoryWalletStore>) -> GemAvatarService {
-        GemAvatarService {
-            wallets,
-            files,
-            provider: Arc::new(TestAlienProvider::with_status(200)),
-        }
-    }
-
-    fn stored_wallet(image_url: Option<&str>) -> (Arc<MemoryWalletStore>, Wallet) {
+    #[test]
+    fn test_the_avatar_a_wallet_points_at_always_exists() {
         let wallet = Wallet {
-            image_url: image_url.map(str::to_string),
+            image_url: Some("old.png".to_string()),
             ..Wallet::mock()
         };
         let wallets = Arc::new(MemoryWalletStore::with_wallets(vec![wallet.clone()]));
-        (wallets, wallet)
-    }
-
-    #[test]
-    fn test_the_avatar_a_wallet_points_at_always_exists() {
-        let (wallets, wallet) = stored_wallet(Some("old.png"));
         let files = Arc::new(MemoryFileStore::with_file("old.png"));
 
-        block_on(service(files.clone(), wallets.clone()).set_image(wallet.id.clone(), vec![1])).unwrap();
+        block_on(GemAvatarService::mock(wallets.clone(), files.clone()).set_image(wallet.id.clone(), vec![1])).unwrap();
 
         let stored = block_on(wallets.get_wallet(wallet.id)).unwrap().unwrap();
         assert_eq!(*files.files.lock().unwrap(), vec![stored.image_url.unwrap()], "the replaced file is retired only once its replacement is published");
@@ -98,11 +87,15 @@ mod tests {
 
     #[test]
     fn test_a_failed_write_keeps_the_avatar_the_wallet_still_points_at() {
-        let (wallets, wallet) = stored_wallet(Some("old.png"));
+        let wallet = Wallet {
+            image_url: Some("old.png".to_string()),
+            ..Wallet::mock()
+        };
+        let wallets = Arc::new(MemoryWalletStore::with_wallets(vec![wallet.clone()]));
         *wallets.set_image_url_error.lock().unwrap() = Some(GemServiceError::Store { msg: "disk full".to_string() });
         let files = Arc::new(MemoryFileStore::with_file("old.png"));
 
-        assert!(block_on(service(files.clone(), wallets.clone()).set_image(wallet.id.clone(), vec![1])).is_err());
+        assert!(block_on(GemAvatarService::mock(wallets.clone(), files.clone()).set_image(wallet.id.clone(), vec![1])).is_err());
 
         assert_eq!(*files.files.lock().unwrap(), vec!["old.png".to_string()], "the published avatar survives and the unpublished one is not left behind");
         assert_eq!(block_on(wallets.get_wallet(wallet.id)).unwrap().unwrap().image_url, Some("old.png".to_string()));
@@ -110,11 +103,15 @@ mod tests {
 
     #[test]
     fn test_a_failed_removal_leaves_the_avatar_readable() {
-        let (wallets, wallet) = stored_wallet(Some("old.png"));
+        let wallet = Wallet {
+            image_url: Some("old.png".to_string()),
+            ..Wallet::mock()
+        };
+        let wallets = Arc::new(MemoryWalletStore::with_wallets(vec![wallet.clone()]));
         *wallets.set_image_url_error.lock().unwrap() = Some(GemServiceError::Store { msg: "disk full".to_string() });
         let files = Arc::new(MemoryFileStore::with_file("old.png"));
 
-        assert!(block_on(service(files.clone(), wallets).remove_image(wallet.id)).is_err());
+        assert!(block_on(GemAvatarService::mock(wallets, files.clone()).remove_image(wallet.id)).is_err());
 
         assert_eq!(*files.files.lock().unwrap(), vec!["old.png".to_string()], "a wallet that still points at its avatar keeps the file");
     }
