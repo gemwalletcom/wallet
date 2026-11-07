@@ -4,7 +4,8 @@ use std::sync::Arc;
 
 use primitives::{ScanTransaction, ScanTransactionPayload};
 
-use crate::api::GemDeviceApiClient;
+use crate::api::{GemApiError, GemDeviceApiClient};
+use crate::services::error::GemServiceError;
 
 #[derive(Debug, uniffi::Object)]
 pub struct GemScanService {
@@ -20,7 +21,7 @@ impl GemScanService {
 }
 
 impl GemScanService {
-    pub async fn scan(&self, payload: ScanTransactionPayload) -> Option<ScanTransaction> {
-        self.api.client.scan_transaction(payload).await.ok()
+    pub async fn scan(&self, payload: ScanTransactionPayload) -> Result<ScanTransaction, GemServiceError> {
+        self.api.client.scan_transaction(payload).await.map_err(|error| GemServiceError::from(GemApiError::from(error)))
     }
 }

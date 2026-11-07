@@ -790,6 +790,10 @@ simulation_warning_unlimited_token_approval_description = สิ่งนี้�
 simulation_warning_externally_owned_spender_description = การอนุมัตินี้ทำให้ที่อยู่กระเป๋าเงินทั่วไป (EOA) สามารถใช้สินทรัพย์ของคุณได้ ยืนยันเฉพาะเมื่อคุณเชื่อถือที่อยู่นี้
 simulation_warning_nft_collection_approval_title = ขอสิทธิ์เข้าถึงคอลเลกชัน NFT ทั้งหมด
 simulation_warning_unlimited_token_approval_title = อนุมัติโทเค็นได้ไม่จำกัดจำนวน
+simulation_warning_simulation_failed_title = การจำลองธุรกรรมล้มเหลว
+simulation_warning_simulation_failed_description = เราไม่ทราบว่าธุรกรรมนี้จะทำอะไร ลงนามเฉพาะเมื่อคุณเชื่อถือแอปนี้เท่านั้น
+simulation_warning_scan_failed_title = การสแกนความปลอดภัยล้มเหลว
+simulation_warning_scan_failed_description = เราไม่สามารถตรวจสอบธุรกรรมนี้ได้
 
 # Application
 

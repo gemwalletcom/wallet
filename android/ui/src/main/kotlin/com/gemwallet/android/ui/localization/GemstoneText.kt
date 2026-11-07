@@ -212,6 +212,10 @@ fun GemLocalizedText.string(context: Context): String = when (this) {
 
     GemLocalizedText.ExternallyOwnedSpenderWarning -> context.getString(R.string.simulation_warning_externally_owned_spender_description)
 
+    GemLocalizedText.SimulationFailedWarning -> context.getString(R.string.simulation_warning_simulation_failed_description)
+
+    GemLocalizedText.ScanFailedWarning -> context.getString(R.string.simulation_warning_scan_failed_description)
+
     GemLocalizedText.SuspiciousAddressDescription -> context.getString(R.string.common_suspicious_address_description)
 
     is GemLocalizedText.AddressType -> context.getString(addressType.stringRes())
@@ -1066,6 +1070,8 @@ fun GemListRowTitle.text(context: Context): String = when (this) {
     GemListRowTitle.SUSPICIOUS_ADDRESS -> context.getString(R.string.common_suspicious_address)
     GemListRowTitle.UNLIMITED_APPROVAL -> context.getString(R.string.simulation_warning_unlimited_token_approval_title)
     GemListRowTitle.NFT_COLLECTION_APPROVAL -> context.getString(R.string.simulation_warning_nft_collection_approval_title)
+    GemListRowTitle.SIMULATION_FAILED -> context.getString(R.string.simulation_warning_simulation_failed_title)
+    GemListRowTitle.SCAN_FAILED -> context.getString(R.string.simulation_warning_scan_failed_title)
     GemListRowTitle.SYMBOL -> context.getString(R.string.asset_symbol)
     GemListRowTitle.DECIMALS -> context.getString(R.string.asset_decimals)
     GemListRowTitle.TYPE -> context.getString(R.string.common_type)

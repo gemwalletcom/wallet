@@ -790,6 +790,10 @@ simulation_warning_unlimited_token_approval_description = Nagbibigay ito sa guma
 simulation_warning_externally_owned_spender_description = Hinahayaan ng pag-aprubang ito ang isang karaniwang wallet address (EOA) na gamitin ang iyong mga asset. Kumpirmahin lang kung pinagkakatiwalaan mo ang address na ito.
 simulation_warning_nft_collection_approval_title = Hiniling ang kumpletong access sa koleksyon ng NFT
 simulation_warning_unlimited_token_approval_title = Walang limitasyong pag-apruba ng token
+simulation_warning_simulation_failed_title = Nabigo ang simulation ng transaksyon
+simulation_warning_simulation_failed_description = Hindi namin alam kung ano ang gagawin nito. Mag-sign lang kung pinagkakatiwalaan mo ang app na ito.
+simulation_warning_scan_failed_title = Nabigo ang security scan
+simulation_warning_scan_failed_description = Hindi namin ma-check ang transaksyong ito.
 
 # Application
 

@@ -632,6 +632,10 @@
   <string name="simulation_warning_externally_owned_spender_description">این تأییدیه به یک آدرس کیف پول معمولی (EOA) اجازه می‌دهد از دارایی‌های شما استفاده کند. فقط اگر به این آدرس اعتماد دارید تأیید کنید.</string>
   <string name="simulation_warning_nft_collection_approval_title">دسترسی کامل به مجموعه NFT درخواست شد</string>
   <string name="simulation_warning_unlimited_token_approval_title">تایید نامحدود توکن</string>
+  <string name="simulation_warning_simulation_failed_title">شبیه‌سازی تراکنش ناموفق بود</string>
+  <string name="simulation_warning_simulation_failed_description">نمی‌دانیم چه کاری انجام می‌دهد. فقط در صورتی امضا کنید که به این برنامه اعتماد دارید.</string>
+  <string name="simulation_warning_scan_failed_title">بررسی امنیتی ناموفق بود</string>
+  <string name="simulation_warning_scan_failed_description">نتوانستیم این تراکنش را بررسی کنیم.</string>
   <string name="application_name">Gem</string>
   <string name="rootcheck_security_alert">هشدار امنیتی</string>
   <string name="rootcheck_jailbreak_body">به نظر می‌رسد دستگاه شما جیلبریک شده است. این می‌تواند کیف پول و دارایی‌های شما را در معرض خطر قرار دهد.</string>

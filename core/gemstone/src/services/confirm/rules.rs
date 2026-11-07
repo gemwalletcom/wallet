@@ -136,7 +136,11 @@ impl ConfirmInput for TransactionInputType {
         let Self::Payment { .. } = self else {
             return Ok(());
         };
-        if let Some(warning) = simulation.warnings.iter().find(|warning| warning.warning == SimulationWarningType::ValidationError) {
+        if let Some(warning) = simulation
+            .warnings
+            .iter()
+            .find(|warning| [SimulationWarningType::ValidationError, SimulationWarningType::SimulationFailed].contains(&warning.warning))
+        {
             return Err(GemConfirmError::Load {
                 msg: warning.message.clone().unwrap_or_else(|| "Payment simulation failed".to_string()),
             });
@@ -267,10 +271,15 @@ fn amount_error(error: GemTransferAmountError, asset: &Asset, fee_asset: &Asset)
 }
 
 pub fn preload_simulation(request: Option<&SimulationResult>, confirm_data: &GemConfirmData) -> Option<SimulationResult> {
-    match request {
-        Some(_) => None,
-        None => confirm_data.simulation.clone(),
+    if confirm_data.scan_warnings.is_empty() {
+        return match request {
+            Some(_) => None,
+            None => confirm_data.simulation.clone(),
+        };
     }
+    let mut simulation = request.cloned().or_else(|| confirm_data.simulation.clone()).unwrap_or_default();
+    simulation.warnings.extend(confirm_data.scan_warnings.clone());
+    Some(simulation)
 }
 
 impl GemConfirmLoad {
@@ -1249,10 +1258,12 @@ mod tests {
                 metadata: ApplicationMetadata::mock(),
                 extra: TransferDataExtra::mock(),
             };
-            for warning in [SimulationWarning::execution_error("InstructionError"), SimulationWarning::validation_error("Invalid transaction")] {
-                let message = warning.message.clone().unwrap();
+            for (warning, message) in [
+                (SimulationWarning::simulation_failed(), "Payment simulation failed"),
+                (SimulationWarning::validation_error("Invalid transaction"), "Invalid transaction"),
+            ] {
                 let simulation = SimulationResult::new(vec![warning], vec![]);
-                assert_eq!(payment.validate_simulation(&simulation).map_err(|error| error.to_string()), Err(message));
+                assert_eq!(payment.validate_simulation(&simulation).map_err(|error| error.to_string()), Err(message.to_string()));
                 assert!(wallet_connect.validate_simulation(&simulation).is_ok());
             }
             assert!(payment.validate_simulation(&SimulationResult::default()).is_ok());
@@ -1957,6 +1968,28 @@ mod tests {
         assert_eq!(preload_simulation(None, &confirm_data).unwrap().warnings[0].message.as_deref(), Some("preload"));
         let unsimulated = GemConfirmData { simulation: None, ..confirm_data };
         assert!(preload_simulation(None, &unsimulated).is_none());
+    }
+
+    #[test]
+    fn test_a_failed_scan_warns_next_to_the_request_or_preload_simulation() {
+        let request = SimulationResult {
+            warnings: vec![SimulationWarning::validation_error("request")],
+            ..SimulationResult::default()
+        };
+        let confirm_data = GemConfirmData {
+            scan_warnings: vec![SimulationWarning::scan_failed()],
+            ..SendInput::mock(Chain::Ethereum, TransactionInputType::Transfer { asset: Asset::mock_eth() }).confirm
+        };
+
+        assert_eq!(
+            preload_simulation(Some(&request), &confirm_data).unwrap().warnings,
+            vec![SimulationWarning::validation_error("request"), SimulationWarning::scan_failed()]
+        );
+        assert_eq!(
+            preload_simulation(None, &confirm_data).unwrap().warnings,
+            vec![SimulationWarning::scan_failed()],
+            "a plain transfer has no simulation of its own"
+        );
     }
 
     #[test]

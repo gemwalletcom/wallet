@@ -48,6 +48,8 @@ pub enum SimulationWarningType {
     PermitApproval(SimulationWarningApproval),
     PermitBatchApproval(#[serde(serialize_with = "serialize_option_bigint", deserialize_with = "deserialize_option_bigint_from_str")] Option<BigInt>),
     ValidationError,
+    SimulationFailed,
+    ScanFailed,
 }
 
 impl SimulationWarningType {
@@ -55,14 +57,14 @@ impl SimulationWarningType {
         match self {
             Self::TokenApproval(a) | Self::PermitApproval(a) => Some(&a.value),
             Self::PermitBatchApproval(value) => Some(value),
-            Self::SuspiciousSpender | Self::ExternallyOwnedSpender | Self::NftCollectionApproval(_) | Self::ValidationError => None,
+            Self::SuspiciousSpender | Self::ExternallyOwnedSpender | Self::NftCollectionApproval(_) | Self::ValidationError | Self::SimulationFailed | Self::ScanFailed => None,
         }
     }
 
     fn collapse_priority(&self, severity: SimulationSeverity) -> u8 {
         match self {
             _ if severity == SimulationSeverity::Critical => 3,
-            Self::ExternallyOwnedSpender => 2,
+            Self::ExternallyOwnedSpender | Self::SimulationFailed => 2,
             _ if self.approval_value().is_some_and(Option::is_none) => 1,
             _ => 0,
         }
@@ -86,8 +88,12 @@ impl SimulationWarning {
         Self::new(SimulationSeverity::Critical, SimulationWarningType::ValidationError, Some(message.into()))
     }
 
-    pub fn execution_error(message: impl Into<String>) -> Self {
-        Self::new(SimulationSeverity::Warning, SimulationWarningType::ValidationError, Some(message.into()))
+    pub fn simulation_failed() -> Self {
+        Self::new(SimulationSeverity::Warning, SimulationWarningType::SimulationFailed, None)
+    }
+
+    pub fn scan_failed() -> Self {
+        Self::new(SimulationSeverity::Warning, SimulationWarningType::ScanFailed, None)
     }
 
     fn collapse_priority(&self) -> u8 {

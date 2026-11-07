@@ -632,6 +632,10 @@
   <string name="simulation_warning_externally_owned_spender_description">การอนุมัตินี้ทำให้ที่อยู่กระเป๋าเงินทั่วไป (EOA) สามารถใช้สินทรัพย์ของคุณได้ ยืนยันเฉพาะเมื่อคุณเชื่อถือที่อยู่นี้</string>
   <string name="simulation_warning_nft_collection_approval_title">ขอสิทธิ์เข้าถึงคอลเลกชัน NFT ทั้งหมด</string>
   <string name="simulation_warning_unlimited_token_approval_title">อนุมัติโทเค็นได้ไม่จำกัดจำนวน</string>
+  <string name="simulation_warning_simulation_failed_title">การจำลองธุรกรรมล้มเหลว</string>
+  <string name="simulation_warning_simulation_failed_description">เราไม่ทราบว่าธุรกรรมนี้จะทำอะไร ลงนามเฉพาะเมื่อคุณเชื่อถือแอปนี้เท่านั้น</string>
+  <string name="simulation_warning_scan_failed_title">การสแกนความปลอดภัยล้มเหลว</string>
+  <string name="simulation_warning_scan_failed_description">เราไม่สามารถตรวจสอบธุรกรรมนี้ได้</string>
   <string name="application_name">Gem</string>
   <string name="rootcheck_security_alert">คำเตือนด้านความปลอดภัย</string>
   <string name="rootcheck_jailbreak_body">อุปกรณ์ของคุณดูเหมือนจะถูกเจลเบรก ซึ่งอาจทำให้กระเป๋าเงินและเงินของคุณเสี่ยง</string>

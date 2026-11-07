@@ -234,6 +234,7 @@ impl GemConfirmData {
             fee_rates: vec![],
             metadata: GemTransactionLoadMetadata::None,
             simulation: None,
+            scan_warnings: vec![],
         }
     }
 

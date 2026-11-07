@@ -2,13 +2,12 @@ use std::collections::{HashMap, HashSet};
 
 use num_bigint::BigInt;
 use primitives::{Asset, AssetId, Chain, SimulationBalanceChange, SimulationHeader, SimulationResult, SimulationWarning};
-use serde_json::Value;
 
 use crate::models::{SimulateTransactionResult, TokenBalance};
 
 pub fn map_simulation_result(account_keys: &[String], signer_addresses: &HashSet<String>, simulation: SimulateTransactionResult) -> SimulationResult {
-    if let Some(err) = simulation.err {
-        return SimulationResult::new(vec![simulation_error_warning(err)], vec![]);
+    if simulation.err.is_some() {
+        return SimulationResult::new(vec![SimulationWarning::simulation_failed()], vec![]);
     }
 
     let balance_changes = map_balance_changes(
@@ -44,14 +43,6 @@ fn outgoing_token_header(balance_changes: &[SimulationBalanceChange]) -> Option<
         value: value.to_biguint(),
         is_unlimited: false,
     })
-}
-
-fn simulation_error_warning(error: Value) -> SimulationWarning {
-    let message = match error {
-        Value::String(message) => message,
-        error => error.to_string(),
-    };
-    SimulationWarning::execution_error(message)
 }
 
 fn map_balance_changes(account_keys: &[String], signer_addresses: &HashSet<String>, pre_balances: &[u64], post_balances: &[u64], pre_token_balances: &[TokenBalance], post_token_balances: &[TokenBalance]) -> Vec<SimulationBalanceChange> {
@@ -265,14 +256,7 @@ mod tests {
             },
         );
 
-        assert_eq!(
-            result.warnings,
-            vec![SimulationWarning::new(
-                SimulationSeverity::Warning,
-                SimulationWarningType::ValidationError,
-                Some("{\"InstructionError\":[1,\"InvalidArgument\"]}".to_string()),
-            )]
-        );
+        assert_eq!(result.warnings, vec![SimulationWarning::simulation_failed()]);
         assert_eq!(result.balance_changes, vec![]);
     }
 }

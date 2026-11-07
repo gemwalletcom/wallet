@@ -632,6 +632,10 @@
   <string name="simulation_warning_externally_owned_spender_description">Esta aprovação permite que um endereço de carteira comum (EOA) use seus ativos. Confirme somente se você confia neste endereço.</string>
   <string name="simulation_warning_nft_collection_approval_title">Acesso total à coleção de NFTs solicitado</string>
   <string name="simulation_warning_unlimited_token_approval_title">Aprovação ilimitada de tokens</string>
+  <string name="simulation_warning_simulation_failed_title">A simulação da transação falhou</string>
+  <string name="simulation_warning_simulation_failed_description">Não sabemos o que ela fará. Assine somente se você confia neste app.</string>
+  <string name="simulation_warning_scan_failed_title">A verificação de segurança falhou</string>
+  <string name="simulation_warning_scan_failed_description">Não conseguimos verificar esta transação.</string>
   <string name="application_name">Gem</string>
   <string name="rootcheck_security_alert">Aviso de segurança</string>
   <string name="rootcheck_jailbreak_body">Seu dispositivo parece ter jailbreak. Isso pode colocar sua carteira e seus fundos em risco.</string>

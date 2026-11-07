@@ -632,6 +632,10 @@
   <string name="simulation_warning_externally_owned_spender_description">Denne godkendelse lader en almindelig walletadresse (EOA) bruge dine aktiver. Bekræft kun, hvis du har tillid til denne adresse.</string>
   <string name="simulation_warning_nft_collection_approval_title">Fuld adgang til NFT-samling anmodes</string>
   <string name="simulation_warning_unlimited_token_approval_title">Ubegrænset tokengodkendelse</string>
+  <string name="simulation_warning_simulation_failed_title">Simulering af transaktionen mislykkedes</string>
+  <string name="simulation_warning_simulation_failed_description">Vi ved ikke, hvad den vil gøre. Underskriv kun, hvis du har tillid til denne app.</string>
+  <string name="simulation_warning_scan_failed_title">Sikkerhedsscanning mislykkedes</string>
+  <string name="simulation_warning_scan_failed_description">Vi kunne ikke tjekke denne transaktion.</string>
   <string name="application_name">Gem</string>
   <string name="rootcheck_security_alert">Sikkerhedsadvarsel</string>
   <string name="rootcheck_jailbreak_body">Din enhed ser ud til at være jailbroken. Det kan bringe din tegnebog og dine midler i fare.</string>

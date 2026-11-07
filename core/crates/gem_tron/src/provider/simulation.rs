@@ -8,12 +8,12 @@ use chrono::Utc;
 use futures::future::join_all;
 use gem_client::Client;
 use primitives::Address as _;
-use primitives::{Asset, AssetId, Chain, SimulationBalanceChange, SimulationHeader, SimulationInput, SimulationResult};
+use primitives::{Asset, AssetId, Chain, SimulationBalanceChange, SimulationHeader, SimulationInput, SimulationResult, SimulationWarning};
 
 use crate::address::TronAddress;
 use crate::decode_wallet_connect_approval;
 use crate::models::{TriggerSmartContractData, TronRpcError};
-use crate::provider::simulation_mapper::{map_approval_simulation, map_execution_error, map_simulation_result, map_stake_simulation};
+use crate::provider::simulation_mapper::{map_approval_simulation, map_simulation_result, map_stake_simulation};
 use crate::provider::staking_mapper::map_withdrawable_unfreeze;
 use crate::rpc::TronProvider;
 use crate::transaction::approval::PERMIT2_APPROVE_SELECTOR;
@@ -41,7 +41,7 @@ impl<C: Client> ChainSimulation for TronProvider<C> {
         let SimulationResult { warnings, balance_changes, payload, .. } = match self.trigger_smart_contract_call(&contract_data).await {
             Ok(response) => map_simulation_result(&owner, &response, call_value),
             Err(error) => match error.downcast_ref::<TronRpcError>() {
-                Some(error) => map_execution_error(error),
+                Some(_) => SimulationResult::new(vec![SimulationWarning::simulation_failed()], vec![]),
                 None => return Err(error),
             },
         };
@@ -219,7 +219,7 @@ mod tests {
         assert_eq!(
             result,
             SimulationResult {
-                warnings: vec![SimulationWarning::execution_error("REVERT opcode executed")],
+                warnings: vec![SimulationWarning::simulation_failed()],
                 header: Some(SimulationHeader {
                     asset_id: AssetId::from_chain(Chain::Tron),
                     value: Some(BigUint::from(1_000_000u32)),
