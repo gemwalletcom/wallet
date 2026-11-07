@@ -137,6 +137,13 @@ jobs:
           yes | "$sdkmanager" --licenses > /dev/null
           "$sdkmanager" --install "emulator" "platform-tools" "system-images;android-35;google_apis;x86_64" | tail -2
 
+      - name: Let the runner user open /dev/kvm
+        if: ${{ inputs.suite != 'native' }}
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
       - name: Install Maestro
         if: ${{ inputs.suite != 'native' }}
         run: |
