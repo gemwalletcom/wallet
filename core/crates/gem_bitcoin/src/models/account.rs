@@ -9,6 +9,8 @@ pub struct BitcoinAccount {
     pub balance: BigUint,
     #[serde(default, deserialize_with = "deserialize_bigint_from_str")]
     pub unconfirmed_balance: BigInt,
+    #[serde(default, deserialize_with = "deserialize_biguint_from_str")]
+    pub immature_balance: BigUint,
 }
 
 #[cfg(test)]
@@ -29,5 +31,14 @@ mod tests {
         let account: BitcoinAccount = serde_json::from_str(json).unwrap();
         assert_eq!(account.balance, BigUint::from(20000000_u64));
         assert_eq!(account.unconfirmed_balance, BigInt::from(-10001045_i64));
+        assert_eq!(account.immature_balance, BigUint::ZERO);
+    }
+
+    #[test]
+    fn test_deserialize_immature_balance() {
+        let json = r#"{"balance": "307941765", "unconfirmedBalance": "0", "immatureBalance": "307891765"}"#;
+        let account: BitcoinAccount = serde_json::from_str(json).unwrap();
+        assert_eq!(account.balance, BigUint::from(307941765_u64));
+        assert_eq!(account.immature_balance, BigUint::from(307891765_u64));
     }
 }
