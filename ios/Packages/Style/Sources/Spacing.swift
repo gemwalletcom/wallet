@@ -66,10 +66,6 @@ public extension Sizing {
         public enum selected {
             public static let image: CGFloat = 20
         }
-
-        public enum assets {
-            public static let widget: CGFloat = 40
-        }
     }
 
     enum shadow {

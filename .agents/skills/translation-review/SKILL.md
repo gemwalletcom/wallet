@@ -7,7 +7,7 @@ description: Review or improve Gem Wallet translations for contextual accuracy, 
 
 Follow the [localization guide](../../../skills/localization.md) for sources and generation, and [quality checks](../../../skills/quality-checks.md) for verification.
 
-- Establish locales and scope across app, widget, permission, and backend messages. For incremental reviews, check changed source keys and related terminology; report coverage and deferred work.
+- Establish locales and scope across app, permission, and backend messages. For incremental reviews, check changed source keys and related terminology; report coverage and deferred work.
 - Read actual callers and interpolated values on each affected platform. Translate the intended action or state, not isolated English words. Preserve distinctions between earning, spending, ownership, and authorization.
 - Use each locale's natural grammar, regional vocabulary, and register. Omit obvious subjects and possessives where natural, while retaining necessary actors and responsibility. Do not mechanically convert another locale or treat acceptable usage as an error.
 - Keep terminology consistent within its product context. Use existing corrected strings and user decisions as the reference; do not duplicate translations in a separate glossary. If particular wording must stay fixed, identify its locale and message key.

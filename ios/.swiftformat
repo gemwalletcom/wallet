@@ -5,7 +5,6 @@
 --exclude ./Packages/Store/Sources/Generated
 --exclude ./Packages/Gemstone/Package.swift
 --exclude ./Packages/Localization/Sources/Localized.swift
---exclude ./Packages/Localization/WidgetSources/WidgetLocalized.swift
 --maxwidth 240
 --test-case-name-format standard-identifiers
 --disable wrapPropertyBodies,noForceUnwrapInTests

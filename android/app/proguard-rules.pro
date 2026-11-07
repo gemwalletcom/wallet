@@ -13,9 +13,9 @@
 }
 
 # Room only looks up <Database>_Impl by name, which Room's own rule keeps. These rules came
-# back after a crash on update (#824) whose stack trace was not recorded, and @Dao/@Entity
-# also hold WorkManager's Room classes. Each one changes the release DEX: prove a removal
-# with an upgrade install of a release build, not by reading our sources.
+# back after a crash on update (#824) whose stack trace was not recorded. Each one changes
+# the release DEX: prove a removal with an upgrade install of a release build, not by
+# reading our sources.
 -keep class * extends androidx.room.RoomDatabase { *; }
 -keep @androidx.room.Dao class * { *; }
 -keep @androidx.room.Entity class * { *; }

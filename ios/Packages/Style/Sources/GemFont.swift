@@ -27,15 +27,5 @@ public extension Font {
         public static let captionSize: CGFloat = 10
 
         public static let caption: Font = .system(size: captionSize, weight: .semibold)
-
-        public enum Widget {
-            public static let title: Font = .system(size: 32, weight: .bold)
-
-            public static let body: Font = .system(size: 16, weight: .regular)
-
-            public static let headline: Font = .system(size: 16, weight: .semibold)
-
-            public static let callout: Font = .system(size: 14, weight: .medium)
-        }
     }
 }
