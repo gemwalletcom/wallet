@@ -20,6 +20,10 @@ public actor WalletConnectorServiceMock: WalletConnectorServiceable {
         isSetup = true
     }
 
+    public func connect() async {}
+
+    public func disconnect() async {}
+
     public func pair(uri: String) async throws {
         if let pairError {
             throw pairError
