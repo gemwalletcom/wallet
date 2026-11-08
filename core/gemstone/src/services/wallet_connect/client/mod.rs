@@ -38,7 +38,7 @@ use crate::config::wallet_connect::get_wallet_connect_config;
 use crate::services::clock::sleep;
 use crate::services::error::GemServiceError;
 use crate::services::preferences::GemSecureStore;
-use gem_wallet_connect::WalletConnectResponseType;
+use gem_wallet_connect::{WalletConnectResponseType, validate_domain};
 use state::{ClientState, Outgoing, Pairing, PendingRequest, Session, Topic};
 
 pub use model::{GemWalletConnectAuthMessage, GemWalletConnectAuthentication, GemWalletConnectEvent, GemWalletConnectProposal, GemWalletConnectRelay};
@@ -156,7 +156,9 @@ impl GemWalletConnectClient {
         match parse_frame(&frame)? {
             RelayFrame::Message { id, message } => {
                 let received = self.receive_message(message).await;
-                self.transport.send(rpc::acknowledge(&id)).await?;
+                if !matches!(received, Err(GemServiceError::Store { .. } | GemServiceError::Platform { .. })) {
+                    self.transport.send(rpc::acknowledge(&id)).await?;
+                }
                 received
             }
             RelayFrame::Accepted { id: Some(id) } => self.delivered(id),
@@ -198,6 +200,15 @@ impl GemWalletConnectClient {
         };
         if rules::is_expired(pending.proposal.expiry_timestamp, Utc::now()) {
             return self.expire(&proposal_id, &pending.pairing_topic);
+        }
+        if self
+            .service
+            .is_origin_rejected(pending.proposal.proposer.metadata.url.clone(), pending.verification.origin.clone(), pending.verification.status.clone())
+        {
+            if self.take_pairing_request(&proposal_id).is_some() {
+                self.reject_proposal(&pending, GemWalletConnectRejectionReason::UserRejected).await?;
+            }
+            return Err(invalid_origin());
         }
         let approval = self.service.session_approval(wallet.clone());
         let chains: Vec<String> = approval.chains.iter().flat_map(|chain| rules::caip2_chain_ids(*chain)).collect();
@@ -300,7 +311,7 @@ impl GemWalletConnectClient {
         let Some((request, session)) = self.read(|state| state.request(&topic, id))? else {
             return Ok(None);
         };
-        let outcome = self.request_outcome(&request, &session).await;
+        let outcome = self.request_outcome(&request).await;
         let (response, failure) = match outcome {
             GemWalletConnectOutcome::Ignored => return Ok(None),
             GemWalletConnectOutcome::Respond { response } => (response, None),
@@ -324,9 +335,10 @@ impl GemWalletConnectClient {
 
     pub async fn disconnect(&self, topic: String) -> Result<(), GemServiceError> {
         self.service.delete_session(topic.clone()).await?;
-        let Some(session) = self.update(|state| state.remove_session(&topic))? else {
+        let Some((session, dropped)) = self.update(|state| state.remove_session(&topic))? else {
             return Ok(());
         };
+        self.close_requests(&dropped);
         let request = payload::request(message_id(), METHOD_SESSION_DELETE, Reason::user_disconnected());
         self.publish(&session.topic, &crypto::parse_key(&session.key)?, &request, Publish::SessionDelete).await
     }
@@ -335,7 +347,7 @@ impl GemWalletConnectClient {
         let Some(PairingRequest::Authentication(pending)) = self.pairing_request(&authentication_id) else {
             return Err(not_found("authentication"));
         };
-        let (account, issuer, payload) = self.authentication_payload(&pending.params, wallet)?;
+        let (account, issuer, payload) = self.authentication_payload(&pending, wallet)?;
         Ok(GemWalletConnectAuthMessage {
             account,
             message: authenticate::message(&payload, &issuer)?,
@@ -349,7 +361,7 @@ impl GemWalletConnectClient {
         if rules::is_expired(pending.params.expiry_timestamp, Utc::now()) {
             return self.expire(&authentication_id, &pending.pairing_topic);
         }
-        let (_, issuer, payload) = self.authentication_payload(&pending.params, wallet.clone())?;
+        let (_, issuer, payload) = self.authentication_payload(&pending, wallet.clone())?;
         let secret = crypto::generate_key()?;
         let requester_key = crypto::parse_key(&pending.params.requester.public_key)?;
         let session_key = crypto::shared_key(&secret, &requester_key)?;
@@ -411,14 +423,14 @@ impl GemWalletConnectClient {
         match (topic, method.as_str()) {
             (Topic::Pairing(pairing), METHOD_SESSION_PROPOSE) => self.receive_proposal(pairing, &message, &decrypted, id, decode(&params)?).await,
             (Topic::Pairing(pairing), METHOD_SESSION_AUTHENTICATE) => self.receive_authentication(pairing, &message, &decrypted, id, decode(&params)?).await,
-            (Topic::Pairing(pairing), METHOD_PAIRING_PING) => self.publish(&pairing.topic, &key, &payload::success(id, &true), Publish::PairingPingResponse).await,
+            (Topic::Pairing(pairing), METHOD_PAIRING_PING) => self.answer_ping(&pairing.topic, &key, id, Publish::PairingPingResponse).await,
             (Topic::Pairing(pairing), METHOD_PAIRING_DELETE) => {
                 lock(&self.pairing_requests).remove(&pairing.topic);
                 let response = outgoing_publish(&pairing.topic, &envelope::encrypt(&key, &payload::success(id, &true))?, Publish::PairingDeleteResponse);
                 self.store_and_send(response, |state| state.remove_pairing(&pairing.topic)).await
             }
-            (Topic::Session(session), METHOD_SESSION_REQUEST) => self.receive_request(session, &key, id, decode(&params)?).await,
-            (Topic::Session(session), METHOD_SESSION_PING) => self.publish(&session.topic, &key, &payload::success(id, &true), Publish::SessionPingResponse).await,
+            (Topic::Session(session), METHOD_SESSION_REQUEST) => self.receive_request(session, &message, &key, id, decode(&params)?).await,
+            (Topic::Session(session), METHOD_SESSION_PING) => self.answer_ping(&session.topic, &key, id, Publish::SessionPingResponse).await,
             (Topic::Session(session), METHOD_SESSION_DELETE) => self.receive_session_delete(session, &key, id).await,
             _ => Ok(()),
         }
@@ -475,13 +487,14 @@ impl GemWalletConnectClient {
         Ok(())
     }
 
-    async fn receive_request(&self, session: Session, key: &Key, id: u64, request: SessionRequest) -> Result<(), GemServiceError> {
+    async fn receive_request(&self, session: Session, message: &RelayMessage, key: &Key, id: u64, request: SessionRequest) -> Result<(), GemServiceError> {
         if rules::is_expired(request.request.expiry_timestamp, Utc::now()) {
             return self.publish(&session.topic, key, &payload::failure(id, &reason(rules::request_expired_error())), Publish::SessionRequestResponse).await;
         }
         if let Err(refusal) = namespaces::authorization(&session.namespaces, &request.chain_id, &request.request.method) {
             return self.publish(&session.topic, key, &payload::failure(id, &refusal), Publish::SessionRequestResponse).await;
         }
+        let verification = self.request_verification(message, &session);
         let pending = PendingRequest {
             topic: session.topic.clone(),
             id,
@@ -489,29 +502,30 @@ impl GemWalletConnectClient {
             params: request.request.params.get().to_string(),
             chain_id: request.chain_id,
             expiry: request.request.expiry_timestamp,
-            shown: true,
+            origin: verification.origin,
+            validation: verification.status,
         };
         let is_new = self.update_if_changed(|state| {
             let is_new = state.add_request(pending.clone());
             (is_new, is_new)
         })?;
         if is_new {
-            self.listener.on_event(GemWalletConnectEvent::Request {
-                request: session_request(&pending, &session),
-            });
+            self.listener.on_event(GemWalletConnectEvent::Request { request: session_request(&pending) });
         }
         Ok(())
     }
 
     async fn receive_session_delete(&self, session: Session, key: &Key, id: u64) -> Result<(), GemServiceError> {
-        self.update(|state| state.remove_session(&session.topic))?;
+        if let Some((_, dropped)) = self.update(|state| state.remove_session(&session.topic))? {
+            self.close_requests(&dropped);
+        }
         self.service.delete_session(session.topic.clone()).await?;
         self.listener.on_event(GemWalletConnectEvent::SessionDeleted { topic: session.topic.clone() });
         self.publish(&session.topic, key, &payload::success(id, &true), Publish::SessionDeleteResponse).await
     }
 
-    async fn request_outcome(&self, request: &PendingRequest, session: &Session) -> GemWalletConnectOutcome {
-        let outcome = Box::pin(self.service.request_outcome(session_request(request, session)));
+    async fn request_outcome(&self, request: &PendingRequest) -> GemWalletConnectOutcome {
+        let outcome = Box::pin(self.service.request_outcome(session_request(request)));
         let Some(expiry) = request.expiry else {
             return outcome.await;
         };
@@ -560,10 +574,8 @@ impl GemWalletConnectClient {
     }
 
     fn show_next_request(&self) -> Result<(), GemServiceError> {
-        if let Some((request, session)) = self.update_in_memory(ClientState::show_next_request)? {
-            self.listener.on_event(GemWalletConnectEvent::Request {
-                request: session_request(&request, &session),
-            });
+        if let Some(request) = self.update_in_memory(ClientState::show_next_request)? {
+            self.listener.on_event(GemWalletConnectEvent::Request { request: session_request(&request) });
         }
         Ok(())
     }
@@ -614,6 +626,21 @@ impl GemWalletConnectClient {
         Ok(())
     }
 
+    async fn answer_ping(&self, topic: &str, key: &Key, id: u64, method: Publish) -> Result<(), GemServiceError> {
+        let response = outgoing_publish(topic, &envelope::encrypt(key, &payload::success(id, &true))?, method);
+        self.send_frame(response.frame).await;
+        Ok(())
+    }
+
+    fn close_requests(&self, requests: &[PendingRequest]) {
+        for request in requests {
+            self.listener.on_event(GemWalletConnectEvent::RequestExpired {
+                topic: request.topic.clone(),
+                request_id: request.id.to_string(),
+            });
+        }
+    }
+
     async fn publish(&self, topic: &str, key: &Key, message: &[u8], method: Publish) -> Result<(), GemServiceError> {
         self.store_and_send(outgoing_publish(topic, &envelope::encrypt(key, message)?, method), |_| {}).await
     }
@@ -623,12 +650,12 @@ impl GemWalletConnectClient {
             session: self.connection_session(&session)?,
             wallet,
         };
+        self.service.add_connection(connection).await?;
         self.store_and_send(approval, |state| {
             state.remove_pairing(pairing_topic);
             state.sessions.push(session);
         })
-        .await?;
-        self.service.add_connection(connection).await
+        .await
     }
 
     async fn store_and_send(&self, outgoing: Outgoing, change: impl FnOnce(&mut ClientState)) -> Result<(), GemServiceError> {
@@ -651,21 +678,36 @@ impl GemWalletConnectClient {
     }
 
     async fn verification(&self, message: &RelayMessage, decrypted: &[u8]) -> Verification {
-        if let Some(jwt) = message.attestation.as_deref().filter(|jwt| !jwt.is_empty())
-            && let Some(attestation) = self.attested(jwt, &verify::attestation_id(&message.message)).await
-        {
-            return attestation.verification();
-        }
-        match self.query_verify_server::<Attestation>(verify::attestation_url(decrypted)).await {
-            Some(attestation) => attestation.verification(),
-            None => Verification::unknown(),
-        }
+        let attestation = match message.attestation.as_deref().filter(|jwt| !jwt.is_empty()) {
+            Some(jwt) => self.attested(jwt, &verify::attestation_id(&message.message)).await,
+            None => self.query_verify_server::<Attestation>(verify::attestation_url(decrypted)).await,
+        };
+        attestation.map_or_else(Verification::unknown, Attestation::verification)
+    }
+
+    fn request_verification(&self, message: &RelayMessage, session: &Session) -> Verification {
+        message
+            .attestation
+            .as_deref()
+            .filter(|jwt| !jwt.is_empty())
+            .and_then(|jwt| self.stored_attestation(jwt, &verify::attestation_id(&message.message), now()))
+            .map_or_else(
+                || Verification {
+                    origin: session.origin.clone(),
+                    status: session.validation.clone(),
+                },
+                Attestation::verification,
+            )
+    }
+
+    fn stored_attestation(&self, jwt: &str, attestation_id: &str, now: u64) -> Option<Attestation> {
+        let key = self.read(|state| state.verify_key.clone()).ok().flatten().filter(|key| key.expires_at > now)?;
+        verify::attested(jwt, &key, attestation_id, now)
     }
 
     async fn attested(&self, jwt: &str, attestation_id: &str) -> Option<Attestation> {
         let now = now();
-        let stored = self.read(|state| state.verify_key.clone()).ok().flatten().filter(|key| key.expires_at > now);
-        if let Some(attestation) = stored.and_then(|key| verify::attested(jwt, &key, attestation_id, now)) {
+        if let Some(attestation) = self.stored_attestation(jwt, attestation_id, now) {
             return Some(attestation);
         }
         let key: VerifyPublicKey = self.query_verify_server(verify::PUBLIC_KEY_URL.to_string()).await?;
@@ -705,7 +747,12 @@ impl GemWalletConnectClient {
         )
     }
 
-    fn authentication_payload(&self, params: &AuthenticateParams, wallet: Wallet) -> Result<(Account, Issuer, AuthPayload), GemServiceError> {
+    fn authentication_payload(&self, pending: &PendingAuthentication, wallet: Wallet) -> Result<(Account, Issuer, AuthPayload), GemServiceError> {
+        let params = &pending.params;
+        let app_url = &params.requester.metadata.url;
+        if validate_domain(&params.auth_payload.domain, app_url).is_err() || self.service.is_origin_rejected(app_url.clone(), pending.verification.origin.clone(), pending.verification.status.clone()) {
+            return Err(invalid_origin());
+        }
         let accounts = self.service.authentication_accounts(params.auth_payload.chains.clone(), wallet);
         let selected = accounts.first().ok_or_else(|| GemServiceError::Unsupported {
             msg: "Requested chains are not supported".to_string(),
@@ -750,11 +797,13 @@ impl GemWalletConnectClient {
     fn update_if_changed<R>(&self, update: impl FnOnce(&mut ClientState) -> (R, bool)) -> Result<R, GemServiceError> {
         let mut state = lock(&self.state);
         let loaded = self.loaded(&mut state)?;
-        let (result, changed) = update(loaded);
+        let mut next = loaded.clone();
+        let (result, changed) = update(&mut next);
         if changed {
-            let json = serde_json::to_string(loaded).map_err(|error| GemServiceError::Core { msg: error.to_string() })?;
+            let json = serde_json::to_string(&next).map_err(|error| GemServiceError::Core { msg: error.to_string() })?;
             self.store.set(STATE_KEY.to_string(), json)?;
         }
+        *loaded = next;
         Ok(result)
     }
 
@@ -795,15 +844,15 @@ fn authentication_answer(pending: &PendingAuthentication, secret: &Key, message:
     Ok(outgoing_publish(&crypto::topic(requester_key.as_slice()), &envelope, method))
 }
 
-fn session_request(request: &PendingRequest, session: &Session) -> GemWalletConnectSessionRequest {
+fn session_request(request: &PendingRequest) -> GemWalletConnectSessionRequest {
     GemWalletConnectSessionRequest {
         topic: request.topic.clone(),
         request_id: request.id.to_string(),
         method: request.method.clone(),
         params: request.params.clone(),
         chain_id: Some(request.chain_id.clone()),
-        origin: session.origin.clone(),
-        validation: session.validation.clone(),
+        origin: request.origin.clone(),
+        validation: request.validation.clone(),
         expiry: request.expiry,
     }
 }
@@ -844,6 +893,12 @@ fn parse_request_id(request_id: &str) -> Result<u64, GemServiceError> {
     })
 }
 
+fn invalid_origin() -> GemServiceError {
+    GemServiceError::InvalidInput {
+        msg: "WalletConnect origin does not match the app".to_string(),
+    }
+}
+
 fn not_found(item: &str) -> GemServiceError {
     GemServiceError::NotFound {
         msg: format!("WalletConnect {item} not found"),
@@ -877,11 +932,12 @@ fn lock<T>(mutex: &Mutex<T>) -> MutexGuard<'_, T> {
 mod tests {
     use super::testkit::{TEST_AUTHENTICATION, TEST_PROPOSAL, TestDapp};
     use super::*;
+    use crate::testkit::TestAlienProvider;
     use futures::FutureExt;
     use futures::executor::block_on;
     use primitives::{Chain, WalletConnectionVerificationStatus};
     use serde_json::Value;
-    use wallet_connect_protocol::testkit::{TEST_PEER_PUBLIC_KEY, TEST_SYM_KEY, TEST_TOPIC, test_key};
+    use wallet_connect_protocol::testkit::{TEST_PEER_PUBLIC_KEY, TEST_SYM_KEY, TEST_TOPIC, test_key, test_verify_key};
 
     fn json(value: &str) -> Value {
         serde_json::from_str(value).unwrap()
@@ -1184,6 +1240,134 @@ mod tests {
                 matches!(client.approve_session(TEST_PEER_PUBLIC_KEY.to_string(), wallet).await, Err(GemServiceError::NotFound { .. })),
                 "a proposal whose pairing the dapp deleted can no longer be approved"
             );
+        });
+    }
+
+    #[test]
+    fn test_a_connection_approved_while_its_approval_is_sent_is_listed() {
+        block_on(async {
+            let dapp = TestDapp::new();
+            let wallet = Wallet::mock_with_chains(&[Chain::Ethereum]);
+            let client = GemWalletConnectClient::mock_with_service(&dapp, Platform::IOS, GemWalletConnectService::mock(Ok(String::new()), wallet.clone()).await);
+            client.pair(TestDapp::pairing_uri("wc_sessionPropose")).await.unwrap();
+            client
+                .receive(TestDapp::frame(TEST_TOPIC, &test_key(TEST_SYM_KEY), &TestDapp::request(100, METHOD_SESSION_PROPOSE, TEST_PROPOSAL)))
+                .await
+                .unwrap();
+            dapp.transport.stalled.store(true, std::sync::atomic::Ordering::SeqCst);
+
+            assert!(client.approve_session(TEST_PEER_PUBLIC_KEY.to_string(), wallet).now_or_never().is_none());
+
+            let topic = client.read(ClientState::topics).unwrap().remove(0);
+            assert!(
+                client.service.store.get_connection(topic).await.unwrap().is_some(),
+                "a dapp told it is connected is listed, so its requests can be signed and it can be disconnected"
+            );
+        });
+    }
+
+    #[test]
+    fn test_a_request_attested_as_a_scam_is_refused_on_a_verified_session() {
+        block_on(async {
+            let dapp = TestDapp::new();
+            let (client, session_key) = GemWalletConnectClient::mock_connected(&dapp, Wallet::mock_with_chains(&[Chain::Ethereum])).await;
+            let topic = TestDapp::topic(&session_key);
+            client.update(|state| state.verify_key = Some(test_verify_key(4_102_444_800))).unwrap();
+            let request = TestDapp::request(200, METHOD_SESSION_REQUEST, r#"{"request":{"method":"personal_sign","params":["0x48656c6c6f","0xaddress"]},"chainId":"eip155:1"}"#);
+
+            client.receive(TestDapp::attested_frame(&topic, &session_key, &request, true)).await.unwrap();
+
+            assert!(matches!(
+                &dapp.listener.events.lock().unwrap()[1],
+                GemWalletConnectEvent::Request { request } if request.validation == WalletConnectionVerificationStatus::Malicious
+            ));
+            assert_eq!(client.answer_request(topic.clone(), "200".to_string()).await.unwrap(), Some(GemWalletConnectFailure::MaliciousOrigin));
+            assert!(dapp.transport.published(&topic, &session_key)[0]["error"].is_object(), "nothing is signed for a site flagged after it connected");
+        });
+    }
+
+    #[test]
+    fn test_a_deleted_session_closes_its_open_requests() {
+        block_on(async {
+            let dapp = TestDapp::new();
+            let (client, session_key) = GemWalletConnectClient::mock_connected(&dapp, Wallet::mock_with_chains(&[Chain::Ethereum])).await;
+            let topic = TestDapp::topic(&session_key);
+            let request = TestDapp::request(200, METHOD_SESSION_REQUEST, r#"{"request":{"method":"personal_sign","params":["0x48656c6c6f","0xaddress"]},"chainId":"eip155:1"}"#);
+            client.receive(TestDapp::frame(&topic, &session_key, &request)).await.unwrap();
+
+            client
+                .receive(TestDapp::frame(&topic, &session_key, &TestDapp::request(300, METHOD_SESSION_DELETE, r#"{"code":6000,"message":"User disconnected."}"#)))
+                .await
+                .unwrap();
+
+            assert_eq!(
+                dapp.listener.events.lock().unwrap()[2..].to_vec(),
+                vec![
+                    GemWalletConnectEvent::RequestExpired {
+                        topic: topic.clone(),
+                        request_id: "200".to_string()
+                    },
+                    GemWalletConnectEvent::SessionDeleted { topic },
+                ],
+                "a review whose dapp is gone closes before the user signs something no one will hear about"
+            );
+        });
+    }
+
+    #[test]
+    fn test_a_request_that_could_not_be_stored_is_delivered_again() {
+        block_on(async {
+            let dapp = TestDapp::new();
+            let (client, session_key) = GemWalletConnectClient::mock_connected(&dapp, Wallet::mock_with_chains(&[Chain::Ethereum])).await;
+            let topic = TestDapp::topic(&session_key);
+            let frame = TestDapp::frame(
+                &topic,
+                &session_key,
+                &TestDapp::request(200, METHOD_SESSION_REQUEST, r#"{"request":{"method":"personal_sign","params":["0x48656c6c6f","0xaddress"]},"chainId":"eip155:1"}"#),
+            );
+            let acknowledgements = || dapp.transport.sent().iter().filter(|frame| frame["id"] == 1 && frame["result"] == true).count();
+            let acknowledged = acknowledgements();
+            dapp.store.failing.store(true, std::sync::atomic::Ordering::SeqCst);
+
+            assert!(matches!(client.receive(frame.clone()).await, Err(GemServiceError::Platform { .. })));
+            assert_eq!(acknowledgements(), acknowledged, "the relay keeps a message the wallet could not store");
+
+            dapp.store.failing.store(false, std::sync::atomic::Ordering::SeqCst);
+            client.receive(frame).await.unwrap();
+            assert_eq!(dapp.listener.events.lock().unwrap().len(), 2, "the proposal and the request delivered again");
+            assert_eq!(acknowledgements(), acknowledged + 1);
+        });
+    }
+
+    #[test]
+    fn test_core_refuses_a_proposal_or_sign_in_for_another_site() {
+        block_on(async {
+            let wallet = Wallet::mock_with_accounts(vec![Account::mock(Chain::Ethereum, "0x1111111111111111111111111111111111111111")]);
+            let pairing_key = test_key(TEST_SYM_KEY);
+            let dapp = TestDapp::new();
+            let provider: Arc<dyn AlienProvider> = Arc::new(TestAlienProvider::with_json_by_path(200, &[("verify.walletconnect.org", r#"{"origin":"https://evil.example","isScam":false}"#)]));
+            let service = GemWalletConnectService::mock(Ok(String::new()), wallet.clone()).await;
+            let client = GemWalletConnectClient::new(Arc::new(service), dapp.store.clone(), provider, dapp.transport.clone(), dapp.listener.clone(), Platform::IOS);
+            client.pair(TestDapp::pairing_uri("wc_sessionPropose")).await.unwrap();
+            client.receive(TestDapp::frame(TEST_TOPIC, &pairing_key, &TestDapp::request(100, METHOD_SESSION_PROPOSE, TEST_PROPOSAL))).await.unwrap();
+
+            assert!(matches!(client.approve_session(TEST_PEER_PUBLIC_KEY.to_string(), wallet.clone()).await, Err(GemServiceError::InvalidInput { .. })));
+            assert_eq!(dapp.transport.published(TEST_TOPIC, &pairing_key), vec![json(r#"{"id":100,"jsonrpc":"2.0","error":{"code":5000,"message":"User rejected."}}"#)]);
+            assert!(!dapp.transport.sent().iter().any(|frame| frame["method"] == "wc_approveSession"), "a page that is not the app it names is never connected");
+
+            let dapp = TestDapp::new();
+            let client = GemWalletConnectClient::mock_with_service(&dapp, Platform::Android, GemWalletConnectService::mock(Ok(String::new()), wallet.clone()).await);
+            client.pair(TestDapp::pairing_uri("wc_sessionPropose,wc_sessionAuthenticate")).await.unwrap();
+            let authentication = TEST_AUTHENTICATION.replace(r#""domain": "example.com""#, r#""domain": "app.uniswap.org""#);
+            assert_ne!(authentication, TEST_AUTHENTICATION);
+            client.receive(TestDapp::frame(TEST_TOPIC, &pairing_key, &TestDapp::request(101, METHOD_SESSION_AUTHENTICATE, &authentication))).await.unwrap();
+
+            assert!(matches!(client.authentication_message("101".to_string(), wallet.clone()), Err(GemServiceError::InvalidInput { .. })));
+            assert!(
+                matches!(client.approve_authentication("101".to_string(), wallet, "0xsignature".to_string()).await, Err(GemServiceError::InvalidInput { .. })),
+                "a sign-in for another site is never signed or sent"
+            );
+            assert!(dapp.transport.published_with_sender_key(&TestDapp::requester_topic()).is_empty());
         });
     }
 

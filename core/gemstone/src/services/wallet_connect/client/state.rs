@@ -17,6 +17,8 @@ pub struct ClientState {
     pub answered: Vec<AnsweredRequest>,
     pub outbox: Vec<Outgoing>,
     pub verify_key: Option<VerifyPublicKey>,
+    #[serde(skip)]
+    pub shown: Option<(String, u64)>,
 }
 
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
@@ -48,8 +50,8 @@ pub struct PendingRequest {
     pub params: String,
     pub chain_id: String,
     pub expiry: Option<u64>,
-    #[serde(skip)]
-    pub shown: bool,
+    pub origin: Option<String>,
+    pub validation: WalletConnectionVerificationStatus,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -95,22 +97,25 @@ impl ClientState {
     }
 
     pub fn add_request(&mut self, request: PendingRequest) -> bool {
-        let is_known = self.requests.iter().any(|pending| pending.topic == request.topic && pending.id == request.id) || self.answered.iter().any(|answered| answered.topic == request.topic && answered.id == request.id);
+        let is_known = self.is_waiting(&request.topic, request.id) || self.answered.iter().any(|answered| answered.topic == request.topic && answered.id == request.id);
         if !is_known {
+            self.shown = Some((request.topic.clone(), request.id));
             self.requests.push(request);
         }
         !is_known
     }
 
-    pub fn show_next_request(&mut self) -> Option<(PendingRequest, Session)> {
-        if self.requests.iter().any(|request| request.shown) {
+    pub fn show_next_request(&mut self) -> Option<PendingRequest> {
+        if self.shown.as_ref().is_some_and(|(topic, id)| self.is_waiting(topic, *id)) {
             return None;
         }
-        let next = self.requests.iter_mut().min_by_key(|request| request.id)?;
-        next.shown = true;
-        let request = next.clone();
-        let session = self.session(&request.topic)?.clone();
-        Some((request, session))
+        let request = self.requests.iter().filter(|request| self.session(&request.topic).is_some()).min_by_key(|request| request.id)?.clone();
+        self.shown = Some((request.topic.clone(), request.id));
+        Some(request)
+    }
+
+    fn is_waiting(&self, topic: &str, id: u64) -> bool {
+        self.requests.iter().any(|request| request.topic == topic && request.id == id)
     }
 
     pub fn answer(&mut self, topic: &str, id: u64, answer: Outgoing, now: u64) -> bool {
@@ -131,10 +136,11 @@ impl ClientState {
         self.pairings.retain(|pairing| pairing.topic != topic);
     }
 
-    pub fn remove_session(&mut self, topic: &str) -> Option<Session> {
+    pub fn remove_session(&mut self, topic: &str) -> Option<(Session, Vec<PendingRequest>)> {
         let index = self.sessions.iter().position(|session| session.topic == topic)?;
-        self.requests.retain(|request| request.topic != topic);
-        Some(self.sessions.remove(index))
+        let (dropped, kept) = std::mem::take(&mut self.requests).into_iter().partition(|request| request.topic == topic);
+        self.requests = kept;
+        Some((self.sessions.remove(index), dropped))
     }
 
     pub fn prune(&mut self, now: u64) -> bool {
@@ -167,6 +173,7 @@ mod tests {
             answered: vec![AnsweredRequest::mock(5, 200), AnsweredRequest::mock(6, 100)],
             outbox: vec![Outgoing::mock(7, 200), Outgoing::mock(8, 100)],
             verify_key: None,
+            shown: None,
         };
 
         assert!(state.prune(100));
@@ -213,15 +220,30 @@ mod tests {
             ..ClientState::default()
         };
 
-        assert_eq!(state.show_next_request().map(|(request, _)| request.id), Some(1), "the oldest unanswered request shows first");
+        assert_eq!(state.show_next_request().map(|request| request.id), Some(1), "the oldest unanswered request shows first");
         assert_eq!(state.show_next_request(), None, "one request at a time");
 
         state.answer("topic", 1, Outgoing::mock(10, 200), 100);
-        assert_eq!(state.show_next_request().map(|(request, _)| request.id), Some(2));
+        assert_eq!(state.show_next_request().map(|request| request.id), Some(2));
         assert_eq!(state.show_next_request(), None);
 
-        let stored: ClientState = serde_json::from_str(&serde_json::to_string(&state).unwrap()).unwrap();
-        assert!(!stored.requests[0].shown, "a request shown before the app closed shows again after it opens");
+        let mut stored: ClientState = serde_json::from_str(&serde_json::to_string(&state).unwrap()).unwrap();
+        assert_eq!(stored.show_next_request().map(|request| request.id), Some(2), "a request shown before the app closed shows again after it opens");
+    }
+
+    #[test]
+    fn test_a_request_replaced_on_screen_shows_again_once_the_newer_one_is_answered() {
+        let mut state = ClientState {
+            sessions: vec![Session::mock("topic", 200)],
+            ..ClientState::default()
+        };
+
+        assert!(state.add_request(PendingRequest::mock("topic", 1, None)));
+        assert!(state.add_request(PendingRequest::mock("topic", 2, None)));
+        assert_eq!(state.show_next_request(), None, "the newer request is on screen");
+
+        state.answer("topic", 2, Outgoing::mock(10, 200), 100);
+        assert_eq!(state.show_next_request().map(|request| request.id), Some(1), "a request the app never answered is not left waiting");
     }
 
     #[test]
@@ -239,7 +261,7 @@ mod tests {
             ..ClientState::default()
         };
 
-        assert_eq!(state.remove_session("one"), Some(Session::mock("one", 200)));
+        assert_eq!(state.remove_session("one"), Some((Session::mock("one", 200), vec![PendingRequest::mock("one", 1, None)])));
         assert_eq!(state.remove_session("one"), None);
         assert_eq!(state.requests, vec![PendingRequest::mock("two", 2, None)], "a deleted session takes its unanswered requests with it");
     }

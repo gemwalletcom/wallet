@@ -5,7 +5,7 @@ use serde_json::value::RawValue;
 use crate::authenticate::AuthPayload;
 use crate::crypto::{Key, parse_key};
 use crate::sign::{Metadata, ProposalNamespace, SessionNamespace, SessionProposal};
-use crate::verify::VerifyPublicKey;
+use crate::verify::{Jwk, VerifyPublicKey};
 
 pub const TEST_SELF_SECRET: &str = "a8c0f6a0d6e2f7d4f0e1d2c3b4a5968778695a4b3c2d1e0f1f2e3d4c5b6a7988";
 pub const TEST_PEER_SECRET: &str = "1f2e3d4c5b6a79881a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f7081";
@@ -97,4 +97,26 @@ impl VerifyPublicKey {
     pub fn mock() -> Self {
         serde_json::from_str(include_str!("../testdata/verify_public_key.json")).unwrap()
     }
+}
+
+const TEST_VERIFY_SECRET: [u8; 32] = [7; 32];
+
+pub fn test_verify_key(expires_at: u64) -> VerifyPublicKey {
+    let point = p256::ecdsa::SigningKey::from_slice(&TEST_VERIFY_SECRET).unwrap().verifying_key().to_sec1_point(false);
+    VerifyPublicKey {
+        public_key: Jwk {
+            x: gem_encoding::encode_base64_url(point.x().unwrap()),
+            y: gem_encoding::encode_base64_url(point.y().unwrap()),
+        },
+        expires_at,
+    }
+}
+
+pub fn test_attestation(attestation_id: &str, origin: &str, is_scam: bool, expires_at: u64) -> String {
+    use p256::ecdsa::signature::Signer;
+    let signing_key = p256::ecdsa::SigningKey::from_slice(&TEST_VERIFY_SECRET).unwrap();
+    let claims = serde_json::json!({"exp": expires_at, "id": attestation_id, "origin": origin, "isScam": is_scam, "isVerified": true});
+    let signing_input = format!("{}.{}", gem_encoding::encode_base64_url(br#"{"alg":"ES256","typ":"JWT"}"#), gem_encoding::encode_base64_url(claims.to_string().as_bytes()));
+    let signature: p256::ecdsa::Signature = signing_key.sign(signing_input.as_bytes());
+    format!("{signing_input}.{}", gem_encoding::encode_base64_url(&signature.to_bytes()))
 }

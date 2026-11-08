@@ -12,7 +12,8 @@ use wallet_connect_protocol::crypto::{self, Key};
 use wallet_connect_protocol::envelope;
 use wallet_connect_protocol::sign::Metadata;
 use wallet_connect_protocol::sign::method::METHOD_SESSION_PROPOSE;
-use wallet_connect_protocol::testkit::{TEST_PEER_PUBLIC_KEY, TEST_PEER_SECRET, TEST_SYM_KEY, TEST_TOPIC, test_key};
+use wallet_connect_protocol::testkit::{TEST_PEER_PUBLIC_KEY, TEST_PEER_SECRET, TEST_SYM_KEY, TEST_TOPIC, test_attestation, test_key};
+use wallet_connect_protocol::verify;
 
 use super::state::{AnsweredRequest, Outgoing, Pairing, PendingRequest, Session};
 use super::{GemWalletConnectClient, GemWalletConnectEvent, GemWalletConnectListener, GemWalletConnectProposal, GemWalletConnectTransport};
@@ -82,10 +83,33 @@ impl GemWalletConnectListener for MemoryListener {
     }
 }
 
+#[derive(Default)]
+pub struct TestSecureStore {
+    pub values: MemorySecureStore,
+    pub failing: AtomicBool,
+}
+
+impl GemSecureStore for TestSecureStore {
+    fn get(&self, key: String) -> Result<Option<String>, GemServiceError> {
+        self.values.get(key)
+    }
+
+    fn set(&self, key: String, value: String) -> Result<(), GemServiceError> {
+        if self.failing.load(Ordering::SeqCst) {
+            return Err(GemServiceError::Platform { msg: "keychain locked".to_string() });
+        }
+        self.values.set(key, value)
+    }
+
+    fn remove(&self, key: String) -> Result<(), GemServiceError> {
+        self.values.remove(key)
+    }
+}
+
 pub struct TestDapp {
     pub transport: Arc<MemoryTransport>,
     pub listener: Arc<MemoryListener>,
-    pub store: Arc<MemorySecureStore>,
+    pub store: Arc<TestSecureStore>,
 }
 
 impl TestDapp {
@@ -96,6 +120,12 @@ impl TestDapp {
     pub fn frame(topic: &str, key: &Key, payload: &str) -> String {
         let message = envelope::encrypt(key, payload.as_bytes()).unwrap();
         format!(r#"{{"id":1,"jsonrpc":"2.0","method":"irn_subscription","params":{{"id":"subscription","data":{{"topic":"{topic}","message":"{message}","publishedAt":1}}}}}}"#)
+    }
+
+    pub fn attested_frame(topic: &str, key: &Key, payload: &str, is_scam: bool) -> String {
+        let message = envelope::encrypt(key, payload.as_bytes()).unwrap();
+        let attestation = test_attestation(&verify::attestation_id(&message), "https://example.com", is_scam, 4_102_444_800);
+        format!(r#"{{"id":1,"jsonrpc":"2.0","method":"irn_subscription","params":{{"id":"subscription","data":{{"topic":"{topic}","message":"{message}","attestation":"{attestation}","publishedAt":1}}}}}}"#)
     }
 
     pub fn reply(id: u64) -> String {
@@ -144,7 +174,7 @@ impl TestDapp {
         Self {
             transport: Arc::new(MemoryTransport::default()),
             listener: Arc::new(MemoryListener::default()),
-            store: Arc::new(MemorySecureStore::default()),
+            store: Arc::new(TestSecureStore::default()),
         }
     }
 }
@@ -183,7 +213,8 @@ impl PendingRequest {
             params: "[]".to_string(),
             chain_id: "eip155:1".to_string(),
             expiry,
-            shown: false,
+            origin: None,
+            validation: WalletConnectionVerificationStatus::Unknown,
         }
     }
 }

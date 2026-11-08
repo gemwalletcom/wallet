@@ -92,7 +92,7 @@ pub fn attested(jwt: &str, key: &VerifyPublicKey, attestation_id: &str, now: u64
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::testkit::{TEST_ATTESTATION, TEST_ATTESTATION_ID};
+    use crate::testkit::{TEST_ATTESTATION, TEST_ATTESTATION_ID, test_attestation, test_verify_key};
 
     #[test]
     fn test_verification() {
@@ -132,6 +132,17 @@ mod tests {
         };
         assert_eq!(attested(TEST_ATTESTATION, &other_key, TEST_ATTESTATION_ID, issued), None);
         assert_eq!(attested("not.a.jwt", &VerifyPublicKey::mock(), TEST_ATTESTATION_ID, issued), None);
+    }
+
+    #[test]
+    fn test_attested_by_the_test_key() {
+        let attestation = test_attestation("message", "https://example.com", true, 200);
+
+        assert_eq!(
+            attested(&attestation, &test_verify_key(200), "message", 100).map(Attestation::verification).map(|verification| verification.status),
+            Some(WalletConnectionVerificationStatus::Malicious)
+        );
+        assert_eq!(attested(&attestation, &VerifyPublicKey::mock(), "message", 100), None);
     }
 
     #[test]
