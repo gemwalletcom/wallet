@@ -252,6 +252,24 @@ impl GemConfirmData {
             ..data
         }
     }
+
+    pub fn mock_cardano(value: u64, use_max_amount: bool, utxo_values: &[u64]) -> Self {
+        let transfer = GemTransferData {
+            value: value.into(),
+            use_max_amount,
+            ..GemTransferData::mock(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Cardano) })
+        };
+        let data = Self::mock(Chain::Cardano, transfer.input_type.clone());
+        GemConfirmData {
+            input: GemConfirmInput { transfer, ..data.input },
+            fee: GemTransactionLoadFee { fee: TEST_CARDANO_FEE.into(), ..data.fee },
+            metadata: GemTransactionLoadMetadata::Cardano {
+                utxos: utxo_values.iter().map(|value| UTXO::mock_with_value(*value)).collect(),
+                block_number: 0,
+            },
+            ..data
+        }
+    }
 }
 
 impl SendInput {
@@ -367,6 +385,7 @@ pub fn mock_tron_transfer(value: BigInt) -> GemTransferData {
 const TEST_BITCOIN_SENDER: &str = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4";
 const TEST_BITCOIN_RECIPIENT: &str = "bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq";
 pub const TEST_BITCOIN_FEE: u64 = 423;
+pub const TEST_CARDANO_FEE: u64 = 168_479;
 
 pub fn mock_bitcoin_wallet() -> Wallet {
     Wallet::mock_with_accounts(vec![Account::mock(Chain::Bitcoin, TEST_BITCOIN_SENDER)])

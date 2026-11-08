@@ -1,0 +1,24 @@
+{
+  "data": {
+    "utxos": [
+      {
+        "address": "addr1q9nwlv374w20q3w4jhdt3ujzhe6lrkpufrgjfytzsnpx7xpsnhhe8hkz2qsvy029n4qy0jd2u9zshuzyafzfcay5esvsaxvyv8",
+        "value": "77825303",
+        "txHash": "fc1b1eb70fc853e0da24129d5585810599d4b9ec45198817d0058c9055c4a6ad",
+        "index": 0,
+        "tokens": []
+      },
+      {
+        "address": "addr1q9nwlv374w20q3w4jhdt3ujzhe6lrkpufrgjfytzsnpx7xpsnhhe8hkz2qsvy029n4qy0jd2u9zshuzyafzfcay5esvsaxvyv8",
+        "value": "1444443",
+        "txHash": "e6b711c0b64262c16bf2dc1fc7020f84dd1005a05739767e15c7dca7c844c5f3",
+        "index": 0,
+        "tokens": [
+          {
+            "quantity": "4064065000"
+          }
+        ]
+      }
+    ]
+  }
+}

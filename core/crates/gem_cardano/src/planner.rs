@@ -33,7 +33,7 @@ pub(crate) fn plan_transfer(input: &TransactionLoadInput) -> Result<TransactionP
 
     let utxos = utxos_from_metadata(&input.metadata, &input.sender_address)?;
     if utxos.is_empty() {
-        return SignerError::invalid_input_err("missing input UTXOs");
+        return Err(SignerError::InsufficientFunds);
     }
 
     let selected_utxos = select_utxos(&utxos, requested_amount, input.is_max_value)?;
@@ -269,6 +269,16 @@ mod tests {
             },
             "12.2 of 12.22 ADA: the fee load prices the send and the amount check says Insufficient Balance"
         );
+
+        let input = TransactionLoadInput {
+            metadata: TransactionLoadMetadata::Cardano {
+                block_number: TEST_BLOCK_NUMBER,
+                utxos: vec![],
+            },
+            ..TransactionLoadInput::mock_cardano(OWN_ADDRESS_1, "1000000")
+        };
+        assert_eq!(plan_transfer(&input).err(), Some(SignerError::InsufficientFunds));
+        assert_eq!(transfer_fee(&input).unwrap(), 164_030, "every UTXO holds a token: the fee still loads, so Confirm can say Insufficient Balance");
     }
 
     #[test]
@@ -317,13 +327,6 @@ mod tests {
     #[test]
     fn test_plan_transfer_validation() {
         let mut input = TransactionLoadInput::mock_cardano(OWN_ADDRESS_1, "1");
-        input.metadata = TransactionLoadMetadata::Cardano {
-            utxos: vec![],
-            block_number: TEST_BLOCK_NUMBER,
-        };
-        assert!(plan_transfer(&input).is_err());
-
-        input = TransactionLoadInput::mock_cardano(OWN_ADDRESS_1, "1");
         input.metadata = TransactionLoadMetadata::Cardano {
             block_number: TEST_BLOCK_NUMBER,
             utxos: vec![UTXO {
