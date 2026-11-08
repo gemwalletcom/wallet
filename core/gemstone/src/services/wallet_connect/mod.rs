@@ -1,3 +1,4 @@
+pub mod client;
 pub mod error;
 pub mod model;
 mod public_key;
@@ -30,6 +31,9 @@ use crate::services::wallet_session::GemWalletSessionService;
 use crate::wallet_connect::WalletConnect;
 use gem_wallet_connect::{WalletConnectAction, WalletConnectChainOperation, WalletConnectTransactionType};
 
+pub use client::{
+    GemWalletConnectAuthMessage, GemWalletConnectAuthentication, GemWalletConnectClient, GemWalletConnectEvent, GemWalletConnectListener, GemWalletConnectProposal, GemWalletConnectRelay, GemWalletConnectTransport, wallet_connect_relay,
+};
 pub use error::GemWalletConnectError;
 pub use model::{
     GemConnection, GemConnectionDetails, GemConnectionSection, GemConnectionsView, GemSessionApproval, GemSessionProposal, GemSignerFailure, GemWalletConnectAuthAccount, GemWalletConnectFailure, GemWalletConnectMessageRequest,

@@ -1,0 +1,33 @@
+{
+  "relays": [{ "protocol": "irn" }],
+  "proposer": {
+    "publicKey": "ff3b9f3f8fe885b110e185c1c935167e24107ecb8d00bb79f8e75e568a920a20",
+    "metadata": {
+      "name": "Example",
+      "description": "Example dapp",
+      "url": "https://example.com",
+      "icons": ["https://example.com/icon.png"]
+    }
+  },
+  "requiredNamespaces": {
+    "eip155": {
+      "chains": ["eip155:1"],
+      "methods": ["eth_sendTransaction", "personal_sign"],
+      "events": ["chainChanged", "accountsChanged"]
+    }
+  },
+  "optionalNamespaces": {
+    "eip155": {
+      "chains": ["eip155:137", "eip155:56"],
+      "methods": ["eth_sendTransaction", "personal_sign", "eth_signTypedData_v4"],
+      "events": ["chainChanged"]
+    },
+    "solana": {
+      "chains": ["solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"],
+      "methods": ["solana_signMessage", "solana_signTransaction"],
+      "events": []
+    }
+  },
+  "sessionProperties": { "capabilities": "{}" },
+  "expiryTimestamp": 4102444800
+}

@@ -4,6 +4,7 @@ use hmac::{Hmac, KeyInit, Mac};
 use sha2::{Digest as Sha2Digest, Sha256, Sha512, Sha512_256};
 use zeroize::{Zeroize, Zeroizing};
 
+type HmacSha256 = Hmac<Sha256>;
 type HmacSha512 = Hmac<Sha512>;
 
 pub fn sha256(bytes: &[u8]) -> [u8; 32] {
@@ -40,6 +41,16 @@ pub fn sha512_half(bytes: &[u8]) -> [u8; 32] {
     hash
 }
 
+pub fn hmac_sha256(key: &[u8], data: &[u8]) -> Result<Zeroizing<[u8; 32]>, InvalidLength> {
+    let mut mac = HmacSha256::new_from_slice(key)?;
+    mac.update(data);
+    let mut output = mac.finalize().into_bytes();
+    let mut hash = Zeroizing::new([0u8; 32]);
+    hash.copy_from_slice(&output);
+    output.zeroize();
+    Ok(hash)
+}
+
 pub fn hmac_sha512(key: &[u8], data: &[u8]) -> Result<Zeroizing<[u8; 64]>, InvalidLength> {
     let mut mac = HmacSha512::new_from_slice(key)?;
     mac.update(data);
@@ -60,6 +71,14 @@ mod tests {
         assert_eq!(gem_encoding::encode_hex(hash160(b"hello")), "b6a9c8c230722b7c748331a8b450f05566dc7d0f");
         assert_eq!(gem_encoding::encode_hex(sha512_256(b"hello")), "e30d87cfa2a75db545eac4d61baf970366a8357c7f72fa95b52d0accb698f13a");
         assert_eq!(gem_encoding::encode_hex(sha512_half(b"hello")), "9b71d224bd62f3785d96d46ad3ea3d73319bfbc2890caadae2dff72519673ca7");
+    }
+
+    #[test]
+    fn test_hmac_sha256() {
+        assert_eq!(
+            gem_encoding::encode_hex(hmac_sha256(b"key", b"The quick brown fox jumps over the lazy dog").unwrap().as_slice()),
+            "f7bc83f430538424b13298e6aa6fb143ef4d59a14946175997479dbc2d1a3cd8"
+        );
     }
 
     #[test]

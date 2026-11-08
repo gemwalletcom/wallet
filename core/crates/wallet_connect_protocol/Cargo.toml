@@ -1,0 +1,22 @@
+[package]
+name = "wallet_connect_protocol"
+edition = { workspace = true }
+version = { workspace = true }
+
+[features]
+testkit = []
+
+[dependencies]
+primitives = { path = "../primitives" }
+gem_crypto = { path = "../gem_crypto", features = ["random"] }
+gem_encoding = { path = "../gem_encoding" }
+gem_hash = { path = "../gem_hash" }
+
+bs58 = { workspace = true }
+chacha20poly1305 = { workspace = true }
+curve25519-dalek = { workspace = true }
+ed25519-dalek = { workspace = true, default-features = true }
+p256 = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true, features = ["raw_value"] }
+zeroize = { workspace = true }

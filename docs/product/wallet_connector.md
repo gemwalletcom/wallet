@@ -29,12 +29,15 @@ flowchart LR
 | The user rejects a request | a refusal goes back to the dapp | |
 | A new request arrives while another one is on screen | the new request shows and the earlier one is refused, so its dapp is told | the earlier review is gone and can no longer be approved |
 | A new request arrives while an approved request or connection is still being sent | the answer still reaches its dapp | the user already approved it |
-| The same connection code is opened again while its proposal is on screen | the proposal stays; approving or rejecting it closes it | the SDK delivers a pending proposal again when its code is paired twice |
-| A second connection is approved before the first dapp confirms its own | each connection is listed under, and signs with, the wallet it was approved with | a request is reviewed and signed by its connection's wallet (`sessions that settle out of order are stored for the wallet that approved each`) |
-| The app is opened with a dapp already connected and a new dapp's code arrives at once | the new proposal shows and can be approved | the SDK is set up once; set up twice, it delivered the proposal twice and refused the copy, so the dapp saw the connection fail |
+| A request, connection or sign-in is rejected while its approval is still being prepared | the dapp gets one answer, the first one finished | a dapp told both could act on either |
+| The same connection code is opened again while its proposal is on screen | the proposal stays; approving or rejecting it closes it | a code opened again while its proposal is shown is subscribed to once and leaves that proposal as it is |
+| A second connection is approved before the first dapp confirms its own | each connection is listed under, and signs with, the wallet it was approved with | a request is reviewed and signed by its connection's wallet (`the connection is listed under the wallet that approved it`) |
+| The app is opened with a dapp already connected and a new dapp's code arrives at once | the new proposal shows and can be approved | the client is set up once, so the proposal arrives once and no copy of it is refused, which the dapp would see as a failed connection |
 | A request has expired | "Request expired"; it cannot be approved and is never signed | |
 | A request expires while its review is open, including while the review offers Buy or Receive | the review closes within a few seconds with "Request expired" and nothing is signed | the dapp has stopped waiting; a send it never hears about invites the user to pay twice |
 | A message to sign comes from a site flagged as malicious | it is refused before anything is signed | a message to sign is checked like a transaction |
+| A connected site is flagged as malicious after it connected | its next request is refused before anything is signed | each request is checked against its own Verify attestation, not only the one from connecting |
+| A dapp disconnects, or the user disconnects it, while its request is on screen | the review closes and nothing is signed | the dapp no longer listens for the answer |
 | A permit to sign names a flagged spender | a critical warning on the review | |
 | A permit to sign has an amount or deadline Gem can't read, or lets a spender take several tokens at once | the review still warns about the approval, as unlimited when the amount can't be read | a drainer shouldn't escape the warning by writing its permit differently |
 | A transaction names a sender other than the session's account, on an EVM network, Tron or Sui | it is refused before anything is signed | the review reads as a send from the session's account |

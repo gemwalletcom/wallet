@@ -50,7 +50,7 @@ mod tests {
 
         assert_eq!(code(GemWalletConnectError::UnsupportedChains), 5100);
         assert_eq!(code(GemWalletConnectError::UnsupportedWallets), 5103);
-        assert_eq!(code(GemWalletConnectError::InvalidOrigin), 4001, "a dApp is not told its chains were unsupported when the origin was the problem");
-        assert_eq!(code(GemWalletConnectError::Service { msg: "offline".to_string() }), 4001);
+        assert_eq!(code(GemWalletConnectError::InvalidOrigin), 5000, "a dApp is not told its chains were unsupported when the origin was the problem");
+        assert_eq!(code(GemWalletConnectError::Service { msg: "offline".to_string() }), 5000);
     }
 }

@@ -26,6 +26,7 @@ gem_sui = { path = "../crates/gem_sui", features = ["rpc"] }
 gem_ton = { path = "../crates/gem_ton", features = ["tvm"] }
 gem_tron = { path = "../crates/gem_tron" }
 gem_wallet_connect = { path = "../crates/gem_wallet_connect" }
+wallet_connect_protocol = { path = "../crates/wallet_connect_protocol" }
 name_resolver = { path = "../crates/name_resolver" }
 
 [[bin]]
@@ -71,6 +72,10 @@ path = "fuzz_targets/wallet_connect_request.rs"
 [[bin]]
 name = "wallet_connect_transaction"
 path = "fuzz_targets/wallet_connect_transaction.rs"
+
+[[bin]]
+name = "wallet_connect_protocol"
+path = "fuzz_targets/wallet_connect_protocol.rs"
 
 [profile.release]
 debug = 1

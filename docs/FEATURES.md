@@ -162,7 +162,7 @@ Core's session-wide method list, consumed by both platform approval paths and by
 | Tempo | ✅ | `eip155` | [EVM (8)](../core/crates/gem_wallet_connect/src/request_handler/ethereum.rs) |
 | Arc | ✅ | `eip155` | [EVM (8)](../core/crates/gem_wallet_connect/src/request_handler/ethereum.rs) |
 
-<sub>Reviewed 2026-09-02. Sources: [advertised chains](../core/gemstone/src/config/wallet_connect.rs), [session method list](../core/gemstone/src/services/wallet_connect/rules.rs), [method identifiers](../core/crates/primitives/src/wallet_connector.rs), [Core dispatcher](../core/crates/gem_wallet_connect/src/request_handler/mod.rs), [Android approval](../android/data/coordinators/src/main/kotlin/com/gemwallet/android/data/coordinators/wallet_connect/WalletConnectCoordinator.kt), [Android session namespace mapping](../android/gemcore/src/main/kotlin/com/gemwallet/android/application/wallet_connect/Session.kt), and [iOS approval](../ios/Packages/FeatureServices/WalletConnectorService/WalletConnectorService.swift).</sub>
+<sub>Reviewed 2026-09-02. Sources: [advertised chains](../core/gemstone/src/config/wallet_connect.rs), [session method list](../core/gemstone/src/services/wallet_connect/rules.rs), [method identifiers](../core/crates/primitives/src/wallet_connector.rs), [Core dispatcher](../core/crates/gem_wallet_connect/src/request_handler/mod.rs), [approval](../core/gemstone/src/services/wallet_connect/client/mod.rs).</sub>
 
 ## Name resolution
 
@@ -394,7 +394,7 @@ This backlog only includes gaps that apply to an existing Gem chain, an active p
 
 | Area | Work | Applicable scope | References | Status |
 | --- | --- | --- | --- | :---: |
-| WalletConnect | Align advertised and supported EVM capabilities | EVM chains | <sub>[Core handler](../core/crates/gem_wallet_connect/src/request_handler/ethereum.rs) · [session method list](../core/gemstone/src/services/wallet_connect/rules.rs) · [EVM method reference](https://docs.walletconnect.network/wallet-sdk/chain-support/evm) · [Android session namespace mapping](../android/gemcore/src/main/kotlin/com/gemwallet/android/application/wallet_connect/Session.kt) · [iOS approval](../ios/Packages/FeatureServices/WalletConnectorService/WalletConnectorService.swift)</sub> | 🏗️ |
+| WalletConnect | Align advertised and supported EVM capabilities | EVM chains | <sub>[Core handler](../core/crates/gem_wallet_connect/src/request_handler/ethereum.rs) · [session method list](../core/gemstone/src/services/wallet_connect/rules.rs) · [EVM method reference](https://docs.walletconnect.network/wallet-sdk/chain-support/evm) · [approval](../core/gemstone/src/services/wallet_connect/client/mod.rs)</sub> | 🏗️ |
 | WalletConnect | Add Bitcoin support | Bitcoin | <sub>[Core dispatcher](../core/crates/gem_wallet_connect/src/request_handler/mod.rs) · [WalletConnect Bitcoin spec](https://docs.walletconnect.network/wallet-sdk/chain-support/bitcoin)</sub> | 🏗️ |
 | Uniswap v3 | Add provider coverage | Tempo | <sub>[Core deployment](../core/crates/gem_evm/src/uniswap/deployment/v3.rs) · [current deployments](https://developers.uniswap.org/docs/protocols/v3/deployments)</sub> | 🏗️ |
 | Oku | Expand provider coverage | Ethereum, Optimism, Arbitrum, Polygon, ZKsync, Base, BNB Chain, Avalanche C-Chain, Blast, Linea, Celo, Manta, Unichain, World Chain, Monad | <sub>[Core deployment](../core/crates/gem_evm/src/uniswap/deployment/v3.rs) · [provider deployments](https://docs.oku.trade/home/extra-information/deployed-contracts)</sub> | 🏗️ |

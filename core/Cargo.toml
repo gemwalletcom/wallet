@@ -68,6 +68,7 @@ members = [
     "crates/services",
     "crates/support",
     "crates/yielder",
+    "crates/wallet_connect_protocol",
 ]
 
 [workspace.dependencies]
@@ -115,11 +116,13 @@ argon2 = { version = "0.6.0", default-features = false, features = ["alloc"] }
 aws-lc-rs = { version = "1.19.0" }
 bip39 = { version = "3.0.0", default-features = false, features = ["zeroize"] }
 blake2 = { version = "0.11.0" }
+chacha20poly1305 = { version = "0.11.0", default-features = false, features = ["alloc"] }
 ctr = { version = "0.10.1" }
 curve25519-dalek = { version = "5.0.0" }
 ed25519-dalek = { version = "3.0.0", default-features = false }
 getrandom = { version = "0.4.3" }
 hmac = { version = "0.13.0" }
+p256 = { version = "0.14.0", default-features = false, features = ["ecdsa"] }
 jsonwebtoken = { version = "11.1.0", default-features = false, features = ["aws_lc_rs"] }
 secp256k1 = { version = "0.29.1", features = ["recovery", "global-context"] }
 rand = { version = "0.10.2" }

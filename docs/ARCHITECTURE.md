@@ -374,7 +374,7 @@ iOS draws the sync state as an emoji in the value column and Android as a tinted
 
 Two things still map per platform, and only two: the localized label for each case, and the glyph or colour for each named outcome. Anything else in a row model — a formatter, a placeholder, a ternary over a flag — is a decision that belongs in the record.
 
-The same holds for a value an SDK sends on the wire. Rejecting a WalletConnect proposal is one Core answer: `session_rejection` returns the finished rejection — the named reason, the CAIP-25 code, the message the dApp receives and whether the session is deleted — and each app maps only its own SDK's error type onto the named reason, which is the one thing Core cannot see.
+The same holds for a value sent on the wire. Rejecting a WalletConnect proposal is one Core answer: `session_rejection` returns the finished rejection — the named reason, the CAIP-25 code, the message the dApp receives and whether the session is deleted — and each app maps only its own error type onto the named reason, which is the one thing Core cannot see.
 
 ```swift
 let rejection = service.sessionRejection(reason: GemWalletConnectRejectionReason(from: error))
@@ -1946,6 +1946,7 @@ These primarily serve Core composition or native lifecycle integration. Reuse th
 | `GemSubscriptionService` | composed by `device` |
 | `GemAppStartService` | iOS `OnstartService`, Android `MainViewModel` — launch orchestration, not a screen |
 | `GemConnectionService` | iOS `ConnectionStatusObserver`, Android `ConnectionStatusObserver`, whose refresh intervals view models observe through the `ObserveRefreshInterval` port |
+| `GemWalletConnectClient` | iOS `WalletConnectorService`, Android `WalletConnectCoordinator` behind `PairWalletConnect`, `SyncWalletConnectSessions`, `DisconnectWalletConnection`, `ApproveWalletConnection`, `ApproveWalletConnectAuthentication` and `RespondWalletConnectRequest` — the WalletConnect relay protocol behind the connection screens, not a screen |
 | `GemPerpetualStreamService` | `HyperliquidObserverService` on both apps; Android view models subscribe through its `PerpetualObserver` port |
 | `GemPushNotificationService` | iOS `NavigationRouter`, Android notification routing |
 | `GemTransactionStateService` | composed by `confirm`; tracked off-thread by the `TransactionStatusService` port on both apps |

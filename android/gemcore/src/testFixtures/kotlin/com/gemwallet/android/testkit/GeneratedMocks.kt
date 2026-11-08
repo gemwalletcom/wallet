@@ -2027,6 +2027,30 @@ fun mockGemWalletConnectAuthAccount(
     issuer = issuer,
 )
 
+fun mockGemWalletConnectAuthMessage(
+    account: uniffi.gemstone.Account = mockAccount().toGem(),
+    message: String = "",
+) = uniffi.gemstone.GemWalletConnectAuthMessage(
+    account = account,
+    message = message,
+)
+
+fun mockGemWalletConnectAuthentication(
+    id: String = "",
+    metadata: uniffi.gemstone.ApplicationMetadata = mockApplicationMetadata().toGem(),
+    chainIds: List<String> = emptyList(),
+    domain: String = "",
+    origin: String? = null,
+    validation: uniffi.gemstone.WalletConnectionVerificationStatus = uniffi.gemstone.WalletConnectionVerificationStatus.VERIFIED,
+) = uniffi.gemstone.GemWalletConnectAuthentication(
+    id = id,
+    metadata = metadata,
+    chainIds = chainIds,
+    domain = domain,
+    origin = origin,
+    validation = validation,
+)
+
 fun mockGemWalletConnectMessageRequest(
     sessionId: String = "",
     requestId: String = "",
@@ -2047,6 +2071,44 @@ fun mockGemWalletConnectMessageRequest(
     simulation = simulation,
     message = message,
     assets = assets,
+)
+
+fun mockGemWalletConnectProposal(
+    id: String = "",
+    pairingTopic: String = "",
+    metadata: uniffi.gemstone.ApplicationMetadata = mockApplicationMetadata().toGem(),
+    requiredChainIds: List<String> = emptyList(),
+    optionalChainIds: List<String> = emptyList(),
+    origin: String? = null,
+    validation: uniffi.gemstone.WalletConnectionVerificationStatus = uniffi.gemstone.WalletConnectionVerificationStatus.VERIFIED,
+) = uniffi.gemstone.GemWalletConnectProposal(
+    id = id,
+    pairingTopic = pairingTopic,
+    metadata = metadata,
+    requiredChainIds = requiredChainIds,
+    optionalChainIds = optionalChainIds,
+    origin = origin,
+    validation = validation,
+)
+
+fun mockGemWalletConnectSessionRequest(
+    topic: String = "",
+    requestId: String = "",
+    method: String = "",
+    params: String = "",
+    chainId: String? = null,
+    origin: String? = null,
+    validation: uniffi.gemstone.WalletConnectionVerificationStatus = uniffi.gemstone.WalletConnectionVerificationStatus.VERIFIED,
+    expiry: ULong? = null,
+) = uniffi.gemstone.GemWalletConnectSessionRequest(
+    topic = topic,
+    requestId = requestId,
+    method = method,
+    params = params,
+    chainId = chainId,
+    origin = origin,
+    validation = validation,
+    expiry = expiry,
 )
 
 fun mockGemWalletConnectTransactionRequest(
