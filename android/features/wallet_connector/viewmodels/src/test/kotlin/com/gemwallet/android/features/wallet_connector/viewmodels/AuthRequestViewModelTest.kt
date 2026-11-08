@@ -1,5 +1,8 @@
 package com.gemwallet.android.features.wallet_connector.viewmodels
 
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
 import com.gemwallet.android.application.wallet_connect.WalletConnectPendingRequests
@@ -23,6 +26,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
@@ -222,6 +226,30 @@ class AuthRequestViewModelTest {
                 match { it.chain == Chain.Ethereum.string && it.signType == SignDigestType.SIWE && it.data.contentEquals(message.toByteArray()) },
             )
         }
+    }
+
+    @Test
+    fun `a sign-in whose screen closes while it is being signed is rejected`() = runTest(dispatcher) {
+        val approve = approval()
+        val signMessageService = signMessageService()
+        coEvery { signMessageService.sign(any(), any()) } coAnswers { awaitCancellation() }
+        val store = ViewModelStore()
+        val model = ViewModelProvider(
+            store,
+            object : ViewModelProvider.Factory {
+                @Suppress("UNCHECKED_CAST")
+                override fun <T : ViewModel> create(modelClass: Class<T>): T = viewModel(approve = approve, signMessageService = signMessageService) as T
+            },
+        )[AuthRequestViewModel::class.java]
+
+        model.onRequest(request) {}
+        model.awaitContent()
+        model.onApprove()
+        dispatcher.scheduler.runCurrent()
+        store.clear()
+
+        verify(exactly = 1) { approve.rejectAuthentication(request, any(), any()) }
+        verify(exactly = 0) { approve.approveAuthentication(any(), any(), any(), any(), any()) }
     }
 
     @Test

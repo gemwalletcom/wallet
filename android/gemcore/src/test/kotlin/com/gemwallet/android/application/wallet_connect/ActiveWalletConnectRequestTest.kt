@@ -40,17 +40,32 @@ class ActiveWalletConnectRequestTest {
     }
 
     @Test
-    fun aDeletedSessionClearsThePendingRequest() = runTest {
+    fun aDeletedSessionClosesItsOwnRequestAndLeavesAnotherDappsProposal() = runTest {
         val activeRequest = ActiveWalletConnectRequest(events, WalletConnectPendingRequests(), backgroundScope)
         testScheduler.runCurrent()
         events.emit(GemWalletConnectEvent.Proposal(mockGemWalletConnectProposal()))
+        events.emit(GemWalletConnectEvent.SessionDeleted("topic"))
         testScheduler.runCurrent()
-        checkNotNull(activeRequest.current.value)
+        assertTrue(activeRequest.current.value is WalletConnectUserRequest.SessionProposal)
 
+        events.emit(GemWalletConnectEvent.Request(mockGemWalletConnectSessionRequest(topic = "topic", requestId = "1")))
         events.emit(GemWalletConnectEvent.SessionDeleted("topic"))
         testScheduler.runCurrent()
 
         assertNull(activeRequest.current.value)
+    }
+
+    @Test
+    fun aNewReviewRefusesTheOneItReplaces() = runTest {
+        val pendingRequests = WalletConnectPendingRequests()
+        val first = backgroundScope.async { runCatching { pendingRequests.signMessage(mockGemWalletConnectMessageRequest(sessionId = "first", requestId = "1")) } }
+        testScheduler.runCurrent()
+
+        backgroundScope.async { pendingRequests.signMessage(mockGemWalletConnectMessageRequest(sessionId = "second", requestId = "2")) }
+        testScheduler.runCurrent()
+
+        assertTrue("its dapp is told", first.await().exceptionOrNull() is GemServiceException.Cancelled)
+        assertEquals("2", pendingRequests.current.value?.requestId)
     }
 
     @Test

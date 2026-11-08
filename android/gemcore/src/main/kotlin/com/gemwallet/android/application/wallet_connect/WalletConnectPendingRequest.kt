@@ -11,6 +11,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.getAndUpdate
 import uniffi.gemstone.Asset
 import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemTransferData
@@ -64,7 +65,7 @@ class WalletConnectPendingRequests : GemWalletConnectSigner {
     }
 
     private suspend fun await(request: WalletConnectPendingRequest): String {
-        _current.value = request
+        _current.getAndUpdate { request }?.reject()
         try {
             return request.result.await()
         } finally {

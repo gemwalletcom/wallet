@@ -70,6 +70,7 @@ class AuthRequestViewModel @Inject constructor(
         if (phase.value.request?.id == request.id) {
             return
         }
+        rejectOnce()
         phase.value = AuthRequestPhase.Waiting(request)
         _state.update { AuthRequestUIState.Loading }
         viewModelScope.launch {
@@ -116,43 +117,42 @@ class AuthRequestViewModel @Inject constructor(
     fun onApprove() {
         val request = (phase.value as? AuthRequestPhase.Waiting)?.request ?: return
         val current = _state.value as? AuthRequestUIState.Request ?: return
+        if (!phase.compareAndSet(AuthRequestPhase.Waiting(request), AuthRequestPhase.Signing(request))) {
+            return
+        }
         val approval = current.approval
         _state.update { AuthRequestUIState.Approving(current) }
 
         viewModelScope.launch(ioDispatcher) {
-            try {
-                if (!isWaiting(request)) {
-                    return@launch
-                }
-                val signature = signMessageService.sign(approval.wallet.id.id, approval.signMessage)
-                if (!isWaiting(request)) {
-                    return@launch
-                }
-                approveWalletConnectAuthentication.approveAuthentication(
-                    authentication = request,
-                    wallet = approval.wallet,
-                    signature = signature,
-                    onSuccess = {
-                        if (answer(request)) {
-                            finish(request)
-                        }
-                    },
-                    onError = { error ->
-                        if (isWaiting(request)) {
-                            _state.update { AuthRequestUIState.Error(error.text(context)) }
-                        }
-                    },
-                )
-            } catch (err: Throwable) {
-                if (isWaiting(request)) {
+            val signature = runCatchingCancellable { signMessageService.sign(approval.wallet.id.id, approval.signMessage) }.getOrElse { err ->
+                if (phase.compareAndSet(AuthRequestPhase.Signing(request), AuthRequestPhase.Waiting(request))) {
                     _state.update { AuthRequestUIState.Error(err.errorText().text(context)) }
                 }
+                return@launch
             }
+            if (!phase.compareAndSet(AuthRequestPhase.Signing(request), AuthRequestPhase.Sending(request))) {
+                return@launch
+            }
+            approveWalletConnectAuthentication.approveAuthentication(
+                authentication = request,
+                wallet = approval.wallet,
+                signature = signature,
+                onSuccess = {
+                    if (phase.compareAndSet(AuthRequestPhase.Sending(request), AuthRequestPhase.Answered(request))) {
+                        finish(request)
+                    }
+                },
+                onError = { error ->
+                    if (phase.compareAndSet(AuthRequestPhase.Sending(request), AuthRequestPhase.Waiting(request))) {
+                        _state.update { AuthRequestUIState.Error(error.text(context)) }
+                    }
+                },
+            )
         }
     }
 
     fun onReject() {
-        if (_state.value is AuthRequestUIState.Approving) {
+        if (phase.value is AuthRequestPhase.Signing || phase.value is AuthRequestPhase.Sending) {
             return
         }
         rejectOnce()
@@ -160,24 +160,19 @@ class AuthRequestViewModel @Inject constructor(
     }
 
     override fun onCleared() {
-        if (_state.value !is AuthRequestUIState.Approving) {
-            rejectOnce()
-        }
+        rejectOnce()
     }
 
     private fun rejectOnce() {
         val request = phase.value.request ?: return
-        if (answer(request)) {
+        if (answer(request) || phase.compareAndSet(AuthRequestPhase.Signing(request), AuthRequestPhase.Answered(request))) {
             approveWalletConnectAuthentication.rejectAuthentication(request)
         }
     }
 
-    private fun isWaiting(request: GemWalletConnectAuthentication): Boolean = (phase.value as? AuthRequestPhase.Waiting)?.request?.id == request.id
+    private fun isWaiting(request: GemWalletConnectAuthentication): Boolean = phase.value == AuthRequestPhase.Waiting(request)
 
-    private fun answer(request: GemWalletConnectAuthentication): Boolean {
-        val waiting = phase.value as? AuthRequestPhase.Waiting ?: return false
-        return waiting.request.id == request.id && phase.compareAndSet(waiting, AuthRequestPhase.Answered(request))
-    }
+    private fun answer(request: GemWalletConnectAuthentication): Boolean = phase.compareAndSet(AuthRequestPhase.Waiting(request), AuthRequestPhase.Answered(request))
 
     private fun finish(request: GemWalletConnectAuthentication) {
         if (activeRequest.finish(request)) {
@@ -255,6 +250,10 @@ private sealed interface AuthRequestPhase {
     }
 
     data class Waiting(override val request: GemWalletConnectAuthentication) : AuthRequestPhase
+
+    data class Signing(override val request: GemWalletConnectAuthentication) : AuthRequestPhase
+
+    data class Sending(override val request: GemWalletConnectAuthentication) : AuthRequestPhase
 
     data class Answered(override val request: GemWalletConnectAuthentication) : AuthRequestPhase
 }

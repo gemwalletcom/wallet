@@ -24,7 +24,7 @@ class ActiveWalletConnectRequest(events: Flow<GemWalletConnectEvent>, pendingReq
     init {
         events.onEach { event ->
             when (event) {
-                is GemWalletConnectEvent.SessionDeleted -> _current.update { null }
+                is GemWalletConnectEvent.SessionDeleted -> _current.update { current -> current?.takeUnless { it is WalletConnectUserRequest.SessionRequest && it.request.topic == event.topic } }
 
                 is GemWalletConnectEvent.RequestExpired -> if (!pendingRequests.expire(event.requestId)) {
                     _current.update { current -> current?.takeUnless { it.isRequest(event) } }
