@@ -308,7 +308,7 @@ pub enum GemListFieldValue {
         date: DateTime<Utc>,
     },
     Address {
-        display: String,
+        name: Option<String>,
         copy: GemCopy,
         explorer: BlockExplorerLink,
         menu: Vec<GemRowMenuItem>,
