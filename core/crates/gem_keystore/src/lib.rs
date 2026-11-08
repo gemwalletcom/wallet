@@ -3,6 +3,8 @@ mod error;
 mod id;
 #[cfg(feature = "mnemonic")]
 mod mnemonic;
+#[cfg(all(test, feature = "mnemonic"))]
+mod recording_allocator;
 #[cfg(feature = "storage")]
 mod storage;
 #[cfg(test)]

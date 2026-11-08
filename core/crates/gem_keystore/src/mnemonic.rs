@@ -19,9 +19,7 @@ impl Mnemonic {
     }
 
     pub fn clean(phrase: &str) -> Result<Zeroizing<String>, KeystoreError> {
-        let cleaned = Zeroizing::new(phrase.split_whitespace().map(str::to_lowercase).collect::<Vec<_>>().join(" "));
-        let mnemonic = Bip39Mnemonic::parse_in_normalized(Language::English, &cleaned).map_err(|_| KeystoreError::invalid_input("mnemonic"))?;
-        Ok(Zeroizing::new(mnemonic.words().collect::<Vec<_>>().join(" ")))
+        Self::parse(phrase).map(|(cleaned, _)| cleaned)
     }
 
     pub fn is_valid(phrase: &str) -> bool {
@@ -38,8 +36,7 @@ impl Mnemonic {
     }
 
     pub fn seed(phrase: &str) -> Result<Zeroizing<MnemonicSeed>, KeystoreError> {
-        let cleaned = Self::clean(phrase)?;
-        let mnemonic = Bip39Mnemonic::parse_in_normalized(Language::English, &cleaned).map_err(|_| KeystoreError::invalid_input("mnemonic"))?;
+        let (_, mnemonic) = Self::parse(phrase)?;
         Ok(Zeroizing::new(mnemonic.to_seed_normalized("")))
     }
 
@@ -48,8 +45,7 @@ impl Mnemonic {
     }
 
     pub fn entropy(phrase: &str) -> Result<Zeroizing<Vec<u8>>, KeystoreError> {
-        let cleaned = Self::clean(phrase)?;
-        let mnemonic = Bip39Mnemonic::parse_in_normalized(Language::English, &cleaned).map_err(|_| KeystoreError::invalid_input("mnemonic"))?;
+        let (_, mnemonic) = Self::parse(phrase)?;
         let (entropy, len) = mnemonic.to_entropy_array();
         Ok(Zeroizing::new(entropy[..len].to_vec()))
     }
@@ -64,6 +60,13 @@ impl Mnemonic {
             Some(limit) => words.take(limit).collect(),
             None => words.collect(),
         }
+    }
+
+    fn parse(phrase: &str) -> Result<(Zeroizing<String>, Bip39Mnemonic), KeystoreError> {
+        let words = Zeroizing::new(phrase.split_whitespace().map(str::to_lowercase).collect::<Vec<_>>());
+        let cleaned = Zeroizing::new(words.join(" "));
+        let mnemonic = Bip39Mnemonic::parse_in_normalized(Language::English, &cleaned).map_err(|_| KeystoreError::invalid_input("mnemonic"))?;
+        Ok((cleaned, mnemonic))
     }
 }
 
@@ -81,7 +84,22 @@ fn entropy_len_for_word_count(word_count: usize) -> Result<usize, KeystoreError>
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::recording_allocator::RecordingAllocator;
     use crate::testkit::ABANDON_PHRASE;
+
+    #[test]
+    fn test_phrase_words_are_wiped_before_free() {
+        let freed_with_word = RecordingAllocator::count_freed(
+            |layout, bytes| layout.align() == 1 && bytes.windows(b"abandon".len()).any(|window| window == b"abandon"),
+            || {
+                drop(Mnemonic::clean(ABANDON_PHRASE).unwrap());
+                drop(Mnemonic::seed(ABANDON_PHRASE).unwrap());
+                drop(Mnemonic::entropy(ABANDON_PHRASE).unwrap());
+            },
+        );
+
+        assert_eq!(freed_with_word, 0);
+    }
 
     #[test]
     fn test_suggest() {
