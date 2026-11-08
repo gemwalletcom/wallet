@@ -57,7 +57,7 @@ flowchart LR
     B -- WalletConnect code --> G[Connection proposal]
 ```
 
-Supported codes: a plain address; Bitcoin, Litecoin, Bitcoin Cash, Dogecoin, Dash and Zcash payment codes (amount, memo, label); XRP with a destination tag; Ethereum coin and token transfers; Solana Pay; TON coin and token transfers with a comment; WalletConnect Pay links. The scanner reads them from the camera or a picked image.
+Supported codes: a plain address; Bitcoin, Litecoin, Bitcoin Cash, Dogecoin, Dash and Zcash payment codes (amount, label); XRP with a destination tag; Ethereum coin and token transfers; Solana Pay; TON coin and token transfers with a comment; WalletConnect Pay links. The scanner reads them from the camera or a picked image.
 
 | When the code is | Expected | Why |
 |---|---|---|
@@ -66,6 +66,7 @@ Supported codes: a plain address; Bitcoin, Litecoin, Bitcoin Cash, Dogecoin, Das
 | An amount with more decimals than the asset has | the amount screen, with the amount dropped | an amount is never rounded |
 | A payment code's amount | the amount field in the device's number format, with its exact value | "0.001" read with a comma decimal separator would become 1 |
 | For a network that uses a memo, without one | the recipient screen | |
+| With a memo, for a network that does not use one | the memo is dropped | Confirm shows no memo there, so a hidden one would be signed without the user seeing it |
 | An address that is not valid for the asset | the recipient screen | |
 | A plain address that matches several networks | a pick of the asset to send, then the rows above | |
 | A token the wallet has no balance for | Confirm, with the token's balance at zero so the shortfall and the ways to get it show; the token is not added to the wallet's list | the code chooses the token, not the wallet |
