@@ -205,7 +205,7 @@ extension GemListRow {
         switch value {
         case let .text(text): .listItem(ListItemModel(title: title, subtitle: text))
         case let .date(date): .listItem(ListItemModel(title: title, subtitle: TransactionDateFormatter(date: date).row))
-        case let .address(name, copy, explorer, menu): identifierItem(ListItemModel(title: title, subtitle: name ?? copy.display, subtitleExtra: name.map { _ in copy.display }), explorer: explorer.toPrimitives(), menu: menu)
+        case let .address(name, copy, explorer, menu): identifierItem(.address(title: title, name: name, copy: copy), explorer: explorer.toPrimitives(), menu: menu)
         }
     }
 
@@ -228,6 +228,12 @@ public extension GemListRow {
     func listItemModel(onInfo: ((GemInfoTopic) -> Void)? = nil) -> ListItemModel? {
         guard case let .listItem(model) = item(onInfo: onInfo) else { return nil }
         return model
+    }
+}
+
+extension ListItemModel {
+    static func address(title: String, name: String?, copy: GemCopy) -> ListItemModel {
+        ListItemModel(title: title, subtitle: name ?? copy.display, subtitleExtra: name.map { _ in copy.display })
     }
 }
 

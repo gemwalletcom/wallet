@@ -408,7 +408,7 @@ struct ConfirmTransferSceneViewModelTests {
         let rows = [
             GemListRow.field(
                 title: .rowTitle(title: .contract),
-                value: .address(display: "0x1111...1111", copy: addressCopy(chain: Chain.ethereum.rawValue, address: "0x1111111111111111111111111111111111111111"), explorer: BlockExplorerLink.mock().toGem(), menu: []),
+                value: .address(name: nil, copy: addressCopy(chain: Chain.ethereum.rawValue, address: "0x1111111111111111111111111111111111111111"), explorer: BlockExplorerLink.mock().toGem(), menu: []),
             ),
             GemListRow.field(title: .rowTitle(title: .method), value: .text(text: "Approve")),
         ]
