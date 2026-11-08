@@ -210,7 +210,7 @@ private fun GemListFieldValue.uiModel(context: Context, title: String): GemListR
     is GemListFieldValue.Date -> GemListRowUIModel.Item(ListItemModel(title = title, subtitle = context.rowDateFormatter().row(date, ZoneId.systemDefault(), Locale.getDefault())))
 
     is GemListFieldValue.Address -> GemListRowUIModel.Item(
-        ListItemModel(title = title, subtitle = display),
+        ListItemModel(title = title, subtitle = name ?: copy.display, subtitleExtra = name?.let { copy.display }),
         url = explorer.link,
         menu = menu.map { it.uiModel(context) },
         address = copy.value,
