@@ -377,11 +377,7 @@ Two things still map per platform, and only two: the localized label for each ca
 The same holds for a value sent on the wire. Rejecting a WalletConnect proposal is one Core answer: `session_rejection` returns the finished rejection — the named reason, the CAIP-25 code, the message the dApp receives and whether the session is deleted — and each app maps only its own error type onto the named reason, which is the one thing Core cannot see.
 
 ```swift
-let rejection = service.sessionRejection(reason: GemWalletConnectRejectionReason(from: error))
-try await WalletKit.instance.rejectSession(proposalId: proposal.id, reason: RejectionReason(rejection.reason))
-if rejection.deletesSession {
-    try await service.deleteSession(sessionId: proposal.pairingTopic)
-}
+try await client.rejectSession(proposalId: proposal.id, reason: GemWalletConnectRejectionReason(from: error))
 ```
 
 ```kotlin
@@ -1250,7 +1246,7 @@ Every Core value an app turns into a platform value goes into one of exactly two
 | Core key → localized text | `PrimitivesComponents/Sources/Extensions/Gemstone+Localized.swift` | `ui/src/main/kotlin/.../ui/localization/GemstoneText.kt` |
 | Core enum → colour, image, or other platform value | `PrimitivesComponents/Sources/Extensions/Gemstone+Style.swift` | `ui/src/main/kotlin/.../ui/style/GemstoneStyle.kt` |
 
-Every feature already imports `PrimitivesComponents` or depends on `:ui`, so a feature reads the shared mapping and never writes its own; the members are public. One file per app means one Core enum has one mapping per app: a feature that needs a second phrasing of the same key — a tab title and a field label — adds it to that file under a different name, the way Android's `tabStringRes` and `fieldStringRes` do. A view model, a scene or a composable that maps a key somewhere else has taken the app's vocabulary private, and the two apps drift one key at a time: the same title reads "Claim Rewards" on one app and "Rewards" on the other, or one field gets two labels. A service that turns a Core failure into an `Error` is not a presentation mapper and stays with the service (`GemWalletConnectFailure+WalletConnectorService.swift`).
+Every feature already imports `PrimitivesComponents` or depends on `:ui`, so a feature reads the shared mapping and never writes its own; the members are public. One file per app means one Core enum has one mapping per app: a feature that needs a second phrasing of the same key — a tab title and a field label — adds it to that file under a different name, the way Android's `tabStringRes` and `fieldStringRes` do. A view model, a scene or a composable that maps a key somewhere else has taken the app's vocabulary private, and the two apps drift one key at a time: the same title reads "Claim Rewards" on one app and "Rewards" on the other, or one field gets two labels. A service that turns a Core failure into an `Error` is not a presentation mapper and stays out of that file (`Error+GemstonePrimitives.swift`).
 
 The mapper is the only place a `Localized.`/`R.string` is chosen from a Core variant, which is what makes the two apps comparable. `just check-mappers` reads the two localization files into variant → key, resolves both keys to their English text, fails on every variant the two apps resolve differently, and fails on any other `Gemstone+Localized.swift`, `Gemstone+Style.swift`, `GemstoneText.kt` or `GemstoneStyle.kt`. It only sees a variant while both mappers hold it, so a key mapped anywhere else is invisible to it. `just check-docs` does the same for the guidance: every link in `docs/`, `skills/` and the `AGENTS.md` files has to point at a file that exists, a heading that exists, and — when the label is a backticked name — a symbol that is still in that file.
 
@@ -1972,7 +1968,7 @@ Native hosts and adapters retain platform work while delegating shared behavior 
 | [`AppService/OnstartService`](../ios/Packages/FeatureServices/AppService/OnstartService.swift) | OS security checks, URL cache and launch orchestration |
 | [`ConnectionStatusService`](../ios/Packages/FeatureServices/ConnectionStatusService) | Connectivity |
 | [`StreamService`](../ios/Packages/FeatureServices/StreamService) | Native socket observation and cancellation; `GemStreamService` owns session preparation, subscriptions, and currency selection on both apps |
-| [`WalletConnectorService`](../ios/Packages/FeatureServices/WalletConnectorService) | Reown/WalletConnect SDK integration |
+| [`WalletConnectorService`](../ios/Packages/FeatureServices/WalletConnectorService) | WalletConnect relay socket and the events of `GemWalletConnectClient` |
 | [`SystemServices`](../ios/Packages/SystemServices) | Connectivity, image gallery, local store |
 
 Both apps consume the same Core decisions, but may reach them through different integration surfaces. The exceptions below explain those differences.

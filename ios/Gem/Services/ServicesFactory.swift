@@ -230,7 +230,6 @@ struct ServicesFactory {
             ),
         )
 
-        let chainService = Gemstone.GemChainService()
         let signMessageService = storages.keystore.signMessageService(
             names: nameService,
             explorer: explorerService,
@@ -245,11 +244,27 @@ struct ServicesFactory {
             session: walletSessionService,
             assets: assetsService,
         )
+        let walletConnectStore = GemstoneSecurePreferencesStore(namespace: "gateway")
+        let walletConnectSocket = WebSocketConnection(configuration: WebSocketConfiguration(
+            requestProvider: WalletConnectRequestProvider(store: walletConnectStore),
+            reconnection: connectionService,
+        ))
+        let walletConnectListener = WalletConnectListener()
+        let walletConnectClient = Gemstone.GemWalletConnectClient(
+            service: walletConnectService,
+            store: walletConnectStore,
+            provider: nativeProvider,
+            transport: WalletConnectTransport(webSocket: walletConnectSocket),
+            listener: walletConnectListener,
+            platform: .ios,
+        )
         let walletConnector = WalletConnectorService(
+            client: walletConnectClient,
+            webSocket: walletConnectSocket,
+            events: walletConnectListener.events,
             walletSessionService: walletSessionService,
             interactor: walletConnectorInteractor,
             service: walletConnectService,
-            chainService: chainService,
         )
 
         let assetDiscoveryService = Gemstone.GemAssetDiscoveryService(

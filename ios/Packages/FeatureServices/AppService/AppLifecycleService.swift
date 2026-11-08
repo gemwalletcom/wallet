@@ -115,9 +115,18 @@ extension AppLifecycleService {
     private func connectObservers() async {
         async let connection: () = connectionStatusObserver.start()
         async let stream: () = streamObserverService.connect()
+        async let walletConnect: () = connectWalletConnect()
         async let perpetual: () = syncPerpetual()
         async let pending: () = trackPendingTransactions()
-        _ = await (connection, stream, perpetual, pending)
+        _ = await (connection, stream, walletConnect, perpetual, pending)
+    }
+
+    private func connectWalletConnect() async {
+        do {
+            try await walletConnector.connect()
+        } catch {
+            debugLog("AppLifecycleService walletConnect connect error: \(error)")
+        }
     }
 
     private func trackPendingTransactions() async {
@@ -152,7 +161,8 @@ extension AppLifecycleService {
         transactionStateService.stopTracking()
         async let connection: () = connectionStatusObserver.stop()
         async let price: () = streamObserverService.disconnect()
+        async let walletConnect: () = walletConnector.disconnect()
         async let perpetual: () = perpetualObserver.disconnect()
-        _ = await (connection, price, perpetual)
+        _ = await (connection, price, walletConnect, perpetual)
     }
 }
