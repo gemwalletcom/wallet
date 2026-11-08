@@ -191,7 +191,7 @@ mod tests {
     use primitives::{AssetId, Chain, TransactionChange, TransactionMetadata, TransactionSwapMetadata, TransactionType};
 
     fn merge_polled_update(store: &MemoryTransactionStateStore, transaction: Transaction, update: Result<TransactionUpdate, String>, now: DateTime<Utc>) -> Result<Option<GemTransactionStateResult>, GemServiceError> {
-        futures::executor::block_on(merge_update(store, WalletId::Multicoin("wallet".into()), transaction, update, now))
+        futures::executor::block_on(merge_update(store, WalletId::mock(), transaction, update, now))
     }
 
     #[test]

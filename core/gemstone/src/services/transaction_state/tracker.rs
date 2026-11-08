@@ -122,19 +122,15 @@ pub async fn poll(updater: &dyn GemTransactionUpdater, store: &dyn GemTransactio
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{TransactionState, Wallet};
+    use primitives::TransactionState;
     use std::future::Future;
     use std::task::Context;
 
     use crate::services::transaction_state::model::GemPendingTransaction;
     use crate::services::transaction_state::testkit::{MemoryTransactionStateStore, TestTransactionUpdater};
 
-    fn wallet_id(name: &str) -> WalletId {
-        WalletId::Multicoin(name.into())
-    }
-
     fn run(updater: &TestTransactionUpdater, store: &MemoryTransactionStateStore, tracking: &Tracking, transaction: Transaction) {
-        run_for(&wallet_id("wallet"), updater, store, tracking, transaction);
+        run_for(&WalletId::mock(), updater, store, tracking, transaction);
     }
 
     fn run_for(wallet: &WalletId, updater: &TestTransactionUpdater, store: &MemoryTransactionStateStore, tracking: &Tracking, transaction: Transaction) {
@@ -153,7 +149,7 @@ mod tests {
         };
         let store = MemoryTransactionStateStore {
             pending: Mutex::new(vec![GemPendingTransaction {
-                wallet_id: Wallet::mock().id,
+                wallet_id: WalletId::mock(),
                 transaction: replaced.clone(),
             }]),
             ..Default::default()
@@ -167,8 +163,8 @@ mod tests {
         run(&updater, &store, &tracking, pending.clone());
 
         assert_eq!(*updater.requested.lock().unwrap(), vec![pending.id.clone()]);
-        assert!(tracking.start(&wallet_id("wallet"), &pending.id).is_some());
-        assert!(tracking.start(&wallet_id("wallet"), &replaced.id).is_some());
+        assert!(tracking.start(&WalletId::mock(), &pending.id).is_some());
+        assert!(tracking.start(&WalletId::mock(), &replaced.id).is_some());
     }
 
     #[test]
@@ -186,7 +182,7 @@ mod tests {
         run(&updater, &MemoryTransactionStateStore::default(), &tracking, pending.clone());
 
         assert_eq!(updater.requested.lock().unwrap().len(), 2);
-        assert!(tracking.start(&wallet_id("wallet"), &pending.id).is_some());
+        assert!(tracking.start(&WalletId::mock(), &pending.id).is_some());
     }
 
     #[test]
@@ -197,7 +193,7 @@ mod tests {
         };
         let updater = TestTransactionUpdater::default();
         let tracking = Tracking::default();
-        let _owner = tracking.start(&wallet_id("wallet"), &pending.id).unwrap();
+        let _owner = tracking.start(&WalletId::mock(), &pending.id).unwrap();
 
         run(&updater, &MemoryTransactionStateStore::default(), &tracking, pending);
 
@@ -211,15 +207,15 @@ mod tests {
             ..Transaction::mock()
         };
         let tracking = Tracking::default();
-        let tracked = tracking.start(&wallet_id("wallet"), &pending.id).unwrap();
+        let tracked = tracking.start(&WalletId::mock(), &pending.id).unwrap();
 
-        assert!(tracking.start(&wallet_id("wallet"), &pending.id).is_none());
+        assert!(tracking.start(&WalletId::mock(), &pending.id).is_none());
         assert!(tracked.is_tracking());
 
         tracking.cancel();
 
         assert!(!tracked.is_tracking());
-        assert!(tracking.start(&wallet_id("wallet"), &pending.id).is_some());
+        assert!(tracking.start(&WalletId::mock(), &pending.id).is_some());
     }
 
     #[test]
@@ -233,14 +229,14 @@ mod tests {
         let tracking = Tracking::default();
 
         {
-            let mut polling = Box::pin(poll(&updater, &store, &tracking, JobConfiguration::mock(), wallet_id("wallet"), pending.clone()));
+            let mut polling = Box::pin(poll(&updater, &store, &tracking, JobConfiguration::mock(), WalletId::mock(), pending.clone()));
             let waker = futures::task::noop_waker();
             assert!(polling.as_mut().poll(&mut Context::from_waker(&waker)).is_pending());
-            assert!(tracking.start(&wallet_id("wallet"), &pending.id).is_none(), "the poll owns the transaction while it runs");
+            assert!(tracking.start(&WalletId::mock(), &pending.id).is_none(), "the poll owns the transaction while it runs");
         }
 
         assert!(
-            tracking.start(&wallet_id("wallet"), &pending.id).is_some(),
+            tracking.start(&WalletId::mock(), &pending.id).is_some(),
             "a poll dropped at its first sleep must free the transaction, or it is never tracked again"
         );
     }
@@ -253,18 +249,18 @@ mod tests {
         };
         let tracking = Tracking::default();
         let second = TestTransactionUpdater::default();
-        let polling_first_wallet = tracking.start(&wallet_id("first"), &pending.id).unwrap();
+        let polling_first_wallet = tracking.start(&WalletId::mock(), &pending.id).unwrap();
 
-        run_for(&wallet_id("second"), &second, &MemoryTransactionStateStore::default(), &tracking, pending.clone());
+        run_for(&WalletId::Multicoin("second".to_string()), &second, &MemoryTransactionStateStore::default(), &tracking, pending.clone());
 
         assert_eq!(*second.requested.lock().unwrap(), vec![pending.id.clone()], "a wallet is not skipped because another wallet is polling the same transaction");
-        assert!(tracking.start(&wallet_id("first"), &pending.id).is_none(), "one wallet still polls a transaction once");
+        assert!(tracking.start(&WalletId::mock(), &pending.id).is_none(), "one wallet still polls a transaction once");
         drop(polling_first_wallet);
     }
 
     #[test]
     fn test_a_cancelled_poll_cannot_take_a_replacement_hash_back() {
-        let wallet = wallet_id("wallet");
+        let wallet = WalletId::mock();
         let pending = TransactionId::mock("hash");
         let replacement = TransactionId::mock("new-hash");
         let tracking = Tracking::default();
@@ -288,15 +284,15 @@ mod tests {
             ..Transaction::mock()
         };
         let tracking = Tracking::default();
-        let stopped = tracking.start(&wallet_id("wallet"), &pending.id).unwrap();
+        let stopped = tracking.start(&WalletId::mock(), &pending.id).unwrap();
 
         tracking.cancel();
-        let restarted = tracking.start(&wallet_id("wallet"), &pending.id).unwrap();
+        let restarted = tracking.start(&WalletId::mock(), &pending.id).unwrap();
         drop(stopped);
 
-        assert!(tracking.start(&wallet_id("wallet"), &pending.id).is_none(), "the restarted poll still owns the transaction");
+        assert!(tracking.start(&WalletId::mock(), &pending.id).is_none(), "the restarted poll still owns the transaction");
 
         drop(restarted);
-        assert!(tracking.start(&wallet_id("wallet"), &pending.id).is_some());
+        assert!(tracking.start(&WalletId::mock(), &pending.id).is_some());
     }
 }

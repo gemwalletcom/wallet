@@ -1,5 +1,11 @@
 use crate::{Account, Chain, Wallet, WalletAddressItem, WalletId, WalletListItem, WalletSource, WalletType};
 
+impl WalletId {
+    pub fn mock() -> Self {
+        Self::Multicoin("0x1".to_string())
+    }
+}
+
 impl Wallet {
     pub fn mock() -> Self {
         Self::mock_with_accounts(vec![Account::mock(Chain::Ethereum, "address")])
@@ -26,7 +32,7 @@ impl Wallet {
 
     pub fn mock_with_accounts(accounts: Vec<Account>) -> Self {
         Self {
-            id: WalletId::Multicoin("0x1".to_string()),
+            id: WalletId::mock(),
             external_id: None,
             name: "wallet".to_string(),
             index: 0,
