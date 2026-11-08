@@ -62,7 +62,7 @@ impl<C: Client> HyperCoreClient<C> {
 
     async fn get_spot_collateral(&self, address: &str, mode: PerpetualAccountMode) -> Result<Option<PerpetualBalance>, Box<dyn Error + Sync + Send>> {
         match mode {
-            PerpetualAccountMode::Unified => Ok(Some(map_perpetual_balance_from_spot(&self.get_spot_balances(address).await?))),
+            PerpetualAccountMode::Unified => Ok(Some(map_perpetual_balance_from_spot(&self.get_spot_balances(address).await?)?)),
             PerpetualAccountMode::Standard => Ok(None),
         }
     }

@@ -1,4 +1,7 @@
-use std::collections::{HashMap, HashSet};
+use std::{
+    collections::{HashMap, HashSet},
+    error::Error,
+};
 
 use primitives::{PerpetualMarketData, PerpetualPosition};
 
@@ -24,7 +27,7 @@ pub fn account_subscriptions(address: String, dexes: &[PerpDex]) -> Vec<Hyperliq
         .collect()
 }
 
-pub fn parse_websocket_data(data: &[u8]) -> Result<HyperliquidSocketMessage, serde_json::Error> {
+pub fn parse_websocket_data(data: &[u8]) -> Result<HyperliquidSocketMessage, Box<dyn Error + Send + Sync>> {
     let raw: RawSocketMessage = serde_json::from_slice(data)?;
 
     match raw {
@@ -37,7 +40,7 @@ pub fn parse_websocket_data(data: &[u8]) -> Result<HyperliquidSocketMessage, ser
             })
         }
         RawSocketMessage::SpotState(data) => Ok(HyperliquidSocketMessage::SpotState {
-            balance: map_perpetual_balance_from_spot(&data.spot_state),
+            balance: map_perpetual_balance_from_spot(&data.spot_state)?,
         }),
         RawSocketMessage::OpenOrders(data) => Ok(HyperliquidSocketMessage::OpenOrders { dex: data.dex, orders: data.orders }),
         RawSocketMessage::Candle(candlestick) => Ok(HyperliquidSocketMessage::Candle { candle: candlestick.into() }),

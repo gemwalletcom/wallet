@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, num::ParseFloatError};
 
 use primitives::{
     Asset, AssetType, Perpetual, PerpetualAccountMode, PerpetualBalance, PerpetualDirection, PerpetualId, PerpetualMarginType, PerpetualOrderType, PerpetualPosition, PerpetualProvider, PerpetualTriggerOrder,
@@ -78,26 +78,27 @@ pub fn total_dexes_balance(balances: Vec<(PerpDex, PerpetualBalance)>) -> Perpet
     }
 }
 
-pub fn map_perpetual_balance_from_spot(balances: &Balances) -> PerpetualBalance {
+pub fn map_perpetual_balance_from_spot(balances: &Balances) -> Result<PerpetualBalance, ParseFloatError> {
     let Some(collateral) = balances.balances.iter().find(|balance| balance.coin == USDC_SYMBOL) else {
-        return PerpetualBalance {
+        return Ok(PerpetualBalance {
             available: 0.0,
             reserved: 0.0,
             withdrawable: 0.0,
-        };
+        });
     };
-    let total = f64::max(collateral.total.parse().unwrap_or(0.0), 0.0);
-    let unheld = total - collateral.hold.parse::<f64>().unwrap_or(0.0).clamp(0.0, total);
-    let available = balances
-        .available_after_maintenance(collateral.token)
-        .and_then(|value| value.parse::<f64>().ok())
-        .map_or(unheld, |value| value.clamp(0.0, unheld));
+    let total = f64::max(collateral.total.parse()?, 0.0);
+    let hold = f64::max(collateral.hold.parse()?, 0.0).min(total);
+    let unheld = total - hold;
+    let available = match balances.available_after_maintenance(collateral.token) {
+        Some(value) => f64::max(value.parse()?, 0.0).min(unheld),
+        None => unheld,
+    };
 
-    PerpetualBalance {
+    Ok(PerpetualBalance {
         available,
         reserved: total - available,
         withdrawable: available,
-    }
+    })
 }
 
 pub fn map_position(position: Position, address: String, orders: &[OpenOrder]) -> PerpetualPosition {
@@ -911,7 +912,7 @@ mod tests {
             token_to_available_after_maintenance: vec![(0, "6734.444416".to_string())],
         };
         assert_eq!(
-            map_perpetual_balance_from_spot(&fully_held),
+            map_perpetual_balance_from_spot(&fully_held).unwrap(),
             PerpetualBalance {
                 available: 0.0,
                 reserved: 13886.403816,
@@ -935,20 +936,20 @@ mod tests {
             balances: vec![collateral.clone()],
             token_to_available_after_maintenance: vec![(0, "90".to_string())],
         };
-        assert_eq!(map_perpetual_balance_from_spot(&balances), partly_held);
+        assert_eq!(map_perpetual_balance_from_spot(&balances).unwrap(), partly_held);
 
         let balances = Balances {
             balances: vec![collateral.clone()],
             token_to_available_after_maintenance: vec![],
         };
-        assert_eq!(map_perpetual_balance_from_spot(&balances), partly_held);
+        assert_eq!(map_perpetual_balance_from_spot(&balances).unwrap(), partly_held);
 
         let balances = Balances {
-            balances: vec![collateral],
+            balances: vec![collateral.clone()],
             token_to_available_after_maintenance: vec![(0, "20.5".to_string())],
         };
         assert_eq!(
-            map_perpetual_balance_from_spot(&balances),
+            map_perpetual_balance_from_spot(&balances).unwrap(),
             PerpetualBalance {
                 available: 20.5,
                 reserved: 80.0,
@@ -956,5 +957,11 @@ mod tests {
             },
             "the lower of Hyperliquid's two limits counts"
         );
+
+        let balances = Balances {
+            balances: vec![Balance { hold: "".to_string(), ..collateral }],
+            token_to_available_after_maintenance: vec![(0, "90".to_string())],
+        };
+        assert!(map_perpetual_balance_from_spot(&balances).is_err(), "a hold that cannot be read never frees the whole balance");
     }
 }
