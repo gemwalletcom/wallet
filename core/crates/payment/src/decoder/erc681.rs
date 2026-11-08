@@ -43,10 +43,11 @@ pub fn decode(path: &str) -> Result<Payment> {
         None => Ok(Payment::Request {
             request: PaymentRequest {
                 address: target.to_string(),
-                amount: query::value(&parameters, QUERY_VALUE)
-                    .and_then(|value| amount::exact_from_atomic(&value, chain))
-                    .or_else(|| query::value(&parameters, QUERY_AMOUNT).and_then(|value| amount::exact(&value, chain)))
-                    .map(|value| PaymentAmount::ExactValue { value }),
+                amount: match query::value(&parameters, QUERY_VALUE) {
+                    Some(value) => amount::exact_from_atomic(&value, chain),
+                    None => query::value(&parameters, QUERY_AMOUNT).and_then(|value| amount::exact(&value, chain)),
+                }
+                .map(|value| PaymentAmount::ExactValue { value }),
                 memo,
                 label: None,
                 references: None,
@@ -151,6 +152,20 @@ mod tests {
                 }
             }
         );
+    }
+
+    #[test]
+    fn test_decode_invalid_value_drops_amount() {
+        let without_amount = Payment::Request {
+            request: PaymentRequest {
+                address: ADDRESS.to_string(),
+                asset_id: Some(AssetId::from_chain(Chain::Ethereum)),
+                ..PaymentRequest::mock()
+            },
+        };
+
+        assert_eq!(decode(&format!("{ADDRESS}?value=1.5&amount=100")).unwrap(), without_amount);
+        assert_eq!(decode(&format!("{ADDRESS}?amount=100&value=1e-6")).unwrap(), without_amount);
     }
 
     #[test]
