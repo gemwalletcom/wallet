@@ -27,7 +27,7 @@ pub struct BitcoinBackend {
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Consensus {
-    pub chaintip: String,
+    pub nextblock: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -46,6 +46,6 @@ mod tests {
     fn test_node_info_deserializes_without_blocks() {
         let info: BitcoinNodeInfo = serde_json::from_str(include_str!("../../testdata/node_info_no_blocks.json")).unwrap();
         assert_eq!(info.backend.blocks, None);
-        assert_eq!(info.backend.consensus.unwrap().chaintip, "c2d6d0b4");
+        assert_eq!(info.backend.consensus.unwrap().nextblock, "77190ad9");
     }
 }
