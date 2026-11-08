@@ -4,6 +4,9 @@ use std::os::unix::fs::PermissionsExt;
 use std::sync::{Arc, Barrier};
 use std::thread;
 
+use argon2::Block;
+
+use crate::recording_allocator::RecordingAllocator;
 use crate::{Keystore, KeystoreError, KeystoreId};
 
 use super::super::{
@@ -305,4 +308,19 @@ fn test_v4_concurrent_import_same_wallet_is_idempotent() {
     // Re-importing under the same id with a different password must not clobber the existing keystore.
     assert_eq!(keystore.import_mnemonic(PHRASE, b"other-password", Some(id.clone())).unwrap_err(), KeystoreError::AuthenticationFailed);
     assert_eq!(keystore.decrypt_mnemonic(&id, &password).unwrap().as_str(), PHRASE);
+}
+
+#[test]
+fn test_v4_unlock_wipes_argon2_memory_before_free() {
+    let (_dir, keystore) = FileKeystore::mock();
+
+    let unwiped = RecordingAllocator::count_freed(
+        |layout, bytes| layout.align() == align_of::<Block>() && bytes.iter().any(|byte| *byte != 0),
+        || {
+            let meta = keystore.import_mnemonic(PHRASE, b"password", None).unwrap();
+            drop(keystore.decrypt_mnemonic(&meta.keystore_id, b"password").unwrap());
+        },
+    );
+
+    assert_eq!(unwiped, 0);
 }

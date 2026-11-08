@@ -2,7 +2,7 @@ use aes_gcm::{
     Aes256Gcm, Nonce,
     aead::{AeadInOut, KeyInit},
 };
-use argon2::{Algorithm, Argon2, Params, Version};
+use argon2::{Algorithm, Argon2, Block, Params, Version};
 use zeroize::Zeroizing;
 
 use super::{
@@ -117,8 +117,11 @@ pub(super) fn derive_key(password: &[u8], kdf: &KdfParams) -> Result<Zeroizing<[
             let params =
                 Params::new(*memory_kib, *iterations, *parallelism, Some(usize::try_from(*output_len).map_err(|_| KeystoreError::corrupt_file("invalid key length"))?)).map_err(|error| KeystoreError::corrupt_file(error.to_string()))?;
             let argon2 = Argon2::new(Algorithm::Argon2id, Version::V0x13, params);
+            let mut memory = Zeroizing::new(vec![Block::default(); argon2.params().block_count()]);
             let mut key = Zeroizing::new([0u8; 32]);
-            argon2.hash_password_into(password, salt, key.as_mut()).map_err(|error| KeystoreError::corrupt_file(error.to_string()))?;
+            argon2
+                .hash_password_into_with_memory(password, salt, key.as_mut(), memory.as_mut_slice())
+                .map_err(|error| KeystoreError::corrupt_file(error.to_string()))?;
             Ok(key)
         }
     }

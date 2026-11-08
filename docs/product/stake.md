@@ -29,6 +29,7 @@ flowchart LR
 | The delegation is awaiting withdrawal | Withdraw is offered | |
 | The user claims rewards on a network that claims one validator at a time and picks another validator | the amount becomes that validator's rewards | the claim takes every reward of the validator it names, so the amount is never typed |
 | The coin is TRX on TRON | the user freezes and unfreezes it, and sees Energy and Bandwidth as "available / total" | |
+| The user votes TRX on TRON, with Max or the whole frozen amount | Confirm shows every frozen TRX the vote names, and the Network Fee must be covered by the liquid TRX | a vote only assigns frozen TRX, while its fee burns liquid TRX, so the signed votes match the amount shown |
 | The wallet has no delegations | a loading row until the first sync answers, then the empty state or the sync's error | the screen never says nothing is staked before it knows |
 
 ## Rules

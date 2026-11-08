@@ -1802,6 +1802,27 @@ mod tests {
     }
 
     #[test]
+    fn test_preload_amount_a_tron_vote_shows_the_votes_it_signs() {
+        let asset = Asset::from_chain(Chain::Tron);
+        let mut metadata = GemConfirmMetadata::mock(&asset.id, 50_000_000);
+        metadata.asset_balance.frozen = 100_000_000u64.into();
+        let mut data = GemConfirmData::mock(
+            Chain::Tron,
+            TransactionInputType::Stake {
+                asset: asset.clone(),
+                stake_type: primitives::StakeType::Stake(primitives::DelegationValidator::mock()),
+            },
+        );
+        data.input.transfer.value = 100_000_000.into();
+        data.fee.fee = 270_000.into();
+
+        let GemTransferAmountResult::Amount { amount } = data.preload_amount(&metadata, &asset) else {
+            panic!("expected an amount");
+        };
+        assert_eq!(amount.value, BigInt::from(100_000_000), "Max shows every frozen TRX the vote is built from");
+    }
+
+    #[test]
     fn test_preload_amount_hypercore_withdrawal() {
         let usdc = HYPERCORE_PERPETUAL_USDC.clone();
         let mut data = SendInput::mock(Chain::HyperCore, TransactionInputType::Withdrawal { asset: usdc.clone() }).confirm;
