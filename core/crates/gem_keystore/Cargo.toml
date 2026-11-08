@@ -10,11 +10,11 @@ storage = ["mnemonic", "dep:aes-gcm", "dep:argon2", "dep:gem_encoding", "dep:ser
 v3 = ["storage", "dep:aes", "dep:ctr", "dep:scrypt", "dep:sha3"]
 
 [dependencies]
-aes = { workspace = true, optional = true }
-aes-gcm = { workspace = true, optional = true }
-argon2 = { workspace = true, optional = true }
+aes = { workspace = true, optional = true, features = ["zeroize"] }
+aes-gcm = { workspace = true, optional = true, features = ["zeroize"] }
+argon2 = { workspace = true, optional = true, features = ["zeroize"] }
 bip39 = { workspace = true, optional = true }
-ctr = { workspace = true, optional = true }
+ctr = { workspace = true, optional = true, features = ["zeroize"] }
 gem_crypto = { path = "../gem_crypto", default-features = false, optional = true }
 gem_encoding = { path = "../gem_encoding", default-features = false, optional = true }
 scrypt = { workspace = true, optional = true }

@@ -110,7 +110,7 @@ redis = { version = "1.4.1", default-features = false, features = [
 
 # Cryptography and authentication
 aes = { version = "0.9.3" }
-aes-gcm = { version = "0.11.0", default-features = false, features = ["aes", "alloc"] }
+aes-gcm = { version = "0.11.1", default-features = false, features = ["aes", "alloc"] }
 argon2 = { version = "0.6.0", default-features = false, features = ["alloc"] }
 aws-lc-rs = { version = "1.19.0" }
 bip39 = { version = "3.0.0", default-features = false, features = ["zeroize"] }
