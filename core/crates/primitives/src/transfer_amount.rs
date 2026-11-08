@@ -98,13 +98,33 @@ impl TransactionInputType {
             Self::Perpetual { .. } | Self::TokenApprove { .. } | Self::Account { .. } | Self::TransferNft { .. } => false,
         }
     }
+
+    pub fn spends_frozen_balance(&self) -> bool {
+        match self {
+            Self::Stake { asset, stake_type } => match stake_type {
+                StakeType::Stake(_) => asset.chain().stake_config().is_some_and(|config| config.uses_freeze),
+                StakeType::Unstake(_) | StakeType::Redelegate(_) | StakeType::Rewards(_) | StakeType::Withdraw(_) | StakeType::Freeze(_) | StakeType::Unfreeze(_) => false,
+            },
+            Self::Transfer { .. }
+            | Self::Withdrawal { .. }
+            | Self::Deposit { .. }
+            | Self::Swap { .. }
+            | Self::Generic { .. }
+            | Self::Payment { .. }
+            | Self::Earn { .. }
+            | Self::Perpetual { .. }
+            | Self::TokenApprove { .. }
+            | Self::Account { .. }
+            | Self::TransferNft { .. } => false,
+        }
+    }
 }
 
 impl TransferAmountInput {
     pub fn calculate(&self) -> Result<TransferAmount, TransferAmountError> {
         let asset = self.input_type.get_asset();
         let spends_balance = self.input_type.spends_balance();
-        let should_deduct_fee = spends_balance && asset.id == self.fee_asset;
+        let should_deduct_fee = spends_balance && !self.input_type.spends_frozen_balance() && asset.id == self.fee_asset;
 
         let has_fixed_value = self.input_type.get_swap_data().is_ok_and(|swap_data| swap_data.data.data_type.has_fixed_value());
 
@@ -579,6 +599,32 @@ mod tests {
             5_000_000,
         );
         assert!(activate.calculate().is_ok());
+    }
+
+    #[test]
+    fn test_calculate_a_tron_vote_pays_its_fee_from_liquid_trx() {
+        let asset = Asset::from_chain(Chain::Tron);
+        let vote = TransactionInputType::Stake {
+            asset: asset.clone(),
+            stake_type: StakeType::Stake(DelegationValidator::mock()),
+        };
+        let frozen = 100_000_000;
+
+        for is_max_amount in [true, false] {
+            let input = TransferAmountInput {
+                is_max_amount,
+                ..TransferAmountInput::mock(vote.clone(), frozen, frozen, 50_000_000)
+            };
+            assert_eq!(input.calculate().unwrap().value, BigInt::from(frozen), "max: {is_max_amount}");
+        }
+        assert_eq!(
+            TransferAmountInput::mock(vote, frozen, frozen, 1_000).calculate().unwrap_err(),
+            TransferAmountError::InsufficientNetworkFee {
+                asset_id: asset.id,
+                required: BigInt::from(FEE),
+                available: BigInt::from(1_000),
+            }
+        );
     }
 
     #[test]
