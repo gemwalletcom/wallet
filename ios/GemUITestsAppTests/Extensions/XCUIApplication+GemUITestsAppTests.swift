@@ -52,8 +52,14 @@ extension XCUIApplication {
     }
 
     func getWords() -> [String] {
-        XCTAssertTrue(staticTexts["word_11"].waitForExistence(timeout: 10), "word_11 not found")
+        let shown = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == true AND label != ''"), object: staticTexts["word_11"])
+        XCTAssertEqual(XCTWaiter().wait(for: [shown], timeout: 10), .completed, "word_11 not shown")
         return (0 ..< 12).map { staticTexts["word_\($0)"].label }
+    }
+
+    func pickWords(_ words: [String]) {
+        let options = buttons.matching(identifier: "word_option")
+        words.forEach { options.matching(NSPredicate(format: "label == %@ AND isEnabled == true", $0)).firstMatch.tap() }
     }
 
     func tapWalletTab() {
