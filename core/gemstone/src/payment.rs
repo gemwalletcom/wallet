@@ -380,7 +380,7 @@ fn payment_recipient(request: &GemPaymentRequest, chain: Option<Chain>) -> GemRe
     GemRecipient {
         address: chain.and_then(|chain| parse_address(&request.address, chain)).unwrap_or_else(|| request.address.clone()),
         name: None,
-        memo: request.memo.clone(),
+        memo: request.memo.clone().filter(|_| chain.is_none_or(is_memo_supported)),
         references: request.references.clone().unwrap_or_default(),
     }
 }
@@ -698,9 +698,10 @@ mod tests {
     fn test_payment_step() {
         let (bitcoin, ethereum, xrp) = (Asset::from_chain(Chain::Bitcoin), Asset::from_chain(Chain::Ethereum), Asset::from_chain(Chain::Xrp));
 
-        let transfer = confirmed(payment_step(&request(BITCOIN_ADDRESS, exact("0.0001"), None), &bitcoin));
+        let transfer = confirmed(payment_step(&request(BITCOIN_ADDRESS, exact("0.0001"), Some("order 7")), &bitcoin));
         assert_eq!(transfer.value, 10_000.into());
         assert_eq!(transfer.recipient.address, BITCOIN_ADDRESS);
+        assert_eq!(transfer.recipient.memo, None);
         assert_eq!(transfer.input_type.get_asset(), &bitcoin);
 
         let transfer = confirmed(payment_step(&request(&ETHEREUM_ADDRESS.to_lowercase(), Some(GemPaymentAmount::AtomicValue { value: 1u32.into() }), None), &ethereum));
@@ -718,8 +719,9 @@ mod tests {
         assert_eq!(payment.recipient.address, ETHEREUM_ADDRESS);
         assert_eq!(payment.amount, None);
 
-        let payment = amount(payment_step(&request(BITCOIN_ADDRESS, exact("0.000000001"), None), &bitcoin));
+        let payment = amount(payment_step(&request(BITCOIN_ADDRESS, exact("0.000000001"), Some("order 7")), &bitcoin));
         assert_eq!(payment.amount.as_deref(), Some("0.000000001"), "excess precision is never rounded");
+        assert_eq!(payment.recipient.memo, None);
 
         let payment = recipient(payment_step(&request(XRP_ADDRESS, exact("10"), None), &xrp));
         assert_eq!(payment.recipient.memo, None);
@@ -727,7 +729,7 @@ mod tests {
 
         let payment = recipient(payment_step(&request("0x123", None, Some("order 7")), &ethereum));
         assert_eq!(payment.recipient.address, "0x123");
-        assert_eq!(payment.recipient.memo.as_deref(), Some("order 7"));
+        assert_eq!(payment.recipient.memo, None);
     }
 
     #[test]
@@ -754,7 +756,7 @@ mod tests {
 
         let payment = recipient(asset_step(&request, &ethereum).unwrap());
         assert_eq!(payment.recipient.address, address);
-        assert_eq!(payment.recipient.memo.as_deref(), Some("order 7"));
+        assert_eq!(payment.recipient.memo, None);
         assert_eq!(payment.amount.as_deref(), Some("1.5"));
         assert!(request_transfer(&request, &ethereum).is_none());
     }
