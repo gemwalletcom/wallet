@@ -16,6 +16,12 @@ pub struct UTXO {
     pub index: i32,
     #[serde(serialize_with = "serialize_biguint", deserialize_with = "deserialize_biguint_from_str")]
     pub value: BigUint,
+    pub tokens: Vec<UTXOToken>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UTXOToken {
+    pub quantity: String,
 }
 
 impl From<UTXO> for primitives::UTXO {

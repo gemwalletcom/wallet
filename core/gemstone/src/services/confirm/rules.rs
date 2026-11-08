@@ -234,7 +234,7 @@ impl GemConfirmData {
     }
 
     fn spendable_value(&self, balance: GemBigInt) -> GemBigInt {
-        match self.metadata.get_bitcoin_family_utxo_value() {
+        match self.metadata.get_utxo_value() {
             Some(value) => balance.min(GemBigInt::from(value)),
             None => balance,
         }
@@ -736,7 +736,7 @@ mod tests {
     use crate::models::copy::GemCopy;
     use crate::models::list::{GemListFieldValue, GemRowMenuItem};
     use crate::services::confirm::error::GemConfirmErrorDisplay;
-    use crate::services::confirm::testkit::{TEST_BITCOIN_FEE, gwei};
+    use crate::services::confirm::testkit::{TEST_BITCOIN_FEE, TEST_CARDANO_FEE, gwei};
     use crate::services::info_sheet::GemInfoAmount;
 
     #[test]
@@ -1820,6 +1820,34 @@ mod tests {
             panic!("expected an amount");
         };
         assert_eq!(amount.value, BigInt::from(100_000_000), "Max shows every frozen TRX the vote is built from");
+    }
+
+    #[test]
+    fn test_preload_amount_counts_only_the_cardano_utxos_without_tokens() {
+        let asset = Asset::from_chain(Chain::Cardano);
+        let wallet_shows = GemConfirmMetadata::mock(&asset.id, 79_269_746);
+
+        assert_eq!(
+            GemConfirmData::mock_cardano(79_269_746, true, &[77_825_303]).preload_amount(&wallet_shows, &asset),
+            GemTransferAmountResult::Amount {
+                amount: TransferAmount {
+                    value: BigInt::from(77_825_303 - TEST_CARDANO_FEE),
+                    network_fee: BigInt::from(TEST_CARDANO_FEE),
+                    is_max_amount: true,
+                },
+            },
+            "a Max send shows what the transaction will send, not the ADA held with a token"
+        );
+        assert_eq!(
+            GemConfirmData::mock_cardano(78_000_000, false, &[77_825_303]).preload_amount(&wallet_shows, &asset),
+            GemTransferAmountResult::Error {
+                error: GemConfirmError::InsufficientBalance {
+                    asset: asset.clone(),
+                    requirement: GemBalanceRequirement::new((78_000_000 + TEST_CARDANO_FEE).into(), 77_825_303u64.into()),
+                },
+            },
+            "the balance counts the ADA held with a token, but only the UTXOs without one can be signed"
+        );
     }
 
     #[test]

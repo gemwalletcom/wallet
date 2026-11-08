@@ -196,14 +196,13 @@ impl TransactionLoadMetadata {
         }
     }
 
-    pub fn get_bitcoin_family_utxo_value(&self) -> Option<BigUint> {
+    pub fn get_utxo_value(&self) -> Option<BigUint> {
         match self {
-            TransactionLoadMetadata::Bitcoin { utxos } | TransactionLoadMetadata::Zcash { utxos, .. } => Some(utxos.iter().map(|utxo| &utxo.value).sum()),
+            TransactionLoadMetadata::Bitcoin { utxos } | TransactionLoadMetadata::Zcash { utxos, .. } | TransactionLoadMetadata::Cardano { utxos, .. } => Some(utxos.iter().map(|utxo| &utxo.value).sum()),
             TransactionLoadMetadata::None
             | TransactionLoadMetadata::Solana { .. }
             | TransactionLoadMetadata::Ton { .. }
             | TransactionLoadMetadata::Cosmos { .. }
-            | TransactionLoadMetadata::Cardano { .. }
             | TransactionLoadMetadata::Evm { .. }
             | TransactionLoadMetadata::Near { .. }
             | TransactionLoadMetadata::Stellar { .. }

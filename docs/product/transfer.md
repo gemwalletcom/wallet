@@ -28,6 +28,7 @@ flowchart LR
 | The recipient is flagged | "Suspicious address" with one line on why, under the amount; Confirm stays disabled | |
 | The balance can't cover the amount and the Network Fee, on any network | Insufficient Balance | the user sees what to fix, never a network error |
 | A pending send has spent Bitcoin-family coins the wallet still shows | Confirm counts only the coins left unspent: Insufficient Balance when they can't cover the amount and the Network Fee, and Max sends what they hold less the fee; the Network Fee options stay open | the balance updates only when the network confirms, but only unspent coins can be signed |
+| Some Cardano coins also hold a token | Confirm counts only the coins without a token: Insufficient Balance when they can't cover the amount and the Network Fee, and Max sends what they hold less the fee; the balance still shows all the ADA | Gem sends only ADA, and the network refuses a transaction that spends a coin without passing its token on |
 | A Bitcoin-family amount, or what Max would send, is under the dust limit | the dust explanation | the network rejects such a small output |
 | Confirm loads with a problem the user can act on: not enough balance or network fee, dust, a required memo, a risky transaction | its explanation opens by itself, once per problem; a refresh leaves it as the user left it, and Retry or a different problem opens it again | the user sees what to do before looking for it |
 | Any other load error | it stays in the error row | |

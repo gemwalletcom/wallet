@@ -51,9 +51,7 @@ impl CardanoTarget {
             }
             Self::Transaction { .. } => "query GetTransactionByHash($hash: Hash32Hex!) { transactions(where: { hash: { _eq: $hash } }) { hash includedAt inputs { address value } outputs { address value } fee } }",
             Self::Balance { .. } => "query GetBalance($address: String!) { utxos: utxos_aggregate(where: { address: { _eq: $address }  } ) { aggregate { sum { value } } } }",
-            Self::Utxos { .. } => {
-                "query UtxoSetForAddress($address: String!) { utxos(order_by: { value: desc } , where: { address: { _eq: $address }  } ) { address value txHash index tokens { quantity asset { fingerprint policyId assetName } } } }"
-            }
+            Self::Utxos { .. } => "query UtxoSetForAddress($address: String!) { utxos(order_by: { value: desc } , where: { address: { _eq: $address }  } ) { address value txHash index tokens { quantity } } }",
             Self::NetworkMagic => "query GetNetworkMagic { genesis { shelley { networkMagic } } }",
             Self::SubmitTransaction { .. } => "mutation SubmitTransaction($transaction: String!) { submitTransaction(transaction: $transaction) { hash } }",
         }
