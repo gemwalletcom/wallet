@@ -205,7 +205,7 @@ extension GemListRow {
         switch value {
         case let .text(text): .listItem(ListItemModel(title: title, subtitle: text))
         case let .date(date): .listItem(ListItemModel(title: title, subtitle: TransactionDateFormatter(date: date).row))
-        case let .address(display, _, explorer, menu): identifierItem(ListItemModel(title: title, subtitle: display), explorer: explorer.toPrimitives(), menu: menu)
+        case let .address(name, copy, explorer, menu): identifierItem(ListItemModel(title: title, subtitle: name ?? copy.display, subtitleExtra: name.map { _ in copy.display }), explorer: explorer.toPrimitives(), menu: menu)
         }
     }
 
