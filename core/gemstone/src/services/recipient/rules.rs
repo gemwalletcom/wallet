@@ -158,7 +158,7 @@ fn recipient_row(chain: Chain, recipient: GemRecipient) -> GemRecipientRow {
 mod tests {
     use super::*;
     use crate::services::recipient::model::GemRecipientSession;
-    use primitives::{WalletId, WalletListItem};
+    use primitives::WalletId;
 
     const ADDRESS: &str = "0x1f9090aae28b8a3dceadf281b0f12828e676c326";
     const CHECKSUMMED: &str = "0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326";
@@ -390,26 +390,6 @@ mod tests {
         section.rows.iter().map(|row| row.title.clone()).collect()
     }
 
-    fn wallet(name: &str, id: WalletId, is_pinned: bool) -> WalletAddressItem {
-        WalletAddressItem::mock(
-            WalletListItem {
-                name: name.to_string(),
-                is_pinned,
-                ..WalletListItem::mock_with_id(id)
-            },
-            "0x1",
-        )
-    }
-
-    fn contact(name: &str, address: &str) -> GemRecipient {
-        GemRecipient {
-            address: address.to_string(),
-            name: Some(name.to_string()),
-            memo: Some("1".to_string()),
-            references: vec![],
-        }
-    }
-
     #[test]
     fn test_the_recipient_session_keeps_a_scanned_payment_until_the_address_changes() {
         let asset = GemRecipientType::Asset { asset: Asset::from_chain(Chain::Ethereum) };
@@ -474,14 +454,19 @@ mod tests {
     #[test]
     fn test_a_private_key_wallet_is_offered_beside_the_other_wallets() {
         let wallets = vec![
-            wallet("watching", WalletId::View(Chain::Ethereum, "0x5".to_string()), false),
-            wallet("private key", WalletId::PrivateKey(Chain::Ethereum, "0x3".to_string()), false),
-            wallet("single", WalletId::Single(Chain::Ethereum, "0x4".to_string()), false),
-            wallet("multicoin", WalletId::Multicoin("0x2".to_string()), false),
-            wallet("pinned", WalletId::Multicoin("0x1".to_string()), true),
+            WalletAddressItem::mock("watching", WalletId::View(Chain::Ethereum, "0x5".to_string()), false),
+            WalletAddressItem::mock("private key", WalletId::PrivateKey(Chain::Ethereum, "0x3".to_string()), false),
+            WalletAddressItem::mock("single", WalletId::Single(Chain::Ethereum, "0x4".to_string()), false),
+            WalletAddressItem::mock("multicoin", WalletId::Multicoin("0x2".to_string()), false),
+            WalletAddressItem::mock("pinned", WalletId::Multicoin("0x1".to_string()), true),
         ];
 
-        let sections = recipient_sections(wallets, Chain::Ethereum, vec![contact("Alice", "0x71C7656EC7ab88b098defB751B7401B5f6d8976F")]);
+        let alice = GemRecipient {
+            memo: Some("1".to_string()),
+            ..GemRecipient::named("0x71C7656EC7ab88b098defB751B7401B5f6d8976F".to_string(), "Alice".to_string())
+        };
+
+        let sections = recipient_sections(wallets, Chain::Ethereum, vec![alice.clone()]);
 
         assert_eq!(names(&sections[0]), vec!["pinned"]);
         assert_eq!(sections[1].kind, GemRecipientSectionKind::Contacts);
@@ -490,7 +475,7 @@ mod tests {
             vec![GemRecipientRow {
                 title: "Alice".to_string(),
                 subtitle: format_address("0x71C7656EC7ab88b098defB751B7401B5f6d8976F", Some(Chain::Ethereum), GemAddressFormatStyle::Short),
-                recipient: contact("Alice", "0x71C7656EC7ab88b098defB751B7401B5f6d8976F"),
+                recipient: alice,
             }]
         );
         assert_eq!(names(&sections[2]), vec!["multicoin", "single", "private key"], "wallets keep the order of the wallets list");
@@ -522,12 +507,18 @@ mod tests {
             },
         ];
 
-        assert_eq!(contact_recipients(contacts, Chain::Ethereum), vec![contact("Alice", "0xa")]);
+        assert_eq!(
+            contact_recipients(contacts, Chain::Ethereum),
+            vec![GemRecipient {
+                memo: Some("1".to_string()),
+                ..GemRecipient::named("0xa".to_string(), "Alice".to_string())
+            }]
+        );
     }
 
     #[test]
     fn test_an_empty_section_is_left_out_and_contacts_only_appear_when_there_are_some() {
-        let sections = recipient_sections(vec![wallet("watching", WalletId::View(Chain::Ethereum, "0x5".to_string()), false)], Chain::Ethereum, vec![]);
+        let sections = recipient_sections(vec![WalletAddressItem::mock("watching", WalletId::View(Chain::Ethereum, "0x5".to_string()), false)], Chain::Ethereum, vec![]);
 
         assert_eq!(sections.len(), 1);
         assert_eq!(sections[0].kind, GemRecipientSectionKind::ViewWallets);
@@ -535,7 +526,7 @@ mod tests {
 
     #[test]
     fn test_a_pinned_view_wallet_stays_in_the_pinned_section() {
-        let sections = recipient_sections(vec![wallet("watching", WalletId::View(Chain::Ethereum, "0x5".to_string()), true)], Chain::Ethereum, vec![]);
+        let sections = recipient_sections(vec![WalletAddressItem::mock("watching", WalletId::View(Chain::Ethereum, "0x5".to_string()), true)], Chain::Ethereum, vec![]);
 
         assert_eq!(names(&sections[0]), vec!["watching"]);
         assert_eq!(sections.len(), 1);

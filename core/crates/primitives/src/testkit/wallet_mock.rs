@@ -50,7 +50,14 @@ impl WalletListItem {
 }
 
 impl WalletAddressItem {
-    pub fn mock(wallet: WalletListItem, address: &str) -> Self {
-        Self { wallet, address: address.to_string() }
+    pub fn mock(name: &str, id: WalletId, is_pinned: bool) -> Self {
+        Self {
+            wallet: WalletListItem {
+                name: name.to_string(),
+                is_pinned,
+                ..WalletListItem::mock_with_id(id)
+            },
+            address: "0x1".to_string(),
+        }
     }
 }
