@@ -26,16 +26,19 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemSessionProposal
 import uniffi.gemstone.GemSignMessageServiceInterface
+import uniffi.gemstone.GemWalletConnectEvent
 import uniffi.gemstone.GemWalletConnectException
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.SignDigestType
@@ -84,9 +87,14 @@ class AuthRequestViewModelTest {
         }
     }
 
-    private fun viewModel(service: GemWalletConnectServiceInterface = service(), approve: ApproveWalletConnectAuthentication = approval(), signMessageService: GemSignMessageServiceInterface = signMessageService()) = AuthRequestViewModel(
+    private fun viewModel(
+        service: GemWalletConnectServiceInterface = service(),
+        approve: ApproveWalletConnectAuthentication = approval(),
+        signMessageService: GemSignMessageServiceInterface = signMessageService(),
+        activeRequest: ActiveWalletConnectRequest = ActiveWalletConnectRequest(events = emptyFlow(), pendingRequests = WalletConnectPendingRequests()),
+    ) = AuthRequestViewModel(
         approveWalletConnectAuthentication = approve,
-        activeRequest = ActiveWalletConnectRequest(events = emptyFlow(), pendingRequests = WalletConnectPendingRequests()),
+        activeRequest = activeRequest,
         walletConnectService = service,
         signMessageService = signMessageService,
         ioDispatcher = dispatcher,
@@ -169,7 +177,28 @@ class AuthRequestViewModelTest {
         model.onRequest(request) {}
 
         assertTrue(model.awaitSettled() is AuthRequestUIState.Error)
-        verify { approve.rejectAuthentication(request, any(), any()) }
+        model.onReject()
+        verify(exactly = 1) { approve.rejectAuthentication(request, any(), any()) }
+    }
+
+    @Test
+    fun `an approved request closes its sheet and is never rejected afterwards`() = runTest(dispatcher) {
+        val approve = approval()
+        every { approve.approveAuthentication(request, any(), "0xsignature", any(), any()) } answers {
+            arg<() -> Unit>(3).invoke()
+        }
+        val activeRequest = ActiveWalletConnectRequest(events = flowOf(GemWalletConnectEvent.Authentication(request)), pendingRequests = WalletConnectPendingRequests(), scope = backgroundScope)
+        val model = viewModel(approve = approve, activeRequest = activeRequest)
+
+        model.onRequest(request) {}
+        model.awaitContent()
+        model.onApprove()
+        dispatcher.scheduler.advanceUntilIdle()
+        model.onReject()
+
+        assertNull("the sheet closes once the dapp has the approval", activeRequest.current.value)
+        verify(exactly = 1) { approve.approveAuthentication(request, any(), "0xsignature", any(), any()) }
+        verify(exactly = 0) { approve.rejectAuthentication(any(), any(), any()) }
     }
 
     @Test

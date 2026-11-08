@@ -57,8 +57,7 @@ class AuthRequestViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
-    private var authRequest: GemWalletConnectAuthentication? = null
-    private var hasResponded = false
+    private val phase = MutableStateFlow<AuthRequestPhase>(AuthRequestPhase.Idle)
 
     private val _state = MutableStateFlow<AuthRequestUIState>(AuthRequestUIState.Loading)
     val state: StateFlow<AuthRequestUIState> = _state.asStateFlow()
@@ -68,30 +67,28 @@ class AuthRequestViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, ButtonState.Enabled)
 
     fun onRequest(request: GemWalletConnectAuthentication, onError: (String) -> Unit) {
-        if (authRequest?.id == request.id) {
+        if (phase.value.request?.id == request.id) {
             return
         }
-        authRequest = request
-        hasResponded = false
+        phase.value = AuthRequestPhase.Waiting(request)
         _state.update { AuthRequestUIState.Loading }
         viewModelScope.launch {
             val content = withContext(ioDispatcher) {
                 runCatchingCancellable { requestContent(request) }
             }.getOrElse { err ->
-                if (!isActiveRequest(request)) {
+                if (!answer(request)) {
                     return@launch
                 }
+                approveWalletConnectAuthentication.rejectAuthentication(request)
                 if (err is GemWalletConnectException.InvalidOrigin) {
                     onError(err.errorText().text(context))
-                    hasResponded = true
-                    approveWalletConnectAuthentication.rejectAuthentication(request)
                     finish(request)
                 } else {
-                    rejectRequest(request, AuthRequestUIState.Error(err.errorText().text(context)))
+                    _state.update { AuthRequestUIState.Error(err.errorText().text(context)) }
                 }
                 return@launch
             }
-            if (isActiveRequest(request)) {
+            if (isWaiting(request)) {
                 _state.update { content }
             }
         }
@@ -100,7 +97,7 @@ class AuthRequestViewModel @Inject constructor(
     fun onWalletSelected(walletId: WalletId) {
         val current = _state.value as? AuthRequestUIState.Request ?: return
         val wallet = current.availableWallets.firstOrNull { it.id == walletId } ?: return
-        val request = authRequest ?: return
+        val request = phase.value.request ?: return
         val approval = runCatching {
             buildApproval(request, wallet)
         }.getOrElse { err ->
@@ -117,21 +114,18 @@ class AuthRequestViewModel @Inject constructor(
     }
 
     fun onApprove() {
-        val request = authRequest ?: return
+        val request = (phase.value as? AuthRequestPhase.Waiting)?.request ?: return
         val current = _state.value as? AuthRequestUIState.Request ?: return
-        if (hasResponded) {
-            return
-        }
         val approval = current.approval
         _state.update { AuthRequestUIState.Approving(current) }
 
         viewModelScope.launch(ioDispatcher) {
             try {
-                if (!isActiveRequest(request)) {
+                if (!isWaiting(request)) {
                     return@launch
                 }
                 val signature = signMessageService.sign(approval.wallet.id.id, approval.signMessage)
-                if (!isActiveRequest(request)) {
+                if (!isWaiting(request)) {
                     return@launch
                 }
                 approveWalletConnectAuthentication.approveAuthentication(
@@ -139,19 +133,18 @@ class AuthRequestViewModel @Inject constructor(
                     wallet = approval.wallet,
                     signature = signature,
                     onSuccess = {
-                        if (authRequest?.id == request.id) {
-                            hasResponded = true
+                        if (answer(request)) {
                             finish(request)
                         }
                     },
                     onError = { error ->
-                        if (authRequest?.id == request.id) {
+                        if (isWaiting(request)) {
                             _state.update { AuthRequestUIState.Error(error.text(context)) }
                         }
                     },
                 )
             } catch (err: Throwable) {
-                if (authRequest?.id == request.id) {
+                if (isWaiting(request)) {
                     _state.update { AuthRequestUIState.Error(err.errorText().text(context)) }
                 }
             }
@@ -162,33 +155,29 @@ class AuthRequestViewModel @Inject constructor(
         if (_state.value is AuthRequestUIState.Approving) {
             return
         }
-        val request = authRequest
-        if (request == null || hasResponded) {
-            finish()
-            return
-        }
-        hasResponded = true
-        approveWalletConnectAuthentication.rejectAuthentication(request)
+        rejectOnce()
         finish()
     }
 
     override fun onCleared() {
-        val request = authRequest ?: return
-        if (!hasResponded && _state.value !is AuthRequestUIState.Approving) {
+        if (_state.value !is AuthRequestUIState.Approving) {
+            rejectOnce()
+        }
+    }
+
+    private fun rejectOnce() {
+        val request = phase.value.request ?: return
+        if (answer(request)) {
             approveWalletConnectAuthentication.rejectAuthentication(request)
         }
     }
 
-    private fun rejectRequest(request: GemWalletConnectAuthentication, errorState: AuthRequestUIState.Error) {
-        if (!isActiveRequest(request)) {
-            return
-        }
-        hasResponded = true
-        approveWalletConnectAuthentication.rejectAuthentication(request)
-        _state.update { errorState }
-    }
+    private fun isWaiting(request: GemWalletConnectAuthentication): Boolean = (phase.value as? AuthRequestPhase.Waiting)?.request?.id == request.id
 
-    private fun isActiveRequest(request: GemWalletConnectAuthentication): Boolean = authRequest?.id == request.id && !hasResponded
+    private fun answer(request: GemWalletConnectAuthentication): Boolean {
+        val waiting = phase.value as? AuthRequestPhase.Waiting ?: return false
+        return waiting.request.id == request.id && phase.compareAndSet(waiting, AuthRequestPhase.Answered(request))
+    }
 
     private fun finish(request: GemWalletConnectAuthentication) {
         if (activeRequest.finish(request)) {
@@ -202,7 +191,7 @@ class AuthRequestViewModel @Inject constructor(
     }
 
     private fun reset() {
-        authRequest = null
+        phase.value = AuthRequestPhase.Idle
         _state.update { AuthRequestUIState.Loading }
     }
 
@@ -256,6 +245,18 @@ class AuthRequestViewModel @Inject constructor(
             secondaryFields = preview.secondary,
         )
     } ?: AuthPayloadPreview()
+}
+
+private sealed interface AuthRequestPhase {
+    val request: GemWalletConnectAuthentication?
+
+    data object Idle : AuthRequestPhase {
+        override val request: GemWalletConnectAuthentication? = null
+    }
+
+    data class Waiting(override val request: GemWalletConnectAuthentication) : AuthRequestPhase
+
+    data class Answered(override val request: GemWalletConnectAuthentication) : AuthRequestPhase
 }
 
 sealed interface AuthRequestUIState {

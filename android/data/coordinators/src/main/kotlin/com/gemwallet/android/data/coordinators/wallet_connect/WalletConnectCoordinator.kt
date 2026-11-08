@@ -16,13 +16,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemWalletConnectAuthMessage
 import uniffi.gemstone.GemWalletConnectAuthentication
 import uniffi.gemstone.GemWalletConnectClientInterface
-import uniffi.gemstone.GemWalletConnectEvent
 import uniffi.gemstone.GemWalletConnectFailure
 import uniffi.gemstone.GemWalletConnectProposal
 import uniffi.gemstone.GemWalletConnectRejectionReason
@@ -33,7 +31,6 @@ import java.util.concurrent.ConcurrentHashMap
 class WalletConnectCoordinator(
     private val client: GemWalletConnectClientInterface,
     private val relay: WalletConnectRelay,
-    val events: Flow<GemWalletConnectEvent>,
     private val walletConnectService: GemWalletConnectServiceInterface,
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
 ) : PairWalletConnect,
@@ -85,48 +82,27 @@ class WalletConnectCoordinator(
             .onFailure { onError(it.errorText()) }
     }
 
-    override fun pair(uri: String, onSuccess: () -> Unit, onError: (GemErrorText) -> Unit) {
-        scope.launch {
-            runCatchingCancellable {
-                connect()
-                client.pair(uri)
-            }.onSuccess { onSuccess() }
-                .onFailure { onError(it.errorText()) }
-        }
+    override fun pair(uri: String, onSuccess: () -> Unit, onError: (GemErrorText) -> Unit) = launchCall(onSuccess, onError) {
+        connect()
+        client.pair(uri)
     }
 
-    override fun approveConnection(wallet: Wallet, proposal: GemWalletConnectProposal, onSuccess: () -> Unit, onError: (GemErrorText) -> Unit) {
-        scope.launch {
-            runCatchingCancellable { client.approveSession(proposal.id, wallet.toGem()) }
-                .onSuccess { onSuccess() }
-                .onFailure { onError(it.errorText()) }
-        }
+    override fun approveConnection(wallet: Wallet, proposal: GemWalletConnectProposal, onSuccess: () -> Unit, onError: (GemErrorText) -> Unit) = launchCall(onSuccess, onError) {
+        client.approveSession(proposal.id, wallet.toGem())
     }
 
-    override fun rejectConnection(proposal: GemWalletConnectProposal, reason: GemWalletConnectRejectionReason, onSuccess: () -> Unit, onError: (GemErrorText) -> Unit) {
-        scope.launch {
-            runCatchingCancellable { client.rejectSession(proposal.id, reason) }
-                .onSuccess { onSuccess() }
-                .onFailure { onError(it.errorText()) }
-        }
+    override fun rejectConnection(proposal: GemWalletConnectProposal, reason: GemWalletConnectRejectionReason, onSuccess: () -> Unit, onError: (GemErrorText) -> Unit) = launchCall(onSuccess, onError) {
+        client.rejectSession(proposal.id, reason)
     }
 
     override fun authMessage(authentication: GemWalletConnectAuthentication, wallet: Wallet): GemWalletConnectAuthMessage = client.authenticationMessage(authentication.id, wallet.toGem())
 
-    override fun approveAuthentication(authentication: GemWalletConnectAuthentication, wallet: Wallet, signature: String, onSuccess: () -> Unit, onError: (GemErrorText) -> Unit) {
-        scope.launch {
-            runCatchingCancellable { client.approveAuthentication(authentication.id, wallet.toGem(), signature) }
-                .onSuccess { onSuccess() }
-                .onFailure { onError(it.errorText()) }
-        }
+    override fun approveAuthentication(authentication: GemWalletConnectAuthentication, wallet: Wallet, signature: String, onSuccess: () -> Unit, onError: (GemErrorText) -> Unit) = launchCall(onSuccess, onError) {
+        client.approveAuthentication(authentication.id, wallet.toGem(), signature)
     }
 
-    override fun rejectAuthentication(authentication: GemWalletConnectAuthentication, onSuccess: () -> Unit, onError: (GemErrorText) -> Unit) {
-        scope.launch {
-            runCatchingCancellable { client.rejectAuthentication(authentication.id) }
-                .onSuccess { onSuccess() }
-                .onFailure { onError(it.errorText()) }
-        }
+    override fun rejectAuthentication(authentication: GemWalletConnectAuthentication, onSuccess: () -> Unit, onError: (GemErrorText) -> Unit) = launchCall(onSuccess, onError) {
+        client.rejectAuthentication(authentication.id)
     }
 
     override fun respondRequest(request: GemWalletConnectSessionRequest, onFailure: (GemWalletConnectFailure) -> Unit, onFinish: () -> Unit) {
@@ -147,6 +123,14 @@ class WalletConnectCoordinator(
             runCatchingCancellable { client.rejectRequest(request.topic, request.requestId) }
                 .onFailure { Log.e(TAG, "Reject request ${request.requestId} failed", it) }
             onFinish()
+        }
+    }
+
+    private fun launchCall(onSuccess: () -> Unit, onError: (GemErrorText) -> Unit, call: suspend () -> Unit) {
+        scope.launch {
+            runCatchingCancellable { call() }
+                .onSuccess { onSuccess() }
+                .onFailure { onError(it.errorText()) }
         }
     }
 

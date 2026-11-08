@@ -64,17 +64,16 @@ object WalletConnectModule {
 
     @Singleton
     @Provides
-    fun provideWalletConnectCoordinator(client: GemWalletConnectClient, relay: WalletConnectRelay, listener: WalletConnectListener, walletConnectService: GemWalletConnectService): WalletConnectCoordinator = WalletConnectCoordinator(
+    fun provideWalletConnectCoordinator(client: GemWalletConnectClient, relay: WalletConnectRelay, walletConnectService: GemWalletConnectService): WalletConnectCoordinator = WalletConnectCoordinator(
         client = client,
         relay = relay,
-        events = listener.events,
         walletConnectService = walletConnectService,
     )
 
     @Singleton
     @Provides
-    fun provideActiveWalletConnectRequest(coordinator: WalletConnectCoordinator, pendingRequests: WalletConnectPendingRequests): ActiveWalletConnectRequest = ActiveWalletConnectRequest(
-        events = coordinator.events,
+    fun provideActiveWalletConnectRequest(listener: WalletConnectListener, pendingRequests: WalletConnectPendingRequests): ActiveWalletConnectRequest = ActiveWalletConnectRequest(
+        events = listener.events,
         pendingRequests = pendingRequests,
     )
 

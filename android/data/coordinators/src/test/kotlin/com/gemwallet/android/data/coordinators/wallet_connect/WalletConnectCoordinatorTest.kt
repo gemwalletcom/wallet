@@ -9,7 +9,6 @@ import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -30,7 +29,6 @@ class WalletConnectCoordinatorTest {
     private fun TestScope.coordinator(client: WalletConnectClientMock, storedSessions: Boolean = false) = WalletConnectCoordinator(
         client = client,
         relay = WalletConnectRelay(socket),
-        events = emptyFlow(),
         walletConnectService = mockk { coEvery { hasSessions() } returns storedSessions },
         scope = backgroundScope,
     )
