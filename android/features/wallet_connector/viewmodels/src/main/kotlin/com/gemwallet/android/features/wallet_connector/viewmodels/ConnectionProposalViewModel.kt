@@ -7,10 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
-import com.gemwallet.android.application.wallet_connect.WalletConnectSessionProposal
-import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
 import com.gemwallet.android.application.wallet_connect.cases.ApproveWalletConnection
-import com.gemwallet.android.application.wallet_connect.map
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.listItem
 import com.gemwallet.android.ext.runCatchingCancellable
@@ -44,6 +41,7 @@ import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemSessionProposal
 import uniffi.gemstone.GemWalletConnectException
+import uniffi.gemstone.GemWalletConnectProposal
 import uniffi.gemstone.GemWalletConnectRejectionReason
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.WalletConnectionVerificationStatus
@@ -53,8 +51,7 @@ import uniffi.gemstone.walletSections
 
 @HiltViewModel(assistedFactory = ConnectionProposalViewModel.Factory::class)
 class ConnectionProposalViewModel @AssistedInject constructor(
-    @Assisted private val proposal: WalletConnectSessionProposal,
-    @Assisted private val verifyContext: WalletConnectVerifyContext,
+    @Assisted private val proposal: GemWalletConnectProposal,
     private val approveWalletConnection: ApproveWalletConnection,
     private val activeRequest: ActiveWalletConnectRequest,
     private val walletConnectService: GemWalletConnectServiceInterface,
@@ -106,11 +103,11 @@ class ConnectionProposalViewModel @AssistedInject constructor(
             val prepared = withContext(ioDispatcher) {
                 runCatchingCancellable {
                     walletConnectService.prepareSessionProposal(
-                        requiredChainIds = proposal.requiredNamespaces.values.flatMap { it.chains.orEmpty() },
-                        optionalChainIds = proposal.optionalNamespaces.values.flatMap { it.chains.orEmpty() },
-                        metadata = walletConnectService.applicationMetadata(proposal.name, proposal.description, proposal.url, proposal.icons),
-                        origin = verifyContext.origin,
-                        validation = verifyContext.map(),
+                        requiredChainIds = proposal.requiredChainIds,
+                        optionalChainIds = proposal.optionalChainIds,
+                        metadata = proposal.metadata,
+                        origin = proposal.origin,
+                        validation = proposal.validation,
                     )
                 }
             }.getOrElse { error ->
@@ -181,7 +178,7 @@ class ConnectionProposalViewModel @AssistedInject constructor(
 
     @AssistedFactory
     interface Factory {
-        fun create(proposal: WalletConnectSessionProposal, verifyContext: WalletConnectVerifyContext): ConnectionProposalViewModel
+        fun create(proposal: GemWalletConnectProposal): ConnectionProposalViewModel
     }
 
     private companion object {

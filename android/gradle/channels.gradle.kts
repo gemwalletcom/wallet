@@ -2,7 +2,7 @@ val CHANNELS: Map<String, Map<String, Any?>> = mapOf(
     "google" to mapOf(
         "push" to ":flavors:fcm",
         "review" to ":flavors:google-review",
-        "walletConnect" to ":data:services:walletconnect:reown",
+        "walletConnect" to true,
         "proguardFiles" to listOf("proguard-stacktrace-rules.pro"),
         "updateUrl" to "https://play.google.com/store/apps/details?id=com.gemwallet.android",
         "abis" to listOf("armeabi-v7a", "arm64-v8a"),
@@ -11,7 +11,7 @@ val CHANNELS: Map<String, Map<String, Any?>> = mapOf(
     "universal" to mapOf(
         "push" to ":flavors:fcm",
         "review" to ":flavors:google-review",
-        "walletConnect" to ":data:services:walletconnect:reown",
+        "walletConnect" to true,
         "proguardFiles" to listOf("proguard-stacktrace-rules.pro"),
         "updateUrl" to "https://apk.gemwallet.com/gem_wallet_latest.apk",
         "abis" to listOf("armeabi-v7a", "arm64-v8a"),
@@ -20,7 +20,7 @@ val CHANNELS: Map<String, Map<String, Any?>> = mapOf(
     "huawei" to mapOf(
         "push" to ":flavors:pushes-stub",
         "review" to ":flavors:review-stub",
-        "walletConnect" to ":data:services:walletconnect:reown",
+        "walletConnect" to true,
         "proguardFiles" to listOf("proguard-stacktrace-rules.pro"),
         "updateUrl" to "https://appgallery.huawei.com/app/C109713129",
         "abis" to listOf("armeabi-v7a", "arm64-v8a"),
@@ -29,7 +29,7 @@ val CHANNELS: Map<String, Map<String, Any?>> = mapOf(
     "solana" to mapOf(
         "push" to ":flavors:fcm",
         "review" to ":flavors:review-stub",
-        "walletConnect" to ":data:services:walletconnect:reown",
+        "walletConnect" to true,
         "proguardFiles" to listOf("proguard-stacktrace-rules.pro"),
         "updateUrl" to "solanadappstore://details?id=com.gemwallet.android",
         "abis" to listOf("arm64-v8a"),
@@ -38,7 +38,7 @@ val CHANNELS: Map<String, Map<String, Any?>> = mapOf(
     "samsung" to mapOf(
         "push" to ":flavors:fcm",
         "review" to ":flavors:review-stub",
-        "walletConnect" to ":data:services:walletconnect:reown",
+        "walletConnect" to true,
         "proguardFiles" to listOf("proguard-stacktrace-rules.pro"),
         "updateUrl" to "https://apps.samsung.com/appquery/appDetail.as?appId=com.gemwallet.android",
         "abis" to listOf("armeabi-v7a", "arm64-v8a"),
@@ -47,7 +47,7 @@ val CHANNELS: Map<String, Map<String, Any?>> = mapOf(
     "emerald" to mapOf(
         "push" to ":flavors:fcm",
         "review" to ":flavors:review-stub",
-        "walletConnect" to ":data:services:walletconnect:reown",
+        "walletConnect" to true,
         "proguardFiles" to listOf("proguard-stacktrace-rules.pro"),
         "updateUrl" to "https://apk.gemwallet.com/gem_wallet_latest.apk",
         "updateUrlEnv" to "UPDATE_URL",
@@ -57,7 +57,7 @@ val CHANNELS: Map<String, Map<String, Any?>> = mapOf(
     "fdroid" to mapOf(
         "push" to ":flavors:pushes-stub",
         "review" to ":flavors:review-stub",
-        "walletConnect" to ":data:services:walletconnect:noop",
+        "walletConnect" to false,
         "proguardFiles" to listOf("proguard-reproducible-rules.pro"),
         "updateUrl" to "https://f-droid.org/en/packages/com.gemwallet.android/",
         "abis" to listOf("armeabi-v7a", "arm64-v8a"),

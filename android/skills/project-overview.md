@@ -44,7 +44,7 @@ Product flavors are distribution channels: `google` (default), `universal`, `hua
 - Hilt
 - Room
 - OkHttp
-- WalletConnect / Reown
+- WalletConnect through Core `GemWalletConnectClient`
 - Rust core via JNI
 - Gemstone
 - Coil

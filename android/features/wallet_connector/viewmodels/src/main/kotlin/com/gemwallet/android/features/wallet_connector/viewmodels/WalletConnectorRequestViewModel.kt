@@ -6,8 +6,6 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
 import com.gemwallet.android.application.wallet_connect.WalletConnectPendingRequest
 import com.gemwallet.android.application.wallet_connect.WalletConnectPendingRequests
-import com.gemwallet.android.application.wallet_connect.WalletConnectSessionRequest
-import com.gemwallet.android.application.wallet_connect.WalletConnectVerifyContext
 import com.gemwallet.android.application.wallet_connect.cases.RespondWalletConnectRequest
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.features.wallet_connector.viewmodels.models.WalletConnectorRequestUIState
@@ -21,6 +19,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import uniffi.gemstone.GemWalletConnectSessionRequest
 import javax.inject.Inject
 
 @HiltViewModel
@@ -41,13 +40,13 @@ class WalletConnectorRequestViewModel @Inject constructor(
         .map { it.uiState() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, WalletConnectorRequestUIState.Loading)
 
-    fun onRequest(sessionRequest: WalletConnectSessionRequest, verifyContext: WalletConnectVerifyContext, onError: (String) -> Unit) {
+    fun onRequest(sessionRequest: GemWalletConnectSessionRequest, onError: (String) -> Unit) {
         if (state.value.sessionRequest == sessionRequest) {
             return
         }
         pendingRequests.current.value?.takeIf { it.sessionId == sessionRequest.topic }?.reject()
         state.update { RequestViewModelState(sessionRequest = sessionRequest) }
-        respondWalletConnectRequest.respondRequest(sessionRequest, verifyContext, onFailure = { onError(it.text(context)) }) {
+        respondWalletConnectRequest.respondRequest(sessionRequest, onFailure = { onError(it.text(context)) }) {
             state.update { it.copy(responseState = RequestResponseState.Finished) }
             activeRequest.finish(sessionRequest)
         }
@@ -87,7 +86,7 @@ private fun WalletConnectPendingRequest?.uiState(): WalletConnectorRequestUIStat
     is WalletConnectPendingRequest.Transaction -> WalletConnectorRequestUIState.Transaction(ConfirmTransferInput(transfer, wallet), simulation)
 }
 
-private data class RequestViewModelState(val sessionRequest: WalletConnectSessionRequest? = null, val approved: WalletConnectPendingRequest? = null, val responseState: RequestResponseState = RequestResponseState.Idle)
+private data class RequestViewModelState(val sessionRequest: GemWalletConnectSessionRequest? = null, val approved: WalletConnectPendingRequest? = null, val responseState: RequestResponseState = RequestResponseState.Idle)
 
 private enum class RequestResponseState {
     Idle,

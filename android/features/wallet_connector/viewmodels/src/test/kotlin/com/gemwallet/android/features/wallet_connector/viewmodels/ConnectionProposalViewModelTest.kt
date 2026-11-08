@@ -8,9 +8,8 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockApplicationMetadata
+import com.gemwallet.android.testkit.mockGemWalletConnectProposal
 import com.gemwallet.android.testkit.mockWallet
-import com.gemwallet.android.testkit.mockWalletConnectSessionProposal
-import com.gemwallet.android.testkit.mockWalletConnectVerifyContext
 import com.gemwallet.android.testkit.mockWalletConnectionSessionProposal
 import com.gemwallet.android.testkit.mockWalletId
 import com.gemwallet.android.ui.R
@@ -57,12 +56,9 @@ class ConnectionProposalViewModelTest {
 
     private val secondary = mockWallet(id = mockWalletId(address = "0xdef"), name = "Second Wallet", accounts = listOf(mockAccount(chain = Chain.Ethereum, address = "0xdef")))
 
-    private val proposal = mockWalletConnectSessionProposal()
-
-    private val verifyContext = mockWalletConnectVerifyContext()
+    private val proposal = mockGemWalletConnectProposal()
 
     private fun service(): GemWalletConnectServiceInterface = mockk(relaxed = true) {
-        every { applicationMetadata(any(), any(), any(), any()) } returns mockApplicationMetadata(name = "Uniswap").toGem()
         coEvery { prepareSessionProposal(any(), any(), any(), any(), any()) } returns GemSessionProposal(
             proposal = mockWalletConnectionSessionProposal(defaultWallet = main, wallets = listOf(main, secondary), metadata = mockApplicationMetadata(name = "Uniswap")).toGem(),
             verificationStatus = WalletConnectionVerificationStatus.VERIFIED,
@@ -72,7 +68,6 @@ class ConnectionProposalViewModelTest {
 
     private fun viewModel(service: GemWalletConnectServiceInterface = service(), approve: ApproveWalletConnection = mockk(relaxed = true)) = ConnectionProposalViewModel(
         proposal = proposal,
-        verifyContext = verifyContext,
         approveWalletConnection = approve,
         activeRequest = ActiveWalletConnectRequest(events = emptyFlow(), pendingRequests = WalletConnectPendingRequests()),
         walletConnectService = service,

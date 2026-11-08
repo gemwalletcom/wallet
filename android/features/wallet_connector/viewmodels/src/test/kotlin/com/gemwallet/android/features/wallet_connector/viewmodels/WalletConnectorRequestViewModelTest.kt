@@ -10,11 +10,10 @@ import com.gemwallet.android.features.wallet_connector.viewmodels.models.WalletC
 import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.testkit.mockGemTransferData
 import com.gemwallet.android.testkit.mockGemWalletConnectMessageRequest
+import com.gemwallet.android.testkit.mockGemWalletConnectSessionRequest
 import com.gemwallet.android.testkit.mockGemWalletConnectTransactionRequest
 import com.gemwallet.android.testkit.mockSimulationResult
 import com.gemwallet.android.testkit.mockWallet
-import com.gemwallet.android.testkit.mockWalletConnectSessionRequest
-import com.gemwallet.android.testkit.mockWalletConnectVerifyContext
 import com.gemwallet.android.testkit.mockWalletConnectionSession
 import com.gemwallet.android.ui.R
 import io.mockk.every
@@ -59,12 +58,10 @@ class WalletConnectorRequestViewModelTest {
 
     private val topic = "topic-1"
 
-    private val sessionRequest = mockWalletConnectSessionRequest(id = 42L, topic = topic)
-
-    private val verifyContext = mockWalletConnectVerifyContext(origin = "https://app.uniswap.org")
+    private val sessionRequest = mockGemWalletConnectSessionRequest(topic = topic, requestId = "42")
 
     private fun respond(onRespond: ((GemWalletConnectFailure) -> Unit) -> Unit = {}): RespondWalletConnectRequest = mockk(relaxed = true) {
-        every { respondRequest(any(), any(), any(), any()) } answers { onRespond(thirdArg()) }
+        every { respondRequest(any(), any(), any()) } answers { onRespond(secondArg()) }
     }
 
     private fun viewModel(respond: RespondWalletConnectRequest = respond(), requests: WalletConnectPendingRequests = WalletConnectPendingRequests()) = WalletConnectorRequestViewModel(
@@ -94,7 +91,7 @@ class WalletConnectorRequestViewModelTest {
         ).forEach { (failure, text) ->
             val errors = mutableListOf<String>()
 
-            viewModel(respond = respond { onFailure -> onFailure(failure) }).onRequest(sessionRequest, verifyContext, onError = errors::add)
+            viewModel(respond = respond { onFailure -> onFailure(failure) }).onRequest(sessionRequest, onError = errors::add)
 
             assertEquals(listOf(text), errors)
         }
@@ -106,15 +103,15 @@ class WalletConnectorRequestViewModelTest {
         val respond = respond()
         val model = viewModel(respond = respond, requests = requests)
 
-        model.onRequest(sessionRequest, verifyContext, onError = {})
+        model.onRequest(sessionRequest, onError = {})
         val job = pending(requests)
         model.awaitContent()
 
-        model.onRequest(sessionRequest, verifyContext, onError = {})
+        model.onRequest(sessionRequest, onError = {})
         advanceUntilIdle()
 
         assertNotNull(requests.current.value)
-        verify(exactly = 1) { respond.respondRequest(sessionRequest, verifyContext, any(), any()) }
+        verify(exactly = 1) { respond.respondRequest(sessionRequest, any(), any()) }
 
         job.cancel()
     }
@@ -124,7 +121,7 @@ class WalletConnectorRequestViewModelTest {
         val requests = WalletConnectPendingRequests()
         val model = viewModel(requests = requests)
 
-        model.onRequest(sessionRequest, verifyContext, onError = {})
+        model.onRequest(sessionRequest, onError = {})
         val job = pending(requests)
 
         val state = model.awaitContent()
@@ -142,7 +139,7 @@ class WalletConnectorRequestViewModelTest {
         val transfer = mockGemTransferData(value = BigInteger.TEN)
         val simulation = mockSimulationResult()
 
-        model.onRequest(sessionRequest, verifyContext, onError = {})
+        model.onRequest(sessionRequest, onError = {})
         val job = launch {
             runCatching {
                 requests.signTransaction(mockGemWalletConnectTransactionRequest(sessionId = topic, wallet = wallet.toGem(), session = mockWalletConnectionSession(sessionId = topic).toGem(), simulation = simulation, transfer = transfer))
@@ -163,7 +160,7 @@ class WalletConnectorRequestViewModelTest {
         val respond = respond()
         val model = viewModel(respond = respond, requests = requests)
 
-        model.onRequest(sessionRequest, verifyContext, onError = {})
+        model.onRequest(sessionRequest, onError = {})
         val job = pending(requests)
         model.awaitContent()
 
@@ -179,7 +176,7 @@ class WalletConnectorRequestViewModelTest {
         val requests = WalletConnectPendingRequests()
         val model = viewModel(requests = requests)
 
-        model.onRequest(sessionRequest, verifyContext, onError = {})
+        model.onRequest(sessionRequest, onError = {})
         val signature = CompletableDeferred<String>()
         val job = pending(requests, signature)
         model.awaitContent()
@@ -197,11 +194,11 @@ class WalletConnectorRequestViewModelTest {
     fun `rejecting a request still being answered refuses it, an answered one is left alone`() = runTest(dispatcher) {
         val answering = respond()
         val answered = mockk<RespondWalletConnectRequest>(relaxed = true) {
-            every { respondRequest(any(), any(), any(), any()) } answers { arg<() -> Unit>(3)() }
+            every { respondRequest(any(), any(), any()) } answers { thirdArg<() -> Unit>()() }
         }
 
-        viewModel(respond = answering).apply { onRequest(sessionRequest, verifyContext, onError = {}) }.onReject()
-        viewModel(respond = answered).apply { onRequest(sessionRequest, verifyContext, onError = {}) }.onReject()
+        viewModel(respond = answering).apply { onRequest(sessionRequest, onError = {}) }.onReject()
+        viewModel(respond = answered).apply { onRequest(sessionRequest, onError = {}) }.onReject()
 
         verify(exactly = 1) { answering.rejectRequest(sessionRequest, any()) }
         verify(exactly = 0) { answered.rejectRequest(any(), any()) }

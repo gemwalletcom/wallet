@@ -11,8 +11,12 @@ import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
+import uniffi.gemstone.GemWalletConnectAuthentication
+import uniffi.gemstone.GemWalletConnectEvent
+import uniffi.gemstone.GemWalletConnectProposal
+import uniffi.gemstone.GemWalletConnectSessionRequest
 
-class ActiveWalletConnectRequest(events: Flow<WalletConnectEvent>, pendingRequests: WalletConnectPendingRequests, scope: CoroutineScope = CoroutineScope(Dispatchers.Main.immediate + SupervisorJob())) {
+class ActiveWalletConnectRequest(events: Flow<GemWalletConnectEvent>, pendingRequests: WalletConnectPendingRequests, scope: CoroutineScope = CoroutineScope(Dispatchers.Main.immediate + SupervisorJob())) {
 
     private val _current = MutableStateFlow<WalletConnectUserRequest?>(null)
     val current: StateFlow<WalletConnectUserRequest?> = _current.asStateFlow()
@@ -20,13 +24,17 @@ class ActiveWalletConnectRequest(events: Flow<WalletConnectEvent>, pendingReques
     init {
         events.onEach { event ->
             when (event) {
-                is WalletConnectEvent.SessionDeleted -> _current.update { null }
+                is GemWalletConnectEvent.SessionDeleted -> _current.update { current -> current?.takeUnless { it is WalletConnectUserRequest.SessionRequest && it.request.topic == event.topic } }
 
-                is WalletConnectEvent.RequestExpired -> if (!pendingRequests.expire(event.id.toString())) {
+                is GemWalletConnectEvent.RequestExpired -> if (!pendingRequests.expire(event.requestId)) {
                     _current.update { current -> current?.takeUnless { it.isRequest(event) } }
                 }
 
-                else -> event.toUserRequest()?.let { request -> _current.update { request } }
+                is GemWalletConnectEvent.Proposal -> _current.update { WalletConnectUserRequest.SessionProposal(event.proposal) }
+
+                is GemWalletConnectEvent.Authentication -> _current.update { WalletConnectUserRequest.AuthenticationRequest(event.authentication) }
+
+                is GemWalletConnectEvent.Request -> _current.update { WalletConnectUserRequest.SessionRequest(event.request) }
             }
         }.launchIn(scope)
     }
@@ -43,43 +51,27 @@ class ActiveWalletConnectRequest(events: Flow<WalletConnectEvent>, pendingReques
     }
 }
 
-private fun WalletConnectUserRequest.isRequest(expired: WalletConnectEvent.RequestExpired): Boolean = this is WalletConnectUserRequest.SessionRequest && request.topic == expired.topic && request.request.id == expired.id
+private fun WalletConnectUserRequest.isRequest(expired: GemWalletConnectEvent.RequestExpired): Boolean = this is WalletConnectUserRequest.SessionRequest && request.topic == expired.topic && request.requestId == expired.requestId
 
 private val WalletConnectUserRequest.payload: Any
     get() = when (this) {
         is WalletConnectUserRequest.SessionRequest -> request
-        is WalletConnectUserRequest.AuthenticationRequest -> request
+        is WalletConnectUserRequest.AuthenticationRequest -> authentication
         is WalletConnectUserRequest.SessionProposal -> proposal
     }
 
 sealed interface WalletConnectUserRequest {
 
-    val verifyContext: WalletConnectVerifyContext
-
     val key: String
         get() = when (this) {
-            is SessionRequest -> "request/${request.topic}/${request.request.id}"
-            is AuthenticationRequest -> "auth/${request.id}"
-            is SessionProposal -> "proposal/${proposal.proposerPublicKey}"
+            is SessionRequest -> "request/${request.topic}/${request.requestId}"
+            is AuthenticationRequest -> "auth/${authentication.id}"
+            is SessionProposal -> "proposal/${proposal.id}"
         }
 
-    class SessionRequest(val request: WalletConnectSessionRequest, override val verifyContext: WalletConnectVerifyContext) : WalletConnectUserRequest
+    class SessionRequest(val request: GemWalletConnectSessionRequest) : WalletConnectUserRequest
 
-    class AuthenticationRequest(val request: WalletConnectAuthenticationRequest, override val verifyContext: WalletConnectVerifyContext) : WalletConnectUserRequest
+    class AuthenticationRequest(val authentication: GemWalletConnectAuthentication) : WalletConnectUserRequest
 
-    class SessionProposal(val proposal: WalletConnectSessionProposal, override val verifyContext: WalletConnectVerifyContext) : WalletConnectUserRequest
-}
-
-private fun WalletConnectEvent.toUserRequest(): WalletConnectUserRequest? = when (this) {
-    is WalletConnectEvent.SessionRequest -> WalletConnectUserRequest.SessionRequest(request, verifyContext)
-
-    is WalletConnectEvent.AuthenticationRequest -> WalletConnectUserRequest.AuthenticationRequest(request, verifyContext)
-
-    is WalletConnectEvent.SessionProposal -> WalletConnectUserRequest.SessionProposal(proposal, verifyContext)
-
-    is WalletConnectEvent.RequestExpired,
-    is WalletConnectEvent.SessionDeleted,
-    is WalletConnectEvent.SessionSettled,
-    is WalletConnectEvent.SessionChanged,
-    -> null
+    class SessionProposal(val proposal: GemWalletConnectProposal) : WalletConnectUserRequest
 }

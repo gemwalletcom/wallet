@@ -1,5 +1,5 @@
 package com.gemwallet.android.application.wallet_connect.cases
 
-interface IsWalletConnectEnabled {
+fun interface IsWalletConnectEnabled {
     fun isWalletConnectEnabled(): Boolean
 }
