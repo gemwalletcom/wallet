@@ -7,7 +7,7 @@ use gem_evm::{
     },
 };
 use gem_tracing::info_with_fields;
-use primitives::contract_constants::{TRON_SUNSWAP_PERMIT2_CONTRACT, TRON_SUNSWAP_UNIVERSAL_ROUTER_CONTRACT, UNISWAP_PERMIT2_CONTRACT, ZKSYNC_UNISWAP_PERMIT2_CONTRACT};
+use primitives::contract_constants::{PANCAKESWAP_INFINITY_UNIVERSAL_ROUTER_CONTRACT, TRON_SUNSWAP_PERMIT2_CONTRACT, TRON_SUNSWAP_UNIVERSAL_ROUTER_CONTRACT, UNISWAP_PERMIT2_CONTRACT, ZKSYNC_UNISWAP_PERMIT2_CONTRACT};
 use primitives::{AddressType, Chain, ChainType, ScanAddress, SwapProvider};
 use std::collections::HashMap;
 use std::error::Error;
@@ -104,8 +104,20 @@ fn provider_contracts() -> Vec<ScanAddress> {
     let sunswap = [(TRON_SUNSWAP_UNIVERSAL_ROUTER_CONTRACT, "SunSwap Router"), (TRON_SUNSWAP_PERMIT2_CONTRACT, "SunSwap Permit2")]
         .into_iter()
         .map(|(address, name)| ScanAddress::contract(Chain::Tron, address, name));
+    let pancake_infinity = [Chain::SmartChain, Chain::Base]
+        .into_iter()
+        .map(|chain| ScanAddress::contract(chain, PANCAKESWAP_INFINITY_UNIVERSAL_ROUTER_CONTRACT, format!("{} Router", SwapProvider::PancakeswapV3.name())));
 
-    routers.chain(contracts).chain(treasuries).chain(okx).chain(relay).chain(bridgers).chain(mayan_forwarders).chain(sunswap).collect()
+    routers
+        .chain(contracts)
+        .chain(treasuries)
+        .chain(okx)
+        .chain(relay)
+        .chain(bridgers)
+        .chain(mayan_forwarders)
+        .chain(sunswap)
+        .chain(pancake_infinity)
+        .collect()
 }
 
 fn permit2_name(provider: SwapProvider, address: &str) -> String {
@@ -202,6 +214,24 @@ mod tests {
         assert_eq!(name(Chain::ZkSync, ZKSYNC_UNISWAP_PERMIT2_CONTRACT).as_deref(), Some("Permit2"));
         assert_eq!(name(Chain::SmartChain, pancakeswap.permit2).as_deref(), Some("PancakeSwap Permit2"));
         assert_eq!(name(Chain::SmartChain, pancakeswap.universal_router).as_deref(), Some("PancakeSwap Router"));
+    }
+
+    #[test]
+    fn test_the_infinity_universal_router_is_named_pancakeswap_router_on_its_chains() {
+        let contracts = known_contracts();
+
+        assert_eq!(ethereum_address_checksum(PANCAKESWAP_INFINITY_UNIVERSAL_ROUTER_CONTRACT).unwrap(), PANCAKESWAP_INFINITY_UNIVERSAL_ROUTER_CONTRACT);
+        for chain in [Chain::SmartChain, Chain::Base] {
+            assert_eq!(
+                contracts.iter().find(|contract| contract.chain == chain && contract.address == PANCAKESWAP_INFINITY_UNIVERSAL_ROUTER_CONTRACT),
+                Some(&ScanAddress::contract(chain, PANCAKESWAP_INFINITY_UNIVERSAL_ROUTER_CONTRACT, "PancakeSwap Router"))
+            );
+        }
+        let outside_deployed_chains = contracts
+            .iter()
+            .filter(|contract| contract.address == PANCAKESWAP_INFINITY_UNIVERSAL_ROUTER_CONTRACT && contract.chain != Chain::SmartChain && contract.chain != Chain::Base)
+            .count();
+        assert_eq!(outside_deployed_chains, 0);
     }
 
     #[test]
