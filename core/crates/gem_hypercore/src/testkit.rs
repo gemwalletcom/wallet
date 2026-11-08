@@ -24,19 +24,11 @@ impl AssetPositions {
         Self {
             asset_positions: vec![],
             margin_summary: MarginSummary {
-                account_value: "10000".to_string(),
-                total_ntl_pos: "5000".to_string(),
-                total_raw_usd: "5000".to_string(),
-                total_margin_used: "2000".to_string(),
+                account_value: 10000.0,
+                total_ntl_pos: 5000.0,
+                total_margin_used: 2000.0,
             },
-            cross_margin_summary: MarginSummary {
-                account_value: "10000".to_string(),
-                total_ntl_pos: "5000".to_string(),
-                total_raw_usd: "5000".to_string(),
-                total_margin_used: "2000".to_string(),
-            },
-            cross_maintenance_margin_used: "1000".to_string(),
-            withdrawable: "8000".to_string(),
+            withdrawable: 8000.0,
         }
     }
 }

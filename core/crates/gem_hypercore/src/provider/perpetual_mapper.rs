@@ -57,13 +57,15 @@ pub fn map_positions(positions: AssetPositions, address: String, orders: &[OpenO
 }
 
 pub fn map_perpetual_balance(positions: &AssetPositions) -> PerpetualBalance {
-    let equity = positions.margin_summary.account_value.parse().unwrap_or(0.0);
-    let margin_used = positions.margin_summary.total_margin_used.parse().unwrap_or(0.0);
-    let reserved = f64::min(f64::max(margin_used, 0.0), f64::max(equity, 0.0));
+    let equity = positions.margin_summary.account_value;
+    let reserved = f64::min(f64::max(positions.margin_summary.total_margin_used, 0.0), f64::max(equity, 0.0));
     let available = f64::max(equity - reserved, 0.0);
-    let withdrawable = positions.withdrawable.parse().unwrap_or(0.0);
 
-    PerpetualBalance { available, reserved, withdrawable }
+    PerpetualBalance {
+        available,
+        reserved,
+        withdrawable: positions.withdrawable,
+    }
 }
 
 pub fn map_perpetual_dexes_balance(states: &[(PerpDex, AssetPositions)]) -> PerpetualBalance {
@@ -220,8 +222,8 @@ pub fn map_perpetual_portfolio(response: HypercorePortfolioResponse, mode: Perpe
 
 fn map_account_summary(positions: &[AssetPositions], balance: &PerpetualBalance) -> PerpetualAccountSummary {
     let account_value = balance.available + balance.reserved;
-    let total_ntl_pos: f64 = positions.iter().map(|p| p.margin_summary.total_ntl_pos.parse().unwrap_or(0.0)).sum();
-    let total_margin_used: f64 = positions.iter().map(|p| p.margin_summary.total_margin_used.parse().unwrap_or(0.0)).sum();
+    let total_ntl_pos: f64 = positions.iter().map(|p| p.margin_summary.total_ntl_pos).sum();
+    let total_margin_used: f64 = positions.iter().map(|p| p.margin_summary.total_margin_used).sum();
     let unrealized_pnl: f64 = positions.iter().flat_map(|p| &p.asset_positions).map(|p| p.position.unrealized_pnl.parse().unwrap_or(0.0)).sum();
 
     let account_leverage = if account_value > 0.0 { total_ntl_pos / account_value } else { 0.0 };
@@ -350,19 +352,11 @@ mod tests {
                 },
             }],
             margin_summary: MarginSummary {
-                account_value: "100000".to_string(),
-                total_ntl_pos: "10000".to_string(),
-                total_raw_usd: "10000".to_string(),
-                total_margin_used: "8000".to_string(),
+                account_value: 100000.0,
+                total_ntl_pos: 10000.0,
+                total_margin_used: 8000.0,
             },
-            cross_margin_summary: MarginSummary {
-                account_value: "100000".to_string(),
-                total_ntl_pos: "10000".to_string(),
-                total_raw_usd: "10000".to_string(),
-                total_margin_used: "8000".to_string(),
-            },
-            cross_maintenance_margin_used: "3000".to_string(),
-            withdrawable: "92000".to_string(),
+            withdrawable: 92000.0,
         };
 
         let result = map_positions(positions, "test_address".to_string(), &[]);
@@ -614,19 +608,11 @@ mod tests {
                 },
             ],
             margin_summary: MarginSummary {
-                account_value: "1000".to_string(),
-                total_ntl_pos: "100".to_string(),
-                total_raw_usd: "100".to_string(),
-                total_margin_used: "100".to_string(),
+                account_value: 1000.0,
+                total_ntl_pos: 100.0,
+                total_margin_used: 100.0,
             },
-            cross_margin_summary: MarginSummary {
-                account_value: "1000".to_string(),
-                total_ntl_pos: "100".to_string(),
-                total_raw_usd: "100".to_string(),
-                total_margin_used: "100".to_string(),
-            },
-            cross_maintenance_margin_used: "50".to_string(),
-            withdrawable: "500".to_string(),
+            withdrawable: 500.0,
         };
 
         let summary = map_positions(positions, "test_user".to_string(), &[]);
@@ -734,12 +720,15 @@ mod tests {
             },
             "the margin of the isolated HYPE position is in use alongside the cross BTC margin"
         );
+
+        let malformed = include_str!("../../testdata/perpetual_positions_response_clearinghouse_state_isolated.json").replace(r#""totalMarginUsed": "8.286603""#, r#""totalMarginUsed": """#);
+        assert!(serde_json::from_str::<AssetPositions>(&malformed).is_err(), "margin in use that cannot be read never frees the account value");
     }
 
     #[test]
     fn test_map_perpetual_dexes_balance() {
         let xyz = AssetPositions {
-            withdrawable: "500".to_string(),
+            withdrawable: 500.0,
             ..AssetPositions::mock()
         };
         let balance = map_perpetual_dexes_balance(&[(PerpDex::Main, AssetPositions::mock()), (PerpDex::Xyz, xyz)]);
@@ -753,19 +742,11 @@ mod tests {
         let positions = AssetPositions {
             asset_positions: vec![],
             margin_summary: MarginSummary {
-                account_value: "706.364534".to_string(),
-                total_ntl_pos: "12013.47849".to_string(),
-                total_raw_usd: "2737.835324".to_string(),
-                total_margin_used: "926.155026".to_string(),
+                account_value: 706.364534,
+                total_ntl_pos: 12013.47849,
+                total_margin_used: 926.155026,
             },
-            cross_margin_summary: MarginSummary {
-                account_value: "706.364534".to_string(),
-                total_ntl_pos: "12013.47849".to_string(),
-                total_raw_usd: "2737.835324".to_string(),
-                total_margin_used: "926.155026".to_string(),
-            },
-            cross_maintenance_margin_used: "400.689965".to_string(),
-            withdrawable: "305.674569".to_string(),
+            withdrawable: 305.674569,
         };
 
         let summary = map_positions(positions, "real_data_test".to_string(), &[]);

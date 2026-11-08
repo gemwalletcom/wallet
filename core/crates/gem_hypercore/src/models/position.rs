@@ -1,22 +1,24 @@
 use serde::{Deserialize, Serialize};
+use serde_serializers::deserialize_f64_from_str;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AssetPositions {
     pub asset_positions: Vec<AssetPosition>,
     pub margin_summary: MarginSummary,
-    pub cross_margin_summary: MarginSummary,
-    pub cross_maintenance_margin_used: String,
-    pub withdrawable: String,
+    #[serde(deserialize_with = "deserialize_f64_from_str")]
+    pub withdrawable: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MarginSummary {
-    pub account_value: String,
-    pub total_ntl_pos: String,
-    pub total_raw_usd: String,
-    pub total_margin_used: String,
+    #[serde(deserialize_with = "deserialize_f64_from_str")]
+    pub account_value: f64,
+    #[serde(deserialize_with = "deserialize_f64_from_str")]
+    pub total_ntl_pos: f64,
+    #[serde(deserialize_with = "deserialize_f64_from_str")]
+    pub total_margin_used: f64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
