@@ -29,6 +29,7 @@ flowchart LR
 | The user rejects a request | a refusal goes back to the dapp | |
 | A new request arrives while another one is on screen | the new request shows and the earlier one is refused, so its dapp is told | the earlier review is gone and can no longer be approved |
 | A new request arrives while an approved request or connection is still being sent | the answer still reaches its dapp | the user already approved it |
+| A request, connection or sign-in is rejected while its approval is still being prepared | the dapp gets one answer, the first one finished | a dapp told both could act on either |
 | The same connection code is opened again while its proposal is on screen | the proposal stays; approving or rejecting it closes it | a code opened again while its proposal is shown is subscribed to once and leaves that proposal as it is |
 | A second connection is approved before the first dapp confirms its own | each connection is listed under, and signs with, the wallet it was approved with | a request is reviewed and signed by its connection's wallet (`the connection is listed under the wallet that approved it`) |
 | The app is opened with a dapp already connected and a new dapp's code arrives at once | the new proposal shows and can be approved | the client is set up once, so the proposal arrives once and no copy of it is refused, which the dapp would see as a failed connection |

@@ -94,12 +94,12 @@ impl ClientState {
         Some((request.clone(), self.session(topic)?.clone()))
     }
 
-    pub fn has_request(&self, topic: &str, id: u64) -> bool {
-        self.requests.iter().any(|request| request.topic == topic && request.id == id)
-    }
-
-    pub fn is_answered(&self, topic: &str, id: u64) -> bool {
-        self.answered.iter().any(|answered| answered.topic == topic && answered.id == id)
+    pub fn add_request(&mut self, request: PendingRequest) -> bool {
+        let is_known = self.requests.iter().any(|pending| pending.topic == request.topic && pending.id == request.id) || self.answered.iter().any(|answered| answered.topic == request.topic && answered.id == request.id);
+        if !is_known {
+            self.requests.push(request);
+        }
+        !is_known
     }
 
     pub fn show_next_request(&mut self) -> Option<(PendingRequest, Session)> {
@@ -113,13 +113,18 @@ impl ClientState {
         Some((request, session))
     }
 
-    pub fn answer(&mut self, request: &PendingRequest, now: u64) {
-        self.requests.retain(|pending| !(pending.topic == request.topic && pending.id == request.id));
+    pub fn answer(&mut self, topic: &str, id: u64, answer: Outgoing, now: u64) -> bool {
+        let Some(index) = self.requests.iter().position(|pending| pending.topic == topic && pending.id == id) else {
+            return false;
+        };
+        let request = self.requests.remove(index);
         self.answered.push(AnsweredRequest {
-            topic: request.topic.clone(),
+            topic: request.topic,
             id: request.id,
             expiry: request.expiry.unwrap_or_default().max(now + ANSWER_MEMORY_SECONDS),
         });
+        self.outbox.push(answer);
+        true
     }
 
     pub fn remove_pairing(&mut self, topic: &str) {
@@ -184,8 +189,9 @@ mod tests {
             ..ClientState::default()
         };
 
-        state.answer(&PendingRequest::mock("topic", 1, Some(500_000)), 100);
-        state.answer(&PendingRequest::mock("topic", 2, None), 100);
+        assert!(state.answer("topic", 1, Outgoing::mock(10, 200), 100));
+        assert!(state.answer("topic", 2, Outgoing::mock(11, 200), 100));
+        assert!(!state.answer("topic", 1, Outgoing::mock(12, 200), 100), "a request is answered once");
 
         assert!(state.requests.is_empty());
         assert_eq!(
@@ -193,7 +199,10 @@ mod tests {
             vec![AnsweredRequest::mock(1, 500_000), AnsweredRequest::mock(2, 86_500)],
             "an answer is remembered while the request could still be delivered again"
         );
-        assert!(state.is_answered("topic", 1));
+        assert_eq!(state.outbox, vec![Outgoing::mock(10, 200), Outgoing::mock(11, 200)]);
+        assert!(!state.add_request(PendingRequest::mock("topic", 1, None)), "a request delivered again after its answer is not asked again");
+        assert!(state.add_request(PendingRequest::mock("topic", 3, None)));
+        assert!(!state.add_request(PendingRequest::mock("topic", 3, None)));
     }
 
     #[test]
@@ -207,7 +216,7 @@ mod tests {
         assert_eq!(state.show_next_request().map(|(request, _)| request.id), Some(1), "the oldest unanswered request shows first");
         assert_eq!(state.show_next_request(), None, "one request at a time");
 
-        state.answer(&PendingRequest::mock("topic", 1, None), 100);
+        state.answer("topic", 1, Outgoing::mock(10, 200), 100);
         assert_eq!(state.show_next_request().map(|(request, _)| request.id), Some(2));
         assert_eq!(state.show_next_request(), None);
 
