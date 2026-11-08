@@ -616,7 +616,7 @@ mod tests {
         assert_eq!(available(&testkit), None, "a unified account's dex snapshot holds only the margin in use");
 
         message(&testkit, spot_state);
-        assert_eq!(available(&testkit), Some("3797316".to_string()), "the switch to unified is read from the stored mode without a new subscription");
+        assert_eq!(available(&testkit), Some("0".to_string()), "the switch to unified is read from the stored mode without a new subscription");
     }
 
     #[test]

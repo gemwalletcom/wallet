@@ -87,11 +87,11 @@ pub fn map_perpetual_balance_from_spot(balances: &Balances) -> PerpetualBalance 
         };
     };
     let total = f64::max(collateral.total.parse().unwrap_or(0.0), 0.0);
+    let unheld = total - collateral.hold.parse::<f64>().unwrap_or(0.0).clamp(0.0, total);
     let available = balances
         .available_after_maintenance(collateral.token)
         .and_then(|value| value.parse::<f64>().ok())
-        .map(|value| value.clamp(0.0, total))
-        .unwrap_or(total);
+        .map_or(unheld, |value| value.clamp(0.0, unheld));
 
     PerpetualBalance {
         available,
@@ -901,30 +901,60 @@ mod tests {
 
     #[test]
     fn test_map_perpetual_balance_from_spot() {
+        let fully_held = Balances {
+            balances: vec![Balance {
+                coin: "USDC".to_string(),
+                token: 0,
+                total: "13886.403816".to_string(),
+                hold: "13886.403816".to_string(),
+            }],
+            token_to_available_after_maintenance: vec![(0, "6734.444416".to_string())],
+        };
+        assert_eq!(
+            map_perpetual_balance_from_spot(&fully_held),
+            PerpetualBalance {
+                available: 0.0,
+                reserved: 13886.403816,
+                withdrawable: 0.0,
+            },
+            "the initial margin of open positions is held, however far the account is from maintenance margin"
+        );
+
         let collateral = Balance {
             coin: "USDC".to_string(),
             token: 0,
-            total: "4.331289".to_string(),
-            hold: "4.331289".to_string(),
+            total: "100.5".to_string(),
+            hold: "70.25".to_string(),
         };
+        let partly_held = PerpetualBalance {
+            available: 30.25,
+            reserved: 70.25,
+            withdrawable: 30.25,
+        };
+        let balances = Balances {
+            balances: vec![collateral.clone()],
+            token_to_available_after_maintenance: vec![(0, "90".to_string())],
+        };
+        assert_eq!(map_perpetual_balance_from_spot(&balances), partly_held);
 
         let balances = Balances {
             balances: vec![collateral.clone()],
-            token_to_available_after_maintenance: vec![(0, "3.797316".to_string())],
+            token_to_available_after_maintenance: vec![],
         };
-        let balance = map_perpetual_balance_from_spot(&balances);
-
-        assert_eq!(balance.available, 3.797316);
-        assert_eq!(balance.reserved, 4.331289 - 3.797316);
-        assert_eq!(balance.withdrawable, 3.797316);
+        assert_eq!(map_perpetual_balance_from_spot(&balances), partly_held);
 
         let balances = Balances {
             balances: vec![collateral],
-            token_to_available_after_maintenance: vec![],
+            token_to_available_after_maintenance: vec![(0, "20.5".to_string())],
         };
-        let balance = map_perpetual_balance_from_spot(&balances);
-
-        assert_eq!(balance.available, 4.331289);
-        assert_eq!(balance.reserved, 0.0);
+        assert_eq!(
+            map_perpetual_balance_from_spot(&balances),
+            PerpetualBalance {
+                available: 20.5,
+                reserved: 80.0,
+                withdrawable: 20.5,
+            },
+            "the lower of Hyperliquid's two limits counts"
+        );
     }
 }

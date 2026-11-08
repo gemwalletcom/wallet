@@ -8,14 +8,12 @@ use std::error::Error;
 
 pub fn map_balance_token(asset_id: AssetId, balance: &SpotBalance, available_after_maintenance: Option<&str>, decimals: u32) -> Result<AssetBalance, Box<dyn Error + Sync + Send>> {
     let total = BigNumberFormatter::value_from_amount_biguint(&balance.total, decimals)?;
+    let hold = BigNumberFormatter::value_from_amount_biguint(&balance.hold, decimals)?;
+    let unheld = total.clone() - hold.min(total.clone());
     let available = match available_after_maintenance {
-        Some(amount) => BigNumberFormatter::value_from_amount_biguint(amount, decimals)?,
-        None => {
-            let hold = BigNumberFormatter::value_from_amount_biguint(&balance.hold, decimals)?;
-            total.clone() - hold.min(total.clone())
-        }
+        Some(amount) => BigNumberFormatter::value_from_amount_biguint(amount, decimals)?.min(unheld),
+        None => unheld,
     };
-    let available = available.min(total.clone());
     let reserved = total - available.clone();
 
     Ok(AssetBalance::new_balance(asset_id, Balance::with_reserved(available, reserved)))
@@ -85,10 +83,15 @@ mod tests {
         assert_eq!(result.balance.reserved, "202003200".parse::<BigUint>().unwrap());
         assert_eq!(result.asset_id.token_id, Some("USDC::0".to_string()));
 
-        let result = map_balance_token(asset_id, &balance, Some("12.69152703"), 8).unwrap();
+        let result = map_balance_token(asset_id.clone(), &balance, Some("12.69152703"), 8).unwrap();
 
-        assert_eq!(result.balance.available, "1269152703".parse::<BigUint>().unwrap());
-        assert_eq!(result.balance.reserved, "20200300".parse::<BigUint>().unwrap());
+        assert_eq!(result.balance.available, "1087349803".parse::<BigUint>().unwrap(), "a held amount is not available, whatever is left after maintenance margin");
+        assert_eq!(result.balance.reserved, "202003200".parse::<BigUint>().unwrap());
+
+        let result = map_balance_token(asset_id, &balance, Some("5.5"), 8).unwrap();
+
+        assert_eq!(result.balance.available, "550000000".parse::<BigUint>().unwrap());
+        assert_eq!(result.balance.reserved, "739353003".parse::<BigUint>().unwrap());
     }
 
     #[test]

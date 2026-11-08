@@ -130,7 +130,7 @@ fn is_on(dex: PerpDex, position: &PerpetualPosition) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{Chain, PerpetualDirection, PerpetualMarginType, PerpetualTriggerOrder};
+    use primitives::{Chain, PerpetualBalance, PerpetualDirection, PerpetualMarginType, PerpetualTriggerOrder};
 
     #[test]
     fn test_parse_all_mids() {
@@ -263,9 +263,14 @@ mod tests {
             panic!("expected SpotState");
         };
 
-        assert_eq!(balance.available, 3.797316);
-        assert_eq!(balance.reserved, 4.331289 - 3.797316);
-        assert_eq!(balance.withdrawable, 3.797316);
+        assert_eq!(
+            balance,
+            PerpetualBalance {
+                available: 0.0,
+                reserved: 4.331289,
+                withdrawable: 0.0,
+            }
+        );
     }
 
     #[test]

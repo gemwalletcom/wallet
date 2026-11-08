@@ -180,8 +180,8 @@ mod tests {
         let summary = account.summary;
 
         assert_eq!(account.mode, PerpetualAccountMode::Unified);
-        assert_eq!(summary.balance.available, 3.797316);
-        assert_eq!(summary.balance.reserved, 4.331289 - 3.797316);
+        assert_eq!(summary.balance.available, 0.0);
+        assert_eq!(summary.balance.reserved, 4.331289);
         assert_eq!(summary.positions.len(), 1);
     }
 
