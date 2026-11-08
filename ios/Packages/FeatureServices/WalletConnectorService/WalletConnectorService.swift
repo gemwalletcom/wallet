@@ -20,7 +20,13 @@ public actor WalletConnectorService {
     private let interactor: any WalletConnectorInteractable
     private let service: any GemWalletConnectServiceProtocol
     private var eventsTask: Task<Void, Never>?
-    private var connectionTask: Task<Void, Never>?
+    private var relay: RelayConnection = .closed
+
+    private enum RelayConnection {
+        case closed
+        case opening(UUID)
+        case open(Task<Void, Never>)
+    }
 
     public init(
         client: any GemWalletConnectClientProtocol,
@@ -63,8 +69,10 @@ extension WalletConnectorService: WalletConnectorServiceable {
     }
 
     public func disconnect() async {
-        connectionTask?.cancel()
-        connectionTask = nil
+        if case let .open(task) = relay {
+            task.cancel()
+        }
+        relay = .closed
         await webSocket.disconnect()
     }
 
@@ -92,16 +100,16 @@ extension WalletConnectorService: WalletConnectorServiceable {
 
 extension WalletConnectorService {
     private func startConnection() async {
-        guard connectionTask == nil else { return }
-        let opening = Task<Void, Never> {}
-        connectionTask = opening
+        guard case .closed = relay else { return }
+        let attempt = UUID()
+        relay = .opening(attempt)
         let stream = await webSocket.connect()
-        guard connectionTask == opening else { return }
-        connectionTask = Task { [weak self] in
+        guard case let .opening(current) = relay, current == attempt else { return }
+        relay = .open(Task { [weak self] in
             for await event in stream {
                 await self?.receive(event)
             }
-        }
+        })
     }
 
     private func receive(_ event: WebSocketEvent) async {

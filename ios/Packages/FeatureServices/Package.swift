@@ -128,6 +128,11 @@ let package = Package(
             name: "WalletConnectorServiceTestKit",
             dependencies: [
                 "WalletConnectorService",
+                "Gemstone",
+                "Primitives",
+                .product(name: "WebSocketClient", package: "SwiftHTTPClient"),
+                .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
+                .product(name: "GemstoneServicesTestKit", package: "GemstoneServices"),
             ],
             path: "WalletConnectorService/TestKit",
         ),
@@ -135,8 +140,10 @@ let package = Package(
             name: "WalletConnectorServiceTests",
             dependencies: [
                 "WalletConnectorService",
+                "WalletConnectorServiceTestKit",
                 "Gemstone",
                 "Primitives",
+                .product(name: "WebSocketClientTestKit", package: "SwiftHTTPClient"),
             ],
             path: "WalletConnectorService/Tests",
         ),
