@@ -81,11 +81,9 @@ jobs:
         if: ${{ inputs.suite != 'maestro' }}
         run: just test-integration-without-building
 
-      - name: Install Maestro
+      - name: Setup Maestro
         if: ${{ inputs.suite != 'native' }}
-        run: |
-          curl -Ls https://get.maestro.mobile.dev | bash
-          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+        uses: ./.github/actions/setup-maestro
 
       - name: Maestro flows
         if: ${{ inputs.suite != 'native' }}
@@ -144,11 +142,9 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      - name: Install Maestro
+      - name: Setup Maestro
         if: ${{ inputs.suite != 'native' }}
-        run: |
-          curl -Ls https://get.maestro.mobile.dev | bash
-          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+        uses: ./.github/actions/setup-maestro
 
       - name: Maestro flows
         if: ${{ inputs.suite != 'native' }}

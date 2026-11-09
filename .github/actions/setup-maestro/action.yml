@@ -1,0 +1,18 @@
+name: Setup Maestro
+description: Install a pinned Maestro CLI release, verified by its SHA-256.
+
+runs:
+  using: composite
+  steps:
+    - name: Install Maestro
+      shell: bash
+      env:
+        MAESTRO_VERSION: "2.12.1"
+        MAESTRO_SHA256: "54dbb0716425626604973cbb374c585ca30272375d9ce15177a1152765ddd9d7"
+      run: |
+        zip="$RUNNER_TEMP/maestro.zip"
+        curl -fsSL -o "$zip" "https://github.com/mobile-dev-inc/maestro/releases/download/cli-${MAESTRO_VERSION}/maestro.zip"
+        echo "${MAESTRO_SHA256}  ${zip}" | shasum -a 256 -c -
+        unzip -q "$zip" -d "$RUNNER_TEMP"
+        rm "$zip"
+        echo "$RUNNER_TEMP/maestro/bin" >> "$GITHUB_PATH"

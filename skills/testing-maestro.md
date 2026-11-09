@@ -20,7 +20,7 @@ A Maestro flow earns its cost only when the journey is reachable, cross-platform
 
 ## Setup
 
-- **Install** (official installer): `curl -fsSL "https://get.maestro.mobile.dev" | bash`. Verify: `maestro --version` (validated against `2.6.1`).
+- **Install** (official installer): `curl -fsSL "https://get.maestro.mobile.dev" | bash`. Verify: `maestro --version` matches the release CI pins, with its SHA-256, in `.github/actions/setup-maestro/action.yml`.
 - **iOS simulator** needs Xcode Command Line Tools (`xcode-select --install`); Maestro installs its own xctest driver on the first simulator run — no `idb` required on current versions. Physical devices need extra signing setup (out of scope here).
 - **Build and install the app first.** Maestro drives the *installed* build, not your source tree. Run `just ios run` / `just android run` before a flow, and reinstall after any structural, rename, or DI change (Android hot-swap silently skips those).
 
