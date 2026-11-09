@@ -6,7 +6,7 @@ use std::{collections::HashMap, error::Error};
 use async_trait::async_trait;
 use futures::{StreamExt, TryStreamExt, stream};
 use gem_tracing::info_with_fields;
-use primitives::{AssetAddress, AssetIdVecExt, AssetPriceMetadata, Chain, DeviceSubscription, NFTAssetId, NFTChain, Transaction, TransactionId, TransactionState, TransactionType};
+use primitives::{AssetAddress, AssetIdVecExt, AssetPriceMetadata, Chain, DeviceSubscription, NFTAssetId, NFTChain, Transaction, TransactionId, TransactionState, TransactionType, VerificationStatus};
 use storage::AssetFilter;
 use streamer::{AssetId, NotificationsPayload, QueueName, StreamProducerQueue, TransactionNotificationType, TransactionsPayload, WalletStreamEvent, WalletStreamPayload, consumer::MessageConsumer};
 use swapper::SwapperProvider;
@@ -209,6 +209,7 @@ impl StoreTransactionsConsumer {
                 publishable_transactions
                     .iter()
                     .filter(|transaction| transaction.addresses().contains(&subscription.address) && config.should_notify_transaction(transaction, &subscription.address, is_notify_devices, send_addresses))
+                    .filter(|transaction| !Self::is_unverified_transfer_received(transaction, &subscription.address, assets))
                     .map(|transaction| {
                         let assets = transaction.asset_ids().iter().filter_map(|id| assets.get(id)).map(|asset_price| asset_price.asset.asset.clone()).collect();
                         (subscription.clone(), (*transaction).clone(), assets)
@@ -221,6 +222,13 @@ impl StoreTransactionsConsumer {
             .try_collect()
             .await?;
         Ok(NotificationsPayload::batches(notifications.into_iter().flatten().collect(), config.notifications_batch_size))
+    }
+
+    fn is_unverified_transfer_received(transaction: &Transaction, address: &str, assets: &HashMap<AssetId, AssetPriceMetadata>) -> bool {
+        let transaction = transaction.finalize(vec![address.to_string()]);
+        transaction.transaction_type == TransactionType::Transfer
+            && !transaction.is_sent(address.to_string())
+            && assets.get(&transaction.asset_id).is_some_and(|asset_price| !VerificationStatus::from_rank(asset_price.asset.score.rank).is_verified())
     }
 
     fn wallet_events(subscriptions: &[DeviceSubscription], subscribed_transactions: &[(&DeviceSubscription, &Transaction)], publishable_transactions: &[&Transaction]) -> Vec<WalletStreamPayload> {
@@ -377,7 +385,7 @@ mod tests {
     };
     use num_bigint::BigUint;
     use primitives::{
-        Asset, AssetId, Device, JsonRpcResult, SwapProvider, TransactionPerpetualMetadata, TransactionSwapMetadata, TransactionSwapReferralFee, WalletId,
+        Asset, AssetId, AssetScore, Device, JsonRpcResult, SwapProvider, TransactionPerpetualMetadata, TransactionSwapMetadata, TransactionSwapReferralFee, WalletId,
         asset_constants::SOLANA_USDC_ASSET_ID,
         contract_constants::{SOLANA_MAYAN_CPI_PROXY_PROGRAM_ID, SOLANA_RELAY_DEPOSITORY_PROGRAM_ID},
         known_assets::HYPERCORE_PERPETUAL_USDC,
@@ -486,6 +494,48 @@ mod tests {
             subscribed.iter().map(|(_, transaction)| transaction.asset_id.clone()).collect::<Vec<_>>(),
             vec![AssetId::from_chain(Chain::Ethereum), HYPERCORE_PERPETUAL_USDC.id.clone()]
         );
+    }
+
+    #[test]
+    fn test_unverified_transfer_received() {
+        let asset = |asset: Asset, rank: i32| {
+            let mut basic = asset.as_basic_primitive();
+            basic.score = AssetScore::new(rank);
+            (basic.asset.id.clone(), AssetPriceMetadata { asset: basic, price: None })
+        };
+        let fake_token = Asset::mock_ethereum_usdc();
+        let suspicious_token = Asset::mock_erc20();
+        let verified_token = Asset::mock_spl_token();
+        let assets = HashMap::from([
+            asset(Asset::mock_eth(), Chain::Ethereum.rank()),
+            asset(fake_token.clone(), 15),
+            asset(suspicious_token.clone(), 5),
+            asset(verified_token.clone(), 16),
+        ]);
+        let transfer = |asset: &Asset| Transaction::mock_with_params(asset.id.clone(), TransactionType::Transfer, BigUint::from(1u32));
+
+        assert!(StoreTransactionsConsumer::is_unverified_transfer_received(&transfer(&fake_token), "0xto", &assets));
+        assert!(StoreTransactionsConsumer::is_unverified_transfer_received(&transfer(&suspicious_token), "0xto", &assets));
+        assert!(!StoreTransactionsConsumer::is_unverified_transfer_received(&transfer(&fake_token), "0xfrom", &assets));
+        assert!(!StoreTransactionsConsumer::is_unverified_transfer_received(&transfer(&verified_token), "0xto", &assets));
+        assert!(!StoreTransactionsConsumer::is_unverified_transfer_received(&Transaction::mock(), "0xto", &assets));
+        assert!(!StoreTransactionsConsumer::is_unverified_transfer_received(
+            &Transaction::mock_with_params(fake_token.id.clone(), TransactionType::SmartContractCall, BigUint::from(1u32)),
+            "0xto",
+            &assets
+        ));
+
+        let airdrop = |to: &str| TransactionAssetTransfer {
+            asset_id: fake_token.id.clone(),
+            from: "0xairdropper".to_string(),
+            to: to.to_string(),
+            value: BigUint::from(1u32),
+        };
+        let batch_airdrop = Transaction {
+            transaction_type: TransactionType::SmartContractCall,
+            ..Transaction::mock_with_asset_transfers(vec![airdrop("0xuser"), airdrop("0xother")])
+        };
+        assert!(StoreTransactionsConsumer::is_unverified_transfer_received(&batch_airdrop, "0xuser", &assets));
     }
 
     #[test]

@@ -80,3 +80,5 @@ A settled transaction pushes to every device subscribed to the wallet. A failed 
 | Asset activation, perpetual modify | no push | no push |
 
 The second line is the push body; a failed swap, approval, stake action or contract call has none. A failed transfer says Transfer rather than Sent, because nothing was sent.
+
+A received transfer of an Unverified or Suspicious token pushes nothing: Activity hides it, and an airdropped token named like a known one would otherwise announce a worthless token as "Received 1,000 USDT".
