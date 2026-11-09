@@ -1,6 +1,6 @@
 use alloy_sol_types::SolCall;
 use num_bigint::BigUint;
-use primitives::{Chain, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult, contract_constants::UNISWAP_PERMIT2_CONTRACT};
+use primitives::{Chain, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult};
 
 use super::{
     approval_method::ApprovalMethod,
@@ -12,6 +12,7 @@ use gem_evm::{
     eip712::{EIP712Field, EIP712Message, EIP712TypedValue, find_field_biguint, find_field_bool, find_field_string, find_field_struct},
     ethereum_address_checksum,
     permit2::IAllowanceTransfer,
+    uniswap::deployment::is_permit2_contract_by_chain,
 };
 
 pub fn simulate_eip712_message(chain: Chain, message: &EIP712Message) -> SimulationResult {
@@ -74,7 +75,7 @@ pub(crate) fn decode_evm_approval(chain: Chain, calldata: &[u8], contract_addres
     }
 
     if calldata.starts_with(&<IAllowanceTransfer::approveCall as SolCall>::SELECTOR)
-        && contract_address.eq_ignore_ascii_case(UNISWAP_PERMIT2_CONTRACT)
+        && is_permit2_contract_by_chain(&chain, contract_address)
         && let Ok(call) = <IAllowanceTransfer::approveCall as SolCall>::abi_decode_validate(calldata)
     {
         return ApprovalRequest::permit(
@@ -262,7 +263,7 @@ mod tests {
     use primitives::{
         Chain, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationResult, SimulationWarningType,
         asset_constants::{ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDC_TOKEN_ID},
-        contract_constants::UNISWAP_PERMIT2_CONTRACT,
+        contract_constants::{UNISWAP_PERMIT2_CONTRACT, ZKSYNC_UNISWAP_PERMIT2_CONTRACT},
     };
     use serde_json::{Value, json};
 
@@ -583,8 +584,15 @@ mod tests {
         assert_eq!(result.payload[5].value, "1800000000");
         assert_eq!(result.header.as_ref().map(|header| header.asset_id.clone()), Some(ETHEREUM_USDC_ASSET_ID.clone()));
 
+        let zksync = simulate_evm_calldata(Chain::ZkSync, &calldata, ZKSYNC_UNISWAP_PERMIT2_CONTRACT);
+        assert!(is_token_warning(&zksync.warnings[0].warning));
+        assert_eq!(kinds(&zksync), kinds(&result));
+        assert_eq!(zksync.payload[2].value, result.payload[2].value);
+
         let other_contract = simulate_evm_calldata(Chain::Ethereum, &calldata, "0x2222222222222222222222222222222222222222");
         assert_eq!(kinds(&other_contract), vec![SimulationPayloadFieldKind::Contract]);
+        let other_chain = simulate_evm_calldata(Chain::Ethereum, &calldata, ZKSYNC_UNISWAP_PERMIT2_CONTRACT);
+        assert_eq!(kinds(&other_chain), vec![SimulationPayloadFieldKind::Contract]);
     }
 
     #[test]

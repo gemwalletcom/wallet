@@ -29,8 +29,8 @@ fn tron_token_warning(transaction_type: &WalletConnectTransactionType, data: &st
     Some(SimulationWarning::new(SimulationSeverity::Warning, SimulationWarningType::ValidationError, Some(message)))
 }
 
-pub(crate) fn decode_ethereum_transaction(data: &str) -> Result<(WCEthereumTransactionData, EvmTransactionKind), String> {
-    let transaction = WalletConnectRequestHandler::decode_send_transaction(WalletConnectTransactionType::Ethereum, data.to_string())?;
+pub(crate) fn decode_ethereum_transaction(chain: Chain, data: &str) -> Result<(WCEthereumTransactionData, EvmTransactionKind), String> {
+    let transaction = WalletConnectRequestHandler::decode_send_transaction(chain, WalletConnectTransactionType::Ethereum, data.to_string())?;
     match transaction {
         WalletConnectTransaction::Ethereum { data, kind } => Ok((data, kind)),
         _ => Err("Invalid Ethereum transaction".to_string()),
@@ -110,7 +110,7 @@ mod tests {
         })
         .to_string();
 
-        let (transaction, _) = decode_ethereum_transaction(&data).unwrap();
+        let (transaction, _) = decode_ethereum_transaction(Chain::Ethereum, &data).unwrap();
 
         assert_eq!(decode_ethereum_calldata(&transaction).unwrap(), vec![0xa9, 0x05, 0x9c, 0xbb]);
     }
@@ -127,7 +127,7 @@ mod tests {
             })
             .to_string();
 
-            let (transaction, _) = decode_ethereum_transaction(&data).unwrap();
+            let (transaction, _) = decode_ethereum_transaction(Chain::Ethereum, &data).unwrap();
             let result = ::simulation::evm::simulate_evm_calldata(Chain::Ethereum, &decode_ethereum_calldata(&transaction).unwrap(), &transaction.to);
 
             assert_eq!(
@@ -147,7 +147,7 @@ mod tests {
         })
         .to_string();
 
-        let (transaction, _) = decode_ethereum_transaction(&data).unwrap();
+        let (transaction, _) = decode_ethereum_transaction(Chain::Ethereum, &data).unwrap();
 
         assert!(decode_ethereum_calldata(&transaction).unwrap().is_empty());
     }

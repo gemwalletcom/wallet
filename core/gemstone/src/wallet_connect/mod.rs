@@ -73,8 +73,8 @@ impl WalletConnect {
         decode_sign_message(chain, sign_type, data)
     }
 
-    pub fn decode_send_transaction(&self, transaction_type: WalletConnectTransactionType, data: String) -> Result<WalletConnectTransaction, GemstoneError> {
-        WalletConnectRequestHandler::decode_send_transaction(transaction_type, data).map_err(|e| GemstoneError::AnyError { msg: e })
+    pub fn decode_send_transaction(&self, chain: Chain, transaction_type: WalletConnectTransactionType, data: String) -> Result<WalletConnectTransaction, GemstoneError> {
+        WalletConnectRequestHandler::decode_send_transaction(chain, transaction_type, data).map_err(|e| GemstoneError::AnyError { msg: e })
     }
 }
 

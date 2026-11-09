@@ -3,11 +3,12 @@ use alloy_primitives::{Address, U160, U256};
 use alloy_sol_types::SolCall;
 use num_bigint::BigUint;
 use num_traits::Zero;
-use primitives::contract_constants::UNISWAP_PERMIT2_CONTRACT;
+use primitives::Chain;
 use primitives::swap::ApprovalData;
 
 use crate::contracts::erc20::IERC20;
 use crate::permit2::IAllowanceTransfer;
+use crate::uniswap::deployment::is_permit2_contract_by_chain;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum EvmTransactionKind {
@@ -21,16 +22,16 @@ pub fn decode_calldata(input: &str) -> Result<Vec<u8>, String> {
     primitives::hex::decode(digits).map_err(|error| error.to_string())
 }
 
-pub fn decode_transaction_kind(to: &str, input: Option<&str>, value: Option<&BigUint>) -> Result<EvmTransactionKind, String> {
+pub fn decode_transaction_kind(chain: Chain, to: &str, input: Option<&str>, value: Option<&BigUint>) -> Result<EvmTransactionKind, String> {
     let calldata = input.map(decode_calldata).transpose()?.unwrap_or_default();
 
-    match decode_calldata_kind(to, &calldata)? {
+    match decode_calldata_kind(chain, to, &calldata)? {
         EvmTransactionKind::TokenApproval(_) if value.is_some_and(|value| !value.is_zero()) => Ok(EvmTransactionKind::ContractCall),
         kind => Ok(kind),
     }
 }
 
-fn decode_calldata_kind(to: &str, calldata: &[u8]) -> Result<EvmTransactionKind, String> {
+fn decode_calldata_kind(chain: Chain, to: &str, calldata: &[u8]) -> Result<EvmTransactionKind, String> {
     match calldata {
         [] => Ok(EvmTransactionKind::Transfer),
         selector if selector.starts_with(&IERC20::approveCall::SELECTOR) => {
@@ -45,7 +46,7 @@ fn decode_calldata_kind(to: &str, calldata: &[u8]) -> Result<EvmTransactionKind,
             let approval = IERC20::increaseApprovalCall::abi_decode(calldata).map_err(|error| error.to_string())?;
             Ok(token_approval(to.to_string(), approval.spender, approval.addedValue))
         }
-        selector if selector.starts_with(&IAllowanceTransfer::approveCall::SELECTOR) && to.eq_ignore_ascii_case(UNISWAP_PERMIT2_CONTRACT) => {
+        selector if selector.starts_with(&IAllowanceTransfer::approveCall::SELECTOR) && is_permit2_contract_by_chain(&chain, to) => {
             let approval = IAllowanceTransfer::approveCall::abi_decode_validate(calldata).map_err(|error| error.to_string())?;
             Ok(token_approval(approval.token.to_string(), approval.spender, U256::from(approval.amount)))
         }
@@ -66,6 +67,7 @@ fn token_approval(token: String, spender: Address, value: U256) -> EvmTransactio
 mod tests {
     use super::*;
     use alloy_primitives::{address, aliases::U48, hex};
+    use primitives::contract_constants::{UNISWAP_PERMIT2_CONTRACT, ZKSYNC_UNISWAP_PERMIT2_CONTRACT};
 
     #[test]
     fn test_decode_calldata() {
@@ -90,18 +92,18 @@ mod tests {
         });
         let one_coin = BigUint::from(10_000_000_000_000_000u64);
 
-        assert_eq!(decode_transaction_kind(token, None, None).unwrap(), EvmTransactionKind::Transfer);
-        assert_eq!(decode_transaction_kind(token, Some(""), None).unwrap(), EvmTransactionKind::Transfer);
-        assert_eq!(decode_transaction_kind(token, Some("0x"), Some(&one_coin)).unwrap(), EvmTransactionKind::Transfer);
-        assert_eq!(decode_transaction_kind(token, Some(approve), None).unwrap(), approval);
-        assert_eq!(decode_transaction_kind(token, Some(approve), Some(&BigUint::ZERO)).unwrap(), approval);
-        assert_eq!(decode_transaction_kind(token, Some(approve), Some(&BigUint::from(1u8))).unwrap(), EvmTransactionKind::ContractCall);
-        assert_eq!(decode_transaction_kind(token, Some(approve), Some(&one_coin)).unwrap(), EvmTransactionKind::ContractCall);
+        assert_eq!(decode_transaction_kind(Chain::Ethereum, token, None, None).unwrap(), EvmTransactionKind::Transfer);
+        assert_eq!(decode_transaction_kind(Chain::Ethereum, token, Some(""), None).unwrap(), EvmTransactionKind::Transfer);
+        assert_eq!(decode_transaction_kind(Chain::Ethereum, token, Some("0x"), Some(&one_coin)).unwrap(), EvmTransactionKind::Transfer);
+        assert_eq!(decode_transaction_kind(Chain::Ethereum, token, Some(approve), None).unwrap(), approval);
+        assert_eq!(decode_transaction_kind(Chain::Ethereum, token, Some(approve), Some(&BigUint::ZERO)).unwrap(), approval);
+        assert_eq!(decode_transaction_kind(Chain::Ethereum, token, Some(approve), Some(&BigUint::from(1u8))).unwrap(), EvmTransactionKind::ContractCall);
+        assert_eq!(decode_transaction_kind(Chain::Ethereum, token, Some(approve), Some(&one_coin)).unwrap(), EvmTransactionKind::ContractCall);
         assert_eq!(
-            decode_transaction_kind(token, Some("0xa9059cbb000000000000000000000000111122223333444455556666777788889999aaaa"), None).unwrap(),
+            decode_transaction_kind(Chain::Ethereum, token, Some("0xa9059cbb000000000000000000000000111122223333444455556666777788889999aaaa"), None).unwrap(),
             EvmTransactionKind::ContractCall
         );
-        assert_eq!(decode_transaction_kind(token, Some("0xdeadbeef"), None).unwrap(), EvmTransactionKind::ContractCall);
+        assert_eq!(decode_transaction_kind(Chain::Ethereum, token, Some("0xdeadbeef"), None).unwrap(), EvmTransactionKind::ContractCall);
     }
 
     #[test]
@@ -110,7 +112,7 @@ mod tests {
         let input = "0x095ea7b300000000000000000000000022223333444455556666777788889999aaaabbbbffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
 
         assert_eq!(
-            decode_transaction_kind(token, Some(input), None).unwrap(),
+            decode_transaction_kind(Chain::Ethereum, token, Some(input), None).unwrap(),
             EvmTransactionKind::TokenApproval(ApprovalData {
                 token: token.to_string(),
                 spender: "0x22223333444455556666777788889999aaAaBBbB".to_string(),
@@ -118,8 +120,8 @@ mod tests {
                 is_unlimited: true,
             })
         );
-        assert!(decode_transaction_kind(token, Some("0x095ea7b3abcd"), None).is_err());
-        assert!(decode_transaction_kind(token, Some("invalid"), None).is_err());
+        assert!(decode_transaction_kind(Chain::Ethereum, token, Some("0x095ea7b3abcd"), None).is_err());
+        assert!(decode_transaction_kind(Chain::Ethereum, token, Some("invalid"), None).is_err());
     }
 
     #[test]
@@ -142,7 +144,7 @@ mod tests {
 
         for increase in increases {
             assert_eq!(
-                decode_transaction_kind(&token.to_string(), Some(&increase), None).unwrap(),
+                decode_transaction_kind(Chain::Ethereum, &token.to_string(), Some(&increase), None).unwrap(),
                 EvmTransactionKind::TokenApproval(ApprovalData {
                     token: token.to_string(),
                     spender: spender.to_string(),
@@ -151,15 +153,15 @@ mod tests {
                 })
             );
         }
-        assert_eq!(
-            decode_transaction_kind(UNISWAP_PERMIT2_CONTRACT, Some(&permit2), None).unwrap(),
-            EvmTransactionKind::TokenApproval(ApprovalData {
-                token: token.to_string(),
-                spender: spender.to_string(),
-                value: u256_to_biguint(&U256::from(U160::MAX)),
-                is_unlimited: true,
-            })
-        );
-        assert_eq!(decode_transaction_kind(&token.to_string(), Some(&permit2), None).unwrap(), EvmTransactionKind::ContractCall);
+        let permit2_approval = EvmTransactionKind::TokenApproval(ApprovalData {
+            token: token.to_string(),
+            spender: spender.to_string(),
+            value: u256_to_biguint(&U256::from(U160::MAX)),
+            is_unlimited: true,
+        });
+        assert_eq!(decode_transaction_kind(Chain::Ethereum, UNISWAP_PERMIT2_CONTRACT, Some(&permit2), None).unwrap(), permit2_approval);
+        assert_eq!(decode_transaction_kind(Chain::ZkSync, ZKSYNC_UNISWAP_PERMIT2_CONTRACT, Some(&permit2), None).unwrap(), permit2_approval);
+        assert_eq!(decode_transaction_kind(Chain::Ethereum, &token.to_string(), Some(&permit2), None).unwrap(), EvmTransactionKind::ContractCall);
+        assert_eq!(decode_transaction_kind(Chain::Ethereum, ZKSYNC_UNISWAP_PERMIT2_CONTRACT, Some(&permit2), None).unwrap(), EvmTransactionKind::ContractCall);
     }
 }

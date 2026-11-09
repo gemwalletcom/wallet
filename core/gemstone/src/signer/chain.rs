@@ -272,6 +272,7 @@ mod tests {
     fn test_sign_input_ton_wallet_connect() {
         let request = include_str!("../../../crates/gem_ton/testdata/wallet_connect_dedust_send_message.json");
         let transaction = gem_wallet_connect::WalletConnectRequestHandler::decode_send_transaction(
+            Chain::Ton,
             gem_wallet_connect::WalletConnectTransactionType::Ton {
                 output_type: TransferDataOutputType::EncodedTransaction,
             },
