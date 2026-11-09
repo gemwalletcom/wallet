@@ -88,46 +88,22 @@ impl GemNotificationsService {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
+    use std::sync::atomic::Ordering;
 
-    use async_trait::async_trait;
     use futures::executor::block_on;
 
     use super::*;
-    use crate::services::error::GemServiceError;
+    use crate::services::banner::testkit::MemoryNotificationPermissions;
     use crate::testkit::TestAlienProvider;
 
-    #[derive(Default)]
-    struct TestPermissions {
-        available: AtomicBool,
-        granted: AtomicBool,
-        requests: AtomicU32,
-    }
-
-    #[async_trait]
-    impl GemNotificationPermissions for TestPermissions {
-        fn is_available(&self) -> bool {
-            self.available.load(Ordering::SeqCst)
-        }
-
-        async fn is_granted(&self) -> bool {
-            self.granted.load(Ordering::SeqCst)
-        }
-
-        async fn request_permissions_or_open_settings(&self) -> Result<bool, GemServiceError> {
-            self.requests.fetch_add(1, Ordering::SeqCst);
-            Ok(self.granted.load(Ordering::SeqCst))
-        }
-    }
-
-    fn service(status: u16, permissions: Arc<TestPermissions>) -> GemNotificationsService {
+    fn service(status: u16, permissions: Arc<MemoryNotificationPermissions>) -> GemNotificationsService {
         GemNotificationsService::mock(Arc::new(TestAlienProvider::with_status(status)), permissions)
     }
 
     #[test]
     fn test_a_declined_permission_is_not_an_error_and_leaves_the_toggle_off() {
         block_on(async {
-            let permissions = Arc::new(TestPermissions::default());
+            let permissions = Arc::new(MemoryNotificationPermissions::default());
             permissions.available.store(true, Ordering::SeqCst);
             let service = service(503, permissions.clone());
 
@@ -142,7 +118,7 @@ mod tests {
     #[test]
     fn test_a_failed_registration_names_itself_and_the_next_identical_toggle_retries() {
         block_on(async {
-            let permissions = Arc::new(TestPermissions::default());
+            let permissions = Arc::new(MemoryNotificationPermissions::default());
             permissions.available.store(true, Ordering::SeqCst);
             permissions.granted.store(true, Ordering::SeqCst);
             let service = service(503, permissions.clone());
@@ -161,7 +137,7 @@ mod tests {
     #[test]
     fn test_asks_only_when_there_is_something_to_ask_for() {
         block_on(async {
-            let permissions = Arc::new(TestPermissions::default());
+            let permissions = Arc::new(MemoryNotificationPermissions::default());
             let service = service(503, permissions.clone());
 
             assert!(service.ask_to_enable().await.is_none(), "nothing to ask for without the os permission");
@@ -181,7 +157,7 @@ mod tests {
     #[test]
     fn test_a_declined_ask_is_not_repeated_within_the_wait() {
         block_on(async {
-            let permissions = Arc::new(TestPermissions::default());
+            let permissions = Arc::new(MemoryNotificationPermissions::default());
             permissions.available.store(true, Ordering::SeqCst);
             let service = service(503, permissions.clone());
 
@@ -199,7 +175,7 @@ mod tests {
     #[test]
     fn test_push_the_user_turned_off_is_never_asked_for() {
         block_on(async {
-            let permissions = Arc::new(TestPermissions::default());
+            let permissions = Arc::new(MemoryNotificationPermissions::default());
             permissions.available.store(true, Ordering::SeqCst);
             permissions.granted.store(true, Ordering::SeqCst);
             let service = service(503, permissions.clone());
@@ -214,7 +190,7 @@ mod tests {
     #[test]
     fn test_turning_it_off_without_the_os_permission_asks_for_nothing() {
         block_on(async {
-            let permissions = Arc::new(TestPermissions::default());
+            let permissions = Arc::new(MemoryNotificationPermissions::default());
             let service = service(503, permissions.clone());
 
             let state = service.set_enabled(true).await;
@@ -228,7 +204,7 @@ mod tests {
     #[test]
     fn test_a_permission_revoked_in_system_settings_turns_the_toggle_off_and_lets_the_app_ask_again() {
         block_on(async {
-            let permissions = Arc::new(TestPermissions::default());
+            let permissions = Arc::new(MemoryNotificationPermissions::default());
             permissions.available.store(true, Ordering::SeqCst);
             permissions.granted.store(true, Ordering::SeqCst);
             let service = service(503, permissions.clone());
@@ -246,7 +222,7 @@ mod tests {
     #[test]
     fn test_a_permission_granted_after_the_user_turned_push_on_shows_it_on() {
         block_on(async {
-            let permissions = Arc::new(TestPermissions::default());
+            let permissions = Arc::new(MemoryNotificationPermissions::default());
             permissions.available.store(true, Ordering::SeqCst);
             let service = service(200, permissions.clone());
 
@@ -263,7 +239,7 @@ mod tests {
     #[test]
     fn test_a_permission_granted_after_the_user_turned_push_off_keeps_it_off() {
         block_on(async {
-            let permissions = Arc::new(TestPermissions::default());
+            let permissions = Arc::new(MemoryNotificationPermissions::default());
             permissions.available.store(true, Ordering::SeqCst);
             let service = service(200, permissions.clone());
 

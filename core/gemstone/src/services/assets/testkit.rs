@@ -13,7 +13,7 @@ use crate::deeplink::GemDeeplinkService;
 use crate::gateway::GemGateway;
 use crate::services::asset_discovery::testkit::DiscoveryTestkit;
 use crate::services::banner::GemBannerService;
-use crate::services::banner::testkit::DeniedNotificationPermissions;
+use crate::services::banner::testkit::MemoryNotificationPermissions;
 use crate::services::device::GemDeviceService;
 use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
@@ -166,7 +166,7 @@ impl AssetDetailsTestkit {
                 Arc::new(MemoryPriceAlertStore::default()),
                 discovery.assets.clone(),
                 GemDeviceService::mock(device_api, discovery.session.clone(), preferences),
-                Arc::new(DeniedNotificationPermissions),
+                Arc::new(MemoryNotificationPermissions::default()),
             )),
             Arc::new(SubscriptionTestkit::new(&[], &[]).service),
             Arc::new(GemDeeplinkService::new()),

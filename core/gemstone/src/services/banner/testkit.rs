@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
@@ -54,17 +55,33 @@ impl GemBannerStore for MemoryBannerStore {
     }
 }
 
-pub struct DeniedNotificationPermissions;
+#[derive(Default)]
+pub struct MemoryNotificationPermissions {
+    pub available: AtomicBool,
+    pub granted: AtomicBool,
+    pub requests: AtomicU32,
+}
+
+impl MemoryNotificationPermissions {
+    pub fn granted() -> Self {
+        Self {
+            available: AtomicBool::new(true),
+            granted: AtomicBool::new(true),
+            ..Self::default()
+        }
+    }
+}
 
 #[async_trait]
-impl GemNotificationPermissions for DeniedNotificationPermissions {
+impl GemNotificationPermissions for MemoryNotificationPermissions {
     fn is_available(&self) -> bool {
-        false
+        self.available.load(Ordering::SeqCst)
     }
     async fn is_granted(&self) -> bool {
-        false
+        self.granted.load(Ordering::SeqCst)
     }
     async fn request_permissions_or_open_settings(&self) -> Result<bool, GemServiceError> {
-        Ok(false)
+        self.requests.fetch_add(1, Ordering::SeqCst);
+        Ok(self.granted.load(Ordering::SeqCst))
     }
 }

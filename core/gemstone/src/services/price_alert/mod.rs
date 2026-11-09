@@ -161,8 +161,8 @@ impl GemPriceAlertService {
 #[cfg(test)]
 mod tests {
     use super::rules::reconcile;
-    use super::testkit::{GrantedNotificationPermissions, PriceAlertTestkit};
-    use crate::services::banner::testkit::DeniedNotificationPermissions;
+    use super::testkit::PriceAlertTestkit;
+    use crate::services::banner::testkit::MemoryNotificationPermissions;
     use crate::services::device::testkit::registering_device_provider;
     use crate::services::error::GemServiceError;
     use crate::services::price_alert::store::GemPriceAlertStore;
@@ -173,7 +173,7 @@ mod tests {
 
     #[test]
     fn test_turning_alerts_on_or_off_reaches_the_device_record_at_once() {
-        let kit = PriceAlertTestkit::with_provider(Arc::new(TestAlienProvider::offline()), Arc::new(GrantedNotificationPermissions));
+        let kit = PriceAlertTestkit::with_provider(Arc::new(TestAlienProvider::offline()), Arc::new(MemoryNotificationPermissions::granted()));
         assert_eq!(block_on(kit.service.set_enabled(true)), Err(GemServiceError::Offline));
         assert!(kit.service.is_enabled(), "the choice is kept for the next sync");
         let enabled_paths = kit.provider.requested_paths();
@@ -183,7 +183,7 @@ mod tests {
         assert!(!kit.service.is_enabled());
         assert!(kit.provider.requested_paths().len() > enabled_paths.len(), "turning alerts off is sent too, not left for the next app open");
 
-        let denied = PriceAlertTestkit::with_provider(Arc::new(TestAlienProvider::offline()), Arc::new(DeniedNotificationPermissions));
+        let denied = PriceAlertTestkit::with_provider(Arc::new(TestAlienProvider::offline()), Arc::new(MemoryNotificationPermissions::default()));
         assert_eq!(block_on(denied.service.set_enabled(true)), Ok(()));
         assert!(!denied.service.is_enabled());
         assert!(denied.provider.requested_paths().is_empty());
@@ -193,12 +193,12 @@ mod tests {
     fn test_an_alert_is_enabled_only_after_notifications_are_allowed() {
         let asset = Asset::from_chain(Chain::Bitcoin);
 
-        let denied = PriceAlertTestkit::with_provider(Arc::new(TestAlienProvider::with_json(200, "{}")), Arc::new(DeniedNotificationPermissions));
+        let denied = PriceAlertTestkit::with_provider(Arc::new(TestAlienProvider::with_json(200, "{}")), Arc::new(MemoryNotificationPermissions::default()));
         assert_eq!(block_on(denied.service.set_auto_alert(asset.clone(), true)), Ok(None));
         assert!(denied.store.identifiers().is_empty(), "a refused permission keeps no alert");
         assert!(denied.provider.requested_paths().is_empty());
 
-        let granted = PriceAlertTestkit::with_provider(Arc::new(registering_device_provider()), Arc::new(GrantedNotificationPermissions));
+        let granted = PriceAlertTestkit::with_provider(Arc::new(registering_device_provider()), Arc::new(MemoryNotificationPermissions::granted()));
         assert!(block_on(granted.service.set_auto_alert(asset, true)).unwrap().is_some());
         assert!(granted.service.is_enabled());
         assert_eq!(granted.store.identifiers().len(), 1);
@@ -214,12 +214,12 @@ mod tests {
             kit
         };
 
-        let denied = push_off(Arc::new(DeniedNotificationPermissions));
+        let denied = push_off(Arc::new(MemoryNotificationPermissions::default()));
         assert_eq!(block_on(denied.service.set_auto_alert(asset.clone(), true)), Ok(None));
         assert!(denied.store.identifiers().is_empty(), "an alert that can never be delivered is not kept");
         assert!(denied.provider.requested_paths().is_empty());
 
-        let granted = push_off(Arc::new(GrantedNotificationPermissions));
+        let granted = push_off(Arc::new(MemoryNotificationPermissions::granted()));
         assert!(block_on(granted.service.set_auto_alert(asset, true)).unwrap().is_some());
         assert!(granted.service.preferences.is_push_notifications_enabled(), "push is turned back on with the alert");
         assert_eq!(granted.store.identifiers().len(), 1);
@@ -229,11 +229,11 @@ mod tests {
     fn test_an_alert_the_api_refused_is_not_left_behind_for_the_next_reconciliation() {
         let alert = PriceAlert::mock(Chain::Bitcoin, Some(1.0));
 
-        let added = PriceAlertTestkit::with_provider(Arc::new(TestAlienProvider::offline()), Arc::new(GrantedNotificationPermissions));
+        let added = PriceAlertTestkit::with_provider(Arc::new(TestAlienProvider::offline()), Arc::new(MemoryNotificationPermissions::granted()));
         assert_eq!(block_on(added.service.add_price_alerts(vec![alert.clone()])), Err(GemServiceError::Offline));
         assert!(added.store.identifiers().is_empty());
 
-        let deleted = PriceAlertTestkit::with_provider(Arc::new(TestAlienProvider::offline()), Arc::new(GrantedNotificationPermissions));
+        let deleted = PriceAlertTestkit::with_provider(Arc::new(TestAlienProvider::offline()), Arc::new(MemoryNotificationPermissions::granted()));
         block_on(deleted.store.update_price_alerts(vec![alert.clone()], Vec::new())).unwrap();
         assert_eq!(block_on(deleted.service.delete_price_alerts(vec![alert.clone()])), Err(GemServiceError::Offline));
         assert_eq!(deleted.store.identifiers(), vec![alert.id()]);
@@ -241,7 +241,7 @@ mod tests {
 
     #[test]
     fn test_a_store_that_cannot_write_never_reaches_the_api() {
-        let kit = PriceAlertTestkit::with_provider(Arc::new(TestAlienProvider::offline()), Arc::new(GrantedNotificationPermissions));
+        let kit = PriceAlertTestkit::with_provider(Arc::new(TestAlienProvider::offline()), Arc::new(MemoryNotificationPermissions::granted()));
         let error = GemServiceError::Store { msg: "disk full".to_string() };
         *kit.store.write_error.lock().unwrap() = Some(error.clone());
 
@@ -259,7 +259,7 @@ mod tests {
         let alerts = serde_json::to_string(&vec![bitcoin.clone(), unknown.clone()]).unwrap();
         let assets = serde_json::to_string(&vec![Asset::from_chain(Chain::Bitcoin).as_basic_primitive()]).unwrap();
         let provider = TestAlienProvider::with_json_by_path(200, &[("price-alerts", &alerts), ("/v1/assets", &assets)]);
-        let kit = PriceAlertTestkit::with_provider(Arc::new(provider), Arc::new(GrantedNotificationPermissions));
+        let kit = PriceAlertTestkit::with_provider(Arc::new(provider), Arc::new(MemoryNotificationPermissions::granted()));
 
         block_on(kit.service.sync(None)).unwrap();
 

@@ -65,7 +65,7 @@ impl super::GemSupportService {
             provider.clone(),
             Arc::new(crate::services::notifications::GemNotificationsService::mock(
                 provider,
-                Arc::new(crate::services::banner::testkit::DeniedNotificationPermissions),
+                Arc::new(crate::services::banner::testkit::MemoryNotificationPermissions::default()),
             )),
         )
     }
