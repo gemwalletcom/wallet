@@ -6,11 +6,6 @@ updates:
     schedule:
       interval: "daily"
 
-  - package-ecosystem: "swift"
-    directory: "/ios"
-    schedule:
-      interval: "daily"
-
   - package-ecosystem: "cargo"
     directory: "/core"
     open-pull-requests-limit: 2
