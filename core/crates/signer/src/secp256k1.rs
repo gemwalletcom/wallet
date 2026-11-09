@@ -10,13 +10,13 @@ const MIN_SECRET_KEY_LENGTH: usize = 24;
 
 /// Returns (signature_bytes, recovery_id) where recovery_id ∈ {0, 1}.
 pub(crate) fn sign_digest(digest: &[u8], private_key: &[u8]) -> Result<(Vec<u8>, u8), SignerError> {
-    let message = Message::from_digest_slice(digest).map_err(|_| SignerError::signing_error("Secp256k1 digest must be 32 bytes"))?;
+    let message = Message::from_digest(<[u8; 32]>::try_from(digest).map_err(|_| SignerError::signing_error("Secp256k1 digest must be 32 bytes"))?);
     with_secret_key(
         private_key,
         || SignerError::signing_error("Invalid Secp256k1 private key"),
         |secret_key| {
-            let (recovery_id, signature) = SECP256K1.sign_ecdsa_recoverable(&message, secret_key).serialize_compact();
-            (signature.to_vec(), recovery_id.to_i32() as u8)
+            let (recovery_id, signature) = SECP256K1.sign_ecdsa_recoverable(message, secret_key).serialize_compact();
+            (signature.to_vec(), i32::from(recovery_id) as u8)
         },
     )
 }
@@ -43,9 +43,9 @@ pub(crate) fn recover_ethereum_address(digest: &[u8; 32], signature: &[u8]) -> R
     if normalized != standard {
         return Err(SignerError::invalid_input("Ethereum signature is not low-S"));
     }
-    let recovery_id = RecoveryId::from_i32(i32::from(signature.v())).map_err(|_| invalid())?;
+    let recovery_id = RecoveryId::try_from(i32::from(signature.v())).map_err(|_| invalid())?;
     let recoverable = RecoverableSignature::from_compact(&compact, recovery_id).map_err(|_| invalid())?;
-    let public_key = SECP256K1.recover_ecdsa(&Message::from_digest(*digest), &recoverable).map_err(|_| invalid())?;
+    let public_key = SECP256K1.recover_ecdsa(Message::from_digest(*digest), &recoverable).map_err(|_| invalid())?;
     Ok(Address::from_raw_public_key(&public_key.serialize_uncompressed()[1..]).to_checksum(None))
 }
 
@@ -92,7 +92,7 @@ fn parse_secret_key(private_key: &[u8]) -> Option<SecretKey> {
     }
     let mut padded = Zeroizing::new([0u8; SECRET_KEY_LENGTH]);
     padded[SECRET_KEY_LENGTH - private_key.len()..].copy_from_slice(private_key);
-    SecretKey::from_slice(padded.as_slice()).ok()
+    SecretKey::from_byte_array(*padded).ok()
 }
 
 fn invalid_private_key() -> SignerError {

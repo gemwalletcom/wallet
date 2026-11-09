@@ -124,7 +124,7 @@ getrandom = { version = "0.4.3" }
 hmac = { version = "0.13.0" }
 p256 = { version = "0.14.0", default-features = false, features = ["ecdsa"] }
 jsonwebtoken = { version = "11.1.0", default-features = false, features = ["aws_lc_rs"] }
-secp256k1 = { version = "0.29.1", features = ["recovery", "global-context"] }
+secp256k1 = { version = "0.31.1", features = ["recovery", "global-context"] }
 rand = { version = "0.10.2" }
 scrypt = { version = "0.12.0" }
 sha2 = { version = "0.11.0" }
@@ -135,7 +135,7 @@ zeroize = { version = "1.9.0" }
 alloy-primitives = { version = "1.7.3", default-features = false, features = ["std"] }
 alloy-sol-types = { version = "1.7.3", features = ["eip712-serde"] }
 bitcoin = { version = "0.32.102" }
-bitcoin_hashes = { version = "0.14.101" }
+bitcoin_hashes = { version = "1.2.0" }
 sui-transaction-builder = { version = "0.4.0", default-features = false }
 sui-types = { package = "sui-sdk-types", version = "0.4.0", features = [
     "hash",
