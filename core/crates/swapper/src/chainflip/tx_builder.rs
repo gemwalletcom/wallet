@@ -59,20 +59,19 @@ pub(super) fn build_solana_transaction(fee_payer: &str, response: &SolanaVaultSw
 mod tests {
     use super::*;
     use crate::chainflip::broker::{SolanaVaultSwapResponse, TronVaultSwapResponse};
+    use crate::chainflip::testkit::TRON_NOTE;
     use gem_jsonrpc::types::JsonRpcResponse;
     use gem_solana::decode_transaction;
     use num_bigint::BigUint;
 
     #[test]
     fn test_build_tron_quote_data_maps_trc20_contract_call_fields() {
-        let note = "0x0300";
         let data = build_tron_quote_data(
             &TronVaultSwapResponse {
                 calldata: "0xa9059cbb".to_string(),
-                value: BigUint::from(0u32),
-                to: "0x2523ae929fecd9d665f472f59b99a8ce6b179510".to_string(),
-                note: note.to_string(),
+                value: BigUint::ZERO,
                 source_token_address: Some("0xeca9bc828a3005b9a3b909f2cc5c2a54794de05f".to_string()),
+                ..TronVaultSwapResponse::mock()
             },
             TronAddress::parse("TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf").unwrap(),
             BigUint::ZERO,
@@ -81,22 +80,18 @@ mod tests {
 
         assert_eq!(data.data_type, Contract);
         assert_eq!(data.to, "TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf");
-        assert_eq!(data.memo, Some(note.to_string()));
+        assert_eq!(data.memo, Some(TRON_NOTE.to_string()));
         assert_eq!(data.value, BigUint::from(0u64));
         assert_eq!(data.data, "a9059cbb");
     }
 
     #[test]
     fn test_build_tron_quote_data_maps_native_contract_transfer_fields() {
-        let note = "0x0300";
         for calldata in ["", "0x"] {
             let data = build_tron_quote_data(
                 &TronVaultSwapResponse {
                     calldata: calldata.to_string(),
-                    value: BigUint::from(50_000_000u32),
-                    to: "TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi".to_string(),
-                    note: note.to_string(),
-                    source_token_address: None,
+                    ..TronVaultSwapResponse::mock()
                 },
                 TronAddress::parse("TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi").unwrap(),
                 BigUint::from(50_000_000u64),

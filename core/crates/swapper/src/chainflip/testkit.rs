@@ -1,10 +1,11 @@
 use super::ChainflipRouteData;
-use super::broker::{AssetsResponse, ChainflipAsset, DepositChannelRequest, QuoteRequest, RefundParameters};
+use super::broker::{AssetsResponse, ChainflipAsset, DepositChannelRequest, QuoteRequest, RefundParameters, TronVaultSwapResponse};
 use super::destination::VaultSwapDestination;
-use super::provider::refund_parameters;
+use super::provider::{TRON_VAULT, refund_parameters};
 use super::refund::VaultSwapRefund;
 use crate::fees::DEFAULT_CHAINFLIP_FEE_BPS;
 use crate::{Quote, Route};
+use num_bigint::BigUint;
 use primitives::known_assets::ARBITRUM_USDC;
 use primitives::testkit::signer_mock::{TEST_BITCOIN_SENDER, TEST_EVM_RECIPIENT, TEST_EVM_SENDER, TEST_POLKADOT_SENDER, TEST_SOLANA_SENDER, TEST_TRON_SENDER};
 use primitives::{AssetId, Chain};
@@ -51,6 +52,18 @@ impl DepositChannelRequest {
                 max_oracle_price_slippage: None,
             },
             dca_parameters: None,
+        }
+    }
+}
+
+impl TronVaultSwapResponse {
+    pub fn mock() -> Self {
+        Self {
+            calldata: "0x".to_string(),
+            value: BigUint::from(50_000_000u32),
+            to: TRON_VAULT.to_string(),
+            note: TRON_NOTE.to_string(),
+            source_token_address: None,
         }
     }
 }
