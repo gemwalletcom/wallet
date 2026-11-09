@@ -1,0 +1,86 @@
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "blockTime": 1794211264,
+    "meta": {
+      "computeUnitsConsumed": 450,
+      "costUnits": 1484,
+      "err": null,
+      "fee": 6250,
+      "innerInstructions": [],
+      "loadedAddresses": {
+        "readonly": [],
+        "writable": []
+      },
+      "logMessages": [
+        "Program ComputeBudget111111111111111111111111111111 invoke [1]",
+        "Program ComputeBudget111111111111111111111111111111 success",
+        "Program ComputeBudget111111111111111111111111111111 invoke [1]",
+        "Program ComputeBudget111111111111111111111111111111 success",
+        "Program 11111111111111111111111111111111 invoke [1]",
+        "Program 11111111111111111111111111111111 success"
+      ],
+      "postBalances": [
+        99988500,
+        1,
+        1
+      ],
+      "postTokenBalances": [],
+      "preBalances": [
+        99994750,
+        1,
+        1
+      ],
+      "preTokenBalances": [],
+      "rewards": [],
+      "status": {
+        "Ok": null
+      }
+    },
+    "slot": 467242817,
+    "transaction": {
+      "message": {
+        "accountKeys": [
+          "Ch4Hfd7yStCT1WzWKXpWFWgJzXfYRUzhK19E42MPM4b6",
+          "ComputeBudget111111111111111111111111111111",
+          "11111111111111111111111111111111"
+        ],
+        "header": {
+          "numReadonlySignedAccounts": 0,
+          "numReadonlyUnsignedAccounts": 2,
+          "numRequiredSignatures": 1
+        },
+        "instructions": [
+          {
+            "accounts": [],
+            "data": "3px3hhrW2tYw",
+            "programIdIndex": 1,
+            "stackHeight": 1
+          },
+          {
+            "accounts": [],
+            "data": "JC3gyu",
+            "programIdIndex": 1,
+            "stackHeight": 1
+          },
+          {
+            "accounts": [
+              0,
+              0
+            ],
+            "data": "3Bxs4Bc3VYuGVB19",
+            "programIdIndex": 2,
+            "stackHeight": 1
+          }
+        ],
+        "recentBlockhash": "2FWkfqjZcxGw2HG1ETLVgZwPafaCKmJrGHjELqz9LaEk"
+      },
+      "signatures": [
+        "2n2qA5xaV6fxJQhdY3VXJvEpysk8L6fk7zBbz1dydifYzR2DpKKzZHQAACErd5N84E3GmzwDwoXSiyLb2miTeVt8"
+      ]
+    },
+    "transactionIndex": 139,
+    "version": "legacy"
+  },
+  "id": 1
+}

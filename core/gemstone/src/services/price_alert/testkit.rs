@@ -8,6 +8,7 @@ use crate::api::GemDeviceApiClient;
 use crate::services::assets::GemAssetsService;
 use crate::services::assets::testkit::MemoryAssetStore;
 use crate::services::banner::GemNotificationPermissions;
+use crate::services::banner::testkit::MemoryNotificationPermissions;
 use crate::services::device::GemDeviceService;
 use crate::services::error::GemServiceError;
 use crate::services::preferences::GemPreferencesService;
@@ -63,24 +64,9 @@ impl GemPriceAlertStore for MemoryPriceAlertStore {
     }
 }
 
-pub struct GrantedNotificationPermissions;
-
-#[async_trait]
-impl GemNotificationPermissions for GrantedNotificationPermissions {
-    fn is_available(&self) -> bool {
-        true
-    }
-    async fn is_granted(&self) -> bool {
-        true
-    }
-    async fn request_permissions_or_open_settings(&self) -> Result<bool, GemServiceError> {
-        Ok(true)
-    }
-}
-
 pub fn price_alert_service(store: Arc<dyn GemPriceAlertStore>) -> Arc<super::GemPriceAlertService> {
     let provider = Arc::new(TestAlienProvider::new(crate::alien::AlienResponse::new(None, Vec::new())));
-    Arc::new(price_alert_service_with(provider, store, Arc::new(MemoryAssetStore::default()), Arc::new(GrantedNotificationPermissions)))
+    Arc::new(price_alert_service_with(provider, store, Arc::new(MemoryAssetStore::default()), Arc::new(MemoryNotificationPermissions::granted())))
 }
 
 fn price_alert_service_with(provider: Arc<TestAlienProvider>, store: Arc<dyn GemPriceAlertStore>, asset_store: Arc<MemoryAssetStore>, permissions: Arc<dyn GemNotificationPermissions>) -> super::GemPriceAlertService {

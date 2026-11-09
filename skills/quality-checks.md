@@ -2,8 +2,6 @@
 
 Use narrow checks while iterating, then the closing matrix for the changed area's risk.
 
-For SwiftUI and Compose work, pure presentation changes should not spend most of the loop in full app builds.
-
 Before running checks, confirm the checkout and command directory. Use features that compile the changed path and confirm filters selected the intended tests; zero selected tests is not a pass. If concurrent checks contend or return unclear status, rerun individually. Tool-specific caveats live in platform development-command guides.
 
 ## Iteration Matrix
@@ -22,13 +20,12 @@ Before running checks, confirm the checkout and command directory. Use features 
 
 | Change Type | Minimum Closing Checks |
 |-------------|------------------------|
-| iOS presentation-only SwiftUI | `cd ios && just build-package <PACKAGE>`<br>Simulator/device smoke when the changed flow is reachable |
+| iOS presentation-only SwiftUI | `cd ios && just build-package <PACKAGE>`<br>[Proof](#proof-of-done) |
 | iOS ViewModel, navigation, app wiring, or behavioral UI change | `cd ios && just build`<br>`cd ios && just test <TARGET>` or `cd ios && just test` |
-| Android presentation-only Compose or resource change | `cd android && ./gradlew :<module>:assembleDebug`<br>Emulator/device smoke when the changed flow is reachable |
+| Android presentation-only Compose or resource change | `cd android && ./gradlew :<module>:assembleDebug`<br>[Proof](#proof-of-done) |
 | Android ViewModel, navigation, app wiring, or behavioral UI change | `cd android && ./gradlew assembleGoogleDebug` or build the affected app/module variant<br>`cd android && ./gradlew :<module>:testDebugUnitTest` or `cd android && ./gradlew test` |
-| Cross-platform UI flow or navigation change | Optional: a Maestro flow on a booted simulator/emulator when requested — see [Maestro UI Testing](testing-maestro.md) |
 | Core-only Rust change with no mobile API impact | `cd core && just test <CRATE>`<br>`cd core && cargo clippy -p <crate> --all-features -- -D warnings`<br>`cd core && just lint` (same command and extra lint flags as CI)<br>`cd core && just format` |
-| Core change that affects mobile bindings or shared models | `cd core && just test <CRATE>`<br>`cd core && cargo clippy -p <crate> --all-features -- -D warnings`<br>`cd core && just lint` (same command and extra lint flags as CI)<br>`cd core && just format`<br>`just generate`<br>`just ios build`<br>`just android build` |
+| Core change that affects mobile bindings or shared models | Core-only checks above<br>`just generate`<br>`just ios build`<br>`just android build` |
 | Shared localization input change | `just localize`<br>Rebuild the affected app(s) if the generated strings are consumed by the change |
 | Core enum mapper change (`Gemstone+Localized.swift`, `Gemstone+Style.swift`, `GemstoneText.kt`, `GemstoneStyle.kt`) | `just check-mappers` |
 | New or removed `#[uniffi::export]` function | `just check-ffi` |
@@ -59,14 +56,22 @@ Report deterministic tests, compiled-only checks, gated live tests, skipped test
 
 If a broad suite fails outside the changed path, rerun the narrow affected check to separate a regression from an environmental or pre-existing failure. Report both results; a targeted pass does not turn the failed broad suite into a pass.
 
+## Proof of Done
+
+Checks show the code works; proof shows the result. Capture it once after the closing checks, not in the inner loop; recapture only what later fixes change.
+
+| Change kind | Proof |
+|---|---|
+| UI | A running-app screenshot per affected platform; a recording or [Maestro](testing-maestro.md) run for flows and transitions |
+| Bug fix | A test or repro that fails on the base and passes on the change |
+| Logic | The tests that pin it; a live call or transaction hash for chain or provider changes |
+| Architecture or data flow | A before and after Mermaid diagram |
+| Performance or size | Before and after numbers from the same setup |
+
+Never capture secret screens or material; prove those with tests.
+
 ## Ready-to-Commit Batch
 
-Run the closing matrix once the change is stable: format → required generation → targeted tests → builds → required UI smoke. If checks change source or require fixes, return to the narrow loop and rerun affected final checks. [Cross-Platform Awareness](cross-platform-awareness.md) owns generation and parity requirements.
+Run the closing matrix once the change is stable: format → required generation → targeted tests → builds → [proof](#proof-of-done). If checks change source or require fixes, return to the narrow loop and rerun affected final checks. [Cross-Platform Awareness](cross-platform-awareness.md) owns generation and parity requirements.
 
 Run `just generate-stone` before iOS checks to rebuild the linked Core library and bindings. Android app builds generate their bindings and native libraries. Gradle builds and fingerprints the host library before unit tests, including single-module runs.
-
-For detailed platform-specific commands, flags, and workflows see:
-
-- [iOS Development Commands](../ios/skills/development-commands.md)
-- [Android Development Commands](../android/skills/development-commands.md)
-- [Core Development Commands](../core/skills/development-commands.md)

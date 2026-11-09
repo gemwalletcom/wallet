@@ -4,6 +4,7 @@ use num_bigint::{BigUint, Sign};
 use crate::{
     COMPUTE_BUDGET_PROGRAM_ID, JUPITER_PROGRAM_ID, MEMO_PROGRAM_ID, METAPLEX_CORE_PROGRAM, METAPLEX_PROGRAM, METEORA_DAMM_V2_PROGRAM_ID, METEORA_DLMM_PROGRAM_ID, OKX_DEX_V2_PROGRAM_ID, ORCA_WHIRLPOOL_PROGRAM_ID, PUMP_AMM_PROGRAM_ID,
     RAYDIUM_AMM_PROGRAM_ID, RAYDIUM_CLMM_PROGRAM_ID, RAYDIUM_CPMM_PROGRAM_ID, SYSTEM_PROGRAM_ID, SYSTEM_PROGRAMS, TOKEN_PROGRAM, TOKEN_PROGRAM_2022, WSOL_TOKEN_ADDRESS,
+    instructions::system,
     models::{BlockTransaction, BlockTransactions, Instruction, SingleTransaction, TokenBalanceChange, TransactionSignature},
 };
 use primitives::{
@@ -45,6 +46,17 @@ fn map_memo(instructions: &[Instruction], account_keys: &[String]) -> Option<Str
             return None;
         }
         String::from_utf8(bs58::decode(&instruction.data).into_vec().ok()?).ok().non_empty()
+    })
+}
+
+fn map_system_transfer(instructions: &[Instruction], account_keys: &[String]) -> Option<(String, u64)> {
+    instructions.iter().find_map(|instruction| {
+        if account_keys.get(instruction.program_id_index).map(String::as_str) != Some(SYSTEM_PROGRAM_ID) {
+            return None;
+        }
+        let lamports = system::transfer_lamports(&bs58::decode(&instruction.data).into_vec().ok()?)?;
+        let recipient = account_keys.get(usize::from(*instruction.accounts.get(1)?))?.clone();
+        Some((recipient, lamports))
     })
 }
 
@@ -211,8 +223,10 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
 
     if account_keys.len() >= 3 && account_keys.iter().any(|key| key == SYSTEM_PROGRAM_ID) && account_keys.iter().skip(2).all(|key| NATIVE_TRANSFER_PROGRAMS.contains(&key.as_str())) {
         let from = account_keys.first()?.clone();
-        let to = account_keys.get(1)?.clone();
-        let value = transaction.get_balance_change(&from);
+        let (to, value) = match map_system_transfer(&transaction.transaction.message.instructions, account_keys) {
+            Some((recipient, lamports)) if recipient == from => (recipient, lamports),
+            _ => (account_keys.get(1)?.clone(), transaction.get_balance_change(&from)),
+        };
 
         let transaction = Transaction::new(
             hash,
@@ -671,6 +685,17 @@ mod tests {
         );
 
         assert_eq!(transaction, expected);
+    }
+
+    #[test]
+    fn test_transaction_transfer_sol_to_self() {
+        let transaction = map_single_transaction(load_json_rpc_result(include_str!("../../testdata/transfer_sol_to_self.json"))).unwrap();
+
+        assert_eq!(transaction.transaction_type, TransactionType::Transfer);
+        assert_eq!(transaction.from, "Ch4Hfd7yStCT1WzWKXpWFWgJzXfYRUzhK19E42MPM4b6");
+        assert_eq!(transaction.to, "Ch4Hfd7yStCT1WzWKXpWFWgJzXfYRUzhK19E42MPM4b6");
+        assert_eq!(transaction.value, BigUint::from(1_000_000u64));
+        assert_eq!(transaction.fee, BigUint::from(6250u64));
     }
 
     #[test]

@@ -163,7 +163,7 @@ private fun ReceiveScene(closeIcon: Boolean, assetInfo: AssetData, header: GemAs
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(paddingHalfSmall),
                     ) {
-                        Icon(AppIcons.ContentCopy, "copy")
+                        Icon(AppIcons.ContentCopy, stringResource(R.string.common_copy))
                         Text(stringResource(R.string.common_copy))
                     }
                 }

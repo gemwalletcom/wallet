@@ -1,5 +1,5 @@
 use crate::constants::{WALLET_CONNECT_USER_REJECTED_ERROR_CODE, WALLET_CONNECT_USER_REJECTED_ERROR_MESSAGE};
-use primitives::hex;
+use gem_evm::transaction::decode_calldata;
 use std::collections::HashSet;
 use std::str::FromStr;
 
@@ -477,8 +477,7 @@ fn hex_value(value: &str) -> Result<BigInt, GemServiceError> {
 }
 
 fn hex_to_bytes(value: &str) -> Result<Vec<u8>, GemServiceError> {
-    let digits = value.trim().trim_start_matches("0x").trim_start_matches("0X");
-    hex::decode(digits).map_err(|_| GemServiceError::InvalidInput { msg: format!("invalid hex data {value}") })
+    decode_calldata(value).map_err(|_| GemServiceError::InvalidInput { msg: format!("invalid hex data {value}") })
 }
 
 #[cfg(test)]

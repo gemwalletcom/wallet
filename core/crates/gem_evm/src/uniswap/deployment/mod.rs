@@ -38,6 +38,19 @@ pub fn get_uniswap_permit2_by_chain(chain: &Chain) -> Option<&'static str> {
     }
 }
 
+pub fn is_permit2_contract_by_chain(chain: &Chain, contract: &str) -> bool {
+    [
+        Some(UNISWAP_PERMIT2_CONTRACT),
+        get_uniswap_permit2_by_chain(chain),
+        v3::get_pancakeswap_router_deployment_by_chain(chain).map(|deployment| deployment.permit2),
+        v3::get_oku_deployment_by_chain(chain).map(|deployment| deployment.permit2),
+        v3::get_wagmi_router_deployment_by_chain(chain).map(|deployment| deployment.permit2),
+    ]
+    .into_iter()
+    .flatten()
+    .any(|permit2| permit2.eq_ignore_ascii_case(contract))
+}
+
 pub fn get_provider_by_chain_contract(chain: &Chain, contract: &str) -> Option<SwapProvider> {
     if v3::is_uniswap_router_contract_by_chain(chain, contract) {
         return Some(SwapProvider::UniswapV3);
@@ -53,4 +66,37 @@ pub fn get_provider_by_chain_contract(chain: &Chain, contract: &str) -> Option<S
     ]
     .into_iter()
     .find_map(|(router, provider)| router.filter(|router| router.eq_ignore_ascii_case(contract)).map(|_| provider))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_is_permit2_contract_by_chain() {
+        for chain in Chain::all() {
+            let v3_deployments = [
+                v3::get_uniswap_router_deployment_by_chain(&chain),
+                v3::get_pancakeswap_router_deployment_by_chain(&chain),
+                v3::get_oku_deployment_by_chain(&chain),
+                v3::get_wagmi_router_deployment_by_chain(&chain),
+                v3::get_aerodrome_router_deployment_by_chain(&chain),
+            ];
+            let permit2_contracts = v3_deployments
+                .into_iter()
+                .flatten()
+                .map(|deployment| deployment.permit2)
+                .chain(v4::get_uniswap_deployment_by_chain(&chain).map(|deployment| deployment.permit2));
+            for permit2 in permit2_contracts {
+                assert!(is_permit2_contract_by_chain(&chain, permit2), "{chain} {permit2}");
+                assert!(is_permit2_contract_by_chain(&chain, &permit2.to_lowercase()), "{chain} {permit2}");
+            }
+            assert!(is_permit2_contract_by_chain(&chain, UNISWAP_PERMIT2_CONTRACT), "{chain}");
+        }
+
+        let pancakeswap_permit2 = v3::get_pancakeswap_router_deployment_by_chain(&Chain::SmartChain).unwrap().permit2;
+        assert!(!is_permit2_contract_by_chain(&Chain::Polygon, pancakeswap_permit2));
+        assert!(!is_permit2_contract_by_chain(&Chain::Ethereum, ZKSYNC_UNISWAP_PERMIT2_CONTRACT));
+        assert!(!is_permit2_contract_by_chain(&Chain::Ethereum, "0x2222222222222222222222222222222222222222"));
+    }
 }

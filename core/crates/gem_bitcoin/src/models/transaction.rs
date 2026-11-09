@@ -54,6 +54,7 @@ pub struct Transaction {
     pub block_height: i64,
     pub vin: Vec<Input>,
     pub vout: Vec<Output>,
+    pub hex: Option<String>,
 }
 
 impl Transaction {

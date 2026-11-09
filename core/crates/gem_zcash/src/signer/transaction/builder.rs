@@ -1,0 +1,87 @@
+use bitcoin::{
+    ScriptBuf, Sequence, TxIn, TxOut, Witness,
+    blockdata::script::Builder,
+    consensus::encode::serialize,
+    secp256k1::{Message, Secp256k1, Signing},
+};
+use gem_bitcoin::signer::{PlanSigningKey, SpendPlan, der_signature, encoding::encode_varint, signature_push_bytes};
+use primitives::SignerError;
+
+use super::{SIGHASH_ALL, SignatureDigests};
+
+const OVERWINTERED_VERSION_5: u32 = 0x8000_0005;
+const VERSION_GROUP_ID_V5: u32 = 0x26a7_270a;
+const HEADER_LEN: usize = 20;
+const LOCK_TIME: u32 = 0;
+const EXPIRY_HEIGHT_DISABLED: u32 = 0;
+
+#[derive(Debug, Clone)]
+pub(crate) struct Transaction {
+    pub(super) branch_id: u32,
+    inputs: Vec<TxIn>,
+    pub(super) outputs: Vec<TxOut>,
+}
+
+impl Transaction {
+    pub(crate) fn unsigned(plan: &SpendPlan, branch_id: u32) -> Self {
+        let inputs = plan
+            .inputs
+            .iter()
+            .map(|input| TxIn {
+                previous_output: input.previous_output,
+                script_sig: ScriptBuf::new(),
+                sequence: Sequence(input.sequence),
+                witness: Witness::default(),
+            })
+            .collect();
+
+        let outputs = plan
+            .outputs
+            .iter()
+            .map(|output| TxOut {
+                value: output.value,
+                script_pubkey: output.script_pubkey.clone(),
+            })
+            .collect();
+
+        Self { branch_id, inputs, outputs }
+    }
+
+    pub(crate) fn sign_inputs<C: Signing>(&mut self, digests: &SignatureDigests, plan: &SpendPlan, key: &PlanSigningKey, secp: &Secp256k1<C>) -> Result<(), SignerError> {
+        for index in 0..plan.inputs.len() {
+            let sighash = digests.signature(plan, index)?;
+            let signature = der_signature(secp, key.secret_key(), Message::from_digest(sighash), SIGHASH_ALL);
+            self.inputs[index].script_sig = Builder::new().push_slice(signature_push_bytes(signature)?).push_key(key.public_key()).into_script();
+        }
+        Ok(())
+    }
+
+    pub(crate) fn encode(&self) -> Vec<u8> {
+        let mut bytes = self.header_bytes();
+
+        bytes.extend_from_slice(&encode_varint(self.inputs.len()));
+        for input in &self.inputs {
+            bytes.extend_from_slice(&serialize(input));
+        }
+
+        bytes.extend_from_slice(&encode_varint(self.outputs.len()));
+        for output in &self.outputs {
+            bytes.extend_from_slice(&serialize(output));
+        }
+
+        bytes.extend_from_slice(&encode_varint(0));
+        bytes.extend_from_slice(&encode_varint(0));
+        bytes.extend_from_slice(&encode_varint(0));
+        bytes
+    }
+
+    pub(super) fn header_bytes(&self) -> Vec<u8> {
+        let mut bytes = Vec::with_capacity(HEADER_LEN);
+        bytes.extend_from_slice(&OVERWINTERED_VERSION_5.to_le_bytes());
+        bytes.extend_from_slice(&VERSION_GROUP_ID_V5.to_le_bytes());
+        bytes.extend_from_slice(&self.branch_id.to_le_bytes());
+        bytes.extend_from_slice(&LOCK_TIME.to_le_bytes());
+        bytes.extend_from_slice(&EXPIRY_HEIGHT_DISABLED.to_le_bytes());
+        bytes
+    }
+}

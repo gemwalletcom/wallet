@@ -9,7 +9,7 @@ use primitives::{BitcoinChain, FeePriority, FeeRate, FeeUnitType, GasPriceType, 
 
 use crate::constants::{LEGACY_TRANSACTION_VBYTES, SEGWIT_TRANSACTION_VBYTES};
 use crate::models::Address;
-use crate::provider::preload_mapper::{map_transaction_preload, map_transaction_preload_zcash, map_utxos};
+use crate::provider::preload_mapper::{map_transaction_preload, map_utxos};
 use crate::rpc::client::BitcoinClient;
 use crate::signer::estimate_transaction_fee;
 
@@ -25,17 +25,8 @@ impl<C: Client> ChainTransactionLoad for BitcoinClient<C> {
 
     async fn get_transaction_preload(&self, input: TransactionPreloadInput) -> Result<TransactionLoadMetadata, Box<dyn Error + Sync + Send>> {
         let address = Address::new(&input.sender_address, self.get_chain()).full();
-        match self.chain {
-            BitcoinChain::Bitcoin | BitcoinChain::Litecoin | BitcoinChain::BitcoinCash | BitcoinChain::Doge | BitcoinChain::Dash => {
-                let utxos = self.get_utxos(&address).await?;
-                Ok(map_transaction_preload(utxos, input))
-            }
-            BitcoinChain::Zcash => {
-                let utxos = self.get_utxos(&address).await?;
-                let node_info = self.get_node_info().await?;
-                Ok(map_transaction_preload_zcash(node_info, utxos, input)?)
-            }
-        }
+        let utxos = self.get_utxos(&address).await?;
+        Ok(map_transaction_preload(utxos, input))
     }
 
     async fn get_transaction_load(&self, input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Sync + Send>> {
@@ -45,14 +36,9 @@ impl<C: Client> ChainTransactionLoad for BitcoinClient<C> {
     }
 
     async fn get_transaction_fee_rates(&self, _input_type: TransactionInputType) -> Result<Vec<FeeRate>, Box<dyn Error + Sync + Send>> {
-        match self.chain {
-            BitcoinChain::Bitcoin | BitcoinChain::Litecoin | BitcoinChain::BitcoinCash | BitcoinChain::Doge | BitcoinChain::Dash => {
-                let priority = self.chain.get_blocks_fee_priority();
-                let (slow, normal, fast) = futures::try_join!(self.get_fee(priority.slow), self.get_fee(priority.normal), self.get_fee(priority.fast))?;
-                Ok(map_fee_rates(slow, normal, fast, self.chain))
-            }
-            BitcoinChain::Zcash => Ok(vec![FeeRate::new(FeePriority::Normal, GasPriceType::regular(BigInt::from(10_000)))]),
-        }
+        let priority = self.chain.get_blocks_fee_priority();
+        let (slow, normal, fast) = futures::try_join!(self.get_fee(priority.slow), self.get_fee(priority.normal), self.get_fee(priority.fast))?;
+        Ok(map_fee_rates(slow, normal, fast, self.chain))
     }
 
     async fn get_utxos(&self, address: String) -> Result<Vec<UTXO>, Box<dyn Error + Sync + Send>> {
@@ -136,11 +122,5 @@ mod tests {
         let load = client.get_transaction_load(input).await.unwrap();
 
         assert_eq!(load.fee.fee, BigInt::from(1130u64));
-
-        let client = BitcoinClient::new(MockClient::new(), BitcoinChain::Zcash);
-        let input = mock_transfer_input(BitcoinChain::Zcash).input;
-        let load = client.get_transaction_load(input).await.unwrap();
-
-        assert_eq!(load.fee.fee, BigInt::from(10000u64));
     }
 }

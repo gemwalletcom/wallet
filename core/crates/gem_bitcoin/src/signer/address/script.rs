@@ -21,7 +21,7 @@ pub(crate) enum LockingScript {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) enum UnlockingScript {
+pub enum UnlockingScript {
     P2pkh,
     P2wpkh,
 }

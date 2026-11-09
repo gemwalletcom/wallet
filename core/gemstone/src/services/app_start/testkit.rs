@@ -63,7 +63,7 @@ impl AppStartTestkit {
                 provider.clone(),
                 Arc::new(crate::services::notifications::GemNotificationsService::mock(
                     provider.clone(),
-                    Arc::new(crate::services::banner::testkit::DeniedNotificationPermissions),
+                    Arc::new(crate::services::banner::testkit::MemoryNotificationPermissions::default()),
                 )),
             )),
             nodes.clone(),
