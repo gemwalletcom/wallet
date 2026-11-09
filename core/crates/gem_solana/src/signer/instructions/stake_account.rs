@@ -1,4 +1,5 @@
-use primitives::{SignerError, SignerInput};
+use num_traits::ToPrimitive;
+use primitives::{FeeOption, SignerError, SignerInput};
 use sha2::{Digest, Sha256};
 
 use crate::{AccountMeta, Instruction, Pubkey, STAKE_PROGRAM_ID, SYSTEM_PROGRAM_ID, SYSVAR_CLOCK_ID, SYSVAR_RENT_ID};
@@ -90,6 +91,10 @@ pub(super) fn from_blockhash(sender: &Pubkey, input: &SignerInput) -> Result<Pub
     hasher.update(seed.as_bytes());
     hasher.update(stake_program.as_bytes());
     Ok(Pubkey::new(hasher.finalize().into()))
+}
+
+pub(super) fn rent(input: &SignerInput) -> u64 {
+    input.fee.options.get(&FeeOption::TokenAccountCreation).and_then(ToPrimitive::to_u64).unwrap_or_default()
 }
 
 pub(super) fn seed_from_blockhash(input: &SignerInput) -> Result<String, SignerError> {

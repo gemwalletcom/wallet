@@ -11,7 +11,8 @@ pub(in crate::signer) fn stake(input: &SignerInput, sender: Pubkey) -> Result<Ve
             let validator = Pubkey::from_base58(&validator.id).map_err(SignerError::from_display)?;
             let stake_account = stake_account::from_blockhash(&sender, input)?;
             let seed = stake_account::seed_from_blockhash(input)?;
-            instructions.extend(stake_account::delegate_instructions(sender, validator, stake_account, seed, input.value_as_u64()?)?);
+            let lamports = input.value_as_u64()? + stake_account::rent(input);
+            instructions.extend(stake_account::delegate_instructions(sender, validator, stake_account, seed, lamports)?);
             if let Some(memo_text) = input.get_memo() {
                 instructions.push(memo(memo_text, &[]));
             }
@@ -42,9 +43,9 @@ mod tests {
         Pubkey,
         instructions::program_ids::{SOLANA_MEMO_PROGRAM_ID, SOLANA_SYSTEM_PROGRAM_ID},
     };
-    use num_bigint::BigUint;
+    use num_bigint::{BigInt, BigUint};
     use primitives::testkit::signer_mock::{TEST_PRIVATE_KEY, TEST_PRIVATE_KEY_SOLANA_ADDRESS};
-    use primitives::{Asset, Chain, ChainSigner, Delegation, DelegationValidator, GasPriceType, SignerInput, StakeType, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata};
+    use primitives::{Asset, AssetId, Chain, ChainSigner, Delegation, DelegationValidator, FeeOption, GasPriceType, SignerInput, StakeType, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata};
 
     // https://github.com/trustwallet/wallet-core/blob/master/rust/tw_tests/tests/chains/solana/solana_sign.rs
     const REFERENCE_STAKE_PRIVATE_KEY: &str = "AevJ4EWcvQ6dptBDvF2Ri5pU6QSBjkzSGHMfbLFKa746";
@@ -81,19 +82,34 @@ mod tests {
             is_max_value: false,
             metadata: TransactionLoadMetadata::mock_solana_transfer(None, None, None, &[]),
         };
-        let input = SignerInput::new(input, TransactionFee::mock());
+        let fee = TransactionFee::new_from_fee_with_option(BigInt::ZERO, FeeOption::TokenAccountCreation, BigInt::from(1_666_240u64), AssetId::from_chain(Chain::Solana));
+        let input = SignerInput::new(input, fee);
 
         let result = signer.sign_stake(&input, &TEST_PRIVATE_KEY).unwrap();
 
         let transaction = crate::decode_transaction(&result[0]).unwrap();
-        let stake_account = stake_account::from_blockhash(&Pubkey::from_base58(TEST_PRIVATE_KEY_SOLANA_ADDRESS).unwrap(), &input).unwrap();
+        let sender = Pubkey::from_base58(TEST_PRIVATE_KEY_SOLANA_ADDRESS).unwrap();
+        let seed = stake_account::seed_from_blockhash(&input).unwrap();
+        let stake_account = stake_account::from_blockhash(&sender, &input).unwrap();
         assert_eq!(transaction.signatures().len(), 1);
         assert_eq!(
             (0..transaction.instructions().len()).map(|index| program_id(&transaction, index)).collect::<Vec<_>>(),
             vec![SOLANA_SYSTEM_PROGRAM_ID, crate::STAKE_PROGRAM_ID, crate::STAKE_PROGRAM_ID, SOLANA_MEMO_PROGRAM_ID]
         );
         assert_eq!(account_key(&transaction, 0, 1), stake_account);
-        assert_eq!(transaction.instructions()[0].data[0..4], 3u32.to_le_bytes());
+        assert_eq!(
+            transaction.instructions()[0].data,
+            [
+                &3u32.to_le_bytes()[..],
+                &sender.as_bytes()[..],
+                &(seed.len() as u64).to_le_bytes()[..],
+                seed.as_bytes(),
+                &1_666_282u64.to_le_bytes()[..],
+                &200u64.to_le_bytes()[..],
+                &Pubkey::from_base58(crate::STAKE_PROGRAM_ID).unwrap().as_bytes()[..],
+            ]
+            .concat()
+        );
         assert_eq!(transaction.instructions()[1].data, {
             let mut data = stake_data(0);
             let authority = Pubkey::from_base58(TEST_PRIVATE_KEY_SOLANA_ADDRESS).unwrap();

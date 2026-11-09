@@ -1,5 +1,5 @@
 use num_bigint::BigInt;
-use primitives::{AssetId, AssetSubtype, Chain, FeeOption, FeePriority, FeeRate, GasPriceType, SOLANA_PRIORITY_FEE_SCALE, TransactionFee, TransactionInputType};
+use primitives::{AssetId, AssetSubtype, Chain, FeeOption, FeePriority, FeeRate, GasPriceType, SOLANA_PRIORITY_FEE_SCALE, StakeType, TransactionFee, TransactionInputType};
 use std::collections::HashMap;
 
 use crate::{
@@ -8,12 +8,16 @@ use crate::{
 };
 
 const PRIORITY_FEE_DIVISOR: i64 = 2;
+const STAKE_ACCOUNT_RENT: u64 = 1_666_240;
 
 pub fn calculate_transaction_fee(input_type: &TransactionInputType, gas_price_type: &GasPriceType, recipient_token_address: Option<String>) -> TransactionFee {
     let mut options = HashMap::new();
     let recipient_asset = input_type.get_recipient_asset();
     if recipient_asset.chain() == Chain::Solana && recipient_asset.id.token_subtype() == AssetSubtype::TOKEN && recipient_token_address.is_none() {
         options.insert(FeeOption::TokenAccountCreation, BigInt::from(input_type.get_asset().id.chain.token_activation_fee().unwrap_or(0)));
+    }
+    if let TransactionInputType::Stake { stake_type: StakeType::Stake(_), .. } = input_type {
+        options.insert(FeeOption::TokenAccountCreation, BigInt::from(STAKE_ACCOUNT_RENT));
     }
     TransactionFee::new_gas_price_type(gas_price_type.clone(), gas_price_type.total_fee(), get_gas_limit(input_type), options, AssetId::from_chain(Chain::Solana))
 }
@@ -344,7 +348,7 @@ mod tests {
 
         let fee = calculate_transaction_fee(&input_type, &gas_price_type, None);
 
-        assert_eq!(fee.fee, BigInt::from(7_500u64), "the stake account's rent comes out of the amount staked, not the fee");
-        assert!(fee.options.is_empty());
+        assert_eq!(fee.fee, BigInt::from(1_673_740u64));
+        assert_eq!(fee.options, HashMap::from([(FeeOption::TokenAccountCreation, BigInt::from(1_666_240u64))]));
     }
 }
