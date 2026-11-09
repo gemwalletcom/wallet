@@ -5,7 +5,10 @@ mod provider;
 #[cfg(feature = "signer")]
 mod signer;
 
+#[cfg(all(test, feature = "chain_integration_tests"))]
+mod testkit;
+
 #[cfg(feature = "rpc")]
-pub use provider::ZcashProvider;
+pub use provider::{ValueBalanceReader, ZcashProvider};
 #[cfg(feature = "signer")]
 pub use signer::ZcashChainSigner;
