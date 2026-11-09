@@ -17,15 +17,6 @@ val CHANNELS: Map<String, Map<String, Any?>> = mapOf(
         "abis" to listOf("armeabi-v7a", "arm64-v8a"),
         "isDefault" to false,
     ),
-    "huawei" to mapOf(
-        "push" to ":flavors:pushes-stub",
-        "review" to ":flavors:review-stub",
-        "walletConnect" to true,
-        "proguardFiles" to listOf("proguard-stacktrace-rules.pro"),
-        "updateUrl" to "https://appgallery.huawei.com/app/C109713129",
-        "abis" to listOf("armeabi-v7a", "arm64-v8a"),
-        "isDefault" to false,
-    ),
     "solana" to mapOf(
         "push" to ":flavors:fcm",
         "review" to ":flavors:review-stub",
@@ -33,15 +24,6 @@ val CHANNELS: Map<String, Map<String, Any?>> = mapOf(
         "proguardFiles" to listOf("proguard-stacktrace-rules.pro"),
         "updateUrl" to "solanadappstore://details?id=com.gemwallet.android",
         "abis" to listOf("arm64-v8a"),
-        "isDefault" to false,
-    ),
-    "samsung" to mapOf(
-        "push" to ":flavors:fcm",
-        "review" to ":flavors:review-stub",
-        "walletConnect" to true,
-        "proguardFiles" to listOf("proguard-stacktrace-rules.pro"),
-        "updateUrl" to "https://apps.samsung.com/appquery/appDetail.as?appId=com.gemwallet.android",
-        "abis" to listOf("armeabi-v7a", "arm64-v8a"),
         "isDefault" to false,
     ),
     "emerald" to mapOf(

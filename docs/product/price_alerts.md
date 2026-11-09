@@ -46,4 +46,4 @@ Toasts follow the shared [Toasts](../PRODUCT.md#toasts) section.
 
 | When | iOS | Android | Expected |
 |---|---|---|---|
-| The build cannot push (F-Droid, Huawei) | not applicable | no price alert bell on the asset screen, no price alert row on the asset or chart screen | Intentional: an alert that can never be delivered is not offered |
+| The build cannot push (F-Droid) | not applicable | no price alert bell on the asset screen, no price alert row on the asset or chart screen | Intentional: an alert that can never be delivered is not offered |

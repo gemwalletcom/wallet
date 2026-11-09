@@ -54,10 +54,8 @@ object BuildInfoModule {
         return when (com.gemwallet.android.BuildConfig.FLAVOR) {
             "google" -> PlatformStore.GooglePlay
             "universal" -> PlatformStore.ApkUniversal
-            "huawei" -> PlatformStore.Huawei
             "solana" -> PlatformStore.SolanaStore
             "fdroid" -> PlatformStore.Fdroid
-            "samsung" -> PlatformStore.SamsungStore
             "emerald" -> PlatformStore.Emerald
             else -> PlatformStore.Local
         }

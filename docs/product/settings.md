@@ -77,7 +77,7 @@ flowchart LR
 | The device passcode is off while the lock is on | the lock screen explains it in text | the lock screen explains it and opens screen lock setup | Intentional: iOS has no public way to open passcode settings |
 | The user presses Back on the lock screen | not applicable | Gem goes to the background, as Back does on its first screen | Intentional: iOS has no Back |
 | The user opens Developer | includes a deep link URL tool | includes a platform store setting | Intentional (developer-only) |
-| The build cannot push (F-Droid, Huawei) | not applicable | Settings does not list Notifications, so neither the push switch nor Price Alerts is reachable | Intentional: the build has no push service |
+| The build cannot push (F-Droid) | not applicable | Settings does not list Notifications, so neither the push switch nor Price Alerts is reachable | Intentional: the build has no push service |
 
 ## Rules
 
