@@ -2,7 +2,6 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.compose.compiler)
     id("kotlinx-serialization")
-    id("com.google.devtools.ksp")
 }
 
 android {
