@@ -32,6 +32,8 @@ updates:
       - dependency-name: "tokio-tungstenite"
       # Moves with bitcoin: a different version links a second copy of the C library into the apps.
       - dependency-name: "secp256k1"
+      # Moves with bitcoin: gem_hash shares the copy bitcoin already builds.
+      - dependency-name: "bitcoin_hashes"
 
   # Security updates only: the limit of 0 turns version updates off.
   - package-ecosystem: "gradle"

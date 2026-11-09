@@ -1,4 +1,4 @@
-use bitcoin_hashes::hash160::Hash as Hash160;
+use bitcoin_hashes::{Hash, hash160::Hash as Hash160};
 use hmac::digest::InvalidLength;
 use hmac::{Hmac, KeyInit, Mac};
 use sha2::{Digest as Sha2Digest, Sha256, Sha512, Sha512_256};

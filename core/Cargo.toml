@@ -135,7 +135,7 @@ zeroize = { version = "1.9.0" }
 alloy-primitives = { version = "1.7.3", default-features = false, features = ["std"] }
 alloy-sol-types = { version = "1.7.3", features = ["eip712-serde"] }
 bitcoin = { version = "0.32.102" }
-bitcoin_hashes = { version = "1.2.0" }
+bitcoin_hashes = { version = "0.14.101" }
 sui-transaction-builder = { version = "0.4.0", default-features = false }
 sui-types = { package = "sui-sdk-types", version = "0.4.0", features = [
     "hash",
