@@ -440,10 +440,6 @@ indexer:
     url: "https://api.etherscan.io"
     key:
       secret: ""
-  routescan:
-    url: "https://api.routescan.io"
-    key:
-      secret: ""
   zksync:
     url: "https://block-explorer-api.mainnet.zksync.io"
     key:
