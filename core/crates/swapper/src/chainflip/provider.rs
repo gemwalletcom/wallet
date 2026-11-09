@@ -45,7 +45,7 @@ const ASSETS_CACHE_TTL: Duration = MINUTE.saturating_mul(5);
 const ETHEREUM_VAULT: &str = "0xF5e10380213880111522dd0efD3dbb45b9f62Bcc";
 const ARBITRUM_VAULT: &str = "0x79001a5e762f3bEFC8e5871b42F6734e00498920";
 const SOLANA_VAULT: &str = "J88B7gmadHzTNGiy54c9Ms8BsEXNdB2fntFyhKpk3qoT";
-const TRON_VAULT: &str = "TEcDijvKSXcfWT7S6rd44H5vNgufm7Y4XC";
+pub(super) const TRON_VAULT: &str = "TEcDijvKSXcfWT7S6rd44H5vNgufm7Y4XC";
 
 pub const VAULT_ADDRESSES: &[Deployment] = &[
     Deployment::new(Chain::Ethereum, ETHEREUM_VAULT),
@@ -633,13 +633,7 @@ mod tests {
 
     #[test]
     fn test_validate_tron_vault_swap_pins_native_amount_to_quote() {
-        let response = TronVaultSwapResponse {
-            calldata: "0x".to_string(),
-            value: BigUint::from(50_000_000u32),
-            to: TRON_VAULT.to_string(),
-            note: TRON_NOTE.to_string(),
-            source_token_address: None,
-        };
+        let response = TronVaultSwapResponse::mock();
 
         assert_eq!(
             validate_tron_vault_swap(None, &BigUint::from(50_000_000u32), &arbitrum_usdc_destination(), &tron_refund(), &response),
@@ -665,10 +659,7 @@ mod tests {
         };
         let response = TronVaultSwapResponse {
             calldata: encode_with_0x(&call.abi_encode()),
-            value: BigUint::from(50_000_000u32),
-            to: TRON_VAULT.to_string(),
-            note: TRON_NOTE.to_string(),
-            source_token_address: None,
+            ..TronVaultSwapResponse::mock()
         };
 
         assert_eq!(
@@ -692,9 +683,8 @@ mod tests {
         let response = TronVaultSwapResponse {
             calldata: "0xa9059cbb".to_string(),
             value: BigUint::from(1u32),
-            to: TRON_VAULT.to_string(),
-            note: TRON_NOTE.to_string(),
             source_token_address: Some(TRON_USDT_TOKEN_ID.to_string()),
+            ..TronVaultSwapResponse::mock()
         };
 
         assert_eq!(
@@ -708,9 +698,8 @@ mod tests {
         let response = TronVaultSwapResponse {
             calldata: "0xa9059cbb00000000000000000000000032e07e5dfcb75c2977adddc593eb8d6b6e71f96e0000000000000000000000000000000000000000000000000000000000989680".to_string(),
             value: BigUint::ZERO,
-            to: TRON_VAULT.to_string(),
-            note: TRON_NOTE.to_string(),
             source_token_address: Some("0xa614f803b6fd780986a42c78ec9c7f77e6ded13c".to_string()),
+            ..TronVaultSwapResponse::mock()
         };
 
         assert_eq!(
@@ -726,18 +715,14 @@ mod tests {
     #[test]
     fn test_validate_tron_vault_swap_requires_the_vault() {
         let native = TronVaultSwapResponse {
-            calldata: "0x".to_string(),
-            value: BigUint::from(50_000_000u32),
             to: "TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi".to_string(),
-            note: TRON_NOTE.to_string(),
-            source_token_address: None,
+            ..TronVaultSwapResponse::mock()
         };
         let token = TronVaultSwapResponse {
             calldata: "0xa9059cbb0000000000000000000000002523ae929fecd9d665f472f59b99a8ce6b1795100000000000000000000000000000000000000000000000000000000000989680".to_string(),
             value: BigUint::ZERO,
-            to: TRON_VAULT.to_string(),
-            note: TRON_NOTE.to_string(),
             source_token_address: Some(TRON_USDT_TOKEN_ID.to_string()),
+            ..TronVaultSwapResponse::mock()
         };
         let other_token = TronVaultSwapResponse {
             source_token_address: Some("TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf".to_string()),
@@ -884,13 +869,7 @@ mod tests {
         let other_solana = mock_refund(Chain::Solana, "7g2rVN8fAAQdPh1mkajpvELqYa3gWvFXJsBLnKfEQfqy", SOLANA_MIN_PRICE);
         assert_eq!(validate_solana_vault_swap(&BigUint::from(500_000_000u64), &bitcoin_destination(), &other_solana, &solana), Err(mismatch.clone()));
 
-        let tron = TronVaultSwapResponse {
-            calldata: "0x".to_string(),
-            value: BigUint::from(50_000_000u32),
-            to: TRON_VAULT.to_string(),
-            note: TRON_NOTE.to_string(),
-            source_token_address: None,
-        };
+        let tron = TronVaultSwapResponse::mock();
         let other_tron = mock_refund(Chain::Tron, TRON_VAULT, "0x0");
         assert_eq!(validate_tron_vault_swap(None, &BigUint::from(50_000_000u32), &arbitrum_usdc_destination(), &other_tron, &tron), Err(mismatch));
     }
