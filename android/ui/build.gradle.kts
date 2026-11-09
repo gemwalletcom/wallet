@@ -48,6 +48,6 @@ dependencies {
 
     testImplementation(testFixtures(project(":gemcore")))
     testImplementation(libs.junit)
-    testImplementation(libs.mockk.android)
+    testImplementation(libs.mockk)
     testImplementation(libs.androidx.ui.test.junit4)
 }

@@ -27,5 +27,5 @@ dependencies {
     testImplementation(libs.junit)
     testImplementation(testFixtures(project(":gemcore")))
     testImplementation(libs.kotlinx.coroutines.test)
-    testImplementation(libs.mockk.android)
+    testImplementation(libs.mockk)
 }

@@ -116,7 +116,7 @@ androidx-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
 androidx-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
 androidx-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
 androidx-uiautomator = { module = "androidx.test.uiautomator:uiautomator", version.ref = "uiautomator" }
-mockk-android = { module = "io.mockk:mockk-android", version.ref = "mockkVersion" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockkVersion" }
 
 [plugins]
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp"}
