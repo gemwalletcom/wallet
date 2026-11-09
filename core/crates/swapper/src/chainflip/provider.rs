@@ -287,10 +287,14 @@ fn validate_tron_vault_swap(token_id: Option<&str>, input_amount: &BigUint, dest
     let is_vault = |address: &TronAddress| address.to_string() == TRON_VAULT;
     let value = vault_swap_value(token_id, input_amount, &response.value)?;
     match token_id {
-        None => TronAddress::from_hex_or_base58(&response.to)
-            .filter(is_vault)
-            .map(|vault| (vault, value))
-            .ok_or_else(|| vault_mismatch(Chain::Tron, &response.to)),
+        None => {
+            let vault = TronAddress::from_hex_or_base58(&response.to).filter(is_vault).ok_or_else(|| vault_mismatch(Chain::Tron, &response.to))?;
+            let calldata = decode_hex(&response.calldata).map_err(|_| invalid_calldata(Chain::Tron))?;
+            if !calldata.is_empty() {
+                return Err(invalid_calldata(Chain::Tron));
+            }
+            Ok((vault, value))
+        }
         Some(token_id) => {
             let source_token = response
                 .source_token_address
@@ -648,6 +652,38 @@ mod tests {
         assert_eq!(
             validate_tron_vault_swap(None, &BigUint::from(50_000_000u32), &bitcoin_destination(), &solana_refund(), &response),
             Err(SwapperError::TransactionError("Chainflip Bitcoin destination mismatch".to_string()))
+        );
+    }
+
+    #[test]
+    fn test_validate_tron_vault_swap_rejects_native_calldata() {
+        let call = IVault::xSwapNativeCall {
+            dstChain: 4,
+            dstAddress: vec![0x66; 20].into(),
+            dstToken: 7,
+            cfParameters: vec![].into(),
+        };
+        let response = TronVaultSwapResponse {
+            calldata: encode_with_0x(&call.abi_encode()),
+            value: BigUint::from(50_000_000u32),
+            to: TRON_VAULT.to_string(),
+            note: TRON_NOTE.to_string(),
+            source_token_address: None,
+        };
+
+        assert_eq!(
+            validate_tron_vault_swap(None, &BigUint::from(50_000_000u32), &arbitrum_usdc_destination(), &tron_refund(), &response),
+            Err(invalid_calldata(Chain::Tron))
+        );
+        assert_eq!(
+            validate_tron_vault_swap(
+                None,
+                &BigUint::from(50_000_000u32),
+                &arbitrum_usdc_destination(),
+                &tron_refund(),
+                &TronVaultSwapResponse { calldata: String::new(), ..response }
+            ),
+            Ok((TronAddress::parse(TRON_VAULT).unwrap(), BigUint::from(50_000_000u32)))
         );
     }
 
