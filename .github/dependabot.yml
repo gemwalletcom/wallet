@@ -29,6 +29,8 @@ updates:
       - dependency-name: "secp256k1"
       # Moves with bitcoin: gem_hash shares the copy bitcoin already builds.
       - dependency-name: "bitcoin_hashes"
+      # Moves with bitcoin: the chain address codecs share the copy bitcoin already builds.
+      - dependency-name: "bech32"
 
   # Security updates only: the limit of 0 turns version updates off.
   - package-ecosystem: "gradle"
