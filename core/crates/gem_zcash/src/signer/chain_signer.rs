@@ -9,10 +9,6 @@ impl ChainSigner for ZcashChainSigner {
     fn sign_transfer(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
         self.sign_plan(input, &Plan::transfer(input)?, private_key)
     }
-
-    fn sign_swap(&self, input: &SignerInput, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
-        Ok(vec![self.sign_plan(input, &Plan::swap(input)?, private_key)?])
-    }
 }
 
 impl ZcashChainSigner {
@@ -25,11 +21,8 @@ impl ZcashChainSigner {
 
 #[cfg(test)]
 mod tests {
-    use gem_bitcoin::testkit::signer_mock::{TEST_PRIVATE_KEY, mock_transfer_input, mock_transfer_swap_input};
-    use primitives::{
-        TransactionInputType,
-        testkit::zcash_mock::{TEST_ZCASH_TEX_ADDRESS, TEST_ZCASH_TRANSPARENT_ADDRESS},
-    };
+    use gem_bitcoin::testkit::signer_mock::{TEST_PRIVATE_KEY, mock_transfer_input};
+    use primitives::testkit::zcash_mock::{TEST_ZCASH_TEX_ADDRESS, TEST_ZCASH_TRANSPARENT_ADDRESS};
 
     use super::*;
 
@@ -43,15 +36,13 @@ mod tests {
     }
 
     #[test]
-    fn test_sign_swap() {
-        let sign_swap_to = |to: &str| {
-            let mut input = mock_transfer_swap_input(BitcoinChain::Zcash, "=:b:bc1qdestination:0/1/0:g1:50");
-            if let TransactionInputType::Swap { swap_data, .. } = &mut input.input.input_type {
-                swap_data.data.to = to.to_string();
-            }
-            ZcashChainSigner.sign_swap(&input, &TEST_PRIVATE_KEY).unwrap()
+    fn test_sign_tex_transfer() {
+        let sign_transfer_to = |to: &str| {
+            let mut input = mock_transfer_input(BitcoinChain::Zcash);
+            input.input.destination_address = to.to_string();
+            ZcashChainSigner.sign_transfer(&input, &TEST_PRIVATE_KEY).unwrap()
         };
-        assert_eq!(sign_swap_to(TEST_ZCASH_TEX_ADDRESS), sign_swap_to(TEST_ZCASH_TRANSPARENT_ADDRESS));
+        assert_eq!(sign_transfer_to(TEST_ZCASH_TEX_ADDRESS), sign_transfer_to(TEST_ZCASH_TRANSPARENT_ADDRESS));
     }
 
     #[test]

@@ -50,23 +50,9 @@ impl ChainSigner for EvmChainSigner {
     fn sign_swap(&self, input: &SignerInput, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
         let swap = input.input_type.get_swap_data()?;
         let swap_data = &swap.data;
-        let from_asset = input.input_type.get_asset();
 
         match swap_data.data_type {
-            SwapQuoteDataType::Transfer => {
-                let params = TransactionParams::from_input(input)?;
-                if from_asset.id.is_token() {
-                    let token_id = from_asset.id.get_token_id()?;
-                    let amount = input.value_as_bigint();
-                    let data = encode_erc20_transfer(&swap_data.to, &amount)?;
-                    Ok(vec![sign_and_encode(&build_eip1559_transaction(&params, token_id, U256::ZERO, Bytes::from(data))?, private_key)?])
-                } else {
-                    Ok(vec![sign_and_encode(
-                        &build_eip1559_transaction(&params, &swap_data.to, value_u256(&input.swap_value()?.to_string())?, Bytes::new())?,
-                        private_key,
-                    )?])
-                }
-            }
+            SwapQuoteDataType::Transfer => SignerError::invalid_input_err("unsupported EVM transfer swap"),
             SwapQuoteDataType::Contract => sign_contract_call(
                 input,
                 &swap_data.to,

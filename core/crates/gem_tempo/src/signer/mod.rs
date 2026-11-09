@@ -33,11 +33,7 @@ impl ChainSigner for TempoSigner {
     fn sign_swap(&self, input: &SignerInput, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
         let swap_data = &input.input_type.get_swap_data()?.data;
         match swap_data.data_type {
-            SwapQuoteDataType::Transfer => {
-                let token_id = input.input_type.get_asset().id.get_token_id()?;
-                let transfer_call = TransactionCall::new(token_id, encode_erc20_transfer(&swap_data.to, &input.value_as_bigint())?)?;
-                Ok(vec![sign_calls(input, vec![transfer_call], input.fee.gas_limit()?, private_key)?])
-            }
+            SwapQuoteDataType::Transfer => SignerError::invalid_input_err("unsupported Tempo transfer swap"),
             SwapQuoteDataType::Contract => {
                 require_zero_call_value(&swap_data.value)?;
                 let swap_gas_limit = input.swap_gas_limit()?;
@@ -241,11 +237,6 @@ mod tests {
             TOKEN_TRANSFER_GAS_LIMIT,
             TEMPO_USDT0_ASSET_ID.clone(),
         );
-        assert_eq!(
-            signer.sign_swap(&transfer_input, &TEST_PRIVATE_KEY).unwrap(),
-            vec![
-                "76f8d0821079843b9aca008504a817c80082fde8f85ef85c9420c000000000000000000000000000000000000080b844a9059cbb000000000000000000000000a2dc7d0266f0cc50b3eeaf36c9bfcecff1beea910000000000000000000000000000000000000000000000000000000000002710c0808080809420c00000000000000000000014f22ca97301eb7380c0b841b465c58835ea5cf8d453763209ba3493b21e9acdf2f6ac17a91f5c86de983e18403d83e3628180b1d112ef100148167cbcd08f5d64112e5d2067a937b5ec73d71c"
-            ]
-        );
+        assert_eq!(signer.sign_swap(&transfer_input, &TEST_PRIVATE_KEY).unwrap_err(), SignerError::invalid_input("unsupported Tempo transfer swap"));
     }
 }

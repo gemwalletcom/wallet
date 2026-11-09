@@ -2,7 +2,7 @@ use num_traits::ToPrimitive;
 use number_formatter::BigNumberFormatter;
 use primitives::{
     Asset, AssetSubtype, ChainSigner, SignerError, SignerInput, TransactionSwapReferralFee,
-    swap::{SwapQuoteData, SwapQuoteDataType, XRP_REFERRAL_ADDRESS, XRP_REFERRAL_FEE_ASSET_IDS},
+    swap::{SwapQuoteDataType, XRP_REFERRAL_ADDRESS, XRP_REFERRAL_FEE_ASSET_IDS},
 };
 
 use crate::address::XrpAddress;
@@ -30,14 +30,10 @@ impl ChainSigner for XrpChainSigner {
 
     fn sign_swap(&self, input: &SignerInput, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
         let swap = input.input_type.get_swap_data()?;
-        let signed = match swap.data.data_type {
-            SwapQuoteDataType::Contract => sign_swap_batch(input, private_key, &serde_json::from_str(&swap.data.data)?)?,
-            SwapQuoteDataType::Transfer => {
-                let amount = asset_amount(input.input_type.get_asset(), &swap.data.value.to_string())?;
-                sign_payment(input, private_key, amount, &swap.data.to, swap_memo(&swap.data))?
-            }
-        };
-        Ok(vec![signed])
+        match swap.data.data_type {
+            SwapQuoteDataType::Contract => Ok(vec![sign_swap_batch(input, private_key, &serde_json::from_str(&swap.data.data)?)?]),
+            SwapQuoteDataType::Transfer => SignerError::invalid_input_err("unsupported XRP transfer swap"),
+        }
     }
 
     fn sign_account_action(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
@@ -121,16 +117,6 @@ fn payment_memo(memo: Option<&str>) -> Result<XrpPaymentMemo, SignerError> {
         Ok(value) => Ok(XrpPaymentMemo::DestinationTag(u32::try_from(value).map_err(SignerError::from_display)?)),
         Err(_) => Ok(XrpPaymentMemo::Memo(memo.strip_prefix("0x").unwrap_or(memo).as_bytes().to_vec())),
     }
-}
-
-fn swap_memo(data: &SwapQuoteData) -> XrpPaymentMemo {
-    if let Some(memo) = data.memo.as_deref().filter(|memo| !memo.is_empty()) {
-        return XrpPaymentMemo::Memo(memo.as_bytes().to_vec());
-    }
-    if data.data.is_empty() {
-        return XrpPaymentMemo::None;
-    }
-    XrpPaymentMemo::Memo(data.data.as_bytes().to_vec())
 }
 
 #[cfg(test)]
@@ -218,67 +204,23 @@ mod tests {
     }
 
     #[test]
-    fn test_swap_memo_is_always_memo_data() {
-        let data = SwapQuoteData {
-            data: "fallback".to_string(),
-            ..SwapQuoteData::new_transfer("rU893viamSnsfP3zjzM2KPxjqZjXSXK6VF".to_string(), BigUint::from(10u64), Some("123".to_string()))
-        };
-
-        assert_eq!(swap_memo(&data), XrpPaymentMemo::Memo(b"123".to_vec()));
-    }
-
-    #[test]
-    fn test_sign_swap_uses_payload_not_provider() {
-        let private_key = hex::decode("a5576c0f63da10e584568c8d134569ff44017b0a249eb70657127ae04f38cc77").unwrap();
-        let input = SignerInput {
-            fee: TransactionFee::new_from_fee(10.into(), AssetId::from_chain(Chain::Xrp)),
-            ..SignerInput::mock_with_input_type(
-                TransactionInputType::Swap {
-                    from_asset: Asset::from_chain(Chain::Xrp),
-                    to_asset: Asset::from_chain(Chain::Xrp),
-                    swap_data: SwapData {
-                        data: SwapQuoteData {
-                            data: "swap:memo".to_string(),
-                            ..SwapQuoteData::new_transfer("rU893viamSnsfP3zjzM2KPxjqZjXSXK6VF".to_string(), BigUint::from(10u64), None)
-                        },
-                        ..SwapData::mock_with_provider(SwapProvider::Okx)
-                    },
-                },
-                "rfxdLwsZnoespnTDDb1Xhvbc8EFNdztaoq",
-                "",
-                "999",
-                TransactionLoadMetadata::Xrp {
-                    sequence: 32_268_248,
-                    block_number: 32_268_269 - LEDGER_SEQUENCE_OFFSET,
-                    is_destination_address_exist: true,
-                },
-            )
-        };
-
-        let signed = XrpChainSigner.sign_swap(&input, &private_key).unwrap();
-        assert_eq!(signed.len(), 1);
-        assert_eq!(
-            signed[0],
-            "12000022000000002401ec5fd8201b01ec5fed61400000000000000a68400000000000000a732103d13e1152965a51a4a9fd9a8b4ea3dd82a4eba6b25fcad5f460a2342bb650333f74473045022100d18b758a360fc0a4d013b095014410b4fbf0e97a265c10d01d85e86ff35e009a02203c7e860711fd18ca486d211c07669638cbfa39b5f01ccc430e12fdecfa11399281144c55f5a78067206507580be7bb2686c8460adff983148132e4e20aecf29090ac428a9c43f230a829220df9ea7d09737761703a6d656d6fe1f1"
-        );
-    }
-
-    #[test]
-    fn test_sign_swap_token_signs_issued_payment() {
-        let private_key = hex::decode(RLUSD_PRIVATE_KEY).unwrap();
-        let input = rlusd_payment_input(
+    fn test_sign_transfer_swap_is_refused() {
+        let input = SignerInput::mock_with_input_type(
             TransactionInputType::Swap {
-                from_asset: Asset::mock_xrp_rlusd(),
+                from_asset: Asset::from_chain(Chain::Xrp),
                 to_asset: Asset::from_chain(Chain::Xrp),
                 swap_data: SwapData {
-                    data: SwapQuoteData::new_transfer(RLUSD_DESTINATION.to_string(), BigUint::from(RLUSD_VALUE), None),
-                    ..SwapData::mock_with_provider(SwapProvider::Bridgers)
+                    data: SwapQuoteData::new_transfer("rU893viamSnsfP3zjzM2KPxjqZjXSXK6VF".to_string(), BigUint::from(10u64), Some("123".to_string())),
+                    ..SwapData::mock_with_provider(SwapProvider::Okx)
                 },
             },
+            "rfxdLwsZnoespnTDDb1Xhvbc8EFNdztaoq",
             "",
+            "10",
+            TransactionLoadMetadata::None,
         );
 
-        assert_eq!(XrpChainSigner.sign_swap(&input, &private_key).unwrap(), vec![RLUSD_SIGNED_PAYMENT.to_string()]);
+        assert_eq!(XrpChainSigner.sign_swap(&input, &[]), Err(SignerError::invalid_input("unsupported XRP transfer swap")));
     }
 
     #[test]

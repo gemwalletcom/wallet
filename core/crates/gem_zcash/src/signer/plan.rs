@@ -12,10 +12,6 @@ impl Plan {
         UtxoPlanner::plan(SpendRequest::transfer(BitcoinChain::Zcash, input)?, &Zip317Fee)
     }
 
-    pub(crate) fn swap(input: &SignerInput) -> Result<SpendPlan, SignerError> {
-        UtxoPlanner::plan(SpendRequest::swap(BitcoinChain::Zcash, input)?, &Zip317Fee)
-    }
-
     #[cfg(feature = "rpc")]
     pub(crate) fn fee(input: &SignerInput) -> Result<u64, SignerError> {
         let request = match &input.input_type {

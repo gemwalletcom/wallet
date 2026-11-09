@@ -8,5 +8,4 @@ pub enum GemSignerError {
     SigningError(String),
     DustThreshold,
     InsufficientFunds,
-    SwapValueBelowMinimum,
 }

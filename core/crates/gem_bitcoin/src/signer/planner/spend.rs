@@ -23,10 +23,6 @@ impl UtxoPlanner {
         Self::plan(SpendRequest::transfer(chain, input)?, &VirtualSizeFee::for_input(chain, input)?)
     }
 
-    pub(crate) fn swap(chain: BitcoinChain, input: &SignerInput) -> Result<SpendPlan, SignerError> {
-        Self::plan(SpendRequest::swap(chain, input)?, &VirtualSizeFee::for_input(chain, input)?)
-    }
-
     #[cfg(any(test, feature = "rpc"))]
     pub fn fee(request: SpendRequest, fee: &impl SpendFee) -> Result<u64, SignerError> {
         match Self::plan(request.clone(), fee) {

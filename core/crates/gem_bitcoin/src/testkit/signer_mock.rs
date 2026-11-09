@@ -1,9 +1,6 @@
 use num_bigint::BigInt;
 use num_bigint::BigUint;
-use primitives::{
-    Asset, AssetId, BitcoinChain, Chain, GasPriceType, SignerInput, SwapProvider, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, UTXO,
-    swap::{SlippageMode, SwapData, SwapProviderData, SwapQuote, SwapQuoteData},
-};
+use primitives::{Asset, AssetId, BitcoinChain, Chain, GasPriceType, SignerInput, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, UTXO};
 
 use crate::testkit::address_mock::{mock_destination_address, mock_p2wpkh_address, mock_sender_address};
 
@@ -58,49 +55,6 @@ pub fn mock_funded_transfer_input(chain: BitcoinChain) -> SignerInput {
         }
         _ => {}
     }
-    input
-}
-
-pub fn mock_transfer_swap_input(chain: BitcoinChain, memo: &str) -> SignerInput {
-    mock_swap_input(chain, SwapProvider::Thorchain, Some(false), |destination_address, value| {
-        SwapQuoteData::new_transfer(destination_address, value.parse().unwrap(), Some(memo.to_string()))
-    })
-}
-
-pub fn mock_contract_swap_input(chain: BitcoinChain, nulldata_hex: &str, use_max_amount: bool) -> SignerInput {
-    mock_swap_input(chain, SwapProvider::Chainflip, Some(use_max_amount), |destination_address, value| {
-        SwapQuoteData::new_contract(destination_address, value.parse().unwrap(), nulldata_hex.to_string(), None, None)
-    })
-}
-
-fn mock_swap_input(chain: BitcoinChain, provider: SwapProvider, use_max_amount: Option<bool>, quote_data: impl FnOnce(String, String) -> SwapQuoteData) -> SignerInput {
-    let mut input = mock_funded_transfer_input(chain);
-    let sender_address = input.sender_address.clone();
-    let destination_address = input.destination_address.clone();
-    let value = input.value.clone();
-
-    input.input.input_type = TransactionInputType::Swap {
-        from_asset: Asset::from_chain(chain.get_chain()),
-        to_asset: Asset::from_chain(BitcoinChain::Bitcoin.get_chain()),
-        swap_data: SwapData {
-            quote: SwapQuote {
-                from_address: sender_address,
-                from_value: value.clone(),
-                min_from_value: None,
-                to_address: destination_address.clone(),
-                to_value: value.clone(),
-                provider_data: SwapProviderData {
-                    provider,
-                    protocol_name: provider.name().to_string(),
-                },
-                slippage_bps: 50,
-                slippage_mode: SlippageMode::Exact,
-                eta_in_seconds: None,
-                use_max_amount,
-            },
-            data: quote_data(destination_address, value.to_string()),
-        },
-    };
     input
 }
 

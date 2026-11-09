@@ -289,7 +289,7 @@ impl GemConfirmError {
             Self::Sign { error, chain, msg } => match error {
                 GemSignerError::DustThreshold => GemConfirmErrorDisplay::DustThreshold { chain: *chain },
                 GemSignerError::InsufficientFunds => GemConfirmErrorDisplay::InsufficientFunds,
-                GemSignerError::InvalidInput(_) | GemSignerError::SigningError(_) | GemSignerError::SwapValueBelowMinimum { .. } => GemConfirmErrorDisplay::Message { msg: msg.clone() },
+                GemSignerError::InvalidInput(_) | GemSignerError::SigningError(_) => GemConfirmErrorDisplay::Message { msg: msg.clone() },
             },
             Self::Payment { status } => GemConfirmErrorDisplay::Payment { status: *status },
             Self::BalanceMissing { .. } | Self::Network { .. } | Self::Load { .. } | Self::Broadcast { .. } | Self::PartialBroadcast { .. } | Self::Record { .. } | Self::ApprovalInvalid { .. } => {
@@ -314,7 +314,7 @@ impl GemConfirmError {
             }),
             Self::Sign { error, chain, .. } => match error {
                 GemSignerError::DustThreshold => Some(GemConfirmErrorSheet::DustThreshold { chain: *chain }),
-                GemSignerError::InsufficientFunds | GemSignerError::InvalidInput(_) | GemSignerError::SigningError(_) | GemSignerError::SwapValueBelowMinimum { .. } => None,
+                GemSignerError::InsufficientFunds | GemSignerError::InvalidInput(_) | GemSignerError::SigningError(_) => None,
             },
             Self::Offline
             | Self::FeeRatesMissing
