@@ -1,5 +1,5 @@
 use crate::u256::u256_to_biguint;
-use alloy_primitives::{Address, U160, U256, hex};
+use alloy_primitives::{Address, U160, U256};
 use alloy_sol_types::SolCall;
 use num_bigint::BigUint;
 use num_traits::Zero;
@@ -17,13 +17,13 @@ pub enum EvmTransactionKind {
     TokenApproval(ApprovalData),
 }
 
+pub fn decode_calldata(input: &str) -> Result<Vec<u8>, String> {
+    let digits = input.strip_prefix("0x").or_else(|| input.strip_prefix("0X")).unwrap_or(input);
+    primitives::hex::decode(digits).map_err(|error| error.to_string())
+}
+
 pub fn decode_transaction_kind(chain: Chain, to: &str, input: Option<&str>, value: Option<&BigUint>) -> Result<EvmTransactionKind, String> {
-    let calldata = input
-        .map(|value| value.strip_prefix("0x").unwrap_or(value))
-        .map(hex::decode)
-        .transpose()
-        .map_err(|error| error.to_string())?
-        .unwrap_or_default();
+    let calldata = input.map(decode_calldata).transpose()?.unwrap_or_default();
 
     match decode_calldata_kind(chain, to, &calldata)? {
         EvmTransactionKind::TokenApproval(_) if value.is_some_and(|value| !value.is_zero()) => Ok(EvmTransactionKind::ContractCall),
@@ -66,8 +66,19 @@ fn token_approval(token: String, spender: Address, value: U256) -> EvmTransactio
 #[cfg(test)]
 mod tests {
     use super::*;
-    use alloy_primitives::{address, aliases::U48};
+    use alloy_primitives::{address, aliases::U48, hex};
     use primitives::contract_constants::{UNISWAP_PERMIT2_CONTRACT, ZKSYNC_UNISWAP_PERMIT2_CONTRACT};
+
+    #[test]
+    fn test_decode_calldata() {
+        assert_eq!(decode_calldata("0xa9059cbb").unwrap(), vec![0xa9, 0x05, 0x9c, 0xbb]);
+        assert_eq!(decode_calldata("0XA9059CBB").unwrap(), vec![0xa9, 0x05, 0x9c, 0xbb]);
+        assert_eq!(decode_calldata("a9059cbb").unwrap(), vec![0xa9, 0x05, 0x9c, 0xbb]);
+        assert_eq!(decode_calldata("0x").unwrap(), Vec::<u8>::new());
+        assert!(decode_calldata("0x0xa9059cbb").is_err());
+        assert!(decode_calldata("0xa9059cb").is_err());
+        assert!(decode_calldata(" 0xa9059cbb").is_err());
+    }
 
     #[test]
     fn test_decode_transaction_kind() {

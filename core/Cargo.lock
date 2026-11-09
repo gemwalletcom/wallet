@@ -1361,6 +1361,7 @@ dependencies = [
  "gem_tracing",
  "gem_tron",
  "gem_xrp",
+ "gem_zcash",
  "primitives",
  "reqwest",
  "settings",
@@ -3256,6 +3257,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "gem_zcash"
+version = "2.114.90"
+dependencies = [
+ "async-trait",
+ "bitcoin",
+ "chain_traits",
+ "futures",
+ "gem_bitcoin",
+ "gem_client",
+ "gem_hash",
+ "num-bigint 0.5.1",
+ "primitives",
+ "serde_json",
+ "settings",
+ "tokio",
+]
+
+[[package]]
 name = "gemstone"
 version = "2.114.90"
 dependencies = [
@@ -3296,6 +3315,7 @@ dependencies = [
  "gem_tron",
  "gem_wallet_connect",
  "gem_xrp",
+ "gem_zcash",
  "node_probes",
  "num-bigint 0.5.1",
  "number_formatter",

@@ -6,11 +6,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.features.transactions.viewmodels.TransactionViewModel
 import com.gemwallet.android.features.transactions.viewmodels.chain
+import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.FatalStateScene
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.localization.string
@@ -35,7 +37,7 @@ fun TransactionScreen(onAction: (TransactionAction.Navigation) -> Unit, viewMode
     if (model == null) {
         when (val state = loadState) {
             is GemLoadState.Error -> FatalStateScene(
-                title = "",
+                title = stringResource(R.string.errors_error_occurred),
                 message = state.error.errorText().text(context),
                 onCancel = { onAction(TransactionAction.Close) },
                 onTryAgain = viewModel::load,

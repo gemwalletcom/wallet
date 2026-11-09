@@ -33,11 +33,12 @@ Do not hard-wrap prose in docs, skills, commit messages, or PR bodies. Keep one 
 
 - Run applicable [Quality Checks](quality-checks.md), including the [Security checklist](security.md#review-checklist) for wallet-critical changes. Execution and reporting requirements live there.
 - After switching branches with changed generated contracts, check stale ignored artifacts before diagnosing app code. Regenerate only the affected outputs and repeat the focused check.
+- Passing checks are not done: prove the result for each change kind with [Proof of Done](quality-checks.md#proof-of-done).
 
 ## 5. Hand Off a Reproducible State
 
 - **Cleanup round two**, after verification: read each hunk as a reviewer. Remove remaining redundancy, unused API, comments prohibited by the style guide, and debugging leftovers. Rerun affected checks if source changes.
-- Inspect final diff and status. Report changes, exact commands/results, skipped or blocked checks, and risks. For wallet-critical flows, explicitly surface skipped records, swallowed errors, and untested branches.
+- Inspect final diff and status. Report changes, exact commands/results, proof, missing proof and why, skipped or blocked checks, and risks. For wallet-critical flows, explicitly surface skipped records, swallowed errors, and untested branches.
 - Leave changes uncommitted and external systems unchanged unless the user authorized those actions.
 - Local checks are the gate, not CI. Push only after every applicable local check passes, then let CI run in the background and start the next task instead of waiting on it. Name the checks that only CI can run in the handoff, and treat a CI failure as a finding for the next commit.
 
