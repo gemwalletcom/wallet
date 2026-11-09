@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.gemwallet.android.ui.theme.space4
+import kotlinx.coroutines.CancellationException
 import java.nio.ByteBuffer
 import java.util.concurrent.Executors
 import kotlin.math.min
@@ -40,7 +41,7 @@ private const val FINDER_DIM_ALPHA = 0.33f
 
 @ExperimentalGetImage
 @Composable
-fun QRScannerView(listener: (String) -> Unit) {
+fun QRScannerView(onCameraUnavailable: () -> Unit, listener: (String) -> Unit) {
     val localContext = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val preview = remember { androidx.camera.core.Preview.Builder().build() }
@@ -86,8 +87,11 @@ fun QRScannerView(listener: (String) -> Unit) {
                 preview,
                 imageAnalyzer,
             )
+        } catch (error: CancellationException) {
+            throw error
         } catch (error: Throwable) {
             Log.e(TAG, "Camera preview did not start", error)
+            onCameraUnavailable()
         }
     }
     Box(modifier = Modifier.fillMaxSize()) {

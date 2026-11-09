@@ -65,6 +65,7 @@ fun QRScannerScene(scanType: QRScanType, isCameraGranted: Boolean, permissionAct
     val haptic = LocalHapticFeedback.current
     val decodingError = stringResource(id = R.string.errors_decoding_qr)
     var toastMessage by remember { mutableStateOf<String?>(null) }
+    var isCameraUnavailable by remember { mutableStateOf(false) }
     val snackbar = rememberSnackbarState(
         message = toastMessage,
         iconRes = R.drawable.ic_error,
@@ -94,37 +95,55 @@ fun QRScannerScene(scanType: QRScanType, isCameraGranted: Boolean, permissionAct
             }
         },
         onClose = onCancel,
-        mainAction = if (isCameraGranted) {
-            null
-        } else {
-            {
-                Column(verticalArrangement = Arrangement.spacedBy(paddingSmall)) {
-                    MainActionButton(title = permissionAction.title, onClick = permissionAction.onClick)
+        mainAction = when {
+            !isCameraGranted -> {
+                {
+                    Column(verticalArrangement = Arrangement.spacedBy(paddingSmall)) {
+                        MainActionButton(title = permissionAction.title, onClick = permissionAction.onClick)
+                        MainActionButton(
+                            title = stringResource(id = R.string.library_select_from_photo_library),
+                            colors = mainActionButtonColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                                contentColor = MaterialTheme.colorScheme.onSurface,
+                            ),
+                            onClick = { galleryLauncher.launch("image/*") },
+                        )
+                    }
+                }
+            }
+
+            isCameraUnavailable -> {
+                {
                     MainActionButton(
                         title = stringResource(id = R.string.library_select_from_photo_library),
-                        colors = mainActionButtonColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                            contentColor = MaterialTheme.colorScheme.onSurface,
-                        ),
                         onClick = { galleryLauncher.launch("image/*") },
                     )
                 }
             }
+
+            else -> null
         },
         snackbar = snackbar,
     ) {
-        if (isCameraGranted) {
-            Box(modifier = Modifier.fillMaxSize()) {
-                QRScannerView(listener = onResult)
-                ScannerHint(hint = stringResource(id = scanType.stringRes()))
-            }
-        } else {
-            EmptyStateView(
+        when {
+            !isCameraGranted -> EmptyStateView(
                 title = stringResource(id = R.string.errors_permissions_not_granted),
                 description = stringResource(id = R.string.errors_camera_permissions_not_granted),
                 iconVector = AppIcons.Camera,
                 modifier = Modifier.fillMaxSize(),
             )
+
+            isCameraUnavailable -> EmptyStateView(
+                title = stringResource(id = R.string.errors_not_supported),
+                description = stringResource(id = R.string.errors_not_supported_qr),
+                iconVector = AppIcons.QrCodeScanner,
+                modifier = Modifier.fillMaxSize(),
+            )
+
+            else -> Box(modifier = Modifier.fillMaxSize()) {
+                QRScannerView(onCameraUnavailable = { isCameraUnavailable = true }, listener = onResult)
+                ScannerHint(hint = stringResource(id = scanType.stringRes()))
+            }
         }
     }
 }
