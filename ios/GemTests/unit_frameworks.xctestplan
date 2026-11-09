@@ -72,7 +72,7 @@
     },
     {
       "target": {
-        "containerPath": "container:Packages/SwiftHTTPClient",
+        "containerPath": "container:Packages/WebSocketClient",
         "identifier": "WebSocketClientTests",
         "name": "WebSocketClientTests"
       }

@@ -69,7 +69,7 @@
       "path": "Packages",
       "children": [
         { "path": "Formatters" },
-        { "path": "SwiftHTTPClient" },
+        { "path": "WebSocketClient" },
         { "path": "Store" },
         { "path": "Primitives" },
         { "path": "BigInt" },

@@ -3,13 +3,9 @@
 import PackageDescription
 
 let package = Package(
-    name: "SwiftHTTPClient",
+    name: "WebSocketClient",
     platforms: [.iOS(.v17), .macOS(.v15)],
     products: [
-        .library(
-            name: "SwiftHTTPClient",
-            targets: ["SwiftHTTPClient"],
-        ),
         .library(
             name: "WebSocketClient",
             targets: ["WebSocketClient"],
@@ -21,11 +17,6 @@ let package = Package(
     ],
     dependencies: [],
     targets: [
-        .target(
-            name: "SwiftHTTPClient",
-            dependencies: [],
-            path: "SwiftHTTPClient",
-        ),
         .target(
             name: "WebSocketClient",
             dependencies: [],
