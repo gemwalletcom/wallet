@@ -96,7 +96,7 @@ impl GemSimulationService {
 
     async fn simulate_ethereum_transaction(&self, chain: Chain, data: &str) -> Result<SimulationResult, GemstoneError> {
         let (transaction, kind) = simulation::decode_ethereum_transaction(data)?;
-        let calldata = simulation::decode_ethereum_calldata(&transaction);
+        let calldata = simulation::decode_ethereum_calldata(&transaction)?;
         let provider = self.ethereum_provider(chain)?;
 
         match kind {
