@@ -86,4 +86,4 @@ just spm-resolve-all
 
 - Use `just` commands for builds and tests, not `xcrun swift test` or ad hoc `xcodebuild` invocations
 - Build logs live under `build/DerivedData`
-- `just install` installs `swiftformat`, `swiftlint`, and `xcbeautify`
+- `just install` installs `swiftformat` and `xcbeautify`

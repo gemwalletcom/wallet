@@ -24,7 +24,7 @@ install-toolchains:
 
 install-swifttools:
     @echo "==> Install Swift tools"
-    @brew install swiftformat swiftlint xcbeautify
+    @brew install swiftformat xcbeautify
 
 setup-git:
     @echo "==> Setup git submodules"
@@ -38,8 +38,9 @@ spm-resolve-all:
     @sh scripts/spm-resolve-all.sh
 
 lint:
-    @echo "==> Running SwiftLint"
-    @git ls-files -z '*.swift' | xargs -0 swiftlint lint --fix --config .swiftlint.yml --quiet --force-exclude
+    @echo "==> Collapsing repeated blank lines"
+    @git ls-files -z '*.swift' | xargs -0 swiftformat --config .swiftformat --rules consecutiveBlankLines --quiet
+    @! git grep -nE '\(Void\)[[:space:]]*->' -- '*.swift' ':!Packages/BigInt'
 
 format:
     #!/usr/bin/env bash

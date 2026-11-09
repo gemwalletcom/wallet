@@ -21,7 +21,7 @@ just install
 just spm-resolve
 ```
 
-`just install` installs iOS targets, SwiftFormat, SwiftLint, and xcbeautify, using the shared Rust toolchain installed above. It also creates the local Gemstone UniFFI Swift/header sources and iOS Rust static libraries that SwiftPM and Xcode need.
+`just install` installs iOS targets, SwiftFormat, and xcbeautify, using the shared Rust toolchain installed above. It also creates the local Gemstone UniFFI Swift/header sources and iOS Rust static libraries that SwiftPM and Xcode need.
 
 From the repo root, `just install` installs shared tools once and then both platforms' dependencies. `just ios install` installs only iOS-specific dependencies and assumes shared tools are already installed.
 
