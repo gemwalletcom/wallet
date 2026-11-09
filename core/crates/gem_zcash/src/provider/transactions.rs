@@ -63,12 +63,50 @@ impl<C: Client> ChainTransactions for ZcashProvider<C> {
 impl<C: Client> ZcashProvider<C> {
     async fn transaction_details(&self, transaction: BitcoinTransaction) -> Result<BitcoinTransaction, Box<dyn Error + Sync + Send>> {
         let has_transparent_input = transaction.vin.iter().any(|input| input.is_address);
-        let is_shielded_spend = transaction.vin.is_empty() && transaction.vout.iter().any(|output| output.is_address);
-        if !has_transparent_input && !is_shielded_spend {
+        if !has_transparent_input {
             return Ok(transaction);
         }
         let txid = transaction.txid;
         self.client.get_transaction(&txid).await?.ok_or_else(|| format!("transaction {txid} not indexed").into())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::{
+        Arc,
+        atomic::{AtomicUsize, Ordering},
+    };
+
+    use gem_bitcoin::BitcoinClient;
+    use gem_client::testkit::MockClient;
+    use primitives::BitcoinChain;
+    use serde_json::{Value, from_str, json, to_vec};
+
+    use super::*;
+
+    #[tokio::test]
+    async fn test_get_transactions_by_block_fetches_transparent_spends_only() {
+        let shielded_receive: Value = from_str(include_str!("../../testdata/transaction_shielded_receive.json")).unwrap();
+        let transparent_spend: Value = from_str(include_str!("../../testdata/transaction_joinsplit.json")).unwrap();
+        let transparent_spend_path = format!("/api/v2/tx/{}", transparent_spend["txid"].as_str().unwrap());
+        let block = json!({ "page": 1, "totalPages": 1, "txs": [shielded_receive, transparent_spend] });
+        let fetched = Arc::new(AtomicUsize::new(0));
+        let counter = fetched.clone();
+        let client = MockClient::new().with_get(move |path| match path {
+            "/api/v2/block/1?page=1" => Ok(to_vec(&block).unwrap()),
+            path if path == transparent_spend_path => {
+                counter.fetch_add(1, Ordering::SeqCst);
+                Ok(to_vec(&transparent_spend).unwrap())
+            }
+            path => panic!("unexpected path: {path}"),
+        });
+        let provider = ZcashProvider::new(BitcoinClient::new(client, BitcoinChain::Zcash));
+
+        let transactions = provider.get_transactions_by_block(1).await.unwrap();
+
+        assert_eq!(transactions.len(), 2);
+        assert_eq!(fetched.load(Ordering::SeqCst), 1);
     }
 }
 
