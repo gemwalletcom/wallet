@@ -49,16 +49,6 @@ jobs:
       - name: Setup iOS CI
         uses: ./.github/actions/setup-ios-ci
 
-      - name: Cache Swift Package Manager
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: |
-            ~/.swiftpm
-            ios/build/SourcePackages
-          key: ${{ runner.os }}-spm-${{ hashFiles('ios/**/Package.resolved') }}
-          restore-keys: |
-            ${{ runner.os }}-spm-
-
       - name: Install dependencies
         working-directory: ios
         run: just install-toolchains
