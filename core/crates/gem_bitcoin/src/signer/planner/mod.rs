@@ -5,7 +5,8 @@ mod request;
 mod spend;
 mod types;
 
-pub(crate) use self::{
+pub use self::{
+    fee::{SpendFee, VirtualSizeFee},
     request::SpendRequest,
     spend::UtxoPlanner,
     types::{PlanInput, PlanOutput, SpendPlan},
