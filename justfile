@@ -12,8 +12,8 @@ install:
 
 setup-git:
     @echo "==> Setup iOS git submodules"
-    @git submodule sync --recursive
-    @git submodule update --init --recursive
+    @git submodule sync
+    @git submodule update --init
     @git config submodule.recurse true
 
 build:

@@ -28,7 +28,7 @@ install-swifttools:
 
 setup-git:
     @echo "==> Setup git submodules"
-    @git submodule update --init --recursive
+    @git submodule update --init
     @git config submodule.recurse true
 
 spm-resolve:
