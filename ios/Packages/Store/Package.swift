@@ -17,6 +17,7 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "Primitives", path: "../Primitives"),
+        .package(name: "BigInt", path: "../BigInt"),
         .package(name: "GRDB", path: "../../Submodules/GRDB"),
     ],
     targets: [
@@ -24,6 +25,7 @@ let package = Package(
             name: "Store",
             dependencies: [
                 "Primitives",
+                .product(name: "BigInt", package: "BigInt"),
                 .product(name: "GRDB", package: "GRDB"),
             ],
             path: "Sources",

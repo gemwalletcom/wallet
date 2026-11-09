@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-internal import BigInt
 import Foundation
 import GRDB
 import Primitives
