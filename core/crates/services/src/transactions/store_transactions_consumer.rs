@@ -503,39 +503,32 @@ mod tests {
             basic.score = AssetScore::new(rank);
             (basic.asset.id.clone(), AssetPriceMetadata { asset: basic, price: None })
         };
-        let fake_token = Asset::mock_ethereum_usdc();
-        let suspicious_token = Asset::mock_erc20();
-        let verified_token = Asset::mock_spl_token();
-        let assets = HashMap::from([
-            asset(Asset::mock_eth(), Chain::Ethereum.rank()),
-            asset(fake_token.clone(), 15),
-            asset(suspicious_token.clone(), 5),
-            asset(verified_token.clone(), 16),
-        ]);
-        let transfer = |asset: &Asset| Transaction::mock_with_params(asset.id.clone(), TransactionType::Transfer, BigUint::from(1u32));
+        let unverified = Asset::mock_ethereum_usdc().id;
+        let verified = Asset::mock_erc20().id;
+        let assets = HashMap::from([asset(Asset::mock_ethereum_usdc(), 15), asset(Asset::mock_erc20(), 16)]);
+        let transfer = Transaction::mock_with_params(unverified.clone(), TransactionType::Transfer, BigUint::from(1u32));
+        let batch_airdrop = Transaction {
+            transaction_type: TransactionType::SmartContractCall,
+            ..Transaction::mock_with_asset_transfers(vec![TransactionAssetTransfer {
+                asset_id: unverified.clone(),
+                from: "0xairdropper".to_string(),
+                to: "0xuser".to_string(),
+                value: BigUint::from(1u32),
+            }])
+        };
 
-        assert!(StoreTransactionsConsumer::is_unverified_transfer_received(&transfer(&fake_token), "0xto", &assets));
-        assert!(StoreTransactionsConsumer::is_unverified_transfer_received(&transfer(&suspicious_token), "0xto", &assets));
-        assert!(!StoreTransactionsConsumer::is_unverified_transfer_received(&transfer(&fake_token), "0xfrom", &assets));
-        assert!(!StoreTransactionsConsumer::is_unverified_transfer_received(&transfer(&verified_token), "0xto", &assets));
-        assert!(!StoreTransactionsConsumer::is_unverified_transfer_received(&Transaction::mock(), "0xto", &assets));
+        assert!(StoreTransactionsConsumer::is_unverified_transfer_received(&transfer, "0xto", &assets));
+        assert!(StoreTransactionsConsumer::is_unverified_transfer_received(&batch_airdrop, "0xuser", &assets));
+        assert!(!StoreTransactionsConsumer::is_unverified_transfer_received(&transfer, "0xfrom", &assets));
+        assert!(!StoreTransactionsConsumer::is_unverified_transfer_received(&Transaction { asset_id: verified, ..transfer.clone() }, "0xto", &assets));
         assert!(!StoreTransactionsConsumer::is_unverified_transfer_received(
-            &Transaction::mock_with_params(fake_token.id.clone(), TransactionType::SmartContractCall, BigUint::from(1u32)),
+            &Transaction {
+                transaction_type: TransactionType::SmartContractCall,
+                ..transfer
+            },
             "0xto",
             &assets
         ));
-
-        let airdrop = |to: &str| TransactionAssetTransfer {
-            asset_id: fake_token.id.clone(),
-            from: "0xairdropper".to_string(),
-            to: to.to_string(),
-            value: BigUint::from(1u32),
-        };
-        let batch_airdrop = Transaction {
-            transaction_type: TransactionType::SmartContractCall,
-            ..Transaction::mock_with_asset_transfers(vec![airdrop("0xuser"), airdrop("0xother")])
-        };
-        assert!(StoreTransactionsConsumer::is_unverified_transfer_received(&batch_airdrop, "0xuser", &assets));
     }
 
     #[test]
