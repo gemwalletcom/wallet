@@ -68,9 +68,9 @@ impl EthereumRequestHandler {
         })
     }
 
-    pub fn decode_send_transaction(data: String) -> Result<WalletConnectTransaction, String> {
+    pub fn decode_send_transaction(chain: Chain, data: String) -> Result<WalletConnectTransaction, String> {
         let transaction: WCEthereumTransaction = serde_json::from_str(&data).map_err(|e| e.to_string())?;
-        let kind = decode_transaction_kind(&transaction.to, transaction.data.as_deref(), transaction.value.as_ref())?;
+        let kind = decode_transaction_kind(chain, &transaction.to, transaction.data.as_deref(), transaction.value.as_ref())?;
         Ok(WalletConnectTransaction::Ethereum { data: transaction.into(), kind })
     }
 

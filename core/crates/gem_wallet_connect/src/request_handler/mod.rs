@@ -64,9 +64,9 @@ impl WalletConnectRequestHandler {
         }
     }
 
-    pub fn decode_send_transaction(transaction_type: WalletConnectTransactionType, data: String) -> Result<WalletConnectTransaction, String> {
+    pub fn decode_send_transaction(chain: Chain, transaction_type: WalletConnectTransactionType, data: String) -> Result<WalletConnectTransaction, String> {
         match transaction_type {
-            WalletConnectTransactionType::Ethereum => EthereumRequestHandler::decode_send_transaction(data),
+            WalletConnectTransactionType::Ethereum => EthereumRequestHandler::decode_send_transaction(chain, data),
             WalletConnectTransactionType::Solana { output_type } => SolanaRequestHandler::decode_send_transaction(data, output_type),
             WalletConnectTransactionType::Sui { output_type } => SuiRequestHandler::decode_send_transaction(data, output_type),
             WalletConnectTransactionType::Ton { output_type } => TonRequestHandler::decode_send_transaction(data, output_type),
@@ -254,7 +254,7 @@ mod tests {
             WalletConnectAction::SignAllTransactions { chain, transaction_type, transactions } => {
                 assert_eq!(*chain, Chain::Solana);
                 assert_eq!(transactions.len(), 1);
-                let decoded = WalletConnectRequestHandler::decode_send_transaction(transaction_type.clone(), transactions[0].clone()).unwrap();
+                let decoded = WalletConnectRequestHandler::decode_send_transaction(*chain, transaction_type.clone(), transactions[0].clone()).unwrap();
                 match decoded {
                     WalletConnectTransaction::Solana { data, output_type } => {
                         assert!(data.transaction.starts_with("AQAAAAAAAAA"));
@@ -271,7 +271,12 @@ mod tests {
     #[test]
     fn test_decode_ethereum_transaction_accepts_numeric_and_hex_string_chain_id() {
         for (chain_id, expected) in [(r#"4663"#, 4663), (r#""0x1237""#, 4663)] {
-            let decoded = WalletConnectRequestHandler::decode_send_transaction(WalletConnectTransactionType::Ethereum, format!(r#"{{"chainId":{chain_id},"from":"0xsender","to":"0xrouter","data":"0x1234","value":"0x0"}}"#)).unwrap();
+            let decoded = WalletConnectRequestHandler::decode_send_transaction(
+                Chain::Ethereum,
+                WalletConnectTransactionType::Ethereum,
+                format!(r#"{{"chainId":{chain_id},"from":"0xsender","to":"0xrouter","data":"0x1234","value":"0x0"}}"#),
+            )
+            .unwrap();
 
             match decoded {
                 WalletConnectTransaction::Ethereum { data, kind } => {
@@ -294,7 +299,7 @@ mod tests {
             (approve, r#""0x2386f26fc10000""#, EvmTransactionKind::ContractCall),
         ];
         for (data, value, expected) in cases {
-            let decoded = WalletConnectRequestHandler::decode_send_transaction(WalletConnectTransactionType::Ethereum, format!(r#"{{"from":"0xsender","to":"0xrouter","data":{data},"value":{value}}}"#)).unwrap();
+            let decoded = WalletConnectRequestHandler::decode_send_transaction(Chain::Ethereum, WalletConnectTransactionType::Ethereum, format!(r#"{{"from":"0xsender","to":"0xrouter","data":{data},"value":{value}}}"#)).unwrap();
 
             match decoded {
                 WalletConnectTransaction::Ethereum { kind, .. } => assert_eq!(kind, expected),
@@ -305,7 +310,7 @@ mod tests {
 
     #[test]
     fn test_decode_ethereum_approval_data() {
-        let decoded = WalletConnectRequestHandler::decode_send_transaction(WalletConnectTransactionType::Ethereum, include_str!("../../testdata/ethereum_approval.json").to_string()).unwrap();
+        let decoded = WalletConnectRequestHandler::decode_send_transaction(Chain::Ethereum, WalletConnectTransactionType::Ethereum, include_str!("../../testdata/ethereum_approval.json").to_string()).unwrap();
 
         match decoded {
             WalletConnectTransaction::Ethereum {
@@ -324,7 +329,7 @@ mod tests {
             "0x095ea7b300000000000000000000000022223333444455556666777788889999aaaabbbb0000000000000000000000000000000000000000000000000000000000000064",
             "0x095ea7b3abcd",
         );
-        let result = WalletConnectRequestHandler::decode_send_transaction(WalletConnectTransactionType::Ethereum, malformed);
+        let result = WalletConnectRequestHandler::decode_send_transaction(Chain::Ethereum, WalletConnectTransactionType::Ethereum, malformed);
 
         assert!(result.is_err());
     }

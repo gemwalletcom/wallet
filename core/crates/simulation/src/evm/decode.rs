@@ -1,6 +1,6 @@
 use alloy_sol_types::SolCall;
 use num_bigint::BigUint;
-use primitives::{Chain, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult, contract_constants::UNISWAP_PERMIT2_CONTRACT};
+use primitives::{Chain, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult};
 
 use super::{
     approval_method::ApprovalMethod,
@@ -12,6 +12,7 @@ use gem_evm::{
     eip712::{EIP712Field, EIP712Message, EIP712TypedValue, find_field_biguint, find_field_bool, find_field_string, find_field_struct},
     ethereum_address_checksum,
     permit2::IAllowanceTransfer,
+    uniswap::deployment::is_permit2_contract_by_chain,
 };
 
 pub fn simulate_eip712_message(chain: Chain, message: &EIP712Message) -> SimulationResult {
@@ -74,7 +75,7 @@ pub(crate) fn decode_evm_approval(chain: Chain, calldata: &[u8], contract_addres
     }
 
     if calldata.starts_with(&<IAllowanceTransfer::approveCall as SolCall>::SELECTOR)
-        && contract_address.eq_ignore_ascii_case(UNISWAP_PERMIT2_CONTRACT)
+        && is_permit2_contract_by_chain(&chain, contract_address)
         && let Ok(call) = <IAllowanceTransfer::approveCall as SolCall>::abi_decode_validate(calldata)
     {
         return ApprovalRequest::permit(
@@ -258,6 +259,7 @@ mod tests {
     use gem_evm::{
         eip712::{EIP712Message, parse_eip712_json},
         permit2::IAllowanceTransfer,
+        testkit::DEPLOYED_PERMIT2_CONTRACTS,
     };
     use primitives::{
         Chain, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationResult, SimulationWarningType,
@@ -583,8 +585,17 @@ mod tests {
         assert_eq!(result.payload[5].value, "1800000000");
         assert_eq!(result.header.as_ref().map(|header| header.asset_id.clone()), Some(ETHEREUM_USDC_ASSET_ID.clone()));
 
+        for (chain, contract) in DEPLOYED_PERMIT2_CONTRACTS {
+            let deployed = simulate_evm_calldata(chain, &calldata, contract);
+            assert!(is_token_warning(&deployed.warnings[0].warning), "{chain} {contract}");
+            assert_eq!(kinds(&deployed), kinds(&result), "{chain} {contract}");
+            assert_eq!(deployed.payload[2].value, result.payload[2].value);
+        }
+
         let other_contract = simulate_evm_calldata(Chain::Ethereum, &calldata, "0x2222222222222222222222222222222222222222");
         assert_eq!(kinds(&other_contract), vec![SimulationPayloadFieldKind::Contract]);
+        let unlisted_chain = simulate_evm_calldata(Chain::Polygon, &calldata, "0x31c2F6fcFf4F8759b3Bd5Bf0e1084A055615c768");
+        assert_eq!(kinds(&unlisted_chain), vec![SimulationPayloadFieldKind::Contract]);
     }
 
     #[test]

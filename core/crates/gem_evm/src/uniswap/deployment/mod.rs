@@ -38,6 +38,19 @@ pub fn get_uniswap_permit2_by_chain(chain: &Chain) -> Option<&'static str> {
     }
 }
 
+pub fn is_permit2_contract_by_chain(chain: &Chain, contract: &str) -> bool {
+    [
+        Some(UNISWAP_PERMIT2_CONTRACT),
+        get_uniswap_permit2_by_chain(chain),
+        v3::get_pancakeswap_router_deployment_by_chain(chain).map(|deployment| deployment.permit2),
+        v3::get_oku_deployment_by_chain(chain).map(|deployment| deployment.permit2),
+        v3::get_wagmi_router_deployment_by_chain(chain).map(|deployment| deployment.permit2),
+    ]
+    .into_iter()
+    .flatten()
+    .any(|permit2| permit2.eq_ignore_ascii_case(contract))
+}
+
 pub fn get_provider_by_chain_contract(chain: &Chain, contract: &str) -> Option<SwapProvider> {
     if v3::is_uniswap_router_contract_by_chain(chain, contract) {
         return Some(SwapProvider::UniswapV3);
