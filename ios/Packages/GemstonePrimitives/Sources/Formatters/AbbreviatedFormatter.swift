@@ -2,22 +2,22 @@
 
 import Foundation
 
-public struct AbbreviatedFormatter {
+struct AbbreviatedFormatter {
     private let locale: Locale
 
-    public init(locale: Locale = .current) {
+    init(locale: Locale = .current) {
         self.locale = locale
     }
 
-    public func string(from double: Double, rule: FloatingPointRoundingRule = .towardZero) -> String? {
+    func string(from double: Double, rule: FloatingPointRoundingRule = .towardZero) -> String? {
         string(from: Decimal(double), rule: rule)
     }
 
-    public func string(from double: Double, currency: String, rule: FloatingPointRoundingRule = .towardZero) -> String? {
+    func string(from double: Double, currency: String, rule: FloatingPointRoundingRule = .towardZero) -> String? {
         string(from: Decimal(double), currency: currency, rule: rule)
     }
 
-    public func string(from decimal: Decimal, rule: FloatingPointRoundingRule = .towardZero) -> String? {
+    func string(from decimal: Decimal, rule: FloatingPointRoundingRule = .towardZero) -> String? {
         guard #available(iOS 18, *) else {
             return nil
         }
@@ -31,7 +31,7 @@ public struct AbbreviatedFormatter {
         )
     }
 
-    public func string(from decimal: Decimal, currency: String, rule: FloatingPointRoundingRule = .towardZero) -> String? {
+    func string(from decimal: Decimal, currency: String, rule: FloatingPointRoundingRule = .towardZero) -> String? {
         guard #available(iOS 18, *) else {
             return nil
         }

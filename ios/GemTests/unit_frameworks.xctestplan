@@ -93,13 +93,6 @@
     },
     {
       "target": {
-        "containerPath": "container:Packages/Formatters",
-        "identifier": "FormattersTests",
-        "name": "FormattersTests"
-      }
-    },
-    {
-      "target": {
         "containerPath": "container:Packages/Primitives",
         "identifier": "PrimitivesTests",
         "name": "PrimitivesTests"

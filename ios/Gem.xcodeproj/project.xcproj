@@ -68,7 +68,6 @@
       "kind": "group",
       "path": "Packages",
       "children": [
-        { "path": "Formatters" },
         { "path": "WebSocketClient" },
         { "path": "Store" },
         { "path": "Primitives" },
