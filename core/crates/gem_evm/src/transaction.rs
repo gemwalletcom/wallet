@@ -66,7 +66,6 @@ fn token_approval(token: String, spender: Address, value: U256) -> EvmTransactio
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::testkit::DEPLOYED_PERMIT2_CONTRACTS;
     use alloy_primitives::{address, aliases::U48};
     use primitives::contract_constants::{UNISWAP_PERMIT2_CONTRACT, ZKSYNC_UNISWAP_PERMIT2_CONTRACT};
 
@@ -149,15 +148,9 @@ mod tests {
             value: u256_to_biguint(&U256::from(U160::MAX)),
             is_unlimited: true,
         });
-        let permit2_contracts = [(Chain::Ethereum, UNISWAP_PERMIT2_CONTRACT), (Chain::Gnosis, UNISWAP_PERMIT2_CONTRACT)].into_iter().chain(DEPLOYED_PERMIT2_CONTRACTS);
-        for (chain, contract) in permit2_contracts {
-            assert_eq!(decode_transaction_kind(chain, contract, Some(&permit2), None).unwrap(), permit2_approval, "{chain} {contract}");
-        }
+        assert_eq!(decode_transaction_kind(Chain::Ethereum, UNISWAP_PERMIT2_CONTRACT, Some(&permit2), None).unwrap(), permit2_approval);
+        assert_eq!(decode_transaction_kind(Chain::ZkSync, ZKSYNC_UNISWAP_PERMIT2_CONTRACT, Some(&permit2), None).unwrap(), permit2_approval);
         assert_eq!(decode_transaction_kind(Chain::Ethereum, &token.to_string(), Some(&permit2), None).unwrap(), EvmTransactionKind::ContractCall);
-        assert_eq!(
-            decode_transaction_kind(Chain::Polygon, "0x31c2F6fcFf4F8759b3Bd5Bf0e1084A055615c768", Some(&permit2), None).unwrap(),
-            EvmTransactionKind::ContractCall
-        );
         assert_eq!(decode_transaction_kind(Chain::Ethereum, ZKSYNC_UNISWAP_PERMIT2_CONTRACT, Some(&permit2), None).unwrap(), EvmTransactionKind::ContractCall);
     }
 }

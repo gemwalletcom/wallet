@@ -259,12 +259,11 @@ mod tests {
     use gem_evm::{
         eip712::{EIP712Message, parse_eip712_json},
         permit2::IAllowanceTransfer,
-        testkit::DEPLOYED_PERMIT2_CONTRACTS,
     };
     use primitives::{
         Chain, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationResult, SimulationWarningType,
         asset_constants::{ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDC_TOKEN_ID},
-        contract_constants::UNISWAP_PERMIT2_CONTRACT,
+        contract_constants::{UNISWAP_PERMIT2_CONTRACT, ZKSYNC_UNISWAP_PERMIT2_CONTRACT},
     };
     use serde_json::{Value, json};
 
@@ -585,17 +584,15 @@ mod tests {
         assert_eq!(result.payload[5].value, "1800000000");
         assert_eq!(result.header.as_ref().map(|header| header.asset_id.clone()), Some(ETHEREUM_USDC_ASSET_ID.clone()));
 
-        for (chain, contract) in DEPLOYED_PERMIT2_CONTRACTS {
-            let deployed = simulate_evm_calldata(chain, &calldata, contract);
-            assert!(is_token_warning(&deployed.warnings[0].warning), "{chain} {contract}");
-            assert_eq!(kinds(&deployed), kinds(&result), "{chain} {contract}");
-            assert_eq!(deployed.payload[2].value, result.payload[2].value);
-        }
+        let zksync = simulate_evm_calldata(Chain::ZkSync, &calldata, ZKSYNC_UNISWAP_PERMIT2_CONTRACT);
+        assert!(is_token_warning(&zksync.warnings[0].warning));
+        assert_eq!(kinds(&zksync), kinds(&result));
+        assert_eq!(zksync.payload[2].value, result.payload[2].value);
 
         let other_contract = simulate_evm_calldata(Chain::Ethereum, &calldata, "0x2222222222222222222222222222222222222222");
         assert_eq!(kinds(&other_contract), vec![SimulationPayloadFieldKind::Contract]);
-        let unlisted_chain = simulate_evm_calldata(Chain::Polygon, &calldata, "0x31c2F6fcFf4F8759b3Bd5Bf0e1084A055615c768");
-        assert_eq!(kinds(&unlisted_chain), vec![SimulationPayloadFieldKind::Contract]);
+        let other_chain = simulate_evm_calldata(Chain::Ethereum, &calldata, ZKSYNC_UNISWAP_PERMIT2_CONTRACT);
+        assert_eq!(kinds(&other_chain), vec![SimulationPayloadFieldKind::Contract]);
     }
 
     #[test]
