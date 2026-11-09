@@ -25,7 +25,6 @@ dependencies {
     api(libs.compose.ui)
     api(libs.compose.material3)
     api(libs.compose.activity)
-    api(libs.browser)
 
     // QRCode scanner: only for none private data: recipient, memo, amount, etc
     // QR Code

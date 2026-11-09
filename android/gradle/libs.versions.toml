@@ -6,7 +6,6 @@ material3 = "1.5.0-beta01"
 material = "1.14.0"
 navigation3 = "1.2.0"
 camera2 = "1.7.0-alpha03"
-browser = "1.10.0"
 uiautomator = "2.4.0"
 biometric = "1.4.0-alpha07"
 coilCompose = "3.6.3"
@@ -62,7 +61,6 @@ navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", ver
 navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref = "navigation3" }
 compose-material3 = { module = "androidx.compose.material3:material3", version.ref = "material3" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
-browser = { module = "androidx.browser:browser", version.ref = "browser"}
 
 # Sqlite room
 room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
