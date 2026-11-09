@@ -36,10 +36,6 @@ public struct OnstartService: Sendable {
         } catch {
             debugLog("configure error: \(error)")
         }
-
-        #if DEBUG
-            configureScreenshots()
-        #endif
     }
 
     @MainActor
@@ -88,16 +84,6 @@ extension OnstartService {
             #if DEBUG
                 debugLog("Excluded backup directory: \(directory.directory)")
             #endif
-        }
-    }
-
-    private func configureScreenshots() {
-        guard ProcessInfo.processInfo.environment["SCREENSHOTS_PATH"] != nil else { return }
-        let currency = Locale.current.currency.flatMap { Currency(rawValue: $0.identifier) } ?? .usd
-        do {
-            try preferencesService.setCurrency(currency: currency.toGem())
-        } catch {
-            debugLog("screenshots currency error: \(error)")
         }
     }
 }

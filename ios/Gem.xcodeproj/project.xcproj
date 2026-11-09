@@ -252,16 +252,8 @@
       "kind": "group",
       "path": "GemTests",
       "children": [
-        {
-          "kind": "group",
-          "path": "Screenshots",
-          "children": [
-            { "path": "ScreenshotsLaunchTests.swift", "target-membership": [ "Screenshots/compile-sources" ] },
-          ],
-        },
         { "path": "unit_frameworks.xctestplan", "encoding": "utf8" },
         { "path": "ui_tests.xctestplan", "target-membership": [ "GemUITests/resources" ] },
-        { "path": "screenshots.xctestplan" },
       ],
     }, {
       "kind": "group",
@@ -290,7 +282,6 @@
       "name": "Products",
       "children": [
         { "path": "<PRODUCTS>/Gem.app", "id": "C30952B0299C39D70004C0F9", "type": "wrapper.application", "index": false },
-        { "path": "<PRODUCTS>/Screenshots.xctest", "id": "D8A1F8732B17F21E00B15F54", "type": "wrapper.cfbundle", "index": false },
         { "path": "<PRODUCTS>/GemUITests.xctest", "id": "D83096AC2D5D4F1E00FFEE3E", "type": "wrapper.cfbundle", "index": false },
       ],
     },
@@ -494,39 +485,6 @@
         "LOCALIZATION_PREFERS_STRING_CATALOGS": "YES",
         "MARKETING_VERSION": "1.0",
         "PRODUCT_BUNDLE_IDENTIFIER": "$(APP_BUNDLE_ID).GemUITests",
-        "SDKROOT": "iphoneos",
-        "SWIFT_ACTIVE_COMPILATION_CONDITIONS[config=Debug]": "DEBUG $(inherited)",
-        "SWIFT_VERSION": "5.0",
-        "TEST_TARGET_NAME": "Gem",
-        "VALIDATE_PRODUCT[config=Release]": "YES",
-      },
-    }, {
-      "name": "Screenshots",
-      "id": "D8A1F8722B17F21E00B15F54",
-      "product": "Products/Screenshots.xctest",
-      "product-type": "bundle.ui-testing",
-      "test-host-target": "Gem",
-      "dependencies": [
-        "Gem",
-      ],
-      "build-phases": [
-        "compile-sources",
-        "frameworks",
-        "resources",
-      ],
-      "package-product-members": [
-        {
-          "product-name": "Primitives",
-          "build-phase": { "build-phase": "frameworks" },
-        },
-      ],
-      "build-settings": {
-        "CODE_SIGN_STYLE": "Automatic",
-        "DEVELOPMENT_TEAM": "$(APP_TEAM_ID)",
-        "GCC_C_LANGUAGE_STANDARD": "gnu17",
-        "LOCALIZATION_PREFERS_STRING_CATALOGS": "YES",
-        "MARKETING_VERSION": "1.0",
-        "PRODUCT_BUNDLE_IDENTIFIER": "com.gemwallet.Screenshots",
         "SDKROOT": "iphoneos",
         "SWIFT_ACTIVE_COMPILATION_CONDITIONS[config=Debug]": "DEBUG $(inherited)",
         "SWIFT_VERSION": "5.0",
