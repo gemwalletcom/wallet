@@ -1,8 +1,8 @@
 use std::{fmt::Debug, sync::Arc};
 
 use gem_client::Client;
+use gem_crypto::random;
 use gem_solana::{AccountMeta, Instruction, Pubkey, SolanaAddress, anchor::global_discriminator, associated_token::get_associated_token_address_with_program_id, find_program_address, instructions::program_ids};
-use rand::Rng;
 
 use super::redeem_relayer_fee;
 use crate::{
@@ -86,7 +86,7 @@ impl MctpBuildContext {
         let mctp_program: Pubkey = SolanaAddress::parse(MAYAN_MCTP_PROGRAM_ID).map_err(solana_error)?.into();
         let mctp_input_contract = route.mctp_input_contract.clone().ok_or(SwapperError::InvalidRoute)?;
         let mctp_input_mint: Pubkey = SolanaAddress::parse(&mctp_input_contract).map_err(solana_error)?.into();
-        let random_key = random_pubkey();
+        let random_key = random_pubkey()?;
         let seed_prefix = if route.has_auction == Some(true) { LEDGER_ORDER_SEED } else { LEDGER_BRIDGE_SEED };
         let (ledger, _) = find_program_address(&mctp_program, &[seed_prefix, user.as_bytes(), random_key.as_bytes()]).map_err(solana_error)?;
         let ledger_account = get_associated_token_address_with_program_id(&ledger, &mctp_input_mint, &program_ids::token_program()).map_err(solana_error)?;
@@ -263,10 +263,8 @@ fn mctp_referrer_pubkey(route: &MayanMctpQuote) -> Result<Pubkey, SwapperError> 
     Ok(Pubkey::new(native_address_to_bytes32(&address, chain_id)?))
 }
 
-fn random_pubkey() -> Pubkey {
-    let mut bytes = [0u8; 32];
-    rand::rng().fill_bytes(&mut bytes);
-    Pubkey::new(bytes)
+fn random_pubkey() -> Result<Pubkey, SwapperError> {
+    Ok(Pubkey::new(random::bytes::<32>()?))
 }
 
 #[cfg(test)]

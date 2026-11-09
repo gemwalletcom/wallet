@@ -17,7 +17,6 @@ default = []
 reqwest_provider = ["swapper/reqwest_provider"]
 
 [dependencies]
-rand = { workspace = true }
 swapper = { path = "../crates/swapper" }
 payment = { path = "../crates/payment" }
 primitives = { path = "../crates/primitives" }

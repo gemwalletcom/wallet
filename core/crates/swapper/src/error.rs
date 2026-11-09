@@ -167,6 +167,12 @@ impl From<primitives::AddressError> for SwapperError {
     }
 }
 
+impl From<gem_crypto::CryptoError> for SwapperError {
+    fn from(err: gem_crypto::CryptoError) -> Self {
+        Self::transaction_error(err)
+    }
+}
+
 impl From<primitives::HexError> for SwapperError {
     fn from(err: primitives::HexError) -> Self {
         Self::ComputeQuoteError(err.to_string())

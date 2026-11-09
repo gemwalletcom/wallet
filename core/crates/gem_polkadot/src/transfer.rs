@@ -24,7 +24,7 @@ const MAX_UNHASHED_PAYLOAD_SIZE: usize = 256;
 
 #[cfg(feature = "rpc")]
 pub(crate) fn fee_estimation_transaction(input: &TransactionLoadInput) -> Result<String, SignerError> {
-    let fee_estimation_private_key = rand::random::<[u8; 32]>();
+    let fee_estimation_private_key = gem_crypto::random::bytes::<32>().map_err(SignerError::from_display)?;
     fee_estimation_transaction_with_private_key(input, &fee_estimation_private_key)
 }
 

@@ -4,6 +4,7 @@ use crate::services::assets::icon::asset_icon;
 use crate::services::assets::model::{GemRowText, GemValueHeader, GemValueHeaderIcon};
 use crate::services::collections::{stale, unique};
 
+use gem_crypto::random;
 use num_bigint::{BigInt, BigUint};
 use primitives::Platform;
 use primitives::{
@@ -11,7 +12,6 @@ use primitives::{
     VerificationStatus, WalletType, YieldProvider,
 };
 use primitives::{AddressName, OptionStringExt};
-use rand::seq::IndexedRandom;
 use std::str::FromStr;
 
 use super::model::{
@@ -655,7 +655,12 @@ fn recommended_validators(chain: Chain, validators: &[DelegationValidator]) -> V
 }
 
 fn recommended_validator(chain: Chain, validators: Vec<DelegationValidator>) -> Option<DelegationValidator> {
-    recommended_validators(chain, &validators).choose(&mut rand::rng()).cloned().or_else(|| validators.first().cloned())
+    let recommended = recommended_validators(chain, &validators);
+    if recommended.is_empty() {
+        return validators.into_iter().next();
+    }
+    let index = random::index(recommended.len()).unwrap_or_default();
+    recommended.into_iter().nth(index)
 }
 
 fn redelegate_validators(validators: &[DelegationValidator], delegation: &Delegation) -> Vec<DelegationValidator> {

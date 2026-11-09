@@ -1,5 +1,6 @@
 use std::collections::BTreeMap;
 
+use gem_crypto::random;
 use gem_derivation::default_derivation_path;
 use gem_keystore::Mnemonic;
 use primitives::{Account, AddressName, AddressType, BlockExplorerLink, Chain, ChainType, NameRecord, OptionStringExt, VerificationStatus, Wallet, WalletId, WalletListItem, WalletSource, WalletType};
@@ -43,13 +44,11 @@ impl GemWalletImportType {
 pub const PHRASE_VERIFICATION_GROUP: usize = 4;
 
 pub fn phrase_verification_words(words: Vec<String>) -> Vec<String> {
-    use rand::seq::SliceRandom;
-    let mut rng = rand::rng();
     words
         .chunks(PHRASE_VERIFICATION_GROUP)
         .flat_map(|group| {
             let mut group = group.to_vec();
-            group.shuffle(&mut rng);
+            random::shuffle(&mut group).unwrap_or_default();
             group
         })
         .collect()

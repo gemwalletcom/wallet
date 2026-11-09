@@ -1,8 +1,8 @@
 use std::{fmt::Debug, sync::Arc};
 
 use gem_client::Client;
+use gem_crypto::random;
 use gem_solana::{AccountMeta, Instruction, Pubkey, SolanaAddress, anchor::global_discriminator, associated_token::get_associated_token_address_with_program_id, find_program_address, instructions::program_ids};
-use rand::Rng;
 
 use super::{circle_max_fee64, fast_mctp_input_contract, fast_mctp_min_finality, referrer_bytes, token_out};
 use crate::{
@@ -58,7 +58,7 @@ impl FastMctpBuildContext {
         let fast_mctp_program: Pubkey = SolanaAddress::parse(MAYAN_FAST_MCTP_PROGRAM_ID).map_err(solana_error)?.into();
         let fast_mctp_input_contract = fast_mctp_input_contract(route)?.to_string();
         let fast_mctp_input_mint: Pubkey = SolanaAddress::parse(&fast_mctp_input_contract).map_err(solana_error)?.into();
-        let random_key = random_u16();
+        let random_key = random_u16()?;
         let seed_prefix = if route.has_auction == Some(true) { LEDGER_ORDER_SEED } else { LEDGER_BRIDGE_SEED };
         let (ledger, _) = find_program_address(&fast_mctp_program, &[seed_prefix, user.as_bytes(), &random_key.to_le_bytes()]).map_err(solana_error)?;
         let ledger_account = get_associated_token_address_with_program_id(&ledger, &fast_mctp_input_mint, &program_ids::token_program()).map_err(solana_error)?;
@@ -233,10 +233,8 @@ fn destination_address(route: &MayanFastMctpQuote, context: &FastMctpBuildContex
     native_address_to_bytes32(&context.destination_address, wormhole_chain_id(&route.to_chain)?)
 }
 
-fn random_u16() -> u16 {
-    let mut bytes = [0u8; 2];
-    rand::rng().fill_bytes(&mut bytes);
-    u16::from_le_bytes(bytes) % 65000
+fn random_u16() -> Result<u16, SwapperError> {
+    Ok(u16::from_le_bytes(random::bytes::<2>()?) % 65000)
 }
 
 #[cfg(test)]

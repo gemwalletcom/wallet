@@ -2,10 +2,10 @@ use std::collections::{HashMap, HashSet};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::Duration;
 
+use gem_crypto::{CryptoError, random};
 use gem_encoding::encode_base64_url;
 use gem_hash::sha2::sha256;
 use gem_tracing::path;
-use rand::seq::SliceRandom;
 use reqwest::header::{HeaderMap, HeaderName};
 use reqwest::{Client, Method};
 use url::Url;
@@ -74,15 +74,16 @@ impl Route {
         retry_after.or((self.endpoints.len() > 1).then_some(default))
     }
 
-    pub(super) fn prioritize_endpoints(&self, endpoints: &mut [usize]) {
+    pub(super) fn prioritize_endpoints(&self, endpoints: &mut [usize]) -> Result<(), CryptoError> {
         match self.selection {
             Selection::Ordered => {}
-            Selection::Random => endpoints.shuffle(&mut rand::rng()),
+            Selection::Random => random::shuffle(endpoints)?,
             Selection::RoundRobin => {
                 let offset = self.cursor.fetch_add(1, Ordering::Relaxed) % endpoints.len();
                 endpoints.rotate_left(offset);
             }
         }
+        Ok(())
     }
 }
 
@@ -291,7 +292,7 @@ mod tests {
         let orders = (0..4)
             .map(|_| {
                 let mut endpoints = vec![0, 1];
-                route.prioritize_endpoints(&mut endpoints);
+                route.prioritize_endpoints(&mut endpoints).unwrap();
                 endpoints
             })
             .collect::<Vec<_>>();

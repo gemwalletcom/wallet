@@ -397,7 +397,7 @@ where
             }),
             ChainType::Solana => VaultSwapExtras::Solana(VaultSwapSolanaExtras {
                 from: quote.request.wallet_address.clone(),
-                seed: encode_with_0x(&generate_random_seed(32)),
+                seed: encode_with_0x(&generate_random_seed(32)?),
                 chain,
                 input_amount: input_amount.to_u64().ok_or_else(|| SwapperError::transaction_error("Solana input amount exceeds u64"))?,
                 refund_parameters,

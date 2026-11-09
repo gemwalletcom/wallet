@@ -13,7 +13,7 @@ rpc = [
     "dep:gem_client",
     "dep:chain_traits",
     "dep:number_formatter",
-    "dep:rand",
+    "dep:gem_crypto",
 ]
 reqwest = ["gem_client/reqwest"]
 testkit = []
@@ -28,7 +28,7 @@ chrono = { workspace = true, features = ["serde"] }
 bs58 = { workspace = true }
 gem_hash = { path = "../gem_hash" }
 signer = { path = "../signer" }
-rand = { workspace = true, optional = true }
+gem_crypto = { path = "../gem_crypto", features = ["random"], optional = true }
 
 # Optional RPC dependencies
 serde_json = { workspace = true, optional = true }

@@ -112,7 +112,7 @@ impl Gateway {
             self.metrics.record_response(source, &route.group, &route.service, &path, failure.status);
             ErrorBody::new(upstream_status(failure.status), "no endpoint is available")
         })?;
-        route.prioritize_endpoints(&mut candidates);
+        route.prioritize_endpoints(&mut candidates).map_err(|error| ErrorBody::new(StatusCode::INTERNAL_SERVER_ERROR, error.to_string()))?;
 
         let mut last_response = None;
         let mut pending_failover: Option<(usize, u16, String)> = None;

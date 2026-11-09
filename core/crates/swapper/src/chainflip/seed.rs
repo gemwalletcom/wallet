@@ -1,15 +1,11 @@
-use rand::{Rng, RngExt};
+use gem_crypto::random;
 
-pub fn generate_random_seed(max_bytes: usize) -> Vec<u8> {
+use crate::SwapperError;
+
+pub fn generate_random_seed(max_bytes: usize) -> Result<Vec<u8>, SwapperError> {
     if max_bytes == 0 || max_bytes > 32 {
-        return vec![];
+        return Ok(vec![]);
     }
-
-    let mut rng = rand::rng();
-    let num_bytes = rng.random_range(1..=max_bytes);
-
-    let mut seed_bytes = vec![0u8; num_bytes];
-    rng.fill_bytes(&mut seed_bytes);
-
-    seed_bytes
+    let len = random::index(max_bytes)? + 1;
+    Ok(random::bytes::<32>()?[..len].to_vec())
 }

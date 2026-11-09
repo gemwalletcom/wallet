@@ -14,11 +14,11 @@ use crate::{
         wormhole_chain::{self, WormholeChain, id_for_name as wormhole_chain_id},
     },
 };
+use gem_crypto::random;
 use gem_evm::EVM_ZERO_ADDRESS;
 use gem_hash::keccak::keccak256;
 use gem_solana::SYSTEM_PROGRAM_ID;
 use primitives::{asset_constants::HYPEREVM_USDC_TOKEN_ID, decode_hex};
-use rand::Rng;
 
 const SWIFT_PAYLOAD_TYPE_DEFAULT: u8 = 1;
 const SWIFT_PAYLOAD_TYPE_CUSTOM_PAYLOAD: u8 = 2;
@@ -99,13 +99,7 @@ fn swift_to_token_address(route: &MayanQuoteCommon) -> Result<(&str, &str), Swap
 pub(super) fn swift_random_key(route: &MayanSwiftQuote) -> Result<[u8; 32], SwapperError> {
     let quote_id = route.quote_id.as_deref().ok_or(SwapperError::InvalidRoute)?;
     let id = left_pad_16(&decode_hex(quote_id)?)?;
-    let memo_or_random = if let Some(memo_hex) = &route.memo_hex {
-        left_pad_16(&decode_hex(memo_hex)?)?
-    } else {
-        let mut bytes = [0u8; 16];
-        rand::rng().fill_bytes(&mut bytes);
-        bytes
-    };
+    let memo_or_random = if let Some(memo_hex) = &route.memo_hex { left_pad_16(&decode_hex(memo_hex)?)? } else { random::bytes::<16>()? };
     let mut random = [0u8; 32];
     random[..16].copy_from_slice(&id);
     random[16..].copy_from_slice(&memo_or_random);

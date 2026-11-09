@@ -1,6 +1,7 @@
 use std::fmt::Debug;
 
 use gem_client::Client;
+use gem_crypto::random;
 use gem_evm::EVM_ZERO_ADDRESS;
 use gem_solana::{
     Instruction, Pubkey, SolanaAddress,
@@ -11,7 +12,6 @@ use gem_solana::{
     wrapped_sol::wrapped_sol_mint,
 };
 use primitives::Chain;
-use rand::RngExt;
 
 use super::{
     order::{create_init_instruction, create_order_hash},
@@ -179,7 +179,7 @@ fn create_custom_payload_account(instructions: &mut Vec<Instruction>, relayer: &
     let Some(custom_payload) = custom_payload else {
         return Ok(None);
     };
-    let nonce = rand::rng().random::<u16>();
+    let nonce = u16::from_le_bytes(random::bytes::<2>()?);
     let nonce_bytes = nonce.to_le_bytes();
     let payload_writer = SolanaAddress::parse(MAYAN_PAYLOAD_WRITER_PROGRAM_ID).map_err(solana_error)?.into();
     let seeds: [&[u8]; 3] = [b"PAYLOAD", relayer.as_bytes(), &nonce_bytes];

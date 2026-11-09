@@ -25,6 +25,7 @@ gem_xrp = { path = "../gem_xrp", features = ["rpc"] }
 gem_stellar = { path = "../gem_stellar", features = ["rpc"] }
 chain_traits = { path = "../chain_traits" }
 gem_hash = { path = "../gem_hash" }
+gem_crypto = { path = "../gem_crypto", features = ["random"] }
 gem_jsonrpc = { path = "../gem_jsonrpc", features = ["client"] }
 gem_client = { path = "../gem_client" }
 gem_hypercore = { path = "../gem_hypercore" }
@@ -53,7 +54,6 @@ bs58 = { workspace = true }
 borsh = { workspace = true }
 hmac = { workspace = true }
 sha2 = { workspace = true }
-rand.workspace = true
 
 [dev-dependencies]
 tokio.workspace = true
