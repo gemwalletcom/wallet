@@ -234,7 +234,7 @@ fn destination_address(route: &MayanFastMctpQuote, context: &FastMctpBuildContex
 }
 
 fn random_u16() -> Result<u16, SwapperError> {
-    Ok(u16::from_le_bytes(random::bytes::<2>()?) % 65000)
+    Ok(random::index(65_000)? as u16)
 }
 
 #[cfg(test)]

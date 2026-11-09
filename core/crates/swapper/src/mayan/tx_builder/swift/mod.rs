@@ -100,10 +100,10 @@ pub(super) fn swift_random_key(route: &MayanSwiftQuote) -> Result<[u8; 32], Swap
     let quote_id = route.quote_id.as_deref().ok_or(SwapperError::InvalidRoute)?;
     let id = left_pad_16(&decode_hex(quote_id)?)?;
     let memo_or_random = if let Some(memo_hex) = &route.memo_hex { left_pad_16(&decode_hex(memo_hex)?)? } else { random::bytes::<16>()? };
-    let mut random = [0u8; 32];
-    random[..16].copy_from_slice(&id);
-    random[16..].copy_from_slice(&memo_or_random);
-    Ok(random)
+    let mut key = [0u8; 32];
+    key[..16].copy_from_slice(&id);
+    key[16..].copy_from_slice(&memo_or_random);
+    Ok(key)
 }
 
 pub(super) fn swift_payload_type(custom_payload: Option<&[u8]>) -> u8 {
