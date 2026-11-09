@@ -7,7 +7,6 @@ plugins {
     id("com.google.dagger.hilt.android")
     id("kotlinx-serialization")
     id("com.google.devtools.ksp")
-    id("androidx.room")
 }
 
 apply(from = "$rootDir/gradle/channels.gradle.kts")
@@ -195,10 +194,6 @@ android {
             .filter { it.startsWith("values-") }
             .map { it.removePrefix("values-") }
             .sorted()
-    }
-
-    room {
-        schemaDirectory("$projectDir/schemas")
     }
 
     lint {

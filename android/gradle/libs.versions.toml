@@ -122,5 +122,4 @@ mockk = { module = "io.mockk:mockk", version.ref = "mockkVersion" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp"}
 android-library = { id = "com.android.library", version.ref = "android-lib" }
 google-services = { id = "com.google.gms.google-services", version.ref = "google-services" }
-room = { id = "androidx.room", version.ref = "room" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
