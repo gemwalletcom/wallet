@@ -80,6 +80,10 @@ impl EVMChain {
         self.config().is_ethereum_layer2
     }
 
+    pub fn is_pending_nonce_supported(&self) -> bool {
+        matches!(self, Self::Ethereum)
+    }
+
     pub fn is_opstack(&self) -> bool {
         self.chain_stack() == ChainStack::Optimism
     }

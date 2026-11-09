@@ -178,6 +178,7 @@ impl GemSignedTransaction {
         Self {
             data: "signed".to_string(),
             transaction_type,
+            sequence: None,
         }
     }
 }

@@ -235,12 +235,13 @@ A load that fans out and then narrows is a graph, not a list, and the graph has 
 
 ```
         ┌─ preload ────────┐ metadata
-start ──┼─ fee rates ──────┼──▶ validate scan ──▶ select fee rate ──▶ transaction load ──▶ confirm data
-        ├─ scan ───────────┤                                          (metadata + gas price)
-        └─ simulate ───────┘
+        ├─ fee rates ──────┤
+start ──┼─ scan ───────────┼──▶ validate scan ──▶ select fee rate ──▶ transaction load ──▶ confirm data
+        ├─ simulate ───────┤                                          (metadata + gas price)
+        └─ pending nonces ─┘
 ```
 
-The four openers run together and every one of them is awaited before the first gate. What comes after is ordered for two different reasons, and they are not interchangeable:
+The five openers run together and every one of them is awaited before the first gate. The pending nonces are a local read of the sender's own pending sends, made only on the EVM chains `EVMChain::is_pending_nonce_supported` names; the preload's nonce becomes the first one at or above it that no pending send holds. What comes after is ordered for two different reasons, and they are not interchangeable:
 
 - **Data.** The transaction load needs the preload's metadata and the gas price of the selected fee rate. It needs nothing from the scan or the simulation.
 - **Policy.** The scan verdict and the simulation gate the load anyway, because a rejected input must cost no provider work. A transport failure in the preload or the fee rates is reported before the scan verdict is read, so a malicious verdict is only ever surfaced for an input that would otherwise have loaded.

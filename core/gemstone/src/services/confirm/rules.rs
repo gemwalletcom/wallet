@@ -462,13 +462,14 @@ impl SendInput {
             .iter()
             .enumerate()
             .filter_map(|(index, hash)| {
-                let transaction_type = transactions.get(index)?.transaction_type.clone();
+                let signed = transactions.get(index)?;
                 Some(
                     GemPendingTransactionInput {
                         sender: sender.clone(),
                         transfer: self.confirm.input.transfer.clone(),
                         value: self.value.clone(),
-                        transaction_type,
+                        transaction_type: signed.transaction_type.clone(),
+                        sequence: signed.sequence,
                         hash: hash.clone(),
                         fee: self.confirm.fee.clone(),
                         network_fee: self.network_fee.clone(),
@@ -1359,6 +1360,34 @@ mod tests {
             swap_data: SwapData::mock(),
         };
         assert_eq!(swap.simulation_payload(), None);
+    }
+
+    #[test]
+    fn test_pending_transactions_keep_the_signed_nonce() {
+        let swap_input = SendInput::mock(
+            Chain::Ethereum,
+            TransactionInputType::Swap {
+                from_asset: Asset::mock_erc20(),
+                to_asset: Asset::mock_eth(),
+                swap_data: SwapData::mock_with_data_and_approval("0x", None),
+            },
+        );
+        let payment_input = SendInput::mock(Chain::Ethereum, TransactionInputType::mock_payment(Asset::mock_erc20(), TransferDataExtra::mock_signature(b"typed data".to_vec(), None)));
+        let approval = GemSignedTransaction {
+            sequence: Some(7),
+            ..GemSignedTransaction::mock(primitives::TransactionType::TokenApproval)
+        };
+        let swap = GemSignedTransaction {
+            sequence: Some(8),
+            ..GemSignedTransaction::mock(primitives::TransactionType::Swap)
+        };
+        let signature = GemSignedTransaction::mock(primitives::TransactionType::Transfer);
+
+        let transactions = swap_input.pending_transactions(&["approve".to_string(), "swap".to_string()], &[approval, swap]).unwrap();
+        let signatures = payment_input.pending_transactions(&["payment".to_string()], &[signature]).unwrap();
+
+        assert_eq!(transactions.iter().map(|transaction| transaction.sequence.as_deref()).collect::<Vec<_>>(), vec![Some("7"), Some("8")]);
+        assert_eq!(signatures[0].sequence, None, "a signature leaves no nonce behind, so the next send does not skip one");
     }
 
     #[test]

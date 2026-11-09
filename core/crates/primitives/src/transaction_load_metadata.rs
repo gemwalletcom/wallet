@@ -143,6 +143,17 @@ impl TransactionLoadMetadata {
         }
     }
 
+    pub fn with_nonce_after_pending(self, pending_nonces: &[u64]) -> Self {
+        match self {
+            TransactionLoadMetadata::Evm { nonce, chain_id, contract_call } => TransactionLoadMetadata::Evm {
+                nonce: (nonce..).find(|candidate| !pending_nonces.contains(candidate)).unwrap_or(nonce),
+                chain_id,
+                contract_call,
+            },
+            metadata => metadata,
+        }
+    }
+
     pub fn get_block_number(&self) -> Result<u64, Box<dyn std::error::Error + Send + Sync>> {
         match self {
             TransactionLoadMetadata::Polkadot { block_number, .. } => Ok(*block_number),
@@ -286,6 +297,23 @@ impl TransactionLoadMetadata {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_with_nonce_after_pending() {
+        assert_eq!(TransactionLoadMetadata::mock_evm(5, 1).with_nonce_after_pending(&[]).get_sequence().unwrap(), 5);
+        assert_eq!(
+            TransactionLoadMetadata::mock_evm(5, 1).with_nonce_after_pending(&[5]).get_sequence().unwrap(),
+            6,
+            "a send the network has not mined yet keeps its nonce"
+        );
+        assert_eq!(TransactionLoadMetadata::mock_evm(5, 1).with_nonce_after_pending(&[6, 5]).get_sequence().unwrap(), 7);
+        assert_eq!(
+            TransactionLoadMetadata::mock_evm(5, 1).with_nonce_after_pending(&[6]).get_sequence().unwrap(),
+            5,
+            "a free nonce below a pending one fills the gap instead of stacking past it"
+        );
+        assert_eq!(TransactionLoadMetadata::mock_evm(8, 1).with_nonce_after_pending(&[5]).get_sequence().unwrap(), 8, "a mined send leaves the network's nonce");
+    }
 
     #[test]
     fn transaction_load_metadata_accessors() {

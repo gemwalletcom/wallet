@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use primitives::{AssetId, Chain, PaymentLink, Transaction, TransactionChange, TransactionMetadata, TransactionState, TransactionType, swap_transaction_timeout};
 
-use super::model::{GemTransactionStateUpdate, TransactionPostProcessing};
+use super::model::{GemPendingTransaction, GemTransactionStateUpdate, TransactionPostProcessing};
 use crate::payment::payment_record_hash;
 use crate::services::collections::unique;
 
@@ -85,6 +85,15 @@ pub fn payment_link(transaction: &Transaction) -> Option<PaymentLink> {
     (payment_record_hash(&link).as_deref() == Some(transaction.hash())).then_some(link)
 }
 
+pub fn pending_nonces(pending: &[GemPendingTransaction], chain: Chain, sender: &str, now: DateTime<Utc>) -> Vec<u64> {
+    pending
+        .iter()
+        .map(|pending| &pending.transaction)
+        .filter(|transaction| transaction.id.chain == chain && transaction.from == sender && payment_link(transaction).is_none() && !has_timed_out(transaction, transaction.state, now))
+        .filter_map(|transaction| transaction.sequence.as_deref()?.parse().ok())
+        .collect()
+}
+
 pub fn assets_to_enable(transactions: &[Transaction]) -> Vec<AssetId> {
     unique(transactions.iter().flat_map(Transaction::asset_ids).filter(|asset_id| asset_id.chain != Chain::HyperCore))
 }
@@ -93,6 +102,43 @@ pub fn assets_to_enable(transactions: &[Transaction]) -> Vec<AssetId> {
 mod tests {
     use super::*;
     use primitives::{PaymentMerchant, SwapProvider, TransactionId, TransactionPaymentMetadata, TransactionSwapMetadata};
+
+    #[test]
+    fn test_pending_nonces() {
+        let now = Utc::now();
+        let pending = [GemPendingTransaction::mock_with_sequence(5)];
+
+        assert_eq!(pending_nonces(&[], Chain::Ethereum, "0xfrom", now), Vec::<u64>::new());
+        assert_eq!(
+            pending_nonces(&[GemPendingTransaction::mock_with_sequence(5), GemPendingTransaction::mock_with_sequence(6)], Chain::Ethereum, "0xfrom", now),
+            vec![5, 6]
+        );
+        assert_eq!(pending_nonces(&pending, Chain::Ethereum, "0xother", now), Vec::<u64>::new(), "every address has its own nonces");
+        assert_eq!(pending_nonces(&pending, Chain::SmartChain, "0xfrom", now), Vec::<u64>::new(), "every network has its own nonces");
+        assert_eq!(
+            pending_nonces(&pending, Chain::Ethereum, "0xfrom", now + chrono::Duration::hours(1)),
+            Vec::<u64>::new(),
+            "a send pending past its timeout was likely dropped, and a nonce after it would never be mined"
+        );
+        assert_eq!(
+            pending_nonces(
+                &[GemPendingTransaction {
+                    transaction: Transaction::mock(),
+                    ..GemPendingTransaction::mock_with_sequence(5)
+                }],
+                Chain::Ethereum,
+                "0xfrom",
+                now
+            ),
+            Vec::<u64>::new(),
+            "a record without a nonce counts for nothing"
+        );
+        assert_eq!(
+            pending_nonces(&[GemPendingTransaction::mock_payment_signature_with_sequence(0)], Chain::Ethereum, "0xfrom", now),
+            Vec::<u64>::new(),
+            "a payment signature uses no nonce, even when the app stored one"
+        );
+    }
 
     #[test]
     fn test_payment_link_only_while_the_record_carries_the_payment_id() {

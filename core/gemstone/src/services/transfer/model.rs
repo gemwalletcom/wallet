@@ -76,6 +76,7 @@ pub(crate) struct GemPendingTransactionInput {
     pub(crate) transfer: GemTransferData,
     pub(crate) value: GemBigInt,
     pub(crate) transaction_type: TransactionType,
+    pub(crate) sequence: Option<u64>,
     pub(crate) hash: String,
     pub(crate) fee: GemTransactionLoadFee,
     pub(crate) network_fee: GemBigInt,

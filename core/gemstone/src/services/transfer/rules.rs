@@ -11,7 +11,7 @@ use primitives::{OptionStringExt, SwapProvider};
 
 use super::model::{GemConfirmDestination, GemConfirmRow, GemConfirmTitle, GemPendingTransactionInput, GemRecentActivity, GemRecipient, GemTransferData, GemTransferOutput};
 use crate::config::chain::is_memo_supported;
-use crate::models::transaction::{transaction_metadata_block_number, transaction_metadata_sequence};
+use crate::models::transaction::transaction_metadata_block_number;
 use crate::services::assets::rules as asset_rules;
 use crate::services::balance::GemAssetBalance;
 use crate::services::transactions::GemTransactionHeaderKind;
@@ -601,7 +601,7 @@ impl GemPendingTransactionInput {
             Utc::now(),
         );
         transaction.block_number = transaction_metadata_block_number(&self.metadata);
-        transaction.sequence = transaction_metadata_sequence(&self.metadata);
+        transaction.sequence = self.sequence.map(|sequence| sequence.to_string());
         transaction.direction = direction;
         Ok(Some(transaction))
     }

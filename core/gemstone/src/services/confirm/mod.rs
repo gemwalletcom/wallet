@@ -42,7 +42,7 @@ use crate::signer::GemSignerError;
 use num_bigint::BigInt;
 use primitives::TransactionInputType;
 use primitives::currency::Currency;
-use primitives::{Asset, AssetId, BlockExplorerLink, Chain, PerpetualAccountMode, SimulationPayloadFieldDisplay, SimulationResult, Transaction, TransactionFee, WalletId};
+use primitives::{Asset, AssetId, BlockExplorerLink, Chain, EVMChain, PerpetualAccountMode, SimulationPayloadFieldDisplay, SimulationResult, Transaction, TransactionFee, WalletId};
 
 #[derive(uniffi::Object)]
 pub struct GemConfirmService {
@@ -111,13 +111,14 @@ impl GemConfirmService {
             let payload = scan_rules::transaction_payload(preload_input.clone())?;
             self.scanner.scan(payload).await
         };
-        let (metadata, fee_rates, scan, simulation) = futures::join!(
+        let (metadata, fee_rates, scan, simulation, pending_nonces) = futures::join!(
             self.gateway.get_transaction_preload(chain, preload_input.clone()),
             self.gateway.get_fee_rates(chain, transfer.input_type.clone()),
             scan_future,
             self.simulate(chain, input),
+            self.pending_nonces(chain, &input.from.address),
         );
-        let metadata = metadata.map_err(|error| error::load_error(chain, error))?;
+        let metadata = metadata.map_err(|error| error::load_error(chain, error))?.with_nonce_after_pending(&pending_nonces?);
         let fee_rates = fee_rates.map_err(|error| error::load_error(chain, error))?;
         let fee_rates = rules::confirmation_fee_rates(&asset.id, transfer.use_max_amount, fee_rates);
         let simulation = simulation?;
@@ -307,6 +308,13 @@ impl GemConfirmService {
             .await
             .map_err(|error| GemConfirmError::Record { msg: error.to_string() })?;
         Ok(pending)
+    }
+
+    async fn pending_nonces(&self, chain: Chain, sender: &str) -> Result<Vec<u64>, crate::services::error::GemServiceError> {
+        match EVMChain::from_chain(chain) {
+            Some(evm_chain) if evm_chain.is_pending_nonce_supported() => self.transaction_state.pending_nonces(chain, sender).await,
+            _ => Ok(Vec::new()),
+        }
     }
 
     async fn simulate(&self, chain: Chain, input: &GemConfirmInput) -> Result<Option<SimulationResult>, GemConfirmError> {

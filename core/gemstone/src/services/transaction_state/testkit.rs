@@ -1,6 +1,6 @@
 use std::sync::{Arc, Mutex};
 
-use primitives::{Transaction, TransactionId, TransactionState, WalletId};
+use primitives::{Chain, PaymentLink, PaymentMerchant, Transaction, TransactionId, TransactionPaymentMetadata, TransactionState, WalletId};
 
 use super::tracker::GemTransactionUpdater;
 use super::{GemPendingTransaction, GemTransactionStateResult, GemTransactionStateStore, GemTransactionStateUpdate, GemTransactionStatusService};
@@ -107,6 +107,35 @@ impl GemTransactionUpdater for TestTransactionUpdater {
             return Ok(None);
         }
         results.remove(0)
+    }
+}
+
+impl GemPendingTransaction {
+    pub fn mock_with_sequence(sequence: u64) -> Self {
+        Self {
+            wallet_id: WalletId::mock(),
+            transaction: Transaction {
+                state: TransactionState::Pending,
+                sequence: Some(sequence.to_string()),
+                ..Transaction::mock()
+            },
+        }
+    }
+
+    pub fn mock_payment_signature_with_sequence(sequence: u64) -> Self {
+        let pending = Self::mock_with_sequence(sequence);
+        let payment = TransactionPaymentMetadata {
+            link: PaymentLink::WalletConnectPay { payment_id: "pay_1".to_string() },
+            merchant: PaymentMerchant::mock(),
+        };
+        Self {
+            transaction: Transaction {
+                id: TransactionId::new(Chain::Ethereum, "pay_1".to_string()),
+                metadata: Some(serde_json::to_value(payment).unwrap()),
+                ..pending.transaction
+            },
+            ..pending
+        }
     }
 }
 

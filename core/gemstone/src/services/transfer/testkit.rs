@@ -33,6 +33,7 @@ impl GemPendingTransactionInput {
             transfer: GemTransferData::mock(input_type),
             value: BigInt::from(99),
             transaction_type,
+            sequence: None,
             hash: hash.to_string(),
             fee: GemTransactionLoadFee::mock(1),
             network_fee: BigInt::from(1),

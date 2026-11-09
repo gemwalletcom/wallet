@@ -11,7 +11,7 @@ use std::sync::{Arc, OnceLock};
 
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use primitives::{JobConfiguration, Transaction, TransactionId, TransactionState, TransactionUpdate, WalletId};
+use primitives::{Chain, JobConfiguration, Transaction, TransactionId, TransactionState, TransactionUpdate, WalletId};
 
 pub use model::{GemPendingTransaction, GemPostProcessingFailure, GemPostProcessingStep, GemTransactionStateResult, GemTransactionStateUpdate};
 pub use store::GemTransactionStateStore;
@@ -89,6 +89,11 @@ impl GemTransactionStateService {
 
     pub async fn add_transactions(&self, wallet_id: WalletId, transactions: Vec<Transaction>) -> Result<(), GemServiceError> {
         self.store.add_transactions(wallet_id, transactions).await
+    }
+
+    pub async fn pending_nonces(&self, chain: Chain, sender: &str) -> Result<Vec<u64>, GemServiceError> {
+        let pending = self.store.get_pending_transactions(TransactionState::pending()).await?;
+        Ok(rules::pending_nonces(&pending, chain, sender, Utc::now()))
     }
 
     async fn enable_transaction_assets(&self, wallet_id: WalletId, transactions: Vec<Transaction>) -> Result<(), GemServiceError> {

@@ -38,6 +38,7 @@ pub struct GemSignerInput {
 pub struct GemSignedTransaction {
     pub data: String,
     pub transaction_type: TransactionType,
+    pub sequence: Option<u64>,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -121,21 +122,6 @@ pub fn transaction_metadata_block_number(metadata: &GemTransactionLoadMetadata) 
         GemTransactionLoadMetadata::Polkadot { block_number, .. } | GemTransactionLoadMetadata::Tron { block_number, .. } | GemTransactionLoadMetadata::Xrp { block_number, .. } | GemTransactionLoadMetadata::Cardano { block_number, .. } => {
             Some(block_number.to_string())
         }
-        _ => None,
-    }
-}
-
-pub fn transaction_metadata_sequence(metadata: &GemTransactionLoadMetadata) -> Option<String> {
-    match metadata {
-        GemTransactionLoadMetadata::Ton { sequence, .. }
-        | GemTransactionLoadMetadata::Cosmos { sequence, .. }
-        | GemTransactionLoadMetadata::Near { sequence, .. }
-        | GemTransactionLoadMetadata::Stellar { sequence, .. }
-        | GemTransactionLoadMetadata::Xrp { sequence, .. }
-        | GemTransactionLoadMetadata::Algorand { sequence, .. }
-        | GemTransactionLoadMetadata::Aptos { sequence, .. }
-        | GemTransactionLoadMetadata::Polkadot { sequence, .. } => Some(sequence.to_string()),
-        GemTransactionLoadMetadata::Evm { nonce, .. } => Some(nonce.to_string()),
         _ => None,
     }
 }
@@ -229,10 +215,9 @@ mod tests {
     }
 
     #[test]
-    fn test_metadata_without_a_block_or_sequence_stores_none() {
+    fn test_metadata_without_a_block_stores_none() {
         let bitcoin = GemTransactionLoadMetadata::Bitcoin { utxos: vec![] };
         assert_eq!(transaction_metadata_block_number(&bitcoin), None);
-        assert_eq!(transaction_metadata_sequence(&bitcoin), None);
 
         let xrp = GemTransactionLoadMetadata::Xrp {
             sequence: 7,
@@ -240,6 +225,5 @@ mod tests {
             is_destination_address_exist: true,
         };
         assert_eq!(transaction_metadata_block_number(&xrp), Some("91".to_string()));
-        assert_eq!(transaction_metadata_sequence(&xrp), Some("7".to_string()));
     }
 }
