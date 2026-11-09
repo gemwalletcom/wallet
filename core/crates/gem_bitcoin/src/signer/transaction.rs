@@ -157,7 +157,8 @@ fn validate_public_key(chain: BitcoinChain, plan: &SpendPlan, public_key: &Publi
 
 fn validate_plan_amounts(chain: BitcoinChain, plan: &SpendPlan) -> Result<(), SignerError> {
     let input_total: u128 = plan.inputs.iter().map(|input| input.value.to_sat() as u128).sum();
-    let output_total: u128 = plan.outputs.iter().map(|output| output.value.to_sat() as u128).sum();
+    let external_total = plan.external_value.map_or(0, u128::from);
+    let output_total: u128 = plan.outputs.iter().map(|output| output.value.to_sat() as u128).sum::<u128>() + external_total;
     let spent_total = output_total + plan.fee as u128;
     (input_total == spent_total)
         .then_some(())

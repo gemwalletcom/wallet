@@ -11,7 +11,7 @@ const P2WPKH_INPUT_BASE_BYTES: u128 = 41;
 const P2WPKH_INPUT_WITNESS_BYTES: u128 = 108;
 
 pub trait SpendFee {
-    fn estimate_fee(&self, inputs: &[PlanInput], outputs: &[PlanOutput]) -> u64;
+    fn estimate_fee(&self, inputs: &[PlanInput], outputs: &[PlanOutput], external_outputs: usize) -> u64;
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -30,7 +30,7 @@ impl VirtualSizeFee {
 }
 
 impl SpendFee for VirtualSizeFee {
-    fn estimate_fee(&self, inputs: &[PlanInput], outputs: &[PlanOutput]) -> u64 {
+    fn estimate_fee(&self, inputs: &[PlanInput], outputs: &[PlanOutput], _external_outputs: usize) -> u64 {
         let has_witness = inputs.iter().any(|input| match input.unlocking_script {
             UnlockingScript::P2wpkh => true,
             UnlockingScript::P2pkh => false,
@@ -59,22 +59,18 @@ fn input_weight(input: &PlanInput) -> u128 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::signer::address::script_for_public_key_hash;
 
     #[test]
     fn test_estimate_fee() {
         let legacy_inputs = vec![PlanInput::mock_with_unlocking_script(UnlockingScript::P2pkh)];
-        let legacy_outputs = vec![
-            PlanOutput::new(10_000, script_for_public_key_hash(UnlockingScript::P2pkh, [0u8; 20])),
-            PlanOutput::new(20_000, script_for_public_key_hash(UnlockingScript::P2pkh, [0u8; 20])),
-        ];
-        assert_eq!(VirtualSizeFee::new(20).estimate_fee(&legacy_inputs, &legacy_outputs), 452);
-        assert_eq!(VirtualSizeFee::new(1).estimate_fee(&legacy_inputs, &legacy_outputs), 23);
+        let legacy_outputs = vec![PlanOutput::mock_with_unlocking_script(UnlockingScript::P2pkh, 10_000), PlanOutput::mock_with_unlocking_script(UnlockingScript::P2pkh, 20_000)];
+        assert_eq!(VirtualSizeFee::new(20).estimate_fee(&legacy_inputs, &legacy_outputs, 0), 452);
+        assert_eq!(VirtualSizeFee::new(1).estimate_fee(&legacy_inputs, &legacy_outputs, 0), 23);
 
         let segwit_inputs = vec![PlanInput::mock_with_unlocking_script(UnlockingScript::P2wpkh)];
-        let segwit_outputs = vec![PlanOutput::new(10_000, script_for_public_key_hash(UnlockingScript::P2wpkh, [0u8; 20]))];
-        assert_eq!(VirtualSizeFee::new(30).estimate_fee(&segwit_inputs, &segwit_outputs), 330);
-        assert_eq!(VirtualSizeFee::new(5).estimate_fee(&segwit_inputs, &segwit_outputs), 55);
-        assert_eq!(VirtualSizeFee::new(1).estimate_fee(&segwit_inputs, &segwit_outputs), 11);
+        let segwit_outputs = vec![PlanOutput::mock_with_unlocking_script(UnlockingScript::P2wpkh, 10_000)];
+        assert_eq!(VirtualSizeFee::new(30).estimate_fee(&segwit_inputs, &segwit_outputs, 0), 330);
+        assert_eq!(VirtualSizeFee::new(5).estimate_fee(&segwit_inputs, &segwit_outputs, 0), 55);
+        assert_eq!(VirtualSizeFee::new(1).estimate_fee(&segwit_inputs, &segwit_outputs, 0), 11);
     }
 }

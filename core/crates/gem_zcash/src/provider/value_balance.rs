@@ -167,15 +167,17 @@ mod tests {
     #[test]
     fn test_read() {
         let hex = |json: &str| serde_json::from_str::<Transaction>(json).unwrap().hex.unwrap();
+        let shielded_send = hex(include_str!("../../testdata/transaction_shielded_send_change.json"));
         let shielded_receive = hex(include_str!("../../testdata/transaction_shielded_receive.json"));
         let sprout_to_sapling = hex(include_str!("../../testdata/transaction_sprout_to_sapling.json"));
         let joinsplit = hex(include_str!("../../testdata/transaction_joinsplit.json"));
 
+        assert_eq!(ValueBalanceReader::read(&shielded_send), Some(-200_000));
         assert_eq!(ValueBalanceReader::read(&shielded_receive), Some(2_015_000));
         assert_eq!(ValueBalanceReader::read(&sprout_to_sapling), Some(20_000));
         assert_eq!(ValueBalanceReader::read(&joinsplit), Some(-3_396_917_713));
-        assert_eq!(ValueBalanceReader::read(&shielded_receive[..shielded_receive.len() - 2]), None);
-        assert_eq!(ValueBalanceReader::read(&format!("{shielded_receive}00")), None);
+        assert_eq!(ValueBalanceReader::read(&shielded_send[..shielded_send.len() - 2]), None);
+        assert_eq!(ValueBalanceReader::read(&format!("{shielded_send}00")), None);
         assert_eq!(ValueBalanceReader::read("not hex"), None);
     }
 }

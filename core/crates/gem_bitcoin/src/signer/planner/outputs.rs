@@ -5,21 +5,56 @@ use bitcoin::{
 };
 use primitives::{BitcoinChain, SignerError};
 
-use super::PlanOutput;
+use super::{PlanOutput, SpendDestination};
 
 const MAX_OP_RETURN_BYTES: usize = 80;
 
-// OP_RETURN is placed at output index 1 (after the destination): required by Chainflip's
-// vault-swap scanner, accepted by Thorchain which scans all outputs.
-pub(super) fn spend_outputs(amount: u64, payment_script: ScriptBuf, memo_output: Option<PlanOutput>) -> Vec<PlanOutput> {
-    let mut outputs = vec![PlanOutput::new(amount, payment_script)];
-    if let Some(output) = memo_output {
-        outputs.push(output);
-    }
-    outputs
+#[derive(Debug, Clone)]
+pub(super) enum Payment {
+    Script { script_pubkey: ScriptBuf, memo_output: Option<PlanOutput> },
+    External,
 }
 
-pub(super) fn op_return_output(data: &[u8]) -> Result<PlanOutput, SignerError> {
+impl Payment {
+    pub(super) fn new(destination: SpendDestination, memo: Option<&[u8]>) -> Result<Self, SignerError> {
+        match destination {
+            SpendDestination::Script(script_pubkey) => Ok(Self::Script {
+                script_pubkey,
+                memo_output: memo.map(op_return_output).transpose()?,
+            }),
+            SpendDestination::External => Ok(Self::External),
+        }
+    }
+
+    pub(super) fn dust_threshold(&self, chain: BitcoinChain) -> u64 {
+        match self {
+            Self::Script { script_pubkey, .. } => dust_threshold(chain, script_pubkey),
+            Self::External => 0,
+        }
+    }
+
+    pub(super) fn external_outputs(&self) -> usize {
+        match self {
+            Self::Script { .. } => 0,
+            Self::External => 1,
+        }
+    }
+
+    // OP_RETURN is placed at output index 1 (after the destination): required by Chainflip's
+    // vault-swap scanner, accepted by Thorchain which scans all outputs.
+    pub(super) fn outputs(&self, value: u64) -> (Vec<PlanOutput>, Option<u64>) {
+        match self {
+            Self::Script { script_pubkey, memo_output } => {
+                let mut outputs = vec![PlanOutput::new(value, script_pubkey.clone())];
+                outputs.extend(memo_output.clone());
+                (outputs, None)
+            }
+            Self::External => (vec![], Some(value)),
+        }
+    }
+}
+
+fn op_return_output(data: &[u8]) -> Result<PlanOutput, SignerError> {
     if data.len() > MAX_OP_RETURN_BYTES {
         return SignerError::invalid_input_err("Bitcoin memo is too large");
     }

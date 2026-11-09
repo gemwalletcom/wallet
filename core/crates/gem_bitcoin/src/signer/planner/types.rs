@@ -34,5 +34,6 @@ impl PlanOutput {
 pub struct SpendPlan {
     pub inputs: Vec<PlanInput>,
     pub outputs: Vec<PlanOutput>,
+    pub external_value: Option<u64>,
     pub fee: u64,
 }

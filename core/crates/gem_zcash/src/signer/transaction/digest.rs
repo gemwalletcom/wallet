@@ -1,6 +1,7 @@
 use bitcoin::consensus::encode::serialize;
 use gem_bitcoin::signer::{PlanInput, SpendPlan};
 use gem_hash::blake2::blake2b_256_personal;
+use orchard::{ValuePool, bundle::commitments::hash_bundle_txid_empty};
 use primitives::SignerError;
 
 use super::Transaction;
@@ -16,17 +17,21 @@ pub(crate) struct SignatureDigests {
     script_pubkeys: [u8; 32],
     sequences: [u8; 32],
     outputs: [u8; 32],
-    sapling: [u8; 32],
-    orchard: [u8; 32],
+    shielded: Vec<[u8; 32]>,
 }
 
 impl SignatureDigests {
-    pub(crate) fn new(transaction: &Transaction, plan: &SpendPlan) -> Result<Self, SignerError> {
+    pub(crate) fn new(transaction: &Transaction, plan: &SpendPlan, ironwood: Option<&[u8; 32]>) -> Result<Self, SignerError> {
         let prevouts = plan.inputs.iter().flat_map(|input| serialize(&input.previous_output)).collect::<Vec<_>>();
         let amounts = plan.inputs.iter().map(Self::signed_value_bytes).collect::<Result<Vec<_>, _>>()?.concat();
         let script_pubkeys = plan.inputs.iter().flat_map(|input| serialize(input.script_pubkey.as_script())).collect::<Vec<_>>();
         let sequences = plan.inputs.iter().flat_map(|input| input.sequence.to_le_bytes()).collect::<Vec<_>>();
         let outputs = transaction.outputs.iter().flat_map(serialize).collect::<Vec<_>>();
+        let empty_orchard = hash_bundle_txid_empty(ValuePool::Orchard, transaction.version.tx_version()).map_err(SignerError::from_display)?;
+        let shielded = [blake2b_256_personal(&[], TXID_SAPLING_HASH_PERSONALIZATION), Self::shielded_digest(empty_orchard.as_bytes())?]
+            .into_iter()
+            .chain(ironwood.copied())
+            .collect();
 
         Ok(Self {
             branch_id: transaction.branch_id,
@@ -36,21 +41,25 @@ impl SignatureDigests {
             script_pubkeys: blake2b_256_personal(&script_pubkeys, TRANSPARENT_SCRIPTS_HASH_PERSONALIZATION),
             sequences: blake2b_256_personal(&sequences, TXID_SEQUENCES_HASH_PERSONALIZATION),
             outputs: blake2b_256_personal(&outputs, TXID_OUTPUTS_HASH_PERSONALIZATION),
-            sapling: blake2b_256_personal(&[], TXID_SAPLING_HASH_PERSONALIZATION),
-            orchard: blake2b_256_personal(&[], TXID_ORCHARD_HASH_PERSONALIZATION),
+            shielded,
         })
     }
 
-    pub(crate) fn signature(&self, plan: &SpendPlan, input_index: usize) -> Result<[u8; 32], SignerError> {
-        let mut bytes = Vec::with_capacity(32 * 4);
+    pub(crate) fn shielded_digest(bytes: &[u8]) -> Result<[u8; 32], SignerError> {
+        bytes.try_into().map_err(|_| SignerError::signing_error("invalid Zcash shielded digest"))
+    }
+
+    pub(crate) fn signature(&self, plan: &SpendPlan, input_index: Option<usize>) -> Result<[u8; 32], SignerError> {
+        let mut bytes = Vec::with_capacity(32 * (2 + self.shielded.len()));
         bytes.extend_from_slice(&self.header);
         bytes.extend_from_slice(&self.transparent(plan, input_index)?);
-        bytes.extend_from_slice(&self.sapling);
-        bytes.extend_from_slice(&self.orchard);
+        for digest in &self.shielded {
+            bytes.extend_from_slice(digest);
+        }
         Ok(blake2b_256_personal(&bytes, &self.personalization()))
     }
 
-    fn transparent(&self, plan: &SpendPlan, input_index: usize) -> Result<[u8; 32], SignerError> {
+    fn transparent(&self, plan: &SpendPlan, input_index: Option<usize>) -> Result<[u8; 32], SignerError> {
         let mut bytes = Vec::with_capacity(1 + 32 * 6);
         bytes.push(SIGHASH_ALL);
         bytes.extend_from_slice(&self.prevouts);
@@ -62,7 +71,10 @@ impl SignatureDigests {
         Ok(blake2b_256_personal(&bytes, TXID_TRANSPARENT_HASH_PERSONALIZATION))
     }
 
-    fn txin(plan: &SpendPlan, input_index: usize) -> Result<[u8; 32], SignerError> {
+    fn txin(plan: &SpendPlan, input_index: Option<usize>) -> Result<[u8; 32], SignerError> {
+        let Some(input_index) = input_index else {
+            return Ok(blake2b_256_personal(&[], TXIN_HASH_PERSONALIZATION));
+        };
         let input = plan.inputs.get(input_index).ok_or_else(|| SignerError::signing_error("Zcash input index out of bounds"))?;
         let mut bytes = Vec::new();
         bytes.extend_from_slice(&serialize(&input.previous_output));
@@ -91,16 +103,15 @@ mod tests {
     use primitives::{BitcoinChain, hex, testkit::zcash_mock};
 
     use super::*;
-    use crate::signer::plan::Plan;
+    use crate::signer::{plan::Plan, transaction::TransactionVersion};
 
     #[test]
     fn test_signature() {
         let input = zcash_mock::mock_signer_input(mock_sender_address(BitcoinChain::Zcash), mock_addr_by_hash(BitcoinChain::Zcash, [2u8; 20]));
-        let plan = Plan::transfer(&input).unwrap();
-        let transaction = Transaction::unsigned(&plan, input.metadata.get_zcash_branch_id().unwrap());
-        let digests = SignatureDigests::new(&transaction, &plan).unwrap();
+        let plan = Plan::transfer(&input).unwrap().spend;
+        let transaction = Transaction::unsigned(TransactionVersion::V5, &plan, input.metadata.get_zcash_branch_id().unwrap());
+        let digests = SignatureDigests::new(&transaction, &plan, None).unwrap();
 
-        assert_eq!(plan.fee, 10_000);
-        assert_eq!(hex::encode(digests.signature(&plan, 0).unwrap()), "0e9508ded3c1bbbf0a153622e1b5dee4303c33d45bcaa7fa1218cab57feeb065");
+        assert_eq!(hex::encode(digests.signature(&plan, Some(0)).unwrap()), "0e9508ded3c1bbbf0a153622e1b5dee4303c33d45bcaa7fa1218cab57feeb065");
     }
 }

@@ -9,6 +9,7 @@ mod ton_pay;
 mod url;
 mod wallet_connect_pay;
 mod xrp;
+mod zip321;
 
 pub use self::error::PaymentDecoderError;
 pub use self::url::PaymentURLDecoder;

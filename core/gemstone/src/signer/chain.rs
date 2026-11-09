@@ -130,6 +130,7 @@ impl ChainTransactionSigner {
             TransactionInputType::Earn { .. } => self.many(input, private_key, "earn", |signer, i, key| signer.sign_earn(i, key)),
             TransactionInputType::Swap { from_asset, swap_data, .. } => match swap_data.data.data_type {
                 SwapQuoteDataType::Contract => self.many(input, private_key, "swap", |signer, i, key| signer.sign_swap(i, key)),
+                SwapQuoteDataType::Transfer if self.chain == Chain::Zcash => self.many(input, private_key, "swap", |signer, i, key| signer.sign_swap(i, key)),
                 SwapQuoteDataType::Transfer => self.sign_swap_transfer(input, private_key, from_asset, swap_data),
             },
         }
@@ -239,7 +240,7 @@ fn unsupported_error(chain: Chain, action: &str) -> GemstoneError {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gem_bitcoin::testkit::signer_mock::{TEST_PRIVATE_KEY as TEST_BITCOIN_PRIVATE_KEY, mock_transfer_input};
+    use gem_bitcoin::testkit::signer_mock::{TEST_PRIVATE_KEY as TEST_BITCOIN_PRIVATE_KEY, mock_transfer_input, mock_transfer_swap_input};
     use gem_evm::testkit::eip712_mock::mock_eip712_json;
     use primitives::contract_constants::HYPERLIQUID_ARBITRUM_DEPOSIT_ADDRESS;
     use primitives::hex;
@@ -484,6 +485,17 @@ mod tests {
         let signed_transfer = ChainTransactionSigner::new(Chain::Zcash).sign_input(input.into(), Zeroizing::new(key)).unwrap();
 
         assert_eq!(signed_transfer, signed(vec![expected], TransactionType::Transfer));
+    }
+
+    #[test]
+    fn test_sign_input_zcash_transfer_swap() {
+        let input = mock_transfer_swap_input(BitcoinChain::Zcash, "=:b:bc1qdestination:0/1/0:g1:50");
+        let key = TEST_BITCOIN_PRIVATE_KEY.to_vec();
+        let expected = ZcashChainSigner.sign_swap(&input, &key).unwrap();
+
+        let signed_swap = ChainTransactionSigner::new(Chain::Zcash).sign_input(input.into(), Zeroizing::new(key)).unwrap();
+
+        assert_eq!(signed_swap, signed(expected, TransactionType::Swap));
     }
 
     #[test]

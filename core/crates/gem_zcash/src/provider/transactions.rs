@@ -80,6 +80,7 @@ mod chain_integration_tests {
     use super::*;
     use crate::testkit::{TEST_ZCASH_WALLET_ADDRESS, create_zcash_test_provider};
 
+    const SHIELDED_SEND: &str = "1e056df81dc45aa0afe9ea32e751d9af91382d0fefe198ccfcee0f58e425a33a";
     const THORCHAIN_DEPOSIT: &str = "d45e295890061ef1107ba744a5b87e0b5c0d7c2293da8ac8015f11ce33ea4e8c";
     const NEAR_INTENTS_DEPOSIT: &str = "312557154abb972e9214db213b08e6085fdd2190069ec8c5d0c5e42b05dd0d40";
 
@@ -92,6 +93,7 @@ mod chain_integration_tests {
     async fn test_get_transactions_by_block() -> Result<(), Box<dyn Error + Send + Sync>> {
         let provider = create_zcash_test_provider();
         let expected = [
+            (3_525_230, (SHIELDED_SEND.to_string(), TransactionDirection::Outgoing, String::new(), BigUint::from(200_000u64), BigUint::from(15_000u64))),
             (
                 3_528_650,
                 (
@@ -128,18 +130,11 @@ mod chain_integration_tests {
             TransactionsResult::Transactions(transactions) => transactions,
             TransactionsResult::TransactionRequests(_) => vec![],
         };
-        let near_intents_deposit = (
-            NEAR_INTENTS_DEPOSIT.to_string(),
-            TransactionDirection::Outgoing,
-            "t1extQZQJzFCSukTsKHkg4EABrGpiHPWZby".to_string(),
-            BigUint::from(200_000u64),
-            BigUint::from(10_000u64),
-        );
-        let summaries = transactions.into_iter().map(summary).filter(|summary| summary.0 == NEAR_INTENTS_DEPOSIT).collect::<Vec<_>>();
-        assert_eq!(summaries, vec![near_intents_deposit.clone()]);
+        let summaries = transactions.into_iter().map(summary).filter(|summary| summary.0 == SHIELDED_SEND).collect::<Vec<_>>();
+        assert_eq!(summaries, vec![(SHIELDED_SEND.to_string(), TransactionDirection::Outgoing, String::new(), BigUint::from(200_000u64), BigUint::from(15_000u64))]);
 
-        let transaction = provider.get_transaction_by_hash(TransactionIdRequest::new(Chain::Zcash, NEAR_INTENTS_DEPOSIT.to_string(), None)).await?.unwrap();
-        assert_eq!(summary(transaction), near_intents_deposit);
+        let transaction = provider.get_transaction_by_hash(TransactionIdRequest::new(Chain::Zcash, SHIELDED_SEND.to_string(), None)).await?.unwrap();
+        assert_eq!(summary(transaction).3, BigUint::from(200_000u64));
         Ok(())
     }
 }

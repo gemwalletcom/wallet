@@ -53,6 +53,18 @@ mod tests {
     #[test]
     fn test_map_transaction() {
         let transaction = |json: &str| serde_json::from_str::<BitcoinTransaction>(json).unwrap();
+        let send = transaction(include_str!("../../testdata/transaction_shielded_send.json"));
+        let mapped = map_transaction(&send).unwrap().finalize(vec!["t1SdZhkr3TmiHttYNL6y4qsK5N7nMDoPHm8".to_string()]);
+        assert_eq!(send.fees, BigUint::from(35_090_290u64));
+        assert_eq!((mapped.direction, mapped.from.as_str(), mapped.to.as_str()), (TransactionDirection::Outgoing, "t1SdZhkr3TmiHttYNL6y4qsK5N7nMDoPHm8", ""));
+        assert_eq!((mapped.value, mapped.fee), (BigUint::from(35_065_290u64), BigUint::from(25_000u64)));
+
+        let send_with_change = transaction(include_str!("../../testdata/transaction_shielded_send_change.json"));
+        let mapped = map_transaction(&send_with_change).unwrap().finalize(vec!["t1dTLYuecTCt8irWJsyLkDaJm2EAvVgdxgM".to_string()]);
+        assert_eq!(send_with_change.fees, BigUint::from(215_000u64));
+        assert_eq!((mapped.direction, mapped.from.as_str(), mapped.to.as_str()), (TransactionDirection::Outgoing, "t1dTLYuecTCt8irWJsyLkDaJm2EAvVgdxgM", ""));
+        assert_eq!((mapped.value, mapped.fee), (BigUint::from(200_000u64), BigUint::from(15_000u64)));
+
         let receive = transaction(include_str!("../../testdata/transaction_shielded_receive.json"));
         let mapped = map_transaction(&receive).unwrap().finalize(vec!["t1SXEuGoJQco68tbdW6guj5w2CjGunQD347".to_string()]);
         assert_eq!((mapped.direction, mapped.from.as_str(), mapped.to.as_str()), (TransactionDirection::Incoming, "", "t1SXEuGoJQco68tbdW6guj5w2CjGunQD347"));

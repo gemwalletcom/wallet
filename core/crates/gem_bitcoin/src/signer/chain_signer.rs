@@ -1,6 +1,6 @@
 use primitives::{BitcoinChain, ChainSigner, SignerError, SignerInput};
 
-use crate::signer::{planner::UtxoPlanner, transaction::sign_plan};
+use crate::signer::{UtxoPlanner, transaction::sign_plan};
 
 pub struct BitcoinChainSigner {
     chain: BitcoinChain,

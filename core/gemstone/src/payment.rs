@@ -380,8 +380,15 @@ fn payment_recipient(request: &GemPaymentRequest, chain: Option<Chain>) -> GemRe
     GemRecipient {
         address: chain.and_then(|chain| parse_address(&request.address, chain)).unwrap_or_else(|| request.address.clone()),
         name: None,
-        memo: request.memo.clone().filter(|_| chain.is_none_or(is_memo_supported)),
+        memo: request.memo.clone().filter(|_| chain.is_none_or(|chain| accepts_memo(chain, &request.address))),
         references: request.references.clone().unwrap_or_default(),
+    }
+}
+
+fn accepts_memo(chain: Chain, address: &str) -> bool {
+    match chain {
+        Chain::Zcash => gem_zcash::is_shielded_address(address),
+        _ => is_memo_supported(chain),
     }
 }
 
@@ -430,6 +437,7 @@ mod tests {
     use crate::testkit::TestAlienProvider;
     use crate::testkit::mock_payment_transaction;
     use futures::executor::block_on;
+    use primitives::testkit::zcash_mock::{TEST_ZCASH_TRANSPARENT_ADDRESS, TEST_ZCASH_UNIFIED_ADDRESS};
     use primitives::{Account, Asset, AssetBasic, AssetId, AssetProperties, AssetScore, AssetType, Chain, PaymentInvoice};
     use std::sync::Arc;
 
@@ -730,6 +738,13 @@ mod tests {
         let payment = recipient(payment_step(&request("0x123", None, Some("order 7")), &ethereum));
         assert_eq!(payment.recipient.address, "0x123");
         assert_eq!(payment.recipient.memo, None);
+
+        let zcash = Asset::from_chain(Chain::Zcash);
+        let transfer = confirmed(payment_step(&request(TEST_ZCASH_UNIFIED_ADDRESS, exact("0.001"), Some("thanks")), &zcash));
+        assert_eq!(transfer.recipient.memo.as_deref(), Some("thanks"), "a shielded receiver carries the memo encrypted");
+
+        let transfer = confirmed(payment_step(&request(TEST_ZCASH_TRANSPARENT_ADDRESS, exact("0.001"), Some("thanks")), &zcash));
+        assert_eq!(transfer.recipient.memo, None, "a transparent output would publish the memo");
     }
 
     #[test]

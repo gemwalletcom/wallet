@@ -44,11 +44,16 @@ impl<C: Client> ChainTransactionLoad for ZcashProvider<C> {
 
 #[cfg(test)]
 mod tests {
-    use gem_bitcoin::{BitcoinClient, testkit::signer_mock::mock_transfer_input};
+    use gem_bitcoin::{
+        BitcoinClient,
+        testkit::{address_mock::mock_sender_address, signer_mock::mock_transfer_input},
+    };
     use gem_client::testkit::MockClient;
-    use primitives::BitcoinChain;
+    use num_bigint::BigUint;
+    use primitives::{BitcoinChain, testkit::zcash_mock};
 
     use super::*;
+    use crate::testkit::TEST_ZCASH_UNIFIED_ADDRESS;
 
     #[tokio::test]
     async fn test_get_transaction_load() {
@@ -56,5 +61,11 @@ mod tests {
         let load = provider.get_transaction_load(mock_transfer_input(BitcoinChain::Zcash).input).await.unwrap();
 
         assert_eq!(load.fee.fee, BigInt::from(10_000u64));
+
+        let mut shielded = zcash_mock::mock_signer_input(mock_sender_address(BitcoinChain::Zcash), TEST_ZCASH_UNIFIED_ADDRESS.to_string()).input;
+        shielded.value = BigUint::from(60_000u64);
+        let load = provider.get_transaction_load(shielded).await.unwrap();
+
+        assert_eq!(load.fee.fee, BigInt::from(15_000u64), "a send above the balance is priced and left to the amount check");
     }
 }

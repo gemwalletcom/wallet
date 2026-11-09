@@ -56,14 +56,6 @@ pub fn validate_address(address: &str, chain: Chain) -> bool {
     BitcoinAddress::is_valid_for_chain(address, chain)
 }
 
-pub fn zcash_transparent_address(address: &str) -> Result<String, SignerError> {
-    let script = script_for_address(BitcoinChain::Zcash, address)?;
-    Ok(match script.public_key_hash() {
-        Some(hash) => prefixed_base58_address(&ZCASH_TRANSPARENT_P2PKH_PREFIX, &hash),
-        None => address.to_string(),
-    })
-}
-
 fn segwit_address(hrp: &str, public_key_hash: &[u8; 20]) -> Result<String, SignerError> {
     let hrp = Hrp::parse(hrp).map_err(SignerError::from_display)?;
     segwit::encode_v0(hrp, public_key_hash).map_err(SignerError::from_display)
