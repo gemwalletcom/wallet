@@ -1,17 +1,16 @@
 use bitcoin::ScriptBuf;
-use primitives::{BitcoinChain, SignerError};
+use primitives::{BitcoinChain, SignerError, SignerInput};
 
 #[cfg(any(test, feature = "rpc"))]
 use super::inputs::unfunded_sender_input;
 use super::{
-    PlanInput, PlanOutput, SpendPlan, SpendRequest,
-    fee::estimate_fee,
+    PlanInput, PlanOutput, SpendFee, SpendPlan, SpendRequest, VirtualSizeFee,
     inputs::spendable_inputs,
     outputs::{dust_threshold, op_return_output, spend_outputs},
 };
 use crate::signer::address::script_for_address;
 
-pub(crate) struct UtxoPlanner;
+pub struct UtxoPlanner;
 
 #[derive(Debug, Clone, Copy)]
 enum SpendTarget {
@@ -20,16 +19,24 @@ enum SpendTarget {
 }
 
 impl UtxoPlanner {
+    pub(crate) fn transfer(chain: BitcoinChain, input: &SignerInput) -> Result<SpendPlan, SignerError> {
+        Self::plan(SpendRequest::transfer(chain, input)?, &VirtualSizeFee::for_input(chain, input)?)
+    }
+
+    pub(crate) fn swap(chain: BitcoinChain, input: &SignerInput) -> Result<SpendPlan, SignerError> {
+        Self::plan(SpendRequest::swap(chain, input)?, &VirtualSizeFee::for_input(chain, input)?)
+    }
+
     #[cfg(any(test, feature = "rpc"))]
-    pub(crate) fn fee(request: SpendRequest) -> Result<u64, SignerError> {
-        match Self::plan(request.clone()) {
-            Err(SignerError::InsufficientFunds) => Self::fee_spending_all_inputs(request),
+    pub fn fee(request: SpendRequest, fee: &impl SpendFee) -> Result<u64, SignerError> {
+        match Self::plan(request.clone(), fee) {
+            Err(SignerError::InsufficientFunds) => Self::fee_spending_all_inputs(request, fee),
             plan => plan.map(|plan| plan.fee),
         }
     }
 
     #[cfg(any(test, feature = "rpc"))]
-    fn fee_spending_all_inputs(request: SpendRequest) -> Result<u64, SignerError> {
+    fn fee_spending_all_inputs(request: SpendRequest, fee: &impl SpendFee) -> Result<u64, SignerError> {
         let payment_script = script_for_address(request.chain, &request.destination_address)?.script_pubkey;
         let memo_output = request.memo.as_deref().map(op_return_output).transpose()?;
         let mut outputs = spend_outputs(request.amount, payment_script, memo_output);
@@ -41,10 +48,10 @@ impl UtxoPlanner {
         } else {
             spendable_inputs(request.chain, &request.sender_address, request.utxos)?
         };
-        Ok(estimate_fee(request.chain, &inputs, &outputs, request.fee_rate))
+        Ok(fee.estimate_fee(&inputs, &outputs))
     }
 
-    pub(crate) fn plan(request: SpendRequest) -> Result<SpendPlan, SignerError> {
+    pub fn plan(request: SpendRequest, fee: &impl SpendFee) -> Result<SpendPlan, SignerError> {
         if !request.is_max && request.amount == 0 {
             return SignerError::invalid_input_err("invalid transaction amount");
         }
@@ -58,13 +65,13 @@ impl UtxoPlanner {
         let memo_output = request.memo.as_deref().map(op_return_output).transpose()?;
         let spendable_inputs = spendable_inputs(request.chain, &request.sender_address, request.utxos)?;
         let target = if request.is_max { SpendTarget::Max } else { SpendTarget::Exact(request.amount) };
-        Self::select_inputs_and_build_plan(request.chain, target, request.fee_rate, payment_script, change_script, memo_output, spendable_inputs)
+        Self::select_inputs_and_build_plan(request.chain, target, fee, payment_script, change_script, memo_output, spendable_inputs)
     }
 
     fn select_inputs_and_build_plan(
         chain: BitcoinChain,
         target: SpendTarget,
-        fee_rate: u64,
+        fee: &impl SpendFee,
         payment_script: ScriptBuf,
         change_script: ScriptBuf,
         memo_output: Option<PlanOutput>,
@@ -87,10 +94,10 @@ impl UtxoPlanner {
             let value = match target {
                 // Max spends every input, so only build the plan once all inputs are gathered.
                 SpendTarget::Max if index + 1 < input_count => continue,
-                SpendTarget::Max => return Self::build_max_plan(chain, fee_rate, &payment_script, &memo_output, &selected, selected_amount),
+                SpendTarget::Max => return Self::build_max_plan(chain, fee, &payment_script, &memo_output, &selected, selected_amount),
                 SpendTarget::Exact(value) => value,
             };
-            if let Some(plan) = Self::build_exact_plan(chain, value, fee_rate, &payment_script, &change_script, &memo_output, &selected, selected_amount)? {
+            if let Some(plan) = Self::build_exact_plan(chain, value, fee, &payment_script, &change_script, &memo_output, &selected, selected_amount)? {
                 return Ok(plan);
             }
         }
@@ -98,10 +105,10 @@ impl UtxoPlanner {
         Err(SignerError::InsufficientFunds)
     }
 
-    fn build_max_plan(chain: BitcoinChain, fee_rate: u64, payment_script: &ScriptBuf, memo_output: &Option<PlanOutput>, selected: &[PlanInput], selected_amount: u64) -> Result<SpendPlan, SignerError> {
+    fn build_max_plan(chain: BitcoinChain, fee: &impl SpendFee, payment_script: &ScriptBuf, memo_output: &Option<PlanOutput>, selected: &[PlanInput], selected_amount: u64) -> Result<SpendPlan, SignerError> {
         // Output value doesn't affect fee size; size the fee from the output shape, then spend the rest.
         let mut outputs = spend_outputs(0, payment_script.clone(), memo_output.clone());
-        let fee = estimate_fee(chain, selected, &outputs, fee_rate);
+        let fee = fee.estimate_fee(selected, &outputs);
         let value = selected_amount.checked_sub(fee).filter(|value| *value > 0).ok_or(SignerError::InsufficientFunds)?;
         if value < dust_threshold(chain, payment_script) {
             return Err(SignerError::DustThreshold);
@@ -113,7 +120,7 @@ impl UtxoPlanner {
     fn build_exact_plan(
         chain: BitcoinChain,
         value: u64,
-        fee_rate: u64,
+        fee: &impl SpendFee,
         payment_script: &ScriptBuf,
         change_script: &ScriptBuf,
         memo_output: &Option<PlanOutput>,
@@ -125,7 +132,7 @@ impl UtxoPlanner {
         let mut outputs_with_change = outputs.clone();
         outputs_with_change.push(PlanOutput::new(0, change_script.clone()));
 
-        let fee_with_change = estimate_fee(chain, selected, &outputs_with_change, fee_rate);
+        let fee_with_change = fee.estimate_fee(selected, &outputs_with_change);
         let Some(remainder) = selected_amount.checked_sub(value).and_then(|remaining| remaining.checked_sub(fee_with_change)) else {
             return Ok(None);
         };
@@ -138,7 +145,7 @@ impl UtxoPlanner {
                 fee: fee_with_change,
             }));
         }
-        let fee_without_change = estimate_fee(chain, selected, &outputs, fee_rate);
+        let fee_without_change = fee.estimate_fee(selected, &outputs);
         let Some(remainder) = selected_amount.checked_sub(value).and_then(|remaining| remaining.checked_sub(fee_without_change)) else {
             return Ok(None);
         };
@@ -165,7 +172,12 @@ mod tests {
         let mut input = mock_signer_input(value, false);
         input.input.gas_price = GasPriceType::regular(BigInt::from(fee_rate));
         input.fee = TransactionFee::new_from_fee(BigInt::from(fee_rate), AssetId::from_chain(Chain::Bitcoin));
-        UtxoPlanner::plan(SpendRequest::transfer(BitcoinChain::Bitcoin, &input).unwrap()).unwrap()
+        UtxoPlanner::transfer(BitcoinChain::Bitcoin, &input).unwrap()
+    }
+
+    fn transfer_fee(input: &SignerInput) -> Result<u64, SignerError> {
+        let chain = BitcoinChain::Bitcoin;
+        UtxoPlanner::fee(SpendRequest::transfer(chain, input).unwrap(), &VirtualSizeFee::for_input(chain, input)?)
     }
 
     #[test]
@@ -180,8 +192,7 @@ mod tests {
 
     #[test]
     fn test_plan_transfer() {
-        let request = SpendRequest::transfer(BitcoinChain::Bitcoin, &mock_signer_input("12000", false)).unwrap();
-        let plan = UtxoPlanner::plan(request).unwrap();
+        let plan = UtxoPlanner::transfer(BitcoinChain::Bitcoin, &mock_signer_input("12000", false)).unwrap();
         assert_eq!(plan.inputs.len(), 2);
         assert_eq!(plan.outputs.len(), 3);
         assert_eq!(plan.outputs[0].value.to_sat(), 12_000);
@@ -191,8 +202,7 @@ mod tests {
         assert_eq!(plan.fee, 454);
 
         // Leftover is below P2WPKH change dust (~294), so it is absorbed into the fee.
-        let request = SpendRequest::transfer(BitcoinChain::Bitcoin, &mock_signer_input("9600", false)).unwrap();
-        let plan = UtxoPlanner::plan(request).unwrap();
+        let plan = UtxoPlanner::transfer(BitcoinChain::Bitcoin, &mock_signer_input("9600", false)).unwrap();
         assert_eq!(plan.inputs.len(), 1);
         assert_eq!(plan.outputs.len(), 2);
         assert_eq!(plan.outputs[0].value.to_sat(), 9_600);
@@ -200,22 +210,28 @@ mod tests {
         assert_eq!(sum_inputs(&plan.inputs).unwrap(), 9_600 + plan.outputs[1].value.to_sat() + plan.fee);
         assert_eq!(plan.outputs[1].value.to_sat(), 0);
 
-        let request = SpendRequest::transfer(BitcoinChain::Bitcoin, &mock_signer_input("50000", false)).unwrap();
-        assert_eq!(UtxoPlanner::plan(request.clone()).unwrap_err(), SignerError::InsufficientFunds);
-        assert_eq!(UtxoPlanner::fee(request).unwrap(), 454, "the fee load prices a send the coins can't cover, so the amount check can say Insufficient Balance");
+        assert_eq!(UtxoPlanner::transfer(BitcoinChain::Bitcoin, &mock_signer_input("50000", false)).unwrap_err(), SignerError::InsufficientFunds);
+        assert_eq!(
+            transfer_fee(&mock_signer_input("50000", false)).unwrap(),
+            454,
+            "the fee load prices a send the coins can't cover, so the amount check can say Insufficient Balance"
+        );
 
-        let request = SpendRequest::transfer(BitcoinChain::Bitcoin, &mock_signer_input("545", false)).unwrap();
-        assert_eq!(UtxoPlanner::fee(request).unwrap_err(), SignerError::DustThreshold);
+        assert_eq!(transfer_fee(&mock_signer_input("545", false)).unwrap_err(), SignerError::DustThreshold);
 
         let dust_max_utxos = vec![mock_utxo_with(TEST_UTXO_TXID, 0, "600", TEST_BITCOIN_P2WPKH_ADDRESS)];
-        let request = SpendRequest::transfer(BitcoinChain::Bitcoin, &mock_signer_input_with("0", true, None, dust_max_utxos)).unwrap();
-        assert_eq!(UtxoPlanner::fee(request).unwrap_err(), SignerError::DustThreshold, "a Max that leaves only dust to send is dust");
+        assert_eq!(
+            transfer_fee(&mock_signer_input_with("0", true, None, dust_max_utxos)).unwrap_err(),
+            SignerError::DustThreshold,
+            "a Max that leaves only dust to send is dust"
+        );
 
-        let request = SpendRequest::transfer(BitcoinChain::Bitcoin, &mock_signer_input_with("1000", false, Some("a".repeat(81)), mock_spend_utxos())).unwrap();
-        assert_eq!(UtxoPlanner::plan(request).unwrap_err(), SignerError::invalid_input("Bitcoin memo is too large"));
+        assert_eq!(
+            UtxoPlanner::transfer(BitcoinChain::Bitcoin, &mock_signer_input_with("1000", false, Some("a".repeat(81)), mock_spend_utxos())).unwrap_err(),
+            SignerError::invalid_input("Bitcoin memo is too large")
+        );
 
-        let request = SpendRequest::transfer(BitcoinChain::Bitcoin, &mock_signer_input("0", true)).unwrap();
-        let plan = UtxoPlanner::plan(request).unwrap();
+        let plan = UtxoPlanner::transfer(BitcoinChain::Bitcoin, &mock_signer_input("0", true)).unwrap();
         assert_eq!(plan.inputs.len(), 2);
         assert_eq!(plan.outputs.len(), 2);
         assert!(plan.outputs[1].script_pubkey.is_op_return());
@@ -224,35 +240,41 @@ mod tests {
 
     #[test]
     fn test_fee_without_utxos_prices_a_single_input_send() {
-        for chain in [BitcoinChain::Bitcoin, BitcoinChain::Doge, BitcoinChain::Zcash] {
-            let funded = SpendRequest::transfer(chain, &mock_funded_transfer_input(chain)).unwrap();
+        for chain in [BitcoinChain::Bitcoin, BitcoinChain::Doge] {
+            let input = mock_funded_transfer_input(chain);
+            let fee = VirtualSizeFee::for_input(chain, &input).unwrap();
+            let funded = SpendRequest::transfer(chain, &input).unwrap();
             for request in [funded.clone(), SpendRequest { is_max: true, ..funded }] {
                 let without_utxos = SpendRequest { utxos: vec![], ..request.clone() };
 
-                assert_eq!(UtxoPlanner::plan(without_utxos.clone()).unwrap_err(), SignerError::InsufficientFunds);
-                assert_eq!(UtxoPlanner::fee(without_utxos).unwrap(), UtxoPlanner::plan(request).unwrap().fee);
+                assert_eq!(UtxoPlanner::plan(without_utxos.clone(), &fee).unwrap_err(), SignerError::InsufficientFunds);
+                assert_eq!(UtxoPlanner::fee(without_utxos, &fee).unwrap(), UtxoPlanner::plan(request, &fee).unwrap().fee);
             }
         }
 
-        let dust = SpendRequest::transfer(BitcoinChain::Bitcoin, &mock_signer_input_with("545", false, None, vec![])).unwrap();
-        assert_eq!(UtxoPlanner::fee(dust).unwrap_err(), SignerError::DustThreshold, "an amount under the dust limit is dust with or without coins");
+        assert_eq!(
+            transfer_fee(&mock_signer_input_with("545", false, None, vec![])).unwrap_err(),
+            SignerError::DustThreshold,
+            "an amount under the dust limit is dust with or without coins"
+        );
     }
 
     #[test]
     fn test_plan_absorbs_sub_dust_change_into_fee() {
-        let request = SpendRequest::transfer(BitcoinChain::Bitcoin, &mock_signer_input("9600", false)).unwrap();
-        let change_script = script_for_address(request.chain, &request.sender_address).unwrap().script_pubkey;
-        let plan = UtxoPlanner::plan(request).unwrap();
+        let input = mock_signer_input("9600", false);
+        let change_script = script_for_address(BitcoinChain::Bitcoin, &input.sender_address).unwrap().script_pubkey;
+        let plan = UtxoPlanner::transfer(BitcoinChain::Bitcoin, &input).unwrap();
+        let fee = VirtualSizeFee::for_input(BitcoinChain::Bitcoin, &input).unwrap();
 
         assert_eq!(plan.outputs.len(), 2);
         assert_eq!(plan.outputs[0].value.to_sat(), 9_600);
         assert!(plan.outputs[1].script_pubkey.is_op_return());
 
         let selected_amount = sum_inputs(&plan.inputs).unwrap();
-        let fee_without_change = estimate_fee(BitcoinChain::Bitcoin, &plan.inputs, &plan.outputs, 20);
+        let fee_without_change = fee.estimate_fee(&plan.inputs, &plan.outputs);
         let mut outputs_with_change = plan.outputs.clone();
         outputs_with_change.push(PlanOutput::new(0, change_script.clone()));
-        let fee_with_change = estimate_fee(BitcoinChain::Bitcoin, &plan.inputs, &outputs_with_change, 20);
+        let fee_with_change = fee.estimate_fee(&plan.inputs, &outputs_with_change);
         let dust_remainder = selected_amount - plan.outputs[0].value.to_sat() - fee_with_change;
         assert!(dust_remainder > 0);
         assert!(dust_remainder < dust_threshold(BitcoinChain::Bitcoin, &change_script));
@@ -267,8 +289,7 @@ mod tests {
         let sender_address = mock_sender_address(BitcoinChain::Doge);
         let destination_address = mock_destination_address(BitcoinChain::Doge);
         let input = mock_transfer_input_with_utxos(BitcoinChain::Doge, &sender_address, &destination_address, "1500000", vec![mock_utxo_with(TEST_UTXO_TXID, 0, "2000000", &sender_address)]);
-        let request = SpendRequest::transfer(BitcoinChain::Doge, &input).unwrap();
-        let plan = UtxoPlanner::plan(request).unwrap();
+        let plan = UtxoPlanner::transfer(BitcoinChain::Doge, &input).unwrap();
 
         assert_eq!(plan.inputs.len(), 1);
         assert_eq!(plan.outputs.len(), 1);
@@ -282,10 +303,10 @@ mod tests {
         let destination_address = mock_destination_address(BitcoinChain::Litecoin);
 
         let below_dust = mock_transfer_input_with_utxos(BitcoinChain::Litecoin, &sender_address, &destination_address, "5459", vec![mock_utxo_with(TEST_UTXO_TXID, 0, "100000", &sender_address)]);
-        assert_eq!(UtxoPlanner::plan(SpendRequest::transfer(BitcoinChain::Litecoin, &below_dust).unwrap()).unwrap_err(), SignerError::DustThreshold);
+        assert_eq!(UtxoPlanner::transfer(BitcoinChain::Litecoin, &below_dust).unwrap_err(), SignerError::DustThreshold);
 
         let with_change = mock_transfer_input_with_utxos(BitcoinChain::Litecoin, &sender_address, &destination_address, "10000", vec![mock_utxo_with(TEST_UTXO_TXID, 0, "100000", &sender_address)]);
-        let fee_with_change = UtxoPlanner::plan(SpendRequest::transfer(BitcoinChain::Litecoin, &with_change).unwrap()).unwrap().fee;
+        let fee_with_change = UtxoPlanner::transfer(BitcoinChain::Litecoin, &with_change).unwrap().fee;
         let amount = 100_000 - fee_with_change - 1_000;
 
         let change_below_dust = mock_transfer_input_with_utxos(
@@ -295,7 +316,7 @@ mod tests {
             &amount.to_string(),
             vec![mock_utxo_with(TEST_UTXO_TXID, 0, "100000", &sender_address)],
         );
-        let plan = UtxoPlanner::plan(SpendRequest::transfer(BitcoinChain::Litecoin, &change_below_dust).unwrap()).unwrap();
+        let plan = UtxoPlanner::transfer(BitcoinChain::Litecoin, &change_below_dust).unwrap();
         assert_eq!(plan.outputs.len(), 1);
         assert_eq!(plan.outputs[0].value.to_sat(), amount);
         assert_eq!(plan.fee, fee_with_change + 1_000);

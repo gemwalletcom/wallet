@@ -18,6 +18,7 @@ use gem_tempo::TempoSigner;
 use gem_ton::signer::TonChainSigner;
 use gem_tron::signer::TronChainSigner;
 use gem_xrp::signer::XrpChainSigner;
+use gem_zcash::ZcashChainSigner;
 use primitives::swap::{ApprovalData, SwapData, SwapQuoteDataType};
 use primitives::{Asset, BitcoinChain, Chain, ChainSigner, ChainType, SignerError, SignerInput, TransactionInputType, TransactionLoadInput, TransactionType, TransferDataOutputType};
 use zeroize::Zeroizing;
@@ -47,7 +48,10 @@ impl ChainTransactionSigner {
             ChainType::Xrp => Box::new(XrpChainSigner),
             ChainType::Polkadot => Box::new(PolkadotChainSigner),
             ChainType::Cardano => Box::new(CardanoChainSigner),
-            ChainType::Bitcoin => Box::new(BitcoinChainSigner::new(BitcoinChain::from_chain(chain).unwrap())),
+            ChainType::Bitcoin => match chain {
+                Chain::Zcash => Box::new(ZcashChainSigner),
+                _ => Box::new(BitcoinChainSigner::new(BitcoinChain::from_chain(chain).unwrap())),
+            },
         };
 
         Self { chain, signer }
@@ -235,6 +239,7 @@ fn unsupported_error(chain: Chain, action: &str) -> GemstoneError {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use gem_bitcoin::testkit::signer_mock::{TEST_PRIVATE_KEY as TEST_BITCOIN_PRIVATE_KEY, mock_transfer_input};
     use gem_evm::testkit::eip712_mock::mock_eip712_json;
     use primitives::contract_constants::HYPERLIQUID_ARBITRUM_DEPOSIT_ADDRESS;
     use primitives::hex;
@@ -468,6 +473,17 @@ mod tests {
         let withdrawal: GemSignerInput = SignerInput::mock_evm(TransactionInputType::Withdrawal { asset: Asset::mock() }, "0", 21000).into();
         let crossed: SignerInput = withdrawal.into();
         assert!(matches!(crossed.input.input_type, TransactionInputType::Withdrawal { .. }), "a withdrawal keeps its variant across the FFI model");
+    }
+
+    #[test]
+    fn test_sign_input_zcash_transfer() {
+        let input = mock_transfer_input(BitcoinChain::Zcash);
+        let key = TEST_BITCOIN_PRIVATE_KEY.to_vec();
+        let expected = ZcashChainSigner.sign_transfer(&input, &key).unwrap();
+
+        let signed_transfer = ChainTransactionSigner::new(Chain::Zcash).sign_input(input.into(), Zeroizing::new(key)).unwrap();
+
+        assert_eq!(signed_transfer, signed(vec![expected], TransactionType::Transfer));
     }
 
     #[test]
