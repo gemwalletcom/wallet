@@ -31,6 +31,18 @@ updates:
       # Moves with axum: the api matches the WebSocket errors axum wraps by their type.
       - dependency-name: "tokio-tungstenite"
 
+  # Security updates only: the limit of 0 turns version updates off.
+  - package-ecosystem: "gradle"
+    directory: "/android"
+    open-pull-requests-limit: 0
+    groups:
+      android-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+    schedule:
+      interval: "weekly"
+
   - package-ecosystem: "github-actions"
     directories:
       - "/"
