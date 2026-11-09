@@ -9,15 +9,13 @@ use super::TransactionReference;
 
 pub struct EtherscanClients<C: Client> {
     pub(crate) etherscan: EtherscanClient<C>,
-    pub(crate) routescan: EtherscanClient<C>,
     pub(crate) zksync: EtherscanClient<C>,
 }
 
 impl<C: Client> EtherscanClients<C> {
-    pub fn new(etherscan: C, etherscan_key: Option<String>, routescan: C, zksync: C) -> Self {
+    pub fn new(etherscan: C, etherscan_key: Option<String>, zksync: C) -> Self {
         Self {
             etherscan: EtherscanClient::new_with_client(etherscan, etherscan_key, EtherscanApi::Etherscan),
-            routescan: EtherscanClient::new_with_client(routescan, None, EtherscanApi::Routescan),
             zksync: EtherscanClient::new_with_client(zksync, None, EtherscanApi::ZkSync),
         }
     }

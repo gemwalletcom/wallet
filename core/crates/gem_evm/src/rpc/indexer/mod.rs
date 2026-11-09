@@ -58,7 +58,6 @@ enum ProviderKind {
     Ankr(&'static str),
     Blockscout,
     Etherscan,
-    Routescan,
     ZkSync,
 }
 
@@ -141,9 +140,8 @@ impl<C: Client + Clone> EVMIndexer<C> {
             EVMChain::Celo | EVMChain::World | EVMChain::Unichain => vec![ProviderKind::Etherscan, ProviderKind::Blockscout, ProviderKind::Alchemy],
             EVMChain::Ink | EVMChain::Robinhood | EVMChain::Arc => vec![ProviderKind::Blockscout, ProviderKind::Alchemy],
             EVMChain::Abstract | EVMChain::Berachain | EVMChain::Hyperliquid | EVMChain::Monad => vec![ProviderKind::Etherscan, ProviderKind::Alchemy],
-            EVMChain::Blast => vec![ProviderKind::Routescan, ProviderKind::Alchemy],
             EVMChain::ZkSync => vec![ProviderKind::ZkSync, ProviderKind::Alchemy],
-            EVMChain::OpBNB | EVMChain::Manta | EVMChain::Mantle | EVMChain::Sonic | EVMChain::SeiEvm | EVMChain::Plasma | EVMChain::Stable | EVMChain::Tempo => {
+            EVMChain::Blast | EVMChain::OpBNB | EVMChain::Manta | EVMChain::Mantle | EVMChain::Sonic | EVMChain::SeiEvm | EVMChain::Plasma | EVMChain::Stable | EVMChain::Tempo => {
                 return None;
             }
         };
@@ -152,7 +150,6 @@ impl<C: Client + Clone> EVMIndexer<C> {
             ProviderKind::Ankr(network) => Provider::Ankr(AnkrClient::new(JsonRpcClient::new(ankr_client.clone()), network)),
             ProviderKind::Blockscout => Provider::Blockscout(BlockscoutClient::new(blockscout_client.clone(), chain.chain_id(), blockscout_key.clone())),
             ProviderKind::Etherscan => Provider::Etherscan(etherscan.etherscan.clone(), chain),
-            ProviderKind::Routescan => Provider::Etherscan(etherscan.routescan.clone(), chain),
             ProviderKind::ZkSync => Provider::Etherscan(etherscan.zksync.clone(), chain),
         };
         Some(Self {
@@ -228,7 +225,7 @@ mod tests {
         });
         let alchemy_client = ankr_client.clone();
         let blockscout_client = MockClient::new().with_get(|_| Err(ClientError::Http { status: 503, body: Vec::new() }));
-        let etherscan = EtherscanClients::new(blockscout_client.clone(), None, blockscout_client.clone(), blockscout_client.clone());
+        let etherscan = EtherscanClients::new(blockscout_client.clone(), None, blockscout_client.clone());
         let indexer = EVMIndexer::for_chain(alchemy_client, ankr_client, blockscout_client, "key".to_string(), etherscan, EVMChain::Ethereum).unwrap();
         let transactions_by_address = EVMTransactionsByAddressProvider::new(Arc::new(indexer));
         let result = transactions_by_address.get_transactions_by_address(TransactionsRequest::new("0x123".to_string(), 2)).await.unwrap();
@@ -255,10 +252,10 @@ mod tests {
             };
             Ok(to_vec(&json!({ "jsonrpc": "2.0", "id": request["id"], "result": result })).unwrap())
         });
-        let routescan_client = MockClient::new().with_get(|_| Err(ClientError::Http { status: 503, body: Vec::new() }));
+        let zksync_client = MockClient::new().with_get(|_| Err(ClientError::Http { status: 503, body: Vec::new() }));
         let unused_client = MockClient::new();
-        let etherscan = EtherscanClients::new(unused_client.clone(), None, routescan_client, unused_client.clone());
-        let indexer = Arc::new(EVMIndexer::for_chain(alchemy_client, unused_client.clone(), unused_client, String::new(), etherscan, EVMChain::Blast).unwrap());
+        let etherscan = EtherscanClients::new(unused_client.clone(), None, zksync_client);
+        let indexer = Arc::new(EVMIndexer::for_chain(alchemy_client, unused_client.clone(), unused_client, String::new(), etherscan, EVMChain::ZkSync).unwrap());
 
         let transactions = EVMTransactionsByAddressProvider::new(indexer.clone())
             .get_transactions_by_address(TransactionsRequest::new("0x123".to_string(), 2))
@@ -268,12 +265,12 @@ mod tests {
 
         assert_eq!(
             transactions.transaction_requests().unwrap(),
-            vec![TransactionIdRequest::new(Chain::Blast, "0xin".to_string(), Some(3)), TransactionIdRequest::new(Chain::Blast, "0xout".to_string(), Some(2)),]
+            vec![TransactionIdRequest::new(Chain::ZkSync, "0xin".to_string(), Some(3)), TransactionIdRequest::new(Chain::ZkSync, "0xout".to_string(), Some(2)),]
         );
         assert_eq!(
             balances,
             vec![AssetBalance::new_balance(
-                AssetId::from_token(Chain::Blast, "0xdAC17F958D2ee523a2206206994597C13D831ec7"),
+                AssetId::from_token(Chain::ZkSync, "0xdAC17F958D2ee523a2206206994597C13D831ec7"),
                 Balance::coin_balance(BigUint::from(42u8))
             )]
         );
@@ -291,7 +288,7 @@ mod tests {
         });
         let blockscout_client = MockClient::new().with_get(|path| panic!("unexpected Blockscout path: {path}"));
         let unused_client = MockClient::new();
-        let etherscan = EtherscanClients::new(etherscan_client, None, unused_client.clone(), unused_client.clone());
+        let etherscan = EtherscanClients::new(etherscan_client, None, unused_client.clone());
         let indexer = EVMIndexer::for_chain(unused_client.clone(), unused_client, blockscout_client, "key".to_string(), etherscan, EVMChain::Celo).unwrap();
 
         let transactions = EVMTransactionsByAddressProvider::new(Arc::new(indexer))
@@ -321,7 +318,7 @@ mod tests {
             };
             Ok(to_vec(&json!({ "jsonrpc": "2.0", "id": request["id"], "result": result })).unwrap())
         });
-        let etherscan = EtherscanClients::new(client.clone(), None, client.clone(), client.clone());
+        let etherscan = EtherscanClients::new(client.clone(), None, client.clone());
         let indexer = EVMIndexer::for_chain(client.clone(), client.clone(), client, String::new(), etherscan, EVMChain::SmartChain).unwrap();
         let provider = EVMTransactionsByAddressProvider::new(Arc::new(indexer));
 

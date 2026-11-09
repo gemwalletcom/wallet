@@ -40,7 +40,6 @@ fn build_test_indexer(chain: EVMChain, rpc_url: &str) -> Arc<EVMIndexer<ReqwestC
             EtherscanClients::new(
                 settings.indexer.etherscan.remote_provider_config().configure_client(client.clone()),
                 Some(settings.indexer.etherscan.key.secret).filter(|key| !key.is_empty()),
-                settings.indexer.routescan.remote_provider_config().configure_client(client.clone()),
                 settings.indexer.zksync.remote_provider_config().configure_client(client),
             ),
             chain,

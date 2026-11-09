@@ -82,7 +82,6 @@ impl ProviderFactory {
                         EtherscanClients::new(
                             config.indexers.etherscan.configure_client(gem_client.clone()),
                             Some(config.indexers.etherscan.key).filter(|key| !key.is_empty()),
-                            config.indexers.routescan.configure_client(gem_client.clone()),
                             config.indexers.zksync.configure_client(gem_client),
                         ),
                         evm_chain,
