@@ -4,7 +4,6 @@ import Foundation
 import GRDB
 import Primitives
 
-
 struct AssetLinkRecord: Codable, FetchableRecord, PersistableRecord {
     static let databaseTableName: String = "assets_links"
 

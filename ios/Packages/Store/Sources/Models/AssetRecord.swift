@@ -4,7 +4,6 @@ import Foundation
 import GRDB
 import Primitives
 
-
 struct AssetRecord: Identifiable, Codable, PersistableRecord, FetchableRecord, TableRecord {
     static let databaseTableName: String = "assets"
 
