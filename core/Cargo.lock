@@ -6167,7 +6167,7 @@ dependencies = [
  "ed25519-dalek",
  "getrandom 0.4.3",
  "primitives",
- "secp256k1 0.31.1",
+ "secp256k1 0.29.1",
  "strum",
  "zeroize",
 ]

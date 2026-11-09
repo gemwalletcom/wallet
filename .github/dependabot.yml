@@ -30,6 +30,8 @@ updates:
           - "version-update:semver-patch"
       # Moves with axum: the api matches the WebSocket errors axum wraps by their type.
       - dependency-name: "tokio-tungstenite"
+      # Moves with bitcoin: a different version links a second copy of the C library into the apps.
+      - dependency-name: "secp256k1"
 
   # Security updates only: the limit of 0 turns version updates off.
   - package-ecosystem: "gradle"
