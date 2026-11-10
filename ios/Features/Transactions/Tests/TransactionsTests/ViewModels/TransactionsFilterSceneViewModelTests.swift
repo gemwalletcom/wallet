@@ -33,18 +33,17 @@ struct TransactionsFilterSceneViewModelTests {
     @Test
     func aTypeSelectionMapsToItsTransactionTypes() {
         let model = TransactionsFilterSceneViewModel.mock()
-        guard let filter = model.viewState.types.first else {
-            Issue.record("core returned no transaction filters")
-            return
-        }
+        let unfiltered = model.query.request.base.filter?.transactionTypes
 
-        _ = model.onFinishTypesSelection(SelectionResult(items: [filter], isConfirmed: true))
+        _ = model.onFinishTypesSelection(SelectionResult(items: [.transfers], isConfirmed: true))
 
-        #expect(model.typesModel.selectedItems == [filter])
+        #expect(model.typesModel.selectedItems == [.transfers])
+        #expect(model.query.request.base.filter?.transactionTypes == [.transfer, .transferNFT])
         #expect(model.isAnyFilterSpecified)
 
         model.onClear()
 
+        #expect(model.query.request.base.filter?.transactionTypes == unfiltered)
         #expect(model.isAnyFilterSpecified == false)
     }
 

@@ -184,7 +184,7 @@ struct TransactionSceneViewModelLoadTests {
     }
 
     @Test
-    func aTransactionTheWalletLacksShowsNothingUntilItLoads() async {
+    func aTransactionTheWalletLacksShowsNothingAndAsksCoreToLoadIt() async {
         let service = GemTransactionsServiceMock()
         let model = TransactionSceneViewModel.mock(isStored: false, transactionsService: service)
 
@@ -195,6 +195,7 @@ struct TransactionSceneViewModelLoadTests {
 
         await model.load()
         #expect(model.loadState == .data)
+        #expect(service.loadedTransactionIds == [.mock()])
     }
 
     @Test

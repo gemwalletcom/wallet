@@ -77,11 +77,13 @@ class TransactionStateStoreTest {
             val store = GemstoneTransactionStateStore(database.transactionsDao(), RoomStoreTransactionRunner(database))
             val wallet = mockWallet()
             database.walletsDao().insert(wallet.toRecord())
-            val pending = mockTransaction(type = TransactionType.Swap, state = TransactionState.Pending)
+            val quoted = TransactionSwapMetadata(mockAssetId(), "100", mockAssetId(chain = Chain.Ethereum), "200")
+            val pending = mockTransaction(type = TransactionType.Swap, state = TransactionState.Pending, metadata = quoted.toJson())
             store.addTransactions(wallet.id.id, listOf(pending.toGem()))
-            val assetIds = listOf(mockAssetId().toIdentifier(), mockAssetId(chain = Chain.Ethereum).toIdentifier())
+            val delivered = quoted.copy(toAsset = mockAssetId(chain = Chain.Solana), toValue = "499590000")
+            val assetIds = listOf(delivered.fromAsset.toIdentifier(), delivered.toAsset.toIdentifier())
 
-            store.updateTransaction(wallet.id.id, pending.id.identifier, GemTransactionStateUpdate(TransactionState.Confirmed.toGem(), null, BigInteger("499590000"), null, null, null, assetIds))
+            store.updateTransaction(wallet.id.id, pending.id.identifier, GemTransactionStateUpdate(TransactionState.Confirmed.toGem(), null, BigInteger("499590000"), null, delivered.toJson(), null, assetIds))
 
             assertEquals(mapOf(pending.id.identifier to assetIds.sorted()), database.transactionAssets(pending.id))
             assertEquals("499590000", database.transactionsDao().getTransaction(pending.id, wallet.id)?.value)

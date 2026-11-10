@@ -5,14 +5,13 @@ use gem_client::Client;
 use gem_evm::rpc::parsers::ProtocolParser;
 use gem_evm::rpc::{EthereumClient, EvmFeeCalculator, EvmStakingClient};
 use gem_evm::transaction_params::TransactionParams;
-use num_bigint::{BigInt, BigUint};
-use num_traits::Zero;
-use primitives::{AssetBalance, AssetId, Chain, DelegationBase, DelegationState, DelegationValidator, StakeType};
+use num_bigint::BigInt;
+use primitives::{AssetBalance, AssetId, Chain, DelegationBase, DelegationValidator, StakeType};
 
 use crate::client::{EverstakeClient, account_state};
 use crate::constants::EVERSTAKE_POOL_ADDRESS;
 use crate::encode::encode_stake;
-use crate::mapper::{map_balance_to_delegation, map_staking_balance, map_withdraw_request_to_delegations};
+use crate::mapper::{map_account_state_to_delegations, map_staking_balance};
 use crate::parser::EverstakeParser;
 
 pub struct EverstakeStakingClient<C: Client + Clone> {
@@ -41,22 +40,7 @@ impl<C: Client + Clone> EvmStakingClient for EverstakeStakingClient<C> {
 
     async fn get_staking_delegations(&self, address: &str) -> Result<Vec<DelegationBase>, Box<dyn Error + Sync + Send>> {
         let state = account_state(&self.client, address).await?;
-
-        let mut delegations = Vec::new();
-
-        let active_balance = state.deposited_balance;
-        if active_balance > BigUint::zero() {
-            delegations.push(map_balance_to_delegation(&active_balance, &state.restaked_reward, DelegationState::Active));
-        }
-
-        let pending_balance = state.pending_balance + state.pending_deposited_balance;
-        if pending_balance > BigUint::zero() {
-            delegations.push(map_balance_to_delegation(&pending_balance, &BigUint::zero(), DelegationState::Activating));
-        }
-
-        delegations.extend(map_withdraw_request_to_delegations(&state.withdraw_request));
-
-        Ok(delegations)
+        Ok(map_account_state_to_delegations(&state))
     }
 
     async fn get_staking_balance(&self, address: &str) -> Result<Option<AssetBalance>, Box<dyn Error + Sync + Send>> {
@@ -107,21 +91,6 @@ mod chain_integration_tests {
             assert_eq!(validator.name, "Everstake");
             assert!(validator.is_active);
             assert_eq!(validator.apr, 4.2);
-        }
-
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn test_get_staking_delegations() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let client = create_everstake_staking_client();
-        let delegations = client.get_staking_delegations("0xF3A43C831D4462019635C5E08F4c0920218f3b93").await?;
-
-        println!("Ethereum Delegations count: {}", delegations.len());
-        println!("Ethereum Delegations: {:?}", delegations);
-
-        for delegation in &delegations {
-            assert_eq!(delegation.asset_id.chain, Chain::Ethereum);
         }
 
         Ok(())

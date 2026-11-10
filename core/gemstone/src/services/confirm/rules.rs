@@ -798,7 +798,7 @@ mod tests {
     }
     use crate::models::custom_types::GemBigInt;
     use crate::models::custom_types::GemBigUint;
-    use crate::models::transaction::GemFeeOptions;
+    use crate::models::transaction::{GemFeeOptionItem, GemFeeOptions};
     use crate::services::transfer::{GemRecipient, GemTransferData};
     use num_bigint::BigInt;
     use num_bigint::BigUint;
@@ -1105,6 +1105,34 @@ mod tests {
             },
         );
         assert_eq!(fast.rows[0].fee, Some(BigInt::from(10_000) + &rent), "the rent does not shrink with the priority either");
+    }
+
+    #[test]
+    fn test_fee_load_shows_the_full_fee_and_each_fixed_option_on_its_own() {
+        let solana = Asset::from_chain(Chain::Solana);
+        let rent = BigInt::from(2_039_280u64);
+        let confirm = GemConfirmData {
+            fee: GemTransactionLoadFee {
+                options: GemFeeOptions {
+                    options: HashMap::from([(FeeOption::TokenAccountCreation, rent.clone())]),
+                },
+                ..GemTransactionLoadFee::mock(2_049_280)
+            },
+            ..GemConfirmData::mock(Chain::Solana, TransactionInputType::Transfer { asset: solana.clone() })
+        };
+        let amount = |value: &BigInt| fee_amount(&solana, value, None, Currency::USD);
+
+        let fee = confirm.fee_load(GemConfirmMetadata::mock(&solana.id, 1_000_000_000), solana.clone(), Currency::USD).fee;
+
+        assert_eq!(fee.formatted, amount(&BigInt::from(2_049_280)), "the network fee shows the total, rent included");
+        assert_eq!(
+            fee.additional_fees,
+            vec![GemFeeOptionItem {
+                option: FeeOption::TokenAccountCreation,
+                value: rent.clone(),
+                amount: amount(&rent),
+            }]
+        );
     }
 
     #[test]
