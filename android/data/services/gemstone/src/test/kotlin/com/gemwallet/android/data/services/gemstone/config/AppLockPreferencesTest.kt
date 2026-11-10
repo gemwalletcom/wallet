@@ -7,6 +7,8 @@ import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -78,11 +80,12 @@ class AppLockPreferencesTest {
     fun lockEnabledFollowsTheStoredFlag() = runTest {
         every { secureStore.get("auth_required") } returns "false"
         val subject = subject()
-        assertFalse(subject.getLockEnabled().first())
+        val shown = mutableListOf<Boolean>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { subject.getLockEnabled().toList(shown) }
 
         subject.setAuthRequired(true)
 
-        assertTrue(subject.getLockEnabled().first())
+        assertEquals(listOf(false, true), shown)
     }
 
     @Test

@@ -17,16 +17,15 @@ import Testing
 @MainActor
 struct NetworkFeeSceneViewModelTests {
     @Test
-    func additionalFeesKeepNetworkFeeTotal() {
+    func eachAdditionalFeeShowsAsItsOwnRow() {
         let model = NetworkFeeSceneViewModel.mock(
             feeAsset: .mock(id: .mock(chain: .solana), name: "Solana", symbol: "SOL", decimals: 9),
             feeAmount: 1_495_940,
-            additionalFees: [(.tokenAccountCreation, 1_488_440), (.tokenAccountCreation, 1000)],
+            additionalFees: [(.tokenAccountCreation, 1_488_440)],
         )
 
-        #expect(model.value == "0.001495 SOL")
-        #expect(model.feeItems.map(\.title) == ["Account Activation Fee", "Account Activation Fee"])
-        #expect(model.feeItems.first?.subtitle == "0.001488 SOL")
+        #expect(model.feeItems.map(\.title) == ["Account Activation Fee"])
+        #expect(model.feeItems.map(\.subtitle) == ["0.001488 SOL"])
         #expect(NetworkFeeSceneViewModel.mock().feeItems.isEmpty)
     }
 

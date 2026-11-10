@@ -510,12 +510,12 @@ mod tests {
 
     #[test]
     fn test_each_platform_gates_confirm_the_way_its_policy_says() {
-        let changed = GemAutocloseModify::mock(GemAutocloseField::mock(Some(110.0), Some(100.0), true, None), GemAutocloseField::mock(None, None, true, None));
+        let invalid = GemAutocloseModify::mock(GemAutocloseField::mock(Some(110.0), Some(100.0), false, None), GemAutocloseField::mock(None, None, true, None));
         let prices = GemAutoclosePrices { entry: Some(100.0), market: 110.0 };
-        let ios = GemAutocloseSession::new(changed.clone(), GemAutocloseConfirmPolicy::WhenBuildable, prices.clone(), PerpetualProvider::Hypercore, 2, None, GemAutocloseEstimate::mock());
-        let android = GemAutocloseSession::new(changed, GemAutocloseConfirmPolicy::UntilSubmitted, prices, PerpetualProvider::Hypercore, 2, None, GemAutocloseEstimate::mock());
+        let ios = GemAutocloseSession::new(invalid.clone(), GemAutocloseConfirmPolicy::WhenBuildable, prices.clone(), PerpetualProvider::Hypercore, 2, None, GemAutocloseEstimate::mock());
+        let android = GemAutocloseSession::new(invalid, GemAutocloseConfirmPolicy::UntilSubmitted, prices, PerpetualProvider::Hypercore, 2, None, GemAutocloseEstimate::mock());
 
-        assert_eq!(ios.view_state().confirm_enabled, ios.modify.is_complete());
+        assert!(!ios.view_state().confirm_enabled, "an invalid price cannot be built");
         assert_eq!(
             ios.view_state().price_rows,
             vec![
@@ -532,7 +532,7 @@ mod tests {
             ]
         );
         assert!(android.view_state().confirm_enabled, "a pending change is enough before a submit");
-        assert_eq!(android.on_submit_attempt().view_state().confirm_enabled, android.modify.is_complete());
+        assert!(!android.on_submit_attempt().view_state().confirm_enabled, "after a submit the invalid price keeps confirm off");
     }
 
     #[test]
