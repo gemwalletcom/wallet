@@ -197,7 +197,7 @@ fn decode_permit2_batch_approval(chain: Chain, message: &EIP712Message, contract
         }
     }
 
-    ApprovalRequest::permit_batch(chain, contract_address, spender_address, ApprovalValue::Exact(total_value), token_address, warning_expiration)
+    ApprovalRequest::permit_batch(chain, contract_address, spender_address, ApprovalValue::from_value(total_value), token_address, warning_expiration)
 }
 
 fn find_permit_details(fields: &[EIP712Field]) -> Option<&[EIP712Field]> {
@@ -282,9 +282,9 @@ mod tests {
         matches!(warning, SimulationWarningType::PermitApproval(_) | SimulationWarningType::PermitBatchApproval(_))
     }
 
-    fn is_unlimited_permit_warning(warning: &SimulationWarningType) -> bool {
+    fn is_unlimited_warning(warning: &SimulationWarningType) -> bool {
         match warning {
-            SimulationWarningType::PermitApproval(a) => a.value.is_none(),
+            SimulationWarningType::TokenApproval(a) | SimulationWarningType::PermitApproval(a) => a.value.is_none(),
             SimulationWarningType::PermitBatchApproval(v) => v.is_none(),
             _ => false,
         }
@@ -395,7 +395,7 @@ mod tests {
         let json: Value = serde_json::from_str(include_str!("../../testdata/permit_dai.json")).unwrap();
         let result = simulate_eip712_message(Chain::Ethereum, &parse_eip712_json(&json).unwrap());
 
-        assert!(is_unlimited_permit_warning(warning(&result)));
+        assert!(is_unlimited_warning(warning(&result)));
         assert_eq!(
             kinds(&result),
             vec![SimulationPayloadFieldKind::Method, SimulationPayloadFieldKind::Contract, SimulationPayloadFieldKind::Spender, SimulationPayloadFieldKind::Value,]
@@ -425,7 +425,18 @@ mod tests {
         json["message"]["permitted"][1]["amount"] = json!("not a number");
         let result = simulate_eip712_message(Chain::Ethereum, &parse_eip712_json(&json).unwrap());
 
-        assert!(is_unlimited_permit_warning(warning(&result)));
+        assert!(is_unlimited_warning(warning(&result)));
+    }
+
+    #[test]
+    fn eip712_permit2_batch_with_a_total_from_the_unlimited_threshold_warns_as_unlimited() {
+        let half_threshold = (U256::from(1) << 127usize).to_string();
+        let mut json: Value = serde_json::from_str(include_str!("../../testdata/permit2_batch_transfer.json")).unwrap();
+        json["message"]["permitted"][0]["amount"] = json!(half_threshold);
+        json["message"]["permitted"][1]["amount"] = json!(half_threshold);
+        let result = simulate_eip712_message(Chain::Ethereum, &parse_eip712_json(&json).unwrap());
+
+        assert!(is_unlimited_warning(warning(&result)));
     }
 
     #[test]
@@ -443,7 +454,7 @@ mod tests {
         let message = parse_eip712_json(&json).unwrap();
         let result = simulate_eip712_message(Chain::Ethereum, &message);
 
-        assert!(is_unlimited_permit_warning(warning(&result)));
+        assert!(is_unlimited_warning(warning(&result)));
         assert_eq!(
             kinds(&result),
             vec![
@@ -531,6 +542,47 @@ mod tests {
         );
         assert_eq!(result.payload[0].value, "Approve");
         assert_eq!(result.payload[3].value, "Unlimited");
+    }
+
+    #[test]
+    fn erc20_approve_from_the_unlimited_threshold_simulates_as_unlimited() {
+        let spender = address!("1111111111111111111111111111111111111111");
+        let threshold = U256::from(1) << 128;
+        let cases = [
+            (U256::MAX, "Unlimited"),
+            (U256::MAX - U256::from(1), "Unlimited"),
+            (threshold, "Unlimited"),
+            (threshold - U256::from(1), "340282366920938463463374607431768211455"),
+            (U256::from(1_000_000), "1000000"),
+        ];
+
+        for (value, expected) in cases {
+            let calldata = gem_evm::contracts::IERC20::approveCall { spender, value }.abi_encode();
+            let result = simulate_evm_calldata(Chain::Ethereum, &calldata, ETHEREUM_USDC_TOKEN_ID);
+            let is_unlimited = expected == "Unlimited";
+
+            assert_eq!(result.payload[3].value, expected);
+            assert_eq!(result.header.as_ref().map(|header| header.is_unlimited), Some(is_unlimited));
+            assert!(is_token_warning(warning(&result)));
+            assert_eq!(is_unlimited_warning(warning(&result)), is_unlimited);
+        }
+    }
+
+    #[test]
+    fn permits_near_the_uint160_max_simulate_as_unlimited() {
+        let near_max = (U160::MAX - U160::from(1)).to_string();
+        let permit = simulate_eip712_message(Chain::Ethereum, &permit_message("value", json!(near_max)));
+        assert!(is_unlimited_warning(warning(&permit)));
+
+        let call = IAllowanceTransfer::approveCall {
+            token: address!("A0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"),
+            spender: address!("1111111111111111111111111111111111111111"),
+            amount: U160::MAX - U160::from(1),
+            expiration: U48::from(1_800_000_000u64),
+        };
+        let permit2 = simulate_evm_calldata(Chain::Ethereum, &call.abi_encode(), UNISWAP_PERMIT2_CONTRACT);
+        assert_eq!(permit2.payload[4].value, "Unlimited");
+        assert_eq!(permit2.header.as_ref().map(|header| header.is_unlimited), Some(true));
     }
 
     #[test]
