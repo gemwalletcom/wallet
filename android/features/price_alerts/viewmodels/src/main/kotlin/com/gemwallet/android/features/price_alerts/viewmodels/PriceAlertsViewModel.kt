@@ -114,6 +114,7 @@ class PriceAlertsViewModel @Inject constructor(
         runCatchingCancellable { service.setAutoAlert(asset.toGem(), true) }
             .onSuccess { toast -> toast?.let { emitToast(it.message(context)) } }
             .onFailure { errorState.value = it.errorText().text(context) }
+        alertsEnabled.update { service.isEnabled() }
     }
 
     fun clearError() = errorState.update { null }
