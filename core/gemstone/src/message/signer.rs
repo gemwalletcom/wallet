@@ -217,8 +217,8 @@ mod tests {
     };
     use crate::models::list::GemListRow;
     use crate::services::localization::GemLocalizedText;
-    use crate::signer::ChainTransactionSigner;
     use gem_evm::EIP712Domain;
+    use gem_evm::signer::EvmChainSigner;
     use primitives::hex;
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
     use primitives::{Address, SimulationPayloadFieldType};
@@ -234,7 +234,7 @@ mod tests {
     #[test]
     fn test_eip712_chain_signer_matches_message_signer() {
         let json = include_str!("./test/eip712_seaport.json");
-        let via_chain_signer = ChainTransactionSigner::new(Chain::Ethereum).sign_message(json.as_bytes().to_vec(), TEST_PRIVATE_KEY.to_vec()).unwrap();
+        let via_chain_signer = EvmChainSigner.sign_message(json.as_bytes(), &TEST_PRIVATE_KEY).unwrap();
         let via_message_signer = MessageSigner::new(SignMessage {
             chain: Chain::Ethereum,
             sign_type: SignDigestType::Eip712,

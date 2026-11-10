@@ -2,7 +2,7 @@ use crate::OptionStringExt;
 use crate::contract_call_data::ContractCallData;
 use crate::earn_type::EarnType;
 use crate::stake_type::StakeType;
-use crate::swap::{ApprovalData, SwapData, SwapQuoteDataType};
+use crate::swap::{ApprovalData, SwapData};
 use crate::transaction_fee::TransactionFee;
 use crate::transaction_load_metadata::TransactionLoadMetadata;
 use crate::{ApplicationMetadata, Asset, AssetId, GasPriceType, PaymentInvoice, PerpetualType, SignerError, TransactionType, TransferDataExtra, nft::NFTAsset, perpetual::AccountDataType};
@@ -206,32 +206,6 @@ impl SignerInput {
             None => self.fee.gas_limit(),
         }
     }
-
-    pub fn swap_value_u64(&self) -> Result<u64, SignerError> {
-        self.swap_value()?.to_u64().ok_or_else(|| SignerError::invalid_input("invalid transaction amount"))
-    }
-
-    pub fn swap_value(&self) -> Result<BigInt, SignerError> {
-        let swap = self.input_type.get_swap_data()?;
-        let value = BigInt::from(swap.data.value.clone());
-        if !swap.quote.use_max_amount.unwrap_or(self.is_max_value) || !self.input_type.get_asset().id.is_native() {
-            return Ok(value);
-        }
-        match swap.data.data_type {
-            SwapQuoteDataType::Transfer => {}
-            SwapQuoteDataType::Contract => return Ok(value),
-        }
-        let value = value - &self.fee.fee;
-        if value < BigInt::ZERO {
-            return Err(SignerError::InsufficientFunds);
-        }
-        if let Some(min_from_value) = &swap.quote.min_from_value
-            && value < BigInt::from(min_from_value.clone())
-        {
-            return Err(SignerError::SwapValueBelowMinimum);
-        }
-        Ok(value)
-    }
 }
 
 impl Deref for SignerInput {
@@ -251,64 +225,7 @@ pub struct TransactionLoadData {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{Asset, Chain, DelegationValidator, PerpetualConfirmData, PerpetualDirection, Resource, SwapProvider};
-
-    #[test]
-    fn test_swap_value() {
-        let fee = 21000u64 * 20_000_000_000;
-        let value = "1000000000000000000";
-        let mut swap_data = SwapData::mock_transfer(SwapProvider::NearIntents, value, "1", "0x0000000000000000000000000000000000000001");
-        swap_data.quote.use_max_amount = Some(true);
-
-        let input = SignerInput::mock_evm(
-            TransactionInputType::Swap {
-                from_asset: Asset::from_chain(Chain::Ethereum),
-                to_asset: Asset::from_chain(Chain::Tron),
-                swap_data: swap_data.clone(),
-            },
-            value,
-            21000,
-        );
-        assert_eq!(input.swap_value().unwrap(), BigInt::from(1_000_000_000_000_000_000u64 - fee));
-
-        swap_data.quote.use_max_amount = Some(false);
-        let input = SignerInput::mock_evm(
-            TransactionInputType::Swap {
-                from_asset: Asset::from_chain(Chain::Ethereum),
-                to_asset: Asset::from_chain(Chain::Tron),
-                swap_data: swap_data.clone(),
-            },
-            value,
-            21000,
-        );
-        assert_eq!(input.swap_value().unwrap(), BigInt::from(1_000_000_000_000_000_000u64));
-
-        swap_data.quote.use_max_amount = Some(true);
-        swap_data.quote.min_from_value = Some(value.parse().unwrap());
-        let input = SignerInput::mock_evm(
-            TransactionInputType::Swap {
-                from_asset: Asset::from_chain(Chain::Ethereum),
-                to_asset: Asset::from_chain(Chain::Tron),
-                swap_data: swap_data.clone(),
-            },
-            value,
-            21000,
-        );
-        assert_eq!(input.swap_value().unwrap_err(), SignerError::SwapValueBelowMinimum);
-
-        swap_data.quote.min_from_value = None;
-        swap_data.data.data_type = SwapQuoteDataType::Contract;
-        let input = SignerInput::mock_evm(
-            TransactionInputType::Swap {
-                from_asset: Asset::from_chain(Chain::Ethereum),
-                to_asset: Asset::from_chain(Chain::Tron),
-                swap_data,
-            },
-            value,
-            21000,
-        );
-        assert_eq!(input.swap_value().unwrap(), BigInt::from(1_000_000_000_000_000_000u64));
-    }
+    use crate::{Asset, DelegationValidator, PerpetualConfirmData, PerpetualDirection, Resource};
 
     #[test]
     fn transaction_types() {

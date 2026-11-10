@@ -47,7 +47,7 @@ mod tests {
     use primitives::{BitcoinChain, ChainSigner};
 
     use super::BitcoinChainSigner;
-    use crate::testkit::signer_mock::{TEST_PRIVATE_KEY, mock_contract_swap_input, mock_funded_transfer_input, mock_p2wpkh_transfer_input, mock_transfer_input, mock_transfer_swap_input};
+    use crate::testkit::signer_mock::{TEST_PRIVATE_KEY, mock_funded_transfer_input, mock_p2wpkh_transfer_input, mock_transfer_input};
 
     fn sign_transfer(chain: BitcoinChain) -> String {
         BitcoinChainSigner::new(chain).sign_transfer(&mock_transfer_input(chain), &TEST_PRIVATE_KEY).unwrap()
@@ -160,10 +160,11 @@ mod tests {
     }
 
     #[test]
-    fn test_sign_swap_memo_op_return() {
+    fn test_sign_doge_transfer_memo_op_return() {
         let memo = "=:s:0xEe7E9CcFb529f2c1Cc02C0Aea8aCed7Ec7e98B5e:0/1/0:g1:50";
-        let input = mock_transfer_swap_input(BitcoinChain::Doge, memo);
-        let raw = BitcoinChainSigner::new(BitcoinChain::Doge).sign_swap(&input, &TEST_PRIVATE_KEY).unwrap().remove(0);
+        let mut input = mock_funded_transfer_input(BitcoinChain::Doge);
+        input.input.memo = Some(memo.to_string());
+        let raw = BitcoinChainSigner::new(BitcoinChain::Doge).sign_transfer(&input, &TEST_PRIVATE_KEY).unwrap();
         let transaction: bitcoin::Transaction = deserialize(&hex::decode(raw).unwrap()).unwrap();
         let memo_output = transaction.output.iter().find(|output| output.script_pubkey.is_op_return()).unwrap();
         assert_eq!(memo_output.value.to_sat(), 0);
@@ -183,13 +184,5 @@ mod tests {
         assert_eq!(transaction.output[0].value.to_sat(), 10_000);
         assert_eq!(transaction.output[1].value.to_sat(), 0);
         assert_op_return_payload(&transaction.output[1].script_pubkey, memo.as_bytes());
-    }
-
-    #[test]
-    fn test_sign_contract_swap_rejected() {
-        let input = mock_contract_swap_input(BitcoinChain::Bitcoin, "deadbeef001122", false);
-        let error = BitcoinChainSigner::new(BitcoinChain::Bitcoin).sign_swap(&input, &TEST_PRIVATE_KEY).unwrap_err().to_string();
-
-        assert!(error.contains("unsupported Bitcoin contract swap"));
     }
 }

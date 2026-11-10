@@ -1,5 +1,8 @@
+#[cfg(feature = "rpc")]
 use num_traits::ToPrimitive;
-use primitives::{Asset, BitcoinChain, SignerError, SignerInput, UTXO, swap::SwapQuoteDataType};
+#[cfg(feature = "rpc")]
+use primitives::swap::SwapQuoteDataType;
+use primitives::{Asset, BitcoinChain, SignerError, SignerInput, UTXO};
 
 #[derive(Debug, Clone)]
 pub struct SpendRequest {
@@ -27,6 +30,7 @@ impl SpendRequest {
         })
     }
 
+    #[cfg(feature = "rpc")]
     pub fn swap(chain: BitcoinChain, input: &SignerInput) -> Result<Self, SignerError> {
         let swap = input.input_type.get_swap_data().map_err(|_| SignerError::invalid_input("unsupported Bitcoin transaction type"))?;
         validate_native_chain_asset(chain, input.input_type.get_asset(), "unsupported Bitcoin swap asset")?;

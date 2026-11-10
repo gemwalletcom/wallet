@@ -32,34 +32,17 @@ pub(crate) fn sign_token_approval(input: &SignerInput, private_key: &[u8]) -> Re
 }
 
 pub(crate) fn sign_swap(input: &SignerInput, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
-    let swap = input.input_type.get_swap_data()?;
-    let swap_data = &swap.data;
-
-    sign_contract_payloads(input, private_key, |owner| {
-        let swap_payload = build_swap_payload(input, owner, swap_data)?;
-
-        if let SwapQuoteDataType::Contract = swap_data.data_type
-            && let Some(approval) = &swap_data.approval
-        {
-            return Ok(vec![build_token_approval(input, owner, approval)?, swap_payload]);
-        }
-
-        Ok(vec![swap_payload])
-    })
-}
-
-fn build_swap_payload(input: &SignerInput, owner: TronAddress, swap_data: &SwapQuoteData) -> Result<ContractPayload, SignerError> {
-    let from_asset = input.input_type.get_asset();
+    let swap_data = &input.input_type.get_swap_data()?.data;
 
     match swap_data.data_type {
-        SwapQuoteDataType::Transfer => {
-            if from_asset.id.is_token() {
-                build_token_transfer(input, owner, &swap_data.to)
-            } else {
-                build_native_transfer(input, owner, &swap_data.to, input.swap_value_u64()?)
+        SwapQuoteDataType::Transfer => SignerError::invalid_input_err("unsupported Tron transfer swap"),
+        SwapQuoteDataType::Contract => sign_contract_payloads(input, private_key, |owner| {
+            let swap_payload = build_contract_swap(input, owner, swap_data)?;
+            match &swap_data.approval {
+                Some(approval) => Ok(vec![build_token_approval(input, owner, approval)?, swap_payload]),
+                None => Ok(vec![swap_payload]),
             }
-        }
-        SwapQuoteDataType::Contract => build_contract_swap(input, owner, swap_data),
+        }),
     }
 }
 

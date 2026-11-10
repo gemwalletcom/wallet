@@ -57,41 +57,6 @@ impl ChainTransactionSigner {
         Self { chain, signer }
     }
 
-    pub fn sign_transfer(&self, input: GemSignerInput, private_key: Vec<u8>) -> Result<String, GemstoneError> {
-        self.dispatch(input, private_key, "transfer", |signer, signer_input, key| signer.sign_transfer(signer_input, key))
-    }
-
-    pub fn sign_token_transfer(&self, input: GemSignerInput, private_key: Vec<u8>) -> Result<String, GemstoneError> {
-        self.dispatch(input, private_key, "token transfer", |signer, signer_input, key| signer.sign_token_transfer(signer_input, key))
-    }
-
-    pub fn sign_nft_transfer(&self, input: GemSignerInput, private_key: Vec<u8>) -> Result<String, GemstoneError> {
-        self.dispatch(input, private_key, "nft transfer", |signer, signer_input, key| signer.sign_nft_transfer(signer_input, key))
-    }
-
-    pub fn sign_swap(&self, input: GemSignerInput, private_key: Vec<u8>) -> Result<Vec<String>, GemstoneError> {
-        self.dispatch(input, private_key, "swap", |signer, signer_input, key| signer.sign_swap(signer_input, key))
-    }
-
-    pub fn sign_token_approval(&self, input: GemSignerInput, private_key: Vec<u8>) -> Result<String, GemstoneError> {
-        self.dispatch(input, private_key, "token approval", |signer, signer_input, key| signer.sign_token_approval(signer_input, key))
-    }
-
-    pub fn sign_stake(&self, input: GemSignerInput, private_key: Vec<u8>) -> Result<Vec<String>, GemstoneError> {
-        self.dispatch(input, private_key, "stake", |signer, signer_input, key| signer.sign_stake(signer_input, key))
-    }
-
-    pub fn sign_data(&self, input: GemSignerInput, private_key: Vec<u8>) -> Result<String, GemstoneError> {
-        self.dispatch(input, private_key, "data", |signer, signer_input, key| signer.sign_data(signer_input, key))
-    }
-
-    pub fn sign_message(&self, message: Vec<u8>, private_key: Vec<u8>) -> Result<String, GemstoneError> {
-        let private_key = Zeroizing::new(private_key);
-        self.dispatch_message(&message, private_key.as_slice(), "message", |signer, msg, key| signer.sign_message(msg, key))
-    }
-}
-
-impl ChainTransactionSigner {
     pub fn sign_input(&self, input: GemSignerInput, private_key: Zeroizing<Vec<u8>>) -> Result<Vec<GemSignedTransaction>, GemstoneError> {
         let signer_input: SignerInput = input.into();
         self.route(&signer_input, private_key.as_slice())
@@ -218,16 +183,6 @@ impl ChainTransactionSigner {
         Ok(expected_transaction_types)
     }
 
-    fn dispatch<T, F>(&self, input: GemSignerInput, private_key: Vec<u8>, action: &'static str, method: F) -> Result<T, GemstoneError>
-    where
-        F: Fn(&dyn ChainSigner, &SignerInput, &[u8]) -> Result<T, SignerError>,
-    {
-        let signer_input: SignerInput = input.into();
-        let private_key = Zeroizing::new(private_key);
-
-        method(self.signer.as_ref(), &signer_input, private_key.as_slice()).map_err(|err| map_signer_error(self.chain, action, err))
-    }
-
     fn dispatch_message<T, F>(&self, message: &[u8], private_key: &[u8], action: &'static str, method: F) -> Result<T, GemstoneError>
     where
         F: Fn(&dyn ChainSigner, &[u8], &[u8]) -> Result<T, SignerError>,
@@ -330,14 +285,14 @@ mod tests {
 
         assert_eq!(
             signer.sign_input(payment(None, 0), Zeroizing::new(key.clone())).unwrap(),
-            signed(vec![signer.sign_message(typed_data.clone(), key.clone()).unwrap()], TransactionType::Transfer, None),
+            signed(vec![EvmChainSigner.sign_message(&typed_data, &key).unwrap()], TransactionType::Transfer, None),
             "a payment is signed as typed data, which takes no nonce"
         );
         assert_eq!(
             signer.sign_input(payment(Some(approval), 65000), Zeroizing::new(key.clone())).unwrap(),
             [
-                signed(vec![signer.sign_token_approval(approve, key.clone()).unwrap()], TransactionType::TokenApproval, Some(0)),
-                signed(vec![signer.sign_message(typed_data, key).unwrap()], TransactionType::Transfer, None),
+                signed(vec![EvmChainSigner.sign_token_approval(&SignerInput::from(approve), &key).unwrap()], TransactionType::TokenApproval, Some(0)),
+                signed(vec![EvmChainSigner.sign_message(&typed_data, &key).unwrap()], TransactionType::Transfer, None),
             ]
             .concat(),
             "the approval is signed first"
@@ -351,13 +306,22 @@ mod tests {
         let sign_one = |gem: GemSignerInput| signer.sign_input(gem, Zeroizing::new(key.clone())).unwrap();
 
         let native: GemSignerInput = SignerInput::mock_evm(TransactionInputType::Transfer { asset: Asset::mock() }, "1000000000000000000", 21000).into();
-        assert_eq!(sign_one(native.clone()), signed(vec![signer.sign_transfer(native, key.clone()).unwrap()], TransactionType::Transfer, Some(0)));
+        assert_eq!(
+            sign_one(native.clone()),
+            signed(vec![EvmChainSigner.sign_transfer(&SignerInput::from(native), &key).unwrap()], TransactionType::Transfer, Some(0))
+        );
 
         let token: GemSignerInput = SignerInput::mock_evm(TransactionInputType::Transfer { asset: Asset::mock_erc20() }, "1000000", 65000).into();
-        assert_eq!(sign_one(token.clone()), signed(vec![signer.sign_token_transfer(token, key.clone()).unwrap()], TransactionType::Transfer, Some(0)));
+        assert_eq!(
+            sign_one(token.clone()),
+            signed(vec![EvmChainSigner.sign_token_transfer(&SignerInput::from(token), &key).unwrap()], TransactionType::Transfer, Some(0))
+        );
 
         let deposit: GemSignerInput = SignerInput::mock_evm(TransactionInputType::Deposit { asset: Asset::mock_erc20() }, "5000000", 65000).into();
-        assert_eq!(sign_one(deposit.clone()), signed(vec![signer.sign_token_transfer(deposit, key.clone()).unwrap()], TransactionType::Transfer, Some(0)));
+        assert_eq!(
+            sign_one(deposit.clone()),
+            signed(vec![EvmChainSigner.sign_token_transfer(&SignerInput::from(deposit), &key).unwrap()], TransactionType::Transfer, Some(0))
+        );
 
         // TokenApprove must route to sign_token_approval, not sign_token_transfer (the resolved iOS divergence).
         let approve: GemSignerInput = SignerInput::mock_evm(
@@ -369,7 +333,10 @@ mod tests {
             65000,
         )
         .into();
-        assert_eq!(sign_one(approve.clone()), signed(vec![signer.sign_token_approval(approve, key.clone()).unwrap()], TransactionType::TokenApproval, Some(0)));
+        assert_eq!(
+            sign_one(approve.clone()),
+            signed(vec![EvmChainSigner.sign_token_approval(&SignerInput::from(approve), &key).unwrap()], TransactionType::TokenApproval, Some(0))
+        );
 
         let nft: GemSignerInput = SignerInput::mock_evm(
             TransactionInputType::TransferNft {
@@ -380,7 +347,10 @@ mod tests {
             100000,
         )
         .into();
-        assert_eq!(sign_one(nft.clone()), signed(vec![signer.sign_nft_transfer(nft, key.clone()).unwrap()], TransactionType::TransferNFT, Some(0)));
+        assert_eq!(
+            sign_one(nft.clone()),
+            signed(vec![EvmChainSigner.sign_nft_transfer(&SignerInput::from(nft), &key).unwrap()], TransactionType::TransferNFT, Some(0))
+        );
 
         let mut generic_extra = TransferDataExtra::mock_encoded_transaction(vec![0xab, 0xcd]);
         generic_extra.transaction_type = TransactionType::AssetActivation;
@@ -394,7 +364,10 @@ mod tests {
             100000,
         )
         .into();
-        assert_eq!(sign_one(generic.clone()), signed(vec![signer.sign_data(generic, key.clone()).unwrap()], TransactionType::AssetActivation, Some(0)));
+        assert_eq!(
+            sign_one(generic.clone()),
+            signed(vec![EvmChainSigner.sign_data(&SignerInput::from(generic), &key).unwrap()], TransactionType::AssetActivation, Some(0))
+        );
 
         let stake: GemSignerInput = SignerInput::mock_evm_with_metadata(
             TransactionInputType::Stake {
@@ -410,7 +383,7 @@ mod tests {
             },
         )
         .into();
-        assert_eq!(sign_one(stake.clone()), signed(signer.sign_stake(stake, key.clone()).unwrap(), TransactionType::StakeDelegate, Some(5)));
+        assert_eq!(sign_one(stake.clone()), signed(EvmChainSigner.sign_stake(&SignerInput::from(stake), &key).unwrap(), TransactionType::StakeDelegate, Some(5)));
 
         let swap_contract: GemSignerInput = SignerInput::mock_evm(
             TransactionInputType::Swap {
@@ -422,7 +395,10 @@ mod tests {
             200000,
         )
         .into();
-        assert_eq!(sign_one(swap_contract.clone()), signed(signer.sign_swap(swap_contract, key.clone()).unwrap(), TransactionType::Swap, Some(0)));
+        assert_eq!(
+            sign_one(swap_contract.clone()),
+            signed(EvmChainSigner.sign_swap(&SignerInput::from(swap_contract), &key).unwrap(), TransactionType::Swap, Some(0))
+        );
 
         let swap_with_approval: GemSignerInput = SignerInput::mock_evm(
             TransactionInputType::Swap {
@@ -458,7 +434,10 @@ mod tests {
         )
         .into();
         let expected_transfer: GemSignerInput = SignerInput::mock_evm(TransactionInputType::Transfer { asset: Asset::mock() }, "500", 21000).into();
-        assert_eq!(sign_one(transfer_swap), signed(vec![signer.sign_transfer(expected_transfer, key.clone()).unwrap()], TransactionType::Swap, Some(0)));
+        assert_eq!(
+            sign_one(transfer_swap),
+            signed(vec![EvmChainSigner.sign_transfer(&SignerInput::from(expected_transfer), &key).unwrap()], TransactionType::Swap, Some(0))
+        );
 
         // Token transfer swap uses quote.from_value and routes to sign_token_transfer.
         let token_swap: GemSignerInput = SignerInput::mock_evm(
@@ -472,7 +451,10 @@ mod tests {
         )
         .into();
         let expected_token: GemSignerInput = SignerInput::mock_evm(TransactionInputType::Transfer { asset: Asset::mock_erc20() }, "500", 65000).into();
-        assert_eq!(sign_one(token_swap), signed(vec![signer.sign_token_transfer(expected_token, key.clone()).unwrap()], TransactionType::Swap, Some(0)));
+        assert_eq!(
+            sign_one(token_swap),
+            signed(vec![EvmChainSigner.sign_token_transfer(&SignerInput::from(expected_token), &key).unwrap()], TransactionType::Swap, Some(0))
+        );
 
         // Max-amount native transfer swap keeps the (fee-adjusted) input value instead of quote.from_value.
         let mut max_swap: GemSignerInput = SignerInput::mock_evm(
@@ -487,7 +469,7 @@ mod tests {
         .into();
         max_swap.input.is_max_value = true;
         let expected_max: GemSignerInput = SignerInput::mock_evm(TransactionInputType::Transfer { asset: Asset::mock() }, "777", 21000).into();
-        assert_eq!(sign_one(max_swap), signed(vec![signer.sign_transfer(expected_max, key.clone()).unwrap()], TransactionType::Swap, Some(0)));
+        assert_eq!(sign_one(max_swap), signed(vec![EvmChainSigner.sign_transfer(&SignerInput::from(expected_max), &key).unwrap()], TransactionType::Swap, Some(0)));
 
         let withdrawal: GemSignerInput = SignerInput::mock_evm(TransactionInputType::Withdrawal { asset: Asset::mock() }, "0", 21000).into();
         let crossed: SignerInput = withdrawal.into();
@@ -503,6 +485,40 @@ mod tests {
         let signed_transfer = ChainTransactionSigner::new(Chain::Zcash).sign_input(input.into(), Zeroizing::new(key)).unwrap();
 
         assert_eq!(signed_transfer, signed(vec![expected], TransactionType::Transfer, None));
+    }
+
+    #[test]
+    fn test_sign_input_xrp_transfer_swap_destination_tag() {
+        let key = hex::decode("a5576c0f63da10e584568c8d134569ff44017b0a249eb70657127ae04f38cc77").unwrap();
+        let mut swap_data = SwapData::mock_transfer(SwapProvider::Thorchain, "10", "7", "rU893viamSnsfP3zjzM2KPxjqZjXSXK6VF");
+        swap_data.data.memo = Some("180563378".to_string());
+        let input: GemSignerInput = SignerInput::mock_with_input_type(
+            TransactionInputType::Swap {
+                from_asset: Asset::from_chain(Chain::Xrp),
+                to_asset: Asset::from_chain(Chain::Stellar),
+                swap_data,
+            },
+            "rfxdLwsZnoespnTDDb1Xhvbc8EFNdztaoq",
+            "",
+            "10",
+            TransactionLoadMetadata::Xrp {
+                sequence: 32_268_248,
+                block_number: 32_268_269,
+                is_destination_address_exist: true,
+            },
+        )
+        .into();
+
+        let transactions = ChainTransactionSigner::new(Chain::Xrp).sign_input(input, Zeroizing::new(key)).unwrap();
+
+        assert_eq!(
+            transactions,
+            signed(
+                vec!["12000022000000002401ec5fd82e0ac32db2201b01ec600561400000000000000a684000000000000000732103d13e1152965a51a4a9fd9a8b4ea3dd82a4eba6b25fcad5f460a2342bb650333f74463044022022f3377266fb97ddccdad008a49ee0fb30c6a9ed1f10a3746e91bd493b32b41e022074db50461dfa87f74e1bf15f4567d58a78edea1f3cd2b441524b9c879183adce81144c55f5a78067206507580be7bb2686c8460adff983148132e4e20aecf29090ac428a9c43f230a829220d".to_string()],
+                TransactionType::Swap,
+                Some(32_268_248)
+            )
+        );
     }
 
     #[test]

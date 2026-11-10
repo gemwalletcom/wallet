@@ -45,8 +45,8 @@ mod tests {
 
     use gem_hash::sha2::sha256;
     use primitives::{
-        Asset, AssetId, AssetType, Chain, ChainSigner, Delegation, DelegationValidator, Resource, SignerInput, StakeType, SwapProvider, TransactionFee, TransactionInputType, TransactionLoadMetadata, TransferDataOutputType, TronStakeData,
-        TronUnfreeze, TronVote, decode_hex,
+        Asset, AssetId, AssetType, Chain, ChainSigner, Delegation, DelegationValidator, Resource, SignerError, SignerInput, StakeType, SwapProvider, TransactionFee, TransactionInputType, TransactionLoadMetadata, TransferDataOutputType,
+        TronStakeData, TronUnfreeze, TronVote, decode_hex,
         swap::{ApprovalData, SwapData, SwapQuote, SwapQuoteData},
     };
     use serde_json::{Value, json};
@@ -230,7 +230,7 @@ mod tests {
     }
 
     #[test]
-    fn sign_transfer_based_swap_uses_swap_destination() {
+    fn sign_transfer_swap_is_refused() {
         let input = SignerInput::mock_with_input_type(
             TransactionInputType::Swap {
                 from_asset: Asset::from_chain(Chain::Tron),
@@ -242,49 +242,8 @@ mod tests {
             "2000000",
             TransactionLoadMetadata::mock_tron(),
         );
-        let output = signed_json(TronChainSigner.sign_swap(&input, &private_key()).unwrap().remove(0));
 
-        assert_eq!(output["raw_data"]["contract"][0]["parameter"]["value"]["to_address"], "41dbd7c53729b3310e1843083000fa84abad996961");
-        assert_eq!(output["raw_data"]["contract"][0]["parameter"]["value"]["amount"], 2000000);
-    }
-
-    #[test]
-    fn sign_swap_max_amount_excludes_fee() {
-        for (use_max_amount, min_from_value, value, expected_amount) in [
-            (Some(true), None, "2000000", Some(900000)),
-            (Some(false), None, "2000000", Some(2000000)),
-            (Some(true), None, "1000000", None),
-            (Some(true), Some("900000"), "2000000", Some(900000)),
-            (Some(true), Some("950000"), "2000000", None),
-        ] {
-            let mut swap_data = SwapData::mock_transfer(SwapProvider::Okx, value, "1", "TW1dU4L3eNm7Lw8WvieLKEHpXWAussRG9Z");
-            swap_data.quote.use_max_amount = use_max_amount;
-            swap_data.quote.min_from_value = min_from_value.map(|value| value.parse().unwrap());
-            let input = SignerInput {
-                fee: TransactionFee::mock_tron(1_100_000, 0),
-                ..SignerInput::mock_with_input_type(
-                    TransactionInputType::Swap {
-                        from_asset: Asset::from_chain(Chain::Tron),
-                        to_asset: Asset::from_chain(Chain::Tron),
-                        swap_data,
-                    },
-                    SENDER,
-                    RECIPIENT,
-                    value,
-                    TransactionLoadMetadata::mock_tron(),
-                )
-            };
-            let result = TronChainSigner.sign_swap(&input, &private_key());
-
-            match expected_amount {
-                Some(amount) => {
-                    let output = signed_json(result.unwrap().remove(0));
-                    assert_eq!(output["raw_data"]["contract"][0]["parameter"]["value"]["amount"], amount);
-                    assert_eq!(output["raw_data"]["fee_limit"], 1_100_000);
-                }
-                None => assert!(result.is_err()),
-            }
-        }
+        assert_eq!(TronChainSigner.sign_swap(&input, &private_key()).unwrap_err(), SignerError::invalid_input("unsupported Tron transfer swap"));
     }
 
     #[test]
