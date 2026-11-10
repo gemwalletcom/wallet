@@ -91,7 +91,9 @@ extension PriceAlertsSceneViewModel {
 
     public func includeAsset(_ asset: Asset) async -> ToastMessage? {
         do {
-            return try await service.setAutoAlert(asset: asset.toGem(), enabled: true).map { ToastMessage(toast: $0) }
+            let toast = try await service.setAutoAlert(asset: asset.toGem(), enabled: true)
+            isPriceAlertsEnabled = service.isEnabled()
+            return toast.map { ToastMessage(toast: $0) }
         } catch let error as GemServiceError {
             return .error(error.localizedDescription)
         } catch {

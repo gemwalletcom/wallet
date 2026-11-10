@@ -97,6 +97,23 @@ class PriceAlertsViewModelTest {
     }
 
     @Test
+    fun `adding an asset that turns alerts on moves the switch on`() = runTest {
+        val service = service(enabled = false)
+        coEvery { service.setAutoAlert(any(), true) } answers {
+            every { service.isEnabled() } returns true
+            null
+        }
+        val viewModel = viewModel(service)
+        try {
+            viewModel.includeAsset(assetId).join()
+
+            assertEquals(true, viewModel.priceAlertEnabled.value)
+        } finally {
+            viewModel.viewModelScope.cancel()
+        }
+    }
+
+    @Test
     fun `a failed refresh with no alerts shows the error instead of the empty state`() = runTest {
         val service = service(enabled = true)
         coEvery { service.refresh(any()) } returns GemLoadState.Error(GemServiceException.Gateway("offline"))
