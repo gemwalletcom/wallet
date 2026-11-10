@@ -72,7 +72,7 @@ impl FiatAssetRow {
             symbol: asset.symbol,
             network: asset.network,
             token_id: asset.token_id,
-            is_enabled: asset.enabled,
+            is_enabled: true,
             is_enabled_by_provider: asset.enabled,
             is_buy_enabled: asset.is_buy_enabled,
             is_sell_enabled: asset.is_sell_enabled,
@@ -333,10 +333,19 @@ impl UpdateFiatTransactionRow {
 
 #[cfg(test)]
 mod tests {
-    use super::{FiatTransactionRow, UpdateFiatTransactionRow};
+    use super::{FiatAssetRow, FiatTransactionRow, UpdateFiatTransactionRow};
     use chrono::{DateTime, Utc};
     use num_bigint::BigUint;
-    use primitives::{FiatTransactionStatus, FiatTransactionUpdate};
+    use primitives::{FiatAsset, FiatTransactionStatus, FiatTransactionUpdate};
+
+    #[test]
+    fn from_primitive_leaves_suspended_asset_to_the_provider_flag() {
+        let row = FiatAssetRow::from_primitive(FiatAsset::mock(false)).unwrap();
+
+        assert!(row.is_enabled);
+        assert!(!row.is_enabled_by_provider);
+        assert!(!row.as_primitive().enabled);
+    }
 
     #[test]
     fn as_primitive_maps_value_and_timestamps() {

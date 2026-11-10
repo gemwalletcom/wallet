@@ -1,8 +1,9 @@
 use crate::currency::Currency;
-use crate::fiat_assets::FiatAssetLimits;
+use crate::fiat_assets::{FiatAsset, FiatAssetLimits};
 use crate::{Asset, AssetId, Chain, FiatProvider, FiatProviderName, FiatQuote, FiatQuoteRequest, FiatQuoteType, FiatTransaction, FiatTransactionStatus, PaymentType};
 use chrono::{DateTime, Utc};
 use num_bigint::BigUint;
+use std::collections::HashMap;
 
 impl FiatQuoteRequest {
     pub fn mock() -> Self {
@@ -82,6 +83,25 @@ impl FiatTransaction {
             transaction_hash: None,
             created_at: DateTime::<Utc>::UNIX_EPOCH,
             updated_at: DateTime::<Utc>::UNIX_EPOCH,
+        }
+    }
+}
+
+impl FiatAsset {
+    pub fn mock(enabled: bool) -> Self {
+        FiatAsset {
+            id: "gram".to_string(),
+            asset_id: Some(AssetId::from_chain(Chain::Ton)),
+            provider: FiatProviderName::MoonPay,
+            symbol: "gram".to_string(),
+            network: Some("ton".to_string()),
+            token_id: None,
+            enabled,
+            is_buy_enabled: true,
+            is_sell_enabled: true,
+            unsupported_countries: HashMap::new(),
+            buy_limits: vec![],
+            sell_limits: vec![],
         }
     }
 }

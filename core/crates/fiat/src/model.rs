@@ -3,7 +3,7 @@ use primitives::fiat_assets::FiatAssetLimits;
 use primitives::{
     Asset, AssetId, Chain, CosmosDenom, FiatAssetSymbol, FiatProviderName, RequestError, WalletType,
     asset_constants::{HYPERCORE_SPOT_HYPE_ASSET_ID, HYPERCORE_SPOT_UBTC_ASSET_ID, HYPERCORE_SPOT_USDC_ASSET_ID, WORLD_WETH_TOKEN_ID},
-    contract_constants::{EVM_ZERO_ADDRESS, SOLANA_SYSTEM_PROGRAM_ID},
+    contract_constants::{EVM_ZERO_ADDRESS, SOLANA_SYSTEM_PROGRAM_ID, TON_ZERO_ADDRESS},
 };
 use std::collections::HashMap;
 
@@ -96,6 +96,7 @@ pub fn filter_token_id(chain: Option<Chain>, token_id: Option<String>) -> Option
             CosmosDenom::Rune.as_ref(),
             CosmosDenom::Utia.as_ref(),
             SOLANA_SYSTEM_PROGRAM_ID,
+            TON_ZERO_ADDRESS,
         ]
         .contains(&contract_address.as_str())
     });
@@ -136,6 +137,7 @@ mod tests {
         assert_eq!(filter(Chain::HyperCore, "0xfeb2eb8f7d9a2b0f3e2c1f41d2a4c4d3"), Some("0xfeb2eb8f7d9a2b0f3e2c1f41d2a4c4d3".to_string()));
         assert_eq!(filter(Chain::Arc, ARC_USDC_TOKEN_ID), None);
         assert_eq!(filter(Chain::Arc, &ARC_EURC_TOKEN_ID.to_lowercase()), Some(ARC_EURC_TOKEN_ID.to_string()));
+        assert_eq!(filter(Chain::Ton, TON_ZERO_ADDRESS), None);
     }
 
     #[test]
