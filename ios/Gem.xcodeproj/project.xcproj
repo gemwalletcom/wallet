@@ -396,6 +396,9 @@
         }, {
           "product-name": "WalletConnectorService",
           "build-phase": { "build-phase": "frameworks" },
+        }, {
+          "product-name": "WebSocketClient",
+          "build-phase": { "build-phase": "frameworks" },
         },
       ],
       "build-settings": {
