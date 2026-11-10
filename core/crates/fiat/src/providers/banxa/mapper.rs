@@ -90,6 +90,7 @@ fn map_asset_base(asset: Asset, buy_limits: Vec<FiatAssetLimits>, sell_limits: V
         .map(|blockchain| {
             let chain = map_asset_chain(blockchain.id.as_str());
             let token_id = filter_token_id(chain, blockchain.address);
+            let chain = chain.filter(|chain| token_id.is_some() || primitives::Asset::from_chain(*chain).symbol.eq_ignore_ascii_case(&symbol));
 
             FiatProviderAsset {
                 id: format!("{symbol}-{}", blockchain.id),
@@ -160,6 +161,14 @@ mod tests {
         let asset_ids: Vec<(String, Option<AssetId>)> = assets.into_iter().flat_map(|asset| map_asset_with_limits(asset, &[], &[])).map(|asset| (asset.id.clone(), asset.asset_id())).collect();
 
         assert_eq!(asset_ids, vec![("APT-APT".to_string(), Some(Chain::Aptos.as_asset_id())), ("USDC-APT".to_string(), Some(APTOS_USDC_ASSET_ID.clone())),]);
+    }
+
+    #[test]
+    fn test_map_asset_without_address_maps_only_the_native_symbol() {
+        let assets: Vec<Asset> = serde_json::from_str(include_str!("../../../testdata/banxa/assets_ton.json")).unwrap();
+        let asset_ids: Vec<(String, Option<AssetId>)> = assets.into_iter().flat_map(|asset| map_asset_with_limits(asset, &[], &[])).map(|asset| (asset.id.clone(), asset.asset_id())).collect();
+
+        assert_eq!(asset_ids, vec![("GRAM-TON".to_string(), Some(Chain::Ton.as_asset_id())), ("USDT-TON".to_string(), None)]);
     }
 
     #[test]

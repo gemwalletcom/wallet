@@ -1,0 +1,22 @@
+[
+  {
+    "id": "GRAM",
+    "blockchains": [
+      {
+        "id": "TON",
+        "address": null,
+        "unsupportedCountries": []
+      }
+    ]
+  },
+  {
+    "id": "USDT",
+    "blockchains": [
+      {
+        "id": "TON",
+        "address": null,
+        "unsupportedCountries": []
+      }
+    ]
+  }
+]
