@@ -2,8 +2,8 @@ package com.gemwallet.android.data.services.gemstone.stores
 
 import com.gemwallet.android.data.services.store.database.AssetsDao
 import com.gemwallet.android.data.services.store.database.BalancesDao
+import com.gemwallet.android.data.services.store.database.StoreTransactionRunnerMock
 import com.gemwallet.android.data.services.store.database.entities.DbBalance
-import com.gemwallet.android.data.services.store.database.mockStoreTransactionRunner
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockWalletId
@@ -23,7 +23,7 @@ class GemstoneBalanceStoreTest {
 
     private val balancesDao = mockk<BalancesDao>(relaxed = true)
     private val assetsDao = mockk<AssetsDao>(relaxed = true)
-    private val subject = GemstoneBalanceStore(balancesDao, assetsDao, mockStoreTransactionRunner())
+    private val subject = GemstoneBalanceStore(balancesDao, assetsDao, StoreTransactionRunnerMock())
 
     @Test
     fun addBalancesInsertsEveryRowInOneStatementWithCoresFlag() = runTest {

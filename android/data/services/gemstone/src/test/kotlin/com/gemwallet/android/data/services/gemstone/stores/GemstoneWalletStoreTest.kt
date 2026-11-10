@@ -1,7 +1,7 @@
 package com.gemwallet.android.data.services.gemstone.stores
 import com.gemwallet.android.data.services.store.database.AccountsDao
 import com.gemwallet.android.data.services.store.database.AssetsDao
-import com.gemwallet.android.data.services.store.database.StoreTransactionRunner
+import com.gemwallet.android.data.services.store.database.StoreTransactionRunnerMock
 import com.gemwallet.android.data.services.store.database.WalletsDao
 import com.gemwallet.android.data.services.store.database.entities.DbAccount
 import com.gemwallet.android.data.services.store.database.entities.DbAsset
@@ -31,7 +31,7 @@ class GemstoneWalletStoreTest {
     private val walletsDao = mockk<WalletsDao>(relaxed = true)
     private val accountsDao = mockk<AccountsDao>(relaxed = true)
     private val assetsDao = mockk<AssetsDao>(relaxed = true)
-    private val transactionRunner = RecordingStoreTransactionRunner()
+    private val transactionRunner = StoreTransactionRunnerMock()
 
     private val subject = GemstoneWalletStore(
         walletsDao = walletsDao,
@@ -71,14 +71,5 @@ class GemstoneWalletStoreTest {
 
         every { Chain.Ethereum.asset() } returns mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18u)
         every { Chain.Solana.asset() } returns mockAsset(id = mockAssetId(chain = Chain.Solana), name = "Solana", symbol = "SOL", decimals = 9u)
-    }
-
-    private class RecordingStoreTransactionRunner : StoreTransactionRunner {
-        var runCount = 0
-
-        override suspend fun <T> run(block: suspend () -> T): T {
-            runCount += 1
-            return block()
-        }
     }
 }
