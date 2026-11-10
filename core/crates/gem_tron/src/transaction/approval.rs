@@ -1,5 +1,5 @@
 use alloy_sol_types::SolCall;
-use gem_evm::permit2::IAllowanceTransfer;
+use gem_evm::{permit2::IAllowanceTransfer, transaction::is_unlimited_approval};
 use num_bigint::BigUint;
 use primitives::{Address as _, ApprovalData, SignerError, contract_constants::TRON_SUNSWAP_PERMIT2_CONTRACT};
 
@@ -24,7 +24,7 @@ impl TransactionApproval {
                 approval: ApprovalData {
                     token: contract.clone(),
                     spender: approval.spender.encode(),
-                    is_unlimited: approval.value == BigUint::from_bytes_be(&[0xff; 32]),
+                    is_unlimited: is_unlimited_approval(&approval.value),
                     value: approval.value,
                 },
                 contract,
@@ -42,13 +42,13 @@ impl TransactionApproval {
         if data.len() != PERMIT2_APPROVE_SELECTOR.len() + approval.abi_encoded_size() {
             return None;
         }
-        let value = approval.amount.to_be_bytes::<20>();
+        let value = BigUint::from_bytes_be(&approval.amount.to_be_bytes::<20>());
         Some(Self {
             approval: ApprovalData {
                 token: TronAddress::from(approval.token).encode(),
                 spender: TronAddress::from(approval.spender).encode(),
-                value: BigUint::from_bytes_be(&value),
-                is_unlimited: value == [0xff; 20],
+                is_unlimited: is_unlimited_approval(&value),
+                value,
             },
             contract,
             expiration: Some(approval.expiration.to::<u64>()),

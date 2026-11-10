@@ -1,5 +1,5 @@
 use crate::u256::u256_to_biguint;
-use alloy_primitives::{Address, U160, U256};
+use alloy_primitives::{Address, U256};
 use alloy_sol_types::SolCall;
 use num_bigint::BigUint;
 use num_traits::Zero;
@@ -54,19 +54,24 @@ fn decode_calldata_kind(chain: Chain, to: &str, calldata: &[u8]) -> Result<EvmTr
     }
 }
 
+pub fn is_unlimited_approval(value: &BigUint) -> bool {
+    value.bits() > 128
+}
+
 fn token_approval(token: String, spender: Address, value: U256) -> EvmTransactionKind {
+    let value = u256_to_biguint(&value);
     EvmTransactionKind::TokenApproval(ApprovalData {
         token,
         spender: spender.to_string(),
-        value: u256_to_biguint(&value),
-        is_unlimited: value == U256::MAX || value == U256::from(U160::MAX),
+        is_unlimited: is_unlimited_approval(&value),
+        value,
     })
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use alloy_primitives::{address, aliases::U48, hex};
+    use alloy_primitives::{U160, address, aliases::U48, hex};
     use primitives::contract_constants::{UNISWAP_PERMIT2_CONTRACT, ZKSYNC_UNISWAP_PERMIT2_CONTRACT};
 
     #[test]
@@ -107,6 +112,20 @@ mod tests {
     }
 
     #[test]
+    fn test_is_unlimited_approval() {
+        let power_of_two = |bits: u32| BigUint::from(1u8) << bits;
+
+        assert!(is_unlimited_approval(&(power_of_two(256) - 1u8)));
+        assert!(is_unlimited_approval(&(power_of_two(256) - 2u8)));
+        assert!(is_unlimited_approval(&(power_of_two(160) - 1u8)));
+        assert!(is_unlimited_approval(&(power_of_two(160) - 2u8)));
+        assert!(is_unlimited_approval(&power_of_two(128)));
+        assert!(!is_unlimited_approval(&(power_of_two(128) - 1u8)));
+        assert!(!is_unlimited_approval(&BigUint::from(1_000_000u32)));
+        assert!(!is_unlimited_approval(&BigUint::ZERO));
+    }
+
+    #[test]
     fn test_decode_unlimited_token_approval() {
         let token = "0x111122223333444455556666777788889999aaaa";
         let input = "0x095ea7b300000000000000000000000022223333444455556666777788889999aaaabbbbffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
@@ -120,6 +139,18 @@ mod tests {
                 is_unlimited: true,
             })
         );
+        for (value, is_unlimited) in [(U256::MAX - U256::from(1), true), ((U256::from(1) << 128) - U256::from(1), false)] {
+            let input = format!("0x095ea7b300000000000000000000000022223333444455556666777788889999aaaabbbb{value:064x}");
+            assert_eq!(
+                decode_transaction_kind(Chain::Ethereum, token, Some(&input), None).unwrap(),
+                EvmTransactionKind::TokenApproval(ApprovalData {
+                    token: token.to_string(),
+                    spender: "0x22223333444455556666777788889999aaAaBBbB".to_string(),
+                    value: u256_to_biguint(&value),
+                    is_unlimited,
+                })
+            );
+        }
         assert!(decode_transaction_kind(Chain::Ethereum, token, Some("0x095ea7b3abcd"), None).is_err());
         assert!(decode_transaction_kind(Chain::Ethereum, token, Some("invalid"), None).is_err());
     }

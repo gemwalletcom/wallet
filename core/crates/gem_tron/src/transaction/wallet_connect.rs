@@ -114,7 +114,12 @@ mod tests {
     #[test]
     fn test_decode_wallet_connect_approval() {
         let selector_and_spender = "095ea7b300000000000000000000000060e00625a95cbc180f290e2611c826f90eeba56f";
-        for (amount, is_unlimited) in [(BigUint::from(0u32), false), (BigUint::from(100u32), false), (BigUint::from_bytes_be(&[0xff; 32]), true)] {
+        for (amount, is_unlimited) in [
+            (BigUint::from(0u32), false),
+            (BigUint::from(100u32), false),
+            (BigUint::from_bytes_be(&[0xff; 32]), true),
+            (BigUint::from_bytes_be(&[0xff; 32]) - 1u8, true),
+        ] {
             let payload = payload_with_calldata(PAYLOAD, &format!("{selector_and_spender}{amount:064x}"));
             assert_eq!(
                 decode_wallet_connect_approval(&payload).unwrap().map(|decoded| decoded.approval),

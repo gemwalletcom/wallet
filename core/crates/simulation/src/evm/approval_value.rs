@@ -1,6 +1,5 @@
-use gem_evm::eip712::parse_biguint;
+use gem_evm::{eip712::parse_biguint, transaction::is_unlimited_approval};
 use num_bigint::BigUint;
-use num_traits::One;
 use primitives::SimulationHeader;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -11,20 +10,14 @@ pub(crate) enum ApprovalValue {
 
 impl ApprovalValue {
     pub(crate) fn from_raw(raw_value: &str) -> Option<Self> {
-        let value = parse_biguint(raw_value)?;
+        parse_biguint(raw_value).map(Self::from_value)
+    }
 
-        if Self::is_unlimited(&value) {
-            return Some(Self::Unlimited);
+    pub(crate) fn from_value(value: BigUint) -> Self {
+        if is_unlimited_approval(&value) {
+            return Self::Unlimited;
         }
-        Some(Self::Exact(value))
-    }
-
-    fn is_unlimited(value: &BigUint) -> bool {
-        Self::is_max_unsigned(value, 160) || Self::is_max_unsigned(value, 256)
-    }
-
-    fn is_max_unsigned(value: &BigUint, bit_width: u32) -> bool {
-        value == &((BigUint::one() << bit_width) - BigUint::one())
+        Self::Exact(value)
     }
 
     pub(crate) fn display_value(&self) -> String {
