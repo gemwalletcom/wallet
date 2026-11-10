@@ -1,6 +1,5 @@
 use std::collections::{HashMap, HashSet};
 use std::sync::atomic::{AtomicUsize, Ordering};
-use std::time::Duration;
 
 use gem_crypto::{CryptoError, random};
 use gem_encoding::encode_base64_url;
@@ -68,10 +67,6 @@ impl Route {
 
     pub(super) fn should_retry(&self, status: u16) -> bool {
         self.statuses.contains(&status)
-    }
-
-    pub(super) fn cooldown(&self, retry_after: Option<Duration>, default: Duration) -> Option<Duration> {
-        retry_after.or((self.endpoints.len() > 1).then_some(default))
     }
 
     pub(super) fn prioritize_endpoints(&self, endpoints: &mut [usize]) -> Result<(), CryptoError> {
@@ -156,24 +151,6 @@ mod tests {
     use serde_json::json;
 
     use super::*;
-    use crate::config::routes::EndpointConfig;
-
-    #[test]
-    fn test_cooldown_needs_retry_after_or_another_endpoint() {
-        let route = |endpoints: usize| {
-            let config = RouteConfig {
-                endpoints: (0..endpoints).map(|_| EndpointConfig::mock()).collect(),
-                ..RouteConfig::mock()
-            };
-            Route::new("squid".to_string(), config, &[429], &[], &Client::new(), &HashMap::new()).unwrap()
-        };
-        let (default, retry_after) = (Duration::from_secs(60), Duration::from_secs(5));
-
-        assert_eq!(route(1).cooldown(None, default), None);
-        assert_eq!(route(1).cooldown(Some(retry_after), default), Some(retry_after));
-        assert_eq!(route(2).cooldown(None, default), Some(default));
-        assert_eq!(route(2).cooldown(Some(retry_after), default), Some(retry_after));
-    }
 
     #[test]
     fn test_cache_key_isolates_request_context() {

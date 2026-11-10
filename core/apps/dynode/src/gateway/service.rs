@@ -149,9 +149,7 @@ impl Gateway {
                     self.metrics.record_upstream_latency(source, &route.group, &route.service, &endpoint.name, response.status, started.elapsed());
                     self.metrics.record_request(source, &route.group, &route.service, &endpoint.name, &path, response.status);
                     if route.should_retry(response.status) {
-                        if let Some(duration) = route.cooldown(retry_after, self.cooldown) {
-                            self.start_cooldown(route, endpoint, &path, Failure { status: response.status, reason: "cooldown" }, duration).await;
-                        }
+                        self.start_cooldown(route, endpoint_index, &path, Failure { status: response.status, reason: "cooldown" }, retry_after).await;
                         let status = response.status;
                         last_response = Some((response, endpoint_index));
                         pending_failover = Some((endpoint_index, status, status.to_string()));
@@ -168,19 +166,17 @@ impl Gateway {
                     self.metrics.record_request(source, &route.group, &route.service, &endpoint.name, &path, StatusCode::BAD_GATEWAY.as_u16());
                     self.metrics.record_upstream_latency(source, &route.group, &route.service, &endpoint.name, StatusCode::BAD_GATEWAY.as_u16(), started.elapsed());
                     access.upstream_failed(&endpoint.name, host, reason);
-                    if let Some(duration) = route.cooldown(None, self.cooldown) {
-                        self.start_cooldown(
-                            route,
-                            endpoint,
-                            &path,
-                            Failure {
-                                status: StatusCode::SERVICE_UNAVAILABLE.as_u16(),
-                                reason,
-                            },
-                            duration,
-                        )
-                        .await;
-                    }
+                    self.start_cooldown(
+                        route,
+                        endpoint_index,
+                        &path,
+                        Failure {
+                            status: StatusCode::SERVICE_UNAVAILABLE.as_u16(),
+                            reason,
+                        },
+                        None,
+                    )
+                    .await;
                     pending_failover = Some((endpoint_index, StatusCode::BAD_GATEWAY.as_u16(), reason.to_string()));
                 }
             }
@@ -250,22 +246,24 @@ impl Gateway {
     }
 
     async fn endpoint_available(&self, route: &Route, endpoint: &Endpoint, path: &str) -> bool {
-        endpoint.is_available()
-            && self
-                .cooldowns
-                .read()
-                .await
-                .get(&endpoint.cooldown_key(&route.group, &route.service, path))
-                .is_none_or(|cooldown| cooldown.until <= Instant::now())
+        is_live(&*self.cooldowns.read().await, route, endpoint, path, Instant::now())
     }
 
-    async fn start_cooldown(&self, route: &Route, endpoint: &Endpoint, path: &str, failure: Failure, duration: Duration) {
+    async fn start_cooldown(&self, route: &Route, endpoint_index: usize, path: &str, failure: Failure, retry_after: Option<Duration>) {
+        let now = Instant::now();
+        let mut cooldowns = self.cooldowns.write().await;
+        let fallback = route.endpoints.iter().enumerate().any(|(index, other)| index != endpoint_index && is_live(&cooldowns, route, other, path, now));
+        let Some(duration) = retry_after.or(fallback.then_some(self.cooldown)) else {
+            return;
+        };
+        let endpoint = &route.endpoints[endpoint_index];
         self.metrics.set_cooldown(&route.group, &route.service, &endpoint.name, path, duration);
-        self.cooldowns
-            .write()
-            .await
-            .insert(endpoint.cooldown_key(&route.group, &route.service, path), Cooldown { until: Instant::now() + duration, failure });
+        cooldowns.insert(endpoint.cooldown_key(&route.group, &route.service, path), Cooldown { until: now + duration, failure });
     }
+}
+
+fn is_live(cooldowns: &HashMap<String, Cooldown>, route: &Route, endpoint: &Endpoint, path: &str, now: Instant) -> bool {
+    endpoint.is_available() && cooldowns.get(&endpoint.cooldown_key(&route.group, &route.service, path)).is_none_or(|cooldown| cooldown.until <= now)
 }
 
 fn cacheable_response(response: &ProxyResponse) -> bool {
@@ -342,8 +340,8 @@ mod tests {
             status: StatusCode::TOO_MANY_REQUESTS.as_u16(),
             reason: "cooldown",
         };
-        for endpoint in &route.endpoints {
-            gateway.start_cooldown(route, endpoint, "/api/v2/addresses/:value/token-transfers", failure, gateway.cooldown).await;
+        for index in 0..route.endpoints.len() {
+            gateway.start_cooldown(route, index, "/api/v2/addresses/:value/token-transfers", failure, Some(gateway.cooldown)).await;
         }
 
         let unavailable = gateway.available_endpoints(route, "/api/v2/addresses/:value/token-transfers").await.unwrap_err();
@@ -356,18 +354,38 @@ mod tests {
         gateway
             .start_cooldown(
                 route,
-                &route.endpoints[0],
+                0,
                 "/mixed",
                 Failure {
                     status: StatusCode::FORBIDDEN.as_u16(),
                     reason: "cooldown",
                 },
-                gateway.cooldown,
+                Some(gateway.cooldown),
             )
             .await;
-        gateway.start_cooldown(route, &route.endpoints[1], "/mixed", failure, gateway.cooldown).await;
+        gateway.start_cooldown(route, 1, "/mixed", failure, Some(gateway.cooldown)).await;
         let unavailable = gateway.available_endpoints(route, "/mixed").await.unwrap_err();
         assert_eq!(unavailable.status, StatusCode::TOO_MANY_REQUESTS.as_u16());
         assert_eq!(unavailable.reason, "cooldown");
+    }
+
+    #[tokio::test]
+    async fn test_cooldown_keeps_the_last_live_endpoint() {
+        let gateway = Gateway::mock();
+        let route = gateway.routes.get("indexer_blockscout").unwrap();
+        let path = "/api/v2/stats";
+        let failure = Failure {
+            status: StatusCode::TOO_MANY_REQUESTS.as_u16(),
+            reason: "cooldown",
+        };
+
+        gateway.start_cooldown(route, 0, path, failure, None).await;
+        assert_eq!(gateway.available_endpoints(route, path).await.unwrap(), vec![1]);
+
+        gateway.start_cooldown(route, 1, path, failure, None).await;
+        assert_eq!(gateway.available_endpoints(route, path).await.unwrap(), vec![1]);
+
+        gateway.start_cooldown(route, 1, path, failure, Some(Duration::from_secs(5))).await;
+        assert_eq!(gateway.available_endpoints(route, path).await.unwrap_err(), failure);
     }
 }
