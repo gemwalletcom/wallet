@@ -26,7 +26,7 @@ use crate::error::ApiError;
 use crate::routes::{json_error_net, log_failed_requests, not_found};
 
 const STREAM_BODY_LIMIT: usize = 1024 * 1024;
-const MAX_MESSAGE_BYTES: usize = 64 * 1024;
+const MAX_MESSAGE_BYTES: usize = 256 * 1024;
 const MAX_WRITE_BUFFER_BYTES: usize = 1024 * 1024;
 pub const PING_INTERVAL: Duration = Duration::from_secs(30);
 pub const MISSED_PONGS_LIMIT: u32 = 2;
