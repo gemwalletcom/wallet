@@ -58,6 +58,14 @@ extension QRScannerSceneViewModel {
         refreshScannerState()
     }
 
+    func onScenePhaseChange(_: ScenePhase, _ newPhase: ScenePhase) {
+        switch newPhase {
+        case .active: refreshScannerState()
+        case .inactive, .background: break
+        @unknown default: break
+        }
+    }
+
     func retrieveQRCode(photoItem: PhotosPickerItem) async -> String? {
         guard let data = try? await photoItem.loadTransferable(type: Data.self),
               let image = UIImage(data: data, scale: 1.0)

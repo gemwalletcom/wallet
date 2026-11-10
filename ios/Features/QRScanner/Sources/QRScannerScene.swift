@@ -9,6 +9,7 @@ import SwiftUI
 public struct QRScannerScene: View {
     @Environment(\.openURL) private var openURL
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.scenePhase) private var scenePhase
 
     @State private var model: QRScannerSceneViewModel
 
@@ -65,6 +66,7 @@ public struct QRScannerScene: View {
             initial: true,
             model.onChangeScannerReadyStatus,
         )
+        .onChange(of: scenePhase, model.onScenePhaseChange)
         .onChange(of: model.selectedPhoto, onLoadPhoto)
     }
 
