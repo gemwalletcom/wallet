@@ -8,7 +8,7 @@ Every install registers a device with the backend, tells it which wallet address
 Authorization: Gem base64(<device_id_hex>.<timestamp_ms>.<wallet_id>.<body_hash_hex>.<signature_hex>)
 ```
 
-Five dot-separated parts: the 64-hex Ed25519 public key, the Unix timestamp in milliseconds, the wallet id (empty for a non-wallet endpoint, which leaves `..` between the timestamp and the hash), the SHA256 of the body, and the 128-hex Ed25519 signature over `{timestamp}.{method}.{path}.{walletId}.{bodyHash}`. Under `/v3` the signed path is the path and the raw query string exactly as sent; under `/v2` it is the path alone:
+Five dot-separated parts: the 64-hex Ed25519 public key, the Unix timestamp in milliseconds, the wallet id (empty for a non-wallet endpoint, which leaves `..` between the timestamp and the hash), the SHA256 of the body, and the 128-hex Ed25519 signature over `{timestamp}.{method}.{path}.{walletId}.{bodyHash}`. The wallet id can contain dots itself (a NEAR watch wallet added by account name is `view_near_alice.near`), so the parser reads the first two parts and the last two and keeps everything between them as the wallet id. Under `/v3` the signed path is the path and the raw query string exactly as sent; under `/v2` it is the path alone:
 
 ```
 1706000000000.GET./v3/devices/transactions?asset_id=ethereum&limit=5.multicoin_0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb.e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855

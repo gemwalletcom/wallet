@@ -55,16 +55,16 @@ pub fn parse_device_auth(header_value: &str) -> Option<DeviceAuthPayload> {
     let encoded = header_value.strip_prefix(GEM_AUTH_SCHEME)?;
     let decoded = decode_base64(encoded).ok()?;
     let payload = String::from_utf8(decoded).ok()?;
-    let parts: Vec<&str> = payload.splitn(5, '.').collect();
-    if parts.len() != 5 {
-        return None;
-    }
+    let (device_id, rest) = payload.split_once('.')?;
+    let (timestamp, rest) = rest.split_once('.')?;
+    let (rest, signature) = rest.rsplit_once('.')?;
+    let (wallet_id, body_hash) = rest.rsplit_once('.')?;
     Some(DeviceAuthPayload {
-        device_id: parts[0].to_string(),
-        timestamp: parts[1].to_string(),
-        wallet_id: if parts[2].is_empty() { None } else { Some(parts[2].to_string()) },
-        body_hash: parts[3].to_string(),
-        signature: hex::decode(parts[4]).ok()?,
+        device_id: device_id.to_string(),
+        timestamp: timestamp.to_string(),
+        wallet_id: if wallet_id.is_empty() { None } else { Some(wallet_id.to_string()) },
+        body_hash: body_hash.to_string(),
+        signature: hex::decode(signature).ok()?,
     })
 }
 
@@ -91,6 +91,7 @@ mod tests {
     use alloy_primitives::hex;
     use ed25519_dalek::{Signer, SigningKey};
     use gem_encoding::encode_base64;
+    use primitives::{Chain, WalletId};
 
     const TIMESTAMP: &str = "1706000000000";
     const METHOD: &str = "GET";
@@ -169,6 +170,8 @@ mod tests {
         assert!(parse_device_auth("Gem !!!").is_none());
         let encoded = encode_base64(b"only.two.parts");
         assert!(parse_device_auth(&format!("Gem {}", encoded)).is_none());
+        let encoded = encode_base64(b"only.four.dot.parts");
+        assert!(parse_device_auth(&format!("Gem {}", encoded)).is_none());
     }
 
     #[test]
@@ -187,6 +190,18 @@ mod tests {
         assert_eq!(result.timestamp, TIMESTAMP);
         assert_eq!(result.wallet_id, None);
         assert_eq!(result.body_hash, BODY_HASH);
+    }
+
+    #[test]
+    fn test_device_auth_wallet_id_with_dots() {
+        let private_key = [1u8; 32];
+        let wallet_id = WalletId::View(Chain::Near, "alice.near".to_string()).id();
+        let header = build_device_auth_header(&private_key, METHOD, PATH, &wallet_id, b"body", 123).unwrap();
+
+        assert!(verify_device_auth(&header, METHOD, PATH, b"body"));
+        let payload = parse_device_auth(&header).unwrap();
+        assert_eq!(payload.wallet_id.as_deref(), Some("view_near_alice.near"));
+        assert_eq!(payload.body_hash, device_body_hash(b"body"));
     }
 
     #[test]
