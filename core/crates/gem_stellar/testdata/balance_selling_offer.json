@@ -1,0 +1,29 @@
+{
+  "sequence": "163192045537514763",
+  "subentry_count": 23,
+  "num_sponsoring": 0,
+  "num_sponsored": 0,
+  "balances": [
+    {
+      "balance": "9247.5552216",
+      "selling_liabilities": "7078.5091889",
+      "asset_type": "credit_alphanum4",
+      "asset_code": "USDC",
+      "asset_issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+    },
+    {
+      "balance": "15322.6190632",
+      "selling_liabilities": "15258.0008913",
+      "asset_type": "native"
+    }
+  ],
+  "thresholds": {
+    "med_threshold": 0
+  },
+  "signers": [
+    {
+      "key": "GCZ6GUIDPSR7F4UWHZC4AXVW54MO3U32K7WTMRFML363M5ATGWJR6NGA",
+      "weight": 1
+    }
+  ]
+}
