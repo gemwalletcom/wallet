@@ -151,6 +151,15 @@ pub struct TraceCallEntry {
     pub error: Option<String>,
     #[serde(default)]
     pub trace_address: Vec<usize>,
+    #[serde(default)]
+    pub result: Option<TraceCallOutput>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TraceCallOutput {
+    #[serde(default)]
+    pub output: String,
 }
 
 #[derive(Debug, Clone, Deserialize)]

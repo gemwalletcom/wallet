@@ -1,11 +1,12 @@
 use alloy_primitives::{Address, U256};
-use alloy_sol_types::SolInterface;
+use alloy_sol_types::{SolCall, SolInterface};
 use num_bigint::BigInt;
 use primitives::hex;
 
 use crate::contracts::eip3009::IEIP3009::IEIP3009Calls;
-use crate::contracts::erc20::IERC20::IERC20Calls;
-use crate::rpc::model::TraceCallAction;
+use crate::contracts::erc20::IERC20::{self, IERC20Calls};
+use crate::contracts::erc677::IERC677;
+use crate::rpc::model::TraceCallEntry;
 use crate::u256::u256_to_biguint;
 
 pub struct DecodedTransfer {
@@ -24,13 +25,15 @@ impl DecodedTransfer {
     }
 }
 
-pub fn decode_transfer_action(action: &TraceCallAction) -> Option<DecodedTransfer> {
+pub fn decode_transfer(entry: &TraceCallEntry) -> Option<DecodedTransfer> {
+    let action = &entry.action;
     let calldata = hex::decode_hex(&action.input).ok()?;
+    let output = entry.result.as_ref().and_then(|result| hex::decode_hex(&result.output).ok()).unwrap_or_default();
 
     if let Ok(call) = IERC20Calls::abi_decode(&calldata) {
         return match call {
-            IERC20Calls::transfer(call) => Some(DecodedTransfer::new(action.from.clone(), call.to, &call.value)),
-            IERC20Calls::transferFrom(call) => Some(DecodedTransfer::new(call.from.to_string(), call.to, &call.value)),
+            IERC20Calls::transfer(call) => accepted::<IERC20::transferCall>(&output).then(|| DecodedTransfer::new(action.from.clone(), call.to, &call.value)),
+            IERC20Calls::transferFrom(call) => accepted::<IERC20::transferFromCall>(&output).then(|| DecodedTransfer::new(call.from.to_string(), call.to, &call.value)),
             _ => None,
         };
     }
@@ -42,7 +45,15 @@ pub fn decode_transfer_action(action: &TraceCallAction) -> Option<DecodedTransfe
         };
     }
 
+    if let Ok(call) = IERC677::transferAndCallCall::abi_decode(&calldata) {
+        return accepted::<IERC677::transferAndCallCall>(&output).then(|| DecodedTransfer::new(action.from.clone(), call.to, &call.value));
+    }
+
     None
+}
+
+fn accepted<C: SolCall<Return = bool>>(output: &[u8]) -> bool {
+    output.is_empty() || C::abi_decode_returns(output).unwrap_or(false)
 }
 
 #[cfg(test)]
@@ -55,10 +66,11 @@ mod tests {
     use std::str::FromStr;
 
     use crate::contracts::IEIP3009;
+    use crate::rpc::model::TraceCallAction;
     use crate::testkit::TEST_ADDRESS;
 
     #[test]
-    fn test_decode_transfer_action_eip3009() {
+    fn test_decode_transfer_eip3009() {
         let calldata = IEIP3009::transferWithAuthorizationCall {
             from: Address::from_str(TEST_ADDRESS).unwrap(),
             to: Address::from_str(TEST_EVM_RECIPIENT).unwrap(),
@@ -72,7 +84,13 @@ mod tests {
         }
         .abi_encode();
 
-        let transfer = decode_transfer_action(&TraceCallAction::mock(ETHEREUM_USDC_TOKEN_ID, calldata)).unwrap();
+        let entry = TraceCallEntry {
+            action: TraceCallAction::mock(ETHEREUM_USDC_TOKEN_ID, calldata),
+            error: None,
+            result: None,
+            trace_address: vec![],
+        };
+        let transfer = decode_transfer(&entry).unwrap();
         assert_eq!(transfer.amount, BigInt::from(1_000_000));
     }
 }

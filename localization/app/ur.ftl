@@ -790,6 +790,10 @@ simulation_warning_unlimited_token_approval_description = یہ خرچ کرنے �
 simulation_warning_externally_owned_spender_description = یہ منظوری ایک عام والیٹ ایڈریس (EOA) کو آپ کے اثاثے استعمال کرنے دیتی ہے۔ صرف اس صورت میں تصدیق کریں جب آپ اس ایڈریس پر اعتماد کرتے ہیں۔
 simulation_warning_nft_collection_approval_title = مکمل NFT جمع کرنے تک رسائی کی درخواست کی گئی۔
 simulation_warning_unlimited_token_approval_title = لامحدود ٹوکن کی منظوری
+simulation_warning_simulation_failed_title = ٹرانزیکشن کی سمولیشن ناکام ہو گئی
+simulation_warning_simulation_failed_description = ہمیں نہیں معلوم کہ یہ کیا کرے گی۔ صرف اسی صورت میں دستخط کریں جب آپ کو اس ایپ پر بھروسہ ہو۔
+simulation_warning_scan_failed_title = سیکیورٹی اسکین ناکام ہو گیا
+simulation_warning_scan_failed_description = ہم اس ٹرانزیکشن کی جانچ نہیں کر سکے۔
 
 # Application
 

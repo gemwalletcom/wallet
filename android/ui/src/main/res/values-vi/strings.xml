@@ -632,6 +632,10 @@
   <string name="simulation_warning_externally_owned_spender_description">Phê duyệt này cho phép một địa chỉ ví thông thường (EOA) sử dụng tài sản của bạn. Chỉ xác nhận nếu bạn tin tưởng địa chỉ này.</string>
   <string name="simulation_warning_nft_collection_approval_title">Yêu cầu quyền truy cập đầy đủ vào bộ sưu tập NFT</string>
   <string name="simulation_warning_unlimited_token_approval_title">Phê duyệt mã thông báo không giới hạn</string>
+  <string name="simulation_warning_simulation_failed_title">Mô phỏng giao dịch thất bại</string>
+  <string name="simulation_warning_simulation_failed_description">Chúng tôi không biết giao dịch này sẽ làm gì. Chỉ ký nếu bạn tin tưởng ứng dụng này.</string>
+  <string name="simulation_warning_scan_failed_title">Quét bảo mật thất bại</string>
+  <string name="simulation_warning_scan_failed_description">Chúng tôi không thể kiểm tra giao dịch này.</string>
   <string name="application_name">Gem</string>
   <string name="rootcheck_security_alert">Cảnh báo an ninh</string>
   <string name="rootcheck_jailbreak_body">Thiết bị của bạn có vẻ đã bị jailbreak. Điều này có thể khiến ví và tiền của bạn gặp rủi ro.</string>

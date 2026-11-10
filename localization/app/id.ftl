@@ -790,6 +790,10 @@ simulation_warning_unlimited_token_approval_description = Ini memberi pihak yang
 simulation_warning_externally_owned_spender_description = Persetujuan ini memungkinkan alamat dompet biasa (EOA) menggunakan aset Anda. Konfirmasikan hanya jika Anda mempercayai alamat ini.
 simulation_warning_nft_collection_approval_title = Akses penuh ke koleksi NFT diminta.
 simulation_warning_unlimited_token_approval_title = Persetujuan token tanpa batas
+simulation_warning_simulation_failed_title = Simulasi transaksi gagal
+simulation_warning_simulation_failed_description = Kami tidak tahu apa yang akan dilakukannya. Tanda tangani hanya jika Anda memercayai aplikasi ini.
+simulation_warning_scan_failed_title = Pemindaian keamanan gagal
+simulation_warning_scan_failed_description = Kami tidak dapat memeriksa transaksi ini.
 
 # Application
 

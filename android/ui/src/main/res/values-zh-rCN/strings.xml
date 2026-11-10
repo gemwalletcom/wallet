@@ -632,6 +632,10 @@
   <string name="simulation_warning_externally_owned_spender_description">此授权允许普通钱包地址（EOA）使用您的资产。仅在您信任该地址时确认。</string>
   <string name="simulation_warning_nft_collection_approval_title">请求访问整个 NFT 系列</string>
   <string name="simulation_warning_unlimited_token_approval_title">无限额度代币授权</string>
+  <string name="simulation_warning_simulation_failed_title">交易模拟失败</string>
+  <string name="simulation_warning_simulation_failed_description">我们不知道它会执行什么操作。仅在您信任此应用时签名。</string>
+  <string name="simulation_warning_scan_failed_title">安全扫描失败</string>
+  <string name="simulation_warning_scan_failed_description">我们无法检查此交易。</string>
   <string name="application_name">Gem</string>
   <string name="rootcheck_security_alert">安全警告</string>
   <string name="rootcheck_jailbreak_body">设备似乎已越狱，钱包和资金可能面临风险。</string>

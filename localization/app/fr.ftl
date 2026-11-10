@@ -790,6 +790,10 @@ simulation_warning_unlimited_token_approval_description = Cela permet à l'adres
 simulation_warning_externally_owned_spender_description = Cette approbation permet à une adresse de portefeuille classique (EOA) d’utiliser vos actifs. Confirmez uniquement si vous faites confiance à cette adresse.
 simulation_warning_nft_collection_approval_title = Demande d'accès à l'intégralité de la collection NFT
 simulation_warning_unlimited_token_approval_title = Approbation illimitée des jetons
+simulation_warning_simulation_failed_title = Échec de la simulation de la transaction
+simulation_warning_simulation_failed_description = Nous ne savons pas ce qu’elle fera. Signez uniquement si vous faites confiance à cette application.
+simulation_warning_scan_failed_title = Échec de l’analyse de sécurité
+simulation_warning_scan_failed_description = Nous n’avons pas pu vérifier cette transaction.
 
 # Application
 

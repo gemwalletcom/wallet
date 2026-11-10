@@ -632,6 +632,10 @@
   <string name="simulation_warning_externally_owned_spender_description">This approval lets a regular wallet address (EOA) use your assets. Confirm only if you trust this address.</string>
   <string name="simulation_warning_nft_collection_approval_title">Full NFT collection access requested</string>
   <string name="simulation_warning_unlimited_token_approval_title">Unlimited token approval</string>
+  <string name="simulation_warning_simulation_failed_title">Transaction simulation failed</string>
+  <string name="simulation_warning_simulation_failed_description">We don\'t know what it will do. Only sign if you trust this app.</string>
+  <string name="simulation_warning_scan_failed_title">Security scan failed</string>
+  <string name="simulation_warning_scan_failed_description">We couldn\'t check this transaction.</string>
   <string name="application_name">Gem</string>
   <string name="rootcheck_security_alert">Security Warning</string>
   <string name="rootcheck_jailbreak_body">Your device appears to be jailbroken. This may put your wallet and funds at risk.</string>

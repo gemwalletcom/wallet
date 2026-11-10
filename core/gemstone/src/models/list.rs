@@ -119,6 +119,8 @@ pub enum GemListRowTitle {
     SuspiciousAddress,
     UnlimitedApproval,
     NftCollectionApproval,
+    SimulationFailed,
+    ScanFailed,
     Symbol,
     Decimals,
     Type,

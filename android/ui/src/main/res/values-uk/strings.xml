@@ -632,6 +632,10 @@
   <string name="simulation_warning_externally_owned_spender_description">Це схвалення дозволяє звичайній адресі гаманця (EOA) використовувати ваші активи. Підтверджуйте, лише якщо довіряєте цій адресі.</string>
   <string name="simulation_warning_nft_collection_approval_title">Запитується повний доступ до колекції NFT</string>
   <string name="simulation_warning_unlimited_token_approval_title">Необмежене схвалення токенів</string>
+  <string name="simulation_warning_simulation_failed_title">Не вдалося симулювати транзакцію</string>
+  <string name="simulation_warning_simulation_failed_description">Ми не знаємо, що вона зробить. Підписуйте, лише якщо довіряєте цьому застосунку.</string>
+  <string name="simulation_warning_scan_failed_title">Не вдалося перевірити безпеку</string>
+  <string name="simulation_warning_scan_failed_description">Ми не змогли перевірити цю транзакцію.</string>
   <string name="application_name">Gem</string>
   <string name="rootcheck_security_alert">Попередження безпеки</string>
   <string name="rootcheck_jailbreak_body">Схоже, на вашому пристрої виконано джейлбрейк. Це може поставити під загрозу гаманець і кошти.</string>

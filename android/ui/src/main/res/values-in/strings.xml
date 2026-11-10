@@ -632,6 +632,10 @@
   <string name="simulation_warning_externally_owned_spender_description">Persetujuan ini memungkinkan alamat dompet biasa (EOA) menggunakan aset Anda. Konfirmasikan hanya jika Anda mempercayai alamat ini.</string>
   <string name="simulation_warning_nft_collection_approval_title">Akses penuh ke koleksi NFT diminta.</string>
   <string name="simulation_warning_unlimited_token_approval_title">Persetujuan token tanpa batas</string>
+  <string name="simulation_warning_simulation_failed_title">Simulasi transaksi gagal</string>
+  <string name="simulation_warning_simulation_failed_description">Kami tidak tahu apa yang akan dilakukannya. Tanda tangani hanya jika Anda memercayai aplikasi ini.</string>
+  <string name="simulation_warning_scan_failed_title">Pemindaian keamanan gagal</string>
+  <string name="simulation_warning_scan_failed_description">Kami tidak dapat memeriksa transaksi ini.</string>
   <string name="application_name">Gem</string>
   <string name="rootcheck_security_alert">Peringatan Keamanan</string>
   <string name="rootcheck_jailbreak_body">Perangkat Anda tampaknya di-jailbreak. Ini dapat membahayakan dompet dan dana Anda.</string>

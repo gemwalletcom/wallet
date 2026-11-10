@@ -790,6 +790,10 @@ simulation_warning_unlimited_token_approval_description = Bu, harcayan tarafa, s
 simulation_warning_externally_owned_spender_description = Bu onay, normal bir cüzdan adresinin (EOA) varlıklarınızı kullanmasına izin verir. Yalnızca bu adrese güveniyorsanız onaylayın.
 simulation_warning_nft_collection_approval_title = NFT koleksiyonunun tamamına erişim talep edildi
 simulation_warning_unlimited_token_approval_title = Sınırsız token onayı
+simulation_warning_simulation_failed_title = İşlem simülasyonu başarısız oldu
+simulation_warning_simulation_failed_description = Ne yapacağını bilmiyoruz. Yalnızca bu uygulamaya güveniyorsanız imzalayın.
+simulation_warning_scan_failed_title = Güvenlik taraması başarısız oldu
+simulation_warning_scan_failed_description = Bu işlemi kontrol edemedik.
 
 # Application
 

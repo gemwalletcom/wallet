@@ -26,6 +26,7 @@ flowchart LR
 | The recipient is one of the user's own wallets or a contact | Confirm shows its name alone; a tap shows the address | the user gave that name |
 | The recipient has any other name, such as `vitalik.eth` | the name with the short address beside it | a name the user did not give could imitate another address |
 | The recipient is flagged | "Suspicious address" with one line on why, under the amount; Confirm stays disabled | |
+| The security scan of the recipient, swap or approval fails | "Security scan failed" on Confirm; Confirm stays open | a missing scan is not a clean one, and a scan outage must not stop every send |
 | The balance can't cover the amount and the Network Fee, on any network | Insufficient Balance | the user sees what to fix, never a network error |
 | A pending send has spent Bitcoin-family coins the wallet still shows | Confirm counts only the coins left unspent: Insufficient Balance when they can't cover the amount and the Network Fee, and Max sends what they hold less the fee; the Network Fee options stay open | the balance updates only when the network confirms, but only unspent coins can be signed |
 | An earlier Ethereum send from the same address is still pending | the next send takes the first nonce no pending send holds, so both go through; a send pending past its timeout and a payment signature hold no nonce | the network counts only mined transactions, so reusing a pending send's nonce would replace it or be rejected; faster EVM networks mine before a second send |
