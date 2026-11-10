@@ -6,9 +6,9 @@ use crate::{
 
 use std::{error::Error, str::FromStr};
 use sui_transaction_builder::{Function, ObjectInput, TransactionBuilder};
-use sui_types::{Address, Identifier, TypeTag};
+use sui_types::{Address, Identifier};
 
-use super::{TransactionBuilderInput, finish_transaction, transfer::requires_hybrid_funding};
+use super::{TransactionBuilderInput, build_sui_amount_coin, finish_transaction};
 
 pub const SUI_REQUEST_ADD_STAKE: &str = "request_add_stake";
 pub const SUI_REQUEST_WITHDRAW_STAKE: &str = "request_withdraw_stake";
@@ -20,9 +20,6 @@ fn build_split_and_stake_ptb(input: &StakeInput) -> Result<TransactionBuilder, B
     if input.coins.coins.is_empty() {
         return Err("No SUI coins available for gas".into());
     }
-    if requires_hybrid_funding(&input.coins, input.stake_amount) {
-        return Err("Sui stake: amount requires combining Address Balance with Coin<SUI> objects, which is not supported".into());
-    }
 
     let min_stake_amount = primitives::Chain::Sui.stake_config().map(|config| config.min_stake_amount).ok_or("Sui has no stake config")?;
     if input.stake_amount < min_stake_amount {
@@ -33,15 +30,7 @@ fn build_split_and_stake_ptb(input: &StakeInput) -> Result<TransactionBuilder, B
 
     let mut ptb = TransactionBuilder::new();
 
-    let stake_coin = if input.coins.address_balance >= input.stake_amount {
-        let coin_type: TypeTag = input.coins.coin_type.parse().map_err(|err| format!("invalid Sui native coin type {}: {err}", input.coins.coin_type))?;
-        ptb.funds_withdrawal_coin(coin_type, input.stake_amount)
-    } else {
-        let stake_amount = ptb.pure(&input.stake_amount);
-        let gas = ptb.gas();
-        let mut split_results = ptb.split_coins(gas, vec![stake_amount]);
-        split_results.pop().ok_or("split_coins returned no argument")?
-    };
+    let stake_coin = build_sui_amount_coin(&mut ptb, input.stake_amount, input.coins.address_balance)?;
 
     // move call request_add_stake
     let function = Function::new(ObjectId::from(SUI_SYSTEM_PACKAGE_ID).into(), Identifier::new(SUI_SYSTEM_ID)?, Identifier::new(SUI_REQUEST_ADD_STAKE)?);
