@@ -46,16 +46,16 @@ pub const NEAR_INTENTS_OPT_USDC: &str = "nep245:v2_1.omni.hot.tg:10_A2ewyUyDp6qs
 pub const NEAR_INTENTS_OPT_USDT: &str = "nep245:v2_1.omni.hot.tg:10_359RPSJVdTxwTJT9TyGssr2rFoWo";
 pub const NEAR_INTENTS_OPT_OP: &str = "nep245:v2_1.omni.hot.tg:10_vLAiSt9KfUGKpw5cD3vsSyNYBo7";
 pub const NEAR_INTENTS_OPT_WETH: &str = "nep245:v2_1.omni.hot.tg:10_vLAiSt9KfUGKpw5cD3vsSyNYBn5";
-pub const NEAR_INTENTS_AVAX_NATIVE: &str = "nep245:v2_1.omni.hot.tg:43114_11111111111111111111";
-pub const NEAR_INTENTS_AVAX_USDC: &str = "nep245:v2_1.omni.hot.tg:43114_3atVJH3r5c4GqiSYmg9fECvjc47o";
-pub const NEAR_INTENTS_AVAX_USDT: &str = "nep245:v2_1.omni.hot.tg:43114_372BeH7ENZieCaabwkbWkBiTTgXp";
-pub const NEAR_INTENTS_BSC_NATIVE: &str = "nep245:v2_1.omni.hot.tg:56_11111111111111111111";
-pub const NEAR_INTENTS_BSC_USDC: &str = "nep245:v2_1.omni.hot.tg:56_2w93GqMcEmQFDru84j3HZZWt557r";
-pub const NEAR_INTENTS_BSC_USDT: &str = "nep245:v2_1.omni.hot.tg:56_2CMMyVTGZkeyNZTSvS5sarzfir6g";
-pub const NEAR_INTENTS_POL_NATIVE: &str = "nep245:v2_1.omni.hot.tg:137_11111111111111111111";
-pub const NEAR_INTENTS_POL_USDC: &str = "nep245:v2_1.omni.hot.tg:137_qiStmoQJDQPTebaPjgx5VBxZv6L";
-pub const NEAR_INTENTS_POL_USDT: &str = "nep245:v2_1.omni.hot.tg:137_3hpYoaLtt8MP1Z2GH1U473DMRKgr";
-pub const NEAR_INTENTS_POL_WETH: &str = "nep245:v2_1.omni.hot.tg:137_2jwTGwKRX3AEe7tyzDrxtDjEFgSt";
+pub const NEAR_INTENTS_AVAX_NATIVE: &str = "nep141:avax.omdep.near";
+pub const NEAR_INTENTS_AVAX_USDC: &str = "nep141:avax-0xb97ef9ef8734c71904d8002f8b6bc66dd9c48a6e.omdep.near";
+pub const NEAR_INTENTS_AVAX_USDT: &str = "nep141:avax-0x9702230a8ea53601f5cd2dc00fdbc13d4df4a8c7.omdep.near";
+pub const NEAR_INTENTS_BSC_NATIVE: &str = "nep141:bnb.omdep.near";
+pub const NEAR_INTENTS_BSC_USDC: &str = "nep141:bnb-0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d.omdep.near";
+pub const NEAR_INTENTS_BSC_USDT: &str = "nep141:bnb-0x55d398326f99059ff775485246999027b3197955.omdep.near";
+pub const NEAR_INTENTS_POL_NATIVE: &str = "nep141:pol.omdep.near";
+pub const NEAR_INTENTS_POL_USDC: &str = "nep141:pol-0x3c499c542cef5e3811e1192ce70d8cc03d5c3359.omdep.near";
+pub const NEAR_INTENTS_POL_USDT: &str = "nep141:pol-0xc2132d05d31c914a87c6611c10748aeb04b58e8f.omdep.near";
+pub const NEAR_INTENTS_POL_WETH: &str = "nep141:pol-0x7ceb23fd6bc0add59e62ac25578270cff1b9f619.omdep.near";
 pub const NEAR_INTENTS_TON_NATIVE: &str = "nep245:v2_1.omni.hot.tg:1117_";
 pub const NEAR_INTENTS_TON_USDT: &str = "nep245:v2_1.omni.hot.tg:1117_3tsdfyziyc7EJbP2aULWSKU4toBaAcN4FdTgfm5W1mC4ouR";
 pub const NEAR_INTENTS_TRON_NATIVE: &str = "nep141:tron.omft.near";
@@ -282,15 +282,30 @@ pub fn get_near_asset_id(asset: &SwapperQuoteAsset) -> Result<String, SwapperErr
     chain_assets.get(&asset_id).map(|value| (*value).to_string()).ok_or(SwapperError::NotSupportedAsset)
 }
 
-const NEAR_INTENTS_PREVIOUS_NATIVE_ASSETS: [(&str, Chain); 2] = [("nep141:btc.omft.near", Chain::Bitcoin), ("nep245:v2_1.omni.hot.tg:9745_11111111111111111111", Chain::Plasma)];
+static NEAR_INTENTS_PREVIOUS_ASSETS: LazyLock<HashMap<&'static str, AssetId>> = LazyLock::new(|| {
+    HashMap::from([
+        ("nep141:btc.omft.near", Chain::Bitcoin.as_asset_id()),
+        ("nep245:v2_1.omni.hot.tg:9745_11111111111111111111", Chain::Plasma.as_asset_id()),
+        ("nep245:v2_1.omni.hot.tg:43114_11111111111111111111", Chain::AvalancheC.as_asset_id()),
+        ("nep245:v2_1.omni.hot.tg:43114_3atVJH3r5c4GqiSYmg9fECvjc47o", AVALANCHE_USDC_ASSET_ID.clone()),
+        ("nep245:v2_1.omni.hot.tg:43114_372BeH7ENZieCaabwkbWkBiTTgXp", AVALANCHE_USDT_ASSET_ID.clone()),
+        ("nep245:v2_1.omni.hot.tg:56_11111111111111111111", Chain::SmartChain.as_asset_id()),
+        ("nep245:v2_1.omni.hot.tg:56_2w93GqMcEmQFDru84j3HZZWt557r", SMARTCHAIN_USDC_ASSET_ID.clone()),
+        ("nep245:v2_1.omni.hot.tg:56_2CMMyVTGZkeyNZTSvS5sarzfir6g", SMARTCHAIN_USDT_ASSET_ID.clone()),
+        ("nep245:v2_1.omni.hot.tg:137_11111111111111111111", Chain::Polygon.as_asset_id()),
+        ("nep245:v2_1.omni.hot.tg:137_qiStmoQJDQPTebaPjgx5VBxZv6L", POLYGON_USDC_ASSET_ID.clone()),
+        ("nep245:v2_1.omni.hot.tg:137_3hpYoaLtt8MP1Z2GH1U473DMRKgr", POLYGON_USDT_ASSET_ID.clone()),
+        ("nep245:v2_1.omni.hot.tg:137_2jwTGwKRX3AEe7tyzDrxtDjEFgSt", POLYGON_WETH_ASSET_ID.clone()),
+    ])
+});
 
 pub fn get_asset_id_from_near_asset(near_asset_id: &str) -> Option<AssetId> {
-    NEAR_INTENTS_ASSETS.values().flat_map(|assets| assets.iter()).find(|(_, v)| **v == near_asset_id).map(|(k, _)| k.clone()).or_else(|| {
-        NEAR_INTENTS_PREVIOUS_NATIVE_ASSETS
-            .iter()
-            .find(|(previous_asset_id, _)| *previous_asset_id == near_asset_id)
-            .map(|(_, chain)| chain.as_asset_id())
-    })
+    NEAR_INTENTS_ASSETS
+        .values()
+        .flat_map(|assets| assets.iter())
+        .find(|(_, v)| **v == near_asset_id)
+        .map(|(k, _)| k.clone())
+        .or_else(|| NEAR_INTENTS_PREVIOUS_ASSETS.get(near_asset_id).cloned())
 }
 
 pub fn supported_assets() -> Vec<SwapperChainAsset> {
@@ -308,6 +323,9 @@ mod tests {
         assert_eq!(get_asset_id_from_near_asset("nep141:btc.omft.near"), Some(Chain::Bitcoin.as_asset_id()));
         assert_eq!(get_asset_id_from_near_asset(NEAR_INTENTS_BTC_NATIVE), Some(Chain::Bitcoin.as_asset_id()));
         assert_eq!(get_asset_id_from_near_asset("nep245:v2_1.omni.hot.tg:9745_11111111111111111111"), Some(Chain::Plasma.as_asset_id()));
+        assert_eq!(get_asset_id_from_near_asset("nep245:v2_1.omni.hot.tg:56_2CMMyVTGZkeyNZTSvS5sarzfir6g"), Some(SMARTCHAIN_USDT_ASSET_ID.clone()));
+        assert_eq!(get_asset_id_from_near_asset("nep245:v2_1.omni.hot.tg:137_2jwTGwKRX3AEe7tyzDrxtDjEFgSt"), Some(POLYGON_WETH_ASSET_ID.clone()));
+        assert_eq!(get_asset_id_from_near_asset("nep245:v2_1.omni.hot.tg:43114_3atVJH3r5c4GqiSYmg9fECvjc47o"), Some(AVALANCHE_USDC_ASSET_ID.clone()));
     }
 
     #[test]
@@ -340,6 +358,15 @@ mod tests {
             (Chain::Dash.as_asset_id(), NEAR_INTENTS_DASH_NATIVE),
             (ROBINHOOD_USDG_ASSET_ID.clone(), NEAR_INTENTS_HOOD_USDG),
             (ROBINHOOD_WETH_ASSET_ID.clone(), NEAR_INTENTS_HOOD_WETH),
+            (Chain::SmartChain.as_asset_id(), NEAR_INTENTS_BSC_NATIVE),
+            (SMARTCHAIN_USDC_ASSET_ID.clone(), NEAR_INTENTS_BSC_USDC),
+            (SMARTCHAIN_USDT_ASSET_ID.clone(), NEAR_INTENTS_BSC_USDT),
+            (Chain::Polygon.as_asset_id(), NEAR_INTENTS_POL_NATIVE),
+            (POLYGON_USDC_ASSET_ID.clone(), NEAR_INTENTS_POL_USDC),
+            (POLYGON_USDT_ASSET_ID.clone(), NEAR_INTENTS_POL_USDT),
+            (Chain::AvalancheC.as_asset_id(), NEAR_INTENTS_AVAX_NATIVE),
+            (AVALANCHE_USDC_ASSET_ID.clone(), NEAR_INTENTS_AVAX_USDC),
+            (AVALANCHE_USDT_ASSET_ID.clone(), NEAR_INTENTS_AVAX_USDT),
         ];
 
         for (asset_id, near_asset_id) in mappings {
