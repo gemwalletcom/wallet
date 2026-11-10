@@ -2,8 +2,7 @@ use std::error::Error;
 
 use async_trait::async_trait;
 use chain_traits::{ChainBlockTransactions, ChainProvider, ChainTransaction, ChainTransactions, TransactionIdRequest, TransactionsRequest, TransactionsResult};
-use futures::{StreamExt, TryStreamExt, stream};
-use gem_bitcoin::models::{Address, Transaction as BitcoinTransaction};
+use gem_bitcoin::models::Address;
 use gem_client::Client;
 use primitives::Transaction;
 
@@ -12,27 +11,10 @@ use super::{
     transactions_mapper::{map_transaction, map_transactions},
 };
 
-const MAX_CONCURRENT_REQUESTS: usize = 5;
-
 #[async_trait]
 impl<C: Client> ChainBlockTransactions for ZcashProvider<C> {
     async fn get_transactions_by_block(&self, block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
-        let mut transactions = Vec::new();
-        let mut page = 1;
-
-        loop {
-            let block = self.client.get_block(block, page).await?;
-            let details = stream::iter(block.txs).map(|transaction| self.transaction_details(transaction)).buffer_unordered(MAX_CONCURRENT_REQUESTS).try_collect().await?;
-            transactions.extend(map_transactions(details));
-
-            if block.total_pages == block.page {
-                break;
-            }
-
-            page += 1;
-        }
-
-        Ok(transactions)
+        self.client.get_transactions_by_block(block).await
     }
 }
 
@@ -60,24 +42,8 @@ impl<C: Client> ChainTransactions for ZcashProvider<C> {
     }
 }
 
-impl<C: Client> ZcashProvider<C> {
-    async fn transaction_details(&self, transaction: BitcoinTransaction) -> Result<BitcoinTransaction, Box<dyn Error + Sync + Send>> {
-        let has_transparent_input = transaction.vin.iter().any(|input| input.is_address);
-        if !has_transparent_input {
-            return Ok(transaction);
-        }
-        let txid = transaction.txid;
-        self.client.get_transaction(&txid).await?.ok_or_else(|| format!("transaction {txid} not indexed").into())
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use std::sync::{
-        Arc,
-        atomic::{AtomicUsize, Ordering},
-    };
-
     use gem_bitcoin::BitcoinClient;
     use gem_client::testkit::MockClient;
     use primitives::BitcoinChain;
@@ -86,27 +52,20 @@ mod tests {
     use super::*;
 
     #[tokio::test]
-    async fn test_get_transactions_by_block_fetches_transparent_spends_only() {
-        let shielded_receive: Value = from_str(include_str!("../../testdata/transaction_shielded_receive.json")).unwrap();
-        let transparent_spend: Value = from_str(include_str!("../../testdata/transaction_joinsplit.json")).unwrap();
-        let transparent_spend_path = format!("/api/v2/tx/{}", transparent_spend["txid"].as_str().unwrap());
-        let block = json!({ "page": 1, "totalPages": 1, "txs": [shielded_receive, transparent_spend] });
-        let fetched = Arc::new(AtomicUsize::new(0));
-        let counter = fetched.clone();
+    async fn test_get_transactions_by_block_fetches_block_only() {
+        let mut transparent: Value = from_str(include_str!("../../testdata/transaction_shielded_receive.json")).unwrap();
+        let spend: Value = from_str(include_str!("../../testdata/transaction_joinsplit.json")).unwrap();
+        transparent["vin"] = spend["vin"].clone();
+        let block = json!({ "page": 1, "totalPages": 1, "txs": [transparent] });
         let client = MockClient::new().with_get(move |path| match path {
             "/api/v2/block/1?page=1" => Ok(to_vec(&block).unwrap()),
-            path if path == transparent_spend_path => {
-                counter.fetch_add(1, Ordering::SeqCst);
-                Ok(to_vec(&transparent_spend).unwrap())
-            }
             path => panic!("unexpected path: {path}"),
         });
         let provider = ZcashProvider::new(BitcoinClient::new(client, BitcoinChain::Zcash));
 
         let transactions = provider.get_transactions_by_block(1).await.unwrap();
 
-        assert_eq!(transactions.len(), 2);
-        assert_eq!(fetched.load(Ordering::SeqCst), 1);
+        assert_eq!(transactions.len(), 1);
     }
 }
 

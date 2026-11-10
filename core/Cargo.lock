@@ -3263,7 +3263,6 @@ dependencies = [
  "async-trait",
  "bitcoin",
  "chain_traits",
- "futures",
  "gem_bitcoin",
  "gem_client",
  "gem_hash",
