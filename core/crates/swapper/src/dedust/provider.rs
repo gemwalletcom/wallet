@@ -102,14 +102,17 @@ where
         SwapAmountMode::Fixed
     }
 
+    fn native_attachment(&self) -> Option<BigUint> {
+        Some(BigUint::from(SWAP_GAS))
+    }
+
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
-        let request = request.reserve_native_attachment(&BigUint::from(SWAP_GAS))?;
         let from = DedustAsset::from_asset_id(&request.from_asset.asset_id())?;
         let to = DedustAsset::from_asset_id(&request.to_asset.asset_id())?;
         let swap_value = subtract_bps(&request.value, request.on_chain_referral_fee().bps);
         let (pools, value_out) = self.find_route(&from, &to, nonzero_swap_value(&swap_value)?).await?;
 
-        Quote::from_route(&request, self.provider(), value_out, request.options.slippage.bps, &PoolRoute::new(&pools), None)
+        Quote::from_route(request, self.provider(), value_out, request.options.slippage.bps, &PoolRoute::new(&pools), None)
     }
 
     async fn get_quote_data(&self, quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
@@ -158,6 +161,7 @@ mod tests {
             constants::ESTIMATE_SWAP_OUT_METHOD,
             testkit::{NATIVE_VAULT, TEST_USDT_WALLET, TON_NOT_POOL, TON_STTON_STABLE_POOL, TON_USDT_POOL, mock_request, mock_ton_client, mock_ton_client_with_calls, not, stton, ton, usdt},
         },
+        swapper::GemSwapper,
     };
     use std::sync::Mutex;
 
@@ -197,17 +201,19 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_max_ton_quote_reserves_swap_gas() {
-        let provider = Dedust::with_client(mock_ton_client(include_str!("testdata/ton_to_usdt_get_methods.json")));
+    async fn test_max_ton_quote_reserves_swap_gas_once() {
+        let swapper = GemSwapper::mock(vec![Box::new(Dedust::with_client(mock_ton_client(include_str!("testdata/ton_to_usdt_get_methods.json"))))]);
         let request = QuoteRequest {
             options: Options { use_max_amount: true, ..Options::default() },
-            ..mock_request(ton(), usdt(), 1_250_000_000)
+            ..mock_request(ton(), usdt(), 1_270_000_000)
         };
 
-        let quote = provider.get_quote(&request).await.unwrap();
+        let quote = swapper.get_provider_quote(&SwapperProvider::Dedust, &request).await.unwrap();
+        let requoted = swapper.get_quote_by_provider(&SwapperProvider::Dedust, &quote.request).await.unwrap();
 
         assert_eq!(quote.from_value, BigUint::from(1_000_000_000u64));
         assert_eq!(quote.to_value, BigUint::from(1_361_362u64));
+        assert_eq!(requoted.from_value, quote.from_value);
     }
 
     #[tokio::test]

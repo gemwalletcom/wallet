@@ -171,6 +171,10 @@ impl GemSwapper {
     pub async fn get_provider_quote(&self, provider: &SwapperProvider, request: &QuoteRequest) -> Result<Quote, SwapperError> {
         let swapper = self.get_swapper_by_provider(provider)?;
         let request = Self::quote_request_for_mode(swapper.amount_mode(request), request)?;
+        let request = match swapper.native_attachment() {
+            Some(attachment) => request.reserve_native_attachment(&attachment)?,
+            None => request,
+        };
         swapper.preload_routes(&request.from_asset.asset_id(), &request.to_asset.asset_id()).await;
         swapper.get_quote(&request).await
     }

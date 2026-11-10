@@ -367,6 +367,10 @@ where
         SwapAmountMode::Fixed
     }
 
+    fn native_attachment(&self) -> Option<BigUint> {
+        Some(tx_builder::native_attachment())
+    }
+
     async fn preload_routes(&self, from_asset: &AssetId, to_asset: &AssetId) {
         if from_asset.chain != Chain::Ton || to_asset.chain != Chain::Ton {
             return;
@@ -376,9 +380,8 @@ where
     }
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
-        let request = request.reserve_native_attachment(&tx_builder::native_attachment())?;
         let from_value = request.value.clone();
-        let path = self.get_quotes(&request, &from_value.to_string()).await?;
+        let path = self.get_quotes(request, &from_value.to_string()).await?;
 
         Ok(Quote {
             from_value,
@@ -389,7 +392,7 @@ where
                 routes: path.routes,
                 slippage_bps: request.options.slippage.bps,
             },
-            request,
+            request: request.clone(),
             eta_in_seconds: None,
         })
     }
