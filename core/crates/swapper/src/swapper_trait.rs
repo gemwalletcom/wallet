@@ -5,6 +5,7 @@ use super::{
     models::{FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, SwapResult, SwapResultRequest, SwapperChainAsset},
 };
 use async_trait::async_trait;
+use num_bigint::BigUint;
 use std::fmt::Debug;
 
 use primitives::{AssetId, Chain, swap::SwapStatus};
@@ -14,6 +15,9 @@ pub trait Swapper: Send + Sync + Debug {
     fn provider(&self) -> &ProviderType;
     fn supported_assets(&self) -> Vec<SwapperChainAsset>;
     fn amount_mode(&self, request: &QuoteRequest) -> SwapAmountMode;
+    fn native_attachment(&self) -> Option<BigUint> {
+        None
+    }
     fn contracts(&self, _from_asset: &AssetId) -> Contracts {
         Contracts::default()
     }
