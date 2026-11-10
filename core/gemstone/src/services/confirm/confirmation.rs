@@ -8,8 +8,8 @@ use super::error::{GemConfirmErrorInfo, SendFailure};
 use super::header::{self, GemConfirmHeader};
 use super::rules::{asset_pick_needs_reload, preload_simulation};
 use super::{
-    ConfirmState, ConfirmSwapQuote, GemConfirmDetails, GemConfirmError, GemConfirmFeeLoad, GemConfirmFeeRow, GemConfirmInput, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmRowContent, GemConfirmScreen, GemConfirmStage,
-    GemConfirmTransferService, GemConfirmViewState, GemNetworkFeeScreen, GemSubmitResult, GemTransferAmountResult, SendInput, SignedSubmission,
+    ConfirmState, ConfirmSwapQuote, GemConfirmDetails, GemConfirmError, GemConfirmFeeLoad, GemConfirmFeeRow, GemConfirmInput, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmRowContent, GemConfirmRowLink, GemConfirmScreen,
+    GemConfirmStage, GemConfirmTransferService, GemConfirmViewState, GemNetworkFeeScreen, GemSubmitResult, GemTransferAmountResult, SendInput, SignedSubmission,
 };
 use crate::models::list::GemListRow;
 use crate::payment::GemPaymentLoad;
@@ -183,9 +183,9 @@ impl GemConfirmation {
             .row_contents(load.and_then(|load| load.address_name.clone()))
             .into_iter()
             .map(|content| match content {
-                GemConfirmRowContent::PaymentAsset { title, symbol, selectable, asset_ids } => GemConfirmRowContent::PaymentAsset {
+                GemConfirmRowContent::PaymentAsset { title, symbol, link, asset_ids } => GemConfirmRowContent::PaymentAsset {
                     title,
-                    selectable: selectable && screen.phase != super::model::GemConfirmPhase::Loading && !send_started,
+                    link: link.closed(screen.phase == super::model::GemConfirmPhase::Loading || send_started),
                     symbol,
                     asset_ids,
                 },
@@ -201,7 +201,7 @@ impl GemConfirmation {
             fee_row: GemConfirmFeeRow::new(
                 screen.fee_value(load.cloned()),
                 load.map(|load| load.fee_asset.clone()).unwrap_or_else(|| transfer.fee_asset()),
-                !send_started && state.as_ref().is_some_and(|state| state.confirm_data.is_some() || state.load.shows_fee_assets()),
+                GemConfirmRowLink::new(state.as_ref().is_some_and(|state| state.confirm_data.is_some() || state.load.shows_fee_assets())).closed(send_started),
             ),
             title: transfer.title(),
             sections: super::rules::confirm_sections(
@@ -312,7 +312,7 @@ mod tests {
     use primitives::{AddressName, AddressType, VerificationStatus};
 
     use super::super::error::GemConfirmErrorDisplay;
-    use super::super::model::{GemConfirmAction, GemConfirmFeeValue, GemConfirmPhase, GemFeeRateKind};
+    use super::super::model::{GemConfirmAction, GemConfirmFeeValue, GemConfirmPhase, GemConfirmRowLink, GemFeeRateKind};
     use super::super::testkit::{ConfirmTestkit, TEST_TRON_RECIPIENT, mock_bitcoin_transfer, mock_bitcoin_wallet, mock_tron_transfer, mock_tron_wallet};
     use super::GemConfirmation;
     use crate::models::button::GemButtonState;
@@ -373,7 +373,7 @@ mod tests {
         let state = confirmation.view_state(screen.clone());
 
         assert_eq!(state.button, screen.button().authenticated(confirmation.authentication));
-        assert_eq!(state.fee_row, super::super::GemConfirmFeeRow::new(screen.fee_value(None), confirmation.transfer().fee_asset(), false));
+        assert_eq!(state.fee_row, super::super::GemConfirmFeeRow::new(screen.fee_value(None), confirmation.transfer().fee_asset(), GemConfirmRowLink::None));
         assert_eq!(confirmation.network_fee_screen(GemNumberFormat { decimal_separator: ".".to_string() }), None, "nothing loaded, no fee screen");
         assert_eq!(details(&state), confirmation.row_contents(None));
         assert_eq!(state.title, confirmation.transfer().title());
@@ -394,7 +394,7 @@ mod tests {
 
             assert_eq!(screen.phase, GemConfirmPhase::Ready);
             assert_eq!(screen.button().state, GemButtonState::Disabled);
-            assert!(state.fee_row.opens_details);
+            assert_eq!(state.fee_row.link, GemConfirmRowLink::Enabled);
             assert_eq!(
                 rates.rows.into_iter().map(|row| row.kind).collect::<Vec<_>>(),
                 vec![GemFeeRateKind::Priority { priority: FeePriority::Normal }, GemFeeRateKind::Priority { priority: FeePriority::Fast }, GemFeeRateKind::Custom,],
@@ -435,7 +435,7 @@ mod tests {
             let state = confirmation.view_state(confirmation.screen().on_load_failed(error));
 
             assert_eq!(state.fee_row.value, GemConfirmFeeValue::Unavailable { text: EMPTY_VALUE.to_string() });
-            assert!(state.fee_row.opens_details, "the fee that failed is the one the user has to change");
+            assert_eq!(state.fee_row.link, GemConfirmRowLink::Enabled, "the fee that failed is the one the user has to change");
             assert!(confirmation.network_fee_screen(GemNumberFormat { decimal_separator: ".".to_string() }).and_then(|screen| screen.rates).is_some());
 
             let load = confirmation.load(normal).await.unwrap();
@@ -453,7 +453,7 @@ mod tests {
             let error = confirmation.load(confirmation.load_options()).await.unwrap_err();
             let state = confirmation.view_state(confirmation.screen().on_load_failed(error));
 
-            assert!(!state.fee_row.opens_details);
+            assert_eq!(state.fee_row.link, GemConfirmRowLink::None);
         });
     }
 
@@ -465,9 +465,13 @@ mod tests {
             let ready = confirmation.screen().on_loaded(confirmation.load(confirmation.load_options()).await.unwrap());
             let sending = ready.on_execute_started();
 
-            assert!(confirmation.view_state(ready).fee_row.opens_details);
-            assert!(!confirmation.view_state(sending.clone()).fee_row.opens_details, "a new fee would reload the screen under the transaction being sent");
-            assert!(confirmation.view_state(sending.on_execute_failed(GemConfirmError::Offline)).fee_row.opens_details);
+            assert_eq!(confirmation.view_state(ready).fee_row.link, GemConfirmRowLink::Enabled);
+            assert_eq!(
+                confirmation.view_state(sending.clone()).fee_row.link,
+                GemConfirmRowLink::Disabled,
+                "a new fee would reload the screen under the transaction being sent"
+            );
+            assert_eq!(confirmation.view_state(sending.on_execute_failed(GemConfirmError::Offline)).fee_row.link, GemConfirmRowLink::Enabled);
         });
     }
 
@@ -485,9 +489,9 @@ mod tests {
             extra: TransferDataExtra::mock(),
         });
         let confirmation = testkit.service.confirmation(wallet, transfer, None);
-        let selectable = |screen: GemConfirmScreen| {
+        let link = |screen: GemConfirmScreen| {
             details(&confirmation.view_state(screen)).into_iter().find_map(|row| match row {
-                GemConfirmRowContent::PaymentAsset { selectable, .. } => Some(selectable),
+                GemConfirmRowContent::PaymentAsset { link, .. } => Some(link),
                 _ => None,
             })
         };
@@ -497,9 +501,10 @@ mod tests {
         };
         let sending = ready.on_execute_started();
 
-        assert_eq!(selectable(ready), Some(true));
-        assert_eq!(selectable(sending.clone()), Some(false), "another asset would reload the screen under the payment being sent");
-        assert_eq!(selectable(sending.on_execute_failed(GemConfirmError::Offline)), Some(true));
+        assert_eq!(link(GemConfirmScreen::initial(None)), Some(GemConfirmRowLink::Disabled), "the row keeps its arrow while the screen loads");
+        assert_eq!(link(ready), Some(GemConfirmRowLink::Enabled));
+        assert_eq!(link(sending.clone()), Some(GemConfirmRowLink::Disabled), "another asset would reload the screen under the payment being sent");
+        assert_eq!(link(sending.on_execute_failed(GemConfirmError::Offline)), Some(GemConfirmRowLink::Enabled));
     }
 
     #[test]
@@ -721,7 +726,7 @@ mod tests {
 
             assert_eq!(provider.requested_paths().len(), requests, "a reload asks the network for nothing");
             assert_eq!(held.fee.map(|fee| fee.value), Some(BigInt::from(1)));
-            assert!(!confirmation.view_state(failed).fee_row.opens_details, "the fee cannot change under a signed transaction");
+            assert_eq!(confirmation.view_state(failed).fee_row.link, GemConfirmRowLink::Disabled, "the fee cannot change under a signed transaction");
         });
     }
 }

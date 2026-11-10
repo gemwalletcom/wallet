@@ -474,21 +474,44 @@ pub enum GemConfirmFeeValue {
     Unavailable { text: String },
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+pub enum GemConfirmRowLink {
+    None,
+    Enabled,
+    Disabled,
+}
+
+impl GemConfirmRowLink {
+    pub(super) fn new(has_details: bool) -> Self {
+        match has_details {
+            true => Self::Enabled,
+            false => Self::None,
+        }
+    }
+
+    pub(super) fn closed(self, is_closed: bool) -> Self {
+        match (self, is_closed) {
+            (Self::Enabled, true) => Self::Disabled,
+            (link, _) => link,
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemConfirmFeeRow {
     pub title: GemListRowTitle,
     pub value: GemConfirmFeeValue,
     pub info: GemInfoTopic,
-    pub opens_details: bool,
+    pub link: GemConfirmRowLink,
 }
 
 impl GemConfirmFeeRow {
-    pub(super) fn new(value: GemConfirmFeeValue, fee_asset: Asset, opens_details: bool) -> Self {
+    pub(super) fn new(value: GemConfirmFeeValue, fee_asset: Asset, link: GemConfirmRowLink) -> Self {
         Self {
             title: GemListRowTitle::NetworkFee,
             value,
             info: GemInfoTopic::NetworkFee { asset: fee_asset },
-            opens_details,
+            link,
         }
     }
 }
@@ -680,8 +703,17 @@ mod tests {
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 #[allow(clippy::large_enum_variant)]
 pub enum GemConfirmRowContent {
-    Row { row: GemListRow },
-    Recipient { row: GemAddressRow },
+    Row {
+        row: GemListRow,
+    },
+    Recipient {
+        row: GemAddressRow,
+    },
     Details,
-    PaymentAsset { title: GemListRowTitle, symbol: String, selectable: bool, asset_ids: Vec<AssetId> },
+    PaymentAsset {
+        title: GemListRowTitle,
+        symbol: String,
+        link: GemConfirmRowLink,
+        asset_ids: Vec<AssetId>,
+    },
 }

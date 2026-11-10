@@ -36,6 +36,8 @@ import com.gemwallet.android.features.transfer.presents.confirm.components.FeeDe
 import com.gemwallet.android.features.transfer.presents.confirm.components.confirmBalanceChangesContent
 import com.gemwallet.android.features.transfer.viewmodels.confirm.ConfirmTransferViewModel
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.GetAssetAction
+import com.gemwallet.android.features.transfer.viewmodels.confirm.models.listItem
+import com.gemwallet.android.features.transfer.viewmodels.confirm.models.verificationListItem
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoBottomSheet
@@ -74,6 +76,7 @@ import com.wallet.core.primitives.ChainAddress
 import uniffi.gemstone.GemConfirmAction
 import uniffi.gemstone.GemConfirmDetails
 import uniffi.gemstone.GemConfirmRowContent
+import uniffi.gemstone.GemConfirmRowLink
 import uniffi.gemstone.GemConfirmSection
 import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.SimulationResult
@@ -100,7 +103,6 @@ fun ConfirmTransferScreen(
 
     val context = LocalContext.current
     val transactionRows by viewModel.transactionRows.collectAsStateWithLifecycle()
-    val feeListItem by viewModel.feeListItem.collectAsStateWithLifecycle()
     val balanceChangeRows by viewModel.balanceChangeRows.collectAsStateWithLifecycle()
     val loadError by viewModel.loadError.collectAsStateWithLifecycle()
     val sections by viewModel.sections.collectAsStateWithLifecycle()
@@ -223,15 +225,11 @@ fun ConfirmTransferScreen(
                                     onClick = { onOpenAddress(ChainAddress(row.row.chain.toChain(), row.row.address)) },
                                 )
 
-                                is GemConfirmRowContent.PaymentAsset -> ListItem(
+                                is GemConfirmRowContent.PaymentAsset -> ConfirmLinkItem(
                                     model = ListItemModel(title = row.title.text(context), subtitle = row.symbol),
                                     listPosition = listPosition,
-                                    modifier = if (row.selectable) Modifier.clickable { onSelectPaymentAsset(row.assetIds.mapNotNull { it.toAssetId() }) } else Modifier,
-                                    accessory = if (row.selectable) {
-                                        { DataBadgeChevron() }
-                                    } else {
-                                        null
-                                    },
+                                    link = row.link,
+                                    onClick = { onSelectPaymentAsset(row.assetIds.mapNotNull { it.toAssetId() }) },
                                 )
 
                                 GemConfirmRowContent.Details -> Unit
@@ -261,30 +259,24 @@ fun ConfirmTransferScreen(
 
                     is GemConfirmSection.BalanceChanges -> confirmBalanceChangesContent(balanceChangeRows)
 
-                    GemConfirmSection.NetworkFee, GemConfirmSection.Verification -> {
-                        item {
-                            feeListItem?.let {
-                                val onSelect: (() -> Unit)? = when {
-                                    verification != null -> viewModel::showVerification
-
-                                    feeRow?.opensDetails == true -> {
-                                        { showSelectTxSpeed = true }
-                                    }
-
-                                    else -> null
-                                }
-                                ListItem(
-                                    model = it,
-                                    listPosition = ListPosition.Single,
-                                    modifier = if (onSelect != null) Modifier.clickable(onClick = onSelect) else Modifier,
-                                    accessory = if (onSelect != null) {
-                                        { DataBadgeChevron() }
-                                    } else {
-                                        null
-                                    },
-                                )
-                            }
+                    GemConfirmSection.NetworkFee -> item {
+                        feeRow?.let { row ->
+                            ConfirmLinkItem(
+                                model = row.listItem(context),
+                                listPosition = ListPosition.Single,
+                                link = row.link,
+                                onClick = { showSelectTxSpeed = true },
+                            )
                         }
+                    }
+
+                    GemConfirmSection.Verification -> item {
+                        ConfirmLinkItem(
+                            model = verificationListItem(context),
+                            listPosition = ListPosition.Single,
+                            link = GemConfirmRowLink.ENABLED,
+                            onClick = viewModel::showVerification,
+                        )
                     }
 
                     is GemConfirmSection.Error -> Unit
@@ -383,6 +375,25 @@ fun ConfirmTransferScreen(
             },
         )
     }
+}
+
+@Composable
+private fun ConfirmLinkItem(model: ListItemModel, listPosition: ListPosition, link: GemConfirmRowLink, onClick: () -> Unit) {
+    ListItem(
+        model = model,
+        listPosition = listPosition,
+        modifier = when (link) {
+            GemConfirmRowLink.ENABLED -> Modifier.clickable(onClick = onClick)
+            GemConfirmRowLink.NONE, GemConfirmRowLink.DISABLED -> Modifier
+        },
+        accessory = when (link) {
+            GemConfirmRowLink.NONE -> null
+
+            GemConfirmRowLink.ENABLED, GemConfirmRowLink.DISABLED -> {
+                { DataBadgeChevron() }
+            }
+        },
+    )
 }
 
 @Composable

@@ -21,9 +21,7 @@ public struct NavigationCustomLink<Content: View>: View {
             HStack {
                 content
                     .layoutPriority(1)
-                if isEnabled {
-                    NavigationLink.empty
-                }
+                NavigationLink.empty
             }
         }
         .tint(Colors.black)

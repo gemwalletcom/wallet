@@ -124,7 +124,7 @@ public final class GemConfirmationMock: GemConfirmationProtocol, @unchecked Send
             title: .networkFee,
             value: screen.feeValue(load: loaded),
             info: .networkFee(asset: loaded?.feeAsset ?? transfer().feeAsset()),
-            opensDetails: feeRates != nil,
+            link: feeRates != nil ? .enabled : .none,
         )
     }
 

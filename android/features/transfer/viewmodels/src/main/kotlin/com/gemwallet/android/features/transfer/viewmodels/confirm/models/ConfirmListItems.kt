@@ -42,7 +42,7 @@ fun GemFeeAmount?.networkFeeListItem(context: Context, feeAsset: Asset): ListIte
 
 private fun networkFeeInfo(feeAsset: Asset?) = feeAsset?.let { GemInfoTopic.NetworkFee(it.toGem()).infoSheet() }
 
-internal fun verificationListItem(context: Context): ListItemModel = ListItemModel(
+fun verificationListItem(context: Context): ListItemModel = ListItemModel(
     title = context.getString(R.string.info_payment_verification_title),
     subtitleTagType = ListItemTagType.Pending,
     info = GemInfoTopic.PaymentVerification.infoSheet(),

@@ -9,7 +9,7 @@ extension GemConfirmRowContent {
         switch self {
         case let .row(row): .row(row)
         case let .recipient(row): .recipient(row)
-        case let .paymentAsset(title, symbol, selectable, _): .paymentAsset(ListItemModel(title: title.text, subtitle: symbol), selectable: selectable)
+        case let .paymentAsset(title, symbol, link, _): .paymentAsset(ListItemModel(title: title.text, subtitle: symbol), link: link)
         case .details: .empty
         }
     }

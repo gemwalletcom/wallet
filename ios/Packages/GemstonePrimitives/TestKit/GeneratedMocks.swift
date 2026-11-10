@@ -375,13 +375,13 @@ public extension Gemstone.GemConfirmFeeRow {
         title: Gemstone.GemListRowTitle = .api,
         value: Gemstone.GemConfirmFeeValue = .loading,
         info: Gemstone.GemInfoTopic = .mock(),
-        opensDetails: Bool = false,
+        link: Gemstone.GemConfirmRowLink = .none,
     ) -> Gemstone.GemConfirmFeeRow {
         Gemstone.GemConfirmFeeRow(
             title: title,
             value: value,
             info: info,
-            opensDetails: opensDetails,
+            link: link,
         )
     }
 }

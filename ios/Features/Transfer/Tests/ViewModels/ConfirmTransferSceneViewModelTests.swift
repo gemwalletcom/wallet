@@ -53,7 +53,7 @@ struct ConfirmTransferSceneViewModelTests {
             rows: { _ in [.paymentAsset(
                 title: .payWith,
                 symbol: "ETH",
-                selectable: true,
+                link: .enabled,
                 assetIds: [Asset.mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18).id, Asset.mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18).id],
             )] },
         )
@@ -211,10 +211,10 @@ struct ConfirmTransferSceneViewModelTests {
         model.state = .mock(screen: .mock(phase: .failed, failure: GemConfirmFailure(stage: .load, error: .Load(msg: "test"))))
         let errorFeeItem = model.itemModel(for: .networkFee)
 
-        if case let .networkFee(listItem, selectable) = errorFeeItem {
+        if case let .networkFee(listItem, link) = errorFeeItem {
             #expect(listItem.subtitle == "-")
             #expect(listItem.subtitleExtra == nil)
-            #expect(selectable)
+            #expect(link == .enabled)
         } else {
             Issue.record("Expected network fee item model for error state")
         }
@@ -223,9 +223,9 @@ struct ConfirmTransferSceneViewModelTests {
         model.state = .mock(load: .mock(fee: fee), screen: .mock(phase: .ready, hasFee: true))
         let loadedFeeItem = model.itemModel(for: .networkFee)
 
-        if case let .networkFee(listItem, selectable) = loadedFeeItem {
+        if case let .networkFee(listItem, link) = loadedFeeItem {
             #expect(listItem.subtitle != nil)
-            #expect(selectable)
+            #expect(link == .enabled)
         } else {
             Issue.record("Expected network fee item model with loaded fee")
         }
@@ -245,10 +245,10 @@ struct ConfirmTransferSceneViewModelTests {
         model.state = .mock(load: .mock())
         let reloadingFeeItem = model.itemModel(for: .networkFee)
 
-        if case let .networkFee(listItem, selectable) = reloadingFeeItem {
+        if case let .networkFee(listItem, link) = reloadingFeeItem {
             #expect(listItem.subtitle == nil)
             #expect(listItem.hasSubtitlePlaceholder)
-            #expect(selectable)
+            #expect(link == .enabled)
         } else {
             Issue.record("Expected network fee item model while reloading")
         }
@@ -318,11 +318,11 @@ struct ConfirmTransferSceneViewModelTests {
         await confirmation { reloading in
             confirmationMock.onLoad = {
                 let feeItem = model.itemModel(for: .networkFee)
-                guard case let .networkFee(listItem, selectable) = feeItem else { return }
+                guard case let .networkFee(listItem, link) = feeItem else { return }
                 #expect(model.state.screen.phase == .loading)
                 #expect(model.state.fee != nil)
                 #expect(listItem.hasSubtitlePlaceholder)
-                #expect(selectable)
+                #expect(link == .enabled)
                 reloading()
             }
             model.changeFeeSelection(.priority(priority: .fast))

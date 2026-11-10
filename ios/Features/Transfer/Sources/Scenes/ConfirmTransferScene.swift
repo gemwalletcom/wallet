@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import enum Gemstone.GemConfirmRowLink
 import Primitives
 import PrimitivesComponents
 import Store
@@ -54,12 +55,8 @@ extension ConfirmTransferScene {
             GemListRowView(row: row)
         case let .recipient(row):
             AddressListItemView(row: row, onSelect: { model.onSelectAddress(ChainAddress(chain: Chain(core: row.chain), address: row.address)) })
-        case let .paymentAsset(model, selectable):
-            NavigationCustomLink(
-                with: ListItemView(model: model),
-                isEnabled: selectable,
-                action: self.model.onSelectPaymentAsset,
-            )
+        case let .paymentAsset(model, link):
+            linkView(model: model, link: link, action: self.model.onSelectPaymentAsset)
         case let .message(text):
             Text(text)
         case let .swapDetails(details):
@@ -74,15 +71,8 @@ extension ConfirmTransferScene {
             )
         case let .perpetualModifyPosition(row):
             GemListRowView(row: row, onInfo: model.onInfo)
-        case let .networkFee(model, selectable):
-            if selectable {
-                NavigationCustomLink(
-                    with: ListItemView(model: model),
-                    action: self.model.onSelectFeePicker,
-                )
-            } else {
-                ListItemView(model: model)
-            }
+        case let .networkFee(model, link):
+            linkView(model: model, link: link, action: self.model.onSelectFeePicker)
         case let .verification(model):
             NavigationCustomLink(
                 with: ListItemView(model: model),
@@ -111,6 +101,20 @@ extension ConfirmTransferScene {
             )
         case .empty:
             EmptyView()
+        }
+    }
+
+    @ViewBuilder
+    private func linkView(model: ListItemModel, link: GemConfirmRowLink, action: @escaping @MainActor @Sendable () -> Void) -> some View {
+        switch link {
+        case .none:
+            ListItemView(model: model)
+        case .enabled, .disabled:
+            NavigationCustomLink(
+                with: ListItemView(model: model),
+                isEnabled: link == .enabled,
+                action: action,
+            )
         }
     }
 }

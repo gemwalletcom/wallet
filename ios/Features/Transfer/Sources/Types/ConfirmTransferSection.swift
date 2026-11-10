@@ -4,6 +4,7 @@ import Components
 import Foundation
 import struct Gemstone.GemAddressRow
 import struct Gemstone.GemConfirmHeader
+import enum Gemstone.GemConfirmRowLink
 import enum Gemstone.GemListRow
 import struct Gemstone.GemSwapDetails
 import GemstonePrimitives
@@ -50,11 +51,11 @@ public enum ConfirmTransferItemModel {
     case header(GemConfirmHeader)
     case row(GemListRow)
     case recipient(GemAddressRow)
-    case paymentAsset(ListItemModel, selectable: Bool)
+    case paymentAsset(ListItemModel, link: GemConfirmRowLink)
     case message(String)
     case verification(ListItemModel)
     case swapDetails(GemSwapDetails)
-    case networkFee(ListItemModel, selectable: Bool)
+    case networkFee(ListItemModel, link: GemConfirmRowLink)
     case perpetualDetails(PerpetualDetailsViewModel)
     case perpetualModifyPosition(GemListRow)
     case warnings([GemListRow])

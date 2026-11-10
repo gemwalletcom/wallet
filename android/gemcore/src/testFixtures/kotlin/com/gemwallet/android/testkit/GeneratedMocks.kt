@@ -1253,12 +1253,12 @@ fun mockGemConfirmFeeRow(
     title: uniffi.gemstone.GemListRowTitle = uniffi.gemstone.GemListRowTitle.API,
     value: uniffi.gemstone.GemConfirmFeeValue = uniffi.gemstone.GemConfirmFeeValue.Loading,
     info: uniffi.gemstone.GemInfoTopic = mockGemInfoTopic(),
-    opensDetails: Boolean = false,
+    link: uniffi.gemstone.GemConfirmRowLink = uniffi.gemstone.GemConfirmRowLink.NONE,
 ) = uniffi.gemstone.GemConfirmFeeRow(
     title = title,
     value = value,
     info = info,
-    opensDetails = opensDetails,
+    link = link,
 )
 
 fun mockGemConfirmFeeSelection(): uniffi.gemstone.GemConfirmFeeSelection = uniffi.gemstone.GemConfirmFeeSelection.Priority(priority = uniffi.gemstone.FeePriority.NORMAL)

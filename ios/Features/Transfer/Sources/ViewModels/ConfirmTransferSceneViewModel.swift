@@ -254,7 +254,7 @@ extension ConfirmTransferSceneViewModel {
 
     func onSelectPaymentAsset() {
         let assetIds = rowContents.lazy.compactMap { content -> [AssetId]? in
-            guard case let .paymentAsset(_, _, selectable, assetIds) = content, selectable else { return nil }
+            guard case let .paymentAsset(_, _, _, assetIds) = content else { return nil }
             return assetIds
         }.first
         guard let assetIds else { return }

@@ -18,12 +18,9 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.AcquireAssetRequest
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.ConfirmErrorUIModel
-import com.gemwallet.android.features.transfer.viewmodels.confirm.models.listItem
-import com.gemwallet.android.features.transfer.viewmodels.confirm.models.verificationListItem
 import com.gemwallet.android.math.numberFormat
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.infoSheet
-import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.localization.broadcastLabel
 import com.gemwallet.android.ui.localization.label
 import com.gemwallet.android.ui.localization.text
@@ -266,11 +263,6 @@ class ConfirmTransferViewModel @Inject constructor(
         screen.update { it.onLoadFailed(error.toConfirmError()) }
         if (screen.value.presentsSheet()) isErrorSheetVisible.value = true
     }
-
-    val feeListItem: StateFlow<ListItemModel?> = combine(feeRow, verification) { feeRow, verification ->
-        verification?.let { verificationListItem(context) } ?: feeRow?.listItem(context)
-    }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val balanceChangeRows: StateFlow<List<GemListRow>> = sections.map { sections -> sections.filterIsInstance<GemConfirmSection.BalanceChanges>().firstOrNull()?.rows.orEmpty() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())

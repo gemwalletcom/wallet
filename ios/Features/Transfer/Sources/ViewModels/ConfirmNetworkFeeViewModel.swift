@@ -31,7 +31,7 @@ extension ConfirmNetworkFeeViewModel {
                 placeholders: [.subtitle],
                 infoAction: { [feeRow, onInfo] in onInfo(feeRow.info) },
             ),
-            selectable: feeRow.opensDetails,
+            link: feeRow.link,
         )
     }
 }

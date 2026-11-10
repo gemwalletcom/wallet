@@ -38,6 +38,7 @@ import org.junit.Test
 import uniffi.gemstone.GemConfirmLoad
 import uniffi.gemstone.GemConfirmLoadOptions
 import uniffi.gemstone.GemConfirmRowContent
+import uniffi.gemstone.GemConfirmRowLink
 import uniffi.gemstone.GemConfirmation
 import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemRecipient
@@ -61,7 +62,7 @@ class ConfirmTransferViewModelPaymentAssetTest {
     @Test
     fun thePaymentAssetRowOffersTheAssetsCorePicked() = runTest(testDispatcher) {
         every { confirmation.rowContents(any()) } returns listOf(
-            GemConfirmRowContent.PaymentAsset(title = GemListRowTitle.PAY_WITH, symbol = ethereum.symbol, selectable = true, assetIds = listOf(ethereum.id.toIdentifier(), usdt.id.toIdentifier())),
+            GemConfirmRowContent.PaymentAsset(title = GemListRowTitle.PAY_WITH, symbol = ethereum.symbol, link = GemConfirmRowLink.ENABLED, assetIds = listOf(ethereum.id.toIdentifier(), usdt.id.toIdentifier())),
         )
         val viewModel = viewModel(payment(ethereum))
 
