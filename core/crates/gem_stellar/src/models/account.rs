@@ -38,4 +38,5 @@ pub struct Balance {
     pub asset_type: String,
     pub asset_code: Option<String>,
     pub asset_issuer: Option<String>,
+    pub selling_liabilities: Option<String>,
 }
