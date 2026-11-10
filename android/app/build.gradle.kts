@@ -278,10 +278,6 @@ dependencies {
         }
     }
 
-    // Preview
-    debugImplementation(libs.androidx.ui.tooling)
-    implementation(libs.androidx.ui.tooling.preview)
-
     // Tests
 
 
