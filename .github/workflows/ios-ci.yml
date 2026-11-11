@@ -49,6 +49,10 @@ jobs:
       - name: Setup iOS CI
         uses: ./.github/actions/setup-ios-ci
 
+      - name: Boot Simulator
+        working-directory: ios
+        run: just boot-simulator
+
       - name: Install dependencies
         working-directory: ios
         run: just install-toolchains
@@ -67,6 +71,74 @@ jobs:
         working-directory: ios
         run: just build-for-testing
 
-      - name: Unit Tests
+      - name: Start diagnostics
+        run: |
+          mkdir -p "$RUNNER_TEMP/diag/bin"
+          echo "DIAG_DIR=$RUNNER_TEMP/diag" >> "$GITHUB_ENV"
+          sysctl -n hw.ncpu hw.memsize > "$RUNNER_TEMP/diag/machine.txt"
+          real_xcbeautify="$(command -v xcbeautify)"
+          cat > "$RUNNER_TEMP/diag/bin/xcbeautify" <<SHIM
+          #!/bin/bash
+          perl -MPOSIX -ne 'BEGIN { \$| = 1; open(F, ">>", \$ENV{RAW_LOG}); select((select(F), \$| = 1)[0]) } print F strftime("%H:%M:%S ", gmtime), \$_; print' | "$real_xcbeautify" "\$@"
+          SHIM
+          chmod +x "$RUNNER_TEMP/diag/bin/xcbeautify"
+          cat "$RUNNER_TEMP/diag/bin/xcbeautify"
+          nohup bash -c 'while true; do
+            echo "=== $(date -u +%H:%M:%S) load $(sysctl -n vm.loadavg) swap $(sysctl -n vm.swapusage)"
+            memory_pressure | tail -1
+            ps -Ao pcpu,rss,etime,comm -r | head -15
+            xcrun simctl list devices | grep Booted
+            sleep 30
+          done' > "$RUNNER_TEMP/diag/sampler.log" 2>&1 &
+
+      - name: Unit Tests (xctestrun, serial, booted simulator)
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        timeout-minutes: 45
         working-directory: ios
-        run: just test-without-building
+        run: |
+          export PATH="$DIAG_DIR/bin:$PATH" RAW_LOG="$DIAG_DIR/a-xctestrun-serial.log"
+          ls build/DerivedData/Build/Products/*.xctestrun
+          set -o pipefail
+          xcodebuild \
+            -xctestrun "$(ls build/DerivedData/Build/Products/*.xctestrun | head -1)" \
+            -derivedDataPath build/DerivedData \
+            -destination "platform=iOS Simulator,name=iPhone 17,OS=$SIMULATOR_OS" \
+            -parallel-testing-enabled NO \
+            test-without-building | xcbeautify --quiet --is-ci
+
+      - name: Unit Tests (scheme, serial, booted simulator)
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        timeout-minutes: 45
+        working-directory: ios
+        run: |
+          export PATH="$DIAG_DIR/bin:$PATH" RAW_LOG="$DIAG_DIR/b-scheme-serial.log"
+          set -o pipefail
+          xcodebuild -project Gem.xcodeproj \
+            -derivedDataPath build/DerivedData \
+            -clonedSourcePackagesDirPath build/SourcePackages \
+            -scheme Gem \
+            -configuration Debug \
+            -destination "platform=iOS Simulator,name=iPhone 17,OS=$SIMULATOR_OS" \
+            ONLY_ACTIVE_ARCH=YES \
+            -parallelizeTargets -jobs "$(getconf _NPROCESSORS_ONLN)" \
+            "OTHER_LDFLAGS=\$(inherited) $PWD/../core/target/aarch64-apple-ios-sim/debug/libgemstone.a" \
+            COMPILATION_CACHE_ENABLE_CACHING=YES COMPILATION_CACHE_LIMIT_SIZE=40G \
+            -parallel-testing-enabled NO \
+            test-without-building | xcbeautify --quiet --is-ci
+
+      - name: Unit Tests (baseline)
+        if: ${{ !cancelled() }}
+        timeout-minutes: 60
+        working-directory: ios
+        run: |
+          export PATH="$DIAG_DIR/bin:$PATH" RAW_LOG="$DIAG_DIR/c-baseline.log"
+          just test-without-building
+
+      - name: Upload diagnostics
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ios-unit-test-diagnostics
+          path: ${{ runner.temp }}/diag
