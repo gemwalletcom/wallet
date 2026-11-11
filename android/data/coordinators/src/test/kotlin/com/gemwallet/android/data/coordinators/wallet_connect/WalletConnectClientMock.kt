@@ -13,6 +13,7 @@ class WalletConnectClientMock(
     private val pairing: suspend (String) -> Unit = {},
     private val receiving: suspend (String) -> Unit = {},
     private val answering: suspend (String, String) -> GemWalletConnectFailure? = { _, _ -> null },
+    private val following: suspend (Wallet) -> Unit = {},
 ) : GemWalletConnectClientInterface {
     val calls: MutableList<String> = Collections.synchronizedList(mutableListOf())
 
@@ -29,6 +30,11 @@ class WalletConnectClientMock(
     override suspend fun receive(frame: String) {
         calls.add("receive $frame")
         receiving(frame)
+    }
+
+    override suspend fun followWallet(wallet: Wallet) {
+        calls.add("followWallet ${wallet.id}")
+        following(wallet)
     }
 
     override suspend fun pair(uri: String) {

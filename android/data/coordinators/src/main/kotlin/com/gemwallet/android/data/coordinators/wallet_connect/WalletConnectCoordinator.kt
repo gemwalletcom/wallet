@@ -16,6 +16,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemWalletConnectAuthMessage
@@ -42,6 +43,7 @@ class WalletConnectCoordinator(
 
     private val requestJobs = ConcurrentHashMap<GemWalletConnectSessionRequest, Job>()
     private var connectionJob: Job? = null
+    private val followedWallets = Channel<Wallet>(Channel.UNLIMITED)
 
     init {
         scope.launch {
@@ -50,6 +52,16 @@ class WalletConnectCoordinator(
                     client.restore()
                 }
             }.onFailure { Log.e(TAG, "Restore sessions failed", it) }
+        }
+        scope.launch {
+            for (wallet in followedWallets) {
+                runCatchingCancellable {
+                    client.followWallet(wallet.toGem())
+                    if (client.needsConnection()) {
+                        connect()
+                    }
+                }.onFailure { Log.e(TAG, "Follow wallet failed", it) }
+            }
         }
     }
 
@@ -72,6 +84,10 @@ class WalletConnectCoordinator(
     override suspend fun syncSessions() {
         runCatchingCancellable { client.restore() }
             .onFailure { Log.e(TAG, "Restore sessions failed", it) }
+    }
+
+    override fun followWallet(wallet: Wallet) {
+        followedWallets.trySend(wallet)
     }
 
     override suspend fun disconnect(connectionId: String, onSuccess: () -> Unit, onError: (GemErrorText) -> Unit) {

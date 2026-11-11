@@ -25,6 +25,8 @@ public actor GemWalletConnectClientMock: GemWalletConnectClientProtocol {
 
     public func approveSession(proposalId _: String, wallet _: Gemstone.Wallet) async throws {}
 
+    public func followWallet(wallet _: Gemstone.Wallet) async throws {}
+
     public func rejectSession(proposalId _: String, reason _: GemWalletConnectRejectionReason) async throws {}
 
     public func answerRequest(topic _: String, requestId _: String) async throws -> GemWalletConnectFailure? {

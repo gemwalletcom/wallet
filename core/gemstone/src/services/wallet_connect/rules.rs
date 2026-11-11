@@ -260,6 +260,59 @@ pub fn bitcoin_address_event_chains(namespaces: &BTreeMap<String, SessionNamespa
     Some(unique(namespace.accounts.iter().filter_map(|account| account.rsplit_once(':').map(|(chain_id, _)| chain_id.to_string()))))
 }
 
+const ACCOUNTS_CHANGED_EVENT: &str = "accountsChanged";
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct AccountChangeEvent {
+    pub chain_id: String,
+    pub name: &'static str,
+    pub data: serde_json::Value,
+}
+
+pub fn namespaces_for_wallet(namespaces: &BTreeMap<String, SessionNamespace>, wallet: &Wallet) -> Option<BTreeMap<String, SessionNamespace>> {
+    if wallet.wallet_type == WalletType::View {
+        return None;
+    }
+    namespaces
+        .iter()
+        .map(|(key, namespace)| {
+            let accounts = namespace
+                .accounts
+                .iter()
+                .map(|account| {
+                    let chain = WalletConnectCAIP2::parse_account(account.clone())?.chain;
+                    let (chain_id, _) = account.rsplit_once(':')?;
+                    let address = &wallet.accounts.iter().find(|candidate| candidate.chain == chain)?.address;
+                    Some(format!("{chain_id}:{address}"))
+                })
+                .collect::<Option<Vec<_>>>()?;
+            Some((key.clone(), SessionNamespace { accounts, ..namespace.clone() }))
+        })
+        .collect()
+}
+
+pub fn account_change_events(namespaces: &BTreeMap<String, SessionNamespace>, accounts: &[Account]) -> Vec<AccountChangeEvent> {
+    namespaces
+        .iter()
+        .filter_map(|(key, namespace)| {
+            let is_bitcoin = key == WalletConnectCAIP2::Bip122.as_ref();
+            let name = if is_bitcoin { BITCOIN_ADDRESSES_CHANGED_EVENT } else { ACCOUNTS_CHANGED_EVENT };
+            namespace.events.iter().any(|event| event == name).then_some((namespace, name, is_bitcoin))
+        })
+        .flat_map(|(namespace, name, is_bitcoin)| {
+            namespace.accounts.iter().filter_map(|account| account.rsplit_once(':')).map(move |(chain_id, address)| AccountChangeEvent {
+                chain_id: chain_id.to_string(),
+                name,
+                data: if is_bitcoin {
+                    serde_json::Value::Array(gem_wallet_connect::accounts::map_bitcoin_account_addresses(accounts))
+                } else {
+                    serde_json::json!([address])
+                },
+            })
+        })
+        .collect()
+}
+
 pub fn caip2_chain_ids(chain: Chain) -> Vec<String> {
     let Some(namespace) = WalletConnectCAIP2::get_namespace(chain) else {
         return vec![];
@@ -539,6 +592,59 @@ mod tests {
         assert_eq!(bitcoin_address_event_chains(&namespace(&[])), None, "a dapp that did not ask for the event never gets it");
         assert_eq!(bitcoin_address_event_chains(&BTreeMap::new()), None);
         assert!(session_events().contains(&BITCOIN_ADDRESSES_CHANGED_EVENT.to_string()), "the event is offered when a dapp asks for it");
+    }
+
+    #[test]
+    fn test_a_session_follows_a_wallet_that_holds_every_network_of_it() {
+        let namespaces = BTreeMap::from([(
+            "eip155".to_string(),
+            SessionNamespace {
+                chains: Some(vec!["eip155:1".to_string(), "eip155:137".to_string()]),
+                accounts: vec!["eip155:1:0xold".to_string(), "eip155:137:0xold".to_string()],
+                methods: vec!["personal_sign".to_string()],
+                events: vec!["accountsChanged".to_string(), "chainChanged".to_string()],
+            },
+        )]);
+        let other = Wallet::mock_with_accounts(vec![Account::mock(Chain::Ethereum, "0xnew"), Account::mock(Chain::Polygon, "0xnew")]);
+
+        let followed = namespaces_for_wallet(&namespaces, &other).unwrap();
+        assert_eq!(followed["eip155"].accounts, vec!["eip155:1:0xnew".to_string(), "eip155:137:0xnew".to_string()]);
+        assert_eq!(followed["eip155"].methods, namespaces["eip155"].methods, "only the accounts change");
+        assert_eq!(
+            account_change_events(&followed, &other.accounts),
+            vec![
+                AccountChangeEvent {
+                    chain_id: "eip155:1".to_string(),
+                    name: "accountsChanged",
+                    data: serde_json::json!(["0xnew"])
+                },
+                AccountChangeEvent {
+                    chain_id: "eip155:137".to_string(),
+                    name: "accountsChanged",
+                    data: serde_json::json!(["0xnew"])
+                },
+            ]
+        );
+
+        assert_eq!(
+            namespaces_for_wallet(&namespaces, &Wallet::mock_with_accounts(vec![Account::mock(Chain::Ethereum, "0xnew")])),
+            None,
+            "a wallet without Polygon can't take the session"
+        );
+        assert_eq!(
+            namespaces_for_wallet(&namespaces, &Wallet::mock_with_type(WalletType::View, &[Chain::Ethereum, Chain::Polygon])),
+            None,
+            "a view-only wallet can't sign for a dapp"
+        );
+
+        let quiet = BTreeMap::from([(
+            "eip155".to_string(),
+            SessionNamespace {
+                events: vec![],
+                ..namespaces["eip155"].clone()
+            },
+        )]);
+        assert!(account_change_events(&quiet, &other.accounts).is_empty(), "a dapp that did not ask for the event never gets it");
     }
 
     #[test]

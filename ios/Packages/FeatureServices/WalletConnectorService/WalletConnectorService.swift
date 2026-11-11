@@ -88,6 +88,11 @@ extension WalletConnectorService: WalletConnectorServiceable {
         try await client.disconnect(topic: sessionId)
     }
 
+    public func followWallet(_ wallet: Primitives.Wallet) async throws {
+        try await client.followWallet(wallet: wallet.toGem())
+        try await connect()
+    }
+
     public func updateSessions() async throws {
         guard eventsTask != nil else {
             return try await setup()

@@ -7,6 +7,7 @@ import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.WalletId
 import io.mockk.coEvery
 import io.mockk.mockk
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.test.TestScope
@@ -153,6 +154,23 @@ class WalletConnectCoordinatorTest {
 
         assertTrue(approved)
         assertEquals(listOf("approveSession key wallet-1"), client.calls)
+    }
+
+    @Test
+    fun `wallets the user switches to reach Core one at a time in the order chosen`() = runTest {
+        val firstFollowed = CompletableDeferred<Unit>()
+        val client = WalletConnectClientMock(following = { if (it.id == "first") firstFollowed.await() })
+        val subject = coordinator(client)
+
+        subject.followWallet(mockWallet(id = WalletId("first")))
+        subject.followWallet(mockWallet(id = WalletId("second")))
+        runCurrent()
+        assertEquals(listOf("followWallet first"), client.calls)
+
+        firstFollowed.complete(Unit)
+        runCurrent()
+
+        assertEquals(listOf("followWallet first", "followWallet second"), client.calls)
     }
 
     @Test

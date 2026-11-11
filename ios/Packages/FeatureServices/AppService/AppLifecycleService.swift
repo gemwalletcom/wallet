@@ -61,6 +61,14 @@ public actor AppLifecycleService: Sendable {
         _ = await (perpetual, stream)
     }
 
+    public func followWallet(_ wallet: Wallet) async {
+        do {
+            try await walletConnector.followWallet(wallet)
+        } catch {
+            debugLog("WalletConnect follow wallet error: \(error)")
+        }
+    }
+
     public func updatePerpetualConnection() async {
         await syncPerpetual()
     }

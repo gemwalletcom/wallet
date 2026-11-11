@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import Primitives
 import WalletConnectorService
 
 public actor WalletConnectorServiceMock: WalletConnectorServiceable {
@@ -42,4 +43,6 @@ public actor WalletConnectorServiceMock: WalletConnectorServiceable {
     }
 
     public func updateSessions() async throws {}
+
+    public func followWallet(_: Wallet) async throws {}
 }

@@ -135,13 +135,16 @@ extension RootSceneViewModel {
 // MARK: - Effects
 
 extension RootSceneViewModel {
-    func onChangeWalletId() {
+    func onChangeWalletId(_ previousWalletId: WalletId?, _: WalletId?) {
         guard let currentWallet else {
             Task { await appLifecycleService.updateWalletConnections() }
             return
         }
         navigationRouter.resetNavigation()
         setup(wallet: currentWallet)
+        if let previousWalletId, previousWalletId != currentWallet.id {
+            Task { await appLifecycleService.followWallet(currentWallet) }
+        }
     }
 
     func openUrl(_ url: URL) async {

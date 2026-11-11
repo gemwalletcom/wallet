@@ -34,7 +34,9 @@ impl GemConnectionStore for MemoryConnectionStore {
         Ok(self.connections.lock().unwrap().iter().map(|connection| connection.session.clone()).collect())
     }
     async fn add_connection(&self, connection: WalletConnection) -> Result<(), GemServiceError> {
-        self.connections.lock().unwrap().push(connection);
+        let mut connections = self.connections.lock().unwrap();
+        connections.retain(|stored| stored.session.id != connection.session.id);
+        connections.push(connection);
         Ok(())
     }
     async fn update_session(&self, session: WalletConnectionSession) -> Result<(), GemServiceError> {

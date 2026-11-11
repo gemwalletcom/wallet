@@ -12,6 +12,7 @@ use std::time::Duration;
 
 use chrono::Utc;
 use futures::future::{Either, select};
+use futures::lock::Mutex as AsyncMutex;
 use gem_crypto::random;
 use gem_encoding::encode_hex;
 use primitives::{Account, ApplicationMetadata, Platform, Wallet, WalletConnection, WalletConnectionSession};
@@ -64,6 +65,7 @@ pub struct GemWalletConnectClient {
     platform: Platform,
     state: Mutex<Option<ClientState>>,
     pairing_requests: Mutex<HashMap<String, PairingRequest>>,
+    wallet_follow: AsyncMutex<()>,
 }
 
 #[derive(Clone)]
@@ -124,6 +126,7 @@ impl GemWalletConnectClient {
             platform,
             state: Mutex::new(None),
             pairing_requests: Mutex::new(HashMap::new()),
+            wallet_follow: AsyncMutex::new(()),
         }
     }
 
@@ -345,6 +348,40 @@ impl GemWalletConnectClient {
         self.close_requests(&dropped);
         let request = payload::request(message_id(), METHOD_SESSION_DELETE, Reason::user_disconnected());
         self.publish(&session.topic, &crypto::parse_key(&session.key)?, &request, Publish::SessionDelete).await
+    }
+
+    pub async fn follow_wallet(&self, wallet: Wallet) -> Result<(), GemServiceError> {
+        let _following = self.wallet_follow.lock().await;
+        let sessions = self.read(|state| state.sessions.clone())?;
+        for session in sessions {
+            let Some(connection) = self.service.connection_of(&session.topic).await? else {
+                continue;
+            };
+            if connection.wallet.id == wallet.id {
+                continue;
+            }
+            let Some(namespaces) = rules::namespaces_for_wallet(&session.namespaces, &wallet) else {
+                continue;
+            };
+            self.update(|state| {
+                if let Some(stored) = state.sessions.iter_mut().find(|stored| stored.topic == session.topic) {
+                    stored.namespaces = namespaces.clone();
+                }
+            })?;
+            self.service
+                .add_connection(WalletConnection {
+                    session: connection.session,
+                    wallet: wallet.clone(),
+                })
+                .await?;
+            let key = crypto::parse_key(&session.key)?;
+            let update = payload::request(message_id(), METHOD_SESSION_UPDATE, UpdateParams { namespaces: &namespaces });
+            self.publish(&session.topic, &key, &update, Publish::SessionUpdate).await?;
+            for event in rules::account_change_events(&namespaces, &wallet.accounts) {
+                self.publish_event(&session.topic, &key, &event).await?;
+            }
+        }
+        Ok(())
     }
 
     pub fn authentication_message(&self, authentication_id: String, wallet: Wallet) -> Result<GemWalletConnectAuthMessage, GemServiceError> {
@@ -581,23 +618,28 @@ impl GemWalletConnectClient {
         let Some(chain_ids) = rules::bitcoin_address_event_chains(&session.namespaces) else {
             return Ok(());
         };
-        let addresses = serde_json::Value::Array(map_bitcoin_account_addresses(accounts));
         let key = crypto::parse_key(&session.key)?;
         for chain_id in chain_ids {
-            let event = payload::request(
-                message_id(),
-                METHOD_SESSION_EVENT,
-                EventParams {
-                    event: Event {
-                        name: rules::BITCOIN_ADDRESSES_CHANGED_EVENT,
-                        data: &addresses,
-                    },
-                    chain_id: &chain_id,
-                },
-            );
-            self.publish(&session.topic, &key, &event, Publish::SessionEvent).await?;
+            let event = rules::AccountChangeEvent {
+                chain_id,
+                name: rules::BITCOIN_ADDRESSES_CHANGED_EVENT,
+                data: serde_json::Value::Array(map_bitcoin_account_addresses(accounts)),
+            };
+            self.publish_event(&session.topic, &key, &event).await?;
         }
         Ok(())
+    }
+
+    async fn publish_event(&self, topic: &str, key: &Key, event: &rules::AccountChangeEvent) -> Result<(), GemServiceError> {
+        let request = payload::request(
+            message_id(),
+            METHOD_SESSION_EVENT,
+            EventParams {
+                event: Event { name: event.name, data: &event.data },
+                chain_id: &event.chain_id,
+            },
+        );
+        self.publish(topic, key, &request, Publish::SessionEvent).await
     }
 
     fn show_next_request(&self) -> Result<(), GemServiceError> {
@@ -962,7 +1004,7 @@ mod tests {
     use crate::testkit::TestAlienProvider;
     use futures::FutureExt;
     use futures::executor::block_on;
-    use primitives::{Chain, WalletConnectionVerificationStatus};
+    use primitives::{Chain, WalletConnectionVerificationStatus, WalletId, WalletType};
     use serde_json::Value;
     use wallet_connect_protocol::testkit::{TEST_PEER_PUBLIC_KEY, TEST_SYM_KEY, TEST_TOPIC, test_key, test_verify_key};
 
@@ -1075,6 +1117,48 @@ mod tests {
             assert_eq!(
                 events[0]["params"],
                 json(r#"{"event":{"name":"bip122_addressesChanged","data":[{"address":"bc1qaddress","path":"","intention":"payment"}]},"chainId":"bip122:000000000019d6689c085ae165831e93"}"#)
+            );
+        });
+    }
+
+    #[test]
+    fn test_connected_dapps_follow_the_wallet_the_user_switches_to() {
+        block_on(async {
+            let dapp = TestDapp::new();
+            let first = Wallet::mock_with_chains(&[Chain::Ethereum, Chain::Polygon]);
+            let (client, session_key) = GemWalletConnectClient::mock_connected(&dapp, first.clone()).await;
+            let topic = TestDapp::topic(&session_key);
+            let published = || dapp.transport.published(&topic, &session_key);
+
+            client.follow_wallet(first).await.unwrap();
+            assert!(published().is_empty(), "the wallet the dapp already uses changes nothing");
+
+            client.follow_wallet(Wallet::mock_with_type(WalletType::View, &[Chain::Ethereum, Chain::Polygon])).await.unwrap();
+            assert!(published().is_empty(), "a view-only wallet can't sign, so the dapp stays");
+
+            let second = Wallet {
+                id: WalletId::Multicoin("second".to_string()),
+                ..Wallet::mock_with_accounts(vec![Account::mock(Chain::Ethereum, "0xsecond"), Account::mock(Chain::Polygon, "0xsecond")])
+            };
+            client.follow_wallet(second.clone()).await.unwrap();
+
+            let messages = published();
+            assert_eq!(messages[0]["method"], METHOD_SESSION_UPDATE);
+            assert_eq!(messages[0]["params"]["namespaces"]["eip155"]["accounts"], json(r#"["eip155:1:0xsecond","eip155:137:0xsecond"]"#));
+            assert_eq!(messages[1]["method"], METHOD_SESSION_EVENT);
+            assert_eq!(
+                messages[1]["params"],
+                json(r#"{"event":{"name":"accountsChanged","data":["0xsecond"]},"chainId":"eip155:1"}"#),
+                "the dapp's account view shows the new address"
+            );
+            assert_eq!(
+                client.service.store.get_connection(topic.clone()).await.unwrap().unwrap().wallet.id,
+                second.id,
+                "the connection is listed under the wallet it now uses"
+            );
+            assert_eq!(
+                client.read(|state| state.sessions[0].namespaces["eip155"].accounts.clone()).unwrap(),
+                vec!["eip155:1:0xsecond".to_string(), "eip155:137:0xsecond".to_string()]
             );
         });
     }

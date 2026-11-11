@@ -8,12 +8,17 @@ import com.gemwallet.android.application.security.cases.SecurityPreferences
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.update.cases.SkipAppUpdate
 import com.gemwallet.android.application.update.cases.SyncAppUpdate
+import com.gemwallet.android.application.wallet_connect.cases.SyncWalletConnectSessions
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
+import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.testkit.mockGemAppUpdateOffer
+import com.gemwallet.android.testkit.mockSession
+import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.ui.AppViewModel
 import com.gemwallet.android.ui.navigation.OnboardingRoute
 import com.gemwallet.android.ui.navigation.WalletRootRoute
+import com.wallet.core.primitives.WalletId
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -72,8 +77,10 @@ class AppViewModelTest {
         skip: SkipAppUpdate = mockk(relaxed = true),
         securityPreferences: SecurityPreferences = mockk(relaxed = true),
         passwordProtection: WalletPasswordProtection = mockk(relaxed = true),
+        session: MutableStateFlow<Session?> = MutableStateFlow(null),
+        syncWalletConnectSessions: SyncWalletConnectSessions = mockk(relaxed = true),
     ): AppViewModel {
-        val session: GetSession = mockk { every { this@mockk.invoke() } returns MutableStateFlow(null) }
+        val getSession: GetSession = mockk { every { this@mockk.invoke() } returns session }
         val walletSession: GemWalletSessionServiceInterface = mockk {
             coEvery { ensureCurrentWallet() } returns currentWalletId
         }
@@ -84,7 +91,7 @@ class AppViewModelTest {
         val sync: SyncAppUpdate = mockk { coEvery { syncAppUpdate() } returns update }
         val walletHomeState: GetWalletHomeState = mockk { every { walletHomeState() } returns MutableStateFlow(null) }
         return AppViewModel(
-            session,
+            getSession,
             config,
             securityPreferences,
             passwordProtection,
@@ -93,6 +100,7 @@ class AppViewModelTest {
             mockk(relaxed = true),
             mockk<GemAppStartServiceInterface>(relaxed = true),
             walletSession,
+            syncWalletConnectSessions,
             walletHomeState,
             dispatcher,
         ).also { models.add(it) }
@@ -110,6 +118,21 @@ class AppViewModelTest {
         val model = viewModel(currentWalletId = "multicoin_0x1")
 
         assertEquals(WalletRootRoute, model.startDestinationState.first { it != null })
+    }
+
+    @Test
+    fun `connected dapps follow a wallet the user switches to, not the wallet the app opens on`() = runTest(dispatcher) {
+        val session = MutableStateFlow<Session?>(mockSession(wallet = mockWallet(id = WalletId("first"))))
+        val walletConnect: SyncWalletConnectSessions = mockk(relaxed = true)
+        viewModel(currentWalletId = "first", session = session, syncWalletConnectSessions = walletConnect)
+        advanceUntilIdle()
+
+        verify(exactly = 0) { walletConnect.followWallet(any()) }
+
+        session.value = mockSession(wallet = mockWallet(id = WalletId("second")))
+        advanceUntilIdle()
+
+        verify(exactly = 1) { walletConnect.followWallet(match { it.id == WalletId("second") }) }
     }
 
     @Test

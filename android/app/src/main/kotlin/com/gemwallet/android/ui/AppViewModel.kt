@@ -12,6 +12,7 @@ import com.gemwallet.android.application.security.cases.SecurityPreferences
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.update.cases.SkipAppUpdate
 import com.gemwallet.android.application.update.cases.SyncAppUpdate
+import com.gemwallet.android.application.wallet_connect.cases.SyncWalletConnectSessions
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
@@ -27,6 +28,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -51,6 +53,7 @@ class AppViewModel @Inject constructor(
     private val pendingNavigationCoordinator: PendingNavigationCoordinator,
     private val appStartService: GemAppStartServiceInterface,
     private val walletSessionService: GemWalletSessionServiceInterface,
+    private val syncWalletConnectSessions: SyncWalletConnectSessions,
     getWalletHomeState: GetWalletHomeState,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
@@ -105,6 +108,14 @@ class AppViewModel @Inject constructor(
                         Log.e(TAG, "${failure.step} failed: ${failure.message}")
                     }
                 }
+        }
+        viewModelScope.launch(ioDispatcher) {
+            getSession()
+                .filterNotNull()
+                .map { it.wallet }
+                .distinctUntilChangedBy { it.id }
+                .drop(1)
+                .collect(syncWalletConnectSessions::followWallet)
         }
     }
 
