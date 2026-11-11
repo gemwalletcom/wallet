@@ -33,7 +33,9 @@ extension XCUIApplication {
         tap("main_action")
     }
 
-    func skipEnableAuthentication() {
+    func skipEnableAuthentication(leaving identifier: String) {
+        let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: element(identifier))
+        XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 30), .completed, "\(identifier) still shown after saving the wallet")
         let skip = buttons["skip"].firstMatch
         if skip.waitForExistence(timeout: 2) {
             skip.tap()

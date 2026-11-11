@@ -74,7 +74,7 @@ final class CreateWalletUITests: XCTestCase {
 
         app.pickWords(words)
         app.tapMainAction()
-        app.skipEnableAuthentication()
+        app.skipEnableAuthentication(leaving: "word_option")
 
         return words
     }
