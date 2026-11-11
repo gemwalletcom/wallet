@@ -297,13 +297,16 @@ impl GemWalletConnectService {
                 self.wallet_connect.encode_sign_transaction(chain, transaction_id)
             }
             WalletConnectAction::SignAllTransactions { chain, transaction_type, transactions } => {
-                let [data] = transactions.as_slice() else {
-                    return Err(GemServiceError::Unsupported {
-                        msg: "signAllTransactions with multiple transactions is not yet supported".to_string(),
-                    });
-                };
-                let signed = self.sign_transaction(request, chain, transaction_type, data.clone(), GemWalletConnectTransactionAction::Sign).await?;
-                self.wallet_connect.encode_sign_all_transactions(vec![signed])
+                let (_, account) = self.connection_account(&request.topic, chain).await?;
+                for data in &transactions {
+                    let transaction = self.wallet_connect.decode_send_transaction(chain, transaction_type.clone(), data.clone())?;
+                    rules::validate_transaction_sender(&transaction, &account)?;
+                }
+                let mut signed = Vec::with_capacity(transactions.len());
+                for data in transactions {
+                    signed.push(self.sign_transaction(request, chain, transaction_type.clone(), data, GemWalletConnectTransactionAction::Sign).await?);
+                }
+                self.wallet_connect.encode_sign_all_transactions(signed)
             }
             WalletConnectAction::SendTransaction { chain, transaction_type, data } => {
                 let transaction_id = self.sign_transaction(request, chain, transaction_type, data, GemWalletConnectTransactionAction::Send).await?;
@@ -510,6 +513,48 @@ mod tests {
                 },
             }
         );
+    }
+
+    #[test]
+    fn test_a_solana_batch_is_reviewed_and_signed_one_transaction_at_a_time() {
+        block_on(async {
+            let fixture: serde_json::Value = serde_json::from_str(include_str!("../../../../crates/gem_wallet_connect/testdata/solana_sign_all_transactions.json")).unwrap();
+            let transaction = fixture["transactions"][0].as_str().unwrap();
+            let batch = |transactions: &[&str]| GemWalletConnectSessionRequest {
+                method: "solana_signAllTransactions".to_string(),
+                params: serde_json::json!({ "transactions": transactions }).to_string(),
+                chain_id: Some("solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp".to_string()),
+                ..GemWalletConnectSessionRequest::mock("batch")
+            };
+            let wallet = Wallet::mock_with_accounts(vec![Account::mock(Chain::Solana, TEST_PRIVATE_KEY_SOLANA_ADDRESS)]);
+            let service_with = |result: Result<String, GemServiceError>| {
+                let signer = Arc::new(TestWalletConnectSigner::new(result));
+                (GemWalletConnectService::mock_with_signer(signer.clone(), wallet.clone(), Arc::new(crate::testkit::TestAlienProvider::with_status(200))), signer)
+            };
+
+            let (service, signer) = service_with(Ok("signed".to_string()));
+            assert_eq!(
+                service.await.request_outcome(batch(&[transaction, transaction])).await,
+                GemWalletConnectOutcome::Respond {
+                    response: GemWalletConnectResponse::Response {
+                        value: WalletConnectResponseType::Object {
+                            json: r#"{"transactions":["signed","signed"]}"#.to_string()
+                        },
+                    },
+                }
+            );
+            assert_eq!(signer.transactions.lock().unwrap().len(), 2, "each transaction gets its own review");
+
+            let (service, signer) = service_with(Err(GemServiceError::Cancelled));
+            assert_eq!(service.await.request_outcome(batch(&[transaction, transaction])).await, GemWalletConnectOutcome::rejected());
+            assert_eq!(signer.transactions.lock().unwrap().len(), 1, "a rejected review refuses the whole batch");
+
+            let (service, signer) = service_with(Ok("signed".to_string()));
+            let GemWalletConnectOutcome::Fail { .. } = service.await.request_outcome(batch(&[transaction, "not a transaction"])).await else {
+                panic!("a batch with an unreadable transaction is refused");
+            };
+            assert!(signer.transactions.lock().unwrap().is_empty(), "nothing is reviewed before every transaction reads");
+        });
     }
 
     #[test]

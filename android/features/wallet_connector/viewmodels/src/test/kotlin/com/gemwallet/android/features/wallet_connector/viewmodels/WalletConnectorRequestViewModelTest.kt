@@ -32,6 +32,7 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -146,10 +147,9 @@ class WalletConnectorRequestViewModelTest {
             }
         }
 
-        assertEquals(
-            WalletConnectorRequestUIState.Transaction(ConfirmTransferInput(transfer, wallet), simulation),
-            model.awaitContent(),
-        )
+        val state = model.awaitContent() as WalletConnectorRequestUIState.Transaction
+        assertEquals(ConfirmTransferInput(transfer, wallet), state.input)
+        assertEquals(simulation, state.simulation)
 
         job.cancel()
     }
@@ -188,6 +188,39 @@ class WalletConnectorRequestViewModelTest {
         advanceUntilIdle()
         assertNull(requests.current.value)
         assertTrue(model.uiState.value is WalletConnectorRequestUIState.SignMessage)
+    }
+
+    @Test
+    fun `a batch shows each transaction's review in turn and any of them can be rejected`() = runTest(dispatcher) {
+        val requests = WalletConnectPendingRequests()
+        val model = viewModel(requests = requests)
+        val wallet = mockWallet(name = "Main Wallet")
+        val transfers = listOf(mockGemTransferData(value = BigInteger.ONE), mockGemTransferData(value = BigInteger.ONE))
+        val answers = mutableListOf<Result<String>>()
+
+        model.onRequest(sessionRequest, onError = {})
+        val job = launch {
+            for (transfer in transfers) {
+                val answer = runCatching {
+                    requests.signTransaction(mockGemWalletConnectTransactionRequest(sessionId = topic, wallet = wallet.toGem(), session = mockWalletConnectionSession(sessionId = topic).toGem(), transfer = transfer))
+                }
+                answers += answer
+                if (answer.isFailure) break
+            }
+        }
+
+        val first = model.awaitContent() as WalletConnectorRequestUIState.Transaction
+        model.onResult("signed-1")
+        advanceUntilIdle()
+        val second = model.uiState.value as WalletConnectorRequestUIState.Transaction
+        assertEquals(transfers[1], second.input.data)
+        assertNotEquals("an identical next transaction still opens its own review", first.reviewId, second.reviewId)
+
+        model.onReject()
+        job.join()
+
+        assertEquals("signed-1", answers[0].getOrNull())
+        assertTrue("rejecting the second review refuses the batch", answers[1].isFailure)
     }
 
     @Test

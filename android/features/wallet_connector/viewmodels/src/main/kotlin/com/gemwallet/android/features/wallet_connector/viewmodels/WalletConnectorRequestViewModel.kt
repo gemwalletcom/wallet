@@ -33,7 +33,7 @@ class WalletConnectorRequestViewModel @Inject constructor(
     private val state = MutableStateFlow(RequestViewModelState())
 
     private val request = combine(state, pendingRequests.current) { state, pending ->
-        state.approved ?: pending?.takeIf { it.sessionId == state.sessionRequest?.topic }
+        pending?.takeIf { it.sessionId == state.sessionRequest?.topic } ?: state.approved
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val uiState: StateFlow<WalletConnectorRequestUIState> = request
@@ -47,29 +47,32 @@ class WalletConnectorRequestViewModel @Inject constructor(
         pendingRequests.current.value?.takeIf { it.sessionId == sessionRequest.topic }?.reject()
         state.update { RequestViewModelState(sessionRequest = sessionRequest) }
         respondWalletConnectRequest.respondRequest(sessionRequest, onFailure = { onError(it.text(context)) }) {
-            state.update { it.copy(responseState = RequestResponseState.Finished) }
+            state.update { it.copy(isAnswered = true) }
             activeRequest.finish(sessionRequest)
         }
     }
 
     fun onResult(result: String) {
-        if (state.value.responseState == RequestResponseState.Responding) {
+        val request = request.value ?: return
+        if (request === state.value.approved) {
             return
         }
-        val request = request.value ?: return
-        state.update { it.copy(responseState = RequestResponseState.Responding, approved = request) }
+        state.update { it.copy(approved = request) }
         request.approve(result)
     }
 
     fun onReject() {
         val current = state.value
         val sessionRequest = current.sessionRequest ?: return
-        if (current.responseState != RequestResponseState.Idle) {
+        if (current.isAnswered) {
             return
         }
         val pending = pendingRequests.current.value
-        if (pending != null && pending.sessionId == sessionRequest.topic) {
+        if (pending != null && pending.sessionId == sessionRequest.topic && pending !== current.approved) {
             pending.reject()
+            return
+        }
+        if (current.approved != null) {
             return
         }
         respondWalletConnectRequest.rejectRequest(sessionRequest) { activeRequest.finish(sessionRequest) }
@@ -83,13 +86,7 @@ class WalletConnectorRequestViewModel @Inject constructor(
 private fun WalletConnectPendingRequest?.uiState(): WalletConnectorRequestUIState = when (this) {
     null -> WalletConnectorRequestUIState.Loading
     is WalletConnectPendingRequest.SignMessage -> WalletConnectorRequestUIState.SignMessage(this)
-    is WalletConnectPendingRequest.Transaction -> WalletConnectorRequestUIState.Transaction(ConfirmTransferInput(transfer, wallet), simulation)
+    is WalletConnectPendingRequest.Transaction -> WalletConnectorRequestUIState.Transaction(reviewId, ConfirmTransferInput(transfer, wallet), simulation)
 }
 
-private data class RequestViewModelState(val sessionRequest: GemWalletConnectSessionRequest? = null, val approved: WalletConnectPendingRequest? = null, val responseState: RequestResponseState = RequestResponseState.Idle)
-
-private enum class RequestResponseState {
-    Idle,
-    Responding,
-    Finished,
-}
+private data class RequestViewModelState(val sessionRequest: GemWalletConnectSessionRequest? = null, val approved: WalletConnectPendingRequest? = null, val isAnswered: Boolean = false)

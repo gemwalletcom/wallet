@@ -98,7 +98,7 @@ In this section, `➖` means WalletConnect does not publish an ecosystem method-
 | [TON](../core/crates/gem_wallet_connect/src/request_handler/ton.rs) | `ton` | `ton_sendMessage`<br>`ton_signData` | ➖ | <sub>[spec](https://docs.walletconnect.network/wallet-sdk/chain-support/ton)</sub> |
 | [Tron](../core/crates/gem_wallet_connect/src/request_handler/tron.rs) | `tron` | `tron_signMessage`<br>`tron_signTransaction`<br>`tron_sendTransaction` | `tron_getBalance` (optional) | <sub>[spec](https://docs.walletconnect.network/wallet-sdk/chain-support/tron)</sub> |
 
-Core's session-wide method list, consumed by both platform approval paths and by the one-click-auth namespace, advertises only the methods the request handler accepts. A method the handler cannot serve is absent from the method enum, so an incoming request for it reads as unsupported. `solana_signAllTransactions` is advertised and served for a single transaction; a batch is answered with an unsupported error rather than dropped from the session.
+Core's session-wide method list, consumed by both platform approval paths and by the one-click-auth namespace, advertises only the methods the request handler accepts. A method the handler cannot serve is absent from the method enum, so an incoming request for it reads as unsupported. `solana_signAllTransactions` signs each transaction of the batch after its own review and answers with every signed transaction in the order received.
 
 ### Chain coverage
 

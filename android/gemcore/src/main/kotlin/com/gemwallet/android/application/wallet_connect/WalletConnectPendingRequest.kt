@@ -19,10 +19,12 @@ import uniffi.gemstone.GemWalletConnectMessageRequest
 import uniffi.gemstone.GemWalletConnectSigner
 import uniffi.gemstone.GemWalletConnectTransactionRequest
 import uniffi.gemstone.SimulationResult
+import java.util.UUID
 import uniffi.gemstone.SignMessage as GemSignMessage
 
 sealed class WalletConnectPendingRequest(val sessionId: String, val requestId: String, chainId: String, val wallet: Wallet, session: uniffi.gemstone.WalletConnectionSession, val simulation: SimulationResult) {
     internal val result = CompletableDeferred<String>()
+    val reviewId: String = UUID.randomUUID().toString()
 
     val chain: Chain by lazy { chainId.requireChain() }
     val account: Account by lazy { checkNotNull(wallet.getAccount(chain)) { "Wallet has no $chain account" } }
