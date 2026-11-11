@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, TimeDelta, Utc};
 use coingecko::{
     Coin, CoinInfo, CoinMarket, get_asset_ids_for_coin,
     model::{MarketChart, Ohlc},
@@ -8,6 +8,8 @@ use coingecko::{
 use primitives::{AssetId, AssetLink, AssetMarket, ChartCandleStick, ChartPeriod, ChartValue, ChartValuePercentage, LinkType, OptionStringExt, PriceProvider};
 
 use crate::{AssetPriceFull, AssetPriceMapping, PriceProviderAsset, PriceProviderAssetMetadata};
+
+const MAX_CANDLES: usize = 60;
 
 pub fn ohlc_days(period: ChartPeriod) -> &'static str {
     match period {
@@ -20,19 +22,44 @@ pub fn ohlc_days(period: ChartPeriod) -> &'static str {
 }
 
 pub fn map_ohlc(candles: Vec<Ohlc>) -> Vec<ChartCandleStick> {
-    candles
-        .into_iter()
-        .filter_map(|(timestamp, open, high, low, close)| {
-            Some(ChartCandleStick {
-                date: DateTime::<Utc>::from_timestamp_millis(timestamp)?,
-                open,
-                high,
-                low,
-                close,
-                volume: 0.0,
+    consolidated(
+        candles
+            .into_iter()
+            .filter_map(|(timestamp, open, high, low, close)| {
+                Some(ChartCandleStick {
+                    date: DateTime::<Utc>::from_timestamp_millis(timestamp)?,
+                    open,
+                    high,
+                    low,
+                    close,
+                    volume: 0.0,
+                })
             })
-        })
-        .collect()
+            .collect(),
+    )
+}
+
+fn consolidated(candles: Vec<ChartCandleStick>) -> Vec<ChartCandleStick> {
+    let Some(step) = candles.windows(2).map(|pair| pair[1].date - pair[0].date).filter(|gap| *gap > TimeDelta::zero()).min() else {
+        return candles;
+    };
+    let bucket = (step * candles.len().div_ceil(MAX_CANDLES) as i32).num_milliseconds();
+    candles.into_iter().fold(Vec::new(), |mut merged: Vec<ChartCandleStick>, candle| {
+        let opened = (candle.date - step).timestamp_millis();
+        let Some(start) = DateTime::<Utc>::from_timestamp_millis(opened.div_euclid(bucket) * bucket) else {
+            return merged;
+        };
+        match merged.last_mut().filter(|last| last.date == start) {
+            Some(last) => {
+                last.high = last.high.max(candle.high);
+                last.low = last.low.min(candle.low);
+                last.close = candle.close;
+                last.volume += candle.volume;
+            }
+            None => merged.push(ChartCandleStick { date: start, ..candle }),
+        }
+        merged
+    })
 }
 
 pub fn map_market_chart(chart: MarketChart) -> Vec<ChartValue> {
@@ -212,12 +239,59 @@ fn map_coin_info_links(coin_info: &CoinInfo) -> Vec<AssetLink> {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
+    use std::collections::{HashMap, HashSet};
 
     use coingecko::CoinMarket;
     use primitives::Chain;
 
     use super::*;
+
+    #[test]
+    fn test_map_ohlc() {
+        let month: Vec<Ohlc> = serde_json::from_str(include_str!("../../../testdata/coingecko/ohlc_30_days.json")).unwrap();
+        let candles = map_ohlc(month);
+
+        assert_eq!(candles.len(), 61, "180 four-hour candles merge three per twelve hours, with a partial bucket at each end");
+        assert_eq!(
+            candles.windows(2).map(|pair| pair[1].date - pair[0].date).collect::<HashSet<_>>(),
+            HashSet::from([TimeDelta::hours(12)]),
+            "every merged candle is equally wide"
+        );
+        assert_eq!(
+            candles[1],
+            ChartCandleStick {
+                date: DateTime::from_timestamp(1_791_849_600, 0).unwrap(),
+                open: 81794.84881711744,
+                high: 84074.3179609627,
+                low: 81017.87137265243,
+                close: 83278.07271024103,
+                volume: 0.0,
+            }
+        );
+
+        assert_eq!(
+            map_ohlc(vec![(1_700_001_000_000, 1.0, 2.0, 0.5, 1.5), (1_700_002_800_000, 1.5, 3.0, 1.0, 2.5)]),
+            vec![
+                ChartCandleStick {
+                    date: DateTime::from_timestamp(1_699_999_200, 0).unwrap(),
+                    open: 1.0,
+                    high: 2.0,
+                    low: 0.5,
+                    close: 1.5,
+                    volume: 0.0,
+                },
+                ChartCandleStick {
+                    date: DateTime::from_timestamp(1_700_001_000, 0).unwrap(),
+                    open: 1.5,
+                    high: 3.0,
+                    low: 1.0,
+                    close: 2.5,
+                    volume: 0.0,
+                },
+            ],
+            "a short period keeps every candle, dated by when it opened"
+        );
+    }
 
     #[test]
     fn test_map_coin_markets_preserves_platform_mappings() {
