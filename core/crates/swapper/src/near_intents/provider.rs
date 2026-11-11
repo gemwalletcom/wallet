@@ -248,11 +248,13 @@ where
         let eta = response.quote.time_estimate;
         let min_amount_in = BigUint::from_str(&response.quote.min_amount_in.to_string()).map_err(SwapperError::compute_quote_error)?;
         let amount_out = BigUint::from_str(&response.quote.amount_out.to_string()).map_err(SwapperError::compute_quote_error)?;
+        let from_value = match quote_request.swap_type {
+            SwapType::ExactInput if response.quote.amount_in > request.value => return Err(SwapperError::InvalidRoute),
+            SwapType::ExactInput => response.quote.amount_in,
+            SwapType::FlexInput => request.value.clone(),
+        };
         Ok(Quote {
-            from_value: match quote_request.swap_type {
-                SwapType::ExactInput => response.quote.amount_in,
-                SwapType::FlexInput => request.value.clone(),
-            },
+            from_value,
             min_from_value: Some(min_amount_in),
             ..Quote::from_route(request, &self.provider, amount_out, request.options.slippage.bps, &quote_request, Some(eta))?
         })
@@ -365,6 +367,15 @@ mod tests {
                 ..SwapperQuoteData::new_transfer("0x1085c5f70F7F7591D97da281A64688385455c2bD".into(), BigUint::from(10002430500_u64), None)
             }
         );
+    }
+
+    #[tokio::test]
+    async fn test_hypercore_quote_never_pays_more_than_requested() {
+        let provider = NearIntents::new(Arc::new(ProviderMock::new(include_str!("testdata/quote_hypercore_to_ethereum_usdc.json").to_string())));
+        let mut request = mock_hypercore_quote_request();
+        request.value = BigUint::from(10002430499_u64);
+
+        assert_eq!(provider.get_quote(&request).await.err(), Some(SwapperError::InvalidRoute));
     }
 
     #[test]
