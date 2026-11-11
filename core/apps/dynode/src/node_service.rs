@@ -328,6 +328,10 @@ impl NodeService {
         }
     }
 
+    fn error_message(body: &Value) -> Option<&str> {
+        body.get("error").and_then(|error| error.as_str().or_else(|| error.get("message").and_then(Value::as_str))).or_else(|| body.get("message").and_then(Value::as_str))
+    }
+
     fn matches_response_error_signal(&self, response: &ProxyResponse) -> bool {
         if self.retry_config.errors.iter().any(|rule| rule.matches(response.status, None)) {
             return true;
@@ -336,7 +340,7 @@ impl NodeService {
         let Ok(body) = serde_json::from_slice::<Value>(&response.body) else {
             return false;
         };
-        let message = body.get("error").and_then(|error| error.as_str().or_else(|| error.get("message").and_then(Value::as_str)));
+        let message = Self::error_message(&body);
         if self.retry_config.ignore.iter().any(|rule| rule.matches(response.status, message)) {
             return false;
         }
@@ -577,6 +581,27 @@ mod tests {
         let response = ProxyResponse::new(200, HeaderMap::new(), Bytes::from_static(br#"{"jsonrpc":"2.0","error":{"code":-32000,"message":"Exceeded the quota usage"},"id":1}"#));
 
         assert!(service.matches_response_error_signal(&response));
+    }
+
+    #[test]
+    fn test_matches_retry_error_message_from_rest_style_error_fields() {
+        let service = NodeService {
+            retry_config: RetryConfig::mock_with_errors(vec![ErrorMatcherConfig {
+                message: Some("stale state".to_string()),
+                ..ErrorMatcherConfig::default()
+            }]),
+            ..NodeService::mock(ChainConfig::mock(Chain::Thorchain))
+        };
+
+        for (status, body, retry) in [
+            (400, br#"{"code":3, "message":"refusing quote on node with stale state: invalid request", "details":[]}"#.as_slice(), true),
+            (400, br#"{"error":{"code":3,"message":"refusing quote on node with stale state"}}"#.as_slice(), true),
+            (400, br#"{"error":"refusing quote on node with stale state"}"#.as_slice(), true),
+            (400, br#"{"code":3,"message":"trading is halted, can't process swap: invalid request","details":[]}"#.as_slice(), false),
+        ] {
+            let response = ProxyResponse::new(status, HeaderMap::new(), Bytes::copy_from_slice(body));
+            assert_eq!(service.matches_response_error_signal(&response), retry, "{}", String::from_utf8_lossy(body));
+        }
     }
 
     #[test]
