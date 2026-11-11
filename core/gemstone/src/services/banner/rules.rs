@@ -21,8 +21,8 @@ fn is_visible(state: BannerState) -> bool {
 
 pub fn default_state(event: BannerEvent) -> BannerState {
     match event {
-        BannerEvent::ActivateAsset | BannerEvent::AccountBlockedMultiSignature | BannerEvent::SuspiciousAsset => BannerState::AlwaysActive,
-        BannerEvent::Stake | BannerEvent::AccountActivation | BannerEvent::Onboarding | BannerEvent::TradePerpetuals => BannerState::Active,
+        BannerEvent::ActivateAsset | BannerEvent::AccountActivation | BannerEvent::AccountBlockedMultiSignature | BannerEvent::SuspiciousAsset => BannerState::AlwaysActive,
+        BannerEvent::Stake | BannerEvent::Onboarding | BannerEvent::TradePerpetuals => BannerState::Active,
     }
 }
 
@@ -44,15 +44,14 @@ pub fn setup_keys() -> Vec<GemBannerKey> {
 }
 
 pub fn wallet_setup_keys(wallet: &Wallet) -> Vec<GemBannerKey> {
-    let onboarding = match wallet.source {
-        WalletSource::Create => Some(GemBannerKey {
+    match wallet.source {
+        WalletSource::Create => vec![GemBannerKey {
             wallet_id: Some(wallet.id.clone()),
             asset_id: None,
             event: BannerEvent::Onboarding,
-        }),
-        WalletSource::Import => None,
-    };
-    ACCOUNT_ACTIVATION_CHAINS.into_iter().map(|chain| asset_key(chain, BannerEvent::AccountActivation)).chain(onboarding).collect()
+        }],
+        WalletSource::Import => vec![],
+    }
 }
 
 fn is_visible_event(event: BannerEvent, context: &GemBannerContext) -> bool {
@@ -159,7 +158,7 @@ pub(super) fn visible_banners(stored: Vec<Banner>, context: &GemBannerContext) -
     let stored: Vec<Banner> = stored.into_iter().filter(|banner| banner.wallet_id.is_none() || banner.wallet_id.as_ref() == wallet_id).collect();
     let asset_id = context.asset_id();
     let mut banners: Vec<GemBannerItem> = Vec::new();
-    for item in stored.iter().map(banner_item).chain(extra_banners(asset_id.clone())) {
+    for item in extra_banners(asset_id.clone()).into_iter().chain(stored.iter().map(banner_item)) {
         let applies = match &asset_id {
             Some(asset_id) => item.applies_to_asset(asset_id),
             None => item.applies_to_wallet(),
@@ -193,8 +192,11 @@ fn banner_item(banner: &Banner) -> GemBannerItem {
 }
 
 fn extra_banners(asset_id: Option<AssetId>) -> Vec<GemBannerItem> {
-    [BannerEvent::ActivateAsset, BannerEvent::SuspiciousAsset]
+    let account_activation = asset_id.as_ref().is_some_and(|asset_id| asset_id.is_native() && ACCOUNT_ACTIVATION_CHAINS.contains(&asset_id.chain));
+    account_activation
+        .then_some(BannerEvent::AccountActivation)
         .into_iter()
+        .chain([BannerEvent::ActivateAsset, BannerEvent::SuspiciousAsset])
         .map(|event| GemBannerItem {
             event,
             state: default_state(event),
@@ -245,14 +247,11 @@ mod tests {
     #[test]
     fn test_wallet_setup_keys() {
         let mut wallet = Wallet::mock_with_accounts(vec![]);
-        let imported = wallet_setup_keys(&wallet);
-        assert_eq!(imported.len(), 3);
-        assert!(imported.iter().all(|key| key.event == BannerEvent::AccountActivation));
+        assert!(wallet_setup_keys(&wallet).is_empty());
 
         wallet.source = WalletSource::Create;
-        let created = wallet_setup_keys(&wallet);
-        assert_eq!(created.len(), 4);
-        assert_eq!(created.last().map(|key| (key.event, key.wallet_id.clone())), Some((BannerEvent::Onboarding, Some(wallet.id))));
+        let created: Vec<(BannerEvent, Option<WalletId>)> = wallet_setup_keys(&wallet).into_iter().map(|key| (key.event, key.wallet_id)).collect();
+        assert_eq!(created, vec![(BannerEvent::Onboarding, Some(wallet.id))]);
     }
 
     fn events(banners: &[Banner]) -> Vec<BannerEvent> {
@@ -282,13 +281,16 @@ mod tests {
         };
         assert_eq!(events(&visible_banners(vec![], &suspicious)), vec![BannerEvent::SuspiciousAsset]);
 
-        let activation = vec![Banner::mock(BannerEvent::AccountActivation, BannerState::AlwaysActive)];
-        assert_eq!(events(&visible_banners(activation.clone(), &GemBannerContext::mock())), vec![BannerEvent::AccountActivation]);
-        let funded = GemBannerContext {
-            has_available_balance: true,
+        let unfunded = GemBannerContext {
+            asset: Some(Asset::from_chain(Chain::Xrp)),
             ..GemBannerContext::mock()
         };
-        assert!(visible_banners(activation, &funded).is_empty());
+        assert_eq!(events(&visible_banners(vec![], &unfunded)), vec![BannerEvent::AccountActivation]);
+        let funded = GemBannerContext {
+            has_available_balance: true,
+            ..unfunded.clone()
+        };
+        assert!(visible_banners(vec![], &funded).is_empty());
 
         let perpetuals = vec![Banner::mock(BannerEvent::TradePerpetuals, BannerState::Active)];
         assert_eq!(events(&visible_banners(perpetuals.clone(), &GemBannerContext::mock())), vec![BannerEvent::TradePerpetuals]);
@@ -312,6 +314,25 @@ mod tests {
         for stored in [vec![], closed_before] {
             let rows = suspicious.visible_banners(stored, Platform::IOS);
             assert_eq!(rows.iter().map(|row| (row.banner.event, row.content.can_close)).collect::<Vec<_>>(), vec![(BannerEvent::SuspiciousAsset, false)]);
+        }
+    }
+
+    #[test]
+    fn test_an_account_activation_warning_cannot_be_closed() {
+        for chain in ACCOUNT_ACTIVATION_CHAINS {
+            let unfunded = GemBannerContext {
+                asset: Some(Asset::from_chain(chain)),
+                ..GemBannerContext::mock()
+            };
+            let stored_before = |state| Banner {
+                asset: Some(Asset::from_chain(chain)),
+                ..Banner::mock(BannerEvent::AccountActivation, state)
+            };
+
+            for stored in [vec![], vec![stored_before(BannerState::Active)], vec![stored_before(BannerState::Cancelled)]] {
+                let rows = unfunded.visible_banners(stored, Platform::IOS);
+                assert_eq!(rows.iter().map(|row| (row.banner.event, row.content.can_close)).collect::<Vec<_>>(), vec![(BannerEvent::AccountActivation, false)], "{chain:?}");
+            }
         }
     }
 

@@ -24,6 +24,7 @@ flowchart LR
 |---|---|---|
 | The asset screen opens | chart, history and market data load at the same time; the header is usable while they arrive | |
 | The asset still needs activation, or its account is blocked by multisig | the header actions are disabled, the empty history offers no Buy or Swap, and the Stake balance row opens nothing | the asset cannot receive yet, or this wallet cannot sign for the account; a purchase, swap or stake would fail |
+| An XRP, Stellar or Algorand account has no available balance | a non-dismissible activation banner, until the account is funded | the account cannot send or hold anything until the network's minimum arrives |
 | Receive opens for an asset that was never refreshed, or not in the last hour | the asset is refreshed, so the network selector lists every network the wallet holds it on | the networks are known only once the asset has been fetched |
 | The user switches network on Receive | the selector keeps every network it listed when Receive opened, the first one included | the user can switch back without leaving the screen |
 
