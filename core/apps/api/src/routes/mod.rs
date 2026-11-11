@@ -8,10 +8,10 @@ use axum::extract::{DefaultBodyLimit, Request};
 use axum::middleware::{self, Next};
 use axum::response::{IntoResponse, Response};
 use axum::{Router, body::Body};
-use gem_auth::parse_device_auth;
+use gem_auth::{DeviceSignature, DeviceSignatureHeaders, parse_device_auth};
 use gem_tracing::{error_fields, info_with_fields};
 use http::header::{AUTHORIZATION, CONTENT_TYPE, USER_AGENT};
-use http::{HeaderValue, Method, StatusCode};
+use http::{HeaderMap, Method, StatusCode};
 use http_server::{ErrorBody, HttpMetrics, catch_panic_layer, status_message, timeout_layer, with_security_headers};
 use settings::ServerRequest;
 
@@ -25,6 +25,7 @@ pub fn router(state: AppState, admin_enabled: bool, request: &ServerRequest, htt
     let mut router = Router::new()
         .merge(root::router())
         .nest("/v1", public::router())
+        .nest("/v1/devices", devices::v1_router(&state, request.limit))
         .nest("/v2/devices", devices::v2_router(&state, request.limit))
         .nest("/v3/devices", devices::v3_router(&state, request.limit));
     if admin_enabled {
@@ -63,7 +64,7 @@ pub async fn log_failed_requests(request: Request<Body>, next: Next) -> Response
     let method = request.method().clone();
     let uri = request.uri().clone();
     let user_agent = request.headers().get(USER_AGENT).cloned();
-    let authorization = request.headers().get(AUTHORIZATION).cloned();
+    let headers = request.headers().clone();
     let response = next.run(request).await;
     let status = response.status();
     if status.is_success() || status == StatusCode::SWITCHING_PROTOCOLS {
@@ -75,7 +76,7 @@ pub async fn log_failed_requests(request: Request<Body>, next: Next) -> Response
     }
     let uri = redacted_uri(&method, uri.path(), uri.query());
     let user_agent = user_agent.as_ref().and_then(|value| value.to_str().ok()).unwrap_or("unknown");
-    let device = device_fields(authorization.as_ref());
+    let device = device_fields(&headers);
     match error {
         Some(ApiError { detail: Some(detail), .. }) => error_fields!("Request failed", method = method.as_str(), uri = uri, status = status.as_u16(), error = format!("{detail}{device}"), user_agent = user_agent),
         _ => info_with_fields!(
@@ -90,13 +91,20 @@ pub async fn log_failed_requests(request: Request<Body>, next: Next) -> Response
     response
 }
 
-fn device_fields(authorization: Option<&HeaderValue>) -> String {
-    let Some(payload) = authorization.and_then(|value| value.to_str().ok()).and_then(parse_device_auth) else {
-        return String::new();
+fn device_fields(headers: &HeaderMap) -> String {
+    let field = |name: &str| headers.get(name).and_then(|value| value.to_str().ok());
+    let device = match field(AUTHORIZATION.as_str()).and_then(parse_device_auth) {
+        Some(payload) => Some((payload.device_id, payload.wallet_id)),
+        None => DeviceSignatureHeaders::from_fields(field)
+            .ok()
+            .as_ref()
+            .and_then(DeviceSignature::parse)
+            .map(|signature| (signature.device_id, signature.wallet_id)),
     };
-    match payload.wallet_id {
-        Some(wallet_id) => format!(" device_id={} wallet_id={wallet_id}", payload.device_id),
-        None => format!(" device_id={}", payload.device_id),
+    match device {
+        Some((device_id, Some(wallet_id))) => format!(" device_id={device_id} wallet_id={wallet_id}"),
+        Some((device_id, None)) => format!(" device_id={device_id}"),
+        None => String::new(),
     }
 }
 
@@ -119,8 +127,9 @@ fn redacted_uri(method: &Method, path: &str, query: Option<&str>) -> String {
 #[cfg(test)]
 mod tests {
     use super::{device_fields, redacted_uri};
-    use gem_auth::{build_device_auth_header, device_public_key};
-    use http::{HeaderValue, Method};
+    use gem_auth::{build_device_auth_header, device_public_key, sign_device_request};
+    use http::header::AUTHORIZATION;
+    use http::{HeaderMap, HeaderName, HeaderValue, Method};
     use primitives::hex;
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
 
@@ -134,11 +143,21 @@ mod tests {
     #[test]
     fn test_device_fields() {
         let device_id = hex::encode(device_public_key(&TEST_PRIVATE_KEY).unwrap());
-        let header = |wallet_id: &str| HeaderValue::from_str(&build_device_auth_header(&TEST_PRIVATE_KEY, "GET", "/v3/devices", wallet_id, &[], 1).unwrap()).unwrap();
+        let authorization = |value: &str| HeaderMap::from_iter([(AUTHORIZATION, HeaderValue::from_str(value).unwrap())]);
+        let legacy = |wallet_id: &str| authorization(&build_device_auth_header(&TEST_PRIVATE_KEY, "GET", "/v3/devices", wallet_id, &[], 1).unwrap());
+        let signed = |wallet_id: Option<&str>| {
+            sign_device_request(&TEST_PRIVATE_KEY, "GET", "/v1/devices", wallet_id, &[], 1)
+                .unwrap()
+                .into_iter()
+                .map(|(name, value)| (HeaderName::try_from(name).unwrap(), HeaderValue::try_from(value).unwrap()))
+                .collect::<HeaderMap>()
+        };
 
-        assert_eq!(device_fields(Some(&header(""))), format!(" device_id={device_id}"));
-        assert_eq!(device_fields(Some(&header("multicoin_0x1"))), format!(" device_id={device_id} wallet_id=multicoin_0x1"));
-        assert_eq!(device_fields(Some(&HeaderValue::from_static("Bearer secret"))), "");
-        assert_eq!(device_fields(None), "");
+        assert_eq!(device_fields(&legacy("")), format!(" device_id={device_id}"));
+        assert_eq!(device_fields(&legacy("multicoin_0x1")), format!(" device_id={device_id} wallet_id=multicoin_0x1"));
+        assert_eq!(device_fields(&signed(None)), format!(" device_id={device_id}"));
+        assert_eq!(device_fields(&signed(Some("view_near_alice.near"))), format!(" device_id={device_id} wallet_id=view_near_alice.near"));
+        assert_eq!(device_fields(&authorization("Bearer secret")), "");
+        assert_eq!(device_fields(&HeaderMap::new()), "");
     }
 }

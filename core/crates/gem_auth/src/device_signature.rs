@@ -15,14 +15,17 @@ pub fn device_auth_message(timestamp: &str, method: &str, path: &str, wallet_id:
     format!("{timestamp}.{method}.{path}.{wallet_id}.{body_hash}")
 }
 
-pub fn device_public_key(private_key: &[u8]) -> Result<[u8; 32], &'static str> {
+pub(crate) fn device_signing_key(private_key: &[u8]) -> Result<SigningKey, &'static str> {
     let seed: Zeroizing<[u8; ED25519_SEED_LENGTH]> = Zeroizing::new(private_key.try_into().map_err(|_| "invalid device private key length")?);
-    Ok(SigningKey::from_bytes(&seed).verifying_key().to_bytes())
+    Ok(SigningKey::from_bytes(&seed))
+}
+
+pub fn device_public_key(private_key: &[u8]) -> Result<[u8; 32], &'static str> {
+    Ok(device_signing_key(private_key)?.verifying_key().to_bytes())
 }
 
 pub fn build_device_auth_header(private_key: &[u8], method: &str, path: &str, wallet_id: &str, body: &[u8], timestamp_ms: u64) -> Result<String, &'static str> {
-    let seed: Zeroizing<[u8; ED25519_SEED_LENGTH]> = Zeroizing::new(private_key.try_into().map_err(|_| "invalid device private key length")?);
-    let signing_key = SigningKey::from_bytes(&seed);
+    let signing_key = device_signing_key(private_key)?;
     let public_key = hex::encode(signing_key.verifying_key().to_bytes());
     let body_hash = device_body_hash(body);
     let timestamp = timestamp_ms.to_string();
