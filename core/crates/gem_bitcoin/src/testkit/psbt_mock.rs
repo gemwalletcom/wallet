@@ -1,6 +1,9 @@
 use std::str::FromStr;
 
 use bitcoin::{Address, Amount, OutPoint, Psbt, Sequence, Transaction, TxIn, TxOut, Txid, absolute::LockTime, hashes::Hash, transaction::Version};
+use primitives::UTXO;
+
+use crate::testkit::signer_mock::mock_utxo_with;
 
 pub fn mock_psbt(inputs: &[(u64, &str)], outputs: &[(u64, &str)]) -> String {
     let script = |address: &str| Address::from_str(address).unwrap().assume_checked().script_pubkey();
@@ -30,4 +33,12 @@ pub fn mock_psbt(inputs: &[(u64, &str)], outputs: &[(u64, &str)]) -> String {
         });
     }
     psbt.to_string()
+}
+
+pub fn mock_psbt_coins(inputs: &[(u64, &str)]) -> Vec<UTXO> {
+    inputs
+        .iter()
+        .enumerate()
+        .map(|(index, (value, address))| mock_utxo_with(&Txid::all_zeros().to_string(), index as i32, &value.to_string(), address))
+        .collect()
 }

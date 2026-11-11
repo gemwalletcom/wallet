@@ -61,10 +61,12 @@ flowchart LR
 | A batch holds a transaction Gem can't read | it is refused before any review shows | the user is never asked to sign part of a batch that can't finish |
 | A dapp connects on Bitcoin | the session gets the wallet's native SegWit address, and the dapp is sent it as soon as it connects | Gem keeps one Bitcoin address, so that address is the whole account |
 | A dapp asks to sign a Bitcoin message | the review shows the message; it is signed with the ECDSA Bitcoin message signature, or BIP-322 when the dapp asks for it | |
-| A dapp asks to sign a PSBT | the review shows what leaves the wallet, the first address paid and the fee; only inputs that spend the wallet's own address are signed, and only for every output | a signature that leaves outputs open would let anyone redirect the coins |
+| A dapp asks to sign a PSBT | the review shows what leaves the wallet, the address it pays and the fee; only coins the wallet holds are signed, at the amount the PSBT states for them, and only for every output | a signature that leaves outputs open would let anyone redirect the coins |
+| A PSBT states a different amount for one of the wallet's coins, or names a coin the wallet doesn't hold | it is refused before the review | a signature over a wrong amount can be combined with another into a far larger fee |
+| A PSBT pays more than one address outside the wallet | it is refused | the review and the address check cover one recipient |
 | A PSBT has another party's inputs | the review shows everything the wallet puts in and no fee of its own | the fee is shared, so Gem can't call it the wallet's |
-| A dapp asks to sign a PSBT for another address, or with a signature type that leaves outputs open | it is refused before anything is signed | |
-| A dapp asks to send Bitcoin (`sendTransfer`) | the usual Bitcoin send review: amount, recipient, fee and the memo as an OP_RETURN | the transfer is planned and paid like any send from the wallet |
+| A dapp asks to sign a PSBT for another address, or with a signature type that leaves outputs open | it is refused before the review | |
+| A dapp asks to send Bitcoin (`sendTransfer`) | the usual Bitcoin send review: amount, recipient, fee, and the memo the transaction carries as an OP_RETURN | the transfer is planned and paid like any send from the wallet; a memo can redirect a swap, so it is always shown |
 | A dapp asks to sign and broadcast a PSBT | the dapp gets the transaction ID, not the signed PSBT | Gem sends the transaction itself once it is signed |
 | A TRON call also sends a TRC-10 token | a warning on the review names the token and amount, and Confirm stays open | the review shows everything that leaves the wallet, and dapps built on TRC-10 keep working |
 | A TRON request stakes, unstakes, votes, withdraws, or delegates or reclaims energy or bandwidth | the review shows the action and the TRX amount, plus the receiver, validators and resource it names, and the lock time when a delegation is locked; Confirm stays open | the review shows everything that leaves the wallet, and energy-rental dapps send delegations legitimately |

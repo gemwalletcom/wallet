@@ -27,7 +27,7 @@ impl ChainSigner for BitcoinChainSigner {
         }
         let extra = input.input_type.get_generic_data().map_err(SignerError::invalid_input)?;
         let request = BitcoinPsbtRequest::parse(extra.data_as_str().map_err(SignerError::invalid_input)?)?;
-        let signed = request.sign(&input.sender_address, private_key)?;
+        let signed = request.sign(&input.sender_address, private_key, &input.metadata.get_utxos()?)?;
         match extra.output_action {
             TransferDataOutputAction::Sign => Ok(signed.to_string()),
             TransferDataOutputAction::Send => finalize_psbt(signed),
