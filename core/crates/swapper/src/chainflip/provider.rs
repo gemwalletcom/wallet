@@ -44,12 +44,14 @@ const REFUND_RETRY_BLOCKS: u32 = 150;
 const ASSETS_CACHE_TTL: Duration = MINUTE.saturating_mul(5);
 const ETHEREUM_VAULT: &str = "0xF5e10380213880111522dd0efD3dbb45b9f62Bcc";
 const ARBITRUM_VAULT: &str = "0x79001a5e762f3bEFC8e5871b42F6734e00498920";
+const BSC_VAULT: &str = "0x79001a5e762f3bEFC8e5871b42F6734e00498920";
 const SOLANA_VAULT: &str = "J88B7gmadHzTNGiy54c9Ms8BsEXNdB2fntFyhKpk3qoT";
 pub(super) const TRON_VAULT: &str = "TEcDijvKSXcfWT7S6rd44H5vNgufm7Y4XC";
 
 pub const VAULT_ADDRESSES: &[Deployment] = &[
     Deployment::new(Chain::Ethereum, ETHEREUM_VAULT),
     Deployment::new(Chain::Arbitrum, ARBITRUM_VAULT),
+    Deployment::new(Chain::SmartChain, BSC_VAULT),
     Deployment::new(Chain::Solana, SOLANA_VAULT),
     Deployment::new(Chain::Tron, TRON_VAULT),
 ];
@@ -474,6 +476,7 @@ mod tests {
         let provider = ChainflipProvider::with_clients(ChainflipClient::new(MockClient::new()), BrokerClient::new(MockClient::new(), MockClient::new()), Arc::new(ProviderMock::new(String::new())));
 
         assert_eq!(provider.contracts(&AssetId::from_chain(Chain::Ethereum)), Contracts::new(vec![ETHEREUM_VAULT]));
+        assert_eq!(provider.contracts(&AssetId::from_chain(Chain::SmartChain)), Contracts::new(vec![BSC_VAULT]));
         assert_eq!(provider.contracts(&AssetId::from_token(Chain::Tron, TRON_USDT_TOKEN_ID)), Contracts::new(vec![TRON_VAULT]));
         assert_eq!(provider.contracts(&AssetId::from_chain(Chain::Bitcoin)), Contracts::default(), "a deposit channel address is made per swap");
     }
@@ -805,6 +808,13 @@ mod tests {
         assert_eq!(
             validate_evm_vault_swap(Chain::Arbitrum, None, &eth_amount, &bitcoin_destination(), &ethereum_native_refund(), &native),
             Err(vault_mismatch(Chain::Arbitrum, &native.to))
+        );
+        let bsc_native = EvmVaultSwapResponse { to: BSC_VAULT.to_string(), ..native.clone() };
+        let bsc_refund = mock_refund(Chain::SmartChain, TEST_EVM_SENDER, ETHEREUM_NATIVE_MIN_PRICE);
+        assert_eq!(validate_evm_vault_swap(Chain::SmartChain, None, &eth_amount, &bitcoin_destination(), &bsc_refund, &bsc_native), Ok(eth_amount.clone()));
+        assert_eq!(
+            validate_evm_vault_swap(Chain::SmartChain, None, &eth_amount, &bitcoin_destination(), &bsc_refund, &native),
+            Err(vault_mismatch(Chain::SmartChain, &native.to))
         );
         assert_eq!(
             validate_evm_vault_swap(Chain::Ethereum, None, &BigUint::from(1u32), &bitcoin_destination(), &ethereum_native_refund(), &native),
