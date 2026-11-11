@@ -1,4 +1,5 @@
 use crate::models::custom_types::GemBigInt;
+use chain_primitives::checksum_address;
 use primitives::TransactionInputType;
 use primitives::{AssetId, PerpetualDirection, RecentActivityType, Resource, SimulationResult, TransactionFee, TransactionLoadMetadata, TransactionType, TransferDataOutputAction, TransferDataOutputType, WalletId};
 
@@ -30,6 +31,12 @@ pub struct GemRecipient {
 impl GemTransferData {
     pub fn identifier(&self) -> String {
         [self.input_type.get_asset().chain().as_ref(), &self.recipient.address, &self.value.to_string()].join("-")
+    }
+}
+
+impl GemTransferData {
+    pub fn destination_address(&self) -> String {
+        checksum_address(&self.recipient.address, self.input_type.get_asset().chain())
     }
 }
 
@@ -131,6 +138,16 @@ pub enum GemConfirmDestination {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_destination_address_reads_in_the_chain_checksum() {
+        let transfer = GemTransferData {
+            recipient: GemRecipient::address("0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a".to_string()),
+            ..GemTransferData::mock(TransactionInputType::Transfer { asset: primitives::Asset::mock_eth() })
+        };
+
+        assert_eq!(transfer.destination_address(), "0x5615E8AB93b9d695b6d4d6545f7792aA59e1069a");
+    }
 
     #[test]
     fn test_transfer_identifier_separates_transfers_by_chain_recipient_and_value() {

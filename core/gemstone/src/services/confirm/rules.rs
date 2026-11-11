@@ -42,7 +42,6 @@ use crate::services::swap::model::GemSwapPairSelection;
 use crate::services::transactions::GemAmountSign;
 use crate::services::transfer::GemPendingTransactionInput;
 use crate::services::transfer::rules::TransferInput;
-use chain_primitives::checksum_address;
 use num_bigint::{BigInt, Sign};
 use primitives::{AssetPrice, BroadcastOptions, SignerError};
 use primitives::{TransactionInputType, TransferAmountInput};
@@ -58,7 +57,7 @@ impl SendInput {
             input: TransactionLoadInput {
                 input_type: transfer.input_type.clone(),
                 sender_address,
-                destination_address: checksum_address(&transfer.recipient.address, chain),
+                destination_address: transfer.destination_address(),
                 value: self.value.to_biguint().ok_or_else(|| GemConfirmError::Load { msg: "negative transfer value".to_string() })?,
                 gas_price: self.confirm.fee.gas_price_type.clone(),
                 memo: transfer.recipient.memo.clone(),

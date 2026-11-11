@@ -779,7 +779,7 @@ var isPresentingSheet: PreferencesSheetType?
 
 ### A number crosses as a value and a style, never as a string or a callback
 
-The precision ladder, the adaptive rule and its constants (`0.99`, `1e-10`, `100_000`, `0.1`, `0.0001`), the currency form of the adaptive rule (at least two places, so `$0.90` never reads `$0.9`), the fiat-pins-to-two-places rule and the dust threshold are decisions, and they live in Core: `GemCurrencyStyle::precision`, `GemValueStyle::precision`, `adaptive_precision`, the styles' `abbreviates` and `GemValueStyle::is_dust`. A perpetual price is the exception: it reads in its provider's places for the market, never the currency ladder. `perpetual::rules::display_price` takes the market's asset, whose chain names the provider and whose decimals are the market's size decimals, so a screen passes that one asset rather than the market and its decimals. Both apps take the display Core builds with `GemFormattedNumber::amount` and render it with their own locale formatter. What is left is the numbers themselves: a row that carries a bare `f64` still leaves each app to pick the style.
+The precision ladder, the adaptive rule and its constants (`0.99`, `1e-10`, `100_000`, `0.1`, `0.0001`), the currency form of the adaptive rule (at least two places, so `$0.90` never reads `$0.9`), the fiat-pins-to-two-places rule and the dust threshold are decisions, and they live in Core: `GemCurrencyStyle::precision`, `adaptive_precision`, and for a `ValueStyle` the `number_formatter::precision` functions `value`, `abbreviates_value` and `is_value_dust`. A perpetual price is the exception: it reads in its provider's places for the market, never the currency ladder. `perpetual::rules::display_price` takes the market's asset, whose chain names the provider and whose decimals are the market's size decimals, so a screen passes that one asset rather than the market and its decimals. Both apps take the display Core builds with `GemFormattedNumber::amount` and render it with their own locale formatter. What is left is the numbers themselves: a row that carries a bare `f64` still leaves each app to pick the style.
 
 Two mechanisms are tempting and both are wrong.
 
@@ -833,7 +833,7 @@ pub struct GemFormattedNumber {
 }
 ```
 
-The style is resolved when the record is built, not carried for the app to re-ask: `GemFormattedNumber::currency` and `GemFormattedNumber::amount` take the value and a `GemCurrencyStyle` or `GemValueStyle` and settle the precision, the abbreviation and the dust cut once. The app reads `display` and renders with `NumberFormatter` or `DecimalFormat`, so rendering the returned numbers adds no further formatter crossings; producing the view state still crosses FFI once.
+The style is resolved when the record is built, not carried for the app to re-ask: `GemFormattedNumber::currency` and `GemFormattedNumber::amount` take the value and a `GemCurrencyStyle` or `ValueStyle` and settle the precision, the abbreviation and the dust cut once. The app reads `display` and renders with `NumberFormatter` or `DecimalFormat`, so rendering the returned numbers adds no further formatter crossings; producing the view state still crosses FFI once.
 
 **A number's sign, its enclosure and its tone are decisions too, and one field each.** `notation` says whether the rendered digits get a forced `+`, get wrapped in parentheses, or neither — three mutually exclusive cases, not two booleans the app can combine into a fourth that means nothing. `tone` says whether the number reads as plain text, as a signed quantity that happens to be zero, as up or down, or as a warning: a price is `Plain` however it moves, a delta is coloured by its sign. Deriving the tone app-side from `value > 0` lets the two apps colour the same headline differently, so the record answers it and each app maps the cases to its own palette, once, in its module's style mapper.
 
@@ -1797,7 +1797,7 @@ The signer's convention must be explicit and tested. HyperCore reduce orders int
 
 After replacing a path, check callers on both apps, including extension wrappers and implicit receiver calls, and match the receiver when methods share a name; what the replaced export then owes is in [no trivial exports](#no-trivial-exports). Platform ports implemented by the apps are different: Core is their caller.
 
-Types and conversions may become redundant after un-exporting a method. Keep `Gem` for the FFI surface and reuse the underlying domain type internally when the wrapper carries no distinct meaning. Do not expose an API solely so a mock can reconstruct the production result.
+Types and conversions may become redundant after un-exporting a method. `Gem` names the records, enums and services gemstone declares for the apps; a domain type the apps receive through `#[uniffi::remote]` keeps its own name (`TransferAmount`, `SignerError`), and a `Gem` alias or field-for-field copy of a domain type carries no meaning of its own, so reuse the domain type instead. Do not expose an API solely so a mock can reconstruct the production result.
 
 Use the existing [typed field transport](#field-types) and [generation contract](#ownership-is-not-transport) when removing redundant wrappers.
 

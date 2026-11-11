@@ -37,7 +37,6 @@ use crate::services::simulation::{GemSimulationFormatter, GemSimulationService};
 use crate::services::transaction_state::{GemTransactionStateService, GemTransactionStatusService};
 use crate::services::transfer::rules::TransferInput;
 use crate::services::wallet_preferences::GemWalletPreferencesService;
-use chain_primitives::checksum_address;
 use num_bigint::BigInt;
 use primitives::TransactionInputType;
 use primitives::currency::Currency;
@@ -101,7 +100,7 @@ impl GemConfirmService {
         let asset = transfer.input_type.get_asset();
         let chain = asset.id.chain;
         let symbol = asset.symbol.clone();
-        let destination = checksum_address(&transfer.recipient.address, chain);
+        let destination = transfer.destination_address();
         let preload_input = TransactionPreloadInput {
             input_type: transfer.input_type.clone(),
             sender_address: input.from.address.clone(),
@@ -109,12 +108,10 @@ impl GemConfirmService {
             references: transfer.recipient.references.clone(),
         };
 
-        let scan_future = async {
-            let payload = scan_rules::transaction_payload(preload_input.clone())?;
-            self.scanner.scan(payload).await
-        };
+        let scan_payload = scan_rules::transaction_payload(&preload_input);
+        let scan_future = async { self.scanner.scan(scan_payload?).await };
         let (metadata, fee_rates, scan, simulation, pending_nonces) = futures::join!(
-            self.gateway.get_transaction_preload(chain, preload_input.clone()),
+            self.gateway.get_transaction_preload(chain, preload_input),
             self.gateway.get_fee_rates(chain, transfer.input_type.clone()),
             scan_future,
             self.simulate(chain, input),

@@ -171,8 +171,7 @@ impl GemGateway {
         self.with_provider(chain, |provider| async move { provider.get_transaction_fee_rates(input).await }).await
     }
     pub async fn get_transaction_preload(&self, chain: Chain, input: TransactionPreloadInput) -> Result<TransactionLoadMetadata, GatewayError> {
-        let metadata = self.with_provider(chain, |provider| async move { provider.get_transaction_preload(input).await }).await?;
-        Ok(metadata)
+        self.with_provider(chain, |provider| async move { provider.get_transaction_preload(input).await }).await
     }
     pub async fn get_transaction_load(&self, chain: Chain, input: TransactionLoadInput) -> Result<TransactionLoadData, GatewayError> {
         self.with_provider(chain, |chain_provider| async move { chain_provider.get_transaction_load(input).await }).await
