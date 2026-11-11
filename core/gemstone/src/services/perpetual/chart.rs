@@ -2,6 +2,7 @@ use std::collections::BTreeMap;
 use std::ops::RangeInclusive;
 
 use chrono::{DateTime, Datelike, NaiveTime, TimeDelta, Utc};
+use primitives::ChartCandleStickVecExt;
 use primitives::chart::ChartCandleStick;
 use primitives::{ChartPeriod, Currency, PerpetualDirection, PerpetualPosition, TransactionState};
 
@@ -57,13 +58,7 @@ pub fn candle_chart(
     utc_offset: TimeDelta,
 ) -> Option<GemCandleChart> {
     let (first, last) = (candles.first()?, candles.last()?);
-    let interval = candles
-        .iter()
-        .zip(&candles[1..])
-        .map(|(previous, next)| next.date - previous.date)
-        .filter(|gap| *gap > TimeDelta::zero())
-        .min()
-        .unwrap_or(LONE_CANDLE_INTERVAL);
+    let interval = candles.interval().unwrap_or(LONE_CANDLE_INTERVAL);
     let earliest = first.date.min(last.date - interval * (MIN_VISIBLE_POINTS as i32 - 1));
     let zoom = zoom.clamped(candles.len());
     let (window_start, window_end) = zoom.window(earliest, last.date).into_inner();

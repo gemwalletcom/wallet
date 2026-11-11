@@ -5,7 +5,7 @@ use std::time::Duration;
 use cacher::{ChartCandlesCacher, RateLimitCacher};
 use config_keys::{ConfigKey, RateLimitKey};
 use prices::{PriceAssetsProvider, PriceProviders};
-use primitives::{AssetId, ChartCandleStick, ChartPeriod, ChartValue, PriceData, RequestError, currency::Currency};
+use primitives::{AssetId, ChartCandleStick, ChartCandleStickVecExt, ChartPeriod, ChartValue, PriceData, RequestError, currency::Currency};
 
 use super::repository::{ChartData, Repository};
 
@@ -52,7 +52,8 @@ impl ChartClient {
             self.consume_candles_limit(ip_address).await?;
             provider.get_candles(&price.provider_price_id, period).await
         };
-        self.cacher.get_or_fetch_candles(&price_id, period, candles_max_age(period), Box::pin(fetch)).await
+        let candles = self.cacher.get_or_fetch_candles(&price_id, period, candles_max_age(period), Box::pin(fetch)).await?;
+        Ok(candles.merged(self.config.get_usize(ConfigKey::PriceChartsMaxCandles).await?))
     }
 
     async fn consume_candles_limit(&self, ip_address: &str) -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -88,7 +89,7 @@ mod tests {
     use std::sync::Mutex;
 
     use async_trait::async_trait;
-    use chrono::DateTime;
+    use chrono::{DateTime, TimeDelta};
     use config_keys::RateLimitWindow;
     use prices::{AssetPriceFull, AssetPriceMapping, PriceProvider, PriceProviderAsset};
     use primitives::{AssetId, Chain, FiatRate};
@@ -123,10 +124,20 @@ mod tests {
         }
     }
 
-    #[derive(Default)]
     struct StubProvider {
         fails: bool,
+        candles: Vec<ChartCandleStick>,
         requests: Mutex<Vec<(String, ChartPeriod)>>,
+    }
+
+    impl Default for StubProvider {
+        fn default() -> Self {
+            Self {
+                fails: false,
+                candles: vec![candle()],
+                requests: Mutex::default(),
+            }
+        }
     }
 
     #[async_trait]
@@ -151,7 +162,7 @@ mod tests {
             if self.fails {
                 return Err("upstream failed".into());
             }
-            Ok(vec![candle()])
+            Ok(self.candles.clone())
         }
     }
 
@@ -196,6 +207,27 @@ mod tests {
         client.get_candles(&asset_id, ChartPeriod::Year, IP).await.unwrap();
 
         assert_eq!(*provider.requests.lock().unwrap(), vec![(price.provider_price_id.clone(), ChartPeriod::Week), (price.provider_price_id, ChartPeriod::Year)]);
+    }
+
+    #[tokio::test]
+    async fn test_candles_merge_down_to_the_configured_limit() {
+        let provider = Arc::new(StubProvider {
+            candles: ChartCandleStick::mock_series(DateTime::UNIX_EPOCH, TimeDelta::hours(4), 6),
+            ..Default::default()
+        });
+        let providers: PriceProviders = HashMap::from([(PriceProvider::Coingecko, provider as Arc<dyn PriceAssetsProvider>)]);
+        let config = MemoryConfigRepository::new().with_value(ConfigKey::PriceChartsMaxCandles.as_ref(), "2");
+        let client = ChartClient::new(
+            Arc::new(MemoryPricesRepository::default().with_prices(vec![PriceData::mock()])),
+            Arc::new(ConfigCacher::new(Arc::new(config))),
+            Arc::new(providers),
+            Arc::new(MemoryChartCandlesCacher::default()),
+            Arc::new(MemoryRateLimiter::default()),
+        );
+
+        let candles = client.get_candles(&AssetId::from_chain(Chain::Bitcoin), ChartPeriod::Month, IP).await.unwrap();
+
+        assert_eq!(candles.iter().map(|candle| candle.date).collect::<Vec<_>>(), vec![DateTime::UNIX_EPOCH, DateTime::UNIX_EPOCH + TimeDelta::hours(12)]);
     }
 
     #[tokio::test]
