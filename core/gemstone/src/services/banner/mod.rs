@@ -99,7 +99,7 @@ mod tests {
             let store = Arc::new(MemoryBannerStore::default());
             let service = GemBannerService::new(store.clone(), Platform::IOS);
             let wallet = Wallet {
-                source: WalletSource::Import,
+                source: WalletSource::Create,
                 ..Wallet::mock_with_chains(&[Chain::Xrp, Chain::Ethereum])
             };
             service.setup_wallet(wallet.clone()).await.unwrap();
@@ -119,7 +119,7 @@ mod tests {
             let store = Arc::new(MemoryBannerStore::default());
             let service = GemBannerService::new(store.clone(), Platform::IOS);
             let key = rules::wallet_setup_keys(&Wallet {
-                source: WalletSource::Import,
+                source: WalletSource::Create,
                 ..Wallet::mock_with_chains(&[Chain::Xrp])
             })
             .remove(0);
