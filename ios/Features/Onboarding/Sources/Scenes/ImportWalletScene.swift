@@ -117,6 +117,7 @@ struct ImportWalletScene: View {
         }
         .sheet(isPresented: $model.isPresentingScanner) {
             QRScannerNavigationStack(scanType: scanType, action: model.onHandleScan)
+                .protectFromScreenRecording()
         }
         .onChange(of: model.inputModel.text, model.onChangeInput)
         .taskOnce {
