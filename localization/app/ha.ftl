@@ -371,6 +371,7 @@ wallet_connect_permissions_title = Izini
 wallet_connect_permissions_view_balance = Duba ma'aunin ku da ayyukan ku
 wallet_connect_permissions_approval_requests = Aika buƙatun amincewa
 wallet_connect_request_expired = Buƙatar ta ƙare
+wallet_connect_return_to_app = Koma zuwa %@
 
 # Swap
 

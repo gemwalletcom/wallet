@@ -6,7 +6,9 @@ import com.gemwallet.android.testkit.mockGemWalletConnectProposal
 import com.gemwallet.android.testkit.mockGemWalletConnectSessionRequest
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeoutOrNull
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -37,6 +39,22 @@ class ActiveWalletConnectRequestTest {
         assertTrue(activeRequest.finish(second))
         assertNull(activeRequest.current.value)
         assertFalse(activeRequest.finish(second))
+    }
+
+    @Test
+    fun aReturnToTheDappIsDeliveredOnceAndLeavesTheCurrentRequest() = runTest {
+        val activeRequest = ActiveWalletConnectRequest(events, WalletConnectPendingRequests(), backgroundScope)
+        testScheduler.runCurrent()
+        val proposal = mockGemWalletConnectProposal()
+        val returnToDapp = GemWalletConnectEvent.ReturnToDapp(name = "Example", redirect = "example://wc")
+
+        events.emit(GemWalletConnectEvent.Proposal(proposal))
+        events.emit(returnToDapp)
+        testScheduler.runCurrent()
+
+        assertEquals(returnToDapp, activeRequest.returns.first())
+        assertEquals(proposal, (activeRequest.current.value as WalletConnectUserRequest.SessionProposal).proposal)
+        assertNull("a return already acted on is not repeated when Gem opens again", withTimeoutOrNull(1) { activeRequest.returns.first() })
     }
 
     @Test

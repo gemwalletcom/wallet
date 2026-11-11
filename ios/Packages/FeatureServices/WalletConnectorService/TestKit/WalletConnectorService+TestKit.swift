@@ -35,4 +35,6 @@ public struct WalletConnectorInteractorMock: WalletConnectorInteractable {
     }
 
     public func requestExpired(requestId _: String) async {}
+
+    public func returnToDapp(name _: String, redirect _: String?) async {}
 }

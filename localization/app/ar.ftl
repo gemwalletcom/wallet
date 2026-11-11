@@ -371,6 +371,7 @@ wallet_connect_permissions_title = الأذونات
 wallet_connect_permissions_view_balance = اطلع على رصيدك ونشاطك
 wallet_connect_permissions_approval_requests = إرسال طلبات الموافقة
 wallet_connect_request_expired = انتهت صلاحية الطلب
+wallet_connect_return_to_app = العودة إلى %@
 
 # Swap
 

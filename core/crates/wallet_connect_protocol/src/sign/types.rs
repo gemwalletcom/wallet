@@ -20,6 +20,8 @@ pub struct Metadata {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Redirect {
     pub native: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub universal: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

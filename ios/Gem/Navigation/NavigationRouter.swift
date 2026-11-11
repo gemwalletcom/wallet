@@ -92,7 +92,11 @@ final class NavigationRouter: Sendable {
 
     @MainActor
     func open(url: URL) async {
-        await open(code: url.absoluteString)
+        let outcome = await navigationService.openCode(code: url.absoluteString)
+        if case let .walletConnect(link) = outcome {
+            await walletConnector.linkOpened(link)
+        }
+        await open(outcome: outcome)
     }
 
     @MainActor

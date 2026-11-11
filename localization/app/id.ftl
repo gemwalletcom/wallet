@@ -371,6 +371,7 @@ wallet_connect_permissions_title = Izin
 wallet_connect_permissions_view_balance = Lihat saldo dan aktivitas Anda
 wallet_connect_permissions_approval_requests = Kirim permintaan persetujuan
 wallet_connect_request_expired = Permintaan kedaluwarsa
+wallet_connect_return_to_app = Kembali ke %@
 
 # Swap
 

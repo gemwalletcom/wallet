@@ -85,6 +85,9 @@ class PendingNavigationCoordinator @Inject constructor(private val notificationN
             }
 
             is GemCodeOutcome.WalletConnect -> {
+                if (pending is PendingNavigation.FromLink) {
+                    walletConnect.onLinkOpened(outcome.link)
+                }
                 when (val link = outcome.link) {
                     is WalletConnectLink.Connect -> walletConnect.onPairing(link.uri)
                     WalletConnectLink.Request -> walletConnect.onRequest()
@@ -113,6 +116,7 @@ class PendingNavigationCoordinator @Inject constructor(private val notificationN
     }
 
     interface WalletConnectHandler {
+        fun onLinkOpened(link: WalletConnectLink)
         fun onPairing(uri: String)
         fun onRequest()
     }

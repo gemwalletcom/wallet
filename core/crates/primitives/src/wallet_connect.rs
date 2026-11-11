@@ -53,10 +53,14 @@ impl WalletConnectLink {
         let parsed = Url::parse(url).ok()?;
         match parsed.scheme() {
             WALLET_CONNECT_URL_SCHEME => Some(Self::session_or_request(&parsed).unwrap_or_else(|| WalletConnectLink::Connect { uri: url.to_string() })),
-            GEM_URL_SCHEME if parsed.host_str() == Some(WALLET_CONNECT_HOST) => Self::connect(&parsed).or_else(|| Self::session_or_request(&parsed)),
-            HTTPS_URL_SCHEME if parsed.host_str() == Some("gemwallet.com") && matches!(parsed.path(), "/wc" | "/wc/") => Self::connect(&parsed).or_else(|| Self::session_or_request(&parsed)),
+            GEM_URL_SCHEME if parsed.host_str() == Some(WALLET_CONNECT_HOST) => Some(Self::wallet_link(&parsed)),
+            HTTPS_URL_SCHEME if parsed.host_str() == Some("gemwallet.com") && matches!(parsed.path(), "/wc" | "/wc/") => Some(Self::wallet_link(&parsed)),
             _ => None,
         }
+    }
+
+    fn wallet_link(url: &Url) -> Self {
+        Self::connect(url).or_else(|| Self::session_or_request(url)).unwrap_or(WalletConnectLink::Request)
     }
 
     fn connect(url: &Url) -> Option<Self> {
@@ -97,7 +101,10 @@ mod tests {
         );
         assert_eq!(WalletConnectLink::from_url("gem://wc?requestId=1"), Some(WalletConnectLink::Request));
         assert_eq!(WalletConnectLink::from_url("gem://wc?sessionTopic=abc123"), Some(WalletConnectLink::Session { topic: "abc123".to_string() }));
-        assert_eq!(WalletConnectLink::from_url("gem://wc?sessionTopic="), None);
+        assert_eq!(WalletConnectLink::from_url("gem://wc?sessionTopic="), Some(WalletConnectLink::Request));
+        for url in ["gem://wc", "https://gemwallet.com/wc", "https://gemwallet.com/wc/"] {
+            assert_eq!(WalletConnectLink::from_url(url), Some(WalletConnectLink::Request), "a dapp opens the wallet to answer its request: {url}");
+        }
         assert_eq!(WalletConnectLink::from_url("gem://asset/solana"), None);
         for url in [
             "https://gemwallet.com/wc?uri=wc%3Atopic%402%3Frelay-protocol%3Dirn%26symKey%3Dabc",
@@ -116,7 +123,6 @@ mod tests {
             "http://gemwallet.com/wc?uri=wc:topic@2",
             "https://gemwallet.com.evil.example/wc?uri=wc:topic@2",
             "https://gemwallet.com/wc/other?uri=wc:topic@2",
-            "https://gemwallet.com/wc",
         ] {
             assert_eq!(WalletConnectLink::from_url(url), None, "{url}");
         }

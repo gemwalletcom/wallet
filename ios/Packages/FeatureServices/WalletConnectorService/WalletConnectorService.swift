@@ -8,6 +8,7 @@ import enum Gemstone.GemWalletConnectRejectionReason
 import protocol Gemstone.GemWalletConnectServiceProtocol
 import struct Gemstone.GemWalletConnectSessionRequest
 import protocol Gemstone.GemWalletSessionServiceProtocol
+import enum Gemstone.WalletConnectLink
 import GemstonePrimitives
 import Primitives
 import WebSocketClient
@@ -82,6 +83,10 @@ extension WalletConnectorService: WalletConnectorServiceable {
         try await client.pair(uri: uri)
     }
 
+    public func linkOpened(_ link: WalletConnectLink) {
+        client.linkOpened(link: link)
+    }
+
     public func disconnect(sessionId: String) async throws {
         try await setup()
         await startConnection()
@@ -137,6 +142,8 @@ extension WalletConnectorService {
             Task { await interactor.requestExpired(requestId: requestId) }
         case let .sessionDeleted(topic):
             debugLog("WalletConnect session deleted by peer: \(topic)")
+        case let .returnToDapp(name, redirect):
+            Task { await interactor.returnToDapp(name: name, redirect: redirect) }
         case .authentication:
             break
         }

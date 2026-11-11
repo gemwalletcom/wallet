@@ -3,6 +3,7 @@ package com.gemwallet.android.application.wallet_connect
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -10,6 +11,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import uniffi.gemstone.GemWalletConnectAuthentication
 import uniffi.gemstone.GemWalletConnectEvent
@@ -20,6 +22,9 @@ class ActiveWalletConnectRequest(events: Flow<GemWalletConnectEvent>, pendingReq
 
     private val _current = MutableStateFlow<WalletConnectUserRequest?>(null)
     val current: StateFlow<WalletConnectUserRequest?> = _current.asStateFlow()
+
+    private val _returns = Channel<GemWalletConnectEvent.ReturnToDapp>(Channel.BUFFERED)
+    val returns: Flow<GemWalletConnectEvent.ReturnToDapp> = _returns.receiveAsFlow()
 
     init {
         events.onEach { event ->
@@ -35,6 +40,8 @@ class ActiveWalletConnectRequest(events: Flow<GemWalletConnectEvent>, pendingReq
                 is GemWalletConnectEvent.Authentication -> _current.update { WalletConnectUserRequest.AuthenticationRequest(event.authentication) }
 
                 is GemWalletConnectEvent.Request -> _current.update { WalletConnectUserRequest.SessionRequest(event.request) }
+
+                is GemWalletConnectEvent.ReturnToDapp -> _returns.trySend(event)
             }
         }.launchIn(scope)
     }

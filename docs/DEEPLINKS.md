@@ -1,6 +1,6 @@
 # Deep links
 
-A deep link opens a screen inside the app. Core parses the same paths under two schemes: `gem://` is handled only by the app, while `https://gemwallet.com/` reaches an installed app only when that path is included in the platform's verified-link configuration. Neither app registers the `wc` scheme, and Android does not register the `gem` scheme either, so another app cannot intercept a Gem link there; links that open Gem from outside the app, including WalletConnect pairing (`https://gemwallet.com/wc?uri=`) and the WalletConnect redirect, use `https://gemwallet.com/`. A `wc:` URI still pairs when it is scanned or pasted inside the app.
+A deep link opens a screen inside the app. Core parses the same paths under two schemes: `gem://` is handled only by the app, while `https://gemwallet.com/` reaches an installed app only when that path is included in the platform's verified-link configuration. Neither app registers the `wc` scheme, and Android does not register the `gem` scheme either, so another app cannot intercept a Gem link there; links that open Gem from outside the app, including WalletConnect pairing (`https://gemwallet.com/wc?uri=`) and the WalletConnect redirect, use `https://gemwallet.com/`. A `wc:` URI still pairs when it is scanned or pasted inside the app. `gem://wc` and `https://gemwallet.com/wc` with nothing after them are the link a dapp opens to bring the user back to answer its request; they open Gem with no error.
 
 ## Supported links
 
@@ -70,4 +70,5 @@ Bitcoin: <https://gemwallet.com/tokens/bitcoin>
 - `https://gemwallet.com/.well-known/apple-app-site-association` lists the WalletConnect, token, address, join, perpetual and rewards paths, each with its locale-prefixed form where the app declares one
 - `https://gemwallet.com/.well-known/assetlinks.json` must list the Android package and signing certificate
 - Android declares the same set in its intent filters, so a path added to one must be added to the other
+- Gem's WalletConnect listing (WalletGuide) gives `https://gemwallet.com/` as its mobile link. AppKit on a phone opens the listing's link the same way on iOS and Android, and Android opens Gem only through verified `https://gemwallet.com/` links
 - As checked on 2026-09-02, token action URLs such as `/tokens/bitcoin/buy` return `404` in a browser. Publishing a non-app fallback remains required

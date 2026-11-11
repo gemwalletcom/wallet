@@ -371,6 +371,7 @@ wallet_connect_permissions_title = Ruhusa
 wallet_connect_permissions_view_balance = Tazama salio na shughuli zako
 wallet_connect_permissions_approval_requests = Tuma maombi ya idhini
 wallet_connect_request_expired = Ombi limeisha muda
+wallet_connect_return_to_app = Rudi kwenye %@
 
 # Swap
 

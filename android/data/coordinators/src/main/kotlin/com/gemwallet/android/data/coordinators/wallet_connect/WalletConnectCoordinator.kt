@@ -26,6 +26,7 @@ import uniffi.gemstone.GemWalletConnectProposal
 import uniffi.gemstone.GemWalletConnectRejectionReason
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.GemWalletConnectSessionRequest
+import uniffi.gemstone.WalletConnectLink
 import java.util.concurrent.ConcurrentHashMap
 
 class WalletConnectCoordinator(
@@ -81,6 +82,8 @@ class WalletConnectCoordinator(
         }.onSuccess { onSuccess() }
             .onFailure { onError(it.errorText()) }
     }
+
+    override fun linkOpened(link: WalletConnectLink) = client.linkOpened(link)
 
     override fun pair(uri: String, onSuccess: () -> Unit, onError: (GemErrorText) -> Unit) = launchCall(onSuccess, onError) {
         connect()

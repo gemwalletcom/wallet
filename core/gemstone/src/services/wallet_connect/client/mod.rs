@@ -5,8 +5,8 @@ mod state;
 #[cfg(test)]
 pub(crate) mod testkit;
 
-use std::collections::HashMap;
 use std::collections::hash_map::Entry;
+use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 use std::time::Duration;
 
@@ -14,7 +14,7 @@ use chrono::Utc;
 use futures::future::{Either, select};
 use gem_crypto::random;
 use gem_encoding::encode_hex;
-use primitives::{Account, ApplicationMetadata, Platform, Wallet, WalletConnection, WalletConnectionSession};
+use primitives::{Account, ApplicationMetadata, Platform, Wallet, WalletConnectLink, WalletConnection, WalletConnectionSession};
 use serde::de::DeserializeOwned;
 use serde_json::value::RawValue;
 use wallet_connect_protocol::authenticate::{self, AuthPayload, AuthenticateParams, AuthenticateResponse, Issuer};
@@ -63,6 +63,7 @@ pub struct GemWalletConnectClient {
     platform: Platform,
     state: Mutex<Option<ClientState>>,
     pairing_requests: Mutex<HashMap<String, PairingRequest>>,
+    linked_topics: Mutex<HashSet<String>>,
 }
 
 #[derive(Clone)]
@@ -123,6 +124,18 @@ impl GemWalletConnectClient {
             platform,
             state: Mutex::new(None),
             pairing_requests: Mutex::new(HashMap::new()),
+            linked_topics: Mutex::new(HashSet::new()),
+        }
+    }
+
+    pub fn link_opened(&self, link: WalletConnectLink) {
+        let topic = match link {
+            WalletConnectLink::Connect { uri } => PairingUri::parse(&uri, now()).ok().map(|uri| uri.topic),
+            WalletConnectLink::Session { topic } => Some(topic),
+            WalletConnectLink::Request => None,
+        };
+        if let Some(topic) = topic {
+            lock(&self.linked_topics).insert(topic);
         }
     }
 
@@ -296,14 +309,19 @@ impl GemWalletConnectClient {
             origin: pending.verification.origin,
             validation: pending.verification.status,
         };
-        self.store_session(session, wallet, &pending.pairing_topic, approval).await
+        let peer = session.peer.clone();
+        self.store_session(session, wallet, &pending.pairing_topic, approval).await?;
+        self.return_to_dapp(&pending.pairing_topic, &peer);
+        Ok(())
     }
 
     pub async fn reject_session(&self, proposal_id: String, reason: GemWalletConnectRejectionReason) -> Result<(), GemServiceError> {
         let Some(PairingRequest::Proposal(pending)) = self.take_pairing_request(&proposal_id) else {
             return Ok(());
         };
-        self.reject_proposal(&pending, reason).await
+        self.reject_proposal(&pending, reason).await?;
+        self.return_to_dapp(&pending.pairing_topic, &pending.proposal.proposer.metadata);
+        Ok(())
     }
 
     pub async fn answer_request(&self, topic: String, request_id: String) -> Result<Option<GemWalletConnectFailure>, GemServiceError> {
@@ -322,6 +340,12 @@ impl GemWalletConnectClient {
             }
         };
         self.respond(&request, &session, response).await?;
+        match failure {
+            None => self.return_after_last_request(&session)?,
+            Some(_) => {
+                self.forget_link(&session.topic);
+            }
+        }
         Ok(failure)
     }
 
@@ -330,7 +354,8 @@ impl GemWalletConnectClient {
         let Some((request, session)) = self.read(|state| state.request(&topic, id))? else {
             return Ok(());
         };
-        self.respond(&request, &session, GemWalletConnectResponse::Error { error: rules::user_rejected_error() }).await
+        self.respond(&request, &session, GemWalletConnectResponse::Error { error: rules::user_rejected_error() }).await?;
+        self.return_after_last_request(&session)
     }
 
     pub async fn disconnect(&self, topic: String) -> Result<(), GemServiceError> {
@@ -338,6 +363,7 @@ impl GemWalletConnectClient {
         let Some((session, dropped)) = self.update(|state| state.remove_session(&topic))? else {
             return Ok(());
         };
+        self.forget_link(&topic);
         self.close_requests(&dropped);
         let request = payload::request(message_id(), METHOD_SESSION_DELETE, Reason::user_disconnected());
         self.publish(&session.topic, &crypto::parse_key(&session.key)?, &request, Publish::SessionDelete).await
@@ -379,8 +405,11 @@ impl GemWalletConnectClient {
         if self.take_pairing_request(&authentication_id).is_none() {
             return Err(not_found("authentication"));
         }
+        let requester = pending.params.requester.metadata.clone();
         let Some(namespaces) = authenticate::session_namespaces(&payload, &issuer) else {
-            return self.store_and_send(approval, |state| state.remove_pairing(&pending.pairing_topic)).await;
+            self.store_and_send(approval, |state| state.remove_pairing(&pending.pairing_topic)).await?;
+            self.return_to_dapp(&pending.pairing_topic, &requester);
+            return Ok(());
         };
         let session = Session {
             topic: crypto::topic(session_key.as_slice()),
@@ -394,6 +423,7 @@ impl GemWalletConnectClient {
         let subscription = rpc::subscribe(message_id(), &session.topic);
         self.store_session(session, wallet, &pending.pairing_topic, approval).await?;
         self.send_frame(subscription).await;
+        self.return_to_dapp(&pending.pairing_topic, &requester);
         Ok(())
     }
 
@@ -403,7 +433,9 @@ impl GemWalletConnectClient {
         };
         let response = rejection(pending.request_id, &self.service.session_rejection(GemWalletConnectRejectionReason::UserRejected));
         let rejection = authentication_answer(&pending, &crypto::generate_key()?, &response, Publish::AuthenticationRejection)?;
-        self.store_and_send(rejection, |state| state.remove_pairing(&pending.pairing_topic)).await
+        self.store_and_send(rejection, |state| state.remove_pairing(&pending.pairing_topic)).await?;
+        self.return_to_dapp(&pending.pairing_topic, &pending.params.requester.metadata);
+        Ok(())
     }
 }
 
@@ -516,6 +548,7 @@ impl GemWalletConnectClient {
     }
 
     async fn receive_session_delete(&self, session: Session, key: &Key, id: u64) -> Result<(), GemServiceError> {
+        self.forget_link(&session.topic);
         if let Some((_, dropped)) = self.update(|state| state.remove_session(&session.topic))? {
             self.close_requests(&dropped);
         }
@@ -578,6 +611,27 @@ impl GemWalletConnectClient {
             self.listener.on_event(GemWalletConnectEvent::Request { request: session_request(&request) });
         }
         Ok(())
+    }
+
+    fn return_after_last_request(&self, session: &Session) -> Result<(), GemServiceError> {
+        if !self.read(|state| state.requests.iter().any(|request| request.topic == session.topic))? {
+            self.return_to_dapp(&session.topic, &session.peer);
+        }
+        Ok(())
+    }
+
+    fn forget_link(&self, topic: &str) -> bool {
+        lock(&self.linked_topics).remove(topic)
+    }
+
+    fn return_to_dapp(&self, topic: &str, dapp: &Metadata) {
+        if !self.forget_link(topic) {
+            return;
+        }
+        self.listener.on_event(GemWalletConnectEvent::ReturnToDapp {
+            name: application_metadata(dapp).name,
+            redirect: rules::dapp_redirect(dapp.redirect.as_ref()),
+        });
     }
 
     fn delivered(&self, id: u64) -> Result<(), GemServiceError> {
@@ -776,6 +830,7 @@ impl GemWalletConnectClient {
             icons: config.app_icons,
             redirect: Some(Redirect {
                 native: Some(rules::redirect(self.platform).to_string()),
+                universal: None,
             }),
         }
     }
@@ -969,7 +1024,7 @@ mod tests {
                     r#"{"eip155":{"chains":["eip155:1","eip155:137"],"accounts":["eip155:1:address","eip155:137:address"],"methods":["eth_sendTransaction","personal_sign","eth_signTypedData_v4"],"events":["chainChanged","accountsChanged"]}}"#
                 )
             );
-            assert_eq!(settle["params"]["controller"]["metadata"]["redirect"], json(r#"{"native":"gem://"}"#));
+            assert_eq!(settle["params"]["controller"]["metadata"]["redirect"], json(r#"{"native":"gem://wc"}"#));
             assert_eq!(
                 client.service.store.get_connection(session_topic.clone()).await.unwrap().unwrap().wallet.id,
                 wallet.id,
@@ -1081,6 +1136,89 @@ mod tests {
                     "a proposal answered once is gone"
                 );
             }
+        });
+    }
+
+    fn return_events(dapp: &TestDapp) -> Vec<GemWalletConnectEvent> {
+        dapp.listener.events.lock().unwrap().iter().filter(|event| matches!(event, GemWalletConnectEvent::ReturnToDapp { .. })).cloned().collect()
+    }
+
+    fn return_to_example(redirect: Option<&str>) -> GemWalletConnectEvent {
+        GemWalletConnectEvent::ReturnToDapp {
+            name: "Example".to_string(),
+            redirect: redirect.map(str::to_string),
+        }
+    }
+
+    #[test]
+    fn test_a_proposal_opened_from_another_app_returns_to_it_once_answered() {
+        block_on(async {
+            let with_redirect = TEST_PROPOSAL.replace(
+                r#""url": "https://example.com","#,
+                r#""url": "https://example.com", "redirect": {"native": "example://wc", "universal": "https://example.com/app"},"#,
+            );
+            for (proposal, link, approves, expected) in [
+                (TEST_PROPOSAL.to_string(), true, true, vec![return_to_example(None)]),
+                (with_redirect.clone(), true, true, vec![return_to_example(Some("example://wc"))]),
+                (with_redirect.clone(), true, false, vec![return_to_example(Some("example://wc"))]),
+                (with_redirect, false, true, vec![]),
+            ] {
+                let dapp = TestDapp::new();
+                let wallet = Wallet::mock_with_chains(&[Chain::Ethereum]);
+                let client = GemWalletConnectClient::mock_with_service(&dapp, Platform::IOS, GemWalletConnectService::mock(Ok(String::new()), wallet.clone()).await);
+                let uri = TestDapp::pairing_uri("wc_sessionPropose");
+                if link {
+                    client.link_opened(WalletConnectLink::Connect { uri: uri.clone() });
+                }
+                client.pair(uri).await.unwrap();
+                client.receive(TestDapp::frame(TEST_TOPIC, &test_key(TEST_SYM_KEY), &TestDapp::request(100, METHOD_SESSION_PROPOSE, &proposal))).await.unwrap();
+                assert!(return_events(&dapp).is_empty(), "nothing returns before the user answers");
+
+                if approves {
+                    client.approve_session(TEST_PEER_PUBLIC_KEY.to_string(), wallet).await.unwrap();
+                } else {
+                    client.reject_session(TEST_PEER_PUBLIC_KEY.to_string(), GemWalletConnectRejectionReason::UserRejected).await.unwrap();
+                }
+
+                assert_eq!(return_events(&dapp), expected, "a code scanned from another device stays in Gem");
+            }
+        });
+    }
+
+    #[test]
+    fn test_a_request_opened_from_another_app_returns_to_it_after_the_last_waiting_request() {
+        block_on(async {
+            let dapp = TestDapp::new();
+            let (client, session_key) = GemWalletConnectClient::mock_connected(&dapp, Wallet::mock_with_chains(&[Chain::Ethereum])).await;
+            let topic = TestDapp::topic(&session_key);
+            let receive = |id: u64| {
+                client.receive(TestDapp::frame(
+                    &topic,
+                    &session_key,
+                    &TestDapp::request(id, METHOD_SESSION_REQUEST, r#"{"request":{"method":"personal_sign","params":["0x48656c6c6f","0xaddress"]},"chainId":"eip155:1"}"#),
+                ))
+            };
+
+            receive(200).await.unwrap();
+            client.answer_request(topic.clone(), "200".to_string()).await.unwrap();
+            assert!(return_events(&dapp).is_empty(), "a request from a dapp on another device stays in Gem");
+
+            client.link_opened(WalletConnectLink::Session { topic: topic.clone() });
+            receive(201).await.unwrap();
+            receive(202).await.unwrap();
+            client.answer_request(topic.clone(), "201".to_string()).await.unwrap();
+            assert!(return_events(&dapp).is_empty(), "another request of the same dapp is still waiting");
+            client.reject_request(topic.clone(), "202".to_string()).await.unwrap();
+            assert_eq!(return_events(&dapp), vec![return_to_example(None)], "a rejection returns too, so the dapp shows it");
+
+            receive(203).await.unwrap();
+            client.answer_request(topic.clone(), "203".to_string()).await.unwrap();
+            assert_eq!(return_events(&dapp).len(), 1, "one link returns once");
+
+            client.link_opened(WalletConnectLink::Session { topic: topic.clone() });
+            client.disconnect(topic.clone()).await.unwrap();
+            client.link_opened(WalletConnectLink::Request);
+            assert!(lock(&client.linked_topics).is_empty(), "a disconnected session forgets its link");
         });
     }
 

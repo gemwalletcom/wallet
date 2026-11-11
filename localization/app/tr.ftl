@@ -371,6 +371,7 @@ wallet_connect_permissions_title = İzinler
 wallet_connect_permissions_view_balance = Bakiyenizi ve işlemlerinizi görüntüleme
 wallet_connect_permissions_approval_requests = Onay istekleri gönderme
 wallet_connect_request_expired = İstek süresi doldu
+wallet_connect_return_to_app = %@ uygulamasına dönün
 
 # Swap
 

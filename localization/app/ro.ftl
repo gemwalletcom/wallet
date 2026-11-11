@@ -371,6 +371,7 @@ wallet_connect_permissions_title = Permisiuni
 wallet_connect_permissions_view_balance = Vizualizați soldul și activitatea dvs.
 wallet_connect_permissions_approval_requests = Trimiteți cereri de aprobare
 wallet_connect_request_expired = Cererea a expirat
+wallet_connect_return_to_app = Revino la %@
 
 # Swap
 

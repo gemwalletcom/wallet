@@ -687,6 +687,8 @@ wallet_connect_permissions_view_balance = View your balance and activity
 wallet_connect_permissions_approval_requests = Send approval requests
 # Shown when a WalletConnect request arrives or is confirmed after the app that sent it stopped waiting for an answer.
 wallet_connect_request_expired = Request expired
+# Toast after the user answers a WalletConnect connection or request that another app sent them from, when Gem can't open that app itself. %@ is the app's name.
+wallet_connect_return_to_app = Return to %@
 
 # Swap
 

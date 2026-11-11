@@ -1795,6 +1795,10 @@ public enum Localized {
     public static let noActiveConnections = Localized.tr("Localizable", "wallet_connect.no_active_connections", fallback: "No active connections")
     /// Request expired
     public static let requestExpired = Localized.tr("Localizable", "wallet_connect.request_expired", fallback: "Request expired")
+    /// Return to %@
+    public static func returnToApp(_ p1: Any) -> String {
+      return Localized.tr("Localizable", "wallet_connect.return_to_app", String(describing: p1), fallback: "Return to %@")
+    }
     /// WalletConnect
     public static let title = Localized.tr("Localizable", "wallet_connect.title", fallback: "WalletConnect")
     public enum Connect {

@@ -38,6 +38,7 @@ import uniffi.gemstone.GemAppStartFailure
 import uniffi.gemstone.GemAppStartServiceInterface
 import uniffi.gemstone.GemWalletService
 import uniffi.gemstone.GemWalletServiceInterface
+import uniffi.gemstone.WalletConnectLink
 import javax.inject.Inject
 
 @HiltViewModel
@@ -70,6 +71,11 @@ class MainViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, Appearance.System)
 
     private val walletConnectHandler = object : PendingNavigationCoordinator.WalletConnectHandler {
+        override fun onLinkOpened(link: WalletConnectLink) {
+            if (isWalletConnectEnabled) {
+                pairWalletConnect.linkOpened(link)
+            }
+        }
         override fun onPairing(uri: String) = addPairing(uri)
         override fun onRequest() {
             if (isWalletConnectEnabled) {

@@ -6,6 +6,7 @@ import uniffi.gemstone.GemWalletConnectClientInterface
 import uniffi.gemstone.GemWalletConnectFailure
 import uniffi.gemstone.GemWalletConnectRejectionReason
 import uniffi.gemstone.Wallet
+import uniffi.gemstone.WalletConnectLink
 import java.util.Collections
 
 class WalletConnectClientMock(
@@ -30,6 +31,8 @@ class WalletConnectClientMock(
         calls.add("receive $frame")
         receiving(frame)
     }
+
+    override fun linkOpened(link: WalletConnectLink) = Unit
 
     override suspend fun pair(uri: String) {
         calls.add("pair $uri")

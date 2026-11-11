@@ -2,8 +2,10 @@ package com.gemwallet.android
 
 import android.Manifest
 import android.app.ActivityManager
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.graphics.PixelFormat
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.View
@@ -127,6 +129,12 @@ class MainActivity :
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
+                activeWalletConnectRequest.returns.collect { returnToDapp(it.redirect) }
+            }
+        }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
                 notificationPermissionRequests.requests.collect { request ->
                     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
                         request.complete(false)
@@ -193,6 +201,18 @@ class MainActivity :
                 )
             }
             RootWarningHost(darkTheme = darkTheme, onCancel = ::finishAffinity)
+        }
+    }
+
+    private fun returnToDapp(redirect: String?) {
+        val opened = redirect != null && try {
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(redirect)))
+            true
+        } catch (_: ActivityNotFoundException) {
+            false
+        }
+        if (!opened) {
+            moveTaskToBack(true)
         }
     }
 

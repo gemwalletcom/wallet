@@ -320,6 +320,7 @@
   <string name="wallet_connect_permissions_view_balance">Consultez votre solde et votre activité</string>
   <string name="wallet_connect_permissions_approval_requests">Envoyer les demandes d\'approbation</string>
   <string name="wallet_connect_request_expired">Demande expirée</string>
+  <string name="wallet_connect_return_to_app">Revenez à %1$s</string>
   <string name="swap_you_pay">Vous payez</string>
   <string name="swap_you_receive">Vous recevez</string>
   <string name="swap_price_impact">Impact sur le prix</string>

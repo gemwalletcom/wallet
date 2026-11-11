@@ -320,6 +320,7 @@
   <string name="wallet_connect_permissions_view_balance">Перегляд вашого балансу та активності</string>
   <string name="wallet_connect_permissions_approval_requests">Надсилати запити на схвалення</string>
   <string name="wallet_connect_request_expired">Термін запиту минув</string>
+  <string name="wallet_connect_return_to_app">Поверніться до %1$s</string>
   <string name="swap_you_pay">Ви платите</string>
   <string name="swap_you_receive">Ви отримуєте</string>
   <string name="swap_price_impact">Вплив на ціну</string>

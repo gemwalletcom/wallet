@@ -371,6 +371,7 @@ wallet_connect_permissions_title = Berechtigungen
 wallet_connect_permissions_view_balance = Ihren Kontostand und Ihre Aktivitäten einsehen
 wallet_connect_permissions_approval_requests = Genehmigungsanfragen senden
 wallet_connect_request_expired = Anfrage abgelaufen
+wallet_connect_return_to_app = Zurück zu %@
 
 # Swap
 

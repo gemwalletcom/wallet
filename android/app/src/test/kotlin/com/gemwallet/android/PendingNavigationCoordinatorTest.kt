@@ -56,6 +56,21 @@ class PendingNavigationCoordinatorTest {
     }
 
     @Test
+    fun buildRoutes_walletConnectLinkFromAnotherApp_isMarkedBeforePairing() = runTest {
+        val handler = RecordingWalletConnect()
+        val link = "https://gemwallet.com/wc?uri=wc%3Aabc%402"
+        val connect = WalletConnectLink.Connect("wc:abc@2")
+        coEvery { navigationService.openCode(link) } returns GemCodeOutcome.WalletConnect(connect)
+        val intent = mockk<Intent>(relaxed = true)
+        every { intent.dataString } returns link
+        coordinator.pendIntent(intent)
+
+        coordinator.buildRoutes(handler)
+
+        assertEquals("a dapp that opened Gem is returned to once the user answers", listOf("link:$connect", "pairing:wc:abc@2"), handler.events)
+    }
+
+    @Test
     fun buildRoutes_walletConnectRequest_invokesRequestHandlerAndClears() = runTest {
         val handler = RecordingWalletConnect()
         val uri = "gem://wc?requestId=42"
@@ -233,12 +248,16 @@ class PendingNavigationCoordinatorTest {
     }
 
     private object NoOpWalletConnect : PendingNavigationCoordinator.WalletConnectHandler {
+        override fun onLinkOpened(link: WalletConnectLink) = Unit
         override fun onPairing(uri: String) = Unit
         override fun onRequest() = Unit
     }
 
     private class RecordingWalletConnect : PendingNavigationCoordinator.WalletConnectHandler {
         val events = mutableListOf<String>()
+        override fun onLinkOpened(link: WalletConnectLink) {
+            events += "link:$link"
+        }
         override fun onPairing(uri: String) {
             events += "pairing:$uri"
         }

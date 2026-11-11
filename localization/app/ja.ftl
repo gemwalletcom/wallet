@@ -371,6 +371,7 @@ wallet_connect_permissions_title = 権限
 wallet_connect_permissions_view_balance = 残高とアクティビティを確認する
 wallet_connect_permissions_approval_requests = 承認依頼を送信する
 wallet_connect_request_expired = リクエストの有効期限が切れました
+wallet_connect_return_to_app = %@ に戻ってください
 
 # Swap
 

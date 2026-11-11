@@ -371,6 +371,7 @@ wallet_connect_permissions_title = Uprawnienia
 wallet_connect_permissions_view_balance = Wyświetl swoje saldo i aktywność
 wallet_connect_permissions_approval_requests = Wyślij prośby o zatwierdzenie
 wallet_connect_request_expired = Żądanie wygasło
+wallet_connect_return_to_app = Wróć do %@
 
 # Swap
 

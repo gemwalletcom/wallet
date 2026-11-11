@@ -320,6 +320,7 @@
   <string name="wallet_connect_permissions_view_balance">Ihren Kontostand und Ihre Aktivitäten einsehen</string>
   <string name="wallet_connect_permissions_approval_requests">Genehmigungsanfragen senden</string>
   <string name="wallet_connect_request_expired">Anfrage abgelaufen</string>
+  <string name="wallet_connect_return_to_app">Zurück zu %1$s</string>
   <string name="swap_you_pay">Sie bezahlen</string>
   <string name="swap_you_receive">Sie erhalten</string>
   <string name="swap_price_impact">Preiseinfluss</string>

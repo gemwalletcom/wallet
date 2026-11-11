@@ -371,6 +371,7 @@ wallet_connect_permissions_title = Toestemmingen
 wallet_connect_permissions_view_balance = Bekijk je saldo en activiteit
 wallet_connect_permissions_approval_requests = Verzoeken om goedkeuring verzenden
 wallet_connect_request_expired = Verzoek verlopen
+wallet_connect_return_to_app = Ga terug naar %@
 
 # Swap
 
