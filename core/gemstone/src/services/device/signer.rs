@@ -45,14 +45,14 @@ impl GemDeviceRequestSigner {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gem_auth::{DeviceSignature, DeviceSignatureHeaders};
+    use gem_auth::DeviceSignature;
 
     #[test]
     fn test_device_stream_request_uses_signer_key() {
         let key_pair = crate::device::generate_device_key_pair();
         let signer = GemDeviceRequestSigner::new(key_pair.private_key).unwrap();
         let stream = signer.device_stream_request().unwrap();
-        let signature = DeviceSignature::parse(&DeviceSignatureHeaders::from_fields(|name| stream.headers.get(name).map(String::as_str)).unwrap()).unwrap();
+        let signature = DeviceSignature::from_fields(|name| stream.headers.get(name).map(String::as_str)).unwrap();
 
         assert_eq!(signer.public_key_hex(), hex::encode(&key_pair.public_key));
         assert_eq!(signature.device_id, signer.public_key_hex());

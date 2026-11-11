@@ -8,7 +8,7 @@ use axum::extract::{DefaultBodyLimit, Request};
 use axum::middleware::{self, Next};
 use axum::response::{IntoResponse, Response};
 use axum::{Router, body::Body};
-use gem_auth::{DeviceSignature, DeviceSignatureHeaders, parse_device_auth};
+use gem_auth::{DeviceSignature, parse_device_auth};
 use gem_tracing::{error_fields, info_with_fields};
 use http::header::{AUTHORIZATION, CONTENT_TYPE, USER_AGENT};
 use http::{HeaderMap, Method, StatusCode};
@@ -95,11 +95,7 @@ fn device_fields(headers: &HeaderMap) -> String {
     let field = |name: &str| headers.get(name).and_then(|value| value.to_str().ok());
     let device = match field(AUTHORIZATION.as_str()).and_then(parse_device_auth) {
         Some(payload) => Some((payload.device_id, payload.wallet_id)),
-        None => DeviceSignatureHeaders::from_fields(field)
-            .ok()
-            .as_ref()
-            .and_then(DeviceSignature::parse)
-            .map(|signature| (signature.device_id, signature.wallet_id)),
+        None => DeviceSignature::from_fields(field).map(|signature| (signature.device_id, signature.wallet_id)),
     };
     match device {
         Some((device_id, Some(wallet_id))) => format!(" device_id={device_id} wallet_id={wallet_id}"),

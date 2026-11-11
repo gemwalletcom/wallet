@@ -106,6 +106,10 @@ pub struct DeviceSignature {
 }
 
 impl DeviceSignature {
+    pub fn from_fields<'a>(field: impl Fn(&str) -> Option<&'a str>) -> Option<Self> {
+        Self::parse(&DeviceSignatureHeaders::from_fields(field).ok()?)
+    }
+
     pub fn parse(headers: &DeviceSignatureHeaders) -> Option<Self> {
         let inputs: Dictionary = Parser::new(headers.signature_input).parse().ok()?;
         let signatures: Dictionary = Parser::new(headers.signature).parse().ok()?;
@@ -217,7 +221,7 @@ mod tests {
     const RFC_9421_PUBLIC_KEY_HEX: &str = "26b40b8f93fff3d897112f7ebc582b232dbd72517d082fe83cfb30ddce43d1bb";
 
     fn parse(headers: &HashMap<String, String>) -> Option<DeviceSignature> {
-        DeviceSignature::parse(&DeviceSignatureHeaders::from_fields(|name| headers.get(name).map(String::as_str)).ok()?)
+        DeviceSignature::from_fields(|name| headers.get(name).map(String::as_str))
     }
 
     fn replaced(headers: &HashMap<String, String>, name: &str, value: &str) -> HashMap<String, String> {
