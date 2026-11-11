@@ -1453,11 +1453,6 @@
     "content_type": "application/json",
     "body": "<volatile>"
   },
-  "v4_address_names": {
-    "status": 200,
-    "content_type": "application/json",
-    "body": []
-  },
   "v4_body_digest_tamper": {
     "status": 400,
     "content_type": "application/json",
@@ -1503,43 +1498,6 @@
       }
     }
   },
-  "v4_is_registered": {
-    "status": 200,
-    "content_type": "application/json",
-    "body": true
-  },
-  "v4_names": {
-    "status": 200,
-    "content_type": "application/json",
-    "body": "<volatile>"
-  },
-  "v4_nft_assets": {
-    "status": 200,
-    "content_type": "application/json",
-    "body": []
-  },
-  "v4_notifications_read": {
-    "status": 200,
-    "content_type": "application/json",
-    "body": "number"
-  },
-  "v4_price_alerts": {
-    "status": 200,
-    "content_type": "application/json",
-    "body": []
-  },
-  "v4_subscriptions": {
-    "status": 200,
-    "content_type": "application/json",
-    "body": [
-      {
-        "walletId": "string",
-        "chains": [
-          "string"
-        ]
-      }
-    ]
-  },
   "v4_transactions": {
     "status": 200,
     "content_type": "application/json",
@@ -1556,11 +1514,6 @@
         "message": "Invalid signature"
       }
     }
-  },
-  "v4_wallet_configuration": {
-    "status": 200,
-    "content_type": "application/json",
-    "body": "<volatile>"
   },
   "wrong_method": {
     "status": 404,

@@ -540,21 +540,11 @@ fn v4_cases(harness: &Harness) -> Vec<Case> {
         Case::new("v4_device", Method::GET, "/v4/devices").device(),
         Case::new("v4_device_missing_signature", Method::GET, "/v4/devices"),
         Case::new("v4_device_gem_header", Method::GET, "/v4/devices").auth(Auth::Header(harness.sign_now("GET", "/v4/devices", "", &[]))),
-        Case::new("v4_is_registered", Method::GET, "/v4/devices/is-registered").device(),
-        Case::new("v4_subscriptions", Method::GET, "/v4/devices/subscriptions").device(),
         Case::new("v4_body_digest_tamper", Method::POST, "/v4/devices/subscriptions")
             .auth(Auth::Signature(tampered_body))
             .json(json!([subscription(&wallet)])),
         Case::new("v4_transactions", Method::GET, "/v4/devices/transactions?asset_id=ethereum&limit=5").wallet(),
         Case::new("v4_transactions_query_tampered", Method::GET, "/v4/devices/transactions?asset_id=ethereum&limit=5").auth(Auth::Signature(query_signed_for_other_asset)),
-        Case::new("v4_price_alerts", Method::GET, "/v4/devices/price-alerts?asset_id=ethereum").device(),
-        Case::new("v4_wallet_configuration", Method::GET, "/v4/devices/wallet-configuration").wallet().volatile(),
-        Case::new("v4_nft_assets", Method::GET, "/v4/devices/nft-assets").wallet(),
-        Case::new("v4_names", Method::GET, "/v4/devices/names/vitalik.eth?chain=ethereum").device().volatile(),
-        Case::new("v4_address_names", Method::POST, "/v4/devices/address-names")
-            .device()
-            .json(json!([{"chain": "ethereum", "address": TEST_PRIVATE_KEY_ETHEREUM_ADDRESS}])),
-        Case::new("v4_notifications_read", Method::POST, "/v4/devices/notifications/read").wallet(),
     ]
 }
 

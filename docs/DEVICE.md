@@ -4,11 +4,11 @@ Every install registers a device with the backend, tells it which wallet address
 
 ## Authentication
 
-Requests are signed with [HTTP Message Signatures (RFC 9421)](https://www.rfc-editor.org/rfc/rfc9421) using the device's Ed25519 key, and carry the SHA-256 of the body as [`Content-Digest` (RFC 9530)](https://www.rfc-editor.org/rfc/rfc9530). A wallet-scoped request names its wallet in `Gem-Wallet-Id`, a Structured Field string, so the wallet id stays out of the URL and can hold any character an address or account name uses:
+Requests are signed with [HTTP Message Signatures (RFC 9421)](https://www.rfc-editor.org/rfc/rfc9421) using the device's Ed25519 key, and carry the SHA-256 of the body as [`Content-Digest` (RFC 9530)](https://www.rfc-editor.org/rfc/rfc9530). A wallet-scoped request names its wallet in the `Gem-Wallet-Id` header, the way `Stripe-Account` scopes a Stripe request, so the wallet id stays out of the URL and no delimiter can split it:
 
 ```
 GET /v4/devices/transactions?asset_id=near&limit=5
-Gem-Wallet-Id: "view_near_alice.near"
+Gem-Wallet-Id: view_near_alice.near
 Content-Digest: sha-256=:47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=:
 Signature-Input: device=("@method" "@path" "@query" "content-digest" "gem-wallet-id");created=1762870000;keyid="<device_id_hex>";alg="ed25519";tag="gem-device"
 Signature: device=:<base64 Ed25519 signature>:
@@ -21,11 +21,11 @@ The signature covers the method, the path, the raw query as sent (`?` alone when
 "@path": /v4/devices/transactions
 "@query": ?asset_id=near&limit=5
 "content-digest": sha-256=:47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=:
-"gem-wallet-id": "view_near_alice.near"
+"gem-wallet-id": view_near_alice.near
 "@signature-params": ("@method" "@path" "@query" "content-digest" "gem-wallet-id");created=1762870000;keyid="<device_id_hex>";alg="ed25519";tag="gem-device"
 ```
 
-The backend verifies the one signature tagged `gem-device` and rejects it unless it covers exactly these components and carries exactly `created`, `keyid`, `alg` and `tag`. A `Gem-Wallet-Id` the signature does not cover is rejected too.
+The backend verifies the signature labelled `device` and rejects it unless it covers exactly these components and carries exactly `created`, `keyid`, `alg="ed25519"` and `tag="gem-device"`. A `Gem-Wallet-Id` the signature does not cover is rejected too.
 
 Releases before the v4 client call `/v3` and `/v2` with the `Gem` header:
 
