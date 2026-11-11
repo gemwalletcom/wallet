@@ -2,9 +2,7 @@ use crate::OptionStringExt;
 use url::Url;
 
 use crate::url_query::query_value;
-use crate::{AssetId, Chain, GEM_URL_SCHEME, HTTPS_URL_SCHEME};
-
-const DEEPLINK_HOST: &str = "gemwallet.com";
+use crate::{AssetId, Chain, GEM_HOST, GEM_URL_SCHEME, HTTPS_URL_SCHEME};
 
 const PATH_TOKENS: &str = "tokens";
 const PATH_ADDRESS: &str = "address";
@@ -33,7 +31,7 @@ pub enum Deeplink {
 
 impl Deeplink {
     pub fn to_url(&self) -> String {
-        format!("{HTTPS_URL_SCHEME}://{DEEPLINK_HOST}{}", self.path())
+        format!("{HTTPS_URL_SCHEME}://{GEM_HOST}{}", self.path())
     }
 
     pub fn to_gem_url(&self) -> String {
@@ -145,7 +143,7 @@ fn url_segments(url: &Url) -> Option<Vec<String>> {
 
     match url.scheme() {
         HTTPS_URL_SCHEME => {
-            if url.host_str()? != DEEPLINK_HOST {
+            if url.host_str()? != GEM_HOST {
                 return None;
             }
         }

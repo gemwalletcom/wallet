@@ -4,11 +4,11 @@ import com.gemwallet.android.testkit.mockGemWalletConnectAuthentication
 import com.gemwallet.android.testkit.mockGemWalletConnectMessageRequest
 import com.gemwallet.android.testkit.mockGemWalletConnectProposal
 import com.gemwallet.android.testkit.mockGemWalletConnectSessionRequest
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.withTimeoutOrNull
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -42,19 +42,21 @@ class ActiveWalletConnectRequestTest {
     }
 
     @Test
-    fun aReturnToTheDappIsDeliveredOnceAndLeavesTheCurrentRequest() = runTest {
+    fun aReturnToTheDappReachesOnlyAnOpenGemAndLeavesTheCurrentRequest() = runTest {
         val activeRequest = ActiveWalletConnectRequest(events, WalletConnectPendingRequests(), backgroundScope)
         testScheduler.runCurrent()
         val proposal = mockGemWalletConnectProposal()
         val returnToDapp = GemWalletConnectEvent.ReturnToDapp(name = "Example", redirect = "example://wc")
 
+        events.emit(GemWalletConnectEvent.ReturnToDapp(name = "Example", redirect = "example://closed"))
+        testScheduler.runCurrent()
+        val received = async(start = CoroutineStart.UNDISPATCHED) { activeRequest.returns.first() }
         events.emit(GemWalletConnectEvent.Proposal(proposal))
         events.emit(returnToDapp)
         testScheduler.runCurrent()
 
-        assertEquals(returnToDapp, activeRequest.returns.first())
+        assertEquals("a return while Gem is closed is not acted on when Gem opens", returnToDapp, received.await())
         assertEquals(proposal, (activeRequest.current.value as WalletConnectUserRequest.SessionProposal).proposal)
-        assertNull("a return already acted on is not repeated when Gem opens again", withTimeoutOrNull(1) { activeRequest.returns.first() })
     }
 
     @Test

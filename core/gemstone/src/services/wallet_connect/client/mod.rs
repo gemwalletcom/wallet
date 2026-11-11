@@ -5,8 +5,8 @@ mod state;
 #[cfg(test)]
 pub(crate) mod testkit;
 
+use std::collections::HashMap;
 use std::collections::hash_map::Entry;
-use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 use std::time::Duration;
 
@@ -52,6 +52,7 @@ const APPROVAL_TTL_SECONDS: u64 = 300;
 const EXPIRY_CHECK_INTERVAL: Duration = Duration::from_secs(3);
 const VERIFY_TIMEOUT: Duration = Duration::from_secs(5);
 const HTTP_OK: u16 = 200;
+const LINK_RETURN_SECONDS: u64 = 600;
 
 #[derive(uniffi::Object)]
 pub struct GemWalletConnectClient {
@@ -63,7 +64,7 @@ pub struct GemWalletConnectClient {
     platform: Platform,
     state: Mutex<Option<ClientState>>,
     pairing_requests: Mutex<HashMap<String, PairingRequest>>,
-    linked_topics: Mutex<HashSet<String>>,
+    linked_topics: Mutex<HashMap<String, u64>>,
 }
 
 #[derive(Clone)]
@@ -124,7 +125,7 @@ impl GemWalletConnectClient {
             platform,
             state: Mutex::new(None),
             pairing_requests: Mutex::new(HashMap::new()),
-            linked_topics: Mutex::new(HashSet::new()),
+            linked_topics: Mutex::new(HashMap::new()),
         }
     }
 
@@ -135,7 +136,7 @@ impl GemWalletConnectClient {
             WalletConnectLink::Request => None,
         };
         if let Some(topic) = topic {
-            lock(&self.linked_topics).insert(topic);
+            lock(&self.linked_topics).insert(topic, now());
         }
     }
 
@@ -340,11 +341,10 @@ impl GemWalletConnectClient {
             }
         };
         self.respond(&request, &session, response).await?;
-        match failure {
-            None => self.return_after_last_request(&session)?,
-            Some(_) => {
-                self.forget_link(&session.topic);
-            }
+        if failure.is_some() {
+            self.forget_link(&session.topic);
+        } else {
+            self.return_after_last_request(&session)?;
         }
         Ok(failure)
     }
@@ -620,17 +620,21 @@ impl GemWalletConnectClient {
         Ok(())
     }
 
-    fn forget_link(&self, topic: &str) -> bool {
-        lock(&self.linked_topics).remove(topic)
+    fn forget_link(&self, topic: &str) {
+        lock(&self.linked_topics).remove(topic);
+    }
+
+    fn take_link(&self, topic: &str) -> bool {
+        lock(&self.linked_topics).remove(topic).is_some_and(|linked_at| now().saturating_sub(linked_at) <= LINK_RETURN_SECONDS)
     }
 
     fn return_to_dapp(&self, topic: &str, dapp: &Metadata) {
-        if !self.forget_link(topic) {
+        if !self.take_link(topic) {
             return;
         }
         self.listener.on_event(GemWalletConnectEvent::ReturnToDapp {
             name: application_metadata(dapp).name,
-            redirect: rules::dapp_redirect(dapp.redirect.as_ref()),
+            redirect: rules::dapp_redirect(dapp.redirect.as_ref(), &dapp.url),
         });
     }
 
@@ -829,7 +833,7 @@ impl GemWalletConnectClient {
             url: config.app_url,
             icons: config.app_icons,
             redirect: Some(Redirect {
-                native: Some(rules::redirect(self.platform).to_string()),
+                native: Some(rules::redirect(self.platform)),
                 universal: None,
             }),
         }
@@ -1140,7 +1144,13 @@ mod tests {
     }
 
     fn return_events(dapp: &TestDapp) -> Vec<GemWalletConnectEvent> {
-        dapp.listener.events.lock().unwrap().iter().filter(|event| matches!(event, GemWalletConnectEvent::ReturnToDapp { .. })).cloned().collect()
+        dapp.listener
+            .events
+            .lock()
+            .unwrap()
+            .iter()
+            .filter_map(|event| if let GemWalletConnectEvent::ReturnToDapp { .. } = event { Some(event.clone()) } else { None })
+            .collect()
     }
 
     fn return_to_example(redirect: Option<&str>) -> GemWalletConnectEvent {
@@ -1214,6 +1224,11 @@ mod tests {
             receive(203).await.unwrap();
             client.answer_request(topic.clone(), "203".to_string()).await.unwrap();
             assert_eq!(return_events(&dapp).len(), 1, "one link returns once");
+
+            lock(&client.linked_topics).insert(topic.clone(), now() - LINK_RETURN_SECONDS - 1);
+            receive(204).await.unwrap();
+            client.answer_request(topic.clone(), "204".to_string()).await.unwrap();
+            assert_eq!(return_events(&dapp).len(), 1, "a link older than the return window no longer sends the user away");
 
             client.link_opened(WalletConnectLink::Session { topic: topic.clone() });
             client.disconnect(topic.clone()).await.unwrap();

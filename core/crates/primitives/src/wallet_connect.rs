@@ -5,7 +5,7 @@ use serde_serializers::{deserialize_biguint_from_option_hex_str, deserialize_opt
 use url::Url;
 
 use crate::url_query::query_value;
-use crate::{GEM_URL_SCHEME, HTTPS_URL_SCHEME, WALLET_CONNECT_URL_SCHEME};
+use crate::{GEM_HOST, GEM_URL_SCHEME, HTTPS_URL_SCHEME, WALLET_CONNECT_URL_SCHEME};
 
 const WALLET_CONNECT_HOST: &str = "wc";
 
@@ -54,9 +54,17 @@ impl WalletConnectLink {
         match parsed.scheme() {
             WALLET_CONNECT_URL_SCHEME => Some(Self::session_or_request(&parsed).unwrap_or_else(|| WalletConnectLink::Connect { uri: url.to_string() })),
             GEM_URL_SCHEME if parsed.host_str() == Some(WALLET_CONNECT_HOST) => Some(Self::wallet_link(&parsed)),
-            HTTPS_URL_SCHEME if parsed.host_str() == Some("gemwallet.com") && matches!(parsed.path(), "/wc" | "/wc/") => Some(Self::wallet_link(&parsed)),
+            HTTPS_URL_SCHEME if parsed.host_str() == Some(GEM_HOST) && parsed.path().strip_prefix('/').map(|path| path.trim_end_matches('/')) == Some(WALLET_CONNECT_HOST) => Some(Self::wallet_link(&parsed)),
             _ => None,
         }
+    }
+
+    pub fn app_link() -> String {
+        format!("{GEM_URL_SCHEME}://{WALLET_CONNECT_HOST}")
+    }
+
+    pub fn universal_link() -> String {
+        format!("{HTTPS_URL_SCHEME}://{GEM_HOST}/{WALLET_CONNECT_HOST}")
     }
 
     fn wallet_link(url: &Url) -> Self {
@@ -102,6 +110,7 @@ mod tests {
         assert_eq!(WalletConnectLink::from_url("gem://wc?requestId=1"), Some(WalletConnectLink::Request));
         assert_eq!(WalletConnectLink::from_url("gem://wc?sessionTopic=abc123"), Some(WalletConnectLink::Session { topic: "abc123".to_string() }));
         assert_eq!(WalletConnectLink::from_url("gem://wc?sessionTopic="), Some(WalletConnectLink::Request));
+        assert_eq!((WalletConnectLink::app_link().as_str(), WalletConnectLink::universal_link().as_str()), ("gem://wc", "https://gemwallet.com/wc"));
         for url in ["gem://wc", "https://gemwallet.com/wc", "https://gemwallet.com/wc/"] {
             assert_eq!(WalletConnectLink::from_url(url), Some(WalletConnectLink::Request), "a dapp opens the wallet to answer its request: {url}");
         }
