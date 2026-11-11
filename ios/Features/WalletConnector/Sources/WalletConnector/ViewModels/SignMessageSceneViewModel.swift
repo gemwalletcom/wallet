@@ -47,10 +47,6 @@ public final class SignMessageSceneViewModel {
         applicationConnectionRow(metadata: request.session.metadata)
     }
 
-    var payloadDetailsListItem: ListItemModel {
-        ListItemModel(title: Localized.Common.details)
-    }
-
     public var title: String {
         preview.title.text
     }

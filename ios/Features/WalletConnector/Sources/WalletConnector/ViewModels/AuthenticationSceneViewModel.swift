@@ -96,10 +96,6 @@ public final class AuthenticationSceneViewModel {
         try? approval.get().text
     }
 
-    var payloadDetailsListItem: ListItemModel {
-        ListItemModel(title: Localized.Common.details)
-    }
-
     public var buttonState: ButtonState {
         guard case .success = approval else {
             return .disabled
