@@ -33,7 +33,8 @@ extension XCUIApplication {
         tap("main_action")
     }
 
-    func skipEnableAuthentication() {
+    func skipEnableAuthentication(leaving identifier: String) {
+        XCTAssertTrue(element(identifier).waitForNonExistence(timeout: 30), "\(identifier) still shown after saving the wallet")
         let skip = buttons["skip"].firstMatch
         if skip.waitForExistence(timeout: 2) {
             skip.tap()
@@ -44,11 +45,21 @@ extension XCUIApplication {
         navigationBars.buttons.element(boundBy: 0).tap()
     }
 
+    func tapBack(leaving identifier: String) {
+        for _ in 0 ..< 3 {
+            tapBack()
+            if element(identifier).waitForNonExistence(timeout: 3) {
+                return
+            }
+        }
+        XCTFail("\(identifier) still shown after going back")
+    }
+
     func reopenFromBackground() {
         XCUIDevice.shared.press(.home)
-        XCTAssertTrue(wait(for: .runningBackground, timeout: 10))
+        XCTAssertTrue(wait(for: .runningBackground, timeout: 10), "app did not enter the background")
         activate()
-        XCTAssertTrue(wait(for: .runningForeground, timeout: 10))
+        XCTAssertTrue(wait(for: .runningForeground, timeout: 10), "app did not return to the foreground")
     }
 
     func getWords() -> [String] {

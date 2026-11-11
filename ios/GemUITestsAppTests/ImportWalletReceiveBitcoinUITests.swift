@@ -47,6 +47,6 @@ final class ImportWalletReceiveBitcoinUITests: XCTestCase {
         app.tap("importInputField")
         app.element("importInputField").typeText(words)
         app.tapMainAction()
-        app.skipEnableAuthentication()
+        app.skipEnableAuthentication(leaving: "importInputField")
     }
 }
