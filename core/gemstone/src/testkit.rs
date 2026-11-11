@@ -93,8 +93,11 @@ impl AlienProvider for TestAlienProvider {
     async fn request(&self, target: AlienTarget) -> Result<Arc<AlienResponse>, AlienError> {
         let path = target.url.find("/v").map(|index| target.url[index..].to_string()).unwrap_or(target.url);
         self.requested.lock().unwrap().push(path.clone());
-        if let Some(payload) = target.headers.as_ref().and_then(|headers| headers.get(gem_auth::AUTHORIZATION_HEADER)).and_then(|header| gem_auth::parse_device_auth(header)) {
-            self.signed_wallet_ids.lock().unwrap().push(payload.wallet_id.unwrap_or_default());
+        if let Some(signature) = target.headers.as_ref().and_then(|headers| {
+            let fields = gem_auth::DeviceSignatureHeaders::from_fields(|name| headers.get(name).map(String::as_str)).ok()?;
+            gem_auth::DeviceSignature::parse(&fields)
+        }) {
+            self.signed_wallet_ids.lock().unwrap().push(signature.wallet_id.unwrap_or_default());
         }
         if self.yields_while_requesting.load(Ordering::SeqCst) {
             YieldOnce::default().await;

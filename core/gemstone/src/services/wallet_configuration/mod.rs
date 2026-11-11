@@ -67,7 +67,7 @@ mod tests {
 
             service.sync(&wallet).await.unwrap();
 
-            assert_eq!(provider.requested_paths(), vec!["/v3/devices/wallet-configuration"]);
+            assert_eq!(provider.requested_paths(), vec!["/v1/devices/wallet-configuration"]);
         })
     }
 
@@ -85,7 +85,7 @@ mod tests {
 
             service.refresh(&wallet).await.unwrap();
 
-            assert_eq!(provider.requested_paths(), vec!["/v3/devices/wallet-configuration"]);
+            assert_eq!(provider.requested_paths(), vec!["/v1/devices/wallet-configuration"]);
         })
     }
 }

@@ -166,14 +166,14 @@ impl GemDeviceApiTarget {
 
     pub fn path(&self) -> String {
         match self {
-            Self::GetDevice | Self::AddDevice(_) | Self::UpdateDevice(_) => "/v3/devices".to_string(),
-            Self::IsDeviceRegistered => "/v3/devices/is-registered".to_string(),
-            Self::GetAuthNonce => "/v3/devices/auth/nonce".to_string(),
-            Self::GetSubscriptions | Self::AddSubscriptions(_) | Self::DeleteSubscriptions(_) => "/v3/devices/subscriptions".to_string(),
-            Self::GetPriceAlerts { asset_id } => build_path_with_query("/v3/devices/price-alerts", &PriceAlertsQuery { asset_id: asset_id.clone() }),
-            Self::AddPriceAlerts(_) | Self::DeletePriceAlerts(_) => "/v3/devices/price-alerts".to_string(),
+            Self::GetDevice | Self::AddDevice(_) | Self::UpdateDevice(_) => "/v1/devices".to_string(),
+            Self::IsDeviceRegistered => "/v1/devices/is-registered".to_string(),
+            Self::GetAuthNonce => "/v1/devices/auth/nonce".to_string(),
+            Self::GetSubscriptions | Self::AddSubscriptions(_) | Self::DeleteSubscriptions(_) => "/v1/devices/subscriptions".to_string(),
+            Self::GetPriceAlerts { asset_id } => build_path_with_query("/v1/devices/price-alerts", &PriceAlertsQuery { asset_id: asset_id.clone() }),
+            Self::AddPriceAlerts(_) | Self::DeletePriceAlerts(_) => "/v1/devices/price-alerts".to_string(),
             Self::GetTransactions { asset_id, from_timestamp, limit, offset, .. } => build_path_with_query(
-                "/v3/devices/transactions",
+                "/v1/devices/transactions",
                 &TransactionsQuery {
                     from_timestamp: *from_timestamp,
                     asset_id: asset_id.clone(),
@@ -181,34 +181,34 @@ impl GemDeviceApiTarget {
                     offset: *offset,
                 },
             ),
-            Self::GetAssetsList { from_timestamp, .. } => format!("/v3/devices/assets?from_timestamp={from_timestamp}"),
-            Self::GetWalletConfiguration { .. } => "/v3/devices/wallet-configuration".to_string(),
-            Self::GetTransaction { transaction_id, .. } => format!("/v3/devices/transactions/{transaction_id}"),
-            Self::ScanTransaction(_) => "/v3/devices/transactions/scan".to_string(),
-            Self::GetNftAssets { .. } => "/v3/devices/nft-assets".to_string(),
-            Self::GetNftAsset(asset_id) => format!("/v3/devices/nft-assets/{asset_id}"),
-            Self::RefreshNftAsset { asset_id, .. } => format!("/v3/devices/nft-assets/{asset_id}/refresh"),
-            Self::ReportNft(_) => "/v3/devices/nft-assets/report".to_string(),
-            Self::GetSupportMessages { from_timestamp } => format!("/v3/devices/support/messages?from_timestamp={from_timestamp}"),
-            Self::SendSupportMessage(_) => "/v3/devices/support/messages".to_string(),
-            Self::SendSupportImage { file_name, .. } => format!("/v3/devices/support/messages/images?file_name={}", gem_encoding::percent_encode(file_name)),
-            Self::GetRewards { .. } => "/v3/devices/rewards".to_string(),
-            Self::CreateReferral { .. } => "/v3/devices/rewards/referrals".to_string(),
-            Self::UseReferralCode { .. } => "/v3/devices/rewards/referrals/use".to_string(),
-            Self::RedeemRewards { .. } => "/v3/devices/rewards/redemptions".to_string(),
-            Self::GetNotifications { from_timestamp } => format!("/v3/devices/notifications?from_timestamp={from_timestamp}"),
-            Self::MarkNotificationsRead { .. } => "/v3/devices/notifications/read".to_string(),
-            Self::GetFiatQuotes { quote_type, asset_id, amount, currency, .. } => format!("/v3/devices/fiat/quotes/{}/{asset_id}?amount={amount}&currency={currency}", quote_type.as_ref()),
-            Self::GetFiatQuoteUrl { quote_id, .. } => format!("/v3/devices/fiat/quotes/{quote_id}/url"),
-            Self::GetFiatTransactions { .. } => "/v3/devices/fiat/transactions".to_string(),
-            Self::GetNameRecord { name, chain } => format!("/v3/devices/names/{name}?chain={chain}"),
-            Self::GetAddressNames(_) => "/v3/devices/address-names".to_string(),
-            Self::GetAddressDetails(request) => format!("/v3/devices/addresses/{}/{}", request.chain.as_ref(), request.address),
-            Self::GetPortfolioAssets { period, .. } => format!("/v3/devices/portfolio/assets?period={}", period.as_ref()),
+            Self::GetAssetsList { from_timestamp, .. } => format!("/v1/devices/assets?from_timestamp={from_timestamp}"),
+            Self::GetWalletConfiguration { .. } => "/v1/devices/wallet-configuration".to_string(),
+            Self::GetTransaction { transaction_id, .. } => format!("/v1/devices/transactions/{transaction_id}"),
+            Self::ScanTransaction(_) => "/v1/devices/transactions/scan".to_string(),
+            Self::GetNftAssets { .. } => "/v1/devices/nft-assets".to_string(),
+            Self::GetNftAsset(asset_id) => format!("/v1/devices/nft-assets/{asset_id}"),
+            Self::RefreshNftAsset { asset_id, .. } => format!("/v1/devices/nft-assets/{asset_id}/refresh"),
+            Self::ReportNft(_) => "/v1/devices/nft-assets/report".to_string(),
+            Self::GetSupportMessages { from_timestamp } => format!("/v1/devices/support/messages?from_timestamp={from_timestamp}"),
+            Self::SendSupportMessage(_) => "/v1/devices/support/messages".to_string(),
+            Self::SendSupportImage { file_name, .. } => format!("/v1/devices/support/messages/images?file_name={}", gem_encoding::percent_encode(file_name)),
+            Self::GetRewards { .. } => "/v1/devices/rewards".to_string(),
+            Self::CreateReferral { .. } => "/v1/devices/rewards/referrals".to_string(),
+            Self::UseReferralCode { .. } => "/v1/devices/rewards/referrals/use".to_string(),
+            Self::RedeemRewards { .. } => "/v1/devices/rewards/redemptions".to_string(),
+            Self::GetNotifications { from_timestamp } => format!("/v1/devices/notifications?from_timestamp={from_timestamp}"),
+            Self::MarkNotificationsRead { .. } => "/v1/devices/notifications/read".to_string(),
+            Self::GetFiatQuotes { quote_type, asset_id, amount, currency, .. } => format!("/v1/devices/fiat/quotes/{}/{asset_id}?amount={amount}&currency={currency}", quote_type.as_ref()),
+            Self::GetFiatQuoteUrl { quote_id, .. } => format!("/v1/devices/fiat/quotes/{quote_id}/url"),
+            Self::GetFiatTransactions { .. } => "/v1/devices/fiat/transactions".to_string(),
+            Self::GetNameRecord { name, chain } => format!("/v1/devices/names/{name}?chain={chain}"),
+            Self::GetAddressNames(_) => "/v1/devices/address-names".to_string(),
+            Self::GetAddressDetails(request) => format!("/v1/devices/addresses/{}/{}", request.chain.as_ref(), request.address),
+            Self::GetPortfolioAssets { period, .. } => format!("/v1/devices/portfolio/assets?period={}", period.as_ref()),
         }
     }
 
-    pub fn wallet_id(&self) -> &str {
+    pub fn wallet_id(&self) -> Option<&str> {
         match self {
             Self::GetTransactions { wallet_id, .. }
             | Self::GetTransaction { wallet_id, .. }
@@ -223,8 +223,8 @@ impl GemDeviceApiTarget {
             | Self::RedeemRewards { wallet_id, .. }
             | Self::GetFiatQuotes { wallet_id, .. }
             | Self::GetFiatQuoteUrl { wallet_id, .. }
-            | Self::GetFiatTransactions { wallet_id } => wallet_id.as_str(),
-            _ => "",
+            | Self::GetFiatTransactions { wallet_id } => Some(wallet_id),
+            _ => None,
         }
     }
 
