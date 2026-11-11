@@ -295,7 +295,7 @@ public extension GemBalanceRowValue {
 public extension Gemstone.DelegationState {
     var title: String {
         switch self {
-        case .active: Localized.Stake.active
+        case .active, .locked: Localized.Stake.active
         case .pending: Localized.Stake.pending
         case .inactive: Localized.Stake.inactive
         case .activating: Localized.Stake.activating

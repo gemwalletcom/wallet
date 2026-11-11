@@ -453,6 +453,7 @@ public extension Gemstone.DelegationState {
         case .activating: .activating
         case .deactivating: .deactivating
         case .awaitingWithdrawal: .awaitingWithdrawal
+        case .locked: .locked
         }
     }
 }
@@ -466,6 +467,7 @@ public extension Primitives.DelegationState {
         case .activating: .activating
         case .deactivating: .deactivating
         case .awaitingWithdrawal: .awaitingWithdrawal
+        case .locked: .locked
         }
     }
 }

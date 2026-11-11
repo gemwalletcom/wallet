@@ -114,13 +114,13 @@ fn delegation_actions(wallet_type: WalletType, delegation: &Delegation) -> Vec<G
                 DelegationState::Inactive if config.can_redelegate => vec![GemDelegationAction::Unstake, GemDelegationAction::Redelegate],
                 DelegationState::Inactive => vec![GemDelegationAction::Unstake],
                 DelegationState::AwaitingWithdrawal if config.can_withdraw => vec![GemDelegationAction::Withdraw],
-                DelegationState::AwaitingWithdrawal | DelegationState::Pending | DelegationState::Activating | DelegationState::Deactivating => vec![],
+                DelegationState::AwaitingWithdrawal | DelegationState::Pending | DelegationState::Activating | DelegationState::Deactivating | DelegationState::Locked => vec![],
             }
         }
         StakeProviderType::Earn => match state {
             DelegationState::Active => vec![GemDelegationAction::Deposit, GemDelegationAction::Withdraw],
             DelegationState::Inactive => vec![GemDelegationAction::Withdraw],
-            DelegationState::Pending | DelegationState::Activating | DelegationState::Deactivating | DelegationState::AwaitingWithdrawal => vec![],
+            DelegationState::Pending | DelegationState::Activating | DelegationState::Deactivating | DelegationState::AwaitingWithdrawal | DelegationState::Locked => vec![],
         },
     }
 }
@@ -191,6 +191,7 @@ pub fn validator_explorer_address(validator: &DelegationValidator) -> Option<Str
 fn delegation_status(delegation: &Delegation) -> GemDelegationStatus {
     let state = match delegation.base.state {
         DelegationState::Active if !delegation.validator.is_active => DelegationState::Inactive,
+        DelegationState::Locked => DelegationState::Active,
         state => state,
     };
     GemDelegationStatus { state, tone: delegation_tone(state) }
@@ -198,7 +199,7 @@ fn delegation_status(delegation: &Delegation) -> GemDelegationStatus {
 
 fn delegation_tone(state: DelegationState) -> GemValueTone {
     match state {
-        DelegationState::Active => GemValueTone::Positive,
+        DelegationState::Active | DelegationState::Locked => GemValueTone::Positive,
         DelegationState::Pending | DelegationState::Activating | DelegationState::Deactivating => GemValueTone::Warning,
         DelegationState::Inactive | DelegationState::AwaitingWithdrawal => GemValueTone::Negative,
     }
@@ -209,7 +210,7 @@ fn completion_title(delegation: &Delegation) -> Option<GemListRowTitle> {
         StakeProviderType::Earn => None,
         StakeProviderType::Stake => match delegation.base.state {
             DelegationState::Activating => Some(GemListRowTitle::ActiveIn),
-            DelegationState::Pending | DelegationState::Deactivating | DelegationState::AwaitingWithdrawal => Some(GemListRowTitle::AvailableIn),
+            DelegationState::Pending | DelegationState::Deactivating | DelegationState::AwaitingWithdrawal | DelegationState::Locked => Some(GemListRowTitle::AvailableIn),
             DelegationState::Active | DelegationState::Inactive => None,
         },
     }
@@ -1206,6 +1207,9 @@ mod tests {
         }
         assert_eq!(status(DelegationState::AwaitingWithdrawal, StakeProviderType::Stake).tone, GemValueTone::Negative);
         assert_eq!(completion(DelegationState::AwaitingWithdrawal, StakeProviderType::Stake), Some(GemListRowTitle::AvailableIn));
+        let locked = status(DelegationState::Locked, StakeProviderType::Stake);
+        assert_eq!((locked.state, locked.tone), (DelegationState::Active, GemValueTone::Positive));
+        assert_eq!(completion(DelegationState::Locked, StakeProviderType::Stake), Some(GemListRowTitle::AvailableIn));
         assert_eq!(completion(DelegationState::Pending, StakeProviderType::Earn), None);
 
         let mut on_inactive_validator = Delegation::mock_with(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Active, 100);
@@ -1418,6 +1422,11 @@ mod tests {
             vec![Withdraw]
         );
         assert!(delegation_actions(WalletType::Multicoin, &Delegation::mock_with(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Pending, 0)).is_empty());
+        assert_eq!(
+            delegation_actions(WalletType::Multicoin, &Delegation::mock_with(Chain::HyperCore, StakeProviderType::Stake, DelegationState::Active, 0)),
+            vec![Unstake]
+        );
+        assert!(delegation_actions(WalletType::Multicoin, &Delegation::mock_with(Chain::HyperCore, StakeProviderType::Stake, DelegationState::Locked, 0)).is_empty());
         assert!(delegation_actions(WalletType::View, &Delegation::mock_with(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Active, 0)).is_empty());
         assert!(delegation_actions(WalletType::Multicoin, &Delegation::mock_with(Chain::Bitcoin, StakeProviderType::Stake, DelegationState::Active, 0)).is_empty());
         assert_eq!(

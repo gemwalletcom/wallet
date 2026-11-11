@@ -22,6 +22,7 @@ flowchart LR
 |---|---|---|
 | An Active delegation has rewards | Rewards shows on it | |
 | A delegation has yet to activate or become available | a countdown says when | |
+| The network still holds a new delegation in its lockup (HYPE: 1 day after each stake to that validator) | Active with an Available In countdown, and no Unstake | it earns rewards, but the network refuses to unstake it before the lockup ends |
 | The user taps a delegation awaiting withdrawal, in a wallet that can sign | straight to Withdraw | |
 | The user delegates to a validator Gem does not recommend | the delegation shows the state the network reports for that validator | |
 | No other active validator exists | no Redelegate | |

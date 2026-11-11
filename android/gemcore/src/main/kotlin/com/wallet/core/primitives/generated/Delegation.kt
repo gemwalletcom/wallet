@@ -19,6 +19,8 @@ enum class DelegationState(val string: String) {
 	Deactivating("deactivating"),
 	@SerialName("awaitingwithdrawal")
 	AwaitingWithdrawal("awaitingwithdrawal"),
+	@SerialName("locked")
+	Locked("locked"),
 }
 
 @Serializable

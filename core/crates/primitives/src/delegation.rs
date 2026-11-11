@@ -106,4 +106,5 @@ pub enum DelegationState {
     Activating,
     Deactivating,
     AwaitingWithdrawal,
+    Locked,
 }

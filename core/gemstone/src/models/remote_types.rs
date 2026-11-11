@@ -228,6 +228,7 @@ pub enum DelegationState {
     Activating,
     Deactivating,
     AwaitingWithdrawal,
+    Locked,
 }
 
 #[uniffi::remote(Enum)]

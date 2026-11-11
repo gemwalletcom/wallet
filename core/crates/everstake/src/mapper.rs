@@ -51,7 +51,7 @@ pub fn map_staking_balance(delegations: &[DelegationBase]) -> Balance {
     let mut pending = BigUint::zero();
     for delegation in delegations {
         match delegation.state {
-            DelegationState::Active => {
+            DelegationState::Active | DelegationState::Locked => {
                 staked += &delegation.balance;
                 rewards += &delegation.rewards;
             }

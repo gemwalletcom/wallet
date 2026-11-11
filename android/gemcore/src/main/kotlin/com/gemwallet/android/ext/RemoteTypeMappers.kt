@@ -329,6 +329,7 @@ fun uniffi.gemstone.DelegationState.toPrimitives(): com.wallet.core.primitives.D
     uniffi.gemstone.DelegationState.ACTIVATING -> com.wallet.core.primitives.DelegationState.Activating
     uniffi.gemstone.DelegationState.DEACTIVATING -> com.wallet.core.primitives.DelegationState.Deactivating
     uniffi.gemstone.DelegationState.AWAITING_WITHDRAWAL -> com.wallet.core.primitives.DelegationState.AwaitingWithdrawal
+    uniffi.gemstone.DelegationState.LOCKED -> com.wallet.core.primitives.DelegationState.Locked
 }
 
 fun com.wallet.core.primitives.DelegationState.toGem(): uniffi.gemstone.DelegationState = when (this) {
@@ -338,6 +339,7 @@ fun com.wallet.core.primitives.DelegationState.toGem(): uniffi.gemstone.Delegati
     com.wallet.core.primitives.DelegationState.Activating -> uniffi.gemstone.DelegationState.ACTIVATING
     com.wallet.core.primitives.DelegationState.Deactivating -> uniffi.gemstone.DelegationState.DEACTIVATING
     com.wallet.core.primitives.DelegationState.AwaitingWithdrawal -> uniffi.gemstone.DelegationState.AWAITING_WITHDRAWAL
+    com.wallet.core.primitives.DelegationState.Locked -> uniffi.gemstone.DelegationState.LOCKED
 }
 
 fun uniffi.gemstone.DeviceLocale.toPrimitives(): com.wallet.core.primitives.DeviceLocale = when (this) {

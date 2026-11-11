@@ -899,7 +899,7 @@ fun GemChainSettingsSection.stringRes(): Int = when (this) {
 
 @StringRes
 fun DelegationState.stateRes(): Int = when (this) {
-    DelegationState.ACTIVE -> R.string.stake_active
+    DelegationState.ACTIVE, DelegationState.LOCKED -> R.string.stake_active
     DelegationState.PENDING -> R.string.stake_pending
     DelegationState.INACTIVE -> R.string.stake_inactive
     DelegationState.ACTIVATING -> R.string.stake_activating

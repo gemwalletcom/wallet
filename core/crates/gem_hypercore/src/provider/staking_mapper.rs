@@ -26,15 +26,18 @@ pub fn map_staking_delegations(delegations: Vec<DelegationBalance>, history: Vec
     let native_decimals = Asset::from_chain(chain).decimals;
     let mut result: Vec<DelegationBase> = delegations
         .into_iter()
-        .map(|x| DelegationBase {
-            asset_id: chain.as_asset_id(),
-            state: DelegationState::Active,
-            balance: BigNumberFormatter::value_from_amount_biguint(&x.amount, native_decimals).unwrap_or_default(),
-            shares: BigUint::from(0u32),
-            rewards: BigUint::from(0u32),
-            completion_date: None,
-            delegation_id: x.validator_address(),
-            validator_id: x.validator_address(),
+        .map(|x| {
+            let locked_until = DateTime::from_timestamp_millis(x.locked_until_timestamp as i64).filter(|locked_until| *locked_until > now);
+            DelegationBase {
+                asset_id: chain.as_asset_id(),
+                state: if locked_until.is_some() { DelegationState::Locked } else { DelegationState::Active },
+                balance: BigNumberFormatter::value_from_amount_biguint(&x.amount, native_decimals).unwrap_or_default(),
+                shares: BigUint::from(0u32),
+                rewards: BigUint::from(0u32),
+                completion_date: locked_until,
+                delegation_id: x.validator_address(),
+                validator_id: x.validator_address(),
+            }
         })
         .collect();
 
@@ -141,6 +144,19 @@ mod tests {
         let delegation2 = &result[1];
         assert_eq!(delegation2.validator_id, "0xaBCDefF4b3727B83A23697500EEf089020DF2cD2");
         assert_eq!(delegation2.balance.to_string(), "1814578086");
+    }
+
+    #[test]
+    fn test_map_staking_delegations_locked() {
+        let delegations: Vec<DelegationBalance> = serde_json::from_str(include_str!("../../testdata/staking_delegations.json")).unwrap();
+        let now = DateTime::from_timestamp_millis(1_756_000_000_000).unwrap();
+
+        let result = map_staking_delegations(delegations, vec![], now, Chain::HyperCore);
+
+        assert_eq!(result[0].state, DelegationState::Locked);
+        assert_eq!(result[0].completion_date, DateTime::from_timestamp_millis(1_756_512_053_068));
+        assert_eq!(result[1].state, DelegationState::Active);
+        assert!(result[1].completion_date.is_none());
     }
 
     #[test]

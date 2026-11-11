@@ -10,6 +10,7 @@ public enum DelegationState: String, Codable, CaseIterable, Equatable, Sendable 
 	case activating
 	case deactivating
 	case awaitingWithdrawal = "awaitingwithdrawal"
+	case locked
 }
 
 public struct DelegationBase: Codable, Equatable, Hashable, Sendable {
