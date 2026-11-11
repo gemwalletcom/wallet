@@ -15,8 +15,6 @@ const SIGNATURE_LABEL: &str = "device";
 const DIGEST_ALGORITHM: &str = "sha-256";
 const DEVICE_COMPONENTS: [&str; 4] = ["@method", "@path", "@query", "content-digest"];
 const WALLET_COMPONENT: &str = "gem-wallet-id";
-const SIGNATURE_LENGTH: usize = 64;
-const SHA256_LENGTH: usize = 32;
 
 struct SignedComponents<'a> {
     method: &'a str,
@@ -38,7 +36,7 @@ impl SignedComponents<'_> {
 pub fn sign_device_request(private_key: &[u8], method: &str, target: &str, wallet_id: Option<&str>, body: &[u8], created: u64) -> Result<HashMap<String, String>, &'static str> {
     let signing_key = device_signing_key(private_key)?;
     let key_id = hex::encode(signing_key.verifying_key().to_bytes());
-    let content_digest = content_digest(body);
+    let content_digest = content_digest(&gem_hash::sha2::sha256(body));
     let (path, query) = target.split_once('?').map_or((target, None), |(path, query)| (path, Some(query)));
     let components = SignedComponents {
         method,
@@ -84,10 +82,8 @@ pub struct DeviceSignature {
     pub device_id: String,
     pub created: u64,
     pub wallet_id: Option<String>,
-    pub body_sha256: Vec<u8>,
-    content_digest: String,
-    signature_params: String,
-    signature: Vec<u8>,
+    pub body_sha256: [u8; 32],
+    signature: [u8; 64],
 }
 
 impl DeviceSignature {
@@ -106,28 +102,27 @@ impl DeviceSignature {
         if signature_params != device_signature_params(wallet_id.is_some(), created, device_id) {
             return None;
         }
-        let content_digest = headers.content_digest.trim();
         Some(Self {
             device_id: device_id.to_string(),
             created,
             wallet_id,
-            body_sha256: byte_sequence(content_digest, DIGEST_ALGORITHM, SHA256_LENGTH)?,
-            content_digest: content_digest.to_string(),
-            signature_params: signature_params.to_string(),
-            signature: byte_sequence(headers.signature.trim(), SIGNATURE_LABEL, SIGNATURE_LENGTH)?,
+            body_sha256: byte_sequence(headers.content_digest.trim(), DIGEST_ALGORITHM)?,
+            signature: byte_sequence(headers.signature.trim(), SIGNATURE_LABEL)?,
         })
     }
 
     pub fn verify(&self, method: &str, path: &str, query: Option<&str>) -> bool {
+        let content_digest = content_digest(&self.body_sha256);
         let components = SignedComponents {
             method,
             path,
             query,
-            content_digest: &self.content_digest,
+            content_digest: &content_digest,
             wallet_id: self.wallet_id.as_deref(),
         }
         .values();
-        signature_base(&components, &self.signature_params).is_some_and(|base| verify_device_signature(&self.device_id, &base, &self.signature))
+        let signature_params = device_signature_params(self.wallet_id.is_some(), self.created, &self.device_id);
+        signature_base(&components, &signature_params).is_some_and(|base| verify_device_signature(&self.device_id, &base, &self.signature))
     }
 }
 
@@ -140,8 +135,8 @@ fn device_signature_params(signs_wallet: bool, created: u64, key_id: &str) -> St
     format!(r#"({components});created={created};keyid="{key_id}""#)
 }
 
-fn content_digest(body: &[u8]) -> String {
-    format!("{DIGEST_ALGORITHM}=:{}:", encode_base64(&gem_hash::sha2::sha256(body)))
+fn content_digest(sha256: &[u8]) -> String {
+    format!("{DIGEST_ALGORITHM}=:{}:", encode_base64(sha256))
 }
 
 fn signature_base(components: &[(&str, String)], signature_params: &str) -> Option<String> {
@@ -157,9 +152,9 @@ fn parameter<'a>(signature_params: &'a str, prefix: &str, end: char) -> Option<&
     signature_params.split_once(prefix)?.1.split(end).next()
 }
 
-fn byte_sequence(field: &str, key: &str, length: usize) -> Option<Vec<u8>> {
+fn byte_sequence<const LENGTH: usize>(field: &str, key: &str) -> Option<[u8; LENGTH]> {
     let value = field.strip_prefix(key)?.strip_prefix("=:")?.strip_suffix(':')?;
-    decode_base64(value).ok().filter(|bytes| bytes.len() == length)
+    decode_base64(value).ok()?.try_into().ok()
 }
 
 #[cfg(test)]
@@ -213,8 +208,8 @@ mod tests {
 
     #[test]
     fn test_content_digest_rfc_9530_vectors() {
-        assert_eq!(content_digest(br#"{"hello": "world"}"#), "sha-256=:X48E9qOokqqrvdts8nOJRJN3OWDUoyWxBf7kbu9DBPE=:");
-        assert_eq!(content_digest(b""), "sha-256=:47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=:");
+        assert_eq!(content_digest(&gem_hash::sha2::sha256(br#"{"hello": "world"}"#)), "sha-256=:X48E9qOokqqrvdts8nOJRJN3OWDUoyWxBf7kbu9DBPE=:");
+        assert_eq!(content_digest(&gem_hash::sha2::sha256(b"")), "sha-256=:47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=:");
     }
 
     #[test]
@@ -253,9 +248,11 @@ mod tests {
     fn test_rejects_changed_headers() {
         let device = sign_device_request(&PRIVATE_KEY, "GET", "/v1/devices/assets", None, b"", CREATED).unwrap();
         let wallet = sign_device_request(&PRIVATE_KEY, "GET", "/v1/devices/assets", Some(WALLET_ID), b"", CREATED).unwrap();
-        let other_digest = content_digest(b"other");
+        let other_digest = content_digest(&gem_hash::sha2::sha256(b"other"));
+        let padded = wallet.iter().map(|(name, value)| (name.clone(), format!(" {value} "))).collect::<HashMap<_, _>>();
 
         assert!(accepted(&wallet, "GET", "/v1/devices/assets"));
+        assert!(accepted(&padded, "GET", "/v1/devices/assets"));
         for headers in [
             replaced(&wallet, WALLET_ID_HEADER, "view_near_bob.near"),
             without(&wallet, WALLET_ID_HEADER),
@@ -270,6 +267,8 @@ mod tests {
     fn test_parse_rejects_other_header_forms() {
         let headers = sign_device_request(&PRIVATE_KEY, "GET", "/v1/devices/assets", Some(WALLET_ID), b"", CREATED).unwrap();
         let signature_input = &headers[SIGNATURE_INPUT_HEADER];
+        let signature = &headers[SIGNATURE_HEADER];
+        let digest = &headers[CONTENT_DIGEST_HEADER];
 
         for invalid in [
             replaced(&headers, SIGNATURE_INPUT_HEADER, &format!(r#"{signature_input};alg="rsa-pss-sha512""#)),
@@ -279,11 +278,22 @@ mod tests {
             replaced(&headers, SIGNATURE_INPUT_HEADER, &signature_input.replace("created=", "created=+")),
             replaced(&headers, SIGNATURE_INPUT_HEADER, &signature_input.replace("created=", "created=0")),
             replaced(&headers, SIGNATURE_INPUT_HEADER, &signature_input.replace("\" \"", "\"  \"")),
+            replaced(&headers, SIGNATURE_INPUT_HEADER, &signature_input.replace("\"@method\"", "\"@authority\" \"@method\"")),
+            replaced(&headers, SIGNATURE_INPUT_HEADER, signature_input.trim_end_matches('"')),
             replaced(&headers, SIGNATURE_INPUT_HEADER, &signature_input.replacen("device=", "other=", 1)),
+            replaced(&headers, SIGNATURE_INPUT_HEADER, &signature_input.replacen("device=", "devicex=", 1)),
+            replaced(&headers, SIGNATURE_INPUT_HEADER, &format!("{signature_input}, other=()")),
+            replaced(&headers, SIGNATURE_INPUT_HEADER, &format!("other=(), {signature_input}")),
             replaced(&headers, SIGNATURE_HEADER, r#"device="signature""#),
+            replaced(&headers, SIGNATURE_HEADER, &signature.replacen("device=", "other=", 1)),
+            replaced(&headers, SIGNATURE_HEADER, "device=:AAAA:"),
             replaced(&headers, CONTENT_DIGEST_HEADER, "sha-512=:AAAA:"),
+            replaced(&headers, CONTENT_DIGEST_HEADER, "sha-256=:AAAA:"),
+            replaced(&headers, CONTENT_DIGEST_HEADER, &format!("{digest}, sha-512=:AAAA:")),
             replaced(&headers, WALLET_ID_HEADER, " "),
+            without(&headers, SIGNATURE_INPUT_HEADER),
             without(&headers, SIGNATURE_HEADER),
+            without(&headers, CONTENT_DIGEST_HEADER),
         ] {
             assert!(parse(&invalid).is_none());
         }
