@@ -93,6 +93,7 @@ pub(super) trait ConfirmInput {
     fn simulation_payload(&self) -> Option<String>;
     fn validate_simulation(&self, simulation: &SimulationResult) -> Result<(), GemConfirmError>;
     fn broadcast_options(&self) -> BroadcastOptions;
+    fn is_dapp_request(&self) -> bool;
 }
 
 impl ConfirmInput for TransactionInputType {
@@ -146,6 +147,23 @@ impl ConfirmInput for TransactionInputType {
         match (self.get_asset().chain(), self) {
             (Chain::Solana, Self::Swap { .. } | Self::Generic { .. }) => BroadcastOptions { skip_preflight: true },
             _ => BroadcastOptions { skip_preflight: false },
+        }
+    }
+
+    fn is_dapp_request(&self) -> bool {
+        match self {
+            Self::Generic { .. } => true,
+            Self::Transfer { .. }
+            | Self::Deposit { .. }
+            | Self::Withdrawal { .. }
+            | Self::Swap { .. }
+            | Self::Stake { .. }
+            | Self::TokenApprove { .. }
+            | Self::Payment { .. }
+            | Self::TransferNft { .. }
+            | Self::Account { .. }
+            | Self::Perpetual { .. }
+            | Self::Earn { .. } => false,
         }
     }
 }
@@ -399,6 +417,7 @@ pub fn error_info(error: &GemConfirmError, prices: &[AssetPrice], currency: Curr
         | GemConfirmError::Broadcast { .. }
         | GemConfirmError::PartialBroadcast { .. }
         | GemConfirmError::Record { .. }
+        | GemConfirmError::InvalidRequest { .. }
         | GemConfirmError::ApprovalInvalid { .. } => return None,
     };
     let buy_amount = matches!(sheet, GemConfirmErrorSheet::NetworkFeeRequired | GemConfirmErrorSheet::NetworkFeeMissing).then(|| get_fiat_config().insufficient_network_fee_buy_amount);

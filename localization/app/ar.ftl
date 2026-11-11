@@ -222,6 +222,7 @@ errors_import_invalid_secret_phrase_word = كلمة عبارة سرية غير �
 errors_import_invalid_private_key = مفتاح خاص غير صالح
 errors_keystore_access = تعذر الوصول إلى مفاتيح هذه المحفظة على هذا الجهاز. إذا كانت لديك عبارة الاسترداد، فاحذف هذه المحفظة واستوردها مرة أخرى لاستعادة الوصول.
 errors_wallet_account_missing = لا تحتوي هذه المحفظة على حساب لهذه الشبكة
+errors_invalid_request = هذا الطلب غير صالح ولا يمكن إكماله.
 errors_invalid_url = URL غير صالح
 errors_error_occurred = حدث خطأ!
 errors_invalid_network_id = معرف الشبكة غير صالح

@@ -86,12 +86,12 @@ impl GemConfirmTransferService {
         let (Some(quote), Some(approval)) = (&input.swap_quote, transfer.input_type.get_swap_data().ok().and_then(|swap| swap.data.permit2.clone())) else {
             return Ok(input);
         };
-        let chain = transfer.input_type.get_asset().chain();
+        let input_type = &transfer.input_type;
         let transfer = self
             .swap
             .transfer_with_permit(&input.wallet, quote, transfer, &approval, |message| {
                 let signature = MessageSigner::new(message).sign_with_keystore(self.keystore.clone(), keystore_id.to_string(), password.to_vec());
-                primitives::hex::decode_hex(&signature.map_err(|error| sign_error(chain, error))?).map_err(|error| sign_error(chain, GemstoneError::AnyError { msg: error.to_string() }))
+                primitives::hex::decode_hex(&signature.map_err(|error| sign_error(input_type, error))?).map_err(|error| sign_error(input_type, GemstoneError::AnyError { msg: error.to_string() }))
             })
             .await?;
         Ok(SendInput {

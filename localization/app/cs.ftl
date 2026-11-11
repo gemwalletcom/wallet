@@ -222,6 +222,7 @@ errors_import_invalid_secret_phrase_word = Neplatné slovo tajné fráze: %@
 errors_import_invalid_private_key = Neplatný soukromý klíč
 errors_keystore_access = Na tomto zařízení se nepodařilo získat přístup ke klíčům této peněženky. Pokud máte obnovovací frázi, odeberte tuto peněženku a znovu ji importujte, abyste obnovili přístup.
 errors_wallet_account_missing = Tato peněženka nemá účet pro tuto síť
+errors_invalid_request = Tato žádost je neplatná a nelze ji dokončit.
 errors_invalid_url = Neplatná adresa URL
 errors_error_occurred = Došlo k chybě!
 errors_invalid_network_id = Neplatné ID sítě

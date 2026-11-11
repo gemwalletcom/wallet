@@ -430,6 +430,8 @@ public enum Localized {
     }
     /// Invalid Network ID
     public static let invalidNetworkId = Localized.tr("Localizable", "errors.invalid_network_id", fallback: "Invalid Network ID")
+    /// This request is invalid and can't be completed.
+    public static let invalidRequest = Localized.tr("Localizable", "errors.invalid_request", fallback: "This request is invalid and can't be completed.")
     /// Invalid URL
     public static let invalidUrl = Localized.tr("Localizable", "errors.invalid_url", fallback: "Invalid URL")
     /// Couldn't access this wallet's keys on this device. If you have your recovery phrase, remove this wallet and import it again to restore access.

@@ -1,3 +1,4 @@
+use super::rules::ConfirmInput;
 use crate::GemstoneError;
 use crate::formatted_number::GemFormattedNumber;
 use crate::gateway::GatewayError;
@@ -9,7 +10,7 @@ use crate::services::error::GemServiceError;
 use crate::services::info_sheet::{GemInfoAmount, GemInfoDescription};
 use number_formatter::ValueStyle;
 use payment::PaymentError;
-use primitives::{Asset, AssetId, Chain, ChainAsset, PaymentStatus, SignerError, SwapProvider};
+use primitives::{Asset, AssetId, Chain, ChainAsset, PaymentStatus, SignerError, SwapProvider, TransactionInputType};
 use swapper::SwapperError;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Error)]
@@ -73,6 +74,9 @@ pub enum GemConfirmError {
         chain: Chain,
         msg: String,
     },
+    InvalidRequest {
+        msg: String,
+    },
     ApprovalInvalid {
         msg: String,
     },
@@ -103,6 +107,7 @@ impl GemConfirmError {
             | Self::BelowSwapMinimum { .. }
             | Self::SenderMismatch { .. }
             | Self::Sign { .. }
+            | Self::InvalidRequest { .. }
             | Self::ApprovalInvalid { .. }
             | Self::Payment { .. }
             | Self::Cancelled => false,
@@ -129,6 +134,7 @@ impl GemConfirmError {
             | Self::BelowSwapMinimum { .. }
             | Self::SenderMismatch { .. }
             | Self::Sign { .. }
+            | Self::InvalidRequest { .. }
             | Self::ApprovalInvalid { .. }
             | Self::Payment { .. }
             | Self::Cancelled => false,
@@ -154,6 +160,7 @@ impl GemConfirmError {
             | Self::BelowSwapMinimum { .. }
             | Self::SenderMismatch { .. }
             | Self::Sign { .. }
+            | Self::InvalidRequest { .. }
             | Self::ApprovalInvalid { .. }
             | Self::Payment { .. }
             | Self::Cancelled => false,
@@ -180,6 +187,7 @@ impl GemConfirmError {
             | Self::BelowSwapMinimum { .. }
             | Self::SenderMismatch { .. }
             | Self::Sign { .. }
+            | Self::InvalidRequest { .. }
             | Self::ApprovalInvalid { .. }
             | Self::Payment { .. }
             | Self::Cancelled => None,
@@ -200,6 +208,7 @@ pub enum GemConfirmErrorDisplay {
     DustThreshold { chain: Chain },
     InsufficientFunds,
     Payment { status: PaymentStatus },
+    InvalidRequest,
     Message { msg: String },
 }
 
@@ -292,6 +301,7 @@ impl GemConfirmError {
                 SignerError::InvalidInput(_) | SignerError::SigningError(_) => GemConfirmErrorDisplay::Message { msg: msg.clone() },
             },
             Self::Payment { status } => GemConfirmErrorDisplay::Payment { status: *status },
+            Self::InvalidRequest { .. } => GemConfirmErrorDisplay::InvalidRequest,
             Self::BalanceMissing { .. } | Self::Network { .. } | Self::Load { .. } | Self::Broadcast { .. } | Self::PartialBroadcast { .. } | Self::Record { .. } | Self::ApprovalInvalid { .. } => {
                 GemConfirmErrorDisplay::Message { msg: self.to_string() }
             }
@@ -329,6 +339,7 @@ impl GemConfirmError {
             | Self::Broadcast { .. }
             | Self::PartialBroadcast { .. }
             | Self::Record { .. }
+            | Self::InvalidRequest { .. }
             | Self::ApprovalInvalid { .. } => None,
         }
     }
@@ -399,7 +410,7 @@ impl std::fmt::Display for GemConfirmError {
             Self::SenderMismatch { from, signer } => write!(f, "transaction was built for {from} but would be signed by {signer}"),
             Self::Cancelled => write!(f, "cancelled"),
             Self::Payment { status } => write!(f, "payment is {status:?}"),
-            Self::Network { msg } | Self::Load { msg } | Self::Broadcast { msg } | Self::PartialBroadcast { msg, .. } | Self::Record { msg } | Self::Sign { msg, .. } | Self::ApprovalInvalid { msg } => {
+            Self::Network { msg } | Self::Load { msg } | Self::Broadcast { msg } | Self::PartialBroadcast { msg, .. } | Self::Record { msg } | Self::Sign { msg, .. } | Self::InvalidRequest { msg } | Self::ApprovalInvalid { msg } => {
                 write!(f, "{msg}")
             }
         }
@@ -408,13 +419,24 @@ impl std::fmt::Display for GemConfirmError {
 
 impl std::error::Error for GemConfirmError {}
 
-pub(super) fn sign_error(chain: Chain, error: GemstoneError) -> GemConfirmError {
+pub(super) fn sign_error(input_type: &TransactionInputType, error: GemstoneError) -> GemConfirmError {
     match error {
         GemstoneError::Cancelled => GemConfirmError::Cancelled,
-        GemstoneError::SignerError { error, msg } => GemConfirmError::Sign { error, chain, msg },
+        GemstoneError::SignerError { error, msg } => signer_error(input_type, msg, error),
         GemstoneError::AnyError { msg } => GemConfirmError::Sign {
             error: SignerError::SigningError(msg.clone()),
-            chain,
+            chain: input_type.get_asset().chain(),
+            msg,
+        },
+    }
+}
+
+fn signer_error(input_type: &TransactionInputType, msg: String, error: SignerError) -> GemConfirmError {
+    match error {
+        SignerError::InvalidInput(_) if input_type.is_dapp_request() => GemConfirmError::InvalidRequest { msg },
+        error => GemConfirmError::Sign {
+            error,
+            chain: input_type.get_asset().chain(),
             msg,
         },
     }
@@ -448,11 +470,11 @@ impl From<SwapperError> for GemConfirmError {
     }
 }
 
-pub(super) fn load_error(chain: Chain, error: GatewayError) -> GemConfirmError {
+pub(super) fn load_error(input_type: &TransactionInputType, error: GatewayError) -> GemConfirmError {
     match error {
         GatewayError::Offline => GemConfirmError::Offline,
         GatewayError::NetworkError { msg } => GemConfirmError::Network { msg },
-        GatewayError::SignerError { error } => GemConfirmError::Sign { msg: error.to_string(), error, chain },
+        GatewayError::SignerError { error } => signer_error(input_type, error.to_string(), error),
         error => GemConfirmError::Load { msg: error.to_string() },
     }
 }
@@ -478,6 +500,7 @@ pub(super) fn broadcast_failure(hashes: Vec<String>, error: GatewayError) -> Sen
 mod tests {
     use super::*;
     use crate::gateway::map_network_error;
+    use primitives::TransferDataExtra;
 
     #[test]
     fn test_only_a_flagged_recipient_shows_the_suspicious_address_notice() {
@@ -488,9 +511,10 @@ mod tests {
 
     #[test]
     fn test_a_cancelled_signer_is_a_cancel_not_a_failure() {
-        assert_eq!(sign_error(Chain::Ethereum, GemstoneError::Cancelled), GemConfirmError::Cancelled);
+        let transfer = TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Ethereum) };
+        assert_eq!(sign_error(&transfer, GemstoneError::Cancelled), GemConfirmError::Cancelled);
         assert_eq!(
-            sign_error(Chain::Ethereum, GemstoneError::AnyError { msg: "boom".into() }),
+            sign_error(&transfer, GemstoneError::AnyError { msg: "boom".into() }),
             GemConfirmError::Sign {
                 error: SignerError::SigningError("boom".to_string()),
                 chain: Chain::Ethereum,
@@ -570,11 +594,42 @@ mod tests {
     }
 
     #[test]
-    fn test_gateway_errors_keep_their_kind() {
-        assert_eq!(load_error(Chain::Bitcoin, GatewayError::NetworkError { msg: "timeout".to_string() }), GemConfirmError::Network { msg: "timeout".to_string() });
-        assert_eq!(load_error(Chain::Bitcoin, GatewayError::Offline), GemConfirmError::Offline);
+    fn test_a_dapp_request_gem_cannot_read_shows_invalid_request() {
+        let unreadable = SignerError::invalid_input("missing field `ref_block_bytes` at line 1 column 1160");
+        let msg = unreadable.to_string();
+        let dapp = TransactionInputType::mock_generic(Asset::from_chain(Chain::Tron), TransferDataExtra::mock());
+        let payment = TransactionInputType::mock_payment(Asset::from_chain(Chain::Tron), TransferDataExtra::mock());
+        let transfer = TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Tron) };
+
+        let invalid_request = sign_error(&dapp, GemstoneError::from(unreadable.clone()));
+        assert_eq!(invalid_request, GemConfirmError::InvalidRequest { msg: msg.clone() });
+        assert_eq!(invalid_request.display(), GemConfirmErrorDisplay::InvalidRequest);
+        assert_eq!(invalid_request.to_string(), msg, "the parser's text stays in the log");
         assert_eq!(
-            load_error(Chain::Bitcoin, map_network_error(Box::new(SignerError::DustThreshold))).display(),
+            load_error(&dapp, map_network_error(Box::new(unreadable.clone()))).display(),
+            GemConfirmErrorDisplay::InvalidRequest,
+            "found while loading the fee, as at signing"
+        );
+        assert_eq!(
+            sign_error(&dapp, GemstoneError::from(SignerError::InsufficientFunds)).display(),
+            GemConfirmErrorDisplay::InsufficientFunds,
+            "a dapp request the balance can't cover still says so"
+        );
+        assert_eq!(
+            sign_error(&payment, GemstoneError::from(unreadable.clone())).display(),
+            GemConfirmErrorDisplay::Message { msg: msg.clone() },
+            "a payment that can't be prepared shows the reason"
+        );
+        assert_eq!(sign_error(&transfer, GemstoneError::from(unreadable)).display(), GemConfirmErrorDisplay::Message { msg });
+    }
+
+    #[test]
+    fn test_gateway_errors_keep_their_kind() {
+        let transfer = TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Bitcoin) };
+        assert_eq!(load_error(&transfer, GatewayError::NetworkError { msg: "timeout".to_string() }), GemConfirmError::Network { msg: "timeout".to_string() });
+        assert_eq!(load_error(&transfer, GatewayError::Offline), GemConfirmError::Offline);
+        assert_eq!(
+            load_error(&transfer, map_network_error(Box::new(SignerError::DustThreshold))).display(),
             GemConfirmErrorDisplay::DustThreshold { chain: Chain::Bitcoin },
             "dust found while loading the fee shows the dust explanation, as it does at signing"
         );
@@ -591,7 +646,7 @@ mod tests {
             })
         );
         assert_eq!(
-            load_error(Chain::Bitcoin, GatewayError::PlatformError { msg: "dust".to_string() }),
+            load_error(&transfer, GatewayError::PlatformError { msg: "dust".to_string() }),
             GemConfirmError::Load { msg: "Platform error: dust".to_string() }
         );
         assert_eq!(

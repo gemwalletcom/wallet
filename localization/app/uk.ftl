@@ -222,6 +222,7 @@ errors_import_invalid_secret_phrase_word = Недійсне слово секр�
 errors_import_invalid_private_key = Недійсний приватний ключ
 errors_keystore_access = Не вдалося отримати доступ до ключів цього гаманця на цьому пристрої. Якщо у вас є фраза відновлення, видаліть цей гаманець і імпортуйте його знову, щоб відновити доступ.
 errors_wallet_account_missing = У цьому гаманці немає рахунку для цієї мережі
+errors_invalid_request = Цей запит недійсний і не може бути виконаний.
 errors_invalid_url = Недійсний URL
 errors_error_occurred = Виникла помилка!
 errors_invalid_network_id = Неправильний ідентифікатор мережі

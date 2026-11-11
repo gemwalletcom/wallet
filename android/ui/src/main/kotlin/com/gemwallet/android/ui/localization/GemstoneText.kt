@@ -1166,6 +1166,8 @@ fun GemConfirmErrorDisplay.text(context: Context): String = when (this) {
 
     is GemConfirmErrorDisplay.Payment -> status.errorText(context)
 
+    is GemConfirmErrorDisplay.InvalidRequest -> context.getString(R.string.errors_invalid_request)
+
     is GemConfirmErrorDisplay.Message -> msg
 }
 

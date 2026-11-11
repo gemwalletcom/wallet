@@ -117,8 +117,8 @@ impl GemConfirmService {
             self.simulate(chain, input),
             self.pending_nonces(chain, &input.from.address),
         );
-        let metadata = metadata.map_err(|error| error::load_error(chain, error))?.with_nonce_after_pending(&pending_nonces?);
-        let fee_rates = fee_rates.map_err(|error| error::load_error(chain, error))?;
+        let metadata = metadata.map_err(|error| error::load_error(&transfer.input_type, error))?.with_nonce_after_pending(&pending_nonces?);
+        let fee_rates = fee_rates.map_err(|error| error::load_error(&transfer.input_type, error))?;
         let fee_rates = rules::confirmation_fee_rates(&asset.id, transfer.use_max_amount, fee_rates);
         let simulation = simulation?;
 
@@ -146,7 +146,7 @@ impl GemConfirmService {
                     },
                 )
                 .await
-                .map_err(|error| error::load_error(chain, error))?
+                .map_err(|error| error::load_error(&transfer.input_type, error))?
         };
 
         let mut fee = load.fee;
@@ -205,8 +205,9 @@ impl GemConfirmService {
 impl GemConfirmService {
     fn sign(&self, input: &SendInput, sign: impl FnOnce(Chain, SignerInput) -> Result<Vec<GemSignedTransaction>, GemstoneError>) -> Result<Vec<GemSignedTransaction>, GemConfirmError> {
         let signer_input = input.signer_input()?;
-        let chain = input.confirm.input.transfer.input_type.get_asset().chain();
-        let transactions = sign(chain, signer_input).map_err(|error| error::sign_error(chain, error))?;
+        let input_type = &input.confirm.input.transfer.input_type;
+        let chain = input_type.get_asset().chain();
+        let transactions = sign(chain, signer_input).map_err(|error| error::sign_error(input_type, error))?;
         if transactions.is_empty() {
             return Err(GemConfirmError::Sign {
                 error: SignerError::SigningError("no signed transactions".to_string()),
@@ -214,7 +215,7 @@ impl GemConfirmService {
                 msg: "no signed transactions".to_string(),
             });
         }
-        input.confirm.input.transfer.input_type.validate_approvals(&transactions)?;
+        input_type.validate_approvals(&transactions)?;
         Ok(transactions)
     }
 }

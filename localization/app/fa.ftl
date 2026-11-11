@@ -222,6 +222,7 @@ errors_import_invalid_secret_phrase_word = کلمه نامعتبر در عبار
 errors_import_invalid_private_key = کلید خصوصی نامعتبر
 errors_keystore_access = دسترسی به کلیدهای این کیف پول در این دستگاه ممکن نشد. اگر عبارت بازیابی خود را دارید، این کیف پول را حذف کنید و دوباره وارد کنید تا دسترسی بازیابی شود.
 errors_wallet_account_missing = این کیف پول برای این شبکه حسابی ندارد
+errors_invalid_request = این درخواست نامعتبر است و قابل انجام نیست.
 errors_invalid_url = URL نامعتبر
 errors_error_occurred = خطایی رخ داد!
 errors_invalid_network_id = شناسه شبکه نامعتبر است

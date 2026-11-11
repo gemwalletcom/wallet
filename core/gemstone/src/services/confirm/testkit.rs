@@ -429,6 +429,7 @@ pub fn broadcast_failed(error: &GemConfirmError) -> bool {
         | GemConfirmError::BelowSwapMinimum { .. }
         | GemConfirmError::SenderMismatch { .. }
         | GemConfirmError::Sign { .. }
+        | GemConfirmError::InvalidRequest { .. }
         | GemConfirmError::ApprovalInvalid { .. }
         | GemConfirmError::Payment { .. }
         | GemConfirmError::Cancelled => false,

@@ -411,6 +411,8 @@ errors_import_invalid_private_key = Invalid private key
 errors_keystore_access = Couldn't access this wallet's keys on this device. If you have your recovery phrase, remove this wallet and import it again to restore access.
 # Shown on the confirm screen when the wallet has no account for the transfer chain.
 errors_wallet_account_missing = This wallet has no account for this network
+# Shown on the confirm screen when a dapp sends a transaction Gem can't read or sign as given.
+errors_invalid_request = This request is invalid and can't be completed.
 # Used in error cards and validation UI for the invalid url label.
 errors_invalid_url = Invalid URL
 # Used in error cards and validation UI for the error occurred label.

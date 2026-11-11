@@ -35,6 +35,7 @@ flowchart LR
 | The app is opened with a dapp already connected and a new dapp's code arrives at once | the new proposal shows and can be approved | the client is set up once, so the proposal arrives once and no copy of it is refused, which the dapp would see as a failed connection |
 | A request has expired | "Request expired"; it cannot be approved and is never signed | |
 | A request expires while its review is open, including while the review offers Buy or Receive | the review closes within a few seconds with "Request expired" and nothing is signed | the dapp has stopped waiting; a send it never hears about invites the user to pay twice |
+| A dapp sends a transaction Gem can't read or sign as it is, such as one missing a field | the review shows "This request is invalid and can't be completed." and nothing is signed | technical text means nothing to someone deciding whether to sign |
 | A message to sign comes from a site flagged as malicious | it is refused before anything is signed | a message to sign is checked like a transaction |
 | A connected site is flagged as malicious after it connected | its next request is refused before anything is signed | each request is checked against its own Verify attestation, not only the one from connecting |
 | A dapp disconnects, or the user disconnects it, while its request is on screen | the review closes and nothing is signed | the dapp no longer listens for the answer |

@@ -222,6 +222,7 @@ errors_import_invalid_secret_phrase_word = Неверное слово секр�
 errors_import_invalid_private_key = Недействительный приватный ключ
 errors_keystore_access = Не удалось получить доступ к ключам этого кошелька на этом устройстве. Если у вас есть секретная фраза, удалите кошелёк и импортируйте его заново, чтобы восстановить доступ.
 errors_wallet_account_missing = В этом кошельке нет счёта для этой сети
+errors_invalid_request = Этот запрос недействителен и не может быть выполнен.
 errors_invalid_url = Неверная ссылка
 errors_error_occurred = Произошла ошибка!
 errors_invalid_network_id = Неверный идентификатор сети
