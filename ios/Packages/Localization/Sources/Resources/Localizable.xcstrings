@@ -8883,7 +8883,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "始めるには暗号通貨を購入または受け取りましょう"
+            "value": "始めるには暗号資産を購入または受け取りましょう"
           }
         },
         "ko": {
@@ -11175,7 +11175,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "1日"
+            "value": "1D"
           }
         },
         "ko": {
@@ -11557,7 +11557,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "1時"
+            "value": "1H"
           }
         },
         "ko": {
@@ -11939,7 +11939,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "1月"
+            "value": "1M"
           }
         },
         "ko": {
@@ -13085,7 +13085,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "1週"
+            "value": "1W"
           }
         },
         "ko": {
@@ -13276,7 +13276,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "1年"
+            "value": "1Y"
           }
         },
         "ko": {
@@ -43263,7 +43263,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "設定した価格レベルでポジションを自動的に決済します。テイクプロフィットで利益を確定し、ストップロスで損失を制限します。"
+            "value": "設定した価格レベルでポジションを自動的に決済します。利益確定で利益を確保し、損切りで損失を抑えます。"
           }
         },
         "ko": {
@@ -45555,7 +45555,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "年率 (APR) は、暗号通貨をステーキングした場合の年間報酬率です。"
+            "value": "年率 (APR) は、暗号資産をステーキングした場合の年間報酬率です。"
           }
         },
         "ko": {
@@ -45752,7 +45752,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "스테이킹 해제나 보상 청구 등의 수수료를 충당하기 위해 소액이 지갑에 남아 있습니다."
+            "value": "스테이킹 해제나 보상 수령 등의 수수료를 충당하기 위해 소액이 지갑에 남아 있습니다."
           }
         },
         "ms": {
@@ -58549,7 +58549,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "자동 닫기"
+            "value": "자동 종료"
           }
         },
         "ms": {
@@ -59116,7 +59116,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ストップロス"
+            "value": "損切り"
           }
         },
         "ko": {
@@ -59504,7 +59504,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ 닫기"
+            "value": "%@ 종료"
           }
         },
         "ms": {
@@ -61026,7 +61026,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "マージン"
+            "value": "証拠金"
           }
         },
         "ko": {
@@ -61408,7 +61408,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "分離マージン"
+            "value": "分離"
           }
         },
         "ko": {
@@ -62369,7 +62369,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ 열기"
+            "value": "%@ 진입"
           }
         },
         "ms": {
@@ -84901,7 +84901,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "デフォルト利確"
+            "value": "デフォルト利益確定"
           }
         },
         "ko": {
@@ -85092,7 +85092,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "設定"
+            "value": "環境設定"
           }
         },
         "ko": {
@@ -97131,7 +97131,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "성공적인 스왑을 위해 최적의 슬리피지를 자동으로 설정합니다."
+            "value": "성공적인 교환을 위해 최적의 슬리피지를 자동으로 설정합니다."
           }
         },
         "ms": {
@@ -97322,7 +97322,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "슬리피지가 높습니다. 스왑이 예상보다 나쁜 가격에 체결될 수 있습니다."
+            "value": "슬리피지가 높습니다. 교환이 예상보다 나쁜 가격에 체결될 수 있습니다."
           }
         },
         "ms": {
@@ -101906,7 +101906,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "보상 청구"
+            "value": "보상 수령"
           }
         },
         "ms": {
@@ -109731,7 +109731,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "買う"
+            "value": "購入"
           }
         },
         "ko": {
@@ -115270,7 +115270,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "売却する"
+            "value": "売却"
           }
         },
         "ko": {

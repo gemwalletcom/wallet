@@ -130,7 +130,7 @@
   <string name="transfer_insufficient_network_fee_balance">네트워크 수수료를 충당하기에는 %1$s 잔액이 부족합니다.</string>
   <string name="transfer_approve_title">승인</string>
   <string name="transfer_stake_title">스테이킹</string>
-  <string name="transfer_claim_rewards_title">보상 청구</string>
+  <string name="transfer_claim_rewards_title">보상 수령</string>
   <string name="transfer_unstake_title">스테이킹 해제</string>
   <string name="transfer_redelegate_title">재위임</string>
   <string name="transfer_withdraw_title">출금</string>
@@ -324,9 +324,9 @@
   <string name="swap_you_receive">수령 금액</string>
   <string name="swap_price_impact">가격 영향</string>
   <string name="swap_slippage">슬리피지</string>
-  <string name="swap_slippage_warning">슬리피지가 높습니다. 스왑이 예상보다 나쁜 가격에 체결될 수 있습니다.</string>
+  <string name="swap_slippage_warning">슬리피지가 높습니다. 교환이 예상보다 나쁜 가격에 체결될 수 있습니다.</string>
   <string name="swap_slippage_auto">자동</string>
-  <string name="swap_slippage_auto_description">성공적인 스왑을 위해 최적의 슬리피지를 자동으로 설정합니다.</string>
+  <string name="swap_slippage_auto_description">성공적인 교환을 위해 최적의 슬리피지를 자동으로 설정합니다.</string>
   <string name="swap_price_impact_warning_description">이 거래에서 %1$s을(를) 잃게 되며, 이는 보유하신 %2$s의 일부입니다. 계속하시겠습니까?</string>
   <string name="swap_price_impact_warning_title">높은 가격 영향</string>
   <string name="swap_estimated_time_title">예상 시간</string>
@@ -498,7 +498,7 @@
   <string name="info_perpetual_open_interest_description">미결제약정은 아직 결제되지 않은 모든 미결제 무기한 계약의 총 가치를 나타냅니다. 이는 시장 활동과 유동성에 대한 통찰력을 제공합니다.</string>
   <string name="info_no_quote_description">선택된 토큰 쌍에 대한 견적을 반환할 수 없습니다. 금액이 부족하거나, 유동성이 부족하거나, 기술적 한계가 있을 수 있습니다.</string>
   <string name="info_stake_reserved_title">네트워크 수수료로 예약됨</string>
-  <string name="info_stake_reserved_description">스테이킹 해제나 보상 청구 등의 수수료를 충당하기 위해 소액이 지갑에 남아 있습니다.</string>
+  <string name="info_stake_reserved_description">스테이킹 해제나 보상 수령 등의 수수료를 충당하기 위해 소액이 지갑에 남아 있습니다.</string>
   <string name="info_stake_apr_description">연이율(APR)은 암호화폐를 스테이킹할 때 매년 지급되는 보상률입니다.</string>
   <string name="info_stake_frozen_required_title">스테이킹하려면 TRX를 동결하세요</string>
   <string name="info_stake_frozen_required_description">TRON 스테이킹은 두 단계로 진행됩니다. 먼저 TRX를 동결한 다음, 스테이킹하여 보상을 받으세요.</string>
@@ -558,10 +558,10 @@
   <string name="perpetual_modify">수정</string>
   <string name="perpetual_reduce_position">포지션 축소</string>
   <string name="perpetual_increase_position">포지션 확대</string>
-  <string name="perpetual_open_direction">%1$s 열기</string>
-  <string name="perpetual_close_direction">%1$s 닫기</string>
+  <string name="perpetual_open_direction">%1$s 진입</string>
+  <string name="perpetual_close_direction">%1$s 종료</string>
   <string name="perpetual_leverage">레버리지</string>
-  <string name="perpetual_auto_close">자동 닫기</string>
+  <string name="perpetual_auto_close">자동 종료</string>
   <string name="perpetual_auto_close_take_profit">이익 실현</string>
   <string name="perpetual_market_price">시장 가격</string>
   <string name="perpetual_take_profit">TP</string>

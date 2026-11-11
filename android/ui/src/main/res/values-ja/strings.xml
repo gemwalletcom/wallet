@@ -68,7 +68,7 @@
   <string name="wallet_import_existing_wallet">既存のウォレットをインポートする</string>
   <string name="wallet_send">送る</string>
   <string name="wallet_receive">受け取る</string>
-  <string name="wallet_buy">買う</string>
+  <string name="wallet_buy">購入</string>
   <string name="wallet_swap">スワップ</string>
   <string name="wallet_import_title">ウォレットをインポート</string>
   <string name="wallet_new_title">新しいウォレット</string>
@@ -91,7 +91,7 @@
   <string name="wallet_receive_no_destination_tag_required">デスティネーション・タグ不要</string>
   <string name="wallet_title">ウォレット</string>
   <string name="wallet_add_token_title">トークンを追加</string>
-  <string name="wallet_sell">売却する</string>
+  <string name="wallet_sell">売却</string>
   <string name="wallet_receive_collection">コレクションを受け取る</string>
   <string name="wallet_more">もっと見る</string>
   <string name="wallet_backup">バックアップ</string>
@@ -170,10 +170,10 @@
   <string name="settings_price_alerts_title">価格アラート</string>
   <string name="settings_hide_balance">残高を非表示</string>
   <string name="settings_disable_value">%1$sを無効にする</string>
-  <string name="settings_preferences_title">設定</string>
+  <string name="settings_preferences_title">環境設定</string>
   <string name="settings_preferences_perpetual_default_leverage">デフォルトレバレッジ</string>
   <string name="settings_preferences_perpetual_default_margin">デフォルトマージンモード</string>
-  <string name="settings_preferences_perpetual_default_take_profit">デフォルト利確</string>
+  <string name="settings_preferences_perpetual_default_take_profit">デフォルト利益確定</string>
   <string name="settings_preferences_perpetual_default_stop_loss">デフォルト損切り</string>
   <string name="settings_appearance_title">外観</string>
   <string name="settings_appearance_system">システム</string>
@@ -291,11 +291,11 @@
   <string name="asset_verification_verified">検証済み</string>
   <string name="asset_all_time_high">史上最高値</string>
   <string name="asset_all_time_low">史上最安値</string>
-  <string name="charts_day">1日</string>
-  <string name="charts_hour">1時</string>
-  <string name="charts_week">1週</string>
-  <string name="charts_month">1月</string>
-  <string name="charts_year">1年</string>
+  <string name="charts_day">1D</string>
+  <string name="charts_hour">1H</string>
+  <string name="charts_week">1W</string>
+  <string name="charts_month">1M</string>
+  <string name="charts_year">1Y</string>
   <string name="charts_all">全て</string>
   <string name="charts_entry">エントリー</string>
   <string name="charts_price_open">始値</string>
@@ -426,7 +426,7 @@
   <string name="banner_asset_status_title">不審な資産</string>
   <string name="banner_asset_status_description">トークンは安全でないか、誤解を招く可能性があります。完全に信頼できる場合のみ続行してください。</string>
   <string name="banner_onboarding_title">ウォレットの準備ができました</string>
-  <string name="banner_onboarding_description">始めるには暗号通貨を購入または受け取りましょう</string>
+  <string name="banner_onboarding_description">始めるには暗号資産を購入または受け取りましょう</string>
   <string name="banner_perpetuals_title">Hyperliquid でパーペチュアルを取引</string>
   <string name="banner_perpetuals_description">Hyperliquid で入金・取引し、パーペチュアルで収益を獲得</string>
   <string name="filter_clear">クリア</string>
@@ -499,10 +499,10 @@
   <string name="info_no_quote_description">選択したトークンペアの見積もりを取得できません。取引額が小さすぎる、流動性が不足している、または技術的な制約がある可能性があります。</string>
   <string name="info_stake_reserved_title">ネットワーク手数料として確保</string>
   <string name="info_stake_reserved_description">ステーキング解除や報酬の受け取りなどの操作にかかる手数料をカバーするために、少額がウォレットに残ります。</string>
-  <string name="info_stake_apr_description">年率 (APR) は、暗号通貨をステーキングした場合の年間報酬率です。</string>
+  <string name="info_stake_apr_description">年率 (APR) は、暗号資産をステーキングした場合の年間報酬率です。</string>
   <string name="info_stake_frozen_required_title">ステークするにはTRXを凍結</string>
   <string name="info_stake_frozen_required_description">TRONのステーキングは2ステップです。まずTRXを凍結し、次にステークして報酬を獲得します。</string>
-  <string name="info_perpetual_auto_close_description">設定した価格レベルでポジションを自動的に決済します。テイクプロフィットで利益を確定し、ストップロスで損失を制限します。</string>
+  <string name="info_perpetual_auto_close_description">設定した価格レベルでポジションを自動的に決済します。利益確定で利益を確保し、損切りで損失を抑えます。</string>
   <string name="info_fully_diluted_valuation_title">完全希薄化後評価額</string>
   <string name="info_fully_diluted_valuation_description">すべてのコインが流通している場合の理論上の市場価値。価格に最大供給量を掛けて計算されます。</string>
   <string name="info_circulating_supply_description">現在市場で入手可能で取引されているコインの数。</string>
@@ -548,7 +548,7 @@
   <string name="onboarding_accept_terms_continue">同意して続行</string>
   <string name="perpetual_positions">ポジション</string>
   <string name="perpetual_size">サイズ</string>
-  <string name="perpetual_margin">マージン</string>
+  <string name="perpetual_margin">証拠金</string>
   <string name="perpetual_position">ポジション</string>
   <string name="perpetual_close_position">ポジションを決済</string>
   <string name="perpetual_pnl">損益</string>
@@ -572,7 +572,7 @@
   <string name="perpetual_auto_close_expected_profit">予想利益</string>
   <string name="perpetual_auto_close_expected_loss">予想損失</string>
   <string name="perpetual_modify_position">ポジションを変更</string>
-  <string name="perpetual_auto_close_stop_loss">ストップロス</string>
+  <string name="perpetual_auto_close_stop_loss">損切り</string>
   <string name="perpetual_value">価値</string>
   <string name="perpetual_unrealized_pnl">未実現損益</string>
   <string name="perpetual_volume">出来高</string>
@@ -580,7 +580,7 @@
   <string name="perpetual_margin_usage">証拠金使用率</string>
   <string name="perpetual_account_leverage">アカウントレバレッジ</string>
   <string name="perpetual_margin_cross">クロス</string>
-  <string name="perpetual_margin_isolated">分離マージン</string>
+  <string name="perpetual_margin_isolated">分離</string>
   <string name="perpetuals_title">パーペチュアル</string>
   <string name="perpetuals_trade">パーペチュアルを取引</string>
   <string name="perpetuals_markets">市場</string>
