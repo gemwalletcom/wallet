@@ -503,7 +503,7 @@ mod tests {
             let psbt = gem_bitcoin::testkit::psbt_mock::mock_psbt(&[(100_000, ADDRESS)], &[(60_000, RECIPIENT), (39_000, ADDRESS)]);
             let (signed, signer) = outcome("signPsbt", format!(r#"{{"account":"{ADDRESS}","psbt":"{psbt}","signInputs":[{{"address":"{ADDRESS}","index":0}}]}}"#)).await;
             assert_eq!(signed, object(r#"{"psbt":"signed"}"#));
-            let review = &signer.transactions.lock().unwrap()[0];
+            let review = signer.transactions.lock().unwrap().remove(0);
             assert_eq!(review.action, GemWalletConnectTransactionAction::Sign);
             assert_eq!(review.transfer.recipient.address, RECIPIENT);
             assert_eq!(review.transfer.value, BigInt::from(60_000), "the review shows what leaves the wallet");
@@ -514,7 +514,7 @@ mod tests {
 
             let (transfer, signer) = outcome("sendTransfer", format!(r#"{{"account":"{ADDRESS}","recipientAddress":"{RECIPIENT}","amount":"123000","memo":"6869"}}"#)).await;
             assert_eq!(transfer, object(r#"{"txid":"signed"}"#));
-            let review = &signer.transactions.lock().unwrap()[0];
+            let review = signer.transactions.lock().unwrap().remove(0);
             assert_eq!(review.action, GemWalletConnectTransactionAction::Send);
             assert!(
                 matches!(&review.transfer.input_type, TransactionInputType::Transfer { asset } if asset.id == AssetId::from_chain(Chain::Bitcoin)),
