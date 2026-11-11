@@ -2204,7 +2204,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "예약된"
+            "value": "예약됨"
           }
         },
         "ms": {
@@ -2968,7 +2968,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "소수"
+            "value": "소수 자릿수"
           }
         },
         "ms": {
@@ -4114,7 +4114,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ (를) 받거나 교환하거나 구매하세요"
+            "value": "%@을(를) 받거나 교환하거나 구매하세요"
           }
         },
         "ms": {
@@ -5254,7 +5254,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "疑わしい"
+            "value": "不審"
           }
         },
         "ko": {
@@ -6973,7 +6973,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "人気のアセット"
+            "value": "人気の資産"
           }
         },
         "ko": {
@@ -8692,7 +8692,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "不審資産"
+            "value": "不審な資産"
           }
         },
         "ko": {
@@ -9271,7 +9271,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hyperliquid 영구자산으로 예금, 거래 및 수익을 창출하세요"
+            "value": "Hyperliquid 무기한 선물로 입금, 거래하고 수익을 올리세요"
           }
         },
         "ms": {
@@ -9653,7 +9653,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "잠자는 동안 스테이크에 대한 %@ 보상을 받으세요."
+            "value": "잠자는 동안에도 스테이킹으로 %@ 보상을 받으세요."
           }
         },
         "ms": {
@@ -9844,7 +9844,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "스테이킹 시작 %@"
+            "value": "%@ 스테이킹 시작"
           }
         },
         "ms": {
@@ -10417,7 +10417,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "요금"
+            "value": "환율"
           }
         },
         "ms": {
@@ -11372,7 +11372,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "입장"
+            "value": "진입"
           }
         },
         "ms": {
@@ -12518,7 +12518,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "높은"
+            "value": "고가"
           }
         },
         "ms": {
@@ -12709,7 +12709,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "낮은"
+            "value": "저가"
           }
         },
         "ms": {
@@ -13282,7 +13282,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "1년"
+            "value": "1Y"
           }
         },
         "ms": {
@@ -15186,7 +15186,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "消去"
+            "value": "削除"
           }
         },
         "ko": {
@@ -15383,7 +15383,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ (를) 삭제하시겠습니까?"
+            "value": "%@을(를) 삭제하시겠습니까?"
           }
         },
         "ms": {
@@ -15765,7 +15765,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "세부"
+            "value": "세부 정보"
           }
         },
         "ms": {
@@ -20349,7 +20349,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "구절"
+            "value": "문구"
           }
         },
         "ms": {
@@ -20540,7 +20540,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "핀"
+            "value": "고정"
           }
         },
         "ms": {
@@ -23399,7 +23399,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "もう一度やり直してください"
+            "value": "再試行"
           }
         },
         "ko": {
@@ -24933,7 +24933,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "구애"
+            "value": "주소"
           }
         },
         "ms": {
@@ -25124,7 +25124,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "연락하다"
+            "value": "연락처"
           }
         },
         "ms": {
@@ -26652,7 +26652,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "첫 입금 %@"
+            "value": "첫 %@을(를) 입금하세요"
           }
         },
         "ms": {
@@ -28556,7 +28556,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "サポートされているウォレットは利用できません。"
+            "value": "サポートされているウォレットがありません。"
           }
         },
         "ko": {
@@ -30657,7 +30657,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "無効な秘密鍵"
+            "value": "無効なプライベートキー"
           }
         },
         "ko": {
@@ -32191,7 +32191,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "이 기기에서 이 지갑의 키에 접근할 수 없습니다. 복구 문구가 있다면 이 지갑을 삭제한 후 다시 가져와 접근 권한을 복구하세요."
+            "value": "이 기기에서 이 지갑의 키에 접근할 수 없습니다. 비밀 문구가 있다면 이 지갑을 삭제한 후 다시 가져와 접근 권한을 복구하세요."
           }
         },
         "ms": {
@@ -35247,7 +35247,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "최소 거래 금액은 %@. 더 높은 금액을 입력해 주세요."
+            "value": "최소 거래 금액은 %@입니다. 더 높은 금액을 입력해 주세요."
           }
         },
         "ms": {
@@ -35623,7 +35623,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "未対応のアセットです。"
+            "value": "未対応の資産です。"
           }
         },
         "ko": {
@@ -36202,7 +36202,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "현재 네트워크 요금을 계산할 수 없습니다."
+            "value": "현재 네트워크 수수료를 계산할 수 없습니다."
           }
         },
         "ms": {
@@ -37921,7 +37921,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "빠르게"
+            "value": "빠름"
           }
         },
         "ms": {
@@ -40595,7 +40595,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "모든 동전이 유통될 경우의 이론적인 시장 가치. 가격에 최대 공급량을 곱하여 계산합니다."
+            "value": "모든 코인이 유통될 경우의 이론적인 시장 가치. 가격에 최대 공급량을 곱하여 계산합니다."
           }
         },
         "ms": {
@@ -41168,7 +41168,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "이 거래에는 %@ 네트워크 수수료로 %@이(가) 필요하지만 사용할 수 있는 금액은 %@뿐입니다. 계속하려면 %@이 더 필요합니다."
+            "value": "이 거래에는 %2$@ 네트워크 수수료로 %1$@이(가) 필요하지만 사용할 수 있는 금액은 %3$@뿐입니다. 계속하려면 %4$@이(가) 더 필요합니다."
           }
         },
         "ms": {
@@ -41359,7 +41359,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "결합 해제 또는 동결 해제 기간이라고도 알려진 잠금 시간은 스테이크 해제를 결정한 후 스테이크된 자산에 액세스할 수 없는 기간입니다."
+            "value": "언본딩 또는 동결 해제 기간이라고도 하는 잠금 시간은 스테이킹 해제를 결정한 후 스테이킹된 자산에 액세스할 수 없는 기간입니다."
           }
         },
         "ms": {
@@ -41550,7 +41550,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "세상에 존재할 수 있는 동전의 최대 개수."
+            "value": "세상에 존재할 수 있는 코인의 최대 개수."
           }
         },
         "ms": {
@@ -42314,7 +42314,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ 네트워크의 모든 거래에는 Gem Wallet이 아닌 거래를 처리하기 위해 채굴자에게 지불되는 %@ 수수료가 필요합니다. 네트워크 요금은 네트워크 사용량에 따라 다릅니다."
+            "value": "%@ 네트워크의 모든 거래에는 거래 처리를 위해 Gem Wallet이 아닌 채굴자에게 지불되는 %@ 수수료가 필요합니다. 네트워크 수수료는 네트워크 사용량에 따라 다릅니다."
           }
         },
         "ms": {
@@ -43269,7 +43269,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "설정된 가격 수준에서 자동으로 포지션을 청산합니다. 이익실현(Take Profit)은 수익을 확정하고, 손절매(Stop Loss)는 손실을 제한합니다."
+            "value": "설정된 가격 수준에서 자동으로 포지션을 종료합니다. 이익 실현(Take Profit)은 수익을 확정하고, 손절매(Stop Loss)는 손실을 제한합니다."
           }
         },
         "ms": {
@@ -43460,7 +43460,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "매수자가 매도자에게 지급하는 연간 비율입니다(음수인 경우 매도자가 매수자에게 지급). 가격을 현물 가격으로 끌어올리기 위해 사용자 간에 P2P(Peer-to-Peer) 전송을 수행하는 자금 조달과 관련된 수수료는 없습니다."
+            "value": "매수자가 매도자에게 지급하는 연간 비율입니다(음수인 경우 매도자가 매수자에게 지급). 펀딩은 가격을 현물 가격에 가깝게 맞추기 위한 사용자 간 P2P(Peer-to-Peer) 전송이며, 관련 수수료는 없습니다."
           }
         },
         "ms": {
@@ -43842,7 +43842,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "펀딩 지급은 영구 계약 가격을 기초 자산의 현물 가격에 가깝게 유지하기 위해 거래자 간에 정기적으로 지급하는 것입니다. 포지티브 펀딩은 롱 포지션이 숏 포지션에 돈을 지불한다는 의미이고, 네거티브 펀딩은 숏 포지션이 롱 포지션에 돈을 지불한다는 의미입니다."
+            "value": "펀딩 지급은 무기한 계약 가격을 기초 자산의 현물 가격에 가깝게 유지하기 위해 거래자 간에 정기적으로 지급하는 것입니다. 포지티브 펀딩은 롱 포지션이 숏 포지션에 돈을 지불한다는 의미이고, 네거티브 펀딩은 숏 포지션이 롱 포지션에 돈을 지불한다는 의미입니다."
           }
         },
         "ms": {
@@ -44033,7 +44033,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "자금 지불"
+            "value": "펀딩 지급"
           }
         },
         "ms": {
@@ -45746,7 +45746,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ステーキング解除や報酬の請求などの操作にかかる手数料をカバーするために、少額がウォレットに残ります。"
+            "value": "ステーキング解除や報酬の受け取りなどの操作にかかる手数料をカバーするために、少額がウォレットに残ります。"
           }
         },
         "ko": {
@@ -46128,7 +46128,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "TRONのステーキングは2ステップです。まずTRXをフリーズし、次にステークして報酬を獲得します。"
+            "value": "TRONのステーキングは2ステップです。まずTRXを凍結し、次にステークして報酬を獲得します。"
           }
         },
         "ko": {
@@ -46319,7 +46319,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ステークするにはTRXをフリーズ"
+            "value": "ステークするにはTRXを凍結"
           }
         },
         "ko": {
@@ -47656,13 +47656,13 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ウォッチウォレット"
+            "value": "閲覧専用ウォレット"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "시계 지갑"
+            "value": "보기 전용 지갑"
           }
         },
         "ms": {
@@ -47853,7 +47853,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@까지 금액을 입력하세요."
+            "value": "%@할 금액을 입력하세요."
           }
         },
         "ms": {
@@ -50909,7 +50909,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "수집"
+            "value": "컬렉션"
           }
         },
         "ms": {
@@ -53774,7 +53774,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "동기화 중"
+            "value": "동기화됨"
           }
         },
         "ms": {
@@ -53965,7 +53965,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "대기 시간"
+            "value": "지연 시간"
           }
         },
         "ms": {
@@ -55302,7 +55302,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "동의하고 계속하세요"
+            "value": "동의하고 계속"
           }
         },
         "ms": {
@@ -55493,7 +55493,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "저는 Gem이 아닌 제 지갑의 보안과 백업에 대한 전적인 책임을 진다는 것을 이해합니다."
+            "value": "지갑의 보안과 백업에 대한 책임은 Gem이 아닌 전적으로 저에게 있음을 이해합니다."
           }
         },
         "ms": {
@@ -57594,7 +57594,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "우리는 당신이 그것을 복구하는 데 도움을 줄 수 없습니다"
+            "value": "저희가 복구해 드릴 수 없습니다"
           }
         },
         "ms": {
@@ -59689,7 +59689,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "クローズポジション"
+            "value": "ポジションを決済"
           }
         },
         "ko": {
@@ -60077,7 +60077,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ 증가"
+            "value": "%@ 확대"
           }
         },
         "ms": {
@@ -61981,13 +61981,13 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "修正する"
+            "value": "変更"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "수정하다"
+            "value": "수정"
           }
         },
         "ms": {
@@ -63133,7 +63133,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ 줄이기"
+            "value": "%@ 축소"
           }
         },
         "ms": {
@@ -66571,7 +66571,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "감소"
+            "value": "하락"
           }
         },
         "ms": {
@@ -66762,7 +66762,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "증가하다"
+            "value": "상승"
           }
         },
         "ms": {
@@ -66953,7 +66953,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "오버"
+            "value": "이상"
           }
         },
         "ms": {
@@ -67144,7 +67144,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "아래"
+            "value": "이하"
           }
         },
         "ms": {
@@ -67329,7 +67329,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@の価格アラートは無効です"
+            "value": "%@の価格アラートが無効になりました"
           }
         },
         "ko": {
@@ -68481,7 +68481,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "가격이 위일 때"
+            "value": "가격이 다음 값 이상일 때"
           }
         },
         "ms": {
@@ -68672,7 +68672,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "가격이 아래일 때"
+            "value": "가격이 다음 값 이하일 때"
           }
         },
         "ms": {
@@ -69054,7 +69054,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "가격 설정 알림"
+            "value": "가격 알림 설정"
           }
         },
         "ms": {
@@ -69245,7 +69245,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "추적에 동전을 추가하여 활성화하세요"
+            "value": "추적할 코인을 추가하여 활성화하세요"
           }
         },
         "ms": {
@@ -69573,7 +69573,7 @@
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "عبارات خصوصی شما از قبل از این حساب‌ها پشتیبان دارد. فقط برای استفاده از یک حساب در کیف پول دیگر، کلید را خروجی بگیرید."
+            "value": "عبارت مخفی شما از قبل از این حساب‌ها پشتیبان دارد. فقط برای استفاده از یک حساب در کیف پول دیگر، کلید را خروجی بگیرید."
           }
         },
         "fil": {
@@ -69645,7 +69645,7 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Twoje tajne wyrażenie już tworzy kopię zapasową tych kont. Eksportuj klucz tylko, aby użyć jednego konta w innym portfelu."
+            "value": "Twoje tajne zdanie już tworzy kopię zapasową tych kont. Eksportuj klucz tylko, aby użyć jednego konta w innym portfelu."
           }
         },
         "pt-BR": {
@@ -73059,13 +73059,13 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "最近使用したアセットがここに表示されます"
+            "value": "最近使用した資産がここに表示されます"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "최근에 사용한 애셋이 여기에 표시됩니다."
+            "value": "최근에 사용한 자산이 여기에 표시됩니다."
           }
         },
         "ms": {
@@ -73638,7 +73638,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "친구에게 추천 코드가 있으신가요?"
+            "value": "친구에게 받은 추천 코드가 있으신가요?"
           }
         },
         "ms": {
@@ -74969,7 +74969,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ポイントが足りない"
+            "value": "ポイントが不足しています"
           }
         },
         "ko": {
@@ -76121,7 +76121,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "다음에서 이용 가능합니다: %@"
+            "value": "%@ 후 이용 가능"
           }
         },
         "ms": {
@@ -80323,7 +80323,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "비밀 문구를 안전한 곳에 저장하세요\n 그건 당신만이 통제할 수 있어요."
+            "value": "본인만 관리할 수 있는 안전한 곳에\n비밀 문구를 저장하세요."
           }
         },
         "ms": {
@@ -80890,7 +80890,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@を売る"
+            "value": "%@を売却"
           }
         },
         "ko": {
@@ -82042,7 +82042,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "지역 사회"
+            "value": "커뮤니티"
           }
         },
         "ms": {
@@ -82806,7 +82806,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "비밀번호 활성화"
+            "value": "암호 활성화"
           }
         },
         "ms": {
@@ -83761,7 +83761,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "원천"
+            "value": "소스"
           }
         },
         "ms": {
@@ -84716,7 +84716,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "기본 손절"
+            "value": "기본 손절매"
           }
         },
         "ms": {
@@ -84907,7 +84907,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "기본 익절"
+            "value": "기본 이익 실현"
           }
         },
         "ms": {
@@ -86053,7 +86053,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "지원하다"
+            "value": "지원"
           }
         },
         "ms": {
@@ -87390,7 +87390,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "제한 없는 %@"
+            "value": "무제한 %@"
           }
         },
         "ms": {
@@ -87772,7 +87772,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "이렇게 하면 사용자가 승인을 취소하거나 만료될 때까지 해당 토큰을 사용할 수 있습니다."
+            "value": "승인을 취소하거나 승인이 만료될 때까지 승인받은 상대방이 이 토큰을 사용할 수 있습니다."
           }
         },
         "ms": {
@@ -89491,7 +89491,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "연결"
+            "value": "링크"
           }
         },
         "ms": {
@@ -91210,7 +91210,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "활성화"
+            "value": "활성화 중"
           }
         },
         "ms": {
@@ -91401,7 +91401,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "활동적인"
+            "value": "활성"
           }
         },
         "ms": {
@@ -91592,7 +91592,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "활성 상태"
+            "value": "활성화까지"
           }
         },
         "ms": {
@@ -96558,7 +96558,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "높은 가격의 영향"
+            "value": "높은 가격 영향"
           }
         },
         "ms": {
@@ -97513,7 +97513,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "최소 금액을 사용하세요"
+            "value": "최소 금액 사용"
           }
         },
         "ms": {
@@ -98271,7 +98271,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "推定承認時間"
+            "value": "推定確認時間"
           }
         },
         "ko": {
@@ -99232,7 +99232,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "성공적인"
+            "value": "성공"
           }
         },
         "ms": {
@@ -99614,7 +99614,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "실패한"
+            "value": "실패"
           }
         },
         "ms": {
@@ -100569,7 +100569,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "다시 바꾸기"
+            "value": "다시 교환"
           }
         },
         "ms": {
@@ -100760,7 +100760,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "받았다"
+            "value": "받음"
           }
         },
         "ms": {
@@ -100951,7 +100951,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "전송된"
+            "value": "보냄"
           }
         },
         "ms": {
@@ -101327,7 +101327,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "アセットを有効化"
+            "value": "資産を有効化"
           }
         },
         "ko": {
@@ -101524,7 +101524,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "승인하다"
+            "value": "승인"
           }
         },
         "ms": {
@@ -103052,7 +103052,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "네트워크 비용을 충당하기에는 %@ 잔액이 부족합니다."
+            "value": "네트워크 수수료를 충당하기에는 %@ 잔액이 부족합니다."
           }
         },
         "ms": {
@@ -104198,7 +104198,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "회로망"
+            "value": "네트워크"
           }
         },
         "ms": {
@@ -106681,7 +106681,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "보내다"
+            "value": "보내기"
           }
         },
         "ms": {
@@ -107827,7 +107827,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "언스테이크"
+            "value": "스테이킹 해제"
           }
         },
         "ms": {
@@ -108782,7 +108782,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "확인하다"
+            "value": "확인"
           }
         },
         "ms": {
@@ -109737,7 +109737,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "구입하다"
+            "value": "구매"
           }
         },
         "ms": {
@@ -113748,7 +113748,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "받다"
+            "value": "받기"
           }
         },
         "ms": {
@@ -115276,7 +115276,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "팔다"
+            "value": "판매"
           }
         },
         "ms": {
@@ -115467,7 +115467,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "보내다"
+            "value": "보내기"
           }
         },
         "ms": {
@@ -115658,7 +115658,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "스테이크"
+            "value": "스테이킹"
           }
         },
         "ms": {
@@ -117377,7 +117377,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "연결하다"
+            "value": "연결"
           }
         },
         "ms": {
@@ -118523,7 +118523,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "잔액과 활동 내역을 확인하세요"
+            "value": "잔액 및 활동 내역 보기"
           }
         },
         "ms": {
