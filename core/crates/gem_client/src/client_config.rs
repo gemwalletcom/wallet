@@ -17,7 +17,6 @@ pub fn builder() -> reqwest::ClientBuilder {
         .http2_keep_alive_interval(Duration::from_secs(30))
         .http2_keep_alive_while_idle(true)
         .gzip(true)
-        .brotli(true)
         .deflate(true)
 }
 
