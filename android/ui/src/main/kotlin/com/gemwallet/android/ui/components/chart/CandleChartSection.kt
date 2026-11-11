@@ -22,23 +22,12 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.ChartPeriod
 import uniffi.gemstone.GemCandleChart
 import uniffi.gemstone.GemCandleTooltip
-import uniffi.gemstone.GemChartStyle
 import java.time.ZoneId
 
 private val TooltipRightSafeArea = 96.dp
 
 @Composable
-fun CandleChartSection(
-    state: StateViewType<GemCandleChart>,
-    period: ChartPeriod,
-    onPeriodSelect: (ChartPeriod) -> Unit,
-    onZoom: (Float, Float) -> Unit,
-    onPan: (Float) -> Unit,
-    periods: List<ChartPeriod>,
-    modifier: Modifier = Modifier,
-    styleSwitch: GemChartStyle? = null,
-    onSwitchStyle: (GemChartStyle) -> Unit = {},
-) {
+fun CandleChartSection(state: StateViewType<GemCandleChart>, period: ChartPeriod, onPeriodSelect: (ChartPeriod) -> Unit, onZoom: (Float, Float) -> Unit, onPan: (Float) -> Unit, periods: List<ChartPeriod>, modifier: Modifier = Modifier) {
     val chart = state.dataOrNull
     val data = chart?.candles.orEmpty()
     var selectedIndex by remember(period) { mutableStateOf<Int?>(null) }
@@ -59,8 +48,6 @@ fun CandleChartSection(
         onPeriodSelect = onPeriodSelect,
         periods = periods,
         modifier = modifier,
-        styleSwitch = styleSwitch,
-        onSwitchStyle = onSwitchStyle,
     ) { _ ->
         if (chart != null) {
             GemCandlestickChart(

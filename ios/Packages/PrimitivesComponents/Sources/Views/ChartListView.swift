@@ -37,6 +37,13 @@ public struct ChartListView<Model: ChartListViewable, Content: View>: View {
         .refreshableTimer(every: connectionStatus.refreshInterval(for: .chart)) { @MainActor _ in
             await model.load()
         }
+        .toolbar {
+            if let styleSwitch = model.styleSwitch {
+                ToolbarItem(placement: .topBarTrailing) {
+                    ChartStyleButton(style: styleSwitch, action: model.onSwitchStyle)
+                }
+            }
+        }
     }
 }
 
@@ -46,11 +53,11 @@ private struct ChartListHeader<Model: ChartListViewable>: View {
 
     var body: some View {
         if let candleChart = model.candleChart {
-            ChartStateView(state: .data(candleChart), selectedPeriod: $model.selectedPeriod, periods: model.periods, styleSwitch: model.styleSwitch, onSwitchStyle: model.onSwitchStyle) { chart in
+            ChartStateView(state: .data(candleChart), selectedPeriod: $model.selectedPeriod, periods: model.periods) { chart in
                 CandlestickChartView(chart: chart, isPinching: $isPinching, onZoom: model.onZoom, onPan: model.onPan)
             }
         } else {
-            ChartStateView(state: model.chartState, selectedPeriod: $model.selectedPeriod, periods: model.periods, styleSwitch: model.styleSwitch, onSwitchStyle: model.onSwitchStyle) { chart in
+            ChartStateView(state: model.chartState, selectedPeriod: $model.selectedPeriod, periods: model.periods) { chart in
                 ChartView(chart: chart, isPinching: $isPinching, onZoom: model.onZoom, onPan: model.onPan)
             }
         }

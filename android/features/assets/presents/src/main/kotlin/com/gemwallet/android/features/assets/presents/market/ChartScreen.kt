@@ -11,6 +11,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.assets.viewmodels.market.ChartViewModel
 import com.gemwallet.android.ui.components.RefreshOnTimer
+import com.gemwallet.android.ui.components.chart.ChartSection
+import com.gemwallet.android.ui.components.chart.ChartStyleButton
 import com.gemwallet.android.ui.components.list_item.gemListSections
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
@@ -34,6 +36,7 @@ fun ChartScreen(
     val refreshIntervalMillis by viewModel.refreshIntervalMillis.collectAsStateWithLifecycle()
     RefreshOnTimer(refreshIntervalMillis, viewModel::refresh)
 
+    val chartState by viewModel.chartUIState.collectAsStateWithLifecycle()
     val sections by viewModel.sections.collectAsStateWithLifecycle()
     val title by viewModel.title.collectAsStateWithLifecycle()
     val isChartRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
@@ -42,6 +45,7 @@ fun ChartScreen(
     Scene(
         title = title,
         onClose = onCancel,
+        actions = { chartState.styleSwitch?.let { ChartStyleButton(it, viewModel::selectStyle) } },
         snackbar = snackbar,
     ) {
         PullToRefreshBox(
@@ -60,7 +64,7 @@ fun ChartScreen(
                 }
             }
             LazyColumn(modifier = Modifier.fillMaxSize()) {
-                item { Chart(viewModel) }
+                item { ChartSection(chartState, viewModel::setPeriod, viewModel::onZoom, viewModel::onPan) }
                 gemListSections(sections, onSelectAddress, onSelectRow)
             }
         }

@@ -14,10 +14,7 @@ struct ChartStyleButton: View {
             action(style)
         } label: {
             Image(systemName: systemImage)
-                .fontWeight(.medium)
-                .padding(.space6)
         }
-        .buttonStyle(.borderless)
         .accessibilityLabel(title)
         .accessibilityIdentifier("chart_style_switch")
     }

@@ -16,11 +16,10 @@ import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.dataOrNull
 import com.wallet.core.primitives.ChartPeriod
 import uniffi.gemstone.GemChartData
-import uniffi.gemstone.GemChartStyle
 import java.time.ZoneId
 
 @Composable
-fun ChartSection(state: ChartUIState, onPeriodSelect: (ChartPeriod) -> Unit, onZoom: (Float, Float) -> Unit, onPan: (Float) -> Unit, onSwitchStyle: (GemChartStyle) -> Unit = {}) {
+fun ChartSection(state: ChartUIState, onPeriodSelect: (ChartPeriod) -> Unit, onZoom: (Float, Float) -> Unit, onPan: (Float) -> Unit) {
     state.candles?.let { candles ->
         CandleChartSection(
             state = StateViewType.Data(candles),
@@ -29,8 +28,6 @@ fun ChartSection(state: ChartUIState, onPeriodSelect: (ChartPeriod) -> Unit, onZ
             onZoom = onZoom,
             onPan = onPan,
             periods = state.periods,
-            styleSwitch = state.styleSwitch,
-            onSwitchStyle = onSwitchStyle,
         )
         return
     }
@@ -50,8 +47,6 @@ fun ChartSection(state: ChartUIState, onPeriodSelect: (ChartPeriod) -> Unit, onZ
             period = state.period,
             onPeriodSelect = onPeriodSelect,
             periods = state.periods,
-            styleSwitch = state.styleSwitch,
-            onSwitchStyle = onSwitchStyle,
         ) { model ->
             val points = remember(model) { model.linePoints() }
             val minLabel = remember(model) { model.bounds.low.text() }

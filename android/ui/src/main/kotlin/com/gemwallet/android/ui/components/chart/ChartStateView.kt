@@ -3,7 +3,6 @@ package com.gemwallet.android.ui.components.chart
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -25,7 +24,6 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space4
 import com.wallet.core.primitives.ChartPeriod
 import uniffi.gemstone.GemChartHeader
-import uniffi.gemstone.GemChartStyle
 
 @Composable
 fun <T> ChartStateView(
@@ -36,8 +34,6 @@ fun <T> ChartStateView(
     onPeriodSelect: (ChartPeriod) -> Unit,
     periods: List<ChartPeriod>,
     modifier: Modifier = Modifier,
-    styleSwitch: GemChartStyle? = null,
-    onSwitchStyle: (GemChartStyle) -> Unit = {},
     chartBody: @Composable BoxScope.(T) -> Unit,
 ) {
     Column(
@@ -77,9 +73,6 @@ fun <T> ChartStateView(
                 }
             }
         }
-        Row(modifier = Modifier.fillMaxWidth()) {
-            PeriodsPanel(period, onPeriodSelect, periods, Modifier.weight(1f))
-            styleSwitch?.let { ChartStyleButton(style = it, onClick = onSwitchStyle) }
-        }
+        PeriodsPanel(period, onPeriodSelect, periods)
     }
 }
