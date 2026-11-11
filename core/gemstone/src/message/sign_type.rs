@@ -20,6 +20,8 @@ pub enum SignDigestType {
     Siwe,
     TonPersonal,
     TronPersonal,
+    BitcoinEcdsa,
+    BitcoinBip322,
 }
 
 #[uniffi::remote(Record)]

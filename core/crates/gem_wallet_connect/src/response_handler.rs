@@ -1,4 +1,4 @@
-use crate::accounts::map_sui_get_accounts;
+use crate::accounts::{map_bitcoin_account_addresses, map_sui_get_accounts};
 use crate::actions::WalletConnectResponseType;
 use primitives::Account;
 use primitives::ChainType;
@@ -7,8 +7,11 @@ use serde_json::Value;
 pub struct WalletConnectResponseHandler;
 
 impl WalletConnectResponseHandler {
-    pub fn encode_sign_message(chain_type: ChainType, signature: String) -> WalletConnectResponseType {
+    pub fn encode_sign_message(chain_type: ChainType, address: &str, signature: String) -> WalletConnectResponseType {
         match chain_type {
+            ChainType::Bitcoin => WalletConnectResponseType::Object {
+                json: serde_json::json!({ "address": address, "signature": signature }).to_string(),
+            },
             ChainType::Solana | ChainType::Sui | ChainType::Tron => {
                 let result = serde_json::json!({
                     "signature": signature
@@ -43,6 +46,9 @@ impl WalletConnectResponseHandler {
                 WalletConnectResponseType::Object { json: result.to_string() }
             }
             ChainType::Tron => WalletConnectResponseType::Object { json: transaction_id },
+            ChainType::Bitcoin => WalletConnectResponseType::Object {
+                json: serde_json::json!({ "psbt": transaction_id }).to_string(),
+            },
             _ => WalletConnectResponseType::String { value: transaction_id },
         }
     }
@@ -50,6 +56,7 @@ impl WalletConnectResponseHandler {
     pub fn encode_get_accounts(chain_type: ChainType, accounts: &[Account]) -> WalletConnectResponseType {
         let result = match chain_type {
             ChainType::Sui => map_sui_get_accounts(accounts),
+            ChainType::Bitcoin => map_bitcoin_account_addresses(accounts),
             _ => vec![],
         };
         WalletConnectResponseType::Object { json: Value::Array(result).to_string() }
@@ -69,6 +76,9 @@ impl WalletConnectResponseHandler {
             ChainType::Tron => WalletConnectResponseType::Object {
                 json: serde_json::json!({ "result": true, "txid": transaction_id }).to_string(),
             },
+            ChainType::Bitcoin => WalletConnectResponseType::Object {
+                json: serde_json::json!({ "txid": transaction_id }).to_string(),
+            },
             _ => WalletConnectResponseType::String { value: transaction_id },
         }
     }
@@ -80,9 +90,27 @@ mod tests {
     use crate::testkit::{TEST_SUI_ADDRESS, TEST_SUI_PUBLIC_KEY_BASE64, mock_sui_account};
 
     #[test]
+    fn test_encode_bitcoin_responses() {
+        assert_eq!(
+            WalletConnectResponseHandler::encode_sign_message(ChainType::Bitcoin, "bc1qaddress", "1f00".to_string()),
+            WalletConnectResponseType::Object {
+                json: r#"{"address":"bc1qaddress","signature":"1f00"}"#.to_string()
+            }
+        );
+        assert_eq!(
+            WalletConnectResponseHandler::encode_sign_transaction(ChainType::Bitcoin, "cHNidP8B".to_string()),
+            WalletConnectResponseType::Object { json: r#"{"psbt":"cHNidP8B"}"#.to_string() }
+        );
+        assert_eq!(
+            WalletConnectResponseHandler::encode_send_transaction(ChainType::Bitcoin, "f007551f".to_string()),
+            WalletConnectResponseType::Object { json: r#"{"txid":"f007551f"}"#.to_string() }
+        );
+    }
+
+    #[test]
     fn test_encode_sign_message_ethereum() {
         assert_eq!(
-            WalletConnectResponseHandler::encode_sign_message(ChainType::Ethereum, "0xsig".to_string()),
+            WalletConnectResponseHandler::encode_sign_message(ChainType::Ethereum, "0xaddress", "0xsig".to_string()),
             WalletConnectResponseType::String { value: "0xsig".to_string() }
         );
     }
@@ -90,7 +118,7 @@ mod tests {
     #[test]
     fn test_encode_sign_message_solana() {
         assert_eq!(
-            WalletConnectResponseHandler::encode_sign_message(ChainType::Solana, "sig123".to_string()),
+            WalletConnectResponseHandler::encode_sign_message(ChainType::Solana, "address", "sig123".to_string()),
             WalletConnectResponseType::Object {
                 json: r#"{"signature":"sig123"}"#.to_string()
             }

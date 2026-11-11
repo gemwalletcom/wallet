@@ -22,12 +22,12 @@ use wallet_connect_protocol::crypto::{self, Key};
 use wallet_connect_protocol::relay::rpc::{self, ApproveSession};
 use wallet_connect_protocol::relay::{RelayFrame, RelayMessage, parse_frame};
 use wallet_connect_protocol::sign::method::{
-    METHOD_PAIRING_DELETE, METHOD_PAIRING_PING, METHOD_SESSION_AUTHENTICATE, METHOD_SESSION_DELETE, METHOD_SESSION_PING, METHOD_SESSION_PROPOSE, METHOD_SESSION_REQUEST, METHOD_SESSION_SETTLE, METHOD_SESSION_UPDATE,
+    METHOD_PAIRING_DELETE, METHOD_PAIRING_PING, METHOD_SESSION_AUTHENTICATE, METHOD_SESSION_DELETE, METHOD_SESSION_EVENT, METHOD_SESSION_PING, METHOD_SESSION_PROPOSE, METHOD_SESSION_REQUEST, METHOD_SESSION_SETTLE, METHOD_SESSION_UPDATE,
 };
 use wallet_connect_protocol::sign::namespaces::{self, Supported};
 use wallet_connect_protocol::sign::payload::{self, Payload};
 use wallet_connect_protocol::sign::types::Redirect;
-use wallet_connect_protocol::sign::{Metadata, Participant, ProposeResponse, Publish, Reason, Relay, SessionProposal, SessionRequest, SettleParams, UpdateParams};
+use wallet_connect_protocol::sign::{Event, EventParams, Metadata, Participant, ProposeResponse, Publish, Reason, Relay, SessionProposal, SessionRequest, SettleParams, UpdateParams};
 use wallet_connect_protocol::verify::{self, Attestation, Verification, VerifyPublicKey};
 use wallet_connect_protocol::{PairingUri, ProtocolError, envelope};
 
@@ -38,6 +38,7 @@ use crate::config::wallet_connect::get_wallet_connect_config;
 use crate::services::clock::sleep;
 use crate::services::error::GemServiceError;
 use crate::services::preferences::GemSecureStore;
+use gem_wallet_connect::accounts::map_bitcoin_account_addresses;
 use gem_wallet_connect::{WalletConnectResponseType, validate_domain};
 use state::{ClientState, Outgoing, Pairing, PendingRequest, Session, Topic};
 
@@ -296,7 +297,10 @@ impl GemWalletConnectClient {
             origin: pending.verification.origin,
             validation: pending.verification.status,
         };
-        self.store_session(session, wallet, &pending.pairing_topic, approval).await
+        let accounts = wallet.accounts.clone();
+        let announced = session.clone();
+        self.store_session(session, wallet, &pending.pairing_topic, approval).await?;
+        self.announce_bitcoin_addresses(&announced, &accounts).await
     }
 
     pub async fn reject_session(&self, proposal_id: String, reason: GemWalletConnectRejectionReason) -> Result<(), GemServiceError> {
@@ -571,6 +575,29 @@ impl GemWalletConnectClient {
         let update = payload::request(message_id(), METHOD_SESSION_UPDATE, UpdateParams { namespaces: &namespaces });
         self.publish(&session.topic, &crypto::parse_key(&session.key)?, &update, Publish::SessionUpdate).await?;
         self.sync_connections().await
+    }
+
+    async fn announce_bitcoin_addresses(&self, session: &Session, accounts: &[Account]) -> Result<(), GemServiceError> {
+        let Some(chain_ids) = rules::bitcoin_address_event_chains(&session.namespaces) else {
+            return Ok(());
+        };
+        let addresses = serde_json::Value::Array(map_bitcoin_account_addresses(accounts));
+        let key = crypto::parse_key(&session.key)?;
+        for chain_id in chain_ids {
+            let event = payload::request(
+                message_id(),
+                METHOD_SESSION_EVENT,
+                EventParams {
+                    event: Event {
+                        name: rules::BITCOIN_ADDRESSES_CHANGED_EVENT,
+                        data: &addresses,
+                    },
+                    chain_id: &chain_id,
+                },
+            );
+            self.publish(&session.topic, &key, &event, Publish::SessionEvent).await?;
+        }
+        Ok(())
     }
 
     fn show_next_request(&self) -> Result<(), GemServiceError> {
@@ -1013,6 +1040,42 @@ mod tests {
                 client.receive(TestDapp::reply(frame["id"].as_u64().unwrap())).await.unwrap();
             }
             assert!(!client.needs_connection().unwrap());
+        });
+    }
+
+    #[test]
+    fn test_a_bitcoin_connection_announces_its_addresses() {
+        block_on(async {
+            let proposal = TEST_PROPOSAL.replace(
+                r#""optionalNamespaces": {"#,
+                r#""optionalNamespaces": { "bip122": { "chains": ["bip122:000000000019d6689c085ae165831e93"], "methods": ["signMessage", "signPsbt", "sendTransfer"], "events": ["bip122_addressesChanged"] },"#,
+            );
+            let dapp = TestDapp::new();
+            let wallet = Wallet::mock_with_accounts(vec![Account::mock(Chain::Ethereum, "address"), Account::mock(Chain::Bitcoin, "bc1qaddress")]);
+            let client = GemWalletConnectClient::mock_with_service(&dapp, Platform::IOS, GemWalletConnectService::mock(Ok(String::new()), wallet.clone()).await);
+            let pairing_key = test_key(TEST_SYM_KEY);
+            client.pair(TestDapp::pairing_uri("wc_sessionPropose")).await.unwrap();
+            client.receive(TestDapp::frame(TEST_TOPIC, &pairing_key, &TestDapp::request(100, METHOD_SESSION_PROPOSE, &proposal))).await.unwrap();
+            client.approve_session(TEST_PEER_PUBLIC_KEY.to_string(), wallet).await.unwrap();
+
+            let approval = dapp.transport.sent().into_iter().find(|frame| frame["method"] == "wc_approveSession").unwrap();
+            let response: Value = serde_json::from_slice(&envelope::decrypt(&pairing_key, approval["params"]["sessionProposalResponse"].as_str().unwrap()).unwrap()).unwrap();
+            let session_key = TestDapp::session_key(response["result"]["responderPublicKey"].as_str().unwrap());
+            let settle: Value = serde_json::from_slice(&envelope::decrypt(&session_key, approval["params"]["sessionSettlementRequest"].as_str().unwrap()).unwrap()).unwrap();
+            assert_eq!(settle["params"]["namespaces"]["bip122"]["accounts"], json(r#"["bip122:000000000019d6689c085ae165831e93:bc1qaddress"]"#));
+            assert_eq!(
+                settle["params"]["sessionProperties"]["bip122_getAccountAddresses"],
+                json(r#""[{\"address\":\"bc1qaddress\",\"path\":\"\",\"intention\":\"payment\"}]""#),
+                "a dapp reads the addresses without asking again"
+            );
+
+            let events = dapp.transport.published(&TestDapp::topic(&session_key), &session_key);
+            assert_eq!(events.len(), 1, "{events:?}");
+            assert_eq!(events[0]["method"], METHOD_SESSION_EVENT);
+            assert_eq!(
+                events[0]["params"],
+                json(r#"{"event":{"name":"bip122_addressesChanged","data":[{"address":"bc1qaddress","path":"","intention":"payment"}]},"chainId":"bip122:000000000019d6689c085ae165831e93"}"#)
+            );
         });
     }
 

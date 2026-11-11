@@ -49,8 +49,8 @@ impl WalletConnect {
         WalletConnectRequestHandler::parse_request(request).map_err(|e| GemstoneError::AnyError { msg: e })
     }
 
-    pub fn encode_sign_message(&self, chain: Chain, signature: String) -> WalletConnectResponseType {
-        WalletConnectResponseHandler::encode_sign_message(chain.chain_type(), signature)
+    pub fn encode_sign_message(&self, chain: Chain, address: &str, signature: String) -> WalletConnectResponseType {
+        WalletConnectResponseHandler::encode_sign_message(chain.chain_type(), address, signature)
     }
 
     pub fn encode_sign_transaction(&self, chain: Chain, transaction_id: String) -> WalletConnectResponseType {
