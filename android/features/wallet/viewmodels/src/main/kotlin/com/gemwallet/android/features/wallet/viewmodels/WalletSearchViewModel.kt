@@ -9,6 +9,7 @@ import com.gemwallet.android.data.services.store.queries.NFTQuery
 import com.gemwallet.android.data.services.store.queries.RecentActivityQuery
 import com.gemwallet.android.data.services.store.queries.WalletSearchQuery
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
+import com.gemwallet.android.domains.search.WalletSearchTag
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.assets.viewmodels.select.BaseSelectAssetViewModel
@@ -68,7 +69,7 @@ class WalletSearchViewModel @Inject constructor(
     }
 
     private val perpetuals: Flow<List<PerpetualData>> = currentQuery
-        .flatMapLatest { query -> walletSearchQuery.perpetuals(GemSearchScope.All.searchKey(query), GemSearchScope.All, assetsSearchLimit(query)) }
+        .flatMapLatest { query -> walletSearchQuery.perpetuals(GemSearchScope.All.searchKey(query), WalletSearchTag.All, assetsSearchLimit(query)) }
 
     private val collections: Flow<List<NFTData>> = getSession()
         .filterNotNull()
