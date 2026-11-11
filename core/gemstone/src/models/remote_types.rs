@@ -995,6 +995,7 @@ pub struct AssetProperties {
     pub is_earnable: bool,
     pub earn_apr: Option<f64>,
     pub has_image: bool,
+    pub has_candles: bool,
     pub has_price: bool,
 }
 

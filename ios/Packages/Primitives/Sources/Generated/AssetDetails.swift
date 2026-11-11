@@ -12,8 +12,9 @@ public struct AssetProperties: Codable, Sendable {
 	public let isEarnable: Bool
 	public let earnApr: Double?
 	public let hasImage: Bool
+	public let hasCandles: Bool
 
-	public init(isEnabled: Bool, isBuyable: Bool, isSellable: Bool, isSwapable: Bool, isStakeable: Bool, stakingApr: Double?, isEarnable: Bool, earnApr: Double?, hasImage: Bool) {
+	public init(isEnabled: Bool, isBuyable: Bool, isSellable: Bool, isSwapable: Bool, isStakeable: Bool, stakingApr: Double?, isEarnable: Bool, earnApr: Double?, hasImage: Bool, hasCandles: Bool) {
 		self.isEnabled = isEnabled
 		self.isBuyable = isBuyable
 		self.isSellable = isSellable
@@ -23,6 +24,7 @@ public struct AssetProperties: Codable, Sendable {
 		self.isEarnable = isEarnable
 		self.earnApr = earnApr
 		self.hasImage = hasImage
+		self.hasCandles = hasCandles
 	}
 }
 

@@ -24,13 +24,17 @@ struct AssetStoreTests {
     func addKeepsTheBackendPropertiesOnInsertAndOnUpdate() throws {
         let db = DB.mock()
         let store = AssetStore(db: db)
-        let asset = AssetBasic.mock(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18), properties: .mock(hasImage: true))
+        let asset = AssetBasic.mock(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18), properties: .mock(hasImage: true, hasCandles: true))
 
         try store.add(assets: [asset])
-        #expect(try store.getAssetBasics(for: [asset.asset.id]).first?.properties.hasImage == true)
+        let inserted = try #require(try store.getAssetBasics(for: [asset.asset.id]).first?.properties)
+        #expect(inserted.hasImage == true)
+        #expect(inserted.hasCandles == true)
 
-        try store.add(assets: [AssetBasic.mock(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18), properties: .mock(hasImage: false))])
-        #expect(try store.getAssetBasics(for: [asset.asset.id]).first?.properties.hasImage == false)
+        try store.add(assets: [AssetBasic.mock(asset: .mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18), properties: .mock(hasImage: false, hasCandles: false))])
+        let updated = try #require(try store.getAssetBasics(for: [asset.asset.id]).first?.properties)
+        #expect(updated.hasImage == false)
+        #expect(updated.hasCandles == false)
     }
 
     @Test

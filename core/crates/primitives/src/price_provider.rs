@@ -50,6 +50,13 @@ impl PriceProvider {
         self.as_ref()
     }
 
+    pub fn has_candles(&self) -> bool {
+        match self {
+            Self::Coingecko => true,
+            Self::Pyth | Self::Jupiter | Self::DefiLlama | Self::TonApi => false,
+        }
+    }
+
     pub fn priority(&self) -> i32 {
         match self {
             Self::Coingecko => 0,

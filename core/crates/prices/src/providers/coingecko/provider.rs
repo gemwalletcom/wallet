@@ -141,10 +141,6 @@ impl<C: Client + 'static> PriceAssetsProvider for CoinGeckoPricesProvider<C> {
         Ok(map_market_chart(chart))
     }
 
-    fn has_candles(&self) -> bool {
-        true
-    }
-
     async fn get_candles(&self, provider_price_id: &str, period: ChartPeriod) -> Result<Vec<ChartCandleStick>, Box<dyn Error + Send + Sync>> {
         Ok(map_ohlc(self.client.get_ohlc(provider_price_id, ohlc_days(period)).await?))
     }
@@ -290,6 +286,5 @@ mod tests {
                 volume: 0.0,
             }]
         );
-        assert!(provider.has_candles());
     }
 }

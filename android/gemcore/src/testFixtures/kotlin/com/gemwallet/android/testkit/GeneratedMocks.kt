@@ -261,6 +261,7 @@ fun mockAssetProperties(
     isEarnable: Boolean = false,
     earnApr: Double? = null,
     hasImage: Boolean = false,
+    hasCandles: Boolean = false,
 ) = AssetProperties(
     isEnabled = isEnabled,
     isBuyable = isBuyable,
@@ -271,6 +272,7 @@ fun mockAssetProperties(
     isEarnable = isEarnable,
     earnApr = earnApr,
     hasImage = hasImage,
+    hasCandles = hasCandles,
 )
 
 fun mockAssetScore(

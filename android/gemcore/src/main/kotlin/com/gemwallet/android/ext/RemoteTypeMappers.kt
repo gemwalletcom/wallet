@@ -1218,6 +1218,7 @@ fun uniffi.gemstone.AssetProperties.toPrimitives(): com.wallet.core.primitives.A
     isEarnable = isEarnable,
     earnApr = earnApr,
     hasImage = hasImage,
+    hasCandles = hasCandles,
 )
 
 fun com.wallet.core.primitives.AssetProperties.toGem(): uniffi.gemstone.AssetProperties = uniffi.gemstone.AssetProperties(
@@ -1230,6 +1231,7 @@ fun com.wallet.core.primitives.AssetProperties.toGem(): uniffi.gemstone.AssetPro
     isEarnable = isEarnable,
     earnApr = earnApr,
     hasImage = hasImage,
+    hasCandles = hasCandles,
     hasPrice = false,
 )
 

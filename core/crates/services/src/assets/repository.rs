@@ -4,7 +4,8 @@ use std::time::Duration;
 use async_trait::async_trait;
 use chrono::NaiveDateTime;
 use primitives::{
-    Asset, AssetAddress, AssetAssociation, AssetBalance, AssetBasic, AssetFull, AssetId, AssetIdVecExt, AssetPriceMetadata, AssetVecExt, Chain, ChainAddress, ListId, Perpetual, ScanAddress, asset_score::AssetRank, fiat_assets::AssetCatalog,
+    Asset, AssetAddress, AssetAssociation, AssetBalance, AssetBasic, AssetFull, AssetId, AssetIdVecExt, AssetPriceMetadata, AssetVecExt, Chain, ChainAddress, ListId, Perpetual, PriceProvider, ScanAddress, asset_score::AssetRank,
+    fiat_assets::AssetCatalog,
 };
 use storage::{
     AssetFilter, AssetUpdate, AssetsAddressesRepository, AssetsRepository, AssetsUsageRanksRepository, Database, DatabaseError, PerpetualsRepository, PricesRepository, ScanAddressesRepository, Tag, TagRepository, TransactionsRepository,
@@ -171,7 +172,18 @@ impl Repository for PostgresRepository {
                 let ids: Vec<String> = client.get_prices_asset_ids()?.iter().map(ToString::to_string).collect();
                 let added = client.update_assets(vec![AssetFilter::Ids(ids.clone()), AssetFilter::HasPrice(false)], vec![AssetUpdate::HasPrice(true)])?;
                 let removed = client.update_assets(vec![AssetFilter::IsEnabled(true), AssetFilter::HasPrice(true), AssetFilter::ExcludeIds(ids)], vec![AssetUpdate::HasPrice(false)])?;
-                Ok((added, removed))
+                let candle_ids = PriceProvider::all()
+                    .into_iter()
+                    .filter(PriceProvider::has_candles)
+                    .map(|provider| client.get_prices_assets_by_provider(provider))
+                    .collect::<Result<Vec<_>, _>>()?
+                    .into_iter()
+                    .flatten()
+                    .map(|price_asset| price_asset.asset_id.to_string())
+                    .collect::<Vec<_>>();
+                let candles_added = client.update_assets(vec![AssetFilter::Ids(candle_ids.clone()), AssetFilter::HasCandles(false)], vec![AssetUpdate::HasCandles(true)])?;
+                let candles_removed = client.update_assets(vec![AssetFilter::HasCandles(true), AssetFilter::ExcludeIds(candle_ids)], vec![AssetUpdate::HasCandles(false)])?;
+                Ok((added + candles_added, removed + candles_removed))
             })
             .await
     }

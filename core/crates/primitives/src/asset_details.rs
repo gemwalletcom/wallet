@@ -95,6 +95,7 @@ pub struct AssetProperties {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub earn_apr: Option<f64>,
     pub has_image: bool,
+    pub has_candles: bool,
     #[model(skip)]
     pub has_price: bool,
 }
@@ -117,6 +118,7 @@ impl AssetProperties {
             is_earnable: false,
             earn_apr: None,
             has_image: false,
+            has_candles: false,
             has_price: false,
         }
     }

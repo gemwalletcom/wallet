@@ -33,6 +33,7 @@ public struct AssetStore: Sendable {
                         AssetRecord.Columns.stakingApr.set(to: asset.properties.stakingApr),
                         AssetRecord.Columns.earnApr.set(to: asset.properties.earnApr),
                         AssetRecord.Columns.hasImage.set(to: asset.properties.hasImage),
+                        AssetRecord.Columns.hasCandles.set(to: asset.properties.hasCandles),
                     )
             }
         }

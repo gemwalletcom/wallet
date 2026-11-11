@@ -61,6 +61,8 @@ pub struct GemChartResult {
     pub state: GemLoadState,
     pub chart: Option<GemChart>,
     pub candles: Vec<ChartCandleStick>,
+    #[uniffi(default = None)]
+    pub has_candles: Option<bool>,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -287,10 +289,14 @@ impl GemChartSession {
             return self.clone();
         }
         match result.request {
-            GemChartRequest::Rate { .. } => Self {
-                rate: result.rate.map_or(GemChartRate::Unknown, |rate| GemChartRate::Known { rate }),
-                ..self.clone()
-            },
+            GemChartRequest::Rate { .. } => {
+                let rated = Self {
+                    rate: result.rate.map_or(GemChartRate::Unknown, |rate| GemChartRate::Known { rate }),
+                    has_candles: result.has_candles.unwrap_or(self.has_candles),
+                    ..self.clone()
+                };
+                if rated.shows_candles() { rated.with_candle_period() } else { rated }
+            }
             GemChartRequest::Chart { .. } => match result.state.into_result(result.chart) {
                 Ok(Some(chart)) => self.loaded(chart, result.rate),
                 Ok(None) => self.clone(),
@@ -343,14 +349,19 @@ mod tests {
     use super::*;
     use primitives::ChartDateValue;
 
-    fn rated(period: ChartPeriod, currency: Currency) -> GemChartSession {
-        GemChartSession::new(period, currency.clone()).on_result(GemChartResult {
+    fn rate_result(currency: Currency, has_candles: Option<bool>) -> GemChartResult {
+        GemChartResult {
             request: GemChartRequest::Rate { currency },
             rate: Some(1.0),
             state: GemLoadState::Data,
             chart: None,
             candles: vec![],
-        })
+            has_candles,
+        }
+    }
+
+    fn rated(period: ChartPeriod, currency: Currency) -> GemChartSession {
+        GemChartSession::new(period, currency.clone()).on_result(rate_result(currency, None))
     }
 
     fn chart_result(session: &GemChartSession, chart: GemChart) -> GemChartResult {
@@ -363,6 +374,7 @@ mod tests {
             state: GemLoadState::Data,
             chart: Some(chart),
             candles: vec![],
+            has_candles: None,
         }
     }
 
@@ -376,6 +388,7 @@ mod tests {
             state: GemLoadState::Error { error },
             chart: None,
             candles: vec![],
+            has_candles: None,
         }
     }
 
@@ -411,6 +424,7 @@ mod tests {
             state: GemLoadState::Error { error: GemServiceError::Offline },
             chart: None,
             candles: vec![],
+            has_candles: None,
         });
 
         assert_eq!(unknown.rate, GemChartRate::Unknown);
@@ -578,6 +592,7 @@ mod tests {
                 state: GemLoadState::Data,
                 chart: None,
                 candles: vec![],
+                has_candles: None,
             }),
             eur,
             "neither does the old currency's rate"
@@ -622,7 +637,31 @@ mod tests {
             state: GemLoadState::Data,
             chart: None,
             candles,
+            has_candles: None,
         }
+    }
+
+    #[test]
+    fn test_an_asset_stored_with_candles_offers_the_switch_before_its_chart_loads() {
+        let session = GemChartSession::new(ChartPeriod::Day, Currency::USD).on_result(rate_result(Currency::USD, Some(true)));
+
+        assert_eq!(session.style_switch(), Some(GemChartStyle::Candles));
+        assert_eq!(session.phase(None, 0), GemChartPhase::Loading);
+        assert_eq!(loaded(session, two_points()).style_switch(), None, "the chart response has the final say");
+    }
+
+    #[test]
+    fn test_a_remembered_candle_style_starts_on_a_candle_period_when_the_stored_asset_has_candles() {
+        let session = GemChartSession::new(ChartPeriod::Hour, Currency::USD).with_style(GemChartStyle::Candles).on_result(rate_result(Currency::USD, Some(true)));
+
+        assert_eq!(session.period, ChartPeriod::Day);
+        assert_eq!(
+            session.request(),
+            Some(GemChartRequest::Chart {
+                period: ChartPeriod::Day,
+                currency: Currency::USD
+            })
+        );
     }
 
     #[test]

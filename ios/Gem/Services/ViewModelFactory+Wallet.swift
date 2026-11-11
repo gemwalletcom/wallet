@@ -127,6 +127,7 @@ public extension ViewModelFactory {
         ChartSceneViewModel(
             service: Gemstone.GemChartService(
                 api: apiClient,
+                assets: assetsService,
                 price: priceService,
                 preferences: preferencesService,
                 explorer: explorerService,

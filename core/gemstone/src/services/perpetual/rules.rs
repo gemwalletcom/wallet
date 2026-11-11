@@ -68,6 +68,7 @@ pub fn perpetual_asset_basics(data: &[PerpetualData]) -> Vec<AssetBasic> {
                     is_earnable: false,
                     earn_apr: None,
                     has_image: false,
+                    has_candles: false,
                     has_price: false,
                 },
                 AssetScore::new(0),

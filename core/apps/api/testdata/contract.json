@@ -263,6 +263,7 @@
         "isStakeable": true,
         "isEarnable": false,
         "hasImage": false,
+        "hasCandles": false,
         "hasPrice": false
       },
       "score": {
@@ -305,6 +306,7 @@
         "isStakeable": true,
         "isEarnable": false,
         "hasImage": false,
+        "hasCandles": false,
         "hasPrice": false
       },
       "score": {
@@ -348,6 +350,7 @@
           "isStakeable": false,
           "isEarnable": false,
           "hasImage": false,
+          "hasCandles": false,
           "hasPrice": false
         },
         "score": {
@@ -377,6 +380,7 @@
           "isStakeable": true,
           "isEarnable": false,
           "hasImage": false,
+          "hasCandles": false,
           "hasPrice": false
         },
         "score": {

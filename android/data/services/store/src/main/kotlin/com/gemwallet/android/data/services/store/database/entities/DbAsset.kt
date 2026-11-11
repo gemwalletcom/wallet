@@ -39,6 +39,7 @@ data class DbAsset(
     @ColumnInfo("earn_apr") val earnApr: Double? = null,
     @ColumnInfo("rank") val rank: Int = 0,
     @ColumnInfo("has_image", defaultValue = "0") val hasImage: Boolean = false,
+    @ColumnInfo("has_candles", defaultValue = "0") val hasCandles: Boolean = false,
     @ColumnInfo("associations", defaultValue = "[]") val associations: List<AssetAssociation> = emptyList(),
 )
 
@@ -59,6 +60,7 @@ data class DbAssetBasicUpdate(
     @ColumnInfo("earn_apr") val earnApr: Double? = null,
     @ColumnInfo("rank") val rank: Int = 0,
     @ColumnInfo("has_image", defaultValue = "0") val hasImage: Boolean = false,
+    @ColumnInfo("has_candles", defaultValue = "0") val hasCandles: Boolean = false,
 )
 
 data class DbAssetProjection(val id: String, val name: String, val symbol: String, val decimals: Int, val type: AssetType)
@@ -127,6 +129,7 @@ fun DbAsset.toAssetBasic(): AssetBasic? = AssetBasic(
         isEarnable = isEarnEnabled,
         earnApr = earnApr,
         hasImage = hasImage,
+        hasCandles = hasCandles,
     ),
     score = AssetScore(rank = rank),
     price = null,
@@ -170,6 +173,7 @@ fun AssetBasic.toRecord(associations: List<AssetAssociation> = emptyList()) = Db
     earnApr = properties.earnApr,
     rank = score.rank,
     hasImage = properties.hasImage,
+    hasCandles = properties.hasCandles,
     associations = associations,
 )
 
@@ -190,6 +194,7 @@ fun AssetBasic.toUpdateRecord() = DbAssetBasicUpdate(
     earnApr = properties.earnApr,
     rank = score.rank,
     hasImage = properties.hasImage,
+    hasCandles = properties.hasCandles,
 )
 
 fun AssetMarket.toRecord(assetId: AssetId) = DbAssetMarket(

@@ -15,7 +15,8 @@ data class AssetProperties (
 	val stakingApr: Double? = null,
 	val isEarnable: Boolean,
 	val earnApr: Double? = null,
-	val hasImage: Boolean
+	val hasImage: Boolean,
+	val hasCandles: Boolean
 )
 
 @Serializable
