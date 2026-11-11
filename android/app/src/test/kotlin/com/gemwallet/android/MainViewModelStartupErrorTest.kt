@@ -104,6 +104,18 @@ class MainViewModelStartupErrorTest {
         coVerify(exactly = 1) { coordinator.clear() }
     }
 
+    @Test
+    fun notificationFailure_isShownAndClearsThePendingNotification() = runTest(dispatcher) {
+        val coordinator = coordinator(PendingNavigation.FromNotification("buyAsset", "{\"assetId\":\"bitcoin\"}"))
+        coEvery { coordinator.buildRoutes(any()) } throws InternalException("panic")
+        val viewModel = mainViewModel(coordinator = coordinator)
+
+        viewModel.maintain(flowOf(true))
+
+        assertEquals(ToastMessage("panic", R.drawable.ic_error), toastPresenter.toastEvents.first())
+        coVerify(exactly = 1) { coordinator.clear() }
+    }
+
     private fun coordinator(pending: PendingNavigation? = null) = mockk<PendingNavigationCoordinator>(relaxed = true) {
         every { pendingNavigation } returns MutableStateFlow(pending)
     }
