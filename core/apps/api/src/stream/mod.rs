@@ -66,8 +66,8 @@ pub fn router(state: StreamState) -> Router {
     let router = Router::new()
         .route("/health", get(health))
         .nest("/v1/devices", authenticated(&state, DeviceAuthScheme::HttpSignature))
-        .nest("/v2/devices", authenticated(&state, DeviceAuthScheme::Gem(SignedPath::PathOnly)))
-        .nest("/v3/devices", authenticated(&state, DeviceAuthScheme::Gem(SignedPath::PathAndQuery)))
+        .nest("/v2/devices", authenticated(&state, DeviceAuthScheme::Gem(SignedPath::PathOnly))) // legacy: remove with /v2 and /v3
+        .nest("/v3/devices", authenticated(&state, DeviceAuthScheme::Gem(SignedPath::PathAndQuery))) // legacy: remove with /v2 and /v3
         .fallback(not_found)
         .method_not_allowed_fallback(not_found)
         .with_state(state)

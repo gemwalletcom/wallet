@@ -26,8 +26,8 @@ pub fn router(state: AppState, admin_enabled: bool, request: &ServerRequest, htt
         .merge(root::router())
         .nest("/v1", public::router())
         .nest("/v1/devices", devices::v1_router(&state, request.limit))
-        .nest("/v2/devices", devices::v2_router(&state, request.limit))
-        .nest("/v3/devices", devices::v3_router(&state, request.limit));
+        .nest("/v2/devices", devices::v2_router(&state, request.limit)) // legacy: remove with /v2 and /v3
+        .nest("/v3/devices", devices::v3_router(&state, request.limit)); // legacy: remove with /v2 and /v3
     if admin_enabled {
         router = router.nest("/v1/admin", admin::router());
     }

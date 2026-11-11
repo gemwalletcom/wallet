@@ -35,6 +35,7 @@ pub fn v1_router(state: &AppState, limit: usize) -> Router<AppState> {
     device_router(state, limit, DeviceAuthScheme::HttpSignature)
 }
 
+// legacy: remove with /v2 and /v3
 pub fn v3_router(state: &AppState, limit: usize) -> Router<AppState> {
     device_router(state, limit, DeviceAuthScheme::Gem(SignedPath::PathAndQuery))
 }
@@ -73,6 +74,7 @@ fn device_router(state: &AppState, limit: usize, scheme: DeviceAuthScheme) -> Ro
     authenticated(routes, state, limit, scheme).merge(authenticated(images, state, support::MAX_SUPPORT_IMAGE_BYTES, scheme))
 }
 
+// legacy: remove with /v2 and /v3
 pub fn v2_router(state: &AppState, limit: usize) -> Router<AppState> {
     let routes = Router::new()
         .route("/", post(device::register).get(device::get_device).put(device::update))

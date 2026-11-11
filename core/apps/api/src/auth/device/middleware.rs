@@ -14,6 +14,7 @@ use primitives::hex;
 use super::{DEVICE_ID_LENGTH, DeviceAuthConfig, DeviceError};
 use crate::error::ApiError;
 
+// legacy: remove with /v2 and /v3
 #[derive(Clone, Copy)]
 pub enum SignedPath {
     PathOnly,
@@ -22,7 +23,7 @@ pub enum SignedPath {
 
 #[derive(Clone, Copy)]
 pub enum DeviceAuthScheme {
-    Gem(SignedPath),
+    Gem(SignedPath), // legacy: remove with /v2 and /v3
     HttpSignature,
 }
 
@@ -82,6 +83,7 @@ async fn verify(auth: &DeviceAuth, uri: &Uri, request: Request) -> Result<Reques
     Ok(Request::from_parts(parts, Body::from(body)))
 }
 
+// legacy: remove with /v2 and /v3
 fn verify_authorization(auth: &DeviceAuth, uri: &Uri, parts: &Parts, signed_path: SignedPath) -> Result<SignedRequest, ApiError> {
     let header = parts
         .headers
