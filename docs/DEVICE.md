@@ -10,7 +10,7 @@ Requests are signed with [HTTP Message Signatures (RFC 9421)](https://www.rfc-ed
 GET /v1/devices/transactions?asset_id=near&limit=5
 Gem-Wallet-Id: view_near_alice.near
 Content-Digest: sha-256=:47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=:
-Signature-Input: device=("@method" "@path" "@query" "content-digest" "gem-wallet-id");created=1762870000;keyid="<device_id_hex>";alg="ed25519";tag="gem-device"
+Signature-Input: device=("@method" "@path" "@query" "content-digest" "gem-wallet-id");created=1762870000;keyid="<device_id_hex>"
 Signature: device=:<base64 Ed25519 signature>:
 ```
 
@@ -22,10 +22,10 @@ The signature covers the method, the path, the raw query as sent (`?` alone when
 "@query": ?asset_id=near&limit=5
 "content-digest": sha-256=:47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=:
 "gem-wallet-id": view_near_alice.near
-"@signature-params": ("@method" "@path" "@query" "content-digest" "gem-wallet-id");created=1762870000;keyid="<device_id_hex>";alg="ed25519";tag="gem-device"
+"@signature-params": ("@method" "@path" "@query" "content-digest" "gem-wallet-id");created=1762870000;keyid="<device_id_hex>"
 ```
 
-The backend verifies the signature labelled `device` and rejects it unless it covers exactly these components and carries exactly `created`, `keyid`, `alg="ed25519"` and `tag="gem-device"`. A `Gem-Wallet-Id` the signature does not cover is rejected too.
+The backend accepts these headers only in exactly this form: the `device` label, these components in this order, then `created` and `keyid`, and a single `sha-256` digest. Any other spelling, order or extra parameter is rejected, and so is a `Gem-Wallet-Id` the signature does not cover.
 
 Releases before the v1 client call `/v3` and `/v2` with the `Gem` header:
 

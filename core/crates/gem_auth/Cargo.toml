@@ -12,7 +12,6 @@ gem_hash = { path = "../gem_hash" }
 signer = { path = "../signer" }
 ed25519-dalek = { workspace = true, default-features = true }
 zeroize = { workspace = true }
-sfv = { workspace = true }
 
 [dev-dependencies]
 primitives = { path = "../primitives", features = ["testkit"] }
