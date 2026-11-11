@@ -44,11 +44,22 @@ extension XCUIApplication {
         navigationBars.buttons.element(boundBy: 0).tap()
     }
 
+    func tapBack(leaving identifier: String) {
+        for _ in 0 ..< 3 {
+            tapBack()
+            let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: element(identifier))
+            if XCTWaiter().wait(for: [gone], timeout: 3) == .completed {
+                return
+            }
+        }
+        XCTFail("\(identifier) still shown after going back")
+    }
+
     func reopenFromBackground() {
         XCUIDevice.shared.press(.home)
-        XCTAssertTrue(wait(for: .runningBackground, timeout: 10))
+        XCTAssertTrue(wait(for: .runningBackground, timeout: 10), "app did not enter the background")
         activate()
-        XCTAssertTrue(wait(for: .runningForeground, timeout: 10))
+        XCTAssertTrue(wait(for: .runningForeground, timeout: 10), "app did not return to the foreground")
     }
 
     func getWords() -> [String] {
