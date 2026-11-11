@@ -193,6 +193,18 @@ public extension ViewModelFactory {
     }
 
     @MainActor
+    func authenticationScene(
+        request: WCAuthenticationRequest,
+        confirmTransferDelegate: @escaping TransferDataCallback.ConfirmTransferDelegate,
+    ) -> AuthenticationSceneViewModel {
+        AuthenticationSceneViewModel(
+            service: signMessageService,
+            request: request,
+            confirmTransferDelegate: confirmTransferDelegate,
+        )
+    }
+
+    @MainActor
     func signMessageScene(
         request: GemWalletConnectMessageRequest,
         confirmTransferDelegate: @escaping TransferDataCallback.ConfirmTransferDelegate,

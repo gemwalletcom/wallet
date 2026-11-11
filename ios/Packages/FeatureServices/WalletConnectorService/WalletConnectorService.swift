@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import struct Gemstone.GemWalletConnectAuthentication
 import protocol Gemstone.GemWalletConnectClientProtocol
 import enum Gemstone.GemWalletConnectEvent
 import struct Gemstone.GemWalletConnectProposal
@@ -144,8 +145,8 @@ extension WalletConnectorService {
             debugLog("WalletConnect session deleted by peer: \(topic)")
         case let .returnToDapp(name, redirect):
             Task { await interactor.returnToDapp(name: name, redirect: redirect) }
-        case .authentication:
-            break
+        case let .authentication(authentication):
+            Task { await authenticate(authentication) }
         }
     }
 
@@ -175,6 +176,40 @@ extension WalletConnectorService {
             try await client.rejectSession(proposalId: proposal.id, reason: GemWalletConnectRejectionReason(from: error))
         } catch {
             debugLog("WalletConnect reject proposal error: \(error)")
+        }
+        await interactor.sessionReject(error: error)
+    }
+
+    private func authenticate(_ authentication: GemWalletConnectAuthentication) async {
+        do {
+            let prepared = try await service.prepareAuthentication(
+                chainIds: authentication.chainIds,
+                domain: authentication.domain,
+                metadata: authentication.metadata,
+                origin: authentication.origin,
+                validation: authentication.validation,
+            )
+            try await interactor.authenticationApproval(request: WCAuthenticationRequest(
+                id: authentication.id,
+                proposal: prepared.proposal.toPrimitives(),
+                verificationStatus: prepared.verificationStatus.toPrimitives(),
+                message: { [client] wallet in
+                    try client.authenticationMessage(authenticationId: authentication.id, wallet: wallet.toGem())
+                },
+                approve: { [client] wallet, signature in
+                    try await client.approveAuthentication(authenticationId: authentication.id, wallet: wallet.toGem(), signature: signature)
+                },
+            ))
+        } catch {
+            await reject(authentication, error: error)
+        }
+    }
+
+    private func reject(_ authentication: GemWalletConnectAuthentication, error: any Error) async {
+        do {
+            try await client.rejectAuthentication(authenticationId: authentication.id)
+        } catch {
+            debugLog("WalletConnect reject authentication error: \(error)")
         }
         await interactor.sessionReject(error: error)
     }

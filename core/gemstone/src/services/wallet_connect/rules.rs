@@ -290,13 +290,6 @@ pub fn caip2_chain_ids(chain: Chain) -> Vec<String> {
     WalletConnectCAIP2::get_references(chain).into_iter().map(|reference| format!("{namespace}:{reference}")).collect()
 }
 
-pub fn supports_authentication(platform: Platform) -> bool {
-    match platform {
-        Platform::Android => true,
-        Platform::IOS => false,
-    }
-}
-
 pub fn redirect(platform: Platform) -> String {
     match platform {
         Platform::IOS => WalletConnectLink::app_link(),

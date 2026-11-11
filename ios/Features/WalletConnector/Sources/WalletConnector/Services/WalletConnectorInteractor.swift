@@ -43,6 +43,10 @@ extension WalletConnectorInteractor: WalletConnectorInteractable {
         return try WalletId.from(id: value)
     }
 
+    public func authenticationApproval(request: WCAuthenticationRequest) async throws {
+        _ = try await presentSheet(payload: request, sheetType: { .authentication($0) })
+    }
+
     public func requestExpired(requestId: String) async {
         await MainActor.run { [weak self] in
             self?.presenter.expire(requestId: requestId)

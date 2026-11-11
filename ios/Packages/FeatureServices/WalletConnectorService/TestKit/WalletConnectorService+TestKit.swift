@@ -34,6 +34,10 @@ public struct WalletConnectorInteractorMock: WalletConnectorInteractable {
         throw AnyError("rejected")
     }
 
+    public func authenticationApproval(request _: WCAuthenticationRequest) async throws {
+        throw AnyError("rejected")
+    }
+
     public func requestExpired(requestId _: String) async {}
 
     public func returnToDapp(name _: String, redirect _: String?) async {}
