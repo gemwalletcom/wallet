@@ -25,9 +25,9 @@ pub fn router(state: AppState, admin_enabled: bool, request: &ServerRequest, htt
     let mut router = Router::new()
         .merge(root::router())
         .nest("/v1", public::router())
-        .nest("/v1/devices", devices::v1_router(&state, request.limit))
         .nest("/v2/devices", devices::v2_router(&state, request.limit))
-        .nest("/v3/devices", devices::v3_router(&state, request.limit));
+        .nest("/v3/devices", devices::v3_router(&state, request.limit))
+        .nest("/v4/devices", devices::v4_router(&state, request.limit));
     if admin_enabled {
         router = router.nest("/v1/admin", admin::router());
     }
@@ -146,7 +146,7 @@ mod tests {
         let authorization = |value: &str| HeaderMap::from_iter([(AUTHORIZATION, HeaderValue::from_str(value).unwrap())]);
         let legacy = |wallet_id: &str| authorization(&build_device_auth_header(&TEST_PRIVATE_KEY, "GET", "/v3/devices", wallet_id, &[], 1).unwrap());
         let signed = |wallet_id: Option<&str>| {
-            sign_device_request(&TEST_PRIVATE_KEY, "GET", "/v1/devices", wallet_id, &[], 1)
+            sign_device_request(&TEST_PRIVATE_KEY, "GET", "/v4/devices", wallet_id, &[], 1)
                 .unwrap()
                 .into_iter()
                 .map(|(name, value)| (HeaderName::try_from(name).unwrap(), HeaderValue::try_from(value).unwrap()))

@@ -244,11 +244,6 @@
       }
     }
   },
-  "v1_address_names": {
-    "status": 200,
-    "content_type": "application/json",
-    "body": []
-  },
   "v1_asset": {
     "status": 200,
     "content_type": "application/json",
@@ -446,15 +441,6 @@
       }
     }
   },
-  "v1_body_digest_tamper": {
-    "status": 400,
-    "content_type": "application/json",
-    "body": {
-      "error": {
-        "message": "Body hash mismatch"
-      }
-    }
-  },
   "v1_charts": {
     "status": 404,
     "content_type": "application/json",
@@ -505,42 +491,6 @@
       }
     }
   },
-  "v1_device": {
-    "status": 200,
-    "content_type": "application/json",
-    "body": {
-      "id": "string",
-      "platform": "string",
-      "platformStore": "string",
-      "os": "string",
-      "model": "string",
-      "token": "string",
-      "locale": "string",
-      "version": "string",
-      "currency": "string",
-      "isPushEnabled": true,
-      "isPriceAlertsEnabled": true,
-      "subscriptionsVersion": "number"
-    }
-  },
-  "v1_device_gem_header": {
-    "status": 401,
-    "content_type": "application/json",
-    "body": {
-      "error": {
-        "message": "Missing header: Signature-Input"
-      }
-    }
-  },
-  "v1_device_missing_signature": {
-    "status": 401,
-    "content_type": "application/json",
-    "body": {
-      "error": {
-        "message": "Missing header: Signature-Input"
-      }
-    }
-  },
   "v1_fee_estimates": {
     "status": 200,
     "content_type": "application/json",
@@ -573,11 +523,6 @@
       }
     ]
   },
-  "v1_is_registered": {
-    "status": 200,
-    "content_type": "application/json",
-    "body": true
-  },
   "v1_markets": {
     "status": 404,
     "content_type": "application/json",
@@ -586,11 +531,6 @@
         "message": "Markets not found"
       }
     }
-  },
-  "v1_names": {
-    "status": 200,
-    "content_type": "application/json",
-    "body": "<volatile>"
   },
   "v1_near_intents_quote": {
     "status": 400,
@@ -611,20 +551,10 @@
       }
     }
   },
-  "v1_nft_assets": {
-    "status": 200,
-    "content_type": "application/json",
-    "body": []
-  },
   "v1_nft_collection_preview": {
     "status": 404,
     "content_type": "application/json",
     "body": "<volatile>"
-  },
-  "v1_notifications_read": {
-    "status": 200,
-    "content_type": "application/json",
-    "body": "number"
   },
   "v1_okx_quote": {
     "status": 422,
@@ -643,11 +573,6 @@
         "message": "Price ethereum not found"
       }
     }
-  },
-  "v1_price_alerts": {
-    "status": 200,
-    "content_type": "application/json",
-    "body": []
   },
   "v1_prices": {
     "status": 200,
@@ -676,18 +601,6 @@
       "lists": []
     }
   },
-  "v1_subscriptions": {
-    "status": 200,
-    "content_type": "application/json",
-    "body": [
-      {
-        "walletId": "string",
-        "chains": [
-          "string"
-        ]
-      }
-    ]
-  },
   "v1_swap_assets": {
     "status": 200,
     "content_type": "application/json",
@@ -706,28 +619,6 @@
         "message": "Failed to deserialize the JSON body into the target type: missing field `actionType` at line 1 column 2"
       }
     }
-  },
-  "v1_transactions": {
-    "status": 200,
-    "content_type": "application/json",
-    "body": {
-      "transactions": [],
-      "addressNames": []
-    }
-  },
-  "v1_transactions_query_tampered": {
-    "status": 401,
-    "content_type": "application/json",
-    "body": {
-      "error": {
-        "message": "Invalid signature"
-      }
-    }
-  },
-  "v1_wallet_configuration": {
-    "status": 200,
-    "content_type": "application/json",
-    "body": "<volatile>"
   },
   "v1_webhook_bad_kind": {
     "status": 422,
@@ -1562,6 +1453,115 @@
     "content_type": "application/json",
     "body": "<volatile>"
   },
+  "v4_address_names": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": []
+  },
+  "v4_body_digest_tamper": {
+    "status": 400,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Body hash mismatch"
+      }
+    }
+  },
+  "v4_device": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "id": "string",
+      "platform": "string",
+      "platformStore": "string",
+      "os": "string",
+      "model": "string",
+      "token": "string",
+      "locale": "string",
+      "version": "string",
+      "currency": "string",
+      "isPushEnabled": true,
+      "isPriceAlertsEnabled": true,
+      "subscriptionsVersion": "number"
+    }
+  },
+  "v4_device_gem_header": {
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Missing header: Signature-Input"
+      }
+    }
+  },
+  "v4_device_missing_signature": {
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Missing header: Signature-Input"
+      }
+    }
+  },
+  "v4_is_registered": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": true
+  },
+  "v4_names": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": "<volatile>"
+  },
+  "v4_nft_assets": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": []
+  },
+  "v4_notifications_read": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": "number"
+  },
+  "v4_price_alerts": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": []
+  },
+  "v4_subscriptions": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": [
+      {
+        "walletId": "string",
+        "chains": [
+          "string"
+        ]
+      }
+    ]
+  },
+  "v4_transactions": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "transactions": [],
+      "addressNames": []
+    }
+  },
+  "v4_transactions_query_tampered": {
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Invalid signature"
+      }
+    }
+  },
+  "v4_wallet_configuration": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": "<volatile>"
+  },
   "wrong_method": {
     "status": 404,
     "content_type": "application/json",
@@ -1592,7 +1592,7 @@
       }
     }
   },
-  "ws_v1_stream_subscribe_prices": {
+  "ws_v3_stream_subscribe_prices": {
     "status": 101,
     "content_type": null,
     "body": {
@@ -1608,7 +1608,7 @@
       }
     }
   },
-  "ws_v3_stream_subscribe_prices": {
+  "ws_v4_stream_subscribe_prices": {
     "status": 101,
     "content_type": null,
     "body": {

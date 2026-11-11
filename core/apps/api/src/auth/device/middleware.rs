@@ -146,7 +146,7 @@ mod tests {
     use super::*;
 
     const PRIVATE_KEY: [u8; 32] = [1u8; 32];
-    const TARGET: &str = "/v1/devices/transactions?asset_id=near&limit=5";
+    const TARGET: &str = "/v4/devices/transactions?asset_id=near&limit=5";
     const WALLET_ID: &str = "view_near_alice.near";
     const BODY: &[u8] = br#"{"limit":5}"#;
 
@@ -157,7 +157,7 @@ mod tests {
             scheme: DeviceAuthScheme::HttpSignature,
         };
         let routes = Router::new().route("/transactions", post(|Extension(request): Extension<VerifiedRequest>| async move { request.wallet_id.unwrap_or_default() }));
-        Router::new().nest("/v1/devices", routes.layer(from_fn_with_state(auth, device_auth)))
+        Router::new().nest("/v4/devices", routes.layer(from_fn_with_state(auth, device_auth)))
     }
 
     fn now() -> u64 {
@@ -183,7 +183,7 @@ mod tests {
     #[tokio::test]
     async fn test_http_signature_rejections() {
         for (request, status) in [
-            (http_request("/v1/devices/transactions?asset_id=bitcoin&limit=5", signed(now()), BODY), StatusCode::UNAUTHORIZED),
+            (http_request("/v4/devices/transactions?asset_id=bitcoin&limit=5", signed(now()), BODY), StatusCode::UNAUTHORIZED),
             (http_request(TARGET, signed(now() - 600), BODY), StatusCode::UNAUTHORIZED),
             (http_request(TARGET, HashMap::new(), BODY), StatusCode::UNAUTHORIZED),
             (http_request(TARGET, signed(now()), br#"{"limit":500}"#), StatusCode::BAD_REQUEST),

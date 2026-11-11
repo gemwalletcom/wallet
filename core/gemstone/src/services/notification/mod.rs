@@ -74,11 +74,11 @@ mod tests {
         futures::executor::block_on(async {
             let read = Arc::new(TestAlienProvider::with_json(200, "[]"));
             GemNotificationService::mock(read.clone(), Arc::new(MemoryNotificationStore::default())).open().await.unwrap();
-            assert_eq!(read.requested_paths(), vec!["/v1/devices/notifications?from_timestamp=0"]);
+            assert_eq!(read.requested_paths(), vec!["/v4/devices/notifications?from_timestamp=0"]);
 
             let unread = Arc::new(TestAlienProvider::with_json(200, "[]"));
             GemNotificationService::mock(unread.clone(), Arc::new(MemoryNotificationStore { unread: true, ..Default::default() })).open().await.unwrap();
-            assert_eq!(unread.requested_paths(), vec!["/v1/devices/notifications?from_timestamp=0", "/v1/devices/notifications/read"]);
+            assert_eq!(unread.requested_paths(), vec!["/v4/devices/notifications?from_timestamp=0", "/v4/devices/notifications/read"]);
             assert_eq!(unread.signed_wallet_ids(), vec!["", "multicoin_wallet"], "only the opened wallet is marked read");
         });
     }

@@ -154,7 +154,7 @@ impl Harness {
     }
 
     fn device_headers(&self, method: &str, path: &str, wallet_id: Option<&str>, body: &[u8]) -> Vec<(String, String)> {
-        if path.starts_with("/v1/") {
+        if path.starts_with("/v4/") {
             return self.signature_headers(method, path, wallet_id, body, now_ms() / 1000);
         }
         vec![(AUTHORIZATION_HEADER.to_string(), self.sign_now(method, self.signed_path(path), wallet_id.unwrap_or(""), body))]
@@ -531,30 +531,30 @@ fn v3_cases(harness: &Harness) -> Vec<Case> {
     ]
 }
 
-fn v1_cases(harness: &Harness) -> Vec<Case> {
+fn v4_cases(harness: &Harness) -> Vec<Case> {
     let wallet = harness.wallet_id.clone();
     let created = now_ms() / 1000;
-    let query_signed_for_other_asset = harness.signature_headers("GET", "/v1/devices/transactions?asset_id=bitcoin&limit=5", Some(&wallet), &[], created);
-    let tampered_body = harness.signature_headers("POST", "/v1/devices/subscriptions", None, br#"[]"#, created);
+    let query_signed_for_other_asset = harness.signature_headers("GET", "/v4/devices/transactions?asset_id=bitcoin&limit=5", Some(&wallet), &[], created);
+    let tampered_body = harness.signature_headers("POST", "/v4/devices/subscriptions", None, br#"[]"#, created);
     vec![
-        Case::new("v1_device", Method::GET, "/v1/devices").device(),
-        Case::new("v1_device_missing_signature", Method::GET, "/v1/devices"),
-        Case::new("v1_device_gem_header", Method::GET, "/v1/devices").auth(Auth::Header(harness.sign_now("GET", "/v1/devices", "", &[]))),
-        Case::new("v1_is_registered", Method::GET, "/v1/devices/is-registered").device(),
-        Case::new("v1_subscriptions", Method::GET, "/v1/devices/subscriptions").device(),
-        Case::new("v1_body_digest_tamper", Method::POST, "/v1/devices/subscriptions")
+        Case::new("v4_device", Method::GET, "/v4/devices").device(),
+        Case::new("v4_device_missing_signature", Method::GET, "/v4/devices"),
+        Case::new("v4_device_gem_header", Method::GET, "/v4/devices").auth(Auth::Header(harness.sign_now("GET", "/v4/devices", "", &[]))),
+        Case::new("v4_is_registered", Method::GET, "/v4/devices/is-registered").device(),
+        Case::new("v4_subscriptions", Method::GET, "/v4/devices/subscriptions").device(),
+        Case::new("v4_body_digest_tamper", Method::POST, "/v4/devices/subscriptions")
             .auth(Auth::Signature(tampered_body))
             .json(json!([subscription(&wallet)])),
-        Case::new("v1_transactions", Method::GET, "/v1/devices/transactions?asset_id=ethereum&limit=5").wallet(),
-        Case::new("v1_transactions_query_tampered", Method::GET, "/v1/devices/transactions?asset_id=ethereum&limit=5").auth(Auth::Signature(query_signed_for_other_asset)),
-        Case::new("v1_price_alerts", Method::GET, "/v1/devices/price-alerts?asset_id=ethereum").device(),
-        Case::new("v1_wallet_configuration", Method::GET, "/v1/devices/wallet-configuration").wallet().volatile(),
-        Case::new("v1_nft_assets", Method::GET, "/v1/devices/nft-assets").wallet(),
-        Case::new("v1_names", Method::GET, "/v1/devices/names/vitalik.eth?chain=ethereum").device().volatile(),
-        Case::new("v1_address_names", Method::POST, "/v1/devices/address-names")
+        Case::new("v4_transactions", Method::GET, "/v4/devices/transactions?asset_id=ethereum&limit=5").wallet(),
+        Case::new("v4_transactions_query_tampered", Method::GET, "/v4/devices/transactions?asset_id=ethereum&limit=5").auth(Auth::Signature(query_signed_for_other_asset)),
+        Case::new("v4_price_alerts", Method::GET, "/v4/devices/price-alerts?asset_id=ethereum").device(),
+        Case::new("v4_wallet_configuration", Method::GET, "/v4/devices/wallet-configuration").wallet().volatile(),
+        Case::new("v4_nft_assets", Method::GET, "/v4/devices/nft-assets").wallet(),
+        Case::new("v4_names", Method::GET, "/v4/devices/names/vitalik.eth?chain=ethereum").device().volatile(),
+        Case::new("v4_address_names", Method::POST, "/v4/devices/address-names")
             .device()
             .json(json!([{"chain": "ethereum", "address": TEST_PRIVATE_KEY_ETHEREUM_ADDRESS}])),
-        Case::new("v1_notifications_read", Method::POST, "/v1/devices/notifications/read").wallet(),
+        Case::new("v4_notifications_read", Method::POST, "/v4/devices/notifications/read").wallet(),
     ]
 }
 
@@ -633,12 +633,12 @@ async fn test_api_contract() {
     .await;
     run(&harness, admin_cases(&harness), &mut observed).await;
     run(&harness, v3_cases(&harness), &mut observed).await;
-    run(&harness, v1_cases(&harness), &mut observed).await;
+    run(&harness, v4_cases(&harness), &mut observed).await;
     run(&harness, after_wallet, &mut observed).await;
     if let Ok(url) = env::var("API_WS_URL") {
         observed.insert("ws_stream_subscribe_prices".to_string(), harness.stream_round_trip(&format!("{url}/v2/devices/stream")).await);
         observed.insert("ws_v3_stream_subscribe_prices".to_string(), harness.stream_round_trip(&format!("{url}/v3/devices/stream")).await);
-        observed.insert("ws_v1_stream_subscribe_prices".to_string(), harness.stream_round_trip(&format!("{url}/v1/devices/stream")).await);
+        observed.insert("ws_v4_stream_subscribe_prices".to_string(), harness.stream_round_trip(&format!("{url}/v4/devices/stream")).await);
         observed.insert("ws_health".to_string(), harness.send(&Case::new("ws_health", Method::GET, "/health")).await);
     }
 

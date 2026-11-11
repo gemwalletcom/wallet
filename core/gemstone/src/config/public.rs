@@ -20,7 +20,7 @@ pub const WEBSITE_URL: &str = "https://gemwallet.com";
 pub const ASSETS_URL: &str = "https://assets.gemwallet.com";
 pub const DOWNLOADS_URL: &str = "https://downloads.gemwallet.com";
 pub const API_URL: &str = "https://api.gemwallet.com";
-pub const DEVICE_STREAM_PATH: &str = "/v1/devices/stream";
+pub const DEVICE_STREAM_PATH: &str = "/v4/devices/stream";
 
 pub fn apk_download_url(version: &str) -> String {
     format!("{DOWNLOADS_URL}/apk/gem_wallet_universal_{version}.apk")

@@ -27,7 +27,7 @@ pub trait DeviceKey: Send + Sync + std::fmt::Debug {
     fn private_key(&self) -> Result<Vec<u8>, ClientError>;
 }
 
-/// Signs `/v1/devices/*` requests with the device Ed25519 key.
+/// Signs `/v4/devices/*` requests with the device Ed25519 key.
 ///
 /// The key is read when a request is signed, so building the client never reaches secure
 /// storage. It is a device-scoped credential, unrelated to wallet keys or recovery material,

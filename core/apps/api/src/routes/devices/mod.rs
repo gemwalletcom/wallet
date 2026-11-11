@@ -31,7 +31,7 @@ fn authenticated(router: Router<AppState>, state: &AppState, limit: usize, schem
     router.layer(from_fn_with_state(auth, device_auth))
 }
 
-pub fn v1_router(state: &AppState, limit: usize) -> Router<AppState> {
+pub fn v4_router(state: &AppState, limit: usize) -> Router<AppState> {
     device_router(state, limit, DeviceAuthScheme::HttpSignature)
 }
 

@@ -285,7 +285,7 @@ mod tests {
 
     #[test]
     fn test_sign_device_request() {
-        let headers = sign_device_request(&PRIVATE_KEY, "GET", "/v1/devices/subscriptions", None, b"", CREATED).unwrap();
+        let headers = sign_device_request(&PRIVATE_KEY, "GET", "/v4/devices/subscriptions", None, b"", CREATED).unwrap();
         let signature = parse(&headers).unwrap();
 
         assert_eq!(headers.len(), 3);
@@ -296,29 +296,29 @@ mod tests {
         assert_eq!(signature.device_id, hex::encode(crate::device_public_key(&PRIVATE_KEY).unwrap()));
         assert_eq!(signature.created, CREATED);
         assert_eq!(signature.wallet_id, None);
-        assert!(signature.verify("GET", "/v1/devices/subscriptions", None));
-        assert!(!signature.verify("POST", "/v1/devices/subscriptions", None));
-        assert!(!signature.verify("GET", "/v1/devices", None));
+        assert!(signature.verify("GET", "/v4/devices/subscriptions", None));
+        assert!(!signature.verify("POST", "/v4/devices/subscriptions", None));
+        assert!(!signature.verify("GET", "/v4/devices", None));
     }
 
     #[test]
     fn test_sign_wallet_request() {
         let body = br#"{"code":"alice"}"#;
-        let headers = sign_device_request(&PRIVATE_KEY, "POST", "/v1/devices/transactions?asset_id=near&limit=5", Some(WALLET_ID), body, CREATED).unwrap();
+        let headers = sign_device_request(&PRIVATE_KEY, "POST", "/v4/devices/transactions?asset_id=near&limit=5", Some(WALLET_ID), body, CREATED).unwrap();
         let signature = parse(&headers).unwrap();
 
         assert_eq!(headers[WALLET_ID_HEADER], format!("\"{WALLET_ID}\""));
         assert_eq!(signature.wallet_id.as_deref(), Some(WALLET_ID));
         assert_eq!(signature.body_sha256, gem_hash::sha2::sha256(body));
-        assert!(signature.verify("POST", "/v1/devices/transactions", Some("asset_id=near&limit=5")));
-        assert!(!signature.verify("POST", "/v1/devices/transactions", Some("asset_id=bitcoin&limit=5")));
-        assert!(!signature.verify("POST", "/v1/devices/transactions", None));
+        assert!(signature.verify("POST", "/v4/devices/transactions", Some("asset_id=near&limit=5")));
+        assert!(!signature.verify("POST", "/v4/devices/transactions", Some("asset_id=bitcoin&limit=5")));
+        assert!(!signature.verify("POST", "/v4/devices/transactions", None));
     }
 
     #[test]
     fn test_verify_rejects_changed_headers() {
-        let device = sign_device_request(&PRIVATE_KEY, "GET", "/v1/devices/assets", None, b"", CREATED).unwrap();
-        let wallet = sign_device_request(&PRIVATE_KEY, "GET", "/v1/devices/assets", Some(WALLET_ID), b"", CREATED).unwrap();
+        let device = sign_device_request(&PRIVATE_KEY, "GET", "/v4/devices/assets", None, b"", CREATED).unwrap();
+        let wallet = sign_device_request(&PRIVATE_KEY, "GET", "/v4/devices/assets", Some(WALLET_ID), b"", CREATED).unwrap();
         let other_digest = content_digest(b"other");
 
         for headers in [
@@ -327,7 +327,7 @@ mod tests {
             replaced(&device, WALLET_ID_HEADER, &format!("\"{WALLET_ID}\"")),
             replaced(&device, CONTENT_DIGEST_HEADER, &other_digest),
         ] {
-            assert!(!parse(&headers).unwrap().verify("GET", "/v1/devices/assets", None));
+            assert!(!parse(&headers).unwrap().verify("GET", "/v4/devices/assets", None));
         }
     }
 
@@ -339,7 +339,7 @@ mod tests {
         let wallet_id = wallet_id_field(WALLET_ID).unwrap();
         let components = SignedComponents {
             method: "GET",
-            path: "/v1/devices/assets",
+            path: "/v4/devices/assets",
             query: None,
             content_digest: &digest,
             wallet_id: Some(&wallet_id),
@@ -354,12 +354,12 @@ mod tests {
             (WALLET_ID_HEADER.to_string(), wallet_id.clone()),
         ]);
 
-        assert!(!parse(&headers).unwrap().verify("GET", "/v1/devices/assets", None));
+        assert!(!parse(&headers).unwrap().verify("GET", "/v4/devices/assets", None));
     }
 
     #[test]
     fn test_parse_rejects_invalid_headers() {
-        let headers = sign_device_request(&PRIVATE_KEY, "GET", "/v1/devices/assets", Some(WALLET_ID), b"", CREATED).unwrap();
+        let headers = sign_device_request(&PRIVATE_KEY, "GET", "/v4/devices/assets", Some(WALLET_ID), b"", CREATED).unwrap();
         let signature_input = &headers[SIGNATURE_INPUT_HEADER];
 
         for invalid in [
