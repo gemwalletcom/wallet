@@ -33,7 +33,6 @@ dependencies {
     // Images
     api(libs.coil.compose)
     api(libs.coil.network)
-    api(libs.coil.svg)
 
     implementation(libs.ktx.core)
     implementation(libs.lifecycle.runtime.compose)
