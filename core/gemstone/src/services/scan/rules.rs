@@ -1,5 +1,6 @@
+use gem_evm::transaction::decode_nft_collection_approval_operator;
 use primitives::{
-    AssetId, Chain, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, SimulationPayloadFieldKind, SimulationResult, SimulationSeverity, SimulationWarning, SimulationWarningType, TransactionInputType, TransactionPreloadInput,
+    AssetId, Chain, ChainType, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, SimulationPayloadFieldKind, SimulationResult, SimulationSeverity, SimulationWarning, SimulationWarningType, TransactionInputType, TransactionPreloadInput,
     TransactionType,
 };
 
@@ -46,6 +47,15 @@ fn scan_target(input: &TransactionPreloadInput) -> ScanAddressTarget {
         return ScanAddressTarget {
             asset_id: AssetId::from_token(asset.chain(), &approval.token),
             address: approval.spender.clone(),
+        };
+    }
+    if let TransactionInputType::Generic { asset, extra, .. } = &input.input_type
+        && asset.chain().chain_type() == ChainType::Ethereum
+        && let Some(operator) = extra.data.as_deref().and_then(decode_nft_collection_approval_operator)
+    {
+        return ScanAddressTarget {
+            asset_id: AssetId::from_token(asset.chain(), &extra.to),
+            address: operator.to_string(),
         };
     }
     ScanAddressTarget {
@@ -184,6 +194,35 @@ mod tests {
         let target = transaction_payload(&approval).unwrap().target;
         assert_eq!(target.address, "0xspender", "the scan asks about who can spend, not the contract called");
         assert_eq!(target.asset_id, AssetId::from_token(Chain::Ethereum, "0xtoken"));
+    }
+
+    #[test]
+    fn test_a_dapp_collection_approval_scans_the_operator_and_the_collection() {
+        let collection = "0x1111111111111111111111111111111111111111";
+        let operator = "0x2222222222222222222222222222222222222222";
+        let collection_approval = |approved: &str| TransactionPreloadInput {
+            input_type: TransactionInputType::Generic {
+                asset: Asset::mock_eth(),
+                metadata: ApplicationMetadata::mock(),
+                extra: TransferDataExtra {
+                    to: collection.to_string(),
+                    data: Some(primitives::hex::decode(format!("a22cb465{:0>64}{approved:0>64}", &operator[2..])).unwrap()),
+                    transaction_type: TransactionType::SmartContractCall,
+                    ..TransferDataExtra::mock()
+                },
+            },
+            sender_address: "sender".to_string(),
+            destination_address: collection.to_string(),
+            references: vec![],
+        };
+
+        let granted = transaction_payload(&collection_approval("1")).unwrap().target;
+        assert_eq!(granted.address, operator, "the scan asks about who can move the collection, not the collection");
+        assert_eq!(granted.asset_id, AssetId::from_token(Chain::Ethereum, collection));
+
+        let revoked = transaction_payload(&collection_approval("0")).unwrap().target;
+        assert_eq!(revoked.address, collection, "a revoke grants nothing, so the contract called stays the target");
+        assert_eq!(revoked.asset_id, Asset::mock_eth().id);
     }
 
     #[test]
