@@ -441,6 +441,15 @@
       }
     }
   },
+  "v1_body_digest_tamper": {
+    "status": 400,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Body hash mismatch"
+      }
+    }
+  },
   "v1_charts": {
     "status": 404,
     "content_type": "application/json",
@@ -488,6 +497,42 @@
     "body": {
       "error": {
         "message": "Invalid chain: mars"
+      }
+    }
+  },
+  "v1_device": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "id": "string",
+      "platform": "string",
+      "platformStore": "string",
+      "os": "string",
+      "model": "string",
+      "token": "string",
+      "locale": "string",
+      "version": "string",
+      "currency": "string",
+      "isPushEnabled": true,
+      "isPriceAlertsEnabled": true,
+      "subscriptionsVersion": "number"
+    }
+  },
+  "v1_device_gem_header": {
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Missing header: Signature-Input"
+      }
+    }
+  },
+  "v1_device_missing_signature": {
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Missing header: Signature-Input"
       }
     }
   },
@@ -617,6 +662,23 @@
     "body": {
       "error": {
         "message": "Failed to deserialize the JSON body into the target type: missing field `actionType` at line 1 column 2"
+      }
+    }
+  },
+  "v1_transactions": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": {
+      "transactions": [],
+      "addressNames": []
+    }
+  },
+  "v1_transactions_query_tampered": {
+    "status": 401,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "Invalid signature"
       }
     }
   },
@@ -1453,68 +1515,6 @@
     "content_type": "application/json",
     "body": "<volatile>"
   },
-  "v4_body_digest_tamper": {
-    "status": 400,
-    "content_type": "application/json",
-    "body": {
-      "error": {
-        "message": "Body hash mismatch"
-      }
-    }
-  },
-  "v4_device": {
-    "status": 200,
-    "content_type": "application/json",
-    "body": {
-      "id": "string",
-      "platform": "string",
-      "platformStore": "string",
-      "os": "string",
-      "model": "string",
-      "token": "string",
-      "locale": "string",
-      "version": "string",
-      "currency": "string",
-      "isPushEnabled": true,
-      "isPriceAlertsEnabled": true,
-      "subscriptionsVersion": "number"
-    }
-  },
-  "v4_device_gem_header": {
-    "status": 401,
-    "content_type": "application/json",
-    "body": {
-      "error": {
-        "message": "Missing header: Signature-Input"
-      }
-    }
-  },
-  "v4_device_missing_signature": {
-    "status": 401,
-    "content_type": "application/json",
-    "body": {
-      "error": {
-        "message": "Missing header: Signature-Input"
-      }
-    }
-  },
-  "v4_transactions": {
-    "status": 200,
-    "content_type": "application/json",
-    "body": {
-      "transactions": [],
-      "addressNames": []
-    }
-  },
-  "v4_transactions_query_tampered": {
-    "status": 401,
-    "content_type": "application/json",
-    "body": {
-      "error": {
-        "message": "Invalid signature"
-      }
-    }
-  },
   "wrong_method": {
     "status": 404,
     "content_type": "application/json",
@@ -1545,7 +1545,7 @@
       }
     }
   },
-  "ws_v3_stream_subscribe_prices": {
+  "ws_v1_stream_subscribe_prices": {
     "status": 101,
     "content_type": null,
     "body": {
@@ -1561,7 +1561,7 @@
       }
     }
   },
-  "ws_v4_stream_subscribe_prices": {
+  "ws_v3_stream_subscribe_prices": {
     "status": 101,
     "content_type": null,
     "body": {

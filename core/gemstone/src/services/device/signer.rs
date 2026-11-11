@@ -57,8 +57,8 @@ mod tests {
         assert_eq!(signer.public_key_hex(), hex::encode(&key_pair.public_key));
         assert_eq!(signature.device_id, signer.public_key_hex());
         assert_eq!(signature.wallet_id, None);
-        assert!(signature.verify("GET", "/v4/devices/stream", None));
-        assert_eq!(stream.url, "wss://api.gemwallet.com/v4/devices/stream");
+        assert!(signature.verify("GET", "/v1/devices/stream", None));
+        assert_eq!(stream.url, "wss://api.gemwallet.com/v1/devices/stream");
         assert!(GemDeviceRequestSigner::new(vec![1, 2, 3]).is_err());
     }
 }

@@ -317,7 +317,7 @@ mod tests {
                     transaction_id,
                 }
             );
-            assert!(!testkit.provider.requested_paths().iter().any(|path| path.contains("/v4/devices/transactions/")));
+            assert!(!testkit.provider.requested_paths().iter().any(|path| path.contains("/v1/devices/transactions/")));
             assert!(testkit.transaction_store.added.lock().unwrap().is_empty());
         });
     }

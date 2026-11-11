@@ -391,7 +391,7 @@ mod tests {
         assert_eq!(result.unwrap_err(), GemConfirmError::ScanMalicious);
         assert_eq!(
             requests,
-            vec!["/v4/devices/transactions/scan"],
+            vec!["/v1/devices/transactions/scan"],
             "a rejected input never reaches the transaction load, so the chain is never asked and no agent credential is created for it"
         );
     }
@@ -402,7 +402,7 @@ mod tests {
 
         assert_eq!(
             requests,
-            vec!["/v4/devices/transactions/scan", "https://gemnodes.com/hypercore/info"],
+            vec!["/v1/devices/transactions/scan", "https://gemnodes.com/hypercore/info"],
             "the transaction load runs once the scan clears, and only then"
         );
     }

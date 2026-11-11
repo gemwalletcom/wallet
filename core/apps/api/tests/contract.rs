@@ -154,7 +154,7 @@ impl Harness {
     }
 
     fn device_headers(&self, method: &str, path: &str, wallet_id: Option<&str>, body: &[u8]) -> Vec<(String, String)> {
-        if path.starts_with("/v4/") {
+        if path.starts_with("/v1/devices") {
             return self.signature_headers(method, path, wallet_id, body, now_ms() / 1000);
         }
         vec![(AUTHORIZATION_HEADER.to_string(), self.sign_now(method, self.signed_path(path), wallet_id.unwrap_or(""), body))]
@@ -531,20 +531,20 @@ fn v3_cases(harness: &Harness) -> Vec<Case> {
     ]
 }
 
-fn v4_cases(harness: &Harness) -> Vec<Case> {
+fn v1_cases(harness: &Harness) -> Vec<Case> {
     let wallet = harness.wallet_id.clone();
     let created = now_ms() / 1000;
-    let query_signed_for_other_asset = harness.signature_headers("GET", "/v4/devices/transactions?asset_id=bitcoin&limit=5", Some(&wallet), &[], created);
-    let tampered_body = harness.signature_headers("POST", "/v4/devices/subscriptions", None, br#"[]"#, created);
+    let query_signed_for_other_asset = harness.signature_headers("GET", "/v1/devices/transactions?asset_id=bitcoin&limit=5", Some(&wallet), &[], created);
+    let tampered_body = harness.signature_headers("POST", "/v1/devices/subscriptions", None, br#"[]"#, created);
     vec![
-        Case::new("v4_device", Method::GET, "/v4/devices").device(),
-        Case::new("v4_device_missing_signature", Method::GET, "/v4/devices"),
-        Case::new("v4_device_gem_header", Method::GET, "/v4/devices").auth(Auth::Header(harness.sign_now("GET", "/v4/devices", "", &[]))),
-        Case::new("v4_body_digest_tamper", Method::POST, "/v4/devices/subscriptions")
+        Case::new("v1_device", Method::GET, "/v1/devices").device(),
+        Case::new("v1_device_missing_signature", Method::GET, "/v1/devices"),
+        Case::new("v1_device_gem_header", Method::GET, "/v1/devices").auth(Auth::Header(harness.sign_now("GET", "/v1/devices", "", &[]))),
+        Case::new("v1_body_digest_tamper", Method::POST, "/v1/devices/subscriptions")
             .auth(Auth::Signature(tampered_body))
             .json(json!([subscription(&wallet)])),
-        Case::new("v4_transactions", Method::GET, "/v4/devices/transactions?asset_id=ethereum&limit=5").wallet(),
-        Case::new("v4_transactions_query_tampered", Method::GET, "/v4/devices/transactions?asset_id=ethereum&limit=5").auth(Auth::Signature(query_signed_for_other_asset)),
+        Case::new("v1_transactions", Method::GET, "/v1/devices/transactions?asset_id=ethereum&limit=5").wallet(),
+        Case::new("v1_transactions_query_tampered", Method::GET, "/v1/devices/transactions?asset_id=ethereum&limit=5").auth(Auth::Signature(query_signed_for_other_asset)),
     ]
 }
 
@@ -623,12 +623,12 @@ async fn test_api_contract() {
     .await;
     run(&harness, admin_cases(&harness), &mut observed).await;
     run(&harness, v3_cases(&harness), &mut observed).await;
-    run(&harness, v4_cases(&harness), &mut observed).await;
+    run(&harness, v1_cases(&harness), &mut observed).await;
     run(&harness, after_wallet, &mut observed).await;
     if let Ok(url) = env::var("API_WS_URL") {
         observed.insert("ws_stream_subscribe_prices".to_string(), harness.stream_round_trip(&format!("{url}/v2/devices/stream")).await);
         observed.insert("ws_v3_stream_subscribe_prices".to_string(), harness.stream_round_trip(&format!("{url}/v3/devices/stream")).await);
-        observed.insert("ws_v4_stream_subscribe_prices".to_string(), harness.stream_round_trip(&format!("{url}/v4/devices/stream")).await);
+        observed.insert("ws_v1_stream_subscribe_prices".to_string(), harness.stream_round_trip(&format!("{url}/v1/devices/stream")).await);
         observed.insert("ws_health".to_string(), harness.send(&Case::new("ws_health", Method::GET, "/health")).await);
     }
 
