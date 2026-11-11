@@ -1,8 +1,33 @@
 # Device
 
-Every install registers a device with the backend, tells it which wallet addresses to watch, and streams updates over one authenticated WebSocket. Every `/v3/devices/*` request, including the stream upgrade, is signed with the device key. The `/v2/devices/*` routes serve releases before the one that ships the v3 client with the same handlers and the older signing rule below.
+Every install registers a device with the backend, tells it which wallet addresses to watch, and streams updates over one authenticated WebSocket. Every `/v1/devices/*` request, including the stream upgrade, is signed with the device key. The `/v3/devices/*` and `/v2/devices/*` routes serve releases before the one that ships the v1 client, with the same handlers and the older `Gem` header below.
 
 ## Authentication
+
+Requests are signed with [HTTP Message Signatures (RFC 9421)](https://www.rfc-editor.org/rfc/rfc9421) using the device's Ed25519 key, and carry the SHA-256 of the body as [`Content-Digest` (RFC 9530)](https://www.rfc-editor.org/rfc/rfc9530). A wallet-scoped request names its wallet in the `Gem-Wallet-Id` header, the way `Stripe-Account` scopes a Stripe request, so the wallet id stays out of the URL and no delimiter can split it:
+
+```
+GET /v1/devices/transactions?asset_id=near&limit=5
+Gem-Wallet-Id: view_near_alice.near
+Content-Digest: sha-256=:47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=:
+Signature-Input: device=("@method" "@path" "@query" "content-digest" "gem-wallet-id");created=1762870000;keyid="<device_id_hex>";alg="ed25519";tag="gem-device"
+Signature: device=:<base64 Ed25519 signature>:
+```
+
+The signature covers the method, the path, the raw query as sent (`?` alone when there is none), the `Content-Digest`, and `Gem-Wallet-Id` on wallet-scoped requests. `created` is the Unix time in seconds and `keyid` the 64-hex Ed25519 public key. The signed message is the RFC 9421 signature base, one named line per component:
+
+```
+"@method": GET
+"@path": /v1/devices/transactions
+"@query": ?asset_id=near&limit=5
+"content-digest": sha-256=:47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=:
+"gem-wallet-id": view_near_alice.near
+"@signature-params": ("@method" "@path" "@query" "content-digest" "gem-wallet-id");created=1762870000;keyid="<device_id_hex>";alg="ed25519";tag="gem-device"
+```
+
+The backend verifies the signature labelled `device` and rejects it unless it covers exactly these components and carries exactly `created`, `keyid`, `alg="ed25519"` and `tag="gem-device"`. A `Gem-Wallet-Id` the signature does not cover is rejected too.
+
+Releases before the v1 client call `/v3` and `/v2` with the `Gem` header:
 
 ```
 Authorization: Gem base64(<device_id_hex>.<timestamp_ms>.<wallet_id>.<body_hash_hex>.<signature_hex>)
@@ -16,7 +41,7 @@ Five dot-separated parts: the 64-hex Ed25519 public key, the Unix timestamp in m
 
 The backend checks the body hash on every signed request, including requests without a body, and keeps the timestamp within the configured tolerance.
 
-The header lives in the shared `gem_auth` crate, used by the client and the backend; the device key never crosses the FFI boundary ([Keystore v4](KEYSTORE_V4.md)). Backend side: [device authentication](../core/apps/api/src/auth/device/middleware.rs), [cryptographic check](../core/crates/gem_auth/src/device_signature.rs), [request guards](../core/apps/api/src/auth/device/guard.rs).
+Both schemes live in the shared `gem_auth` crate, used by the client and the backend; the device key never crosses the FFI boundary ([Keystore v4](KEYSTORE_V4.md)). Backend side: [device authentication](../core/apps/api/src/auth/device/middleware.rs), [HTTP message signature](../core/crates/gem_auth/src/http_signature.rs), [`Gem` header](../core/crates/gem_auth/src/device_signature.rs), [request guards](../core/apps/api/src/auth/device/guard.rs).
 
 ## Device key storage
 
@@ -32,11 +57,11 @@ Reinstalling the app on Android creates a new device key and therefore a new dev
 One record per install, the shared `Device` primitive: push token, locale, currency, app version, push and price-alert flags, and `subscriptionsVersion`, bumped whenever the subscription set changes so either side can tell the two disagree.
 
 ```
-GET/POST/PUT  /v3/devices          GET  /v3/devices/is-registered
-GET/POST/DELETE  /v3/devices/subscriptions
+GET/POST/PUT  /v1/devices          GET  /v1/devices/is-registered
+GET/POST/DELETE  /v1/devices/subscriptions
 ```
 
-Wallet-scoped endpoints such as `/v3/devices/assets` return `404` until that wallet is subscribed, so a wallet is subscribed before the first wallet-scoped fetch for it.
+Wallet-scoped endpoints such as `/v1/devices/assets` return `404` until that wallet is subscribed, so a wallet is subscribed before the first wallet-scoped fetch for it.
 
 ```mermaid
 flowchart LR
@@ -50,7 +75,7 @@ flowchart LR
     Device --> Record
 ```
 
-Subscriptions are reconciled by diffing local wallets against `GET /v3/devices/subscriptions`: missing addresses are added per wallet grouped by chain, and wallets the backend still knows but the device no longer has are removed in full. A sync reconciles when the remote `subscriptionsVersion` differs from the local one, or when this install has never published its device, because a record adopted after a reinstall carries a version counted by the previous install. The backend keeps the version honest from its side: dropping a dormant device's subscriptions (no update for 120 days) resets its version to `0`, so the next sync sees the difference and resubscribes. Registration comes first; if it fails nothing else assumes the device exists and the next sync retries. App start always checks the remote record so one lost by the backend is recreated; every other trigger runs only when local state diverges.
+Subscriptions are reconciled by diffing local wallets against `GET /v1/devices/subscriptions`: missing addresses are added per wallet grouped by chain, and wallets the backend still knows but the device no longer has are removed in full. A sync reconciles when the remote `subscriptionsVersion` differs from the local one, or when this install has never published its device, because a record adopted after a reinstall carries a version counted by the previous install. The backend keeps the version honest from its side: dropping a dormant device's subscriptions (no update for 120 days) resets its version to `0`, so the next sync sees the difference and resubscribes. Registration comes first; if it fails nothing else assumes the device exists and the next sync retries. App start always checks the remote record so one lost by the backend is recreated; every other trigger runs only when local state diverges.
 
 [`GemDeviceService`](../core/gemstone/src/services/device/mod.rs) owns registration, divergence detection, serialization of concurrent syncs and the published-state checkpoint; [`GemSubscriptionService`](../core/gemstone/src/services/subscription/mod.rs) owns reconciliation. Divergence is derived from the current device and the local `subscriptionsVersion`, which Core bumps on wallet import, delete and chain setup, so a service that writes a record value (the currency) just writes it and the next occasion finds the difference; a new field needs the field and the comparison, no new call site. The values that decide whether the backend may push at all are written through `GemDeviceService` and synced at once: `set_push_enabled`, because the push token is read from the platform at that moment, and `set_price_alerts_enabled`, because the next occasion may be the next app open and price alerts are pushed while the app is closed.
 
@@ -73,7 +98,7 @@ Code: [iOS device platform](../ios/Packages/GemstoneServices/Sources/Device/Devi
 
 ## WebSocket stream
 
-`wss://api.gemwallet.com/v3/devices/stream`, authenticated once at upgrade with the header above, carries price, balance, transaction, price-alert, NFT, perpetual, in-app-notification, fiat-transaction, wallet-configuration and support updates. It runs as its own service (`api websocket_stream`); reconnects replay at most `DeviceStreamHistoryLimit` (default 25) missed events, and price updates are batched every 5 seconds.
+`wss://api.gemwallet.com/v1/devices/stream`, authenticated once at upgrade with the signature headers above, carries price, balance, transaction, price-alert, NFT, perpetual, in-app-notification, fiat-transaction, wallet-configuration and support updates. It runs as its own service (`api websocket_stream`); reconnects replay at most `DeviceStreamHistoryLimit` (default 25) missed events, and price updates are batched every 5 seconds.
 
 Client messages are `{"type": ..., "data": {"assets": [...]}}` with the type `subscribePrices` (the first request on every connection, answered with current USD prices and fiat rates), `addPrices` (prices for the expanded set, no rates), `unsubscribePrices` and `getPrices` (once). `subscribeRealtimePrices` and `unsubscribeRealtimePrices` are still accepted and ignored.
 
@@ -103,7 +128,7 @@ The server pings every 30 seconds and closes a connection that leaves two pings 
 
 ## Wallet authentication
 
-Endpoints that act for a wallet (rewards and referrals, for example) also need proof of wallet ownership: the client fetches a nonce from `GET /v3/devices/auth/nonce` (`{"nonce", "timestamp"}`), signs the `AuthMessage` `{"chain", "address", "authNonce": {"nonce", "timestamp"}}` serialized as JSON with the wallet key (Keccak256 then ECDSA on Ethereum, hex with `0x`), and sends it in the body beside the payload:
+Endpoints that act for a wallet (rewards and referrals, for example) also need proof of wallet ownership: the client fetches a nonce from `GET /v1/devices/auth/nonce` (`{"nonce", "timestamp"}`), signs the `AuthMessage` `{"chain", "address", "authNonce": {"nonce", "timestamp"}}` serialized as JSON with the wallet key (Keccak256 then ECDSA on Ethereum, hex with `0x`), and sends it in the body beside the payload:
 
 ```json
 {
@@ -112,4 +137,4 @@ Endpoints that act for a wallet (rewards and referrals, for example) also need p
 }
 ```
 
-The request is still device-authenticated: the body hash inside the `Gem` header binds the wallet-signed body to the request. The wallet signature is accepted only in its low-S form, so one nonce has exactly one valid signature encoding. Backend side: [wallet signature verification](../core/crates/gem_auth/src/signature.rs), [wallet-signed body guard](../core/apps/api/src/auth/wallet_signed.rs), [nonce management](../core/crates/services/src/auth/client.rs), [auth primitives](../core/crates/primitives/src/auth.rs).
+The request is still device-authenticated: the signed `Content-Digest` binds the wallet-signed body to the request. The wallet signature is accepted only in its low-S form, so one nonce has exactly one valid signature encoding. Backend side: [wallet signature verification](../core/crates/gem_auth/src/signature.rs), [wallet-signed body guard](../core/apps/api/src/auth/wallet_signed.rs), [nonce management](../core/crates/services/src/auth/client.rs), [auth primitives](../core/crates/primitives/src/auth.rs).

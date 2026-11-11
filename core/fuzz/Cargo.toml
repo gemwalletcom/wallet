@@ -18,6 +18,7 @@ gemstone = { path = "../gemstone" }
 primitives = { path = "../crates/primitives" }
 payment = { path = "../crates/payment" }
 signer = { path = "../crates/signer" }
+gem_auth = { path = "../crates/gem_auth" }
 gem_client = { path = "../crates/gem_client", features = ["testkit"] }
 gem_encoding = { path = "../crates/gem_encoding", features = ["protobuf"] }
 gem_evm = { path = "../crates/gem_evm" }
@@ -34,6 +35,10 @@ name_resolver = { path = "../crates/name_resolver" }
 [[bin]]
 name = "address"
 path = "fuzz_targets/address.rs"
+
+[[bin]]
+name = "device_signature"
+path = "fuzz_targets/device_signature.rs"
 
 [[bin]]
 name = "ens_resolution"

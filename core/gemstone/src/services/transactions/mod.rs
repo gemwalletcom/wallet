@@ -153,7 +153,7 @@ mod tests {
         let (state, testkit) = load_transaction(TestAlienProvider::with_status(500), Some(stored.clone()), stored.id);
 
         assert_eq!(state, GemLoadState::Data);
-        assert!(!testkit.provider.requested_paths().iter().any(|path| path.contains("/v3/devices/transactions/")));
+        assert!(!testkit.provider.requested_paths().iter().any(|path| path.contains("/v1/devices/transactions/")));
     }
 
     #[test]
@@ -162,7 +162,7 @@ mod tests {
             state: TransactionState::Pending,
             ..Transaction::mock()
         };
-        let path = format!("/v3/devices/transactions/{}", fetched.id);
+        let path = format!("/v1/devices/transactions/{}", fetched.id);
         let provider = TestAlienProvider::with_json_by_path(200, &[(path.as_str(), &serde_json::to_string(&fetched).unwrap())]);
         let (state, testkit) = load_transaction(provider, None, fetched.id.clone());
 

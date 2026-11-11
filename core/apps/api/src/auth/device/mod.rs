@@ -6,7 +6,7 @@ use std::time::Duration;
 
 pub use error::DeviceError;
 pub use guard::{AuthenticatedDevice, AuthenticatedDeviceWallet, DeviceBody, DeviceJson, VerifiedDeviceId};
-pub use middleware::{DeviceAuth, SignedPath, VerifiedRequest, device_auth};
+pub use middleware::{DeviceAuth, DeviceAuthScheme, SignedPath, VerifiedRequest, device_auth};
 
 pub const DEVICE_ID_LENGTH: usize = 64;
 

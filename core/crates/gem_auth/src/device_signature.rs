@@ -11,18 +11,23 @@ pub fn device_body_hash(body: &[u8]) -> String {
     hex::encode(gem_hash::sha2::sha256(body))
 }
 
+// legacy: remove with /v2 and /v3
 pub fn device_auth_message(timestamp: &str, method: &str, path: &str, wallet_id: &str, body_hash: &str) -> String {
     format!("{timestamp}.{method}.{path}.{wallet_id}.{body_hash}")
 }
 
-pub fn device_public_key(private_key: &[u8]) -> Result<[u8; 32], &'static str> {
+pub(crate) fn device_signing_key(private_key: &[u8]) -> Result<SigningKey, &'static str> {
     let seed: Zeroizing<[u8; ED25519_SEED_LENGTH]> = Zeroizing::new(private_key.try_into().map_err(|_| "invalid device private key length")?);
-    Ok(SigningKey::from_bytes(&seed).verifying_key().to_bytes())
+    Ok(SigningKey::from_bytes(&seed))
 }
 
+pub fn device_public_key(private_key: &[u8]) -> Result<[u8; 32], &'static str> {
+    Ok(device_signing_key(private_key)?.verifying_key().to_bytes())
+}
+
+// legacy: remove with /v2 and /v3
 pub fn build_device_auth_header(private_key: &[u8], method: &str, path: &str, wallet_id: &str, body: &[u8], timestamp_ms: u64) -> Result<String, &'static str> {
-    let seed: Zeroizing<[u8; ED25519_SEED_LENGTH]> = Zeroizing::new(private_key.try_into().map_err(|_| "invalid device private key length")?);
-    let signing_key = SigningKey::from_bytes(&seed);
+    let signing_key = device_signing_key(private_key)?;
     let public_key = hex::encode(signing_key.verifying_key().to_bytes());
     let body_hash = device_body_hash(body);
     let timestamp = timestamp_ms.to_string();
@@ -32,6 +37,7 @@ pub fn build_device_auth_header(private_key: &[u8], method: &str, path: &str, wa
     Ok(format!("{GEM_AUTH_SCHEME}{}", encode_base64(payload.as_bytes())))
 }
 
+// legacy: remove with /v2 and /v3
 pub fn verify_device_auth(header_value: &str, method: &str, path: &str, body: &[u8]) -> bool {
     let Some(payload) = parse_device_auth(header_value) else {
         return false;
@@ -43,6 +49,7 @@ pub fn verify_device_auth(header_value: &str, method: &str, path: &str, body: &[
     verify_device_signature(&payload.device_id, &message, &payload.signature)
 }
 
+// legacy: remove with /v2 and /v3
 pub struct DeviceAuthPayload {
     pub device_id: String,
     pub timestamp: String,
@@ -51,6 +58,7 @@ pub struct DeviceAuthPayload {
     pub signature: Vec<u8>,
 }
 
+// legacy: remove with /v2 and /v3
 pub fn parse_device_auth(header_value: &str) -> Option<DeviceAuthPayload> {
     let encoded = header_value.strip_prefix(GEM_AUTH_SCHEME)?;
     let decoded = decode_base64(encoded).ok()?;

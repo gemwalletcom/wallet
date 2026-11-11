@@ -139,7 +139,7 @@ object AssetsModule {
         requestProvider = {
             withContext(Dispatchers.IO) {
                 val stream = deviceKeyService.deviceStreamRequest()
-                WebSocketRequest(url = stream.url, headers = mapOf("Authorization" to stream.authorization))
+                WebSocketRequest(url = stream.url, headers = stream.headers)
             }
         },
         connectionService = connectionService,

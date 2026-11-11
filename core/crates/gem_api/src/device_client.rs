@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use gem_auth::build_device_auth_header;
+use gem_auth::sign_device_request;
 use gem_client::{ClientError, ContentType, build_request_url, deserialize_response, validate_response};
 use gem_jsonrpc::{RpcClientError, RpcProvider, Target};
 use primitives::name::NameRecord;
@@ -13,6 +13,7 @@ use primitives::{
     WalletSubscriptionChains, transactions_page_limit,
 };
 use serde::de::DeserializeOwned;
+use zeroize::Zeroizing;
 
 use crate::device_target::{GemDeviceApiBody, GemDeviceApiTarget};
 
@@ -27,7 +28,7 @@ pub trait DeviceKey: Send + Sync + std::fmt::Debug {
     fn private_key(&self) -> Result<Vec<u8>, ClientError>;
 }
 
-/// Signs `/v3/devices/*` requests with the device Ed25519 key.
+/// Signs `/v1/devices/*` requests with the device Ed25519 key.
 ///
 /// The key is read when a request is signed, so building the client never reaches secure
 /// storage. It is a device-scoped credential, unrelated to wallet keys or recovery material,
@@ -250,7 +251,7 @@ impl<E: RpcClientError> GemDeviceApiClient<E> {
     }
 
     async fn request(&self, target: GemDeviceApiTarget) -> Result<gem_client::Response, ClientError> {
-        if let Some(preflight) = self.preflight.get().filter(|_| !target.wallet_id().is_empty()) {
+        if let Some(preflight) = self.preflight.get().filter(|_| target.wallet_id().is_some()) {
             preflight.prepare().await?;
         }
         let path = target.path();
@@ -261,7 +262,7 @@ impl<E: RpcClientError> GemDeviceApiClient<E> {
             None => (&[][..], ContentType::ApplicationJson.as_str().to_string()),
         };
 
-        let mut headers = self.authorization(&target, bytes)?;
+        let mut headers = self.signature_headers(&target, bytes)?;
         headers.insert("Content-Type".to_string(), content_type);
 
         let request = Target {
@@ -281,12 +282,9 @@ impl<E: RpcClientError> GemDeviceApiClient<E> {
         Ok(response)
     }
 
-    fn authorization(&self, target: &GemDeviceApiTarget, body: &[u8]) -> Result<HashMap<String, String>, ClientError> {
-        let path = target.path();
-        let timestamp_ms = SystemTime::now().duration_since(UNIX_EPOCH).map_err(|error| ClientError::Serialization(error.to_string()))?.as_millis() as u64;
-
-        let header = build_device_auth_header(&self.device_key.private_key()?, target.method().as_ref(), &path, target.wallet_id(), body, timestamp_ms).map_err(|error| ClientError::Serialization(error.to_string()))?;
-
-        Ok(HashMap::from([("Authorization".to_string(), header)]))
+    fn signature_headers(&self, target: &GemDeviceApiTarget, body: &[u8]) -> Result<HashMap<String, String>, ClientError> {
+        let created = SystemTime::now().duration_since(UNIX_EPOCH).map_err(|error| ClientError::Serialization(error.to_string()))?.as_secs();
+        let private_key = Zeroizing::new(self.device_key.private_key()?);
+        sign_device_request(&private_key, target.method().as_ref(), &target.path(), target.wallet_id(), body, created).map_err(|error| ClientError::Serialization(error.to_string()))
     }
 }

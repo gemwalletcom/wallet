@@ -21,7 +21,7 @@ use services::devices::{DeviceStreamClient, DevicesClient};
 use services::prices::PriceClient;
 use tokio_util::task::TaskTracker;
 
-use crate::auth::device::{AuthenticatedDevice, DeviceAuth, DeviceAuthConfig, SignedPath, device_auth};
+use crate::auth::device::{AuthenticatedDevice, DeviceAuth, DeviceAuthConfig, DeviceAuthScheme, SignedPath, device_auth};
 use crate::error::ApiError;
 use crate::routes::{json_error_net, log_failed_requests, not_found};
 
@@ -53,7 +53,7 @@ impl FromRef<StreamState> for Arc<DevicesClient> {
     }
 }
 
-fn authenticated(state: &StreamState, scheme: SignedPath) -> Router<StreamState> {
+fn authenticated(state: &StreamState, scheme: DeviceAuthScheme) -> Router<StreamState> {
     let auth = DeviceAuth {
         config: state.auth_config.clone(),
         limit: STREAM_BODY_LIMIT,
@@ -65,8 +65,9 @@ fn authenticated(state: &StreamState, scheme: SignedPath) -> Router<StreamState>
 pub fn router(state: StreamState) -> Router {
     let router = Router::new()
         .route("/health", get(health))
-        .nest("/v2/devices", authenticated(&state, SignedPath::PathOnly))
-        .nest("/v3/devices", authenticated(&state, SignedPath::PathAndQuery))
+        .nest("/v1/devices", authenticated(&state, DeviceAuthScheme::HttpSignature))
+        .nest("/v2/devices", authenticated(&state, DeviceAuthScheme::Gem(SignedPath::PathOnly))) // legacy: remove with /v2 and /v3
+        .nest("/v3/devices", authenticated(&state, DeviceAuthScheme::Gem(SignedPath::PathAndQuery))) // legacy: remove with /v2 and /v3
         .fallback(not_found)
         .method_not_allowed_fallback(not_found)
         .with_state(state)
