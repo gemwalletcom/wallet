@@ -1,7 +1,7 @@
-use primitives::hex;
 use primitives::unix_timestamp;
 
 use crate::actions::WalletConnectTransactionType;
+use crate::decode::decode_message_bytes;
 use crate::sign_type::SignDigestType;
 use crate::siws;
 use gem_evm::domain::host_only;
@@ -36,7 +36,7 @@ pub fn validate_sign_message(input: &SignMessageValidation) -> Result<(), String
 }
 
 fn validate_siwe(input: &SignMessageValidation) -> Result<(), String> {
-    let text = decode_text(input.data);
+    let text = String::from_utf8(decode_message_bytes(input.data)).ok();
     let Some(message) = text.as_deref().and_then(SiweMessage::try_parse) else {
         if *input.sign_type == SignDigestType::Siwe {
             return Err("Invalid SIWE message".to_string());
@@ -45,14 +45,6 @@ fn validate_siwe(input: &SignMessageValidation) -> Result<(), String> {
     };
     message.validate(input.chain)?;
     validate_domain(&message.domain, input.session_domain)
-}
-
-fn decode_text(data: &str) -> Option<String> {
-    if let Some(stripped) = data.strip_prefix("0x") {
-        hex::decode(stripped).ok().and_then(|bytes| String::from_utf8(bytes).ok())
-    } else {
-        Some(data.to_string())
-    }
 }
 
 pub fn validate_domain(domain: &str, session_domain: &str) -> Result<(), String> {
@@ -218,6 +210,11 @@ mod tests {
         );
         assert!(
             validate_sign_message(&SignMessageValidation::mock(Chain::Ethereum, &SignDigestType::Eip191, &mock_siwe_message_hex("evil.com", 1), "https://thepoc.xyz"))
+                .unwrap_err()
+                .contains("Domain mismatch")
+        );
+        assert!(
+            validate_sign_message(&SignMessageValidation::mock(Chain::Ethereum, &SignDigestType::Eip191, &mock_siwe_message("0xother.xyz", 1), "https://evil.com"))
                 .unwrap_err()
                 .contains("Domain mismatch")
         );

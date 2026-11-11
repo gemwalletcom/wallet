@@ -111,12 +111,11 @@ mod tests {
 
     use futures::executor::block_on;
     use primitives::swap::{Permit2ApprovalData, SwapData};
-    use primitives::{Asset, Chain, Currency, SwapProvider, TransactionInputType, Wallet};
+    use primitives::{Asset, Chain, Currency, SwapProvider, TransactionFee, TransactionInputType, Wallet};
     use swapper::testkit::MockSwapper;
     use swapper::{FetchQuoteData, Quote, SwapperProvider};
 
     use super::*;
-    use crate::models::transaction::GemTransactionLoadFee;
     use crate::services::confirm::GemTransferAmountResult;
     use crate::services::confirm::testkit::{ConfirmTestkit, broadcast_failed, mock_swap_transfer};
     use crate::services::swap::GemSwapService;
@@ -246,9 +245,9 @@ mod tests {
                     },
                 );
                 confirm.input.transfer.value = value.into();
-                confirm.fee = GemTransactionLoadFee {
+                confirm.fee = TransactionFee {
                     fee_asset: Asset::mock_eth().id,
-                    ..GemTransactionLoadFee::mock(10)
+                    ..TransactionFee::mock_with_fee(10)
                 };
                 confirm.fee_load(GemConfirmMetadata::mock(&Asset::mock_eth().id, 1_000), Asset::mock_eth(), Currency::USD)
             };

@@ -1,5 +1,5 @@
 use crate::alien::{AlienError, AlienHttpMethod, AlienProvider, AlienResponse, AlienTarget};
-use crate::models::transaction::{GemFeeOptions, GemSignedTransaction, GemTransactionLoadFee};
+use crate::models::transaction::GemSignedTransaction;
 use crate::payment::GemPaymentService;
 use crate::services::assets::GemAssetsService;
 use crate::services::balance::testkit::{BalanceTestkit, MemoryBalanceStore};
@@ -8,10 +8,10 @@ use crate::services::preferences::{GemPreferencesStore, GemSecureStore};
 use async_trait::async_trait;
 use gem_client::{CONTENT_TYPE, ContentType};
 use gem_wallet_connect::WCEthereumTransactionData;
-use num_bigint::{BigInt, BigUint};
+use num_bigint::BigUint;
 use payment::PaymentTransaction;
 use primitives::testkit::signer_mock::{TEST_EVM_RECIPIENT, TEST_EVM_SENDER};
-use primitives::{AssetId, Chain, ChainAddress, GasPriceType, PaymentInvoice, TransactionType, TransferDataOutputType};
+use primitives::{Chain, ChainAddress, PaymentInvoice, TransactionType, TransferDataOutputType};
 use serde_json::Value;
 use std::collections::HashMap;
 use std::future::Future;
@@ -93,8 +93,8 @@ impl AlienProvider for TestAlienProvider {
     async fn request(&self, target: AlienTarget) -> Result<Arc<AlienResponse>, AlienError> {
         let path = target.url.find("/v").map(|index| target.url[index..].to_string()).unwrap_or(target.url);
         self.requested.lock().unwrap().push(path.clone());
-        if let Some(payload) = target.headers.as_ref().and_then(|headers| headers.get(gem_auth::AUTHORIZATION_HEADER)).and_then(|header| gem_auth::parse_device_auth(header)) {
-            self.signed_wallet_ids.lock().unwrap().push(payload.wallet_id.unwrap_or_default());
+        if let Some(signature) = target.headers.as_ref().and_then(|headers| gem_auth::DeviceSignature::from_fields(|name| headers.get(name).map(String::as_str))) {
+            self.signed_wallet_ids.lock().unwrap().push(signature.wallet_id.unwrap_or_default());
         }
         if self.yields_while_requesting.load(Ordering::SeqCst) {
             YieldOnce::default().await;
@@ -158,18 +158,6 @@ pub fn mock_payment_transaction() -> PaymentTransaction {
         request: None,
         output_type: TransferDataOutputType::EncodedTransaction,
         approval: None,
-    }
-}
-
-impl GemTransactionLoadFee {
-    pub fn mock(fee: u64) -> Self {
-        Self {
-            fee: BigInt::from(fee),
-            gas_price_type: GasPriceType::regular(1),
-            gas_limit: BigInt::from(21_000),
-            options: GemFeeOptions { options: HashMap::new() },
-            fee_asset: AssetId::from_chain(Chain::Ethereum),
-        }
     }
 }
 

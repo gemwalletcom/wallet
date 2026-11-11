@@ -6,7 +6,7 @@ type Swapper = swapper::swapper::GemSwapper;
 
 use crate::alien::{AlienProvider, AlienRpcProvider, coalescing_provider};
 use crate::services::node::GemNodeService;
-use primitives::AssetId;
+use primitives::{AssetId, SwapQuoteData};
 use std::sync::Arc;
 
 #[derive(Debug, uniffi::Object)]
@@ -51,7 +51,7 @@ impl GemSwapper {
     pub async fn get_quote_by_provider(&self, provider: &SwapperProvider, request: &SwapperQuoteRequest) -> Result<SwapperQuote, SwapperError> {
         self.inner.get_quote_by_provider(provider, request).await
     }
-    pub async fn get_quote_data(&self, quote: &SwapperQuote, data: FetchQuoteData) -> Result<GemSwapQuoteData, SwapperError> {
+    pub async fn get_quote_data(&self, quote: &SwapperQuote, data: FetchQuoteData) -> Result<SwapQuoteData, SwapperError> {
         self.inner.get_quote_data(quote, data).await
     }
 }

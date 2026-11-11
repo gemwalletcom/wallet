@@ -24,6 +24,7 @@ pub enum AssetUpdate {
     Rank(i32),
     StakingApr(Option<f64>),
     HasImage(bool),
+    HasCandles(bool),
     HasPrice(bool),
 }
 
@@ -36,6 +37,7 @@ pub enum AssetFilter {
     IsSellable(bool),
     IsStakeable(bool),
     HasImage(bool),
+    HasCandles(bool),
     HasPrice(bool),
     Chain(String),
     RankLte(i32),
@@ -53,6 +55,7 @@ impl QueryFilter<crate::schema::assets::table> for AssetFilter {
             AssetFilter::IsSellable(value) => Box::new(is_sellable.eq(value)),
             AssetFilter::IsStakeable(value) => Box::new(is_stakeable.eq(value)),
             AssetFilter::HasImage(value) => Box::new(has_image.eq(value)),
+            AssetFilter::HasCandles(value) => Box::new(has_candles.eq(value)),
             AssetFilter::HasPrice(value) => Box::new(has_price.eq(value)),
             AssetFilter::Chain(value) => Box::new(chain.eq(value)),
             AssetFilter::RankLte(value) => Box::new(rank.le(value)),
@@ -140,6 +143,7 @@ impl AssetsRepository for DatabaseClient {
                 AssetUpdate::Rank(value) => diesel::update(target).set(rank.eq(value)).execute(&mut self.connection)?,
                 AssetUpdate::StakingApr(value) => diesel::update(target).set(staking_apr.eq(value)).execute(&mut self.connection)?,
                 AssetUpdate::HasImage(value) => diesel::update(target).set(has_image.eq(value)).execute(&mut self.connection)?,
+                AssetUpdate::HasCandles(value) => diesel::update(target).set(has_candles.eq(value)).execute(&mut self.connection)?,
                 AssetUpdate::HasPrice(value) => diesel::update(target).set(has_price.eq(value)).execute(&mut self.connection)?,
             };
             Ok::<_, diesel::result::Error>(total + updated)

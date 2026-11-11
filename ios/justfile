@@ -150,11 +150,11 @@ _test action target="":
     {{ if target != "" { "-only-testing " + target + " -parallel-testing-enabled NO" } else { "-parallel-testing-enabled YES" } }} \
     {{ action }} | xcbeautify {{ XCBEAUTIFY_ARGS }}
 
-test-without-building TARGET="": boot-simulator (_test "test-without-building" TARGET)
+test-without-building TARGET="": (_test "test-without-building" TARGET)
 
 # Example: just test
 # Example: just test PrimitivesTests
-test TARGET="": boot-simulator (_test "test" TARGET)
+test TARGET="": (_test "test" TARGET)
 
 test-package PACKAGE: (test (PACKAGE + "Tests"))
 
@@ -182,7 +182,7 @@ test-upgrade COMMIT:
     @bash ./scripts/upgrade-test.sh {{COMMIT}}
 
 boot-simulator:
-    @xcrun simctl boot "{{SIMULATOR_NAME}}" 2>/dev/null || true
+    @xcrun simctl boot "$(scripts/simulator-device.sh "{{SIMULATOR_NAME}}" "{{SIMULATOR_OS}}")" 2>/dev/null || true
 
 wait-simulator:
     #!/usr/bin/env bash
@@ -196,10 +196,13 @@ wait-simulator:
     exit 1
 
 reset-simulator NAME=SIMULATOR_NAME:
-    @echo "==> Resetting {{NAME}} simulator to clean state"
-    @xcrun simctl shutdown "{{NAME}}" 2>/dev/null || true
-    @xcrun simctl erase "{{NAME}}" 2>/dev/null || true
-    @xcrun simctl boot "{{NAME}}" 2>/dev/null || true
+    #!/usr/bin/env bash
+    set -euo pipefail
+    device="$(scripts/simulator-device.sh "{{NAME}}" "{{SIMULATOR_OS}}")"
+    echo "==> Resetting {{NAME}} simulator ($device) to clean state"
+    xcrun simctl shutdown "$device" 2>/dev/null || true
+    xcrun simctl erase "$device" 2>/dev/null || true
+    xcrun simctl boot "$device" 2>/dev/null || true
 
 localize:
     @cd ../core && cargo run --package generate --bin generate localize ios ../localization/app ../ios/Packages/Localization/Sources

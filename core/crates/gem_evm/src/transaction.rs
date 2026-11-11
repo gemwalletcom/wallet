@@ -7,6 +7,7 @@ use primitives::Chain;
 use primitives::swap::ApprovalData;
 
 use crate::contracts::erc20::IERC20;
+use crate::contracts::erc721::IERC721;
 use crate::permit2::IAllowanceTransfer;
 use crate::uniswap::deployment::is_permit2_contract_by_chain;
 
@@ -52,6 +53,11 @@ fn decode_calldata_kind(chain: Chain, to: &str, calldata: &[u8]) -> Result<EvmTr
         }
         _ => Ok(EvmTransactionKind::ContractCall),
     }
+}
+
+pub fn decode_nft_collection_approval_operator(calldata: &[u8]) -> Option<Address> {
+    let approval = IERC721::setApprovalForAllCall::abi_decode(calldata).ok()?;
+    approval.approved.then_some(approval.operator)
 }
 
 pub fn is_unlimited_approval(value: &BigUint) -> bool {
@@ -109,6 +115,17 @@ mod tests {
             EvmTransactionKind::ContractCall
         );
         assert_eq!(decode_transaction_kind(Chain::Ethereum, token, Some("0xdeadbeef"), None).unwrap(), EvmTransactionKind::ContractCall);
+    }
+
+    #[test]
+    fn test_decode_nft_collection_approval_operator() {
+        let operator = address!("0x2222222222222222222222222222222222222222");
+        let approval = |approved: bool| IERC721::setApprovalForAllCall { operator, approved }.abi_encode();
+
+        assert_eq!(decode_nft_collection_approval_operator(&approval(true)), Some(operator));
+        assert_eq!(decode_nft_collection_approval_operator(&approval(false)), None);
+        assert_eq!(decode_nft_collection_approval_operator(&approval(true)[..36]), None);
+        assert_eq!(decode_nft_collection_approval_operator(&hex!("0x095ea7b3")), None);
     }
 
     #[test]

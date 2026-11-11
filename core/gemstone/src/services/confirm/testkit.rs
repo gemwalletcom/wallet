@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use async_trait::async_trait;
 use gem_bitcoin::models::BitcoinUTXO;
-use primitives::{Asset, AssetBasic, AssetFull, AssetId, Chain, PlatformStore, Wallet, WalletId};
+use primitives::{Asset, AssetBasic, AssetFull, AssetId, Chain, PlatformStore, TransactionFee, TransactionLoadMetadata, Wallet, WalletId};
 
 use super::GemConfirmError;
 use super::error::SendFailure;
@@ -14,7 +14,6 @@ use crate::api::{GemApiClient, GemDeviceApiClient, GemStaticApiClient};
 use crate::gateway::GemGateway;
 use crate::keystore::GemKeystore;
 use crate::keystore::{GemImportType, decode_password};
-use crate::models::transaction::{GemTransactionLoadFee, GemTransactionLoadMetadata};
 use crate::payment::GemPaymentService;
 use crate::services::assets::{GemAssetFilter, GemAssetStore, GemAssetsService};
 use crate::services::balance::testkit::MemoryBalanceStore;
@@ -41,10 +40,9 @@ use crate::services::wallet_preferences::{GemWalletPreferencesService, testkit::
 use crate::services::wallet_session::GemWalletSessionService;
 use crate::services::{GemScanService, GemSimulationService};
 use crate::testkit::{EmptyPreferences, TestAlienProvider};
-use crate::transfer_amount::GemTransferAmount;
 use primitives::swap::{Permit2ApprovalData, SwapData, SwapQuoteData};
 use primitives::testkit::temp_dir::TempDir;
-use primitives::{Account, FeePriority, GasPriceType, SwapProvider, TransactionInputType, UTXO};
+use primitives::{Account, FeePriority, GasPriceType, SwapProvider, TransactionInputType, TransferAmount, UTXO};
 use swapper::Quote;
 
 pub struct ConfirmTestkit {
@@ -224,15 +222,15 @@ impl GemConfirmData {
                     ..GemTransferData::mock(input_type)
                 },
             },
-            fee: GemTransactionLoadFee {
+            fee: TransactionFee {
                 gas_price_type: GasPriceType::regular(5),
                 fee_asset: AssetId::from_chain(Chain::Solana),
-                ..GemTransactionLoadFee::mock(0)
+                ..TransactionFee::mock_with_fee(0)
             },
             selected_priority: FeePriority::Normal,
             fee_selection: GemConfirmFeeSelection::Priority { priority: FeePriority::Normal },
             fee_rates: vec![],
-            metadata: GemTransactionLoadMetadata::None,
+            metadata: TransactionLoadMetadata::None,
             simulation: None,
         }
     }
@@ -245,8 +243,8 @@ impl GemConfirmData {
         let data = Self::mock(Chain::Bitcoin, transfer.input_type.clone());
         GemConfirmData {
             input: GemConfirmInput { transfer, ..data.input },
-            fee: GemTransactionLoadFee { fee: TEST_BITCOIN_FEE.into(), ..data.fee },
-            metadata: GemTransactionLoadMetadata::Bitcoin {
+            fee: TransactionFee { fee: TEST_BITCOIN_FEE.into(), ..data.fee },
+            metadata: TransactionLoadMetadata::Bitcoin {
                 utxos: utxo_values.iter().map(|value| UTXO::mock_with_value(*value)).collect(),
             },
             ..data
@@ -262,8 +260,8 @@ impl GemConfirmData {
         let data = Self::mock(Chain::Cardano, transfer.input_type.clone());
         GemConfirmData {
             input: GemConfirmInput { transfer, ..data.input },
-            fee: GemTransactionLoadFee { fee: TEST_CARDANO_FEE.into(), ..data.fee },
-            metadata: GemTransactionLoadMetadata::Cardano {
+            fee: TransactionFee { fee: TEST_CARDANO_FEE.into(), ..data.fee },
+            metadata: TransactionLoadMetadata::Cardano {
                 utxos: utxo_values.iter().map(|value| UTXO::mock_with_value(*value)).collect(),
                 block_number: 0,
             },
@@ -317,7 +315,7 @@ impl GemConfirmFee {
 impl GemTransferAmountResult {
     pub fn mock() -> Self {
         GemTransferAmountResult::Amount {
-            amount: GemTransferAmount {
+            amount: TransferAmount {
                 value: BigInt::from(1),
                 network_fee: BigInt::from(1),
                 is_max_amount: false,
@@ -458,7 +456,7 @@ impl SendInput {
                     from: Account::mock(Chain::Ethereum, &address),
                     transfer,
                 },
-                metadata: GemTransactionLoadMetadata::Evm { nonce: 0, chain_id: 1, contract_call: None },
+                metadata: TransactionLoadMetadata::Evm { nonce: 0, chain_id: 1, contract_call: None },
                 ..confirm
             },
             swap_quote,

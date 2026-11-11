@@ -1774,6 +1774,7 @@ public extension Gemstone.AssetProperties {
             isEarnable: isEarnable,
             earnApr: earnApr,
             hasImage: hasImage,
+            hasCandles: hasCandles,
         )
     }
 }
@@ -1790,6 +1791,7 @@ public extension Primitives.AssetProperties {
             isEarnable: isEarnable,
             earnApr: earnApr,
             hasImage: hasImage,
+            hasCandles: hasCandles,
             hasPrice: false,
         )
     }

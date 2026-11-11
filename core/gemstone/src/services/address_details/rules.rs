@@ -163,8 +163,8 @@ mod tests {
 
     use super::*;
     use crate::formatted_number::GemFormattedNumber;
-    use crate::precision::GemValueStyle;
     use crate::services::contact::model::GemAvatar;
+    use number_formatter::ValueStyle;
 
     #[test]
     fn test_balance_rows() {
@@ -208,7 +208,7 @@ mod tests {
             sections(&details, None)[3].rows,
             vec![GemListRow::Amount {
                 title: GemListRowTitle::Available,
-                amount: GemFormattedNumber::amount(1.5, Some("ETH".to_string()), GemValueStyle::Auto),
+                amount: GemFormattedNumber::amount(1.5, Some("ETH".to_string()), ValueStyle::Auto),
                 info: None,
             }]
         );

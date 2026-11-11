@@ -18,7 +18,7 @@ pub use object_resolver::{ObjectResolver, ResolvedObjectInput};
 #[cfg(feature = "rpc")]
 pub use prefetch::PrefetchedTransactionData;
 pub use stake::*;
-pub(crate) use transaction::build_amount_coin;
+pub(crate) use transaction::{build_amount_coin, build_sui_amount_coin, build_sui_gas_coin};
 pub use transaction::{build_input_coin, decode_transaction, finish_transaction, move_call, validate_and_hash, zero_coin};
 pub use transaction_json::is_transaction_json;
 #[cfg(feature = "rpc")]

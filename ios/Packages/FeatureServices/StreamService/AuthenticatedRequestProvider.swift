@@ -20,7 +20,7 @@ public struct AuthenticatedRequestProvider: WebSocketRequestProvider {
         }
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
-        request.setValue(stream.authorization, forHTTPHeaderField: "Authorization")
+        request.allHTTPHeaderFields = stream.headers
         return request
     }
 }

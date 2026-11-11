@@ -5,7 +5,7 @@ use std::time::Duration;
 use cacher::{ChartCandlesCacher, RateLimitCacher};
 use config_keys::{ConfigKey, RateLimitKey};
 use prices::{PriceAssetsProvider, PriceProviders};
-use primitives::{AssetId, ChartCandleStick, ChartPeriod, ChartValue, PriceData, RequestError, currency::Currency};
+use primitives::{AssetId, ChartCandleStick, ChartCandleStickVecExt, ChartPeriod, ChartValue, PriceData, RequestError, currency::Currency};
 
 use super::repository::{ChartData, Repository};
 
@@ -52,7 +52,8 @@ impl ChartClient {
             self.consume_candles_limit(ip_address).await?;
             provider.get_candles(&price.provider_price_id, period).await
         };
-        self.cacher.get_or_fetch_candles(&price_id, period, candles_max_age(period), Box::pin(fetch)).await
+        let candles = self.cacher.get_or_fetch_candles(&price_id, period, candles_max_age(period), Box::pin(fetch)).await?;
+        Ok(candles.merged(self.config.get_usize(ConfigKey::PriceChartsMaxCandles).await?))
     }
 
     async fn consume_candles_limit(&self, ip_address: &str) -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -65,10 +66,7 @@ impl ChartClient {
 
     async fn candles_source(&self, asset_id: &AssetId) -> Result<Option<(Arc<dyn PriceAssetsProvider>, PriceData)>, Box<dyn Error + Send + Sync>> {
         let prices = self.repository.get_prices_for_asset(asset_id.clone()).await?;
-        Ok(prices.into_iter().find_map(|price| {
-            let provider = self.providers.get(&price.provider).filter(|provider| provider.has_candles())?;
-            Some((provider.clone(), price))
-        }))
+        Ok(prices.into_iter().filter(|price| price.provider.has_candles()).find_map(|price| Some((self.providers.get(&price.provider)?.clone(), price))))
     }
 
     pub async fn get_charts_prices(&self, asset_id: &AssetId, period: ChartPeriod, currency: &Currency) -> Result<Vec<ChartValue>, Box<dyn Error + Send + Sync>> {
@@ -91,7 +89,7 @@ mod tests {
     use std::sync::Mutex;
 
     use async_trait::async_trait;
-    use chrono::DateTime;
+    use chrono::{DateTime, TimeDelta};
     use config_keys::RateLimitWindow;
     use prices::{AssetPriceFull, AssetPriceMapping, PriceProvider, PriceProviderAsset};
     use primitives::{AssetId, Chain, FiatRate};
@@ -126,11 +124,20 @@ mod tests {
         }
     }
 
-    #[derive(Default)]
     struct StubProvider {
-        has_candles: bool,
         fails: bool,
+        candles: Vec<ChartCandleStick>,
         requests: Mutex<Vec<(String, ChartPeriod)>>,
+    }
+
+    impl Default for StubProvider {
+        fn default() -> Self {
+            Self {
+                fails: false,
+                candles: vec![candle()],
+                requests: Mutex::default(),
+            }
+        }
     }
 
     #[async_trait]
@@ -150,15 +157,12 @@ mod tests {
         async fn get_prices(&self, _mappings: Vec<AssetPriceMapping>) -> Result<Vec<AssetPriceFull>, Box<dyn Error + Send + Sync>> {
             Ok(vec![])
         }
-        fn has_candles(&self) -> bool {
-            self.has_candles
-        }
         async fn get_candles(&self, provider_price_id: &str, period: ChartPeriod) -> Result<Vec<ChartCandleStick>, Box<dyn Error + Send + Sync>> {
             self.requests.lock().unwrap().push((provider_price_id.to_string(), period));
             if self.fails {
                 return Err("upstream failed".into());
             }
-            Ok(vec![candle()])
+            Ok(self.candles.clone())
         }
     }
 
@@ -174,21 +178,27 @@ mod tests {
         )
     }
 
-    #[tokio::test]
-    async fn test_an_asset_has_candles_when_a_provider_prices_it_and_serves_candles() {
-        let asset_id = AssetId::from_chain(Chain::Bitcoin);
-        let with_candles = Arc::new(StubProvider { has_candles: true, ..Default::default() });
-        let without_candles = Arc::new(StubProvider::default());
+    fn pyth_price() -> PriceData {
+        PriceData {
+            provider: PriceProvider::Pyth,
+            ..PriceData::mock()
+        }
+    }
 
-        assert!(candles_client(with_candles.clone(), vec![PriceData::mock()]).has_candles(&asset_id).await.unwrap());
-        assert!(!candles_client(without_candles, vec![PriceData::mock()]).has_candles(&asset_id).await.unwrap());
-        assert!(!candles_client(with_candles, vec![]).has_candles(&asset_id).await.unwrap());
+    #[tokio::test]
+    async fn test_an_asset_has_candles_when_a_provider_with_candles_prices_it() {
+        let asset_id = AssetId::from_chain(Chain::Bitcoin);
+        let provider = Arc::new(StubProvider::default());
+
+        assert!(candles_client(provider.clone(), vec![PriceData::mock()]).has_candles(&asset_id).await.unwrap());
+        assert!(!candles_client(provider.clone(), vec![pyth_price()]).has_candles(&asset_id).await.unwrap());
+        assert!(!candles_client(provider, vec![]).has_candles(&asset_id).await.unwrap());
     }
 
     #[tokio::test]
     async fn test_candles_come_from_the_provider_once_per_period() {
         let asset_id = AssetId::from_chain(Chain::Bitcoin);
-        let provider = Arc::new(StubProvider { has_candles: true, ..Default::default() });
+        let provider = Arc::new(StubProvider::default());
         let price = PriceData::mock();
         let client = candles_client(provider.clone(), vec![price.clone()]);
 
@@ -200,8 +210,29 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_candles_merge_down_to_the_configured_limit() {
+        let provider = Arc::new(StubProvider {
+            candles: ChartCandleStick::mock_series(DateTime::UNIX_EPOCH, TimeDelta::hours(4), 6),
+            ..Default::default()
+        });
+        let providers: PriceProviders = HashMap::from([(PriceProvider::Coingecko, provider as Arc<dyn PriceAssetsProvider>)]);
+        let config = MemoryConfigRepository::new().with_value(ConfigKey::PriceChartsMaxCandles.as_ref(), "2");
+        let client = ChartClient::new(
+            Arc::new(MemoryPricesRepository::default().with_prices(vec![PriceData::mock()])),
+            Arc::new(ConfigCacher::new(Arc::new(config))),
+            Arc::new(providers),
+            Arc::new(MemoryChartCandlesCacher::default()),
+            Arc::new(MemoryRateLimiter::default()),
+        );
+
+        let candles = client.get_candles(&AssetId::from_chain(Chain::Bitcoin), ChartPeriod::Month, IP).await.unwrap();
+
+        assert_eq!(candles.iter().map(|candle| candle.date).collect::<Vec<_>>(), vec![DateTime::UNIX_EPOCH, DateTime::UNIX_EPOCH + TimeDelta::hours(12)]);
+    }
+
+    #[tokio::test]
     async fn test_an_asset_without_a_candle_source_has_no_candles() {
-        let client = candles_client(Arc::new(StubProvider::default()), vec![PriceData::mock()]);
+        let client = candles_client(Arc::new(StubProvider::default()), vec![pyth_price()]);
 
         assert!(client.get_candles(&AssetId::from_chain(Chain::Bitcoin), ChartPeriod::Day, IP).await.unwrap().is_empty());
     }
@@ -209,11 +240,7 @@ mod tests {
     #[tokio::test]
     async fn test_an_address_stops_reaching_the_provider_at_its_limit() {
         let asset_id = AssetId::from_chain(Chain::Bitcoin);
-        let provider = Arc::new(StubProvider {
-            has_candles: true,
-            fails: true,
-            ..Default::default()
-        });
+        let provider = Arc::new(StubProvider { fails: true, ..Default::default() });
         let client = candles_client(provider.clone(), vec![PriceData::mock()]);
         let limit = client.config.get_rate_limit(RateLimitKey::ChartCandlesPerIpLimit).await.unwrap().get(RateLimitWindow::Minute);
 
@@ -236,7 +263,7 @@ mod tests {
         let asset_id = AssetId::from_chain(Chain::Bitcoin);
         let rate_limiter = Arc::new(MemoryRateLimiter::default());
         let config = Arc::new(ConfigCacher::new(Arc::new(MemoryConfigRepository::new())));
-        let provider = Arc::new(StubProvider { has_candles: true, ..Default::default() });
+        let provider = Arc::new(StubProvider::default());
         let providers: PriceProviders = HashMap::from([(PriceProvider::Coingecko, provider as Arc<dyn PriceAssetsProvider>)]);
         let client = ChartClient::new(
             Arc::new(MemoryPricesRepository::default().with_prices(vec![PriceData::mock()])),

@@ -3,14 +3,13 @@ use crate::formatted_number::GemFormattedNumber;
 use crate::gateway::GatewayError;
 use crate::models::custom_types::GemBigInt;
 use crate::models::list::{GemListRow, GemNoticeKind, suspicious_address_notice};
-use crate::payment::GemPaymentError;
-use crate::precision::GemValueStyle;
 use crate::services::balance::GemBalanceRequirement;
 use crate::services::confirm::model::GemAcquireAsset;
 use crate::services::error::GemServiceError;
 use crate::services::info_sheet::{GemInfoAmount, GemInfoDescription};
-use crate::signer::GemSignerError;
-use primitives::{Asset, AssetId, Chain, ChainAsset, PaymentStatus, SwapProvider};
+use number_formatter::ValueStyle;
+use payment::PaymentError;
+use primitives::{Asset, AssetId, Chain, ChainAsset, PaymentStatus, SignerError, SwapProvider};
 use swapper::SwapperError;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Error)]
@@ -70,7 +69,7 @@ pub enum GemConfirmError {
         signer: String,
     },
     Sign {
-        error: GemSignerError,
+        error: SignerError,
         chain: Chain,
         msg: String,
     },
@@ -213,12 +212,13 @@ pub struct GemConfirmRequirement {
 
 impl GemConfirmRequirement {
     pub fn new(requirement: &GemBalanceRequirement, asset: &Asset) -> Self {
-        let amount = |value: &GemBigInt| GemFormattedNumber::asset_amount(value, asset, GemValueStyle::Auto);
+        let amount = |value: &GemBigInt| GemFormattedNumber::asset_amount(value, asset, ValueStyle::Auto);
         let (required, shortfall) = (amount(&requirement.required), amount(&requirement.shortfall));
-        let places = GemValueStyle::Auto.fraction_places(shortfall.value);
-        match GemValueStyle::Auto.fraction_places(required.value) < places {
+        let fraction_places = |value: f64| number_formatter::precision::value(ValueStyle::Auto, value).fraction_places(value);
+        let places = fraction_places(shortfall.value);
+        match fraction_places(required.value) < places {
             true => {
-                let exact = |value: &GemBigInt| GemFormattedNumber::asset_amount(&truncated(value, asset.decimals, places), asset, GemValueStyle::Full);
+                let exact = |value: &GemBigInt| GemFormattedNumber::asset_amount(&truncated(value, asset.decimals, places), asset, ValueStyle::Full);
                 Self {
                     required: exact(&requirement.required),
                     available: exact(&requirement.available),
@@ -283,13 +283,13 @@ impl GemConfirmError {
             Self::MinimumAccountBalanceTooLow { asset, requirement } => described(minimum_account_balance_description(asset, requirement)),
             Self::DestinationAccountActivation { asset, required } => GemConfirmErrorDisplay::DestinationAccountActivation {
                 asset: asset.clone(),
-                required: GemFormattedNumber::asset_amount(required, asset, GemValueStyle::Auto),
+                required: GemFormattedNumber::asset_amount(required, asset, ValueStyle::Auto),
             },
             Self::BelowSwapMinimum { asset, provider_name, requirement, .. } => described(swap_minimum_description(asset, provider_name, requirement, no_fiat)),
             Self::Sign { error, chain, msg } => match error {
-                GemSignerError::DustThreshold => GemConfirmErrorDisplay::DustThreshold { chain: *chain },
-                GemSignerError::InsufficientFunds => GemConfirmErrorDisplay::InsufficientFunds,
-                GemSignerError::InvalidInput(_) | GemSignerError::SigningError(_) => GemConfirmErrorDisplay::Message { msg: msg.clone() },
+                SignerError::DustThreshold => GemConfirmErrorDisplay::DustThreshold { chain: *chain },
+                SignerError::InsufficientFunds => GemConfirmErrorDisplay::InsufficientFunds,
+                SignerError::InvalidInput(_) | SignerError::SigningError(_) => GemConfirmErrorDisplay::Message { msg: msg.clone() },
             },
             Self::Payment { status } => GemConfirmErrorDisplay::Payment { status: *status },
             Self::BalanceMissing { .. } | Self::Network { .. } | Self::Load { .. } | Self::Broadcast { .. } | Self::PartialBroadcast { .. } | Self::Record { .. } | Self::ApprovalInvalid { .. } => {
@@ -313,8 +313,8 @@ impl GemConfirmError {
                 provider_name: provider_name.clone(),
             }),
             Self::Sign { error, chain, .. } => match error {
-                GemSignerError::DustThreshold => Some(GemConfirmErrorSheet::DustThreshold { chain: *chain }),
-                GemSignerError::InsufficientFunds | GemSignerError::InvalidInput(_) | GemSignerError::SigningError(_) => None,
+                SignerError::DustThreshold => Some(GemConfirmErrorSheet::DustThreshold { chain: *chain }),
+                SignerError::InsufficientFunds | SignerError::InvalidInput(_) | SignerError::SigningError(_) => None,
             },
             Self::Offline
             | Self::FeeRatesMissing
@@ -363,7 +363,7 @@ pub(super) fn network_fee_description(asset: &Asset, requirement: Option<&GemBal
 
 pub(super) fn minimum_account_balance_description(asset: &Asset, requirement: &GemBalanceRequirement) -> GemInfoDescription {
     GemInfoDescription::AccountMinimumBalance {
-        amount: Some(GemFormattedNumber::asset_amount(&requirement.required, asset, GemValueStyle::Auto)),
+        amount: Some(GemFormattedNumber::asset_amount(&requirement.required, asset, ValueStyle::Auto)),
     }
 }
 
@@ -413,17 +413,17 @@ pub(super) fn sign_error(chain: Chain, error: GemstoneError) -> GemConfirmError 
         GemstoneError::Cancelled => GemConfirmError::Cancelled,
         GemstoneError::SignerError { error, msg } => GemConfirmError::Sign { error, chain, msg },
         GemstoneError::AnyError { msg } => GemConfirmError::Sign {
-            error: GemSignerError::SigningError(msg.clone()),
+            error: SignerError::SigningError(msg.clone()),
             chain,
             msg,
         },
     }
 }
 
-impl From<GemPaymentError> for GemConfirmError {
-    fn from(error: GemPaymentError) -> Self {
+impl From<PaymentError> for GemConfirmError {
+    fn from(error: PaymentError) -> Self {
         match error {
-            GemPaymentError::Status { status } => Self::Payment { status },
+            PaymentError::Status { status } => Self::Payment { status },
             error => Self::Load { msg: error.to_string() },
         }
     }
@@ -492,7 +492,7 @@ mod tests {
         assert_eq!(
             sign_error(Chain::Ethereum, GemstoneError::AnyError { msg: "boom".into() }),
             GemConfirmError::Sign {
-                error: GemSignerError::SigningError("boom".to_string()),
+                error: SignerError::SigningError("boom".to_string()),
                 chain: Chain::Ethereum,
                 msg: "boom".to_string(),
             }
@@ -510,21 +510,21 @@ mod tests {
     fn test_a_requirement_prints_the_required_and_available_amounts_apart() {
         let asset = Asset::from_chain(Chain::Blast);
         let wei = |value: u64| GemBigInt::from(value);
-        let formatted = |value: u64, style: GemValueStyle| GemFormattedNumber::asset_amount(&wei(value), &asset, style);
+        let formatted = |value: u64, style: ValueStyle| GemFormattedNumber::asset_amount(&wei(value), &asset, style);
 
         assert_eq!(
             GemConfirmRequirement::new(&GemBalanceRequirement::new(wei(66_488_177_805_216_601), wei(66_488_046_605_216_601)), &asset),
             GemConfirmRequirement {
-                required: formatted(66_488_177_800_000_000, GemValueStyle::Full),
-                available: formatted(66_488_046_600_000_000, GemValueStyle::Full),
-                shortfall: formatted(131_200_000_000, GemValueStyle::Auto),
+                required: formatted(66_488_177_800_000_000, ValueStyle::Full),
+                available: formatted(66_488_046_600_000_000, ValueStyle::Full),
+                shortfall: formatted(131_200_000_000, ValueStyle::Auto),
             },
             "0.0664881778 and 0.0664880466 instead of 0.06648 twice: cut to the shortfall's places, so the three amounts add up"
         );
 
         let apart = GemConfirmRequirement::new(&GemBalanceRequirement::new(wei(3_000_000_000_000_000_000), wei(1_000_000_000_000_000_000)), &asset);
-        assert_eq!(apart.required, formatted(3_000_000_000_000_000_000, GemValueStyle::Auto), "amounts the usual precision already shows apart keep it");
-        assert_eq!(apart.available, formatted(1_000_000_000_000_000_000, GemValueStyle::Auto));
+        assert_eq!(apart.required, formatted(3_000_000_000_000_000_000, ValueStyle::Auto), "amounts the usual precision already shows apart keep it");
+        assert_eq!(apart.available, formatted(1_000_000_000_000_000_000, ValueStyle::Auto));
 
         let one_wei = GemConfirmRequirement::new(&GemBalanceRequirement::new(wei(66_488_000_000_000_001), wei(66_488_000_000_000_000)), &asset);
         assert_eq!(one_wei.required.exact.as_deref(), Some("0.066488000000000001"), "past what a double holds, the digits stay exact");
@@ -552,12 +552,12 @@ mod tests {
         );
 
         let dust = GemConfirmError::Sign {
-            error: GemSignerError::DustThreshold,
+            error: SignerError::DustThreshold,
             chain: Chain::Bitcoin,
             msg: "dust".to_string(),
         };
         let signing = GemConfirmError::Sign {
-            error: GemSignerError::SigningError("boom".to_string()),
+            error: SignerError::SigningError("boom".to_string()),
             chain: Chain::Bitcoin,
             msg: "boom".to_string(),
         };
@@ -574,7 +574,7 @@ mod tests {
         assert_eq!(load_error(Chain::Bitcoin, GatewayError::NetworkError { msg: "timeout".to_string() }), GemConfirmError::Network { msg: "timeout".to_string() });
         assert_eq!(load_error(Chain::Bitcoin, GatewayError::Offline), GemConfirmError::Offline);
         assert_eq!(
-            load_error(Chain::Bitcoin, map_network_error(Box::new(GemSignerError::DustThreshold))).display(),
+            load_error(Chain::Bitcoin, map_network_error(Box::new(SignerError::DustThreshold))).display(),
             GemConfirmErrorDisplay::DustThreshold { chain: Chain::Bitcoin },
             "dust found while loading the fee shows the dust explanation, as it does at signing"
         );

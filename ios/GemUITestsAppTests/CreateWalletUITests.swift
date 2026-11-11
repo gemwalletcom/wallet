@@ -25,7 +25,7 @@ final class CreateWalletUITests: XCTestCase {
         app.tap("bitcoin")
 
         let address = app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH %@", "bc1q")).firstMatch
-        XCTAssertTrue(address.waitForExistence(timeout: 10))
+        XCTAssertTrue(address.waitForExistence(timeout: 10), "bitcoin address not shown")
         app.tapMainAction()
 
         app.tapBack()
@@ -67,14 +67,14 @@ final class CreateWalletUITests: XCTestCase {
 
         if checkShowSecretDataScene {
             app.reopenFromBackground()
-            app.tapBack()
+            app.tapBack(leaving: "word_option")
             XCTAssertEqual(app.getWords(), words)
         }
         app.tapMainAction()
 
         app.pickWords(words)
         app.tapMainAction()
-        app.skipEnableAuthentication()
+        app.skipEnableAuthentication(leaving: "word_option")
 
         return words
     }

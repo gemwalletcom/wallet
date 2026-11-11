@@ -34,7 +34,7 @@ A link, push or scanned code opens only what the app's own screens offer, so a s
 
 Sell availability controls whether Sell can be selected in the screen.
 
-A Receive, Buy, Sell or Swap link for a network the current wallet has no account on opens nothing and says the wallet has no account for that network.
+A Receive, Buy, Sell or Swap link or push for a network the current wallet has no account on opens nothing and says the wallet has no account for that network. An asset link for such a network opens the asset's chart, as a price alert push does.
 
 A link opens once, when it arrives. Rotating the phone, switching theme, or reopening the app from Recents does not open the link that launched it again.
 

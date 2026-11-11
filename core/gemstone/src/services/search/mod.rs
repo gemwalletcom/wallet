@@ -105,7 +105,7 @@ mod tests {
     const USDT_SEARCH_RESPONSE: &str = r#"{
         "assets": [{
             "asset": {"id": "ethereum_0xdAC17F958D2ee523a2206206994597C13D831ec7", "name": "Tether", "symbol": "USDT", "decimals": 6, "type": "ERC20"},
-            "properties": {"isEnabled": true, "isBuyable": true, "isSellable": true, "isSwapable": true, "isStakeable": false, "isEarnable": false, "hasImage": true, "hasPrice": true},
+            "properties": {"isEnabled": true, "isBuyable": true, "isSellable": true, "isSwapable": true, "isStakeable": false, "isEarnable": false, "hasImage": true, "hasCandles": false, "hasPrice": true},
             "score": {"rank": 34, "type": "low"},
             "price": {"price": 0.9998, "priceChangePercentage24h": -0.01, "updatedAt": "2026-09-27T22:44:30Z"}
         }],
@@ -116,7 +116,7 @@ mod tests {
 
     const ETH_SEARCH_ASSETS: &str = r#"[{
         "asset": {"id": "ethereum", "name": "Ethereum", "symbol": "ETH", "decimals": 18, "type": "NATIVE"},
-        "properties": {"isEnabled": true, "isBuyable": true, "isSellable": true, "isSwapable": true, "isStakeable": false, "isEarnable": false, "hasImage": true, "hasPrice": true},
+        "properties": {"isEnabled": true, "isBuyable": true, "isSellable": true, "isSwapable": true, "isStakeable": false, "isEarnable": false, "hasImage": true, "hasCandles": false, "hasPrice": true},
         "score": {"rank": 100, "type": "high"}
     }]"#;
 
@@ -183,7 +183,7 @@ mod tests {
 
     const NEAR_SPAM_ASSETS: &str = r#"[{
         "asset": {"id": "near_usdt.tether-token.near", "name": "Tether USD", "symbol": "USDt", "decimals": 6, "type": "TOKEN"},
-        "properties": {"isEnabled": false, "isBuyable": false, "isSellable": false, "isSwapable": false, "isStakeable": false, "isEarnable": false, "hasImage": false, "hasPrice": false},
+        "properties": {"isEnabled": false, "isBuyable": false, "isSellable": false, "isSwapable": false, "isStakeable": false, "isEarnable": false, "hasImage": false, "hasCandles": false, "hasPrice": false},
         "score": {"rank": -20, "type": "unknown"}
     }]"#;
 

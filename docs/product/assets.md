@@ -24,6 +24,7 @@ flowchart LR
 |---|---|---|
 | The asset screen opens | chart, history and market data load at the same time; the header is usable while they arrive | |
 | The asset still needs activation, or its account is blocked by multisig | the header actions are disabled, the empty history offers no Buy or Swap, and the Stake balance row opens nothing | the asset cannot receive yet, or this wallet cannot sign for the account; a purchase, swap or stake would fail |
+| An XRP, Stellar or Algorand account has no available balance | a non-dismissible activation banner, until the account is funded | the account cannot send or hold anything until the network's minimum arrives |
 | Receive opens for an asset that was never refreshed, or not in the last hour | the asset is refreshed, so the network selector lists every network the wallet holds it on | the networks are known only once the asset has been fetched |
 | The user switches network on Receive | the selector keeps every network it listed when Receive opened, the first one included | the user can switch back without leaving the screen |
 
@@ -48,9 +49,10 @@ The chart follows the shared [Charts](../PRODUCT.md#charts) section.
 
 | When | Expected | Why |
 |---|---|---|
-| The asset has candles | a button beside the periods switches the price chart between a line and candlesticks; the choice is remembered for every asset | traders read each period's open, high, low and close |
+| The asset has candles | a button in the top right corner switches the price chart between a line and candlesticks; the choice is remembered for every asset | traders read each period's open, high, low and close |
 | The asset has no candles | the line shows with no button, whatever the user picked on another asset | a button that cannot work is not offered |
 | Candlesticks show | the periods start at `1D`, and a chart on `1H` moves to `1D` | an hour holds too few candles to read |
+| Candlesticks show | a period holds at most 60 equally wide candles, each dated by when it opened, so `1M` shows 12-hour candles like a perpetual market | a month of four-hour candles is too thin to read |
 | Candlesticks show | prices are in the wallet's currency, and the last candle follows the latest price; there is no volume | the header must agree with the rest of the asset screen, and the source has no volume per candle |
 | Candlesticks cannot load | it shows that there is no data, only being offline shows an error, and the button still switches back to the line | the line may still be available |
 

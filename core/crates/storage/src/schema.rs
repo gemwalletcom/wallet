@@ -190,6 +190,7 @@ diesel::table! {
         is_earnable -> Bool,
         earn_apr -> Nullable<Float8>,
         has_image -> Bool,
+        has_candles -> Bool,
         has_price -> Bool,
     }
 }

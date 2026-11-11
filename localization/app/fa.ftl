@@ -455,7 +455,7 @@ private_key_export_reminder_do_not_share_subtitle = هیچ شخص، وب‌سا�
 private_key_export_reminder_no_recovery_title = ما نمی‌توانیم سرقت را برگردانیم
 private_key_export_reminder_no_recovery_subtitle = اگر کسی دارایی‌های شما را ببرد، قابل بازگرداندن نیستند.
 private_key_scope_evm = این کلید حساب‌های شما در همه شبکه‌های EVM را نیز کنترل می‌کند.
-private_key_accounts_info = عبارات خصوصی شما از قبل از این حساب‌ها پشتیبان دارد. فقط برای استفاده از یک حساب در کیف پول دیگر، کلید را خروجی بگیرید.
+private_key_accounts_info = عبارت مخفی شما از قبل از این حساب‌ها پشتیبان دارد. فقط برای استفاده از یک حساب در کیف پول دیگر، کلید را خروجی بگیرید.
 
 # Social
 

@@ -4,11 +4,7 @@ use std::str::FromStr;
 use sui_transaction_builder::{ObjectInput, TransactionBuilder};
 use sui_types::{Address, TypeTag};
 
-use super::{TransactionBuilderInput, build_amount_coin, finish_transaction};
-
-pub(super) fn requires_hybrid_funding(coins: &OwnedCoins<Coin>, amount: u64) -> bool {
-    coins.address_balance < amount && coins.coin_total() < amount
-}
+use super::{TransactionBuilderInput, build_amount_coin, build_sui_amount_coin, build_sui_gas_coin, finish_transaction};
 
 fn build_transfer_ptb(input: &TransferInput) -> Result<TransactionBuilder, Box<dyn Error + Send + Sync>> {
     if let Some(err) = crate::validate_enough_balance(&input.coins, input.amount) {
@@ -17,28 +13,14 @@ fn build_transfer_ptb(input: &TransferInput) -> Result<TransactionBuilder, Box<d
     if input.coins.coins.is_empty() {
         return Err("No SUI coins available for gas".into());
     }
-    if !input.send_max && requires_hybrid_funding(&input.coins, input.amount) {
-        return Err("Sui native transfer: amount requires combining Address Balance with Coin<SUI> objects, which is not supported".into());
-    }
 
     let recipient = Address::from_str(&input.recipient)?;
 
     let mut ptb = TransactionBuilder::new();
-    if input.send_max {
-        let recipient_argument = ptb.pure(&recipient);
-        let gas = ptb.gas();
-        ptb.transfer_objects(vec![gas], recipient_argument);
-        return Ok(ptb);
-    }
-
-    let send_coin = if input.coins.address_balance >= input.amount {
-        let coin_type: TypeTag = input.coins.coin_type.parse().map_err(|err| format!("invalid Sui native coin type {}: {err}", input.coins.coin_type))?;
-        ptb.funds_withdrawal_coin(coin_type, input.amount)
+    let send_coin = if input.send_max {
+        build_sui_gas_coin(&mut ptb, input.coins.address_balance)
     } else {
-        let amount = ptb.pure(&input.amount);
-        let gas = ptb.gas();
-        let mut split_results = ptb.split_coins(gas, vec![amount]);
-        split_results.pop().ok_or("split_coins returned no argument")?
+        build_sui_amount_coin(&mut ptb, input.amount, input.coins.address_balance)?
     };
 
     let recipient_argument = ptb.pure(&recipient);
@@ -80,7 +62,7 @@ mod tests {
     use crate::{SUI_COIN_TYPE, tx_builder::decode_transaction};
     use gem_encoding::encode_base64;
     use primitives::asset_constants::SUI_USDC_TOKEN_ID;
-    use sui_types::Transaction;
+    use sui_types::{Argument, Command, Input, ObjectReference, ProgrammableTransaction, Transaction, TransactionKind};
 
     use super::*;
 
@@ -250,25 +232,78 @@ mod tests {
         assert!(err.to_string().contains("No SUI coins available for gas"), "got: {err}");
     }
 
-    #[test]
-    fn test_encode_native_transfer_hybrid_rejected() {
-        let input = TransferInput {
+    fn native_transfer(amount: u64, address_balance: u64, send_max: bool) -> (Transaction, Coin) {
+        let coin = Coin {
+            coin_type: SUI_COIN_TYPE.into(),
+            balance: 5_000_000_000,
+            object: Object::mock(),
+        };
+        let output = encode_transfer(&TransferInput {
             sender: "0x1b4cd8b734f2465614678ca0450ce9c4f2ff4835c6a7545522892a1a8fb67991".into(),
             recipient: "0xcf3abaeecfaf42990b8481c03000000000000000000000000000000000000000".into(),
-            amount: 8_000_000_000,
-            coins: OwnedCoins::new(
-                SUI_COIN_TYPE.into(),
-                vec![Coin {
-                    coin_type: SUI_COIN_TYPE.into(),
-                    balance: 5_000_000_000,
-                    object: Object::mock(),
-                }],
-                4_000_000_000,
-            ),
-            send_max: false,
+            amount,
+            coins: OwnedCoins::new(SUI_COIN_TYPE.into(), vec![coin.clone()], address_balance),
+            send_max,
             gas: Gas { budget: 25_000_000, price: 750 },
-        };
-        let err = encode_transfer(&input).expect_err("hybrid native SUI must be rejected");
-        assert!(err.to_string().contains("not supported"), "error must explain hybrid is unsupported: {err}");
+        })
+        .unwrap();
+        (bcs::from_bytes(&output.tx_data).unwrap(), coin)
+    }
+
+    fn programmable(transaction: &Transaction) -> &ProgrammableTransaction {
+        match &transaction.kind {
+            TransactionKind::ProgrammableTransaction(ptb) => ptb,
+            _ => panic!("expected ProgrammableTransaction"),
+        }
+    }
+
+    fn withdrawals(ptb: &ProgrammableTransaction) -> Vec<Option<u64>> {
+        ptb.inputs
+            .iter()
+            .filter_map(|input| match input {
+                Input::FundsWithdrawal(withdrawal) => Some(withdrawal.amount()),
+                _ => None,
+            })
+            .collect()
+    }
+
+    fn gas_commands(ptb: &ProgrammableTransaction) -> Vec<&'static str> {
+        ptb.commands
+            .iter()
+            .filter_map(|command| match command {
+                Command::MergeCoins(merge) if merge.coin == Argument::Gas => Some("merge into gas"),
+                Command::SplitCoins(split) if split.coin == Argument::Gas => Some("split gas"),
+                Command::TransferObjects(transfer) if transfer.objects == vec![Argument::Gas] => Some("transfer gas"),
+                _ => None,
+            })
+            .collect()
+    }
+
+    #[test]
+    fn test_encode_native_transfer_max_sends_coins_and_address_balance() {
+        let (transaction, coin) = native_transfer(9_000_000_000, 4_000_000_000, true);
+        let ptb = programmable(&transaction);
+
+        assert_eq!(transaction.gas_payment.objects, vec![ObjectReference::new(coin.object.object_id, coin.object.version, coin.object.digest)]);
+        assert_eq!(withdrawals(ptb), vec![Some(4_000_000_000)]);
+        assert_eq!(gas_commands(ptb), vec!["merge into gas", "transfer gas"]);
+    }
+
+    #[test]
+    fn test_encode_native_transfer_combines_coins_and_address_balance() {
+        let (transaction, _) = native_transfer(8_000_000_000, 4_000_000_000, false);
+        let ptb = programmable(&transaction);
+
+        assert_eq!(withdrawals(ptb), vec![Some(4_000_000_000)]);
+        assert_eq!(gas_commands(ptb), vec!["merge into gas", "split gas"]);
+    }
+
+    #[test]
+    fn test_encode_native_transfer_from_address_balance() {
+        let (transaction, _) = native_transfer(3_000_000_000, 4_000_000_000, false);
+        let ptb = programmable(&transaction);
+
+        assert_eq!(withdrawals(ptb), vec![Some(3_000_000_000)]);
+        assert_eq!(gas_commands(ptb), Vec::<&str>::new());
     }
 }

@@ -261,6 +261,7 @@ fun mockAssetProperties(
     isEarnable: Boolean = false,
     earnApr: Double? = null,
     hasImage: Boolean = false,
+    hasCandles: Boolean = false,
 ) = AssetProperties(
     isEnabled = isEnabled,
     isBuyable = isBuyable,
@@ -271,6 +272,7 @@ fun mockAssetProperties(
     isEarnable = isEarnable,
     earnApr = earnApr,
     hasImage = hasImage,
+    hasCandles = hasCandles,
 )
 
 fun mockAssetScore(
@@ -1953,17 +1955,7 @@ fun mockGemTransactionStatus(
     showsProgress = showsProgress,
 )
 
-fun mockGemTransferAmount(
-    value: java.math.BigInteger = java.math.BigInteger.ZERO,
-    networkFee: java.math.BigInteger = java.math.BigInteger.ZERO,
-    isMaxAmount: Boolean = false,
-) = uniffi.gemstone.GemTransferAmount(
-    value = value,
-    networkFee = networkFee,
-    isMaxAmount = isMaxAmount,
-)
-
-fun mockGemTransferAmountResult(): uniffi.gemstone.GemTransferAmountResult = uniffi.gemstone.GemTransferAmountResult.Amount(amount = mockGemTransferAmount())
+fun mockGemTransferAmountResult(): uniffi.gemstone.GemTransferAmountResult = uniffi.gemstone.GemTransferAmountResult.Amount(amount = mockTransferAmount())
 
 fun mockGemTransferData(
     inputType: uniffi.gemstone.TransactionInputType = mockTransactionInputType(),
@@ -2678,6 +2670,16 @@ fun mockSwapperSlippage(
 )
 
 fun mockTransactionInputType(): uniffi.gemstone.TransactionInputType = uniffi.gemstone.TransactionInputType.Transfer(asset = mockAsset().toGem())
+
+fun mockTransferAmount(
+    value: java.math.BigInteger = java.math.BigInteger.ZERO,
+    networkFee: java.math.BigInteger = java.math.BigInteger.ZERO,
+    isMaxAmount: Boolean = false,
+) = uniffi.gemstone.TransferAmount(
+    value = value,
+    networkFee = networkFee,
+    isMaxAmount = isMaxAmount,
+)
 
 fun mockTransferDataExtra(
     to: String = "",

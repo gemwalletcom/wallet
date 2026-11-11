@@ -1,11 +1,11 @@
 use num_bigint::BigUint;
-use number_formatter::BigNumberFormatter;
+use number_formatter::{BigNumberFormatter, ValueStyle};
 use primitives::{Currency, FiatProviderName, FiatQuote, FiatQuoteType, FiatTransactionAssetData, FiatTransactionStatus};
 
 use super::model::{GemFiatAmountCheck, GemFiatQuoteRow, GemFiatTransactionBadge, GemFiatTransactionRow, GemFiatTransactionStatus};
 use crate::config::fiat_config::FiatConfig;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
-use crate::precision::{GemCurrencyStyle, GemValueStyle};
+use crate::precision::GemCurrencyStyle;
 use crate::services::amount::rules::plain_number;
 use crate::services::assets::GemAssetAction;
 use crate::services::swap::GemAssetRate;
@@ -66,7 +66,7 @@ pub fn quote_row(quote: &FiatQuote, asset_price: Option<f64>) -> GemFiatQuoteRow
         quote_id: quote.id.clone(),
         provider: quote.provider.id,
         provider_name: quote.provider.name.clone(),
-        crypto_amount: GemFormattedNumber::amount(quote.crypto_amount, Some(quote.asset.symbol.clone()), GemValueStyle::Auto),
+        crypto_amount: GemFormattedNumber::amount(quote.crypto_amount, Some(quote.asset.symbol.clone()), ValueStyle::Auto),
         fiat_amount: GemFormattedNumber::currency_code(fiat_amount, quote.fiat_currency.clone(), GemCurrencyStyle::Fiat),
         rate: (quote.crypto_amount > 0.0).then(|| GemAssetRate {
             base_symbol: quote.asset.symbol.clone(),
@@ -107,7 +107,7 @@ pub fn transaction_row(data: &FiatTransactionAssetData) -> GemFiatTransactionRow
         subtitle: format!("{} ({})", data.asset.name, data.provider.name()),
         value: GemFormattedNumber {
             tone: status.tone,
-            ..GemFormattedNumber::amount(BigNumberFormatter::f64_value(&data.value, data.asset.decimals), Some(data.asset.symbol.clone()), GemValueStyle::Short)
+            ..GemFormattedNumber::amount(BigNumberFormatter::f64_value(&data.value, data.asset.decimals), Some(data.asset.symbol.clone()), ValueStyle::Short)
         },
         fiat_value: GemFormattedNumber::currency_code(data.fiat_amount, data.fiat_currency.clone(), GemCurrencyStyle::Fiat),
         badge: status.badge,

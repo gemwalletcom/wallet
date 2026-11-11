@@ -1,5 +1,7 @@
+use std::collections::HashMap;
+
 use primitives::hex;
-use primitives::unix_milliseconds;
+use primitives::unix_seconds;
 
 use zeroize::Zeroizing;
 
@@ -9,7 +11,7 @@ use crate::services::error::GemServiceError;
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemDeviceStreamRequest {
     pub url: String,
-    pub authorization: String,
+    pub headers: HashMap<String, String>,
 }
 
 pub struct GemDeviceRequestSigner {
@@ -27,19 +29,15 @@ impl GemDeviceRequestSigner {
         })
     }
 
-    pub fn sign(&self, method: String, path: String, wallet_id: String, body: Vec<u8>) -> Result<String, GemServiceError> {
-        let timestamp_ms = unix_milliseconds().map_err(GemServiceError::core)?;
-        gem_auth::build_device_auth_header(&self.private_key, &method, &path, &wallet_id, &body, timestamp_ms).map_err(GemServiceError::core)
-    }
-
     pub fn public_key_hex(&self) -> String {
         self.public_key_hex.clone()
     }
 
     pub fn device_stream_request(&self) -> Result<GemDeviceStreamRequest, GemServiceError> {
+        let created = unix_seconds().map_err(GemServiceError::core)?;
         Ok(GemDeviceStreamRequest {
             url: device_stream_url(),
-            authorization: self.sign("GET".to_string(), DEVICE_STREAM_PATH.to_string(), String::new(), Vec::new())?,
+            headers: gem_auth::sign_device_request(&self.private_key, "GET", DEVICE_STREAM_PATH, None, &[], created).map_err(GemServiceError::core)?,
         })
     }
 }
@@ -47,24 +45,20 @@ impl GemDeviceRequestSigner {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gem_encoding::decode_base64;
+    use gem_auth::DeviceSignature;
 
     #[test]
-    fn test_sign_header_uses_signer_key() {
+    fn test_device_stream_request_uses_signer_key() {
         let key_pair = crate::device::generate_device_key_pair();
         let signer = GemDeviceRequestSigner::new(key_pair.private_key).unwrap();
-        assert_eq!(signer.public_key_hex(), hex::encode(&key_pair.public_key));
-
-        let header = signer.sign("GET".into(), "/v3/devices".into(), "wallet".into(), Vec::new()).unwrap();
-        let payload = decode_base64(header.strip_prefix("Gem ").unwrap()).unwrap();
-        let parts: Vec<&str> = std::str::from_utf8(&payload).unwrap().splitn(5, '.').collect();
-        assert_eq!(parts[0], signer.public_key_hex());
-        assert_eq!(parts[2], "wallet");
-        assert_eq!(parts[3].len(), 64);
-        assert!(GemDeviceRequestSigner::new(vec![1, 2, 3]).is_err());
-
         let stream = signer.device_stream_request().unwrap();
-        assert_eq!(stream.url, "wss://api.gemwallet.com/v3/devices/stream");
-        assert!(stream.authorization.starts_with("Gem "));
+        let signature = DeviceSignature::from_fields(|name| stream.headers.get(name).map(String::as_str)).unwrap();
+
+        assert_eq!(signer.public_key_hex(), hex::encode(&key_pair.public_key));
+        assert_eq!(signature.device_id, signer.public_key_hex());
+        assert_eq!(signature.wallet_id, None);
+        assert!(signature.verify("GET", "/v1/devices/stream", None));
+        assert_eq!(stream.url, "wss://api.gemwallet.com/v1/devices/stream");
+        assert!(GemDeviceRequestSigner::new(vec![1, 2, 3]).is_err());
     }
 }

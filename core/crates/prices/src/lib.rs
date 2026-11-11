@@ -47,9 +47,6 @@ pub trait PriceAssetsProvider: Send + Sync {
     async fn get_charts_hourly(&self, _provider_price_id: &str, _duration: Duration) -> Result<Vec<ChartValue>, Box<dyn Error + Send + Sync>> {
         Ok(vec![])
     }
-    fn has_candles(&self) -> bool {
-        false
-    }
     async fn get_candles(&self, _provider_price_id: &str, _period: ChartPeriod) -> Result<Vec<ChartCandleStick>, Box<dyn Error + Send + Sync>> {
         Ok(vec![])
     }

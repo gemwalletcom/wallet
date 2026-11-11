@@ -455,7 +455,7 @@ private_key_export_reminder_do_not_share_subtitle = Żadna osoba, strona ani apl
 private_key_export_reminder_no_recovery_title = Nie możemy cofnąć kradzieży
 private_key_export_reminder_no_recovery_subtitle = Jeśli ktoś zabierze Twoje środki, nie da się ich zwrócić.
 private_key_scope_evm = Ten klucz kontroluje również Twoje konta we wszystkich sieciach EVM.
-private_key_accounts_info = Twoje tajne wyrażenie już tworzy kopię zapasową tych kont. Eksportuj klucz tylko, aby użyć jednego konta w innym portfelu.
+private_key_accounts_info = Twoje tajne zdanie już tworzy kopię zapasową tych kont. Eksportuj klucz tylko, aby użyć jednego konta w innym portfelu.
 
 # Social
 

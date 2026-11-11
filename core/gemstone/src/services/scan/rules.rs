@@ -1,9 +1,8 @@
+use gem_evm::transaction::decode_nft_collection_approval_operator;
 use primitives::{
-    AssetId, Chain, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, SimulationPayloadFieldKind, SimulationResult, SimulationSeverity, SimulationWarning, SimulationWarningType, TransactionInputType, TransactionPreloadInput,
+    AssetId, Chain, ChainType, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, SimulationPayloadFieldKind, SimulationResult, SimulationSeverity, SimulationWarning, SimulationWarningType, TransactionInputType, TransactionPreloadInput,
     TransactionType,
 };
-
-use crate::models::gateway::GemTransactionPreloadInput;
 
 fn requires_scan(input_type: &TransactionInputType) -> bool {
     match input_type {
@@ -18,17 +17,16 @@ fn requires_scan(input_type: &TransactionInputType) -> bool {
     }
 }
 
-pub fn transaction_payload(input: GemTransactionPreloadInput) -> Option<ScanTransactionPayload> {
+pub fn transaction_payload(input: &TransactionPreloadInput) -> Option<ScanTransactionPayload> {
     if !requires_scan(&input.input_type) {
         return None;
     }
-    let input: TransactionPreloadInput = input.into();
     Some(ScanTransactionPayload {
         origin: ScanAddressTarget {
             asset_id: input.input_type.get_asset().id.clone(),
             address: input.sender_address.clone(),
         },
-        target: scan_target(&input),
+        target: scan_target(input),
         website: input.get_website(),
         transaction_type: input.input_type.transaction_type(),
     })
@@ -49,6 +47,15 @@ fn scan_target(input: &TransactionPreloadInput) -> ScanAddressTarget {
         return ScanAddressTarget {
             asset_id: AssetId::from_token(asset.chain(), &approval.token),
             address: approval.spender.clone(),
+        };
+    }
+    if let TransactionInputType::Generic { asset, extra, .. } = &input.input_type
+        && asset.chain().chain_type() == ChainType::Ethereum
+        && let Some(operator) = extra.data.as_deref().and_then(decode_nft_collection_approval_operator)
+    {
+        return ScanAddressTarget {
+            asset_id: AssetId::from_token(asset.chain(), &extra.to),
+            address: operator.to_string(),
         };
     }
     ScanAddressTarget {
@@ -125,7 +132,7 @@ mod tests {
 
     #[test]
     fn test_a_swap_scans_the_contract_that_receives_the_funds() {
-        let swap = GemTransactionPreloadInput {
+        let swap = TransactionPreloadInput {
             input_type: TransactionInputType::Swap {
                 from_asset: Asset::mock_eth(),
                 to_asset: Asset::mock_spl_token(),
@@ -142,11 +149,11 @@ mod tests {
             references: vec![],
         };
 
-        let target = transaction_payload(swap.clone()).unwrap().target;
+        let target = transaction_payload(&swap).unwrap().target;
         assert_eq!(target.address, "0xrouter", "the scan asks about the contract, not the address the user already owns");
         assert_eq!(target.asset_id, Asset::mock_eth().id, "the contract is on the chain the funds leave");
 
-        let without_contract = transaction_payload(GemTransactionPreloadInput {
+        let without_contract = transaction_payload(&TransactionPreloadInput {
             input_type: TransactionInputType::Swap {
                 from_asset: Asset::mock_eth(),
                 to_asset: Asset::mock_spl_token(),
@@ -165,7 +172,7 @@ mod tests {
 
     #[test]
     fn test_a_dapp_approval_scans_the_spender_and_the_token() {
-        let approval = GemTransactionPreloadInput {
+        let approval = TransactionPreloadInput {
             input_type: TransactionInputType::Generic {
                 asset: Asset::mock_eth(),
                 metadata: ApplicationMetadata::mock(),
@@ -184,14 +191,43 @@ mod tests {
             references: vec![],
         };
 
-        let target = transaction_payload(approval).unwrap().target;
+        let target = transaction_payload(&approval).unwrap().target;
         assert_eq!(target.address, "0xspender", "the scan asks about who can spend, not the contract called");
         assert_eq!(target.asset_id, AssetId::from_token(Chain::Ethereum, "0xtoken"));
     }
 
     #[test]
+    fn test_a_dapp_collection_approval_scans_the_operator_and_the_collection() {
+        let collection = "0x1111111111111111111111111111111111111111";
+        let operator = "0x2222222222222222222222222222222222222222";
+        let collection_approval = |approved: &str| TransactionPreloadInput {
+            input_type: TransactionInputType::Generic {
+                asset: Asset::mock_eth(),
+                metadata: ApplicationMetadata::mock(),
+                extra: TransferDataExtra {
+                    to: collection.to_string(),
+                    data: Some(primitives::hex::decode(format!("a22cb465{:0>64}{approved:0>64}", &operator[2..])).unwrap()),
+                    transaction_type: TransactionType::SmartContractCall,
+                    ..TransferDataExtra::mock()
+                },
+            },
+            sender_address: "sender".to_string(),
+            destination_address: collection.to_string(),
+            references: vec![],
+        };
+
+        let granted = transaction_payload(&collection_approval("1")).unwrap().target;
+        assert_eq!(granted.address, operator, "the scan asks about who can move the collection, not the collection");
+        assert_eq!(granted.asset_id, AssetId::from_token(Chain::Ethereum, collection));
+
+        let revoked = transaction_payload(&collection_approval("0")).unwrap().target;
+        assert_eq!(revoked.address, collection, "a revoke grants nothing, so the contract called stays the target");
+        assert_eq!(revoked.asset_id, Asset::mock_eth().id);
+    }
+
+    #[test]
     fn test_scan_payload_covers_every_input_type() {
-        let swap = GemTransactionPreloadInput {
+        let swap = TransactionPreloadInput {
             input_type: TransactionInputType::Swap {
                 from_asset: Asset::mock_sol(),
                 to_asset: Asset::mock_spl_token(),
@@ -201,12 +237,12 @@ mod tests {
             destination_address: "router".to_string(),
             references: vec![],
         };
-        let payload = transaction_payload(swap).unwrap();
+        let payload = transaction_payload(&swap).unwrap();
         assert_eq!(payload.transaction_type, TransactionType::Swap);
         assert_eq!(payload.origin.asset_id, Asset::mock_sol().id);
         assert_eq!(payload.website, None);
 
-        let generic = GemTransactionPreloadInput {
+        let generic = TransactionPreloadInput {
             input_type: TransactionInputType::Generic {
                 asset: Asset::mock_sol(),
                 metadata: ApplicationMetadata::mock(),
@@ -216,7 +252,7 @@ mod tests {
             destination_address: "contract".to_string(),
             references: vec![],
         };
-        let payload = transaction_payload(generic).unwrap();
+        let payload = transaction_payload(&generic).unwrap();
         assert_eq!(payload.transaction_type, TransferDataExtra::mock().transaction_type);
         assert_eq!(payload.website, Some(ApplicationMetadata::mock().url));
     }

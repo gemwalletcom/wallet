@@ -386,7 +386,7 @@
   <string name="private_key_export_reminder_no_recovery_title">Nie możemy cofnąć kradzieży</string>
   <string name="private_key_export_reminder_no_recovery_subtitle">Jeśli ktoś zabierze Twoje środki, nie da się ich zwrócić.</string>
   <string name="private_key_scope_evm">Ten klucz kontroluje również Twoje konta we wszystkich sieciach EVM.</string>
-  <string name="private_key_accounts_info">Twoje tajne wyrażenie już tworzy kopię zapasową tych kont. Eksportuj klucz tylko, aby użyć jednego konta w innym portfelu.</string>
+  <string name="private_key_accounts_info">Twoje tajne zdanie już tworzy kopię zapasową tych kont. Eksportuj klucz tylko, aby użyć jednego konta w innym portfelu.</string>
   <string name="social_x">X (dawniej Twitter)</string>
   <string name="social_discord">Discord</string>
   <string name="social_reddit">Reddit</string>

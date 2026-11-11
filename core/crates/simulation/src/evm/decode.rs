@@ -8,10 +8,11 @@ use super::{
     approval_value::ApprovalValue,
 };
 use gem_evm::{
-    contracts::{IERC20, IERC721, IERC1155},
+    contracts::IERC20,
     eip712::{EIP712Field, EIP712Message, EIP712TypedValue, find_field_biguint, find_field_bool, find_field_string, find_field_struct},
     ethereum_address_checksum,
     permit2::IAllowanceTransfer,
+    transaction::decode_nft_collection_approval_operator,
     uniswap::deployment::is_permit2_contract_by_chain,
 };
 
@@ -89,18 +90,8 @@ pub(crate) fn decode_evm_approval(chain: Chain, calldata: &[u8], contract_addres
         );
     }
 
-    if calldata.starts_with(&<IERC721::setApprovalForAllCall as SolCall>::SELECTOR)
-        && let Ok(call) = <IERC721::setApprovalForAllCall as SolCall>::abi_decode(calldata)
-        && call.approved
-    {
-        return ApprovalRequest::nft_collection(chain, contract_address, format!("{:#x}", call.operator));
-    }
-
-    if calldata.starts_with(&<IERC1155::setApprovalForAllCall as SolCall>::SELECTOR)
-        && let Ok(call) = <IERC1155::setApprovalForAllCall as SolCall>::abi_decode(calldata)
-        && call.approved
-    {
-        return ApprovalRequest::nft_collection(chain, contract_address, format!("{:#x}", call.operator));
+    if let Some(operator) = decode_nft_collection_approval_operator(calldata) {
+        return ApprovalRequest::nft_collection(chain, contract_address, format!("{operator:#x}"));
     }
 
     None

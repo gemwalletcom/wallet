@@ -516,6 +516,10 @@ struct Migrations {
             try db.alter(table: table) { $0.drop(column: "legacyExtendedPublicKey") }
         }
 
+        migrator.registerMigration("Add hasCandles to \(AssetRecord.databaseTableName)") { db in
+            try db.addColumnIfMissing(AssetRecord.Columns.hasCandles.name, .boolean, to: AssetRecord.databaseTableName) { $0.defaults(to: false) }
+        }
+
         try migrator.migrate(dbQueue)
     }
 }

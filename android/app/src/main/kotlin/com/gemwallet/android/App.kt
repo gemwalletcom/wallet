@@ -9,7 +9,6 @@ import coil3.disk.DiskCache
 import coil3.disk.directory
 import coil3.memory.MemoryCache
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
-import coil3.svg.SvgDecoder
 import com.gemwallet.android.application.assets.cases.GetActiveAssetsInfo
 import com.gemwallet.android.application.transactions.cases.GetTransactions
 import dagger.hilt.android.HiltAndroidApp
@@ -40,7 +39,6 @@ class App :
     override fun newImageLoader(context: PlatformContext): ImageLoader = ImageLoader.Builder(this)
         .components {
             add(OkHttpNetworkFetcherFactory(callFactory = ::imageHttpClient))
-            add(SvgDecoder.Factory())
         }
         .memoryCache {
             MemoryCache.Builder()

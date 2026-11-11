@@ -1,10 +1,8 @@
 use number_formatter::{BigNumberFormatter, precision::round_to_places};
-use primitives::swap::{SwapPriceImpact, SwapPriceImpactType, SwapQuoteData};
+use primitives::swap::{SwapPriceImpact, SwapPriceImpactType};
 
 use crate::config::swap_config::get_swap_config;
 use crate::models::custom_types::GemBigUint;
-
-pub type GemSwapQuoteData = SwapQuoteData;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum GemSlippageCheck {

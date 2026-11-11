@@ -68,6 +68,7 @@ struct MigrationsTests {
             #expect(assetColumns.contains(where: { $0.name == AssetRecord.Columns.isStakeable.name }))
             #expect(assetColumns.contains(where: { $0.name == AssetRecord.Columns.isEarnable.name }))
             #expect(assetColumns.contains(where: { $0.name == AssetRecord.Columns.earnApr.name }))
+            #expect(assetColumns.contains(where: { $0.name == AssetRecord.Columns.hasCandles.name }))
             #expect(assetColumns.contains(where: { $0.name == AssetRecord.Columns.rank.name }))
 
             let validatorColumns = try db.columns(in: StakeValidatorRecord.databaseTableName)

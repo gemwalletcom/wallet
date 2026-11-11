@@ -29,9 +29,9 @@ import com.gemwallet.android.ui.theme.space6
 import com.wallet.core.primitives.ChartPeriod
 
 @Composable
-fun PeriodsPanel(period: ChartPeriod, onSelect: (ChartPeriod) -> Unit, periods: List<ChartPeriod>, modifier: Modifier = Modifier) {
+fun PeriodsPanel(period: ChartPeriod, onSelect: (ChartPeriod) -> Unit, periods: List<ChartPeriod>) {
     Row(
-        modifier = modifier.padding(start = paddingDefault, end = paddingDefault, bottom = paddingDefault),
+        modifier = Modifier.padding(start = paddingDefault, end = paddingDefault, bottom = paddingDefault),
         horizontalArrangement = Arrangement.spacedBy(space0),
         verticalAlignment = Alignment.CenterVertically,
     ) {

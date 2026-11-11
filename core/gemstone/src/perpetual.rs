@@ -7,7 +7,6 @@ use primitives::known_assets::{ARBITRUM_USDC, HYPERCORE_SPOT_USDC};
 use primitives::{Asset, AutocloseEstimator as Estimator, AutocloseValidation, PerpetualAccountMode, PerpetualDirection, PerpetualProvider, PerpetualType, TpslType};
 
 use crate::formatted_number::GemFormattedNumber;
-use crate::models::GemAsset;
 use crate::models::custom_types::GemBigInt;
 use crate::models::perpetual::GemPerpetualSubscription;
 use crate::services::error::GemServiceError;
@@ -91,7 +90,7 @@ impl GemPerpetual {
         }
     }
 
-    pub fn transfer_data(&self, asset: GemAsset, perpetual_type: PerpetualType, value: GemBigInt, use_max_amount: bool) -> GemTransferData {
+    pub fn transfer_data(&self, asset: Asset, perpetual_type: PerpetualType, value: GemBigInt, use_max_amount: bool) -> GemTransferData {
         GemTransferData {
             input_type: TransactionInputType::Perpetual { asset, perpetual_type },
             recipient: self.recipient(),

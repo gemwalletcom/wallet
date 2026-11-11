@@ -303,7 +303,7 @@ pub use self::tpsl_type::TpslType;
 pub mod autoclose_validator;
 pub use self::autoclose_validator::{AutocloseEstimator, AutocloseValidation, AutocloseValidator};
 pub mod chart;
-pub use self::chart::{ChartCandleStick, ChartCandleUpdate, ChartDateValue};
+pub use self::chart::{ChartCandleStick, ChartCandleStickVecExt, ChartCandleUpdate, ChartDateValue};
 pub mod delegation;
 pub use self::delegation::{Delegation, DelegationBase, DelegationState, DelegationValidator};
 pub mod contract_call_data;

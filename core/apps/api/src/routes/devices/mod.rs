@@ -19,10 +19,10 @@ use axum::Router;
 use axum::middleware::from_fn_with_state;
 use axum::routing::{get, post};
 
-use crate::auth::device::{DeviceAuth, SignedPath, device_auth};
+use crate::auth::device::{DeviceAuth, DeviceAuthScheme, SignedPath, device_auth};
 use crate::state::AppState;
 
-fn authenticated(router: Router<AppState>, state: &AppState, limit: usize, scheme: SignedPath) -> Router<AppState> {
+fn authenticated(router: Router<AppState>, state: &AppState, limit: usize, scheme: DeviceAuthScheme) -> Router<AppState> {
     let auth = DeviceAuth {
         config: state.0.auth_config.clone(),
         limit,
@@ -31,7 +31,16 @@ fn authenticated(router: Router<AppState>, state: &AppState, limit: usize, schem
     router.layer(from_fn_with_state(auth, device_auth))
 }
 
+pub fn v1_router(state: &AppState, limit: usize) -> Router<AppState> {
+    device_router(state, limit, DeviceAuthScheme::HttpSignature)
+}
+
+// legacy: remove with /v2 and /v3
 pub fn v3_router(state: &AppState, limit: usize) -> Router<AppState> {
+    device_router(state, limit, DeviceAuthScheme::Gem(SignedPath::PathAndQuery))
+}
+
+fn device_router(state: &AppState, limit: usize, scheme: DeviceAuthScheme) -> Router<AppState> {
     let routes = Router::new()
         .route("/", post(device::register).get(device::get_device).put(device::update))
         .route("/is-registered", get(device::is_registered))
@@ -62,9 +71,10 @@ pub fn v3_router(state: &AppState, limit: usize) -> Router<AppState> {
         .route("/portfolio/assets", post(portfolio::get_portfolio_assets))
         .route("/support/messages", get(support::get_messages).post(support::post_message));
     let images = Router::new().route("/support/messages/images", post(support::post_image));
-    authenticated(routes, state, limit, SignedPath::PathAndQuery).merge(authenticated(images, state, support::MAX_SUPPORT_IMAGE_BYTES, SignedPath::PathAndQuery))
+    authenticated(routes, state, limit, scheme).merge(authenticated(images, state, support::MAX_SUPPORT_IMAGE_BYTES, scheme))
 }
 
+// legacy: remove with /v2 and /v3
 pub fn v2_router(state: &AppState, limit: usize) -> Router<AppState> {
     let routes = Router::new()
         .route("/", post(device::register).get(device::get_device).put(device::update))
@@ -103,5 +113,6 @@ pub fn v2_router(state: &AppState, limit: usize) -> Router<AppState> {
         .route("/support/messages", get(support::get_messages).post(support::post_message))
         .route("/support/action", post(support::post_action));
     let images = Router::new().route("/support/messages/images", post(support::post_image));
-    authenticated(routes, state, limit, SignedPath::PathOnly).merge(authenticated(images, state, support::MAX_SUPPORT_IMAGE_BYTES, SignedPath::PathOnly))
+    let scheme = DeviceAuthScheme::Gem(SignedPath::PathOnly);
+    authenticated(routes, state, limit, scheme).merge(authenticated(images, state, support::MAX_SUPPORT_IMAGE_BYTES, scheme))
 }

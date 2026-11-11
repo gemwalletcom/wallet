@@ -6,8 +6,6 @@ pub use swapper::{
     SwapperProvider, SwapperProviderMode, SwapperQuoteAsset, SwapperSlippage, SwapperSlippageMode,
 };
 
-pub use crate::models::swap::GemSwapQuoteData;
-
 #[uniffi::remote(Record)]
 pub struct SwapperProviderType {
     pub id: SwapperProvider,

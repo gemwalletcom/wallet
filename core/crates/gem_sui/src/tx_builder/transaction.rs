@@ -8,7 +8,7 @@ use gem_encoding::decode_base64;
 use serde::de::DeserializeOwned;
 use std::{error::Error, str::FromStr};
 use sui_transaction_builder::{Argument, Function, TransactionBuilder};
-use sui_types::{Address, Identifier, TypeTag};
+use sui_types::{Address, Identifier, StructTag, TypeTag};
 
 const MODULE_COIN: &str = "coin";
 const FUNCTION_ZERO: &str = "zero";
@@ -38,6 +38,25 @@ pub(crate) fn build_amount_coin(txb: &mut TransactionBuilder, coin_type_tag: Typ
     txb.split_coins(primary, vec![amount_arg]).pop().ok_or_else(|| SuiError::invalid_input("Sui split coin failed"))
 }
 
+pub(crate) fn build_sui_gas_coin(txb: &mut TransactionBuilder, address_balance: u64) -> Argument {
+    let gas = txb.gas();
+    if address_balance > 0 {
+        let withdrawn = txb.funds_withdrawal_coin(StructTag::sui().into(), address_balance);
+        txb.merge_coins(gas, vec![withdrawn]);
+    }
+    gas
+}
+
+pub(crate) fn build_sui_amount_coin(txb: &mut TransactionBuilder, amount: u64, address_balance: u64) -> Result<Argument, SuiError> {
+    if address_balance >= amount {
+        return Ok(txb.funds_withdrawal_coin(StructTag::sui().into(), amount));
+    }
+
+    let gas = build_sui_gas_coin(txb, address_balance);
+    let amount_arg = txb.pure(&amount);
+    txb.split_coins(gas, vec![amount_arg]).pop().ok_or_else(|| SuiError::invalid_input("Sui split coin failed"))
+}
+
 pub fn move_call(txb: &mut TransactionBuilder, package: Address, module: &str, function: &str, type_args: &[&str], arguments: Vec<Argument>) -> Result<Argument, SuiError> {
     let type_args = type_args
         .iter()
@@ -57,9 +76,7 @@ pub fn build_input_coin(txb: &mut TransactionBuilder, coin_type: &str, amount: u
     }
 
     if is_sui_coin(coin_type) {
-        let amount_arg = txb.pure(&amount);
-        let gas = txb.gas();
-        return txb.split_coins(gas, vec![amount_arg]).pop().ok_or_else(|| SuiError::invalid_input("Sui split coin failed"));
+        return build_sui_amount_coin(txb, amount, source.address_balance);
     }
 
     if source.total() < amount {

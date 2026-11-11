@@ -196,6 +196,7 @@ public extension AssetProperties {
         isEarnable: Bool = false,
         earnApr: Double? = nil,
         hasImage: Bool = false,
+        hasCandles: Bool = false,
     ) -> AssetProperties {
         AssetProperties(
             isEnabled: isEnabled,
@@ -207,6 +208,7 @@ public extension AssetProperties {
             isEarnable: isEarnable,
             earnApr: earnApr,
             hasImage: hasImage,
+            hasCandles: hasCandles,
         )
     }
 }

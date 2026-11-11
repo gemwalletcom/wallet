@@ -5,7 +5,7 @@ use coingecko::{
     Coin, CoinInfo, CoinMarket, get_asset_ids_for_coin,
     model::{MarketChart, Ohlc},
 };
-use primitives::{AssetId, AssetLink, AssetMarket, ChartCandleStick, ChartPeriod, ChartValue, ChartValuePercentage, LinkType, OptionStringExt, PriceProvider};
+use primitives::{AssetId, AssetLink, AssetMarket, ChartCandleStick, ChartCandleStickVecExt, ChartPeriod, ChartValue, ChartValuePercentage, LinkType, OptionStringExt, PriceProvider};
 
 use crate::{AssetPriceFull, AssetPriceMapping, PriceProviderAsset, PriceProviderAssetMetadata};
 
@@ -20,7 +20,7 @@ pub fn ohlc_days(period: ChartPeriod) -> &'static str {
 }
 
 pub fn map_ohlc(candles: Vec<Ohlc>) -> Vec<ChartCandleStick> {
-    candles
+    let candles: Vec<ChartCandleStick> = candles
         .into_iter()
         .filter_map(|(timestamp, open, high, low, close)| {
             Some(ChartCandleStick {
@@ -32,7 +32,9 @@ pub fn map_ohlc(candles: Vec<Ohlc>) -> Vec<ChartCandleStick> {
                 volume: 0.0,
             })
         })
-        .collect()
+        .collect();
+    let interval = candles.interval().unwrap_or_default();
+    candles.into_iter().map(|candle| ChartCandleStick { date: candle.date - interval, ..candle }).collect()
 }
 
 pub fn map_market_chart(chart: MarketChart) -> Vec<ChartValue> {
@@ -218,6 +220,37 @@ mod tests {
     use primitives::Chain;
 
     use super::*;
+
+    #[test]
+    fn test_map_ohlc() {
+        let month: Vec<Ohlc> = serde_json::from_str(include_str!("../../../testdata/coingecko/ohlc_30_days.json")).unwrap();
+        let candles = map_ohlc(month);
+
+        assert_eq!(candles.len(), 180);
+        assert_eq!(candles[0].date, DateTime::from_timestamp(1_791_820_800, 0).unwrap(), "CoinGecko's close time becomes the open time");
+
+        assert_eq!(
+            map_ohlc(vec![(1_700_001_000_000, 1.0, 2.0, 0.5, 1.5), (1_700_002_800_000, 1.5, 3.0, 1.0, 2.5)]),
+            vec![
+                ChartCandleStick {
+                    date: DateTime::from_timestamp(1_699_999_200, 0).unwrap(),
+                    open: 1.0,
+                    high: 2.0,
+                    low: 0.5,
+                    close: 1.5,
+                    volume: 0.0,
+                },
+                ChartCandleStick {
+                    date: DateTime::from_timestamp(1_700_001_000, 0).unwrap(),
+                    open: 1.5,
+                    high: 3.0,
+                    low: 1.0,
+                    close: 2.5,
+                    volume: 0.0,
+                },
+            ]
+        );
+    }
 
     #[test]
     fn test_map_coin_markets_preserves_platform_mappings() {

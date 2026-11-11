@@ -5,15 +5,8 @@ use primitives::hex;
 use crate::sign_type::{SignDigestType, SignMessage};
 
 pub fn decode_sign_message(chain: Chain, sign_type: SignDigestType, data: String) -> SignMessage {
-    let mut utf8_value = None;
-    let message_data = if let Some(stripped) = data.strip_prefix("0x") {
-        hex::decode(stripped).unwrap_or_else(|_| data.as_bytes().to_vec())
-    } else {
-        utf8_value = Some(data.clone());
-        data.into_bytes()
-    };
-
-    let raw_text = utf8_value.or_else(|| String::from_utf8(message_data.clone()).ok()).unwrap_or_default();
+    let message_data = decode_message_bytes(&data);
+    let raw_text = String::from_utf8(message_data.clone()).unwrap_or_default();
 
     if sign_type == SignDigestType::Eip191
         && let Some(siwe_message) = decode_siwe_message(chain, &raw_text, &message_data)
@@ -22,6 +15,13 @@ pub fn decode_sign_message(chain: Chain, sign_type: SignDigestType, data: String
     }
 
     SignMessage { chain, sign_type, data: message_data }
+}
+
+pub(crate) fn decode_message_bytes(data: &str) -> Vec<u8> {
+    match data.strip_prefix("0x") {
+        Some(stripped) => hex::decode(stripped).unwrap_or_else(|_| data.as_bytes().to_vec()),
+        None => data.as_bytes().to_vec(),
+    }
 }
 
 fn decode_siwe_message(chain: Chain, raw_text: &str, message_data: &[u8]) -> Option<SignMessage> {

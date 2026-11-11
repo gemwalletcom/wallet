@@ -125,8 +125,8 @@ mod tests {
     use super::super::error::GemConfirmError;
     use super::super::model::GemApprovalValue;
     use crate::formatted_number::GemFormattedNumber;
-    use crate::precision::GemValueStyle;
     use crate::services::assets::model::{GemRowText, GemValueHeaderIcon};
+    use number_formatter::ValueStyle;
 
     use super::*;
 
@@ -262,7 +262,7 @@ mod tests {
         assert_eq!(
             amount_header(header(&request, Some(&simulation), None, Currency::USD, &ready())).title,
             GemLocalizedText::Number {
-                number: GemFormattedNumber::asset_amount(&150_000u32.into(), &asset, GemValueStyle::Auto)
+                number: GemFormattedNumber::asset_amount(&150_000u32.into(), &asset, ValueStyle::Auto)
             },
             "an approval that also sends coins is reviewed by the coins it sends"
         );
@@ -278,7 +278,7 @@ mod tests {
         assert_eq!(
             amount_header(header(&sent, None, None, Currency::USD, &ready())).title,
             GemLocalizedText::Number {
-                number: GemFormattedNumber::asset_amount(&150_000u32.into(), &Asset::mock(), GemValueStyle::Auto)
+                number: GemFormattedNumber::asset_amount(&150_000u32.into(), &Asset::mock(), ValueStyle::Auto)
             },
             "the head is not empty while the fee loads"
         );
@@ -287,9 +287,8 @@ mod tests {
     #[test]
     fn test_a_swap_shows_what_it_will_send_once_the_fee_is_known() {
         use super::super::model::GemConfirmFee;
-        use crate::transfer_amount::GemTransferAmount;
-        use primitives::SwapProvider;
         use primitives::swap::SwapData;
+        use primitives::{SwapProvider, TransferAmount};
         let deposit = transfer(TransactionInputType::Swap {
             from_asset: Asset::mock_eth(),
             to_asset: Asset::mock_erc20(),
@@ -297,7 +296,7 @@ mod tests {
         });
         let sent = GemConfirmLoad {
             fee: Some(GemConfirmFee::mock(GemTransferAmountResult::Amount {
-                amount: GemTransferAmount {
+                amount: TransferAmount {
                     value: 990.into(),
                     network_fee: 10.into(),
                     is_max_amount: true,
@@ -309,7 +308,7 @@ mod tests {
             GemTransactionHeader::Swap { from, .. } => from.amount,
             other => panic!("expected a swap header, got {other:?}"),
         };
-        let amount = |value: u32| GemAmountSign::None.amount(&value.into(), &Asset::mock_eth(), GemValueStyle::Auto);
+        let amount = |value: u32| GemAmountSign::None.amount(&value.into(), &Asset::mock_eth(), ValueStyle::Auto);
 
         assert_eq!(from(None), amount(1_000), "the quoted amount until the fee is known");
         assert_eq!(from(Some(&sent)), amount(990), "then the amount that leaves the wallet");
@@ -400,7 +399,7 @@ mod tests {
         assert_eq!(
             exact.header.title,
             GemLocalizedText::Number {
-                number: GemFormattedNumber::asset_amount(&1_234_567u32.into(), &usdt, GemValueStyle::Full)
+                number: GemFormattedNumber::asset_amount(&1_234_567u32.into(), &usdt, ValueStyle::Full)
             }
         );
     }

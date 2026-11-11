@@ -1,9 +1,9 @@
 use primitives::name::{NameRecord, is_name};
-use primitives::{Asset, Chain, ChainAsset, ContactData, WalletAddressItem, WalletType};
+use primitives::{AddressFormatStyle, Asset, Chain, ChainAsset, ContactData, WalletAddressItem, WalletType};
 
 use super::model::{GemRecipientError, GemRecipientErrorDisplay, GemRecipientNext, GemRecipientRow, GemRecipientScan, GemRecipientSection, GemRecipientSectionKind, GemRecipientType, GemRecipientValidation};
 use crate::address::parse_address;
-use crate::address_formatter::{GemAddressFormatStyle, format_address};
+use crate::address_formatter::format_address;
 use crate::models::custom_types::GemBigInt;
 use crate::payment::{GemPaymentRecipient, GemPaymentStep};
 use crate::services::name::GemNameRecordState;
@@ -149,7 +149,7 @@ pub fn recipient_sections(wallets: Vec<WalletAddressItem>, chain: Chain, contact
 fn recipient_row(chain: Chain, recipient: GemRecipient) -> GemRecipientRow {
     GemRecipientRow {
         title: recipient.name.clone().unwrap_or_default(),
-        subtitle: format_address(&recipient.address, Some(chain), GemAddressFormatStyle::Short),
+        subtitle: format_address(&recipient.address, Some(chain), AddressFormatStyle::Short),
         recipient,
     }
 }
@@ -474,7 +474,7 @@ mod tests {
             sections[1].rows,
             vec![GemRecipientRow {
                 title: "Alice".to_string(),
-                subtitle: format_address("0x71C7656EC7ab88b098defB751B7401B5f6d8976F", Some(Chain::Ethereum), GemAddressFormatStyle::Short),
+                subtitle: format_address("0x71C7656EC7ab88b098defB751B7401B5f6d8976F", Some(Chain::Ethereum), AddressFormatStyle::Short),
                 recipient: alice,
             }]
         );
