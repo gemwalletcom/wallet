@@ -14,9 +14,9 @@ use crate::models::list::GemProviderRow;
 use crate::models::list::{GemInfoTopic, GemListRow, GemListRowTitle};
 use crate::models::swap::GemSwapValue;
 use crate::percentage::GemPercentageStyle;
-use crate::precision::GemValueStyle;
 use crate::services::localization::GemLocalizedText;
 use num_bigint::BigInt;
+use number_formatter::ValueStyle;
 use primitives::swap::SwapPriceImpact;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -80,7 +80,7 @@ impl GemSwapQuoteSummary {
             }),
             Some(GemListRow::Amount {
                 title: GemListRowTitle::MinimumReceive,
-                amount: GemFormattedNumber::asset_amount(&BigInt::from(self.min_receive_value.clone()), receive_asset, GemValueStyle::Auto),
+                amount: GemFormattedNumber::asset_amount(&BigInt::from(self.min_receive_value.clone()), receive_asset, ValueStyle::Auto),
                 info: None,
             }),
             Some(GemListRow::Label {

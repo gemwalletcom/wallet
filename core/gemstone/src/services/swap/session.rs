@@ -1,7 +1,7 @@
 use crate::models::button::GemButtonState;
 use crate::services::assets::icon::asset_icon;
-use number_formatter::BigNumberFormatter;
 use number_formatter::precision::round_to_places;
+use number_formatter::{BigNumberFormatter, ValueStyle};
 use primitives::{Asset, AssetData, AssetId, Currency};
 use swapper::config::quote_preferences;
 use swapper::{Quote as SwapperQuote, QuoteRequest as SwapperQuoteRequest, SwapperError, SwapperProvider, rank_quotes};
@@ -13,7 +13,7 @@ use crate::formatted_number::GemFormattedNumber;
 use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::list::{GemInfoTopic, GemProviderKind, GemProviderLoadingRow, GemProviderRow};
 use crate::models::swap::GemSwapValue;
-use crate::precision::{GemCurrencyStyle, GemValueStyle};
+use crate::precision::GemCurrencyStyle;
 use crate::services::amount::model::GemNumberFormat;
 use crate::services::assets::rules::fiat_amount_of;
 use crate::services::balance::GemAssetBalance;
@@ -302,7 +302,7 @@ impl GemSwapErrorDisplay {
             SwapperError::Offline => Self::Offline,
             SwapperError::InputAmountError { .. } => match (pay_asset, rules::minimum_amount(Some(error))) {
                 (Some(asset), Some(min_amount)) => Self::MinimumAmount {
-                    minimum: GemFormattedNumber::asset_amount(&min_amount, asset, GemValueStyle::Auto),
+                    minimum: GemFormattedNumber::asset_amount(&min_amount, asset, ValueStyle::Auto),
                 },
                 _ => Self::AmountTooSmall,
             },
@@ -394,7 +394,7 @@ pub(super) fn provider_row(provider: SwapperProvider, name: String, to_value: &G
     GemProviderRow {
         kind: GemProviderKind::Swap { provider },
         name,
-        amount: GemFormattedNumber::amount(value, Some(receive_asset.symbol.clone()), GemValueStyle::Auto),
+        amount: GemFormattedNumber::amount(value, Some(receive_asset.symbol.clone()), ValueStyle::Auto),
         fiat: receive_price.map(|price| GemFormattedNumber::currency(value * price, currency.clone(), GemCurrencyStyle::Currency)),
         is_selected,
     }
@@ -552,7 +552,7 @@ impl GemSwapSession {
 }
 
 fn receive_amount(quote: &SwapperQuote) -> GemFormattedNumber {
-    GemFormattedNumber::amount(BigNumberFormatter::f64_value(&quote.to_value, quote.request.to_asset.decimals), None, GemValueStyle::Auto)
+    GemFormattedNumber::amount(BigNumberFormatter::f64_value(&quote.to_value, quote.request.to_asset.decimals), None, ValueStyle::Auto)
 }
 
 impl GemSwapSession {
@@ -847,7 +847,7 @@ mod tests {
         assert_eq!(GemSwapErrorDisplay::AmountTooSmall.info(), None);
         assert_eq!(
             GemSwapErrorDisplay::MinimumAmount {
-                minimum: GemFormattedNumber::asset_amount(&GemBigInt::from(1), &Asset::from_chain(Chain::Ethereum), GemValueStyle::Auto),
+                minimum: GemFormattedNumber::asset_amount(&GemBigInt::from(1), &Asset::from_chain(Chain::Ethereum), ValueStyle::Auto),
             }
             .info(),
             None
@@ -861,7 +861,7 @@ mod tests {
         assert_eq!(
             display(Some("123456"), Some(&asset)),
             GemSwapErrorDisplay::MinimumAmount {
-                minimum: GemFormattedNumber::asset_amount(&GemBigInt::from(123456), &asset, GemValueStyle::Auto),
+                minimum: GemFormattedNumber::asset_amount(&GemBigInt::from(123456), &asset, ValueStyle::Auto),
             }
         );
         assert_eq!(display(Some("123456"), None), GemSwapErrorDisplay::AmountTooSmall);

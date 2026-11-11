@@ -29,6 +29,7 @@ import com.gemwallet.android.ui.models.navigation.RouteMessage
 import com.gemwallet.android.ui.navigation.routes.AmountRoute
 import com.gemwallet.android.ui.navigation.routes.AssetPriceAlertsRoute
 import com.gemwallet.android.ui.navigation.routes.AssetRoute
+import com.gemwallet.android.ui.navigation.routes.AssetsResultsRoute
 import com.gemwallet.android.ui.navigation.routes.ConfirmTransferRoute
 import com.gemwallet.android.ui.navigation.routes.DelegationRoute
 import com.gemwallet.android.ui.navigation.routes.ExportPrivateKeyRoute
@@ -70,6 +71,7 @@ import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.Json
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -82,6 +84,7 @@ import uniffi.gemstone.GemDeeplinkService
 import uniffi.gemstone.GemNavigationServiceInterface
 import uniffi.gemstone.GemNavigationTab
 import uniffi.gemstone.GemNavigationTarget
+import uniffi.gemstone.GemSearchScope
 import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemWalletImportKind
 import uniffi.gemstone.GemWalletSecretKind
@@ -439,6 +442,13 @@ class WalletNavigatorTest {
         ).dropNonRestorableRoutes(WalletRootRoute)
 
         assertEquals(listOf(WalletRootRoute, AssetRoute(assetId)), restored)
+    }
+
+    @Test
+    fun assetsResultsRoute_roundTripsWithoutTheRecordModule() {
+        val route = AssetsResultsRoute(query = "", scope = GemSearchScope.List("trending"), title = "Trending")
+
+        assertEquals(route, Json.decodeFromString(AssetsResultsRoute.serializer(), Json.encodeToString(AssetsResultsRoute.serializer(), route)))
     }
 
     @Test

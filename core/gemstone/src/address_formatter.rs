@@ -1,8 +1,6 @@
 use primitives::{AddressFormatStyle, AddressFormatter, Chain};
 
-pub type GemAddressFormatStyle = AddressFormatStyle;
-
-pub fn format_address(address: &str, chain: Option<Chain>, style: GemAddressFormatStyle) -> String {
+pub fn format_address(address: &str, chain: Option<Chain>, style: AddressFormatStyle) -> String {
     AddressFormatter::format(address, chain, style)
 }
 

@@ -11,19 +11,21 @@ import uniffi.gemstone.FfiConverter
 import uniffi.gemstone.FfiConverterTypeGemPaymentRecipient
 import uniffi.gemstone.FfiConverterTypeGemPerpetualPositionAction
 import uniffi.gemstone.FfiConverterTypeGemRecipient
+import uniffi.gemstone.FfiConverterTypeGemSearchScope
 import uniffi.gemstone.FfiConverterTypeGemStakeAmountInput
 import uniffi.gemstone.FfiConverterTypeGemTransferData
 import uniffi.gemstone.FfiConverterTypePaymentLink
 import uniffi.gemstone.GemPaymentRecipient
 import uniffi.gemstone.GemPerpetualPositionAction
 import uniffi.gemstone.GemRecipient
+import uniffi.gemstone.GemSearchScope
 import uniffi.gemstone.GemStakeAmountInput
 import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.PaymentLink
 import java.nio.ByteBuffer
 import java.util.Base64
 
-class GemRecordSerializer<T : Any>(private val converter: FfiConverter<T, *>, name: String) : KSerializer<T> {
+open class GemRecordSerializer<T : Any>(private val converter: FfiConverter<T, *>, name: String) : KSerializer<T> {
 
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor(name, PrimitiveKind.STRING)
 
@@ -41,6 +43,8 @@ class GemRecordSerializer<T : Any>(private val converter: FfiConverter<T, *>, na
     }
 }
 
+object GemSearchScopeSerializer : GemRecordSerializer<GemSearchScope>(FfiConverterTypeGemSearchScope, "GemSearchScope")
+
 inline fun <reified T : Any> gemRecordSerializer(converter: FfiConverter<T, *>): GemRecordSerializer<T> = GemRecordSerializer(converter, T::class.java.simpleName)
 
 val gemRecordSerializers = SerializersModule {
@@ -50,4 +54,5 @@ val gemRecordSerializers = SerializersModule {
     contextual(GemTransferData::class, gemRecordSerializer(FfiConverterTypeGemTransferData))
     contextual(GemStakeAmountInput::class, gemRecordSerializer(FfiConverterTypeGemStakeAmountInput))
     contextual(PaymentLink::class, gemRecordSerializer(FfiConverterTypePaymentLink))
+    contextual(GemSearchScope::class, GemSearchScopeSerializer)
 }

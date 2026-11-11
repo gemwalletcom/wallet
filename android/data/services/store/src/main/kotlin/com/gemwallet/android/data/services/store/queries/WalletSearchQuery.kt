@@ -7,7 +7,6 @@ import com.gemwallet.android.data.services.store.database.PerpetualDao
 import com.gemwallet.android.data.services.store.database.SearchDao
 import com.gemwallet.android.data.services.store.database.entities.toAssetDataModel
 import com.gemwallet.android.data.services.store.database.entities.toDTO
-import com.gemwallet.android.domains.search.WalletSearchTag
 import com.wallet.core.primitives.AssetData
 import com.wallet.core.primitives.AssetList
 import com.wallet.core.primitives.PerpetualData
@@ -18,6 +17,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import uniffi.gemstone.GemSearchScope
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -33,13 +33,13 @@ class WalletSearchQuery @Inject constructor(private val assetsDao: AssetsDao, pr
             }
         }
 
-    fun perpetuals(searchKey: String, scope: WalletSearchTag, limit: Int): Flow<List<PerpetualData>> = searchDao.hasPerpetualPriorities(searchKey)
+    fun perpetuals(searchKey: String, scope: GemSearchScope, limit: Int): Flow<List<PerpetualData>> = searchDao.hasPerpetualPriorities(searchKey)
         .map { it > 0 }
         .distinctUntilChanged()
         .flatMapLatest { hasPriority ->
             when {
                 hasPriority -> perpetualDao.searchWithPriority(searchKey, limit)
-                scope is WalletSearchTag.List -> flowOf(emptyList())
+                scope is GemSearchScope.List -> flowOf(emptyList())
                 else -> perpetualDao.searchPerpetualsData(searchKey, limit)
             }
         }

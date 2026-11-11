@@ -288,7 +288,7 @@ Three things these records get right:
 ```rust
 #[derive(Debug, Clone, uniffi::Enum)]
 pub enum GemTransferAmountResult {
-    Amount { amount: GemTransferAmount },
+    Amount { amount: TransferAmount },
     Error { error: GemConfirmError },
 }
 ```
@@ -1584,7 +1584,7 @@ Use the shared [`GemServiceError`](../core/gemstone/src/services/error.rs) for o
 pub enum GemConfirmError {
     ScanMemoRequired { symbol: String },
     BalanceMissing { asset_id: AssetId },
-    Sign { error: GemSignerError, chain: Chain, msg: String },
+    Sign { error: SignerError, chain: Chain, msg: String },
     ...
 }
 ```

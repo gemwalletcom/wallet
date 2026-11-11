@@ -1,13 +1,13 @@
 use crate::formatted_number::{GemFormattedNumber, GemNumberNotation, GemValueTone};
 use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::list::{GemAddressRow, GemInfoTopic, GemListRow, GemListRowTitle};
-use crate::precision::GemValueStyle;
 use crate::services::assets::icon::{GemAssetIcon, asset_icon};
 use crate::services::assets::model::{GemFeeAmount, GemFeeText, GemRowText, GemValueHeader};
 use crate::services::confirm::GemNetworkFeeScreen;
 use crate::services::localization::GemLocalizedText;
 use crate::services::swap::model::GemSwapRate;
 use chrono::{DateTime, Utc};
+use number_formatter::ValueStyle;
 use primitives::{Asset, AssetId, AssetPrice, Chain, NFTAssetId, PerpetualDirection, Resource, Transaction, TransactionDirection, TransactionId, TransactionListItem, TransactionState, TransactionType, TransactionsFilter};
 
 use super::rules;
@@ -118,7 +118,7 @@ pub enum GemAmountSign {
 }
 
 impl GemAmountSign {
-    pub fn amount(&self, value: &GemBigUint, asset: &Asset, style: GemValueStyle) -> GemFormattedNumber {
+    pub fn amount(&self, value: &GemBigUint, asset: &Asset, style: ValueStyle) -> GemFormattedNumber {
         let number = GemFormattedNumber::asset_amount(&GemBigInt::from(value.clone()), asset, style);
         match self {
             Self::None => number,
@@ -440,7 +440,7 @@ mod tests {
             decimals: 2,
             ..Asset::from_chain(Chain::Bitcoin)
         };
-        let number = |sign: GemAmountSign, value: u32| sign.amount(&value.into(), &asset, GemValueStyle::Auto);
+        let number = |sign: GemAmountSign, value: u32| sign.amount(&value.into(), &asset, ValueStyle::Auto);
 
         let incoming = number(GemAmountSign::Incoming, 100);
         assert_eq!((incoming.value, incoming.notation, incoming.tone), (1.0, GemNumberNotation::Signed, GemValueTone::Positive));
@@ -458,10 +458,10 @@ mod tests {
     #[test]
     fn test_a_full_amount_keeps_every_digit_past_what_a_double_holds() {
         let value = GemBigUint::from(123_456_789_012_345_678_901u128);
-        let full = GemAmountSign::Outgoing.amount(&value, &Asset::from_chain(Chain::Ethereum), GemValueStyle::Full);
+        let full = GemAmountSign::Outgoing.amount(&value, &Asset::from_chain(Chain::Ethereum), ValueStyle::Full);
         assert_eq!((full.exact.as_deref(), full.value < 0.0), (Some("123.456789012345678901"), true), "the exact digits carry no sign; the value does");
 
-        let auto = GemAmountSign::None.amount(&value, &Asset::from_chain(Chain::Ethereum), GemValueStyle::Auto);
+        let auto = GemAmountSign::None.amount(&value, &Asset::from_chain(Chain::Ethereum), ValueStyle::Auto);
         assert_eq!(auto.exact, None, "a rounded amount has no exact digits to keep");
     }
 }

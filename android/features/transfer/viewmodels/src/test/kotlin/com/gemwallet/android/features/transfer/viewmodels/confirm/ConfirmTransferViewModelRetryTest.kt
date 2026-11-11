@@ -49,11 +49,11 @@ import uniffi.gemstone.GemPerpetualConfirmedAction
 import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.GemSubmitMessage
 import uniffi.gemstone.GemSubmitResult
-import uniffi.gemstone.GemTransferAmount
 import uniffi.gemstone.GemTransferAmountResult
 import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.PerpetualType
 import uniffi.gemstone.TransactionInputType
+import uniffi.gemstone.TransferAmount
 import uniffi.gemstone.feeAmount
 import java.math.BigInteger
 
@@ -201,7 +201,7 @@ class ConfirmTransferViewModelRetryTest {
                         value = BigInteger.ONE,
                         formatted = feeAmount(mockAsset(id = mockAssetId(chain = Chain.Ethereum), name = "Ethereum", symbol = "ETH", decimals = 18u).toGem(), BigInteger.ONE, null, Currency.USD.toGem()),
                         selectedPriority = FeePriority.Normal.toGem(),
-                        amount = GemTransferAmountResult.Amount(GemTransferAmount(value = BigInteger.ONE, networkFee = BigInteger.ONE, isMaxAmount = false)),
+                        amount = GemTransferAmountResult.Amount(TransferAmount(value = BigInteger.ONE, networkFee = BigInteger.ONE, isMaxAmount = false)),
                     ),
                 )
             }

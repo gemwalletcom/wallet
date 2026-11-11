@@ -4,9 +4,9 @@ use super::model::{GemInfoAction, GemInfoDescription, GemInfoImage, GemInfoSheet
 use crate::config::docs::DocsUrl;
 use crate::formatted_number::GemFormattedNumber;
 use crate::models::list::GemInfoTopic;
-use crate::precision::GemValueStyle;
 use crate::services::assets::icon::{GemAssetIcon, asset_icon};
 use crate::services::confirm::error::{GemConfirmErrorInfo, GemConfirmErrorSheet};
+use number_formatter::ValueStyle;
 
 pub fn sheet(topic: &GemInfoTopic, platform: Platform) -> GemInfoSheet {
     let learn_more = |docs: DocsUrl| Some(GemInfoAction::LearnMore { url: docs.url_for(platform) });
@@ -25,7 +25,7 @@ pub fn sheet(topic: &GemInfoTopic, platform: Platform) -> GemInfoSheet {
             GemInfoTitle::MinimumAmount,
             GemInfoDescription::MinimumAmount {
                 network: network_name(asset.chain()),
-                amount: GemFormattedNumber::asset_amount(minimum, asset, GemValueStyle::Full),
+                amount: GemFormattedNumber::asset_amount(minimum, asset, ValueStyle::Full),
             },
             GemInfoImage::Logo,
             Some(GemInfoAction::Buy { symbol: asset.symbol.clone() }),
@@ -127,8 +127,7 @@ mod tests {
     use crate::services::confirm::error::GemConfirmError;
     use crate::services::confirm::rules::error_info;
     use crate::services::transactions::GemTransactionStateTone;
-    use crate::signer::GemSignerError;
-    use primitives::{Asset, Currency, SwapProvider, TransactionState, VerificationStatus};
+    use primitives::{Asset, Currency, SignerError, SwapProvider, TransactionState, VerificationStatus};
 
     #[test]
     fn test_a_sheet_shows_its_docs_link_always_and_other_actions_only_when_handled() {
@@ -267,7 +266,7 @@ mod tests {
             requirement: requirement(),
         });
         let dust = confirm_sheet(GemConfirmError::Sign {
-            error: GemSignerError::DustThreshold,
+            error: SignerError::DustThreshold,
             chain: Chain::Bitcoin,
             msg: "dust".to_string(),
         });

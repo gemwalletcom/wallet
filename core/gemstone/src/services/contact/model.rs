@@ -1,8 +1,8 @@
-use primitives::{AddressName, AddressType, Chain, Contact};
+use primitives::{AddressFormatStyle, AddressName, AddressType, Chain, Contact};
 use primitives::{OptionStringExt, contact::ContactAddress};
 
 use super::rules;
-use crate::address_formatter::{GemAddressFormatStyle, format_address};
+use crate::address_formatter::format_address;
 use crate::models::state::GemListPhase;
 use crate::services::chain::{GemChainRow, chain_row};
 use crate::services::empty_state::{GemEmptyStateKind, empty_state};
@@ -94,7 +94,7 @@ impl GemContactSession {
             .iter()
             .map(|address| GemContactAddressRow {
                 chain: chain_row(address.chain),
-                short_address: format_address(&address.address, Some(address.chain), GemAddressFormatStyle::Short),
+                short_address: format_address(&address.address, Some(address.chain), AddressFormatStyle::Short),
                 address: address.clone(),
             })
             .collect()
@@ -258,7 +258,7 @@ mod tests {
         let row = session.address_rows().remove(0);
 
         assert_eq!(row.chain, chain_row(Chain::Ethereum));
-        assert_eq!(row.short_address, format_address(address, Some(Chain::Ethereum), GemAddressFormatStyle::Short));
+        assert_eq!(row.short_address, format_address(address, Some(Chain::Ethereum), AddressFormatStyle::Short));
         assert_ne!(row.short_address, address);
     }
 

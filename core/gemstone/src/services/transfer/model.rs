@@ -1,7 +1,6 @@
 use crate::models::custom_types::GemBigInt;
-use crate::models::transaction::{GemTransactionLoadFee, GemTransactionLoadMetadata};
 use primitives::TransactionInputType;
-use primitives::{AssetId, PerpetualDirection, RecentActivityType, Resource, SimulationResult, TransactionType, TransferDataOutputAction, TransferDataOutputType, WalletId};
+use primitives::{AssetId, PerpetualDirection, RecentActivityType, Resource, SimulationResult, TransactionFee, TransactionLoadMetadata, TransactionType, TransferDataOutputAction, TransferDataOutputType, WalletId};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemRecentActivityScope {
@@ -78,9 +77,9 @@ pub(crate) struct GemPendingTransactionInput {
     pub(crate) transaction_type: TransactionType,
     pub(crate) sequence: Option<u64>,
     pub(crate) hash: String,
-    pub(crate) fee: GemTransactionLoadFee,
+    pub(crate) fee: TransactionFee,
     pub(crate) network_fee: GemBigInt,
-    pub(crate) metadata: GemTransactionLoadMetadata,
+    pub(crate) metadata: TransactionLoadMetadata,
     pub(crate) simulation: Option<SimulationResult>,
     pub(crate) transaction_index: usize,
     pub(crate) transaction_count: usize,

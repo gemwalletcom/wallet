@@ -11,9 +11,6 @@ import com.gemwallet.android.data.services.store.queries.AssetsQuery
 import com.gemwallet.android.data.services.store.queries.RecentActivityQuery
 import com.gemwallet.android.data.services.store.queries.WalletSearchQuery
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
-import com.gemwallet.android.domains.search.WalletSearchTag
-import com.gemwallet.android.domains.search.toGem
-import com.gemwallet.android.domains.search.walletSearchTagOf
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
@@ -21,6 +18,7 @@ import com.gemwallet.android.features.assets.viewmodels.select.BaseSelectAssetVi
 import com.gemwallet.android.features.assets.viewmodels.select.models.BaseSelectSearch
 import com.gemwallet.android.features.assets.viewmodels.select.models.ListSelectSearch
 import com.gemwallet.android.features.assets.viewmodels.select.models.SelectSearch
+import com.gemwallet.android.serializer.unpackRoutePayload
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.PerpetualData
@@ -39,6 +37,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemAssetSelectionServiceInterface
 import uniffi.gemstone.GemPerpetualMarketItem
+import uniffi.gemstone.GemSearchScope
 import uniffi.gemstone.GemSelectAssetState
 import uniffi.gemstone.GemSelectAssetType
 import uniffi.gemstone.GemWalletSearchResultsInput
@@ -66,7 +65,7 @@ class AssetsResultsViewModel @Inject constructor(
     context,
 ) {
 
-    private val scope: WalletSearchTag = walletSearchTagOf(savedStateHandle.get<String?>(RouteArgument.Scope.key))
+    private val scope: GemSearchScope = searchScopeOf(savedStateHandle)
     private val searchKey: String = searchKeyOf(savedStateHandle)
     val title: String = savedStateHandle.get<String?>(RouteArgument.Title.key)
         ?: context.getString(R.string.assets_title)
@@ -82,7 +81,7 @@ class AssetsResultsViewModel @Inject constructor(
             val assets = sections.pinned + sections.unpinned
             val input = GemWalletSearchResultsInput(
                 wallet = wallet.toGem(),
-                scope = scope.toGem(),
+                scope = scope,
                 isLoading = searching,
                 assetIds = assets.map { it.asset.id.toIdentifier() },
                 pinnedAssetIds = sections.pinned.map { it.asset.id.toIdentifier() },
@@ -113,7 +112,7 @@ class AssetsResultsViewModel @Inject constructor(
             isSearching.value = true
             if (pull) isPullRefreshing.value = true
             try {
-                runCatchingCancellable { service.search(queryState.text.toString(), scope.toGem()) }
+                runCatchingCancellable { service.search(queryState.text.toString(), scope) }
                     .onFailure { Log.e("AssetsResults", "search failed", it) }
             } finally {
                 isSearching.value = false
@@ -123,13 +122,14 @@ class AssetsResultsViewModel @Inject constructor(
     }
 }
 
+private fun searchScopeOf(savedStateHandle: SavedStateHandle): GemSearchScope = savedStateHandle.get<String?>(RouteArgument.Scope.key)?.let { unpackRoutePayload<GemSearchScope>(it) } ?: GemSearchScope.All
+
 private fun searchKeyOf(savedStateHandle: SavedStateHandle): String {
     val query = savedStateHandle.get<String?>(RouteArgument.Query.key).orEmpty()
-    val scope = walletSearchTagOf(savedStateHandle.get<String?>(RouteArgument.Scope.key))
-    return scope.toGem().searchKey(query)
+    return searchScopeOf(savedStateHandle).searchKey(query)
 }
 
-private fun selectSearchOf(savedStateHandle: SavedStateHandle, assetsQuery: AssetsQuery, walletSearchQuery: WalletSearchQuery): SelectSearch = when (walletSearchTagOf(savedStateHandle.get<String?>(RouteArgument.Scope.key))) {
-    is WalletSearchTag.List -> ListSelectSearch(walletSearchQuery, searchKeyOf(savedStateHandle))
-    WalletSearchTag.All -> BaseSelectSearch(assetsQuery)
+private fun selectSearchOf(savedStateHandle: SavedStateHandle, assetsQuery: AssetsQuery, walletSearchQuery: WalletSearchQuery): SelectSearch = when (searchScopeOf(savedStateHandle)) {
+    is GemSearchScope.List -> ListSelectSearch(walletSearchQuery, searchKeyOf(savedStateHandle))
+    GemSearchScope.All -> BaseSelectSearch(assetsQuery)
 }

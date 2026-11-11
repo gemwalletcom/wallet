@@ -7,23 +7,22 @@ use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::list::{GemListRow, GemListRowTitle};
 use crate::percentage::GemPercentageStyle;
 use crate::precision::GemCurrencyStyle;
-use crate::precision::GemValueStyle;
 use crate::services::localization::GemLocalizedText;
 use num_bigint::BigUint;
-use number_formatter::BigNumberFormatter;
+use number_formatter::{BigNumberFormatter, ValueStyle};
 use primitives::currency::Currency;
 
 pub fn balance_amount(value: &BigUint, asset: &Asset) -> GemFormattedNumber {
-    balance_amount_styled(value, asset, GemValueStyle::Auto)
+    balance_amount_styled(value, asset, ValueStyle::Auto)
 }
 
 pub fn available_balance_text(asset: Asset, balance: GemAssetBalance) -> GemLocalizedText {
     GemLocalizedText::Balance {
-        amount: GemFormattedNumber::amount(BigNumberFormatter::f64_value(&balance.available, asset.decimals), None, GemValueStyle::Auto),
+        amount: GemFormattedNumber::amount(BigNumberFormatter::f64_value(&balance.available, asset.decimals), None, ValueStyle::Auto),
     }
 }
 
-pub fn balance_amount_styled(value: &BigUint, asset: &Asset, style: GemValueStyle) -> GemFormattedNumber {
+pub fn balance_amount_styled(value: &BigUint, asset: &Asset, style: ValueStyle) -> GemFormattedNumber {
     let value = BigNumberFormatter::f64_value(value, asset.decimals);
     GemFormattedNumber::amount(value, Some(asset.symbol.clone()), style)
 }

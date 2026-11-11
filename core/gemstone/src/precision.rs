@@ -1,4 +1,4 @@
-use number_formatter::{Precision, ValueStyle};
+use number_formatter::Precision;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemPrecision {
@@ -17,41 +17,6 @@ impl From<Precision> for GemPrecision {
 
 pub fn adaptive_precision(magnitude: f64) -> GemPrecision {
     number_formatter::precision::adaptive(magnitude).into()
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum GemValueStyle {
-    Full,
-    Short,
-    Auto,
-}
-
-impl From<GemValueStyle> for ValueStyle {
-    fn from(style: GemValueStyle) -> Self {
-        match style {
-            GemValueStyle::Full => Self::Full,
-            GemValueStyle::Short => Self::Short,
-            GemValueStyle::Auto => Self::Auto,
-        }
-    }
-}
-
-impl GemValueStyle {
-    pub fn precision(&self, magnitude: f64) -> GemPrecision {
-        number_formatter::precision::value((*self).into(), magnitude).into()
-    }
-
-    pub fn fraction_places(&self, magnitude: f64) -> usize {
-        number_formatter::precision::value((*self).into(), magnitude).fraction_places(magnitude)
-    }
-
-    pub fn abbreviates(&self, magnitude: f64) -> bool {
-        number_formatter::precision::abbreviates_value((*self).into(), magnitude)
-    }
-
-    pub fn is_dust(&self, magnitude: f64) -> bool {
-        number_formatter::precision::is_value_dust((*self).into(), magnitude)
-    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -88,19 +53,6 @@ impl GemCurrencyStyle {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_the_value_style_answers_the_ladder_the_abbreviation_and_the_dust() {
-        assert_eq!(GemValueStyle::Full.precision(0.00001), GemPrecision::Fraction { min: 0, max: 32 });
-        assert_eq!(GemValueStyle::Short.precision(0.09), GemPrecision::Fraction { min: 0, max: 4 });
-        assert_eq!(GemValueStyle::Auto.precision(0.99), GemPrecision::Significant { max: 4 });
-
-        assert!(GemValueStyle::Short.abbreviates(100_000.0));
-        assert!(!GemValueStyle::Auto.abbreviates(100_000.0));
-
-        assert!(GemValueStyle::Short.is_dust(0.00009));
-        assert!(!GemValueStyle::Short.is_dust(0.0));
-    }
 
     #[test]
     fn test_fiat_always_reads_in_two_places_and_only_abbreviated_compacts() {

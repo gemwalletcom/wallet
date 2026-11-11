@@ -4,13 +4,13 @@ use std::sync::Arc;
 
 use gem_derivation::{derive_account_from_private_key, derive_account_from_private_key_value, derive_accounts_from_mnemonic, derive_private_key_from_mnemonic, derive_wallet_id_from_account, import_account_from_private_key};
 use gem_keystore::{FileKeystore, Keystore, KeystoreError, KeystoreId, SecretKind};
-use primitives::{Account, Chain, WalletId, WalletType};
+use primitives::{Account, Chain, SignerInput, WalletId, WalletType};
 use signer::encode_private_key;
 use zeroize::Zeroizing;
 
 use super::types::{GemImportType, GemKeystoreAccount, GemStoredSecretMigration, GemStoredWallet, GemWalletImport};
 use crate::GemstoneError;
-use crate::models::transaction::{GemSignedTransaction, GemSignerInput};
+use crate::models::transaction::GemSignedTransaction;
 use crate::signer::ChainTransactionSigner;
 
 #[derive(uniffi::Object)]
@@ -145,7 +145,7 @@ impl GemKeystore {
         let password = Zeroizing::new(password);
         self.inner.verify(&keystore_id, &password).is_ok()
     }
-    pub fn sign(&self, keystore_id: String, chain: Chain, input: GemSignerInput, password: Vec<u8>) -> Result<Vec<GemSignedTransaction>, GemstoneError> {
+    pub fn sign(&self, keystore_id: String, chain: Chain, input: SignerInput, password: Vec<u8>) -> Result<Vec<GemSignedTransaction>, GemstoneError> {
         ChainTransactionSigner::new(chain).sign_input(input, self.signing_key(&keystore_id, chain, password)?)
     }
     pub fn sign_auth(&self, keystore_id: String, chain: Chain, hash: [u8; 32], password: Vec<u8>) -> Result<String, GemstoneError> {

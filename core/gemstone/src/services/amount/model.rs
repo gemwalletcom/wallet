@@ -1,9 +1,7 @@
 use crate::formatted_number::GemFormattedNumber;
-use crate::models::GemEarnType;
 use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::list::GemInfoTopic;
 use crate::payment::GemPaymentRecipient;
-use crate::precision::GemValueStyle;
 use crate::services::assets::model::GemAssetItemRow;
 use crate::services::balance::{GemAssetBalance, GemBalanceRequirement};
 use crate::services::localization::GemLocalizedText;
@@ -11,7 +9,8 @@ use crate::services::perpetual::GemPerpetualPositionAction;
 use crate::services::perpetual::autoclose::{GemAutocloseDraft, GemAutocloseSession, autoclose_draft, autoclose_open_session};
 use crate::services::perpetual::model::perpetual_open_row;
 use crate::services::stake::model::{GemStakeAmountInput, GemValidatorRow};
-use primitives::{Asset, AssetData, Currency, Delegation, PerpetualDirection, Resource, TpslType};
+use number_formatter::ValueStyle;
+use primitives::{Asset, AssetData, Currency, Delegation, EarnType, PerpetualDirection, Resource, TpslType};
 
 #[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -70,7 +69,7 @@ pub enum GemAmountTransfer {
 pub enum GemAmountRequest {
     Transfer { transfer: GemAmountTransfer },
     Stake { input: GemStakeAmountInput },
-    Earn { earn_type: GemEarnType },
+    Earn { earn_type: EarnType },
     Perpetual { session: GemPerpetualAmountSession },
 }
 
@@ -233,7 +232,7 @@ impl GemAmountError {
             Self::Zero => GemAmountErrorDisplay::None,
             Self::InvalidNumber | Self::PriceMissing => GemAmountErrorDisplay::InvalidAmount,
             Self::BelowMinimum { asset, minimum } => GemAmountErrorDisplay::BelowMinimum {
-                minimum: GemFormattedNumber::asset_amount(minimum, asset, GemValueStyle::Auto),
+                minimum: GemFormattedNumber::asset_amount(minimum, asset, ValueStyle::Auto),
                 topic: GemInfoTopic::MinimumAmount {
                     asset: asset.clone(),
                     minimum: minimum.clone(),

@@ -1,10 +1,9 @@
 use chrono::TimeDelta;
-use primitives::{Asset, AssetId, ChartCandleUpdate, ChartPeriod, Currency, Perpetual, PerpetualPosition, TransactionsFilter};
+use primitives::{Asset, AssetId, ChartCandleStick, ChartCandleUpdate, ChartPeriod, Currency, Perpetual, PerpetualPosition, TransactionsFilter};
 
 use super::model::GemCandleChart;
 use super::{chart, rules};
 use crate::constants::{PERPETUAL_ACTIVITY_TYPES, TRANSACTIONS_LIST_LIMIT};
-use crate::models::perpetual::GemChartCandleStick;
 use crate::models::state::{GemLoad, GemLoadState};
 use crate::perpetual::GemPerpetual;
 use crate::services::chart::GemChartZoom;
@@ -21,14 +20,14 @@ pub struct GemCandleRequest {
 pub struct GemCandleResult {
     pub request: GemCandleRequest,
     pub state: GemLoadState,
-    pub candles: Vec<GemChartCandleStick>,
+    pub candles: Vec<ChartCandleStick>,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemCandleViewState {
     pub period: ChartPeriod,
     pub state: GemLoadState,
-    pub candles: Vec<GemChartCandleStick>,
+    pub candles: Vec<ChartCandleStick>,
     pub is_refreshing: bool,
 }
 
@@ -37,7 +36,7 @@ pub struct GemCandleSession {
     pub symbol: Option<String>,
     pub period: ChartPeriod,
     pub state: GemLoadState,
-    pub candles: Vec<GemChartCandleStick>,
+    pub candles: Vec<ChartCandleStick>,
     pub is_refreshing: bool,
     pub zoom: GemChartZoom,
 }
@@ -195,8 +194,8 @@ mod tests {
     use crate::services::error::GemServiceError;
     use primitives::Chain;
 
-    fn candle(timestamp: i64) -> GemChartCandleStick {
-        GemChartCandleStick {
+    fn candle(timestamp: i64) -> ChartCandleStick {
+        ChartCandleStick {
             date: chrono::DateTime::from_timestamp(timestamp, 0).unwrap(),
             open: 1.0,
             high: 2.0,
@@ -226,7 +225,7 @@ mod tests {
         }
     }
 
-    fn loaded(request: GemCandleRequest, candles: Vec<GemChartCandleStick>) -> GemCandleResult {
+    fn loaded(request: GemCandleRequest, candles: Vec<ChartCandleStick>) -> GemCandleResult {
         GemCandleResult { request, state: GemLoadState::Data, candles }
     }
 
@@ -305,7 +304,7 @@ mod tests {
 
     #[test]
     fn test_on_zoom() {
-        let candles = GemChartCandleStick::mock_series(chrono::DateTime::UNIX_EPOCH, TimeDelta::minutes(1), 70);
+        let candles = ChartCandleStick::mock_series(chrono::DateTime::UNIX_EPOCH, TimeDelta::minutes(1), 70);
         let shown = session().on_result(loaded(session().request().unwrap(), candles.clone()));
         let zoomed = shown.on_zoom(100.0, 1.0);
         let refreshing = zoomed.on_refresh();
@@ -318,7 +317,7 @@ mod tests {
 
     #[test]
     fn test_chart() {
-        let shown = |close: f64| session().on_result(loaded(session().request().unwrap(), vec![GemChartCandleStick { close, ..candle(1) }]));
+        let shown = |close: f64| session().on_result(loaded(session().request().unwrap(), vec![ChartCandleStick { close, ..candle(1) }]));
         let chart = |close: f64, decimals: u32| shown(close).chart(Asset { decimals, ..Asset::mock_perpetual() }, None, vec![], 0).unwrap();
         let xrp = chart(1.4251, 0);
 
@@ -339,7 +338,7 @@ mod tests {
 
     #[test]
     fn test_on_pan() {
-        let shown = session().on_result(loaded(session().request().unwrap(), GemChartCandleStick::mock_series(chrono::DateTime::UNIX_EPOCH, TimeDelta::minutes(1), 70)));
+        let shown = session().on_result(loaded(session().request().unwrap(), ChartCandleStick::mock_series(chrono::DateTime::UNIX_EPOCH, TimeDelta::minutes(1), 70)));
 
         assert_eq!(shown.on_zoom(4.0, 1.0).on_pan(0.4).zoom, GemChartZoom { scale: 4.0, offset: 0.1 });
     }

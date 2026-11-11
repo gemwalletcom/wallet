@@ -1,5 +1,5 @@
 use crate::alien::{AlienError, AlienHttpMethod, AlienProvider, AlienResponse, AlienTarget};
-use crate::models::transaction::{GemFeeOptions, GemSignedTransaction, GemTransactionLoadFee};
+use crate::models::transaction::GemSignedTransaction;
 use crate::payment::GemPaymentService;
 use crate::services::assets::GemAssetsService;
 use crate::services::balance::testkit::{BalanceTestkit, MemoryBalanceStore};
@@ -8,10 +8,10 @@ use crate::services::preferences::{GemPreferencesStore, GemSecureStore};
 use async_trait::async_trait;
 use gem_client::{CONTENT_TYPE, ContentType};
 use gem_wallet_connect::WCEthereumTransactionData;
-use num_bigint::{BigInt, BigUint};
+use num_bigint::BigUint;
 use payment::PaymentTransaction;
 use primitives::testkit::signer_mock::{TEST_EVM_RECIPIENT, TEST_EVM_SENDER};
-use primitives::{AssetId, Chain, ChainAddress, GasPriceType, PaymentInvoice, TransactionType, TransferDataOutputType};
+use primitives::{Chain, ChainAddress, PaymentInvoice, TransactionType, TransferDataOutputType};
 use serde_json::Value;
 use std::collections::HashMap;
 use std::future::Future;
@@ -158,18 +158,6 @@ pub fn mock_payment_transaction() -> PaymentTransaction {
         request: None,
         output_type: TransferDataOutputType::EncodedTransaction,
         approval: None,
-    }
-}
-
-impl GemTransactionLoadFee {
-    pub fn mock(fee: u64) -> Self {
-        Self {
-            fee: BigInt::from(fee),
-            gas_price_type: GasPriceType::regular(1),
-            gas_limit: BigInt::from(21_000),
-            options: GemFeeOptions { options: HashMap::new() },
-            fee_asset: AssetId::from_chain(Chain::Ethereum),
-        }
     }
 }
 

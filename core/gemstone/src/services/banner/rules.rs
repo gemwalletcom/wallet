@@ -6,8 +6,8 @@ use crate::config::docs::DocsUrl;
 use crate::formatted_number::GemFormattedNumber;
 #[cfg(test)]
 use crate::models::custom_types::GemBigInt;
-use crate::precision::GemValueStyle;
 use crate::services::transfer::rules as transfer_rules;
+use number_formatter::ValueStyle;
 
 const ACCOUNT_ACTIVATION_CHAINS: [Chain; 3] = [Chain::Xrp, Chain::Stellar, Chain::Algorand];
 const TRADE_PERPETUALS_CHAINS: [Chain; 2] = [Chain::HyperCore, Chain::Hyperliquid];
@@ -133,7 +133,7 @@ fn banner_description(event: BannerEvent, asset: Option<&Asset>) -> Option<GemBa
             let asset = asset?;
             Some(GemBannerDescription::AccountActivation {
                 network_name: network_name(asset.id.chain),
-                fee: GemFormattedNumber::asset_amount(&num_bigint::BigInt::from(asset.id.chain.account_activation_fee()?), asset, GemValueStyle::Auto),
+                fee: GemFormattedNumber::asset_amount(&num_bigint::BigInt::from(asset.id.chain.account_activation_fee()?), asset, ValueStyle::Auto),
             })
         }
         BannerEvent::AccountBlockedMultiSignature => Some(GemBannerDescription::ExternallyControlledAccount { network_name: network_name(asset?.id.chain) }),
@@ -539,7 +539,7 @@ mod tests {
             banner_content(BannerEvent::AccountActivation, Some(&xrp), BannerState::Active, Platform::IOS).description,
             Some(GemBannerDescription::AccountActivation {
                 network_name: "XRP".to_string(),
-                fee: GemFormattedNumber::asset_amount(&num_bigint::BigInt::from(1_000_000), &xrp, GemValueStyle::Auto),
+                fee: GemFormattedNumber::asset_amount(&num_bigint::BigInt::from(1_000_000), &xrp, ValueStyle::Auto),
             })
         );
 
