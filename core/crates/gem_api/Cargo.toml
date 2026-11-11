@@ -13,3 +13,4 @@ async-trait = { workspace = true }
 gem_client = { path = "../gem_client" }
 gem_jsonrpc = { path = "../gem_jsonrpc", features = ["client"] }
 gem_encoding = { path = "../gem_encoding", default-features = false }
+zeroize = { workspace = true }

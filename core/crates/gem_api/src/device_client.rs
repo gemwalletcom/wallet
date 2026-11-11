@@ -13,6 +13,7 @@ use primitives::{
     WalletSubscriptionChains, transactions_page_limit,
 };
 use serde::de::DeserializeOwned;
+use zeroize::Zeroizing;
 
 use crate::device_target::{GemDeviceApiBody, GemDeviceApiTarget};
 
@@ -283,6 +284,7 @@ impl<E: RpcClientError> GemDeviceApiClient<E> {
 
     fn signature_headers(&self, target: &GemDeviceApiTarget, body: &[u8]) -> Result<HashMap<String, String>, ClientError> {
         let created = SystemTime::now().duration_since(UNIX_EPOCH).map_err(|error| ClientError::Serialization(error.to_string()))?.as_secs();
-        sign_device_request(&self.device_key.private_key()?, target.method().as_ref(), &target.path(), target.wallet_id(), body, created).map_err(|error| ClientError::Serialization(error.to_string()))
+        let private_key = Zeroizing::new(self.device_key.private_key()?);
+        sign_device_request(&private_key, target.method().as_ref(), &target.path(), target.wallet_id(), body, created).map_err(|error| ClientError::Serialization(error.to_string()))
     }
 }

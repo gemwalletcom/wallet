@@ -2704,6 +2704,7 @@ dependencies = [
  "serde",
  "serde_json",
  "strum",
+ "zeroize",
 ]
 
 [[package]]
