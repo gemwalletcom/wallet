@@ -9,5 +9,5 @@ sealed interface WalletConnectorRequestUIState {
 
     data class SignMessage(val request: WalletConnectPendingRequest.SignMessage) : WalletConnectorRequestUIState
 
-    data class Transaction(val input: ConfirmTransferInput, val simulation: SimulationResult) : WalletConnectorRequestUIState
+    data class Transaction(val reviewId: String, val input: ConfirmTransferInput, val simulation: SimulationResult) : WalletConnectorRequestUIState
 }

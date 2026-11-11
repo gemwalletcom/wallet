@@ -92,6 +92,7 @@ private fun SessionRequestContent(
             onOpenAddress = onOpenAddress,
             cancelAction = CancelAction(viewModel::onReject),
             handleSystemBack = true,
+            viewModel = hiltViewModel(key = state.reviewId),
         )
     }
 }
