@@ -101,7 +101,7 @@ impl GemNavigationService {
 
     pub async fn open_deeplink(&self, deeplink: Deeplink) -> Result<GemNavigationTarget, GemServiceError> {
         match deeplink {
-            Deeplink::Asset { asset_id } => self.open_asset(asset_id).await,
+            Deeplink::Asset { asset_id } => self.open_asset_or_chart(asset_id).await,
             Deeplink::Perpetuals => self.perpetuals().await,
             Deeplink::Rewards { code } => Ok(GemNavigationTarget::Rewards { code: rules::code(code) }),
             Deeplink::Receive { asset_id } => self.receive(asset_id).await,
@@ -184,10 +184,18 @@ impl GemNavigationService {
     }
 
     async fn open_price_alert(&self, asset_id: AssetId) -> Result<GemNavigationTarget, GemServiceError> {
-        let wallet = self.session.require_current_wallet().await?;
-        if wallet.account(asset_id.chain).is_some() {
-            return self.open_asset(asset_id).await;
+        self.session.require_current_wallet().await?;
+        self.open_chart(asset_id).await
+    }
+
+    async fn open_asset_or_chart(&self, asset_id: AssetId) -> Result<GemNavigationTarget, GemServiceError> {
+        match self.session.require_current_wallet().await?.account(asset_id.chain) {
+            Some(_) => self.open_asset(asset_id).await,
+            None => self.open_chart(asset_id).await,
         }
+    }
+
+    async fn open_chart(&self, asset_id: AssetId) -> Result<GemNavigationTarget, GemServiceError> {
         Ok(GemNavigationTarget::Chart {
             asset: self.assets.ensure_asset(asset_id).await?,
         })
@@ -503,7 +511,27 @@ mod tests {
     }
 
     #[test]
-    fn test_a_price_alert_push_opens_the_chart_where_the_wallet_has_no_account() {
+    fn test_a_price_alert_push_opens_the_chart_in_every_wallet() {
+        block_on(async {
+            let testkit = DiscoveryTestkit::with_status(200);
+            let service = GemNavigationService::mock(&testkit);
+            let ethereum = Asset::from_chain(Chain::Ethereum);
+            let bitcoin = Asset::from_chain(Chain::Bitcoin);
+            save_asset(&testkit, ethereum.clone(), false, false).await;
+            save_asset(&testkit, bitcoin.clone(), false, false).await;
+            let open = |asset: &Asset| service.open_notification(GemPushNotification::PriceAlert { asset_id: asset.id.clone() });
+
+            testkit.select_wallet(&Wallet::mock_with_type(WalletType::View, &[Chain::Ethereum]));
+            assert_eq!(open(&ethereum).await.unwrap(), GemNavigationTarget::Chart { asset: ethereum.clone() }, "a watch-only wallet with the chain");
+            assert_eq!(open(&bitcoin).await.unwrap(), GemNavigationTarget::Chart { asset: bitcoin.clone() }, "the alert is for the device, not the wallet");
+
+            testkit.select_wallet(&Wallet::mock_with_chains(&[Chain::Bitcoin, Chain::Ethereum]));
+            assert_eq!(open(&bitcoin).await.unwrap(), GemNavigationTarget::Chart { asset: bitcoin }, "a wallet holding the chain");
+        });
+    }
+
+    #[test]
+    fn test_an_asset_link_opens_the_chart_where_the_wallet_has_no_account() {
         block_on(async {
             let testkit = DiscoveryTestkit::with_status(200);
             let service = GemNavigationService::mock(&testkit);
@@ -512,7 +540,7 @@ mod tests {
             save_asset(&testkit, ethereum.clone(), false, false).await;
             save_asset(&testkit, bitcoin.clone(), false, false).await;
             testkit.select_wallet(&Wallet::mock_with_type(WalletType::View, &[Chain::Ethereum]));
-            let open = |asset: &Asset| service.open_notification(GemPushNotification::PriceAlert { asset_id: asset.id.clone() });
+            let open = |asset: &Asset| service.open_deeplink(Deeplink::Asset { asset_id: asset.id.clone() });
 
             assert_eq!(
                 open(&ethereum).await.unwrap(),
@@ -521,7 +549,7 @@ mod tests {
                     wallet_id: None,
                 }
             );
-            assert_eq!(open(&bitcoin).await.unwrap(), GemNavigationTarget::Chart { asset: bitcoin }, "the alert is for the device, not the wallet");
+            assert_eq!(open(&bitcoin).await.unwrap(), GemNavigationTarget::Chart { asset: bitcoin });
         });
     }
 
