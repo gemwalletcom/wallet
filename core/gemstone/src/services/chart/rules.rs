@@ -14,9 +14,10 @@ use crate::formatted_number::GemFormattedNumber;
 use crate::models::copy::{GemCopy, GemCopyKind, address_copy};
 use crate::models::list::{GemInfoTopic, GemListRow, GemListRowIcon, GemListRowTitle, GemListSection, GemListSectionTitle, GemRowAction};
 use crate::percentage::GemPercentageStyle;
-use crate::precision::{GemCurrencyStyle, GemValueStyle};
+use crate::precision::GemCurrencyStyle;
 use crate::services::price::rules::has_price;
 use crate::services::price_alert::rules::displayed_price_alert_ids;
+use number_formatter::ValueStyle;
 
 pub fn date_style(period: ChartPeriod) -> GemChartDateStyle {
     match period {
@@ -186,7 +187,7 @@ fn contract_row(asset: &Asset, explorer: Option<BlockExplorerLink>) -> Option<Ge
 }
 
 fn supply_section(market: &AssetMarket, symbol: &str) -> Vec<GemListRow> {
-    let value = |value: f64| GemFormattedNumber::amount(value, Some(symbol.to_string()), GemValueStyle::Short);
+    let value = |value: f64| GemFormattedNumber::amount(value, Some(symbol.to_string()), ValueStyle::Short);
     available_rows([
         market.circulating_supply.map(|supply| amount_row(GemListRowTitle::CirculatingSupply, value(supply), Some(GemInfoTopic::CirculatingSupply))),
         market.total_supply.map(|supply| amount_row(GemListRowTitle::TotalSupply, value(supply), Some(GemInfoTopic::TotalSupply))),
@@ -377,7 +378,7 @@ mod tests {
     }
 
     fn supply(value: f64, symbol: &str) -> GemFormattedNumber {
-        GemFormattedNumber::amount(value, Some(symbol.to_string()), GemValueStyle::Short)
+        GemFormattedNumber::amount(value, Some(symbol.to_string()), ValueStyle::Short)
     }
 
     fn set_price_alert() -> GemListSection {

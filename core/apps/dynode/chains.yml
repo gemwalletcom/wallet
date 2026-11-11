@@ -46,6 +46,7 @@ retry:
     - message: "rate limit"
     - message: "Exceeded the quota usage"
     - message: "Unauthorized"
+    - message: "refusing quote on node with stale state"
   ignore:
     - message: "execution reverted"
 

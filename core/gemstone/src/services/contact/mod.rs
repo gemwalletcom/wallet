@@ -7,10 +7,9 @@ use chrono::Utc;
 use std::sync::Arc;
 use uuid::Uuid;
 
-use primitives::Contact;
 use primitives::contact::ContactAddress;
+use primitives::{Contact, Payment};
 
-use crate::models::payment::GemPayment;
 use crate::payment::GemPaymentService;
 use crate::services::file::{GemFileStore, IMAGE_EXTENSION};
 use crate::services::name::GemNameService;
@@ -106,8 +105,8 @@ impl GemContactEditorService {
 
     pub fn scanned_address(&self, input: String) -> GemContactScannedAddress {
         let request = match self.payments.decode_url(input.clone()) {
-            Ok(GemPayment::Request { request }) => Some(request),
-            Ok(GemPayment::Link { link: _ }) | Err(_) => None,
+            Ok(Payment::Request { request }) => Some(request),
+            Ok(Payment::Link { link: _ }) | Err(_) => None,
         };
         rules::scanned_address(&input, request.as_ref())
     }

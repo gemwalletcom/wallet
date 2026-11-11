@@ -150,11 +150,11 @@ _test action target="":
     {{ if target != "" { "-only-testing " + target + " -parallel-testing-enabled NO" } else { "-parallel-testing-enabled YES" } }} \
     {{ action }} | xcbeautify {{ XCBEAUTIFY_ARGS }}
 
-test-without-building TARGET="": boot-simulator (_test "test-without-building" TARGET)
+test-without-building TARGET="": (_test "test-without-building" TARGET)
 
 # Example: just test
 # Example: just test PrimitivesTests
-test TARGET="": boot-simulator (_test "test" TARGET)
+test TARGET="": (_test "test" TARGET)
 
 test-package PACKAGE: (test (PACKAGE + "Tests"))
 

@@ -27,13 +27,13 @@ use crate::models::custom_types::GemBigUint;
 use crate::models::list::{GemInfoTopic, GemListRow, GemListRowTitle};
 use crate::models::state::{GemListPhase, GemLoadState};
 use crate::percentage::GemPercentageStyle;
-use crate::precision::{GemCurrencyStyle, GemValueStyle};
+use crate::precision::GemCurrencyStyle;
 use crate::services::balance::{GemAssetBalance, GemBalanceRow};
 use crate::services::empty_state::{GemEmptyStateKind, empty_state};
 use crate::services::localization::GemLocalizedText;
 use crate::services::transfer::rules as transfer_rules;
 use chrono::{DateTime, Utc};
-use number_formatter::BigNumberFormatter;
+use number_formatter::{BigNumberFormatter, ValueStyle};
 
 use crate::config::chain::account_activation_fee_url;
 use crate::config::docs::DocsUrl;
@@ -216,7 +216,7 @@ fn completion_title(delegation: &Delegation) -> Option<GemListRowTitle> {
 }
 
 pub fn delegation_details(wallet_type: WalletType, delegation: &Delegation, asset: &Asset, price: Option<f64>, currency: Currency, rows: Vec<GemListRow>, validators: &[DelegationValidator], is_stake_enabled: bool) -> GemDelegationDetails {
-    let amount = |value: &BigUint| GemFormattedNumber::asset_amount(&BigInt::from(value.clone()), asset, GemValueStyle::Auto);
+    let amount = |value: &BigUint| GemFormattedNumber::asset_amount(&BigInt::from(value.clone()), asset, ValueStyle::Auto);
     let fiat = |value: &BigUint| crate::services::assets::rules::fiat_amount_of(asset, value, price, currency.clone(), GemCurrencyStyle::Currency);
     let shows_rewards = shows_rewards(&delegation.base);
 
@@ -261,7 +261,7 @@ pub fn delegation_details(wallet_type: WalletType, delegation: &Delegation, asse
 }
 
 pub fn delegation_list_row(delegation: &Delegation, asset: &Asset, price: Option<f64>, currency: Currency) -> GemDelegationListRow {
-    let amount = |value: &BigUint| GemFormattedNumber::asset_amount(&BigInt::from(value.clone()), asset, GemValueStyle::Short);
+    let amount = |value: &BigUint| GemFormattedNumber::asset_amount(&BigInt::from(value.clone()), asset, ValueStyle::Short);
     let fiat = |value: &BigUint| crate::services::assets::rules::fiat_amount_of(asset, value, price, currency.clone(), GemCurrencyStyle::Short);
     let shows_rewards = shows_rewards(&delegation.base);
 
@@ -364,7 +364,7 @@ fn stake_info_rows(asset: &Asset, staking_apr: Option<f64>) -> Vec<GemListRow> {
         }),
         (minimum > BigInt::ZERO).then(|| BigNumberFormatter::f64_value(&minimum, asset.decimals)).map(|value| GemListRow::Amount {
             title: GemListRowTitle::MinimumAmount,
-            amount: GemFormattedNumber::amount(value, Some(asset.symbol.clone()), GemValueStyle::Auto),
+            amount: GemFormattedNumber::amount(value, Some(asset.symbol.clone()), ValueStyle::Auto),
             info: None,
         }),
     ]
@@ -528,7 +528,7 @@ fn action_title(action: GemStakeActionKind) -> GemListRowTitle {
 
 fn rewards_amount(chain: Chain, rewards: &BigUint) -> GemFormattedNumber {
     let asset = Asset::from_chain(chain);
-    GemFormattedNumber::amount(BigNumberFormatter::f64_value(rewards, asset.decimals), Some(asset.symbol), GemValueStyle::Auto)
+    GemFormattedNumber::amount(BigNumberFormatter::f64_value(rewards, asset.decimals), Some(asset.symbol), ValueStyle::Auto)
 }
 
 fn claim_destination(chain: Chain, delegations: Vec<Delegation>) -> Option<GemStakeDestination> {
@@ -865,8 +865,8 @@ mod tests {
         let amount = |style| GemLocalizedText::Number {
             number: GemFormattedNumber::asset_amount(&BigInt::from(838u64), &asset, style),
         };
-        assert_eq!(earning.value_header.title, amount(GemValueStyle::Auto), "the details header keeps the auto precision, not the list row's short one");
-        assert_ne!(earning.value_header.title, amount(GemValueStyle::Short));
+        assert_eq!(earning.value_header.title, amount(ValueStyle::Auto), "the details header keeps the auto precision, not the list row's short one");
+        assert_ne!(earning.value_header.title, amount(ValueStyle::Short));
         assert!(earning.claim.is_some(), "rewards worth claiming come with the transfer that claims them");
         assert!(details(StakeProviderType::Stake, 0).claim.is_none(), "nothing to claim is no transfer");
     }
@@ -1060,7 +1060,7 @@ mod tests {
             rows[2],
             GemListRow::Amount {
                 title: GemListRowTitle::MinimumAmount,
-                amount: GemFormattedNumber::amount(1.0, Some("TRX".to_string()), GemValueStyle::Auto),
+                amount: GemFormattedNumber::amount(1.0, Some("TRX".to_string()), ValueStyle::Auto),
                 info: None,
             }
         );
@@ -1550,7 +1550,7 @@ mod tests {
             claim.map(|item| item.row),
             Some(GemListRow::Action {
                 title: GemListRowTitle::ClaimRewards,
-                value: Some(GemFormattedNumber::amount(1.5, Some("ATOM".to_string()), GemValueStyle::Auto)),
+                value: Some(GemFormattedNumber::amount(1.5, Some("ATOM".to_string()), ValueStyle::Auto)),
                 info: None,
             }),
             "claiming shows the rewards it would claim"

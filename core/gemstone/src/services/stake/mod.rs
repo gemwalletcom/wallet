@@ -9,13 +9,12 @@ use std::sync::Arc;
 
 use chrono::Utc;
 
-use primitives::{Asset, AssetId, Chain, Currency, Delegation, DelegationBase, DelegationValidator, Feature, Platform, StakeProviderType, WalletId, WalletType};
+use primitives::{Asset, AssetId, Chain, ContractCallData, Currency, Delegation, DelegationBase, DelegationValidator, EarnType, Feature, Platform, StakeProviderType, WalletId, WalletType};
 
 use crate::api::GemStaticApiClient;
 use crate::gateway::GemGateway;
 use crate::models::list::GemListRow;
 use crate::models::state::GemLoadState;
-use crate::models::{GemContractCallData, GemEarnType};
 use crate::services::assets::GemAssetsService;
 use crate::services::config::GemConfigService;
 use crate::services::error::{GemServiceError, required_account};
@@ -138,7 +137,7 @@ impl GemStakeService {
         self.sync_wallet(wallet_id, chain, address).await
     }
 
-    pub async fn get_earn_data(&self, asset_id: AssetId, address: String, value: String, earn_type: GemEarnType) -> Result<GemContractCallData, GemServiceError> {
+    pub async fn get_earn_data(&self, asset_id: AssetId, address: String, value: String, earn_type: EarnType) -> Result<ContractCallData, GemServiceError> {
         Ok(self.gateway.get_earn_data(asset_id, address, value, earn_type).await?)
     }
 

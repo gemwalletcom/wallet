@@ -574,7 +574,7 @@ mod swap_integration_tests {
     use num_traits::ToPrimitive;
     use primitives::{
         AssetId, Chain, EVMChain,
-        asset_constants::{ARC_EURC_ASSET_ID, ARC_USDC_TOKEN_ID, BASE_USDC_TOKEN_ID, ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDC_TOKEN_ID, POLYGON_USDT_TOKEN_ID, ROBINHOOD_USDG_TOKEN_ID, STABLE_TOKEN_ID},
+        asset_constants::{ARC_EURC_ASSET_ID, ARC_USDC_TOKEN_ID, BASE_USDC_TOKEN_ID, ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDC_TOKEN_ID, POLYGON_USDT_TOKEN_ID, ROBINHOOD_USDG_TOKEN_ID},
         decode_hex,
         swap::EVM_REFERRAL_ADDRESS,
     };
@@ -592,6 +592,7 @@ mod swap_integration_tests {
     const TEST_ROBINHOOD_KEK_TOKEN: &str = "0x86E5D8818eFf06f0dEA9E5eCa87f056Bc44c7777";
     const TEST_BASE_IDRISS_TOKEN: &str = "0x000096630066820566162C94874A776532705231";
     const TEST_BASE_MORPHO_TOKEN: &str = "0xBAa5CC21fd487B8Fcc2F632f3F4E8D37262a0842";
+    const TEST_STABLE_TOKEN: &str = "0x0000000000000000000000000000000000001003";
 
     fn v2_request(from_asset: AssetId, to_asset: AssetId, value: u64) -> QuoteRequest {
         QuoteRequest {
@@ -756,7 +757,7 @@ mod swap_integration_tests {
         let request = QuoteRequest {
             value: BigUint::from(1_000_000_000_000_000_000u64),
             options: Options { slippage: 100.into(), use_max_amount: false },
-            ..mock_quote(AssetId::from_chain(Chain::Stable).into(), AssetId::from(Chain::Stable, Some(STABLE_TOKEN_ID.to_string())).into())
+            ..mock_quote(AssetId::from_chain(Chain::Stable).into(), AssetId::from(Chain::Stable, Some(TEST_STABLE_TOKEN.to_string())).into())
         };
         let quote = swap_provider.get_quote(&request).await?;
         let quote_data = swap_provider.get_quote_data(&quote, FetchQuoteData::None).await?;

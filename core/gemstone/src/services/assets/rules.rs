@@ -24,7 +24,7 @@ use crate::models::list::{GemListRow, GemListRowIcon, GemListRowTitle, GemListSe
 use crate::models::state::GemListPhase;
 use crate::percentage::GemPercentageStyle;
 use crate::perpetual::GemPerpetual;
-use crate::precision::{GemCurrencyStyle, GemValueStyle};
+use crate::precision::GemCurrencyStyle;
 use crate::services::balance::rules::{balance_amount, balance_resource_rows};
 use crate::services::balance::{GemAssetBalance, GemAssetBalanceRow, GemBalanceRow, GemBalanceRowValue};
 use crate::services::empty_state::{GemEmptyState, GemEmptyStateAction, GemEmptyStateKind, screen_empty_state};
@@ -34,7 +34,7 @@ use crate::services::perpetual::model::{perpetual_market_items, perpetual_market
 use crate::services::price::rules::has_price;
 use crate::services::price_alert::rules::{displayed_price_alert_ids, price_alert_toggle};
 use crate::services::swap::GemSwapPairSuggestion;
-use number_formatter::CryptoFiatConverter;
+use number_formatter::{CryptoFiatConverter, ValueStyle};
 
 use crate::models::asset::{wallet_asset_is_enabled, wallet_default_assets};
 use crate::services::collections::{missing_by, unique, unique_by};
@@ -305,7 +305,7 @@ pub fn asset_list_row(data: &AssetData, currency: &Currency, scope: GemAssetBala
 pub fn balance_text(value: &GemBigUint, asset: &Asset) -> GemRowText {
     GemRowText::number(GemFormattedNumber {
         tone: if *value > GemBigUint::ZERO { GemValueTone::Plain } else { GemValueTone::Neutral },
-        ..crate::services::balance::rules::balance_amount_styled(value, asset, crate::precision::GemValueStyle::Short)
+        ..crate::services::balance::rules::balance_amount_styled(value, asset, ValueStyle::Short)
     })
 }
 
@@ -614,7 +614,7 @@ pub fn fiat_value(asset: &Asset, balance: &GemAssetBalance, price: Option<f64>, 
 }
 
 pub fn fee_amount(asset: &Asset, value: &num_bigint::BigInt, price: Option<f64>, currency: Currency) -> GemFeeAmount {
-    let amount = GemFormattedNumber::asset_amount(value, asset, GemValueStyle::Auto);
+    let amount = GemFormattedNumber::asset_amount(value, asset, ValueStyle::Auto);
     GemFeeAmount {
         fiat: price.map(|price| GemFormattedNumber::currency(amount.value * price, currency, GemCurrencyStyle::Currency)),
         amount,
@@ -1742,8 +1742,8 @@ mod tests {
 
     #[test]
     fn test_an_empty_stake_balance_shows_the_rate_it_would_earn() {
-        use crate::precision::GemValueStyle;
         use num_bigint::BigUint;
+        use number_formatter::ValueStyle;
         let asset = Asset::from_chain(Chain::Cosmos);
         let metadata = AssetMetaData {
             is_stake_enabled: true,
@@ -1773,10 +1773,10 @@ mod tests {
             balance_rows(&asset, &metadata, &staked).into_iter().map(|item| item.value).collect::<Vec<_>>(),
             vec![
                 GemBalanceRowValue::Amount {
-                    amount: GemFormattedNumber::amount(1.5, Some("ATOM".to_string()), GemValueStyle::Auto)
+                    amount: GemFormattedNumber::amount(1.5, Some("ATOM".to_string()), ValueStyle::Auto)
                 },
                 GemBalanceRowValue::Amount {
-                    amount: GemFormattedNumber::amount(2.0, Some("ATOM".to_string()), GemValueStyle::Auto)
+                    amount: GemFormattedNumber::amount(2.0, Some("ATOM".to_string()), ValueStyle::Auto)
                 },
             ]
         );

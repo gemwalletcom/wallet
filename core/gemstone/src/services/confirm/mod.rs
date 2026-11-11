@@ -24,8 +24,7 @@ pub use transfer::GemConfirmTransferService;
 use crate::GemstoneError;
 use crate::gateway::GemGateway;
 use crate::models::asset::chain_fee_asset_ids;
-use crate::models::gateway::GemTransactionPreloadInput;
-use crate::models::transaction::{GemSignedTransaction, GemSignerInput, GemTransactionData, GemTransactionLoadInput};
+use crate::models::transaction::GemSignedTransaction;
 use crate::services::GemScanService;
 use crate::services::assets::GemAssetsService;
 use crate::services::balance::GemBalanceService;
@@ -38,11 +37,13 @@ use crate::services::simulation::{GemSimulationFormatter, GemSimulationService};
 use crate::services::transaction_state::{GemTransactionStateService, GemTransactionStatusService};
 use crate::services::transfer::rules::TransferInput;
 use crate::services::wallet_preferences::GemWalletPreferencesService;
-use crate::signer::GemSignerError;
 use num_bigint::BigInt;
 use primitives::TransactionInputType;
 use primitives::currency::Currency;
-use primitives::{Asset, AssetId, BlockExplorerLink, Chain, EVMChain, PerpetualAccountMode, SimulationPayloadFieldDisplay, SimulationResult, Transaction, TransactionFee, WalletId};
+use primitives::{
+    Asset, AssetId, BlockExplorerLink, Chain, EVMChain, PerpetualAccountMode, SignerError, SignerInput, SimulationPayloadFieldDisplay, SimulationResult, Transaction, TransactionFee, TransactionLoadData, TransactionLoadInput,
+    TransactionPreloadInput, WalletId,
+};
 
 #[derive(uniffi::Object)]
 pub struct GemConfirmService {
@@ -99,20 +100,18 @@ impl GemConfirmService {
         let asset = transfer.input_type.get_asset();
         let chain = asset.id.chain;
         let symbol = asset.symbol.clone();
-        let destination = transfer.recipient.address.clone();
-        let preload_input = GemTransactionPreloadInput {
+        let destination = transfer.destination_address();
+        let preload_input = TransactionPreloadInput {
             input_type: transfer.input_type.clone(),
             sender_address: input.from.address.clone(),
             destination_address: destination.clone(),
             references: transfer.recipient.references.clone(),
         };
 
-        let scan_future = async {
-            let payload = scan_rules::transaction_payload(preload_input.clone())?;
-            self.scanner.scan(payload).await
-        };
+        let scan_payload = scan_rules::transaction_payload(&preload_input);
+        let scan_future = async { self.scanner.scan(scan_payload?).await };
         let (metadata, fee_rates, scan, simulation, pending_nonces) = futures::join!(
-            self.gateway.get_transaction_preload(chain, preload_input.clone()),
+            self.gateway.get_transaction_preload(chain, preload_input),
             self.gateway.get_fee_rates(chain, transfer.input_type.clone()),
             scan_future,
             self.simulate(chain, input),
@@ -127,15 +126,15 @@ impl GemConfirmService {
 
         let selected = options.fee_selection.select_fee_rate(&fee_rates)?;
         let load = if rules::is_signature_only(&transfer.input_type) {
-            GemTransactionData {
-                fee: TransactionFee::new_from_fee(BigInt::ZERO, AssetId::from_chain(chain)).into(),
+            TransactionLoadData {
+                fee: TransactionFee::new_from_fee(BigInt::ZERO, AssetId::from_chain(chain)),
                 metadata,
             }
         } else {
             self.gateway
                 .get_transaction_load(
                     chain,
-                    GemTransactionLoadInput {
+                    TransactionLoadInput {
                         input_type: transfer.input_type.clone(),
                         sender_address: input.from.address.clone(),
                         destination_address: destination,
@@ -204,13 +203,13 @@ impl GemConfirmService {
 }
 
 impl GemConfirmService {
-    fn sign(&self, input: &SendInput, sign: impl FnOnce(Chain, GemSignerInput) -> Result<Vec<GemSignedTransaction>, GemstoneError>) -> Result<Vec<GemSignedTransaction>, GemConfirmError> {
+    fn sign(&self, input: &SendInput, sign: impl FnOnce(Chain, SignerInput) -> Result<Vec<GemSignedTransaction>, GemstoneError>) -> Result<Vec<GemSignedTransaction>, GemConfirmError> {
         let signer_input = input.signer_input()?;
         let chain = input.confirm.input.transfer.input_type.get_asset().chain();
         let transactions = sign(chain, signer_input).map_err(|error| error::sign_error(chain, error))?;
         if transactions.is_empty() {
             return Err(GemConfirmError::Sign {
-                error: GemSignerError::SigningError("no signed transactions".to_string()),
+                error: SignerError::SigningError("no signed transactions".to_string()),
                 chain,
                 msg: "no signed transactions".to_string(),
             });

@@ -1,8 +1,7 @@
 use crate::duration_formatter::countdown_parts;
-use crate::precision::GemValueStyle;
 use crate::services::assets::icon::asset_icon;
 use chrono::{DateTime, Utc};
-use number_formatter::BigNumberFormatter;
+use number_formatter::{BigNumberFormatter, ValueStyle};
 use primitives::{CoreEmoji, OptionStringExt, RewardRedemptionOption, RewardStatus, Rewards, Wallet, WalletId, WalletListItem};
 
 use super::model::{GemIncomingCode, GemRewardsInviteAction, GemRewardsPendingReferral, GemRewardsRedemption, GemRewardsState, GemRewardsWallet};
@@ -135,7 +134,7 @@ fn redemptions(rewards: &Rewards) -> Vec<GemRewardsRedemption> {
         .filter_map(|option| {
             let asset = option.asset.as_ref()?;
             let value = BigNumberFormatter::f64_value(&option.value, asset.decimals);
-            let value = GemFormattedNumber::amount(value, Some(asset.symbol.clone()), GemValueStyle::Short);
+            let value = GemFormattedNumber::amount(value, Some(asset.symbol.clone()), ValueStyle::Short);
             let points = points_number(option.points);
             Some(GemRewardsRedemption {
                 id: option.id.clone(),

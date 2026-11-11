@@ -7,9 +7,10 @@ use primitives::{Chain, SimulationResult, Wallet, WalletId};
 use crate::keystore::{GemKeystore, decode_password, keystore_id_for_wallet};
 use crate::models::custom_types::GemBigInt;
 use crate::models::transaction::GemSignedTransaction;
-use crate::payment::{GemPaymentError, GemPaymentService};
+use crate::payment::GemPaymentService;
 use crate::services::confirm::rules::{confirm_row_contents, insufficient_funds, is_broadcast, submit_message};
 use crate::services::confirm::{GemConfirmError, GemConfirmInput, GemConfirmLoad, GemConfirmRowContent, GemConfirmService, GemConfirmSimulationState, GemConfirmation, GemSubmitResult, SendInput, SignedSubmission};
+use payment::PaymentError;
 
 use super::error::SendFailure;
 use crate::services::error_text::{GemErrorText, payment_error_text};
@@ -137,7 +138,7 @@ impl GemConfirmTransferService {
         };
         let warning = match self.payment.confirm(input_type, action_results).await {
             Ok(()) => None,
-            Err(error @ GemPaymentError::Network { .. }) => Some(payment_error_text(error)),
+            Err(error @ PaymentError::Network { .. }) => Some(payment_error_text(error)),
             Err(error) => return Some(payment_error_text(error)),
         };
         if let Some(hash) = self.payment.record_hash(input_type)

@@ -1,8 +1,8 @@
 use chrono::{DateTime, Utc};
-use primitives::{Asset, BlockExplorerLink, Chain, TransactionState, VerificationStatus};
+use primitives::{AddressFormatStyle, Asset, BlockExplorerLink, Chain, TransactionState, VerificationStatus};
 use strum::AsRefStr;
 
-use crate::address_formatter::{GemAddressFormatStyle, format_address};
+use crate::address_formatter::format_address;
 use crate::config::social::GemSocialLink;
 use crate::constants::LIST_PAGE_SIZE;
 use crate::duration_formatter::GemDurationPart;
@@ -516,7 +516,7 @@ pub struct GemAddressRow {
 
 impl GemAddressRow {
     pub fn new(title: GemLocalizedText, chain: Chain, address: String, name: Option<&str>, explorer: &BlockExplorerLink) -> Self {
-        let short_address = format_address(&address, Some(chain), GemAddressFormatStyle::Short);
+        let short_address = format_address(&address, Some(chain), AddressFormatStyle::Short);
         let name = name.filter(|name| !name.is_empty() && *name != address);
         Self {
             title,

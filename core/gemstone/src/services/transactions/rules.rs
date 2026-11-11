@@ -2,10 +2,11 @@ use std::str::FromStr;
 
 use strum::IntoEnumIterator;
 
-use number_formatter::BigNumberFormatter;
+use number_formatter::{BigNumberFormatter, ValueStyle};
 use primitives::{
-    AddressName, Asset, AssetId, AssetPrice, AssetType, BlockExplorerLink, Chain, ChainAsset, Currency, OptionStringExt, PerpetualDirection, Price, Transaction, TransactionDirection, TransactionExtended, TransactionListItem,
-    TransactionNFTTransferMetadata, TransactionResourceTypeMetadata, TransactionState, TransactionSwapMetadata, TransactionType, TransactionWalletConnectMetadata, TransactionsFilter, TransferDataOutputAction, WalletType,
+    AddressFormatStyle, AddressName, Asset, AssetId, AssetPrice, AssetType, BlockExplorerLink, Chain, ChainAsset, Currency, OptionStringExt, PerpetualDirection, Price, Transaction, TransactionDirection, TransactionExtended,
+    TransactionListItem, TransactionNFTTransferMetadata, TransactionResourceTypeMetadata, TransactionState, TransactionSwapMetadata, TransactionType, TransactionWalletConnectMetadata, TransactionsFilter, TransferDataOutputAction,
+    WalletType,
 };
 
 use super::model::{
@@ -13,14 +14,14 @@ use super::model::{
     GemTransactionDetails, GemTransactionFeeRow, GemTransactionFilter, GemTransactionHeader, GemTransactionHeaderAction, GemTransactionHeaderKind, GemTransactionParticipantRole, GemTransactionRow, GemTransactionRowSubtitle,
     GemTransactionRowValue, GemTransactionStateTone, GemTransactionStatus, GemTransactionSubtitle, GemTransactionTitle, GemTransactionValue,
 };
-use crate::address_formatter::{GemAddressFormatStyle, format_address};
+use crate::address_formatter::format_address;
 use crate::config::image::GemImage;
 use crate::duration_formatter::estimated_duration_parts;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::asset::wallet_default_assets;
 use crate::models::custom_types::GemBigUint;
 use crate::models::list::{GemAddressRow, GemInfoTopic, GemListRow, GemListRowTitle};
-use crate::precision::{GemCurrencyStyle, GemValueStyle};
+use crate::precision::GemCurrencyStyle;
 use crate::services::assets::icon::asset_icon;
 use crate::services::assets::icon::{GemAssetIcon, GemAssetIconImage};
 use crate::services::assets::rules::{fee_amount, fiat_amount_of};
@@ -348,7 +349,7 @@ pub fn status(state: TransactionState) -> GemTransactionStatus {
 fn participant_name(item: &TransactionListItem, address: &str) -> String {
     address_name(&item.from_address, &item.to_address, address)
         .map(|name| name.name)
-        .unwrap_or_else(|| format_address(address, Some(item.transaction.asset_id.chain), GemAddressFormatStyle::Short))
+        .unwrap_or_else(|| format_address(address, Some(item.transaction.asset_id.chain), AddressFormatStyle::Short))
 }
 
 fn value_tone(value: &GemTransactionRowValue) -> GemValueTone {
@@ -364,7 +365,7 @@ fn value_tone(value: &GemTransactionRowValue) -> GemValueTone {
 
 fn amount_value(sign: GemAmountSign, value: &GemBigUint, asset: &Asset) -> GemTransactionRowValue {
     GemTransactionRowValue::Number {
-        number: sign.amount(value, asset, GemValueStyle::Short),
+        number: sign.amount(value, asset, ValueStyle::Short),
     }
 }
 
@@ -388,7 +389,7 @@ fn row_value(item: &TransactionListItem, value: GemTransactionValue) -> GemTrans
 
 pub fn header_amount(amount: GemTransactionAmount, currency: &Currency, shows_fiat: bool) -> GemHeaderAmount {
     GemHeaderAmount {
-        amount: amount.sign.amount(&amount.value, &amount.asset, GemValueStyle::Auto),
+        amount: amount.sign.amount(&amount.value, &amount.asset, ValueStyle::Auto),
         fiat: fiat_amount_of(&amount.asset, &amount.value, amount.price.map(|price| price.price), currency.clone(), GemCurrencyStyle::Currency).filter(|_| shows_fiat),
         icon: asset_icon(&amount.asset.id),
         asset: amount.asset,
@@ -705,7 +706,7 @@ fn swap_progress(extended: &TransactionExtended, metadata: Option<&TransactionSw
         transfer: GemSwapProgressRow::new(
             GemListRowTitle::Transfer,
             GemLocalizedText::AmountOnNetwork {
-                amount: GemFormattedNumber::asset_amount(&metadata.from_value.clone().into(), from_asset, GemValueStyle::Auto),
+                amount: GemFormattedNumber::asset_amount(&metadata.from_value.clone().into(), from_asset, ValueStyle::Auto),
                 network: ChainAsset::from_chain(from_asset.chain()).network_name,
             },
             transfer,
@@ -997,7 +998,7 @@ mod tests {
         let link = |address: &str| BlockExplorerLink::mock_with_address(address);
 
         let unnamed = participant(&extended, link).expect("a transfer has a participant");
-        let short = format_address(&unnamed.address, Some(extended.transaction.asset_id.chain), GemAddressFormatStyle::Short);
+        let short = format_address(&unnamed.address, Some(extended.transaction.asset_id.chain), AddressFormatStyle::Short);
         assert_ne!(short, unnamed.address, "an unnamed participant reads short on both apps");
         assert_eq!(unnamed.text, GemLocalizedText::Text { text: short.clone() });
         assert_eq!(unnamed.short_address, None);
@@ -1169,7 +1170,7 @@ mod tests {
                     number: GemFormattedNumber {
                         notation: GemNumberNotation::Signed,
                         tone: GemValueTone::Positive,
-                        ..GemFormattedNumber::amount(0.00000001, Some("BTC".to_string()), GemValueStyle::Short)
+                        ..GemFormattedNumber::amount(0.00000001, Some("BTC".to_string()), ValueStyle::Short)
                     },
                 },
                 GemTransactionRowValue::Number {
@@ -1177,7 +1178,7 @@ mod tests {
                         value: -0.000000000000000005,
                         notation: GemNumberNotation::Signed,
                         tone: GemValueTone::Plain,
-                        ..GemFormattedNumber::amount(0.000000000000000005, Some("ETH".to_string()), GemValueStyle::Short)
+                        ..GemFormattedNumber::amount(0.000000000000000005, Some("ETH".to_string()), ValueStyle::Short)
                     },
                 },
             ),
@@ -1215,7 +1216,7 @@ mod tests {
                     value: -0.000000000000000001,
                     notation: GemNumberNotation::Signed,
                     tone: GemValueTone::Plain,
-                    ..GemFormattedNumber::amount(0.000000000000000001, Some("ETH".to_string()), GemValueStyle::Short)
+                    ..GemFormattedNumber::amount(0.000000000000000001, Some("ETH".to_string()), ValueStyle::Short)
                 },
             },
             "a transfer row shows its amount"
