@@ -61,7 +61,7 @@ pub fn encode_token_transfer(input: &TokenTransferInput) -> Result<TxOutput, Box
 mod tests {
     use crate::{SUI_COIN_TYPE, tx_builder::decode_transaction};
     use gem_encoding::encode_base64;
-    use primitives::asset_constants::SUI_USDC_TOKEN_ID;
+    use primitives::{asset_constants::SUI_USDC_TOKEN_ID, hex};
     use sui_types::{Argument, Command, Input, ObjectReference, ProgrammableTransaction, Transaction, TransactionKind};
 
     use super::*;
@@ -173,6 +173,7 @@ mod tests {
             }
             _ => panic!("expected ProgrammableTransaction"),
         }
+        assert_eq!(hex::encode(&output.hash), "75ba0d1491c96a4d88be5ad9591a46cb89aad7f7098918075fd1e7b308bbfa6c");
     }
 
     #[test]
@@ -216,6 +217,7 @@ mod tests {
             }
             _ => panic!("expected ProgrammableTransaction"),
         }
+        assert_eq!(hex::encode(&output.hash), "e5ad196a29958d2230434e50274483123399b56005b131d9c2e203fa61893da3");
     }
 
     #[test]
@@ -232,7 +234,7 @@ mod tests {
         assert!(err.to_string().contains("No SUI coins available for gas"), "got: {err}");
     }
 
-    fn native_transfer(amount: u64, address_balance: u64, send_max: bool) -> (Transaction, Coin) {
+    fn native_transfer(amount: u64, address_balance: u64, send_max: bool) -> (Transaction, Coin, String) {
         let coin = Coin {
             coin_type: SUI_COIN_TYPE.into(),
             balance: 5_000_000_000,
@@ -247,7 +249,7 @@ mod tests {
             gas: Gas { budget: 25_000_000, price: 750 },
         })
         .unwrap();
-        (bcs::from_bytes(&output.tx_data).unwrap(), coin)
+        (bcs::from_bytes(&output.tx_data).unwrap(), coin, hex::encode(&output.hash))
     }
 
     fn programmable(transaction: &Transaction) -> &ProgrammableTransaction {
@@ -281,29 +283,32 @@ mod tests {
 
     #[test]
     fn test_encode_native_transfer_max_sends_coins_and_address_balance() {
-        let (transaction, coin) = native_transfer(9_000_000_000, 4_000_000_000, true);
+        let (transaction, coin, hash) = native_transfer(9_000_000_000, 4_000_000_000, true);
         let ptb = programmable(&transaction);
 
         assert_eq!(transaction.gas_payment.objects, vec![ObjectReference::new(coin.object.object_id, coin.object.version, coin.object.digest)]);
         assert_eq!(withdrawals(ptb), vec![Some(4_000_000_000)]);
         assert_eq!(gas_commands(ptb), vec!["merge into gas", "transfer gas"]);
+        assert_eq!(hash, "6046067386026e8be81984e084a5768b88bb7105d0984b201c1b4e40eec5e91c");
     }
 
     #[test]
     fn test_encode_native_transfer_combines_coins_and_address_balance() {
-        let (transaction, _) = native_transfer(8_000_000_000, 4_000_000_000, false);
+        let (transaction, _, hash) = native_transfer(8_000_000_000, 4_000_000_000, false);
         let ptb = programmable(&transaction);
 
         assert_eq!(withdrawals(ptb), vec![Some(4_000_000_000)]);
         assert_eq!(gas_commands(ptb), vec!["merge into gas", "split gas"]);
+        assert_eq!(hash, "51888e4fb959d993a7d7aa337e95feb2430b934f9a2b1fe503ce393c6f626244");
     }
 
     #[test]
     fn test_encode_native_transfer_from_address_balance() {
-        let (transaction, _) = native_transfer(3_000_000_000, 4_000_000_000, false);
+        let (transaction, _, hash) = native_transfer(3_000_000_000, 4_000_000_000, false);
         let ptb = programmable(&transaction);
 
         assert_eq!(withdrawals(ptb), vec![Some(3_000_000_000)]);
         assert_eq!(gas_commands(ptb), Vec::<&str>::new());
+        assert_eq!(hash, "0220745f77a367d0c01a9d14284b8d1fcb34dad0717117944083e05e25f008a3");
     }
 }

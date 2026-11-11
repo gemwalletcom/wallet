@@ -194,6 +194,7 @@ mod tests {
                 format!("transfer to {TEST_SUI_WALLET}"),
             ]
         );
+        assert_eq!(hex::encode(&output.hash), "9cd2e6e5b836ddce9c5f5c84feafd3850312058a568a1c2809e2da181477fee0");
 
         let buy_sui = Quote::mock_with_request(&QuoteRequest {
             wallet_address: TEST_SUI_WALLET.into(),
@@ -224,6 +225,7 @@ mod tests {
                 "merge into gas".to_string(),
             ]
         );
+        assert_eq!(hex::encode(&output.hash), "e49c5783da94e256806f30849c3add70b449107b83390c3bee9d28877aefab97");
 
         let deep_to_wal = Quote::mock_with_request(&QuoteRequest {
             wallet_address: TEST_SUI_WALLET.into(),
@@ -276,6 +278,7 @@ mod tests {
                 format!("transfer to {TEST_SUI_WALLET}"),
             ]
         );
+        assert_eq!(hex::encode(&output.hash), "cfbf0d44d11222be62d3d6706f962a5f79879e1988789df5ac126fb88c4db10a");
 
         let wrong_pair = Quote::mock_with_request(&QuoteRequest {
             wallet_address: TEST_SUI_WALLET.into(),

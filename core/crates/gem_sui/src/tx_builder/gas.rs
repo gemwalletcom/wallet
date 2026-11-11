@@ -49,6 +49,7 @@ mod tests {
         models::{Gas, TransferInput},
         tx_builder::encode_transfer,
     };
+    use primitives::hex;
     use sui_types::Transaction;
 
     #[test]
@@ -68,6 +69,8 @@ mod tests {
         assert_eq!(reserved.coins.len(), 1);
         assert_eq!(reserved.coins[0].balance, balance);
         assert_eq!(&reserved.coins[0].object.digest.as_bytes()[12..], &[0xac; 20]);
+        assert_eq!(reserved.coins[0].object.object_id.to_string(), "0xc71aeeb7c5a54992d6bfe5227baa96975d42f80f9801e9df59aaabd89829bc87");
+        assert_eq!(reserved.coins[0].object.digest.to_string(), "9fCkwTEkNC9ebFKu8NdXvhgt1wBe8RTgKfH9f2D2ESnX");
 
         let with_coins = OwnedCoins::new(SUI_COIN_TYPE.to_string(), vec![Coin::mock_sui()], 500);
         assert_eq!(reserve_address_balance(with_coins.clone(), sender, context).unwrap(), with_coins);
@@ -88,5 +91,6 @@ mod tests {
         let transaction: Transaction = bcs::from_bytes(&output.tx_data).unwrap();
 
         assert_eq!(transaction.gas_payment.objects, vec![ObjectReference::new(gas_object.object_id, gas_object.version, gas_object.digest)]);
+        assert_eq!(hex::encode(&output.hash), "351fd5ce9557934e8b720731f517bc4a4eefe43aa02c6cb6a21552dfe81e97a3");
     }
 }

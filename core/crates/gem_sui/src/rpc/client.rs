@@ -407,6 +407,25 @@ fn map_service_chain_identifier(service_info: proto::GetServiceInfoResponse) -> 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::tx_builder::decode_transaction;
+    use primitives::hex;
+
+    #[test]
+    fn test_decode_inspect_transaction_bytes() {
+        let (encoded, _) = include_str!("../../testdata/dapp_transactions.txt").lines().next().unwrap().split_once(' ').unwrap();
+        let transaction: sui_types::Transaction = decode_transaction(encoded).unwrap();
+        let kind = bcs::to_bytes(&transaction.kind).unwrap();
+
+        assert_eq!(
+            hex::encode(decode_inspect_transaction_bytes("0x0", &kind).unwrap().encode()),
+            include_str!("../../testdata/inspect_transaction_kind.hex").trim()
+        );
+        assert_eq!(
+            hex::encode(decode_inspect_transaction_bytes("0x0", &decode_base64(encoded).unwrap()).unwrap().encode()),
+            include_str!("../../testdata/inspect_transaction.hex").trim()
+        );
+        assert!(decode_inspect_transaction_bytes("0x0", &kind[1..]).is_err());
+    }
 
     #[test]
     fn test_map_service_chain_identifier() {

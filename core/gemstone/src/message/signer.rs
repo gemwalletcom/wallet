@@ -320,12 +320,10 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
         let decoder = MessageSigner::new(SignMessage {
             chain: Chain::Sui,
             sign_type: SignDigestType::SuiPersonal,
-            data: data.clone(),
+            data,
         });
 
-        let hash = decoder.hash().unwrap();
-        let expected_hash = PersonalMessage(Cow::Owned(data)).signing_digest().to_vec();
-        assert_eq!(hash, expected_hash);
+        assert_eq!(hex::encode(decoder.hash().unwrap()), "b3a82fa7909fb9c9add005616e4024f8bc85a484a5623d44762db301cb2ad2d3");
     }
 
     #[test]

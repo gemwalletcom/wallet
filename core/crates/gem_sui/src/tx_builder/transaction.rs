@@ -115,6 +115,7 @@ pub fn validate_and_hash(encoded: &str) -> Result<TxOutput, Box<dyn Error + Send
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::models::Coin;
     use primitives::hex;
     use sui_types::{Transaction, TransactionKind};
 
@@ -133,5 +134,72 @@ mod tests {
 
         let output = validate_and_hash(encoded).unwrap();
         assert_eq!(hex::encode(output.hash), "883f6f54145fdaf357e3d404a8353b1f6eda265bc2b28ec8178631e092c24e3b");
+
+        for vector in include_str!("../../testdata/dapp_transactions.txt").lines() {
+            let (encoded, hash) = vector.split_once(' ').unwrap();
+            let output = validate_and_hash(encoded).unwrap();
+
+            assert_eq!(output.base64_encoded(), encoded);
+            assert_eq!(hex::encode(output.hash), hash);
+        }
+
+        assert!(validate_and_hash("").is_err());
+        assert!(validate_and_hash("AAAA").is_err());
+        assert!(validate_and_hash(&format!("{encoded}AA")).is_err());
+    }
+
+    #[test]
+    fn test_move_call() {
+        let sender = "0xa9bd0493f9bd1f792a4aedc1f99d54535a75a46c38fd56a8f2c6b7c8d75817a1";
+        let type_arguments = [
+            "u8",
+            "u16",
+            "u32",
+            "u64",
+            "u128",
+            "u256",
+            "bool",
+            "address",
+            "signer",
+            "vector<u8>",
+            "vector<vector<0x2::sui::SUI>>",
+            "0x2::coin::Coin<0x2::sui::SUI>",
+            "0x00000000000000000000000000000000000000000000000000000000000000a::_m::_T1",
+            "0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC",
+            "0x1::pair::Pair<0x2::sui::SUI,   0xabc::token::TOKEN<u64 , vector<bool>>>",
+        ];
+        let mut txb = TransactionBuilder::new();
+        let coin = zero_coin(&mut txb, "0x2::sui::SUI").unwrap();
+        let result = move_call(&mut txb, sui_framework_package_address(), "module_name", "function_name", &type_arguments, vec![coin]).unwrap();
+        let nested = result.to_nested(2);
+        let recipient = txb.pure(&Address::from_str(sender).unwrap());
+        txb.transfer_objects(nested, recipient);
+        let output = finish_transaction(txb, TransactionBuilderInput::new(sender, 750, 25_000_000, vec![Coin::mock_sui().to_input()])).unwrap();
+
+        assert_eq!(hex::encode(output.hash), "cc55fe4db287ec0d264317603eb9d0bd459482bc4567d8cd21983ebf1ef0279f");
+
+        for invalid in [
+            "",
+            "u8 ",
+            " u8",
+            "u7",
+            "U64",
+            "vector<u8",
+            "vector<>",
+            "0x2::sui",
+            "2::sui::SUI",
+            "0x2::sui::SUI<>",
+            "0x2::1sui::SUI",
+            "0x2::sui::SUI<u8,>",
+            "0xg::sui::SUI",
+            "0x2:sui::SUI",
+        ] {
+            let mut txb = TransactionBuilder::new();
+            assert!(move_call(&mut txb, sui_framework_package_address(), "module_name", "function_name", &[invalid], vec![]).is_err(), "{invalid}");
+        }
+        for (module, function) in [("", "function_name"), ("module_name", ""), ("1module", "function_name"), ("module_name", "function-name"), ("_", "function_name")] {
+            let mut txb = TransactionBuilder::new();
+            assert!(move_call(&mut txb, sui_framework_package_address(), module, function, &[], vec![]).is_err(), "{module}::{function}");
+        }
     }
 }
