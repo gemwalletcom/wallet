@@ -9,6 +9,8 @@ pub enum SignDigestType {
     Siwe,
     TonPersonal,
     TronPersonal,
+    BitcoinEcdsa,
+    BitcoinBip322,
 }
 
 #[derive(Debug, Clone)]

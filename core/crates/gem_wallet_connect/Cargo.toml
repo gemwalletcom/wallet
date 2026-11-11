@@ -11,6 +11,7 @@ primitives = { path = "../primitives" }
 gem_evm = { path = "../gem_evm" }
 gem_solana = { path = "../gem_solana" }
 gem_ton = { path = "../gem_ton", features = ["signer"] }
+gem_bitcoin = { path = "../gem_bitcoin", features = ["signer"] }
 
 gem_encoding = { path = "../gem_encoding" }
 chrono = { workspace = true }

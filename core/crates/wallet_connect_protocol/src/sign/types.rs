@@ -120,6 +120,19 @@ pub struct UpdateParams<'a> {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct EventParams<'a> {
+    pub event: Event<'a>,
+    pub chain_id: &'a str,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct Event<'a> {
+    pub name: &'a str,
+    pub data: &'a serde_json::Value,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct Reason {
     pub code: i32,
     pub message: String,

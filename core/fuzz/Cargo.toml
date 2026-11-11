@@ -28,6 +28,7 @@ gem_sui = { path = "../crates/gem_sui", features = ["rpc"] }
 gem_ton = { path = "../crates/gem_ton", features = ["tvm"] }
 gem_tron = { path = "../crates/gem_tron" }
 gem_wallet_connect = { path = "../crates/gem_wallet_connect" }
+gem_bitcoin = { path = "../crates/gem_bitcoin", features = ["signer"] }
 gem_zcash = { path = "../crates/gem_zcash", features = ["rpc"] }
 wallet_connect_protocol = { path = "../crates/wallet_connect_protocol" }
 name_resolver = { path = "../crates/name_resolver" }

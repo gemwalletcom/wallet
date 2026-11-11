@@ -274,6 +274,7 @@ impl GemWalletConnectService {
                     SignMessageVerdict::Allowed => simulation,
                 };
                 let message = self.wallet_connect.decode_sign_message(chain, sign_type, data);
+                let address = account.address.clone();
                 self.ensure_live(request.expiry)?;
                 self.session.set_current_wallet_id(Some(connection.wallet.id.clone()))?;
                 let signature = self
@@ -290,7 +291,7 @@ impl GemWalletConnectService {
                         assets,
                     })
                     .await?;
-                self.wallet_connect.encode_sign_message(chain, signature)
+                self.wallet_connect.encode_sign_message(chain, &address, signature)
             }
             WalletConnectAction::SignTransaction { chain, transaction_type, data } => {
                 let transaction_id = self.sign_transaction(request, chain, transaction_type, data, GemWalletConnectTransactionAction::Sign).await?;
@@ -417,9 +418,9 @@ mod tests {
     use super::*;
     use futures::executor::block_on;
     use gem_wallet_connect::WalletConnectResponseType;
-    use num_bigint::BigUint;
+    use num_bigint::{BigInt, BigUint};
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY_SOLANA_ADDRESS;
-    use primitives::{ApprovalData, WalletId};
+    use primitives::{ApprovalData, AssetId, TransactionInputType, WalletId};
 
     #[test]
     fn test_the_connections_view_links_the_walletconnect_guide() {
@@ -456,6 +457,71 @@ mod tests {
                 GemWalletConnectOutcome::AddSessionAccount { account: "eip155:81457:address".to_string() }
             );
             assert_eq!(service.request_outcome(request("2", "wallet_addEthereumChain")).await, GemWalletConnectOutcome::respond_null());
+        });
+    }
+
+    #[test]
+    fn test_bitcoin_requests_are_answered_in_the_bip122_shapes() {
+        const ADDRESS: &str = "bc1qcr8te4kr609gcawutmrza0j4xv80jy8z306fyu";
+        const RECIPIENT: &str = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4";
+        block_on(async {
+            let outcome = |method: &'static str, params: String| async move {
+                let wallet = Wallet::mock_with_accounts(vec![Account {
+                    derivation_path: "m/84'/0'/0'/0/0".to_string(),
+                    ..Account::mock(Chain::Bitcoin, ADDRESS)
+                }]);
+                let mut service = GemWalletConnectService::mock(Ok("signed".to_string()), wallet).await;
+                let signer = Arc::new(TestWalletConnectSigner::new(Ok("signed".to_string())));
+                service.signer = signer.clone();
+                let outcome = service
+                    .request_outcome(GemWalletConnectSessionRequest {
+                        method: method.to_string(),
+                        params,
+                        chain_id: Some("bip122:000000000019d6689c085ae165831e93".to_string()),
+                        ..GemWalletConnectSessionRequest::mock(method)
+                    })
+                    .await;
+                (outcome, signer)
+            };
+            let object = |json: &str| GemWalletConnectOutcome::Respond {
+                response: GemWalletConnectResponse::Response {
+                    value: WalletConnectResponseType::Object { json: json.to_string() },
+                },
+            };
+
+            let (addresses, _) = outcome("getAccountAddresses", format!(r#"{{"account":"{ADDRESS}"}}"#)).await;
+            assert_eq!(addresses, object(&format!(r#"[{{"address":"{ADDRESS}","path":"m/84'/0'/0'/0/0","intention":"payment"}}]"#)));
+
+            let (message, signer) = outcome("signMessage", format!(r#"{{"account":"{ADDRESS}","message":"Hello"}}"#)).await;
+            assert_eq!(message, object(&format!(r#"{{"address":"{ADDRESS}","signature":"signed"}}"#)));
+            assert_eq!(signer.messages.lock().unwrap()[0].message.data, b"Hello".to_vec(), "the review shows the message, not the request");
+
+            let (other, signer) = outcome("signMessage", format!(r#"{{"account":"{RECIPIENT}","message":"Hello"}}"#)).await;
+            assert!(matches!(other, GemWalletConnectOutcome::Fail { .. }), "{other:?}");
+            assert!(signer.messages.lock().unwrap().is_empty(), "a message for another account never reaches a review");
+
+            let psbt = gem_bitcoin::testkit::psbt_mock::mock_psbt(&[(100_000, ADDRESS)], &[(60_000, RECIPIENT), (39_000, ADDRESS)]);
+            let (signed, signer) = outcome("signPsbt", format!(r#"{{"account":"{ADDRESS}","psbt":"{psbt}","signInputs":[{{"address":"{ADDRESS}","index":0}}]}}"#)).await;
+            assert_eq!(signed, object(r#"{"psbt":"signed"}"#));
+            let review = &signer.transactions.lock().unwrap()[0];
+            assert_eq!(review.action, GemWalletConnectTransactionAction::Sign);
+            assert_eq!(review.transfer.recipient.address, RECIPIENT);
+            assert_eq!(review.transfer.value, BigInt::from(60_000), "the review shows what leaves the wallet");
+
+            let (foreign, signer) = outcome("signPsbt", format!(r#"{{"account":"{RECIPIENT}","psbt":"{psbt}","signInputs":[{{"address":"{RECIPIENT}","index":0}}]}}"#)).await;
+            assert!(matches!(foreign, GemWalletConnectOutcome::Fail { .. }), "{foreign:?}");
+            assert!(signer.transactions.lock().unwrap().is_empty());
+
+            let (transfer, signer) = outcome("sendTransfer", format!(r#"{{"account":"{ADDRESS}","recipientAddress":"{RECIPIENT}","amount":"123000","memo":"6869"}}"#)).await;
+            assert_eq!(transfer, object(r#"{"txid":"signed"}"#));
+            let review = &signer.transactions.lock().unwrap()[0];
+            assert_eq!(review.action, GemWalletConnectTransactionAction::Send);
+            assert!(
+                matches!(&review.transfer.input_type, TransactionInputType::Transfer { asset } if asset.id == AssetId::from_chain(Chain::Bitcoin)),
+                "a transfer is reviewed and planned like any Bitcoin send"
+            );
+            assert_eq!(review.transfer.value, BigInt::from(123_000));
+            assert_eq!(review.transfer.recipient.memo, Some("hi".to_string()));
         });
     }
 

@@ -28,7 +28,7 @@ serde_serializers = { path = "../serde_serializers", features = ["bigint"] }
 
 # Optional signer dependencies
 gem_hash = { path = "../gem_hash", optional = true }
-bitcoin = { workspace = true, optional = true }
+bitcoin = { workspace = true, optional = true, features = ["base64", "secp-recovery"] }
 bech32 = { workspace = true, optional = true }
 bs58 = { workspace = true, optional = true }
 

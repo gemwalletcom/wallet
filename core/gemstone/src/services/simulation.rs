@@ -77,6 +77,7 @@ impl GemSimulationService {
             WalletConnectTransactionType::Solana { .. } | WalletConnectTransactionType::Sui { .. } => self.simulate_encoded_transaction(&transaction_type, &data).await,
             WalletConnectTransactionType::Ton { .. } => self.simulate_chain_transaction(Chain::Ton, session_input()).await,
             WalletConnectTransactionType::Tron { .. } => self.simulate_chain_transaction(Chain::Tron, session_input()).await,
+            WalletConnectTransactionType::BitcoinPsbt | WalletConnectTransactionType::BitcoinTransfer => Ok(SimulationResult::default()),
         }
         .unwrap_or_default();
 
