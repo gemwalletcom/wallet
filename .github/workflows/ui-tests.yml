@@ -81,6 +81,14 @@ jobs:
         if: ${{ inputs.suite != 'maestro' }}
         run: just test-integration-without-building
 
+      - name: Upload native UI test results
+        if: ${{ failure() && inputs.suite != 'maestro' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: native-ui-ios
+          path: ios/build/DerivedData/Logs/Test/*.xcresult
+          if-no-files-found: ignore
+
       - name: Setup Maestro
         if: ${{ inputs.suite != 'native' }}
         uses: ./.github/actions/setup-maestro
