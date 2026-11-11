@@ -829,8 +829,8 @@ impl GemWalletConnectClient {
             url: config.app_url,
             icons: config.app_icons,
             redirect: Some(Redirect {
-                native: Some(rules::redirect(self.platform).to_string()),
-                universal: None,
+                native: Some(rules::WALLET_REDIRECT.to_string()),
+                universal: Some(rules::WALLET_REDIRECT.to_string()),
             }),
         }
     }
@@ -1024,7 +1024,11 @@ mod tests {
                     r#"{"eip155":{"chains":["eip155:1","eip155:137"],"accounts":["eip155:1:address","eip155:137:address"],"methods":["eth_sendTransaction","personal_sign","eth_signTypedData_v4"],"events":["chainChanged","accountsChanged"]}}"#
                 )
             );
-            assert_eq!(settle["params"]["controller"]["metadata"]["redirect"], json(r#"{"native":"gem://wc"}"#));
+            assert_eq!(
+                settle["params"]["controller"]["metadata"]["redirect"],
+                json(r#"{"native":"https://gemwallet.com/wc","universal":"https://gemwallet.com/wc"}"#),
+                "dapps return to Gem only through the verified link"
+            );
             assert_eq!(
                 client.service.store.get_connection(session_topic.clone()).await.unwrap().unwrap().wallet.id,
                 wallet.id,

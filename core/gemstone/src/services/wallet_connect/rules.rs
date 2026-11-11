@@ -43,8 +43,7 @@ const SESSION_REQUEST_EXPIRED_ERROR_CODE: i32 = 8000;
 const USER_REJECTED_SESSION_ERROR_CODE: i32 = 5000;
 const METHOD_NOT_FOUND_ERROR_CODE: i32 = -32601;
 const UNRECOGNIZED_CHAIN_ERROR_CODE: i32 = 4902;
-const IOS_REDIRECT: &str = "gem://wc";
-const ANDROID_REDIRECT: &str = "https://gemwallet.com/wc";
+pub const WALLET_REDIRECT: &str = "https://gemwallet.com/wc";
 const BLOCKED_REDIRECT_SCHEMES: [&str; 10] = [GEM_URL_SCHEME, WALLET_CONNECT_URL_SCHEME, "http", "javascript", "data", "file", "about", "blob", "content", "intent"];
 const GEM_HOST: &str = "gemwallet.com";
 
@@ -263,13 +262,6 @@ pub fn supports_authentication(platform: Platform) -> bool {
     match platform {
         Platform::Android => true,
         Platform::IOS => false,
-    }
-}
-
-pub fn redirect(platform: Platform) -> &'static str {
-    match platform {
-        Platform::IOS => IOS_REDIRECT,
-        Platform::Android => ANDROID_REDIRECT,
     }
 }
 
