@@ -1,8 +1,8 @@
 use std::fmt;
 
-use primitives::Chain;
+use primitives::{AddressFormatStyle, Chain};
 
-use crate::address_formatter::{GemAddressFormatStyle, format_address};
+use crate::address_formatter::format_address;
 
 const SECRET_CLIPBOARD_SECONDS: u32 = 60;
 
@@ -59,7 +59,7 @@ impl fmt::Debug for GemCopy {
 pub fn address_copy(chain: Chain, address: String) -> GemCopy {
     GemCopy {
         kind: GemCopyKind::Address { chain },
-        display: format_address(&address, Some(chain), GemAddressFormatStyle::Short),
+        display: format_address(&address, Some(chain), AddressFormatStyle::Short),
         value: address,
     }
 }

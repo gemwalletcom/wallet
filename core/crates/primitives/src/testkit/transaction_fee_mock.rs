@@ -6,6 +6,10 @@ impl TransactionFee {
         TransactionFee::new_from_fee(BigInt::ZERO, AssetId::from_chain(Chain::Ethereum))
     }
 
+    pub fn mock_with_fee(fee: u64) -> Self {
+        TransactionFee::new_gas_price_type(GasPriceType::regular(1), fee.into(), 21_000.into(), Default::default(), AssetId::from_chain(Chain::Ethereum))
+    }
+
     pub fn mock_tron(fee: u64, gas_limit: u64) -> Self {
         TransactionFee::new_gas_price_type(GasPriceType::regular(0), fee.into(), gas_limit.into(), Default::default(), AssetId::from_chain(Chain::Tron))
     }

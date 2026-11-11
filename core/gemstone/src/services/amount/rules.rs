@@ -11,7 +11,7 @@ use crate::config::perpetual_config::{MIN_DEPOSIT_AMOUNT, MIN_WITHDRAW_AMOUNT, l
 use crate::formatted_number::GemFormattedNumber;
 use crate::models::custom_types::GemBigInt;
 use crate::perpetual::GemPerpetual;
-use crate::precision::{GemCurrencyStyle, GemValueStyle};
+use crate::precision::GemCurrencyStyle;
 use crate::services::assets::icon::asset_icon;
 use crate::services::balance::{GemAssetBalance, GemBalanceRequirement};
 use crate::services::error::GemServiceError;
@@ -24,7 +24,7 @@ use crate::services::stake::rules as stake_rules;
 use crate::services::transfer::rules as transfer_rules;
 use crate::services::transfer::{GemRecipient, GemTransferData};
 use gem_hypercore::perpetual_formatter::PerpetualFormatter;
-use number_formatter::{BigNumberFormatter, CryptoFiatConverter};
+use number_formatter::{BigNumberFormatter, CryptoFiatConverter, ValueStyle};
 use primitives::PerpetualProvider;
 use primitives::TransactionInputType;
 
@@ -56,7 +56,7 @@ impl GemAmountType {
             },
             is_max,
             reserved_fee: input.reserved_fee.as_ref().filter(|_| is_max).map(|fee| GemLocalizedText::ReservedFees {
-                fee: GemFormattedNumber::asset_amount(fee, asset, GemValueStyle::Auto),
+                fee: GemFormattedNumber::asset_amount(fee, asset, ValueStyle::Auto),
             }),
             value,
             error,
@@ -73,7 +73,7 @@ impl GemAmountType {
         GemAmountInput {
             icon: asset_icon(&asset.id),
             balance: GemLocalizedText::AmountBalance {
-                balance: GemFormattedNumber::asset_amount(&available, asset, GemValueStyle::Auto),
+                balance: GemFormattedNumber::asset_amount(&available, asset, ValueStyle::Auto),
             },
             available_value: available,
             prefill: (!can_change_value).then(|| GemAmountMaxEntry {
@@ -136,7 +136,7 @@ fn equivalent(value: Option<&BigInt>, asset: &Asset, price: Option<f64>, input_t
             let amount = valid_price(price).and_then(|price| CryptoFiatConverter::to_fiat_as_f64(&value, asset.decimals, price).ok()).unwrap_or(0.0);
             GemFormattedNumber::currency(amount, currency, GemCurrencyStyle::Currency)
         }
-        GemAmountInputType::Fiat => GemFormattedNumber::asset_amount(&value, asset, GemValueStyle::Auto),
+        GemAmountInputType::Fiat => GemFormattedNumber::asset_amount(&value, asset, ValueStyle::Auto),
     }
 }
 
@@ -581,7 +581,7 @@ mod tests {
         let entry = GemAmountEntry {
             value: Some(BigInt::from(1)),
             error: None,
-            equivalent: GemFormattedNumber::asset_amount(&BigInt::from(1), &Asset::mock_hypercore_usdc(), GemValueStyle::Auto),
+            equivalent: GemFormattedNumber::asset_amount(&BigInt::from(1), &Asset::mock_hypercore_usdc(), ValueStyle::Auto),
             is_max: false,
             reserved_fee: None,
         };
@@ -1015,7 +1015,7 @@ mod tests {
         assert_eq!(fiat.value, Some(BigInt::from(1_000_120_000)));
         assert_eq!(
             fiat.equivalent,
-            GemFormattedNumber::asset_amount(&BigInt::from(1_000_120_000), &usdc, GemValueStyle::Auto),
+            GemFormattedNumber::asset_amount(&BigInt::from(1_000_120_000), &usdc, ValueStyle::Auto),
             "the asset equivalent arrives formatted, so neither app picks a style for it"
         );
         assert_eq!(
@@ -1082,7 +1082,7 @@ mod tests {
         let ether = Asset::from_chain(Chain::Ethereum);
         let input = GemAmountType::Transfer.input(&ether, &GemAssetBalance::mock_with_available(1_500_000_000_000_000_000));
         assert_eq!(input.available_value, BigInt::from(1_500_000_000_000_000_000u64), "the raw value stays, because entry reads it back");
-        let balance = GemFormattedNumber::asset_amount(&BigInt::from(1_500_000_000_000_000_000u64), &ether, GemValueStyle::Auto);
+        let balance = GemFormattedNumber::asset_amount(&BigInt::from(1_500_000_000_000_000_000u64), &ether, ValueStyle::Auto);
         assert_eq!(balance.unit, GemNumberUnit::Symbol { symbol: ether.symbol }, "the symbol travels with the number");
         assert_eq!(balance.value, 1.5);
         assert_eq!(input.balance, GemLocalizedText::AmountBalance { balance }, "the screen reads Balance: with the number");
@@ -1105,7 +1105,7 @@ mod tests {
         assert_eq!(
             at_max.reserved_fee,
             Some(GemLocalizedText::ReservedFees {
-                fee: GemFormattedNumber::asset_amount(&BigInt::from(config.reserved_for_fees), &cosmos, GemValueStyle::Auto)
+                fee: GemFormattedNumber::asset_amount(&BigInt::from(config.reserved_for_fees), &cosmos, ValueStyle::Auto)
             })
         );
 

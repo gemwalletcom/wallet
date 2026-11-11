@@ -1,6 +1,5 @@
 use super::with_utm_source;
-use crate::models::GemStakeChain;
-use primitives::{Asset, Platform};
+use primitives::{Asset, Platform, StakeChain};
 
 #[derive(uniffi::Enum, Clone, Debug, PartialEq)]
 pub enum DocsUrl {
@@ -29,7 +28,7 @@ pub enum DocsUrl {
     WalletConnect,
     HowStoreSecretPhrase,
     NoQuotes,
-    Staking(GemStakeChain),
+    Staking(StakeChain),
     PerpetualsFundingRate,
     PerpetualsLiquidationPrice,
     PerpetualsOpenInterest,

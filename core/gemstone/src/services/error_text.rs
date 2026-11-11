@@ -1,11 +1,11 @@
 use crate::GemstoneError;
 use crate::alien::AlienError;
 use crate::gateway::GatewayError;
-use crate::payment::GemPaymentError;
 use crate::services::error::GemServiceError;
 use crate::services::node::model::GemAddNodeError;
 use crate::services::wallet::error::GemWalletImportError;
 use crate::services::wallet_connect::error::GemWalletConnectError;
+use payment::PaymentError;
 use primitives::PaymentStatus;
 
 #[derive(Debug, Clone, PartialEq, Eq, uniffi::Enum)]
@@ -150,11 +150,11 @@ pub fn alien_error_text(error: AlienError) -> GemErrorText {
 }
 
 #[uniffi::export]
-pub fn payment_error_text(error: GemPaymentError) -> GemErrorText {
+pub fn payment_error_text(error: PaymentError) -> GemErrorText {
     match error {
-        GemPaymentError::NoPaymentOptions => GemErrorText::NotSupported,
-        GemPaymentError::Status { status } => GemErrorText::Payment { status },
-        GemPaymentError::InvalidRequest { reason } | GemPaymentError::Network { reason } => GemErrorText::message(reason),
+        PaymentError::NoPaymentOptions => GemErrorText::NotSupported,
+        PaymentError::Status { status } => GemErrorText::Payment { status },
+        PaymentError::InvalidRequest { reason } | PaymentError::Network { reason } => GemErrorText::message(reason),
     }
 }
 
@@ -167,7 +167,7 @@ mod tests {
     fn test_a_blank_message_reads_as_unknown() {
         assert_eq!(GemServiceError::Api { msg: " ".into() }.text(), GemErrorText::Unknown);
         assert_eq!(alien_error_text(AlienError::RequestError { msg: String::new() }), GemErrorText::Unknown);
-        assert_eq!(payment_error_text(GemPaymentError::Network { reason: String::new() }), GemErrorText::Unknown);
+        assert_eq!(payment_error_text(PaymentError::Network { reason: String::new() }), GemErrorText::Unknown);
     }
 
     #[test]

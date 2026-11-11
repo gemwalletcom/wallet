@@ -3,22 +3,22 @@ use std::collections::BTreeMap;
 use gem_crypto::random;
 use gem_derivation::default_derivation_path;
 use gem_keystore::Mnemonic;
-use primitives::{Account, AddressName, AddressType, BlockExplorerLink, Chain, ChainType, NameRecord, OptionStringExt, VerificationStatus, Wallet, WalletId, WalletListItem, WalletSource, WalletType};
+use primitives::{Account, AddressFormatStyle, AddressName, AddressType, BlockExplorerLink, Chain, ChainType, NameRecord, OptionStringExt, VerificationStatus, Wallet, WalletId, WalletListItem, WalletSource, WalletType};
 
 use super::error::GemWalletImportError;
 use super::model::{
     GemPrivateKeyAccount, GemPrivateKeyScope, GemSecretExport, GemSecretPhraseRow, GemSecretRow, GemSecretScreen, GemSecretWarning, GemWalletDetails, GemWalletImportKind, GemWalletImportScreen, GemWalletImportType, GemWalletPlaceholder,
     GemWalletRow, GemWalletSecretKind, GemWalletSection, GemWalletSectionKind, GemWalletSubtitle,
 };
-use crate::address_formatter::{GemAddressFormatStyle, format_address};
+use crate::address_formatter::format_address;
 use crate::models::list::{GemAddressRow, GemListRowTitle};
 use crate::services::chain::chain_row;
 use crate::services::localization::GemLocalizedText;
 use crate::services::onboarding::{GemSecurityReminderItem, GemSecurityReminderKind};
 
 const SECRET_PHRASE_COLUMNS: usize = 2;
-const WALLET_ADDRESS_STYLE: GemAddressFormatStyle = GemAddressFormatStyle::Extra { extra: 1 };
-const PRIVATE_KEY_ACCOUNT_ADDRESS_STYLE: GemAddressFormatStyle = GemAddressFormatStyle::Short;
+const WALLET_ADDRESS_STYLE: AddressFormatStyle = AddressFormatStyle::Extra { extra: 1 };
+const PRIVATE_KEY_ACCOUNT_ADDRESS_STYLE: AddressFormatStyle = AddressFormatStyle::Short;
 use crate::address::parse_address;
 use crate::keystore::GemKeystoreAccount;
 use crate::signer::decode_private_key;

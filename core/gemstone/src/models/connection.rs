@@ -1,9 +1,6 @@
 use primitives::{ConnectionComponent, ConnectionStatus};
 
-pub type GemConnectionStatus = ConnectionStatus;
-pub type GemConnectionComponent = ConnectionComponent;
-
 #[uniffi::export]
-pub fn connection_status(unhealthy_components: Vec<GemConnectionComponent>) -> GemConnectionStatus {
+pub fn connection_status(unhealthy_components: Vec<ConnectionComponent>) -> ConnectionStatus {
     ConnectionStatus::from_unhealthy_components(&unhealthy_components)
 }

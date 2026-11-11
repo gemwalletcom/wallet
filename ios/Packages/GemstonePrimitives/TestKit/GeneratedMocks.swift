@@ -1326,20 +1326,6 @@ public extension Gemstone.GemTransactionStatus {
     }
 }
 
-public extension Gemstone.GemTransferAmount {
-    static func mock(
-        value: BigInt = 0,
-        networkFee: BigInt = 0,
-        isMaxAmount: Bool = false,
-    ) -> Gemstone.GemTransferAmount {
-        Gemstone.GemTransferAmount(
-            value: value,
-            networkFee: networkFee,
-            isMaxAmount: isMaxAmount,
-        )
-    }
-}
-
 public extension Gemstone.GemTransferAmountResult {
     static func mock() -> Gemstone.GemTransferAmountResult {
         .amount(amount: .mock())
@@ -2273,6 +2259,20 @@ public extension Gemstone.SwapperSlippage {
 public extension Gemstone.TransactionInputType {
     static func mock() -> Gemstone.TransactionInputType {
         .transfer(asset: Primitives.Asset.mock().toGem())
+    }
+}
+
+public extension Gemstone.TransferAmount {
+    static func mock(
+        value: BigInt = 0,
+        networkFee: BigInt = 0,
+        isMaxAmount: Bool = false,
+    ) -> Gemstone.TransferAmount {
+        Gemstone.TransferAmount(
+            value: value,
+            networkFee: networkFee,
+            isMaxAmount: isMaxAmount,
+        )
     }
 }
 

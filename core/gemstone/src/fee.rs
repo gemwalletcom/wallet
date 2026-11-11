@@ -1,5 +1,5 @@
 use num_bigint::BigInt;
-use number_formatter::BigNumberFormatter;
+use number_formatter::{BigNumberFormatter, ValueStyle};
 use primitives::currency::Currency;
 use primitives::{Asset, FeeUnitType, GasPriceType, custom_fee_value};
 
@@ -7,7 +7,6 @@ use crate::config::fee_config::get_fee_config;
 use crate::formatted_number::{GemFormattedNumber, GemNumberRounding, GemNumberUnit};
 use crate::models::custom_types::GemBigInt;
 use crate::models::list::GemListRowTitle;
-use crate::precision::GemValueStyle;
 use crate::services::amount::model::GemNumberFormat;
 use crate::services::amount::rules::{input_text, sanitize_number_input, value_from_input};
 use crate::services::assets::model::GemFeeAmount;
@@ -66,8 +65,8 @@ fn fee_rate_number(unit_type: FeeUnitType, rate: &BigInt, decimals: u32, symbol:
     let value = BigNumberFormatter::f64_value(rate, decimals);
     match unit_type {
         FeeUnitType::Gwei => GemFormattedNumber::adaptive(value, None),
-        FeeUnitType::SatVb => GemFormattedNumber::amount(value, None, GemValueStyle::Full),
-        FeeUnitType::Native => GemFormattedNumber::amount(value, Some(symbol.to_string()), GemValueStyle::Full),
+        FeeUnitType::SatVb => GemFormattedNumber::amount(value, None, ValueStyle::Full),
+        FeeUnitType::Native => GemFormattedNumber::amount(value, Some(symbol.to_string()), ValueStyle::Full),
     }
 }
 
@@ -295,7 +294,7 @@ mod tests {
             estimate(Chain::Bitcoin, "").rate.placeholder,
             Some(GemFormattedNumber {
                 rounding: GemNumberRounding::AwayFromZero,
-                ..GemFormattedNumber::amount(10.0, None, GemValueStyle::Full)
+                ..GemFormattedNumber::amount(10.0, None, ValueStyle::Full)
             })
         );
         let unloaded = estimate_with(Chain::Bitcoin, "20", rows(None), Some(BigInt::from(1_000)));
@@ -440,7 +439,7 @@ mod tests {
         assert_eq!(
             fee_rate_text(FeeUnitType::SatVb, &BigInt::from(1_000_000), 1, "BTC"),
             GemLocalizedText::FeeRate {
-                rate: GemFormattedNumber::amount(100_000.0, None, GemValueStyle::Full),
+                rate: GemFormattedNumber::amount(100_000.0, None, ValueStyle::Full),
                 unit: FeeUnitType::SatVb
             }
         );
@@ -455,7 +454,7 @@ mod tests {
         assert_eq!(
             fee_rate_text(FeeUnitType::Native, &BigInt::from(2_500), 9, "SOL"),
             GemLocalizedText::FeeRate {
-                rate: GemFormattedNumber::amount(0.0000025, Some("SOL".to_string()), GemValueStyle::Full),
+                rate: GemFormattedNumber::amount(0.0000025, Some("SOL".to_string()), ValueStyle::Full),
                 unit: FeeUnitType::Native
             },
             "a native fee reads in the fee asset"

@@ -1,7 +1,7 @@
 use crate::alien::AlienError;
-use crate::signer::GemSignerError;
 use crate::transaction_state::TransactionStatusError;
 use gem_jsonrpc::types::{ERROR_CLIENT_ERROR, JsonRpcError};
+use primitives::SignerError;
 use std::{error::Error, fmt::Display};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Error)]
@@ -10,7 +10,7 @@ pub enum GatewayError {
     NetworkError { msg: String },
     PlatformError { msg: String },
     NetworkIdMismatch { chain: String, network_id: String },
-    SignerError { error: GemSignerError },
+    SignerError { error: SignerError },
 }
 
 impl Display for GatewayError {
@@ -47,7 +47,7 @@ pub(crate) fn map_network_error(error: Box<dyn Error + Send + Sync>) -> GatewayE
     if is_offline(error.as_ref()) {
         return GatewayError::Offline;
     }
-    if let Some(error) = error.downcast_ref::<GemSignerError>() {
+    if let Some(error) = error.downcast_ref::<SignerError>() {
         return GatewayError::SignerError { error: error.clone() };
     }
     let mut current_error: Option<&(dyn Error + 'static)> = Some(error.as_ref());

@@ -2,9 +2,7 @@ pub mod rules;
 
 use std::time::Duration;
 
-use primitives::ConnectionStatus;
-
-use crate::models::GemConnectionComponent;
+use primitives::{ConnectionComponent, ConnectionStatus};
 
 #[derive(Debug, Clone, Copy, PartialEq, uniffi::Enum)]
 pub enum GemRefreshKind {
@@ -38,7 +36,7 @@ impl GemConnectionService {
         rules::refresh_interval(kind, status)
     }
 
-    pub fn resets_component_health(&self, component: GemConnectionComponent, is_healthy: bool, was_healthy: Option<bool>) -> bool {
+    pub fn resets_component_health(&self, component: ConnectionComponent, is_healthy: bool, was_healthy: Option<bool>) -> bool {
         rules::resets_component_health(component, is_healthy, was_healthy)
     }
 }

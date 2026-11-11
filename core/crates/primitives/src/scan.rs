@@ -132,7 +132,7 @@ pub struct ScanAddress {
 
 impl ScanAddress {
     pub fn is_verified_for(&self, chain: Chain, address: &str) -> bool {
-        self.chain == chain && self.address == address && self.is_verified == Some(true) && self.is_malicious != Some(true)
+        self.chain == chain && self.address == address && self.verification_status() == VerificationStatus::Verified
     }
 
     pub fn verification_status(&self) -> VerificationStatus {

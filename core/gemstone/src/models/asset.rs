@@ -1,13 +1,10 @@
 use primitives::{Asset, AssetId, AssetScore, Chain, ChainAsset, WalletType, known_assets};
 
-pub type GemAsset = Asset;
-pub type GemChainAsset = ChainAsset;
-
 pub fn default_token_rank() -> i32 {
     AssetScore::default().rank
 }
 
-pub fn wallet_default_assets(chain: Chain) -> Vec<GemAsset> {
+pub fn wallet_default_assets(chain: Chain) -> Vec<Asset> {
     known_assets::wallet_default_assets(chain)
 }
 
@@ -37,7 +34,7 @@ pub fn wallet_asset_is_enabled(asset_id: AssetId, wallet_type: WalletType) -> bo
     }
 }
 
-pub fn chain_asset_wrapper(chain: Chain) -> GemChainAsset {
+pub fn chain_asset_wrapper(chain: Chain) -> ChainAsset {
     ChainAsset::from_chain(chain)
 }
 

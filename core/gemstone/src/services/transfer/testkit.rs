@@ -2,10 +2,9 @@ use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
 use num_bigint::BigInt;
-use primitives::{RecentActivityType, TransactionInputType, TransactionType, WalletId};
+use primitives::{RecentActivityType, TransactionFee, TransactionInputType, TransactionLoadMetadata, TransactionType, WalletId};
 
 use super::{GemPendingTransactionInput, GemRecentActivity, GemRecentActivityScope, GemRecentActivityService, GemRecentActivityStore, GemRecipient, GemTransferData};
-use crate::models::transaction::{GemTransactionLoadFee, GemTransactionLoadMetadata};
 use crate::services::error::GemServiceError;
 use crate::services::wallet::testkit::MemoryWalletStore;
 use crate::services::wallet_session::GemWalletSessionService;
@@ -35,9 +34,9 @@ impl GemPendingTransactionInput {
             transaction_type,
             sequence: None,
             hash: hash.to_string(),
-            fee: GemTransactionLoadFee::mock(1),
+            fee: TransactionFee::mock_with_fee(1),
             network_fee: BigInt::from(1),
-            metadata: GemTransactionLoadMetadata::None,
+            metadata: TransactionLoadMetadata::None,
             simulation: None,
             transaction_index,
             transaction_count,

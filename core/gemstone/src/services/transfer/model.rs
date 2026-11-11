@@ -1,7 +1,7 @@
 use crate::models::custom_types::GemBigInt;
-use crate::models::transaction::{GemTransactionLoadFee, GemTransactionLoadMetadata};
+use chain_primitives::checksum_address;
 use primitives::TransactionInputType;
-use primitives::{AssetId, PerpetualDirection, RecentActivityType, Resource, SimulationResult, TransactionType, TransferDataOutputAction, TransferDataOutputType, WalletId};
+use primitives::{AssetId, PerpetualDirection, RecentActivityType, Resource, SimulationResult, TransactionFee, TransactionLoadMetadata, TransactionType, TransferDataOutputAction, TransferDataOutputType, WalletId};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemRecentActivityScope {
@@ -31,6 +31,12 @@ pub struct GemRecipient {
 impl GemTransferData {
     pub fn identifier(&self) -> String {
         [self.input_type.get_asset().chain().as_ref(), &self.recipient.address, &self.value.to_string()].join("-")
+    }
+}
+
+impl GemTransferData {
+    pub fn destination_address(&self) -> String {
+        checksum_address(&self.recipient.address, self.input_type.get_asset().chain())
     }
 }
 
@@ -78,9 +84,9 @@ pub(crate) struct GemPendingTransactionInput {
     pub(crate) transaction_type: TransactionType,
     pub(crate) sequence: Option<u64>,
     pub(crate) hash: String,
-    pub(crate) fee: GemTransactionLoadFee,
+    pub(crate) fee: TransactionFee,
     pub(crate) network_fee: GemBigInt,
-    pub(crate) metadata: GemTransactionLoadMetadata,
+    pub(crate) metadata: TransactionLoadMetadata,
     pub(crate) simulation: Option<SimulationResult>,
     pub(crate) transaction_index: usize,
     pub(crate) transaction_count: usize,
@@ -132,6 +138,16 @@ pub enum GemConfirmDestination {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_destination_address_reads_in_the_chain_checksum() {
+        let transfer = GemTransferData {
+            recipient: GemRecipient::address("0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a".to_string()),
+            ..GemTransferData::mock(TransactionInputType::Transfer { asset: primitives::Asset::mock_eth() })
+        };
+
+        assert_eq!(transfer.destination_address(), "0x5615E8AB93b9d695b6d4d6545f7792aA59e1069a");
+    }
 
     #[test]
     fn test_transfer_identifier_separates_transfers_by_chain_recipient_and_value() {

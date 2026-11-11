@@ -42,7 +42,7 @@ uniffi::setup_scaffolding!("gemstone");
 #[derive(Debug, PartialEq, Eq, uniffi::Error)]
 pub enum GemstoneError {
     AnyError { msg: String },
-    SignerError { error: signer::GemSignerError, msg: String },
+    SignerError { error: primitives::SignerError, msg: String },
     Cancelled,
 }
 

@@ -6,8 +6,7 @@ use crate::formatted_number::GemFormattedNumber;
 use crate::models::button::GemButtonState;
 use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::list::{GemAddressRow, GemInfoTopic, GemListRow, GemListRowTitle};
-use crate::models::transaction::{GemFeeOptionItem, GemSignedTransaction, GemTransactionLoadFee, GemTransactionLoadMetadata};
-use crate::precision::GemValueStyle;
+use crate::models::transaction::{GemFeeOptionItem, GemSignedTransaction};
 use crate::services::amount::model::GemNumberFormat;
 use crate::services::assets::icon::asset_icon;
 use crate::services::assets::model::{GemAssetItemRow, GemFeeAmount, GemFeeText, GemValueHeader};
@@ -20,16 +19,14 @@ use crate::services::swap::model::{GemSwapDetails, GemSwapPairSelection};
 use crate::services::transfer::GemTransferData;
 use crate::services::transfer::model::GemConfirmTitle;
 use crate::services::wallet::GemKeystoreAuthentication;
-use crate::transfer_amount::GemTransferAmount;
-use primitives::{Account, AddressName, Asset, AssetId, Chain, ChainAddress, FeePriority, FeeRate, FeeUnitType, GasPriceType, SimulationResult, Wallet};
+use number_formatter::ValueStyle;
+use primitives::{Account, AddressName, Asset, AssetId, Chain, ChainAddress, FeePriority, FeeRate, FeeUnitType, GasPriceType, SimulationResult, TransactionFee, TransactionLoadMetadata, TransferAmount, Wallet};
 use primitives::{AssetPrice, Currency, PaymentVerification};
 use swapper::Quote;
 
-pub type GemAccount = Account;
-
 #[derive(Debug, Clone)]
 pub struct GemConfirmInput {
-    pub from: GemAccount,
+    pub from: Account,
     pub transfer: GemTransferData,
 }
 
@@ -82,11 +79,11 @@ impl GemConfirmLoadOptions {
 #[derive(Debug, Clone)]
 pub struct GemConfirmData {
     pub input: GemConfirmInput,
-    pub fee: GemTransactionLoadFee,
+    pub fee: TransactionFee,
     pub selected_priority: FeePriority,
     pub fee_selection: GemConfirmFeeSelection,
     pub fee_rates: Vec<FeeRate>,
-    pub metadata: GemTransactionLoadMetadata,
+    pub metadata: TransactionLoadMetadata,
     pub simulation: Option<SimulationResult>,
 }
 
@@ -243,7 +240,7 @@ impl GemConfirmSimulation {
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemConfirmLoad {
     pub transfer: GemTransferData,
-    pub sender: GemAccount,
+    pub sender: Account,
     pub fee_asset: Asset,
     pub metadata: GemConfirmMetadata,
     pub fee_assets: Vec<GemFeeAsset>,
@@ -270,7 +267,7 @@ pub struct GemConfirmSimulationState {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemTransferAmountResult {
-    Amount { amount: GemTransferAmount },
+    Amount { amount: TransferAmount },
     Error { error: GemConfirmError },
 }
 
@@ -367,7 +364,7 @@ impl GemSimulationValue {
         let title = match &value {
             GemApprovalValue::Unlimited => GemLocalizedText::UnlimitedAsset { symbol: asset.symbol.clone() },
             GemApprovalValue::Exact { value } => GemLocalizedText::Number {
-                number: GemFormattedNumber::asset_amount(&GemBigInt::from(value.clone()), &asset, GemValueStyle::Full),
+                number: GemFormattedNumber::asset_amount(&GemBigInt::from(value.clone()), &asset, ValueStyle::Full),
             },
         };
         Self {

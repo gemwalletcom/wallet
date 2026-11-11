@@ -1,5 +1,6 @@
 use crate::percentage::GemPercentageStyle;
-use crate::precision::{GemCurrencyStyle, GemPrecision, GemValueStyle};
+use crate::precision::{GemCurrencyStyle, GemPrecision};
+use number_formatter::ValueStyle;
 use number_formatter::precision::round_to_places;
 use primitives::Currency;
 
@@ -80,11 +81,11 @@ impl GemFormattedNumber {
         }
     }
 
-    pub fn asset_amount(value: &num_bigint::BigInt, asset: &primitives::Asset, style: GemValueStyle) -> Self {
+    pub fn asset_amount(value: &num_bigint::BigInt, asset: &primitives::Asset, style: ValueStyle) -> Self {
         Self {
             exact: match style {
-                GemValueStyle::Full => number_formatter::BigNumberFormatter::plain_value(value.magnitude(), asset.decimals).ok(),
-                GemValueStyle::Short | GemValueStyle::Auto => None,
+                ValueStyle::Full => number_formatter::BigNumberFormatter::plain_value(value.magnitude(), asset.decimals).ok(),
+                ValueStyle::Short | ValueStyle::Auto => None,
             },
             ..Self::amount(number_formatter::BigNumberFormatter::f64_value(value, asset.decimals), Some(asset.symbol.clone()), style)
         }
@@ -176,7 +177,7 @@ impl GemFormattedNumber {
         }
     }
 
-    pub fn amount(value: f64, symbol: Option<String>, style: GemValueStyle) -> Self {
+    pub fn amount(value: f64, symbol: Option<String>, style: ValueStyle) -> Self {
         Self {
             value,
             notation: GemNumberNotation::Plain,
@@ -259,17 +260,19 @@ fn currency_display(value: f64, style: GemCurrencyStyle) -> GemNumberDisplay {
     GemNumberDisplay::Number { precision: style.precision(value) }
 }
 
-fn value_display(value: f64, style: GemValueStyle) -> GemNumberDisplay {
-    if style.abbreviates(value) {
+fn value_display(value: f64, style: ValueStyle) -> GemNumberDisplay {
+    if number_formatter::precision::abbreviates_value(style, value) {
         return GemNumberDisplay::Abbreviated;
     }
-    if style.is_dust(value) {
+    if number_formatter::precision::is_value_dust(style, value) {
         return GemNumberDisplay::BelowThreshold {
             threshold: number_formatter::VALUE_DUST_THRESHOLD,
             places: number_formatter::VALUE_DUST_PLACES,
         };
     }
-    GemNumberDisplay::Number { precision: style.precision(value) }
+    GemNumberDisplay::Number {
+        precision: number_formatter::precision::value(style, value).into(),
+    }
 }
 
 #[cfg(test)]
@@ -278,7 +281,7 @@ mod tests {
 
     #[test]
     fn test_an_amount_never_rounds_above_what_is_held() {
-        assert_eq!(GemFormattedNumber::amount(5.205516, Some("ATOM".to_string()), GemValueStyle::Auto).rounding, GemNumberRounding::TowardZero);
+        assert_eq!(GemFormattedNumber::amount(5.205516, Some("ATOM".to_string()), ValueStyle::Auto).rounding, GemNumberRounding::TowardZero);
         assert_eq!(GemFormattedNumber::usd(5.205516).rounding, GemNumberRounding::ToNearest);
         assert_eq!(GemFormattedNumber::percentage(5.205516, GemPercentageStyle::Unsigned).rounding, GemNumberRounding::ToNearest);
     }
@@ -418,11 +421,11 @@ mod tests {
 
     #[test]
     fn test_an_amount_carries_its_symbol_and_reads_dust_below_the_threshold() {
-        let dust = GemFormattedNumber::amount(0.00001, Some("BTC".to_string()), GemValueStyle::Short);
+        let dust = GemFormattedNumber::amount(0.00001, Some("BTC".to_string()), ValueStyle::Short);
         assert_eq!(dust.unit, GemNumberUnit::Symbol { symbol: "BTC".to_string() });
         assert_eq!(dust.display, GemNumberDisplay::BelowThreshold { threshold: 0.0001, places: 4 });
 
-        let plain = GemFormattedNumber::amount(0.5, None, GemValueStyle::Auto);
+        let plain = GemFormattedNumber::amount(0.5, None, ValueStyle::Auto);
         assert_eq!(plain.unit, GemNumberUnit::Plain);
         assert_eq!(
             plain.display,

@@ -271,8 +271,8 @@ impl AcrossDeployment {
                 price: Some(TokenPrice::Dollar),
                 set: HashSet::from_iter([
                     ARBITRUM_USDC_E_ASSET_ID.clone(),
-                    BASE_USDC_E_ASSET_ID.clone(),
-                    ETHEREUM_USDC_E_ASSET_ID.clone(),
+                    BASE_USDC_ASSET_ID.clone(),
+                    ETHEREUM_USDC_ASSET_ID.clone(),
                     LINEA_USDC_E_ASSET_ID.clone(),
                     OPTIMISM_USDC_E_ASSET_ID.clone(),
                     POLYGON_USDC_E_ASSET_ID.clone(),

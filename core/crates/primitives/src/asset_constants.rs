@@ -94,12 +94,6 @@ pub static SUI_USDC_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from
 pub const ARBITRUM_USDC_E_TOKEN_ID: &str = "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8";
 pub static ARBITRUM_USDC_E_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Arbitrum, ARBITRUM_USDC_E_TOKEN_ID));
 
-pub const BASE_USDC_E_TOKEN_ID: &str = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
-pub static BASE_USDC_E_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Base, BASE_USDC_E_TOKEN_ID));
-
-pub const ETHEREUM_USDC_E_TOKEN_ID: &str = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
-pub static ETHEREUM_USDC_E_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Ethereum, ETHEREUM_USDC_E_TOKEN_ID));
-
 pub const LINEA_USDC_E_TOKEN_ID: &str = "0x176211869cA2b568f2A7D4EE941E073a821EE1ff";
 pub static LINEA_USDC_E_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Linea, LINEA_USDC_E_TOKEN_ID));
 
@@ -267,7 +261,6 @@ pub static ARC_EURC_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from
 pub const ARC_CIRBTC_TOKEN_ID: &str = "0x171A4217b86A807A64eB94757Db6849fb4bDbAA0";
 pub static ARC_CIRBTC_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Arc, ARC_CIRBTC_TOKEN_ID));
 
-pub const STABLE_TOKEN_ID: &str = "0x0000000000000000000000000000000000001003";
 pub static STABLE_USDT0_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Stable, USDT0_OFT_TOKEN_ID));
 
 pub const ROBINHOOD_WETH_TOKEN_ID: &str = "0x0Bd7D308f8E1639FAb988df18A8011f41EAcAD73";
@@ -378,16 +371,6 @@ pub static SUI_SBUSDT_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::fr
 
 pub const THORCHAIN_TCY_TOKEN_ID: &str = "tcy";
 pub static THORCHAIN_TCY_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Thorchain, THORCHAIN_TCY_TOKEN_ID));
-
-pub const COSMOS_USDC_TOKEN_ID: &str = "ibc/F663521BF1836B00F5F177680F74BFB9A8B5654A694D0D2BC249E03CF2509013";
-
-pub const OSMOSIS_USDC_TOKEN_ID: &str = "ibc/498A0751C798A0D9A389AA3691123DADA57DAA4FE165D5C75894505B876BA6E4";
-
-pub const OSMOSIS_USDT_TOKEN_ID: &str = "ibc/4ABBEF4C8926DDDB320AE5188CFD63267ABBCEFC0583E4AE05D6E5AA2401DDAB";
-
-pub const INJECTIVE_USDC_TOKEN_ID: &str = "ibc/7E1AF94AD246BE522892751046F0C959B768642E5671CC3742264068D49553C0";
-
-pub const SEI_USDC_TOKEN_ID: &str = "ibc/CA6FBFAF399474A06263E10D0CE5AEBBE15189D6D4B2DD9ADE61007E68EB9DB0";
 
 pub const TEMPO_BRIDGED_USDC_TOKEN_ID: &str = "0x20C000000000000000000000b9537d11c60E8b50";
 pub static TEMPO_BRIDGED_USDC_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Tempo, TEMPO_BRIDGED_USDC_TOKEN_ID));

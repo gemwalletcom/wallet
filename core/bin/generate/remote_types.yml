@@ -335,7 +335,6 @@ mocks:
   - GemTransactionFeeRow
   - GemTransactionHeader
   - GemTransactionStatus
-  - GemTransferAmount
   - GemTransferAmountResult
   - GemTransferData
   - GemValidatorRow
@@ -415,6 +414,7 @@ mocks:
   - TransactionListItem
   - TransactionsFilter
   - TransactionSwapMetadata
+  - TransferAmount
   - TransferDataExtra
   - Wallet
   - WalletListItem

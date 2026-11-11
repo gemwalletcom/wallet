@@ -3,10 +3,8 @@ use std::fmt;
 use gem_keystore::SecretKind;
 use primitives::{Account, Chain, WalletId, WalletType};
 
-pub type GemSecretKind = SecretKind;
-
 #[uniffi::remote(Enum)]
-pub enum GemSecretKind {
+pub enum SecretKind {
     Mnemonic,
     PrivateKey,
 }
@@ -71,7 +69,7 @@ impl GemStoredWallet {
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemStoredSecretMigration {
     pub keystore_id: String,
-    pub kind: GemSecretKind,
+    pub kind: SecretKind,
 }
 
 #[derive(Clone, uniffi::Enum)]

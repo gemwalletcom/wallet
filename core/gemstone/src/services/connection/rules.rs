@@ -1,10 +1,9 @@
 use std::time::Duration;
 
-use primitives::ConnectionStatus;
+use primitives::{ConnectionComponent, ConnectionStatus};
 
 use super::{GemReconnection, GemRefreshKind};
 use crate::constants::PING_INTERVAL;
-use crate::models::GemConnectionComponent;
 
 const RECONNECT_MULTIPLIER_MILLISECONDS: f64 = 300.0;
 const RECONNECT_MAXIMUM_MILLISECONDS: f64 = 30_000.0;
@@ -33,8 +32,8 @@ pub fn refresh_interval(kind: GemRefreshKind, status: ConnectionStatus) -> Durat
     }
 }
 
-pub fn resets_component_health(component: GemConnectionComponent, is_healthy: bool, was_healthy: Option<bool>) -> bool {
-    component == GemConnectionComponent::Internet && is_healthy && was_healthy == Some(false)
+pub fn resets_component_health(component: ConnectionComponent, is_healthy: bool, was_healthy: Option<bool>) -> bool {
+    component == ConnectionComponent::Internet && is_healthy && was_healthy == Some(false)
 }
 
 #[cfg(test)]
@@ -134,10 +133,10 @@ mod tests {
 
     #[test]
     fn test_only_recovering_internet_resets_component_health() {
-        assert!(resets_component_health(GemConnectionComponent::Internet, true, Some(false)));
-        assert!(!resets_component_health(GemConnectionComponent::Internet, true, Some(true)), "internet that never dropped leaves the other components alone");
-        assert!(!resets_component_health(GemConnectionComponent::Internet, true, None), "a first reading is not a recovery");
-        assert!(!resets_component_health(GemConnectionComponent::Internet, false, Some(false)), "losing internet keeps what is known");
-        assert!(!resets_component_health(GemConnectionComponent::Stream, true, Some(false)), "only internet recovery invalidates the other components");
+        assert!(resets_component_health(ConnectionComponent::Internet, true, Some(false)));
+        assert!(!resets_component_health(ConnectionComponent::Internet, true, Some(true)), "internet that never dropped leaves the other components alone");
+        assert!(!resets_component_health(ConnectionComponent::Internet, true, None), "a first reading is not a recovery");
+        assert!(!resets_component_health(ConnectionComponent::Internet, false, Some(false)), "losing internet keeps what is known");
+        assert!(!resets_component_health(ConnectionComponent::Stream, true, Some(false)), "only internet recovery invalidates the other components");
     }
 }

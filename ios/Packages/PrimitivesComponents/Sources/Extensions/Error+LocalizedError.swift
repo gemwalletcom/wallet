@@ -5,10 +5,10 @@ import enum Gemstone.AlienError
 import func Gemstone.alienErrorText
 import enum Gemstone.GatewayError
 import enum Gemstone.GemAddNodeError
-import enum Gemstone.GemPaymentError
 import enum Gemstone.GemServiceError
 import enum Gemstone.GemstoneError
 import enum Gemstone.GemWalletConnectError
+import enum Gemstone.PaymentError
 import func Gemstone.paymentErrorText
 import func Gemstone.swapErrorDisplay
 import enum Gemstone.SwapperError
@@ -47,7 +47,7 @@ extension Gemstone.GemstoneError: @retroactive LocalizedError {
     }
 }
 
-extension Gemstone.GemPaymentError: @retroactive LocalizedError {
+extension Gemstone.PaymentError: @retroactive LocalizedError {
     public var errorDescription: String? {
         paymentErrorText(error: self).text
     }
