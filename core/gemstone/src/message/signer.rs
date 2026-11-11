@@ -1,18 +1,15 @@
-use std::borrow::Cow;
-
 use bs58;
 use gem_encoding::encode_base64;
 use gem_evm::eip712::hash_typed_data;
 use gem_evm::message::eip191_hash_message;
 use gem_evm::siwe::SiweMessage;
 use gem_solana::{signer::SolanaChainSigner, siws::SiwsMessage};
-use gem_sui::signer as sui_signer;
+use gem_sui::{signer as sui_signer, types::personal_message_signing_digest};
 use gem_ton::address::Address as TonAddress;
 use gem_ton::signer::{TonSignDataResponse, TonSignMessageData, TonSignResult, TonSigner};
 use primitives::hex::encode_with_0x;
 use primitives::unix_seconds;
 use signer::Signer;
-use sui_types::PersonalMessage;
 
 use super::{
     eip712::GemEIP712Message,
@@ -71,10 +68,7 @@ impl MessageSigner {
 
     fn hash(&self) -> Result<Vec<u8>, GemstoneError> {
         match &self.message.sign_type {
-            SignDigestType::SuiPersonal => {
-                let message = PersonalMessage(Cow::Borrowed(&self.message.data));
-                Ok(message.signing_digest().to_vec())
-            }
+            SignDigestType::SuiPersonal => personal_message_signing_digest(&self.message.data).map(|digest| digest.to_vec()).map_err(|error| GemstoneError::from(error.to_string())),
             SignDigestType::TonPersonal => {
                 let string = self.data_as_utf8()?;
                 let ton_data = TonSignMessageData::from_bytes(string.as_bytes())?;

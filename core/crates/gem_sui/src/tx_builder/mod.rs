@@ -1,4 +1,5 @@
 pub mod balance;
+mod builder;
 #[cfg(any(test, feature = "rpc"))]
 pub(crate) mod gas;
 mod input;
@@ -12,6 +13,7 @@ pub mod transaction_json;
 pub mod transfer;
 
 pub use balance::{balance_value, balance_zero, destroy_zero_balance, from_balance, into_balance};
+pub use builder::TransactionBuilder;
 pub use input::TransactionBuilderInput;
 #[cfg(feature = "rpc")]
 pub use object_resolver::{ObjectResolver, ResolvedObjectInput};
@@ -24,3 +26,5 @@ pub use transaction_json::is_transaction_json;
 #[cfg(feature = "rpc")]
 pub use transaction_json::{ReplayedTransaction, TransactionJsonReplay, finish_transaction_json, finish_transaction_json_from_sender, prepare_transaction_json_replay, validate_wallet_connect_sender};
 pub use transfer::*;
+
+pub use crate::types::Argument;

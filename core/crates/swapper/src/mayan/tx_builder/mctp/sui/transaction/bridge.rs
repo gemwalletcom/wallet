@@ -11,8 +11,8 @@ use crate::{
     sui_swap::package_address,
 };
 use gem_sui::tx_builder::move_call;
-use sui_transaction_builder::{Argument, TransactionBuilder};
-use sui_types::Address;
+use gem_sui::tx_builder::{Argument, TransactionBuilder};
+use gem_sui::types::Address;
 
 use super::super::prefetch::PrefetchedSuiData;
 use super::sui_error;

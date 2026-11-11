@@ -4,8 +4,9 @@ use std::{
     collections::{BTreeSet, HashMap},
     str::FromStr,
 };
-use sui_transaction_builder::{Argument, ObjectInput, TransactionBuilder};
-use sui_types::{Address, Digest};
+
+use super::{Argument, TransactionBuilder};
+use crate::types::{Address, Digest, ObjectInput};
 
 #[derive(Clone, Debug)]
 pub struct ResolvedObjectInput {
@@ -53,8 +54,7 @@ impl ResolvedObjectInput {
     pub fn input(&self, mutable: bool) -> ObjectInput {
         match &self.owner {
             ResolvedObjectOwner::Shared { initial_shared_version } => ObjectInput::shared(self.object_id, *initial_shared_version, mutable),
-            ResolvedObjectOwner::Owned { version, digest } => ObjectInput::owned(self.object_id, *version, *digest),
-            ResolvedObjectOwner::Immutable { version, digest } => ObjectInput::immutable(self.object_id, *version, *digest),
+            ResolvedObjectOwner::Owned { version, digest } | ResolvedObjectOwner::Immutable { version, digest } => ObjectInput::immutable_or_owned(self.object_id, *version, *digest),
         }
     }
 }

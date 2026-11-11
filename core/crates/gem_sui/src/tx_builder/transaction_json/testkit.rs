@@ -2,8 +2,7 @@ use super::{
     model::TransactionInput,
     replay::{TransactionJsonReplay, parse_transaction_json},
 };
-use crate::address::SuiAddress;
-use sui_transaction_builder::ObjectInput;
+use crate::{address::SuiAddress, types::ObjectInput};
 
 impl TransactionJsonReplay {
     pub fn mock(transaction_json: &str) -> Self {

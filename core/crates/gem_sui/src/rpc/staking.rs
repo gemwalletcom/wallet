@@ -1,8 +1,8 @@
 use std::{error::Error, str::FromStr};
 
+use crate::types::Address;
 use futures::future::try_join_all;
 use num_bigint::BigUint;
-use sui_types::Address;
 
 use super::client::{PATH_LIST_OWNED_OBJECTS, PATH_SIMULATE_TRANSACTION, SuiClient};
 use super::mapper::timestamp_millis;

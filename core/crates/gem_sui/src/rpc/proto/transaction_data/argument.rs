@@ -1,5 +1,6 @@
 use gem_encoding::protobuf::proto_encode;
-use sui_types as sdk;
+
+use crate::types;
 
 const ARGUMENT_KIND_GAS: i32 = 1;
 const ARGUMENT_KIND_INPUT: i32 = 2;
@@ -21,20 +22,22 @@ impl Argument {
             ..Default::default()
         }
     }
+}
 
-    pub(super) fn from_sdk(value: sdk::Argument) -> Self {
+impl From<types::Argument> for Argument {
+    fn from(value: types::Argument) -> Self {
         match value {
-            sdk::Argument::Gas => Self {
+            types::Argument::Gas => Self {
                 kind: Some(ARGUMENT_KIND_GAS),
                 ..Default::default()
             },
-            sdk::Argument::Input(input) => Self::new_input(input),
-            sdk::Argument::Result(result) => Self {
+            types::Argument::Input(input) => Self::new_input(input),
+            types::Argument::Result(result) => Self {
                 kind: Some(ARGUMENT_KIND_RESULT),
                 result: Some(result.into()),
                 ..Default::default()
             },
-            sdk::Argument::NestedResult(result, subresult) => Self {
+            types::Argument::NestedResult(result, subresult) => Self {
                 kind: Some(ARGUMENT_KIND_RESULT),
                 result: Some(result.into()),
                 subresult: Some(subresult.into()),

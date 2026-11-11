@@ -13,9 +13,8 @@ use crate::{
 use gem_sui::{
     models::{Coin, OwnedCoins, TxOutput},
     sui_clock_object_input,
-    tx_builder::{TransactionBuilderInput, build_input_coin, destroy_zero_balance, finish_transaction, into_balance, move_call, zero_coin},
+    tx_builder::{TransactionBuilder, TransactionBuilderInput, build_input_coin, destroy_zero_balance, finish_transaction, into_balance, move_call, zero_coin},
 };
-use sui_transaction_builder::TransactionBuilder;
 
 pub(super) fn build_pool_id_inspect(base_coin_type: &str, quote_coin_type: &str) -> Result<Vec<u8>, SwapperError> {
     let mut txb = TransactionBuilder::new();
@@ -113,6 +112,7 @@ mod tests {
         QuoteRequest,
         testkit::{TEST_SUI_WALLET, mock_quote},
     };
+    use gem_sui::types::{Address, Argument, Command, Digest, Input, ObjectInput, Transaction, TransactionKind};
     use gem_sui::{decode_transaction, sui_framework_package_address};
     use num_bigint::BigUint;
     use primitives::hex;
@@ -121,20 +121,15 @@ mod tests {
         asset_constants::{SUI_USDC_TOKEN_ID, SUI_WAL_TOKEN_ID},
         swap::SUI_REFERRAL_ADDRESS,
     };
-    use sui_transaction_builder::ObjectInput;
-    use sui_types::{Address, Argument, Command, Digest, Input, Transaction, TransactionKind};
 
     fn describe(transaction: &TxOutput) -> Vec<String> {
         let transaction: Transaction = decode_transaction(&transaction.base64_encoded()).unwrap();
-        let ptb = match transaction.kind {
-            TransactionKind::ProgrammableTransaction(ptb) => ptb,
-            _ => return Vec::new(),
-        };
+        let TransactionKind::ProgrammableTransaction(ptb) = transaction.kind;
         let pure = |argument: &Argument| match argument {
             Argument::Input(index) => match &ptb.inputs[*index as usize] {
                 Input::Pure(bytes) if bytes.len() == 8 => u64::from_le_bytes(bytes.as_slice().try_into().unwrap()).to_string(),
                 Input::Pure(bytes) => format!("0x{}", hex::encode(bytes)),
-                Input::Shared(shared) => shared.object_id().to_string(),
+                Input::Object(ObjectInput::Shared(shared)) => shared.object_id.to_string(),
                 Input::FundsWithdrawal(_) => "withdrawal".to_string(),
                 input => format!("{input:?}"),
             },
@@ -163,7 +158,7 @@ mod tests {
     fn test_build_swap_transaction() {
         let sui = AssetId::from_chain(Chain::Sui);
         let usdc = AssetId::from_token(Chain::Sui, SUI_USDC_TOKEN_ID);
-        let transaction = TransactionBuilderInput::new(TEST_SUI_WALLET, 500, 50_000_000, vec![ObjectInput::owned(Address::ZERO, 1, Digest::ZERO)]);
+        let transaction = TransactionBuilderInput::new(TEST_SUI_WALLET, 500, 50_000_000, vec![ObjectInput::immutable_or_owned(Address::ZERO, 1, Digest::ZERO)]);
         let pool = Pool::mock().pool_id;
 
         let sell_sui = Quote::mock_with_request(&QuoteRequest {

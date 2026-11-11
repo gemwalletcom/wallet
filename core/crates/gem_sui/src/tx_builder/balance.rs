@@ -1,5 +1,7 @@
-use crate::{SuiError, sui_framework_package_address, tx_builder::move_call};
-use sui_transaction_builder::{Argument, TransactionBuilder};
+use crate::{
+    SuiError, sui_framework_package_address,
+    tx_builder::{Argument, TransactionBuilder, move_call},
+};
 
 const MODULE_COIN: &str = "coin";
 const MODULE_BALANCE: &str = "balance";

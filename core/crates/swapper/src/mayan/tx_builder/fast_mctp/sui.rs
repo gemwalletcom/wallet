@@ -2,13 +2,13 @@ use std::{collections::HashMap, fmt::Debug, sync::Arc};
 
 use futures::try_join;
 use gem_client::Client;
+use gem_sui::tx_builder::{Argument, TransactionBuilder};
+use gem_sui::types::Address;
 use gem_sui::{
     ESTIMATION_GAS_BUDGET, SuiClient,
     models::{Coin, OwnedCoins, TxOutput},
     tx_builder::{ResolvedObjectInput, TransactionBuilderInput, finish_transaction, move_call},
 };
-use sui_transaction_builder::{Argument, TransactionBuilder};
-use sui_types::Address;
 
 use super::{FAST_MCTP_PAYLOAD_TYPE_DEFAULT, circle_max_fee64, fast_mctp_input_contract, fast_mctp_min_finality, redeem_relayer_fee, referrer_bytes, token_out};
 use crate::{

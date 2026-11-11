@@ -1,14 +1,13 @@
 use crate::{
-    SUI_SYSTEM_ID, SUI_SYSTEM_PACKAGE_ID,
-    models::{ObjectId, StakeInput, TxOutput, UnstakeInput},
-    sui_system_state_object_input,
+    SUI_SYSTEM_ID,
+    models::{StakeInput, TxOutput, UnstakeInput},
+    sui_system_package_address, sui_system_state_object_input,
 };
 
 use std::{error::Error, str::FromStr};
-use sui_transaction_builder::{Function, ObjectInput, TransactionBuilder};
-use sui_types::{Address, Identifier};
 
-use super::{TransactionBuilderInput, build_sui_amount_coin, finish_transaction};
+use super::{TransactionBuilder, TransactionBuilderInput, build_sui_amount_coin, finish_transaction, move_call};
+use crate::types::{Address, ObjectInput};
 
 pub const SUI_REQUEST_ADD_STAKE: &str = "request_add_stake";
 pub const SUI_REQUEST_WITHDRAW_STAKE: &str = "request_withdraw_stake";
@@ -32,13 +31,10 @@ fn build_split_and_stake_ptb(input: &StakeInput) -> Result<TransactionBuilder, B
 
     let stake_coin = build_sui_amount_coin(&mut ptb, input.stake_amount, input.coins.address_balance)?;
 
-    // move call request_add_stake
-    let function = Function::new(ObjectId::from(SUI_SYSTEM_PACKAGE_ID).into(), Identifier::new(SUI_SYSTEM_ID)?, Identifier::new(SUI_REQUEST_ADD_STAKE)?);
-
     let sys_state = ptb.object(sui_system_state_object_input());
     let validator_argument = ptb.pure(&validator);
 
-    ptb.move_call(function, vec![sys_state, stake_coin, validator_argument]);
+    move_call(&mut ptb, sui_system_package_address(), SUI_SYSTEM_ID, SUI_REQUEST_ADD_STAKE, &[], vec![sys_state, stake_coin, validator_argument])?;
 
     Ok(ptb)
 }
@@ -54,11 +50,9 @@ fn build_unstake_ptb(input: &UnstakeInput) -> Result<(TransactionBuilder, Object
 
     let staked_sui = ptb.object(input.staked_sui.to_input());
     let gas_coin = input.gas_coin.to_input();
-    let function = Function::new(ObjectId::from(SUI_SYSTEM_PACKAGE_ID).into(), Identifier::new(SUI_SYSTEM_ID)?, Identifier::new(SUI_REQUEST_WITHDRAW_STAKE)?);
-
     let sys_state = ptb.object(sui_system_state_object_input());
 
-    ptb.move_call(function, vec![sys_state, staked_sui]);
+    move_call(&mut ptb, sui_system_package_address(), SUI_SYSTEM_ID, SUI_REQUEST_WITHDRAW_STAKE, &[], vec![sys_state, staked_sui])?;
 
     Ok((ptb, gas_coin))
 }
@@ -75,10 +69,10 @@ mod tests {
         SUI_COIN_TYPE,
         models::{Coin, Gas, Object, OwnedCoins},
         tx_builder::decode_transaction,
+        types::Transaction,
     };
     use gem_encoding::encode_base64;
     use primitives::hex;
-    use sui_types::Transaction;
 
     #[test]
     fn test_encode_split_stake() {

@@ -3,9 +3,12 @@ use super::{
     model::{TransactionArgument, TransactionBuilderJson},
     resolver::{input_mutability, object_inputs},
 };
-use crate::{SuiClient, SuiError};
+use crate::{
+    SuiClient, SuiError,
+    tx_builder::{Argument, TransactionBuilder},
+    types::ObjectInput,
+};
 use std::collections::HashMap;
-use sui_transaction_builder::{Argument, ObjectInput, TransactionBuilder};
 
 pub struct ReplayedTransaction {
     pub txb: TransactionBuilder,

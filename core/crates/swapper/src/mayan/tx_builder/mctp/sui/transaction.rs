@@ -21,14 +21,14 @@ use crate::{
     },
     sui_swap::package_address,
 };
+use gem_sui::tx_builder::{Argument, TransactionBuilder};
+use gem_sui::types::Address;
 use gem_sui::{
     SUI_COIN_TYPE,
     models::{OwnedCoins, TxOutput},
     sui_clock_object_input,
     tx_builder::{build_input_coin, finish_transaction, move_call},
 };
-use sui_transaction_builder::{Argument, TransactionBuilder};
-use sui_types::Address;
 
 pub(super) fn build_mctp_transaction(quote: &Quote, route: &MayanMctpQuote, prefetched: &PrefetchedSuiData, destination_address: &str, swap: Option<&SuiClientSwapReplay>, gas_budget: u64) -> Result<TxOutput, SwapperError> {
     let SuiInputCoin { mut txb, coin: input_coin, wh_fee_coin } = build_sui_input_coin(swap, &prefetched.mctp_input_contract, route.effective_amount_in64.parse::<u64>()?, &prefetched.input_coins)?;

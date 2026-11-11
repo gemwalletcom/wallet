@@ -1,8 +1,7 @@
 use gem_encoding::protobuf::{encode_message_field, proto_decode, proto_encode};
-use sui_types as sdk;
 
 use super::Argument;
-use crate::rpc::proto::MessageResult;
+use crate::types;
 
 #[derive(Clone, Debug, Default)]
 pub enum Command {
@@ -17,17 +16,16 @@ pub enum Command {
     Unknown,
 }
 
-impl Command {
-    pub(super) fn from_sdk(value: sdk::Command) -> MessageResult<Self> {
+impl From<types::Command> for Command {
+    fn from(value: types::Command) -> Self {
         match value {
-            sdk::Command::MoveCall(value) => Ok(Self::MoveCall(MoveCall::from_sdk(value))),
-            sdk::Command::TransferObjects(value) => Ok(Self::TransferObjects(TransferObjects::from_sdk(value))),
-            sdk::Command::SplitCoins(value) => Ok(Self::SplitCoins(SplitCoins::from_sdk(value))),
-            sdk::Command::MergeCoins(value) => Ok(Self::MergeCoins(MergeCoins::from_sdk(value))),
-            sdk::Command::Publish(value) => Ok(Self::Publish(Publish::from_sdk(value))),
-            sdk::Command::MakeMoveVector(value) => Ok(Self::MakeMoveVector(MakeMoveVector::from_sdk(value))),
-            sdk::Command::Upgrade(value) => Ok(Self::Upgrade(Upgrade::from_sdk(value))),
-            _ => Err("unsupported Sui transaction command for protobuf encoding".into()),
+            types::Command::MoveCall(value) => Self::MoveCall(value.into()),
+            types::Command::TransferObjects(value) => Self::TransferObjects(value.into()),
+            types::Command::SplitCoins(value) => Self::SplitCoins(value.into()),
+            types::Command::MergeCoins(value) => Self::MergeCoins(value.into()),
+            types::Command::Publish(value) => Self::Publish(value.into()),
+            types::Command::MakeMoveVector(value) => Self::MakeMoveVector(value.into()),
+            types::Command::Upgrade(value) => Self::Upgrade(value.into()),
         }
     }
 }
@@ -74,14 +72,16 @@ impl MoveCall {
             ..Default::default()
         }
     }
+}
 
-    fn from_sdk(value: sdk::MoveCall) -> Self {
+impl From<types::MoveCall> for MoveCall {
+    fn from(value: types::MoveCall) -> Self {
         Self {
             package: Some(value.package.to_string()),
             module: Some(value.module.to_string()),
             function: Some(value.function.to_string()),
             type_arguments: value.type_arguments.iter().map(ToString::to_string).collect(),
-            arguments: value.arguments.into_iter().map(Argument::from_sdk).collect(),
+            arguments: value.arguments.into_iter().map(Argument::from).collect(),
         }
     }
 }
@@ -104,11 +104,11 @@ pub struct TransferObjects {
     pub address: Option<Argument>,
 }
 
-impl TransferObjects {
-    fn from_sdk(value: sdk::TransferObjects) -> Self {
+impl From<types::TransferObjects> for TransferObjects {
+    fn from(value: types::TransferObjects) -> Self {
         Self {
-            objects: value.objects.into_iter().map(Argument::from_sdk).collect(),
-            address: Some(Argument::from_sdk(value.address)),
+            objects: value.objects.into_iter().map(Argument::from).collect(),
+            address: Some(Argument::from(value.address)),
         }
     }
 }
@@ -124,11 +124,11 @@ pub struct SplitCoins {
     pub amounts: Vec<Argument>,
 }
 
-impl SplitCoins {
-    fn from_sdk(value: sdk::SplitCoins) -> Self {
+impl From<types::SplitCoins> for SplitCoins {
+    fn from(value: types::SplitCoins) -> Self {
         Self {
-            coin: Some(Argument::from_sdk(value.coin)),
-            amounts: value.amounts.into_iter().map(Argument::from_sdk).collect(),
+            coin: Some(Argument::from(value.coin)),
+            amounts: value.amounts.into_iter().map(Argument::from).collect(),
         }
     }
 }
@@ -144,11 +144,11 @@ pub struct MergeCoins {
     pub coins_to_merge: Vec<Argument>,
 }
 
-impl MergeCoins {
-    fn from_sdk(value: sdk::MergeCoins) -> Self {
+impl From<types::MergeCoins> for MergeCoins {
+    fn from(value: types::MergeCoins) -> Self {
         Self {
-            coin: Some(Argument::from_sdk(value.coin)),
-            coins_to_merge: value.coins_to_merge.into_iter().map(Argument::from_sdk).collect(),
+            coin: Some(Argument::from(value.coin)),
+            coins_to_merge: value.coins_to_merge.into_iter().map(Argument::from).collect(),
         }
     }
 }
@@ -164,8 +164,8 @@ pub struct Publish {
     pub dependencies: Vec<String>,
 }
 
-impl Publish {
-    fn from_sdk(value: sdk::Publish) -> Self {
+impl From<types::Publish> for Publish {
+    fn from(value: types::Publish) -> Self {
         Self {
             modules: value.modules,
             dependencies: value.dependencies.iter().map(ToString::to_string).collect(),
@@ -184,11 +184,11 @@ pub struct MakeMoveVector {
     pub elements: Vec<Argument>,
 }
 
-impl MakeMoveVector {
-    fn from_sdk(value: sdk::MakeMoveVector) -> Self {
+impl From<types::MakeMoveVector> for MakeMoveVector {
+    fn from(value: types::MakeMoveVector) -> Self {
         Self {
-            element_type: value.type_.map(|value| value.to_string()),
-            elements: value.elements.into_iter().map(Argument::from_sdk).collect(),
+            element_type: value.element_type.map(|value| value.to_string()),
+            elements: value.elements.into_iter().map(Argument::from).collect(),
         }
     }
 }
@@ -206,13 +206,13 @@ pub struct Upgrade {
     pub ticket: Option<Argument>,
 }
 
-impl Upgrade {
-    fn from_sdk(value: sdk::Upgrade) -> Self {
+impl From<types::Upgrade> for Upgrade {
+    fn from(value: types::Upgrade) -> Self {
         Self {
             modules: value.modules,
             dependencies: value.dependencies.iter().map(ToString::to_string).collect(),
             package: Some(value.package.to_string()),
-            ticket: Some(Argument::from_sdk(value.ticket)),
+            ticket: Some(Argument::from(value.ticket)),
         }
     }
 }

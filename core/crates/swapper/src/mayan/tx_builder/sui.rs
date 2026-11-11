@@ -4,6 +4,7 @@ use std::{
 };
 
 use gem_client::Client;
+use gem_sui::tx_builder::{Argument, TransactionBuilder};
 use gem_sui::{
     SuiClient, is_sui_coin,
     models::{Coin, OwnedCoins},
@@ -11,7 +12,6 @@ use gem_sui::{
 };
 use serde::Deserialize;
 use serde_json::Value;
-use sui_transaction_builder::{Argument, TransactionBuilder};
 
 use crate::{
     SwapperError,

@@ -1,37 +1,20 @@
-use std::borrow::Cow;
-
 use primitives::SignerError;
 use signer::Ed25519KeyPair;
-use sui_types::{Ed25519PublicKey, Ed25519Signature, PersonalMessage, SimpleSignature, UserSignature};
 
-/// 1-byte flag + 64-byte signature + 32-byte public key.
-pub const SUI_PERSONAL_MESSAGE_SIGNATURE_LEN: usize = 1 + Ed25519Signature::LENGTH + Ed25519PublicKey::LENGTH;
+use crate::types::{UserSignature, personal_message_signing_digest};
+
+pub const SUI_PERSONAL_MESSAGE_SIGNATURE_LEN: usize = UserSignature::ED25519_LENGTH;
 
 pub fn sign_personal_message(message: &[u8], private_key: &[u8]) -> Result<String, SignerError> {
-    let personal_message = PersonalMessage(Cow::Borrowed(message));
-    let digest = personal_message.signing_digest();
-    sign_digest(digest.as_ref(), private_key)
+    let digest = personal_message_signing_digest(message).map_err(|error| SignerError::InvalidInput(error.to_string()))?;
+    sign_digest(&digest, private_key)
 }
 
 pub fn sign_digest(digest: &[u8], private_key: &[u8]) -> Result<String, SignerError> {
     let key_pair = Ed25519KeyPair::from_private_key(private_key)?;
-    assemble_signature(&key_pair.sign(digest), &key_pair.public_key_bytes)
-}
-
-fn assemble_signature(signature: &[u8], public_key: &[u8]) -> Result<String, SignerError> {
-    let signature_bytes: [u8; Ed25519Signature::LENGTH] = signature
-        .try_into()
-        .map_err(|_| SignerError::InvalidInput(format!("Expected {} byte ed25519 signature, got {}", Ed25519Signature::LENGTH, signature.len())))?;
-    let public_key_bytes: [u8; Ed25519PublicKey::LENGTH] = public_key
-        .try_into()
-        .map_err(|_| SignerError::InvalidInput(format!("Expected {} byte ed25519 public key, got {}", Ed25519PublicKey::LENGTH, public_key.len())))?;
-
-    let sui_signature = SimpleSignature::Ed25519 {
-        signature: Ed25519Signature::new(signature_bytes),
-        public_key: Ed25519PublicKey::new(public_key_bytes),
-    };
-
-    Ok(UserSignature::Simple(sui_signature).to_base64())
+    UserSignature::ed25519(&key_pair.sign(digest), &key_pair.public_key_bytes)
+        .map(|signature| signature.to_base64())
+        .map_err(|error| SignerError::InvalidInput(error.to_string()))
 }
 
 #[cfg(test)]

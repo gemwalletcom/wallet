@@ -1,9 +1,8 @@
-use sui_types::Address as SdkAddress;
-
 use serde_json::Value;
 
 use super::json::decode_json_value;
 use super::{Bcs, FieldMask, Status};
+use crate::types::Address;
 use gem_encoding::protobuf::{proto_decode, proto_encode};
 
 #[derive(Clone, Debug, Default)]
@@ -41,7 +40,7 @@ pub struct GetObjectRequest {
 }
 
 impl GetObjectRequest {
-    pub fn new(object_id: &SdkAddress) -> Self {
+    pub fn new(object_id: &Address) -> Self {
         Self {
             object_id: Some(object_id.to_string()),
             read_mask: None,

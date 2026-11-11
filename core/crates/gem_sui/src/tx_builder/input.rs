@@ -1,8 +1,8 @@
+use crate::types::ObjectInput;
 #[cfg(feature = "rpc")]
 use crate::{SuiClient, SuiError, models::Coin};
 #[cfg(feature = "rpc")]
 use futures::try_join;
-use sui_transaction_builder::ObjectInput;
 
 #[derive(Clone)]
 pub struct TransactionBuilderInput {

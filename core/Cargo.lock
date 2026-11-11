@@ -345,7 +345,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "134c52ddac6d63c576bef8168db10c83c49c26444ecbc68060fef078925a901c"
 dependencies = [
  "base64ct",
- "blake2 0.11.0",
+ "blake2",
  "cpufeatures 0.3.0",
  "password-hash",
  "zeroize",
@@ -941,16 +941,6 @@ dependencies = [
 
 [[package]]
 name = "bcs"
-version = "0.1.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "85b6598a2f5d564fb7855dc6b06fd1c38cff5a72bd8b863a4d021938497b440a"
-dependencies = [
- "serde",
- "thiserror 1.0.69",
-]
-
-[[package]]
-name = "bcs"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "350f2b5fa7b76b498158ec1079dc0ea842c5b622b6b3f675005fddd889f2c9a7"
@@ -1055,15 +1045,6 @@ dependencies = [
 
 [[package]]
 name = "blake2"
-version = "0.10.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "46502ad458c9a52b69d4d4d32775c788b7a1b85e8bc9d482d92250fc0e3f8efe"
-dependencies = [
- "digest 0.10.7",
-]
-
-[[package]]
-name = "blake2"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5b5d4d889834ee8ecfc0f8426ad30faf7cdcb10f741a8e6d7224d95325479f6f"
@@ -1122,12 +1103,6 @@ dependencies = [
  "serde_serializers",
  "tokio",
 ]
-
-[[package]]
-name = "bnum"
-version = "0.13.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "119771309b95163ec7aaf79810da82f7cd0599c19722d48b9c03894dca833966"
 
 [[package]]
 name = "borsh"
@@ -1197,12 +1172,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7575182f7272186991736b70173b0ea045398f984bf5ebbb3804736ce1330c9d"
 
 [[package]]
-name = "bytemuck"
-version = "1.25.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "95832e849adfb21180ccb6826a99da14e5d266ae5c2e668e1602cf234f153797"
-
-[[package]]
 name = "byteorder"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1215,15 +1184,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fc652a48c352aef3ea3aed32080501cf3ef6ed5da78602a020c991775b0aff04"
 dependencies = [
  "serde",
-]
-
-[[package]]
-name = "bytestring"
-version = "1.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "86566c496f2f47d9b8147a4c8b02ffdb69c919fe0c2b2e7195d22cbba0e635c9"
-dependencies = [
- "bytes",
 ]
 
 [[package]]
@@ -2705,7 +2665,7 @@ name = "gem_aptos"
 version = "2.114.91"
 dependencies = [
  "async-trait",
- "bcs 0.2.1",
+ "bcs",
  "chain_primitives",
  "chain_traits",
  "chrono",
@@ -2914,7 +2874,7 @@ name = "gem_hash"
 version = "2.114.91"
 dependencies = [
  "bitcoin_hashes",
- "blake2 0.11.0",
+ "blake2",
  "gem_encoding",
  "hmac 0.13.0",
  "sha2 0.11.0",
@@ -3119,13 +3079,15 @@ name = "gem_sui"
 version = "2.114.91"
 dependencies = [
  "async-trait",
- "bcs 0.2.1",
+ "bcs",
+ "bs58",
  "chain_primitives",
  "chain_traits",
  "chrono",
  "futures",
  "gem_client",
  "gem_encoding",
+ "gem_hash",
  "gem_jsonrpc",
  "num-bigint 0.5.1",
  "num-traits",
@@ -3135,8 +3097,6 @@ dependencies = [
  "serde_serializers",
  "settings",
  "signer",
- "sui-sdk-types",
- "sui-transaction-builder",
  "tokio",
 ]
 
@@ -3326,7 +3286,6 @@ dependencies = [
  "signer",
  "simulation",
  "strum",
- "sui-sdk-types",
  "support",
  "swapper",
  "uniffi",
@@ -4077,15 +4036,6 @@ name = "itertools"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "413ee7dfc52ee1a4949ceeb7dbc8a33f2d6c088194d9f922fb8318faf1f01186"
-dependencies = [
- "either",
-]
-
-[[package]]
-name = "itertools"
-version = "0.14.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2b192c782037fadd9cfa75548310488aabdbf3d2da73885b31bd0abd03351285"
 dependencies = [
  "either",
 ]
@@ -5415,16 +5365,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "roaring"
-version = "0.11.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1dedc5658c6ecb3bdb5ef5f3295bb9253f42dcf3fd1402c03f6b1f7659c3c4a9"
-dependencies = [
- "bytemuck",
- "byteorder",
-]
-
-[[package]]
 name = "ruint"
 version = "1.20.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6335,40 +6275,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "13c2bddecc57b384dee18652358fb23172facb8a2c51ccc10d74c157bdea3292"
 
 [[package]]
-name = "sui-sdk-types"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "24c4cf4b8ba51ccb8c8f77405e6b50025ccfe174e06e09b0a542ccbc3f224af5"
-dependencies = [
- "base64ct",
- "bcs 0.1.6",
- "blake2 0.10.6",
- "bnum",
- "bs58",
- "bytes",
- "bytestring",
- "itertools 0.14.0",
- "roaring",
- "serde",
- "serde_derive",
- "serde_json",
- "serde_with",
- "winnow 0.7.15",
-]
-
-[[package]]
-name = "sui-transaction-builder"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "42f8aaa36f902d9db2ac5c1324333f04af3ba0ce101a0c8686864e6c7c2b8ccc"
-dependencies = [
- "bcs 0.1.6",
- "serde",
- "sui-sdk-types",
- "thiserror 2.0.19",
-]
-
-[[package]]
 name = "support"
 version = "2.114.91"
 dependencies = [
@@ -6386,7 +6292,7 @@ dependencies = [
  "alloy-primitives",
  "alloy-sol-types",
  "async-trait",
- "bcs 0.2.1",
+ "bcs",
  "borsh",
  "bs58",
  "chain_primitives",
@@ -6422,8 +6328,6 @@ dependencies = [
  "settings",
  "sha2 0.11.0",
  "strum",
- "sui-sdk-types",
- "sui-transaction-builder",
  "tokio",
 ]
 
@@ -7512,9 +7416,6 @@ name = "winnow"
 version = "0.7.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "df79d97927682d2fd8adb29682d1140b343be4ac0f08fd68b7765d9c059d3945"
-dependencies = [
- "memchr",
-]
 
 [[package]]
 name = "winnow"

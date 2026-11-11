@@ -8,7 +8,6 @@ use gem_jsonrpc::grpc::ReqwestGrpcTransport;
 use num_bigint::BigInt;
 use primitives::Chain;
 use serde::de::DeserializeOwned;
-use sui_types::{Address, Digest as SuiDigest};
 
 use super::mapper::{map_checkpoint, map_executed_transaction, map_inspect_result, map_sui_effects};
 use super::proto::{
@@ -19,6 +18,7 @@ use super::proto::{
 };
 use crate::models::transaction::{SuiBroadcastTransaction, SuiTransaction};
 use crate::models::{Balance, Checkpoint, Coin, Digest, InspectResult, Object, OwnedCoins, SuiCoinMetadata, SuiObject, TransactionBlocks};
+use crate::types::{Address, Digest as SuiDigest, Transaction, TransactionKind, UserSignature};
 use crate::{
     SUI_COIN_TYPE, SUI_COIN_TYPE_FULL,
     tx_builder::gas::{GasReservationContext, requires_address_balance_reservation, reserve_address_balance},
@@ -204,7 +204,7 @@ impl SuiClient {
                         balance: object.balance.ok_or("missing Sui coin balance")?,
                         object: Object {
                             object_id: Address::from_str(&object_id_str)?,
-                            digest: sui_types::Digest::from_str(&digest_str)?,
+                            digest: SuiDigest::from_str(&digest_str)?,
                             version: object.version.ok_or("missing Sui coin version")?,
                         },
                     })
@@ -328,10 +328,10 @@ impl SuiClient {
 
     pub async fn broadcast(&self, data: String, signature: String) -> Result<SuiBroadcastTransaction, Box<dyn Error + Send + Sync>> {
         let transaction = decode_transaction_base64(&data)?;
-        let signature = sui_types::UserSignature::from_base64(&signature)?;
+        let signature = UserSignature::from_base64(&signature)?;
         let request = ExecuteTransactionRequest {
             transaction: Some(transaction),
-            signatures: vec![GrpcUserSignature::from_sdk(signature)],
+            signatures: vec![GrpcUserSignature::from(&signature)],
             read_mask: Some(FieldMask::from_paths(["digest", "effects.status"])),
         };
         let response: ExecuteTransactionResponse = self.grpc_unary(PATH_EXECUTE_TRANSACTION, request).await?;
@@ -377,7 +377,7 @@ fn decode_transaction_base64(tx_data: &str) -> Result<GrpcTransaction, Box<dyn E
 }
 
 fn decode_transaction_bytes(tx_data: &[u8]) -> Result<GrpcTransaction, Box<dyn Error + Send + Sync>> {
-    let _: sui_types::Transaction = bcs::from_bytes(tx_data)?;
+    let _: Transaction = bcs::from_bytes(tx_data)?;
     Ok(GrpcTransaction::from_transaction_bcs(tx_data.to_vec()))
 }
 
@@ -385,8 +385,8 @@ fn decode_inspect_transaction_bytes(sender: &str, tx_data: &[u8]) -> Result<Grpc
     if let Ok(transaction) = decode_transaction_bytes(tx_data) {
         return Ok(transaction);
     }
-    let kind: sui_types::TransactionKind = bcs::from_bytes(tx_data)?;
-    Ok(GrpcTransaction::from_kind(proto::TransactionKind::from_sdk(kind)?, sender))
+    let kind: TransactionKind = bcs::from_bytes(tx_data)?;
+    Ok(GrpcTransaction::from_kind(proto::TransactionKind::from(kind), sender))
 }
 
 fn full_sui_coin_type(coin_type: &str) -> String {
@@ -413,7 +413,7 @@ mod tests {
     #[test]
     fn test_decode_inspect_transaction_bytes() {
         let (encoded, _) = include_str!("../../testdata/dapp_transactions.txt").lines().next().unwrap().split_once(' ').unwrap();
-        let transaction: sui_types::Transaction = decode_transaction(encoded).unwrap();
+        let transaction: Transaction = decode_transaction(encoded).unwrap();
         let kind = bcs::to_bytes(&transaction.kind).unwrap();
 
         assert_eq!(

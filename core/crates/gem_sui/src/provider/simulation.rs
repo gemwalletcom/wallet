@@ -9,6 +9,7 @@ use crate::decode_transaction;
 use crate::provider::simulation_mapper::map_simulation_result;
 use crate::rpc::SuiProvider;
 use crate::tx_builder::{finish_transaction_json_from_sender, is_transaction_json};
+use crate::types::Transaction;
 use gem_encoding::encode_base64;
 
 #[async_trait]
@@ -19,7 +20,7 @@ impl ChainSimulation for SuiProvider {
         } else {
             input.encoded_transaction
         };
-        let transaction: sui_types::Transaction = decode_transaction(&encoded_transaction).map_err(|error| format!("parse transaction: {error}"))?;
+        let transaction: Transaction = decode_transaction(&encoded_transaction).map_err(|error| format!("parse transaction: {error}"))?;
         let sender = transaction.sender.to_string();
 
         let simulated = self.simulate_encoded_transaction(&encoded_transaction).await?;

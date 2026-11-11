@@ -1,11 +1,10 @@
 use gem_encoding::protobuf::{proto_decode, proto_encode};
-use sui_types as sdk;
 
 use super::{Command, Input};
-use crate::rpc::proto::{Bcs, MessageResult};
+use crate::rpc::proto::Bcs;
+use crate::types;
 
 const KIND_PROGRAMMABLE_TRANSACTION: i32 = 1;
-const KIND_PROGRAMMABLE_SYSTEM_TRANSACTION: i32 = 11;
 
 #[derive(Clone, Debug, Default)]
 pub struct Transaction {
@@ -54,19 +53,12 @@ impl TransactionKind {
             programmable_transaction: Some(transaction),
         }
     }
+}
 
-    pub fn from_sdk(value: sdk::TransactionKind) -> MessageResult<Self> {
-        match value {
-            sdk::TransactionKind::ProgrammableTransaction(transaction) => Ok(Self {
-                kind: Some(KIND_PROGRAMMABLE_TRANSACTION),
-                programmable_transaction: Some(ProgrammableTransaction::from_sdk(transaction)?),
-            }),
-            sdk::TransactionKind::ProgrammableSystemTransaction(transaction) => Ok(Self {
-                kind: Some(KIND_PROGRAMMABLE_SYSTEM_TRANSACTION),
-                programmable_transaction: Some(ProgrammableTransaction::from_sdk(transaction)?),
-            }),
-            _ => Err("unsupported Sui transaction kind for protobuf encoding".into()),
-        }
+impl From<types::TransactionKind> for TransactionKind {
+    fn from(value: types::TransactionKind) -> Self {
+        let types::TransactionKind::ProgrammableTransaction(transaction) = value;
+        Self::programmable_transaction(transaction.into())
     }
 }
 
@@ -85,12 +77,12 @@ pub struct ProgrammableTransaction {
     pub commands: Vec<Command>,
 }
 
-impl ProgrammableTransaction {
-    pub fn from_sdk(value: sdk::ProgrammableTransaction) -> MessageResult<Self> {
-        Ok(Self {
-            inputs: value.inputs.into_iter().map(Input::from_sdk).collect::<MessageResult<_>>()?,
-            commands: value.commands.into_iter().map(Command::from_sdk).collect::<MessageResult<_>>()?,
-        })
+impl From<types::ProgrammableTransaction> for ProgrammableTransaction {
+    fn from(value: types::ProgrammableTransaction) -> Self {
+        Self {
+            inputs: value.inputs.into_iter().map(Input::from).collect(),
+            commands: value.commands.into_iter().map(Command::from).collect(),
+        }
     }
 }
 
