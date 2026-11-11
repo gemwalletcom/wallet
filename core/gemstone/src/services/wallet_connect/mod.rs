@@ -29,7 +29,7 @@ use crate::services::scan::rules::{self as scan_rules, SignMessageVerdict};
 use crate::services::simulation::GemSimulationService;
 use crate::services::wallet_session::GemWalletSessionService;
 use crate::wallet_connect::WalletConnect;
-use gem_wallet_connect::{WalletConnectAction, WalletConnectChainOperation, WalletConnectTransactionType};
+use gem_wallet_connect::{WalletConnectAction, WalletConnectChainOperation, WalletConnectTransaction, WalletConnectTransactionType};
 
 pub use client::{
     GemWalletConnectAuthMessage, GemWalletConnectAuthentication, GemWalletConnectClient, GemWalletConnectEvent, GemWalletConnectListener, GemWalletConnectProposal, GemWalletConnectRelay, GemWalletConnectTransport, wallet_connect_relay,
@@ -297,14 +297,17 @@ impl GemWalletConnectService {
                 self.wallet_connect.encode_sign_transaction(chain, transaction_id)
             }
             WalletConnectAction::SignAllTransactions { chain, transaction_type, transactions } => {
-                let (_, account) = self.connection_account(&request.topic, chain).await?;
-                for data in &transactions {
-                    let transaction = self.wallet_connect.decode_send_transaction(chain, transaction_type.clone(), data.clone())?;
-                    rules::validate_transaction_sender(&transaction, &account)?;
-                }
+                let (connection, account) = self.connection_account(&request.topic, chain).await?;
+                let transactions = transactions
+                    .into_iter()
+                    .map(|data| Ok((self.read_transaction(&account, &transaction_type, &data)?, data)))
+                    .collect::<Result<Vec<_>, GemServiceError>>()?;
                 let mut signed = Vec::with_capacity(transactions.len());
-                for data in transactions {
-                    signed.push(self.sign_transaction(request, chain, transaction_type.clone(), data, GemWalletConnectTransactionAction::Sign).await?);
+                for (transaction, data) in transactions {
+                    signed.push(
+                        self.review_transaction(request, connection.clone(), account.clone(), transaction_type.clone(), data, transaction, GemWalletConnectTransactionAction::Sign)
+                            .await?,
+                    );
                 }
                 self.wallet_connect.encode_sign_all_transactions(signed)
             }
@@ -328,9 +331,27 @@ impl GemWalletConnectService {
 
     async fn sign_transaction(&self, request: &GemWalletConnectSessionRequest, chain: Chain, transaction_type: WalletConnectTransactionType, data: String, action: GemWalletConnectTransactionAction) -> Result<String, GemServiceError> {
         let (connection, account) = self.connection_account(&request.topic, chain).await?;
-        let transaction = self.wallet_connect.decode_send_transaction(chain, transaction_type.clone(), data.clone())?;
-        rules::validate_transaction_sender(&transaction, &account)?;
-        let simulation = self.simulation.simulate_send_transaction(chain, transaction_type, data, &account.address).await?;
+        let transaction = self.read_transaction(&account, &transaction_type, &data)?;
+        self.review_transaction(request, connection, account, transaction_type, data, transaction, action).await
+    }
+
+    fn read_transaction(&self, account: &Account, transaction_type: &WalletConnectTransactionType, data: &str) -> Result<WalletConnectTransaction, GemServiceError> {
+        let transaction = self.wallet_connect.decode_send_transaction(account.chain, transaction_type.clone(), data.to_string())?;
+        rules::validate_transaction_sender(&transaction, account)?;
+        Ok(transaction)
+    }
+
+    async fn review_transaction(
+        &self,
+        request: &GemWalletConnectSessionRequest,
+        connection: WalletConnection,
+        account: Account,
+        transaction_type: WalletConnectTransactionType,
+        data: String,
+        transaction: WalletConnectTransaction,
+        action: GemWalletConnectTransactionAction,
+    ) -> Result<String, GemServiceError> {
+        let simulation = self.simulation.simulate_send_transaction(account.chain, transaction_type, data, &account.address).await?;
         let transfer = rules::transfer_data(connection.session.metadata.clone(), transaction, &account, action)?;
         self.ensure_live(request.expiry)?;
         self.session.set_current_wallet_id(Some(connection.wallet.id.clone()))?;
@@ -338,7 +359,7 @@ impl GemWalletConnectService {
             .sign_transaction(GemWalletConnectTransactionRequest {
                 session_id: request.topic.clone(),
                 request_id: request.request_id.clone(),
-                chain,
+                chain: account.chain,
                 wallet: connection.wallet,
                 account,
                 session: connection.session,
