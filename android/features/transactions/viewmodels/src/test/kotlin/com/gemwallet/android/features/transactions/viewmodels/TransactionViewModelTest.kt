@@ -35,6 +35,7 @@ import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemTransactionDetailsServiceInterface
 import uniffi.gemstone.GemTransactionsServiceInterface
+import uniffi.gemstone.transactionDetailSections
 import uniffi.gemstone.BlockExplorerLink as GemBlockExplorerLink
 import uniffi.gemstone.WalletType as GemWalletType
 
@@ -79,7 +80,7 @@ class TransactionViewModelTest {
         every { transactionQuery(wallet.id, transactionId) } returns flowOf(null)
 
         assertEquals(GemLoadState.Data, model.loadState.value)
-        assertEquals(null, model.data.value)
+        assertEquals(null, model.details.value?.rows)
         coVerify(exactly = 1) { transactionsService.loadTransaction(wallet.id.id, transactionId.identifier) }
     }
 
@@ -104,9 +105,10 @@ class TransactionViewModelTest {
         every { transactionQuery(wallet.id, transactionId) } returns flowOf(transactionExtended)
         every { service.detailRows(transactionExtended.toGem(), GemWalletType.VIEW) } returns rows
 
-        assertEquals(rows, model.data.value)
-        assertEquals("NEAR Intents", model.data.value?.explorer?.name)
-        assertEquals("https://explorer.near-intents.org/transactions/recipient-address", model.data.value?.explorer?.link)
+        assertEquals(rows, model.details.value?.rows)
+        assertEquals("NEAR Intents", model.details.value?.rows?.explorer?.name)
+        assertEquals("https://explorer.near-intents.org/transactions/recipient-address", model.details.value?.rows?.explorer?.link)
+        assertEquals(transactionDetailSections(rows), model.details.value?.sections)
     }
 
     @Test
@@ -115,7 +117,7 @@ class TransactionViewModelTest {
         every { transactionQuery(wallet.id, transactionId) } returns flowOf(transactionExtended)
         every { service.detailRows(any(), any()) } returns rows
 
-        assertEquals(rows, model.data.value)
+        assertEquals(rows, model.details.value?.rows)
     }
 
     @Test
@@ -125,10 +127,10 @@ class TransactionViewModelTest {
         every { transactionQuery(wallet.id, transactionId) } returns record
         every { service.detailRows(any(), any()) } returns rows
 
-        assertEquals(rows, model.data.value)
+        assertEquals(rows, model.details.value?.rows)
 
         record.value = null
 
-        assertEquals(rows, model.data.value)
+        assertEquals(rows, model.details.value?.rows)
     }
 }

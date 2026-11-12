@@ -22,9 +22,7 @@ import uniffi.gemstone.GemLoadState
 
 @Composable
 fun TransactionScreen(onAction: (TransactionAction.Navigation) -> Unit, viewModel: TransactionViewModel = hiltViewModel()) {
-    val transaction by viewModel.data.collectAsStateWithLifecycle()
-    val sections by viewModel.sections.collectAsStateWithLifecycle()
-    val headerTarget by viewModel.headerTarget.collectAsStateWithLifecycle()
+    val transaction by viewModel.details.collectAsStateWithLifecycle()
     val loadState by viewModel.loadState.collectAsStateWithLifecycle()
     var isShowFeeDetails by rememberSaveable { mutableStateOf(false) }
     val context = LocalContext.current
@@ -52,13 +50,13 @@ fun TransactionScreen(onAction: (TransactionAction.Navigation) -> Unit, viewMode
     }
 
     TransactionScene(
-        title = model.title.string(context),
-        sections = sections,
-        headerTarget = headerTarget,
-        chain = model.chain(),
+        title = model.rows.title.string(context),
+        sections = model.sections,
+        headerTarget = model.headerTarget,
+        chain = model.rows.chain(),
         onAction = {
             when (it) {
-                TransactionAction.Share -> onShare(model.explorer.link, model.explorer.name)
+                TransactionAction.Share -> onShare(model.rows.explorer.link, model.rows.explorer.name)
                 TransactionAction.ShowFeeDetails -> isShowFeeDetails = true
                 is TransactionAction.Navigation -> onAction(it)
             }
@@ -67,6 +65,6 @@ fun TransactionScreen(onAction: (TransactionAction.Navigation) -> Unit, viewMode
 
     FeeDetailsDialog(
         isVisible = isShowFeeDetails,
-        feeRow = model.feeRow,
+        feeRow = model.rows.feeRow,
     ) { isShowFeeDetails = false }
 }
