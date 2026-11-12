@@ -53,7 +53,7 @@
                 <data android:scheme="https" android:host="gemwallet.com" android:path="/rewards/" />
                 <data android:scheme="https" android:host="gemwallet.com" android:pathPrefix="/tokens/" />
                 <data android:scheme="https" android:host="gemwallet.com" android:path="/wc" />
-                <data android:scheme="https" android:host="gemwallet.com" android:path="/wc/" />
+                <data android:scheme="https" android:host="gemwallet.com" android:pathPrefix="/wc/" />
                 <data android:scheme="https" android:host="gemwallet.com" android:pathPattern="/..*/address/..*" />
                 <data android:scheme="https" android:host="gemwallet.com" android:pathPattern="/..*/tokens/..*" />
                 <data android:scheme="https" android:host="gemwallet.com" android:pathPattern="/..*/join" />
