@@ -341,6 +341,7 @@
   <string name="stake_validators">Doğrulayıcılar</string>
   <string name="stake_apr">APR %1$s</string>
   <string name="stake_available_in">Şu süre içinde</string>
+  <string name="stake_unstake_in">Stake\'i kaldırma süresi</string>
   <string name="stake_inactive">Etkin değil</string>
   <string name="stake_lock_time">Kilit Zamanı</string>
   <string name="stake_activating">Etkinleştiriliyor</string>

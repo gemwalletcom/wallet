@@ -398,6 +398,7 @@ stake_validator = מאמת
 stake_validators = מאמתים
 stake_apr = APR %@
 stake_available_in = זמין ב
+stake_unstake_in = ביטול סטייקינג בעוד
 stake_inactive = לא פעיל
 stake_lock_time = זמן נעילה
 stake_activating = מפעיל

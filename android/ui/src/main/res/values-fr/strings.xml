@@ -341,6 +341,7 @@
   <string name="stake_validators">Validateurs</string>
   <string name="stake_apr">APR %1$s</string>
   <string name="stake_available_in">Disponible en</string>
+  <string name="stake_unstake_in">Retrait du staking dans</string>
   <string name="stake_inactive">Inactif</string>
   <string name="stake_lock_time">Temps de verrouillage</string>
   <string name="stake_activating">Activation</string>

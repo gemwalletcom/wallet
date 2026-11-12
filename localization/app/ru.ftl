@@ -398,6 +398,7 @@ stake_validator = Валидатор
 stake_validators = Валидаторы
 stake_apr = APR %@
 stake_available_in = Доступно через
+stake_unstake_in = Вывод стейка через
 stake_inactive = Неактивный
 stake_lock_time = Время блокировки
 stake_activating = Активация

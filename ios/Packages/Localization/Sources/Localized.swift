@@ -1443,6 +1443,8 @@ public enum Localized {
     public static let resource = Localized.tr("Localizable", "stake.resource", fallback: "Resource")
     /// Rewards
     public static let rewards = Localized.tr("Localizable", "stake.rewards", fallback: "Rewards")
+    /// Unstake In
+    public static let unstakeIn = Localized.tr("Localizable", "stake.unstake_in", fallback: "Unstake In")
     /// Validator
     public static let validator = Localized.tr("Localizable", "stake.validator", fallback: "Validator")
     /// Validators

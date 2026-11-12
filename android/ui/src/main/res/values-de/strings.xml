@@ -341,6 +341,7 @@
   <string name="stake_validators">Validatoren</string>
   <string name="stake_apr">Effektiver Jahreszins %1$s</string>
   <string name="stake_available_in">Verfügbar in</string>
+  <string name="stake_unstake_in">Staking beenden in</string>
   <string name="stake_inactive">Inaktiv</string>
   <string name="stake_lock_time">Sperrzeit</string>
   <string name="stake_activating">Aktivierung</string>

@@ -398,6 +398,7 @@ stake_validator = 검증인
 stake_validators = 검증인
 stake_apr = APR %@
 stake_available_in = 사용 가능 시점
+stake_unstake_in = 언스테이크 가능 시점
 stake_inactive = 비활성
 stake_lock_time = 잠금 시간
 stake_activating = 활성화 중

@@ -341,6 +341,7 @@
   <string name="stake_validators">バリデーター</string>
   <string name="stake_apr">APR %1$s</string>
   <string name="stake_available_in">利用可能まで</string>
+  <string name="stake_unstake_in">ステーク解除可能まで</string>
   <string name="stake_inactive">非アクティブ</string>
   <string name="stake_lock_time">ロック時間</string>
   <string name="stake_activating">有効化中</string>

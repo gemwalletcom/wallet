@@ -341,6 +341,7 @@
   <string name="stake_validators">المدققون</string>
   <string name="stake_apr">APR %1$s</string>
   <string name="stake_available_in">متوفر في</string>
+  <string name="stake_unstake_in">إلغاء التخزين متاح في</string>
   <string name="stake_inactive">غير نشط</string>
   <string name="stake_lock_time">وقت القفل</string>
   <string name="stake_activating">تفعيل</string>

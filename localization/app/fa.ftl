@@ -398,6 +398,7 @@ stake_validator = اعتبار سنج
 stake_validators = اعتبارسنج ها
 stake_apr = %@ نرخ درصد سالانه
 stake_available_in = در دسترسی در
+stake_unstake_in = لغو استیک در
 stake_inactive = غیر فعال
 stake_lock_time = زمان قفل
 stake_activating = فعال کردن

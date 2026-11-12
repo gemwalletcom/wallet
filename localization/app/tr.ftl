@@ -398,6 +398,7 @@ stake_validator = Doğrulayıcı
 stake_validators = Doğrulayıcılar
 stake_apr = APR %@
 stake_available_in = Şu süre içinde
+stake_unstake_in = Stake'i kaldırma süresi
 stake_inactive = Etkin değil
 stake_lock_time = Kilit Zamanı
 stake_activating = Etkinleştiriliyor

@@ -341,6 +341,7 @@
   <string name="stake_validators">Validatorer</string>
   <string name="stake_apr">ÅOP %1$s</string>
   <string name="stake_available_in">Tilgængelig om</string>
+  <string name="stake_unstake_in">Unstake om</string>
   <string name="stake_inactive">Inaktiv</string>
   <string name="stake_lock_time">Låsetid</string>
   <string name="stake_activating">Aktiverer</string>

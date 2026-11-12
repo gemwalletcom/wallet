@@ -341,6 +341,7 @@
   <string name="stake_validators">Trình xác thực</string>
   <string name="stake_apr">APR %1$s</string>
   <string name="stake_available_in">Có sẵn trong</string>
+  <string name="stake_unstake_in">Hủy đặt cọc sau</string>
   <string name="stake_inactive">Không hoạt động</string>
   <string name="stake_lock_time">Thời gian khóa</string>
   <string name="stake_activating">Kích hoạt</string>

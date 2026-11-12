@@ -341,6 +341,7 @@
   <string name="stake_validators">Validátoři</string>
   <string name="stake_apr">APR %1$s</string>
   <string name="stake_available_in">Dostupné za</string>
+  <string name="stake_unstake_in">Zrušit stake za</string>
   <string name="stake_inactive">Neaktivní</string>
   <string name="stake_lock_time">Čas zámku</string>
   <string name="stake_activating">Aktivace</string>

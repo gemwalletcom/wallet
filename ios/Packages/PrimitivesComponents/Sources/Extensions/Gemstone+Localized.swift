@@ -905,6 +905,7 @@ public extension GemListRowTitle {
         case .status: Localized.Transaction.status
         case .activeIn: Localized.Stake.activeIn
         case .availableIn: Localized.Stake.availableIn
+        case .unstakeIn: Localized.Stake.unstakeIn
         case .date: Localized.Transaction.date
         case .resource: Localized.Stake.resource
         case .price: Localized.Asset.price

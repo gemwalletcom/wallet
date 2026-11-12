@@ -341,6 +341,7 @@
   <string name="stake_validators">تصدیق کرنے والے</string>
   <string name="stake_apr">APR %1$s</string>
   <string name="stake_available_in">میں دستیاب ہے</string>
+  <string name="stake_unstake_in">اَن اسٹیک ممکن ہوگا</string>
   <string name="stake_inactive">غیر فعال</string>
   <string name="stake_lock_time">لاک ٹائم</string>
   <string name="stake_activating">چالو کرنا</string>

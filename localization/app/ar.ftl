@@ -398,6 +398,7 @@ stake_validator = المدقق
 stake_validators = المدققون
 stake_apr = APR %@
 stake_available_in = متوفر في
+stake_unstake_in = إلغاء التخزين متاح في
 stake_inactive = غير نشط
 stake_lock_time = وقت القفل
 stake_activating = تفعيل

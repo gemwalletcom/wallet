@@ -341,6 +341,7 @@
   <string name="stake_validators">Валидаторы</string>
   <string name="stake_apr">APR %1$s</string>
   <string name="stake_available_in">Доступно через</string>
+  <string name="stake_unstake_in">Вывод стейка через</string>
   <string name="stake_inactive">Неактивный</string>
   <string name="stake_lock_time">Время блокировки</string>
   <string name="stake_activating">Активация</string>

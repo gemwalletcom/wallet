@@ -398,6 +398,7 @@ stake_validator = تصدیق کنندہ
 stake_validators = تصدیق کرنے والے
 stake_apr = APR %@
 stake_available_in = میں دستیاب ہے
+stake_unstake_in = اَن اسٹیک ممکن ہوگا
 stake_inactive = غیر فعال
 stake_lock_time = لاک ٹائم
 stake_activating = چالو کرنا

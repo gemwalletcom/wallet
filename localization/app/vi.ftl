@@ -398,6 +398,7 @@ stake_validator = Trình xác thực
 stake_validators = Trình xác thực
 stake_apr = APR %@
 stake_available_in = Có sẵn trong
+stake_unstake_in = Hủy đặt cọc sau
 stake_inactive = Không hoạt động
 stake_lock_time = Thời gian khóa
 stake_activating = Kích hoạt

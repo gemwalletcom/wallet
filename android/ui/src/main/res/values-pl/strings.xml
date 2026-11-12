@@ -341,6 +341,7 @@
   <string name="stake_validators">Walidatory</string>
   <string name="stake_apr">APR %1$s</string>
   <string name="stake_available_in">Dostępne za</string>
+  <string name="stake_unstake_in">Wycofanie stake za</string>
   <string name="stake_inactive">Nieaktywny</string>
   <string name="stake_lock_time">Czas blokady</string>
   <string name="stake_activating">Aktywacja</string>

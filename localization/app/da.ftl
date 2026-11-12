@@ -398,6 +398,7 @@ stake_validator = Validator
 stake_validators = Validatorer
 stake_apr = ÅOP %@
 stake_available_in = Tilgængelig om
+stake_unstake_in = Unstake om
 stake_inactive = Inaktiv
 stake_lock_time = Låsetid
 stake_activating = Aktiverer

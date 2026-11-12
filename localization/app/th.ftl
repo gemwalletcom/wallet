@@ -398,6 +398,7 @@ stake_validator = ผู้ตรวจสอบ
 stake_validators = ผู้ตรวจสอบความถูกต้อง
 stake_apr = APR %@
 stake_available_in = ใช้ได้ใน
+stake_unstake_in = เลิกสเตคได้ใน
 stake_inactive = ไม่ได้ใช้งาน
 stake_lock_time = ล็อคเวลา
 stake_activating = กำลังเปิดใช้งาน

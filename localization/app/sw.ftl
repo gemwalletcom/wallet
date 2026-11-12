@@ -398,6 +398,7 @@ stake_validator = Kithibitishaji
 stake_validators = Vithibitishaji
 stake_apr = APR %@
 stake_available_in = Inapatikana Katika
+stake_unstake_in = Ondoa Hisa Katika
 stake_inactive = Isiyotumika
 stake_lock_time = Muda wa Kufunga
 stake_activating = Inawasha

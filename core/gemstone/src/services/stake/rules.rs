@@ -210,7 +210,8 @@ fn completion_title(delegation: &Delegation) -> Option<GemListRowTitle> {
         StakeProviderType::Earn => None,
         StakeProviderType::Stake => match delegation.base.state {
             DelegationState::Activating => Some(GemListRowTitle::ActiveIn),
-            DelegationState::Pending | DelegationState::Deactivating | DelegationState::AwaitingWithdrawal | DelegationState::Locked => Some(GemListRowTitle::AvailableIn),
+            DelegationState::Pending | DelegationState::Deactivating | DelegationState::AwaitingWithdrawal => Some(GemListRowTitle::AvailableIn),
+            DelegationState::Locked => Some(GemListRowTitle::UnstakeIn),
             DelegationState::Active | DelegationState::Inactive => None,
         },
     }
@@ -1209,7 +1210,7 @@ mod tests {
         assert_eq!(completion(DelegationState::AwaitingWithdrawal, StakeProviderType::Stake), Some(GemListRowTitle::AvailableIn));
         let locked = status(DelegationState::Locked, StakeProviderType::Stake);
         assert_eq!((locked.state, locked.tone), (DelegationState::Active, GemValueTone::Positive));
-        assert_eq!(completion(DelegationState::Locked, StakeProviderType::Stake), Some(GemListRowTitle::AvailableIn));
+        assert_eq!(completion(DelegationState::Locked, StakeProviderType::Stake), Some(GemListRowTitle::UnstakeIn));
         assert_eq!(completion(DelegationState::Pending, StakeProviderType::Earn), None);
 
         let mut on_inactive_validator = Delegation::mock_with(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Active, 100);

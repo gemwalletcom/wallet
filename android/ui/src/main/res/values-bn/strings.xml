@@ -341,6 +341,7 @@
   <string name="stake_validators">যাচাইকারী</string>
   <string name="stake_apr">APR %1$s</string>
   <string name="stake_available_in">এ উপলব্ধ</string>
+  <string name="stake_unstake_in">আনস্টেক করা যাবে</string>
   <string name="stake_inactive">নিষ্ক্রিয়</string>
   <string name="stake_lock_time">লক টাইম</string>
   <string name="stake_activating">সক্রিয় করা হচ্ছে</string>

@@ -732,6 +732,8 @@ stake_validators = Validators
 stake_apr = APR %@
 # Used in Earn, staking, delegation, and validator screens for the available in label.
 stake_available_in = Available In
+# Used on the delegation screen while the network locks a new stake: countdown until Unstake becomes available.
+stake_unstake_in = Unstake In
 # Used in Earn, staking, delegation, and validator screens for the inactive label.
 stake_inactive = Inactive
 # Used in Earn, staking, delegation, and validator screens for the lock time label.

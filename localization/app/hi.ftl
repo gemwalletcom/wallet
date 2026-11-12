@@ -398,6 +398,7 @@ stake_validator = सत्यापनकर्ता
 stake_validators = सत्यापनकर्ता
 stake_apr = APR %@
 stake_available_in = में उपलब्ध है
+stake_unstake_in = अनस्टेक संभव होगा
 stake_inactive = निष्क्रिय
 stake_lock_time = लॉक टाइम
 stake_activating = सक्रिय किया जा रहा है

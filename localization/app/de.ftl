@@ -398,6 +398,7 @@ stake_validator = Validator
 stake_validators = Validatoren
 stake_apr = Effektiver Jahreszins %@
 stake_available_in = Verfügbar in
+stake_unstake_in = Staking beenden in
 stake_inactive = Inaktiv
 stake_lock_time = Sperrzeit
 stake_activating = Aktivierung

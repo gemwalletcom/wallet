@@ -341,6 +341,7 @@
   <string name="stake_validators">Validatoren</string>
   <string name="stake_apr">APR %1$s</string>
   <string name="stake_available_in">Beschikbaar binnen</string>
+  <string name="stake_unstake_in">Unstaken over</string>
   <string name="stake_inactive">Inactief</string>
   <string name="stake_lock_time">Vergrendel tijd</string>
   <string name="stake_activating">Activeren</string>

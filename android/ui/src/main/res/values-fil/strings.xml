@@ -341,6 +341,7 @@
   <string name="stake_validators">Mga validator</string>
   <string name="stake_apr">APR %1$s</string>
   <string name="stake_available_in">Available Sa</string>
+  <string name="stake_unstake_in">Unstake Sa</string>
   <string name="stake_inactive">Hindi aktibo</string>
   <string name="stake_lock_time">Oras ng Lock</string>
   <string name="stake_activating">Pag-activate</string>

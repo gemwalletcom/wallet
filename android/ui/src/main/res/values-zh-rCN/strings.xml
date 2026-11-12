@@ -341,6 +341,7 @@
   <string name="stake_validators">验证者</string>
   <string name="stake_apr">年化 %1$s</string>
   <string name="stake_available_in">距可用</string>
+  <string name="stake_unstake_in">距可取消质押</string>
   <string name="stake_inactive">未激活</string>
   <string name="stake_lock_time">锁定时间</string>
   <string name="stake_activating">激活中</string>

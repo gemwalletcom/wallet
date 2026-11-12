@@ -398,6 +398,7 @@ stake_validator = Validator
 stake_validators = Mga validator
 stake_apr = APR %@
 stake_available_in = Available Sa
+stake_unstake_in = Unstake Sa
 stake_inactive = Hindi aktibo
 stake_lock_time = Oras ng Lock
 stake_activating = Pag-activate

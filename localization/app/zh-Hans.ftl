@@ -398,6 +398,7 @@ stake_validator = 验证者
 stake_validators = 验证者
 stake_apr = 年化 %@
 stake_available_in = 距可用
+stake_unstake_in = 距可取消质押
 stake_inactive = 未激活
 stake_lock_time = 锁定时间
 stake_activating = 激活中

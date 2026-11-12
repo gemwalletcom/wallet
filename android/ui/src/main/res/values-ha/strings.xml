@@ -341,6 +341,7 @@
   <string name="stake_validators">Masu tabbatarwa</string>
   <string name="stake_apr">APR %1$s</string>
   <string name="stake_available_in">Akwai a ciki</string>
+  <string name="stake_unstake_in">Cire hannun jari cikin</string>
   <string name="stake_inactive">Mara aiki</string>
   <string name="stake_lock_time">Lokacin Kulle</string>
   <string name="stake_activating">Kunnawa</string>

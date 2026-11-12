@@ -341,6 +341,7 @@
   <string name="stake_validators">ผู้ตรวจสอบความถูกต้อง</string>
   <string name="stake_apr">APR %1$s</string>
   <string name="stake_available_in">ใช้ได้ใน</string>
+  <string name="stake_unstake_in">เลิกสเตคได้ใน</string>
   <string name="stake_inactive">ไม่ได้ใช้งาน</string>
   <string name="stake_lock_time">ล็อคเวลา</string>
   <string name="stake_activating">กำลังเปิดใช้งาน</string>

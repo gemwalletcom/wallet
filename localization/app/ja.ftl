@@ -398,6 +398,7 @@ stake_validator = バリデーター
 stake_validators = バリデーター
 stake_apr = APR %@
 stake_available_in = 利用可能まで
+stake_unstake_in = ステーク解除可能まで
 stake_inactive = 非アクティブ
 stake_lock_time = ロック時間
 stake_activating = 有効化中

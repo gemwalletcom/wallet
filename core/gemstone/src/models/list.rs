@@ -98,6 +98,7 @@ pub enum GemListRowTitle {
     Status,
     ActiveIn,
     AvailableIn,
+    UnstakeIn,
     Date,
     Resource,
     Price,

@@ -341,6 +341,7 @@
   <string name="stake_validators">اعتبارسنج ها</string>
   <string name="stake_apr">%1$s نرخ درصد سالانه</string>
   <string name="stake_available_in">در دسترسی در</string>
+  <string name="stake_unstake_in">لغو استیک در</string>
   <string name="stake_inactive">غیر فعال</string>
   <string name="stake_lock_time">زمان قفل</string>
   <string name="stake_activating">فعال کردن</string>

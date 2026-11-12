@@ -341,6 +341,7 @@
   <string name="stake_validators">Validatori</string>
   <string name="stake_apr">APR %1$s</string>
   <string name="stake_available_in">Disponibil în</string>
+  <string name="stake_unstake_in">Anulare staking în</string>
   <string name="stake_inactive">Inactiv</string>
   <string name="stake_lock_time">Timp de blocare</string>
   <string name="stake_activating">Activare</string>

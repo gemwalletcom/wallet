@@ -341,6 +341,7 @@
   <string name="stake_validators">Vithibitishaji</string>
   <string name="stake_apr">APR %1$s</string>
   <string name="stake_available_in">Inapatikana Katika</string>
+  <string name="stake_unstake_in">Ondoa Hisa Katika</string>
   <string name="stake_inactive">Isiyotumika</string>
   <string name="stake_lock_time">Muda wa Kufunga</string>
   <string name="stake_activating">Inawasha</string>

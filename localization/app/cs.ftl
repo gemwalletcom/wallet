@@ -398,6 +398,7 @@ stake_validator = Validátor
 stake_validators = Validátoři
 stake_apr = APR %@
 stake_available_in = Dostupné za
+stake_unstake_in = Zrušit stake za
 stake_inactive = Neaktivní
 stake_lock_time = Čas zámku
 stake_activating = Aktivace

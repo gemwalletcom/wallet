@@ -341,6 +341,7 @@
   <string name="stake_validators">Pengesah</string>
   <string name="stake_apr">APR %1$s</string>
   <string name="stake_available_in">Tersedia Dalam</string>
+  <string name="stake_unstake_in">Henti Staking Dalam</string>
   <string name="stake_inactive">Tidak aktif</string>
   <string name="stake_lock_time">Masa Kunci</string>
   <string name="stake_activating">Mengaktifkan</string>

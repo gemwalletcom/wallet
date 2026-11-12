@@ -398,6 +398,7 @@ stake_validator = Mai tabbatarwa
 stake_validators = Masu tabbatarwa
 stake_apr = APR %@
 stake_available_in = Akwai a ciki
+stake_unstake_in = Cire hannun jari cikin
 stake_inactive = Mara aiki
 stake_lock_time = Lokacin Kulle
 stake_activating = Kunnawa

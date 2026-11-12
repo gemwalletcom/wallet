@@ -341,6 +341,7 @@
   <string name="stake_validators">מאמתים</string>
   <string name="stake_apr">APR %1$s</string>
   <string name="stake_available_in">זמין ב</string>
+  <string name="stake_unstake_in">ביטול סטייקינג בעוד</string>
   <string name="stake_inactive">לא פעיל</string>
   <string name="stake_lock_time">זמן נעילה</string>
   <string name="stake_activating">מפעיל</string>

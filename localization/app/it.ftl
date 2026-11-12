@@ -398,6 +398,7 @@ stake_validator = Validatore
 stake_validators = Validatori
 stake_apr = APR %@
 stake_available_in = Disponibile nel
+stake_unstake_in = Annulla staking tra
 stake_inactive = Inattivo
 stake_lock_time = Tempo di blocco
 stake_activating = Attivazione

@@ -398,6 +398,7 @@ stake_validator = Validator
 stake_validators = Validatoren
 stake_apr = APR %@
 stake_available_in = Beschikbaar binnen
+stake_unstake_in = Unstaken over
 stake_inactive = Inactief
 stake_lock_time = Vergrendel tijd
 stake_activating = Activeren

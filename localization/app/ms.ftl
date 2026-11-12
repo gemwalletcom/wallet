@@ -398,6 +398,7 @@ stake_validator = Pengesah
 stake_validators = Pengesah
 stake_apr = APR %@
 stake_available_in = Tersedia Dalam
+stake_unstake_in = Henti Staking Dalam
 stake_inactive = Tidak aktif
 stake_lock_time = Masa Kunci
 stake_activating = Mengaktifkan
