@@ -31,7 +31,7 @@ struct BannersQueryTests {
             NewBanner(id: "other-chain", walletId: wallet.id.id, assetId: Chain.ethereum.assetId, event: .accountBlockedMultiSignature, state: .alwaysActive),
             NewBanner(id: "stake", assetId: Chain.tron.assetId, event: .stake, state: .active),
         ])
-        let banners = try db.dbQueue.read { try BannersQuery().fetch($0) }
+        let banners = try db.dbPool.read { try BannersQuery().fetch($0) }
 
         #expect(banners.count == 4)
         #expect(Set(banners.map(\.walletId)) == [wallet.id, otherWallet.id, nil])
@@ -41,7 +41,7 @@ struct BannersQueryTests {
     @Test
     func cancelledWarningKeepsItsStateForCore() throws {
         try BannerStore(db: db).updateState("tron-warning", state: .cancelled)
-        let banners = try db.dbQueue.read {
+        let banners = try db.dbPool.read {
             try BannersQuery().fetch($0)
         }
 

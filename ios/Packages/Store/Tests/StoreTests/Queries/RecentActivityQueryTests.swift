@@ -20,7 +20,7 @@ struct RecentActivityQueryTests {
         try store.add(assetId: bnb, toAssetId: .none, walletId: WalletId.mock(), type: .search, createdAt: now.addingTimeInterval(-1))
         try store.add(assetId: btc, toAssetId: .none, walletId: WalletId.mock(), type: .transfer, createdAt: now)
 
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let result = try RecentActivityQuery(walletId: WalletId.mock(), limit: 10).fetch(db)
 
             #expect(result.count == 2)
@@ -48,7 +48,7 @@ struct RecentActivityQueryTests {
         try store.add(assetId: eth, toAssetId: .none, walletId: walletId, type: .search, createdAt: Date())
         try assetStore.updateBuyableAssets(assetIds: [bnb, eth])
 
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let noFilter = try RecentActivityQuery(walletId: walletId, limit: 10).fetch(db)
             let hasBalance = try RecentActivityQuery(walletId: walletId, limit: 10, filters: [.hasBalance]).fetch(db)
             let buyable = try RecentActivityQuery(walletId: walletId, limit: 10, filters: [.buyable]).fetch(db)
@@ -83,7 +83,7 @@ struct RecentActivityQueryTests {
         try store.add(assetId: eth, toAssetId: .none, walletId: walletId, type: .swap, createdAt: Date())
         try balanceStore.setConfiguration(walletId: walletId, assetIds: [eth], configuration: .disabled)
 
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let swapPay = try RecentActivityQuery(
                 walletId: walletId,
                 limit: 10,

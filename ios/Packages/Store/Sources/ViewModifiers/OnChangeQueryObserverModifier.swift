@@ -23,7 +23,7 @@ struct OnChangeBindQueryModifier<Q: DatabaseQueryable>: ViewModifier where Q.Val
     func body(content: Content) -> some View {
         content
             .onChange(of: ObjectIdentifier(query), initial: true) {
-                query.bind(dbQueue: database.dbQueue)
+                query.bind(dbPool: database.dbPool)
             }
             .onChange(
                 of: query.value,

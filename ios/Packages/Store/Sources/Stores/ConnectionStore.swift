@@ -5,10 +5,10 @@ import GRDB
 import Primitives
 
 public struct ConnectionStore: Sendable {
-    let db: DatabaseQueue
+    let db: DatabasePool
 
     public init(db: DB) {
-        self.db = db.dbQueue
+        self.db = db.dbPool
     }
 
     // MARK: - Public methods

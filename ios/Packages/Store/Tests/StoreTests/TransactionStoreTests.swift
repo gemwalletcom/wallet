@@ -131,7 +131,7 @@ struct TransactionStoreTests {
         try store.addTransactions(walletId: otherWalletId, transactions: moved)
         let storedSource = try store.getTransaction(walletId: walletId, transactionId: sourceId)
         let storedTarget = try store.getTransaction(walletId: walletId, transactionId: targetId)
-        let sourceRecord = try #require(try db.dbQueue.read {
+        let sourceRecord = try #require(try db.dbPool.read {
             try TransactionRecord.filter(TransactionRecord.Columns.walletId == walletId.id)
                 .filter(TransactionRecord.Columns.transactionId == sourceId.identifier).fetchOne($0)
         })
@@ -143,13 +143,13 @@ struct TransactionStoreTests {
         let result = try store.getTransaction(walletId: walletId, transactionId: targetId)
         #expect(result.recordId == storedSource.recordId)
         #expect(throws: RecordError.self) {
-            try db.dbQueue.read { try TransactionQuery(walletId: otherWalletId, key: .record(result.recordId)).fetch($0) }
+            try db.dbPool.read { try TransactionQuery(walletId: otherWalletId, key: .record(result.recordId)).fetch($0) }
         }
         #expect(result.transaction == storedTarget.transaction)
         #expect(Set(result.assets.map(\.id)) == Set([ethereum, solana]))
         #expect(try store.getTransaction(walletId: otherWalletId, transactionId: sourceId).transaction == storedSource.transaction)
         #expect(try store.getTransaction(walletId: otherWalletId, transactionId: targetId).transaction == storedTarget.transaction)
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let record = try TransactionRecord.filter(TransactionRecord.Columns.walletId == walletId.id).fetchOne(db)
             let count = try TransactionRecord.fetchCount(db)
             #expect(record?.id == sourceRecord.id)

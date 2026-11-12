@@ -6,7 +6,7 @@ import os
 import Primitives
 
 public struct DB: Sendable {
-    public let dbQueue: DatabaseQueue
+    public let dbPool: DatabasePool
 
     public init(
         fileName: String = "db.sqlite",
@@ -20,7 +20,7 @@ public struct DB: Sendable {
                 toDirectory: .applicationSupportDirectory,
                 isDirectory: false,
             )
-            dbQueue = try DatabaseQueue(path: databaseURL.path(percentEncoded: false), configuration: configuration)
+            dbPool = try DatabasePool(path: databaseURL.path(percentEncoded: false), configuration: configuration)
         } catch {
             os_log(
                 "DB Initialization error: %{public}@",
@@ -33,9 +33,9 @@ public struct DB: Sendable {
 
         do {
             var migrations = Migrations()
-            try migrations.run(dbQueue: dbQueue)
+            try migrations.run(dbPool)
             if !isRunningTests {
-                try migrations.runChanges(dbQueue: dbQueue)
+                try migrations.runChanges(dbPool)
             }
         } catch {
             os_log(
@@ -50,8 +50,9 @@ public struct DB: Sendable {
 
     public static let defaultConfiguration: GRDB.Configuration = {
         var config = GRDB.Configuration()
+        config.maximumReaderCount = 12
         config.prepareDatabase { db in
-            try db.execute(sql: "PRAGMA journal_mode = WAL; PRAGMA synchronous = FULL")
+            try db.execute(sql: "PRAGMA synchronous = FULL")
         }
         #if DEBUG
             config.publicStatementArguments = true

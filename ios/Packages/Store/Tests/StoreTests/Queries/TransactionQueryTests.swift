@@ -25,7 +25,7 @@ struct TransactionQueryTests {
         }
         let stored = try store.getTransaction(walletId: walletId, transactionId: pendingId)
         let query = ObservableQuery(TransactionQuery(walletId: walletId, key: .record(stored.recordId)), initialValue: stored)
-        query.bind(dbQueue: db.dbQueue)
+        query.bind(dbPool: db.dbPool)
         #expect(query.value?.transaction.id == pendingId)
 
         try store.updateTransactionHash(walletId: walletId, transactionId: pendingId, hash: confirmedId.hash)
@@ -44,7 +44,7 @@ struct TransactionQueryTests {
         #expect(query.value?.recordId == stored.recordId)
         #expect(query.value?.transaction.state == .confirmed)
         #expect(query.value?.transaction.fee == "84")
-        let count = try await db.dbQueue.read { try TransactionRecord.fetchCount($0) }
+        let count = try await db.dbPool.read { try TransactionRecord.fetchCount($0) }
         #expect(count == 1)
 
         try store.deleteTransaction(walletId: walletId, transactionId: confirmedId)
@@ -65,7 +65,7 @@ struct TransactionQueryTests {
 
         try store.updateTransactionHash(walletId: .mock(), transactionId: oldId, hash: newId.hash)
 
-        query.bind(dbQueue: db.dbQueue)
+        query.bind(dbPool: db.dbPool)
         #expect(query.value?.recordId == stored.recordId)
         #expect(query.value?.transaction.id == newId)
         #expect(throws: RecordError.self) {
@@ -79,7 +79,7 @@ struct TransactionQueryTests {
         let store = TransactionStore(db: db)
         let transactionId = TransactionId(chain: .ethereum, hash: "fetched")
         let query = ObservableQuery(TransactionQuery(walletId: .mock(), key: .transaction(transactionId)), initialValue: nil)
-        query.bind(dbQueue: db.dbQueue)
+        query.bind(dbPool: db.dbPool)
         #expect(query.value == nil)
 
         try store.addTransactions(walletId: .mock(), transactions: [.mock(.mock(id: transactionId, assetId: Chain.ethereum.assetId, feeAssetId: Chain.ethereum.assetId))])
@@ -95,12 +95,12 @@ struct TransactionQueryTests {
         try store.addTransactions(walletId: .mock(), transactions: [.mock(.mock(id: transactionId, assetId: Chain.ethereum.assetId, feeAssetId: Chain.ethereum.assetId))])
         let stored = try store.getTransaction(walletId: .mock(), transactionId: transactionId)
         let query = ObservableQuery(TransactionQuery(walletId: .mock(), key: .record(stored.recordId)), initialValue: stored)
-        query.bind(dbQueue: db.dbQueue)
+        query.bind(dbPool: db.dbPool)
 
         try store.deleteTransaction(walletId: .mock(), transactionId: transactionId)
 
         #expect(throws: RecordError.self) {
-            try db.dbQueue.read { try TransactionQuery(walletId: .mock(), key: .record(stored.recordId)).fetch($0) }
+            try db.dbPool.read { try TransactionQuery(walletId: .mock(), key: .record(stored.recordId)).fetch($0) }
         }
         #expect(query.value?.transaction.id == transactionId)
     }

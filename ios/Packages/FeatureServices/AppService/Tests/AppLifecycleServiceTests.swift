@@ -21,7 +21,7 @@ struct AppLifecycleServiceTests {
         let db = DB.mock(wallets: [.mock(id: .mock(address: "first"), accounts: [.mock(chain: .ethereum)])])
         let synchronized = AsyncStream<Void>.makeStream()
         let device = GemDeviceServiceMock(syncError: AnyError("offline"), onSynchronize: { synchronized.continuation.yield(()) })
-        let service = AppLifecycleService.mock(deviceService: device, subscriptionsObserver: SubscriptionsObserver(dbQueue: db.dbQueue))
+        let service = AppLifecycleService.mock(deviceService: device, subscriptionsObserver: SubscriptionsObserver(db: db.dbPool))
         let running = Task { await service.setup() }
         let store = WalletStore(db: db)
         let changes = Task {

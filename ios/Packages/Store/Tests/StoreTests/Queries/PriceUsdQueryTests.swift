@@ -17,7 +17,7 @@ struct PriceUsdQueryTests {
         let ethId = AssetId(chain: .ethereum)
         try priceStore.updatePrices([.mock(assetId: ethId, price: 1100, rate: 150)])
 
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let result = try PriceUsdQuery(assetId: ethId).fetch(db)
             #expect(result == 1100)
         }

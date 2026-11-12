@@ -12,7 +12,7 @@ struct QueryBindingModifier: ViewModifier {
         content
             .onChange(of: queries.map { ObjectIdentifier($0) }, initial: true) {
                 for query in queries {
-                    query.bind(dbQueue: database.dbQueue)
+                    query.bind(dbPool: database.dbPool)
                 }
             }
     }

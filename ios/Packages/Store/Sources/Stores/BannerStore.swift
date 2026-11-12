@@ -5,10 +5,10 @@ import GRDB
 import Primitives
 
 public struct BannerStore: Sendable {
-    let db: DatabaseQueue
+    let db: DatabasePool
 
     public init(db: DB) {
-        self.db = db.dbQueue
+        self.db = db.dbPool
     }
 
     public func addBanners(_ banners: [NewBanner]) throws {

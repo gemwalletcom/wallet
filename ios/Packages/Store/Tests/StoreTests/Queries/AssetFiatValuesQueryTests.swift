@@ -23,7 +23,7 @@ struct AssetFiatValuesQueryTests {
         try PriceStore(db: db).saveRates([FiatRate(symbol: .usd, rate: 1)])
         try PriceStore(db: db).updatePrices([.mock(assetId: AssetId(chain: .ethereum), price: 1100, priceChangePercentage24h: 10)])
 
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let result = try AssetFiatValuesQuery(walletId: .mock()).fetch(db)
 
             #expect(result.contains(AssetFiatValue(assetId: AssetId(chain: .ethereum), amount: 3, price: 1100, priceChangePercentage24h: 10)))
@@ -53,7 +53,7 @@ struct AssetFiatValuesQueryTests {
         ])
         try BalanceStore(db: db).setConfiguration(walletId: .mock(), assetIds: [bnb.id, perpetual.id], configuration: .disabled)
 
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let result = try AssetFiatValuesQuery(walletId: .mock()).fetch(db)
 
             #expect(result == [AssetFiatValue(assetId: ethereum.id, amount: 3, price: 100, priceChangePercentage24h: 0)])
@@ -82,7 +82,7 @@ struct AssetFiatValuesQueryTests {
         ])
         try BalanceStore(db: db).setConfiguration(walletId: .mock(), assetIds: [bnb.id, perpetual.id], configuration: .disabled)
 
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let result = try PerpetualWalletBalanceQuery(walletId: .mock(), assetId: perpetual.id).fetch(db)
 
             #expect(result?.balance.available == 50)

@@ -48,7 +48,7 @@ struct Migrations {
         try db.alter(table: table) { $0.addColumn(sql: BalanceRecord.totalAmountSQlCreation) }
     }
 
-    mutating func run(dbQueue: DatabaseQueue) throws {
+    mutating func run(_ writer: some DatabaseWriter) throws {
         migrator.registerMigration("Create all start table") { db in
             // wallet
             try WalletRecord.create(db: db)
@@ -104,10 +104,10 @@ struct Migrations {
             try AssetMarketRecord.create(db: db)
         }
 
-        try migrator.migrate(dbQueue)
+        try migrator.migrate(writer)
     }
 
-    mutating func runChanges(dbQueue: DatabaseQueue) throws {
+    mutating func runChanges(_ writer: some DatabaseWriter) throws {
         migrator.registerMigration("Delete missing assetId in \(PriceRecord.databaseTableName), \(BalanceRecord.databaseTableName)") {
             try $0.execute(sql: "DELETE FROM prices WHERE assetId NOT IN (SELECT id FROM assets)")
             try $0.execute(sql: "DELETE FROM balances WHERE assetId NOT IN (SELECT id FROM assets)")
@@ -520,7 +520,7 @@ struct Migrations {
             try db.addColumnIfMissing(AssetRecord.Columns.hasCandles.name, .boolean, to: AssetRecord.databaseTableName) { $0.defaults(to: false) }
         }
 
-        try migrator.migrate(dbQueue)
+        try migrator.migrate(writer)
     }
 }
 

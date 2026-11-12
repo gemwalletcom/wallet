@@ -41,7 +41,7 @@ struct GemApp: App {
                     toastPresenter: resolver.services.toastPresenter,
                 ),
             )
-            .databaseQueue(resolver.storages.db.dbQueue)
+            .databasePool(resolver.storages.db.dbPool)
             .navigationBarTitleDisplayMode(.inline)
             .tint(Colors.black)
         }

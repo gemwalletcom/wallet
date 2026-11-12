@@ -5,10 +5,10 @@ import GRDB
 import Primitives
 
 public struct RecentActivityStore: Sendable {
-    let db: DatabaseQueue
+    let db: DatabasePool
 
     public init(db: DB) {
-        self.db = db.dbQueue
+        self.db = db.dbPool
     }
 
     public func add(_ data: RecentActivityData, walletId: WalletId) throws {

@@ -27,7 +27,7 @@ struct FiatTransactionStoreTests {
     }
 
     private func storedIds(_ db: DB) throws -> [String] {
-        try db.dbQueue
+        try db.dbPool
             .read { try FiatTransactionsQuery(walletId: .mock()).fetch($0) }
             .map(\.id)
             .sorted()

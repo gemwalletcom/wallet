@@ -18,7 +18,7 @@ struct RecentActivityStoreTests {
         try store.add(assetId: .mock(chain: .bitcoin), toAssetId: .mock(chain: .ethereum), walletId: wallet.id, type: .search, createdAt: Date(timeIntervalSince1970: 2))
         try store.add(assetId: .mock(chain: .bitcoin), toAssetId: nil, walletId: wallet.id, type: .perpetual)
 
-        let rows = try db.dbQueue.read { try RecentActivityRecord.order(RecentActivityRecord.Columns.createdAt).fetchAll($0) }
+        let rows = try db.dbPool.read { try RecentActivityRecord.order(RecentActivityRecord.Columns.createdAt).fetchAll($0) }
         #expect(rows.count == 2)
         #expect(rows.first?.toAssetId == .mock(chain: .ethereum), "the latest open replaces the earlier one for the same asset, wallet and type")
     }

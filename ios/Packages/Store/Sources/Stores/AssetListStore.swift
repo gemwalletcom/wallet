@@ -5,14 +5,14 @@ import GRDB
 import Primitives
 
 public struct AssetListStore: Sendable {
-    private let dbQueue: DatabaseQueue
+    private let db: DatabasePool
 
     public init(db: DB) {
-        dbQueue = db.dbQueue
+        self.db = db.dbPool
     }
 
     public func upsert(_ lists: [AssetList]) throws {
-        try dbQueue.write { database in
+        try db.write { database in
             for list in lists {
                 try list.record.upsert(database)
             }

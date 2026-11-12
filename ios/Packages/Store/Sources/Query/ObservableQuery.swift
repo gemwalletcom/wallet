@@ -16,7 +16,7 @@ public final class ObservableQuery<Query: DatabaseQueryable>: Sendable, Bindable
     public internal(set) var value: Query.Value
 
     private var observedRequest: Query
-    private var dbQueue: DatabaseQueue?
+    private var dbPool: DatabasePool?
     private var cancellable: AnyCancellable?
 
     public init(_ request: Query, initialValue: Query.Value) {
@@ -24,9 +24,9 @@ public final class ObservableQuery<Query: DatabaseQueryable>: Sendable, Bindable
         value = initialValue
     }
 
-    public func bind(dbQueue: DatabaseQueue) {
-        guard self.dbQueue == nil else { return }
-        self.dbQueue = dbQueue
+    public func bind(dbPool: DatabasePool) {
+        guard self.dbPool == nil else { return }
+        self.dbPool = dbPool
         startObservation(scheduling: .immediate)
     }
 
@@ -37,12 +37,12 @@ public final class ObservableQuery<Query: DatabaseQueryable>: Sendable, Bindable
     }
 
     private func startObservation(scheduling: some ValueObservationScheduler) {
-        guard let dbQueue else { return }
+        guard let dbPool else { return }
         let request = observedRequest
 
         cancellable = ValueObservation
             .tracking { db in try request.fetch(db) }
-            .publisher(in: dbQueue, scheduling: scheduling)
+            .publisher(in: dbPool, scheduling: scheduling)
             .sink(
                 receiveCompletion: { completion in
                     if case let .failure(error) = completion {

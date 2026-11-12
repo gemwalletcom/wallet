@@ -5,10 +5,10 @@ import GRDB
 import Primitives
 
 public struct SearchStore: Sendable {
-    private let dbQueue: DatabaseQueue
+    private let db: DatabasePool
 
     public init(db: DB) {
-        dbQueue = db.dbQueue
+        self.db = db.dbPool
     }
 
     public func add(type: SearchItemType, query: String, ids: [String]) throws {
@@ -25,7 +25,7 @@ public struct SearchStore: Sendable {
 
 extension SearchStore {
     private func addAssets(query: String, ids: [String]) throws {
-        try dbQueue.write { database in
+        try db.write { database in
             try SearchRecord
                 .filter(SearchRecord.Columns.query == query)
                 .filter(SearchRecord.Columns.assetId != nil)
@@ -37,7 +37,7 @@ extension SearchStore {
     }
 
     private func addPerpetuals(query: String, ids: [String]) throws {
-        try dbQueue.write { database in
+        try db.write { database in
             try SearchRecord
                 .filter(SearchRecord.Columns.query == query)
                 .filter(SearchRecord.Columns.perpetualId != nil)
@@ -49,7 +49,7 @@ extension SearchStore {
     }
 
     private func addLists(query: String, ids: [String]) throws {
-        try dbQueue.write { database in
+        try db.write { database in
             try SearchRecord
                 .filter(SearchRecord.Columns.query == query)
                 .filter(SearchRecord.Columns.listId != nil)

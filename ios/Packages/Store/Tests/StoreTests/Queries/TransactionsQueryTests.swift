@@ -12,14 +12,17 @@ import Testing
 
 struct TransactionsQueryTests {
     @Test @MainActor
-    func listIgnoresPriceUpdatesWhileTheDetailFollowsThem() {
+    func listIgnoresPriceUpdatesWhileTheDetailFollowsThem() throws {
         let walletId = WalletId.multicoin(address: "wallet")
         let priceUpdate = DatabaseEventKind.update(tableName: PriceRecord.databaseTableName, columnNames: [PriceRecord.Columns.price.name])
+        let dbQueue = try DatabaseQueue()
+        var migrations = Migrations()
+        try migrations.run(dbQueue)
         let observedRegion = { (fetch: @escaping @Sendable (Database) throws -> Void) in
             let region = OSAllocatedUnfairLock(initialState: DatabaseRegion())
             let cancellable = ValueObservation.tracking { db in try? fetch(db) }
                 .handleEvents(willTrackRegion: { tracked in region.withLock { $0 = tracked } })
-                .start(in: DB.mock().dbQueue, scheduling: .immediate, onError: { _ in }, onChange: { _ in })
+                .start(in: dbQueue, scheduling: .immediate, onError: { _ in }, onChange: { _ in })
             cancellable.cancel()
             return region.withLock { $0 }
         }
@@ -38,7 +41,7 @@ struct TransactionsQueryTests {
             .mock(.mock(id: newer, assetId: Chain.ethereum.assetId, feeAssetId: Chain.ethereum.assetId, createdAt: Date(timeIntervalSince1970: 2))),
         ])
         let query = ObservableQuery(TransactionsQuery(walletId: .mock(), type: .all, limit: 1), initialValue: [])
-        query.bind(dbQueue: db.dbQueue)
+        query.bind(dbPool: db.dbPool)
         #expect(query.value.map(\.transaction.id) == [newer])
 
         query.setLimit(2)
@@ -63,6 +66,6 @@ struct TransactionsQueryTests {
         ])
         let query = TransactionsQuery(walletId: .mock(), type: .all, filter: .mock(createdFrom: Date(timeIntervalSince1970: 2)))
 
-        #expect(try db.dbQueue.read { try query.fetch($0) }.map(\.transaction.id) == [newer])
+        #expect(try db.dbPool.read { try query.fetch($0) }.map(\.transaction.id) == [newer])
     }
 }

@@ -5,10 +5,10 @@ import GRDB
 import Primitives
 
 public struct PriceStore: Sendable {
-    let db: DatabaseQueue
+    let db: DatabasePool
 
     public init(db: DB) {
-        self.db = db.dbQueue
+        self.db = db.dbPool
     }
 
     public func getRate(currency: String) throws -> FiatRateRecord? {

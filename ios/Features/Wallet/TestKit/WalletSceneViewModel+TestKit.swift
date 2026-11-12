@@ -23,9 +23,9 @@ public extension WalletSceneViewModel {
             isPresentingSheet: .constant(.none),
         )
         if let db {
-            model.walletQuery.bind(dbQueue: db.dbQueue)
-            model.assetsQuery.bind(dbQueue: db.dbQueue)
-            model.bannersQuery.bind(dbQueue: db.dbQueue)
+            model.walletQuery.bind(dbPool: db.dbPool)
+            model.assetsQuery.bind(dbPool: db.dbPool)
+            model.bannersQuery.bind(dbPool: db.dbPool)
         }
         return model
     }

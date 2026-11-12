@@ -17,7 +17,7 @@ struct PriceStoreTests {
         let rate = FiatRate(symbol: .eur, rate: 0.9)
         try priceStore.saveRates([FiatRate(symbol: .eur, rate: 0.8)])
         try priceStore.updatePrices([.mock(assetId: assetId, price: 100, rate: 0.8)])
-        try db.dbQueue.write { db in
+        try db.dbPool.write { db in
             try db.execute(sql: "CREATE TRIGGER reject_repricing BEFORE UPDATE OF price ON prices BEGIN SELECT RAISE(ABORT, 'repricing failed'); END")
         }
 
@@ -27,7 +27,7 @@ struct PriceStoreTests {
         #expect(try priceStore.getRate(currency: "EUR")?.rate == 0.8)
         #expect(try priceStore.getPrices(for: [assetId]).first?.price == 80)
 
-        try db.dbQueue.write { db in
+        try db.dbPool.write { db in
             try db.execute(sql: "DROP TRIGGER reject_repricing")
         }
         try priceStore.saveRates([rate], conversion: rate)
@@ -46,7 +46,7 @@ struct PriceStoreTests {
         let price = { (assetId: AssetId) in try priceStore.getPrices(for: [assetId]).first?.price }
         try priceStore.saveRates([FiatRate(symbol: .eur, rate: 0.8)])
         try priceStore.updatePrices([.mock(assetId: ethereum, price: 100, rate: 0.8)])
-        try db.dbQueue.write { db in
+        try db.dbPool.write { db in
             try db.execute(sql: "CREATE TRIGGER reject_price BEFORE INSERT ON prices BEGIN SELECT RAISE(ABORT, 'price failed'); END")
         }
 
@@ -56,7 +56,7 @@ struct PriceStoreTests {
         #expect(try priceStore.getRate(currency: "EUR")?.rate == 0.8)
         #expect(try price(ethereum) == 80)
 
-        try db.dbQueue.write { db in
+        try db.dbPool.write { db in
             try db.execute(sql: "DROP TRIGGER reject_price")
         }
         try priceStore.saveRatesAndPrices([rate], conversion: rate, prices: [.mock(assetId: bitcoin, price: 200, rate: 0.9)])
@@ -84,7 +84,7 @@ struct PriceStoreTests {
         let db = DB.mock(chains: [.ethereum])
         let priceStore = PriceStore(db: db)
         try priceStore.updateMarket(assetId: Chain.ethereum.assetId, market: .mock(marketCap: 1000, circulatingSupply: 10))
-        let read = { (column: String) in try db.dbQueue.read { try Double.fetchOne($0, sql: "SELECT \(column) FROM asset_market") } }
+        let read = { (column: String) in try db.dbPool.read { try Double.fetchOne($0, sql: "SELECT \(column) FROM asset_market") } }
 
         _ = try priceStore.convertPrices(rate: 2)
 

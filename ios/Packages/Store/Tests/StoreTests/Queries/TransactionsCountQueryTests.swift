@@ -24,7 +24,7 @@ struct TransactionsCountQueryTests {
         ])
 
         let filter = TransactionsFilter.mock(states: [.pending, .inTransit], assetRankGreaterThan: 15)
-        let (count, listed) = try db.dbQueue.read { db in
+        let (count, listed) = try db.dbPool.read { db in
             try (
                 TransactionsCountQuery(walletId: walletId, type: .all, filter: filter).fetch(db),
                 TransactionsQuery.fetch(db, type: .all, filter: filter, walletId: walletId),

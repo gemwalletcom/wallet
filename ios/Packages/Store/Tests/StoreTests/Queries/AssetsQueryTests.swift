@@ -36,7 +36,7 @@ struct AssetsQueryTests {
         let hidden = AssetBasic.mock(asset: .mock(id: AssetId(chain: .tempo)), score: .mock(rank: -1))
         let db = DB.mock(wallets: [.mock(accounts: [visible, hidden].map { .mock(chain: $0.asset.chain) })], assets: [visible, hidden])
 
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let assets = try AssetsQuery.mock().fetch(db)
             let priceAlertAssets = try AssetsQuery.mock(scope: .allAssets).fetch(db)
 
@@ -54,7 +54,7 @@ struct AssetsQueryTests {
         try store.updateAssociations(assetId: asset.asset.id, associations: associations)
         try store.add(assets: [asset])
 
-        let storedAsset = try db.dbQueue.read { db in
+        let storedAsset = try db.dbPool.read { db in
             try AssetQuery(walletId: .mock(), assetId: asset.asset.id).fetch(db)
         }
         #expect(storedAsset.associations == associations)
@@ -67,7 +67,7 @@ struct AssetsQueryTests {
         let assetId = AssetId(chain: .bitcoin, tokenId: nil)
         try balanceStore.setConfiguration(walletId: .mock(), assetIds: [assetId], configuration: .pinned(true))
 
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let assets = try AssetsQuery.mock().fetch(db)
 
             #expect(assets.first?.asset.id == assetId)
@@ -83,7 +83,7 @@ struct AssetsQueryTests {
         let disabledId = AssetId(chain: .bitcoin)
         try balanceStore.setConfiguration(walletId: .mock(), assetIds: [disabledId], configuration: .disabled)
 
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let enabledAssets = try AssetsQuery.mock(filters: [.enabledBalance]).fetch(db)
             let enabledIds = enabledAssets.map(\.asset.id)
 
@@ -101,7 +101,7 @@ struct AssetsQueryTests {
         try assetStore.updateBuyableAssets(assetIds: otherAssetIds)
         try assetStore.updateSwappableAssets(assetIds: otherAssetIds)
 
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let assets = try AssetsQuery.mock(filters: [.buyable, .swappable]).fetch(db)
 
             #expect(assets.count == 4)
@@ -112,7 +112,7 @@ struct AssetsQueryTests {
     @Test func testHasBalance() throws {
         let db = DB.mock(wallets: [wallet], assets: walletAssets, balances: walletBalances)
 
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let assets = try AssetsQuery.mock(filters: [.hasBalance]).fetch(db)
 
             #expect(assets.count == 4)
@@ -123,7 +123,7 @@ struct AssetsQueryTests {
     @Test func testChains() throws {
         let db = DB.mock(wallets: [wallet], assets: walletAssets, balances: walletBalances)
 
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let ethereumAssets = try AssetsQuery.mock(filters: [.chains([Chain.ethereum.rawValue, Chain.solana.rawValue])]).fetch(db)
             let bitcoinAssets = try AssetsQuery.mock(filters: [.chains([Chain.bitcoin.rawValue, Chain.base.rawValue])]).fetch(db)
 
@@ -135,7 +135,7 @@ struct AssetsQueryTests {
     @Test func testChainsOrAssets() throws {
         let db = DB.mock(wallets: [wallet], assets: walletAssets, balances: walletBalances)
 
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let assets = try AssetsQuery.mock(
                 filters: [.chainsOrAssets([],
                                           [
@@ -156,7 +156,7 @@ struct AssetsQueryTests {
         try searchStore.add(type: .asset, query: query, ids: [Asset.mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20).id.identifier])
         try searchStore.add(type: .asset, query: "T", ids: walletAssets.reversed().map(\.asset.id.identifier))
 
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let btc = try AssetsQuery.mock(searchBy: "btc").fetch(db)
             let bnb = try AssetsQuery.mock(searchBy: "bNb").fetch(db)
             let tron = try AssetsQuery.mock(searchBy: "0xdAC17F958D2ee523a2206206994597C13D831ec7").fetch(db)
@@ -180,7 +180,7 @@ struct AssetsQueryTests {
         let usdt = Asset.mock(id: .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20).id
         try BalanceStore(db: db).setConfiguration(walletId: .mock(), assetIds: [usdt], configuration: .pinned(true))
 
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let assets = try AssetsQuery.mock(searchBy: "t").fetch(db)
 
             #expect(assets.count > 1)
@@ -203,7 +203,7 @@ struct AssetsQueryTests {
         let query = "usdt"
         try searchStore.add(type: .asset, query: query, ids: assets.map(\.asset.id.identifier))
 
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let result = try AssetsQuery.mock(searchBy: query).fetch(db)
 
             #expect(result.map(\.asset.id) == assets.reversed().map(\.asset.id))
@@ -220,7 +220,7 @@ struct AssetsQueryTests {
         })
         try SearchStore(db: db).add(type: .asset, query: "usdt", ids: walletAssets.map(\.asset.id.identifier))
 
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let result = try AssetsQuery.mock(scope: .allAssets, searchBy: "usdt").fetch(db)
 
             #expect(result.map(\.asset.id) == walletAssets.reversed().map(\.asset.id))
@@ -242,7 +242,7 @@ struct AssetsQueryTests {
         try priceStore.saveRates([.mock()])
         try priceStore.updatePrices([.mock(assetId: tron.asset.id, price: 1, priceChangePercentage24h: 0)])
 
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let wallet = try AssetsQuery.mock().fetch(db)
             let allAssets = try AssetsQuery.mock(scope: .allAssets).fetch(db)
 
@@ -260,7 +260,7 @@ struct AssetsQueryTests {
             .mock(asset: .mock(id: AssetId(chain: .base, tokenId: "0xtoken"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20)),
         ])
 
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let ton = try AssetsQuery.mock(searchBy: "Ton").fetch(db)
             let base = try AssetsQuery.mock(searchBy: "Base").fetch(db)
 
@@ -278,7 +278,7 @@ struct AssetsQueryTests {
 
         try priceStore.updatePrices([.mock(assetId: AssetId(chain: .tron), price: 100, priceChangePercentage24h: 100)])
 
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let assets = try AssetsQuery.mock().fetch(db)
 
             #expect(assets.first?.asset.id == AssetId(chain: .tron))
@@ -286,7 +286,7 @@ struct AssetsQueryTests {
         }
 
         try balanceStore.setConfiguration(walletId: .mock(), assetIds: [AssetId(chain: .bitcoin)], configuration: .pinned(true))
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let assets = try AssetsQuery.mock().fetch(db)
 
             #expect(assets.first?.asset.id == AssetId(chain: .bitcoin))

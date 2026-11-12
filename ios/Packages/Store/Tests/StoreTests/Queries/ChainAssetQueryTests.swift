@@ -12,7 +12,7 @@ struct ChainAssetQueryTests {
         let db = DB.mock(wallets: [.mock(accounts: [.mock(chain: .ethereum)])])
         let assetId = AssetId(chain: .ethereum)
 
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let result = try ChainAssetQuery(walletId: .mock(), assetId: assetId, feeAssetId: assetId).fetch(db)
 
             #expect(result.assetData.asset.id == assetId)
@@ -26,7 +26,7 @@ struct ChainAssetQueryTests {
         let db = DB.mock(wallets: [.mock(accounts: [.mock(chain: .ethereum)])])
         try AssetStore(db: db).add(assets: [.mock(asset: token)])
 
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let result = try ChainAssetQuery(walletId: .mock(), assetId: token.id, feeAssetId: token.chain.assetId).fetch(db)
 
             #expect(result.assetData.asset.id == token.id)

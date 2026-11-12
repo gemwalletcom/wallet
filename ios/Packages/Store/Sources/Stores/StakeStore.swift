@@ -5,10 +5,10 @@ import GRDB
 import Primitives
 
 public struct StakeStore: Sendable {
-    let db: DatabaseQueue
+    let db: DatabasePool
 
     public init(db: DB) {
-        self.db = db.dbQueue
+        self.db = db.dbPool
     }
 
     public func updateAndDelete(walletId: WalletId, delegations: [(id: String, delegation: DelegationBase)], deleteIds: [String]) throws {

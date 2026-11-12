@@ -5,12 +5,12 @@ import GRDB
 import Primitives
 
 public struct WalletStore: Sendable {
-    let db: DatabaseQueue
+    let db: DatabasePool
 
     public init(
         db: DB,
     ) {
-        self.db = db.dbQueue
+        self.db = db.dbPool
     }
 
     public func addWallet(_ wallet: Wallet) throws {
@@ -77,7 +77,7 @@ public struct WalletStore: Sendable {
     }
 
     public func observer() -> SubscriptionsObserver {
-        SubscriptionsObserver(dbQueue: db)
+        SubscriptionsObserver(db: db)
     }
 
     public func setWalletAvatar(_ walletId: WalletId, path: String?) throws {

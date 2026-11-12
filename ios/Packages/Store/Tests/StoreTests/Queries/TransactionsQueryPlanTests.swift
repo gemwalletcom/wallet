@@ -9,7 +9,7 @@ import Testing
 struct TransactionsQueryPlanTests {
     @Test
     func walletHistoryIsReadNewestFirstFromTheIndex() throws {
-        let plan = try DB.mock().dbQueue.read { db in
+        let plan = try DB.mock().dbPool.read { db in
             var statements: [String] = []
             db.trace { statements.append($0.expandedDescription) }
             _ = try TransactionsQuery.fetch(db, type: .all, filter: nil, walletId: .multicoin(address: "wallet"), limit: 1000)

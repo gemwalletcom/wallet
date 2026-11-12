@@ -19,14 +19,14 @@ struct PerpetualsQueryTests {
 
         try store.upsertPerpetuals([traded, delisted])
 
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let markets = try PerpetualsQuery(searchQuery: "", limit: 1, requiresVolume: true).fetch(db)
             #expect(markets.map(\.perpetual.id) == [traded.id], "a market nobody trades is not offered for discovery")
         }
 
         try store.setPinned(for: [delisted.id.identifier], value: true)
 
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let markets = try PerpetualsQuery(searchQuery: "", limit: 1, requiresVolume: true).fetch(db)
             #expect(markets.map(\.perpetual.id) == [delisted.id], "a pinned market is read before the cap cuts the list")
         }
@@ -40,7 +40,7 @@ struct PerpetualsQueryTests {
 
         try store.upsertPerpetuals([delisted])
 
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let browsed = try PerpetualsQuery(searchQuery: "", limit: 100, requiresVolume: true).fetch(db)
             let searched = try PerpetualsQuery(searchQuery: "BTC", limit: 100, requiresVolume: false).fetch(db)
 
@@ -62,7 +62,7 @@ struct PerpetualsQueryTests {
         try store.upsertPerpetuals([enabled, disabled])
         try store.setPinned(for: [disabled.id.identifier], value: true)
 
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let browsed = try PerpetualsQuery(searchQuery: "", limit: 100, requiresVolume: true).fetch(db)
             let searched = try PerpetualsQuery(searchQuery: "MATIC", limit: 100, requiresVolume: false).fetch(db)
 

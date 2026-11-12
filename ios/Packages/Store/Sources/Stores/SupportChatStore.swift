@@ -5,10 +5,10 @@ import GRDB
 import Primitives
 
 public struct SupportChatStore: Sendable {
-    let db: DatabaseQueue
+    let db: DatabasePool
 
     public init(db: DB) {
-        self.db = db.dbQueue
+        self.db = db.dbPool
     }
 
     public func addMessages(_ messages: [SupportMessage]) throws {

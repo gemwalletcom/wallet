@@ -14,7 +14,7 @@ struct ConnectionsQueryTests {
         let connectionsStore = ConnectionStore(db: db)
         try connectionsStore.addConnection(.mock(session: .mock(sessionId: "session-a"), wallet: wallet))
 
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let connections = try ConnectionsQuery().fetch(db)
 
             #expect(connections.map(\.session.sessionId) == ["session-a"])

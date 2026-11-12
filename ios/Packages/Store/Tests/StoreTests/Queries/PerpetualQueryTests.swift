@@ -17,7 +17,7 @@ struct PerpetualQueryTests {
         try store.upsertPerpetuals([perpetual])
         try store.setPinned(for: [perpetual.id.identifier], value: true)
 
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let result = try PerpetualQuery(assetId: eth).fetch(db)
             let notFound = try PerpetualQuery(assetId: AssetId(chain: .bitcoin)).fetch(db)
 
@@ -60,7 +60,7 @@ struct PerpetualQueryTests {
         try store.setPinned(for: [existing.id.identifier], value: true)
         try store.upsertPerpetuals([updated])
 
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let result = try PerpetualQuery(assetId: newAssetId).fetch(db)
             let stale = try PerpetualQuery(assetId: oldAssetId).fetch(db)
 
@@ -89,7 +89,7 @@ struct PerpetualQueryTests {
             AssetAssociation(assetId: wrapped.id, type: .wrapped),
         ])
 
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let result = try PerpetualQuery(assetId: perpetualAssetId).fetch(db)
 
             #expect(result.associatedAssets == [bitcoin])
@@ -117,7 +117,7 @@ struct PerpetualQueryTests {
             funding: 0.00125,
         )
 
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let result = try PerpetualQuery(assetId: eth).fetch(db)
 
             #expect(result.data.perpetual.price == 2236.45)
@@ -145,7 +145,7 @@ struct PerpetualQueryTests {
         try store.upsertPerpetuals([perpetual])
         try store.updatePrices([PerpetualPrice(coin: "ETH", price: 2236.45, pricePercentChange24h: 5.12)])
 
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let result = try PerpetualQuery(assetId: eth).fetch(db)
 
             #expect(result.data.perpetual.price == 2236.45)

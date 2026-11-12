@@ -7,6 +7,6 @@ public extension SubscriptionsObserver {
     static func mock(
         db: DB = DB.mock(),
     ) -> SubscriptionsObserver {
-        SubscriptionsObserver(dbQueue: db.dbQueue)
+        SubscriptionsObserver(db: db.dbPool)
     }
 }

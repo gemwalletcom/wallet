@@ -13,7 +13,7 @@ struct MigrationsTests {
     func run() throws {
         let db = DB.mock()
 
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             #expect(try! db.tableExists(WalletRecord.databaseTableName))
             #expect(try! db.tableExists(AccountRecord.databaseTableName))
             #expect(try! db.tableExists(AssetRecord.databaseTableName))
@@ -31,7 +31,7 @@ struct MigrationsTests {
         let dbQueue = try DatabaseQueue()
         var migrations = Migrations()
 
-        try migrations.run(dbQueue: dbQueue)
+        try migrations.run(dbQueue)
         try dbQueue.write { db in
             try db.create(table: "nodes_selected") {
                 $0.column("chain", .text)
@@ -50,7 +50,7 @@ struct MigrationsTests {
             }
             try db.execute(sql: "INSERT INTO prices (assetId, price, priceUsd, priceChangePercentage24h, marketCap, marketCapRank, allTimeHigh, allTimeHighDate) VALUES ('ethereum', 2, 2, 1, 42, 7, 4800, 0)")
         }
-        try migrations.runChanges(dbQueue: dbQueue)
+        try migrations.runChanges(dbQueue)
 
         try dbQueue.read { db in
             let walletColumns = try db.columns(in: WalletRecord.databaseTableName)
@@ -109,8 +109,8 @@ struct MigrationsTests {
         }
 
         var migrations = Migrations()
-        try migrations.run(dbQueue: dbQueue)
-        try migrations.runChanges(dbQueue: dbQueue)
+        try migrations.run(dbQueue)
+        try migrations.runChanges(dbQueue)
 
         try dbQueue.read { db in
             let balanceColumns = try db.columns(in: BalanceRecord.databaseTableName).map(\.name)
@@ -130,14 +130,14 @@ struct MigrationsTests {
     func recreateMarketTableOnAnUpgradeWithoutIt() throws {
         let dbQueue = try DatabaseQueue()
         var migrations = Migrations()
-        try migrations.run(dbQueue: dbQueue)
+        try migrations.run(dbQueue)
         try dbQueue.write { db in
             try db.drop(table: AssetMarketRecord.databaseTableName)
             try db.execute(sql: "DELETE FROM grdb_migrations WHERE identifier = ?", arguments: ["Recreate \(AssetMarketRecord.databaseTableName)"])
         }
 
         var upgraded = Migrations()
-        try upgraded.run(dbQueue: dbQueue)
+        try upgraded.run(dbQueue)
 
         #expect(try dbQueue.read { try $0.tableExists(AssetMarketRecord.databaseTableName) })
     }
@@ -149,14 +149,14 @@ struct MigrationsTests {
         let date = TransactionRecord.Columns.date.name
         let dbQueue = try DatabaseQueue()
         var migrations = Migrations()
-        try migrations.run(dbQueue: dbQueue)
+        try migrations.run(dbQueue)
         try dbQueue.write { db in
             try db.drop(indexOn: table, columns: [walletId, date])
             try db.execute(sql: "CREATE INDEX \(table)_on_\(walletId) ON \(table)(\(walletId))")
             try db.execute(sql: "CREATE INDEX \(table)_on_\(date) ON \(table)(\(date))")
         }
 
-        try migrations.runChanges(dbQueue: dbQueue)
+        try migrations.runChanges(dbQueue)
 
         let indexes = try dbQueue.read { try $0.indexes(on: table).map(\.columns) }
         #expect(indexes.contains([walletId, date]))
@@ -170,8 +170,8 @@ struct MigrationsTests {
         let name = PerpetualRecord.Columns.name.name
         let dbQueue = try DatabaseQueue()
         var migrations = Migrations()
-        try migrations.run(dbQueue: dbQueue)
-        try migrations.runChanges(dbQueue: dbQueue)
+        try migrations.run(dbQueue)
+        try migrations.runChanges(dbQueue)
         #expect(try dbQueue.read { try $0.indexes(on: table).map(\.columns) }.contains([name]))
 
         try dbQueue.write { db in
@@ -179,8 +179,8 @@ struct MigrationsTests {
             try db.execute(sql: "DELETE FROM grdb_migrations WHERE identifier = ?", arguments: ["Add isEnabled and the name index to \(table)"])
         }
         var upgrade = Migrations()
-        try upgrade.run(dbQueue: dbQueue)
-        try upgrade.runChanges(dbQueue: dbQueue)
+        try upgrade.run(dbQueue)
+        try upgrade.runChanges(dbQueue)
 
         #expect(try dbQueue.read { try $0.indexes(on: table).map(\.columns) }.contains([name]))
     }
@@ -191,8 +191,8 @@ struct MigrationsTests {
         let walletId = "multicoin_0xabc"
         let dbQueue = try DatabaseQueue()
         var migrations = Migrations()
-        try migrations.run(dbQueue: dbQueue)
-        try migrations.runChanges(dbQueue: dbQueue)
+        try migrations.run(dbQueue)
+        try migrations.runChanges(dbQueue)
         try dbQueue.write { db in
             try db.drop(table: table)
             try db.execute(sql: """
@@ -215,8 +215,8 @@ struct MigrationsTests {
         }
 
         var upgrade = Migrations()
-        try upgrade.run(dbQueue: dbQueue)
-        try upgrade.runChanges(dbQueue: dbQueue)
+        try upgrade.run(dbQueue)
+        try upgrade.runChanges(dbQueue)
         try dbQueue.write { db in
             try Account.mock(chain: .ethereum, address: "0xdef").toRecord(walletId: walletId).upsert(db)
         }

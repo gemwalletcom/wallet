@@ -37,7 +37,7 @@ struct WalletSearchQueryTests {
         let hidden = AssetBasic.mock(asset: .mock(id: AssetId(chain: .tempo)), score: .mock(rank: -1))
         let db = DB.mock(wallets: [.mock(accounts: [visible, hidden].map { .mock(chain: $0.asset.chain) })], assets: [visible, hidden])
 
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let result = try WalletSearchQuery(walletId: .mock(), searchBy: "").fetch(db)
             #expect(result.assets.map(\.asset.id) == [visible.asset.id])
         }
@@ -48,7 +48,7 @@ struct WalletSearchQueryTests {
         let db = DB.mock(wallets: [wallet], assets: walletAssets, balances: walletBalances)
         let searchStore = SearchStore(db: db)
 
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let btc = try WalletSearchQuery(walletId: .mock(), searchBy: "btc", searchKey: "btc").fetch(db)
             let tokenId = try WalletSearchQuery(walletId: .mock(), searchBy: "0xdAC17F958D2ee523a2206206994597C13D831ec7", searchKey: "0xdAC17F958D2ee523a2206206994597C13D831ec7").fetch(db)
 
@@ -63,7 +63,7 @@ struct WalletSearchQueryTests {
         let expectedOrder = walletAssets.reversed().map(\.asset.id.identifier)
         try searchStore.add(type: .asset, query: query, ids: expectedOrder)
 
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let result = try WalletSearchQuery(walletId: .mock(), searchBy: query, searchKey: query, limit: 10).fetch(db)
             #expect(result.assets.map(\.asset.id.identifier) == expectedOrder)
         }
@@ -76,7 +76,7 @@ struct WalletSearchQueryTests {
         let expectedOrder = walletAssets.reversed().map(\.asset.id.identifier)
         try searchStore.add(type: .asset, query: "tag:stocks", ids: expectedOrder)
 
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let withResults = try WalletSearchQuery(walletId: .mock(), searchBy: "", searchKey: "tag:stocks", scope: .list("stocks"), limit: 10).fetch(db)
             let withoutResults = try WalletSearchQuery(walletId: .mock(), searchBy: "", searchKey: "tag:stocks_ai", scope: .list("stocks_ai")).fetch(db)
             let typedWithoutResults = try WalletSearchQuery(walletId: .mock(), searchBy: "btc", searchKey: "btc", scope: .list("stocks")).fetch(db)
@@ -96,7 +96,7 @@ struct WalletSearchQueryTests {
             .mock(asset: .mock(id: AssetId(chain: .base, tokenId: "0xtoken"), name: "Tether", symbol: "USDT", decimals: 6, type: .erc20)),
         ])
 
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let ton = try WalletSearchQuery(walletId: .mock(), searchBy: "Ton").fetch(db)
             let base = try WalletSearchQuery(walletId: .mock(), searchBy: "Base").fetch(db)
 
@@ -115,7 +115,7 @@ struct WalletSearchQueryTests {
         let btcPerpetual = Perpetual.mock(id: PerpetualId(provider: .hypercore, symbol: "BTC-USD"), name: "BTC-USD", assetId: AssetId(chain: .bitcoin))
         try store.upsertPerpetuals([ethPerpetual, btcPerpetual])
 
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let result = try WalletSearchQuery(walletId: .mock(), searchBy: "ETH", searchKey: "ETH").fetch(db)
             #expect(result.perpetuals.first?.perpetual.name == "ETH-USD")
         }
@@ -124,7 +124,7 @@ struct WalletSearchQueryTests {
         try searchStore.add(type: .perpetual, query: query, ids: [btcPerpetual.id.identifier, ethPerpetual.id.identifier])
         try searchStore.add(type: .perpetual, query: "tag:stocks", ids: [ethPerpetual.id.identifier])
 
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let result = try WalletSearchQuery(walletId: .mock(), searchBy: query, searchKey: query).fetch(db)
             #expect(result.perpetuals.first?.perpetual.id == btcPerpetual.id)
 
@@ -152,7 +152,7 @@ struct WalletSearchQueryTests {
         try assetListStore.upsert(lists)
         try searchStore.add(type: .list, query: query, ids: lists.map(\.id))
 
-        try db.dbQueue.read { db in
+        try db.dbPool.read { db in
             let result = try WalletSearchQuery(walletId: .mock(), searchBy: query, searchKey: query, types: [.list]).fetch(db)
             #expect(result.lists == lists)
 

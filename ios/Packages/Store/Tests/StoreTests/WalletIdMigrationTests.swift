@@ -15,7 +15,7 @@ private extension DB {
         accounts: [Account] = [],
         order: Int = 0,
     ) throws {
-        try dbQueue.write { db in
+        try dbPool.write { db in
             try db.execute(
                 sql: """
                     INSERT INTO wallets (id, name, type, "index", "order", isPinned, source)
@@ -60,7 +60,7 @@ struct WalletIdMigrationTests {
             accounts: [.mock(chain: .ethereum, address: ethAddress), .mock(chain: .bitcoin)],
         )
 
-        try db.dbQueue.write { db in
+        try db.dbPool.write { db in
             try WalletIdMigration.migrate(db: db, userDefaults: userDefaults)
         }
 
@@ -84,7 +84,7 @@ struct WalletIdMigrationTests {
             accounts: [.mock(chain: .ethereum, address: address)],
         )
 
-        try db.dbQueue.write { db in
+        try db.dbPool.write { db in
             try WalletIdMigration.migrate(db: db, userDefaults: userDefaults)
         }
 
@@ -108,7 +108,7 @@ struct WalletIdMigrationTests {
             accounts: [.mock(chain: .bitcoin, address: address)],
         )
 
-        try db.dbQueue.write { db in
+        try db.dbPool.write { db in
             try WalletIdMigration.migrate(db: db, userDefaults: userDefaults)
         }
 
@@ -132,7 +132,7 @@ struct WalletIdMigrationTests {
             accounts: [.mock(chain: .ethereum, address: address)],
         )
 
-        try db.dbQueue.write { db in
+        try db.dbPool.write { db in
             try WalletIdMigration.migrate(db: db, userDefaults: userDefaults)
         }
 
@@ -169,7 +169,7 @@ struct WalletIdMigrationTests {
             order: 2,
         )
 
-        try db.dbQueue.write { db in
+        try db.dbPool.write { db in
             try WalletIdMigration.migrate(db: db, userDefaults: userDefaults)
         }
 
@@ -204,7 +204,7 @@ struct WalletIdMigrationTests {
             order: 2,
         )
 
-        try db.dbQueue.write { db in
+        try db.dbPool.write { db in
             try WalletIdMigration.migrate(db: db, userDefaults: userDefaults)
         }
 
@@ -233,19 +233,19 @@ struct WalletIdMigrationTests {
 
         let asset = AssetBasic.mock(asset: .mock(id: .mock(chain: .ethereum)))
         try assetStore.add(assets: [asset])
-        try db.dbQueue.write { db in
+        try db.dbPool.write { db in
             try db.execute(
                 sql: "INSERT INTO balances (assetId, walletId, isEnabled) VALUES (?, ?, ?)",
                 arguments: [asset.asset.id.identifier, oldId, true],
             )
         }
 
-        try db.dbQueue.write { db in
+        try db.dbPool.write { db in
             try WalletIdMigration.migrate(db: db, userDefaults: userDefaults)
         }
 
         let newWalletId = try WalletId.from(id: "multicoin_\(ethAddress)")
-        let balanceCount = try db.dbQueue.read { db in
+        let balanceCount = try db.dbPool.read { db in
             try BalanceRecord
                 .filter(BalanceRecord.Columns.walletId == newWalletId.id)
                 .filter(BalanceRecord.Columns.assetId == asset.asset.id.identifier)
@@ -272,14 +272,14 @@ struct WalletIdMigrationTests {
             accounts: [.mock(chain: .bitcoin, address: "bc1unmapped")],
         )
 
-        try db.dbQueue.write { db in
+        try db.dbPool.write { db in
             try WalletIdMigration.migrate(db: db, userDefaults: userDefaults)
         }
 
         let wallets = try walletStore.getWallets()
         #expect(wallets.map(\.id) == [.multicoin(address: validAddress)])
 
-        let storedIds = try db.dbQueue.read { db in
+        let storedIds = try db.dbPool.read { db in
             try String.fetchAll(db, sql: "SELECT id FROM \(WalletRecord.databaseTableName)")
         }
         #expect(!storedIds.contains("uuid-unmapped"))
@@ -303,7 +303,7 @@ struct WalletIdMigrationTests {
         let address3 = "0xaddress3"
         try db.insertLegacyWallet(id: "uuid-3", type: .multicoin, accounts: [.mock(chain: .ethereum, address: address3)], order: 5)
 
-        try db.dbQueue.write { db in
+        try db.dbPool.write { db in
             try WalletIdMigration.migrate(db: db, userDefaults: userDefaults)
         }
 
@@ -332,7 +332,7 @@ struct WalletIdMigrationTests {
         try db.insertLegacyWallet(id: "uuid-view-1", type: .view, accounts: [.mock(chain: .ethereum, address: address)], order: 1)
         try db.insertLegacyWallet(id: "uuid-view-2", type: .view, accounts: [.mock(chain: .ethereum, address: address)], order: 0)
 
-        try db.dbQueue.write { db in
+        try db.dbPool.write { db in
             try WalletIdMigration.migrate(db: db, userDefaults: userDefaults)
         }
 
@@ -353,7 +353,7 @@ struct WalletIdMigrationTests {
         try db.insertLegacyWallet(id: "uuid-single-2", type: .single, accounts: [.mock(chain: .bitcoin, address: address)], order: 0)
         try db.insertLegacyWallet(id: "uuid-single-3", type: .single, accounts: [.mock(chain: .bitcoin, address: address)], order: 1)
 
-        try db.dbQueue.write { db in
+        try db.dbPool.write { db in
             try WalletIdMigration.migrate(db: db, userDefaults: userDefaults)
         }
 
@@ -376,7 +376,7 @@ struct WalletIdMigrationTests {
         try db.insertLegacyWallet(id: "uuid-order-1", type: .multicoin, accounts: [.mock(chain: .ethereum, address: address)], order: 1)
         try db.insertLegacyWallet(id: "uuid-order-3", type: .multicoin, accounts: [.mock(chain: .ethereum, address: address)], order: 3)
 
-        try db.dbQueue.write { db in
+        try db.dbPool.write { db in
             try WalletIdMigration.migrate(db: db, userDefaults: userDefaults)
         }
 
@@ -403,7 +403,7 @@ struct WalletIdMigrationTests {
             ],
         )
 
-        try db.dbQueue.write { db in
+        try db.dbPool.write { db in
             try WalletIdMigration.migrate(db: db, userDefaults: userDefaults)
         }
 
@@ -432,7 +432,7 @@ struct WalletIdMigrationTests {
         )
         try walletStore.addWallet(wallet)
 
-        try db.dbQueue.write { db in
+        try db.dbPool.write { db in
             try WalletIdMigration.migrate(db: db, userDefaults: userDefaults)
         }
 
@@ -447,7 +447,7 @@ struct WalletIdMigrationTests {
         let userDefaults = UserDefaults.mock()
         let db = DB.mock()
 
-        try db.dbQueue.write { db in
+        try db.dbPool.write { db in
             try WalletIdMigration.migrate(db: db, userDefaults: userDefaults)
         }
 
@@ -474,7 +474,7 @@ struct WalletIdMigrationTests {
             ],
         )
 
-        try db.dbQueue.write { db in
+        try db.dbPool.write { db in
             try WalletIdMigration.migrate(db: db, userDefaults: userDefaults)
         }
 
@@ -503,7 +503,7 @@ struct WalletIdMigrationPreferenceTests {
 
         userDefaults.set(oldId, forKey: currentWalletKey)
 
-        try db.dbQueue.write { db in
+        try db.dbPool.write { db in
             try WalletIdMigration.migrate(db: db, userDefaults: userDefaults)
         }
 
@@ -518,7 +518,7 @@ struct WalletIdMigrationPreferenceTests {
 
         try db.insertLegacyWallet(id: "uuid-first", type: .multicoin, accounts: [.mock(chain: .ethereum, address: "0xfirst")], order: 0)
 
-        try db.dbQueue.write { db in
+        try db.dbPool.write { db in
             try WalletIdMigration.migrate(db: db, userDefaults: userDefaults)
         }
 
@@ -535,7 +535,7 @@ struct WalletIdMigrationPreferenceTests {
 
         try db.insertLegacyWallet(id: "uuid-fallback", type: .multicoin, accounts: [.mock(chain: .ethereum, address: "0xfallback")], order: 0)
 
-        try db.dbQueue.write { db in
+        try db.dbPool.write { db in
             try WalletIdMigration.migrate(db: db, userDefaults: userDefaults)
         }
 
@@ -556,7 +556,7 @@ struct WalletIdMigrationPreferenceTests {
 
         userDefaults.set(newFormatId, forKey: currentWalletKey)
 
-        try db.dbQueue.write { db in
+        try db.dbPool.write { db in
             try WalletIdMigration.migrate(db: db, userDefaults: userDefaults)
         }
 
