@@ -23,6 +23,8 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.transactions
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.list_item.DaySectionedList
+import com.gemwallet.android.ui.components.list_item.sectionedByDay
 import com.gemwallet.android.ui.components.screen.assetAddedToast
 import com.gemwallet.android.ui.components.screen.message
 import com.gemwallet.android.ui.localization.text
@@ -108,8 +110,9 @@ class AssetViewModel @Inject constructor(
 
     val transactions = transactionsWindow.map { it.limit }
         .flatMapLatest { limit -> getTransactions.getTransactions(transactionsFilter, limit) }
+        .map { it.sectionedByDay(GemTransactionRow::createdAt) }
         .flowOn(ioDispatcher)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, getTransactions.stored(transactionsFilter, transactionsWindow.value.limit))
+        .stateIn(viewModelScope, SharingStarted.Eagerly, getTransactions.stored(transactionsFilter, transactionsWindow.value.limit).sectionedByDay(GemTransactionRow::createdAt))
 
     private val transactionsState = MutableStateFlow<GemLoadState>(GemLoadState.Loading)
 
@@ -156,7 +159,7 @@ class AssetViewModel @Inject constructor(
         )
     }
 
-    private fun transactionsPhase(state: GemLoadState, rows: List<GemTransactionRow>, details: GemAssetDetails?): GemListPhase? = details?.let { listPhase(state, rows.isNotEmpty(), it.state.emptyState) }
+    private fun transactionsPhase(state: GemLoadState, rows: DaySectionedList<GemTransactionRow>, details: GemAssetDetails?): GemListPhase? = details?.let { listPhase(state, rows.items.isNotEmpty(), it.state.emptyState) }
 
     fun refresh() {
         if (syncJob?.isActive == true) {
@@ -222,7 +225,7 @@ class AssetViewModel @Inject constructor(
     fun clearError() = errorState.update { null }
 
     fun onTransactionsEndReached() {
-        transactionsWindow.update { it.onEndReached(transactions.value.size) }
+        transactionsWindow.update { it.onEndReached(transactions.value.items.size) }
     }
 
     private companion object {

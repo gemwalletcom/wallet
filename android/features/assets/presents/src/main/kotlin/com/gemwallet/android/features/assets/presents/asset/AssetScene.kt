@@ -26,6 +26,7 @@ import com.gemwallet.android.features.assets.viewmodels.asset.models.detailsActi
 import com.gemwallet.android.features.assets.viewmodels.asset.models.navigation
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.LoadOnListEnd
+import com.gemwallet.android.ui.components.list_item.DaySectionedList
 import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
@@ -50,7 +51,7 @@ import uniffi.gemstone.GemTransactionRow
 internal fun AssetScene(
     details: GemAssetDetails,
     asset: Asset,
-    transactions: List<GemTransactionRow>,
+    transactions: DaySectionedList<GemTransactionRow>,
     transactionsPhase: GemListPhase?,
     isRefreshing: Boolean,
     snackBar: SnackbarHostState = remember { SnackbarHostState() },
@@ -83,7 +84,7 @@ internal fun AssetScene(
         onClose = { onAction(AssetAction.Close) },
         snackbar = snackBar,
     ) {
-        val transactionSections = rememberDateSections(transactions) { it.createdAt }
+        val transactionSections = rememberDateSections(transactions)
         val onTransactionClick: (TransactionId) -> Unit = { onAction(AssetAction.OpenTransaction(it)) }
         PullToRefreshBox(
             modifier = Modifier.fillMaxSize(),

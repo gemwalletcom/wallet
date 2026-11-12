@@ -22,6 +22,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.LoadOnListEnd
 import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.filters.TransactionsFilter
+import com.gemwallet.android.ui.components.list_item.DaySectionedList
 import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.rememberDateSections
 import com.gemwallet.android.ui.components.list_item.transaction.transactionsList
@@ -42,7 +43,7 @@ import uniffi.gemstone.GemTransactionsFilterView
 @Composable
 internal fun TransactionsScene(
     isRefreshing: Boolean,
-    transactions: List<GemTransactionRow>?,
+    transactions: DaySectionedList<GemTransactionRow>?,
     phase: GemListPhase?,
     filter: GemTransactionsFilterSession,
     filterView: GemTransactionsFilterView,
@@ -68,7 +69,7 @@ internal fun TransactionsScene(
             }
         },
     ) {
-        val transactionSections = rememberDateSections(transactions.orEmpty()) { it.createdAt }
+        val transactionSections = transactions?.let { rememberDateSections(it) }.orEmpty()
         val onTransactionClick: (TransactionId) -> Unit = { onAction(TransactionsAction.OpenTransaction(it)) }
         PullToRefreshBox(
             isRefreshing = isRefreshing,

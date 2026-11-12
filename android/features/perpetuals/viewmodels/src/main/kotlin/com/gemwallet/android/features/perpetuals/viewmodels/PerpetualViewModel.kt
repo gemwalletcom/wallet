@@ -20,6 +20,7 @@ import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.transactions
 import com.gemwallet.android.model.AmountParams
+import com.gemwallet.android.ui.components.list_item.sectionedByDay
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
@@ -64,6 +65,7 @@ import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemPerpetualDetails
 import uniffi.gemstone.GemPerpetualDetailsServiceInterface
 import uniffi.gemstone.GemPerpetualPositionKind
+import uniffi.gemstone.GemTransactionRow
 import uniffi.gemstone.candleSession
 import java.time.Instant
 import java.time.ZoneId
@@ -119,8 +121,9 @@ class PerpetualViewModel @Inject constructor(
 
     val transactions = transactionsWindow.map { it.limit }
         .flatMapLatest { limit -> getTransactions.getTransactions(transactionsFilter, limit) }
+        .map { it.sectionedByDay(GemTransactionRow::createdAt) }
         .flowOn(ioDispatcher)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, getTransactions.stored(transactionsFilter, transactionsWindow.value.limit))
+        .stateIn(viewModelScope, SharingStarted.Eagerly, getTransactions.stored(transactionsFilter, transactionsWindow.value.limit).sectionedByDay(GemTransactionRow::createdAt))
 
     private val candles = MutableStateFlow(candleSession(service.chartPeriod()))
 
@@ -281,6 +284,6 @@ class PerpetualViewModel @Inject constructor(
     fun clearError() = errorState.update { null }
 
     fun onTransactionsEndReached() {
-        transactionsWindow.update { it.onEndReached(transactions.value.size) }
+        transactionsWindow.update { it.onEndReached(transactions.value.items.size) }
     }
 }

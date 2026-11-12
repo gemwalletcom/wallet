@@ -9,6 +9,8 @@ import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.transactions
+import com.gemwallet.android.ui.components.list_item.DaySectionedList
+import com.gemwallet.android.ui.components.list_item.sectionedByDay
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletType
@@ -25,6 +27,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -79,10 +82,12 @@ class TransactionsViewModel @Inject constructor(
     val transactions = list.map { it.view.filter.toPrimitives() to it.window.limit }
         .distinctUntilChanged()
         .flatMapLatest { (filter, limit) -> getTransactions.getTransactions(filter, limit) }
+        .map { it.sectionedByDay(GemTransactionRow::createdAt) }
+        .flowOn(ioDispatcher)
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.Eagerly,
-            initialValue = getTransactions.stored(list.value.view.filter.toPrimitives(), list.value.window.limit).takeIf { it.isNotEmpty() },
+            initialValue = getTransactions.stored(list.value.view.filter.toPrimitives(), list.value.window.limit).takeIf { it.isNotEmpty() }?.sectionedByDay(GemTransactionRow::createdAt),
         )
 
     private val transactionsState = MutableStateFlow<GemLoadState>(GemLoadState.Loading)
@@ -132,7 +137,7 @@ class TransactionsViewModel @Inject constructor(
         return job
     }
 
-    private fun phase(state: GemLoadState, rows: List<GemTransactionRow>?, view: GemTransactionsFilterView): GemListPhase? = rows?.let { listPhase(state, it.isNotEmpty(), view.emptyState) }
+    private fun phase(state: GemLoadState, rows: DaySectionedList<GemTransactionRow>?, view: GemTransactionsFilterView): GemListPhase? = rows?.let { listPhase(state, it.items.isNotEmpty(), view.emptyState) }
 
     fun setChainsFilter(chains: List<Chain>) {
         updateFilter { it.onChains(chains.map { chain -> chain.string }) }
@@ -147,7 +152,7 @@ class TransactionsViewModel @Inject constructor(
     }
 
     fun onEndReached() {
-        list.update { it.copy(window = it.window.onEndReached(transactions.value.orEmpty().size)) }
+        list.update { it.copy(window = it.window.onEndReached(transactions.value?.items.orEmpty().size)) }
     }
 
     private fun updateFilter(change: (GemTransactionsFilterSession) -> GemTransactionsFilterSession) {

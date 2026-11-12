@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -17,13 +18,28 @@ import com.gemwallet.android.ui.format.gemDay
 import com.gemwallet.android.ui.format.localDate
 import com.gemwallet.android.ui.models.ListPosition
 import uniffi.gemstone.GemDay
+import uniffi.gemstone.GemDayBoundaries
 import uniffi.gemstone.GemDayLabel
 import java.time.Clock
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Locale
 
 data class DateSection<T>(val label: String, val items: List<T>)
+
+@Immutable
+data class DaySection<T>(val day: GemDay, val label: GemDayLabel, val items: List<T>)
+
+@Immutable
+data class DaySectionedList<T>(val items: List<T>, val days: List<DaySection<T>>)
+
+fun <T> List<T>.sectionedByDay(createdAt: (T) -> Long, zone: ZoneId = ZoneId.systemDefault()): DaySectionedList<T> = DaySectionedList(this, daySections(this, createdAt, zone, LocalDate.now(zone).gemDay().boundaries()))
+
+fun <T> daySections(items: List<T>, createdAt: (T) -> Long, zone: ZoneId, boundaries: GemDayBoundaries): List<DaySection<T>> =
+    boundaries.sections(items.map { Instant.ofEpochMilli(createdAt(it)).atZone(zone).toLocalDate().gemDay() }, true).map { section ->
+        DaySection(day = section.day, label = section.label, items = section.positions.map { items[it] })
+    }
 
 @Composable
 fun <T> rememberDateSections(items: List<T>, createdAt: (T) -> Long): List<DateSection<T>> {
@@ -49,10 +65,12 @@ fun <D, T> rememberDaySections(days: List<D>, day: (D) -> GemDay, label: (D) -> 
     }
 }
 
-fun <T> dateSections(items: List<T>, createdAt: (T) -> Long, zone: ZoneId, locale: Locale, formatter: SectionDateFormatter): List<DateSection<T>> =
-    formatter.boundaries.sections(items.map { Instant.ofEpochMilli(createdAt(it)).atZone(zone).toLocalDate().gemDay() }, true).map { section ->
-        DateSection(label = formatter.format(section.label, section.day.localDate(), locale), items = section.positions.map { items[it] })
-    }
+@Composable
+fun <T> rememberDateSections(list: DaySectionedList<T>): List<DateSection<T>> = rememberDaySections(list.days, day = { it.day }, label = { it.label }, items = { it.items })
+
+fun <T> dateSections(items: List<T>, createdAt: (T) -> Long, zone: ZoneId, locale: Locale, formatter: SectionDateFormatter): List<DateSection<T>> = daySections(items, createdAt, zone, formatter.boundaries).map { section ->
+    DateSection(label = formatter.format(section.label, section.day.localDate(), locale), items = section.items)
+}
 
 @OptIn(ExperimentalFoundationApi::class)
 fun <T> LazyListScope.dateSectionedList(sections: List<DateSection<T>>, key: (Int, T) -> Any, itemContent: @Composable LazyItemScope.(ListPosition, T) -> Unit) {

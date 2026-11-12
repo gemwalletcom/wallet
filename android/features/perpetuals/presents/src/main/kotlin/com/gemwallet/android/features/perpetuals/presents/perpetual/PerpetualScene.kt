@@ -17,6 +17,7 @@ import com.gemwallet.android.ui.components.LoadOnListEnd
 import com.gemwallet.android.ui.components.chart.CandleChartSection
 import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.components.list_item.AssetListItem
+import com.gemwallet.android.ui.components.list_item.DaySectionedList
 import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
@@ -48,7 +49,7 @@ import uniffi.gemstone.GemValueTone
 @Composable
 internal fun PerpetualScene(
     details: GemPerpetualDetails?,
-    transactions: List<GemTransactionRow>,
+    transactions: DaySectionedList<GemTransactionRow>,
     chart: StateViewType<GemCandleChart>,
     period: ChartPeriod,
     periods: List<ChartPeriod>,
@@ -74,7 +75,7 @@ internal fun PerpetualScene(
         onClose = { onAction(PerpetualAction.Close) },
         snackbar = snackbar,
     ) {
-        val transactionSections = rememberDateSections(transactions) { it.createdAt }
+        val transactionSections = rememberDateSections(transactions)
         val onAutocloseClick: () -> Unit = { onAction(PerpetualAction.Autoclose) }
         val onTransactionClick: (TransactionId) -> Unit = { onAction(PerpetualAction.OpenTransaction(it)) }
         PullToRefreshBox(
@@ -125,7 +126,7 @@ internal fun PerpetualScene(
                         accessory = { DataBadgeChevron() },
                     )
                 }
-                if (transactions.isNotEmpty()) {
+                if (transactions.items.isNotEmpty()) {
                     transactionsList(transactionSections, onTransactionClick)
                 }
             }
@@ -178,7 +179,7 @@ private fun PerpetualScenePreview() {
                 positionRow = null,
                 associatedAssets = emptyList(),
             ),
-            transactions = emptyList(),
+            transactions = DaySectionedList(emptyList(), emptyList()),
             chart = StateViewType.Loading,
             period = ChartPeriod.Day,
             periods = ChartPeriod.entries,
