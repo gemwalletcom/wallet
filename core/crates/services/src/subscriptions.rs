@@ -95,11 +95,7 @@ mod tests {
         assert!(lookup.get(chain, vec![address.clone()]).await.unwrap().is_empty());
         assert_eq!(repository.reads(), 1);
 
-        repository.set_subscriptions(vec![DeviceSubscription {
-            chain,
-            address: address.clone(),
-            ..DeviceSubscription::mock()
-        }]);
+        repository.set_subscriptions(vec![DeviceSubscription::mock(&address)]);
         lookup.cache_subscribed(&[(chain, address.clone())]).await.unwrap();
         cacher.set_unsubscribed_addresses(chain, std::slice::from_ref(&address), std::time::Duration::from_secs(900)).await.unwrap();
         let subscriptions = lookup.get(chain, vec![address.clone()]).await.unwrap();
@@ -114,11 +110,7 @@ mod tests {
         let lookup = SubscriptionLookup::new(repository.clone(), Arc::new(MemorySubscriptionAddressCacher::default()), Arc::new(ConfigCacher::new(Arc::new(MemoryConfigRepository::new()))));
         let chain = Chain::Ethereum;
         let address = "0x123".to_string();
-        let mut subscription = DeviceSubscription {
-            chain,
-            address: address.clone(),
-            ..DeviceSubscription::mock()
-        };
+        let mut subscription = DeviceSubscription::mock(&address);
         repository.set_subscriptions(vec![subscription.clone()]);
 
         assert_eq!(lookup.get(chain, vec![address.clone()]).await.unwrap()[0].device.token, subscription.device.token);
@@ -139,11 +131,7 @@ mod tests {
         );
         let chain = Chain::Ethereum;
         let address = "0x123".to_string();
-        repository.set_subscriptions(vec![DeviceSubscription {
-            chain,
-            address: address.clone(),
-            ..DeviceSubscription::mock()
-        }]);
+        repository.set_subscriptions(vec![DeviceSubscription::mock(&address)]);
 
         assert_eq!(lookup.get(chain, vec![address.clone()]).await.unwrap()[0].address, address);
         assert_eq!(repository.reads(), 1);
@@ -159,11 +147,7 @@ mod tests {
         );
         let chain = Chain::Ethereum;
         let address = "0x123".to_string();
-        repository.set_subscriptions(vec![DeviceSubscription {
-            chain,
-            address: address.clone(),
-            ..DeviceSubscription::mock()
-        }]);
+        repository.set_subscriptions(vec![DeviceSubscription::mock(&address)]);
 
         assert_eq!(lookup.get(chain, vec![address.clone()]).await.unwrap()[0].address, address);
         assert_eq!(repository.reads(), 1);
@@ -209,21 +193,12 @@ mod tests {
         let lookup = SubscriptionLookup::new(repository.clone(), Arc::new(MemorySubscriptionAddressCacher::default()), Arc::new(ConfigCacher::new(Arc::new(MemoryConfigRepository::new()))));
         let address = "0x123".to_string();
         repository.set_subscriptions(vec![
-            DeviceSubscription {
-                chain: Chain::Ethereum,
-                address: address.clone(),
-                ..DeviceSubscription::mock()
-            },
+            DeviceSubscription::mock(&address),
             DeviceSubscription {
                 chain: Chain::Bitcoin,
-                address: address.clone(),
-                ..DeviceSubscription::mock()
+                ..DeviceSubscription::mock(&address)
             },
-            DeviceSubscription {
-                chain: Chain::Ethereum,
-                address: "0x456".to_string(),
-                ..DeviceSubscription::mock()
-            },
+            DeviceSubscription::mock("0x456"),
         ]);
 
         let subscriptions = lookup.get(Chain::Ethereum, vec![address.clone()]).await.unwrap();

@@ -167,7 +167,7 @@ impl StoreTransactionsConsumer {
         subscriptions
             .iter()
             .flat_map(|subscription| transactions.iter().map(move |transaction| (subscription, transaction)))
-            .filter(|(subscription, transaction)| transaction.addresses().contains(&subscription.address))
+            .filter(|(subscription, transaction)| Self::is_subscription_transaction(subscription, transaction))
             .filter(|(_, transaction)| transaction.asset_ids().iter().all(|id| assets.get(id).is_some_and(|asset| asset.asset.is_enabled_for_transactions())))
             .filter(|(subscription, transaction)| {
                 let transaction = transaction.finalize(vec![subscription.address.clone()]);
@@ -176,6 +176,14 @@ impl StoreTransactionsConsumer {
                     .is_some_and(|asset_price| !config.is_transaction_insufficient_amount(&transaction, &asset_price.asset.asset, asset_price.price, config.min_amount_usd))
             })
             .collect()
+    }
+
+    fn is_subscription_transaction(subscription: &DeviceSubscription, transaction: &Transaction) -> bool {
+        let assets_addresses = transaction.assets_addresses();
+        if assets_addresses.is_empty() {
+            return transaction.addresses().contains(&subscription.address);
+        }
+        assets_addresses.iter().any(|asset_address| asset_address.address == subscription.address)
     }
 
     fn assets_addresses(subscribed_transactions: &[(&DeviceSubscription, &Transaction)], assets: &HashMap<AssetId, AssetPriceMetadata>) -> Vec<AssetAddress> {
@@ -464,10 +472,7 @@ mod tests {
     #[test]
     fn test_subscribed_transactions_asset_filter() {
         let config = StoreTransactionsConsumerConfig::mock();
-        let subscriptions = vec![DeviceSubscription {
-            address: "0xfrom".to_string(),
-            ..DeviceSubscription::mock()
-        }];
+        let subscriptions = vec![DeviceSubscription::mock("0xfrom")];
         let asset = |asset: Asset, is_enabled: bool| {
             let mut basic = asset.as_basic_primitive();
             basic.properties.is_enabled = is_enabled;
@@ -489,12 +494,34 @@ mod tests {
     }
 
     #[test]
+    fn test_subscribed_transactions_linked_addresses() {
+        let config = StoreTransactionsConsumerConfig::mock();
+        let subscriptions = vec![DeviceSubscription::mock("0xfrom"), DeviceSubscription::mock("0xto")];
+        let assets = HashMap::from([(Asset::mock_eth().id, AssetPriceMetadata::mock())]);
+        let transactions = vec![
+            Transaction::mock(),
+            Transaction::mock_with_params(Asset::mock_eth().id, TransactionType::TokenApproval, BigUint::from(1u32)),
+            Transaction::mock_with_params(Asset::mock_eth().id, TransactionType::Swap, BigUint::from(1u32)),
+        ];
+
+        let subscribed = StoreTransactionsConsumer::subscribed_transactions(&config, &subscriptions, &transactions, &assets);
+
+        assert_eq!(
+            subscribed.iter().map(|(subscription, transaction)| (subscription.address.as_str(), transaction.transaction_type.clone())).collect::<Vec<_>>(),
+            vec![
+                ("0xfrom", TransactionType::Transfer),
+                ("0xfrom", TransactionType::TokenApproval),
+                ("0xfrom", TransactionType::Swap),
+                ("0xto", TransactionType::Transfer),
+                ("0xto", TransactionType::Swap),
+            ]
+        );
+    }
+
+    #[test]
     fn test_subscribed_transactions_for_storage_skip_swap_payouts() {
         let config = StoreTransactionsConsumerConfig::mock();
-        let subscriptions = vec![DeviceSubscription {
-            address: "0xuser".to_string(),
-            ..DeviceSubscription::mock()
-        }];
+        let subscriptions = vec![DeviceSubscription::mock("0xuser")];
         let payout = Transaction::mock_with_asset_transfers(vec![TransactionAssetTransfer {
             asset_id: AssetId::from_chain(Chain::Ethereum),
             from: "0xvault".to_string(),
@@ -735,14 +762,14 @@ mod tests {
 
     #[test]
     fn test_unique_subscriptions_per_device() {
-        let multicoin = DeviceSubscription::mock();
+        let multicoin = DeviceSubscription::mock("0xABC");
         let single = DeviceSubscription {
             wallet_id: WalletId::Single(Chain::Ethereum, "0xABC".to_string()),
-            ..DeviceSubscription::mock()
+            ..DeviceSubscription::mock("0xABC")
         };
         let view = DeviceSubscription {
             wallet_id: WalletId::View(Chain::Ethereum, "0xABC".to_string()),
-            ..DeviceSubscription::mock()
+            ..DeviceSubscription::mock("0xABC")
         };
 
         let result = StoreTransactionsConsumer::unique_subscriptions_per_device(vec![view.clone(), single.clone(), multicoin.clone()]);
@@ -763,7 +790,7 @@ mod tests {
                 ..Device::mock()
             },
             wallet_id: WalletId::View(Chain::Ethereum, "0xABC".to_string()),
-            ..DeviceSubscription::mock()
+            ..DeviceSubscription::mock("0xABC")
         };
         let result = StoreTransactionsConsumer::unique_subscriptions_per_device(vec![multicoin, other_device]);
         assert_eq!(result.len(), 2);

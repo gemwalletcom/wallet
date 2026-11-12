@@ -1,6 +1,6 @@
 use chrono::Utc;
 
-use crate::{Asset, AssetAssociation, AssetAssociationType, AssetBasic, AssetFull, AssetProperties, AssetScore, Chain, Price, PriceProvider};
+use crate::{Asset, AssetAssociation, AssetAssociationType, AssetBasic, AssetFull, AssetPriceMetadata, AssetProperties, AssetScore, Chain, Price, PriceProvider};
 
 impl AssetAssociation {
     pub fn mock() -> Self {
@@ -33,6 +33,15 @@ impl AssetBasic {
         Self {
             price: Some(Price::new(price, price_change_percentage_24h, Utc::now(), PriceProvider::Coingecko)),
             ..Asset::from_chain(chain).as_basic_primitive()
+        }
+    }
+}
+
+impl AssetPriceMetadata {
+    pub fn mock() -> Self {
+        Self {
+            asset: Asset::mock_eth().as_basic_primitive(),
+            price: None,
         }
     }
 }

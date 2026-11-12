@@ -1,13 +1,13 @@
 use crate::{AddressChains, Chain, Device, DeviceSubscription, WalletId, WalletSource, WalletSubscription, WalletSubscriptionChains};
 
 impl DeviceSubscription {
-    pub fn mock() -> Self {
+    pub fn mock(address: &str) -> Self {
         Self {
             wallet_row_id: 1,
             device: Device::mock(),
             wallet_id: WalletId::Multicoin("0xABC".to_string()),
             chain: Chain::Ethereum,
-            address: "0xABC".to_string(),
+            address: address.to_string(),
         }
     }
 }
