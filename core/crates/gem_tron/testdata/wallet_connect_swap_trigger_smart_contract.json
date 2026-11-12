@@ -14,7 +14,11 @@
             }
           }
         }
-      ]
+      ],
+      "expiration": 1770271569000,
+      "ref_block_bytes": "b435",
+      "ref_block_hash": "eb7b23d0ef96d04e",
+      "timestamp": 1770271511581
     }
   }
 }

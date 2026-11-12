@@ -2,6 +2,7 @@ use num_traits::ToPrimitive;
 use primitives::hex;
 use std::collections::HashMap;
 use std::error::Error;
+use std::str;
 
 use async_trait::async_trait;
 use chain_traits::{ChainTransactionLoad, TransactionFeeOperation};
@@ -21,6 +22,7 @@ use crate::{
     models::{ChainParameter, TriggerSmartContractData, TronContractInfo, account::TronAccountUsage},
     provider::preload_mapper::{FEE_LIMIT_BUFFER_PERCENT, FeeEstimateContext, SMART_CONTRACT_FEE_LIMIT_BUFFER_PERCENT, calculate_stake_fee_rate, calculate_token_fee_rate_with_data, map_stake_data, native_transfer_fee},
     rpc::{TronClient, TronProvider},
+    transaction::decode_wallet_connect_trigger_smart_contract,
     trc20,
 };
 
@@ -81,7 +83,7 @@ impl<C: Client> ChainTransactionLoad for TronProvider<C> {
                 }
             },
             TransactionInputType::Generic { extra, .. } | TransactionInputType::Payment { extra, .. } => match extra.output_action {
-                TransferDataOutputAction::Send => match self.estimate_fee_with_data(&input.sender_address, extra.data.as_deref(), &chain_parameters, &account_usage).await? {
+                TransferDataOutputAction::Send => match self.estimate_fee_with_data(extra.data.as_deref(), &chain_parameters, &account_usage).await? {
                     Some(fee) => fee,
                     None => native_transfer_fee(&fee_context, has_memo)?,
                 },
@@ -246,12 +248,15 @@ impl<C: Client> TronClient<C> {
         Ok(contract.caller_energy(energy, &self.get_account_usage(&contract.origin_address).await?))
     }
 
-    async fn estimate_fee_with_data(&self, sender_address: &str, data: Option<&[u8]>, chain_parameters: &[ChainParameter], account_usage: &TronAccountUsage) -> Result<Option<TransactionFee>, Box<dyn Error + Send + Sync>> {
-        let Some(parsed) = TriggerSmartContractData::from_payload(data, sender_address)? else {
+    async fn estimate_fee_with_data(&self, data: Option<&[u8]>, chain_parameters: &[ChainParameter], account_usage: &TronAccountUsage) -> Result<Option<TransactionFee>, Box<dyn Error + Send + Sync>> {
+        let Some(data) = data else {
+            return Ok(None);
+        };
+        let Some(contract_data) = decode_wallet_connect_trigger_smart_contract(str::from_utf8(data)?)? else {
             return Ok(None);
         };
 
-        Ok(Some(self.estimate_smart_contract_fee(parsed, chain_parameters, account_usage, None).await?))
+        Ok(Some(self.estimate_smart_contract_fee(contract_data, chain_parameters, account_usage, None).await?))
     }
 
     async fn get_is_new_account_for_input_type(&self, input: &TransactionLoadInput) -> Result<bool, Box<dyn Error + Send + Sync>> {
