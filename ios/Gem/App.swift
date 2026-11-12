@@ -31,7 +31,7 @@ struct GemApp: App {
                     appLifecycleService: resolver.services.appLifecycleService,
                     navigationRouter: resolver.services.navigationRouter,
                     lockWindow: LockWindow(
-                        lockModel: resolver.services.viewModelFactory.lockScene(),
+                        lockModel: resolver.services.lockModel,
                         sceneWindow: { (UIApplication.shared.connectedScenes.first as? UIWindowScene).map(UIWindow.init(windowScene:)) },
                     ),
                     viewModelFactory: resolver.services.viewModelFactory,

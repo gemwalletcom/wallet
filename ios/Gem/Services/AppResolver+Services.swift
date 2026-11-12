@@ -11,6 +11,7 @@ import protocol Gemstone.GemTransactionStateServiceProtocol
 import protocol Gemstone.GemWalletSessionServiceProtocol
 import GemstoneServices
 import PrimitivesComponents
+import Settings
 import StreamService
 import WalletConnector
 import WalletConnectorService
@@ -36,5 +37,6 @@ extension AppResolver {
         let toastPresenter: ToastPresenter
         let viewModelFactory: ViewModelFactory
         let appLifecycleService: AppLifecycleService
+        let lockModel: LockSceneViewModel
     }
 }

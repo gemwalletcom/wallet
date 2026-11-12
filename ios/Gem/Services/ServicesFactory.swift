@@ -10,6 +10,7 @@ import GemstoneServices
 import NativeProviderService
 import Primitives
 import PrimitivesComponents
+import Settings
 import Store
 import StreamService
 import WalletConnector
@@ -325,6 +326,12 @@ struct ServicesFactory {
             config: configService,
         )
         let pushNotificationService = Gemstone.GemPushNotificationService()
+        let biometryService = BiometryAuthenticationService(
+            keystorePassword: storages.keystorePassword,
+            securityService: Gemstone.GemSecurityService(),
+            systemPrompt: storages.systemPrompt,
+        )
+        let lockModel = MainActor.assumeIsolated { LockSceneViewModel(service: biometryService) }
         let navigationRouter = NavigationRouter(
             navigationState: navigation,
             presenter: navigationPresenter,
@@ -336,6 +343,7 @@ struct ServicesFactory {
             paymentService: paymentService,
             walletConnectorPresenter: walletConnectorPresenter,
             walletSessionService: walletSessionService,
+            lockModel: lockModel,
         )
         let searchService = Gemstone.GemSearchService(
             api: apiClient,
@@ -423,11 +431,7 @@ struct ServicesFactory {
             serviceStatusService: serviceStatusService,
             appUpdateService: appUpdateService,
             inAppNotificationService: inAppNotificationService,
-            biometryService: BiometryAuthenticationService(
-                keystorePassword: storages.keystorePassword,
-                securityService: Gemstone.GemSecurityService(),
-                systemPrompt: storages.systemPrompt,
-            ),
+            biometryService: biometryService,
             observablePreferences: observablePreferences,
             recentAssetsService: recentAssetsService,
             amountService: Gemstone.GemAmountService(stake: stakeService, preferences: preferencesService, session: walletSessionService),
@@ -477,6 +481,7 @@ struct ServicesFactory {
             toastPresenter: toastPresenter,
             viewModelFactory: viewModelFactory,
             appLifecycleService: appLifecycleService,
+            lockModel: lockModel,
         )
     }
 }
