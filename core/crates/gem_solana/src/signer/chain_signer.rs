@@ -2,7 +2,7 @@ use std::str;
 
 use ::signer::Ed25519KeyPair;
 use chrono::Utc;
-use gem_encoding::encode_base64;
+use gem_encoding::{encode_base58, encode_base64};
 use primitives::{Chain, ChainSigner, SignerError, SignerInput, TransactionInputType, TransferDataOutputType};
 
 use super::{instructions, sign_message as sign_solana_message, swap, transaction};
@@ -47,12 +47,12 @@ impl ChainSigner for SolanaChainSigner {
         {
             siws.validate(Chain::Solana, Utc::now()).map_err(SignerError::invalid_input)?;
             let public_key = Ed25519KeyPair::from_private_key(private_key)?.public_key_bytes;
-            if siws.address != bs58::encode(public_key).into_string() {
+            if siws.address != encode_base58(public_key) {
                 return SignerError::invalid_input_err("SIWS account mismatch");
             }
         }
         let signature = sign_solana_message(private_key, message).map_err(|e| SignerError::signing_error(format!("sign: {e}")))?;
-        Ok(bs58::encode(signature.as_bytes()).into_string())
+        Ok(encode_base58(signature.as_bytes()))
     }
 
     fn sign_data(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
@@ -69,7 +69,7 @@ impl ChainSigner for SolanaChainSigner {
         let signature = transaction::sign_transaction(&mut transaction, private_key)?;
 
         match extra.output_type {
-            TransferDataOutputType::Signature => Ok(bs58::encode(signature.as_bytes()).into_string()),
+            TransferDataOutputType::Signature => Ok(encode_base58(signature.as_bytes())),
             TransferDataOutputType::EncodedTransaction => {
                 let bytes = transaction.serialize().map_err(|e| SignerError::signing_error(format!("serialize transaction: {e}")))?;
                 Ok(encode_base64(&bytes))
@@ -84,6 +84,7 @@ mod tests {
     use crate::signer::testkit::SINGLE_SIG_TX;
     use crate::testkit::{mock_durable_nonce_transaction, mock_legacy_transaction, mock_v1_transaction};
     use crate::{SignatureBytes, VersionedTransaction};
+    use gem_encoding::decode_base58;
     use gem_encoding::decode_base64;
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
     use primitives::{Chain, ChainSigner, SignerInput, TransactionLoadInput, TransactionLoadMetadata, TransferDataOutputType};
@@ -95,7 +96,7 @@ mod tests {
         } else {
             TransactionLoadInput::mock_sign_data(Chain::Solana, &encoded, TransferDataOutputType::EncodedTransaction)
         };
-        input.metadata = TransactionLoadMetadata::mock_solana(&bs58::encode([4; 32]).into_string());
+        input.metadata = TransactionLoadMetadata::mock_solana(&encode_base58([4; 32]));
         let fee = input.default_fee();
 
         let result = SolanaChainSigner.sign_data(&SignerInput::new(input, fee), &TEST_PRIVATE_KEY).unwrap();
@@ -141,7 +142,7 @@ mod tests {
 
         let signature = SolanaChainSigner.sign_data(&SignerInput::new(signature_input, fee), &TEST_PRIVATE_KEY).unwrap();
 
-        assert_eq!(signature, bs58::encode(expected_signature.as_bytes()).into_string());
+        assert_eq!(signature, encode_base58(expected_signature.as_bytes()));
     }
 
     #[test]
@@ -170,21 +171,21 @@ mod tests {
     fn test_sign_message() {
         let result = SolanaChainSigner.sign_message(b"hello", &TEST_PRIVATE_KEY).unwrap();
 
-        assert_eq!(bs58::decode(result).into_vec().unwrap().len(), 64);
+        assert_eq!(decode_base58(result).unwrap().len(), 64);
     }
 
     #[test]
     fn test_sign_message_siws() {
         let message = include_str!("../../testdata/siws_sign_in.txt");
         let signature = SolanaChainSigner.sign_message(message.as_bytes(), &TEST_PRIVATE_KEY).unwrap();
-        assert_eq!(signature, bs58::encode(sign_solana_message(&TEST_PRIVATE_KEY, message.as_bytes()).unwrap().as_bytes()).into_string());
+        assert_eq!(signature, encode_base58(sign_solana_message(&TEST_PRIVATE_KEY, message.as_bytes()).unwrap().as_bytes()));
         assert_eq!(SolanaChainSigner.sign_message(message.as_bytes(), &[2; 32]).unwrap_err().to_string(), "Invalid input: SIWS account mismatch");
         let expired_message = include_str!("../../testdata/siws_complete.txt");
         assert_eq!(
             SolanaChainSigner.sign_message(expired_message.as_bytes(), &TEST_PRIVATE_KEY).unwrap_err().to_string(),
             "Invalid input: SIWS message expired or invalid expiration"
         );
-        assert_eq!(bs58::decode(SolanaChainSigner.sign_message(&[255, 254, 253], &TEST_PRIVATE_KEY).unwrap()).into_vec().unwrap().len(), 64);
+        assert_eq!(decode_base58(SolanaChainSigner.sign_message(&[255, 254, 253], &TEST_PRIVATE_KEY).unwrap()).unwrap().len(), 64);
     }
 
     #[test]

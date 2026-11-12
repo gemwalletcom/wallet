@@ -1,3 +1,4 @@
+use gem_encoding::{decode_base58, encode_base58};
 use primitives::hex::encode_with_0x;
 use primitives::{Chain, ChainType, decode_hex};
 use zeroize::Zeroizing;
@@ -49,8 +50,8 @@ fn scheme_for_chain(chain: &Chain) -> SignatureScheme {
     }
 }
 
-fn decode_base58(value: &str) -> Option<Vec<u8>> {
-    let decoded = Zeroizing::new(bs58::decode(value).into_vec().ok()?);
+fn decode_base58_key(value: &str) -> Option<Vec<u8>> {
+    let decoded = Zeroizing::new(decode_base58(value).ok()?);
     match decoded.len() {
         32 => Some(decoded.to_vec()),
         64 => {
@@ -63,7 +64,7 @@ fn decode_base58(value: &str) -> Option<Vec<u8>> {
 }
 
 fn decode_prefixed_base58(value: &str, scheme: SignatureScheme) -> Option<Vec<u8>> {
-    decode_base58(value.strip_prefix(scheme.as_ref())?.strip_prefix(':')?)
+    decode_base58_key(value.strip_prefix(scheme.as_ref())?.strip_prefix(':')?)
 }
 
 fn base32_decode_char(c: u8) -> Option<u8> {
@@ -142,7 +143,7 @@ fn decode_key(value: &str, encodings: &[KeyEncoding], scheme: SignatureScheme) -
     for encoding in encodings {
         let decoded = match encoding {
             KeyEncoding::Hex => decode_hex(value).ok().map(Zeroizing::new),
-            KeyEncoding::Base58 => decode_base58(value).map(Zeroizing::new),
+            KeyEncoding::Base58 => decode_base58_key(value).map(Zeroizing::new),
             KeyEncoding::PrefixedBase58(prefix_scheme) => {
                 if *prefix_scheme != scheme {
                     None
@@ -164,8 +165,8 @@ fn decode_key(value: &str, encodings: &[KeyEncoding], scheme: SignatureScheme) -
 fn encode_key(bytes: &[u8], encoding: KeyEncoding) -> Result<String, SignerError> {
     match encoding {
         KeyEncoding::Hex => Ok(encode_with_0x(bytes)),
-        KeyEncoding::Base58 => Ok(bs58::encode(bytes).into_string()),
-        KeyEncoding::PrefixedBase58(scheme) => Ok(format!("{}:{}", scheme.as_ref(), bs58::encode(bytes).into_string())),
+        KeyEncoding::Base58 => Ok(encode_base58(bytes)),
+        KeyEncoding::PrefixedBase58(scheme) => Ok(format!("{}:{}", scheme.as_ref(), encode_base58(bytes))),
         KeyEncoding::StellarStrKey => Err(SignerError::invalid_input("Unsupported private key export encoding")),
     }
 }
@@ -221,7 +222,7 @@ mod tests {
     fn test_decode_near_prefixed_base58() {
         let private_key = [7u8; 32];
         let keypair = ed25519_dalek::SigningKey::from_bytes(&private_key).to_keypair_bytes();
-        let values = [format!("ed25519:{}", bs58::encode(private_key).into_string()), format!("ed25519:{}", bs58::encode(keypair).into_string())];
+        let values = [format!("ed25519:{}", encode_base58(private_key)), format!("ed25519:{}", encode_base58(keypair))];
 
         assert_eq!(encode_private_key(&Chain::Near, &private_key).unwrap(), values[1]);
 
@@ -242,7 +243,7 @@ mod tests {
         assert!(decode_private_key(&Chain::Near, "ed25519:").is_err());
         assert!(decode_private_key(&Chain::Near, "secp256k1:11111111111111111111111111111111").is_err());
         assert!(decode_private_key(&Chain::Near, "ed25519:1111111111111111111111111111111").is_err());
-        assert!(decode_private_key(&Chain::Near, &format!("ed25519:{}", bs58::encode(mismatched_keypair).into_string())).is_err());
+        assert!(decode_private_key(&Chain::Near, &format!("ed25519:{}", encode_base58(mismatched_keypair))).is_err());
     }
 
     #[test]
@@ -257,13 +258,13 @@ mod tests {
     fn test_encode_solana_seed_round_trip() {
         let seed = [7u8; 32];
         let exported = encode_private_key(&Chain::Solana, &seed).unwrap();
-        let keypair = bs58::decode(&exported).into_vec().unwrap();
+        let keypair = decode_base58(&exported).unwrap();
 
         assert_eq!(keypair.len(), 64);
         assert_eq!(&keypair[..32], seed);
         assert_eq!(&keypair[32..], ed25519_dalek::SigningKey::from_bytes(&seed).verifying_key().as_bytes());
         assert_eq!(decode_private_key(&Chain::Solana, &exported).unwrap().as_slice(), seed);
-        assert_eq!(decode_private_key(&Chain::Solana, &bs58::encode(seed).into_string()).unwrap().as_slice(), seed);
+        assert_eq!(decode_private_key(&Chain::Solana, &encode_base58(seed)).unwrap().as_slice(), seed);
     }
 
     #[test]
@@ -307,7 +308,7 @@ mod tests {
     #[test]
     fn test_base58_rejects_unexpected_length() {
         // 96-byte base58 payload should not be accepted
-        let long_key = bs58::encode(vec![1u8; 96]).into_string();
-        assert!(decode_base58(&long_key).is_none());
+        let long_key = encode_base58(vec![1u8; 96]);
+        assert!(decode_base58_key(&long_key).is_none());
     }
 }

@@ -8,7 +8,7 @@ use crate::{
     approval::{check_approval_erc20, get_swap_gas_limit_with_approval},
 };
 use alloy_primitives::U256;
-use gem_encoding::encode_base64;
+use gem_encoding::{decode_base58, encode_base64};
 use gem_evm::provider::preload_mapper::calculate_gas_limit_with_increase;
 use gem_solana::{Pubkey, VersionedTransaction};
 use num_bigint::BigInt;
@@ -40,9 +40,7 @@ pub(super) async fn build_evm_quote_data(transaction_data: &TransactionData, fro
 }
 
 pub(super) fn build_solana_quote_data(transaction_data: &TransactionData, owner: &str) -> Result<SwapQuoteData, SwapperError> {
-    let bytes = bs58::decode(&transaction_data.data)
-        .into_vec()
-        .map_err(|error| SwapperError::TransactionError(format!("invalid swap transaction data: {error}")))?;
+    let bytes = decode_base58(&transaction_data.data).map_err(|error| SwapperError::TransactionError(format!("invalid swap transaction data: {error}")))?;
     let mut transaction = VersionedTransaction::deserialize_with_version(&bytes).map_err(SwapperError::transaction_error)?;
     if transaction.num_required_signatures() != 1 {
         return Err(SwapperError::transaction_error("OKX transaction requires more than one signer"));
@@ -78,12 +76,13 @@ fn get_spender(signature_data: Option<&[String]>) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use gem_encoding::encode_base58;
 
     #[test]
     fn test_solana_quote_data_requires_the_wallet_as_the_only_signer() {
         let response: serde_json::Value = serde_json::from_str(include_str!("testdata/swap_sol_to_usdc.json")).unwrap();
         let encoded = response["data"][0]["tx"]["data"].as_str().unwrap();
-        let mut transaction = VersionedTransaction::deserialize_with_version(&bs58::decode(encoded).into_vec().unwrap()).unwrap();
+        let mut transaction = VersionedTransaction::deserialize_with_version(&decode_base58(encoded).unwrap()).unwrap();
         let owner = transaction.account_keys()[0].to_base58();
         let single_signer = TransactionData {
             data: encoded.to_string(),
@@ -96,7 +95,7 @@ mod tests {
 
         transaction.message_mut().header.num_required_signatures = 2;
         let two_signers = TransactionData {
-            data: bs58::encode(transaction.serialize().unwrap()).into_string(),
+            data: encode_base58(transaction.serialize().unwrap()),
             ..single_signer
         };
         assert!(

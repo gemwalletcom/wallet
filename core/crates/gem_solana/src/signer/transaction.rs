@@ -1,5 +1,5 @@
 use ::signer::Ed25519KeyPair;
-use gem_encoding::encode_base64;
+use gem_encoding::{decode_base58, encode_base64};
 use num_traits::ToPrimitive;
 use primitives::{SignerError, SignerInput, TransactionFee};
 
@@ -65,7 +65,7 @@ fn build_legacy_transaction(fee_payer: Pubkey, recent_blockhash: [u8; 32], instr
 
 pub(super) fn block_hash(input: &SignerInput) -> Result<[u8; 32], SignerError> {
     let block_hash = input.metadata.get_block_hash()?;
-    let bytes = bs58::decode(&block_hash).into_vec().map_err(|_| SignerError::invalid_input("invalid Solana block hash"))?;
+    let bytes = decode_base58(&block_hash).map_err(|_| SignerError::invalid_input("invalid Solana block hash"))?;
     bytes.try_into().map_err(|_| SignerError::invalid_input("Solana block hash must be 32 bytes"))
 }
 

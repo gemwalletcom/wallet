@@ -62,7 +62,7 @@ signer = { path = "../crates/signer" }
 number_formatter = { path = "../crates/number_formatter" }
 yielder = { path = "../crates/yielder" }
 
-gem_encoding = { path = "../crates/gem_encoding" }
+gem_encoding = { path = "../crates/gem_encoding", features = ["base58"] }
 
 # uniffi
 uniffi.workspace = true
@@ -77,7 +77,6 @@ strum = { workspace = true }
 url = { workspace = true }
 num-bigint.workspace = true
 futures.workspace = true
-bs58 = { workspace = true }
 zeroize = { workspace = true }
 
 [lints.clippy]

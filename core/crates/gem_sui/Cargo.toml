@@ -20,8 +20,7 @@ chain_integration_tests = ["rpc", "reqwest", "primitives/testkit", "settings/tes
 primitives = { path = "../primitives" }
 chain_primitives = { path = "../chain_primitives" }
 bcs = { workspace = true }
-bs58 = { workspace = true }
-gem_encoding = { path = "../gem_encoding" }
+gem_encoding = { path = "../gem_encoding", features = ["base58"] }
 gem_hash = { path = "../gem_hash" }
 gem_client = { path = "../gem_client", optional = true }
 gem_jsonrpc = { path = "../gem_jsonrpc", features = ["client"], optional = true }

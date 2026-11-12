@@ -9,10 +9,9 @@ testkit = []
 [dependencies]
 primitives = { path = "../primitives" }
 gem_crypto = { path = "../gem_crypto", features = ["random"] }
-gem_encoding = { path = "../gem_encoding" }
+gem_encoding = { path = "../gem_encoding", features = ["base58"] }
 gem_hash = { path = "../gem_hash" }
 
-bs58 = { workspace = true }
 chacha20poly1305 = { workspace = true }
 curve25519-dalek = { workspace = true }
 ed25519-dalek = { workspace = true, default-features = true }

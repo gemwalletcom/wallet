@@ -1,4 +1,4 @@
-use gem_encoding::{decode_base64, encode_base64};
+use gem_encoding::{decode_base58, decode_base64, encode_base58, encode_base64};
 use signer::Ed25519KeyPair;
 
 use crate::{Pubkey, VersionedTransaction, VersionedTransactionExt, decode_transaction, testkit::test_wallet_pubkey};
@@ -14,15 +14,15 @@ pub fn transaction_with_wallet_fee_payer(encoded_base64: &str) -> String {
 
 pub fn sender_address_for_key(private_key: &[u8]) -> String {
     let key_pair = Ed25519KeyPair::from_private_key(private_key).unwrap();
-    bs58::encode(key_pair.public_key_bytes).into_string()
+    encode_base58(key_pair.public_key_bytes)
 }
 
 pub fn private_key_base58(value: &str) -> Vec<u8> {
-    bs58::decode(value).into_vec().unwrap()
+    decode_base58(value).unwrap()
 }
 
 pub fn base58_transaction(encoded_base64: &str) -> String {
-    bs58::encode(decode_base64(encoded_base64).unwrap()).into_string()
+    encode_base58(decode_base64(encoded_base64).unwrap())
 }
 
 pub fn program_id(transaction: &VersionedTransaction, index: usize) -> String {

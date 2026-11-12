@@ -1,5 +1,6 @@
 use bech32::{Hrp, segwit};
 use bitcoin::{Address as BitcoinNativeAddress, CompressedPublicKey, Network, ScriptBuf};
+use gem_encoding::{Base58Alphabet, encode_base58_check};
 use primitives::{Address as AddressTrait, BitcoinChain, Chain, SignerError};
 
 use crate::hash::hash160;
@@ -73,7 +74,7 @@ pub(crate) fn prefixed_base58_address(prefix: &[u8], public_key_hash: &[u8; 20])
     let mut payload = Vec::with_capacity(prefix.len() + public_key_hash.len());
     payload.extend_from_slice(prefix);
     payload.extend_from_slice(public_key_hash);
-    bs58::encode(payload).with_check().into_string()
+    encode_base58_check(&payload, Base58Alphabet::Bitcoin)
 }
 
 #[cfg(test)]

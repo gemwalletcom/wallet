@@ -1,11 +1,12 @@
 use crate::{AccountMeta, CompiledInstruction, Instruction};
+use gem_encoding::decode_base58;
 
 impl Instruction {
     pub(crate) fn mock(program_id_index: usize, account_indexes: &[u8], data_base58: &str, combined_accounts: &[AccountMeta]) -> Self {
         Self {
             program_id: combined_accounts[program_id_index].pubkey,
             accounts: account_indexes.iter().map(|index| combined_accounts[*index as usize].clone()).collect(),
-            data: bs58::decode(data_base58).into_vec().unwrap(),
+            data: decode_base58(data_base58).unwrap(),
         }
     }
 }

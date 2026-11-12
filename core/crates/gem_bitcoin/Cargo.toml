@@ -7,7 +7,7 @@ publish = false
 [features]
 default = []
 rpc = ["dep:chain_traits", "dep:gem_client", "signer"]
-signer = ["dep:bech32", "dep:bitcoin", "dep:bs58", "dep:gem_encoding", "dep:gem_hash"]
+signer = ["dep:bech32", "dep:bitcoin", "dep:gem_encoding", "dep:gem_hash"]
 reqwest = ["gem_client/reqwest"]
 testkit = ["primitives/testkit"]
 chain_integration_tests = ["rpc", "reqwest", "primitives/testkit", "settings/testkit"]
@@ -27,11 +27,10 @@ num-bigint = { workspace = true }
 serde_serializers = { path = "../serde_serializers", features = ["bigint"] }
 
 # Optional signer dependencies
-gem_encoding = { path = "../gem_encoding", optional = true }
+gem_encoding = { path = "../gem_encoding", optional = true, features = ["base58"] }
 gem_hash = { path = "../gem_hash", optional = true }
 bitcoin = { workspace = true, optional = true, features = ["secp-recovery"] }
 bech32 = { workspace = true, optional = true }
-bs58 = { workspace = true, optional = true }
 
 [dev-dependencies]
 chain_traits = { path = "../chain_traits", features = ["testkit"] }

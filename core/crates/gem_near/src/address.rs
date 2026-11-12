@@ -1,3 +1,5 @@
+#[cfg(feature = "rpc")]
+use gem_encoding::encode_base58;
 use primitives::Address as AddressTrait;
 #[cfg(feature = "rpc")]
 use primitives::AddressError;
@@ -26,7 +28,7 @@ pub fn is_valid_address(address: &str) -> bool {
 #[cfg(feature = "rpc")]
 pub(crate) fn address_to_public_key(address: &str) -> Result<String, AddressError> {
     let address = NearAddress::from_str(address)?;
-    Ok(format!("ed25519:{}", bs58::encode(address.as_bytes()).into_string()))
+    Ok(format!("ed25519:{}", encode_base58(address.as_bytes())))
 }
 
 pub fn is_valid_account_id(account_id: &str) -> bool {

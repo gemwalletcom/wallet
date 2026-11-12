@@ -1,4 +1,5 @@
 use borsh::BorshDeserialize;
+use gem_encoding::decode_base58;
 use num_bigint::{BigUint, Sign};
 use primitives::decode_hex_literal;
 use primitives::hex;
@@ -60,7 +61,7 @@ fn decode_instruction(context: &ParseContext<'_>, instruction: &Instruction) -> 
 }
 
 fn decode_deposit(context: &ParseContext<'_>, instruction: &Instruction) -> Option<DecodedDeposit> {
-    let data = bs58::decode(&instruction.data).into_vec().ok()?;
+    let data = decode_base58(&instruction.data).ok()?;
     let discriminator = data.get(..DEPOSIT_NATIVE_DISCRIMINATOR.len())?;
     let arguments = DepositArguments::try_from_slice(data.get(DEPOSIT_NATIVE_DISCRIMINATOR.len()..)?).ok()?;
     let account = |position: usize| context.transaction.account_key(*instruction.accounts.get(position)? as usize).cloned();
@@ -84,7 +85,7 @@ fn decode_deposit(context: &ParseContext<'_>, instruction: &Instruction) -> Opti
 }
 
 fn decode_forward(context: &ParseContext<'_>, instruction: &Instruction) -> Option<DecodedDeposit> {
-    let data = bs58::decode(&instruction.data).into_vec().ok()?;
+    let data = decode_base58(&instruction.data).ok()?;
     let (discriminator, id) = data.split_first_chunk::<8>()?;
     if *discriminator != FORWARD_TOKEN_DISCRIMINATOR || id.len() != 32 {
         return None;

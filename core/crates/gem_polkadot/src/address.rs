@@ -1,3 +1,4 @@
+use gem_encoding::{decode_base58, encode_base58};
 use std::fmt;
 
 use primitives::Address;
@@ -20,7 +21,7 @@ impl Address for PolkadotAddress {
             return None;
         }
 
-        let decoded = bs58::decode(value).into_vec().ok()?;
+        let decoded = decode_base58(value).ok()?;
         if decoded.len() != ADDRESS_LENGTH || decoded[0] != POLKADOT_PREFIX {
             return None;
         }
@@ -42,7 +43,7 @@ impl Address for PolkadotAddress {
         raw.push(POLKADOT_PREFIX);
         raw.extend_from_slice(&self.0);
         raw.extend_from_slice(&Self::checksum(&raw));
-        bs58::encode(raw).into_string()
+        encode_base58(raw)
     }
 }
 

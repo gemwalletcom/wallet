@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use chain_traits::ChainToken;
+use gem_encoding::decode_base58;
 use std::error::Error;
 
 use gem_client::Client;
@@ -34,7 +35,7 @@ impl<C: Client + Clone> ChainToken for SolanaProvider<C> {
     }
 
     fn get_is_token_address(&self, token_id: &str) -> bool {
-        token_id.len() >= 40 && token_id.len() <= 60 && bs58::decode(token_id).into_vec().is_ok()
+        token_id.len() >= 40 && token_id.len() <= 60 && decode_base58(token_id).is_ok()
     }
 }
 

@@ -3,6 +3,7 @@ use bitcoin::{
     ScriptBuf,
     blockdata::{opcodes::all::*, script::Builder},
 };
+use gem_encoding::{Base58Alphabet, decode_base58_check};
 use primitives::SignerError;
 
 use crate::hash::{HASH160_LEN, hash20};
@@ -62,7 +63,7 @@ impl AddressScript {
             return Self::from_segwit(version, &program);
         }
 
-        let payload = bs58::decode(address).with_check(None).into_vec().map_err(SignerError::from_display)?;
+        let payload = decode_base58_check(address, Base58Alphabet::Bitcoin).map_err(SignerError::from_display)?;
         let Some((&version, hash)) = payload.split_first() else {
             return Err(SignerError::from_display("invalid base58 address"));
         };

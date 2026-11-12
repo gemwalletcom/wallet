@@ -57,6 +57,7 @@ mod tests {
         testkit::{SINGLE_SIG_TX, transaction_with_wallet_fee_payer},
     };
     use crate::testkit::{mock_durable_nonce_transaction, mock_legacy_transaction, mock_v1_transaction};
+    use gem_encoding::encode_base58;
     use gem_encoding::encode_base64;
     use primitives::swap::SwapData;
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
@@ -72,7 +73,7 @@ mod tests {
         };
         let fee = TransactionFee::new_gas_price_type(GasPriceType::solana(5_000u64, priority_fee, unit_price), 5_000u64.into(), 1u64.into(), Default::default(), AssetId::from_chain(Chain::Solana));
         let input = TransactionLoadInput {
-            metadata: TransactionLoadMetadata::mock_solana(&bs58::encode(CONFIRMATION_BLOCKHASH).into_string()),
+            metadata: TransactionLoadMetadata::mock_solana(&encode_base58(CONFIRMATION_BLOCKHASH)),
             ..TransactionLoadInput::mock_with_input_type(input_type)
         };
         SignerInput::new(input, fee)

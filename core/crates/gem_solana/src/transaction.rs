@@ -1,4 +1,4 @@
-use gem_encoding::{decode_base64, encode_base64};
+use gem_encoding::{decode_base58, decode_base64, encode_base64};
 use num_bigint::BigUint;
 use primitives::hex;
 use primitives::{AssetId, Chain, OptionStringExt, SolanaInstruction, TransactionType};
@@ -186,7 +186,7 @@ pub fn decode_transaction(transaction_base64: &str) -> Result<VersionedTransacti
 }
 
 pub fn try_decode_blockhash(blockhash: &str) -> Option<[u8; 32]> {
-    bs58::decode(blockhash).into_vec().ok()?.try_into().ok()
+    decode_base58(blockhash).ok()?.try_into().ok()
 }
 
 pub const BLOCKHASH_SET_AT_SIGNING: [u8; 32] = [0; 32];

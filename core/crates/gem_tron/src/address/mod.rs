@@ -3,6 +3,7 @@ pub mod serializer;
 use primitives::hex;
 use std::fmt;
 
+use gem_encoding::{Base58Alphabet, decode_base58_check, encode_base58_check};
 #[cfg(feature = "signer")]
 use gem_hash::keccak::keccak256;
 #[cfg(feature = "signer")]
@@ -90,7 +91,7 @@ impl TronAddress {
 
 impl AddressTrait for TronAddress {
     fn try_parse(address: &str) -> Option<Self> {
-        let decoded = bs58::decode(address).with_check(None).into_vec().ok()?;
+        let decoded = decode_base58_check(address, Base58Alphabet::Bitcoin).ok()?;
         let payload = match decoded.as_slice() {
             [ADDRESS_PREFIX, payload @ ..] => payload,
             payload => payload,
@@ -105,7 +106,7 @@ impl AddressTrait for TronAddress {
     }
 
     fn encode(&self) -> String {
-        bs58::encode(self.0).with_check().into_string()
+        encode_base58_check(&self.0, Base58Alphabet::Bitcoin)
     }
 }
 
@@ -192,7 +193,7 @@ mod tests {
     fn test_try_parse_normalizes_prefixed_and_unprefixed_payloads() {
         let prefixed = "TEqyWRKCzREYC2bK2fc3j7pp8XjAa6tJK1";
         let payload = hex::decode("357a7401a0f0c2d4a44a1881a0c622f15d986291").unwrap();
-        let unprefixed = bs58::encode(&payload).with_check().into_string();
+        let unprefixed = encode_base58_check(&payload, Base58Alphabet::Bitcoin);
         let expected = hex::decode("41357a7401a0f0c2d4a44a1881a0c622f15d986291").unwrap();
 
         assert!(validate_address(prefixed));
@@ -227,7 +228,7 @@ mod tests {
     fn test_try_parse_rejects_wrong_prefix() {
         let mut decoded = hex::decode("41357a7401a0f0c2d4a44a1881a0c622f15d986291").unwrap();
         decoded[0] = 0x42;
-        let address = bs58::encode(decoded).with_check().into_string();
+        let address = encode_base58_check(&decoded, Base58Alphabet::Bitcoin);
 
         assert!(TronAddress::try_parse(&address).is_none());
         assert!(!validate_address(&address));

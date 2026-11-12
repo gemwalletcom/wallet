@@ -1,3 +1,4 @@
+use gem_encoding::encode_base58;
 use primitives::{Chain, hex::decode_hex};
 use signer::Ed25519KeyPair;
 
@@ -47,7 +48,7 @@ fn test_import_private_key_rejects_bitcoin_family() {
 fn test_import_near_prefixed_private_key() {
     let private_key = decode_hex("3d769e8a65b9002a470e9aecf2587ef848e2a0b483320e24c493a5913d594eb9").unwrap();
     let public_key = Ed25519KeyPair::from_private_key(&private_key).unwrap().public_key_bytes;
-    let encoded = format!("ed25519:{}", bs58::encode(private_key.iter().chain(public_key.iter()).copied().collect::<Vec<_>>()).into_string());
+    let encoded = format!("ed25519:{}", encode_base58(private_key.iter().chain(public_key.iter()).copied().collect::<Vec<_>>()));
 
     assert_eq!(
         import_account_from_private_key(&encoded, Chain::Near).unwrap().account.address,

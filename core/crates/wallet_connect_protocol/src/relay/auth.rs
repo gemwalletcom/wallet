@@ -1,5 +1,5 @@
 use ed25519_dalek::{Signer, SigningKey};
-use gem_encoding::encode_base64_url;
+use gem_encoding::{encode_base58, encode_base64_url};
 use serde::Serialize;
 
 use crate::crypto::KEY_LENGTH;
@@ -19,7 +19,7 @@ struct Claims<'a> {
 }
 
 pub fn client_id(public_key: &[u8; KEY_LENGTH]) -> String {
-    format!("{DID_KEY_PREFIX}{}", bs58::encode([ED25519_MULTICODEC.as_slice(), public_key].concat()).into_string())
+    format!("{DID_KEY_PREFIX}{}", encode_base58([ED25519_MULTICODEC.as_slice(), public_key].concat()))
 }
 
 pub fn auth_token(seed: &[u8; KEY_LENGTH], audience: &str, subject: &str, issued_at: u64) -> String {

@@ -1,4 +1,5 @@
 use bech32::{Bech32m, Hrp, primitives::decode::CheckedHrpstring};
+use gem_encoding::{Base58Alphabet, decode_base58_check};
 use primitives::SignerError;
 
 use super::script::{AddressScript, LockingScript, p2pkh_script, p2sh_script};
@@ -17,7 +18,7 @@ pub(super) fn script(address: &str) -> Result<AddressScript, SignerError> {
         let hash = hash20(&decoded.byte_iter().collect::<Vec<_>>())?;
         return Ok(AddressScript::new(p2pkh_script(hash), LockingScript::P2pkh));
     }
-    let payload = bs58::decode(address).with_check(None).into_vec().map_err(SignerError::from_display)?;
+    let payload = decode_base58_check(address, Base58Alphabet::Bitcoin).map_err(SignerError::from_display)?;
     if payload.len() != 22 {
         return Err(SignerError::from_display("invalid Zcash address"));
     }
