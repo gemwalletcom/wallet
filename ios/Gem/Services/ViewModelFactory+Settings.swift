@@ -118,11 +118,6 @@ public extension ViewModelFactory {
     }
 
     @MainActor
-    func lockScene() -> LockSceneViewModel {
-        LockSceneViewModel(service: biometryService)
-    }
-
-    @MainActor
     func securityScene() -> SecuritySceneViewModel {
         SecuritySceneViewModel(
             service: biometryService,

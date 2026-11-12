@@ -23,6 +23,7 @@ import GemstoneServices
 import Localization
 import Primitives
 import PrimitivesComponents
+import Settings
 import Style
 import SwiftUI
 import Transfer
@@ -42,6 +43,7 @@ final class NavigationRouter: Sendable {
     private let paymentService: any GemPaymentServiceProtocol
     private let walletConnectorPresenter: WalletConnectorPresenter
     private let walletSessionService: any GemWalletSessionServiceProtocol
+    private let lockModel: LockSceneViewModel
 
     init(
         navigationState: NavigationStateManager,
@@ -54,6 +56,7 @@ final class NavigationRouter: Sendable {
         paymentService: any GemPaymentServiceProtocol,
         walletConnectorPresenter: WalletConnectorPresenter,
         walletSessionService: any GemWalletSessionServiceProtocol,
+        lockModel: LockSceneViewModel,
     ) {
         self.navigationState = navigationState
         self.presenter = presenter
@@ -65,10 +68,12 @@ final class NavigationRouter: Sendable {
         self.paymentService = paymentService
         self.walletConnectorPresenter = walletConnectorPresenter
         self.walletSessionService = walletSessionService
+        self.lockModel = lockModel
     }
 
     @MainActor
     func openNotification(userInfo: [AnyHashable: Any]) async {
+        await lockModel.waitUntilUnlocked()
         guard
             let notificationType = userInfo["type"] as? String,
             let notification = pushNotificationService.parse(
@@ -92,6 +97,7 @@ final class NavigationRouter: Sendable {
 
     @MainActor
     func open(url: URL) async {
+        await lockModel.waitUntilUnlocked()
         let outcome = await navigationService.openCode(code: url.absoluteString)
         if case let .walletConnect(link) = outcome {
             await walletConnector.linkOpened(link)

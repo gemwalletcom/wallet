@@ -34,6 +34,7 @@ flowchart LR
 | Hide Balance is turned on | balances are masked everywhere, with no prompt | |
 | Gem opens with the lock on | nothing of the wallet shows until the user unlocks | |
 | The unlock prompt is open | Gem stays covered behind it | |
+| A push is tapped or a link opens Gem while the lock is on | the target opens, and the wallet switches if it must, only after the user unlocks | nothing moves behind the cover; Android holds the pending route the same way |
 | The lock period has passed, whatever the app was doing | the lock re-engages | |
 | The user returns before the lock period passes | the app stays unlocked, and the period starts again the next time the user leaves the app | time spent in the app never counts, so a Face ID prompt for a transaction is not followed by an unlock prompt |
 | The lock is on and the user opens the app switcher or leaves Gem | Gem is covered in the app switcher | balances and addresses stay hidden from anyone looking at the switcher |
