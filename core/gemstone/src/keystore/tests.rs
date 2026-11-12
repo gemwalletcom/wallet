@@ -1,3 +1,4 @@
+use gem_encoding::{decode_base58, encode_base58};
 use primitives::hex;
 use primitives::testkit::temp_dir::TempDir;
 use primitives::{Chain, WalletType};
@@ -16,10 +17,10 @@ fn test_gem_keystore_solana_export_round_trip() {
     let keystore = GemKeystore::new(dir.path().to_string_lossy().to_string()).unwrap();
     let stored = keystore.create_store(GemImportType::mock_single_phrase(), b"password".to_vec()).unwrap();
     let exported = keystore.export_private_key(stored.keystore_id, Chain::Solana, b"password".to_vec()).unwrap();
-    let keypair = bs58::decode(&exported).into_vec().unwrap();
+    let keypair = decode_base58(&exported).unwrap();
 
     assert_eq!(keypair.len(), 64);
-    assert_eq!(bs58::encode(&keypair[32..]).into_string(), stored.accounts[0].address);
+    assert_eq!(encode_base58(&keypair[32..]), stored.accounts[0].address);
 
     let imported = keystore
         .create_store(
@@ -214,7 +215,7 @@ fn test_gem_keystore_near_export_round_trip() {
     let keystore = GemKeystore::new(dir.path().to_string_lossy().to_string()).unwrap();
     let stored = keystore.create_store(GemImportType::mock_multicoin_phrase(vec![Chain::Near]), b"password".to_vec()).unwrap();
     let exported = keystore.export_private_key(stored.keystore_id, Chain::Near, b"password".to_vec()).unwrap();
-    let keypair = bs58::decode(exported.strip_prefix("ed25519:").unwrap()).into_vec().unwrap();
+    let keypair = decode_base58(exported.strip_prefix("ed25519:").unwrap()).unwrap();
     assert_eq!(keypair.len(), 64);
     assert_eq!(hex::encode(&keypair[32..]), stored.accounts[0].address);
     let imported = keystore.preview_import(GemImportType::PrivateKey { value: exported, chain: Chain::Near }).unwrap();

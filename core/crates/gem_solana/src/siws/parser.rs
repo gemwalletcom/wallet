@@ -1,5 +1,7 @@
 use std::str;
 
+use gem_encoding::decode_base58;
+
 use super::SiwsMessage;
 
 const PREAMBLE_SUFFIX: &str = " wants you to sign in with your Solana account:";
@@ -7,7 +9,7 @@ const FIELD_NAMES: [&str; 8] = ["URI", "Version", "Chain ID", "Nonce", "Issued A
 
 impl SiwsMessage {
     pub fn decode_base58(data: &str) -> Result<Option<Self>, String> {
-        let bytes = bs58::decode(data).into_vec().map_err(|_| "Invalid Base58 message")?;
+        let bytes = decode_base58(data).map_err(|_| "Invalid Base58 message")?;
         match str::from_utf8(&bytes) {
             Ok(text) => Self::parse(text),
             Err(_) => Ok(None),
@@ -76,18 +78,19 @@ impl SiwsMessage {
 mod tests {
     use super::SiwsMessage;
     use crate::testkit::mock_siws_message;
+    use gem_encoding::encode_base58;
 
     #[test]
     fn test_decode_base58() {
         let message = include_str!("../../testdata/siws_complete.txt");
-        assert_eq!(SiwsMessage::decode_base58(&bs58::encode(message).into_string()), Ok(Some(SiwsMessage::mock_complete())));
+        assert_eq!(SiwsMessage::decode_base58(&encode_base58(message)), Ok(Some(SiwsMessage::mock_complete())));
 
         for bytes in [b"ordinary message".as_slice(), &[0xff, 0x00]] {
-            assert_eq!(SiwsMessage::decode_base58(&bs58::encode(bytes).into_string()), Ok(None));
+            assert_eq!(SiwsMessage::decode_base58(&encode_base58(bytes)), Ok(None));
         }
 
         let malformed = "example.com wants you to sign in with your Solana account:";
-        assert_eq!(SiwsMessage::decode_base58(&bs58::encode(malformed).into_string()), Err("Invalid SIWS header".to_string()));
+        assert_eq!(SiwsMessage::decode_base58(&encode_base58(malformed)), Err("Invalid SIWS header".to_string()));
         assert_eq!(SiwsMessage::decode_base58("!"), Err("Invalid Base58 message".to_string()));
     }
 

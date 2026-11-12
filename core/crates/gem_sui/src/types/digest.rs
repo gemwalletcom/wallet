@@ -1,3 +1,4 @@
+use gem_encoding::{decode_base58_into, encode_base58};
 use std::{fmt, str::FromStr};
 
 use serde::{Deserialize, Serialize};
@@ -48,7 +49,7 @@ impl FromStr for Digest {
             return Err(SuiError::invalid_input("Sui digest is too long"));
         }
         let mut bytes = [0; Self::LENGTH];
-        let length = bs58::decode(value).onto(&mut bytes).map_err(SuiError::from_display)?;
+        let length = decode_base58_into(value, &mut bytes).map_err(SuiError::from_display)?;
         if length != Self::LENGTH {
             return Err(SuiError::invalid_input(format!("Sui digest must be {} bytes", Self::LENGTH)));
         }
@@ -58,7 +59,7 @@ impl FromStr for Digest {
 
 impl fmt::Display for Digest {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str(&bs58::encode(self.0).into_string())
+        formatter.write_str(&encode_base58(self.0))
     }
 }
 

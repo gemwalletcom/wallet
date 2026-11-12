@@ -1,3 +1,4 @@
+use gem_encoding::{decode_base58, encode_base58};
 use std::{cmp::Ordering, fmt, str::FromStr};
 
 use borsh::{BorshDeserialize, BorshSerialize};
@@ -59,7 +60,7 @@ impl Pubkey {
     }
 
     pub fn from_base58(s: &str) -> SolanaResult<Self> {
-        let bytes = bs58::decode(s).into_vec().map_err(|_| SolanaError::invalid_input(format!("Invalid public key: failed to decode base58: {s}")))?;
+        let bytes = decode_base58(s).map_err(|_| SolanaError::invalid_input(format!("Invalid public key: failed to decode base58: {s}")))?;
 
         if bytes.len() != 32 {
             return Err(SolanaError::invalid_input(format!("Invalid public key length: {}, expected: 32", bytes.len())));
@@ -70,7 +71,7 @@ impl Pubkey {
     }
 
     pub fn to_base58(&self) -> String {
-        bs58::encode(&self.0).into_string()
+        encode_base58(self.0)
     }
 
     pub fn as_bytes(&self) -> &[u8; 32] {

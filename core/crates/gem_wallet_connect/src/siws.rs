@@ -44,6 +44,7 @@ fn validate_origin(message: &SiwsMessage, session_domain: &str) -> Result<(), St
 
 #[cfg(test)]
 mod tests {
+    use gem_encoding::encode_base58;
     use primitives::{Chain, testkit::signer_mock::TEST_PRIVATE_KEY_SOLANA_ADDRESS};
 
     use super::*;
@@ -51,7 +52,7 @@ mod tests {
 
     #[test]
     fn test_validate_sign_message() {
-        let data = bs58::encode(include_str!("../../gem_solana/testdata/siws_sign_in.txt")).into_string();
+        let data = encode_base58(include_str!("../../gem_solana/testdata/siws_sign_in.txt"));
         assert_eq!(validate_sign_message(&SignMessageValidation::mock(Chain::Solana, &SignDigestType::Base58, &data, "https://example.com")), Ok(()));
         assert_eq!(validate_sign_message_account(&SignDigestType::Base58, &data, TEST_PRIVATE_KEY_SOLANA_ADDRESS), Ok(()));
         assert_eq!(validate_sign_message_account(&SignDigestType::Base58, &data, "other"), Err("SIWS address does not match signing account".to_string()));
@@ -87,7 +88,7 @@ mod tests {
     #[test]
     fn test_validate_sign_message_account_ignores_non_siws() {
         for bytes in [b"ordinary message".as_slice(), &[0xff, 0x00]] {
-            let data = bs58::encode(bytes).into_string();
+            let data = encode_base58(bytes);
             assert_eq!(validate_sign_message_account(&SignDigestType::Base58, &data, "other"), Ok(()));
         }
     }

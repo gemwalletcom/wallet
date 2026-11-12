@@ -1,3 +1,4 @@
+use gem_encoding::decode_base58;
 use num_bigint::{BigInt, Sign};
 use primitives::decode_hex_literal;
 use primitives::{AssetId, Chain, Transaction};
@@ -36,7 +37,7 @@ fn is_init_order(context: &ParseContext<'_>, instruction: &Instruction) -> bool 
         return false;
     }
 
-    bs58::decode(&instruction.data).into_vec().is_ok_and(|data| data.starts_with(&INIT_ORDER_DISCRIMINATOR))
+    decode_base58(&instruction.data).is_ok_and(|data| data.starts_with(&INIT_ORDER_DISCRIMINATOR))
 }
 
 fn source_debit(context: &ParseContext<'_>, instruction: &Instruction, trader: &str) -> Option<(AssetId, num_bigint::BigUint)> {

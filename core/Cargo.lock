@@ -1119,7 +1119,6 @@ version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bf88ba1141d185c399bee5288d850d63b8369520c1eafc32a0430b5b6c287bf4"
 dependencies = [
- "sha2 0.10.9",
  "tinyvec",
 ]
 
@@ -2669,7 +2668,6 @@ dependencies = [
  "async-trait",
  "bech32",
  "bitcoin",
- "bs58",
  "chain_traits",
  "chrono",
  "futures",
@@ -2777,13 +2775,13 @@ name = "gem_derivation"
 version = "2.114.91"
 dependencies = [
  "bitcoin",
- "bs58",
  "gem_algorand",
  "gem_aptos",
  "gem_bitcoin",
  "gem_cardano",
  "gem_cosmos",
  "gem_crypto",
+ "gem_encoding",
  "gem_evm",
  "gem_hash",
  "gem_keystore",
@@ -2804,6 +2802,10 @@ dependencies = [
 [[package]]
 name = "gem_encoding"
 version = "2.114.91"
+dependencies = [
+ "bs58",
+ "gem_hash",
+]
 
 [[package]]
 name = "gem_evm"
@@ -2932,7 +2934,6 @@ name = "gem_near"
 version = "2.114.91"
 dependencies = [
  "async-trait",
- "bs58",
  "chain_traits",
  "chrono",
  "futures",
@@ -2970,11 +2971,11 @@ name = "gem_polkadot"
 version = "2.114.91"
 dependencies = [
  "async-trait",
- "bs58",
  "chain_traits",
  "chrono",
  "gem_client",
  "gem_crypto",
+ "gem_encoding",
  "gem_hash",
  "num-bigint 0.5.1",
  "num-traits",
@@ -2994,7 +2995,6 @@ version = "2.114.91"
 dependencies = [
  "async-trait",
  "borsh",
- "bs58",
  "chain_traits",
  "chrono",
  "curve25519-dalek",
@@ -3045,7 +3045,6 @@ version = "2.114.91"
 dependencies = [
  "async-trait",
  "bcs",
- "bs58",
  "chain_primitives",
  "chain_traits",
  "chrono",
@@ -3119,7 +3118,6 @@ dependencies = [
  "alloy-primitives",
  "alloy-sol-types",
  "async-trait",
- "bs58",
  "chain_primitives",
  "chain_traits",
  "chrono",
@@ -3145,7 +3143,6 @@ dependencies = [
 name = "gem_wallet_connect"
 version = "2.114.91"
 dependencies = [
- "bs58",
  "chrono",
  "gem_bitcoin",
  "gem_encoding",
@@ -3164,11 +3161,11 @@ name = "gem_xrp"
 version = "2.114.91"
 dependencies = [
  "async-trait",
- "bs58",
  "chain_traits",
  "chrono",
  "futures",
  "gem_client",
+ "gem_encoding",
  "gem_hash",
  "gem_jsonrpc",
  "num-bigint 0.5.1",
@@ -3206,7 +3203,6 @@ version = "2.114.91"
 dependencies = [
  "async-trait",
  "block_explorers",
- "bs58",
  "chain_primitives",
  "chain_traits",
  "chrono",
@@ -6057,8 +6053,8 @@ name = "signer"
 version = "2.114.91"
 dependencies = [
  "alloy-primitives",
- "bs58",
  "ed25519-dalek",
+ "gem_encoding",
  "getrandom 0.4.3",
  "primitives",
  "secp256k1 0.29.1",
@@ -6261,7 +6257,6 @@ dependencies = [
  "async-trait",
  "bcs",
  "borsh",
- "bs58",
  "chain_primitives",
  "chain_traits",
  "chrono",
@@ -7080,7 +7075,6 @@ dependencies = [
 name = "wallet_connect_protocol"
 version = "2.114.91"
 dependencies = [
- "bs58",
  "chacha20poly1305",
  "curve25519-dalek",
  "ed25519-dalek",

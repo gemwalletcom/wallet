@@ -44,6 +44,7 @@ pub(crate) fn decode_ethereum_calldata(transaction: &WCEthereumTransactionData) 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use gem_encoding::encode_base58;
     use primitives::{AssetId, TransferDataOutputType};
 
     fn tron_call(call_token_value: u64) -> String {
@@ -93,7 +94,7 @@ mod tests {
 
     #[test]
     fn test_siws_origin_mismatch_is_a_critical_warning() {
-        let data = bs58::encode(include_str!("../../../crates/gem_solana/testdata/siws_sign_in.txt")).into_string();
+        let data = encode_base58(include_str!("../../../crates/gem_solana/testdata/siws_sign_in.txt"));
         assert_eq!(sign_message_validation_warnings(Chain::Solana, &SignDigestType::Base58, &data, "https://example.com"), vec![]);
         assert_eq!(
             sign_message_validation_warnings(Chain::Solana, &SignDigestType::Base58, &data, "https://other.xyz"),

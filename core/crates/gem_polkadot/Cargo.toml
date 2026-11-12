@@ -20,12 +20,12 @@ testkit = []
 chain_integration_tests = ["rpc", "reqwest", "primitives/testkit", "settings/testkit"]
 
 [dependencies]
+gem_encoding = { path = "../gem_encoding", default-features = false, features = ["base58"] }
 num-traits = { workspace = true }
 primitives = { path = "../primitives" }
 serde = { workspace = true, features = ["derive"] }
 num-bigint = { workspace = true }
 chrono = { workspace = true, features = ["serde"] }
-bs58 = { workspace = true }
 gem_hash = { path = "../gem_hash" }
 signer = { path = "../signer" }
 gem_crypto = { path = "../gem_crypto", features = ["random"], optional = true }

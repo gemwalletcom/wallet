@@ -99,6 +99,7 @@ mod tests {
     use super::*;
     use crate::{SwapperProviderMode, SwapperQuoteAsset, testkit::mock_quote};
     use gem_client::testkit::MockClient;
+    use gem_encoding::decode_base58;
     use gem_solana::{SignatureBytes, VersionedTransaction, decode_transaction};
     use primitives::{
         AssetId, Chain,
@@ -197,7 +198,7 @@ mod tests {
         let quote_data = provider.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
 
         let response: serde_json::Value = serde_json::from_str(include_str!("testdata/swap_sol_to_usdc.json")).unwrap();
-        let okx_bytes = bs58::decode(response["data"][0]["tx"]["data"].as_str().unwrap()).into_vec().unwrap();
+        let okx_bytes = decode_base58(response["data"][0]["tx"]["data"].as_str().unwrap()).unwrap();
         let okx_transaction = VersionedTransaction::deserialize_with_version(&okx_bytes).unwrap();
         let mut unsigned = okx_transaction.clone();
         *unsigned.signatures_mut() = vec![SignatureBytes::default()];

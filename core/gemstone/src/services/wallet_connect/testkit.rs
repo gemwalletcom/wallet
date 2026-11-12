@@ -1,3 +1,4 @@
+use gem_encoding::encode_base58;
 use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
@@ -94,7 +95,7 @@ impl GemWalletConnectSessionRequest {
 
     pub fn mock_siws() -> Self {
         let message = include_str!("../../../../crates/gem_solana/testdata/siws_sign_in.txt");
-        let data = bs58::encode(message).into_string();
+        let data = encode_base58(message);
         Self {
             method: "solana_signMessage".to_string(),
             params: format!(r#"{{"message":"{data}","pubkey":"{TEST_PRIVATE_KEY_SOLANA_ADDRESS}"}}"#),

@@ -1,6 +1,5 @@
-use bs58;
 use gem_bitcoin::signer::message as bitcoin_message;
-use gem_encoding::encode_base64;
+use gem_encoding::{decode_base58, encode_base64};
 use gem_evm::eip712::hash_typed_data;
 use gem_evm::message::eip191_hash_message;
 use gem_evm::siwe::SiweMessage;
@@ -83,7 +82,7 @@ impl MessageSigner {
                 let digest = hash_typed_data(&json)?;
                 Ok(digest.to_vec())
             }
-            SignDigestType::Base58 => bs58::decode(&self.message.data).into_vec().map_err(|e| GemstoneError::from(e.to_string())),
+            SignDigestType::Base58 => decode_base58(&self.message.data).map_err(|e| GemstoneError::from(e.to_string())),
             SignDigestType::BitcoinEcdsa => Ok(bitcoin_message::message_hash(&self.message.data).to_vec()),
             SignDigestType::BitcoinBip322 => Ok(bitcoin_message::bip322_message_hash(&self.message.data).to_vec()),
         }
@@ -111,7 +110,7 @@ impl MessageSigner {
                 Ok(MessagePreview::EIP712(message))
             }
             SignDigestType::Base58 => {
-                let decoded = bs58::decode(&self.message.data).into_vec().unwrap_or_default();
+                let decoded = decode_base58(&self.message.data).unwrap_or_default();
                 Ok(MessagePreview::Text(String::from_utf8_lossy(&decoded).to_string()))
             }
         }
@@ -217,6 +216,7 @@ mod tests {
     };
     use crate::models::list::GemListRow;
     use crate::services::localization::GemLocalizedText;
+    use gem_encoding::encode_base58;
     use gem_evm::EIP712Domain;
     use gem_evm::signer::EvmChainSigner;
     use primitives::hex;
@@ -369,14 +369,14 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
         let decoder = MessageSigner::new(SignMessage {
             chain: Chain::Solana,
             sign_type: SignDigestType::Base58,
-            data: bs58::encode(message.as_bytes()).into_string().into_bytes(),
+            data: encode_base58(message.as_bytes()).into_bytes(),
         });
 
         assert_eq!(decoder.preview().unwrap(), MessagePreview::Text(message.to_string()));
         assert_eq!(decoder.plain_preview(), message);
         assert_eq!(decoder.hash().unwrap(), message.as_bytes());
         assert_eq!(decoder.payload_preview(vec![], explorer_link).unwrap().unwrap().message_type, MessageType::Siws);
-        assert_eq!(decoder.sign(Zeroizing::new(TEST_PRIVATE_KEY.to_vec())).unwrap(), bs58::encode(key_pair.sign(message.as_bytes())).into_string(),);
+        assert_eq!(decoder.sign(Zeroizing::new(TEST_PRIVATE_KEY.to_vec())).unwrap(), encode_base58(key_pair.sign(message.as_bytes())),);
     }
 
     #[test]
@@ -385,7 +385,7 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
         let decoder = MessageSigner::new(SignMessage {
             chain: Chain::Solana,
             sign_type: SignDigestType::Base58,
-            data: bs58::encode(message.as_bytes()).into_string().into_bytes(),
+            data: encode_base58(message.as_bytes()).into_bytes(),
         });
 
         assert!(decoder.payload_preview(vec![], explorer_link).is_err());

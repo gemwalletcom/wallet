@@ -4,11 +4,11 @@ version = { workspace = true }
 edition = { workspace = true }
 
 [dependencies]
+gem_encoding = { path = "../gem_encoding", default-features = false, features = ["base58"] }
 ed25519-dalek = { workspace = true, default-features = false, features = ["zeroize"] }
 secp256k1 = { workspace = true }
 getrandom = { workspace = true }
 primitives = { path = "../primitives" }
-bs58 = { workspace = true }
 alloy-primitives = { workspace = true }
 zeroize = { workspace = true }
 strum = { workspace = true }

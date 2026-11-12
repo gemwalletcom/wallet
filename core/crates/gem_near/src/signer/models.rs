@@ -1,3 +1,4 @@
+use gem_encoding::decode_base58;
 use num_traits::ToPrimitive;
 use primitives::{FeeOption, SignerError, SignerInput};
 use serde::Serialize;
@@ -73,8 +74,7 @@ impl NearTransaction {
     }
 
     fn new(input: &SignerInput, receiver_id: String, actions: Vec<NearAction>) -> Result<Self, SignerError> {
-        let block_hash = bs58::decode(input.metadata.get_block_hash()?)
-            .into_vec()
+        let block_hash = decode_base58(input.metadata.get_block_hash()?)
             .map_err(|error| SignerError::invalid_input(format!("invalid NEAR block hash: {error}")))?
             .try_into()
             .map_err(|_| SignerError::invalid_input("NEAR block hash must be 32 bytes"))?;

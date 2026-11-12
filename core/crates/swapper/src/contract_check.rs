@@ -86,6 +86,7 @@ pub(crate) fn verify_solana_programs(transaction: &str, contracts: &[&str]) -> R
 mod tests {
     use super::*;
     use crate::solana_dex::SolanaTransaction;
+    use gem_encoding::decode_base58;
     use gem_solana::{
         AccountMeta, Instruction, SolanaAddress,
         instructions::{program_ids::token_program, token},
@@ -166,7 +167,7 @@ mod tests {
     #[test]
     fn test_verify_solana_programs() {
         let okx: serde_json::Value = serde_json::from_str(include_str!("okx/testdata/swap_sol_to_usdc.json")).unwrap();
-        let transaction = gem_encoding::encode_base64(&bs58::decode(okx["data"][0]["tx"]["data"].as_str().unwrap()).into_vec().unwrap());
+        let transaction = gem_encoding::encode_base64(&decode_base58(okx["data"][0]["tx"]["data"].as_str().unwrap()).unwrap());
 
         assert!(verify_solana_programs(&transaction, &["proVF4pMXVaYqmy4NjniPh4pqKNfMmsihgd4wdkCX3u"]).is_ok(), "OKX's program plus the standard programs");
         assert_eq!(

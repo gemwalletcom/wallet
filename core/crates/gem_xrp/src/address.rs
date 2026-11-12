@@ -1,5 +1,6 @@
 use std::fmt;
 
+use gem_encoding::{Base58Alphabet, decode_base58_check, encode_base58_check};
 use primitives::Address;
 #[cfg(feature = "signer")]
 use primitives::SignerError;
@@ -13,14 +14,12 @@ pub struct XrpAddress([u8; CLASSIC_PUBLIC_KEY_HASH_LENGTH]);
 
 impl Address for XrpAddress {
     fn try_parse(value: &str) -> Option<Self> {
-        let decoded = bs58::decode(value).with_alphabet(bs58::Alphabet::RIPPLE).with_check(Some(CLASSIC_PREFIX)).into_vec().ok()?;
-
-        if decoded.len() != CLASSIC_ADDRESS_LENGTH {
+        let decoded = decode_base58_check(value, Base58Alphabet::Ripple).ok()?;
+        let [CLASSIC_PREFIX, public_key_hash @ ..] = decoded.as_slice() else {
             return None;
-        }
+        };
 
-        let public_key_hash = decoded[1..].try_into().ok()?;
-        Some(Self(public_key_hash))
+        Some(Self(public_key_hash.try_into().ok()?))
     }
 
     fn as_bytes(&self) -> &[u8] {
@@ -31,7 +30,7 @@ impl Address for XrpAddress {
         let mut raw = Vec::with_capacity(CLASSIC_ADDRESS_LENGTH);
         raw.push(CLASSIC_PREFIX);
         raw.extend_from_slice(&self.0);
-        bs58::encode(raw).with_alphabet(bs58::Alphabet::RIPPLE).with_check().into_string()
+        encode_base58_check(&raw, Base58Alphabet::Ripple)
     }
 }
 

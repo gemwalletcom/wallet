@@ -2,6 +2,7 @@ use std::str::FromStr;
 
 use ::bitcoin::Network;
 use ::bitcoin::bip32::{DerivationPath, Xpriv, Xpub};
+use gem_encoding::{Base58Alphabet, encode_base58_check};
 use gem_keystore::MnemonicSeed;
 use primitives::{BitcoinChain, Chain};
 
@@ -37,7 +38,7 @@ fn account_derivation_path(chain: Chain) -> Result<DerivationPath, AccountDeriva
 fn encode_extended_public_key(xpub: &Xpub, version: u32) -> String {
     let mut payload = xpub.encode();
     payload[..4].copy_from_slice(&version.to_be_bytes());
-    bs58::encode(payload).with_check().into_string()
+    encode_base58_check(&payload, Base58Alphabet::Bitcoin)
 }
 
 fn extended_public_key_version(chain: BitcoinChain) -> u32 {

@@ -1,4 +1,5 @@
 use chrono::DateTime;
+use gem_encoding::decode_base58;
 use num_bigint::{BigUint, Sign};
 
 use crate::{
@@ -45,7 +46,7 @@ fn map_memo(instructions: &[Instruction], account_keys: &[String]) -> Option<Str
         if account_keys.get(instruction.program_id_index).map(String::as_str) != Some(MEMO_PROGRAM_ID) {
             return None;
         }
-        String::from_utf8(bs58::decode(&instruction.data).into_vec().ok()?).ok().non_empty()
+        String::from_utf8(decode_base58(&instruction.data).ok()?).ok().non_empty()
     })
 }
 
@@ -54,7 +55,7 @@ fn map_system_transfer(instructions: &[Instruction], account_keys: &[String]) ->
         if account_keys.get(instruction.program_id_index).map(String::as_str) != Some(SYSTEM_PROGRAM_ID) {
             return None;
         }
-        let lamports = system::transfer_lamports(&bs58::decode(&instruction.data).into_vec().ok()?)?;
+        let lamports = system::transfer_lamports(&decode_base58(&instruction.data).ok()?)?;
         let recipient = account_keys.get(usize::from(*instruction.accounts.get(1)?))?.clone();
         Some((recipient, lamports))
     })
@@ -70,7 +71,7 @@ fn map_metaplex_core_nft_transfer(transaction: &BlockTransaction, account_keys: 
         .instructions
         .iter()
         .find(|ix| account_keys.get(ix.program_id_index).map(String::as_str) == Some(METAPLEX_CORE_PROGRAM))?;
-    let data = bs58::decode(&instruction.data).into_vec().ok()?;
+    let data = decode_base58(&instruction.data).ok()?;
     if data.first().copied() != Some(MPL_CORE_TRANSFER_V1) {
         return None;
     }
@@ -114,7 +115,7 @@ fn is_nft_token_transfer(transaction: &BlockTransaction, account_keys: &[String]
         if mint != token_id {
             return false;
         }
-        let Ok(data) = bs58::decode(&instruction.data).into_vec() else {
+        let Ok(data) = decode_base58(&instruction.data) else {
             return false;
         };
         if program == METAPLEX_PROGRAM {

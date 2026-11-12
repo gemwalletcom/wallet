@@ -10,6 +10,7 @@ gem_bitcoin = { path = "../gem_bitcoin", default-features = false, features = ["
 gem_cardano = { path = "../gem_cardano", default-features = false, features = ["signer"] }
 gem_cosmos = { path = "../gem_cosmos", default-features = false }
 gem_crypto = { path = "../gem_crypto", features = ["hash", "pbkdf"] }
+gem_encoding = { path = "../gem_encoding", default-features = false, features = ["base58"] }
 gem_evm = { path = "../gem_evm", default-features = false }
 gem_hash = { path = "../gem_hash" }
 gem_keystore = { path = "../gem_keystore" }
@@ -21,7 +22,6 @@ gem_ton = { path = "../gem_ton", default-features = false, features = ["signer"]
 gem_tron = { path = "../gem_tron", default-features = false }
 gem_xrp = { path = "../gem_xrp", default-features = false }
 bitcoin = { workspace = true }
-bs58 = { workspace = true }
 primitives = { path = "../primitives" }
 signer = { path = "../signer" }
 zeroize = { workspace = true }
