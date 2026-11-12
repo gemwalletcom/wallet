@@ -7,6 +7,7 @@
           "parameter": {
             "type_url": "type.googleapis.com/protocol.TriggerSmartContract",
             "value": {
+              "owner_address": "412e1d447fa4169390cf5f5b3d12d380decfbfe20f",
               "contract_address": "41c60a6f5c81431c97ed01b61698b6853557f3afd4",
               "call_value": 27334102,
               "data": "fd8527a1"
@@ -14,7 +15,11 @@
           },
           "type": "TriggerSmartContract"
         }
-      ]
+      ],
+      "expiration": 1770271569000,
+      "ref_block_bytes": "b435",
+      "ref_block_hash": "eb7b23d0ef96d04e",
+      "timestamp": 1770271511581
     }
   }
 }

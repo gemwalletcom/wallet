@@ -6,6 +6,7 @@ use serde_json::{Map, Value};
 use serde_serializers::hex_bytes;
 
 use super::{RawDataJson, TransactionApproval, TronContract};
+use crate::models::TriggerSmartContractData;
 
 #[derive(Deserialize)]
 pub(crate) struct WalletConnectRequest {
@@ -75,6 +76,10 @@ pub(crate) fn decode_wallet_connect_single_contract(data: &str) -> Result<Option
     decode_raw_data(data)?.single_contract()
 }
 
+pub(crate) fn decode_wallet_connect_trigger_smart_contract(data: &str) -> Result<Option<TriggerSmartContractData>, SignerError> {
+    decode_raw_data(data)?.trigger_smart_contract_data()
+}
+
 pub fn decode_wallet_connect_owners(data: &str) -> Result<Vec<String>, SignerError> {
     decode_raw_data(data)?.owners()
 }
@@ -109,6 +114,21 @@ mod tests {
         payload["transaction"]["raw_data_hex"] = Value::String(hex::encode(&raw_data));
         payload["transaction"]["txID"] = Value::String(hex::encode(sha256(&raw_data)));
         payload.to_string()
+    }
+
+    #[test]
+    fn test_decode_wallet_connect_trigger_smart_contract_reads_the_signed_raw_data() {
+        let signed = decode_wallet_connect_trigger_smart_contract(PAYLOAD).unwrap().unwrap();
+        let mut tampered: Value = serde_json::from_str(PAYLOAD).unwrap();
+        let mut decoy = tampered["transaction"]["raw_data"].clone();
+        decoy["contract"][0]["parameter"]["value"]["data"] = json!("deadbeef");
+        tampered["address"] = json!("TEB39Rt69QkgD1BKhqaRNqGxfQzCarkRCb");
+        tampered["transaction"]["transaction"] = json!({ "raw_data": decoy });
+        tampered["transaction"]["raw_data"]["contract"][0]["parameter"].as_object_mut().unwrap().remove("type_url");
+
+        assert_eq!(signed.owner_address, "TJoSEwEqt7cT3TUwmEoUYnYs5cZR3xSukM");
+        assert!(signed.data.starts_with("095ea7b3"));
+        assert_eq!(decode_wallet_connect_trigger_smart_contract(&tampered.to_string()).unwrap(), Some(signed));
     }
 
     #[test]

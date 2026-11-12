@@ -12,19 +12,18 @@ use primitives::{Asset, AssetId, Chain, SimulationBalanceChange, SimulationHeade
 
 use crate::address::TronAddress;
 use crate::decode_wallet_connect_approval;
-use crate::models::{TriggerSmartContractData, TronRpcError};
+use crate::models::TronRpcError;
 use crate::provider::simulation_mapper::{map_approval_simulation, map_execution_error, map_simulation_result, map_stake_simulation};
 use crate::provider::staking_mapper::map_withdrawable_unfreeze;
 use crate::rpc::TronProvider;
 use crate::transaction::approval::PERMIT2_APPROVE_SELECTOR;
-use crate::transaction::{TronContract, decode_wallet_connect_single_contract};
+use crate::transaction::{TronContract, decode_wallet_connect_single_contract, decode_wallet_connect_trigger_smart_contract};
 use crate::trc20::is_approval_call;
 
 #[async_trait]
 impl<C: Client> ChainSimulation for TronProvider<C> {
     async fn simulate_transaction(&self, input: SimulationInput) -> Result<SimulationResult, Box<dyn Error + Send + Sync>> {
-        let signer_address = input.signer_address.as_deref().unwrap_or_default();
-        let Some(contract_data) = TriggerSmartContractData::from_payload(Some(input.encoded_transaction.as_bytes()), signer_address)? else {
+        let Some(contract_data) = decode_wallet_connect_trigger_smart_contract(&input.encoded_transaction)? else {
             return Ok(self.stake_simulation(&input.encoded_transaction).await.unwrap_or_default());
         };
 
@@ -307,13 +306,22 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_simulate_transaction_undecodable_contract_returns_default() {
-        let mock = MockClient::new().with_post(|_, _| Ok(Vec::new()));
-        let client = TronProvider::new_rpc_only(TronClient::new(mock));
+    async fn test_simulate_transaction_without_type_url() {
+        let fixture = include_str!("../../testdata/trigger_constant_contract_swap_with_logs.json");
+        let client = TronProvider::new_rpc_only(TronClient::new(MockClient::new().with_post(move |_, _| Ok(fixture.as_bytes().to_vec()))));
+        let mut payload: serde_json::Value = serde_json::from_str(include_str!("../../testdata/wallet_connect_swap_trigger_smart_contract.json")).unwrap();
+        payload["transaction"]["raw_data"]["contract"][0]["parameter"].as_object_mut().unwrap().remove("type_url");
+
+        let result = client.simulate_transaction(SimulationInput::new(payload.to_string())).await.unwrap();
+
+        assert_eq!(result.balance_changes.len(), 2);
+    }
+
+    #[tokio::test]
+    async fn test_simulate_transaction_rejects_unsignable_payload() {
+        let client = TronProvider::new_rpc_only(TronClient::new(MockClient::new()));
         let encoded_transaction = include_str!("../../testdata/wallet_connect_vote_witness_contract.json");
 
-        let result = ChainSimulation::simulate_transaction(&client, SimulationInput::new(encoded_transaction)).await.unwrap();
-
-        assert_eq!(result, SimulationResult::default());
+        assert!(client.simulate_transaction(SimulationInput::new(encoded_transaction)).await.is_err());
     }
 }
