@@ -835,8 +835,8 @@ private_key_export_reminder_do_not_share_subtitle = No person, website, or app s
 private_key_export_reminder_no_recovery_title = We Can't Reverse a Theft
 # Used as the description of the third exported account key reminder item, about stolen funds.
 private_key_export_reminder_no_recovery_subtitle = If someone takes your funds, they can't be returned.
-# Used on the private key reveal screen when the key is shared by every EVM network.
-private_key_scope_evm = This key also controls your accounts on all EVM networks.
+# Used on the private key reveal screen when the key also controls accounts on other networks. %@ is EVM or a comma-separated list of network names, for example Osmosis, Celestia.
+private_key_scope_shared = This key also controls your accounts on the %@ networks.
 # Used in the neutral info card above the account list where the user picks which network's private key to reveal.
 private_key_accounts_info = Your Secret Phrase already backs up these accounts. Export a key only to use one account in another wallet.
 

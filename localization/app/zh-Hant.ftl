@@ -455,7 +455,7 @@ private_key_export_reminder_keep_safe_subtitle = 任何擁有私鑰的人都能�
 private_key_export_reminder_do_not_share_subtitle = 任何人、網站或應用程式都不應向您索取私鑰。
 private_key_export_reminder_no_recovery_title = 被盜資金無法追回
 private_key_export_reminder_no_recovery_subtitle = 資金一旦被他人轉走，將無法退回。
-private_key_scope_evm = 此私鑰同時控制您在所有 EVM 網路上的帳戶。
+private_key_scope_shared = 此私鑰同時控制您在 %@ 網路上的帳戶。
 private_key_accounts_info = 助記詞已經備份了這些帳戶。只有需要在其他錢包中使用某個帳戶時，才匯出私鑰。
 
 # Social

@@ -455,7 +455,7 @@ private_key_export_reminder_keep_safe_subtitle = जिसके पास य�
 private_key_export_reminder_do_not_share_subtitle = किसी भी व्यक्ति, वेबसाइट या ऐप को इसे नहीं मांगना चाहिए।
 private_key_export_reminder_no_recovery_title = हम चोरी हुए फंड वापस नहीं ला सकते
 private_key_export_reminder_no_recovery_subtitle = अगर कोई आपके फंड ले जाता है, तो उन्हें लौटाया नहीं जा सकता।
-private_key_scope_evm = यह कुंजी सभी EVM नेटवर्क पर आपके खातों को भी नियंत्रित करती है।
+private_key_scope_shared = यह कुंजी %@ नेटवर्क पर आपके खातों को भी नियंत्रित करती है।
 private_key_accounts_info = आपका गुप्त वाक्यांश इन खातों का पहले से बैकअप रखता है। किसी दूसरे वॉलेट में एक खाता इस्तेमाल करने के लिए ही कुंजी एक्सपोर्ट करें।
 
 # Social

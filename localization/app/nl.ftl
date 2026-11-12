@@ -455,7 +455,7 @@ private_key_export_reminder_keep_safe_subtitle = Iedereen die hem heeft, kan dit
 private_key_export_reminder_do_not_share_subtitle = Geen persoon, website of app hoort erom te vragen.
 private_key_export_reminder_no_recovery_title = Wij kunnen een diefstal niet terugdraaien
 private_key_export_reminder_no_recovery_subtitle = Als iemand uw tegoed meeneemt, kan het niet worden teruggegeven.
-private_key_scope_evm = Deze sleutel beheert ook uw accounts op alle EVM-netwerken.
+private_key_scope_shared = Deze sleutel beheert ook uw accounts op de netwerken %@.
 private_key_accounts_info = Uw geheime zin maakt al een back-up van deze accounts. Exporteer alleen een sleutel om één account in een andere portemonnee te gebruiken.
 
 # Social

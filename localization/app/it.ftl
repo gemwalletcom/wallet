@@ -455,7 +455,7 @@ private_key_export_reminder_keep_safe_subtitle = Chiunque la possieda può usare
 private_key_export_reminder_do_not_share_subtitle = Nessuna persona, sito web o app dovrebbe chiedertela.
 private_key_export_reminder_no_recovery_title = Non possiamo annullare un furto
 private_key_export_reminder_no_recovery_subtitle = Se qualcuno prende i tuoi fondi, non possono essere restituiti.
-private_key_scope_evm = Questa chiave controlla anche i tuoi account su tutte le reti EVM.
+private_key_scope_shared = Questa chiave controlla anche i tuoi account sulle reti %@.
 private_key_accounts_info = La tua frase segreta fa già il backup di questi account. Esporta una chiave solo per usare un account in un altro portafoglio.
 
 # Social

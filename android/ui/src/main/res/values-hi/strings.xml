@@ -386,7 +386,7 @@
   <string name="private_key_export_reminder_do_not_share_subtitle">किसी भी व्यक्ति, वेबसाइट या ऐप को इसे नहीं मांगना चाहिए।</string>
   <string name="private_key_export_reminder_no_recovery_title">हम चोरी हुए फंड वापस नहीं ला सकते</string>
   <string name="private_key_export_reminder_no_recovery_subtitle">अगर कोई आपके फंड ले जाता है, तो उन्हें लौटाया नहीं जा सकता।</string>
-  <string name="private_key_scope_evm">यह कुंजी सभी EVM नेटवर्क पर आपके खातों को भी नियंत्रित करती है।</string>
+  <string name="private_key_scope_shared">यह कुंजी %1$s नेटवर्क पर आपके खातों को भी नियंत्रित करती है।</string>
   <string name="private_key_accounts_info">आपका गुप्त वाक्यांश इन खातों का पहले से बैकअप रखता है। किसी दूसरे वॉलेट में एक खाता इस्तेमाल करने के लिए ही कुंजी एक्सपोर्ट करें।</string>
   <string name="social_x">X (पहले Twitter)</string>
   <string name="social_discord">Discord</string>

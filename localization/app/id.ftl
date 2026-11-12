@@ -455,7 +455,7 @@ private_key_export_reminder_keep_safe_subtitle = Siapa pun yang memilikinya dapa
 private_key_export_reminder_do_not_share_subtitle = Tidak ada orang, situs web, atau aplikasi yang seharusnya memintanya.
 private_key_export_reminder_no_recovery_title = Kami Tidak Dapat Membatalkan Pencurian
 private_key_export_reminder_no_recovery_subtitle = Jika seseorang mengambil dana Anda, dana tersebut tidak dapat dikembalikan.
-private_key_scope_evm = Kunci ini juga mengendalikan akun Anda di semua jaringan EVM.
+private_key_scope_shared = Kunci ini juga mengendalikan akun Anda di jaringan %@.
 private_key_accounts_info = Frasa Rahasia Anda sudah mencadangkan akun-akun ini. Ekspor kunci hanya untuk memakai satu akun di dompet lain.
 
 # Social

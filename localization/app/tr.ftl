@@ -455,7 +455,7 @@ private_key_export_reminder_keep_safe_subtitle = Ona sahip olan herkes bu hesab�
 private_key_export_reminder_do_not_share_subtitle = Hiçbir kişi, web sitesi veya uygulama onu istememeli.
 private_key_export_reminder_no_recovery_title = Hırsızlığı Geri Alamayız
 private_key_export_reminder_no_recovery_subtitle = Biri fonlarınızı alırsa, geri verilemez.
-private_key_scope_evm = Bu anahtar, tüm EVM ağlarındaki hesaplarınızı da kontrol eder.
+private_key_scope_shared = Bu anahtar, %@ ağlarındaki hesaplarınızı da kontrol eder.
 private_key_accounts_info = Gizli İfadeniz bu hesapları zaten yedekliyor. Anahtarı yalnızca bir hesabı başka bir cüzdanda kullanmak için dışa aktarın.
 
 # Social

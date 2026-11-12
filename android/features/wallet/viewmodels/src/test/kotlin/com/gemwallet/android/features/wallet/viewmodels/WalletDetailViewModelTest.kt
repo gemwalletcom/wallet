@@ -174,7 +174,7 @@ class WalletDetailViewModelTest {
     @Test
     fun `a private key route exports the key of its chain`() = runTest(dispatcher) {
         val service: GemWalletServiceInterface = mockk {
-            coEvery { exportPrivateKey(walletId, Chain.Ethereum.string) } returns GemWalletSecret.PrivateKey("0xkey", GemPrivateKeyScope.ONE_CHAIN)
+            coEvery { exportPrivateKey(walletId, Chain.Ethereum.string) } returns GemWalletSecret.PrivateKey("0xkey", GemPrivateKeyScope.OneChain)
         }
         val model = SecretDataViewModel(
             service,
@@ -184,7 +184,7 @@ class WalletDetailViewModelTest {
 
         advanceUntilIdle()
 
-        assertEquals(GemWalletSecret.PrivateKey("0xkey", GemPrivateKeyScope.ONE_CHAIN), model.secret.value!!.getOrThrow())
+        assertEquals(GemWalletSecret.PrivateKey("0xkey", GemPrivateKeyScope.OneChain), model.secret.value!!.getOrThrow())
         assertEquals(GemWalletSecretKind.PRIVATE_KEY, model.secretKind)
     }
 

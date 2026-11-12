@@ -455,7 +455,7 @@ private_key_export_reminder_keep_safe_subtitle = Quiconque la possède peut util
 private_key_export_reminder_do_not_share_subtitle = Aucune personne, aucun site web ni aucune application ne doit vous la demander.
 private_key_export_reminder_no_recovery_title = Nous ne pouvons pas annuler un vol
 private_key_export_reminder_no_recovery_subtitle = Si quelqu'un prend vos fonds, ils ne peuvent pas être restitués.
-private_key_scope_evm = Cette clé contrôle aussi vos comptes sur tous les réseaux EVM.
+private_key_scope_shared = Cette clé contrôle aussi vos comptes sur les réseaux %@.
 private_key_accounts_info = Votre phrase secrète sauvegarde déjà ces comptes. Exportez une clé uniquement pour utiliser un compte dans un autre portefeuille.
 
 # Social

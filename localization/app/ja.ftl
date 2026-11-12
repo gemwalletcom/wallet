@@ -455,7 +455,7 @@ private_key_export_reminder_keep_safe_subtitle = キーを持っている人は�
 private_key_export_reminder_do_not_share_subtitle = 人、ウェブサイト、アプリから求められても教えないでください。
 private_key_export_reminder_no_recovery_title = 盗まれた資金は取り戻せません
 private_key_export_reminder_no_recovery_subtitle = 資金を移されると、元に戻すことはできません。
-private_key_scope_evm = このキーは、すべてのEVMネットワーク上のアカウントも操作できます。
+private_key_scope_shared = このキーは、%@ ネットワーク上のアカウントも操作できます。
 private_key_accounts_info = これらのアカウントはリカバリーフレーズですでにバックアップされています。キーのエクスポートは、別のウォレットで1つのアカウントを使う場合のみ行ってください。
 
 # Social

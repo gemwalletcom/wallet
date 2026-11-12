@@ -455,7 +455,7 @@ private_key_export_reminder_keep_safe_subtitle = Kdokoli ho má, může tento ú
 private_key_export_reminder_do_not_share_subtitle = Žádná osoba, web ani aplikace by o něj neměla žádat.
 private_key_export_reminder_no_recovery_title = Krádež nemůžeme vrátit zpět
 private_key_export_reminder_no_recovery_subtitle = Pokud vám někdo vezme prostředky, nelze je vrátit.
-private_key_scope_evm = Tento klíč ovládá také vaše účty ve všech sítích EVM.
+private_key_scope_shared = Tento klíč ovládá také vaše účty v sítích %@.
 private_key_accounts_info = Vaše tajná fráze už tyto účty zálohuje. Klíč exportujte, jen pokud chcete jeden účet použít v jiné peněžence.
 
 # Social

@@ -386,7 +386,7 @@
   <string name="private_key_export_reminder_do_not_share_subtitle">任何人、網站或應用程式都不應向您索取私鑰。</string>
   <string name="private_key_export_reminder_no_recovery_title">被盜資金無法追回</string>
   <string name="private_key_export_reminder_no_recovery_subtitle">資金一旦被他人轉走，將無法退回。</string>
-  <string name="private_key_scope_evm">此私鑰同時控制您在所有 EVM 網路上的帳戶。</string>
+  <string name="private_key_scope_shared">此私鑰同時控制您在 %1$s 網路上的帳戶。</string>
   <string name="private_key_accounts_info">助記詞已經備份了這些帳戶。只有需要在其他錢包中使用某個帳戶時，才匯出私鑰。</string>
   <string name="social_x">X（前Twitter）</string>
   <string name="social_discord">Discord</string>

@@ -386,7 +386,7 @@
   <string name="private_key_export_reminder_do_not_share_subtitle">Hiçbir kişi, web sitesi veya uygulama onu istememeli.</string>
   <string name="private_key_export_reminder_no_recovery_title">Hırsızlığı Geri Alamayız</string>
   <string name="private_key_export_reminder_no_recovery_subtitle">Biri fonlarınızı alırsa, geri verilemez.</string>
-  <string name="private_key_scope_evm">Bu anahtar, tüm EVM ağlarındaki hesaplarınızı da kontrol eder.</string>
+  <string name="private_key_scope_shared">Bu anahtar, %1$s ağlarındaki hesaplarınızı da kontrol eder.</string>
   <string name="private_key_accounts_info">Gizli İfadeniz bu hesapları zaten yedekliyor. Anahtarı yalnızca bir hesabı başka bir cüzdanda kullanmak için dışa aktarın.</string>
   <string name="social_x">X (eski adıyla Twitter)</string>
   <string name="social_discord">Discord</string>

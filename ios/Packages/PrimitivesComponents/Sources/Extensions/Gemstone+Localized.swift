@@ -1298,7 +1298,7 @@ public extension GemPrivateKeyScope {
     var description: String? {
         switch self {
         case .oneChain: nil
-        case .evmChains: Localized.PrivateKey.Scope.evm
+        case let .sharedChains(networkNames): Localized.PrivateKey.Scope.shared(networkNames)
         }
     }
 }

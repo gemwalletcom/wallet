@@ -455,7 +455,7 @@ private_key_export_reminder_keep_safe_subtitle = Qualquer pessoa que a tenha pod
 private_key_export_reminder_do_not_share_subtitle = Nenhuma pessoa, site ou aplicativo deve pedi-la.
 private_key_export_reminder_no_recovery_title = Não podemos reverter um roubo
 private_key_export_reminder_no_recovery_subtitle = Se alguém levar seus fundos, eles não poderão ser devolvidos.
-private_key_scope_evm = Esta chave também controla suas contas em todas as redes EVM.
+private_key_scope_shared = Esta chave também controla suas contas nas redes %@.
 private_key_accounts_info = Sua frase secreta já faz backup destas contas. Exporte uma chave apenas para usar uma conta em outra carteira.
 
 # Social

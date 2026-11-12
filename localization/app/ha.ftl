@@ -455,7 +455,7 @@ private_key_export_reminder_keep_safe_subtitle = Duk wanda ke da shi zai iya amf
 private_key_export_reminder_do_not_share_subtitle = Babu mutum, gidan yanar gizo, ko manhaja da ya kamata ya nema.
 private_key_export_reminder_no_recovery_title = Ba Za Mu Iya Mayar Da Abin Da Aka Sace Ba
 private_key_export_reminder_no_recovery_subtitle = Idan wani ya kwashe kuɗinku, ba za a iya dawo da su ba.
-private_key_scope_evm = Wannan maɓalli kuma yana sarrafa asusunku a duk hanyoyin sadarwa na EVM.
+private_key_scope_shared = Wannan maɓalli kuma yana sarrafa asusunku a hanyoyin sadarwa na %@.
 private_key_accounts_info = Kalmar sirrinku ta riga ta adana waɗannan asusun. Fitar da maɓalli kawai don amfani da asusu ɗaya a wata walat.
 
 # Social

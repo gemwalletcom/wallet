@@ -386,7 +386,7 @@
   <string name="private_key_export_reminder_do_not_share_subtitle">Ни люди, ни сайты, ни приложения не должны его запрашивать.</string>
   <string name="private_key_export_reminder_no_recovery_title">Мы не можем отменить кражу</string>
   <string name="private_key_export_reminder_no_recovery_subtitle">Если кто-то заберёт ваши средства, вернуть их будет невозможно.</string>
-  <string name="private_key_scope_evm">Этот ключ также управляет вашими аккаунтами во всех сетях EVM.</string>
+  <string name="private_key_scope_shared">Этот ключ также управляет вашими аккаунтами в сетях %1$s.</string>
   <string name="private_key_accounts_info">Ваша секретная фраза уже служит резервной копией этих аккаунтов. Экспортируйте ключ, только чтобы использовать один аккаунт в другом кошельке.</string>
   <string name="social_x">X (бывший Twitter)</string>
   <string name="social_discord">Discord</string>

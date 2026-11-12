@@ -455,7 +455,7 @@ private_key_export_reminder_keep_safe_subtitle = 任何拥有私钥的人都能�
 private_key_export_reminder_do_not_share_subtitle = 任何人、网站或应用都不应向您索要私钥。
 private_key_export_reminder_no_recovery_title = 被盗资金无法追回
 private_key_export_reminder_no_recovery_subtitle = 资金一旦被他人转走，将无法退回。
-private_key_scope_evm = 此私钥同时控制您在所有 EVM 网络上的账户。
+private_key_scope_shared = 此私钥同时控制您在 %@ 网络上的账户。
 private_key_accounts_info = 助记词已经备份了这些账户。只有需要在其他钱包中使用某个账户时，才导出私钥。
 
 # Social

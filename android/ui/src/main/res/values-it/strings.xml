@@ -386,7 +386,7 @@
   <string name="private_key_export_reminder_do_not_share_subtitle">Nessuna persona, sito web o app dovrebbe chiedertela.</string>
   <string name="private_key_export_reminder_no_recovery_title">Non possiamo annullare un furto</string>
   <string name="private_key_export_reminder_no_recovery_subtitle">Se qualcuno prende i tuoi fondi, non possono essere restituiti.</string>
-  <string name="private_key_scope_evm">Questa chiave controlla anche i tuoi account su tutte le reti EVM.</string>
+  <string name="private_key_scope_shared">Questa chiave controlla anche i tuoi account sulle reti %1$s.</string>
   <string name="private_key_accounts_info">La tua frase segreta fa già il backup di questi account. Esporta una chiave solo per usare un account in un altro portafoglio.</string>
   <string name="social_x">X (ex Twitter)</string>
   <string name="social_discord">Discord</string>

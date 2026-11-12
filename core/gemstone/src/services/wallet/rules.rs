@@ -19,6 +19,7 @@ use crate::services::onboarding::{GemSecurityReminderItem, GemSecurityReminderKi
 const SECRET_PHRASE_COLUMNS: usize = 2;
 const WALLET_ADDRESS_STYLE: AddressFormatStyle = AddressFormatStyle::Extra { extra: 1 };
 const PRIVATE_KEY_ACCOUNT_ADDRESS_STYLE: AddressFormatStyle = AddressFormatStyle::Short;
+const EVM_NETWORKS_NAME: &str = "EVM";
 use crate::address::parse_address;
 use crate::keystore::GemKeystoreAccount;
 use crate::signer::decode_private_key;
@@ -149,11 +150,15 @@ pub fn private_key_accounts(wallet: &Wallet) -> Vec<GemPrivateKeyAccount> {
 pub fn private_key_scope(wallet: &Wallet, chain: Chain) -> GemPrivateKeyScope {
     let path = default_derivation_path(chain);
     let family: Vec<Chain> = Chain::all().into_iter().filter(|other| default_derivation_path(*other) == path).collect();
-    let shared = wallet.accounts.iter().any(|account| account.chain != chain && family.contains(&account.chain));
-    match family.first().map(Chain::chain_type) {
-        Some(ChainType::Ethereum) if shared => GemPrivateKeyScope::EvmChains,
-        _ => GemPrivateKeyScope::OneChain,
+    let siblings: Vec<Chain> = family.iter().copied().filter(|other| *other != chain && wallet.account(*other).is_some()).collect();
+    if siblings.is_empty() {
+        return GemPrivateKeyScope::OneChain;
     }
+    let network_names = match family.first().map(Chain::chain_type) {
+        Some(ChainType::Ethereum) => EVM_NETWORKS_NAME.to_string(),
+        _ => siblings.into_iter().map(|chain| chain_row(chain).title).collect::<Vec<_>>().join(", "),
+    };
+    GemPrivateKeyScope::SharedChains { network_names }
 }
 
 fn secret_row(export: GemSecretExport) -> GemSecretRow {
@@ -608,17 +613,19 @@ mod tests {
     }
 
     #[test]
-    fn test_private_key_scope_names_the_family_only_when_the_wallet_holds_another_account_on_it() {
-        let multicoin = Wallet::mock_with_id(WalletId::Multicoin("0x1".to_string()), &[Chain::Ethereum, Chain::SmartChain, Chain::Injective, Chain::Cosmos, Chain::Osmosis, Chain::Solana]);
-        assert_eq!(private_key_scope(&multicoin, Chain::Ethereum), GemPrivateKeyScope::EvmChains);
-        assert_eq!(private_key_scope(&multicoin, Chain::Injective), GemPrivateKeyScope::EvmChains);
-        assert_eq!(private_key_scope(&multicoin, Chain::Osmosis), GemPrivateKeyScope::OneChain);
-        assert_eq!(private_key_scope(&multicoin, Chain::Solana), GemPrivateKeyScope::OneChain);
+    fn test_private_key_scope() {
+        let wallet = Wallet::mock_with_chains(&[Chain::Ethereum, Chain::Injective, Chain::Cosmos, Chain::Osmosis, Chain::Celestia]);
+        let evm = GemPrivateKeyScope::SharedChains { network_names: "EVM".to_string() };
 
-        let private_key = Wallet::mock_with_id(WalletId::PrivateKey(Chain::Ethereum, "0x2".to_string()), &[Chain::Ethereum]);
-        let single = Wallet::mock_with_id(WalletId::Single(Chain::SmartChain, "0x3".to_string()), &[Chain::SmartChain]);
-        assert_eq!(private_key_scope(&private_key, Chain::Ethereum), GemPrivateKeyScope::OneChain);
-        assert_eq!(private_key_scope(&single, Chain::SmartChain), GemPrivateKeyScope::OneChain);
+        assert_eq!(private_key_scope(&wallet, Chain::Ethereum), evm);
+        assert_eq!(private_key_scope(&wallet, Chain::Injective), evm);
+        assert_eq!(
+            private_key_scope(&wallet, Chain::Cosmos),
+            GemPrivateKeyScope::SharedChains {
+                network_names: "Osmosis, Celestia".to_string()
+            }
+        );
+        assert_eq!(private_key_scope(&Wallet::mock(), Chain::Ethereum), GemPrivateKeyScope::OneChain);
     }
 
     #[test]

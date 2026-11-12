@@ -72581,193 +72581,193 @@
         }
       }
     },
-    "private_key.scope.evm": {
+    "private_key.scope.shared": {
       "extractionState": "manual",
       "localizations": {
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "يتحكم هذا المفتاح أيضًا في حساباتك على جميع شبكات EVM."
+            "value": "يتحكم هذا المفتاح أيضًا في حساباتك على شبكات %@."
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "এই কী সব EVM নেটওয়ার্কে আপনার অ্যাকাউন্টগুলোও নিয়ন্ত্রণ করে।"
+            "value": "এই কী %@ নেটওয়ার্কে আপনার অ্যাকাউন্টগুলোও নিয়ন্ত্রণ করে।"
           }
         },
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tento klíč ovládá také vaše účty ve všech sítích EVM."
+            "value": "Tento klíč ovládá také vaše účty v sítích %@."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Denne nøgle styrer også dine konti på alle EVM-netværk."
+            "value": "Denne nøgle styrer også dine konti på netværkene %@."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dieser Schlüssel steuert auch Ihre Konten in allen EVM-Netzwerken."
+            "value": "Dieser Schlüssel steuert auch Ihre Konten in den Netzwerken %@."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This key also controls your accounts on all EVM networks."
+            "value": "This key also controls your accounts on the %@ networks."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Esta clave también controla tus cuentas en todas las redes EVM."
+            "value": "Esta clave también controla tus cuentas en las redes %@."
           }
         },
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "این کلید حساب‌های شما در همه شبکه‌های EVM را نیز کنترل می‌کند."
+            "value": "این کلید حساب‌های شما در شبکه‌های %@ را نیز کنترل می‌کند."
           }
         },
         "fil": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kontrolado rin ng susing ito ang iyong mga account sa lahat ng EVM network."
+            "value": "Kontrolado rin ng susing ito ang iyong mga account sa mga network ng %@."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cette clé contrôle aussi vos comptes sur tous les réseaux EVM."
+            "value": "Cette clé contrôle aussi vos comptes sur les réseaux %@."
           }
         },
         "ha": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wannan maɓalli kuma yana sarrafa asusunku a duk hanyoyin sadarwa na EVM."
+            "value": "Wannan maɓalli kuma yana sarrafa asusunku a hanyoyin sadarwa na %@."
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "מפתח זה שולט גם בחשבונות שלך בכל רשתות EVM."
+            "value": "מפתח זה שולט גם בחשבונות שלך ברשתות %@."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "यह कुंजी सभी EVM नेटवर्क पर आपके खातों को भी नियंत्रित करती है।"
+            "value": "यह कुंजी %@ नेटवर्क पर आपके खातों को भी नियंत्रित करती है।"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kunci ini juga mengendalikan akun Anda di semua jaringan EVM."
+            "value": "Kunci ini juga mengendalikan akun Anda di jaringan %@."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Questa chiave controlla anche i tuoi account su tutte le reti EVM."
+            "value": "Questa chiave controlla anche i tuoi account sulle reti %@."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "このキーは、すべてのEVMネットワーク上のアカウントも操作できます。"
+            "value": "このキーは、%@ ネットワーク上のアカウントも操作できます。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "이 키는 모든 EVM 네트워크의 계정도 제어합니다."
+            "value": "이 키는 %@ 네트워크의 계정도 제어합니다."
           }
         },
         "ms": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kunci ini juga mengawal akaun anda di semua rangkaian EVM."
+            "value": "Kunci ini juga mengawal akaun anda di rangkaian %@."
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Deze sleutel beheert ook uw accounts op alle EVM-netwerken."
+            "value": "Deze sleutel beheert ook uw accounts op de netwerken %@."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ten klucz kontroluje również Twoje konta we wszystkich sieciach EVM."
+            "value": "Ten klucz kontroluje również Twoje konta w sieciach %@."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Esta chave também controla suas contas em todas as redes EVM."
+            "value": "Esta chave também controla suas contas nas redes %@."
           }
         },
         "ro": {
           "stringUnit": {
             "state": "translated",
-            "value": "Această cheie controlează și conturile tale din toate rețelele EVM."
+            "value": "Această cheie controlează și conturile tale din rețelele %@."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Этот ключ также управляет вашими аккаунтами во всех сетях EVM."
+            "value": "Этот ключ также управляет вашими аккаунтами в сетях %@."
           }
         },
         "sw": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ufunguo huu pia unadhibiti akaunti zako kwenye mitandao yote ya EVM."
+            "value": "Ufunguo huu pia unadhibiti akaunti zako kwenye mitandao ya %@."
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "คีย์นี้ยังควบคุมบัญชีของคุณบนเครือข่าย EVM ทั้งหมดด้วย"
+            "value": "คีย์นี้ยังควบคุมบัญชีของคุณบนเครือข่าย %@ ด้วย"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bu anahtar, tüm EVM ağlarındaki hesaplarınızı da kontrol eder."
+            "value": "Bu anahtar, %@ ağlarındaki hesaplarınızı da kontrol eder."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Цей ключ також керує вашими обліковими записами в усіх мережах EVM."
+            "value": "Цей ключ також керує вашими обліковими записами в мережах %@."
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "یہ کلید تمام EVM نیٹ ورکس پر آپ کے اکاؤنٹس کو بھی کنٹرول کرتی ہے۔"
+            "value": "یہ کلید %@ نیٹ ورکس پر آپ کے اکاؤنٹس کو بھی کنٹرول کرتی ہے۔"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Khóa này cũng kiểm soát các tài khoản của bạn trên tất cả mạng EVM."
+            "value": "Khóa này cũng kiểm soát các tài khoản của bạn trên mạng %@."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此私钥同时控制您在所有 EVM 网络上的账户。"
+            "value": "此私钥同时控制您在 %@ 网络上的账户。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "此私鑰同時控制您在所有 EVM 網路上的帳戶。"
+            "value": "此私鑰同時控制您在 %@ 網路上的帳戶。"
           }
         }
       }

@@ -455,7 +455,7 @@ private_key_export_reminder_keep_safe_subtitle = Alle, der har den, kan bruge de
 private_key_export_reminder_do_not_share_subtitle = Ingen person, hjemmeside eller app bør bede om den.
 private_key_export_reminder_no_recovery_title = Vi kan ikke omgøre et tyveri
 private_key_export_reminder_no_recovery_subtitle = Hvis nogen tager dine midler, kan de ikke returneres.
-private_key_scope_evm = Denne nøgle styrer også dine konti på alle EVM-netværk.
+private_key_scope_shared = Denne nøgle styrer også dine konti på netværkene %@.
 private_key_accounts_info = Din hemmelige sætning sikkerhedskopierer allerede disse konti. Eksportér kun en nøgle for at bruge én konto i en anden tegnebog.
 
 # Social

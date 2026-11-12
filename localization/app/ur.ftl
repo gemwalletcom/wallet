@@ -455,7 +455,7 @@ private_key_export_reminder_keep_safe_subtitle = جس کے پاس یہ ہو، و
 private_key_export_reminder_do_not_share_subtitle = کسی شخص، ویب سائٹ یا ایپ کو اسے نہیں مانگنا چاہیے۔
 private_key_export_reminder_no_recovery_title = ہم چوری شدہ فنڈز واپس نہیں لا سکتے
 private_key_export_reminder_no_recovery_subtitle = اگر کوئی آپ کے فنڈز لے جائے تو انہیں واپس نہیں کیا جا سکتا۔
-private_key_scope_evm = یہ کلید تمام EVM نیٹ ورکس پر آپ کے اکاؤنٹس کو بھی کنٹرول کرتی ہے۔
+private_key_scope_shared = یہ کلید %@ نیٹ ورکس پر آپ کے اکاؤنٹس کو بھی کنٹرول کرتی ہے۔
 private_key_accounts_info = آپ کا خفیہ جملہ پہلے ہی ان اکاؤنٹس کا بیک اپ ہے۔ کسی اور والیٹ میں ایک اکاؤنٹ استعمال کرنے کے لیے ہی کلید ایکسپورٹ کریں۔
 
 # Social

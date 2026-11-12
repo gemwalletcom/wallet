@@ -455,7 +455,7 @@ private_key_export_reminder_keep_safe_subtitle = Cualquiera que la tenga puede u
 private_key_export_reminder_do_not_share_subtitle = Ninguna persona, sitio web ni aplicación debería pedírtela.
 private_key_export_reminder_no_recovery_title = No podemos revertir un robo
 private_key_export_reminder_no_recovery_subtitle = Si alguien se lleva tus fondos, no se pueden devolver.
-private_key_scope_evm = Esta clave también controla tus cuentas en todas las redes EVM.
+private_key_scope_shared = Esta clave también controla tus cuentas en las redes %@.
 private_key_accounts_info = Tu Frase Secreta ya respalda estas cuentas. Exporta una clave solo para usar una cuenta en otra billetera.
 
 # Social
