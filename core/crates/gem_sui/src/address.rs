@@ -1,4 +1,5 @@
 use primitives::Address as AddressTrait;
+use primitives::hex;
 use std::str::FromStr;
 
 use crate::{SuiError, types::Address};
@@ -33,10 +34,14 @@ impl AddressTrait for SuiAddress {
     fn encode(&self) -> String {
         self.0.to_string()
     }
+
+    fn is_valid(address: &str) -> bool {
+        hex::decode(address.strip_prefix("0x").unwrap_or(address)).is_ok_and(|bytes| bytes.len() == Address::LENGTH)
+    }
 }
 
 pub fn validate_address(address: &str) -> bool {
-    address.strip_prefix("0x").unwrap_or(address).len() == Address::LENGTH * 2 && SuiAddress::is_valid(address)
+    SuiAddress::is_valid(address)
 }
 
 #[cfg(test)]
