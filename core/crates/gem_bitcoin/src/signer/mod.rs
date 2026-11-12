@@ -25,8 +25,8 @@ pub(crate) fn estimate_transaction_fee(chain: BitcoinChain, input: &TransactionL
         let request = match &signer_input.input_type {
             TransactionInputType::Transfer { .. } | TransactionInputType::Withdrawal { .. } => SpendRequest::transfer(chain, signer_input)?,
             TransactionInputType::Swap { .. } => SpendRequest::swap(chain, signer_input)?,
-            TransactionInputType::Generic { extra, .. } => {
-                let request = psbt::BitcoinPsbtRequest::parse(extra.data_as_str().map_err(SignerError::invalid_input)?)?;
+            TransactionInputType::Generic { .. } => {
+                let request = psbt::BitcoinPsbtRequest::from_input(signer_input)?;
                 request.check_coins(&signer_input.sender_address, &signer_input.metadata.get_utxos()?)?;
                 return Ok(request.summary(&signer_input.sender_address)?.fee);
             }

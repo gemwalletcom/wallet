@@ -1,9 +1,11 @@
 use std::str::FromStr;
 
 use bitcoin::{Address, Amount, OutPoint, Psbt, Sequence, Transaction, TxIn, TxOut, Txid, absolute::LockTime, hashes::Hash, transaction::Version};
+use gem_encoding::encode_base64;
 use primitives::UTXO;
 
-use crate::testkit::signer_mock::mock_utxo_with;
+use crate::signer::psbt::{BitcoinPsbtRequest, BitcoinPsbtSignInput};
+use crate::testkit::{address_mock::mock_p2wpkh_address, signer_mock::mock_utxo_with};
 
 pub fn mock_psbt(inputs: &[(u64, &str)], outputs: &[(u64, &str)]) -> String {
     let script = |address: &str| Address::from_str(address).unwrap().assume_checked().script_pubkey();
@@ -32,7 +34,23 @@ pub fn mock_psbt(inputs: &[(u64, &str)], outputs: &[(u64, &str)]) -> String {
             script_pubkey: script(address),
         });
     }
-    psbt.to_string()
+    encode_base64(&psbt.serialize())
+}
+
+pub fn mock_psbt_request(inputs: &[(u64, &str)], outputs: &[(u64, &str)], sign: &[(usize, Option<Vec<u32>>)]) -> BitcoinPsbtRequest {
+    BitcoinPsbtRequest {
+        account: mock_p2wpkh_address(),
+        psbt: mock_psbt(inputs, outputs),
+        sign_inputs: sign
+            .iter()
+            .map(|(index, sighash_types)| BitcoinPsbtSignInput {
+                address: mock_p2wpkh_address(),
+                index: *index,
+                sighash_types: sighash_types.clone(),
+            })
+            .collect(),
+        broadcast: false,
+    }
 }
 
 pub fn mock_psbt_coins(inputs: &[(u64, &str)]) -> Vec<UTXO> {

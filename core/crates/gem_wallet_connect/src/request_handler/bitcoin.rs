@@ -31,7 +31,7 @@ impl BitcoinRequestHandler {
         let params: Value = serde_json::from_str(&data).map_err(|error| error.to_string())?;
         let amount = params.get_value("amount")?.string()?;
         let memo = match params.get("memo").and_then(Value::as_str).filter(|memo| !memo.is_empty()) {
-            Some(memo) => Some(Self::decode_memo(memo)?),
+            Some(memo) => Some(Self::decode_memo(memo)?).filter(|memo| !memo.trim().is_empty()),
             None => None,
         };
         Ok(WalletConnectTransaction::BitcoinTransfer {

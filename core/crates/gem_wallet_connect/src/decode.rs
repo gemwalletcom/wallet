@@ -5,7 +5,7 @@ use primitives::hex;
 use crate::sign_type::{SignDigestType, SignMessage};
 
 pub fn decode_sign_message(chain: Chain, sign_type: SignDigestType, data: String) -> SignMessage {
-    if matches!(sign_type, SignDigestType::BitcoinEcdsa | SignDigestType::BitcoinBip322) {
+    if sign_type.is_bitcoin() {
         return SignMessage {
             chain,
             data: crate::request_handler::BitcoinRequestHandler::decode_message(&data),

@@ -1,16 +1,19 @@
 use std::collections::BTreeSet;
-use std::str::FromStr;
 
 use bitcoin::{
     Address, Amount, CompressedPublicKey, Network, Psbt, ScriptBuf, TxOut, Witness, ecdsa,
     secp256k1::{Message, PublicKey, Secp256k1},
     sighash::{EcdsaSighashType, SighashCache},
 };
+use gem_encoding::decode_base64;
 use num_bigint::BigUint;
-use primitives::{SignerError, UTXO, hex};
+use primitives::{BitcoinChain, SignerError, SignerInput, UTXO, hex};
 use serde::Deserialize;
 
-use crate::signer::message::secret_key;
+use crate::signer::{
+    address::{UnlockingScript, script_for_address},
+    transaction::ZeroizedSecretKey,
+};
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -43,8 +46,14 @@ impl BitcoinPsbtRequest {
         serde_json::from_str(json).map_err(|error| SignerError::invalid_input(format!("invalid signPsbt request: {error}")))
     }
 
+    pub fn from_input(input: &SignerInput) -> Result<Self, SignerError> {
+        let extra = input.input_type.get_generic_data().map_err(SignerError::invalid_input)?;
+        Self::parse(extra.data_as_str().map_err(SignerError::invalid_input)?)
+    }
+
     pub fn decode_psbt(&self) -> Result<Psbt, SignerError> {
-        Psbt::from_str(&self.psbt).map_err(|error| SignerError::invalid_input(format!("invalid PSBT: {error}")))
+        let bytes = decode_base64(&self.psbt).map_err(|error| SignerError::invalid_input(format!("invalid PSBT: {error}")))?;
+        Psbt::deserialize(&bytes).map_err(|error| SignerError::invalid_input(format!("invalid PSBT: {error}")))
     }
 
     pub fn summary(&self, address: &str) -> Result<PsbtSummary, SignerError> {
@@ -78,7 +87,7 @@ impl BitcoinPsbtRequest {
         let inputs = self.wallet_inputs(&psbt, address, &script)?;
         held_coins(&psbt, &inputs, utxos)?;
         let secp = Secp256k1::signing_only();
-        let secret_key = secret_key(private_key)?;
+        let secret_key = ZeroizedSecretKey::new(BitcoinChain::Bitcoin, private_key)?;
         let public_key = PublicKey::from_secret_key(&secp, &secret_key);
         if ScriptBuf::new_p2wpkh(&CompressedPublicKey(public_key).wpubkey_hash()) != script {
             return SignerError::invalid_input_err("the wallet key does not own the session address");
@@ -104,7 +113,8 @@ impl BitcoinPsbtRequest {
             return SignerError::invalid_input_err("signPsbt names no input to sign");
         }
         let mut indexes = BTreeSet::new();
-        self.sign_inputs
+        let inputs = self
+            .sign_inputs
             .iter()
             .map(|input| {
                 if !indexes.insert(input.index) {
@@ -123,7 +133,11 @@ impl BitcoinPsbtRequest {
                     sighash_type: sighash_type(input.sighash_types.as_deref())?,
                 })
             })
-            .collect()
+            .collect::<Result<Vec<_>, SignerError>>()?;
+        match (0..psbt.inputs.len()).find(|index| !indexes.contains(index) && spent_output(psbt, *index).is_ok_and(|output| output.script_pubkey == *script)) {
+            Some(index) => SignerError::invalid_input_err(format!("input {index} spends the wallet's coins but is not signed with the others")),
+            None => Ok(inputs),
+        }
     }
 }
 
@@ -134,23 +148,24 @@ struct WalletInput {
 }
 
 fn held_coins(psbt: &Psbt, inputs: &[WalletInput], utxos: &[UTXO]) -> Result<(), SignerError> {
-    for input in inputs {
-        let outpoint = psbt.unsigned_tx.input.get(input.index).map(|input| input.previous_output);
-        let value = BigUint::from(input.output.value.to_sat());
-        let held = outpoint.is_some_and(|outpoint| {
-            utxos
-                .iter()
-                .any(|utxo| utxo.transaction_id == outpoint.txid.to_string() && u32::try_from(utxo.vout).ok() == Some(outpoint.vout) && utxo.value == value)
-        });
-        if !held {
-            return SignerError::invalid_input_err(format!("input {} is not a coin the wallet holds at that amount", input.index));
+    for (index, input) in psbt.unsigned_tx.input.iter().enumerate() {
+        let outpoint = input.previous_output;
+        let coin = utxos.iter().find(|utxo| utxo.transaction_id == outpoint.txid.to_string() && u32::try_from(utxo.vout).ok() == Some(outpoint.vout));
+        match (inputs.iter().find(|signed| signed.index == index), coin) {
+            (Some(signed), Some(coin)) if coin.value == BigUint::from(signed.output.value.to_sat()) => {}
+            (Some(_), _) => return SignerError::invalid_input_err(format!("input {index} is not a coin the wallet holds at that amount")),
+            (None, Some(_)) => return SignerError::invalid_input_err(format!("input {index} is a wallet coin the request does not sign")),
+            (None, None) => {}
         }
     }
     Ok(())
 }
 
 fn recipient(psbt: &Psbt, script: &ScriptBuf) -> Result<Option<String>, SignerError> {
-    let recipients: BTreeSet<&ScriptBuf> = psbt.unsigned_tx.output.iter().map(|output| &output.script_pubkey).filter(|output| *output != script && !output.is_op_return()).collect();
+    if psbt.unsigned_tx.output.iter().any(|output| output.script_pubkey.is_op_return()) {
+        return SignerError::invalid_input_err("PSBT carries OP_RETURN data the review can't show");
+    }
+    let recipients: BTreeSet<&ScriptBuf> = psbt.unsigned_tx.output.iter().map(|output| &output.script_pubkey).filter(|output| *output != script).collect();
     let mut recipients = recipients.into_iter();
     match (recipients.next(), recipients.next()) {
         (None, _) => Ok(None),
@@ -183,14 +198,11 @@ pub fn finalize_psbt(mut psbt: Psbt) -> Result<String, SignerError> {
 }
 
 fn wallet_script(address: &str) -> Result<ScriptBuf, SignerError> {
-    let address = Address::from_str(address)
-        .and_then(|address| address.require_network(Network::Bitcoin))
-        .map_err(|error| SignerError::invalid_input(format!("invalid Bitcoin address {address}: {error}")))?;
-    let script = address.script_pubkey();
-    if !script.is_p2wpkh() {
-        return SignerError::invalid_input_err("only native SegWit addresses sign PSBTs");
+    let script = script_for_address(BitcoinChain::Bitcoin, address)?;
+    match script.unlocking_script() {
+        Some(UnlockingScript::P2wpkh) => Ok(script.script_pubkey),
+        Some(UnlockingScript::P2pkh) | None => SignerError::invalid_input_err("only native SegWit addresses sign PSBTs"),
     }
-    Ok(script)
 }
 
 fn spent_output(psbt: &Psbt, index: usize) -> Result<TxOut, SignerError> {
@@ -211,45 +223,26 @@ fn sighash_type(types: Option<&[u32]>) -> Result<EcdsaSighashType, SignerError> 
     match types {
         None | Some([]) => Ok(EcdsaSighashType::All),
         Some([value]) if *value == EcdsaSighashType::All as u32 => Ok(EcdsaSighashType::All),
-        Some([value]) if *value == EcdsaSighashType::AllPlusAnyoneCanPay as u32 => Ok(EcdsaSighashType::AllPlusAnyoneCanPay),
-        Some(types) => SignerError::invalid_input_err(format!("sighash types {types:?} would let others change the outputs")),
+        Some(types) => SignerError::invalid_input_err(format!("sighash types {types:?} would let others change the transaction")),
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::testkit::psbt_mock::{mock_psbt, mock_psbt_coins};
+    use crate::testkit::{
+        address_mock::mock_p2wpkh_address,
+        psbt_mock::{mock_psbt_coins, mock_psbt_request},
+    };
     use bitcoin::{Amount, Transaction};
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY;
 
     const RECIPIENT: &str = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4";
 
-    fn wallet_address() -> String {
-        let public_key = PublicKey::from_secret_key(&Secp256k1::new(), &secret_key(&TEST_PRIVATE_KEY).unwrap());
-        Address::p2wpkh(&CompressedPublicKey(public_key), Network::Bitcoin).to_string()
-    }
-
-    fn request(inputs: &[(u64, &str)], outputs: &[(u64, &str)], sign: &[(usize, Option<Vec<u32>>)]) -> BitcoinPsbtRequest {
-        BitcoinPsbtRequest {
-            account: wallet_address(),
-            psbt: mock_psbt(inputs, outputs),
-            sign_inputs: sign
-                .iter()
-                .map(|(index, sighash_types)| BitcoinPsbtSignInput {
-                    address: wallet_address(),
-                    index: *index,
-                    sighash_types: sighash_types.clone(),
-                })
-                .collect(),
-            broadcast: false,
-        }
-    }
-
     #[test]
     fn test_a_payment_from_the_wallet_is_signed_and_can_be_sent() {
-        let wallet = wallet_address();
-        let request = request(&[(100_000, &wallet)], &[(60_000, RECIPIENT), (39_000, &wallet)], &[(0, None)]);
+        let wallet = mock_p2wpkh_address();
+        let request = mock_psbt_request(&[(100_000, &wallet)], &[(60_000, RECIPIENT), (39_000, &wallet)], &[(0, None)]);
 
         assert_eq!(
             request.summary(&wallet).unwrap(),
@@ -275,42 +268,42 @@ mod tests {
 
     #[test]
     fn test_only_the_wallets_own_inputs_are_signed() {
-        let wallet = wallet_address();
+        let wallet = mock_p2wpkh_address();
 
         let coins = mock_psbt_coins(&[(100_000, &wallet)]);
 
-        let others = request(&[(100_000, RECIPIENT)], &[(90_000, &wallet)], &[(0, None)]);
+        let others = mock_psbt_request(&[(100_000, RECIPIENT)], &[(90_000, &wallet)], &[(0, None)]);
         assert!(others.summary(&wallet).is_err(), "an input that spends someone else's coins is refused before the review");
         assert!(others.sign(&wallet, &TEST_PRIVATE_KEY, &coins).is_err());
 
-        let missing = request(&[(100_000, &wallet)], &[(90_000, RECIPIENT)], &[(3, None)]);
+        let missing = mock_psbt_request(&[(100_000, &wallet)], &[(90_000, RECIPIENT)], &[(3, None)]);
         assert!(missing.sign(&wallet, &TEST_PRIVATE_KEY, &coins).is_err());
 
-        let twice = request(&[(100_000, &wallet)], &[(90_000, RECIPIENT)], &[(0, None), (0, None)]);
+        let twice = mock_psbt_request(&[(100_000, &wallet)], &[(90_000, RECIPIENT)], &[(0, None), (0, None)]);
         assert!(twice.summary(&wallet).is_err(), "an input listed twice is refused");
 
-        let mut other_account = request(&[(100_000, &wallet)], &[(90_000, RECIPIENT)], &[(0, None)]);
+        let mut other_account = mock_psbt_request(&[(100_000, &wallet)], &[(90_000, RECIPIENT)], &[(0, None)]);
         other_account.account = RECIPIENT.to_string();
         assert!(other_account.summary(&wallet).is_err(), "the request must come for the session account");
         assert!(other_account.sign(&wallet, &TEST_PRIVATE_KEY, &coins).is_err());
 
-        let none = request(&[(100_000, &wallet)], &[(90_000, RECIPIENT)], &[]);
+        let none = mock_psbt_request(&[(100_000, &wallet)], &[(90_000, RECIPIENT)], &[]);
         assert!(none.sign(&wallet, &TEST_PRIVATE_KEY, &coins).is_err());
     }
 
     #[test]
     fn test_only_signatures_that_commit_to_every_output_are_made() {
-        let wallet = wallet_address();
+        let wallet = mock_p2wpkh_address();
         for (types, allowed) in [
             (None, true),
             (Some(vec![1]), true),
-            (Some(vec![0x81]), true),
+            (Some(vec![0x81]), false),
             (Some(vec![2]), false),
             (Some(vec![3]), false),
             (Some(vec![0x82]), false),
             (Some(vec![1, 2]), false),
         ] {
-            let request = request(&[(100_000, &wallet)], &[(90_000, RECIPIENT)], &[(0, types.clone())]);
+            let request = mock_psbt_request(&[(100_000, &wallet)], &[(90_000, RECIPIENT)], &[(0, types.clone())]);
             assert_eq!(request.summary(&wallet).is_ok(), allowed, "{types:?} before the review");
             assert_eq!(request.sign(&wallet, &TEST_PRIVATE_KEY, &mock_psbt_coins(&[(100_000, &wallet)])).is_ok(), allowed, "{types:?}");
         }
@@ -318,8 +311,8 @@ mod tests {
 
     #[test]
     fn test_a_shared_transaction_shows_what_the_wallet_puts_in() {
-        let wallet = wallet_address();
-        let request = request(&[(100_000, &wallet), (50_000, RECIPIENT)], &[(140_000, RECIPIENT), (9_000, &wallet)], &[(0, None)]);
+        let wallet = mock_p2wpkh_address();
+        let request = mock_psbt_request(&[(100_000, &wallet), (50_000, RECIPIENT)], &[(140_000, RECIPIENT), (9_000, &wallet)], &[(0, None)]);
 
         assert_eq!(
             request.summary(&wallet).unwrap(),
@@ -336,9 +329,9 @@ mod tests {
 
     #[test]
     fn test_an_input_amount_the_wallet_does_not_hold_is_never_signed() {
-        let wallet = wallet_address();
+        let wallet = mock_p2wpkh_address();
         let held = mock_psbt_coins(&[(1_000_000, &wallet), (1_000_000, &wallet)]);
-        let understated = request(&[(1_000_000, &wallet), (1_000, &wallet)], &[(1_000_000, RECIPIENT)], &[(0, None), (1, None)]);
+        let understated = mock_psbt_request(&[(1_000_000, &wallet), (1_000, &wallet)], &[(1_000_000, RECIPIENT)], &[(0, None), (1, None)]);
 
         assert_eq!(understated.summary(&wallet).unwrap().fee, 1_000, "the PSBT claims a small fee");
         assert!(understated.check_coins(&wallet, &held).is_err(), "the load refuses an input whose amount is not the coin's");
@@ -346,48 +339,52 @@ mod tests {
     }
 
     #[test]
-    fn test_an_input_labelled_as_the_wallets_counts_only_when_the_wallet_signs_it() {
-        let wallet = wallet_address();
-        let request = request(&[(1_000_000, &wallet), (980_000, &wallet)], &[(1_000_000, RECIPIENT)], &[(0, None)]);
+    fn test_every_wallet_coin_of_the_transaction_is_signed_in_one_request() {
+        let wallet = mock_p2wpkh_address();
+        let coins = mock_psbt_coins(&[(1_000_000, &wallet), (1_000_000, &wallet)]);
+        let outputs = [(500_000, RECIPIENT), (1_490_000, wallet.as_str())];
 
+        for index in [0, 1] {
+            let split = mock_psbt_request(&[(1_000_000, &wallet), (1_000_000, &wallet)], &outputs, &[(index, None)]);
+            assert!(split.summary(&wallet).is_err(), "signing one coin at a time would show each review as nothing leaving");
+            assert!(split.sign(&wallet, &TEST_PRIVATE_KEY, &coins).is_err());
+        }
+
+        let disguised = mock_psbt_request(&[(1_000_000, &wallet), (1_000_000, RECIPIENT)], &outputs, &[(0, None)]);
+        assert!(disguised.check_coins(&wallet, &coins).is_err(), "a wallet coin labelled as someone else's is still the wallet's");
+
+        let whole = mock_psbt_request(&[(1_000_000, &wallet), (1_000_000, &wallet)], &outputs, &[(0, None), (1, None)]);
         assert_eq!(
-            request.summary(&wallet).unwrap(),
+            whole.summary(&wallet).unwrap(),
             PsbtSummary {
                 recipient: Some(RECIPIENT.to_string()),
-                value: 1_000_000,
-                fee: 0
-            },
-            "an input the wallet does not sign can't turn its outflow into a fee"
+                value: 500_000,
+                fee: 10_000
+            }
         );
-        assert!(request.check_coins(&wallet, &mock_psbt_coins(&[(1_000_000, &wallet)])).is_ok());
-
-        let listed = BitcoinPsbtRequest {
-            sign_inputs: vec![
-                BitcoinPsbtSignInput {
-                    address: wallet.clone(),
-                    index: 0,
-                    sighash_types: None,
-                },
-                BitcoinPsbtSignInput {
-                    address: wallet.clone(),
-                    index: 1,
-                    sighash_types: None,
-                },
-            ],
-            ..request
-        };
-        assert!(listed.check_coins(&wallet, &mock_psbt_coins(&[(1_000_000, &wallet)])).is_err(), "a coin the wallet does not hold is refused");
+        assert!(whole.sign(&wallet, &TEST_PRIVATE_KEY, &coins).is_ok());
+        assert!(whole.check_coins(&wallet, &[]).is_err(), "a coin the wallet does not hold is refused");
     }
 
     #[test]
     fn test_a_psbt_the_review_cannot_show_whole_is_refused() {
-        let wallet = wallet_address();
+        let wallet = mock_p2wpkh_address();
         let other = "bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq";
 
-        let two_recipients = request(&[(1_000_000, &wallet)], &[(546, RECIPIENT), (990_000, other)], &[(0, None)]);
+        let two_recipients = mock_psbt_request(&[(1_000_000, &wallet)], &[(546, RECIPIENT), (990_000, other)], &[(0, None)]);
         assert!(two_recipients.summary(&wallet).is_err(), "only one recipient is scanned, so a second is refused");
 
-        let overflow = request(&[(u64::MAX, &wallet)], &[(u64::MAX, RECIPIENT), (u64::MAX, &wallet)], &[(0, None)]);
+        let mut op_return = mock_psbt_request(&[(1_000_000, &wallet)], &[(990_000, RECIPIENT)], &[(0, None)]);
+        let mut psbt = op_return.decode_psbt().unwrap();
+        psbt.unsigned_tx.output.push(TxOut {
+            value: Amount::ZERO,
+            script_pubkey: ScriptBuf::new_op_return(b"=:ETH.ETH:0xabc"),
+        });
+        psbt.outputs.push(Default::default());
+        op_return.psbt = gem_encoding::encode_base64(&psbt.serialize());
+        assert!(op_return.summary(&wallet).is_err(), "OP_RETURN data the review can't show is refused");
+
+        let overflow = mock_psbt_request(&[(u64::MAX, &wallet)], &[(u64::MAX, RECIPIENT), (u64::MAX, &wallet)], &[(0, None)]);
         assert!(overflow.summary(&wallet).is_err());
     }
 }

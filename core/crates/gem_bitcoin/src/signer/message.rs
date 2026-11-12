@@ -6,18 +6,20 @@ use bitcoin::{
     hashes::{Hash, sha256, sha256d},
     opcodes::all::OP_RETURN,
     script::Builder,
-    secp256k1::{Message, PublicKey, Secp256k1, SecretKey},
+    secp256k1::{Message, PublicKey, Secp256k1},
     sighash::{EcdsaSighashType, SighashCache},
     transaction::Version,
 };
-use primitives::SignerError;
+use primitives::{BitcoinChain, SignerError};
+
+use crate::signer::{encoding::encode_varint, transaction::ZeroizedSecretKey};
 
 const MESSAGE_PREFIX: &[u8] = b"\x18Bitcoin Signed Message:\n";
 const BIP322_TAG: &[u8] = b"BIP0322-signed-message";
 const P2WPKH_RECOVERY_HEADER: u8 = 39;
 
 pub fn sign_message_ecdsa(message: &[u8], private_key: &[u8]) -> Result<Vec<u8>, SignerError> {
-    let secret_key = secret_key(private_key)?;
+    let secret_key = ZeroizedSecretKey::new(BitcoinChain::Bitcoin, private_key)?;
     let signature = Secp256k1::signing_only().sign_ecdsa_recoverable(&Message::from_digest(message_hash(message)), &secret_key);
     let (recovery_id, compact) = signature.serialize_compact();
     let header = u8::try_from(recovery_id.to_i32()).map_err(|_| SignerError::signing_error("invalid recovery id"))? + P2WPKH_RECOVERY_HEADER;
@@ -26,7 +28,7 @@ pub fn sign_message_ecdsa(message: &[u8], private_key: &[u8]) -> Result<Vec<u8>,
 
 pub fn sign_message_bip322(message: &[u8], private_key: &[u8]) -> Result<Vec<u8>, SignerError> {
     let secp = Secp256k1::signing_only();
-    let secret_key = secret_key(private_key)?;
+    let secret_key = ZeroizedSecretKey::new(BitcoinChain::Bitcoin, private_key)?;
     let public_key = PublicKey::from_secret_key(&secp, &secret_key);
     let script_pubkey = ScriptBuf::new_p2wpkh(&CompressedPublicKey(public_key).wpubkey_hash());
     let to_spend = Transaction {
@@ -68,7 +70,7 @@ pub fn sign_message_bip322(message: &[u8], private_key: &[u8]) -> Result<Vec<u8>
 }
 
 pub fn message_hash(message: &[u8]) -> [u8; 32] {
-    let data = [MESSAGE_PREFIX, &compact_size(message.len()), message].concat();
+    let data = [MESSAGE_PREFIX, &encode_varint(message.len()), message].concat();
     sha256d::Hash::hash(&data).to_byte_array()
 }
 
@@ -77,32 +79,13 @@ fn bip322_message_hash(message: &[u8]) -> [u8; 32] {
     sha256::Hash::hash(&[&tag[..], &tag, message].concat()).to_byte_array()
 }
 
-fn compact_size(length: usize) -> Vec<u8> {
-    let length = length as u64;
-    match length {
-        0..=0xfc => vec![length as u8],
-        0xfd..=0xffff => [&[0xfd][..], &(length as u16).to_le_bytes()].concat(),
-        0x1_0000..=0xffff_ffff => [&[0xfe][..], &(length as u32).to_le_bytes()].concat(),
-        _ => [&[0xff][..], &length.to_le_bytes()].concat(),
-    }
-}
-
-pub(crate) fn secret_key(private_key: &[u8]) -> Result<SecretKey, SignerError> {
-    SecretKey::from_slice(private_key).map_err(|_| SignerError::invalid_input("invalid Bitcoin private key"))
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use bitcoin::base64::{Engine, engine::general_purpose::STANDARD};
     use bitcoin::{
         PrivateKey,
         secp256k1::ecdsa::{RecoverableSignature, RecoveryId},
     };
-
-    fn decode_base64(value: &str) -> Vec<u8> {
-        STANDARD.decode(value).unwrap()
-    }
 
     const BIP322_PRIVATE_KEY: &str = "L3VFeEujGtevx9w18HD1fhRbCH67Az2dpCymeRE1SoPK6XQtaN2k";
 
@@ -122,7 +105,7 @@ mod tests {
                 "AkcwRAIgZRfIY3p7/DoVTty6YZbWS71bc5Vct9p9Fia83eRmw2QCICK/ENGfwLtptFluMGs2KsqoNSk89pO7F29zJLUx9a/sASECx/EgAxlkQpQ9hYjgGu6EBCPMVPwVIVJqO4XCsMvViHI=",
             ),
         ] {
-            assert_eq!(sign_message_bip322(message.as_bytes(), &private_key()).unwrap(), decode_base64(expected), "{message:?}");
+            assert_eq!(sign_message_bip322(message.as_bytes(), &private_key()).unwrap(), gem_encoding::decode_base64(expected).unwrap(), "{message:?}");
         }
     }
 
@@ -141,13 +124,11 @@ mod tests {
         let recovery_id = RecoveryId::from_i32(i32::from(signature[0] - P2WPKH_RECOVERY_HEADER)).unwrap();
         let recoverable = RecoverableSignature::from_compact(&signature[1..], recovery_id).unwrap();
         let recovered = Secp256k1::new().recover_ecdsa(&Message::from_digest(message_hash(b"Hello World")), &recoverable).unwrap();
-        assert_eq!(recovered, PublicKey::from_secret_key(&Secp256k1::new(), &secret_key(&private_key()).unwrap()));
+        assert_eq!(recovered, PublicKey::from_secret_key(&Secp256k1::new(), &ZeroizedSecretKey::new(BitcoinChain::Bitcoin, &private_key()).unwrap()));
     }
 
     #[test]
     fn test_message_hash_prefixes_the_length() {
-        assert_eq!(compact_size(0xfc), vec![0xfc]);
-        assert_eq!(compact_size(0xfd), vec![0xfd, 0xfd, 0x00]);
         assert_eq!(message_hash(b"Hello World"), bitcoin::sign_message::signed_msg_hash("Hello World").to_byte_array());
     }
 }

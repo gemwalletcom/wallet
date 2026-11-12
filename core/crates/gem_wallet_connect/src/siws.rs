@@ -5,7 +5,7 @@ use url::Url;
 use crate::{SignDigestType, SignMessageValidation};
 
 pub fn validate_sign_message_account(sign_type: &SignDigestType, data: &str, address: &str) -> Result<(), String> {
-    if matches!(sign_type, SignDigestType::BitcoinEcdsa | SignDigestType::BitcoinBip322) {
+    if sign_type.is_bitcoin() {
         return crate::request_handler::BitcoinRequestHandler::validate_message_account(data, address);
     }
     if *sign_type == SignDigestType::Base58
