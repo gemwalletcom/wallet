@@ -39,6 +39,8 @@ mod tests {
         assert!(!validate_address("rnBFvgZphmN39GWzUJeUitaP22Fr9be75J", Chain::Xrp));
         assert!(validate_address("h3rman.near", Chain::Near));
         assert!(validate_address("0x85f17cf997934a597031b2e18a9ab6ebd4b9f6a4", Chain::Near));
+        assert!(validate_address("0x6467997d9c3a5bc9f714e17a168984595ce9bec7350645713a1fe7983a7f5fcc", Chain::Aptos));
+        assert!(!validate_address("0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a", Chain::Aptos));
         assert!(validate_address("UQAzoUpalAaXnVm5MoiYWRZguLFzY0KxFjLv3MkRq5BXz3VV", Chain::Ton));
         assert!(validate_address("15e6w4u9nH4Tb9HdJco2Zua4y5DpHb1hHXBKBGkUrLMTpuXo", Chain::Polkadot));
         assert!(!validate_address("15e6w4u9nH4Tb9HdJco2Zua4y5DpHb1hHXBKBGkUrLMTpuXj", Chain::Polkadot));
