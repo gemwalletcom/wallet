@@ -8,13 +8,20 @@ Before changing how an area works, read its page. A change that breaks a rule wr
 
 **Secure.** The user always sees what they are about to sign: amount, recipient, network and fee. Nothing is signed or sent without that screen. A Secret Phrase or private key never leaves the device's secure storage and never reaches a log, a screenshot or an unprotected clipboard. When something security-related is missing or unsupported, the wallet refuses instead of guessing.
 
-**Fast.** Whatever the app already knows shows at once; a refresh updates it in place and never blanks the screen. Independent requests start together and none waits for a slower one. When one source fails, the others still show; the failed one keeps its last known values. Speed of use comes first: the app is kept small only where that costs no noticeable speed.
+**Fast.** Whatever the app already knows shows in the screen's first frame, never after an empty or loading frame; a refresh updates it in place and never blanks the screen. Independent requests start together and none waits for a slower one. When one source fails, the others still show; the failed one keeps its last known values. Speed of use comes first: the app is kept small only where that costs no noticeable speed.
 
 **Native.** Each app looks and feels like a first-class app of its platform: system navigation, sheets, share, paste, biometrics and the user's locale for numbers and dates. A menu, long-press or toolbar, splits its actions into groups with the platform's own divider: copying and opening, then the actions on the item, then anything destructive, last. Both apps follow the same rules and make the same decisions; only the drawing is platform-specific. Where the apps differ, the area's Platform differences table says so and why; any other difference is a bug.
 
 **Simple.** Every screen uses patterns the user already knows: a list of rows, a sheet, a segmented picker, a button that says what it does. The same thing looks and works the same everywhere in the app: one asset row, one address row, one confirmation screen, one way to copy, one way to pick an asset. A new screen copies an existing one rather than inventing a layout. Each screen asks for one decision at a time, shows the outcome where the action happened, and needs no explanation to use. If something needs a tooltip to be understood, the screen is wrong, not the user.
 
-**Smooth.** Scrolling, typing and transitions hold the frame rate. The app never freezes or flickers. A price update changes only the rows it touches, and a result for a wallet or asset the user has already left is dropped, not drawn. A visible hitch, a flash of empty content, or a glimpse of another wallet's data is a defect.
+**Smooth.** Scrolling, typing and transitions hold the frame rate. The app never freezes or flickers:
+
+- Everything one change touches appears in the same frame: a total with its rows, a section with its rows, every balance on the screen when balances are hidden or shown.
+- A row whose values change is redrawn where it is. It never disappears and comes back, and the rows around it stay put; only a row that appears or goes away moves the rows after it.
+- A price update changes only the rows it touches, and only the number that changed animates.
+- A result for a wallet or asset the user has already left is dropped, not drawn.
+
+A visible hitch, a flash of empty content, a row that blinks or jumps, two parts of one screen out of step for a frame, or a glimpse of another wallet's data is a defect.
 
 ## Look
 
