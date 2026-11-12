@@ -52,14 +52,6 @@ impl SwapType {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct DepositData {
-    pub to: String,
-    pub value: String,
-    pub data: String,
-    pub memo: Option<String>,
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum DepositMode {

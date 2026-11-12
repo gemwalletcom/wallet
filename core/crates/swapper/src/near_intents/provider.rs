@@ -1,7 +1,6 @@
 use super::{
-    AppFee, DepositData, DepositMode, NearIntentsClient, NearIntentsExplorer, QuoteRequest as NearQuoteRequest, QuoteResponse, QuoteResponseError, QuoteResponseResult, SwapType, auto_quote_time_chains,
-    chain::{self, hypercore},
-    deposit_memo_chains, get_asset_id_from_near_asset, get_near_asset_id,
+    AppFee, DepositMode, NearIntentsClient, NearIntentsExplorer, QuoteRequest as NearQuoteRequest, QuoteResponse, QuoteResponseError, QuoteResponseResult, SwapType, auto_quote_time_chains, chain, deposit_memo_chains,
+    get_asset_id_from_near_asset, get_near_asset_id,
     model::{DEFAULT_WAIT_TIME_MS, DEPOSIT_TYPE_ORIGIN, ExplorerTransaction, RECIPIENT_TYPE_DESTINATION},
     supported_assets,
 };
@@ -16,6 +15,7 @@ use async_trait::async_trait;
 #[cfg(test)]
 use chrono::DateTime;
 use chrono::{Duration, Utc};
+use gem_evm::address::ethereum_address_checksum;
 use num_bigint::BigUint;
 use num_traits::Zero;
 use primitives::{
@@ -161,15 +161,10 @@ where
         if chain == Chain::Bitcoin { BITCOIN_DEADLINE_MINUTES } else { DEFAULT_DEADLINE_MINUTES }
     }
 
-    fn build_deposit_data(deposit_memo: Option<String>, from_asset: &SwapperQuoteAsset, deposit_address: &str, amount_in: &str) -> Result<DepositData, SwapperError> {
+    fn deposit_recipient(from_asset: &SwapperQuoteAsset, deposit_address: String, deposit_memo: Option<String>) -> Result<(String, Option<String>), SwapperError> {
         match from_asset.chain() {
-            Chain::HyperCore => hypercore::build_deposit_data(from_asset, deposit_address, amount_in),
-            _ => Ok(DepositData {
-                to: deposit_address.to_string(),
-                value: amount_in.to_string(),
-                data: String::new(),
-                memo: deposit_memo,
-            }),
+            Chain::HyperCore => Ok((ethereum_address_checksum(&deposit_address)?, None)),
+            _ => Ok((deposit_address, deposit_memo)),
         }
     }
 
@@ -270,7 +265,6 @@ where
         let QuoteResponse { quote_request: _, quote: near_quote } = response;
 
         let deposit_address = near_quote.deposit_address.ok_or_else(|| SwapperError::ComputeQuoteError("Missing depositAddress in Near Intents response".into()))?;
-        let amount_in = near_quote.amount_in.to_string();
         let deposit_mode = near_quote
             .deposit_mode
             .or(Some(request_deposit_mode))
@@ -287,14 +281,9 @@ where
             return Err(SwapperError::ComputeQuoteError("Near Intents Stellar deposit missing memo".into()));
         }
 
-        let data = Self::build_deposit_data(deposit_memo, from_asset, &deposit_address, &amount_in)?;
+        let (to, memo) = Self::deposit_recipient(from_asset, deposit_address, deposit_memo)?;
 
-        let DepositData { to, value, data: payload, memo } = data;
-
-        Ok(SwapperQuoteData {
-            data: payload,
-            ..SwapperQuoteData::new_transfer(to, BigUint::from_str(&value).map_err(SwapperError::compute_quote_error)?, memo)
-        })
+        Ok(SwapperQuoteData::new_transfer(to, near_quote.amount_in, memo))
     }
 
     async fn get_swap_result(&self, request: &SwapResultRequest) -> Result<SwapResult, SwapperError> {
@@ -329,7 +318,7 @@ mod tests {
         AssetId, Chain,
         asset_constants::{POLYGON_USDC_ASSET_ID, TON_USDT_ASSET_ID},
     };
-    use serde_json::{Value, json};
+    use serde_json::json;
 
     fn status(json: &str) -> SwapResult {
         let transactions: Vec<ExplorerTransaction> = serde_json::from_str(json).unwrap();
@@ -356,17 +345,9 @@ mod tests {
         let provider = NearIntents::new(Arc::new(ProviderMock::new(include_str!("testdata/quote_hypercore_to_ethereum_usdc.json").to_string())));
         let quote = provider.get_quote(&mock_hypercore_quote_request()).await.unwrap();
         let data = provider.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
-        let payload: Value = serde_json::from_str(&data.data).unwrap();
 
         assert_eq!(quote.from_value, BigUint::from(10002430500_u64));
-        assert_eq!(payload["message"]["amount"], "100.024305");
-        assert_eq!(
-            data,
-            SwapperQuoteData {
-                data: data.data.clone(),
-                ..SwapperQuoteData::new_transfer("0x1085c5f70F7F7591D97da281A64688385455c2bD".into(), BigUint::from(10002430500_u64), None)
-            }
-        );
+        assert_eq!(data, SwapperQuoteData::new_transfer("0x1085c5f70F7F7591D97da281A64688385455c2bD".into(), BigUint::from(10002430500_u64), None));
     }
 
     #[tokio::test]
