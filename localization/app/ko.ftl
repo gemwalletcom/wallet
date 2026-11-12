@@ -455,7 +455,7 @@ private_key_export_reminder_keep_safe_subtitle = 키를 가진 사람은 누구�
 private_key_export_reminder_do_not_share_subtitle = 어떤 사람, 웹사이트, 앱도 이 키를 요구해서는 안 됩니다.
 private_key_export_reminder_no_recovery_title = 도난당한 자금은 되돌릴 수 없습니다
 private_key_export_reminder_no_recovery_subtitle = 누군가 자금을 가져가면 되돌릴 수 없습니다.
-private_key_scope_evm = 이 키는 모든 EVM 네트워크의 계정도 제어합니다.
+private_key_scope_shared = 이 키는 %@ 네트워크의 계정도 제어합니다.
 private_key_accounts_info = 비밀 문구로 이미 이 계정들이 백업되어 있습니다. 다른 지갑에서 계정 하나를 사용할 때만 키를 내보내세요.
 
 # Social

@@ -386,7 +386,7 @@
   <string name="private_key_export_reminder_do_not_share_subtitle">ไม่ควรมีบุคคล เว็บไซต์ หรือแอปใดขอคีย์นี้จากคุณ</string>
   <string name="private_key_export_reminder_no_recovery_title">เราไม่สามารถย้อนกลับการโจรกรรมได้</string>
   <string name="private_key_export_reminder_no_recovery_subtitle">หากมีผู้นำเงินของคุณไป จะไม่สามารถคืนได้</string>
-  <string name="private_key_scope_evm">คีย์นี้ยังควบคุมบัญชีของคุณบนเครือข่าย EVM ทั้งหมดด้วย</string>
+  <string name="private_key_scope_shared">คีย์นี้ยังควบคุมบัญชีของคุณบนเครือข่าย %1$s ด้วย</string>
   <string name="private_key_accounts_info">วลีลับของคุณสำรองบัญชีเหล่านี้ไว้แล้ว ส่งออกคีย์เฉพาะเมื่อต้องการใช้บัญชีเดียวในกระเป๋าเงินอื่น</string>
   <string name="social_x">X (เดิมคือ Twitter)</string>
   <string name="social_discord">Discord</string>

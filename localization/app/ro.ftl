@@ -455,7 +455,7 @@ private_key_export_reminder_keep_safe_subtitle = Oricine o are poate folosi aces
 private_key_export_reminder_do_not_share_subtitle = Nicio persoană, site web sau aplicație nu ar trebui să ți-o ceară.
 private_key_export_reminder_no_recovery_title = Nu putem anula un furt
 private_key_export_reminder_no_recovery_subtitle = Dacă cineva îți ia fondurile, acestea nu pot fi returnate.
-private_key_scope_evm = Această cheie controlează și conturile tale din toate rețelele EVM.
+private_key_scope_shared = Această cheie controlează și conturile tale din rețelele %@.
 private_key_accounts_info = Expresia ta secretă face deja backup acestor conturi. Exportă o cheie doar pentru a folosi un cont într-un alt portofel.
 
 # Social

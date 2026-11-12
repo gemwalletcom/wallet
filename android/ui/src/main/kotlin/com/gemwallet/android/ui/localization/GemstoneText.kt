@@ -758,10 +758,9 @@ fun GemFiatButtonAction.stringRes(): Int = when (this) {
     GemFiatButtonAction.RETRY_QUOTE -> R.string.common_try_again
 }
 
-@StringRes
-fun GemPrivateKeyScope.stringRes(): Int? = when (this) {
-    GemPrivateKeyScope.ONE_CHAIN -> null
-    GemPrivateKeyScope.EVM_CHAINS -> R.string.private_key_scope_evm
+fun GemPrivateKeyScope.string(context: Context): String? = when (this) {
+    GemPrivateKeyScope.OneChain -> null
+    is GemPrivateKeyScope.SharedChains -> context.getString(R.string.private_key_scope_shared, networkNames)
 }
 
 @StringRes

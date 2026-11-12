@@ -455,7 +455,7 @@ private_key_export_reminder_keep_safe_subtitle = يمكن لأي شخص يملك
 private_key_export_reminder_do_not_share_subtitle = لا ينبغي لأي شخص أو موقع أو تطبيق أن يطلبه منك.
 private_key_export_reminder_no_recovery_title = لا يمكننا التراجع عن السرقة
 private_key_export_reminder_no_recovery_subtitle = إذا أخذ أحدٌ أموالك، فلا يمكن إرجاعها.
-private_key_scope_evm = يتحكم هذا المفتاح أيضًا في حساباتك على جميع شبكات EVM.
+private_key_scope_shared = يتحكم هذا المفتاح أيضًا في حساباتك على شبكات %@.
 private_key_accounts_info = عبارتك السرية تحتفظ بنسخة احتياطية من هذه الحسابات بالفعل. صدّر مفتاحًا فقط لاستخدام حساب واحد في محفظة أخرى.
 
 # Social

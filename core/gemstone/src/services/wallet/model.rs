@@ -236,10 +236,10 @@ pub struct GemPrivateKeyAccount {
     pub address: String,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
+#[derive(Debug, Clone, PartialEq, Eq, uniffi::Enum)]
 pub enum GemPrivateKeyScope {
     OneChain,
-    EvmChains,
+    SharedChains { network_names: String },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]

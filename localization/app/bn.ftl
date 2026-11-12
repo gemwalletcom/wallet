@@ -455,7 +455,7 @@ private_key_export_reminder_keep_safe_subtitle = যার কাছে এট�
 private_key_export_reminder_do_not_share_subtitle = কোনো ব্যক্তি, ওয়েবসাইট বা অ্যাপের এটি চাওয়া উচিত নয়।
 private_key_export_reminder_no_recovery_title = চুরি হওয়া তহবিল আমরা ফেরাতে পারি না
 private_key_export_reminder_no_recovery_subtitle = কেউ আপনার তহবিল নিয়ে গেলে তা আর ফেরত পাওয়া যাবে না।
-private_key_scope_evm = এই কী সব EVM নেটওয়ার্কে আপনার অ্যাকাউন্টগুলোও নিয়ন্ত্রণ করে।
+private_key_scope_shared = এই কী %@ নেটওয়ার্কে আপনার অ্যাকাউন্টগুলোও নিয়ন্ত্রণ করে।
 private_key_accounts_info = আপনার গোপন বাক্যাংশ ইতিমধ্যে এই অ্যাকাউন্টগুলোর ব্যাকআপ রাখে। শুধু অন্য ওয়ালেটে একটি অ্যাকাউন্ট ব্যবহার করতে কী এক্সপোর্ট করুন।
 
 # Social

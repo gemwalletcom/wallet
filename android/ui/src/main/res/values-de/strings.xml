@@ -386,7 +386,7 @@
   <string name="private_key_export_reminder_do_not_share_subtitle">Keine Person, Website oder App sollte danach fragen.</string>
   <string name="private_key_export_reminder_no_recovery_title">Wir können einen Diebstahl nicht rückgängig machen</string>
   <string name="private_key_export_reminder_no_recovery_subtitle">Wenn jemand Ihr Guthaben abzieht, kann es nicht zurückgeholt werden.</string>
-  <string name="private_key_scope_evm">Dieser Schlüssel steuert auch Ihre Konten in allen EVM-Netzwerken.</string>
+  <string name="private_key_scope_shared">Dieser Schlüssel steuert auch Ihre Konten in den Netzwerken %1$s.</string>
   <string name="private_key_accounts_info">Ihre geheime Phrase sichert diese Konten bereits. Exportieren Sie einen Schlüssel nur, um ein Konto in einer anderen Wallet zu nutzen.</string>
   <string name="social_x">X (ehemals Twitter)</string>
   <string name="social_discord">Discord</string>

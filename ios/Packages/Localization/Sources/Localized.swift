@@ -1113,8 +1113,10 @@ public enum Localized {
       }
     }
     public enum Scope {
-      /// This key also controls your accounts on all EVM networks.
-      public static let evm = Localized.tr("Localizable", "private_key.scope.evm", fallback: "This key also controls your accounts on all EVM networks.")
+      /// This key also controls your accounts on the %@ networks.
+      public static func shared(_ p1: Any) -> String {
+        return Localized.tr("Localizable", "private_key.scope.shared", String(describing: p1), fallback: "This key also controls your accounts on the %@ networks.")
+      }
     }
     public enum ScreenshotDetected {
       /// Screenshots may be accessible to other apps, they can put your private key at risk if saved this way.

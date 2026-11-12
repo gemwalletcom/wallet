@@ -94,7 +94,7 @@ flowchart LR
 | A Secret Phrase wallet lists accounts for a private key | only networks whose raw key another wallet can import; no Bitcoin-family or Cardano account, EVM networks one row each | a Bitcoin key would be raw, not WIF, and Cardano has no raw-key import |
 | A NEAR private key is exported | `ed25519:` followed by base58 of the 64-byte keypair (seed followed by public key) | uses the NEAR key format |
 | A Solana private key is exported | base58 of the 64-byte keypair (seed followed by public key), for both Secret Phrase and imported-key wallets | other wallets can import the same account |
-| A private key is shown | its warning names the key, not the Secret Phrase; when the wallet holds another account on a network sharing the key, it adds that the key also controls the wallet's accounts on all EVM networks | one key unlocks every network that shares its derivation path; a single-network wallet has no other account to warn about |
+| A private key is shown | its warning names the key, not the Secret Phrase; when the wallet holds another account on a network sharing the key's derivation path, it adds that the key also controls the wallet's accounts on those networks, named EVM for the EVM family and listed by network name otherwise | one key unlocks every network that shares its derivation path; a single-network wallet has no other account to warn about |
 | A wallet imported from a private key shows its key | the security reminders and the warning above the key name the private key, never the Secret Phrase | the phrase wording on a key screen misled users (#1394) |
 | A wallet is deleted | the app switches to the next wallet: Multi-Coin first, then the oldest | |
 | The last wallet is deleted | the app returns to onboarding | |

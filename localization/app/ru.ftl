@@ -455,7 +455,7 @@ private_key_export_reminder_keep_safe_subtitle = Любой, у кого он е
 private_key_export_reminder_do_not_share_subtitle = Ни люди, ни сайты, ни приложения не должны его запрашивать.
 private_key_export_reminder_no_recovery_title = Мы не можем отменить кражу
 private_key_export_reminder_no_recovery_subtitle = Если кто-то заберёт ваши средства, вернуть их будет невозможно.
-private_key_scope_evm = Этот ключ также управляет вашими аккаунтами во всех сетях EVM.
+private_key_scope_shared = Этот ключ также управляет вашими аккаунтами в сетях %@.
 private_key_accounts_info = Ваша секретная фраза уже служит резервной копией этих аккаунтов. Экспортируйте ключ, только чтобы использовать один аккаунт в другом кошельке.
 
 # Social

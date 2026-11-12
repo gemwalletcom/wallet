@@ -455,7 +455,7 @@ private_key_export_reminder_keep_safe_subtitle = כל מי שמחזיק בו י�
 private_key_export_reminder_do_not_share_subtitle = אף אדם, אתר או אפליקציה לא אמורים לבקש אותו.
 private_key_export_reminder_no_recovery_title = איננו יכולים לבטל גניבה
 private_key_export_reminder_no_recovery_subtitle = אם מישהו ייקח את הכספים שלך, לא ניתן להחזיר אותם.
-private_key_scope_evm = מפתח זה שולט גם בחשבונות שלך בכל רשתות EVM.
+private_key_scope_shared = מפתח זה שולט גם בחשבונות שלך ברשתות %@.
 private_key_accounts_info = הביטוי הסודי שלך כבר מגבה את החשבונות האלה. ייצא מפתח רק כדי להשתמש בחשבון אחד בארנק אחר.
 
 # Social

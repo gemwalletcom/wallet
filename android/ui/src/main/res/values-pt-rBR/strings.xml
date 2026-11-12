@@ -386,7 +386,7 @@
   <string name="private_key_export_reminder_do_not_share_subtitle">Nenhuma pessoa, site ou aplicativo deve pedi-la.</string>
   <string name="private_key_export_reminder_no_recovery_title">Não podemos reverter um roubo</string>
   <string name="private_key_export_reminder_no_recovery_subtitle">Se alguém levar seus fundos, eles não poderão ser devolvidos.</string>
-  <string name="private_key_scope_evm">Esta chave também controla suas contas em todas as redes EVM.</string>
+  <string name="private_key_scope_shared">Esta chave também controla suas contas nas redes %1$s.</string>
   <string name="private_key_accounts_info">Sua frase secreta já faz backup destas contas. Exporte uma chave apenas para usar uma conta em outra carteira.</string>
   <string name="social_x">X (ex-Twitter)</string>
   <string name="social_discord">Discord</string>

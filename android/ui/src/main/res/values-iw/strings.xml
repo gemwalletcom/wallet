@@ -386,7 +386,7 @@
   <string name="private_key_export_reminder_do_not_share_subtitle">אף אדם, אתר או אפליקציה לא אמורים לבקש אותו.</string>
   <string name="private_key_export_reminder_no_recovery_title">איננו יכולים לבטל גניבה</string>
   <string name="private_key_export_reminder_no_recovery_subtitle">אם מישהו ייקח את הכספים שלך, לא ניתן להחזיר אותם.</string>
-  <string name="private_key_scope_evm">מפתח זה שולט גם בחשבונות שלך בכל רשתות EVM.</string>
+  <string name="private_key_scope_shared">מפתח זה שולט גם בחשבונות שלך ברשתות %1$s.</string>
   <string name="private_key_accounts_info">הביטוי הסודי שלך כבר מגבה את החשבונות האלה. ייצא מפתח רק כדי להשתמש בחשבון אחד בארנק אחר.</string>
   <string name="social_x">X (לשעבר Twitter)</string>
   <string name="social_discord">Discord</string>

@@ -455,7 +455,7 @@ private_key_export_reminder_keep_safe_subtitle = Sinumang may hawak nito ay maga
 private_key_export_reminder_do_not_share_subtitle = Walang tao, website, o app ang dapat humingi nito.
 private_key_export_reminder_no_recovery_title = Hindi Namin Mababawi ang Ninakaw
 private_key_export_reminder_no_recovery_subtitle = Kapag kinuha ng iba ang iyong pondo, hindi na ito maibabalik.
-private_key_scope_evm = Kontrolado rin ng susing ito ang iyong mga account sa lahat ng EVM network.
+private_key_scope_shared = Kontrolado rin ng susing ito ang iyong mga account sa mga network ng %@.
 private_key_accounts_info = Naka-back up na ang mga account na ito sa iyong Lihim na Parirala. Mag-export lang ng susi para gamitin ang isang account sa ibang wallet.
 
 # Social

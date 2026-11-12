@@ -455,7 +455,7 @@ private_key_export_reminder_keep_safe_subtitle = Bất kỳ ai có nó đều c�
 private_key_export_reminder_do_not_share_subtitle = Không người, trang web hay ứng dụng nào nên yêu cầu nó.
 private_key_export_reminder_no_recovery_title = Chúng tôi không thể đảo ngược vụ trộm
 private_key_export_reminder_no_recovery_subtitle = Nếu ai đó lấy tiền của bạn, số tiền đó không thể được trả lại.
-private_key_scope_evm = Khóa này cũng kiểm soát các tài khoản của bạn trên tất cả mạng EVM.
+private_key_scope_shared = Khóa này cũng kiểm soát các tài khoản của bạn trên mạng %@.
 private_key_accounts_info = Cụm từ bí mật của bạn đã sao lưu các tài khoản này. Chỉ xuất khóa để dùng một tài khoản trong ví khác.
 
 # Social

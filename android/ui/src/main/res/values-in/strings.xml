@@ -386,7 +386,7 @@
   <string name="private_key_export_reminder_do_not_share_subtitle">Tidak ada orang, situs web, atau aplikasi yang seharusnya memintanya.</string>
   <string name="private_key_export_reminder_no_recovery_title">Kami Tidak Dapat Membatalkan Pencurian</string>
   <string name="private_key_export_reminder_no_recovery_subtitle">Jika seseorang mengambil dana Anda, dana tersebut tidak dapat dikembalikan.</string>
-  <string name="private_key_scope_evm">Kunci ini juga mengendalikan akun Anda di semua jaringan EVM.</string>
+  <string name="private_key_scope_shared">Kunci ini juga mengendalikan akun Anda di jaringan %1$s.</string>
   <string name="private_key_accounts_info">Frasa Rahasia Anda sudah mencadangkan akun-akun ini. Ekspor kunci hanya untuk memakai satu akun di dompet lain.</string>
   <string name="social_x">X (sebelumnya Twitter)</string>
   <string name="social_discord">Discord</string>

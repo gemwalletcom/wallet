@@ -386,7 +386,7 @@
   <string name="private_key_export_reminder_do_not_share_subtitle">Aucune personne, aucun site web ni aucune application ne doit vous la demander.</string>
   <string name="private_key_export_reminder_no_recovery_title">Nous ne pouvons pas annuler un vol</string>
   <string name="private_key_export_reminder_no_recovery_subtitle">Si quelqu\'un prend vos fonds, ils ne peuvent pas être restitués.</string>
-  <string name="private_key_scope_evm">Cette clé contrôle aussi vos comptes sur tous les réseaux EVM.</string>
+  <string name="private_key_scope_shared">Cette clé contrôle aussi vos comptes sur les réseaux %1$s.</string>
   <string name="private_key_accounts_info">Votre phrase secrète sauvegarde déjà ces comptes. Exportez une clé uniquement pour utiliser un compte dans un autre portefeuille.</string>
   <string name="social_x">X (anciennement Twitter)</string>
   <string name="social_discord">Discord</string>

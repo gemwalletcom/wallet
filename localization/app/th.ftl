@@ -455,7 +455,7 @@ private_key_export_reminder_keep_safe_subtitle = ใครก็ตามที�
 private_key_export_reminder_do_not_share_subtitle = ไม่ควรมีบุคคล เว็บไซต์ หรือแอปใดขอคีย์นี้จากคุณ
 private_key_export_reminder_no_recovery_title = เราไม่สามารถย้อนกลับการโจรกรรมได้
 private_key_export_reminder_no_recovery_subtitle = หากมีผู้นำเงินของคุณไป จะไม่สามารถคืนได้
-private_key_scope_evm = คีย์นี้ยังควบคุมบัญชีของคุณบนเครือข่าย EVM ทั้งหมดด้วย
+private_key_scope_shared = คีย์นี้ยังควบคุมบัญชีของคุณบนเครือข่าย %@ ด้วย
 private_key_accounts_info = วลีลับของคุณสำรองบัญชีเหล่านี้ไว้แล้ว ส่งออกคีย์เฉพาะเมื่อต้องการใช้บัญชีเดียวในกระเป๋าเงินอื่น
 
 # Social
