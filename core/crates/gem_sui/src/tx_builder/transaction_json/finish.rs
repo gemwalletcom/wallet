@@ -1,8 +1,6 @@
 use std::collections::HashSet;
 
 use futures::try_join;
-use sui_transaction_builder::ObjectInput;
-use sui_types::{Address, Transaction};
 
 use super::{
     builder::digest,
@@ -16,6 +14,7 @@ use crate::{
     gas_budget::GAS_BUDGET_MULTIPLIER,
     models::{Coin, TxOutput},
     tx_builder::{TransactionBuilderInput, decode_transaction, finish_transaction},
+    types::{Address, ObjectInput, Transaction},
 };
 
 pub async fn finish_transaction_json(client: &SuiClient, transaction_json: &str, sender: &str) -> Result<TxOutput, SuiError> {
@@ -99,7 +98,7 @@ async fn gas_objects(client: &SuiClient, replay: &TransactionJsonReplay, gas_dat
 }
 
 fn payment_object(object: &ObjectRef) -> Result<ObjectInput, SuiError> {
-    Ok(ObjectInput::owned(SuiAddress::parse(&object.object_id)?.into(), object.version, digest(&object.digest)?))
+    Ok(ObjectInput::immutable_or_owned(SuiAddress::parse(&object.object_id)?.into(), object.version, digest(&object.digest)?))
 }
 
 /// Coin objects already consumed as transaction inputs cannot double as gas payment.
@@ -181,7 +180,7 @@ mod chain_integration_tests {
 
         let output = finish_transaction_json(&client, &transaction_json, TEST_ADDRESS).await?;
 
-        let transaction: sui_types::Transaction = bcs::from_bytes(&output.tx_data)?;
+        let transaction: Transaction = bcs::from_bytes(&output.tx_data)?;
         assert_eq!(transaction.sender.to_string(), TEST_ADDRESS);
         assert!(!transaction.gas_payment.objects.is_empty());
         assert!(transaction.gas_payment.budget > 0);
@@ -201,7 +200,7 @@ mod chain_integration_tests {
 
         let output = finish_transaction_json(&client, transaction_json, sender).await?;
 
-        let transaction: sui_types::Transaction = bcs::from_bytes(&output.tx_data)?;
+        let transaction: Transaction = bcs::from_bytes(&output.tx_data)?;
         assert_eq!(transaction.sender.to_string(), sender);
 
         // Dry run depends on the sender's live address balance, so only resolution and build are asserted.

@@ -5,14 +5,19 @@ use crate::{
 };
 use futures::future::join_all;
 use gem_sui::{
-    EMPTY_ADDRESS, ESTIMATION_GAS_BUDGET, SUI_COIN_TYPE, SUI_COIN_TYPE_FULL, SuiClient, address::SuiAddress, coin_type_matches, full_coin_type, gas_budget::GAS_BUDGET_MULTIPLIER, is_sui_coin, models::TxOutput, tx_builder::ObjectResolver,
+    EMPTY_ADDRESS, ESTIMATION_GAS_BUDGET, SUI_COIN_TYPE, SUI_COIN_TYPE_FULL, SuiClient,
+    address::SuiAddress,
+    coin_type_matches, full_coin_type,
+    gas_budget::GAS_BUDGET_MULTIPLIER,
+    is_sui_coin,
+    models::TxOutput,
+    tx_builder::{Argument, ObjectResolver, TransactionBuilder},
+    types::{Address, ObjectInput, TransactionKind},
 };
 use num_bigint::BigUint;
 use primitives::hex;
 use primitives::{Address as AddressTrait, AssetId, asset_constants::SUI_USDC_TOKEN_ID};
 use std::collections::HashMap;
-use sui_transaction_builder::{Argument, ObjectInput, TransactionBuilder};
-use sui_types::{Address, Digest};
 
 const PRIMARY_COIN_TYPES: &[&str] = &[SUI_COIN_TYPE_FULL, SUI_USDC_TOKEN_ID];
 
@@ -161,13 +166,9 @@ pub(crate) fn shared_object_input(object_id: &str, initial_shared_version: u64, 
     Ok(ObjectInput::shared(address, initial_shared_version, mutable))
 }
 
-pub(crate) fn inspect_transaction_kind_bytes(mut txb: TransactionBuilder) -> Result<Vec<u8>, SwapperError> {
-    txb.set_sender(SuiAddress::from_str(EMPTY_ADDRESS).map(Address::from)?);
-    txb.set_gas_price(0);
-    txb.set_gas_budget(0);
-    txb.add_gas_objects(vec![ObjectInput::owned(Address::ZERO, 0, Digest::ZERO)]);
-    let tx = txb.try_build().map_err(SwapperError::compute_quote_error)?;
-    bcs::to_bytes(&tx.kind).map_err(SwapperError::compute_quote_error)
+pub(crate) fn inspect_transaction_kind_bytes(txb: TransactionBuilder) -> Result<Vec<u8>, SwapperError> {
+    let kind = TransactionKind::ProgrammableTransaction(txb.build().map_err(SwapperError::compute_quote_error)?);
+    bcs::to_bytes(&kind).map_err(SwapperError::compute_quote_error)
 }
 
 #[cfg(test)]

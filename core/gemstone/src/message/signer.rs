@@ -1,5 +1,3 @@
-use std::borrow::Cow;
-
 use bs58;
 use gem_bitcoin::signer::message as bitcoin_message;
 use gem_encoding::encode_base64;
@@ -7,14 +5,13 @@ use gem_evm::eip712::hash_typed_data;
 use gem_evm::message::eip191_hash_message;
 use gem_evm::siwe::SiweMessage;
 use gem_solana::{signer::SolanaChainSigner, siws::SiwsMessage};
-use gem_sui::signer as sui_signer;
+use gem_sui::{signer as sui_signer, types::personal_message_signing_digest};
 use gem_ton::address::Address as TonAddress;
 use gem_ton::signer::{TonSignDataResponse, TonSignMessageData, TonSignResult, TonSigner};
 use primitives::hex;
 use primitives::hex::encode_with_0x;
 use primitives::unix_seconds;
 use signer::Signer;
-use sui_types::PersonalMessage;
 
 use super::{
     eip712::GemEIP712Message,
@@ -73,10 +70,7 @@ impl MessageSigner {
 
     fn hash(&self) -> Result<Vec<u8>, GemstoneError> {
         match &self.message.sign_type {
-            SignDigestType::SuiPersonal => {
-                let message = PersonalMessage(Cow::Borrowed(&self.message.data));
-                Ok(message.signing_digest().to_vec())
-            }
+            SignDigestType::SuiPersonal => personal_message_signing_digest(&self.message.data).map(|digest| digest.to_vec()).map_err(|error| GemstoneError::from(error.to_string())),
             SignDigestType::TonPersonal => {
                 let string = self.data_as_utf8()?;
                 let ton_data = TonSignMessageData::from_bytes(string.as_bytes())?;
@@ -341,12 +335,10 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
         let decoder = MessageSigner::new(SignMessage {
             chain: Chain::Sui,
             sign_type: SignDigestType::SuiPersonal,
-            data: data.clone(),
+            data,
         });
 
-        let hash = decoder.hash().unwrap();
-        let expected_hash = PersonalMessage(Cow::Owned(data)).signing_digest().to_vec();
-        assert_eq!(hash, expected_hash);
+        assert_eq!(hex::encode(decoder.hash().unwrap()), "b3a82fa7909fb9c9add005616e4024f8bc85a484a5623d44762db301cb2ad2d3");
     }
 
     #[test]

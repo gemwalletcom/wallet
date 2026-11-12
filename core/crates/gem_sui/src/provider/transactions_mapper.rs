@@ -1,4 +1,5 @@
 use crate::models::{BalanceChange, Digest, Event, EventStake, EventUnstake, GasUsed, STATUS_SUCCESS, TransactionBlocks};
+use crate::types::Address;
 use crate::{DEEPBOOK_ORDER_FILLED_EVENT, SUI_COIN_TYPE, SUI_STAKE_EVENT, SUI_UNSTAKE_EVENT, full_coin_type, sui_framework_package_address};
 use chain_primitives::{BalanceDiff, SwapMapper};
 use chrono::{TimeZone, Utc};
@@ -138,7 +139,7 @@ fn primary_contract<'a>(contracts: impl IntoIterator<Item = &'a str>) -> Option<
 }
 
 fn is_sui_framework_package(package: &str) -> bool {
-    package.parse::<sui_types::Address>().is_ok_and(|address| address == sui_framework_package_address())
+    package.parse::<Address>().is_ok_and(|address| address == sui_framework_package_address())
 }
 
 fn map_transfer_balance_changes<'a>(balance_changes: &'a [BalanceChange], fee: &BigUint) -> Option<(&'a BalanceChange, &'a BalanceChange)> {

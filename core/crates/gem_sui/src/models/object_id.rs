@@ -1,4 +1,4 @@
-use sui_types::Address;
+use crate::types::Address;
 
 pub struct ObjectId(pub Address);
 

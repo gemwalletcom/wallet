@@ -11,6 +11,7 @@ use crate::{
     fees::{FeeSide, ReferralFee, subtract_bps},
     sui_swap::{self, inspect_transaction_kind_bytes, package_address, pay_referral_fee, shared_object_input},
 };
+use gem_sui::tx_builder::{Argument, TransactionBuilder};
 use gem_sui::{
     ESTIMATION_GAS_BUDGET, SuiClient,
     models::{Coin, OwnedCoins, TxOutput},
@@ -18,7 +19,6 @@ use gem_sui::{
     tx_builder::{ObjectResolver, PrefetchedTransactionData, TransactionBuilderInput, balance_value, balance_zero, build_input_coin, destroy_zero_balance, finish_transaction, from_balance, into_balance, move_call},
 };
 use std::{collections::HashMap, fmt::Display};
-use sui_transaction_builder::{Argument, TransactionBuilder};
 
 #[derive(Clone)]
 pub(super) struct BuildInput<'a> {

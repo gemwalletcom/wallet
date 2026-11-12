@@ -1,10 +1,9 @@
 use crate::models::*;
+use crate::types::Address;
 use std::error::Error;
 use std::str::FromStr;
-use sui_transaction_builder::{ObjectInput, TransactionBuilder};
-use sui_types::{Address, TypeTag};
 
-use super::{TransactionBuilderInput, build_amount_coin, build_sui_amount_coin, build_sui_gas_coin, finish_transaction};
+use super::{TransactionBuilder, TransactionBuilderInput, build_amount_coin, build_sui_amount_coin, build_sui_gas_coin, finish_transaction};
 
 fn build_transfer_ptb(input: &TransferInput) -> Result<TransactionBuilder, Box<dyn Error + Send + Sync>> {
     if let Some(err) = crate::validate_enough_balance(&input.coins, input.amount) {
@@ -18,7 +17,7 @@ fn build_transfer_ptb(input: &TransferInput) -> Result<TransactionBuilder, Box<d
 
     let mut ptb = TransactionBuilder::new();
     let send_coin = if input.send_max {
-        build_sui_gas_coin(&mut ptb, input.coins.address_balance)
+        build_sui_gas_coin(&mut ptb, input.coins.address_balance)?
     } else {
         build_sui_amount_coin(&mut ptb, input.amount, input.coins.address_balance)?
     };
@@ -41,10 +40,9 @@ fn build_token_transfer_ptb(input: &TokenTransferInput) -> Result<TransactionBui
         return Err(err);
     }
 
-    let coin_type: TypeTag = tokens.coin_type.parse().map_err(|err| format!("invalid Sui token coin type {}: {err}", tokens.coin_type))?;
     let recipient = Address::from_str(&input.recipient)?;
     let mut ptb = TransactionBuilder::new();
-    let amount_coin = build_amount_coin(&mut ptb, coin_type, input.amount, tokens.address_balance, &tokens.coins)?;
+    let amount_coin = build_amount_coin(&mut ptb, &tokens.coin_type, input.amount, tokens.address_balance, &tokens.coins)?;
     let recipient_argument = ptb.pure(&recipient);
     ptb.transfer_objects(vec![amount_coin], recipient_argument);
 
@@ -53,16 +51,18 @@ fn build_token_transfer_ptb(input: &TokenTransferInput) -> Result<TransactionBui
 
 pub fn encode_token_transfer(input: &TokenTransferInput) -> Result<TxOutput, Box<dyn Error + Send + Sync>> {
     let ptb = build_token_transfer_ptb(input)?;
-    let gas_coin = ObjectInput::immutable(input.gas_coin.object.object_id, input.gas_coin.object.version, input.gas_coin.object.digest);
-    finish_transaction(ptb, TransactionBuilderInput::new(input.sender.as_str(), input.gas.price, input.gas.budget, vec![gas_coin])).map_err(|err| Box::new(err) as Box<dyn Error + Send + Sync>)
+    finish_transaction(ptb, TransactionBuilderInput::new(input.sender.as_str(), input.gas.price, input.gas.budget, vec![input.gas_coin.to_input()])).map_err(|err| Box::new(err) as Box<dyn Error + Send + Sync>)
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::{SUI_COIN_TYPE, tx_builder::decode_transaction};
+    use crate::{
+        SUI_COIN_TYPE,
+        tx_builder::decode_transaction,
+        types::{Argument, Command, Input, ObjectInput, ProgrammableTransaction, Transaction, TransactionKind, WithdrawalReservation},
+    };
     use gem_encoding::encode_base64;
-    use primitives::asset_constants::SUI_USDC_TOKEN_ID;
-    use sui_types::{Argument, Command, Input, ObjectReference, ProgrammableTransaction, Transaction, TransactionKind};
+    use primitives::{asset_constants::SUI_USDC_TOKEN_ID, hex};
 
     use super::*;
 
@@ -165,14 +165,11 @@ mod tests {
 
         let output = encode_token_transfer(&input).unwrap();
         let tx: Transaction = bcs::from_bytes(&output.tx_data).unwrap();
-        match tx.kind {
-            sui_types::TransactionKind::ProgrammableTransaction(ptb) => {
-                assert_eq!(ptb.inputs.len(), 2, "expected withdrawal + recipient inputs only");
-                assert!(matches!(ptb.inputs[0], sui_types::Input::FundsWithdrawal(_)), "first input must be FundsWithdrawal");
-                assert_eq!(ptb.commands.len(), 2, "expected redeem_funds + transfer_objects");
-            }
-            _ => panic!("expected ProgrammableTransaction"),
-        }
+        let ptb = programmable(&tx);
+        assert_eq!(ptb.inputs.len(), 2, "expected withdrawal + recipient inputs only");
+        assert_eq!(withdrawals(ptb), vec![200_000_000]);
+        assert_eq!(ptb.commands.len(), 2, "expected redeem_funds + transfer_objects");
+        assert_eq!(hex::encode(&output.hash), "75ba0d1491c96a4d88be5ad9591a46cb89aad7f7098918075fd1e7b308bbfa6c");
     }
 
     #[test]
@@ -200,22 +197,10 @@ mod tests {
 
         let output = encode_token_transfer(&input).unwrap();
         let tx: Transaction = bcs::from_bytes(&output.tx_data).unwrap();
-        match tx.kind {
-            sui_types::TransactionKind::ProgrammableTransaction(ptb) => {
-                assert!(ptb.inputs.iter().any(|inp| matches!(inp, sui_types::Input::FundsWithdrawal(_))));
-                assert!(ptb.inputs.iter().any(|inp| matches!(inp, sui_types::Input::ImmutableOrOwned(_))));
-                let withdrawals: Vec<u64> = ptb
-                    .inputs
-                    .iter()
-                    .filter_map(|inp| match inp {
-                        sui_types::Input::FundsWithdrawal(w) => w.amount(),
-                        _ => None,
-                    })
-                    .collect();
-                assert_eq!(withdrawals, vec![50_000_000], "expected shortfall withdrawal only");
-            }
-            _ => panic!("expected ProgrammableTransaction"),
-        }
+        let ptb = programmable(&tx);
+        assert_eq!(ptb.inputs.iter().filter(|input| matches!(input, Input::Object(ObjectInput::ImmutableOrOwned(_)))).count(), 1);
+        assert_eq!(withdrawals(ptb), vec![50_000_000], "expected shortfall withdrawal only");
+        assert_eq!(hex::encode(&output.hash), "e5ad196a29958d2230434e50274483123399b56005b131d9c2e203fa61893da3");
     }
 
     #[test]
@@ -232,7 +217,7 @@ mod tests {
         assert!(err.to_string().contains("No SUI coins available for gas"), "got: {err}");
     }
 
-    fn native_transfer(amount: u64, address_balance: u64, send_max: bool) -> (Transaction, Coin) {
+    fn native_transfer(amount: u64, address_balance: u64, send_max: bool) -> (Transaction, Coin, String) {
         let coin = Coin {
             coin_type: SUI_COIN_TYPE.into(),
             balance: 5_000_000_000,
@@ -247,22 +232,23 @@ mod tests {
             gas: Gas { budget: 25_000_000, price: 750 },
         })
         .unwrap();
-        (bcs::from_bytes(&output.tx_data).unwrap(), coin)
+        (bcs::from_bytes(&output.tx_data).unwrap(), coin, hex::encode(&output.hash))
     }
 
     fn programmable(transaction: &Transaction) -> &ProgrammableTransaction {
-        match &transaction.kind {
-            TransactionKind::ProgrammableTransaction(ptb) => ptb,
-            _ => panic!("expected ProgrammableTransaction"),
-        }
+        let TransactionKind::ProgrammableTransaction(ptb) = &transaction.kind;
+        ptb
     }
 
-    fn withdrawals(ptb: &ProgrammableTransaction) -> Vec<Option<u64>> {
+    fn withdrawals(ptb: &ProgrammableTransaction) -> Vec<u64> {
         ptb.inputs
             .iter()
             .filter_map(|input| match input {
-                Input::FundsWithdrawal(withdrawal) => Some(withdrawal.amount()),
-                _ => None,
+                Input::FundsWithdrawal(withdrawal) => {
+                    let WithdrawalReservation::MaxAmount(amount) = withdrawal.reservation;
+                    Some(amount)
+                }
+                Input::Pure(_) | Input::Object(_) => None,
             })
             .collect()
     }
@@ -281,29 +267,32 @@ mod tests {
 
     #[test]
     fn test_encode_native_transfer_max_sends_coins_and_address_balance() {
-        let (transaction, coin) = native_transfer(9_000_000_000, 4_000_000_000, true);
+        let (transaction, coin, hash) = native_transfer(9_000_000_000, 4_000_000_000, true);
         let ptb = programmable(&transaction);
 
-        assert_eq!(transaction.gas_payment.objects, vec![ObjectReference::new(coin.object.object_id, coin.object.version, coin.object.digest)]);
-        assert_eq!(withdrawals(ptb), vec![Some(4_000_000_000)]);
+        assert_eq!(transaction.gas_payment.objects.iter().copied().map(ObjectInput::ImmutableOrOwned).collect::<Vec<_>>(), vec![coin.to_input()]);
+        assert_eq!(withdrawals(ptb), vec![4_000_000_000]);
         assert_eq!(gas_commands(ptb), vec!["merge into gas", "transfer gas"]);
+        assert_eq!(hash, "6046067386026e8be81984e084a5768b88bb7105d0984b201c1b4e40eec5e91c");
     }
 
     #[test]
     fn test_encode_native_transfer_combines_coins_and_address_balance() {
-        let (transaction, _) = native_transfer(8_000_000_000, 4_000_000_000, false);
+        let (transaction, _, hash) = native_transfer(8_000_000_000, 4_000_000_000, false);
         let ptb = programmable(&transaction);
 
-        assert_eq!(withdrawals(ptb), vec![Some(4_000_000_000)]);
+        assert_eq!(withdrawals(ptb), vec![4_000_000_000]);
         assert_eq!(gas_commands(ptb), vec!["merge into gas", "split gas"]);
+        assert_eq!(hash, "51888e4fb959d993a7d7aa337e95feb2430b934f9a2b1fe503ce393c6f626244");
     }
 
     #[test]
     fn test_encode_native_transfer_from_address_balance() {
-        let (transaction, _) = native_transfer(3_000_000_000, 4_000_000_000, false);
+        let (transaction, _, hash) = native_transfer(3_000_000_000, 4_000_000_000, false);
         let ptb = programmable(&transaction);
 
-        assert_eq!(withdrawals(ptb), vec![Some(3_000_000_000)]);
+        assert_eq!(withdrawals(ptb), vec![3_000_000_000]);
         assert_eq!(gas_commands(ptb), Vec::<&str>::new());
+        assert_eq!(hash, "0220745f77a367d0c01a9d14284b8d1fcb34dad0717117944083e05e25f008a3");
     }
 }

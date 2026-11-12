@@ -1,9 +1,12 @@
 use super::model::{FundsWithdrawalInput, TransactionArgument, TransactionCommand, TransactionInput, TransactionObject, WithdrawalReservation, WithdrawalSource, WithdrawalTypeArg};
-use crate::{SuiError, address::SuiAddress, tx_builder::move_call as sui_move_call};
+use crate::{
+    SuiError,
+    address::SuiAddress,
+    tx_builder::{Argument, TransactionBuilder, move_call as sui_move_call},
+    types::{Digest, ObjectInput, TypeTag},
+};
 use gem_encoding::decode_base64;
 use std::{collections::HashMap, str::FromStr};
-use sui_transaction_builder::{Argument, ObjectInput, TransactionBuilder};
-use sui_types::{Digest, TypeTag};
 
 pub(super) enum CommandOutput {
     Single(Argument),
@@ -13,7 +16,7 @@ pub(super) enum CommandOutput {
 
 pub(super) fn replay_input(txb: &mut TransactionBuilder, index: usize, input: &TransactionInput, object_inputs: &HashMap<usize, ObjectInput>) -> Result<Argument, SuiError> {
     match input {
-        TransactionInput::Pure { pure } => Ok(txb.pure_bytes_unique(decode_base64(&pure.bytes).map_err(|err| SuiError::invalid_input(format!("Invalid Sui transaction encoding: {err}")))?)),
+        TransactionInput::Pure { pure } => Ok(txb.pure_bytes(decode_base64(&pure.bytes).map_err(|err| SuiError::invalid_input(format!("Invalid Sui transaction encoding: {err}")))?)),
         TransactionInput::Object { object } => Ok(txb.object(object_input(object)?)),
         TransactionInput::UnresolvedObject { .. } => Ok(txb.object(object_inputs.get(&index).cloned().ok_or_else(|| SuiError::invalid_input("Missing resolved Sui object input"))?)),
         TransactionInput::FundsWithdrawal { funds_withdrawal } => funds_withdrawal_input(txb, funds_withdrawal),
@@ -27,8 +30,7 @@ fn funds_withdrawal_input(txb: &mut TransactionBuilder, funds_withdrawal: &Funds
     };
     let WithdrawalReservation::MaxAmountU64 { max_amount } = funds_withdrawal.reservation;
     let WithdrawalTypeArg::Balance { balance } = &funds_withdrawal.type_arg;
-    let coin_type: TypeTag = balance.parse().map_err(|err| SuiError::invalid_input(format!("Invalid Sui withdrawal balance type {balance}: {err}")))?;
-    Ok(txb.funds_withdrawal(coin_type, max_amount))
+    Ok(txb.funds_withdrawal(balance.parse()?, max_amount))
 }
 
 pub(super) fn replay_command(txb: &mut TransactionBuilder, command: TransactionCommand, inputs: &[Argument], outputs: &[CommandOutput]) -> Result<CommandOutput, SuiError> {
@@ -57,12 +59,7 @@ pub(super) fn replay_command(txb: &mut TransactionBuilder, command: TransactionC
             Ok(CommandOutput::Empty)
         }
         TransactionCommand::MakeMoveVec { make_move_vec } => {
-            let type_ = make_move_vec
-                .r#type
-                .as_deref()
-                .map(TypeTag::from_str)
-                .transpose()
-                .map_err(|err| SuiError::invalid_input(format!("Invalid Sui MakeMoveVec type: {err}")))?;
+            let type_ = make_move_vec.r#type.as_deref().map(TypeTag::from_str).transpose()?;
             let elements = make_move_vec.elements.iter().map(|argument| input_or_output_argument(txb, argument, inputs, outputs)).collect::<Result<Vec<_>, _>>()?;
             Ok(CommandOutput::Single(txb.make_move_vec(type_, elements)))
         }
@@ -80,10 +77,9 @@ pub(super) fn output_argument(argument: &TransactionArgument, outputs: &[Command
         TransactionArgument::NestedResult { nested_result } => {
             let output = outputs.get(nested_result[0]).ok_or_else(|| SuiError::invalid_input("Missing Sui nested result argument"))?;
             match output {
-                CommandOutput::Single(argument) => argument
-                    .to_nested(nested_result[1] + 1)
-                    .get(nested_result[1])
-                    .copied()
+                CommandOutput::Single(argument) => u16::try_from(nested_result[1])
+                    .ok()
+                    .and_then(|index| argument.nested(index))
                     .ok_or_else(|| SuiError::invalid_input("Invalid Sui nested result argument")),
                 CommandOutput::Nested(arguments) => arguments.get(nested_result[1]).copied().ok_or_else(|| SuiError::invalid_input("Invalid Sui nested result argument")),
                 CommandOutput::Empty => Err(SuiError::invalid_input("Invalid Sui nested result argument")),
@@ -95,7 +91,7 @@ pub(super) fn output_argument(argument: &TransactionArgument, outputs: &[Command
 
 fn object_input(object: &TransactionObject) -> Result<ObjectInput, SuiError> {
     match object {
-        TransactionObject::ImmOrOwnedObject { object } => Ok(ObjectInput::owned(SuiAddress::parse(&object.object_id)?.into(), object.version, digest(&object.digest)?)),
+        TransactionObject::ImmOrOwnedObject { object } => Ok(ObjectInput::immutable_or_owned(SuiAddress::parse(&object.object_id)?.into(), object.version, digest(&object.digest)?)),
         TransactionObject::SharedObject { object } => Ok(ObjectInput::shared(SuiAddress::parse(&object.object_id)?.into(), object.initial_shared_version, object.mutable)),
         TransactionObject::Receiving { object } => Ok(ObjectInput::receiving(SuiAddress::parse(&object.object_id)?.into(), object.version, digest(&object.digest)?)),
     }
@@ -122,6 +118,22 @@ pub(super) fn digest(value: &str) -> Result<Digest, SuiError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_output_argument() {
+        let outputs = [CommandOutput::Single(Argument::Result(0)), CommandOutput::Nested(vec![Argument::NestedResult(1, 0)]), CommandOutput::Empty];
+        let nested = |nested_result| output_argument(&TransactionArgument::NestedResult { nested_result }, &outputs);
+
+        assert_eq!(nested([0, u16::MAX as usize]).unwrap(), Argument::NestedResult(0, u16::MAX));
+        assert_eq!(nested([1, 0]).unwrap(), Argument::NestedResult(1, 0));
+        assert_eq!(output_argument(&TransactionArgument::Result { result: 0 }, &outputs).unwrap(), Argument::Result(0));
+
+        assert!(nested([0, u16::MAX as usize + 1]).is_err());
+        assert!(nested([1, 1]).is_err());
+        assert!(nested([2, 0]).is_err());
+        assert!(nested([3, 0]).is_err());
+        assert!(output_argument(&TransactionArgument::Result { result: 1 }, &outputs).is_err());
+    }
 
     #[test]
     fn test_replay_funds_withdrawal_input() {

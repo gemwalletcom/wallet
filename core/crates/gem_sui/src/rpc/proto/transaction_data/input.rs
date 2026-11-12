@@ -1,7 +1,6 @@
 use gem_encoding::protobuf::proto_encode;
-use sui_types as sdk;
 
-use crate::rpc::proto::MessageResult;
+use crate::types;
 
 const INPUT_KIND_PURE: i32 = 1;
 const INPUT_KIND_IMMUTABLE_OR_OWNED: i32 = 2;
@@ -13,6 +12,7 @@ const MUTABILITY_IMMUTABLE: i32 = 1;
 const MUTABILITY_MUTABLE: i32 = 2;
 const MUTABILITY_NON_EXCLUSIVE_WRITE: i32 = 3;
 
+const SOURCE_UNKNOWN: i32 = 0;
 const SOURCE_SENDER: i32 = 1;
 const SOURCE_SPONSOR: i32 = 2;
 
@@ -40,48 +40,47 @@ impl Input {
         Self { pure: Some(value), ..Default::default() }
     }
 
-    pub(super) fn from_sdk(value: sdk::Input) -> MessageResult<Self> {
+    fn from_reference(kind: i32, reference: types::ObjectReference) -> Self {
+        Self {
+            kind: Some(kind),
+            object_id: Some(reference.object_id.to_string()),
+            version: Some(reference.version),
+            digest: Some(reference.digest.to_string()),
+            ..Default::default()
+        }
+    }
+}
+
+impl From<types::Input> for Input {
+    fn from(value: types::Input) -> Self {
         match value {
-            sdk::Input::Pure(value) => Ok(Self {
+            types::Input::Pure(value) => Self {
                 kind: Some(INPUT_KIND_PURE),
                 pure: Some(value),
                 ..Default::default()
-            }),
-            sdk::Input::ImmutableOrOwned(reference) => Ok(Self {
-                kind: Some(INPUT_KIND_IMMUTABLE_OR_OWNED),
-                object_id: Some(reference.object_id().to_string()),
-                version: Some(reference.version()),
-                digest: Some(reference.digest().to_string()),
-                ..Default::default()
-            }),
-            sdk::Input::Shared(shared) => {
-                let mutability = match shared.mutability() {
-                    sdk::Mutability::Immutable => MUTABILITY_IMMUTABLE,
-                    sdk::Mutability::Mutable => MUTABILITY_MUTABLE,
-                    sdk::Mutability::NonExclusiveWrite => MUTABILITY_NON_EXCLUSIVE_WRITE,
+            },
+            types::Input::Object(types::ObjectInput::ImmutableOrOwned(reference)) => Self::from_reference(INPUT_KIND_IMMUTABLE_OR_OWNED, reference),
+            types::Input::Object(types::ObjectInput::Receiving(reference)) => Self::from_reference(INPUT_KIND_RECEIVING, reference),
+            types::Input::Object(types::ObjectInput::Shared(shared)) => {
+                let (mutable, mutability) = match shared.mutability {
+                    types::Mutability::Immutable => (false, MUTABILITY_IMMUTABLE),
+                    types::Mutability::Mutable => (true, MUTABILITY_MUTABLE),
+                    types::Mutability::NonExclusiveWrite => (false, MUTABILITY_NON_EXCLUSIVE_WRITE),
                 };
-                Ok(Self {
+                Self {
                     kind: Some(INPUT_KIND_SHARED),
-                    object_id: Some(shared.object_id().to_string()),
-                    version: Some(shared.version()),
-                    mutable: Some(shared.mutability().is_mutable()),
+                    object_id: Some(shared.object_id.to_string()),
+                    version: Some(shared.initial_shared_version),
+                    mutable: Some(mutable),
                     mutability: Some(mutability),
                     ..Default::default()
-                })
+                }
             }
-            sdk::Input::Receiving(reference) => Ok(Self {
-                kind: Some(INPUT_KIND_RECEIVING),
-                object_id: Some(reference.object_id().to_string()),
-                version: Some(reference.version()),
-                digest: Some(reference.digest().to_string()),
-                ..Default::default()
-            }),
-            sdk::Input::FundsWithdrawal(withdrawal) => Ok(Self {
+            types::Input::FundsWithdrawal(withdrawal) => Self {
                 kind: Some(INPUT_KIND_FUNDS_WITHDRAWAL),
-                funds_withdrawal: Some(FundsWithdrawal::from_sdk(withdrawal)),
+                funds_withdrawal: Some(withdrawal.into()),
                 ..Default::default()
-            }),
-            _ => Err("unsupported Sui transaction input for protobuf encoding".into()),
+            },
         }
     }
 }
@@ -104,16 +103,18 @@ pub struct FundsWithdrawal {
     pub source: Option<i32>,
 }
 
-impl FundsWithdrawal {
-    fn from_sdk(value: sdk::FundsWithdrawal) -> Self {
-        let source = match value.source() {
-            sdk::WithdrawFrom::Sender => SOURCE_SENDER,
-            sdk::WithdrawFrom::Sponsor => SOURCE_SPONSOR,
-            _ => 0,
+impl From<types::FundsWithdrawal> for FundsWithdrawal {
+    fn from(value: types::FundsWithdrawal) -> Self {
+        let types::WithdrawalReservation::MaxAmount(amount) = value.reservation;
+        let types::WithdrawalType::Balance(coin_type) = value.type_arg;
+        let source = match value.withdraw_from {
+            types::WithdrawFrom::Sender => SOURCE_SENDER,
+            types::WithdrawFrom::Sponsor => SOURCE_SPONSOR,
+            types::WithdrawFrom::SenderAllowance { .. } => SOURCE_UNKNOWN,
         };
         Self {
-            amount: value.amount(),
-            coin_type: Some(value.coin_type().to_string()),
+            amount: Some(amount),
+            coin_type: Some(coin_type.to_string()),
             source: Some(source),
         }
     }

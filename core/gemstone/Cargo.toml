@@ -62,7 +62,6 @@ signer = { path = "../crates/signer" }
 number_formatter = { path = "../crates/number_formatter" }
 yielder = { path = "../crates/yielder" }
 
-sui-types = { workspace = true }
 gem_encoding = { path = "../crates/gem_encoding" }
 
 # uniffi

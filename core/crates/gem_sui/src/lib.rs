@@ -16,6 +16,7 @@ pub mod models;
 pub mod error;
 pub mod gas_budget;
 pub mod tx_builder;
+pub mod types;
 
 #[cfg(feature = "signer")]
 pub mod signer;
@@ -25,9 +26,8 @@ pub use error::SuiError;
 pub use models::ObjectId;
 use models::{Coin, OwnedCoins};
 use std::error::Error;
-use sui_transaction_builder::ObjectInput;
-use sui_types::Address;
 pub use tx_builder::{decode_transaction, stake::*, transfer::*, validate_and_hash};
+use types::{Address, ObjectInput};
 
 pub fn sui_framework_package_address() -> Address {
     ObjectId::from(SUI_FRAMEWORK_PACKAGE_ID).into()

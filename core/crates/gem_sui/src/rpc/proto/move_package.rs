@@ -1,6 +1,6 @@
-use sui_types::Address as SdkAddress;
-
 use gem_encoding::protobuf::{proto_decode, proto_encode};
+
+use crate::types::Address;
 
 #[derive(Clone, Debug, Default)]
 pub struct GetFunctionRequest {
@@ -10,7 +10,7 @@ pub struct GetFunctionRequest {
 }
 
 impl GetFunctionRequest {
-    pub fn new(package_id: &SdkAddress, module: &str, name: &str) -> Self {
+    pub fn new(package_id: &Address, module: &str, name: &str) -> Self {
         Self {
             package_id: Some(package_id.to_string()),
             module_name: Some(module.to_string()),

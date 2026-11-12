@@ -1,9 +1,7 @@
 use super::OwnedCoins;
-use bcs;
+use crate::types::{Address, Digest, ObjectInput, Transaction, transaction_signing_digest};
 use gem_encoding::encode_base64;
 use std::error::Error;
-use sui_transaction_builder::ObjectInput;
-use sui_types::{Address, Digest, Transaction};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Coin {
@@ -27,7 +25,7 @@ pub struct Object {
 
 impl Object {
     pub fn to_input(&self) -> ObjectInput {
-        ObjectInput::owned(self.object_id, self.version, self.digest)
+        ObjectInput::immutable_or_owned(self.object_id, self.version, self.digest)
     }
 }
 
@@ -82,9 +80,9 @@ pub struct TxOutput {
 
 impl TxOutput {
     pub fn from_tx(tx_data: &Transaction) -> Result<Self, Box<dyn Error + Send + Sync>> {
-        let digest = tx_data.signing_digest();
         let tx_data = bcs::to_bytes(tx_data)?;
-        Ok(Self { tx_data, hash: digest.to_vec() })
+        let hash = transaction_signing_digest(&tx_data).to_vec();
+        Ok(Self { tx_data, hash })
     }
 
     pub fn base64_encoded(&self) -> String {

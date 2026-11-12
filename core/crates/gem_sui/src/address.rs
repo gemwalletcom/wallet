@@ -1,8 +1,7 @@
 use primitives::Address as AddressTrait;
 use std::str::FromStr;
-use sui_types::Address;
 
-use crate::SuiError;
+use crate::{SuiError, types::Address};
 
 pub struct SuiAddress(Address);
 
@@ -18,7 +17,7 @@ impl SuiAddress {
     }
 
     pub fn from_bytes(bytes: &[u8]) -> Result<Self, SuiError> {
-        Address::from_bytes(bytes).map(Self).map_err(|error| SuiError::invalid_input(format!("Invalid Sui address bytes: {error}")))
+        Address::from_bytes(bytes).map(Self)
     }
 }
 
