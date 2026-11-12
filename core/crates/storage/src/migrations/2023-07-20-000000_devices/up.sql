@@ -24,6 +24,4 @@ CREATE TABLE devices (
     UNIQUE(identifier)
 );
 
-CREATE INDEX devices_token_idx ON devices (token);
-
 SELECT diesel_manage_updated_at('devices');
