@@ -225,4 +225,43 @@ struct MigrationsTests {
         #expect(accounts.map(\.address) == ["0xabc", "0xdef"])
         #expect(accounts.map(\.extendedPublicKey) == ["xpub", nil])
     }
+
+    @Test
+    func deprecatedChainsLeaveOnlyKeyWalletAccounts() throws {
+        let dbQueue = try DatabaseQueue()
+        var migrations = Migrations()
+        try migrations.run(dbQueue)
+        try migrations.runChanges(dbQueue)
+        try dbQueue.write { db in
+            try db.execute(sql: """
+            INSERT INTO \(WalletRecord.databaseTableName) (id, name, type) VALUES
+                ('multicoin_0x1', 'Main', 'multicoin'), ('view_blast_0xview', 'View', 'view'), ('privateKey_blast_0xkey', 'Key', 'privateKey');
+            INSERT INTO \(AssetRecord.databaseTableName) (id, chain, name, symbol, decimals, type) VALUES
+                ('ethereum', 'ethereum', 'Asset', 'AST', 18, 'NATIVE'), ('blast', 'blast', 'Asset', 'AST', 18, 'NATIVE'),
+                ('blast_0xtoken', 'blast', 'Asset', 'AST', 18, 'ERC20'), ('sei', 'sei', 'Asset', 'AST', 6, 'NATIVE'),
+                ('seievm', 'seievm', 'Asset', 'AST', 18, 'NATIVE'), ('seievm_0xtoken', 'seievm', 'Asset', 'AST', 18, 'ERC20');
+            INSERT INTO \(AccountRecord.databaseTableName) (walletId, chain, address, derivationPath) VALUES
+                ('multicoin_0x1', 'ethereum', '0x1', ''), ('multicoin_0x1', 'blast', '0x1', ''), ('multicoin_0x1', 'sei', 'sei1', ''),
+                ('multicoin_0x1', 'seievm', '0x1', ''), ('view_blast_0xview', 'blast', '0xview', ''), ('privateKey_blast_0xkey', 'blast', '0xkey', '');
+            INSERT INTO \(PriceRecord.databaseTableName) (assetId) VALUES ('blast'), ('blast_0xtoken'), ('sei'), ('seievm'), ('seievm_0xtoken');
+            INSERT INTO \(BalanceRecord.databaseTableName) (assetId, walletId) VALUES ('blast_0xtoken', 'multicoin_0x1'), ('seievm_0xtoken', 'multicoin_0x1');
+            """)
+            try db.execute(sql: "DELETE FROM grdb_migrations WHERE identifier = ?", arguments: ["Remove sei, blast and abstract"])
+        }
+
+        var upgrade = Migrations()
+        try upgrade.run(dbQueue)
+        try upgrade.runChanges(dbQueue)
+
+        let rows = { (sql: String) in try dbQueue.read { try String.fetchAll($0, sql: sql) } }
+        #expect(try rows("SELECT id FROM \(WalletRecord.databaseTableName) ORDER BY id") == ["multicoin_0x1", "privateKey_blast_0xkey"])
+        #expect(
+            try rows("SELECT walletId || ':' || chain FROM \(AccountRecord.databaseTableName) ORDER BY walletId, chain")
+                == ["multicoin_0x1:ethereum", "multicoin_0x1:seievm", "privateKey_blast_0xkey:blast"],
+        )
+        #expect(try rows("SELECT id FROM \(AssetRecord.databaseTableName) ORDER BY id") == ["blast", "ethereum", "seievm", "seievm_0xtoken"])
+        #expect(try rows("SELECT assetId FROM \(PriceRecord.databaseTableName) ORDER BY assetId") == ["seievm", "seievm_0xtoken"])
+        #expect(try rows("SELECT assetId FROM \(BalanceRecord.databaseTableName)") == ["seievm_0xtoken"])
+        #expect(try rows("SELECT \"table\" FROM pragma_foreign_key_check").isEmpty)
+    }
 }
