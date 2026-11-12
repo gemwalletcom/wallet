@@ -86,7 +86,7 @@ mod tests {
             assert_eq!(
                 annotated.headers,
                 HeaderMap::from_iter([
-                    (CONTENT_TYPE, JSON_HEADER.clone()),
+                    (CONTENT_TYPE, JSON_HEADER),
                     (X_REQUEST_ID, HeaderValue::from_static("request-id")),
                     (X_UPSTREAM_LATENCY, HeaderValue::from_static("42ms")),
                     (X_CACHE, HeaderValue::from_static(value)),

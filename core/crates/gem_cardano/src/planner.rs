@@ -258,7 +258,7 @@ mod tests {
         let fee = transfer_fee(&input).unwrap();
         let amount = TransferAmountInput {
             fee: BigInt::from(fee),
-            ..TransferAmountInput::mock(input.input_type.clone(), 12_200_000, 12_220_000, 12_220_000)
+            ..TransferAmountInput::mock(input.input_type, 12_200_000, 12_220_000, 12_220_000)
         };
         assert_eq!(
             amount.calculate().unwrap_err(),

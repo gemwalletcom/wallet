@@ -261,7 +261,7 @@ mod tests {
             address_table_lookups: vec![MessageAddressTableLookup::new(Pubkey::new([2; 32]), vec![0, 1], vec![2])],
         };
 
-        let mut expected = hex::decode("8001000102").unwrap().to_vec();
+        let mut expected = hex::decode("8001000102").unwrap();
         expected.extend_from_slice(&[0; 32]);
         expected.extend_from_slice(&[1; 32]);
         expected.extend_from_slice(&[0; 32]);
@@ -285,7 +285,7 @@ mod tests {
             },
         );
 
-        let mut expected = hex::decode("8101000107000000").unwrap().to_vec();
+        let mut expected = hex::decode("8101000107000000").unwrap();
         expected.extend_from_slice(&TEST_BLOCKHASH);
         expected.extend_from_slice(&hex::decode("0102").unwrap());
         expected.extend_from_slice(&[1; 32]);
@@ -299,7 +299,7 @@ mod tests {
             TransactionConfig::default(),
         );
 
-        let mut grouped_expected = hex::decode("8101000200000000").unwrap().to_vec();
+        let mut grouped_expected = hex::decode("8101000200000000").unwrap();
         grouped_expected.extend_from_slice(&TEST_BLOCKHASH);
         grouped_expected.extend_from_slice(&hex::decode("0203").unwrap());
         grouped_expected.extend_from_slice(&[1; 32]);

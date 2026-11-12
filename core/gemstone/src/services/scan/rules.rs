@@ -1,7 +1,7 @@
 use gem_evm::transaction::decode_nft_collection_approval_operator;
 use primitives::{
-    AssetId, Chain, ChainType, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, SimulationPayloadFieldKind, SimulationResult, SimulationSeverity, SimulationWarning, SimulationWarningType, TransactionInputType, TransactionPreloadInput,
-    TransactionType,
+    AssetId, Chain, ChainType, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, SimulationPayloadFieldKind, SimulationResult, SimulationSeverity, SimulationWarning, SimulationWarningType, TransactionInputType,
+    TransactionPreloadInput, TransactionType,
 };
 
 fn requires_scan(input_type: &TransactionInputType) -> bool {

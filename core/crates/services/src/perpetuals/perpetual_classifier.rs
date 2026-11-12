@@ -50,7 +50,7 @@ impl PerpetualPositionClassifier {
                     if !positions.is_empty() {
                         active_addresses.push(address.clone());
                         if positions.iter().any(|p| is_priority_position(p, self.config)) {
-                            priority_addresses.push(address.clone());
+                            priority_addresses.push(address);
                         }
                     }
                 }

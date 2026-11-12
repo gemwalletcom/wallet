@@ -2,10 +2,7 @@ use crate::models::AssetDetails;
 use primitives::{Asset, AssetId, AssetType, Chain};
 
 pub fn is_valid_token_id(token_id: &str) -> bool {
-    if token_id.len() > 4 && token_id.parse::<u64>().is_ok() {
-        return true;
-    }
-    false
+    token_id.len() > 4 && token_id.parse::<u64>().is_ok()
 }
 
 pub fn map_asset(asset: AssetDetails) -> Asset {

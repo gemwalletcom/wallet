@@ -125,11 +125,7 @@ impl Parser {
             }
         }
 
-        if state.timeout_between_blocks > 0 && self.sleep_or_shutdown(Duration::from_millis(state.timeout_between_blocks as u64)).await {
-            return Ok(false);
-        }
-
-        Ok(true)
+        Ok(!(state.timeout_between_blocks > 0 && self.sleep_or_shutdown(Duration::from_millis(state.timeout_between_blocks as u64)).await))
     }
 
     async fn run_block_plans(&self, timeout: Duration) -> Result<(), Box<dyn Error + Send + Sync>> {

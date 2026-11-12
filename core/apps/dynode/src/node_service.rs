@@ -329,7 +329,9 @@ impl NodeService {
     }
 
     fn error_message(body: &Value) -> Option<&str> {
-        body.get("error").and_then(|error| error.as_str().or_else(|| error.get("message").and_then(Value::as_str))).or_else(|| body.get("message").and_then(Value::as_str))
+        body.get("error")
+            .and_then(|error| error.as_str().or_else(|| error.get("message").and_then(Value::as_str)))
+            .or_else(|| body.get("message").and_then(Value::as_str))
     }
 
     fn matches_response_error_signal(&self, response: &ProxyResponse) -> bool {

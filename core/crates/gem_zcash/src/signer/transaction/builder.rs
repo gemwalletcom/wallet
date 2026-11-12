@@ -48,10 +48,10 @@ impl Transaction {
     }
 
     pub(crate) fn sign_inputs<C: Signing>(&mut self, digests: &SignatureDigests, plan: &SpendPlan, key: &PlanSigningKey, secp: &Secp256k1<C>) -> Result<(), SignerError> {
-        for index in 0..plan.inputs.len() {
+        for (index, input) in self.inputs.iter_mut().enumerate().take(plan.inputs.len()) {
             let sighash = digests.signature(plan, index)?;
             let signature = der_signature(secp, key.secret_key(), Message::from_digest(sighash), SIGHASH_ALL);
-            self.inputs[index].script_sig = Builder::new().push_slice(signature_push_bytes(signature)?).push_key(key.public_key()).into_script();
+            input.script_sig = Builder::new().push_slice(signature_push_bytes(signature)?).push_key(key.public_key()).into_script();
         }
         Ok(())
     }

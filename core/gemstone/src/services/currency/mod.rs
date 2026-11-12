@@ -128,7 +128,7 @@ mod tests {
             block_on(service.set_currency(currency.clone())).unwrap();
 
             assert_eq!(preferences.get_currency(), currency);
-            assert_eq!(*prices.converted.lock().unwrap(), vec![(currency.clone(), rate)]);
+            assert_eq!(*prices.converted.lock().unwrap(), vec![(currency, rate)]);
             let list = block_on(service.list(preferences.get_currency(), None, name.to_string(), names)).unwrap();
             assert!(list.sections[0].rows[0].is_selected);
         }

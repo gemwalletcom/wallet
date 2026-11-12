@@ -107,7 +107,7 @@ impl<'a> JobPlanBuilder<'a> {
             if !should_include(&variant.name(), self.filter.as_deref()) {
                 continue;
             }
-            let job_fn = build_job(item.clone(), variant.clone());
+            let job_fn = build_job(item, variant.clone());
             self.pending.push(Self::pending_job(variant, job_fn));
         }
         self

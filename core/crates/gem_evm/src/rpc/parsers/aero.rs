@@ -83,7 +83,7 @@ mod tests {
                         Log::mock_erc20_transfer(ARC_USDC_TOKEN_ID, METAROUTER, EVM_REFERRAL_ADDRESS, 55_000),
                         Log::mock_erc20_transfer(ARC_USDC_TOKEN_ID, METAROUTER, TEST_WALLET, 11_000_000),
                     ],
-                    ..usdc_eth_receipt.clone()
+                    ..usdc_eth_receipt
                 }
             ),
             Some(
