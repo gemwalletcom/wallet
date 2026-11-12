@@ -623,7 +623,7 @@ pub fn close_order(provider: PerpetualProvider, input: GemPerpetualCloseInput) -
         base_asset: input.base_asset,
         asset_index: input.asset_index,
         price: formatter.format_price(price, input.asset.decimals),
-        fiat_value: size * price,
+        fiat_value: size * input.market_price,
         size: formatter.format_size(size, input.asset.decimals),
         slippage,
         leverage: input.leverage,
@@ -2090,7 +2090,7 @@ mod tests {
             }),
             "the margin the position opened with, not the margin in use"
         );
-        assert_eq!(data.fiat_value, 196.0);
+        assert_eq!(data.fiat_value, 200.0);
     }
 
     #[test]
