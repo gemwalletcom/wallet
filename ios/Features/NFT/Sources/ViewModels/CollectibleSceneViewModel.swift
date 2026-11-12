@@ -76,10 +76,6 @@ public final class CollectibleSceneViewModel {
         }
     }
 
-    var errorTitle: String {
-        Localized.Errors.errorOccurred
-    }
-
     func imageContextMenuItems(_ details: GemCollectibleDetails) -> [ContextMenuItemType] {
         guard isImageLoaded else { return [] }
         return details.imageActions.map { .custom(title: $0.title, systemImage: $0.systemImage, action: onSelect($0)) }

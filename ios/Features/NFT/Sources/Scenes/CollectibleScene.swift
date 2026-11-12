@@ -4,7 +4,6 @@ import Components
 import struct Gemstone.GemCollectibleDetails
 import GemstonePrimitives
 import InfoSheet
-import Localization
 import Primitives
 import PrimitivesComponents
 import Store
@@ -24,7 +23,9 @@ public struct CollectibleScene: View {
             case .loading, .noData:
                 CenterLoadingView()
             case let .error(error):
-                stateErrorView(error: error)
+                Section {
+                    StateErrorView(error: error) { await model.load() }
+                }
             case let .data(details):
                 content(details)
             }
@@ -115,20 +116,5 @@ extension CollectibleScene {
         .listRowSeparator(.hidden)
         .listRowInsets(EdgeInsets())
         .contextMenu(model.imageContextMenuItems(details))
-    }
-
-    private func stateErrorView(error: Error) -> some View {
-        Section {
-            StateEmptyView(
-                title: model.errorTitle,
-                description: error.localizedDescription,
-                image: nil,
-            ) {
-                Button(Localized.Common.tryAgain) {
-                    Task { await model.load() }
-                }
-                .buttonStyle(.blue())
-            }
-        }
     }
 }

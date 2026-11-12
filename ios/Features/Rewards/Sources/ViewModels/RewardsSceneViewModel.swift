@@ -53,10 +53,6 @@ public final class RewardsSceneViewModel: Sendable {
         Localized.Rewards.title
     }
 
-    var errorTitle: String {
-        Localized.Errors.errorOccurred
-    }
-
     var createCodeButtonTitle: String {
         Localized.Common.getStarted
     }

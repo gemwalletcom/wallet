@@ -2,7 +2,6 @@
 
 import Components
 import struct Gemstone.GemRewardsRedemption
-import enum Gemstone.GemServiceError
 import InfoSheet
 import Localization
 import Primitives
@@ -23,7 +22,9 @@ public struct RewardsScene: View {
             case .loading:
                 CenterLoadingView()
             case let .error(error):
-                stateErrorView(error: error)
+                Section {
+                    StateErrorView(error: error) { await model.refresh() }
+                }
             case .noData:
                 EmptyView()
             case .data:
@@ -111,21 +112,6 @@ public struct RewardsScene: View {
         }
         .toast(message: $model.toastMessage)
         .alertSheet($model.isPresentingAlert)
-    }
-
-    private func stateErrorView(error: GemServiceError) -> some View {
-        Section {
-            StateEmptyView(
-                title: model.errorTitle,
-                description: error.localizedDescription,
-                image: nil,
-            ) {
-                Button(Localized.Common.tryAgain) {
-                    Task { await model.refresh() }
-                }
-                .buttonStyle(.blue())
-            }
-        }
     }
 
     @ViewBuilder

@@ -3,7 +3,6 @@
 import Components
 import Foundation
 import InfoSheet
-import Localization
 import PrimitivesComponents
 import Store
 import Style
@@ -55,16 +54,7 @@ public struct TransactionNavigationView: View {
         } else {
             switch model.loadState {
             case let .error(error):
-                StateEmptyView(
-                    title: Localized.Errors.errorOccurred,
-                    description: error.localizedDescription,
-                    image: nil,
-                ) {
-                    Button(Localized.Common.tryAgain) {
-                        Task { await model.load() }
-                    }
-                    .buttonStyle(.blue())
-                }
+                StateErrorView(error: error) { await model.load() }
             case .loading, .data, .noData:
                 CenterLoadingView()
             }
