@@ -372,6 +372,7 @@ wallet_connect_permissions_title = 權限
 wallet_connect_permissions_view_balance = 查看餘額和交易紀錄
 wallet_connect_permissions_approval_requests = 傳送授權請求
 wallet_connect_request_expired = 請求已過期
+wallet_connect_return_to_app = 返回 %@
 
 # Swap
 

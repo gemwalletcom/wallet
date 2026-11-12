@@ -9,6 +9,7 @@ pub enum GemWalletConnectEvent {
     Request { request: GemWalletConnectSessionRequest },
     RequestExpired { topic: String, request_id: String },
     SessionDeleted { topic: String },
+    ReturnToDapp { name: String, redirect: Option<String> },
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

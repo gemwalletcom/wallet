@@ -372,6 +372,7 @@ wallet_connect_permissions_title = Дозволи
 wallet_connect_permissions_view_balance = Перегляд вашого балансу та активності
 wallet_connect_permissions_approval_requests = Надсилати запити на схвалення
 wallet_connect_request_expired = Термін запиту минув
+wallet_connect_return_to_app = Поверніться до %@
 
 # Swap
 

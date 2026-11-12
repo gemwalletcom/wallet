@@ -321,6 +321,7 @@
   <string name="wallet_connect_permissions_view_balance">Lihat saldo dan aktivitas Anda</string>
   <string name="wallet_connect_permissions_approval_requests">Kirim permintaan persetujuan</string>
   <string name="wallet_connect_request_expired">Permintaan kedaluwarsa</string>
+  <string name="wallet_connect_return_to_app">Kembali ke %1$s</string>
   <string name="swap_you_pay">Kamu Membayar</string>
   <string name="swap_you_receive">Kamu Menerima</string>
   <string name="swap_price_impact">Dampak Harga</string>

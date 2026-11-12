@@ -11,12 +11,13 @@ use gem_solana::{Pubkey, SolanaTransfer, VersionedTransaction, VersionedTransact
 use gem_sui::tx_builder::validate_wallet_connect_sender;
 use gem_ton::models::decode_wallet_connect_transfer;
 use gem_tron::{decode_wallet_connect_contract, decode_wallet_connect_owners};
-use primitives::ChainType;
 use primitives::WalletConnectionVerificationStatus;
 use primitives::{
     Account, ApplicationMetadata, ApplicationMetadataSource, Chain, Platform, Wallet, WalletConnectCAIP2, WalletConnection, WalletConnectionEvents, WalletConnectionMethods, WalletConnectionSession, WalletConnectionState, WalletId,
     WalletType,
 };
+use primitives::{ChainType, GEM_HOST, GEM_URL_SCHEME, HTTP_URL_SCHEME, HTTPS_URL_SCHEME, WALLET_CONNECT_URL_SCHEME, WalletConnectLink};
+use url::Url;
 
 use crate::models::list::{GemListRow, GemListRowTitle};
 use crate::services::error::GemServiceError;
@@ -32,6 +33,7 @@ use primitives::GasPriceType;
 use primitives::TransactionInputType;
 use primitives::{Asset, TransactionType, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType};
 use wallet_connect_protocol::sign::namespaces::NamespaceError;
+use wallet_connect_protocol::sign::types::Redirect;
 
 const UNSUPPORTED_CHAINS_ERROR_CODE: i32 = 5100;
 const UNSUPPORTED_METHODS_ERROR_CODE: i32 = 5101;
@@ -41,8 +43,41 @@ const SESSION_REQUEST_EXPIRED_ERROR_CODE: i32 = 8000;
 const USER_REJECTED_SESSION_ERROR_CODE: i32 = 5000;
 const METHOD_NOT_FOUND_ERROR_CODE: i32 = -32601;
 const UNRECOGNIZED_CHAIN_ERROR_CODE: i32 = 4902;
-const IOS_REDIRECT: &str = "gem://";
-const ANDROID_REDIRECT: &str = "https://gemwallet.com/wc/";
+const BLOCKED_APP_LINK_SCHEMES: [&str; 33] = [
+    GEM_URL_SCHEME,
+    WALLET_CONNECT_URL_SCHEME,
+    HTTP_URL_SCHEME,
+    "javascript",
+    "data",
+    "file",
+    "about",
+    "blob",
+    "content",
+    "intent",
+    "ftp",
+    "tel",
+    "telprompt",
+    "sms",
+    "smsto",
+    "mms",
+    "mmsto",
+    "mailto",
+    "facetime",
+    "facetime-audio",
+    "itms",
+    "itms-apps",
+    "itms-appss",
+    "itms-services",
+    "itms-books",
+    "shortcuts",
+    "workflow",
+    "prefs",
+    "app-prefs",
+    "app-settings",
+    "maps",
+    "geo",
+    "market",
+];
 
 pub fn connection_groups(connections: Vec<WalletConnection>) -> Vec<(Wallet, Vec<WalletConnection>)> {
     let mut groups: Vec<(Wallet, Vec<WalletConnection>)> = Vec::new();
@@ -262,11 +297,35 @@ pub fn supports_authentication(platform: Platform) -> bool {
     }
 }
 
-pub fn redirect(platform: Platform) -> &'static str {
+pub fn redirect(platform: Platform) -> String {
     match platform {
-        Platform::IOS => IOS_REDIRECT,
-        Platform::Android => ANDROID_REDIRECT,
+        Platform::IOS => WalletConnectLink::app_link(),
+        Platform::Android => WalletConnectLink::universal_link(),
     }
+}
+
+pub fn dapp_redirect(redirect: Option<&Redirect>, dapp_url: &str) -> Option<String> {
+    let redirect = redirect?;
+    let dapp_host = Url::parse(dapp_url).ok()?.host_str()?.to_string();
+    [redirect.native.as_deref(), redirect.universal.as_deref()]
+        .into_iter()
+        .flatten()
+        .find(|link| is_dapp_redirect(link, &dapp_host))
+        .map(str::to_string)
+}
+
+fn is_dapp_redirect(link: &str, dapp_host: &str) -> bool {
+    let Ok(url) = Url::parse(link) else {
+        return false;
+    };
+    match url.scheme() {
+        HTTPS_URL_SCHEME => url.host_str().is_some_and(|host| is_same_or_subdomain(host, dapp_host) && !is_same_or_subdomain(host, GEM_HOST)),
+        scheme => !BLOCKED_APP_LINK_SCHEMES.contains(&scheme) && !scheme.starts_with("x-apple"),
+    }
+}
+
+fn is_same_or_subdomain(host: &str, domain: &str) -> bool {
+    host == domain || host.strip_suffix(domain).is_some_and(|prefix| prefix.ends_with('.'))
 }
 
 pub fn user_rejected_error() -> GemWalletConnectRpcError {
@@ -1021,6 +1080,63 @@ mod message_tests {
         assert!(is_origin_rejected(&WalletConnectionVerificationStatus::Malicious));
         assert!(!is_origin_rejected(&WalletConnectionVerificationStatus::Verified));
         assert!(!is_origin_rejected(&WalletConnectionVerificationStatus::Unknown));
+    }
+
+    #[test]
+    fn test_a_dapp_is_opened_only_through_its_own_app_or_site() {
+        let redirect = |native: Option<&str>, universal: Option<&str>| {
+            dapp_redirect(
+                Some(&Redirect {
+                    native: native.map(str::to_string),
+                    universal: universal.map(str::to_string),
+                }),
+                "https://dapp.example",
+            )
+        };
+
+        assert_eq!(redirect(Some("kotlin-dapp-wc://request"), Some("https://dapp.example/app")), Some("kotlin-dapp-wc://request".to_string()));
+        assert_eq!(redirect(None, Some("https://dapp.example/app")), Some("https://dapp.example/app".to_string()));
+        assert_eq!(redirect(None, Some("https://app.dapp.example/")), Some("https://app.dapp.example/".to_string()), "a page on the dapp's own site");
+        assert_eq!(
+            redirect(Some("not a url"), Some("https://dapp.example/app")),
+            Some("https://dapp.example/app".to_string()),
+            "an unreadable app link falls back to the site"
+        );
+        for blocked in [
+            "https://other.example/app",
+            "https://dapp.example.evil.example/",
+            "https://notdapp.example/",
+            "gem://wc?uri=wc:other@2",
+            "wc:other@2?symKey=abc",
+            "https://gemwallet.com/tokens/bitcoin",
+            "http://dapp.example",
+            "javascript:alert(1)",
+            "data:text/html,hi",
+            "file:///etc/hosts",
+            "intent://scan#Intent;end",
+            "tel:+15555550100",
+            "sms:+15555550100",
+            "mailto:support@dapp.example",
+            "itms-services://?action=download-manifest&url=https://dapp.example/app.plist",
+            "shortcuts://run-shortcut?name=x",
+            "market://details?id=com.example",
+            "x-apple-health://",
+        ] {
+            assert_eq!(redirect(Some(blocked), None), None, "{blocked} must not be opened for a dapp");
+        }
+        assert_eq!(redirect(None, None), None);
+        assert_eq!(dapp_redirect(None, "https://dapp.example"), None);
+        assert_eq!(
+            dapp_redirect(
+                Some(&Redirect {
+                    native: None,
+                    universal: Some("https://gemwallet.com/wc".to_string()),
+                }),
+                "https://gemwallet.com",
+            ),
+            None,
+            "a dapp claiming Gem's own site still cannot steer the user into Gem"
+        );
     }
 
     #[test]

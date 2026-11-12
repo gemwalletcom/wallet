@@ -23,6 +23,8 @@ public actor GemWalletConnectClientMock: GemWalletConnectClientProtocol {
         pairedURIs.append(uri)
     }
 
+    public nonisolated func linkOpened(link _: WalletConnectLink) {}
+
     public func approveSession(proposalId _: String, wallet _: Gemstone.Wallet) async throws {}
 
     public func rejectSession(proposalId _: String, reason _: GemWalletConnectRejectionReason) async throws {}

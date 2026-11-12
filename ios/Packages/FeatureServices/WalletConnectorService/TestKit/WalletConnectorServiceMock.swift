@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import enum Gemstone.WalletConnectLink
 import WalletConnectorService
 
 public actor WalletConnectorServiceMock: WalletConnectorServiceable {
@@ -30,6 +31,8 @@ public actor WalletConnectorServiceMock: WalletConnectorServiceable {
         }
         pairedURIs.append(uri)
     }
+
+    public func linkOpened(_: WalletConnectLink) {}
 
     public func disconnect(sessionId _: String) async throws {
         if let disconnectError {

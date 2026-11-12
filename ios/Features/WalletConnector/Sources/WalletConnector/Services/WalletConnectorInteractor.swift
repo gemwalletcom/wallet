@@ -1,19 +1,25 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Components
 import enum Gemstone.GemServiceError
 import struct Gemstone.GemWalletConnectMessageRequest
 import protocol Gemstone.GemWalletConnectSigner
 import struct Gemstone.GemWalletConnectTransactionRequest
 import GemstonePrimitives
+import Localization
 import Primitives
+import PrimitivesComponents
+import Style
 import SwiftUI
 import WalletConnectorService
 
 public final class WalletConnectorInteractor {
     private let presenter: WalletConnectorPresenter
+    private let toastPresenter: ToastPresenter
 
-    public init(presenter: WalletConnectorPresenter) {
+    public init(presenter: WalletConnectorPresenter, toastPresenter: ToastPresenter) {
         self.presenter = presenter
+        self.toastPresenter = toastPresenter
     }
 }
 
@@ -41,6 +47,14 @@ extension WalletConnectorInteractor: WalletConnectorInteractable {
         await MainActor.run { [weak self] in
             self?.presenter.expire(requestId: requestId)
         }
+    }
+
+    @MainActor
+    public func returnToDapp(name: String, redirect: String?) async {
+        if let url = redirect.flatMap(URL.init(string:)), await UIApplication.shared.open(url) {
+            return
+        }
+        toastPresenter.toastMessage = ToastMessage(title: Localized.WalletConnect.returnToApp(name), image: SystemImage.checkmark)
     }
 }
 

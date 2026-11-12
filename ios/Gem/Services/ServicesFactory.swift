@@ -234,8 +234,9 @@ struct ServicesFactory {
             names: nameService,
             explorer: explorerService,
         )
+        let toastPresenter = ToastPresenter()
         let walletConnectorPresenter = WalletConnectorPresenter()
-        let walletConnectorInteractor = WalletConnectorInteractor(presenter: walletConnectorPresenter)
+        let walletConnectorInteractor = WalletConnectorInteractor(presenter: walletConnectorPresenter, toastPresenter: toastPresenter)
         let walletConnectService = gatewayService.walletConnectService(
             simulation: transactionSimulationService,
             scanner: scanService,
@@ -323,7 +324,6 @@ struct ServicesFactory {
             session: walletSessionService,
             config: configService,
         )
-        let toastPresenter = ToastPresenter()
         let pushNotificationService = Gemstone.GemPushNotificationService()
         let navigationRouter = NavigationRouter(
             navigationState: navigation,

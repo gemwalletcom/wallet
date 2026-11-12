@@ -4,8 +4,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.launchIn
@@ -21,6 +23,9 @@ class ActiveWalletConnectRequest(events: Flow<GemWalletConnectEvent>, pendingReq
     private val _current = MutableStateFlow<WalletConnectUserRequest?>(null)
     val current: StateFlow<WalletConnectUserRequest?> = _current.asStateFlow()
 
+    private val _returns = MutableSharedFlow<GemWalletConnectEvent.ReturnToDapp>(extraBufferCapacity = 1)
+    val returns: Flow<GemWalletConnectEvent.ReturnToDapp> = _returns.asSharedFlow()
+
     init {
         events.onEach { event ->
             when (event) {
@@ -35,6 +40,8 @@ class ActiveWalletConnectRequest(events: Flow<GemWalletConnectEvent>, pendingReq
                 is GemWalletConnectEvent.Authentication -> _current.update { WalletConnectUserRequest.AuthenticationRequest(event.authentication) }
 
                 is GemWalletConnectEvent.Request -> _current.update { WalletConnectUserRequest.SessionRequest(event.request) }
+
+                is GemWalletConnectEvent.ReturnToDapp -> _returns.tryEmit(event)
             }
         }.launchIn(scope)
     }

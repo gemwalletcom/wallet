@@ -372,6 +372,7 @@ wallet_connect_permissions_title = अनुमतियां
 wallet_connect_permissions_view_balance = अपना बैलेंस और गतिविधि देखें
 wallet_connect_permissions_approval_requests = अनुमोदन अनुरोध भेजें
 wallet_connect_request_expired = अनुरोध की समय-सीमा समाप्त
+wallet_connect_return_to_app = %@ पर वापस जाएँ
 
 # Swap
 

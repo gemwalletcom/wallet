@@ -372,6 +372,7 @@ wallet_connect_permissions_title = Kebenaran
 wallet_connect_permissions_view_balance = Lihat baki dan aktiviti anda
 wallet_connect_permissions_approval_requests = Hantar permintaan kelulusan
 wallet_connect_request_expired = Permintaan telah tamat tempoh
+wallet_connect_return_to_app = Kembali ke %@
 
 # Swap
 

@@ -321,6 +321,7 @@
   <string name="wallet_connect_permissions_view_balance">اطلع على رصيدك ونشاطك</string>
   <string name="wallet_connect_permissions_approval_requests">إرسال طلبات الموافقة</string>
   <string name="wallet_connect_request_expired">انتهت صلاحية الطلب</string>
+  <string name="wallet_connect_return_to_app">العودة إلى %1$s</string>
   <string name="swap_you_pay">انت تدفع</string>
   <string name="swap_you_receive">انت تستقبل</string>
   <string name="swap_price_impact">تأثير السعر</string>

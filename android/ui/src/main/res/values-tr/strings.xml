@@ -321,6 +321,7 @@
   <string name="wallet_connect_permissions_view_balance">Bakiyenizi ve işlemlerinizi görüntüleme</string>
   <string name="wallet_connect_permissions_approval_requests">Onay istekleri gönderme</string>
   <string name="wallet_connect_request_expired">İstek süresi doldu</string>
+  <string name="wallet_connect_return_to_app">%1$s uygulamasına dönün</string>
   <string name="swap_you_pay">Ödeyeceğiniz</string>
   <string name="swap_you_receive">Alacağınız</string>
   <string name="swap_price_impact">Fiyat Etkisi</string>

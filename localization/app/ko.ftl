@@ -372,6 +372,7 @@ wallet_connect_permissions_title = 권한
 wallet_connect_permissions_view_balance = 잔액 및 활동 내역 보기
 wallet_connect_permissions_approval_requests = 승인 요청 보내기
 wallet_connect_request_expired = 요청이 만료되었습니다
+wallet_connect_return_to_app = %@(으)로 돌아가세요
 
 # Swap
 

@@ -321,6 +321,7 @@
   <string name="wallet_connect_permissions_view_balance">Vizualizați soldul și activitatea dvs.</string>
   <string name="wallet_connect_permissions_approval_requests">Trimiteți cereri de aprobare</string>
   <string name="wallet_connect_request_expired">Cererea a expirat</string>
+  <string name="wallet_connect_return_to_app">Revino la %1$s</string>
   <string name="swap_you_pay">Tu plătești</string>
   <string name="swap_you_receive">Tu Primești</string>
   <string name="swap_price_impact">Impactul prețului</string>

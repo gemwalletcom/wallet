@@ -321,6 +321,7 @@
   <string name="wallet_connect_permissions_view_balance">Ver tu saldo y actividad</string>
   <string name="wallet_connect_permissions_approval_requests">Enviar solicitudes de aprobación</string>
   <string name="wallet_connect_request_expired">Solicitud caducada</string>
+  <string name="wallet_connect_return_to_app">Vuelve a %1$s</string>
   <string name="swap_you_pay">Pagas</string>
   <string name="swap_you_receive">Recibes</string>
   <string name="swap_price_impact">Impacto en el precio</string>

@@ -25,6 +25,12 @@ flowchart LR
 | When | Expected | Why |
 |---|---|---|
 | The dapp fails verification | the proposal shows it before the user connects | |
+| A dapp on the same phone opened Gem to connect, sign in or answer a request | once the user approves or rejects, Gem goes back to the dapp: to the app or page the dapp names, otherwise to the app that opened Gem | the user started in the dapp and finishes there; a code scanned from another device stays in Gem |
+| A dapp on the same phone opened Gem with several requests waiting | Gem goes back once the last of them is answered | going back after the first would leave the others unanswered |
+| A request Gem fails to answer, such as a signature that failed | Gem stays open and shows why | the user needs to read the failure |
+| A dapp names a page outside its own site, a page on gemwallet.com, a Gem, WalletConnect or system link (phone, messages, mail, App Store, settings), or a non-https page to go back to | Gem does not open it and goes back to the app that opened Gem instead | a dapp must not steer the user into Gem's own screens, another site, another app's action or an insecure page |
+| The user answers more than 10 minutes after the dapp opened Gem | Gem stays open | the user has moved on and does not expect to be sent to the dapp |
+| A dapp opens Gem's WalletConnect link with nothing in it | Gem opens without an error and shows the dapp's request when it arrives | dapps bring the user back to answer with that link |
 | A request to sign comes for a wallet that is not the current one | that wallet becomes current before the request shows, the wallet's screens return to its main screen, and it stays current after the user signs or rejects | the request, its fee and any Buy, Swap or Receive it offers all belong to the connected wallet |
 | The user rejects a request | a refusal goes back to the dapp | |
 | A new request arrives while another one is on screen | the new request shows and the earlier one is refused, so its dapp is told | the earlier review is gone and can no longer be approved |
@@ -71,6 +77,7 @@ Toasts follow the shared [Toasts](../PRODUCT.md#toasts) section.
 |---|---|---|
 | A WalletConnect link is scanned, pasted or opened | 🌐 WalletConnect... | any screen, until the connection sheet opens |
 | A payment link is being prepared | 🌐 Loading | any screen, until the payment opens |
+| An answer goes back to a dapp Gem cannot open itself, on iOS | ✅ Return to the dapp's name | where the user lands after answering |
 | A payment's gateway reports a problem after paying | ❌ the gateway's message | where the user lands after Confirm |
 | A payment's verification fails | ❌ An error occurred! | where the user lands |
 | A verified payment cannot be prepared | ❌ the reason | Payment verification |
@@ -80,6 +87,7 @@ Toasts follow the shared [Toasts](../PRODUCT.md#toasts) section.
 | When | iOS | Android | Expected |
 |---|---|---|---|
 | A dapp asks to sign in with one-click authentication | not supported | supported | Intentional |
+| An answer goes back to a dapp that names no app or page of its own | a toast tells the user to return to the dapp | Gem moves to the background and the app that opened it shows | Intentional: iOS lets no app go back to the app that opened it |
 
 ## Rules
 

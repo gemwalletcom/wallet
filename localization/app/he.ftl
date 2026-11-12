@@ -372,6 +372,7 @@ wallet_connect_permissions_title = הרשאות
 wallet_connect_permissions_view_balance = צפה ביתרה ובפעילות שלך
 wallet_connect_permissions_approval_requests = שלח בקשות אישור
 wallet_connect_request_expired = פג תוקף הבקשה
+wallet_connect_return_to_app = חזרה אל %@
 
 # Swap
 

@@ -372,6 +372,7 @@ wallet_connect_permissions_title = Quyền hạn
 wallet_connect_permissions_view_balance = Xem số dư và hoạt động của bạn
 wallet_connect_permissions_approval_requests = Gửi yêu cầu phê duyệt
 wallet_connect_request_expired = Yêu cầu đã hết hạn
+wallet_connect_return_to_app = Quay lại %@
 
 # Swap
 
