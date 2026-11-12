@@ -1,4 +1,5 @@
 use primitives::Address as AddressTrait;
+use primitives::hex;
 use std::str::FromStr;
 
 use crate::{SuiError, types::Address};
@@ -33,6 +34,10 @@ impl AddressTrait for SuiAddress {
     fn encode(&self) -> String {
         self.0.to_string()
     }
+
+    fn is_valid(address: &str) -> bool {
+        hex::decode(address.strip_prefix("0x").unwrap_or(address)).is_ok_and(|bytes| bytes.len() == Address::LENGTH)
+    }
 }
 
 pub fn validate_address(address: &str) -> bool {
@@ -48,11 +53,24 @@ mod tests {
         let address = "0xada112cfb90b44ba889cc5d39ac2bf46281e4a91f7919c693bcd9b8323e81ed2";
         let parsed = SuiAddress::try_parse(address).unwrap();
 
-        assert!(validate_address(address));
         assert_eq!(parsed.as_bytes().len(), 32);
         assert_eq!(parsed.encode(), address);
         assert_eq!(SuiAddress::parse(address).unwrap().encode(), address);
         assert!(SuiAddress::parse("invalid").is_err());
+    }
+
+    #[test]
+    fn test_validate_address() {
+        let address = "0xada112cfb90b44ba889cc5d39ac2bf46281e4a91f7919c693bcd9b8323e81ed2";
+
+        assert!(validate_address(address));
+        assert!(validate_address(&address[2..]));
+        assert!(!validate_address("0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a"));
+        assert!(!validate_address(&address[..65]));
+        assert!(!validate_address(&address[2..65]));
+        assert!(!validate_address(&format!("{address}0")));
+        assert!(!validate_address("0x2"));
+        assert!(!validate_address("abc"));
         assert!(!validate_address("invalid"));
     }
 }
