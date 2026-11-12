@@ -201,7 +201,7 @@ class SwapViewModel @Inject constructor(
             .launchIn(viewModelScope)
         combine(payAssetIdFlow, receiveAssetIdFlow) { pay, receive -> listOfNotNull(pay, receive).map { it.toIdentifier() } }
             .distinctUntilChanged()
-            .onEach(::refreshPair)
+            .mapLatest(::refreshPair)
             .launchIn(viewModelScope)
         // A refreshed quote retires the warning for the old one; Continue on it would start nothing.
         viewState.map { it.quote }
