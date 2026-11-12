@@ -8,12 +8,14 @@ public enum WalletConnectorSheetType: Sendable, Identifiable {
     case transferData(TransferDataCallback<WCTransferData>)
     case signMessage(TransferDataCallback<GemWalletConnectMessageRequest>)
     case connectionProposal(TransferDataCallback<WCPairingProposal>)
+    case authentication(TransferDataCallback<WCAuthenticationRequest>)
 
     public var id: AnyHashable {
         switch self {
         case let .transferData(callback): ObjectIdentifier(callback)
         case let .signMessage(callback): ObjectIdentifier(callback)
         case let .connectionProposal(callback): callback.payload.pairingId
+        case let .authentication(callback): callback.payload.id
         }
     }
 
@@ -21,7 +23,7 @@ public enum WalletConnectorSheetType: Sendable, Identifiable {
         switch self {
         case let .transferData(callback): callback.payload.requestId
         case let .signMessage(callback): callback.payload.requestId
-        case .connectionProposal: nil
+        case .connectionProposal, .authentication: nil
         }
     }
 
@@ -32,6 +34,8 @@ public enum WalletConnectorSheetType: Sendable, Identifiable {
         case let .signMessage(callback):
             callback.delegate(.failure(error))
         case let .connectionProposal(callback):
+            callback.delegate(.failure(error))
+        case let .authentication(callback):
             callback.delegate(.failure(error))
         }
     }

@@ -43,6 +43,14 @@ struct WalletConnectorNavigationStack: View {
                         ),
                         onComplete: { presenter.complete(type: type) },
                     )
+                case let .authentication(data):
+                    AuthenticationNavigationView(
+                        model: viewModelFactory.authenticationScene(
+                            request: data.payload,
+                            confirmTransferDelegate: data.delegate,
+                        ),
+                        onComplete: { presenter.complete(type: type) },
+                    )
                 case let .connectionProposal(data):
                     ConnectionProposalScene(
                         model: ConnectionProposalSceneViewModel(
@@ -80,6 +88,31 @@ private struct SignMessageNavigationView: View {
 
     var body: some View {
         SignMessageScene(model: model, onComplete: onComplete)
+            .sheet(item: $model.presentedSheet) { sheet in
+                switch sheet {
+                case .payloadDetails:
+                    SignMessagePayloadDetails(model: model)
+                case let .addressDetails(chainAddress):
+                    AddressDetailsDestination(chainAddress: chainAddress)
+                }
+            }
+    }
+}
+
+private struct AuthenticationNavigationView: View {
+    @State private var model: AuthenticationSceneViewModel
+    private let onComplete: () -> Void
+
+    init(
+        model: AuthenticationSceneViewModel,
+        onComplete: @escaping () -> Void,
+    ) {
+        _model = State(initialValue: model)
+        self.onComplete = onComplete
+    }
+
+    var body: some View {
+        AuthenticationScene(model: model, onComplete: onComplete)
             .sheet(item: $model.presentedSheet) { sheet in
                 switch sheet {
                 case .payloadDetails:

@@ -1,7 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import Localization
 import Primitives
 import PrimitivesComponents
 import Style
@@ -37,23 +36,13 @@ public struct SignMessageScene: View {
                 }
             }
 
-            if model.hasPayloadFields {
-                Section {
-                    ForEach(Array(model.primaryPayloadFields.enumerated()), id: \.offset) {
-                        GemListRowView(row: $0.element, onSelectAddress: model.onSelectPayloadAddress)
-                    }
-
-                    if !model.secondaryPayloadFields.isEmpty {
-                        NavigationCustomLink(with: ListItemView(model: model.payloadDetailsListItem)) {
-                            model.onViewPayloadDetails()
-                        }
-                    }
-                }
-            } else {
-                Section(Localized.SignMessage.message) {
-                    Text(model.messageText)
-                }
-            }
+            SignMessagePayloadSection(
+                primaryRows: model.primaryPayloadFields,
+                secondaryRows: model.secondaryPayloadFields,
+                messageText: model.messageText,
+                onSelectAddress: model.onSelectPayloadAddress,
+                onViewDetails: model.onViewPayloadDetails,
+            )
         }
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .listSectionSpacing(.compact)

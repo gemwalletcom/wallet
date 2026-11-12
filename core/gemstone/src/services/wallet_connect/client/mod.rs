@@ -469,7 +469,7 @@ impl GemWalletConnectClient {
     }
 
     async fn receive_proposal(&self, pairing: Pairing, message: &RelayMessage, decrypted: &[u8], request_id: u64, proposal: SessionProposal) -> Result<(), GemServiceError> {
-        if (pairing.authenticates && rules::supports_authentication(self.platform)) || rules::is_expired(proposal.expiry_timestamp, Utc::now()) || self.is_answering(&pairing.topic) {
+        if pairing.authenticates || rules::is_expired(proposal.expiry_timestamp, Utc::now()) || self.is_answering(&pairing.topic) {
             return Ok(());
         }
         let verification = self.verification(message, decrypted).await;
@@ -495,7 +495,7 @@ impl GemWalletConnectClient {
     }
 
     async fn receive_authentication(&self, pairing: Pairing, message: &RelayMessage, decrypted: &[u8], request_id: u64, params: AuthenticateParams) -> Result<(), GemServiceError> {
-        if !rules::supports_authentication(self.platform) || rules::is_expired(params.expiry_timestamp, Utc::now()) || self.is_answering(&pairing.topic) {
+        if rules::is_expired(params.expiry_timestamp, Utc::now()) || self.is_answering(&pairing.topic) {
             return Ok(());
         }
         let verification = self.verification(message, decrypted).await;
@@ -1645,26 +1645,28 @@ mod tests {
     }
 
     #[test]
-    fn test_ios_ignores_one_click_sign_in() {
+    fn test_one_click_sign_in_replaces_the_fallback_proposal_on_both_apps() {
         block_on(async {
-            let dapp = TestDapp::new();
-            let client = GemWalletConnectClient::mock(&dapp, Platform::IOS).await;
-            client.pair(TestDapp::pairing_uri("wc_sessionPropose,wc_sessionAuthenticate")).await.unwrap();
+            for platform in [Platform::IOS, Platform::Android] {
+                let dapp = TestDapp::new();
+                let client = GemWalletConnectClient::mock(&dapp, platform).await;
+                client.pair(TestDapp::pairing_uri("wc_sessionPropose,wc_sessionAuthenticate")).await.unwrap();
 
-            client
-                .receive(TestDapp::frame(TEST_TOPIC, &test_key(TEST_SYM_KEY), &TestDapp::request(101, METHOD_SESSION_AUTHENTICATE, TEST_AUTHENTICATION)))
-                .await
-                .unwrap();
-            client
-                .receive(TestDapp::frame(TEST_TOPIC, &test_key(TEST_SYM_KEY), &TestDapp::request(100, METHOD_SESSION_PROPOSE, TEST_PROPOSAL)))
-                .await
-                .unwrap();
+                client
+                    .receive(TestDapp::frame(TEST_TOPIC, &test_key(TEST_SYM_KEY), &TestDapp::request(101, METHOD_SESSION_AUTHENTICATE, TEST_AUTHENTICATION)))
+                    .await
+                    .unwrap();
+                client
+                    .receive(TestDapp::frame(TEST_TOPIC, &test_key(TEST_SYM_KEY), &TestDapp::request(100, METHOD_SESSION_PROPOSE, TEST_PROPOSAL)))
+                    .await
+                    .unwrap();
 
-            assert_eq!(
-                dapp.listener.events.lock().unwrap().clone(),
-                vec![GemWalletConnectEvent::Proposal { proposal: GemWalletConnectProposal::mock() }],
-                "iOS connects through the fallback proposal"
-            );
+                let events = dapp.listener.events.lock().unwrap().clone();
+                assert!(
+                    matches!(events.as_slice(), [GemWalletConnectEvent::Authentication { .. }]),
+                    "{platform:?} signs in with one click and never shows the fallback proposal: {events:?}"
+                );
+            }
         });
     }
 }

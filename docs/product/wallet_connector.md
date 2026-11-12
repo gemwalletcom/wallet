@@ -50,6 +50,7 @@ flowchart LR
 | A transaction names a sender other than the session's account, on an EVM network, Tron or Sui | it is refused before anything is signed | the review reads as a send from the session's account |
 | A transaction on an EVM network names its own gas limit | the fee shown, the balance check and the signature all use the dapp's gas limit; with no limit, or an empty or zero one, they use Gem's estimate | the user approves the fee that is signed, as in other wallets |
 | An approved transaction fails to send | the dapp is never told it was sent | a failed send must not reach the dapp as a transaction hash |
+| A dapp asks to sign in with one click | one review shows the app, the wallet to sign in with, the network and the Sign-In message; Confirm signs it and connects that wallet | the dapp connects and signs in with one approval instead of two |
 | A one-click sign-in names a different site than the app asking | it is refused and the app is told so | the signature would log the user in to that other site |
 | A one-click sign-in is approved while another dapp connects with another wallet | each connection is listed under, and signs with, the wallet it was approved with | a sign-in keeps only the connections of the wallet that signed in |
 | A transaction approves a token: an approval, an allowance increase or a Permit2 approval | the review shows a token approval with the token, spender and amount; a flagged spender or token stops Confirm | the spender is who can move the token afterwards |
@@ -86,7 +87,6 @@ Toasts follow the shared [Toasts](../PRODUCT.md#toasts) section.
 
 | When | iOS | Android | Expected |
 |---|---|---|---|
-| A dapp asks to sign in with one-click authentication | not supported | supported | Intentional |
 | An answer goes back to a dapp that names no app or page of its own | a toast tells the user to return to the dapp | Gem moves to the background and the app that opened it shows | Intentional: iOS lets no app go back to the app that opened it |
 
 ## Rules
