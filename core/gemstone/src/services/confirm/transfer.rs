@@ -9,10 +9,9 @@ use crate::models::custom_types::GemBigInt;
 use crate::models::transaction::GemSignedTransaction;
 use crate::payment::GemPaymentService;
 use crate::services::confirm::rules::{confirm_row_contents, insufficient_funds, is_broadcast, submit_message};
-use crate::services::confirm::{GemConfirmError, GemConfirmInput, GemConfirmLoad, GemConfirmRowContent, GemConfirmService, GemConfirmSimulationState, GemConfirmation, GemSubmitResult, SendInput, SignedSubmission};
+use crate::services::confirm::{GemConfirmError, GemConfirmInput, GemConfirmLoad, GemConfirmRowContent, GemConfirmService, GemConfirmSimulationState, GemConfirmation, GemSubmitResult, SendInput};
 use payment::PaymentError;
 
-use super::error::SendFailure;
 use crate::services::error_text::{GemErrorText, payment_error_text};
 use crate::services::explorer::GemExplorerService;
 use crate::services::name::GemNameService;
@@ -101,30 +100,24 @@ impl GemConfirmTransferService {
         &self.confirm
     }
 
-    pub(super) async fn sign_submission(&self, input: SendInput) -> Result<SignedSubmission, GemConfirmError> {
+    pub(super) async fn submit(&self, input: SendInput) -> Result<GemSubmitResult, GemConfirmError> {
         let password = Zeroizing::new(decode_password(&self.password.get_password(false)?));
         let keystore_id = keystore_id_for_wallet(input.wallet.id.id());
         let input = self.with_signed_permit(input, &keystore_id, &password).await?;
+        let input_type = &input.confirm.input.transfer.input_type;
         let signed = self.confirm.sign(&input, |chain, signer_input| self.keystore.sign(keystore_id, chain, signer_input, password.to_vec()))?;
-        let input_type = &input.confirm.input.transfer.input_type;
-        let (transactions, signatures) = signed.into_iter().partition(|transaction| is_broadcast(input_type, transaction));
-        Ok(SignedSubmission { input, transactions, signatures })
-    }
-
-    pub(super) async fn deliver(&self, submission: &SignedSubmission) -> Result<GemSubmitResult, SendFailure> {
-        let SignedSubmission { input, transactions, signatures } = submission;
-        let input_type = &input.confirm.input.transfer.input_type;
+        let (transactions, signatures): (Vec<GemSignedTransaction>, Vec<GemSignedTransaction>) = signed.into_iter().partition(|transaction| is_broadcast(input_type, transaction));
         let data: Vec<String> = signatures.iter().map(|transaction| transaction.data.clone()).collect();
         if transactions.is_empty() {
-            let warning = self.report_payment(input, data.clone(), signatures).await;
+            let warning = self.report_payment(&input, data.clone(), &signatures).await;
             return Ok(GemSubmitResult::Signed {
                 data,
                 message: submit_message(input_type, warning),
             });
         }
-        let hashes = self.confirm.send(input, transactions.clone()).await?;
+        let hashes = self.confirm.send(&input, transactions).await?;
         let _ = self.recent_activity.add(input_type.clone(), input.wallet.id.clone()).await;
-        let warning = self.report_payment(input, [hashes.clone(), data].concat(), signatures).await;
+        let warning = self.report_payment(&input, [hashes.clone(), data].concat(), &signatures).await;
         Ok(GemSubmitResult::Sent {
             hashes,
             message: submit_message(input_type, warning),
@@ -218,7 +211,7 @@ mod tests {
                 ..GemTransferData::mock(TransactionInputType::Transfer { asset: Asset::mock_eth() })
             };
 
-            let error = Box::pin(testkit.service.sign_and_deliver(SendInput::mock_signed_by(wallet, transfer, None))).await.unwrap_err();
+            let error = Box::pin(testkit.service.submit(SendInput::mock_signed_by(wallet, transfer, None))).await.unwrap_err();
 
             assert_eq!(testkit.passwords.create_requests.lock().unwrap().clone(), vec![false], "the password is read once for the whole submit");
             assert!(broadcast_failed(&error), "signing succeeded and only the broadcast failed: {error:?}");

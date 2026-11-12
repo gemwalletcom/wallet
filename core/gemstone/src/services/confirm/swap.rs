@@ -290,7 +290,7 @@ mod tests {
             let transfer = mock_swap_transfer(&wallet.accounts[0].address, Some(Permit2ApprovalData::mock()));
             let quote = Quote::mock_with_request(&crate::services::swap::rules::requote_request(&wallet, &transfer, &transfer.value).unwrap().1);
 
-            let error = Box::pin(testkit.service.sign_and_deliver(SendInput::mock_signed_by(wallet, transfer, Some(quote)))).await.unwrap_err();
+            let error = Box::pin(testkit.service.submit(SendInput::mock_signed_by(wallet, transfer, Some(quote)))).await.unwrap_err();
 
             assert_eq!(testkit.passwords.create_requests.lock().unwrap().clone(), vec![false], "the permit and the transaction share one password read");
             let builds = builds.lock().unwrap().clone();
@@ -314,7 +314,7 @@ mod tests {
             let transfer = mock_swap_transfer(&wallet.accounts[0].address, None);
             let quote = Quote::mock_with_request(&crate::services::swap::rules::requote_request(&wallet, &transfer, &transfer.value).unwrap().1);
 
-            let error = Box::pin(testkit.service.sign_and_deliver(SendInput::mock_signed_by(wallet, transfer, Some(quote)))).await.unwrap_err();
+            let error = Box::pin(testkit.service.submit(SendInput::mock_signed_by(wallet, transfer, Some(quote)))).await.unwrap_err();
 
             assert!(builds.lock().unwrap().is_empty(), "the data the screen loaded is what gets signed");
             assert_eq!(testkit.passwords.create_requests.lock().unwrap().clone(), vec![false]);

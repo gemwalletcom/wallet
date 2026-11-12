@@ -16,7 +16,6 @@ use std::time::Duration;
 
 pub use confirmation::GemConfirmation;
 pub use error::GemConfirmError;
-use error::SendFailure;
 pub use model::*;
 pub use swap::ConfirmSwapQuote;
 pub use transfer::GemConfirmTransferService;
@@ -240,7 +239,7 @@ impl GemConfirmService {
 }
 
 impl GemConfirmService {
-    async fn send(&self, input: &SendInput, signed: Vec<GemSignedTransaction>) -> Result<Vec<String>, SendFailure> {
+    async fn send(&self, input: &SendInput, signed: Vec<GemSignedTransaction>) -> Result<Vec<String>, GemConfirmError> {
         let switches_account = input.confirm.metadata.get_hyperliquid_order().is_ok_and(|order| order.unified_account_switch.is_some());
         if switches_account {
             self.store_account_mode(input, PerpetualAccountMode::Unified);
@@ -257,11 +256,11 @@ impl GemConfirmService {
                 self.store_pending(input, &hashes, &signed).await;
                 Ok(hashes)
             }
-            Err(SendFailure::Failed(GemConfirmError::PartialBroadcast { hashes, msg })) => {
+            Err(GemConfirmError::PartialBroadcast { hashes, msg }) => {
                 self.store_pending(input, &hashes, &signed).await;
-                Err(SendFailure::Failed(GemConfirmError::PartialBroadcast { hashes, msg }))
+                Err(GemConfirmError::PartialBroadcast { hashes, msg })
             }
-            Err(failure) => Err(failure),
+            Err(error) => Err(error),
         }
     }
 
@@ -277,7 +276,7 @@ impl GemConfirmService {
         self.transaction_status.track(input.wallet.id.clone(), stored);
     }
 
-    async fn broadcast(&self, input_type: &TransactionInputType, transactions: &[GemSignedTransaction]) -> Result<Vec<String>, SendFailure> {
+    async fn broadcast(&self, input_type: &TransactionInputType, transactions: &[GemSignedTransaction]) -> Result<Vec<String>, GemConfirmError> {
         let chain = input_type.get_asset().id.chain;
         let options = input_type.broadcast_options();
         let delay = rules::broadcast_delay_milliseconds(chain);
@@ -287,7 +286,7 @@ impl GemConfirmService {
             match self.gateway.transaction_broadcast(chain, transaction.data.clone(), options.clone()).await {
                 Ok(hash) => hashes.push(hash),
                 Err(error) => {
-                    return Err(error::broadcast_failure(hashes, error));
+                    return Err(error::broadcast_error(hashes, error));
                 }
             }
             if index < transactions.len() - 1 && delay > 0 {
@@ -350,7 +349,7 @@ mod tests {
     use num_bigint::BigInt;
 
     use super::testkit::ConfirmTestkit;
-    use super::{GemConfirmError, GemConfirmFeeLoad, GemConfirmFeeSelection, GemConfirmLoadOptions, SendFailure, SendInput};
+    use super::{GemConfirmError, GemConfirmFeeLoad, GemConfirmFeeSelection, GemConfirmLoadOptions, SendInput};
     use crate::models::transaction::GemSignedTransaction;
     use crate::services::balance::GemAssetBalance;
     use crate::services::transfer::{GemRecipient, GemTransferData};
@@ -451,7 +450,7 @@ mod tests {
                 })
                 .collect();
 
-            let result = testkit.confirm.send(&input, signed).await.map_err(SendFailure::error);
+            let result = testkit.confirm.send(&input, signed).await;
             (result, testkit.wallet_preferences.get_perpetual_account_mode(input.wallet.id.clone()), provider.requested_paths())
         })
     }

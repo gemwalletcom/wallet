@@ -6,7 +6,7 @@ use crate::formatted_number::GemFormattedNumber;
 use crate::models::button::GemButtonState;
 use crate::models::custom_types::{GemBigInt, GemBigUint};
 use crate::models::list::{GemAddressRow, GemInfoTopic, GemListRow, GemListRowTitle};
-use crate::models::transaction::{GemFeeOptionItem, GemSignedTransaction};
+use crate::models::transaction::GemFeeOptionItem;
 use crate::services::amount::model::GemNumberFormat;
 use crate::services::assets::icon::asset_icon;
 use crate::services::assets::model::{GemAssetItemRow, GemFeeAmount, GemFeeText, GemValueHeader};
@@ -117,13 +117,6 @@ pub struct SendInput {
     pub network_fee: GemBigInt,
     pub simulation: Option<SimulationResult>,
     pub swap_quote: Option<Quote>,
-}
-
-#[derive(Debug, Clone)]
-pub struct SignedSubmission {
-    pub input: SendInput,
-    pub transactions: Vec<GemSignedTransaction>,
-    pub signatures: Vec<GemSignedTransaction>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]

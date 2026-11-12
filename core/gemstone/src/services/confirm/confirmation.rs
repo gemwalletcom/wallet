@@ -4,12 +4,12 @@ use std::time::Instant;
 
 use primitives::{AddressName, AssetId, ChainAddress, PaymentVerification, PerpetualType, SimulationResult, TransactionInputType, Wallet};
 
-use super::error::{GemConfirmErrorInfo, SendFailure};
+use super::error::GemConfirmErrorInfo;
 use super::header::{self, GemConfirmHeader};
 use super::rules::{asset_pick_needs_reload, preload_simulation};
 use super::{
     ConfirmState, ConfirmSwapQuote, GemConfirmDetails, GemConfirmError, GemConfirmFeeLoad, GemConfirmFeeRow, GemConfirmInput, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmRowContent, GemConfirmRowLink, GemConfirmScreen,
-    GemConfirmStage, GemConfirmTransferService, GemConfirmViewState, GemNetworkFeeScreen, GemSubmitResult, GemTransferAmountResult, SendInput, SignedSubmission,
+    GemConfirmStage, GemConfirmTransferService, GemConfirmViewState, GemNetworkFeeScreen, GemSubmitResult, GemTransferAmountResult, SendInput,
 };
 use crate::models::list::GemListRow;
 use crate::payment::GemPaymentLoad;
@@ -28,7 +28,6 @@ pub struct GemConfirmation {
     transfer: Mutex<GemTransferData>,
     simulation: Option<SimulationResult>,
     state: Mutex<Option<ConfirmState>>,
-    unanswered: Mutex<Option<SignedSubmission>>,
     latest_load: AtomicU64,
     created_at: Instant,
     authentication: GemKeystoreAuthentication,
@@ -43,7 +42,6 @@ impl GemConfirmation {
             transfer: Mutex::new(transfer),
             simulation,
             state: Mutex::new(None),
-            unanswered: Mutex::new(None),
             latest_load: AtomicU64::new(0),
             created_at: Instant::now(),
         }
@@ -51,35 +49,6 @@ impl GemConfirmation {
 
     fn stored(&self) -> MutexGuard<'_, Option<ConfirmState>> {
         self.state.lock().unwrap_or_else(std::sync::PoisonError::into_inner)
-    }
-
-    fn unanswered(&self) -> MutexGuard<'_, Option<SignedSubmission>> {
-        self.unanswered.lock().unwrap_or_else(std::sync::PoisonError::into_inner)
-    }
-
-    fn send_input(&self) -> Result<SendInput, GemConfirmError> {
-        let Some(ConfirmState {
-            load: GemConfirmLoad { fee: Some(fee), .. },
-            confirm_data: Some(confirm_data),
-            swap,
-        }) = self.stored().clone()
-        else {
-            return Err(GemConfirmError::Load {
-                msg: "confirm input is not loaded".to_string(),
-            });
-        };
-        let amount = match fee.amount {
-            GemTransferAmountResult::Amount { amount } => amount,
-            GemTransferAmountResult::Error { error } => return Err(error),
-        };
-        Ok(SendInput {
-            wallet: self.wallet.clone(),
-            simulation: self.simulation.clone().or_else(|| confirm_data.simulation.clone()),
-            confirm: confirm_data,
-            value: amount.value,
-            network_fee: amount.network_fee,
-            swap_quote: swap.and_then(|swap| swap.quote),
-        })
     }
 
     fn store_latest(&self, load: u64, result: Result<ConfirmState, GemConfirmError>) -> Result<GemConfirmLoad, GemConfirmError> {
@@ -178,7 +147,7 @@ impl GemConfirmation {
         let state = self.stored().clone();
         let load = state.as_ref().map(|state| &state.load);
         let transfer = self.transfer();
-        let send_started = screen.send_started() || self.unanswered().is_some();
+        let send_started = screen.send_started();
         let rows = self
             .row_contents(load.and_then(|load| load.address_name.clone()))
             .into_iter()
@@ -235,19 +204,29 @@ impl GemConfirmation {
     }
 
     pub async fn submit(&self) -> Result<GemSubmitResult, GemConfirmError> {
-        let held = self.unanswered().clone();
-        let submission = match held {
-            Some(submission) => submission,
-            None => Box::pin(self.service.sign_submission(self.send_input()?)).await?,
+        let Some(ConfirmState {
+            load: GemConfirmLoad { fee: Some(fee), .. },
+            confirm_data: Some(confirm_data),
+            swap,
+        }) = self.stored().clone()
+        else {
+            return Err(GemConfirmError::Load {
+                msg: "confirm input is not loaded".to_string(),
+            });
         };
-        match Box::pin(self.service.deliver(&submission)).await {
-            Ok(result) => Ok(result),
-            Err(SendFailure::Failed(error)) => Err(error),
-            Err(SendFailure::Unanswered(error)) => {
-                *self.unanswered() = Some(submission);
-                Err(error)
-            }
-        }
+        let amount = match fee.amount {
+            GemTransferAmountResult::Amount { amount } => amount,
+            GemTransferAmountResult::Error { error } => return Err(error),
+        };
+        let input = SendInput {
+            wallet: self.wallet.clone(),
+            simulation: self.simulation.clone().or_else(|| confirm_data.simulation.clone()),
+            confirm: confirm_data,
+            value: amount.value,
+            network_fee: amount.network_fee,
+            swap_quote: swap.and_then(|swap| swap.quote),
+        };
+        Box::pin(self.service.submit(input)).await
     }
 
     pub fn transfer(&self) -> GemTransferData {
@@ -265,9 +244,6 @@ impl GemConfirmation {
 
     pub async fn load(&self, options: GemConfirmLoadOptions) -> Result<GemConfirmLoad, GemConfirmError> {
         let load = self.latest_load.fetch_add(1, Ordering::SeqCst) + 1;
-        if self.unanswered().is_some() {
-            return self.state().await;
-        }
         if let Some(asset_id) = options.asset_id.clone() {
             self.select_asset(asset_id).await?;
         }
@@ -314,21 +290,15 @@ mod tests {
     use super::super::error::GemConfirmErrorDisplay;
     use super::super::model::{GemConfirmAction, GemConfirmFeeValue, GemConfirmPhase, GemConfirmRowLink, GemFeeRateKind};
     use super::super::testkit::{ConfirmTestkit, TEST_TRON_RECIPIENT, mock_bitcoin_transfer, mock_bitcoin_wallet, mock_tron_transfer, mock_tron_wallet};
-    use super::GemConfirmation;
     use crate::models::button::GemButtonState;
     use crate::models::placeholder::EMPTY_VALUE;
     use crate::services::amount::model::GemNumberFormat;
     use crate::services::balance::GemBalanceRequirement;
-    use crate::services::confirm::{
-        ConfirmState, GemConfirmDetails, GemConfirmError, GemConfirmFee, GemConfirmFeeSelection, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmRowContent, GemConfirmScreen, GemConfirmSection, GemConfirmViewState,
-        GemTransferAmountResult, SendInput,
-    };
+    use crate::services::confirm::{ConfirmState, GemConfirmDetails, GemConfirmError, GemConfirmFeeSelection, GemConfirmLoad, GemConfirmLoadOptions, GemConfirmRowContent, GemConfirmScreen, GemConfirmSection, GemConfirmViewState};
     use crate::services::simulation::warning_rows;
     use crate::services::swap::model::swap_quote_details;
-    use crate::services::transfer::{GemRecipient, GemTransferData};
-    use crate::testkit::TestAlienProvider;
+    use crate::services::transfer::GemTransferData;
     use primitives::currency::Currency;
-    use std::sync::Arc;
 
     #[test]
     fn test_request_wallet_balances_ignore_selected_wallet() {
@@ -675,58 +645,6 @@ mod tests {
 
             assert_eq!(sent.select_asset(AssetId::from_chain(Chain::SmartChain)).await.map_err(|error| error.to_string()), Err("Transfer is not a payment".to_string()));
             assert_eq!(paid.select_asset(ethereum.id).await.map_err(|error| error.to_string()), Ok(()), "the asset already paid with is not selected again");
-        });
-    }
-
-    fn unanswered_send() -> (ConfirmTestkit, Arc<TestAlienProvider>, Arc<GemConfirmation>) {
-        let provider = Arc::new(TestAlienProvider::offline());
-        let testkit = ConfirmTestkit::with_provider(Wallet::mock_with_chains(&[Chain::Ethereum]), Wallet::mock_with_chains(&[Chain::Ethereum]), provider.clone());
-        let wallet = testkit.keystore_wallet();
-        let transfer = GemTransferData {
-            recipient: GemRecipient::address(wallet.accounts[0].address.clone()),
-            ..GemTransferData::mock(TransactionInputType::Transfer { asset: Asset::mock_eth() })
-        };
-        let input = SendInput::mock_signed_by(wallet.clone(), transfer.clone(), None);
-        let confirmation = testkit.service.clone().confirmation(wallet, transfer, None);
-        *confirmation.stored() = Some(ConfirmState {
-            load: GemConfirmLoad {
-                fee: Some(GemConfirmFee::mock(GemTransferAmountResult::mock())),
-                ..GemConfirmLoad::mock()
-            },
-            confirm_data: Some(input.confirm),
-            swap: None,
-        });
-        (testkit, provider, confirmation)
-    }
-
-    #[test]
-    fn test_a_send_the_network_never_answered_goes_out_again_without_signing() {
-        block_on(async {
-            let (testkit, provider, confirmation) = unanswered_send();
-
-            assert_eq!(confirmation.submit().await.unwrap_err(), GemConfirmError::Offline);
-            assert_eq!(confirmation.submit().await.unwrap_err(), GemConfirmError::Offline);
-
-            assert_eq!(testkit.passwords.create_requests.lock().unwrap().clone(), vec![false], "the second Confirm sends what the first one signed");
-            let broadcasts = provider.requested_paths();
-            assert_eq!(broadcasts.len(), 2);
-            assert_eq!(broadcasts[0], broadcasts[1]);
-        });
-    }
-
-    #[test]
-    fn test_a_send_the_network_never_answered_keeps_the_fee_it_was_signed_with() {
-        block_on(async {
-            let (_testkit, provider, confirmation) = unanswered_send();
-            assert_eq!(confirmation.submit().await.unwrap_err(), GemConfirmError::Offline);
-            let requests = provider.requested_paths().len();
-
-            let held = confirmation.load(confirmation.load_options()).await.unwrap();
-            let failed = GemConfirmScreen::initial(None).on_loaded(held.clone()).on_execute_started().on_execute_failed(GemConfirmError::Offline);
-
-            assert_eq!(provider.requested_paths().len(), requests, "a reload asks the network for nothing");
-            assert_eq!(held.fee.map(|fee| fee.value), Some(BigInt::from(1)));
-            assert_eq!(confirmation.view_state(failed).fee_row.link, GemConfirmRowLink::Disabled, "the fee cannot change under a signed transaction");
         });
     }
 }
