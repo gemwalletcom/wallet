@@ -1,7 +1,7 @@
 use std::collections::BTreeSet;
 
 use bitcoin::{
-    Address, Amount, CompressedPublicKey, Network, Psbt, ScriptBuf, TxOut, Witness, ecdsa,
+    Address, Amount, Network, Psbt, ScriptBuf, TxOut, Witness, ecdsa,
     secp256k1::{Message, PublicKey, Secp256k1},
     sighash::{EcdsaSighashType, SighashCache},
 };
@@ -11,7 +11,7 @@ use primitives::{BitcoinChain, SignerError, SignerInput, UTXO, hex};
 use serde::Deserialize;
 
 use crate::signer::{
-    address::{UnlockingScript, script_for_address},
+    address::{UnlockingScript, public_key_hash, script_for_address, script_for_public_key_hash},
     transaction::ZeroizedSecretKey,
 };
 
@@ -57,43 +57,28 @@ impl BitcoinPsbtRequest {
     }
 
     pub fn summary(&self, address: &str) -> Result<PsbtSummary, SignerError> {
-        let psbt = self.decode_psbt()?;
-        let script = wallet_script(address)?;
-        let inputs = self.wallet_inputs(&psbt, address, &script)?;
-        let spent = total(inputs.iter().map(|input| input.output.value))?;
-        let returned = total(psbt.unsigned_tx.output.iter().filter(|output| output.script_pubkey == script).map(|output| output.value))?;
-        let fee = match inputs.len() == psbt.inputs.len() {
-            true => spent
-                .checked_sub(total(psbt.unsigned_tx.output.iter().map(|output| output.value))?)
-                .ok_or_else(|| SignerError::invalid_input("PSBT pays out more than its inputs hold"))?,
-            false => 0,
-        };
-        Ok(PsbtSummary {
-            recipient: recipient(&psbt, &script)?,
-            value: spent.saturating_sub(returned).saturating_sub(fee),
-            fee,
-        })
+        let (psbt, script, inputs) = self.read(address)?;
+        summarize(&psbt, &script, &inputs)
     }
 
-    pub fn check_coins(&self, address: &str, utxos: &[UTXO]) -> Result<(), SignerError> {
-        let psbt = self.decode_psbt()?;
-        let inputs = self.wallet_inputs(&psbt, address, &wallet_script(address)?)?;
-        held_coins(&psbt, &inputs, utxos)
+    pub fn held_summary(&self, address: &str, utxos: &[UTXO]) -> Result<PsbtSummary, SignerError> {
+        let (psbt, script, inputs) = self.read(address)?;
+        held_coins(&psbt, &inputs, utxos)?;
+        summarize(&psbt, &script, &inputs)
     }
 
     pub fn sign(&self, address: &str, private_key: &[u8], utxos: &[UTXO]) -> Result<Psbt, SignerError> {
-        let mut psbt = self.decode_psbt()?;
-        let script = wallet_script(address)?;
-        let inputs = self.wallet_inputs(&psbt, address, &script)?;
+        let (mut psbt, script, inputs) = self.read(address)?;
         held_coins(&psbt, &inputs, utxos)?;
         let secp = Secp256k1::signing_only();
         let secret_key = ZeroizedSecretKey::new(BitcoinChain::Bitcoin, private_key)?;
         let public_key = PublicKey::from_secret_key(&secp, &secret_key);
-        if ScriptBuf::new_p2wpkh(&CompressedPublicKey(public_key).wpubkey_hash()) != script {
+        if script_for_public_key_hash(UnlockingScript::P2wpkh, public_key_hash(&public_key.serialize())) != script {
             return SignerError::invalid_input_err("the wallet key does not own the session address");
         }
+        let mut cache = SighashCache::new(&psbt.unsigned_tx);
         for input in inputs {
-            let sighash = SighashCache::new(&psbt.unsigned_tx)
+            let sighash = cache
                 .p2wpkh_signature_hash(input.index, &script, input.output.value, input.sighash_type)
                 .map_err(|error| SignerError::signing_error(format!("PSBT sighash: {error}")))?;
             let signature = ecdsa::Signature {
@@ -103,6 +88,13 @@ impl BitcoinPsbtRequest {
             psbt.inputs[input.index].partial_sigs.insert(bitcoin::PublicKey::new(public_key), signature);
         }
         Ok(psbt)
+    }
+
+    fn read(&self, address: &str) -> Result<(Psbt, ScriptBuf, Vec<WalletInput>), SignerError> {
+        let psbt = self.decode_psbt()?;
+        let script = wallet_script(address)?;
+        let inputs = self.wallet_inputs(&psbt, address, &script)?;
+        Ok((psbt, script, inputs))
     }
 
     fn wallet_inputs(&self, psbt: &Psbt, address: &str, script: &ScriptBuf) -> Result<Vec<WalletInput>, SignerError> {
@@ -139,6 +131,22 @@ impl BitcoinPsbtRequest {
             None => Ok(inputs),
         }
     }
+}
+
+fn summarize(psbt: &Psbt, script: &ScriptBuf, inputs: &[WalletInput]) -> Result<PsbtSummary, SignerError> {
+    let spent = total(inputs.iter().map(|input| input.output.value))?;
+    let returned = total(psbt.unsigned_tx.output.iter().filter(|output| output.script_pubkey == *script).map(|output| output.value))?;
+    let fee = match inputs.len() == psbt.inputs.len() {
+        true => spent
+            .checked_sub(total(psbt.unsigned_tx.output.iter().map(|output| output.value))?)
+            .ok_or_else(|| SignerError::invalid_input("PSBT pays out more than its inputs hold"))?,
+        false => 0,
+    };
+    Ok(PsbtSummary {
+        recipient: recipient(psbt, script)?,
+        value: spent.saturating_sub(returned).saturating_sub(fee),
+        fee,
+    })
 }
 
 struct WalletInput {
@@ -334,7 +342,7 @@ mod tests {
         let understated = mock_psbt_request(&[(1_000_000, &wallet), (1_000, &wallet)], &[(1_000_000, RECIPIENT)], &[(0, None), (1, None)]);
 
         assert_eq!(understated.summary(&wallet).unwrap().fee, 1_000, "the PSBT claims a small fee");
-        assert!(understated.check_coins(&wallet, &held).is_err(), "the load refuses an input whose amount is not the coin's");
+        assert!(understated.held_summary(&wallet, &held).is_err(), "the load refuses an input whose amount is not the coin's");
         assert!(understated.sign(&wallet, &TEST_PRIVATE_KEY, &held).is_err(), "a signature over a wrong amount could be combined into a far larger fee");
     }
 
@@ -351,7 +359,7 @@ mod tests {
         }
 
         let disguised = mock_psbt_request(&[(1_000_000, &wallet), (1_000_000, RECIPIENT)], &outputs, &[(0, None)]);
-        assert!(disguised.check_coins(&wallet, &coins).is_err(), "a wallet coin labelled as someone else's is still the wallet's");
+        assert!(disguised.held_summary(&wallet, &coins).is_err(), "a wallet coin labelled as someone else's is still the wallet's");
 
         let whole = mock_psbt_request(&[(1_000_000, &wallet), (1_000_000, &wallet)], &outputs, &[(0, None), (1, None)]);
         assert_eq!(
@@ -363,7 +371,7 @@ mod tests {
             }
         );
         assert!(whole.sign(&wallet, &TEST_PRIVATE_KEY, &coins).is_ok());
-        assert!(whole.check_coins(&wallet, &[]).is_err(), "a coin the wallet does not hold is refused");
+        assert!(whole.held_summary(&wallet, &[]).is_err(), "a coin the wallet does not hold is refused");
     }
 
     #[test]

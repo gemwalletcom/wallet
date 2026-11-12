@@ -3194,6 +3194,7 @@ dependencies = [
  "gem_ton",
  "num-bigint 0.5.1",
  "primitives",
+ "serde",
  "serde_json",
  "url",
 ]

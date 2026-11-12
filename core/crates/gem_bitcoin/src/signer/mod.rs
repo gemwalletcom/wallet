@@ -27,8 +27,7 @@ pub(crate) fn estimate_transaction_fee(chain: BitcoinChain, input: &TransactionL
             TransactionInputType::Swap { .. } => SpendRequest::swap(chain, signer_input)?,
             TransactionInputType::Generic { .. } => {
                 let request = psbt::BitcoinPsbtRequest::from_input(signer_input)?;
-                request.check_coins(&signer_input.sender_address, &signer_input.metadata.get_utxos()?)?;
-                return Ok(request.summary(&signer_input.sender_address)?.fee);
+                return Ok(request.held_summary(&signer_input.sender_address, &signer_input.metadata.get_utxos()?)?.fee);
             }
             _ => return SignerError::invalid_input_err("unsupported Bitcoin transaction type"),
         };

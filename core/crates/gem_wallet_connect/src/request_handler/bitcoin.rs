@@ -1,22 +1,48 @@
 use crate::actions::{WCBitcoinTransferData, WalletConnectAction, WalletConnectTransaction, WalletConnectTransactionType};
 use crate::sign_type::SignDigestType;
 use gem_bitcoin::signer::psbt::BitcoinPsbtRequest;
-use primitives::{Chain, ValueAccess, WalletConnectionMethods, hex};
+use primitives::{Chain, WalletConnectionMethods, hex};
+use serde::{Deserialize, de::DeserializeOwned};
 use serde_json::Value;
 
 const MEMO_MAX_BYTES: usize = 80;
-const PROTOCOL_ECDSA: &str = "ecdsa";
-const PROTOCOL_BIP322: &str = "bip322";
+
+#[derive(Deserialize)]
+struct SignMessageParams {
+    account: String,
+    message: String,
+    address: Option<String>,
+    #[serde(default)]
+    protocol: MessageProtocol,
+}
+
+#[derive(Default, Deserialize)]
+#[serde(rename_all = "lowercase")]
+enum MessageProtocol {
+    #[default]
+    Ecdsa,
+    Bip322,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct SendTransferParams {
+    account: String,
+    recipient_address: String,
+    amount: String,
+    memo: Option<String>,
+}
 
 pub struct BitcoinRequestHandler;
 
 impl BitcoinRequestHandler {
     pub fn parse_request(method: WalletConnectionMethods, params: Value) -> Result<WalletConnectAction, String> {
+        let data = params.to_string();
         match method {
             WalletConnectionMethods::BitcoinGetAccountAddresses => Ok(WalletConnectAction::GetAccounts { chain: Chain::Bitcoin }),
-            WalletConnectionMethods::BitcoinSignMessage => Self::parse_sign_message(params),
-            WalletConnectionMethods::BitcoinSignPsbt => Self::parse_sign_psbt(params),
-            WalletConnectionMethods::BitcoinSendTransfer => Self::parse_send_transfer(params),
+            WalletConnectionMethods::BitcoinSignMessage => Self::parse_sign_message(data),
+            WalletConnectionMethods::BitcoinSignPsbt => Self::parse_sign_psbt(data),
+            WalletConnectionMethods::BitcoinSendTransfer => Self::parse_send_transfer(data),
             _ => Err("Method not supported".to_string()),
         }
     }
@@ -28,58 +54,41 @@ impl BitcoinRequestHandler {
     }
 
     pub fn decode_transfer(data: String) -> Result<WalletConnectTransaction, String> {
-        let params: Value = serde_json::from_str(&data).map_err(|error| error.to_string())?;
-        let amount = params.get_value("amount")?.string()?;
-        let memo = match params.get("memo").and_then(Value::as_str).filter(|memo| !memo.is_empty()) {
-            Some(memo) => Some(Self::decode_memo(memo)?).filter(|memo| !memo.trim().is_empty()),
-            None => None,
-        };
+        let params: SendTransferParams = parse(&data)?;
+        let memo = params.memo.filter(|memo| !memo.is_empty()).map(|memo| Self::decode_memo(&memo)).transpose()?;
         Ok(WalletConnectTransaction::BitcoinTransfer {
             data: WCBitcoinTransferData {
-                account: params.get_value("account")?.string()?.to_string(),
-                recipient_address: params.get_value("recipientAddress")?.string()?.to_string(),
-                amount: amount.parse().map_err(|_| format!("invalid amount {amount}"))?,
-                memo,
+                account: params.account,
+                recipient_address: params.recipient_address,
+                amount: params.amount.parse().map_err(|_| format!("invalid amount {}", params.amount))?,
+                memo: memo.filter(|memo| !memo.trim().is_empty()),
             },
         })
     }
 
     pub fn validate_message_account(data: &str, address: &str) -> Result<(), String> {
-        let params: Value = serde_json::from_str(data).map_err(|error| error.to_string())?;
-        let account = params.get_value("account")?.string()?;
-        let signer = params.get("address").and_then(Value::as_str).unwrap_or(account);
-        if account != address || signer != address {
+        let params: SignMessageParams = parse(data)?;
+        if params.account != address || params.address.is_some_and(|signer| signer != address) {
             return Err("Bitcoin message address does not match signing account".to_string());
         }
         Ok(())
     }
 
-    pub fn decode_message(data: &str) -> Vec<u8> {
-        serde_json::from_str::<Value>(data)
-            .ok()
-            .and_then(|params| params.get("message").and_then(Value::as_str).map(|message| message.as_bytes().to_vec()))
-            .unwrap_or_default()
+    pub fn decode_message(data: &str) -> Result<Vec<u8>, String> {
+        parse::<SignMessageParams>(data).map(|params| params.message.into_bytes())
     }
 
-    fn parse_sign_message(params: Value) -> Result<WalletConnectAction, String> {
-        params.get_value("account")?.string()?;
-        params.get_value("message")?.string()?;
-        let sign_type = match params.get("protocol").and_then(Value::as_str) {
-            None | Some(PROTOCOL_ECDSA) => SignDigestType::BitcoinEcdsa,
-            Some(PROTOCOL_BIP322) => SignDigestType::BitcoinBip322,
-            Some(protocol) => return Err(format!("unsupported Bitcoin message protocol {protocol}")),
+    fn parse_sign_message(data: String) -> Result<WalletConnectAction, String> {
+        let sign_type = match parse::<SignMessageParams>(&data)?.protocol {
+            MessageProtocol::Ecdsa => SignDigestType::BitcoinEcdsa,
+            MessageProtocol::Bip322 => SignDigestType::BitcoinBip322,
         };
-        Ok(WalletConnectAction::SignMessage {
-            chain: Chain::Bitcoin,
-            sign_type,
-            data: params.to_string(),
-        })
+        Ok(WalletConnectAction::SignMessage { chain: Chain::Bitcoin, sign_type, data })
     }
 
-    fn parse_sign_psbt(params: Value) -> Result<WalletConnectAction, String> {
-        let request = BitcoinPsbtRequest::parse(&params.to_string()).map_err(|error| error.to_string())?;
+    fn parse_sign_psbt(data: String) -> Result<WalletConnectAction, String> {
+        let request = BitcoinPsbtRequest::parse(&data).map_err(|error| error.to_string())?;
         let transaction_type = WalletConnectTransactionType::BitcoinPsbt;
-        let data = params.to_string();
         Ok(match request.broadcast {
             true => WalletConnectAction::SendTransaction {
                 chain: Chain::Bitcoin,
@@ -94,8 +103,7 @@ impl BitcoinRequestHandler {
         })
     }
 
-    fn parse_send_transfer(params: Value) -> Result<WalletConnectAction, String> {
-        let data = params.to_string();
+    fn parse_send_transfer(data: String) -> Result<WalletConnectAction, String> {
         Self::decode_transfer(data.clone())?;
         Ok(WalletConnectAction::SendTransaction {
             chain: Chain::Bitcoin,
@@ -111,6 +119,10 @@ impl BitcoinRequestHandler {
         }
         String::from_utf8(bytes).map_err(|_| "memo is not text".to_string())
     }
+}
+
+fn parse<T: DeserializeOwned>(data: &str) -> Result<T, String> {
+    serde_json::from_str(data).map_err(|error| error.to_string())
 }
 
 #[cfg(test)]
@@ -135,7 +147,11 @@ mod tests {
         assert_eq!(sign_type(r#","protocol":"ecdsa""#), Ok(SignDigestType::BitcoinEcdsa));
         assert_eq!(sign_type(r#","protocol":"bip322""#), Ok(SignDigestType::BitcoinBip322));
         assert!(sign_type(r#","protocol":"schnorr""#).is_err());
-        assert_eq!(BitcoinRequestHandler::decode_message(&format!(r#"{{"account":"{ACCOUNT}","message":"Hello"}}"#)), b"Hello".to_vec());
+        assert_eq!(BitcoinRequestHandler::decode_message(&format!(r#"{{"account":"{ACCOUNT}","message":"Hello"}}"#)), Ok(b"Hello".to_vec()));
+        assert!(
+            BitcoinRequestHandler::decode_message(&format!(r#"{{"account":"{ACCOUNT}"}}"#)).is_err(),
+            "a request without a message is never signed as an empty one"
+        );
     }
 
     #[test]

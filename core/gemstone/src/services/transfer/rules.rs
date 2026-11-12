@@ -481,7 +481,7 @@ impl GemTransferData {
             .collect();
         }
         let (shows_recipient, shows_details) = match &self.input_type {
-            TransactionInputType::Generic { extra, .. } => (extra.transaction_type == TransactionType::Transfer && !self.recipient.address.is_empty(), false),
+            TransactionInputType::Generic { extra, .. } => (extra.transaction_type == TransactionType::Transfer, false),
             _ => (true, true),
         };
         [

@@ -1,5 +1,5 @@
 use bitcoin::{
-    Amount, CompressedPublicKey, OutPoint, ScriptBuf, Sequence, Transaction, TxIn, TxOut, Txid, Witness,
+    Amount, OutPoint, ScriptBuf, Sequence, Transaction, TxIn, TxOut, Txid, Witness,
     absolute::LockTime,
     consensus::encode::serialize,
     ecdsa,
@@ -12,7 +12,11 @@ use bitcoin::{
 };
 use primitives::{BitcoinChain, SignerError};
 
-use crate::signer::{encoding::encode_varint, transaction::ZeroizedSecretKey};
+use crate::signer::{
+    address::{UnlockingScript, public_key_hash, script_for_public_key_hash},
+    encoding::encode_varint,
+    transaction::ZeroizedSecretKey,
+};
 
 const MESSAGE_PREFIX: &[u8] = b"\x18Bitcoin Signed Message:\n";
 const BIP322_TAG: &[u8] = b"BIP0322-signed-message";
@@ -30,7 +34,7 @@ pub fn sign_message_bip322(message: &[u8], private_key: &[u8]) -> Result<Vec<u8>
     let secp = Secp256k1::signing_only();
     let secret_key = ZeroizedSecretKey::new(BitcoinChain::Bitcoin, private_key)?;
     let public_key = PublicKey::from_secret_key(&secp, &secret_key);
-    let script_pubkey = ScriptBuf::new_p2wpkh(&CompressedPublicKey(public_key).wpubkey_hash());
+    let script_pubkey = script_for_public_key_hash(UnlockingScript::P2wpkh, public_key_hash(&public_key.serialize()));
     let to_spend = Transaction {
         version: Version(0),
         lock_time: LockTime::ZERO,
@@ -74,7 +78,7 @@ pub fn message_hash(message: &[u8]) -> [u8; 32] {
     sha256d::Hash::hash(&data).to_byte_array()
 }
 
-fn bip322_message_hash(message: &[u8]) -> [u8; 32] {
+pub fn bip322_message_hash(message: &[u8]) -> [u8; 32] {
     let tag = sha256::Hash::hash(BIP322_TAG).to_byte_array();
     sha256::Hash::hash(&[&tag[..], &tag, message].concat()).to_byte_array()
 }

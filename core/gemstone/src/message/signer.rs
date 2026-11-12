@@ -90,7 +90,8 @@ impl MessageSigner {
                 Ok(digest.to_vec())
             }
             SignDigestType::Base58 => bs58::decode(&self.message.data).into_vec().map_err(|e| GemstoneError::from(e.to_string())),
-            SignDigestType::BitcoinEcdsa | SignDigestType::BitcoinBip322 => Ok(bitcoin_message::message_hash(&self.message.data).to_vec()),
+            SignDigestType::BitcoinEcdsa => Ok(bitcoin_message::message_hash(&self.message.data).to_vec()),
+            SignDigestType::BitcoinBip322 => Ok(bitcoin_message::bip322_message_hash(&self.message.data).to_vec()),
         }
     }
 }

@@ -426,9 +426,6 @@ pub fn validate_transaction_sender(transaction: &WalletConnectTransaction, accou
             }
         }
         WalletConnectTransaction::Sui { data, .. } => validate_wallet_connect_sender(&data.transaction, &account.address).map_err(|error| GemServiceError::InvalidInput { msg: error.to_string() }),
-        WalletConnectTransaction::BitcoinPsbt { request, .. } if request.account != account.address => Err(GemServiceError::InvalidInput {
-            msg: format!("transaction sender {} is not the session account {}", request.account, account.address),
-        }),
         WalletConnectTransaction::BitcoinTransfer { data } if data.account != account.address => Err(GemServiceError::InvalidInput {
             msg: format!("transaction sender {} is not the session account {}", data.account, account.address),
         }),

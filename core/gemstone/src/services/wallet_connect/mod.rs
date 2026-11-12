@@ -273,7 +273,7 @@ impl GemWalletConnectService {
                     SignMessageVerdict::SuspiciousSpender => scan_rules::with_suspicious_spender(simulation),
                     SignMessageVerdict::Allowed => simulation,
                 };
-                let message = self.wallet_connect.decode_sign_message(chain, sign_type, data);
+                let message = self.wallet_connect.decode_sign_message(chain, sign_type, data)?;
                 let address = account.address.clone();
                 self.ensure_live(request.expiry)?;
                 self.session.set_current_wallet_id(Some(connection.wallet.id.clone()))?;
