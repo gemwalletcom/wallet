@@ -38,7 +38,6 @@ import com.gemwallet.android.ui.localization.actionRes
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.localization.titleRes
 import com.gemwallet.android.ui.models.actions.CancelAction
-import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.theme.iconSize
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space6
@@ -102,7 +101,7 @@ fun FiatScreen(cancelAction: CancelAction, onFiatTransactions: () -> Unit, viewM
             FiatAction.RetryQuote -> viewModel.retry()
 
             FiatAction.Continue -> scope.launch {
-                viewModel.continueToProvider { uriHandler.open(context, it) }
+                viewModel.continueToProvider { uriHandler.openUri(it) }
                     .onFailure { snackbar.showSnackbar(it.errorText().text(context), R.drawable.ic_error) }
             }
 
