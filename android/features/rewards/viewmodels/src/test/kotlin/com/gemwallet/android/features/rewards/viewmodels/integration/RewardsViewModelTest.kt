@@ -75,7 +75,7 @@ class RewardsViewModelTest {
     private val service = mockk<GemRewardsServiceInterface> {
         every { isAvailable() } returns true
         coEvery { refresh(any()) } answers { mockGemRewardsResult(walletId = firstArg(), state = GemLoadState.Data, rewards = rewards()) }
-        coEvery { useReferralCode(any(), any()) } returns rewards(usedReferralCode = "friend", verifyAfter = 4_102_444_800)
+        coEvery { useReferralCode(any(), any()) } returns rewards(usedReferralCode = "friend", verifyAfter = System.currentTimeMillis() - 60_000)
     }
 
     @Test
@@ -90,6 +90,7 @@ class RewardsViewModelTest {
             runCurrent()
 
             assertEquals("friend", viewModel.pendingReferral.value?.code)
+            assertEquals(true, viewModel.pendingReferral.value?.isEnabled)
             coVerify { service.useReferralCode(wallet.id.id, "friend") }
         } finally {
             viewModel.viewModelScope.cancel()

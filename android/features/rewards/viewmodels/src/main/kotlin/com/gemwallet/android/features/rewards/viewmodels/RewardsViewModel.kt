@@ -82,8 +82,8 @@ class RewardsViewModel @Inject constructor(
 
     private val session = MutableStateFlow(rewardsSession(savedStateHandle.get<String>(RouteArgument.Code.key)))
 
-    private val viewState = session.map { it.viewState(System.currentTimeMillis() / 1000) }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, session.value.viewState(System.currentTimeMillis() / 1000))
+    private val viewState = session.map { it.viewState(System.currentTimeMillis()) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, session.value.viewState(System.currentTimeMillis()))
 
     val state: StateFlow<GemLoadState> = viewState.map { it.state }
         .stateIn(viewModelScope, SharingStarted.Eagerly, viewState.value.state)
