@@ -32,6 +32,8 @@ use num_bigint::BigInt;
 use primitives::GasPriceType;
 use primitives::TransactionInputType;
 use primitives::{Asset, TransactionType, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType};
+use std::collections::BTreeMap;
+use wallet_connect_protocol::sign::SessionNamespace;
 use wallet_connect_protocol::sign::namespaces::NamespaceError;
 use wallet_connect_protocol::sign::types::Redirect;
 
@@ -283,6 +285,16 @@ pub fn namespace_rejection(error: NamespaceError) -> GemWalletConnectRejectionRe
     }
 }
 
+pub const BITCOIN_ADDRESSES_CHANGED_EVENT: &str = "bip122_addressesChanged";
+
+pub fn bitcoin_address_event_chains(namespaces: &BTreeMap<String, SessionNamespace>) -> Option<Vec<String>> {
+    let namespace = namespaces.get(WalletConnectCAIP2::Bip122.as_ref())?;
+    if !namespace.events.iter().any(|event| event == BITCOIN_ADDRESSES_CHANGED_EVENT) {
+        return None;
+    }
+    Some(unique(namespace.accounts.iter().filter_map(|account| account.rsplit_once(':').map(|(chain_id, _)| chain_id.to_string()))))
+}
+
 pub fn caip2_chain_ids(chain: Chain) -> Vec<String> {
     let Some(namespace) = WalletConnectCAIP2::get_namespace(chain) else {
         return vec![];
@@ -414,6 +426,9 @@ pub fn validate_transaction_sender(transaction: &WalletConnectTransaction, accou
             }
         }
         WalletConnectTransaction::Sui { data, .. } => validate_wallet_connect_sender(&data.transaction, &account.address).map_err(|error| GemServiceError::InvalidInput { msg: error.to_string() }),
+        WalletConnectTransaction::BitcoinTransfer { data } if data.account != account.address => Err(GemServiceError::InvalidInput {
+            msg: format!("transaction sender {} is not the session account {}", data.account, account.address),
+        }),
         _ => Ok(()),
     }
 }
@@ -476,6 +491,27 @@ pub fn transfer_data(metadata: ApplicationMetadata, transaction: WalletConnectTr
             };
             (extra, value)
         }
+        WalletConnectTransaction::BitcoinPsbt { request, data } => {
+            let summary = request.summary(&account.address).map_err(|error| GemServiceError::InvalidInput { msg: error.to_string() })?;
+            let extra = TransferDataExtra {
+                to: summary.recipient.unwrap_or_default(),
+                ..encoded_extra(data, TransferDataOutputType::EncodedTransaction, output_action, TransactionType::Transfer)
+            };
+            (extra, BigInt::from(summary.value))
+        }
+        WalletConnectTransaction::BitcoinTransfer { data } => {
+            return Ok(GemTransferData {
+                recipient: GemRecipient {
+                    address: data.recipient_address,
+                    name: None,
+                    memo: data.memo,
+                    references: vec![],
+                },
+                input_type: TransactionInputType::Transfer { asset: Asset::from_chain(account.chain) },
+                value: BigInt::from(data.amount),
+                use_max_amount: false,
+            });
+        }
         WalletConnectTransaction::Ton { data, output_type } => {
             let transfer = decode_wallet_connect_transfer(&data).map_err(|msg| GemServiceError::InvalidInput { msg })?;
             let extra = TransferDataExtra {
@@ -534,6 +570,25 @@ fn hex_to_bytes(value: &str) -> Result<Vec<u8>, GemServiceError> {
 
 #[cfg(test)]
 mod tests {
+
+    #[test]
+    fn test_bitcoin_addresses_are_announced_only_on_a_bitcoin_session_that_listens() {
+        let namespace = |events: &[&str]| {
+            BTreeMap::from([(
+                "bip122".to_string(),
+                SessionNamespace {
+                    chains: None,
+                    accounts: vec!["bip122:000000000019d6689c085ae165831e93:bc1qaddress".to_string()],
+                    methods: vec![],
+                    events: events.iter().map(|event| event.to_string()).collect(),
+                },
+            )])
+        };
+        assert_eq!(bitcoin_address_event_chains(&namespace(&[BITCOIN_ADDRESSES_CHANGED_EVENT])), Some(vec!["bip122:000000000019d6689c085ae165831e93".to_string()]));
+        assert_eq!(bitcoin_address_event_chains(&namespace(&[])), None, "a dapp that did not ask for the event never gets it");
+        assert_eq!(bitcoin_address_event_chains(&BTreeMap::new()), None);
+        assert!(session_events().contains(&BITCOIN_ADDRESSES_CHANGED_EVENT.to_string()), "the event is offered when a dapp asks for it");
+    }
 
     #[test]
     fn test_session_rejection_names_the_wire_values() {
@@ -693,8 +748,8 @@ mod tests {
             ..Wallet::mock_with_type(WalletType::Single, &[Chain::Ethereum])
         };
         let view = Wallet::mock_with_type(WalletType::View, &[Chain::Ethereum]);
-        let bitcoin_only = Wallet::mock_with_type(WalletType::Single, &[Chain::Bitcoin]);
-        let wallets = vec![single, view, bitcoin_only, multicoin];
+        let litecoin_only = Wallet::mock_with_type(WalletType::Single, &[Chain::Litecoin]);
+        let wallets = vec![single, view, litecoin_only, multicoin];
 
         let required = session_wallets(wallets.clone(), &[Chain::Ethereum, Chain::Solana], &[]);
         assert_eq!(required.iter().map(|wallet| wallet.name.as_str()).collect::<Vec<_>>(), vec!["multi"]);
@@ -703,7 +758,13 @@ mod tests {
         assert_eq!(optional.iter().map(|wallet| wallet.name.as_str()).collect::<Vec<_>>(), vec!["multi", "single"]);
 
         let any = session_wallets(wallets, &[], &[]);
-        assert_eq!(any.len(), 2);
+        assert_eq!(any.len(), 2, "a wallet with no WalletConnect network is not offered");
+
+        let bitcoin = Wallet {
+            name: "bitcoin".to_string(),
+            ..Wallet::mock_with_type(WalletType::Single, &[Chain::Bitcoin])
+        };
+        assert_eq!(session_wallets(vec![bitcoin], &[Chain::Bitcoin], &[]).iter().map(|wallet| wallet.name.as_str()).collect::<Vec<_>>(), vec!["bitcoin"]);
     }
 
     #[test]

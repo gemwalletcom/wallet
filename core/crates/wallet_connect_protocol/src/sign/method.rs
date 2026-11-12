@@ -3,6 +3,7 @@ pub const METHOD_SESSION_AUTHENTICATE: &str = "wc_sessionAuthenticate";
 pub const METHOD_SESSION_SETTLE: &str = "wc_sessionSettle";
 pub const METHOD_SESSION_REQUEST: &str = "wc_sessionRequest";
 pub const METHOD_SESSION_UPDATE: &str = "wc_sessionUpdate";
+pub const METHOD_SESSION_EVENT: &str = "wc_sessionEvent";
 pub const METHOD_SESSION_DELETE: &str = "wc_sessionDelete";
 pub const METHOD_SESSION_PING: &str = "wc_sessionPing";
 pub const METHOD_PAIRING_PING: &str = "wc_pairingPing";
@@ -17,6 +18,7 @@ pub enum Publish {
     ProposalRejection,
     SessionRequestResponse,
     SessionUpdate,
+    SessionEvent,
     SessionDelete,
     SessionDeleteResponse,
     SessionPingResponse,
@@ -32,6 +34,7 @@ impl Publish {
             Self::ProposalRejection => 1120,
             Self::SessionRequestResponse => 1109,
             Self::SessionUpdate => 1104,
+            Self::SessionEvent => 1110,
             Self::SessionDelete => 1112,
             Self::SessionDeleteResponse => 1113,
             Self::SessionPingResponse => 1115,
@@ -44,7 +47,7 @@ impl Publish {
 
     pub fn ttl(&self) -> u64 {
         match self {
-            Self::ProposalRejection | Self::SessionRequestResponse | Self::AuthenticationApproval | Self::AuthenticationRejection => FIVE_MINUTES,
+            Self::ProposalRejection | Self::SessionRequestResponse | Self::SessionEvent | Self::AuthenticationApproval | Self::AuthenticationRejection => FIVE_MINUTES,
             Self::SessionPingResponse | Self::PairingPingResponse => THIRTY_SECONDS,
             Self::SessionUpdate | Self::SessionDelete | Self::SessionDeleteResponse | Self::PairingDeleteResponse => ONE_DAY,
         }

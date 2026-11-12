@@ -5,6 +5,9 @@ use url::Url;
 use crate::{SignDigestType, SignMessageValidation};
 
 pub fn validate_sign_message_account(sign_type: &SignDigestType, data: &str, address: &str) -> Result<(), String> {
+    if sign_type.is_bitcoin() {
+        return crate::request_handler::BitcoinRequestHandler::validate_message_account(data, address);
+    }
     if *sign_type == SignDigestType::Base58
         && let Some(message) = SiwsMessage::decode_base58(data)?
         && message.address != address

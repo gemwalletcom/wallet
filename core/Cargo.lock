@@ -2714,6 +2714,7 @@ dependencies = [
  "chrono",
  "futures",
  "gem_client",
+ "gem_encoding",
  "gem_hash",
  "num-bigint 0.5.1",
  "num-traits",
@@ -3186,12 +3187,14 @@ version = "2.114.91"
 dependencies = [
  "bs58",
  "chrono",
+ "gem_bitcoin",
  "gem_encoding",
  "gem_evm",
  "gem_solana",
  "gem_ton",
  "num-bigint 0.5.1",
  "primitives",
+ "serde",
  "serde_json",
  "url",
 ]

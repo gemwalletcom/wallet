@@ -2,7 +2,9 @@ pub mod address;
 mod bitcoin_cash;
 mod chain_signer;
 pub mod encoding;
+pub mod message;
 mod planner;
+pub mod psbt;
 mod transaction;
 
 #[cfg(feature = "rpc")]
@@ -23,6 +25,10 @@ pub(crate) fn estimate_transaction_fee(chain: BitcoinChain, input: &TransactionL
         let request = match &signer_input.input_type {
             TransactionInputType::Transfer { .. } | TransactionInputType::Withdrawal { .. } => SpendRequest::transfer(chain, signer_input)?,
             TransactionInputType::Swap { .. } => SpendRequest::swap(chain, signer_input)?,
+            TransactionInputType::Generic { .. } => {
+                let request = psbt::BitcoinPsbtRequest::from_input(signer_input)?;
+                return Ok(request.held_summary(&signer_input.sender_address, &signer_input.metadata.get_utxos()?)?.fee);
+            }
             _ => return SignerError::invalid_input_err("unsupported Bitcoin transaction type"),
         };
         UtxoPlanner::fee(request, &VirtualSizeFee::for_input(chain, signer_input)?)

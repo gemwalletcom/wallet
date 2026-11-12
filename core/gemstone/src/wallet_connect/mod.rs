@@ -49,8 +49,8 @@ impl WalletConnect {
         WalletConnectRequestHandler::parse_request(request).map_err(|e| GemstoneError::AnyError { msg: e })
     }
 
-    pub fn encode_sign_message(&self, chain: Chain, signature: String) -> WalletConnectResponseType {
-        WalletConnectResponseHandler::encode_sign_message(chain.chain_type(), signature)
+    pub fn encode_sign_message(&self, chain: Chain, address: &str, signature: String) -> WalletConnectResponseType {
+        WalletConnectResponseHandler::encode_sign_message(chain.chain_type(), address, signature)
     }
 
     pub fn encode_sign_transaction(&self, chain: Chain, transaction_id: String) -> WalletConnectResponseType {
@@ -69,8 +69,8 @@ impl WalletConnect {
         WalletConnectResponseHandler::encode_send_transaction(chain.chain_type(), transaction_id)
     }
 
-    pub fn decode_sign_message(&self, chain: Chain, sign_type: SignDigestType, data: String) -> SignMessage {
-        decode_sign_message(chain, sign_type, data)
+    pub fn decode_sign_message(&self, chain: Chain, sign_type: SignDigestType, data: String) -> Result<SignMessage, GemstoneError> {
+        decode_sign_message(chain, sign_type, data).map_err(|msg| GemstoneError::AnyError { msg })
     }
 
     pub fn decode_send_transaction(&self, chain: Chain, transaction_type: WalletConnectTransactionType, data: String) -> Result<WalletConnectTransaction, GemstoneError> {
