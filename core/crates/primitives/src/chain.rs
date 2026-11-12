@@ -174,7 +174,11 @@ impl Chain {
     }
 
     pub fn all() -> Vec<Self> {
-        Self::iter().collect::<Vec<_>>()
+        Self::iter().filter(|chain| !Self::deprecated().contains(chain)).collect::<Vec<_>>()
+    }
+
+    pub fn deprecated() -> Vec<Self> {
+        vec![Self::Sei, Self::Blast, Self::Abstract]
     }
 
     pub fn stakeable() -> Vec<Self> {
@@ -215,6 +219,13 @@ mod tests {
     #[test]
     fn test_near_token_asset_type() {
         assert_eq!(Chain::Near.default_asset_type(), Some(AssetType::TOKEN));
+    }
+
+    #[test]
+    fn test_deprecated_chains_leave_all() {
+        assert!(Chain::deprecated().iter().all(|chain| !Chain::all().contains(chain)));
+        assert_eq!("blast".parse::<Chain>().unwrap(), Chain::Blast);
+        assert!(Chain::all().contains(&Chain::SeiEvm));
     }
 
     #[test]

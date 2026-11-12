@@ -14,7 +14,6 @@ pub enum StakeChain {
     Cosmos,
     Osmosis,
     Injective,
-    Sei,
     Celestia,
     Ethereum,
     Solana,

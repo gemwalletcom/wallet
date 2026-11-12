@@ -98,6 +98,7 @@ flowchart LR
 | A wallet imported from a private key shows its key | the security reminders and the warning above the key name the private key, never the Secret Phrase | the phrase wording on a key screen misled users (#1394) |
 | A wallet is deleted | the app switches to the next wallet: Multi-Coin first, then the oldest | |
 | The last wallet is deleted | the app returns to onboarding | |
+| A network is retired | it is no longer offered anywhere; Multi-Coin wallets lose its account and everything stored for it; watch-only wallets on it are removed; a single-network or private key wallet on it stays with its address, so its Secret Phrase or private key can still be shown | the network no longer works, but deleting a wallet that holds a key could lose that key for good |
 
 Showing and copying a Secret Phrase or private key follow the shared [Secrets](../PRODUCT.md#secrets) section.
 
