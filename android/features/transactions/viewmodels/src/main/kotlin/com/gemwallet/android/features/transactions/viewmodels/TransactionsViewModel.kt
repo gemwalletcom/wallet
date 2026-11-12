@@ -58,12 +58,13 @@ class TransactionsViewModel @Inject constructor(
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing
 
-    private val _filter = MutableStateFlow(newTransactionsFilterSession(emptyList(), WalletType.Multicoin.toGem()))
-    val filter: StateFlow<GemTransactionsFilterSession> = _filter
+    private val list = MutableStateFlow(ActivityList(newTransactionsFilterSession(emptyList(), WalletType.Multicoin.toGem())))
 
-    val filterView: StateFlow<GemTransactionsFilterView> = _filter
-        .map { it.viewState() }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, _filter.value.viewState())
+    val filter: StateFlow<GemTransactionsFilterSession> = list.map { it.session }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, list.value.session)
+
+    val filterView: StateFlow<GemTransactionsFilterView> = list.map { it.view }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, list.value.view)
 
     val session = getSession()
         .stateIn(viewModelScope, started = SharingStarted.Eagerly, null)
@@ -75,14 +76,13 @@ class TransactionsViewModel @Inject constructor(
     private var syncedWalletId: WalletId? = null
     private var refreshJob: Job? = null
 
-    private val window = MutableStateFlow(GemListWindow.transactions)
-
-    val transactions = combine(filterView.map { it.filter.toPrimitives() }.distinctUntilChanged(), window.map { it.limit }, ::Pair)
+    val transactions = list.map { it.view.filter.toPrimitives() to it.window.limit }
+        .distinctUntilChanged()
         .flatMapLatest { (filter, limit) -> getTransactions.getTransactions(filter, limit) }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.Eagerly,
-            initialValue = getTransactions.stored(filterView.value.filter.toPrimitives(), window.value.limit).takeIf { it.isNotEmpty() },
+            initialValue = getTransactions.stored(list.value.view.filter.toPrimitives(), list.value.window.limit).takeIf { it.isNotEmpty() },
         )
 
     private val transactionsState = MutableStateFlow<GemLoadState>(GemLoadState.Loading)
@@ -95,7 +95,7 @@ class TransactionsViewModel @Inject constructor(
             session
                 .filterNotNull()
                 .distinctUntilChangedBy { it.wallet.id }
-                .collect { _filter.value = newTransactionsFilterSession(service.filterChains(it.wallet.toGem()), it.wallet.type.toGem()) }
+                .collect { list.value = ActivityList(newTransactionsFilterSession(service.filterChains(it.wallet.toGem()), it.wallet.type.toGem())) }
         }
     }
 
@@ -135,18 +135,26 @@ class TransactionsViewModel @Inject constructor(
     private fun phase(state: GemLoadState, rows: List<GemTransactionRow>?, view: GemTransactionsFilterView): GemListPhase? = rows?.let { listPhase(state, it.isNotEmpty(), view.emptyState) }
 
     fun setChainsFilter(chains: List<Chain>) {
-        _filter.update { it.onChains(chains.map { chain -> chain.string }) }
+        updateFilter { it.onChains(chains.map { chain -> chain.string }) }
     }
 
     fun setTypesFilter(types: List<GemTransactionFilter>) {
-        _filter.update { it.onTypes(types) }
+        updateFilter { it.onTypes(types) }
     }
 
     fun clearFilters() {
-        _filter.update { it.onClear() }
+        updateFilter { it.onClear() }
     }
 
     fun onEndReached() {
-        window.update { it.onEndReached(transactions.value.orEmpty().size) }
+        list.update { it.copy(window = it.window.onEndReached(transactions.value.orEmpty().size)) }
     }
+
+    private fun updateFilter(change: (GemTransactionsFilterSession) -> GemTransactionsFilterSession) {
+        list.update { current -> change(current.session).takeIf { it != current.session }?.let(::ActivityList) ?: current }
+    }
+}
+
+private data class ActivityList(val session: GemTransactionsFilterSession, val window: GemListWindow = GemListWindow.transactions) {
+    val view: GemTransactionsFilterView = session.viewState()
 }

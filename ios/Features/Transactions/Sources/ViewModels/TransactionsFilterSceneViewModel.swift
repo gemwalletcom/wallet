@@ -116,8 +116,10 @@ extension TransactionsFilterSceneViewModel {
 
 extension TransactionsFilterSceneViewModel {
     private func update(_ session: GemTransactionsFilterSession) {
+        guard session != self.session else { return }
         self.session = session
         viewState = session.viewState()
-        query.request.base.filter = viewState.filter.toPrimitives()
+        window = .transactions
+        query.request.base = query.request.base.with(filter: viewState.filter.toPrimitives()).with(limit: window.limit)
     }
 }

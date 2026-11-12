@@ -9,7 +9,7 @@ public struct TransactionsQuery: DatabaseQueryable {
     private let type: TransactionsQueryType
     private let limit: Int?
 
-    public var filter: TransactionsFilter?
+    public let filter: TransactionsFilter?
 
     public init(
         walletId: WalletId,
@@ -120,6 +120,10 @@ extension TransactionsQuery: Equatable {}
 
 extension TransactionsQuery: LimitedQuery {
     public func with(limit: Int) -> TransactionsQuery {
+        TransactionsQuery(walletId: walletId, type: type, filter: filter, limit: limit)
+    }
+
+    public func with(filter: TransactionsFilter?) -> TransactionsQuery {
         TransactionsQuery(walletId: walletId, type: type, filter: filter, limit: limit)
     }
 }

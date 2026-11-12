@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
+import com.gemwallet.android.ext.transactions
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.testkit.mockSession
@@ -28,6 +29,7 @@ import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import uniffi.gemstone.GemListWindow
 import uniffi.gemstone.GemTransactionFilter
 import uniffi.gemstone.GemTransactionRow
 import uniffi.gemstone.GemTransactionsServiceInterface
@@ -51,13 +53,14 @@ class TransactionsViewModelFiltersTest {
     private val second = mockWallet(id = WalletId("multicoin_0xdef"))
 
     private val requested = mutableListOf<TransactionsFilter>()
+    private val limits = mutableListOf<Int>()
 
-    private fun viewModel(session: MutableStateFlow<Session?>): TransactionsViewModel {
+    private fun viewModel(session: MutableStateFlow<Session?>, rows: List<GemTransactionRow> = emptyList()): TransactionsViewModel {
         val service: GemTransactionsServiceInterface = mockk(relaxed = true) {
             every { filterChains(any()) } returns listOf(Chain.Bitcoin.string, Chain.Ethereum.string)
         }
         val transactions: GetTransactions = mockk {
-            every { getTransactions(capture(requested), any()) } returns flowOf(emptyList<GemTransactionRow>())
+            every { getTransactions(capture(requested), capture(limits)) } returns flowOf(rows)
             every { stored(any(), any()) } returns emptyList()
         }
         val getSession: GetSession = mockk { every { this@mockk.invoke() } returns session }
@@ -90,6 +93,23 @@ class TransactionsViewModelFiltersTest {
         advanceUntilIdle()
 
         assertEquals(listOf(Chain.Ethereum), requested.last().chains)
+    }
+
+    @Test
+    fun `a filter change asks for the first page of the new filter`() = runTest(dispatcher) {
+        val page = GemListWindow.transactions.limit
+        val model = viewModel(MutableStateFlow(mockSession(wallet = first)), rows = List(page) { mockk(relaxed = true) })
+        model.filter.first { it.chains.isNotEmpty() }
+        advanceUntilIdle()
+        model.onEndReached()
+        advanceUntilIdle()
+        assertEquals(page * 2, limits.last())
+        val before = requested.size
+
+        model.setChainsFilter(listOf(Chain.Ethereum))
+        advanceUntilIdle()
+
+        assertEquals(listOf(listOf(Chain.Ethereum) to page), requested.drop(before).map { it.chains }.zip(limits.drop(before)))
     }
 
     @Test
