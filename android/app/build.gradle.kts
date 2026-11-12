@@ -191,7 +191,7 @@ android {
     androidResources {
         generateLocaleConfig = true
         localeFilters += listOf("en") + rootProject.file("ui/src/main/res").list().orEmpty()
-            .filter { it.startsWith("values-") }
+            .filter { it.startsWith("values-") && rootProject.file("ui/src/main/res/$it/strings.xml").exists() }
             .map { it.removePrefix("values-") }
             .sorted()
     }
@@ -247,7 +247,6 @@ dependencies {
 
     implementation(libs.ktx.core)
     implementation(libs.androidx.core.splashscreen)
-    implementation(libs.material)
     implementation(libs.okhttp)
 
     implementation(libs.tink)
