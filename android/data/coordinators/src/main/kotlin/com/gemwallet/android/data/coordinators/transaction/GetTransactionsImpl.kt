@@ -67,19 +67,17 @@ internal class TransactionRows {
 
     private val current = RecentRequests<FilterRows>()
 
-    fun rows(walletId: WalletId, request: TransactionsRequest, items: List<TransactionListItem>): List<GemTransactionRow> = synchronized(this) {
+    fun rows(walletId: WalletId, request: TransactionsRequest, items: List<TransactionListItem>): List<GemTransactionRow> {
         val reused = HashMap<TransactionListItem, GemTransactionRow>()
         current.values().forEach { reused.putAll(it.items) }
         val missing = items.filterNot(reused::containsKey).distinct()
         val built = missing.zip(transactionRows(missing.map { it.toGem() })).toMap()
         val rows = items.mapNotNull { reused[it] ?: built[it] }
         current.put(request, FilterRows(walletId, items.zip(rows).toMap(), rows))
-        rows
+        return rows
     }
 
-    fun stored(walletId: WalletId, request: TransactionsRequest): List<GemTransactionRow> = synchronized(this) {
-        current.get(request)?.takeIf { it.walletId == walletId }?.rows.orEmpty()
-    }
+    fun stored(walletId: WalletId, request: TransactionsRequest): List<GemTransactionRow> = current.get(request)?.takeIf { it.walletId == walletId }?.rows.orEmpty()
 }
 
 internal class RecentRequests<T>(private val limit: Int = LIMIT) {
