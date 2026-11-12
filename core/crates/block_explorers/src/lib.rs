@@ -92,7 +92,7 @@ pub fn get_block_explorers(chain: Chain) -> Vec<Box<dyn BlockExplorer>> {
         Chain::Ton => vec![ton::new_ton_viewer(), TonScan::boxed(), blockchair::new_ton()],
         Chain::Tron => vec![TronScan::boxed(), blockchair::new_tron()],
         Chain::Xrp => vec![XrpScan::boxed(), blockchair::new_xrp()],
-        Chain::Aptos => vec![aptos::new_aptos_scan(), aptos::new_aptos_explorer(), blockchair::new_aptos()],
+        Chain::Aptos => vec![aptos::new_aptos_explorer(), blockchair::new_aptos()],
         Chain::Sui => vec![sui::new_sui_scan(), BlockVision::new_sui()],
         Chain::Near => vec![NearBlocks::boxed()],
         Chain::Stellar => vec![stellar_expert::new(), blockchair::new_stellar()],
@@ -179,6 +179,8 @@ mod tests {
         assert_eq!(get_block_explorer(Chain::Solana, "SolanaFM").name(), "SolanaFM");
         assert_eq!(get_block_explorer(Chain::Sui, "").name(), "SuiScan");
         assert_eq!(get_block_explorer(Chain::Sui, "SuiVision").name(), "SuiVision");
+        assert_eq!(get_block_explorer(Chain::Aptos, "").name(), "AptosExplorer");
+        assert_eq!(get_block_explorer(Chain::Aptos, "AptosScan").name(), "AptosExplorer");
         assert_eq!(get_block_explorer(Chain::Cosmos, "").name(), "Mintscan");
         assert_eq!(get_block_explorer(Chain::Noble, "").name(), "Mintscan");
         assert_eq!(get_block_explorer(Chain::Tron, "").name(), "TRONSCAN");

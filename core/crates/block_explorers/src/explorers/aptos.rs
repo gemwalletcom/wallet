@@ -1,17 +1,5 @@
 use crate::BlockExplorer;
-use crate::explorers::metadata::{ACCOUNT_PATH, COIN_PATH, Explorer, Metadata, TRANSACTION_PATH, TXN_PATH};
-
-pub fn new_aptos_scan() -> Box<dyn BlockExplorer> {
-    Explorer::boxed(Metadata {
-        name: "AptosScan",
-        base_url: "https://aptoscan.com",
-        tx_path: TRANSACTION_PATH,
-        address_path: ACCOUNT_PATH,
-        token_path: Some(COIN_PATH),
-        nft_path: None,
-        validator_path: None,
-    })
-}
+use crate::explorers::metadata::{ACCOUNT_PATH, COIN_PATH, Explorer, Metadata, TXN_PATH};
 
 pub fn new_aptos_explorer() -> Box<dyn BlockExplorer> {
     Explorer::boxed(Metadata {
