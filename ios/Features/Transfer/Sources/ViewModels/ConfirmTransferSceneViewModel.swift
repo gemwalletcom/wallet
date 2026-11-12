@@ -390,7 +390,7 @@ extension ConfirmTransferSceneViewModel {
 
 extension ConfirmTransferSceneViewModel {
     func submit(request: ConfirmTransferRequest) async throws -> GemSubmitResult {
-        let result = try await confirmation.submit()
+        let result = try await withBackgroundTask { try await confirmation.submit() }
         if let transactionId = result.transactionId() {
             request.delegate?(.success(transactionId))
         }
