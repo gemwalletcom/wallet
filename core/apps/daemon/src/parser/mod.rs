@@ -65,7 +65,9 @@ impl Parser {
 
     async fn get_latest_block(&self, state: &ParserState) -> Result<i64, Box<dyn Error + Send + Sync>> {
         let latest_block = self.provider.get_block_latest_number().await? as i64;
-        self.state_service.set_latest_block(latest_block).await?;
+        if latest_block != state.latest_block {
+            self.state_service.set_latest_block(latest_block).await?;
+        }
 
         let current_block = if state.current_block == 0 {
             self.state_service.set_current_block(latest_block).await?;
