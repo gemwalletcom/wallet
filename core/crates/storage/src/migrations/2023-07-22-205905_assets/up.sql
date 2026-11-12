@@ -73,6 +73,7 @@ CREATE TABLE assets_addresses (
 
 CREATE INDEX assets_addresses_chain_idx ON assets_addresses (chain);
 CREATE INDEX assets_addresses_address_idx ON assets_addresses (address);
+CREATE INDEX assets_addresses_updated_at_idx ON assets_addresses (updated_at);
 
 SELECT diesel_manage_updated_at('assets_addresses');
 
