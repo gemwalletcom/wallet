@@ -5,6 +5,8 @@ use std::fmt;
 use std::str::FromStr;
 
 const ADDRESS_LENGTH: usize = 32;
+const LONG_HEX_LENGTH: usize = ADDRESS_LENGTH * 2;
+const SPECIAL_HEX_LENGTH: usize = 1;
 const OBJECT_DERIVED_SCHEME: u8 = 0xFC;
 const OBJECT_FROM_SEED_SCHEME: u8 = 0xFE;
 
@@ -56,7 +58,11 @@ impl FromStr for AccountAddress {
 
 impl AddressTrait for AccountAddress {
     fn try_parse(address: &str) -> Option<Self> {
-        Self::from_hex(address).ok()
+        let hex = address.strip_prefix("0x")?;
+        match hex.len() {
+            LONG_HEX_LENGTH | SPECIAL_HEX_LENGTH if hex.bytes().all(|byte| byte.is_ascii_hexdigit()) => Self::from_hex(hex).ok(),
+            _ => None,
+        }
     }
 
     fn as_bytes(&self) -> &[u8] {
@@ -82,15 +88,16 @@ impl fmt::Display for AccountAddress {
 mod tests {
     use super::*;
     use primitives::Address;
+    use primitives::testkit::signer_mock::TEST_EVM_RECIPIENT;
 
     const VALID_ADDRESS: &str = "0x6467997d9c3a5bc9f714e17a168984595ce9bec7350645713a1fe7983a7f5fcc";
+    const UNPADDED_ADDRESS: &str = "0x638761ddc13e58b60aaa6f817fca9984b795f238fa46778e03af6859d72bc3d";
 
     #[test]
     fn test_aptos_address() {
         let padded = "0x07968dab936c1bad187c60ce4082f307d030d780e91e694ae03aef16aba73f30";
         let unpadded = "0x7968dab936c1bad187c60ce4082f307d030d780e91e694ae03aef16aba73f30";
         let reported_padded = "0x0638761ddc13e58b60aaa6f817fca9984b795f238fa46778e03af6859d72bc3d";
-        let reported_unpadded = "0x638761ddc13e58b60aaa6f817fca9984b795f238fa46778e03af6859d72bc3d";
         let framework_address = format!("0x{}", "00".repeat(31) + "01");
         let non_special_short_address = format!("0x{}", "00".repeat(31) + "10");
 
@@ -99,23 +106,45 @@ mod tests {
             (padded, padded.to_string()),
             (unpadded, padded.to_string()),
             (reported_padded, reported_padded.to_string()),
-            (reported_unpadded, reported_padded.to_string()),
+            (UNPADDED_ADDRESS, reported_padded.to_string()),
             ("0x1", framework_address),
             ("0x10", non_special_short_address),
         ] {
             let parsed = AccountAddress::from_hex(input).unwrap();
             let encoded = parsed.encode();
 
-            assert!(validate_address(input));
             assert_eq!(parsed.as_bytes().len(), 32);
             assert_eq!(encoded.len(), 66);
             assert_eq!(encoded, expected);
         }
 
         assert_eq!(AccountAddress::from_hex(padded).unwrap(), AccountAddress::from_hex(unpadded).unwrap());
-        assert_eq!(AccountAddress::from_hex(reported_padded).unwrap(), AccountAddress::from_hex(reported_unpadded).unwrap());
-        assert!(!validate_address("invalid"));
-        assert!(!validate_address(&format!("0x{}", "1".repeat(65))));
+        assert_eq!(AccountAddress::from_hex(reported_padded).unwrap(), AccountAddress::from_hex(UNPADDED_ADDRESS).unwrap());
+    }
+
+    #[test]
+    fn test_validate_address() {
+        for input in [VALID_ADDRESS, &VALID_ADDRESS.to_uppercase().replace("0X", "0x"), &format!("0x{}", "0".repeat(64)), "0x0", "0x1", "0xa", "0xF"] {
+            assert!(validate_address(input), "{input}");
+        }
+        for input in [
+            "",
+            "0x",
+            "invalid",
+            "0xg",
+            "1",
+            "0X1",
+            "0x01",
+            "0x10",
+            TEST_EVM_RECIPIENT,
+            UNPADDED_ADDRESS,
+            &VALID_ADDRESS[2..],
+            &VALID_ADDRESS[..65],
+            &format!("{VALID_ADDRESS}1"),
+            &format!("{} ", &VALID_ADDRESS[..65]),
+        ] {
+            assert!(!validate_address(input), "{input}");
+        }
     }
 
     #[test]
