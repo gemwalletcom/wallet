@@ -1,5 +1,3 @@
-pub(crate) mod hypercore;
-
 use super::SwapType;
 use primitives::Chain;
 
