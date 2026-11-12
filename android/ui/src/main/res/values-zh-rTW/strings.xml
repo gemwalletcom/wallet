@@ -6,6 +6,7 @@
   <string name="common_add">新增</string>
   <string name="common_close">關閉</string>
   <string name="common_back">返回</string>
+  <string name="common_available_in">%1$s後可用。</string>
   <string name="common_maximum_value">最大值為 %1$s</string>
   <string name="common_minimum_value">最小值為 %1$s</string>
   <string name="common_secret_phrase">助記詞</string>

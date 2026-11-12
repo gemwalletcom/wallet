@@ -216,6 +216,10 @@ public enum Localized {
     public static let address = Localized.tr("Localizable", "common.address", fallback: "Address")
     /// All
     public static let all = Localized.tr("Localizable", "common.all", fallback: "All")
+    /// Available in %@.
+    public static func availableIn(_ p1: Any) -> String {
+      return Localized.tr("Localizable", "common.available_in", String(describing: p1), fallback: "Available in %@.")
+    }
     /// Avatar
     public static let avatar = Localized.tr("Localizable", "common.avatar", fallback: "Avatar")
     /// Cancel

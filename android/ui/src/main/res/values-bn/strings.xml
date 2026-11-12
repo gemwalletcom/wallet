@@ -6,6 +6,7 @@
   <string name="common_add">যোগ করুন</string>
   <string name="common_close">বন্ধ করুন</string>
   <string name="common_back">ফিরে যান</string>
+  <string name="common_available_in">%1$s পরে উপলব্ধ।</string>
   <string name="common_maximum_value">সর্বোচ্চ মান %1$s</string>
   <string name="common_minimum_value">সর্বনিম্ন মান %1$s</string>
   <string name="common_secret_phrase">গোপন বাক্যাংশ</string>

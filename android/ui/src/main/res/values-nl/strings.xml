@@ -6,6 +6,7 @@
   <string name="common_add">Toevoegen</string>
   <string name="common_close">Sluiten</string>
   <string name="common_back">Terug</string>
+  <string name="common_available_in">Beschikbaar over %1$s.</string>
   <string name="common_maximum_value">Maximale waarde is %1$s</string>
   <string name="common_minimum_value">Minimale waarde is %1$s</string>
   <string name="common_secret_phrase">Geheime zin</string>

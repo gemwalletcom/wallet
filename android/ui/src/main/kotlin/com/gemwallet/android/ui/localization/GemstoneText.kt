@@ -376,6 +376,7 @@ fun GemInfoTitle.string(context: Context): String = when (this) {
     GemInfoTitle.Pending -> context.getString(R.string.stake_pending)
 
     GemInfoTitle.StakeFrozenRequired -> context.getString(R.string.info_stake_frozen_required_title)
+    GemInfoTitle.Unstake -> context.getString(R.string.transfer_unstake_title)
 
     GemInfoTitle.FundingApr -> context.getString(R.string.info_perpetual_funding_apr_title)
 
@@ -462,6 +463,7 @@ fun GemInfoDescription.string(context: Context): String = when (this) {
     GemInfoDescription.Pending -> context.getString(R.string.info_transaction_pending_description)
 
     GemInfoDescription.StakeFrozenRequired -> context.getString(R.string.info_stake_frozen_required_description)
+    is GemInfoDescription.AvailableIn -> context.getString(R.string.common_available_in, remaining.formatDuration().bold())
 
     GemInfoDescription.FundingApr -> context.getString(R.string.info_perpetual_funding_apr_description)
 

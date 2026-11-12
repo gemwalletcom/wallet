@@ -1035,6 +1035,7 @@ public extension GemInfoTitle {
         case .stakingReservedFees: Localized.Info.Stake.Reserved.title
         case .pending: Localized.Stake.pending
         case .stakeFrozenRequired: Localized.Info.stakeFrozenRequiredTitle
+        case .unstake: Localized.Transfer.Unstake.title
         case .fundingApr: Localized.Info.Perpetual.FundingApr.title
         case .fundingPayments: Localized.Info.Perpetual.FundingPayments.title
         case .liquidationPrice: Localized.Info.Perpetual.LiquidationPrice.title
@@ -1081,6 +1082,7 @@ public extension GemInfoDescription {
         case .stakingReservedFees: Localized.Info.Stake.Reserved.description
         case .pending: Localized.Info.Transaction.Pending.description
         case .stakeFrozenRequired: Localized.Info.stakeFrozenRequiredDescription
+        case let .availableIn(remaining): Localized.Common.availableIn((CountdownFormatter().string(parts: remaining) ?? .empty).boldMarkdown())
         case .fundingApr: Localized.Info.Perpetual.FundingApr.description
         case .fundingPayments: Localized.Info.Perpetual.FundingPayments.description
         case .liquidationPrice: Localized.Info.Perpetual.LiquidationPrice.description

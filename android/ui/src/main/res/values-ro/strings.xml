@@ -6,6 +6,7 @@
   <string name="common_add">Adaugă</string>
   <string name="common_close">Închide</string>
   <string name="common_back">Înapoi</string>
+  <string name="common_available_in">Disponibil în %1$s.</string>
   <string name="common_maximum_value">Valoarea maximă este %1$s</string>
   <string name="common_minimum_value">Valoarea minimă este %1$s</string>
   <string name="common_secret_phrase">Frază secretă</string>

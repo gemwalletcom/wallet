@@ -6,6 +6,7 @@ common_done = 完畢
 common_add = 新增
 common_close = 關閉
 common_back = 返回
+common_available_in = %@後可用。
 common_maximum_value = 最大值為 %@
 common_minimum_value = 最小值為 %@
 common_secret_phrase = 助記詞

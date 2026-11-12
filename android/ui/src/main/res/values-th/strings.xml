@@ -6,6 +6,7 @@
   <string name="common_add">เพิ่ม</string>
   <string name="common_close">ปิด</string>
   <string name="common_back">ย้อนกลับ</string>
+  <string name="common_available_in">ใช้ได้ในอีก %1$s</string>
   <string name="common_maximum_value">ค่าสูงสุดคือ %1$s</string>
   <string name="common_minimum_value">ค่าต่ำสุดคือ %1$s</string>
   <string name="common_secret_phrase">วลีลับ</string>

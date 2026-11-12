@@ -13,6 +13,8 @@ common_add = Add
 common_close = Close
 # Accessibility label for the navigation button that goes back to the previous screen.
 common_back = Back
+# Says when an action the user has to wait for becomes available, such as unstaking during a lockup. Contains 1 string placeholder: the time left.
+common_available_in = Available in %@.
 # Generic validation error for a value above the allowed maximum. Contains 1 string placeholder.
 common_maximum_value = Maximum value is %@
 # Generic validation error for a value below the allowed minimum. Contains 1 string placeholder.

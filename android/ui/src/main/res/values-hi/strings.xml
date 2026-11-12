@@ -6,6 +6,7 @@
   <string name="common_add">जोड़ें</string>
   <string name="common_close">बंद करें</string>
   <string name="common_back">वापस जाएं</string>
+  <string name="common_available_in">%1$s बाद उपलब्ध।</string>
   <string name="common_maximum_value">अधिकतम मान %1$s है</string>
   <string name="common_minimum_value">न्यूनतम मान %1$s है</string>
   <string name="common_secret_phrase">गुप्त वाक्यांश</string>

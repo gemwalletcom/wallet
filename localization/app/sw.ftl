@@ -6,6 +6,7 @@ common_done = Imekamilika
 common_add = Ongeza
 common_close = Funga
 common_back = Rudi
+common_available_in = Itapatikana baada ya %@.
 common_maximum_value = Thamani ya juu ni %@
 common_minimum_value = Thamani ya chini ni %@
 common_secret_phrase = Kifungu cha Siri

@@ -114,7 +114,7 @@ impl GemStakeService {
 
     pub fn delegation_details(&self, wallet_type: WalletType, delegation: Delegation, asset: Asset, price: Option<f64>, currency: Currency, validators: Vec<DelegationValidator>) -> GemDelegationDetails {
         let rows = self.delegation_rows(delegation.clone());
-        rules::delegation_details(wallet_type, &delegation, &asset, price, currency, rows, &validators, self.is_stake_enabled())
+        rules::delegation_details(wallet_type, &delegation, &asset, price, currency, rows, &validators, self.is_stake_enabled(), Utc::now())
     }
 }
 

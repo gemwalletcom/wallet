@@ -6,6 +6,7 @@ common_done = Hotovo
 common_add = Přidat
 common_close = Zavřít
 common_back = Zpět
+common_available_in = Dostupné za %@.
 common_maximum_value = Maximální hodnota je %@
 common_minimum_value = Minimální hodnota je %@
 common_secret_phrase = Tajná fráze

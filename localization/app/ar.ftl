@@ -6,6 +6,7 @@ common_done = تم
 common_add = إضافة
 common_close = إغلاق
 common_back = رجوع
+common_available_in = متاح بعد %@.
 common_maximum_value = القيمة القصوى هي %@
 common_minimum_value = القيمة الدنيا هي %@
 common_secret_phrase = العبارة السرية

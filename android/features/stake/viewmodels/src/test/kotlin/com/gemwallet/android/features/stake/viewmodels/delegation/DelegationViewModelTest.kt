@@ -144,7 +144,7 @@ class DelegationViewModelTest {
         val amount: AmountTransactionAction = mockk(relaxed = true)
         val confirm: ConfirmTransactionAction = mockk(relaxed = true)
 
-        viewModel.onAction(GemDelegationActionTarget.RegionUnavailable, amount, confirm)
+        viewModel.onAction(GemDelegationActionTarget.Info(GemInfoTopic.RegionUnavailable), amount, confirm)
 
         assertEquals(GemInfoTopic.RegionUnavailable, viewModel.infoSheet.value)
         verify(exactly = 0) { amount(any()) }

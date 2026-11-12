@@ -6,6 +6,7 @@ common_done = हो गया
 common_add = जोड़ें
 common_close = बंद करें
 common_back = वापस जाएं
+common_available_in = %@ बाद उपलब्ध।
 common_maximum_value = अधिकतम मान %@ है
 common_minimum_value = न्यूनतम मान %@ है
 common_secret_phrase = गुप्त वाक्यांश

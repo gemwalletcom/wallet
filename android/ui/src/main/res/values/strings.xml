@@ -6,6 +6,7 @@
   <string name="common_add">Add</string>
   <string name="common_close">Close</string>
   <string name="common_back">Back</string>
+  <string name="common_available_in">Available in %1$s.</string>
   <string name="common_maximum_value">Maximum value is %1$s</string>
   <string name="common_minimum_value">Minimum value is %1$s</string>
   <string name="common_secret_phrase">Secret Phrase</string>

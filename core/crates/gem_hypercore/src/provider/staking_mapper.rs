@@ -32,7 +32,7 @@ pub fn map_staking_delegations(delegations: Vec<DelegationBalance>, history: Vec
             balance: BigNumberFormatter::value_from_amount_biguint(&x.amount, native_decimals).unwrap_or_default(),
             shares: BigUint::from(0u32),
             rewards: BigUint::from(0u32),
-            completion_date: None,
+            completion_date: i64::try_from(x.locked_until_timestamp).ok().and_then(DateTime::from_timestamp_millis).filter(|locked_until| *locked_until > now),
             delegation_id: x.validator_address(),
             validator_id: x.validator_address(),
         })
@@ -141,6 +141,13 @@ mod tests {
         let delegation2 = &result[1];
         assert_eq!(delegation2.validator_id, "0xaBCDefF4b3727B83A23697500EEf089020DF2cD2");
         assert_eq!(delegation2.balance.to_string(), "1814578086");
+
+        let delegations: Vec<DelegationBalance> = serde_json::from_str(include_str!("../../testdata/staking_delegations.json")).unwrap();
+        let in_lockup = map_staking_delegations(delegations, vec![], DateTime::from_timestamp_millis(1_756_000_000_000).unwrap(), Chain::HyperCore);
+
+        assert_eq!(in_lockup[0].state, DelegationState::Active, "a delegation in its lockup still earns");
+        assert_eq!(in_lockup[0].completion_date, DateTime::from_timestamp_millis(1_756_512_053_068));
+        assert_eq!(in_lockup[1].completion_date, None, "a lockup that already ended leaves no date");
     }
 
     #[test]

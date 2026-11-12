@@ -6,6 +6,7 @@ common_done = Fertig
 common_add = Hinzufügen
 common_close = Schließen
 common_back = Zurück
+common_available_in = Verfügbar in %@.
 common_maximum_value = Maximaler Wert ist %@
 common_minimum_value = Minimaler Wert ist %@
 common_secret_phrase = Geheime Phrase

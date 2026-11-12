@@ -6,6 +6,7 @@
   <string name="common_add">Idagdag</string>
   <string name="common_close">Isara</string>
   <string name="common_back">Bumalik</string>
+  <string name="common_available_in">Available sa loob ng %1$s.</string>
   <string name="common_maximum_value">Ang maximum na halaga ay %1$s</string>
   <string name="common_minimum_value">Ang minimum na halaga ay %1$s</string>
   <string name="common_secret_phrase">Lihim na Parirala</string>

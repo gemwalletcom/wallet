@@ -6,6 +6,7 @@ common_done = Tapos na
 common_add = Idagdag
 common_close = Isara
 common_back = Bumalik
+common_available_in = Available sa loob ng %@.
 common_maximum_value = Ang maximum na halaga ay %@
 common_minimum_value = Ang minimum na halaga ay %@
 common_secret_phrase = Lihim na Parirala

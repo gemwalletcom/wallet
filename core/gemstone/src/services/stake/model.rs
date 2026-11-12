@@ -1,6 +1,6 @@
 use super::rules;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
-use crate::models::list::GemListRow;
+use crate::models::list::{GemInfoTopic, GemListRow};
 use crate::models::state::{GemListPhase, GemLoadState};
 use crate::services::amount::model::GemAmountType;
 use crate::services::amount::rules as amount_rules;
@@ -48,7 +48,7 @@ pub struct GemDelegationListRow {
 
 #[uniffi::export]
 pub fn delegation_details(wallet_type: WalletType, delegation: Delegation, asset: Asset, price: Option<f64>, currency: Currency) -> GemDelegationDetails {
-    rules::delegation_details(wallet_type, &delegation, &asset, price, currency, Vec::new(), &[], true)
+    rules::delegation_details(wallet_type, &delegation, &asset, price, currency, Vec::new(), &[], true, chrono::Utc::now())
 }
 
 #[uniffi::export]
@@ -87,7 +87,7 @@ pub struct GemDelegationActionItem {
 #[allow(clippy::large_enum_variant)]
 pub enum GemDelegationActionTarget {
     Open { destination: GemDelegationDestination },
-    RegionUnavailable,
+    Info { topic: GemInfoTopic },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]

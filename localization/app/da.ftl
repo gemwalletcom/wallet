@@ -6,6 +6,7 @@ common_done = Færdig
 common_add = Tilføj
 common_close = Luk
 common_back = Tilbage
+common_available_in = Tilgængelig om %@.
 common_maximum_value = Maksimal værdi er %@
 common_minimum_value = Minimumsværdi er %@
 common_secret_phrase = Hemmelig sætning

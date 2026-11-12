@@ -6,6 +6,7 @@ common_done = انجام شد
 common_add = افزودن
 common_close = بستن
 common_back = بازگشت
+common_available_in = %@ دیگر در دسترس است.
 common_maximum_value = حداکثر مقدار %@ است
 common_minimum_value = حداقل مقدار %@ است
 common_secret_phrase = عبارت مخفی

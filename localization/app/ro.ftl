@@ -6,6 +6,7 @@ common_done = Gata
 common_add = Adaugă
 common_close = Închide
 common_back = Înapoi
+common_available_in = Disponibil în %@.
 common_maximum_value = Valoarea maximă este %@
 common_minimum_value = Valoarea minimă este %@
 common_secret_phrase = Frază secretă

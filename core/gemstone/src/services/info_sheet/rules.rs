@@ -38,6 +38,12 @@ pub fn sheet(topic: &GemInfoTopic, platform: Platform) -> GemInfoSheet {
         GemInfoTopic::StakeApr { chain } => info_sheet(GemInfoTitle::Apr, GemInfoDescription::Apr, chain_logo(*chain), learn_more(DocsUrl::StakingAPR)),
         GemInfoTopic::StakeLockTime { chain } => info_sheet(GemInfoTitle::LockTime, GemInfoDescription::LockTime, chain_logo(*chain), learn_more(DocsUrl::StakingLockTime)),
         GemInfoTopic::StakeFrozenRequired => info_sheet(GemInfoTitle::StakeFrozenRequired, GemInfoDescription::StakeFrozenRequired, GemInfoImage::Logo, learn_more(DocsUrl::Staking(StakeChain::Tron))),
+        GemInfoTopic::StakeLockup { remaining } => info_sheet(
+            GemInfoTitle::Unstake,
+            GemInfoDescription::AvailableIn { remaining: remaining.clone() },
+            chain_logo(Chain::HyperCore),
+            learn_more(DocsUrl::Staking(StakeChain::HyperCore)),
+        ),
         GemInfoTopic::TransactionStatus { state, tone, icon } => info_sheet(
             GemInfoTitle::TransactionState { state: *state },
             GemInfoDescription::TransactionState { tone: *tone },

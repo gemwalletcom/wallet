@@ -112,8 +112,8 @@ public extension DelegationSceneViewModel {
             case .delegation: break
             case .transfer: onNavigate?(route)
             }
-        case .regionUnavailable:
-            isPresentingInfoSheet = GemInfoTopic.regionUnavailable.infoSheet
+        case let .info(topic):
+            isPresentingInfoSheet = topic.infoSheet
         }
     }
 

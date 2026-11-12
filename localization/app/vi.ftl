@@ -6,6 +6,7 @@ common_done = Xong
 common_add = Thêm
 common_close = Đóng
 common_back = Quay lại
+common_available_in = Khả dụng sau %@.
 common_maximum_value = Giá trị tối đa là %@
 common_minimum_value = Giá trị tối thiểu là %@
 common_secret_phrase = Cụm từ bí mật

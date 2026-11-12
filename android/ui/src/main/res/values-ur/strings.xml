@@ -6,6 +6,7 @@
   <string name="common_add">شامل کریں</string>
   <string name="common_close">بند کریں</string>
   <string name="common_back">واپس جائیں</string>
+  <string name="common_available_in">%1$s بعد دستیاب ہوگا۔</string>
   <string name="common_maximum_value">زیادہ سے زیادہ قدر %1$s ہے</string>
   <string name="common_minimum_value">کم از کم قدر %1$s ہے</string>
   <string name="common_secret_phrase">خفیہ جملہ</string>

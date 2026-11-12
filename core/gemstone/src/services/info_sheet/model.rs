@@ -1,3 +1,4 @@
+use crate::duration_formatter::GemDurationPart;
 use primitives::{Asset, SwapProvider, TransactionState, VerificationStatus};
 
 use crate::formatted_number::GemFormattedNumber;
@@ -33,6 +34,7 @@ pub enum GemInfoTitle {
     StakingReservedFees,
     Pending,
     StakeFrozenRequired,
+    Unstake,
     FundingApr,
     FundingPayments,
     LiquidationPrice,
@@ -107,6 +109,9 @@ pub enum GemInfoDescription {
     StakingReservedFees,
     Pending,
     StakeFrozenRequired,
+    AvailableIn {
+        remaining: Vec<GemDurationPart>,
+    },
     FundingApr,
     FundingPayments,
     LiquidationPrice,

@@ -55,7 +55,7 @@ struct DelegationSceneViewModelTests {
         var route: StakeRoute?
         let model = DelegationSceneViewModel.mock(onNavigate: { route = $0 })
 
-        model.onSelectAction(GemDelegationActionItem(action: .stake, target: .regionUnavailable))
+        model.onSelectAction(GemDelegationActionItem(action: .stake, target: .info(topic: .regionUnavailable)))
 
         #expect(route == nil)
         #expect(model.isPresentingInfoSheet?.description == .regionUnavailable)

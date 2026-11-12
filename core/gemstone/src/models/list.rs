@@ -201,6 +201,7 @@ pub enum GemInfoTopic {
     StakeApr { chain: Chain },
     StakeLockTime { chain: Chain },
     StakeFrozenRequired,
+    StakeLockup { remaining: Vec<GemDurationPart> },
     TransactionStatus { state: TransactionState, tone: GemTransactionStateTone, icon: GemAssetIcon },
     AutoClose,
     LiquidationPrice,

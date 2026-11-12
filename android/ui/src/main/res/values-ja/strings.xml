@@ -6,6 +6,7 @@
   <string name="common_add">追加</string>
   <string name="common_close">閉じる</string>
   <string name="common_back">戻る</string>
+  <string name="common_available_in">あと%1$sで利用できます。</string>
   <string name="common_maximum_value">最大値は %1$s です</string>
   <string name="common_minimum_value">最小値は %1$s です</string>
   <string name="common_secret_phrase">リカバリーフレーズ</string>

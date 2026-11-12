@@ -6,6 +6,7 @@ common_done = เสร็จแล้ว
 common_add = เพิ่ม
 common_close = ปิด
 common_back = ย้อนกลับ
+common_available_in = ใช้ได้ในอีก %@
 common_maximum_value = ค่าสูงสุดคือ %@
 common_minimum_value = ค่าต่ำสุดคือ %@
 common_secret_phrase = วลีลับ

@@ -6,6 +6,7 @@
   <string name="common_add">افزودن</string>
   <string name="common_close">بستن</string>
   <string name="common_back">بازگشت</string>
+  <string name="common_available_in">%1$s دیگر در دسترس است.</string>
   <string name="common_maximum_value">حداکثر مقدار %1$s است</string>
   <string name="common_minimum_value">حداقل مقدار %1$s است</string>
   <string name="common_secret_phrase">عبارت مخفی</string>

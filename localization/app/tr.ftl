@@ -6,6 +6,7 @@ common_done = Tamam
 common_add = Ekle
 common_close = Kapat
 common_back = Geri
+common_available_in = %@ sonra kullanılabilir.
 common_maximum_value = Maksimum değer %@
 common_minimum_value = Minimum değer %@
 common_secret_phrase = Gizli İfade

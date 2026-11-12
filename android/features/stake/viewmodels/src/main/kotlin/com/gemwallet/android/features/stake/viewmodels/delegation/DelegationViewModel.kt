@@ -95,7 +95,7 @@ class DelegationViewModel @Inject constructor(
                 is GemDelegationDestination.Amount -> onAmount(destination.input.toAmountParams(destination.asset.toPrimitives().id))
             }
 
-            GemDelegationActionTarget.RegionUnavailable -> infoSheet.value = GemInfoTopic.RegionUnavailable
+            is GemDelegationActionTarget.Info -> infoSheet.value = target.topic
         }
     }
 

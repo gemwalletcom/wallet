@@ -6,6 +6,7 @@ common_done = Selesai
 common_add = Tambah
 common_close = Tutup
 common_back = Kembali
+common_available_in = Tersedia dalam %@.
 common_maximum_value = Nilai maksimum ialah %@
 common_minimum_value = Nilai minimum ialah %@
 common_secret_phrase = Frasa Rahsia

@@ -6,6 +6,7 @@ common_done = সম্পন্ন
 common_add = যোগ করুন
 common_close = বন্ধ করুন
 common_back = ফিরে যান
+common_available_in = %@ পরে উপলব্ধ।
 common_maximum_value = সর্বোচ্চ মান %@
 common_minimum_value = সর্বনিম্ন মান %@
 common_secret_phrase = গোপন বাক্যাংশ
