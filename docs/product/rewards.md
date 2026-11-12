@@ -37,6 +37,7 @@ flowchart LR
 | A typed code has spaces around it | the spaces are ignored | |
 | The device or its wallets are no longer new enough to be referred | "Redeem code" is not offered | the server refuses a code after that window |
 | A code is opened from a referral link | it still reaches the server | the server accepts it from partner codes that have no window |
+| A friend redeems a partner code | there is no Bonus Pending and nothing to confirm, and the partner earns no points | a partner code only records who brought the friend |
 | The account is disabled | why, in the user's own language, never the internal reason the server stored | |
 | The user redeems with too few points, or an option that has run out | it says so instead of a generic error | |
 | An option has no stock left, or none set | "Ways to Spend" does not list it and it cannot be redeemed | the server decides once; the app shows the options it returns |

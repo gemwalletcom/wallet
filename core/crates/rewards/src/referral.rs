@@ -101,8 +101,8 @@ pub enum NewReferralVerification {
 }
 
 pub fn referral_verification_delay(base_delay: Duration, verified_multiplier: i64, referrer_status: RewardStatus) -> Option<Duration> {
-    let multiplier = if referrer_status.is_verified() || referrer_status == RewardStatus::Attribution { verified_multiplier } else { 1 };
-    if referrer_status == RewardStatus::Trusted || multiplier <= 0 {
+    let multiplier = if referrer_status.is_verified() { verified_multiplier } else { 1 };
+    if !referrer_status.delays_referrals() || multiplier <= 0 {
         return None;
     }
     Some(Duration::from_secs(base_delay.as_secs() / multiplier as u64))
@@ -346,7 +346,7 @@ mod tests {
     fn test_referral_verification_delay() {
         assert_eq!(referral_verification_delay(DAY, 2, RewardStatus::Trusted), None);
         assert_eq!(referral_verification_delay(DAY, 2, RewardStatus::Verified), Some(HOUR * 12));
-        assert_eq!(referral_verification_delay(DAY, 2, RewardStatus::Attribution), Some(HOUR * 12));
+        assert_eq!(referral_verification_delay(DAY, 2, RewardStatus::Attribution), None);
         assert_eq!(referral_verification_delay(DAY, 2, RewardStatus::Unverified), Some(DAY));
         assert_eq!(referral_verification_delay(DAY, 0, RewardStatus::Verified), None);
     }

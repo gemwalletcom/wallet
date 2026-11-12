@@ -34,6 +34,13 @@ impl RewardStatus {
             Self::Unverified | Self::Pending | Self::Attribution | Self::Disabled => false,
         }
     }
+
+    pub fn delays_referrals(&self) -> bool {
+        match self {
+            Self::Unverified | Self::Pending | Self::Verified | Self::Disabled => true,
+            Self::Trusted | Self::Attribution => false,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, EnumString, AsRefStr, PartialEq)]
