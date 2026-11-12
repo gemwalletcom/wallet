@@ -284,8 +284,15 @@ pub enum GemTransactionDetailRow {
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemTransactionDetailItem {
+    pub id: String,
+    pub row: GemTransactionDetailRow,
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemTransactionDetailSection {
-    pub rows: Vec<GemTransactionDetailRow>,
+    pub id: String,
+    pub items: Vec<GemTransactionDetailItem>,
 }
 
 #[uniffi::export]

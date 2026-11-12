@@ -630,6 +630,8 @@ impl GemPerpetualMarketSession {
 }
 ```
 
+**Which row is which.** A section or row a list draws carries an `id` from Core: the entity's id for a wallet, transaction or delegation, or the slot's name for a details row (`GemTransactionDetailSection` and `GemTransactionDetailItem` use `"date"`, `"fee"`, `"explorer"`). It stays the same while the row's values change and while other rows appear or disappear. Neither a row's position nor its printed value can promise that, so neither app derives identity from them. `just generate-models` makes every record Gemstone declares with an `id` field `Identifiable` on iOS, in the `Gemstone` module itself (`Gemstone/Sources/Gemstone/IdentifiableRecords.swift`), and Android keys lazy items by the same `id`.
+
 **Which actions the screen or row offers.** Core returns the list of available actions as cases; the app renders each case as its own button. `GemStakeActionItem`, `GemHeaderButtonKind`, `GemAssetAction` and `GemFiatButtonAction` are this shape. An app that assembles the action list itself is deciding what the user is allowed to do, on its own, twice.
 
 **What a tap means.** The destination of a row is Core's answer — `GemSelectRowAction`, `GemDelegationDestination`, `GemAcquireAssetFlow`, `GemBannerDestination` — and performing it is the app's, with the app's own route type per [navigation values are app types](#navigation-values-are-app-types). Core says *open the validator*; the app decides that means pushing `DelegationValidator`. A destination that opens a link carries the link, so a screen never has to pair a tap answer with a separate URL field or read one beside its own per-event switch: `GemBannerContent.destination` is that shape.

@@ -12,5 +12,3 @@ public extension GemWalletRow {
         ListItemModel(title: name, imageStyle: .asset(assetImage: avatarImage))
     }
 }
-
-extension GemWalletRow: @retroactive Identifiable {}

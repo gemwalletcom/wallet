@@ -6,8 +6,8 @@ import struct Gemstone.GemAddressRow
 import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemLoadState
 import struct Gemstone.GemSwapAgain
-import enum Gemstone.GemTransactionDetailRow
 import struct Gemstone.GemTransactionDetailRows
+import struct Gemstone.GemTransactionDetailSection
 import protocol Gemstone.GemTransactionDetailsServiceProtocol
 import enum Gemstone.GemTransactionHeaderAction
 import protocol Gemstone.GemTransactionsServiceProtocol
@@ -92,8 +92,8 @@ public final class TransactionSceneViewModel {
 // MARK: - Sections
 
 public extension TransactionSceneViewModel {
-    var sections: [ListSection<GemTransactionDetailRow>] {
-        rows.map { transactionDetailSections(rows: $0).map(ListSection.init) } ?? []
+    var sections: [GemTransactionDetailSection] {
+        rows.map { transactionDetailSections(rows: $0) } ?? []
     }
 }
 

@@ -19,13 +19,12 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.list_head.TransactionListHead
 import com.gemwallet.android.ui.components.list_item.GemListRowView
-import com.gemwallet.android.ui.components.list_item.listSections
 import com.gemwallet.android.ui.components.list_item.property.AddressPropertyItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
+import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.localization.string
-import com.gemwallet.android.ui.models.ListSection
 import com.gemwallet.android.ui.models.navigation.ContactAddressDraft
 import com.gemwallet.android.ui.theme.padding16
 import com.gemwallet.android.ui.theme.paddingSmall
@@ -33,9 +32,10 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChainAddress
 import uniffi.gemstone.GemTransactionDetailRow
+import uniffi.gemstone.GemTransactionDetailSection
 
 @Composable
-internal fun TransactionScene(title: String, sections: List<ListSection<GemTransactionDetailRow>>, headerTarget: TransactionHeaderTarget?, chain: Chain, onAction: (TransactionAction) -> Unit) {
+internal fun TransactionScene(title: String, sections: List<GemTransactionDetailSection>, headerTarget: TransactionHeaderTarget?, chain: Chain, onAction: (TransactionAction) -> Unit) {
     val context = LocalContext.current
     Scene(
         title = title,
@@ -47,49 +47,51 @@ internal fun TransactionScene(title: String, sections: List<ListSection<GemTrans
         onClose = { onAction(TransactionAction.Close) },
     ) {
         LazyColumn(modifier = Modifier.fillMaxSize().testTag("transaction_details")) {
-            listSections(sections) { position, row ->
-                when (row) {
-                    is GemTransactionDetailRow.Participant -> AddressPropertyItem(
-                        row = row.row,
-                        listPosition = position,
-                        onClick = { onAction(TransactionAction.OpenAddress(ChainAddress(row.row.chain.toChain(), row.row.address))) },
-                        onCreateContact = { contact -> onAction(TransactionAction.CreateContact(ContactAddressDraft(row.row.chain.toChain(), contact.address, contact.memo))) },
-                        onAddToContact = { contact -> onAction(TransactionAction.AddToContact(ContactAddressDraft(row.row.chain.toChain(), contact.address, contact.memo))) },
-                    )
+            sections.forEach { section ->
+                itemsPositioned(section.items, key = { _, item -> item.id }) { position, item ->
+                    when (val row = item.row) {
+                        is GemTransactionDetailRow.Participant -> AddressPropertyItem(
+                            row = row.row,
+                            listPosition = position,
+                            onClick = { onAction(TransactionAction.OpenAddress(ChainAddress(row.row.chain.toChain(), row.row.address))) },
+                            onCreateContact = { contact -> onAction(TransactionAction.CreateContact(ContactAddressDraft(row.row.chain.toChain(), contact.address, contact.memo))) },
+                            onAddToContact = { contact -> onAction(TransactionAction.AddToContact(ContactAddressDraft(row.row.chain.toChain(), contact.address, contact.memo))) },
+                        )
 
-                    is GemTransactionDetailRow.Fee -> GemListRowView(
-                        row = row.row,
-                        listPosition = position,
-                        modifier = Modifier.clickable { onAction(TransactionAction.ShowFeeDetails) },
-                        accessory = { DataBadgeChevron() },
-                    )
+                        is GemTransactionDetailRow.Fee -> GemListRowView(
+                            row = row.row,
+                            listPosition = position,
+                            modifier = Modifier.clickable { onAction(TransactionAction.ShowFeeDetails) },
+                            accessory = { DataBadgeChevron() },
+                        )
 
-                    is GemTransactionDetailRow.SwapProgress -> TransactionSwapProgressItem(row.progress)
+                        is GemTransactionDetailRow.SwapProgress -> TransactionSwapProgressItem(row.progress)
 
-                    is GemTransactionDetailRow.Row -> GemListRowView(
-                        row = row.row,
-                        listPosition = position,
-                        onSelectAddress = { address -> onAction(TransactionAction.OpenAddress(ChainAddress(chain, address))) },
-                    )
+                        is GemTransactionDetailRow.Row -> GemListRowView(
+                            row = row.row,
+                            listPosition = position,
+                            onSelectAddress = { address -> onAction(TransactionAction.OpenAddress(ChainAddress(chain, address))) },
+                        )
 
-                    is GemTransactionDetailRow.Header -> TransactionListHead(
-                        header = row.header,
-                        onClick = headerTarget?.let { target -> { onAction(target.navigation()) } },
-                        onAssetClick = { onAction(TransactionAction.OpenAsset(it)) },
-                    )
+                        is GemTransactionDetailRow.Header -> TransactionListHead(
+                            header = row.header,
+                            onClick = headerTarget?.let { target -> { onAction(target.navigation()) } },
+                            onAssetClick = { onAction(TransactionAction.OpenAsset(it)) },
+                        )
 
-                    is GemTransactionDetailRow.SwapAgain -> MainActionButton(
-                        title = row.title.string(context),
-                        modifier = Modifier.padding(horizontal = padding16, vertical = paddingSmall),
-                        onClick = {
-                            onAction(
-                                TransactionAction.OpenSwap(
-                                    fromAssetId = AssetId(row.swap.fromAssetId),
-                                    toAssetId = AssetId(row.swap.toAssetId),
-                                ),
-                            )
-                        },
-                    )
+                        is GemTransactionDetailRow.SwapAgain -> MainActionButton(
+                            title = row.title.string(context),
+                            modifier = Modifier.padding(horizontal = padding16, vertical = paddingSmall),
+                            onClick = {
+                                onAction(
+                                    TransactionAction.OpenSwap(
+                                        fromAssetId = AssetId(row.swap.fromAssetId),
+                                        toAssetId = AssetId(row.swap.toAssetId),
+                                    ),
+                                )
+                            },
+                        )
+                    }
                 }
             }
         }

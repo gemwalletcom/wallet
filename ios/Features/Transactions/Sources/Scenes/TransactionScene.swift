@@ -15,8 +15,12 @@ public struct TransactionScene: View {
     }
 
     public var body: some View {
-        ListSectionView(sections: model.sections) { row in
-            content(for: row)
+        List {
+            ForEach(model.sections) { section in
+                Section {
+                    ForEach(section.items) { content(for: $0.row) }
+                }
+            }
         }
         .accessibilityIdentifier("transaction_details")
         .contentMargins([.top], .small, for: .scrollContent)

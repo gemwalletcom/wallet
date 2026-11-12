@@ -55,3 +55,14 @@ pub enum GemPaymentAction {
 pub struct GemNotExported {
     pub value: String,
 }
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemListedItem {
+    pub id: String,
+    pub row: GemRowAction,
+}
+
+#[uniffi::remote(Record)]
+pub struct Mirrored {
+    pub id: String,
+}

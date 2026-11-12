@@ -8,8 +8,6 @@ import Primitives
 import Style
 import SwiftUI
 
-extension GemFiatTransactionRow: @retroactive Identifiable {}
-
 public extension GemFiatTransactionRow {
     var listItemModel: ListItemModel {
         ListItemModel(

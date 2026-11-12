@@ -162,6 +162,7 @@ pub struct Generator {
     pub(crate) core_types: BTreeMap<String, RemoteType>,
     pub(crate) core_aliases: BTreeMap<String, String>,
     pub(crate) core_errors: BTreeSet<String>,
+    pub(crate) core_records: BTreeSet<String>,
 }
 
 pub(crate) struct AppType {
@@ -265,7 +266,7 @@ impl Generator {
             .filter(|path| !path.ends_with(REMOTE_TYPES_PATH))
             .filter_map(|path| fs::read_to_string(path).ok())
             .collect::<Vec<_>>();
-        let (core_types, mut core_aliases, core_errors) = uniffi_declarations(&sources);
+        let (core_types, mut core_aliases, core_errors, core_records) = uniffi_declarations(&sources);
         core_aliases.extend(config.aliases.clone());
         found.sort_by_key(|remote| (matches!(remote, RemoteType::Record { .. }), remote.name().to_string()));
         mocked.sort_by_key(|mock| mock.name().to_string());
@@ -277,6 +278,7 @@ impl Generator {
             core_types,
             core_aliases,
             core_errors,
+            core_records,
         };
         let (rendered, ..) = uniffi_declarations(&[generator.remote_types()]);
         let generator = Self {
@@ -443,13 +445,15 @@ pub(crate) fn source_files(directory: &Path) -> Vec<std::path::PathBuf> {
     files
 }
 
-fn uniffi_declarations(sources: &[String]) -> (BTreeMap<String, RemoteType>, BTreeMap<String, String>, BTreeSet<String>) {
+fn uniffi_declarations(sources: &[String]) -> (BTreeMap<String, RemoteType>, BTreeMap<String, String>, BTreeSet<String>, BTreeSet<String>) {
     let mut found = BTreeMap::new();
     let mut aliases = BTreeMap::new();
     let mut errors = BTreeSet::new();
+    let mut records = BTreeSet::new();
     for source in sources {
         let mut lines = source.lines();
         let mut exported = false;
+        let mut remote = false;
         while let Some(line) = lines.next() {
             errors.extend(result_errors(line));
             if let Some((alias, aliased)) = line.trim().strip_prefix("pub type ").and_then(|rest| rest.trim_end_matches(';').split_once(" = ")) {
@@ -458,10 +462,15 @@ fn uniffi_declarations(sources: &[String]) -> (BTreeMap<String, RemoteType>, BTr
             let Some((keyword, name)) = declaration(line.trim()) else {
                 let attribute = line.trim().starts_with("#[");
                 exported = attribute && (exported || ["uniffi::Record", "uniffi::Enum", "uniffi::remote(Record)", "uniffi::remote(Enum)"].iter().any(|derive| line.contains(derive)));
+                remote = attribute && (remote || line.contains("uniffi::remote("));
                 continue;
             };
+            let is_remote = std::mem::take(&mut remote);
             if !std::mem::take(&mut exported) {
                 continue;
+            }
+            if keyword == "struct" && !is_remote {
+                records.insert(name.clone());
             }
             let body = body(&mut lines);
             let module = String::new();
@@ -483,7 +492,7 @@ fn uniffi_declarations(sources: &[String]) -> (BTreeMap<String, RemoteType>, BTr
             found.insert(name, declaration);
         }
     }
-    (found, aliases, errors)
+    (found, aliases, errors, records)
 }
 
 fn result_errors(line: &str) -> Vec<String> {

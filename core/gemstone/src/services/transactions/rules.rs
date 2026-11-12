@@ -10,9 +10,9 @@ use primitives::{
 };
 
 use super::model::{
-    GemAmountSign, GemHeaderAmount, GemSwapAgain, GemSwapProgress, GemSwapProgressRow, GemSwapProgressStep, GemTransactionAmount, GemTransactionBadge, GemTransactionDetailRow, GemTransactionDetailRows, GemTransactionDetailSection,
-    GemTransactionDetails, GemTransactionFeeRow, GemTransactionFilter, GemTransactionHeader, GemTransactionHeaderAction, GemTransactionHeaderKind, GemTransactionParticipantRole, GemTransactionRow, GemTransactionRowSubtitle,
-    GemTransactionRowValue, GemTransactionStateTone, GemTransactionStatus, GemTransactionSubtitle, GemTransactionTitle, GemTransactionValue,
+    GemAmountSign, GemHeaderAmount, GemSwapAgain, GemSwapProgress, GemSwapProgressRow, GemSwapProgressStep, GemTransactionAmount, GemTransactionBadge, GemTransactionDetailItem, GemTransactionDetailRow, GemTransactionDetailRows,
+    GemTransactionDetailSection, GemTransactionDetails, GemTransactionFeeRow, GemTransactionFilter, GemTransactionHeader, GemTransactionHeaderAction, GemTransactionHeaderKind, GemTransactionParticipantRole, GemTransactionRow,
+    GemTransactionRowSubtitle, GemTransactionRowValue, GemTransactionStateTone, GemTransactionStatus, GemTransactionSubtitle, GemTransactionTitle, GemTransactionValue,
 };
 use crate::address_formatter::format_address;
 use crate::config::image::GemImage;
@@ -203,78 +203,109 @@ fn fee_row(fee: &GemTransactionAmount, currency: Currency) -> GemTransactionFeeR
 
 pub fn detail_sections(rows: &GemTransactionDetailRows) -> Vec<GemTransactionDetailSection> {
     use GemTransactionDetailRow::*;
-    let list = |row: GemListRow| Row { row };
+    let list = |id: &str, row: GemListRow| detail_item(id, Row { row });
     let details = [
-        Some(list(GemListRow::Date {
-            title: GemListRowTitle::Date,
-            date: rows.created_at,
-        })),
-        Some(list(status_row(rows))),
+        Some(list(
+            "date",
+            GemListRow::Date {
+                title: GemListRowTitle::Date,
+                date: rows.created_at,
+            },
+        )),
+        Some(list("status", status_row(rows))),
         rows.estimated_confirmation_seconds.and_then(|seconds| estimated_duration_parts(i64::from(seconds))).map(|parts| {
-            list(GemListRow::Duration {
-                title: GemListRowTitle::EstimatedConfirmation,
-                parts,
-                info: Some(GemInfoTopic::EstimatedConfirmation { chain: rows.asset.chain() }),
-                estimate: true,
-            })
+            list(
+                "estimated_confirmation",
+                GemListRow::Duration {
+                    title: GemListRowTitle::EstimatedConfirmation,
+                    parts,
+                    info: Some(GemInfoTopic::EstimatedConfirmation { chain: rows.asset.chain() }),
+                    estimate: true,
+                },
+            )
         }),
-        rows.participant.clone().map(|row| Participant { row }),
-        rows.memo.clone().non_empty().map(|memo| list(GemListRow::memo(memo.clone(), Some(memo)))),
+        rows.participant.clone().map(|row| detail_item("participant", Participant { row })),
+        rows.memo.clone().non_empty().map(|memo| list("memo", GemListRow::memo(memo.clone(), Some(memo)))),
         rows.resource.map(|resource| {
-            list(GemListRow::Label {
-                title: GemListRowTitle::Resource,
-                text: GemLocalizedText::Resource { resource },
-                tone: GemValueTone::Plain,
-                info: None,
-                progress: false,
-            })
+            list(
+                "resource",
+                GemListRow::Label {
+                    title: GemListRowTitle::Resource,
+                    text: GemLocalizedText::Resource { resource },
+                    tone: GemValueTone::Plain,
+                    info: None,
+                    progress: false,
+                },
+            )
         }),
         rows.rate.clone().map(|rate| {
-            list(GemListRow::Rate {
-                title: GemListRowTitle::Rate,
-                rate: rate.direct,
-                inverse: Some(rate.inverse),
-            })
+            list(
+                "rate",
+                GemListRow::Rate {
+                    title: GemListRowTitle::Rate,
+                    rate: rate.direct,
+                    inverse: Some(rate.inverse),
+                },
+            )
         }),
-        Some(list(GemListRow::Network {
-            title: GemListRowTitle::Network,
-            chain: rows.asset.chain(),
-            name: ChainAsset::from_chain(rows.asset.chain()).network_name,
-        })),
+        Some(list(
+            "network",
+            GemListRow::Network {
+                title: GemListRowTitle::Network,
+                chain: rows.asset.chain(),
+                name: ChainAsset::from_chain(rows.asset.chain()).network_name,
+            },
+        )),
         rows.provider_name.clone().map(|name| {
-            list(GemListRow::Provider {
-                title: GemListRowTitle::Provider,
-                name,
-                contract: rows.provider_contract.clone(),
-            })
+            list(
+                "provider",
+                GemListRow::Provider {
+                    title: GemListRowTitle::Provider,
+                    name,
+                    contract: rows.provider_contract.clone(),
+                },
+            )
         }),
         rows.pnl.clone().map(|pnl| {
-            list(GemListRow::Amount {
-                title: GemListRowTitle::Pnl,
-                amount: pnl,
-                info: None,
-            })
+            list(
+                "pnl",
+                GemListRow::Amount {
+                    title: GemListRowTitle::Pnl,
+                    amount: pnl,
+                    info: None,
+                },
+            )
         }),
         rows.price.clone().map(|price| {
-            list(GemListRow::Amount {
-                title: GemListRowTitle::Price,
-                amount: price,
-                info: None,
-            })
+            list(
+                "price",
+                GemListRow::Amount {
+                    title: GemListRowTitle::Price,
+                    amount: price,
+                    info: None,
+                },
+            )
         }),
     ];
     [
-        vec![Header { header: rows.header.clone() }],
-        rows.swap_progress.clone().map(|progress| SwapProgress { progress }).into_iter().collect(),
-        rows.swap_again.clone().map(|swap| SwapAgain { title: GemLocalizedText::SwapAgain, swap }).into_iter().collect(),
-        details.into_iter().flatten().collect(),
-        vec![Fee { row: fee_list_row(&rows.fee_row) }],
-        vec![list(GemListRow::explorer(&rows.explorer))],
+        ("header", vec![detail_item("header", Header { header: rows.header.clone() })]),
+        ("swap_progress", rows.swap_progress.clone().map(|progress| detail_item("swap_progress", SwapProgress { progress })).into_iter().collect()),
+        (
+            "swap_again",
+            rows.swap_again.clone().map(|swap| detail_item("swap_again", SwapAgain { title: GemLocalizedText::SwapAgain, swap })).into_iter().collect(),
+        ),
+        ("details", details.into_iter().flatten().collect()),
+        ("fee", vec![detail_item("fee", Fee { row: fee_list_row(&rows.fee_row) })]),
+        ("explorer", vec![list("explorer", GemListRow::explorer(&rows.explorer))]),
     ]
     .into_iter()
-    .filter(|rows| !rows.is_empty())
-    .map(|rows| GemTransactionDetailSection { rows })
+    .filter(|(_, items)| !items.is_empty())
+    .map(|(id, items)| GemTransactionDetailSection { id: id.to_string(), items })
     .collect()
+}
+
+fn detail_item(id: &str, row: GemTransactionDetailRow) -> GemTransactionDetailItem {
+    GemTransactionDetailItem { id: id.to_string(), row }
 }
 
 fn fee_list_row(fee: &GemTransactionFeeRow) -> GemListRow {
@@ -1312,8 +1343,8 @@ mod tests {
         );
         let fee_list_row = detail_sections(&detail_rows(&priced, WalletType::Multicoin, None, explorer.clone(), Currency::USD))
             .into_iter()
-            .flat_map(|section| section.rows)
-            .find_map(|row| match row {
+            .flat_map(|section| section.items)
+            .find_map(|item| match item.row {
                 GemTransactionDetailRow::Fee { row } => Some(row),
                 _ => None,
             });
@@ -1357,21 +1388,7 @@ mod tests {
     #[test]
     fn test_detail_sections_list_only_the_rows_the_transaction_has_in_one_order() {
         let explorer = BlockExplorerLink::mock_with_address("tx");
-        let kind = |row: GemTransactionDetailRow| match row {
-            GemTransactionDetailRow::Header { .. } => "Header".to_string(),
-            GemTransactionDetailRow::SwapProgress { .. } => "SwapProgress".to_string(),
-            GemTransactionDetailRow::SwapAgain { .. } => "SwapAgain".to_string(),
-            GemTransactionDetailRow::Fee { .. } => "Fee".to_string(),
-            GemTransactionDetailRow::Participant { .. } => "Participant".to_string(),
-            GemTransactionDetailRow::Row { row: GemListRow::Explorer { .. } } => "Explorer".to_string(),
-            GemTransactionDetailRow::Row { row: GemListRow::Memo { .. } } => "Memo".to_string(),
-            GemTransactionDetailRow::Row { row: GemListRow::Provider { .. } } => "Provider".to_string(),
-            GemTransactionDetailRow::Row {
-                row: GemListRow::Date { title, .. } | GemListRow::Label { title, .. } | GemListRow::Text { title, .. } | GemListRow::Network { title, .. } | GemListRow::Amount { title, .. } | GemListRow::Rate { title, .. },
-            } => format!("{title:?}"),
-            other => format!("{other:?}"),
-        };
-        let rows_of = |sections: Vec<GemTransactionDetailSection>| sections.into_iter().map(|section| section.rows.into_iter().map(kind).collect::<Vec<_>>()).collect::<Vec<_>>();
+        let rows_of = |sections: Vec<GemTransactionDetailSection>| sections.into_iter().map(|section| section.items.into_iter().map(|item| item.id).collect::<Vec<_>>()).collect::<Vec<_>>();
 
         let mut transfer = TransactionExtended::mock_transaction(Transaction::mock_with_state(TransactionType::Transfer, TransactionState::Confirmed, TransactionDirection::Outgoing));
         transfer.transaction.memo = Some("gm".to_string());
@@ -1383,7 +1400,7 @@ mod tests {
                 explorer.clone(),
                 Currency::USD
             ))),
-            vec![vec!["Header"], vec!["Date", "Status", "Participant", "Memo", "Network"], vec!["Fee"], vec!["Explorer"]],
+            vec![vec!["header"], vec!["date", "status", "participant", "memo", "network"], vec!["fee"], vec!["explorer"]],
             "a transfer has no swap sections and shows its memo beside the recipient"
         );
 
@@ -1393,8 +1410,8 @@ mod tests {
         };
         let estimate = detail_sections(&detail_rows(&sending, WalletType::Multicoin, None, explorer.clone(), Currency::USD))
             .into_iter()
-            .flat_map(|section| section.rows)
-            .find_map(|row| match row {
+            .flat_map(|section| section.items)
+            .find_map(|item| match item.row {
                 GemTransactionDetailRow::Row { row: row @ GemListRow::Duration { .. } } => Some(row),
                 _ => None,
             });
@@ -1421,7 +1438,7 @@ mod tests {
                 explorer.clone(),
                 Currency::USD
             ))),
-            vec![vec!["Header"], vec!["SwapProgress"], vec!["Date", "Status", "Rate", "Network", "Provider"], vec!["Fee"], vec!["Explorer"]],
+            vec![vec!["header"], vec!["swap_progress"], vec!["date", "status", "rate", "network", "provider"], vec!["fee"], vec!["explorer"]],
             "a swap in flight shows its progress instead of a confirmation estimate, and its provider instead of a participant"
         );
 
@@ -1437,7 +1454,7 @@ mod tests {
                 explorer.clone(),
                 Currency::USD
             )))[1],
-            vec!["SwapAgain"],
+            vec!["swap_again"],
             "a confirmed swap offers to swap again"
         );
         assert_eq!(
@@ -1448,7 +1465,7 @@ mod tests {
                 explorer.clone(),
                 Currency::USD
             )))[1],
-            vec!["Date", "Status", "Rate", "Network", "Provider"],
+            vec!["date", "status", "rate", "network", "provider"],
             "a watch-only wallet cannot sign, so the confirmed swap offers no swap again"
         );
         assert!(
@@ -1458,7 +1475,7 @@ mod tests {
         let mut routed = confirmed;
         routed.transaction.contract = Some("0xrouter".to_string());
         let routed_rows = detail_rows(&routed, WalletType::Multicoin, None, explorer.clone(), Currency::USD);
-        let provider_contract = detail_sections(&routed_rows).into_iter().flat_map(|section| section.rows).find_map(|row| match row {
+        let provider_contract = detail_sections(&routed_rows).into_iter().flat_map(|section| section.items).find_map(|item| match item.row {
             GemTransactionDetailRow::Row { row: GemListRow::Provider { contract, .. } } => Some(contract),
             _ => None,
         });
@@ -1476,11 +1493,13 @@ mod tests {
         );
         assert_eq!(
             rows_of(detail_sections(&detail_rows(&open, WalletType::Multicoin, participant(&open, BlockExplorerLink::mock_with_address), explorer, Currency::USD)))[1],
-            vec!["Date", "Status", "Network", "Pnl", "Price"],
+            vec!["date", "status", "network", "pnl", "price"],
             "a perpetual has no participant and shows its pnl and price after the network"
         );
 
-        let status = detail_sections(&detail_rows(&transfer, WalletType::Multicoin, None, BlockExplorerLink::mock_with_address("tx"), Currency::USD))[1].rows[1].clone();
+        let status = detail_sections(&detail_rows(&transfer, WalletType::Multicoin, None, BlockExplorerLink::mock_with_address("tx"), Currency::USD))[1].items[1]
+            .row
+            .clone();
         assert_eq!(
             status,
             GemTransactionDetailRow::Row {

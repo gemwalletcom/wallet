@@ -1,9 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import struct Gemstone.GemPriceAlertItem
 import enum Gemstone.GemPriceAlertSectionKind
-
-extension GemPriceAlertItem: @retroactive Identifiable {}
 
 extension GemPriceAlertSectionKind {
     var id: String {

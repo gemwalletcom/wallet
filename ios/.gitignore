@@ -42,7 +42,8 @@ Features/*/Package.resolved
 
 # Generated Gemstone artifacts
 Packages/Gemstone/.swiftpm/
-Packages/Gemstone/Sources/Gemstone/
+Packages/Gemstone/Sources/Gemstone/*
+!Packages/Gemstone/Sources/Gemstone/IdentifiableRecords.swift
 Packages/Gemstone/Sources/GemstoneFFI/include/
 Packages/Gemstone/Sources/GemstoneFFI.xcframework/
 

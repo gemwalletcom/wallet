@@ -10,8 +10,6 @@ import Primitives
 import Style
 import SwiftUI
 
-extension GemTransactionRow: @retroactive Identifiable {}
-
 public func transactionListRows(_ transactions: [TransactionListItem]) -> [GemTransactionRow] {
     transactionRows(items: transactions.map { $0.toGem() })
 }

@@ -1,4 +1,5 @@
 mod constants;
+mod identifiable;
 mod localization;
 mod mocks;
 mod models;
@@ -67,6 +68,7 @@ fn generate_remote_mappers(platform: Platform, platform_directory_path: &str) {
             (generator.swift(), format!("{platform_directory_path}/GemstonePrimitives/Sources/Generated/RemoteTypeMappers.swift")),
             (generator.swift_mocks(), format!("{platform_directory_path}/Primitives/TestKit/GeneratedMocks.swift")),
             (generator.swift_core_mocks(), format!("{platform_directory_path}/GemstonePrimitives/TestKit/GeneratedMocks.swift")),
+            (generator.swift_identifiable(), format!("{platform_directory_path}/Gemstone/Sources/Gemstone/IdentifiableRecords.swift")),
         ],
         Platform::Android => vec![
             (generator.kotlin(), format!("{platform_directory_path}/../../gemwallet/android/ext/RemoteTypeMappers.kt")),

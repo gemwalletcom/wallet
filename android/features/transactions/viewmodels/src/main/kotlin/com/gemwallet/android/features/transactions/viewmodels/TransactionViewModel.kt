@@ -11,7 +11,6 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.transactions.viewmodels.models.TransactionHeaderTarget
 import com.gemwallet.android.features.transactions.viewmodels.models.target
-import com.gemwallet.android.ui.models.ListSection
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.navigation.requireString
 import com.wallet.core.primitives.Chain
@@ -31,8 +30,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemLoadState
-import uniffi.gemstone.GemTransactionDetailRow
 import uniffi.gemstone.GemTransactionDetailRows
+import uniffi.gemstone.GemTransactionDetailSection
 import uniffi.gemstone.GemTransactionDetailsServiceInterface
 import uniffi.gemstone.GemTransactionsServiceInterface
 import uniffi.gemstone.transactionDetailSections
@@ -66,11 +65,7 @@ class TransactionViewModel @Inject constructor(
     val headerTarget: StateFlow<TransactionHeaderTarget?> = data.map { it?.headerAction?.target() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val sections: StateFlow<List<ListSection<GemTransactionDetailRow>>> = data.map { details ->
-        details?.let { rows ->
-            transactionDetailSections(rows).mapIndexed { index, section -> ListSection(id = index.toString(), items = section.rows) }
-        }.orEmpty()
-    }
+    val sections: StateFlow<List<GemTransactionDetailSection>> = data.map { it?.let(::transactionDetailSections).orEmpty() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val _loadState = MutableStateFlow<GemLoadState>(GemLoadState.Loading)

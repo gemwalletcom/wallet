@@ -51,7 +51,7 @@ struct TransactionSceneViewModelTests {
             state: .confirmed,
             swapToAsset: .mock(id: AssetId(chain: .bitcoin, tokenId: nil)),
         )
-        #expect(rows(swapped).map(kind).contains("swapAgain"), "a signing wallet offers to swap again")
+        #expect(ids(swapped).contains("swap_again"), "a signing wallet offers to swap again")
 
         let watching = TransactionSceneViewModel.mock(
             type: .swap,
@@ -59,7 +59,7 @@ struct TransactionSceneViewModelTests {
             swapToAsset: .mock(id: AssetId(chain: .bitcoin, tokenId: nil)),
             wallet: .mock(type: .view),
         )
-        #expect(rows(watching).map(kind).contains("swapAgain") == false, "a watch-only wallet cannot sign a swap")
+        #expect(ids(watching).contains("swap_again") == false, "a watch-only wallet cannot sign a swap")
     }
 
     @Test
@@ -88,8 +88,8 @@ struct TransactionSceneViewModelTests {
         let withMemo = listRows(TransactionSceneViewModel.mock(asset: .mock(id: .mock(chain: .cosmos)), memo: "Test memo"))
         #expect(withMemo.contains(.memo(title: .memo, value: "Test memo", menu: [.copy(copy: GemCopy(kind: .plain, value: "Test memo", display: "Test memo"))])))
 
-        #expect(listRows(TransactionSceneViewModel.mock(asset: .mock(id: .mock(chain: .cosmos)), memo: nil)).contains { kind($0) == "memo" } == false)
-        #expect(listRows(TransactionSceneViewModel.mock(asset: .mock(id: .mock(chain: .cosmos)), memo: "")).contains { kind($0) == "memo" } == false)
+        #expect(ids(TransactionSceneViewModel.mock(asset: .mock(id: .mock(chain: .cosmos)), memo: nil)).contains("memo") == false)
+        #expect(ids(TransactionSceneViewModel.mock(asset: .mock(id: .mock(chain: .cosmos)), memo: "")).contains("memo") == false)
     }
 
     @Test
@@ -100,7 +100,7 @@ struct TransactionSceneViewModelTests {
     @Test
     func sectionsComeFromCoreWithOnlyTheRowsTheTransactionHas() {
         let transfer = TransactionSceneViewModel.mock(asset: .mock(id: .mock(chain: .cosmos)), memo: "gm").sections
-        #expect(transfer.map { $0.values.map(kind) } == [["header"], ["date", "status", "participant", "memo", "network"], ["fee"], ["explorer"]])
+        #expect(transfer.map { $0.items.map(\.id) } == [["header"], ["date", "status", "participant", "memo", "network"], ["fee"], ["explorer"]])
 
         let swap = TransactionSceneViewModel.mock(
             type: .swap,
@@ -109,7 +109,7 @@ struct TransactionSceneViewModelTests {
             swapToAsset: .mock(id: .mock(chain: .near), name: "NEAR", symbol: "NEAR", decimals: 24),
             confirmationEtaSeconds: 720,
         ).sections
-        #expect(swap.map { $0.values.map(kind) } == [["header"], ["swapProgress"], ["date", "status", "rate", "network", "provider"], ["fee"], ["explorer"]])
+        #expect(swap.map { $0.items.map(\.id) } == [["header"], ["swap_progress"], ["date", "status", "rate", "network", "provider"], ["fee"], ["explorer"]])
     }
 
     @Test
@@ -133,38 +133,18 @@ struct TransactionSceneViewModelTests {
         }
     }
 
+    private func ids(_ model: TransactionSceneViewModel) -> [String] {
+        model.sections.flatMap(\.items).map(\.id)
+    }
+
     private func rows(_ model: TransactionSceneViewModel) -> [GemTransactionDetailRow] {
-        model.sections.flatMap(\.values)
+        model.sections.flatMap(\.items).map(\.row)
     }
 
     private func listRows(_ model: TransactionSceneViewModel) -> [GemListRow] {
         rows(model).compactMap { row in
             guard case let .row(listRow) = row else { return nil }
             return listRow
-        }
-    }
-
-    private func kind(_ row: GemTransactionDetailRow) -> String {
-        switch row {
-        case let .row(listRow): kind(listRow)
-        case .participant: "participant"
-        case .header: "header"
-        case .swapProgress: "swapProgress"
-        case .swapAgain: "swapAgain"
-        case .fee: "fee"
-        }
-    }
-
-    private func kind(_ row: GemListRow) -> String {
-        switch row {
-        case let .date(title, _), let .network(title, _, _), let .text(title, _): "\(title)"
-        case .memo: "memo"
-        case let .label(title, _, _, _, _): "\(title)"
-        case let .amount(title, _, _): "\(title)"
-        case let .rate(title, _, _): "\(title)"
-        case .explorer: "explorer"
-        case .provider: "provider"
-        default: "\(row)"
         }
     }
 }

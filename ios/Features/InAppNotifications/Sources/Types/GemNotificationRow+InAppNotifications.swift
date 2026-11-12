@@ -5,8 +5,6 @@ import struct Gemstone.GemNotificationRow
 import PrimitivesComponents
 import Style
 
-extension GemNotificationRow: @retroactive Identifiable {}
-
 extension GemNotificationRow {
     var listItem: ListItemModel {
         ListItemModel(
