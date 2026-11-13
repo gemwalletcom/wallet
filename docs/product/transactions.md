@@ -29,7 +29,7 @@ flowchart LR
 | The network settles it | Successful, or Failed or Reverted | amounts and status come from the network, never from the app's guess |
 | A swap | listed under both the asset paid and the asset received | the user looks for it under either |
 | A swap paid Gem's fee from the amount paid, such as `0.01 ETH` with a `0.00005 ETH` fee | it shows `0.01 ETH` paid, on every network and provider | it matches the amount the user swapped |
-| A Uniswap, PancakeSwap or OKX swap fails on the network, such as when the price moves past the slippage limit | a Failed swap of its two assets, not a contract call; the received side shows the least the swap would have accepted | nothing moved, so the swap request is all the network keeps |
+| A Uniswap, PancakeSwap, OKX or Across swap fails on the network, such as when the price moves past the slippage limit | a Failed swap of its two assets, not a contract call; the received side shows the least the swap would have accepted | nothing moved, so the swap request is all the network keeps |
 | The user taps a swap's header or Swap Again | Swap opens only where the asset screen offers it: nothing in a watch-only wallet or for an asset that cannot be swapped | the details follow the same rule as a link |
 | The user taps a perpetual's header | the market opens only where the wallet screen shows Perpetuals | |
 | The wallet switches while details are open, such as a push for another wallet | the details stay on the wallet they were opened for | an open details screen never blanks or swaps |
