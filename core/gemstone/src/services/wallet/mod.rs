@@ -47,7 +47,6 @@ use crate::services::name::GemNameService;
 use crate::services::nft::model::GemNftList;
 use crate::services::nft::rules as nft_rules;
 use crate::services::preferences::GemPreferencesService;
-use crate::services::subscription::rules as subscription_rules;
 use crate::services::wallet_preferences::GemWalletPreferencesService;
 use crate::services::wallet_session::GemWalletSessionService;
 
@@ -374,7 +373,7 @@ impl GemWalletService {
         let mut outcome = SetupChainsOutcome::default();
         let mut subscriptions_changed = false;
         for (mut wallet, missing) in candidates {
-            let subscribed = missing.iter().any(|chain| subscription_rules::is_subscribed(*chain));
+            let subscribed = missing.iter().any(Chain::is_indexed);
             match self.add_chains(&mut wallet, missing, password.clone()).await {
                 Ok(()) => {
                     subscriptions_changed |= subscribed;

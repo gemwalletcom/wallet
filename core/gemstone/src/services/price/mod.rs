@@ -109,7 +109,6 @@ async fn price_updates(store: &dyn GemPriceStore, prices: Vec<AssetPrice>, curre
             None => return Ok(vec![]),
         },
     };
-    let prices = rules::mirrored_prices(prices);
     let stored = store.get_prices(prices.iter().map(|price| price.asset_id.clone()).collect()).await?;
     Ok(rules::changed_prices(stored, rules::fiat_prices(prices, &rate)))
 }

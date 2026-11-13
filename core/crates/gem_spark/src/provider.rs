@@ -10,17 +10,16 @@ use chrono::DateTime;
 use gem_hash::sha2::sha256;
 use num_bigint::{BigInt, BigUint};
 use primitives::{
-    AssetBalance, AssetId, BroadcastOptions, Chain, ChainRequest, ChainRequestType, ChainSigner, FeePriority, FeeRate, GasPriceType, SignerError, SignerInput, Transaction, TransactionDirection, TransactionFee, TransactionInputType,
-    TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput, TransactionState, TransactionStateRequest, TransactionType, TransactionUpdate, hex,
+    AssetBalance, AssetId, BroadcastOptions, Chain, ChainRequest, ChainRequestType, ChainSigner, FeePriority, FeeRate, GasPriceType, SignerError, SignerInput, Transaction, TransactionFee, TransactionInputType, TransactionLoadData,
+    TransactionLoadInput, TransactionLoadMetadata, TransactionState, TransactionStateRequest, TransactionType, TransactionUpdate, hex,
 };
 use signer::{SignatureScheme, Signer};
 
 use crate::error::LightningError;
-use crate::invoice::{decode_invoice, requested_amount};
+use crate::invoice::decode_invoice;
 use crate::model::{LightningInvoice, LightningPayment, LightningPaymentDirection, LightningPaymentStatus, LightningSendQuote};
 
 const CHAIN: Chain = Chain::Lightning;
-const COUNTERPARTY: &str = "Lightning";
 const PAYLOAD_SEPARATOR: &str = "|";
 const AUTHORIZATION_DOMAIN: &str = "gem-lightning-transfer-v1";
 
@@ -29,7 +28,7 @@ pub trait LightningSessions: Send + Sync {
     async fn balance(&self, address: &str) -> Result<u64, LightningError>;
     async fn payments(&self, address: &str) -> Result<Vec<LightningPayment>, LightningError>;
     async fn payment(&self, address: &str, id: &str) -> Result<Option<LightningPayment>, LightningError>;
-    async fn prepare_send(&self, address: &str, invoice: LightningInvoice, amount_sats: Option<u64>) -> Result<LightningSendQuote, LightningError>;
+    async fn prepare_send(&self, address: &str, invoice: LightningInvoice, amount_sats: u64) -> Result<LightningSendQuote, LightningError>;
     async fn send(&self, address: &str, quote: LightningSendQuote, authorization: LightningAuthorization) -> Result<String, LightningError>;
 }
 
@@ -49,7 +48,7 @@ impl LightningSessions for LockedSessions {
         Err(LightningError::Locked)
     }
 
-    async fn prepare_send(&self, _address: &str, _invoice: LightningInvoice, _amount_sats: Option<u64>) -> Result<LightningSendQuote, LightningError> {
+    async fn prepare_send(&self, _address: &str, _invoice: LightningInvoice, _amount_sats: u64) -> Result<LightningSendQuote, LightningError> {
         Err(LightningError::Locked)
     }
 
@@ -137,29 +136,27 @@ impl LightningProvider {
 
 pub fn map_payment(address: &str, payment: &LightningPayment) -> Transaction {
     let asset_id = AssetId::from_chain(CHAIN);
-    let (from, to, direction) = match payment.direction {
-        LightningPaymentDirection::Incoming => (COUNTERPARTY.to_string(), address.to_string(), TransactionDirection::Incoming),
-        LightningPaymentDirection::Outgoing => (address.to_string(), COUNTERPARTY.to_string(), TransactionDirection::Outgoing),
+    let (from, to) = match payment.direction {
+        LightningPaymentDirection::Incoming => (String::new(), address.to_string()),
+        LightningPaymentDirection::Outgoing => (address.to_string(), String::new()),
     };
-    let state = payment_state(payment.status);
     let created_at = DateTime::from_timestamp(i64::try_from(payment.created_at).unwrap_or_default(), 0).unwrap_or_default();
-    let mut transaction = Transaction::new(
+    Transaction::new(
         payment.id.clone(),
         asset_id.clone(),
         from,
         to,
         None,
         TransactionType::Transfer,
-        state,
+        payment_state(payment.status),
         BigUint::from(payment.fee_sats),
         asset_id,
         BigUint::from(payment.amount_sats),
         None,
         None,
         created_at,
-    );
-    transaction.direction = direction;
-    transaction
+    )
+    .finalize(vec![address.to_string()])
 }
 
 #[async_trait]
@@ -198,14 +195,9 @@ impl ChainProvider for LightningProvider {
 
 #[async_trait]
 impl ChainTransactionLoad for LightningProvider {
-    async fn get_transaction_preload(&self, _input: TransactionPreloadInput) -> Result<TransactionLoadMetadata, Box<dyn Error + Sync + Send>> {
-        Ok(TransactionLoadMetadata::None)
-    }
-
     async fn get_transaction_load(&self, input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Sync + Send>> {
         let invoice = decode_invoice(&input.destination_address)?;
         let amount_sats = u64::try_from(&input.value).map_err(|_| LightningError::AmountRequired)?;
-        let amount_sats = requested_amount(&invoice, amount_sats);
         let quote = self.sessions.prepare_send(&input.sender_address, invoice, amount_sats).await?;
         Ok(TransactionLoadData {
             fee: TransactionFee::new_from_fee(BigInt::from(quote.fee_sats), AssetId::from_chain(CHAIN)),
@@ -278,6 +270,8 @@ impl ChainTransactionDecode for BroadcastProvider {
 
 #[cfg(test)]
 mod tests {
+    use primitives::TransactionDirection;
+
     use super::*;
     use crate::testkit::INVOICE_2000_SATS;
 
@@ -287,7 +281,7 @@ mod tests {
         let outgoing = map_payment("spark1address", &LightningPayment::mock(LightningPaymentDirection::Outgoing, LightningPaymentStatus::Pending));
 
         assert_eq!(incoming.direction, TransactionDirection::Incoming);
-        assert_eq!(incoming.to, "spark1address");
+        assert_eq!((incoming.from.as_str(), incoming.to.as_str()), ("", "spark1address"));
         assert_eq!(incoming.state, TransactionState::Confirmed);
         assert_eq!(incoming.value, BigUint::from(1_000u64));
         assert_eq!(outgoing.direction, TransactionDirection::Outgoing);

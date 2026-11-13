@@ -3,7 +3,7 @@ use std::str::FromStr;
 use super::error::{PaymentDecoderError, Result};
 use primitives::{Chain, ChainType, HTTPS_URL_SCHEME, WALLET_CONNECT_URL_SCHEME, payment::Payment};
 
-use super::{bip21, bip321, erc681, solana_pay, ton_pay, wallet_connect_pay, xrp};
+use super::{bip21, bip321, erc681, lightning, solana_pay, ton_pay, wallet_connect_pay, xrp};
 
 const DOGECOIN_SCHEME: &str = "dogecoin";
 const RIPPLE_SCHEME: &str = "ripple";
@@ -17,7 +17,7 @@ impl PaymentURLDecoder {
         let uri = string.trim();
         let uri = uri.split_once('#').map_or(uri, |(uri, _)| uri);
         let Some((scheme, path)) = uri.split_once(':') else {
-            return bip21::decode(None, uri);
+            return lightning::decode(uri).or_else(|_| bip21::decode(None, uri));
         };
         let path = path.strip_prefix("//").unwrap_or(path);
         let scheme = scheme.to_ascii_lowercase();
@@ -31,6 +31,7 @@ impl PaymentURLDecoder {
             Chain::Solana => solana_pay::decode(path),
             Chain::Ton => ton_pay::decode(path),
             Chain::Xrp => xrp::decode(path),
+            Chain::Lightning => lightning::decode(uri),
             chain => bip21::decode(Some(chain), path),
         }
     }
@@ -43,7 +44,7 @@ fn get_chain(scheme: &str) -> Option<Chain> {
         scheme => Chain::from_str(scheme).ok()?,
     };
     match chain {
-        Chain::Ethereum | Chain::Solana | Chain::Ton | Chain::Xrp => Some(chain),
+        Chain::Ethereum | Chain::Solana | Chain::Ton | Chain::Xrp | Chain::Lightning => Some(chain),
         chain if chain.chain_type() == ChainType::Bitcoin => Some(chain),
         _ => None,
     }

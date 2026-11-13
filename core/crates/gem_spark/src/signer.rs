@@ -8,9 +8,8 @@ use bitcoin::taproot::TapNodeHash;
 use frost_secp256k1_tr::round2::SignatureShare;
 use spark_wallet::{DefaultSigner, EncryptedSecret, FrostSigningCommitmentsWithNonces, SecretSource, SecretToSplit, SignFrostRequest, Signer, SignerError, VerifiableSecretShare};
 
+use crate::error::LightningError;
 use crate::keys::AccountKey;
-
-const LOCKED_ERROR: &str = "lightning wallet is locked";
 
 pub struct LockableSigner {
     signer: RwLock<Option<Arc<DefaultSigner>>>,
@@ -33,8 +32,7 @@ impl LockableSigner {
     }
 
     fn signer(&self) -> Result<Arc<DefaultSigner>, SignerError> {
-        let signer = self.signer.read().map_err(|_| SignerError::Generic(LOCKED_ERROR.to_string()))?;
-        signer.clone().ok_or_else(|| SignerError::Generic(LOCKED_ERROR.to_string()))
+        self.signer.read().unwrap_or_else(PoisonError::into_inner).clone().ok_or_else(|| SignerError::Generic(LightningError::Locked.to_string()))
     }
 }
 
@@ -105,20 +103,18 @@ mod tests {
 
     use super::*;
     use crate::keys::account_key;
-    use crate::model::LightningNetwork;
-    use crate::testkit::ABANDON_SEED_HEX;
+    use crate::testkit::{ABANDON_SEED_HEX, IDENTITY_PUBLIC_KEY};
 
     #[tokio::test]
     async fn test_lock() {
-        let seed = decode_hex(ABANDON_SEED_HEX).unwrap();
-        let signer = LockableSigner::new(&account_key(&seed, LightningNetwork::Mainnet).unwrap());
+        let signer = LockableSigner::new(&account_key(&decode_hex(ABANDON_SEED_HEX).unwrap()).unwrap());
         let identity = DerivationPath::from_str("m/0'").unwrap();
 
-        assert_eq!(signer.derive_public_key(&identity).await.unwrap().to_string(), "0281363910b0dc0015a4a25e758da30f0e28388ea5252c0e3713936f2d4ef7d3d5");
+        assert_eq!(signer.derive_public_key(&identity).await.unwrap().to_string(), IDENTITY_PUBLIC_KEY);
 
         signer.lock();
 
-        assert_eq!(signer.derive_public_key(&identity).await.err().map(|error| error.to_string()), Some(format!("generic error: {LOCKED_ERROR}")));
+        assert_eq!(signer.derive_public_key(&identity).await.err().map(|error| error.to_string()), Some(format!("generic error: {}", LightningError::Locked)));
         assert!(signer.sign_message_ecdsa(&identity, b"gem").await.is_err());
     }
 }

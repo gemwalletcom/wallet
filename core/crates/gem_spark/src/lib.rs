@@ -17,11 +17,11 @@ pub mod testkit;
 #[cfg(feature = "wallet")]
 mod wallet;
 
-pub use address::SparkAddress;
+pub use address::{IDENTITY_PATH, SparkAddress};
 pub use error::LightningError;
-pub use invoice::decode_invoice;
+pub use invoice::{LIGHTNING_SCHEME, decode_invoice};
 #[cfg(feature = "wallet")]
 pub use keys::{AccountKey, account_key};
-pub use model::{LightningInvoice, LightningNetwork, LightningPayment, LightningPaymentDirection, LightningPaymentStatus, LightningSendQuote};
+pub use model::{LightningInvoice, LightningPayment, LightningPaymentDirection, LightningPaymentStatus, LightningSendQuote};
 #[cfg(feature = "wallet")]
 pub use wallet::LightningWallet;

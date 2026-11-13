@@ -160,6 +160,7 @@ impl GemAssetDetailsService {
         let price_change_percentage_24h = price.as_ref().map(|price| price.price_change_percentage_24h);
         let price = price.map(|price| price.price);
         let wallet_type = wallet.wallet_type;
+        let related_asset = rules::related_asset(&asset.id, &wallet);
         let visible_banners = self.banners.visible_banners(&GemBannerContext::asset(Some(wallet), asset.clone(), &metadata, &balance), banners);
         let banner_events: Vec<BannerEvent> = visible_banners.iter().map(|row| row.banner.event).collect();
         let chain = asset.chain();
@@ -190,6 +191,7 @@ impl GemAssetDetailsService {
                 price_alerts: price_alerts.as_deref(),
                 fee_balance_metadata,
                 banner_events: &banner_events,
+                related_asset,
             }),
             options: rules::asset_options(owner_address.map(|address| self.explorer.get_address_url(chain, address)), self.explorer.get_token_url(&asset.id)),
             verification_status: rules::verification_status(&asset, metadata.rank_score),

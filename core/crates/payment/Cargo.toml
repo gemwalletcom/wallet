@@ -10,6 +10,7 @@ gem_encoding = { path = "../gem_encoding" }
 gem_jsonrpc = { path = "../gem_jsonrpc", features = ["client"] }
 gem_evm = { path = "../gem_evm" }
 gem_solana = { path = "../gem_solana" }
+gem_spark = { path = "../gem_spark" }
 gem_wallet_connect = { path = "../gem_wallet_connect" }
 number_formatter = { path = "../number_formatter" }
 async-trait = { workspace = true }
@@ -23,4 +24,5 @@ url = { workspace = true }
 [dev-dependencies]
 gem_client = { path = "../gem_client", features = ["testkit"] }
 primitives = { path = "../primitives", features = ["testkit"] }
+gem_spark = { path = "../gem_spark", features = ["testkit"] }
 tokio = { workspace = true, features = ["macros", "rt"] }

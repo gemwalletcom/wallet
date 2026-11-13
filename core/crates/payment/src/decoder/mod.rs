@@ -3,6 +3,7 @@ mod bip21;
 mod bip321;
 mod erc681;
 mod error;
+mod lightning;
 mod query;
 mod solana_pay;
 mod ton_pay;

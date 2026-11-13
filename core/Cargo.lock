@@ -3345,7 +3345,7 @@ dependencies = [
 
 [[package]]
 name = "gem_spark"
-version = "2.114.92"
+version = "2.114.94"
 dependencies = [
  "async-trait",
  "bech32",
@@ -5265,6 +5265,7 @@ dependencies = [
  "gem_evm",
  "gem_jsonrpc",
  "gem_solana",
+ "gem_spark",
  "gem_wallet_connect",
  "num-bigint 0.5.1",
  "number_formatter",

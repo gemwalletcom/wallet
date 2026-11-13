@@ -150,6 +150,27 @@ impl Chain {
         self.config().is_swap_supported
     }
 
+    pub fn is_indexed(&self) -> bool {
+        match self.chain_type() {
+            ChainType::Lightning => false,
+            ChainType::Ethereum
+            | ChainType::Bitcoin
+            | ChainType::Solana
+            | ChainType::Cosmos
+            | ChainType::Ton
+            | ChainType::Tron
+            | ChainType::Aptos
+            | ChainType::Sui
+            | ChainType::Xrp
+            | ChainType::Near
+            | ChainType::Stellar
+            | ChainType::Algorand
+            | ChainType::Polkadot
+            | ChainType::Cardano
+            | ChainType::HyperCore => true,
+        }
+    }
+
     pub fn stake_config(&self) -> Option<&'static StakeChainConfig> {
         self.config().stake.as_ref()
     }

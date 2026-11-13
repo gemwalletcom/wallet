@@ -3,7 +3,7 @@ use std::sync::Arc;
 use primitives::{Chain, ContactData, Payment, WalletAddressItem};
 
 use super::model::{GemRecipientError, GemRecipientNext, GemRecipientScan, GemRecipientSection, GemRecipientType};
-use super::rules::{contact_recipients, lightning_scan, recipient_sections, scan_route, select_step};
+use super::rules::{contact_recipients, recipient_sections, scan_route, select_step};
 use crate::payment::{GemPaymentService, asset_step};
 use crate::services::transfer::model::GemRecipient;
 use crate::services::wallet_session::GemWalletSessionService;
@@ -29,9 +29,6 @@ impl GemRecipientService {
 
     pub fn scan(&self, url: String, recipient_type: GemRecipientType) -> Result<GemRecipientScan, GemRecipientError> {
         let asset = recipient_type.asset();
-        if asset.chain() == Chain::Lightning {
-            return lightning_scan(&recipient_type, &url).ok_or(GemRecipientError::InvalidAddress { chain: asset.chain() });
-        }
         let step = match self.payments.decode_url(url) {
             Ok(Payment::Request { request }) => asset_step(&request, &asset),
             Ok(Payment::Link { .. }) | Err(_) => None,

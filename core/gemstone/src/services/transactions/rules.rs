@@ -578,9 +578,13 @@ fn transfer_title(transaction: &Transaction) -> GemTransactionTitle {
 }
 
 fn transaction_subtitle(transaction: &Transaction) -> GemTransactionSubtitle {
-    if transaction.asset_id.chain == Chain::Lightning {
-        return GemTransactionSubtitle::None;
+    match counterparty_subtitle(transaction) {
+        GemTransactionSubtitle::FromAddress { address } | GemTransactionSubtitle::ToAddress { address } if address.is_empty() => GemTransactionSubtitle::None,
+        subtitle => subtitle,
     }
+}
+
+fn counterparty_subtitle(transaction: &Transaction) -> GemTransactionSubtitle {
     match transaction.transaction_type {
         TransactionType::Transfer | TransactionType::TransferNFT | TransactionType::TokenApproval | TransactionType::SmartContractCall => match transaction.direction {
             TransactionDirection::Incoming => GemTransactionSubtitle::FromAddress { address: transaction.from.clone() },

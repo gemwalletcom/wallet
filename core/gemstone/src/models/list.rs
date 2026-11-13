@@ -291,6 +291,7 @@ pub enum GemRowAction {
     Pin,
     AddToWallet,
     Explorer { url: String },
+    Asset { asset: Asset },
 }
 
 #[uniffi::export]

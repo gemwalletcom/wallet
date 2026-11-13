@@ -6,7 +6,7 @@ edition = { workspace = true }
 [features]
 default = []
 rpc = ["dep:async-trait", "dep:chain_traits", "dep:primitives", "dep:num-bigint", "dep:chrono", "dep:signer", "dep:gem_hash"]
-wallet = ["dep:async-trait", "dep:bitcoin", "dep:frost-secp256k1-tr", "dep:rusqlite", "dep:spark-sqlite", "dep:spark-wallet", "dep:tokio"]
+wallet = ["dep:async-trait", "dep:bitcoin", "dep:primitives", "dep:frost-secp256k1-tr", "dep:rusqlite", "dep:spark-sqlite", "dep:spark-wallet", "dep:tokio"]
 chain_integration_tests = ["wallet"]
 testkit = []
 

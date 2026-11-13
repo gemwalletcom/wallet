@@ -4,14 +4,13 @@ use std::sync::Arc;
 
 use gem_derivation::{derive_account_from_private_key, derive_account_from_private_key_value, derive_accounts_from_mnemonic, derive_private_key_from_mnemonic, derive_wallet_id_from_account, import_account_from_private_key};
 use gem_keystore::{FileKeystore, Keystore, KeystoreError, KeystoreId, Mnemonic, SecretKind};
-use gem_spark::{AccountKey, LightningNetwork, LightningWallet, account_key};
+use gem_spark::{AccountKey, account_key};
 use primitives::{Account, Chain, SignerInput, WalletId, WalletType};
 use signer::encode_private_key;
 use zeroize::Zeroizing;
 
 use super::types::{GemImportType, GemKeystoreAccount, GemStoredSecretMigration, GemStoredWallet, GemWalletImport};
 use crate::GemstoneError;
-use crate::lightning::open_wallet;
 use crate::models::transaction::GemSignedTransaction;
 use crate::signer::ChainTransactionSigner;
 
@@ -62,9 +61,6 @@ impl GemKeystore {
     }
 
     pub fn export_private_key(&self, keystore_id: String, chain: Chain, password: Vec<u8>) -> Result<String, GemstoneError> {
-        if chain == Chain::Lightning {
-            return Err(GemstoneError::from("lightning keys are not exported"));
-        }
         let password = Zeroizing::new(password);
         let private_key = self.load_private_key(&keystore_id, chain, &password)?;
         Ok(encode_private_key(&chain, &private_key)?)
@@ -148,9 +144,6 @@ impl GemKeystore {
         ChainTransactionSigner::new(chain).sign_input(input, self.signing_key(&keystore_id, chain, password)?)
     }
     pub fn sign_auth(&self, keystore_id: String, chain: Chain, hash: [u8; 32], password: Vec<u8>) -> Result<String, GemstoneError> {
-        if chain == Chain::Lightning {
-            return Err(GemstoneError::from("lightning keys do not sign auth messages"));
-        }
         crate::auth::sign_auth_message_hash(hash, self.signing_key(&keystore_id, chain, password)?)
     }
 }
@@ -168,11 +161,6 @@ pub(crate) fn keystore_id_for_wallet(wallet_id: String) -> String {
 }
 
 impl GemKeystore {
-    pub(crate) async fn lightning_wallet(&self, keystore_id: &str, password: Vec<u8>, storage_dir: PathBuf) -> Result<LightningWallet, GemstoneError> {
-        let account = self.lightning_account_key(keystore_id, password)?;
-        Ok(open_wallet(account, storage_dir).await?)
-    }
-
     pub(crate) fn delete_wallet_secrets(&self, wallet_id: String, legacy_id: String) -> Result<(), GemstoneError> {
         self.inner.delete(&keystore_id_for_wallet(wallet_id))?;
         self.inner.delete_v3(&legacy_id)?;
@@ -199,11 +187,11 @@ impl GemKeystore {
         }
     }
 
-    fn lightning_account_key(&self, keystore_id: &str, password: Vec<u8>) -> Result<AccountKey, GemstoneError> {
+    pub(crate) fn lightning_account_key(&self, keystore_id: &str, password: Vec<u8>) -> Result<AccountKey, GemstoneError> {
         let password = Zeroizing::new(password);
         let phrase = self.wallet_phrase(keystore_id, &password)?.ok_or_else(|| GemstoneError::from("lightning wallet does not support private-key wallets"))?;
         let seed = Mnemonic::seed(&phrase)?;
-        Ok(account_key(&seed[..], LightningNetwork::Mainnet)?)
+        Ok(account_key(&seed[..])?)
     }
 
     fn verify_migrated_secret(&self, keystore_id: &str, password: &[u8], expected: &WalletId, kind: SecretKind) -> Result<(), GemstoneError> {
@@ -478,10 +466,6 @@ mod lightning_tests {
             keystore.lightning_account_key(&private_key.keystore_id, b"password".to_vec()).err().map(|error| error.to_string()),
             Some("lightning wallet does not support private-key wallets".to_string())
         );
-        assert!(keystore.sign_auth(mnemonic.keystore_id.clone(), Chain::Bitcoin, [1; 32], b"password".to_vec()).is_ok());
-        assert!(keystore.sign_auth(mnemonic.keystore_id.clone(), Chain::Lightning, [1; 32], b"password".to_vec()).is_err());
-        assert!(keystore.export_private_key(mnemonic.keystore_id.clone(), Chain::Bitcoin, b"password".to_vec()).is_ok());
-        assert!(keystore.export_private_key(mnemonic.keystore_id, Chain::Lightning, b"password".to_vec()).is_err());
     }
 }
 

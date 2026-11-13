@@ -3,17 +3,25 @@ use std::io::ErrorKind;
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use gem_spark::LightningWallet;
-use primitives::{AssetId, Chain, Wallet, WalletId};
+use gem_spark::{LIGHTNING_SCHEME, LightningWallet, decode_invoice};
+use primitives::time::unix_timestamp;
+use primitives::{AddressFormatStyle, Asset, AssetId, Chain, Wallet, WalletId};
 
-use super::wallet::run;
-use super::{GemLightningWallet, sessions};
+use super::model::{GemLightningReceive, GemLightningReceiveState};
+use super::runtime::run;
+use super::sessions;
+use crate::address_formatter::format_address;
 use crate::keystore::{GemKeystore, decode_password, keystore_id_for_wallet};
+use crate::models::copy::{GemCopy, GemCopyKind};
+use crate::services::amount::model::{GemAmountField, GemAmountKeyboard, GemAmountSymbol, GemAmountSymbolPlacement, GemNumberFormat};
+use crate::services::amount::rules::value_from_input;
 use crate::services::balance::GemBalanceService;
 use crate::services::error::GemServiceError;
 use crate::services::transactions::GemTransactionsService;
 use crate::services::wallet::GemKeystorePassword;
 use crate::services::wallet_session::GemWalletSessionService;
+
+const RECEIVED_PAYMENTS_LIMIT: u64 = 20;
 
 #[derive(uniffi::Object)]
 pub struct GemLightningService {
@@ -39,16 +47,19 @@ impl GemLightningService {
         }
     }
 
-    pub async fn open_enabled(&self, wallet_id: WalletId) -> Result<bool, GemServiceError> {
+    pub async fn open_enabled(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
+        let generation = sessions().generation();
         let Some(address) = self.address(wallet_id.clone()).await? else {
-            return Ok(false);
+            return Ok(());
         };
         if !self.balances.is_asset_enabled(wallet_id.clone(), AssetId::from_chain(Chain::Lightning)).await? {
-            return Ok(false);
+            return Ok(());
         }
-        let wallet = self.open_wallet(wallet_id.clone(), &address).await?;
-        let _ = self.sync_wallet(wallet_id, wallet).await;
-        Ok(true)
+        let (wallet, opened) = self.open_wallet(generation, wallet_id.clone(), &address).await?;
+        if opened {
+            let _ = self.sync_wallet(wallet_id, wallet).await;
+        }
+        Ok(())
     }
 
     pub async fn sync(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
@@ -61,9 +72,30 @@ impl GemLightningService {
         self.sync_wallet(wallet_id, wallet).await
     }
 
-    pub async fn open(&self, wallet_id: WalletId) -> Result<Arc<GemLightningWallet>, GemServiceError> {
-        let address = self.address(wallet_id.clone()).await?.ok_or_else(|| GemServiceError::core("wallet has no lightning account"))?;
-        Ok(GemLightningWallet::new(self.open_wallet(wallet_id, &address).await?))
+    pub async fn receive(&self, wallet_id: WalletId, amount: String, format: GemNumberFormat) -> Result<GemLightningReceive, GemServiceError> {
+        let wallet = self.wallet(wallet_id).await?;
+        let asset = Asset::from_chain(Chain::Lightning);
+        let amount_sats = value_from_input(&format.decimal_separator, &amount, asset.decimals)
+            .ok()
+            .and_then(|value| u64::try_from(value).ok())
+            .filter(|value| *value > 0);
+        let invoice = run(async move { wallet.create_invoice(amount_sats).await }).await?;
+        Ok(receive(invoice.invoice, asset))
+    }
+
+    pub async fn receive_state(&self, wallet_id: WalletId, invoice: String) -> Result<GemLightningReceiveState, GemServiceError> {
+        let wallet = self.wallet(wallet_id.clone()).await?;
+        let expires_at = decode_invoice(&invoice)?.expires_at;
+        let checked = wallet.clone();
+        let received = run(async move {
+            checked.sync().await?;
+            checked.has_received(&invoice, RECEIVED_PAYMENTS_LIMIT).await
+        })
+        .await?;
+        if received {
+            self.update_wallet(wallet_id).await?;
+        }
+        Ok(receive_state(received, expires_at, unix_timestamp()))
     }
 
     pub fn lock_all(&self) {
@@ -95,21 +127,81 @@ impl GemLightningService {
         self.storage_dir.join(keystore_id_for_wallet(wallet_id.id()))
     }
 
-    async fn open_wallet(&self, wallet_id: WalletId, address: &str) -> Result<Arc<LightningWallet>, GemServiceError> {
+    async fn wallet(&self, wallet_id: WalletId) -> Result<Arc<LightningWallet>, GemServiceError> {
+        let generation = sessions().generation();
+        let address = self.address(wallet_id.clone()).await?.ok_or_else(|| GemServiceError::core("wallet has no lightning account"))?;
+        Ok(self.open_wallet(generation, wallet_id, &address).await?.0)
+    }
+
+    async fn open_wallet(&self, generation: u64, wallet_id: WalletId, address: &str) -> Result<(Arc<LightningWallet>, bool), GemServiceError> {
         sessions()
-            .open(address, || async {
+            .open(generation, address, || async {
                 let password = decode_password(&self.password.get_password(false)?);
-                Ok(self.keystore.lightning_wallet(&keystore_id_for_wallet(wallet_id.id()), password, self.wallet_storage_dir(&wallet_id)).await?)
+                let account = self.keystore.lightning_account_key(&keystore_id_for_wallet(wallet_id.id()), password)?;
+                let storage_dir = self.wallet_storage_dir(&wallet_id);
+                Ok(run(async move { LightningWallet::open(account, &storage_dir).await }).await?)
             })
             .await
     }
 
     async fn sync_wallet(&self, wallet_id: WalletId, wallet: Arc<LightningWallet>) -> Result<(), GemServiceError> {
         let synced = run(async move { wallet.sync().await }).await;
+        self.update_wallet(wallet_id).await?;
+        Ok(synced?)
+    }
+
+    async fn update_wallet(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
         let lightning = vec![AssetId::from_chain(Chain::Lightning)];
         let (balances, transactions) = futures::join!(self.balances.update(wallet_id.clone(), lightning), self.transactions.sync_lightning(wallet_id));
         balances?;
-        transactions?;
-        Ok(synced?)
+        transactions
+    }
+}
+
+fn receive(invoice: String, asset: Asset) -> GemLightningReceive {
+    GemLightningReceive {
+        qr: format!("{LIGHTNING_SCHEME}{invoice}"),
+        copy: GemCopy {
+            kind: GemCopyKind::Plain,
+            display: format_address(&invoice, Some(Chain::Lightning), AddressFormatStyle::Short),
+            value: invoice.clone(),
+        },
+        field: GemAmountField {
+            symbol: GemAmountSymbol::Asset { symbol: asset.symbol },
+            placement: GemAmountSymbolPlacement::Trailing,
+            keyboard: GemAmountKeyboard::Decimal,
+        },
+        invoice,
+    }
+}
+
+fn receive_state(received: bool, expires_at: u64, now: u64) -> GemLightningReceiveState {
+    match received {
+        true => GemLightningReceiveState::Received,
+        false if expires_at <= now => GemLightningReceiveState::Expired,
+        false => GemLightningReceiveState::Pending,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use gem_spark::testkit::INVOICE_2000_SATS;
+
+    #[test]
+    fn test_receive() {
+        let receive = receive(INVOICE_2000_SATS.to_string(), Asset::from_chain(Chain::Lightning));
+
+        assert_eq!(receive.qr, format!("lightning:{INVOICE_2000_SATS}"));
+        assert_eq!(receive.copy.value, INVOICE_2000_SATS);
+        assert!(receive.copy.display.len() < INVOICE_2000_SATS.len());
+        assert_eq!(receive.field.symbol, GemAmountSymbol::Asset { symbol: "BTC".to_string() });
+    }
+
+    #[test]
+    fn test_receive_state() {
+        assert_eq!(receive_state(true, 100, 200), GemLightningReceiveState::Received);
+        assert_eq!(receive_state(false, 100, 100), GemLightningReceiveState::Expired);
+        assert_eq!(receive_state(false, 100, 99), GemLightningReceiveState::Pending);
     }
 }

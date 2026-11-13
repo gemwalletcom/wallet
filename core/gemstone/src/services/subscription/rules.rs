@@ -14,10 +14,6 @@ impl SubscriptionChanges {
     }
 }
 
-pub fn is_subscribed(chain: Chain) -> bool {
-    chain != Chain::Lightning
-}
-
 pub fn wallet_subscriptions(wallets: &[Wallet]) -> Vec<WalletSubscription> {
     wallets
         .iter()
@@ -28,7 +24,7 @@ pub fn wallet_subscriptions(wallets: &[Wallet]) -> Vec<WalletSubscription> {
                 .address_chains()
                 .into_iter()
                 .filter_map(|address| {
-                    let chains: Vec<Chain> = address.chains.into_iter().filter(|chain| is_subscribed(*chain)).collect();
+                    let chains: Vec<Chain> = address.chains.into_iter().filter(Chain::is_indexed).collect();
                     (!chains.is_empty()).then(|| AddressChains::new(address.address, chains))
                 })
                 .collect(),

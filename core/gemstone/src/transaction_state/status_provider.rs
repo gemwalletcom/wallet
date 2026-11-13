@@ -152,7 +152,7 @@ fn get_transaction_update(chain: Chain, destination_chain: Option<Chain>, create
         } else {
             update
         }),
-        err @ Err(TransactionStatusError::Offline | TransactionStatusError::Locked | TransactionStatusError::NetworkError(_)) => err,
+        err @ Err(TransactionStatusError::Offline | TransactionStatusError::NetworkError(_)) => err,
         Err(_) if pending_expired => Ok(TransactionUpdate::new_state(TransactionState::Failed)),
         Err(error) => Err(error),
     }
@@ -161,6 +161,7 @@ fn get_transaction_update(chain: Chain, destination_chain: Option<Chain>, create
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::gateway::GatewayError;
     use num_bigint::BigInt;
     use num_bigint::BigUint;
     use primitives::{SwapProvider, TransactionSwapMetadata, swap::SwapStatus};
@@ -200,7 +201,10 @@ mod tests {
     fn test_get_transaction_update_keeps_retryable_errors() {
         let expired = DateTime::<Utc>::UNIX_EPOCH;
 
-        assert!(matches!(get_transaction_update(Chain::Lightning, None, expired, Err(TransactionStatusError::Locked)), Err(TransactionStatusError::Locked)));
+        assert!(matches!(
+            get_transaction_update(Chain::Lightning, None, expired, Err(GatewayError::Locked.into())),
+            Err(TransactionStatusError::NetworkError(_))
+        ));
         assert!(matches!(get_transaction_update(Chain::Lightning, None, expired, Err(TransactionStatusError::Offline)), Err(TransactionStatusError::Offline)));
         assert_eq!(
             get_transaction_update(Chain::Lightning, None, expired, Err(TransactionStatusError::PlatformError("error".to_string()))).unwrap().state,

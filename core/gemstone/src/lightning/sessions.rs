@@ -8,7 +8,8 @@ use futures::lock::Mutex as AsyncMutex;
 use gem_spark::provider::{LightningAuthorization, LightningSessions};
 use gem_spark::{LightningError, LightningInvoice, LightningPayment, LightningSendQuote, LightningWallet};
 
-use super::wallet::run;
+use super::runtime::run;
+use crate::services::error::GemServiceError;
 
 const PAYMENTS_LIMIT: u64 = 100;
 
@@ -26,27 +27,32 @@ pub(crate) struct LightningSessionRegistry {
 }
 
 impl LightningSessionRegistry {
-    pub(crate) async fn open<E, F, Fut>(&self, address: &str, open: F) -> Result<Arc<LightningWallet>, E>
+    pub(crate) fn generation(&self) -> u64 {
+        self.generation.load(Ordering::SeqCst)
+    }
+
+    pub(crate) async fn open<F, Fut>(&self, generation: u64, address: &str, open: F) -> Result<(Arc<LightningWallet>, bool), GemServiceError>
     where
-        E: From<LightningError>,
         F: FnOnce() -> Fut,
-        Fut: Future<Output = Result<LightningWallet, E>>,
+        Fut: Future<Output = Result<LightningWallet, GemServiceError>>,
     {
         let _opening = self.opening.lock().await;
-        if let Ok(wallet) = self.wallet(address) {
-            return Ok(wallet);
+        if self.generation() != generation {
+            return Err(LightningError::Locked.into());
         }
-        let generation = self.generation.load(Ordering::SeqCst);
+        if let Ok(wallet) = self.wallet(address) {
+            return Ok((wallet, false));
+        }
         let wallet = Arc::new(open().await?);
         let mut wallets = self.wallets.write().unwrap_or_else(PoisonError::into_inner);
-        if self.generation.load(Ordering::SeqCst) != generation {
+        if self.generation() != generation {
             return Err(LightningError::Locked.into());
         }
         if wallet.address() != address {
             return Err(LightningError::AccountMismatch.into());
         }
         wallets.insert(address.to_string(), wallet.clone());
-        Ok(wallet)
+        Ok((wallet, true))
     }
 
     pub(crate) async fn close_and_remove<T>(&self, address: Option<&str>, remove: impl FnOnce() -> T) -> T {
@@ -70,29 +76,34 @@ impl LightningSessionRegistry {
     pub(crate) fn wallet(&self, address: &str) -> Result<Arc<LightningWallet>, LightningError> {
         self.wallets.read().unwrap_or_else(PoisonError::into_inner).get(address).cloned().ok_or(LightningError::Locked)
     }
+
+    async fn with_wallet<T, F, Fut>(&self, address: &str, call: F) -> Result<T, LightningError>
+    where
+        T: Send + 'static,
+        F: FnOnce(Arc<LightningWallet>) -> Fut,
+        Fut: Future<Output = Result<T, LightningError>> + Send + 'static,
+    {
+        run(call(self.wallet(address)?)).await
+    }
 }
 
 #[async_trait]
 impl LightningSessions for LightningSessionRegistry {
     async fn balance(&self, address: &str) -> Result<u64, LightningError> {
-        let wallet = self.wallet(address)?;
-        run(async move { wallet.balance().await }).await
+        self.with_wallet(address, |wallet| async move { wallet.balance().await }).await
     }
 
     async fn payments(&self, address: &str) -> Result<Vec<LightningPayment>, LightningError> {
-        let wallet = self.wallet(address)?;
-        run(async move { wallet.payments(PAYMENTS_LIMIT, 0).await }).await
+        self.with_wallet(address, |wallet| async move { wallet.payments(PAYMENTS_LIMIT).await }).await
     }
 
     async fn payment(&self, address: &str, id: &str) -> Result<Option<LightningPayment>, LightningError> {
-        let wallet = self.wallet(address)?;
         let id = id.to_string();
-        run(async move { wallet.payment(&id).await }).await
+        self.with_wallet(address, |wallet| async move { wallet.payment(&id).await }).await
     }
 
-    async fn prepare_send(&self, address: &str, invoice: LightningInvoice, amount_sats: Option<u64>) -> Result<LightningSendQuote, LightningError> {
-        let wallet = self.wallet(address)?;
-        run(async move { wallet.prepare_send(invoice, amount_sats).await }).await
+    async fn prepare_send(&self, address: &str, invoice: LightningInvoice, amount_sats: u64) -> Result<LightningSendQuote, LightningError> {
+        self.with_wallet(address, |wallet| async move { wallet.prepare_send(invoice, amount_sats).await }).await
     }
 
     async fn send(&self, address: &str, quote: LightningSendQuote, authorization: LightningAuthorization) -> Result<String, LightningError> {

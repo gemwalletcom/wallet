@@ -40,7 +40,6 @@ impl From<TransactionStatusError> for GatewayError {
     fn from(err: TransactionStatusError) -> Self {
         match err {
             TransactionStatusError::Offline => Self::Offline,
-            TransactionStatusError::Locked => Self::Locked,
             TransactionStatusError::NetworkError(msg) => Self::NetworkError { msg },
             TransactionStatusError::PlatformError(msg) => Self::PlatformError { msg },
         }

@@ -665,6 +665,11 @@ pub struct DetailsSectionsInput<'a> {
     pub price_alerts: Option<&'a [PriceAlert]>,
     pub fee_balance_metadata: Option<BalanceMetadata>,
     pub banner_events: &'a [BannerEvent],
+    pub related_asset: Option<Asset>,
+}
+
+pub fn related_asset(asset_id: &AssetId, wallet: &Wallet) -> Option<Asset> {
+    (*asset_id == AssetId::from_chain(Chain::Bitcoin) && wallet.account(Chain::Lightning).is_some()).then(|| Asset::from_chain(Chain::Lightning))
 }
 
 pub fn details_sections(input: DetailsSectionsInput) -> Vec<GemAssetDetailSection> {
@@ -679,6 +684,7 @@ pub fn details_sections(input: DetailsSectionsInput) -> Vec<GemAssetDetailSectio
         price_alerts,
         fee_balance_metadata,
         banner_events,
+        related_asset,
     } = input;
     let chain = asset.chain();
     let allows_actions = allows_actions(banner_events);
@@ -724,6 +730,16 @@ pub fn details_sections(input: DetailsSectionsInput) -> Vec<GemAssetDetailSectio
                     },
                     Some(GemRowAction::Network),
                 )),
+                related_asset.map(|related| {
+                    row(
+                        GemListRow::Network {
+                            title: GemListRowTitle::Network,
+                            chain: related.chain(),
+                            name: asset_text(&related).network_full_name,
+                        },
+                        Some(GemRowAction::Asset { asset: related }),
+                    )
+                }),
             ]
             .into_iter()
             .flatten()
@@ -1546,6 +1562,16 @@ mod tests {
     }
 
     #[test]
+    fn test_bitcoin_links_to_lightning_only_with_a_lightning_account() {
+        let bitcoin = AssetId::from_chain(Chain::Bitcoin);
+        let lightning = Wallet::mock_with_chains(&[Chain::Bitcoin, Chain::Lightning]);
+
+        assert_eq!(related_asset(&bitcoin, &lightning), Some(Asset::from_chain(Chain::Lightning)));
+        assert_eq!(related_asset(&bitcoin, &Wallet::mock_with_chains(&[Chain::Bitcoin])), None);
+        assert_eq!(related_asset(&AssetId::from_chain(Chain::Ethereum), &lightning), None);
+    }
+
+    #[test]
     fn test_network_destination_opens_the_native_asset_or_the_chain_list() {
         let ethereum = Chain::Ethereum;
         assert_eq!(network_destination(&Asset::mock_ethereum_usdc().id), Some(GemAssetNetworkDestination::Asset { asset: Asset::from_chain(ethereum) }));
@@ -1722,6 +1748,7 @@ mod tests {
             price_alerts,
             fee_balance_metadata: None,
             banner_events: &[],
+            related_asset: None,
         })
     }
 
@@ -1933,6 +1960,7 @@ mod tests {
                 price_alerts: Some(&[]),
                 fee_balance_metadata,
                 banner_events: &[],
+                related_asset: None,
             });
             section(&sections, GemListSectionTitle::Resources)
         };
@@ -2050,6 +2078,7 @@ mod tests {
                 price_alerts: Some(&[]),
                 fee_balance_metadata: None,
                 banner_events,
+                related_asset: None,
             })
             .into_iter()
             .flat_map(|section| section.rows)

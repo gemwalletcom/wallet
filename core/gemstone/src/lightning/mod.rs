@@ -1,9 +1,8 @@
 mod model;
+mod runtime;
 mod service;
 mod sessions;
-mod wallet;
 
-pub use service::*;
+pub use model::{GemLightningReceive, GemLightningReceiveState};
+pub use service::GemLightningService;
 pub(crate) use sessions::sessions;
-pub use wallet::GemLightningWallet;
-pub(crate) use wallet::open_wallet;

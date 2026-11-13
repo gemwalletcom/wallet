@@ -6,7 +6,6 @@ use crate::gateway::GatewayError;
 #[derive(Debug, Clone)]
 pub enum TransactionStatusError {
     Offline,
-    Locked,
     NetworkError(String),
     PlatformError(String),
 }
@@ -15,7 +14,6 @@ impl fmt::Display for TransactionStatusError {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             Self::Offline => write!(f, "network offline"),
-            Self::Locked => write!(f, "{}", GatewayError::Locked),
             Self::NetworkError(msg) | Self::PlatformError(msg) => write!(f, "{msg}"),
         }
     }
@@ -31,7 +29,7 @@ impl From<GatewayError> for TransactionStatusError {
             GatewayError::PlatformError { msg } => Self::PlatformError(msg),
             GatewayError::SignerError { error } => Self::PlatformError(error.to_string()),
             GatewayError::NetworkIdMismatch { chain, network_id } => Self::PlatformError(format!("Node reports network {network_id} for {chain}")),
-            GatewayError::Locked => Self::Locked,
+            GatewayError::Locked => Self::NetworkError(err.to_string()),
         }
     }
 }

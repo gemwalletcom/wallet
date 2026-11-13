@@ -98,7 +98,7 @@ impl GemTransactionsService {
 
     pub async fn sync_wallet(&self, wallet_id: WalletId, asset_id: Option<AssetId>) -> Result<(), GemServiceError> {
         match asset_id.as_ref().map(|asset_id| asset_id.chain) {
-            Some(Chain::Lightning) => return self.sync_lightning(wallet_id).await,
+            Some(chain) if !chain.is_indexed() => return self.sync_lightning(wallet_id).await,
             Some(_) => {}
             None => {
                 let _ = self.sync_lightning(wallet_id.clone()).await;
