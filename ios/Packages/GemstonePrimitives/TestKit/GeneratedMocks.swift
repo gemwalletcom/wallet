@@ -1122,18 +1122,6 @@ public extension Gemstone.GemSocialLink {
     }
 }
 
-public extension Gemstone.GemStakeValidatorOptions {
-    static func mock(
-        sections: [Gemstone.GemValidatorSection] = [],
-        phase: Gemstone.GemListPhase = .rows,
-    ) -> Gemstone.GemStakeValidatorOptions {
-        Gemstone.GemStakeValidatorOptions(
-            sections: sections,
-            phase: phase,
-        )
-    }
-}
-
 public extension Gemstone.GemSwapPairSuggestion {
     static func mock(
         payAssetId: Primitives.AssetId = .mock(),
@@ -1362,18 +1350,6 @@ public extension Gemstone.GemValidatorRow {
             provider: provider,
             apr: apr,
             explorer: explorer,
-        )
-    }
-}
-
-public extension Gemstone.GemValidatorSection {
-    static func mock(
-        kind: Gemstone.GemValidatorSectionKind = .recommended,
-        rows: [Gemstone.GemValidatorRow] = [],
-    ) -> Gemstone.GemValidatorSection {
-        Gemstone.GemValidatorSection(
-            kind: kind,
-            rows: rows,
         )
     }
 }

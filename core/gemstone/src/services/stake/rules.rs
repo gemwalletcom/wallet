@@ -16,15 +16,15 @@ use std::str::FromStr;
 
 use super::model::{
     GemDelegationAction, GemDelegationActionItem, GemDelegationActionTarget, GemDelegationAmountInput, GemDelegationDestination, GemDelegationDetails, GemDelegationListRow, GemDelegationStatus, GemEarnInput, GemEarnSection, GemEarnView,
-    GemStakeAction, GemStakeActionItem, GemStakeActionKind, GemStakeAmountInput, GemStakeAmountSelection, GemStakeDelegationItem, GemStakeDestination, GemStakeInput, GemStakeSection, GemStakeValidatorOptions, GemStakeViewState,
-    GemValidatorRow, GemValidatorSection, GemValidatorSectionKind,
+    GemStakeAction, GemStakeActionItem, GemStakeActionKind, GemStakeAmountInput, GemStakeAmountSelection, GemStakeDelegationItem, GemStakeDestination, GemStakeInput, GemStakeSection, GemStakeViewState,
+    GemValidatorRow,
 };
 use crate::config::image::GemImage;
 use crate::config::stake::EARN_OFFERED;
 use crate::duration_formatter::{GemDurationPart, countdown_parts, day_parts};
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::custom_types::GemBigUint;
-use crate::models::list::{GemInfoTopic, GemListRow, GemListRowTitle};
+use crate::models::list::{GemGroup, GemGroupList, GemInfoTopic, GemListItem, GemListRow, GemListRowTitle, GemListSectionTitle};
 use crate::models::state::{GemListPhase, GemLoadState};
 use crate::percentage::GemPercentageStyle;
 use crate::precision::GemCurrencyStyle;
@@ -706,7 +706,11 @@ pub fn amount_selection(chain: Chain, input: &GemStakeAmountInput) -> GemStakeAm
     }
 }
 
-pub fn validator_options(chain: Chain, input: &GemStakeAmountInput, validators: Vec<DelegationValidator>) -> GemStakeValidatorOptions {
+pub fn validator_options(chain: Chain, input: &GemStakeAmountInput, validators: Vec<DelegationValidator>) -> GemGroupList {
+    let selected_validator_id = match amount_selection(chain, input) {
+        GemStakeAmountSelection::Validator { validator, .. } => Some(validator.validator.id),
+        GemStakeAmountSelection::Resource { .. } => None,
+    };
     let (options, recommended) = match input {
         GemStakeAmountInput::Stake { .. } => {
             let options = selectable_validators(validators);
@@ -722,16 +726,22 @@ pub fn validator_options(chain: Chain, input: &GemStakeAmountInput, validators: 
         GemStakeAmountInput::Unstake { delegation } | GemStakeAmountInput::Withdraw { delegation } => (vec![delegation.validator.clone()], vec![]),
         GemStakeAmountInput::Freeze { .. } | GemStakeAmountInput::Unfreeze { .. } => (vec![], vec![]),
     };
-    let section = |kind, validators: Vec<DelegationValidator>| {
-        (!validators.is_empty()).then(|| GemValidatorSection {
-            kind,
-            rows: validators.iter().map(validator_row).collect(),
+    let group = |title, validators: Vec<DelegationValidator>| {
+        (!validators.is_empty()).then(|| {
+            let items = validators
+                .iter()
+                .map(|validator| GemListItem::Validator {
+                    row: validator_row(validator),
+                    is_selected: selected_validator_id.as_ref() == Some(&validator.id),
+                })
+                .collect();
+            GemGroup::new(title, items)
         })
     };
-    let sections: Vec<GemValidatorSection> = [section(GemValidatorSectionKind::Recommended, recommended), section(GemValidatorSectionKind::Active, options)].into_iter().flatten().collect();
-    GemStakeValidatorOptions {
-        phase: GemListPhase::local(!sections.is_empty(), empty_state(GemEmptyStateKind::Validators)),
-        sections,
+    let groups: Vec<GemGroup> = [group(GemListSectionTitle::Recommended, recommended), group(GemListSectionTitle::Active, options)].into_iter().flatten().collect();
+    GemGroupList {
+        phase: GemListPhase::local(!groups.is_empty(), empty_state(GemEmptyStateKind::Validators)),
+        groups,
     }
 }
 
@@ -1837,16 +1847,37 @@ mod tests {
         };
 
         let leaving_other = options("other");
-        assert_eq!(ids(&leaving_other, GemValidatorSectionKind::Active), vec![recommended[0].as_str()]);
-        assert_eq!(ids(&leaving_other, GemValidatorSectionKind::Recommended), vec![recommended[0].as_str()]);
+        assert_eq!(ids(&leaving_other, GemListSectionTitle::Active), vec![recommended[0].as_str()]);
+        assert_eq!(ids(&leaving_other, GemListSectionTitle::Recommended), vec![recommended[0].as_str()]);
 
         let leaving_recommended = options(&recommended[0]);
-        assert_eq!(ids(&leaving_recommended, GemValidatorSectionKind::Active), vec!["other"]);
-        assert!(ids(&leaving_recommended, GemValidatorSectionKind::Recommended).is_empty());
+        assert_eq!(ids(&leaving_recommended, GemListSectionTitle::Active), vec!["other"]);
+        assert!(ids(&leaving_recommended, GemListSectionTitle::Recommended).is_empty());
     }
 
-    fn ids(options: &GemStakeValidatorOptions, kind: GemValidatorSectionKind) -> Vec<&str> {
-        options.sections.iter().filter(|section| section.kind == kind).flat_map(|section| &section.rows).map(|row| row.validator.id.as_str()).collect()
+    fn ids(options: &GemGroupList, title: GemListSectionTitle) -> Vec<String> {
+        options
+            .groups
+            .iter()
+            .filter(|group| group.title == title)
+            .flat_map(|group| &group.items)
+            .filter_map(|item| match item {
+                GemListItem::Validator { row, .. } => Some(row.validator.id.clone()),
+                _ => None,
+            })
+            .collect()
+    }
+
+    fn selected(options: &GemGroupList) -> Vec<String> {
+        options
+            .groups
+            .iter()
+            .flat_map(|group| &group.items)
+            .filter_map(|item| match item {
+                GemListItem::Validator { row, is_selected: true } => Some(row.validator.id.clone()),
+                _ => None,
+            })
+            .collect()
     }
 
     #[test]
@@ -1861,24 +1892,25 @@ mod tests {
         let options = |input| validator_options(Chain::Cosmos, &input, validators.clone());
 
         let stake = options(GemStakeAmountInput::Stake { validator: current.clone() });
-        assert_eq!(ids(&stake, GemValidatorSectionKind::Active), vec!["current", recommended[0].as_str()], "an inactive validator is not offered");
-        assert_eq!(ids(&stake, GemValidatorSectionKind::Recommended), vec![recommended[0].as_str()]);
+        assert_eq!(ids(&stake, GemListSectionTitle::Active), vec!["current", recommended[0].as_str()], "an inactive validator is not offered");
+        assert_eq!(ids(&stake, GemListSectionTitle::Recommended), vec![recommended[0].as_str()]);
 
         let rewards = options(GemStakeAmountInput::Rewards {
             delegations: vec![Delegation::mock_with_validator(current.clone()), Delegation::mock_with_validator(DelegationValidator::mock_cosmos("second"))],
             validator: current,
         });
         assert_eq!(
-            rewards.sections.iter().map(|section| section.kind).collect::<Vec<_>>(),
-            vec![GemValidatorSectionKind::Active],
+            rewards.groups.iter().map(|group| group.title).collect::<Vec<_>>(),
+            vec![GemListSectionTitle::Active],
             "a section without rows is left out"
         );
-        assert_eq!(ids(&rewards, GemValidatorSectionKind::Active), vec!["current", "second"], "rewards are claimed from the delegations, not the network list");
+        assert_eq!(ids(&rewards, GemListSectionTitle::Active), vec!["current", "second"], "rewards are claimed from the delegations, not the network list");
 
+        assert_eq!(selected(&stake), vec!["current"], "the current validator is the selected one");
         assert_eq!(stake.phase, GemListPhase::Rows);
 
         let freeze = options(GemStakeAmountInput::Freeze { resource: Resource::Bandwidth });
-        assert!(freeze.sections.is_empty());
+        assert!(freeze.groups.is_empty());
         assert_eq!(
             freeze.phase,
             GemListPhase::Empty {

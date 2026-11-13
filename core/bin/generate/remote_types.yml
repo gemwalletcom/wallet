@@ -324,7 +324,6 @@ mocks:
   - GemRowText
   - GemSignMessagePreview
   - GemSocialLink
-  - GemStakeValidatorOptions
   - GemSwapPairSuggestion
   - GemSwapQuoteInput
   - GemSwapQuotesResult
@@ -338,7 +337,6 @@ mocks:
   - GemTransferAmountResult
   - GemTransferData
   - GemValidatorRow
-  - GemValidatorSection
   - GemValueHeader
   - GemWalletConnectAuthAccount
   - GemWalletConnectAuthMessage

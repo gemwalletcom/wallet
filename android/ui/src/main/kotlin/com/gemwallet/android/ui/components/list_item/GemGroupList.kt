@@ -25,7 +25,7 @@ fun LazyListScope.gemGroupList(list: GemGroupList, onSelect: (GemListItem) -> Un
         } else if (index > 0) {
             item(key = key) { Spacer16() }
         }
-        itemsPositioned(group.items, key = { itemIndex, item -> item.identity() ?: "$key:$itemIndex" }) { position, item ->
+        itemsPositioned(group.items, key = { itemIndex, item -> "$key:${item.identity() ?: itemIndex}" }) { position, item ->
             GemListItemView(item = item, listPosition = position, onSelect = onSelect)
         }
         gemListSectionFooter(group.footer, key = "$key:footer")
@@ -53,9 +53,17 @@ private fun GemListItemView(item: GemListItem, listPosition: ListPosition, onSel
                 null
             },
         )
+
+        is GemListItem.Validator -> ValidatorItem(
+            data = item.row,
+            listPosition = listPosition,
+            isSelected = item.isSelected,
+            onClick = { onSelect(item) },
+        )
     }
 }
 
 private fun GemListItem.identity(): String? = when (this) {
     is GemListItem.Currency -> row.currency.name
+    is GemListItem.Validator -> row.validator.id
 }

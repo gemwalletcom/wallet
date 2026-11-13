@@ -93,6 +93,13 @@ struct GemListItemView: View {
                 onSelect(item)
             }
             .accessibilityIdentifier(row.currency.toPrimitives().rawValue)
+        case let .validator(row, isSelected):
+            ValidatorSelectionView(row: row, isSelected: isSelected) {
+                onSelect(item)
+            }
+            .ifLet(row.explorerContext) { view, explorerContext in
+                view.explorerContext(explorerContext)
+            }
         }
     }
 }
@@ -101,6 +108,7 @@ extension GemListItem {
     var identity: String? {
         switch self {
         case let .currency(row): row.currency.toPrimitives().rawValue
+        case let .validator(row, _): row.validator.id
         }
     }
 }

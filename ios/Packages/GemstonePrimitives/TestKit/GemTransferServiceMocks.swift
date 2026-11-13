@@ -34,7 +34,7 @@ public final class GemAmountServiceMock: GemAmountServiceProtocol, @unchecked Se
         builder.extras(request: request, asset: asset)
     }
 
-    public func stakeValidatorOptions(chain: Gemstone.Chain, input: GemStakeAmountInput, validators: [Gemstone.DelegationValidator]) -> GemStakeValidatorOptions {
+    public func stakeValidatorOptions(chain: Gemstone.Chain, input: GemStakeAmountInput, validators: [Gemstone.DelegationValidator]) -> GemGroupList {
         builder.stakeValidatorOptions(chain: chain, input: input, validators: validators)
     }
 }
@@ -169,14 +169,20 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         self.refreshState = refreshState
     }
 
-    public func stakeValidatorOptions(chain _: Gemstone.Chain, input _: GemStakeAmountInput, validators: [Gemstone.DelegationValidator]) -> GemStakeValidatorOptions {
-        GemStakeValidatorOptions(
-            sections: [
-                GemValidatorSection(
-                    kind: .active,
-                    rows: validators.map { Gemstone.GemValidatorRow.mock(validator: $0, name: $0.name, imageUrl: "https://assets.gemwallet.com/validator.png", placeholder: String($0.name.prefix(1)), apr: .apr(value: nil)) },
+    public func stakeValidatorOptions(chain _: Gemstone.Chain, input: GemStakeAmountInput, validators: [Gemstone.DelegationValidator]) -> GemGroupList {
+        GemGroupList(
+            groups: [
+                GemGroup(
+                    title: .active,
+                    footer: .none,
+                    items: validators.map {
+                        .validator(
+                            row: Gemstone.GemValidatorRow.mock(validator: $0, name: $0.name, imageUrl: "https://assets.gemwallet.com/validator.png", placeholder: String($0.name.prefix(1)), apr: .apr(value: nil)),
+                            isSelected: $0.id == input.selectedValidatorId,
+                        )
+                    },
                 ),
-            ].filter(\.rows.isNotEmpty),
+            ].filter(\.items.isNotEmpty),
             phase: validators.isEmpty ? .empty(state: emptyState(kind: .validators)) : .rows,
         )
     }
@@ -365,5 +371,15 @@ public final class GemTransactionsServiceMock: GemTransactionsServiceProtocol, @
     public func loadTransaction(walletId _: Gemstone.WalletId, transactionId: Gemstone.TransactionId) async -> GemLoadState {
         loadedTransactionIds.append(transactionId)
         return loadState
+    }
+}
+
+private extension GemStakeAmountInput {
+    var selectedValidatorId: String? {
+        switch self {
+        case let .stake(validator), let .redelegate(_, validator), let .rewards(_, validator): validator.id
+        case let .unstake(delegation), let .withdraw(delegation): delegation.validator.id
+        case .freeze, .unfreeze: nil
+        }
     }
 }

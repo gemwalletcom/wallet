@@ -2,14 +2,13 @@
 
 import Components
 import struct Gemstone.GemValidatorRow
-import PrimitivesComponents
 import Style
 import SwiftUI
 
 public struct ValidatorImageView: View {
     private let row: GemValidatorRow
 
-    init(row: GemValidatorRow) {
+    public init(row: GemValidatorRow) {
         self.row = row
     }
 

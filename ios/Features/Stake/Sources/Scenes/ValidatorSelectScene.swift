@@ -17,30 +17,10 @@ public struct ValidatorSelectScene: View {
     }
 
     public var body: some View {
-        let options = model.options
-        return List {
-            ForEach(model.list(options)) { section in
-                Section {
-                    ForEach(section.values) { row in
-                        ValidatorSelectionView(row: row, isSelected: model.isSelected(row)) {
-                            model.onSelect(row)
-                            dismiss()
-                        }
-                        .ifLet(model.explorerContext(for: row)) { view, explorerContext in
-                            view.explorerContext(explorerContext)
-                        }
-                    }
-                } header: {
-                    if let title = section.title {
-                        Text(title)
-                    }
-                }
-            }
-        }
-        .overlay {
-            if case let .empty(state) = options.phase {
-                EmptyContentView(model: EmptyStateViewModel(state: state))
-            }
+        GemGroupListView(list: model.options) { item in
+            guard case let .validator(row, _) = item else { return }
+            model.onSelect(row)
+            dismiss()
         }
         .bindQuery(model.validatorsQuery)
         .navigationTitle(model.title)

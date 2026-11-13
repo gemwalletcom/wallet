@@ -31,14 +31,12 @@ public extension ViewModelFactory {
     func validatorSelectScene(
         chain: Chain,
         input: GemStakeAmountInput,
-        currentValidatorId: String,
         selectValidator: @escaping (GemValidatorRow) -> Void,
     ) -> ValidatorSelectSceneViewModel {
         ValidatorSelectSceneViewModel(
             service: stakeService,
             chain: chain,
             input: input,
-            currentValidatorId: currentValidatorId,
             selectValidator: selectValidator,
         )
     }

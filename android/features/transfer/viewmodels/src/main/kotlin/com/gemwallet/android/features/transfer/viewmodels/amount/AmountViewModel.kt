@@ -18,7 +18,6 @@ import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.transfer.viewmodels.amount.models.AmountUIState
-import com.gemwallet.android.features.transfer.viewmodels.amount.models.ValidatorSelectUIModel
 import com.gemwallet.android.features.transfer.viewmodels.amount.providers.AmountPerpetualProvider
 import com.gemwallet.android.features.transfer.viewmodels.amount.providers.AmountStakeProvider
 import com.gemwallet.android.math.numberFormat
@@ -69,6 +68,7 @@ import uniffi.gemstone.GemAmountSession
 import uniffi.gemstone.GemAmountTitle
 import uniffi.gemstone.GemAmountTransfer
 import uniffi.gemstone.GemAmountType
+import uniffi.gemstone.GemGroupList
 import uniffi.gemstone.newAmountSession
 import javax.inject.Inject
 
@@ -206,11 +206,7 @@ class AmountViewModel @Inject constructor(
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, AmountUIState())
 
-    val validatorPicker: StateFlow<ValidatorSelectUIModel?> = stakeProvider?.let { stake ->
-        combine(stake.validatorOptions, extras) { options, extras ->
-            options?.let { ValidatorSelectUIModel(selection = it, selectedId = (extras as? GemAmountExtras.Validator)?.row?.validator?.id.orEmpty()) }
-        }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
-    } ?: MutableStateFlow(null)
+    val validatorPicker: StateFlow<GemGroupList?> = stakeProvider?.validatorOptions ?: MutableStateFlow(null)
 
     fun selectValidator(id: String?) {
         stakeProvider?.selectValidator(id)

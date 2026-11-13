@@ -13,6 +13,7 @@ use crate::services::assets::icon::GemAssetIcon;
 use crate::models::state::GemListPhase;
 use crate::services::contact::model::GemAvatar;
 use crate::services::currency::GemCurrencyRow;
+use crate::services::stake::GemValidatorRow;
 use crate::services::error::GemServiceError;
 use crate::services::localization::GemLocalizedText;
 use crate::services::service_status::GemLatencyStatus;
@@ -33,6 +34,7 @@ pub enum GemListSectionTitle {
     Properties,
     Recommended,
     All,
+    Active,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -644,9 +646,11 @@ impl GemListRow {
     }
 }
 
+#[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemListItem {
     Currency { row: GemCurrencyRow },
+    Validator { row: GemValidatorRow, is_selected: bool },
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

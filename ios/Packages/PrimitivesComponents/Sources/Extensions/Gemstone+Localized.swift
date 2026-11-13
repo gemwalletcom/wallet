@@ -88,7 +88,6 @@ import enum Gemstone.GemTransactionsFilterSummary
 import enum Gemstone.GemTransactionStateTone
 import enum Gemstone.GemTransactionTitle
 import enum Gemstone.GemTriggerOrder
-import enum Gemstone.GemValidatorSectionKind
 import enum Gemstone.GemWalletConnectFailure
 import enum Gemstone.GemWalletImportKind
 import enum Gemstone.GemWalletSecret
@@ -803,15 +802,6 @@ extension GemRecipientErrorDisplay: @retroactive LocalizedError {
     }
 }
 
-public extension GemValidatorSectionKind {
-    var title: String {
-        switch self {
-        case .recommended: Localized.Common.recommended
-        case .active: Localized.Stake.active
-        }
-    }
-}
-
 public extension GemListSectionTitle {
     var text: String? {
         switch self {
@@ -825,6 +815,7 @@ public extension GemListSectionTitle {
         case .properties: Localized.Nft.properties
         case .recommended: Localized.Common.recommended
         case .all: Localized.Common.all
+        case .active: Localized.Stake.active
         }
     }
 }

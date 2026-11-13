@@ -4,7 +4,7 @@ import Components
 import Foundation
 import enum Gemstone.GemStakeAmountInput
 import protocol Gemstone.GemStakeServiceProtocol
-import struct Gemstone.GemStakeValidatorOptions
+import struct Gemstone.GemGroupList
 import struct Gemstone.GemValidatorRow
 import GemstonePrimitives
 import Localization
@@ -20,20 +20,17 @@ public final class ValidatorSelectSceneViewModel {
     private let service: any GemStakeServiceProtocol
     private let chain: Chain
     private let input: GemStakeAmountInput
-    private let currentValidatorId: String
     private let selectValidator: (GemValidatorRow) -> Void
 
     public init(
         service: any GemStakeServiceProtocol,
         chain: Chain,
         input: GemStakeAmountInput,
-        currentValidatorId: String,
         selectValidator: @escaping (GemValidatorRow) -> Void,
     ) {
         self.service = service
         self.chain = chain
         self.input = input
-        self.currentValidatorId = currentValidatorId
         self.selectValidator = selectValidator
         validatorsQuery = ObservableQuery(ValidatorsQuery(chain: chain, providerType: .stake), initialValue: [])
     }
@@ -42,29 +39,16 @@ public final class ValidatorSelectSceneViewModel {
         Localized.Stake.validators
     }
 
-    var options: GemStakeValidatorOptions {
-        service.stakeValidatorOptions(chain: chain.rawValue, input: input, validators: validatorsQuery.value.map { $0.toGem() })
-    }
-
-    func list(_ options: GemStakeValidatorOptions) -> [ListSection<GemValidatorRow>] {
-        options.sections.map {
-            ListSection(id: String(describing: $0.kind), title: $0.kind.title, image: nil, values: $0.rows)
-        }
-    }
-
-    func isSelected(_ row: GemValidatorRow) -> Bool {
-        row.validator.id == currentValidatorId
+    var options: GemGroupList {
+        service.stakeValidatorOptions(
+            chain: chain.rawValue,
+            input: input,
+            validators: validatorsQuery.value.map { $0.toGem() },
+        )
     }
 
     func onSelect(_ row: GemValidatorRow) {
         selectValidator(row)
-    }
-
-    func explorerContext(for row: GemValidatorRow) -> ExplorerContextData? {
-        let validator = row.validator.toPrimitives()
-        return row.explorer.map {
-            ExplorerContextData(copyValue: .address(value: validator.id, chain: validator.chain), explorerLink: $0.toPrimitives())
-        }
     }
 }
 

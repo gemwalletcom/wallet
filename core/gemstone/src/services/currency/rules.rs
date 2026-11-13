@@ -57,8 +57,9 @@ pub(crate) mod tests {
     pub(crate) fn currency_rows(items: &[GemListItem]) -> Vec<GemCurrencyRow> {
         items
             .iter()
-            .map(|item| match item {
-                GemListItem::Currency { row } => row.clone(),
+            .filter_map(|item| match item {
+                GemListItem::Currency { row } => Some(row.clone()),
+                _ => None,
             })
             .collect()
     }

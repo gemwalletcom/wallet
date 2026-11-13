@@ -121,7 +121,6 @@ import uniffi.gemstone.GemTransactionStateTone
 import uniffi.gemstone.GemTransactionTitle
 import uniffi.gemstone.GemTransactionsFilterSummary
 import uniffi.gemstone.GemTriggerOrder
-import uniffi.gemstone.GemValidatorSectionKind
 import uniffi.gemstone.GemWalletConnectFailure
 import uniffi.gemstone.GemWalletImportKind
 import uniffi.gemstone.GemWalletSecretKind
@@ -1260,12 +1259,7 @@ fun GemListSectionTitle.titleRes(): Int? = when (this) {
     GemListSectionTitle.PROPERTIES -> R.string.nft_properties
     GemListSectionTitle.RECOMMENDED -> R.string.common_recommended
     GemListSectionTitle.ALL -> R.string.common_all
-}
-
-@StringRes
-fun GemValidatorSectionKind.titleRes(): Int = when (this) {
-    GemValidatorSectionKind.RECOMMENDED -> R.string.common_recommended
-    GemValidatorSectionKind.ACTIVE -> R.string.stake_active
+    GemListSectionTitle.ACTIVE -> R.string.stake_active
 }
 
 @StringRes

@@ -32,9 +32,7 @@ fun CurrencyScene(list: GemGroupList?, query: TextFieldState, snackbar: Snackbar
         LazyColumn(state = listState) {
             list?.let {
                 gemGroupList(it) { item ->
-                    when (item) {
-                        is GemListItem.Currency -> onSelect(item.row)
-                    }
+                    if (item is GemListItem.Currency) onSelect(item.row)
                 }
             }
         }

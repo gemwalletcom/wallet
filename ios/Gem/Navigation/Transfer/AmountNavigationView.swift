@@ -56,7 +56,6 @@ struct AmountNavigationView: View {
                         model: viewModelFactory.validatorSelectScene(
                             chain: validator.chain,
                             input: stake.stakeInput,
-                            currentValidatorId: validator.id,
                             selectValidator: model.onValidatorSelected,
                         ),
                     )

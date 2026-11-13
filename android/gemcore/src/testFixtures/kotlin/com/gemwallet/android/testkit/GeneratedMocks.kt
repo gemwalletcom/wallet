@@ -1795,14 +1795,6 @@ fun mockGemSocialLink(
     host = host,
 )
 
-fun mockGemStakeValidatorOptions(
-    sections: List<uniffi.gemstone.GemValidatorSection> = emptyList(),
-    phase: uniffi.gemstone.GemListPhase = uniffi.gemstone.GemListPhase.Rows,
-) = uniffi.gemstone.GemStakeValidatorOptions(
-    sections = sections,
-    phase = phase,
-)
-
 fun mockGemSwapPairSuggestion(
     payAssetId: String = mockAssetId().toIdentifier(),
     receiveAssetId: String? = null,
@@ -1981,14 +1973,6 @@ fun mockGemValidatorRow(
     provider = provider,
     apr = apr,
     explorer = explorer,
-)
-
-fun mockGemValidatorSection(
-    kind: uniffi.gemstone.GemValidatorSectionKind = uniffi.gemstone.GemValidatorSectionKind.RECOMMENDED,
-    rows: List<uniffi.gemstone.GemValidatorRow> = emptyList(),
-) = uniffi.gemstone.GemValidatorSection(
-    kind = kind,
-    rows = rows,
 )
 
 fun mockGemValueHeader(
