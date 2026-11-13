@@ -91,25 +91,11 @@ pub struct GemRecipientSession {
     pub payment: Option<GemPaymentRecipient>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
-pub enum GemRecipientSectionKind {
-    Pinned,
-    Contacts,
-    Wallets,
-    ViewWallets,
-}
-
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemRecipientRow {
     pub title: String,
     pub subtitle: String,
     pub recipient: GemRecipient,
-}
-
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemRecipientSection {
-    pub kind: GemRecipientSectionKind,
-    pub rows: Vec<GemRecipientRow>,
 }
 
 #[uniffi::export]

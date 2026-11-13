@@ -68,7 +68,6 @@ import enum Gemstone.GemPrivateKeyScope
 import enum Gemstone.GemReceiveWarning
 import enum Gemstone.GemRecipientError
 import enum Gemstone.GemRecipientErrorDisplay
-import enum Gemstone.GemRecipientSectionKind
 import enum Gemstone.GemRewardsIntroItem
 import enum Gemstone.GemSecretWarning
 import enum Gemstone.GemSecurityReminderItem
@@ -819,6 +818,10 @@ public extension GemListSectionTitle {
         case .recommended: Localized.Common.recommended
         case .all: Localized.Common.all
         case .active: Localized.Stake.active
+        case .pinned: Localized.Common.pinned
+        case .contacts: Localized.Contacts.title
+        case .myWallets: Localized.Transfer.Recipient.myWallets
+        case .viewWallets: Localized.Transfer.Recipient.viewWallets
         }
     }
 }
@@ -1716,17 +1719,6 @@ public extension GemConfirmDestination {
         case .validator: Localized.Stake.validator
         case .resource: Localized.Stake.resource
         case .provider: Localized.Common.provider
-        }
-    }
-}
-
-public extension GemRecipientSectionKind {
-    var title: String {
-        switch self {
-        case .pinned: Localized.Common.pinned
-        case .contacts: Localized.Contacts.title
-        case .wallets: Localized.Transfer.Recipient.myWallets
-        case .viewWallets: Localized.Transfer.Recipient.viewWallets
         }
     }
 }

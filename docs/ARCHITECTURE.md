@@ -473,6 +473,7 @@ pub enum GemListItem {
     Validator { row: GemValidatorRow, is_selected: bool },
     Connection { connection: GemConnection },
     PriceAlert { item: GemPriceAlertItem },
+    Recipient { row: GemRecipientRow },
 }
 
 pub struct GemGroup {
@@ -488,7 +489,7 @@ pub struct GemGroupList {
 }
 ```
 
-Core decides which groups exist, their order and titles, what each item holds, which one is selected, and the phase. A group that comes and goes carries a stable `id` (the asset id, the wallet id, or the fixed title) because two groups can share a display name — two tokens called USDC on different networks — and both apps key their sections by it. A fixed screen's untitled groups have no id and are keyed by position, so the bindings never make `GemGroup` `Identifiable`. A title is `GemLocalizedText`: `SectionTitle { title }` for the fixed vocabulary in `GemListSectionTitle`, `Text { text }` for a name such as a wallet's. The currency picker is the reference: `GemCurrencyService::list` returns the Recommended and All groups, each dropped when the search leaves it empty, and an empty search-results phase when nothing matches:
+Core decides which groups exist, their order and titles, what each item holds, which one is selected, and the phase. A group that comes and goes carries a stable `id` (the asset id, the wallet id, or the fixed title) because two groups can share a display name — two tokens called USDC on different networks — and both apps key their sections by it. A fixed screen's untitled groups have no id and are keyed by position, so the bindings never make `GemGroup` `Identifiable`. A title is `GemLocalizedText`: `SectionTitle { title }` for the fixed vocabulary in `GemListSectionTitle`, `Text { text }` for a name such as a wallet's. A fixed title that has an icon (Pinned, Contacts, My Wallets, View Wallets on the recipient screen) maps it once in `Gemstone+Style.swift`, and `GemGroupSections` draws it beside the header; Android headers are text only. The currency picker is the reference: `GemCurrencyService::list` returns the Recommended and All groups, each dropped when the search leaves it empty, and an empty search-results phase when nothing matches:
 
 ```rust
 let groups = rules::groups(currency, locale, &query, &localized_names, &rated);

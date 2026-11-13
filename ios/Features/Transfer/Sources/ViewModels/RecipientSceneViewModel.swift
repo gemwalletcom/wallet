@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemGroup
 import enum Gemstone.GemImage
 import protocol Gemstone.GemNameServiceProtocol
 import struct Gemstone.GemPaymentRecipient
@@ -44,7 +45,7 @@ public final class RecipientSceneViewModel {
     }
 
     public let walletsQuery: ObservableQuery<WalletAddressItemsQuery>
-    private(set) var recipientSections: [ListSection<GemRecipientRow>] = []
+    private(set) var recipientSections: [GemGroup] = []
 
     public init(
         asset: Asset,
@@ -109,7 +110,6 @@ public final class RecipientSceneViewModel {
 
     func updateRecipientSections() {
         recipientSections = service.recipientSections(wallets: walletsQuery.value.map { $0.toGem() }, chain: asset.chain.rawValue, contacts: contacts.map { $0.toGem() })
-            .map { ListSection(id: String(describing: $0.kind), title: $0.kind.title, image: $0.kind.image, values: $0.rows) }
     }
 
     public func scanType(for field: RecipientScene.Field) -> QRScanType {

@@ -1,10 +1,11 @@
 use primitives::name::{NameRecord, is_name};
 use primitives::{AddressFormatStyle, Asset, Chain, ChainAsset, ContactData, WalletAddressItem, WalletType};
 
-use super::model::{GemRecipientError, GemRecipientErrorDisplay, GemRecipientNext, GemRecipientRow, GemRecipientScan, GemRecipientSection, GemRecipientSectionKind, GemRecipientType, GemRecipientValidation};
+use super::model::{GemRecipientError, GemRecipientErrorDisplay, GemRecipientNext, GemRecipientRow, GemRecipientScan, GemRecipientType, GemRecipientValidation};
 use crate::address::parse_address;
 use crate::address_formatter::format_address;
 use crate::models::custom_types::GemBigInt;
+use crate::models::list::{GemGroup, GemListItem, GemListSectionTitle};
 use crate::payment::{GemPaymentRecipient, GemPaymentStep};
 use crate::services::name::GemNameRecordState;
 use crate::services::transfer::{GemRecipient, GemTransferData};
@@ -113,7 +114,7 @@ pub fn contact_recipients(contacts: Vec<ContactData>, chain: Chain) -> Vec<GemRe
         .collect()
 }
 
-pub fn recipient_sections(wallets: Vec<WalletAddressItem>, chain: Chain, contacts: Vec<GemRecipient>) -> Vec<GemRecipientSection> {
+pub fn recipient_sections(wallets: Vec<WalletAddressItem>, chain: Chain, contacts: Vec<GemRecipient>) -> Vec<GemGroup> {
     let sorted = sorted_by_wallet_order(wallets, |item| &item.wallet);
     let rows = |include: &dyn Fn(&WalletAddressItem) -> bool| -> Vec<GemRecipientRow> {
         sorted
@@ -133,13 +134,13 @@ pub fn recipient_sections(wallets: Vec<WalletAddressItem>, chain: Chain, contact
             .collect()
     };
     let is_view = |item: &WalletAddressItem| item.wallet.id.wallet_type() == WalletType::View;
-    let section = |kind: GemRecipientSectionKind, rows: Vec<GemRecipientRow>| (!rows.is_empty()).then_some(GemRecipientSection { kind, rows });
+    let section = |title: GemListSectionTitle, rows: Vec<GemRecipientRow>| (!rows.is_empty()).then(|| GemGroup::new(title, rows.into_iter().map(|row| GemListItem::Recipient { row }).collect()));
 
     [
-        section(GemRecipientSectionKind::Pinned, rows(&|item| item.wallet.is_pinned)),
-        section(GemRecipientSectionKind::Contacts, contacts.into_iter().map(|contact| recipient_row(chain, contact)).collect()),
-        section(GemRecipientSectionKind::Wallets, rows(&|item| !item.wallet.is_pinned && !is_view(item))),
-        section(GemRecipientSectionKind::ViewWallets, rows(&|item| !item.wallet.is_pinned && is_view(item))),
+        section(GemListSectionTitle::Pinned, rows(&|item| item.wallet.is_pinned)),
+        section(GemListSectionTitle::Contacts, contacts.into_iter().map(|contact| recipient_row(chain, contact)).collect()),
+        section(GemListSectionTitle::MyWallets, rows(&|item| !item.wallet.is_pinned && !is_view(item))),
+        section(GemListSectionTitle::ViewWallets, rows(&|item| !item.wallet.is_pinned && is_view(item))),
     ]
     .into_iter()
     .flatten()
@@ -386,8 +387,23 @@ mod tests {
         }
     }
 
-    fn names(section: &GemRecipientSection) -> Vec<String> {
-        section.rows.iter().map(|row| row.title.clone()).collect()
+    fn recipient_rows(section: &GemGroup) -> Vec<GemRecipientRow> {
+        section
+            .items
+            .iter()
+            .filter_map(|item| match item {
+                GemListItem::Recipient { row } => Some(row.clone()),
+                _ => None,
+            })
+            .collect()
+    }
+
+    fn names(section: &GemGroup) -> Vec<String> {
+        recipient_rows(section).into_iter().map(|row| row.title).collect()
+    }
+
+    fn title(title: GemListSectionTitle) -> Option<crate::services::localization::GemLocalizedText> {
+        Some(crate::services::localization::GemLocalizedText::SectionTitle { title })
     }
 
     #[test]
@@ -469,9 +485,9 @@ mod tests {
         let sections = recipient_sections(wallets, Chain::Ethereum, vec![alice.clone()]);
 
         assert_eq!(names(&sections[0]), vec!["pinned"]);
-        assert_eq!(sections[1].kind, GemRecipientSectionKind::Contacts);
+        assert_eq!(sections[1].title, title(GemListSectionTitle::Contacts));
         assert_eq!(
-            sections[1].rows,
+            recipient_rows(&sections[1]),
             vec![GemRecipientRow {
                 title: "Alice".to_string(),
                 subtitle: format_address("0x71C7656EC7ab88b098defB751B7401B5f6d8976F", Some(Chain::Ethereum), AddressFormatStyle::Short),
@@ -521,7 +537,7 @@ mod tests {
         let sections = recipient_sections(vec![WalletAddressItem::mock("watching", WalletId::View(Chain::Ethereum, "0x5".to_string()), false)], Chain::Ethereum, vec![]);
 
         assert_eq!(sections.len(), 1);
-        assert_eq!(sections[0].kind, GemRecipientSectionKind::ViewWallets);
+        assert_eq!(sections[0].title, title(GemListSectionTitle::ViewWallets));
     }
 
     #[test]

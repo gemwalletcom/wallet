@@ -13,15 +13,16 @@ import com.gemwallet.android.features.transfer.presents.recipient.components.Rec
 import com.gemwallet.android.features.transfer.presents.recipient.components.destinationView
 import com.gemwallet.android.features.transfer.viewmodels.recipient.models.QrScanField
 import com.gemwallet.android.features.transfer.viewmodels.recipient.models.RecipientHeadUIModel
-import com.gemwallet.android.features.transfer.viewmodels.recipient.models.RecipientRowUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItem
-import com.gemwallet.android.ui.components.list_item.listSections
+import com.gemwallet.android.ui.components.list_item.ListItemModel
+import com.gemwallet.android.ui.components.list_item.gemGroups
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.models.ButtonState
-import com.gemwallet.android.ui.models.ListSection
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.wallet.core.primitives.Asset
+import uniffi.gemstone.GemGroup
+import uniffi.gemstone.GemListItem
 import uniffi.gemstone.GemNameIndicator
 
 @Composable
@@ -33,7 +34,7 @@ internal fun RecipientScene(
     memo: String,
     addressError: String,
     nameResolveIndicator: GemNameIndicator?,
-    sections: List<ListSection<RecipientRowUIModel>>,
+    sections: List<GemGroup>,
     buttonState: ButtonState,
     onAction: (RecipientAction) -> Unit,
 ) {
@@ -63,16 +64,18 @@ internal fun RecipientScene(
                 onQrScan = onQrScan,
                 onSubmitAddress = onSubmitAddress,
             )
-            listSections(sections) { position, item ->
-                ListItem(
-                    model = item.model,
-                    listPosition = position,
-                    modifier = Modifier.clickable {
-                        item.recipient.memo?.let { onAction(RecipientAction.SetMemo(it)) }
-                        onAction(RecipientAction.Select(item.recipient))
-                    }.testTag("recipient_row"),
-                    accessory = { DataBadgeChevron() },
-                )
+            gemGroups(sections) { item, position ->
+                if (item is GemListItem.Recipient) {
+                    ListItem(
+                        model = ListItemModel(title = item.row.title, subtitle = item.row.subtitle),
+                        listPosition = position,
+                        modifier = Modifier.clickable {
+                            item.row.recipient.memo?.let { onAction(RecipientAction.SetMemo(it)) }
+                            onAction(RecipientAction.Select(item.row.recipient))
+                        }.testTag("recipient_row"),
+                        accessory = { DataBadgeChevron() },
+                    )
+                }
             }
         }
     }

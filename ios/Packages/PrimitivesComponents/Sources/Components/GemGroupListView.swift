@@ -5,6 +5,7 @@ import struct Gemstone.GemGroup
 import struct Gemstone.GemGroupList
 import enum Gemstone.GemListItem
 import enum Gemstone.GemListRow
+import Style
 import SwiftUI
 
 public struct GemGroupListView: View {
@@ -78,7 +79,15 @@ public struct GemGroupSections<Item: View>: View {
     @ViewBuilder
     private func header(_ group: GemGroup) -> some View {
         if let title = group.title?.text {
-            Text(title)
+            if case let .sectionTitle(sectionTitle) = group.title, let image = sectionTitle.image {
+                HStack {
+                    image
+                        .frame(size: .image.small)
+                    Text(title)
+                }
+            } else {
+                Text(title)
+            }
         }
     }
 
@@ -138,6 +147,8 @@ struct GemListItemView: View {
             ConnectionView(connection: connection)
         case let .priceAlert(alert):
             ListAssetItemView(row: alert.row.row)
+        case let .recipient(row):
+            ListItemView(model: ListItemModel(title: row.title, subtitle: row.subtitle))
         }
     }
 }
@@ -150,6 +161,7 @@ extension GemListItem {
         case let .validator(row, _): row.validator.id
         case let .connection(connection): connection.connection.session.id
         case let .priceAlert(alert): alert.id
+        case let .recipient(row): row.recipient.id
         }
     }
 }

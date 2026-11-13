@@ -91,6 +91,12 @@ private fun GemListItemView(item: GemListItem, listPosition: ListPosition, onSel
             listPosition = listPosition,
             modifier = Modifier.clickable { onSelect(item) },
         )
+
+        is GemListItem.Recipient -> ListItem(
+            model = ListItemModel(title = item.row.title, subtitle = item.row.subtitle),
+            listPosition = listPosition,
+            modifier = Modifier.clickable { onSelect(item) },
+        )
     }
 }
 
@@ -100,4 +106,5 @@ private fun GemListItem.identity(): String? = when (this) {
     is GemListItem.Validator -> row.validator.id
     is GemListItem.Connection -> connection.connection.session.id
     is GemListItem.PriceAlert -> item.id
+    is GemListItem.Recipient -> row.recipient.identifier()
 }

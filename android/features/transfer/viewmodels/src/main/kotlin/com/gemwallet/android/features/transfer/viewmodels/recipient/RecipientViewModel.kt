@@ -15,13 +15,10 @@ import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.isMemoSupport
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.transfer.viewmodels.recipient.models.QrScanField
-import com.gemwallet.android.features.transfer.viewmodels.recipient.models.RecipientRowUIModel
 import com.gemwallet.android.features.transfer.viewmodels.recipient.models.RecipientUIState
-import com.gemwallet.android.features.transfer.viewmodels.recipient.models.uiSection
 import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.models.ButtonState
-import com.gemwallet.android.ui.models.ListSection
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.buttonState
@@ -50,6 +47,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemGroup
 import uniffi.gemstone.GemNameIndicator
 import uniffi.gemstone.GemNameServiceInterface
 import uniffi.gemstone.GemPaymentRecipient
@@ -102,10 +100,9 @@ class RecipientViewModel @Inject constructor(
 
     private val chain = state.mapNotNull { (it as? RecipientUIState.Ready)?.asset?.chain }.distinctUntilChanged()
 
-    val sections: StateFlow<List<ListSection<RecipientRowUIModel>>> = chain.flatMapLatest { chain ->
+    val sections: StateFlow<List<GemGroup>> = chain.flatMapLatest { chain ->
         combine(walletAddressItemsQuery(chain), contactsQuery(), getCurrentWalletId()) { wallets, contacts, _ ->
             service.recipientSections(wallets.map { it.toGem() }, chain.string, contacts.map { it.toGem() })
-                .mapIndexed { index, section -> section.uiSection(index.toString(), context) }
         }
     }
         .flowOn(ioDispatcher)

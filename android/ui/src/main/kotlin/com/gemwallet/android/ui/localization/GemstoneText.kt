@@ -96,7 +96,6 @@ import uniffi.gemstone.GemPriceAlertPrompt
 import uniffi.gemstone.GemPrivateKeyScope
 import uniffi.gemstone.GemReceiveWarning
 import uniffi.gemstone.GemRecipientErrorDisplay
-import uniffi.gemstone.GemRecipientSectionKind
 import uniffi.gemstone.GemRewardsIntroItem
 import uniffi.gemstone.GemRowText
 import uniffi.gemstone.GemSecurityReminderItem
@@ -596,14 +595,6 @@ fun GemCandleTooltipRow.stringRes(): Int = when (this) {
     GemCandleTooltipRow.CLOSE -> R.string.charts_price_close
     GemCandleTooltipRow.CHANGE -> R.string.charts_price_change
     GemCandleTooltipRow.VOLUME -> R.string.perpetual_volume
-}
-
-@StringRes
-fun GemRecipientSectionKind.stringRes(): Int = when (this) {
-    GemRecipientSectionKind.PINNED -> R.string.common_pinned
-    GemRecipientSectionKind.CONTACTS -> R.string.contacts_title
-    GemRecipientSectionKind.WALLETS -> R.string.transfer_recipient_my_wallets
-    GemRecipientSectionKind.VIEW_WALLETS -> R.string.transfer_recipient_view_wallets
 }
 
 @StringRes
@@ -1264,6 +1255,10 @@ fun GemListSectionTitle.titleRes(): Int? = when (this) {
     GemListSectionTitle.RECOMMENDED -> R.string.common_recommended
     GemListSectionTitle.ALL -> R.string.common_all
     GemListSectionTitle.ACTIVE -> R.string.stake_active
+    GemListSectionTitle.PINNED -> R.string.common_pinned
+    GemListSectionTitle.CONTACTS -> R.string.contacts_title
+    GemListSectionTitle.MY_WALLETS -> R.string.transfer_recipient_my_wallets
+    GemListSectionTitle.VIEW_WALLETS -> R.string.transfer_recipient_view_wallets
 }
 
 @StringRes

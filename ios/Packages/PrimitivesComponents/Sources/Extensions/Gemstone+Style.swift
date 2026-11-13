@@ -27,6 +27,7 @@ import enum Gemstone.GemInfoImage
 import enum Gemstone.GemKeystoreAuthentication
 import enum Gemstone.GemLatencyStatus
 import enum Gemstone.GemListRowIcon
+import enum Gemstone.GemListSectionTitle
 import enum Gemstone.GemLoadState
 import enum Gemstone.GemNameIndicator
 import enum Gemstone.GemNodeSyncState
@@ -34,7 +35,6 @@ import enum Gemstone.GemNoticeKind
 import enum Gemstone.GemNotificationIcon
 import enum Gemstone.GemPerpetualChartLineKind
 import enum Gemstone.GemPriceAlertToggle
-import enum Gemstone.GemRecipientSectionKind
 import enum Gemstone.GemRewardsIntroItem
 import enum Gemstone.GemSecretWarning
 import struct Gemstone.GemSocialLink
@@ -382,13 +382,14 @@ public extension GemSwapProgressMarker {
     }
 }
 
-public extension GemRecipientSectionKind {
-    var image: Image {
+public extension GemListSectionTitle {
+    var image: Image? {
         switch self {
         case .pinned: Images.System.pin
         case .contacts: Images.System.person
-        case .wallets: Images.System.wallet
+        case .myWallets: Images.System.wallet
         case .viewWallets: Images.System.eye
+        case .none, .balances, .info, .community, .manage, .resources, .socialLinks, .properties, .recommended, .all, .active: nil
         }
     }
 }
