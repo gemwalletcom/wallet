@@ -48,7 +48,6 @@ import com.gemwallet.android.ui.theme.paddingLarge
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.smallIconSize
 import uniffi.gemstone.GemListRow
-import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemListSection
 import uniffi.gemstone.GemListSectionFooter
 import uniffi.gemstone.GemRowAction

@@ -3,7 +3,6 @@
 import Foundation
 import enum Gemstone.GemListRow
 import enum Gemstone.GemListRowTitle
-import struct Gemstone.GemSimulationValue
 import struct Gemstone.GemWalletConnectMessageRequest
 import struct Gemstone.SimulationHeader
 import GemstonePrimitives

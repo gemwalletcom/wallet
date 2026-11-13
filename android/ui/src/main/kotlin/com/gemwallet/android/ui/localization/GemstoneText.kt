@@ -16,10 +16,8 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.perpetual.title
 import com.gemwallet.android.ui.models.name.AddressInputError
 import com.wallet.core.primitives.Appearance
-import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.ConnectionStatus
-import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FeeUnitType
 import com.wallet.core.primitives.FiatQuoteType
 import com.wallet.core.primitives.PerpetualDirection
@@ -56,7 +54,6 @@ import uniffi.gemstone.GemConfirmButtonKind
 import uniffi.gemstone.GemConfirmDestination
 import uniffi.gemstone.GemConfirmErrorDisplay
 import uniffi.gemstone.GemConfirmException
-import uniffi.gemstone.GemConfirmScreen
 import uniffi.gemstone.GemConfirmTitle
 import uniffi.gemstone.GemConnectionPermission
 import uniffi.gemstone.GemCustomFeeCheck
@@ -68,7 +65,6 @@ import uniffi.gemstone.GemEmptyStateText
 import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemFiatAmountError
 import uniffi.gemstone.GemFiatButtonAction
-import uniffi.gemstone.GemFiatQuotePhase
 import uniffi.gemstone.GemFiatQuotesMessage
 import uniffi.gemstone.GemFiatTransactionBadge
 import uniffi.gemstone.GemFiatViewState

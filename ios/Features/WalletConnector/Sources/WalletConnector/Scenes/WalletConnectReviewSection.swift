@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import enum Gemstone.GemListRow
 import struct Gemstone.GemListSection
 import Primitives
 import PrimitivesComponents

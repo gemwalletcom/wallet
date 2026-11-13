@@ -6,7 +6,6 @@ import com.gemwallet.android.domains.duration.formatDuration
 import com.gemwallet.android.domains.duration.formatEstimate
 import com.gemwallet.android.domains.swap.AssetRateFormatter
 import com.gemwallet.android.domains.swap.AssetRatePair
-import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.model.text
@@ -39,7 +38,6 @@ import uniffi.gemstone.GemNoticeKind
 import uniffi.gemstone.GemRowAction
 import uniffi.gemstone.GemRowMenuItem
 import uniffi.gemstone.GemSocialLink
-import uniffi.gemstone.GemValueTone
 import java.time.ZoneId
 import java.util.Locale
 

@@ -2,7 +2,6 @@
 
 import FiatConnect
 import Foundation
-import class Gemstone.GemConfirmTransferService
 import class Gemstone.GemFiatQuoteService
 import struct Gemstone.GemPaymentRecipient
 import class Gemstone.GemReceiveService
