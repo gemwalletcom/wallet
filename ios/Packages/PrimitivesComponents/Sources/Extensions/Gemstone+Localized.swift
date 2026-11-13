@@ -32,7 +32,6 @@ import enum Gemstone.GemConnectionPermission
 import enum Gemstone.GemContactAddressField
 import struct Gemstone.GemCopy
 import enum Gemstone.GemCopyKind
-import enum Gemstone.GemCurrencySectionKind
 import enum Gemstone.GemCustomFeeCheck
 import enum Gemstone.GemDayLabel
 import enum Gemstone.GemDelegationAction
@@ -824,6 +823,8 @@ public extension GemListSectionTitle {
         case .resources: Localized.Asset.resources
         case .socialLinks: Localized.Social.links
         case .properties: Localized.Nft.properties
+        case .recommended: Localized.Common.recommended
+        case .all: Localized.Common.all
         }
     }
 }
@@ -1476,15 +1477,6 @@ public extension GemNodeSubtitle {
     var text: String {
         switch self {
         case let .latestBlock(value): text(latestBlockLabel: title, latestBlockValue: value?.text())
-        }
-    }
-}
-
-public extension GemCurrencySectionKind {
-    var title: String {
-        switch self {
-        case .recommended: Localized.Common.recommended
-        case .all: Localized.Common.all
         }
     }
 }

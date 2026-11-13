@@ -26,9 +26,9 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import uniffi.gemstone.GemCurrencyList
 import uniffi.gemstone.GemCurrencyRow
 import uniffi.gemstone.GemCurrencyServiceInterface
+import uniffi.gemstone.GemGroupList
 import java.util.Locale
 import javax.inject.Inject
 
@@ -51,7 +51,7 @@ class CurrencyViewModel @Inject constructor(
     private val _isSelected = MutableStateFlow(false)
     val isSelected: StateFlow<Boolean> = _isSelected.asStateFlow()
 
-    val list: StateFlow<GemCurrencyList?> = combine(getCurrentCurrency.getCurrency(), snapshotFlow { query.text.toString() }) { currency, query ->
+    val list: StateFlow<GemGroupList?> = combine(getCurrentCurrency.getCurrency(), snapshotFlow { query.text.toString() }) { currency, query ->
         val localizedNames = Currency.entries.associate { it.string to android.icu.util.Currency.getInstance(it.string).displayName }
         runCatchingCancellable { service.list(currency.toGem(), localeCurrency?.toGem(), query, localizedNames) }
             .onFailure { errorState.value = it.errorText().text(context) }

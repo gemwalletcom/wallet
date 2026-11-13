@@ -336,7 +336,7 @@ public final class GemWalletHomeServiceMock: GemWalletHomeServiceProtocol, @unch
 public final class GemCurrencyServiceMock: GemCurrencyServiceProtocol, @unchecked Sendable {
     public private(set) var setCurrencies: [Gemstone.Currency] = []
     public private(set) var queries: [String] = []
-    public var sectionsValue: [GemCurrencySection] = []
+    public var groupsValue: [GemGroup] = []
     private let preferencesService: any GemPreferencesServiceProtocol
     private let error: Error?
 
@@ -356,9 +356,9 @@ public final class GemCurrencyServiceMock: GemCurrencyServiceProtocol, @unchecke
         try preferencesService.setCurrency(currency: currency)
     }
 
-    public func list(currency _: Gemstone.Currency, locale _: Gemstone.Currency?, query: String, localizedNames _: [String: String]) async throws -> GemCurrencyList {
+    public func list(currency _: Gemstone.Currency, locale _: Gemstone.Currency?, query: String, localizedNames _: [String: String]) async throws -> GemGroupList {
         queries.append(query)
-        return GemCurrencyList(sections: sectionsValue, phase: sectionsValue.isEmpty ? .empty(state: emptyState(kind: .searchResults)) : .rows)
+        return GemGroupList(groups: groupsValue, phase: groupsValue.isEmpty ? .empty(state: emptyState(kind: .searchResults)) : .rows)
     }
 }
 

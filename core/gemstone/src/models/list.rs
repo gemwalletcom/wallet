@@ -10,7 +10,9 @@ use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::copy::{GemCopy, GemCopyKind, address_copy};
 use crate::models::custom_types::GemBigInt;
 use crate::services::assets::icon::GemAssetIcon;
+use crate::models::state::GemListPhase;
 use crate::services::contact::model::GemAvatar;
+use crate::services::currency::GemCurrencyRow;
 use crate::services::error::GemServiceError;
 use crate::services::localization::GemLocalizedText;
 use crate::services::service_status::GemLatencyStatus;
@@ -29,6 +31,8 @@ pub enum GemListSectionTitle {
     Resources,
     SocialLinks,
     Properties,
+    Recommended,
+    All,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -638,6 +642,34 @@ impl GemListRow {
             _ => None,
         }
     }
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+pub enum GemListItem {
+    Currency { row: GemCurrencyRow },
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemGroup {
+    pub title: GemListSectionTitle,
+    pub footer: GemListSectionFooter,
+    pub items: Vec<GemListItem>,
+}
+
+impl GemGroup {
+    pub fn new(title: GemListSectionTitle, items: Vec<GemListItem>) -> Self {
+        Self {
+            title,
+            footer: GemListSectionFooter::None,
+            items,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+pub struct GemGroupList {
+    pub groups: Vec<GemGroup>,
+    pub phase: GemListPhase,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

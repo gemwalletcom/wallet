@@ -59,7 +59,6 @@ import uniffi.gemstone.GemConfirmException
 import uniffi.gemstone.GemConfirmScreen
 import uniffi.gemstone.GemConfirmTitle
 import uniffi.gemstone.GemConnectionPermission
-import uniffi.gemstone.GemCurrencySectionKind
 import uniffi.gemstone.GemCustomFeeCheck
 import uniffi.gemstone.GemDelegationAction
 import uniffi.gemstone.GemDelegationStatus
@@ -595,12 +594,6 @@ fun GemCandleTooltipRow.stringRes(): Int = when (this) {
     GemCandleTooltipRow.CLOSE -> R.string.charts_price_close
     GemCandleTooltipRow.CHANGE -> R.string.charts_price_change
     GemCandleTooltipRow.VOLUME -> R.string.perpetual_volume
-}
-
-@StringRes
-fun GemCurrencySectionKind.stringRes(): Int = when (this) {
-    GemCurrencySectionKind.RECOMMENDED -> R.string.common_recommended
-    GemCurrencySectionKind.ALL -> R.string.common_all
 }
 
 @StringRes
@@ -1265,6 +1258,8 @@ fun GemListSectionTitle.titleRes(): Int? = when (this) {
     GemListSectionTitle.RESOURCES -> R.string.asset_resources
     GemListSectionTitle.SOCIAL_LINKS -> R.string.social_links
     GemListSectionTitle.PROPERTIES -> R.string.nft_properties
+    GemListSectionTitle.RECOMMENDED -> R.string.common_recommended
+    GemListSectionTitle.ALL -> R.string.common_all
 }
 
 @StringRes

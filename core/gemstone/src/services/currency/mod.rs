@@ -5,8 +5,9 @@ use std::{collections::HashMap, sync::Arc};
 
 use primitives::Currency;
 
-pub use model::{GemCurrencyList, GemCurrencyRow, GemCurrencySection, GemCurrencySectionKind};
+pub use model::GemCurrencyRow;
 
+use crate::models::list::GemGroupList;
 use crate::models::state::GemListPhase;
 use crate::services::empty_state::{GemEmptyStateKind, empty_state};
 use crate::services::error::GemServiceError;
@@ -24,12 +25,12 @@ impl GemCurrencyService {
         Self { prices }
     }
 
-    pub async fn list(&self, currency: Currency, locale: Option<Currency>, query: String, localized_names: HashMap<String, String>) -> Result<GemCurrencyList, GemServiceError> {
+    pub async fn list(&self, currency: Currency, locale: Option<Currency>, query: String, localized_names: HashMap<String, String>) -> Result<GemGroupList, GemServiceError> {
         let rated = self.prices.rated_currencies().await?;
-        let sections = rules::sections(currency, locale, &query, &localized_names, &rated);
-        Ok(GemCurrencyList {
-            phase: GemListPhase::local(!sections.is_empty(), empty_state(GemEmptyStateKind::SearchResults)),
-            sections,
+        let groups = rules::groups(currency, locale, &query, &localized_names, &rated);
+        Ok(GemGroupList {
+            phase: GemListPhase::local(!groups.is_empty(), empty_state(GemEmptyStateKind::SearchResults)),
+            groups,
         })
     }
 
@@ -68,9 +69,9 @@ mod tests {
 
         let currencies: Vec<Currency> = block_on(service.list(Currency::GBP, None, String::new(), HashMap::new()))
             .unwrap()
-            .sections
+            .groups
             .into_iter()
-            .flat_map(|section| section.rows.into_iter().map(|row| row.currency))
+            .flat_map(|group| rules::tests::currency_rows(&group.items).into_iter().map(|row| row.currency))
             .collect();
 
         assert_eq!(currencies, vec![Currency::GBP, Currency::USD, Currency::EUR], "the current and the base currency stay offered");
@@ -113,10 +114,10 @@ mod tests {
             for query in [name, currency.as_ref()] {
                 let list = block_on(service.list(Currency::USD, Some(currency.clone()), query.to_string(), names.clone())).unwrap();
                 assert_eq!(list.phase, GemListPhase::Rows);
-                assert_eq!(list.sections.len(), 1);
-                assert_eq!(list.sections[0].kind, GemCurrencySectionKind::Recommended);
+                assert_eq!(list.groups.len(), 1);
+                assert_eq!(list.groups[0].title, crate::models::list::GemListSectionTitle::Recommended);
                 assert_eq!(
-                    list.sections[0].rows,
+                    rules::tests::currency_rows(&list.groups[0].items),
                     vec![GemCurrencyRow {
                         currency: currency.clone(),
                         title: format!("{flag} {currency} - {name}"),
@@ -130,7 +131,7 @@ mod tests {
             assert_eq!(preferences.get_currency(), currency);
             assert_eq!(*prices.converted.lock().unwrap(), vec![(currency, rate)]);
             let list = block_on(service.list(preferences.get_currency(), None, name.to_string(), names)).unwrap();
-            assert!(list.sections[0].rows[0].is_selected);
+            assert!(rules::tests::currency_rows(&list.groups[0].items)[0].is_selected);
         }
     }
 }

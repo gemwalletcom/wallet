@@ -50,6 +50,7 @@ import com.gemwallet.android.ui.theme.smallIconSize
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemListSection
+import uniffi.gemstone.GemListSectionFooter
 import uniffi.gemstone.GemRowAction
 
 fun LazyListScope.gemListSections(sections: List<GemListSection>, onSelectAddress: ((String) -> Unit)? = null, onSelect: ((GemRowAction) -> Unit)? = null) {
@@ -61,12 +62,12 @@ fun LazyListScope.gemListSections(sections: List<GemListSection>, onSelectAddres
             item(key = "section:$index") { Spacer16() }
         }
         itemsPositioned(section.rows) { position, row -> GemListRowView(row = row, listPosition = position, onSelect = onSelect, onSelectAddress = onSelectAddress) }
-        gemListSectionFooter(section, key = "footer:$index")
+        gemListSectionFooter(section.footer, key = "footer:$index")
     }
 }
 
-fun LazyListScope.gemListSectionFooter(section: GemListSection, key: Any) {
-    val text = section.footer.textRes() ?: return
+fun LazyListScope.gemListSectionFooter(footer: GemListSectionFooter, key: Any) {
+    val text = footer.textRes() ?: return
     item(key = key) {
         Text(
             modifier = Modifier.padding(horizontal = paddingLarge),

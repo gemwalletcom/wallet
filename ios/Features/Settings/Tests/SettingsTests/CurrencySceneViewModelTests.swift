@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import struct Gemstone.GemCurrencyRow
-import struct Gemstone.GemCurrencySection
+import struct Gemstone.GemGroup
 import class Gemstone.GemPreferencesService
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
@@ -17,18 +17,18 @@ struct CurrencySceneViewModelTests {
         let preferences = GemPreferencesService(store: GemPreferencesStoreMock())
         let service = GemCurrencyServiceMock(preferencesService: preferences)
         let viewModel = CurrencySceneViewModel(preferences: ObservablePreferences(preferencesService: preferences), service: service)
-        service.sectionsValue = [
-            GemCurrencySection(kind: .all, rows: [GemCurrencyRow(currency: Currency.ars.toGem(), title: "ARS", isSelected: false)]),
+        service.groupsValue = [
+            GemGroup(title: .all, footer: .none, items: [.currency(row: GemCurrencyRow(currency: Currency.ars.toGem(), title: "ARS", isSelected: false))]),
         ]
 
         #expect(viewModel.list == nil)
         viewModel.searchQuery = " arS "
         await viewModel.refreshSections()
-        #expect(viewModel.list?.sections == service.sectionsValue)
+        #expect(viewModel.list?.groups == service.groupsValue)
         #expect(viewModel.list?.phase == .rows)
         viewModel.searchQuery = ""
         await viewModel.refreshSections()
-        #expect(viewModel.list?.sections == service.sectionsValue)
+        #expect(viewModel.list?.groups == service.groupsValue)
         #expect(service.queries == [" arS ", ""])
     }
 

@@ -463,6 +463,52 @@ A `Gem…Row` record carries **one row's data**. Which fields a shared row shows
 
 The questions, in order: is the row a title with a value (family 1)? Does more than one list draw this shape (family 2)? Only then does it stay with its screen (family 3). A per-screen enum for a family-1 row, or a second copy of a family-2 record, is the regression to watch for.
 
+### A screen of groups is one `GemGroupList`
+
+A screen that shows titled groups of rows with a load state returns one `GemGroupList`, never its own section and list records. UniFFI has no generics, so the row families a group can hold are cases of one enum, `GemListItem`, which gains a case each time a screen's family moves onto it:
+
+```rust
+pub enum GemListItem {
+    Currency { row: GemCurrencyRow },
+}
+
+pub struct GemGroup {
+    pub title: GemListSectionTitle,
+    pub footer: GemListSectionFooter,
+    pub items: Vec<GemListItem>,
+}
+
+pub struct GemGroupList {
+    pub groups: Vec<GemGroup>,
+    pub phase: GemListPhase,
+}
+```
+
+Core decides which groups exist, their order and titles, what each item holds, which one is selected, and the phase. The currency picker is the reference: `GemCurrencyService::list` returns the Recommended and All groups, each dropped when the search leaves it empty, and an empty search-results phase when nothing matches:
+
+```rust
+let groups = rules::groups(currency, locale, &query, &localized_names, &rated);
+Ok(GemGroupList {
+    phase: GemListPhase::local(!groups.is_empty(), empty_state(GemEmptyStateKind::SearchResults)),
+    groups,
+})
+```
+
+Each app draws it with one builder — iOS `GemGroupListView` in `PrimitivesComponents`, Android `LazyListScope.gemGroupList` in `:ui` — which owns the group headers and footers, a stable identity per item, the empty state, the error row, and the one way each family is drawn. The screen keeps only its own modifiers and maps the selected item to its action:
+
+```swift
+GemGroupListView(list: model.list, onSelect: onSelect)
+    .searchable(text: $model.searchQuery)
+```
+
+```kotlin
+LazyColumn(state = listState) {
+    list?.let { gemGroupList(it) { item -> when (item) { is GemListItem.Currency -> onSelect(item.row) } } }
+}
+```
+
+A group title is a case of `GemListSectionTitle`. Moving a screen onto the group list deletes its `…Section` and `…List` records, its section-kind enum and both apps' title mappers for it, and its own phase switch; adding a per-screen section type or a second phase switch is the regression this replaces.
+
 ### A status is a plain row, never a screen's own view
 
 A row whose value is a named outcome — a transaction's state, a delegation's state, an asset's, a collectible's or a dapp's verification — is family 1. Core returns it inside the screen's sections as a `GemListRow` that carries the outcome, never as a bare enum on the screen record for the app to turn into a row:

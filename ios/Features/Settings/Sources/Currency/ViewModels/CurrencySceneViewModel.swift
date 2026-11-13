@@ -3,7 +3,7 @@
 import Components
 import Foundation
 import enum Gemstone.Currency
-import struct Gemstone.GemCurrencyList
+import struct Gemstone.GemGroupList
 import protocol Gemstone.GemCurrencyServiceProtocol
 import GemstonePrimitives
 import GemstoneServices
@@ -18,7 +18,7 @@ public final class CurrencySceneViewModel {
 
     var isPresentingAlertMessage: AlertMessage?
     var searchQuery = ""
-    private(set) var list: GemCurrencyList?
+    private(set) var list: GemGroupList?
 
     public init(preferences: ObservablePreferences, service: any GemCurrencyServiceProtocol) {
         self.preferences = preferences

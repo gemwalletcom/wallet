@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import struct Gemstone.GemCurrencyRow
+import enum Gemstone.GemListItem
 import GemstonePrimitives
 import PrimitivesComponents
 import SwiftUI
@@ -15,44 +15,25 @@ public struct CurrencyScene: View {
     }
 
     public var body: some View {
-        let list = model.list
-        return List(list?.sections ?? [], id: \.kind) { section in
-            Section(section.kind.title) {
-                ForEach(section.rows, id: \.currency) { row in
-                    ListItemSelectionView(
-                        title: row.title,
-                        value: row.currency,
-                        selection: row.isSelected ? row.currency : nil,
-                    ) { _ in
-                        onSelectCurrency(row)
-                    }
-                    .accessibilityIdentifier(row.currency.toPrimitives().rawValue)
-                }
+        GemGroupListView(list: model.list, onSelect: onSelect)
+            .listSectionSpacing(.compact)
+            .searchable(text: $model.searchQuery, placement: .navigationBarDrawer(displayMode: .always))
+            .autocorrectionDisabled(true)
+            .textInputAutocapitalization(.never)
+            .scrollDismissesKeyboard(.interactively)
+            .task(id: model.searchQuery) {
+                await model.refreshSections()
             }
-        }
-        .listSectionSpacing(.compact)
-        .searchable(text: $model.searchQuery, placement: .navigationBarDrawer(displayMode: .always))
-        .autocorrectionDisabled(true)
-        .textInputAutocapitalization(.never)
-        .scrollDismissesKeyboard(.interactively)
-        .overlay {
-            if case let .empty(state) = list?.phase {
-                EmptyContentView(model: EmptyStateViewModel(state: state))
-            }
-        }
-        .task(id: model.searchQuery) {
-            await model.refreshSections()
-        }
-        .navigationTitle(model.title)
-        .alertSheet($model.isPresentingAlertMessage)
+            .navigationTitle(model.title)
+            .alertSheet($model.isPresentingAlertMessage)
     }
 }
 
 // MARK: - Actions
 
 extension CurrencyScene {
-    private func onSelectCurrency(_ row: GemCurrencyRow) {
-        guard !row.isSelected else { return }
+    private func onSelect(_ item: GemListItem) {
+        guard case let .currency(row) = item, !row.isSelected else { return }
 
         Task {
             do {

@@ -3,34 +3,37 @@ use std::collections::HashMap;
 use primitives::Currency;
 use strum::IntoEnumIterator;
 
-use super::model::{GemCurrencyRow, GemCurrencySection, GemCurrencySectionKind};
+use super::model::GemCurrencyRow;
+use crate::models::list::{GemGroup, GemListItem, GemListSectionTitle};
 use crate::services::collections::unique;
 
 const DEFAULT_CURRENCIES: [Currency; 7] = [Currency::USD, Currency::EUR, Currency::GBP, Currency::CNY, Currency::JPY, Currency::INR, Currency::RUB];
 
-pub fn sections(current: Currency, locale: Option<Currency>, query: &str, localized_names: &HashMap<String, String>, rated: &[Currency]) -> Vec<GemCurrencySection> {
+pub fn groups(current: Currency, locale: Option<Currency>, query: &str, localized_names: &HashMap<String, String>, rated: &[Currency]) -> Vec<GemGroup> {
     let offered = |currency: &Currency| rated.is_empty() || *currency == current || *currency == Currency::USD || rated.contains(currency);
     let recommended: Vec<Currency> = recommended_currencies(current.clone(), locale).into_iter().filter(offered).collect();
     let other: Vec<Currency> = other_currencies(&recommended).into_iter().filter(offered).collect();
     let query = query.trim().to_lowercase();
-    [(GemCurrencySectionKind::Recommended, recommended), (GemCurrencySectionKind::All, other)]
+    [(GemListSectionTitle::Recommended, recommended), (GemListSectionTitle::All, other)]
         .into_iter()
-        .filter_map(|(kind, currencies)| {
-            let rows = currencies
+        .filter_map(|(title, currencies)| {
+            let items = currencies
                 .into_iter()
                 .filter_map(|currency| {
                     let name = localized_names.get(currency.as_ref()).map(String::as_str).unwrap_or("");
                     if !currency.as_ref().to_lowercase().contains(&query) && !name.to_lowercase().contains(&query) {
                         return None;
                     }
-                    Some(GemCurrencyRow {
-                        title: format!("{} - {}", currency_text(&currency), name),
-                        is_selected: currency == current,
-                        currency,
+                    Some(GemListItem::Currency {
+                        row: GemCurrencyRow {
+                            title: format!("{} - {}", currency_text(&currency), name),
+                            is_selected: currency == current,
+                            currency,
+                        },
                     })
                 })
                 .collect::<Vec<_>>();
-            (!rows.is_empty()).then_some(GemCurrencySection { kind, rows })
+            (!items.is_empty()).then(|| GemGroup::new(title, items))
         })
         .collect()
 }
@@ -48,48 +51,62 @@ fn other_currencies(recommended: &[Currency]) -> Vec<Currency> {
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
     use super::*;
+
+    pub(crate) fn currency_rows(items: &[GemListItem]) -> Vec<GemCurrencyRow> {
+        items
+            .iter()
+            .map(|item| match item {
+                GemListItem::Currency { row } => row.clone(),
+            })
+            .collect()
+    }
+
+    fn rows(groups: &[GemGroup]) -> Vec<GemCurrencyRow> {
+        groups.iter().flat_map(|group| currency_rows(&group.items)).collect()
+    }
 
     #[test]
     fn test_search_preserves_sections_and_marks_selection() {
         let names = HashMap::from([("USD".into(), "dólar estadounidense".into()), ("AUD".into(), "dólar australiano".into())]);
-        let state = sections(Currency::USD, None, " DÓLAR ", &names, &[]);
+        let state = groups(Currency::USD, None, " DÓLAR ", &names, &[]);
         assert_eq!(
             state,
             vec![
-                GemCurrencySection {
-                    kind: GemCurrencySectionKind::Recommended,
-                    rows: vec![GemCurrencyRow {
-                        currency: Currency::USD,
-                        title: "🇺🇸 USD - dólar estadounidense".into(),
-                        is_selected: true,
+                GemGroup::new(
+                    GemListSectionTitle::Recommended,
+                    vec![GemListItem::Currency {
+                        row: GemCurrencyRow {
+                            currency: Currency::USD,
+                            title: "🇺🇸 USD - dólar estadounidense".into(),
+                            is_selected: true,
+                        }
                     }]
-                },
-                GemCurrencySection {
-                    kind: GemCurrencySectionKind::All,
-                    rows: vec![GemCurrencyRow {
-                        currency: Currency::AUD,
-                        title: "🇦🇺 AUD - dólar australiano".into(),
-                        is_selected: false,
+                ),
+                GemGroup::new(
+                    GemListSectionTitle::All,
+                    vec![GemListItem::Currency {
+                        row: GemCurrencyRow {
+                            currency: Currency::AUD,
+                            title: "🇦🇺 AUD - dólar australiano".into(),
+                            is_selected: false,
+                        }
                     }]
-                },
+                ),
             ]
         );
-        assert_eq!(sections(Currency::USD, None, " aUd ", &names, &[]), vec![state[1].clone()]);
+        assert_eq!(groups(Currency::USD, None, " aUd ", &names, &[]), vec![state[1].clone()]);
     }
 
     #[test]
     fn test_empty_search_restores_all_currencies_and_no_match_has_no_sections() {
         let names = HashMap::new();
-        let state = sections(Currency::GBP, Some(Currency::EUR), "", &names, &[]);
-        assert_eq!(state.iter().map(|section| section.rows.len()).sum::<usize>(), Currency::iter().count());
-        assert_eq!(
-            state.iter().flat_map(|section| &section.rows).filter(|row| row.is_selected).map(|row| row.currency.clone()).collect::<Vec<_>>(),
-            vec![Currency::GBP]
-        );
-        assert_eq!(sections(Currency::GBP, Some(Currency::EUR), " \n ", &names, &[]), state);
-        assert_eq!(sections(Currency::GBP, Some(Currency::EUR), "not a currency", &names, &[]), vec![]);
+        let state = groups(Currency::GBP, Some(Currency::EUR), "", &names, &[]);
+        assert_eq!(rows(&state).len(), Currency::iter().count());
+        assert_eq!(rows(&state).into_iter().filter(|row| row.is_selected).map(|row| row.currency).collect::<Vec<_>>(), vec![Currency::GBP]);
+        assert_eq!(groups(Currency::GBP, Some(Currency::EUR), " \n ", &names, &[]), state);
+        assert_eq!(groups(Currency::GBP, Some(Currency::EUR), "not a currency", &names, &[]), vec![]);
     }
 
     #[test]
