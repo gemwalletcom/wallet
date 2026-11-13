@@ -101,7 +101,7 @@ impl<C: Client + Clone> ChainTransactionLoad for SolanaProvider<C> {
     }
 
     async fn get_transaction_load(&self, input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Sync + Send>> {
-        let fee = calculate_transaction_fee(&input.input_type, &input.gas_price, input.metadata.get_recipient_token_address()?);
+        let fee = calculate_transaction_fee(&input.input_type, &input.gas_price, input.metadata.get_recipient_token_address()?, input.metadata.get_solana_token_program_id()?.as_ref());
         Ok(TransactionLoadData { fee, metadata: input.metadata })
     }
 
