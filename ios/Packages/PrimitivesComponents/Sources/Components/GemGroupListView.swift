@@ -36,10 +36,12 @@ public struct GemGroupListView: View {
 
 public struct GemGroupSections<Item: View>: View {
     private let groups: [GemGroup]
+    private let rowInsets: EdgeInsets?
     private let item: (GemListItem) -> Item
 
-    public init(groups: [GemGroup], @ViewBuilder item: @escaping (GemListItem) -> Item) {
+    public init(groups: [GemGroup], rowInsets: EdgeInsets? = nil, @ViewBuilder item: @escaping (GemListItem) -> Item) {
         self.groups = groups
+        self.rowInsets = rowInsets
         self.item = item
     }
 
@@ -53,12 +55,14 @@ public struct GemGroupSections<Item: View>: View {
                 } footer: {
                     Text(footer)
                 }
+                .ifLet(rowInsets) { $0.listRowInsets($1) }
             } else {
                 Section {
                     items(group)
                 } header: {
                     header(group)
                 }
+                .ifLet(rowInsets) { $0.listRowInsets($1) }
             }
         }
     }

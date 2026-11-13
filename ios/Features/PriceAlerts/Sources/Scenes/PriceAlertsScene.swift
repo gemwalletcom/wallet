@@ -27,13 +27,12 @@ public struct PriceAlertsScene: View {
                 }
             }
 
-            GemGroupSections(groups: list.groups) { item in
+            GemGroupSections(groups: list.groups, rowInsets: .assetListRowInsets) { item in
                 if case let .priceAlert(alert) = item {
                     NavigationLink(value: model.chart(alert)) {
                         PriceAlertItemView(item: alert, onDelete: { onDelete(alert: $0) })
                     }
                     .assetIdentifier(alert.data.asset.toPrimitives().id)
-                    .listRowInsets(.assetListRowInsets)
                 }
             }
         }
