@@ -5,6 +5,8 @@ import com.gemwallet.android.application.connection.cases.ObserveRefreshInterval
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.features.transfer.viewmodels.receive.LightningReceiveViewModel.State
 import com.gemwallet.android.testkit.MainDispatcherRule
+import com.gemwallet.android.ext.GemConstants
+import com.gemwallet.android.testkit.mockGemCopy
 import com.gemwallet.android.testkit.mockGemLightningReceive
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
@@ -46,7 +48,7 @@ class LightningReceiveViewModelTest {
     }
 
     private val walletId = "multicoin_0xabc"
-    private val receive = mockGemLightningReceive(invoice = "lnbc1invoice")
+    private val receive = mockGemLightningReceive(copy = mockGemCopy(value = "lnbc1invoice"))
     private val service = mockk<GemLightningServiceInterface>(relaxed = true) {
         coEvery { receive(walletId, any(), any()) } returns receive
         coEvery { receiveState(walletId, any()) } returns GemLightningReceiveState.PENDING
@@ -90,7 +92,7 @@ class LightningReceiveViewModelTest {
         runCurrent()
         coVerify(exactly = 0) { service.receive(walletId, "0.001", any()) }
 
-        advanceTimeBy(AMOUNT_DEBOUNCE_MILLIS)
+        advanceTimeBy(GemConstants.lightningInvoiceDebounce.inWholeMilliseconds)
         runCurrent()
         coVerify(exactly = 1) { service.receive(walletId, "0.001", any()) }
     }
@@ -101,12 +103,12 @@ class LightningReceiveViewModelTest {
         model.setRefreshEnabled(true)
         runCurrent()
 
-        coEvery { service.receiveState(walletId, receive.invoice) } returns GemLightningReceiveState.EXPIRED
+        coEvery { service.receiveState(walletId, receive.copy.value) } returns GemLightningReceiveState.EXPIRED
         advanceTimeBy(REFRESH_MILLIS)
         runCurrent()
         coVerify(exactly = 2) { service.receive(walletId, "", any()) }
 
-        coEvery { service.receiveState(walletId, receive.invoice) } returns GemLightningReceiveState.RECEIVED
+        coEvery { service.receiveState(walletId, receive.copy.value) } returns GemLightningReceiveState.RECEIVED
         advanceTimeBy(REFRESH_MILLIS)
         runCurrent()
         assertEquals(State.Received, model.state.value)
@@ -125,6 +127,5 @@ class LightningReceiveViewModelTest {
 
     private companion object {
         const val REFRESH_MILLIS = 4_000L
-        const val AMOUNT_DEBOUNCE_MILLIS = 600L
     }
 }

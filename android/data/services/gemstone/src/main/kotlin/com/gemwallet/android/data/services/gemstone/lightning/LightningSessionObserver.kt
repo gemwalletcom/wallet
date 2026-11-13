@@ -9,14 +9,13 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemLightningServiceInterface
 import uniffi.gemstone.GemServiceException
-import uniffi.gemstone.GemWalletSessionServiceInterface
 
-class LightningSessionObserver(private val service: GemLightningServiceInterface, private val session: GemWalletSessionServiceInterface, private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)) :
+class LightningSessionObserver(private val service: GemLightningServiceInterface, private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)) :
     OpenLightning {
 
     override fun openLightning() {
         scope.launch {
-            runCatchingCancellable { session.getCurrentWalletId()?.let { service.openEnabled(it) } }
+            runCatchingCancellable { service.openEnabled() }
                 .onFailure { if (it !is GemServiceException.Cancelled) Log.e(TAG, "lightning open failed", it) }
         }
     }

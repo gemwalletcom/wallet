@@ -7,14 +7,13 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.connection.cases.ObserveRefreshInterval
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.ext.asset
+import com.gemwallet.android.ext.GemConstants
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.tickerFlow
 import com.gemwallet.android.math.numberFormat
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.ToastMessage
 import com.gemwallet.android.ui.models.ToastPresenter
-import com.wallet.core.primitives.Chain
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
@@ -38,6 +37,7 @@ import uniffi.gemstone.GemLightningServiceInterface
 import uniffi.gemstone.GemRefreshKind
 import uniffi.gemstone.GemServiceException
 import javax.inject.Inject
+import kotlin.time.Duration
 
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 @HiltViewModel
@@ -59,7 +59,6 @@ class LightningReceiveViewModel @Inject constructor(
     }
 
     private val walletId = getSession().value?.wallet?.id?.id
-    private val decimals = Chain.Lightning.asset().decimals.toInt()
 
     private val stateFlow = MutableStateFlow<State>(State.Loading)
     val state: StateFlow<State> = stateFlow.asStateFlow()
@@ -71,7 +70,7 @@ class LightningReceiveViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            amountFlow.debounce { if (it.isEmpty()) 0L else AMOUNT_DEBOUNCE_MILLIS }.collectLatest(::receive)
+            amountFlow.debounce { if (it.isEmpty()) Duration.ZERO else GemConstants.lightningInvoiceDebounce }.collectLatest(::receive)
         }
         viewModelScope.launch {
             combine(refreshEnabled, stateFlow.map { it is State.Ready }.distinctUntilChanged(), observeRefreshInterval.refreshIntervalMillis(GemRefreshKind.RECEIVE)) { isEnabled, isReady, interval ->
@@ -84,7 +83,7 @@ class LightningReceiveViewModel @Inject constructor(
     }
 
     fun onAmount(value: String) {
-        amountFlow.value = numberFormat().sanitize(value, decimals, null)
+        amountFlow.value = value
     }
 
     fun onRetry() {
@@ -105,7 +104,7 @@ class LightningReceiveViewModel @Inject constructor(
     private suspend fun checkPayment() {
         val walletId = walletId ?: return
         val receive = (stateFlow.value as? State.Ready)?.receive ?: return
-        runCatchingCancellable { withContext(ioDispatcher) { service.receiveState(walletId, receive.invoice) } }
+        runCatchingCancellable { withContext(ioDispatcher) { service.receiveState(walletId, receive.copy.value) } }
             .onSuccess { state ->
                 when (state) {
                     GemLightningReceiveState.PENDING -> Unit
@@ -132,6 +131,5 @@ class LightningReceiveViewModel @Inject constructor(
 
     private companion object {
         const val TAG = "LightningReceive"
-        const val AMOUNT_DEBOUNCE_MILLIS = 600L
     }
 }

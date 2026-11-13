@@ -37,7 +37,6 @@ import uniffi.gemstone.GemTransactionsService
 import uniffi.gemstone.GemWalletPreferencesService
 import uniffi.gemstone.GemWalletService
 import uniffi.gemstone.GemWalletSessionService
-import uniffi.gemstone.GemWalletSessionServiceInterface
 import java.io.File
 import javax.inject.Singleton
 
@@ -140,10 +139,7 @@ object KeystoreModule {
 
     @Provides
     @Singleton
-    fun provideLightningSessionObserver(service: GemLightningServiceInterface, session: GemWalletSessionServiceInterface): LightningSessionObserver = LightningSessionObserver(
-        service = service,
-        session = session,
-    )
+    fun provideLightningSessionObserver(service: GemLightningServiceInterface): LightningSessionObserver = LightningSessionObserver(service = service)
 
     @Provides
     fun provideOpenLightning(observer: LightningSessionObserver): OpenLightning = observer

@@ -1612,12 +1612,10 @@ fun mockGemHeaderButtonAction(): uniffi.gemstone.GemHeaderButtonAction = uniffi.
 fun mockGemInfoTopic(): uniffi.gemstone.GemInfoTopic = uniffi.gemstone.GemInfoTopic.RegionUnavailable
 
 fun mockGemLightningReceive(
-    invoice: String = "",
     qr: String = "",
     copy: uniffi.gemstone.GemCopy = mockGemCopy(),
     field: uniffi.gemstone.GemAmountField = mockGemAmountField(),
 ) = uniffi.gemstone.GemLightningReceive(
-    invoice = invoice,
     qr = qr,
     copy = copy,
     field = field,
