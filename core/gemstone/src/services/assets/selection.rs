@@ -117,7 +117,7 @@ impl GemAssetSelectionService {
         let opens_lightning = enabled && asset_ids.contains(&AssetId::from_chain(Chain::Lightning));
         self.balances.set_assets_enabled(wallet_id.clone(), asset_ids, enabled).await?;
         if opens_lightning {
-            let _ = self.lightning.open_enabled(wallet_id).await;
+            let _ = self.lightning.open_enabled().await;
         }
         Ok(())
     }

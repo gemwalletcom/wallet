@@ -3,7 +3,6 @@ use crate::services::amount::model::GemAmountField;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemLightningReceive {
-    pub invoice: String,
     pub qr: String,
     pub copy: GemCopy,
     pub field: GemAmountField,

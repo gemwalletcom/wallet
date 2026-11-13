@@ -16,7 +16,7 @@ use crate::models::copy::{GemCopy, GemCopyKind};
 use crate::services::amount::model::{GemAmountField, GemAmountKeyboard, GemAmountSymbol, GemAmountSymbolPlacement, GemNumberFormat};
 use crate::services::amount::rules::value_from_input;
 use crate::services::balance::GemBalanceService;
-use crate::services::error::GemServiceError;
+use crate::services::error::{GemServiceError, required_account};
 use crate::services::transactions::GemTransactionsService;
 use crate::services::wallet::GemKeystorePassword;
 use crate::services::wallet_session::GemWalletSessionService;
@@ -47,8 +47,11 @@ impl GemLightningService {
         }
     }
 
-    pub async fn open_enabled(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
+    pub async fn open_enabled(&self) -> Result<(), GemServiceError> {
         let generation = sessions().generation();
+        let Ok(wallet_id) = self.session.current_wallet_id() else {
+            return Ok(());
+        };
         let Some(address) = self.address(wallet_id.clone()).await? else {
             return Ok(());
         };
@@ -62,34 +65,20 @@ impl GemLightningService {
         Ok(())
     }
 
-    pub async fn sync(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
-        let Some(address) = self.address(wallet_id.clone()).await? else {
-            return Ok(());
-        };
-        let Ok(wallet) = sessions().wallet(&address) else {
-            return Ok(());
-        };
-        self.sync_wallet(wallet_id, wallet).await
-    }
-
     pub async fn receive(&self, wallet_id: WalletId, amount: String, format: GemNumberFormat) -> Result<GemLightningReceive, GemServiceError> {
         let wallet = self.wallet(wallet_id).await?;
         let asset = Asset::from_chain(Chain::Lightning);
-        let amount_sats = value_from_input(&format.decimal_separator, &amount, asset.decimals)
-            .ok()
-            .and_then(|value| u64::try_from(value).ok())
-            .filter(|value| *value > 0);
+        let amount_sats = value_from_input(&format.decimal_separator, &amount, asset.decimals).ok().and_then(|value| u64::try_from(value).ok()).filter(|value| *value > 0);
         let invoice = run(async move { wallet.create_invoice(amount_sats).await }).await?;
-        Ok(receive(invoice.invoice, asset))
+        Ok(receive(invoice, asset))
     }
 
     pub async fn receive_state(&self, wallet_id: WalletId, invoice: String) -> Result<GemLightningReceiveState, GemServiceError> {
         let wallet = self.wallet(wallet_id.clone()).await?;
         let expires_at = decode_invoice(&invoice)?.expires_at;
-        let checked = wallet.clone();
         let received = run(async move {
-            checked.sync().await?;
-            checked.has_received(&invoice, RECEIVED_PAYMENTS_LIMIT).await
+            wallet.sync().await?;
+            wallet.has_received(&invoice, RECEIVED_PAYMENTS_LIMIT).await
         })
         .await?;
         if received {
@@ -129,7 +118,8 @@ impl GemLightningService {
 
     async fn wallet(&self, wallet_id: WalletId) -> Result<Arc<LightningWallet>, GemServiceError> {
         let generation = sessions().generation();
-        let address = self.address(wallet_id.clone()).await?.ok_or_else(|| GemServiceError::core("wallet has no lightning account"))?;
+        let wallet = self.session.get_wallet(wallet_id.clone()).await?.ok_or_else(|| GemServiceError::NotFound { msg: format!("wallet {}", wallet_id.id()) })?;
+        let address = required_account(&wallet, Chain::Lightning)?.address;
         Ok(self.open_wallet(generation, wallet_id, &address).await?.0)
     }
 
@@ -164,14 +154,13 @@ fn receive(invoice: String, asset: Asset) -> GemLightningReceive {
         copy: GemCopy {
             kind: GemCopyKind::Plain,
             display: format_address(&invoice, Some(Chain::Lightning), AddressFormatStyle::Short),
-            value: invoice.clone(),
+            value: invoice,
         },
         field: GemAmountField {
             symbol: GemAmountSymbol::Asset { symbol: asset.symbol },
             placement: GemAmountSymbolPlacement::Trailing,
             keyboard: GemAmountKeyboard::Decimal,
         },
-        invoice,
     }
 }
 

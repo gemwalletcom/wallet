@@ -6,7 +6,7 @@ use std::sync::{Arc, LazyLock, PoisonError, RwLock};
 use async_trait::async_trait;
 use futures::lock::Mutex as AsyncMutex;
 use gem_spark::provider::{LightningAuthorization, LightningSessions};
-use gem_spark::{LightningError, LightningInvoice, LightningPayment, LightningSendQuote, LightningWallet};
+use gem_spark::{LightningError, LightningInvoice, LightningPayment, LightningPaymentStatus, LightningSendQuote, LightningWallet};
 
 use super::runtime::run;
 use crate::services::error::GemServiceError;
@@ -77,6 +77,10 @@ impl LightningSessionRegistry {
         self.wallets.read().unwrap_or_else(PoisonError::into_inner).get(address).cloned().ok_or(LightningError::Locked)
     }
 
+    pub(crate) async fn payments(&self, address: &str) -> Result<Vec<LightningPayment>, LightningError> {
+        self.with_wallet(address, |wallet| async move { wallet.payments(PAYMENTS_LIMIT).await }).await
+    }
+
     async fn with_wallet<T, F, Fut>(&self, address: &str, call: F) -> Result<T, LightningError>
     where
         T: Send + 'static,
@@ -93,13 +97,9 @@ impl LightningSessions for LightningSessionRegistry {
         self.with_wallet(address, |wallet| async move { wallet.balance().await }).await
     }
 
-    async fn payments(&self, address: &str) -> Result<Vec<LightningPayment>, LightningError> {
-        self.with_wallet(address, |wallet| async move { wallet.payments(PAYMENTS_LIMIT).await }).await
-    }
-
-    async fn payment(&self, address: &str, id: &str) -> Result<Option<LightningPayment>, LightningError> {
+    async fn payment_status(&self, address: &str, id: &str) -> Result<LightningPaymentStatus, LightningError> {
         let id = id.to_string();
-        self.with_wallet(address, |wallet| async move { wallet.payment(&id).await }).await
+        self.with_wallet(address, |wallet| async move { wallet.payment_status(&id).await }).await
     }
 
     async fn prepare_send(&self, address: &str, invoice: LightningInvoice, amount_sats: u64) -> Result<LightningSendQuote, LightningError> {

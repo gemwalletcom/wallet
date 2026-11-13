@@ -26,8 +26,7 @@ const AUTHORIZATION_DOMAIN: &str = "gem-lightning-transfer-v1";
 #[async_trait]
 pub trait LightningSessions: Send + Sync {
     async fn balance(&self, address: &str) -> Result<u64, LightningError>;
-    async fn payments(&self, address: &str) -> Result<Vec<LightningPayment>, LightningError>;
-    async fn payment(&self, address: &str, id: &str) -> Result<Option<LightningPayment>, LightningError>;
+    async fn payment_status(&self, address: &str, id: &str) -> Result<LightningPaymentStatus, LightningError>;
     async fn prepare_send(&self, address: &str, invoice: LightningInvoice, amount_sats: u64) -> Result<LightningSendQuote, LightningError>;
     async fn send(&self, address: &str, quote: LightningSendQuote, authorization: LightningAuthorization) -> Result<String, LightningError>;
 }
@@ -40,11 +39,7 @@ impl LightningSessions for LockedSessions {
         Err(LightningError::Locked)
     }
 
-    async fn payments(&self, _address: &str) -> Result<Vec<LightningPayment>, LightningError> {
-        Err(LightningError::Locked)
-    }
-
-    async fn payment(&self, _address: &str, _id: &str) -> Result<Option<LightningPayment>, LightningError> {
+    async fn payment_status(&self, _address: &str, _id: &str) -> Result<LightningPaymentStatus, LightningError> {
         Err(LightningError::Locked)
     }
 
@@ -169,10 +164,8 @@ impl ChainBalances for LightningProvider {
 
 #[async_trait]
 impl ChainTransactions for LightningProvider {
-    async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
-        let payments = self.sessions.payments(&request.address).await?;
-        let transactions = payments.iter().take(request.limit).map(|payment| map_payment(&request.address, payment)).collect();
-        Ok(TransactionsResult::Transactions(transactions))
+    async fn get_transactions_by_address(&self, _request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
+        Ok(TransactionsResult::Transactions(Vec::new()))
     }
 }
 
@@ -221,9 +214,8 @@ impl ChainTransactionBroadcast for LightningProvider {
 #[async_trait]
 impl ChainTransactionState for LightningProvider {
     async fn get_transaction_status(&self, request: TransactionStateRequest) -> Result<TransactionUpdate, Box<dyn Error + Sync + Send>> {
-        let payment = self.sessions.payment(&request.sender_address, &request.id).await?;
-        let state = payment.map_or(TransactionState::Pending, |payment| payment_state(payment.status));
-        Ok(TransactionUpdate::new_state(state))
+        let status = self.sessions.payment_status(&request.sender_address, &request.id).await?;
+        Ok(TransactionUpdate::new_state(payment_state(status)))
     }
 }
 

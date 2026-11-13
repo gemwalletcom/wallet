@@ -52,10 +52,6 @@ name = "keystore_file"
 path = "fuzz_targets/keystore_file.rs"
 
 [[bin]]
-name = "lightning_invoice"
-path = "fuzz_targets/lightning_invoice.rs"
-
-[[bin]]
 name = "lightning_transfer"
 path = "fuzz_targets/lightning_transfer.rs"
 

@@ -19,12 +19,9 @@ pub fn decode_invoice(value: &str) -> Result<LightningInvoice, LightningError> {
     if decoded.currency() != Currency::Bitcoin {
         return Err(LightningError::InvoiceNetworkMismatch);
     }
-    let created_at = decoded.duration_since_epoch().as_secs();
     Ok(LightningInvoice {
         amount_sats: decoded.amount_milli_satoshis().map(|amount| amount.div_ceil(MSATS_PER_SAT)),
-        payment_hash: decoded.payment_hash().to_string(),
-        created_at,
-        expires_at: created_at.saturating_add(decoded.expiry_time().as_secs()),
+        expires_at: decoded.duration_since_epoch().as_secs().saturating_add(decoded.expiry_time().as_secs()),
         invoice,
     })
 }
@@ -63,8 +60,6 @@ mod tests {
             LightningInvoice {
                 invoice: INVOICE_2000_SATS.to_string(),
                 amount_sats: Some(2000),
-                payment_hash: "386b1e32b89eaf4f4d4a154cffa8fe5c2cd06558294da14d6600b3afaa6d0cc1".to_string(),
-                created_at: 1_792_993_669,
                 expires_at: 1_792_997_269,
             }
         );
@@ -84,13 +79,13 @@ mod tests {
     fn test_send_amount() {
         let invoice = decode_invoice(INVOICE_2000_SATS).unwrap();
         let amountless = decode_invoice(INVOICE_AMOUNTLESS).unwrap();
-        let now = invoice.created_at;
+        let now = invoice.expires_at - 1;
 
         assert_eq!(send_amount(&invoice, 2000, now), Ok(2000));
         assert_eq!(send_amount(&invoice, 1000, now), Err(LightningError::AmountMismatch { invoice: 2000, requested: 1000 }));
         assert_eq!(send_amount(&invoice, 2000, invoice.expires_at), Err(LightningError::InvoiceExpired));
 
-        let now = amountless.created_at;
+        let now = amountless.expires_at - 1;
         assert_eq!(send_amount(&amountless, 500, now), Ok(500));
         assert_eq!(send_amount(&amountless, 0, now), Err(LightningError::AmountRequired));
     }

@@ -14,7 +14,7 @@ use tokio::sync::watch;
 
 use crate::address::SparkAddress;
 use crate::error::LightningError;
-use crate::invoice::{decode_invoice, requested_amount, send_amount};
+use crate::invoice::{requested_amount, send_amount};
 use crate::keys::AccountKey;
 use crate::mapper::map_transfer;
 use crate::model::{LightningInvoice, LightningPayment, LightningPaymentStatus, LightningSendQuote};
@@ -142,9 +142,8 @@ impl LightningWallet {
         Ok(self.wallet.get_balance().await?)
     }
 
-    pub async fn create_invoice(&self, amount_sats: Option<u64>) -> Result<LightningInvoice, LightningError> {
-        let payment = self.wallet.create_lightning_invoice(amount_sats.unwrap_or(AMOUNTLESS_INVOICE_SATS), None, None, None, false).await?;
-        decode_invoice(&payment.invoice)
+    pub async fn create_invoice(&self, amount_sats: Option<u64>) -> Result<String, LightningError> {
+        Ok(self.wallet.create_lightning_invoice(amount_sats.unwrap_or(AMOUNTLESS_INVOICE_SATS), None, None, None, false).await?.invoice)
     }
 
     pub async fn prepare_send(&self, invoice: LightningInvoice, amount_sats: u64) -> Result<LightningSendQuote, LightningError> {
@@ -162,32 +161,28 @@ impl LightningWallet {
             {
                 return Err(LightningError::AmountMismatch { invoice: recorded, requested });
             }
-            match self.resume(&pending).await? {
-                PendingSendState::Sent => return Ok(pending.transfer_id),
-                PendingSendState::Unsent => {}
+            match self.resume(&pending).await {
+                Ok(PendingSendState::Unsent) => {}
+                Ok(PendingSendState::Sent) | Err(_) => return Ok(pending.transfer_id),
             }
         }
         let transfer_id = TransferId::generate();
         let id = transfer_id.to_string();
+        let _in_flight = InFlight::begin(&id);
         self.database.add_pending_send(&PendingSend {
             transfer_id: id.clone(),
             invoice: quote.invoice.invoice.clone(),
             amount_sats: amount_to_send,
             expires_at: quote.invoice.expires_at,
         })?;
-        let _in_flight = InFlight::begin(&id);
         match Box::pin(self.wallet.pay_lightning_invoice(&quote.invoice.invoice, amount_to_send, Some(quote.fee_sats), false, Some(transfer_id))).await {
-            Ok(result) => {
-                let _ = self.database.delete_pending_send(&id);
-                Ok(result.transfer.id.to_string())
-            }
+            Ok(result) => Ok(result.transfer.id.to_string()),
             Err(error) => match self.payment(&id).await {
-                Ok(Some(_)) => Ok(id),
                 Ok(None) => {
                     let _ = self.database.delete_pending_send(&id);
                     Err(error.into())
                 }
-                Err(_) => Err(error.into()),
+                Ok(Some(_)) | Err(_) => Ok(id),
             },
         }
     }
@@ -203,6 +198,14 @@ impl LightningWallet {
 
     pub async fn has_received(&self, invoice: &str, limit: u64) -> Result<bool, LightningError> {
         Ok(self.payments(limit).await?.iter().any(|payment| payment.receives(invoice)))
+    }
+
+    pub async fn payment_status(&self, id: &str) -> Result<LightningPaymentStatus, LightningError> {
+        if let Some(payment) = self.payment(id).await? {
+            return Ok(payment.status);
+        }
+        let is_recorded = InFlight::contains(id) || self.database.get_pending_sends()?.iter().any(|send| send.transfer_id == id);
+        Ok(if is_recorded { LightningPaymentStatus::Pending } else { LightningPaymentStatus::Failed })
     }
 
     pub async fn payment(&self, id: &str) -> Result<Option<LightningPayment>, LightningError> {
@@ -273,6 +276,7 @@ mod chain_integration_tests {
     use primitives::hex::decode_hex;
 
     use super::*;
+    use crate::invoice::decode_invoice;
     use crate::keys::account_key;
     use crate::testkit::{ABANDON_SEED_HEX, IDENTITY_PUBLIC_KEY};
 
@@ -288,8 +292,8 @@ mod chain_integration_tests {
         assert_eq!(wallet.payment(&TransferId::generate().to_string()).await.unwrap(), None);
         assert_eq!(wallet.payment("transfer").await, Err(LightningError::InvalidTransfer));
 
-        assert_eq!(wallet.create_invoice(Some(1000)).await.unwrap().amount_sats, Some(1000));
-        assert_eq!(wallet.create_invoice(None).await.unwrap().amount_sats, None);
+        assert_eq!(decode_invoice(&wallet.create_invoice(Some(1000)).await.unwrap()).unwrap().amount_sats, Some(1000));
+        assert_eq!(decode_invoice(&wallet.create_invoice(None).await.unwrap()).unwrap().amount_sats, None);
         wallet.lock();
         assert!(wallet.create_invoice(Some(1000)).await.is_err());
     }

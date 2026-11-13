@@ -10,7 +10,6 @@ use std::sync::Arc;
 
 use chrono::Utc;
 use gem_spark::LightningError;
-use gem_spark::provider::LightningSessions;
 use primitives::{AssetId, Chain, Transaction, TransactionId, Wallet, WalletId};
 
 pub use details::GemTransactionDetailsService;

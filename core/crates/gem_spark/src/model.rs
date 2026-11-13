@@ -2,8 +2,6 @@
 pub struct LightningInvoice {
     pub invoice: String,
     pub amount_sats: Option<u64>,
-    pub payment_hash: String,
-    pub created_at: u64,
     pub expires_at: u64,
 }
 
