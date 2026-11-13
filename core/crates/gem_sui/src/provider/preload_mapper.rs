@@ -71,7 +71,7 @@ pub fn map_transaction_data(input: TransactionLoadInput, sui_coins: OwnedCoins<C
                 TransferInput {
                     sender: input.sender_address,
                     recipient: swap_data.data.to,
-                    amount: swap_data.data.value.to_u64().ok_or("Sui amount is too large")?,
+                    amount: input.value.to_u64().ok_or("Sui amount is too large")?,
                     coins: sui_coins,
                     send_max: false,
                     gas: Gas { budget: gas_budget, price: gas_price },
@@ -116,16 +116,24 @@ mod tests {
     use super::*;
     use crate::provider::testkit::TEST_ADDRESS_EMPTY;
     use num_bigint::BigUint;
-    use primitives::{Asset, AssetType, Chain, Delegation, StakeType, SwapProvider, TransactionInputType, TransactionLoadInput, asset_constants::SUI_USDC_ASSET_ID, swap::SwapData};
+    use primitives::{
+        Asset, AssetType, Chain, Delegation, StakeType, SwapProvider, TransactionInputType, TransactionLoadInput,
+        asset_constants::SUI_USDC_ASSET_ID,
+        swap::{SwapData, SwapQuoteData},
+    };
 
     #[test]
-    fn test_swap_transfer_uses_deposit_amount_and_recipient() {
+    fn test_swap_transfer_uses_confirmed_amount_and_deposit_recipient() {
         let input = TransactionLoadInput {
             input_type: TransactionInputType::Swap {
                 from_asset: Asset::from_chain(Chain::Sui),
                 to_asset: Asset::from_chain(Chain::Ton),
-                swap_data: SwapData::mock_transfer(SwapProvider::SwapsXyz, "2000000000", "1", TEST_ADDRESS_EMPTY),
+                swap_data: SwapData {
+                    data: SwapQuoteData::new_transfer(TEST_ADDRESS_EMPTY.to_string(), BigUint::from(5_000_000_000_u64), None),
+                    ..SwapData::mock_transfer(SwapProvider::SwapsXyz, "2000000000", "1", TEST_ADDRESS_EMPTY)
+                },
             },
+            value: BigUint::from(2_000_000_000_u64),
             is_max_value: true,
             ..TransactionLoadInput::mock()
         };
@@ -141,14 +149,18 @@ mod tests {
     }
 
     #[test]
-    fn test_token_swap_transfer_uses_deposit_amount_and_recipient() {
+    fn test_token_swap_transfer_uses_confirmed_amount_and_deposit_recipient() {
         let asset = Asset::new(SUI_USDC_ASSET_ID.clone(), "USDC".into(), "USDC".into(), 6, AssetType::TOKEN);
         let input = TransactionLoadInput {
             input_type: TransactionInputType::Swap {
                 from_asset: asset.clone(),
                 to_asset: Asset::from_chain(Chain::Ton),
-                swap_data: SwapData::mock_transfer(SwapProvider::NearIntents, "10000000", "1", TEST_ADDRESS_EMPTY),
+                swap_data: SwapData {
+                    data: SwapQuoteData::new_transfer(TEST_ADDRESS_EMPTY.to_string(), BigUint::from(15_000_000_u64), None),
+                    ..SwapData::mock_transfer(SwapProvider::NearIntents, "10000000", "1", TEST_ADDRESS_EMPTY)
+                },
             },
+            value: BigUint::from(10_000_000_u64),
             is_max_value: true,
             ..TransactionLoadInput::mock()
         };
