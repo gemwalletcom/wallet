@@ -1,12 +1,9 @@
 package com.gemwallet.android.data.services.gemstone.di
 
-import com.gemwallet.android.data.services.gemstone.stores.GemstoneAddressStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneTransactionStateStore
 import com.gemwallet.android.data.services.gemstone.transactions.TransactionStatusService
-import com.gemwallet.android.data.services.store.database.AddressesDao
 import com.gemwallet.android.data.services.store.database.StoreTransactionRunner
 import com.gemwallet.android.data.services.store.database.TransactionsDao
-import dagger.Lazy
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

@@ -1,6 +1,5 @@
 package com.gemwallet.android.ui.components.list_item
 
-import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row

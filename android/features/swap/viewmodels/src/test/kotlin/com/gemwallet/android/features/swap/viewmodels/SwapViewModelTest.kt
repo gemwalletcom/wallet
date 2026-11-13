@@ -75,7 +75,6 @@ import uniffi.gemstone.GemSwapQuoteProviders
 import uniffi.gemstone.GemSwapQuoteServiceInterface
 import uniffi.gemstone.GemSwapQuotesState
 import uniffi.gemstone.GemSwapRequest
-import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.InternalException
 import uniffi.gemstone.SwapProvider
 import uniffi.gemstone.SwapperException

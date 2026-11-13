@@ -7,7 +7,6 @@ import com.gemwallet.android.data.services.gemstone.perpetual.ObservePerpetualWa
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePerpetualStore
 import com.gemwallet.android.data.services.gemstone.stream.WebSocketConnection
 import com.gemwallet.android.data.services.gemstone.stream.WebSocketRequest
-import com.gemwallet.android.data.services.store.database.AssetsDao
 import com.gemwallet.android.data.services.store.database.BalancesDao
 import com.gemwallet.android.data.services.store.database.PerpetualDao
 import com.gemwallet.android.data.services.store.database.PerpetualPositionDao

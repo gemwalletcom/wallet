@@ -12,7 +12,6 @@ import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.model.toAmountParams
-import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.navigation.RouteArgument
@@ -30,7 +29,6 @@ import uniffi.gemstone.GemDelegationActionTarget
 import uniffi.gemstone.GemDelegationDestination
 import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemStakeServiceInterface
-import java.math.BigInteger
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)

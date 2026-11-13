@@ -2,7 +2,6 @@ package com.gemwallet.android.data.services.gemstone.di
 
 import android.content.Context
 import com.gemwallet.android.application.notifications.NotificationPermissionRequests
-import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.data.services.gemstone.notifications.GemstoneNotificationPermissions
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneBannerStore
 import com.gemwallet.android.data.services.store.database.BannersDao

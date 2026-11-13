@@ -6,7 +6,6 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import uniffi.gemstone.GemSupportService
 import uniffi.gemstone.GemSupportStore
 import javax.inject.Singleton
 

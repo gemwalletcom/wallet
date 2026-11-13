@@ -26,7 +26,6 @@ import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemChainSettingsServiceInterface
 import uniffi.gemstone.GemExplorerRow
 import uniffi.gemstone.GemNodeListSession
-import uniffi.gemstone.GemNodeStatusState
 import javax.inject.Inject
 
 @HiltViewModel

@@ -47,7 +47,6 @@ import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemRewardsServiceInterface
 import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.RewardStatus
-import uniffi.gemstone.Rewards
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(AndroidJUnit4::class)

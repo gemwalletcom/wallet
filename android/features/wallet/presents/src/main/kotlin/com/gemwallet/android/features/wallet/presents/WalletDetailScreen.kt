@@ -14,7 +14,6 @@ import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 import com.wallet.core.primitives.WalletId
 import uniffi.gemstone.GemSecretExport
 import uniffi.gemstone.GemWalletDeletion
-import uniffi.gemstone.GemWalletSecretKind
 
 @Composable
 fun WalletDetailScreen(

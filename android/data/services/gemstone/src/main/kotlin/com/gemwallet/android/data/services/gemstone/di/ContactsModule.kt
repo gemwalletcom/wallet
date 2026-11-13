@@ -7,7 +7,6 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import uniffi.gemstone.GemAddressStore
 import uniffi.gemstone.GemContactEditorService
 import uniffi.gemstone.GemContactEditorServiceInterface
 import uniffi.gemstone.GemContactService

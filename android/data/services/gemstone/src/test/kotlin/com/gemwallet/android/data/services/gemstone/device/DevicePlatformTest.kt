@@ -3,9 +3,7 @@ package com.gemwallet.android.data.services.gemstone.device
 import android.content.Context
 import androidx.core.app.NotificationManagerCompat
 import com.gemwallet.android.application.device.cases.RequestPushToken
-import com.gemwallet.android.data.services.store.ConfigStore
 import com.wallet.core.primitives.PlatformStore
-import dagger.Lazy
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -14,7 +12,6 @@ import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
 import io.mockk.verify
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -22,7 +19,6 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.GemDeviceKeyService
-import uniffi.gemstone.GemDeviceService
 import uniffi.gemstone.GemPreferencesService
 
 @OptIn(ExperimentalCoroutinesApi::class)

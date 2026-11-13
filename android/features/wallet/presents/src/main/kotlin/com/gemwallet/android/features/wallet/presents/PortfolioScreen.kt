@@ -29,7 +29,6 @@ import com.gemwallet.android.ui.components.RefreshOnTimer
 import com.gemwallet.android.ui.components.TabsBar
 import com.gemwallet.android.ui.components.chart.ChartSection
 import com.gemwallet.android.ui.components.list_item.GemListRowView
-import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox

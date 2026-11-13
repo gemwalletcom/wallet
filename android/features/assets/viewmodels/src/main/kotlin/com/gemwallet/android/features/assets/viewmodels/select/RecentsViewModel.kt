@@ -12,10 +12,7 @@ import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.data.services.store.queries.RecentActivityQuery
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.serializer.toJson
 import com.gemwallet.android.ui.format.gemDay
-import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.RecentActivityType
 import com.wallet.core.primitives.RecentAsset
 import dagger.hilt.android.lifecycle.HiltViewModel

@@ -15,7 +15,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.features.onboarding.viewmodels.import_wallet.ImportTabUIModel
 import com.gemwallet.android.model.ImportType
-import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.theme.alpha10
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.space0

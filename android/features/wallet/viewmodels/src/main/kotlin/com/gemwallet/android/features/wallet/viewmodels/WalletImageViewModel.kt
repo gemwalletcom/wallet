@@ -13,7 +13,6 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ui.components.image.EmojiAvatarRenderer
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.theme.AvatarEmoji
-import com.wallet.core.primitives.NFTAssetData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher

@@ -15,7 +15,6 @@ import com.gemwallet.android.data.services.store.queries.RecentActivityQuery
 import com.gemwallet.android.ext.GemConstants
 import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.ext.runCatchingCancellable
-import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.perpetuals.viewmodels.models.PerpetualPositionRowUIModel
@@ -23,8 +22,6 @@ import com.gemwallet.android.ui.components.screen.message
 import com.gemwallet.android.ui.models.ToastEmitter
 import com.gemwallet.android.ui.models.ToastEmitterImpl
 import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualId
 import com.wallet.core.primitives.RecentActivityType
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -59,7 +56,6 @@ import uniffi.gemstone.GemPerpetualServiceInterface
 import uniffi.gemstone.GemPerpetualSubscription
 import uniffi.gemstone.GemRefreshKind
 import uniffi.gemstone.GemValueHeader
-import uniffi.gemstone.PerpetualProvider
 import uniffi.gemstone.perpetualBalanceHeader
 import uniffi.gemstone.perpetualMarketQuery
 import uniffi.gemstone.perpetualMarketSections

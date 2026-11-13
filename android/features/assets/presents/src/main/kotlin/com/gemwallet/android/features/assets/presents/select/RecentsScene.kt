@@ -32,7 +32,6 @@ import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.SheetSizing
 import com.gemwallet.android.ui.theme.paddingDefault
-import com.wallet.core.primitives.AssetId
 import uniffi.gemstone.GemEmptyStateKind
 import uniffi.gemstone.GemRecentsViewState
 

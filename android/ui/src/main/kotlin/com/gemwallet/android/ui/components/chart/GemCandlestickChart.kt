@@ -42,7 +42,6 @@ import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.theme.alpha60
 import com.gemwallet.android.ui.theme.captionFontSize
-import com.gemwallet.android.ui.theme.pendingColor
 import com.gemwallet.android.ui.theme.space1
 import com.gemwallet.android.ui.theme.space12
 import com.gemwallet.android.ui.theme.space2

@@ -6,7 +6,6 @@ import com.gemwallet.android.data.services.gemstone.stores.GemstoneAssetStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneBalanceStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePortfolioStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePriceStore
-import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
 import com.gemwallet.android.data.services.gemstone.stream.GemstoneStreamConnection
 import com.gemwallet.android.data.services.gemstone.stream.StreamObserverService
 import com.gemwallet.android.data.services.gemstone.stream.WebSocketConnectable
@@ -16,7 +15,6 @@ import com.gemwallet.android.data.services.store.database.AssetsDao
 import com.gemwallet.android.data.services.store.database.BalancesDao
 import com.gemwallet.android.data.services.store.database.PricesDao
 import com.gemwallet.android.data.services.store.database.StoreTransactionRunner
-import com.gemwallet.android.math.fromHex
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -33,7 +31,6 @@ import uniffi.gemstone.GemAssetDetailsService
 import uniffi.gemstone.GemAssetDetailsServiceInterface
 import uniffi.gemstone.GemAssetStore
 import uniffi.gemstone.GemAssetsService
-import uniffi.gemstone.GemAssetsServiceInterface
 import uniffi.gemstone.GemBalanceService
 import uniffi.gemstone.GemBalanceStore
 import uniffi.gemstone.GemBannerService
@@ -50,12 +47,10 @@ import uniffi.gemstone.GemNavigationService
 import uniffi.gemstone.GemNavigationServiceInterface
 import uniffi.gemstone.GemNftService
 import uniffi.gemstone.GemNotificationService
-import uniffi.gemstone.GemNotificationStore
 import uniffi.gemstone.GemPerpetualService
 import uniffi.gemstone.GemPortfolioStore
 import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemPriceAlertService
-import uniffi.gemstone.GemPriceAlertStore
 import uniffi.gemstone.GemPriceService
 import uniffi.gemstone.GemReceiveService
 import uniffi.gemstone.GemReceiveServiceInterface
@@ -64,7 +59,6 @@ import uniffi.gemstone.GemStreamService
 import uniffi.gemstone.GemStreamServiceInterface
 import uniffi.gemstone.GemStreamSubscriptionService
 import uniffi.gemstone.GemSupportService
-import uniffi.gemstone.GemSupportStore
 import uniffi.gemstone.GemSwapService
 import uniffi.gemstone.GemSwapServiceInterface
 import uniffi.gemstone.GemTransactionsService

@@ -23,7 +23,6 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okio.buffer
 import okio.sink
-import uniffi.gemstone.GemAppUpdateService
 import uniffi.gemstone.GemAppUpdateServiceInterface
 import java.io.File
 import java.security.MessageDigest

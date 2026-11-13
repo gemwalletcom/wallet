@@ -10,10 +10,8 @@ import com.gemwallet.android.model.NotificationsAvailable
 import com.wallet.core.primitives.Platform
 import com.wallet.core.primitives.PlatformStore
 import uniffi.gemstone.GemDeviceInfo
-import uniffi.gemstone.GemDeviceKeyService
 import uniffi.gemstone.GemDeviceKeyServiceInterface
 import uniffi.gemstone.GemDevicePlatform
-import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemPreferencesServiceInterface
 import java.util.Locale
 
