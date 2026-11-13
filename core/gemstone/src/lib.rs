@@ -70,6 +70,12 @@ impl From<Box<dyn std::error::Error + Send + Sync>> for GemstoneError {
     }
 }
 
+impl From<gem_spark::LightningError> for GemstoneError {
+    fn from(error: gem_spark::LightningError) -> Self {
+        Self::AnyError { msg: error.to_string() }
+    }
+}
+
 impl From<&str> for GemstoneError {
     fn from(error: &str) -> Self {
         Self::AnyError { msg: error.to_string() }

@@ -243,7 +243,7 @@ impl LightningWallet {
             self.database.delete_pending_send(&send.transfer_id)?;
             return Ok(PendingSendState::Unsent);
         }
-        let transfer_id = TransferId::from_str(&send.transfer_id).map_err(LightningError::Storage)?;
+        let transfer_id = TransferId::from_str(&send.transfer_id).map_err(|_| LightningError::InvalidTransfer)?;
         let state = match Box::pin(self.wallet.resume_lightning_send(&transfer_id, &send.invoice, send.amount_sats)).await? {
             Some(_) => PendingSendState::Sent,
             None => match self.payment(&send.transfer_id).await?.map(|payment| payment.status) {

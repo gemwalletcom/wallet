@@ -70,10 +70,10 @@ build-ios-lib targets=IOS_RUST_TARGETS:
         echo "note: Building Gemstone Rust library for $rust_target ($profile)"
         case "$rust_target" in
             aarch64-apple-ios | aarch64-apple-ios-sim)
-                IPHONEOS_DEPLOYMENT_TARGET=17.0 cargo rustc --target "$rust_target" --lib ${build_flag} --crate-type staticlib
+                IPHONEOS_DEPLOYMENT_TARGET=17.0 LIBSQLITE3_SYS_USE_PKG_CONFIG=1 cargo rustc --target "$rust_target" --lib ${build_flag} --crate-type staticlib
                 ;;
             aarch64-apple-ios-macabi | aarch64-apple-darwin)
-                env -u IPHONEOS_DEPLOYMENT_TARGET cargo rustc --target "$rust_target" --lib ${build_flag} --crate-type staticlib
+                env -u IPHONEOS_DEPLOYMENT_TARGET LIBSQLITE3_SYS_USE_PKG_CONFIG=1 cargo rustc --target "$rust_target" --lib ${build_flag} --crate-type staticlib
                 ;;
             *)
                 echo "error: unsupported Gemstone iOS Rust target: $rust_target" >&2

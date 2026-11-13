@@ -10,8 +10,8 @@ use chrono::DateTime;
 use gem_hash::sha2::sha256;
 use num_bigint::{BigInt, BigUint};
 use primitives::{
-    AssetBalance, AssetId, BroadcastOptions, Chain, ChainRequest, ChainRequestType, ChainSigner, FeePriority, FeeRate, GasPriceType, SignerError, SignerInput, Transaction, TransactionFee, TransactionInputType, TransactionLoadData,
-    TransactionLoadInput, TransactionLoadMetadata, TransactionState, TransactionStateRequest, TransactionType, TransactionUpdate, hex,
+    AssetBalance, AssetId, BroadcastOptions, Chain, ChainSigner, FeePriority, FeeRate, GasPriceType, SignerError, SignerInput, Transaction, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput,
+    TransactionLoadMetadata, TransactionState, TransactionStateRequest, TransactionType, TransactionUpdate, hex,
 };
 use signer::{SignatureScheme, Signer};
 
@@ -248,11 +248,7 @@ impl ChainSigner for LightningChainSigner {
 
 pub struct BroadcastProvider;
 
-impl ChainRequestClassifier for BroadcastProvider {
-    fn classify_request(&self, _request: ChainRequest<'_>) -> ChainRequestType {
-        ChainRequestType::Unknown
-    }
-}
+impl ChainRequestClassifier for BroadcastProvider {}
 
 impl ChainTransactionDecode for BroadcastProvider {
     fn decode_transaction_broadcast(&self, _request: &[u8], _response: &str) -> Result<String, Box<dyn Error + Sync + Send>> {

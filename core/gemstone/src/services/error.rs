@@ -57,6 +57,15 @@ impl From<GemApiError> for GemServiceError {
     }
 }
 
+impl From<gem_spark::LightningError> for GemServiceError {
+    fn from(error: gem_spark::LightningError) -> Self {
+        match error {
+            gem_spark::LightningError::Locked => Self::Cancelled,
+            error => Self::core(error),
+        }
+    }
+}
+
 impl From<GatewayError> for GemServiceError {
     fn from(error: GatewayError) -> Self {
         match error {
