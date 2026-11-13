@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.imeAnimationSource
 import androidx.compose.foundation.layout.imeAnimationTarget
 import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -18,6 +20,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
+import androidx.compose.material3.Surface
 import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,15 +36,32 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
+import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.components.dialog.DialogBar
 import com.gemwallet.android.ui.components.dialog.DialogBarDismissType
 import com.gemwallet.android.ui.theme.SheetSizing
-import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.alpha20
+import com.gemwallet.android.ui.theme.alpha40
+import com.gemwallet.android.ui.theme.paddingSmall
+import com.gemwallet.android.ui.theme.space4
 
 enum class SheetExpansion {
     Partial,
     Full,
+}
+
+private val dragHandleWidth = 32.dp
+private val dragHandleHeight = space4
+
+@Composable
+fun SheetDragHandle(modifier: Modifier = Modifier) {
+    Surface(
+        modifier = modifier.padding(vertical = paddingSmall),
+        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = alpha40),
+        shape = MaterialTheme.shapes.extraLarge,
+    ) {
+        Box(Modifier.size(width = dragHandleWidth, height = dragHandleHeight))
+    }
 }
 
 @Composable
@@ -54,7 +74,7 @@ fun <T : Any> ModalBottomSheet(
     shape: Shape = RoundedCornerShape(topStart = SheetSizing.cornerSize, topEnd = SheetSizing.cornerSize),
     title: (@Composable (T) -> String)? = null,
     dismissType: DialogBarDismissType = DialogBarDismissType.Close,
-    dragHandle: (@Composable () -> Unit)? = { Box { Spacer16() } },
+    dragHandle: (@Composable () -> Unit)? = { SheetDragHandle() },
     content: @Composable ColumnScope.(T) -> Unit,
 ) {
     var closingItem by remember { mutableStateOf(item) }
@@ -88,7 +108,7 @@ fun ModalBottomSheet(
     title: String? = null,
     dismissType: DialogBarDismissType = DialogBarDismissType.Close,
     actions: @Composable RowScope.() -> Unit = {},
-    dragHandle: (@Composable () -> Unit)? = { Box { Spacer16() } },
+    dragHandle: (@Composable () -> Unit)? = { SheetDragHandle() },
     content: @Composable ColumnScope.() -> Unit,
 ) {
     var isPresented by remember { mutableStateOf(isVisible) }

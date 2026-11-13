@@ -21,6 +21,7 @@ val pendingColor = Color(0xffff9314)
 val emptyImageColor = Color(0xFF767A81)
 const val alpha10 = 0.1f
 const val alpha20 = 0.2f
+const val alpha40 = 0.4f
 const val alpha50 = 0.5f
 const val alpha60 = 0.6f
 
