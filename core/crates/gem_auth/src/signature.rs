@@ -33,7 +33,7 @@ fn verify_hash_signature(hash: &[u8; 32], signature: &str, expected_address: &st
 }
 
 fn recover_address_from_hash(hash: &[u8; 32], signature: &str) -> Option<String> {
-    let signature_bytes = hex::decode(signature.strip_prefix("0x").unwrap_or(signature)).ok()?;
+    let signature_bytes = hex::decode(signature).ok()?;
 
     if signature_bytes.len() != 65 {
         return None;

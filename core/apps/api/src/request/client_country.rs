@@ -1,5 +1,3 @@
-use std::convert::Infallible;
-
 use axum::extract::FromRequestParts;
 use http::request::Parts;
 use http::{HeaderMap, HeaderName};
@@ -10,7 +8,7 @@ const UNKNOWN_COUNTRY: &str = "XX";
 pub struct ClientCountry(pub Option<String>);
 
 impl<S: Send + Sync> FromRequestParts<S> for ClientCountry {
-    type Rejection = Infallible;
+    type Rejection = !;
 
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
         Ok(Self(country(&parts.headers)))

@@ -36,7 +36,7 @@ impl AddressTrait for SuiAddress {
     }
 
     fn is_valid(address: &str) -> bool {
-        hex::decode(address.strip_prefix("0x").unwrap_or(address)).is_ok_and(|bytes| bytes.len() == Address::LENGTH)
+        hex::decode(address.trim_prefix("0x")).is_ok_and(|bytes| bytes.len() == Address::LENGTH)
     }
 }
 

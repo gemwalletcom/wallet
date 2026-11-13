@@ -19,7 +19,7 @@ impl PaymentURLDecoder {
         let Some((scheme, path)) = uri.split_once(':') else {
             return bip21::decode(None, uri);
         };
-        let path = path.strip_prefix("//").unwrap_or(path);
+        let path = path.trim_prefix("//");
         let scheme = scheme.to_ascii_lowercase();
 
         if scheme == HTTPS_URL_SCHEME || scheme == WALLET_CONNECT_URL_SCHEME {

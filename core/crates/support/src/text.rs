@@ -105,7 +105,7 @@ impl SupportMessageLink {
             GEM_URL_SCHEME => Some(url.to_string()),
             HTTP_URL_SCHEME | HTTPS_URL_SCHEME => {
                 let host = parsed_url.host_str().non_empty()?;
-                if is_app_link { None } else { Some(host.strip_prefix("www.").unwrap_or(host).to_string()) }
+                if is_app_link { None } else { Some(host.trim_prefix("www.").to_string()) }
             }
             _ => return None,
         };
@@ -154,7 +154,7 @@ fn next_bare_url_start(text: &str, from: usize) -> Option<usize> {
 }
 
 fn starts_with_supported_url_scheme(text: &str) -> bool {
-    let text = text.strip_prefix('<').unwrap_or(text);
+    let text = text.trim_prefix('<');
     [HTTP_URL_SCHEME, HTTPS_URL_SCHEME, GEM_URL_SCHEME].into_iter().any(|scheme| starts_with_url_scheme(text, scheme))
 }
 

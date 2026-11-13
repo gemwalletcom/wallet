@@ -18,7 +18,7 @@ pub enum IpUsageType {
 }
 
 impl FromStr for IpUsageType {
-    type Err = std::convert::Infallible;
+    type Err = !;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let lower = s.to_lowercase();

@@ -20,7 +20,7 @@ fn op_return_memo(transaction: &Transaction) -> Option<String> {
         .iter()
         .filter(|o| !o.is_address)
         .flat_map(|o| o.addresses.as_deref().unwrap_or_default())
-        .find_map(|address| address.strip_prefix(OP_RETURN_PREFIX).map(|s| s.strip_prefix('(').unwrap_or(s)).map(|s| s.strip_suffix(')').unwrap_or(s)).map(String::from))
+        .find_map(|address| address.strip_prefix(OP_RETURN_PREFIX).map(|s| s.trim_prefix('(').trim_suffix(')')).map(String::from))
 }
 
 pub fn map_transaction(chain: Chain, transaction: &Transaction) -> Option<primitives::Transaction> {

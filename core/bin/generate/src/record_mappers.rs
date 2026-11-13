@@ -528,14 +528,14 @@ fn swift_records(directory: &Path) -> BTreeMap<String, Vec<Declared>> {
 }
 
 fn swift_struct(line: &str) -> Option<String> {
-    let rest = line.strip_prefix("public ").unwrap_or(line).strip_prefix("struct ")?;
+    let rest = line.trim_prefix("public ").strip_prefix("struct ")?;
     let name = rest.chars().take_while(|character| character.is_alphanumeric() || *character == '_').collect::<String>();
     (!name.is_empty()).then_some(name)
 }
 
 fn swift_property(line: &str) -> Option<Declared> {
     let line = line.split("//").next()?.trim();
-    let line = line.strip_prefix("public ").unwrap_or(line);
+    let line = line.trim_prefix("public ");
     let (is_var, rest) = match (line.strip_prefix("var "), line.strip_prefix("let ")) {
         (Some(rest), _) => (true, rest),
         (_, Some(rest)) => (false, rest),

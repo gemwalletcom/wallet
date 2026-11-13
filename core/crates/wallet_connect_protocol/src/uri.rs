@@ -21,7 +21,7 @@ impl PairingUri {
     pub fn parse(uri: &str, now: u64) -> Result<Self, ProtocolError> {
         let uri = percent_decode_lossy(uri.trim());
         let body = uri.strip_prefix(SCHEME).ok_or_else(|| invalid("scheme"))?;
-        let body = body.strip_prefix("//").unwrap_or(body);
+        let body = body.trim_prefix("//");
         let (topic, rest) = body.split_once('@').ok_or_else(|| invalid("topic"))?;
         let (version, query) = rest.split_once('?').ok_or_else(|| invalid("query"))?;
         if version != VERSION {

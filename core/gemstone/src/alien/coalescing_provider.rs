@@ -4,6 +4,7 @@ use async_trait::async_trait;
 use futures::channel::oneshot;
 use std::{
     collections::HashMap,
+    mem::DropGuard,
     sync::{Arc, Mutex, MutexGuard},
 };
 
@@ -41,35 +42,6 @@ impl CoalescingAlienProvider {
     }
 }
 
-struct RequestGuard<'a> {
-    requests: &'a Mutex<HashMap<RequestKey, RequestWaiters>>,
-    key: RequestKey,
-    active: bool,
-}
-
-impl<'a> RequestGuard<'a> {
-    fn new(requests: &'a Mutex<HashMap<RequestKey, RequestWaiters>>, key: RequestKey) -> Self {
-        Self { requests, key, active: true }
-    }
-
-    fn finish(&mut self) -> RequestWaiters {
-        self.active = false;
-        requests(self.requests).remove(&self.key).unwrap_or_default()
-    }
-}
-
-impl Drop for RequestGuard<'_> {
-    fn drop(&mut self) {
-        if self.active {
-            for waiter in requests(self.requests).remove(&self.key).unwrap_or_default() {
-                let _ = waiter.send(Err(AlienError::RequestError {
-                    msg: "Coalesced request was canceled".into(),
-                }));
-            }
-        }
-    }
-}
-
 fn requests(requests: &Mutex<HashMap<RequestKey, RequestWaiters>>) -> MutexGuard<'_, HashMap<RequestKey, RequestWaiters>> {
     match requests.lock() {
         Ok(requests) => requests,
@@ -101,9 +73,16 @@ impl AlienProvider for CoalescingAlienProvider {
             });
         }
 
-        let mut guard = RequestGuard::new(&self.requests, key);
+        let guard = DropGuard::new(key, |key| {
+            for waiter in requests(&self.requests).remove(&key).unwrap_or_default() {
+                let _ = waiter.send(Err(AlienError::RequestError {
+                    msg: "Coalesced request was canceled".into(),
+                }));
+            }
+        });
         let result = self.provider.request(target).await;
-        for waiter in guard.finish() {
+        let key = DropGuard::dismiss(guard);
+        for waiter in requests(&self.requests).remove(&key).unwrap_or_default() {
             let _ = waiter.send(result.clone());
         }
         result

@@ -38,7 +38,7 @@ pub fn decode_hex_utf8(value: &str) -> Option<String> {
 }
 
 pub fn decode_hex(value: &str) -> Result<Vec<u8>, HexError> {
-    let stripped = value.trim().strip_prefix("0x").unwrap_or_else(|| value.trim());
+    let stripped = value.trim().trim_prefix("0x");
     if stripped.is_empty() {
         return Ok(vec![]);
     }
