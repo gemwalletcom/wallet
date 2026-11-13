@@ -9,7 +9,6 @@ just build                      # Build the workspace
 just clean                      # Clean workspace build artifacts
 just build-gemstone             # Build cross-platform library
 just gemstone bindgen-swift     # Generate iOS Swift bindings (run in gemstone/)
-just gemstone prepare-ios-package # Copy the Swift bindings into the local Gemstone package (run in gemstone/)
 just gemstone build-android     # Build Android AAR (run in gemstone/)
 ```
 
@@ -80,14 +79,13 @@ Note: Mobile builds require UniFFI bindings generation and platform-specific com
 
 Apply [Cross-Platform Awareness](../../skills/cross-platform-awareness.md) to decide when generation and app verification are required, including UniFFI schema or configuration changes.
 
-For the apps, `just generate-stone` from the repo root builds the iOS library and bindings, and the Android Gradle build regenerates its own. The recipes below serve the standalone Gemstone example projects.
+For the apps, `just generate-stone` from the repo root builds the iOS library and bindings, and the Android Gradle build regenerates its own. The recipes below generate bindings on their own.
 
 ### Swift Bindings (iOS)
 ```sh
 just gemstone bindgen-swift     # Generate Swift bindings only (run in gemstone/)
-just gemstone prepare-ios-package # Copy Swift bindings into the local Gemstone package
 ```
-Generated files: `gemstone/generated/swift/`; the core iOS example copies these into `gemstone/tests/ios/Packages/Gemstone`.
+Generated files: `gemstone/generated/swift/`
 
 ### Kotlin Bindings (Android)
 ```sh
