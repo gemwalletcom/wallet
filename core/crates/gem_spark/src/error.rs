@@ -1,8 +1,6 @@
 use std::fmt;
 
 #[cfg(feature = "wallet")]
-use rusqlite::Error as SqliteError;
-#[cfg(feature = "wallet")]
 use spark_wallet::{SparkWalletError, TreeServiceError};
 
 #[derive(Debug, PartialEq)]
@@ -41,13 +39,6 @@ impl fmt::Display for LightningError {
 }
 
 impl std::error::Error for LightningError {}
-
-#[cfg(feature = "wallet")]
-impl From<SqliteError> for LightningError {
-    fn from(error: SqliteError) -> Self {
-        Self::Storage(error.to_string())
-    }
-}
 
 #[cfg(feature = "wallet")]
 impl From<SparkWalletError> for LightningError {

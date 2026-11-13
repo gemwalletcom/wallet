@@ -19,6 +19,7 @@ use crate::api::{GemApiClient, GemDeviceApiClient};
 use crate::keystore::GemKeystore;
 use crate::keystore::decode_password;
 use crate::lightning::GemLightningService;
+use crate::lightning::testkit::NoopLightningStore;
 use crate::services::asset_discovery::testkit::DiscoveryTestkit;
 use crate::services::avatar::GemAvatarService;
 use crate::services::explorer::GemExplorerService;
@@ -29,8 +30,6 @@ use crate::services::wallet_preferences::GemWalletPreferencesService;
 use crate::services::wallet_preferences::testkit::MemoryWalletPreferencesStore;
 use crate::services::wallet_session::GemWalletSessionService;
 use crate::testkit::TestAlienProvider;
-
-const LIGHTNING_DIRECTORY: &str = "lightning";
 
 pub const TEST_PASSWORD: &str = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f";
 
@@ -181,7 +180,7 @@ impl WalletTestkit {
             Arc::new(GemApiClient::new(Arc::new(TestAlienProvider::new(crate::alien::AlienResponse::new(None, Vec::new()))))),
             keystore.clone(),
             passwords.clone(),
-            directory.path().join(LIGHTNING_DIRECTORY).to_string_lossy().to_string(),
+            Arc::new(NoopLightningStore),
             discovery.balance,
             discovery.transactions,
             session.clone(),
@@ -218,10 +217,6 @@ impl WalletTestkit {
 
     pub fn keystore_path(&self, wallet: &Wallet) -> PathBuf {
         self.directory.path().join(format!("{}.json", keystore_id_for_wallet(wallet.id.id())))
-    }
-
-    pub fn lightning_path(&self, wallet: &Wallet) -> PathBuf {
-        self.directory.path().join(LIGHTNING_DIRECTORY).join(keystore_id_for_wallet(wallet.id.id()))
     }
 
     pub fn lock_out(&self, wallet: &Wallet) {

@@ -464,9 +464,6 @@ mod tests {
             let deleted = context.import("Deleted", PHRASE).await;
             let legacy_path = context.directory.path().join(rules::legacy_keystore_id(&deleted));
             fs::write(&legacy_path, "{}").unwrap();
-            fs::create_dir_all(context.lightning_path(&deleted)).unwrap();
-            fs::write(context.lightning_path(&deleted).join("spark.sqlite"), "").unwrap();
-            fs::create_dir_all(context.lightning_path(&kept)).unwrap();
             context.service.session.set_current_wallet_id(Some(deleted.id.clone())).unwrap();
 
             let outcome = context.service.delete_wallet(deleted.id.clone()).await.unwrap();
@@ -474,9 +471,7 @@ mod tests {
             assert_eq!(outcome, GemWalletDeletion::WalletsRemaining);
             assert!(!context.keystore_path(&deleted).exists());
             assert!(!legacy_path.exists());
-            assert!(!context.lightning_path(&deleted).exists());
             assert!(context.keystore_path(&kept).exists());
-            assert!(context.lightning_path(&kept).exists());
             assert_eq!(context.service.session.get_current_wallet_id().unwrap(), Some(kept.id.clone()));
 
             context.service.app_preferences.set_currency(Currency::EUR).unwrap();

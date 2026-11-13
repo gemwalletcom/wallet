@@ -1,6 +1,4 @@
 use std::collections::HashSet;
-use std::fs;
-use std::path::Path;
 use std::str::FromStr;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, LazyLock, Mutex, PoisonError};
@@ -8,7 +6,6 @@ use std::sync::{Arc, LazyLock, Mutex, PoisonError};
 use bitcoin::secp256k1::ecdsa::Signature;
 use bitcoin::secp256k1::{Message, PublicKey, Secp256k1};
 use primitives::time::unix_timestamp;
-use spark_sqlite::SqliteTreeStore;
 use spark_wallet::{ListTransfersRequest, Network, Order, PagingFilter, SparkSignerAdapter, SparkWallet, SparkWalletConfig, TransferId, WalletBuilder};
 use tokio::sync::watch;
 
@@ -20,9 +17,9 @@ use crate::mapper::map_transfer;
 use crate::model::{LightningInvoice, LightningPayment, LightningPaymentStatus, LightningSendQuote};
 use crate::partner::PartnerHeaders;
 use crate::signer::LockableSigner;
-use crate::store::{PendingSend, WalletDatabase};
+use crate::store::{LightningPendingSend, LightningStore};
+use crate::tree_store::StoredTreeStore;
 
-const DATABASE_FILE: &str = "spark.sqlite";
 const AMOUNTLESS_INVOICE_SATS: u64 = 0;
 const SIGNATURE_LEN: usize = 65;
 const COMPACT_SIGNATURE_LEN: usize = 64;
@@ -32,7 +29,7 @@ static IN_FLIGHT: LazyLock<Mutex<HashSet<String>>> = LazyLock::new(Mutex::defaul
 
 pub struct LightningWallet {
     wallet: Arc<SparkWallet>,
-    database: WalletDatabase,
+    store: Arc<dyn LightningStore>,
     lock: SessionLock,
 }
 
@@ -110,11 +107,8 @@ impl Drop for SendPermit<'_> {
 }
 
 impl LightningWallet {
-    pub async fn open(account: AccountKey, storage_dir: &Path, partner: Arc<PartnerHeaders>) -> Result<Self, LightningError> {
-        fs::create_dir_all(storage_dir).map_err(|error| LightningError::Storage(error.to_string()))?;
-        let path = storage_dir.join(DATABASE_FILE);
-        let tree_store = SqliteTreeStore::new(&path.to_string_lossy())?;
-        let database = WalletDatabase::open(&path)?;
+    pub async fn open(account: AccountKey, store: Arc<dyn LightningStore>, partner: Arc<PartnerHeaders>) -> Result<Self, LightningError> {
+        let tree_store = StoredTreeStore::open(store.clone()).await?;
         let signer = Arc::new(LockableSigner::new(&account));
         drop(account);
         let (cancel, cancel_receiver) = watch::channel(());
@@ -129,7 +123,7 @@ impl LightningWallet {
         wallet.start_background_processing().await;
         Ok(Self {
             wallet,
-            database,
+            store,
             lock: SessionLock::new(signer, cancel),
         })
     }
@@ -157,7 +151,7 @@ impl LightningWallet {
     pub async fn send(&self, quote: &LightningSendQuote) -> Result<String, LightningError> {
         let _permit = self.lock.begin_send()?;
         let amount = amount_to_send(&quote.invoice, quote.amount_sats, unix_timestamp())?;
-        if let Some(pending) = self.database.get_pending_sends()?.into_iter().find(|send| send.invoice == quote.invoice.invoice) {
+        if let Some(pending) = self.store.get_pending_sends().await?.into_iter().find(|send| send.invoice == quote.invoice.invoice) {
             if let (Some(recorded), Some(requested)) = (pending.amount_sats, amount)
                 && recorded != requested
             {
@@ -171,17 +165,19 @@ impl LightningWallet {
         let transfer_id = TransferId::generate();
         let id = transfer_id.to_string();
         let _in_flight = InFlight::begin(&id);
-        self.database.add_pending_send(&PendingSend {
-            transfer_id: id.clone(),
-            invoice: quote.invoice.invoice.clone(),
-            amount_sats: amount,
-            expires_at: quote.invoice.expires_at,
-        })?;
+        self.store
+            .add_pending_send(LightningPendingSend {
+                transfer_id: id.clone(),
+                invoice: quote.invoice.invoice.clone(),
+                amount_sats: amount,
+                expires_at: quote.invoice.expires_at,
+            })
+            .await?;
         match Box::pin(self.wallet.pay_lightning_invoice(&quote.invoice.invoice, amount, Some(quote.fee_sats), false, Some(transfer_id))).await {
             Ok(result) => Ok(result.transfer.id.to_string()),
             Err(error) => match self.payment(&id).await {
                 Ok(None) => {
-                    let _ = self.database.delete_pending_send(&id);
+                    let _ = self.store.delete_pending_send(id.clone()).await;
                     Err(error.into())
                 }
                 Ok(Some(_)) | Err(_) => Ok(id),
@@ -206,7 +202,7 @@ impl LightningWallet {
         if let Some(payment) = self.payment(id).await? {
             return Ok(payment.status);
         }
-        let is_recorded = self.database.get_pending_sends()?.iter().any(|send| send.transfer_id == id);
+        let is_recorded = self.store.get_pending_sends().await?.iter().any(|send| send.transfer_id == id);
         Ok(if is_recorded { LightningPaymentStatus::Pending } else { LightningPaymentStatus::Failed })
     }
 
@@ -234,18 +230,18 @@ impl LightningWallet {
     }
 
     async fn resume_pending_sends(&self) -> Result<(), LightningError> {
-        for send in self.database.get_pending_sends()? {
+        for send in self.store.get_pending_sends().await? {
             let _ = self.resume(&send).await;
         }
         Ok(())
     }
 
-    async fn resume(&self, send: &PendingSend) -> Result<PendingSendState, LightningError> {
+    async fn resume(&self, send: &LightningPendingSend) -> Result<PendingSendState, LightningError> {
         if InFlight::contains(&send.transfer_id) {
             return Ok(PendingSendState::Sent);
         }
         if send.expires_at <= unix_timestamp() {
-            self.database.delete_pending_send(&send.transfer_id)?;
+            self.store.delete_pending_send(send.transfer_id.clone()).await?;
             return Ok(PendingSendState::Unsent);
         }
         let transfer_id = TransferId::from_str(&send.transfer_id).map_err(|_| LightningError::InvalidTransfer)?;
@@ -258,7 +254,7 @@ impl LightningWallet {
         };
         match state {
             PendingSendState::Sent => {}
-            PendingSendState::Unsent => self.database.delete_pending_send(&send.transfer_id)?,
+            PendingSendState::Unsent => self.store.delete_pending_send(send.transfer_id.clone()).await?,
         }
         Ok(state)
     }
@@ -287,12 +283,12 @@ mod chain_integration_tests {
     use super::*;
     use crate::invoice::decode_invoice;
     use crate::keys::account_key;
-    use crate::testkit::{ABANDON_SEED_HEX, IDENTITY_PUBLIC_KEY};
+    use crate::testkit::{ABANDON_SEED_HEX, IDENTITY_PUBLIC_KEY, MemoryLightningStore};
 
     #[tokio::test]
     async fn test_lightning_wallet() {
-        let dir = primitives::testkit::temp_dir::TempDir::new().unwrap();
-        let wallet = LightningWallet::open(account_key(&decode_hex(ABANDON_SEED_HEX).unwrap()).unwrap(), dir.path(), Arc::default()).await.unwrap();
+        let store = Arc::new(MemoryLightningStore::default());
+        let wallet = LightningWallet::open(account_key(&decode_hex(ABANDON_SEED_HEX).unwrap()).unwrap(), store, Arc::default()).await.unwrap();
 
         assert_eq!(wallet.wallet.get_identity_public_key().to_string(), IDENTITY_PUBLIC_KEY);
         wallet.sync().await.unwrap();

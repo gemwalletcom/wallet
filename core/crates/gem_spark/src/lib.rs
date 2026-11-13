@@ -17,6 +17,8 @@ mod store;
 #[cfg(any(test, feature = "testkit"))]
 pub mod testkit;
 #[cfg(feature = "wallet")]
+mod tree_store;
+#[cfg(feature = "wallet")]
 mod wallet;
 
 pub use address::{IDENTITY_PATH, SparkAddress};
@@ -27,5 +29,7 @@ pub use keys::{AccountKey, account_key};
 pub use model::{LightningInvoice, LightningPayment, LightningPaymentDirection, LightningPaymentStatus, LightningSendQuote};
 #[cfg(feature = "wallet")]
 pub use partner::PartnerHeaders;
+#[cfg(feature = "wallet")]
+pub use store::{LightningLeaf, LightningPendingSend, LightningStore};
 #[cfg(feature = "wallet")]
 pub use wallet::LightningWallet;

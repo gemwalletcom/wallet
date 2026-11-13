@@ -1,6 +1,3 @@
-use std::fs;
-use std::io::ErrorKind;
-use std::path::PathBuf;
 use std::sync::Arc;
 
 use gem_spark::{LIGHTNING_SCHEME, LightningWallet, decode_invoice};
@@ -10,6 +7,7 @@ use primitives::{AddressFormatStyle, Asset, AssetId, Chain, Wallet, WalletId};
 use super::model::{GemLightningReceive, GemLightningReceiveState};
 use super::runtime::run;
 use super::sessions;
+use super::store::{GemLightningStore, WalletLightningStore};
 use crate::address_formatter::format_address;
 use crate::api::GemApiClient;
 use crate::keystore::{GemKeystore, decode_password, keystore_id_for_wallet};
@@ -27,7 +25,7 @@ pub struct GemLightningService {
     api: Arc<GemApiClient>,
     keystore: Arc<GemKeystore>,
     password: Arc<dyn GemKeystorePassword>,
-    storage_dir: PathBuf,
+    store: Arc<dyn GemLightningStore>,
     balances: Arc<GemBalanceService>,
     transactions: Arc<GemTransactionsService>,
     session: Arc<GemWalletSessionService>,
@@ -40,7 +38,7 @@ impl GemLightningService {
         api: Arc<GemApiClient>,
         keystore: Arc<GemKeystore>,
         password: Arc<dyn GemKeystorePassword>,
-        storage_dir: String,
+        store: Arc<dyn GemLightningStore>,
         balances: Arc<GemBalanceService>,
         transactions: Arc<GemTransactionsService>,
         session: Arc<GemWalletSessionService>,
@@ -49,7 +47,7 @@ impl GemLightningService {
             api,
             keystore,
             password,
-            storage_dir: PathBuf::from(storage_dir),
+            store,
             balances,
             transactions,
             session,
@@ -106,21 +104,7 @@ impl GemLightningService {
 impl GemLightningService {
     pub(crate) async fn delete_wallet(&self, wallet: &Wallet, delete_secrets: impl FnOnce() -> Result<(), GemServiceError>) -> Result<(), GemServiceError> {
         let address = wallet.account(Chain::Lightning).map(|account| account.address.as_str());
-        let storage_dir = self.wallet_storage_dir(&wallet.id);
-        sessions()
-            .close_and_remove(address, || {
-                match fs::remove_dir_all(storage_dir) {
-                    Ok(()) => {}
-                    Err(error) if error.kind() == ErrorKind::NotFound => {}
-                    Err(error) => return Err(GemServiceError::core(error)),
-                }
-                delete_secrets()
-            })
-            .await
-    }
-
-    fn wallet_storage_dir(&self, wallet_id: &WalletId) -> PathBuf {
-        self.storage_dir.join(keystore_id_for_wallet(wallet_id.id()))
+        sessions().close_and_remove(address, delete_secrets).await
     }
 
     async fn wallet(&self, wallet_id: WalletId) -> Result<Arc<LightningWallet>, GemServiceError> {
@@ -134,9 +118,9 @@ impl GemLightningService {
             .open(generation, address, || async {
                 let password = decode_password(&self.password.get_password(false)?);
                 let account = self.keystore.lightning_account_key(&keystore_id_for_wallet(wallet_id.id()), password)?;
-                let storage_dir = self.wallet_storage_dir(&wallet_id);
+                let store = Arc::new(WalletLightningStore::new(self.store.clone(), wallet_id.clone()));
                 let partner = sessions().partner();
-                let (_, wallet) = futures::join!(self.refresh_partner_token(), run(async move { LightningWallet::open(account, &storage_dir, partner).await }));
+                let (_, wallet) = futures::join!(self.refresh_partner_token(), run(async move { LightningWallet::open(account, store, partner).await }));
                 Ok(wallet?)
             })
             .await
