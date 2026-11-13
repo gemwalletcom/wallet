@@ -35,7 +35,7 @@ struct Amount {
 
 impl Amount {
     fn parse(value: &str) -> Option<Self> {
-        let value = value.strip_prefix('+').unwrap_or(value);
+        let value = value.trim_prefix('+');
         let (integer, fraction) = value.split_once('.').unwrap_or((value, ""));
         let units = format!("{integer}{fraction}");
 

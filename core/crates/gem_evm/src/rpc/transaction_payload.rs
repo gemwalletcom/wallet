@@ -149,7 +149,7 @@ impl TransactionPayload {
     fn erc1155_transfer(transaction_receipt: &TransactionReceipt) -> Option<NftTransferPayload> {
         let log = Self::log_with_topic(transaction_receipt, TRANSFER_SINGLE, 4, LogSearch::Last)?;
         let to = ethereum_address_from_topic(&log.topics[3])?;
-        let data = hex_value(&log.data);
+        let data = log.data.trim_prefix("0x");
         let token_id = BigUint::from_str_radix(data.get(0..64)?, 16).ok()?;
         let contract_address = ethereum_address_checksum(&log.address).ok()?;
 
@@ -169,16 +169,12 @@ impl TransactionPayload {
 }
 
 fn data_cost(input: &str) -> Option<u64> {
-    let bytes = hex::decode(hex_value(input)).ok()?;
+    let bytes = hex::decode_hex(input).ok()?;
     let data_cost = bytes.iter().map(|byte| if *byte == 0 { 4 } else { 68 }).sum();
 
     Some(data_cost)
 }
 
 fn biguint_from_hex(value: &str) -> Option<BigUint> {
-    BigUint::from_str_radix(hex_value(value), 16).ok()
-}
-
-fn hex_value(value: &str) -> &str {
-    value.strip_prefix("0x").unwrap_or(value)
+    BigUint::from_str_radix(value.trim_prefix("0x"), 16).ok()
 }

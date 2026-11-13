@@ -41,7 +41,7 @@ impl EthereumAddress {
 }
 
 pub fn validate_address(address: &str) -> bool {
-    let payload = address.strip_prefix("0x").unwrap_or(address);
+    let payload = address.trim_prefix("0x");
     if payload.bytes().any(|byte| byte.is_ascii_lowercase()) && payload.bytes().any(|byte| byte.is_ascii_uppercase()) {
         return Address::parse_checksummed(format!("0x{payload}"), None).is_ok();
     }

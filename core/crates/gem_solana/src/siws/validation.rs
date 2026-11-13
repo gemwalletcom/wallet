@@ -26,7 +26,7 @@ impl SiwsMessage {
         }
 
         if let Some(chain_id) = &self.chain_id {
-            let reference = chain_id.strip_prefix("solana:").unwrap_or(chain_id);
+            let reference = chain_id.trim_prefix("solana:");
             if reference != "mainnet" && reference != "mainnet-beta" && reference != chain.network_id() && Some(reference) != chain.network_id().get(..32) {
                 return Err("Chain ID mismatch".to_string());
             }

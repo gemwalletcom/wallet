@@ -30,7 +30,7 @@ pub(super) fn map_options(response: PaymentOptionsResponse, accounts: &[String])
 
 fn map_price(amount: &PaymentPriceAmount) -> Result<PaymentPrice, PaymentError> {
     Ok(PaymentPrice {
-        currency: amount.unit.strip_prefix(ISO4217_PREFIX).unwrap_or(&amount.unit).to_string(),
+        currency: amount.unit.trim_prefix(ISO4217_PREFIX).to_string(),
         amount: BigNumberFormatter::value_as_f64(&amount.value, amount.display.decimals).map_err(|_| PaymentError::invalid_request(format!("Invalid payment amount {}", amount.value)))?,
     })
 }

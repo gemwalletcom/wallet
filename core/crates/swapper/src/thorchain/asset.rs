@@ -70,7 +70,7 @@ impl THORChainAsset {
 
     pub fn swap_memo(&self, asset_name: &str, destination_address: String, minimum: i64, interval: i64, quantity: i64, fee_address: String, bps: u32) -> String {
         let address = match self.chain.chain() {
-            Chain::BitcoinCash => destination_address.strip_prefix(BITCOINCASH_PREFIX).unwrap_or(&destination_address),
+            Chain::BitcoinCash => destination_address.trim_prefix(BITCOINCASH_PREFIX),
             _ => destination_address.as_str(),
         };
         format!("=:{asset_name}:{address}:{minimum}/{interval}/{quantity}:{fee_address}:{bps}")

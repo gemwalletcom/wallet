@@ -1,4 +1,3 @@
-use std::convert::Infallible;
 use std::error::Error;
 use std::io;
 use std::net::SocketAddr;
@@ -25,7 +24,7 @@ pub struct ServeConfig {
 
 pub async fn serve<S>(service: S, address: SocketAddr, config: ServeConfig, mut shutdown: ShutdownReceiver) -> Result<(), Box<dyn Error + Send + Sync>>
 where
-    S: Service<http::Request<Incoming>, Response = Response, Error = Infallible> + Clone + Send + Sync + 'static,
+    S: Service<http::Request<Incoming>, Response = Response, Error = !> + Clone + Send + Sync + 'static,
     S::Future: Send,
 {
     let listener = TcpListener::bind(address).await.map_err(|error| format!("failed to bind {address}: {error}"))?;

@@ -12,7 +12,7 @@ impl Address {
 
     pub fn short(&self) -> &str {
         match self.chain {
-            Chain::BitcoinCash => self.value.strip_prefix(BITCOINCASH_PREFIX).unwrap_or(&self.value),
+            Chain::BitcoinCash => self.value.trim_prefix(BITCOINCASH_PREFIX),
             _ => &self.value,
         }
     }

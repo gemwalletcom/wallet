@@ -219,7 +219,7 @@ pub fn parse_value(type_name: &str, json_value: &Value, all_types: &HashMap<Stri
             "bytes" => {
                 // Dynamic bytes
                 let s = json_value.as_str().ok_or_else(|| format!("Expected hex string for bytes type, got: {json_value:?}"))?;
-                let bytes_vec = hex::decode(s.strip_prefix("0x").unwrap_or(s)).map_err(|e| format!("Invalid hex string for bytes type: {s}, error: {e}"))?;
+                let bytes_vec = hex::decode(s.trim_prefix("0x")).map_err(|e| format!("Invalid hex string for bytes type: {s}, error: {e}"))?;
                 Ok(EIP712TypedValue::Bytes { value: bytes_vec })
             }
             // Wildcard for uint<N>, int<N>, bytes<N>, and structs
@@ -233,7 +233,7 @@ pub fn parse_value(type_name: &str, json_value: &Value, all_types: &HashMap<Stri
                 } else if other_type_name.starts_with("bytes") {
                     // Fixed-size bytes<N>
                     let s = json_value.as_str().ok_or_else(|| format!("Expected hex string for bytes type '{other_type_name}', got: {json_value:?}"))?;
-                    let bytes_vec = hex::decode(s.strip_prefix("0x").unwrap_or(s)).map_err(|e| format!("Invalid hex string for bytes type '{other_type_name}': {s}, error: {e}"))?;
+                    let bytes_vec = hex::decode(s.trim_prefix("0x")).map_err(|e| format!("Invalid hex string for bytes type '{other_type_name}': {s}, error: {e}"))?;
                     Ok(EIP712TypedValue::Bytes { value: bytes_vec })
                 } else {
                     // Assume it's a struct type defined in 'all_types'

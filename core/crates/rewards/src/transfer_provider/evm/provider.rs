@@ -33,7 +33,7 @@ impl EvmTransferProvider {
     }
 
     fn get_private_key(&self, wallet: &WalletConfig) -> Result<Vec<u8>, Box<dyn Error + Send + Sync>> {
-        let key = hex::decode(wallet.key.trim_start_matches("0x"))?;
+        let key = hex::decode(&wallet.key)?;
         if key.len() != 32 {
             return Err("Private key must be 32 bytes".into());
         }
