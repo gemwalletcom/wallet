@@ -43,7 +43,7 @@ fun EntryProviderScope<NavKey>.swapSelect(navigator: WalletNavigator, onCancel: 
 
 fun EntryProviderScope<NavKey>.swap(navigator: WalletNavigator, onConfirm: (ConfirmTransferInput) -> Unit, onSelect: (select: SwapItemType, payAssetId: AssetId?, receiveAssetId: AssetId?) -> Unit, onCancel: () -> Unit) {
     entry<SwapRoute> {
-        swapScreenContent(navigator, SwapRoute, onConfirm, onSelect, onCancel)
+        SwapScreenContent(navigator, SwapRoute, onConfirm, onSelect, onCancel)
     }
 
     entry<SwapPairRoute>(
@@ -54,12 +54,12 @@ fun EntryProviderScope<NavKey>.swap(navigator: WalletNavigator, onConfirm: (Conf
             )
         },
     ) { key ->
-        swapScreenContent(navigator, key, onConfirm, onSelect, onCancel)
+        SwapScreenContent(navigator, key, onConfirm, onSelect, onCancel)
     }
 }
 
 @Composable
-private fun swapScreenContent(navigator: WalletNavigator, route: NavKey, onConfirm: (ConfirmTransferInput) -> Unit, onSelect: (select: SwapItemType, payAssetId: AssetId?, receiveAssetId: AssetId?) -> Unit, onCancel: () -> Unit) {
+private fun SwapScreenContent(navigator: WalletNavigator, route: NavKey, onConfirm: (ConfirmTransferInput) -> Unit, onSelect: (select: SwapItemType, payAssetId: AssetId?, receiveAssetId: AssetId?) -> Unit, onCancel: () -> Unit) {
     val selection = navigator.swapSelection(route)
     SwapScreen(
         select = selection?.itemType,

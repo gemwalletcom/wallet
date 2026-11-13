@@ -113,7 +113,6 @@ class SupportChatViewModel @Inject constructor(
     }
 
     override fun onCleared() {
-        super.onCleared()
         clearSupportTyping.clearTyping()
     }
 

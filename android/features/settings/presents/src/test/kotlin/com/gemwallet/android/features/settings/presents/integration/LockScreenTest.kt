@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.settings.presents.integration
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
@@ -67,6 +68,7 @@ class LockScreenTest {
         composeRule.onAllNodes(hasText("Receive")).assertCountEquals(1)
     }
 
+    @SuppressLint("UnusedBoxWithConstraintsScope")
     private fun setLockedContent() {
         composeRule.setContent {
             WalletTheme {
