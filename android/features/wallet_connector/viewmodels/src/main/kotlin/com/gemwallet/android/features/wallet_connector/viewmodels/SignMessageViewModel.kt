@@ -42,7 +42,7 @@ class SignMessageViewModel @AssistedInject constructor(
 
     private val isSigning = MutableStateFlow(false)
 
-    private val preview = SignMessageUIState(request, applicationConnectionRow(request.appMetadata.toGem()), signMessageService, ReviewTexts(context), context)
+    private val preview = SignMessageUIState(request, applicationConnectionRow(request.appMetadata.toGem()), signMessageService, ReviewTexts(context))
 
     val uiState: StateFlow<SignMessageUIState> = flow { emit(preview.withAddressNames()) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, preview)
