@@ -13,11 +13,8 @@ public struct QRScannerScene: View {
 
     @State private var model: QRScannerSceneViewModel
 
-    private let action: (String) -> Void
-
-    public init(scanType: QRScanType, action: @escaping (String) -> Void) {
-        self.action = action
-        _model = State(initialValue: QRScannerSceneViewModel(scanType: scanType))
+    public init(model: QRScannerSceneViewModel) {
+        _model = State(initialValue: model)
     }
 
     public var body: some View {
@@ -67,7 +64,11 @@ public struct QRScannerScene: View {
             model.onChangeScannerReadyStatus,
         )
         .onChange(of: scenePhase, model.onScenePhaseChange)
-        .onChange(of: model.selectedPhoto, onLoadPhoto)
+        .task(id: model.selectedPhoto) {
+            if await model.scanSelectedPhoto() {
+                dismiss()
+            }
+        }
     }
 
     @ViewBuilder
@@ -118,20 +119,8 @@ extension QRScannerScene {
         openURL(settingsURL)
     }
 
-    private func onLoadPhoto(_: PhotosPickerItem?, _ newValue: PhotosPickerItem?) {
-        guard let newValue else { return }
-        model.selectedPhoto = nil
-        Task {
-            if let code = await model.retrieveQRCode(photoItem: newValue) {
-                onScan(code)
-            } else {
-                model.showDecodingError()
-            }
-        }
-    }
-
     private func onScan(_ code: String) {
-        action(code)
+        model.onScan(code)
         dismiss()
     }
 }
