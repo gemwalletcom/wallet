@@ -12,7 +12,7 @@ const STAKE_ACCOUNT_RENT: u64 = 1_666_240;
 
 pub fn calculate_transaction_fee(input_type: &TransactionInputType, gas_price_type: &GasPriceType, recipient_token_address: Option<String>, token_program: Option<&SolanaTokenProgramId>) -> TransactionFee {
     let mut options = HashMap::new();
-    if recipient_token_address.is_none() && moves_token_to_recipient(input_type, token_program) {
+    if recipient_token_address.is_none() && recipient_mint(input_type, token_program).is_some() {
         options.insert(FeeOption::TokenAccountCreation, BigInt::from(input_type.get_asset().id.chain.token_activation_fee().unwrap_or(0)));
     }
     if let TransactionInputType::Stake { stake_type: StakeType::Stake(_), .. } = input_type {
@@ -21,12 +21,17 @@ pub fn calculate_transaction_fee(input_type: &TransactionInputType, gas_price_ty
     TransactionFee::new_gas_price_type(gas_price_type.clone(), gas_price_type.total_fee(), get_gas_limit(input_type), options, AssetId::from_chain(Chain::Solana))
 }
 
-fn moves_token_to_recipient(input_type: &TransactionInputType, token_program: Option<&SolanaTokenProgramId>) -> bool {
-    if let TransactionInputType::TransferNft { .. } = input_type {
-        return token_program.is_some();
+pub(crate) fn recipient_mint<'a>(input_type: &'a TransactionInputType, token_program: Option<&SolanaTokenProgramId>) -> Option<&'a str> {
+    match input_type {
+        TransactionInputType::TransferNft { nft_asset, .. } => token_program.map(|_| nft_asset.token_id.as_str()),
+        _ => {
+            let recipient = input_type.get_recipient_asset();
+            match recipient.chain() {
+                Chain::Solana => recipient.id.token_id.as_deref(),
+                _ => None,
+            }
+        }
     }
-    let recipient_asset = input_type.get_recipient_asset();
-    recipient_asset.chain() == Chain::Solana && recipient_asset.id.token_subtype() == AssetSubtype::TOKEN
 }
 
 fn get_gas_limit(input_type: &TransactionInputType) -> BigInt {

@@ -3,9 +3,9 @@ use chain_traits::{ChainTransactionLoad, TransactionFeeOperation};
 use std::error::Error;
 
 use crate::constants::{DEFAULT_GAS_LIMIT, DEFAULT_SWAP_GAS_LIMIT};
-use crate::provider::preload_mapper::{calculate_fee_rates, calculate_transaction_fee};
+use crate::provider::preload_mapper::{calculate_fee_rates, calculate_transaction_fee, recipient_mint};
 use gem_client::Client;
-use primitives::{Chain, FeeRate, SolanaNftStandard, SolanaTokenProgramId, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput};
+use primitives::{FeeRate, SolanaNftStandard, SolanaTokenProgramId, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput};
 
 use crate::{
     METAPLEX_CORE_PROGRAM, get_token_program_id_by_address,
@@ -42,23 +42,17 @@ impl<C: Client + Clone> ChainTransactionLoad for SolanaProvider<C> {
             _ => (sender_address.as_str(), destination_address.as_str()),
         };
 
-        let (sender_mint, recipient_mint, token_program, nft) = match &input_type {
+        let (sender_mint, token_program, nft) = match &input_type {
             TransactionInputType::TransferNft { nft_asset, .. } => {
                 let SolanaNftPreload { token_program, standard } = self.detect_solana_nft(&nft_asset.token_id).await?;
-                let mint = token_program.is_some().then_some(nft_asset.token_id.as_str());
-                (mint, mint, token_program, Some(standard))
+                (token_program.is_some().then_some(nft_asset.token_id.as_str()), token_program, Some(standard))
             }
             _ => {
                 let source = input_type.get_asset();
-                let recipient = input_type.get_recipient_asset();
-                let sender_mint = source.id.token_id.as_deref();
-                let recipient_mint = match recipient.chain() {
-                    Chain::Solana => recipient.id.token_id.as_deref(),
-                    _ => None,
-                };
-                (sender_mint, recipient_mint, SolanaTokenProgramId::from_asset_type(&source.asset_type), None)
+                (source.id.token_id.as_deref(), SolanaTokenProgramId::from_asset_type(&source.asset_type), None)
             }
         };
+        let recipient_mint = recipient_mint(&input_type, token_program.as_ref());
 
         let sender_token_future = async {
             match sender_mint {
