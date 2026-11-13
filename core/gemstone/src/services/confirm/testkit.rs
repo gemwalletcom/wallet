@@ -12,6 +12,7 @@ use crate::gateway::GemGateway;
 use crate::keystore::GemKeystore;
 use crate::keystore::{GemImportType, decode_password};
 use crate::payment::GemPaymentService;
+use crate::services::assets::rules::default_asset_basic;
 use crate::services::assets::{GemAssetFilter, GemAssetStore, GemAssetsService};
 use crate::services::balance::testkit::MemoryBalanceStore;
 use crate::services::balance::{GemAssetBalance, GemBalanceService};
@@ -180,8 +181,8 @@ impl GemAssetStore for MemoryAssetStore {
     async fn get_asset_ids(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetId>, GemServiceError> {
         Ok(asset_ids)
     }
-    async fn get_asset_basics(&self, _asset_ids: Vec<AssetId>) -> Result<Vec<AssetBasic>, GemServiceError> {
-        Ok(vec![])
+    async fn get_asset_basics(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetBasic>, GemServiceError> {
+        Ok(self.get_assets(asset_ids).await?.into_iter().map(default_asset_basic).collect())
     }
     async fn get_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<Asset>, GemServiceError> {
         Ok(asset_ids.into_iter().map(|id| Asset::from_chain(id.chain)).collect())

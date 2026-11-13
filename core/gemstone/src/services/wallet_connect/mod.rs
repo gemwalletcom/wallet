@@ -274,7 +274,7 @@ impl GemWalletConnectService {
                 let simulation = self.simulation.simulate_sign_message(chain, sign_type.clone(), data.clone(), domain.clone()).await?;
                 let payload = scan_rules::sign_message_payload(chain, &account.address, &simulation, domain);
                 let (assets, scan) = futures::join!(self.assets.ensure_simulation_assets(simulation.asset_ids()), self.scanner.scan(payload.clone()));
-                let assets = assets?;
+                let assets = assets?.into_iter().map(|basic| basic.asset).collect();
                 let simulation = match scan_rules::sign_message_verdict(scan.as_ref(), &payload) {
                     SignMessageVerdict::MaliciousWebsite => return Ok(GemWalletConnectOutcome::failed(GemWalletConnectFailure::MaliciousOrigin)),
                     SignMessageVerdict::SuspiciousSpender => scan_rules::with_suspicious_spender(simulation),

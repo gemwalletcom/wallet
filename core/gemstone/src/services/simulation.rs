@@ -14,15 +14,16 @@ use gem_ton::rpc::client::TonClient;
 use gem_tron::rpc::{TronProvider, client::TronClient};
 use gem_wallet_connect::{EvmTransactionKind, SignDigestType, WCEthereumTransactionData, WalletConnectTransactionType};
 use primitives::{
-    AddressName, AssetId, BlockExplorerLink, Chain, ChainAddress, EVMChain, Resource, SimulationInput, SimulationPayloadField, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult, SimulationSeverity, SimulationWarning,
-    SimulationWarningType, TransactionType,
+    AddressName, AssetBasic, AssetId, BlockExplorerLink, Chain, ChainAddress, EVMChain, Resource, SimulationBalanceChange, SimulationInput, SimulationPayloadField, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult,
+    SimulationSeverity, SimulationWarning, SimulationWarningType, TransactionType, VerificationStatus,
 };
 
 use crate::duration_formatter::{GemDurationPart, countdown_parts};
 use crate::formatted_number::GemValueTone;
 use crate::models::copy::{GemCopy, address_copy};
 use crate::models::custom_types::GemBigInt;
-use crate::models::list::{GemListFieldValue, GemListRow, GemListRowTitle, GemNoticeKind, GemRowMenuItem, suspicious_address_title};
+use crate::models::list::{GemListFieldValue, GemListRow, GemListRowTitle, GemNoticeKind, GemRowMenuItem, asset_status_notice, suspicious_address_title};
+use crate::services::assets::rules::verification_status;
 use crate::services::localization::GemLocalizedText;
 use crate::{
     GemstoneError,
@@ -444,6 +445,21 @@ pub fn warning_rows(warnings: &[SimulationWarning]) -> Vec<GemListRow> {
         .collect()
 }
 
+pub fn asset_status_rows(changes: &[SimulationBalanceChange], assets: &[AssetBasic]) -> Vec<GemListRow> {
+    let statuses: HashSet<VerificationStatus> = changes
+        .iter()
+        .filter(|change| change.value > GemBigInt::ZERO)
+        .filter_map(|change| assets.iter().find(|basic| basic.asset.id == change.asset_id))
+        .filter_map(|basic| verification_status(&basic.asset, basic.score.rank))
+        .collect();
+    [VerificationStatus::Suspicious, VerificationStatus::Unverified]
+        .into_iter()
+        .find(|status| statuses.contains(status))
+        .and_then(asset_status_notice)
+        .into_iter()
+        .collect()
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct GemSimulationChange {
     pub asset_id: AssetId,
@@ -455,10 +471,11 @@ mod tests {
     use super::*;
     use crate::duration_formatter::GemDurationUnit;
     use crate::models::list::suspicious_address_notice;
+    use crate::services::assets::rules::default_asset_basic;
     use crate::services::node::GemNodeService;
     use crate::testkit::{TestAlienProvider, mock_wc_ethereum_transaction_data};
     use num_bigint::BigInt;
-    use primitives::{AddressType, SimulationBalanceChange, SimulationPayloadFieldDisplay, SimulationWarningApproval, VerificationStatus};
+    use primitives::{AddressType, Asset, AssetProperties, AssetScore, AssetType, SimulationPayloadFieldDisplay, SimulationWarningApproval};
 
     #[test]
     fn test_warning_rows_hide_bounded_approvals_and_keep_every_other_warning() {
@@ -547,6 +564,31 @@ mod tests {
 
         assert_eq!(result.header, None, "an approval that also sends coins leads with the coins, not the approval");
         assert_eq!(result.balance_changes, sent.balance_changes);
+    }
+
+    #[test]
+    fn test_asset_status_rows_flag_incoming_tokens_gem_has_not_verified() {
+        let token = |token_id: &str, symbol: &str| Asset::new(AssetId::from_token(Chain::Solana, token_id), symbol.to_string(), symbol.to_string(), 6, AssetType::SPL);
+        let fake = token("FakeMint1111111111111111111111111111111111111", "USDC");
+        let other_fake = token("FakeMint2222222222222222222222222222222222222", "USDT");
+        let spam = token("SpamMint1111111111111111111111111111111111111", "SPAM");
+        let outgoing = token("OutMint11111111111111111111111111111111111111", "OUT");
+        let usdc = primitives::known_assets::SOLANA_USDC.clone();
+        let sol = Asset::from_chain(Chain::Solana);
+        let assets = vec![
+            default_asset_basic(fake.clone()),
+            default_asset_basic(other_fake.clone()),
+            AssetBasic::new(spam.clone(), AssetProperties::default(spam.id.clone()), AssetScore::new(1)),
+            default_asset_basic(outgoing.clone()),
+            AssetBasic::new(usdc.clone(), AssetProperties::default(usdc.id.clone()), AssetScore::new(34)),
+            AssetBasic::new(sol.clone(), AssetProperties::default(sol.id.clone()), AssetScore::new(0)),
+        ];
+        let change = |asset: &Asset, value: i64| SimulationBalanceChange::mock(asset.id.clone(), BigInt::from(value), 6);
+        let notice = |status| asset_status_notice(status).unwrap();
+
+        assert_eq!(asset_status_rows(&[change(&usdc, 10), change(&sol, 1), change(&outgoing, -5)], &assets), vec![]);
+        assert_eq!(asset_status_rows(&[change(&usdc, -10), change(&fake, 10), change(&other_fake, 10)], &assets), vec![notice(VerificationStatus::Unverified)]);
+        assert_eq!(asset_status_rows(&[change(&fake, 10), change(&spam, 1)], &assets), vec![notice(VerificationStatus::Suspicious)], "the worst status wins");
     }
 
     #[test]

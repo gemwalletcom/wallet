@@ -172,6 +172,8 @@ public extension GemLocalizedText {
             Localized.Simulation.warningExternallyOwnedSpenderDescription
         case .suspiciousAddressDescription:
             Localized.Common.suspiciousAddressDescription
+        case .suspiciousAssetDescription:
+            Localized.Banner.AssetStatus.description
         case let .addressType(addressType):
             addressType.title
         case .invalidTokenId:
@@ -921,6 +923,7 @@ public extension GemListRowTitle {
         case .suspiciousAddress: Localized.Common.suspiciousAddress
         case .unlimitedApproval: Localized.Simulation.Warning.UnlimitedTokenApproval.title
         case .nftCollectionApproval: Localized.Simulation.Warning.NftCollectionApproval.title
+        case .suspiciousAsset: Localized.Banner.AssetStatus.title
         case .symbol: Localized.Asset.symbol
         case .decimals: Localized.Asset.decimals
         case .type: Localized.Common.type
