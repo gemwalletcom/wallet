@@ -42,15 +42,12 @@ export LIB_NAME := "gemstone"
 export DY_LIB_NAME := if os() == "macos" { "libgemstone.dylib" } else { "libgemstone.so" }
 
 export BUILD_MODE := if env("BUILD_MODE", "debug") == "release" { "release" } else { "debug" }
-export XCODE_CONFIGURATION := if BUILD_MODE == "release" { "Release" } else { "Debug" }
 CARGO_BUILD_FLAG := if BUILD_MODE == "release" { "--release" } else { "" }
 
 export TARGET_DIR := "../target"
 export GEN_SWIFT_FOLDER := "generated/swift"
 export GEN_KOTLIN_FOLDER := "generated/kotlin"
 export ANDROID_MODULE_FOLDER := "android/gemstone/src/main/java"
-export IOS_PACKAGE_FOLDER := "tests/ios/Packages/Gemstone"
-export IOS_DERIVED_DATA := "tests/ios/build/DerivedData"
 export IOS_SIMULATOR_RUST_TARGET := "aarch64-apple-ios-sim"
 export IOS_RUST_TARGETS := IOS_SIMULATOR_RUST_TARGET + " aarch64-apple-ios aarch64-apple-ios-macabi aarch64-apple-darwin"
 
@@ -61,10 +58,6 @@ build-ios-lib targets=IOS_RUST_TARGETS:
     targets="{{targets}}"
     profile="${BUILD_MODE}"
     build_flag="{{CARGO_BUILD_FLAG}}"
-
-    products_dir="$PWD/${IOS_DERIVED_DATA}/Build/Products/$XCODE_CONFIGURATION-iphonesimulator"
-    mkdir -p "$products_dir"
-    built_simulator=0
 
     for rust_target in $targets; do
         echo "note: Building Gemstone Rust library for $rust_target ($profile)"
@@ -80,16 +73,7 @@ build-ios-lib targets=IOS_RUST_TARGETS:
                 exit 1
                 ;;
         esac
-
-        if [ "$rust_target" = "${IOS_SIMULATOR_RUST_TARGET}" ]; then
-            built_simulator=1
-        fi
     done
-
-    if [ "$built_simulator" -eq 1 ]; then
-        cp "${TARGET_DIR}/${IOS_SIMULATOR_RUST_TARGET}/$profile/libgemstone.a" "$products_dir/libgemstone.a"
-        echo "note: Gemstone Rust library ready at $products_dir/libgemstone.a"
-    fi
 
 build-ios-simulator-lib: (build-ios-lib IOS_SIMULATOR_RUST_TARGET)
 
@@ -104,12 +88,6 @@ _generate-bindings LANGUAGE OUTPUT:
     cargo run -p uniffi-bindgen -- generate --language {{LANGUAGE}} --crate ${LIB_NAME} --no-format -o "{{OUTPUT}}" "$library"
 
 bindgen-swift: (_generate-bindings "swift" GEN_SWIFT_FOLDER)
-
-prepare-ios-package: bindgen-swift
-    #!/usr/bin/env bash
-    mkdir -p ${IOS_PACKAGE_FOLDER}/Sources/Gemstone ${IOS_PACKAGE_FOLDER}/Sources/GemstoneFFI/include
-    cp ${GEN_SWIFT_FOLDER}/gemstone.swift ${IOS_PACKAGE_FOLDER}/Sources/Gemstone/Gemstone.swift
-    cp ${GEN_SWIFT_FOLDER}/GemstoneFFI.h ${IOS_PACKAGE_FOLDER}/Sources/GemstoneFFI/include/GemstoneFFI.h
 
 bindgen-kotlin: (_generate-bindings "kotlin" GEN_KOTLIN_FOLDER)
     #!/usr/bin/env bash
