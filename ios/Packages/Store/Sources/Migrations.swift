@@ -520,8 +520,8 @@ struct Migrations {
             try db.addColumnIfMissing(AssetRecord.Columns.hasCandles.name, .boolean, to: AssetRecord.databaseTableName) { $0.defaults(to: false) }
         }
 
-        migrator.registerMigration("Remove sei, blast and abstract") { db in
-            try db.removeDeprecatedChains(["sei", "blast", "abstract"])
+        migrator.registerMigration("Remove sei and blast") { db in
+            try db.removeDeprecatedChains(["sei", "blast"])
         }
 
         try migrator.migrate(writer)

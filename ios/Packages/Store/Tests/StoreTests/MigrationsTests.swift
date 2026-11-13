@@ -246,7 +246,7 @@ struct MigrationsTests {
             INSERT INTO \(PriceRecord.databaseTableName) (assetId) VALUES ('blast'), ('blast_0xtoken'), ('sei'), ('seievm'), ('seievm_0xtoken');
             INSERT INTO \(BalanceRecord.databaseTableName) (assetId, walletId) VALUES ('blast_0xtoken', 'multicoin_0x1'), ('seievm_0xtoken', 'multicoin_0x1');
             """)
-            try db.execute(sql: "DELETE FROM grdb_migrations WHERE identifier = ?", arguments: ["Remove sei, blast and abstract"])
+            try db.execute(sql: "DELETE FROM grdb_migrations WHERE identifier = ?", arguments: ["Remove sei and blast"])
         }
 
         var upgrade = Migrations()
