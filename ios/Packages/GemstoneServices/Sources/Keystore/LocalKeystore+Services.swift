@@ -71,6 +71,7 @@ public extension LocalKeystore {
     }
 
     func lightningService(
+        api: GemApiClient,
         storageDir: String,
         balances: GemBalanceService,
         transactions: GemTransactionsService,
@@ -78,6 +79,7 @@ public extension LocalKeystore {
         unlockContext: UnlockContextStore,
     ) -> GemLightningService {
         GemLightningService(
+            api: api,
             keystore: gemKeystore,
             password: GemstoneKeystorePassword(password: keystorePassword, unlockContext: unlockContext),
             storageDir: storageDir,
