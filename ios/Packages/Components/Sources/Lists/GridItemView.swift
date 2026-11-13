@@ -6,20 +6,17 @@ import SwiftUI
 public struct GridItemView: View {
     private let title: TextValue
     private let value: TextValue
-    private let valueAlignment: HorizontalAlignment
 
     public init(
         title: TextValue,
         value: TextValue,
-        valueAlignment: HorizontalAlignment = .trailing,
     ) {
         self.title = title
         self.value = value
-        self.valueAlignment = valueAlignment
     }
 
-    public init(field: ListItemField, valueAlignment: HorizontalAlignment = .trailing) {
-        self.init(title: field.title, value: field.value, valueAlignment: valueAlignment)
+    public init(field: ListItemField) {
+        self.init(title: field.title, value: field.value)
     }
 
     public var body: some View {
@@ -28,7 +25,7 @@ public struct GridItemView: View {
                 .textStyle(title.style)
             Text(value.text)
                 .textStyle(value.style)
-                .gridColumnAlignment(valueAlignment)
+                .gridColumnAlignment(.trailing)
         }
     }
 }

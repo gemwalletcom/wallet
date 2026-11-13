@@ -15,14 +15,14 @@ struct PriceStoreTests {
         let priceStore = PriceStore(db: db)
         let assetId = Chain.ethereum.assetId
         let rate = FiatRate(symbol: .eur, rate: 0.9)
-        try priceStore.saveRates([FiatRate(symbol: .eur, rate: 0.8)])
+        try priceStore.saveRatesAndPrices([FiatRate(symbol: .eur, rate: 0.8)], conversion: nil, prices: [])
         try priceStore.updatePrices([.mock(assetId: assetId, price: 100, rate: 0.8)])
         try db.dbPool.write { db in
             try db.execute(sql: "CREATE TRIGGER reject_repricing BEFORE UPDATE OF price ON prices BEGIN SELECT RAISE(ABORT, 'repricing failed'); END")
         }
 
         #expect(throws: DatabaseError.self) {
-            try priceStore.saveRates([rate], conversion: rate)
+            try priceStore.saveRatesAndPrices([rate], conversion: rate, prices: [])
         }
         #expect(try priceStore.getRate(currency: "EUR")?.rate == 0.8)
         #expect(try priceStore.getPrices(for: [assetId]).first?.price == 80)
@@ -30,7 +30,7 @@ struct PriceStoreTests {
         try db.dbPool.write { db in
             try db.execute(sql: "DROP TRIGGER reject_repricing")
         }
-        try priceStore.saveRates([rate], conversion: rate)
+        try priceStore.saveRatesAndPrices([rate], conversion: rate, prices: [])
 
         #expect(try priceStore.getRate(currency: "EUR")?.rate == 0.9)
         #expect(try priceStore.getPrices(for: [assetId]).first?.price == 90)
@@ -44,7 +44,7 @@ struct PriceStoreTests {
         let bitcoin = Chain.bitcoin.assetId
         let rate = FiatRate(symbol: .eur, rate: 0.9)
         let price = { (assetId: AssetId) in try priceStore.getPrices(for: [assetId]).first?.price }
-        try priceStore.saveRates([FiatRate(symbol: .eur, rate: 0.8)])
+        try priceStore.saveRatesAndPrices([FiatRate(symbol: .eur, rate: 0.8)], conversion: nil, prices: [])
         try priceStore.updatePrices([.mock(assetId: ethereum, price: 100, rate: 0.8)])
         try db.dbPool.write { db in
             try db.execute(sql: "CREATE TRIGGER reject_price BEFORE INSERT ON prices BEGIN SELECT RAISE(ABORT, 'price failed'); END")
@@ -73,7 +73,7 @@ struct PriceStoreTests {
         let assetId = Chain.ethereum.assetId
         try priceStore.updatePrices([.mock(assetId: assetId, price: 100, rate: 0.8)])
 
-        try priceStore.saveRates([FiatRate(symbol: .gbp, rate: 0.7)])
+        try priceStore.saveRatesAndPrices([FiatRate(symbol: .gbp, rate: 0.7)], conversion: nil, prices: [])
 
         #expect(try priceStore.getRate(currency: "GBP")?.rate == 0.7)
         #expect(try priceStore.getPrices(for: [assetId]).first?.price == 80)

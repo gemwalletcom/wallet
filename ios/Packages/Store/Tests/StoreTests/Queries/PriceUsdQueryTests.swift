@@ -12,7 +12,7 @@ struct PriceUsdQueryTests {
         let db = DB.mock(chains: [.ethereum])
         let priceStore = PriceStore(db: db)
 
-        try priceStore.saveRates([FiatRate(symbol: .jpy, rate: 150)])
+        try priceStore.saveRatesAndPrices([FiatRate(symbol: .jpy, rate: 150)], conversion: nil, prices: [])
 
         let ethId = AssetId(chain: .ethereum)
         try priceStore.updatePrices([.mock(assetId: ethId, price: 1100, rate: 150)])
