@@ -30,6 +30,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
+import uniffi.gemstone.GemListItem
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemSessionProposal
@@ -112,7 +113,7 @@ class ConnectionProposalViewModelTest {
             val model = viewModel(service = service)
             advanceUntilIdle()
 
-            assertEquals(GemListRow.Verification(GemListRowTitle.STATUS, expected, null), model.proposalRows.value?.sections?.first()?.rows?.last())
+            assertEquals(GemListItem.Row(GemListRow.Verification(GemListRowTitle.STATUS, expected, null)), model.proposalRows.value?.sections?.first()?.items?.last())
         }
     }
 

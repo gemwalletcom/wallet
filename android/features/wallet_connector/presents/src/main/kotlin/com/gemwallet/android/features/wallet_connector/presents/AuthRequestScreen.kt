@@ -13,7 +13,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.wallet_connector.viewmodels.AuthRequestUIState
 import com.gemwallet.android.features.wallet_connector.viewmodels.AuthRequestViewModel
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.list_item.gemListSections
+import com.gemwallet.android.ui.components.list_item.gemGroupRows
 import com.gemwallet.android.ui.components.screen.FatalStateScene
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.models.ButtonState
@@ -67,8 +67,8 @@ private fun AuthRequestContent(state: AuthRequestUIState.Content, buttonState: B
         model = state,
         buttonState = buttonState,
         details = {
-            gemListSections(
-                sections = state.sections,
+            gemGroupRows(
+                groups = state.sections,
                 onSelect = if (state is AuthRequestUIState.Approving) null else ({ action -> if (action == GemRowAction.SelectWallet) isShowSelectWallets = true }),
             )
         },

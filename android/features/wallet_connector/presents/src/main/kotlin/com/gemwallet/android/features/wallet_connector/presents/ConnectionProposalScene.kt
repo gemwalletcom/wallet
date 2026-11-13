@@ -21,7 +21,7 @@ import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.ListItemSymbol
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
-import com.gemwallet.android.ui.components.list_item.gemListSections
+import com.gemwallet.android.ui.components.list_item.gemGroupRows
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.localization.titleRes
@@ -70,8 +70,8 @@ internal fun ConnectionProposalScene(
                     subtitleLayout = CenteredListHeadSubtitleLayout.Vertical,
                 )
             }
-            gemListSections(
-                sections = proposalRows.sections,
+            gemGroupRows(
+                groups = proposalRows.sections,
                 onSelect = if (state is ConnectionProposalUIState.Approving) null else ({ action -> if (action == GemRowAction.SelectWallet) isShowSelectWallets = true }),
             )
             item { SubheaderItem(R.string.wallet_connect_permissions_title) }

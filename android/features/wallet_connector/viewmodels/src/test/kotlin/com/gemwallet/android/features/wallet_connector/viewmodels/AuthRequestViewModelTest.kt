@@ -39,6 +39,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import uniffi.gemstone.GemListItem
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemServiceException
@@ -169,7 +170,7 @@ class AuthRequestViewModelTest {
             model.onRequest(request) {}
 
             val content = model.awaitContent()
-            assertEquals(GemListRow.Verification(GemListRowTitle.STATUS, expected, null), content.sections.first().rows.last())
+            assertEquals(GemListItem.Row(GemListRow.Verification(GemListRowTitle.STATUS, expected, null)), content.sections.first().items.last())
         }
     }
 

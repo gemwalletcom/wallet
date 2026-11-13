@@ -17,6 +17,7 @@ import uniffi.gemstone.GemGroupList
 import uniffi.gemstone.GemListItem
 import uniffi.gemstone.GemListPhase
 import uniffi.gemstone.GemListRow
+import uniffi.gemstone.GemRowAction
 
 fun LazyListScope.gemGroupList(list: GemGroupList, onSelect: (GemListItem) -> Unit) {
     gemGroups(list.groups) { item, position -> GemListItemView(item = item, listPosition = position, onSelect = onSelect) }
@@ -29,7 +30,7 @@ fun LazyListScope.gemGroupList(list: GemGroupList, onSelect: (GemListItem) -> Un
 
 fun LazyListScope.gemGroups(groups: List<GemGroup>, itemContent: @Composable LazyItemScope.(item: GemListItem, position: ListPosition) -> Unit) {
     groups.forEachIndexed { index, group ->
-        val key = "group:${group.id}"
+        val key = "group:${group.id ?: "#$index"}"
         val title = group.title
         if (title != null) {
             item(key = key) { SubheaderItem(title.string(LocalContext.current)) }
@@ -43,9 +44,19 @@ fun LazyListScope.gemGroups(groups: List<GemGroup>, itemContent: @Composable Laz
     }
 }
 
+fun LazyListScope.gemGroupRows(groups: List<GemGroup>, onSelectAddress: ((String) -> Unit)? = null, onSelect: ((GemRowAction) -> Unit)? = null) {
+    gemGroups(groups) { item, position ->
+        if (item is GemListItem.Row) {
+            GemListRowView(row = item.row, listPosition = position, onSelect = onSelect, onSelectAddress = onSelectAddress)
+        }
+    }
+}
+
 @Composable
 private fun GemListItemView(item: GemListItem, listPosition: ListPosition, onSelect: (GemListItem) -> Unit) {
     when (item) {
+        is GemListItem.Row -> GemListRowView(row = item.row, listPosition = listPosition)
+
         is GemListItem.Currency -> ListItem(
             model = ListItemModel(title = item.row.title),
             listPosition = listPosition,
@@ -82,6 +93,7 @@ private fun GemListItemView(item: GemListItem, listPosition: ListPosition, onSel
 }
 
 private fun GemListItem.identity(): String? = when (this) {
+    is GemListItem.Row -> null
     is GemListItem.Currency -> row.currency.name
     is GemListItem.Validator -> row.validator.id
     is GemListItem.Connection -> connection.connection.session.id

@@ -6,8 +6,8 @@ import struct Gemstone.Account
 import func Gemstone.applicationConnectionRow
 import func Gemstone.authenticationSections
 import struct Gemstone.GemConnectionRow
+import struct Gemstone.GemGroup
 import enum Gemstone.GemListRow
-import struct Gemstone.GemListSection
 import enum Gemstone.GemServiceError
 import protocol Gemstone.GemSignMessageServiceProtocol
 import struct Gemstone.MessagePayloadPreview
@@ -74,7 +74,7 @@ public final class AuthenticationSceneViewModel {
         )
     }
 
-    var sections: [GemListSection] {
+    var sections: [GemGroup] {
         authenticationSections(
             proposal: request.proposal.toGem(),
             walletId: walletSelectorModel.selectedItems.first?.id,

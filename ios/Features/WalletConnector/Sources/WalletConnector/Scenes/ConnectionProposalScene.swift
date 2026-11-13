@@ -23,9 +23,7 @@ public struct ConnectionProposalScene: View {
         List {
             ListAssetHeaderView(model: model.appPreview, subtitleLayout: .vertical)
 
-            ForEach(Array(model.proposal.sections.enumerated()), id: \.offset) { _, section in
-                WalletConnectReviewSection(section: section)
-            }
+            WalletConnectReviewSections(groups: model.proposal.sections)
 
             Section(model.permissionsTitle) {
                 ForEach(model.permissions, id: \.title) { permission in

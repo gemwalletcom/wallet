@@ -34,8 +34,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemConnectionRow
+import uniffi.gemstone.GemGroup
 import uniffi.gemstone.GemListRow
-import uniffi.gemstone.GemListSection
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemSignMessageServiceInterface
 import uniffi.gemstone.GemWalletConnectAuthentication
@@ -219,7 +219,7 @@ class AuthRequestViewModel @Inject constructor(
         )
     }
 
-    private fun reviewSections(proposal: WalletConnectionSessionProposal, wallet: Wallet, approval: AuthApproval, status: WalletConnectionVerificationStatus): List<GemListSection> =
+    private fun reviewSections(proposal: WalletConnectionSessionProposal, wallet: Wallet, approval: AuthApproval, status: WalletConnectionVerificationStatus): List<GemGroup> =
         authenticationSections(proposal, wallet.toGem().id, approval.chain.string, status)
 
     private fun buildApproval(request: GemWalletConnectAuthentication, wallet: Wallet): AuthApproval {
@@ -279,7 +279,7 @@ sealed interface AuthRequestUIState {
         AuthRequestUIState,
         WalletConnectReviewModel {
         val peer: GemConnectionRow
-        val sections: List<GemListSection>
+        val sections: List<GemGroup>
         val availableWallets: List<Wallet>
         val availableWalletSections: List<GemWalletSection>
         val selectedWallet: Wallet
@@ -300,7 +300,7 @@ sealed interface AuthRequestUIState {
 
     data class Request(
         override val peer: GemConnectionRow,
-        override val sections: List<GemListSection>,
+        override val sections: List<GemGroup>,
         val proposal: WalletConnectionSessionProposal,
         val verificationStatus: WalletConnectionVerificationStatus,
         override val availableWallets: List<Wallet>,
@@ -312,7 +312,7 @@ sealed interface AuthRequestUIState {
 
     data class Approving(private val request: Request) : Content {
         override val peer: GemConnectionRow get() = request.peer
-        override val sections: List<GemListSection> get() = request.sections
+        override val sections: List<GemGroup> get() = request.sections
         override val availableWallets: List<Wallet> get() = request.availableWallets
         override val availableWalletSections: List<GemWalletSection> get() = request.availableWalletSections
         override val selectedWallet: Wallet get() = request.selectedWallet
