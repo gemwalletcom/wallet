@@ -290,14 +290,18 @@ impl Repository for PostgresRepository {
             .run(move |client| {
                 let price_alerts = client.get_price_alerts(notified_before, price_max_age)?;
                 let rates = client.get_fiat_rates()?;
+                let asset_ids = price_alerts.iter().map(|(_, price_alert, _, _)| price_alert.asset_id.clone()).collect::<HashSet<_>>().into_iter().collect();
+                let assets: HashMap<AssetId, Asset> = client.get_assets(asset_ids)?.into_iter().map(|asset| (asset.id.clone(), asset)).collect();
                 let mut notifications = Vec::new();
                 let mut notified_ids = Vec::new();
                 for (row_id, price_alert, price_data, device) in price_alerts {
                     let Some(trigger) = rules.evaluate(&price_alert, &device, &price_data, &rates) else {
                         continue;
                     };
+                    let Some(asset) = assets.get(&price_alert.asset_id).cloned() else {
+                        continue;
+                    };
                     notified_ids.push(row_id);
-                    let asset = client.get_asset(&price_alert.asset_id)?;
                     notifications.push(PriceAlertNotification::new(device, asset, price_alert, &price_data, trigger));
                 }
                 client.update_price_alerts(vec![PriceAlertFilter::Ids(notified_ids)], vec![PriceAlertUpdate::LastNotifiedAt(now)])?;
