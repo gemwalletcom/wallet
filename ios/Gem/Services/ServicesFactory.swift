@@ -145,7 +145,7 @@ struct ServicesFactory {
         let unlockContext = UnlockContextStore()
         let lightningService = storages.keystore.lightningService(
             api: apiClient,
-            storageDir: URL.applicationSupportDirectory.appending(path: "lightning").path(percentEncoded: false),
+            store: GemstoneLightningStore(store: stores.lightningStore),
             balances: balanceService,
             transactions: transactionsService,
             session: walletSessionService,

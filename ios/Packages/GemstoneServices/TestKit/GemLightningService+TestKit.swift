@@ -22,7 +22,7 @@ public extension GemLightningService {
         let balance = GemBalanceService.mock(db: db)
         return keystore.lightningService(
             api: GemApiClient(provider: StubAlienProvider()),
-            storageDir: FileManager.default.temporaryDirectory.appending(path: UUID().uuidString).path(percentEncoded: false),
+            store: GemstoneLightningStore(store: .mock(db: db)),
             balances: balance,
             transactions: GemTransactionsService(
                 api: GemDeviceApiClient(provider: StubAlienProvider(), deviceKey: GemDeviceKeyService(store: GemSecureStoreMock())),
