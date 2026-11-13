@@ -219,9 +219,11 @@ impl LightningWallet {
 
     pub async fn sync(&self) -> Result<(), LightningError> {
         let synced = self.wallet.sync().await.map_err(LightningError::from);
-        let claimed = self.wallet.claim_pending_transfers().await.map(|_| ()).map_err(LightningError::from);
+        if synced.is_err() {
+            let _ = self.wallet.claim_pending_transfers().await;
+        }
         let resumed = self.resume_pending_sends().await;
-        synced.and(claimed).and(resumed)
+        synced.and(resumed)
     }
 
     pub fn lock(&self) {
