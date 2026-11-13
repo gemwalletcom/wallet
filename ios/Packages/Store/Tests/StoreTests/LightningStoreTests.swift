@@ -9,27 +9,6 @@ import Testing
 
 struct LightningStoreTests {
     @Test
-    func leavesAreKeptPerWalletAndDeletedWithIt() throws {
-        let wallet = Wallet.mock()
-        let otherWallet = Wallet.mock(id: .mock(address: "0x2"))
-        let db = DB.mock(wallets: [wallet, otherWallet])
-        let store = LightningStore(db: db)
-        let leaf = LightningLeaf(id: "leaf", data: "{}")
-
-        try store.updateLeaves(walletId: wallet.id, leaves: [leaf, LightningLeaf(id: "spent", data: "{}")], deleteIds: [])
-        try store.updateLeaves(walletId: otherWallet.id, leaves: [leaf], deleteIds: [])
-        try store.updateLeaves(walletId: wallet.id, leaves: [LightningLeaf(id: "leaf", data: "{\"value\":1}")], deleteIds: ["spent"])
-
-        #expect(try store.getLeaves(walletId: wallet.id) == [LightningLeaf(id: "leaf", data: "{\"value\":1}")])
-        #expect(try store.getLeaves(walletId: otherWallet.id) == [leaf])
-
-        _ = try WalletStore(db: db).deleteWallet(for: wallet.id)
-
-        #expect(try store.getLeaves(walletId: wallet.id).isEmpty)
-        #expect(try store.getLeaves(walletId: otherWallet.id) == [leaf])
-    }
-
-    @Test
     func aPendingSendIsRecordedOncePerTransfer() throws {
         let wallet = Wallet.mock()
         let store = LightningStore(db: .mock(wallets: [wallet]))

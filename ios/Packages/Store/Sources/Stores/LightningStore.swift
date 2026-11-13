@@ -11,27 +11,6 @@ public struct LightningStore: Sendable {
         self.db = db.dbPool
     }
 
-    public func getLeaves(walletId: WalletId) throws -> [LightningLeaf] {
-        try db.read { db in
-            try LightningLeafRecord
-                .filter(LightningLeafRecord.Columns.walletId == walletId.id)
-                .fetchAll(db)
-                .map(\.leaf)
-        }
-    }
-
-    public func updateLeaves(walletId: WalletId, leaves: [LightningLeaf], deleteIds: [String]) throws {
-        try db.write { db in
-            try LightningLeafRecord
-                .filter(LightningLeafRecord.Columns.walletId == walletId.id)
-                .filter(deleteIds.contains(LightningLeafRecord.Columns.id))
-                .deleteAll(db)
-            for leaf in leaves {
-                try LightningLeafRecord(walletId: walletId.id, id: leaf.id, data: leaf.data).upsert(db)
-            }
-        }
-    }
-
     public func getPendingSends(walletId: WalletId) throws -> [LightningPendingSend] {
         try db.read { db in
             try LightningPendingSendRecord
