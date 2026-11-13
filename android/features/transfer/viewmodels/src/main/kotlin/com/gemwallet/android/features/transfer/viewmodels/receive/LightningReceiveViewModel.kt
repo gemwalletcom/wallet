@@ -106,6 +106,7 @@ class LightningReceiveViewModel @Inject constructor(
         val receive = (stateFlow.value as? State.Ready)?.receive ?: return
         runCatchingCancellable { withContext(ioDispatcher) { service.receiveState(walletId, receive.copy.value) } }
             .onSuccess { state ->
+                if (stateFlow.value != State.Ready(receive)) return
                 when (state) {
                     GemLightningReceiveState.PENDING -> Unit
                     GemLightningReceiveState.EXPIRED -> receive(amountFlow.value)

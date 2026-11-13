@@ -60,7 +60,7 @@ import uniffi.gemstone.chainRow
 @Composable
 fun ReceiveScreen(assetId: AssetId, closeIcon: Boolean = false, onCancel: () -> Unit) {
     if (assetId.chain == Chain.Lightning) {
-        LightningReceiveScreen(onCancel = onCancel)
+        LightningReceiveScreen(closeIcon = closeIcon, onCancel = onCancel)
         return
     }
     val viewModel = hiltViewModel<ReceiveViewModel, ReceiveViewModel.Factory>(

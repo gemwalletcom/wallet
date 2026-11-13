@@ -37,7 +37,7 @@ import com.gemwallet.android.ui.style.keyboardType
 import uniffi.gemstone.GemLightningReceive
 
 @Composable
-fun LightningReceiveScreen(onCancel: () -> Unit) {
+fun LightningReceiveScreen(closeIcon: Boolean, onCancel: () -> Unit) {
     val viewModel: LightningReceiveViewModel = hiltViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
     val amount by viewModel.amount.collectAsStateWithLifecycle()
@@ -55,19 +55,20 @@ fun LightningReceiveScreen(onCancel: () -> Unit) {
     }
 
     when (val current = state) {
-        State.Loading, State.Received -> LoadingScene(title = title, onCancel = onCancel)
+        State.Loading, State.Received -> LoadingScene(title = title, onCancel = onCancel, closeIcon = closeIcon)
         State.Locked -> Scene(
             title = title,
             onClose = onCancel,
+            closeIcon = closeIcon,
             mainAction = { MainActionButton(title = stringResource(R.string.lock_unlock), onClick = unlock) },
         ) {}
-        State.Unavailable -> FatalStateScene(title = title, message = stringResource(R.string.common_not_available), onCancel = onCancel, onTryAgain = viewModel::onRetry)
-        is State.Ready -> LightningReceiveScene(title = title, receive = current.receive, amount = amount, onAmount = viewModel::onAmount, onCancel = onCancel)
+        State.Unavailable -> FatalStateScene(title = title, message = stringResource(R.string.common_not_available), onCancel = onCancel, onTryAgain = viewModel::onRetry, closeIcon = closeIcon)
+        is State.Ready -> LightningReceiveScene(title = title, closeIcon = closeIcon, receive = current.receive, amount = amount, onAmount = viewModel::onAmount, onCancel = onCancel)
     }
 }
 
 @Composable
-private fun LightningReceiveScene(title: String, receive: GemLightningReceive, amount: String, onAmount: (String) -> Unit, onCancel: () -> Unit) {
+private fun LightningReceiveScene(title: String, closeIcon: Boolean, receive: GemLightningReceive, amount: String, onAmount: (String) -> Unit, onCancel: () -> Unit) {
     val context = LocalContext.current
     val clipboardManager = context.clipboardManager()
     val shareTitle = stringResource(R.string.common_share)
@@ -76,6 +77,7 @@ private fun LightningReceiveScene(title: String, receive: GemLightningReceive, a
     Scene(
         title = title,
         onClose = onCancel,
+        closeIcon = closeIcon,
         actions = {
             IconButton({ context.shareText(subject = null, text = receive.copy.value, chooserTitle = shareTitle) }) {
                 Icon(AppIcons.Share, shareTitle)
