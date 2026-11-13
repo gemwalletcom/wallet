@@ -40,13 +40,14 @@ struct TransactionsFilterSceneViewModelTests {
     }
 
     @Test
-    func aCancelledSelectionStillKeepsWhatWasPicked() {
+    func doneAppliesTheSelectionWithoutConfirming() {
         let model = TransactionsFilterSceneViewModel.mock()
 
         let confirmed = model.onFinishChainsSelection(SelectionResult(items: [.ethereum], isConfirmed: false))
 
         #expect(confirmed == false)
         #expect(model.networksModel.selectedItems == [.ethereum])
+        #expect(model.query.request.base.filter?.chains == [.ethereum])
     }
 
     @Test
