@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use primitives::{AssetId, Chain, PaymentLink, Transaction, TransactionChange, TransactionMetadata, TransactionState, TransactionType, swap_transaction_timeout};
+use primitives::{AssetId, Chain, PaymentLink, Transaction, TransactionChange, TransactionMetadata, TransactionState, TransactionType, chain_transaction_timeout, swap_transaction_timeout};
 
 use super::model::{GemPendingTransaction, GemTransactionStateUpdate, TransactionPostProcessing};
 use crate::payment::payment_record_hash;
@@ -14,7 +14,10 @@ pub fn has_timed_out(transaction: &Transaction, state: TransactionState, now: Da
         return false;
     }
     let chain = transaction.asset_id.chain;
-    let timeout_ms = swap_transaction_timeout(chain, destination_chain(transaction, state).unwrap_or(chain));
+    let timeout_ms = match state {
+        TransactionState::InTransit => swap_transaction_timeout(chain, destination_chain(transaction, state).unwrap_or(chain)),
+        TransactionState::Pending | TransactionState::Confirmed | TransactionState::Failed | TransactionState::Reverted | TransactionState::Refunded => u64::from(chain_transaction_timeout(chain)),
+    };
     (now - transaction.created_at).num_milliseconds() > timeout_ms as i64
 }
 
