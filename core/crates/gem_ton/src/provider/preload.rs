@@ -78,39 +78,12 @@ fn transfer_fee(asset_subtype: AssetSubtype, memo: Option<&str>, recipient_token
 #[async_trait]
 impl<C: Client> ChainTransactionLoad for TonClient<C> {
     async fn get_transaction_preload(&self, input: TransactionPreloadInput) -> Result<TransactionLoadMetadata, Box<dyn Error + Sync + Send>> {
-        let wallet_info = self.get_wallet_information(input.sender_address.clone()).await?;
-        let sequence = wallet_info.seqno.unwrap_or(0) as u64;
-
-        let asset = input.input_type.get_asset();
-        return match &asset.id.token_subtype() {
-            AssetSubtype::TOKEN => {
-                let token_id = asset.id.token_id.as_ref().ok_or("Missing token ID for jetton transaction")?;
-                let jetton_token_id = base64_to_hex_address(token_id).ok_or("Invalid jetton token ID")?.to_uppercase();
-
-                let sender_wallets = self.get_jetton_wallets(input.sender_address.clone());
-                let recipient_wallets = async {
-                    match get_recipient_jetton_wallet(&input) {
-                        Some(address) => self.get_jetton_wallets(address.to_string()).await.map(Some),
-                        None => Ok(None),
-                    }
-                };
-                let (sender_jetton_wallets, recipient_jetton_wallets) = futures::future::try_join(sender_wallets, recipient_wallets).await?;
-
-                let sender_jetton_wallet_address = sender_jetton_wallets.jetton_wallets.iter().find(|wallet| wallet.jetton == jetton_token_id);
-                let recipient_jetton_wallet_address = recipient_jetton_wallets.as_ref().and_then(|wallets| wallets.jetton_wallets.iter().find(|wallet| wallet.jetton == jetton_token_id));
-
-                Ok(TransactionLoadMetadata::Ton {
-                    sender_token_address: sender_jetton_wallet_address.map(|x| x.address.clone()),
-                    recipient_token_address: recipient_jetton_wallet_address.map(|x| x.address.clone()),
-                    sequence,
-                })
-            }
-            AssetSubtype::NATIVE => Ok(TransactionLoadMetadata::Ton {
-                sender_token_address: None,
-                recipient_token_address: None,
-                sequence,
-            }),
-        };
+        let (wallet_info, (sender_token_address, recipient_token_address)) = futures::try_join!(self.get_wallet_information(input.sender_address.clone()), self.jetton_wallet_addresses(&input))?;
+        Ok(TransactionLoadMetadata::Ton {
+            sender_token_address,
+            recipient_token_address,
+            sequence: wallet_info.seqno.unwrap_or(0) as u64,
+        })
     }
 
     async fn get_transaction_load(&self, input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Sync + Send>> {
@@ -121,6 +94,30 @@ impl<C: Client> ChainTransactionLoad for TonClient<C> {
 
     async fn get_transaction_fee_rates(&self, _input_type: TransactionInputType) -> Result<Vec<FeeRate>, Box<dyn Error + Sync + Send>> {
         Ok(vec![FeeRate::new(FeePriority::Normal, GasPriceType::regular(BigInt::from(TON_BASE_FEE)))])
+    }
+}
+
+impl<C: Client> TonClient<C> {
+    async fn jetton_wallet_addresses(&self, input: &TransactionPreloadInput) -> Result<(Option<String>, Option<String>), Box<dyn Error + Sync + Send>> {
+        let asset = input.input_type.get_asset();
+        let token_id = match asset.id.token_subtype() {
+            AssetSubtype::NATIVE => return Ok((None, None)),
+            AssetSubtype::TOKEN => asset.id.token_id.as_ref().ok_or("Missing token ID for jetton transaction")?,
+        };
+        let jetton_token_id = base64_to_hex_address(token_id).ok_or("Invalid jetton token ID")?.to_uppercase();
+
+        let sender_wallets = self.get_jetton_wallets(input.sender_address.clone());
+        let recipient_wallets = async {
+            match get_recipient_jetton_wallet(input) {
+                Some(address) => self.get_jetton_wallets(address.to_string()).await.map(Some),
+                None => Ok(None),
+            }
+        };
+        let (sender_jetton_wallets, recipient_jetton_wallets) = futures::future::try_join(sender_wallets, recipient_wallets).await?;
+
+        let sender_jetton_wallet_address = sender_jetton_wallets.jetton_wallets.iter().find(|wallet| wallet.jetton == jetton_token_id);
+        let recipient_jetton_wallet_address = recipient_jetton_wallets.as_ref().and_then(|wallets| wallets.jetton_wallets.iter().find(|wallet| wallet.jetton == jetton_token_id));
+        Ok((sender_jetton_wallet_address.map(|x| x.address.clone()), recipient_jetton_wallet_address.map(|x| x.address.clone())))
     }
 }
 

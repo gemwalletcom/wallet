@@ -2,7 +2,7 @@ use std::error::Error;
 
 use async_trait::async_trait;
 use chain_traits::{ChainTransactionLoad, TransactionFeeOperation};
-use futures::try_join;
+use futures::{TryFutureExt, try_join};
 use gem_client::Client;
 use num_bigint::BigInt;
 use primitives::{FeeRate, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput};
@@ -34,20 +34,11 @@ impl<C: Client + Clone> ChainTransactionLoad for NearProvider<C> {
     }
 
     async fn get_transaction_load(&self, input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Sync + Send>> {
-        let protocol_config = self.get_protocol_config().await?;
         let destination_address = input.input_type.swap_to_address().unwrap_or(&input.destination_address);
-        let token_account_creation_deposit = if let Some(token_id) = input.input_type.get_asset().id.token_id.as_deref() {
-            let args = serde_json::json!({ "account_id": destination_address });
-            let balance: Option<serde_json::Value> = self.call_function(token_id, "storage_balance_of", &args).await?;
-            if balance.is_some() {
-                None
-            } else {
-                let bounds: StorageBalanceBounds = self.call_function(token_id, "storage_balance_bounds", &serde_json::json!({})).await?;
-                Some(BigInt::from(bounds.min.parse::<u128>()?))
-            }
-        } else {
-            None
-        };
+        let (protocol_config, token_account_creation_deposit) = try_join!(
+            self.get_protocol_config().err_into(),
+            self.token_account_creation_deposit(input.input_type.get_asset().id.token_id.as_deref(), destination_address)
+        )?;
         Ok(TransactionLoadData {
             fee: map_transaction_fee(&input, destination_address, &protocol_config, token_account_creation_deposit),
             metadata: input.metadata,
@@ -57,6 +48,20 @@ impl<C: Client + Clone> ChainTransactionLoad for NearProvider<C> {
     async fn get_transaction_fee_rates(&self, _input_type: TransactionInputType) -> Result<Vec<FeeRate>, Box<dyn Error + Sync + Send>> {
         let gas_price = self.get_gas_price().await?;
         map_gas_price_to_priorities(&gas_price)
+    }
+}
+
+impl<C: Client + Clone> NearProvider<C> {
+    async fn token_account_creation_deposit(&self, token_id: Option<&str>, account_id: &str) -> Result<Option<BigInt>, Box<dyn Error + Sync + Send>> {
+        let Some(token_id) = token_id else {
+            return Ok(None);
+        };
+        let balance: Option<serde_json::Value> = self.call_function(token_id, "storage_balance_of", &serde_json::json!({ "account_id": account_id })).await?;
+        if balance.is_some() {
+            return Ok(None);
+        }
+        let bounds: StorageBalanceBounds = self.call_function(token_id, "storage_balance_bounds", &serde_json::json!({})).await?;
+        Ok(Some(BigInt::from(bounds.min.parse::<u128>()?)))
     }
 }
 

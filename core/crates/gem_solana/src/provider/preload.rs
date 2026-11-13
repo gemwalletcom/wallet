@@ -114,7 +114,8 @@ impl<C: Client + Clone> ChainTransactionLoad for SolanaProvider<C> {
 #[cfg(feature = "rpc")]
 impl<C: Client + Clone> SolanaClient<C> {
     async fn detect_solana_nft(&self, mint: &str) -> Result<SolanaNftPreload, Box<dyn Error + Sync + Send>> {
-        let account = self.get_account_info_base64(mint).await?.value.ok_or("Solana NFT account not found")?;
+        let (account, metadata) = futures::join!(self.get_account_info_base64(mint), self.get_metaplex_metadata(mint));
+        let account = account?.value.ok_or("Solana NFT account not found")?;
         if account.owner == METAPLEX_CORE_PROGRAM {
             let data = account.data.first().ok_or("missing Metaplex Core asset data")?;
             let collection = metaplex_core::decode_asset(data)?.collection().map(|pubkey| pubkey.to_base58());
@@ -124,8 +125,7 @@ impl<C: Client + Clone> SolanaClient<C> {
             });
         }
         let token_program = get_token_program_id_by_address(&account.owner).ok_or_else(|| format!("unsupported Solana NFT owner program: {}", account.owner))?;
-        let metadata = self.get_metaplex_metadata(mint).await.ok();
-        let standard = match metadata.filter(Metadata::is_programmable) {
+        let standard = match metadata.ok().filter(Metadata::is_programmable) {
             Some(metadata) => SolanaNftStandard::ProgrammableNonFungible {
                 rule_set: metadata.rule_set().map(|pubkey| pubkey.to_base58()),
             },

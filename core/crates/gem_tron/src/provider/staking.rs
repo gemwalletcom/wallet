@@ -13,8 +13,7 @@ use crate::rpc::constants::{GET_WITNESS_127_PAY_PER_BLOCK, GET_WITNESS_PAY_PER_B
 #[async_trait]
 impl<C: Client> ChainStaking for TronProvider<C> {
     async fn get_staking_apy(&self) -> Result<Option<f64>, Box<dyn Error + Sync + Send>> {
-        let params = self.get_chain_parameters().await?;
-        let witnesses = self.get_witnesses_list().await?;
+        let (params, witnesses) = futures::try_join!(self.get_chain_parameters(), self.get_witnesses_list())?;
 
         let block_reward = params.iter().find(|p| p.key == GET_WITNESS_PAY_PER_BLOCK).and_then(|p| p.value).unwrap_or(16_000_000) as f64 / 1_000_000.0;
 
