@@ -248,12 +248,22 @@ impl Repository for PostgresRepository {
             .run(move |client| {
                 let assets: HashMap<AssetId, Asset> = client.get_assets(asset_ids.clone())?.into_iter().map(|asset| (asset.id.clone(), asset)).collect();
                 let prices: HashMap<AssetId, PriceData> = client.get_primary_prices(&asset_ids, price_max_age)?.into_iter().collect();
+                let charts: HashMap<String, Vec<ChartResult>> = prices
+                    .values()
+                    .map(|price| price.id.id())
+                    .collect::<HashSet<_>>()
+                    .into_iter()
+                    .map(|price_id| {
+                        let charts = client.get_charts(&price_id, &period).unwrap_or_default();
+                        (price_id, charts)
+                    })
+                    .collect();
                 Ok(asset_ids
                     .iter()
                     .map(|asset_id| {
                         let asset = assets.get(asset_id)?.clone();
                         let price = prices.get(asset_id)?;
-                        let charts = client.get_charts(&price.id.id(), &period).unwrap_or_default();
+                        let charts = charts.get(&price.id.id()).cloned().unwrap_or_default();
                         Some(PortfolioPrice { asset, price: price.price, charts })
                     })
                     .collect())
