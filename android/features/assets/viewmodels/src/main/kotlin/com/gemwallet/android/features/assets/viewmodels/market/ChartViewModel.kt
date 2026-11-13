@@ -43,7 +43,7 @@ import uniffi.gemstone.GemChartRequest
 import uniffi.gemstone.GemChartServiceInterface
 import uniffi.gemstone.GemChartStyle
 import uniffi.gemstone.GemChartView
-import uniffi.gemstone.GemListSection
+import uniffi.gemstone.GemGroup
 import uniffi.gemstone.GemRefreshKind
 import java.time.Instant
 import java.time.ZoneId
@@ -94,7 +94,7 @@ class ChartViewModel internal constructor(
     val isRefreshing: StateFlow<Boolean> = session.map { it.isRefreshing }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMillis), false)
 
-    val sections: StateFlow<List<GemListSection>> = view.map { it?.sections.orEmpty() }
+    val sections: StateFlow<List<GemGroup>> = view.map { it?.sections.orEmpty() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(StopTimeoutMillis), emptyList())
 
     val chartUIState: StateFlow<ChartUIState> = combine(session, view) { session, view ->

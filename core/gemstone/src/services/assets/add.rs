@@ -5,7 +5,7 @@ use std::sync::Arc;
 use primitives::{Asset, AssetId, Chain, Wallet};
 
 use super::rules;
-use crate::models::list::{GemListRow, GemListRowTitle, GemListSection, GemNoticeKind};
+use crate::models::list::{GemGroup, GemListRow, GemListRowTitle, GemNoticeKind};
 use crate::services::assets::GemAssetsService;
 use crate::services::balance::GemBalanceService;
 use crate::services::error::{GemServiceError, required_account};
@@ -58,18 +58,18 @@ impl GemAddAssetSession {
         }
     }
 
-    fn sections(&self, explorer: Option<BlockExplorerLink>) -> Vec<GemListSection> {
+    fn sections(&self, explorer: Option<BlockExplorerLink>) -> Vec<GemGroup> {
         let text = |title: GemListRowTitle, value: String| GemListRow::Text { title, value };
         match &self.asset {
-            Some(asset) => once(GemListSection::untitled(vec![
+            Some(asset) => once(GemGroup::untitled(vec![
                 text(GemListRowTitle::Name, asset.name.clone()),
                 text(GemListRowTitle::Symbol, asset.symbol.clone()),
                 text(GemListRowTitle::Decimals, asset.decimals.to_string()),
                 text(GemListRowTitle::Type, asset.asset_type.as_ref().to_string()),
             ]))
-            .chain(explorer.map(|link| GemListSection::untitled(vec![GemListRow::explorer(&link)])))
+            .chain(explorer.map(|link| GemGroup::untitled(vec![GemListRow::explorer(&link)])))
             .collect(),
-            None if self.failed => vec![GemListSection::untitled(vec![GemListRow::Notice {
+            None if self.failed => vec![GemGroup::untitled(vec![GemListRow::Notice {
                 title: GemListRowTitle::Error,
                 message: Some(GemLocalizedText::InvalidTokenId),
                 kind: GemNoticeKind::Error,
@@ -186,7 +186,7 @@ impl GemAddAssetService {
         }
     }
 
-    pub fn sections(&self, session: GemAddAssetSession) -> Vec<GemListSection> {
+    pub fn sections(&self, session: GemAddAssetSession) -> Vec<GemGroup> {
         let explorer = session.asset.as_ref().and_then(|asset| self.explorer.get_token_url(&asset.id));
         session.sections(explorer)
     }
@@ -290,13 +290,13 @@ mod tests {
         assert_eq!(
             session.on_found(Chain::Ethereum, String::new(), Asset::from_chain(Chain::Ethereum)).sections(Some(link)),
             vec![
-                GemListSection::untitled(vec![
+                GemGroup::untitled(vec![
                     text(GemListRowTitle::Name, "Ethereum"),
                     text(GemListRowTitle::Symbol, "ETH"),
                     text(GemListRowTitle::Decimals, "18"),
                     text(GemListRowTitle::Type, "NATIVE"),
                 ]),
-                GemListSection::untitled(vec![GemListRow::Explorer {
+                GemGroup::untitled(vec![GemListRow::Explorer {
                     title: GemLocalizedText::ViewOn { name: "Etherscan".to_string() },
                     url: "https://etherscan.io/token/0xabc".to_string(),
                 }]),
@@ -310,7 +310,7 @@ mod tests {
 
         assert_eq!(
             failed.sections(None),
-            vec![GemListSection::untitled(vec![GemListRow::Notice {
+            vec![GemGroup::untitled(vec![GemListRow::Notice {
                 title: GemListRowTitle::Error,
                 message: Some(GemLocalizedText::InvalidTokenId),
                 kind: GemNoticeKind::Error,

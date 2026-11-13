@@ -7,7 +7,7 @@ import typealias Gemstone.Chain
 import struct Gemstone.GemAddAssetChains
 import protocol Gemstone.GemAddAssetServiceProtocol
 import struct Gemstone.GemAddAssetSession
-import struct Gemstone.GemListSection
+import struct Gemstone.GemGroup
 import struct Gemstone.Wallet
 import GemstonePrimitives
 import Primitives
@@ -30,7 +30,7 @@ public final class GemAddAssetServiceMock: GemAddAssetServiceProtocol, @unchecke
         GemAddAssetChains(chains: chains.map(\.rawValue), defaultChain: chains.first?.rawValue, showsPicker: chains.count > 1)
     }
 
-    public func sections(session _: GemAddAssetSession) -> [GemListSection] {
+    public func sections(session _: GemAddAssetSession) -> [GemGroup] {
         []
     }
 

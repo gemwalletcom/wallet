@@ -4,7 +4,7 @@ import Foundation
 import struct Gemstone.GemAddressDetails
 import protocol Gemstone.GemAddressDetailsServiceProtocol
 import struct Gemstone.GemCopy
-import struct Gemstone.GemListSection
+import struct Gemstone.GemGroup
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -36,7 +36,7 @@ public final class AddressDetailsSceneViewModel {
 }
 
 public extension AddressDetailsSceneViewModel {
-    var sections: [GemListSection] {
+    var sections: [GemGroup] {
         details.sections(addressName: addressNameQuery.value?.toGem())
     }
 }

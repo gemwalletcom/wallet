@@ -13,7 +13,7 @@ import com.gemwallet.android.features.assets.viewmodels.market.ChartViewModel
 import com.gemwallet.android.ui.components.RefreshOnTimer
 import com.gemwallet.android.ui.components.chart.ChartSection
 import com.gemwallet.android.ui.components.chart.ChartStyleButton
-import com.gemwallet.android.ui.components.list_item.gemListSections
+import com.gemwallet.android.ui.components.list_item.gemGroupRows
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
@@ -65,7 +65,7 @@ fun ChartScreen(
             }
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 item { ChartSection(chartState, viewModel::setPeriod, viewModel::onZoom, viewModel::onPan) }
-                gemListSections(sections, onSelectAddress, onSelectRow)
+                gemGroupRows(sections, onSelectAddress, onSelectRow)
             }
         }
     }

@@ -13,8 +13,10 @@ struct AddressDetailsScene: View {
     }
 
     var body: some View {
-        ListSectionView(sections: model.sections) { row in
-            GemListRowView(row: row, onCopy: model.onCopy)
+        List {
+            GemGroupSections(rows: model.sections) { row in
+                GemListRowView(row: row, onCopy: model.onCopy)
+            }
         }
         .listSectionSpacing(.compact)
         .contentMargins([.top], .small, for: .scrollContent)

@@ -5,7 +5,7 @@ import Foundation
 import protocol Gemstone.GemAddAssetServiceProtocol
 import struct Gemstone.GemAddAssetSession
 import struct Gemstone.GemAddAssetViewState
-import struct Gemstone.GemListSection
+import struct Gemstone.GemGroup
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -27,7 +27,7 @@ public final class AddAssetSceneViewModel {
     }
 
     private var viewState: GemAddAssetViewState
-    private(set) var sections: [GemListSection]
+    private(set) var sections: [GemGroup]
     var input: AddAssetInput
 
     var isPresentingScanner = false
