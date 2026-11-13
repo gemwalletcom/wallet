@@ -82,7 +82,9 @@ extension LightningReceiveSceneViewModel {
     func onRefresh() async {
         guard case let .ready(receive) = state else { return }
         do {
-            switch try await service.receiveState(walletId: walletId, invoice: receive.copy.value) {
+            let receiveState = try await service.receiveState(walletId: walletId, invoice: receive.copy.value)
+            guard state == .ready(receive) else { return }
+            switch receiveState {
             case .pending: break
             case .expired: await onLoad()
             case .received: onComplete(.success(Localized.Transaction.Title.received))
