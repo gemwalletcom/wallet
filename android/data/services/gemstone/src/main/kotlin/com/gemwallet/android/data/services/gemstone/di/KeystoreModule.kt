@@ -13,6 +13,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import uniffi.gemstone.GemApiClient
 import uniffi.gemstone.GemAuthService
 import uniffi.gemstone.GemAvatarService
 import uniffi.gemstone.GemBalanceService
@@ -119,6 +120,7 @@ object KeystoreModule {
     @Singleton
     fun provideGemLightningService(
         @ApplicationContext context: Context,
+        apiClient: GemApiClient,
         keystore: GemKeystore,
         passwordStore: PasswordStore,
         deviceAuthentication: DeviceAuthentication,
@@ -126,6 +128,7 @@ object KeystoreModule {
         transactionsService: GemTransactionsService,
         walletSessionService: GemWalletSessionService,
     ): GemLightningService = GemLightningService(
+        apiClient,
         keystore,
         LightningKeystorePassword(GemstoneKeystorePassword(passwordStore, deviceAuthentication)),
         File(context.noBackupFilesDir, "lightning").absolutePath,
