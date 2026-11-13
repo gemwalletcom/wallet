@@ -69,7 +69,9 @@ extension LightningReceiveSceneViewModel {
     func onLoad() async {
         do {
             let receive = try await service.receive(walletId: walletId, amount: amount, format: NumberInput.format())
-            renderedImage = await generator.generate(from: receive.qr, size: CGSize(width: ReceiveQRCodeCard.size, height: ReceiveQRCodeCard.size))
+            let image = await generator.generate(from: receive.qr, size: CGSize(width: ReceiveQRCodeCard.size, height: ReceiveQRCodeCard.size))
+            guard !Task.isCancelled else { return }
+            renderedImage = image
             state = .ready(receive)
         } catch GemServiceError.Cancelled {
             state = .locked
