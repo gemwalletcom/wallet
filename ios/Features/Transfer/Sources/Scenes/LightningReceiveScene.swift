@@ -1,16 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
-import struct Gemstone.LightningInvoice
+import struct Gemstone.GemLightningReceive
+import Primitives
 import PrimitivesComponents
 import Style
 import SwiftUI
 
 public struct LightningReceiveScene: View {
-    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.connectionStatus) private var connectionStatus
 
     @State private var model: LightningReceiveSceneViewModel
-    @FocusState private var isAmountFocused: Bool
 
     public init(model: LightningReceiveSceneViewModel) {
         _model = State(initialValue: model)
@@ -21,127 +21,55 @@ public struct LightningReceiveScene: View {
             .background(Colors.grayBackground)
             .navigationTitle(model.title)
             .navigationBarTitleDisplayMode(.inline)
-            .toast(message: $model.isPresentingToastMessage)
-            .task { await model.open() }
+            .task(id: model.amount) { await model.onChangeAmount() }
     }
 
     @ViewBuilder
     private var content: some View {
         switch model.state {
-        case .opening:
+        case .loading:
             LoadingView()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-        case .amount:
-            amountView
-        case let .invoice(invoice):
-            invoiceView(invoice)
-                .task(id: scenePhase) {
-                    guard scenePhase == .active else { return }
-                    await model.waitForPayment(invoice)
+        case let .ready(receive):
+            receiveView(receive)
+                .refreshableTimer(every: connectionStatus.refreshInterval(for: .receive)) { _ in
+                    await model.onRefresh()
                 }
-                .id(invoice.paymentHash)
-                .copyToast(copy: model.copy(invoice), isPresenting: $model.isPresentingCopyToast)
+                .copyToast(copy: receive.copy, isPresenting: $model.isPresentingCopyToast)
                 .toolbar {
                     ToolbarItem(placement: .navigationBarTrailing) {
-                        ShareLink(item: invoice.invoice) { Images.System.share }
+                        ShareLink(item: receive.copy.value) { Images.System.share }
                     }
                 }
-        case let .expired(invoice):
-            expiredView(invoice)
-        case .unlockRequired, .unavailable:
+        case .locked:
+            ContentUnavailableView {} actions: {
+                Button(model.unlockTitle) {
+                    Task { await model.onUnlock() }
+                }
+            }
+        case .unavailable:
             ContentUnavailableView {
-                Label(model.asset.name, systemImage: model.unavailableImage)
-            } description: {
-                Text(model.unavailableMessage)
+                Text(model.unavailableTitle)
             } actions: {
-                Button(model.retryTitle) {
-                    Task { await model.onRetry() }
+                Button(model.tryAgainTitle) {
+                    Task { await model.onChangeAmount() }
                 }
             }
         }
     }
 
-    private var amountView: some View {
-        List {
-            CurrencyInputView(text: $model.amount, config: model.amountInputConfig)
-                .padding(.top, .medium)
-                .listGroupRowStyle()
-                .focused($isAmountFocused)
-
-            Section {} footer: {
-                Text(model.amountHint)
-                    .frame(maxWidth: .infinity)
-                    .multilineTextAlignment(.center)
-            }
-        }
-        .contentMargins([.top], .zero, for: .scrollContent)
-        .safeAreaButton {
-            StateButton(text: model.createInvoiceTitle, state: model.createInvoiceButtonState) {
-                Task { await model.onCreateInvoice() }
-            }
-        }
-        .onAppear { isAmountFocused = true }
-    }
-
-    private func invoiceView(_ invoice: LightningInvoice) -> some View {
+    private func receiveView(_ receive: GemLightningReceive) -> some View {
         VStack(spacing: .large) {
             Spacer()
             VStack(spacing: .medium) {
-                Text(model.invoiceAmountText(invoice))
-                    .font(.app.title2)
-                    .foregroundStyle(Colors.black)
-
-                ReceiveQRCodeCard(
-                    image: model.renderedImage,
-                    text: model.invoiceText(invoice),
-                    action: model.onCopyInvoice,
-                )
-
-                Text(model.invoiceHint(invoice))
-                    .textStyle(.subHeadline)
-                    .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: ReceiveQRCodeCard.size + .extraLarge)
-
-                if model.isUnlockRequired {
-                    VStack(spacing: .small) {
-                        Text(model.unlockHint)
-                            .textStyle(.subHeadline)
-                            .multilineTextAlignment(.center)
-                        Button(model.unlockTitle) {
-                            Task { await model.onUnlock() }
-                        }
-                        .font(.callout.weight(.semibold))
-                        .foregroundStyle(Colors.blue)
-                    }
-                    .frame(maxWidth: ReceiveQRCodeCard.size + .extraLarge)
-                }
-
-                Button(model.changeAmountTitle, action: model.onChangeAmount)
-                    .font(.callout.weight(.semibold))
-                    .foregroundStyle(Colors.blue)
+                CurrencyInputView(text: $model.amount, config: model.amountInputConfig(receive))
+                ReceiveQRCodeCard(image: model.renderedImage, text: receive.copy.display, action: model.onCopy)
             }
             Spacer()
-            StateButton(text: model.copyTitle, image: Images.System.copy, action: model.onCopyInvoice)
+            StateButton(text: model.copyTitle, image: Images.System.copy, action: model.onCopy)
                 .frame(maxWidth: .scene.button.maxWidth)
         }
         .padding(.bottom, .scene.bottom)
         .frame(maxWidth: .infinity)
-    }
-
-    private func expiredView(_ invoice: LightningInvoice) -> some View {
-        VStack(spacing: .medium) {
-            Text(model.invoiceAmountText(invoice))
-                .font(.app.title2)
-                .foregroundStyle(Colors.black)
-
-            Text(model.expiredText)
-                .textStyle(.subHeadline)
-
-            Button(model.changeAmountTitle, action: model.onChangeAmount)
-                .font(.callout.weight(.semibold))
-                .foregroundStyle(Colors.blue)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }

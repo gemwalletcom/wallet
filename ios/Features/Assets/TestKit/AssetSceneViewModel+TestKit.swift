@@ -11,14 +11,13 @@ public extension AssetSceneViewModel {
     @MainActor
     static func mock(
         _ assetData: AssetData = .mock(),
-        wallet: Wallet = .mock(),
         service: any GemAssetDetailsServiceProtocol = GemAssetDetailsServiceMock(),
     ) -> AssetSceneViewModel {
         let model = AssetSceneViewModel(
             service: service,
             preferences: .mock(),
             input: AssetSceneInput(
-                wallet: wallet,
+                wallet: .mock(),
                 asset: assetData.asset,
             ),
             isPresentingSelectedAssetInput: .constant(.none),

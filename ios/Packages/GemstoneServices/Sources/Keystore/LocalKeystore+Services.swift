@@ -79,7 +79,7 @@ public extension LocalKeystore {
     ) -> GemLightningService {
         GemLightningService(
             keystore: gemKeystore,
-            password: LightningKeystorePassword(password: keystorePassword, unlockContext: unlockContext),
+            password: GemstoneKeystorePassword(password: keystorePassword, unlockContext: unlockContext),
             storageDir: storageDir,
             balances: balances,
             transactions: transactions,

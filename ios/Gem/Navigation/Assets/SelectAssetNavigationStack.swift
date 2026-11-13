@@ -66,11 +66,7 @@ struct SelectAssetNavigationStack: View {
                             ),
                         )
                     case .receive:
-                        if input.asset.chain == .lightning {
-                            LightningReceiveScene(model: viewModelFactory.lightningReceiveScene(wallet: model.wallet, onComplete: { dismiss() }))
-                        } else {
-                            ReceiveScene(model: viewModelFactory.receiveScene(assetData: input.assetData, wallet: model.wallet))
-                        }
+                        ReceiveNavigationView(assetData: input.assetData, wallet: model.wallet, onComplete: { dismiss() })
                     case .buy:
                         FiatConnectNavigationView(
                             model: viewModelFactory.fiatScene(

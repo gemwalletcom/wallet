@@ -54,14 +54,6 @@ public struct AssetScene: View {
                 }
             }
 
-            if model.showsLightning {
-                Section {
-                    NavigationLink(value: Scenes.Asset(asset: model.lightningAsset)) {
-                        ListItemView(title: model.lightningAsset.name, subtitle: model.lightningSubtitle, imageStyle: model.lightningImageStyle)
-                    }
-                }
-            }
-
             ForEach(Array(details.sections.enumerated()), id: \.offset) { _, section in
                 Section {
                     ForEach(Array(section.rows.enumerated()), id: \.offset) { _, row in
@@ -122,6 +114,8 @@ extension AssetScene {
         case (.price, _):
             NavigationLink(value: Scenes.Chart(asset: model.asset), label: label)
         case let (.network, .asset(asset)):
+            NavigationLink(value: Scenes.Asset(asset: asset.toPrimitives()), label: label)
+        case let (.asset(asset), _):
             NavigationLink(value: Scenes.Asset(asset: asset.toPrimitives()), label: label)
         case let (.network, .assets(chain)):
             NavigationLink(value: Scenes.NetworkAssets(chain: Chain(core: chain)), label: label)

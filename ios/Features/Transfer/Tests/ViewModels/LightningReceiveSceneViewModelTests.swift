@@ -2,11 +2,9 @@
 
 import Components
 import enum Gemstone.GemServiceError
-import struct Gemstone.LightningInvoice
 import GemstonePrimitivesTestKit
 import GemstoneServices
 import GemstoneServicesTestKit
-import Localization
 import Primitives
 import PrimitivesTestKit
 import Testing
@@ -16,203 +14,71 @@ import TransferTestKit
 @MainActor
 struct LightningReceiveSceneViewModelTests {
     @Test
-    func openShowsTheAmountEntry() async {
-        let wallet = Wallet.mock(accounts: [.mock(chain: .lightning)])
-        let service = GemLightningServiceMock()
-        let model = LightningReceiveSceneViewModel.mock(service: service, wallet: wallet)
-
-        await model.open()
-
-        #expect(model.state == .amount)
-        #expect(service.openCalls == [wallet.id])
-    }
-
-    @Test
-    func createInvoiceOpensTheSessionAndUsesTheAmount() async {
-        let service = GemLightningServiceMock()
-        let model = LightningReceiveSceneViewModel.mock(service: service)
-        await model.open()
-
-        model.amount = "1500"
-        await model.onCreateInvoice()
-
-        #expect(service.openCalls.count == 2)
-        #expect(service.wallet.createInvoiceAmounts == [1500])
-        #expect(model.state == .invoice(.mock(invoice: "lnbc1invoice", amountSats: 1500, paymentHash: "payment-hash", expiresAt: 4_102_444_800)))
-    }
-
-    @Test
-    func anEmptyAmountCreatesAnAnyAmountInvoice() async {
+    func theScreenOpensOnAnAnyAmountInvoice() async {
         let service = GemLightningServiceMock()
         let model = LightningReceiveSceneViewModel.mock(service: service)
 
-        await model.onCreateInvoice()
+        await model.onChangeAmount()
 
-        #expect(service.wallet.createInvoiceAmounts == [nil])
-        #expect(model.invoiceAmountText(service.wallet.invoice) == Localized.Receive.lightningAnyAmount)
+        #expect(model.state == .ready(service.receive))
+        #expect(service.receiveAmounts == [""])
+        #expect(model.renderedImage != nil)
     }
 
     @Test
-    func aReceivedPaymentSyncsTheWalletAndCompletes() async {
-        let wallet = Wallet.mock(accounts: [.mock(chain: .lightning)])
+    func aLockedWalletAsksToUnlockAndAnyOtherFailureIsUnavailable() async {
+        let locked = GemLightningServiceMock()
+        locked.receiveError = GemServiceError.Cancelled
+        let unavailable = GemLightningServiceMock()
+        unavailable.receiveError = GemServiceError.Core(msg: "storage")
+        let lockedModel = LightningReceiveSceneViewModel.mock(service: locked)
+        let unavailableModel = LightningReceiveSceneViewModel.mock(service: unavailable)
+
+        await lockedModel.onChangeAmount()
+        await unavailableModel.onChangeAmount()
+
+        #expect(lockedModel.state == .locked)
+        #expect(unavailableModel.state == .unavailable)
+    }
+
+    @Test
+    func anEnteredAmountAsksForANewInvoice() async {
         let service = GemLightningServiceMock()
-        let invoice = service.wallet.invoice
-        service.wallet.payments = [.mock(status: .completed, invoice: invoice.invoice)]
-        var messages: [String] = []
-        let model = LightningReceiveSceneViewModel.mock(service: service, wallet: wallet, onComplete: { messages.append($0.title) })
+        let model = LightningReceiveSceneViewModel.mock(service: service)
 
-        await model.waitForPayment(invoice)
+        model.amount = "0.001"
+        await model.onChangeAmount()
 
-        #expect(messages == [Localized.Receive.lightningPaymentReceived])
-        #expect(service.wallet.syncCallsCount == 1)
-        #expect(service.syncCalls == [wallet.id])
+        #expect(service.receiveAmounts == ["0.001"])
     }
 
     @Test
-    func anExpiredInvoiceStopsWaiting() async {
-        let invoice = LightningInvoice.mock(invoice: "lnbc1expired")
+    func anExpiredInvoiceIsReplacedAndAReceivedPaymentCompletes() async {
         let service = GemLightningServiceMock()
-        var messages: [String] = []
-        let model = LightningReceiveSceneViewModel.mock(service: service, onComplete: { messages.append($0.title) })
+        var completed: ToastMessage?
+        let model = LightningReceiveSceneViewModel.mock(service: service, onComplete: { completed = $0 })
+        await model.onChangeAmount()
 
-        await model.waitForPayment(invoice)
+        service.receiveState = .expired
+        await model.onRefresh()
+        #expect(service.receiveAmounts == ["", ""])
+        #expect(completed == nil)
 
-        #expect(model.state == .expired(invoice))
-        #expect(messages.isEmpty)
+        service.receiveState = .received
+        await model.onRefresh()
+        #expect(completed != nil)
     }
 
     @Test
-    func aPaymentThatLandedBeforeExpiryCompletesInsteadOfExpiring() async {
-        let invoice = LightningInvoice.mock(invoice: "lnbc1expired")
+    func unlockingCreatesTheInvoice() async {
         let service = GemLightningServiceMock()
-        service.wallet.payments = [.mock(status: .completed, invoice: invoice.invoice)]
-        var messages: [String] = []
-        let model = LightningReceiveSceneViewModel.mock(service: service, onComplete: { messages.append($0.title) })
-        await model.open()
+        service.receiveError = GemServiceError.Cancelled
+        let model = LightningReceiveSceneViewModel.mock(service: service)
+        await model.onChangeAmount()
 
-        await model.waitForPayment(invoice)
-
-        #expect(model.state == .amount)
-        #expect(messages == [Localized.Receive.lightningPaymentReceived])
-    }
-
-    @Test
-    func changeAmountReturnsToTheAmountEntry() async {
-        let model = LightningReceiveSceneViewModel.mock()
-        await model.onCreateInvoice()
-
-        model.onChangeAmount()
-
-        #expect(model.state == .amount)
-        #expect(model.renderedImage == nil)
-    }
-
-    @Test
-    func aLockedSessionOffersUnlockAndOpensAfterIt() async {
-        let service = GemLightningServiceMock()
-        let biometry = BiometryAuthenticationMock()
-        service.openError = GemServiceError.Cancelled
-        let model = LightningReceiveSceneViewModel.mock(service: service, biometry: biometry)
-
-        await model.open()
-
-        #expect(model.state == .unlockRequired)
-        #expect(model.unavailableMessage == Localized.Receive.lightningUnlockRequired)
-        #expect(model.retryTitle == Localized.Lock.unlock)
-
-        service.openError = nil
-        await model.onRetry()
-
-        #expect(biometry.authenticateCallsCount == 1)
-        #expect(model.state == .amount)
-    }
-
-    @Test
-    func aCancelledUnlockStaysOnTheUnlockScreen() async {
-        let service = GemLightningServiceMock()
-        let biometry = BiometryAuthenticationMock()
-        biometry.authenticateError = BiometryAuthenticationError.cancelledByUser
-        service.openError = GemServiceError.Cancelled
-        let model = LightningReceiveSceneViewModel.mock(service: service, biometry: biometry)
-        await model.open()
-
-        await model.onRetry()
-
-        #expect(model.state == .unlockRequired)
-        #expect(service.openCalls.count == 1)
-    }
-
-    @Test
-    func aLockedSessionKeepsTheInvoiceAndOffersUnlock() async {
-        let service = GemLightningServiceMock()
-        let biometry = BiometryAuthenticationMock()
-        let model = LightningReceiveSceneViewModel.mock(service: service, biometry: biometry)
-        await model.onCreateInvoice()
-        let invoice = service.wallet.invoice
-
-        service.openError = GemServiceError.Cancelled
-        #expect(await model.checkPayment(invoice) == false)
-
-        #expect(model.state == .invoice(invoice))
-        #expect(model.isUnlockRequired)
-
-        await model.onUnlock()
-        service.openError = nil
-
-        #expect(biometry.authenticateCallsCount == 1)
-        #expect(!model.isUnlockRequired)
-        #expect(await model.checkPayment(invoice) == false)
-        #expect(!model.isUnlockRequired)
-    }
-
-    @Test
-    func aCancelledUnlockKeepsOfferingIt() async {
-        let service = GemLightningServiceMock()
-        let biometry = BiometryAuthenticationMock()
-        biometry.authenticateError = BiometryAuthenticationError.cancelledByUser
-        let model = LightningReceiveSceneViewModel.mock(service: service, biometry: biometry)
-        service.openError = GemServiceError.Cancelled
-        _ = await model.checkPayment(service.wallet.invoice)
-
+        service.receiveError = nil
         await model.onUnlock()
 
-        #expect(model.isUnlockRequired)
-    }
-
-    @Test
-    func retryReturnsToTheLastUnexpiredInvoice() async {
-        let service = GemLightningServiceMock()
-        let model = LightningReceiveSceneViewModel.mock(service: service)
-        await model.onCreateInvoice()
-
-        await model.open()
-
-        #expect(model.state == .invoice(service.wallet.invoice))
-    }
-
-    @Test
-    func aFailedInvoiceStaysOnTheAmountEntry() async {
-        let service = GemLightningServiceMock()
-        service.wallet.createInvoiceError = AnyError("offline")
-        let model = LightningReceiveSceneViewModel.mock(service: service)
-        await model.open()
-
-        await model.onCreateInvoice()
-
-        #expect(model.state == .amount)
-        #expect(model.isPresentingToastMessage?.title == Localized.Errors.errorOccurred)
-    }
-
-    @Test
-    func otherOpenFailuresShowLightningUnavailable() async {
-        let service = GemLightningServiceMock()
-        service.openError = AnyError("offline")
-        let model = LightningReceiveSceneViewModel.mock(service: service)
-
-        await model.open()
-
-        #expect(model.state == .unavailable)
-        #expect(model.unavailableMessage == Localized.Receive.lightningUnavailable)
-        #expect(model.retryTitle == Localized.Common.tryAgain)
+        #expect(model.state == .ready(service.receive))
     }
 }

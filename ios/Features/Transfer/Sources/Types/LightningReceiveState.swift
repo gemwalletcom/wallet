@@ -1,12 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import struct Gemstone.LightningInvoice
+import struct Gemstone.GemLightningReceive
 
 enum LightningReceiveState: Equatable {
-    case opening
-    case amount
-    case invoice(LightningInvoice)
-    case expired(LightningInvoice)
-    case unlockRequired
+    case loading
+    case ready(GemLightningReceive)
+    case locked
     case unavailable
 }

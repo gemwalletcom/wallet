@@ -80,7 +80,7 @@ public extension ViewModelFactory {
         LightningReceiveSceneViewModel(
             service: lightningService,
             biometry: biometryService,
-            wallet: wallet,
+            walletId: wallet.id,
             onComplete: { [toastPresenter] message in
                 Task { toastPresenter.present(message) }
                 onComplete?()

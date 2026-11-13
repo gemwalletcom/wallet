@@ -71,14 +71,4 @@ struct AssetSceneViewModelTests {
         #expect(model.accessibilityIdentifier(.row(row: .quote(title: .price, value: nil, change: nil), action: .price)) == "price")
         #expect(model.accessibilityIdentifier(.row(row: .network(title: .network, chain: Chain.ethereum.rawValue, name: "Ethereum"), action: .network)) == nil)
     }
-
-    @Test
-    func showsLightningOnBitcoinWhenTheWalletHasALightningAccount() {
-        let bitcoin = AssetData.mock(asset: Chain.bitcoin.asset)
-        let lightningWallet = Wallet.mock(accounts: [.mock(chain: .bitcoin), .mock(chain: .lightning)])
-
-        #expect(AssetSceneViewModel.mock(bitcoin, wallet: lightningWallet).showsLightning)
-        #expect(!AssetSceneViewModel.mock(bitcoin, wallet: .mock(accounts: [.mock(chain: .bitcoin)])).showsLightning)
-        #expect(!AssetSceneViewModel.mock(.mock(asset: Chain.lightning.asset), wallet: lightningWallet).showsLightning)
-    }
 }

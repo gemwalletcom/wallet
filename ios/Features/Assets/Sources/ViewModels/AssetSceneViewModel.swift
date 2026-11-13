@@ -21,7 +21,6 @@ import struct Gemstone.GemTransactionRow
 import func Gemstone.listPhase
 import GemstonePrimitives
 import GemstoneServices
-import Localization
 import Primitives
 import PrimitivesComponents
 import Store
@@ -167,22 +166,6 @@ public final class AssetSceneViewModel: Sendable {
 
     func verificationStatus(_ details: GemAssetDetails) -> VerificationStatus? {
         details.verificationStatus?.toPrimitives()
-    }
-
-    var showsLightning: Bool {
-        asset.id == Chain.bitcoin.assetId && wallet.accounts.contains { $0.chain == .lightning }
-    }
-
-    var lightningAsset: Asset {
-        Chain.lightning.asset
-    }
-
-    var lightningSubtitle: String {
-        Localized.Asset.lightningInstantPayments
-    }
-
-    var lightningImageStyle: ListItemImageStyle? {
-        .asset(assetImage: .image(ChainImage(chain: .lightning).image))
     }
 
     var swapAssetType: SelectedAssetType {

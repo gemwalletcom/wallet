@@ -104,6 +104,26 @@ public extension Gemstone.GemAddressRow {
     }
 }
 
+public extension Gemstone.GemAmountField {
+    static func mock(
+        symbol: Gemstone.GemAmountSymbol = .mock(),
+        placement: Gemstone.GemAmountSymbolPlacement = .leading,
+        keyboard: Gemstone.GemAmountKeyboard = .decimal,
+    ) -> Gemstone.GemAmountField {
+        Gemstone.GemAmountField(
+            symbol: symbol,
+            placement: placement,
+            keyboard: keyboard,
+        )
+    }
+}
+
+public extension Gemstone.GemAmountSymbol {
+    static func mock() -> Gemstone.GemAmountSymbol {
+        .asset(symbol: "")
+    }
+}
+
 public extension Gemstone.GemAppUpdateDestination {
     static func mock() -> Gemstone.GemAppUpdateDestination {
         .store(url: "")
@@ -574,6 +594,26 @@ public extension Gemstone.GemContactSession {
     }
 }
 
+public extension Gemstone.GemCopy {
+    static func mock(
+        kind: Gemstone.GemCopyKind = .mock(),
+        value: String = "",
+        display: String = "",
+    ) -> Gemstone.GemCopy {
+        Gemstone.GemCopy(
+            kind: kind,
+            value: value,
+            display: display,
+        )
+    }
+}
+
+public extension Gemstone.GemCopyKind {
+    static func mock() -> Gemstone.GemCopyKind {
+        .address(chain: Primitives.Chain.bitcoin.rawValue)
+    }
+}
+
 public extension Gemstone.GemCustomFeeField {
     static func mock(
         title: Gemstone.GemListRowTitle = .api,
@@ -823,6 +863,22 @@ public extension Gemstone.GemHeaderButtonAction {
 public extension Gemstone.GemInfoTopic {
     static func mock() -> Gemstone.GemInfoTopic {
         .regionUnavailable
+    }
+}
+
+public extension Gemstone.GemLightningReceive {
+    static func mock(
+        invoice: String = "",
+        qr: String = "",
+        copy: Gemstone.GemCopy = .mock(),
+        field: Gemstone.GemAmountField = .mock(),
+    ) -> Gemstone.GemLightningReceive {
+        Gemstone.GemLightningReceive(
+            invoice: invoice,
+            qr: qr,
+            copy: copy,
+            field: field,
+        )
     }
 }
 
@@ -1674,48 +1730,6 @@ public extension Gemstone.GemWalletSearchView {
             nfts: nfts,
             hasMoreNfts: hasMoreNfts,
             emptyState: emptyState,
-        )
-    }
-}
-
-public extension Gemstone.LightningInvoice {
-    static func mock(
-        invoice: String = "",
-        network: Gemstone.LightningNetwork = .mainnet,
-        amountSats: UInt64? = nil,
-        paymentHash: String = "",
-        createdAt: UInt64 = 0,
-        expiresAt: UInt64 = 0,
-    ) -> Gemstone.LightningInvoice {
-        Gemstone.LightningInvoice(
-            invoice: invoice,
-            network: network,
-            amountSats: amountSats,
-            paymentHash: paymentHash,
-            createdAt: createdAt,
-            expiresAt: expiresAt,
-        )
-    }
-}
-
-public extension Gemstone.LightningPayment {
-    static func mock(
-        id: String = "",
-        direction: Gemstone.LightningPaymentDirection = .incoming,
-        status: Gemstone.LightningPaymentStatus = .pending,
-        amountSats: UInt64 = 0,
-        feeSats: UInt64 = 0,
-        createdAt: UInt64 = 0,
-        invoice: String? = nil,
-    ) -> Gemstone.LightningPayment {
-        Gemstone.LightningPayment(
-            id: id,
-            direction: direction,
-            status: status,
-            amountSats: amountSats,
-            feeSats: feeSats,
-            createdAt: createdAt,
-            invoice: invoice,
         )
     }
 }

@@ -12,9 +12,9 @@ public extension LightningReceiveSceneViewModel {
     static func mock(
         service: any GemLightningServiceProtocol = GemLightningServiceMock(),
         biometry: any BiometryAuthenticatable = BiometryAuthenticationMock(),
-        wallet: Wallet = .mock(accounts: [.mock(chain: .lightning)]),
+        walletId: WalletId = .mock(),
         onComplete: @escaping (ToastMessage) -> Void = { _ in },
     ) -> LightningReceiveSceneViewModel {
-        LightningReceiveSceneViewModel(service: service, biometry: biometry, wallet: wallet, onComplete: onComplete)
+        LightningReceiveSceneViewModel(service: service, biometry: biometry, walletId: walletId, onComplete: onComplete)
     }
 }
