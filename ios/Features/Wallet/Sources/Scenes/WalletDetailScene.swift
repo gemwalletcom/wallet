@@ -81,7 +81,7 @@ public struct WalletDetailScene: View {
         .background(Colors.grayBackground)
         .frame(maxWidth: .infinity)
         .bindQuery(model.detailsQuery)
-        .onChange(of: model.nameInput) { Task { await model.onChangeWalletName() } }
+        .debounce(value: model.nameInput) { _ in await model.onChangeWalletName() }
         .navigationTitle(model.title)
         .alert(
             model.details.row.deletePrompt.text,
