@@ -22,11 +22,6 @@ pub enum GemNftItem {
     Asset { data: NFTAssetData },
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemNftUnverifiedRow {
-    pub count_text: String,
-}
-
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemNftEntry {
     pub item: GemNftItem,
@@ -40,7 +35,7 @@ pub struct GemNftListScreen {
     pub phase: GemListPhase,
     pub syncs_on_appear: bool,
     pub items: Vec<GemNftEntry>,
-    pub unverified_row: Option<GemNftUnverifiedRow>,
+    pub unverified_row: Option<GemListRow>,
     pub has_content: bool,
 }
 

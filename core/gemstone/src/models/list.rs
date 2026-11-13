@@ -114,6 +114,7 @@ pub enum GemListRowTitle {
     Energy,
     Bandwidth,
     RewardsUnverified,
+    Unverified,
     RewardsPending,
     Warning,
     SuspiciousAddress,
@@ -291,6 +292,7 @@ pub enum GemRowAction {
     Pin,
     AddToWallet,
     SelectWallet,
+    UnverifiedCollections,
     Explorer { url: String },
 }
 

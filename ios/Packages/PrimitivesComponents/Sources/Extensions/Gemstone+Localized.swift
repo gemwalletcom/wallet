@@ -921,6 +921,7 @@ public extension GemListRowTitle {
         case .energy: Localized.Stake.Resource.energy
         case .bandwidth: Localized.Stake.Resource.bandwidth
         case .rewardsUnverified: Localized.Rewards.Unverified.title
+        case .unverified: Localized.Asset.Verification.unverified
         case .rewardsPending: Localized.Rewards.Pending.title
         case .warning: Localized.Common.warning
         case .suspiciousAddress: Localized.Common.suspiciousAddress

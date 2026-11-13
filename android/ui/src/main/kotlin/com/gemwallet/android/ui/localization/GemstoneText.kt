@@ -1027,6 +1027,7 @@ fun GemListRowTitle.text(context: Context): String = when (this) {
     GemListRowTitle.DATE -> context.getString(R.string.transaction_date)
     GemListRowTitle.RESOURCE -> context.getString(R.string.stake_resource)
     GemListRowTitle.REWARDS_UNVERIFIED -> context.getString(R.string.rewards_unverified_title)
+    GemListRowTitle.UNVERIFIED -> context.getString(R.string.asset_verification_unverified)
     GemListRowTitle.REWARDS_PENDING -> context.getString(R.string.rewards_pending_title)
     GemListRowTitle.WARNING -> context.getString(R.string.common_warning)
     GemListRowTitle.SUSPICIOUS_ADDRESS -> context.getString(R.string.common_suspicious_address)

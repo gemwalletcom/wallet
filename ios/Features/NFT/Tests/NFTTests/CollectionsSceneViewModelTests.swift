@@ -23,7 +23,7 @@ struct CollectionsSceneViewModelTests {
             .mock(collection: .mock(id: NFTCollectionId(chain: .ethereum, contractAddress: "0xunverified"), status: .unverified), assets: [.mock()]),
         ]
 
-        #expect(model.screen.unverifiedRow?.countText == "1")
+        #expect(model.screen.unverifiedRow == .link(title: .unverified, value: "1", icon: .none, action: .unverifiedCollections))
     }
 
     @Test

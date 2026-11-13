@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.nft.presents
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,9 +22,6 @@ import com.gemwallet.android.features.nft.presents.components.NftItem
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.list_item.GemListRowView
-import com.gemwallet.android.ui.components.list_item.ListItem
-import com.gemwallet.android.ui.components.list_item.ListItemModel
-import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
@@ -45,7 +41,7 @@ private val collectibleCellMinSize = 150.dp
 internal fun CollectionsScene(
     items: List<GemNftEntry>,
     isRefreshing: Boolean,
-    unverifiedListItem: ListItemModel?,
+    unverifiedRow: GemListRow?,
     title: String,
     showReceiveAction: Boolean,
     phase: GemListPhase,
@@ -120,13 +116,8 @@ internal fun CollectionsScene(
                             }
                         }
                     }
-                    unverifiedListItem?.let { model ->
-                        ListItem(
-                            model = model,
-                            listPosition = ListPosition.Single,
-                            modifier = Modifier.clickable { onAction(CollectionsAction.OpenUnverified) },
-                            accessory = { DataBadgeChevron() },
-                        )
+                    unverifiedRow?.let { row ->
+                        GemListRowView(row = row, listPosition = ListPosition.Single, onSelect = { onAction(CollectionsAction.OpenUnverified) })
                     }
                 }
             }

@@ -69,6 +69,7 @@ fun GemRowAction.detailsAction(assetId: AssetId, network: AssetAction.Navigation
     is GemRowAction.Explorer -> AssetAction.OpenUrl(url)
 
     GemRowAction.SelectWallet,
+    GemRowAction.UnverifiedCollections,
     GemRowAction.Wallets,
     GemRowAction.Security,
     GemRowAction.Notifications,

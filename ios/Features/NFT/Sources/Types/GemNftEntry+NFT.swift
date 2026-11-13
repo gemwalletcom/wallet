@@ -3,7 +3,6 @@
 import Components
 import Foundation
 import struct Gemstone.GemNftEntry
-import struct Gemstone.GemNftUnverifiedRow
 import GemstonePrimitives
 import Localization
 import Primitives
@@ -27,8 +26,3 @@ public extension GemNftEntry {
     }
 }
 
-extension GemNftUnverifiedRow {
-    var listItem: ListItemModel {
-        ListItemModel(title: Localized.Asset.Verification.unverified, subtitle: countText)
-    }
-}
