@@ -469,7 +469,6 @@ mod tests {
             change_percentage: 4.2,
         };
         let chart = GemChart {
-            has_candles: false,
             current: Some(current),
             ..GemChart::mock(vec![ChartDateValue::mock(1_000, 100.0)])
         };

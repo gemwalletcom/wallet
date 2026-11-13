@@ -38,7 +38,6 @@ pub struct GemChart {
     pub values: Vec<ChartDateValue>,
     pub base_value: f64,
     pub current: Option<GemChartCurrent>,
-    pub has_candles: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -112,21 +111,20 @@ impl GemChartService {
         match request.clone() {
             GemChartRequest::Rate { currency } => {
                 let rate = self.rate(currency).await;
-                let properties = self.assets.asset_properties(asset_id).await;
                 GemChartResult {
                     request,
                     state: GemLoadState::of(&rate),
                     rate: rate.ok().flatten(),
                     chart: None,
                     candles: vec![],
-                    has_candles: properties.ok().flatten().map(|properties| properties.has_candles),
+                    has_candles: self.has_candles(asset_id).await,
                 }
             }
             GemChartRequest::Chart { period, currency } => {
                 self.remember_period(period);
                 let rate = self.rate(currency.clone()).await;
                 let chart = match &rate {
-                    Ok(rate) => self.sync_charts(asset_id, period, currency, *rate).await,
+                    Ok(rate) => self.sync_charts(asset_id.clone(), period, currency, *rate).await,
                     Err(error) => Err(error.clone()),
                 };
                 GemChartResult {
@@ -135,7 +133,7 @@ impl GemChartService {
                     state: GemLoadState::of(&chart),
                     chart: chart.ok(),
                     candles: vec![],
-                    has_candles: None,
+                    has_candles: self.has_candles(asset_id).await,
                 }
             }
             GemChartRequest::Candles { period, currency } => {
@@ -163,6 +161,10 @@ impl GemChartService {
         Ok(self.price.rate(currency).await?.map(|rate| rate.rate))
     }
 
+    async fn has_candles(&self, asset_id: AssetId) -> Option<bool> {
+        self.assets.asset_properties(asset_id).await.ok().flatten().map(|properties| properties.has_candles)
+    }
+
     fn remember_period(&self, period: ChartPeriod) {
         if self.preferences.get_chart_period() != period {
             self.preferences.set_chart_period(period).ok();
@@ -170,7 +172,8 @@ impl GemChartService {
     }
 
     async fn sync_charts(&self, asset_id: AssetId, period: ChartPeriod, currency: Currency, rate: Option<f64>) -> Result<GemChart, GemServiceError> {
-        let charts = self.api.client.get_charts(asset_id.clone(), period).await.map_err(GemApiError::from)?;
+        let (charts, _) = futures::join!(self.api.client.get_charts(asset_id.clone(), period), self.assets.update_asset(asset_id.clone()));
+        let charts = charts.map_err(GemApiError::from)?;
         if let Some(market) = charts.market {
             self.price.update_market(asset_id.clone(), market).await?;
         }
@@ -181,12 +184,7 @@ impl GemChartService {
         let values = rules::converted_values(charts.prices, rate);
         let base_value = rules::base_value(&values);
         let current = rules::current_value(&values, latest, Utc::now(), period, base_value);
-        Ok(GemChart {
-            values,
-            base_value,
-            current,
-            has_candles: charts.has_candles,
-        })
+        Ok(GemChart { values, base_value, current })
     }
 
     async fn sync_candles(&self, asset_id: AssetId, period: ChartPeriod, currency: Currency, rate: Option<f64>) -> Result<Vec<ChartCandleStick>, GemServiceError> {
@@ -200,7 +198,7 @@ impl GemChartService {
 
 #[cfg(test)]
 mod tests {
-    use primitives::{Asset, AssetBasic, AssetMarket, AssetProperties, AssetScore, Price, PriceProvider};
+    use primitives::{Asset, AssetBasic, AssetFull, AssetMarket, AssetProperties, AssetScore, Price, PriceProvider};
 
     use super::session::GemChartRate;
     use super::*;
@@ -213,11 +211,17 @@ mod tests {
     use futures::executor::block_on;
 
     fn service(status: u16) -> GemChartService {
-        service_with_assets(status, vec![])
+        service_with_assets(Arc::new(TestAlienProvider::with_json(status, "{}")), vec![])
     }
 
-    fn service_with_assets(status: u16, assets: Vec<AssetBasic>) -> GemChartService {
-        let provider = Arc::new(TestAlienProvider::with_json(status, "{}"));
+    fn properties(asset: &Asset, has_candles: bool) -> AssetProperties {
+        AssetProperties {
+            has_candles,
+            ..AssetProperties::default(asset.id.clone())
+        }
+    }
+
+    fn service_with_assets(provider: Arc<TestAlienProvider>, assets: Vec<AssetBasic>) -> GemChartService {
         let store = Arc::new(MemoryAssetStore {
             assets: std::sync::Mutex::new(assets),
             ..Default::default()
@@ -280,19 +284,38 @@ mod tests {
     #[test]
     fn test_the_first_load_reads_whether_the_stored_asset_has_candles() {
         let asset = Asset::mock_ethereum_usdc();
-        let stored = AssetBasic::new(
-            asset.clone(),
-            AssetProperties {
-                has_candles: true,
-                ..AssetProperties::default(asset.id.clone())
-            },
-            AssetScore::new(0),
-        );
-        let service = service_with_assets(200, vec![stored]);
+        let stored = AssetBasic::new(asset.clone(), properties(&asset, true), AssetScore::new(0));
+        let service = service_with_assets(Arc::new(TestAlienProvider::with_json(200, "{}")), vec![stored]);
         let rate = |asset_id| block_on(service.load(asset_id, GemChartRequest::Rate { currency: Currency::EUR }));
 
         assert_eq!(rate(asset.id.clone()).has_candles, Some(true));
-        assert_eq!(rate(AssetId::from_chain(primitives::Chain::Bitcoin)).has_candles, None, "an asset the app has not stored waits for the chart response");
+        assert_eq!(rate(AssetId::from_chain(primitives::Chain::Bitcoin)).has_candles, None, "an asset the app has not stored waits for the chart load");
+    }
+
+    #[test]
+    fn test_a_chart_load_refreshes_the_asset_and_answers_with_its_candles() {
+        let asset = Asset::mock_ethereum_usdc();
+        let refreshed = AssetFull {
+            asset: asset.clone(),
+            properties: properties(&asset, true),
+            ..AssetFull::mock()
+        };
+        let provider = Arc::new(TestAlienProvider::with_json_by_path(
+            200,
+            &[("/v1/assets/", &serde_json::to_string(&refreshed).unwrap()), ("/v1/charts/", r#"{"prices":[],"marketCaps":[],"totalVolumes":[]}"#)],
+        ));
+        let service = service_with_assets(provider, vec![]);
+
+        let result = block_on(service.load(
+            asset.id,
+            GemChartRequest::Chart {
+                period: ChartPeriod::Day,
+                currency: Currency::EUR,
+            },
+        ));
+
+        assert_eq!(result.state, GemLoadState::Data);
+        assert_eq!(result.has_candles, Some(true), "the answer comes from the asset endpoint");
     }
 
     #[test]

@@ -39,10 +39,6 @@ impl ChartClient {
         }
     }
 
-    pub async fn has_candles(&self, asset_id: &AssetId) -> Result<bool, Box<dyn Error + Send + Sync>> {
-        Ok(self.candles_source(asset_id).await?.is_some())
-    }
-
     pub async fn get_candles(&self, asset_id: &AssetId, period: ChartPeriod, ip_address: &str) -> Result<Vec<ChartCandleStick>, Box<dyn Error + Send + Sync>> {
         let Some((provider, price)) = self.candles_source(asset_id).await? else {
             return Ok(vec![]);
@@ -183,16 +179,6 @@ mod tests {
             provider: PriceProvider::Pyth,
             ..PriceData::mock()
         }
-    }
-
-    #[tokio::test]
-    async fn test_an_asset_has_candles_when_a_provider_with_candles_prices_it() {
-        let asset_id = AssetId::from_chain(Chain::Bitcoin);
-        let provider = Arc::new(StubProvider::default());
-
-        assert!(candles_client(provider.clone(), vec![PriceData::mock()]).has_candles(&asset_id).await.unwrap());
-        assert!(!candles_client(provider.clone(), vec![pyth_price()]).has_candles(&asset_id).await.unwrap());
-        assert!(!candles_client(provider, vec![]).has_candles(&asset_id).await.unwrap());
     }
 
     #[tokio::test]

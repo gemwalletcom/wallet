@@ -50,6 +50,7 @@ The chart follows the shared [Charts](../PRODUCT.md#charts) section.
 | When | Expected | Why |
 |---|---|---|
 | The asset has candles | a button in the top right corner switches the price chart between a line and candlesticks; the choice is remembered for every asset | traders read each period's open, high, low and close |
+| The chart opens for an asset the app already knows has candles | the button shows right away, before the chart loads | a button that appears a second later moves under the user's tap |
 | The asset has no candles | the line shows with no button, whatever the user picked on another asset | a button that cannot work is not offered |
 | Candlesticks show | the periods start at `1D`, and a chart on `1H` moves to `1D` | an hour holds too few candles to read |
 | Candlesticks show | a period holds at most 60 equally wide candles, each dated by when it opened, so `1M` shows 12-hour candles like a perpetual market | a month of four-hour candles is too thin to read |
