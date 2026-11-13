@@ -19,7 +19,6 @@ import com.gemwallet.android.data.services.store.database.entities.DbDelegationV
 import com.gemwallet.android.data.services.store.database.entities.DbFiatRate
 import com.gemwallet.android.data.services.store.database.entities.DbFiatTransaction
 import com.gemwallet.android.data.services.store.database.entities.DbInAppNotification
-import com.gemwallet.android.data.services.store.database.entities.DbLightningLeaf
 import com.gemwallet.android.data.services.store.database.entities.DbLightningPendingSend
 import com.gemwallet.android.data.services.store.database.entities.DbNFTAsset
 import com.gemwallet.android.data.services.store.database.entities.DbNFTAssociation
@@ -69,7 +68,6 @@ import com.gemwallet.android.data.services.store.database.entities.DbWallet
         DbPerpetualPosition::class,
         DbInAppNotification::class,
         DbSupportMessage::class,
-        DbLightningLeaf::class,
         DbLightningPendingSend::class,
     ],
 )

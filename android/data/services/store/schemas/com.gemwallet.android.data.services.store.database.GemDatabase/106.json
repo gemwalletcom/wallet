@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 106,
-    "identityHash": "01909e7c4d774a677065ee906d871946",
+    "identityHash": "10f6ceff105a8b3507c9ee2c77702b0a",
     "entities": [
       {
         "tableName": "wallets",
@@ -2689,50 +2689,6 @@
         ]
       },
       {
-        "tableName": "lightning_leaves",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`wallet_id` TEXT NOT NULL, `id` TEXT NOT NULL, `data` TEXT NOT NULL, PRIMARY KEY(`wallet_id`, `id`), FOREIGN KEY(`wallet_id`) REFERENCES `wallets`(`id`) ON UPDATE CASCADE ON DELETE CASCADE )",
-        "fields": [
-          {
-            "fieldPath": "walletId",
-            "columnName": "wallet_id",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "id",
-            "columnName": "id",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "data",
-            "columnName": "data",
-            "affinity": "TEXT",
-            "notNull": true
-          }
-        ],
-        "primaryKey": {
-          "autoGenerate": false,
-          "columnNames": [
-            "wallet_id",
-            "id"
-          ]
-        },
-        "foreignKeys": [
-          {
-            "table": "wallets",
-            "onDelete": "CASCADE",
-            "onUpdate": "CASCADE",
-            "columns": [
-              "wallet_id"
-            ],
-            "referencedColumns": [
-              "id"
-            ]
-          }
-        ]
-      },
-      {
         "tableName": "lightning_pending_sends",
         "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`wallet_id` TEXT NOT NULL, `transfer_id` TEXT NOT NULL, `invoice` TEXT NOT NULL, `amount_sats` INTEGER, `expires_at` INTEGER NOT NULL, PRIMARY KEY(`wallet_id`, `transfer_id`), FOREIGN KEY(`wallet_id`) REFERENCES `wallets`(`id`) ON UPDATE CASCADE ON DELETE CASCADE )",
         "fields": [
@@ -2790,7 +2746,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '01909e7c4d774a677065ee906d871946')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '10f6ceff105a8b3507c9ee2c77702b0a')"
     ]
   }
 }
