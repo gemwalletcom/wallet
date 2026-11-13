@@ -26,6 +26,9 @@ for response in ../crates/name_resolver/testdata/ens_*response.json; do
     { printf "\\$(printf %o $((size & 255)))\\$(printf %o $((size >> 8)))"; cat "$response" ../crates/name_resolver/testdata/ens_ccip_response.json; } > "corpus/ens_resolution/$(basename "$response" .json)"
 done
 
+mkdir -p corpus/aptos_resolution
+cp ../crates/name_resolver/testdata/aptos_*response.json corpus/aptos_resolution/
+
 mkdir -p artifacts
 for target in $(cargo fuzz list); do
     cargo fuzz run -s none -a "$target" -- -max_total_time="${1:-600}" -timeout=10 -fork=1 -ignore_crashes=1 -ignore_timeouts=1 -ignore_ooms=1 > "artifacts/$target.log" 2>&1 &

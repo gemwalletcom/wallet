@@ -121,8 +121,12 @@ mod tests {
     #[tokio::test]
     async fn test_resolve_aptos() {
         let provider = AptosProvider::new(ReqwestClient::new(get_test_settings().name.aptos.url, reqwest_client()));
-        let address = provider.resolve(&NameQuery::new("petra.apt"), Chain::Aptos).await.unwrap().unwrap();
-        assert_eq!(address, "0xfe2ffdb3a74307f7314a1c8ab3762b6b5869a3c1278cdd5d230249453e15a1db");
+        for (name, expected) in [
+            ("petra.apt", "0xfe2ffdb3a74307f7314a1c8ab3762b6b5869a3c1278cdd5d230249453e15a1db"),
+            ("satoshi.apt", "0x09e7a38edc6155ba35aecc6409c48b8fc5eb851c949594d9cdb8d0a6f9aa603e"),
+        ] {
+            assert_eq!(provider.resolve(&NameQuery::new(name), Chain::Aptos).await.unwrap().unwrap().as_str(), expected, "{name}");
+        }
     }
 
     #[tokio::test]
