@@ -8,9 +8,11 @@ import struct Gemstone.GemConnectionRow
 import enum Gemstone.GemListRow
 import enum Gemstone.GemServiceError
 import protocol Gemstone.GemSignMessageServiceProtocol
+import enum Gemstone.GemVerificationLevel
 import struct Gemstone.MessagePayloadPreview
 import func Gemstone.signerFailure
 import struct Gemstone.SignMessage
+import func Gemstone.verificationLevel
 import func Gemstone.walletRow
 import func Gemstone.walletSections
 import GemstonePrimitives
@@ -27,6 +29,7 @@ public final class AuthenticationSceneViewModel {
     private let request: WCAuthenticationRequest
     private let confirmTransferDelegate: TransferDataCallback.ConfirmTransferDelegate
     private let connection: GemConnectionRow
+    private let verification: GemVerificationLevel
     private var approval: Result<AuthenticationApproval, any Error>
 
     var walletSelectorModel: SelectWalletViewModel {
@@ -46,6 +49,7 @@ public final class AuthenticationSceneViewModel {
         self.request = request
         self.confirmTransferDelegate = confirmTransferDelegate
         connection = applicationConnectionRow(metadata: request.proposal.metadata.toGem())
+        verification = verificationLevel(status: request.verificationStatus.toGem())
         walletSelectorModel = SelectWalletViewModel(
             sections: walletSections(wallets: request.proposal.wallets.map { $0.listItem.toGem() }, currentWalletId: nil),
             selectedRow: walletRow(wallet: request.proposal.defaultWallet.toGem()),
@@ -78,6 +82,18 @@ public final class AuthenticationSceneViewModel {
 
     var networkRow: GemListRow? {
         account.map { .network(title: .network, chain: $0.chain, name: Chain(core: $0.chain).networkName) }
+    }
+
+    var statusText: String {
+        verification.title
+    }
+
+    var statusTextStyle: TextStyle {
+        verification.textStyle
+    }
+
+    var statusAssetImage: AssetImage {
+        .image(verification.image)
     }
 
     var primaryPayloadFields: [GemListRow] {

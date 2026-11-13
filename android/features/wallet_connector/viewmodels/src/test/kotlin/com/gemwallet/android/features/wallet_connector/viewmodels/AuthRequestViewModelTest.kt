@@ -17,6 +17,7 @@ import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.testkit.mockWalletConnectionSessionProposal
 import com.gemwallet.android.testkit.mockWalletId
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
 import io.mockk.coEvery
@@ -104,6 +105,9 @@ class AuthRequestViewModelTest {
         ioDispatcher = dispatcher,
         context = mockk(relaxed = true) {
             every { getString(R.string.errors_connections_malicious_origin) } returns "Malicious origin"
+            every { getString(R.string.asset_verification_verified) } returns "Verified"
+            every { getString(R.string.asset_verification_unverified) } returns "Unverified"
+            every { getString(R.string.asset_verification_suspicious) } returns "Suspicious"
         },
     ).also { models.add(it) }
 
@@ -144,6 +148,30 @@ class AuthRequestViewModelTest {
         assertEquals(listOf("Main Wallet", "Second Wallet"), content.availableWalletSections.flatMap { it.rows }.map { it.name })
         assertEquals("0xabc", content.approval.account.address)
         assertEquals(message, content.message)
+    }
+
+    @Test
+    fun `the status row shows the dapp's verification level`() = runTest(dispatcher) {
+        listOf(
+            WalletConnectionVerificationStatus.VERIFIED to ("Verified" to ListItemTextStyle.Positive),
+            WalletConnectionVerificationStatus.UNKNOWN to ("Unverified" to ListItemTextStyle.Warning),
+            WalletConnectionVerificationStatus.INVALID to ("Suspicious" to ListItemTextStyle.Negative),
+            WalletConnectionVerificationStatus.MALICIOUS to ("Suspicious" to ListItemTextStyle.Negative),
+        ).forEach { (status, expected) ->
+            val service = service()
+            coEvery { service.prepareAuthentication(any(), any(), any(), any(), any()) } returns GemSessionProposal(
+                proposal = mockWalletConnectionSessionProposal(defaultWallet = main, wallets = listOf(main), metadata = mockApplicationMetadata(name = "Uniswap")).toGem(),
+                verificationStatus = status,
+                canChooseWallet = true,
+            )
+            val model = viewModel(service = service)
+
+            model.onRequest(request) {}
+
+            val content = model.awaitContent()
+            assertEquals(expected.first, content.statusListItem.subtitle)
+            assertEquals(expected.second, content.statusListItem.subtitleStyle)
+        }
     }
 
     @Test
