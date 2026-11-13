@@ -286,7 +286,7 @@ impl Services {
     }
 
     pub fn wallets(&self, stream_producer: StreamProducer, cacher: CacherClient) -> WalletsClient {
-        WalletsClient::new(self.devices_repository(), Arc::new(stream_producer), self.subscription_lookup(cacher))
+        WalletsClient::new(self.devices_repository(), Arc::new(stream_producer), self.subscription_lookup(cacher), self.config())
     }
 
     pub fn wallet_configuration(&self, cacher: CacherClient, user_agent: &str) -> WalletConfigurationClient {
