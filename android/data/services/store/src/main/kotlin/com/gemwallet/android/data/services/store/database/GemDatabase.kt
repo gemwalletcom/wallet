@@ -19,6 +19,8 @@ import com.gemwallet.android.data.services.store.database.entities.DbDelegationV
 import com.gemwallet.android.data.services.store.database.entities.DbFiatRate
 import com.gemwallet.android.data.services.store.database.entities.DbFiatTransaction
 import com.gemwallet.android.data.services.store.database.entities.DbInAppNotification
+import com.gemwallet.android.data.services.store.database.entities.DbLightningLeaf
+import com.gemwallet.android.data.services.store.database.entities.DbLightningPendingSend
 import com.gemwallet.android.data.services.store.database.entities.DbNFTAsset
 import com.gemwallet.android.data.services.store.database.entities.DbNFTAssociation
 import com.gemwallet.android.data.services.store.database.entities.DbNFTCollection
@@ -35,7 +37,7 @@ import com.gemwallet.android.data.services.store.database.entities.DbTransaction
 import com.gemwallet.android.data.services.store.database.entities.DbWallet
 
 @Database(
-    version = 105,
+    version = 106,
     entities = [
         DbWallet::class,
         DbAccount::class,
@@ -67,6 +69,8 @@ import com.gemwallet.android.data.services.store.database.entities.DbWallet
         DbPerpetualPosition::class,
         DbInAppNotification::class,
         DbSupportMessage::class,
+        DbLightningLeaf::class,
+        DbLightningPendingSend::class,
     ],
 )
 @TypeConverters(StoreConverters::class, ChainConverters::class)
@@ -112,4 +116,6 @@ abstract class GemDatabase : RoomDatabase() {
     abstract fun inAppNotificationsDao(): InAppNotificationsDao
 
     abstract fun supportMessagesDao(): SupportMessagesDao
+
+    abstract fun lightningDao(): LightningDao
 }

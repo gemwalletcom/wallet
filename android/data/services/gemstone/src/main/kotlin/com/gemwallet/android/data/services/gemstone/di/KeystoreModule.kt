@@ -6,8 +6,10 @@ import com.gemwallet.android.application.lightning.cases.OpenLightning
 import com.gemwallet.android.data.services.gemstone.lightning.LightningSessionObserver
 import com.gemwallet.android.data.services.gemstone.stores.DeviceAuthentication
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneKeystorePassword
+import com.gemwallet.android.data.services.gemstone.stores.GemstoneLightningStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
 import com.gemwallet.android.data.services.gemstone.stores.LightningKeystorePassword
+import com.gemwallet.android.data.services.store.database.LightningDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -38,7 +40,6 @@ import uniffi.gemstone.GemTransactionsService
 import uniffi.gemstone.GemWalletPreferencesService
 import uniffi.gemstone.GemWalletService
 import uniffi.gemstone.GemWalletSessionService
-import java.io.File
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -119,11 +120,11 @@ object KeystoreModule {
     @Provides
     @Singleton
     fun provideGemLightningService(
-        @ApplicationContext context: Context,
         apiClient: GemApiClient,
         keystore: GemKeystore,
         passwordStore: PasswordStore,
         deviceAuthentication: DeviceAuthentication,
+        lightningDao: LightningDao,
         balanceService: GemBalanceService,
         transactionsService: GemTransactionsService,
         walletSessionService: GemWalletSessionService,
@@ -131,7 +132,7 @@ object KeystoreModule {
         apiClient,
         keystore,
         LightningKeystorePassword(GemstoneKeystorePassword(passwordStore, deviceAuthentication)),
-        File(context.noBackupFilesDir, "lightning").absolutePath,
+        GemstoneLightningStore(lightningDao),
         balanceService,
         transactionsService,
         walletSessionService,
