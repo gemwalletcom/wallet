@@ -14,11 +14,10 @@ public final class GemLightningServiceMock: GemLightningServiceProtocol, @unchec
     public var receiveError: (any Error)?
 
     public private(set) var receiveAmounts: [String] = []
-    public private(set) var openEnabledCalls: [WalletId] = []
-    public private(set) var syncCalls: [WalletId] = []
+    public private(set) var openEnabledCallsCount = 0
     public private(set) var lockAllCallsCount = 0
 
-    public init(receive: GemLightningReceive = .mock(invoice: "lnbc1invoice", qr: "lightning:lnbc1invoice")) {
+    public init(receive: GemLightningReceive = .mock(qr: "lightning:lnbc1invoice", copy: .mock(value: "lnbc1invoice"))) {
         self.receive = receive
     }
 
@@ -26,8 +25,8 @@ public final class GemLightningServiceMock: GemLightningServiceProtocol, @unchec
         lockAllCallsCount += 1
     }
 
-    public func openEnabled(walletId: WalletId) async throws {
-        openEnabledCalls.append(walletId)
+    public func openEnabled() async throws {
+        openEnabledCallsCount += 1
     }
 
     public func receive(walletId _: WalletId, amount: String, format _: GemNumberFormat) async throws -> GemLightningReceive {
@@ -40,9 +39,5 @@ public final class GemLightningServiceMock: GemLightningServiceProtocol, @unchec
 
     public func receiveState(walletId _: WalletId, invoice _: String) async throws -> GemLightningReceiveState {
         receiveState
-    }
-
-    public func sync(walletId: WalletId) async throws {
-        syncCalls.append(walletId)
     }
 }

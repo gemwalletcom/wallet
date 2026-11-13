@@ -2,6 +2,7 @@
 
 import Components
 import struct Gemstone.GemLightningReceive
+import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Style
@@ -21,7 +22,7 @@ public struct LightningReceiveScene: View {
             .background(Colors.grayBackground)
             .navigationTitle(model.title)
             .navigationBarTitleDisplayMode(.inline)
-            .task(id: model.amount) { await model.onChangeAmount() }
+            .debouncedTask(id: model.loadTrigger, interval: GemConstants.lightningInvoiceDebounce) { await model.onLoad() }
     }
 
     @ViewBuilder
@@ -52,7 +53,7 @@ public struct LightningReceiveScene: View {
                 Text(model.unavailableTitle)
             } actions: {
                 Button(model.tryAgainTitle) {
-                    Task { await model.onChangeAmount() }
+                    Task { await model.onLoad() }
                 }
             }
         }

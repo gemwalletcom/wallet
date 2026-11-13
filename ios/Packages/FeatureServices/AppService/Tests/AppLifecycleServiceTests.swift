@@ -171,23 +171,13 @@ struct AppLifecycleServiceTests {
     }
 
     @Test
-    func openLightningOpensTheCurrentWallet() async throws {
-        let lightning = GemLightningServiceMock()
-        let service = try AppLifecycleService.mock(walletSessionService: GemWalletSessionService.mock(wallet: wallet), lightningService: lightning)
-
-        await service.openLightning(unlocked: {})
-
-        #expect(lightning.openEnabledCalls == [wallet.id])
-    }
-
-    @Test
-    func openLightningSkipsWithoutACurrentWallet() async {
+    func openLightningOpensTheEnabledWallet() async {
         let lightning = GemLightningServiceMock()
         let service = AppLifecycleService.mock(lightningService: lightning)
 
         await service.openLightning(unlocked: {})
 
-        #expect(lightning.openEnabledCalls.isEmpty)
+        #expect(lightning.openEnabledCallsCount == 1)
     }
 
     @Test
@@ -198,6 +188,6 @@ struct AppLifecycleServiceTests {
         await service.onScenePhase(.background, unlocked: {})
 
         #expect(lightning.lockAllCallsCount == 1)
-        #expect(lightning.openEnabledCalls.isEmpty)
+        #expect(lightning.openEnabledCallsCount == 0)
     }
 }

@@ -16,8 +16,6 @@ import SwiftUI
 @Observable
 @MainActor
 public final class LightningReceiveSceneViewModel: Sendable {
-    private static let amountDebounce: Duration = .milliseconds(600)
-
     private let service: any GemLightningServiceProtocol
     private let biometry: any BiometryAuthenticatable
     private let walletId: WalletId
@@ -56,6 +54,10 @@ public final class LightningReceiveSceneViewModel: Sendable {
         Localized.Common.tryAgain
     }
 
+    var loadTrigger: LightningReceiveTrigger {
+        LightningReceiveTrigger(amount: amount)
+    }
+
     func amountInputConfig(_ receive: GemLightningReceive) -> AmountInputConfig {
         AmountInputConfig(field: receive.field, canSwitchInputType: false, numberFormat: NumberInput.format(), secondaryText: "", onTapActionButton: nil)
     }
@@ -64,18 +66,14 @@ public final class LightningReceiveSceneViewModel: Sendable {
 // MARK: - Business Logic
 
 extension LightningReceiveSceneViewModel {
-    func onChangeAmount() async {
-        if amount.isNotEmpty {
-            try? await Task.sleep(for: Self.amountDebounce)
-        }
-        guard !Task.isCancelled else { return }
+    func onLoad() async {
         await createInvoice()
     }
 
     func onRefresh() async {
         guard case let .ready(receive) = state else { return }
         do {
-            switch try await service.receiveState(walletId: walletId, invoice: receive.invoice) {
+            switch try await service.receiveState(walletId: walletId, invoice: receive.copy.value) {
             case .pending: break
             case .expired: await createInvoice()
             case .received: onComplete(.success(Localized.Transaction.Title.received))

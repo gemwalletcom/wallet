@@ -76,8 +76,7 @@ public actor AppLifecycleService: Sendable {
     public func openLightning(unlocked: @Sendable () async -> Void) async {
         await unlocked()
         do {
-            guard let walletId = try walletSessionService.getCurrentWalletId() else { return }
-            try await lightningService.openEnabled(walletId: walletId)
+            try await lightningService.openEnabled()
         } catch {
             debugLog("AppLifecycleService lightning open error: \(error)")
         }

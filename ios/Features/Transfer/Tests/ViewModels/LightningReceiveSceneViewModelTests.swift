@@ -18,7 +18,7 @@ struct LightningReceiveSceneViewModelTests {
         let service = GemLightningServiceMock()
         let model = LightningReceiveSceneViewModel.mock(service: service)
 
-        await model.onChangeAmount()
+        await model.onLoad()
 
         #expect(model.state == .ready(service.receive))
         #expect(service.receiveAmounts == [""])
@@ -34,8 +34,8 @@ struct LightningReceiveSceneViewModelTests {
         let lockedModel = LightningReceiveSceneViewModel.mock(service: locked)
         let unavailableModel = LightningReceiveSceneViewModel.mock(service: unavailable)
 
-        await lockedModel.onChangeAmount()
-        await unavailableModel.onChangeAmount()
+        await lockedModel.onLoad()
+        await unavailableModel.onLoad()
 
         #expect(lockedModel.state == .locked)
         #expect(unavailableModel.state == .unavailable)
@@ -47,7 +47,7 @@ struct LightningReceiveSceneViewModelTests {
         let model = LightningReceiveSceneViewModel.mock(service: service)
 
         model.amount = "0.001"
-        await model.onChangeAmount()
+        await model.onLoad()
 
         #expect(service.receiveAmounts == ["0.001"])
     }
@@ -57,7 +57,7 @@ struct LightningReceiveSceneViewModelTests {
         let service = GemLightningServiceMock()
         var completed: ToastMessage?
         let model = LightningReceiveSceneViewModel.mock(service: service, onComplete: { completed = $0 })
-        await model.onChangeAmount()
+        await model.onLoad()
 
         service.receiveState = .expired
         await model.onRefresh()
@@ -74,7 +74,7 @@ struct LightningReceiveSceneViewModelTests {
         let service = GemLightningServiceMock()
         service.receiveError = GemServiceError.Cancelled
         let model = LightningReceiveSceneViewModel.mock(service: service)
-        await model.onChangeAmount()
+        await model.onLoad()
 
         service.receiveError = nil
         await model.onUnlock()

@@ -868,13 +868,11 @@ public extension Gemstone.GemInfoTopic {
 
 public extension Gemstone.GemLightningReceive {
     static func mock(
-        invoice: String = "",
         qr: String = "",
         copy: Gemstone.GemCopy = .mock(),
         field: Gemstone.GemAmountField = .mock(),
     ) -> Gemstone.GemLightningReceive {
         Gemstone.GemLightningReceive(
-            invoice: invoice,
             qr: qr,
             copy: copy,
             field: field,
