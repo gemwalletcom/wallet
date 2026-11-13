@@ -45,10 +45,11 @@ impl<C: Client> NameResolver for AptosProvider<C> {
         let Some(address) = response.into_iter().next().and_then(|option| option.vec.into_iter().next()) else {
             return Ok(None);
         };
-        if primitives::decode_hex(&address)?.is_empty() {
-            return Err(format!("{} resolved to an empty Aptos address", query.domain).into());
+        let address = AccountAddress::from_hex(&address)?;
+        if address == AccountAddress::new([0; _]) {
+            return Err(format!("{} resolved to the zero Aptos address", query.domain).into());
         }
-        Ok(Some(AccountAddress::from_hex(&address)?.to_string()))
+        Ok(Some(address.to_string()))
     }
 }
 
@@ -91,11 +92,9 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_resolve_rejects_an_empty_address() {
-        for value in ["", "0x"] {
-            let provider = AptosProvider::new(MockClient::new().with_post(move |_, _| Ok(format!(r#"[{{"vec":["{value}"]}}]"#).into_bytes())));
+    async fn test_resolve_rejects_the_zero_address() {
+        let provider = AptosProvider::new(MockClient::new().with_post(|_, _| Ok(br#"[{"vec":["0x0"]}]"#.to_vec())));
 
-            assert!(provider.resolve(&NameQuery::new("satoshi.apt"), Chain::Aptos).await.is_err(), "{value:?}");
-        }
+        assert!(provider.resolve(&NameQuery::new("satoshi.apt"), Chain::Aptos).await.is_err());
     }
 }

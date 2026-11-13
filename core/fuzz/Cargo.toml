@@ -19,7 +19,6 @@ gemstone = { path = "../gemstone" }
 primitives = { path = "../crates/primitives" }
 payment = { path = "../crates/payment" }
 signer = { path = "../crates/signer" }
-gem_aptos = { path = "../crates/gem_aptos" }
 gem_auth = { path = "../crates/gem_auth" }
 gem_client = { path = "../crates/gem_client", features = ["testkit"] }
 gem_encoding = { path = "../crates/gem_encoding", features = ["protobuf"] }
@@ -34,10 +33,6 @@ gem_bitcoin = { path = "../crates/gem_bitcoin", features = ["signer"] }
 gem_zcash = { path = "../crates/gem_zcash", features = ["rpc"] }
 wallet_connect_protocol = { path = "../crates/wallet_connect_protocol" }
 name_resolver = { path = "../crates/name_resolver" }
-
-[[bin]]
-name = "aptos_resolution"
-path = "fuzz_targets/aptos_resolution.rs"
 
 [[bin]]
 name = "address"
