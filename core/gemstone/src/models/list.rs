@@ -128,6 +128,7 @@ pub enum GemListRowTitle {
     SuspiciousAddress,
     UnlimitedApproval,
     NftCollectionApproval,
+    SuspiciousAsset,
     Symbol,
     Decimals,
     Type,
@@ -180,6 +181,19 @@ pub(crate) fn suspicious_address_title(kind: GemNoticeKind) -> GemListRowTitle {
         GemNoticeKind::Error => GemListRowTitle::SuspiciousAddress,
         GemNoticeKind::Warning | GemNoticeKind::Info => GemListRowTitle::Warning,
     }
+}
+
+pub(crate) fn asset_status_notice(status: VerificationStatus) -> Option<GemListRow> {
+    let (title, kind) = match status {
+        VerificationStatus::Unverified => (GemListRowTitle::Warning, GemNoticeKind::Warning),
+        VerificationStatus::Suspicious => (GemListRowTitle::SuspiciousAsset, GemNoticeKind::Error),
+        VerificationStatus::Verified => return None,
+    };
+    Some(GemListRow::Notice {
+        title,
+        message: Some(GemLocalizedText::SuspiciousAssetDescription),
+        kind,
+    })
 }
 
 pub(crate) fn suspicious_address_notice(kind: GemNoticeKind) -> GemListRow {

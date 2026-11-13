@@ -211,6 +211,8 @@ fun GemLocalizedText.string(context: Context): String = when (this) {
 
     GemLocalizedText.SuspiciousAddressDescription -> context.getString(R.string.common_suspicious_address_description)
 
+    GemLocalizedText.SuspiciousAssetDescription -> context.getString(R.string.banner_asset_status_description)
+
     is GemLocalizedText.AddressType -> context.getString(addressType.stringRes())
 
     GemLocalizedText.InvalidTokenId -> context.getString(R.string.errors_token_invalid_id)
@@ -1026,6 +1028,7 @@ fun GemListRowTitle.text(context: Context): String = when (this) {
     GemListRowTitle.SUSPICIOUS_ADDRESS -> context.getString(R.string.common_suspicious_address)
     GemListRowTitle.UNLIMITED_APPROVAL -> context.getString(R.string.simulation_warning_unlimited_token_approval_title)
     GemListRowTitle.NFT_COLLECTION_APPROVAL -> context.getString(R.string.simulation_warning_nft_collection_approval_title)
+    GemListRowTitle.SUSPICIOUS_ASSET -> context.getString(R.string.banner_asset_status_title)
     GemListRowTitle.SYMBOL -> context.getString(R.string.asset_symbol)
     GemListRowTitle.DECIMALS -> context.getString(R.string.asset_decimals)
     GemListRowTitle.TYPE -> context.getString(R.string.common_type)

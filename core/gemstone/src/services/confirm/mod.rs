@@ -40,7 +40,7 @@ use num_bigint::BigInt;
 use primitives::TransactionInputType;
 use primitives::currency::Currency;
 use primitives::{
-    Asset, AssetId, BlockExplorerLink, Chain, EVMChain, PerpetualAccountMode, SignerError, SignerInput, SimulationPayloadFieldDisplay, SimulationResult, Transaction, TransactionFee, TransactionLoadData, TransactionLoadInput,
+    Asset, AssetBasic, AssetId, BlockExplorerLink, Chain, EVMChain, PerpetualAccountMode, SignerError, SignerInput, SimulationPayloadFieldDisplay, SimulationResult, Transaction, TransactionFee, TransactionLoadData, TransactionLoadInput,
     TransactionPreloadInput, WalletId,
 };
 
@@ -220,7 +220,7 @@ impl GemConfirmService {
 }
 
 impl GemConfirmService {
-    async fn ensure_simulation_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<Asset>, crate::services::error::GemServiceError> {
+    async fn ensure_simulation_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetBasic>, crate::services::error::GemServiceError> {
         self.assets.ensure_simulation_assets(asset_ids).await
     }
 

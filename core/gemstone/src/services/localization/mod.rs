@@ -34,6 +34,7 @@ pub enum GemLocalizedText {
     UnlimitedApprovalWarning,
     ExternallyOwnedSpenderWarning,
     SuspiciousAddressDescription,
+    SuspiciousAssetDescription,
     AddressType { address_type: AddressType },
     InvalidTokenId,
     TriggerOrder { order: GemTriggerOrder, price: Option<GemFormattedNumber> },
