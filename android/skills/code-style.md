@@ -9,6 +9,7 @@ Use for any Kotlin or Compose change.
 - No blocking store, Room, network, or platform I/O on the main thread, including calls through Gemstone. Dispatch those calls off main; a synchronous Room read reached from a view model constructor, a Hilt provider, or composition throws and kills the process. Cheap pure projections and cached preference reads can stay synchronous on the calling thread. `allowMainThreadQueries()` belongs to migration tests only
 - Row models for a list a screen scrolls are built off the main thread (`flowOn(ioDispatcher)` before `stateIn`), and every string a row displays is computed in that mapper, not in composition. The main thread only collects finished rows, so a list of any size keeps scrolling while its source keeps emitting
 - Prefer the smallest change that satisfies the requirement
+- A dp size is a named `val`: shared sizes in `ui/theme/paddings.kt`, a size one component owns as a private constant in its file. Never write a dp literal inside a modifier or call
 - A press highlight matches the control's visible shape. `clickable` draws a rectangle unless the shape is clipped outside it: set the size, `clip` to the same shape the pixels use, then `clickable`. `clickable` before `clip`, or on a modifier that a child clips later, leaves a square highlight on a round image (the avatar emoji grid). A rectangular list row stays rectangular
 
 ## Gradle Dependencies

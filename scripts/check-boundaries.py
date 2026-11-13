@@ -22,6 +22,7 @@ Kinds:
 - trait_methods: every method of a trait whose header matches `trait` starts with one of `verbs`.
 - dependencies: only `dependents` depend on `crates`; `"*"` allows every crate.
 - room_migration: the Room `database` version has its exported schema and a migration in `registry`.
+- words: the `files` together hold fewer than `under` words.
 
 Usage: check-boundaries.py [--rule ID ...] [--list]
 """
@@ -189,7 +190,13 @@ def room_migration(rule, files, sets):
         yield registry, None, f"registers no migration to version {version}"
 
 
-KINDS = {kind.__name__: kind for kind in (forbid, implements, parameters, trait_methods, dependencies, room_migration)}
+def words(rule, files, sets):
+    total = sum(len(read(path).split()) for path in files)
+    if total >= rule["under"]:
+        yield " + ".join(files), None, rule["message"].format(name=total)
+
+
+KINDS = {kind.__name__: kind for kind in (forbid, implements, parameters, trait_methods, dependencies, room_migration, words)}
 
 
 # Rules
