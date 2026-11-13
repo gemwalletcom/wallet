@@ -51,9 +51,3 @@ public final class ValidatorSelectSceneViewModel {
         selectValidator(row)
     }
 }
-
-extension GemValidatorRow: @retroactive Identifiable {
-    public var id: String {
-        validator.id
-    }
-}

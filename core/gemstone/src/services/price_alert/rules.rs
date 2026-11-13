@@ -6,6 +6,7 @@ use chrono::{DateTime, Utc};
 use primitives::{Asset, AssetId, Currency, Price, PriceAlert, PriceAlertData, PriceAlertDirection, PriceAlertNotificationType};
 
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
+use crate::models::list::{GemGroup, GemGroupList, GemListItem, GemListSectionFooter, GemListSectionTitle};
 use crate::models::placeholder::EMPTY_VALUE;
 use crate::models::state::{GemListPhase, GemLoadState};
 use crate::percentage::GemPercentageStyle;
@@ -119,7 +120,7 @@ impl From<PriceAlertLine> for GemPriceAlertRow {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum GemPriceAlertSectionKind {
     Auto,
     Asset { asset_id: AssetId, name: String },
@@ -138,24 +139,23 @@ pub struct GemPriceAlertItem {
     pub row: GemPriceAlertRow,
 }
 
-#[derive(Debug, Clone, uniffi::Record)]
+impl PartialEq for GemPriceAlertItem {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id && self.row == other.row
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct GemPriceAlertListSection {
     pub kind: GemPriceAlertSectionKind,
     pub items: Vec<GemPriceAlertItem>,
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
-pub struct GemPriceAlertList {
-    pub sections: Vec<GemPriceAlertListSection>,
-    pub phase: GemListPhase,
-}
-
-#[derive(Debug, Clone, uniffi::Record)]
 pub struct GemAssetPriceAlerts {
     pub auto_alert: GemPriceAlertToggle,
     pub auto_row: GemPriceAlertRow,
-    pub alerts: Vec<GemPriceAlertItem>,
-    pub phase: GemListPhase,
+    pub list: GemGroupList,
 }
 
 fn text(number: Option<GemFormattedNumber>) -> GemPriceAlertText {
@@ -240,11 +240,23 @@ pub fn price_alert_list_sections(alerts: Vec<PriceAlertData>, price_currency: Cu
         .collect()
 }
 
-pub fn price_alert_list(alerts: Vec<PriceAlertData>, price_currency: Currency, state: GemLoadState) -> GemPriceAlertList {
-    let sections = price_alert_list_sections(alerts, price_currency);
-    GemPriceAlertList {
-        phase: GemListPhase::new(state, !sections.is_empty(), empty_state(GemEmptyStateKind::PriceAlerts)),
-        sections,
+pub fn price_alert_list(alerts: Vec<PriceAlertData>, price_currency: Currency, state: GemLoadState) -> GemGroupList {
+    let groups: Vec<GemGroup> = price_alert_list_sections(alerts, price_currency)
+        .into_iter()
+        .map(|section| {
+            let items = section.items.into_iter().map(|item| GemListItem::PriceAlert { item }).collect();
+            match section.kind {
+                GemPriceAlertSectionKind::Auto => GemGroup {
+                    footer: GemListSectionFooter::PriceAlertsAuto,
+                    ..GemGroup::with_title("auto".to_string(), None, items)
+                },
+                GemPriceAlertSectionKind::Asset { asset_id, name } => GemGroup::named(asset_id.to_string(), name, items),
+            }
+        })
+        .collect();
+    GemGroupList {
+        phase: GemListPhase::new(state, !groups.is_empty(), empty_state(GemEmptyStateKind::PriceAlerts)),
+        groups,
     }
 }
 
@@ -265,11 +277,15 @@ pub fn asset_price_alerts(asset: Asset, price: Option<Price>, alerts: Vec<PriceA
         price,
         rank_score: 0,
     };
+    let phase = GemListPhase::new(state, auto_alert == GemPriceAlertToggle::Enabled || !alerts.is_empty(), empty_state(GemEmptyStateKind::PriceAlerts));
+    let groups = (!alerts.is_empty())
+        .then(|| GemGroup::new(GemListSectionTitle::Active, alerts.into_iter().map(|item| GemListItem::PriceAlert { item }).collect()))
+        .into_iter()
+        .collect();
     GemAssetPriceAlerts {
-        phase: GemListPhase::new(state, auto_alert == GemPriceAlertToggle::Enabled || !alerts.is_empty(), empty_state(GemEmptyStateKind::PriceAlerts)),
         auto_alert,
         auto_row: price_alert_row(&auto, price_currency),
-        alerts,
+        list: GemGroupList { groups, phase },
     }
 }
 
@@ -494,22 +510,47 @@ mod tests {
         };
         let both = asset_price_alerts(asset.clone(), None, vec![over.clone(), auto.clone()], Currency::USD, failed());
         assert_eq!(both.auto_alert, GemPriceAlertToggle::Enabled);
-        assert_eq!(both.alerts.iter().map(|item| item.id.clone()).collect::<Vec<_>>(), vec![over.price_alert.id()], "the auto alert is the toggle, not a row");
-        assert_eq!(both.phase, GemListPhase::Rows, "stored alerts hide a failed sync");
+        let ids = |list: &GemGroupList| {
+            list.groups
+                .iter()
+                .flat_map(|group| &group.items)
+                .filter_map(|item| match item {
+                    GemListItem::PriceAlert { item } => Some(item.id.clone()),
+                    _ => None,
+                })
+                .collect::<Vec<_>>()
+        };
+        assert_eq!(ids(&both.list), vec![over.price_alert.id()], "the auto alert is the toggle, not a row");
+        assert_eq!(both.list.groups[0].title, Some(GemLocalizedText::SectionTitle { title: GemListSectionTitle::Active }));
+        assert_eq!(both.list.phase, GemListPhase::Rows, "stored alerts hide a failed sync");
         assert_eq!(both.auto_row.kind, GemPriceAlertKind::Auto);
 
         let auto_only = asset_price_alerts(asset.clone(), None, vec![auto], Currency::USD, failed());
-        assert_eq!(auto_only.phase, GemListPhase::Rows, "an enabled auto alert is something to show");
+        assert_eq!(auto_only.list.phase, GemListPhase::Rows, "an enabled auto alert is something to show");
+        assert!(auto_only.list.groups.is_empty(), "no alert rows means no Active group");
 
         let none = asset_price_alerts(asset.clone(), None, vec![], Currency::USD, GemLoadState::Data);
         assert_eq!(none.auto_alert, GemPriceAlertToggle::Disabled);
         assert_eq!(
-            none.phase,
+            none.list.phase,
             GemListPhase::Empty {
                 state: empty_state(GemEmptyStateKind::PriceAlerts)
             }
         );
-        assert!(matches!(asset_price_alerts(asset, None, vec![], Currency::USD, failed()).phase, GemListPhase::Error { .. }));
+        assert!(matches!(asset_price_alerts(asset, None, vec![], Currency::USD, failed()).list.phase, GemListPhase::Error { .. }));
+    }
+
+    #[test]
+    fn test_the_alert_list_groups_auto_alerts_under_their_footer_and_the_rest_under_each_asset() {
+        let bitcoin = AssetId::from_chain(Chain::Bitcoin);
+        let auto = PriceAlertData::mock(PriceAlert::new_auto(bitcoin.clone(), Currency::USD), None, None);
+        let over = PriceAlertData::mock(PriceAlert::new_price(bitcoin.clone(), Currency::USD, 100.0, PriceAlertDirection::Up), None, None);
+
+        let list = price_alert_list(vec![over.clone(), auto.clone()], Currency::USD, GemLoadState::Data);
+        let summary = list.groups.iter().map(|group| (group.id.clone(), group.title.is_some(), group.footer, group.items.len())).collect::<Vec<_>>();
+
+        assert_eq!(summary, vec![("auto".to_string(), false, GemListSectionFooter::PriceAlertsAuto, 1), (bitcoin.to_string(), true, GemListSectionFooter::None, 1)]);
+        assert_eq!(list.groups[0].items, vec![GemListItem::PriceAlert { item: GemPriceAlertItem { id: auto.price_alert.id(), row: price_alert_row(&auto, Currency::USD), data: auto } }]);
     }
 
     #[test]
@@ -521,7 +562,7 @@ mod tests {
         };
 
         let listed = price_alert_list(vec![over], Currency::USD, failed());
-        assert_eq!((listed.sections.len(), listed.phase), (1, GemListPhase::Rows));
+        assert_eq!((listed.groups.len(), listed.phase), (1, GemListPhase::Rows));
         assert!(matches!(price_alert_list(vec![], Currency::USD, failed()).phase, GemListPhase::Error { .. }));
         assert_eq!(
             price_alert_list(vec![], Currency::USD, GemLoadState::Loading).phase,

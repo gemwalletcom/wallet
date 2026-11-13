@@ -4,15 +4,18 @@ import Components
 import Foundation
 import struct Gemstone.GemConnection
 import Localization
-import PrimitivesComponents
 import Style
 import SwiftUI
 
-struct ConnectionView: View {
+public struct ConnectionView: View {
     @State private var isPresentingUrl: URL? = nil
-    let connection: GemConnection
+    private let connection: GemConnection
 
-    var body: some View {
+    public init(connection: GemConnection) {
+        self.connection = connection
+    }
+
+    public var body: some View {
         HStack(spacing: .space12) {
             AsyncImageView(url: connection.row.iconUrl.flatMap(URL.init(string:)), size: Sizing.image.app)
             VStack(alignment: .leading) {

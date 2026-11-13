@@ -12,7 +12,6 @@ import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.math.numberFormat
-import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetId

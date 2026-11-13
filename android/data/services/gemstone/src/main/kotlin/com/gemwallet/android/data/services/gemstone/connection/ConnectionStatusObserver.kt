@@ -2,7 +2,6 @@ package com.gemwallet.android.data.services.gemstone.connection
 
 import com.gemwallet.android.application.connection.cases.ObserveRefreshInterval
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.serializer.toJson
 import com.wallet.core.primitives.ConnectionComponent
 import com.wallet.core.primitives.ConnectionStatus
 import kotlinx.coroutines.CoroutineScope
@@ -19,7 +18,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import uniffi.gemstone.GemConnectionService
 import uniffi.gemstone.GemConnectionServiceInterface
 import uniffi.gemstone.GemRefreshKind
 

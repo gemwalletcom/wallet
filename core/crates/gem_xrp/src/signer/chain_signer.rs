@@ -115,7 +115,7 @@ fn payment_memo(memo: Option<&str>) -> Result<XrpPaymentMemo, SignerError> {
 
     match memo.parse::<u64>() {
         Ok(value) => Ok(XrpPaymentMemo::DestinationTag(u32::try_from(value).map_err(SignerError::from_display)?)),
-        Err(_) => Ok(XrpPaymentMemo::Memo(memo.strip_prefix("0x").unwrap_or(memo).as_bytes().to_vec())),
+        Err(_) => Ok(XrpPaymentMemo::Memo(memo.trim_prefix("0x").as_bytes().to_vec())),
     }
 }
 

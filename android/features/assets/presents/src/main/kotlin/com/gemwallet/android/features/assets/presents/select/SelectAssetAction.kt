@@ -1,7 +1,6 @@
 package com.gemwallet.android.features.assets.presents.select
 
 import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 
 sealed interface SelectAssetAction {

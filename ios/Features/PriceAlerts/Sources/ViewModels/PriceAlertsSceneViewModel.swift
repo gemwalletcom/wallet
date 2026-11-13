@@ -4,7 +4,7 @@ import Components
 import enum Gemstone.GemListRow
 import enum Gemstone.GemLoadState
 import struct Gemstone.GemPriceAlertItem
-import struct Gemstone.GemPriceAlertList
+import struct Gemstone.GemGroupList
 import protocol Gemstone.GemPriceAlertServiceProtocol
 import enum Gemstone.GemRowAction
 import enum Gemstone.GemServiceError
@@ -57,20 +57,8 @@ public final class PriceAlertsSceneViewModel: Sendable {
         Scenes.Chart(asset: item.data.asset.toPrimitives())
     }
 
-    var list: GemPriceAlertList {
+    var list: GemGroupList {
         PriceAlertFormatter.shared.list(alerts: priceAlerts.map { $0.toGem() }, priceCurrency: currency.toGem(), state: loadState)
-    }
-
-    func sections(_ list: GemPriceAlertList) -> [ListSection<GemPriceAlertItem>] {
-        list.sections.map { section in
-            ListSection(
-                id: section.kind.id,
-                title: section.kind.title,
-                image: nil,
-                values: section.items,
-                footer: section.kind.footer,
-            )
-        }
     }
 }
 

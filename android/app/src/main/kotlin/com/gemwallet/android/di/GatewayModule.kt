@@ -2,14 +2,12 @@ package com.gemwallet.android.di
 
 import android.content.Context
 import com.gemwallet.android.data.password.TinkGemPreferences
-import com.gemwallet.android.data.services.gemstone.stores.GemstonePerpetualStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstonePreferencesStore
 import com.gemwallet.android.data.services.gemstone.stream.GemstoneStreamConnection
 import com.gemwallet.android.data.services.gemstone.stream.WebSocketConnectable
 import com.gemwallet.android.data.services.nativeprovider.NativeProvider
 import com.gemwallet.android.ext.GemConstants
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.math.fromHex
 import com.wallet.core.primitives.PlatformStore
 import dagger.Lazy
 import dagger.Module
@@ -17,18 +15,14 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import uniffi.gemstone.AlienProvider
-import uniffi.gemstone.Config
 import uniffi.gemstone.GemAppStartService
 import uniffi.gemstone.GemAppStartServiceInterface
-import uniffi.gemstone.GemAssetStore
 import uniffi.gemstone.GemAssetsService
 import uniffi.gemstone.GemAuthService
 import uniffi.gemstone.GemBalanceService
 import uniffi.gemstone.GemBannerService
-import uniffi.gemstone.GemBannerStore
 import uniffi.gemstone.GemChartService
 import uniffi.gemstone.GemChartServiceInterface
 import uniffi.gemstone.GemConfigService
@@ -51,7 +45,6 @@ import uniffi.gemstone.GemPortfolioService
 import uniffi.gemstone.GemPortfolioServiceInterface
 import uniffi.gemstone.GemPortfolioStore
 import uniffi.gemstone.GemPreferencesService
-import uniffi.gemstone.GemPreferencesStore
 import uniffi.gemstone.GemPriceAlertService
 import uniffi.gemstone.GemPriceService
 import uniffi.gemstone.GemRecentActivityService

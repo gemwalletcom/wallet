@@ -8,7 +8,6 @@ import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.wallet.core.primitives.ChartCandleUpdate
-import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -29,9 +28,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.produceIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import uniffi.gemstone.GemPerpetualService
 import uniffi.gemstone.GemPerpetualServiceInterface
-import uniffi.gemstone.GemPerpetualStreamService
 import uniffi.gemstone.GemPerpetualStreamServiceInterface
 import uniffi.gemstone.GemPerpetualSubscription
 

@@ -19,6 +19,7 @@ use primitives::{Account, ApplicationMetadata, Chain, Platform, Wallet, WalletCo
 use crate::application;
 use crate::config::docs::DocsUrl;
 use crate::gateway::GemGateway;
+use crate::models::list::{GemGroup, GemGroupList, GemListItem};
 use crate::models::state::GemListPhase;
 use crate::services::GemScanService;
 use crate::services::assets::GemAssetsService;
@@ -36,7 +37,7 @@ pub use client::{
 };
 pub use error::GemWalletConnectError;
 pub use model::{
-    GemConnection, GemConnectionDetails, GemConnectionSection, GemConnectionsView, GemSessionApproval, GemSessionProposal, GemSignerFailure, GemWalletConnectAuthAccount, GemWalletConnectFailure, GemWalletConnectMessageRequest,
+    GemConnection, GemConnectionDetails, GemConnectionsView, GemSessionApproval, GemSessionProposal, GemSignerFailure, GemWalletConnectAuthAccount, GemWalletConnectFailure, GemWalletConnectMessageRequest,
     GemWalletConnectOutcome, GemWalletConnectRejection, GemWalletConnectRejectionReason, GemWalletConnectResponse, GemWalletConnectRpcError, GemWalletConnectSessionRequest, GemWalletConnectTransactionAction,
     GemWalletConnectTransactionRequest,
 };
@@ -170,16 +171,23 @@ impl GemWalletConnectService {
     }
 
     pub fn connections_view(&self, connections: Vec<WalletConnection>) -> GemConnectionsView {
-        let sections: Vec<GemConnectionSection> = rules::connection_groups(connections)
+        let groups: Vec<GemGroup> = rules::connection_groups(connections)
             .into_iter()
-            .map(|(wallet, connections)| GemConnectionSection {
-                title: wallet.name,
-                connections: connections.into_iter().map(|connection| self.gem_connection(connection)).collect(),
+            .map(|(wallet, connections)| {
+                let items = connections
+                    .into_iter()
+                    .map(|connection| GemListItem::Connection {
+                        connection: self.gem_connection(connection),
+                    })
+                    .collect();
+                GemGroup::named(wallet.id.id(), wallet.name, items)
             })
             .collect();
         GemConnectionsView {
-            phase: GemListPhase::local(!sections.is_empty(), empty_state(GemEmptyStateKind::WalletConnect)),
-            sections,
+            list: GemGroupList {
+                phase: GemListPhase::local(!groups.is_empty(), empty_state(GemEmptyStateKind::WalletConnect)),
+                groups,
+            },
             docs_url: DocsUrl::WalletConnect.url_for(self.platform),
         }
     }
@@ -266,7 +274,7 @@ impl GemWalletConnectService {
                 let simulation = self.simulation.simulate_sign_message(chain, sign_type.clone(), data.clone(), domain.clone()).await?;
                 let payload = scan_rules::sign_message_payload(chain, &account.address, &simulation, domain);
                 let (assets, scan) = futures::join!(self.assets.ensure_simulation_assets(simulation.asset_ids()), self.scanner.scan(payload.clone()));
-                let assets = assets?;
+                let assets = assets?.into_iter().map(|basic| basic.asset).collect();
                 let simulation = match scan_rules::sign_message_verdict(scan.as_ref(), &payload) {
                     SignMessageVerdict::MaliciousWebsite => return Ok(GemWalletConnectOutcome::failed(GemWalletConnectFailure::MaliciousOrigin)),
                     SignMessageVerdict::SuspiciousSpender => scan_rules::with_suspicious_spender(simulation),
@@ -428,9 +436,9 @@ mod tests {
 
             let view = service.connections_view(vec![]);
 
-            assert!(view.sections.is_empty());
+            assert!(view.list.groups.is_empty());
             assert_eq!(
-                view.phase,
+                view.list.phase,
                 GemListPhase::Empty {
                     state: empty_state(GemEmptyStateKind::WalletConnect)
                 },

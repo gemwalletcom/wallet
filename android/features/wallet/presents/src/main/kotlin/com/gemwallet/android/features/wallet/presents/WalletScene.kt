@@ -49,7 +49,6 @@ import com.gemwallet.android.ui.theme.space2
 import com.wallet.core.primitives.AssetId
 import uniffi.gemstone.GemAssetSectionKind
 import uniffi.gemstone.GemBannerDestination
-import uniffi.gemstone.GemBannerKey
 import uniffi.gemstone.GemNftEntry
 import uniffi.gemstone.GemWalletHomeViewState
 

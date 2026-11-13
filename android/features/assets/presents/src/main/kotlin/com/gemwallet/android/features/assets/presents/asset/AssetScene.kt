@@ -11,7 +11,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.ext.toAssetId
@@ -23,7 +22,6 @@ import com.gemwallet.android.features.assets.presents.asset.components.EmptyTran
 import com.gemwallet.android.features.assets.viewmodels.asset.models.AssetAction
 import com.gemwallet.android.features.assets.viewmodels.asset.models.detailsAction
 import com.gemwallet.android.features.assets.viewmodels.asset.models.navigation
-import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.LoadOnListEnd
 import com.gemwallet.android.ui.components.list_item.DaySectionedList
 import com.gemwallet.android.ui.components.list_item.GemListRowView
@@ -33,7 +31,6 @@ import com.gemwallet.android.ui.components.list_item.rememberDateSections
 import com.gemwallet.android.ui.components.list_item.transaction.transactionsList
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
-import com.gemwallet.android.ui.components.screen.showSnackbar
 import com.gemwallet.android.ui.localization.titleRes
 import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.Asset

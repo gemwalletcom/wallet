@@ -137,7 +137,7 @@ impl WalletConnectionEvents {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Model)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Model)]
 #[model(swift = "Equatable, Hashable, Sendable")]
 #[serde(rename_all = "camelCase")]
 pub struct WalletConnectionSession {

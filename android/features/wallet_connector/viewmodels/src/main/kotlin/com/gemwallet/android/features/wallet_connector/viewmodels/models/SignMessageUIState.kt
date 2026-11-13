@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.wallet_connector.viewmodels.models
 
-import android.content.Context
 import com.gemwallet.android.application.wallet_connect.WalletConnectPendingRequest
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.wallet.core.primitives.Chain
@@ -18,7 +17,6 @@ class SignMessageUIState(
     private val row: GemConnectionRow,
     private val service: GemSignMessageServiceInterface,
     private val texts: ReviewTexts,
-    private val context: Context,
     private val namedPreview: GemSignMessagePreview? = null,
 ) : WalletConnectReviewModel {
     val wallet: Wallet get() = request.wallet
@@ -57,5 +55,5 @@ class SignMessageUIState(
 
     override val secondaryPayloadFields: List<GemListRow> get() = preview.secondaryFields
 
-    suspend fun withAddressNames(): SignMessageUIState = SignMessageUIState(request, row, service, texts, context, service.withAddressNames(chain.string, preview))
+    suspend fun withAddressNames(): SignMessageUIState = SignMessageUIState(request, row, service, texts, service.withAddressNames(chain.string, preview))
 }

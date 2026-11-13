@@ -37,7 +37,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemAppStartFailure
 import uniffi.gemstone.GemAppStartServiceInterface
-import uniffi.gemstone.GemWalletService
 import uniffi.gemstone.GemWalletServiceInterface
 import uniffi.gemstone.WalletConnectLink
 import javax.inject.Inject

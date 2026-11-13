@@ -1859,7 +1859,7 @@ mod tests {
         options
             .groups
             .iter()
-            .filter(|group| group.title == title)
+            .filter(|group| group.title == Some(GemLocalizedText::SectionTitle { title }))
             .flat_map(|group| &group.items)
             .filter_map(|item| match item {
                 GemListItem::Validator { row, .. } => Some(row.validator.id.clone()),
@@ -1900,8 +1900,8 @@ mod tests {
             validator: current,
         });
         assert_eq!(
-            rewards.groups.iter().map(|group| group.title).collect::<Vec<_>>(),
-            vec![GemListSectionTitle::Active],
+            rewards.groups.iter().map(|group| group.title.clone()).collect::<Vec<_>>(),
+            vec![Some(GemLocalizedText::SectionTitle { title: GemListSectionTitle::Active })],
             "a section without rows is left out"
         );
         assert_eq!(ids(&rewards, GemListSectionTitle::Active), vec!["current", "second"], "rewards are claimed from the delegations, not the network list");

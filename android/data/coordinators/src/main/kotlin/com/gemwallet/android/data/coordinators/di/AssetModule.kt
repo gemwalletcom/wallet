@@ -25,7 +25,6 @@ import uniffi.gemstone.GemBannerService
 import uniffi.gemstone.GemDeviceApiClient
 import uniffi.gemstone.GemNftService
 import uniffi.gemstone.GemPreferencesService
-import uniffi.gemstone.GemPriceService
 import uniffi.gemstone.GemTransactionsService
 import uniffi.gemstone.GemWalletHomeService
 import uniffi.gemstone.GemWalletHomeServiceInterface

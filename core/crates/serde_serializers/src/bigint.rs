@@ -4,7 +4,7 @@ use serde::de;
 use crate::option::deserialize_option_with;
 
 fn parse_bigint_hex(value: &str) -> Result<BigInt, String> {
-    let hex_value = value.strip_prefix("0x").unwrap_or(value);
+    let hex_value = value.trim_prefix("0x");
     if hex_value.is_empty() {
         return Ok(BigInt::from(0));
     }

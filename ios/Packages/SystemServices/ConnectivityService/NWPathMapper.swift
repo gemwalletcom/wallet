@@ -8,22 +8,11 @@ struct NWPathMapper {
         case .satisfied:
             .satisfied
         case .unsatisfied:
-            .unsatisfied(reason(from: path.unsatisfiedReason))
+            .unsatisfied
         case .requiresConnection:
             .unknown
         @unknown default:
             .unknown
-        }
-    }
-
-    private func reason(from reason: NWPath.UnsatisfiedReason) -> UnavailableReason {
-        switch reason {
-        case .notAvailable: .noNetwork
-        case .cellularDenied: .cellularDenied
-        case .wifiDenied: .wifiDenied
-        case .localNetworkDenied: .localNetworkDenied
-        case .vpnInactive: .vpnInactive
-        @unknown default: .noNetwork
         }
     }
 }

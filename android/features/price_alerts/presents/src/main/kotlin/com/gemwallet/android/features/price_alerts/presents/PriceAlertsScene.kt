@@ -32,28 +32,28 @@ import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.list_item.ActionIcon
 import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.SwipeableItemWithActions
-import com.gemwallet.android.ui.components.list_item.listSections
+import com.gemwallet.android.ui.components.list_item.gemGroups
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.screen.showSnackbar
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.models.ListSection
 import com.gemwallet.android.ui.theme.paddingLarge
 import com.gemwallet.android.ui.theme.space0
 import com.wallet.core.primitives.AssetId
 import uniffi.gemstone.GemAssetPriceAlerts
+import uniffi.gemstone.GemGroup
+import uniffi.gemstone.GemListItem
 import uniffi.gemstone.GemListPhase
 import uniffi.gemstone.GemListRow
-import uniffi.gemstone.GemPriceAlertItem
 import uniffi.gemstone.GemPriceAlertToggle
 import uniffi.gemstone.priceAlertsToggleRow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun PriceAlertsScene(
-    sections: List<ListSection<GemPriceAlertItem>>,
+    groups: List<GemGroup>,
     phase: GemListPhase?,
     syncState: Boolean,
     snackbar: SnackbarHostState,
@@ -97,7 +97,7 @@ internal fun PriceAlertsScene(
                 emptyAlertingAssets(phase)
                 assets(
                     revealable = revealable,
-                    sections = sections,
+                    groups = groups,
                     onChart = onChart,
                     onExclude = onExclude,
                 )
@@ -150,8 +150,9 @@ private fun LazyListScope.emptyAlertingAssets(phase: GemListPhase?) {
     }
 }
 
-private fun LazyListScope.assets(revealable: MutableState<String?>, sections: List<ListSection<GemPriceAlertItem>>, onChart: ((AssetId) -> Unit)?, onExclude: (String) -> Unit) {
-    listSections(sections) { position, item ->
+private fun LazyListScope.assets(revealable: MutableState<String?>, groups: List<GemGroup>, onChart: ((AssetId) -> Unit)?, onExclude: (String) -> Unit) {
+    gemGroups(groups) { listItem, position ->
+        val item = (listItem as? GemListItem.PriceAlert)?.item ?: return@gemGroups
         var minActionWidth by remember { mutableStateOf(space0) }
         val density = LocalDensity.current
 

@@ -148,7 +148,7 @@ struct AssetsQueryTests {
         }
     }
 
-    @Test func testSearch() throws {
+    @Test func search() throws {
         let db = DB.mock(wallets: [wallet], assets: walletAssets, balances: walletBalances)
         let searchStore = SearchStore(db: db)
 
@@ -193,7 +193,7 @@ struct AssetsQueryTests {
         let searchStore = SearchStore(db: db)
         let priceStore = PriceStore(db: db)
 
-        try priceStore.saveRates([.mock()])
+        try priceStore.saveRatesAndPrices([.mock()], conversion: nil, prices: [])
 
         let assets = walletAssets
         try priceStore.updatePrices(assets.map {
@@ -214,7 +214,7 @@ struct AssetsQueryTests {
         let db = DB.mock(wallets: [wallet], assets: walletAssets, balances: walletBalances)
         let priceStore = PriceStore(db: db)
 
-        try priceStore.saveRates([.mock()])
+        try priceStore.saveRatesAndPrices([.mock()], conversion: nil, prices: [])
         try priceStore.updatePrices(walletAssets.map {
             .mock(assetId: $0.asset.id, price: 1, priceChangePercentage24h: 0)
         })
@@ -239,7 +239,7 @@ struct AssetsQueryTests {
 
         try balanceStore.setConfiguration(walletId: .mock(), assetIds: [ethereum.asset.id], configuration: .pinned(true))
         try balanceStore.setConfiguration(walletId: .mock(), assetIds: [solana.asset.id], configuration: .disabled)
-        try priceStore.saveRates([.mock()])
+        try priceStore.saveRatesAndPrices([.mock()], conversion: nil, prices: [])
         try priceStore.updatePrices([.mock(assetId: tron.asset.id, price: 1, priceChangePercentage24h: 0)])
 
         try db.dbPool.read { db in
@@ -274,7 +274,7 @@ struct AssetsQueryTests {
         let priceStore = PriceStore(db: db)
         let balanceStore = BalanceStore(db: db)
 
-        try priceStore.saveRates([.mock()])
+        try priceStore.saveRatesAndPrices([.mock()], conversion: nil, prices: [])
 
         try priceStore.updatePrices([.mock(assetId: AssetId(chain: .tron), price: 100, priceChangePercentage24h: 100)])
 

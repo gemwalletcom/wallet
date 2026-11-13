@@ -12,9 +12,7 @@ import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.localization.text
-import com.gemwallet.android.ui.models.ListSection
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -32,8 +30,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemAssetPriceAlerts
+import uniffi.gemstone.GemGroup
 import uniffi.gemstone.GemLoadState
-import uniffi.gemstone.GemPriceAlertItem
 import uniffi.gemstone.GemPriceAlertServiceInterface
 import uniffi.gemstone.PriceAlertFormatter
 import javax.inject.Inject
@@ -64,11 +62,8 @@ class AssetPriceAlertsViewModel @Inject constructor(
         priceAlertFormatter.assetAlerts(info.asset.toGem(), info.price?.toGem(), alerts.map { it.toGem() }, service.getCurrency(), state)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val sections: StateFlow<List<ListSection<GemPriceAlertItem>>> = assetAlerts.map { assetAlerts ->
-        assetAlerts?.alerts.orEmpty().takeIf { it.isNotEmpty() }?.let { alerts ->
-            listOf(ListSection(id = assetId.toIdentifier(), title = context.getString(R.string.stake_active), items = alerts))
-        }.orEmpty()
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    val groups: StateFlow<List<GemGroup>> = assetAlerts.map { it?.list?.groups.orEmpty() }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val isRefreshing = refreshState.asStateFlow()
 
@@ -101,7 +96,7 @@ class AssetPriceAlertsViewModel @Inject constructor(
     }
 
     fun excludeAsset(priceAlertId: String) = viewModelScope.launch(ioDispatcher) {
-        val alert = assetAlerts.value?.alerts.orEmpty().firstOrNull { it.id == priceAlertId } ?: return@launch
+        val alert = assetAlerts.value?.list?.priceAlerts().orEmpty().firstOrNull { it.id == priceAlertId } ?: return@launch
         runCatchingCancellable { service.deletePriceAlerts(listOf(alert.data.priceAlert)) }
             .onFailure { errorState.value = it.errorText().text(context) }
     }

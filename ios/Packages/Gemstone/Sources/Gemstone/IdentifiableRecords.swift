@@ -5,6 +5,7 @@ extension GemContactInput: Identifiable {}
 extension GemContactSession: Identifiable {}
 extension GemDelegationRecord: Identifiable {}
 extension GemFiatTransactionRow: Identifiable {}
+extension GemGroup: Identifiable {}
 extension GemNftRow: Identifiable {}
 extension GemNotificationRow: Identifiable {}
 extension GemPerpetualConfirmDetails: Identifiable {}

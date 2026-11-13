@@ -4,8 +4,6 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import uniffi.gemstone.GemAssetConfigService
-import uniffi.gemstone.GemAssetConfigServiceInterface
 import uniffi.gemstone.GemConnectionService
 import uniffi.gemstone.GemConnectionServiceInterface
 import uniffi.gemstone.GemSecurityService
@@ -19,10 +17,6 @@ object RulesModule {
 
     @Provides
     @Singleton
-    fun provideGemAssetConfigService(): GemAssetConfigService = GemAssetConfigService()
-
-    @Provides
-    @Singleton
     fun provideGemConnectionService(): GemConnectionService = GemConnectionService()
 
     @Provides
@@ -32,9 +26,6 @@ object RulesModule {
     @Provides
     @Singleton
     fun providePriceAlertFormatter(): PriceAlertFormatter = PriceAlertFormatter()
-
-    @Provides
-    fun provideGemAssetConfigServiceInterface(service: GemAssetConfigService): GemAssetConfigServiceInterface = service
 
     @Provides
     @Singleton

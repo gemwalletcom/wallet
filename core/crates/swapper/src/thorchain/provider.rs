@@ -210,7 +210,7 @@ where
     }
 
     async fn get_swap_result(&self, request: &SwapResultRequest) -> Result<SwapResult, SwapperError> {
-        let hash = request.transaction_hash.strip_prefix("0x").unwrap_or(&request.transaction_hash).to_uppercase();
+        let hash = request.transaction_hash.trim_prefix("0x").to_uppercase();
         let response = self.client.get_transaction_status(&hash).await?;
         Ok(swap_mapper::map_swap_result(&response, self.network))
     }

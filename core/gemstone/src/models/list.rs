@@ -14,6 +14,8 @@ use crate::models::state::GemListPhase;
 use crate::services::contact::model::GemAvatar;
 use crate::services::currency::GemCurrencyRow;
 use crate::services::stake::GemValidatorRow;
+use crate::services::price_alert::rules::GemPriceAlertItem;
+use crate::services::wallet_connect::GemConnection;
 use crate::services::error::GemServiceError;
 use crate::services::localization::GemLocalizedText;
 use crate::services::service_status::GemLatencyStatus;
@@ -126,6 +128,7 @@ pub enum GemListRowTitle {
     SuspiciousAddress,
     UnlimitedApproval,
     NftCollectionApproval,
+    SuspiciousAsset,
     Symbol,
     Decimals,
     Type,
@@ -180,6 +183,19 @@ pub(crate) fn suspicious_address_title(kind: GemNoticeKind) -> GemListRowTitle {
     }
 }
 
+pub(crate) fn asset_status_notice(status: VerificationStatus) -> Option<GemListRow> {
+    let (title, kind) = match status {
+        VerificationStatus::Unverified => (GemListRowTitle::Warning, GemNoticeKind::Warning),
+        VerificationStatus::Suspicious => (GemListRowTitle::SuspiciousAsset, GemNoticeKind::Error),
+        VerificationStatus::Verified => return None,
+    };
+    Some(GemListRow::Notice {
+        title,
+        message: Some(GemLocalizedText::SuspiciousAssetDescription),
+        kind,
+    })
+}
+
 pub(crate) fn suspicious_address_notice(kind: GemNoticeKind) -> GemListRow {
     GemListRow::Notice {
         title: suspicious_address_title(kind),
@@ -230,6 +246,7 @@ pub enum GemInfoTopic {
 pub enum GemListSectionFooter {
     None,
     Authentication,
+    PriceAlertsAuto,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -652,18 +669,31 @@ impl GemListRow {
 pub enum GemListItem {
     Currency { row: GemCurrencyRow },
     Validator { row: GemValidatorRow, is_selected: bool },
+    Connection { connection: GemConnection },
+    PriceAlert { item: GemPriceAlertItem },
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemGroup {
-    pub title: GemListSectionTitle,
+    pub id: String,
+    pub title: Option<GemLocalizedText>,
     pub footer: GemListSectionFooter,
     pub items: Vec<GemListItem>,
 }
 
 impl GemGroup {
     pub fn new(title: GemListSectionTitle, items: Vec<GemListItem>) -> Self {
+        debug_assert_ne!(title, GemListSectionTitle::None, "an untitled group needs its own id, use with_title");
+        Self::with_title(format!("{title:?}"), Some(GemLocalizedText::SectionTitle { title }), items)
+    }
+
+    pub fn named(id: String, name: String, items: Vec<GemListItem>) -> Self {
+        Self::with_title(id, Some(GemLocalizedText::Text { text: name }), items)
+    }
+
+    pub fn with_title(id: String, title: Option<GemLocalizedText>, items: Vec<GemListItem>) -> Self {
         Self {
+            id,
             title,
             footer: GemListSectionFooter::None,
             items,

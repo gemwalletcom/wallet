@@ -6,7 +6,6 @@ import com.gemwallet.android.data.services.store.database.entities.toNFTAsset
 import com.gemwallet.android.data.services.store.database.entities.toNFTCollection
 import com.gemwallet.android.data.services.store.database.entities.toRecord
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.ext.toNftAssetId
 import com.gemwallet.android.ext.toPrimitives
 import com.wallet.core.primitives.NFTAssetData
 import com.wallet.core.primitives.NFTAssetId

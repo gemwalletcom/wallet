@@ -2,11 +2,8 @@ package com.gemwallet.android.features.wallet_connector.presents
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,20 +26,15 @@ import com.gemwallet.android.ui.components.DocsInfoButton
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
 import com.gemwallet.android.ui.components.clipboard.getPlainText
 import com.gemwallet.android.ui.components.empty.EmptyContentView
-import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.list_item.ListItem
-import com.gemwallet.android.ui.components.list_item.ListItemSupportText
-import com.gemwallet.android.ui.components.list_item.ListItemTitleText
-import com.gemwallet.android.ui.components.list_item.SubheaderItem
+import com.gemwallet.android.ui.components.list_item.gemGroups
 import com.gemwallet.android.ui.components.list_item.listItem
-import com.gemwallet.android.ui.components.list_item.listSections
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.screen.showSnackbar
-import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.models.ListPosition
 import com.wallet.core.primitives.QRScanType
 import kotlinx.coroutines.launch
-import uniffi.gemstone.GemConnection
+import uniffi.gemstone.GemListItem
 import uniffi.gemstone.GemListPhase
 
 @Composable
@@ -50,8 +42,7 @@ fun ConnectionsScreen(onConnection: (String) -> Unit, onCancel: () -> Unit, view
     val clipboardManager = LocalContext.current.clipboardManager()
     var scannerShowed by rememberSaveable { mutableStateOf(false) }
 
-    val sections by viewModel.sections.collectAsStateWithLifecycle()
-    val phase by viewModel.phase.collectAsStateWithLifecycle()
+    val list by viewModel.list.collectAsStateWithLifecycle()
     val docsUrl by viewModel.docsUrl.collectAsStateWithLifecycle()
 
     val pairError by viewModel.pairError.collectAsStateWithLifecycle()
@@ -93,17 +84,19 @@ fun ConnectionsScreen(onConnection: (String) -> Unit, onCancel: () -> Unit, view
                     modifier = Modifier.clickable { scannerShowed = true },
                 )
             }
-            when (val current = phase) {
+            when (val current = list?.phase) {
                 is GemListPhase.Empty -> item {
                     EmptyContentView(state = current.state, modifier = Modifier.fillParentMaxHeight(0.7f))
                 }
 
-                GemListPhase.Rows -> listSections(sections) { position, item ->
-                    ListItem(
-                        model = item.row.listItem(),
-                        listPosition = position,
-                        modifier = Modifier.clickable { onConnection(item.connection.session.id) },
-                    )
+                GemListPhase.Rows -> gemGroups(list?.groups.orEmpty()) { item, position ->
+                    if (item is GemListItem.Connection) {
+                        ListItem(
+                            model = item.connection.row.listItem(),
+                            listPosition = position,
+                            modifier = Modifier.clickable { onConnection(item.connection.connection.session.id) },
+                        )
+                    }
                 }
 
                 is GemListPhase.Error, null -> Unit

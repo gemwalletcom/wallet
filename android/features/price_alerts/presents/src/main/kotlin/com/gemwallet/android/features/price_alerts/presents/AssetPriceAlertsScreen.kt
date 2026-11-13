@@ -14,13 +14,13 @@ fun AssetPriceAlertsScreen(message: RouteMessage?, onMessageShown: () -> Unit, o
     val error by viewModel.error.collectAsStateWithLifecycle()
     val snackbar = rememberSnackbarState(message = message, onShown = onMessageShown)
 
-    val sections by viewModel.sections.collectAsStateWithLifecycle()
+    val groups by viewModel.groups.collectAsStateWithLifecycle()
     val assetAlerts by viewModel.assetAlerts.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
 
     PriceAlertsScene(
-        sections = sections,
-        phase = assetAlerts?.phase,
+        groups = groups,
+        phase = assetAlerts?.list?.phase,
         syncState = isRefreshing,
         snackbar = snackbar,
         error = error,

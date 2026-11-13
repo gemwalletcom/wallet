@@ -41,7 +41,8 @@ fun PreviewValidatorSelectScene() {
             selection = GemGroupList(
                 groups = listOf(
                     GemGroup(
-                        title = GemListSectionTitle.ACTIVE,
+                        id = "Active",
+                        title = GemLocalizedText.SectionTitle(GemListSectionTitle.ACTIVE),
                         footer = GemListSectionFooter.NONE,
                         items = listOf(
                             GemListItem.Validator(previewRow("some_validator_id", "Castlenode"), false),

@@ -1,4 +1,4 @@
-use crate::services::simulation::warning_rows;
+use crate::services::simulation::{asset_status_rows, warning_rows};
 use std::sync::Arc;
 
 use primitives::currency::Currency;
@@ -175,12 +175,14 @@ impl GemConfirmTransferService {
     pub(super) async fn simulation_state(&self, input_type: TransactionInputType, simulation: SimulationResult) -> Result<GemConfirmSimulationState, GemConfirmError> {
         let chain = input_type.transaction_asset().chain();
         let assets = self.confirm.ensure_simulation_assets(simulation.asset_ids()).await?;
-        let details = self.confirm.simulation(input_type, Some(simulation.clone()), assets, |chain, address| self.address_url(chain, address));
+        let details = self.confirm.simulation(input_type, Some(simulation.clone()), assets.iter().map(|basic| basic.asset.clone()).collect(), |chain, address| {
+            self.address_url(chain, address)
+        });
         let requests = details.address_requests(chain);
         let address_names = self.names.get_address_names(requests).await.unwrap_or_default();
         Ok(GemConfirmSimulationState {
             chain,
-            warnings: warning_rows(&simulation.warnings),
+            warnings: [warning_rows(&simulation.warnings), asset_status_rows(&simulation.balance_changes, &assets)].concat(),
             simulation: Some(details.with_address_names(&address_names)),
         })
     }

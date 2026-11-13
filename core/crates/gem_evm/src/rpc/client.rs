@@ -155,7 +155,7 @@ impl<C: Client + Clone> EthereumClient<C> {
     }
 
     pub async fn batch_token_balance_calls(&self, address: &str, contracts: &[String]) -> Result<Vec<String>, Box<dyn std::error::Error + Sync + Send>> {
-        let data = hex::decode(format!("0x70a08231000000000000000000000000{:0>40}", address.strip_prefix("0x").unwrap_or(address)))?;
+        let data = hex::decode(format!("0x70a08231000000000000000000000000{:0>40}", address.trim_prefix("0x")))?;
         let requests: Vec<EthereumRpc> = contracts.iter().map(|contract| EthereumRpc::call(contract, data.clone())).collect();
         Ok(self.client.requests(requests).await?.take_all()?)
     }

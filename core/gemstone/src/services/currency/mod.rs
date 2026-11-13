@@ -115,7 +115,12 @@ mod tests {
                 let list = block_on(service.list(Currency::USD, Some(currency.clone()), query.to_string(), names.clone())).unwrap();
                 assert_eq!(list.phase, GemListPhase::Rows);
                 assert_eq!(list.groups.len(), 1);
-                assert_eq!(list.groups[0].title, crate::models::list::GemListSectionTitle::Recommended);
+                assert_eq!(
+                    list.groups[0].title,
+                    Some(crate::services::localization::GemLocalizedText::SectionTitle {
+                        title: crate::models::list::GemListSectionTitle::Recommended
+                    })
+                );
                 assert_eq!(
                     rules::tests::currency_rows(&list.groups[0].items),
                     vec![GemCurrencyRow {

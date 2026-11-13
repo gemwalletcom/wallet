@@ -34,7 +34,6 @@ import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingMiddle
 import com.gemwallet.android.ui.theme.smallIconSize
 import com.gemwallet.android.ui.theme.space2
-import com.wallet.core.primitives.BannerEvent
 import uniffi.gemstone.GemBannerContent
 import uniffi.gemstone.GemBannerDestination
 import uniffi.gemstone.GemBannerKey

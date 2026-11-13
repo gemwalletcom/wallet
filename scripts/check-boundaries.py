@@ -23,6 +23,8 @@ Kinds:
 - dependencies: only `dependents` depend on `crates`; `"*"` allows every crate.
 - room_migration: the Room `database` version has its exported schema and a migration in `registry`.
 - words: the `files` together hold fewer than `under` words.
+- unused_imports: every Kotlin import names a word the file uses outside its imports;
+  `implicit` lists the names the compiler calls without the file writing them.
 
 Usage: check-boundaries.py [--rule ID ...] [--list]
 """
@@ -196,7 +198,21 @@ def words(rule, files, sets):
         yield " + ".join(files), None, rule["message"].format(name=total)
 
 
-KINDS = {kind.__name__: kind for kind in (forbid, implements, parameters, trait_methods, dependencies, room_migration, words)}
+KOTLIN_IMPORT = re.compile(r"^import\s+([\w.`]+?)(?:\s+as\s+(\w+))?\s*$", re.M)
+
+
+def unused_imports(rule, files, sets):
+    implicit = re.compile("(?:" + "|".join(rule["implicit"]) + ")")
+    for path in files:
+        text = read(path)
+        used = set(re.findall(r"\w+", KOTLIN_IMPORT.sub("", text)))
+        for match in KOTLIN_IMPORT.finditer(text):
+            name = (match.group(2) or match.group(1).rsplit(".", 1)[-1]).strip("`")
+            if name not in used and not implicit.fullmatch(name):
+                yield path, line_of(text, match.start()), rule["message"].format(name=match.group(0).removeprefix("import").strip())
+
+
+KINDS = {kind.__name__: kind for kind in (forbid, implements, parameters, trait_methods, dependencies, room_migration, words, unused_imports)}
 
 
 # Rules

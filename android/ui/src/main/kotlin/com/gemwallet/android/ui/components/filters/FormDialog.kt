@@ -1,33 +1,17 @@
 package com.gemwallet.android.ui.components.filters
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ui.theme.normalPadding
-import com.gemwallet.android.ui.theme.paddingSmall
-import com.gemwallet.android.ui.theme.space0
-import com.gemwallet.android.ui.theme.space4
-
-private val dragHandleWidth = 32.dp
-private val dragHandleHeight = space4
 
 @Composable
 fun FormDialog(
@@ -44,61 +28,14 @@ fun FormDialog(
         isVisible = isVisible,
         expansion = expansion,
         onDismissRequest = onDismiss,
-        dragHandle = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .normalPadding(),
-            ) {
-                Box(modifier = Modifier.weight(0.5f)) {
-                    if (onClear != null) {
-                        TextButton(
-                            modifier = Modifier.align(Alignment.CenterStart),
-                            onClick = onClear,
-                        ) {
-                            Text(stringResource(R.string.filter_clear))
-                        }
-                    } else if (doneAction != null) {
-                        TextButton(
-                            modifier = Modifier.align(Alignment.CenterStart),
-                            onClick = onDismiss,
-                        ) {
-                            Text(stringResource(R.string.common_cancel))
-                        }
-                    }
-                }
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(paddingSmall, Alignment.CenterVertically),
-                ) {
-                    Surface(
-                        modifier = Modifier.padding(vertical = space0),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.4f),
-                        shape = MaterialTheme.shapes.extraLarge,
-                    ) {
-                        Box(Modifier.size(width = dragHandleWidth, height = dragHandleHeight))
-                    }
-                    Text(
-                        text = title,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier,
-                    )
-                }
-                Box(modifier = Modifier.weight(0.5f)) {
-                    if (doneAction != null) {
-                        Box(modifier = Modifier.align(Alignment.CenterEnd)) {
-                            doneAction()
-                        }
-                    } else {
-                        TextButton(
-                            modifier = Modifier.align(Alignment.CenterEnd),
-                            onClick = onDismiss,
-                        ) {
-                            Text(stringResource(R.string.common_done))
-                        }
-                    }
+        title = title,
+        actions = {
+            if (onClear != null) {
+                TextButton(onClick = onClear) {
+                    Text(stringResource(R.string.filter_clear))
                 }
             }
+            doneAction?.invoke()
         },
     ) {
         Column {

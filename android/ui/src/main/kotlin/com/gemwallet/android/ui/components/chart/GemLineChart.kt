@@ -34,7 +34,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.gemwallet.android.ui.theme.captionFontSize
 import com.gemwallet.android.ui.theme.space0
 import com.gemwallet.android.ui.theme.space1

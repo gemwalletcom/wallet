@@ -204,20 +204,24 @@ pub fn network_destination(asset_id: &AssetId) -> Option<GemAssetNetworkDestinat
     chain.default_asset_type().is_some().then_some(GemAssetNetworkDestination::Assets { chain })
 }
 
-fn verification_row(asset: &Asset, rank: i32) -> Option<GemListRow> {
+pub fn verification_status(asset: &Asset, rank: i32) -> Option<VerificationStatus> {
     if asset.id.is_native() {
         return None;
     }
     match VerificationStatus::from_rank(rank) {
-        VerificationStatus::Unverified => Some(GemListRow::Verification {
-            title: GemListRowTitle::Status,
-            status: VerificationStatus::Unverified,
-            info: Some(GemInfoTopic::AssetStatus {
-                status: VerificationStatus::Unverified,
-            }),
-        }),
-        VerificationStatus::Verified | VerificationStatus::Suspicious => None,
+        VerificationStatus::Verified => None,
+        status @ (VerificationStatus::Unverified | VerificationStatus::Suspicious) => Some(status),
     }
+}
+
+fn verification_row(asset: &Asset, rank: i32) -> Option<GemListRow> {
+    verification_status(asset, rank)
+        .filter(|status| *status == VerificationStatus::Unverified)
+        .map(|status| GemListRow::Verification {
+            title: GemListRowTitle::Status,
+            status,
+            info: Some(GemInfoTopic::AssetStatus { status }),
+        })
 }
 
 fn with_filter(mut flow: GemSelectAssetFlow, filter: Option<GemAssetFilter>) -> GemSelectAssetFlow {
@@ -1603,6 +1607,7 @@ mod tests {
         assert_eq!(verification_row(&token, 3), None);
         assert_eq!(verification_row(&token, 20), None);
         assert_eq!(verification_row(&Asset::mock(), 10), None);
+        assert_eq!(verification_status(&token, 3), Some(VerificationStatus::Suspicious));
     }
 
     #[test]

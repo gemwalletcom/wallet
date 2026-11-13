@@ -10,7 +10,6 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.confirm.applicationMetadata
 import com.gemwallet.android.domains.confirm.asset
-import com.gemwallet.android.domains.confirm.nftAsset
 import com.gemwallet.android.domains.confirm.pack
 import com.gemwallet.android.domains.confirm.unpackTransferData
 import com.gemwallet.android.ext.toGem
@@ -39,7 +38,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -77,9 +75,7 @@ import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemNetworkFeeScreen
 import uniffi.gemstone.GemRefreshKind
 import uniffi.gemstone.GemSubmitResult
-import uniffi.gemstone.GemTransferAmountResult
 import uniffi.gemstone.GemTransferData
-import uniffi.gemstone.PerpetualProvider
 import uniffi.gemstone.SimulationResult
 import uniffi.gemstone.TransactionInputType
 import javax.inject.Inject

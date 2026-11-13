@@ -470,7 +470,7 @@ mod lightning_tests {
 }
 
 pub fn decode_password(password: &str) -> Vec<u8> {
-    hex::decode(password.strip_prefix("0x").unwrap_or(password)).unwrap_or_else(|_| password.as_bytes().to_vec())
+    hex::decode(password.trim_prefix("0x")).unwrap_or_else(|_| password.as_bytes().to_vec())
 }
 
 #[cfg(test)]

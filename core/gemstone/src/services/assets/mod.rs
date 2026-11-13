@@ -138,17 +138,17 @@ impl GemAssetsService {
         Ok(asset_ids)
     }
 
-    pub(crate) async fn ensure_simulation_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<Asset>, GemServiceError> {
+    pub(crate) async fn ensure_simulation_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetBasic>, GemServiceError> {
         let existing = self.store.get_asset_ids(asset_ids.clone()).await?;
         let missing_ids = missing(asset_ids.clone(), existing);
         if missing_ids.is_empty() {
-            return self.assets(asset_ids).await;
+            return self.store.get_asset_basics(asset_ids).await;
         }
         let synced = self.sync_assets(missing_ids.clone()).await.unwrap_or_default();
         for asset_id in missing(missing_ids, synced) {
             let _ = self.node_token_asset(asset_id).await;
         }
-        self.assets(asset_ids).await
+        self.store.get_asset_basics(asset_ids).await
     }
 
     async fn node_token_asset(&self, asset_id: AssetId) -> Result<Asset, GemServiceError> {
@@ -301,7 +301,7 @@ mod tests {
 
             let assets = service.ensure_simulation_assets(vec![ethereum.id.clone(), unverified]).await.unwrap();
 
-            assert_eq!(assets, vec![ethereum]);
+            assert_eq!(assets, vec![rules::default_asset_basic(ethereum)]);
             assert!(store.asset_writes.lock().unwrap().is_empty(), "an unreadable token is not stored");
         })
     }
@@ -340,7 +340,11 @@ mod tests {
 
             let assets = service.ensure_simulation_assets(vec![usdt.clone()]).await.unwrap();
 
-            assert_eq!(assets.iter().map(|asset| asset.id.clone()).collect::<Vec<_>>(), vec![usdt]);
+            assert_eq!(
+                assets.iter().map(|basic| (basic.asset.id.clone(), basic.score.rank)).collect::<Vec<_>>(),
+                vec![(usdt, 34)],
+                "the review reads the backend score"
+            );
             assert_eq!(*store.id_reads.lock().unwrap(), 1, "the existence read is not repeated");
             assert_eq!(provider.requested_paths().len(), 1, "one backend request covers the missing token");
         })

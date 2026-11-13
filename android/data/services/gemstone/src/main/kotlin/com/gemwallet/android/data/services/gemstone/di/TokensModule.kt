@@ -7,7 +7,6 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import uniffi.gemstone.GemSearchService
 import uniffi.gemstone.GemSearchStore
 import javax.inject.Singleton
 

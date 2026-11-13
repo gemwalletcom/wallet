@@ -64,7 +64,6 @@ import enum Gemstone.GemPerpetualMarketSection
 import enum Gemstone.GemPerpetualSection
 import enum Gemstone.GemPriceAlertLabel
 import enum Gemstone.GemPriceAlertPrompt
-import enum Gemstone.GemPriceAlertSectionKind
 import enum Gemstone.GemPrivateKeyScope
 import enum Gemstone.GemReceiveWarning
 import enum Gemstone.GemRecipientError
@@ -139,6 +138,8 @@ public extension GemLocalizedText {
             }
         case let .text(text):
             text
+        case let .sectionTitle(title):
+            title.text ?? .empty
         case let .rowTitle(title):
             title.text
         case let .enableValue(value):
@@ -171,6 +172,8 @@ public extension GemLocalizedText {
             Localized.Simulation.warningExternallyOwnedSpenderDescription
         case .suspiciousAddressDescription:
             Localized.Common.suspiciousAddressDescription
+        case .suspiciousAssetDescription:
+            Localized.Banner.AssetStatus.description
         case let .addressType(addressType):
             addressType.title
         case .invalidTokenId:
@@ -825,6 +828,7 @@ public extension GemListSectionFooter {
         switch self {
         case .none: nil
         case .authentication: Localized.Lock.footer
+        case .priceAlertsAuto: Localized.PriceAlerts.autoFooter
         }
     }
 }
@@ -919,6 +923,7 @@ public extension GemListRowTitle {
         case .suspiciousAddress: Localized.Common.suspiciousAddress
         case .unlimitedApproval: Localized.Simulation.Warning.UnlimitedTokenApproval.title
         case .nftCollectionApproval: Localized.Simulation.Warning.NftCollectionApproval.title
+        case .suspiciousAsset: Localized.Banner.AssetStatus.title
         case .symbol: Localized.Asset.symbol
         case .decimals: Localized.Asset.decimals
         case .type: Localized.Common.type
@@ -1383,22 +1388,6 @@ public extension GemPriceAlertPrompt {
         case .priceUnder: Localized.PriceAlerts.SetAlert.priceUnder
         case .increasesBy: Localized.PriceAlerts.SetAlert.priceIncreasesBy
         case .decreasesBy: Localized.PriceAlerts.SetAlert.priceDecreasesBy
-        }
-    }
-}
-
-public extension GemPriceAlertSectionKind {
-    var title: String {
-        switch self {
-        case .auto: ""
-        case let .asset(_, name): name
-        }
-    }
-
-    var footer: String? {
-        switch self {
-        case .auto: Localized.PriceAlerts.autoFooter
-        case .asset: nil
         }
     }
 }

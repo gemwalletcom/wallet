@@ -20,7 +20,7 @@ struct AssetFiatValuesQueryTests {
                 .mock(assetId: usdt, available: 4),
             ],
         )
-        try PriceStore(db: db).saveRates([FiatRate(symbol: .usd, rate: 1)])
+        try PriceStore(db: db).saveRatesAndPrices([FiatRate(symbol: .usd, rate: 1)], conversion: nil, prices: [])
         try PriceStore(db: db).updatePrices([.mock(assetId: AssetId(chain: .ethereum), price: 1100, priceChangePercentage24h: 10)])
 
         try db.dbPool.read { db in
@@ -45,7 +45,7 @@ struct AssetFiatValuesQueryTests {
                 .mock(assetId: perpetual.id, available: 50, reserved: 25),
             ],
         )
-        try PriceStore(db: db).saveRates([.mock()])
+        try PriceStore(db: db).saveRatesAndPrices([.mock()], conversion: nil, prices: [])
         try PriceStore(db: db).updatePrices([
             .mock(assetId: ethereum.id, price: 100, priceChangePercentage24h: 0),
             .mock(assetId: bnb.id, price: 1000, priceChangePercentage24h: 0),
@@ -74,7 +74,7 @@ struct AssetFiatValuesQueryTests {
                 .mock(assetId: perpetual.id, available: 50, reserved: 25),
             ],
         )
-        try PriceStore(db: db).saveRates([.mock()])
+        try PriceStore(db: db).saveRatesAndPrices([.mock()], conversion: nil, prices: [])
         try PriceStore(db: db).updatePrices([
             .mock(assetId: ethereum.id, price: 100, priceChangePercentage24h: 0),
             .mock(assetId: bnb.id, price: 1000, priceChangePercentage24h: 0),

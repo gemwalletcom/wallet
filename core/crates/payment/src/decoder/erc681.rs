@@ -23,7 +23,7 @@ pub fn decode(path: &str) -> Result<Payment> {
         Some((target, chain_id)) => (target, chain(chain_id).ok_or_else(|| PaymentDecoderError::InvalidFormat(format!("Unsupported chain id: {chain_id}")))?),
         None => (target, Chain::Ethereum),
     };
-    let target = target.strip_prefix(PAY_PREFIX).unwrap_or(target);
+    let target = target.trim_prefix(PAY_PREFIX);
     let parameters = query::parameters(query);
     let memo = query::value(&parameters, QUERY_MEMO);
 

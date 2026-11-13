@@ -30,7 +30,6 @@ import com.gemwallet.android.domains.swap.AssetRateFormatter
 import com.gemwallet.android.domains.swap.AssetRatePair
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.components.ProvidersBottomSheet
 import com.gemwallet.android.ui.components.ProvidersList
 import com.gemwallet.android.ui.components.dialog.DialogBarDismissType
@@ -47,8 +46,6 @@ import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.style.color
-import com.gemwallet.android.ui.style.textStyle
-import com.gemwallet.android.ui.theme.pendingColor
 import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemProviderKind
 import uniffi.gemstone.GemProviderLoadingRow

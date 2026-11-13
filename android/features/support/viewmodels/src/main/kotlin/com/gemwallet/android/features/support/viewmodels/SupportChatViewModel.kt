@@ -2,7 +2,6 @@ package com.gemwallet.android.features.support.viewmodels
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.clearText
 import androidx.lifecycle.ViewModel
@@ -18,7 +17,6 @@ import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ui.localization.text
 import com.wallet.core.primitives.SupportMessage
-import com.wallet.core.primitives.SupportMessageSender
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher

@@ -16,10 +16,8 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.perpetual.title
 import com.gemwallet.android.ui.models.name.AddressInputError
 import com.wallet.core.primitives.Appearance
-import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.ConnectionStatus
-import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.FeeUnitType
 import com.wallet.core.primitives.FiatQuoteType
 import com.wallet.core.primitives.PerpetualDirection
@@ -56,7 +54,6 @@ import uniffi.gemstone.GemConfirmButtonKind
 import uniffi.gemstone.GemConfirmDestination
 import uniffi.gemstone.GemConfirmErrorDisplay
 import uniffi.gemstone.GemConfirmException
-import uniffi.gemstone.GemConfirmScreen
 import uniffi.gemstone.GemConfirmTitle
 import uniffi.gemstone.GemConnectionPermission
 import uniffi.gemstone.GemCustomFeeCheck
@@ -68,7 +65,6 @@ import uniffi.gemstone.GemEmptyStateText
 import uniffi.gemstone.GemErrorText
 import uniffi.gemstone.GemFiatAmountError
 import uniffi.gemstone.GemFiatButtonAction
-import uniffi.gemstone.GemFiatQuotePhase
 import uniffi.gemstone.GemFiatQuotesMessage
 import uniffi.gemstone.GemFiatTransactionBadge
 import uniffi.gemstone.GemFiatViewState
@@ -97,7 +93,6 @@ import uniffi.gemstone.GemPerpetualSection
 import uniffi.gemstone.GemPositionChange
 import uniffi.gemstone.GemPriceAlertLabel
 import uniffi.gemstone.GemPriceAlertPrompt
-import uniffi.gemstone.GemPriceAlertSectionKind
 import uniffi.gemstone.GemPrivateKeyScope
 import uniffi.gemstone.GemReceiveWarning
 import uniffi.gemstone.GemRecipientErrorDisplay
@@ -180,6 +175,8 @@ fun GemLocalizedText.string(context: Context): String = when (this) {
 
     is GemLocalizedText.RowTitle -> title.text(context)
 
+    is GemLocalizedText.SectionTitle -> title.titleRes()?.let { context.getString(it) }.orEmpty()
+
     is GemLocalizedText.EnableValue -> context.getString(R.string.settings_enable_value, value)
 
     is GemLocalizedText.ViewOn -> context.getString(R.string.transaction_view_on, name)
@@ -209,6 +206,8 @@ fun GemLocalizedText.string(context: Context): String = when (this) {
     GemLocalizedText.ExternallyOwnedSpenderWarning -> context.getString(R.string.simulation_warning_externally_owned_spender_description)
 
     GemLocalizedText.SuspiciousAddressDescription -> context.getString(R.string.common_suspicious_address_description)
+
+    GemLocalizedText.SuspiciousAssetDescription -> context.getString(R.string.banner_asset_status_description)
 
     is GemLocalizedText.AddressType -> context.getString(addressType.stringRes())
 
@@ -1025,6 +1024,7 @@ fun GemListRowTitle.text(context: Context): String = when (this) {
     GemListRowTitle.SUSPICIOUS_ADDRESS -> context.getString(R.string.common_suspicious_address)
     GemListRowTitle.UNLIMITED_APPROVAL -> context.getString(R.string.simulation_warning_unlimited_token_approval_title)
     GemListRowTitle.NFT_COLLECTION_APPROVAL -> context.getString(R.string.simulation_warning_nft_collection_approval_title)
+    GemListRowTitle.SUSPICIOUS_ASSET -> context.getString(R.string.banner_asset_status_title)
     GemListRowTitle.SYMBOL -> context.getString(R.string.asset_symbol)
     GemListRowTitle.DECIMALS -> context.getString(R.string.asset_decimals)
     GemListRowTitle.TYPE -> context.getString(R.string.common_type)
@@ -1371,11 +1371,6 @@ fun GemConfirmDestination.title(): Int = when (this) {
     is GemConfirmDestination.Provider -> R.string.common_provider
 }
 
-fun GemPriceAlertSectionKind.title(): String? = when (this) {
-    GemPriceAlertSectionKind.Auto -> null
-    is GemPriceAlertSectionKind.Asset -> name
-}
-
 fun PaymentStatus.errorText(context: Context): String = context.getString(R.string.errors_payment_status, context.getString(stringRes()))
 
 fun GemCustomFeeCheck.errorText(context: Context): String? = when (this) {
@@ -1424,6 +1419,7 @@ fun bannerDescription(context: Context, description: GemBannerDescription): Stri
 fun GemListSectionFooter.textRes(): Int? = when (this) {
     GemListSectionFooter.NONE -> null
     GemListSectionFooter.AUTHENTICATION -> R.string.lock_footer
+    GemListSectionFooter.PRICE_ALERTS_AUTO -> R.string.price_alerts_auto_footer
 }
 
 fun GemInfoAmount.text(): String = fiat?.let { "${amount.text()} (~${it.text()})" } ?: amount.text()
@@ -1541,11 +1537,6 @@ fun GemWalletImportKind.fieldStringRes(): Int = when (this) {
     GemWalletImportKind.ADDRESS -> R.string.wallet_import_address_field
     GemWalletImportKind.PHRASE -> R.string.common_secret_phrase
     GemWalletImportKind.PRIVATE_KEY -> R.string.common_private_key
-}
-
-fun GemPriceAlertSectionKind.footer(context: Context): String? = when (this) {
-    GemPriceAlertSectionKind.Auto -> context.getString(R.string.price_alerts_auto_footer)
-    is GemPriceAlertSectionKind.Asset -> null
 }
 
 fun GemNameIndicator.contentDescription(): Int? = when (this) {

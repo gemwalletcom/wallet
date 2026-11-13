@@ -1,6 +1,5 @@
 package com.gemwallet.android.ui.components.perpetual
 
-import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row

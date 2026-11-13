@@ -9,7 +9,7 @@ pub fn action_hash(action: &Value, vault_address: Option<&str>, nonce: u64, expi
 
     if let Some(vault) = vault_address {
         data.push(0x01);
-        let vault_bytes = hex::decode(vault.trim_start_matches("0x")).map_err(|e| format!("Invalid vault address: {e}"))?;
+        let vault_bytes = hex::decode(vault).map_err(|e| format!("Invalid vault address: {e}"))?;
         data.extend_from_slice(&vault_bytes);
     } else {
         data.push(0x00);

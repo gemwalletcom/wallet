@@ -6,7 +6,6 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import uniffi.gemstone.GemAddressStore
 import uniffi.gemstone.GemAmountService
 import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemAssetsService

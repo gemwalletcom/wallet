@@ -11,7 +11,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.localization.titleRes
 import com.gemwallet.android.ui.style.icon
 import com.gemwallet.android.ui.theme.paddingDefault

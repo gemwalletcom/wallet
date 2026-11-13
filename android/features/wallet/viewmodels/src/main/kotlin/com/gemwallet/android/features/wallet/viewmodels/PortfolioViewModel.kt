@@ -38,7 +38,6 @@ import uniffi.gemstone.GemChartData
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemPortfolioPhase
 import uniffi.gemstone.GemPortfolioServiceInterface
-import uniffi.gemstone.GemPortfolioSession
 import uniffi.gemstone.GemPortfolioViewState
 import uniffi.gemstone.GemRefreshKind
 import uniffi.gemstone.PortfolioChartType

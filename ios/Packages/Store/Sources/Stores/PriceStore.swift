@@ -23,12 +23,6 @@ public struct PriceStore: Sendable {
         }
     }
 
-    public func saveRates(_ rates: [FiatRate], conversion: FiatRate? = nil) throws {
-        try db.write { db in
-            try saveRates(db, rates: rates, conversion: conversion)
-        }
-    }
-
     public func updatePrices(_ updates: [PriceUpdate]) throws {
         try db.write { db in
             try updatePrices(db, updates: updates)
