@@ -15,11 +15,12 @@ import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.listItemModel
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
+import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemStakeAction
 import uniffi.gemstone.GemStakeActionItem
 import uniffi.gemstone.GemStakeDestination
 
-internal fun LazyListScope.stakeActions(actions: List<GemStakeActionItem>, onOpen: (GemStakeDestination) -> Unit, onRegionUnavailable: () -> Unit) {
+internal fun LazyListScope.stakeActions(actions: List<GemStakeActionItem>, onOpen: (GemStakeDestination) -> Unit, onRegionUnavailable: (GemInfoTopic) -> Unit) {
     itemsPositioned(actions) { position, item ->
         val model = item.row.listItemModel(LocalContext.current) ?: ListItemModel(title = "")
         var showInfo by rememberSaveable { mutableStateOf(false) }
@@ -32,7 +33,9 @@ internal fun LazyListScope.stakeActions(actions: List<GemStakeActionItem>, onOpe
                 { showInfo = true }
             }
 
-            GemStakeAction.RegionUnavailable -> onRegionUnavailable
+            is GemStakeAction.RegionUnavailable -> {
+                { onRegionUnavailable(action.topic) }
+            }
 
             GemStakeAction.Disabled -> null
         }

@@ -580,7 +580,7 @@ sell_title = %@ 판매
 
 # Info
 
-info_region_unavailable_description = 이 기능은 회원님의 지역에서 사용할 수 없습니다. 이용 가능 여부는 지역 규정과 서비스 제공업체의 요건에 따라 달라집니다.
+info_region_unavailable_description = 이 기능은 회원님의 지역(%@)에서 사용할 수 없습니다. 이용 가능 여부는 지역 규정과 서비스 제공업체의 요건에 따라 달라집니다. 지역은 IP 주소를 기준으로 확인됩니다.
 
 info_network_fee_title = 네트워크 수수료
 info_watch_wallet_title = 보기 전용 지갑

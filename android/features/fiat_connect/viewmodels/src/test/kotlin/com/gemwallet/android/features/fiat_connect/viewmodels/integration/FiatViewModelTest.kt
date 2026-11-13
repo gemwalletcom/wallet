@@ -118,7 +118,7 @@ class FiatViewModelTest {
             }
             mockGemFiatSession(quoteType = quoteType, buy = operation(uniffi.gemstone.FiatQuoteType.BUY, MockBuyAmount), sell = operation(uniffi.gemstone.FiatQuoteType.SELL, MockSellAmount), format = thirdArg())
         }
-        every { isAvailable(any()) } returns true
+        every { unavailableTopic(any()) } returns null
         coEvery { quotes(any(), any()) } returnsQuotes
             listOf(
                 mockFiatQuote(
@@ -633,7 +633,7 @@ class FiatViewModelTest {
 
     @Test
     fun `unavailable fiat keeps quotes but never requests a checkout url`() = runTest(testDispatcher) {
-        every { service.isAvailable(any()) } returns false
+        every { service.unavailableTopic(any()) } returns GemInfoTopic.RegionUnavailable(country = "GB")
         val subject = createViewModel()
         try {
             advanceTimeBy(DebounceSettleMs)
@@ -644,7 +644,7 @@ class FiatViewModelTest {
             var redirects = 0
             subject.continueToProvider { redirects += 1 }.getOrThrow()
             assertEquals(0, redirects)
-            assertEquals(GemInfoTopic.RegionUnavailable, subject.infoSheet.value)
+            assertEquals(GemInfoTopic.RegionUnavailable(country = "GB"), subject.infoSheet.value)
             assertEquals(quote, subject.viewState.value.selectedQuoteRow)
             coVerify(exactly = 0) { service.quoteUrl(any(), any()) }
         } finally {
@@ -672,7 +672,7 @@ class FiatViewModelTest {
 
             assertEquals(0, redirects)
             assertNull(subject.infoSheet.value)
-            verify(exactly = 1) { service.isAvailable(FiatQuoteType.Buy.toGem()) }
+            verify(exactly = 1) { service.unavailableTopic(FiatQuoteType.Buy.toGem()) }
             coVerify(exactly = 1) { service.quoteUrl(any(), any()) }
         } finally {
             subject.viewModelScope.cancel()

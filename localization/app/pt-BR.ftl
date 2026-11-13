@@ -580,7 +580,7 @@ sell_title = Vender %@
 
 # Info
 
-info_region_unavailable_description = Este recurso não está disponível na sua região. A disponibilidade depende das regras locais e dos requisitos dos provedores.
+info_region_unavailable_description = Este recurso não está disponível na sua região (%@). A disponibilidade depende das regras locais e dos requisitos dos provedores. Sua região é identificada pelo seu endereço IP.
 
 info_network_fee_title = Taxa de rede
 info_watch_wallet_title = Carteira de observação

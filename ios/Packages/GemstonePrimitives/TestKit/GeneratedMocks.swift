@@ -836,7 +836,7 @@ public extension Gemstone.GemHeaderButtonAction {
 
 public extension Gemstone.GemInfoTopic {
     static func mock() -> Gemstone.GemInfoTopic {
-        .regionUnavailable
+        .regionUnavailable(country: "")
     }
 }
 

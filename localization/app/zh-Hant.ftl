@@ -580,7 +580,7 @@ sell_title = 出售%@
 
 # Info
 
-info_region_unavailable_description = 此功能在目前所在地區無法使用。是否可用取決於當地規定和服務提供者的要求。
+info_region_unavailable_description = 此功能在目前所在地區（%@）無法使用。是否可用取決於當地規定和服務提供者的要求。所在地區會根據您的 IP 位址判斷。
 
 info_network_fee_title = 網路手續費
 info_watch_wallet_title = 觀察錢包

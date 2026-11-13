@@ -4,6 +4,7 @@ import BigInt
 import Foundation
 import typealias Gemstone.AssetId
 import typealias Gemstone.Currency
+import enum Gemstone.GemInfoTopic
 import struct Gemstone.GemSwapPairFailure
 import struct Gemstone.GemSwapPairSelection
 import struct Gemstone.GemSwapPairSuggestion
@@ -28,10 +29,10 @@ import Primitives
 import PrimitivesTestKit
 
 public final class GemSwapQuoteServiceMock: GemSwapQuoteServiceProtocol, @unchecked Sendable {
-    public var isAvailableValue = true
+    public var unavailableTopicValue: GemInfoTopic?
 
-    public func isAvailable() -> Bool {
-        isAvailableValue
+    public func unavailableTopic() -> GemInfoTopic? {
+        unavailableTopicValue
     }
 
     private let quotes: @Sendable (BigInt) async throws -> [SwapperQuote]

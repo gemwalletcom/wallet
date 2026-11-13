@@ -156,8 +156,8 @@ public final class RewardsSceneViewModel: Sendable {
     // MARK: - Actions
 
     func onInviteFriends() {
-        guard service.isAvailable() else {
-            isPresentingSheet = .info(InfoSheetModel(sheet: GemInfoTopic.regionUnavailable.infoSheet))
+        if let topic = service.unavailableTopic() {
+            isPresentingSheet = .info(InfoSheetModel(sheet: topic.infoSheet))
             return
         }
         isPresentingSheet = .share

@@ -100,8 +100,8 @@ public final class PerpetualSceneViewModel {
     public func onSelectButton(_ button: GemPerpetualButton) {
         switch button {
         case .long, .short, .modify, .increase, .reduce:
-            guard service.isAvailable() else {
-                isPresentingInfoSheet = InfoSheetModel(sheet: GemInfoTopic.regionUnavailable.infoSheet)
+            if let topic = service.unavailableTopic() {
+                isPresentingInfoSheet = InfoSheetModel(sheet: topic.infoSheet)
                 return
             }
         case .close: break

@@ -1054,7 +1054,8 @@ public extension GemInfoTitle {
 public extension GemInfoDescription {
     var text: String {
         switch self {
-        case .regionUnavailable: Localized.Info.regionUnavailableDescription
+        case let .regionUnavailable(country):
+            Localized.Info.regionUnavailableDescription((Locale.current.localizedString(forRegionCode: country) ?? country).boldMarkdown())
         case let .networkFee(network, symbol):
             Localized.Info.NetworkFee.description(network.boldMarkdown(), symbol.boldMarkdown())
         case let .balanceRequired(required, available, shortfall):

@@ -269,7 +269,7 @@ A Secret Phrase or private key shows when a wallet is created and from "Show Sec
 
 ## Feature availability
 
-If an action is unavailable, show the Not Available sheet and stop. Learn More opens [regional availability](https://docs.gemwallet.com/faq/feature-availability/).
+If an action is unavailable, show the Not Available sheet and stop. Learn More opens [regional availability](https://docs.gemwallet.com/faq/feature-availability/). The sheet names the country the config was decided for, detected from the IP address and named in the device language, and says the region comes from the IP address, so a VPN or travel explains a result the user did not expect.
 
 | Feature | Show the sheet when |
 |---|---|

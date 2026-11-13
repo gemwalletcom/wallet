@@ -1595,7 +1595,7 @@ fun mockGemHeaderButton(
 
 fun mockGemHeaderButtonAction(): uniffi.gemstone.GemHeaderButtonAction = uniffi.gemstone.GemHeaderButtonAction.Send(assetId = null)
 
-fun mockGemInfoTopic(): uniffi.gemstone.GemInfoTopic = uniffi.gemstone.GemInfoTopic.RegionUnavailable
+fun mockGemInfoTopic(): uniffi.gemstone.GemInfoTopic = uniffi.gemstone.GemInfoTopic.RegionUnavailable(country = "")
 
 fun mockGemLocalizedText(): uniffi.gemstone.GemLocalizedText = uniffi.gemstone.GemLocalizedText.WalletDefaultName(index = 0)
 

@@ -13,7 +13,7 @@ use primitives::{Asset, AssetId, Chain, ContractCallData, Currency, Delegation, 
 
 use crate::api::GemStaticApiClient;
 use crate::gateway::GemGateway;
-use crate::models::list::GemListRow;
+use crate::models::list::{GemInfoTopic, GemListRow};
 use crate::models::state::GemLoadState;
 use crate::services::assets::GemAssetsService;
 use crate::services::config::GemConfigService;
@@ -116,18 +116,18 @@ impl GemStakeService {
     }
 
     pub fn stake_view_state(&self, input: GemStakeInput) -> GemStakeViewState {
-        rules::stake_view_state(input, self.platform, self.is_stake_enabled())
+        rules::stake_view_state(input, self.platform, self.unavailable_topic().as_ref())
     }
 
     pub fn delegation_details(&self, wallet_type: WalletType, delegation: Delegation, asset: Asset, price: Option<f64>, currency: Currency, validators: Vec<DelegationValidator>) -> GemDelegationDetails {
         let rows = self.delegation_rows(delegation.clone());
-        rules::delegation_details(wallet_type, &delegation, &asset, price, currency, rows, &validators, self.is_stake_enabled(), Utc::now())
+        rules::delegation_details(wallet_type, &delegation, &asset, price, currency, rows, &validators, self.unavailable_topic().as_ref(), Utc::now())
     }
 }
 
 impl GemStakeService {
-    fn is_stake_enabled(&self) -> bool {
-        self.config.is_feature_enabled(Feature::Staking)
+    fn unavailable_topic(&self) -> Option<GemInfoTopic> {
+        self.config.unavailable_topic(Feature::Staking)
     }
 
     pub async fn sync_earn(&self, asset_id: AssetId) -> Result<(), GemServiceError> {

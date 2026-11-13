@@ -26,6 +26,7 @@ use primitives::{Asset, AssetId, Chain, ChartCandleStick, ChartPeriod, Feature, 
 use crate::config::perpetual_config::PRICES_UPDATE_INTERVAL_SECONDS;
 use crate::gateway::GemGateway;
 use crate::models::custom_types::GemBigUint;
+use crate::models::list::GemInfoTopic;
 use crate::perpetual::GemPerpetual;
 use crate::services::assets::{GemAssetAction, GemAssetsService};
 use crate::services::balance::GemBalanceService;
@@ -107,8 +108,8 @@ impl GemPerpetualService {
         }
     }
 
-    pub fn is_available(&self) -> bool {
-        self.config.is_feature_enabled(Feature::Perpetuals)
+    pub fn unavailable_topic(&self) -> Option<GemInfoTopic> {
+        self.config.unavailable_topic(Feature::Perpetuals)
     }
 
     pub async fn add_recent(&self, action: GemAssetAction, asset: Asset) -> Result<(), GemServiceError> {

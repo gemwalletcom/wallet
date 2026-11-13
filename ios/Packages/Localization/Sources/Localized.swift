@@ -582,8 +582,10 @@ public enum Localized {
     public static let paymentVerificationDescription = Localized.tr("Localizable", "info.payment_verification_description", fallback: "The merchant requires additional information before the payment.")
     /// Payment Verification
     public static let paymentVerificationTitle = Localized.tr("Localizable", "info.payment_verification_title", fallback: "Payment Verification")
-    /// This feature is not available in your region. Availability depends on local rules and provider requirements.
-    public static let regionUnavailableDescription = Localized.tr("Localizable", "info.region_unavailable_description", fallback: "This feature is not available in your region. Availability depends on local rules and provider requirements.")
+    /// This feature is not available in your region (%@). Availability depends on local rules and provider requirements. Your region is detected from your IP address.
+    public static func regionUnavailableDescription(_ p1: Any) -> String {
+      return Localized.tr("Localizable", "info.region_unavailable_description", String(describing: p1), fallback: "This feature is not available in your region (%@). Availability depends on local rules and provider requirements. Your region is detected from your IP address.")
+    }
     /// Staking on TRON takes two steps. First freeze TRX, then stake it to earn rewards.
     public static let stakeFrozenRequiredDescription = Localized.tr("Localizable", "info.stake_frozen_required_description", fallback: "Staking on TRON takes two steps. First freeze TRX, then stake it to earn rewards.")
     /// Freeze TRX to Stake

@@ -118,7 +118,7 @@ class PerpetualsViewModelTest {
     @Test
     fun `deposit uses cached availability and can retry after it changes`() = runTest(dispatcher) {
         val service = mockk<GemPerpetualServiceInterface>(relaxed = true)
-        every { service.isAvailable() } returns false
+        every { service.unavailableTopic() } returns GemInfoTopic.RegionUnavailable(country = "GB")
         val subject = viewModel(service)
         var deposits = 0
         advanceUntilIdle()
@@ -126,10 +126,10 @@ class PerpetualsViewModelTest {
 
         subject.deposit { deposits += 1 }
         assertEquals(0, deposits)
-        assertEquals(GemInfoTopic.RegionUnavailable, subject.infoSheet.value)
+        assertEquals(GemInfoTopic.RegionUnavailable(country = "GB"), subject.infoSheet.value)
 
         subject.infoSheet.value = null
-        every { service.isAvailable() } returns true
+        every { service.unavailableTopic() } returns null
         subject.deposit { deposits += 1 }
         assertEquals(1, deposits)
         assertNull(subject.infoSheet.value)

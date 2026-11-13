@@ -213,7 +213,7 @@ pub enum GemNoticeKind {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemInfoTopic {
-    RegionUnavailable,
+    RegionUnavailable { country: String },
     NetworkFee { asset: Asset },
     PriceImpact,
     Slippage,

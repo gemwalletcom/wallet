@@ -10,6 +10,7 @@ pub struct ConfigResponse {
     pub versions: ConfigVersions,
     pub swap: SwapConfig,
     pub features: Features,
+    pub country: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

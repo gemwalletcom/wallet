@@ -58,7 +58,9 @@ pub struct GemInfoAmount {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemInfoDescription {
-    RegionUnavailable,
+    RegionUnavailable {
+        country: String,
+    },
     NetworkFee {
         network: String,
         symbol: String,

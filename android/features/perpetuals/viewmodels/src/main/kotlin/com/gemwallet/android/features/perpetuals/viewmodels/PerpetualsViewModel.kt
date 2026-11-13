@@ -86,8 +86,8 @@ class PerpetualsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     fun deposit(onDeposit: () -> Unit) {
-        if (!service.isAvailable()) {
-            infoSheet.value = GemInfoTopic.RegionUnavailable
+        service.unavailableTopic()?.let { topic ->
+            infoSheet.value = topic
             return
         }
         onDeposit()

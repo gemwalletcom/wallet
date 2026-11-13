@@ -123,7 +123,7 @@ class SwapViewModelTest {
                 ?.let { GemSwapProviderAnswer.Quote(provider = provider, quote = it, leavesNoDust = false) }
                 ?: GemSwapProviderAnswer.Failed(provider = provider, error = SwapperException.NoQuoteAvailable())
         }
-        every { isAvailable() } returns true
+        every { unavailableTopic() } returns null
         every { slippageBps() } returns null
         coEvery { suggestPair(any()) } returns null
         every { newSession() } answers { mockGemSwapSession() }
@@ -152,7 +152,7 @@ class SwapViewModelTest {
 
     @Test
     fun `unavailable swap keeps quotes and does not prepare a transfer`() = runTest(testDispatcher) {
-        every { swapQuoteService.isAvailable() } returns false
+        every { swapQuoteService.unavailableTopic() } returns GemInfoTopic.RegionUnavailable(country = "GB")
         val subject = createViewModel(swapSavedState())
         advanceUntilIdle()
         seedReadyQuote(subject)
@@ -162,7 +162,7 @@ class SwapViewModelTest {
         subject.swap(subject.shownQuote())
         advanceUntilIdle()
 
-        assertEquals(GemInfoTopic.RegionUnavailable, subject.infoSheet.value)
+        assertEquals(GemInfoTopic.RegionUnavailable(country = "GB"), subject.infoSheet.value)
         assertEquals(quote, subject.viewState.value.quote)
         assertNull(subject.confirmInput.value)
         coVerify(exactly = 0) { swapQuoteService.transferData(any()) }

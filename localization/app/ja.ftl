@@ -580,7 +580,7 @@ sell_title = %@を売却
 
 # Info
 
-info_region_unavailable_description = この機能はお住まいの地域では利用できません。利用できるかどうかは、地域の規則とサービス提供者の要件によって異なります。
+info_region_unavailable_description = この機能はお住まいの地域（%@）では利用できません。利用できるかどうかは、地域の規則とサービス提供者の要件によって異なります。地域はIPアドレスから判定されます。
 
 info_network_fee_title = ネットワーク手数料
 info_watch_wallet_title = 閲覧専用ウォレット

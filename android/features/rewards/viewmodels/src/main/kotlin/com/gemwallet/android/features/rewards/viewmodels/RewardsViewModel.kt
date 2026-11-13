@@ -73,8 +73,8 @@ class RewardsViewModel @Inject constructor(
     val isLoading: StateFlow<Boolean> = loadingState.asStateFlow()
 
     fun inviteFriends(onInvite: () -> Unit) {
-        if (!service.isAvailable()) {
-            infoSheet.value = GemInfoTopic.RegionUnavailable
+        service.unavailableTopic()?.let { topic ->
+            infoSheet.value = topic
             return
         }
         onInvite()

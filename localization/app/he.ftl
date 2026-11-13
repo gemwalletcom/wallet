@@ -580,7 +580,7 @@ sell_title = למכור %@
 
 # Info
 
-info_region_unavailable_description = תכונה זו אינה זמינה באזור שלך. הזמינות תלויה בכללים המקומיים ובדרישות של ספקי השירות.
+info_region_unavailable_description = תכונה זו אינה זמינה באזור שלך (%@). הזמינות תלויה בכללים המקומיים ובדרישות של ספקי השירות. האזור שלך נקבע לפי כתובת ה-IP שלך.
 
 info_network_fee_title = עמלת רשת
 info_watch_wallet_title = ארנק במעקב

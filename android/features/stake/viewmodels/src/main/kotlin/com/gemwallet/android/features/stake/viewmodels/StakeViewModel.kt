@@ -143,8 +143,8 @@ class StakeViewModel @Inject constructor(
         }
     }
 
-    fun onRegionUnavailable() {
-        infoSheet.value = GemInfoTopic.RegionUnavailable
+    fun onRegionUnavailable(topic: GemInfoTopic) {
+        infoSheet.value = topic
     }
 
     fun onDelegation(delegation: Delegation, onOpenDetail: (String, String) -> Unit, onAmount: AmountTransactionAction, onConfirm: ConfirmTransactionAction) {

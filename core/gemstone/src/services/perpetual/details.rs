@@ -5,6 +5,7 @@ use primitives::{Asset, AssetId, Chain, ChartPeriod, Perpetual, PerpetualPositio
 use super::candles::{GemCandleRequest, GemCandleResult};
 use super::model::{GemPerpetualDetails, GemPerpetualPositionAction, GemPerpetualPositionKind, GemPerpetualRefreshFailure, GemPerpetualRefreshStep};
 use super::{GemPerpetualService, rules};
+use crate::models::list::GemInfoTopic;
 use crate::models::perpetual::GemPerpetualSubscription;
 use crate::models::state::GemLoadState;
 use crate::services::assets::GemAssetsService;
@@ -37,8 +38,8 @@ impl GemPerpetualDetailsService {
         }
     }
 
-    pub fn is_available(&self) -> bool {
-        self.perpetuals.is_available()
+    pub fn unavailable_topic(&self) -> Option<GemInfoTopic> {
+        self.perpetuals.unavailable_topic()
     }
 
     pub fn details(&self, perpetual: Perpetual, asset: Asset, positions: Vec<PerpetualPosition>, associated_assets: Vec<Asset>) -> GemPerpetualDetails {

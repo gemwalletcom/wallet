@@ -580,7 +580,7 @@ sell_title = Verkoop %@
 
 # Info
 
-info_region_unavailable_description = Deze functie is niet beschikbaar in uw regio. De beschikbaarheid hangt af van lokale regels en de vereisten van aanbieders.
+info_region_unavailable_description = Deze functie is niet beschikbaar in uw regio (%@). De beschikbaarheid hangt af van lokale regels en de vereisten van aanbieders. Uw regio wordt bepaald aan de hand van uw IP-adres.
 
 info_network_fee_title = Netwerkkosten
 info_watch_wallet_title = Kijk-portemonnee

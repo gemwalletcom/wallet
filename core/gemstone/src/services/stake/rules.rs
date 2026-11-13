@@ -88,7 +88,7 @@ fn requires_staking_feature(input: &GemStakeAmountInput) -> bool {
     }
 }
 
-fn delegation_action_target(action: GemDelegationAction, delegation: &DelegationBase, destination: GemDelegationDestination, is_stake_enabled: bool, now: DateTime<Utc>) -> GemDelegationActionTarget {
+fn delegation_action_target(action: GemDelegationAction, delegation: &DelegationBase, destination: GemDelegationDestination, unavailable_topic: Option<&GemInfoTopic>, now: DateTime<Utc>) -> GemDelegationActionTarget {
     if action == GemDelegationAction::Unstake
         && let Some(remaining) = lockup_remaining(delegation, now)
     {
@@ -96,12 +96,15 @@ fn delegation_action_target(action: GemDelegationAction, delegation: &Delegation
             topic: GemInfoTopic::StakeLockup { remaining },
         };
     }
-    match &destination {
-        GemDelegationDestination::Amount {
-            input: GemDelegationAmountInput::Stake { input },
-            ..
-        } if !is_stake_enabled && requires_staking_feature(input) => GemDelegationActionTarget::Info { topic: GemInfoTopic::RegionUnavailable },
-        GemDelegationDestination::Details | GemDelegationDestination::Confirm { .. } | GemDelegationDestination::Amount { .. } => GemDelegationActionTarget::Open { destination },
+    match (&destination, unavailable_topic) {
+        (
+            GemDelegationDestination::Amount {
+                input: GemDelegationAmountInput::Stake { input },
+                ..
+            },
+            Some(topic),
+        ) if requires_staking_feature(input) => GemDelegationActionTarget::Info { topic: topic.clone() },
+        (GemDelegationDestination::Details | GemDelegationDestination::Confirm { .. } | GemDelegationDestination::Amount { .. }, _) => GemDelegationActionTarget::Open { destination },
     }
 }
 
@@ -236,7 +239,7 @@ pub fn delegation_details(
     currency: Currency,
     rows: Vec<GemListRow>,
     validators: &[DelegationValidator],
-    is_stake_enabled: bool,
+    unavailable_topic: Option<&GemInfoTopic>,
     now: DateTime<Utc>,
 ) -> GemDelegationDetails {
     let amount = |value: &BigUint| GemFormattedNumber::asset_amount(&BigInt::from(value.clone()), asset, ValueStyle::Auto);
@@ -265,7 +268,7 @@ pub fn delegation_details(
             .filter_map(|action| {
                 delegation_action_destination(asset.clone(), delegation.clone(), action, validators).map(|destination| GemDelegationActionItem {
                     action,
-                    target: delegation_action_target(action, &delegation.base, destination, is_stake_enabled, now),
+                    target: delegation_action_target(action, &delegation.base, destination, unavailable_topic, now),
                 })
             })
             .collect(),
@@ -324,7 +327,7 @@ pub fn can_claim_all_rewards(chain: Chain, delegations_with_rewards: usize) -> b
     chain.stake_config().is_some_and(|config| config.can_claim_all_rewards) || delegations_with_rewards == 1
 }
 
-pub fn stake_view_state(input: GemStakeInput, platform: Platform, is_stake_enabled: bool) -> GemStakeViewState {
+pub fn stake_view_state(input: GemStakeInput, platform: Platform, unavailable_topic: Option<&GemInfoTopic>) -> GemStakeViewState {
     let GemStakeInput {
         wallet_type,
         asset_data,
@@ -338,7 +341,7 @@ pub fn stake_view_state(input: GemStakeInput, platform: Platform, is_stake_enabl
     let price = asset_data.price.as_ref().map(|price| price.price);
     let validators = selectable_validators(validators);
     let delegations = sorted_delegations(delegations);
-    let actions = stake_actions(wallet_type, chain, &validators, &GemAssetBalance::from(&asset_data), &delegations, is_stake_enabled);
+    let actions = stake_actions(wallet_type, chain, &validators, &GemAssetBalance::from(&asset_data), &delegations, unavailable_topic);
     GemStakeViewState {
         asset: crate::services::assets::rules::asset_text(asset),
         sections: stake_sections(uses_freeze(chain), !actions.is_empty(), !delegations.is_empty()),
@@ -490,7 +493,7 @@ fn default_resource(chain: Chain) -> Resource {
     resource_options(chain).first().copied().unwrap_or(Resource::Bandwidth)
 }
 
-fn stake_actions(wallet_type: WalletType, chain: Chain, validators: &[DelegationValidator], balance: &GemAssetBalance, delegations: &[Delegation], is_stake_enabled: bool) -> Vec<GemStakeActionItem> {
+fn stake_actions(wallet_type: WalletType, chain: Chain, validators: &[DelegationValidator], balance: &GemAssetBalance, delegations: &[Delegation], unavailable_topic: Option<&GemInfoTopic>) -> Vec<GemStakeActionItem> {
     let Some(config) = chain.stake_config().filter(|_| wallet_type != WalletType::View) else {
         return vec![];
     };
@@ -518,7 +521,7 @@ fn stake_actions(wallet_type: WalletType, chain: Chain, validators: &[Delegation
         },
         action: match requires_frozen_balance {
             true => GemStakeAction::FrozenBalanceInfo,
-            false => destination(kind).map_or(GemStakeAction::Disabled, |destination| stake_action(destination, is_stake_enabled)),
+            false => destination(kind).map_or(GemStakeAction::Disabled, |destination| stake_action(destination, unavailable_topic)),
         },
     };
     let rewards = rewards_value(delegations);
@@ -533,10 +536,10 @@ fn stake_actions(wallet_type: WalletType, chain: Chain, validators: &[Delegation
     .collect()
 }
 
-fn stake_action(destination: GemStakeDestination, is_stake_enabled: bool) -> GemStakeAction {
-    match &destination {
-        GemStakeDestination::Amount { input } if !is_stake_enabled && requires_staking_feature(input) => GemStakeAction::RegionUnavailable,
-        GemStakeDestination::Amount { .. } | GemStakeDestination::Confirm { .. } => GemStakeAction::Open { destination },
+fn stake_action(destination: GemStakeDestination, unavailable_topic: Option<&GemInfoTopic>) -> GemStakeAction {
+    match (&destination, unavailable_topic) {
+        (GemStakeDestination::Amount { input }, Some(topic)) if requires_staking_feature(input) => GemStakeAction::RegionUnavailable { topic: topic.clone() },
+        (GemStakeDestination::Amount { .. } | GemStakeDestination::Confirm { .. }, _) => GemStakeAction::Open { destination },
     }
 }
 
@@ -884,7 +887,7 @@ mod tests {
             delegation.base.rewards = BigUint::from(rewards);
             delegation.base.state = DelegationState::Active;
             delegation.base.asset_id = asset.id.clone();
-            delegation_details(WalletType::Multicoin, &delegation, &asset, Some(2.0), Currency::USD, vec![], &[], true, Utc::now())
+            delegation_details(WalletType::Multicoin, &delegation, &asset, Some(2.0), Currency::USD, vec![], &[], None, Utc::now())
         };
 
         assert_eq!(
@@ -1372,7 +1375,7 @@ mod tests {
     fn test_the_delegation_screen_offers_only_actions_it_can_open() {
         let delegation = Delegation::mock_with(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Active, 0);
         let actions = |validators: &[DelegationValidator]| {
-            delegation_details(WalletType::Multicoin, &delegation, &Asset::from_chain(Chain::Cosmos), None, Currency::USD, vec![], validators, true, Utc::now())
+            delegation_details(WalletType::Multicoin, &delegation, &Asset::from_chain(Chain::Cosmos), None, Currency::USD, vec![], validators, None, Utc::now())
                 .actions
                 .into_iter()
                 .map(|item| item.action)
@@ -1392,7 +1395,7 @@ mod tests {
         let unstake_topic = |completion_date| {
             let mut delegation = Delegation::mock_with(Chain::HyperCore, StakeProviderType::Stake, DelegationState::Active, 100);
             delegation.base.completion_date = completion_date;
-            delegation_details(WalletType::Multicoin, &delegation, &Asset::from_chain(Chain::HyperCore), None, Currency::USD, vec![], &[], true, now)
+            delegation_details(WalletType::Multicoin, &delegation, &Asset::from_chain(Chain::HyperCore), None, Currency::USD, vec![], &[], None, now)
                 .actions
                 .into_iter()
                 .map(|item| match item.target {
@@ -1412,7 +1415,8 @@ mod tests {
 
     #[test]
     fn test_staking_off_in_the_region_blocks_adding_to_a_delegation() {
-        let targets_of = |delegation: Delegation, is_stake_enabled| {
+        let region = GemInfoTopic::RegionUnavailable { country: "GB".to_string() };
+        let targets_of = |delegation: Delegation, unavailable_topic: Option<&GemInfoTopic>| {
             delegation_details(
                 WalletType::Multicoin,
                 &delegation,
@@ -1421,29 +1425,33 @@ mod tests {
                 Currency::USD,
                 vec![],
                 &[DelegationValidator::mock_cosmos("other")],
-                is_stake_enabled,
+                unavailable_topic,
                 Utc::now(),
             )
             .actions
             .into_iter()
             .map(|item| match item.target {
-                GemDelegationActionTarget::Open { .. } => (item.action, true),
-                GemDelegationActionTarget::Info { .. } => (item.action, false),
+                GemDelegationActionTarget::Open { .. } => (item.action, None),
+                GemDelegationActionTarget::Info { topic } => (item.action, Some(topic)),
             })
             .collect::<Vec<_>>()
         };
 
-        let targets = |is_stake_enabled| targets_of(Delegation::mock_with(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Active, 0), is_stake_enabled);
+        let targets = |unavailable_topic| targets_of(Delegation::mock_with(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Active, 0), unavailable_topic);
 
-        assert_eq!(targets(false), vec![(GemDelegationAction::Stake, false), (GemDelegationAction::Unstake, true), (GemDelegationAction::Redelegate, true)]);
-        assert_eq!(targets(true), vec![(GemDelegationAction::Stake, true), (GemDelegationAction::Unstake, true), (GemDelegationAction::Redelegate, true)]);
         assert_eq!(
-            targets_of(Delegation::mock_with(Chain::Solana, StakeProviderType::Stake, DelegationState::AwaitingWithdrawal, 0), false),
-            vec![(GemDelegationAction::Withdraw, true)]
+            targets(Some(&region)),
+            vec![(GemDelegationAction::Stake, Some(region.clone())), (GemDelegationAction::Unstake, None), (GemDelegationAction::Redelegate, None)],
+            "adding to a stake explains the region it was turned off for"
+        );
+        assert_eq!(targets(None), vec![(GemDelegationAction::Stake, None), (GemDelegationAction::Unstake, None), (GemDelegationAction::Redelegate, None)]);
+        assert_eq!(
+            targets_of(Delegation::mock_with(Chain::Solana, StakeProviderType::Stake, DelegationState::AwaitingWithdrawal, 0), Some(&region)),
+            vec![(GemDelegationAction::Withdraw, None)]
         );
         assert_eq!(
-            targets_of(Delegation::mock_with(Chain::Ethereum, StakeProviderType::Earn, DelegationState::Active, 0), false),
-            vec![(GemDelegationAction::Deposit, true), (GemDelegationAction::Withdraw, true)]
+            targets_of(Delegation::mock_with(Chain::Ethereum, StakeProviderType::Earn, DelegationState::Active, 0), Some(&region)),
+            vec![(GemDelegationAction::Deposit, None), (GemDelegationAction::Withdraw, None)]
         );
     }
 
@@ -1506,7 +1514,7 @@ mod tests {
                 state: GemLoadState::Loading,
             },
             Platform::IOS,
-            true,
+            None,
         );
 
         let sorted = sorted_delegations(delegations);
@@ -1534,15 +1542,15 @@ mod tests {
         };
         let error = crate::services::error::GemServiceError::Gateway { msg: "offline".to_string() };
 
-        assert_eq!(stake_view_state(input(GemLoadState::Loading), Platform::IOS, true).delegations_phase, None);
+        assert_eq!(stake_view_state(input(GemLoadState::Loading), Platform::IOS, None).delegations_phase, None);
         assert_eq!(
-            stake_view_state(input(GemLoadState::Data), Platform::IOS, true).delegations_phase,
+            stake_view_state(input(GemLoadState::Data), Platform::IOS, None).delegations_phase,
             Some(GemListPhase::Empty {
                 state: empty_state(GemEmptyStateKind::Stake)
             })
         );
         assert_eq!(
-            stake_view_state(input(GemLoadState::Error { error: error.clone() }), Platform::IOS, true).delegations_phase,
+            stake_view_state(input(GemLoadState::Error { error: error.clone() }), Platform::IOS, None).delegations_phase,
             Some(GemListPhase::Error { error })
         );
     }
@@ -1550,12 +1558,12 @@ mod tests {
     #[test]
     fn test_a_stake_action_carries_the_screen_it_opens() {
         let destination = |chain, action| {
-            stake_actions(WalletType::Multicoin, chain, &[DelegationValidator::mock()], &GemAssetBalance::mock(), &[], true)
+            stake_actions(WalletType::Multicoin, chain, &[DelegationValidator::mock()], &GemAssetBalance::mock(), &[], None)
                 .into_iter()
                 .find(|item| item.kind == action)
                 .and_then(|item| match item.action {
                     GemStakeAction::Open { destination } => Some(destination),
-                    GemStakeAction::FrozenBalanceInfo | GemStakeAction::RegionUnavailable | GemStakeAction::Disabled => None,
+                    GemStakeAction::FrozenBalanceInfo | GemStakeAction::RegionUnavailable { .. } | GemStakeAction::Disabled => None,
                 })
         };
 
@@ -1578,12 +1586,12 @@ mod tests {
             false => Vec::new(),
         };
         let actions = |chain, has_validators: bool, balance: GemAssetBalance, rewards: Vec<Delegation>| {
-            stake_actions(WalletType::Multicoin, chain, &validators(has_validators), &balance, &rewards, true)
+            stake_actions(WalletType::Multicoin, chain, &validators(has_validators), &balance, &rewards, None)
                 .into_iter()
                 .map(|item| match item.action {
                     GemStakeAction::Open { .. } => (item.kind, true, false),
                     GemStakeAction::Disabled => (item.kind, false, false),
-                    GemStakeAction::FrozenBalanceInfo | GemStakeAction::RegionUnavailable => (item.kind, true, true),
+                    GemStakeAction::FrozenBalanceInfo | GemStakeAction::RegionUnavailable { .. } => (item.kind, true, true),
                 })
                 .collect::<Vec<_>>()
         };
@@ -1600,7 +1608,7 @@ mod tests {
             &validators(true),
             &GemAssetBalance::mock(),
             &[Delegation::mock_with(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Active, 1_500_000)],
-            true,
+            None,
         )
         .into_iter()
         .find(|item| item.kind == ClaimRewards);
@@ -1638,7 +1646,7 @@ mod tests {
                 &validators(true),
                 &GemAssetBalance::mock(),
                 &[Delegation::mock_with(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Active, 5)],
-                true
+                None
             )
             .is_empty()
         );
@@ -1649,7 +1657,7 @@ mod tests {
                 &validators(true),
                 &GemAssetBalance::mock(),
                 &[Delegation::mock_with(Chain::Bitcoin, StakeProviderType::Stake, DelegationState::Active, 5)],
-                true
+                None
             )
             .is_empty()
         );
@@ -1658,6 +1666,7 @@ mod tests {
     #[test]
     fn test_staking_off_in_the_region_blocks_only_a_new_stake() {
         use GemStakeActionKind::*;
+        let region = GemInfoTopic::RegionUnavailable { country: "GB".to_string() };
         let actions = |chain, validators: Vec<DelegationValidator>, balance: GemAssetBalance| {
             stake_actions(
                 WalletType::Multicoin,
@@ -1665,13 +1674,13 @@ mod tests {
                 &validators,
                 &balance,
                 &[Delegation::mock_with(chain, StakeProviderType::Stake, DelegationState::Active, 5)],
-                false,
+                Some(&region),
             )
             .into_iter()
             .map(|item| match item.action {
                 GemStakeAction::Open { .. } => (item.kind, "open"),
                 GemStakeAction::FrozenBalanceInfo => (item.kind, "frozen"),
-                GemStakeAction::RegionUnavailable => (item.kind, "region"),
+                GemStakeAction::RegionUnavailable { .. } => (item.kind, "region"),
                 GemStakeAction::Disabled => (item.kind, "disabled"),
             })
             .collect::<Vec<_>>()
@@ -1797,13 +1806,13 @@ mod tests {
         let asset = Asset::from_chain(Chain::Cosmos);
         let delegation = Delegation::mock_with(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Active, 10);
 
-        let owned = delegation_details(WalletType::Multicoin, &delegation, &asset, None, Currency::USD, vec![], &[], true, Utc::now());
+        let owned = delegation_details(WalletType::Multicoin, &delegation, &asset, None, Currency::USD, vec![], &[], None, Utc::now());
         assert!(owned.claim.is_some());
         assert!(owned.rewards.is_some());
         assert_eq!(owned.actions.iter().map(|item| item.action).collect::<Vec<_>>(), vec![GemDelegationAction::Stake, GemDelegationAction::Unstake]);
         assert_eq!(owned.header, delegation_list_row(&delegation, &asset, None, Currency::USD));
 
-        let watched = delegation_details(WalletType::View, &delegation, &asset, None, Currency::USD, vec![], &[], true, Utc::now());
+        let watched = delegation_details(WalletType::View, &delegation, &asset, None, Currency::USD, vec![], &[], None, Utc::now());
         assert!(watched.claim.is_none(), "a watch-only wallet sees its rewards but cannot claim them");
         assert!(watched.rewards.is_some());
     }

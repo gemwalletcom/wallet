@@ -125,6 +125,7 @@ import uniffi.gemstone.PaymentStatus
 import uniffi.gemstone.PerpetualMarginType
 import uniffi.gemstone.PortfolioChartType
 import uniffi.gemstone.StakeProviderType
+import java.util.Locale
 import uniffi.gemstone.PriceChangeCalculator as GemPriceChangeCalculator
 
 private const val EMPTY_VALUE = "-"
@@ -367,7 +368,10 @@ fun GemInfoTitle.string(context: Context): String = when (this) {
 }
 
 fun GemInfoDescription.string(context: Context): String = when (this) {
-    GemInfoDescription.RegionUnavailable -> context.getString(R.string.info_region_unavailable_description)
+    is GemInfoDescription.RegionUnavailable -> context.getString(
+        R.string.info_region_unavailable_description,
+        Locale.forLanguageTag("und-$country").getDisplayCountry(context.resources.configuration.locales[0]).ifEmpty { country }.bold(),
+    )
 
     is GemInfoDescription.NetworkFee -> context.getString(R.string.info_network_fee_description, network.bold(), symbol.bold())
 

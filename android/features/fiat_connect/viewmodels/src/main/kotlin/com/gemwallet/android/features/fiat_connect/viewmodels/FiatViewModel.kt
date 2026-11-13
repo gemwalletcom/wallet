@@ -202,8 +202,8 @@ class FiatViewModel @Inject constructor(
         val quote = viewState.value.selectedQuoteRow
         val request = session.value.quoteRequest()
         if (isUrlLoading.value || quote == null || request == null) return Result.success(Unit)
-        if (!service.isAvailable(request.quoteType)) {
-            infoSheet.value = GemInfoTopic.RegionUnavailable
+        service.unavailableTopic(request.quoteType)?.let { topic ->
+            infoSheet.value = topic
             return Result.success(Unit)
         }
         isUrlLoading.value = true
