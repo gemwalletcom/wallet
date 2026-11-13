@@ -187,6 +187,7 @@ A stablecoin is one on the official list, USDT, USDC, USDS, USDe, USD1, USDG and
 | The ledger accepts the Batch but its swap failed | the swap shows Failed, and only the network fee is spent | the ledger reports the Batch as successful either way |
 | A Stellar or XRP Ledger DEX swap in History | one Swap with Gem's fee, not separate payments | |
 | An Across bridge | what arrives is the amount less the LP, relayer capital and relayer gas fees, all in the token bridged; a deposit no relayer fills is refunded after `2 hours` | |
+| A cross-chain swap the provider has not finished | it stays in progress for up to `7 days`, checked less often the longer it waits, from every minute up to every `30 minutes`; only then does it show Failed | provider halts, bridge delays and refunds can take days, and a swap shown as Failed while it is still running invites a second one |
 | THORChain or Maya halts or resumes a network | it can show up to `15 minutes` late | |
 | Near Intents with HyperCore | HyperCore spot USDC can be paid but not received | the provider pays HyperCore USDC into perps, apart from the wallet's spot balance |
 | A Hyperliquid spot swap | the Network Fee is in the token received: HYPE or UBTC when buying, USDC with Gem's fee when selling; no balance is needed for it | Hyperliquid takes the fee out of what the order receives, and Gem's fee only on sells |
