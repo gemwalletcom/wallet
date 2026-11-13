@@ -30,6 +30,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
+import uniffi.gemstone.GemListItem
 import uniffi.gemstone.GemListPhase
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemLocalizedText
@@ -90,7 +91,7 @@ class AssetPriceAlertsViewModelTest {
         coEvery { service.refresh(any()) } returns GemLoadState.Error(GemServiceException.Gateway("offline"))
         val viewModel = viewModel(service)
         try {
-            assertEquals("offline", ((viewModel.assetAlerts.first { it != null }!!.phase as GemListPhase.Error).error as GemServiceException.Gateway).msg)
+            assertEquals("offline", ((viewModel.assetAlerts.first { it != null }!!.list.phase as GemListPhase.Error).error as GemServiceException.Gateway).msg)
             coVerify(exactly = 1) { service.refresh(assetId.toIdentifier()) }
         } finally {
             viewModel.viewModelScope.cancel()
@@ -103,7 +104,7 @@ class AssetPriceAlertsViewModelTest {
         val alert = mockPriceAlert(assetId = assetId, price = 10.0, priceDirection = PriceAlertDirection.Up)
         val viewModel = viewModel(service, listOf(mockPriceAlertData(asset = mockAsset(id = assetId), priceAlert = alert)))
         try {
-            val item = viewModel.sections.first { it.isNotEmpty() }.single().items.single()
+            val item = (viewModel.groups.first { it.isNotEmpty() }.single().items.single() as GemListItem.PriceAlert).item
 
             viewModel.excludeAsset(item.id).join()
 

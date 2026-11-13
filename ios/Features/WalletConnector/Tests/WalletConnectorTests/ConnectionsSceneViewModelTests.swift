@@ -17,16 +17,16 @@ struct ConnectionsSceneViewModelTests {
     func theSectionsComeFromCore() {
         let service = GemWalletConnectServiceMock()
         let connection = WalletConnection.mock()
-        service.connectionSectionsValue = [
-            GemConnectionSection(title: "Active", connections: [GemConnection(connection: connection.toGem(), row: service.connectionRowValue)]),
+        service.connectionGroupsValue = [
+            GemGroup(id: "wallet-1", title: .text(text: "Active"), footer: .none, items: [.connection(connection: GemConnection(connection: connection.toGem(), row: service.connectionRowValue))]),
         ]
         let model = ConnectionsSceneViewModel.mock(service: service)
         model.query.value = [connection]
 
-        #expect(model.view.sections.map(\.title) == ["Active"])
+        #expect(model.view.list.groups.map { $0.title?.text } == ["Active"])
         #expect(service.viewedConnections == [connection.toGem()])
-        #expect(model.view.sections.first?.connections.count == 1)
-        #expect(model.view.phase == .rows)
+        #expect(model.view.list.groups.first?.items.count == 1)
+        #expect(model.view.list.phase == .rows)
     }
 
     @Test
@@ -34,9 +34,9 @@ struct ConnectionsSceneViewModelTests {
         let service = GemWalletConnectServiceMock()
         let model = ConnectionsSceneViewModel.mock(service: service)
 
-        #expect(model.view.sections.isEmpty)
+        #expect(model.view.list.groups.isEmpty)
         #expect(service.viewedConnections.isEmpty)
-        #expect(model.view.phase == .empty(state: emptyState(kind: .walletConnect)))
+        #expect(model.view.list.phase == .empty(state: emptyState(kind: .walletConnect)))
         #expect(model.connections.isEmpty)
     }
 

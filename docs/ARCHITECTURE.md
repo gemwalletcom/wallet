@@ -470,10 +470,14 @@ A screen that shows titled groups of rows with a load state returns one `GemGrou
 ```rust
 pub enum GemListItem {
     Currency { row: GemCurrencyRow },
+    Validator { row: GemValidatorRow, is_selected: bool },
+    Connection { connection: GemConnection },
+    PriceAlert { item: GemPriceAlertItem },
 }
 
 pub struct GemGroup {
-    pub title: GemListSectionTitle,
+    pub id: String,
+    pub title: Option<GemLocalizedText>,
     pub footer: GemListSectionFooter,
     pub items: Vec<GemListItem>,
 }
@@ -484,7 +488,7 @@ pub struct GemGroupList {
 }
 ```
 
-Core decides which groups exist, their order and titles, what each item holds, which one is selected, and the phase. The currency picker is the reference: `GemCurrencyService::list` returns the Recommended and All groups, each dropped when the search leaves it empty, and an empty search-results phase when nothing matches:
+Core decides which groups exist, their order and titles, what each item holds, which one is selected, and the phase. Every group carries a stable `id` (the asset id, the wallet id, or the fixed title) because two groups can share a display name — two tokens called USDC on different networks — and both apps key their sections by it. A title is `GemLocalizedText`: `SectionTitle { title }` for the fixed vocabulary in `GemListSectionTitle`, `Text { text }` for a name such as a wallet's. The currency picker is the reference: `GemCurrencyService::list` returns the Recommended and All groups, each dropped when the search leaves it empty, and an empty search-results phase when nothing matches:
 
 ```rust
 let groups = rules::groups(currency, locale, &query, &localized_names, &rated);
@@ -494,7 +498,7 @@ Ok(GemGroupList {
 })
 ```
 
-Each app draws it with one builder — iOS `GemGroupListView` in `PrimitivesComponents`, Android `LazyListScope.gemGroupList` in `:ui` — which owns the group headers and footers, a stable identity per item, the empty state, the error row, and the one way each family is drawn. The screen keeps only its own modifiers and maps the selected item to its action:
+Each app draws it with one builder — iOS `GemGroupListView` in `PrimitivesComponents`, Android `LazyListScope.gemGroupList` in `:ui` — which owns the group headers and footers, a stable identity per item, the empty state, the error row, and the one way each family is drawn. A picker uses it whole and maps the selected item to its action:
 
 ```swift
 GemGroupListView(list: model.list, onSelect: onSelect)
@@ -507,7 +511,21 @@ LazyColumn(state = listState) {
 }
 ```
 
-A group title is a case of `GemListSectionTitle`. Moving a screen onto the group list deletes its `…Section` and `…List` records, its section-kind enum and both apps' title mappers for it, and its own phase switch; adding a per-screen section type or a second phase switch is the regression this replaces.
+A screen whose rows carry their own interactions — swipe to delete, navigation, a leading row of buttons — places the groups part alone, iOS `GemGroupSections(groups:item:)` and Android `gemGroups(groups) { item, position -> }`, inside its own list, and keeps its own phase layout. The connections and price alerts screens do this:
+
+```swift
+GemGroupSections(groups: list.groups) { item in
+    if case let .priceAlert(alert) = item {
+        NavigationLink(value: model.chart(alert)) {
+            PriceAlertItemView(item: alert, onDelete: onDelete)
+        }
+    }
+}
+```
+
+The group list is for lists of groups. A flat list that relies on its platform's edit-mode delete (contacts), a block layout whose sections are an order of different blocks (stake, earn, perpetual markets), a grid (NFTs), and the speed-critical windowed lists (wallets, wallet assets, transactions) keep their own records.
+
+Moving a screen onto the group list deletes its `…Section` and `…List` records, its section-kind enum and both apps' title mappers for it, and its own phase switch; adding a per-screen section type or a second phase switch is the regression this replaces.
 
 ### A status is a plain row, never a screen's own view
 

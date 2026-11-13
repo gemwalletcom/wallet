@@ -53,7 +53,8 @@ class AmountStakeProviderTest {
             GemGroupList(
                 groups = listOf(
                     GemGroup(
-                        title = GemListSectionTitle.ACTIVE,
+                        id = "Active",
+                        title = GemLocalizedText.SectionTitle(GemListSectionTitle.ACTIVE),
                         footer = GemListSectionFooter.NONE,
                         items = thirdArg<List<DelegationValidator>>().map {
                             GemListItem.Validator(mockGemValidatorRow(validator = it.toPrimitives().toGem(), name = it.toPrimitives().name, placeholder = it.toPrimitives().name.take(1), apr = GemLocalizedText.Apr(null)), false)

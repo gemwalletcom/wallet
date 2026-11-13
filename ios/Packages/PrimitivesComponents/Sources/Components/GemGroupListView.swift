@@ -17,22 +17,8 @@ public struct GemGroupListView: View {
 
     public var body: some View {
         List {
-            ForEach(keyedGroups) { group in
-                if let footer = group.value.footer.text {
-                    Section {
-                        items(group.value)
-                    } header: {
-                        header(group.value)
-                    } footer: {
-                        Text(footer)
-                    }
-                } else {
-                    Section {
-                        items(group.value)
-                    } header: {
-                        header(group.value)
-                    }
-                }
+            GemGroupSections(groups: list?.groups ?? []) { item in
+                GemListItemView(item: item, onSelect: onSelect)
             }
             if case let .error(error) = list?.phase {
                 Section {
@@ -46,23 +32,47 @@ public struct GemGroupListView: View {
             }
         }
     }
+}
+
+public struct GemGroupSections<Item: View>: View {
+    private let groups: [GemGroup]
+    private let item: (GemListItem) -> Item
+
+    public init(groups: [GemGroup], @ViewBuilder item: @escaping (GemListItem) -> Item) {
+        self.groups = groups
+        self.item = item
+    }
+
+    public var body: some View {
+        ForEach(groups) { group in
+            if let footer = group.footer.text {
+                Section {
+                    items(group)
+                } header: {
+                    header(group)
+                } footer: {
+                    Text(footer)
+                }
+            } else {
+                Section {
+                    items(group)
+                } header: {
+                    header(group)
+                }
+            }
+        }
+    }
 
     private func items(_ group: GemGroup) -> some View {
-        ForEach(keyedItems(group)) { item in
-            GemListItemView(item: item.value, onSelect: onSelect)
+        ForEach(keyedItems(group)) { keyed in
+            item(keyed.value)
         }
     }
 
     @ViewBuilder
     private func header(_ group: GemGroup) -> some View {
-        if let title = group.title.text {
+        if let title = group.title?.text {
             Text(title)
-        }
-    }
-
-    private var keyedGroups: [Keyed<GemGroup>] {
-        (list?.groups ?? []).enumerated().map { index, group in
-            Keyed(id: group.title == .none ? "\(index)" : "\(group.title)", value: group)
         }
     }
 
@@ -100,6 +110,10 @@ struct GemListItemView: View {
             .ifLet(row.explorerContext) { view, explorerContext in
                 view.explorerContext(explorerContext)
             }
+        case let .connection(connection):
+            ConnectionView(connection: connection)
+        case let .priceAlert(alert):
+            ListAssetItemView(row: alert.row.row)
         }
     }
 }
@@ -109,6 +123,8 @@ extension GemListItem {
         switch self {
         case let .currency(row): row.currency.toPrimitives().rawValue
         case let .validator(row, _): row.validator.id
+        case let .connection(connection): connection.connection.session.id
+        case let .priceAlert(alert): alert.id
         }
     }
 }

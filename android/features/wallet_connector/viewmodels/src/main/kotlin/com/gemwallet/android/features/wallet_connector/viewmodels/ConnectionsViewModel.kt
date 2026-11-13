@@ -13,7 +13,6 @@ import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.ListItemSymbol
 import com.gemwallet.android.ui.localization.text
-import com.gemwallet.android.ui.models.ListSection
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
@@ -44,16 +43,8 @@ class ConnectionsViewModel @Inject constructor(
         .mapLatest { connections -> service.connectionsView(connections.map { it.toGem() }) }
         .stateIn(viewModelScope, SharingStarted.Companion.Lazily, null)
 
-    val sections = view
-        .map { view ->
-            view?.sections.orEmpty().map { section ->
-                ListSection(id = section.title, title = section.title, items = section.connections)
-            }
-        }
-        .stateIn(viewModelScope, SharingStarted.Companion.Lazily, emptyList())
-
-    val phase = view
-        .map { it?.phase }
+    val list = view
+        .map { it?.list }
         .stateIn(viewModelScope, SharingStarted.Companion.Lazily, null)
 
     val docsUrl = view

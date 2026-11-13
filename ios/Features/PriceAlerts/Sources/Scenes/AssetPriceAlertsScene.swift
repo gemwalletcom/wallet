@@ -17,9 +17,8 @@ public struct AssetPriceAlertsScene: View {
 
     public var body: some View {
         let assetAlerts = model.assetAlerts
-        let alerts = model.alerts(assetAlerts)
         return List {
-            if case let .error(error) = assetAlerts.phase {
+            if case let .error(error) = assetAlerts.list.phase {
                 Section {
                     ListItemErrorView(errorTitle: Localized.Errors.errorOccurred, error: error)
                 }
@@ -34,17 +33,13 @@ public struct AssetPriceAlertsScene: View {
                 Text(Localized.PriceAlerts.autoFooter)
             }
 
-            if alerts.isNotEmpty {
-                Section {
-                    ForEach(alerts) { item in
-                        PriceAlertItemView(item: item, onDelete: { onDelete(alert: $0) })
-                    }
-                } header: {
-                    Text(Localized.Stake.active)
+            GemGroupSections(groups: assetAlerts.list.groups) { item in
+                if case let .priceAlert(alert) = item {
+                    PriceAlertItemView(item: alert, onDelete: { onDelete(alert: $0) })
                 }
             }
 
-            if case let .empty(state) = assetAlerts.phase {
+            if case let .empty(state) = assetAlerts.list.phase {
                 EmptyContentView(model: EmptyStateViewModel(state: state))
                     .padding(.top, .extraLarge)
                     .cleanListRow()

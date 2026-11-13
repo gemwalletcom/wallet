@@ -38,10 +38,13 @@ import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.GemConnection
 import uniffi.gemstone.GemConnectionDetails
-import uniffi.gemstone.GemConnectionSection
 import uniffi.gemstone.GemConnectionsView
 import uniffi.gemstone.GemErrorText
+import uniffi.gemstone.GemGroup
+import uniffi.gemstone.GemGroupList
 import uniffi.gemstone.GemListPhase
+import uniffi.gemstone.GemListSectionFooter
+import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemWalletConnectServiceInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -66,9 +69,9 @@ class ConnectionsViewModelTest {
 
     @Test
     fun `the sections come from Core`() = runTest(dispatcher) {
-        val sections = listOf(GemConnectionSection(title = "Active", connections = emptyList()))
+        val list = GemGroupList(listOf(GemGroup("wallet-1", GemLocalizedText.Text("Active"), GemListSectionFooter.NONE, emptyList())), GemListPhase.Rows)
         val service: GemWalletConnectServiceInterface = mockk(relaxed = true) {
-            every { connectionsView(any()) } returns GemConnectionsView(sections, GemListPhase.Rows, "https://docs.gemwallet.com/guides/walletconnect/")
+            every { connectionsView(any()) } returns GemConnectionsView(list, "https://docs.gemwallet.com/guides/walletconnect/")
         }
         val connectionsQuery: ConnectionsQuery = mockk {
             every { this@mockk() } returns flowOf(listOf(connection))
@@ -78,7 +81,7 @@ class ConnectionsViewModelTest {
         }
         val model = ConnectionsViewModel(connectionsQuery, syncSessions, mockk(relaxed = true), service, dispatcher, mockk(relaxed = true)).also { scopes.add(it) }
 
-        assertEquals(sections.map { it.title }, model.sections.first { it.isNotEmpty() }.map { it.title })
+        assertEquals(list, model.list.first { it != null })
         verify { service.connectionsView(listOf(connection.toGem())) }
         coVerify { syncSessions.syncSessions() }
     }

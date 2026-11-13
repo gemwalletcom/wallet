@@ -173,7 +173,8 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         GemGroupList(
             groups: [
                 GemGroup(
-                    title: .active,
+                    id: "Active",
+                    title: .sectionTitle(title: .active),
                     footer: .none,
                     items: validators.map {
                         .validator(

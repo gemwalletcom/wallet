@@ -21,7 +21,7 @@ fun PriceAlertsScreen(message: RouteMessage?, onMessageShown: () -> Unit, onChar
 
     var selectingAsset by rememberSaveable { mutableStateOf(false) }
 
-    val sections by viewModel.sections.collectAsStateWithLifecycle()
+    val groups by viewModel.groups.collectAsStateWithLifecycle()
     val enabled by viewModel.priceAlertEnabled.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val phase by viewModel.phase.collectAsStateWithLifecycle()
@@ -39,7 +39,7 @@ fun PriceAlertsScreen(message: RouteMessage?, onMessageShown: () -> Unit, onChar
             )
 
             false -> PriceAlertsScene(
-                sections = sections,
+                groups = groups,
                 phase = phase,
                 syncState = isRefreshing,
                 snackbar = snackbar,

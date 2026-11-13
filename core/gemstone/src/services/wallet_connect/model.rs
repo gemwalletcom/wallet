@@ -1,10 +1,9 @@
 use crate::application::GemConnectionRow;
 use crate::formatted_number::GemValueTone;
-use crate::models::list::{GemListRow, GemListRowTitle, GemListSection, GemListSectionTitle, GemRowAction};
+use crate::models::list::{GemGroupList, GemListRow, GemListRowTitle, GemListSection, GemListSectionTitle, GemRowAction};
 use crate::services::wallet::model::wallet_row;
 use crate::services::wallet_connect::sign_message::network_row;
 use crate::services::wallet_session::rules::can_choose_wallet;
-use crate::models::state::GemListPhase;
 use crate::services::error_text::GemErrorText;
 use crate::services::localization::GemLocalizedText;
 use crate::services::transfer::GemTransferData;
@@ -229,16 +228,15 @@ pub struct GemConnection {
     pub row: GemConnectionRow,
 }
 
-#[derive(Debug, Clone, uniffi::Record)]
-pub struct GemConnectionSection {
-    pub title: String,
-    pub connections: Vec<GemConnection>,
+impl PartialEq for GemConnection {
+    fn eq(&self, other: &Self) -> bool {
+        self.connection.session == other.connection.session && self.row == other.row
+    }
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
 pub struct GemConnectionsView {
-    pub sections: Vec<GemConnectionSection>,
-    pub phase: GemListPhase,
+    pub list: GemGroupList,
     pub docs_url: String,
 }
 

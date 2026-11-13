@@ -27,24 +27,14 @@ public struct PriceAlertsScene: View {
                 }
             }
 
-            ForEach(model.sections(list)) { section in
-                Section {
-                    ForEach(section.values) { item in
-                        NavigationLink(value: model.chart(item)) {
-                            PriceAlertItemView(item: item, onDelete: { onDelete(alert: $0) })
-                        }
-                        .assetIdentifier(item.data.asset.toPrimitives().id)
+            GemGroupSections(groups: list.groups) { item in
+                if case let .priceAlert(alert) = item {
+                    NavigationLink(value: model.chart(alert)) {
+                        PriceAlertItemView(item: alert, onDelete: { onDelete(alert: $0) })
                     }
-                } header: {
-                    if let title = section.title, !title.isEmpty {
-                        Text(title)
-                    }
-                } footer: {
-                    if let footer = section.footer, !section.values.isEmpty {
-                        Text(footer)
-                    }
+                    .assetIdentifier(alert.data.asset.toPrimitives().id)
+                    .listRowInsets(.assetListRowInsets)
                 }
-                .listRowInsets(.assetListRowInsets)
             }
         }
         .bindQuery(model.query)

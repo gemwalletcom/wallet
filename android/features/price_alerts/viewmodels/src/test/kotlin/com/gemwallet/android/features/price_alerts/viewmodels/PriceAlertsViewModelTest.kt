@@ -28,6 +28,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
+import uniffi.gemstone.GemListItem
 import uniffi.gemstone.GemListPhase
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemPriceAlertService
@@ -131,7 +132,7 @@ class PriceAlertsViewModelTest {
         val alert = mockPriceAlert(assetId = assetId, price = 10.0, priceDirection = PriceAlertDirection.Up)
         val viewModel = viewModel(service, listOf(mockPriceAlertData(asset = mockAsset(id = assetId), priceAlert = alert)))
         try {
-            val item = viewModel.sections.first { it.isNotEmpty() }.single().items.single()
+            val item = (viewModel.groups.first { it.isNotEmpty() }.single().items.single() as GemListItem.PriceAlert).item
 
             viewModel.excludeAsset(item.id).join()
 

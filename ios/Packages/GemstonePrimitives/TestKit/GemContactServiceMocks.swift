@@ -18,7 +18,7 @@ public extension GemContactService {
 }
 
 public final class GemWalletConnectServiceMock: GemWalletConnectServiceProtocol, @unchecked Sendable {
-    public var connectionSectionsValue: [GemConnectionSection] = []
+    public var connectionGroupsValue: [GemGroup] = []
     public var connectionRowValue = GemConnectionRow(title: "", host: nil, initial: "WC", iconUrl: nil)
     public var connectionDetailRows: [GemListRow] = []
     public var hasSessionsValue = false
@@ -62,8 +62,10 @@ public final class GemWalletConnectServiceMock: GemWalletConnectServiceProtocol,
     public func connectionsView(connections: [Gemstone.WalletConnection]) -> GemConnectionsView {
         viewedConnections = connections
         return GemConnectionsView(
-            sections: connectionSectionsValue,
-            phase: connectionSectionsValue.isEmpty ? .empty(state: emptyState(kind: .walletConnect)) : .rows,
+            list: GemGroupList(
+                groups: connectionGroupsValue,
+                phase: connectionGroupsValue.isEmpty ? .empty(state: emptyState(kind: .walletConnect)) : .rows,
+            ),
             docsUrl: "https://docs.gemwallet.com/guides/walletconnect/",
         )
     }

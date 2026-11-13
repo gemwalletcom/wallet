@@ -18,7 +18,7 @@ struct CurrencySceneViewModelTests {
         let service = GemCurrencyServiceMock(preferencesService: preferences)
         let viewModel = CurrencySceneViewModel(preferences: ObservablePreferences(preferencesService: preferences), service: service)
         service.groupsValue = [
-            GemGroup(title: .all, footer: .none, items: [.currency(row: GemCurrencyRow(currency: Currency.ars.toGem(), title: "ARS", isSelected: false))]),
+            GemGroup(id: "All", title: .sectionTitle(title: .all), footer: .none, items: [.currency(row: GemCurrencyRow(currency: Currency.ars.toGem(), title: "ARS", isSelected: false))]),
         ]
 
         #expect(viewModel.list == nil)

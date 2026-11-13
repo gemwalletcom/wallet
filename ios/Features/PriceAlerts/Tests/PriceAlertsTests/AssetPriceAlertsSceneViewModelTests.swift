@@ -2,6 +2,7 @@
 
 import Foundation
 import func Gemstone.emptyState
+import struct Gemstone.GemPriceAlertItem
 import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
 @testable import PriceAlerts
@@ -23,20 +24,24 @@ struct AssetPriceAlertsSceneViewModelTests {
         let model = AssetPriceAlertsSceneViewModel.mock()
         model.query.value = [alert1, alert2, alert3, autoAlert]
 
-        #expect(model.alerts(model.assetAlerts).map { $0.data.priceAlert.toPrimitives() } == [alert3, alert2, alert1].map(\.priceAlert))
+        let alerts = model.assetAlerts.list.groups.flatMap(\.items).compactMap { item -> GemPriceAlertItem? in
+            guard case let .priceAlert(alert) = item else { return nil }
+            return alert
+        }
+        #expect(alerts.map { $0.data.priceAlert.toPrimitives() } == [alert3, alert2, alert1].map(\.priceAlert))
         #expect(model.isAutoAlertEnabledBinding(model.assetAlerts).wrappedValue == true)
-        #expect(model.assetAlerts.phase == .rows)
+        #expect(model.assetAlerts.list.phase == .rows)
     }
 
     @Test
     func aFailedRefreshWithNoAlertsShowsTheErrorInsteadOfTheEmptyState() async {
         let service = GemPriceAlertServiceMock()
         let model = AssetPriceAlertsSceneViewModel.mock(service: service)
-        #expect(model.assetAlerts.phase == .empty(state: emptyState(kind: .priceAlerts)))
+        #expect(model.assetAlerts.list.phase == .empty(state: emptyState(kind: .priceAlerts)))
 
         service.refreshState = .error(error: .Gateway(msg: "offline"))
         await model.load()
 
-        #expect(model.assetAlerts.phase == .error(error: .Gateway(msg: "offline")))
+        #expect(model.assetAlerts.list.phase == .error(error: .Gateway(msg: "offline")))
     }
 }

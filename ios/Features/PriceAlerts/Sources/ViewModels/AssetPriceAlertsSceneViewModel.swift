@@ -3,7 +3,6 @@
 import Components
 import struct Gemstone.GemAssetPriceAlerts
 import enum Gemstone.GemLoadState
-import struct Gemstone.GemPriceAlertItem
 import protocol Gemstone.GemPriceAlertServiceProtocol
 import enum Gemstone.GemServiceError
 import class Gemstone.PriceAlertFormatter
@@ -55,10 +54,6 @@ public final class AssetPriceAlertsSceneViewModel: Sendable {
                 Task { await self.toggleAutoAlert(enabled: newValue) }
             },
         )
-    }
-
-    func alerts(_ assetAlerts: GemAssetPriceAlerts) -> [GemPriceAlertItem] {
-        assetAlerts.alerts
     }
 
     var assetAlerts: GemAssetPriceAlerts {

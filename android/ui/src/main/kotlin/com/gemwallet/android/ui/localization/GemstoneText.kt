@@ -97,7 +97,6 @@ import uniffi.gemstone.GemPerpetualSection
 import uniffi.gemstone.GemPositionChange
 import uniffi.gemstone.GemPriceAlertLabel
 import uniffi.gemstone.GemPriceAlertPrompt
-import uniffi.gemstone.GemPriceAlertSectionKind
 import uniffi.gemstone.GemPrivateKeyScope
 import uniffi.gemstone.GemReceiveWarning
 import uniffi.gemstone.GemRecipientErrorDisplay
@@ -179,6 +178,8 @@ fun GemLocalizedText.string(context: Context): String = when (this) {
     is GemLocalizedText.Text -> text
 
     is GemLocalizedText.RowTitle -> title.text(context)
+
+    is GemLocalizedText.SectionTitle -> title.titleRes()?.let { context.getString(it) }.orEmpty()
 
     is GemLocalizedText.EnableValue -> context.getString(R.string.settings_enable_value, value)
 
@@ -1371,11 +1372,6 @@ fun GemConfirmDestination.title(): Int = when (this) {
     is GemConfirmDestination.Provider -> R.string.common_provider
 }
 
-fun GemPriceAlertSectionKind.title(): String? = when (this) {
-    GemPriceAlertSectionKind.Auto -> null
-    is GemPriceAlertSectionKind.Asset -> name
-}
-
 fun PaymentStatus.errorText(context: Context): String = context.getString(R.string.errors_payment_status, context.getString(stringRes()))
 
 fun GemCustomFeeCheck.errorText(context: Context): String? = when (this) {
@@ -1424,6 +1420,7 @@ fun bannerDescription(context: Context, description: GemBannerDescription): Stri
 fun GemListSectionFooter.textRes(): Int? = when (this) {
     GemListSectionFooter.NONE -> null
     GemListSectionFooter.AUTHENTICATION -> R.string.lock_footer
+    GemListSectionFooter.PRICE_ALERTS_AUTO -> R.string.price_alerts_auto_footer
 }
 
 fun GemInfoAmount.text(): String = fiat?.let { "${amount.text()} (~${it.text()})" } ?: amount.text()
@@ -1541,11 +1538,6 @@ fun GemWalletImportKind.fieldStringRes(): Int = when (this) {
     GemWalletImportKind.ADDRESS -> R.string.wallet_import_address_field
     GemWalletImportKind.PHRASE -> R.string.common_secret_phrase
     GemWalletImportKind.PRIVATE_KEY -> R.string.common_private_key
-}
-
-fun GemPriceAlertSectionKind.footer(context: Context): String? = when (this) {
-    GemPriceAlertSectionKind.Auto -> context.getString(R.string.price_alerts_auto_footer)
-    is GemPriceAlertSectionKind.Asset -> null
 }
 
 fun GemNameIndicator.contentDescription(): Int? = when (this) {

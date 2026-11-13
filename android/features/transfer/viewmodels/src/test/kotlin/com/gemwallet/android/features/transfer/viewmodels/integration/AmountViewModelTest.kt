@@ -223,7 +223,7 @@ class AmountViewModelTest {
         val rows = listOf("v1", "v2").map { id ->
             mockDelegationValidator(chain = Chain.Cosmos, id = id).let { mockGemValidatorRow(validator = it.toGem(), name = it.name, placeholder = it.name.take(1), apr = GemLocalizedText.Apr(null)) }
         }
-        val options = GemGroupList(listOf(GemGroup(GemListSectionTitle.ACTIVE, GemListSectionFooter.NONE, rows.map { GemListItem.Validator(it, it.validator.id == "v2") })), GemListPhase.Rows)
+        val options = GemGroupList(listOf(GemGroup("Active", GemLocalizedText.SectionTitle(GemListSectionTitle.ACTIVE), GemListSectionFooter.NONE, rows.map { GemListItem.Validator(it, it.validator.id == "v2") })), GemListPhase.Rows)
         every { service.stakeValidatorOptions(any(), any(), any()) } returns options
 
         viewModelTest(AmountParams.Stake(asset.id, GemStakeAmountInput.Stake(rows[1].validator))) { viewModel ->
@@ -238,7 +238,8 @@ class AmountViewModelTest {
             mockDelegation(base = mockDelegationBase(rewards = BigInteger.valueOf(rewards), validatorId = validator.id), validator = validator).toGem()
         }
         val rows = validators.map { mockGemValidatorRow(validator = it.toGem(), name = it.name, placeholder = it.name.take(1), apr = GemLocalizedText.Apr(null)) }
-        every { service.stakeValidatorOptions(any(), any(), any()) } returns GemGroupList(listOf(GemGroup(GemListSectionTitle.ACTIVE, GemListSectionFooter.NONE, rows.map { GemListItem.Validator(it, false) })), GemListPhase.Rows)
+        every { service.stakeValidatorOptions(any(), any(), any()) } returns
+            GemGroupList(listOf(GemGroup("Active", GemLocalizedText.SectionTitle(GemListSectionTitle.ACTIVE), GemListSectionFooter.NONE, rows.map { GemListItem.Validator(it, false) })), GemListPhase.Rows)
 
         viewModelTest(AmountParams.Stake(asset.id, GemStakeAmountInput.Rewards(delegations, validators[0].toGem()))) { viewModel ->
             assertEquals("5", viewModel.amount)

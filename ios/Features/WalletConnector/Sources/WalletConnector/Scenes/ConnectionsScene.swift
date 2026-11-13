@@ -17,7 +17,6 @@ public struct ConnectionsScene: View {
 
     public var body: some View {
         let view = model.view
-        let sections = view.sections
         return List {
             Section {
                 ButtonListItem(
@@ -32,21 +31,19 @@ public struct ConnectionsScene: View {
                 )
             }
 
-            ForEach(Array(sections.enumerated()), id: \.offset) { _, section in
-                Section(section.title) {
-                    ForEach(section.connections, id: \.connection.session.id) { item in
-                        let connection = item.connection.toPrimitives()
-                        NavigationLink(value: connection) {
-                            ConnectionView(connection: item)
-                                .swipeActions(edge: .trailing) {
-                                    Button(
-                                        model.disconnectTitle,
-                                        role: .destructive,
-                                        action: { onSelectDisconnect(connection) },
-                                    )
-                                    .tint(Colors.red)
-                                }
-                        }
+            GemGroupSections(groups: view.list.groups) { item in
+                if case let .connection(row) = item {
+                    let connection = row.connection.toPrimitives()
+                    NavigationLink(value: connection) {
+                        ConnectionView(connection: row)
+                            .swipeActions(edge: .trailing) {
+                                Button(
+                                    model.disconnectTitle,
+                                    role: .destructive,
+                                    action: { onSelectDisconnect(connection) },
+                                )
+                                .tint(Colors.red)
+                            }
                     }
                 }
             }
@@ -54,7 +51,7 @@ public struct ConnectionsScene: View {
         .bindQuery(model.query)
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .overlay {
-            if case let .empty(state) = view.phase {
+            if case let .empty(state) = view.list.phase {
                 EmptyContentView(model: EmptyStateViewModel(state: state))
                     .padding(.horizontal, .medium)
             }
