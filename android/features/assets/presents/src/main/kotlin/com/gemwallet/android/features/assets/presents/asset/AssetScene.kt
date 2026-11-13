@@ -14,7 +14,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
-import com.gemwallet.android.ext.asset
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.assets.presents.asset.components.AssetDetailRowItem
@@ -27,11 +26,9 @@ import com.gemwallet.android.features.assets.viewmodels.asset.models.detailsActi
 import com.gemwallet.android.features.assets.viewmodels.asset.models.navigation
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.LoadOnListEnd
-import com.gemwallet.android.ui.components.list_item.ChainItem
 import com.gemwallet.android.ui.components.list_item.DaySectionedList
 import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
-import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.list_item.property.verificationStatusItem
 import com.gemwallet.android.ui.components.list_item.rememberDateSections
@@ -41,10 +38,7 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.components.screen.showSnackbar
 import com.gemwallet.android.ui.localization.titleRes
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.style.listItemImage
 import com.wallet.core.primitives.Asset
-import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.TransactionId
 import uniffi.gemstone.GemAssetDetails
 import uniffi.gemstone.GemEmptyStateAction
@@ -57,7 +51,6 @@ import uniffi.gemstone.GemTransactionRow
 internal fun AssetScene(
     details: GemAssetDetails,
     asset: Asset,
-    showsLightning: Boolean,
     transactions: DaySectionedList<GemTransactionRow>,
     transactionsPhase: GemListPhase?,
     isRefreshing: Boolean,
@@ -125,18 +118,6 @@ internal fun AssetScene(
                     section.title.titleRes()?.let { title -> item { SubheaderItem(title) } }
                     itemsPositioned(section.rows) { position, row ->
                         AssetDetailRowItem(row = row, action = row.detailsAction(asset.id, network), listPosition = position, onAction = onAction)
-                    }
-                }
-                if (showsLightning) {
-                    item {
-                        ChainItem(
-                            title = Chain.Lightning.asset().name,
-                            subtitle = stringResource(R.string.asset_lightning_instant_payments),
-                            icon = Chain.Lightning.listItemImage(),
-                            listPosition = ListPosition.Single,
-                            trailing = { DataBadgeChevron() },
-                            onClick = { onAction(AssetAction.OpenNetwork(AssetId(Chain.Lightning))) },
-                        )
                     }
                 }
                 when (transactionsPhase) {

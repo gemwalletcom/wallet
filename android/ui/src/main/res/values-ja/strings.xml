@@ -109,14 +109,6 @@
   <string name="wallet_import_already_imported_message">このウォレットは既にインポート済みです。</string>
   <string name="wallets_title">ウォレット</string>
   <string name="receive_warning">このアドレスには、%1$s のみを %2$s ネットワークで送金してください。</string>
-  <string name="receive_lightning_create_invoice">請求書を作成</string>
-  <string name="receive_lightning_change_amount">金額を変更</string>
-  <string name="receive_lightning_amount_hint">空欄にすると送金者が金額を選べます。</string>
-  <string name="receive_lightning_any_amount">任意の金額</string>
-  <string name="receive_lightning_invoice_hint">任意のLightningウォレットからこの請求書を支払ってください。有効期限：%1$s</string>
-  <string name="receive_lightning_payment_received">支払いを受け取りました</string>
-  <string name="receive_lightning_unavailable">Lightningは現在利用できません。後でもう一度お試しください。</string>
-  <string name="receive_lightning_unlock_required">Lightningで受け取るにはウォレットのロックを解除してください。</string>
   <string name="buy_title">%1$sを購入</string>
   <string name="buy_providers_title">プロバイダー</string>
   <string name="buy_rate">レート</string>
@@ -134,7 +126,6 @@
   <string name="transfer_balance">残高: %1$s</string>
   <string name="transfer_title">送金</string>
   <string name="transfer_recipient_address_field">アドレスまたはドメイン</string>
-  <string name="transfer_recipient_lightning_invoice">Lightning請求書</string>
   <string name="transfer_send_title">送る</string>
   <string name="transfer_insufficient_balance">%1$sの残高が不足しています。</string>
   <string name="transfer_insufficient_network_fee_balance">ネットワーク手数料を支払うための%1$s残高が不足しています。</string>
@@ -276,7 +267,6 @@
   <string name="asset_balances">残高</string>
   <string name="asset_balances_available">利用可能</string>
   <string name="asset_price">価格</string>
-  <string name="asset_lightning_instant_payments">即時支払い</string>
   <string name="asset_market_cap">時価総額</string>
   <string name="asset_trading_volume">取引量（24時間）</string>
   <string name="asset_total_supply">総供給量</string>

@@ -109,14 +109,6 @@
   <string name="wallet_import_already_imported_message">An riga an shigo da wannan walat ɗin.</string>
   <string name="wallets_title">Wallets</string>
   <string name="receive_warning">Wannan shine adireshinka — aika kawai %1$s a kan %2$s hanyar sadarwa.</string>
-  <string name="receive_lightning_create_invoice">Ƙirƙiri Takardar Biyan Kuɗi</string>
-  <string name="receive_lightning_change_amount">Canza Adadi</string>
-  <string name="receive_lightning_amount_hint">Bar shi babu komai don mai aikawa ya zaɓi adadin.</string>
-  <string name="receive_lightning_any_amount">Kowane adadi</string>
-  <string name="receive_lightning_invoice_hint">Biya wannan takardar daga kowace walat ɗin Lightning. Tana aiki har zuwa %1$s.</string>
-  <string name="receive_lightning_payment_received">An karɓi biyan kuɗi</string>
-  <string name="receive_lightning_unavailable">Lightning ba ya samuwa. Sake gwadawa daga baya.</string>
-  <string name="receive_lightning_unlock_required">Buɗe walat don karɓa ta Lightning.</string>
   <string name="buy_title">Saya %1$s</string>
   <string name="buy_providers_title">Masu bayarwa</string>
   <string name="buy_rate">Rate</string>
@@ -134,7 +126,6 @@
   <string name="transfer_balance">Ma\'auni: %1$s</string>
   <string name="transfer_title">Canja wuri</string>
   <string name="transfer_recipient_address_field">Adireshi ko Suna</string>
-  <string name="transfer_recipient_lightning_invoice">Takardar biyan kuɗi ta Lightning</string>
   <string name="transfer_send_title">Aika</string>
   <string name="transfer_insufficient_balance">Rashin isassun ma\'auni %1$s.</string>
   <string name="transfer_insufficient_network_fee_balance">Rashin isassun ma\'auni %1$s don biyan kuɗin hanyar sadarwa.</string>
@@ -276,7 +267,6 @@
   <string name="asset_balances">Ma\'auni</string>
   <string name="asset_balances_available">Akwai</string>
   <string name="asset_price">Farashin</string>
-  <string name="asset_lightning_instant_payments">Biyan kuɗi nan take</string>
   <string name="asset_market_cap">Ƙimar Kasuwa</string>
   <string name="asset_trading_volume">Girman Kasuwanci (24h)</string>
   <string name="asset_total_supply">Jimlar Wadata</string>

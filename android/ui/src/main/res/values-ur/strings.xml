@@ -109,14 +109,6 @@
   <string name="wallet_import_already_imported_message">یہ والیٹ پہلے ہی درآمد کیا جا چکا ہے۔</string>
   <string name="wallets_title">والیٹس</string>
   <string name="receive_warning">یہ آپ کا پتہ ہے - صرف بھیجیں۔ %1$s پر %2$s نیٹ ورک</string>
-  <string name="receive_lightning_create_invoice">انوائس بنائیں</string>
-  <string name="receive_lightning_change_amount">رقم تبدیل کریں</string>
-  <string name="receive_lightning_amount_hint">بھیجنے والے کو رقم منتخب کرنے دینے کے لیے خالی چھوڑ دیں۔</string>
-  <string name="receive_lightning_any_amount">کوئی بھی رقم</string>
-  <string name="receive_lightning_invoice_hint">کسی بھی Lightning والیٹ سے یہ انوائس ادا کریں۔ %1$s تک درست۔</string>
-  <string name="receive_lightning_payment_received">ادائیگی موصول ہو گئی</string>
-  <string name="receive_lightning_unavailable">Lightning دستیاب نہیں ہے۔ بعد میں دوبارہ کوشش کریں۔</string>
-  <string name="receive_lightning_unlock_required">Lightning سے وصول کرنے کے لیے والیٹ ان لاک کریں۔</string>
   <string name="buy_title">خریدیں %1$s</string>
   <string name="buy_providers_title">فراہم کرنے والے</string>
   <string name="buy_rate">شرح</string>
@@ -134,7 +126,6 @@
   <string name="transfer_balance">بیلنس: %1$s</string>
   <string name="transfer_title">منتقلی</string>
   <string name="transfer_recipient_address_field">پتہ یا نام</string>
-  <string name="transfer_recipient_lightning_invoice">Lightning انوائس</string>
   <string name="transfer_send_title">بھیجیں</string>
   <string name="transfer_insufficient_balance">ناکافی %1$s بیلنس۔</string>
   <string name="transfer_insufficient_network_fee_balance">نیٹ ورک فیس کو پورا کرنے کے لیے ناکافی %1$s بیلنس۔</string>
@@ -276,7 +267,6 @@
   <string name="asset_balances">بیلنس</string>
   <string name="asset_balances_available">دستیاب</string>
   <string name="asset_price">قیمت</string>
-  <string name="asset_lightning_instant_payments">فوری ادائیگیاں</string>
   <string name="asset_market_cap">مارکیٹ کیپ</string>
   <string name="asset_trading_volume">تجارتی حجم (24h)</string>
   <string name="asset_total_supply">کل سپلائی</string>

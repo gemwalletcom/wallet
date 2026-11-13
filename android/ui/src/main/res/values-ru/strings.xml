@@ -109,14 +109,6 @@
   <string name="wallet_import_already_imported_message">Этот кошелек уже импортирован.</string>
   <string name="wallets_title">Кошельки</string>
   <string name="receive_warning">Это ваш адрес — отправляйте только %1$s в сети %2$s.</string>
-  <string name="receive_lightning_create_invoice">Создать счёт</string>
-  <string name="receive_lightning_change_amount">Изменить сумму</string>
-  <string name="receive_lightning_amount_hint">Оставьте пустым, чтобы сумму выбрал отправитель.</string>
-  <string name="receive_lightning_any_amount">Любая сумма</string>
-  <string name="receive_lightning_invoice_hint">Оплатите этот счёт из любого кошелька Lightning. Действителен до %1$s.</string>
-  <string name="receive_lightning_payment_received">Платёж получен</string>
-  <string name="receive_lightning_unavailable">Lightning недоступен. Попробуйте позже.</string>
-  <string name="receive_lightning_unlock_required">Разблокируйте кошелёк, чтобы получать через Lightning.</string>
   <string name="buy_title">Купить %1$s</string>
   <string name="buy_providers_title">Провайдеры</string>
   <string name="buy_rate">Курс</string>
@@ -134,7 +126,6 @@
   <string name="transfer_balance">Баланс: %1$s</string>
   <string name="transfer_title">Перевод</string>
   <string name="transfer_recipient_address_field">Адрес или имя</string>
-  <string name="transfer_recipient_lightning_invoice">Счёт Lightning</string>
   <string name="transfer_send_title">Отправить</string>
   <string name="transfer_insufficient_balance">Недостаточный баланс %1$s.</string>
   <string name="transfer_insufficient_network_fee_balance">Недостаточно %1$s для оплаты комиссии сети.</string>
@@ -276,7 +267,6 @@
   <string name="asset_balances">Балансы</string>
   <string name="asset_balances_available">Доступно</string>
   <string name="asset_price">Цена</string>
-  <string name="asset_lightning_instant_payments">Мгновенные платежи</string>
   <string name="asset_market_cap">Капитализация</string>
   <string name="asset_trading_volume">Объём торгов (24ч)</string>
   <string name="asset_total_supply">Всего</string>

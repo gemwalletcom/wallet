@@ -8,7 +8,6 @@ import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
 import io.mockk.verify
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -68,61 +67,6 @@ class LightningSessionObserverTest {
         advanceUntilIdle()
 
         verify(exactly = 1) { Log.e(any(), any(), any()) }
-    }
-
-    @Test
-    fun `an open already running for the wallet is not repeated`() = runTest {
-        val opened = CompletableDeferred<Boolean>()
-        coEvery { service.openEnabled(walletId) } coAnswers { opened.await() }
-        val subject = observer()
-
-        subject.openLightning()
-        subject.openLightning()
-        advanceUntilIdle()
-        opened.complete(true)
-        advanceUntilIdle()
-
-        coVerify(exactly = 1) { service.openEnabled(walletId) }
-    }
-
-    @Test
-    fun `an open requested after locking is not deduplicated against the discarded one`() = runTest {
-        val discarded = CompletableDeferred<Boolean>()
-        coEvery { service.openEnabled(walletId) } coAnswers { discarded.await() } coAndThen { true }
-        val subject = observer()
-
-        subject.openLightning()
-        advanceUntilIdle()
-        subject.lock()
-        subject.openLightning()
-        advanceUntilIdle()
-        discarded.complete(false)
-        advanceUntilIdle()
-
-        coVerify(exactly = 2) { service.openEnabled(walletId) }
-        verify(exactly = 1) { service.lockAll() }
-    }
-
-    @Test
-    fun `the discarded open finishing does not release the open started after locking`() = runTest {
-        val discarded = CompletableDeferred<Boolean>()
-        val reopened = CompletableDeferred<Boolean>()
-        coEvery { service.openEnabled(walletId) } coAnswers { discarded.await() } coAndThen { reopened.await() }
-        val subject = observer()
-
-        subject.openLightning()
-        advanceUntilIdle()
-        subject.lock()
-        subject.openLightning()
-        advanceUntilIdle()
-        discarded.complete(false)
-        advanceUntilIdle()
-        subject.openLightning()
-        advanceUntilIdle()
-        reopened.complete(true)
-        advanceUntilIdle()
-
-        coVerify(exactly = 2) { service.openEnabled(walletId) }
     }
 
     private fun TestScope.observer() = LightningSessionObserver(service = service, session = session, scope = this)

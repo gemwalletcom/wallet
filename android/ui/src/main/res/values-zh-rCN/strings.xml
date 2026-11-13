@@ -109,14 +109,6 @@
   <string name="wallet_import_already_imported_message">此钱包已导入。</string>
   <string name="wallets_title">钱包</string>
   <string name="receive_warning">请仅向此地址发送 %2$s 网络上的 %1$s。</string>
-  <string name="receive_lightning_create_invoice">创建账单</string>
-  <string name="receive_lightning_change_amount">更改金额</string>
-  <string name="receive_lightning_amount_hint">留空则由付款方决定金额。</string>
-  <string name="receive_lightning_any_amount">任意金额</string>
-  <string name="receive_lightning_invoice_hint">可使用任意 Lightning 钱包支付此账单。有效期至 %1$s。</string>
-  <string name="receive_lightning_payment_received">已收到付款</string>
-  <string name="receive_lightning_unavailable">Lightning 暂不可用，请稍后重试。</string>
-  <string name="receive_lightning_unlock_required">解锁钱包后即可通过 Lightning 收款。</string>
   <string name="buy_title">购买%1$s</string>
   <string name="buy_providers_title">服务商</string>
   <string name="buy_rate">汇率</string>
@@ -134,7 +126,6 @@
   <string name="transfer_balance">余额：%1$s</string>
   <string name="transfer_title">转账</string>
   <string name="transfer_recipient_address_field">地址或域名</string>
-  <string name="transfer_recipient_lightning_invoice">Lightning 账单</string>
   <string name="transfer_send_title">发送</string>
   <string name="transfer_insufficient_balance">%1$s余额不足</string>
   <string name="transfer_insufficient_network_fee_balance">%1$s 余额不足，无法支付网络费用。</string>
@@ -276,7 +267,6 @@
   <string name="asset_balances">余额</string>
   <string name="asset_balances_available">可用余额</string>
   <string name="asset_price">价格</string>
-  <string name="asset_lightning_instant_payments">即时支付</string>
   <string name="asset_market_cap">市值</string>
   <string name="asset_trading_volume">24小时交易量</string>
   <string name="asset_total_supply">总供应量</string>

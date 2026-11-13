@@ -109,14 +109,6 @@
   <string name="wallet_import_already_imported_message">Denne tegnebog er allerede blevet importeret.</string>
   <string name="wallets_title">Tegnebøger</string>
   <string name="receive_warning">Dette er din adresse — kun forsendelse %1$s på %2$s netværk.</string>
-  <string name="receive_lightning_create_invoice">Opret faktura</string>
-  <string name="receive_lightning_change_amount">Skift beløb</string>
-  <string name="receive_lightning_amount_hint">Lad feltet stå tomt, så afsenderen vælger beløbet.</string>
-  <string name="receive_lightning_any_amount">Valgfrit beløb</string>
-  <string name="receive_lightning_invoice_hint">Betal denne faktura fra en hvilken som helst Lightning-wallet. Gyldig indtil %1$s.</string>
-  <string name="receive_lightning_payment_received">Betaling modtaget</string>
-  <string name="receive_lightning_unavailable">Lightning er ikke tilgængelig. Prøv igen senere.</string>
-  <string name="receive_lightning_unlock_required">Lås walleten op for at modtage med Lightning.</string>
   <string name="buy_title">Køb %1$s</string>
   <string name="buy_providers_title">Udbydere</string>
   <string name="buy_rate">Kurs</string>
@@ -134,7 +126,6 @@
   <string name="transfer_balance">Saldo: %1$s</string>
   <string name="transfer_title">Overførsel</string>
   <string name="transfer_recipient_address_field">Adresse eller Navn</string>
-  <string name="transfer_recipient_lightning_invoice">Lightning-faktura</string>
   <string name="transfer_send_title">Sende</string>
   <string name="transfer_insufficient_balance">Utilstrækkelig %1$s saldo.</string>
   <string name="transfer_insufficient_network_fee_balance">Utilstrækkelig %1$s saldo til at dække netværksgebyrer.</string>
@@ -276,7 +267,6 @@
   <string name="asset_balances">Balancer</string>
   <string name="asset_balances_available">Tilgængelig</string>
   <string name="asset_price">Pris</string>
-  <string name="asset_lightning_instant_payments">Øjeblikkelige betalinger</string>
   <string name="asset_market_cap">Markedsværdi</string>
   <string name="asset_trading_volume">Handelsvolumen (24 timer)</string>
   <string name="asset_total_supply">Samlet Udbud</string>

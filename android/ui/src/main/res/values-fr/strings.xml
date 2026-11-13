@@ -109,14 +109,6 @@
   <string name="wallet_import_already_imported_message">Ce portefeuille a déjà été importé.</string>
   <string name="wallets_title">Portefeuilles</string>
   <string name="receive_warning">Voici votre adresse — envoyez uniquement %1$s sur le réseau %2$s.</string>
-  <string name="receive_lightning_create_invoice">Créer une facture</string>
-  <string name="receive_lightning_change_amount">Modifier le montant</string>
-  <string name="receive_lightning_amount_hint">Laissez vide pour que l\'expéditeur choisisse le montant.</string>
-  <string name="receive_lightning_any_amount">Montant libre</string>
-  <string name="receive_lightning_invoice_hint">Payez cette facture depuis n\'importe quel portefeuille Lightning. Valable jusqu\'au %1$s.</string>
-  <string name="receive_lightning_payment_received">Paiement reçu</string>
-  <string name="receive_lightning_unavailable">Lightning est indisponible. Réessayez plus tard.</string>
-  <string name="receive_lightning_unlock_required">Déverrouillez le portefeuille pour recevoir avec Lightning.</string>
   <string name="buy_title">Acheter %1$s</string>
   <string name="buy_providers_title">Fournisseurs</string>
   <string name="buy_rate">Taux</string>
@@ -134,7 +126,6 @@
   <string name="transfer_balance">Solde : %1$s</string>
   <string name="transfer_title">Transfert</string>
   <string name="transfer_recipient_address_field">Adresse ou nom</string>
-  <string name="transfer_recipient_lightning_invoice">Facture Lightning</string>
   <string name="transfer_send_title">Envoyer</string>
   <string name="transfer_insufficient_balance">Solde %1$s insuffisant.</string>
   <string name="transfer_insufficient_network_fee_balance">Solde %1$s insuffisant pour couvrir les frais de réseau.</string>
@@ -276,7 +267,6 @@
   <string name="asset_balances">Soldes</string>
   <string name="asset_balances_available">Disponible</string>
   <string name="asset_price">Prix</string>
-  <string name="asset_lightning_instant_payments">Paiements instantanés</string>
   <string name="asset_market_cap">Capitalisation boursière</string>
   <string name="asset_trading_volume">Volume des échanges (24h)</string>
   <string name="asset_total_supply">Offre totale</string>

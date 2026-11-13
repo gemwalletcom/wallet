@@ -109,14 +109,6 @@
   <string name="wallet_import_already_imported_message">ארנק זה כבר יובא.</string>
   <string name="wallets_title">ארנקים</string>
   <string name="receive_warning">זוהי הכתובת שלך — יש לשלוח אליה רק %1$s ברשת %2$s.</string>
-  <string name="receive_lightning_create_invoice">יצירת חשבונית</string>
-  <string name="receive_lightning_change_amount">שינוי סכום</string>
-  <string name="receive_lightning_amount_hint">השאירו ריק כדי שהשולח יבחר את הסכום.</string>
-  <string name="receive_lightning_any_amount">כל סכום</string>
-  <string name="receive_lightning_invoice_hint">שלמו את החשבונית הזו מכל ארנק Lightning. בתוקף עד %1$s.</string>
-  <string name="receive_lightning_payment_received">התשלום התקבל</string>
-  <string name="receive_lightning_unavailable">Lightning אינו זמין. נסו שוב מאוחר יותר.</string>
-  <string name="receive_lightning_unlock_required">בטלו את נעילת הארנק כדי לקבל ב-Lightning.</string>
   <string name="buy_title">קנה %1$s</string>
   <string name="buy_providers_title">ספקים</string>
   <string name="buy_rate">שער</string>
@@ -134,7 +126,6 @@
   <string name="transfer_balance">יתרה: %1$s</string>
   <string name="transfer_title">העברה</string>
   <string name="transfer_recipient_address_field">כתובת או שם</string>
-  <string name="transfer_recipient_lightning_invoice">חשבונית Lightning</string>
   <string name="transfer_send_title">שליחה</string>
   <string name="transfer_insufficient_balance">יתרת %1$s לא מספקת.</string>
   <string name="transfer_insufficient_network_fee_balance">יתרת %1$s לא מספקת לכיסוי עמלות הרשת.</string>
@@ -276,7 +267,6 @@
   <string name="asset_balances">יתרות</string>
   <string name="asset_balances_available">זמין</string>
   <string name="asset_price">מחיר</string>
-  <string name="asset_lightning_instant_payments">תשלומים מיידיים</string>
   <string name="asset_market_cap">שווי שוק</string>
   <string name="asset_trading_volume">נפח מסחר (24 שעות)</string>
   <string name="asset_total_supply">אספקה כוללת</string>

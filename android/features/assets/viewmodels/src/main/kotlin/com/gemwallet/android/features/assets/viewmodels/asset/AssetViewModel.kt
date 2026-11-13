@@ -35,7 +35,6 @@ import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Banner
-import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChainAssetData
 import com.wallet.core.primitives.PriceAlert
 import com.wallet.core.primitives.TransactionsFilter
@@ -140,10 +139,6 @@ class AssetViewModel @Inject constructor(
 
     val transactionsPhase: StateFlow<GemListPhase?> = combine(transactionsState, transactions, details, ::transactionsPhase)
         .stateIn(viewModelScope, SharingStarted.Eagerly, transactionsPhase(transactionsState.value, transactions.value, details.value))
-
-    val showsLightning: StateFlow<Boolean> = session
-        .map { session -> assetId == AssetId(Chain.Bitcoin) && session?.wallet?.accounts?.any { it.chain == Chain.Lightning } == true }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val asset: StateFlow<Asset?> = chainAssetInfo
         .map { it?.assetData?.asset }

@@ -128,7 +128,7 @@ object KeystoreModule {
         walletSessionService: GemWalletSessionService,
     ): GemLightningService = GemLightningService(
         keystore,
-        LightningKeystorePassword(passwordStore, deviceAuthentication),
+        LightningKeystorePassword(GemstoneKeystorePassword(passwordStore, deviceAuthentication)),
         File(context.noBackupFilesDir, "lightning").absolutePath,
         balanceService,
         transactionsService,

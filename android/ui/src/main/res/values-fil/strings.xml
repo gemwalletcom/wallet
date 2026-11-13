@@ -109,14 +109,6 @@
   <string name="wallet_import_already_imported_message">Na-import na ang wallet na ito.</string>
   <string name="wallets_title">Mga Wallet</string>
   <string name="receive_warning">Ito ang iyong address — ipadala lamang %1$s sa %2$s network.</string>
-  <string name="receive_lightning_create_invoice">Gumawa ng Invoice</string>
-  <string name="receive_lightning_change_amount">Palitan ang Halaga</string>
-  <string name="receive_lightning_amount_hint">Iwanang blangko para ang nagpapadala ang pumili ng halaga.</string>
-  <string name="receive_lightning_any_amount">Anumang halaga</string>
-  <string name="receive_lightning_invoice_hint">Bayaran ang invoice na ito mula sa anumang Lightning wallet. Valid hanggang %1$s.</string>
-  <string name="receive_lightning_payment_received">Natanggap ang bayad</string>
-  <string name="receive_lightning_unavailable">Hindi available ang Lightning. Subukan ulit mamaya.</string>
-  <string name="receive_lightning_unlock_required">I-unlock ang wallet para tumanggap gamit ang Lightning.</string>
   <string name="buy_title">Bumili ng %1$s</string>
   <string name="buy_providers_title">Mga Provider</string>
   <string name="buy_rate">Rate</string>
@@ -134,7 +126,6 @@
   <string name="transfer_balance">Balanse: %1$s</string>
   <string name="transfer_title">Paglipat</string>
   <string name="transfer_recipient_address_field">Address o Pangalan</string>
-  <string name="transfer_recipient_lightning_invoice">Lightning Invoice</string>
   <string name="transfer_send_title">Ipadala</string>
   <string name="transfer_insufficient_balance">Hindi sapat na %1$s balanse.</string>
   <string name="transfer_insufficient_network_fee_balance">Hindi sapat na %1$s na balanse upang mabayaran ang mga bayarin sa network.</string>
@@ -276,7 +267,6 @@
   <string name="asset_balances">Mga balanse</string>
   <string name="asset_balances_available">Available</string>
   <string name="asset_price">Presyo</string>
-  <string name="asset_lightning_instant_payments">Instant na bayad</string>
   <string name="asset_market_cap">Market Cap</string>
   <string name="asset_trading_volume">Dami ng pangangalakal (24h)</string>
   <string name="asset_total_supply">Kabuuang Supply</string>

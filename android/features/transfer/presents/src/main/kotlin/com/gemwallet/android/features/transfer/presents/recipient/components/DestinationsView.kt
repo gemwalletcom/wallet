@@ -13,7 +13,6 @@ import uniffi.gemstone.GemNameIndicator
 
 fun LazyListScope.destinationView(
     hasMemo: Boolean,
-    addressLabel: String,
     address: String,
     addressError: String,
     nameResolveIndicator: GemNameIndicator?,
@@ -27,7 +26,7 @@ fun LazyListScope.destinationView(
         Column {
             AddressChainField(
                 value = address,
-                label = addressLabel,
+                label = stringResource(id = R.string.transfer_recipient_address_field),
                 indicator = nameResolveIndicator,
                 error = addressError,
                 onValueChange = onAddress,

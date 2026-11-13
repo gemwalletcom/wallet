@@ -109,14 +109,6 @@
   <string name="wallet_import_already_imported_message">این کیف پول قبلاً وارد شده است.</string>
   <string name="wallets_title">کیف پول ها</string>
   <string name="receive_warning">این آدرس شماست — فقط ارسال %1$s روی %2$s شبکه.</string>
-  <string name="receive_lightning_create_invoice">ایجاد فاکتور</string>
-  <string name="receive_lightning_change_amount">تغییر مبلغ</string>
-  <string name="receive_lightning_amount_hint">خالی بگذارید تا فرستنده مبلغ را انتخاب کند.</string>
-  <string name="receive_lightning_any_amount">هر مبلغی</string>
-  <string name="receive_lightning_invoice_hint">این فاکتور را از هر کیف پول Lightning پرداخت کنید. معتبر تا %1$s.</string>
-  <string name="receive_lightning_payment_received">پرداخت دریافت شد</string>
-  <string name="receive_lightning_unavailable">Lightning در دسترس نیست. بعداً دوباره تلاش کنید.</string>
-  <string name="receive_lightning_unlock_required">برای دریافت با Lightning قفل کیف پول را باز کنید.</string>
   <string name="buy_title">خرید %1$s</string>
   <string name="buy_providers_title">ارائه دهندگان</string>
   <string name="buy_rate">نرخ</string>
@@ -134,7 +126,6 @@
   <string name="transfer_balance">موجودی: %1$s</string>
   <string name="transfer_title">انتقال</string>
   <string name="transfer_recipient_address_field">نشانی یا نام</string>
-  <string name="transfer_recipient_lightning_invoice">فاکتور Lightning</string>
   <string name="transfer_send_title">بفرست</string>
   <string name="transfer_insufficient_balance">موجودی %1$s ناکافی است.</string>
   <string name="transfer_insufficient_network_fee_balance">موجودی %1$s برای پوشش کارمزد شبکه ناکافی است.</string>
@@ -276,7 +267,6 @@
   <string name="asset_balances">موجودی ها</string>
   <string name="asset_balances_available">در دسترس</string>
   <string name="asset_price">قيمت</string>
-  <string name="asset_lightning_instant_payments">پرداخت‌های فوری</string>
   <string name="asset_market_cap">ارزش بازار</string>
   <string name="asset_trading_volume">حجم معاملات (24 ساعت)</string>
   <string name="asset_total_supply">عرضه کل</string>

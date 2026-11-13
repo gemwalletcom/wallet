@@ -109,14 +109,6 @@
   <string name="wallet_import_already_imported_message">กระเป๋าสตางค์ใบนี้ถูกนำเข้าแล้ว</string>
   <string name="wallets_title">กระเป๋าสตางค์</string>
   <string name="receive_warning">นี่คือที่อยู่ของคุณ — ส่งเฉพาะ %1$s บนเครือข่าย %2$s เท่านั้น</string>
-  <string name="receive_lightning_create_invoice">สร้างใบแจ้งหนี้</string>
-  <string name="receive_lightning_change_amount">เปลี่ยนจำนวน</string>
-  <string name="receive_lightning_amount_hint">เว้นว่างไว้เพื่อให้ผู้ส่งเลือกจำนวนเอง</string>
-  <string name="receive_lightning_any_amount">จำนวนใดก็ได้</string>
-  <string name="receive_lightning_invoice_hint">ชำระใบแจ้งหนี้นี้จากกระเป๋า Lightning ใดก็ได้ ใช้ได้ถึง %1$s</string>
-  <string name="receive_lightning_payment_received">ได้รับการชำระเงินแล้ว</string>
-  <string name="receive_lightning_unavailable">Lightning ไม่พร้อมใช้งาน โปรดลองอีกครั้งภายหลัง</string>
-  <string name="receive_lightning_unlock_required">ปลดล็อกกระเป๋าเพื่อรับผ่าน Lightning</string>
   <string name="buy_title">ซื้อ %1$s</string>
   <string name="buy_providers_title">ผู้ให้บริการ</string>
   <string name="buy_rate">อัตรา</string>
@@ -134,7 +126,6 @@
   <string name="transfer_balance">ยอดคงเหลือ: %1$s</string>
   <string name="transfer_title">โอน</string>
   <string name="transfer_recipient_address_field">ที่อยู่หรือชื่อ</string>
-  <string name="transfer_recipient_lightning_invoice">ใบแจ้งหนี้ Lightning</string>
   <string name="transfer_send_title">ส่ง</string>
   <string name="transfer_insufficient_balance">ยอดคงเหลือ %1$s ไม่เพียงพอ</string>
   <string name="transfer_insufficient_network_fee_balance">ยอดคงเหลือ %1$s ไม่เพียงพอที่จะครอบคลุมค่าธรรมเนียมเครือข่าย</string>
@@ -276,7 +267,6 @@
   <string name="asset_balances">ยอดคงเหลือ</string>
   <string name="asset_balances_available">มีจำหน่าย</string>
   <string name="asset_price">ราคา</string>
-  <string name="asset_lightning_instant_payments">ชำระเงินทันที</string>
   <string name="asset_market_cap">มูลค่าตลาด</string>
   <string name="asset_trading_volume">ปริมาณการซื้อขาย (24 ชม.)</string>
   <string name="asset_total_supply">อุปทานทั้งหมด</string>
