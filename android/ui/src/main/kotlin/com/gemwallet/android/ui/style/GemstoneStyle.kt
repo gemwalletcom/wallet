@@ -226,9 +226,9 @@ fun PerpetualDirection.textStyle(): ListItemTextStyle = when (this) {
 fun VerificationStatus.textStyle(): ListItemTextStyle = when (this) {
     VerificationStatus.Suspicious -> ListItemTextStyle.Negative
 
-    VerificationStatus.Unverified,
-    VerificationStatus.Verified,
-    -> ListItemTextStyle.Warning
+    VerificationStatus.Unverified -> ListItemTextStyle.Warning
+
+    VerificationStatus.Verified -> ListItemTextStyle.Secondary
 }
 
 fun GemFiatTransactionBadge.textStyle(): ListItemTextStyle = when (this) {

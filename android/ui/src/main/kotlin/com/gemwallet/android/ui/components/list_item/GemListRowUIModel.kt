@@ -98,7 +98,7 @@ internal fun GemListRow.uiModel(context: Context): GemListRowUIModel = when (thi
             title = title.text(context),
             subtitle = value?.text(),
             subtitleSuffix = change?.text(),
-            subtitleSuffixStyle = change?.tone?.textStyle() ?: ListItemTextStyle.Secondary,
+            subtitleSuffixStyle = change?.tone?.subtitleStyle() ?: ListItemTextStyle.Secondary,
         ),
     )
 
