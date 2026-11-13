@@ -12,7 +12,7 @@ just gemstone bindgen-swift     # Generate iOS Swift bindings (run in gemstone/)
 just gemstone build-android     # Build Android AAR (run in gemstone/)
 ```
 
-First-time machine setup, including the kache build cache, is in [Setup](setup.md).
+First-time machine setup, including the mbx build cache, is in [Setup](setup.md).
 
 ## Test
 
@@ -41,7 +41,7 @@ Cargo accepts one positional test filter. Run multiple filters as separate comma
 just format                     # Format all code (prefer per-file below)
 just lint                       # Run clippy with warnings as errors and the extra lints in `clippy_lints`
 just fix                        # Auto-fix clippy issues
-just unused                     # Find unused dependencies with cargo-machete
+just unused                     # Check unused dependencies with Cargo
 ```
 
 **Formatting and Linting**:
@@ -54,6 +54,12 @@ cargo clippy -p <crate> --all-features -- -D warnings
 Before committing or pushing Core changes, run `just lint`, the same command as Core CI. It enables `redundant_clone`, `implicit_clone` and `redundant_closure_for_method_calls` in addition to treating warnings as errors. Per-crate clippy checks provide focused feature coverage and do not replace this closing check.
 
 Most chain crates declare `default = []` and gate whole modules behind features: `gem_bitcoin` keeps `signer/` behind `signer`, `gem_keystore` keeps v3 migration behind `v3`, `swapper` keeps live clients behind `reqwest_provider`. `just test <CRATE>` passes `--all-features`, but bare `cargo test -p <crate>` and `cargo clippy -p <crate>` compile only the default set and finish in seconds with nothing from the gated modules, which reads as a pass. Lint and test with the feature that compiles the changed path, for example `cargo clippy -p gem_bitcoin --features signer --all-targets -- -D warnings`, or pass `--all-features`.
+
+## Dependency Hygiene
+
+With Rust 1.100 or newer, `just unused` checks all workspace targets and features using Cargo's built-in unused-dependency warnings. Before removing a reported dependency, check target-specific uses, feature activation, and procedural macros. Cargo does not check unused dev-dependencies; use `cargo machete` as a supplementary audit when needed.
+
+The Core Cargo configuration sets a seven-day minimum publish age for registry dependency resolution. Existing locked versions remain usable, so use `--locked` for verification. This cooldown does not apply to `cargo install` or registry entries without publication timestamps. For an intentionally reviewed urgent update, override only that command with `CARGO_RESOLVER_INCOMPATIBLE_PUBLISH_AGE=allow cargo update -p <crate> --precise <version>`.
 
 ## Cargo.lock Conflicts
 

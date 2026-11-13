@@ -82,9 +82,6 @@ zeroize = { workspace = true }
 [lints.clippy]
 large_futures = "warn"
 
-[build-dependencies]
-uniffi = { workspace = true, features = ["build"] }
-
 [dev-dependencies]
 gem_bitcoin = { path = "../crates/gem_bitcoin", features = ["testkit"] }
 gem_evm = { path = "../crates/gem_evm", features = ["testkit"] }

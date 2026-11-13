@@ -7,7 +7,7 @@ Guidance for AI assistants (Claude Code, Gemini, Codex, etc.) collaborating on t
 Read this file first, then load the relevant skills for your current task. `project-structure.md`, `development-commands.md`, `code-style.md`, `tests.md`, and `defensive-programming.md` are the default set for most Core work. Load `setup.md` for environment or bootstrap work, `error-handling.md` when touching error surfaces or JSON access, `architecture.md` when changing provider/repository/UniFFI patterns, `common-issues.md` when debugging tricky failures, `swapper-checklist.md` only for swapper integrations, `new-chain-checklist.md` when adding or restructuring a chain, and `localization.md` when adding Core user-facing strings.
 
 - [Project Structure](skills/project-structure.md) — Repo layout, crates, and tech stack
-- [Setup](skills/setup.md) — Toolchain, backend prerequisites, and the kache build cache
+- [Setup](skills/setup.md) — Toolchain, backend prerequisites, and the mbx build cache
 - [Development Commands](skills/development-commands.md) — Build, test, lint, format, mobile
 - [Code Style](skills/code-style.md) — Formatting, naming, imports, code organization
 - [Error Handling](skills/error-handling.md) — Error types, propagation, JSON access
