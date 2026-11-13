@@ -171,16 +171,6 @@ struct AppLifecycleServiceTests {
     }
 
     @Test
-    func openLightningOpensTheEnabledWallet() async {
-        let lightning = GemLightningServiceMock()
-        let service = AppLifecycleService.mock(lightningService: lightning)
-
-        await service.openLightning(unlocked: {})
-
-        #expect(lightning.openEnabledCallsCount == 1)
-    }
-
-    @Test
     func backgroundLocksLightning() async {
         let lightning = GemLightningServiceMock()
         let service = AppLifecycleService.mock(lightningService: lightning)

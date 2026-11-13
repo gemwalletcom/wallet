@@ -67,7 +67,16 @@ public final class LightningReceiveSceneViewModel: Sendable {
 
 extension LightningReceiveSceneViewModel {
     func onLoad() async {
-        await createInvoice()
+        do {
+            let receive = try await service.receive(walletId: walletId, amount: amount, format: NumberInput.format())
+            renderedImage = await generator.generate(from: receive.qr, size: CGSize(width: ReceiveQRCodeCard.size, height: ReceiveQRCodeCard.size))
+            state = .ready(receive)
+        } catch GemServiceError.Cancelled {
+            state = .locked
+        } catch {
+            debugLog("lightning receive: \(error)")
+            state = .unavailable
+        }
     }
 
     func onRefresh() async {
@@ -75,7 +84,7 @@ extension LightningReceiveSceneViewModel {
         do {
             switch try await service.receiveState(walletId: walletId, invoice: receive.copy.value) {
             case .pending: break
-            case .expired: await createInvoice()
+            case .expired: await onLoad()
             case .received: onComplete(.success(Localized.Transaction.Title.received))
             }
         } catch GemServiceError.Cancelled {
@@ -92,27 +101,10 @@ extension LightningReceiveSceneViewModel {
             debugLog("lightning receive: unlock failed: \(error)")
             return
         }
-        await createInvoice()
+        await onLoad()
     }
 
     func onCopy() {
         isPresentingCopyToast = true
-    }
-}
-
-// MARK: - Private
-
-extension LightningReceiveSceneViewModel {
-    private func createInvoice() async {
-        do {
-            let receive = try await service.receive(walletId: walletId, amount: amount, format: NumberInput.format())
-            renderedImage = await generator.generate(from: receive.qr, size: CGSize(width: ReceiveQRCodeCard.size, height: ReceiveQRCodeCard.size))
-            state = .ready(receive)
-        } catch GemServiceError.Cancelled {
-            state = .locked
-        } catch {
-            debugLog("lightning receive: \(error)")
-            state = .unavailable
-        }
     }
 }

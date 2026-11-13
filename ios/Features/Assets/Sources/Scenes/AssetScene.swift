@@ -113,9 +113,7 @@ extension AssetScene {
         switch (action, networkDestination) {
         case (.price, _):
             NavigationLink(value: Scenes.Chart(asset: model.asset), label: label)
-        case let (.network, .asset(asset)):
-            NavigationLink(value: Scenes.Asset(asset: asset.toPrimitives()), label: label)
-        case let (.asset(asset), _):
+        case let (.network, .asset(asset)), let (.asset(asset), _):
             NavigationLink(value: Scenes.Asset(asset: asset.toPrimitives()), label: label)
         case let (.network, .assets(chain)):
             NavigationLink(value: Scenes.NetworkAssets(chain: Chain(core: chain)), label: label)

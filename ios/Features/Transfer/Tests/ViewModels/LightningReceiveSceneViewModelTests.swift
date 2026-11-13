@@ -14,14 +14,16 @@ import TransferTestKit
 @MainActor
 struct LightningReceiveSceneViewModelTests {
     @Test
-    func theScreenOpensOnAnAnyAmountInvoice() async {
+    func theScreenOpensOnAnAnyAmountInvoiceAndAnAmountReplacesIt() async {
         let service = GemLightningServiceMock()
         let model = LightningReceiveSceneViewModel.mock(service: service)
 
         await model.onLoad()
+        model.amount = "0.001"
+        await model.onLoad()
 
         #expect(model.state == .ready(service.receive))
-        #expect(service.receiveAmounts == [""])
+        #expect(service.receiveAmounts == ["", "0.001"])
         #expect(model.renderedImage != nil)
     }
 
@@ -39,17 +41,6 @@ struct LightningReceiveSceneViewModelTests {
 
         #expect(lockedModel.state == .locked)
         #expect(unavailableModel.state == .unavailable)
-    }
-
-    @Test
-    func anEnteredAmountAsksForANewInvoice() async {
-        let service = GemLightningServiceMock()
-        let model = LightningReceiveSceneViewModel.mock(service: service)
-
-        model.amount = "0.001"
-        await model.onLoad()
-
-        #expect(service.receiveAmounts == ["0.001"])
     }
 
     @Test
