@@ -38,7 +38,6 @@ import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.ProviderRowView
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.WarningItem
-import com.gemwallet.android.ui.components.list_item.property.AssetRatePropertyItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyTitleText
@@ -170,15 +169,8 @@ private fun SwapDetailsList(details: GemSwapDetails, onProviders: (() -> Unit)?)
         item {
             ProviderRowView(row = details.provider, listPosition = ListPosition.Single, onClick = onProviders, isShowChevron = onProviders != null)
         }
-        val rate = details.rate
-        val rateRows = if (rate != null) 1 else 0
-        rate?.let {
-            item {
-                AssetRatePropertyItem(stringResource(R.string.buy_rate), it, ListPosition.First)
-            }
-        }
         itemsIndexed(details.rows) { index, row ->
-            GemListRowView(row = row, listPosition = ListPosition.getPosition(index + rateRows, details.rows.size + rateRows))
+            GemListRowView(row = row, listPosition = ListPosition.getPosition(index, details.rows.size))
         }
     }
 }

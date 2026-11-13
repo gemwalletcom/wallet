@@ -1,4 +1,4 @@
-use crate::formatted_number::{GemFormattedNumber, GemValueTone, value_tone};
+use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::custom_types::GemBigInt;
 use crate::models::list::{GemListRow, GemListRowTitle};
 use crate::percentage::GemPercentageStyle;
@@ -79,15 +79,13 @@ pub struct GemAutocloseFieldState {
 }
 
 fn autoclose_field_state(field: GemAutocloseField, text: String, estimator: &GemAutocloseEstimator, shows_errors: bool) -> GemAutocloseFieldState {
-    let estimate = field.price.map(|price| {
-        let percent = GemFormattedNumber::percentage(estimator.roe(price), GemPercentageStyle::Signed);
-        match estimator.has_size() {
-            true => GemLocalizedText::Pnl {
-                amount: GemFormattedNumber::signed_currency(estimator.pnl(price), Currency::USD, GemCurrencyStyle::Currency),
-                percent,
-            },
-            false => GemLocalizedText::Number { number: percent },
-        }
+    let percent = field.price.map(|price| GemFormattedNumber::percentage(estimator.roe(price), GemPercentageStyle::Signed));
+    let estimate = field.price.zip(percent.clone()).map(|(price, percent)| match estimator.has_size() {
+        true => GemLocalizedText::Pnl {
+            amount: GemFormattedNumber::signed_currency(estimator.pnl(price), Currency::USD, GemCurrencyStyle::Currency),
+            percent,
+        },
+        false => GemLocalizedText::Number { number: percent },
     });
     GemAutocloseFieldState {
         tpsl_type: field.tpsl_type,
@@ -97,7 +95,7 @@ fn autoclose_field_state(field: GemAutocloseField, text: String, estimator: &Gem
             false => GemLocalizedText::ExpectedLoss,
         },
         estimate,
-        tone: field.price.map(|price| value_tone(estimator.roe(price))).unwrap_or(GemValueTone::Neutral),
+        tone: percent.map_or(GemValueTone::Neutral, |percent| percent.tone),
         suggestions: estimator
             .percent_suggestions()
             .into_iter()
@@ -636,6 +634,11 @@ mod tests {
         assert_eq!(loss.tone, GemValueTone::Negative);
         assert_eq!(empty.estimate, None);
         assert_eq!(empty.tone, GemValueTone::Neutral);
+        assert_eq!(
+            autoclose_field_state(GemAutocloseField::mock(Some(100.0001), None, true, None), String::new(), &estimator, true).tone,
+            GemValueTone::Neutral,
+            "an estimate that reads +0.00% is not coloured as a profit"
+        );
         assert!(profit.suggestions.iter().all(|value| value.unit == crate::formatted_number::GemNumberUnit::Percent));
         assert_eq!(
             autoclose_field_state(GemAutocloseField::mock(Some(80.0), None, false, None), String::new(), &estimator, false).validation,

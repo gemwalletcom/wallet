@@ -96,10 +96,11 @@ pub struct PriceAlertLine {
 
 impl From<PriceAlertLine> for GemPriceAlertRow {
     fn from(line: PriceAlertLine) -> Self {
-        let tone = match line.direction {
-            Some(PriceAlertDirection::Up) => GemValueTone::Positive,
-            Some(PriceAlertDirection::Down) => GemValueTone::Negative,
-            None => GemValueTone::Neutral,
+        let tone = match (line.kind, &line.suffix, &line.direction) {
+            (GemPriceAlertKind::Auto, GemPriceAlertText::Number { value }, _) => value.tone,
+            (_, _, Some(PriceAlertDirection::Up)) => GemValueTone::Positive,
+            (_, _, Some(PriceAlertDirection::Down)) => GemValueTone::Negative,
+            (_, _, None) => GemValueTone::Neutral,
         };
         Self {
             asset_id: line.asset_id,
@@ -566,6 +567,26 @@ mod tests {
                 tone: GemValueTone::Positive,
             }),
             "the target takes the colour of the direction it waits for"
+        );
+    }
+
+    #[test]
+    fn test_an_automatic_alert_colors_the_day_change_as_the_asset_screen_does() {
+        let asset = Asset::from_chain(Chain::Bitcoin);
+        let change_tone = |price: Option<f64>, change: f64| {
+            let alert = PriceAlert {
+                price,
+                ..PriceAlert::new_auto(asset.id.clone(), Currency::USD)
+            };
+            price_alert_row(&PriceAlertData::mock(alert, Some(100.0), Some(change)), Currency::USD).row.subtitle_extra.map(|text| text.tone)
+        };
+
+        assert_eq!(change_tone(Some(120.0), -2.0), Some(GemValueTone::Negative), "a fall reads red even while the alert waits for a rise");
+        assert_eq!(change_tone(None, 2.0), Some(GemValueTone::Positive));
+        assert_eq!(
+            change_tone(None, -0.003),
+            Some(GemFormattedNumber::percentage(-0.003, GemPercentageStyle::Signed).tone),
+            "a change that rounds to zero has the asset screen's colour"
         );
     }
 

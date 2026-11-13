@@ -62,7 +62,6 @@ import uniffi.gemstone.GemValueTone
 import uniffi.gemstone.GemVerificationLevel
 import uniffi.gemstone.GemWalletPlaceholder
 import uniffi.gemstone.GemWalletRow
-import uniffi.gemstone.SwapPriceImpactType
 
 data class SupportBubbleColors(val bubble: Color, val text: Color, val meta: Color, val link: Color)
 
@@ -222,28 +221,6 @@ fun GemValueTone.color(): Color = when (this) {
 fun PerpetualDirection.textStyle(): ListItemTextStyle = when (this) {
     PerpetualDirection.Short -> ListItemTextStyle.Negative
     PerpetualDirection.Long -> ListItemTextStyle.Positive
-}
-
-fun GemTransactionStateTone.textStyle(): ListItemTextStyle = when (this) {
-    GemTransactionStateTone.PENDING,
-    GemTransactionStateTone.REFUNDED,
-    -> ListItemTextStyle.Warning
-
-    GemTransactionStateTone.SUCCESS -> ListItemTextStyle.Positive
-
-    GemTransactionStateTone.ERROR -> ListItemTextStyle.Negative
-}
-
-fun SwapPriceImpactType?.textStyle(): ListItemTextStyle = when (this) {
-    SwapPriceImpactType.POSITIVE -> ListItemTextStyle.Positive
-
-    SwapPriceImpactType.MEDIUM -> ListItemTextStyle.Warning
-
-    SwapPriceImpactType.HIGH -> ListItemTextStyle.Negative
-
-    SwapPriceImpactType.LOW,
-    null,
-    -> ListItemTextStyle.Secondary
 }
 
 fun VerificationStatus.textStyle(): ListItemTextStyle = when (this) {
