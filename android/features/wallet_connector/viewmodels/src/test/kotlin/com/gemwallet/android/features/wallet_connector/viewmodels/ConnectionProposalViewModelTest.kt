@@ -64,7 +64,6 @@ class ConnectionProposalViewModelTest {
         coEvery { prepareSessionProposal(any(), any(), any(), any(), any()) } returns GemSessionProposal(
             proposal = mockWalletConnectionSessionProposal(defaultWallet = main, wallets = listOf(main, secondary), metadata = mockApplicationMetadata(name = "Uniswap")).toGem(),
             verificationStatus = WalletConnectionVerificationStatus.VERIFIED,
-            canChooseWallet = true,
         )
     }
 
@@ -108,13 +107,12 @@ class ConnectionProposalViewModelTest {
             coEvery { service.prepareSessionProposal(any(), any(), any(), any(), any()) } returns GemSessionProposal(
                 proposal = mockWalletConnectionSessionProposal(defaultWallet = main, wallets = listOf(main), metadata = mockApplicationMetadata(name = "Uniswap")).toGem(),
                 verificationStatus = status,
-                canChooseWallet = true,
             )
 
             val model = viewModel(service = service)
             advanceUntilIdle()
 
-            assertEquals(GemListRow.Verification(GemListRowTitle.STATUS, expected, null), model.proposalRows.value.verificationRow)
+            assertEquals(GemListRow.Verification(GemListRowTitle.STATUS, expected, null), model.proposalRows.value?.sections?.first()?.rows?.last())
         }
     }
 

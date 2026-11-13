@@ -290,6 +290,7 @@ pub enum GemRowAction {
     Stake,
     Pin,
     AddToWallet,
+    SelectWallet,
     Explorer { url: String },
 }
 
@@ -406,6 +407,7 @@ pub enum GemListRow {
         title: GemListRowTitle,
         wallet: GemWalletRow,
         menu: Vec<GemRowMenuItem>,
+        action: Option<GemRowAction>,
     },
     Memo {
         title: GemListRowTitle,
@@ -579,6 +581,7 @@ impl GemListRow {
             title: GemListRowTitle::Wallet,
             wallet,
             menu: vec![GemRowMenuItem::Copy { copy }, GemRowMenuItem::view_on(&explorer)],
+            action: None,
         }
     }
 
@@ -629,6 +632,7 @@ impl GemListRow {
     pub fn action(&self) -> Option<GemRowAction> {
         match self {
             Self::Link { action, .. } | Self::Toggle { action, .. } | Self::Picker { action, .. } => Some(action.clone()),
+            Self::Wallet { action, .. } => action.clone(),
             _ => None,
         }
     }

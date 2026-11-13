@@ -78,7 +78,6 @@ class AuthRequestViewModelTest {
         coEvery { prepareAuthentication(any(), any(), any(), any(), any()) } returns GemSessionProposal(
             proposal = mockWalletConnectionSessionProposal(defaultWallet = main, wallets = listOf(main, secondary), metadata = mockApplicationMetadata(name = "Uniswap")).toGem(),
             verificationStatus = WalletConnectionVerificationStatus.VERIFIED,
-            canChooseWallet = true,
         )
     }
 
@@ -164,14 +163,13 @@ class AuthRequestViewModelTest {
             coEvery { service.prepareAuthentication(any(), any(), any(), any(), any()) } returns GemSessionProposal(
                 proposal = mockWalletConnectionSessionProposal(defaultWallet = main, wallets = listOf(main), metadata = mockApplicationMetadata(name = "Uniswap")).toGem(),
                 verificationStatus = status,
-                canChooseWallet = true,
             )
             val model = viewModel(service = service)
 
             model.onRequest(request) {}
 
             val content = model.awaitContent()
-            assertEquals(GemListRow.Verification(GemListRowTitle.STATUS, expected, null), content.verificationRow)
+            assertEquals(GemListRow.Verification(GemListRowTitle.STATUS, expected, null), content.sections.first().rows.last())
         }
     }
 

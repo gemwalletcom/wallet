@@ -23,12 +23,8 @@ public struct ConnectionProposalScene: View {
         List {
             ListAssetHeaderView(model: model.appPreview, subtitleLayout: .vertical)
 
-            Section {
-                NavigationLink(value: Scenes.SelectWallet()) {
-                    GemListRowView(row: model.proposal.walletRow)
-                }
-                GemListRowView(row: model.proposal.connectionRow)
-                GemListRowView(row: model.proposal.verificationRow)
+            ForEach(Array(model.proposal.sections.enumerated()), id: \.offset) { _, section in
+                WalletConnectReviewSection(section: section)
             }
 
             Section(model.permissionsTitle) {

@@ -131,7 +131,7 @@ fun GemListRowView(
                 minHeight = ListItemDefaults.plainMinHeight,
                 accessory = when {
                     row.trailingImage != null -> {
-                        { DataBadgeChevron(isShowChevron = false) { ListItemImageView(image = row.trailingImage, size = smallIconSize) } }
+                        { DataBadgeChevron(isShowChevron = selects) { ListItemImageView(image = row.trailingImage, size = smallIconSize) } }
                     }
 
                     openAddress != null || row.url != null || row.opensAnotherScreen || selects -> {
@@ -174,7 +174,7 @@ fun GemListRowView(
             chain = row.chain,
             value = row.name,
             listPosition = listPosition,
-            onOpenNetwork = onSelect?.let { select -> { select(GemRowAction.Network) } },
+            onOpenNetwork = selectAction?.let { selected -> { onSelect(selected) } },
         )
 
         is GemListRowUIModel.Toggle -> ListItem(

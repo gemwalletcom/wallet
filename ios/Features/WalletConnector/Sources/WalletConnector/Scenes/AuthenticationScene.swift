@@ -23,14 +23,8 @@ public struct AuthenticationScene: View {
         List {
             ListAssetHeaderView(model: model.appPreview, subtitleLayout: .vertical)
 
-            Section {
-                NavigationLink(value: Scenes.SelectWallet()) {
-                    GemListRowView(row: model.walletListRow)
-                }
-                if let networkRow = model.networkRow {
-                    GemListRowView(row: networkRow)
-                }
-                GemListRowView(row: model.verificationRow)
+            ForEach(Array(model.sections.enumerated()), id: \.offset) { _, section in
+                WalletConnectReviewSection(section: section)
             }
 
             if let messageText = model.messageText {

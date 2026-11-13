@@ -31,8 +31,10 @@ fun ConnectionProposalScreen(proposal: GemWalletConnectProposal, onError: (Strin
         viewModel.refusalMessages.collect(onError)
     }
 
-    when (val currentPeer = peer) {
-        null -> LoadingScene(
+    val currentPeer = peer
+    val currentRows = proposalRows
+    when {
+        currentPeer == null || currentRows == null -> LoadingScene(
             title = stringResource(id = R.string.wallet_connect_connect_title),
             onCancel = viewModel::onReject,
             closeIcon = true,
@@ -41,7 +43,7 @@ fun ConnectionProposalScreen(proposal: GemWalletConnectProposal, onError: (Strin
         else -> ConnectionProposalScene(
             peer = currentPeer,
             state = state,
-            proposalRows = proposalRows,
+            proposalRows = currentRows,
             selectedWallet = selectedWallet,
             availableWallets = availableWallets,
             availableWalletSections = availableWalletSections,

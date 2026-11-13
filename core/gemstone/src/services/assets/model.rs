@@ -801,6 +801,7 @@ pub struct GemAssetDetailsState {
     pub empty_state: GemEmptyState,
 }
 
+#[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemAssetDetailRow {
     Balance { row: GemAssetBalanceRow, action: Option<GemRowAction> },

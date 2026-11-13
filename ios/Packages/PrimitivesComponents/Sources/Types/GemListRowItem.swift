@@ -145,7 +145,7 @@ extension GemListRow {
                 ),
                 menu: menu,
             )
-        case let .wallet(title, wallet, menu):
+        case let .wallet(title, wallet, menu, _):
             .imageMenu(ListItemModel(title: title.text, subtitle: wallet.name, imageStyle: .list(assetImage: wallet.avatarImage)), menu: menu)
         case let .memo(title, value, menu):
             .menu(ListItemModel(title: title.text, subtitle: value), menu: menu)

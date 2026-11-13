@@ -78,8 +78,10 @@ class ConnectionProposalViewModel @AssistedInject constructor(
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val proposalRows = combine(selectedWallet, state) { wallet, sceneState -> connectionProposal(sceneState.verificationStatus, wallet?.name.orEmpty()) }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, connectionProposal(WalletConnectionVerificationStatus.UNKNOWN, ""))
+    val proposalRows = combine(_sessionProposal, _selectedWallet) { prepared, wallet ->
+        prepared?.let { connectionProposal(it.proposal, wallet?.toGem()?.id, it.verificationStatus) }
+    }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val buttonState = combine(selectedWallet, state) { wallet, sceneState ->
         buttonState(enabled = wallet != null, loading = sceneState is ConnectionProposalUIState.Approving)

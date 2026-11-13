@@ -56,7 +56,7 @@ struct AuthenticationSceneViewModelTests {
             GemWalletConnectAuthMessage(account: Account.mock(chain: .ethereum, address: "0x1111111111111111111111111111111111111111").toGem(), message: Self.signIn(statement: "Sign in."))
         })
 
-        #expect(model.verificationRow == .verification(title: .status, status: expected, info: nil))
+        #expect(model.sections.first?.rows.last == .verification(title: .status, status: expected, info: nil))
     }
 
     private func request(defaultWallet: Wallet, wallets: [Wallet] = [], verificationStatus: WalletConnectionVerificationStatus = .verified,
@@ -73,7 +73,7 @@ struct AuthenticationSceneViewModelTests {
 
     @MainActor
     private func walletName(_ model: AuthenticationSceneViewModel) -> String? {
-        guard case let .wallet(_, row, _) = model.walletListRow else { return nil }
+        guard case let .wallet(_, row, _, _) = model.sections.first?.rows.first else { return nil }
         return row.name
     }
 

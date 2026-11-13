@@ -96,7 +96,6 @@ public final class GemWalletConnectServiceMock: GemWalletConnectServiceProtocol,
         GemSessionProposal(
             proposal: Gemstone.WalletConnectionSessionProposal(defaultWallet: Primitives.Wallet.mock().toGem(), wallets: [], metadata: metadata),
             verificationStatus: validation,
-            canChooseWallet: false,
         )
     }
 

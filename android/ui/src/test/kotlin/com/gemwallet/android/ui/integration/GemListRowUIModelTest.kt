@@ -45,8 +45,8 @@ import uniffi.gemstone.GemWalletPlaceholder
 import uniffi.gemstone.GemWalletSubtitle
 import uniffi.gemstone.Latency
 import uniffi.gemstone.LatencyType
-import java.math.BigInteger
 import uniffi.gemstone.VerificationStatus
+import java.math.BigInteger
 
 @RunWith(AndroidJUnit4::class)
 class GemListRowUIModelTest {
@@ -113,6 +113,7 @@ class GemListRowUIModelTest {
             title = GemListRowTitle.WALLET,
             wallet = mockGemWalletRow(id = "wallet-1", name = "Wallet", subtitle = GemWalletSubtitle.Multicoin, placeholder = GemWalletPlaceholder.Multicoin),
             menu = listOf(GemRowMenuItem.Copy(GemCopy(kind = GemCopyKind.Address("ethereum"), value = "0x1", display = "0x1")), website),
+            action = null,
         )
 
         val item = row.uiModel(context) as GemListRowUIModel.Item
