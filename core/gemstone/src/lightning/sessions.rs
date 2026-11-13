@@ -11,8 +11,6 @@ use gem_spark::{LightningError, LightningInvoice, LightningPayment, LightningPay
 use super::runtime::run;
 use crate::services::error::GemServiceError;
 
-const PAYMENTS_LIMIT: u64 = 100;
-
 static SESSIONS: LazyLock<Arc<LightningSessionRegistry>> = LazyLock::new(|| Arc::new(LightningSessionRegistry::default()));
 
 pub(crate) fn sessions() -> Arc<LightningSessionRegistry> {
@@ -55,7 +53,7 @@ impl LightningSessionRegistry {
         Ok((wallet, true))
     }
 
-    pub(crate) async fn close_and_remove<T>(&self, address: Option<&str>, remove: impl FnOnce() -> T) -> T {
+    pub(crate) async fn close_and_remove(&self, address: Option<&str>, remove: impl FnOnce() -> Result<(), GemServiceError>) -> Result<(), GemServiceError> {
         let _opening = self.opening.lock().await;
         let wallet = address.and_then(|address| self.wallets.write().unwrap_or_else(PoisonError::into_inner).remove(address));
         if let Some(wallet) = wallet {
@@ -78,7 +76,7 @@ impl LightningSessionRegistry {
     }
 
     pub(crate) async fn payments(&self, address: &str) -> Result<Vec<LightningPayment>, LightningError> {
-        self.with_wallet(address, |wallet| async move { wallet.payments(PAYMENTS_LIMIT).await }).await
+        self.with_wallet(address, |wallet| async move { wallet.payments().await }).await
     }
 
     async fn with_wallet<T, F, Fut>(&self, address: &str, call: F) -> Result<T, LightningError>

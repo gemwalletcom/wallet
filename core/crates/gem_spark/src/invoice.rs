@@ -27,22 +27,14 @@ pub fn decode_invoice(value: &str) -> Result<LightningInvoice, LightningError> {
 }
 
 #[cfg(any(feature = "wallet", test))]
-pub fn requested_amount(invoice: &LightningInvoice, amount_sats: u64) -> Option<u64> {
-    match invoice.amount_sats {
-        Some(_) => None,
-        None => Some(amount_sats),
-    }
-}
-
-#[cfg(any(feature = "wallet", test))]
-pub fn send_amount(invoice: &LightningInvoice, requested: u64, now: u64) -> Result<u64, LightningError> {
+pub fn amount_to_send(invoice: &LightningInvoice, requested: u64, now: u64) -> Result<Option<u64>, LightningError> {
     if invoice.expires_at <= now {
         return Err(LightningError::InvoiceExpired);
     }
     match invoice.amount_sats {
-        Some(amount) if amount == requested => Ok(amount),
+        Some(amount) if amount == requested => Ok(None),
         Some(amount) => Err(LightningError::AmountMismatch { invoice: amount, requested }),
-        None if requested > 0 => Ok(requested),
+        None if requested > 0 => Ok(Some(requested)),
         None => Err(LightningError::AmountRequired),
     }
 }
@@ -70,23 +62,17 @@ mod tests {
     }
 
     #[test]
-    fn test_requested_amount() {
-        assert_eq!(requested_amount(&decode_invoice(INVOICE_2000_SATS).unwrap(), 1), None);
-        assert_eq!(requested_amount(&decode_invoice(INVOICE_AMOUNTLESS).unwrap(), 500), Some(500));
-    }
-
-    #[test]
-    fn test_send_amount() {
+    fn test_amount_to_send() {
         let invoice = decode_invoice(INVOICE_2000_SATS).unwrap();
         let amountless = decode_invoice(INVOICE_AMOUNTLESS).unwrap();
         let now = invoice.expires_at - 1;
 
-        assert_eq!(send_amount(&invoice, 2000, now), Ok(2000));
-        assert_eq!(send_amount(&invoice, 1000, now), Err(LightningError::AmountMismatch { invoice: 2000, requested: 1000 }));
-        assert_eq!(send_amount(&invoice, 2000, invoice.expires_at), Err(LightningError::InvoiceExpired));
+        assert_eq!(amount_to_send(&invoice, 2000, now), Ok(None));
+        assert_eq!(amount_to_send(&invoice, 1000, now), Err(LightningError::AmountMismatch { invoice: 2000, requested: 1000 }));
+        assert_eq!(amount_to_send(&invoice, 2000, invoice.expires_at), Err(LightningError::InvoiceExpired));
 
         let now = amountless.expires_at - 1;
-        assert_eq!(send_amount(&amountless, 500, now), Ok(500));
-        assert_eq!(send_amount(&amountless, 0, now), Err(LightningError::AmountRequired));
+        assert_eq!(amount_to_send(&amountless, 500, now), Ok(Some(500)));
+        assert_eq!(amount_to_send(&amountless, 0, now), Err(LightningError::AmountRequired));
     }
 }

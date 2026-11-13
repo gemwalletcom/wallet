@@ -21,8 +21,6 @@ use crate::services::transactions::GemTransactionsService;
 use crate::services::wallet::GemKeystorePassword;
 use crate::services::wallet_session::GemWalletSessionService;
 
-const RECEIVED_PAYMENTS_LIMIT: u64 = 20;
-
 #[derive(uniffi::Object)]
 pub struct GemLightningService {
     keystore: Arc<GemKeystore>,
@@ -60,7 +58,8 @@ impl GemLightningService {
         }
         let (lightning, opened) = self.open_wallet(generation, wallet.id.clone(), &account.address).await?;
         if opened {
-            let _ = self.sync_wallet(wallet.id, lightning).await;
+            let _ = run(async move { lightning.sync().await }).await;
+            let _ = self.update_wallet(wallet.id).await;
         }
         Ok(())
     }
@@ -78,7 +77,7 @@ impl GemLightningService {
         let expires_at = decode_invoice(&invoice)?.expires_at;
         let received = run(async move {
             wallet.sync().await?;
-            Ok(wallet.payments(RECEIVED_PAYMENTS_LIMIT).await?.iter().any(|payment| payment.receives(&invoice)))
+            Ok(wallet.payments().await?.iter().any(|payment| payment.receives(&invoice)))
         })
         .await?;
         if received {
@@ -127,12 +126,6 @@ impl GemLightningService {
                 Ok(run(async move { LightningWallet::open(account, &storage_dir).await }).await?)
             })
             .await
-    }
-
-    async fn sync_wallet(&self, wallet_id: WalletId, wallet: Arc<LightningWallet>) -> Result<(), GemServiceError> {
-        let synced = run(async move { wallet.sync().await }).await;
-        self.update_wallet(wallet_id).await?;
-        Ok(synced?)
     }
 
     async fn update_wallet(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {

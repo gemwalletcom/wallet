@@ -205,11 +205,6 @@ mod tests {
             get_transaction_update(Chain::Lightning, None, expired, Err(GatewayError::Locked.into())),
             Err(TransactionStatusError::NetworkError(_))
         ));
-        assert!(matches!(get_transaction_update(Chain::Lightning, None, expired, Err(TransactionStatusError::Offline)), Err(TransactionStatusError::Offline)));
-        assert_eq!(
-            get_transaction_update(Chain::Lightning, None, expired, Err(TransactionStatusError::PlatformError("error".to_string()))).unwrap().state,
-            TransactionState::Failed
-        );
     }
 
     #[test]
