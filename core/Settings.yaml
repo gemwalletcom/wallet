@@ -472,6 +472,11 @@ indexer:
     key:
       secret: ""
 
+breez:
+  url: "https://nd1.breez.technology"
+  key:
+    secret: ""
+
 assets:
   url: "https://raw.githubusercontent.com/gemwalletcom/assets/refs/heads/main"
 

@@ -39,6 +39,7 @@ use crate::devices::DeviceStreamClient;
 use crate::devices::{DevicesClient, WalletConfigurationClient, WalletsClient};
 use crate::fiat::FiatClient;
 use crate::indexer::IndexerClient;
+use crate::lightning::LightningTokenClient;
 use crate::nft::NFTClient;
 use crate::notifications::NotificationsClient;
 use crate::prices::PortfolioClient;
@@ -406,6 +407,15 @@ impl Services {
 
     pub fn chainflip(&self, deposit_addresses: Arc<dyn SwapVaultAddressCacher>) -> ChainflipProxyClient {
         ChainflipProxyClient::new(self.settings.swap.chainflip.url.clone(), deposit_addresses)
+    }
+
+    pub fn lightning_token(&self, cacher: CacherClient) -> Result<LightningTokenClient, Box<dyn Error + Send + Sync>> {
+        let breez = &self.settings.breez;
+        Ok(LightningTokenClient::new(
+            ReqwestClient::new(breez.url.clone(), gem_client::builder().build()?),
+            breez.key.secret.clone(),
+            Arc::new(AccessTokenCacherClient::new(cacher, "breez")),
+        ))
     }
 }
 

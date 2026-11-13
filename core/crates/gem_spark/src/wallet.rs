@@ -18,6 +18,7 @@ use crate::invoice::amount_to_send;
 use crate::keys::AccountKey;
 use crate::mapper::map_transfer;
 use crate::model::{LightningInvoice, LightningPayment, LightningPaymentStatus, LightningSendQuote};
+use crate::partner::PartnerHeaders;
 use crate::signer::LockableSigner;
 use crate::store::{PendingSend, WalletDatabase};
 
@@ -109,7 +110,7 @@ impl Drop for SendPermit<'_> {
 }
 
 impl LightningWallet {
-    pub async fn open(account: AccountKey, storage_dir: &Path) -> Result<Self, LightningError> {
+    pub async fn open(account: AccountKey, storage_dir: &Path, partner: Arc<PartnerHeaders>) -> Result<Self, LightningError> {
         fs::create_dir_all(storage_dir).map_err(|error| LightningError::Storage(error.to_string()))?;
         let path = storage_dir.join(DATABASE_FILE);
         let tree_store = SqliteTreeStore::new(&path.to_string_lossy())?;
@@ -120,6 +121,8 @@ impl LightningWallet {
         let wallet = WalletBuilder::new(SparkWalletConfig::default_config(Network::Mainnet), Arc::new(SparkSignerAdapter::new(signer.clone())))
             .with_tree_store(Arc::new(tree_store))
             .with_cancellation_token(cancel_receiver)
+            .with_so_extra_header_provider(partner.clone())
+            .with_ssp_extra_header_provider(partner)
             .build()
             .await?;
         let wallet = Arc::new(wallet);
@@ -289,7 +292,7 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_lightning_wallet() {
         let dir = primitives::testkit::temp_dir::TempDir::new().unwrap();
-        let wallet = LightningWallet::open(account_key(&decode_hex(ABANDON_SEED_HEX).unwrap()).unwrap(), dir.path()).await.unwrap();
+        let wallet = LightningWallet::open(account_key(&decode_hex(ABANDON_SEED_HEX).unwrap()).unwrap(), dir.path(), Arc::default()).await.unwrap();
 
         assert_eq!(wallet.wallet.get_identity_public_key().to_string(), IDENTITY_PUBLIC_KEY);
         wallet.sync().await.unwrap();

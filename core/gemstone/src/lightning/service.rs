@@ -11,6 +11,7 @@ use super::model::{GemLightningReceive, GemLightningReceiveState};
 use super::runtime::run;
 use super::sessions;
 use crate::address_formatter::format_address;
+use crate::api::GemApiClient;
 use crate::keystore::{GemKeystore, decode_password, keystore_id_for_wallet};
 use crate::models::copy::{GemCopy, GemCopyKind};
 use crate::services::amount::model::{GemAmountField, GemAmountKeyboard, GemAmountSymbol, GemAmountSymbolPlacement, GemNumberFormat};
@@ -23,6 +24,7 @@ use crate::services::wallet_session::GemWalletSessionService;
 
 #[derive(uniffi::Object)]
 pub struct GemLightningService {
+    api: Arc<GemApiClient>,
     keystore: Arc<GemKeystore>,
     password: Arc<dyn GemKeystorePassword>,
     storage_dir: PathBuf,
@@ -34,8 +36,17 @@ pub struct GemLightningService {
 #[uniffi::export]
 impl GemLightningService {
     #[uniffi::constructor]
-    pub fn new(keystore: Arc<GemKeystore>, password: Arc<dyn GemKeystorePassword>, storage_dir: String, balances: Arc<GemBalanceService>, transactions: Arc<GemTransactionsService>, session: Arc<GemWalletSessionService>) -> Self {
+    pub fn new(
+        api: Arc<GemApiClient>,
+        keystore: Arc<GemKeystore>,
+        password: Arc<dyn GemKeystorePassword>,
+        storage_dir: String,
+        balances: Arc<GemBalanceService>,
+        transactions: Arc<GemTransactionsService>,
+        session: Arc<GemWalletSessionService>,
+    ) -> Self {
         Self {
+            api,
             keystore,
             password,
             storage_dir: PathBuf::from(storage_dir),
@@ -61,6 +72,7 @@ impl GemLightningService {
             let _ = run(async move { lightning.sync().await }).await;
             let _ = self.update_wallet(wallet.id).await;
         }
+        self.refresh_partner_token().await;
         Ok(())
     }
 
@@ -123,9 +135,21 @@ impl GemLightningService {
                 let password = decode_password(&self.password.get_password(false)?);
                 let account = self.keystore.lightning_account_key(&keystore_id_for_wallet(wallet_id.id()), password)?;
                 let storage_dir = self.wallet_storage_dir(&wallet_id);
-                Ok(run(async move { LightningWallet::open(account, &storage_dir).await }).await?)
+                let partner = sessions().partner();
+                let (_, wallet) = futures::join!(self.refresh_partner_token(), run(async move { LightningWallet::open(account, &storage_dir, partner).await }));
+                Ok(wallet?)
             })
             .await
+    }
+
+    async fn refresh_partner_token(&self) {
+        let partner = sessions().partner();
+        if !partner.needs_token() {
+            return;
+        }
+        if let Ok(token) = self.api.client.get_lightning_token().await {
+            partner.set(token);
+        }
     }
 
     async fn update_wallet(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {

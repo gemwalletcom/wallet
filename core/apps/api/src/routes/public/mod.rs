@@ -2,6 +2,7 @@ mod assets;
 mod config;
 mod fee;
 mod fiat;
+mod lightning;
 mod markets;
 mod nft;
 mod prices;
@@ -33,6 +34,7 @@ pub fn router() -> Router<AppState> {
         .route("/assets/search", get(assets::get_assets_search))
         .route("/search", get(assets::get_search))
         .route("/swap/assets", get(swap::get_swap_assets))
+        .route("/lightning/token", get(lightning::get_lightning_token))
         .route("/swaps/providers/near_intents/quote", post(swap::post_near_intents_quote))
         .route("/swaps/providers/swaps_xyz/action", post(swap::post_swaps_xyz_action))
         .route("/swaps/providers/relay/quote", post(swap::post_relay_quote))

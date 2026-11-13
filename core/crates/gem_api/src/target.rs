@@ -12,6 +12,7 @@ pub enum GemApiTarget {
     GetSearch { query: String, chains: Vec<Chain>, tags: Vec<String> },
     GetFiatAssets { quote_type: FiatQuoteType },
     GetSwapAssets,
+    GetLightningToken,
 }
 
 impl Target for GemApiTarget {
@@ -29,6 +30,7 @@ impl Target for GemApiTarget {
             Self::GetSearch { query, chains, tags } => build_path_with_query("/v1/search", &[("query", query.as_str()), ("chains", &join_chains(chains)), ("tags", &tags.join(","))]),
             Self::GetFiatAssets { quote_type } => format!("/v1/fiat/assets/{}", quote_type.as_ref()),
             Self::GetSwapAssets => "/v1/swap/assets".to_string(),
+            Self::GetLightningToken => "/v1/lightning/token".to_string(),
         }
     }
 }

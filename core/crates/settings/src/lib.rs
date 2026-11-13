@@ -34,6 +34,7 @@ pub struct Settings {
     pub pusher: Pusher,
     pub security: Security,
     pub support: Support,
+    pub breez: ProviderSettings,
     pub nft: NFT,
     pub indexer: Indexer,
     pub assets: Assets,

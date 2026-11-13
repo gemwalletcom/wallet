@@ -28,6 +28,7 @@ num-bigint = { workspace = true }
 number_formatter = { path = "../number_formatter" }
 prices = { path = "../prices" }
 primitives = { path = "../primitives" }
+jsonwebtoken = { workspace = true }
 push_notification = { path = "../push_notification" }
 reqwest = { workspace = true }
 pusher = { path = "../pusher" }

@@ -6842,6 +6842,7 @@ dependencies = [
  "gem_tracing",
  "in_app_notifications",
  "job_runner",
+ "jsonwebtoken",
  "lists",
  "localizer",
  "nft",

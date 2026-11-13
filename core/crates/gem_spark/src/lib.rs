@@ -6,6 +6,8 @@ mod keys;
 #[cfg(feature = "wallet")]
 mod mapper;
 mod model;
+#[cfg(feature = "wallet")]
+mod partner;
 #[cfg(feature = "rpc")]
 pub mod provider;
 #[cfg(feature = "wallet")]
@@ -23,5 +25,7 @@ pub use invoice::{LIGHTNING_SCHEME, decode_invoice};
 #[cfg(feature = "wallet")]
 pub use keys::{AccountKey, account_key};
 pub use model::{LightningInvoice, LightningPayment, LightningPaymentDirection, LightningPaymentStatus, LightningSendQuote};
+#[cfg(feature = "wallet")]
+pub use partner::PartnerHeaders;
 #[cfg(feature = "wallet")]
 pub use wallet::LightningWallet;

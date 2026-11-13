@@ -15,7 +15,7 @@ use primitives::WalletSource;
 use primitives::testkit::temp_dir::TempDir;
 
 use super::{GemWalletImportType, GemWalletService, keystore_id_for_wallet};
-use crate::api::GemDeviceApiClient;
+use crate::api::{GemApiClient, GemDeviceApiClient};
 use crate::keystore::GemKeystore;
 use crate::keystore::decode_password;
 use crate::lightning::GemLightningService;
@@ -178,6 +178,7 @@ impl WalletTestkit {
         ));
         let discovery = DiscoveryTestkit::with_response(TestAlienProvider::new(crate::alien::AlienResponse::new(None, Vec::new())));
         let lightning = Arc::new(GemLightningService::new(
+            Arc::new(GemApiClient::new(Arc::new(TestAlienProvider::new(crate::alien::AlienResponse::new(None, Vec::new()))))),
             keystore.clone(),
             passwords.clone(),
             directory.path().join(LIGHTNING_DIRECTORY).to_string_lossy().to_string(),

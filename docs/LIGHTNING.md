@@ -60,6 +60,10 @@ It needs a server-side Spark wallet that requests invoices, a table of names to 
 
 Spark is not plain Lightning and must not be presented as plain Bitcoin. Three permissioned operators (Lightspark, Breez, Flashnet) co-sign with 2-of-3 threshold signatures, and security after a transfer relies on operators deleting old key shares, which cannot be proven. Spark still calls itself beta mainnet and has no published audit. Users can exit to Bitcoin on their own, but exits take days, need an external UTXO for fees, and do not pay off for small balances. Lightning send and receive go through Lightspark's gateway (the SSP): 0.25% to send, free to receive.
 
+## Partner attribution
+
+Breez attributes Spark traffic to Gem through an `x-partner-jwt` header on every operator and gateway request. The Breez API key stays on the backend (`breez.key.secret`, `BREEZ_KEY_SECRET` on the API server): `GET /v1/devices/lightning/token` returns Breez's partner token as `{"token", "expiresAt"}`, cached in Redis for half its remaining life (tokens last 7 days). The token names Gem, not the user, so the app keeps one in memory for every wallet. It asks for a new one beside each session open, so a slow or failing backend never delays Lightning, and on each foreground `open_enabled`, whenever the one it holds has less than a day left; it stops sending a token in that last day. Without a token requests go out without the header, which Spark does not require.
+
 ## Keys
 
 The mnemonic never crosses UniFFI. The wallet opens only through `GemKeystore.lightning_account_key(keystore_id, password)`, which decrypts the v4 keystore file in Rust, rejects private-key wallets, derives the Spark account key, and drops the phrase and seed straight away ([Keystore v4](KEYSTORE_V4.md)).

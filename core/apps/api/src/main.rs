@@ -81,6 +81,7 @@ async fn api_clients(settings: &Settings) -> Result<Clients, Box<dyn Error + Sen
         markets: Arc::new(services.markets(cacher_client.clone())),
         webhooks: Arc::new(services.webhooks(stream_producer.clone())),
         indexer: Arc::new(services.indexer(cacher_client.clone(), stream_producer.clone())),
+        lightning: Arc::new(services.lightning_token(cacher_client.clone())?),
         rewards: Arc::new(services.rewards(cacher_client.clone(), stream_producer.clone(), ip_security)),
         rewards_redemption: Arc::new(services.rewards_redemption(stream_producer.clone())),
         wallets: Arc::new(services.wallets(stream_producer, cacher_client)),
