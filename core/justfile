@@ -82,8 +82,7 @@ fuzz SECONDS="600":
     fuzz/run.sh {{SECONDS}}
 
 unused:
-    cargo install cargo-machete
-    cargo machete
+    cargo check --locked --workspace --all-targets --all-features
 
 bloat:
     cargo install cargo-bloat --no-default-features

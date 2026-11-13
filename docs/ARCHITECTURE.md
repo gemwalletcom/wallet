@@ -1919,9 +1919,9 @@ They stay separate. Hand-written code in `Gemstone` would compile in its Swift 5
 
 The active channel is resolved once per Gradle invocation by `selectChannel()`: `-Pchannel=<name>` first, then inference from an `assemble<Channel>`/`bundle<Channel>` task name, then `google`. `fdroid` is the only channel that drops Firebase and Google services and turns WalletConnect off, and it is always built alone with `-Pchannel=fdroid` (`android/reproducible/fdroid/build.sh`). Add or change a channel by editing the matrix only. Do not reintroduce `System.getenv` feature reads or hand-written product flavors: a second selector has to be hand-synced with the matrix, and an F-Droid build that misses its flag silently links Firebase, which the F-Droid scanner rejects, and turns WalletConnect on.
 
-### Rust build cache: kache locally, sccache in CI
+### Rust build cache: mbx locally, sccache in CI
 
-Developer machines use kache as the `rustc` wrapper (see `core/skills/setup.md`); CI keeps sccache with the GitHub Actions cache backend (`RUSTC_WRAPPER: sccache` in the workflows, `mozilla-actions/sccache-action` in `.github/actions/setup-rust-ci`). kache dedups content-addressed artifacts across worktrees and clean rebuilds better than sccache does, but CI's cache is independent of any developer machine and kache has no shared remote configured for this repository. The split is deliberate so CI caching cannot regress; switching CI needs a remote store (S3 bucket plus secrets) first. Do not change one side while touching the other.
+Developer machines use mbx through its Cargo shim (see [Core setup](../core/skills/setup.md)); CI keeps sccache with the GitHub Actions cache backend (`RUSTC_WRAPPER: sccache` in the workflows, `mozilla-actions/sccache-action` in `.github/actions/setup-rust-ci`). mbx shares compiled artifacts across worktrees and manages target storage and pruning. CI's cache is independent of developer machines; changing local cache setup does not authorize changing CI caching.
 
 ### Core source lives in this repository
 
