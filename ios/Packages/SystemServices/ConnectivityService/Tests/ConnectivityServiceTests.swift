@@ -9,7 +9,7 @@ struct ConnectivityServiceTests {
     func stateDerivation() {
         #expect(ConnectivityState.unknown.isOffline == false)
         #expect(ConnectivityState.satisfied.isOffline == false)
-        #expect(ConnectivityState.unsatisfied(.noNetwork).isOffline == true)
+        #expect(ConnectivityState.unsatisfied.isOffline == true)
     }
 
     @Test

@@ -1,6 +1,5 @@
 // Adopted from https://github.com/elai950/AlertToast
 
-import Combine
 import Style
 import SwiftUI
 
@@ -10,21 +9,15 @@ public struct AlertToast: View {
     public let systemImage: String
     public let imageColor: Color
     public let title: String
-    public let titleColor: Color?
-    public let titleFont: Font?
 
     public init(
         systemImage: String,
         imageColor: Color,
         title: String,
-        titleColor: Color? = nil,
-        titleFont: Font? = nil,
     ) {
         self.systemImage = systemImage
         self.imageColor = imageColor
         self.title = title
-        self.titleColor = titleColor
-        self.titleFont = titleFont
     }
 
     public var body: some View {
@@ -36,10 +29,7 @@ public struct AlertToast: View {
                     .foregroundStyle(imageColor)
 
                 Text(LocalizedStringKey(title))
-                    .font(titleFont ?? Font.headline.bold())
-                    .ifLet(titleColor) { view, color in
-                        view.foregroundStyle(color)
-                    }
+                    .font(.headline.bold())
             }
             .multilineTextAlignment(.leading)
             .padding(.horizontal, .medium)
@@ -71,24 +61,17 @@ struct AlertToastModifier: ViewModifier {
 
     var alert: () -> AlertToast
 
-    var onTap: (() -> Void)?
-    var completion: (() -> Void)?
-
     @ViewBuilder
     private func main() -> some View {
         if isPresenting {
             alert()
                 .offset(y: offsetY)
                 .onTapGesture {
-                    onTap?()
                     if tapToDismiss {
                         withAnimation(.spring()) {
                             isPresenting = false
                         }
                     }
-                }
-                .onDisappear {
-                    completion?()
                 }
                 .transition(.move(edge: .bottom).combined(with: .opacity))
         }
@@ -120,8 +103,6 @@ public extension View {
         tapToDismiss: Bool = true,
         offsetY: CGFloat = 0,
         alert: @escaping () -> AlertToast,
-        onTap: (() -> Void)? = nil,
-        completion: (() -> Void)? = nil,
     ) -> some View {
         modifier(AlertToastModifier(
             isPresenting: isPresenting,
@@ -129,8 +110,6 @@ public extension View {
             tapToDismiss: tapToDismiss,
             offsetY: offsetY,
             alert: alert,
-            onTap: onTap,
-            completion: completion,
         ))
     }
 }
