@@ -10,7 +10,7 @@ import SwiftUI
 
 @Observable
 @MainActor
-final class QRScannerSceneViewModel {
+public final class QRScannerSceneViewModel {
     var scannerState: QRScannerState = .scanning
     var selectedPhoto: PhotosPickerItem?
     var isPresentingToastMessage: ToastMessage?
@@ -18,8 +18,11 @@ final class QRScannerSceneViewModel {
 
     let scanType: QRScanType
 
-    init(scanType: QRScanType) {
+    private let action: (String) -> Void
+
+    public init(scanType: QRScanType, action: @escaping (String) -> Void) {
         self.scanType = scanType
+        self.action = action
     }
 
     var selectFromPhotos: String {
@@ -66,7 +69,28 @@ extension QRScannerSceneViewModel {
         }
     }
 
-    func retrieveQRCode(photoItem: PhotosPickerItem) async -> String? {
+    func onScan(_ code: String) {
+        action(code)
+    }
+
+    func scanSelectedPhoto() async -> Bool {
+        guard let selectedPhoto else { return false }
+        let code = await retrieveQRCode(photoItem: selectedPhoto)
+        guard !Task.isCancelled else { return false }
+        self.selectedPhoto = nil
+        guard let code else {
+            showDecodingError()
+            return false
+        }
+        onScan(code)
+        return true
+    }
+}
+
+// MARK: - Private
+
+extension QRScannerSceneViewModel {
+    private func retrieveQRCode(photoItem: PhotosPickerItem) async -> String? {
         guard let data = try? await photoItem.loadTransferable(type: Data.self),
               let image = UIImage(data: data, scale: 1.0)
         else {
@@ -75,15 +99,11 @@ extension QRScannerSceneViewModel {
         return QRImageDecoder.decode(image)
     }
 
-    func showDecodingError() {
+    private func showDecodingError() {
         UINotificationFeedbackGenerator().notificationOccurred(.error)
         isPresentingToastMessage = ToastMessage(title: Localized.Errors.decodingQr, image: SystemImage.xmarkCircle)
     }
-}
 
-// MARK: - Private
-
-extension QRScannerSceneViewModel {
     private func refreshScannerState() {
         #if targetEnvironment(macCatalyst)
             scannerState = .failure(error: .notSupported)

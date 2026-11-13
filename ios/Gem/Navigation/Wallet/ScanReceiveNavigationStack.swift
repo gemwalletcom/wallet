@@ -19,7 +19,7 @@ struct ScanReceiveNavigationStack: View {
             Group {
                 switch model.mode {
                 case .scan:
-                    QRScannerScene(scanType: .universal, action: { model.onScan?($0) })
+                    QRScannerScene(model: QRScannerSceneViewModel(scanType: .universal, action: { model.onScan?($0) }))
                 case .receive:
                     SelectAssetScene(model: model.selectAssetModel)
                 }
