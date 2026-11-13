@@ -310,7 +310,7 @@ mod tests {
         let btc = PerpetualPosition::mock_with_coin("BTC");
         let nvda = PerpetualPosition::mock_with_coin("xyz:NVDA");
 
-        let diff = diff_clearinghouse_positions(PerpDex::Main, vec![], vec![btc.clone(), nvda.clone()]);
+        let diff = diff_clearinghouse_positions(PerpDex::Main, vec![], vec![btc.clone(), nvda]);
 
         assert_eq!(diff.delete_position_ids, vec![btc.id], "a main dex snapshot leaves the xyz positions alone");
         assert!(diff.positions.is_empty());

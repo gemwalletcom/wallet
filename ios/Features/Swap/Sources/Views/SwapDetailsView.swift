@@ -23,7 +23,6 @@ public struct SwapDetailsView: View {
     private let onSelectProvider: ((SwapProvider) -> Void)?
 
     @State private var isPresentingProviderSelection = false
-    @State private var isRateInverse = false
     @State private var infoSheet: GemInfoSheet?
 
     public init(
@@ -117,13 +116,6 @@ public struct SwapDetailsView: View {
             }
 
             Section {
-                if let rateText = details.rateText(isInverse: isRateInverse) {
-                    ListItemRotateView(
-                        title: Localized.Buy.rate,
-                        subtitle: rateText,
-                        action: { isRateInverse.toggle() },
-                    )
-                }
                 ForEach(Array(details.rows.enumerated()), id: \.offset) { _, row in
                     GemListRowView(row: row, onInfo: { infoSheet = $0.infoSheet })
                 }

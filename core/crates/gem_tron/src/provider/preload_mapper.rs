@@ -91,7 +91,7 @@ fn calculate_token_transfer_fee_for_bandwidth(account_usage: &TronAccountUsage, 
 }
 
 fn bandwidth_fee(account_usage: &TronAccountUsage, required: u64, price: u64) -> u64 {
-    if account_usage.available_bandwidth() >= required { 0 } else { required * price }
+    if account_usage.covers_bandwidth(required) { 0 } else { required * price }
 }
 
 fn with_buffer(value: u64, percent: u64) -> u64 {
@@ -164,9 +164,12 @@ pub fn map_stake_data(account: &TronAccount, stake_type: &StakeType, raw_amount:
 }
 
 impl TronAccountUsage {
-    pub fn available_bandwidth(&self) -> u64 {
-        let free = self.free_net_limit.saturating_sub(self.free_net_used);
-        free.saturating_add(self.available_staked_bandwidth())
+    pub fn covers_bandwidth(&self, required: u64) -> bool {
+        self.available_staked_bandwidth() >= required || self.available_free_bandwidth() >= required
+    }
+
+    pub fn available_free_bandwidth(&self) -> u64 {
+        self.free_net_limit.saturating_sub(self.free_net_used)
     }
 
     pub fn available_staked_bandwidth(&self) -> u64 {
@@ -261,8 +264,10 @@ mod tests {
             energy_limit: 0,
         };
 
-        assert_eq!(usage.available_bandwidth(), 1200);
+        assert_eq!(usage.available_free_bandwidth(), 900);
         assert_eq!(usage.available_staked_bandwidth(), 300);
+        assert!(usage.covers_bandwidth(900));
+        assert!(!usage.covers_bandwidth(901));
     }
 
     #[test]
@@ -394,7 +399,8 @@ mod tests {
     #[test]
     fn test_bandwidth_fee() {
         assert_eq!(bandwidth_fee(&TronAccountUsage::mock(DEFAULT_BANDWIDTH_BYTES, 0, 0), DEFAULT_BANDWIDTH_BYTES, 1000), 0);
-        assert_eq!(bandwidth_fee(&TronAccountUsage::mock(100, 200, 0), DEFAULT_BANDWIDTH_BYTES, 1000), 0);
+        assert_eq!(bandwidth_fee(&TronAccountUsage::mock(0, DEFAULT_BANDWIDTH_BYTES, 0), DEFAULT_BANDWIDTH_BYTES, 1000), 0);
+        assert_eq!(bandwidth_fee(&TronAccountUsage::mock(100, 200, 0), DEFAULT_BANDWIDTH_BYTES, 1000), DEFAULT_BANDWIDTH_BYTES * 1000);
         assert_eq!(bandwidth_fee(&TronAccountUsage::mock(0, 0, 0), DEFAULT_BANDWIDTH_BYTES, 1000), DEFAULT_BANDWIDTH_BYTES * 1000);
         assert_eq!(bandwidth_fee(&TronAccountUsage::mock(76, 0, 0), DEFAULT_BANDWIDTH_BYTES, 1000), DEFAULT_BANDWIDTH_BYTES * 1000);
     }

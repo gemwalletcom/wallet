@@ -17,7 +17,6 @@ use crate::percentage::GemPercentageStyle;
 use crate::services::localization::GemLocalizedText;
 use num_bigint::BigInt;
 use number_formatter::ValueStyle;
-use primitives::swap::SwapPriceImpact;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAssetRate {
@@ -44,7 +43,6 @@ pub struct GemSwapQuoteSummary {
     pub to_asset: Asset,
     pub min_receive_value: GemBigUint,
     pub rate: Option<GemSwapRate>,
-    pub price_impact: Option<SwapPriceImpact>,
     pub price_impact_row: Option<GemSwapPriceImpactRow>,
 }
 
@@ -58,23 +56,22 @@ pub struct GemSwapPriceImpactRow {
 impl GemSwapQuoteSummary {
     pub fn detail_rows(&self) -> Vec<GemListRow> {
         let receive_asset = &self.to_asset;
-        let price_impact = self.price_impact.filter(|impact| impact.shows_in_summary);
         [
+            self.rate.clone().map(|rate| GemListRow::Rate {
+                title: GemListRowTitle::Rate,
+                rate: rate.direct,
+                inverse: Some(rate.inverse),
+            }),
             self.quote.eta_in_seconds.and_then(|seconds| estimated_duration_parts(seconds as i64)).map(|parts| GemListRow::Duration {
                 title: GemListRowTitle::EstimatedTime,
                 parts,
                 info: None,
                 estimate: false,
             }),
-            price_impact.map(|impact| GemListRow::Label {
+            self.price_impact_row.as_ref().filter(|row| row.shows_in_summary).map(|row| GemListRow::Label {
                 title: GemListRowTitle::PriceImpact,
-                text: GemLocalizedText::Number {
-                    number: GemFormattedNumber::percentage(impact.percentage, GemPercentageStyle::Signed),
-                },
-                tone: match impact.is_high {
-                    true => GemValueTone::Negative,
-                    false => GemValueTone::Plain,
-                },
+                text: GemLocalizedText::Number { number: row.value.clone() },
+                tone: row.value.tone,
                 info: Some(GemInfoTopic::PriceImpact),
                 progress: false,
             }),
@@ -127,12 +124,10 @@ pub fn quote_details(quote: SwapQuote, from_asset: Asset, to_asset: Asset, from_
 pub fn swap_quote_summary(quote: SwapQuote, from_asset: Asset, to_asset: Asset, from_price: Option<f64>, to_price: Option<f64>) -> GemSwapQuoteSummary {
     let pay = GemSwapValue::new(quote.from_value.clone(), from_asset.decimals, from_price);
     let receive = GemSwapValue::new(quote.to_value.clone(), to_asset.decimals, to_price);
-    let price_impact = pay.price_impact(&receive);
     GemSwapQuoteSummary {
         min_receive_value: subtract_bps(&quote.to_value, quote.slippage_bps),
         rate: rules::swap_rate(&from_asset, &quote.from_value, &to_asset, &quote.to_value),
-        price_impact_row: price_impact.map(|impact| rules::price_impact_row(impact, from_asset.symbol.clone())),
-        price_impact,
+        price_impact_row: pay.price_impact(&receive).map(|impact| rules::price_impact_row(impact, from_asset.symbol.clone())),
         to_asset,
         quote,
     }
@@ -244,30 +239,34 @@ mod tests {
     }
 
     #[test]
-    fn test_an_impact_the_screen_hides_leaves_no_row() {
+    fn test_the_details_sheet_colors_the_price_impact_as_the_details_row_does() {
+        use crate::formatted_number::GemValueTone;
         use crate::models::list::{GemListRow, GemListRowTitle};
-        use primitives::swap::{SwapPriceImpact, SwapPriceImpactType};
 
-        let quote = SwapQuote::mock_with_provider(SwapProvider::UniswapV3);
-        let summary = swap_quote_summary(quote, Asset::from_chain(Chain::Ethereum), Asset::from_chain(Chain::Solana), None, None);
-        let impact = |shows_in_summary| SwapPriceImpact {
-            percentage: -5.0,
-            impact_type: SwapPriceImpactType::High,
-            is_high: true,
-            shows_in_summary,
+        let summary = |to_value: u64| {
+            let quote = SwapQuote {
+                from_value: 10u64.pow(18).into(),
+                to_value: to_value.into(),
+                ..SwapQuote::mock_with_provider(SwapProvider::UniswapV3)
+            };
+            swap_quote_summary(quote, Asset::from_chain(Chain::Ethereum), Asset::from_chain(Chain::Solana), Some(100.0), Some(1.0))
         };
-        let has_impact_row = |impact| {
-            GemSwapQuoteSummary {
-                price_impact: Some(impact),
-                ..summary.clone()
-            }
-            .detail_rows()
-            .iter()
-            .any(|row| matches!(row, GemListRow::Label { title: GemListRowTitle::PriceImpact, .. }))
+        let sheet_tone = |summary: &GemSwapQuoteSummary| {
+            summary.detail_rows().into_iter().find_map(|row| match row {
+                GemListRow::Label {
+                    title: GemListRowTitle::PriceImpact,
+                    tone,
+                    ..
+                } => Some(tone),
+                _ => None,
+            })
         };
+        let high = summary(90_510_000_000);
 
-        assert!(has_impact_row(impact(true)));
-        assert!(!has_impact_row(impact(false)), "the screen decides whether an impact is worth a row, once");
+        assert_eq!(high.price_impact_row.as_ref().map(|row| row.value.tone), Some(GemValueTone::Negative));
+        assert_eq!(sheet_tone(&high), Some(GemValueTone::Negative), "a 9.49% loss is red in the sheet as in Details, though it stays under the 10% warning");
+        assert_eq!(sheet_tone(&summary(97_000_000_000)), Some(GemValueTone::Warning));
+        assert_eq!(sheet_tone(&summary(99_500_000_000)), None, "a loss under 1% leaves no row");
     }
 
     #[test]
@@ -280,10 +279,31 @@ mod tests {
         let eth = Asset::from_chain(Chain::Ethereum);
         let sol = Asset::from_chain(Chain::Solana);
 
-        let priced = swap_quote_summary(quote.clone(), eth.clone(), sol.clone(), Some(100.0), Some(1.0));
-        assert!(priced.price_impact.is_some());
-        assert!(priced.price_impact_row.is_some());
-        assert!(swap_quote_summary(quote, eth, sol, None, Some(1.0)).price_impact.is_none(), "an unpriced side has no impact");
+        assert!(swap_quote_summary(quote.clone(), eth.clone(), sol.clone(), Some(100.0), Some(1.0)).price_impact_row.is_some());
+        assert!(swap_quote_summary(quote, eth, sol, None, Some(1.0)).price_impact_row.is_none(), "an unpriced side has no impact");
+    }
+
+    #[test]
+    fn test_the_details_sheet_opens_with_the_rate_both_ways() {
+        use crate::models::list::{GemListRow, GemListRowTitle};
+
+        let summary = swap_quote_summary(
+            SwapQuote::mock_with_provider(SwapProvider::UniswapV3),
+            Asset::from_chain(Chain::Ethereum),
+            Asset::from_chain(Chain::Solana),
+            None,
+            None,
+        );
+        let rate = summary.rate.clone().unwrap();
+
+        assert_eq!(
+            summary.detail_rows().first(),
+            Some(&GemListRow::Rate {
+                title: GemListRowTitle::Rate,
+                rate: rate.direct,
+                inverse: Some(rate.inverse),
+            })
+        );
     }
 
     #[test]

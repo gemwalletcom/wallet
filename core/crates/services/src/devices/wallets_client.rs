@@ -2,11 +2,13 @@ use std::collections::{BTreeMap, BTreeSet, HashSet};
 use std::error::Error;
 use std::sync::Arc;
 
-use primitives::{AddressChains, Chain, WalletId, WalletSource, WalletSubscription, WalletSubscriptionChains};
+use config_keys::ConfigKey;
+use primitives::{AddressChains, Chain, RequestError, WalletId, WalletSource, WalletSubscription, WalletSubscriptionChains};
 use streamer::{ChainAddressPayload, StreamProducerQueue};
 
 use super::admin_device::AdminWalletOverview;
 use super::repository::Repository;
+use crate::ConfigCacher;
 use crate::subscriptions::SubscriptionLookup;
 
 #[derive(Clone)]
@@ -14,14 +16,16 @@ pub struct WalletsClient {
     repository: Arc<dyn Repository>,
     stream_producer: Arc<dyn StreamProducerQueue>,
     subscription_lookup: Arc<SubscriptionLookup>,
+    config: Arc<ConfigCacher>,
 }
 
 impl WalletsClient {
-    pub(crate) fn new(repository: Arc<dyn Repository>, stream_producer: Arc<dyn StreamProducerQueue>, subscription_lookup: Arc<SubscriptionLookup>) -> Self {
+    pub(crate) fn new(repository: Arc<dyn Repository>, stream_producer: Arc<dyn StreamProducerQueue>, subscription_lookup: Arc<SubscriptionLookup>, config: Arc<ConfigCacher>) -> Self {
         Self {
             repository,
             stream_producer,
             subscription_lookup,
+            config,
         }
     }
 
@@ -77,6 +81,10 @@ impl WalletsClient {
     pub async fn add_subscriptions(&self, device_row_id: i32, wallet_subscriptions: Vec<WalletSubscription>) -> Result<usize, Box<dyn Error + Send + Sync>> {
         if wallet_subscriptions.is_empty() {
             return Ok(0);
+        }
+        let count: usize = wallet_subscriptions.iter().map(|x| x.chain_addresses().len()).sum();
+        if count > self.config.get_usize(ConfigKey::DeviceSubscriptionsLimit).await? {
+            return Err(RequestError::LimitReached.into());
         }
 
         let payload: Vec<ChainAddressPayload> = wallet_subscriptions

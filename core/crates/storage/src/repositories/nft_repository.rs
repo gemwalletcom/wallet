@@ -365,7 +365,7 @@ mod database_integration_tests {
         assert_eq!(assets[0].id, asset("1").id);
         assert_eq!(assets[0].collection_id, collection().id);
         let mut owned_ids = owned_ids;
-        owned_ids.sort_by_key(|id| id.to_string());
+        owned_ids.sort_by_key(ToString::to_string);
         assert_eq!(owned_ids, vec![asset("1").id, asset("2").id]);
         assert_eq!(count, 2);
     }

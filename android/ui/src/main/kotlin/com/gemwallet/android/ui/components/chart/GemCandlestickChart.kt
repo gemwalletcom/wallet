@@ -103,7 +103,7 @@ private object CandlestickMetrics {
 }
 
 @Composable
-fun GemCandlestickChart(chart: GemCandleChart, onZoom: (Float, Float) -> Unit, onPan: (Float) -> Unit, selectedIndex: Int? = null, onSelectionChanged: (Int?) -> Unit = {}, modifier: Modifier = Modifier) {
+fun GemCandlestickChart(chart: GemCandleChart, onZoom: (Float, Float) -> Unit, onPan: (Float) -> Unit, modifier: Modifier = Modifier, selectedIndex: Int? = null, onSelectionChanged: (Int?) -> Unit = {}) {
     if (chart.candles.isEmpty()) return
 
     val layout = chart.layout

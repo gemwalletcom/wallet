@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use config_keys::ConfigKey;
 use number_formatter::BigNumberFormatter;
-use primitives::{ChartPeriod, ChartValue, ChartValuePercentage, PortfolioAllocation, PortfolioAsset, PortfolioAssets};
+use primitives::{ChartPeriod, ChartValue, ChartValuePercentage, PortfolioAllocation, PortfolioAsset, PortfolioAssets, RequestError};
 
 use super::repository::{PortfolioPrice, Repository};
 
@@ -29,6 +29,9 @@ impl PortfolioClient {
     }
 
     pub async fn get_portfolio_charts(&self, assets: Vec<PortfolioAsset>, period: ChartPeriod) -> Result<PortfolioAssets, Box<dyn Error + Send + Sync>> {
+        if assets.len() > self.config.get_usize(ConfigKey::PricePortfolioAssetsLimit).await? {
+            return Err(RequestError::LimitReached.into());
+        }
         let primary_price_max_age = self.config.get_duration(ConfigKey::PricePrimaryMaxAge).await?;
         let asset_ids = assets.iter().map(|asset| asset.asset_id.clone()).collect();
         let prices = self.repository.get_portfolio_prices(asset_ids, period, primary_price_max_age).await?;

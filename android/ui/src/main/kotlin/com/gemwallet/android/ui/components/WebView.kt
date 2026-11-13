@@ -19,7 +19,7 @@ interface WebViewBridge {
 
 @SuppressLint("SetJavaScriptEnabled", "JavascriptInterface")
 @Composable
-fun WebView(url: String, bridge: WebViewBridge? = null, modifier: Modifier = Modifier) {
+fun WebView(url: String, modifier: Modifier = Modifier, bridge: WebViewBridge? = null) {
     key(url) {
         AndroidView(
             modifier = modifier,

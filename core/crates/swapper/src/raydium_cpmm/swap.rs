@@ -85,7 +85,7 @@ mod tests {
         assert_eq!(instruction.program_id, raydium_cpmm_program());
         assert_eq!(
             instruction.data,
-            [hex::decode("8fbe5adac41e33de").unwrap().to_vec(), 1_000_000_000u64.to_le_bytes().to_vec(), 340_000_000u64.to_le_bytes().to_vec()].concat()
+            [hex::decode("8fbe5adac41e33de").unwrap(), 1_000_000_000u64.to_le_bytes().to_vec(), 340_000_000u64.to_le_bytes().to_vec()].concat()
         );
         assert_eq!(
             accounts,

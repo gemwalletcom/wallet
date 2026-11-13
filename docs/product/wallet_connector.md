@@ -24,7 +24,7 @@ flowchart LR
 
 | When | Expected | Why |
 |---|---|---|
-| The dapp fails verification | the proposal shows it before the user connects | |
+| The dapp fails verification | the proposal or one-click sign-in shows it before the user connects | |
 | A dapp on the same phone opened Gem to connect, sign in or answer a request | once the user approves or rejects, Gem goes back to the dapp: to the app or page the dapp names, otherwise to the app that opened Gem | the user started in the dapp and finishes there; a code scanned from another device stays in Gem |
 | A dapp on the same phone opened Gem with several requests waiting | Gem goes back once the last of them is answered | going back after the first would leave the others unanswered |
 | A request Gem fails to answer, such as a signature that failed | Gem stays open and shows why | the user needs to read the failure |
@@ -50,7 +50,7 @@ flowchart LR
 | A transaction names a sender other than the session's account, on an EVM network, Tron or Sui | it is refused before anything is signed | the review reads as a send from the session's account |
 | A transaction on an EVM network names its own gas limit | the fee shown, the balance check and the signature all use the dapp's gas limit; with no limit, or an empty or zero one, they use Gem's estimate | the user approves the fee that is signed, as in other wallets |
 | An approved transaction fails to send | the dapp is never told it was sent | a failed send must not reach the dapp as a transaction hash |
-| A dapp asks to sign in with one click | one review shows the app, the wallet to sign in with, the network and the Sign-In message; Confirm signs it and connects that wallet | the dapp connects and signs in with one approval instead of two |
+| A dapp asks to sign in with one click | one review shows the app, its verification level, the wallet to sign in with, the network and the Sign-In message; Confirm signs it and connects that wallet | the dapp connects and signs in with one approval instead of two |
 | A one-click sign-in names a different site than the app asking | it is refused and the app is told so | the signature would log the user in to that other site |
 | A one-click sign-in is approved while another dapp connects with another wallet | each connection is listed under, and signs with, the wallet it was approved with | a sign-in keeps only the connections of the wallet that signed in |
 | A transaction approves a token: an approval, an allowance increase or a Permit2 approval | the review shows a token approval with the token, spender and amount; a flagged spender or token stops Confirm | the spender is who can move the token afterwards |

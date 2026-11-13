@@ -19,6 +19,7 @@ flowchart LR
 |---|---|---|
 | The user opens Add an asset | any asset can be picked; pinned assets come first, then the wallet's visible assets by value, then the rest by rank, as in the wallet | the list is capped, so ordering by rank alone can leave out an asset the user holds |
 | The user sets a target | the direction (over or under, increase or decrease) follows the value against the current price | |
+| The automatic alert shows the day's change | in the same color as on the asset screen, even when the alert has a target the other way | the same number never reads as a rise in one place and a fall in the other |
 | A target is hit | the alert fires once and is then removed from the list | |
 | The price crosses a round number | the push names the round number and the current price in the user's currency | the milestone is counted in that currency, so both numbers read in one currency |
 | The price sets a new all-time high | the automatic alert pushes the new high, at most once per day; a price still above the old high but below the new one sends nothing | the server raises the stored high to each new price as it saves it, so a price at that high is the new high |

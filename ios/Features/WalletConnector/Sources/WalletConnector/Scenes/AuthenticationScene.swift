@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import Localization
 import Primitives
 import PrimitivesComponents
 import Style
@@ -29,6 +30,12 @@ public struct AuthenticationScene: View {
                 if let networkRow = model.networkRow {
                     GemListRowView(row: networkRow)
                 }
+                ListItemImageView(
+                    title: Localized.Transaction.status,
+                    subtitle: model.statusText,
+                    subtitleStyle: model.statusTextStyle,
+                    assetImage: model.statusAssetImage,
+                )
             }
 
             if let messageText = model.messageText {

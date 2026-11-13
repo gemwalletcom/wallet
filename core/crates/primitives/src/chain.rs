@@ -179,7 +179,7 @@ impl Chain {
     }
 
     pub fn deprecated() -> Vec<Self> {
-        vec![Self::Sei, Self::Blast, Self::Abstract]
+        vec![Self::Sei, Self::Blast]
     }
 
     pub fn stakeable() -> Vec<Self> {

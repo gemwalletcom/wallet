@@ -215,10 +215,10 @@ impl GemChartSession {
         }
     }
 
-    fn loaded(&self, chart: GemChart, rate: Option<f64>) -> Self {
+    fn loaded(&self, chart: GemChart, rate: Option<f64>, has_candles: Option<bool>) -> Self {
         let loaded = Self {
             rate: self.with_rate(rate),
-            has_candles: chart.has_candles,
+            has_candles: has_candles.unwrap_or(self.has_candles),
             chart: Some(chart),
             error: None,
             is_loading: false,
@@ -298,7 +298,7 @@ impl GemChartSession {
                 if rated.shows_candles() { rated.with_candle_period() } else { rated }
             }
             GemChartRequest::Chart { .. } => match result.state.into_result(result.chart) {
-                Ok(Some(chart)) => self.loaded(chart, result.rate),
+                Ok(Some(chart)) => self.loaded(chart, result.rate, result.has_candles),
                 Ok(None) => self.clone(),
                 Err(error) => self.failed(error, result.rate),
             },
@@ -621,13 +621,10 @@ mod tests {
     }
 
     fn with_candles(session: GemChartSession) -> GemChartSession {
-        session.on_result(chart_result(
-            &session,
-            GemChart {
-                has_candles: true,
-                ..GemChart::mock(two_points())
-            },
-        ))
+        session.on_result(GemChartResult {
+            has_candles: Some(true),
+            ..chart_result(&session, GemChart::mock(two_points()))
+        })
     }
 
     fn candles_result(session: &GemChartSession, candles: Vec<ChartCandleStick>) -> GemChartResult {
@@ -645,9 +642,15 @@ mod tests {
     fn test_an_asset_stored_with_candles_offers_the_switch_before_its_chart_loads() {
         let session = GemChartSession::new(ChartPeriod::Day, Currency::USD).on_result(rate_result(Currency::USD, Some(true)));
 
+        let refreshed = session.on_result(GemChartResult {
+            has_candles: Some(false),
+            ..chart_result(&session, GemChart::mock(two_points()))
+        });
+
         assert_eq!(session.style_switch(), Some(GemChartStyle::Candles));
         assert_eq!(session.phase(None, 0), GemChartPhase::Loading);
-        assert_eq!(loaded(session, two_points()).style_switch(), None, "the chart response has the final say");
+        assert_eq!(refreshed.style_switch(), None, "the asset refreshed with the chart has the final say");
+        assert_eq!(loaded(session, two_points()).style_switch(), Some(GemChartStyle::Candles), "a chart that could not read the asset keeps the stored answer");
     }
 
     #[test]

@@ -1549,7 +1549,7 @@ mod tests {
                 asset: asset.clone(),
                 provider: SwapProvider::NearIntents,
                 provider_name: "NEAR Intents".to_string(),
-                requirement: requirement.clone(),
+                requirement,
             },
             GemConfirmError::ScanMalicious,
             GemConfirmError::ScanMemoRequired { symbol: "XRP".to_string() },

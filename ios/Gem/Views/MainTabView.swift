@@ -60,8 +60,8 @@ struct MainTabView: View {
                 }
                 .tag(TabItem.settings)
         }
-        .sheet(item: presenter.sheet) { sheet in
-            sheetView(sheet)
+        .sheet(item: presenter.presentedSheet) { sheet in
+            sheetView(sheet.type)
                 .id(sheet.id)
         }
         .bindQuery(model.transactionsQuery)

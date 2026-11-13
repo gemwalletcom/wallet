@@ -248,12 +248,22 @@ impl Repository for PostgresRepository {
             .run(move |client| {
                 let assets: HashMap<AssetId, Asset> = client.get_assets(asset_ids.clone())?.into_iter().map(|asset| (asset.id.clone(), asset)).collect();
                 let prices: HashMap<AssetId, PriceData> = client.get_primary_prices(&asset_ids, price_max_age)?.into_iter().collect();
+                let charts: HashMap<String, Vec<ChartResult>> = prices
+                    .values()
+                    .map(|price| price.id.id())
+                    .collect::<HashSet<_>>()
+                    .into_iter()
+                    .map(|price_id| {
+                        let charts = client.get_charts(&price_id, &period).unwrap_or_default();
+                        (price_id, charts)
+                    })
+                    .collect();
                 Ok(asset_ids
                     .iter()
                     .map(|asset_id| {
                         let asset = assets.get(asset_id)?.clone();
                         let price = prices.get(asset_id)?;
-                        let charts = client.get_charts(&price.id.id(), &period).unwrap_or_default();
+                        let charts = charts.get(&price.id.id()).cloned().unwrap_or_default();
                         Some(PortfolioPrice { asset, price: price.price, charts })
                     })
                     .collect())
@@ -280,17 +290,21 @@ impl Repository for PostgresRepository {
             .run(move |client| {
                 let price_alerts = client.get_price_alerts(notified_before, price_max_age)?;
                 let rates = client.get_fiat_rates()?;
+                let asset_ids = price_alerts.iter().map(|(_, price_alert, _, _)| price_alert.asset_id.clone()).collect::<HashSet<_>>().into_iter().collect();
+                let assets: HashMap<AssetId, Asset> = client.get_assets(asset_ids)?.into_iter().map(|asset| (asset.id.clone(), asset)).collect();
                 let mut notifications = Vec::new();
-                let mut notified_ids = HashSet::new();
-                for (price_alert, price_data, device) in price_alerts {
+                let mut notified_ids = Vec::new();
+                for (row_id, price_alert, price_data, device) in price_alerts {
                     let Some(trigger) = rules.evaluate(&price_alert, &device, &price_data, &rates) else {
                         continue;
                     };
-                    notified_ids.insert(price_alert.id());
-                    let asset = client.get_asset(&price_alert.asset_id)?;
+                    let Some(asset) = assets.get(&price_alert.asset_id).cloned() else {
+                        continue;
+                    };
+                    notified_ids.push(row_id);
                     notifications.push(PriceAlertNotification::new(device, asset, price_alert, &price_data, trigger));
                 }
-                client.update_price_alerts(vec![PriceAlertFilter::Ids(notified_ids.into_iter().collect())], vec![PriceAlertUpdate::LastNotifiedAt(now)])?;
+                client.update_price_alerts(vec![PriceAlertFilter::Ids(notified_ids)], vec![PriceAlertUpdate::LastNotifiedAt(now)])?;
                 Ok(notifications)
             })
             .await

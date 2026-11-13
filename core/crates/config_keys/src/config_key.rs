@@ -124,6 +124,7 @@ pub enum ConfigKey {
     PriceChartsRetentionHourly,
     PriceChartsRetentionDaily,
     PriceChartsMaxCandles,
+    PricePortfolioAssetsLimit,
     PriceOutdated,
     PricePrimaryMaxAge,
     PriceMissingPublishInterval,
@@ -163,6 +164,7 @@ pub enum ConfigKey {
     DeviceStreamRetention,
     DeviceStreamHistoryLimit,
     DeviceStreamPricesLimit,
+    DeviceSubscriptionsLimit,
 
     VersionTimerUpdateStoreVersions,
 
@@ -323,6 +325,7 @@ impl ConfigKey {
             Self::PriceChartsRetentionHourly => "31d",
             Self::PriceChartsRetentionDaily => "10000d",
             Self::PriceChartsMaxCandles => "60",
+            Self::PricePortfolioAssetsLimit => "1000",
             Self::PriceOutdated => "7d",
             Self::PricePrimaryMaxAge => "24h",
             Self::PriceMissingPublishInterval => "1h",
@@ -360,6 +363,7 @@ impl ConfigKey {
             Self::DeviceStreamRetention => "7d",
             Self::DeviceStreamHistoryLimit => "25",
             Self::DeviceStreamPricesLimit => "1000",
+            Self::DeviceSubscriptionsLimit => "8000",
             Self::VersionTimerUpdateStoreVersions => "1h",
             Self::TransactionTimerCleanup => "1d",
             Self::TransactionTimerInTransitUpdate => "60s",

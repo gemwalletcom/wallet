@@ -23,7 +23,7 @@ struct ConfirmSubmissionTests {
         let reported = ReportedValues()
 
         let request = ConfirmTransferRequest.mock(delegate: { reported.append(try? $0.get()) })
-        try await ConfirmTransferSceneViewModel.mock(
+        _ = try await ConfirmTransferSceneViewModel.mock(
             request: request,
             execute: .success(.sent(hashes: ["hash-1", "hash-2"], message: nil)),
         ).submit(request: request)
@@ -36,7 +36,7 @@ struct ConfirmSubmissionTests {
         let reported = ReportedValues()
 
         let request = ConfirmTransferRequest.mock(delegate: { reported.append(try? $0.get()) })
-        try await ConfirmTransferSceneViewModel.mock(request: request, execute: .success(.signed(data: ["signed"], message: nil))).submit(request: request)
+        _ = try await ConfirmTransferSceneViewModel.mock(request: request, execute: .success(.signed(data: ["signed"], message: nil))).submit(request: request)
 
         #expect(reported.values == ["signed"])
     }
@@ -47,7 +47,7 @@ struct ConfirmSubmissionTests {
 
         await #expect(throws: GemConfirmError.self) {
             let request = ConfirmTransferRequest.mock(delegate: { reported.append(try? $0.get()) })
-            try await ConfirmTransferSceneViewModel.mock(
+            _ = try await ConfirmTransferSceneViewModel.mock(
                 request: request,
                 execute: .failure(GemConfirmError.PartialBroadcast(hashes: ["hash-1"], msg: "second leg failed")),
             ).submit(request: request)

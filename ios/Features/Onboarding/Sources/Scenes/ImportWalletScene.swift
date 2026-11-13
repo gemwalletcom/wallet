@@ -35,23 +35,26 @@ struct ImportWalletScene: View {
                         .accessibilityIdentifier("import_kinds")
                     }
                     HStack {
-                        Group {
-                            if #available(iOS 26.0, *), model.highlightsWords {
-                                PhraseTextEditor(model: PhraseTextEditorViewModel(placeholder: model.importType.description, input: model.inputModel))
-                            } else if #available(iOS 18.0, *) {
-                                PhraseTextField(title: model.importType.description, model: $model.inputModel)
-                            } else {
-                                TextField(model.importType.description, text: $model.inputModel.text, axis: .vertical)
+                        CaptureProtectedView {
+                            Group {
+                                if #available(iOS 26.0, *), model.highlightsWords {
+                                    PhraseTextEditor(model: PhraseTextEditorViewModel(placeholder: model.importType.description, input: model.inputModel))
+                                } else if #available(iOS 18.0, *) {
+                                    PhraseTextField(title: model.importType.description, model: $model.inputModel)
+                                } else {
+                                    TextField(model.importType.description, text: $model.inputModel.text, axis: .vertical)
+                                }
                             }
+                            .accessibilityIdentifier("importInputField")
+                            .autocorrectionDisabled(true)
+                            .textInputAutocapitalization(.never)
+                            .lineLimit(8)
+                            .keyboardType(.asciiCapable)
+                            .frame(minHeight: 80, alignment: .top)
+                            .focused($focusedField, equals: .input)
+                            .padding(.top, .space12)
                         }
-                        .accessibilityIdentifier("importInputField")
-                        .autocorrectionDisabled(true)
-                        .textInputAutocapitalization(.never)
-                        .lineLimit(8)
-                        .keyboardType(.asciiCapable)
-                        .frame(minHeight: 80, alignment: .top)
-                        .focused($focusedField, equals: .input)
-                        .padding(.top, .space12)
+                        .frame(maxWidth: .infinity)
 
                         if model.showsNameRecord {
                             NameRecordView(model: model.nameRecordViewModel)

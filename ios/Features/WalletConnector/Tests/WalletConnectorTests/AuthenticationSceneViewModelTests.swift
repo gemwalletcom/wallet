@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import enum Gemstone.GemVerificationLevel
 import struct Gemstone.GemWalletConnectAuthMessage
 import func Gemstone.walletRow
 import GemstonePrimitives
@@ -43,11 +44,28 @@ struct AuthenticationSceneViewModelTests {
         #expect(model.isPresentingAlertMessage != nil)
     }
 
-    private func request(defaultWallet: Wallet, wallets: [Wallet] = [], message: @escaping @Sendable (Wallet) throws -> GemWalletConnectAuthMessage) -> WCAuthenticationRequest {
+    @Test(arguments: [
+        (WalletConnectionVerificationStatus.verified, GemVerificationLevel.verified),
+        (.unknown, .unverified),
+        (.invalid, .suspicious),
+        (.malicious, .suspicious),
+    ])
+    @MainActor
+    func theReviewShowsTheDappVerificationLevel(status: WalletConnectionVerificationStatus, expected: GemVerificationLevel) {
+        let model = AuthenticationSceneViewModel.mock(request: request(defaultWallet: .mock(), verificationStatus: status) { _ in
+            GemWalletConnectAuthMessage(account: Account.mock(chain: .ethereum, address: "0x1111111111111111111111111111111111111111").toGem(), message: Self.signIn(statement: "Sign in."))
+        })
+
+        #expect(model.statusText == expected.title)
+    }
+
+    private func request(defaultWallet: Wallet, wallets: [Wallet] = [], verificationStatus: WalletConnectionVerificationStatus = .verified,
+                         message: @escaping @Sendable (Wallet) throws -> GemWalletConnectAuthMessage) -> WCAuthenticationRequest
+    {
         WCAuthenticationRequest(
             id: "1",
             proposal: .mock(defaultWallet: defaultWallet, wallets: wallets.isEmpty ? [defaultWallet] : wallets),
-            verificationStatus: .verified,
+            verificationStatus: verificationStatus,
             message: message,
             approve: { _, _ in },
         )

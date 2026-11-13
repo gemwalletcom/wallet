@@ -140,8 +140,8 @@ class BigIntTests: XCTestCase {
         test(BigInt(0x5A5A5A), 0x5A5A5A as Float)
         test(BigInt(1) << 64, 0x1p64 as Float)
         test(BigInt(0x5A5A5A) << 64, 0x5A5A5Ap64 as Float)
-        test(BigInt(1) << 1023, 0x1p1023 as Float)
-        test(BigInt(10) << 1020, 0xAp1020 as Float)
+        test(BigInt(1) << 1023, Float.infinity)
+        test(BigInt(10) << 1020, Float.infinity)
         test(BigInt(1) << 1024, Float.infinity)
         test(BigInt(words: convertWords([0, 0xFFFFFF0000000000, 0])),
              Float.greatestFiniteMagnitude)

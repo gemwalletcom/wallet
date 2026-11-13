@@ -13,7 +13,7 @@ use crate::{DatabaseClient, DatabaseError, DieselResultExt};
 
 #[derive(Debug, Clone)]
 pub enum PriceAlertFilter {
-    Ids(Vec<String>),
+    Ids(Vec<i32>),
 }
 
 #[derive(Debug, Clone)]
@@ -25,13 +25,13 @@ impl QueryFilter<crate::schema::price_alerts::table> for PriceAlertFilter {
     fn condition(self) -> Condition<crate::schema::price_alerts::table> {
         use crate::schema::price_alerts::dsl::*;
         match self {
-            PriceAlertFilter::Ids(values) => Box::new(identifier.eq_any(values)),
+            PriceAlertFilter::Ids(values) => Box::new(id.eq_any(values)),
         }
     }
 }
 
 pub trait PriceAlertsRepository {
-    fn get_price_alerts(&mut self, after_notified_at: NaiveDateTime, max_age: Duration) -> Result<Vec<(PriceAlert, PriceData, Device)>, DatabaseError>;
+    fn get_price_alerts(&mut self, after_notified_at: NaiveDateTime, max_age: Duration) -> Result<Vec<(i32, PriceAlert, PriceData, Device)>, DatabaseError>;
     fn get_price_alerts_for_device_id(&mut self, device_id: &str, asset_id: Option<&AssetId>) -> Result<Vec<DevicePriceAlert>, DatabaseError>;
     fn get_price_alerts_count_for_device_id(&mut self, device_id: i32) -> Result<i64, DatabaseError>;
     fn add_price_alerts(&mut self, device_id: &str, price_alerts: PriceAlerts) -> Result<usize, DatabaseError>;
@@ -40,8 +40,8 @@ pub trait PriceAlertsRepository {
 }
 
 impl PriceAlertsRepository for DatabaseClient {
-    fn get_price_alerts(&mut self, after_notified_at: NaiveDateTime, max_age: Duration) -> Result<Vec<(PriceAlert, PriceData, Device)>, DatabaseError> {
-        let alerts: Vec<(PriceAlertRow, DeviceRow)> = {
+    fn get_price_alerts(&mut self, after_notified_at: NaiveDateTime, max_age: Duration) -> Result<Vec<(i32, PriceAlert, PriceData, Device)>, DatabaseError> {
+        let alerts: Vec<(i32, PriceAlertRow, DeviceRow)> = {
             use crate::schema::devices;
             use crate::schema::price_alerts::dsl::*;
 
@@ -49,17 +49,17 @@ impl PriceAlertsRepository for DatabaseClient {
                 .filter((price_direction.is_not_null().and(last_notified_at.is_null())).or(price_direction.is_null().and(last_notified_at.lt(after_notified_at).or(last_notified_at.is_null()))))
                 .inner_join(devices::table.on(device_id.eq(devices::id)))
                 .filter(devices::is_push_enabled.eq(true).and(devices::is_price_alerts_enabled.eq(true)).and(devices::token.ne("")))
-                .select((PriceAlertRow::as_select(), DeviceRow::as_select()))
+                .select((id, PriceAlertRow::as_select(), DeviceRow::as_select()))
                 .load(&mut self.connection)?
         };
         if alerts.is_empty() {
             return Ok(vec![]);
         }
-        let asset_ids: Vec<AssetId> = alerts.iter().map(|(a, _)| a.asset_id.0.clone()).collect::<HashSet<_>>().into_iter().collect();
+        let asset_ids: Vec<AssetId> = alerts.iter().map(|(_, a, _)| a.asset_id.0.clone()).collect::<HashSet<_>>().into_iter().collect();
         let primary: HashMap<String, PriceData> = self.get_primary_prices(&asset_ids, max_age)?.into_iter().map(|(id, price)| (id.to_string(), price)).collect();
         Ok(alerts
             .into_iter()
-            .filter_map(|(alert, device)| primary.get(&alert.asset_id.to_string()).map(|price| (alert.as_primitive(), price.clone(), device.as_primitive())))
+            .filter_map(|(row_id, alert, device)| primary.get(&alert.asset_id.to_string()).map(|price| (row_id, alert.as_primitive(), price.clone(), device.as_primitive())))
             .collect())
     }
 

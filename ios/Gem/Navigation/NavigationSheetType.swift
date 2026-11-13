@@ -1,12 +1,13 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import Foundation
 import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Transfer
 import Wallet
 
-enum NavigationSheetType: Identifiable {
+enum NavigationSheetType {
     case assetInput(SelectedAssetInput)
     case payment(PaymentDestination)
     case priceAlert(Asset)
@@ -42,4 +43,9 @@ enum NavigationSheetType: Identifiable {
         default: nil
         }
     }
+}
+
+struct PresentedSheet: Identifiable {
+    let id = UUID()
+    let type: NavigationSheetType
 }

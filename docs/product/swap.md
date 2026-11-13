@@ -140,6 +140,7 @@ A stablecoin is one on the official list, USDT, USDC, USDS, USDe, USD1, USDG and
 | When | Expected | Why |
 |---|---|---|
 | The price impact is a loss of more than `1%` | Details shows the Price Impact after the rate, on one line, and a long rate shrinks to fit, down to `12` on both apps | the row keeps its height |
+| Price Impact shows on Details and in its sheet | both show it in the same color: orange for a loss up to `5%`, red past `5%` | the same number never reads safe in one place and risky in the other |
 | The price impact is `10%` or more | "High Price Impact" asks first | |
 | The High Price Impact confirmation is open when the quote refreshes | Confirm trades only the quote the warning named; if another quote took its place, nothing is traded and the new quote shows | the user never trades a quote they were not warned about |
 | A chosen Slippage is `3%` or more | a warning | |

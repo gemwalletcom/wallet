@@ -5,7 +5,6 @@ import android.app.ActivityManager
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.graphics.PixelFormat
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.View
@@ -22,6 +21,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.toArgb
+import androidx.core.net.toUri
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
@@ -206,7 +206,7 @@ class MainActivity :
 
     private fun returnToDapp(redirect: String?) {
         val opened = redirect != null && try {
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(redirect)))
+            startActivity(Intent(Intent.ACTION_VIEW, redirect.toUri()))
             true
         } catch (_: ActivityNotFoundException) {
             false

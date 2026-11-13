@@ -2,7 +2,11 @@ package com.gemwallet.android.data.services.nativeprovider
 
 import com.gemwallet.android.ext.isNetworkUnavailable
 import com.gemwallet.android.ext.toGatewayNetworkMessage
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -17,20 +21,30 @@ import uniffi.gemstone.alienMethodToString
 import java.io.IOException
 
 class NativeProvider(private val httpClient: OkHttpClient = OkHttpClient()) : AlienProvider {
-    override suspend fun request(target: AlienTarget): AlienResponse = withContext(Dispatchers.IO) {
+    override suspend fun request(target: AlienTarget): AlienResponse = coroutineScope {
         val requestBuilder = Request.Builder()
             .url(target.url)
             .method(alienMethodToString(target.method), target.requestBody())
         target.headers?.forEach { (key, value) -> requestBuilder.addHeader(key, value) }
+        val call = httpClient.newCall(requestBuilder.build())
+        val cancelOnExit = launch(start = CoroutineStart.UNDISPATCHED) {
+            try {
+                awaitCancellation()
+            } finally {
+                call.cancel()
+            }
+        }
         try {
-            httpClient.newCall(requestBuilder.build()).execute().use { response ->
-                AlienResponse(response.code.toUShort(), response.body.bytes())
+            withContext(Dispatchers.IO) {
+                call.execute().use { response -> AlienResponse(response.code.toUShort(), response.body.bytes()) }
             }
         } catch (error: IOException) {
             if (error.isNetworkUnavailable()) {
                 throw AlienException.Offline()
             }
             throw AlienException.RequestException(error.toGatewayNetworkMessage())
+        } finally {
+            cancelOnExit.cancel()
         }
     }
 }

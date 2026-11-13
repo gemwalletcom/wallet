@@ -46,7 +46,6 @@ pub async fn get_charts(Path(asset_id): Path<AssetIdParam>, Query(query): Query<
     let currency = query.currency.0;
     let chart_prices = charts.get_charts_prices(&asset_id, period, &currency).await?;
     let asset_price = prices.get_asset_price(&asset_id, &currency).await?;
-    let has_candles = charts.has_candles(&asset_id).await?;
 
     Ok(Charts {
         price: asset_price.price,
@@ -54,7 +53,6 @@ pub async fn get_charts(Path(asset_id): Path<AssetIdParam>, Query(query): Query<
         prices: chart_prices,
         market_caps: vec![],
         total_volumes: vec![],
-        has_candles,
     }
     .into())
 }

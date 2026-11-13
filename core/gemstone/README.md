@@ -19,4 +19,4 @@ Android
 just bindgen-kotlin && just build-android
 ```
 
-you can check out `tests` folder to see how to use it.
+See the [iOS sample](tests/ios) and the [main Android app's Gemstone module](../../android/gemstone) for client integration.
