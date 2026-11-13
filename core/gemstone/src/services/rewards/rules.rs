@@ -7,7 +7,7 @@ use primitives::{CoreEmoji, OptionStringExt, RewardRedemptionOption, RewardStatu
 use super::model::{GemIncomingCode, GemRewardsInviteAction, GemRewardsPendingReferral, GemRewardsRedemption, GemRewardsState, GemRewardsWallet};
 use crate::config::rewards::get_referral_url;
 use crate::formatted_number::{GemFormattedNumber, GemNumberUnit};
-use crate::models::list::{GemListRow, GemListRowTitle, GemListSection, GemListSectionTitle, GemNoticeKind};
+use crate::models::list::{GemGroup, GemListRow, GemListRowTitle, GemListSectionTitle, GemNoticeKind};
 use crate::services::localization::GemLocalizedText;
 use crate::services::wallet::rules as wallet_rules;
 use crate::services::wallet_session::rules as session_rules;
@@ -88,9 +88,9 @@ fn invite_action(has_referral_code: bool, can_invite: bool) -> Option<GemRewards
     }
 }
 
-fn sections(shows_info: bool, info_rows: Vec<GemListRow>) -> Vec<GemListSection> {
+fn sections(shows_info: bool, info_rows: Vec<GemListRow>) -> Vec<GemGroup> {
     match shows_info && !info_rows.is_empty() {
-        true => vec![GemListSection::new(GemListSectionTitle::Info, info_rows)],
+        true => vec![GemGroup::section(GemListSectionTitle::Info, info_rows)],
         false => Vec::new(),
     }
 }
@@ -180,7 +180,7 @@ fn has_value(code: Option<&str>) -> bool {
 mod tests {
 
     fn info_section_rows(state: &GemRewardsState) -> Vec<GemListRow> {
-        state.sections.iter().flat_map(|section| section.rows.clone()).collect()
+        state.sections.iter().flat_map(|section| section.rows()).collect()
     }
 
     fn pending_activation(state: &GemRewardsState) -> Option<bool> {
@@ -415,7 +415,7 @@ mod tests {
         for status in [RewardStatus::Verified, RewardStatus::Trusted, RewardStatus::Attribution] {
             let state = state(Some(&Rewards::mock(Some("gem"), status)), now());
             assert_eq!((state.invite_action, state.can_use_referral_code), (Some(GemRewardsInviteAction::Share), false), "{status:?}");
-            assert_eq!(state.sections.iter().map(|section| section.title).collect::<Vec<_>>(), vec![GemListSectionTitle::Info]);
+            assert_eq!(state.sections.iter().map(|section| section.title.clone()).collect::<Vec<_>>(), vec![Some(GemLocalizedText::SectionTitle { title: GemListSectionTitle::Info })]);
             assert_eq!(state.status_notice, None);
         }
         for status in [RewardStatus::Unverified, RewardStatus::Pending, RewardStatus::Disabled] {
@@ -455,7 +455,7 @@ mod tests {
     fn test_state_activates_a_pending_referral_once_verify_after_is_reached() {
         let waiting = state(Some(&Rewards::mock_pending(now() + TimeDelta::hours(1))), now());
         assert_eq!(pending_activation(&waiting), Some(false), "the button waits in place while the countdown runs");
-        assert_eq!(waiting.sections.iter().map(|section| section.title).collect::<Vec<_>>(), vec![GemListSectionTitle::Info]);
+        assert_eq!(waiting.sections.iter().map(|section| section.title.clone()).collect::<Vec<_>>(), vec![Some(GemLocalizedText::SectionTitle { title: GemListSectionTitle::Info })]);
         assert!(!waiting.can_use_referral_code);
 
         let ready = state(Some(&Rewards::mock_pending(now())), now());

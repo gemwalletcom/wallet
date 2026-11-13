@@ -737,26 +737,6 @@ pub struct GemGroupList {
     pub phase: GemListPhase,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemListSection {
-    pub title: GemListSectionTitle,
-    pub footer: GemListSectionFooter,
-    pub rows: Vec<GemListRow>,
-}
-
-impl GemListSection {
-    pub fn new(title: GemListSectionTitle, rows: Vec<GemListRow>) -> Self {
-        Self {
-            title,
-            footer: GemListSectionFooter::None,
-            rows,
-        }
-    }
-
-    pub fn untitled(rows: Vec<GemListRow>) -> Self {
-        Self::new(GemListSectionTitle::None, rows)
-    }
-}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
 pub struct GemListWindow {

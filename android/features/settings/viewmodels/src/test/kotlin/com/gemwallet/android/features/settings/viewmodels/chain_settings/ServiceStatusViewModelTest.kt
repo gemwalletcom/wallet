@@ -2,6 +2,7 @@ package com.gemwallet.android.features.settings.viewmodels.chain_settings
 
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.testkit.MainDispatcherRule
+import com.gemwallet.android.ui.components.list_item.rows
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk

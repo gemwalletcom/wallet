@@ -1,5 +1,5 @@
 use crate::formatted_number::GemFormattedNumber;
-use crate::models::list::{GemListRow, GemListSection};
+use crate::models::list::{GemGroup, GemListRow};
 use crate::models::state::GemLoadState;
 use primitives::{AssetId, Rewards, WalletId};
 
@@ -57,7 +57,7 @@ pub struct GemRewardsState {
     pub pending_referral: Option<GemRewardsPendingReferral>,
     pub error_notice: Option<GemListRow>,
     pub status_notice: Option<GemListRow>,
-    pub sections: Vec<GemListSection>,
+    pub sections: Vec<GemGroup>,
     pub invite_description: GemLocalizedText,
     pub referral_code: Option<String>,
     pub referral_link: Option<String>,

@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import struct Gemstone.GemGroup
 import enum Gemstone.GemLatencyStatus
-import struct Gemstone.GemListSection
 import protocol Gemstone.GemServiceStatusProtocol
 import struct Gemstone.GemServiceStatusSession
 import enum Gemstone.GemServiceStatusTarget
@@ -24,7 +24,7 @@ public final class ServiceStatusSceneViewModel {
 }
 
 public extension ServiceStatusSceneViewModel {
-    var sections: [GemListSection] { session.sections() }
+    var sections: [GemGroup] { session.sections() }
 }
 
 // MARK: - Actions

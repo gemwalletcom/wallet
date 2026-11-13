@@ -205,20 +205,12 @@ public struct RewardsScene: View {
     }
 
     private var infoSections: some View {
-        ForEach(model.sections) { section in
-            Section {
-                ForEach(section.values) { item in
-                    if case let .text(title, _) = item.row, title == .myReferralCode {
-                        GemListRowView(row: item.row)
-                            .contextMenu(model.referralLink.map { [.copy(value: $0)] } ?? [])
-                    } else {
-                        GemListRowView(row: item.row)
-                    }
-                }
-            } header: {
-                if let title = section.title {
-                    Text(title)
-                }
+        GemGroupSections(rows: model.sections) { row in
+            if case let .text(title, _) = row, title == .myReferralCode {
+                GemListRowView(row: row)
+                    .contextMenu(model.referralLink.map { [.copy(value: $0)] } ?? [])
+            } else {
+                GemListRowView(row: row)
             }
         }
     }

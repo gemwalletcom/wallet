@@ -9,13 +9,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.list_item.gemListSections
+import com.gemwallet.android.ui.components.list_item.gemGroupRows
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
-import uniffi.gemstone.GemListSection
+import uniffi.gemstone.GemGroup
 
 @Composable
-fun ServiceStatusScene(sections: List<GemListSection>, onRefresh: () -> Unit, onCancel: () -> Unit) {
+fun ServiceStatusScene(sections: List<GemGroup>, onRefresh: () -> Unit, onCancel: () -> Unit) {
     Scene(
         title = stringResource(R.string.transaction_status),
         onClose = onCancel,
@@ -25,7 +25,7 @@ fun ServiceStatusScene(sections: List<GemListSection>, onRefresh: () -> Unit, on
             onRefresh = onRefresh,
         ) {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
-                gemListSections(sections)
+                gemGroupRows(sections)
             }
         }
     }

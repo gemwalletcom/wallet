@@ -10,7 +10,7 @@ import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemModel
-import com.gemwallet.android.ui.components.list_item.gemListSections
+import com.gemwallet.android.ui.components.list_item.gemGroupRows
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.SheetExpansion
@@ -42,7 +42,7 @@ fun PerpetualDetailsBottomSheet(isVisible: Boolean, details: GemPerpetualConfirm
         title = { stringResource(R.string.common_details) },
     ) { details ->
         LazyColumn(modifier = Modifier.fillMaxWidth()) {
-            gemListSections(details.sections)
+            gemGroupRows(details.sections)
         }
     }
 }

@@ -411,28 +411,27 @@ pub enum GemListRow {
     ...
 }
 
-pub struct GemListSection {
-    pub title: GemListSectionTitle,
-    pub footer: GemListSectionFooter,
-    pub rows: Vec<GemListRow>,
-}
+GemGroup::untitled(vec![GemListRow::explorer(&details.link)])
+GemGroup::section(GemListSectionTitle::Balances, balances)
 ```
 
 Four things make this work, and all four are load-bearing:
 
-1. **A screen's record returns `Vec<GemListSection>`** and declares no section or row type of its own. `GemAddressDetails::sections()` is the reference; a screen with no section header uses `GemListSectionTitle::None`.
+1. **A screen's record returns `Vec<GemGroup>`** of row items and declares no section or row type of its own. `GemAddressDetails::sections()` is the reference: `GemGroup::section(title, rows)` builds a titled group and `GemGroup::untitled(rows)` one with no header. A plain list is the same [`GemGroup`](#a-screen-of-groups-is-one-gemgrouplist) the pickers use, holding `GemListItem::Row` items, so there is one section type.
 2. **The row carries the finished value.** `Text` carries printed text, `Amount` carries a `GemFormattedNumber` each app renders through its existing formatter, and `Address` carries the [copy model](#one-copy-model-for-every-address-phrase-and-key) with the shortened display already computed. A row that owns its title answers it in Core (`GemBalanceRow::title()`).
 3. **Titles are two shared enums**, `GemListRowTitle` and `GemListSectionTitle`, resolved in the one shared localization file per app — iOS `PrimitivesComponents/Extensions/Gemstone+Localized.swift`, Android `ui/localization/GemstoneText.kt`. A new title is a case there, never a per-feature mapper. A title that interpolates a value stays app-side (`Explorer` carries the explorer's name and the app composes "View on …").
-4. **One builder renders it, so a screen adds no rendering.** iOS `GemListRowView(row:)` in `PrimitivesComponents` and Android `GemListRowView(row:, listPosition:)` plus `LazyListScope.gemListSections(sections:)` in `:ui` take the Core row and own everything it needs — the list-row container, the copy and its toast, opening the link, the loading spinner, and the info button. A row that has an explanation carries a `GemInfoTopic`, and `GemInfoTopic::sheet(platform)` composes its sheet — the title and description keys with their finished arguments, the image, and the action (a docs link, buy, acquire or continue) — so each app maps one `GemInfoSheet` and wires only the action closure. iOS reports the topic through `GemListRowView(row:onInfo:)` for the screen to present, and Android opens the `InfoSheetEntity` itself. A confirm error composes its sheet through `GemConfirmErrorInfo::sheet(platform)`, which keeps the topic that every row carries small. A screen is then:
+4. **One builder renders it, so a screen adds no rendering.** iOS `GemListRowView(row:)` in `PrimitivesComponents` and Android `GemListRowView(row:, listPosition:)` in `:ui` take the Core row and own everything it needs — the list-row container, the copy and its toast, opening the link, the loading spinner, and the info button. A row that has an explanation carries a `GemInfoTopic`, and `GemInfoTopic::sheet(platform)` composes its sheet — the title and description keys with their finished arguments, the image, and the action (a docs link, buy, acquire or continue) — so each app maps one `GemInfoSheet` and wires only the action closure. iOS reports the topic through `GemListRowView(row:onInfo:)` for the screen to present, and Android opens the `InfoSheetEntity` itself. A confirm error composes its sheet through `GemConfirmErrorInfo::sheet(platform)`, which keeps the topic that every row carries small. The groups around the rows come from iOS `GemGroupSections(rows:)` and Android `gemGroupRows`, so a screen is then:
 
 ```swift
-ListSectionView(provider: model) { row in
-    GemListRowView(row: row)
+List {
+    GemGroupSections(rows: model.sections) { row in
+        GemListRowView(row: row)
+    }
 }
 ```
 
 ```kotlin
-LazyColumn { gemListSections(sections) }
+LazyColumn { gemGroupRows(sections) }
 ```
 
 Rich rows stay outside: the transaction header, swap progress, asset, wallet and validator rows have their own layout on both apps and keep their own records ([a row that a screen only ever draws one way](#a-row-that-a-screen-only-ever-draws-one-way-keeps-its-shape-app-side)). The test is whether the row is a title with a value — if it is, it is a `GemListRow`. Adding a per-screen row enum, a per-feature title mapper or a second `switch` over the row in a scene is the regression this replaces.
@@ -465,10 +464,11 @@ The questions, in order: is the row a title with a value (family 1)? Does more t
 
 ### A screen of groups is one `GemGroupList`
 
-A screen that shows titled groups of rows with a load state returns one `GemGroupList`, never its own section and list records. UniFFI has no generics, so the row families a group can hold are cases of one enum, `GemListItem`, which gains a case each time a screen's family moves onto it:
+`GemGroup` is the one section type Core returns. A screen that shows titled groups of rows with a load state returns one `GemGroupList`, and a fixed screen returns its `Vec<GemGroup>` on its record; neither declares its own section or list records. UniFFI has no generics, so the row families a group can hold are cases of one enum, `GemListItem`: `Row` is the plain row, and the others are the families that moved onto it:
 
 ```rust
 pub enum GemListItem {
+    Row { row: GemListRow },
     Currency { row: GemCurrencyRow },
     Validator { row: GemValidatorRow, is_selected: bool },
     Connection { connection: GemConnection },
@@ -476,7 +476,7 @@ pub enum GemListItem {
 }
 
 pub struct GemGroup {
-    pub id: String,
+    pub id: Option<String>,
     pub title: Option<GemLocalizedText>,
     pub footer: GemListSectionFooter,
     pub items: Vec<GemListItem>,
@@ -488,7 +488,7 @@ pub struct GemGroupList {
 }
 ```
 
-Core decides which groups exist, their order and titles, what each item holds, which one is selected, and the phase. Every group carries a stable `id` (the asset id, the wallet id, or the fixed title) because two groups can share a display name — two tokens called USDC on different networks — and both apps key their sections by it. A title is `GemLocalizedText`: `SectionTitle { title }` for the fixed vocabulary in `GemListSectionTitle`, `Text { text }` for a name such as a wallet's. The currency picker is the reference: `GemCurrencyService::list` returns the Recommended and All groups, each dropped when the search leaves it empty, and an empty search-results phase when nothing matches:
+Core decides which groups exist, their order and titles, what each item holds, which one is selected, and the phase. A group that comes and goes carries a stable `id` (the asset id, the wallet id, or the fixed title) because two groups can share a display name — two tokens called USDC on different networks — and both apps key their sections by it. A fixed screen's untitled groups have no id and are keyed by position, so the bindings never make `GemGroup` `Identifiable`. A title is `GemLocalizedText`: `SectionTitle { title }` for the fixed vocabulary in `GemListSectionTitle`, `Text { text }` for a name such as a wallet's. The currency picker is the reference: `GemCurrencyService::list` returns the Recommended and All groups, each dropped when the search leaves it empty, and an empty search-results phase when nothing matches:
 
 ```rust
 let groups = rules::groups(currency, locale, &query, &localized_names, &rated);
@@ -511,7 +511,7 @@ LazyColumn(state = listState) {
 }
 ```
 
-A screen whose rows carry their own interactions — swipe to delete, navigation, a leading row of buttons — places the groups part alone, iOS `GemGroupSections(groups:item:)` and Android `gemGroups(groups) { item, position -> }`, inside its own list, and keeps its own phase layout. The connections and price alerts screens do this:
+A screen whose rows carry their own interactions — swipe to delete, navigation, a leading row of buttons — places the groups part alone, iOS `GemGroupSections(groups:item:)` and Android `gemGroups(groups) { item, position -> }`, inside its own list, and keeps its own phase layout. A screen of plain rows uses their row forms, iOS `GemGroupSections(rows:row:)` and Android `gemGroupRows(groups, onSelectAddress, onSelect)`. The connections and price alerts screens do this:
 
 ```swift
 GemGroupSections(groups: list.groups) { item in
