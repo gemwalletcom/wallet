@@ -21,7 +21,6 @@ fun ConnectionProposalScreen(proposal: GemWalletConnectProposal, onError: (Strin
     BackHandler(onBack = viewModel::onReject)
     val state by viewModel.state.collectAsStateWithLifecycle()
     val proposalRows by viewModel.proposalRows.collectAsStateWithLifecycle()
-    val statusListItem by viewModel.statusListItem.collectAsStateWithLifecycle()
     val peer by viewModel.peer.collectAsStateWithLifecycle()
     val selectedWallet by viewModel.selectedWallet.collectAsStateWithLifecycle()
     val availableWallets by viewModel.availableWallets.collectAsStateWithLifecycle()
@@ -32,8 +31,10 @@ fun ConnectionProposalScreen(proposal: GemWalletConnectProposal, onError: (Strin
         viewModel.refusalMessages.collect(onError)
     }
 
-    when (val currentPeer = peer) {
-        null -> LoadingScene(
+    val currentPeer = peer
+    val currentRows = proposalRows
+    when {
+        currentPeer == null || currentRows == null -> LoadingScene(
             title = stringResource(id = R.string.wallet_connect_connect_title),
             onCancel = viewModel::onReject,
             closeIcon = true,
@@ -42,8 +43,7 @@ fun ConnectionProposalScreen(proposal: GemWalletConnectProposal, onError: (Strin
         else -> ConnectionProposalScene(
             peer = currentPeer,
             state = state,
-            proposalRows = proposalRows,
-            statusListItem = statusListItem,
+            proposalRows = currentRows,
             selectedWallet = selectedWallet,
             availableWallets = availableWallets,
             availableWalletSections = availableWalletSections,

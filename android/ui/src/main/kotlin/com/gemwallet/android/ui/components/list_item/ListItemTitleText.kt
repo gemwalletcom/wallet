@@ -14,10 +14,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.components.InfoButton
 import com.gemwallet.android.ui.components.InfoSheetEntity
 import com.gemwallet.android.ui.theme.paddingHalfSmall
+import com.gemwallet.android.ui.theme.space0
 
 @Composable
 fun ListItemTitleText(
@@ -43,7 +43,7 @@ fun ListItemTitleText(
         if (titleBadge != null) {
             Box(
                 modifier = Modifier
-                    .height(0.dp)
+                    .height(space0)
                     .wrapContentHeight(Alignment.CenterVertically, unbounded = true),
             ) {
                 titleBadge()

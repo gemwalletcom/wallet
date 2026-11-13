@@ -4,7 +4,9 @@ on:
   push:
     branches: ["main"]
     paths:
-      - "android/**"
+      - "android/**/*.gradle.kts"
+      - "android/gradle/**"
+      - "android/settings-gradle.lockfile"
       - ".github/workflows/android-dependency-graph.yml"
   workflow_dispatch:
 

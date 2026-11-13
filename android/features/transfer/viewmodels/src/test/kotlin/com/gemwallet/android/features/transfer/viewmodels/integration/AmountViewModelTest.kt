@@ -18,9 +18,7 @@ import com.gemwallet.android.testkit.mockBalance
 import com.gemwallet.android.testkit.mockDelegation
 import com.gemwallet.android.testkit.mockDelegationBase
 import com.gemwallet.android.testkit.mockDelegationValidator
-import com.gemwallet.android.testkit.mockGemStakeValidatorOptions
 import com.gemwallet.android.testkit.mockGemValidatorRow
-import com.gemwallet.android.testkit.mockGemValidatorSection
 import com.gemwallet.android.testkit.mockPrice
 import com.gemwallet.android.testkit.mockWalletId
 import com.gemwallet.android.ui.R
@@ -48,15 +46,19 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import uniffi.gemstone.GemAmountExtras
 import uniffi.gemstone.GemAmountInputType
 import uniffi.gemstone.GemAmountServiceInterface
+import uniffi.gemstone.GemGroup
+import uniffi.gemstone.GemGroupList
+import uniffi.gemstone.GemListItem
+import uniffi.gemstone.GemListPhase
+import uniffi.gemstone.GemListSectionFooter
+import uniffi.gemstone.GemListSectionTitle
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemPaymentRecipient
 import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.GemStakeAmountInput
 import uniffi.gemstone.GemTransferData
-import uniffi.gemstone.GemValidatorSectionKind
 import java.math.BigDecimal
 import java.math.BigInteger
 
@@ -221,11 +223,11 @@ class AmountViewModelTest {
         val rows = listOf("v1", "v2").map { id ->
             mockDelegationValidator(chain = Chain.Cosmos, id = id).let { mockGemValidatorRow(validator = it.toGem(), name = it.name, placeholder = it.name.take(1), apr = GemLocalizedText.Apr(null)) }
         }
-        every { service.extras(any(), any()) } returns GemAmountExtras.Validator(rows[1], true)
-        every { service.stakeValidatorOptions(any(), any(), any()) } returns mockGemStakeValidatorOptions(sections = listOf(mockGemValidatorSection(kind = GemValidatorSectionKind.ACTIVE, rows = rows)))
+        val options = GemGroupList(listOf(GemGroup(GemListSectionTitle.ACTIVE, GemListSectionFooter.NONE, rows.map { GemListItem.Validator(it, it.validator.id == "v2") })), GemListPhase.Rows)
+        every { service.stakeValidatorOptions(any(), any(), any()) } returns options
 
-        viewModelTest(AmountParams.Stake(asset.id, GemStakeAmountInput.Stake(rows[0].validator))) { viewModel ->
-            assertEquals("v2", viewModel.validatorPicker.value?.selectedId)
+        viewModelTest(AmountParams.Stake(asset.id, GemStakeAmountInput.Stake(rows[1].validator))) { viewModel ->
+            assertEquals(options, viewModel.validatorPicker.value)
         }
     }
 
@@ -236,7 +238,7 @@ class AmountViewModelTest {
             mockDelegation(base = mockDelegationBase(rewards = BigInteger.valueOf(rewards), validatorId = validator.id), validator = validator).toGem()
         }
         val rows = validators.map { mockGemValidatorRow(validator = it.toGem(), name = it.name, placeholder = it.name.take(1), apr = GemLocalizedText.Apr(null)) }
-        every { service.stakeValidatorOptions(any(), any(), any()) } returns mockGemStakeValidatorOptions(sections = listOf(mockGemValidatorSection(kind = GemValidatorSectionKind.ACTIVE, rows = rows)))
+        every { service.stakeValidatorOptions(any(), any(), any()) } returns GemGroupList(listOf(GemGroup(GemListSectionTitle.ACTIVE, GemListSectionFooter.NONE, rows.map { GemListItem.Validator(it, false) })), GemListPhase.Rows)
 
         viewModelTest(AmountParams.Stake(asset.id, GemStakeAmountInput.Rewards(delegations, validators[0].toGem()))) { viewModel ->
             assertEquals("5", viewModel.amount)

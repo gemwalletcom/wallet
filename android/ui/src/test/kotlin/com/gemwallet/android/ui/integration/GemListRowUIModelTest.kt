@@ -12,6 +12,8 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.components.list_item.GemListRowMenuItem
 import com.gemwallet.android.ui.components.list_item.GemListRowUIModel
+import com.gemwallet.android.ui.components.list_item.ListItemImage
+import com.gemwallet.android.ui.components.list_item.ListItemImageStyle
 import com.gemwallet.android.ui.components.list_item.ListItemTagType
 import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
 import com.gemwallet.android.ui.components.list_item.uiModel
@@ -43,6 +45,7 @@ import uniffi.gemstone.GemWalletPlaceholder
 import uniffi.gemstone.GemWalletSubtitle
 import uniffi.gemstone.Latency
 import uniffi.gemstone.LatencyType
+import uniffi.gemstone.VerificationStatus
 import java.math.BigInteger
 
 @RunWith(AndroidJUnit4::class)
@@ -110,6 +113,7 @@ class GemListRowUIModelTest {
             title = GemListRowTitle.WALLET,
             wallet = mockGemWalletRow(id = "wallet-1", name = "Wallet", subtitle = GemWalletSubtitle.Multicoin, placeholder = GemWalletPlaceholder.Multicoin),
             menu = listOf(GemRowMenuItem.Copy(GemCopy(kind = GemCopyKind.Address("ethereum"), value = "0x1", display = "0x1")), website),
+            action = null,
         )
 
         val item = row.uiModel(context) as GemListRowUIModel.Item
@@ -139,6 +143,21 @@ class GemListRowUIModelTest {
 
         assertEquals("cosmosvaloper1", row.contract)
         assertEquals("Validator", row.model.subtitle)
+    }
+
+    @Test
+    fun `a suspicious status shows its badge and explains itself`() {
+        every { context.getString(R.string.transaction_status) } returns "Status"
+        every { context.getString(R.string.asset_verification_suspicious) } returns "Suspicious"
+        val topic = GemInfoTopic.AssetStatus(VerificationStatus.SUSPICIOUS)
+
+        val item = GemListRow.Verification(title = GemListRowTitle.STATUS, status = VerificationStatus.SUSPICIOUS, info = topic).uiModel(context) as GemListRowUIModel.Item
+
+        assertEquals("Status", item.model.title)
+        assertEquals("Suspicious", item.model.subtitle)
+        assertEquals(ListItemTextStyle.Negative, item.model.subtitleStyle)
+        assertEquals(ListItemImage.Drawable(R.drawable.suspicious, style = ListItemImageStyle.Avatar), item.trailingImage)
+        assertEquals(topic.infoSheet(), item.model.info)
     }
 
     @Test

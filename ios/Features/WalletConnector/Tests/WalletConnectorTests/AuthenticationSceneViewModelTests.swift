@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import enum Gemstone.GemVerificationLevel
+import enum Gemstone.VerificationStatus
 import struct Gemstone.GemWalletConnectAuthMessage
 import func Gemstone.walletRow
 import GemstonePrimitives
@@ -45,18 +45,18 @@ struct AuthenticationSceneViewModelTests {
     }
 
     @Test(arguments: [
-        (WalletConnectionVerificationStatus.verified, GemVerificationLevel.verified),
+        (WalletConnectionVerificationStatus.verified, Gemstone.VerificationStatus.verified),
         (.unknown, .unverified),
         (.invalid, .suspicious),
         (.malicious, .suspicious),
     ])
     @MainActor
-    func theReviewShowsTheDappVerificationLevel(status: WalletConnectionVerificationStatus, expected: GemVerificationLevel) {
+    func theReviewShowsTheDappVerificationLevel(status: WalletConnectionVerificationStatus, expected: Gemstone.VerificationStatus) {
         let model = AuthenticationSceneViewModel.mock(request: request(defaultWallet: .mock(), verificationStatus: status) { _ in
             GemWalletConnectAuthMessage(account: Account.mock(chain: .ethereum, address: "0x1111111111111111111111111111111111111111").toGem(), message: Self.signIn(statement: "Sign in."))
         })
 
-        #expect(model.statusText == expected.title)
+        #expect(model.sections.first?.rows.last == .verification(title: .status, status: expected, info: nil))
     }
 
     private func request(defaultWallet: Wallet, wallets: [Wallet] = [], verificationStatus: WalletConnectionVerificationStatus = .verified,
@@ -73,7 +73,7 @@ struct AuthenticationSceneViewModelTests {
 
     @MainActor
     private func walletName(_ model: AuthenticationSceneViewModel) -> String? {
-        guard case let .wallet(_, row, _) = model.walletListRow else { return nil }
+        guard case let .wallet(_, row, _, _) = model.sections.first?.rows.first else { return nil }
         return row.name
     }
 

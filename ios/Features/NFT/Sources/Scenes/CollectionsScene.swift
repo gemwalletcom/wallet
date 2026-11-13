@@ -34,7 +34,7 @@ public struct CollectionsScene: View {
                     if let unverifiedRow = screen.unverifiedRow {
                         List {
                             NavigationLink(value: Scenes.UnverifiedCollections()) {
-                                ListItemView(model: unverifiedRow.listItem)
+                                GemListRowView(row: unverifiedRow)
                             }
                         }
                         .contentMargins(.top, .zero, for: .scrollContent)

@@ -27,7 +27,7 @@ fun CollectionsScreen(
 ) {
     val items by viewModel.collections.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
-    val unverifiedListItem by viewModel.unverifiedListItem.collectAsStateWithLifecycle()
+    val unverifiedRow by viewModel.unverifiedRow.collectAsStateWithLifecycle()
     val walletId by viewModel.walletId.collectAsStateWithLifecycle()
     val title by viewModel.title.collectAsStateWithLifecycle()
     val showReceiveAction by viewModel.showReceiveAction.collectAsStateWithLifecycle()
@@ -42,7 +42,7 @@ fun CollectionsScreen(
     CollectionsScene(
         items = items,
         isRefreshing = isRefreshing,
-        unverifiedListItem = unverifiedListItem,
+        unverifiedRow = unverifiedRow,
         title = title,
         showReceiveAction = showReceiveAction,
         phase = phase,

@@ -28,12 +28,15 @@ import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.GemListPhase
+import uniffi.gemstone.GemListRow
+import uniffi.gemstone.GemListRowIcon
+import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemNftListScreen
 import uniffi.gemstone.GemNftServiceInterface
-import uniffi.gemstone.GemNftUnverifiedRow
 import uniffi.gemstone.GemRefreshResult
+import uniffi.gemstone.GemRowAction
 import uniffi.gemstone.GemServiceException
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -50,7 +53,7 @@ class CollectionsViewModelTest {
         phase = GemListPhase.Rows,
         syncsOnAppear = true,
         items = emptyList(),
-        unverifiedRow = GemNftUnverifiedRow(countText = "1"),
+        unverifiedRow = GemListRow.Link(GemListRowTitle.UNVERIFIED, "1", GemListRowIcon.NONE, GemRowAction.UnverifiedCollections),
         hasContent = true,
     )
 

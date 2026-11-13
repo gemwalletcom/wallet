@@ -3,6 +3,7 @@
 import Components
 import Foundation
 import struct Gemstone.GemValidatorRow
+import PrimitivesComponents
 import SwiftUI
 
 public struct ValidatorView: View {

@@ -1,5 +1,5 @@
 use primitives::perpetual::PerpetualData;
-use primitives::{Asset, AssetData, AssetId, AssetProperties, AssetType, BalanceMetadata, Banner, BlockExplorerLink, Chain, Currency, NFTData, RecentActivityType, VerificationStatus, Wallet, WalletType};
+use primitives::{Asset, AssetData, AssetId, AssetProperties, AssetType, BalanceMetadata, Banner, BlockExplorerLink, Chain, Currency, NFTData, RecentActivityType, Wallet, WalletType};
 
 use crate::config::image::GemImage;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
@@ -801,6 +801,7 @@ pub struct GemAssetDetailsState {
     pub empty_state: GemEmptyState,
 }
 
+#[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemAssetDetailRow {
     Balance { row: GemAssetBalanceRow, action: Option<GemRowAction> },
@@ -837,7 +838,6 @@ pub struct GemAssetDetails {
     pub sections: Vec<GemAssetDetailSection>,
     pub title: String,
     pub options: Vec<GemAssetOption>,
-    pub verification_status: Option<VerificationStatus>,
     pub network_destination: Option<GemAssetNetworkDestination>,
     pub share_url: String,
     pub swap_pair: GemSwapPairSuggestion,

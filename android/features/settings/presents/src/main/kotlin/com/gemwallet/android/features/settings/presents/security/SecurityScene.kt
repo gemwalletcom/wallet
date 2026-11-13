@@ -68,7 +68,7 @@ internal fun SecurityScene(sections: List<GemListSection>, lockInterval: Int?, l
                         )
                     }
                 }
-                gemListSectionFooter(section, key = "footer:$index")
+                gemListSectionFooter(section.footer, key = "footer:$index")
             }
         }
     }

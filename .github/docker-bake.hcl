@@ -7,36 +7,25 @@ variable "GITHUB_SHA" {
 }
 
 group "default" {
-  targets = ["core", "dynode"]
+  targets = ["image"]
 }
 
-target "_common" {
+target "image" {
+  name = image
+  matrix = {
+    image = ["core", "dynode"]
+  }
   context = "./core"
   dockerfile = "Dockerfile"
+  target = image
   platforms = ["linux/amd64"]
   labels = {
     "org.opencontainers.image.source" = "https://github.com/${GITHUB_REPOSITORY}"
   }
-}
-
-target "core" {
-  inherits = ["_common"]
-  target = "core"
   tags = [
-    "ghcr.io/gemwalletcom/wallet/core:latest",
-    "ghcr.io/gemwalletcom/wallet/core:${GITHUB_SHA}",
+    "ghcr.io/gemwalletcom/wallet/${image}:latest",
+    "ghcr.io/gemwalletcom/wallet/${image}:${GITHUB_SHA}",
   ]
-  cache-from = ["type=gha,version=2,scope=core"]
-  cache-to = ["type=gha,version=2,mode=max,scope=core"]
-}
-
-target "dynode" {
-  inherits = ["_common"]
-  target = "dynode"
-  tags = [
-    "ghcr.io/gemwalletcom/wallet/dynode:latest",
-    "ghcr.io/gemwalletcom/wallet/dynode:${GITHUB_SHA}",
-  ]
-  cache-from = ["type=gha,version=2,scope=dynode"]
-  cache-to = ["type=gha,version=2,mode=max,scope=dynode"]
+  cache-from = ["type=gha,version=2,scope=${image}"]
+  cache-to = ["type=gha,version=2,mode=max,scope=${image}"]
 }

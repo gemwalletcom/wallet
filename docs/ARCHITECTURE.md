@@ -396,6 +396,7 @@ pub enum GemListRow {
     Amount { title: GemListRowTitle, amount: GemFormattedNumber, info: Option<GemInfoTopic> },
     Duration { title: GemListRowTitle, parts: Vec<GemDurationPart>, info: Option<GemInfoTopic> },
     Label { title: GemListRowTitle, text: GemLocalizedText, tone: GemValueTone, info: Option<GemInfoTopic>, progress: bool },
+    Verification { title: GemListRowTitle, status: VerificationStatus, info: Option<GemInfoTopic> },
     Date { title: GemListRowTitle, date: DateTime<Utc> },
     Network { title: GemListRowTitle, chain: Chain, name: String },
     Link { title: GemListRowTitle, value: Option<String>, icon: GemListRowIcon },
@@ -442,7 +443,7 @@ Rows divide into three families. Getting the family right is most of the design 
 
 **1. Plain rows — one shared `GemListRow`.** A title from a fixed vocabulary plus a value, an amount, a link, a web page, a switch, a picker, an icon, an address, a loading placeholder or an error. One type, one renderer per app, no per-screen code. This is the default; reach for it first.
 
-A row that acts carries what the act needs, and Core decides it: `Url` says whether the page opens in the app or hands off to the system (`GemUrlTarget`), `Link` names an in-app destination, `Toggle` carries its state and `Picker` the selected value. What the app keeps is two maps keyed by the shared `GemListRowTitle` — one to a destination, one to an action — plus the callbacks the builder takes (`onSelect`, `onToggle`). A screen never re-titles or re-icons a row; a value only the device knows (an app version, a wallet count, the biometry name, a localized period) is passed *into* Core, which decides whether the row exists and what it holds.
+A row that acts carries what the act needs, and Core decides it: `Url` says whether the page opens in the app or hands off to the system (`GemUrlTarget`), `Link` names an in-app destination, `Toggle` carries its state and `Picker` the selected value. `Wallet` carries `SelectWallet` only when there is another wallet to pick, so the WalletConnect review screens draw their whole details section from `connection_proposal` and `authentication_sections` and decide nothing about whether the wallet can change. What the app keeps is two maps keyed by the shared `GemListRowTitle` — one to a destination, one to an action — plus the callbacks the builder takes (`onSelect`, `onToggle`). A screen never re-titles or re-icons a row; a value only the device knows (an app version, a wallet count, the biometry name, a localized period) is passed *into* Core, which decides whether the row exists and what it holds.
 
 **2. Shared rich rows — one record per family, reused by every list that draws that family.** An asset row and a transaction row are heavy (an icon with a badge, a title that may be the asset or its network, a subtitle that may be a price, a network name or a counterparty, a two-line trailing value) and they appear on many screens, so each is one record that all of those screens read:
 
@@ -461,6 +462,65 @@ A `Gem…Row` record carries **one row's data**. Which fields a shared row shows
 **3. Per-screen rich rows — one screen, one layout.** The transaction header, swap progress and the confirm recipient row are drawn one way on one screen, so the record stays with that screen ([a row that a screen only ever draws one way](#a-row-that-a-screen-only-ever-draws-one-way-keeps-its-shape-app-side)). If a second screen starts drawing it, it has become family 2 and moves.
 
 The questions, in order: is the row a title with a value (family 1)? Does more than one list draw this shape (family 2)? Only then does it stay with its screen (family 3). A per-screen enum for a family-1 row, or a second copy of a family-2 record, is the regression to watch for.
+
+### A screen of groups is one `GemGroupList`
+
+A screen that shows titled groups of rows with a load state returns one `GemGroupList`, never its own section and list records. UniFFI has no generics, so the row families a group can hold are cases of one enum, `GemListItem`, which gains a case each time a screen's family moves onto it:
+
+```rust
+pub enum GemListItem {
+    Currency { row: GemCurrencyRow },
+}
+
+pub struct GemGroup {
+    pub title: GemListSectionTitle,
+    pub footer: GemListSectionFooter,
+    pub items: Vec<GemListItem>,
+}
+
+pub struct GemGroupList {
+    pub groups: Vec<GemGroup>,
+    pub phase: GemListPhase,
+}
+```
+
+Core decides which groups exist, their order and titles, what each item holds, which one is selected, and the phase. The currency picker is the reference: `GemCurrencyService::list` returns the Recommended and All groups, each dropped when the search leaves it empty, and an empty search-results phase when nothing matches:
+
+```rust
+let groups = rules::groups(currency, locale, &query, &localized_names, &rated);
+Ok(GemGroupList {
+    phase: GemListPhase::local(!groups.is_empty(), empty_state(GemEmptyStateKind::SearchResults)),
+    groups,
+})
+```
+
+Each app draws it with one builder — iOS `GemGroupListView` in `PrimitivesComponents`, Android `LazyListScope.gemGroupList` in `:ui` — which owns the group headers and footers, a stable identity per item, the empty state, the error row, and the one way each family is drawn. The screen keeps only its own modifiers and maps the selected item to its action:
+
+```swift
+GemGroupListView(list: model.list, onSelect: onSelect)
+    .searchable(text: $model.searchQuery)
+```
+
+```kotlin
+LazyColumn(state = listState) {
+    list?.let { gemGroupList(it) { item -> when (item) { is GemListItem.Currency -> onSelect(item.row) } } }
+}
+```
+
+A group title is a case of `GemListSectionTitle`. Moving a screen onto the group list deletes its `…Section` and `…List` records, its section-kind enum and both apps' title mappers for it, and its own phase switch; adding a per-screen section type or a second phase switch is the regression this replaces.
+
+### A status is a plain row, never a screen's own view
+
+A row whose value is a named outcome — a transaction's state, a delegation's state, an asset's, a collectible's or a dapp's verification — is family 1. Core returns it inside the screen's sections as a `GemListRow` that carries the outcome, never as a bare enum on the screen record for the app to turn into a row:
+
+```rust
+GemListRow::Label { title: GemListRowTitle::Status, text: GemLocalizedText::TransactionState { state }, tone, info, progress }
+GemListRow::Verification { title: GemListRowTitle::Status, status: VerificationStatus::Unverified, info: Some(GemInfoTopic::AssetStatus { status }) }
+```
+
+`Label` is an outcome drawn as text in a tone; `Verification` is one that also draws a status badge. Core decides whether the row exists (a verified asset has none, a dapp review always has one) and whether it explains itself (`info`). Each app maps a case once, in the shared files — the label in `Gemstone+Localized.swift` and `GemstoneText.kt`, the colour and badge in `Gemstone+Style.swift` and `GemstoneStyle.kt` — and every screen draws the row with `GemListRowView`, so the same outcome looks the same on every screen and its info sheet opens the way the transaction status row's does.
+
+The regression to catch: a view model that exposes a status title, text style or image mapped from a Core enum; a per-feature status view or list item; an accessory a scene draws beside a `ListItemModel` from a Core value; or a Core enum that restates a primitive's cases (a verification level beside `VerificationStatus`). Each one makes the decision per screen and per platform, and the screens drift — the same suspicious outcome ends up a tinted vector on one screen and a bundled badge on the next.
 
 ### A screen's load state is one Core state, and a failed refresh keeps what is shown
 

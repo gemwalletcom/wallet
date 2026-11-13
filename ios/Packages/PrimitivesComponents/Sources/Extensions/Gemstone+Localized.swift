@@ -32,7 +32,6 @@ import enum Gemstone.GemConnectionPermission
 import enum Gemstone.GemContactAddressField
 import struct Gemstone.GemCopy
 import enum Gemstone.GemCopyKind
-import enum Gemstone.GemCurrencySectionKind
 import enum Gemstone.GemCustomFeeCheck
 import enum Gemstone.GemDayLabel
 import enum Gemstone.GemDelegationAction
@@ -89,8 +88,6 @@ import enum Gemstone.GemTransactionsFilterSummary
 import enum Gemstone.GemTransactionStateTone
 import enum Gemstone.GemTransactionTitle
 import enum Gemstone.GemTriggerOrder
-import enum Gemstone.GemValidatorSectionKind
-import enum Gemstone.GemVerificationLevel
 import enum Gemstone.GemWalletConnectFailure
 import enum Gemstone.GemWalletImportKind
 import enum Gemstone.GemWalletSecret
@@ -101,6 +98,7 @@ import enum Gemstone.LinkType
 import enum Gemstone.PaymentStatus
 import enum Gemstone.PerpetualDirection
 import class Gemstone.PriceChangeCalculator
+import enum Gemstone.VerificationStatus
 import GemstonePrimitives
 import LocalAuthentication
 import Localization
@@ -564,10 +562,10 @@ public extension GemTransactionRowSubtitle {
     }
 }
 
-public extension VerificationStatus {
+public extension Gemstone.VerificationStatus {
     var statusTitle: String {
         switch self {
-        case .verified: ""
+        case .verified: Localized.Asset.Verification.verified
         case .unverified: Localized.Asset.Verification.unverified
         case .suspicious: Localized.Asset.Verification.suspicious
         }
@@ -804,15 +802,6 @@ extension GemRecipientErrorDisplay: @retroactive LocalizedError {
     }
 }
 
-public extension GemValidatorSectionKind {
-    var title: String {
-        switch self {
-        case .recommended: Localized.Common.recommended
-        case .active: Localized.Stake.active
-        }
-    }
-}
-
 public extension GemListSectionTitle {
     var text: String? {
         switch self {
@@ -824,6 +813,9 @@ public extension GemListSectionTitle {
         case .resources: Localized.Asset.resources
         case .socialLinks: Localized.Social.links
         case .properties: Localized.Nft.properties
+        case .recommended: Localized.Common.recommended
+        case .all: Localized.Common.all
+        case .active: Localized.Stake.active
         }
     }
 }
@@ -921,6 +913,7 @@ public extension GemListRowTitle {
         case .energy: Localized.Stake.Resource.energy
         case .bandwidth: Localized.Stake.Resource.bandwidth
         case .rewardsUnverified: Localized.Rewards.Unverified.title
+        case .unverified: Localized.Asset.Verification.unverified
         case .rewardsPending: Localized.Rewards.Pending.title
         case .warning: Localized.Common.warning
         case .suspiciousAddress: Localized.Common.suspiciousAddress
@@ -1029,7 +1022,7 @@ public extension GemInfoTitle {
         case .priceImpact: Localized.Swap.priceImpact
         case .slippage: Localized.Swap.slippage
         case .noQuote: Localized.Errors.Swap.noQuoteAvailable
-        case let .assetStatus(status): status.toPrimitives().statusTitle
+        case let .assetStatus(status): status.statusTitle
         case .accountMinimumBalance: Localized.Info.AccountMinimumBalance.title
         case .minimumAmount: Localized.Info.MinimumAmount.title
         case .stakingReservedFees: Localized.Info.Stake.Reserved.title
@@ -1074,7 +1067,7 @@ public extension GemInfoDescription {
         case .priceImpact: Localized.Info.PriceImpact.description
         case .slippage: Localized.Info.Slippage.description
         case .noQuote: Localized.Info.NoQuote.description
-        case let .assetStatus(status): status.toPrimitives().statusDescription
+        case let .assetStatus(status): status.statusDescription
         case let .accountMinimumBalance(amount): Localized.Transfer.minimumAccountBalance(amount.boldText)
         case let .minimumAmount(network, amount): Localized.Info.MinimumAmount.description(network.boldMarkdown(), amount.text().boldMarkdown())
         case let .swapMinimumAmount(provider, required, available, shortfall):
@@ -1479,15 +1472,6 @@ public extension GemNodeSubtitle {
     }
 }
 
-public extension GemCurrencySectionKind {
-    var title: String {
-        switch self {
-        case .recommended: Localized.Common.recommended
-        case .all: Localized.Common.all
-        }
-    }
-}
-
 public extension GemLockPeriod {
     var title: String {
         switch self {
@@ -1772,16 +1756,6 @@ public extension GemConnectionPermission {
         switch self {
         case .viewBalance: Localized.WalletConnect.Permissions.viewBalance
         case .approvalRequests: Localized.WalletConnect.Permissions.approvalRequests
-        }
-    }
-}
-
-public extension GemVerificationLevel {
-    var title: String {
-        switch self {
-        case .verified: Localized.Asset.Verification.verified
-        case .unverified: Localized.Asset.Verification.unverified
-        case .suspicious: Localized.Asset.Verification.suspicious
         }
     }
 }

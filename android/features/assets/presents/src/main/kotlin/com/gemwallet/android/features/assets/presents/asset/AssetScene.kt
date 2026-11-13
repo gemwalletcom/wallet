@@ -15,7 +15,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.ext.toAssetId
-import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.assets.presents.asset.components.AssetDetailRowItem
 import com.gemwallet.android.features.assets.presents.asset.components.AssetDetailsMenu
 import com.gemwallet.android.features.assets.presents.asset.components.AssetHeadItem
@@ -30,7 +29,6 @@ import com.gemwallet.android.ui.components.list_item.DaySectionedList
 import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
-import com.gemwallet.android.ui.components.list_item.property.verificationStatusItem
 import com.gemwallet.android.ui.components.list_item.rememberDateSections
 import com.gemwallet.android.ui.components.list_item.transaction.transactionsList
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
@@ -112,7 +110,6 @@ internal fun AssetScene(
                         )
                     }
                 }
-                details.verificationStatus?.let { verificationStatusItem(it.toPrimitives()) }
                 val network = details.networkDestination.navigation()
                 details.sections.forEach { section ->
                     section.title.titleRes()?.let { title -> item { SubheaderItem(title) } }

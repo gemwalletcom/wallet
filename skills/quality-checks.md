@@ -29,7 +29,7 @@ Before running checks, confirm the checkout and command directory. Use features 
 | Shared localization input change | `just localize`<br>Rebuild the affected app(s) if the generated strings are consumed by the change |
 | Core enum mapper change (`Gemstone+Localized.swift`, `Gemstone+Style.swift`, `GemstoneText.kt`, `GemstoneStyle.kt`) | `just check-mappers` |
 | New or removed `#[uniffi::export]` function | `just check-ffi` |
-| Service construction or a Core key rendered outside its mapper, or a backend crate depending on an infra crate | `just check-boundaries` |
+| Code, workflow or guidance a boundary rule reads (`python3 scripts/check-boundaries.py --list`) | `just check-boundaries` |
 | Documentation-only change | `git diff --check`<br>`just check-docs`<br>Inspect changed links, paths, commands, and instructions |
 
 Repo Checks runs `check-mappers`, `check-docs`, `check-ffi`, and `check-boundaries` on every PR. When removing an unused FFI export that Core still calls, keep its body and remove only `#[uniffi::export]`.

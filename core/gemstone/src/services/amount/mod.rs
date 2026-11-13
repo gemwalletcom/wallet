@@ -19,7 +19,8 @@ use crate::services::perpetual::GemPerpetualPositionAction;
 use crate::services::perpetual::rules as perpetual_rules;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::stake::rules as stake_rules;
-use crate::services::stake::{GemStakeAmountInput, GemStakeAmountSelection, GemStakeService, GemStakeValidatorOptions};
+use crate::models::list::GemGroupList;
+use crate::services::stake::{GemStakeAmountInput, GemStakeAmountSelection, GemStakeService};
 use crate::services::transfer::rules as transfer_rules;
 use crate::services::transfer::{GemRecipient, GemTransferData};
 use crate::services::wallet_session::GemWalletSessionService;
@@ -76,7 +77,7 @@ impl GemAmountService {
         }
     }
 
-    pub fn stake_validator_options(&self, chain: Chain, input: GemStakeAmountInput, validators: Vec<DelegationValidator>) -> GemStakeValidatorOptions {
+    pub fn stake_validator_options(&self, chain: Chain, input: GemStakeAmountInput, validators: Vec<DelegationValidator>) -> GemGroupList {
         self.stake.stake_validator_options(chain, input, validators)
     }
 

@@ -44,7 +44,11 @@ public struct ConnectionProposalSceneViewModel {
     }
 
     var proposal: GemConnectionProposal {
-        connectionProposal(status: pairingProposal.verificationStatus.toGem(), walletName: walletSelectorModel.selectedItems.first?.name ?? .empty)
+        connectionProposal(
+            proposal: pairingProposal.proposal.toGem(),
+            walletId: walletSelectorModel.selectedItems.first?.id,
+            status: pairingProposal.verificationStatus.toGem(),
+        )
     }
 
     var appName: String {
@@ -57,22 +61,6 @@ public struct ConnectionProposalSceneViewModel {
 
     var imageUrl: URL? {
         row.iconUrl.flatMap(URL.init(string:))
-    }
-
-    var verificationImage: Image {
-        proposal.verification.image
-    }
-
-    var statusText: String {
-        proposal.verification.title
-    }
-
-    var statusTextStyle: TextStyle {
-        proposal.verification.textStyle
-    }
-
-    var statusAssetImage: AssetImage {
-        .image(verificationImage)
     }
 
     var permissionsTitle: String {

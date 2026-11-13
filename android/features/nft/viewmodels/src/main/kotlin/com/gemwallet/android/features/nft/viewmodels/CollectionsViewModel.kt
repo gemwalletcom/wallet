@@ -10,7 +10,6 @@ import com.gemwallet.android.data.services.store.queries.NFTQuery
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.localization.text
@@ -37,6 +36,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemListPhase
+import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemNftList
 import uniffi.gemstone.GemNftListScreen
@@ -98,8 +98,8 @@ class CollectionsViewModel @Inject constructor(
         .map { it.items }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    val unverifiedListItem: StateFlow<ListItemModel?> = screen
-        .map { screen -> screen.unverifiedRow?.let { ListItemModel(title = context.getString(R.string.asset_verification_unverified), subtitle = it.countText) } }
+    val unverifiedRow: StateFlow<GemListRow?> = screen
+        .map { it.unverifiedRow }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     fun syncIfNeeded() {

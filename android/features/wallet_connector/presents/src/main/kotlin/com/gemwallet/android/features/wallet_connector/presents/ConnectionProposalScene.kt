@@ -1,10 +1,8 @@
 package com.gemwallet.android.features.wallet_connector.presents
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -17,24 +15,21 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.list_head.CenteredListHead
 import com.gemwallet.android.ui.components.list_head.CenteredListHeadSubtitleLayout
-import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemDefaults
 import com.gemwallet.android.ui.components.list_item.ListItemImage
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.ListItemSymbol
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
-import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
+import com.gemwallet.android.ui.components.list_item.gemListSections
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.localization.titleRes
 import com.gemwallet.android.ui.models.ButtonState
-import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.style.color
-import com.gemwallet.android.ui.style.icon
 import com.gemwallet.android.ui.theme.paddingDefault
 import uniffi.gemstone.GemConnectionProposal
 import uniffi.gemstone.GemConnectionRow
+import uniffi.gemstone.GemRowAction
 import uniffi.gemstone.GemWalletSection
 
 @Composable
@@ -42,7 +37,6 @@ internal fun ConnectionProposalScene(
     peer: GemConnectionRow,
     state: ConnectionProposalUIState,
     proposalRows: GemConnectionProposal,
-    statusListItem: ListItemModel,
     selectedWallet: com.wallet.core.primitives.Wallet?,
     availableWallets: List<com.wallet.core.primitives.Wallet>,
     availableWalletSections: List<GemWalletSection>,
@@ -76,32 +70,10 @@ internal fun ConnectionProposalScene(
                     subtitleLayout = CenteredListHeadSubtitleLayout.Vertical,
                 )
             }
-            item {
-                GemListRowView(
-                    row = proposalRows.walletRow,
-                    listPosition = ListPosition.First,
-                    modifier = if (state is ConnectionProposalUIState.Approving) {
-                        Modifier
-                    } else {
-                        Modifier.clickable { isShowSelectWallets = true }
-                    },
-                    accessory = { DataBadgeChevron() },
-                )
-            }
-            item { GemListRowView(row = proposalRows.connectionRow, listPosition = ListPosition.Middle) }
-            item {
-                ListItem(
-                    model = statusListItem,
-                    listPosition = ListPosition.Last,
-                    accessory = {
-                        Icon(
-                            imageVector = proposalRows.verification.icon(),
-                            contentDescription = null,
-                            tint = proposalRows.verification.color(),
-                        )
-                    },
-                )
-            }
+            gemListSections(
+                sections = proposalRows.sections,
+                onSelect = if (state is ConnectionProposalUIState.Approving) null else ({ action -> if (action == GemRowAction.SelectWallet) isShowSelectWallets = true }),
+            )
             item { SubheaderItem(R.string.wallet_connect_permissions_title) }
             itemsPositioned(proposalRows.permissions) { position, permission ->
                 ListItem(

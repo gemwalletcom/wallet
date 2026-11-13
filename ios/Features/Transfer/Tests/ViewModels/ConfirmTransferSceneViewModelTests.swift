@@ -431,6 +431,7 @@ struct ConfirmTransferSceneViewModelTests {
                         title: .wallet,
                         wallet: walletRow(wallet: Wallet.mock().toGem()),
                         menu: [.copy(copy: addressCopy(chain: Chain.ethereum.rawValue, address: "0x1"))],
+                        action: nil,
                     )),
                     .row(row: .network(title: .network, chain: Chain.ethereum.rawValue, name: "Ethereum")),
                 ]

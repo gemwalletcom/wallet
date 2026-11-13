@@ -8,9 +8,7 @@ import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockDelegation
 import com.gemwallet.android.testkit.mockDelegationBase
 import com.gemwallet.android.testkit.mockDelegationValidator
-import com.gemwallet.android.testkit.mockGemStakeValidatorOptions
 import com.gemwallet.android.testkit.mockGemValidatorRow
-import com.gemwallet.android.testkit.mockGemValidatorSection
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Resource
 import io.mockk.every
@@ -28,10 +26,14 @@ import org.junit.Test
 import uniffi.gemstone.DelegationValidator
 import uniffi.gemstone.GemAmountRequest
 import uniffi.gemstone.GemAmountServiceInterface
+import uniffi.gemstone.GemGroup
+import uniffi.gemstone.GemGroupList
+import uniffi.gemstone.GemListItem
+import uniffi.gemstone.GemListPhase
+import uniffi.gemstone.GemListSectionFooter
+import uniffi.gemstone.GemListSectionTitle
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemStakeAmountInput
-import uniffi.gemstone.GemStakeValidatorOptions
-import uniffi.gemstone.GemValidatorSectionKind
 import java.math.BigInteger
 
 class AmountStakeProviderTest {
@@ -48,15 +50,17 @@ class AmountStakeProviderTest {
 
     private val service = mockk<GemAmountServiceInterface> {
         every { stakeValidatorOptions(any(), any(), any()) } answers {
-            mockGemStakeValidatorOptions(
-                sections = listOf(
-                    mockGemValidatorSection(
-                        kind = GemValidatorSectionKind.ACTIVE,
-                        rows = thirdArg<List<DelegationValidator>>().map {
-                            mockGemValidatorRow(validator = it.toPrimitives().toGem(), name = it.toPrimitives().name, placeholder = it.toPrimitives().name.take(1), apr = GemLocalizedText.Apr(null))
+            GemGroupList(
+                groups = listOf(
+                    GemGroup(
+                        title = GemListSectionTitle.ACTIVE,
+                        footer = GemListSectionFooter.NONE,
+                        items = thirdArg<List<DelegationValidator>>().map {
+                            GemListItem.Validator(mockGemValidatorRow(validator = it.toPrimitives().toGem(), name = it.toPrimitives().name, placeholder = it.toPrimitives().name.take(1), apr = GemLocalizedText.Apr(null)), false)
                         },
                     ),
                 ),
+                phase = GemListPhase.Rows,
             )
         }
     }
@@ -134,5 +138,5 @@ class AmountStakeProviderTest {
 
     private suspend fun AmountStakeProvider.input(): GemStakeAmountInput = (request.filterNotNull().first() as GemAmountRequest.Stake).input
 
-    private fun GemStakeValidatorOptions.rowCount() = sections.sumOf { it.rows.size }
+    private fun GemGroupList.rowCount() = groups.sumOf { it.items.size }
 }

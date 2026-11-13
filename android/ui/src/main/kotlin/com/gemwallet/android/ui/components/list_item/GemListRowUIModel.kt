@@ -14,9 +14,11 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.components.list_item.property.icon
 import com.gemwallet.android.ui.format.rowDateFormatter
+import com.gemwallet.android.ui.localization.labelRes
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.localization.text
+import com.gemwallet.android.ui.style.badgeImage
 import com.gemwallet.android.ui.style.image
 import com.gemwallet.android.ui.style.listItemImage
 import com.gemwallet.android.ui.style.subtitleStyle
@@ -130,6 +132,16 @@ internal fun GemListRow.uiModel(context: Context): GemListRowUIModel = when (thi
             subtitleTagType = if (progress) ListItemTagType.Progress else ListItemTagType.None,
             info = info?.infoSheet(),
         ),
+    )
+
+    is GemListRow.Verification -> GemListRowUIModel.Item(
+        ListItemModel(
+            title = title.text(context),
+            subtitle = context.getString(status.labelRes()),
+            subtitleStyle = status.textStyle(),
+            info = info?.infoSheet(),
+        ),
+        trailingImage = status.badgeImage(),
     )
 
     is GemListRow.Date -> GemListRowUIModel.Item(ListItemModel(title = title.text(context), subtitle = context.rowDateFormatter().row(date, ZoneId.systemDefault(), Locale.getDefault())))

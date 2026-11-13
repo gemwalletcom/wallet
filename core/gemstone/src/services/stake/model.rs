@@ -206,24 +206,6 @@ pub enum GemStakeAmountSelection {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
-pub enum GemValidatorSectionKind {
-    Recommended,
-    Active,
-}
-
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemValidatorSection {
-    pub kind: GemValidatorSectionKind,
-    pub rows: Vec<GemValidatorRow>,
-}
-
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemStakeValidatorOptions {
-    pub sections: Vec<GemValidatorSection>,
-    pub phase: GemListPhase,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemEarnSection {
     Manage,
     Positions,

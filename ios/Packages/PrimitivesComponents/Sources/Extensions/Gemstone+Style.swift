@@ -46,12 +46,12 @@ import enum Gemstone.GemToastIcon
 import enum Gemstone.GemTransactionRowValue
 import enum Gemstone.GemTransactionStateTone
 import enum Gemstone.GemValueTone
-import enum Gemstone.GemVerificationLevel
 import enum Gemstone.GemWalletPlaceholder
 import struct Gemstone.GemWalletRow
 import enum Gemstone.GemWalletSectionKind
 import enum Gemstone.LinkType
 import enum Gemstone.PriceAlertDirection
+import enum Gemstone.VerificationStatus
 import enum Gemstone.YieldProvider
 import GemstonePrimitives
 import LocalAuthentication
@@ -177,10 +177,10 @@ public extension Primitives.PerpetualDirection {
     }
 }
 
-public extension VerificationStatus {
+public extension Gemstone.VerificationStatus {
     var statusStyle: TextStyle {
         switch self {
-        case .verified: .calloutSecondary
+        case .verified: TextStyle(font: .callout, color: Colors.green)
         case .unverified: TextStyle(font: .callout, color: Colors.orange)
         case .suspicious: TextStyle(font: .callout, color: Colors.red)
         }
@@ -188,7 +188,7 @@ public extension VerificationStatus {
 
     var statusAssetImage: AssetImage {
         switch self {
-        case .verified: AssetImage()
+        case .verified: AssetImage(placeholder: Images.Transaction.State.success)
         case .unverified: AssetImage(placeholder: Images.TokenStatus.warning)
         case .suspicious: AssetImage(placeholder: Images.TokenStatus.risk)
         }
@@ -403,31 +403,13 @@ public extension GemRewardsIntroItem {
     }
 }
 
-public extension GemVerificationLevel {
-    var image: Image {
-        switch self {
-        case .verified: Images.Transaction.State.success
-        case .unverified: Images.TokenStatus.warning
-        case .suspicious: Images.TokenStatus.risk
-        }
-    }
-
-    var textStyle: TextStyle {
-        switch self {
-        case .verified: TextStyle(font: .callout, color: Colors.green)
-        case .unverified: TextStyle(font: .callout, color: Colors.orange)
-        case .suspicious: TextStyle(font: .callout, color: Colors.red)
-        }
-    }
-}
-
 public extension GemInfoImage {
     var sheetImage: InfoSheetImage {
         switch self {
         case .logo: .image(Images.Logo.logo)
         case .networkFee: .image(Images.Info.networkFee)
         case .watchWallet: .image(Images.Wallets.watch)
-        case let .assetStatus(status): .assetImage(status.toPrimitives().statusAssetImage)
+        case let .assetStatus(status): .assetImage(status.statusAssetImage)
         case let .swapProvider(provider): .assetImage(AssetImage(placeholder: provider.toPrimitives().image))
         case let .asset(icon): .assetImage(AssetImage(icon: icon))
         case let .transactionState(icon, tone): .assetImage(AssetImage(icon: icon).badged(tone.image))

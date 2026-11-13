@@ -142,7 +142,7 @@ struct GemListRowItemTests {
             .copy(copy: addressCopy(chain: Chain.ethereum.rawValue, address: "0x1")),
             .open(title: .viewOn(name: "Etherscan"), url: "https://etherscan.io/address/0x1"),
         ]
-        guard case let .imageMenu(model, rowMenu) = GemListRow.wallet(title: .wallet, wallet: walletRow(wallet: wallet.toGem()), menu: menu).item(onInfo: nil) else {
+        guard case let .imageMenu(model, rowMenu) = GemListRow.wallet(title: .wallet, wallet: walletRow(wallet: wallet.toGem()), menu: menu, action: nil).item(onInfo: nil) else {
             Issue.record("Expected a wallet row")
             return
         }
@@ -161,6 +161,22 @@ struct GemListRowItemTests {
         #expect(model.title == Localized.Transfer.memo)
         #expect(model.subtitle == "12345")
         #expect(menu.isEmpty)
+    }
+
+    @Test
+    func aSuspiciousStatusShowsItsBadgeAndExplainsItself() {
+        var opened: GemInfoTopic?
+        let row = GemListRow.verification(title: .status, status: .suspicious, info: .assetStatus(status: .suspicious))
+        guard case let .image(model) = row.item(onInfo: { opened = $0 }) else {
+            Issue.record("Expected a status row with a badge")
+            return
+        }
+        model.infoAction?()
+        #expect(model.title == Localized.Transaction.status)
+        #expect(model.subtitle == Localized.Asset.Verification.suspicious)
+        #expect(model.subtitleStyle.color == Colors.red)
+        #expect(model.imageStyle?.assetImage == AssetImage(placeholder: Images.TokenStatus.risk))
+        #expect(opened == .assetStatus(status: .suspicious))
     }
 
     @Test

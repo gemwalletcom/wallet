@@ -28,7 +28,6 @@ import com.gemwallet.android.ui.theme.pendingColor
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PerpetualDirection
-import com.wallet.core.primitives.VerificationStatus
 import uniffi.gemstone.GemAcquireOption
 import uniffi.gemstone.GemAmountField
 import uniffi.gemstone.GemAmountKeyboard
@@ -59,7 +58,6 @@ import uniffi.gemstone.GemSwapProgressStep
 import uniffi.gemstone.GemToastIcon
 import uniffi.gemstone.GemTransactionStateTone
 import uniffi.gemstone.GemValueTone
-import uniffi.gemstone.GemVerificationLevel
 import uniffi.gemstone.GemWalletPlaceholder
 import uniffi.gemstone.GemWalletRow
 
@@ -223,13 +221,20 @@ fun PerpetualDirection.textStyle(): ListItemTextStyle = when (this) {
     PerpetualDirection.Long -> ListItemTextStyle.Positive
 }
 
-fun VerificationStatus.textStyle(): ListItemTextStyle = when (this) {
-    VerificationStatus.Suspicious -> ListItemTextStyle.Negative
-
-    VerificationStatus.Unverified -> ListItemTextStyle.Warning
-
-    VerificationStatus.Verified -> ListItemTextStyle.Secondary
+fun uniffi.gemstone.VerificationStatus.textStyle(): ListItemTextStyle = when (this) {
+    uniffi.gemstone.VerificationStatus.VERIFIED -> ListItemTextStyle.Positive
+    uniffi.gemstone.VerificationStatus.UNVERIFIED -> ListItemTextStyle.Warning
+    uniffi.gemstone.VerificationStatus.SUSPICIOUS -> ListItemTextStyle.Negative
 }
+
+fun uniffi.gemstone.VerificationStatus.badgeImage(): ListItemImage = ListItemImage.Drawable(
+    when (this) {
+        uniffi.gemstone.VerificationStatus.VERIFIED -> R.drawable.transaction_state_success
+        uniffi.gemstone.VerificationStatus.UNVERIFIED -> R.drawable.unverified
+        uniffi.gemstone.VerificationStatus.SUSPICIOUS -> R.drawable.suspicious
+    },
+    style = ListItemImageStyle.Avatar,
+)
 
 fun GemFiatTransactionBadge.textStyle(): ListItemTextStyle = when (this) {
     GemFiatTransactionBadge.PENDING -> ListItemTextStyle.Warning
@@ -254,25 +259,6 @@ fun GemRewardsIntroItem.emoji(): String = when (this) {
     GemRewardsIntroItem.INVITE_FRIENDS -> "\uD83D\uDC65"
     GemRewardsIntroItem.EARN_POINTS -> "\uD83D\uDC8E"
     GemRewardsIntroItem.GET_REWARDS -> "\uD83C\uDF89"
-}
-
-@Composable
-fun GemVerificationLevel.icon(): ImageVector = when (this) {
-    GemVerificationLevel.VERIFIED -> AppIcons.Verified
-    GemVerificationLevel.UNVERIFIED, GemVerificationLevel.SUSPICIOUS -> AppIcons.Warning
-}
-
-fun GemVerificationLevel.textStyle(): ListItemTextStyle = when (this) {
-    GemVerificationLevel.VERIFIED -> ListItemTextStyle.Positive
-    GemVerificationLevel.UNVERIFIED -> ListItemTextStyle.Warning
-    GemVerificationLevel.SUSPICIOUS -> ListItemTextStyle.Negative
-}
-
-@Composable
-fun GemVerificationLevel.color(): Color = when (this) {
-    GemVerificationLevel.VERIFIED -> MaterialTheme.colorScheme.tertiary
-    GemVerificationLevel.UNVERIFIED -> pendingColor
-    GemVerificationLevel.SUSPICIOUS -> MaterialTheme.colorScheme.error
 }
 
 fun GemEmptyStateImage.image(): EmptyStateImage = when (this) {
@@ -331,21 +317,11 @@ fun GemBannerIcon.image(): ListItemImage = when (this) {
 
 fun GemInfoImage.listItemImage(): ListItemImage? = when (this) {
     GemInfoImage.Logo -> ListItemImage.Drawable(R.drawable.ic_splash, style = ListItemImageStyle.Avatar)
-
     GemInfoImage.NetworkFee -> ListItemImage.Drawable(R.drawable.ic_network_fee, style = ListItemImageStyle.Avatar)
-
     GemInfoImage.WatchWallet -> ListItemImage.Drawable(R.drawable.watch_badge, style = ListItemImageStyle.Avatar)
-
-    is GemInfoImage.AssetStatus -> when (status) {
-        uniffi.gemstone.VerificationStatus.VERIFIED -> null
-        uniffi.gemstone.VerificationStatus.UNVERIFIED -> ListItemImage.Drawable(R.drawable.unverified, style = ListItemImageStyle.Avatar)
-        uniffi.gemstone.VerificationStatus.SUSPICIOUS -> ListItemImage.Drawable(R.drawable.suspicious, style = ListItemImageStyle.Avatar)
-    }
-
+    is GemInfoImage.AssetStatus -> status.badgeImage()
     is GemInfoImage.SwapProvider -> provider.listItemImage()
-
     is GemInfoImage.Asset -> ListItemImage.Asset(icon)
-
     is GemInfoImage.TransactionState -> ListItemImage.Asset(icon)
 }
 
@@ -387,12 +363,6 @@ fun GemValueTone.buttonColor(): Color = when (this) {
     GemValueTone.POSITIVE -> MaterialTheme.colorScheme.tertiary
     GemValueTone.NEGATIVE -> MaterialTheme.colorScheme.error
     GemValueTone.PLAIN, GemValueTone.NEUTRAL, GemValueTone.WARNING -> MaterialTheme.colorScheme.primary
-}
-
-fun VerificationStatus.badgeIconRes(): Int? = when (this) {
-    VerificationStatus.Verified -> null
-    VerificationStatus.Unverified -> R.drawable.unverified
-    VerificationStatus.Suspicious -> R.drawable.suspicious
 }
 
 fun GemWalletRow.listItemImage(): ListItemImage = walletListItemImage(imageUrl, placeholder)

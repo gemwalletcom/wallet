@@ -225,3 +225,42 @@ exclude = ["**/testkit/**", "**/testkit.rs"]
 trait = '\b(?:pub trait \w+Repository|pub\(crate\) trait Repository)\b[^{;]*\{'
 verbs = ["get", "add", "set", "update", "delete"]
 message = "{name} does not start with a repository verb"
+
+[[rule]]
+id = "android-sizes-are-named"
+doc = "android/skills/code-style.md § Core Rules"
+why = "A dp size is a named val in paddings.kt or its component, so one spacing reads the same everywhere and changes in one place."
+kind = "forbid"
+files = "apps"
+within = ["android/**"]
+pattern = '^(?!\s*(?:private |internal )?val \w+(?:: Dp)?\s*=\s*\d+(?:\.\d+)?f?\.dp\s*$).*?\b(\d+(?:\.\d+)?f?\.dp)\b'
+message = "writes {name} inline; use a paddings.kt size or name it"
+examples = { violates = [".padding(16.dp)", "Modifier.height(0.dp).fillMaxWidth()", "val padding = 16.dp + 4.dp"], passes = ["val space16 = 16.dp", "private val progressStrokeWidth = 1.5.dp", ".padding(space16)", "size.dp"] }
+
+[[rule]]
+id = "actions-are-pinned"
+doc = "skills/security.md § Non-Negotiable Rules"
+why = "A tag can be moved to other code after review; a commit SHA cannot."
+kind = "forbid"
+files = [".github/**/*.yml", ".github/**/*.yaml"]
+pattern = '\buses:\s*(?!\./)([^\s@]+)@(?![0-9a-f]{40}\b)'
+message = "pins {name} to a tag or branch instead of a commit SHA"
+examples = { violates = ["uses: actions/checkout@v4", "- uses: docker/login-action@main"], passes = ["uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0", "uses: ./.github/actions/setup-rust-ci", "uses: ./.github/workflows/publish-containers.yml"] }
+
+[[rule]]
+id = "root-guidance-budget"
+doc = ".agents/skills/guidance-refresh/SKILL.md § Budgets and Format"
+why = "Every agent loads the root AGENTS.md on every task."
+kind = "words"
+files = ["AGENTS.md"]
+under = 800
+message = "holds {name} words; keep it under 800"
+
+[[rule]]
+id = "always-loaded-guidance-budget"
+doc = ".agents/skills/guidance-refresh/SKILL.md § Budgets and Format"
+why = "Every agent loads the root AGENTS.md and the three always-applied skills on every task."
+kind = "words"
+files = ["AGENTS.md", "skills/task-workflow.md", "skills/cross-platform-awareness.md", "skills/engineering-principles.md"]
+under = 3000
+message = "hold {name} words together; keep them under 3,000"

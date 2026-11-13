@@ -50,6 +50,7 @@ import com.gemwallet.android.ui.theme.smallIconSize
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemListSection
+import uniffi.gemstone.GemListSectionFooter
 import uniffi.gemstone.GemRowAction
 
 fun LazyListScope.gemListSections(sections: List<GemListSection>, onSelectAddress: ((String) -> Unit)? = null, onSelect: ((GemRowAction) -> Unit)? = null) {
@@ -61,12 +62,12 @@ fun LazyListScope.gemListSections(sections: List<GemListSection>, onSelectAddres
             item(key = "section:$index") { Spacer16() }
         }
         itemsPositioned(section.rows) { position, row -> GemListRowView(row = row, listPosition = position, onSelect = onSelect, onSelectAddress = onSelectAddress) }
-        gemListSectionFooter(section, key = "footer:$index")
+        gemListSectionFooter(section.footer, key = "footer:$index")
     }
 }
 
-fun LazyListScope.gemListSectionFooter(section: GemListSection, key: Any) {
-    val text = section.footer.textRes() ?: return
+fun LazyListScope.gemListSectionFooter(footer: GemListSectionFooter, key: Any) {
+    val text = footer.textRes() ?: return
     item(key = key) {
         Text(
             modifier = Modifier.padding(horizontal = paddingLarge),
@@ -131,7 +132,7 @@ fun GemListRowView(
                 minHeight = ListItemDefaults.plainMinHeight,
                 accessory = when {
                     row.trailingImage != null -> {
-                        { DataBadgeChevron(isShowChevron = false) { ListItemImageView(image = row.trailingImage, size = smallIconSize) } }
+                        { DataBadgeChevron(isShowChevron = selects) { ListItemImageView(image = row.trailingImage, size = smallIconSize) } }
                     }
 
                     openAddress != null || row.url != null || row.opensAnotherScreen || selects -> {
@@ -174,7 +175,7 @@ fun GemListRowView(
             chain = row.chain,
             value = row.name,
             listPosition = listPosition,
-            onOpenNetwork = onSelect?.let { select -> { select(GemRowAction.Network) } },
+            onOpenNetwork = selectAction?.let { selected -> { onSelect(selected) } },
         )
 
         is GemListRowUIModel.Toggle -> ListItem(

@@ -55,7 +55,6 @@ public final class GemAssetDetailsServiceMock: GemAssetDetailsServiceProtocol, @
             sections: [],
             title: input.assetData.asset.name,
             options: (input.assetData.account.address.isEmpty ? [] : [.viewAddress(link: Gemstone.BlockExplorerLink(name: "Explorer", link: "https://gemwallet.com/\(input.assetData.account.address)"))]) + [.share],
-            verificationStatus: .none,
             networkDestination: .none,
             shareUrl: "https://gemwallet.com",
             swapPair: assetPair ?? GemSwapPairSuggestion(payAssetId: input.assetData.asset.id, receiveAssetId: nil),

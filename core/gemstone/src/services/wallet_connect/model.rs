@@ -1,11 +1,14 @@
 use crate::application::GemConnectionRow;
 use crate::formatted_number::GemValueTone;
-use crate::models::list::{GemListRow, GemListRowTitle};
+use crate::models::list::{GemListRow, GemListRowTitle, GemListSection, GemListSectionTitle, GemRowAction};
+use crate::services::wallet::model::wallet_row;
+use crate::services::wallet_connect::sign_message::network_row;
+use crate::services::wallet_session::rules::can_choose_wallet;
 use crate::models::state::GemListPhase;
 use crate::services::error_text::GemErrorText;
 use crate::services::localization::GemLocalizedText;
 use crate::services::transfer::GemTransferData;
-use primitives::{Account, Asset, Chain, SimulationResult, Wallet, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionVerificationStatus};
+use primitives::{Account, Asset, Chain, SimulationResult, VerificationStatus, Wallet, WalletConnection, WalletId, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionVerificationStatus};
 
 use crate::message::sign_type::SignMessage;
 use gem_wallet_connect::WalletConnectResponseType;
@@ -114,7 +117,6 @@ impl GemWalletConnectOutcome {
 pub struct GemSessionProposal {
     pub proposal: WalletConnectionSessionProposal,
     pub verification_status: WalletConnectionVerificationStatus,
-    pub can_choose_wallet: bool,
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
@@ -157,19 +159,31 @@ pub enum GemWalletConnectTransactionAction {
     Send,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
-pub enum GemVerificationLevel {
-    Verified,
-    Unverified,
-    Suspicious,
+fn verification_status(status: WalletConnectionVerificationStatus) -> VerificationStatus {
+    match status {
+        WalletConnectionVerificationStatus::Verified => VerificationStatus::Verified,
+        WalletConnectionVerificationStatus::Unknown => VerificationStatus::Unverified,
+        WalletConnectionVerificationStatus::Invalid | WalletConnectionVerificationStatus::Malicious => VerificationStatus::Suspicious,
+    }
 }
 
-#[uniffi::export]
-pub fn verification_level(status: WalletConnectionVerificationStatus) -> GemVerificationLevel {
-    match status {
-        WalletConnectionVerificationStatus::Verified => GemVerificationLevel::Verified,
-        WalletConnectionVerificationStatus::Unknown => GemVerificationLevel::Unverified,
-        WalletConnectionVerificationStatus::Invalid | WalletConnectionVerificationStatus::Malicious => GemVerificationLevel::Suspicious,
+fn verification_row(status: WalletConnectionVerificationStatus) -> GemListRow {
+    GemListRow::Verification {
+        title: GemListRowTitle::Status,
+        status: verification_status(status),
+        info: None,
+    }
+}
+
+fn review_wallet_row(proposal: &WalletConnectionSessionProposal, wallet_id: Option<WalletId>) -> GemListRow {
+    let wallet = wallet_id
+        .and_then(|wallet_id| proposal.wallets.iter().find(|wallet| wallet.id == wallet_id))
+        .unwrap_or(&proposal.default_wallet);
+    GemListRow::Wallet {
+        title: GemListRowTitle::Wallet,
+        wallet: wallet_row(wallet.clone()),
+        menu: vec![],
+        action: can_choose_wallet(&proposal.wallets).then_some(GemRowAction::SelectWallet),
     }
 }
 
@@ -181,29 +195,32 @@ pub enum GemConnectionPermission {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemConnectionProposal {
-    pub wallet_row: GemListRow,
-    pub connection_row: GemListRow,
-    pub verification: GemVerificationLevel,
+    pub sections: Vec<GemListSection>,
     pub permissions: Vec<GemConnectionPermission>,
 }
 
 #[uniffi::export]
-pub fn connection_proposal(status: WalletConnectionVerificationStatus, wallet_name: String) -> GemConnectionProposal {
+pub fn connection_proposal(proposal: WalletConnectionSessionProposal, wallet_id: Option<WalletId>, status: WalletConnectionVerificationStatus) -> GemConnectionProposal {
+    let connection = GemListRow::Label {
+        title: GemListRowTitle::Connection,
+        text: GemLocalizedText::RowTitle { title: GemListRowTitle::WalletConnect },
+        tone: GemValueTone::Plain,
+        info: None,
+        progress: false,
+    };
     GemConnectionProposal {
-        wallet_row: GemListRow::Text {
-            title: GemListRowTitle::Wallet,
-            value: wallet_name,
-        },
-        connection_row: GemListRow::Label {
-            title: GemListRowTitle::Connection,
-            text: GemLocalizedText::RowTitle { title: GemListRowTitle::WalletConnect },
-            tone: GemValueTone::Plain,
-            info: None,
-            progress: false,
-        },
-        verification: verification_level(status),
+        sections: vec![GemListSection::new(
+            GemListSectionTitle::None,
+            vec![review_wallet_row(&proposal, wallet_id), connection, verification_row(status)],
+        )],
         permissions: vec![GemConnectionPermission::ViewBalance, GemConnectionPermission::ApprovalRequests],
     }
+}
+
+#[uniffi::export]
+pub fn authentication_sections(proposal: WalletConnectionSessionProposal, wallet_id: Option<WalletId>, chain: Option<Chain>, status: WalletConnectionVerificationStatus) -> Vec<GemListSection> {
+    let rows = [Some(review_wallet_row(&proposal, wallet_id)), chain.map(network_row), Some(verification_row(status))];
+    vec![GemListSection::new(GemListSectionTitle::None, rows.into_iter().flatten().collect())]
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
@@ -234,27 +251,75 @@ pub struct GemConnectionDetails {
 #[cfg(test)]
 mod verification_tests {
     use super::*;
+    use primitives::ApplicationMetadata;
 
-    #[test]
-    fn test_an_invalid_origin_reads_as_suspicious_and_an_unknown_one_only_as_unverified() {
-        assert_eq!(verification_level(WalletConnectionVerificationStatus::Verified), GemVerificationLevel::Verified);
-        assert_eq!(verification_level(WalletConnectionVerificationStatus::Unknown), GemVerificationLevel::Unverified);
-        assert_eq!(verification_level(WalletConnectionVerificationStatus::Invalid), GemVerificationLevel::Suspicious);
-        assert_eq!(verification_level(WalletConnectionVerificationStatus::Malicious), GemVerificationLevel::Suspicious);
+    fn proposal(wallets: Vec<Wallet>) -> WalletConnectionSessionProposal {
+        WalletConnectionSessionProposal {
+            default_wallet: Wallet::mock(),
+            wallets,
+            metadata: ApplicationMetadata::mock(),
+        }
+    }
+
+    fn status_of(row: &GemListRow) -> Option<VerificationStatus> {
+        match row {
+            GemListRow::Verification {
+                title: GemListRowTitle::Status,
+                status,
+                info: None,
+            } => Some(*status),
+            _ => None,
+        }
+    }
+
+    fn wallet_action(row: &GemListRow) -> Option<GemRowAction> {
+        match row {
+            GemListRow::Wallet { action, .. } => action.clone(),
+            _ => None,
+        }
     }
 
     #[test]
-    fn test_a_proposal_names_the_chosen_wallet_and_asks_for_balance_and_approvals() {
-        let proposal = connection_proposal(WalletConnectionVerificationStatus::Malicious, "Main".to_string());
+    fn test_an_invalid_origin_reads_as_suspicious_and_an_unknown_one_only_as_unverified() {
+        let status = |status| status_of(&verification_row(status));
 
-        assert_eq!(
-            proposal.wallet_row,
-            GemListRow::Text {
-                title: GemListRowTitle::Wallet,
-                value: "Main".to_string()
-            }
-        );
-        assert_eq!(proposal.verification, GemVerificationLevel::Suspicious);
-        assert_eq!(proposal.permissions, vec![GemConnectionPermission::ViewBalance, GemConnectionPermission::ApprovalRequests]);
+        assert_eq!(status(WalletConnectionVerificationStatus::Verified), Some(VerificationStatus::Verified));
+        assert_eq!(status(WalletConnectionVerificationStatus::Unknown), Some(VerificationStatus::Unverified));
+        assert_eq!(status(WalletConnectionVerificationStatus::Invalid), Some(VerificationStatus::Suspicious));
+        assert_eq!(status(WalletConnectionVerificationStatus::Malicious), Some(VerificationStatus::Suspicious));
+    }
+
+    #[test]
+    fn test_a_proposal_shows_the_wallet_the_connection_and_its_status_and_asks_for_balance_and_approvals() {
+        let single = connection_proposal(proposal(vec![Wallet::mock()]), None, WalletConnectionVerificationStatus::Malicious);
+        let rows = &single.sections[0].rows;
+
+        assert_eq!(single.sections.len(), 1);
+        assert_eq!(rows.len(), 3);
+        assert_eq!(wallet_action(&rows[0]), None);
+        assert_eq!(rows[1].action(), None);
+        assert_eq!(status_of(&rows[2]), Some(VerificationStatus::Suspicious));
+        assert_eq!(single.permissions, vec![GemConnectionPermission::ViewBalance, GemConnectionPermission::ApprovalRequests]);
+
+        let several = connection_proposal(proposal(vec![Wallet::mock(), Wallet::mock()]), Some(WalletId::mock()), WalletConnectionVerificationStatus::Verified);
+        assert_eq!(several.sections[0].rows[0].action(), Some(GemRowAction::SelectWallet));
+    }
+
+    #[test]
+    fn test_a_sign_in_shows_the_network_only_once_the_account_is_known() {
+        let wallets = vec![Wallet::mock(), Wallet::mock()];
+        let with_chain = authentication_sections(proposal(wallets.clone()), Some(WalletId::mock()), Some(Chain::Ethereum), WalletConnectionVerificationStatus::Unknown);
+        let without_chain = authentication_sections(proposal(wallets), None, None, WalletConnectionVerificationStatus::Unknown);
+
+        let rows = &with_chain[0].rows;
+        assert_eq!(rows.len(), 3);
+        assert_eq!(rows[0].action(), Some(GemRowAction::SelectWallet));
+        assert!(match &rows[1] {
+            GemListRow::Network { chain, .. } => *chain == Chain::Ethereum,
+            _ => false,
+        });
+        assert_eq!(status_of(&rows[2]), Some(VerificationStatus::Unverified));
+        assert_eq!(without_chain[0].rows.len(), 2);
+        assert_eq!(status_of(&without_chain[0].rows[1]), Some(VerificationStatus::Unverified));
     }
 }

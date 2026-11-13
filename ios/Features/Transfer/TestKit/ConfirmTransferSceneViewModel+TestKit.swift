@@ -35,6 +35,7 @@ public extension ConfirmTransferSceneViewModel {
                     .copy(copy: addressCopy(chain: data.chain.rawValue, address: wallet.accounts[0].address)),
                     .open(title: .viewOn(name: explorer.name), url: explorer.link),
                 ],
+                action: nil,
             ))
             let recipient: GemConfirmRowContent = .recipient(row: .mock(
                 title: .confirmDestination(destination: .recipient(name: addressName?.name, address: data.recipient.address)),

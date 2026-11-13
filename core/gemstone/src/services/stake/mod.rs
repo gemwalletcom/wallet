@@ -25,10 +25,11 @@ use crate::services::wallet_session::GemWalletSessionService;
 
 pub use model::{
     GemDelegationAction, GemDelegationActionItem, GemDelegationActionTarget, GemDelegationAmountInput, GemDelegationDestination, GemDelegationDetails, GemDelegationRecord, GemDelegationStatus, GemEarnInput, GemEarnView, GemStakeAction,
-    GemStakeActionItem, GemStakeActionKind, GemStakeAmountInput, GemStakeAmountSelection, GemStakeDelegationItem, GemStakeDestination, GemStakeInput, GemStakeSection, GemStakeValidatorOptions, GemStakeViewState, GemValidatorRow,
-    GemValidatorSection,
+    GemStakeActionItem, GemStakeActionKind, GemStakeAmountInput, GemStakeAmountSelection, GemStakeDelegationItem, GemStakeDestination, GemStakeInput, GemStakeSection, GemStakeViewState, GemValidatorRow,
 };
 pub use store::GemStakeStore;
+
+use crate::models::list::{GemGroup, GemGroupList, GemListItem};
 
 #[derive(uniffi::Object)]
 pub struct GemStakeService {
@@ -77,19 +78,25 @@ impl GemStakeService {
         self.preferences.get_currency()
     }
 
-    pub fn stake_validator_options(&self, chain: Chain, input: GemStakeAmountInput, validators: Vec<DelegationValidator>) -> GemStakeValidatorOptions {
+    pub fn stake_validator_options(&self, chain: Chain, input: GemStakeAmountInput, validators: Vec<DelegationValidator>) -> GemGroupList {
         let options = rules::validator_options(chain, &input, validators);
-        let with_explorer = |row: GemValidatorRow| GemValidatorRow {
-            explorer: rules::validator_explorer_address(&row.validator).and_then(|address| self.explorer.get_validator_url(row.validator.chain, address)),
-            ..row
+        let with_explorer = |item: GemListItem| match item {
+            GemListItem::Validator { row, is_selected } => GemListItem::Validator {
+                row: GemValidatorRow {
+                    explorer: rules::validator_explorer_address(&row.validator).and_then(|address| self.explorer.get_validator_url(row.validator.chain, address)),
+                    ..row
+                },
+                is_selected,
+            },
+            item => item,
         };
-        GemStakeValidatorOptions {
-            sections: options
-                .sections
+        GemGroupList {
+            groups: options
+                .groups
                 .into_iter()
-                .map(|section| GemValidatorSection {
-                    rows: section.rows.into_iter().map(with_explorer).collect(),
-                    ..section
+                .map(|group| GemGroup {
+                    items: group.items.into_iter().map(with_explorer).collect(),
+                    ..group
                 })
                 .collect(),
             phase: options.phase,

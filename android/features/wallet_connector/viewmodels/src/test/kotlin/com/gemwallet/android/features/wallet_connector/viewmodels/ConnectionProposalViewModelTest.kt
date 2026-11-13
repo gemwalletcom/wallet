@@ -13,7 +13,6 @@ import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.testkit.mockWalletConnectionSessionProposal
 import com.gemwallet.android.testkit.mockWalletId
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.list_item.ListItemTextStyle
 import com.gemwallet.android.ui.models.ButtonState
 import com.wallet.core.primitives.Chain
 import io.mockk.coEvery
@@ -31,10 +30,13 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
+import uniffi.gemstone.GemListRow
+import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemSessionProposal
 import uniffi.gemstone.GemWalletConnectException
 import uniffi.gemstone.GemWalletConnectRejectionReason
 import uniffi.gemstone.GemWalletConnectServiceInterface
+import uniffi.gemstone.VerificationStatus
 import uniffi.gemstone.WalletConnectionVerificationStatus
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -62,7 +64,6 @@ class ConnectionProposalViewModelTest {
         coEvery { prepareSessionProposal(any(), any(), any(), any(), any()) } returns GemSessionProposal(
             proposal = mockWalletConnectionSessionProposal(defaultWallet = main, wallets = listOf(main, secondary), metadata = mockApplicationMetadata(name = "Uniswap")).toGem(),
             verificationStatus = WalletConnectionVerificationStatus.VERIFIED,
-            canChooseWallet = true,
         )
     }
 
@@ -97,23 +98,21 @@ class ConnectionProposalViewModelTest {
     @Test
     fun `the status row shows the proposal's verification level`() = runTest(dispatcher) {
         listOf(
-            WalletConnectionVerificationStatus.VERIFIED to ("Verified" to ListItemTextStyle.Positive),
-            WalletConnectionVerificationStatus.UNKNOWN to ("Unverified" to ListItemTextStyle.Warning),
-            WalletConnectionVerificationStatus.INVALID to ("Suspicious" to ListItemTextStyle.Negative),
-            WalletConnectionVerificationStatus.MALICIOUS to ("Suspicious" to ListItemTextStyle.Negative),
+            WalletConnectionVerificationStatus.VERIFIED to VerificationStatus.VERIFIED,
+            WalletConnectionVerificationStatus.UNKNOWN to VerificationStatus.UNVERIFIED,
+            WalletConnectionVerificationStatus.INVALID to VerificationStatus.SUSPICIOUS,
+            WalletConnectionVerificationStatus.MALICIOUS to VerificationStatus.SUSPICIOUS,
         ).forEach { (status, expected) ->
             val service = service()
             coEvery { service.prepareSessionProposal(any(), any(), any(), any(), any()) } returns GemSessionProposal(
                 proposal = mockWalletConnectionSessionProposal(defaultWallet = main, wallets = listOf(main), metadata = mockApplicationMetadata(name = "Uniswap")).toGem(),
                 verificationStatus = status,
-                canChooseWallet = true,
             )
 
             val model = viewModel(service = service)
             advanceUntilIdle()
 
-            assertEquals(expected.first, model.statusListItem.value.subtitle)
-            assertEquals(expected.second, model.statusListItem.value.subtitleStyle)
+            assertEquals(GemListRow.Verification(GemListRowTitle.STATUS, expected, null), model.proposalRows.value?.sections?.first()?.rows?.last())
         }
     }
 

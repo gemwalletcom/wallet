@@ -13,13 +13,10 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.wallet_connector.viewmodels.models.ReviewTexts
 import com.gemwallet.android.features.wallet_connector.viewmodels.models.WalletConnectReviewModel
-import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItemModel
-import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
-import com.gemwallet.android.ui.style.textStyle
 import com.wallet.core.primitives.Account
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.Wallet
@@ -38,17 +35,19 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemConnectionRow
 import uniffi.gemstone.GemListRow
+import uniffi.gemstone.GemListSection
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemSignMessageServiceInterface
-import uniffi.gemstone.GemVerificationLevel
 import uniffi.gemstone.GemWalletConnectAuthentication
 import uniffi.gemstone.GemWalletConnectException
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.GemWalletSection
 import uniffi.gemstone.SignDigestType
 import uniffi.gemstone.SignMessage
+import uniffi.gemstone.WalletConnectionSessionProposal
+import uniffi.gemstone.WalletConnectionVerificationStatus
 import uniffi.gemstone.applicationConnectionRow
-import uniffi.gemstone.verificationLevel
+import uniffi.gemstone.authenticationSections
 import uniffi.gemstone.walletSections
 import javax.inject.Inject
 
@@ -113,6 +112,7 @@ class AuthRequestViewModel @Inject constructor(
 
         _state.update {
             current.copy(
+                sections = reviewSections(current.proposal, wallet, approval, current.verificationStatus),
                 selectedWallet = wallet,
                 approval = approval,
             )
@@ -205,23 +205,22 @@ class AuthRequestViewModel @Inject constructor(
         )
         val selectedWallet = prepared.proposal.defaultWallet.toPrimitives()
         val availableWallets = prepared.proposal.wallets.map { it.toPrimitives() }
-        val verification = verificationLevel(prepared.verificationStatus)
+        val approval = buildApproval(request, selectedWallet)
         return AuthRequestUIState.Request(
             texts = ReviewTexts(context),
             peer = applicationConnectionRow(prepared.proposal.metadata),
-            verification = verification,
-            statusListItem = ListItemModel(
-                title = context.getString(R.string.transaction_status),
-                subtitle = context.getString(verification.stringRes()),
-                subtitleStyle = verification.textStyle(),
-            ),
+            sections = reviewSections(prepared.proposal, selectedWallet, approval, prepared.verificationStatus),
+            proposal = prepared.proposal,
+            verificationStatus = prepared.verificationStatus,
             availableWallets = availableWallets,
             availableWalletSections = walletSections(availableWallets.map { it.listItem.toGem() }, null),
-            canChooseWallet = prepared.canChooseWallet,
             selectedWallet = selectedWallet,
-            approval = buildApproval(request, selectedWallet),
+            approval = approval,
         )
     }
+
+    private fun reviewSections(proposal: WalletConnectionSessionProposal, wallet: Wallet, approval: AuthApproval, status: WalletConnectionVerificationStatus): List<GemListSection> =
+        authenticationSections(proposal, wallet.toGem().id, approval.chain.string, status)
 
     private fun buildApproval(request: GemWalletConnectAuthentication, wallet: Wallet): AuthApproval {
         val authMessage = approveWalletConnectAuthentication.authMessage(request, wallet)
@@ -280,17 +279,13 @@ sealed interface AuthRequestUIState {
         AuthRequestUIState,
         WalletConnectReviewModel {
         val peer: GemConnectionRow
-        val verification: GemVerificationLevel
-        val statusListItem: ListItemModel
+        val sections: List<GemListSection>
         val availableWallets: List<Wallet>
         val availableWalletSections: List<GemWalletSection>
-        val canChooseWallet: Boolean
         val selectedWallet: Wallet
         val approval: AuthApproval
         val texts: ReviewTexts
 
-        val appListItem: ListItemModel get() = ListItemModel(title = texts.app, subtitle = peer.title)
-        val walletListItem: ListItemModel get() = ListItemModel(title = texts.wallet, subtitle = selectedWallet.name)
         override val viewFullMessageListItem: ListItemModel get() = ListItemModel(title = texts.viewFullMessage)
 
         override val icon: String? get() = peer.iconUrl
@@ -305,11 +300,11 @@ sealed interface AuthRequestUIState {
 
     data class Request(
         override val peer: GemConnectionRow,
-        override val verification: GemVerificationLevel,
-        override val statusListItem: ListItemModel,
+        override val sections: List<GemListSection>,
+        val proposal: WalletConnectionSessionProposal,
+        val verificationStatus: WalletConnectionVerificationStatus,
         override val availableWallets: List<Wallet>,
         override val availableWalletSections: List<GemWalletSection>,
-        override val canChooseWallet: Boolean,
         override val selectedWallet: Wallet,
         override val approval: AuthApproval,
         override val texts: ReviewTexts,
@@ -317,11 +312,9 @@ sealed interface AuthRequestUIState {
 
     data class Approving(private val request: Request) : Content {
         override val peer: GemConnectionRow get() = request.peer
-        override val verification: GemVerificationLevel get() = request.verification
-        override val statusListItem: ListItemModel get() = request.statusListItem
+        override val sections: List<GemListSection> get() = request.sections
         override val availableWallets: List<Wallet> get() = request.availableWallets
         override val availableWalletSections: List<GemWalletSection> get() = request.availableWalletSections
-        override val canChooseWallet: Boolean get() = request.canChooseWallet
         override val selectedWallet: Wallet get() = request.selectedWallet
         override val approval: AuthApproval get() = request.approval
         override val texts: ReviewTexts get() = request.texts

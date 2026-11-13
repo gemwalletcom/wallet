@@ -537,6 +537,7 @@ mod tests {
             | GemListRow::Identifier { title, .. }
             | GemListRow::Duration { title, .. }
             | GemListRow::Label { title, .. }
+            | GemListRow::Verification { title, .. }
             | GemListRow::Date { title, .. }
             | GemListRow::Network { title, .. }
             | GemListRow::Url { title, .. }
