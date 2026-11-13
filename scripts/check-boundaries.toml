@@ -238,6 +238,16 @@ message = "writes {name} inline; use a paddings.kt size or name it"
 examples = { violates = [".padding(16.dp)", "Modifier.height(0.dp).fillMaxWidth()", "val padding = 16.dp + 4.dp"], passes = ["val space16 = 16.dp", "private val progressStrokeWidth = 1.5.dp", ".padding(space16)", "size.dp"] }
 
 [[rule]]
+id = "android-imports-are-used"
+doc = "android/skills/code-style.md § Core Rules"
+why = "ktlint has no unused-import rule and Kotlin does not warn, so an import a change stops using stays until a check rejects it."
+kind = "unused_imports"
+files = ["android/**/*.kt", "android/**/*.kts"]
+exclude = ["**/build/**", "**/generated/**", "**/GeneratedMocks.kt", "**/RemoteTypeMappers.kt", "**/GemConstants.kt"]
+implicit = ['getValue', 'setValue', 'provideDelegate', 'invoke', 'iterator', 'next', 'hasNext', 'contains', 'compareTo', 'get', 'set', 'plus', 'minus', 'times', 'div', 'rem', 'not', 'unaryPlus', 'unaryMinus', 'inc', 'dec', 'rangeTo', 'rangeUntil', 'plusAssign', 'minusAssign', 'timesAssign', 'divAssign', 'remAssign', 'component\d+']
+message = "imports {name}, which the file never uses"
+
+[[rule]]
 id = "actions-are-pinned"
 doc = "skills/security.md § Non-Negotiable Rules"
 why = "A tag can be moved to other code after review; a commit SHA cannot."
