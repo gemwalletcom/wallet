@@ -11,7 +11,7 @@ struct SignMessagePayloadSection: View {
     let secondaryRows: [GemListRow]
     let messageText: String
     let onSelectAddress: (String) -> Void
-    let onViewDetails: () -> Void
+    let onViewDetails: @MainActor @Sendable () -> Void
 
     var body: some View {
         if primaryRows.isNotEmpty || secondaryRows.isNotEmpty {
