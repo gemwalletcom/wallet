@@ -124,14 +124,6 @@ wallets_title = बटुए
 # Receive
 
 receive_warning = यह आपका पता है — केवल %@ ही %@ नेटवर्क पर भेजें।
-receive_lightning_create_invoice = इनवॉइस बनाएं
-receive_lightning_change_amount = राशि बदलें
-receive_lightning_amount_hint = भेजने वाले को राशि चुनने देने के लिए खाली छोड़ें।
-receive_lightning_any_amount = कोई भी राशि
-receive_lightning_invoice_hint = किसी भी Lightning वॉलेट से इस इनवॉइस का भुगतान करें। %@ तक मान्य।
-receive_lightning_payment_received = भुगतान प्राप्त हुआ
-receive_lightning_unavailable = Lightning उपलब्ध नहीं है। बाद में फिर से कोशिश करें।
-receive_lightning_unlock_required = Lightning से प्राप्त करने के लिए वॉलेट अनलॉक करें।
 
 # Buy
 
@@ -155,7 +147,6 @@ transfer_recipient_title = प्राप्तकर्ता
 transfer_balance = शेष राशि: %@
 transfer_title = स्थानांतरण
 transfer_recipient_address_field = पता या नाम
-transfer_recipient_lightning_invoice = Lightning इनवॉइस
 transfer_send_title = भेजना
 transfer_insufficient_balance = अपर्याप्त %@ शेष।
 transfer_insufficient_network_fee_balance = नेटवर्क शुल्क को कवर करने के लिए अपर्याप्त %@ शेष राशि।
@@ -318,7 +309,6 @@ transaction_status_expired = समय सीमा समाप्त
 asset_balances = शेष राशि
 asset_balances_available = उपलब्ध
 asset_price = कीमत
-asset_lightning_instant_payments = तुरंत भुगतान
 asset_market_cap = मार्केट कैप
 asset_trading_volume = ट्रेडिंग वॉल्यूम (24 घंटे)
 asset_total_supply = कुल आपूर्ति

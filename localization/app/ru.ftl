@@ -124,14 +124,6 @@ wallets_title = Кошельки
 # Receive
 
 receive_warning = Это ваш адрес — отправляйте только %@ в сети %@.
-receive_lightning_create_invoice = Создать счёт
-receive_lightning_change_amount = Изменить сумму
-receive_lightning_amount_hint = Оставьте пустым, чтобы сумму выбрал отправитель.
-receive_lightning_any_amount = Любая сумма
-receive_lightning_invoice_hint = Оплатите этот счёт из любого кошелька Lightning. Действителен до %@.
-receive_lightning_payment_received = Платёж получен
-receive_lightning_unavailable = Lightning недоступен. Попробуйте позже.
-receive_lightning_unlock_required = Разблокируйте кошелёк, чтобы получать через Lightning.
 
 # Buy
 
@@ -155,7 +147,6 @@ transfer_recipient_title = Получатель
 transfer_balance = Баланс: %@
 transfer_title = Перевод
 transfer_recipient_address_field = Адрес или имя
-transfer_recipient_lightning_invoice = Счёт Lightning
 transfer_send_title = Отправить
 transfer_insufficient_balance = Недостаточный баланс %@.
 transfer_insufficient_network_fee_balance = Недостаточно %@ для оплаты комиссии сети.
@@ -318,7 +309,6 @@ transaction_status_expired = Истекло
 asset_balances = Балансы
 asset_balances_available = Доступно
 asset_price = Цена
-asset_lightning_instant_payments = Мгновенные платежи
 asset_market_cap = Капитализация
 asset_trading_volume = Объём торгов (24ч)
 asset_total_supply = Всего

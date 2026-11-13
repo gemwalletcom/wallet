@@ -124,14 +124,6 @@ wallets_title = ウォレット
 # Receive
 
 receive_warning = このアドレスには、%@ のみを %@ ネットワークで送金してください。
-receive_lightning_create_invoice = 請求書を作成
-receive_lightning_change_amount = 金額を変更
-receive_lightning_amount_hint = 空欄にすると送金者が金額を選べます。
-receive_lightning_any_amount = 任意の金額
-receive_lightning_invoice_hint = 任意のLightningウォレットからこの請求書を支払ってください。有効期限：%@
-receive_lightning_payment_received = 支払いを受け取りました
-receive_lightning_unavailable = Lightningは現在利用できません。後でもう一度お試しください。
-receive_lightning_unlock_required = Lightningで受け取るにはウォレットのロックを解除してください。
 
 # Buy
 
@@ -155,7 +147,6 @@ transfer_recipient_title = 受取人
 transfer_balance = 残高: %@
 transfer_title = 送金
 transfer_recipient_address_field = アドレスまたはドメイン
-transfer_recipient_lightning_invoice = Lightning請求書
 transfer_send_title = 送る
 transfer_insufficient_balance = %@の残高が不足しています。
 transfer_insufficient_network_fee_balance = ネットワーク手数料を支払うための%@残高が不足しています。
@@ -318,7 +309,6 @@ transaction_status_expired = 期限切れ
 asset_balances = 残高
 asset_balances_available = 利用可能
 asset_price = 価格
-asset_lightning_instant_payments = 即時支払い
 asset_market_cap = 時価総額
 asset_trading_volume = 取引量（24時間）
 asset_total_supply = 総供給量

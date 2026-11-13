@@ -124,14 +124,6 @@ wallets_title = Portfele
 # Receive
 
 receive_warning = To jest Twój adres — wysyłaj tylko %@ na %@ sieć.
-receive_lightning_create_invoice = Utwórz fakturę
-receive_lightning_change_amount = Zmień kwotę
-receive_lightning_amount_hint = Pozostaw puste, aby nadawca wybrał kwotę.
-receive_lightning_any_amount = Dowolna kwota
-receive_lightning_invoice_hint = Zapłać tę fakturę z dowolnego portfela Lightning. Ważna do %@.
-receive_lightning_payment_received = Płatność otrzymana
-receive_lightning_unavailable = Lightning jest niedostępny. Spróbuj ponownie później.
-receive_lightning_unlock_required = Odblokuj portfel, aby odbierać przez Lightning.
 
 # Buy
 
@@ -155,7 +147,6 @@ transfer_recipient_title = Odbiorca
 transfer_balance = Saldo: %@
 transfer_title = Transfer
 transfer_recipient_address_field = Adres lub nazwa
-transfer_recipient_lightning_invoice = Faktura Lightning
 transfer_send_title = Wysłać
 transfer_insufficient_balance = Niewystarczające %@ saldo.
 transfer_insufficient_network_fee_balance = Niewystarczające saldo %@ na pokrycie opłat sieciowych.
@@ -318,7 +309,6 @@ transaction_status_expired = Wygasło
 asset_balances = Salda
 asset_balances_available = Dostępne
 asset_price = Cena
-asset_lightning_instant_payments = Natychmiastowe płatności
 asset_market_cap = Kapitalizacja rynkowa
 asset_trading_volume = Wolumen obrotu (24h)
 asset_total_supply = Całkowita podaż

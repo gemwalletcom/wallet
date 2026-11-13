@@ -230,22 +230,6 @@ wallets_title = Wallets
 
 # Receive screen network warning. First %@ is the asset symbol, second %@ is the network name.
 receive_warning = This is your address — send only %@ on the %@ network.
-# Lightning receive screen button that creates a payment invoice for the entered amount.
-receive_lightning_create_invoice = Create Invoice
-# Lightning receive screen button that returns from the invoice to the amount input.
-receive_lightning_change_amount = Change Amount
-# Lightning receive screen hint under the optional amount input.
-receive_lightning_amount_hint = Leave empty to let the sender choose the amount.
-# Lightning receive screen amount label for an invoice without a fixed amount.
-receive_lightning_any_amount = Any amount
-# Lightning receive screen note under the invoice QR code. %@ is the expiry date and time.
-receive_lightning_invoice_hint = Pay this invoice from any Lightning wallet. Valid until %@.
-# Lightning receive screen confirmation once the invoice has been paid.
-receive_lightning_payment_received = Payment received
-# Lightning receive screen error when the Lightning wallet cannot be opened.
-receive_lightning_unavailable = Lightning is unavailable. Try again later.
-# Lightning receive screen message when the wallet is locked and the user dismissed the unlock prompt.
-receive_lightning_unlock_required = Unlock the wallet to receive with Lightning.
 
 # Buy
 
@@ -286,8 +270,6 @@ transfer_balance = Balance: %@
 transfer_title = Transfer
 # Used in Transfer, Send, Stake, and confirmation flows for the recipient address field label.
 transfer_recipient_address_field = Address or Name
-# Recipient screen input label when sending with Bitcoin Lightning, which takes a payment invoice instead of an address.
-transfer_recipient_lightning_invoice = Lightning Invoice
 # Used in Transfer, Send, Stake, and confirmation flows for the send title.
 transfer_send_title = Send
 # Used in Transfer, Send, Stake, and confirmation flows for the insufficient balance label. Contains 1 string placeholder.
@@ -590,8 +572,6 @@ asset_balances = Balances
 asset_balances_available = Available
 # Used in asset detail and asset verification screens for the price label.
 asset_price = Price
-# Subtitle of the Bitcoin Lightning row on the Bitcoin asset screen.
-asset_lightning_instant_payments = Instant payments
 # Used in asset detail and asset verification screens for the market cap label.
 asset_market_cap = Market Cap
 # Used in asset detail and asset verification screens for the trading volume label.

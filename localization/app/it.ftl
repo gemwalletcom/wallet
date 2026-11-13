@@ -124,14 +124,6 @@ wallets_title = Portafogli
 # Receive
 
 receive_warning = Questo è il tuo indirizzo: invia solo %@ sulla rete %@.
-receive_lightning_create_invoice = Crea fattura
-receive_lightning_change_amount = Modifica importo
-receive_lightning_amount_hint = Lascia vuoto per far scegliere l'importo al mittente.
-receive_lightning_any_amount = Importo libero
-receive_lightning_invoice_hint = Paga questa fattura da qualsiasi wallet Lightning. Valida fino al %@.
-receive_lightning_payment_received = Pagamento ricevuto
-receive_lightning_unavailable = Lightning non è disponibile. Riprova più tardi.
-receive_lightning_unlock_required = Sblocca il wallet per ricevere con Lightning.
 
 # Buy
 
@@ -155,7 +147,6 @@ transfer_recipient_title = Destinatario
 transfer_balance = Saldo: %@
 transfer_title = Trasferimento
 transfer_recipient_address_field = Indirizzo o nome
-transfer_recipient_lightning_invoice = Fattura Lightning
 transfer_send_title = Invia
 transfer_insufficient_balance = Saldo %@ insufficiente.
 transfer_insufficient_network_fee_balance = Saldo %@ insufficiente per coprire le tariffe di rete.
@@ -318,7 +309,6 @@ transaction_status_expired = Scaduto
 asset_balances = Saldi
 asset_balances_available = Disponibile
 asset_price = Prezzo
-asset_lightning_instant_payments = Pagamenti istantanei
 asset_market_cap = Capitalizzazione di mercato
 asset_trading_volume = Volume degli scambi (24 ore)
 asset_total_supply = Fornitura totale

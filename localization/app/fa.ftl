@@ -124,14 +124,6 @@ wallets_title = کیف پول ها
 # Receive
 
 receive_warning = این آدرس شماست — فقط ارسال %@ روی %@ شبکه.
-receive_lightning_create_invoice = ایجاد فاکتور
-receive_lightning_change_amount = تغییر مبلغ
-receive_lightning_amount_hint = خالی بگذارید تا فرستنده مبلغ را انتخاب کند.
-receive_lightning_any_amount = هر مبلغی
-receive_lightning_invoice_hint = این فاکتور را از هر کیف پول Lightning پرداخت کنید. معتبر تا %@.
-receive_lightning_payment_received = پرداخت دریافت شد
-receive_lightning_unavailable = Lightning در دسترس نیست. بعداً دوباره تلاش کنید.
-receive_lightning_unlock_required = برای دریافت با Lightning قفل کیف پول را باز کنید.
 
 # Buy
 
@@ -155,7 +147,6 @@ transfer_recipient_title = گیرنده
 transfer_balance = موجودی: %@
 transfer_title = انتقال
 transfer_recipient_address_field = نشانی یا نام
-transfer_recipient_lightning_invoice = فاکتور Lightning
 transfer_send_title = بفرست
 transfer_insufficient_balance = موجودی %@ ناکافی است.
 transfer_insufficient_network_fee_balance = موجودی %@ برای پوشش کارمزد شبکه ناکافی است.
@@ -318,7 +309,6 @@ transaction_status_expired = منقضی شده
 asset_balances = موجودی ها
 asset_balances_available = در دسترس
 asset_price = قيمت
-asset_lightning_instant_payments = پرداخت‌های فوری
 asset_market_cap = ارزش بازار
 asset_trading_volume = حجم معاملات (24 ساعت)
 asset_total_supply = عرضه کل

@@ -124,14 +124,6 @@ wallets_title = Dompet
 # Receive
 
 receive_warning = Ini alamat Anda — kirim saja %@ pada %@ jaringan.
-receive_lightning_create_invoice = Buat Invoice
-receive_lightning_change_amount = Ubah Jumlah
-receive_lightning_amount_hint = Biarkan kosong agar pengirim memilih jumlahnya.
-receive_lightning_any_amount = Jumlah bebas
-receive_lightning_invoice_hint = Bayar invoice ini dari dompet Lightning mana pun. Berlaku hingga %@.
-receive_lightning_payment_received = Pembayaran diterima
-receive_lightning_unavailable = Lightning tidak tersedia. Coba lagi nanti.
-receive_lightning_unlock_required = Buka kunci dompet untuk menerima dengan Lightning.
 
 # Buy
 
@@ -155,7 +147,6 @@ transfer_recipient_title = Penerima
 transfer_balance = Saldo: %@
 transfer_title = Pemindahan
 transfer_recipient_address_field = Alamat atau Nama
-transfer_recipient_lightning_invoice = Invoice Lightning
 transfer_send_title = Kirim
 transfer_insufficient_balance = Saldo %@ tidak cukup
 transfer_insufficient_network_fee_balance = Saldo %@ tidak cukup untuk biaya jaringan
@@ -318,7 +309,6 @@ transaction_status_expired = Kedaluwarsa
 asset_balances = Saldo
 asset_balances_available = Tersedia
 asset_price = Harga
-asset_lightning_instant_payments = Pembayaran instan
 asset_market_cap = Kapitalisasi Pasar
 asset_trading_volume = Volume Perdagangan (24h)
 asset_total_supply = Total Suplai

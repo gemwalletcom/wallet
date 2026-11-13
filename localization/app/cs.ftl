@@ -124,14 +124,6 @@ wallets_title = Peněženky
 # Receive
 
 receive_warning = Toto je vaše adresa – pouze pro odeslání %@ na %@ síť.
-receive_lightning_create_invoice = Vytvořit fakturu
-receive_lightning_change_amount = Změnit částku
-receive_lightning_amount_hint = Nechte prázdné, aby částku zvolil odesílatel.
-receive_lightning_any_amount = Libovolná částka
-receive_lightning_invoice_hint = Zaplaťte tuto fakturu z libovolné peněženky Lightning. Platí do %@.
-receive_lightning_payment_received = Platba přijata
-receive_lightning_unavailable = Lightning není dostupný. Zkuste to později.
-receive_lightning_unlock_required = Pro příjem přes Lightning odemkněte peněženku.
 
 # Buy
 
@@ -155,7 +147,6 @@ transfer_recipient_title = Příjemce
 transfer_balance = Zůstatek: %@
 transfer_title = Převod
 transfer_recipient_address_field = Adresa nebo Jméno
-transfer_recipient_lightning_invoice = Faktura Lightning
 transfer_send_title = Poslat
 transfer_insufficient_balance = Nedostatečný zůstatek %@.
 transfer_insufficient_network_fee_balance = Nedostatečný zůstatek %@ na pokrytí síťových poplatků.
@@ -318,7 +309,6 @@ transaction_status_expired = Vypršelo
 asset_balances = Zůstatky
 asset_balances_available = K dispozici
 asset_price = Cena
-asset_lightning_instant_payments = Okamžité platby
 asset_market_cap = Tržní kapitalizace
 asset_trading_volume = Objem obchodování (24 hodin)
 asset_total_supply = Celková nabídka

@@ -124,14 +124,6 @@ wallets_title = Ví
 # Receive
 
 receive_warning = Đây là địa chỉ của bạn — chỉ gửi %@ trên mạng %@.
-receive_lightning_create_invoice = Tạo hóa đơn
-receive_lightning_change_amount = Đổi số tiền
-receive_lightning_amount_hint = Để trống để người gửi tự chọn số tiền.
-receive_lightning_any_amount = Số tiền bất kỳ
-receive_lightning_invoice_hint = Thanh toán hóa đơn này từ bất kỳ ví Lightning nào. Có hiệu lực đến %@.
-receive_lightning_payment_received = Đã nhận thanh toán
-receive_lightning_unavailable = Lightning hiện không khả dụng. Hãy thử lại sau.
-receive_lightning_unlock_required = Mở khóa ví để nhận bằng Lightning.
 
 # Buy
 
@@ -155,7 +147,6 @@ transfer_recipient_title = Người nhận
 transfer_balance = Số dư: %@
 transfer_title = Chuyển khoản
 transfer_recipient_address_field = Địa chỉ hoặc Tên
-transfer_recipient_lightning_invoice = Hóa đơn Lightning
 transfer_send_title = Gửi
 transfer_insufficient_balance = Số dư %@ không đủ.
 transfer_insufficient_network_fee_balance = Số dư %@ không đủ để trả phí mạng.
@@ -318,7 +309,6 @@ transaction_status_expired = Đã hết hạn
 asset_balances = Số dư
 asset_balances_available = Có sẵn
 asset_price = Giá
-asset_lightning_instant_payments = Thanh toán tức thì
 asset_market_cap = Vốn hóa thị trường
 asset_trading_volume = Khối lượng giao dịch (24h)
 asset_total_supply = Tổng cung

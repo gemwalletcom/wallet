@@ -124,14 +124,6 @@ wallets_title = Mga Wallet
 # Receive
 
 receive_warning = Ito ang iyong address — ipadala lamang %@ sa %@ network.
-receive_lightning_create_invoice = Gumawa ng Invoice
-receive_lightning_change_amount = Palitan ang Halaga
-receive_lightning_amount_hint = Iwanang blangko para ang nagpapadala ang pumili ng halaga.
-receive_lightning_any_amount = Anumang halaga
-receive_lightning_invoice_hint = Bayaran ang invoice na ito mula sa anumang Lightning wallet. Valid hanggang %@.
-receive_lightning_payment_received = Natanggap ang bayad
-receive_lightning_unavailable = Hindi available ang Lightning. Subukan ulit mamaya.
-receive_lightning_unlock_required = I-unlock ang wallet para tumanggap gamit ang Lightning.
 
 # Buy
 
@@ -155,7 +147,6 @@ transfer_recipient_title = Tatanggap
 transfer_balance = Balanse: %@
 transfer_title = Paglipat
 transfer_recipient_address_field = Address o Pangalan
-transfer_recipient_lightning_invoice = Lightning Invoice
 transfer_send_title = Ipadala
 transfer_insufficient_balance = Hindi sapat na %@ balanse.
 transfer_insufficient_network_fee_balance = Hindi sapat na %@ na balanse upang mabayaran ang mga bayarin sa network.
@@ -318,7 +309,6 @@ transaction_status_expired = Nag-expire
 asset_balances = Mga balanse
 asset_balances_available = Available
 asset_price = Presyo
-asset_lightning_instant_payments = Instant na bayad
 asset_market_cap = Market Cap
 asset_trading_volume = Dami ng pangangalakal (24h)
 asset_total_supply = Kabuuang Supply
