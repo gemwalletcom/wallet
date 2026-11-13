@@ -115,7 +115,7 @@ mod tests {
         assert_eq!(instruction.program_id, meteora_dlmm_program());
         assert_eq!(
             instruction.data,
-            [hex::decode("414b3f4ceb5b5b88").unwrap().to_vec(), 1_000_000_000u64.to_le_bytes().to_vec(), 100_000_000u64.to_le_bytes().to_vec(), vec![0; 4]].concat()
+            [hex::decode("414b3f4ceb5b5b88").unwrap(), 1_000_000_000u64.to_le_bytes().to_vec(), 100_000_000u64.to_le_bytes().to_vec(), vec![0; 4]].concat()
         );
         assert_eq!(
             accounts,

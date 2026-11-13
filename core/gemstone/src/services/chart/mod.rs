@@ -288,7 +288,7 @@ mod tests {
         let service = service_with_assets(Arc::new(TestAlienProvider::with_json(200, "{}")), vec![stored]);
         let rate = |asset_id| block_on(service.load(asset_id, GemChartRequest::Rate { currency: Currency::EUR }));
 
-        assert_eq!(rate(asset.id.clone()).has_candles, Some(true));
+        assert_eq!(rate(asset.id).has_candles, Some(true));
         assert_eq!(rate(AssetId::from_chain(primitives::Chain::Bitcoin)).has_candles, None, "an asset the app has not stored waits for the chart load");
     }
 

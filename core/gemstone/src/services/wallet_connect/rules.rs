@@ -580,7 +580,7 @@ mod tests {
                     chains: None,
                     accounts: vec!["bip122:000000000019d6689c085ae165831e93:bc1qaddress".to_string()],
                     methods: vec![],
-                    events: events.iter().map(|event| event.to_string()).collect(),
+                    events: events.iter().map(ToString::to_string).collect(),
                 },
             )])
         };

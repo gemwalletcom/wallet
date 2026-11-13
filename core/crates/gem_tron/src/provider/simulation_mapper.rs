@@ -282,7 +282,7 @@ mod tests {
                 TronContract::WithdrawExpireUnfreeze { owner: TronAddress::mock() },
                 Some(8_000_000),
                 Some(8_000_000),
-                vec![SimulationPayloadField::standard(SimulationPayloadFieldKind::Action, "stakeWithdraw", SimulationPayloadFieldType::Text, primary.clone())],
+                vec![SimulationPayloadField::standard(SimulationPayloadFieldKind::Action, "stakeWithdraw", SimulationPayloadFieldType::Text, primary)],
             ),
         ];
         for (contract, withdrawal, value, payload) in cases {

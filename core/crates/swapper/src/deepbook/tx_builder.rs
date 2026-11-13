@@ -195,7 +195,7 @@ mod tests {
             wallet_address: TEST_SUI_WALLET.into(),
             destination_address: TEST_SUI_WALLET.into(),
             value: BigUint::from(200_000_000u64),
-            ..mock_quote(usdc.clone().into(), sui.clone().into())
+            ..mock_quote(usdc.into(), sui.clone().into())
         });
         let usdc_coins = OwnedCoins::new(SUI_USDC_TOKEN_ID.to_string(), vec![], 500_000_000);
         let route = Route {

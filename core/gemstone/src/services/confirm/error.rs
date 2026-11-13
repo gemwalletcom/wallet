@@ -555,7 +555,7 @@ mod tests {
 
         let with_requirement = GemConfirmError::InsufficientNetworkFee {
             asset: asset.clone(),
-            requirement: Some(requirement.clone()),
+            requirement: Some(requirement),
         };
         let without = GemConfirmError::InsufficientNetworkFee { asset: asset.clone(), requirement: None };
         assert!(

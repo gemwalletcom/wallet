@@ -286,10 +286,7 @@ mod tests {
             ..GemBannerContext::mock()
         };
         assert_eq!(events(&visible_banners(vec![], &unfunded)), vec![BannerEvent::AccountActivation]);
-        let funded = GemBannerContext {
-            has_available_balance: true,
-            ..unfunded.clone()
-        };
+        let funded = GemBannerContext { has_available_balance: true, ..unfunded };
         assert!(visible_banners(vec![], &funded).is_empty());
 
         let perpetuals = vec![Banner::mock(BannerEvent::TradePerpetuals, BannerState::Active)];
@@ -404,10 +401,10 @@ mod tests {
         assert_eq!(visible_banners(stored.clone(), &GemBannerContext::wallet(wallet.clone(), true)), vec![onboarding(&wallet.id, BannerState::Active)]);
 
         let asset = GemBannerContext {
-            wallet: Some(wallet.clone()),
+            wallet: Some(wallet),
             ..GemBannerContext::mock()
         };
-        assert_eq!(visible_banners(stored.clone(), &asset), vec![stake.clone()]);
+        assert_eq!(visible_banners(stored.clone(), &asset), vec![stake]);
 
         let no_wallet = GemBannerContext {
             wallet: None,

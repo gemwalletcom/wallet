@@ -868,7 +868,7 @@ mod tests {
         });
         assert_eq!(generic.confirm_rows(), vec![GemConfirmRow::App, GemConfirmRow::Sender, GemConfirmRow::Network]);
 
-        let mut sends = generic.clone();
+        let mut sends = generic;
         if let TransactionInputType::Generic { extra, .. } = &mut sends.input_type {
             extra.transaction_type = TransactionType::Transfer;
         }

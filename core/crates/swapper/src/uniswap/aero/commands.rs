@@ -202,7 +202,7 @@ mod tests {
                 SwapCommands {
                     input: arc_usdc.clone(),
                     output: eurc,
-                    ..usdc_to_cbbtc.clone()
+                    ..usdc_to_cbbtc
                 },
                 vec![command(TRANSFER_COMMAND, (arc_usdc.address, referral, fee)), exact_in(arc_usdc.address, 99_500_000, false, 120_000, TEST_RECIPIENT)],
             ),
