@@ -6,21 +6,16 @@ use libfuzzer_sys::fuzz_target;
 
 fuzz_target!(|input: (u8, u8, &str)| {
     let (sign_type, chain, data) = input;
-    let sign_type = match sign_type % 9 {
+    let sign_type = match sign_type % 7 {
         0 => SignDigestType::Eip191,
         1 => SignDigestType::Eip712,
         2 => SignDigestType::Base58,
         3 => SignDigestType::SuiPersonal,
         4 => SignDigestType::Siwe,
         5 => SignDigestType::TonPersonal,
-        6 => SignDigestType::TronPersonal,
-        7 => SignDigestType::BitcoinEcdsa,
-        _ => SignDigestType::BitcoinBip322,
+        _ => SignDigestType::TronPersonal,
     };
-    let Ok(message) = decode_sign_message(core_fuzz::chain(chain), sign_type, data.to_string()) else {
-        return;
-    };
-    let signer = MessageSigner::new(message);
+    let signer = MessageSigner::new(decode_sign_message(core_fuzz::chain(chain), sign_type, data.to_string()));
     let _ = signer.preview();
     let _ = signer.plain_preview();
 });

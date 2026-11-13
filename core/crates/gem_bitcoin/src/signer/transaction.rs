@@ -1,5 +1,3 @@
-use std::ops::Deref;
-
 use bitcoin::{
     PublicKey, ScriptBuf, Sequence, Transaction, TxIn as TransactionInput, TxOut as TransactionOutput, Witness,
     absolute::LockTime,
@@ -19,21 +17,7 @@ use crate::signer::{
 };
 
 /// Wipes the secp256k1 `SecretKey` on drop (it is not `ZeroizeOnDrop`), covering early-return paths.
-pub(crate) struct ZeroizedSecretKey(SecretKey);
-
-impl ZeroizedSecretKey {
-    pub(crate) fn new(chain: BitcoinChain, private_key: &[u8]) -> Result<Self, SignerError> {
-        SecretKey::from_slice(private_key).map(Self).map_err(|_| SignerError::invalid_input(format!("invalid {} private key", chain.get_chain())))
-    }
-}
-
-impl Deref for ZeroizedSecretKey {
-    type Target = SecretKey;
-
-    fn deref(&self) -> &SecretKey {
-        &self.0
-    }
-}
+struct ZeroizedSecretKey(SecretKey);
 
 impl Drop for ZeroizedSecretKey {
     fn drop(&mut self) {
@@ -48,8 +32,8 @@ pub struct PlanSigningKey {
 
 impl PlanSigningKey {
     pub fn new(chain: BitcoinChain, plan: &SpendPlan, private_key: &[u8]) -> Result<Self, SignerError> {
-        let secret_key = ZeroizedSecretKey::new(chain, private_key)?;
-        let public_key = PublicKey::new(Secp256k1PublicKey::from_secret_key(&Secp256k1::signing_only(), &secret_key));
+        let secret_key = ZeroizedSecretKey(SecretKey::from_slice(private_key).map_err(|_| SignerError::invalid_input(format!("invalid {} private key", chain.get_chain())))?);
+        let public_key = PublicKey::new(Secp256k1PublicKey::from_secret_key(&Secp256k1::signing_only(), &secret_key.0));
         validate_chain_input_types(chain, plan)?;
         validate_public_key(chain, plan, &public_key)?;
         validate_plan_amounts(chain, plan)?;
@@ -57,7 +41,7 @@ impl PlanSigningKey {
     }
 
     pub fn secret_key(&self) -> &SecretKey {
-        &self.secret_key
+        &self.secret_key.0
     }
 
     pub fn public_key(&self) -> &PublicKey {

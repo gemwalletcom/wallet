@@ -19,7 +19,7 @@ Review cadence: weekly, and immediately when a referenced Core mapping changes.
 
 | Chain | Type | Address history | Simulation | WalletConnect | Swap | Stake | NFT | DeFi |
 | --- | --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| Bitcoin | Bitcoin | ✅ | ➖ | ✅ | ✅ | ➖ | ➖ | ➖ |
+| Bitcoin | Bitcoin | ✅ | ➖ | 🏗️ | ✅ | ➖ | ➖ | ➖ |
 | Bitcoin Cash | Bitcoin | ✅ | ➖ | ➖ | ✅ | ➖ | ➖ | ➖ |
 | Litecoin | Bitcoin | ✅ | ➖ | ➖ | ✅ | ➖ | ➖ | ➖ |
 | Ethereum | EVM | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
@@ -85,13 +85,13 @@ The Cetus package-version guard is not a stub: it turns one on-chain failure int
 
 The status is based on both the chains returned by Core configuration and the methods accepted by the Core request dispatcher. Method-set links open the chain-specific handler.
 
-In this section, `➖` means WalletConnect does not publish an ecosystem method-set reference for that Gem chain; it is not an implementation TODO.
+In this section, `➖` means WalletConnect does not publish an ecosystem method-set reference for that Gem chain; it is not an implementation TODO. Bitcoin is `🏗️` because WalletConnect does publish a `bip122` method set and Core does not implement it.
 
 ### Supported method sets
 
 | Method set | Namespace | Core-supported methods | Published methods missing in Core | WalletConnect reference |
 | --- | --- | --- | --- | --- |
-| [Bitcoin](../core/crates/gem_wallet_connect/src/request_handler/bitcoin.rs) | `bip122` | `getAccountAddresses`<br>`signMessage` (ECDSA, BIP-322)<br>`signPsbt`<br>`sendTransfer` | ➖ | <sub>[spec](https://docs.reown.com/advanced/multichain/rpc-reference/bitcoin-rpc)</sub> |
+| Bitcoin (TODO) | `bip122` | None | `getAccountAddresses`<br>`signMessage`<br>`signPsbt`<br>`sendTransfer` | <sub>[spec](https://docs.walletconnect.network/wallet-sdk/chain-support/bitcoin)</sub> |
 | [EVM](../core/crates/gem_wallet_connect/src/request_handler/ethereum.rs) | `eip155` | `eth_chainId`<br>`personal_sign`<br>`eth_signTypedData`<br>`eth_signTypedData_v4`<br>`eth_signTransaction`<br>`eth_sendTransaction`<br>`wallet_addEthereumChain`<br>`wallet_switchEthereumChain` | `eth_sign`<br>`eth_sendRawTransaction` | <sub>[spec](https://docs.walletconnect.network/wallet-sdk/chain-support/evm)</sub> |
 | [Solana](../core/crates/gem_wallet_connect/src/request_handler/solana.rs) | `solana` | `solana_signMessage`<br>`solana_signTransaction`<br>`solana_signAndSendTransaction`<br>`solana_signAllTransactions` | `solana_getAccounts`<br>`solana_requestAccounts` | <sub>[spec](https://docs.walletconnect.network/wallet-sdk/chain-support/solana)</sub> |
 | [Sui](../core/crates/gem_wallet_connect/src/request_handler/sui.rs) | `sui` | `sui_getAccounts`<br>`sui_signPersonalMessage`<br>`sui_signTransaction`<br>`sui_signAndExecuteTransaction` | ➖ | <sub>[spec](https://docs.walletconnect.network/wallet-sdk/chain-support/sui)</sub> |
@@ -104,7 +104,7 @@ Core's session-wide method list, consumed by both platform approval paths and by
 
 | Chain | Status | Namespace | Supported methods |
 | --- | :---: | --- | --- |
-| Bitcoin | ✅ | `bip122` | [Bitcoin (4)](../core/crates/gem_wallet_connect/src/request_handler/bitcoin.rs) |
+| Bitcoin | 🏗️ | `bip122` | ❌ (0/4 published methods) |
 | Bitcoin Cash | ➖ | ➖ | ➖ |
 | Litecoin | ➖ | ➖ | ➖ |
 | Ethereum | ✅ | `eip155` | [EVM (8)](../core/crates/gem_wallet_connect/src/request_handler/ethereum.rs) |

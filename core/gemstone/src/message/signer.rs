@@ -1,4 +1,3 @@
-use gem_bitcoin::signer::message as bitcoin_message;
 use gem_encoding::{decode_base58, encode_base64};
 use gem_evm::eip712::hash_typed_data;
 use gem_evm::message::eip191_hash_message;
@@ -7,7 +6,6 @@ use gem_solana::{signer::SolanaChainSigner, siws::SiwsMessage};
 use gem_sui::{signer as sui_signer, types::personal_message_signing_digest};
 use gem_ton::address::Address as TonAddress;
 use gem_ton::signer::{TonSignDataResponse, TonSignMessageData, TonSignResult, TonSigner};
-use primitives::hex;
 use primitives::hex::encode_with_0x;
 use primitives::unix_seconds;
 use signer::Signer;
@@ -83,8 +81,6 @@ impl MessageSigner {
                 Ok(digest.to_vec())
             }
             SignDigestType::Base58 => decode_base58(&self.message.data).map_err(|e| GemstoneError::from(e.to_string())),
-            SignDigestType::BitcoinEcdsa => Ok(bitcoin_message::message_hash(&self.message.data).to_vec()),
-            SignDigestType::BitcoinBip322 => Ok(bitcoin_message::bip322_message_hash(&self.message.data).to_vec()),
         }
     }
 }
@@ -93,7 +89,7 @@ impl MessageSigner {
     pub fn preview(&self) -> Result<MessagePreview, GemstoneError> {
         match self.message.sign_type {
             SignDigestType::Eip191 | SignDigestType::Siwe => Ok(siwe_or_text_preview(self.message.chain, &self.message.data)),
-            SignDigestType::SuiPersonal | SignDigestType::TronPersonal | SignDigestType::BitcoinEcdsa | SignDigestType::BitcoinBip322 => Ok(MessagePreview::Text(self.data_as_utf8_or_hex())),
+            SignDigestType::SuiPersonal | SignDigestType::TronPersonal => Ok(MessagePreview::Text(self.data_as_utf8_or_hex())),
             SignDigestType::TonPersonal => {
                 let string = self.data_as_utf8()?;
                 let Ok(ton_data) = TonSignMessageData::from_bytes(string.as_bytes()) else {
@@ -123,7 +119,7 @@ impl MessageSigner {
 
     pub fn plain_preview(&self) -> String {
         match self.message.sign_type {
-            SignDigestType::SuiPersonal | SignDigestType::Eip191 | SignDigestType::TronPersonal | SignDigestType::BitcoinEcdsa | SignDigestType::BitcoinBip322 => self.data_as_utf8_or_hex(),
+            SignDigestType::SuiPersonal | SignDigestType::Eip191 | SignDigestType::TronPersonal => self.data_as_utf8_or_hex(),
             SignDigestType::Base58 => match self.preview() {
                 Ok(MessagePreview::Text(preview)) => preview,
                 _ => "".to_string(),
@@ -157,8 +153,6 @@ impl MessageSigner {
                 let signature = Signer::sign_ethereum_digest(&hash, &private_key)?;
                 Ok(encode_with_0x(&signature))
             }
-            SignDigestType::BitcoinEcdsa => Ok(hex::encode(bitcoin_message::sign_message_ecdsa(&self.message.data, &private_key)?)),
-            SignDigestType::BitcoinBip322 => Ok(hex::encode(bitcoin_message::sign_message_bip322(&self.message.data, &private_key)?)),
             SignDigestType::Base58 => {
                 if self.message.chain != Chain::Solana {
                     return Err(GemstoneError::from(format!("Base58 sign message is not supported for {:?}", self.message.chain)));
@@ -228,21 +222,6 @@ mod tests {
         BlockExplorerLink {
             name: "Explorer".to_string(),
             link: format!("https://explorer.test/{chain}/{address}"),
-        }
-    }
-
-    #[test]
-    fn test_bitcoin_messages_sign_as_plain_hex() {
-        for (sign_type, length) in [(SignDigestType::BitcoinEcdsa, 65), (SignDigestType::BitcoinBip322, 107)] {
-            let signature = MessageSigner::new(SignMessage {
-                chain: Chain::Bitcoin,
-                sign_type: sign_type.clone(),
-                data: b"Hello World".to_vec(),
-            })
-            .sign(Zeroizing::new(TEST_PRIVATE_KEY.to_vec()))
-            .unwrap();
-            assert!(!signature.starts_with("0x"), "{sign_type:?}");
-            assert_eq!(hex::decode(&signature).unwrap().len(), length, "{sign_type:?}");
         }
     }
 

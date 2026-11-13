@@ -3145,14 +3145,12 @@ name = "gem_wallet_connect"
 version = "2.114.94"
 dependencies = [
  "chrono",
- "gem_bitcoin",
  "gem_encoding",
  "gem_evm",
  "gem_solana",
  "gem_ton",
  "num-bigint 0.5.1",
  "primitives",
- "serde",
  "serde_json",
  "url",
 ]

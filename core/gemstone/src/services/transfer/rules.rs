@@ -7,7 +7,7 @@ use primitives::{
     TransactionInputType, TransactionNFTTransferMetadata, TransactionPaymentMetadata, TransactionPerpetualMetadata, TransactionResourceTypeMetadata, TransactionState, TransactionSwapMetadata, TransactionType,
     TransactionWalletConnectMetadata, TransferDataOutputAction, TransferDataOutputType,
 };
-use primitives::{ChainType, OptionStringExt, SwapProvider};
+use primitives::{OptionStringExt, SwapProvider};
 
 use super::model::{GemConfirmDestination, GemConfirmRow, GemConfirmTitle, GemPendingTransactionInput, GemRecentActivity, GemRecipient, GemTransferData, GemTransferOutput};
 use crate::config::chain::is_memo_supported;
@@ -22,7 +22,7 @@ pub(crate) trait TransferInput {
     fn balance_asset(&self) -> Asset;
     fn header_kind(&self) -> GemTransactionHeaderKind;
     fn title(&self) -> GemConfirmTitle;
-    fn shows_memo(&self, memo: Option<&str>) -> bool;
+    fn shows_memo(&self) -> bool;
     fn fee_asset(&self) -> Asset;
     fn default_fee_priority(&self) -> FeePriority;
     fn application_short_name(&self) -> Option<String>;
@@ -131,11 +131,9 @@ impl TransferInput for TransactionInputType {
         }
     }
 
-    fn shows_memo(&self, memo: Option<&str>) -> bool {
+    fn shows_memo(&self) -> bool {
         match self {
-            Self::Transfer { .. } | Self::Deposit { .. } | Self::Withdrawal { .. } => {
-                is_memo_supported(self.get_asset().chain()) || (self.get_asset().chain().chain_type() == ChainType::Bitcoin && memo.is_some_and(|memo| !memo.trim().is_empty()))
-            }
+            Self::Transfer { .. } | Self::Deposit { .. } | Self::Withdrawal { .. } => is_memo_supported(self.get_asset().chain()),
             _ => false,
         }
     }
@@ -465,7 +463,7 @@ pub fn earn_transfer_data(asset: Asset, earn_type: EarnType, data: ContractCallD
 
 impl GemTransferData {
     pub fn shows_memo(&self) -> bool {
-        self.input_type.shows_memo(self.recipient.memo.as_deref())
+        self.input_type.shows_memo()
     }
 
     pub fn confirm_rows(&self) -> Vec<GemConfirmRow> {
@@ -851,8 +849,7 @@ mod tests {
         let send = GemTransferData::mock(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Cosmos) });
         assert_eq!(send.confirm_rows(), vec![GemConfirmRow::Sender, GemConfirmRow::Recipient, GemConfirmRow::Network, GemConfirmRow::Memo, GemConfirmRow::Details]);
 
-        let mut ethereum = GemTransferData::mock(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Ethereum) });
-        ethereum.recipient.memo = None;
+        let ethereum = GemTransferData::mock(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Ethereum) });
         assert!(!ethereum.confirm_rows().contains(&GemConfirmRow::Memo), "a chain without memos has no memo row");
 
         let generic = GemTransferData::mock(TransactionInputType::Generic {
@@ -894,18 +891,14 @@ mod tests {
 
     #[test]
     fn test_memo_row_only_for_sends_on_memo_chains() {
-        assert!(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Cosmos) }.shows_memo(None));
-        assert!(!TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Ethereum) }.shows_memo(None));
-        assert!(
-            TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Bitcoin) }.shows_memo(Some("=:ETH.ETH:0xabc")),
-            "a memo a send carries is always shown"
-        );
+        assert!(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Cosmos) }.shows_memo());
+        assert!(!TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Ethereum) }.shows_memo());
         assert!(
             !TransactionInputType::Stake {
                 asset: Asset::from_chain(Chain::Cosmos),
                 stake_type: StakeType::Rewards(vec![]),
             }
-            .shows_memo(Some("memo"))
+            .shows_memo()
         );
     }
 

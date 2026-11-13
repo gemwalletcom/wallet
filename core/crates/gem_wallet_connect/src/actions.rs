@@ -1,5 +1,4 @@
 use crate::sign_type::SignDigestType;
-use gem_bitcoin::signer::psbt::BitcoinPsbtRequest;
 pub use gem_evm::transaction::EvmTransactionKind;
 use gem_solana::VersionedTransaction;
 use num_bigint::BigUint;
@@ -45,8 +44,6 @@ pub enum WalletConnectTransactionType {
     Sui { output_type: TransferDataOutputType },
     Ton { output_type: TransferDataOutputType },
     Tron { output_type: TransferDataOutputType },
-    BitcoinPsbt,
-    BitcoinTransfer,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -91,16 +88,6 @@ pub enum WalletConnectTransaction {
     Sui { data: WCSuiTransactionData, output_type: TransferDataOutputType },
     Ton { data: String, output_type: TransferDataOutputType },
     Tron { data: String, output_type: TransferDataOutputType },
-    BitcoinPsbt { request: BitcoinPsbtRequest, data: String },
-    BitcoinTransfer { data: WCBitcoinTransferData },
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct WCBitcoinTransferData {
-    pub account: String,
-    pub recipient_address: String,
-    pub amount: u64,
-    pub memo: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq)]

@@ -1,4 +1,3 @@
-mod bitcoin;
 mod ethereum;
 mod solana;
 mod sui;
@@ -6,7 +5,6 @@ mod ton;
 mod tron;
 
 use crate::actions::{WalletConnectAction, WalletConnectChainOperation, WalletConnectTransaction, WalletConnectTransactionType};
-pub use bitcoin::BitcoinRequestHandler;
 pub use ethereum::EthereumRequestHandler;
 use primitives::{Chain, ChainType, ValueAccess, WalletConnectCAIP2, WalletConnectRequest, WalletConnectionMethods, hex};
 use serde_json::Value;
@@ -63,10 +61,6 @@ impl WalletConnectRequestHandler {
             method @ (WalletConnectionMethods::TronSignMessage | WalletConnectionMethods::TronSignTransaction | WalletConnectionMethods::TronSendTransaction) => {
                 TronRequestHandler::parse_request(method, Self::parse_required_chain(chain_id, ChainType::Tron)?, params, &domain)
             }
-            method @ (WalletConnectionMethods::BitcoinGetAccountAddresses | WalletConnectionMethods::BitcoinSignMessage | WalletConnectionMethods::BitcoinSignPsbt | WalletConnectionMethods::BitcoinSendTransfer) => {
-                Self::parse_required_chain(chain_id, ChainType::Bitcoin)?;
-                BitcoinRequestHandler::parse_request(method, params)
-            }
         }
     }
 
@@ -77,8 +71,6 @@ impl WalletConnectRequestHandler {
             WalletConnectTransactionType::Sui { output_type } => SuiRequestHandler::decode_send_transaction(data, output_type),
             WalletConnectTransactionType::Ton { output_type } => TonRequestHandler::decode_send_transaction(data, output_type),
             WalletConnectTransactionType::Tron { output_type } => TronRequestHandler::decode_send_transaction(data, output_type),
-            WalletConnectTransactionType::BitcoinPsbt => BitcoinRequestHandler::decode_psbt(data),
-            WalletConnectTransactionType::BitcoinTransfer => BitcoinRequestHandler::decode_transfer(data),
         }
     }
 
@@ -119,19 +111,12 @@ mod tests {
     }
 
     #[test]
-    fn test_bitcoin_methods_route_only_on_bitcoin() {
-        let bitcoin = Some("bip122:000000000019d6689c085ae165831e93");
-        let request = WalletConnectRequest::mock("getAccountAddresses", r#"{"account":"bc1q"}"#, bitcoin);
-        assert_eq!(WalletConnectRequestHandler::parse_request(request).unwrap(), WalletConnectAction::GetAccounts { chain: Chain::Bitcoin });
+    fn test_bitcoin_methods_are_unsupported() {
+        let request = WalletConnectRequest::mock("signMessage", "{}", Some("bip122:000000000019d6689c085ae165831e93"));
+        assert_eq!(WalletConnectRequestHandler::parse_request(request).unwrap(), WalletConnectAction::Unsupported { method: "signMessage".to_string() });
 
-        let request = WalletConnectRequest::mock("signMessage", r#"{"account":"bc1q","message":"Hi"}"#, bitcoin);
-        assert!(matches!(WalletConnectRequestHandler::parse_request(request).unwrap(), WalletConnectAction::SignMessage { chain: Chain::Bitcoin, .. }));
-
-        let request = WalletConnectRequest::mock("signMessage", r#"{"account":"0x1","message":"Hi"}"#, Some("eip155:1"));
-        assert!(WalletConnectRequestHandler::parse_request(request).is_err(), "a Bitcoin method on another chain is refused");
-
-        let request = WalletConnectRequest::mock("sendTransfer", "{}", bitcoin);
-        assert!(WalletConnectRequestHandler::parse_request(request).is_err(), "a transfer without its fields never reaches a review");
+        let request = WalletConnectRequest::mock("sendTransfer", "{}", Some("bip122:000000000019d6689c085ae165831e93"));
+        assert_eq!(WalletConnectRequestHandler::parse_request(request).unwrap(), WalletConnectAction::Unsupported { method: "sendTransfer".to_string() });
     }
 
     #[test]
