@@ -58,6 +58,8 @@ mod tests {
         payment::{PaymentAmount, PaymentLink, PaymentRequest},
     };
 
+    use gem_spark::testkit::{INVOICE_2000_SATS, INVOICE_AMOUNTLESS};
+
     const BITCOIN_ADDRESS: &str = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4";
 
     #[test]
@@ -154,6 +156,21 @@ mod tests {
 
         assert_eq!(PaymentURLDecoder::decode("https://pay.walletconnect.com/?pid=pay_123").unwrap(), link);
         assert_eq!(PaymentURLDecoder::decode("WC:abc@2?pay=https%3A%2F%2Fpay.walletconnect.com%2F%3Fpid%3Dpay_123").unwrap(), link);
+    }
+
+    #[test]
+    fn test_lightning_invoice() {
+        let Payment::Request { request } = PaymentURLDecoder::decode(&format!("lightning:{}", INVOICE_2000_SATS.to_uppercase())).unwrap() else {
+            panic!("expected a payment request")
+        };
+        assert_eq!(request.address, INVOICE_2000_SATS);
+        assert_eq!(request.amount, Some(PaymentAmount::AtomicValue { value: 2000u64.into() }));
+        assert_eq!(request.asset_id, Some(AssetId::from_chain(Chain::Lightning)));
+
+        let Payment::Request { request } = PaymentURLDecoder::decode(INVOICE_AMOUNTLESS).unwrap() else {
+            panic!("expected a payment request")
+        };
+        assert_eq!((request.address.as_str(), request.amount), (INVOICE_AMOUNTLESS, None));
     }
 
     #[test]

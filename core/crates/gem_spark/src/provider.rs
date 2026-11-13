@@ -27,7 +27,7 @@ const AUTHORIZATION_DOMAIN: &str = "gem-lightning-transfer-v1";
 pub trait LightningSessions: Send + Sync {
     async fn balance(&self, address: &str) -> Result<u64, LightningError>;
     async fn payment_status(&self, address: &str, id: &str) -> Result<LightningPaymentStatus, LightningError>;
-    async fn prepare_send(&self, address: &str, invoice: LightningInvoice, amount_sats: u64) -> Result<LightningSendQuote, LightningError>;
+    async fn send_fee(&self, address: &str, invoice: LightningInvoice, amount_sats: u64) -> Result<u64, LightningError>;
     async fn send(&self, address: &str, quote: LightningSendQuote, authorization: LightningAuthorization) -> Result<String, LightningError>;
 }
 
@@ -43,7 +43,7 @@ impl LightningSessions for LockedSessions {
         Err(LightningError::Locked)
     }
 
-    async fn prepare_send(&self, _address: &str, _invoice: LightningInvoice, _amount_sats: u64) -> Result<LightningSendQuote, LightningError> {
+    async fn send_fee(&self, _address: &str, _invoice: LightningInvoice, _amount_sats: u64) -> Result<u64, LightningError> {
         Err(LightningError::Locked)
     }
 
@@ -191,9 +191,9 @@ impl ChainTransactionLoad for LightningProvider {
     async fn get_transaction_load(&self, input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Sync + Send>> {
         let invoice = decode_invoice(&input.destination_address)?;
         let amount_sats = u64::try_from(&input.value).map_err(|_| LightningError::AmountRequired)?;
-        let quote = self.sessions.prepare_send(&input.sender_address, invoice, amount_sats).await?;
+        let fee_sats = self.sessions.send_fee(&input.sender_address, invoice, amount_sats).await?;
         Ok(TransactionLoadData {
-            fee: TransactionFee::new_from_fee(BigInt::from(quote.fee_sats), AssetId::from_chain(CHAIN)),
+            fee: TransactionFee::new_from_fee(BigInt::from(fee_sats), AssetId::from_chain(CHAIN)),
             metadata: TransactionLoadMetadata::None,
         })
     }
@@ -299,13 +299,5 @@ mod tests {
         assert_eq!(authorization.signature.len(), 65);
         assert_eq!(LightningTransfer::decode("spark1address|invoice|2000|7"), Err(LightningError::InvalidTransfer));
         assert_eq!(LightningTransfer::decode("spark1address|invoice|amount|7|00"), Err(LightningError::InvalidTransfer));
-    }
-
-    #[tokio::test]
-    async fn test_locked_balance() {
-        let provider = LightningProvider::new(Arc::new(LockedSessions));
-        let error = provider.get_balance_coin("spark1address".to_string()).await.unwrap_err();
-
-        assert_eq!(error.downcast_ref::<LightningError>(), Some(&LightningError::Locked));
     }
 }

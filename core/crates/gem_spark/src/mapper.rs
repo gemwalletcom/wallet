@@ -8,16 +8,15 @@ pub fn map_transfer(transfer: &WalletTransfer) -> Option<LightningPayment> {
     if !is_payment(transfer.transfer_type) {
         return None;
     }
-    let mut status = payment_status(transfer.status, &transfer.direction);
-    let (fee_sats, invoice) = match &transfer.user_request {
-        Some(SspUserRequest::LightningSendRequest(request)) => {
-            if request.lightning_send_payment_preimage.is_some() {
-                status = LightningPaymentStatus::Completed;
-            }
-            (request.fee.as_sats().unwrap_or_default(), Some(request.encoded_invoice.clone()))
-        }
-        Some(SspUserRequest::LightningReceiveRequest(request)) => (0, Some(request.invoice.encoded_invoice.clone())),
-        Some(SspUserRequest::CoopExitRequest(_)) | Some(SspUserRequest::ClaimStaticDeposit(_)) | Some(SspUserRequest::LeavesSwapRequest(_)) | None => (0, None),
+    let transfer_status = payment_status(transfer.status, &transfer.direction);
+    let (status, fee_sats, invoice) = match &transfer.user_request {
+        Some(SspUserRequest::LightningSendRequest(request)) => (
+            request.lightning_send_payment_preimage.as_ref().map_or(transfer_status, |_| LightningPaymentStatus::Completed),
+            request.fee.as_sats().unwrap_or_default(),
+            Some(request.encoded_invoice.clone()),
+        ),
+        Some(SspUserRequest::LightningReceiveRequest(request)) => (transfer_status, 0, Some(request.invoice.encoded_invoice.clone())),
+        Some(SspUserRequest::CoopExitRequest(_)) | Some(SspUserRequest::ClaimStaticDeposit(_)) | Some(SspUserRequest::LeavesSwapRequest(_)) | None => (transfer_status, 0, None),
     };
     Some(LightningPayment {
         id: transfer.id.to_string(),

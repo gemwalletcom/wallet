@@ -49,18 +49,18 @@ impl GemLightningService {
 
     pub async fn open_enabled(&self) -> Result<(), GemServiceError> {
         let generation = sessions().generation();
-        let Ok(wallet_id) = self.session.current_wallet_id() else {
+        let Some(wallet) = self.session.get_current_wallet().await? else {
             return Ok(());
         };
-        let Some(address) = self.address(wallet_id.clone()).await? else {
+        let Some(account) = wallet.account(Chain::Lightning) else {
             return Ok(());
         };
-        if !self.balances.is_asset_enabled(wallet_id.clone(), AssetId::from_chain(Chain::Lightning)).await? {
+        if !self.balances.is_asset_enabled(wallet.id.clone(), AssetId::from_chain(Chain::Lightning)).await? {
             return Ok(());
         }
-        let (wallet, opened) = self.open_wallet(generation, wallet_id.clone(), &address).await?;
+        let (lightning, opened) = self.open_wallet(generation, wallet.id.clone(), &account.address).await?;
         if opened {
-            let _ = self.sync_wallet(wallet_id, wallet).await;
+            let _ = self.sync_wallet(wallet.id, lightning).await;
         }
         Ok(())
     }
@@ -78,7 +78,7 @@ impl GemLightningService {
         let expires_at = decode_invoice(&invoice)?.expires_at;
         let received = run(async move {
             wallet.sync().await?;
-            wallet.has_received(&invoice, RECEIVED_PAYMENTS_LIMIT).await
+            Ok(wallet.payments(RECEIVED_PAYMENTS_LIMIT).await?.iter().any(|payment| payment.receives(&invoice)))
         })
         .await?;
         if received {
@@ -108,18 +108,13 @@ impl GemLightningService {
             .await
     }
 
-    async fn address(&self, wallet_id: WalletId) -> Result<Option<String>, GemServiceError> {
-        Ok(self.session.get_wallet(wallet_id).await?.and_then(|wallet| wallet.account(Chain::Lightning).map(|account| account.address.clone())))
-    }
-
     fn wallet_storage_dir(&self, wallet_id: &WalletId) -> PathBuf {
         self.storage_dir.join(keystore_id_for_wallet(wallet_id.id()))
     }
 
     async fn wallet(&self, wallet_id: WalletId) -> Result<Arc<LightningWallet>, GemServiceError> {
         let generation = sessions().generation();
-        let wallet = self.session.get_wallet(wallet_id.clone()).await?.ok_or_else(|| GemServiceError::NotFound { msg: format!("wallet {}", wallet_id.id()) })?;
-        let address = required_account(&wallet, Chain::Lightning)?.address;
+        let address = required_account(&self.session.require_wallet(wallet_id.clone()).await?, Chain::Lightning)?.address;
         Ok(self.open_wallet(generation, wallet_id, &address).await?.0)
     }
 

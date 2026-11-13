@@ -113,9 +113,8 @@ impl GemAssetSelectionService {
     }
 
     pub async fn set_assets_enabled(&self, asset_ids: Vec<AssetId>, enabled: bool) -> Result<(), GemServiceError> {
-        let wallet_id = self.session.current_wallet_id()?;
         let opens_lightning = enabled && asset_ids.contains(&AssetId::from_chain(Chain::Lightning));
-        self.balances.set_assets_enabled(wallet_id.clone(), asset_ids, enabled).await?;
+        self.balances.set_assets_enabled(self.session.current_wallet_id()?, asset_ids, enabled).await?;
         if opens_lightning {
             let _ = self.lightning.open_enabled().await;
         }

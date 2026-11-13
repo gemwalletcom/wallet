@@ -73,7 +73,7 @@ impl LightningSessionRegistry {
         wallets.iter().for_each(|wallet| wallet.lock());
     }
 
-    pub(crate) fn wallet(&self, address: &str) -> Result<Arc<LightningWallet>, LightningError> {
+    fn wallet(&self, address: &str) -> Result<Arc<LightningWallet>, LightningError> {
         self.wallets.read().unwrap_or_else(PoisonError::into_inner).get(address).cloned().ok_or(LightningError::Locked)
     }
 
@@ -102,8 +102,8 @@ impl LightningSessions for LightningSessionRegistry {
         self.with_wallet(address, |wallet| async move { wallet.payment_status(&id).await }).await
     }
 
-    async fn prepare_send(&self, address: &str, invoice: LightningInvoice, amount_sats: u64) -> Result<LightningSendQuote, LightningError> {
-        self.with_wallet(address, |wallet| async move { wallet.prepare_send(invoice, amount_sats).await }).await
+    async fn send_fee(&self, address: &str, invoice: LightningInvoice, amount_sats: u64) -> Result<u64, LightningError> {
+        self.with_wallet(address, |wallet| async move { wallet.send_fee(&invoice, amount_sats).await }).await
     }
 
     async fn send(&self, address: &str, quote: LightningSendQuote, authorization: LightningAuthorization) -> Result<String, LightningError> {

@@ -146,10 +146,9 @@ impl LightningWallet {
         Ok(self.wallet.create_lightning_invoice(amount_sats.unwrap_or(AMOUNTLESS_INVOICE_SATS), None, None, None, false).await?.invoice)
     }
 
-    pub async fn prepare_send(&self, invoice: LightningInvoice, amount_sats: u64) -> Result<LightningSendQuote, LightningError> {
-        let amount = send_amount(&invoice, amount_sats, unix_timestamp())?;
-        let fee_sats = self.wallet.fetch_lightning_send_fee_estimate(&invoice.invoice, requested_amount(&invoice, amount)).await?;
-        Ok(LightningSendQuote { invoice, amount_sats: amount, fee_sats })
+    pub async fn send_fee(&self, invoice: &LightningInvoice, amount_sats: u64) -> Result<u64, LightningError> {
+        let amount = send_amount(invoice, amount_sats, unix_timestamp())?;
+        Ok(self.wallet.fetch_lightning_send_fee_estimate(&invoice.invoice, requested_amount(invoice, amount)).await?)
     }
 
     pub async fn send(&self, quote: &LightningSendQuote) -> Result<String, LightningError> {
@@ -196,19 +195,15 @@ impl LightningWallet {
         Ok(transfers.items.iter().filter_map(map_transfer).collect())
     }
 
-    pub async fn has_received(&self, invoice: &str, limit: u64) -> Result<bool, LightningError> {
-        Ok(self.payments(limit).await?.iter().any(|payment| payment.receives(invoice)))
-    }
-
     pub async fn payment_status(&self, id: &str) -> Result<LightningPaymentStatus, LightningError> {
         if let Some(payment) = self.payment(id).await? {
             return Ok(payment.status);
         }
-        let is_recorded = InFlight::contains(id) || self.database.get_pending_sends()?.iter().any(|send| send.transfer_id == id);
+        let is_recorded = self.database.get_pending_sends()?.iter().any(|send| send.transfer_id == id);
         Ok(if is_recorded { LightningPaymentStatus::Pending } else { LightningPaymentStatus::Failed })
     }
 
-    pub async fn payment(&self, id: &str) -> Result<Option<LightningPayment>, LightningError> {
+    async fn payment(&self, id: &str) -> Result<Option<LightningPayment>, LightningError> {
         let transfer_id = TransferId::from_str(id).map_err(|_| LightningError::InvalidTransfer)?;
         let request = ListTransfersRequest {
             paging: None,
@@ -240,17 +235,22 @@ impl LightningWallet {
         if InFlight::contains(&send.transfer_id) {
             return Ok(PendingSendState::Sent);
         }
+        if send.expires_at <= unix_timestamp() {
+            self.database.delete_pending_send(&send.transfer_id)?;
+            return Ok(PendingSendState::Unsent);
+        }
         let transfer_id = TransferId::from_str(&send.transfer_id).map_err(LightningError::Storage)?;
-        let state = match Box::pin(self.wallet.resume_lightning_send(&transfer_id, &send.invoice, send.amount_sats)).await {
-            Ok(Some(_)) => PendingSendState::Sent,
-            Ok(None) => match self.payment(&send.transfer_id).await?.map(|payment| payment.status) {
+        let state = match Box::pin(self.wallet.resume_lightning_send(&transfer_id, &send.invoice, send.amount_sats)).await? {
+            Some(_) => PendingSendState::Sent,
+            None => match self.payment(&send.transfer_id).await?.map(|payment| payment.status) {
                 Some(LightningPaymentStatus::Pending | LightningPaymentStatus::Completed) => PendingSendState::Sent,
                 Some(LightningPaymentStatus::Failed) | None => PendingSendState::Unsent,
             },
-            Err(_) if send.expires_at <= unix_timestamp() => PendingSendState::Unsent,
-            Err(error) => return Err(error.into()),
         };
-        self.database.delete_pending_send(&send.transfer_id)?;
+        match state {
+            PendingSendState::Sent => {}
+            PendingSendState::Unsent => self.database.delete_pending_send(&send.transfer_id)?,
+        }
         Ok(state)
     }
 }
