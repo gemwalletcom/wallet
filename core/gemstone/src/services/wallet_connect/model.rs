@@ -5,7 +5,7 @@ use crate::models::state::GemListPhase;
 use crate::services::error_text::GemErrorText;
 use crate::services::localization::GemLocalizedText;
 use crate::services::transfer::GemTransferData;
-use primitives::{Account, Asset, Chain, SimulationResult, Wallet, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionVerificationStatus};
+use primitives::{Account, Asset, Chain, SimulationResult, VerificationStatus, Wallet, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionVerificationStatus};
 
 use crate::message::sign_type::SignMessage;
 use gem_wallet_connect::WalletConnectResponseType;
@@ -157,19 +157,20 @@ pub enum GemWalletConnectTransactionAction {
     Send,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
-pub enum GemVerificationLevel {
-    Verified,
-    Unverified,
-    Suspicious,
+fn verification_status(status: WalletConnectionVerificationStatus) -> VerificationStatus {
+    match status {
+        WalletConnectionVerificationStatus::Verified => VerificationStatus::Verified,
+        WalletConnectionVerificationStatus::Unknown => VerificationStatus::Unverified,
+        WalletConnectionVerificationStatus::Invalid | WalletConnectionVerificationStatus::Malicious => VerificationStatus::Suspicious,
+    }
 }
 
 #[uniffi::export]
-pub fn verification_level(status: WalletConnectionVerificationStatus) -> GemVerificationLevel {
-    match status {
-        WalletConnectionVerificationStatus::Verified => GemVerificationLevel::Verified,
-        WalletConnectionVerificationStatus::Unknown => GemVerificationLevel::Unverified,
-        WalletConnectionVerificationStatus::Invalid | WalletConnectionVerificationStatus::Malicious => GemVerificationLevel::Suspicious,
+pub fn connection_verification_row(status: WalletConnectionVerificationStatus) -> GemListRow {
+    GemListRow::Verification {
+        title: GemListRowTitle::Status,
+        status: verification_status(status),
+        info: None,
     }
 }
 
@@ -183,7 +184,7 @@ pub enum GemConnectionPermission {
 pub struct GemConnectionProposal {
     pub wallet_row: GemListRow,
     pub connection_row: GemListRow,
-    pub verification: GemVerificationLevel,
+    pub verification_row: GemListRow,
     pub permissions: Vec<GemConnectionPermission>,
 }
 
@@ -201,7 +202,7 @@ pub fn connection_proposal(status: WalletConnectionVerificationStatus, wallet_na
             info: None,
             progress: false,
         },
-        verification: verification_level(status),
+        verification_row: connection_verification_row(status),
         permissions: vec![GemConnectionPermission::ViewBalance, GemConnectionPermission::ApprovalRequests],
     }
 }
@@ -237,10 +238,19 @@ mod verification_tests {
 
     #[test]
     fn test_an_invalid_origin_reads_as_suspicious_and_an_unknown_one_only_as_unverified() {
-        assert_eq!(verification_level(WalletConnectionVerificationStatus::Verified), GemVerificationLevel::Verified);
-        assert_eq!(verification_level(WalletConnectionVerificationStatus::Unknown), GemVerificationLevel::Unverified);
-        assert_eq!(verification_level(WalletConnectionVerificationStatus::Invalid), GemVerificationLevel::Suspicious);
-        assert_eq!(verification_level(WalletConnectionVerificationStatus::Malicious), GemVerificationLevel::Suspicious);
+        let status = |status| match connection_verification_row(status) {
+            GemListRow::Verification {
+                title: GemListRowTitle::Status,
+                status,
+                info: None,
+            } => status,
+            row => panic!("unexpected row {row:?}"),
+        };
+
+        assert_eq!(status(WalletConnectionVerificationStatus::Verified), VerificationStatus::Verified);
+        assert_eq!(status(WalletConnectionVerificationStatus::Unknown), VerificationStatus::Unverified);
+        assert_eq!(status(WalletConnectionVerificationStatus::Invalid), VerificationStatus::Suspicious);
+        assert_eq!(status(WalletConnectionVerificationStatus::Malicious), VerificationStatus::Suspicious);
     }
 
     #[test]
@@ -254,7 +264,14 @@ mod verification_tests {
                 value: "Main".to_string()
             }
         );
-        assert_eq!(proposal.verification, GemVerificationLevel::Suspicious);
+        assert_eq!(
+            proposal.verification_row,
+            GemListRow::Verification {
+                title: GemListRowTitle::Status,
+                status: VerificationStatus::Suspicious,
+                info: None,
+            }
+        );
         assert_eq!(proposal.permissions, vec![GemConnectionPermission::ViewBalance, GemConnectionPermission::ApprovalRequests]);
     }
 }

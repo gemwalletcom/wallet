@@ -20,7 +20,7 @@ pub const ASSET_UPDATE_INTERVAL_SECONDS: u32 = 3_600;
 
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::custom_types::GemBigUint;
-use crate::models::list::{GemListRow, GemListRowIcon, GemListRowTitle, GemListSectionTitle, GemRowAction};
+use crate::models::list::{GemInfoTopic, GemListRow, GemListRowIcon, GemListRowTitle, GemListSectionTitle, GemRowAction};
 use crate::models::state::GemListPhase;
 use crate::percentage::GemPercentageStyle;
 use crate::perpetual::GemPerpetual;
@@ -204,12 +204,18 @@ pub fn network_destination(asset_id: &AssetId) -> Option<GemAssetNetworkDestinat
     chain.default_asset_type().is_some().then_some(GemAssetNetworkDestination::Assets { chain })
 }
 
-pub fn verification_status(asset: &Asset, rank: i32) -> Option<VerificationStatus> {
+fn verification_row(asset: &Asset, rank: i32) -> Option<GemListRow> {
     if asset.id.is_native() {
         return None;
     }
     match VerificationStatus::from_rank(rank) {
-        VerificationStatus::Unverified => Some(VerificationStatus::Unverified),
+        VerificationStatus::Unverified => Some(GemListRow::Verification {
+            title: GemListRowTitle::Status,
+            status: VerificationStatus::Unverified,
+            info: Some(GemInfoTopic::AssetStatus {
+                status: VerificationStatus::Unverified,
+            }),
+        }),
         VerificationStatus::Verified | VerificationStatus::Suspicious => None,
     }
 }
@@ -697,6 +703,7 @@ pub fn details_sections(input: DetailsSectionsInput) -> Vec<GemAssetDetailSectio
     let shows_earn = EARN_OFFERED && metadata.is_earn_enabled && wallet_type != WalletType::View && allows_actions && balance.earn == GemBigUint::ZERO;
     let shows_resources = crate::services::stake::rules::uses_freeze(chain);
     [
+        section(GemListSectionTitle::None, verification_row(asset, metadata.rank_score).map(|status| row(status, None)).into_iter().collect()),
         section(
             GemListSectionTitle::Manage,
             match metadata.is_balance_enabled {
@@ -1557,10 +1564,19 @@ mod tests {
     #[test]
     fn test_verification_status_rows_unverified_tokens_only() {
         let token = Asset::mock_ethereum_usdc();
-        assert_eq!(verification_status(&token, 10), Some(VerificationStatus::Unverified));
-        assert_eq!(verification_status(&token, 3), None);
-        assert_eq!(verification_status(&token, 20), None);
-        assert_eq!(verification_status(&Asset::mock(), 10), None);
+        assert_eq!(
+            verification_row(&token, 10),
+            Some(GemListRow::Verification {
+                title: GemListRowTitle::Status,
+                status: VerificationStatus::Unverified,
+                info: Some(GemInfoTopic::AssetStatus {
+                    status: VerificationStatus::Unverified
+                }),
+            })
+        );
+        assert_eq!(verification_row(&token, 3), None);
+        assert_eq!(verification_row(&token, 20), None);
+        assert_eq!(verification_row(&Asset::mock(), 10), None);
     }
 
     #[test]

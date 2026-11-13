@@ -192,7 +192,6 @@ impl GemAssetDetailsService {
                 banner_events: &banner_events,
             }),
             options: rules::asset_options(owner_address.map(|address| self.explorer.get_address_url(chain, address)), self.explorer.get_token_url(&asset.id)),
-            verification_status: rules::verification_status(&asset, metadata.rank_score),
             network_destination: rules::network_destination(&asset.id),
             share_url: self.deeplinks.build_url(Deeplink::Asset { asset_id: asset.id.clone() }),
             swap_pair,

@@ -9,7 +9,7 @@ use crate::address_formatter::format_address;
 use crate::config::chain::supports_nft_transfer;
 use crate::config::social::social_links;
 use crate::models::copy::{GemCopy, GemCopyKind, address_copy};
-use crate::models::list::{GemListRow, GemListRowTitle, GemListSectionTitle};
+use crate::models::list::{GemInfoTopic, GemListRow, GemListRowTitle, GemListSectionTitle};
 use crate::models::state::{GemListPhase, GemLoadState};
 use crate::services::assets::model::{GemHeaderActions, GemHeaderButton, GemHeaderButtonAction};
 use crate::services::assets::rules::asset_text;
@@ -148,7 +148,18 @@ fn can_send(wallet_type: &WalletType, chain: Chain, is_owned: bool) -> bool {
 
 pub fn collectible_details(wallet_type: &WalletType, data: &NFTAssetData, is_owned: bool, contract_explorer: Option<BlockExplorerLink>, token_explorer: Option<BlockExplorerLink>, can_save_image: bool) -> GemCollectibleDetails {
     let group = |title: GemListSectionTitle, section: GemCollectibleSection| GemCollectibleSectionGroup { title, section };
-    let status = (data.collection.status != VerificationStatus::Verified).then(|| group(GemListSectionTitle::None, GemCollectibleSection::Status { status: data.collection.status }));
+    let status = (data.collection.status != VerificationStatus::Verified).then(|| {
+        group(
+            GemListSectionTitle::None,
+            GemCollectibleSection::Info {
+                rows: vec![GemListRow::Verification {
+                    title: GemListRowTitle::Status,
+                    status: data.collection.status,
+                    info: Some(GemInfoTopic::AssetStatus { status: data.collection.status }),
+                }],
+            },
+        )
+    });
     let info = group(
         GemListSectionTitle::None,
         GemCollectibleSection::Info {
@@ -574,8 +585,10 @@ mod tests {
             .sections
             .iter()
             .map(|group| match group.section {
-                GemCollectibleSection::Status { .. } => "status",
-                GemCollectibleSection::Info { .. } => "info",
+                GemCollectibleSection::Info { ref rows } => match rows.as_slice() {
+                    [GemListRow::Verification { .. }] => "status",
+                    _ => "info",
+                },
                 GemCollectibleSection::Attributes { .. } => "attributes",
                 GemCollectibleSection::Links { .. } => "links",
             })

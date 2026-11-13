@@ -164,6 +164,22 @@ struct GemListRowItemTests {
     }
 
     @Test
+    func aSuspiciousStatusShowsItsBadgeAndExplainsItself() {
+        var opened: GemInfoTopic?
+        let row = GemListRow.verification(title: .status, status: .suspicious, info: .assetStatus(status: .suspicious))
+        guard case let .image(model) = row.item(onInfo: { opened = $0 }) else {
+            Issue.record("Expected a status row with a badge")
+            return
+        }
+        model.infoAction?()
+        #expect(model.title == Localized.Transaction.status)
+        #expect(model.subtitle == Localized.Asset.Verification.suspicious)
+        #expect(model.subtitleStyle.color == Colors.red)
+        #expect(model.imageStyle?.assetImage == AssetImage(placeholder: Images.TokenStatus.risk))
+        #expect(opened == .assetStatus(status: .suspicious))
+    }
+
+    @Test
     func anInfoTopicBecomesTheRowsInfoAction() {
         var opened: GemInfoTopic?
         let row = GemListRow.label(title: .status, text: .transactionState(state: .confirmed), tone: .positive, info: .stakeApr(chain: Primitives.Chain.tron.rawValue), progress: false)

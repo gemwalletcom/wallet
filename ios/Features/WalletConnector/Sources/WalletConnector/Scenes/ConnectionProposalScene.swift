@@ -28,12 +28,7 @@ public struct ConnectionProposalScene: View {
                     GemListRowView(row: model.proposal.walletRow)
                 }
                 GemListRowView(row: model.proposal.connectionRow)
-                ListItemImageView(
-                    title: Localized.Transaction.status,
-                    subtitle: model.statusText,
-                    subtitleStyle: model.statusTextStyle,
-                    assetImage: model.statusAssetImage,
-                )
+                GemListRowView(row: model.proposal.verificationRow)
             }
 
             Section(model.permissionsTitle) {

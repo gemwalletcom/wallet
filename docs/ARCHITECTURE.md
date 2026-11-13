@@ -396,6 +396,7 @@ pub enum GemListRow {
     Amount { title: GemListRowTitle, amount: GemFormattedNumber, info: Option<GemInfoTopic> },
     Duration { title: GemListRowTitle, parts: Vec<GemDurationPart>, info: Option<GemInfoTopic> },
     Label { title: GemListRowTitle, text: GemLocalizedText, tone: GemValueTone, info: Option<GemInfoTopic>, progress: bool },
+    Verification { title: GemListRowTitle, status: VerificationStatus, info: Option<GemInfoTopic> },
     Date { title: GemListRowTitle, date: DateTime<Utc> },
     Network { title: GemListRowTitle, chain: Chain, name: String },
     Link { title: GemListRowTitle, value: Option<String>, icon: GemListRowIcon },
@@ -461,6 +462,19 @@ A `Gem…Row` record carries **one row's data**. Which fields a shared row shows
 **3. Per-screen rich rows — one screen, one layout.** The transaction header, swap progress and the confirm recipient row are drawn one way on one screen, so the record stays with that screen ([a row that a screen only ever draws one way](#a-row-that-a-screen-only-ever-draws-one-way-keeps-its-shape-app-side)). If a second screen starts drawing it, it has become family 2 and moves.
 
 The questions, in order: is the row a title with a value (family 1)? Does more than one list draw this shape (family 2)? Only then does it stay with its screen (family 3). A per-screen enum for a family-1 row, or a second copy of a family-2 record, is the regression to watch for.
+
+### A status is a plain row, never a screen's own view
+
+A row whose value is a named outcome — a transaction's state, a delegation's state, an asset's, a collectible's or a dapp's verification — is family 1. Core returns it inside the screen's sections as a `GemListRow` that carries the outcome, never as a bare enum on the screen record for the app to turn into a row:
+
+```rust
+GemListRow::Label { title: GemListRowTitle::Status, text: GemLocalizedText::TransactionState { state }, tone, info, progress }
+GemListRow::Verification { title: GemListRowTitle::Status, status: VerificationStatus::Unverified, info: Some(GemInfoTopic::AssetStatus { status }) }
+```
+
+`Label` is an outcome drawn as text in a tone; `Verification` is one that also draws a status badge. Core decides whether the row exists (a verified asset has none, a dapp review always has one) and whether it explains itself (`info`). Each app maps a case once, in the shared files — the label in `Gemstone+Localized.swift` and `GemstoneText.kt`, the colour and badge in `Gemstone+Style.swift` and `GemstoneStyle.kt` — and every screen draws the row with `GemListRowView`, so the same outcome looks the same on every screen and its info sheet opens the way the transaction status row's does.
+
+The regression to catch: a view model that exposes a status title, text style or image mapped from a Core enum; a per-feature status view or list item; an accessory a scene draws beside a `ListItemModel` from a Core value; or a Core enum that restates a primitive's cases (a verification level beside `VerificationStatus`). Each one makes the decision per screen and per platform, and the screens drift — the same suspicious outcome ends up a tinted vector on one screen and a bundled badge on the next.
 
 ### A screen's load state is one Core state, and a failed refresh keeps what is shown
 

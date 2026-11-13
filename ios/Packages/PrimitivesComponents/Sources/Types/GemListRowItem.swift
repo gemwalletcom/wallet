@@ -35,6 +35,7 @@ enum GemListRowItem {
     case explorerPage(ListItemModel, url: URL, menu: [GemRowMenuItem])
     case external(ListItemModel, url: URL)
     case network(title: String, subtitle: String, image: AssetImage)
+    case image(ListItemModel)
     case imageMenu(ListItemModel, menu: [GemRowMenuItem])
     case menu(ListItemModel, menu: [GemRowMenuItem])
     case icon(AssetImage)
@@ -114,6 +115,16 @@ extension GemListRow {
                     subtitle: text.text,
                     subtitleStyle: subtitleStyle(tone),
                     subtitleTagType: progress ? .progressView() : .none,
+                    infoAction: infoAction(info, onInfo: onInfo),
+                ),
+            )
+        case let .verification(title, status, info):
+            .image(
+                ListItemModel(
+                    title: title.text,
+                    subtitle: status.statusTitle,
+                    subtitleStyle: status.statusStyle,
+                    imageStyle: .list(assetImage: status.statusAssetImage),
                     infoAction: infoAction(info, onInfo: onInfo),
                 ),
             )

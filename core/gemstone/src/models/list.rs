@@ -382,6 +382,11 @@ pub enum GemListRow {
         info: Option<GemInfoTopic>,
         progress: bool,
     },
+    Verification {
+        title: GemListRowTitle,
+        status: VerificationStatus,
+        info: Option<GemInfoTopic>,
+    },
     Date {
         title: GemListRowTitle,
         date: DateTime<Utc>,

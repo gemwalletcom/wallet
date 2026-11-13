@@ -59,22 +59,6 @@ public struct ConnectionProposalSceneViewModel {
         row.iconUrl.flatMap(URL.init(string:))
     }
 
-    var verificationImage: Image {
-        proposal.verification.image
-    }
-
-    var statusText: String {
-        proposal.verification.title
-    }
-
-    var statusTextStyle: TextStyle {
-        proposal.verification.textStyle
-    }
-
-    var statusAssetImage: AssetImage {
-        .image(verificationImage)
-    }
-
     var permissionsTitle: String {
         Localized.WalletConnect.Permissions.title
     }

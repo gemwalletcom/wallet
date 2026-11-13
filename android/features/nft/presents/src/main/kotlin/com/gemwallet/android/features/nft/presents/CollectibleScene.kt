@@ -12,7 +12,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.nft.presents.components.NftHeaderActions
 import com.gemwallet.android.features.nft.presents.components.NftTitle
 import com.gemwallet.android.ui.components.image.NftImage
@@ -22,7 +21,6 @@ import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
-import com.gemwallet.android.ui.components.list_item.property.verificationStatusItem
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.localization.titleRes
 import com.gemwallet.android.ui.models.ListPosition
@@ -81,8 +79,6 @@ internal fun CollectibleScene(assetData: NFTAssetData, details: GemCollectibleDe
             details.sections.forEach { group ->
                 val title = group.title.titleRes()
                 when (val section = group.section) {
-                    is GemCollectibleSection.Status -> verificationStatusItem(section.status.toPrimitives())
-
                     is GemCollectibleSection.Info -> itemsPositioned(section.rows) { position, row ->
                         GemListRowView(row = row, listPosition = position, onSelectAddress = { onAction(CollectibleAction.OpenAddress(ChainAddress(assetData.asset.chain, it))) })
                     }

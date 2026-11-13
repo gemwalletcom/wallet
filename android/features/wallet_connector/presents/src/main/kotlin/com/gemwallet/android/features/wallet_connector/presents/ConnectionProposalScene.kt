@@ -4,7 +4,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,8 +29,6 @@ import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.localization.titleRes
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.style.color
-import com.gemwallet.android.ui.style.icon
 import com.gemwallet.android.ui.theme.paddingDefault
 import uniffi.gemstone.GemConnectionProposal
 import uniffi.gemstone.GemConnectionRow
@@ -42,7 +39,6 @@ internal fun ConnectionProposalScene(
     peer: GemConnectionRow,
     state: ConnectionProposalUIState,
     proposalRows: GemConnectionProposal,
-    statusListItem: ListItemModel,
     selectedWallet: com.wallet.core.primitives.Wallet?,
     availableWallets: List<com.wallet.core.primitives.Wallet>,
     availableWalletSections: List<GemWalletSection>,
@@ -90,17 +86,7 @@ internal fun ConnectionProposalScene(
             }
             item { GemListRowView(row = proposalRows.connectionRow, listPosition = ListPosition.Middle) }
             item {
-                ListItem(
-                    model = statusListItem,
-                    listPosition = ListPosition.Last,
-                    accessory = {
-                        Icon(
-                            imageVector = proposalRows.verification.icon(),
-                            contentDescription = null,
-                            tint = proposalRows.verification.color(),
-                        )
-                    },
-                )
+                GemListRowView(row = proposalRows.verificationRow, listPosition = ListPosition.Last)
             }
             item { SubheaderItem(R.string.wallet_connect_permissions_title) }
             itemsPositioned(proposalRows.permissions) { position, permission ->

@@ -1,6 +1,6 @@
 use crate::services::localization::GemLocalizedText;
 use chrono::{DateTime, Utc};
-use primitives::{NFTAssetData, NFTData, VerificationStatus};
+use primitives::{NFTAssetData, NFTData};
 
 use crate::config::social::GemSocialLink;
 use crate::models::list::{GemListRow, GemListSectionTitle};
@@ -84,7 +84,6 @@ pub struct GemCollectibleMenuRow {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemCollectibleSection {
-    Status { status: VerificationStatus },
     Info { rows: Vec<GemListRow> },
     Attributes { attributes: Vec<GemCollectibleAttribute> },
     Links { links: Vec<GemSocialLink> },

@@ -73,14 +73,10 @@ extension CollectibleScene {
         headerSectionView(assetDetails.assetData, details: details)
         ForEach(details.sections, id: \.self) { group in
             switch group.section {
-            case let .status(status):
-                Section {
-                    AssetStatusView(status: status.toPrimitives(), action: model.onSelectStatus)
-                }
             case let .info(rows):
                 Section {
                     ForEach(rows, id: \.self) { row in
-                        GemListRowView(row: row, onSelectAddress: model.onSelectContract)
+                        GemListRowView(row: row, onSelectAddress: model.onSelectContract, onInfo: model.onInfo)
                     }
                 }
             case let .attributes(attributes):

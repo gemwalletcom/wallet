@@ -48,12 +48,6 @@ public struct AssetScene: View {
                 .listRowInsets(.zero)
             }
 
-            if let status = model.verificationStatus(details) {
-                Section {
-                    AssetStatusView(status: status, action: model.onSelectTokenStatus)
-                }
-            }
-
             ForEach(Array(details.sections.enumerated()), id: \.offset) { _, section in
                 Section {
                     ForEach(Array(section.rows.enumerated()), id: \.offset) { _, row in
@@ -103,7 +97,7 @@ extension AssetScene {
             detailLink(action, networkDestination: networkDestination) { ListItemView(model: model.balanceListItem(for: item)) }
                 .accessibilityIdentifier(model.accessibilityIdentifier(row) ?? "")
         case let .row(listRow, action):
-            detailLink(action, networkDestination: networkDestination) { GemListRowView(row: listRow) }
+            detailLink(action, networkDestination: networkDestination) { GemListRowView(row: listRow, onInfo: model.onInfo) }
                 .accessibilityIdentifier(model.accessibilityIdentifier(row) ?? "")
         }
     }

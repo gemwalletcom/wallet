@@ -90,7 +90,6 @@ import enum Gemstone.GemTransactionStateTone
 import enum Gemstone.GemTransactionTitle
 import enum Gemstone.GemTriggerOrder
 import enum Gemstone.GemValidatorSectionKind
-import enum Gemstone.GemVerificationLevel
 import enum Gemstone.GemWalletConnectFailure
 import enum Gemstone.GemWalletImportKind
 import enum Gemstone.GemWalletSecret
@@ -101,6 +100,7 @@ import enum Gemstone.LinkType
 import enum Gemstone.PaymentStatus
 import enum Gemstone.PerpetualDirection
 import class Gemstone.PriceChangeCalculator
+import enum Gemstone.VerificationStatus
 import GemstonePrimitives
 import LocalAuthentication
 import Localization
@@ -564,10 +564,10 @@ public extension GemTransactionRowSubtitle {
     }
 }
 
-public extension VerificationStatus {
+public extension Gemstone.VerificationStatus {
     var statusTitle: String {
         switch self {
-        case .verified: ""
+        case .verified: Localized.Asset.Verification.verified
         case .unverified: Localized.Asset.Verification.unverified
         case .suspicious: Localized.Asset.Verification.suspicious
         }
@@ -1029,7 +1029,7 @@ public extension GemInfoTitle {
         case .priceImpact: Localized.Swap.priceImpact
         case .slippage: Localized.Swap.slippage
         case .noQuote: Localized.Errors.Swap.noQuoteAvailable
-        case let .assetStatus(status): status.toPrimitives().statusTitle
+        case let .assetStatus(status): status.statusTitle
         case .accountMinimumBalance: Localized.Info.AccountMinimumBalance.title
         case .minimumAmount: Localized.Info.MinimumAmount.title
         case .stakingReservedFees: Localized.Info.Stake.Reserved.title
@@ -1074,7 +1074,7 @@ public extension GemInfoDescription {
         case .priceImpact: Localized.Info.PriceImpact.description
         case .slippage: Localized.Info.Slippage.description
         case .noQuote: Localized.Info.NoQuote.description
-        case let .assetStatus(status): status.toPrimitives().statusDescription
+        case let .assetStatus(status): status.statusDescription
         case let .accountMinimumBalance(amount): Localized.Transfer.minimumAccountBalance(amount.boldText)
         case let .minimumAmount(network, amount): Localized.Info.MinimumAmount.description(network.boldMarkdown(), amount.text().boldMarkdown())
         case let .swapMinimumAmount(provider, required, available, shortfall):
@@ -1772,16 +1772,6 @@ public extension GemConnectionPermission {
         switch self {
         case .viewBalance: Localized.WalletConnect.Permissions.viewBalance
         case .approvalRequests: Localized.WalletConnect.Permissions.approvalRequests
-        }
-    }
-}
-
-public extension GemVerificationLevel {
-    var title: String {
-        switch self {
-        case .verified: Localized.Asset.Verification.verified
-        case .unverified: Localized.Asset.Verification.unverified
-        case .suspicious: Localized.Asset.Verification.suspicious
         }
     }
 }

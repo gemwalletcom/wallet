@@ -2,7 +2,6 @@ package com.gemwallet.android.features.wallet_connector.presents
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -16,6 +15,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.wallet_connector.viewmodels.AuthRequestUIState
 import com.gemwallet.android.features.wallet_connector.viewmodels.AuthRequestViewModel
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkItem
@@ -23,8 +23,6 @@ import com.gemwallet.android.ui.components.screen.FatalStateScene
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.ListPosition
-import com.gemwallet.android.ui.style.color
-import com.gemwallet.android.ui.style.icon
 import com.wallet.core.primitives.ChainAddress
 import uniffi.gemstone.GemWalletConnectAuthentication
 
@@ -97,17 +95,7 @@ private fun AuthRequestContent(state: AuthRequestUIState.Content, buttonState: B
             }
             item { PropertyNetworkItem(state.chain, listPosition = ListPosition.Middle) }
             item {
-                ListItem(
-                    model = state.statusListItem,
-                    listPosition = ListPosition.Last,
-                    accessory = {
-                        Icon(
-                            imageVector = state.verification.icon(),
-                            contentDescription = null,
-                            tint = state.verification.color(),
-                        )
-                    },
-                )
+                GemListRowView(row = state.verificationRow, listPosition = ListPosition.Last)
             }
         },
         onAction = onAction,

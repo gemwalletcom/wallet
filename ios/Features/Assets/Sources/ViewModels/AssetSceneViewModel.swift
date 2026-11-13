@@ -164,10 +164,6 @@ public final class AssetSceneViewModel: Sendable {
         }
     }
 
-    func verificationStatus(_ details: GemAssetDetails) -> VerificationStatus? {
-        details.verificationStatus?.toPrimitives()
-    }
-
     var swapAssetType: SelectedAssetType {
         .swap(details.swapPair.payAssetId, details.swapPair.receiveAssetId)
     }
@@ -287,9 +283,8 @@ public extension AssetSceneViewModel {
         }
     }
 
-    func onSelectTokenStatus() {
-        guard let status = verificationStatus(details) else { return }
-        isPresentingAssetSheet = .info(GemInfoTopic.assetStatus(status: status.toGem()).infoSheet)
+    func onInfo(_ topic: GemInfoTopic) {
+        isPresentingAssetSheet = .info(topic.infoSheet)
     }
 
     func onSelectPendingUnconfirmedInfo() {

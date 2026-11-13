@@ -30,7 +30,6 @@ import com.wallet.core.primitives.Resource
 import com.wallet.core.primitives.ScanReceiveMode
 import com.wallet.core.primitives.TpslType
 import com.wallet.core.primitives.TransactionState
-import com.wallet.core.primitives.VerificationStatus
 import com.wallet.core.primitives.WalletSource
 import uniffi.gemstone.AddressType
 import uniffi.gemstone.AutocloseValidation
@@ -124,7 +123,6 @@ import uniffi.gemstone.GemTransactionTitle
 import uniffi.gemstone.GemTransactionsFilterSummary
 import uniffi.gemstone.GemTriggerOrder
 import uniffi.gemstone.GemValidatorSectionKind
-import uniffi.gemstone.GemVerificationLevel
 import uniffi.gemstone.GemWalletConnectFailure
 import uniffi.gemstone.GemWalletImportKind
 import uniffi.gemstone.GemWalletSecretKind
@@ -338,70 +336,36 @@ fun AddressInputError.string(context: Context): String = when (this) {
 
 fun GemInfoTitle.string(context: Context): String = when (this) {
     GemInfoTitle.NotAvailable -> context.getString(R.string.common_not_available)
-
     GemInfoTitle.NetworkFee -> context.getString(R.string.info_network_fee_title)
-
     is GemInfoTitle.BalanceRequired -> context.getString(R.string.info_balance_required_title, symbol)
-
     is GemInfoTitle.TransactionState -> context.getString(state.toPrimitives().statusLabelRes())
-
     GemInfoTitle.EstimatedConfirmation -> context.getString(R.string.transaction_estimated_confirmation)
-
     GemInfoTitle.WatchWallet -> context.getString(R.string.info_watch_wallet_title)
-
     GemInfoTitle.PaymentVerification -> context.getString(R.string.info_payment_verification_title)
-
     GemInfoTitle.LockTime -> context.getString(R.string.stake_lock_time)
-
     GemInfoTitle.Apr -> context.getString(R.string.stake_apr, "")
-
     GemInfoTitle.PriceImpact -> context.getString(R.string.swap_price_impact)
-
     GemInfoTitle.Slippage -> context.getString(R.string.swap_slippage)
-
     GemInfoTitle.NoQuote -> context.getString(R.string.errors_swap_no_quote_available)
-
-    is GemInfoTitle.AssetStatus -> when (status) {
-        uniffi.gemstone.VerificationStatus.VERIFIED -> ""
-        uniffi.gemstone.VerificationStatus.UNVERIFIED -> context.getString(R.string.asset_verification_unverified)
-        uniffi.gemstone.VerificationStatus.SUSPICIOUS -> context.getString(R.string.asset_verification_suspicious)
-    }
-
+    is GemInfoTitle.AssetStatus -> context.getString(status.labelRes())
     GemInfoTitle.AccountMinimumBalance -> context.getString(R.string.info_account_minimum_balance_title)
-
     GemInfoTitle.MinimumAmount -> context.getString(R.string.info_minimum_amount_title)
-
     GemInfoTitle.StakingReservedFees -> context.getString(R.string.info_stake_reserved_title)
-
     GemInfoTitle.Pending -> context.getString(R.string.stake_pending)
-
     GemInfoTitle.StakeFrozenRequired -> context.getString(R.string.info_stake_frozen_required_title)
     GemInfoTitle.Unstake -> context.getString(R.string.transfer_unstake_title)
-
     GemInfoTitle.FundingApr -> context.getString(R.string.info_perpetual_funding_apr_title)
-
     GemInfoTitle.FundingPayments -> context.getString(R.string.info_perpetual_funding_payments_title)
-
     GemInfoTitle.LiquidationPrice -> context.getString(R.string.info_perpetual_liquidation_price_title)
-
     GemInfoTitle.OpenInterest -> context.getString(R.string.info_perpetual_open_interest_title)
-
     GemInfoTitle.AutoClose -> context.getString(R.string.perpetual_auto_close)
-
     GemInfoTitle.MaliciousTransaction -> context.getString(R.string.errors_scan_transaction_malicious_title)
-
     GemInfoTitle.Warning -> context.getString(R.string.common_warning)
-
     GemInfoTitle.TransferError -> context.getString(R.string.errors_transfer_error)
-
     GemInfoTitle.FullyDilutedValuation -> context.getString(R.string.info_fully_diluted_valuation_title)
-
     GemInfoTitle.CirculatingSupply -> context.getString(R.string.asset_circulating_supply)
-
     GemInfoTitle.TotalSupply -> context.getString(R.string.asset_total_supply)
-
     GemInfoTitle.MaxSupply -> context.getString(R.string.info_max_supply_title)
-
     is GemInfoTitle.WalletName -> name
 }
 
@@ -463,6 +427,7 @@ fun GemInfoDescription.string(context: Context): String = when (this) {
     GemInfoDescription.Pending -> context.getString(R.string.info_transaction_pending_description)
 
     GemInfoDescription.StakeFrozenRequired -> context.getString(R.string.info_stake_frozen_required_description)
+
     is GemInfoDescription.AvailableIn -> context.getString(R.string.common_available_in, remaining.formatDuration().bold())
 
     GemInfoDescription.FundingApr -> context.getString(R.string.info_perpetual_funding_apr_description)
@@ -570,10 +535,10 @@ fun PerpetualDirection.stringRes(): Int = when (this) {
 }
 
 @StringRes
-fun GemVerificationLevel.stringRes(): Int = when (this) {
-    GemVerificationLevel.VERIFIED -> R.string.asset_verification_verified
-    GemVerificationLevel.UNVERIFIED -> R.string.asset_verification_unverified
-    GemVerificationLevel.SUSPICIOUS -> R.string.asset_verification_suspicious
+fun uniffi.gemstone.VerificationStatus.labelRes(): Int = when (this) {
+    uniffi.gemstone.VerificationStatus.VERIFIED -> R.string.asset_verification_verified
+    uniffi.gemstone.VerificationStatus.UNVERIFIED -> R.string.asset_verification_unverified
+    uniffi.gemstone.VerificationStatus.SUSPICIOUS -> R.string.asset_verification_suspicious
 }
 
 @StringRes
@@ -1591,12 +1556,6 @@ fun GemWalletImportKind.fieldStringRes(): Int = when (this) {
 fun GemPriceAlertSectionKind.footer(context: Context): String? = when (this) {
     GemPriceAlertSectionKind.Auto -> context.getString(R.string.price_alerts_auto_footer)
     is GemPriceAlertSectionKind.Asset -> null
-}
-
-fun VerificationStatus.labelRes(): Int? = when (this) {
-    VerificationStatus.Verified -> null
-    VerificationStatus.Unverified -> R.string.asset_verification_unverified
-    VerificationStatus.Suspicious -> R.string.asset_verification_suspicious
 }
 
 fun GemNameIndicator.contentDescription(): Int? = when (this) {

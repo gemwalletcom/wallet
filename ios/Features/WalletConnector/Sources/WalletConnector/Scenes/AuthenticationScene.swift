@@ -30,12 +30,7 @@ public struct AuthenticationScene: View {
                 if let networkRow = model.networkRow {
                     GemListRowView(row: networkRow)
                 }
-                ListItemImageView(
-                    title: Localized.Transaction.status,
-                    subtitle: model.statusText,
-                    subtitleStyle: model.statusTextStyle,
-                    assetImage: model.statusAssetImage,
-                )
+                GemListRowView(row: model.verificationRow)
             }
 
             if let messageText = model.messageText {

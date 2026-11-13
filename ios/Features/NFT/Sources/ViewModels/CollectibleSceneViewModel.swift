@@ -224,9 +224,8 @@ extension CollectibleSceneViewModel {
         isPresentingToast = .success(Localized.Transaction.Status.confirmed)
     }
 
-    func onSelectStatus() {
-        guard let assetData else { return }
-        isPresentingSheet = .info(GemInfoTopic.assetStatus(status: assetData.collection.status.toGem()).infoSheet)
+    func onInfo(_ topic: GemInfoTopic) {
+        isPresentingSheet = .info(topic.infoSheet)
     }
 }
 

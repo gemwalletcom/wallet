@@ -23,6 +23,8 @@ Apply these repository-specific checks within the agent's native review workflow
 
 Apply [Engineering Principles](engineering-principles.md) and platform conventions against the existing owner and documented examples. Each new abstraction or public symbol needs a current consumer or required contract. Flag unnecessary wrappers, duplicate paths, and hypothetical infrastructure; keep unrelated refactors out.
 
+A title-with-a-value row, including a status, comes from Core as a `GemListRow` and renders through the shared row builder. Flag a view model or scene that builds such a row from a Core value (title, text, tone or icon mapped per screen); see [plain rows](../docs/ARCHITECTURE.md#a-status-is-a-plain-row-never-a-screens-own-view).
+
 ## Security
 
 Apply [Security](security.md) to the changed paths:

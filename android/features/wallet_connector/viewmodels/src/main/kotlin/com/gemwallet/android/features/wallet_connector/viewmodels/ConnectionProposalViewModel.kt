@@ -13,13 +13,9 @@ import com.gemwallet.android.ext.listItem
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.list_item.ListItemModel
-import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
-import com.gemwallet.android.ui.style.textStyle
 import com.wallet.core.primitives.WalletId
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -84,15 +80,6 @@ class ConnectionProposalViewModel @AssistedInject constructor(
 
     val proposalRows = combine(selectedWallet, state) { wallet, sceneState -> connectionProposal(sceneState.verificationStatus, wallet?.name.orEmpty()) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, connectionProposal(WalletConnectionVerificationStatus.UNKNOWN, ""))
-
-    val statusListItem = proposalRows.map { proposal ->
-        ListItemModel(
-            title = context.getString(R.string.transaction_status),
-            subtitle = context.getString(proposal.verification.stringRes()),
-            subtitleStyle = proposal.verification.textStyle(),
-        )
-    }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, ListItemModel(title = context.getString(R.string.transaction_status)))
 
     val buttonState = combine(selectedWallet, state) { wallet, sceneState ->
         buttonState(enabled = wallet != null, loading = sceneState is ConnectionProposalUIState.Approving)

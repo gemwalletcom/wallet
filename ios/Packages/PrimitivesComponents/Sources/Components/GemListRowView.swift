@@ -104,6 +104,8 @@ public struct GemListRowView: View {
             }
         case let .network(title, subtitle, image):
             ListItemImageView(title: title, subtitle: subtitle, assetImage: image)
+        case let .image(model):
+            ListItemImageView(model: model)
         case let .imageMenu(model, menu):
             ListItemImageView(model: model)
                 .contextMenu(contextMenu(menu))
