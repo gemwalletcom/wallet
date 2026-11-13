@@ -44,11 +44,11 @@ class LockTimerTest {
     }
 
     @Test
-    fun shouldRelock_returnsTrueWhileAWalletConnectRequestIsOpen() {
-        val timer = lockTimer(authRequired = true, lockIntervalMinutes = 0)
+    fun shouldRelock_returnsTrueAfterAnUnboundedAbsence() {
+        val timer = lockTimer(authRequired = true, lockIntervalMinutes = 1)
         timer.onLeft(at = 0)
 
-        assertTrue("an open request never holds the lock off", timer.shouldRelockOnReturn(now = Long.MAX_VALUE))
+        assertTrue(timer.shouldRelockOnReturn(now = Long.MAX_VALUE))
     }
 
     @Test
