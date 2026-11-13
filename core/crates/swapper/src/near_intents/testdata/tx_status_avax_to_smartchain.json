@@ -8,6 +8,9 @@
     "amountOut": "399605209991817",
     "originChainTxHashes": [
       "0x60d445fe823f8fd3778f8ce5192e6ec0fd96e7313bbeefa85c6aaea3907f4ce4"
+    ],
+    "destinationChainTxHashes": [
+      "0x99e026548446c0442d866b0507590b59e02b1c4bf82f90c10301c9864f206041"
     ]
   }
 ]
