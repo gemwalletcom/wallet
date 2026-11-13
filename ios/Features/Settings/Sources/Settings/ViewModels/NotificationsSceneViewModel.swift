@@ -2,7 +2,7 @@
 
 import Components
 import Foundation
-import struct Gemstone.GemListSection
+import struct Gemstone.GemGroup
 import protocol Gemstone.GemNotificationsServiceProtocol
 import enum Gemstone.GemRowAction
 import func Gemstone.notificationsSections
@@ -30,7 +30,7 @@ public final class NotificationsSceneViewModel {
 }
 
 public extension NotificationsSceneViewModel {
-    var sections: [GemListSection] {
+    var sections: [GemGroup] {
         notificationsSections(pushEnabled: isEnabled)
     }
 }

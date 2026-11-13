@@ -22,8 +22,10 @@ public struct SettingsScene: View {
     }
 
     public var body: some View {
-        ListSectionView(sections: model.sections) { row in
-            content(for: row)
+        List {
+            GemGroupSections(rows: model.sections) { row in
+                content(for: row)
+            }
         }
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .listStyle(.insetGrouped)

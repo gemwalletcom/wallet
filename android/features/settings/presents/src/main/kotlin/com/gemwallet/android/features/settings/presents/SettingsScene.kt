@@ -17,14 +17,15 @@ import com.gemwallet.android.features.settings.viewmodels.models.settingsAction
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.clickable
 import com.gemwallet.android.ui.components.list_item.GemListRowView
+import com.gemwallet.android.ui.components.list_item.rows
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.models.actions.SettingsAction
 import com.gemwallet.android.ui.theme.space0
-import uniffi.gemstone.GemListSection
+import uniffi.gemstone.GemGroup
 
 @Composable
-fun SettingsScene(sections: List<GemListSection>, onAction: (SettingsAction) -> Unit, scrollState: ScrollState) {
+fun SettingsScene(sections: List<GemGroup>, onAction: (SettingsAction) -> Unit, scrollState: ScrollState) {
     Scene(
         title = stringResource(id = R.string.settings_title),
         mainActionPadding = PaddingValues(space0),

@@ -17,9 +17,11 @@ public struct PreferencesScene: View {
     }
 
     public var body: some View {
-        ListSectionView(sections: model.sections) { row in
-            content(for: row)
-                .listRowInsets(.assetListRowInsets)
+        List {
+            GemGroupSections(rows: model.sections) { row in
+                content(for: row)
+                    .listRowInsets(.assetListRowInsets)
+            }
         }
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .listSectionSpacing(.compact)

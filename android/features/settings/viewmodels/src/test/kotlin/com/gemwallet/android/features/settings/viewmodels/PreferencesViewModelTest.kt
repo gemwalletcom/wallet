@@ -6,6 +6,7 @@ import com.gemwallet.android.application.preferences.cases.ObservablePreferences
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.features.settings.viewmodels.models.PerpetualSetting
 import com.gemwallet.android.testkit.MainDispatcherRule
+import com.gemwallet.android.testkit.mockGemGroup
 import com.wallet.core.primitives.Appearance
 import com.wallet.core.primitives.Currency
 import io.mockk.every
@@ -24,12 +25,10 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import uniffi.gemstone.GemListItem
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowIcon
 import uniffi.gemstone.GemListRowTitle
-import uniffi.gemstone.GemListSection
-import uniffi.gemstone.GemListSectionFooter
-import uniffi.gemstone.GemListSectionTitle
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemPerpetualDefaults
 import uniffi.gemstone.GemPerpetualPickers
@@ -66,11 +65,7 @@ class PreferencesViewModelTest {
         every { preferencesSections(any(), any()) } answers {
             sectionRequests += 1
             listOf(
-                GemListSection(
-                    GemListSectionTitle.NONE,
-                    GemListSectionFooter.NONE,
-                    listOf(GemListRow.Link(GemListRowTitle.CURRENCY, null, GemListRowIcon.CURRENCY, GemRowAction.Currency)),
-                ),
+                mockGemGroup(items = listOf(GemListItem.Row(GemListRow.Link(GemListRowTitle.CURRENCY, null, GemListRowIcon.CURRENCY, GemRowAction.Currency)))),
             )
         }
     }

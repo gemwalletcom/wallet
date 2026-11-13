@@ -1571,6 +1571,18 @@ fun mockGemFormattedNumber(
     exact = exact,
 )
 
+fun mockGemGroup(
+    id: String? = null,
+    title: uniffi.gemstone.GemLocalizedText? = null,
+    footer: uniffi.gemstone.GemListSectionFooter = uniffi.gemstone.GemListSectionFooter.NONE,
+    items: List<uniffi.gemstone.GemListItem> = emptyList(),
+) = uniffi.gemstone.GemGroup(
+    id = id,
+    title = title,
+    footer = footer,
+    items = items,
+)
+
 fun mockGemHeaderButton(
     kind: uniffi.gemstone.GemHeaderButtonKind = uniffi.gemstone.GemHeaderButtonKind.SEND,
     action: uniffi.gemstone.GemHeaderButtonAction = mockGemHeaderButtonAction(),

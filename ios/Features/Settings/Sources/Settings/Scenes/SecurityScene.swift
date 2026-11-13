@@ -14,16 +14,18 @@ public struct SecurityScene: View {
     }
 
     public var body: some View {
-        ListSectionView(sections: model.sections) { row in
-            if case .picker = row {
-                GemListRowView(row: row, onSelect: model.onSelect)
-                    .confirmationDialog(model.lockPeriodTitle, isPresented: $model.isPresentingLockPeriods) {
-                        ForEach(model.allLockPeriods) { period in
-                            Button(period.title) { model.updateLockPeriod(to: period) }
+        List {
+            GemGroupSections(rows: model.sections) { row in
+                if case .picker = row {
+                    GemListRowView(row: row, onSelect: model.onSelect)
+                        .confirmationDialog(model.lockPeriodTitle, isPresented: $model.isPresentingLockPeriods) {
+                            ForEach(model.allLockPeriods) { period in
+                                Button(period.title) { model.updateLockPeriod(to: period) }
+                            }
                         }
-                    }
-            } else {
-                GemListRowView(row: row, onToggle: model.onToggle)
+                } else {
+                    GemListRowView(row: row, onToggle: model.onToggle)
+                }
             }
         }
         .contentMargins(.top, .scene.top, for: .scrollContent)

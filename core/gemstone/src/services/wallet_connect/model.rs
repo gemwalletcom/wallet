@@ -287,17 +287,17 @@ mod verification_tests {
     #[test]
     fn test_a_proposal_shows_the_wallet_the_connection_and_its_status_and_asks_for_balance_and_approvals() {
         let single = connection_proposal(proposal(vec![Wallet::mock()]), None, WalletConnectionVerificationStatus::Malicious);
-        let rows: Vec<&GemListRow> = single.sections[0].rows().collect();
+        let rows = single.sections[0].rows();
 
         assert_eq!(single.sections.len(), 1);
         assert_eq!(rows.len(), 3);
-        assert_eq!(wallet_action(rows[0]), None);
+        assert_eq!(wallet_action(&rows[0]), None);
         assert_eq!(rows[1].action(), None);
-        assert_eq!(status_of(rows[2]), Some(VerificationStatus::Suspicious));
+        assert_eq!(status_of(&rows[2]), Some(VerificationStatus::Suspicious));
         assert_eq!(single.permissions, vec![GemConnectionPermission::ViewBalance, GemConnectionPermission::ApprovalRequests]);
 
         let several = connection_proposal(proposal(vec![Wallet::mock(), Wallet::mock()]), Some(WalletId::mock()), WalletConnectionVerificationStatus::Verified);
-        assert_eq!(several.sections[0].rows().next().and_then(GemListRow::action), Some(GemRowAction::SelectWallet));
+        assert_eq!(several.sections[0].rows()[0].action(), Some(GemRowAction::SelectWallet));
     }
 
     #[test]
@@ -306,16 +306,16 @@ mod verification_tests {
         let with_chain = authentication_sections(proposal(wallets.clone()), Some(WalletId::mock()), Some(Chain::Ethereum), WalletConnectionVerificationStatus::Unknown);
         let without_chain = authentication_sections(proposal(wallets), None, None, WalletConnectionVerificationStatus::Unknown);
 
-        let rows: Vec<&GemListRow> = with_chain[0].rows().collect();
-        let without: Vec<&GemListRow> = without_chain[0].rows().collect();
+        let rows = with_chain[0].rows();
+        let without = without_chain[0].rows();
         assert_eq!(rows.len(), 3);
         assert_eq!(rows[0].action(), Some(GemRowAction::SelectWallet));
-        assert!(match rows[1] {
+        assert!(match &rows[1] {
             GemListRow::Network { chain, .. } => *chain == Chain::Ethereum,
             _ => false,
         });
-        assert_eq!(status_of(rows[2]), Some(VerificationStatus::Unverified));
+        assert_eq!(status_of(&rows[2]), Some(VerificationStatus::Unverified));
         assert_eq!(without.len(), 2);
-        assert_eq!(status_of(without[1]), Some(VerificationStatus::Unverified));
+        assert_eq!(status_of(&without[1]), Some(VerificationStatus::Unverified));
     }
 }

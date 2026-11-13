@@ -19,16 +19,17 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.OptionPickerRow
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
+import com.gemwallet.android.ui.components.list_item.rows
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.localization.stringRes
 import com.wallet.core.primitives.Appearance
-import uniffi.gemstone.GemListSection
+import uniffi.gemstone.GemGroup
 import uniffi.gemstone.GemPerpetualDefaults
 import uniffi.gemstone.GemPerpetualPickers
 
 @Composable
-internal fun PreferencesScene(sections: List<GemListSection>, appearance: Appearance, perpetualDefaults: GemPerpetualDefaults, perpetualOptions: GemPerpetualPickers, onAction: (PreferencesAction) -> Unit) {
+internal fun PreferencesScene(sections: List<GemGroup>, appearance: Appearance, perpetualDefaults: GemPerpetualDefaults, perpetualOptions: GemPerpetualPickers, onAction: (PreferencesAction) -> Unit) {
     val context = LocalContext.current
 
     Scene(

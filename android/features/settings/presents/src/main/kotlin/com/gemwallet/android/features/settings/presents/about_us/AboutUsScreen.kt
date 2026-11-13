@@ -25,9 +25,9 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
+import com.gemwallet.android.ui.components.list_item.rows
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.localization.string
-import com.gemwallet.android.ui.localization.titleRes
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -39,7 +39,7 @@ fun AboutUsScreen(onCancel: () -> Unit, viewModel: AboutUsViewModel = hiltViewMo
     Scene(title = stringResource(id = R.string.settings_aboutus), onClose = onCancel) {
         LazyColumn {
             viewState.sections.forEachIndexed { index, section ->
-                section.title.titleRes()?.let { title -> item(key = "section:$index") { SubheaderItem(title) } }
+                section.title?.let { title -> item(key = "section:$index") { SubheaderItem(title.string(context)) } }
                 itemsPositioned(section.rows) { position, row ->
                     val opensMenu = row.opensDeveloperMenu()
                     Box(modifier = Modifier.fillMaxWidth()) {

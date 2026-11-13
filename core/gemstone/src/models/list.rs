@@ -719,11 +719,15 @@ impl GemGroup {
         Self { footer, ..self }
     }
 
-    pub fn rows(&self) -> impl Iterator<Item = &GemListRow> {
-        self.items.iter().filter_map(|item| match item {
-            GemListItem::Row { row } => Some(row),
-            _ => None,
-        })
+    #[cfg(test)]
+    pub fn rows(&self) -> Vec<GemListRow> {
+        self.items
+            .iter()
+            .filter_map(|item| match item {
+                GemListItem::Row { row } => Some(row.clone()),
+                _ => None,
+            })
+            .collect()
     }
 }
 

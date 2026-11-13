@@ -44,6 +44,8 @@ fun LazyListScope.gemGroups(groups: List<GemGroup>, itemContent: @Composable Laz
     }
 }
 
+val GemGroup.rows: List<GemListRow> get() = items.mapNotNull { (it as? GemListItem.Row)?.row }
+
 fun LazyListScope.gemGroupRows(groups: List<GemGroup>, onSelectAddress: ((String) -> Unit)? = null, onSelect: ((GemRowAction) -> Unit)? = null) {
     gemGroups(groups) { item, position ->
         if (item is GemListItem.Row) {

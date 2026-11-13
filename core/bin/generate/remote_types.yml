@@ -298,6 +298,7 @@ mocks:
   - GemFiatQuotesResult
   - GemFiatSession
   - GemFormattedNumber
+  - GemGroup
   - GemHeaderButton
   - GemHeaderButtonAction
   - GemInfoTopic

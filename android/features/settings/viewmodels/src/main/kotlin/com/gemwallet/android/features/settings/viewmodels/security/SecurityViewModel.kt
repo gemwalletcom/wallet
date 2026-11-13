@@ -21,7 +21,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import uniffi.gemstone.GemListSection
+import uniffi.gemstone.GemGroup
 import uniffi.gemstone.GemSecurityInput
 import uniffi.gemstone.GemSettingsServiceInterface
 import uniffi.gemstone.lockPeriodFromMinutes
@@ -60,7 +60,7 @@ class SecurityViewModel @Inject constructor(
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, sections(authRequired.value, lockPeriodFromMinutes(null).minutes().toInt()))
 
-    private fun sections(authRequired: Boolean, lockInterval: Int): List<GemListSection> = settingsService.securitySections(
+    private fun sections(authRequired: Boolean, lockInterval: Int): List<GemGroup> = settingsService.securitySections(
         GemSecurityInput(
             authenticationEnabled = authRequired,
             authenticationName = null,
