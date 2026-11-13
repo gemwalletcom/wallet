@@ -41,41 +41,10 @@ install-android-targets:
 export LIB_NAME := "gemstone"
 export DY_LIB_NAME := if os() == "macos" { "libgemstone.dylib" } else { "libgemstone.so" }
 
-export BUILD_MODE := if env("BUILD_MODE", "debug") == "release" { "release" } else { "debug" }
-CARGO_BUILD_FLAG := if BUILD_MODE == "release" { "--release" } else { "" }
-
 export TARGET_DIR := "../target"
 export GEN_SWIFT_FOLDER := "generated/swift"
 export GEN_KOTLIN_FOLDER := "generated/kotlin"
 export ANDROID_MODULE_FOLDER := "android/gemstone/src/main/java"
-export IOS_SIMULATOR_RUST_TARGET := "aarch64-apple-ios-sim"
-export IOS_RUST_TARGETS := IOS_SIMULATOR_RUST_TARGET + " aarch64-apple-ios aarch64-apple-ios-macabi aarch64-apple-darwin"
-
-build-ios-lib targets=IOS_RUST_TARGETS:
-    #!/usr/bin/env bash
-    set -euo pipefail
-
-    targets="{{targets}}"
-    profile="${BUILD_MODE}"
-    build_flag="{{CARGO_BUILD_FLAG}}"
-
-    for rust_target in $targets; do
-        echo "note: Building Gemstone Rust library for $rust_target ($profile)"
-        case "$rust_target" in
-            aarch64-apple-ios | aarch64-apple-ios-sim)
-                IPHONEOS_DEPLOYMENT_TARGET=17.0 cargo rustc --target "$rust_target" --lib ${build_flag} --crate-type staticlib
-                ;;
-            aarch64-apple-ios-macabi | aarch64-apple-darwin)
-                env -u IPHONEOS_DEPLOYMENT_TARGET cargo rustc --target "$rust_target" --lib ${build_flag} --crate-type staticlib
-                ;;
-            *)
-                echo "error: unsupported Gemstone iOS Rust target: $rust_target" >&2
-                exit 1
-                ;;
-        esac
-    done
-
-build-ios-simulator-lib: (build-ios-lib IOS_SIMULATOR_RUST_TARGET)
 
 _generate-bindings LANGUAGE OUTPUT:
     #!/usr/bin/env bash

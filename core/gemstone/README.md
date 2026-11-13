@@ -8,10 +8,9 @@ iOS
 
 ```bash
 just bindgen-swift         # UniFFI Swift sources and headers in generated/swift
-just build-ios-lib         # Gemstone static library for the iOS Rust targets
 ```
 
-The iOS app builds both through `just generate-stone` from the repo root.
+The iOS app builds the static library and its bindings through `just generate-stone` from the repo root.
 
 Android
 
