@@ -3333,7 +3333,6 @@ dependencies = [
  "lightning-invoice",
  "num-bigint 0.5.1",
  "primitives",
- "serde_json",
  "signer",
  "spark-wallet",
  "tokio",

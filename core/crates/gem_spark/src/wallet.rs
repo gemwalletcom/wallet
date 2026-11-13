@@ -18,7 +18,6 @@ use crate::model::{LightningInvoice, LightningPayment, LightningPaymentStatus, L
 use crate::partner::PartnerHeaders;
 use crate::signer::LockableSigner;
 use crate::store::{LightningPendingSend, LightningStore};
-use crate::tree_store::StoredTreeStore;
 
 const AMOUNTLESS_INVOICE_SATS: u64 = 0;
 const SIGNATURE_LEN: usize = 65;
@@ -108,12 +107,10 @@ impl Drop for SendPermit<'_> {
 
 impl LightningWallet {
     pub async fn open(account: AccountKey, store: Arc<dyn LightningStore>, partner: Arc<PartnerHeaders>) -> Result<Self, LightningError> {
-        let tree_store = StoredTreeStore::open(store.clone()).await?;
         let signer = Arc::new(LockableSigner::new(&account));
         drop(account);
         let (cancel, cancel_receiver) = watch::channel(());
         let wallet = WalletBuilder::new(SparkWalletConfig::default_config(Network::Mainnet), Arc::new(SparkSignerAdapter::new(signer.clone())))
-            .with_tree_store(Arc::new(tree_store))
             .with_cancellation_token(cancel_receiver)
             .with_so_extra_header_provider(partner.clone())
             .with_ssp_extra_header_provider(partner)

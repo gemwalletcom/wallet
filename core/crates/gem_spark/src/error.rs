@@ -1,7 +1,7 @@
 use std::fmt;
 
 #[cfg(feature = "wallet")]
-use spark_wallet::{SparkWalletError, TreeServiceError};
+use spark_wallet::SparkWalletError;
 
 #[derive(Debug, PartialEq)]
 pub enum LightningError {
@@ -44,12 +44,5 @@ impl std::error::Error for LightningError {}
 impl From<SparkWalletError> for LightningError {
     fn from(error: SparkWalletError) -> Self {
         Self::Wallet(error.to_string())
-    }
-}
-
-#[cfg(feature = "wallet")]
-impl From<TreeServiceError> for LightningError {
-    fn from(error: TreeServiceError) -> Self {
-        Self::Storage(error.to_string())
     }
 }

@@ -30,19 +30,14 @@ mod store {
     use async_trait::async_trait;
 
     use crate::error::LightningError;
-    use crate::store::{LightningLeaf, LightningPendingSend, LightningStore};
+    use crate::store::{LightningPendingSend, LightningStore};
 
     #[derive(Default)]
     pub struct MemoryLightningStore {
-        leaves: Mutex<BTreeMap<String, String>>,
         sends: Mutex<BTreeMap<String, LightningPendingSend>>,
     }
 
     impl MemoryLightningStore {
-        fn leaves(&self) -> MutexGuard<'_, BTreeMap<String, String>> {
-            self.leaves.lock().unwrap_or_else(PoisonError::into_inner)
-        }
-
         fn sends(&self) -> MutexGuard<'_, BTreeMap<String, LightningPendingSend>> {
             self.sends.lock().unwrap_or_else(PoisonError::into_inner)
         }
@@ -50,19 +45,6 @@ mod store {
 
     #[async_trait]
     impl LightningStore for MemoryLightningStore {
-        async fn get_leaves(&self) -> Result<Vec<LightningLeaf>, LightningError> {
-            Ok(self.leaves().iter().map(|(id, data)| LightningLeaf { id: id.clone(), data: data.clone() }).collect())
-        }
-
-        async fn update_leaves(&self, leaves: Vec<LightningLeaf>, delete_ids: Vec<String>) -> Result<(), LightningError> {
-            let mut stored = self.leaves();
-            stored.extend(leaves.into_iter().map(|leaf| (leaf.id, leaf.data)));
-            delete_ids.iter().for_each(|id| {
-                stored.remove(id);
-            });
-            Ok(())
-        }
-
         async fn get_pending_sends(&self) -> Result<Vec<LightningPendingSend>, LightningError> {
             Ok(self.sends().values().cloned().collect())
         }
