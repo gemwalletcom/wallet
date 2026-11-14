@@ -450,17 +450,17 @@ mod tests {
     #[test]
     fn test_switch_ethereum_chain_reads_the_session_from_the_store() {
         block_on(async {
-            let service = GemWalletConnectService::mock(Ok(String::new()), Wallet::mock_with_chains(&[Chain::Ethereum, Chain::Blast])).await;
+            let service = GemWalletConnectService::mock(Ok(String::new()), Wallet::mock_with_chains(&[Chain::Ethereum, Chain::Base])).await;
             service.store.update_session(WalletConnectionSession::mock("topic", &[Chain::Ethereum])).await.unwrap();
             let request = |request_id: &str, method: &str| GemWalletConnectSessionRequest {
                 method: method.to_string(),
-                params: r#"[{"chainId":"0x13e31"}]"#.to_string(),
+                params: r#"[{"chainId":"0x2105"}]"#.to_string(),
                 ..GemWalletConnectSessionRequest::mock(request_id)
             };
 
             assert_eq!(
                 service.request_outcome(request("1", "wallet_switchEthereumChain")).await,
-                GemWalletConnectOutcome::AddSessionAccount { account: "eip155:81457:address".to_string() }
+                GemWalletConnectOutcome::AddSessionAccount { account: "eip155:8453:address".to_string() }
             );
             assert_eq!(service.request_outcome(request("2", "wallet_addEthereumChain")).await, GemWalletConnectOutcome::respond_null());
         });

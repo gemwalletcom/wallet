@@ -631,7 +631,7 @@ mod tests {
 
     #[test]
     fn test_switch_chain_adds_a_supported_network_to_a_session_that_already_has_the_ethereum_address() {
-        let wallet = Wallet::mock_with_chains(&[Chain::Ethereum, Chain::Blast, Chain::Solana]);
+        let wallet = Wallet::mock_with_chains(&[Chain::Ethereum, Chain::Base, Chain::Blast, Chain::Solana]);
         let connection = |chains: &[Chain]| WalletConnection {
             session: WalletConnectionSession::mock("topic", chains),
             wallet: wallet.clone(),
@@ -639,26 +639,27 @@ mod tests {
         let unrecognized = GemWalletConnectOutcome::respond_error(unrecognized_chain_error());
 
         assert_eq!(
-            switch_chain_outcome(&connection(&[Chain::Ethereum]), 81457),
-            GemWalletConnectOutcome::AddSessionAccount { account: "eip155:81457:address".to_string() }
+            switch_chain_outcome(&connection(&[Chain::Ethereum]), 8453),
+            GemWalletConnectOutcome::AddSessionAccount { account: "eip155:8453:address".to_string() }
         );
-        assert_eq!(switch_chain_outcome(&connection(&[Chain::Ethereum, Chain::Blast]), 81457), GemWalletConnectOutcome::respond_null(), "already in the session");
+        assert_eq!(switch_chain_outcome(&connection(&[Chain::Ethereum, Chain::Base]), 8453), GemWalletConnectOutcome::respond_null(), "already in the session");
+        assert_eq!(switch_chain_outcome(&connection(&[Chain::Ethereum]), 81457), unrecognized, "deprecated network");
         assert_eq!(switch_chain_outcome(&connection(&[Chain::Ethereum]), 3_735_928_559), unrecognized, "unknown network");
         assert_eq!(switch_chain_outcome(&connection(&[Chain::Ethereum]), 56), unrecognized, "the wallet has no account there");
-        assert_eq!(switch_chain_outcome(&connection(&[Chain::Solana]), 81457), unrecognized, "the dapp never got the Ethereum address");
+        assert_eq!(switch_chain_outcome(&connection(&[Chain::Solana]), 8453), unrecognized, "the dapp never got the Ethereum address");
         assert_eq!(
             switch_chain_outcome(
                 &WalletConnection {
                     session: WalletConnectionSession::mock("topic", &[Chain::Ethereum]),
-                    wallet: Wallet::mock_with_accounts(vec![Account::mock(Chain::Ethereum, "0xshared"), Account::mock(Chain::Blast, "0xother")]),
+                    wallet: Wallet::mock_with_accounts(vec![Account::mock(Chain::Ethereum, "0xshared"), Account::mock(Chain::Base, "0xother")]),
                 },
-                81457
+                8453
             ),
             unrecognized,
             "an address the dapp was never given is not added"
         );
 
-        assert_eq!(add_chain_outcome(&connection(&[Chain::Ethereum]), 81457), GemWalletConnectOutcome::respond_null());
+        assert_eq!(add_chain_outcome(&connection(&[Chain::Ethereum]), 8453), GemWalletConnectOutcome::respond_null());
         assert_eq!(add_chain_outcome(&connection(&[Chain::Ethereum]), 3_735_928_559), unrecognized);
     }
 
