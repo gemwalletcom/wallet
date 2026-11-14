@@ -479,14 +479,17 @@ pub enum MayanClientStatus {
     Completed,
     InProgress,
     Refunded,
+    Canceled,
+    #[serde(other)]
+    Unknown,
 }
 
 impl MayanClientStatus {
     pub fn swap_status(&self) -> SwapStatus {
         match self {
             MayanClientStatus::Completed => SwapStatus::Completed,
-            MayanClientStatus::Refunded => SwapStatus::Refunded,
-            MayanClientStatus::InProgress => SwapStatus::Pending,
+            MayanClientStatus::Refunded | MayanClientStatus::Canceled => SwapStatus::Refunded,
+            MayanClientStatus::InProgress | MayanClientStatus::Unknown => SwapStatus::Pending,
         }
     }
 }
@@ -629,6 +632,14 @@ mod tests {
         assert_eq!(result.client_status, MayanClientStatus::Refunded);
         assert_eq!(result.from_amount64, Some("4000000000000000".to_string()));
         assert!(result.to_amount64.is_none());
+    }
+
+    #[test]
+    fn test_a_canceled_order_is_refunded_and_an_unknown_status_keeps_waiting() {
+        let status = |value: &str| serde_json::from_value::<MayanClientStatus>(serde_json::json!(value)).unwrap().swap_status();
+
+        assert_eq!(status("CANCELED"), SwapStatus::Refunded, "Mayan returns the input of a canceled order like a refund");
+        assert_eq!(status("SETTLING"), SwapStatus::Pending, "a status Mayan adds later keeps the swap tracked instead of failing to decode");
     }
 
     #[test]
