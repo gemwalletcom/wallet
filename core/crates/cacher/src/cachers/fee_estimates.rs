@@ -3,7 +3,6 @@ use std::time::Duration;
 
 use async_trait::async_trait;
 use primitives::{CacheFuture, Chain, ChainFeeEstimates};
-use strum::IntoEnumIterator;
 
 use crate::{CacheKey, CacherClient};
 
@@ -20,7 +19,7 @@ impl FeeEstimatesCacher for CacherClient {
     }
 
     async fn all_estimates(&self) -> Result<Vec<ChainFeeEstimates>, Box<dyn Error + Send + Sync>> {
-        let chains = Chain::iter().collect::<Vec<_>>();
+        let chains = Chain::all();
         let keys = chains.iter().map(|chain| CacheKey::TransactionFeeEstimates(chain.as_ref())).collect::<Vec<_>>();
         self.get_many_cached(&keys).await
     }

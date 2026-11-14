@@ -34,7 +34,7 @@ pub struct SwapTxResponse {
 impl SwapTxResponse {
     pub fn swap_status(&self) -> SwapStatus {
         match self.state.as_str() {
-            "COMPLETED" if self.refund_egress.is_some() => SwapStatus::Refunded,
+            "COMPLETED" if self.refund_egress.is_some() && self.swap_egress.is_none() => SwapStatus::Refunded,
             "COMPLETED" => SwapStatus::Completed,
             "FAILED" => SwapStatus::Failed,
             _ => SwapStatus::Pending,
@@ -218,6 +218,18 @@ pub mod test {
                 eta_in_seconds: None,
             }
         );
+    }
+
+    #[test]
+    fn test_a_partly_filled_vault_swap_with_a_refund_is_completed() {
+        let partial = SwapTxResponse {
+            refund_egress: Some(serde_json::json!({ "amount": "1000" })),
+            ..swap_response(include_str!("./test/swap_eth_to_btc.json"))
+        };
+        let result = map_swap_result(&partial);
+
+        assert_eq!(result.status, SwapStatus::Completed, "the part that filled was paid out");
+        assert_eq!(result.metadata.map(|metadata| metadata.to_value), Some(BigUint::from(9294445u64)));
     }
 
     #[test]

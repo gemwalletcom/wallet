@@ -3,7 +3,6 @@ use std::sync::Arc;
 
 use config_keys::ConfigParamKey;
 use job_runner::{JobHandle, ShutdownReceiver};
-use primitives::SwapProvider;
 
 use crate::model::WorkerService;
 use crate::worker::context::WorkerContext;
@@ -31,7 +30,7 @@ pub async fn jobs(context: WorkerContext, shutdown: ShutdownReceiver) -> Result<
                 async move { updater.update().await }
             }
         })
-        .jobs_with_config(WorkerJob::UpdateSwapVaultAddresses, SwapProvider::cross_chain_providers(), ConfigParamKey::SwapperVaultAddresses, |provider, _| {
+        .jobs_with_config(WorkerJob::UpdateSwapVaultAddresses, transactions.vault_address_providers(), ConfigParamKey::SwapperVaultAddresses, |provider, _| {
             let updater = Arc::new(transactions.vault_addresses_updater());
             move |_| {
                 let updater = updater.clone();

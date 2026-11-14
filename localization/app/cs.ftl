@@ -589,6 +589,7 @@ info_payment_verification_title = Ověření platby
 info_payment_verification_description = Obchodník požaduje před platbou další informace.
 info_network_fee_description = Každá transakce v síti %@ vyžaduje poplatek ve výši %@ zaplacený těžařům za zpracování vaší transakce, nikoli Gem Wallet. Síťové poplatky se liší podle využití sítě.
 info_transaction_error_description = Transakci nebylo možné dokončit kvůli chybě, jako je nedostatek finančních prostředků, neplatný vstup nebo odmítnutí ze strany sítě. Zkontrolujte podrobnosti a zkuste to znovu.
+info_transaction_refunded_description = Výměnu nebylo možné dokončit, a proto poskytovatel vrátil prostředky do vaší peněženky.
 info_transaction_pending_description = Transakce byla odeslána a čeká na potvrzení v síti. Doba zpracování se může lišit. Zkontrolujte prosím aktualizace.
 info_estimated_confirmation_description = Tento odhad vychází z transakčního poplatku a aktuální aktivity sítě %@. Skutečná doba potvrzení se může změnit a není zaručena.
 info_transaction_success_description = Transakce byla dokončena a potvrzena v síti. Můžete zkontrolovat podrobnosti a ověřit jeho stav.

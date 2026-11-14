@@ -589,6 +589,7 @@ info_payment_verification_title = 支払いの本人確認
 info_payment_verification_description = 加盟店は支払いの前に追加情報を必要としています。
 info_network_fee_description = %@ ネットワーク上のすべての取引には、取引処理のためにマイナーに支払われる %@ の手数料が必要であり、Gem Wallet には支払われません。ネットワーク手数料はネットワークの使用状況により変動します。
 info_transaction_error_description = 残高不足、無効な入力、ネットワークによる拒否などのエラーにより、取引を完了できませんでした。詳細をご確認の上、再度お試しください。
+info_transaction_refunded_description = スワップを完了できなかったため、プロバイダーが資金をウォレットに返金しました。
 info_transaction_pending_description = 取引は送信済みで、ネットワーク上での確認を待っています。処理時間は異なる場合があります。最新情報を再度ご確認ください。
 info_estimated_confirmation_description = この推定は、取引手数料と %@ ネットワークの現在の混雑状況に基づいています。実際の確認時間は変わる可能性があり、保証されるものではありません。
 info_transaction_success_description = 取引は完了し、ネットワーク上で確認されました。詳細を確認してステータスをご確認ください。

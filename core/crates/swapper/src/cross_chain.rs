@@ -64,7 +64,7 @@ fn deposit_order_id(transaction: &Transaction) -> Option<String> {
 
 fn is_valid_swap_transaction(provider: &SwapperProvider, transaction: &Transaction) -> bool {
     match provider {
-        SwapperProvider::Thorchain | SwapperProvider::Mayachain => thorchain_memo(transaction).is_some_and(|memo| ThorchainMemo::is_swap(&memo)),
+        SwapperProvider::Thorchain => thorchain_memo(transaction).is_some_and(|memo| ThorchainMemo::is_swap(&memo)),
         SwapperProvider::Chainflip => is_valid_chainflip_swap(transaction),
         SwapperProvider::Across => is_across_deposit(transaction),
         SwapperProvider::Mayan => is_valid_mayan_swap(transaction),

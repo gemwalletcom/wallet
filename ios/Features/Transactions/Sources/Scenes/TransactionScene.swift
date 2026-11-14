@@ -16,9 +16,9 @@ public struct TransactionScene: View {
 
     public var body: some View {
         List {
-            ForEach(model.sections) { section in
-                Section {
-                    ForEach(section.items) { content(for: $0.row) }
+            GemGroupSections(groups: model.sections) { item in
+                if case let .transactionDetail(detail) = item {
+                    content(for: detail.row)
                 }
             }
         }

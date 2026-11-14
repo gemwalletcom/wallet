@@ -12,7 +12,7 @@ flowchart LR
 
 1. Activity lists transactions newest first under Today, Yesterday or the date, each with its type (Sent, Received, Swap, Stake and so on), the asset, the amount and its value, and a Pending badge while it is unconfirmed; filters narrow by type and network.
 2. A pending transaction is tracked in the background, even after the app is closed, and its status and the balances update when the network confirms it.
-3. Tapping a row opens Transaction details: the header with the amount and value, Date, Status, Recipient or Sender, Network Fee, a memo when there is one, and "View on" the explorer; a swap shows its progress and offers Swap Again.
+3. Tapping a row opens Transaction details: the header with the amount and value, Date, Status, Recipient or Sender, Network Fee, a transfer's memo when there is one, and "View on" the explorer; a swap shows its progress and offers Swap Again.
 4. A push about a transaction opens its details.
 
 ```mermaid
@@ -28,6 +28,7 @@ flowchart LR
 | A transaction is sent | a Pending row at once, tracked until the network settles it, whatever screen the user is on | |
 | The network settles it | Successful, or Failed or Reverted | amounts and status come from the network, never from the app's guess |
 | A swap | listed under both the asset paid and the asset received | the user looks for it under either |
+| A swap, a stake or any other transaction that is not a transfer carries a memo, such as a THORChain swap instruction | its details show no memo | the memo there is the provider's or the network's instruction, not a note the user wrote or needs |
 | A swap paid Gem's fee from the amount paid, such as `0.01 ETH` with a `0.00005 ETH` fee | it shows `0.01 ETH` paid, on every network and provider | it matches the amount the user swapped |
 | A Uniswap, PancakeSwap, OKX or Across swap fails on the network, such as when the price moves past the slippage limit | a Failed swap of its two assets, not a contract call; the received side shows the least the swap would have accepted | nothing moved, so the swap request is all the network keeps |
 | The user taps a swap's header or Swap Again | Swap opens only where the asset screen offers it: nothing in a watch-only wallet or for an asset that cannot be swapped | the details follow the same rule as a link |

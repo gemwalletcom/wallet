@@ -143,12 +143,8 @@ struct GemListItemView: View {
             .ifLet(row.explorerContext) { view, explorerContext in
                 view.explorerContext(explorerContext)
             }
-        case let .connection(connection):
-            ConnectionView(connection: connection)
-        case let .priceAlert(alert):
-            ListAssetItemView(row: alert.row.row)
-        case let .recipient(row):
-            ListItemView(model: ListItemModel(title: row.title, subtitle: row.subtitle))
+        case .connection, .priceAlert, .recipient, .transactionDetail, .node, .explorer:
+            EmptyView()
         }
     }
 }
@@ -162,6 +158,9 @@ extension GemListItem {
         case let .connection(connection): connection.connection.session.id
         case let .priceAlert(alert): alert.id
         case let .recipient(row): row.recipient.id
+        case let .transactionDetail(item): item.id
+        case let .node(row): row.node.url
+        case let .explorer(row): row.name
         }
     }
 }

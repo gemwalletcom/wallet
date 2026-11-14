@@ -122,7 +122,7 @@ pub fn map_swap_result(request: &RelayRequest) -> SwapResult {
     });
 
     SwapResult {
-        status: request.status.clone().into_swap_status(),
+        status: request.swap_status(),
         metadata,
         eta_in_seconds: None,
     }
@@ -365,7 +365,7 @@ mod tests {
         assert!(pending.metadata.is_none());
 
         let failed = map_swap_result(&RelayRequest::mock_with_status(RelayStatus::Failure));
-        assert_eq!(failed.status, SwapStatus::Failed);
+        assert_eq!(failed.status, SwapStatus::Pending, "a failed fill Relay can still retry or refund keeps waiting");
         assert!(failed.metadata.is_none());
     }
 

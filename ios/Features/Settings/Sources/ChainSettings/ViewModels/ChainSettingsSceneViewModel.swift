@@ -2,9 +2,9 @@
 
 import Components
 import Foundation
-import enum Gemstone.GemChainSettingsSection
 import protocol Gemstone.GemChainSettingsServiceProtocol
 import struct Gemstone.GemExplorerRow
+import struct Gemstone.GemGroup
 import struct Gemstone.GemNodeListSession
 import struct Gemstone.GemNodeRow
 import enum Gemstone.GemNodeStatusState
@@ -36,7 +36,7 @@ public final class ChainSettingsSceneViewModel {
         chain.networkName
     }
 
-    var sections: [GemChainSettingsSection] {
+    var sections: [GemGroup] {
         session.sections(explorers: explorers)
     }
 

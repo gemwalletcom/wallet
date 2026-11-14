@@ -8,9 +8,9 @@ import uniffi.gemstone.GemTransactionStateTone
 
 class GemstoneStyleTest {
     @Test
-    fun aRefundReadsAsAnErrorAndSuccessStandsAlone() {
+    fun aRefundShowsTheErrorBadgeAndExplainsTheReturnedFunds() {
         assertEquals(R.drawable.transaction_state_error, GemTransactionStateTone.REFUNDED.badgeIconRes())
-        assertEquals(R.string.info_transaction_error_description, GemTransactionStateTone.REFUNDED.infoDescriptionRes())
+        assertEquals(R.string.info_transaction_refunded_description, GemTransactionStateTone.REFUNDED.infoDescriptionRes())
         assertEquals(R.drawable.transaction_state_success, GemTransactionStateTone.SUCCESS.badgeIconRes())
         assertEquals(R.string.info_transaction_success_description, GemTransactionStateTone.SUCCESS.infoDescriptionRes())
         assertEquals(R.drawable.transaction_state_pending, GemTransactionStateTone.PENDING.badgeIconRes())

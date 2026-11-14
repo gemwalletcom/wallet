@@ -45,6 +45,14 @@ pub struct RelayRequest {
 }
 
 impl RelayRequest {
+    pub fn swap_status(&self) -> SwapStatus {
+        let refund_failed = self.data.as_ref().is_some_and(|data| data.refund_fail_reason.is_some());
+        match self.status.clone().into_swap_status() {
+            SwapStatus::Failed if !refund_failed => SwapStatus::Pending,
+            status => status,
+        }
+    }
+
     pub fn has_input_transaction(&self, transaction_hashes: &[Vec<u8>]) -> bool {
         self.data
             .as_ref()
@@ -59,6 +67,7 @@ pub struct RelayRequestData {
     #[serde(default)]
     pub in_txs: Vec<RelayRequestTransaction>,
     pub app_fees: Option<RelayRequestAppFees>,
+    pub refund_fail_reason: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -153,5 +162,20 @@ mod tests {
         .unwrap();
 
         assert_eq!(request.status.into_swap_status(), SwapStatus::Refunded);
+    }
+
+    #[test]
+    fn test_a_failed_fill_waits_for_its_refund_unless_relay_says_none_will_come() {
+        let status = |refund_fail_reason: Option<&str>| {
+            serde_json::from_value::<RelayRequest>(serde_json::json!({
+                "status": "failure",
+                "data": { "refundFailReason": refund_fail_reason }
+            }))
+            .unwrap()
+            .swap_status()
+        };
+
+        assert_eq!(status(None), SwapStatus::Pending, "Relay retries a failed fill or refunds it");
+        assert_eq!(status(Some("AMOUNT_TOO_LOW_TO_REFUND")), SwapStatus::Failed);
     }
 }

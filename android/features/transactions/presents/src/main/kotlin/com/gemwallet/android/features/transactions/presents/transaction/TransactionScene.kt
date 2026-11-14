@@ -31,11 +31,12 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChainAddress
+import uniffi.gemstone.GemGroup
+import uniffi.gemstone.GemListItem
 import uniffi.gemstone.GemTransactionDetailRow
-import uniffi.gemstone.GemTransactionDetailSection
 
 @Composable
-internal fun TransactionScene(title: String, sections: List<GemTransactionDetailSection>, headerTarget: TransactionHeaderTarget?, chain: Chain, onAction: (TransactionAction) -> Unit) {
+internal fun TransactionScene(title: String, sections: List<GemGroup>, headerTarget: TransactionHeaderTarget?, chain: Chain, onAction: (TransactionAction) -> Unit) {
     val context = LocalContext.current
     Scene(
         title = title,
@@ -47,8 +48,8 @@ internal fun TransactionScene(title: String, sections: List<GemTransactionDetail
         onClose = { onAction(TransactionAction.Close) },
     ) {
         LazyColumn(modifier = Modifier.fillMaxSize().testTag("transaction_details")) {
-            sections.forEach { section ->
-                itemsPositioned(section.items, key = { _, item -> item.id }) { position, item ->
+            sections.forEach { group ->
+                itemsPositioned(group.items.filterIsInstance<GemListItem.TransactionDetail>().map { it.item }, key = { _, item -> item.id }) { position, item ->
                     when (val row = item.row) {
                         is GemTransactionDetailRow.Participant -> AddressPropertyItem(
                             row = row.row,

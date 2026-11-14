@@ -589,6 +589,7 @@ info_payment_verification_title = Tabbatar da biyan kuɗi
 info_payment_verification_description = Ɗan kasuwa yana buƙatar ƙarin bayani kafin biyan kuɗi.
 info_network_fee_description = Kowace ciniki akan hanyar sadarwar %@ tana buƙatar kuɗi a cikin %@ da aka biya ga masu hakar ma'adinai don aiwatar da kasuwancin ku, ba Gem Wallet ba. Kudaden hanyar sadarwa sun bambanta dangane da amfani da hanyar sadarwa.
 info_transaction_error_description = Ba za a iya kammala cinikin ba saboda kuskure, kamar rashin isassun kuɗi, shigarwa mara inganci, ko kin amincewa da hanyar sadarwa. Da fatan za a sake nazarin cikakkun bayanai kuma a sake gwadawa.
+info_transaction_refunded_description = Ba a iya kammala musanyar ba, don haka mai bayarwa ya mayar da kuɗin zuwa Wallet ɗinku.
 info_transaction_pending_description = An ƙaddamar da ma'amala kuma yana jiran tabbaci akan hanyar sadarwar. Lokutan sarrafawa na iya bambanta. Da fatan za a duba baya don sabuntawa.
 info_estimated_confirmation_description = Wannan kiyasi ya dogara da kuɗin ma'amala da aikin hanyar sadarwar %@ na yanzu. Ainihin lokacin tabbatarwa na iya canzawa kuma ba shi da tabbaci.
 info_transaction_success_description = An kammala cinikin kuma an tabbatar da shi akan hanyar sadarwa. Kuna iya duba cikakkun bayanai don tabbatar da matsayinsa.

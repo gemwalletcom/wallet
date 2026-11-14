@@ -480,6 +480,7 @@
   <string name="info_payment_verification_description">Sprzedawca wymaga dodatkowych informacji przed płatnością.</string>
   <string name="info_network_fee_description">Każda transakcja w sieci %1$s wymaga opłaty w wysokości %2$s płaconej górnikom za przetworzenie Twojej transakcji, a nie Gem Wallet. Opłaty sieciowe różnią się w zależności od wykorzystania sieci.</string>
   <string name="info_transaction_error_description">Transakcja nie mogła zostać ukończona z powodu błędu, takiego jak niewystarczające środki, nieprawidłowe dane wejściowe lub odrzucenie przez sieć. Sprawdź szczegóły i spróbuj ponownie.</string>
+  <string name="info_transaction_refunded_description">Wymiany nie udało się ukończyć, więc dostawca zwrócił środki do Twojego portfela.</string>
   <string name="info_transaction_pending_description">Transakcja została wysłana i oczekuje na potwierdzenie w sieci. Czasy przetwarzania mogą się różnić. Sprawdź ponownie, czy są jakieś aktualizacje.</string>
   <string name="info_estimated_confirmation_description">To oszacowanie opiera się na opłacie transakcyjnej i bieżącej aktywności sieci %1$s. Rzeczywisty czas potwierdzenia może się zmienić i nie jest gwarantowany.</string>
   <string name="info_transaction_success_description">Transakcja została ukończona i potwierdzona w sieci. Możesz przejrzeć szczegóły, aby zweryfikować jej status.</string>

@@ -480,6 +480,7 @@
   <string name="info_payment_verification_description">Merchant memerlukan informasi tambahan sebelum pembayaran.</string>
   <string name="info_network_fee_description">Setiap transaksi di jaringan %1$s memerlukan biaya sebesar %2$s yang dibayarkan kepada penambang untuk memproses transaksi Anda, bukan Gem Wallet. Biaya jaringan bervariasi berdasarkan penggunaan jaringan.</string>
   <string name="info_transaction_error_description">Transaksi tidak dapat diselesaikan karena kesalahan, seperti dana tidak mencukupi, input tidak valid, atau penolakan oleh jaringan. Harap tinjau detailnya dan coba lagi.</string>
+  <string name="info_transaction_refunded_description">Penukaran tidak dapat diselesaikan, jadi penyedia mengembalikan dana ke dompet Anda.</string>
   <string name="info_transaction_pending_description">Transaksi telah dikirimkan dan sedang menunggu konfirmasi di jaringan. Waktu pemrosesan dapat bervariasi. Silakan periksa kembali untuk pembaruan.</string>
   <string name="info_estimated_confirmation_description">Perkiraan ini didasarkan pada biaya transaksi dan aktivitas jaringan %1$s saat ini. Waktu konfirmasi sebenarnya dapat berubah dan tidak dijamin.</string>
   <string name="info_transaction_success_description">Transaksi telah selesai dan dikonfirmasi di jaringan. Anda dapat meninjau detailnya untuk memverifikasi statusnya.</string>

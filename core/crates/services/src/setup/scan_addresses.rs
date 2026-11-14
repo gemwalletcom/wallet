@@ -11,7 +11,7 @@ use primitives::contract_constants::{PANCAKESWAP_INFINITY_UNIVERSAL_ROUTER_CONTR
 use primitives::{AddressType, Chain, ChainType, ScanAddress, SwapProvider};
 use std::collections::HashMap;
 use std::error::Error;
-use swapper::{bridgers, chainflip, mayan, near_intents, okx, relay, squid, thorchain::THORChainNetwork};
+use swapper::{bridgers, chainflip, mayan, near_intents, okx, relay, squid, thorchain::THORCHAIN_ROUTERS};
 
 use super::repository::Repository;
 
@@ -66,9 +66,7 @@ fn swap_contracts(chain: Chain) -> Vec<ScanAddress> {
 }
 
 fn provider_contracts() -> Vec<ScanAddress> {
-    let routers = [THORChainNetwork::Thorchain, THORChainNetwork::Mayachain]
-        .into_iter()
-        .flat_map(|network| network.routers().iter().map(move |router| ScanAddress::contract(router.chain, router.contract, network.provider().name())));
+    let routers = THORCHAIN_ROUTERS.iter().map(|router| ScanAddress::contract(router.chain, router.contract, SwapProvider::Thorchain.name()));
     let contracts = chainflip::VAULT_ADDRESSES
         .iter()
         .map(|vault| (SwapProvider::Chainflip, vault.chain, vault.contract))

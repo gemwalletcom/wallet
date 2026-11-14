@@ -267,7 +267,7 @@ impl<E: RpcClientError> GemDeviceApiClient<E> {
 
         let request = Target {
             url: build_request_url(&self.base_url, &path),
-            method: target.method().into(),
+            method: target.method(),
             headers: Some(headers),
             body: body.map(|body| match body {
                 GemDeviceApiBody::Json(bytes) => bytes,
@@ -285,6 +285,6 @@ impl<E: RpcClientError> GemDeviceApiClient<E> {
     fn signature_headers(&self, target: &GemDeviceApiTarget, body: &[u8]) -> Result<HashMap<String, String>, ClientError> {
         let created = SystemTime::now().duration_since(UNIX_EPOCH).map_err(|error| ClientError::Serialization(error.to_string()))?.as_secs();
         let private_key = Zeroizing::new(self.device_key.private_key()?);
-        sign_device_request(&private_key, target.method().as_ref(), &target.path(), target.wallet_id(), body, created).map_err(|error| ClientError::Serialization(error.to_string()))
+        sign_device_request(&private_key, &String::from(target.method()), &target.path(), target.wallet_id(), body, created).map_err(|error| ClientError::Serialization(error.to_string()))
     }
 }

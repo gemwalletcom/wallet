@@ -1,0 +1,90 @@
+{
+  "tx": {
+    "id": "1111111111111111111111111111111111111111111111111111111111111111",
+    "chain": "BTC",
+    "from_address": "bc1qsender",
+    "to_address": "bc1qvault",
+    "coins": [
+      {
+        "asset": "BTC.BTC",
+        "amount": "100000000"
+      }
+    ],
+    "gas": [
+      {
+        "asset": "BTC.BTC",
+        "amount": "400"
+      }
+    ],
+    "memo": "=:ETH.USDC:0x1111111111111111111111111111111111111111:0/1/0:g1:50"
+  },
+  "planned_out_txs": [
+    {
+      "chain": "ETH",
+      "to_address": "0x1111111111111111111111111111111111111111",
+      "coin": {
+        "asset": "ETH.USDC-0XA0B86991C6218B36C1D19D4A2E9EB0CE3606EB48",
+        "amount": "6000000000000"
+      },
+      "refund": false
+    },
+    {
+      "chain": "THOR",
+      "to_address": "thor1affiliate",
+      "coin": {
+        "asset": "THOR.RUNE",
+        "amount": "50000000000"
+      },
+      "refund": false
+    }
+  ],
+  "out_txs": [
+    {
+      "id": "0000000000000000000000000000000000000000000000000000000000000000",
+      "chain": "THOR",
+      "from_address": "thor1vault",
+      "to_address": "thor1affiliate",
+      "coins": [
+        {
+          "asset": "THOR.RUNE",
+          "amount": "50000000000"
+        }
+      ],
+      "gas": [
+        {
+          "asset": "THOR.RUNE",
+          "amount": "2000000"
+        }
+      ],
+      "memo": "OUT:1111111111111111111111111111111111111111111111111111111111111111"
+    }
+  ],
+  "stages": {
+    "inbound_observed": {
+      "pre_confirmation_count": 100,
+      "final_count": 100,
+      "completed": true
+    },
+    "inbound_confirmation_counted": {
+      "remaining_confirmation_seconds": 0,
+      "completed": true
+    },
+    "inbound_finalised": {
+      "completed": true
+    },
+    "swap_status": {
+      "pending": false
+    },
+    "swap_finalised": {
+      "completed": true
+    },
+    "outbound_delay": {
+      "completed": true
+    },
+    "outbound_signed": {
+      "scheduled_outbound_height": 20000000,
+      "blocks_since_scheduled": 682,
+      "completed": false
+    }
+  }
+}

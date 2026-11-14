@@ -1,6 +1,6 @@
 use crate::formatted_number::{GemFormattedNumber, GemNumberNotation, GemValueTone};
 use crate::models::custom_types::{GemBigInt, GemBigUint};
-use crate::models::list::{GemAddressRow, GemInfoTopic, GemListRow, GemListRowTitle};
+use crate::models::list::{GemAddressRow, GemGroup, GemInfoTopic, GemListRow, GemListRowTitle};
 use crate::services::assets::icon::{GemAssetIcon, asset_icon};
 use crate::services::assets::model::{GemFeeAmount, GemFeeText, GemRowText, GemValueHeader};
 use crate::services::confirm::GemNetworkFeeScreen;
@@ -289,14 +289,8 @@ pub struct GemTransactionDetailItem {
     pub row: GemTransactionDetailRow,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemTransactionDetailSection {
-    pub id: String,
-    pub items: Vec<GemTransactionDetailItem>,
-}
-
 #[uniffi::export]
-pub fn transaction_detail_sections(rows: GemTransactionDetailRows) -> Vec<GemTransactionDetailSection> {
+pub fn transaction_detail_sections(rows: GemTransactionDetailRows) -> Vec<GemGroup> {
     rules::detail_sections(&rows)
 }
 

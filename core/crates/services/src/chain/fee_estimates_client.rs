@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use std::error::Error;
 use std::sync::Arc;
 
-use cacher::FeeEstimatesCacher;
+use cacher::{CacheError, FeeEstimatesCacher};
 use chain_providers::{TransactionFeeEstimate, TransactionFeeEstimates};
 use config_keys::ConfigParamKey;
 use number_formatter::{BigNumberFormatter, CryptoFiatConverter};
@@ -34,6 +34,9 @@ impl FeeEstimatesClient {
     }
 
     pub async fn get_chain_fee_estimates(&self, chain: Chain) -> Result<ChainFeeEstimates, Box<dyn Error + Send + Sync>> {
+        if chain.is_deprecated() {
+            return Err(Box::new(CacheError::not_found("FeeEstimates", chain.as_ref())));
+        }
         let duration = self.config.get_param_duration(&ConfigParamKey::TransactionsFeeEstimatesCacheDuration(chain)).await?;
         self.cacher.get_or_fetch_estimates(chain, duration, Box::pin(self.fetch_estimates(chain))).await
     }
@@ -177,6 +180,15 @@ mod tests {
         let response = client(cacher.clone()).get_chain_fee_estimates(Chain::Ethereum).await.unwrap();
 
         assert_eq!(response.asset.id.chain, Chain::Ethereum);
+        assert!(cacher.writes().is_empty());
+    }
+
+    #[tokio::test]
+    async fn test_deprecated_chain_is_not_found() {
+        let cacher = Arc::new(MemoryFeeEstimatesCacher::default().with_estimates(Chain::Blast, cached(Chain::Blast), true));
+        let error = client(cacher.clone()).get_chain_fee_estimates(Chain::Blast).await.unwrap_err();
+
+        assert_eq!(error.to_string(), "FeeEstimates blast not found");
         assert!(cacher.writes().is_empty());
     }
 

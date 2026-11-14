@@ -589,6 +589,7 @@ info_payment_verification_title = Verificarea plății
 info_payment_verification_description = Comerciantul solicită informații suplimentare înainte de plată.
 info_network_fee_description = Fiecare tranzacție din rețeaua %@ necesită o taxă în %@ plătită minerilor pentru a vă procesa tranzacția, nu Gem Wallet. Taxele de rețea variază în funcție de utilizarea rețelei.
 info_transaction_error_description = Tranzacția nu a putut fi finalizată din cauza unei erori, cum ar fi fonduri insuficiente, introducere nevalidă sau respingere din partea rețelei. Vă rugăm să examinați detaliile și să încercați din nou.
+info_transaction_refunded_description = Schimbul nu a putut fi finalizat, așa că furnizorul a returnat fondurile în portofelul tău.
 info_transaction_pending_description = Tranzacția a fost trimisă și așteaptă confirmarea în rețea. Timpii de procesare pot varia. Vă rugăm să verificați din nou pentru actualizări.
 info_estimated_confirmation_description = Această estimare se bazează pe taxa tranzacției și pe activitatea curentă a rețelei %@. Timpul real de confirmare se poate modifica și nu este garantat.
 info_transaction_success_description = Tranzacția a fost finalizată și confirmată în rețea. Puteți examina detaliile pentru a verifica starea acestuia.

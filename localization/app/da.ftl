@@ -589,6 +589,7 @@ info_payment_verification_title = Betalingsverificering
 info_payment_verification_description = Forhandleren kræver yderligere oplysninger før betalingen.
 info_network_fee_description = Hver transaktion på %@ netværket kræver et gebyr i %@ betalt til minearbejdere for at behandle din transaktion, ikke Gem Wallet. Netværksgebyrer varierer afhængigt af netværksbrug.
 info_transaction_error_description = Transaktionen kunne ikke gennemføres på grund af en fejl, såsom utilstrækkelige midler, ugyldigt input eller afvisning af netværket. Gennemgå venligst detaljerne og prøv igen.
+info_transaction_refunded_description = Byttet kunne ikke gennemføres, så udbyderen sendte midlerne tilbage til din tegnebog.
 info_transaction_pending_description = Transaktionen er blevet indsendt og afventer bekræftelse på netværket. Behandlingstiderne kan variere. Kom venligst tilbage for opdateringer.
 info_estimated_confirmation_description = Dette er et estimat baseret på transaktionsgebyret og den aktuelle aktivitet på %@-netværket. Den faktiske bekræftelsestid kan ændre sig og er ikke garanteret.
 info_transaction_success_description = Transaktionen er gennemført og bekræftet på netværket. Du kan gennemgå detaljerne for at bekræfte dens status.

@@ -389,7 +389,7 @@ public extension GemListSectionTitle {
         case .contacts: Images.System.person
         case .myWallets: Images.System.wallet
         case .viewWallets: Images.System.eye
-        case .none, .balances, .info, .community, .manage, .resources, .socialLinks, .properties, .recommended, .all, .active: nil
+        case .none, .balances, .info, .community, .manage, .resources, .socialLinks, .properties, .recommended, .all, .active, .source, .explorer: nil
         }
     }
 }

@@ -14,7 +14,7 @@ use crate::{
         discovery::{PoolDiscovery, candidate_pairs, discover_v4_pools},
         fee_token::is_quote_input_fee_token,
         quote_result::{OutpricedPaths, get_best_quote},
-        routed_asset::{Funding, Protocol, RoutedAsset, base_pair, routed_pair},
+        routed_asset::{Funding, Protocol, RoutedAsset, base_pair, routed_pair, routed_request},
         swap_route::{PoolPath, RouteData, get_intermediaries},
     },
 };
@@ -62,8 +62,7 @@ impl UniswapV4 {
     }
 
     fn routed_request(request: &QuoteRequest) -> Result<(EVMChain, RoutedAsset, RoutedAsset, u128), SwapperError> {
-        let (evm_chain, input, output) = routed_pair(&request.from_asset.asset_id(), &request.to_asset.asset_id(), PROTOCOL)?;
-        let amount_in = U256::from_str(&request.value.to_string()).map_err(SwapperError::from)? / input.scale;
+        let (evm_chain, input, output, amount_in) = routed_request(request, PROTOCOL)?;
         let amount_in = u128::try_from(amount_in).map_err(|_| SwapperError::ComputeQuoteError("amount is too large".into()))?;
         Ok((evm_chain, input, output, amount_in))
     }

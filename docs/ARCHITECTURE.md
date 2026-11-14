@@ -474,6 +474,9 @@ pub enum GemListItem {
     Connection { connection: GemConnection },
     PriceAlert { item: GemPriceAlertItem },
     Recipient { row: GemRecipientRow },
+    TransactionDetail { item: GemTransactionDetailItem },
+    Node { row: GemNodeRow },
+    Explorer { row: GemExplorerRow },
 }
 
 pub struct GemGroup {
@@ -499,7 +502,7 @@ Ok(GemGroupList {
 })
 ```
 
-Each app draws it with one builder — iOS `GemGroupListView` in `PrimitivesComponents`, Android `LazyListScope.gemGroupList` in `:ui` — which owns the group headers and footers, a stable identity per item, the empty state, the error row, and the one way each family is drawn. A picker uses it whole and maps the selected item to its action:
+Each app draws it with one builder — iOS `GemGroupListView` in `PrimitivesComponents`, Android `LazyListScope.gemGroupList` in `:ui` — which owns the group headers and footers, a stable identity per item, the empty state and the error row. Its item view draws plain rows and the picker families (currency, validator); a family that one screen draws with its own interactions (connection, price alert, recipient, transaction detail, node, explorer) is drawn in that screen's slot, and the item view lists it as drawn there, so a new family is a decision in one switch. A picker uses it whole and maps the selected item to its action:
 
 ```swift
 GemGroupListView(list: model.list, onSelect: onSelect)
@@ -709,7 +712,7 @@ impl GemPerpetualMarketSession {
 }
 ```
 
-**Which row is which.** A section or row a list draws carries an `id` from Core: the entity's id for a wallet, transaction or delegation, or the slot's name for a details row (`GemTransactionDetailSection` and `GemTransactionDetailItem` use `"date"`, `"fee"`, `"explorer"`). It stays the same while the row's values change and while other rows appear or disappear. Neither a row's position nor its printed value can promise that, so neither app derives identity from them. `just generate-models` makes every record Gemstone declares with an `id` field `Identifiable` on iOS, in the `Gemstone` module itself (`Gemstone/Sources/Gemstone/IdentifiableRecords.swift`), and Android keys lazy items by the same `id`.
+**Which row is which.** A section or row a list draws carries an `id` from Core: the entity's id for a wallet, transaction or delegation, or the slot's name for a details row (the transaction details' groups and their `GemTransactionDetailItem`s use `"details"`, `"date"`, `"fee"`, `"explorer"`). It stays the same while the row's values change and while other rows appear or disappear. Neither a row's position nor its printed value can promise that, so neither app derives identity from them. `just generate-models` makes every record Gemstone declares with a non-optional `id` field `Identifiable` on iOS, in the `Gemstone` module itself (`Gemstone/Sources/Gemstone/IdentifiableRecords.swift`), and Android keys lazy items by the same `id`.
 
 **Which actions the screen or row offers.** Core returns the list of available actions as cases; the app renders each case as its own button. `GemStakeActionItem`, `GemHeaderButtonKind`, `GemAssetAction` and `GemFiatButtonAction` are this shape. An app that assembles the action list itself is deciding what the user is allowed to do, on its own, twice.
 

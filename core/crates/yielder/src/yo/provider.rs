@@ -6,6 +6,7 @@ use async_trait::async_trait;
 use gem_evm::slippage::subtract_bps;
 use gem_evm::u256::biguint_to_u256;
 use gem_jsonrpc::alien::RpcProvider;
+use primitives::contract_constants::ETHEREUM_YO_PROTOCOL_CONTRACT;
 use primitives::{AssetBalance, AssetId, Chain, ContractCallData, DelegationBase, DelegationValidator, EarnType, YieldProvider};
 
 use crate::client_factory::create_eth_client;
@@ -14,7 +15,7 @@ use crate::provider::EarnProvider;
 
 use super::client::YoGatewayClient;
 use super::mapper::{map_to_asset_balance, map_to_contract_call_data, map_to_delegation, map_to_earn_provider};
-use super::{YO_GATEWAY, YO_PARTNER_ID_GEM, YoAsset, supported_assets};
+use super::{YO_PARTNER_ID_GEM, YoAsset, supported_assets};
 
 const GAS_LIMIT: u64 = 300_000;
 const SLIPPAGE_BPS: u32 = 50;
@@ -30,7 +31,7 @@ impl YoEarnProvider {
     }
 
     fn get_assets(&self, chain: Chain, token_ids: &[String]) -> Vec<YoAsset> {
-        self.assets.iter().filter(|a| a.chain == chain && token_ids.contains(&a.asset_token.to_string())).copied().collect()
+        self.assets.iter().filter(|a| a.chain == chain && token_ids.iter().any(|token_id| token_id == a.asset_token)).copied().collect()
     }
 
     fn get_asset(&self, asset_id: &AssetId) -> Result<YoAsset, YielderError> {
@@ -39,7 +40,7 @@ impl YoEarnProvider {
 
     fn get_client(&self, chain: Chain) -> Result<YoGatewayClient, YielderError> {
         let client = create_eth_client(self.rpc_provider.clone(), chain)?;
-        Ok(YoGatewayClient::new(client, YO_GATEWAY))
+        Ok(YoGatewayClient::new(client, ETHEREUM_YO_PROTOCOL_CONTRACT.parse()?))
     }
 
     async fn get_positions(&self, chain: Chain, address: &str, assets: &[YoAsset]) -> Result<Vec<super::client::PositionData>, YielderError> {
@@ -80,7 +81,7 @@ impl EarnProvider for YoEarnProvider {
 
         let (approval, transaction) = match earn_type {
             EarnType::Deposit(_) => {
-                let approval = client.check_token_allowance(asset.asset_token, wallet, amount).await?;
+                let approval = client.check_token_allowance(asset.asset_token.parse()?, wallet, amount).await?;
                 let expected_shares = client.get_quote_shares(asset.yo_token, amount).await?;
                 let min_shares_out = subtract_bps(&expected_shares, SLIPPAGE_BPS);
                 let transaction = client.build_deposit_transaction(wallet, asset.yo_token, amount, min_shares_out, wallet, YO_PARTNER_ID_GEM);

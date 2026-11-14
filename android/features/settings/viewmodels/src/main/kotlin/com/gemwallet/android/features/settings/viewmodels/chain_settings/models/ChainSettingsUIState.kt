@@ -2,7 +2,7 @@ package com.gemwallet.android.features.settings.viewmodels.chain_settings.models
 
 import androidx.compose.runtime.Immutable
 import com.wallet.core.primitives.Chain
-import uniffi.gemstone.GemChainSettingsSection
+import uniffi.gemstone.GemGroup
 
 @Immutable
-data class ChainSettingsUIState(val chain: Chain, val sections: List<GemChainSettingsSection>, val errorText: String?)
+data class ChainSettingsUIState(val chain: Chain, val sections: List<GemGroup>, val errorText: String?)

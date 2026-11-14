@@ -62,7 +62,6 @@ impl GemSwapper {
             ),
             Some(uniswap::default::boxed_pancakeswap(rpc_provider.clone())),
             thorchain::ThorChain::new(rpc_provider.clone()).map(Self::boxed),
-            thorchain::ThorChain::new_mayachain(rpc_provider.clone()).map(Self::boxed),
             jupiter::Jupiter::new(rpc_provider.clone()).map(Self::boxed),
             solana_dex::SolanaDex::new(orca::Orca, rpc_provider.clone()).map(Self::boxed),
             Self::group(
@@ -110,6 +109,10 @@ impl GemSwapper {
         .collect();
 
         Self { swappers }
+    }
+
+    pub fn cross_chain_providers(&self) -> Vec<SwapperProvider> {
+        self.swappers.iter().map(|swapper| swapper.provider().id).filter(SwapperProvider::is_cross_chain).collect()
     }
 
     pub fn supported_chains_for_from_asset(&self, asset_id: &AssetId) -> AssetList {
@@ -278,7 +281,6 @@ mod tests {
             Box::new(new_uniswap_v3(provider.clone())),
             Box::new(new_pancakeswap(provider.clone())),
             Box::new(thorchain::ThorChain::new(provider.clone()).unwrap()),
-            Box::new(thorchain::ThorChain::new_mayachain(provider.clone()).unwrap()),
             Box::new(jupiter::Jupiter::new(provider).unwrap()),
         ];
         let filter = |from_chain, to_chain| {
@@ -307,10 +309,6 @@ mod tests {
 
         assert_eq!(filtered.len(), 1);
         assert_eq!(filtered[0].provider().id, SwapperProvider::Thorchain);
-
-        let filtered = filter(Chain::Ethereum, Chain::Mayachain);
-
-        assert_eq!(filtered.len(), 0);
     }
 
     #[test]

@@ -72,7 +72,7 @@ struct BrokerAmount {
 impl BrokerSwapStatus {
     fn swap_status(&self) -> SwapStatus {
         match self.state.as_str() {
-            "completed" if self.refund_egress.is_some() => SwapStatus::Refunded,
+            "completed" if self.refund_egress.is_some() && self.swap_egress.is_none() => SwapStatus::Refunded,
             "completed" => SwapStatus::Completed,
             "failed" => SwapStatus::Failed,
             _ => SwapStatus::Pending,
@@ -161,5 +161,14 @@ mod tests {
 
         let failed = status(r#"{"id":1,"status":{"state":"failed","sourceAsset":"dot.hub","destinationAsset":"eth.eth","deposit":{"amountNative":"50000000000"},"swap":{"swappedOutputAmountNative":"1000"}}}"#);
         assert_eq!(failed.swap_result(&AssetsResponse::mock()), SwapResult::from(SwapStatus::Failed));
+    }
+
+    #[test]
+    fn test_a_partly_filled_swap_with_a_refund_is_completed() {
+        let partial = status(
+            r#"{"id":1,"status":{"state":"completed","sourceAsset":"dot.hub","destinationAsset":"eth.eth","deposit":{"amountNative":"50000000000"},"swapEgress":{"amountNative":"1000"},"refundEgress":{"amountNative":"25000000000"}}}"#,
+        );
+
+        assert_eq!(partial.swap_result(&AssetsResponse::mock()).status, SwapStatus::Completed, "the part that filled was paid out");
     }
 }

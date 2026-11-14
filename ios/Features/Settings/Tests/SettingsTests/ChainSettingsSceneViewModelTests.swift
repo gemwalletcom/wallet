@@ -55,12 +55,9 @@ struct ChainSettingsSceneViewModelTests {
 
 private extension ChainSettingsSceneViewModel {
     var nodeRows: [GemNodeRow] {
-        sections.flatMap { section -> [GemNodeRow] in
-            if case let .nodes(rows) = section {
-                rows
-            } else {
-                []
-            }
+        sections.flatMap(\.items).compactMap { item in
+            guard case let .node(row) = item else { return nil }
+            return row
         }
     }
 }

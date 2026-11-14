@@ -480,6 +480,7 @@
   <string name="info_payment_verification_description">Nangangailangan ang merchant ng karagdagang impormasyon bago ang bayad.</string>
   <string name="info_network_fee_description">Ang bawat transaksyon sa %1$s network ay nangangailangan ng bayad sa %2$s na binabayaran sa mga minero upang maproseso ang iyong transaksyon, hindi ang Gem Wallet. Nag-iiba-iba ang mga bayarin sa network batay sa paggamit ng network.</string>
   <string name="info_transaction_error_description">Hindi makumpleto ang transaksyon dahil sa isang error, tulad ng hindi sapat na pondo, hindi wastong input, o pagtanggi ng network. Pakisuri ang mga detalye at subukang muli.</string>
+  <string name="info_transaction_refunded_description">Hindi nakumpleto ang pagpapalit, kaya ibinalik ng provider ang pondo sa iyong wallet.</string>
   <string name="info_transaction_pending_description">Naisumite na ang transaksyon at naghihintay ng kumpirmasyon sa network. Maaaring mag-iba ang mga oras ng pagproseso. Mangyaring bumalik para sa mga update.</string>
   <string name="info_estimated_confirmation_description">Ang tantiya na ito ay batay sa bayad sa transaksyon at kasalukuyang aktibidad ng %1$s network. Maaaring magbago ang aktuwal na oras ng kumpirmasyon at hindi ito garantisado.</string>
   <string name="info_transaction_success_description">Ang transaksyon ay nakumpleto at nakumpirma sa network. Maaari mong suriin ang mga detalye upang i-verify ang status nito.</string>

@@ -589,6 +589,7 @@ info_payment_verification_title = Verifikasi Pembayaran
 info_payment_verification_description = Merchant memerlukan informasi tambahan sebelum pembayaran.
 info_network_fee_description = Setiap transaksi di jaringan %@ memerlukan biaya sebesar %@ yang dibayarkan kepada penambang untuk memproses transaksi Anda, bukan Gem Wallet. Biaya jaringan bervariasi berdasarkan penggunaan jaringan.
 info_transaction_error_description = Transaksi tidak dapat diselesaikan karena kesalahan, seperti dana tidak mencukupi, input tidak valid, atau penolakan oleh jaringan. Harap tinjau detailnya dan coba lagi.
+info_transaction_refunded_description = Penukaran tidak dapat diselesaikan, jadi penyedia mengembalikan dana ke dompet Anda.
 info_transaction_pending_description = Transaksi telah dikirimkan dan sedang menunggu konfirmasi di jaringan. Waktu pemrosesan dapat bervariasi. Silakan periksa kembali untuk pembaruan.
 info_estimated_confirmation_description = Perkiraan ini didasarkan pada biaya transaksi dan aktivitas jaringan %@ saat ini. Waktu konfirmasi sebenarnya dapat berubah dan tidak dijamin.
 info_transaction_success_description = Transaksi telah selesai dan dikonfirmasi di jaringan. Anda dapat meninjau detailnya untuk memverifikasi statusnya.
