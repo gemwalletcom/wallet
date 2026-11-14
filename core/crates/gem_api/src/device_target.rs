@@ -1,11 +1,10 @@
 use gem_client::{ClientError, build_path_with_query};
+use gem_jsonrpc::HttpMethod;
 use primitives::rewards::RedemptionRequest;
 use primitives::{
     AuthenticatedRequest, ChainAddress, ChartPeriod, Device, FiatQuoteType, NFTAssetId, PortfolioAssetsRequest, PriceAlert, ReferralCode, ReportNft, ScanTransactionPayload, SupportMessageInput, WalletSubscription, WalletSubscriptionChains,
 };
 use serde::Serialize;
-
-use crate::method::GemApiMethod;
 
 #[derive(Clone, Debug)]
 pub enum GemDeviceApiBody {
@@ -124,7 +123,7 @@ pub enum GemDeviceApiTarget {
 }
 
 impl GemDeviceApiTarget {
-    pub fn method(&self) -> GemApiMethod {
+    pub fn method(&self) -> HttpMethod {
         match self {
             Self::GetDevice
             | Self::IsDeviceRegistered
@@ -144,9 +143,9 @@ impl GemDeviceApiTarget {
             | Self::GetFiatQuoteUrl { .. }
             | Self::GetFiatTransactions { .. }
             | Self::GetNameRecord { .. }
-            | Self::GetAddressDetails(_) => GemApiMethod::Get,
-            Self::UpdateDevice(_) => GemApiMethod::Put,
-            Self::DeleteSubscriptions(_) | Self::DeletePriceAlerts(_) => GemApiMethod::Delete,
+            | Self::GetAddressDetails(_) => HttpMethod::Get,
+            Self::UpdateDevice(_) => HttpMethod::Put,
+            Self::DeleteSubscriptions(_) | Self::DeletePriceAlerts(_) => HttpMethod::Delete,
             Self::AddDevice(_)
             | Self::AddSubscriptions(_)
             | Self::AddPriceAlerts(_)
@@ -160,7 +159,7 @@ impl GemDeviceApiTarget {
             | Self::RedeemRewards { .. }
             | Self::MarkNotificationsRead { .. }
             | Self::GetAddressNames(_)
-            | Self::GetPortfolioAssets { .. } => GemApiMethod::Post,
+            | Self::GetPortfolioAssets { .. } => HttpMethod::Post,
         }
     }
 
