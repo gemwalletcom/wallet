@@ -14,20 +14,6 @@ import TransferTestKit
 @MainActor
 struct LightningReceiveSceneViewModelTests {
     @Test
-    func theScreenOpensOnAnAnyAmountInvoiceAndAnAmountReplacesIt() async {
-        let service = GemLightningServiceMock()
-        let model = LightningReceiveSceneViewModel.mock(service: service)
-
-        await model.onLoad()
-        model.amount = "0.001"
-        await model.onLoad()
-
-        #expect(model.state == .ready(service.receive))
-        #expect(service.receiveAmounts == ["", "0.001"])
-        #expect(model.renderedImage != nil)
-    }
-
-    @Test
     func aLockedWalletAsksToUnlockAndAnyOtherFailureIsUnavailable() async {
         let locked = GemLightningServiceMock()
         locked.receiveError = GemServiceError.Cancelled

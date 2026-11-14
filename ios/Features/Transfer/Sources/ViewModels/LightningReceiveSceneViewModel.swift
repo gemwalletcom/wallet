@@ -96,7 +96,6 @@ extension LightningReceiveSceneViewModel {
         }
     }
 
-
     func onCopy() {
         isPresentingCopyToast = true
     }

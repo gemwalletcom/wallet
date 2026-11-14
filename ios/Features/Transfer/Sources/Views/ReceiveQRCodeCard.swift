@@ -10,15 +10,9 @@ struct ReceiveQRCodeCard: View {
         UIDevice.current.userInterfaceIdiom == .pad ? 180 : 260
     }
 
-    private let image: UIImage?
-    private let text: String
-    private let action: () -> Void
-
-    init(image: UIImage?, text: String, action: @escaping () -> Void) {
-        self.image = image
-        self.text = text
-        self.action = action
-    }
+    let image: UIImage?
+    let text: String
+    let action: () -> Void
 
     var body: some View {
         Button(action: action) {
