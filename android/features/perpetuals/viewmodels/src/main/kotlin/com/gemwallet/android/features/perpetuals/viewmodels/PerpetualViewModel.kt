@@ -248,8 +248,8 @@ class PerpetualViewModel @Inject constructor(
     fun openPosition(direction: PerpetualDirection, amountAction: AmountTransactionAction) = position(GemPerpetualPositionKind.Open(direction.toGem()), amountAction)
 
     fun modifyPosition(onModify: () -> Unit) {
-        if (!service.isAvailable()) {
-            infoSheet.value = GemInfoTopic.RegionUnavailable
+        service.unavailableTopic()?.let { topic ->
+            infoSheet.value = topic
             return
         }
         onModify()
@@ -260,8 +260,8 @@ class PerpetualViewModel @Inject constructor(
     fun reducePosition(amountAction: AmountTransactionAction) = position(GemPerpetualPositionKind.Reduce, amountAction)
 
     private fun position(kind: GemPerpetualPositionKind, amountAction: AmountTransactionAction) {
-        if (!service.isAvailable()) {
-            infoSheet.value = GemInfoTopic.RegionUnavailable
+        service.unavailableTopic()?.let { topic ->
+            infoSheet.value = topic
             return
         }
         val data = perpetual.value ?: return

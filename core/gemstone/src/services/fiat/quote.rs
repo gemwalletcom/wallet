@@ -8,6 +8,7 @@ use super::{GemFiatService, rules};
 use crate::config::fiat_config::get_fiat_config;
 use crate::constants::FIAT_QUOTE_CURRENCY;
 use crate::formatted_number::GemFormattedNumber;
+use crate::models::list::GemInfoTopic;
 use crate::models::state::GemLoadState;
 use crate::services::amount::model::GemNumberFormat;
 use crate::services::balance::GemBalanceService;
@@ -38,12 +39,12 @@ impl GemFiatQuoteService {
         }
     }
 
-    pub fn is_available(&self, quote_type: FiatQuoteType) -> bool {
+    pub fn unavailable_topic(&self, quote_type: FiatQuoteType) -> Option<GemInfoTopic> {
         let feature = match quote_type {
             FiatQuoteType::Buy => Feature::Buy,
             FiatQuoteType::Sell => Feature::Sell,
         };
-        self.config.is_feature_enabled(feature)
+        self.config.unavailable_topic(feature)
     }
 
     pub fn suggested_amounts(&self) -> Vec<GemFiatSuggestedAmount> {

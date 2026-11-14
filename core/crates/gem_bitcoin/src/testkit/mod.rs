@@ -4,7 +4,5 @@ pub mod block_mock;
 #[cfg(feature = "signer")]
 pub mod planner_mock;
 #[cfg(feature = "signer")]
-pub mod psbt_mock;
-#[cfg(feature = "signer")]
 pub mod signer_mock;
 pub mod transaction_mock;

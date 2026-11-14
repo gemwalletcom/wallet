@@ -225,8 +225,8 @@ extension FiatSceneViewModel {
 
     private func openQuoteUrl() async {
         guard !isUrlLoading, let quote = viewState.selectedQuoteRow, let request = session.quoteRequest() else { return }
-        guard service.isAvailable(quoteType: request.quoteType) else {
-            isPresentingInfoSheet = InfoSheetModel(sheet: GemInfoTopic.regionUnavailable.infoSheet)
+        if let topic = service.unavailableTopic(quoteType: request.quoteType) {
+            isPresentingInfoSheet = InfoSheetModel(sheet: topic.infoSheet)
             return
         }
         isUrlLoading = true

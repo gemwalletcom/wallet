@@ -14,10 +14,7 @@ pub enum WalletConnectCAIP2 {
     Sui,
     Ton,
     Tron,
-    Bip122,
 }
-
-const BITCOIN_GENESIS_REFERENCE: &str = "000000000019d6689c085ae165831e93";
 
 impl WalletConnectCAIP2 {
     pub fn get_namespace(chain: Chain) -> Option<String> {
@@ -29,8 +26,7 @@ impl WalletConnectCAIP2 {
             ChainType::Sui => Some(WalletConnectCAIP2::Sui.as_ref().to_string()),
             ChainType::Ton => Some(WalletConnectCAIP2::Ton.as_ref().to_string()),
             ChainType::Tron => Some(WalletConnectCAIP2::Tron.as_ref().to_string()),
-            ChainType::Bitcoin => (chain == Chain::Bitcoin).then(|| WalletConnectCAIP2::Bip122.as_ref().to_string()),
-            ChainType::Aptos | ChainType::Xrp | ChainType::Near | ChainType::Stellar | ChainType::Polkadot | ChainType::Cardano | ChainType::HyperCore | ChainType::Lightning => None,
+            ChainType::Bitcoin | ChainType::Aptos | ChainType::Xrp | ChainType::Near | ChainType::Stellar | ChainType::Polkadot | ChainType::Cardano | ChainType::HyperCore | ChainType::Lightning => None,
         }
     }
 
@@ -44,7 +40,6 @@ impl WalletConnectCAIP2 {
             WalletConnectCAIP2::Sui => Some(Chain::Sui),
             WalletConnectCAIP2::Ton => Some(Chain::Ton),
             WalletConnectCAIP2::Tron => (reference == Chain::Tron.network_id() || Some(reference) == Self::get_reference(Chain::Tron)).then_some(Chain::Tron),
-            WalletConnectCAIP2::Bip122 => (reference == BITCOIN_GENESIS_REFERENCE).then_some(Chain::Bitcoin),
         }
     }
 
@@ -57,8 +52,7 @@ impl WalletConnectCAIP2 {
             ChainType::Sui => Some("mainnet".to_string()),
             ChainType::Ton => Some("-239".to_string()),
             ChainType::Tron => chain.network_id_value().map(|value| value.to_string()),
-            ChainType::Bitcoin => (chain == Chain::Bitcoin).then(|| BITCOIN_GENESIS_REFERENCE.to_string()),
-            ChainType::Aptos | ChainType::Xrp | ChainType::Near | ChainType::Stellar | ChainType::Polkadot | ChainType::Cardano | ChainType::HyperCore | ChainType::Lightning => None,
+            ChainType::Bitcoin | ChainType::Aptos | ChainType::Xrp | ChainType::Near | ChainType::Stellar | ChainType::Polkadot | ChainType::Cardano | ChainType::HyperCore | ChainType::Lightning => None,
         }
     }
 
@@ -144,12 +138,7 @@ mod tests {
         assert_eq!(WalletConnectCAIP2::get_chain("sui".to_string(), "mainnet".to_string()), Some(Chain::Sui));
         assert_eq!(WalletConnectCAIP2::get_chain("ton".to_string(), "-239".to_string()), Some(Chain::Ton));
         assert_eq!(WalletConnectCAIP2::get_chain("tron".to_string(), "0x2b6653dc".to_string()), Some(Chain::Tron));
-        assert_eq!(WalletConnectCAIP2::get_chain("bip122".to_string(), "000000000019d6689c085ae165831e93".to_string()), Some(Chain::Bitcoin));
-        assert_eq!(
-            WalletConnectCAIP2::get_chain("bip122".to_string(), "12a765e31ffd4059bada1e25190f6e98".to_string()),
-            None,
-            "Litecoin's bip122 chain is not offered"
-        );
+        assert_eq!(WalletConnectCAIP2::get_chain("bip122".to_string(), "000000000019d6689c085ae165831e93".to_string()), None);
     }
 
     #[test]
@@ -160,7 +149,7 @@ mod tests {
         assert_eq!(WalletConnectCAIP2::get_chain_from_id(Some("sui:mainnet".to_string())), Ok(Chain::Sui));
         assert_eq!(WalletConnectCAIP2::get_chain_from_id(Some("ton:-239".to_string())), Ok(Chain::Ton));
         assert_eq!(WalletConnectCAIP2::get_chain_from_id(Some("tron:0x2b6653dc".to_string())), Ok(Chain::Tron));
-        assert_eq!(WalletConnectCAIP2::get_chain_from_id(Some("bip122:000000000019d6689c085ae165831e93".to_string())), Ok(Chain::Bitcoin));
+        assert!(WalletConnectCAIP2::get_chain_from_id(Some("bip122:000000000019d6689c085ae165831e93".to_string())).is_err());
         assert!(WalletConnectCAIP2::get_chain_from_id(Some("invalid".to_string())).is_err());
         assert!(WalletConnectCAIP2::get_chain_from_id(Some("eip155:1:extra".to_string())).is_err());
         assert!(WalletConnectCAIP2::get_chain_from_id(None).is_err());
@@ -173,9 +162,7 @@ mod tests {
             WalletConnectCAIP2::format_account(Chain::Base, "0x0000000000000000000000000000000000000001"),
             Some("eip155:8453:0x0000000000000000000000000000000000000001".to_string())
         );
-        assert_eq!(WalletConnectCAIP2::format_account(Chain::Bitcoin, "bc1q"), Some("bip122:000000000019d6689c085ae165831e93:bc1q".to_string()));
-        assert_eq!(WalletConnectCAIP2::format_account(Chain::Litecoin, "ltc1q"), None);
-        assert_eq!(WalletConnectCAIP2::format_account(Chain::Doge, "D"), None);
+        assert_eq!(WalletConnectCAIP2::format_account(Chain::Bitcoin, "bc1q"), None);
     }
 
     #[test]
@@ -194,8 +181,7 @@ mod tests {
     fn test_get_references() {
         assert_eq!(WalletConnectCAIP2::get_references(Chain::Tron), vec!["728126428", "0x2b6653dc"]);
         assert_eq!(WalletConnectCAIP2::get_references(Chain::Base), vec!["8453"]);
-        assert_eq!(WalletConnectCAIP2::get_references(Chain::Bitcoin), vec!["000000000019d6689c085ae165831e93"]);
-        assert_eq!(WalletConnectCAIP2::get_references(Chain::Litecoin), Vec::<String>::new());
+        assert_eq!(WalletConnectCAIP2::get_references(Chain::Bitcoin), Vec::<String>::new());
         for reference in WalletConnectCAIP2::get_references(Chain::Tron) {
             assert_eq!(WalletConnectCAIP2::get_chain("tron".to_string(), reference), Some(Chain::Tron));
         }

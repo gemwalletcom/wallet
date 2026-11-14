@@ -580,7 +580,7 @@ sell_title = Vânzare %@
 
 # Info
 
-info_region_unavailable_description = Această funcție nu este disponibilă în regiunea ta. Disponibilitatea depinde de regulile locale și de cerințele furnizorilor.
+info_region_unavailable_description = Această funcție nu este disponibilă în regiunea ta (%@). Disponibilitatea depinde de regulile locale și de cerințele furnizorilor. Regiunea ta este stabilită după adresa IP.
 
 info_network_fee_title = Taxa de retea
 info_watch_wallet_title = Portofel de monitorizare

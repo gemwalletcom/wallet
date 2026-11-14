@@ -78,12 +78,12 @@ public final class GemPriceAlertServiceMock: GemPriceAlertServiceProtocol, @unch
 }
 
 public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchecked Sendable {
-    public var isAvailableValue = true
+    public var unavailableTopicValue: GemInfoTopic?
     public private(set) var availabilityCheckCount = 0
 
-    public func isAvailable() -> Bool {
+    public func unavailableTopic() -> GemInfoTopic? {
         availabilityCheckCount += 1
-        return isAvailableValue
+        return unavailableTopicValue
     }
 
     public var isPerpetualEnabled = true
@@ -170,10 +170,10 @@ public final class GemPerpetualServiceMock: GemPerpetualServiceProtocol, @unchec
 }
 
 public final class GemPerpetualDetailsServiceMock: GemPerpetualDetailsServiceProtocol, @unchecked Sendable {
-    public var isAvailableValue = true
+    public var unavailableTopicValue: GemInfoTopic?
 
-    public func isAvailable() -> Bool {
-        isAvailableValue
+    public func unavailableTopic() -> GemInfoTopic? {
+        unavailableTopicValue
     }
 
     public var detailsValue: GemPerpetualDetails = .mock()

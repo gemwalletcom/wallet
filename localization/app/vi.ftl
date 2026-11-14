@@ -580,7 +580,7 @@ sell_title = Bán %@
 
 # Info
 
-info_region_unavailable_description = Tính năng này không khả dụng ở khu vực của bạn. Khả năng sử dụng phụ thuộc vào quy định địa phương và yêu cầu của nhà cung cấp.
+info_region_unavailable_description = Tính năng này không khả dụng ở khu vực của bạn (%@). Khả năng sử dụng phụ thuộc vào quy định địa phương và yêu cầu của nhà cung cấp. Khu vực của bạn được xác định dựa trên địa chỉ IP.
 
 info_network_fee_title = Phí mạng
 info_watch_wallet_title = Ví đồng hồ

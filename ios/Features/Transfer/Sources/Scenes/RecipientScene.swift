@@ -76,28 +76,16 @@ public struct RecipientScene: View {
                 }
             }
 
-            ForEach(model.recipientSections) { section in
-                Section {
-                    ForEach(section.values) { row in
-                        NavigationCustomLink(
-                            with: ListItemView(model: model.listItem(for: row)),
-                            action: {
-                                focusedField = nil
-                                model.onSelectRecipient(row.recipient)
-                            },
-                        )
-                        .accessibilityIdentifier("recipient_row")
-                    }
-                } header: {
-                    HStack {
-                        if let image = section.image {
-                            image
-                                .frame(size: .image.small)
-                        }
-                        if let title = section.title {
-                            Text(title)
-                        }
-                    }
+            GemGroupSections(groups: model.recipientSections) { item in
+                if case let .recipient(row) = item {
+                    NavigationCustomLink(
+                        with: ListItemView(model: model.listItem(for: row)),
+                        action: {
+                            focusedField = nil
+                            model.onSelectRecipient(row.recipient)
+                        },
+                    )
+                    .accessibilityIdentifier("recipient_row")
                 }
             }
         }

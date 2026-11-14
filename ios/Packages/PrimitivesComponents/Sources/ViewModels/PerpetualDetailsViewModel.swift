@@ -2,7 +2,7 @@
 
 import Components
 import Foundation
-import struct Gemstone.GemListSection
+import struct Gemstone.GemGroup
 import struct Gemstone.GemPerpetualConfirmDetails
 import Localization
 import Style
@@ -32,7 +32,7 @@ public struct PerpetualDetailsViewModel: Sendable, Identifiable {
 }
 
 public extension PerpetualDetailsViewModel {
-    var sections: [GemListSection] {
+    var sections: [GemGroup] {
         details.sections
     }
 }

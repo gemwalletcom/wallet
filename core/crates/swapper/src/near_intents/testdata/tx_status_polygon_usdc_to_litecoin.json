@@ -9,6 +9,9 @@
   "originChainTxHashes": [
    "0x6a083d43a80f236ba5952dfdccaf99e3935a1dadef7d9f55e64857cccd2ac408"
   ],
+  "destinationChainTxHashes": [
+   "d3e24e800b66b3ffc3627ffdf33566ee3ef99e8c8600b49af4b2cac1b4d3a975"
+  ],
   "appFees": [
    {
     "recipient": "0x0d9dab1a248f63b0a48965ba8435e4de7497a3dc",

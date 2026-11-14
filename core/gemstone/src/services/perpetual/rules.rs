@@ -20,7 +20,7 @@ use super::model::{
 };
 use crate::formatted_number::{GemFormattedNumber, GemValueTone, value_tone};
 use crate::models::custom_types::GemBigInt;
-use crate::models::list::{GemInfoTopic, GemListRow, GemListRowTitle, GemListSection};
+use crate::models::list::{GemGroup, GemInfoTopic, GemListRow, GemListRowTitle};
 use crate::models::placeholder::EMPTY_VALUE;
 use crate::models::state::GemListPhase;
 use crate::perpetual::GemPerpetual;
@@ -113,7 +113,7 @@ enum SummarisedBy {
     Change(GemPositionChange),
 }
 
-fn details_sections(asset: &Asset, direction: &PerpetualDirection, data: &PerpetualConfirmData, pnl: Option<(GemLocalizedText, GemValueTone)>) -> Vec<GemListSection> {
+fn details_sections(asset: &Asset, direction: &PerpetualDirection, data: &PerpetualConfirmData, pnl: Option<(GemLocalizedText, GemValueTone)>) -> Vec<GemGroup> {
     let label = |title: GemListRowTitle, text: GemLocalizedText, tone: GemValueTone| GemListRow::Label {
         title,
         text,
@@ -145,7 +145,7 @@ fn details_sections(asset: &Asset, direction: &PerpetualDirection, data: &Perpet
     ]
     .into_iter()
     .flatten()
-    .map(GemListSection::untitled)
+    .map(GemGroup::untitled)
     .collect()
 }
 
@@ -1936,7 +1936,7 @@ mod tests {
             ..PerpetualConfirmData::mock(PerpetualDirection::Long, 0, Some("12.345".to_string()), None)
         };
         let sections = confirm_details(&Asset::mock_perpetual(), &PerpetualType::Close { data }).unwrap().sections;
-        let rows = |index: usize| sections[index].rows.clone();
+        let rows = |index: usize| sections[index].rows();
 
         assert_eq!(
             rows(0),
@@ -2036,8 +2036,8 @@ mod tests {
         .sections;
 
         assert_eq!(sections.len(), 3, "no pnl row, and no autoclose section without a trigger order");
-        assert_eq!(sections[0].rows.len(), 1);
-        assert_eq!(sections[2].rows.len(), 2, "no entry price row");
+        assert_eq!(sections[0].rows().len(), 1);
+        assert_eq!(sections[2].rows().len(), 2, "no entry price row");
     }
 
     #[test]

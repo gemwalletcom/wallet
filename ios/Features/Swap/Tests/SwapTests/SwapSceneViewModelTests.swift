@@ -323,7 +323,7 @@ struct SwapSceneViewModelTests {
     @Test
     func unavailableSwapKeepsQuotesAndDoesNotPrepareATransfer() async {
         let service = GemSwapQuoteServiceMock()
-        service.isAvailableValue = false
+        service.unavailableTopicValue = .regionUnavailable(country: "GB")
 
         await confirmation(expectedCount: 0) { swapped in
             let model = SwapSceneViewModel.mock(service: service, onSwap: { _ in swapped() })
@@ -334,7 +334,7 @@ struct SwapSceneViewModelTests {
 
             await model.onSelectActionButton()
 
-            #expect(model.isPresentingInfoSheet?.id == SwapSheetType.info(InfoSheetModel(sheet: GemInfoTopic.regionUnavailable.infoSheet)).id)
+            #expect(model.isPresentingInfoSheet?.id == SwapSheetType.info(InfoSheetModel(sheet: GemInfoTopic.regionUnavailable(country: "GB").infoSheet)).id)
             #expect(model.viewState.quote == quote)
         }
     }

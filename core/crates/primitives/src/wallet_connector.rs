@@ -62,14 +62,6 @@ pub enum WalletConnectionMethods {
     TronSignTransaction,
     #[serde(rename = "tron_sendTransaction")]
     TronSendTransaction,
-    #[serde(rename = "getAccountAddresses")]
-    BitcoinGetAccountAddresses,
-    #[serde(rename = "signMessage")]
-    BitcoinSignMessage,
-    #[serde(rename = "signPsbt")]
-    BitcoinSignPsbt,
-    #[serde(rename = "sendTransfer")]
-    BitcoinSendTransfer,
 }
 
 impl WalletConnectionMethods {
@@ -96,10 +88,6 @@ impl WalletConnectionMethods {
             Self::TronSignMessage,
             Self::TronSignTransaction,
             Self::TronSendTransaction,
-            Self::BitcoinGetAccountAddresses,
-            Self::BitcoinSignMessage,
-            Self::BitcoinSignPsbt,
-            Self::BitcoinSendTransfer,
         ]
     }
 
@@ -112,7 +100,6 @@ impl WalletConnectionMethods {
             Self::SuiGetAccounts | Self::SuiSignPersonalMessage | Self::SuiSignTransaction | Self::SuiSignAndExecuteTransaction => ChainType::Sui,
             Self::TonSendMessage | Self::TonSignData => ChainType::Ton,
             Self::TronSignMessage | Self::TronSignTransaction | Self::TronSendTransaction => ChainType::Tron,
-            Self::BitcoinGetAccountAddresses | Self::BitcoinSignMessage | Self::BitcoinSignPsbt | Self::BitcoinSendTransfer => ChainType::Bitcoin,
         }
     }
 }
@@ -127,13 +114,11 @@ pub enum WalletConnectionEvents {
     AccountsChanged,
     #[serde(rename = "chainChanged")]
     ChainChanged,
-    #[serde(rename = "bip122_addressesChanged")]
-    BitcoinAddressesChanged,
 }
 
 impl WalletConnectionEvents {
     pub fn all() -> Vec<Self> {
-        vec![Self::Connect, Self::Disconnect, Self::AccountsChanged, Self::ChainChanged, Self::BitcoinAddressesChanged]
+        vec![Self::Connect, Self::Disconnect, Self::AccountsChanged, Self::ChainChanged]
     }
 }
 

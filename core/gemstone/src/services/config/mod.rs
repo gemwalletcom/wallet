@@ -6,6 +6,7 @@ use std::sync::Arc;
 use primitives::{ConfigResponse, Feature, PlatformStore};
 
 use crate::api::{GemApiClient, GemApiError};
+use crate::models::list::GemInfoTopic;
 use crate::services::error::GemServiceError;
 use crate::services::preferences::GemPreferencesService;
 
@@ -27,8 +28,11 @@ impl GemConfigService {
 }
 
 impl GemConfigService {
-    pub fn is_feature_enabled(&self, feature: Feature) -> bool {
-        self.preferences.get_config().map(|config| config.features.is_enabled(feature)).unwrap_or(true)
+    pub fn unavailable_topic(&self, feature: Feature) -> Option<GemInfoTopic> {
+        self.preferences
+            .get_config()
+            .filter(|config| !config.features.is_enabled(feature))
+            .map(|config| GemInfoTopic::RegionUnavailable { country: config.country })
     }
 
     pub async fn update_config(&self) -> ConfigResult {
@@ -93,6 +97,7 @@ mod tests {
                     swap_assets: 0,
                 },
                 swap: SwapConfig { enabled_providers: vec![] },
+                country: "GB".to_string(),
             };
             Ok(Arc::new(AlienResponse::new(Some(200), serde_json::to_vec(&config).unwrap())))
         }
@@ -141,27 +146,25 @@ mod tests {
     }
 
     #[test]
-    fn test_is_feature_enabled_uses_startup_config_without_requests() {
+    fn test_a_disabled_feature_names_the_country_of_the_stored_config_without_requests() {
         let provider = Arc::new(ConfigProvider::default());
         let service = GemConfigService::mock(provider.clone());
         futures::executor::block_on(async {
             service.update_config().await.unwrap();
-            assert!(service.is_feature_enabled(Feature::Swap));
-            assert!(service.is_feature_enabled(Feature::Swap));
+            assert_eq!(service.unavailable_topic(Feature::Swap), None);
             assert_eq!(provider.requests.load(Ordering::SeqCst), 1);
             service.update_config().await.unwrap();
-            assert!(!service.is_feature_enabled(Feature::Swap));
-            assert!(!service.is_feature_enabled(Feature::Swap));
+            assert_eq!(service.unavailable_topic(Feature::Swap), Some(GemInfoTopic::RegionUnavailable { country: "GB".to_string() }));
         });
         assert_eq!(provider.requests.load(Ordering::SeqCst), 2);
     }
 
     #[test]
-    fn test_is_feature_enabled_defaults_to_enabled_without_config() {
+    fn test_every_feature_is_available_without_config() {
         let provider = Arc::new(ConfigProvider::default());
         let service = GemConfigService::mock(provider.clone());
         for feature in [Feature::Buy, Feature::Sell, Feature::Swap, Feature::Perpetuals, Feature::Rewards, Feature::Staking] {
-            assert!(service.is_feature_enabled(feature));
+            assert_eq!(service.unavailable_topic(feature), None);
         }
         assert_eq!(provider.requests.load(Ordering::SeqCst), 0);
     }

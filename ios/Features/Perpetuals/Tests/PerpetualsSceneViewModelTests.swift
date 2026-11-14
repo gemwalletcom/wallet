@@ -2,8 +2,10 @@
 
 import Components
 import func Gemstone.emptyState
+import enum Gemstone.GemInfoTopic
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
+import InfoSheet
 import Localization
 @testable import Perpetuals
 import PerpetualsTestKit
@@ -77,7 +79,7 @@ struct PerpetualsSceneViewModelTests {
     @Test
     func unavailablePerpetualsBlocksDepositButKeepsWithdrawal() async {
         let service = GemPerpetualServiceMock()
-        service.isAvailableValue = false
+        service.unavailableTopicValue = .regionUnavailable(country: "GB")
         service.depositTargetValue = .amount(asset: Asset.mock().toGem())
         var amounts: [AmountInput] = []
         let model = PerpetualsSceneViewModel.mock(onSelectAmount: { amounts.append($0) }, perpetualService: service)
@@ -85,7 +87,7 @@ struct PerpetualsSceneViewModelTests {
         #expect(model.isPresentingInfoSheet == nil)
         await model.onSelectDeposit()
         #expect(amounts.isEmpty)
-        #expect(model.isPresentingInfoSheet?.description == Localized.Info.regionUnavailableDescription)
+        #expect(model.isPresentingInfoSheet?.description == InfoSheetModel(sheet: GemInfoTopic.regionUnavailable(country: "GB").infoSheet).description)
 
         model.isPresentingInfoSheet = nil
         model.onSelectHeaderAction(.withdraw(asset: Asset.mock().toGem()))
@@ -93,7 +95,7 @@ struct PerpetualsSceneViewModelTests {
         #expect(model.isPresentingInfoSheet == nil)
         #expect(service.availabilityCheckCount == 1)
 
-        service.isAvailableValue = true
+        service.unavailableTopicValue = nil
         await model.onSelectDeposit()
         #expect(amounts.count == 2)
     }

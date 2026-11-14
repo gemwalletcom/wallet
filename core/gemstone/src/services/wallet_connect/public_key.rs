@@ -5,11 +5,7 @@ use super::GemWalletConnectService;
 
 impl GemWalletConnectService {
     pub(super) async fn with_public_keys(&self, accounts: Vec<Account>, chains: &[Chain]) -> Vec<Account> {
-        let mut session_accounts = Vec::with_capacity(accounts.len());
-        for account in accounts {
-            session_accounts.push(self.with_public_key(account, chains).await);
-        }
-        session_accounts
+        futures::future::join_all(accounts.into_iter().map(|account| self.with_public_key(account, chains))).await
     }
 
     async fn with_public_key(&self, account: Account, chains: &[Chain]) -> Account {

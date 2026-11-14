@@ -372,8 +372,8 @@ extension SwapSceneViewModel {
     }
 
     private func swap(quote: SwapperQuote) async {
-        guard service.isAvailable() else {
-            isPresentingInfoSheet = .info(InfoSheetModel(sheet: GemInfoTopic.regionUnavailable.infoSheet))
+        if let topic = service.unavailableTopic() {
+            isPresentingInfoSheet = .info(InfoSheetModel(sheet: topic.infoSheet))
             return
         }
         guard let started = session.startTransfer(quote: quote) else { return }
@@ -430,8 +430,8 @@ extension SwapSceneViewModel {
         case .swap:
             guard let quote = viewState.quote else { return }
             if let warning = viewState.details?.priceImpactWarning {
-                guard service.isAvailable() else {
-                    isPresentingInfoSheet = .info(InfoSheetModel(sheet: GemInfoTopic.regionUnavailable.infoSheet))
+                if let topic = service.unavailableTopic() {
+                    isPresentingInfoSheet = .info(InfoSheetModel(sheet: topic.infoSheet))
                     return
                 }
                 isPresentingPriceImpactConfirmation = SwapPriceImpactConfirmation(warning: warning, quote: quote)

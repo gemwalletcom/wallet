@@ -363,10 +363,10 @@ public final class GemCurrencyServiceMock: GemCurrencyServiceProtocol, @unchecke
 }
 
 public final class GemSettingsServiceMock: GemSettingsServiceProtocol, @unchecked Sendable {
-    public var sectionsValue: [GemListSection] = []
-    var securitySectionsValue: [GemListSection] = []
+    public var sectionsValue: [GemGroup] = []
+    var securitySectionsValue: [GemGroup] = []
     public var perpetualDefaultsValue = GemPerpetualDefaults(leverage: 3, marginType: 0, takeProfitPercent: 25, stopLossPercent: 10)
-    var preferencesSectionsValue: [GemListSection] = []
+    var preferencesSectionsValue: [GemGroup] = []
     var pickersValue = GemSettingsService(preferences: GemPreferencesService(store: GemPreferencesStoreMock())).perpetualPickers()
     public var setDefaultsError: Error?
 
@@ -375,7 +375,7 @@ public final class GemSettingsServiceMock: GemSettingsServiceProtocol, @unchecke
 
     public init() {}
 
-    public func preferencesSections(language _: String?, appearance _: String) -> [GemListSection] {
+    public func preferencesSections(language _: String?, appearance _: String) -> [GemGroup] {
         preferencesSectionsValue
     }
 
@@ -387,11 +387,11 @@ public final class GemSettingsServiceMock: GemSettingsServiceProtocol, @unchecke
         pickersValue
     }
 
-    public func sections(wallets _: [Gemstone.WalletListItem], notificationsAvailable _: Bool, walletConnectAvailable _: Bool) -> [GemListSection] {
+    public func sections(wallets _: [Gemstone.WalletListItem], notificationsAvailable _: Bool, walletConnectAvailable _: Bool) -> [GemGroup] {
         sectionsValue
     }
 
-    public func securitySections(input: GemSecurityInput) -> [GemListSection] {
+    public func securitySections(input: GemSecurityInput) -> [GemGroup] {
         securitySectionsCalls.append(input)
         return securitySectionsValue
     }

@@ -19,7 +19,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemAddressDetailsServiceInterface
 import uniffi.gemstone.GemAddressStore
-import uniffi.gemstone.GemListSection
+import uniffi.gemstone.GemGroup
 
 @HiltViewModel(assistedFactory = AddressDetailsViewModel.Factory::class)
 class AddressDetailsViewModel @AssistedInject constructor(
@@ -33,7 +33,7 @@ class AddressDetailsViewModel @AssistedInject constructor(
 
     private val addressName = flow { emit(addressStore.getAddressName(chainAddress.chain.string, chainAddress.address)) }.flowOn(ioDispatcher)
 
-    val sections: StateFlow<List<GemListSection>> = combine(details, addressName) { details, addressName -> details.sections(addressName) }
+    val sections: StateFlow<List<GemGroup>> = combine(details, addressName) { details, addressName -> details.sections(addressName) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     suspend fun refresh() = withContext(ioDispatcher) {

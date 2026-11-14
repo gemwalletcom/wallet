@@ -149,8 +149,8 @@ extension PerpetualsSceneViewModel {
     }
 
     func onSelectDeposit() async {
-        guard service.isAvailable() else {
-            isPresentingInfoSheet = InfoSheetModel(sheet: GemInfoTopic.regionUnavailable.infoSheet)
+        if let topic = service.unavailableTopic() {
+            isPresentingInfoSheet = InfoSheetModel(sheet: topic.infoSheet)
             return
         }
         do {

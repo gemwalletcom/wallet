@@ -411,6 +411,23 @@ mod tests {
     }
 
     #[test]
+    fn test_a_same_chain_swap_in_transit_waits_for_its_provider() {
+        let now = Utc::now();
+        let same_chain = Transaction {
+            created_at: now - chrono::Duration::hours(2),
+            metadata: serde_json::to_value(TransactionSwapMetadata {
+                to_asset: AssetId::from_chain(Chain::Ethereum),
+                ..TransactionSwapMetadata::mock()
+            })
+            .ok(),
+            ..Transaction::mock_swap()
+        };
+
+        assert!(!rules::has_timed_out(&same_chain, TransactionState::InTransit, now), "the provider is still working on it");
+        assert!(rules::has_timed_out(&same_chain, TransactionState::Pending, now), "an unconfirmed deposit still times out with its network");
+    }
+
+    #[test]
     fn test_in_transit_timeout_uses_destination_chain() {
         let now = Utc::now();
         let created_at = now - chrono::Duration::hours(2);

@@ -246,10 +246,7 @@ pub fn price_alert_list(alerts: Vec<PriceAlertData>, price_currency: Currency, s
         .map(|section| {
             let items = section.items.into_iter().map(|item| GemListItem::PriceAlert { item }).collect();
             match section.kind {
-                GemPriceAlertSectionKind::Auto => GemGroup {
-                    footer: GemListSectionFooter::PriceAlertsAuto,
-                    ..GemGroup::with_title("auto".to_string(), None, items)
-                },
+                GemPriceAlertSectionKind::Auto => GemGroup::with_title("auto".to_string(), None, items).with_footer(GemListSectionFooter::PriceAlertsAuto),
                 GemPriceAlertSectionKind::Asset { asset_id, name } => GemGroup::named(asset_id.to_string(), name, items),
             }
         })
@@ -549,7 +546,10 @@ mod tests {
         let list = price_alert_list(vec![over.clone(), auto.clone()], Currency::USD, GemLoadState::Data);
         let summary = list.groups.iter().map(|group| (group.id.clone(), group.title.is_some(), group.footer, group.items.len())).collect::<Vec<_>>();
 
-        assert_eq!(summary, vec![("auto".to_string(), false, GemListSectionFooter::PriceAlertsAuto, 1), (bitcoin.to_string(), true, GemListSectionFooter::None, 1)]);
+        assert_eq!(
+            summary,
+            vec![(Some("auto".to_string()), false, GemListSectionFooter::PriceAlertsAuto, 1), (Some(bitcoin.to_string()), true, GemListSectionFooter::None, 1)]
+        );
         assert_eq!(list.groups[0].items, vec![GemListItem::PriceAlert { item: GemPriceAlertItem { id: auto.price_alert.id(), row: price_alert_row(&auto, Currency::USD), data: auto } }]);
     }
 

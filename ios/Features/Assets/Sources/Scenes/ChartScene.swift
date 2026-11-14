@@ -17,31 +17,19 @@ public struct ChartScene: View {
 
     public var body: some View {
         ChartListView(model: model) {
-            ForEach(model.sections.listSections) { section in
-                Section {
-                    ForEach(section.values) { item in
-                        switch item.row.action() {
-                        case .priceAlerts:
-                            NavigationLink(
-                                value: Scenes.AssetPriceAlert(asset: model.asset),
-                                label: { GemListRowView(row: item.row) },
-                            )
-                        case .setPriceAlert:
-                            NavigationCustomLink(with: GemListRowView(row: item.row)) {
-                                model.onSelectSetPriceAlerts()
-                            }
-                        default:
-                            GemListRowView(row: item.row, onSelectAddress: model.onSelectContract, onInfo: model.onInfo)
-                        }
+            GemGroupSections(rows: model.sections) { row in
+                switch row.action() {
+                case .priceAlerts:
+                    NavigationLink(
+                        value: Scenes.AssetPriceAlert(asset: model.asset),
+                        label: { GemListRowView(row: row) },
+                    )
+                case .setPriceAlert:
+                    NavigationCustomLink(with: GemListRowView(row: row)) {
+                        model.onSelectSetPriceAlerts()
                     }
-                } header: {
-                    if let title = section.title {
-                        Text(title)
-                    }
-                } footer: {
-                    if let footer = section.footer {
-                        Text(footer)
-                    }
+                default:
+                    GemListRowView(row: row, onSelectAddress: model.onSelectContract, onInfo: model.onInfo)
                 }
             }
         }

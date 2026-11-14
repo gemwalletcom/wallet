@@ -26,7 +26,7 @@ use crate::{
     },
 };
 use primitives::{
-    AssetId, Chain, SwapProvider, Transaction as PrimitivesTransaction, TransactionSwapMetadata, TransactionSwapReferralFee, decode_hex,
+    AssetId, Chain, SwapProvider, Transaction as PrimitivesTransaction, TransactionState, TransactionSwapMetadata, TransactionSwapReferralFee, decode_hex,
     swap::{EVM_REFERRAL_ADDRESS, HUNDRED_PERCENT_IN_BPS},
 };
 
@@ -187,22 +187,23 @@ fn decode_execute_swap_call(chain: &Chain, router_abi: RouterAbi, provider: Swap
                 None => None,
             };
             for action in actions {
-                let (from_token, to_token, amount_in) = match action {
-                    V4Action::SWAP_EXACT_IN(params) => (params.currencyIn, params.path.last().map(|path_key| path_key.intermediateCurrency), params.amountIn),
-                    V4Action::SWAP_EXACT_IN_V2_1(params) => (params.currencyIn, params.path.last().map(|path_key| path_key.intermediateCurrency), params.amountIn),
-                    V4Action::SWAP_EXACT_IN_SINGLE(params) => single_pool_leg(&params.poolKey, params.zeroForOne, params.amountIn),
-                    V4Action::SWAP_EXACT_IN_SINGLE_V2_1(params) => single_pool_leg(&params.poolKey, params.zeroForOne, params.amountIn),
+                let (from_token, to_token, amount_in, amount_out_minimum) = match action {
+                    V4Action::SWAP_EXACT_IN(params) => (params.currencyIn, params.path.last().map(|path_key| path_key.intermediateCurrency), params.amountIn, params.amountOutMinimum),
+                    V4Action::SWAP_EXACT_IN_V2_1(params) => (params.currencyIn, params.path.last().map(|path_key| path_key.intermediateCurrency), params.amountIn, params.amountOutMinimum),
+                    V4Action::SWAP_EXACT_IN_SINGLE(params) => single_pool_leg(&params.poolKey, params.zeroForOne, params.amountIn, params.amountOutMinimum),
+                    V4Action::SWAP_EXACT_IN_SINGLE_V2_1(params) => single_pool_leg(&params.poolKey, params.zeroForOne, params.amountIn, params.amountOutMinimum),
                     _ => continue,
                 };
                 let Some(to_token) = to_token else {
                     continue;
                 };
+                let reverted_minimum = (receipt.get_state() == TransactionState::Reverted).then(|| amount_out_minimum.to_string());
                 let leg_from_asset = AssetId::from(*chain, (!from_token.is_zero()).then(|| from_token.to_checksum(None)));
                 let to_token_id = (!to_token.is_zero()).then(|| to_token.to_checksum(None));
                 let leg_to_value = if let Some(to_token_id) = &to_token_id {
-                    transfer_value_from_receipt(from, to_token_id, receipt)?
+                    transfer_value_from_receipt(from, to_token_id, receipt).or(reverted_minimum)?
                 } else {
-                    native_output.as_ref().or(sweep_minimum.as_ref())?.to_string()
+                    native_output.as_ref().or(sweep_minimum.as_ref()).map(U256::to_string).or(reverted_minimum)?
                 };
                 let leg_to_asset = AssetId::from(*chain, to_token_id);
                 let leg_from_value = U256::from(amount_in);
@@ -249,10 +250,10 @@ fn decode_solidly_swap_exact_in(input: &[u8]) -> Option<(U256, U256, Address, Ad
     Some((swap_exact_in.amount_in, swap_exact_in.amount_out_min, swap_exact_in.routes.first()?.from, swap_exact_in.routes.last()?.to))
 }
 
-fn single_pool_leg(pool: &PoolKey, zero_for_one: bool, amount_in: u128) -> (Address, Option<Address>, u128) {
+fn single_pool_leg(pool: &PoolKey, zero_for_one: bool, amount_in: u128, amount_out_minimum: u128) -> (Address, Option<Address>, u128, u128) {
     match zero_for_one {
-        true => (pool.currency0, Some(pool.currency1), amount_in),
-        false => (pool.currency1, Some(pool.currency0), amount_in),
+        true => (pool.currency0, Some(pool.currency1), amount_in, amount_out_minimum),
+        false => (pool.currency1, Some(pool.currency0), amount_in, amount_out_minimum),
     }
 }
 
@@ -318,17 +319,21 @@ mod tests {
         FeeTier,
         actions::V4Action,
         command::{UniversalRouterCommand, encode_commands},
-        contracts::v4::IV4Router,
+        contracts::v4::{IV4Router, PathKey},
         deployment::UniversalRouterAbi,
         path::{TokenPair, build_pairs},
     };
-    use alloy_primitives::{Address, B256};
+    use alloy_primitives::{
+        Address, B256, Bytes,
+        aliases::{I24, U24},
+    };
     use chrono::DateTime;
     use num_bigint::BigUint;
     use primitives::{
-        AssetId, Chain, TransactionSwapMetadata, TransactionSwapReferralFee, TransactionType,
+        AssetId, Chain, TransactionState, TransactionSwapMetadata, TransactionSwapReferralFee, TransactionType,
         asset_constants::{BASE_USDC_ASSET_ID, ETHEREUM_USDT_ASSET_ID, ETHEREUM_WETH_TOKEN_ID, POLYGON_USDT_TOKEN_ID, UNICHAIN_DAI_TOKEN_ID, UNICHAIN_USDC_TOKEN_ID},
         contract_constants::{ETHEREUM_UNISWAP_V3_UNIVERSAL_ROUTER_CONTRACT, UNICHAIN_UNISWAP_V4_UNIVERSAL_ROUTER_CONTRACT},
+        hex::encode_with_0x,
         testkit::json_rpc::load_json_rpc_result,
     };
 
@@ -828,5 +833,102 @@ mod tests {
         if let V4Action::SWAP_EXACT_IN(params) = &actions[0] {
             assert!(params.path.is_empty());
         }
+    }
+
+    #[test]
+    fn test_map_reverted_v4_swap() {
+        let (usdc, dai) = (Address::from_str(UNICHAIN_USDC_TOKEN_ID).unwrap(), Address::from_str(UNICHAIN_DAI_TOKEN_ID).unwrap());
+        let reverted = TransactionReceipt {
+            status: "0x0".to_string(),
+            ..TransactionReceipt::mock()
+        };
+        let token_swap = Transaction {
+            to: Some(UNICHAIN_UNISWAP_V4_UNIVERSAL_ROUTER_CONTRACT.to_string()),
+            input: encode_with_0x(&encode_commands(
+                &[UniversalRouterCommand::V4_SWAP {
+                    actions: vec![
+                        V4Action::SWAP_EXACT_IN_SINGLE(IV4Router::ExactInputSingleParams {
+                            poolKey: PoolKey {
+                                currency0: usdc,
+                                currency1: dai,
+                                fee: U24::from(100),
+                                tickSpacing: I24::from_str("1").unwrap(),
+                                hooks: Address::ZERO,
+                            },
+                            zeroForOne: true,
+                            amountIn: 5_000_000,
+                            amountOutMinimum: 4_950_000_000_000_000_000,
+                            hookData: Bytes::new(),
+                        }),
+                        V4Action::SETTLE_ALL {
+                            currency: usdc,
+                            max_amount: U256::from(5_000_000u64),
+                        },
+                        V4Action::TAKE_ALL {
+                            currency: dai,
+                            min_amount: U256::from(4_950_000_000_000_000_000u64),
+                        },
+                    ],
+                }],
+                U256::ZERO,
+            )),
+            ..Transaction::mock()
+        };
+        let token_swap_tx = map_swap(&Chain::Unichain, &token_swap, &reverted);
+        assert_eq!(token_swap_tx.transaction_type, TransactionType::Swap);
+        assert_eq!(token_swap_tx.state, TransactionState::Reverted);
+        assert_eq!(
+            token_swap_tx.swap_metadata(),
+            Some(TransactionSwapMetadata::new(
+                AssetId::from_token(Chain::Unichain, UNICHAIN_USDC_TOKEN_ID),
+                BigUint::from(5_000_000u64),
+                AssetId::from_token(Chain::Unichain, UNICHAIN_DAI_TOKEN_ID),
+                BigUint::from(4_950_000_000_000_000_000u64),
+                SwapProvider::UniswapV4,
+            ))
+        );
+        assert_eq!(ProtocolParsers::map_transaction(&Chain::Unichain, &token_swap, &TransactionReceipt::mock(), DateTime::default()), None);
+
+        let native_swap = Transaction {
+            input: encode_with_0x(&encode_commands(
+                &[UniversalRouterCommand::V4_SWAP {
+                    actions: vec![
+                        V4Action::SWAP_EXACT_IN(IV4Router::ExactInputParams {
+                            currencyIn: usdc,
+                            path: vec![PathKey {
+                                intermediateCurrency: Address::ZERO,
+                                fee: U24::from(500),
+                                tickSpacing: I24::from_str("10").unwrap(),
+                                hooks: Address::ZERO,
+                                hookData: Bytes::new(),
+                            }],
+                            amountIn: 5_000_000,
+                            amountOutMinimum: 1_900_000_000_000_000,
+                        }),
+                        V4Action::SETTLE_ALL {
+                            currency: usdc,
+                            max_amount: U256::from(5_000_000u64),
+                        },
+                        V4Action::TAKE_ALL {
+                            currency: Address::ZERO,
+                            min_amount: U256::from(1_900_000_000_000_000u64),
+                        },
+                    ],
+                }],
+                U256::ZERO,
+            )),
+            ..token_swap.clone()
+        };
+        assert_eq!(
+            map_swap(&Chain::Unichain, &native_swap, &reverted).swap_metadata(),
+            Some(TransactionSwapMetadata::new(
+                AssetId::from_token(Chain::Unichain, UNICHAIN_USDC_TOKEN_ID),
+                BigUint::from(5_000_000u64),
+                AssetId::from_chain(Chain::Unichain),
+                BigUint::from(1_900_000_000_000_000u64),
+                SwapProvider::UniswapV4,
+            ))
+        );
+        assert_eq!(ProtocolParsers::map_transaction(&Chain::Unichain, &native_swap, &TransactionReceipt::mock(), DateTime::default()), None);
     }
 }

@@ -15,6 +15,7 @@ import com.gemwallet.android.testkit.mockAssetLink
 import com.gemwallet.android.testkit.mockAssetMarket
 import com.gemwallet.android.testkit.mockGemChart
 import com.gemwallet.android.testkit.mockGemChartData
+import com.gemwallet.android.testkit.mockGemGroup
 import com.gemwallet.android.testkit.mockPrice
 import com.gemwallet.android.testkit.mockPriceAlert
 import com.gemwallet.android.ui.models.StateViewType
@@ -53,11 +54,10 @@ import uniffi.gemstone.GemChartSession
 import uniffi.gemstone.GemChartStyle
 import uniffi.gemstone.GemChartView
 import uniffi.gemstone.GemChartZoom
+import uniffi.gemstone.GemGroup
+import uniffi.gemstone.GemListItem
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowTitle
-import uniffi.gemstone.GemListSection
-import uniffi.gemstone.GemListSectionFooter
-import uniffi.gemstone.GemListSectionTitle
 import uniffi.gemstone.GemLoadState
 import java.time.Instant
 import java.time.ZoneId
@@ -85,7 +85,7 @@ class ChartViewModelTest {
     private val priceQuery = mockk<PriceQuery> { every { this@mockk(asset.id) } returns priceDataFlow }
     private val chartService = mockk<GemChartService>(relaxed = true)
     private var savedPeriod = ChartPeriod.Day
-    private var sections = emptyList<GemListSection>()
+    private var sections = emptyList<GemGroup>()
     private var styleSwitch: GemChartStyle? = null
     private var periods = ChartPeriod.entries.map { it.toGem() }
 
@@ -312,5 +312,5 @@ class ChartViewModelTest {
         context = mockk(relaxed = true),
     ).also(viewModels::add)
 
-    private fun section(rows: List<GemListRow>, title: GemListSectionTitle = GemListSectionTitle.NONE) = GemListSection(title, GemListSectionFooter.NONE, rows)
+    private fun section(rows: List<GemListRow>) = mockGemGroup(items = rows.map { GemListItem.Row(it) })
 }

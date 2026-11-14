@@ -6,10 +6,12 @@ import FiatConnectTestKit
 import Foundation
 import struct Gemstone.FiatQuote
 import struct Gemstone.GemFiatQuoteRequest
+import enum Gemstone.GemInfoTopic
 import struct Gemstone.GemProviderRow
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
+import InfoSheet
 import Localization
 import Primitives
 import PrimitivesTestKit
@@ -325,7 +327,7 @@ final class FiatSceneViewModelTests {
     @Test(arguments: [FiatQuoteType.buy, .sell])
     func unavailableFiatKeepsTheQuoteAndStopsContinue(type: FiatQuoteType) async {
         let service = GemFiatQuoteServiceMock()
-        service.isAvailableValue = false
+        service.unavailableTopicValue = .regionUnavailable(country: "GB")
         let model = FiatSceneViewModel.mock(service: service, type: type, amount: 100)
         model.session = model.session.onQuoteResults(results: .mock(
             request: .mock(quoteType: type.toGem(), amount: 100),
@@ -335,7 +337,7 @@ final class FiatSceneViewModelTests {
 
         await model.onSelectContinue()
 
-        #expect(model.isPresentingInfoSheet?.description == Localized.Info.regionUnavailableDescription)
+        #expect(model.isPresentingInfoSheet?.description == InfoSheetModel(sheet: GemInfoTopic.regionUnavailable(country: "GB").infoSheet).description)
         #expect(model.viewState.selectedQuoteRow != nil)
     }
 

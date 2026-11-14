@@ -64,7 +64,7 @@ internal fun StakeScene(inSync: Boolean, assetInfo: AssetData, state: GemStakeVi
                         GemStakeSection.MANAGE -> stakeActions(
                             actions = state.actions,
                             onOpen = { onAction(StakeAction.Open(it)) },
-                            onRegionUnavailable = { onAction(StakeAction.RegionUnavailable) },
+                            onRegionUnavailable = { onAction(StakeAction.RegionUnavailable(it)) },
                         )
 
                         GemStakeSection.RESOURCES -> itemsIndexed(state.resourceRows) { index, row ->

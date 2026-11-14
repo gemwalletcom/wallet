@@ -32,38 +32,21 @@ import com.gemwallet.android.ui.components.list_head.HeaderIcon
 import com.gemwallet.android.ui.components.list_item.property.AssetRatePropertyItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
 import com.gemwallet.android.ui.components.list_item.property.PropertyNetworkItem
-import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.localization.textRes
-import com.gemwallet.android.ui.localization.titleRes
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.open
 import com.gemwallet.android.ui.style.color
 import com.gemwallet.android.ui.style.icon
-import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.headerIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingLarge
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.smallIconSize
 import uniffi.gemstone.GemListRow
-import uniffi.gemstone.GemListSection
 import uniffi.gemstone.GemListSectionFooter
 import uniffi.gemstone.GemRowAction
-
-fun LazyListScope.gemListSections(sections: List<GemListSection>, onSelectAddress: ((String) -> Unit)? = null, onSelect: ((GemRowAction) -> Unit)? = null) {
-    sections.forEachIndexed { index, section ->
-        val title = section.title.titleRes()
-        if (title != null) {
-            item(key = "section:$index") { SubheaderItem(title) }
-        } else if (index > 0) {
-            item(key = "section:$index") { Spacer16() }
-        }
-        itemsPositioned(section.rows) { position, row -> GemListRowView(row = row, listPosition = position, onSelect = onSelect, onSelectAddress = onSelectAddress) }
-        gemListSectionFooter(section.footer, key = "footer:$index")
-    }
-}
 
 fun LazyListScope.gemListSectionFooter(footer: GemListSectionFooter, key: Any) {
     val text = footer.textRes() ?: return

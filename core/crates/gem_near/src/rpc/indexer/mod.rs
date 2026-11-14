@@ -104,8 +104,10 @@ impl<C: Client> NearIndexer<C> {
 
     pub(crate) async fn get_transactions_by_address(&self, address: &str, limit: usize, from_timestamp: Option<u64>) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {
         let from_timestamp_ms = from_timestamp.map(|timestamp| timestamp.checked_mul(1_000).ok_or("NEAR timestamp exceeds milliseconds range")).transpose()?;
-        let sender_transfers = self.get_transfers(address, TransferDirection::Sender, from_timestamp_ms).await?;
-        let receiver_transfers = self.get_transfers(address, TransferDirection::Receiver, from_timestamp_ms).await?;
+        let (sender_transfers, receiver_transfers) = futures::try_join!(
+            self.get_transfers(address, TransferDirection::Sender, from_timestamp_ms),
+            self.get_transfers(address, TransferDirection::Receiver, from_timestamp_ms)
+        )?;
         let transfers = sender_transfers
             .into_iter()
             .chain(receiver_transfers)

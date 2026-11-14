@@ -40,12 +40,12 @@ public final class GemAmountServiceMock: GemAmountServiceProtocol, @unchecked Se
 }
 
 public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchecked Sendable {
-    public var isAvailableValue = true
+    public var unavailableTopicValue: GemInfoTopic?
     public var refreshTransactionsState: GemLoadState = .data
     public private(set) var quoteUrlRequests: [String] = []
 
-    public func isAvailable(quoteType _: Gemstone.FiatQuoteType) -> Bool {
-        isAvailableValue
+    public func unavailableTopic(quoteType _: Gemstone.FiatQuoteType) -> GemInfoTopic? {
+        unavailableTopicValue
     }
 
     private let quotes: [Gemstone.FiatQuote]

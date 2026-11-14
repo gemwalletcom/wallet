@@ -4,6 +4,7 @@ import Components
 import Gemstone
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
+import InfoSheet
 import Localization
 @testable import Perpetuals
 import PerpetualsTestKit
@@ -189,17 +190,17 @@ struct PerpetualSceneViewModelTests {
     @Test(arguments: [GemPerpetualButton.long, .short, .modify, .increase, .reduce])
     func unavailablePerpetualsStopsPositionActions(button: GemPerpetualButton) {
         let service = GemPerpetualDetailsServiceMock()
-        service.isAvailableValue = false
+        service.unavailableTopicValue = .regionUnavailable(country: "GB")
         let model = PerpetualSceneViewModel.mock(service: service)
 
         #expect(model.isPresentingInfoSheet == nil)
         model.onSelectButton(button)
         #expect(service.positionKinds.isEmpty)
         #expect(model.isPresentingModifyAlert != true)
-        #expect(model.isPresentingInfoSheet?.description == Localized.Info.regionUnavailableDescription)
+        #expect(model.isPresentingInfoSheet?.description == InfoSheetModel(sheet: GemInfoTopic.regionUnavailable(country: "GB").infoSheet).description)
 
         model.isPresentingInfoSheet = nil
-        service.isAvailableValue = true
+        service.unavailableTopicValue = nil
         model.onSelectButton(button)
         #expect(service.positionKinds.count == (button == .modify ? 0 : 1))
         #expect((model.isPresentingModifyAlert == true) == (button == .modify))
@@ -209,7 +210,7 @@ struct PerpetualSceneViewModelTests {
     @Test
     func unavailablePerpetualsKeepsCloseAvailable() {
         let service = GemPerpetualDetailsServiceMock()
-        service.isAvailableValue = false
+        service.unavailableTopicValue = .regionUnavailable(country: "GB")
         var transfers: [GemTransferData] = []
         let model = PerpetualSceneViewModel.mock(service: service, onTransferData: { transfers.append($0) })
 

@@ -27,7 +27,7 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import uniffi.gemstone.GemListSection
+import uniffi.gemstone.GemGroup
 import uniffi.gemstone.GemPushResult
 import uniffi.gemstone.GemSettingsServiceInterface
 import uniffi.gemstone.notificationsSections
@@ -64,7 +64,7 @@ class SettingsViewModel @Inject constructor(
     val pushEnabled = merge(getPushEnabled.getPushEnabled(), switchedPush)
         .stateIn(viewModelScope, SharingStarted.Eagerly, true)
 
-    val notificationsSections: StateFlow<List<GemListSection>> = pushEnabled
+    val notificationsSections: StateFlow<List<GemGroup>> = pushEnabled
         .map(::notificationsSections)
         .stateIn(viewModelScope, SharingStarted.Eagerly, notificationsSections(pushEnabled.value))
 

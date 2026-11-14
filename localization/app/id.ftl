@@ -580,7 +580,7 @@ sell_title = Jual %@
 
 # Info
 
-info_region_unavailable_description = Fitur ini tidak tersedia di wilayah Anda. Ketersediaan bergantung pada aturan setempat dan persyaratan penyedia.
+info_region_unavailable_description = Fitur ini tidak tersedia di wilayah Anda (%@). Ketersediaan bergantung pada aturan setempat dan persyaratan penyedia. Wilayah Anda ditentukan dari alamat IP Anda.
 
 info_network_fee_title = Biaya Jaringan
 info_watch_wallet_title = Dompet Pantau

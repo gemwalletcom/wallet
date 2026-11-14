@@ -5,7 +5,7 @@ use primitives::{Latency, LatencyType};
 
 use super::rules;
 use crate::formatted_number::GemValueTone;
-use crate::models::list::GemListSection;
+use crate::models::list::GemGroup;
 
 #[derive(uniffi::Enum, Clone, Debug, PartialEq)]
 pub enum GemLatencyStatus {
@@ -67,7 +67,7 @@ impl GemServiceStatusSession {
         }
     }
 
-    pub fn sections(&self) -> Vec<GemListSection> {
+    pub fn sections(&self) -> Vec<GemGroup> {
         rules::sections(&self.endpoints, self.stream.clone())
     }
 }

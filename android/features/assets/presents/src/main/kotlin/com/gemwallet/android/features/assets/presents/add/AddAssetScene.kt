@@ -26,6 +26,7 @@ import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
 import com.gemwallet.android.ui.components.list_item.property.DataBadgeChevron
+import com.gemwallet.android.ui.components.list_item.rows
 import com.gemwallet.android.ui.components.progress.CircularProgressIndicator16
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.models.ButtonState
@@ -33,7 +34,7 @@ import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.open
 import com.wallet.core.primitives.Asset
 import uniffi.gemstone.DocsUrl
-import uniffi.gemstone.GemListSection
+import uniffi.gemstone.GemGroup
 import uniffi.gemstone.chainRow
 
 private val networkItemHeight = 64.dp
@@ -43,7 +44,7 @@ internal fun AddAssetScene(
     isSearching: Boolean,
     addressState: MutableState<String>,
     network: Asset?,
-    sections: List<GemListSection>,
+    sections: List<GemGroup>,
     verificationWarningRow: ListItemModel?,
     buttonState: ButtonState,
     canSelectChain: Boolean,

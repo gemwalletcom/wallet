@@ -580,7 +580,7 @@ sell_title = Prodat %@
 
 # Info
 
-info_region_unavailable_description = Tato funkce není ve vašem regionu k dispozici. Dostupnost závisí na místních pravidlech a požadavcích poskytovatelů.
+info_region_unavailable_description = Tato funkce není ve vašem regionu (%@) k dispozici. Dostupnost závisí na místních pravidlech a požadavcích poskytovatelů. Region určujeme podle vaší IP adresy.
 
 info_network_fee_title = Síťový poplatek
 info_watch_wallet_title = Sledovaná peněženka

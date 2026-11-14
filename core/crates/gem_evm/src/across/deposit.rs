@@ -5,7 +5,7 @@ use alloy_sol_types::{SolCall, SolEvent, SolValue};
 
 use super::asset::AcrossAsset;
 use super::contracts::{
-    V3SpokePoolInterface::{FundsDeposited, V3FundsDeposited},
+    V3SpokePoolInterface::{FundsDeposited, V3FundsDeposited, depositV3Call},
     multicall_handler,
 };
 use crate::{contracts::IERC20, u256::u256_to_biguint};
@@ -110,6 +110,30 @@ impl Deposit {
             },
         }
     }
+
+    fn from_deposit_v3_call(call: depositV3Call, origin_chain_id: u64) -> Self {
+        Self {
+            destination_chain_id: call.destinationChainId.saturating_to::<u64>(),
+            relay_data: RelayData {
+                depositor: call.depositor.into_word(),
+                recipient: call.recipient.into_word(),
+                exclusive_relayer: call.exclusiveRelayer.into_word(),
+                input_token: call.inputToken.into_word(),
+                output_token: call.outputToken.into_word(),
+                input_amount: call.inputAmount,
+                output_amount: call.outputAmount,
+                origin_chain_id: U256::from(origin_chain_id),
+                deposit_id: U256::ZERO,
+                fill_deadline: call.fillDeadline,
+                exclusivity_deadline: call.exclusivityDeadline,
+                message: call.message,
+            },
+        }
+    }
+}
+
+pub fn parse_deposit_call(input: &[u8], origin_chain_id: u64) -> Result<Deposit, Box<dyn Error + Send + Sync>> {
+    Ok(Deposit::from_deposit_v3_call(depositV3Call::abi_decode(input)?, origin_chain_id))
 }
 
 pub fn parse_deposit<'a>(logs: impl IntoIterator<Item = (&'a [String], &'a str)>, origin_chain_id: u64) -> Result<Option<Deposit>, Box<dyn Error + Send + Sync>> {

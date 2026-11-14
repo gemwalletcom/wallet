@@ -6,7 +6,7 @@ use std::sync::Arc;
 
 use primitives::{Release, WalletListItem};
 
-use crate::models::list::GemListSection;
+use crate::models::list::GemGroup;
 use crate::services::error::GemServiceError;
 use crate::services::localization::GemLocalizedText;
 use crate::services::preferences::GemPreferencesService;
@@ -26,7 +26,7 @@ impl GemSettingsService {
         Self { preferences }
     }
 
-    pub fn preferences_sections(&self, language: Option<String>, appearance: String) -> Vec<GemListSection> {
+    pub fn preferences_sections(&self, language: Option<String>, appearance: String) -> Vec<GemGroup> {
         rules::preferences_sections(rules::PreferencesInput {
             currency: self.preferences.get_currency(),
             language,
@@ -56,11 +56,11 @@ impl GemSettingsService {
         self.preferences.set_perpetual_stop_loss_percent(defaults.stop_loss_percent)
     }
 
-    pub fn security_sections(&self, input: GemSecurityInput) -> Vec<GemListSection> {
+    pub fn security_sections(&self, input: GemSecurityInput) -> Vec<GemGroup> {
         rules::security_sections(input, self.preferences.is_hide_balance_enabled())
     }
 
-    pub fn sections(&self, wallets: Vec<WalletListItem>, notifications_available: bool, wallet_connect_available: bool) -> Vec<GemListSection> {
+    pub fn sections(&self, wallets: Vec<WalletListItem>, notifications_available: bool, wallet_connect_available: bool) -> Vec<GemGroup> {
         rules::sections(
             wallets.len(),
             notifications_available,
@@ -72,7 +72,7 @@ impl GemSettingsService {
 }
 
 #[uniffi::export]
-pub fn notifications_sections(push_enabled: bool) -> Vec<GemListSection> {
+pub fn notifications_sections(push_enabled: bool) -> Vec<GemGroup> {
     rules::notifications_sections(push_enabled)
 }
 
@@ -130,8 +130,8 @@ mod tests {
         use crate::models::list::{GemListRow, GemListRowTitle, GemRowAction};
 
         let service = GemSettingsService::mock();
-        let toggle_on = |sections: Vec<GemListSection>, action: GemRowAction| {
-            sections.iter().flat_map(|section| section.rows.clone()).find_map(|row| match row {
+        let toggle_on = |sections: Vec<GemGroup>, action: GemRowAction| {
+            sections.iter().flat_map(|section| section.rows()).find_map(|row| match row {
                 GemListRow::Toggle { is_on, action: row_action, .. } if row_action == action => Some(is_on),
                 _ => None,
             })
@@ -153,7 +153,7 @@ mod tests {
         let preferences = service.preferences_sections(None, String::new());
         assert_eq!(toggle_on(preferences.clone(), GemRowAction::Perpetuals), Some(true));
         assert!(
-            preferences.iter().flat_map(|section| section.rows.iter()).any(|row| matches!(
+            preferences.iter().flat_map(|section| section.rows()).any(|row| matches!(
                 row,
                 GemListRow::Picker {
                     title: GemListRowTitle::PerpetualLeverage,

@@ -94,11 +94,7 @@ extension AddAssetScene {
                 ListItemLoadingView()
                     .id(UUID())
             }
-            ForEach(model.sections.listSections) { section in
-                Section {
-                    ForEach(section.values) { GemListRowView(row: $0.row) }
-                }
-            }
+            GemGroupSections(rows: model.sections) { GemListRowView(row: $0) }
             if model.showsVerificationWarning {
                 Section {
                     ListItemView(model: model.warningListItem {

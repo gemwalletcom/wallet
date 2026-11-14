@@ -10,9 +10,9 @@ import protocol Gemstone.GemChartServiceProtocol
 import struct Gemstone.GemChartSession
 import enum Gemstone.GemChartStyle
 import struct Gemstone.GemChartView
+import struct Gemstone.GemGroup
 import struct Gemstone.GemInfoSheet
 import enum Gemstone.GemInfoTopic
-import struct Gemstone.GemListSection
 import GemstonePrimitives
 import GemstoneServices
 import InfoSheet
@@ -74,7 +74,7 @@ public final class ChartSceneViewModel: ChartListViewable {
         view.periods.map { $0.toPrimitives() }
     }
 
-    var sections: [GemListSection] {
+    var sections: [GemGroup] {
         view.sections
     }
 

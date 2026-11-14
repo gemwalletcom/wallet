@@ -4,24 +4,17 @@ use primitives::hex;
 
 use crate::sign_type::{SignDigestType, SignMessage};
 
-pub fn decode_sign_message(chain: Chain, sign_type: SignDigestType, data: String) -> Result<SignMessage, String> {
-    if sign_type.is_bitcoin() {
-        return Ok(SignMessage {
-            chain,
-            data: crate::request_handler::BitcoinRequestHandler::decode_message(&data)?,
-            sign_type,
-        });
-    }
+pub fn decode_sign_message(chain: Chain, sign_type: SignDigestType, data: String) -> SignMessage {
     let message_data = decode_message_bytes(&data);
     let raw_text = String::from_utf8(message_data.clone()).unwrap_or_default();
 
     if sign_type == SignDigestType::Eip191
         && let Some(siwe_message) = decode_siwe_message(chain, &raw_text, &message_data)
     {
-        return Ok(siwe_message);
+        return siwe_message;
     }
 
-    Ok(SignMessage { chain, sign_type, data: message_data })
+    SignMessage { chain, sign_type, data: message_data }
 }
 
 pub(crate) fn decode_message_bytes(data: &str) -> Vec<u8> {
@@ -50,7 +43,7 @@ mod tests {
     #[test]
     fn test_decode_sign_message_detects_siwe() {
         let message = mock_siwe_message("login.xyz", 1);
-        let decoded = decode_sign_message(Chain::Ethereum, SignDigestType::Eip191, message.clone()).unwrap();
+        let decoded = decode_sign_message(Chain::Ethereum, SignDigestType::Eip191, message.clone());
 
         assert_eq!(decoded.sign_type, SignDigestType::Siwe);
         assert_eq!(decoded.data, message.into_bytes());
@@ -59,7 +52,7 @@ mod tests {
     #[test]
     fn test_decode_sign_message_preserves_non_siwe() {
         let message = "Hello world".to_string();
-        let decoded = decode_sign_message(Chain::Ethereum, SignDigestType::Eip191, message.clone()).unwrap();
+        let decoded = decode_sign_message(Chain::Ethereum, SignDigestType::Eip191, message.clone());
 
         assert_eq!(decoded.sign_type, SignDigestType::Eip191);
         assert_eq!(decoded.data, message.into_bytes());
@@ -68,7 +61,7 @@ mod tests {
     #[test]
     fn test_decode_sign_message_siwe_chain_mismatch() {
         let message = mock_siwe_message("login.xyz", 1);
-        let decoded = decode_sign_message(Chain::Polygon, SignDigestType::Eip191, message).unwrap();
+        let decoded = decode_sign_message(Chain::Polygon, SignDigestType::Eip191, message);
 
         assert_eq!(decoded.sign_type, SignDigestType::Eip191);
     }

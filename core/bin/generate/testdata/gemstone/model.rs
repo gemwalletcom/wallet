@@ -62,6 +62,12 @@ pub struct GemListedItem {
     pub row: GemRowAction,
 }
 
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemListedGroup {
+    pub id: Option<String>,
+    pub items: Vec<GemListedItem>,
+}
+
 #[uniffi::remote(Record)]
 pub struct Mirrored {
     pub id: String,

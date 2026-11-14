@@ -128,6 +128,15 @@ where
         }
     }
 
+    fn swap_result(transaction: &ExplorerTransaction) -> SwapResult {
+        let status = match Self::map_transaction_status(&transaction.status) {
+            SwapStatus::Completed if transaction.destination_chain_tx_hashes.is_empty() => SwapStatus::Pending,
+            status => status,
+        };
+        let metadata = Self::build_swap_metadata(transaction, &status);
+        SwapResult { status, metadata, eta_in_seconds: None }
+    }
+
     fn build_swap_metadata(transaction: &ExplorerTransaction, status: &SwapStatus) -> Option<TransactionSwapMetadata> {
         let from_asset = get_asset_id_from_near_asset(&transaction.origin_asset)?;
         let from_value = BigUint::from_str(&transaction.amount_in).ok().filter(|value| !value.is_zero())?;
@@ -296,10 +305,7 @@ where
             return Ok(SwapResult::pending());
         };
 
-        let status = Self::map_transaction_status(&transaction.status);
-        let metadata = Self::build_swap_metadata(&transaction, &status);
-
-        Ok(SwapResult { status, metadata, eta_in_seconds: None })
+        Ok(Self::swap_result(&transaction))
     }
 
     async fn get_vault_addresses(&self) -> Result<VaultAddresses, SwapperError> {
@@ -322,10 +328,7 @@ mod tests {
 
     fn status(json: &str) -> SwapResult {
         let transactions: Vec<ExplorerTransaction> = serde_json::from_str(json).unwrap();
-        let transaction = &transactions[0];
-        let status = NearIntents::<RpcClient>::map_transaction_status(&transaction.status);
-        let metadata = NearIntents::<RpcClient>::build_swap_metadata(transaction, &status);
-        SwapResult { status, metadata, eta_in_seconds: None }
+        NearIntents::<RpcClient>::swap_result(&transactions[0])
     }
 
     #[test]
@@ -392,6 +395,21 @@ mod tests {
                 )),
                 eta_in_seconds: None,
             }
+        );
+    }
+
+    #[test]
+    fn swap_result_success_waits_for_the_payout_transaction() {
+        let transactions: Vec<ExplorerTransaction> = serde_json::from_str(include_str!("testdata/tx_status_avax_to_smartchain.json")).unwrap();
+        let undelivered = ExplorerTransaction {
+            destination_chain_tx_hashes: vec![],
+            ..transactions.into_iter().next().unwrap()
+        };
+
+        assert_eq!(
+            NearIntents::<RpcClient>::swap_result(&undelivered).status,
+            SwapStatus::Pending,
+            "SUCCESS without a destination transaction is not delivered yet"
         );
     }
 

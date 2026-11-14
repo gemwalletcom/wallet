@@ -106,10 +106,6 @@ extension StakeSceneViewModel {
     func onStakeFrozenInfo() {
         isPresentingInfoSheet = GemInfoTopic.stakeFrozenRequired.infoSheet
     }
-
-    func onRegionUnavailable() {
-        isPresentingInfoSheet = GemInfoTopic.regionUnavailable.infoSheet
-    }
 }
 
 // MARK: - Private

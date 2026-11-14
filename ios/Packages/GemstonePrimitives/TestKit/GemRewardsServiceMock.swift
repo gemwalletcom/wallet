@@ -5,10 +5,10 @@ import Gemstone
 import Primitives
 
 public final class GemRewardsServiceMock: GemRewardsServiceProtocol, @unchecked Sendable {
-    public var isAvailableValue = true
+    public var unavailableTopicValue: GemInfoTopic?
 
-    public func isAvailable() -> Bool {
-        isAvailableValue
+    public func unavailableTopic() -> GemInfoTopic? {
+        unavailableTopicValue
     }
 
     public var rewardsResult: Result<Rewards, Error> = .success(.mock(

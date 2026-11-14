@@ -580,7 +580,7 @@ sell_title = %@ sat
 
 # Info
 
-info_region_unavailable_description = Bu özellik bölgenizde kullanılamıyor. Kullanılabilirlik, yerel kurallara ve sağlayıcıların gereksinimlerine bağlıdır.
+info_region_unavailable_description = Bu özellik bölgenizde (%@) kullanılamıyor. Kullanılabilirlik, yerel kurallara ve sağlayıcıların gereksinimlerine bağlıdır. Bölgeniz IP adresinize göre belirlenir.
 
 info_network_fee_title = Ağ Ücreti
 info_watch_wallet_title = İzleme Cüzdanı

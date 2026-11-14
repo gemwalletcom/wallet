@@ -838,6 +838,22 @@ public extension Gemstone.GemFormattedNumber {
     }
 }
 
+public extension Gemstone.GemGroup {
+    static func mock(
+        id: String? = nil,
+        title: Gemstone.GemLocalizedText? = nil,
+        footer: Gemstone.GemListSectionFooter = .none,
+        items: [Gemstone.GemListItem] = [],
+    ) -> Gemstone.GemGroup {
+        Gemstone.GemGroup(
+            id: id,
+            title: title,
+            footer: footer,
+            items: items,
+        )
+    }
+}
+
 public extension Gemstone.GemHeaderButton {
     static func mock(
         kind: Gemstone.GemHeaderButtonKind = .send,
@@ -860,7 +876,7 @@ public extension Gemstone.GemHeaderButtonAction {
 
 public extension Gemstone.GemInfoTopic {
     static func mock() -> Gemstone.GemInfoTopic {
-        .regionUnavailable
+        .regionUnavailable(country: "")
     }
 }
 

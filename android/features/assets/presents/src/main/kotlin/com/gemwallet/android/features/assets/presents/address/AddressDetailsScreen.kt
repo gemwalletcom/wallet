@@ -16,7 +16,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.assets.viewmodels.address.AddressDetailsViewModel
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.list_item.gemListSections
+import com.gemwallet.android.ui.components.list_item.gemGroupRows
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.wallet.core.primitives.ChainAddress
@@ -52,7 +52,7 @@ fun AddressDetailsScreen(chainAddress: ChainAddress, onCancel: () -> Unit) {
             },
         ) {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
-                gemListSections(sections)
+                gemGroupRows(sections)
             }
         }
     }

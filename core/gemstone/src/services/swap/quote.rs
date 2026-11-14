@@ -8,6 +8,7 @@ use super::rules;
 use super::session::GemSwapQuoteInput;
 use super::{GemSwapPairSuggestion, GemSwapProviderAnswer, GemSwapQuoteProviders, GemSwapService, GemSwapSession};
 use crate::models::custom_types::GemBigUint;
+use crate::models::list::GemInfoTopic;
 use crate::services::assets::GemAssetsService;
 use crate::services::balance::GemBalanceService;
 use crate::services::config::GemConfigService;
@@ -72,8 +73,8 @@ impl GemSwapQuoteService {
         }
     }
 
-    pub fn is_available(&self) -> bool {
-        self.config.is_feature_enabled(Feature::Swap)
+    pub fn unavailable_topic(&self) -> Option<GemInfoTopic> {
+        self.config.unavailable_topic(Feature::Swap)
     }
 
     pub fn get_currency(&self) -> Currency {

@@ -204,7 +204,7 @@ struct RewardsSceneViewModelTests {
     @Test
     func unavailableRewardsBlocksInvitingUntilAvailabilityChanges() async {
         let service = GemRewardsServiceMock()
-        service.isAvailableValue = false
+        service.unavailableTopicValue = .regionUnavailable(country: "GB")
         let model = RewardsSceneViewModel.mock(service: service, wallets: [first])
         await model.refresh()
         #expect(model.isPresentingSheet == nil)
@@ -213,7 +213,7 @@ struct RewardsSceneViewModelTests {
         #expect(model.isPresentingSheet?.id == "info")
 
         model.isPresentingSheet = nil
-        service.isAvailableValue = true
+        service.unavailableTopicValue = nil
         model.onInviteFriends()
         #expect(model.isPresentingSheet?.id == RewardsSheetType.share.id)
     }

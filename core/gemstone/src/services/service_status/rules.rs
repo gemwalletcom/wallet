@@ -4,7 +4,7 @@ use primitives::{GEM_API_HOST, node_config::NodeRegion};
 
 use super::GemLatencyStatus;
 use super::model::GemServiceStatusTarget;
-use crate::models::list::{GemListRow, GemListRowTitle, GemListSection};
+use crate::models::list::{GemGroup, GemListRow, GemListRowTitle};
 
 pub fn targets() -> Vec<GemServiceStatusTarget> {
     std::iter::once(GEM_API_HOST)
@@ -14,7 +14,7 @@ pub fn targets() -> Vec<GemServiceStatusTarget> {
         .collect()
 }
 
-pub fn sections(statuses: &HashMap<String, GemLatencyStatus>, stream: GemLatencyStatus) -> Vec<GemListSection> {
+pub fn sections(statuses: &HashMap<String, GemLatencyStatus>, stream: GemLatencyStatus) -> Vec<GemGroup> {
     let row = |title, host: &str, suffix: String| GemListRow::Latency {
         title,
         title_suffix: suffix,
@@ -22,7 +22,7 @@ pub fn sections(statuses: &HashMap<String, GemLatencyStatus>, stream: GemLatency
         status: statuses.get(host).cloned().unwrap_or(GemLatencyStatus::Loading),
     };
     vec![
-        GemListSection::untitled(vec![
+        GemGroup::untitled(vec![
             row(GemListRowTitle::Api, GEM_API_HOST, String::new()),
             GemListRow::Latency {
                 title: GemListRowTitle::Stream,
@@ -31,7 +31,7 @@ pub fn sections(statuses: &HashMap<String, GemLatencyStatus>, stream: GemLatency
                 status: stream,
             },
         ]),
-        GemListSection::untitled(NodeRegion::all().into_iter().map(|region| row(GemListRowTitle::GemWalletNode, region.host(), format!(" {}", region.flag()))).collect()),
+        GemGroup::untitled(NodeRegion::all().into_iter().map(|region| row(GemListRowTitle::GemWalletNode, region.host(), format!(" {}", region.flag()))).collect()),
     ]
 }
 
@@ -40,15 +40,14 @@ mod tests {
     use std::time::Duration;
 
     use super::*;
-    use crate::models::list::GemListSectionTitle;
 
     #[test]
     fn test_sections_group_api_and_stream_before_nodes() {
         let sections = sections(&HashMap::new(), GemLatencyStatus::Loading);
         assert_eq!(sections.len(), 2);
-        assert!(sections.iter().all(|section| section.title == GemListSectionTitle::None));
+        assert!(sections.iter().all(|section| section.title.is_none()));
         assert_eq!(
-            sections[0].rows,
+            sections[0].rows(),
             vec![
                 GemListRow::Latency {
                     title: GemListRowTitle::Api,
@@ -64,8 +63,8 @@ mod tests {
                 },
             ]
         );
-        assert_eq!(sections[1].rows.len(), 3);
-        for (row, region) in sections[1].rows.iter().zip(NodeRegion::all()) {
+        assert_eq!(sections[1].rows().len(), 3);
+        for (row, region) in sections[1].rows().iter().zip(NodeRegion::all()) {
             assert_eq!(
                 *row,
                 GemListRow::Latency {
@@ -82,8 +81,8 @@ mod tests {
     fn test_statuses_keep_independent_results() {
         let fast = GemLatencyStatus::from(Some(Duration::from_millis(125)));
         let sections = sections(&HashMap::from([(GEM_API_HOST.into(), fast.clone()), (NodeRegion::Us.host().into(), GemLatencyStatus::Error)]), GemLatencyStatus::Error);
-        assert!(matches!(&sections[0].rows[0], GemListRow::Latency { status, .. } if *status == fast));
-        assert!(matches!(&sections[0].rows[1], GemListRow::Latency { status: GemLatencyStatus::Error, .. }));
-        assert!(matches!(&sections[1].rows[0], GemListRow::Latency { status: GemLatencyStatus::Error, .. }));
+        assert!(matches!(&sections[0].rows()[0], GemListRow::Latency { status, .. } if *status == fast));
+        assert!(matches!(&sections[0].rows()[1], GemListRow::Latency { status: GemLatencyStatus::Error, .. }));
+        assert!(matches!(&sections[1].rows()[0], GemListRow::Latency { status: GemLatencyStatus::Error, .. }));
     }
 }

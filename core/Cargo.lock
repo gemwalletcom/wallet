@@ -3277,6 +3277,7 @@ dependencies = [
  "async-trait",
  "chain_traits",
  "chrono",
+ "futures",
  "gem_client",
  "gem_crypto",
  "gem_encoding",
@@ -3467,14 +3468,12 @@ name = "gem_wallet_connect"
 version = "2.114.94"
 dependencies = [
  "chrono",
- "gem_bitcoin",
  "gem_encoding",
  "gem_evm",
  "gem_solana",
  "gem_ton",
  "num-bigint 0.5.1",
  "primitives",
- "serde",
  "serde_json",
  "url",
 ]
@@ -3510,6 +3509,7 @@ dependencies = [
  "async-trait",
  "bitcoin",
  "chain_traits",
+ "futures",
  "gem_bitcoin",
  "gem_client",
  "gem_hash",

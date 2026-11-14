@@ -9,17 +9,6 @@ pub enum SignDigestType {
     Siwe,
     TonPersonal,
     TronPersonal,
-    BitcoinEcdsa,
-    BitcoinBip322,
-}
-
-impl SignDigestType {
-    pub fn is_bitcoin(&self) -> bool {
-        match self {
-            Self::BitcoinEcdsa | Self::BitcoinBip322 => true,
-            Self::Eip191 | Self::Eip712 | Self::Base58 | Self::SuiPersonal | Self::Siwe | Self::TonPersonal | Self::TronPersonal => false,
-        }
-    }
 }
 
 #[derive(Debug, Clone)]

@@ -580,7 +580,7 @@ sell_title = بيع %@
 
 # Info
 
-info_region_unavailable_description = هذه الميزة غير متاحة في منطقتك. يعتمد التوفر على القواعد المحلية ومتطلبات مزودي الخدمة.
+info_region_unavailable_description = هذه الميزة غير متاحة في منطقتك (%@). يعتمد التوفر على القواعد المحلية ومتطلبات مزودي الخدمة. تُحدَّد منطقتك من خلال عنوان IP الخاص بك.
 
 info_network_fee_title = رسوم الشبكة
 info_watch_wallet_title = شاهد المحفظة

@@ -1,20 +1,23 @@
-use alloy_primitives::Address;
+use alloy_primitives::{Address, B256};
+use alloy_sol_types::SolInterface;
 use num_bigint::BigUint;
 use std::str::FromStr;
 
 use crate::{
-    contracts::{IOkxDexRouter, OkxCommission},
+    contracts::{
+        IOkxDexRouter::{self, BaseRequest, IOkxDexRouterCalls},
+        OkxCommission,
+    },
     ethereum_address_checksum,
     rpc::model::Log,
     u256::u256_to_biguint,
 };
-use primitives::{AssetId, SwapProvider, Transaction as PrimitivesTransaction, TransactionSwapMetadata, TransactionSwapReferralFee, contract_constants::EVM_NATIVE_TOKEN_ADDRESS, swap::EVM_REFERRAL_ADDRESS};
+use primitives::{AssetId, SwapProvider, Transaction as PrimitivesTransaction, TransactionState, TransactionSwapMetadata, TransactionSwapReferralFee, contract_constants::EVM_NATIVE_TOKEN_ADDRESS, decode_hex, swap::EVM_REFERRAL_ADDRESS};
 
 use super::{ParseContext, ParseContextExt, TransactionParser, referral_fee_for_token, referral_fee_from_transfers, transfer_swap};
 
-pub(crate) const FUNCTION_OKX_DAG_SWAP_BY_ORDER_ID: &str = "0xf2c42696";
-pub(crate) const FUNCTION_OKX_UNISWAP_V3_SWAP_TO: &str = "0x0d5f0e3b";
-pub(crate) const FUNCTION_OKX_UNXSWAP_BY_ORDER_ID: &str = "0x9871efa4";
+const SELECTOR_HEX_LENGTH: usize = 10;
+
 pub struct OkxParser;
 
 impl TransactionParser<ParseContext<'_>, PrimitivesTransaction> for OkxParser {
@@ -24,7 +27,7 @@ impl TransactionParser<ParseContext<'_>, PrimitivesTransaction> for OkxParser {
 
     fn parse(&self, context: &ParseContext<'_>) -> Option<PrimitivesTransaction> {
         let referral_fee = Self::referral_fee_from_commissions(context).or_else(|| referral_fee_from_transfers(*context.metadata.chain, context.metadata.receipt));
-        let metadata = Self::try_map_receipt_swap(context)?.with_referral_fee(referral_fee);
+        let metadata = Self::try_map_receipt_swap(context).or_else(|| Self::try_map_reverted_request(context))?.with_referral_fee(referral_fee);
 
         context.make_swap_transaction(&context.transaction.from, &context.transaction.from, &metadata)
     }
@@ -32,7 +35,38 @@ impl TransactionParser<ParseContext<'_>, PrimitivesTransaction> for OkxParser {
 
 impl OkxParser {
     fn matches_selector(input: &str) -> bool {
-        input.starts_with(FUNCTION_OKX_DAG_SWAP_BY_ORDER_ID) || input.starts_with(FUNCTION_OKX_UNISWAP_V3_SWAP_TO) || input.starts_with(FUNCTION_OKX_UNXSWAP_BY_ORDER_ID)
+        input
+            .get(..SELECTOR_HEX_LENGTH)
+            .and_then(|selector| decode_hex(selector).ok())
+            .and_then(|selector| selector.try_into().ok())
+            .is_some_and(IOkxDexRouterCalls::valid_selector)
+    }
+
+    fn try_map_reverted_request(context: &ParseContext<'_>) -> Option<TransactionSwapMetadata> {
+        if context.metadata.receipt.get_state() != TransactionState::Reverted {
+            return None;
+        }
+        let request = Self::base_request(&decode_hex(&context.transaction.input).ok()?)?;
+        let from_asset = Self::asset_id_from_token(context, &Address::from_word(B256::from(request.fromToken)).to_checksum(None))?;
+        let to_asset = Self::asset_id_from_token(context, &request.toToken.to_checksum(None))?;
+        let from_value = match from_asset.is_native() {
+            true => context.transaction.value.clone(),
+            false => u256_to_biguint(&request.fromTokenAmount),
+        };
+        Some(TransactionSwapMetadata::new(from_asset, from_value, to_asset, u256_to_biguint(&request.minReturnAmount), SwapProvider::Okx))
+    }
+
+    fn base_request(input: &[u8]) -> Option<BaseRequest> {
+        match IOkxDexRouterCalls::abi_decode(input).ok()? {
+            IOkxDexRouterCalls::smartSwapByOrderId(call) => Some(call.baseRequest),
+            IOkxDexRouterCalls::smartSwapTo(call) => Some(call.baseRequest),
+            IOkxDexRouterCalls::dagSwapByOrderId(call) => Some(call.baseRequest),
+            IOkxDexRouterCalls::dagSwapTo(call) => Some(call.baseRequest),
+            IOkxDexRouterCalls::swapWrapToWithBaseRequest(call) => Some(call.baseRequest),
+            IOkxDexRouterCalls::uniswapV3SwapToWithBaseRequest(call) => Some(call.baseRequest),
+            IOkxDexRouterCalls::unxswapToWithBaseRequest(call) => Some(call.baseRequest),
+            IOkxDexRouterCalls::uniswapV3SwapTo(_) | IOkxDexRouterCalls::unxswapByOrderId(_) | IOkxDexRouterCalls::unxswapTo(_) => None,
+        }
     }
 
     fn try_map_receipt_swap(context: &ParseContext<'_>) -> Option<TransactionSwapMetadata> {
@@ -108,15 +142,17 @@ mod tests {
     use crate::rpc::model::{Log, Transaction, TransactionReceipt};
     use crate::rpc::parsers::{ProtocolParsers, WITHDRAWAL_TOPIC};
     use alloy_primitives::U256;
-    use alloy_sol_types::SolEvent;
+    use alloy_sol_types::{SolCall, SolEvent};
     use chrono::DateTime;
     use num_bigint::BigUint;
     use primitives::{
-        Chain, SwapProvider, TransactionState,
-        asset_constants::{BASE_USDC_TOKEN_ID, BASE_WETH_TOKEN_ID},
+        Chain, SwapProvider, TransactionState, TransactionType,
+        asset_constants::{BASE_USDC_TOKEN_ID, BASE_WETH_TOKEN_ID, ETHEREUM_USDC_TOKEN_ID},
         hex::encode_with_0x,
         testkit::json_rpc::load_json_rpc_result,
     };
+
+    const COMMISSION_TRAILER: &str = "800000000000000000000000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee3ca20afc2aaa0000004c4b400d9dab1a248f63b0a48965ba8435e4de7497a3dc";
 
     fn map_transaction(chain: &Chain, transaction: &Transaction, receipt: &TransactionReceipt) -> PrimitivesTransaction {
         ProtocolParsers::map_transaction(chain, transaction, receipt, DateTime::from_timestamp(1743373403, 0).unwrap()).unwrap()
@@ -164,7 +200,7 @@ mod tests {
             from: "0x8d7460E51bCf4eD26877cb77E56f3ce7E9f5EB8F".to_string(),
             gas: 750000,
             hash: "0x77144af6766c014ad05b0ae90979dc5df9978ecb5829c89925659445b8630dd2".to_string(),
-            input: FUNCTION_OKX_DAG_SWAP_BY_ORDER_ID.to_string(),
+            input: encode_with_0x(&IOkxDexRouter::dagSwapByOrderIdCall::SELECTOR),
             to: Some("0x4409921ae43a39a11d90f7b7f96cfd0b8093d9fc".to_string()),
             value: BigUint::from(0u8),
             calls: None,
@@ -320,5 +356,100 @@ mod tests {
                 }))
             )
         );
+    }
+
+    #[test]
+    fn test_map_okx_reverted_request() {
+        let usdc = Address::from_str(ETHEREUM_USDC_TOKEN_ID).unwrap();
+        let native = Address::from_str(EVM_NATIVE_TOKEN_ADDRESS).unwrap();
+        let reverted = TransactionReceipt {
+            status: "0x0".to_string(),
+            ..TransactionReceipt::mock()
+        };
+        let token_to_native = BaseRequest {
+            fromToken: U256::from_be_bytes(usdc.into_word().0),
+            toToken: native,
+            fromTokenAmount: U256::from(995_000u64),
+            minReturnAmount: U256::from(400_000_000_000_000u64),
+            deadLine: U256::from(1_800_000_000u64),
+        };
+        let dag_swap = Transaction {
+            to: Some("0x4409921ae43a39a11d90f7b7f96cfd0b8093d9fc".to_string()),
+            input: format!(
+                "{}{COMMISSION_TRAILER}",
+                encode_with_0x(
+                    &IOkxDexRouter::dagSwapByOrderIdCall {
+                        orderId: U256::from(1),
+                        baseRequest: token_to_native,
+                        paths: vec![],
+                    }
+                    .abi_encode()
+                )
+            ),
+            ..Transaction::mock()
+        };
+        let dag_swap_tx = map_transaction(&Chain::Ethereum, &dag_swap, &reverted);
+        assert_eq!(dag_swap_tx.transaction_type, TransactionType::Swap);
+        assert_eq!(dag_swap_tx.state, TransactionState::Reverted);
+        assert_eq!(
+            dag_swap_tx.swap_metadata(),
+            Some(TransactionSwapMetadata::new(
+                AssetId::from_token(Chain::Ethereum, ETHEREUM_USDC_TOKEN_ID),
+                BigUint::from(995_000u64),
+                AssetId::from_chain(Chain::Ethereum),
+                BigUint::from(400_000_000_000_000u64),
+                SwapProvider::Okx
+            ))
+        );
+        assert_eq!(ProtocolParsers::map_transaction(&Chain::Ethereum, &dag_swap, &TransactionReceipt::mock(), DateTime::default()), None);
+
+        let native_to_token = BaseRequest {
+            fromToken: U256::from_be_bytes(native.into_word().0) | (U256::from(1) << 255),
+            toToken: usdc,
+            fromTokenAmount: U256::from(1_000_000_000_000_000_000u64),
+            minReturnAmount: U256::from(2_400_000_000u64),
+            deadLine: U256::from(1_800_000_000u64),
+        };
+        let smart_swap = Transaction {
+            to: dag_swap.to.clone(),
+            input: encode_with_0x(
+                &IOkxDexRouter::smartSwapToCall {
+                    orderId: U256::from(2),
+                    receiver: Address::from_str(&dag_swap.from).unwrap(),
+                    baseRequest: native_to_token,
+                    batchesAmount: vec![],
+                    batches: vec![],
+                    pmmRequests: vec![],
+                }
+                .abi_encode(),
+            ),
+            value: BigUint::from(1_005_025_125_628_140_703u64),
+            ..Transaction::mock()
+        };
+        assert_eq!(
+            map_transaction(&Chain::Ethereum, &smart_swap, &reverted).swap_metadata(),
+            Some(TransactionSwapMetadata::new(
+                AssetId::from_chain(Chain::Ethereum),
+                BigUint::from(1_005_025_125_628_140_703u64),
+                AssetId::from_token(Chain::Ethereum, ETHEREUM_USDC_TOKEN_ID),
+                BigUint::from(2_400_000_000u64),
+                SwapProvider::Okx
+            ))
+        );
+
+        let pools_only = Transaction {
+            to: dag_swap.to.clone(),
+            input: encode_with_0x(
+                &IOkxDexRouter::uniswapV3SwapToCall {
+                    receiver: U256::from_be_bytes(Address::from_str(&dag_swap.from).unwrap().into_word().0),
+                    amount: U256::from(995_000u64),
+                    minReturn: U256::from(400_000_000_000_000u64),
+                    pools: vec![U256::from(1)],
+                }
+                .abi_encode(),
+            ),
+            ..Transaction::mock()
+        };
+        assert_eq!(ProtocolParsers::map_transaction(&Chain::Ethereum, &pools_only, &reverted, DateTime::default()), None);
     }
 }

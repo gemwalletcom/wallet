@@ -16,13 +16,14 @@ import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.OptionPickerRow
 import com.gemwallet.android.ui.components.list_item.gemListSectionFooter
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
+import com.gemwallet.android.ui.components.list_item.rows
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.requestAuth
+import uniffi.gemstone.GemGroup
 import uniffi.gemstone.GemListRow
-import uniffi.gemstone.GemListSection
 
 @Composable
-internal fun SecurityScene(sections: List<GemListSection>, lockInterval: Int?, lockPeriods: List<LockPeriodOption>, error: String?, isUpdatingAuthentication: Boolean, onErrorShown: () -> Unit, onAction: (SecurityAction) -> Unit) {
+internal fun SecurityScene(sections: List<GemGroup>, lockInterval: Int?, lockPeriods: List<LockPeriodOption>, error: String?, isUpdatingAuthentication: Boolean, onErrorShown: () -> Unit, onAction: (SecurityAction) -> Unit) {
     val context = LocalContext.current
 
     val snackbar = remember { SnackbarHostState() }

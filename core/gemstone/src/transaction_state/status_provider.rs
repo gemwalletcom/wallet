@@ -186,7 +186,14 @@ mod tests {
             TransactionState::InTransit
         );
         assert_eq!(
-            get_transaction_update(chain, Some(chain), now() - chrono::Duration::hours(3), Ok(TransactionUpdate::new_state(TransactionState::InTransit))).unwrap(),
+            get_transaction_update(chain, Some(chain), now() - chrono::Duration::hours(3), Ok(TransactionUpdate::new_state(TransactionState::InTransit)))
+                .unwrap()
+                .state,
+            TransactionState::InTransit,
+            "a same-chain swap through a cross-chain provider waits for the provider too"
+        );
+        assert_eq!(
+            get_transaction_update(chain, Some(chain), now() - chrono::Duration::days(8), Ok(TransactionUpdate::new_state(TransactionState::InTransit))).unwrap(),
             TransactionUpdate::new(TransactionState::Failed, vec![TransactionChange::ConfirmationEtaSeconds(0)])
         );
         assert_eq!(

@@ -250,8 +250,8 @@ mod tests {
     fn titles(view: &GemChartView) -> Vec<GemListRowTitle> {
         view.sections
             .iter()
-            .flat_map(|section| section.rows.iter())
-            .filter_map(|row| match row {
+            .flat_map(|section| section.rows())
+            .filter_map(|row| match &row {
                 GemListRow::Ranked { title, .. } | GemListRow::Amount { title, .. } | GemListRow::Link { title, .. } => Some(*title),
                 _ => None,
             })
@@ -273,7 +273,7 @@ mod tests {
         match shown
             .sections
             .iter()
-            .flat_map(|section| section.rows.iter())
+            .flat_map(|section| section.rows())
             .find(|row| matches!(row, GemListRow::Ranked { title: GemListRowTitle::MarketCap, .. }))
         {
             Some(GemListRow::Ranked { amount, .. }) => assert_eq!(amount.value, 50.0, "the market cap is converted with the session's rate"),

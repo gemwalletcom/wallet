@@ -68,18 +68,18 @@ struct AboutUsSceneViewModelTests {
 
 private extension AboutUsSceneViewModel {
     var versionRowValue: String? {
-        viewState.sections.flatMap(\.rows).compactMap { row in
-            switch row {
-            case let .text(title, value) where title == .version: value
+        viewState.sections.flatMap(\.items).compactMap { item in
+            switch item {
+            case let .row(.text(title, value)) where title == .version: value
             default: nil
             }
         }.first
     }
 
     var updateVersion: String? {
-        viewState.sections.flatMap(\.rows).compactMap { row in
-            switch row {
-            case let .url(title, value, _, _, _) where title == .updateApp: value
+        viewState.sections.flatMap(\.items).compactMap { item in
+            switch item {
+            case let .row(.url(title, value, _, _, _)) where title == .updateApp: value
             default: nil
             }
         }.first

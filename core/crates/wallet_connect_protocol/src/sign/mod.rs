@@ -5,4 +5,4 @@ pub mod types;
 
 pub use method::Publish;
 pub use payload::Payload;
-pub use types::{Event, EventParams, Metadata, Participant, ProposalNamespace, ProposeResponse, Reason, Relay, SessionNamespace, SessionProposal, SessionRequest, SettleParams, UpdateParams};
+pub use types::{Metadata, Participant, ProposalNamespace, ProposeResponse, Reason, Relay, SessionNamespace, SessionProposal, SessionRequest, SettleParams, UpdateParams};

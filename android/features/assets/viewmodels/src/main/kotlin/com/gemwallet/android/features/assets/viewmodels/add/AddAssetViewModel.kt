@@ -43,7 +43,7 @@ import uniffi.gemstone.GemAddAssetPhase
 import uniffi.gemstone.GemAddAssetServiceInterface
 import uniffi.gemstone.GemAddAssetSession
 import uniffi.gemstone.GemChainServiceInterface
-import uniffi.gemstone.GemListSection
+import uniffi.gemstone.GemGroup
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -118,7 +118,7 @@ class AddAssetViewModel @Inject constructor(
     val verificationWarningRow: StateFlow<ListItemModel?> = token.map { if (it == null) null else verificationWarningListItem(context) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val sections: StateFlow<List<GemListSection>> = session.map { service.sections(it) }
+    val sections: StateFlow<List<GemGroup>> = session.map { service.sections(it) }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 

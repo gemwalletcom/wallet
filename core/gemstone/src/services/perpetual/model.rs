@@ -1,7 +1,7 @@
 use super::rules;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::custom_types::GemBigInt;
-use crate::models::list::{GemListRow, GemListSection};
+use crate::models::list::{GemGroup, GemListRow};
 use crate::models::state::GemListPhase;
 use crate::services::assets::model::{GemAssetItemRow, GemAssetItemTrailing, GemAssetRowStyle, GemAssetSubtitleStyle, GemAssetTitleStyle, GemAssetTrailingStyle, GemPriceRow, GemRowText, GemValueHeader};
 use crate::services::assets::rules::asset_row;
@@ -75,7 +75,7 @@ pub struct GemPerpetualConfirmDetailsSummary {
 pub struct GemPerpetualConfirmDetails {
     pub id: String,
     pub summary: GemPerpetualConfirmDetailsSummary,
-    pub sections: Vec<GemListSection>,
+    pub sections: Vec<GemGroup>,
 }
 
 #[uniffi::export]

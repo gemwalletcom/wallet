@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import struct Gemstone.GemGroup
 import enum Gemstone.GemListRowTitle
-import struct Gemstone.GemListSection
 import struct Gemstone.GemPerpetualDefaults
 import struct Gemstone.GemPerpetualPickers
 import struct Gemstone.GemPickerOption
@@ -127,7 +127,7 @@ public final class PreferencesSceneViewModel {
 }
 
 public extension PreferencesSceneViewModel {
-    var sections: [GemListSection] {
+    var sections: [GemGroup] {
         preferences.changes
         return settings.preferencesSections(language: languageValue, appearance: appearanceValue)
     }

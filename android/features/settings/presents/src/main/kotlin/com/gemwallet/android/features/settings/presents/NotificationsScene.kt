@@ -7,12 +7,13 @@ import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
+import com.gemwallet.android.ui.components.list_item.rows
 import com.gemwallet.android.ui.components.screen.Scene
-import uniffi.gemstone.GemListSection
+import uniffi.gemstone.GemGroup
 import uniffi.gemstone.GemRowAction
 
 @Composable
-internal fun NotificationsScene(sections: List<GemListSection>, snackbar: SnackbarHostState, onAction: (NotificationsAction) -> Unit) {
+internal fun NotificationsScene(sections: List<GemGroup>, snackbar: SnackbarHostState, onAction: (NotificationsAction) -> Unit) {
     Scene(
         title = stringResource(id = R.string.settings_notifications_title),
         snackbar = snackbar,

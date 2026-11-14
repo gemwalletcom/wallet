@@ -1,4 +1,4 @@
-use crate::{Chain, ChainType, DAY, MINUTE};
+use crate::{Chain, ChainType, DAY, MINUTE, WEEK};
 
 const MIN_EVM_TRANSACTION_TIMEOUT: u32 = (MINUTE.as_millis() * 15) as u32;
 const LIGHTNING_TRANSACTION_TIMEOUT: u32 = (DAY.as_millis() * 16) as u32;
@@ -26,18 +26,14 @@ pub fn chain_transaction_timeout(chain: Chain) -> u32 {
 
 pub fn swap_transaction_timeout(source_chain: Chain, destination_chain: Chain) -> u64 {
     let source_timeout = u64::from(chain_transaction_timeout(source_chain));
-    if source_chain == destination_chain {
-        return source_timeout;
-    }
-
     let destination_timeout = u64::from(chain_transaction_timeout(destination_chain));
-    ((source_timeout + destination_timeout) * 3).max(DAY.as_millis() as u64)
+    ((source_timeout + destination_timeout) * 3).max(WEEK.as_millis() as u64)
 }
 
 #[cfg(test)]
 mod tests {
     use super::{chain_transaction_timeout, swap_transaction_timeout};
-    use crate::{Chain, DAY};
+    use crate::{Chain, WEEK};
 
     #[test]
     fn test_chain_transaction_timeout() {
@@ -50,8 +46,8 @@ mod tests {
 
     #[test]
     fn test_swap_transaction_timeout() {
-        assert_eq!(swap_transaction_timeout(Chain::Ethereum, Chain::Ethereum), u64::from(chain_transaction_timeout(Chain::Ethereum)));
-        assert_eq!(swap_transaction_timeout(Chain::Ethereum, Chain::Solana), DAY.as_millis() as u64);
+        assert_eq!(swap_transaction_timeout(Chain::Tron, Chain::Tron), WEEK.as_millis() as u64, "a same-chain swap through a cross-chain provider waits as long");
+        assert_eq!(swap_transaction_timeout(Chain::Ethereum, Chain::Solana), WEEK.as_millis() as u64);
         assert_eq!(
             swap_transaction_timeout(Chain::Bitcoin, Chain::Ethereum),
             (u64::from(chain_transaction_timeout(Chain::Bitcoin)) + u64::from(chain_transaction_timeout(Chain::Ethereum))) * 3

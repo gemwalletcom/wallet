@@ -1046,7 +1046,8 @@ sell_title = Sell %@
 
 # Info
 
-info_region_unavailable_description = This feature is not available in your region. Availability depends on local rules and provider requirements.
+# Not Available sheet. %@ is the user's country, detected from their IP address and named in the device language.
+info_region_unavailable_description = This feature is not available in your region (%@). Availability depends on local rules and provider requirements. Your region is detected from your IP address.
 
 # Used in Info bottom sheets for the network fee title.
 info_network_fee_title = Network Fee

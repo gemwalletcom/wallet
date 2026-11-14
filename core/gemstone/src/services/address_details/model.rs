@@ -2,7 +2,7 @@ use primitives::{AddressName, AddressType, Chain, VerificationStatus, block_expl
 
 use super::rules;
 use crate::models::copy::GemCopy;
-use crate::models::list::GemListSection;
+use crate::models::list::GemGroup;
 use crate::models::state::{GemLoad, GemLoadState};
 use crate::services::balance::GemBalanceRow;
 
@@ -30,7 +30,7 @@ impl GemAddressDetails {
 
 #[uniffi::export]
 impl GemAddressDetails {
-    pub fn sections(&self, address_name: Option<AddressName>) -> Vec<GemListSection> {
+    pub fn sections(&self, address_name: Option<AddressName>) -> Vec<GemGroup> {
         rules::sections(self, address_name.as_ref())
     }
 }

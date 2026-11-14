@@ -5,7 +5,9 @@ import com.gemwallet.android.application.WalletPasswordProtection
 import com.gemwallet.android.application.preferences.cases.ObservablePreferences
 import com.gemwallet.android.application.security.cases.SecurityPreferences
 import com.gemwallet.android.testkit.MainDispatcherRule
+import com.gemwallet.android.testkit.mockGemGroup
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.list_item.rows
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.coVerifyOrder
@@ -20,12 +22,10 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
+import uniffi.gemstone.GemListItem
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowIcon
 import uniffi.gemstone.GemListRowTitle
-import uniffi.gemstone.GemListSection
-import uniffi.gemstone.GemListSectionFooter
-import uniffi.gemstone.GemListSectionTitle
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemRowAction
 import uniffi.gemstone.GemSecurityInput
@@ -68,7 +68,7 @@ class SecurityViewModelTest {
         }
     }
 
-    private fun section(rows: List<GemListRow>) = GemListSection(GemListSectionTitle.NONE, GemListSectionFooter.NONE, rows)
+    private fun section(rows: List<GemListRow>) = mockGemGroup(items = rows.map { GemListItem.Row(it) })
 
     @Test
     fun `the rows come from core with the authentication flag`() {

@@ -2,6 +2,7 @@
 
 import Components
 import Foundation
+import struct Gemstone.GemGroup
 import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemRewardsIntroItem
 import enum Gemstone.GemRewardsInviteAction
@@ -101,8 +102,8 @@ public final class RewardsSceneViewModel: Sendable {
         viewState.rewards
     }
 
-    var sections: [ListSection<GemListSectionRow>] {
-        rewardsState.sections.listSections
+    var sections: [GemGroup] {
+        rewardsState.sections
     }
 
     var introItems: [GemRewardsIntroItem] {
@@ -155,8 +156,8 @@ public final class RewardsSceneViewModel: Sendable {
     // MARK: - Actions
 
     func onInviteFriends() {
-        guard service.isAvailable() else {
-            isPresentingSheet = .info(InfoSheetModel(sheet: GemInfoTopic.regionUnavailable.infoSheet))
+        if let topic = service.unavailableTopic() {
+            isPresentingSheet = .info(InfoSheetModel(sheet: topic.infoSheet))
             return
         }
         isPresentingSheet = .share

@@ -6,7 +6,7 @@ use super::model::GemAddressDetails;
 use crate::config::image::GemImage;
 use crate::formatted_number::GemValueTone;
 use crate::models::copy::address_copy;
-use crate::models::list::{GemListRow, GemListRowTitle, GemListSection, GemListSectionTitle, GemNoticeKind, suspicious_address_notice};
+use crate::models::list::{GemGroup, GemListRow, GemListRowTitle, GemListSectionTitle, GemNoticeKind, suspicious_address_notice};
 use crate::models::state::{GemLoad, GemLoadState};
 use crate::services::assets::icon::asset_icon;
 use crate::services::assets::rules::asset_text;
@@ -55,14 +55,14 @@ pub(super) fn refreshed(details: GemAddressDetails, remote: Result<AddressDetail
     }
 }
 
-pub(super) fn sections(details: &GemAddressDetails, address_name: Option<&AddressName>) -> Vec<GemListSection> {
+pub(super) fn sections(details: &GemAddressDetails, address_name: Option<&AddressName>) -> Vec<GemGroup> {
     let chain = details.chain;
     let asset = Asset::from_chain(chain);
     let address_name = address_name.filter(|address_name| !address_name.name.is_empty());
     let name = display_name(address_name.map(|address_name| address_name.name.clone()).or_else(|| details.name.clone()), &details.address);
     let address_type = address_name.map(|address_name| address_name.address_type.clone()).or_else(|| details.address_type.clone());
     let warning = match details.status {
-        VerificationStatus::Suspicious => Some(GemListSection::untitled(vec![suspicious_address_notice(GemNoticeKind::Warning)])),
+        VerificationStatus::Suspicious => Some(GemGroup::untitled(vec![suspicious_address_notice(GemNoticeKind::Warning)])),
         VerificationStatus::Verified | VerificationStatus::Unverified => None,
     };
     let header = header(details, address_name);
@@ -82,18 +82,18 @@ pub(super) fn sections(details: &GemAddressDetails, address_name: Option<&Addres
         }))
         .collect();
     let balances = balance_section(details, &asset);
-    let balances = (!balances.is_empty()).then_some(GemListSection::new(GemListSectionTitle::Balances, balances));
-    once(GemListSection::untitled(vec![header]))
+    let balances = (!balances.is_empty()).then_some(GemGroup::section(GemListSectionTitle::Balances, balances));
+    once(GemGroup::untitled(vec![header]))
         .chain(warning)
         .chain([
-            GemListSection::untitled(vec![GemListRow::Address {
+            GemGroup::untitled(vec![GemListRow::Address {
                 address: details.address.clone(),
                 copy: details.copy.clone(),
             }]),
-            GemListSection::untitled(info),
+            GemGroup::untitled(info),
         ])
         .chain(balances)
-        .chain(once(GemListSection::untitled(vec![GemListRow::explorer(&details.link)])))
+        .chain(once(GemGroup::untitled(vec![GemListRow::explorer(&details.link)])))
         .collect()
 }
 
@@ -205,7 +205,7 @@ mod tests {
         );
 
         assert_eq!(
-            sections(&details, None)[3].rows,
+            sections(&details, None)[3].rows(),
             vec![GemListRow::Amount {
                 title: GemListRowTitle::Available,
                 amount: GemFormattedNumber::amount(1.5, Some("ETH".to_string()), ValueStyle::Auto),
@@ -275,7 +275,7 @@ mod tests {
             ..AddressName::mock("0x1", "John Smith", AddressType::Contact, VerificationStatus::Verified)
         };
         let wallet = AddressName::mock("0x1", "Savings", AddressType::InternalWallet, VerificationStatus::Verified);
-        let identity = |sections: &[GemListSection]| (sections[0].rows.clone(), sections[2].rows[..2].to_vec());
+        let identity = |sections: &[GemGroup]| (sections[0].rows(), sections[2].rows()[..2].to_vec());
         let named = |name: &str, address_type: AddressType| {
             vec![
                 GemListRow::Text {
@@ -313,8 +313,8 @@ mod tests {
         );
         assert_eq!(identity(&sections(&loading, Some(&wallet))), (vec![wallet_avatar(None)], named("Savings", AddressType::InternalWallet)));
         let flagged = sections(&flagged_contract, Some(&contact));
-        let without_warning = |sections: &[GemListSection]| [&sections[..1], &sections[2..]].concat();
-        assert_eq!(flagged[1].rows, vec![suspicious_address_notice(GemNoticeKind::Warning)]);
+        let without_warning = |sections: &[GemGroup]| [&sections[..1], &sections[2..]].concat();
+        assert_eq!(flagged[1].rows(), vec![suspicious_address_notice(GemNoticeKind::Warning)]);
         assert_eq!(identity(&without_warning(&flagged)), (vec![avatar], named("John Smith", AddressType::Contact)));
         assert_eq!(identity(&without_warning(&sections(&flagged_contract, None))).1, named("Tether USD", AddressType::Contract));
     }
@@ -335,10 +335,10 @@ mod tests {
             ..loading.clone()
         };
         let titles = |details: &GemAddressDetails| sections(details, None).into_iter().map(|section| section.title).collect::<Vec<_>>();
-        let without_balances = vec![GemListSectionTitle::None; 4];
+        let without_balances = vec![None; 4];
 
         assert_eq!(
-            sections(&validator, None)[2].rows,
+            sections(&validator, None)[2].rows(),
             vec![
                 GemListRow::Text {
                     title: GemListRowTitle::Name,
@@ -359,9 +359,9 @@ mod tests {
         );
         assert_eq!(titles(&validator), without_balances);
         assert_eq!(titles(&failed), without_balances);
-        assert_eq!(sections(&loading, None)[3].rows, vec![GemListRow::Loading]);
+        assert_eq!(sections(&loading, None)[3].rows(), vec![GemListRow::Loading]);
         assert_eq!(
-            sections(&loading, None)[0].rows,
+            sections(&loading, None)[0].rows(),
             vec![GemListRow::Icon {
                 icon: asset_icon(&AssetId::from_chain(Chain::Cosmos)),
                 image_url: None
@@ -381,21 +381,21 @@ mod tests {
         let contract = loaded(Chain::Ethereum, "0x1", AddressType::Contract);
 
         assert_eq!(
-            sections(&token, None)[0].rows,
+            sections(&token, None)[0].rows(),
             vec![GemListRow::Icon {
                 icon: asset_icon(&AssetId::from_token(Chain::Ethereum, "0xdAC17F958D2ee523a2206206994597C13D831ec7")),
                 image_url: None,
             }]
         );
         assert_eq!(
-            sections(&validator, None)[0].rows,
+            sections(&validator, None)[0].rows(),
             vec![GemListRow::Icon {
                 icon: asset_icon(&AssetId::from_chain(Chain::Cosmos)),
                 image_url: Some("https://assets.gemwallet.com/blockchains/cosmos/validators/cosmosvaloper1/logo.png".to_string()),
             }]
         );
         assert_eq!(
-            sections(&contract, None)[0].rows,
+            sections(&contract, None)[0].rows(),
             vec![GemListRow::Icon {
                 icon: asset_icon(&AssetId::from_chain(Chain::Ethereum)),
                 image_url: None,
@@ -417,7 +417,7 @@ mod tests {
         let details = details(Chain::Ethereum, address.clone(), BlockExplorerLink::mock(), GemLoad::loading());
 
         assert_eq!(
-            sections(&details, None)[1].rows,
+            sections(&details, None)[1].rows(),
             vec![GemListRow::Address {
                 address: address.clone(),
                 copy: address_copy(Chain::Ethereum, address),

@@ -5,7 +5,7 @@ use super::GemChart;
 use super::model::{GemChartData, GemChartStyle};
 use super::rules;
 use super::zoom::GemChartZoom;
-use crate::models::list::GemListSection;
+use crate::models::list::GemGroup;
 use crate::models::state::GemLoadState;
 use crate::services::error::GemServiceError;
 use crate::services::perpetual::chart::candle_chart;
@@ -44,7 +44,7 @@ pub struct GemChartView {
     pub is_refreshing: bool,
     pub style_switch: Option<GemChartStyle>,
     pub periods: Vec<ChartPeriod>,
-    pub sections: Vec<GemListSection>,
+    pub sections: Vec<GemGroup>,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]

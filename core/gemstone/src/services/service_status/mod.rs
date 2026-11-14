@@ -90,7 +90,7 @@ mod tests {
         let statuses: Vec<GemLatencyStatus> = session
             .sections()
             .into_iter()
-            .flat_map(|section| section.rows)
+            .flat_map(|section| section.rows())
             .map(|row| match row {
                 GemListRow::Latency { status, .. } => status,
                 _ => panic!("status rows are latency rows"),

@@ -48,7 +48,7 @@ pub struct GemDelegationListRow {
 
 #[uniffi::export]
 pub fn delegation_details(wallet_type: WalletType, delegation: Delegation, asset: Asset, price: Option<f64>, currency: Currency) -> GemDelegationDetails {
-    rules::delegation_details(wallet_type, &delegation, &asset, price, currency, Vec::new(), &[], true, chrono::Utc::now())
+    rules::delegation_details(wallet_type, &delegation, &asset, price, currency, Vec::new(), &[], None, chrono::Utc::now())
 }
 
 #[uniffi::export]
@@ -110,7 +110,7 @@ pub struct GemStakeActionItem {
 pub enum GemStakeAction {
     Open { destination: GemStakeDestination },
     FrozenBalanceInfo,
-    RegionUnavailable,
+    RegionUnavailable { topic: GemInfoTopic },
     Disabled,
 }
 

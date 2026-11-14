@@ -23,9 +23,7 @@ public struct AuthenticationScene: View {
         List {
             ListAssetHeaderView(model: model.appPreview, subtitleLayout: .vertical)
 
-            ForEach(Array(model.sections.enumerated()), id: \.offset) { _, section in
-                WalletConnectReviewSection(section: section)
-            }
+            WalletConnectReviewSections(groups: model.sections)
 
             if let messageText = model.messageText {
                 SignMessagePayloadSection(

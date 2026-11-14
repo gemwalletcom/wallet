@@ -15,6 +15,7 @@ use crate::services::contact::model::GemAvatar;
 use crate::services::currency::GemCurrencyRow;
 use crate::services::stake::GemValidatorRow;
 use crate::services::price_alert::rules::GemPriceAlertItem;
+use crate::services::recipient::model::GemRecipientRow;
 use crate::services::wallet_connect::GemConnection;
 use crate::services::error::GemServiceError;
 use crate::services::localization::GemLocalizedText;
@@ -37,6 +38,10 @@ pub enum GemListSectionTitle {
     Recommended,
     All,
     Active,
+    Pinned,
+    Contacts,
+    MyWallets,
+    ViewWallets,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -213,7 +218,7 @@ pub enum GemNoticeKind {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemInfoTopic {
-    RegionUnavailable,
+    RegionUnavailable { country: String },
     NetworkFee { asset: Asset },
     PriceImpact,
     Slippage,
@@ -667,15 +672,17 @@ impl GemListRow {
 #[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemListItem {
+    Row { row: GemListRow },
     Currency { row: GemCurrencyRow },
     Validator { row: GemValidatorRow, is_selected: bool },
     Connection { connection: GemConnection },
     PriceAlert { item: GemPriceAlertItem },
+    Recipient { row: GemRecipientRow },
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemGroup {
-    pub id: String,
+    pub id: Option<String>,
     pub title: Option<GemLocalizedText>,
     pub footer: GemListSectionFooter,
     pub items: Vec<GemListItem>,
@@ -683,8 +690,23 @@ pub struct GemGroup {
 
 impl GemGroup {
     pub fn new(title: GemListSectionTitle, items: Vec<GemListItem>) -> Self {
-        debug_assert_ne!(title, GemListSectionTitle::None, "an untitled group needs its own id, use with_title");
-        Self::with_title(format!("{title:?}"), Some(GemLocalizedText::SectionTitle { title }), items)
+        match title {
+            GemListSectionTitle::None => Self {
+                id: None,
+                title: None,
+                footer: GemListSectionFooter::None,
+                items,
+            },
+            title => Self::with_title(format!("{title:?}"), Some(GemLocalizedText::SectionTitle { title }), items),
+        }
+    }
+
+    pub fn section(title: GemListSectionTitle, rows: Vec<GemListRow>) -> Self {
+        Self::new(title, rows.into_iter().map(|row| GemListItem::Row { row }).collect())
+    }
+
+    pub fn untitled(rows: Vec<GemListRow>) -> Self {
+        Self::section(GemListSectionTitle::None, rows)
     }
 
     pub fn named(id: String, name: String, items: Vec<GemListItem>) -> Self {
@@ -693,11 +715,26 @@ impl GemGroup {
 
     pub fn with_title(id: String, title: Option<GemLocalizedText>, items: Vec<GemListItem>) -> Self {
         Self {
-            id,
+            id: Some(id),
             title,
             footer: GemListSectionFooter::None,
             items,
         }
+    }
+
+    pub fn with_footer(self, footer: GemListSectionFooter) -> Self {
+        Self { footer, ..self }
+    }
+
+    #[cfg(test)]
+    pub fn rows(&self) -> Vec<GemListRow> {
+        self.items
+            .iter()
+            .filter_map(|item| match item {
+                GemListItem::Row { row } => Some(row.clone()),
+                _ => None,
+            })
+            .collect()
     }
 }
 
@@ -707,26 +744,6 @@ pub struct GemGroupList {
     pub phase: GemListPhase,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemListSection {
-    pub title: GemListSectionTitle,
-    pub footer: GemListSectionFooter,
-    pub rows: Vec<GemListRow>,
-}
-
-impl GemListSection {
-    pub fn new(title: GemListSectionTitle, rows: Vec<GemListRow>) -> Self {
-        Self {
-            title,
-            footer: GemListSectionFooter::None,
-            rows,
-        }
-    }
-
-    pub fn untitled(rows: Vec<GemListRow>) -> Self {
-        Self::new(GemListSectionTitle::None, rows)
-    }
-}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
 pub struct GemListWindow {

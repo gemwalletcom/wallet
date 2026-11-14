@@ -9,8 +9,10 @@ import com.gemwallet.android.application.preferences.cases.ObservablePreferences
 import com.gemwallet.android.data.services.store.queries.WalletListItemsQuery
 import com.gemwallet.android.features.settings.viewmodels.models.settingsAction
 import com.gemwallet.android.testkit.MainDispatcherRule
+import com.gemwallet.android.testkit.mockGemGroup
 import com.gemwallet.android.testkit.mockWalletListItem
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.list_item.rows
 import com.gemwallet.android.ui.models.actions.SettingsAction
 import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletListItem
@@ -38,12 +40,10 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.GemErrorText
+import uniffi.gemstone.GemListItem
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowIcon
 import uniffi.gemstone.GemListRowTitle
-import uniffi.gemstone.GemListSection
-import uniffi.gemstone.GemListSectionFooter
-import uniffi.gemstone.GemListSectionTitle
 import uniffi.gemstone.GemPushResult
 import uniffi.gemstone.GemPushState
 import uniffi.gemstone.GemRowAction
@@ -145,10 +145,8 @@ class SettingsViewModelTest {
 
     private fun SettingsViewModel.actions() = sections.map { sections -> sections.flatMap { it.rows }.mapNotNull { it.settingsAction() } }
 
-    private fun section(vararg links: Pair<GemListRowTitle, GemRowAction>) = GemListSection(
-        title = GemListSectionTitle.NONE,
-        footer = GemListSectionFooter.NONE,
-        rows = links.map { (title, action) -> GemListRow.Link(title = title, value = null, icon = GemListRowIcon.NONE, action = action) },
+    private fun section(vararg links: Pair<GemListRowTitle, GemRowAction>) = mockGemGroup(
+        items = links.map { (title, action) -> GemListItem.Row(GemListRow.Link(title = title, value = null, icon = GemListRowIcon.NONE, action = action)) },
     )
 
     private val settingsService = mockk<GemSettingsServiceInterface>(relaxed = true).also {

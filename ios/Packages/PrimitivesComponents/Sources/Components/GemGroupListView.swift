@@ -4,6 +4,8 @@ import Components
 import struct Gemstone.GemGroup
 import struct Gemstone.GemGroupList
 import enum Gemstone.GemListItem
+import enum Gemstone.GemListRow
+import Style
 import SwiftUI
 
 public struct GemGroupListView: View {
@@ -46,7 +48,8 @@ public struct GemGroupSections<Item: View>: View {
     }
 
     public var body: some View {
-        ForEach(groups) { group in
+        ForEach(keyedGroups) { keyed in
+            let group = keyed.value
             if let footer = group.footer.text {
                 Section {
                     items(group)
@@ -76,13 +79,37 @@ public struct GemGroupSections<Item: View>: View {
     @ViewBuilder
     private func header(_ group: GemGroup) -> some View {
         if let title = group.title?.text {
-            Text(title)
+            if case let .sectionTitle(sectionTitle) = group.title, let image = sectionTitle.image {
+                HStack {
+                    image
+                        .frame(size: .image.small)
+                    Text(title)
+                }
+            } else {
+                Text(title)
+            }
+        }
+    }
+
+    private var keyedGroups: [Keyed<GemGroup>] {
+        groups.enumerated().map { index, group in
+            Keyed(id: group.id ?? "#\(index)", value: group)
         }
     }
 
     private func keyedItems(_ group: GemGroup) -> [Keyed<GemListItem>] {
         group.items.enumerated().map { index, item in
-            Keyed(id: item.identity ?? "\(index)", value: item)
+            Keyed(id: item.identity ?? "#\(index)", value: item)
+        }
+    }
+}
+
+public extension GemGroupSections {
+    init<Row: View>(rows groups: [GemGroup], rowInsets: EdgeInsets? = nil, @ViewBuilder row: @escaping (GemListRow) -> Row) where Item == Row? {
+        self.init(groups: groups, rowInsets: rowInsets) { item in
+            if case let .row(value) = item {
+                row(value)
+            }
         }
     }
 }
@@ -98,6 +125,8 @@ struct GemListItemView: View {
 
     var body: some View {
         switch item {
+        case let .row(row):
+            GemListRowView(row: row)
         case let .currency(row):
             ListItemSelectionView(
                 title: row.title,
@@ -118,6 +147,8 @@ struct GemListItemView: View {
             ConnectionView(connection: connection)
         case let .priceAlert(alert):
             ListAssetItemView(row: alert.row.row)
+        case let .recipient(row):
+            ListItemView(model: ListItemModel(title: row.title, subtitle: row.subtitle))
         }
     }
 }
@@ -125,10 +156,12 @@ struct GemListItemView: View {
 extension GemListItem {
     var identity: String? {
         switch self {
+        case .row: nil
         case let .currency(row): row.currency.toPrimitives().rawValue
         case let .validator(row, _): row.validator.id
         case let .connection(connection): connection.connection.session.id
         case let .priceAlert(alert): alert.id
+        case let .recipient(row): row.recipient.id
         }
     }
 }

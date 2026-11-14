@@ -12,7 +12,7 @@ use crate::address::validate_address;
 use crate::config::social::social_links;
 use crate::formatted_number::GemFormattedNumber;
 use crate::models::copy::{GemCopy, GemCopyKind, address_copy};
-use crate::models::list::{GemInfoTopic, GemListRow, GemListRowIcon, GemListRowTitle, GemListSection, GemListSectionTitle, GemRowAction};
+use crate::models::list::{GemGroup, GemInfoTopic, GemListRow, GemListRowIcon, GemListRowTitle, GemListSectionTitle, GemRowAction};
 use crate::percentage::GemPercentageStyle;
 use crate::precision::GemCurrencyStyle;
 use crate::services::price::rules::has_price;
@@ -118,7 +118,7 @@ fn change_percentage(period: ChartPeriod, base_value: f64, latest: &AssetPrice) 
     }
 }
 
-pub fn chart_sections(asset: &Asset, currency: Currency, price: Option<f64>, market: Option<&AssetMarket>, price_alerts: Option<Vec<PriceAlert>>, links: Vec<AssetLink>, contract_explorer: Option<BlockExplorerLink>) -> Vec<GemListSection> {
+pub fn chart_sections(asset: &Asset, currency: Currency, price: Option<f64>, market: Option<&AssetMarket>, price_alerts: Option<Vec<PriceAlert>>, links: Vec<AssetLink>, contract_explorer: Option<BlockExplorerLink>) -> Vec<GemGroup> {
     let market_sections = [
         market.map(|market| market_section(market, currency.clone())).unwrap_or_default(),
         available_rows([contract_row(asset, contract_explorer)]),
@@ -127,19 +127,19 @@ pub fn chart_sections(asset: &Asset, currency: Currency, price: Option<f64>, mar
     ]
     .into_iter()
     .filter(|rows| !rows.is_empty())
-    .map(GemListSection::untitled);
+    .map(GemGroup::untitled);
     price_alert_section(price, price_alerts)
         .into_iter()
         .chain(market_sections)
         .chain(
             Some(social_links(links))
                 .filter(|links| !links.is_empty())
-                .map(|links| GemListSection::new(GemListSectionTitle::SocialLinks, vec![GemListRow::Social { links }])),
+                .map(|links| GemGroup::section(GemListSectionTitle::SocialLinks, vec![GemListRow::Social { links }])),
         )
         .collect()
 }
 
-fn price_alert_section(price: Option<f64>, price_alerts: Option<Vec<PriceAlert>>) -> Option<GemListSection> {
+fn price_alert_section(price: Option<f64>, price_alerts: Option<Vec<PriceAlert>>) -> Option<GemGroup> {
     let price_alerts = price_alerts.filter(|_| has_price(price))?;
     let count = displayed_price_alert_ids(price_alerts).len();
     let row = match count {
@@ -156,7 +156,7 @@ fn price_alert_section(price: Option<f64>, price_alerts: Option<Vec<PriceAlert>>
             action: GemRowAction::PriceAlerts,
         },
     };
-    Some(GemListSection::untitled(vec![row]))
+    Some(GemGroup::untitled(vec![row]))
 }
 
 fn market_section(market: &AssetMarket, currency: Currency) -> Vec<GemListRow> {
@@ -381,8 +381,8 @@ mod tests {
         GemFormattedNumber::amount(value, Some(symbol.to_string()), ValueStyle::Short)
     }
 
-    fn set_price_alert() -> GemListSection {
-        GemListSection::untitled(vec![GemListRow::Link {
+    fn set_price_alert() -> GemGroup {
+        GemGroup::untitled(vec![GemListRow::Link {
             title: GemListRowTitle::SetPriceAlert,
             value: None,
             icon: GemListRowIcon::None,
@@ -647,7 +647,7 @@ mod tests {
             chart_sections(&token, Currency::USD, Some(1.0), Some(&market), Some(vec![]), links.clone(), Some(BlockExplorerLink::mock())),
             vec![
                 set_price_alert(),
-                GemListSection::untitled(vec![
+                GemGroup::untitled(vec![
                     GemListRow::Ranked {
                         title: GemListRowTitle::MarketCap,
                         amount: usd(100.0),
@@ -656,17 +656,17 @@ mod tests {
                     amount(GemListRowTitle::FullyDilutedValuation, usd(120.0), Some(GemInfoTopic::FullyDilutedValuation)),
                     amount(GemListRowTitle::TradingVolume, usd(10.0), None),
                 ]),
-                GemListSection::untitled(vec![contract(&token, Some(BlockExplorerLink::mock()))]),
-                GemListSection::untitled(vec![
+                GemGroup::untitled(vec![contract(&token, Some(BlockExplorerLink::mock()))]),
+                GemGroup::untitled(vec![
                     amount(GemListRowTitle::CirculatingSupply, supply(50.0, &token.symbol), Some(GemInfoTopic::CirculatingSupply)),
                     amount(GemListRowTitle::TotalSupply, supply(60.0, &token.symbol), Some(GemInfoTopic::TotalSupply)),
                     amount(GemListRowTitle::MaxSupply, supply(21.0, &token.symbol), Some(GemInfoTopic::MaxSupply)),
                 ]),
-                GemListSection::untitled(vec![
+                GemGroup::untitled(vec![
                     all_time(GemListRowTitle::AllTimeHigh, ChartValuePercentage::mock()),
                     all_time(GemListRowTitle::AllTimeLow, ChartValuePercentage::mock_low())
                 ]),
-                GemListSection::new(GemListSectionTitle::SocialLinks, vec![GemListRow::Social { links: social_links(links) }]),
+                GemGroup::section(GemListSectionTitle::SocialLinks, vec![GemListRow::Social { links: social_links(links) }]),
             ]
         );
     }
@@ -678,12 +678,12 @@ mod tests {
         assert_eq!(
             sections,
             vec![
-                GemListSection::untitled(vec![amount(GemListRowTitle::FullyDilutedValuation, usd(120.0), Some(GemInfoTopic::FullyDilutedValuation))]),
-                GemListSection::untitled(vec![
+                GemGroup::untitled(vec![amount(GemListRowTitle::FullyDilutedValuation, usd(120.0), Some(GemInfoTopic::FullyDilutedValuation))]),
+                GemGroup::untitled(vec![
                     amount(GemListRowTitle::CirculatingSupply, supply(50.0, &Asset::mock().symbol), Some(GemInfoTopic::CirculatingSupply)),
                     amount(GemListRowTitle::MaxSupply, supply(21.0, &Asset::mock().symbol), Some(GemInfoTopic::MaxSupply)),
                 ]),
-                GemListSection::untitled(vec![all_time(GemListRowTitle::AllTimeHigh, ChartValuePercentage::mock())]),
+                GemGroup::untitled(vec![all_time(GemListRowTitle::AllTimeHigh, ChartValuePercentage::mock())]),
             ]
         );
     }
@@ -693,7 +693,7 @@ mod tests {
         let rank = |rank: i32| {
             chart_sections(&Asset::mock(), Currency::USD, None, Some(&AssetMarket::mock_with_rank(rank)), Some(vec![]), vec![], None)
                 .remove(0)
-                .rows
+                .rows()
                 .remove(0)
         };
 
@@ -713,7 +713,7 @@ mod tests {
     fn test_chart_sections_without_market_keep_contract() {
         let token = Asset::mock_ethereum_usdc();
 
-        assert_eq!(chart_sections(&token, Currency::USD, None, None, Some(vec![]), vec![], None), vec![GemListSection::untitled(vec![contract(&token, None)])]);
+        assert_eq!(chart_sections(&token, Currency::USD, None, None, Some(vec![]), vec![], None), vec![GemGroup::untitled(vec![contract(&token, None)])]);
     }
 
     #[test]
@@ -729,7 +729,7 @@ mod tests {
 
         assert_eq!(
             chart_sections(&token, Currency::USD, None, None, Some(vec![]), vec![], None),
-            vec![GemListSection::untitled(vec![GemListRow::identifier(GemListRowTitle::Contract, copy, None)])]
+            vec![GemGroup::untitled(vec![GemListRow::identifier(GemListRowTitle::Contract, copy, None)])]
         );
     }
 
@@ -744,7 +744,7 @@ mod tests {
         assert_eq!(first(Some(1.0), vec![]), Some(set_price_alert()));
         assert_eq!(
             first(Some(1.0), vec![auto.clone(), notified.clone()]),
-            Some(GemListSection::untitled(vec![GemListRow::Link {
+            Some(GemGroup::untitled(vec![GemListRow::Link {
                 title: GemListRowTitle::PriceAlerts,
                 value: Some("1".to_string()),
                 icon: GemListRowIcon::None,

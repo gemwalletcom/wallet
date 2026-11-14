@@ -4,6 +4,7 @@ use primitives::rewards::{RedemptionRequest, RedemptionResult};
 use primitives::{AuthenticatedRequest, Feature, ReferralCode, Rewards, WalletId};
 
 use crate::api::{GemApiError, GemDeviceApiClient};
+use crate::models::list::GemInfoTopic;
 use crate::models::state::GemLoadState;
 use crate::services::auth::GemAuthService;
 use crate::services::balance::GemBalanceService;
@@ -36,8 +37,8 @@ impl GemRewardsService {
         Self { api, auth, balance, session, config }
     }
 
-    pub fn is_available(&self) -> bool {
-        self.config.is_feature_enabled(Feature::Rewards)
+    pub fn unavailable_topic(&self) -> Option<GemInfoTopic> {
+        self.config.unavailable_topic(Feature::Rewards)
     }
 
     pub async fn refresh(&self, wallet_id: WalletId) -> GemRewardsResult {

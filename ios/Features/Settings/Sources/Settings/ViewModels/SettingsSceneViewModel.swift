@@ -1,7 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import struct Gemstone.GemListSection
+import struct Gemstone.GemGroup
 import protocol Gemstone.GemSettingsServiceProtocol
 import GemstonePrimitives
 import GemstoneServices
@@ -33,7 +33,7 @@ public final class SettingsSceneViewModel {
 }
 
 public extension SettingsSceneViewModel {
-    var sections: [GemListSection] {
+    var sections: [GemGroup] {
         observablePreferences.changes
         return service.sections(
             wallets: walletsQuery.value.map { $0.toGem() },

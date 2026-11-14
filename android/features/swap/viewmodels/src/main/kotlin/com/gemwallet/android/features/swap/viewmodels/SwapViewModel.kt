@@ -306,8 +306,8 @@ class SwapViewModel @Inject constructor(
                 val quote = state.quote ?: return
                 val priceImpact = state.details?.summary?.priceImpactRow
                 if (priceImpact?.warning != null) {
-                    if (!service.isAvailable()) {
-                        infoSheet.value = GemInfoTopic.RegionUnavailable
+                    service.unavailableTopic()?.let { topic ->
+                        infoSheet.value = topic
                         return
                     }
                     _priceImpactConfirmation.value = SwapPriceImpactConfirmation(quote, priceImpact)
@@ -336,8 +336,8 @@ class SwapViewModel @Inject constructor(
     }
 
     fun swap(quote: SwapperQuote) = viewModelScope.launch(ioDispatcher) {
-        if (!service.isAvailable()) {
-            infoSheet.value = GemInfoTopic.RegionUnavailable
+        service.unavailableTopic()?.let { topic ->
+            infoSheet.value = topic
             return@launch
         }
         val started = session.value.startTransfer(quote) ?: return@launch

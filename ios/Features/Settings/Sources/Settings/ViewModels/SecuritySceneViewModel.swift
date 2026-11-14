@@ -2,7 +2,7 @@
 
 import Components
 import Foundation
-import struct Gemstone.GemListSection
+import struct Gemstone.GemGroup
 import enum Gemstone.GemLockPeriod
 import enum Gemstone.GemRowAction
 import struct Gemstone.GemSecurityInput
@@ -58,7 +58,7 @@ public final class SecuritySceneViewModel {
 }
 
 public extension SecuritySceneViewModel {
-    var sections: [GemListSection] {
+    var sections: [GemGroup] {
         preferences.changes
         return settings.securitySections(
             input: GemSecurityInput(
