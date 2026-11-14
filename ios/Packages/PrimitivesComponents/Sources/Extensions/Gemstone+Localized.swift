@@ -452,7 +452,8 @@ public extension GemTransactionStateTone {
         switch self {
         case .pending: Localized.Info.Transaction.Pending.description
         case .success: Localized.Info.Transaction.Success.description
-        case .error, .refunded: Localized.Info.Transaction.Error.description
+        case .error: Localized.Info.Transaction.Error.description
+        case .refunded: Localized.Info.Transaction.refundedDescription
         }
     }
 }

@@ -589,6 +589,7 @@ info_payment_verification_title = Vérification du paiement
 info_payment_verification_description = Le marchand requiert des informations supplémentaires avant le paiement.
 info_network_fee_description = Chaque transaction sur le réseau %@ nécessite des frais en %@ payés aux mineurs pour traiter votre transaction, et non à Gem Wallet. Les frais de réseau varient en fonction de l'utilisation du réseau.
 info_transaction_error_description = La transaction n'a pas pu être finalisée en raison d'une erreur, telle que des fonds insuffisants, une saisie non valide ou un rejet par le réseau. Veuillez vérifier les détails et réessayer.
+info_transaction_refunded_description = L’échange n’a pas pu être finalisé : le fournisseur a donc renvoyé les fonds vers votre portefeuille.
 info_transaction_pending_description = La transaction a été soumise et est en attente de confirmation sur le réseau. Les délais de traitement peuvent varier. Veuillez consulter régulièrement les mises à jour.
 info_estimated_confirmation_description = Cette estimation repose sur les frais de transaction et l’activité actuelle du réseau %@. Le délai réel de confirmation peut changer et n’est pas garanti.
 info_transaction_success_description = La transaction a été finalisée et confirmée sur le réseau. Vous pouvez consulter les détails pour vérifier son statut.

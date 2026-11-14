@@ -713,6 +713,8 @@ public enum Localized {
       public static let description = Localized.tr("Localizable", "info.total_supply.description", fallback: "The total number of coins that exist, including locked or reserved coins.")
     }
     public enum Transaction {
+      /// The swap could not be completed, so the provider returned the funds to your wallet.
+      public static let refundedDescription = Localized.tr("Localizable", "info.transaction.refunded_description", fallback: "The swap could not be completed, so the provider returned the funds to your wallet.")
       public enum Error {
         /// The transaction could not be completed due to an error, such as insufficient funds, invalid input, or rejection by the network. Please review the details and try again.
         public static let description = Localized.tr("Localizable", "info.transaction.error.description", fallback: "The transaction could not be completed due to an error, such as insufficient funds, invalid input, or rejection by the network. Please review the details and try again.")

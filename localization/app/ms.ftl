@@ -589,6 +589,7 @@ info_payment_verification_title = Pengesahan Pembayaran
 info_payment_verification_description = Peniaga memerlukan maklumat tambahan sebelum pembayaran.
 info_network_fee_description = Setiap transaksi pada rangkaian %@ memerlukan bayaran dalam %@ dibayar kepada pelombong untuk memproses transaksi anda, bukan Gem Wallet. Yuran rangkaian berbeza-beza berdasarkan penggunaan rangkaian.
 info_transaction_error_description = Urus niaga tidak dapat diselesaikan kerana ralat, seperti dana tidak mencukupi, input tidak sah atau penolakan oleh rangkaian. Sila semak butiran dan cuba lagi.
+info_transaction_refunded_description = Pertukaran tidak dapat diselesaikan, jadi pembekal memulangkan dana ke dompet anda.
 info_transaction_pending_description = Urus niaga telah diserahkan dan sedang menunggu pengesahan pada rangkaian. Masa pemprosesan mungkin berbeza-beza. Sila semak semula untuk kemas kini.
 info_estimated_confirmation_description = Anggaran ini berdasarkan yuran transaksi dan aktiviti rangkaian %@ semasa. Masa pengesahan sebenar mungkin berubah dan tidak dijamin.
 info_transaction_success_description = Urus niaga telah selesai dan disahkan pada rangkaian. Anda boleh menyemak butiran untuk mengesahkan statusnya.

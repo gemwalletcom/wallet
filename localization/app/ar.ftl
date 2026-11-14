@@ -589,6 +589,7 @@ info_payment_verification_title = التحقق من الدفع
 info_payment_verification_description = يتطلب التاجر معلومات إضافية قبل الدفع.
 info_network_fee_description = تتطلب كل معاملة على شبكة %@ رسومًا بعملة %@ تُدفع لعمال المناجم لمعالجة معاملتك، وليس Gem Wallet. تختلف رسوم الشبكة حسب استخدام الشبكة.
 info_transaction_error_description = تعذّر إتمام المعاملة بسبب خطأ، مثل عدم كفاية الرصيد، أو إدخال غير صحيح، أو رفض من قِبل الشبكة. يُرجى مراجعة التفاصيل والمحاولة مرة أخرى.
+info_transaction_refunded_description = تعذّر إتمام عملية التبديل، لذا أعاد المزود الأموال إلى محفظتك.
 info_transaction_pending_description = تم إرسال المعاملة وهي بانتظار التأكيد على الشبكة. قد تختلف أوقات المعالجة. يُرجى مراجعة التحديثات.
 info_estimated_confirmation_description = يعتمد هذا التقدير على رسوم المعاملة ونشاط شبكة %@ الحالي. قد يتغير وقت التأكيد الفعلي وهو غير مضمون.
 info_transaction_success_description = تم إتمام المعاملة وتأكيدها على الشبكة. يمكنك مراجعة التفاصيل للتحقق من حالتها.

@@ -589,6 +589,7 @@ info_payment_verification_title = 付款身份验证
 info_payment_verification_description = 商家在付款前需要您提供更多信息。
 info_network_fee_description = %@ 网络上的每笔交易都需要支付以 %@ 计价的网络费用，该费用支付给矿工用于处理交易，而非支付给 Gem Wallet。网络费用会随网络使用情况而变化。
 info_transaction_error_description = 由于资金不足、输入无效或网络拒绝等错误，交易无法完成。请检查详情并重试。
+info_transaction_refunded_description = 兑换未能完成，服务商已将资金退回您的钱包。
 info_transaction_pending_description = 交易已提交，正在等待网络确认。处理时间可能有所不同。请稍后查看更新。
 info_estimated_confirmation_description = 此估算基于交易手续费和 %@ 网络当前的负载情况。实际确认时间可能变化，无法保证。
 info_transaction_success_description = 交易已完成并已在网络上确认。可查看详情以核实状态。

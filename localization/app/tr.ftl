@@ -589,6 +589,7 @@ info_payment_verification_title = Ödeme Doğrulaması
 info_payment_verification_description = Satıcı ödemeden önce ek bilgi gerektiriyor.
 info_network_fee_description = %@ ağındaki her işlem, işleminizi gerçekleştirmek için madencilere Gem Wallet'a değil, %@ cinsinden bir ücret ödenmesini gerektirir. Ağ ücretleri ağ kullanımına göre değişir.
 info_transaction_error_description = İşlem, yetersiz fon, geçersiz giriş veya ağ tarafından reddedilme gibi bir hata nedeniyle tamamlanamadı. Lütfen ayrıntıları inceleyin ve tekrar deneyin.
+info_transaction_refunded_description = Takas tamamlanamadı, bu nedenle sağlayıcı fonları cüzdanınıza iade etti.
 info_transaction_pending_description = İşlem gönderildi ve ağda onay bekleniyor. İşlem süreleri değişiklik gösterebilir. Lütfen güncellemeler için tekrar kontrol edin.
 info_estimated_confirmation_description = Bu tahmin işlem ücreti ve mevcut %@ ağı etkinliğine dayanır. Gerçek onay süresi değişebilir ve garanti edilmez.
 info_transaction_success_description = İşlem tamamlandı ve ağda onaylandı. Durumunu doğrulamak için ayrıntıları inceleyebilirsiniz.

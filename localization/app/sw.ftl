@@ -589,6 +589,7 @@ info_payment_verification_title = Uthibitisho wa Malipo
 info_payment_verification_description = Mfanyabiashara anahitaji maelezo ya ziada kabla ya malipo.
 info_network_fee_description = Kila muamala kwenye mtandao wa %@ unahitaji ada ya %@ kulipwa kwa wachimbaji ili kushughulikia muamala wako, si Gem Wallet. Ada za mtandao hutofautiana kulingana na matumizi ya mtandao.
 info_transaction_error_description = Muamala haukuweza kukamilika kwa sababu ya hitilafu, kama vile uhaba wa fedha, ingizo batili au kukataliwa na mtandao. Tafadhali kagua maelezo na ujaribu tena.
+info_transaction_refunded_description = Ubadilishaji haukuweza kukamilika, kwa hivyo mtoa huduma amerejesha fedha kwenye mkoba wako.
 info_transaction_pending_description = Muamala umewasilishwa na unasubiri uthibitisho kwenye mtandao. Nyakati za usindikaji zinaweza kutofautiana. Tafadhali angalia tena kwa sasisho.
 info_estimated_confirmation_description = Makadirio haya yanategemea ada ya muamala na shughuli za sasa za mtandao wa %@. Muda halisi wa uthibitisho unaweza kubadilika na haujahakikishwa.
 info_transaction_success_description = Muamala umekamilika na kuthibitishwa kwenye mtandao. Unaweza kukagua maelezo ili kuthibitisha hali yake.

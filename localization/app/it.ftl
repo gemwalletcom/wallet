@@ -589,6 +589,7 @@ info_payment_verification_title = Verifica del pagamento
 info_payment_verification_description = L'esercente richiede informazioni aggiuntive prima del pagamento.
 info_network_fee_description = Ogni transazione sulla rete %@ richiede una commissione in %@ pagata ai minatori per elaborare la transazione, non a Gem Wallet. Le tariffe di rete variano in base all'utilizzo della rete.
 info_transaction_error_description = La transazione non è stata completata a causa di un errore, ad esempio fondi insufficienti, input non validi o rifiuto da parte della rete. Si prega di controllare i dettagli e riprovare.
+info_transaction_refunded_description = Lo scambio non è stato completato, quindi il fornitore ha restituito i fondi al tuo portafoglio.
 info_transaction_pending_description = La transazione è stata inoltrata ed è in attesa di conferma sulla rete. I tempi di elaborazione possono variare. Si prega di controllare regolarmente per aggiornamenti.
 info_estimated_confirmation_description = Questa stima si basa sulla commissione della transazione e sull’attuale attività della rete %@. Il tempo effettivo di conferma può cambiare e non è garantito.
 info_transaction_success_description = La transazione è stata completata e confermata sulla rete. Puoi controllare i dettagli per verificarne lo stato.

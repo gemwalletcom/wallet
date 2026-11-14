@@ -589,6 +589,7 @@ info_payment_verification_title = Xác minh thanh toán
 info_payment_verification_description = Người bán yêu cầu thêm thông tin trước khi thanh toán.
 info_network_fee_description = Mọi giao dịch trên mạng %@ đều yêu cầu một khoản phí bằng %@ trả cho người khai thác để xử lý giao dịch của bạn, không phải Ví Gem. Phí mạng thay đổi tùy theo mức sử dụng mạng.
 info_transaction_error_description = Giao dịch không thể hoàn tất do lỗi, chẳng hạn như không đủ tiền, đầu vào không hợp lệ hoặc bị mạng từ chối. Vui lòng xem lại chi tiết và thử lại.
+info_transaction_refunded_description = Không thể hoàn tất giao dịch hoán đổi, vì vậy nhà cung cấp đã hoàn tiền về ví của bạn.
 info_transaction_pending_description = Giao dịch đã được gửi và đang chờ xác nhận trên mạng. Thời gian xử lý có thể thay đổi. Vui lòng kiểm tra lại để cập nhật.
 info_estimated_confirmation_description = Ước tính này dựa trên phí giao dịch và hoạt động hiện tại của mạng %@. Thời gian xác nhận thực tế có thể thay đổi và không được đảm bảo.
 info_transaction_success_description = Giao dịch đã hoàn tất và được xác nhận trên mạng. Bạn có thể xem lại thông tin chi tiết để xác minh trạng thái của giao dịch.

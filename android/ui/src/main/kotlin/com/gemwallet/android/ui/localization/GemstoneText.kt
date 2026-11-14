@@ -1208,12 +1208,9 @@ fun TransactionState.statusLabelRes(): Int = when (this) {
 @StringRes
 fun GemTransactionStateTone.infoDescriptionRes(): Int = when (this) {
     GemTransactionStateTone.PENDING -> R.string.info_transaction_pending_description
-
     GemTransactionStateTone.SUCCESS -> R.string.info_transaction_success_description
-
-    GemTransactionStateTone.ERROR,
-    GemTransactionStateTone.REFUNDED,
-    -> R.string.info_transaction_error_description
+    GemTransactionStateTone.ERROR -> R.string.info_transaction_error_description
+    GemTransactionStateTone.REFUNDED -> R.string.info_transaction_refunded_description
 }
 
 @StringRes

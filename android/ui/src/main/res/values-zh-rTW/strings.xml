@@ -480,6 +480,7 @@
   <string name="info_payment_verification_description">商家在付款前需要您提供更多資訊。</string>
   <string name="info_network_fee_description">在 %1$s 網路上的每筆交易都需要以 %2$s 支付給礦工的手續費，以處理交易，Gem Wallet 不收取此費用。網路手續費會根據網路使用情況而有所不同。</string>
   <string name="info_transaction_error_description">由於錯誤（例如資金不足、輸入無效或網路拒絕）導致交易無法完成。請查看詳細資訊並重試。</string>
+  <string name="info_transaction_refunded_description">兌換未能完成，供應商已將資金退回您的錢包。</string>
   <string name="info_transaction_pending_description">交易已提交並正在等待網路確認。處理時間可能有所不同。請回來查看更新。</string>
   <string name="info_estimated_confirmation_description">此估算是根據交易手續費和 %1$s 網路目前的負載情況得出。實際確認時間可能變動，無法保證。</string>
   <string name="info_transaction_success_description">交易已完成並在網路上確認。可以查看詳細資訊來驗證其狀態。</string>

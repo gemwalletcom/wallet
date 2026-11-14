@@ -589,6 +589,7 @@ info_payment_verification_title = Betalingsverificatie
 info_payment_verification_description = De verkoper vereist aanvullende informatie vóór de betaling.
 info_network_fee_description = Voor elke transactie op het %@ netwerk is een vergoeding van %@ vereist, betaald aan mijnwerkers om uw transactie te verwerken, niet aan Gem Wallet. De netwerkkosten variëren afhankelijk van het netwerkgebruik.
 info_transaction_error_description = De transactie kon niet worden voltooid vanwege een fout, zoals onvoldoende saldo, ongeldige invoer of afwijzing door het netwerk. Controleer de details en probeer het opnieuw.
+info_transaction_refunded_description = De ruil kon niet worden voltooid, dus de aanbieder heeft het geld teruggestuurd naar uw portemonnee.
 info_transaction_pending_description = De transactie is verzonden en wacht op bevestiging op het netwerk. Verwerkingstijden kunnen variëren. Kom later terug voor updates.
 info_estimated_confirmation_description = Deze schatting is gebaseerd op de transactiekosten en de huidige activiteit op het %@-netwerk. De werkelijke bevestigingstijd kan veranderen en wordt niet gegarandeerd.
 info_transaction_success_description = De transactie is voltooid en bevestigd op het netwerk. U kunt de details bekijken om de status ervan te verifiëren.

@@ -480,6 +480,7 @@
   <string name="info_payment_verification_description">Satıcı ödemeden önce ek bilgi gerektiriyor.</string>
   <string name="info_network_fee_description">%1$s ağındaki her işlem, işleminizi gerçekleştirmek için madencilere Gem Wallet\'a değil, %2$s cinsinden bir ücret ödenmesini gerektirir. Ağ ücretleri ağ kullanımına göre değişir.</string>
   <string name="info_transaction_error_description">İşlem, yetersiz fon, geçersiz giriş veya ağ tarafından reddedilme gibi bir hata nedeniyle tamamlanamadı. Lütfen ayrıntıları inceleyin ve tekrar deneyin.</string>
+  <string name="info_transaction_refunded_description">Takas tamamlanamadı, bu nedenle sağlayıcı fonları cüzdanınıza iade etti.</string>
   <string name="info_transaction_pending_description">İşlem gönderildi ve ağda onay bekleniyor. İşlem süreleri değişiklik gösterebilir. Lütfen güncellemeler için tekrar kontrol edin.</string>
   <string name="info_estimated_confirmation_description">Bu tahmin işlem ücreti ve mevcut %1$s ağı etkinliğine dayanır. Gerçek onay süresi değişebilir ve garanti edilmez.</string>
   <string name="info_transaction_success_description">İşlem tamamlandı ve ağda onaylandı. Durumunu doğrulamak için ayrıntıları inceleyebilirsiniz.</string>

@@ -589,6 +589,7 @@ info_payment_verification_title = Beripikasyon ng Bayad
 info_payment_verification_description = Nangangailangan ang merchant ng karagdagang impormasyon bago ang bayad.
 info_network_fee_description = Ang bawat transaksyon sa %@ network ay nangangailangan ng bayad sa %@ na binabayaran sa mga minero upang maproseso ang iyong transaksyon, hindi ang Gem Wallet. Nag-iiba-iba ang mga bayarin sa network batay sa paggamit ng network.
 info_transaction_error_description = Hindi makumpleto ang transaksyon dahil sa isang error, tulad ng hindi sapat na pondo, hindi wastong input, o pagtanggi ng network. Pakisuri ang mga detalye at subukang muli.
+info_transaction_refunded_description = Hindi nakumpleto ang pagpapalit, kaya ibinalik ng provider ang pondo sa iyong wallet.
 info_transaction_pending_description = Naisumite na ang transaksyon at naghihintay ng kumpirmasyon sa network. Maaaring mag-iba ang mga oras ng pagproseso. Mangyaring bumalik para sa mga update.
 info_estimated_confirmation_description = Ang tantiya na ito ay batay sa bayad sa transaksyon at kasalukuyang aktibidad ng %@ network. Maaaring magbago ang aktuwal na oras ng kumpirmasyon at hindi ito garantisado.
 info_transaction_success_description = Ang transaksyon ay nakumpleto at nakumpirma sa network. Maaari mong suriin ang mga detalye upang i-verify ang status nito.

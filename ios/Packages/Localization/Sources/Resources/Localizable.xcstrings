@@ -47560,6 +47560,197 @@
         }
       }
     },
+    "info.transaction.refunded_description": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تعذّر إتمام عملية التبديل، لذا أعاد المزود الأموال إلى محفظتك."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "অদলবদলটি সম্পন্ন করা যায়নি, তাই প্রদানকারী অর্থ আপনার ওয়ালেটে ফেরত দিয়েছে।"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Výměnu nebylo možné dokončit, a proto poskytovatel vrátil prostředky do vaší peněženky."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Byttet kunne ikke gennemføres, så udbyderen sendte midlerne tilbage til din tegnebog."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Tausch konnte nicht abgeschlossen werden, daher hat der Anbieter die Mittel an Ihre Wallet zurückgesendet."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The swap could not be completed, so the provider returned the funds to your wallet."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El intercambio no se pudo completar, así que el proveedor devolvió los fondos a tu billetera."
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "مبادله انجام نشد، بنابراین ارائه دهنده وجوه را به کیف پول شما بازگرداند."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hindi nakumpleto ang pagpapalit, kaya ibinalik ng provider ang pondo sa iyong wallet."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’échange n’a pas pu être finalisé : le fournisseur a donc renvoyé les fonds vers votre portefeuille."
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ba a iya kammala musanyar ba, don haka mai bayarwa ya mayar da kuɗin zuwa Wallet ɗinku."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "לא ניתן היה להשלים את ההחלפה, ולכן הספק החזיר את הכספים לארנק שלך."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "स्वैप पूरा नहीं हो सका, इसलिए प्रदाता ने राशि आपके बटुए में वापस भेज दी।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Penukaran tidak dapat diselesaikan, jadi penyedia mengembalikan dana ke dompet Anda."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lo scambio non è stato completato, quindi il fornitore ha restituito i fondi al tuo portafoglio."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "スワップを完了できなかったため、プロバイダーが資金をウォレットに返金しました。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "교환을 완료할 수 없어 공급자가 자금을 지갑으로 돌려보냈습니다."
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pertukaran tidak dapat diselesaikan, jadi pembekal memulangkan dana ke dompet anda."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De ruil kon niet worden voltooid, dus de aanbieder heeft het geld teruggestuurd naar uw portemonnee."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wymiany nie udało się ukończyć, więc dostawca zwrócił środki do Twojego portfela."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A troca não pôde ser concluída, então o provedor devolveu os fundos para sua carteira."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schimbul nu a putut fi finalizat, așa că furnizorul a returnat fondurile în portofelul tău."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Обмен не удалось завершить, поэтому провайдер вернул средства на ваш кошелек."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ubadilishaji haukuweza kukamilika, kwa hivyo mtoa huduma amerejesha fedha kwenye mkoba wako."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ไม่สามารถทำการแลกเปลี่ยนให้เสร็จสมบูรณ์ได้ ผู้ให้บริการจึงคืนเงินไปยังกระเป๋าเงินของคุณ"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Takas tamamlanamadı, bu nedenle sağlayıcı fonları cüzdanınıza iade etti."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Обмін не вдалося завершити, тому провайдер повернув кошти на ваш гаманець."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "تبادلہ مکمل نہیں ہو سکا، اس لیے فراہم کرنے والے نے رقم آپ کے والیٹ میں واپس بھیج دی۔"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Không thể hoàn tất giao dịch hoán đổi, vì vậy nhà cung cấp đã hoàn tiền về ví của bạn."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "兑换未能完成，服务商已将资金退回您的钱包。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "兌換未能完成，供應商已將資金退回您的錢包。"
+          }
+        }
+      }
+    },
     "info.transaction.success.description": {
       "extractionState": "manual",
       "localizations": {

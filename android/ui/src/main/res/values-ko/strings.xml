@@ -480,6 +480,7 @@
   <string name="info_payment_verification_description">가맹점에서 결제 전에 추가 정보가 필요합니다.</string>
   <string name="info_network_fee_description">%1$s 네트워크의 모든 거래에는 거래 처리를 위해 Gem Wallet이 아닌 채굴자에게 지불되는 %2$s 수수료가 필요합니다. 네트워크 수수료는 네트워크 사용량에 따라 다릅니다.</string>
   <string name="info_transaction_error_description">자금 부족, 잘못된 입력, 네트워크 거부 등의 오류로 인해 거래를 완료할 수 없습니다. 세부 정보를 확인하고 다시 시도해 주세요.</string>
+  <string name="info_transaction_refunded_description">교환을 완료할 수 없어 공급자가 자금을 지갑으로 돌려보냈습니다.</string>
   <string name="info_transaction_pending_description">거래가 제출되었으며 네트워크에서 확인을 기다리고 있습니다. 처리 시간은 다를 수 있습니다. 업데이트된 내용을 다시 확인해 주세요.</string>
   <string name="info_estimated_confirmation_description">이 예상치는 거래 수수료와 현재 %1$s 네트워크 활동을 기반으로 합니다. 실제 확인 시간은 달라질 수 있으며 보장되지 않습니다.</string>
   <string name="info_transaction_success_description">거래가 완료되었으며 네트워크에서 확인되었습니다. 세부 정보를 확인하여 거래 상태를 확인하실 수 있습니다.</string>

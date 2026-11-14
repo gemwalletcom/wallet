@@ -1063,6 +1063,8 @@ info_payment_verification_description = The merchant requires additional informa
 info_network_fee_description = Every transaction on the %@ network requires a fee in %@ paid to miners to process your transaction, not Gem Wallet. Network fees vary based on network usage.
 # Used in Info bottom sheets for the transaction error description.
 info_transaction_error_description = The transaction could not be completed due to an error, such as insufficient funds, invalid input, or rejection by the network. Please review the details and try again.
+# Used in Info bottom sheets for a refunded swap's status description.
+info_transaction_refunded_description = The swap could not be completed, so the provider returned the funds to your wallet.
 # Used in Info bottom sheets for the transaction pending description.
 info_transaction_pending_description = The transaction has been submitted and is awaiting confirmation on the network. Processing times may vary. Please check back for updates.
 # Explains that the pending confirmation estimate can change with network conditions. %@ is the network name.

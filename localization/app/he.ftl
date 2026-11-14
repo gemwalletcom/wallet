@@ -589,6 +589,7 @@ info_payment_verification_title = אימות תשלום
 info_payment_verification_description = בית העסק דורש מידע נוסף לפני התשלום.
 info_network_fee_description = כל עסקה ברשת %@ דורשת עמלה ב-%@ ששולם לכורים על מנת לעבד את העסקה שלך, לא ארנק Gem. עמלות הרשת משתנות בהתאם לשימוש ברשת.
 info_transaction_error_description = לא ניתן היה להשלים את העסקה עקב שגיאה, כגון חוסר כספים, קלט לא תקין או דחייה על ידי הרשת. אנא בדוק את הפרטים ונסה שוב.
+info_transaction_refunded_description = לא ניתן היה להשלים את ההחלפה, ולכן הספק החזיר את הכספים לארנק שלך.
 info_transaction_pending_description = העסקה הוגשה וממתינה לאישור ברשת. זמני העיבוד עשויים להשתנות. אנא בדקו שוב לעדכונים.
 info_estimated_confirmation_description = הערכה זו מבוססת על עמלת העסקה ועל הפעילות הנוכחית ברשת %@. זמן האישור בפועל עשוי להשתנות ואינו מובטח.
 info_transaction_success_description = העסקה הושלמה ואושרה ברשת. באפשרותך לעיין בפרטים כדי לאמת את מצבה.
