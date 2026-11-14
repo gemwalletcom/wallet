@@ -160,7 +160,7 @@ mod tests {
                         value: BigUint::from(15555500u64)
                     }))
                 ),
-                eta_in_seconds: Some(120),
+                eta_in_seconds: Some(183),
             }
         );
     }

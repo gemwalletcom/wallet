@@ -5,9 +5,11 @@ use serde::{Deserialize, Serialize};
 use serde_serializers::deserialize_bigint_from_str;
 
 use super::{
+    SIGNING_PERIOD_BLOCKS, THORCHAIN_BLOCK_SECONDS, TOKEN_SIGNING_PERIOD_BLOCKS,
     asset::{THORChainAsset, value_to},
     chain::ChainName,
     constants::{THORCHAIN_INBOUND_ADDRESS, ZERO_HASH},
+    quote_mapper,
 };
 use crate::{SwapperError, error::ProviderErrorResponse};
 
@@ -45,6 +47,20 @@ pub struct PlannedOutTx {
     pub chain: String,
     pub coin: TransactionCoin,
     pub refund: bool,
+}
+
+impl PlannedOutTx {
+    fn external_chain(&self) -> Option<ChainName> {
+        ChainName::from_symbol(&self.chain).filter(|name| name.chain() != Chain::Thorchain)
+    }
+
+    fn signing_period_blocks(&self, chain: ChainName) -> u32 {
+        if chain.is_evm_chain() && self.coin.asset_id().is_some_and(|asset_id| asset_id.token_id.is_some()) {
+            TOKEN_SIGNING_PERIOD_BLOCKS
+        } else {
+            SIGNING_PERIOD_BLOCKS
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -104,7 +120,7 @@ pub struct TransactionStages {
     inbound_confirmation_counted: Option<InboundConfirmationStage>,
     pub swap_status: Option<TransactionSwapStage>,
     outbound_delay: Option<OutboundDelayStage>,
-    pub outbound_signed: Option<TransactionCompletionStage>,
+    pub outbound_signed: Option<OutboundSignedStage>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -115,11 +131,26 @@ struct InboundConfirmationStage {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TransactionSwapStage {
     pub pending: bool,
+    streaming: Option<StreamingSwapStage>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TransactionCompletionStage {
+struct StreamingSwapStage {
+    interval: u32,
+    quantity: u32,
+    count: u32,
+}
+
+impl StreamingSwapStage {
+    fn remaining_seconds(&self) -> u32 {
+        self.quantity.saturating_sub(self.count).saturating_mul(self.interval).saturating_mul(THORCHAIN_BLOCK_SECONDS)
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OutboundSignedStage {
     pub completed: bool,
+    blocks_since_scheduled: Option<u32>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -177,8 +208,25 @@ impl TransactionStatus {
         }
 
         let confirmation = self.stages.inbound_confirmation_counted.as_ref().and_then(|stage| stage.remaining_confirmation_seconds).unwrap_or_default();
-        let outbound = self.stages.outbound_delay.as_ref().and_then(|stage| stage.remaining_delay_seconds).unwrap_or_default();
-        confirmation.checked_add(outbound).filter(|seconds| *seconds > 0)
+        let streaming = self.stages.swap_status.as_ref().and_then(|stage| stage.streaming.as_ref()).map_or(0, StreamingSwapStage::remaining_seconds);
+        let delay = self.stages.outbound_delay.as_ref().and_then(|stage| stage.remaining_delay_seconds).unwrap_or_default();
+        let payout = self.payout_seconds().unwrap_or_default();
+        [confirmation, streaming, delay, payout].into_iter().try_fold(0, u32::checked_add).filter(|seconds| *seconds > 0)
+    }
+
+    fn payout_seconds(&self) -> Option<u32> {
+        let stage = self.stages.outbound_signed.as_ref().filter(|stage| !stage.completed)?;
+        let (payout, chain) = self.planned_out_txs.iter().flatten().filter(|tx| !tx.refund).find_map(|tx| Some((tx, tx.external_chain()?)))?;
+        let allowance = quote_mapper::outbound_seconds(chain.chain());
+        let Some(blocks) = stage.blocks_since_scheduled else {
+            return Some(allowance);
+        };
+        let period = payout.signing_period_blocks(chain);
+        let assigned_blocks = blocks % period;
+        allowance
+            .checked_sub(assigned_blocks.saturating_mul(THORCHAIN_BLOCK_SECONDS))
+            .filter(|seconds| *seconds > 0)
+            .or_else(|| (period - assigned_blocks).checked_mul(THORCHAIN_BLOCK_SECONDS)?.checked_add(allowance))
     }
 
     fn is_refunded(&self) -> bool {
@@ -452,10 +500,20 @@ mod tests {
     fn test_transaction_status_eta() {
         let mut status: TransactionStatus = serde_json::from_str(include_str!("testdata/tx_status_bnb_to_tron_pending.json")).unwrap();
         assert_eq!(status.swap_status(), SwapStatus::Pending);
-        assert_eq!(status.eta_in_seconds(), Some(120));
+        assert_eq!(status.eta_in_seconds(), Some(183));
 
+        status.stages.swap_status = Some(TransactionSwapStage {
+            pending: true,
+            streaming: Some(StreamingSwapStage { interval: 2, quantity: 10, count: 4 }),
+        });
+        assert_eq!(status.eta_in_seconds(), Some(255));
+
+        status.stages.swap_status = Some(TransactionSwapStage { pending: false, streaming: None });
         status.stages.inbound_confirmation_counted = None;
         status.stages.outbound_delay = None;
+        assert_eq!(status.eta_in_seconds(), Some(63));
+
+        status.planned_out_txs = None;
         assert_eq!(status.eta_in_seconds(), None);
 
         status.stages.inbound_confirmation_counted = Some(InboundConfirmationStage { remaining_confirmation_seconds: Some(0) });
@@ -467,6 +525,22 @@ mod tests {
         });
         status.stages.outbound_delay = Some(OutboundDelayStage { remaining_delay_seconds: Some(1) });
         assert_eq!(status.eta_in_seconds(), None);
+
+        let mut status: TransactionStatus = serde_json::from_str(include_str!("testdata/tx_status_btc_to_eth_usdc_outbound_late.json")).unwrap();
+        assert_eq!(status.swap_status(), SwapStatus::Pending);
+        assert_eq!(status.eta_in_seconds(), Some(1380));
+
+        for (blocks_since_scheduled, eta) in [(None, 72), (Some(0), 72), (Some(5), 42), (Some(12), 5400), (Some(400), 3072), (Some(905), 42)] {
+            status.stages.outbound_signed = Some(OutboundSignedStage { completed: false, blocks_since_scheduled });
+            assert_eq!(status.eta_in_seconds(), Some(eta), "{blocks_since_scheduled:?}");
+        }
+
+        status.stages.outbound_signed = Some(OutboundSignedStage {
+            completed: false,
+            blocks_since_scheduled: Some(400),
+        });
+        status.planned_out_txs.as_mut().unwrap()[0].coin.asset = "ETH.ETH".to_string();
+        assert_eq!(status.eta_in_seconds(), Some(1272));
     }
 
     #[test]
