@@ -59,17 +59,4 @@ struct LightningReceiveSceneViewModelTests {
         await model.onRefresh()
         #expect(completed != nil)
     }
-
-    @Test
-    func unlockingCreatesTheInvoice() async {
-        let service = GemLightningServiceMock()
-        service.receiveError = GemServiceError.Cancelled
-        let model = LightningReceiveSceneViewModel.mock(service: service)
-        await model.onLoad()
-
-        service.receiveError = nil
-        await model.onUnlock()
-
-        #expect(model.state == .ready(service.receive))
-    }
 }

@@ -91,7 +91,6 @@ public actor AppLifecycleService: Sendable {
             _ = await (observers, lightning)
         case .background:
             debugLog("AppLifecycleService: App background — disconnecting observers")
-            lightningService.lockAll()
             await disconnectObservers()
         case .inactive:
             debugLog("AppLifecycleService: App inactive")

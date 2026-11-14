@@ -76,7 +76,6 @@ public extension ViewModelFactory {
     func lightningReceiveScene(wallet: Wallet, onComplete: VoidAction) -> LightningReceiveSceneViewModel {
         LightningReceiveSceneViewModel(
             service: lightningService,
-            biometry: biometryService,
             walletId: wallet.id,
             onComplete: { [toastPresenter] message in
                 Task { toastPresenter.present(message) }

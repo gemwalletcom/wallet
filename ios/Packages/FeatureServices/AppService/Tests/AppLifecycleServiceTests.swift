@@ -169,15 +169,4 @@ struct AppLifecycleServiceTests {
         #expect(perpetuals.syncMarketsCount == 1, "a wallet switch loads markets that were never synced")
         #expect(perpetuals.clearMarketsCount == 0)
     }
-
-    @Test
-    func backgroundLocksLightning() async {
-        let lightning = GemLightningServiceMock()
-        let service = AppLifecycleService.mock(lightningService: lightning)
-
-        await service.onScenePhase(.background, unlocked: {})
-
-        #expect(lightning.lockAllCallsCount == 1)
-        #expect(lightning.openEnabledCallsCount == 0)
-    }
 }

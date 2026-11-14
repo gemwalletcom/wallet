@@ -17,7 +17,6 @@ import SwiftUI
 @MainActor
 public final class LightningReceiveSceneViewModel: Sendable {
     private let service: any GemLightningServiceProtocol
-    private let biometry: any BiometryAuthenticatable
     private let walletId: WalletId
     private let onComplete: (ToastMessage) -> Void
     private let generator = QRCodeGenerator()
@@ -27,9 +26,8 @@ public final class LightningReceiveSceneViewModel: Sendable {
     var renderedImage: UIImage?
     var isPresentingCopyToast = false
 
-    public init(service: any GemLightningServiceProtocol, biometry: any BiometryAuthenticatable, walletId: WalletId, onComplete: @escaping (ToastMessage) -> Void) {
+    public init(service: any GemLightningServiceProtocol, walletId: WalletId, onComplete: @escaping (ToastMessage) -> Void) {
         self.service = service
-        self.biometry = biometry
         self.walletId = walletId
         self.onComplete = onComplete
     }
@@ -98,15 +96,6 @@ extension LightningReceiveSceneViewModel {
         }
     }
 
-    func onUnlock() async {
-        do {
-            try await biometry.authenticate(reason: unlockTitle)
-        } catch {
-            debugLog("lightning receive: unlock failed: \(error)")
-            return
-        }
-        await onLoad()
-    }
 
     func onCopy() {
         isPresentingCopyToast = true

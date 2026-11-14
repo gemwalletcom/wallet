@@ -15,15 +15,11 @@ public final class GemLightningServiceMock: GemLightningServiceProtocol, @unchec
 
     public private(set) var receiveAmounts: [String] = []
     public private(set) var openEnabledCallsCount = 0
-    public private(set) var lockAllCallsCount = 0
 
     public init(receive: GemLightningReceive = .mock(qr: "lightning:lnbc1invoice", copy: .mock(value: "lnbc1invoice"))) {
         self.receive = receive
     }
 
-    public func lockAll() {
-        lockAllCallsCount += 1
-    }
 
     public func openEnabled() async throws {
         openEnabledCallsCount += 1

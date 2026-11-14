@@ -11,10 +11,9 @@ import Transfer
 public extension LightningReceiveSceneViewModel {
     static func mock(
         service: any GemLightningServiceProtocol = GemLightningServiceMock(),
-        biometry: any BiometryAuthenticatable = BiometryAuthenticationMock(),
         walletId: WalletId = .mock(),
         onComplete: @escaping (ToastMessage) -> Void = { _ in },
     ) -> LightningReceiveSceneViewModel {
-        LightningReceiveSceneViewModel(service: service, biometry: biometry, walletId: walletId, onComplete: onComplete)
+        LightningReceiveSceneViewModel(service: service, walletId: walletId, onComplete: onComplete)
     }
 }

@@ -98,6 +98,7 @@ struct ServicesFactory {
             explorer: explorerService,
             names: nameService,
             avatar: avatarService,
+            secure: GemstoneSecurePreferencesStore(namespace: "gateway"),
         )
         let pushNotificationEnablerService = PushNotificationEnablerService(preferencesService: preferencesService, systemPrompt: storages.systemPrompt)
         let notificationPermissions = GemstoneNotificationPermissions(service: pushNotificationEnablerService)
@@ -152,13 +153,12 @@ struct ServicesFactory {
             session: walletSessionService,
             transactionStatus: GemstoneTransactionStatusService(service: transactionStateService),
         )
-        let unlockContext = UnlockContextStore()
         let lightningService = storages.keystore.lightningService(
+            secure: GemstoneSecurePreferencesStore(namespace: "gateway"),
             preferences: walletPreferencesService,
             balances: balanceService,
             transactions: transactionsService,
             session: walletSessionService,
-            unlockContext: unlockContext,
         )
 
         let bannerService = Gemstone.GemBannerService(store: gemstoneBannerStore, platform: .ios)
@@ -338,7 +338,6 @@ struct ServicesFactory {
             keystorePassword: storages.keystorePassword,
             securityService: Gemstone.GemSecurityService(),
             systemPrompt: storages.systemPrompt,
-            unlockContext: unlockContext,
         )
         let lockModel = MainActor.assumeIsolated { LockSceneViewModel(service: biometryService) }
         let navigationRouter = NavigationRouter(

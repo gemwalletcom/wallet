@@ -45,7 +45,7 @@ public struct LightningReceiveScene: View {
         case .locked:
             ContentUnavailableView {} actions: {
                 Button(model.unlockTitle) {
-                    Task { await model.onUnlock() }
+                    Task { await model.onLoad() }
                 }
             }
         case .unavailable:

@@ -13,6 +13,7 @@ public extension LocalKeystore {
         explorer: GemExplorerService,
         names: GemNameService,
         avatar: GemAvatarService,
+        secure: any GemSecureStore,
     ) -> GemWalletService {
         GemWalletService(
             keystore: gemKeystore,
@@ -25,6 +26,7 @@ public extension LocalKeystore {
             explorer: explorer,
             names: names,
             avatar: avatar,
+            secure: secure,
         )
     }
 
@@ -69,15 +71,16 @@ public extension LocalKeystore {
     }
 
     func lightningService(
+        secure: any GemSecureStore,
         preferences: GemWalletPreferencesService,
         balances: GemBalanceService,
         transactions: GemTransactionsService,
         session: GemWalletSessionService,
-        unlockContext: UnlockContextStore,
     ) -> GemLightningService {
         GemLightningService(
             keystore: gemKeystore,
-            password: GemstoneKeystorePassword(password: keystorePassword, unlockContext: unlockContext),
+            password: password,
+            secure: secure,
             preferences: preferences,
             balances: balances,
             transactions: transactions,

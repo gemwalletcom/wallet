@@ -38,6 +38,7 @@ public extension GemWalletService {
             explorer: GemExplorerService(preferences: appPreferences),
             names: .mock(),
             avatar: GemAvatarService(wallets: gemWalletStore, files: GemstoneFileStore(), provider: NativeProvider()),
+            secure: GemSecureStoreMock(),
         )
     }
 }
