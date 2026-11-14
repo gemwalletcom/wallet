@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 use std::future::Future;
-use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, LazyLock, PoisonError, RwLock};
 
 use async_trait::async_trait;
@@ -22,54 +21,32 @@ pub(crate) fn sessions() -> Arc<LightningSessionRegistry> {
 pub(crate) struct LightningSessionRegistry {
     wallets: RwLock<HashMap<String, Arc<LightningWallet>>>,
     opening: AsyncMutex<()>,
-    generation: AtomicU64,
 }
 
 impl LightningSessionRegistry {
-    pub(crate) fn generation(&self) -> u64 {
-        self.generation.load(Ordering::SeqCst)
-    }
-
-    pub(crate) async fn open<F, Fut>(&self, generation: u64, address: &str, open: F) -> Result<(Arc<LightningWallet>, bool), GemServiceError>
+    pub(crate) async fn open<F, Fut>(&self, address: &str, open: F) -> Result<(Arc<LightningWallet>, bool), GemServiceError>
     where
         F: FnOnce() -> Fut,
         Fut: Future<Output = Result<LightningWallet, GemServiceError>>,
     {
         let _opening = self.opening.lock().await;
-        if self.generation() != generation {
-            return Err(LightningError::Locked.into());
-        }
         if let Ok(wallet) = self.wallet(address) {
             return Ok((wallet, false));
         }
         let wallet = Arc::new(open().await?);
-        let mut wallets = self.wallets.write().unwrap_or_else(PoisonError::into_inner);
-        if self.generation() != generation {
-            return Err(LightningError::Locked.into());
-        }
         if wallet.address() != address {
             return Err(LightningError::AccountMismatch.into());
         }
-        wallets.insert(address.to_string(), wallet.clone());
+        self.wallets.write().unwrap_or_else(PoisonError::into_inner).insert(address.to_string(), wallet.clone());
         Ok((wallet, true))
     }
 
     pub(crate) async fn close_and_remove(&self, address: Option<&str>, remove: impl FnOnce() -> Result<(), GemServiceError>) -> Result<(), GemServiceError> {
         let _opening = self.opening.lock().await;
-        let wallet = address.and_then(|address| self.wallets.write().unwrap_or_else(PoisonError::into_inner).remove(address));
-        if let Some(wallet) = wallet {
-            wallet.lock();
+        if let Some(address) = address {
+            self.wallets.write().unwrap_or_else(PoisonError::into_inner).remove(address);
         }
         remove()
-    }
-
-    pub(crate) fn lock_all(&self) {
-        let wallets: Vec<_> = {
-            let mut wallets = self.wallets.write().unwrap_or_else(PoisonError::into_inner);
-            self.generation.fetch_add(1, Ordering::SeqCst);
-            wallets.drain().map(|(_, wallet)| wallet).collect()
-        };
-        wallets.iter().for_each(|wallet| wallet.lock());
     }
 
     fn wallet(&self, address: &str) -> Result<Arc<LightningWallet>, LightningError> {

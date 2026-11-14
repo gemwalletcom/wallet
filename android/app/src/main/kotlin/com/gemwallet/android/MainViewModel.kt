@@ -7,7 +7,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.WalletPasswordProtection
-import com.gemwallet.android.application.lightning.cases.OpenLightning
 import com.gemwallet.android.application.security.cases.SecurityPreferences
 import com.gemwallet.android.application.wallet_connect.cases.IsWalletConnectEnabled
 import com.gemwallet.android.application.wallet_connect.cases.PairWalletConnect
@@ -51,7 +50,6 @@ class MainViewModel @Inject constructor(
     private val appStartService: GemAppStartServiceInterface,
     private val migrateV3KeystoreService: MigrateV3KeystoreService,
     private val walletService: GemWalletServiceInterface,
-    private val openLightning: OpenLightning,
     private val pendingNavigationCoordinator: PendingNavigationCoordinator,
     private val toastPresenter: ToastPresenter,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
@@ -117,9 +115,6 @@ class MainViewModel @Inject constructor(
                 .distinctUntilChanged()
                 .filter { it }
                 .collect { toastPresenter.emitToast(ToastMessage(context.getString(R.string.common_loading), R.drawable.ic_refresh)) }
-        }
-        viewModelScope.launch {
-            isUnlocked.distinctUntilChanged().filter { it }.collect { openLightning.openLightning() }
         }
         viewModelScope.launch(ioDispatcher) { appStartService.run().forEach(::logAppStartFailure) }
         viewModelScope.launch(ioDispatcher) {

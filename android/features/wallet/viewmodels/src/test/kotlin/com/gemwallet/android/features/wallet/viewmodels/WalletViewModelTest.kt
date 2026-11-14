@@ -206,7 +206,6 @@ class WalletViewModelTest {
 
     private fun createViewModel(preferences: ObservablePreferences = mockk(relaxed = true), ioDispatcher: CoroutineDispatcher = testDispatcher) = WalletViewModel(
         service = service,
-        openLightning = mockk(relaxed = true),
         getActiveAssetsInfo = getActiveAssetsInfo,
         getWalletHomeState = getWalletHomeState,
         getSession = getSession,

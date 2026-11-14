@@ -7,7 +7,6 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.assets.cases.GetActiveAssetsInfo
 import com.gemwallet.android.application.assets.cases.GetWalletHomeState
-import com.gemwallet.android.application.lightning.cases.OpenLightning
 import com.gemwallet.android.application.preferences.cases.ObservablePreferences
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
@@ -45,7 +44,6 @@ import javax.inject.Inject
 @HiltViewModel
 class WalletViewModel @Inject constructor(
     private val service: GemWalletHomeServiceInterface,
-    private val openLightning: OpenLightning,
     getActiveAssetsInfo: GetActiveAssetsInfo,
     getWalletHomeState: GetWalletHomeState,
     private val getSession: GetSession,
@@ -109,7 +107,6 @@ class WalletViewModel @Inject constructor(
             runCatchingCancellable { service.refreshNfts() }
                 .onFailure { Log.e(TAG, "nfts refresh failed", it) }
         }
-        openLightning.openLightning()
         runCatchingCancellable { service.refresh() }
             .onFailure { Log.e(TAG, "assets refresh failed", it) }
         isLoadingAssets.value = service.showsInitialLoading()

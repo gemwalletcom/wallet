@@ -35,7 +35,7 @@ use primitives::{Chain, ChainAsset, NFTData, Wallet, WalletId, WalletSource, Wal
 
 use crate::keystore::decode_password;
 use crate::keystore::{GemImportType, GemKeystore, GemWalletImport, keystore_id_for_wallet};
-use crate::lightning::sessions;
+use crate::lightning::{account_key_name, sessions};
 use crate::models::state::GemListPhase;
 use crate::services::avatar::GemAvatarService;
 use crate::services::empty_state::{GemEmptyStateKind, screen_empty_state};
@@ -46,7 +46,7 @@ use crate::services::localization::GemLocalizedText;
 use crate::services::name::GemNameService;
 use crate::services::nft::model::GemNftList;
 use crate::services::nft::rules as nft_rules;
-use crate::services::preferences::GemPreferencesService;
+use crate::services::preferences::{GemPreferencesService, GemSecureStore};
 use crate::services::wallet_preferences::GemWalletPreferencesService;
 use crate::services::wallet_session::GemWalletSessionService;
 
@@ -76,6 +76,7 @@ pub struct GemWalletService {
     explorer: Arc<GemExplorerService>,
     names: Arc<GemNameService>,
     avatar: Arc<GemAvatarService>,
+    secure: Arc<dyn GemSecureStore>,
 }
 
 #[uniffi::export]
@@ -92,6 +93,7 @@ impl GemWalletService {
         explorer: Arc<GemExplorerService>,
         names: Arc<GemNameService>,
         avatar: Arc<GemAvatarService>,
+        secure: Arc<dyn GemSecureStore>,
     ) -> Self {
         Self {
             keystore,
@@ -104,6 +106,7 @@ impl GemWalletService {
             explorer,
             names,
             avatar,
+            secure,
         }
     }
 
@@ -154,7 +157,12 @@ impl GemWalletService {
         let wallet = self.wallet(wallet_id.clone()).await?;
         if wallet.wallet_type != WalletType::View {
             let address = wallet.account(Chain::Lightning).map(|account| account.address.as_str());
-            sessions().close_and_remove(address, || Ok(self.keystore.delete_wallet_secrets(wallet.id.id(), rules::legacy_keystore_id(&wallet))?)).await?;
+            sessions()
+                .close_and_remove(address, || {
+                    self.secure.remove(account_key_name(&keystore_id_for_wallet(wallet.id.id())))?;
+                    Ok(self.keystore.delete_wallet_secrets(wallet.id.id(), rules::legacy_keystore_id(&wallet))?)
+                })
+                .await?;
         }
         self.store.delete_wallet(wallet.id.clone()).await?;
         self.names.delete_names(rules::wallet_address_names(&wallet)).await?;

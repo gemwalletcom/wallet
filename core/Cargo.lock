@@ -3329,7 +3329,6 @@ dependencies = [
  "bitcoin",
  "chain_traits",
  "chrono",
- "frost-secp256k1-tr",
  "gem_hash",
  "lightning-invoice",
  "num-bigint 0.5.1",

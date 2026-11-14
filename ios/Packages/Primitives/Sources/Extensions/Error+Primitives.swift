@@ -8,9 +8,4 @@ public extension Error {
         let error = self as NSError
         return error.domain == NSOSStatusErrorDomain && error.code == Int(errSecUserCanceled)
     }
-
-    var isInteractionNotAllowed: Bool {
-        let error = self as NSError
-        return error.domain == NSOSStatusErrorDomain && error.code == Int(errSecInteractionNotAllowed)
-    }
 }

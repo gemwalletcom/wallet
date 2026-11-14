@@ -22,7 +22,7 @@ use crate::services::avatar::GemAvatarService;
 use crate::services::explorer::GemExplorerService;
 use crate::services::file::testkit::NoopFileStore;
 use crate::services::preferences::GemPreferencesService;
-use crate::services::preferences::testkit::MemoryPreferencesStore;
+use crate::services::preferences::testkit::{MemoryPreferencesStore, MemorySecureStore};
 use crate::services::wallet_preferences::GemWalletPreferencesService;
 use crate::services::wallet_preferences::testkit::MemoryWalletPreferencesStore;
 use crate::services::wallet_session::GemWalletSessionService;
@@ -183,6 +183,7 @@ impl WalletTestkit {
             Arc::new(GemExplorerService::new(app_preferences)),
             names,
             Arc::new(GemAvatarService::mock(wallets.clone(), Arc::new(NoopFileStore))),
+            Arc::new(MemorySecureStore::default()),
         ));
         Self {
             service,

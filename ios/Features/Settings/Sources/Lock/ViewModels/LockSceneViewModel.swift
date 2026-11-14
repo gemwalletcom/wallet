@@ -156,7 +156,6 @@ extension LockSceneViewModel {
     private func lockIfExpired() {
         if state == .unlocked, shouldLock {
             state = .locked
-            service.didLock()
         }
     }
 

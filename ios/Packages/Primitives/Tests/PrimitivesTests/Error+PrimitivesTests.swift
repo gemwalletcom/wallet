@@ -15,12 +15,4 @@ struct ErrorPrimitivesTests {
         #expect(!NSError(domain: NSURLErrorDomain, code: Int(errSecUserCanceled)).isAuthenticationCancelled)
         #expect(!NSError(domain: "GemWalletTests", code: Int(errSecUserCanceled)).isAuthenticationCancelled)
     }
-
-    @Test
-    func isInteractionNotAllowed() {
-        #expect(NSError(domain: NSOSStatusErrorDomain, code: Int(errSecInteractionNotAllowed)).isInteractionNotAllowed)
-
-        #expect(!NSError(domain: NSOSStatusErrorDomain, code: Int(errSecUserCanceled)).isInteractionNotAllowed)
-        #expect(!NSError(domain: "GemWalletTests", code: Int(errSecInteractionNotAllowed)).isInteractionNotAllowed)
-    }
 }

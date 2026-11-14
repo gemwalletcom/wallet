@@ -132,7 +132,6 @@ bitcoin = { version = "0.32.102" }
 bitcoin_hashes = { version = "0.14.101" }
 lightning-invoice = { version = "0.33.1" }
 spark-wallet = { git = "https://github.com/breez/spark-sdk", tag = "0.26.1" }
-frost-secp256k1-tr = { git = "https://github.com/lightsparkdev/frost", rev = "9aaf1b6b9fa3c2c3c2c7c70da83061deda1a9180" }
 
 # Numbers
 num-bigint = { version = "0.5.1", features = ["std", "serde"] }

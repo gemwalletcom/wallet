@@ -274,7 +274,6 @@ struct LockSceneViewModelTests {
 
         #expect(viewModel.isUnlocking)
         #expect(viewModel.isLocked)
-        #expect(mockService.didLockCallsCount == 1)
 
         await viewModel.startUnlock()?.value
         #expect(viewModel.state == .unlocked)
@@ -375,7 +374,6 @@ struct LockSceneViewModelTests {
         #expect(viewModel.state == .locked)
         #expect(viewModel.isLocked)
         #expect(mockService.authenticateCallsCount == 0)
-        #expect(mockService.didLockCallsCount == 1)
     }
 
     @Test
@@ -388,7 +386,6 @@ struct LockSceneViewModelTests {
 
         #expect(viewModel.state == .unlocked)
         #expect(!viewModel.isLocked)
-        #expect(mockService.didLockCallsCount == 0)
     }
 
     @Test

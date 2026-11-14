@@ -11,8 +11,6 @@ mod model;
 #[cfg(feature = "rpc")]
 pub mod provider;
 #[cfg(feature = "wallet")]
-mod signer;
-#[cfg(feature = "wallet")]
 mod store;
 #[cfg(any(test, feature = "testkit"))]
 pub mod testkit;

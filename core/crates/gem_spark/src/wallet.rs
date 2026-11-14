@@ -1,12 +1,11 @@
 use std::collections::HashSet;
 use std::str::FromStr;
-use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, LazyLock, Mutex, PoisonError};
 
 use bitcoin::secp256k1::ecdsa::Signature;
 use bitcoin::secp256k1::{Message, PublicKey, Secp256k1};
 use primitives::time::unix_timestamp;
-use spark_wallet::{ListTransfersRequest, Network, Order, PagingFilter, SparkSignerAdapter, SparkWallet, SparkWalletConfig, TransferId, WalletBuilder};
+use spark_wallet::{DefaultSigner, ListTransfersRequest, Network, Order, PagingFilter, SparkSignerAdapter, SparkWallet, SparkWalletConfig, TransferId, WalletBuilder};
 use tokio::sync::watch;
 
 use crate::address::SparkAddress;
@@ -15,7 +14,6 @@ use crate::invoice::amount_to_send;
 use crate::keys::AccountKey;
 use crate::mapper::map_transfer;
 use crate::model::{LightningInvoice, LightningPayment, LightningPaymentStatus, LightningSendQuote};
-use crate::signer::LockableSigner;
 use crate::store::{LightningSend, LightningStore};
 
 const SIGNATURE_LEN: usize = 65;
@@ -27,7 +25,7 @@ static IN_FLIGHT: LazyLock<Mutex<HashSet<String>>> = LazyLock::new(Mutex::defaul
 pub struct LightningWallet {
     wallet: Arc<SparkWallet>,
     store: Arc<dyn LightningStore>,
-    lock: SessionLock,
+    cancel: watch::Sender<()>,
 }
 
 enum SendState {
@@ -54,71 +52,18 @@ impl Drop for InFlight {
     }
 }
 
-struct SessionLock {
-    signer: Arc<LockableSigner>,
-    cancel: watch::Sender<()>,
-    sends: AtomicUsize,
-    requested: AtomicBool,
-}
-
-struct SendPermit<'a>(&'a SessionLock);
-
-impl SessionLock {
-    fn new(signer: Arc<LockableSigner>, cancel: watch::Sender<()>) -> Self {
-        Self {
-            signer,
-            cancel,
-            sends: AtomicUsize::new(0),
-            requested: AtomicBool::new(false),
-        }
-    }
-
-    fn request(&self) {
-        self.requested.store(true, Ordering::SeqCst);
-        if self.sends.load(Ordering::SeqCst) == 0 {
-            self.apply();
-        }
-    }
-
-    fn apply(&self) {
-        let _ = self.cancel.send(());
-        self.signer.lock();
-    }
-
-    fn begin_send(&self) -> Result<SendPermit<'_>, LightningError> {
-        self.sends.fetch_add(1, Ordering::SeqCst);
-        let permit = SendPermit(self);
-        if self.requested.load(Ordering::SeqCst) {
-            return Err(LightningError::Locked);
-        }
-        Ok(permit)
-    }
-}
-
-impl Drop for SendPermit<'_> {
-    fn drop(&mut self) {
-        if self.0.sends.fetch_sub(1, Ordering::SeqCst) == 1 && self.0.requested.load(Ordering::SeqCst) {
-            self.0.apply();
-        }
-    }
-}
-
 impl LightningWallet {
     pub async fn open(account: AccountKey, store: Arc<dyn LightningStore>) -> Result<Self, LightningError> {
-        let signer = Arc::new(LockableSigner::new(&account));
+        let signer = Arc::new(DefaultSigner::from_master(account.xpriv()));
         drop(account);
         let (cancel, cancel_receiver) = watch::channel(());
-        let wallet = WalletBuilder::new(SparkWalletConfig::default_config(Network::Mainnet), Arc::new(SparkSignerAdapter::new(signer.clone())))
+        let wallet = WalletBuilder::new(SparkWalletConfig::default_config(Network::Mainnet), Arc::new(SparkSignerAdapter::new(signer)))
             .with_cancellation_token(cancel_receiver)
             .build()
             .await?;
         let wallet = Arc::new(wallet);
         wallet.start_background_processing().await;
-        Ok(Self {
-            wallet,
-            store,
-            lock: SessionLock::new(signer, cancel),
-        })
+        Ok(Self { wallet, store, cancel })
     }
 
     pub fn verify(&self, digest: &[u8; 32], signature: &[u8]) -> bool {
@@ -142,7 +87,6 @@ impl LightningWallet {
     }
 
     pub async fn send(&self, quote: &LightningSendQuote) -> Result<String, LightningError> {
-        let _permit = self.lock.begin_send()?;
         let amount = amount_to_send(&quote.invoice, quote.amount_sats, unix_timestamp())?;
         if let Some(pending) = self.store.get_sends()?.into_iter().find(|send| send.invoice == quote.invoice.invoice) {
             if let (Some(recorded), Some(requested)) = (pending.amount_sats, amount)
@@ -216,10 +160,6 @@ impl LightningWallet {
         synced.and(resumed)
     }
 
-    pub fn lock(&self) {
-        self.lock.request();
-    }
-
     async fn resume_sends(&self) -> Result<(), LightningError> {
         for send in self.store.get_sends()? {
             let _ = self.resume(&send).await;
@@ -253,7 +193,7 @@ impl LightningWallet {
 
 impl Drop for LightningWallet {
     fn drop(&mut self) {
-        self.lock.apply();
+        let _ = self.cancel.send(());
     }
 }
 
@@ -290,8 +230,6 @@ mod chain_integration_tests {
 
         assert_eq!(decode_invoice(&wallet.create_invoice(1000).await.unwrap()).unwrap().amount_sats, Some(1000));
         assert_eq!(decode_invoice(&wallet.create_invoice(0).await.unwrap()).unwrap().amount_sats, None);
-        wallet.lock();
-        assert!(wallet.create_invoice(1000).await.is_err());
     }
 }
 
@@ -301,39 +239,6 @@ mod tests {
     use signer::{SignatureScheme, Signer};
 
     use super::*;
-    use crate::keys::account_key;
-
-    #[test]
-    fn test_session_lock_waits_for_a_running_send() {
-        let signer = Arc::new(LockableSigner::new(&account_key(&[7u8; 64]).unwrap()));
-        let (cancel, _receiver) = watch::channel(());
-        let lock = SessionLock::new(signer.clone(), cancel);
-
-        let permit = lock.begin_send().unwrap();
-        lock.request();
-
-        assert!(!signer.is_locked());
-        assert!(matches!(lock.begin_send(), Err(LightningError::Locked)));
-        assert!(!signer.is_locked());
-
-        drop(permit);
-
-        assert!(signer.is_locked());
-    }
-
-    #[test]
-    fn test_session_lock_locks_at_once_without_a_send() {
-        let signer = Arc::new(LockableSigner::new(&account_key(&[7u8; 64]).unwrap()));
-        let (cancel, _receiver) = watch::channel(());
-        let lock = SessionLock::new(signer.clone(), cancel);
-
-        drop(lock.begin_send().unwrap());
-        assert!(!signer.is_locked());
-
-        lock.request();
-
-        assert!(signer.is_locked());
-    }
 
     #[test]
     fn test_verify_signature() {

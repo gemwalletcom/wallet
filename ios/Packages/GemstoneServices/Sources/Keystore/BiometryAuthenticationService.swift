@@ -10,22 +10,15 @@ public struct BiometryAuthenticationService: BiometryAuthenticatable {
     private let keystorePassword: KeystorePassword
     private let securityService: any GemSecurityServiceProtocol
     private let systemPrompt: SystemPrompt
-    private let unlockContext: UnlockContextStore
 
     public init(
         keystorePassword: KeystorePassword,
         securityService: any GemSecurityServiceProtocol,
         systemPrompt: SystemPrompt,
-        unlockContext: UnlockContextStore,
     ) {
         self.keystorePassword = keystorePassword
         self.securityService = securityService
         self.systemPrompt = systemPrompt
-        self.unlockContext = unlockContext
-    }
-
-    public func didLock() {
-        unlockContext.clear()
     }
 
     public func hasPresentedSystemPrompt(since instant: ContinuousClock.Instant) -> Bool {
@@ -74,7 +67,6 @@ public struct BiometryAuthenticationService: BiometryAuthenticatable {
     public func enableAuthentication(_ enable: Bool, context: LAContext, reason: String) async throws {
         try await authenticate(context: context, reason: reason)
         try keystorePassword.enableAuthentication(enable, context: context)
-        unlockContext.set(context)
     }
 
     @MainActor
@@ -89,7 +81,6 @@ public struct BiometryAuthenticationService: BiometryAuthenticatable {
         guard requiresAuthentication else { return }
         do {
             try keystorePassword.unlock(context: context)
-            unlockContext.set(context)
         } catch where error.isAuthenticationCancelled {
             throw BiometryAuthenticationError.cancelledByUser
         } catch {

@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use gem_spark::{LIGHTNING_SCHEME, LightningWallet, decode_invoice};
+use gem_spark::{AccountKey, LIGHTNING_SCHEME, LightningWallet, decode_invoice};
 use primitives::time::unix_timestamp;
 use primitives::{AddressFormatStyle, Asset, AssetId, Chain, WalletId};
 
@@ -15,6 +15,7 @@ use crate::services::amount::model::{GemAmountField, GemAmountKeyboard, GemAmoun
 use crate::services::amount::rules::value_from_input;
 use crate::services::balance::GemBalanceService;
 use crate::services::error::{GemServiceError, required_account};
+use crate::services::preferences::GemSecureStore;
 use crate::services::transactions::GemTransactionsService;
 use crate::services::wallet::GemKeystorePassword;
 use crate::services::wallet_preferences::GemWalletPreferencesService;
@@ -24,6 +25,7 @@ use crate::services::wallet_session::GemWalletSessionService;
 pub struct GemLightningService {
     keystore: Arc<GemKeystore>,
     password: Arc<dyn GemKeystorePassword>,
+    secure: Arc<dyn GemSecureStore>,
     preferences: Arc<GemWalletPreferencesService>,
     balances: Arc<GemBalanceService>,
     transactions: Arc<GemTransactionsService>,
@@ -36,6 +38,7 @@ impl GemLightningService {
     pub fn new(
         keystore: Arc<GemKeystore>,
         password: Arc<dyn GemKeystorePassword>,
+        secure: Arc<dyn GemSecureStore>,
         preferences: Arc<GemWalletPreferencesService>,
         balances: Arc<GemBalanceService>,
         transactions: Arc<GemTransactionsService>,
@@ -44,6 +47,7 @@ impl GemLightningService {
         Self {
             keystore,
             password,
+            secure,
             preferences,
             balances,
             transactions,
@@ -52,7 +56,6 @@ impl GemLightningService {
     }
 
     pub async fn open_enabled(&self) -> Result<(), GemServiceError> {
-        let generation = sessions().generation();
         let Some(wallet) = self.session.get_current_wallet().await? else {
             return Ok(());
         };
@@ -62,7 +65,7 @@ impl GemLightningService {
         if !self.balances.is_asset_enabled(wallet.id.clone(), AssetId::from_chain(Chain::Lightning)).await? {
             return Ok(());
         }
-        let (lightning, opened) = self.open_wallet(generation, wallet.id.clone(), &account.address).await?;
+        let (lightning, opened) = self.open_wallet(wallet.id.clone(), &account.address).await?;
         if opened {
             let _ = run(async move { lightning.sync().await }).await;
             let _ = self.update_wallet(wallet.id).await;
@@ -91,28 +94,32 @@ impl GemLightningService {
         }
         Ok(receive_state(received, expires_at, unix_timestamp()))
     }
-
-    pub fn lock_all(&self) {
-        sessions().lock_all();
-    }
 }
 
 impl GemLightningService {
     async fn wallet(&self, wallet_id: WalletId) -> Result<Arc<LightningWallet>, GemServiceError> {
-        let generation = sessions().generation();
         let address = required_account(&self.session.require_wallet(wallet_id.clone()).await?, Chain::Lightning)?.address;
-        Ok(self.open_wallet(generation, wallet_id, &address).await?.0)
+        Ok(self.open_wallet(wallet_id, &address).await?.0)
     }
 
-    async fn open_wallet(&self, generation: u64, wallet_id: WalletId, address: &str) -> Result<(Arc<LightningWallet>, bool), GemServiceError> {
+    async fn open_wallet(&self, wallet_id: WalletId, address: &str) -> Result<(Arc<LightningWallet>, bool), GemServiceError> {
         sessions()
-            .open(generation, address, || async {
-                let password = decode_password(&self.password.get_password(false)?);
-                let account = self.keystore.lightning_account_key(&keystore_id_for_wallet(wallet_id.id()), password)?;
+            .open(address, || async {
+                let account = self.account_key(&keystore_id_for_wallet(wallet_id.id()))?;
                 let store = Arc::new(WalletLightningStore::new(self.preferences.clone(), wallet_id.clone()));
                 Ok(run(async move { LightningWallet::open(account, store).await }).await?)
             })
             .await
+    }
+
+    fn account_key(&self, keystore_id: &str) -> Result<AccountKey, GemServiceError> {
+        let key = account_key_name(keystore_id);
+        if let Some(value) = self.secure.get(key.clone())? {
+            return Ok(AccountKey::decode(&value)?);
+        }
+        let account = self.keystore.lightning_account_key(keystore_id, decode_password(&self.password.get_password(false)?))?;
+        self.secure.set(key, account.encode())?;
+        Ok(account)
     }
 
     async fn update_wallet(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
@@ -121,6 +128,10 @@ impl GemLightningService {
         balances?;
         transactions
     }
+}
+
+pub(crate) fn account_key_name(keystore_id: &str) -> String {
+    format!("lightning_account_{keystore_id}")
 }
 
 fn receive(invoice: String, asset: Asset) -> GemLightningReceive {
