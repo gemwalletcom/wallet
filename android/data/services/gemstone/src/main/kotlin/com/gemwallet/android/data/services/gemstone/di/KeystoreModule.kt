@@ -6,16 +6,13 @@ import com.gemwallet.android.application.lightning.cases.OpenLightning
 import com.gemwallet.android.data.services.gemstone.lightning.LightningSessionObserver
 import com.gemwallet.android.data.services.gemstone.stores.DeviceAuthentication
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneKeystorePassword
-import com.gemwallet.android.data.services.gemstone.stores.GemstoneLightningStore
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
 import com.gemwallet.android.data.services.gemstone.stores.LightningKeystorePassword
-import com.gemwallet.android.data.services.store.database.LightningDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import uniffi.gemstone.GemApiClient
 import uniffi.gemstone.GemAuthService
 import uniffi.gemstone.GemAvatarService
 import uniffi.gemstone.GemBalanceService
@@ -64,7 +61,6 @@ object KeystoreModule {
         explorerService: GemExplorerService,
         nameService: GemNameService,
         avatarService: GemAvatarService,
-        lightningService: GemLightningService,
     ): GemWalletService = GemWalletService(
         keystore,
         GemstoneKeystorePassword(passwordStore, deviceAuthentication),
@@ -76,7 +72,6 @@ object KeystoreModule {
         explorerService,
         nameService,
         avatarService,
-        lightningService,
     )
 
     @Provides
@@ -120,19 +115,17 @@ object KeystoreModule {
     @Provides
     @Singleton
     fun provideGemLightningService(
-        apiClient: GemApiClient,
         keystore: GemKeystore,
         passwordStore: PasswordStore,
         deviceAuthentication: DeviceAuthentication,
-        lightningDao: LightningDao,
+        walletPreferencesService: GemWalletPreferencesService,
         balanceService: GemBalanceService,
         transactionsService: GemTransactionsService,
         walletSessionService: GemWalletSessionService,
     ): GemLightningService = GemLightningService(
-        apiClient,
         keystore,
         LightningKeystorePassword(GemstoneKeystorePassword(passwordStore, deviceAuthentication)),
-        GemstoneLightningStore(lightningDao),
+        walletPreferencesService,
         balanceService,
         transactionsService,
         walletSessionService,
