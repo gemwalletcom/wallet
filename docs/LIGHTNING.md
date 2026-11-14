@@ -49,7 +49,7 @@ Spark is not plain Lightning and must not be presented as plain Bitcoin. Three p
 
 ## Partner attribution
 
-Breez attributes Spark traffic to Gem through an `x-partner-jwt` header on every operator and gateway request. The Breez API key stays on the backend (`breez.key.secret`, `BREEZ_KEY_SECRET` on the API server): `GET /v1/devices/lightning/token` returns Breez's partner token as `{"token", "expiresAt"}`, cached in Redis for half its remaining life (tokens last 7 days). The token names Gem, not the user, so the app keeps one in memory for every wallet. It asks for a new one beside each session open, so a slow or failing backend never delays Lightning, and on each foreground `open_enabled`, whenever the one it holds has less than a day left; it stops sending a token in that last day. Without a token requests go out without the header, which Spark does not require.
+Breez attributes Spark traffic to Gem through an `x-partner-jwt` header on every operator and gateway request. The Breez API key stays on the backend (`breez.key.secret`, `BREEZ_KEY_SECRET` on the API server): `GET /v1/lightning/token`, a public proxy route, returns Breez's partner token as `{"token", "expiresAt"}`, cached in Redis for half its remaining life (tokens last 7 days). The token names Gem, not the user, so the app keeps one in memory for every wallet. It asks for a new one beside each session open, so a slow or failing backend never delays Lightning, and on each foreground `open_enabled`, whenever the one it holds has less than a day left; it stops sending a token in that last day. Without a token requests go out without the header, which Spark does not require.
 
 ## Keys
 
