@@ -1045,6 +1045,18 @@ fun mockGemAddressRow(
     isSelectable = isSelectable,
 )
 
+fun mockGemAmountField(
+    symbol: uniffi.gemstone.GemAmountSymbol = mockGemAmountSymbol(),
+    placement: uniffi.gemstone.GemAmountSymbolPlacement = uniffi.gemstone.GemAmountSymbolPlacement.LEADING,
+    keyboard: uniffi.gemstone.GemAmountKeyboard = uniffi.gemstone.GemAmountKeyboard.DECIMAL,
+) = uniffi.gemstone.GemAmountField(
+    symbol = symbol,
+    placement = placement,
+    keyboard = keyboard,
+)
+
+fun mockGemAmountSymbol(): uniffi.gemstone.GemAmountSymbol = uniffi.gemstone.GemAmountSymbol.Asset(symbol = "")
+
 fun mockGemAppUpdateDestination(): uniffi.gemstone.GemAppUpdateDestination = uniffi.gemstone.GemAppUpdateDestination.Store(url = "")
 
 fun mockGemAppUpdateOffer(
@@ -1401,6 +1413,18 @@ fun mockGemContactSession(
     isSaving = isSaving,
 )
 
+fun mockGemCopy(
+    kind: uniffi.gemstone.GemCopyKind = mockGemCopyKind(),
+    value: String = "",
+    display: String = "",
+) = uniffi.gemstone.GemCopy(
+    kind = kind,
+    value = value,
+    display = display,
+)
+
+fun mockGemCopyKind(): uniffi.gemstone.GemCopyKind = uniffi.gemstone.GemCopyKind.Address(chain = com.wallet.core.primitives.Chain.Bitcoin.string)
+
 fun mockGemCustomFeeField(
     title: uniffi.gemstone.GemListRowTitle = uniffi.gemstone.GemListRowTitle.API,
     input: String = "",
@@ -1596,6 +1620,16 @@ fun mockGemHeaderButton(
 fun mockGemHeaderButtonAction(): uniffi.gemstone.GemHeaderButtonAction = uniffi.gemstone.GemHeaderButtonAction.Send(assetId = null)
 
 fun mockGemInfoTopic(): uniffi.gemstone.GemInfoTopic = uniffi.gemstone.GemInfoTopic.RegionUnavailable(country = "")
+
+fun mockGemLightningReceive(
+    qr: String = "",
+    copy: uniffi.gemstone.GemCopy = mockGemCopy(),
+    field: uniffi.gemstone.GemAmountField = mockGemAmountField(),
+) = uniffi.gemstone.GemLightningReceive(
+    qr = qr,
+    copy = copy,
+    field = field,
+)
 
 fun mockGemLocalizedText(): uniffi.gemstone.GemLocalizedText = uniffi.gemstone.GemLocalizedText.WalletDefaultName(index = 0)
 

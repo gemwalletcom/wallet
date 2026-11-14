@@ -6,11 +6,13 @@ use crate::address::parse_address;
 use crate::address_formatter::format_address;
 use crate::models::custom_types::GemBigInt;
 use crate::models::list::{GemGroup, GemListItem, GemListSectionTitle};
-use crate::payment::{GemPaymentRecipient, GemPaymentStep};
+use crate::payment::{GemPaymentRecipient, GemPaymentStep, asset_step};
 use crate::services::name::GemNameRecordState;
 use crate::services::transfer::{GemRecipient, GemTransferData};
 use crate::services::wallet::rules::sorted_by_wallet_order;
+use payment::PaymentURLDecoder;
 use primitives::TransactionInputType;
+use primitives::payment::Payment;
 
 pub fn validation(chain: Chain, input: &str, state: &GemNameRecordState) -> GemRecipientValidation {
     let address = address(chain, input, state);
@@ -73,7 +75,10 @@ pub fn scan_route(step: GemPaymentStep, recipient_type: &GemRecipientType) -> Ge
 
 pub fn next_step(recipient_type: GemRecipientType, payment: GemPaymentRecipient) -> GemRecipientNext {
     match recipient_type {
-        GemRecipientType::Asset { .. } => GemRecipientNext::Amount { payment },
+        GemRecipientType::Asset { asset } => match requested_transfer(&payment.recipient.address, &asset) {
+            Some(transfer) => GemRecipientNext::Confirm { transfer },
+            None => GemRecipientNext::Amount { payment },
+        },
         GemRecipientType::Nft { nft_asset } => GemRecipientNext::Confirm {
             transfer: GemTransferData {
                 input_type: TransactionInputType::TransferNft {
@@ -97,6 +102,16 @@ pub fn select_step(recipient_type: GemRecipientType, recipient: GemRecipient) ->
             amount: None,
         },
     ))
+}
+
+fn requested_transfer(address: &str, asset: &Asset) -> Option<GemTransferData> {
+    let Ok(Payment::Request { request }) = PaymentURLDecoder::decode(address) else {
+        return None;
+    };
+    match asset_step(&request, asset)? {
+        GemPaymentStep::Confirm { transfer } => Some(transfer),
+        GemPaymentStep::Amount { .. } | GemPaymentStep::Recipient { .. } => None,
+    }
 }
 
 pub fn contact_recipients(contacts: Vec<ContactData>, chain: Chain) -> Vec<GemRecipient> {
@@ -160,6 +175,30 @@ mod tests {
     use super::*;
     use crate::services::recipient::model::GemRecipientSession;
     use primitives::WalletId;
+
+    use gem_spark::testkit::{INVOICE_2000_SATS, INVOICE_AMOUNTLESS};
+
+    #[test]
+    fn test_lightning_invoice_with_amount_goes_to_confirm() {
+        let recipient_type = GemRecipientType::Asset { asset: Asset::from_chain(Chain::Lightning) };
+        let invoice = format!("lightning:{}", INVOICE_2000_SATS);
+
+        let GemRecipientNext::Confirm { transfer } = select_step(recipient_type.clone(), GemRecipient::address(invoice.clone())).unwrap() else {
+            panic!()
+        };
+        assert_eq!(transfer.value, GemBigInt::from(2000u64));
+        assert_eq!(transfer.recipient.address, INVOICE_2000_SATS);
+        let session = GemRecipientSession { address: invoice, ..Default::default() };
+        assert!(matches!(session.next(recipient_type, GemNameRecordState::None).unwrap(), GemRecipientNext::Confirm { .. }));
+    }
+
+    #[test]
+    fn test_lightning_amountless_invoice_asks_for_an_amount() {
+        let recipient_type = GemRecipientType::Asset { asset: Asset::from_chain(Chain::Lightning) };
+
+        assert!(matches!(select_step(recipient_type.clone(), GemRecipient::address(INVOICE_AMOUNTLESS.to_string())).unwrap(), GemRecipientNext::Amount { .. }));
+        assert!(select_step(recipient_type, GemRecipient::address("spark1pgss9qfk8ygtphqqzkj2yhn43k3s7r3g8z822ffvpcm38ym094800574x5numh".to_string())).is_err());
+    }
 
     const ADDRESS: &str = "0x1f9090aae28b8a3dceadf281b0f12828e676c326";
     const CHECKSUMMED: &str = "0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326";

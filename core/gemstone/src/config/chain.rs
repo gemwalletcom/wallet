@@ -38,7 +38,7 @@ pub fn supports_nft_transfer(chain: Chain) -> bool {
 pub fn is_memo_supported(chain: Chain) -> bool {
     match chain.chain_type() {
         ChainType::Solana | ChainType::Cosmos | ChainType::Ton | ChainType::Xrp | ChainType::Stellar | ChainType::Algorand => true,
-        ChainType::Ethereum | ChainType::Bitcoin | ChainType::Near | ChainType::Tron | ChainType::Aptos | ChainType::Sui | ChainType::Polkadot | ChainType::Cardano | ChainType::HyperCore => false,
+        ChainType::Ethereum | ChainType::Bitcoin | ChainType::Near | ChainType::Tron | ChainType::Aptos | ChainType::Sui | ChainType::Polkadot | ChainType::Cardano | ChainType::HyperCore | ChainType::Lightning => false,
     }
 }
 

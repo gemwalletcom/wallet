@@ -161,6 +161,7 @@ fn get_transaction_update(chain: Chain, destination_chain: Option<Chain>, create
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::gateway::GatewayError;
     use num_bigint::BigInt;
     use num_bigint::BigUint;
     use primitives::{SwapProvider, TransactionSwapMetadata, swap::SwapStatus};
@@ -201,6 +202,16 @@ mod tests {
                 .state,
             TransactionState::Confirmed
         );
+    }
+
+    #[test]
+    fn test_get_transaction_update_keeps_retryable_errors() {
+        let expired = DateTime::<Utc>::UNIX_EPOCH;
+
+        assert!(matches!(
+            get_transaction_update(Chain::Lightning, None, expired, Err(GatewayError::Locked.into())),
+            Err(TransactionStatusError::NetworkError(_))
+        ));
     }
 
     #[test]

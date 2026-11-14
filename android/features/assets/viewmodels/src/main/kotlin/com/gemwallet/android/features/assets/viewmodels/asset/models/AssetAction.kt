@@ -68,6 +68,8 @@ fun GemRowAction.detailsAction(assetId: AssetId, network: AssetAction.Navigation
 
     is GemRowAction.Explorer -> AssetAction.OpenUrl(url)
 
+    is GemRowAction.Asset -> AssetAction.OpenNetwork(asset.toPrimitives().id)
+
     GemRowAction.SelectWallet,
     GemRowAction.UnverifiedCollections,
     GemRowAction.Wallets,

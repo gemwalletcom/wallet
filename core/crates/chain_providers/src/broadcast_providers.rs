@@ -50,5 +50,6 @@ fn new_provider(chain: Chain) -> Box<dyn BroadcastProvider> {
         ChainType::Polkadot => Box::new(gem_polkadot::provider::BroadcastProvider),
         ChainType::Cardano => Box::new(gem_cardano::provider::BroadcastProvider),
         ChainType::HyperCore => Box::new(gem_hypercore::provider::BroadcastProvider),
+        ChainType::Lightning => Box::new(gem_spark::provider::BroadcastProvider),
     }
 }

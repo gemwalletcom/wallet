@@ -13,6 +13,7 @@ public enum GemConstants {
     public static let fiatQuoteDebounce: Duration = .milliseconds(250)
     public static let fiatQuoteRefreshInterval: Duration = .seconds(300)
     public static let fiatQuoteCurrency: Primitives.Currency = Primitives.Currency.usd
+    public static let lightningInvoiceDebounce: Duration = .milliseconds(600)
     public static let connectionBannerSettleDelay: Duration = .seconds(10)
     public static let connectionBannerEnabled: Bool = false
     public static let offlineDebounce: Duration = .milliseconds(500)

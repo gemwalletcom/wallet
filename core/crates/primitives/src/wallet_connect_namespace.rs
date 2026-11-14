@@ -26,7 +26,7 @@ impl WalletConnectCAIP2 {
             ChainType::Sui => Some(WalletConnectCAIP2::Sui.as_ref().to_string()),
             ChainType::Ton => Some(WalletConnectCAIP2::Ton.as_ref().to_string()),
             ChainType::Tron => Some(WalletConnectCAIP2::Tron.as_ref().to_string()),
-            ChainType::Bitcoin | ChainType::Aptos | ChainType::Xrp | ChainType::Near | ChainType::Stellar | ChainType::Polkadot | ChainType::Cardano | ChainType::HyperCore => None,
+            ChainType::Bitcoin | ChainType::Aptos | ChainType::Xrp | ChainType::Near | ChainType::Stellar | ChainType::Polkadot | ChainType::Cardano | ChainType::HyperCore | ChainType::Lightning => None,
         }
     }
 
@@ -52,7 +52,7 @@ impl WalletConnectCAIP2 {
             ChainType::Sui => Some("mainnet".to_string()),
             ChainType::Ton => Some("-239".to_string()),
             ChainType::Tron => chain.network_id_value().map(|value| value.to_string()),
-            ChainType::Bitcoin | ChainType::Aptos | ChainType::Xrp | ChainType::Near | ChainType::Stellar | ChainType::Polkadot | ChainType::Cardano | ChainType::HyperCore => None,
+            ChainType::Bitcoin | ChainType::Aptos | ChainType::Xrp | ChainType::Near | ChainType::Stellar | ChainType::Polkadot | ChainType::Cardano | ChainType::HyperCore | ChainType::Lightning => None,
         }
     }
 

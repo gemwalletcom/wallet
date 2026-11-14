@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use primitives::currency::Currency;
-use primitives::{Asset, AssetBasic, AssetId, PerpetualId, Wallet, WalletType};
+use primitives::{Asset, AssetBasic, AssetId, Chain, PerpetualId, Wallet, WalletType};
 
 use super::model::{
     GemAssetAction, GemAssetFilter, GemSelectAssetFlow, GemSelectAssetType, GemSelectAssetWalletFlow, GemWalletSearchInput, GemWalletSearchLimits, GemWalletSearchResultsInput, GemWalletSearchResultsView, GemWalletSearchView,
@@ -9,6 +9,7 @@ use super::model::{
 use super::rules;
 use crate::services::chain::rules as chain_rules;
 
+use crate::lightning::GemLightningService;
 use crate::services::balance::GemBalanceService;
 use crate::services::error::GemServiceError;
 use crate::services::perpetual::GemPerpetualService;
@@ -28,6 +29,7 @@ pub struct GemAssetSelectionService {
     perpetuals: Arc<GemPerpetualService>,
     session: Arc<GemWalletSessionService>,
     swap: Arc<GemSwapService>,
+    lightning: Arc<GemLightningService>,
 }
 
 #[uniffi::export]
@@ -41,6 +43,7 @@ impl GemAssetSelectionService {
         perpetuals: Arc<GemPerpetualService>,
         session: Arc<GemWalletSessionService>,
         swap: Arc<GemSwapService>,
+        lightning: Arc<GemLightningService>,
     ) -> Self {
         Self {
             search,
@@ -50,6 +53,7 @@ impl GemAssetSelectionService {
             perpetuals,
             session,
             swap,
+            lightning,
         }
     }
 
@@ -109,7 +113,12 @@ impl GemAssetSelectionService {
     }
 
     pub async fn set_assets_enabled(&self, asset_ids: Vec<AssetId>, enabled: bool) -> Result<(), GemServiceError> {
-        self.balances.set_assets_enabled(self.session.current_wallet_id()?, asset_ids, enabled).await
+        let opens_lightning = enabled && asset_ids.contains(&AssetId::from_chain(Chain::Lightning));
+        self.balances.set_assets_enabled(self.session.current_wallet_id()?, asset_ids, enabled).await?;
+        if opens_lightning {
+            let _ = self.lightning.open_enabled().await;
+        }
+        Ok(())
     }
 
     pub async fn set_asset_pinned(&self, asset: Asset, pinned: bool) -> Result<GemToast, GemServiceError> {

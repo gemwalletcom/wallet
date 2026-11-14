@@ -10,6 +10,7 @@ pub enum GemRefreshKind {
     Wallet,
     Chart,
     Confirm,
+    Receive,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]

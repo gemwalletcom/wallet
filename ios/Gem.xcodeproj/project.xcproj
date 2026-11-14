@@ -99,6 +99,7 @@
                 { "path": "AmountNavigationStack.swift", "target-membership": [ "Gem/compile-sources" ] },
                 { "path": "AmountNavigationView.swift", "target-membership": [ "Gem/compile-sources" ] },
                 { "path": "ConfirmTransferNavigationView.swift", "target-membership": [ "Gem/compile-sources" ] },
+                { "path": "ReceiveNavigationView.swift", "target-membership": [ "Gem/compile-sources" ] },
                 { "path": "RecipientNavigationView.swift", "target-membership": [ "Gem/compile-sources" ] },
                 { "path": "ConfirmTransferNavigationStack.swift", "target-membership": [ "Gem/compile-sources" ] },
                 { "path": "PaymentNavigationStack.swift", "target-membership": [ "Gem/compile-sources" ] },

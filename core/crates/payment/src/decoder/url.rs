@@ -3,7 +3,7 @@ use std::str::FromStr;
 use super::error::{PaymentDecoderError, Result};
 use primitives::{Chain, ChainType, HTTPS_URL_SCHEME, WALLET_CONNECT_URL_SCHEME, payment::Payment};
 
-use super::{bip21, bip321, erc681, solana_pay, ton_pay, wallet_connect_pay, xrp};
+use super::{bip21, bip321, erc681, lightning, solana_pay, ton_pay, wallet_connect_pay, xrp};
 
 const DOGECOIN_SCHEME: &str = "dogecoin";
 const RIPPLE_SCHEME: &str = "ripple";
@@ -17,7 +17,7 @@ impl PaymentURLDecoder {
         let uri = string.trim();
         let uri = uri.split_once('#').map_or(uri, |(uri, _)| uri);
         let Some((scheme, path)) = uri.split_once(':') else {
-            return bip21::decode(None, uri);
+            return lightning::decode(uri).or_else(|_| bip21::decode(None, uri));
         };
         let path = path.trim_prefix("//");
         let scheme = scheme.to_ascii_lowercase();
@@ -31,6 +31,7 @@ impl PaymentURLDecoder {
             Chain::Solana => solana_pay::decode(path),
             Chain::Ton => ton_pay::decode(path),
             Chain::Xrp => xrp::decode(path),
+            Chain::Lightning => lightning::decode(uri),
             chain => bip21::decode(Some(chain), path),
         }
     }
@@ -43,7 +44,7 @@ fn get_chain(scheme: &str) -> Option<Chain> {
         scheme => Chain::from_str(scheme).ok()?,
     };
     match chain {
-        Chain::Ethereum | Chain::Solana | Chain::Ton | Chain::Xrp => Some(chain),
+        Chain::Ethereum | Chain::Solana | Chain::Ton | Chain::Xrp | Chain::Lightning => Some(chain),
         chain if chain.chain_type() == ChainType::Bitcoin => Some(chain),
         _ => None,
     }
@@ -56,6 +57,8 @@ mod tests {
         AssetId, Chain,
         payment::{PaymentAmount, PaymentLink, PaymentRequest},
     };
+
+    use gem_spark::testkit::{INVOICE_2000_SATS, INVOICE_AMOUNTLESS};
 
     const BITCOIN_ADDRESS: &str = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4";
 
@@ -153,6 +156,31 @@ mod tests {
 
         assert_eq!(PaymentURLDecoder::decode("https://pay.walletconnect.com/?pid=pay_123").unwrap(), link);
         assert_eq!(PaymentURLDecoder::decode("WC:abc@2?pay=https%3A%2F%2Fpay.walletconnect.com%2F%3Fpid%3Dpay_123").unwrap(), link);
+    }
+
+    #[test]
+    fn test_lightning_invoice() {
+        assert_eq!(
+            PaymentURLDecoder::decode(&format!("lightning:{}", INVOICE_2000_SATS.to_uppercase())).unwrap(),
+            Payment::Request {
+                request: PaymentRequest {
+                    address: INVOICE_2000_SATS.to_string(),
+                    amount: Some(PaymentAmount::AtomicValue { value: 2000u64.into() }),
+                    asset_id: Some(AssetId::from_chain(Chain::Lightning)),
+                    ..PaymentRequest::mock()
+                }
+            }
+        );
+        assert_eq!(
+            PaymentURLDecoder::decode(INVOICE_AMOUNTLESS).unwrap(),
+            Payment::Request {
+                request: PaymentRequest {
+                    address: INVOICE_AMOUNTLESS.to_string(),
+                    asset_id: Some(AssetId::from_chain(Chain::Lightning)),
+                    ..PaymentRequest::mock()
+                }
+            }
+        );
     }
 
     #[test]

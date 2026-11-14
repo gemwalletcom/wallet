@@ -256,6 +256,8 @@ mocks:
   - FiatTransactionAssetData
   - FiatTransactionData
   - GemAddressRow
+  - GemAmountField
+  - GemAmountSymbol
   - GemAppUpdateDestination
   - GemAppUpdateOffer
   - GemAssetBalance
@@ -284,6 +286,8 @@ mocks:
   - GemContactAddressSession
   - GemContactScannedAddress
   - GemContactSession
+  - GemCopy
+  - GemCopyKind
   - GemCustomFeeField
   - GemCustomFeeSession
   - GemEmptyState
@@ -302,6 +306,7 @@ mocks:
   - GemHeaderButton
   - GemHeaderButtonAction
   - GemInfoTopic
+  - GemLightningReceive
   - GemLocalizedText
   - GemNetworkFeeScreen
   - GemNftEntry

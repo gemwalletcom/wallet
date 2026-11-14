@@ -28,8 +28,9 @@ pub(super) fn address_from_public_key(public_key: &[u8], chain: Chain) -> Result
         ChainType::Algorand => Ok(gem_algorand::AlgorandAddress::from_public_key(&ed25519_public_key(public_key)?)?.encode()),
         ChainType::Cosmos => cosmos_address_from_public_key(public_key, chain),
         ChainType::Ton => Ok(gem_ton::signer::WalletV4R2::new(ed25519_public_key(public_key)?)?.address.encode_non_bounceable()),
-        ChainType::Xrp => Ok(gem_xrp::XrpAddress::from_public_key_hash(hash160(compressed_public_key(public_key)?)).encode()),
+        ChainType::Xrp => Ok(gem_xrp::XrpAddress::from_public_key_hash(hash160(&compressed_public_key(public_key)?)).encode()),
         ChainType::Polkadot => Ok(gem_polkadot::PolkadotAddress::from_public_key(ed25519_public_key(public_key)?).encode()),
+        ChainType::Lightning => Ok(gem_spark::SparkAddress::new(compressed_public_key(public_key)?).encode()),
         ChainType::Bitcoin | ChainType::Cardano => Err(AccountDerivationError::unsupported_chain(chain)),
     }
 }
@@ -45,7 +46,7 @@ pub(super) fn address_from_private_key(private_key: &[u8], chain: Chain) -> Resu
 pub(super) fn public_key_from_private_key(private_key: &[u8], chain: Chain) -> Result<Option<Vec<u8>>, AccountDerivationError> {
     let public_key = match chain.chain_type() {
         ChainType::Ethereum | ChainType::HyperCore | ChainType::Tron => uncompressed_secp256k1_public_key(private_key)?,
-        ChainType::Xrp => compressed_secp256k1_public_key(private_key)?,
+        ChainType::Xrp | ChainType::Lightning => compressed_secp256k1_public_key(private_key)?,
         ChainType::Cosmos => match CosmosChain::from_chain(chain).ok_or_else(|| AccountDerivationError::unsupported_chain(chain))? {
             CosmosChain::Injective => uncompressed_secp256k1_public_key(private_key)?,
             CosmosChain::Cosmos | CosmosChain::Osmosis | CosmosChain::Celestia | CosmosChain::Thorchain | CosmosChain::Mayachain | CosmosChain::Sei | CosmosChain::Noble => compressed_secp256k1_public_key(private_key)?,
@@ -81,7 +82,7 @@ fn cosmos_address_from_public_key(public_key: &[u8], chain: Chain) -> Result<Str
     let cosmos_chain = CosmosChain::from_chain(chain).ok_or_else(|| AccountDerivationError::unsupported_chain(chain))?;
     let public_key_hash = match cosmos_chain {
         CosmosChain::Injective => secp256k1_keccak_address_hash(public_key)?,
-        CosmosChain::Cosmos | CosmosChain::Osmosis | CosmosChain::Celestia | CosmosChain::Thorchain | CosmosChain::Mayachain | CosmosChain::Sei | CosmosChain::Noble => hash160(compressed_public_key(public_key)?),
+        CosmosChain::Cosmos | CosmosChain::Osmosis | CosmosChain::Celestia | CosmosChain::Thorchain | CosmosChain::Mayachain | CosmosChain::Sei | CosmosChain::Noble => hash160(&compressed_public_key(public_key)?),
     };
     Ok(CosmosAddress::from_public_key_hash(chain, public_key_hash).ok_or_else(|| AccountDerivationError::unsupported_chain(chain))?.encode())
 }
@@ -111,11 +112,8 @@ fn uncompressed_public_key(public_key: &[u8]) -> Result<&[u8], AccountDerivation
     Ok(public_key)
 }
 
-fn compressed_public_key(public_key: &[u8]) -> Result<&[u8], AccountDerivationError> {
-    if public_key.len() != SECP256K1_COMPRESSED_PUBLIC_KEY_LEN {
-        return Err(AccountDerivationError::invalid_input("invalid compressed public key"));
-    }
-    Ok(public_key)
+fn compressed_public_key(public_key: &[u8]) -> Result<[u8; SECP256K1_COMPRESSED_PUBLIC_KEY_LEN], AccountDerivationError> {
+    public_key.try_into().map_err(|_| AccountDerivationError::invalid_input("invalid compressed public key"))
 }
 
 fn ed25519_public_key(public_key: &[u8]) -> Result<[u8; ED25519_PUBLIC_KEY_LEN], AccountDerivationError> {

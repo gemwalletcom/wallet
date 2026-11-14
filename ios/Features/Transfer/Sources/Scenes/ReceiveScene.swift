@@ -26,38 +26,17 @@ public struct ReceiveScene: View {
                 VStack(spacing: .medium) {
                     AssetPreviewView(model: model.assetState.asset)
 
-                    Button(action: model.onCopyAddress) {
-                        VStack(spacing: .medium) {
-                            VStack {
-                                if let image = model.renderedImage {
-                                    qrCodeView(image: image)
-                                } else {
-                                    LoadingView()
-                                }
-                            }
-                            .frame(size: model.qrSize)
-
-                            Text(model.address.preventingHyphenation)
-                                .multilineTextAlignment(.center)
-                                .textStyle(TextStyle(font: .subheadline, color: Colors.secondaryText, fontWeight: .medium))
-                                .fixedSize(horizontal: false, vertical: true)
-                                .frame(maxWidth: model.qrSize)
-                                .accessibilityIdentifier(model.address)
-                        }
-                    }
-                    .buttonStyle(.scale)
-                    .padding(.medium)
-                    .background(
-                        RoundedRectangle(cornerRadius: .medium)
-                            .fill(Colors.listStyleColor)
-                            .shadow(color: Color.black.opacity(.opacity25), radius: Sizing.shadow.radius, x: .zero, y: Sizing.shadow.yOffset),
+                    ReceiveQRCodeCard(
+                        image: model.renderedImage,
+                        text: model.address,
+                        action: model.onCopyAddress,
                     )
                 }
                 Text(.init(model.warningMessage))
                     .textStyle(.subHeadline)
                     .multilineTextAlignment(.center)
                     .padding(.top, .small)
-                    .frame(maxWidth: model.qrSize + .extraLarge)
+                    .frame(maxWidth: ReceiveQRCodeCard.size + .extraLarge)
                 Spacer()
             }
             .frame(maxWidth: .scene.button.maxWidth)
@@ -118,18 +97,5 @@ public struct ReceiveScene: View {
         .task(id: model.asset.id) {
             await model.onChangeAsset()
         }
-    }
-}
-
-// MARK: - UI Components
-
-extension ReceiveScene {
-    private func qrCodeView(image: UIImage) -> some View {
-        Image(uiImage: image)
-            .resizable()
-            .scaledToFit()
-            .padding(.extraSmall)
-            .background(Color.white)
-            .clipShape(RoundedRectangle(cornerRadius: .small))
     }
 }

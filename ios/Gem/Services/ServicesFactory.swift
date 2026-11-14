@@ -98,6 +98,7 @@ struct ServicesFactory {
             explorer: explorerService,
             names: nameService,
             avatar: avatarService,
+            secure: GemstoneSecurePreferencesStore(namespace: "gateway"),
         )
         let pushNotificationEnablerService = PushNotificationEnablerService(preferencesService: preferencesService, systemPrompt: storages.systemPrompt)
         let notificationPermissions = GemstoneNotificationPermissions(service: pushNotificationEnablerService)
@@ -151,6 +152,13 @@ struct ServicesFactory {
             walletPreferences: walletPreferencesService,
             session: walletSessionService,
             transactionStatus: GemstoneTransactionStatusService(service: transactionStateService),
+        )
+        let lightningService = storages.keystore.lightningService(
+            secure: GemstoneSecurePreferencesStore(namespace: "gateway"),
+            preferences: walletPreferencesService,
+            balances: balanceService,
+            transactions: transactionsService,
+            session: walletSessionService,
         )
 
         let bannerService = Gemstone.GemBannerService(store: gemstoneBannerStore, platform: .ios)
@@ -370,6 +378,7 @@ struct ServicesFactory {
             perpetualObserver: hyperliquidObserverService,
             walletSessionService: walletSessionService,
             transactionStateService: transactionStateService,
+            lightningService: lightningService,
         )
 
         let confirmTransferService = storages.keystore.confirmTransferService(
@@ -410,6 +419,7 @@ struct ServicesFactory {
             fiatService: fiatService,
             gatewayService: gatewayService,
             hyperliquidObserverService: hyperliquidObserverService,
+            lightningService: lightningService,
             nameService: nameService,
             nftService: nftService,
             nodeService: nodeService,

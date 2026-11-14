@@ -3,7 +3,8 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use gem_derivation::{derive_account_from_private_key, derive_account_from_private_key_value, derive_accounts_from_mnemonic, derive_private_key_from_mnemonic, derive_wallet_id_from_account, import_account_from_private_key};
-use gem_keystore::{FileKeystore, Keystore, KeystoreError, KeystoreId, SecretKind};
+use gem_keystore::{FileKeystore, Keystore, KeystoreError, KeystoreId, Mnemonic, SecretKind};
+use gem_spark::{AccountKey, account_key};
 use primitives::{Account, Chain, SignerInput, WalletId, WalletType};
 use signer::encode_private_key;
 use zeroize::Zeroizing;
@@ -126,13 +127,7 @@ impl GemKeystore {
 
     pub fn add_accounts(&self, keystore_id: String, password: Vec<u8>, chains: Vec<Chain>) -> Result<Vec<GemKeystoreAccount>, GemstoneError> {
         let password = Zeroizing::new(password);
-        let phrase = match self.inner.decrypt_mnemonic(&keystore_id, &password) {
-            Ok(phrase) => phrase,
-            Err(KeystoreError::CorruptFile(message)) if message == "stored secret is not a mnemonic" => {
-                return Err(GemstoneError::from("add_accounts does not support private-key wallets"));
-            }
-            Err(error) => return Err(error.into()),
-        };
+        let phrase = self.wallet_phrase(&keystore_id, &password)?.ok_or_else(|| GemstoneError::from("add_accounts does not support private-key wallets"))?;
         Ok(derive_accounts_from_mnemonic(&phrase, chains)?.into_iter().map(GemKeystoreAccount::from).collect())
     }
     pub fn change_password(&self, keystore_id: String, old_password: Vec<u8>, new_password: Vec<u8>) -> Result<(), GemstoneError> {
@@ -178,11 +173,25 @@ impl GemKeystore {
     }
 
     fn load_private_key(&self, keystore_id: &str, chain: Chain, password: &[u8]) -> Result<Zeroizing<Vec<u8>>, GemstoneError> {
+        match self.wallet_phrase(keystore_id, password)? {
+            Some(phrase) => Ok(derive_private_key_from_mnemonic(&phrase, chain)?),
+            None => Ok(self.inner.decrypt_private_key(keystore_id, password)?),
+        }
+    }
+
+    fn wallet_phrase(&self, keystore_id: &str, password: &[u8]) -> Result<Option<Zeroizing<String>>, GemstoneError> {
         match self.inner.decrypt_mnemonic(keystore_id, password) {
-            Ok(phrase) => Ok(derive_private_key_from_mnemonic(&phrase, chain)?),
-            Err(KeystoreError::CorruptFile(message)) if message == "stored secret is not a mnemonic" => Ok(self.inner.decrypt_private_key(keystore_id, password)?),
+            Ok(phrase) => Ok(Some(phrase)),
+            Err(KeystoreError::CorruptFile(message)) if message == "stored secret is not a mnemonic" => Ok(None),
             Err(error) => Err(error.into()),
         }
+    }
+
+    pub(crate) fn lightning_account_key(&self, keystore_id: &str, password: Vec<u8>) -> Result<AccountKey, GemstoneError> {
+        let password = Zeroizing::new(password);
+        let phrase = self.wallet_phrase(keystore_id, &password)?.ok_or_else(|| GemstoneError::from("lightning wallet does not support private-key wallets"))?;
+        let seed = Mnemonic::seed(&phrase)?;
+        account_key(&seed[..]).map_err(|error| GemstoneError::AnyError { msg: error.to_string() })
     }
 
     fn verify_migrated_secret(&self, keystore_id: &str, password: &[u8], expected: &WalletId, kind: SecretKind) -> Result<(), GemstoneError> {

@@ -9,6 +9,7 @@ use gem_hypercore::signer::HyperCoreSigner;
 use gem_near::NearChainSigner;
 use gem_polkadot::signer::PolkadotChainSigner;
 use gem_solana::signer::SolanaChainSigner;
+use gem_spark::chain_signer::LightningChainSigner;
 use gem_stellar::StellarChainSigner;
 use gem_sui::signer::SuiChainSigner;
 use gem_tempo::TempoSigner;
@@ -45,6 +46,7 @@ impl ChainTransactionSigner {
             ChainType::Xrp => Box::new(XrpChainSigner),
             ChainType::Polkadot => Box::new(PolkadotChainSigner),
             ChainType::Cardano => Box::new(CardanoChainSigner),
+            ChainType::Lightning => Box::new(LightningChainSigner),
             ChainType::Bitcoin => match chain {
                 Chain::Zcash => Box::new(ZcashChainSigner),
                 _ => Box::new(BitcoinChainSigner::new(BitcoinChain::from_chain(chain).unwrap())),

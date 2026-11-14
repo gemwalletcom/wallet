@@ -3,12 +3,15 @@ pub mod filter;
 pub mod model;
 pub mod rules;
 
+use crate::lightning::SESSIONS;
 use crate::models::state::GemLoadState;
 use crate::services::error::GemServiceError;
 use crate::services::transaction_state::GemTransactionStateStore;
 use std::sync::Arc;
 
 use chrono::Utc;
+use gem_spark::LightningError;
+use gem_spark::provider::transactions_mapper::map_payment;
 use primitives::{AssetId, Chain, Transaction, TransactionId, Wallet, WalletId};
 
 pub use details::GemTransactionDetailsService;
@@ -95,6 +98,13 @@ impl GemTransactionsService {
     }
 
     pub async fn sync_wallet(&self, wallet_id: WalletId, asset_id: Option<AssetId>) -> Result<(), GemServiceError> {
+        match asset_id.as_ref().map(|asset_id| asset_id.chain) {
+            Some(chain) if !chain.is_indexed() => return self.sync_lightning(wallet_id).await,
+            Some(_) => {}
+            None => {
+                let _ = self.sync_lightning(wallet_id.clone()).await;
+            }
+        }
         let from_timestamp = self.wallet_preferences.get_transactions_timestamp(wallet_id.clone(), asset_id.clone());
         let timestamp = Utc::now().timestamp() as u64;
         let response = self.api.client.get_transactions(wallet_id.id(), asset_id.as_ref().map(ToString::to_string), from_timestamp).await.map_err(GemApiError::from)?;
@@ -112,6 +122,19 @@ impl GemTransactionsService {
         let transaction = self.api.client.get_transaction(wallet_id.id(), transaction_id.to_string()).await.map_err(GemApiError::from)?;
         self.save_api_transactions(wallet_id, vec![transaction.clone()]).await?;
         Ok(transaction)
+    }
+
+    pub(crate) async fn sync_lightning(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
+        let Some(account) = self.session.get_wallet(wallet_id.clone()).await?.and_then(|wallet| wallet.account(Chain::Lightning).cloned()) else {
+            return Ok(());
+        };
+        let payments = match SESSIONS.payments(&account.address).await {
+            Ok(payments) => payments,
+            Err(LightningError::Locked) => return Ok(()),
+            Err(error) => return Err(error.into()),
+        };
+        let transactions = payments.iter().map(|payment| map_payment(&account.address, payment)).collect();
+        self.store.add_transactions(wallet_id, transactions).await
     }
 
     async fn save_api_transactions(&self, wallet_id: WalletId, transactions: Vec<Transaction>) -> Result<(), GemServiceError> {

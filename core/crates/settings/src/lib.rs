@@ -347,6 +347,7 @@ pub struct Chains {
     pub stable: Chain,
     pub tempo: Chain,
     pub arc: Chain,
+    pub lightning: Chain,
 }
 
 #[derive(Debug, Deserialize, Clone)]

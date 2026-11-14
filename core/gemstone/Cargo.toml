@@ -61,6 +61,7 @@ chain_traits = { path = "../crates/chain_traits" }
 signer = { path = "../crates/signer" }
 number_formatter = { path = "../crates/number_formatter" }
 yielder = { path = "../crates/yielder" }
+gem_spark = { path = "../crates/gem_spark", features = ["wallet", "rpc"] }
 
 gem_encoding = { path = "../crates/gem_encoding", features = ["base58"] }
 
@@ -77,6 +78,7 @@ strum = { workspace = true }
 url = { workspace = true }
 num-bigint.workspace = true
 futures.workspace = true
+tokio = { workspace = true }
 zeroize = { workspace = true }
 
 [lints.clippy]
@@ -85,6 +87,7 @@ large_futures = "warn"
 [dev-dependencies]
 gem_bitcoin = { path = "../crates/gem_bitcoin", features = ["testkit"] }
 gem_evm = { path = "../crates/gem_evm", features = ["testkit"] }
+gem_spark = { path = "../crates/gem_spark", features = ["testkit"] }
 gem_wallet_connect = { path = "../crates/gem_wallet_connect", features = ["testkit"] }
 wallet_connect_protocol = { path = "../crates/wallet_connect_protocol", features = ["testkit"] }
 primitives = { path = "../crates/primitives", features = ["testkit"] }

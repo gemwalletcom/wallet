@@ -35,6 +35,7 @@ use primitives::{Chain, ChainAsset, NFTData, Wallet, WalletId, WalletSource, Wal
 
 use crate::keystore::decode_password;
 use crate::keystore::{GemImportType, GemKeystore, GemWalletImport, keystore_id_for_wallet};
+use crate::lightning::{SESSIONS, account_key_name};
 use crate::models::state::GemListPhase;
 use crate::services::avatar::GemAvatarService;
 use crate::services::empty_state::{GemEmptyStateKind, screen_empty_state};
@@ -45,7 +46,7 @@ use crate::services::localization::GemLocalizedText;
 use crate::services::name::GemNameService;
 use crate::services::nft::model::GemNftList;
 use crate::services::nft::rules as nft_rules;
-use crate::services::preferences::GemPreferencesService;
+use crate::services::preferences::{GemPreferencesService, GemSecureStore};
 use crate::services::wallet_preferences::GemWalletPreferencesService;
 use crate::services::wallet_session::GemWalletSessionService;
 
@@ -75,6 +76,7 @@ pub struct GemWalletService {
     explorer: Arc<GemExplorerService>,
     names: Arc<GemNameService>,
     avatar: Arc<GemAvatarService>,
+    secure: Arc<dyn GemSecureStore>,
 }
 
 #[uniffi::export]
@@ -91,6 +93,7 @@ impl GemWalletService {
         explorer: Arc<GemExplorerService>,
         names: Arc<GemNameService>,
         avatar: Arc<GemAvatarService>,
+        secure: Arc<dyn GemSecureStore>,
     ) -> Self {
         Self {
             keystore,
@@ -103,6 +106,7 @@ impl GemWalletService {
             explorer,
             names,
             avatar,
+            secure,
         }
     }
 
@@ -152,7 +156,13 @@ impl GemWalletService {
     pub async fn delete_wallet(&self, wallet_id: WalletId) -> Result<GemWalletDeletion, GemServiceError> {
         let wallet = self.wallet(wallet_id.clone()).await?;
         if wallet.wallet_type != WalletType::View {
-            self.keystore.delete_wallet_secrets(wallet.id.id(), rules::legacy_keystore_id(&wallet))?;
+            let address = wallet.account(Chain::Lightning).map(|account| account.address.as_str());
+            SESSIONS
+                .close_and_remove(address, || {
+                    self.secure.remove(account_key_name(&keystore_id_for_wallet(wallet.id.id())))?;
+                    Ok(self.keystore.delete_wallet_secrets(wallet.id.id(), rules::legacy_keystore_id(&wallet))?)
+                })
+                .await?;
         }
         self.store.delete_wallet(wallet.id.clone()).await?;
         self.names.delete_names(rules::wallet_address_names(&wallet)).await?;
@@ -367,13 +377,18 @@ impl GemWalletService {
         }
         let password = decode_password(&self.password.get_password(false)?);
         let mut outcome = SetupChainsOutcome::default();
+        let mut subscriptions_changed = false;
         for (mut wallet, missing) in candidates {
+            let subscribed = missing.iter().any(Chain::is_indexed);
             match self.add_chains(&mut wallet, missing, password.clone()).await {
-                Ok(()) => outcome.wallets.push(wallet),
+                Ok(()) => {
+                    subscriptions_changed |= subscribed;
+                    outcome.wallets.push(wallet);
+                }
                 Err(error) => outcome.failures.push((wallet.id, error)),
             }
         }
-        if !outcome.wallets.is_empty() {
+        if subscriptions_changed {
             self.invalidate_subscriptions()?;
         }
         Ok(outcome)
@@ -740,6 +755,11 @@ mod tests {
             let before = context.service.app_preferences.get_subscriptions_version();
             context.service.setup_chains_outcome(vec![Chain::Ethereum, Chain::Solana]).await.unwrap();
             assert_eq!(context.service.app_preferences.get_subscriptions_version(), before, "a setup that adds no chain must not bump");
+
+            let before = context.service.app_preferences.get_subscriptions_version();
+            context.service.setup_chains_outcome(vec![Chain::Ethereum, Chain::Solana, Chain::Lightning]).await.unwrap();
+            assert_eq!(context.service.app_preferences.get_subscriptions_version(), before, "adding only unsubscribed chains must not bump");
+            assert!(context.service.wallets().await.unwrap()[0].account(Chain::Lightning).is_some());
 
             let second = context.import("Second", OTHER_PHRASE).await;
             let before = context.service.app_preferences.get_subscriptions_version();

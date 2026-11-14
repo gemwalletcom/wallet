@@ -22,6 +22,7 @@ pub fn validate_address(address: &str, chain: Chain) -> bool {
         ChainType::Polkadot => gem_polkadot::validate_address(address),
         ChainType::Bitcoin => gem_bitcoin::validate_address(address, chain),
         ChainType::Cardano => gem_cardano::validate_address(address),
+        ChainType::Lightning => gem_spark::decode_invoice(address).is_ok(),
     }
 }
 

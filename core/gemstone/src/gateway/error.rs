@@ -1,6 +1,7 @@
 use crate::alien::AlienError;
 use crate::transaction_state::TransactionStatusError;
 use gem_jsonrpc::types::{ERROR_CLIENT_ERROR, JsonRpcError};
+use gem_spark::LightningError;
 use primitives::SignerError;
 use std::{error::Error, fmt::Display};
 
@@ -11,6 +12,7 @@ pub enum GatewayError {
     PlatformError { msg: String },
     NetworkIdMismatch { chain: String, network_id: String },
     SignerError { error: SignerError },
+    Locked,
 }
 
 impl Display for GatewayError {
@@ -21,6 +23,7 @@ impl Display for GatewayError {
             Self::PlatformError { msg } => write!(f, "Platform error: {}", msg),
             Self::NetworkIdMismatch { chain, network_id } => write!(f, "Node reports network {} for {}", network_id, chain),
             Self::SignerError { error } => write!(f, "{error}"),
+            Self::Locked => write!(f, "{}", LightningError::Locked),
         }
     }
 }
@@ -49,6 +52,9 @@ pub(crate) fn map_network_error(error: Box<dyn Error + Send + Sync>) -> GatewayE
     }
     if let Some(error) = error.downcast_ref::<SignerError>() {
         return GatewayError::SignerError { error: error.clone() };
+    }
+    if let Some(LightningError::Locked) = error.downcast_ref::<LightningError>() {
+        return GatewayError::Locked;
     }
     let mut current_error: Option<&(dyn Error + 'static)> = Some(error.as_ref());
     while let Some(current) = current_error {
@@ -128,6 +134,12 @@ mod tests {
             GatewayError::NetworkError { msg } => assert_eq!(msg, "HTTP error: status 404"),
             error => panic!("Expected NetworkError, got {error:?}"),
         }
+    }
+
+    #[test]
+    fn test_map_network_error_keeps_lightning_locked() {
+        assert_eq!(map_network_error(Box::new(LightningError::Locked)), GatewayError::Locked);
+        assert!(matches!(map_network_error(Box::new(LightningError::Unauthorized)), GatewayError::NetworkError { .. }));
     }
 
     #[test]

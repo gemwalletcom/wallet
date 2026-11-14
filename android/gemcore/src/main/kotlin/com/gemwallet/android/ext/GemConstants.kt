@@ -15,6 +15,7 @@ object GemConstants {
     val fiatQuoteDebounce: Duration = 250.milliseconds
     val fiatQuoteRefreshInterval: Duration = 300.seconds
     val fiatQuoteCurrency: com.wallet.core.primitives.Currency = com.wallet.core.primitives.Currency.USD
+    val lightningInvoiceDebounce: Duration = 600.milliseconds
     val connectionBannerSettleDelay: Duration = 10.seconds
     val connectionBannerEnabled: Boolean = false
     val offlineDebounce: Duration = 500.milliseconds

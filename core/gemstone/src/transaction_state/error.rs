@@ -29,6 +29,7 @@ impl From<GatewayError> for TransactionStatusError {
             GatewayError::PlatformError { msg } => Self::PlatformError(msg),
             GatewayError::SignerError { error } => Self::PlatformError(error.to_string()),
             GatewayError::NetworkIdMismatch { chain, network_id } => Self::PlatformError(format!("Node reports network {network_id} for {chain}")),
+            GatewayError::Locked => Self::NetworkError(err.to_string()),
         }
     }
 }

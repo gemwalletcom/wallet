@@ -1392,6 +1392,24 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             }),
             stake: None,
         },
+        ChainConfig {
+            chain: Chain::Lightning,
+            network_id: "lightning",
+            denom: None,
+            slip44: 0,
+            chain_type: ChainType::Lightning,
+            default_asset_type: None,
+            account_activation_fee: None,
+            token_activation_fee: None,
+            minimum_account_balance: None,
+            block_time: 1_000,
+            rank: 90,
+            is_swap_supported: false,
+            is_nft_supported: false,
+            is_utxo: false,
+            evm: None,
+            stake: None,
+        },
     ]
 });
 

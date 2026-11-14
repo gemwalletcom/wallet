@@ -8,6 +8,7 @@ Use when preparing a machine for Core work: toolchain, backend prerequisites, an
 2. `just`
 3. Homebrew for local tool installation
 4. PostgreSQL client libraries and Diesel CLI for `storage` and the backend apps
+5. `protoc` (`brew install protobuf`) for `gemstone`: the Spark SDK behind Lightning compiles its protobuf definitions at build time
 
 ## Initial Setup
 

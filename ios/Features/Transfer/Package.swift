@@ -60,6 +60,7 @@ let package = Package(
             name: "TransferTestKit",
             dependencies: [
                 "Transfer",
+                "Components",
                 "Primitives",
                 "WalletConnector",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),

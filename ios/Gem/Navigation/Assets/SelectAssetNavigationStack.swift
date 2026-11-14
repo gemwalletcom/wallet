@@ -66,7 +66,7 @@ struct SelectAssetNavigationStack: View {
                             ),
                         )
                     case .receive:
-                        ReceiveScene(model: viewModelFactory.receiveScene(assetData: input.assetData, wallet: model.wallet))
+                        ReceiveNavigationView(assetData: input.assetData, wallet: model.wallet, onComplete: { dismiss() })
                     case .buy:
                         FiatConnectNavigationView(
                             model: viewModelFactory.fiatScene(

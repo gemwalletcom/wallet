@@ -118,7 +118,7 @@ extension RootSceneViewModel {
 
     func onScenePhaseChanged(_: ScenePhase, _ newPhase: ScenePhase) {
         Task {
-            await appLifecycleService.onScenePhase(newPhase)
+            await appLifecycleService.onScenePhase(newPhase, unlocked: waitUntilUnlocked)
         }
     }
 
@@ -180,6 +180,13 @@ extension RootSceneViewModel {
             }
             await appLifecycleService.updateStreamSession()
         }
+        Task {
+            await appLifecycleService.openLightning(unlocked: waitUntilUnlocked)
+        }
+    }
+
+    private func waitUntilUnlocked() async {
+        await lockWindow.lockModel.waitUntilUnlocked()
     }
 
     private func ensureCurrentWallet() async {
@@ -191,7 +198,7 @@ extension RootSceneViewModel {
     }
 
     private func setupWallets() async {
-        await lockWindow.lockModel.waitUntilUnlocked()
+        await waitUntilUnlocked()
         await onstartService.setupWallets()
     }
 

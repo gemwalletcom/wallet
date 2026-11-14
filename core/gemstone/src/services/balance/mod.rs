@@ -18,7 +18,7 @@ use std::mem::{Discriminant, discriminant};
 pub use model::{GemAssetBalance, GemAssetBalanceRow, GemBalanceRecord, GemBalanceRequirement, GemBalanceRow, GemBalanceRowValue, GemBalanceUpdate, GemBalanceUpdateType, GemBalanceValue};
 pub use store::GemBalanceStore;
 
-use crate::gateway::GemGateway;
+use crate::gateway::{GatewayError, GemGateway};
 use crate::services::assets::GemAssetsService;
 use crate::services::collections::{missing, unique};
 use crate::services::stream::GemStreamSubscriptionService;
@@ -127,6 +127,10 @@ impl GemBalanceService {
         }
         let assets = self.assets.assets(balances.iter().map(|(_, balance)| balance.asset_id.clone()).collect()).await?;
         self.write_balances(wallet_id.clone(), sequence, rules::balance_updates(balances), &assets).await
+    }
+
+    pub(crate) async fn is_asset_enabled(&self, wallet_id: WalletId, asset_id: AssetId) -> Result<bool, GemServiceError> {
+        Ok(self.store.get_enabled_asset_ids(wallet_id).await?.contains(&asset_id))
     }
 
     pub async fn update_enabled_balances(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
@@ -240,7 +244,11 @@ impl GemBalanceService {
         let (coin, stake, tokens, earn) = futures::join!(
             async {
                 if request.coin {
-                    self.gateway.get_balance_coin(request.chain, request.address.clone()).await.map(|balance| vec![balance])
+                    match self.gateway.get_balance_coin(request.chain, request.address.clone()).await {
+                        Ok(balance) => Ok(vec![balance]),
+                        Err(GatewayError::Locked) => Ok(Vec::new()),
+                        Err(error) => Err(error),
+                    }
                 } else {
                     Ok(Vec::new())
                 }
@@ -355,6 +363,18 @@ mod tests {
                     ..GemAssetBalance::zero(ethereum)
                 }]
             );
+        });
+    }
+
+    #[test]
+    fn test_a_locked_lightning_wallet_keeps_its_stored_balance() {
+        block_on(async {
+            let wallet = Wallet::mock_with_chains(&[Chain::Lightning]);
+            let testkit = DiscoveryTestkit::with_provider(Arc::new(TestAlienProvider::with_status(503)), wallet.clone());
+
+            testkit.balance.update(wallet.id, vec![AssetId::from_chain(Chain::Lightning)]).await.unwrap();
+
+            assert!(testkit.balances.balance_writes.lock().unwrap().is_empty());
         });
     }
 

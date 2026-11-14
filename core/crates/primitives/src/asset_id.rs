@@ -134,7 +134,8 @@ impl AssetId {
             | ChainType::Near
             | ChainType::Algorand
             | ChainType::Polkadot
-            | ChainType::Cardano => self.token_id.clone(),
+            | ChainType::Cardano
+            | ChainType::Lightning => self.token_id.clone(),
         }
     }
 
