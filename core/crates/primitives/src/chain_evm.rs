@@ -61,7 +61,7 @@ impl EVMChain {
     }
 
     pub fn all() -> Vec<Self> {
-        Self::iter().collect::<Vec<_>>()
+        Self::iter().filter(|chain| !chain.to_chain().is_deprecated()).collect::<Vec<_>>()
     }
 
     pub fn min_priority_fee(&self) -> u64 {

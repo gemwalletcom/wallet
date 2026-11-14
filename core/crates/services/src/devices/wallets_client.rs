@@ -91,6 +91,7 @@ impl WalletsClient {
             .iter()
             .filter(|x| x.source == Some(WalletSource::Import))
             .flat_map(WalletSubscription::chain_addresses)
+            .filter(|x| !x.chain.is_deprecated())
             .map(ChainAddressPayload::from)
             .collect();
         let addresses = wallet_subscriptions

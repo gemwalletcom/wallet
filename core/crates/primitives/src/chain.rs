@@ -174,11 +174,15 @@ impl Chain {
     }
 
     pub fn all() -> Vec<Self> {
-        Self::iter().filter(|chain| !Self::deprecated().contains(chain)).collect::<Vec<_>>()
+        Self::iter().filter(|chain| !chain.is_deprecated()).collect::<Vec<_>>()
     }
 
     pub fn deprecated() -> Vec<Self> {
         vec![Self::Sei, Self::Blast]
+    }
+
+    pub fn is_deprecated(&self) -> bool {
+        Self::deprecated().contains(self)
     }
 
     pub fn stakeable() -> Vec<Self> {
