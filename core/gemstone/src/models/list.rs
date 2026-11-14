@@ -15,7 +15,9 @@ use crate::services::contact::model::GemAvatar;
 use crate::services::currency::GemCurrencyRow;
 use crate::services::stake::GemValidatorRow;
 use crate::services::price_alert::rules::GemPriceAlertItem;
+use crate::services::node::model::{GemExplorerRow, GemNodeRow};
 use crate::services::recipient::model::GemRecipientRow;
+use crate::services::transactions::model::GemTransactionDetailItem;
 use crate::services::wallet_connect::GemConnection;
 use crate::services::error::GemServiceError;
 use crate::services::localization::GemLocalizedText;
@@ -42,6 +44,8 @@ pub enum GemListSectionTitle {
     Contacts,
     MyWallets,
     ViewWallets,
+    Source,
+    Explorer,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -677,6 +681,9 @@ pub enum GemListItem {
     Connection { connection: GemConnection },
     PriceAlert { item: GemPriceAlertItem },
     Recipient { row: GemRecipientRow },
+    TransactionDetail { item: GemTransactionDetailItem },
+    Node { row: GemNodeRow },
+    Explorer { row: GemExplorerRow },
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

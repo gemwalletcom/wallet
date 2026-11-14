@@ -98,12 +98,6 @@ pub struct GemNodeRow {
     pub delete_prompt: GemLocalizedText,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
-pub enum GemChainSettingsSection {
-    Nodes { rows: Vec<GemNodeRow> },
-    Explorers { rows: Vec<GemExplorerRow> },
-}
-
 #[derive(Debug, Clone, PartialEq, Eq, uniffi::Enum)]
 pub enum GemNodeRowTitle {
     Host { host: String },

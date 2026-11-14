@@ -2,7 +2,7 @@
 
 import Components
 import Foundation
-import enum Gemstone.GemChainSettingsSection
+import enum Gemstone.GemListItem
 import struct Gemstone.GemNodeRow
 import PrimitivesComponents
 import Style
@@ -17,10 +17,8 @@ public struct ChainSettingsScene: View {
 
     public var body: some View {
         List {
-            ForEach(model.sections, id: \.title) { section in
-                Section(section.title) {
-                    content(for: section)
-                }
+            GemGroupSections(groups: model.sections) { item in
+                content(for: item)
             }
         }
         .refreshable {
@@ -60,39 +58,37 @@ public struct ChainSettingsScene: View {
     }
 
     @ViewBuilder
-    private func content(for section: GemChainSettingsSection) -> some View {
-        switch section {
-        case let .nodes(rows):
-            ForEach(rows, id: \.node.url) { row in
-                SelectionView(value: row.node.url, selection: row.node.isSelected ? row.node.url : nil, action: model.onSelectNode) {
-                    ListItemView(model: row.listItem)
-                }
-                .contextMenu(
-                    .copy(value: row.node.url),
-                )
-                .if(row.canDelete) {
-                    $0.swipeActions(edge: .trailing) {
-                        Button(model.deleteButtonTitle) {
-                            model.onSelectNodeForDeletion(row)
-                        }
-                        .tint(Colors.red)
+    private func content(for item: GemListItem) -> some View {
+        switch item {
+        case let .node(row):
+            SelectionView(value: row.node.url, selection: row.node.isSelected ? row.node.url : nil, action: model.onSelectNode) {
+                ListItemView(model: row.listItem)
+            }
+            .contextMenu(
+                .copy(value: row.node.url),
+            )
+            .if(row.canDelete) {
+                $0.swipeActions(edge: .trailing) {
+                    Button(model.deleteButtonTitle) {
+                        model.onSelectNodeForDeletion(row)
                     }
+                    .tint(Colors.red)
                 }
             }
-        case let .explorers(rows):
-            ForEach(rows, id: \.name) { explorer in
-                ListItemSelectionView(
-                    title: explorer.name,
-                    titleExtra: .none,
-                    titleTag: .none,
-                    titleTagType: .none,
-                    subtitle: .none,
-                    subtitleExtra: .none,
-                    value: explorer.name,
-                    selection: explorer.isSelected ? explorer.name : .none,
-                    action: model.onSelectExplorer(name:),
-                )
-            }
+        case let .explorer(explorer):
+            ListItemSelectionView(
+                title: explorer.name,
+                titleExtra: .none,
+                titleTag: .none,
+                titleTagType: .none,
+                subtitle: .none,
+                subtitleExtra: .none,
+                value: explorer.name,
+                selection: explorer.isSelected ? explorer.name : .none,
+                action: model.onSelectExplorer(name:),
+            )
+        default:
+            EmptyView()
         }
     }
 }

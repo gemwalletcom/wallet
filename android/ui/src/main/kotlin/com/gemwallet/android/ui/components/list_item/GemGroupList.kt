@@ -80,23 +80,7 @@ private fun GemListItemView(item: GemListItem, listPosition: ListPosition, onSel
             onClick = { onSelect(item) },
         )
 
-        is GemListItem.Connection -> ListItem(
-            model = item.connection.row.listItem(),
-            listPosition = listPosition,
-            modifier = Modifier.clickable { onSelect(item) },
-        )
-
-        is GemListItem.PriceAlert -> AssetListItem(
-            row = item.item.row.row,
-            listPosition = listPosition,
-            modifier = Modifier.clickable { onSelect(item) },
-        )
-
-        is GemListItem.Recipient -> ListItem(
-            model = ListItemModel(title = item.row.title, subtitle = item.row.subtitle),
-            listPosition = listPosition,
-            modifier = Modifier.clickable { onSelect(item) },
-        )
+        is GemListItem.Connection, is GemListItem.PriceAlert, is GemListItem.Recipient, is GemListItem.TransactionDetail, is GemListItem.Node, is GemListItem.Explorer -> Unit
     }
 }
 
@@ -107,4 +91,7 @@ private fun GemListItem.identity(): String? = when (this) {
     is GemListItem.Connection -> connection.connection.session.id
     is GemListItem.PriceAlert -> item.id
     is GemListItem.Recipient -> row.recipient.identifier()
+    is GemListItem.TransactionDetail -> item.id
+    is GemListItem.Node -> row.node.url
+    is GemListItem.Explorer -> row.name
 }

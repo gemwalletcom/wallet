@@ -15,7 +15,6 @@ extension GemRewardsWallet: Identifiable {}
 extension GemStakeDelegationItem: Identifiable {}
 extension GemTransactionDetailItem: Identifiable {}
 extension GemTransactionDetailRows: Identifiable {}
-extension GemTransactionDetailSection: Identifiable {}
 extension GemTransactionRow: Identifiable {}
 extension GemWalletConnectAuthentication: Identifiable {}
 extension GemWalletConnectProposal: Identifiable {}

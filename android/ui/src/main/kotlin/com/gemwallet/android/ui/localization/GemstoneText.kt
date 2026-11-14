@@ -47,7 +47,6 @@ import uniffi.gemstone.GemBannerButton
 import uniffi.gemstone.GemBannerDescription
 import uniffi.gemstone.GemBannerTitle
 import uniffi.gemstone.GemCandleTooltipRow
-import uniffi.gemstone.GemChainSettingsSection
 import uniffi.gemstone.GemChainsFilterSummary
 import uniffi.gemstone.GemCollectibleAction
 import uniffi.gemstone.GemConfirmButtonKind
@@ -844,11 +843,6 @@ fun GemBannerButton.stringRes(): Int = when (this) {
     GemBannerButton.RECEIVE -> R.string.wallet_receive
 }
 
-fun GemChainSettingsSection.stringRes(): Int = when (this) {
-    is GemChainSettingsSection.Nodes -> R.string.settings_networks_source
-    is GemChainSettingsSection.Explorers -> R.string.settings_networks_explorer
-}
-
 @StringRes
 fun DelegationState.stateRes(): Int = when (this) {
     DelegationState.ACTIVE -> R.string.stake_active
@@ -1259,6 +1253,8 @@ fun GemListSectionTitle.titleRes(): Int? = when (this) {
     GemListSectionTitle.CONTACTS -> R.string.contacts_title
     GemListSectionTitle.MY_WALLETS -> R.string.transfer_recipient_my_wallets
     GemListSectionTitle.VIEW_WALLETS -> R.string.transfer_recipient_view_wallets
+    GemListSectionTitle.SOURCE -> R.string.settings_networks_source
+    GemListSectionTitle.EXPLORER -> R.string.settings_networks_explorer
 }
 
 @StringRes

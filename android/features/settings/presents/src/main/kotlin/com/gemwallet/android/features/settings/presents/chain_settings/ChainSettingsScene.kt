@@ -9,7 +9,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -35,17 +34,15 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.ListItemModel
 import com.gemwallet.android.ui.components.list_item.SelectionCheckmark
-import com.gemwallet.android.ui.components.list_item.SubheaderItem
-import com.gemwallet.android.ui.components.list_item.property.itemsPositioned
+import com.gemwallet.android.ui.components.list_item.gemGroups
 import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.localization.string
-import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.paddingSmall
-import uniffi.gemstone.GemChainSettingsSection
 import uniffi.gemstone.GemExplorerRow
+import uniffi.gemstone.GemListItem
 
 @Composable
 internal fun ChainSettingsScene(state: ChainSettingsUIState, snackbar: SnackbarHostState? = null, onAction: (ChainSettingsAction) -> Unit) {
@@ -53,7 +50,7 @@ internal fun ChainSettingsScene(state: ChainSettingsUIState, snackbar: SnackbarH
     var isShowAddSource by rememberSaveable { mutableStateOf(false) }
     var revealedNodeId by remember { mutableStateOf<String?>(null) }
     var nodeDeleteUrl by rememberSaveable { mutableStateOf<String?>(null) }
-    val nodeDelete = state.sections.filterIsInstance<GemChainSettingsSection.Nodes>().flatMap { it.rows }.firstOrNull { it.node.url == nodeDeleteUrl }
+    val nodeDelete = state.sections.flatMap { it.items }.filterIsInstance<GemListItem.Node>().map { it.row }.firstOrNull { it.node.url == nodeDeleteUrl }
 
     Scene(
         title = chain.networkName(),
@@ -70,13 +67,13 @@ internal fun ChainSettingsScene(state: ChainSettingsUIState, snackbar: SnackbarH
             onRefresh = { onAction(ChainSettingsAction.Refresh) },
         ) {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
-                state.sections.forEach { section ->
-                    item { SubheaderItem(section.stringRes()) }
-                    when (section) {
-                        is GemChainSettingsSection.Nodes -> itemsIndexed(section.rows, key = { _, item -> item.node.url }) { index, node ->
+                gemGroups(state.sections) { item, position ->
+                    when (item) {
+                        is GemListItem.Node -> {
+                            val node = item.row
                             ChainNodeItem(
                                 row = node,
-                                listPosition = ListPosition.getPosition(index, section.rows.size),
+                                listPosition = position,
                                 isDeleteRevealed = revealedNodeId == node.node.url,
                                 onDeleteReveal = { revealedNodeId = node.node.url },
                                 onDeleteCollapse = {
@@ -96,9 +93,9 @@ internal fun ChainSettingsScene(state: ChainSettingsUIState, snackbar: SnackbarH
                             )
                         }
 
-                        is GemChainSettingsSection.Explorers -> itemsPositioned(section.rows) { position, item ->
-                            BlockExplorerItem(item, position) { onAction(ChainSettingsAction.SelectBlockExplorer(it)) }
-                        }
+                        is GemListItem.Explorer -> BlockExplorerItem(item.row, position) { onAction(ChainSettingsAction.SelectBlockExplorer(it)) }
+
+                        else -> Unit
                     }
                 }
             }

@@ -1,8 +1,10 @@
 import Components
 import Foundation
 import struct Gemstone.GemCopy
+import struct Gemstone.GemGroup
 import enum Gemstone.GemListRow
 import struct Gemstone.GemSwapAgain
+import struct Gemstone.GemTransactionDetailItem
 import enum Gemstone.GemTransactionDetailRow
 import enum Gemstone.GemTransactionHeaderAction
 import GemstonePrimitives
@@ -100,7 +102,7 @@ struct TransactionSceneViewModelTests {
     @Test
     func sectionsComeFromCoreWithOnlyTheRowsTheTransactionHas() {
         let transfer = TransactionSceneViewModel.mock(asset: .mock(id: .mock(chain: .cosmos)), memo: "gm").sections
-        #expect(transfer.map { $0.items.map(\.id) } == [["header"], ["date", "status", "participant", "memo", "network"], ["fee"], ["explorer"]])
+        #expect(transfer.map(itemIds) == [["header"], ["date", "status", "participant", "memo", "network"], ["fee"], ["explorer"]])
 
         let swap = TransactionSceneViewModel.mock(
             type: .swap,
@@ -109,7 +111,7 @@ struct TransactionSceneViewModelTests {
             swapToAsset: .mock(id: .mock(chain: .near), name: "NEAR", symbol: "NEAR", decimals: 24),
             confirmationEtaSeconds: 720,
         ).sections
-        #expect(swap.map { $0.items.map(\.id) } == [["header"], ["swap_progress"], ["date", "status", "rate", "network", "provider"], ["fee"], ["explorer"]])
+        #expect(swap.map(itemIds) == [["header"], ["swap_progress"], ["date", "status", "rate", "network", "provider"], ["fee"], ["explorer"]])
     }
 
     @Test
@@ -133,12 +135,27 @@ struct TransactionSceneViewModelTests {
         }
     }
 
+    private func details(_ group: GemGroup) -> [GemTransactionDetailItem] {
+        group.items.compactMap { item in
+            guard case let .transactionDetail(detail) = item else { return nil }
+            return detail
+        }
+    }
+
+    private func itemIds(_ group: GemGroup) -> [String] {
+        details(group).map(\.id)
+    }
+
+    private func details(_ model: TransactionSceneViewModel) -> [GemTransactionDetailItem] {
+        model.sections.flatMap(details)
+    }
+
     private func ids(_ model: TransactionSceneViewModel) -> [String] {
-        model.sections.flatMap(\.items).map(\.id)
+        details(model).map(\.id)
     }
 
     private func rows(_ model: TransactionSceneViewModel) -> [GemTransactionDetailRow] {
-        model.sections.flatMap(\.items).map(\.row)
+        details(model).map(\.row)
     }
 
     private func listRows(_ model: TransactionSceneViewModel) -> [GemListRow] {

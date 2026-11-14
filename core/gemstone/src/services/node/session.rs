@@ -2,8 +2,9 @@ use std::collections::HashMap;
 
 use primitives::Chain;
 
-use super::model::{GemAddNodeError, GemChainSettingsSection, GemExplorerRow, GemNodeCheck, GemNodeCheckRow, GemNodeRow, GemNodeSelection, GemNodeStatusState};
+use super::model::{GemAddNodeError, GemExplorerRow, GemNodeCheck, GemNodeCheckRow, GemNodeRow, GemNodeSelection, GemNodeStatusState};
 use super::rules;
+use crate::models::list::{GemGroup, GemListItem, GemListSectionTitle};
 use crate::services::error::GemServiceError;
 use crate::services::error_text::GemErrorText;
 use crate::services::localization::GemLocalizedText;
@@ -300,8 +301,11 @@ impl GemNodeListSession {
         self.nodes.iter().map(|node| node.url.clone()).collect()
     }
 
-    pub fn sections(&self, explorers: Vec<GemExplorerRow>) -> Vec<GemChainSettingsSection> {
-        vec![GemChainSettingsSection::Nodes { rows: self.rows() }, GemChainSettingsSection::Explorers { rows: explorers }]
+    pub fn sections(&self, explorers: Vec<GemExplorerRow>) -> Vec<GemGroup> {
+        vec![
+            GemGroup::new(GemListSectionTitle::Source, self.rows().into_iter().map(|row| GemListItem::Node { row }).collect()),
+            GemGroup::new(GemListSectionTitle::Explorer, explorers.into_iter().map(|row| GemListItem::Explorer { row }).collect()),
+        ]
     }
 }
 
@@ -381,7 +385,10 @@ mod node_list_tests {
 
         assert_eq!(
             session.sections(explorers.clone()),
-            vec![GemChainSettingsSection::Nodes { rows: session.rows() }, GemChainSettingsSection::Explorers { rows: explorers }]
+            vec![
+                GemGroup::new(GemListSectionTitle::Source, session.rows().into_iter().map(|row| GemListItem::Node { row }).collect()),
+                GemGroup::new(GemListSectionTitle::Explorer, explorers.into_iter().map(|row| GemListItem::Explorer { row }).collect()),
+            ]
         );
     }
 }

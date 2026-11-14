@@ -3,11 +3,11 @@
 import Components
 import Foundation
 import struct Gemstone.GemAddressRow
+import struct Gemstone.GemGroup
 import enum Gemstone.GemInfoTopic
 import enum Gemstone.GemLoadState
 import struct Gemstone.GemSwapAgain
 import struct Gemstone.GemTransactionDetailRows
-import struct Gemstone.GemTransactionDetailSection
 import protocol Gemstone.GemTransactionDetailsServiceProtocol
 import enum Gemstone.GemTransactionHeaderAction
 import protocol Gemstone.GemTransactionsServiceProtocol
@@ -92,7 +92,7 @@ public final class TransactionSceneViewModel {
 // MARK: - Sections
 
 public extension TransactionSceneViewModel {
-    var sections: [GemTransactionDetailSection] {
+    var sections: [GemGroup] {
         rows.map { transactionDetailSections(rows: $0) } ?? []
     }
 }

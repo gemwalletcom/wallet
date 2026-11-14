@@ -22,8 +22,8 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
-import uniffi.gemstone.GemChainSettingsSection
 import uniffi.gemstone.GemChainSettingsServiceInterface
+import uniffi.gemstone.GemListItem
 import uniffi.gemstone.GemNodeListSession
 import uniffi.gemstone.GemNodeSelection
 import uniffi.gemstone.GemNodeStatusState
@@ -102,6 +102,6 @@ class ChainSettingsViewModelTest {
 
     private fun sessionUrls(viewModel: ChainSettingsViewModel): List<String> {
         val rows = viewModel.uiState.value
-        return rows.sections.filterIsInstance<GemChainSettingsSection.Nodes>().flatMap { it.rows }.map { it.node.url }
+        return rows.sections.flatMap { it.items }.filterIsInstance<GemListItem.Node>().map { it.row.node.url }
     }
 }

@@ -20,7 +20,6 @@ import enum Gemstone.GemBannerButton
 import enum Gemstone.GemBannerDescription
 import enum Gemstone.GemBannerTitle
 import enum Gemstone.GemCandleTooltipRow
-import enum Gemstone.GemChainSettingsSection
 import enum Gemstone.GemChainsFilterSummary
 import enum Gemstone.GemCollectibleAction
 import enum Gemstone.GemConfirmButtonKind
@@ -822,6 +821,8 @@ public extension GemListSectionTitle {
         case .contacts: Localized.Contacts.title
         case .myWallets: Localized.Transfer.Recipient.myWallets
         case .viewWallets: Localized.Transfer.Recipient.viewWallets
+        case .source: Localized.Settings.Networks.source
+        case .explorer: Localized.Settings.Networks.explorer
         }
     }
 }
@@ -1815,15 +1816,6 @@ public extension GemWalletSectionKind {
         switch self {
         case .pinned: Localized.Common.pinned
         case .wallets: nil
-        }
-    }
-}
-
-public extension GemChainSettingsSection {
-    var title: String {
-        switch self {
-        case .nodes: Localized.Settings.Networks.source
-        case .explorers: Localized.Settings.Networks.explorer
         }
     }
 }
