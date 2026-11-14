@@ -8,13 +8,13 @@ use crate::solana_pay::transaction::prepare;
 use crate::{PaymentError, PaymentLoad, PaymentTransaction};
 
 const MAX_MERCHANT_CHARS: usize = 64;
-const MAX_MESSAGE_CHARS: usize = 280;
+pub(super) const MAX_MESSAGE_CHARS: usize = 280;
 
 fn is_direction_character(character: char) -> bool {
     matches!(character, '\u{061c}' | '\u{200e}' | '\u{200f}' | '\u{202a}'..='\u{202e}' | '\u{2066}'..='\u{2069}')
 }
 
-fn merchant_text(text: &str, max_chars: usize) -> String {
+pub(super) fn merchant_text(text: &str, max_chars: usize) -> String {
     let readable: String = text.chars().filter(|character| character.is_whitespace() || !(character.is_control() || is_direction_character(*character))).collect();
     let line = readable.split_whitespace().collect::<Vec<_>>().join(" ");
     match line.chars().nth(max_chars) {
