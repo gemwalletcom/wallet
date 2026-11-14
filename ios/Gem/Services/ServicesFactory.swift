@@ -89,6 +89,16 @@ struct ServicesFactory {
         let recentAssetsService = GemRecentActivityService(store: GemstoneRecentActivityStore(store: stores.recentActivityStore), session: walletSessionService)
         let explorerService = Gemstone.GemExplorerService(preferences: preferencesService)
         let avatarService = Gemstone.GemAvatarService(wallets: gemstoneWalletStore, files: gemstoneFileStore, provider: nativeProvider)
+        let walletService = storages.keystore.walletService(
+            store: gemstoneWalletStore,
+            session: walletSessionService,
+            appPreferences: preferencesService,
+            files: gemstoneFileStore,
+            preferences: walletPreferencesService,
+            explorer: explorerService,
+            names: nameService,
+            avatar: avatarService,
+        )
         let pushNotificationEnablerService = PushNotificationEnablerService(preferencesService: preferencesService, systemPrompt: storages.systemPrompt)
         let notificationPermissions = GemstoneNotificationPermissions(service: pushNotificationEnablerService)
         let priceAlertService = Gemstone.GemPriceAlertService(
@@ -144,23 +154,11 @@ struct ServicesFactory {
         )
         let unlockContext = UnlockContextStore()
         let lightningService = storages.keystore.lightningService(
-            api: apiClient,
-            store: GemstoneLightningStore(store: stores.lightningStore),
+            preferences: walletPreferencesService,
             balances: balanceService,
             transactions: transactionsService,
             session: walletSessionService,
             unlockContext: unlockContext,
-        )
-        let walletService = storages.keystore.walletService(
-            store: gemstoneWalletStore,
-            session: walletSessionService,
-            appPreferences: preferencesService,
-            files: gemstoneFileStore,
-            preferences: walletPreferencesService,
-            explorer: explorerService,
-            names: nameService,
-            avatar: avatarService,
-            lightning: lightningService,
         )
 
         let bannerService = Gemstone.GemBannerService(store: gemstoneBannerStore, platform: .ios)

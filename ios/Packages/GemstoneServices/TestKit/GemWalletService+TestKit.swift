@@ -3,7 +3,6 @@
 import Foundation
 import class Gemstone.GemAvatarService
 import class Gemstone.GemExplorerService
-import class Gemstone.GemLightningService
 import class Gemstone.GemNameService
 import class Gemstone.GemPaymentService
 import class Gemstone.GemPreferencesService
@@ -39,7 +38,6 @@ public extension GemWalletService {
             explorer: GemExplorerService(preferences: appPreferences),
             names: .mock(),
             avatar: GemAvatarService(wallets: gemWalletStore, files: GemstoneFileStore(), provider: NativeProvider()),
-            lightning: GemLightningService.mock(keystore: keystore, db: db),
         )
     }
 }
