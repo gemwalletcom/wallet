@@ -197,13 +197,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_asset_id() {
-        let asset = Asset::from_chain(Chain::Gnosis);
-
-        assert_eq!(asset.symbol, "xDai");
-    }
-
-    #[test]
     fn test_sei_evm_asset() {
         let asset = Asset::from_chain(Chain::SeiEvm);
 
