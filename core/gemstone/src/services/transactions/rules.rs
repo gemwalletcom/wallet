@@ -146,6 +146,28 @@ pub fn participant(extended: &TransactionExtended, link: impl FnOnce(&str) -> Bl
     })
 }
 
+fn memo(transaction: &Transaction) -> Option<String> {
+    match transaction.transaction_type {
+        TransactionType::Transfer | TransactionType::TransferNFT => transaction.memo.clone().non_empty(),
+        TransactionType::Swap
+        | TransactionType::TokenApproval
+        | TransactionType::StakeDelegate
+        | TransactionType::StakeUndelegate
+        | TransactionType::StakeRewards
+        | TransactionType::StakeRedelegate
+        | TransactionType::StakeWithdraw
+        | TransactionType::StakeFreeze
+        | TransactionType::StakeUnfreeze
+        | TransactionType::AssetActivation
+        | TransactionType::SmartContractCall
+        | TransactionType::PerpetualOpenPosition
+        | TransactionType::PerpetualClosePosition
+        | TransactionType::PerpetualModifyPosition
+        | TransactionType::EarnDeposit
+        | TransactionType::EarnWithdraw => None,
+    }
+}
+
 fn contact_memo(transaction: &Transaction) -> Option<String> {
     match transaction.direction {
         TransactionDirection::Incoming => None,
@@ -179,7 +201,7 @@ pub fn detail_rows(extended: &TransactionExtended, wallet_type: WalletType, part
         participant,
         provider_name: details.provider_name,
         provider_contract: transaction.contract.clone().non_empty(),
-        memo: transaction.memo.clone().non_empty(),
+        memo: memo(transaction),
         resource: resource(transaction),
         rate: swap_rate(extended),
         pnl: details.pnl.map(GemFormattedNumber::signed_usd),
@@ -1304,6 +1326,16 @@ mod tests {
         }
         assert!(rows.rate.is_some());
         assert!(rows.participant.is_none(), "a swap names its provider, not a participant");
+        let mut swap_with_memo = swap.clone();
+        swap_with_memo.transaction.memo = Some("=:ETH.USDC:0x1111111111111111111111111111111111111111:0/1/0:g1:50".to_string());
+        assert_eq!(
+            detail_rows(&swap_with_memo, WalletType::Multicoin, None, explorer.clone(), Currency::USD).memo,
+            None,
+            "a swap's memo is the provider's instruction"
+        );
+        let mut stake = TransactionExtended::mock_transaction(Transaction::mock_with_state(TransactionType::StakeDelegate, TransactionState::Confirmed, TransactionDirection::Outgoing));
+        stake.transaction.memo = Some("Stake".to_string());
+        assert_eq!(detail_rows(&stake, WalletType::Multicoin, None, explorer.clone(), Currency::USD).memo, None, "a staking memo is the protocol's");
         assert_eq!(
             rows.header_action,
             Some(GemTransactionHeaderAction::Swap {
@@ -1328,6 +1360,9 @@ mod tests {
         );
         assert!(matches!(recipient.menu.as_slice(), [_, GemRowMenuItem::Open { url, .. }] if url == "https://explorer/to"));
         assert_eq!(unnamed.memo, None, "an empty memo is not a row");
+        let mut noted = transfer.clone();
+        noted.transaction.memo = Some("gm".to_string());
+        assert_eq!(detail_rows(&noted, WalletType::Multicoin, None, explorer.clone(), Currency::USD).memo.as_deref(), Some("gm"));
         assert_eq!((unnamed.fee.asset.id.clone(), unnamed.fee.value.clone(), unnamed.fee.sign), (transfer.fee_asset.id.clone(), 1u32.into(), GemAmountSign::None));
         assert_eq!(unnamed.fee_row.title, GemListRowTitle::NetworkFee);
         assert_eq!(unnamed.fee_row.fee.amount.unit, crate::formatted_number::GemNumberUnit::Symbol { symbol: transfer.fee_asset.symbol.clone() });
