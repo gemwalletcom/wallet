@@ -3,6 +3,7 @@ pub mod filter;
 pub mod model;
 pub mod rules;
 
+use crate::lightning::sessions;
 use crate::models::state::GemLoadState;
 use crate::services::error::GemServiceError;
 use crate::services::transaction_state::GemTransactionStateStore;
@@ -10,6 +11,7 @@ use std::sync::Arc;
 
 use chrono::Utc;
 use gem_spark::LightningError;
+use gem_spark::provider::transactions_mapper::map_payment;
 use primitives::{AssetId, Chain, Transaction, TransactionId, Wallet, WalletId};
 
 pub use details::GemTransactionDetailsService;
@@ -126,12 +128,12 @@ impl GemTransactionsService {
         let Some(account) = self.session.get_wallet(wallet_id.clone()).await?.and_then(|wallet| wallet.account(Chain::Lightning).cloned()) else {
             return Ok(());
         };
-        let payments = match crate::lightning::sessions().payments(&account.address).await {
+        let payments = match sessions().payments(&account.address).await {
             Ok(payments) => payments,
             Err(LightningError::Locked) => return Ok(()),
             Err(error) => return Err(error.into()),
         };
-        let transactions = payments.iter().map(|payment| gem_spark::provider::map_payment(&account.address, payment)).collect();
+        let transactions = payments.iter().map(|payment| map_payment(&account.address, payment)).collect();
         self.store.add_transactions(wallet_id, transactions).await
     }
 

@@ -812,6 +812,9 @@ pub fn pending_activity_filters() -> TransactionsFilter {
 
 #[cfg(test)]
 mod tests {
+    use gem_spark::provider::transactions_mapper::map_payment;
+    use gem_spark::{LightningPayment, LightningPaymentDirection, LightningPaymentStatus};
+
     use crate::formatted_number::GemNumberNotation;
     use crate::models::list::GemRowMenuItem;
 
@@ -1270,8 +1273,8 @@ mod tests {
 
     #[test]
     fn test_lightning_row_reads_small_amounts_without_a_counterparty() {
-        let payment = gem_spark::LightningPayment::mock(gem_spark::LightningPaymentDirection::Incoming, gem_spark::LightningPaymentStatus::Completed);
-        let lightning = row(&TransactionListItem::mock_transaction(gem_spark::provider::map_payment("spark1address", &payment)));
+        let payment = LightningPayment::mock(LightningPaymentDirection::Incoming, LightningPaymentStatus::Completed);
+        let lightning = row(&TransactionListItem::mock_transaction(map_payment("spark1address", &payment)));
 
         assert_eq!(lightning.subtitle, GemTransactionRowSubtitle::None);
         assert_eq!(

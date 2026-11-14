@@ -160,17 +160,27 @@ mod tests {
 
     #[test]
     fn test_lightning_invoice() {
-        let Payment::Request { request } = PaymentURLDecoder::decode(&format!("lightning:{}", INVOICE_2000_SATS.to_uppercase())).unwrap() else {
-            panic!("expected a payment request")
-        };
-        assert_eq!(request.address, INVOICE_2000_SATS);
-        assert_eq!(request.amount, Some(PaymentAmount::AtomicValue { value: 2000u64.into() }));
-        assert_eq!(request.asset_id, Some(AssetId::from_chain(Chain::Lightning)));
-
-        let Payment::Request { request } = PaymentURLDecoder::decode(INVOICE_AMOUNTLESS).unwrap() else {
-            panic!("expected a payment request")
-        };
-        assert_eq!((request.address.as_str(), request.amount), (INVOICE_AMOUNTLESS, None));
+        assert_eq!(
+            PaymentURLDecoder::decode(&format!("lightning:{}", INVOICE_2000_SATS.to_uppercase())).unwrap(),
+            Payment::Request {
+                request: PaymentRequest {
+                    address: INVOICE_2000_SATS.to_string(),
+                    amount: Some(PaymentAmount::AtomicValue { value: 2000u64.into() }),
+                    asset_id: Some(AssetId::from_chain(Chain::Lightning)),
+                    ..PaymentRequest::mock()
+                }
+            }
+        );
+        assert_eq!(
+            PaymentURLDecoder::decode(INVOICE_AMOUNTLESS).unwrap(),
+            Payment::Request {
+                request: PaymentRequest {
+                    address: INVOICE_AMOUNTLESS.to_string(),
+                    asset_id: Some(AssetId::from_chain(Chain::Lightning)),
+                    ..PaymentRequest::mock()
+                }
+            }
+        );
     }
 
     #[test]

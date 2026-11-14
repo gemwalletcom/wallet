@@ -1,4 +1,3 @@
-use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
 use crate::error::LightningError;
@@ -11,9 +10,8 @@ pub struct LightningSend {
     pub expires_at: u64,
 }
 
-#[async_trait]
 pub trait LightningStore: Send + Sync {
-    async fn get_sends(&self) -> Result<Vec<LightningSend>, LightningError>;
-    async fn add_send(&self, send: LightningSend) -> Result<(), LightningError>;
-    async fn delete_send(&self, transfer_id: String) -> Result<(), LightningError>;
+    fn get_sends(&self) -> Result<Vec<LightningSend>, LightningError>;
+    fn add_send(&self, send: LightningSend) -> Result<(), LightningError>;
+    fn delete_send(&self, transfer_id: &str) -> Result<(), LightningError>;
 }

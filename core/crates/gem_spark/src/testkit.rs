@@ -1,3 +1,5 @@
+use chrono::DateTime;
+
 use crate::model::{LightningPayment, LightningPaymentDirection, LightningPaymentStatus};
 
 pub const IDENTITY_PUBLIC_KEY: &str = "0281363910b0dc0015a4a25e758da30f0e28388ea5252c0e3713936f2d4ef7d3d5";
@@ -13,7 +15,7 @@ impl LightningPayment {
             status,
             amount_sats: 1_000,
             fee_sats: 3,
-            created_at: chrono::DateTime::from_timestamp(1_792_993_669, 0).unwrap(),
+            created_at: DateTime::from_timestamp(1_792_993_669, 0).unwrap(),
             invoice: None,
         }
     }
@@ -26,8 +28,6 @@ pub use store::MemoryLightningStore;
 mod store {
     use std::collections::BTreeMap;
     use std::sync::{Mutex, MutexGuard, PoisonError};
-
-    use async_trait::async_trait;
 
     use crate::error::LightningError;
     use crate::store::{LightningSend, LightningStore};
@@ -43,19 +43,18 @@ mod store {
         }
     }
 
-    #[async_trait]
     impl LightningStore for MemoryLightningStore {
-        async fn get_sends(&self) -> Result<Vec<LightningSend>, LightningError> {
+        fn get_sends(&self) -> Result<Vec<LightningSend>, LightningError> {
             Ok(self.sends().values().cloned().collect())
         }
 
-        async fn add_send(&self, send: LightningSend) -> Result<(), LightningError> {
+        fn add_send(&self, send: LightningSend) -> Result<(), LightningError> {
             self.sends().insert(send.transfer_id.clone(), send);
             Ok(())
         }
 
-        async fn delete_send(&self, transfer_id: String) -> Result<(), LightningError> {
-            self.sends().remove(&transfer_id);
+        fn delete_send(&self, transfer_id: &str) -> Result<(), LightningError> {
+            self.sends().remove(transfer_id);
             Ok(())
         }
     }

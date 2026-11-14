@@ -28,6 +28,7 @@ use primitives::{BitcoinChain, Chain, ChainType, EVMChain, chain_cosmos::CosmosC
 
 use super::{GatewayError, PreferencesWrapper, SecureStoreWrapper};
 use crate::alien::{AlienProvider, AlienProviderWrapper, new_alien_client};
+use crate::lightning::sessions;
 use crate::network::JsonRpcClient;
 use crate::services::node::GemNodeService;
 use crate::services::preferences::{GemPreferencesStore, GemSecureStore};
@@ -63,7 +64,7 @@ impl ChainClientFactory {
             }
             ChainType::Bitcoin => Ok(Arc::from(ZcashProvider::new_or_else(BitcoinClient::new(alien_client, BitcoinChain::from_chain(chain).unwrap()), |client| Box::new(client)))),
             ChainType::Cardano => Ok(Arc::new(CardanoClient::new(alien_client))),
-            ChainType::Lightning => Ok(Arc::new(LightningProvider::new(crate::lightning::sessions()))),
+            ChainType::Lightning => Ok(Arc::new(LightningProvider::new(sessions()))),
             ChainType::Stellar => Ok(Arc::new(StellarClient::new(alien_client))),
             ChainType::Sui => Ok(Arc::new(SuiProvider::new_rpc_only(SuiClient::new_with_transport(
                 url,

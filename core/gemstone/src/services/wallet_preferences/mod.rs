@@ -65,7 +65,7 @@ impl GemWalletPreferencesService {
     pub(crate) fn get_lightning_sends(&self, wallet_id: WalletId) -> Result<Vec<LightningSend>, GemServiceError> {
         self.store
             .get(wallet_id, WalletPreferenceKey::LightningSends.as_ref().to_string())
-            .map_or(Ok(vec![]), |value| serde_json::from_str(&value).map_err(GemServiceError::core))
+            .map_or(Ok(vec![]), |value| serde_json::from_slice(value.as_bytes()).map_err(GemServiceError::core))
     }
 
     pub(crate) fn set_lightning_sends(&self, wallet_id: WalletId, sends: &[LightningSend]) -> Result<(), GemServiceError> {

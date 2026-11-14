@@ -5,7 +5,8 @@ use std::sync::{Arc, LazyLock, PoisonError, RwLock};
 
 use async_trait::async_trait;
 use futures::lock::Mutex as AsyncMutex;
-use gem_spark::provider::{LightningAuthorization, LightningSessions};
+use gem_spark::chain_signer::LightningAuthorization;
+use gem_spark::provider::LightningSessions;
 use gem_spark::{LightningError, LightningInvoice, LightningPayment, LightningPaymentStatus, LightningSendQuote, LightningWallet};
 
 use super::runtime::run;

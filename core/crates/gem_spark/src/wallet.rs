@@ -144,7 +144,7 @@ impl LightningWallet {
     pub async fn send(&self, quote: &LightningSendQuote) -> Result<String, LightningError> {
         let _permit = self.lock.begin_send()?;
         let amount = amount_to_send(&quote.invoice, quote.amount_sats, unix_timestamp())?;
-        if let Some(pending) = self.store.get_sends().await?.into_iter().find(|send| send.invoice == quote.invoice.invoice) {
+        if let Some(pending) = self.store.get_sends()?.into_iter().find(|send| send.invoice == quote.invoice.invoice) {
             if let (Some(recorded), Some(requested)) = (pending.amount_sats, amount)
                 && recorded != requested
             {
@@ -158,19 +158,17 @@ impl LightningWallet {
         let transfer_id = TransferId::generate();
         let id = transfer_id.to_string();
         let _in_flight = InFlight::begin(&id);
-        self.store
-            .add_send(LightningSend {
-                transfer_id: id.clone(),
-                invoice: quote.invoice.invoice.clone(),
-                amount_sats: amount,
-                expires_at: quote.invoice.expires_at,
-            })
-            .await?;
+        self.store.add_send(LightningSend {
+            transfer_id: id.clone(),
+            invoice: quote.invoice.invoice.clone(),
+            amount_sats: amount,
+            expires_at: quote.invoice.expires_at,
+        })?;
         match Box::pin(self.wallet.pay_lightning_invoice(&quote.invoice.invoice, amount, Some(quote.fee_sats), false, Some(transfer_id))).await {
             Ok(result) => Ok(result.transfer.id.to_string()),
             Err(error) => match self.payment(&id).await {
                 Ok(None) => {
-                    let _ = self.store.delete_send(id.clone()).await;
+                    let _ = self.store.delete_send(&id);
                     Err(error.into())
                 }
                 Ok(Some(_)) | Err(_) => Ok(id),
@@ -195,7 +193,7 @@ impl LightningWallet {
         if let Some(payment) = self.payment(id).await? {
             return Ok(payment.status);
         }
-        let is_recorded = self.store.get_sends().await?.iter().any(|send| send.transfer_id == id);
+        let is_recorded = self.store.get_sends()?.iter().any(|send| send.transfer_id == id);
         Ok(if is_recorded { LightningPaymentStatus::Pending } else { LightningPaymentStatus::Failed })
     }
 
@@ -223,7 +221,7 @@ impl LightningWallet {
     }
 
     async fn resume_sends(&self) -> Result<(), LightningError> {
-        for send in self.store.get_sends().await? {
+        for send in self.store.get_sends()? {
             let _ = self.resume(&send).await;
         }
         Ok(())
@@ -234,7 +232,7 @@ impl LightningWallet {
             return Ok(SendState::Sent);
         }
         if send.expires_at <= unix_timestamp() {
-            self.store.delete_send(send.transfer_id.clone()).await?;
+            self.store.delete_send(&send.transfer_id)?;
             return Ok(SendState::Unsent);
         }
         let transfer_id = TransferId::from_str(&send.transfer_id).map_err(|_| LightningError::InvalidTransfer)?;
@@ -247,7 +245,7 @@ impl LightningWallet {
         };
         match state {
             SendState::Sent => {}
-            SendState::Unsent => self.store.delete_send(send.transfer_id.clone()).await?,
+            SendState::Unsent => self.store.delete_send(&send.transfer_id)?,
         }
         Ok(state)
     }

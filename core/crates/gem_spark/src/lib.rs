@@ -1,4 +1,6 @@
 mod address;
+#[cfg(feature = "rpc")]
+pub mod chain_signer;
 mod error;
 mod invoice;
 #[cfg(feature = "wallet")]

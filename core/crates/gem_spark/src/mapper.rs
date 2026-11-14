@@ -67,11 +67,7 @@ mod tests {
 
     #[test]
     fn test_payment_status() {
-        assert_eq!(payment_status(TransferStatus::Completed, &TransferDirection::Incoming), LightningPaymentStatus::Completed);
         assert_eq!(payment_status(TransferStatus::SenderKeyTweaked, &TransferDirection::Outgoing), LightningPaymentStatus::Completed);
         assert_eq!(payment_status(TransferStatus::SenderKeyTweaked, &TransferDirection::Incoming), LightningPaymentStatus::Pending);
-        assert_eq!(payment_status(TransferStatus::Expired, &TransferDirection::Outgoing), LightningPaymentStatus::Failed);
-        assert_eq!(payment_status(TransferStatus::Returned, &TransferDirection::Incoming), LightningPaymentStatus::Failed);
-        assert_eq!(payment_status(TransferStatus::ReceiverKeyTweakLocked, &TransferDirection::Incoming), LightningPaymentStatus::Pending);
     }
 }

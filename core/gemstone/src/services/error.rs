@@ -3,6 +3,7 @@ use crate::alien::AlienError;
 use crate::api::GemApiError;
 use crate::gateway::GatewayError;
 use crate::services::wallet::error::GemWalletImportError;
+use gem_spark::LightningError;
 use primitives::{Account, Chain, Wallet};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Error)]
@@ -57,10 +58,10 @@ impl From<GemApiError> for GemServiceError {
     }
 }
 
-impl From<gem_spark::LightningError> for GemServiceError {
-    fn from(error: gem_spark::LightningError) -> Self {
+impl From<LightningError> for GemServiceError {
+    fn from(error: LightningError) -> Self {
         match error {
-            gem_spark::LightningError::Locked => Self::Cancelled,
+            LightningError::Locked => Self::Cancelled,
             error => Self::core(error),
         }
     }
