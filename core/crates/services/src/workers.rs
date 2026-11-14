@@ -7,7 +7,7 @@ use chrono::{TimeDelta, Utc};
 use coingecko::CoinGeckoClient;
 use config_keys::ConfigKey;
 use prices::{FiatRatesProvider, PriceAssetsProvider, PriceProvider};
-use primitives::{AccessTokenCacher, Chain, ChartTimeframe};
+use primitives::{AccessTokenCacher, Chain, ChartTimeframe, SwapProvider};
 use search_index::SearchIndexClient;
 use settings::service_user_agent;
 use storage::{Database, PricesProvidersRepository};
@@ -346,6 +346,10 @@ impl TransactionJobs {
 
     pub fn vault_addresses_updater(&self) -> VaultAddressesUpdater {
         VaultAddressesUpdater::new(self.swapper.clone(), self.vault_addresses.clone())
+    }
+
+    pub fn vault_address_providers(&self) -> Vec<SwapProvider> {
+        self.swapper.cross_chain_providers()
     }
 }
 

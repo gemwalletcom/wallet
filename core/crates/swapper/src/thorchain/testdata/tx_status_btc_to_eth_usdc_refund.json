@@ -1,0 +1,76 @@
+{
+  "tx": {
+    "id": "6C01186BD0721F7F885F6B130CFF026F0C416CDB1B9BCE0AE0FB833E787877FA",
+    "chain": "BTC",
+    "from_address": "bc1q3ufcph2kwt8ut06c09sytcrmlkdujfwegn0m36",
+    "to_address": "bc1qa4249387kk7vmjd4qma6x0zy99mf8grpjnvc4v",
+    "coins": [
+      {
+        "asset": "BTC.BTC",
+        "amount": "14000"
+      }
+    ],
+    "gas": [
+      {
+        "asset": "BTC.BTC",
+        "amount": "651"
+      }
+    ],
+    "memo": "=:ETH.USDC:0x1F6de17E66ce15184e783bA04e6Ef30640eC7C01:0/1/0:g1:50"
+  },
+  "planned_out_txs": [
+    {
+      "chain": "BTC",
+      "to_address": "bc1q3ufcph2kwt8ut06c09sytcrmlkdujfwegn0m36",
+      "coin": {
+        "asset": "BTC.BTC",
+        "amount": "12955"
+      },
+      "refund": true
+    }
+  ],
+  "out_txs": [
+    {
+      "id": "5407A431B0EE3E5F15F91DE31D8C45184BF5BDFA6AE43951DAA2B8E4E6D4DF1D",
+      "chain": "BTC",
+      "from_address": "bc1qa4249387kk7vmjd4qma6x0zy99mf8grpjnvc4v",
+      "to_address": "bc1q3ufcph2kwt8ut06c09sytcrmlkdujfwegn0m36",
+      "coins": [
+        {
+          "asset": "BTC.BTC",
+          "amount": "12955"
+        }
+      ],
+      "gas": [
+        {
+          "asset": "BTC.BTC",
+          "amount": "1338"
+        }
+      ],
+      "memo": "REFUND:6C01186BD0721F7F885F6B130CFF026F0C416CDB1B9BCE0AE0FB833E787877FA"
+    }
+  ],
+  "stages": {
+    "inbound_observed": {
+      "pre_confirmation_count": 99,
+      "final_count": 99,
+      "completed": true
+    },
+    "inbound_confirmation_counted": {
+      "remaining_confirmation_seconds": 0,
+      "completed": true
+    },
+    "inbound_finalised": {
+      "completed": true
+    },
+    "swap_status": {
+      "pending": false
+    },
+    "swap_finalised": {
+      "completed": true
+    },
+    "outbound_signed": {
+      "completed": true
+    }
+  }
+}

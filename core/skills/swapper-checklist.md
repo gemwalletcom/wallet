@@ -40,7 +40,6 @@ Audit a swapper provider in `crates/swapper/src/<provider>/provider.rs` against 
 ### 8. Supported Assets
 - [ ] `supported_assets()` returns the correct `SwapperChainAsset` list using constants from `primitives::asset_constants`, not inline `AssetId::from_token`
 - [ ] Provider chain identifiers that cannot be derived from `Chain` config (Relay's Tron `728126428` and Solana `792703809`) live in the provider's asset mapping with a unit test
-- [ ] Providers that share one engine across networks (`THORChainNetwork::{Thorchain, Mayachain}`) keep supported chains, router allowlists, and API prefixes explicit per network: `ChainName::supported(network)` selects `THORCHAIN_NAMES` or `MAYACHAIN_NAMES`. Add a chain to one table only; never derive a network's chain list from the union of all known chain names
 
 ### 9. Tests
 - [ ] Unit tests cover quote parsing, error mapping, and asset mapping, with fixtures in `<provider>/test/`

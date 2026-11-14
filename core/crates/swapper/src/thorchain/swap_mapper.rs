@@ -1,16 +1,16 @@
 use num_bigint::BigUint;
 use primitives::{
-    AssetId, TransactionSwapMetadata, TransactionSwapReferralFee,
+    AssetId, Chain, TransactionSwapMetadata, TransactionSwapReferralFee,
     swap::{SwapStatus, THORCHAIN_REFERRAL_ADDRESS},
 };
 
-use super::THORChainNetwork;
 use super::chain::ChainName;
+use super::constants::RUNE_ASSET;
 use super::memo::ThorchainMemo;
-use super::model::TransactionStatus;
-use crate::{SwapResult, fees::bps_of};
+use super::model::{TransactionCoin, TransactionStatus};
+use crate::{SwapResult, SwapperProvider, fees::bps_of};
 
-pub fn map_swap_result(response: &TransactionStatus, network: THORChainNetwork) -> SwapResult {
+pub fn map_swap_result(response: &TransactionStatus) -> SwapResult {
     let status = response.swap_status();
     let eta_in_seconds = response.eta_in_seconds();
 
@@ -18,22 +18,22 @@ pub fn map_swap_result(response: &TransactionStatus, network: THORChainNetwork) 
         return SwapResult { status, metadata: None, eta_in_seconds };
     };
 
-    if ChainName::from_symbol(network, &transaction.chain).is_none() {
+    if ChainName::from_symbol(&transaction.chain).is_none() {
         return SwapResult { status, metadata: None, eta_in_seconds };
     }
 
     let from_coin = transaction.coins.first();
-    let from_asset = from_coin.and_then(|c| c.asset_id(network));
-    let from_value = from_coin.and_then(|c| c.native_value(network));
+    let from_asset = from_coin.and_then(TransactionCoin::asset_id);
+    let from_value = from_coin.and_then(TransactionCoin::native_value);
 
     let out_coin = response.destination_coin();
-    let to_asset = out_coin.and_then(|c| c.asset_id(network));
-    let to_value = out_coin.and_then(|c| c.native_value(network));
+    let to_asset = out_coin.and_then(TransactionCoin::asset_id);
+    let to_value = out_coin.and_then(TransactionCoin::native_value);
 
     let metadata = match (from_asset, from_value, to_asset, to_value) {
         (Some(from_asset), Some(from_value), Some(to_asset), Some(to_value)) => {
-            let referral_fee = map_referral_fee(response, &transaction.memo, network, &from_asset, &from_value);
-            Some(TransactionSwapMetadata::new(from_asset, from_value, to_asset, to_value, network.provider()).with_referral_fee(referral_fee))
+            let referral_fee = map_referral_fee(response, &transaction.memo, &from_asset, &from_value);
+            Some(TransactionSwapMetadata::new(from_asset, from_value, to_asset, to_value, SwapperProvider::Thorchain).with_referral_fee(referral_fee))
         }
         _ => None,
     };
@@ -41,7 +41,7 @@ pub fn map_swap_result(response: &TransactionStatus, network: THORChainNetwork) 
     SwapResult { status, metadata, eta_in_seconds }
 }
 
-fn map_referral_fee(response: &TransactionStatus, memo: &str, network: THORChainNetwork, from_asset: &AssetId, from_value: &BigUint) -> Option<TransactionSwapReferralFee> {
+fn map_referral_fee(response: &TransactionStatus, memo: &str, from_asset: &AssetId, from_value: &BigUint) -> Option<TransactionSwapReferralFee> {
     let memo = ThorchainMemo::parse(memo)?;
     if memo.affiliate.as_deref() != Some(THORCHAIN_REFERRAL_ADDRESS) {
         return None;
@@ -52,10 +52,10 @@ fn map_referral_fee(response: &TransactionStatus, memo: &str, network: THORChain
         .flatten()
         .filter(|transaction| transaction.to_address.as_deref().is_some_and(|address| address != memo.address))
         .filter_map(|transaction| transaction.coins.first())
-        .find(|coin| coin.asset == network.native_asset());
+        .find(|coin| coin.asset == RUNE_ASSET);
     match payout {
         Some(coin) => Some(TransactionSwapReferralFee {
-            asset_id: network.chain().as_asset_id(),
+            asset_id: Chain::Thorchain.as_asset_id(),
             value: coin.amount.parse().ok()?,
         }),
         None if response.swap_status() == SwapStatus::Completed => Some(TransactionSwapReferralFee {
@@ -70,8 +70,8 @@ fn map_referral_fee(response: &TransactionStatus, memo: &str, network: THORChain
 mod tests {
     use super::*;
     use primitives::{
-        Chain, SwapProvider,
-        asset_constants::{ARBITRUM_USDC_ASSET_ID, ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDT_ASSET_ID, THORCHAIN_TCY_ASSET_ID, TRON_USDT_ASSET_ID},
+        SwapProvider,
+        asset_constants::{ETHEREUM_USDT_ASSET_ID, THORCHAIN_TCY_ASSET_ID, TRON_USDT_ASSET_ID},
     };
 
     fn status(json: &str) -> TransactionStatus {
@@ -83,7 +83,7 @@ mod tests {
         let response = status(include_str!("testdata/tx_status_ltc_to_tron_usdt.json"));
 
         assert_eq!(
-            map_swap_result(&response, THORChainNetwork::Thorchain),
+            map_swap_result(&response),
             SwapResult {
                 status: SwapStatus::Completed,
                 metadata: Some(
@@ -104,7 +104,7 @@ mod tests {
         let response = status(include_str!("testdata/tx_status_ltc_to_eth.json"));
 
         assert_eq!(
-            map_swap_result(&response, THORChainNetwork::Thorchain),
+            map_swap_result(&response),
             SwapResult {
                 status: SwapStatus::Completed,
                 metadata: Some(
@@ -130,7 +130,7 @@ mod tests {
         let response = status(include_str!("testdata/tx_status_btc_to_tron_pending.json"));
 
         assert_eq!(
-            map_swap_result(&response, THORChainNetwork::Thorchain),
+            map_swap_result(&response),
             SwapResult {
                 status: SwapStatus::Pending,
                 metadata: None,
@@ -144,7 +144,7 @@ mod tests {
         let response = status(include_str!("testdata/tx_status_bnb_to_tron_pending.json"));
 
         assert_eq!(
-            map_swap_result(&response, THORChainNetwork::Thorchain),
+            map_swap_result(&response),
             SwapResult {
                 status: SwapStatus::Pending,
                 metadata: Some(
@@ -170,7 +170,7 @@ mod tests {
         let response = status(include_str!("testdata/tx_status_bnb_to_eth_usdt.json"));
 
         assert_eq!(
-            map_swap_result(&response, THORChainNetwork::Thorchain),
+            map_swap_result(&response),
             SwapResult {
                 status: SwapStatus::Completed,
                 metadata: Some(
@@ -196,7 +196,7 @@ mod tests {
         let response = status(include_str!("testdata/tx_status_bnb_to_tron.json"));
 
         assert_eq!(
-            map_swap_result(&response, THORChainNetwork::Thorchain),
+            map_swap_result(&response),
             SwapResult {
                 status: SwapStatus::Completed,
                 metadata: Some(
@@ -222,7 +222,7 @@ mod tests {
         let response = status(include_str!("testdata/tx_status_eth_usdt_to_rune.json"));
 
         assert_eq!(
-            map_swap_result(&response, THORChainNetwork::Thorchain),
+            map_swap_result(&response),
             SwapResult {
                 status: SwapStatus::Completed,
                 metadata: Some(
@@ -248,7 +248,7 @@ mod tests {
         let response = status(include_str!("testdata/tx_status_tcy_to_eth_usdt.json"));
 
         assert_eq!(
-            map_swap_result(&response, THORChainNetwork::Thorchain),
+            map_swap_result(&response),
             SwapResult {
                 status: SwapStatus::Completed,
                 metadata: Some(TransactionSwapMetadata::new(
@@ -264,16 +264,16 @@ mod tests {
     }
 
     #[test]
-    fn test_map_swap_result_mayachain_refund() {
-        let response = status(include_str!("testdata/transaction_status_mayachain_refund.json"));
+    fn test_map_swap_result_btc_to_eth_usdc_refund() {
+        let response = status(include_str!("testdata/tx_status_btc_to_eth_usdc_refund.json"));
 
-        assert_eq!(map_swap_result(&response, THORChainNetwork::Mayachain), SwapResult::from(SwapStatus::Refunded));
+        assert_eq!(map_swap_result(&response), SwapResult::from(SwapStatus::Refunded));
     }
 
     #[test]
     fn test_map_swap_result_direct_affiliate_payout() {
         let response = status(include_str!("testdata/tx_status_bnb_to_avax_direct_affiliate.json"));
-        let metadata = map_swap_result(&response, THORChainNetwork::Thorchain).metadata.unwrap();
+        let metadata = map_swap_result(&response).metadata.unwrap();
 
         assert_eq!(
             metadata.referral_fee,
@@ -287,7 +287,7 @@ mod tests {
     #[test]
     fn test_map_swap_result_memo_affiliate_without_payout() {
         let response = status(include_str!("testdata/tx_status_bnb_to_rune_memo_affiliate.json"));
-        let metadata = map_swap_result(&response, THORChainNetwork::Thorchain).metadata.unwrap();
+        let metadata = map_swap_result(&response).metadata.unwrap();
 
         assert_eq!(metadata.from_value, BigUint::from(10000000000000000u64));
         assert_eq!(
@@ -296,38 +296,6 @@ mod tests {
                 asset_id: Chain::SmartChain.as_asset_id(),
                 value: BigUint::from(50000000000000u64),
             })
-        );
-    }
-
-    #[test]
-    fn test_map_swap_result_mayachain_referral_fee() {
-        let response = status(include_str!("testdata/transaction_status_mayachain_usdc_to_arb_usdc.json"));
-        let metadata = map_swap_result(&response, THORChainNetwork::Mayachain).metadata.unwrap();
-
-        assert_eq!(metadata.from_asset, ETHEREUM_USDC_ASSET_ID.clone());
-        assert_eq!(metadata.from_value, BigUint::from(10000000000u64));
-        assert_eq!(metadata.to_asset, ARBITRUM_USDC_ASSET_ID.clone());
-        assert_eq!(metadata.to_value, BigUint::from(9844766159u64));
-        assert_eq!(
-            metadata.referral_fee,
-            Some(TransactionSwapReferralFee {
-                asset_id: Chain::Mayachain.as_asset_id(),
-                value: BigUint::from(4553329330200u64),
-            })
-        );
-    }
-
-    #[test]
-    fn test_map_swap_result_mayachain_pending_eta() {
-        let response = status(include_str!("testdata/transaction_status_mayachain_pending_eta.json"));
-
-        assert_eq!(
-            map_swap_result(&response, THORChainNetwork::Mayachain),
-            SwapResult {
-                status: SwapStatus::Pending,
-                metadata: None,
-                eta_in_seconds: Some(300),
-            }
         );
     }
 }

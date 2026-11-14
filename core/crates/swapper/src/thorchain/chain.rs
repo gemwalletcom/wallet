@@ -1,4 +1,3 @@
-use super::THORChainNetwork;
 use gem_evm::address::ethereum_address_checksum;
 use primitives::{Asset, Chain, known_assets::*};
 
@@ -15,11 +14,8 @@ impl ChainName {
         Self { chain, long_name, short_name, token_assets }
     }
 
-    pub fn supported(network: THORChainNetwork) -> &'static [ChainName] {
-        match network {
-            THORChainNetwork::Thorchain => THORCHAIN_NAMES,
-            THORChainNetwork::Mayachain => MAYACHAIN_NAMES,
-        }
+    pub fn supported() -> &'static [ChainName] {
+        CHAIN_NAMES
     }
 
     pub fn long_name(&self) -> &str {
@@ -30,12 +26,12 @@ impl ChainName {
         self.chain
     }
 
-    pub fn from_chain(network: THORChainNetwork, chain: Chain) -> Option<ChainName> {
-        Self::supported(network).iter().find(|name| name.chain == chain).copied()
+    pub fn from_chain(chain: Chain) -> Option<ChainName> {
+        Self::supported().iter().find(|name| name.chain == chain).copied()
     }
 
-    pub fn from_symbol(network: THORChainNetwork, symbol: &str) -> Option<ChainName> {
-        Self::supported(network).iter().find(|name| name.long_name == symbol || name.short_name == symbol).copied()
+    pub fn from_symbol(symbol: &str) -> Option<ChainName> {
+        Self::supported().iter().find(|name| name.long_name == symbol || name.short_name == symbol).copied()
     }
 
     pub fn short_name(&self) -> &str {
@@ -50,18 +46,16 @@ impl ChainName {
         match self.token_assets {
             ChainTokenAssets::None => vec![],
             ChainTokenAssets::Thorchain => vec![(*THORCHAIN_TCY).clone()],
-            ChainTokenAssets::ThorchainEthereum => vec![(*ETHEREUM_USDT).clone(), (*ETHEREUM_USDC).clone(), (*ETHEREUM_DAI).clone(), (*ETHEREUM_WBTC).clone()],
-            ChainTokenAssets::MayachainEthereum => vec![(*ETHEREUM_USDT).clone(), (*ETHEREUM_USDC).clone()],
+            ChainTokenAssets::Ethereum => vec![(*ETHEREUM_USDT).clone(), (*ETHEREUM_USDC).clone(), (*ETHEREUM_DAI).clone(), (*ETHEREUM_WBTC).clone()],
             ChainTokenAssets::SmartChain => vec![(*SMARTCHAIN_USDT).clone(), (*SMARTCHAIN_USDC).clone()],
             ChainTokenAssets::Avalanche => vec![(*AVALANCHE_USDT).clone(), (*AVALANCHE_USDC).clone()],
             ChainTokenAssets::Base => vec![(*BASE_USDC).clone()],
             ChainTokenAssets::Tron => vec![(*TRON_USDT).clone()],
-            ChainTokenAssets::Arbitrum => vec![(*ARBITRUM_USDC).clone(), (*ARBITRUM_USDT).clone()],
         }
     }
 
     pub fn is_evm_chain(&self) -> bool {
-        matches!(self.chain, Chain::Ethereum | Chain::SmartChain | Chain::AvalancheC | Chain::Base | Chain::Arbitrum)
+        matches!(self.chain, Chain::Ethereum | Chain::SmartChain | Chain::AvalancheC | Chain::Base)
     }
 
     pub fn checksum_address(&self, address: &str) -> String {
@@ -78,19 +72,17 @@ impl ChainName {
 enum ChainTokenAssets {
     None,
     Thorchain,
-    ThorchainEthereum,
-    MayachainEthereum,
+    Ethereum,
     SmartChain,
     Avalanche,
     Base,
     Tron,
-    Arbitrum,
 }
 
-const THORCHAIN_NAMES: &[ChainName] = &[
+const CHAIN_NAMES: &[ChainName] = &[
     ChainName::new(Chain::Doge, "DOGE", "d", ChainTokenAssets::None),
     ChainName::new(Chain::Thorchain, "THOR", "r", ChainTokenAssets::Thorchain),
-    ChainName::new(Chain::Ethereum, "ETH", "e", ChainTokenAssets::ThorchainEthereum),
+    ChainName::new(Chain::Ethereum, "ETH", "e", ChainTokenAssets::Ethereum),
     ChainName::new(Chain::Cosmos, "GAIA", "g", ChainTokenAssets::None),
     ChainName::new(Chain::Bitcoin, "BTC", "b", ChainTokenAssets::None),
     ChainName::new(Chain::BitcoinCash, "BCH", "c", ChainTokenAssets::None),
@@ -104,48 +96,25 @@ const THORCHAIN_NAMES: &[ChainName] = &[
     ChainName::new(Chain::Zcash, "ZEC", "z", ChainTokenAssets::None),
 ];
 
-const MAYACHAIN_NAMES: &[ChainName] = &[
-    ChainName::new(Chain::Thorchain, "THOR", "r", ChainTokenAssets::None),
-    ChainName::new(Chain::Bitcoin, "BTC", "b", ChainTokenAssets::None),
-    ChainName::new(Chain::Ethereum, "ETH", "e", ChainTokenAssets::MayachainEthereum),
-    ChainName::new(Chain::Arbitrum, "ARB", "a", ChainTokenAssets::Arbitrum),
-    ChainName::new(Chain::Zcash, "ZEC", "z", ChainTokenAssets::None),
-    ChainName::new(Chain::Dash, "DASH", "d", ChainTokenAssets::None),
-    ChainName::new(Chain::Cardano, "ADA", "aa", ChainTokenAssets::None),
-];
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn test_thorchain_symbols() {
-        for name in ChainName::supported(THORChainNetwork::Thorchain) {
-            assert_eq!(ChainName::from_symbol(THORChainNetwork::Thorchain, name.long_name()), Some(*name));
+        for name in ChainName::supported() {
+            assert_eq!(ChainName::from_symbol(name.long_name()), Some(*name));
         }
 
-        assert_eq!(ChainName::from_symbol(THORChainNetwork::Thorchain, "a").map(|name| name.chain()), Some(Chain::AvalancheC));
-        assert_eq!(ChainName::from_chain(THORChainNetwork::Thorchain, Chain::Arbitrum), None);
-        assert_eq!(ChainName::from_symbol(THORChainNetwork::Thorchain, "ARB"), None);
-    }
-
-    #[test]
-    fn test_mayachain_symbols() {
-        for name in ChainName::supported(THORChainNetwork::Mayachain) {
-            assert_eq!(ChainName::from_symbol(THORChainNetwork::Mayachain, name.long_name()), Some(*name));
-        }
-
-        assert_eq!(ChainName::from_symbol(THORChainNetwork::Mayachain, "a").map(|name| name.chain()), Some(Chain::Arbitrum));
-        assert_eq!(ChainName::from_symbol(THORChainNetwork::Mayachain, "aa").map(|name| name.chain()), Some(Chain::Cardano));
-        assert_eq!(ChainName::from_symbol(THORChainNetwork::Mayachain, "r").map(|name| name.chain()), Some(Chain::Thorchain));
-        assert_eq!(ChainName::from_symbol(THORChainNetwork::Mayachain, "d").map(|name| name.chain()), Some(Chain::Dash));
-        assert_eq!(ChainName::from_chain(THORChainNetwork::Mayachain, Chain::Arbitrum).unwrap().long_name(), "ARB");
+        assert_eq!(ChainName::from_symbol("a").map(|name| name.chain()), Some(Chain::AvalancheC));
+        assert_eq!(ChainName::from_chain(Chain::Arbitrum), None);
+        assert_eq!(ChainName::from_symbol("ARB"), None);
     }
 
     #[test]
     fn test_checksum_address_preserves_non_evm_case() {
         let zcash = "t1Ku2KLyndDPsR32jwnrTMd3yvi9tfFP8ML";
-        let name = ChainName::from_chain(THORChainNetwork::Mayachain, Chain::Zcash).unwrap();
+        let name = ChainName::from_chain(Chain::Zcash).unwrap();
         assert_eq!(name.checksum_address(zcash), zcash);
     }
 }

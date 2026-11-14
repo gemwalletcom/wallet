@@ -3,7 +3,7 @@ use std::str::FromStr;
 use num_bigint::BigInt;
 use primitives::{Asset, AssetId, BITCOINCASH_PREFIX, Chain};
 
-use super::{THORChainNetwork, chain::ChainName};
+use super::chain::ChainName;
 
 const THORCHAIN_DECIMALS: u32 = 8;
 
@@ -40,8 +40,8 @@ impl THORChainAsset {
         self.is_token() && self.chain.is_evm_chain()
     }
 
-    pub fn from_id(network: THORChainNetwork, asset_id: &AssetId) -> Option<THORChainAsset> {
-        let chain = ChainName::from_chain(network, asset_id.chain)?;
+    pub fn from_id(asset_id: &AssetId) -> Option<THORChainAsset> {
+        let chain = ChainName::from_chain(asset_id.chain)?;
         if let Some(token_id) = &asset_id.token_id {
             THORChainAsset::from(chain, token_id)
         } else {
@@ -55,8 +55,8 @@ impl THORChainAsset {
         }
     }
 
-    pub fn from_asset_id(network: THORChainNetwork, asset_id: &str) -> Option<THORChainAsset> {
-        THORChainAsset::from_id(network, &AssetId::new(asset_id)?)
+    pub fn from_asset_id(asset_id: &str) -> Option<THORChainAsset> {
+        THORChainAsset::from_id(&AssetId::new(asset_id)?)
     }
 
     pub fn from(chain: ChainName, token_id: &str) -> Option<THORChainAsset> {
@@ -81,37 +81,30 @@ impl THORChainAsset {
 mod tests {
     use primitives::{
         Chain,
-        asset_constants::{ARBITRUM_USDC_TOKEN_ID, ARBITRUM_USDT_TOKEN_ID, ETHEREUM_USDT_ASSET_ID, ETHEREUM_USDT_TOKEN_ID, SMARTCHAIN_USDT_TOKEN_ID, THORCHAIN_TCY_ASSET_ID, TRON_USDT_ASSET_ID},
+        asset_constants::{ETHEREUM_USDT_ASSET_ID, ETHEREUM_USDT_TOKEN_ID, SMARTCHAIN_USDT_TOKEN_ID, THORCHAIN_TCY_ASSET_ID, TRON_USDT_ASSET_ID},
     };
 
     use super::*;
 
     #[test]
     fn test_thorchain_name_token() {
-        let test_cases = vec![
-            (THORChainNetwork::Thorchain, Chain::Ethereum, ETHEREUM_USDT_TOKEN_ID, "USDT", 6),
-            (THORChainNetwork::Thorchain, Chain::SmartChain, SMARTCHAIN_USDT_TOKEN_ID, "USDT", 18),
-            (THORChainNetwork::Mayachain, Chain::Arbitrum, ARBITRUM_USDC_TOKEN_ID, "USDC", 6),
-            (THORChainNetwork::Mayachain, Chain::Arbitrum, ARBITRUM_USDT_TOKEN_ID, "USDT", 6),
-        ];
+        let test_cases = vec![(Chain::Ethereum, ETHEREUM_USDT_TOKEN_ID, "USDT", 6), (Chain::SmartChain, SMARTCHAIN_USDT_TOKEN_ID, "USDT", 18)];
 
-        for (network, chain, token_id, expected_symbol, expected_decimals) in test_cases {
-            let chain = ChainName::from_chain(network, chain).unwrap();
+        for (chain, token_id, expected_symbol, expected_decimals) in test_cases {
+            let chain = ChainName::from_chain(chain).unwrap();
             let asset = THORChainAsset::from(chain, token_id);
             assert!(asset.is_some());
             let asset = asset.unwrap();
             assert_eq!(asset.symbol, expected_symbol);
             assert_eq!(asset.decimals, expected_decimals);
         }
-
-        assert!(THORChainAsset::from_id(THORChainNetwork::Mayachain, &THORCHAIN_TCY_ASSET_ID).is_none());
     }
 
     #[test]
     fn test_thorchain_asset_name() {
         let asset_with_token = THORChainAsset {
             symbol: "USDT".to_string(),
-            chain: ChainName::from_chain(THORChainNetwork::Thorchain, Chain::Ethereum).unwrap(),
+            chain: ChainName::from_chain(Chain::Ethereum).unwrap(),
             token_id: Some(ETHEREUM_USDT_TOKEN_ID.to_string()),
             decimals: 6,
         };
@@ -119,7 +112,7 @@ mod tests {
 
         let asset_with_token = THORChainAsset {
             symbol: "USDT".to_string(),
-            chain: ChainName::from_chain(THORChainNetwork::Thorchain, Chain::SmartChain).unwrap(),
+            chain: ChainName::from_chain(Chain::SmartChain).unwrap(),
             token_id: Some(SMARTCHAIN_USDT_TOKEN_ID.to_string()),
             decimals: 6,
         };
@@ -127,23 +120,14 @@ mod tests {
 
         let asset_without_token = THORChainAsset {
             symbol: "RUNE".to_string(),
-            chain: ChainName::from_chain(THORChainNetwork::Thorchain, Chain::Thorchain).unwrap(),
+            chain: ChainName::from_chain(Chain::Thorchain).unwrap(),
             token_id: None,
             decimals: 8,
         };
         assert_eq!(asset_without_token.quote_asset_name(), "THOR.RUNE");
 
-        let zcash = THORChainAsset::from_asset_id(THORChainNetwork::Mayachain, Chain::Zcash.as_ref()).unwrap();
+        let zcash = THORChainAsset::from_asset_id(Chain::Zcash.as_ref()).unwrap();
         assert_eq!(zcash.quote_asset_name(), "ZEC.ZEC");
-
-        let dash = THORChainAsset::from_asset_id(THORChainNetwork::Mayachain, Chain::Dash.as_ref()).unwrap();
-        assert_eq!(dash.quote_asset_name(), "DASH.DASH");
-
-        let cardano = THORChainAsset::from_asset_id(THORChainNetwork::Mayachain, Chain::Cardano.as_ref()).unwrap();
-        assert_eq!(cardano.quote_asset_name(), "ADA.ADA");
-
-        let arbitrum = THORChainAsset::from_asset_id(THORChainNetwork::Mayachain, Chain::Arbitrum.as_ref()).unwrap();
-        assert_eq!(arbitrum.quote_asset_name(), "ARB.ETH");
     }
 
     #[test]
@@ -153,58 +137,40 @@ mod tests {
         let bps = 50;
 
         assert_eq!(
-            THORChainAsset::from_asset_id(THORChainNetwork::Thorchain, Chain::SmartChain.as_ref())
+            THORChainAsset::from_asset_id(Chain::SmartChain.as_ref())
                 .unwrap()
                 .swap_memo("s", destination_address.clone(), 0, 1, 0, fee_address.clone(), bps),
             "=:s:0x1234567890abcdef:0/1/0:g1:50"
         );
         assert_eq!(
-            THORChainAsset::from_asset_id(THORChainNetwork::Thorchain, Chain::Ethereum.as_ref())
-                .unwrap()
-                .swap_memo("e", destination_address.clone(), 0, 1, 0, fee_address.clone(), bps),
+            THORChainAsset::from_asset_id(Chain::Ethereum.as_ref()).unwrap().swap_memo("e", destination_address.clone(), 0, 1, 0, fee_address.clone(), bps),
             "=:e:0x1234567890abcdef:0/1/0:g1:50"
         );
         assert_eq!(
-            THORChainAsset::from_asset_id(THORChainNetwork::Thorchain, Chain::Doge.as_ref())
-                .unwrap()
-                .swap_memo("d", destination_address.clone(), 0, 1, 0, fee_address.clone(), bps),
+            THORChainAsset::from_asset_id(Chain::Doge.as_ref()).unwrap().swap_memo("d", destination_address.clone(), 0, 1, 0, fee_address.clone(), bps),
             "=:d:0x1234567890abcdef:0/1/0:g1:50"
         );
         assert_eq!(
-            THORChainAsset::from_id(THORChainNetwork::Thorchain, &ETHEREUM_USDT_ASSET_ID)
-                .unwrap()
-                .swap_memo("ETH.USDT", destination_address.clone(), 0, 1, 0, fee_address.clone(), bps),
+            THORChainAsset::from_id(&ETHEREUM_USDT_ASSET_ID).unwrap().swap_memo("ETH.USDT", destination_address.clone(), 0, 1, 0, fee_address.clone(), bps),
             "=:ETH.USDT:0x1234567890abcdef:0/1/0:g1:50"
         );
         assert_eq!(
-            THORChainAsset::from_asset_id(THORChainNetwork::Thorchain, Chain::BitcoinCash.as_ref())
+            THORChainAsset::from_asset_id(Chain::BitcoinCash.as_ref())
                 .unwrap()
                 .swap_memo("c", "bitcoincash:qpcns7lget89x9km0t8ry5fk52e8lhl53q0a64gd65".to_string(), 0, 1, 0, fee_address.clone(), bps),
             "=:c:qpcns7lget89x9km0t8ry5fk52e8lhl53q0a64gd65:0/1/0:g1:50"
         );
         assert_eq!(
-            THORChainAsset::from_asset_id(THORChainNetwork::Thorchain, &THORCHAIN_TCY_ASSET_ID.to_string())
+            THORChainAsset::from_asset_id(&THORCHAIN_TCY_ASSET_ID.to_string())
                 .unwrap()
                 .swap_memo("THOR.TCY", destination_address, 0, 1, 0, fee_address.clone(), bps),
             "=:THOR.TCY:0x1234567890abcdef:0/1/0:g1:50"
         );
         assert_eq!(
-            THORChainAsset::from_asset_id(THORChainNetwork::Mayachain, Chain::Zcash.as_ref())
+            THORChainAsset::from_asset_id(Chain::Zcash.as_ref())
                 .unwrap()
-                .swap_memo("z", "t1Ku2KLyndDPsR32jwnrTMd3yvi9tfFP8ML".to_string(), 0, 1, 0, fee_address.clone(), bps),
+                .swap_memo("z", "t1Ku2KLyndDPsR32jwnrTMd3yvi9tfFP8ML".to_string(), 0, 1, 0, fee_address, bps),
             "=:z:t1Ku2KLyndDPsR32jwnrTMd3yvi9tfFP8ML:0/1/0:g1:50"
-        );
-        assert_eq!(
-            THORChainAsset::from_asset_id(THORChainNetwork::Mayachain, Chain::Cardano.as_ref()).unwrap().swap_memo(
-                "aa",
-                "addr1q92cmkgzv9h4e5q7mnrzsuxtgayvg4qr7y3gyx97ukmz3dfx7r9fu73vqn25377ke6r0xk97zw07dqr9y5myxlgadl2s0dgke5".to_string(),
-                0,
-                1,
-                0,
-                fee_address,
-                bps
-            ),
-            "=:aa:addr1q92cmkgzv9h4e5q7mnrzsuxtgayvg4qr7y3gyx97ukmz3dfx7r9fu73vqn25377ke6r0xk97zw07dqr9y5myxlgadl2s0dgke5:0/1/0:g1:50"
         );
     }
 
@@ -230,7 +196,7 @@ mod tests {
         let fee_address = "g1".to_string();
         let bps = 50;
 
-        let asset = THORChainAsset::from_id(THORChainNetwork::Thorchain, &TRON_USDT_ASSET_ID);
+        let asset = THORChainAsset::from_id(&TRON_USDT_ASSET_ID);
 
         assert!(asset.is_some(), "TRON USDT asset should be recognized");
 
