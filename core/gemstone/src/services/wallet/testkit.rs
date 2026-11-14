@@ -15,12 +15,9 @@ use primitives::WalletSource;
 use primitives::testkit::temp_dir::TempDir;
 
 use super::{GemWalletImportType, GemWalletService, keystore_id_for_wallet};
-use crate::api::{GemApiClient, GemDeviceApiClient};
+use crate::api::GemDeviceApiClient;
 use crate::keystore::GemKeystore;
 use crate::keystore::decode_password;
-use crate::lightning::GemLightningService;
-use crate::lightning::testkit::NoopLightningStore;
-use crate::services::asset_discovery::testkit::DiscoveryTestkit;
 use crate::services::avatar::GemAvatarService;
 use crate::services::explorer::GemExplorerService;
 use crate::services::file::testkit::NoopFileStore;
@@ -175,16 +172,6 @@ impl WalletTestkit {
             Arc::new(GemDeviceApiClient::mock(Arc::new(TestAlienProvider::new(crate::alien::AlienResponse::new(None, Vec::new()))))),
             addresses,
         ));
-        let discovery = DiscoveryTestkit::with_response(TestAlienProvider::new(crate::alien::AlienResponse::new(None, Vec::new())));
-        let lightning = Arc::new(GemLightningService::new(
-            Arc::new(GemApiClient::new(Arc::new(TestAlienProvider::new(crate::alien::AlienResponse::new(None, Vec::new()))))),
-            keystore.clone(),
-            passwords.clone(),
-            Arc::new(NoopLightningStore),
-            discovery.balance,
-            discovery.transactions,
-            session.clone(),
-        ));
         let service = Arc::new(GemWalletService::new(
             keystore.clone(),
             passwords.clone(),
@@ -196,7 +183,6 @@ impl WalletTestkit {
             Arc::new(GemExplorerService::new(app_preferences)),
             names,
             Arc::new(GemAvatarService::mock(wallets.clone(), Arc::new(NoopFileStore))),
-            lightning,
         ));
         Self {
             service,

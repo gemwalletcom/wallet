@@ -112,8 +112,6 @@ pub mod platform;
 pub use self::platform::Platform;
 pub mod platform_store;
 pub use self::platform_store::PlatformStore;
-pub mod lightning_token;
-pub use self::lightning_token::LightningToken;
 pub mod payment;
 pub use self::payment::{Payment, PaymentAmount, PaymentInvoice, PaymentLink, PaymentMerchant, PaymentPrice, PaymentQuote, PaymentRequest, PaymentStatus, PaymentVerification};
 pub mod payment_type;

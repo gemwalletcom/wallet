@@ -5,6 +5,7 @@ pub(crate) mod testkit;
 
 use std::sync::Arc;
 
+use gem_spark::LightningSend;
 use primitives::{AssetId, PerpetualAccountMode, WalletId};
 
 use strum::AsRefStr;
@@ -27,6 +28,7 @@ enum WalletPreferenceKey {
     CompleteInitialLoadNfts,
     CompleteInitialWalletConfiguration,
     PerpetualAccountMode,
+    LightningSends,
 }
 
 #[derive(uniffi::Object)]
@@ -56,6 +58,18 @@ impl GemWalletPreferencesService {
 
     pub fn is_initial_load_completed(&self, wallet_id: WalletId, step: GemDiscoveryStep) -> bool {
         self.get_flag(wallet_id, initial_load_key(step))
+    }
+}
+
+impl GemWalletPreferencesService {
+    pub(crate) fn get_lightning_sends(&self, wallet_id: WalletId) -> Result<Vec<LightningSend>, GemServiceError> {
+        self.store
+            .get(wallet_id, WalletPreferenceKey::LightningSends.as_ref().to_string())
+            .map_or(Ok(vec![]), |value| serde_json::from_str(&value).map_err(GemServiceError::core))
+    }
+
+    pub(crate) fn set_lightning_sends(&self, wallet_id: WalletId, sends: &[LightningSend]) -> Result<(), GemServiceError> {
+        self.set_value(wallet_id, WalletPreferenceKey::LightningSends.as_ref().to_string(), serde_json::to_string(sends).map_err(GemServiceError::core)?)
     }
 }
 

@@ -41,7 +41,6 @@ mod tests {
         assert_eq!(chain_transaction_timeout(Chain::Solana), Chain::Solana.block_time() * 150);
         assert_eq!(chain_transaction_timeout(Chain::Ethereum), Chain::Ethereum.block_time() * 120);
         assert_eq!(chain_transaction_timeout(Chain::Cosmos), Chain::Cosmos.block_time() * 600);
-        assert_eq!(chain_transaction_timeout(Chain::Lightning), 1_382_400_000);
     }
 
     #[test]

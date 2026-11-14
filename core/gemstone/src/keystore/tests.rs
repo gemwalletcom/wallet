@@ -221,3 +221,18 @@ fn test_gem_keystore_near_export_round_trip() {
     let imported = keystore.preview_import(GemImportType::PrivateKey { value: exported, chain: Chain::Near }).unwrap();
     assert_eq!(imported.accounts[0].address, stored.accounts[0].address);
 }
+
+#[test]
+fn test_lightning_account_key() {
+    let dir = TempDir::new().unwrap();
+    let keystore = GemKeystore::new(dir.path().to_string_lossy().to_string()).unwrap();
+    let phrase = keystore.create_store(GemImportType::mock_multicoin_phrase(vec![Chain::Bitcoin]), b"password".to_vec()).unwrap();
+    let private_key = keystore.create_store(GemImportType::mock_private_key(), b"password".to_vec()).unwrap();
+
+    assert!(keystore.lightning_account_key(&phrase.keystore_id, b"password".to_vec()).is_ok());
+    assert!(keystore.lightning_account_key(&phrase.keystore_id, b"wrong".to_vec()).is_err());
+    assert_eq!(
+        keystore.lightning_account_key(&private_key.keystore_id, b"password".to_vec()).err().map(|error| error.to_string()),
+        Some("lightning wallet does not support private-key wallets".to_string())
+    );
+}

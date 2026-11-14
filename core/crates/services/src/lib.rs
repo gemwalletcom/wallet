@@ -10,7 +10,6 @@ pub mod defi;
 pub mod devices;
 pub mod fiat;
 pub mod indexer;
-pub mod lightning;
 mod job_schedule;
 pub mod nft;
 pub mod notifications;

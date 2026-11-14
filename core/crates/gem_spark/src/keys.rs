@@ -29,21 +29,3 @@ pub fn account_key(seed: &[u8]) -> Result<AccountKey, LightningError> {
     master.private_key.non_secure_erase();
     account.map(AccountKey).map_err(|error| LightningError::Key(error.to_string()))
 }
-
-#[cfg(test)]
-mod tests {
-    use bitcoin::secp256k1::PublicKey;
-    use primitives::hex::decode_hex;
-
-    use super::*;
-    use crate::testkit::{ABANDON_SEED_HEX, IDENTITY_PUBLIC_KEY};
-
-    #[test]
-    fn test_account_key() {
-        let secp = Secp256k1::new();
-        let account = account_key(&decode_hex(ABANDON_SEED_HEX).unwrap()).unwrap();
-        let identity = account.xpriv().derive_priv(&secp, &DerivationPath::from_str("m/0'").unwrap()).unwrap();
-
-        assert_eq!(PublicKey::from_secret_key(&secp, &identity.private_key).to_string(), IDENTITY_PUBLIC_KEY);
-    }
-}

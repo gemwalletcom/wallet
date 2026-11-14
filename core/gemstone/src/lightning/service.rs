@@ -2,14 +2,13 @@ use std::sync::Arc;
 
 use gem_spark::{LIGHTNING_SCHEME, LightningWallet, decode_invoice};
 use primitives::time::unix_timestamp;
-use primitives::{AddressFormatStyle, Asset, AssetId, Chain, Wallet, WalletId};
+use primitives::{AddressFormatStyle, Asset, AssetId, Chain, WalletId};
 
 use super::model::{GemLightningReceive, GemLightningReceiveState};
 use super::runtime::run;
 use super::sessions;
-use super::store::{GemLightningStore, WalletLightningStore};
+use super::store::WalletLightningStore;
 use crate::address_formatter::format_address;
-use crate::api::GemApiClient;
 use crate::keystore::{GemKeystore, decode_password, keystore_id_for_wallet};
 use crate::models::copy::{GemCopy, GemCopyKind};
 use crate::services::amount::model::{GemAmountField, GemAmountKeyboard, GemAmountSymbol, GemAmountSymbolPlacement, GemNumberFormat};
@@ -18,14 +17,14 @@ use crate::services::balance::GemBalanceService;
 use crate::services::error::{GemServiceError, required_account};
 use crate::services::transactions::GemTransactionsService;
 use crate::services::wallet::GemKeystorePassword;
+use crate::services::wallet_preferences::GemWalletPreferencesService;
 use crate::services::wallet_session::GemWalletSessionService;
 
 #[derive(uniffi::Object)]
 pub struct GemLightningService {
-    api: Arc<GemApiClient>,
     keystore: Arc<GemKeystore>,
     password: Arc<dyn GemKeystorePassword>,
-    store: Arc<dyn GemLightningStore>,
+    preferences: Arc<GemWalletPreferencesService>,
     balances: Arc<GemBalanceService>,
     transactions: Arc<GemTransactionsService>,
     session: Arc<GemWalletSessionService>,
@@ -35,19 +34,17 @@ pub struct GemLightningService {
 impl GemLightningService {
     #[uniffi::constructor]
     pub fn new(
-        api: Arc<GemApiClient>,
         keystore: Arc<GemKeystore>,
         password: Arc<dyn GemKeystorePassword>,
-        store: Arc<dyn GemLightningStore>,
+        preferences: Arc<GemWalletPreferencesService>,
         balances: Arc<GemBalanceService>,
         transactions: Arc<GemTransactionsService>,
         session: Arc<GemWalletSessionService>,
     ) -> Self {
         Self {
-            api,
             keystore,
             password,
-            store,
+            preferences,
             balances,
             transactions,
             session,
@@ -70,14 +67,13 @@ impl GemLightningService {
             let _ = run(async move { lightning.sync().await }).await;
             let _ = self.update_wallet(wallet.id).await;
         }
-        self.refresh_partner_token().await;
         Ok(())
     }
 
     pub async fn receive(&self, wallet_id: WalletId, amount: String, format: GemNumberFormat) -> Result<GemLightningReceive, GemServiceError> {
         let wallet = self.wallet(wallet_id).await?;
         let asset = Asset::from_chain(Chain::Lightning);
-        let amount_sats = value_from_input(&format.decimal_separator, &amount, asset.decimals).ok().and_then(|value| u64::try_from(value).ok()).filter(|value| *value > 0);
+        let amount_sats = value_from_input(&format.decimal_separator, &amount, asset.decimals).ok().and_then(|value| u64::try_from(value).ok()).unwrap_or_default();
         let invoice = run(async move { wallet.create_invoice(amount_sats).await }).await?;
         Ok(receive(invoice, asset))
     }
@@ -102,11 +98,6 @@ impl GemLightningService {
 }
 
 impl GemLightningService {
-    pub(crate) async fn delete_wallet(&self, wallet: &Wallet, delete_secrets: impl FnOnce() -> Result<(), GemServiceError>) -> Result<(), GemServiceError> {
-        let address = wallet.account(Chain::Lightning).map(|account| account.address.as_str());
-        sessions().close_and_remove(address, delete_secrets).await
-    }
-
     async fn wallet(&self, wallet_id: WalletId) -> Result<Arc<LightningWallet>, GemServiceError> {
         let generation = sessions().generation();
         let address = required_account(&self.session.require_wallet(wallet_id.clone()).await?, Chain::Lightning)?.address;
@@ -118,22 +109,10 @@ impl GemLightningService {
             .open(generation, address, || async {
                 let password = decode_password(&self.password.get_password(false)?);
                 let account = self.keystore.lightning_account_key(&keystore_id_for_wallet(wallet_id.id()), password)?;
-                let store = Arc::new(WalletLightningStore::new(self.store.clone(), wallet_id.clone()));
-                let partner = sessions().partner();
-                let (_, wallet) = futures::join!(self.refresh_partner_token(), run(async move { LightningWallet::open(account, store, partner).await }));
-                Ok(wallet?)
+                let store = Arc::new(WalletLightningStore::new(self.preferences.clone(), wallet_id.clone()));
+                Ok(run(async move { LightningWallet::open(account, store).await }).await?)
             })
             .await
-    }
-
-    async fn refresh_partner_token(&self) {
-        let partner = sessions().partner();
-        if !partner.needs_token() {
-            return;
-        }
-        if let Ok(token) = self.api.client.get_lightning_token().await {
-            partner.set(token);
-        }
     }
 
     async fn update_wallet(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {

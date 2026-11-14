@@ -1,5 +1,5 @@
 use gem_client::{Client, ClientError, ClientExt};
-use primitives::{AssetBasic, AssetFull, AssetId, Chain, ChartCandleStick, ChartPeriod, Charts, ConfigResponse, FiatAssets, FiatQuoteType, LightningToken, PlatformStore, SearchResponse};
+use primitives::{AssetBasic, AssetFull, AssetId, Chain, ChartCandleStick, ChartPeriod, Charts, ConfigResponse, FiatAssets, FiatQuoteType, PlatformStore, SearchResponse};
 
 use crate::target::GemApiTarget;
 
@@ -48,9 +48,5 @@ impl<C: Client> GemApiClient<C> {
 
     pub async fn get_swap_assets(&self) -> Result<FiatAssets, ClientError> {
         self.client.get(GemApiTarget::GetSwapAssets).await
-    }
-
-    pub async fn get_lightning_token(&self) -> Result<LightningToken, ClientError> {
-        self.client.get(GemApiTarget::GetLightningToken).await
     }
 }

@@ -35,7 +35,7 @@ use primitives::{Chain, ChainAsset, NFTData, Wallet, WalletId, WalletSource, Wal
 
 use crate::keystore::decode_password;
 use crate::keystore::{GemImportType, GemKeystore, GemWalletImport, keystore_id_for_wallet};
-use crate::lightning::GemLightningService;
+use crate::lightning::sessions;
 use crate::models::state::GemListPhase;
 use crate::services::avatar::GemAvatarService;
 use crate::services::empty_state::{GemEmptyStateKind, screen_empty_state};
@@ -76,7 +76,6 @@ pub struct GemWalletService {
     explorer: Arc<GemExplorerService>,
     names: Arc<GemNameService>,
     avatar: Arc<GemAvatarService>,
-    lightning: Arc<GemLightningService>,
 }
 
 #[uniffi::export]
@@ -93,7 +92,6 @@ impl GemWalletService {
         explorer: Arc<GemExplorerService>,
         names: Arc<GemNameService>,
         avatar: Arc<GemAvatarService>,
-        lightning: Arc<GemLightningService>,
     ) -> Self {
         Self {
             keystore,
@@ -106,7 +104,6 @@ impl GemWalletService {
             explorer,
             names,
             avatar,
-            lightning,
         }
     }
 
@@ -156,7 +153,8 @@ impl GemWalletService {
     pub async fn delete_wallet(&self, wallet_id: WalletId) -> Result<GemWalletDeletion, GemServiceError> {
         let wallet = self.wallet(wallet_id.clone()).await?;
         if wallet.wallet_type != WalletType::View {
-            self.lightning.delete_wallet(&wallet, || Ok(self.keystore.delete_wallet_secrets(wallet.id.id(), rules::legacy_keystore_id(&wallet))?)).await?;
+            let address = wallet.account(Chain::Lightning).map(|account| account.address.as_str());
+            sessions().close_and_remove(address, || Ok(self.keystore.delete_wallet_secrets(wallet.id.id(), rules::legacy_keystore_id(&wallet))?)).await?;
         }
         self.store.delete_wallet(wallet.id.clone()).await?;
         self.names.delete_names(rules::wallet_address_names(&wallet)).await?;

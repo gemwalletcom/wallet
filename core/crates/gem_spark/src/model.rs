@@ -1,3 +1,5 @@
+use chrono::{DateTime, Utc};
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LightningInvoice {
     pub invoice: String,
@@ -32,7 +34,7 @@ pub struct LightningPayment {
     pub status: LightningPaymentStatus,
     pub amount_sats: u64,
     pub fee_sats: u64,
-    pub created_at: u64,
+    pub created_at: DateTime<Utc>,
     pub invoice: Option<String>,
 }
 

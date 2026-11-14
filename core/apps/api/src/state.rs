@@ -13,7 +13,6 @@ use services::defi::DefiClient;
 use services::devices::{DevicesClient, WalletConfigurationClient, WalletsClient};
 use services::fiat::FiatClient;
 use services::indexer::IndexerClient;
-use services::lightning::LightningTokenClient;
 use services::nft::NFTClient;
 use services::notifications::NotificationsClient;
 use services::prices::{ChartClient, MarketsClient, PortfolioClient, PriceAlertClient, PriceClient};
@@ -61,7 +60,6 @@ pub struct Clients {
     pub markets: Arc<MarketsClient>,
     pub webhooks: Arc<WebhooksClient>,
     pub indexer: Arc<IndexerClient>,
-    pub lightning: Arc<LightningTokenClient>,
     pub rewards: Arc<RewardsClient>,
     pub rewards_redemption: Arc<RewardsRedemptionClient>,
     pub wallets: Arc<WalletsClient>,
@@ -123,7 +121,6 @@ state_clients! {
     markets: MarketsClient,
     webhooks: WebhooksClient,
     indexer: IndexerClient,
-    lightning: LightningTokenClient,
     rewards: RewardsClient,
     rewards_redemption: RewardsRedemptionClient,
     wallets: WalletsClient,

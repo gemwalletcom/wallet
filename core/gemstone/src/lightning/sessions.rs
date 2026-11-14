@@ -6,7 +6,7 @@ use std::sync::{Arc, LazyLock, PoisonError, RwLock};
 use async_trait::async_trait;
 use futures::lock::Mutex as AsyncMutex;
 use gem_spark::provider::{LightningAuthorization, LightningSessions};
-use gem_spark::{LightningError, LightningInvoice, LightningPayment, LightningPaymentStatus, LightningSendQuote, LightningWallet, PartnerHeaders};
+use gem_spark::{LightningError, LightningInvoice, LightningPayment, LightningPaymentStatus, LightningSendQuote, LightningWallet};
 
 use super::runtime::run;
 use crate::services::error::GemServiceError;
@@ -22,16 +22,11 @@ pub(crate) struct LightningSessionRegistry {
     wallets: RwLock<HashMap<String, Arc<LightningWallet>>>,
     opening: AsyncMutex<()>,
     generation: AtomicU64,
-    partner: Arc<PartnerHeaders>,
 }
 
 impl LightningSessionRegistry {
     pub(crate) fn generation(&self) -> u64 {
         self.generation.load(Ordering::SeqCst)
-    }
-
-    pub(crate) fn partner(&self) -> Arc<PartnerHeaders> {
-        self.partner.clone()
     }
 
     pub(crate) async fn open<F, Fut>(&self, generation: u64, address: &str, open: F) -> Result<(Arc<LightningWallet>, bool), GemServiceError>

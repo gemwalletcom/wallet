@@ -435,40 +435,6 @@ mod migration_tests {
     }
 }
 
-#[cfg(test)]
-mod lightning_tests {
-    use primitives::Chain;
-    use primitives::testkit::ABANDON_PHRASE;
-
-    use super::{GemImportType, GemKeystore};
-
-    const PRIVATE_KEY: &str = "0x30df0ffc2b43717f4653c2a1e827e9dfb3d9364e019cc60092496cd4997d5d6e";
-
-    #[test]
-    fn test_lightning_account_key() {
-        let dir = primitives::testkit::temp_dir::TempDir::new().unwrap();
-        let keystore = GemKeystore::new(dir.path().to_string_lossy().to_string()).unwrap();
-        let words = ABANDON_PHRASE.split(' ').map(ToString::to_string).collect();
-        let mnemonic = keystore.create_store(GemImportType::MulticoinPhrase { words, chains: vec![Chain::Bitcoin] }, b"password".to_vec()).unwrap();
-        let private_key = keystore
-            .create_store(
-                GemImportType::PrivateKey {
-                    value: PRIVATE_KEY.to_string(),
-                    chain: Chain::Ethereum,
-                },
-                b"password".to_vec(),
-            )
-            .unwrap();
-
-        assert!(keystore.lightning_account_key(&mnemonic.keystore_id, b"password".to_vec()).is_ok());
-        assert!(keystore.lightning_account_key(&mnemonic.keystore_id, b"wrong".to_vec()).is_err());
-        assert_eq!(
-            keystore.lightning_account_key(&private_key.keystore_id, b"password".to_vec()).err().map(|error| error.to_string()),
-            Some("lightning wallet does not support private-key wallets".to_string())
-        );
-    }
-}
-
 pub fn decode_password(password: &str) -> Vec<u8> {
     hex::decode(password.trim_prefix("0x")).unwrap_or_else(|_| password.as_bytes().to_vec())
 }

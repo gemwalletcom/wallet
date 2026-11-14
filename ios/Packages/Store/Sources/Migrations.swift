@@ -98,7 +98,6 @@ struct Migrations {
             try NotificationRecord.create(db: db)
             try FiatTransactionRecord.create(db: db)
             try SupportMessageRecord.create(db: db)
-            try LightningPendingSendRecord.create(db: db)
         }
         migrator.registerMigration("Recreate \(AssetMarketRecord.databaseTableName)") { db in
             try db.dropTableIfExists(AssetMarketRecord.databaseTableName)
@@ -523,10 +522,6 @@ struct Migrations {
 
         migrator.registerMigration("Remove sei and blast") { db in
             try db.removeDeprecatedChains(["sei", "blast"])
-        }
-
-        migrator.registerMigration("Create \(LightningPendingSendRecord.databaseTableName)") { db in
-            try db.createIfMissing(LightningPendingSendRecord.self)
         }
 
         try migrator.migrate(writer)

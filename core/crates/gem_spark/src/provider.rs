@@ -6,13 +6,13 @@ use chain_traits::{
     ChainAccount, ChainAddressStatus, ChainBalances, ChainBlockTransactions, ChainPerpetual, ChainProvider, ChainRequestClassifier, ChainSimulation, ChainStaking, ChainState, ChainToken, ChainTraits, ChainTransaction,
     ChainTransactionBroadcast, ChainTransactionDecode, ChainTransactionLoad, ChainTransactionState, ChainTransactions, TransactionsRequest, TransactionsResult,
 };
-use chrono::DateTime;
 use gem_hash::sha2::sha256;
 use num_bigint::{BigInt, BigUint};
 use primitives::{
     AssetBalance, AssetId, BroadcastOptions, Chain, ChainSigner, FeePriority, FeeRate, GasPriceType, SignerError, SignerInput, Transaction, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput,
-    TransactionLoadMetadata, TransactionState, TransactionStateRequest, TransactionType, TransactionUpdate, hex,
+    TransactionLoadMetadata, TransactionState, TransactionStateRequest, TransactionType, TransactionUpdate,
 };
+use serde::{Deserialize, Serialize};
 use signer::{SignatureScheme, Signer};
 
 use crate::error::LightningError;
@@ -20,7 +20,6 @@ use crate::invoice::decode_invoice;
 use crate::model::{LightningInvoice, LightningPayment, LightningPaymentDirection, LightningPaymentStatus, LightningSendQuote};
 
 const CHAIN: Chain = Chain::Lightning;
-const PAYLOAD_SEPARATOR: &str = "|";
 const AUTHORIZATION_DOMAIN: &str = "gem-lightning-transfer-v1";
 
 #[async_trait]
@@ -58,7 +57,7 @@ pub struct LightningAuthorization {
     pub signature: Vec<u8>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct LightningTransfer {
     pub address: String,
     pub invoice: String,
@@ -66,40 +65,27 @@ pub struct LightningTransfer {
     pub max_fee_sats: u64,
 }
 
+#[derive(Serialize, Deserialize)]
+struct SignedLightningTransfer {
+    transfer: LightningTransfer,
+    #[serde(with = "serde_serializers::hex_bytes")]
+    signature: Vec<u8>,
+}
+
 impl LightningTransfer {
-    fn message(&self) -> String {
-        [self.address.clone(), self.invoice.clone(), self.amount_sats.to_string(), self.max_fee_sats.to_string()].join(PAYLOAD_SEPARATOR)
+    fn digest(&self) -> Result<[u8; 32], serde_json::Error> {
+        Ok(sha256(&[AUTHORIZATION_DOMAIN.as_bytes(), &serde_json::to_vec(self)?].concat()))
     }
 
-    fn digest(&self) -> [u8; 32] {
-        sha256([AUTHORIZATION_DOMAIN.to_string(), self.message()].join(PAYLOAD_SEPARATOR).as_bytes())
-    }
-
-    fn sign(&self, private_key: &[u8]) -> Result<String, SignerError> {
-        let signature = Signer::sign_digest(SignatureScheme::Secp256k1, &self.digest(), private_key)?;
-        Ok(self.encode(&signature))
-    }
-
-    pub fn encode(&self, signature: &[u8]) -> String {
-        [self.message(), hex::encode(signature)].join(PAYLOAD_SEPARATOR)
+    fn sign(self, private_key: &[u8]) -> Result<String, SignerError> {
+        let signature = Signer::sign_digest(SignatureScheme::Secp256k1, &self.digest()?, private_key)?;
+        Ok(serde_json::to_string(&SignedLightningTransfer { transfer: self, signature })?)
     }
 
     pub fn decode(value: &str) -> Result<(Self, LightningAuthorization), LightningError> {
-        let mut parts = value.split(PAYLOAD_SEPARATOR);
-        let (Some(address), Some(invoice), Some(amount), Some(fee), Some(signature), None) = (parts.next(), parts.next(), parts.next(), parts.next(), parts.next(), parts.next()) else {
-            return Err(LightningError::InvalidTransfer);
-        };
-        let transfer = Self {
-            address: address.to_string(),
-            invoice: invoice.to_string(),
-            amount_sats: amount.parse().map_err(|_| LightningError::InvalidTransfer)?,
-            max_fee_sats: fee.parse().map_err(|_| LightningError::InvalidTransfer)?,
-        };
-        let authorization = LightningAuthorization {
-            digest: transfer.digest(),
-            signature: hex::decode_hex(signature).map_err(|_| LightningError::InvalidTransfer)?,
-        };
-        Ok((transfer, authorization))
+        let signed: SignedLightningTransfer = serde_json::from_str(value).map_err(|_| LightningError::InvalidTransfer)?;
+        let digest = signed.transfer.digest().map_err(|_| LightningError::InvalidTransfer)?;
+        Ok((signed.transfer, LightningAuthorization { digest, signature: signed.signature }))
     }
 
     fn quote(&self) -> Result<LightningSendQuote, LightningError> {
@@ -135,7 +121,6 @@ pub fn map_payment(address: &str, payment: &LightningPayment) -> Transaction {
         LightningPaymentDirection::Incoming => (String::new(), address.to_string()),
         LightningPaymentDirection::Outgoing => (address.to_string(), String::new()),
     };
-    let created_at = DateTime::from_timestamp(i64::try_from(payment.created_at).unwrap_or_default(), 0).unwrap_or_default();
     Transaction::new(
         payment.id.clone(),
         asset_id.clone(),
@@ -149,7 +134,7 @@ pub fn map_payment(address: &str, payment: &LightningPayment) -> Transaction {
         BigUint::from(payment.amount_sats),
         None,
         None,
-        created_at,
+        payment.created_at,
     )
     .finalize(vec![address.to_string()])
 }
@@ -190,8 +175,7 @@ impl ChainProvider for LightningProvider {
 impl ChainTransactionLoad for LightningProvider {
     async fn get_transaction_load(&self, input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Sync + Send>> {
         let invoice = decode_invoice(&input.destination_address)?;
-        let amount_sats = u64::try_from(&input.value).map_err(|_| LightningError::AmountRequired)?;
-        let fee_sats = self.sessions.send_fee(&input.sender_address, invoice, amount_sats).await?;
+        let fee_sats = self.sessions.send_fee(&input.sender_address, invoice, input.value_as_u64()?).await?;
         Ok(TransactionLoadData {
             fee: TransactionFee::new_from_fee(BigInt::from(fee_sats), AssetId::from_chain(CHAIN)),
             metadata: TransactionLoadMetadata::None,
@@ -233,14 +217,11 @@ pub struct LightningChainSigner;
 
 impl ChainSigner for LightningChainSigner {
     fn sign_transfer(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
-        let invoice = decode_invoice(&input.destination_address).map_err(|error| SignerError::invalid_input(error.to_string()))?;
-        let amount_sats = u64::try_from(&input.value).map_err(|_| SignerError::invalid_input("invalid amount"))?;
-        let max_fee_sats = u64::try_from(&input.fee.fee).map_err(|_| SignerError::invalid_input("invalid fee"))?;
         LightningTransfer {
             address: input.sender_address.clone(),
-            invoice: invoice.invoice,
-            amount_sats,
-            max_fee_sats,
+            invoice: decode_invoice(&input.destination_address).map_err(SignerError::from_display)?.invoice,
+            amount_sats: input.value_as_u64()?,
+            max_fee_sats: input.fee.fee()?,
         }
         .sign(private_key)
     }
@@ -287,13 +268,11 @@ mod tests {
             max_fee_sats: 7,
         };
 
-        let (decoded, authorization) = LightningTransfer::decode(&transfer.sign(&[7u8; 32]).unwrap()).unwrap();
+        let (decoded, authorization) = LightningTransfer::decode(&transfer.clone().sign(&[7u8; 32]).unwrap()).unwrap();
 
         assert_eq!(decoded, transfer);
-        assert_eq!(authorization.digest, transfer.digest());
-        assert_ne!(authorization.digest, sha256(transfer.message().as_bytes()));
+        assert_eq!(authorization.digest, transfer.digest().unwrap());
         assert_eq!(authorization.signature.len(), 65);
         assert_eq!(LightningTransfer::decode("spark1address|invoice|2000|7"), Err(LightningError::InvalidTransfer));
-        assert_eq!(LightningTransfer::decode("spark1address|invoice|amount|7|00"), Err(LightningError::InvalidTransfer));
     }
 }

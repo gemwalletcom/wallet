@@ -1,35 +1,28 @@
-use std::sync::Arc;
+use std::sync::{Arc, Mutex, PoisonError};
 
 use async_trait::async_trait;
-use gem_spark::{LightningError, LightningPendingSend, LightningStore};
+use gem_spark::{LightningError, LightningSend, LightningStore};
 use primitives::WalletId;
 
 use crate::services::error::GemServiceError;
+use crate::services::wallet_preferences::GemWalletPreferencesService;
 
-#[uniffi::remote(Record)]
-pub struct LightningPendingSend {
-    pub transfer_id: String,
-    pub invoice: String,
-    pub amount_sats: Option<u64>,
-    pub expires_at: u64,
-}
-
-#[uniffi::export(rust, foreign)]
-#[async_trait]
-pub trait GemLightningStore: Send + Sync {
-    async fn get_pending_sends(&self, wallet_id: WalletId) -> Result<Vec<LightningPendingSend>, GemServiceError>;
-    async fn add_pending_send(&self, wallet_id: WalletId, send: LightningPendingSend) -> Result<(), GemServiceError>;
-    async fn delete_pending_send(&self, wallet_id: WalletId, transfer_id: String) -> Result<(), GemServiceError>;
-}
+static UPDATES: Mutex<()> = Mutex::new(());
 
 pub(crate) struct WalletLightningStore {
-    store: Arc<dyn GemLightningStore>,
+    preferences: Arc<GemWalletPreferencesService>,
     wallet_id: WalletId,
 }
 
 impl WalletLightningStore {
-    pub(crate) fn new(store: Arc<dyn GemLightningStore>, wallet_id: WalletId) -> Self {
-        Self { store, wallet_id }
+    pub(crate) fn new(preferences: Arc<GemWalletPreferencesService>, wallet_id: WalletId) -> Self {
+        Self { preferences, wallet_id }
+    }
+
+    fn update(&self, change: impl FnOnce(Vec<LightningSend>) -> Vec<LightningSend>) -> Result<(), LightningError> {
+        let _update = UPDATES.lock().unwrap_or_else(PoisonError::into_inner);
+        let sends = self.preferences.get_lightning_sends(self.wallet_id.clone()).map_err(storage_error)?;
+        self.preferences.set_lightning_sends(self.wallet_id.clone(), &change(sends)).map_err(storage_error)
     }
 }
 
@@ -39,15 +32,47 @@ fn storage_error(error: GemServiceError) -> LightningError {
 
 #[async_trait]
 impl LightningStore for WalletLightningStore {
-    async fn get_pending_sends(&self) -> Result<Vec<LightningPendingSend>, LightningError> {
-        self.store.get_pending_sends(self.wallet_id.clone()).await.map_err(storage_error)
+    async fn get_sends(&self) -> Result<Vec<LightningSend>, LightningError> {
+        self.preferences.get_lightning_sends(self.wallet_id.clone()).map_err(storage_error)
     }
 
-    async fn add_pending_send(&self, send: LightningPendingSend) -> Result<(), LightningError> {
-        self.store.add_pending_send(self.wallet_id.clone(), send).await.map_err(storage_error)
+    async fn add_send(&self, send: LightningSend) -> Result<(), LightningError> {
+        self.update(|sends| sends.into_iter().chain([send]).collect())
     }
 
-    async fn delete_pending_send(&self, transfer_id: String) -> Result<(), LightningError> {
-        self.store.delete_pending_send(self.wallet_id.clone(), transfer_id).await.map_err(storage_error)
+    async fn delete_send(&self, transfer_id: String) -> Result<(), LightningError> {
+        self.update(|sends| sends.into_iter().filter(|send| send.transfer_id != transfer_id).collect())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use futures::executor::block_on;
+
+    use super::*;
+    use crate::services::wallet_preferences::testkit::MemoryWalletPreferencesStore;
+
+    fn send(transfer_id: &str) -> LightningSend {
+        LightningSend {
+            transfer_id: transfer_id.to_string(),
+            invoice: "lnbc1".to_string(),
+            amount_sats: None,
+            expires_at: 1,
+        }
+    }
+
+    #[test]
+    fn test_sends() {
+        block_on(async {
+            let preferences = Arc::new(GemWalletPreferencesService::new(Arc::new(MemoryWalletPreferencesStore::default())));
+            let store = WalletLightningStore::new(preferences.clone(), WalletId::mock());
+
+            store.add_send(send("1")).await.unwrap();
+            store.add_send(send("2")).await.unwrap();
+            store.delete_send("1".to_string()).await.unwrap();
+
+            assert_eq!(store.get_sends().await.unwrap(), vec![send("2")]);
+            assert_eq!(WalletLightningStore::new(preferences, WalletId::Multicoin("0x2".to_string())).get_sends().await.unwrap(), vec![]);
+        });
     }
 }

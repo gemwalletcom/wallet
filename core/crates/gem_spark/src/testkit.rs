@@ -13,7 +13,7 @@ impl LightningPayment {
             status,
             amount_sats: 1_000,
             fee_sats: 3,
-            created_at: 1_792_993_669,
+            created_at: chrono::DateTime::from_timestamp(1_792_993_669, 0).unwrap(),
             invoice: None,
         }
     }
@@ -30,31 +30,31 @@ mod store {
     use async_trait::async_trait;
 
     use crate::error::LightningError;
-    use crate::store::{LightningPendingSend, LightningStore};
+    use crate::store::{LightningSend, LightningStore};
 
     #[derive(Default)]
     pub struct MemoryLightningStore {
-        sends: Mutex<BTreeMap<String, LightningPendingSend>>,
+        sends: Mutex<BTreeMap<String, LightningSend>>,
     }
 
     impl MemoryLightningStore {
-        fn sends(&self) -> MutexGuard<'_, BTreeMap<String, LightningPendingSend>> {
+        fn sends(&self) -> MutexGuard<'_, BTreeMap<String, LightningSend>> {
             self.sends.lock().unwrap_or_else(PoisonError::into_inner)
         }
     }
 
     #[async_trait]
     impl LightningStore for MemoryLightningStore {
-        async fn get_pending_sends(&self) -> Result<Vec<LightningPendingSend>, LightningError> {
+        async fn get_sends(&self) -> Result<Vec<LightningSend>, LightningError> {
             Ok(self.sends().values().cloned().collect())
         }
 
-        async fn add_pending_send(&self, send: LightningPendingSend) -> Result<(), LightningError> {
+        async fn add_send(&self, send: LightningSend) -> Result<(), LightningError> {
             self.sends().insert(send.transfer_id.clone(), send);
             Ok(())
         }
 
-        async fn delete_pending_send(&self, transfer_id: String) -> Result<(), LightningError> {
+        async fn delete_send(&self, transfer_id: String) -> Result<(), LightningError> {
             self.sends().remove(&transfer_id);
             Ok(())
         }

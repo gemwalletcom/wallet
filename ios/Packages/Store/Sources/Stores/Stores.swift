@@ -23,7 +23,6 @@ public struct Stores: Sendable {
     public let contactStore: ContactStore
     public let fiatTransactionStore: FiatTransactionStore
     public let supportChatStore: SupportChatStore
-    public let lightningStore: LightningStore
 
     public init(db: DB) {
         assetStore = AssetStore(db: db)
@@ -46,6 +45,5 @@ public struct Stores: Sendable {
         contactStore = ContactStore(db: db)
         fiatTransactionStore = FiatTransactionStore(db: db)
         supportChatStore = SupportChatStore(db: db)
-        lightningStore = LightningStore(db: db)
     }
 }

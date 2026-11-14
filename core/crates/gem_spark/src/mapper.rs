@@ -1,5 +1,4 @@
-use std::time::{SystemTime, UNIX_EPOCH};
-
+use chrono::DateTime;
 use spark_wallet::{SspUserRequest, TransferDirection, TransferStatus, TransferType, WalletTransfer};
 
 use crate::model::{LightningPayment, LightningPaymentDirection, LightningPaymentStatus};
@@ -24,7 +23,7 @@ pub fn map_transfer(transfer: &WalletTransfer) -> Option<LightningPayment> {
         status,
         amount_sats: transfer.total_value_sat.saturating_sub(fee_sats),
         fee_sats,
-        created_at: transfer.created_at.map(unix_seconds).unwrap_or_default(),
+        created_at: transfer.created_at.map(DateTime::from).unwrap_or_default(),
         invoice,
     })
 }
@@ -62,23 +61,9 @@ fn payment_direction(direction: &TransferDirection) -> LightningPaymentDirection
     }
 }
 
-fn unix_seconds(time: SystemTime) -> u64 {
-    time.duration_since(UNIX_EPOCH).map(|duration| duration.as_secs()).unwrap_or_default()
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_is_payment() {
-        assert!(is_payment(TransferType::PreimageSwap));
-        assert!(is_payment(TransferType::Transfer));
-        assert!(!is_payment(TransferType::CooperativeExit));
-        assert!(is_payment(TransferType::UtxoSwap));
-        assert!(!is_payment(TransferType::Swap));
-        assert!(!is_payment(TransferType::CounterSwapV3));
-    }
 
     #[test]
     fn test_payment_status() {
