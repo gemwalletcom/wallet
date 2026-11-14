@@ -40,6 +40,5 @@ class AppLifecycleCoordinator @Inject constructor(
         connectionStatusObserver.stop()
         transactionStatusService.stop()
         walletConnectCoordinator.stop()
-        lightningSessionObserver.lock()
     }
 }

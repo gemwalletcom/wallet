@@ -2,12 +2,10 @@ package com.gemwallet.android.data.services.gemstone.di
 
 import android.content.Context
 import com.gemwallet.android.application.PasswordStore
-import com.gemwallet.android.application.lightning.cases.OpenLightning
 import com.gemwallet.android.data.services.gemstone.lightning.LightningSessionObserver
 import com.gemwallet.android.data.services.gemstone.stores.DeviceAuthentication
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneKeystorePassword
 import com.gemwallet.android.data.services.gemstone.stores.GemstoneWalletStore
-import com.gemwallet.android.data.services.gemstone.stores.LightningKeystorePassword
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -30,6 +28,7 @@ import uniffi.gemstone.GemNameService
 import uniffi.gemstone.GemPaymentService
 import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemRecentActivityService
+import uniffi.gemstone.GemSecureStore
 import uniffi.gemstone.GemSignMessageService
 import uniffi.gemstone.GemSwapService
 import uniffi.gemstone.GemSwapServiceInterface
@@ -61,6 +60,7 @@ object KeystoreModule {
         explorerService: GemExplorerService,
         nameService: GemNameService,
         avatarService: GemAvatarService,
+        secureStore: GemSecureStore,
     ): GemWalletService = GemWalletService(
         keystore,
         GemstoneKeystorePassword(passwordStore, deviceAuthentication),
@@ -72,6 +72,7 @@ object KeystoreModule {
         explorerService,
         nameService,
         avatarService,
+        secureStore,
     )
 
     @Provides
@@ -118,13 +119,15 @@ object KeystoreModule {
         keystore: GemKeystore,
         passwordStore: PasswordStore,
         deviceAuthentication: DeviceAuthentication,
+        secureStore: GemSecureStore,
         walletPreferencesService: GemWalletPreferencesService,
         balanceService: GemBalanceService,
         transactionsService: GemTransactionsService,
         walletSessionService: GemWalletSessionService,
     ): GemLightningService = GemLightningService(
         keystore,
-        LightningKeystorePassword(GemstoneKeystorePassword(passwordStore, deviceAuthentication)),
+        GemstoneKeystorePassword(passwordStore, deviceAuthentication),
+        secureStore,
         walletPreferencesService,
         balanceService,
         transactionsService,
@@ -137,7 +140,4 @@ object KeystoreModule {
     @Provides
     @Singleton
     fun provideLightningSessionObserver(service: GemLightningServiceInterface): LightningSessionObserver = LightningSessionObserver(service = service)
-
-    @Provides
-    fun provideOpenLightning(observer: LightningSessionObserver): OpenLightning = observer
 }
