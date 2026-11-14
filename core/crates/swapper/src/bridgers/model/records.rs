@@ -67,6 +67,7 @@ impl Record {
 pub enum RecordStatus {
     ReceiveComplete,
     RefundComplete,
+    WaitDepositSendFail,
     Timeout,
     #[serde(other)]
     Pending,
@@ -77,8 +78,8 @@ impl RecordStatus {
         match self {
             Self::ReceiveComplete => SwapStatus::Completed,
             Self::RefundComplete => SwapStatus::Refunded,
-            Self::Timeout => SwapStatus::Failed,
-            Self::Pending => SwapStatus::Pending,
+            Self::WaitDepositSendFail => SwapStatus::Failed,
+            Self::Timeout | Self::Pending => SwapStatus::Pending,
         }
     }
 }
@@ -164,5 +165,14 @@ mod tests {
         );
         assert_eq!(serde_json::from_str::<RecordStatus>(r#""refund_complete""#).unwrap(), RecordStatus::RefundComplete);
         assert_eq!(serde_json::from_str::<RecordStatus>(r#""wait_receive_send""#).unwrap(), RecordStatus::Pending);
+    }
+
+    #[test]
+    fn test_a_timed_out_order_waits_for_its_refund_and_a_failed_deposit_is_final() {
+        let status = |value: &str| serde_json::from_value::<RecordStatus>(serde_json::json!(value)).unwrap().swap_status();
+
+        assert_eq!(status("timeout"), SwapStatus::Pending, "Bridgers refunds a deposit that timed out");
+        assert_eq!(status("wait_refund_send"), SwapStatus::Pending);
+        assert_eq!(status("wait_deposit_send_fail"), SwapStatus::Failed);
     }
 }
