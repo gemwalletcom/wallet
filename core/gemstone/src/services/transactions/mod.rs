@@ -10,7 +10,6 @@ use crate::services::transaction_state::GemTransactionStateStore;
 use std::sync::Arc;
 
 use chrono::Utc;
-use gem_spark::LightningError;
 use gem_spark::provider::transactions_mapper::map_payment;
 use primitives::{AssetId, Chain, Transaction, TransactionId, Wallet, WalletId};
 
@@ -130,8 +129,8 @@ impl GemTransactionsService {
         };
         let payments = match SESSIONS.payments(&account.address).await {
             Ok(payments) => payments,
-            Err(LightningError::Locked) => return Ok(()),
-            Err(error) => return Err(error.into()),
+            Err(GemServiceError::Cancelled) => return Ok(()),
+            Err(error) => return Err(error),
         };
         let transactions = payments.iter().map(|payment| map_payment(&account.address, payment)).collect();
         self.store.add_transactions(wallet_id, transactions).await

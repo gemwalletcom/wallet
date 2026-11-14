@@ -60,10 +60,7 @@ impl From<GemApiError> for GemServiceError {
 
 impl From<LightningError> for GemServiceError {
     fn from(error: LightningError) -> Self {
-        match error {
-            LightningError::Locked => Self::Cancelled,
-            error => Self::core(error),
-        }
+        Self::core(error)
     }
 }
 

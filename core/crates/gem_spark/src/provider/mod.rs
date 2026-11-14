@@ -12,7 +12,6 @@ use primitives::{
 };
 
 use crate::chain_signer::SignedLightningTransfer;
-use crate::error::LightningError;
 use crate::invoice::decode_invoice;
 use crate::model::{LightningInvoice, LightningPaymentStatus};
 
@@ -21,33 +20,34 @@ pub mod transactions_mapper;
 use transactions_mapper::payment_state;
 
 const CHAIN: Chain = Chain::Lightning;
+const KEY_REQUIRED: &str = "Lightning needs the wallet key";
 
 #[async_trait]
 pub trait LightningSessions: Send + Sync {
-    async fn balance(&self, address: &str) -> Result<u64, LightningError>;
-    async fn payment_status(&self, address: &str, id: &str) -> Result<LightningPaymentStatus, LightningError>;
-    async fn send_fee(&self, address: &str, invoice: LightningInvoice, amount_sats: u64) -> Result<u64, LightningError>;
-    async fn send(&self, signed: SignedLightningTransfer) -> Result<String, LightningError>;
+    async fn balance(&self, address: &str) -> Result<u64, Box<dyn Error + Send + Sync>>;
+    async fn payment_status(&self, address: &str, id: &str) -> Result<LightningPaymentStatus, Box<dyn Error + Send + Sync>>;
+    async fn send_fee(&self, address: &str, invoice: LightningInvoice, amount_sats: u64) -> Result<u64, Box<dyn Error + Send + Sync>>;
+    async fn send(&self, signed: SignedLightningTransfer) -> Result<String, Box<dyn Error + Send + Sync>>;
 }
 
-pub struct LockedSessions;
+pub struct KeylessSessions;
 
 #[async_trait]
-impl LightningSessions for LockedSessions {
-    async fn balance(&self, _address: &str) -> Result<u64, LightningError> {
-        Err(LightningError::Locked)
+impl LightningSessions for KeylessSessions {
+    async fn balance(&self, _address: &str) -> Result<u64, Box<dyn Error + Send + Sync>> {
+        Err(KEY_REQUIRED.into())
     }
 
-    async fn payment_status(&self, _address: &str, _id: &str) -> Result<LightningPaymentStatus, LightningError> {
-        Err(LightningError::Locked)
+    async fn payment_status(&self, _address: &str, _id: &str) -> Result<LightningPaymentStatus, Box<dyn Error + Send + Sync>> {
+        Err(KEY_REQUIRED.into())
     }
 
-    async fn send_fee(&self, _address: &str, _invoice: LightningInvoice, _amount_sats: u64) -> Result<u64, LightningError> {
-        Err(LightningError::Locked)
+    async fn send_fee(&self, _address: &str, _invoice: LightningInvoice, _amount_sats: u64) -> Result<u64, Box<dyn Error + Send + Sync>> {
+        Err(KEY_REQUIRED.into())
     }
 
-    async fn send(&self, _signed: SignedLightningTransfer) -> Result<String, LightningError> {
-        Err(LightningError::Locked)
+    async fn send(&self, _signed: SignedLightningTransfer) -> Result<String, Box<dyn Error + Send + Sync>> {
+        Err(KEY_REQUIRED.into())
     }
 }
 

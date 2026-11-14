@@ -7,7 +7,6 @@ use spark_wallet::SparkWalletError;
 pub enum LightningError {
     InvalidInvoice(String),
     InvalidTransfer,
-    Locked,
     Unauthorized,
     AccountMismatch,
     InvoiceExpired,
@@ -22,7 +21,6 @@ impl fmt::Display for LightningError {
         match self {
             Self::InvalidInvoice(message) => write!(f, "invalid invoice: {message}"),
             Self::InvalidTransfer => write!(f, "invalid lightning transfer"),
-            Self::Locked => write!(f, "lightning wallet is locked"),
             Self::Unauthorized => write!(f, "lightning payment is not authorized by this wallet"),
             Self::AccountMismatch => write!(f, "lightning wallet does not match the account address"),
             Self::InvoiceExpired => write!(f, "invoice expired"),
