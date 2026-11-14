@@ -7,4 +7,4 @@ mod store;
 pub use model::{GemLightningReceive, GemLightningReceiveState};
 pub use service::GemLightningService;
 pub(crate) use service::account_key_name;
-pub(crate) use sessions::sessions;
+pub(crate) use sessions::SESSIONS;

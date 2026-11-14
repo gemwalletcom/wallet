@@ -1,4 +1,5 @@
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LightningInvoice {
@@ -7,11 +8,12 @@ pub struct LightningInvoice {
     pub expires_at: u64,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct LightningSendQuote {
-    pub invoice: LightningInvoice,
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct LightningTransfer {
+    pub address: String,
+    pub invoice: String,
     pub amount_sats: u64,
-    pub fee_sats: u64,
+    pub max_fee_sats: u64,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

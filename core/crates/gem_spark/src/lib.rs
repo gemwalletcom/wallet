@@ -22,7 +22,7 @@ pub use error::LightningError;
 pub use invoice::{LIGHTNING_SCHEME, decode_invoice};
 #[cfg(feature = "wallet")]
 pub use keys::{AccountKey, account_key};
-pub use model::{LightningInvoice, LightningPayment, LightningPaymentDirection, LightningPaymentStatus, LightningSendQuote};
+pub use model::{LightningInvoice, LightningPayment, LightningPaymentDirection, LightningPaymentStatus, LightningTransfer};
 #[cfg(feature = "wallet")]
 pub use store::{LightningSend, LightningStore};
 #[cfg(feature = "wallet")]

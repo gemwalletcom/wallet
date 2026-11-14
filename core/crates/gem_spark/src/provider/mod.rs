@@ -11,10 +11,10 @@ use primitives::{
     AssetBalance, AssetId, BroadcastOptions, Chain, FeePriority, FeeRate, GasPriceType, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionStateRequest, TransactionUpdate,
 };
 
-use crate::chain_signer::{LightningAuthorization, LightningTransfer};
+use crate::chain_signer::SignedLightningTransfer;
 use crate::error::LightningError;
 use crate::invoice::decode_invoice;
-use crate::model::{LightningInvoice, LightningPaymentStatus, LightningSendQuote};
+use crate::model::{LightningInvoice, LightningPaymentStatus};
 
 pub mod transactions_mapper;
 
@@ -27,7 +27,7 @@ pub trait LightningSessions: Send + Sync {
     async fn balance(&self, address: &str) -> Result<u64, LightningError>;
     async fn payment_status(&self, address: &str, id: &str) -> Result<LightningPaymentStatus, LightningError>;
     async fn send_fee(&self, address: &str, invoice: LightningInvoice, amount_sats: u64) -> Result<u64, LightningError>;
-    async fn send(&self, address: &str, quote: LightningSendQuote, authorization: LightningAuthorization) -> Result<String, LightningError>;
+    async fn send(&self, signed: SignedLightningTransfer) -> Result<String, LightningError>;
 }
 
 pub struct LockedSessions;
@@ -46,7 +46,7 @@ impl LightningSessions for LockedSessions {
         Err(LightningError::Locked)
     }
 
-    async fn send(&self, _address: &str, _quote: LightningSendQuote, _authorization: LightningAuthorization) -> Result<String, LightningError> {
+    async fn send(&self, _signed: SignedLightningTransfer) -> Result<String, LightningError> {
         Err(LightningError::Locked)
     }
 }
@@ -112,8 +112,7 @@ impl ChainTransactionLoad for LightningProvider {
 #[async_trait]
 impl ChainTransactionBroadcast for LightningProvider {
     async fn transaction_broadcast(&self, data: String, _options: BroadcastOptions) -> Result<String, Box<dyn Error + Sync + Send>> {
-        let (transfer, authorization) = LightningTransfer::decode(&data)?;
-        Ok(self.sessions.send(&transfer.address, transfer.quote()?, authorization).await?)
+        Ok(self.sessions.send(SignedLightningTransfer::decode(&data)?).await?)
     }
 }
 

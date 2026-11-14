@@ -4,18 +4,14 @@ use std::sync::{Arc, LazyLock, PoisonError, RwLock};
 
 use async_trait::async_trait;
 use futures::lock::Mutex as AsyncMutex;
-use gem_spark::chain_signer::LightningAuthorization;
+use gem_spark::chain_signer::SignedLightningTransfer;
 use gem_spark::provider::LightningSessions;
-use gem_spark::{LightningError, LightningInvoice, LightningPayment, LightningPaymentStatus, LightningSendQuote, LightningWallet};
+use gem_spark::{LightningError, LightningInvoice, LightningPayment, LightningPaymentStatus, LightningWallet};
 
 use super::runtime::run;
 use crate::services::error::GemServiceError;
 
-static SESSIONS: LazyLock<Arc<LightningSessionRegistry>> = LazyLock::new(|| Arc::new(LightningSessionRegistry::default()));
-
-pub(crate) fn sessions() -> Arc<LightningSessionRegistry> {
-    SESSIONS.clone()
-}
+pub(crate) static SESSIONS: LazyLock<Arc<LightningSessionRegistry>> = LazyLock::new(|| Arc::new(LightningSessionRegistry::default()));
 
 #[derive(Default)]
 pub(crate) struct LightningSessionRegistry {
@@ -82,11 +78,11 @@ impl LightningSessions for LightningSessionRegistry {
         self.with_wallet(address, |wallet| async move { wallet.send_fee(&invoice, amount_sats).await }).await
     }
 
-    async fn send(&self, address: &str, quote: LightningSendQuote, authorization: LightningAuthorization) -> Result<String, LightningError> {
-        let wallet = self.wallet(address)?;
-        if !wallet.verify(&authorization.digest, &authorization.signature) {
+    async fn send(&self, signed: SignedLightningTransfer) -> Result<String, LightningError> {
+        let wallet = self.wallet(&signed.transfer.address)?;
+        if !wallet.verify(&signed.digest(), &signed.signature) {
             return Err(LightningError::Unauthorized);
         }
-        run(async move { wallet.send(&quote).await }).await
+        run(async move { wallet.send(&signed.transfer).await }).await
     }
 }

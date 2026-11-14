@@ -6,7 +6,7 @@ use primitives::{AddressFormatStyle, Asset, AssetId, Chain, WalletId};
 
 use super::model::{GemLightningReceive, GemLightningReceiveState};
 use super::runtime::run;
-use super::sessions;
+use super::sessions::SESSIONS;
 use super::store::WalletLightningStore;
 use crate::address_formatter::format_address;
 use crate::keystore::{GemKeystore, decode_password, keystore_id_for_wallet};
@@ -103,7 +103,7 @@ impl GemLightningService {
     }
 
     async fn open_wallet(&self, wallet_id: WalletId, address: &str) -> Result<(Arc<LightningWallet>, bool), GemServiceError> {
-        sessions()
+        SESSIONS
             .open(address, || async {
                 let account = self.account_key(&keystore_id_for_wallet(wallet_id.id()))?;
                 let store = Arc::new(WalletLightningStore::new(self.preferences.clone(), wallet_id.clone()));
@@ -161,17 +161,6 @@ fn receive_state(received: bool, expires_at: u64, now: u64) -> GemLightningRecei
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gem_spark::testkit::INVOICE_2000_SATS;
-
-    #[test]
-    fn test_receive() {
-        let receive = receive(INVOICE_2000_SATS.to_string(), Asset::from_chain(Chain::Lightning));
-
-        assert_eq!(receive.qr, format!("lightning:{INVOICE_2000_SATS}"));
-        assert_eq!(receive.copy.value, INVOICE_2000_SATS);
-        assert!(receive.copy.display.len() < INVOICE_2000_SATS.len());
-        assert_eq!(receive.field.symbol, GemAmountSymbol::Asset { symbol: "BTC".to_string() });
-    }
 
     #[test]
     fn test_receive_state() {

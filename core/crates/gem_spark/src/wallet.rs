@@ -10,10 +10,10 @@ use tokio::sync::watch;
 
 use crate::address::SparkAddress;
 use crate::error::LightningError;
-use crate::invoice::amount_to_send;
+use crate::invoice::{amount_to_send, decode_invoice};
 use crate::keys::AccountKey;
 use crate::mapper::map_transfer;
-use crate::model::{LightningInvoice, LightningPayment, LightningPaymentStatus, LightningSendQuote};
+use crate::model::{LightningInvoice, LightningPayment, LightningPaymentStatus, LightningTransfer};
 use crate::store::{LightningSend, LightningStore};
 
 const SIGNATURE_LEN: usize = 65;
@@ -86,9 +86,10 @@ impl LightningWallet {
         Ok(self.wallet.fetch_lightning_send_fee_estimate(&invoice.invoice, amount_to_send(invoice, amount_sats, unix_timestamp())?).await?)
     }
 
-    pub async fn send(&self, quote: &LightningSendQuote) -> Result<String, LightningError> {
-        let amount = amount_to_send(&quote.invoice, quote.amount_sats, unix_timestamp())?;
-        if let Some(pending) = self.store.get_sends()?.into_iter().find(|send| send.invoice == quote.invoice.invoice) {
+    pub async fn send(&self, transfer: &LightningTransfer) -> Result<String, LightningError> {
+        let invoice = decode_invoice(&transfer.invoice)?;
+        let amount = amount_to_send(&invoice, transfer.amount_sats, unix_timestamp())?;
+        if let Some(pending) = self.store.get_sends()?.into_iter().find(|send| send.invoice == invoice.invoice) {
             if let (Some(recorded), Some(requested)) = (pending.amount_sats, amount)
                 && recorded != requested
             {
@@ -104,11 +105,11 @@ impl LightningWallet {
         let _in_flight = InFlight::begin(&id);
         self.store.add_send(LightningSend {
             transfer_id: id.clone(),
-            invoice: quote.invoice.invoice.clone(),
+            invoice: invoice.invoice.clone(),
             amount_sats: amount,
-            expires_at: quote.invoice.expires_at,
+            expires_at: invoice.expires_at,
         })?;
-        match Box::pin(self.wallet.pay_lightning_invoice(&quote.invoice.invoice, amount, Some(quote.fee_sats), false, Some(transfer_id))).await {
+        match Box::pin(self.wallet.pay_lightning_invoice(&invoice.invoice, amount, Some(transfer.max_fee_sats), false, Some(transfer_id))).await {
             Ok(result) => Ok(result.transfer.id.to_string()),
             Err(error) => match self.payment(&id).await {
                 Ok(None) => {

@@ -14,8 +14,6 @@ pub enum LightningError {
     InvoiceNetworkMismatch,
     AmountRequired,
     AmountMismatch { invoice: u64, requested: u64 },
-    Key(String),
-    Storage(String),
     Wallet(String),
 }
 
@@ -31,8 +29,6 @@ impl fmt::Display for LightningError {
             Self::InvoiceNetworkMismatch => write!(f, "invoice is for another network"),
             Self::AmountRequired => write!(f, "invoice has no amount, an amount is required"),
             Self::AmountMismatch { invoice, requested } => write!(f, "invoice amount {invoice} does not match requested amount {requested}"),
-            Self::Key(message) => write!(f, "key derivation failed: {message}"),
-            Self::Storage(message) => write!(f, "storage failed: {message}"),
             Self::Wallet(message) => write!(f, "{message}"),
         }
     }

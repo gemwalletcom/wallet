@@ -5,70 +5,47 @@ use signer::{SignatureScheme, Signer};
 
 use crate::error::LightningError;
 use crate::invoice::decode_invoice;
-use crate::model::LightningSendQuote;
+use crate::model::LightningTransfer;
 
 const AUTHORIZATION_DOMAIN: &str = "gem-lightning-transfer-v1";
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct LightningAuthorization {
-    pub digest: [u8; 32],
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SignedLightningTransfer {
+    pub transfer: LightningTransfer,
+    #[serde(with = "serde_serializers::hex_bytes")]
     pub signature: Vec<u8>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct LightningTransfer {
-    pub address: String,
-    pub invoice: String,
-    pub amount_sats: u64,
-    pub max_fee_sats: u64,
+impl SignedLightningTransfer {
+    pub fn decode(value: &str) -> Result<Self, LightningError> {
+        serde_json::from_slice(value.as_bytes()).map_err(|_| LightningError::InvalidTransfer)
+    }
+
+    pub fn digest(&self) -> [u8; 32] {
+        digest(&self.transfer)
+    }
 }
 
-#[derive(Serialize, Deserialize)]
-struct SignedLightningTransfer {
-    transfer: LightningTransfer,
-    #[serde(with = "serde_serializers::hex_bytes")]
-    signature: Vec<u8>,
+fn digest(transfer: &LightningTransfer) -> [u8; 32] {
+    sha256(&[AUTHORIZATION_DOMAIN.as_bytes(), &serde_json::to_vec(transfer).unwrap_or_default()].concat())
 }
 
-impl LightningTransfer {
-    fn digest(&self) -> [u8; 32] {
-        sha256(&[AUTHORIZATION_DOMAIN.as_bytes(), &serde_json::to_vec(self).unwrap_or_default()].concat())
-    }
-
-    fn sign(self, private_key: &[u8]) -> Result<String, SignerError> {
-        let signature = Signer::sign_digest(SignatureScheme::Secp256k1, &self.digest(), private_key)?;
-        Ok(serde_json::to_string(&SignedLightningTransfer { transfer: self, signature })?)
-    }
-
-    pub fn decode(value: &str) -> Result<(Self, LightningAuthorization), LightningError> {
-        let signed: SignedLightningTransfer = serde_json::from_slice(value.as_bytes()).map_err(|_| LightningError::InvalidTransfer)?;
-        let authorization = LightningAuthorization {
-            digest: signed.transfer.digest(),
-            signature: signed.signature,
-        };
-        Ok((signed.transfer, authorization))
-    }
-
-    pub(crate) fn quote(&self) -> Result<LightningSendQuote, LightningError> {
-        Ok(LightningSendQuote {
-            invoice: decode_invoice(&self.invoice)?,
-            amount_sats: self.amount_sats,
-            fee_sats: self.max_fee_sats,
-        })
-    }
+fn sign(transfer: LightningTransfer, private_key: &[u8]) -> Result<String, SignerError> {
+    let signature = Signer::sign_digest(SignatureScheme::Secp256k1, &digest(&transfer), private_key)?;
+    Ok(serde_json::to_string(&SignedLightningTransfer { transfer, signature })?)
 }
 
 pub struct LightningChainSigner;
 
 impl ChainSigner for LightningChainSigner {
     fn sign_transfer(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
-        LightningTransfer {
+        let transfer = LightningTransfer {
             address: input.sender_address.clone(),
             invoice: decode_invoice(&input.destination_address).map_err(SignerError::from_display)?.invoice,
             amount_sats: input.value_as_u64()?,
             max_fee_sats: input.fee.fee()?,
-        }
-        .sign(private_key)
+        };
+        sign(transfer, private_key)
     }
 }
 
@@ -78,7 +55,7 @@ mod tests {
     use crate::testkit::INVOICE_2000_SATS;
 
     #[test]
-    fn test_lightning_transfer_round_trip() {
+    fn test_signed_lightning_transfer() {
         let transfer = LightningTransfer {
             address: "spark1address".to_string(),
             invoice: INVOICE_2000_SATS.to_string(),
@@ -86,11 +63,11 @@ mod tests {
             max_fee_sats: 7,
         };
 
-        let (decoded, authorization) = LightningTransfer::decode(&transfer.clone().sign(&[7u8; 32]).unwrap()).unwrap();
+        let signed = SignedLightningTransfer::decode(&sign(transfer.clone(), &[7u8; 32]).unwrap()).unwrap();
 
-        assert_eq!(decoded, transfer);
-        assert_eq!(authorization.digest, transfer.digest());
-        assert_eq!(authorization.signature.len(), 65);
-        assert_eq!(LightningTransfer::decode("{}"), Err(LightningError::InvalidTransfer));
+        assert_eq!(signed.transfer, transfer);
+        assert_eq!(signed.digest(), digest(&transfer));
+        assert_eq!(signed.signature.len(), 65);
+        assert!(SignedLightningTransfer::decode("{}").is_err());
     }
 }

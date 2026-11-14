@@ -17,8 +17,8 @@ impl AccountKey {
     }
 
     pub fn decode(value: &str) -> Result<Self, LightningError> {
-        let bytes = hex::decode_hex(value).map_err(|error| LightningError::Key(error.to_string()))?;
-        Xpriv::decode(&bytes).map(Self).map_err(|error| LightningError::Key(error.to_string()))
+        let bytes = hex::decode_hex(value).map_err(|error| LightningError::Wallet(error.to_string()))?;
+        Xpriv::decode(&bytes).map(Self).map_err(|error| LightningError::Wallet(error.to_string()))
     }
 
     pub(crate) fn xpriv(&self) -> Xpriv {
@@ -33,9 +33,9 @@ impl Drop for AccountKey {
 }
 
 pub fn account_key(seed: &[u8]) -> Result<AccountKey, LightningError> {
-    let path = DerivationPath::from_str(ACCOUNT_PATH).map_err(|error| LightningError::Key(error.to_string()))?;
-    let mut master = Xpriv::new_master(BitcoinNetwork::Bitcoin, seed).map_err(|error| LightningError::Key(error.to_string()))?;
+    let path = DerivationPath::from_str(ACCOUNT_PATH).map_err(|error| LightningError::Wallet(error.to_string()))?;
+    let mut master = Xpriv::new_master(BitcoinNetwork::Bitcoin, seed).map_err(|error| LightningError::Wallet(error.to_string()))?;
     let account = master.derive_priv(&Secp256k1::signing_only(), &path);
     master.private_key.non_secure_erase();
-    account.map(AccountKey).map_err(|error| LightningError::Key(error.to_string()))
+    account.map(AccountKey).map_err(|error| LightningError::Wallet(error.to_string()))
 }

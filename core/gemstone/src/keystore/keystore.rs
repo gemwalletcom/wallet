@@ -191,7 +191,7 @@ impl GemKeystore {
         let password = Zeroizing::new(password);
         let phrase = self.wallet_phrase(keystore_id, &password)?.ok_or_else(|| GemstoneError::from("lightning wallet does not support private-key wallets"))?;
         let seed = Mnemonic::seed(&phrase)?;
-        Ok(account_key(&seed[..])?)
+        account_key(&seed[..]).map_err(|error| GemstoneError::AnyError { msg: error.to_string() })
     }
 
     fn verify_migrated_secret(&self, keystore_id: &str, password: &[u8], expected: &WalletId, kind: SecretKind) -> Result<(), GemstoneError> {

@@ -26,7 +26,7 @@ impl WalletLightningStore {
 }
 
 fn storage_error(error: GemServiceError) -> LightningError {
-    LightningError::Storage(error.to_string())
+    LightningError::Wallet(error.to_string())
 }
 
 impl LightningStore for WalletLightningStore {
@@ -48,25 +48,16 @@ mod tests {
     use super::*;
     use crate::services::wallet_preferences::testkit::MemoryWalletPreferencesStore;
 
-    fn send(transfer_id: &str) -> LightningSend {
-        LightningSend {
-            transfer_id: transfer_id.to_string(),
-            invoice: "lnbc1".to_string(),
-            amount_sats: None,
-            expires_at: 1,
-        }
-    }
-
     #[test]
     fn test_sends() {
         let preferences = Arc::new(GemWalletPreferencesService::new(Arc::new(MemoryWalletPreferencesStore::default())));
         let store = WalletLightningStore::new(preferences.clone(), WalletId::mock());
 
-        store.add_send(send("1")).unwrap();
-        store.add_send(send("2")).unwrap();
+        store.add_send(LightningSend::mock("1")).unwrap();
+        store.add_send(LightningSend::mock("2")).unwrap();
         store.delete_send("1").unwrap();
 
-        assert_eq!(store.get_sends().unwrap(), vec![send("2")]);
+        assert_eq!(store.get_sends().unwrap(), vec![LightningSend::mock("2")]);
         assert_eq!(WalletLightningStore::new(preferences, WalletId::Multicoin("0x2".to_string())).get_sends().unwrap(), vec![]);
     }
 }

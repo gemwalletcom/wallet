@@ -71,9 +71,7 @@ impl GemWalletPreferencesService {
     pub(crate) fn set_lightning_sends(&self, wallet_id: WalletId, sends: &[LightningSend]) -> Result<(), GemServiceError> {
         self.set_value(wallet_id, WalletPreferenceKey::LightningSends.as_ref().to_string(), serde_json::to_string(sends).map_err(GemServiceError::core)?)
     }
-}
 
-impl GemWalletPreferencesService {
     pub fn reset_transactions_timestamp(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
         self.store.set(wallet_id.clone(), WalletPreferenceKey::TransactionsTimestamp.as_ref().to_string(), 0.to_string())?;
         self.store.set(wallet_id, WalletPreferenceKey::CompleteInitialLoadTransactions.as_ref().to_string(), "false".to_string())

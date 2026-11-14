@@ -35,7 +35,7 @@ use primitives::{Chain, ChainAsset, NFTData, Wallet, WalletId, WalletSource, Wal
 
 use crate::keystore::decode_password;
 use crate::keystore::{GemImportType, GemKeystore, GemWalletImport, keystore_id_for_wallet};
-use crate::lightning::{account_key_name, sessions};
+use crate::lightning::{SESSIONS, account_key_name};
 use crate::models::state::GemListPhase;
 use crate::services::avatar::GemAvatarService;
 use crate::services::empty_state::{GemEmptyStateKind, screen_empty_state};
@@ -157,7 +157,7 @@ impl GemWalletService {
         let wallet = self.wallet(wallet_id.clone()).await?;
         if wallet.wallet_type != WalletType::View {
             let address = wallet.account(Chain::Lightning).map(|account| account.address.as_str());
-            sessions()
+            SESSIONS
                 .close_and_remove(address, || {
                     self.secure.remove(account_key_name(&keystore_id_for_wallet(wallet.id.id())))?;
                     Ok(self.keystore.delete_wallet_secrets(wallet.id.id(), rules::legacy_keystore_id(&wallet))?)

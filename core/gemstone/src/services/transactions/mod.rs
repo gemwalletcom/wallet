@@ -3,7 +3,7 @@ pub mod filter;
 pub mod model;
 pub mod rules;
 
-use crate::lightning::sessions;
+use crate::lightning::SESSIONS;
 use crate::models::state::GemLoadState;
 use crate::services::error::GemServiceError;
 use crate::services::transaction_state::GemTransactionStateStore;
@@ -128,7 +128,7 @@ impl GemTransactionsService {
         let Some(account) = self.session.get_wallet(wallet_id.clone()).await?.and_then(|wallet| wallet.account(Chain::Lightning).cloned()) else {
             return Ok(());
         };
-        let payments = match sessions().payments(&account.address).await {
+        let payments = match SESSIONS.payments(&account.address).await {
             Ok(payments) => payments,
             Err(LightningError::Locked) => return Ok(()),
             Err(error) => return Err(error.into()),
