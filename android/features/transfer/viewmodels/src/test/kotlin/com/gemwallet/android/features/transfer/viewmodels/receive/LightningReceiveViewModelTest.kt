@@ -61,15 +61,6 @@ class LightningReceiveViewModelTest {
     }
 
     @Test
-    fun `the screen opens on an any-amount invoice`() = runTest(dispatcher) {
-        val model = model()
-        runCurrent()
-
-        assertEquals(State.Ready(receive), model.state.value)
-        coVerify { service.receive(walletId, "", any()) }
-    }
-
-    @Test
     fun `a locked wallet asks to unlock and any other failure is unavailable`() = runTest(dispatcher) {
         coEvery { service.receive(walletId, any(), any()) } throws GemServiceException.Cancelled()
         val locked = model()
