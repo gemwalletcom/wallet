@@ -20,8 +20,8 @@ import com.gemwallet.android.features.transfer.presents.receive.components.recei
 import com.gemwallet.android.features.transfer.viewmodels.receive.LightningReceiveViewModel
 import com.gemwallet.android.features.transfer.viewmodels.receive.LightningReceiveViewModel.State
 import com.gemwallet.android.model.AuthRequest
-import com.gemwallet.android.ui.ObserveStartedState
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.RefreshOnTimer
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
 import com.gemwallet.android.ui.components.clipboard.setCopy
@@ -38,11 +38,11 @@ import uniffi.gemstone.GemLightningReceive
 fun LightningReceiveScreen(closeIcon: Boolean, onCancel: () -> Unit) {
     val viewModel: LightningReceiveViewModel = hiltViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val refreshIntervalMillis by viewModel.refreshIntervalMillis.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val title = stringResource(R.string.wallet_receive)
     val unlock = { context.requestAuth(AuthRequest.Default, onCancel = {}, onSuccess = viewModel::onRetry) }
 
-    ObserveStartedState(viewModel::setRefreshEnabled)
     LaunchedEffect(state) {
         when (state) {
             State.Locked -> unlock()
@@ -60,7 +60,10 @@ fun LightningReceiveScreen(closeIcon: Boolean, onCancel: () -> Unit) {
             mainAction = { MainActionButton(title = stringResource(R.string.lock_unlock), onClick = unlock) },
         ) {}
         State.Unavailable -> FatalStateScene(title = title, message = stringResource(R.string.common_not_available), onCancel = onCancel, onTryAgain = viewModel::onRetry, closeIcon = closeIcon)
-        is State.Ready -> LightningReceiveScene(title = title, closeIcon = closeIcon, receive = current.receive, onCancel = onCancel)
+        is State.Ready -> {
+            RefreshOnTimer(refreshIntervalMillis, viewModel::refresh)
+            LightningReceiveScene(title = title, closeIcon = closeIcon, receive = current.receive, onCancel = onCancel)
+        }
     }
 }
 

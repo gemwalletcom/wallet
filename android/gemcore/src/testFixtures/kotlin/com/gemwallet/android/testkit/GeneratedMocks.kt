@@ -1045,18 +1045,6 @@ fun mockGemAddressRow(
     isSelectable = isSelectable,
 )
 
-fun mockGemAmountField(
-    symbol: uniffi.gemstone.GemAmountSymbol = mockGemAmountSymbol(),
-    placement: uniffi.gemstone.GemAmountSymbolPlacement = uniffi.gemstone.GemAmountSymbolPlacement.LEADING,
-    keyboard: uniffi.gemstone.GemAmountKeyboard = uniffi.gemstone.GemAmountKeyboard.DECIMAL,
-) = uniffi.gemstone.GemAmountField(
-    symbol = symbol,
-    placement = placement,
-    keyboard = keyboard,
-)
-
-fun mockGemAmountSymbol(): uniffi.gemstone.GemAmountSymbol = uniffi.gemstone.GemAmountSymbol.Asset(symbol = "")
-
 fun mockGemAppUpdateDestination(): uniffi.gemstone.GemAppUpdateDestination = uniffi.gemstone.GemAppUpdateDestination.Store(url = "")
 
 fun mockGemAppUpdateOffer(

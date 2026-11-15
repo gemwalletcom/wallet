@@ -20,7 +20,6 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -76,29 +75,17 @@ class LightningReceiveViewModelTest {
     @Test
     fun `a received payment closes the screen and an expired invoice is replaced`() = runTest(dispatcher) {
         val model = model()
-        model.setRefreshEnabled(true)
         runCurrent()
 
         coEvery { service.receiveState(walletId, receive.copy.value) } returns GemLightningReceiveState.EXPIRED
-        advanceTimeBy(REFRESH_MILLIS)
+        model.refresh()
         runCurrent()
         coVerify(exactly = 2) { service.receive(walletId) }
 
         coEvery { service.receiveState(walletId, receive.copy.value) } returns GemLightningReceiveState.RECEIVED
-        advanceTimeBy(REFRESH_MILLIS)
+        model.refresh()
         runCurrent()
         assertEquals(State.Received, model.state.value)
-    }
-
-    @Test
-    fun `nothing is checked while the screen is hidden`() = runTest(dispatcher) {
-        model()
-        runCurrent()
-
-        advanceTimeBy(REFRESH_MILLIS * 3)
-        runCurrent()
-
-        coVerify(exactly = 0) { service.receiveState(any(), any()) }
     }
 
     private companion object {
