@@ -10,6 +10,7 @@ pub(crate) struct SupportSessionRow {
     pub auth_token: String,
     pub updated_at: NaiveDateTime,
     pub created_at: NaiveDateTime,
+    pub blocked: bool,
 }
 
 #[derive(Debug, Insertable, AsChangeset, Clone)]
