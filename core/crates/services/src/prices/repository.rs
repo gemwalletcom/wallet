@@ -57,6 +57,10 @@ pub(crate) trait Repository: Send + Sync {
     async fn update_notified_price_alerts(&self, rules: PriceAlertRules, notified_before: NaiveDateTime, now: NaiveDateTime, price_max_age: Duration) -> Result<Vec<PriceAlertNotification>, DatabaseError>;
 }
 
+fn scaled_charts(charts: Vec<ChartResult>, asset_id: &AssetId) -> Vec<ChartResult> {
+    charts.into_iter().map(|(date, price)| (date, price / asset_id.price_scale())).collect()
+}
+
 pub(crate) struct PostgresRepository {
     database: Database,
 }
@@ -123,7 +127,7 @@ impl Repository for PostgresRepository {
                 Ok(ChartData {
                     base_rate,
                     rate,
-                    charts: client.get_charts(&key.id(), &period)?,
+                    charts: scaled_charts(client.get_charts(&key.id(), &period)?, &asset_id),
                 })
             })
             .await
@@ -263,7 +267,7 @@ impl Repository for PostgresRepository {
                     .map(|asset_id| {
                         let asset = assets.get(asset_id)?.clone();
                         let price = prices.get(asset_id)?;
-                        let charts = charts.get(&price.id.id()).cloned().unwrap_or_default();
+                        let charts = scaled_charts(charts.get(&price.id.id()).cloned().unwrap_or_default(), asset_id);
                         Some(PortfolioPrice { asset, price: price.price, charts })
                     })
                     .collect())

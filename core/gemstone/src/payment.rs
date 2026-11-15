@@ -425,6 +425,7 @@ mod tests {
     use crate::testkit::TestAlienProvider;
     use crate::testkit::mock_payment_transaction;
     use futures::executor::block_on;
+    use gem_spark::testkit::{INVOICE_2000_SATS, INVOICE_AMOUNTLESS};
     use primitives::{Account, Asset, AssetBasic, AssetId, AssetProperties, AssetScore, AssetType, Chain, PaymentInvoice};
     use std::sync::Arc;
 
@@ -687,6 +688,30 @@ mod tests {
         let PaymentDestination::Unsupported = payment_destination(&unknown_token, &assets) else {
             panic!("a token the wallet does not hold is not payable")
         };
+    }
+
+    #[test]
+    fn test_scanned_lightning_invoice_pays_lightning() {
+        let (bitcoin, lightning) = (Asset::from_chain(Chain::Bitcoin), Asset::from_chain(Chain::Lightning));
+        let scanned = |value: &str| match PaymentURLDecoder::decode(value).unwrap() {
+            Payment::Request { request } => payment_destination(&request, &[bitcoin.clone(), lightning.clone()]),
+            payment => panic!("expected a request, got {payment:?}"),
+        };
+
+        let PaymentDestination::Transfer { asset, step } = scanned(&format!("LIGHTNING:{}", INVOICE_2000_SATS.to_uppercase())) else {
+            panic!("an invoice pays the Lightning asset")
+        };
+        let transfer = confirmed(step);
+        assert_eq!(asset, lightning);
+        assert_eq!(transfer.value, 2000.into());
+        assert_eq!(transfer.recipient.address, INVOICE_2000_SATS);
+
+        let PaymentDestination::Transfer { step, .. } = scanned(INVOICE_AMOUNTLESS) else {
+            panic!("an amountless invoice pays the Lightning asset")
+        };
+        let payment = amount(step);
+        assert_eq!(payment.recipient.address, INVOICE_AMOUNTLESS);
+        assert_eq!(payment.amount, None);
     }
 
     #[test]

@@ -419,14 +419,7 @@ fn value_tone(value: &GemTransactionRowValue) -> GemValueTone {
 
 fn amount_value(sign: GemAmountSign, value: &GemBigUint, asset: &Asset) -> GemTransactionRowValue {
     GemTransactionRowValue::Number {
-        number: sign.amount(value, asset, row_value_style(asset)),
-    }
-}
-
-fn row_value_style(asset: &Asset) -> ValueStyle {
-    match asset.chain() {
-        Chain::Lightning => ValueStyle::Auto,
-        _ => ValueStyle::Short,
+        number: sign.amount(value, asset, ValueStyle::Short),
     }
 }
 
@@ -1299,7 +1292,7 @@ mod tests {
     }
 
     #[test]
-    fn test_lightning_row_reads_small_amounts_without_a_counterparty() {
+    fn test_lightning_row_reads_sats_without_a_counterparty() {
         let payment = LightningPayment::mock(LightningPaymentDirection::Incoming, LightningPaymentStatus::Completed);
         let lightning = row(&TransactionListItem::mock_transaction(map_payment("spark1address", &payment)));
 
@@ -1310,7 +1303,7 @@ mod tests {
                 number: GemFormattedNumber {
                     notation: GemNumberNotation::Signed,
                     tone: GemValueTone::Positive,
-                    ..GemFormattedNumber::amount(0.00001, Some("BTC".to_string()), ValueStyle::Auto)
+                    ..GemFormattedNumber::amount(1000.0, Some("sats".to_string()), ValueStyle::Short)
                 },
             }
         );

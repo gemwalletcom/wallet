@@ -161,7 +161,7 @@ mod tests {
     #[test]
     fn test_lightning_invoice() {
         assert_eq!(
-            PaymentURLDecoder::decode(&format!("lightning:{}", INVOICE_2000_SATS.to_uppercase())).unwrap(),
+            PaymentURLDecoder::decode(&format!("LIGHTNING:{}", INVOICE_2000_SATS.to_uppercase())).unwrap(),
             Payment::Request {
                 request: PaymentRequest {
                     address: INVOICE_2000_SATS.to_string(),

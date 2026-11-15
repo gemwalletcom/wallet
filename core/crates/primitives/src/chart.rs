@@ -14,6 +14,18 @@ pub struct ChartCandleStick {
     pub volume: f64,
 }
 
+impl ChartCandleStick {
+    pub fn scaled(self, scale: f64) -> Self {
+        Self {
+            open: self.open / scale,
+            high: self.high / scale,
+            low: self.low / scale,
+            close: self.close / scale,
+            ..self
+        }
+    }
+}
+
 pub trait ChartCandleStickVecExt {
     fn interval(&self) -> Option<TimeDelta>;
     fn merged(&self, max_count: usize) -> Vec<ChartCandleStick>;

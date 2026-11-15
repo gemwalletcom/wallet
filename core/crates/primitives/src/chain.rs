@@ -171,6 +171,27 @@ impl Chain {
         }
     }
 
+    pub fn price_chain(&self) -> Chain {
+        match self.chain_type() {
+            ChainType::Lightning => Chain::Bitcoin,
+            ChainType::Ethereum
+            | ChainType::Bitcoin
+            | ChainType::Solana
+            | ChainType::Cosmos
+            | ChainType::Ton
+            | ChainType::Tron
+            | ChainType::Aptos
+            | ChainType::Sui
+            | ChainType::Xrp
+            | ChainType::Near
+            | ChainType::Stellar
+            | ChainType::Algorand
+            | ChainType::Polkadot
+            | ChainType::Cardano
+            | ChainType::HyperCore => *self,
+        }
+    }
+
     pub fn stake_config(&self) -> Option<&'static StakeChainConfig> {
         self.config().stake.as_ref()
     }

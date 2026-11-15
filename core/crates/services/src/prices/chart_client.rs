@@ -49,7 +49,11 @@ impl ChartClient {
             provider.get_candles(&price.provider_price_id, period).await
         };
         let candles = self.cacher.get_or_fetch_candles(&price_id, period, candles_max_age(period), Box::pin(fetch)).await?;
-        Ok(candles.merged(self.config.get_usize(ConfigKey::PriceChartsMaxCandles).await?))
+        Ok(candles
+            .merged(self.config.get_usize(ConfigKey::PriceChartsMaxCandles).await?)
+            .into_iter()
+            .map(|candle| candle.scaled(asset_id.price_scale()))
+            .collect())
     }
 
     async fn consume_candles_limit(&self, ip_address: &str) -> Result<(), Box<dyn Error + Send + Sync>> {

@@ -4,8 +4,8 @@ Gem supports Lightning through Spark, using Breez's `spark-wallet` crate directl
 
 ## Product decisions
 
-- Lightning is its own coin, Bitcoin Lightning (`Chain::Lightning`, asset `lightning`, symbol BTC, 8 decimals so base units are sats), with its own `ChainType`. It lives in the wallet list, Manage, the asset screen and Activity like every other coin, and the Bitcoin asset screen links to it.
-- Only phrase wallets get the account. Lightning is off by default; the user turns it on in Manage. The price follows Bitcoin's feeds on the backend.
+- Lightning is its own coin, Bitcoin Lightning (`Chain::Lightning`, asset `lightning`, symbol sats with 0 decimals, so one unit is one satoshi), with its own `ChainType`. It lives in the wallet list, Manage, the asset screen and Activity like every other coin, and the Bitcoin asset screen links to it.
+- Only phrase wallets get the account. Lightning is off by default; the user turns it on in Manage. Its price is Bitcoin's price per satoshi: the backend shares Bitcoin's price rows and divides by `AssetId::price_scale` wherever it serves a price, chart or candle for the asset.
 - Once the user turns it on, Lightning works without prompts: it has its own stored key, separate from the secret phrase.
 - Spark is not named in the product beyond the explorer link. Lightning Address is deferred.
 
