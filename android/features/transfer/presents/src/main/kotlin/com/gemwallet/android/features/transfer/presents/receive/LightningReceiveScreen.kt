@@ -1,9 +1,9 @@
 package com.gemwallet.android.features.transfer.presents.receive
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
@@ -16,7 +16,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.transfer.presents.receive.components.ReceiveQrCard
-import com.gemwallet.android.features.transfer.presents.receive.components.receiveQrPadding
+import com.gemwallet.android.features.transfer.presents.receive.components.receiveQrLargeWidth
 import com.gemwallet.android.features.transfer.viewmodels.receive.LightningReceiveViewModel
 import com.gemwallet.android.features.transfer.viewmodels.receive.LightningReceiveViewModel.State
 import com.gemwallet.android.model.AuthRequest
@@ -25,22 +25,19 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.clipboard.clipboardManager
 import com.gemwallet.android.ui.components.clipboard.setCopy
-import com.gemwallet.android.ui.components.fields.AmountField
 import com.gemwallet.android.ui.components.screen.FatalStateScene
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.requestAuth
 import com.gemwallet.android.ui.shareText
-import com.gemwallet.android.ui.style.amountSymbol
-import com.gemwallet.android.ui.style.keyboardType
+import com.gemwallet.android.ui.theme.paddingDefault
 import uniffi.gemstone.GemLightningReceive
 
 @Composable
 fun LightningReceiveScreen(closeIcon: Boolean, onCancel: () -> Unit) {
     val viewModel: LightningReceiveViewModel = hiltViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val amount by viewModel.amount.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val title = stringResource(R.string.wallet_receive)
     val unlock = { context.requestAuth(AuthRequest.Default, onCancel = {}, onSuccess = viewModel::onRetry) }
@@ -63,12 +60,12 @@ fun LightningReceiveScreen(closeIcon: Boolean, onCancel: () -> Unit) {
             mainAction = { MainActionButton(title = stringResource(R.string.lock_unlock), onClick = unlock) },
         ) {}
         State.Unavailable -> FatalStateScene(title = title, message = stringResource(R.string.common_not_available), onCancel = onCancel, onTryAgain = viewModel::onRetry, closeIcon = closeIcon)
-        is State.Ready -> LightningReceiveScene(title = title, closeIcon = closeIcon, receive = current.receive, amount = amount, onAmount = viewModel::onAmount, onCancel = onCancel)
+        is State.Ready -> LightningReceiveScene(title = title, closeIcon = closeIcon, receive = current.receive, onCancel = onCancel)
     }
 }
 
 @Composable
-private fun LightningReceiveScene(title: String, closeIcon: Boolean, receive: GemLightningReceive, amount: String, onAmount: (String) -> Unit, onCancel: () -> Unit) {
+private fun LightningReceiveScene(title: String, closeIcon: Boolean, receive: GemLightningReceive, onCancel: () -> Unit) {
     val context = LocalContext.current
     val clipboardManager = context.clipboardManager()
     val shareTitle = stringResource(R.string.common_share)
@@ -87,20 +84,12 @@ private fun LightningReceiveScene(title: String, closeIcon: Boolean, receive: Ge
     ) {
         Spacer(modifier = Modifier.weight(1f))
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = paddingDefault),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(receiveQrPadding()),
         ) {
-            AmountField(
-                amount = amount,
-                symbol = receive.field.amountSymbol(),
-                equivalent = "",
-                onValueChange = onAmount,
-                onNext = {},
-                keyboardType = receive.field.keyboard.keyboardType(),
-                error = "",
-            )
-            ReceiveQrCard(content = receive.qr, caption = receive.copy.display, onCopy = onCopy)
+            ReceiveQrCard(content = receive.qr, caption = receive.copy.display, onCopy = onCopy, imageSize = receiveQrLargeWidth())
         }
         Spacer(modifier = Modifier.weight(1f))
     }

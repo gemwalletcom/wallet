@@ -1624,11 +1624,9 @@ fun mockGemInfoTopic(): uniffi.gemstone.GemInfoTopic = uniffi.gemstone.GemInfoTo
 fun mockGemLightningReceive(
     qr: String = "",
     copy: uniffi.gemstone.GemCopy = mockGemCopy(),
-    field: uniffi.gemstone.GemAmountField = mockGemAmountField(),
 ) = uniffi.gemstone.GemLightningReceive(
     qr = qr,
     copy = copy,
-    field = field,
 )
 
 fun mockGemLocalizedText(): uniffi.gemstone.GemLocalizedText = uniffi.gemstone.GemLocalizedText.WalletDefaultName(index = 0)

@@ -7,10 +7,8 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.connection.cases.ObserveRefreshInterval
 import com.gemwallet.android.application.session.cases.GetSession
-import com.gemwallet.android.ext.GemConstants
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.tickerFlow
-import com.gemwallet.android.math.numberFormat
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.ToastMessage
 import com.gemwallet.android.ui.models.ToastPresenter
@@ -18,13 +16,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
@@ -37,9 +32,8 @@ import uniffi.gemstone.GemLightningServiceInterface
 import uniffi.gemstone.GemRefreshKind
 import uniffi.gemstone.GemServiceException
 import javax.inject.Inject
-import kotlin.time.Duration
 
-@OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class LightningReceiveViewModel @Inject constructor(
     private val service: GemLightningServiceInterface,
@@ -63,14 +57,11 @@ class LightningReceiveViewModel @Inject constructor(
     private val stateFlow = MutableStateFlow<State>(State.Loading)
     val state: StateFlow<State> = stateFlow.asStateFlow()
 
-    private val amountFlow = MutableStateFlow("")
-    val amount: StateFlow<String> = amountFlow.asStateFlow()
-
     private val refreshEnabled = MutableStateFlow(false)
 
     init {
         viewModelScope.launch {
-            amountFlow.debounce { if (it.isEmpty()) Duration.ZERO else GemConstants.lightningInvoiceDebounce }.collectLatest(::receive)
+            receive()
         }
         viewModelScope.launch {
             combine(refreshEnabled, stateFlow.map { it is State.Ready }.distinctUntilChanged(), observeRefreshInterval.refreshIntervalMillis(GemRefreshKind.RECEIVE)) { isEnabled, isReady, interval ->
@@ -82,21 +73,17 @@ class LightningReceiveViewModel @Inject constructor(
         }
     }
 
-    fun onAmount(value: String) {
-        amountFlow.value = value
-    }
-
     fun onRetry() {
-        viewModelScope.launch { receive(amountFlow.value) }
+        viewModelScope.launch { receive() }
     }
 
     fun setRefreshEnabled(isEnabled: Boolean) {
         refreshEnabled.value = isEnabled
     }
 
-    private suspend fun receive(amount: String) {
+    private suspend fun receive() {
         val walletId = walletId ?: return run { stateFlow.value = State.Unavailable }
-        runCatchingCancellable { withContext(ioDispatcher) { service.receive(walletId, amount, numberFormat()) } }
+        runCatchingCancellable { withContext(ioDispatcher) { service.receive(walletId) } }
             .onSuccess { stateFlow.value = State.Ready(it) }
             .onFailure(::onFailure)
     }
@@ -109,7 +96,7 @@ class LightningReceiveViewModel @Inject constructor(
                 if (stateFlow.value != State.Ready(receive)) return
                 when (state) {
                     GemLightningReceiveState.PENDING -> Unit
-                    GemLightningReceiveState.EXPIRED -> receive(amountFlow.value)
+                    GemLightningReceiveState.EXPIRED -> receive()
                     GemLightningReceiveState.RECEIVED -> onReceived()
                 }
             }

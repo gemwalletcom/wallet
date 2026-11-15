@@ -35,6 +35,7 @@ import com.gemwallet.android.ui.theme.paddingSmall
 
 private val qrCardElevation = 3.dp
 private val qrSize = 300.dp
+private val qrSizeLarge = 352.dp
 private val qrSizeCompact = 220.dp
 private val qrMinSize = 100.dp
 
@@ -42,11 +43,13 @@ private val qrMinSize = 100.dp
 internal fun receiveQrWidth(): Dp = if (isCompactDimension(WindowDimension.Height)) qrSizeCompact else qrSize
 
 @Composable
+internal fun receiveQrLargeWidth(): Dp = if (isCompactDimension(WindowDimension.Height)) qrSizeCompact else qrSizeLarge
+
+@Composable
 internal fun receiveQrPadding(): Dp = if (isCompactDimension(WindowDimension.Height)) paddingSmall else paddingDefault
 
 @Composable
-internal fun ReceiveQrCard(content: String, caption: String, onCopy: () -> Unit) {
-    val imageSize = receiveQrWidth()
+internal fun ReceiveQrCard(content: String, caption: String, onCopy: () -> Unit, imageSize: Dp = receiveQrWidth()) {
     val imagePadding = receiveQrPadding()
     ElevatedCard(
         modifier = Modifier.width(imageSize),
@@ -66,7 +69,7 @@ internal fun ReceiveQrCard(content: String, caption: String, onCopy: () -> Unit)
                 .clickable(onCopy)
                 .padding(paddingHalfSmall),
         ) {
-            rememberQRCodePainter(content = content, size = qrSize)?.let { painter ->
+            rememberQRCodePainter(content = content, size = imageSize)?.let { painter ->
                 Image(
                     modifier = Modifier.fillMaxSize(),
                     painter = painter,

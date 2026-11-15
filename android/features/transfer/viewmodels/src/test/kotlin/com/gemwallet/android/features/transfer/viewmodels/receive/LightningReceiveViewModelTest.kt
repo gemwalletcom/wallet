@@ -5,7 +5,6 @@ import com.gemwallet.android.application.connection.cases.ObserveRefreshInterval
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.features.transfer.viewmodels.receive.LightningReceiveViewModel.State
 import com.gemwallet.android.testkit.MainDispatcherRule
-import com.gemwallet.android.ext.GemConstants
 import com.gemwallet.android.testkit.mockGemCopy
 import com.gemwallet.android.testkit.mockGemLightningReceive
 import com.gemwallet.android.testkit.mockSession
@@ -50,7 +49,7 @@ class LightningReceiveViewModelTest {
     private val walletId = "multicoin_0xabc"
     private val receive = mockGemLightningReceive(copy = mockGemCopy(value = "lnbc1invoice"))
     private val service = mockk<GemLightningServiceInterface>(relaxed = true) {
-        coEvery { receive(walletId, any(), any()) } returns receive
+        coEvery { receive(walletId) } returns receive
         coEvery { receiveState(walletId, any()) } returns GemLightningReceiveState.PENDING
     }
 
@@ -62,30 +61,16 @@ class LightningReceiveViewModelTest {
 
     @Test
     fun `a locked wallet asks to unlock and any other failure is unavailable`() = runTest(dispatcher) {
-        coEvery { service.receive(walletId, any(), any()) } throws GemServiceException.Cancelled()
+        coEvery { service.receive(walletId) } throws GemServiceException.Cancelled()
         val locked = model()
         runCurrent()
 
-        coEvery { service.receive(walletId, any(), any()) } throws GemServiceException.Core("storage")
+        coEvery { service.receive(walletId) } throws GemServiceException.Core("storage")
         val unavailable = model()
         runCurrent()
 
         assertEquals(State.Locked, locked.state.value)
         assertEquals(State.Unavailable, unavailable.state.value)
-    }
-
-    @Test
-    fun `an entered amount asks for a new invoice once typing settles`() = runTest(dispatcher) {
-        val model = model()
-        runCurrent()
-
-        model.onAmount("0.001")
-        runCurrent()
-        coVerify(exactly = 0) { service.receive(walletId, "0.001", any()) }
-
-        advanceTimeBy(GemConstants.lightningInvoiceDebounce.inWholeMilliseconds)
-        runCurrent()
-        coVerify(exactly = 1) { service.receive(walletId, "0.001", any()) }
     }
 
     @Test
@@ -97,7 +82,7 @@ class LightningReceiveViewModelTest {
         coEvery { service.receiveState(walletId, receive.copy.value) } returns GemLightningReceiveState.EXPIRED
         advanceTimeBy(REFRESH_MILLIS)
         runCurrent()
-        coVerify(exactly = 2) { service.receive(walletId, "", any()) }
+        coVerify(exactly = 2) { service.receive(walletId) }
 
         coEvery { service.receiveState(walletId, receive.copy.value) } returns GemLightningReceiveState.RECEIVED
         advanceTimeBy(REFRESH_MILLIS)
