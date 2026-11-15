@@ -15,12 +15,12 @@ pub struct ChartCandleStick {
 }
 
 impl ChartCandleStick {
-    pub fn scaled(self, scale: f64) -> Self {
+    pub fn with_rate(self, rate: f64) -> Self {
         Self {
-            open: self.open / scale,
-            high: self.high / scale,
-            low: self.low / scale,
-            close: self.close / scale,
+            open: self.open * rate,
+            high: self.high * rate,
+            low: self.low * rate,
+            close: self.close * rate,
             ..self
         }
     }

@@ -43,7 +43,7 @@ impl PortfolioClient {
     fn chart_values(assets: &[ResolvedAsset]) -> BTreeMap<i64, f64> {
         assets
             .iter()
-            .flat_map(|r| r.charts.iter().map(|(ts, price)| (ts.and_utc().timestamp(), r.balance * price)))
+            .flat_map(|r| r.charts.iter().map(|(ts, price)| (ts.and_utc().timestamp(), r.balance * price / r.asset.asset_id.price_scale())))
             .fold(BTreeMap::new(), |mut acc, (ts, value)| {
                 *acc.entry(ts).or_default() += value;
                 acc

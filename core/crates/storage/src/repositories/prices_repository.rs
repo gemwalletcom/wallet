@@ -249,7 +249,7 @@ impl PricesRepository for DatabaseClient {
         let Some(row) = ranked_prices(&providers, &rows, PriceRow::provider_value).into_iter().next() else {
             return Ok(None);
         };
-        Ok(chart_price_at(self, &row.id.to_string(), at)?.map(|(date, price)| (date, price / asset_id.price_scale())))
+        Ok(chart_price_at(self, &row.id.to_string(), at)?)
     }
 
     fn get_prices_assets_for_price_ids(&mut self, ids: Vec<String>) -> Result<Vec<PriceAsset>, DatabaseError> {
