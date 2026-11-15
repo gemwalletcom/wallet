@@ -115,7 +115,7 @@ fn payment_memo(memo: Option<&str>) -> Result<XrpPaymentMemo, SignerError> {
 
     match memo.parse::<u64>() {
         Ok(value) => Ok(XrpPaymentMemo::DestinationTag(u32::try_from(value).map_err(SignerError::from_display)?)),
-        Err(_) => Ok(XrpPaymentMemo::Memo(memo.trim_prefix("0x").as_bytes().to_vec())),
+        Err(_) => Ok(XrpPaymentMemo::Memo(memo.as_bytes().to_vec())),
     }
 }
 
@@ -195,7 +195,7 @@ mod tests {
     fn test_destination_tag_and_memo() {
         assert_eq!(payment_memo(Some("123")).unwrap(), XrpPaymentMemo::DestinationTag(123));
         assert_eq!(payment_memo(Some("memo")).unwrap(), XrpPaymentMemo::Memo(b"memo".to_vec()));
-        assert_eq!(payment_memo(Some("0xhello")).unwrap(), XrpPaymentMemo::Memo(b"hello".to_vec()));
+        assert_eq!(payment_memo(Some("0xhello")).unwrap(), XrpPaymentMemo::Memo(b"0xhello".to_vec()));
         assert_eq!(payment_memo(Some("0")).unwrap(), XrpPaymentMemo::DestinationTag(0));
         assert_eq!(payment_memo(Some(" 123456\n")).unwrap(), XrpPaymentMemo::DestinationTag(123456));
         assert_eq!(payment_memo(Some("  ")).unwrap(), XrpPaymentMemo::None);

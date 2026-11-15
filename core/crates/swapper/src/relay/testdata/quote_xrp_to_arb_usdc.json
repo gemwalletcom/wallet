@@ -1,0 +1,367 @@
+{
+  "requestId": "0x1794704012423526ff040fee4c6fb835df6878d7e3b6b3b57172d8aa8da242d0",
+  "steps": [
+    {
+      "id": "deposit",
+      "action": "Confirm transaction in your wallet",
+      "description": "Depositing funds to the relayer to execute the swap for USDC",
+      "kind": "transaction",
+      "items": [
+        {
+          "status": "incomplete",
+          "data": {
+            "to": "rJBdWA9p5KwBoqSQTyMdg3UHLsJVzGVu5m",
+            "currency": "xrp",
+            "amount": "10000000",
+            "memo": "0xa1b3ef6f9a2b6d7c3979b4b7b64efd3a6b54a167aa2d0ee0bc1ab9891bc651c9"
+          },
+          "check": {
+            "endpoint": "/intents/status/v3?requestId=0x1794704012423526ff040fee4c6fb835df6878d7e3b6b3b57172d8aa8da242d0",
+            "method": "GET"
+          }
+        }
+      ],
+      "requestId": "0x1794704012423526ff040fee4c6fb835df6878d7e3b6b3b57172d8aa8da242d0",
+      "depositAddress": ""
+    }
+  ],
+  "fees": {
+    "gas": {
+      "currency": {
+        "chainId": 537724,
+        "address": "xrp",
+        "symbol": "XRP",
+        "name": "XRP",
+        "decimals": 6,
+        "metadata": {
+          "logoURI": "https://assets.relay.link/icons/currencies/xrp.png",
+          "verified": true
+        }
+      },
+      "amount": "0",
+      "amountFormatted": "0.0",
+      "amountUsd": "0",
+      "minimumAmount": "0"
+    },
+    "relayer": {
+      "currency": {
+        "chainId": 537724,
+        "address": "xrp",
+        "symbol": "XRP",
+        "name": "XRP",
+        "decimals": 6,
+        "metadata": {
+          "logoURI": "https://assets.relay.link/icons/currencies/xrp.png",
+          "verified": true
+        }
+      },
+      "amount": "43029",
+      "amountFormatted": "0.043029",
+      "amountUsd": "0.039590",
+      "minimumAmount": "43029"
+    },
+    "relayerGas": {
+      "currency": {
+        "chainId": 537724,
+        "address": "xrp",
+        "symbol": "XRP",
+        "name": "XRP",
+        "decimals": 6,
+        "metadata": {
+          "logoURI": "https://assets.relay.link/icons/currencies/xrp.png",
+          "verified": true
+        }
+      },
+      "amount": "2304",
+      "amountFormatted": "0.002304",
+      "amountUsd": "0.002120",
+      "minimumAmount": "2304"
+    },
+    "relayerService": {
+      "currency": {
+        "chainId": 537724,
+        "address": "xrp",
+        "symbol": "XRP",
+        "name": "XRP",
+        "decimals": 6,
+        "metadata": {
+          "logoURI": "https://assets.relay.link/icons/currencies/xrp.png",
+          "verified": true
+        }
+      },
+      "amount": "40725",
+      "amountFormatted": "0.040725",
+      "amountUsd": "0.037470",
+      "minimumAmount": "40725"
+    },
+    "app": {
+      "currency": {
+        "chainId": 537724,
+        "address": "xrp",
+        "symbol": "XRP",
+        "name": "XRP",
+        "decimals": 6,
+        "metadata": {
+          "logoURI": "https://assets.relay.link/icons/currencies/xrp.png",
+          "verified": true
+        }
+      },
+      "amount": "0",
+      "amountFormatted": "0.0",
+      "amountUsd": "0",
+      "minimumAmount": "0"
+    },
+    "subsidized": {
+      "currency": {
+        "chainId": 537724,
+        "address": "xrp",
+        "symbol": "XRP",
+        "name": "XRP",
+        "decimals": 6,
+        "metadata": {
+          "logoURI": "https://assets.relay.link/icons/currencies/xrp.png",
+          "verified": true
+        }
+      },
+      "amount": "0",
+      "amountFormatted": "0.0",
+      "amountUsd": "0",
+      "minimumAmount": "0"
+    }
+  },
+  "details": {
+    "operation": "swap",
+    "sender": "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh",
+    "recipient": "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7",
+    "currencyIn": {
+      "currency": {
+        "chainId": 537724,
+        "address": "xrp",
+        "symbol": "XRP",
+        "name": "XRP",
+        "decimals": 6,
+        "metadata": {
+          "logoURI": "https://assets.relay.link/icons/currencies/xrp.png",
+          "verified": true
+        }
+      },
+      "amount": "10000000",
+      "amountFormatted": "10.0",
+      "amountUsd": "9.200790",
+      "minimumAmount": "10000000"
+    },
+    "currencyOut": {
+      "currency": {
+        "chainId": 42161,
+        "address": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
+        "symbol": "USDC",
+        "name": "USD Coin",
+        "decimals": 6,
+        "metadata": {
+          "logoURI": "https://ethereum-optimism.github.io/data/USDC/logo.png",
+          "verified": true
+        }
+      },
+      "amount": "9160295",
+      "amountFormatted": "9.160295",
+      "amountUsd": "9.158032",
+      "minimumAmount": "8977089"
+    },
+    "refundCurrency": {
+      "currency": {
+        "chainId": 537724,
+        "address": "xrp",
+        "symbol": "XRP",
+        "name": "XRP",
+        "decimals": 6,
+        "metadata": {
+          "logoURI": "https://assets.relay.link/icons/currencies/xrp.png",
+          "verified": true
+        }
+      },
+      "amount": "10000000",
+      "amountFormatted": "10.0",
+      "amountUsd": "9.200790",
+      "minimumAmount": "10000000"
+    },
+    "totalImpact": {
+      "usd": "-0.042758",
+      "percent": "-0.46"
+    },
+    "swapImpact": {
+      "usd": "-0.003168",
+      "percent": "-0.03"
+    },
+    "expandedPriceImpact": {
+      "swap": {
+        "usd": "-0.015119"
+      },
+      "execution": {
+        "usd": "-0.02212"
+      },
+      "relay": {
+        "usd": "-0.00552"
+      },
+      "app": {
+        "usd": "0"
+      },
+      "sponsored": {
+        "usd": "0"
+      }
+    },
+    "rate": "0.9160294999999999",
+    "slippageTolerance": {
+      "total": "200",
+      "origin": {
+        "usd": "0.000000",
+        "value": "0",
+        "percent": "0.00"
+      },
+      "destination": {
+        "usd": "0.183161",
+        "value": "183206",
+        "percent": "2.00"
+      }
+    },
+    "timeEstimate": 1,
+    "userBalance": "0",
+    "isFixedRate": false,
+    "route": {
+      "origin": {
+        "inputCurrency": {
+          "currency": {
+            "chainId": 537724,
+            "address": "xrp",
+            "symbol": "XRP",
+            "name": "XRP",
+            "decimals": 6,
+            "metadata": {
+              "logoURI": "https://assets.relay.link/icons/currencies/xrp.png",
+              "verified": true
+            }
+          },
+          "amount": "10000000",
+          "amountFormatted": "10.0",
+          "amountUsd": "9.200790",
+          "minimumAmount": "10000000"
+        },
+        "outputCurrency": {
+          "currency": {
+            "chainId": 537724,
+            "address": "xrp",
+            "symbol": "XRP",
+            "name": "XRP",
+            "decimals": 6,
+            "metadata": {
+              "logoURI": "https://assets.relay.link/icons/currencies/xrp.png",
+              "verified": true
+            }
+          },
+          "amount": "10000000",
+          "amountFormatted": "10.0",
+          "amountUsd": "9.200790",
+          "minimumAmount": "10000000"
+        },
+        "router": "relay"
+      },
+      "destination": {
+        "inputCurrency": {
+          "currency": {
+            "chainId": 42161,
+            "address": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
+            "symbol": "USDC",
+            "name": "USD Coin",
+            "decimals": 6,
+            "metadata": {
+              "logoURI": "https://ethereum-optimism.github.io/data/USDC/logo.png",
+              "verified": true
+            }
+          },
+          "amount": "9160295",
+          "amountFormatted": "9.160295",
+          "amountUsd": "9.158032",
+          "minimumAmount": "8977089"
+        },
+        "outputCurrency": {
+          "currency": {
+            "chainId": 42161,
+            "address": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
+            "symbol": "USDC",
+            "name": "USD Coin",
+            "decimals": 6,
+            "metadata": {
+              "logoURI": "https://ethereum-optimism.github.io/data/USDC/logo.png",
+              "verified": true
+            }
+          },
+          "amount": "9160295",
+          "amountFormatted": "9.160295",
+          "amountUsd": "9.158032",
+          "minimumAmount": "8977089"
+        },
+        "router": "relay"
+      }
+    }
+  },
+  "protocol": {
+    "v2": {
+      "orderId": "0xa1b3ef6f9a2b6d7c3979b4b7b64efd3a6b54a167aa2d0ee0bc1ab9891bc651c9",
+      "hubType": "onchain",
+      "orderData": {
+        "version": "v1",
+        "solverChainId": "base",
+        "solver": "0xf70da97812cb96acdf810712aa562db8dfa3dbef",
+        "salt": "0xff711c3fd5d955834453d5066832b58e0f7509b62ba565bc755b47bb52842eeb",
+        "inputs": [
+          {
+            "payment": {
+              "chainId": "xrp",
+              "currency": "rrrrrrrrrrrrrrrrrrrrrhoLvTp",
+              "amount": "10000000",
+              "weight": "1"
+            },
+            "refunds": [
+              {
+                "chainId": "xrp",
+                "recipient": "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh",
+                "currency": "rrrrrrrrrrrrrrrrrrrrrhoLvTp",
+                "minimumAmount": "0",
+                "deadline": 1795308812,
+                "extraData": "0x"
+              },
+              {
+                "chainId": "arbitrum",
+                "recipient": "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7",
+                "currency": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
+                "minimumAmount": "0",
+                "deadline": 1795308812,
+                "extraData": "0x0000000000000000000000000729e2a4716d9f7dd17858d5d504426d228697f7"
+              }
+            ]
+          }
+        ],
+        "output": {
+          "chainId": "arbitrum",
+          "payments": [
+            {
+              "recipient": "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7",
+              "currency": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
+              "minimumAmount": "8977089",
+              "expectedAmount": "9160295"
+            }
+          ],
+          "calls": [],
+          "deadline": 1795308812,
+          "extraData": "0x0000000000000000000000000729e2a4716d9f7dd17858d5d504426d228697f7"
+        },
+        "fees": []
+      },
+      "paymentDetails": {
+        "chainId": "xrp",
+        "depository": "rJBdWA9p5KwBoqSQTyMdg3UHLsJVzGVu5m",
+        "currency": "rrrrrrrrrrrrrrrrrrrrrhoLvTp",
+        "amount": "10000000"
+      }
+    }
+  }
+}

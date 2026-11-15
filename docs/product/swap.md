@@ -209,6 +209,7 @@ A provider may only move funds into contracts the app ships for it. Before Confi
 | OKX | Solana | Its program | At Confirm |
 | Relay | EVM | Its deposit contract, approval proxies and routers; only the deposit contract and approval proxies as spenders | In the quote list and at Confirm |
 | Relay | Tron, TON | Its depository | In the quote list and at Confirm |
+| Relay | XRP Ledger | Its depository, with exactly the amount quoted | In the quote list |
 | Relay | Solana | Its depository and forwarder programs, and Jupiter's | At Confirm |
 | Chainflip | EVM, Tron, Solana | The vault, exactly the amount and token quoted, the asset, network and address the swap pays out to, and the refund address, minimum price, and a refund sent as a plain transfer, with no contract message | At Confirm |
 | Mayan | EVM | The forwarder | At Confirm |

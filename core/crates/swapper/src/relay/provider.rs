@@ -80,9 +80,6 @@ where
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
         let from_chain = RelayChain::from_chain(&request.from_asset.chain()).ok_or(SwapperError::NotSupportedChain)?;
-        if from_chain == RelayChain::Xrp {
-            return Err(SwapperError::NotSupportedChain);
-        }
         let to_chain = RelayChain::from_chain(&request.to_asset.chain()).ok_or(SwapperError::NotSupportedChain)?;
 
         let from_asset_id = request.from_asset.asset_id();
@@ -141,7 +138,7 @@ where
                 solana::build_quote_data(&quote.request.wallet_address, step, self.rpc_provider.clone()).await
             }
             RelayChain::Ton => mapper::map_ton_quote_data(&response),
-            RelayChain::Xrp => Err(SwapperError::NotSupportedChain),
+            RelayChain::Xrp => mapper::map_xrp_quote_data(&response, &quote.from_value),
         }
     }
 
