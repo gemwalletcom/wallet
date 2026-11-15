@@ -4,11 +4,9 @@ import Components
 import Foundation
 import protocol Gemstone.GemLightningServiceProtocol
 import enum Gemstone.GemServiceError
-import GemstoneServices
 import Localization
 import Primitives
 import PrimitivesComponents
-import Style
 import SwiftUI
 
 @Observable

@@ -25,7 +25,8 @@ struct ServicesFactory {
         let observablePreferences = ObservablePreferences(preferencesService: preferencesService)
         let nodeService = GemNodeService(store: GemstoneNodeStore(store: stores.nodeStore), preferences: preferencesStore)
         let nativeProvider = NativeProvider()
-        let deviceKeyService = Gemstone.GemDeviceKeyService(store: GemstoneSecurePreferencesStore(namespace: "gateway"))
+        let secureStore = GemstoneSecurePreferencesStore(namespace: "gateway")
+        let deviceKeyService = Gemstone.GemDeviceKeyService(store: secureStore)
         let deviceRegistrationClient = Self.makeDeviceApiClient(provider: nativeProvider, deviceKey: deviceKeyService)
 
         let gemstoneWalletStore = GemstoneWalletStore(store: stores.walletStore)
@@ -66,7 +67,7 @@ struct ServicesFactory {
             provider: nativeProvider,
             nodes: nodeService,
             preferences: GemstonePreferencesStore(namespace: "gateway"),
-            securePreferences: GemstoneSecurePreferencesStore(namespace: "gateway"),
+            securePreferences: secureStore,
         )
         let nameService = Gemstone.GemNameService(api: deviceApiClient, store: gemstoneAddressStore)
         let assetsService = gatewayService.assetsService(api: apiClient, store: gemstoneAssetStore, price: priceService, preferences: preferencesService)
@@ -98,7 +99,7 @@ struct ServicesFactory {
             explorer: explorerService,
             names: nameService,
             avatar: avatarService,
-            secure: GemstoneSecurePreferencesStore(namespace: "gateway"),
+            secure: secureStore,
         )
         let pushNotificationEnablerService = PushNotificationEnablerService(preferencesService: preferencesService, systemPrompt: storages.systemPrompt)
         let notificationPermissions = GemstoneNotificationPermissions(service: pushNotificationEnablerService)
@@ -154,7 +155,7 @@ struct ServicesFactory {
             transactionStatus: GemstoneTransactionStatusService(service: transactionStateService),
         )
         let lightningService = storages.keystore.lightningService(
-            secure: GemstoneSecurePreferencesStore(namespace: "gateway"),
+            secure: secureStore,
             preferences: walletPreferencesService,
             balances: balanceService,
             transactions: transactionsService,
@@ -254,15 +255,14 @@ struct ServicesFactory {
             session: walletSessionService,
             assets: assetsService,
         )
-        let walletConnectStore = GemstoneSecurePreferencesStore(namespace: "gateway")
         let walletConnectSocket = WebSocketConnection(configuration: WebSocketConfiguration(
-            requestProvider: WalletConnectRequestProvider(store: walletConnectStore),
+            requestProvider: WalletConnectRequestProvider(store: secureStore),
             reconnection: connectionService,
         ))
         let walletConnectListener = WalletConnectListener()
         let walletConnectClient = Gemstone.GemWalletConnectClient(
             service: walletConnectService,
-            store: walletConnectStore,
+            store: secureStore,
             provider: nativeProvider,
             transport: WalletConnectTransport(webSocket: walletConnectSocket),
             listener: walletConnectListener,

@@ -2,11 +2,7 @@
 
 import Components
 import enum Gemstone.GemServiceError
-import GemstonePrimitivesTestKit
-import GemstoneServices
 import GemstoneServicesTestKit
-import Primitives
-import PrimitivesTestKit
 import Testing
 @testable import Transfer
 import TransferTestKit

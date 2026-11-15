@@ -104,26 +104,6 @@ public extension Gemstone.GemAddressRow {
     }
 }
 
-public extension Gemstone.GemAmountField {
-    static func mock(
-        symbol: Gemstone.GemAmountSymbol = .mock(),
-        placement: Gemstone.GemAmountSymbolPlacement = .leading,
-        keyboard: Gemstone.GemAmountKeyboard = .decimal,
-    ) -> Gemstone.GemAmountField {
-        Gemstone.GemAmountField(
-            symbol: symbol,
-            placement: placement,
-            keyboard: keyboard,
-        )
-    }
-}
-
-public extension Gemstone.GemAmountSymbol {
-    static func mock() -> Gemstone.GemAmountSymbol {
-        .asset(symbol: "")
-    }
-}
-
 public extension Gemstone.GemAppUpdateDestination {
     static func mock() -> Gemstone.GemAppUpdateDestination {
         .store(url: "")

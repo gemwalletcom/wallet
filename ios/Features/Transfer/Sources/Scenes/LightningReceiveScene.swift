@@ -2,7 +2,6 @@
 
 import Components
 import struct Gemstone.GemLightningReceive
-import Primitives
 import PrimitivesComponents
 import Style
 import SwiftUI

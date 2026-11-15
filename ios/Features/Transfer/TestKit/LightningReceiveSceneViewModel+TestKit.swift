@@ -2,7 +2,6 @@
 
 import Components
 import protocol Gemstone.GemLightningServiceProtocol
-import GemstoneServices
 import GemstoneServicesTestKit
 import Primitives
 import PrimitivesTestKit
