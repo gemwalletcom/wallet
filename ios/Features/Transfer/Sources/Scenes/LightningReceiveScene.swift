@@ -2,7 +2,6 @@
 
 import Components
 import struct Gemstone.GemLightningReceive
-import GemstonePrimitives
 import Primitives
 import PrimitivesComponents
 import Style
@@ -22,7 +21,7 @@ public struct LightningReceiveScene: View {
             .background(Colors.grayBackground)
             .navigationTitle(model.title)
             .navigationBarTitleDisplayMode(.inline)
-            .debouncedTask(id: model.loadTrigger, interval: GemConstants.lightningInvoiceDebounce) { await model.onLoad() }
+            .task { await model.onLoad() }
     }
 
     @ViewBuilder
@@ -62,10 +61,7 @@ public struct LightningReceiveScene: View {
     private func receiveView(_ receive: GemLightningReceive) -> some View {
         VStack(spacing: .large) {
             Spacer()
-            VStack(spacing: .medium) {
-                CurrencyInputView(text: $model.amount, config: model.amountInputConfig(receive))
-                ReceiveQRCodeCard(image: model.renderedImage, text: receive.copy.display, action: model.onCopy)
-            }
+            ReceiveQRCodeCard(image: model.renderedImage, text: receive.copy.display, size: ReceiveQRCodeCard.largeSize, action: model.onCopy)
             Spacer()
             StateButton(text: model.copyTitle, image: Images.System.copy, action: model.onCopy)
                 .frame(maxWidth: .scene.button.maxWidth)

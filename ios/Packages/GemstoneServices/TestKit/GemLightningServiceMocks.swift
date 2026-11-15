@@ -4,7 +4,6 @@ import Foundation
 import struct Gemstone.GemLightningReceive
 import enum Gemstone.GemLightningReceiveState
 import protocol Gemstone.GemLightningServiceProtocol
-import struct Gemstone.GemNumberFormat
 import GemstonePrimitivesTestKit
 import Primitives
 
@@ -13,7 +12,7 @@ public final class GemLightningServiceMock: GemLightningServiceProtocol, @unchec
     public var receiveState: GemLightningReceiveState = .pending
     public var receiveError: (any Error)?
 
-    public private(set) var receiveAmounts: [String] = []
+    public private(set) var receiveCount = 0
 
     public init(receive: GemLightningReceive = .mock(qr: "lightning:lnbc1invoice", copy: .mock(value: "lnbc1invoice"))) {
         self.receive = receive
@@ -21,8 +20,8 @@ public final class GemLightningServiceMock: GemLightningServiceProtocol, @unchec
 
     public func openEnabled() async throws {}
 
-    public func receive(walletId _: WalletId, amount: String, format _: GemNumberFormat) async throws -> GemLightningReceive {
-        receiveAmounts.append(amount)
+    public func receive(walletId _: WalletId) async throws -> GemLightningReceive {
+        receiveCount += 1
         if let receiveError {
             throw receiveError
         }

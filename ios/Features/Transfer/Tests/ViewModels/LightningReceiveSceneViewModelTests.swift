@@ -38,7 +38,7 @@ struct LightningReceiveSceneViewModelTests {
 
         service.receiveState = .expired
         await model.onRefresh()
-        #expect(service.receiveAmounts == ["", ""])
+        #expect(service.receiveCount == 2)
         #expect(completed == nil)
 
         service.receiveState = .received

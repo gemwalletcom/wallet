@@ -10,8 +10,11 @@ struct ReceiveQRCodeCard: View {
         UIDevice.current.userInterfaceIdiom == .pad ? 180 : 260
     }
 
+    static let largeSize: CGFloat = 320
+
     let image: UIImage?
     let text: String
+    var size: CGFloat = ReceiveQRCodeCard.size
     let action: () -> Void
 
     var body: some View {
@@ -29,13 +32,13 @@ struct ReceiveQRCodeCard: View {
                         LoadingView()
                     }
                 }
-                .frame(size: Self.size)
+                .frame(size: size)
 
                 Text(text.preventingHyphenation)
                     .multilineTextAlignment(.center)
                     .textStyle(TextStyle(font: .subheadline, color: Colors.secondaryText, fontWeight: .medium))
                     .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: Self.size)
+                    .frame(maxWidth: size)
                     .accessibilityIdentifier(text)
             }
         }

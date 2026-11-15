@@ -2,10 +2,8 @@
 
 import Components
 import Foundation
-import struct Gemstone.GemLightningReceive
 import protocol Gemstone.GemLightningServiceProtocol
 import enum Gemstone.GemServiceError
-import GemstonePrimitives
 import GemstoneServices
 import Localization
 import Primitives
@@ -22,7 +20,6 @@ public final class LightningReceiveSceneViewModel: Sendable {
     private let generator = QRCodeGenerator()
 
     var state: LightningReceiveState = .loading
-    var amount = ""
     var renderedImage: UIImage?
     var isPresentingCopyToast = false
 
@@ -52,13 +49,6 @@ public final class LightningReceiveSceneViewModel: Sendable {
         Localized.Common.tryAgain
     }
 
-    var loadTrigger: LightningReceiveTrigger {
-        LightningReceiveTrigger(amount: amount)
-    }
-
-    func amountInputConfig(_ receive: GemLightningReceive) -> AmountInputConfig {
-        AmountInputConfig(field: receive.field, canSwitchInputType: false, numberFormat: NumberInput.format(), secondaryText: "", onTapActionButton: nil)
-    }
 }
 
 // MARK: - Business Logic
@@ -66,8 +56,8 @@ public final class LightningReceiveSceneViewModel: Sendable {
 extension LightningReceiveSceneViewModel {
     func onLoad() async {
         do {
-            let receive = try await service.receive(walletId: walletId, amount: amount, format: NumberInput.format())
-            let image = await generator.generate(from: receive.qr, size: CGSize(width: ReceiveQRCodeCard.size, height: ReceiveQRCodeCard.size))
+            let receive = try await service.receive(walletId: walletId)
+            let image = await generator.generate(from: receive.qr, size: CGSize(width: ReceiveQRCodeCard.largeSize, height: ReceiveQRCodeCard.largeSize))
             guard !Task.isCancelled else { return }
             renderedImage = image
             state = .ready(receive)

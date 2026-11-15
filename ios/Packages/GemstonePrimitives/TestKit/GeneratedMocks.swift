@@ -884,12 +884,10 @@ public extension Gemstone.GemLightningReceive {
     static func mock(
         qr: String = "",
         copy: Gemstone.GemCopy = .mock(),
-        field: Gemstone.GemAmountField = .mock(),
     ) -> Gemstone.GemLightningReceive {
         Gemstone.GemLightningReceive(
             qr: qr,
             copy: copy,
-            field: field,
         )
     }
 }
