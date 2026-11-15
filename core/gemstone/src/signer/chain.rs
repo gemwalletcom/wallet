@@ -468,6 +468,39 @@ mod tests {
     }
 
     #[test]
+    fn test_sign_input_xrp_transfer_swap_memo() {
+        let key = hex::decode("a5576c0f63da10e584568c8d134569ff44017b0a249eb70657127ae04f38cc77").unwrap();
+        let mut swap_data = SwapData::mock_transfer(SwapProvider::Relay, "10", "7", "rJBdWA9p5KwBoqSQTyMdg3UHLsJVzGVu5m");
+        swap_data.data.memo = Some("0xa1b3ef6f9a2b6d7c3979b4b7b64efd3a6b54a167aa2d0ee0bc1ab9891bc651c9".to_string());
+        let input = SignerInput::mock_with_input_type(
+            TransactionInputType::Swap {
+                from_asset: Asset::from_chain(Chain::Xrp),
+                to_asset: Asset::from_chain(Chain::Arbitrum),
+                swap_data,
+            },
+            "rfxdLwsZnoespnTDDb1Xhvbc8EFNdztaoq",
+            "",
+            "10",
+            TransactionLoadMetadata::Xrp {
+                sequence: 32_268_248,
+                block_number: 32_268_269,
+                is_destination_address_exist: true,
+            },
+        );
+
+        let transactions = ChainTransactionSigner::new(Chain::Xrp).sign_input(input, Zeroizing::new(key)).unwrap();
+
+        assert_eq!(
+            transactions,
+            signed(
+                vec!["12000022000000002401ec5fd8201b01ec600561400000000000000a684000000000000000732103d13e1152965a51a4a9fd9a8b4ea3dd82a4eba6b25fcad5f460a2342bb650333f74473045022100bc1678fcd92fdceaaeafaf2dd563879400eb6de089d49c4de27fe174523e526502200487572eec7bf75c721da21be45576c2927d557761f4fd906f6e42277cdbb50781144c55f5a78067206507580be7bb2686c8460adff98314bc7cc7b0d3064e1e67d0fed5d75e99a0e4816fc4f9ea7d42307861316233656636663961326236643763333937396234623762363465666433613662353461313637616132643065653062633161623938393162633635316339e1f1".to_string()],
+                TransactionType::Swap,
+                Some(32_268_248)
+            )
+        );
+    }
+
+    #[test]
     fn test_sign_input_hypercore_deposit() {
         let input = SignerInput::mock_with_input_type(
             TransactionInputType::Deposit { asset: HYPERCORE_SPOT_USDC.clone() },

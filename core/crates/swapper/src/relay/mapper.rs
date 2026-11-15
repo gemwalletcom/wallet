@@ -24,7 +24,7 @@ pub fn validate_quote_response(from_chain: RelayChain, quote_response: &RelayQuo
         RelayChain::Bitcoin => map_bitcoin_quote_data(quote_response, value).map(drop),
         RelayChain::Evm(_) | RelayChain::Tron | RelayChain::Ton => validate_targets(from_chain, quote_response),
         RelayChain::Solana => Ok(()),
-        RelayChain::Xrp => Err(SwapperError::NotSupportedChain),
+        RelayChain::Xrp => map_xrp_quote_data(quote_response, value).and_then(|_| validate_targets(from_chain, quote_response)),
     }
 }
 
@@ -45,6 +45,11 @@ pub fn map_bitcoin_quote_data(quote_response: &RelayQuoteResponse, value: &BigUi
         return Err(SwapperError::InvalidRoute);
     }
     Ok(SwapperQuoteData::new_transfer(deposit_address.to_string(), value.clone(), None))
+}
+
+pub fn map_xrp_quote_data(quote_response: &RelayQuoteResponse, value: &BigUint) -> Result<SwapperQuoteData, SwapperError> {
+    let xrp = quote_response.get_xrp_step().filter(|xrp| &xrp.amount == value).ok_or(SwapperError::InvalidRoute)?;
+    Ok(SwapperQuoteData::new_transfer(xrp.to.clone(), value.clone(), Some(xrp.memo.clone())))
 }
 
 pub fn map_evm_quote_data(quote_response: &RelayQuoteResponse, approval: Option<ApprovalData>) -> Result<SwapperQuoteData, SwapperError> {
@@ -166,6 +171,25 @@ mod tests {
             SwapperError::InvalidRoute,
             "a second message paying elsewhere is refused"
         );
+    }
+
+    #[test]
+    fn test_map_xrp_quote_data() {
+        let quote = include_str!("testdata/quote_xrp_to_arb_usdc.json");
+        let response: RelayQuoteResponse = serde_json::from_str(quote).unwrap();
+        let value = BigUint::from(10_000_000u64);
+        let memo = "0xa1b3ef6f9a2b6d7c3979b4b7b64efd3a6b54a167aa2d0ee0bc1ab9891bc651c9";
+        assert_eq!(
+            map_xrp_quote_data(&response, &value).unwrap(),
+            SwapperQuoteData::new_transfer("rJBdWA9p5KwBoqSQTyMdg3UHLsJVzGVu5m".to_string(), value.clone(), Some(memo.to_string()))
+        );
+        assert!(validate_quote_response(RelayChain::Xrp, &response, &value).is_ok());
+        assert_eq!(map_xrp_quote_data(&response, &BigUint::from(10_000_001u64)), Err(SwapperError::InvalidRoute));
+
+        let foreign: RelayQuoteResponse = serde_json::from_str(&quote.replace("rJBdWA9p5KwBoqSQTyMdg3UHLsJVzGVu5m", "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh")).unwrap();
+        assert_eq!(validate_quote_response(RelayChain::Xrp, &foreign, &value), Err(SwapperError::InvalidRoute));
+        let evm = RelayQuoteResponse::mock_with_steps(vec![Step::mock_transaction("deposit", "0xrouter", "0", "0x")]);
+        assert_eq!(map_xrp_quote_data(&evm, &value), Err(SwapperError::InvalidRoute));
     }
 
     #[test]

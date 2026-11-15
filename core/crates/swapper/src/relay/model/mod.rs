@@ -5,6 +5,7 @@ mod request;
 mod solana;
 mod ton;
 mod tron;
+mod xrp;
 
 pub use chains::*;
 pub use evm::*;
@@ -13,3 +14,4 @@ pub use request::*;
 pub use solana::*;
 pub use ton::*;
 pub use tron::*;
+pub use xrp::*;

@@ -17,6 +17,7 @@ const MANTLE_LINEA_ERC20_ROUTER: &str = "0x9EF6d3c2F60d7b9008D74CAb1FC0F899c957C
 const MANTLE_LINEA_ERC20_ROUTER_V3_2: &str = "0x6328ea02d28131e58B28E55c6258258A30d90E05";
 const TRON_DEPOSITORY: &str = "TXtEs6t2oUWQsNos7m68gbHdE9Q5n6x2oN";
 const TON_DEPOSITORY: &str = "EQCrdGsDTqA2t6xRR4N6V4J705F7w_VQbUdHnofsh-8lVIPs";
+const XRP_DEPOSITORY: &str = "rJBdWA9p5KwBoqSQTyMdg3UHLsJVzGVu5m";
 
 const RECEIVERS: &[Deployment] = &[
     Deployment::new(Chain::Ethereum, "0xa5F565650890fBA1824Ee0F21EbBbF660a179934"),
@@ -52,6 +53,7 @@ pub fn contracts(chain: Chain) -> Contracts {
         ),
         Chain::Tron => (&[TRON_DEPOSITORY], &[]),
         Chain::Ton => (&[TON_DEPOSITORY], &[]),
+        Chain::Xrp => (&[XRP_DEPOSITORY], &[]),
         Chain::Solana => (&[SOLANA_RELAY_DEPOSITORY_PROGRAM_ID, SOLANA_RELAY_FORWARDER_PROGRAM_ID], &[SOLANA_JUPITER_PROGRAM_ID]),
         _ if chain.chain_type() == ChainType::Ethereum => (&[DEPOSITORY, APPROVAL_PROXY, APPROVAL_PROXY_V3_2], &[ERC20_ROUTER, ERC20_ROUTER_V3_2]),
         _ => (&[], &[]),
@@ -74,6 +76,7 @@ mod tests {
         assert!(linea.targets.contains(&MANTLE_LINEA_DEPOSITORY) && !linea.targets.contains(&DEPOSITORY));
         assert_eq!(contracts(Chain::Tron), Contracts::new(vec![TRON_DEPOSITORY]));
         assert_eq!(contracts(Chain::Ton), Contracts::new(vec![TON_DEPOSITORY]));
+        assert_eq!(contracts(Chain::Xrp), Contracts::new(vec![XRP_DEPOSITORY]));
         assert_eq!(contracts(Chain::Bitcoin), Contracts::default(), "a Bitcoin deposit address is made per swap");
         assert!(ethereum.targets.contains(&ERC20_ROUTER) && !ethereum.spenders.contains(&ERC20_ROUTER), "the router is called, never approved");
         assert_eq!(

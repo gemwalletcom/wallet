@@ -1,7 +1,7 @@
 use primitives::OptionStringExt;
 use serde::{Deserialize, Serialize};
 
-use super::{EvmStepData, SolanaStepData, TonStepData, TronStepData};
+use super::{EvmStepData, SolanaStepData, TonStepData, TronStepData, XrpStepData};
 use crate::{SwapperError, error::ProviderErrorResponse};
 
 const STEP_SWAP: &str = "swap";
@@ -90,35 +90,42 @@ impl RelayQuoteResponse {
         let step = self.steps.iter().find(|step| step.id == STEP_DEPOSIT)?;
         match (step.deposit_address.as_deref()?, step.step_data()?) {
             (deposit_address, StepData::Deposit(deposit)) => Some((deposit_address, deposit)),
-            (_, StepData::Evm(_) | StepData::Tron(_) | StepData::Solana(_) | StepData::Ton(_)) => None,
+            (_, StepData::Evm(_) | StepData::Tron(_) | StepData::Solana(_) | StepData::Ton(_) | StepData::Xrp(_)) => None,
         }
     }
 
     pub fn get_evm_step(&self) -> Option<&EvmStepData> {
         match self.step_data()? {
             StepData::Evm(evm) => Some(evm),
-            StepData::Tron(_) | StepData::Solana(_) | StepData::Ton(_) | StepData::Deposit(_) => None,
+            StepData::Tron(_) | StepData::Solana(_) | StepData::Ton(_) | StepData::Xrp(_) | StepData::Deposit(_) => None,
         }
     }
 
     pub fn get_tron_step(&self) -> Option<&TronStepData> {
         match self.step_data()? {
             StepData::Tron(tron) => Some(tron),
-            StepData::Evm(_) | StepData::Solana(_) | StepData::Ton(_) | StepData::Deposit(_) => None,
+            StepData::Evm(_) | StepData::Solana(_) | StepData::Ton(_) | StepData::Xrp(_) | StepData::Deposit(_) => None,
         }
     }
 
     pub fn get_solana_step(&self) -> Option<&SolanaStepData> {
         match self.step_data()? {
             StepData::Solana(solana) => Some(solana),
-            StepData::Evm(_) | StepData::Tron(_) | StepData::Ton(_) | StepData::Deposit(_) => None,
+            StepData::Evm(_) | StepData::Tron(_) | StepData::Ton(_) | StepData::Xrp(_) | StepData::Deposit(_) => None,
         }
     }
 
     pub fn get_ton_step(&self) -> Option<&TonStepData> {
         match self.step_data()? {
             StepData::Ton(ton) => Some(ton),
-            StepData::Evm(_) | StepData::Tron(_) | StepData::Solana(_) | StepData::Deposit(_) => None,
+            StepData::Evm(_) | StepData::Tron(_) | StepData::Solana(_) | StepData::Xrp(_) | StepData::Deposit(_) => None,
+        }
+    }
+
+    pub fn get_xrp_step(&self) -> Option<&XrpStepData> {
+        match self.step_data()? {
+            StepData::Xrp(xrp) => Some(xrp),
+            StepData::Evm(_) | StepData::Tron(_) | StepData::Solana(_) | StepData::Ton(_) | StepData::Deposit(_) => None,
         }
     }
 
@@ -163,6 +170,7 @@ pub enum StepData {
     Tron(TronStepData),
     Solana(SolanaStepData),
     Ton(TonStepData),
+    Xrp(XrpStepData),
     Deposit(DepositStepData),
 }
 
@@ -178,6 +186,7 @@ impl StepData {
             Self::Tron(tron) => tron.trigger_smart_contract().map(|transaction| transaction.contract_address.clone()).into_iter().collect(),
             Self::Solana(_) | Self::Deposit(_) => Vec::new(),
             Self::Ton(ton) => ton.messages.iter().map(|message| message.to.clone()).collect(),
+            Self::Xrp(xrp) => vec![xrp.to.clone()],
         }
     }
 }
