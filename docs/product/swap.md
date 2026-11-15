@@ -173,6 +173,7 @@ A stablecoin is one on the official list, USDT, USDC, USDS, USDe, USD1, USDG and
 | A Sui pair has no DeepBook pool, such as DEEP to WAL | DeepBook trades it in two pools through SUI or USDC, whichever pays more | |
 | The amount is below a DeepBook pool's smallest trade, such as 1 SUI to USDC | no DeepBook quote; if no other provider quotes, the minimum to pay shows, Gem's fee included | the pool would hand the coins back unswapped |
 | DeepBook would leave more than `1%` of the amount unfilled | no DeepBook quote | the book trades whole lots |
+| A Sui swap pays SUI, as the amount on Cetus, DeepBook or Mayan or as Mayan's Wormhole fee, and some SUI sits in coins and some in the address balance | the swap draws on both | the balance shows both, so a swap must be able to spend both |
 | A DeDust swap on TON | Gem's `0.5%` fee goes as a second message in the same transaction; if DeDust rejects the swap on slippage, the amount comes back but the fee stays paid | DeDust has no fee field, and TON runs the messages independently |
 | A STON.fi swap | it must reach its pool within `15 minutes` of Confirm preparing it; a two-pool swap holds each pool to its own minimum | a user who reads Confirm first is not refunded |
 | A SunSwap swap on Tron | the Network Fee is the user's share of the energy | SUN pays `99%` of the energy |

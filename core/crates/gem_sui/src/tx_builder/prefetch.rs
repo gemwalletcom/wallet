@@ -27,6 +27,7 @@ impl PrefetchedTransactionData {
             output_coins_fut,
             ObjectResolver::prefetch(client, object_ids, pinned),
         )?;
+        let input_coins = if is_sui_coin(input_coin_type) { OwnedCoins::sui_address_balance(transaction.address_balance) } else { input_coins };
 
         Ok(Self {
             transaction,

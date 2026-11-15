@@ -5,7 +5,12 @@ use crate::{
         cctp_domain::domain_for_wormhole_chain,
         constants::{SUI_CCTP_CORE_STATE, SUI_MCTP_STATE},
         model::{MayanMctpQuote, QuoteType},
-        tx_builder::{address::native_address_to_bytes32, amount::gas_drop_amount, mctp::redeem_relayer_fee, sui::bridge_amount},
+        tx_builder::{
+            address::native_address_to_bytes32,
+            amount::gas_drop_amount,
+            mctp::redeem_relayer_fee,
+            sui::{WormholeFeeCoin, bridge_amount},
+        },
         wormhole_chain::id_for_name as wormhole_chain_id,
     },
     sui_swap::package_address,
@@ -42,7 +47,7 @@ impl BridgeParams {
     }
 }
 
-pub(super) fn add_bridge_with_fee_move_calls(txb: &mut TransactionBuilder, route: &MayanMctpQuote, prefetched: &PrefetchedSuiData, input_coin: Argument, wh_fee_coin: Option<Argument>, destination_address: &str) -> Result<(), SwapperError> {
+pub(super) fn add_bridge_with_fee_move_calls(txb: &mut TransactionBuilder, route: &MayanMctpQuote, prefetched: &PrefetchedSuiData, input_coin: Argument, wh_fee_coin: WormholeFeeCoin, destination_address: &str) -> Result<(), SwapperError> {
     let mctp_input_contract = prefetched.mctp_input_contract.as_str();
     let bridge = BridgeParams::new(route, mctp_input_contract, destination_address)?;
     let payload = Vec::<u8>::new();

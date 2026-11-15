@@ -6,7 +6,7 @@ use std::{
 use gem_client::Client;
 use gem_sui::tx_builder::{Argument, TransactionBuilder};
 use gem_sui::{
-    SuiClient, is_sui_coin,
+    SUI_COIN_TYPE, SuiClient, is_sui_coin,
     models::{Coin, OwnedCoins},
     tx_builder::{ResolvedObjectInput, TransactionJsonReplay, build_input_coin, prepare_transaction_json_replay},
 };
@@ -43,20 +43,44 @@ impl SuiClientSwapReplay {
 pub(in crate::mayan::tx_builder) struct SuiInputCoin {
     pub txb: TransactionBuilder,
     pub coin: Argument,
-    pub wh_fee_coin: Option<Argument>,
+    pub wh_fee_coin: WormholeFeeCoin,
 }
 
-pub(in crate::mayan::tx_builder) fn build_sui_input_coin(swap: Option<&SuiClientSwapReplay>, coin_type: &str, amount: u64, coins: &OwnedCoins<Coin>) -> Result<SuiInputCoin, SwapperError> {
+#[derive(Debug, PartialEq)]
+pub(in crate::mayan::tx_builder) enum WormholeFeeCoin {
+    FromSwap(Argument),
+    FromWallet { sui_address_balance: u64 },
+}
+
+impl WormholeFeeCoin {
+    pub fn build_coin(self, txb: &mut TransactionBuilder, bridge_fee: u64) -> Result<Argument, SwapperError> {
+        match self {
+            Self::FromSwap(coin) => Ok(coin),
+            Self::FromWallet { sui_address_balance } => build_input_coin(txb, SUI_COIN_TYPE, bridge_fee, &OwnedCoins::sui_address_balance(sui_address_balance)).map_err(sui_error),
+        }
+    }
+}
+
+pub(in crate::mayan::tx_builder) fn build_sui_input_coin(swap: Option<&SuiClientSwapReplay>, coin_type: &str, amount: u64, coins: &OwnedCoins<Coin>, sui_address_balance: u64) -> Result<SuiInputCoin, SwapperError> {
     if let Some(swap) = swap {
-        let replayed = swap.replay.replay().map_err(sui_error)?;
+        let replayed = swap.replay.replay_with_address_balance(sui_address_balance).map_err(sui_error)?;
         let coin = replayed.argument(&swap.swap.out_coin).map_err(sui_error)?;
-        let wh_fee_coin = swap.swap.wh_fee_coin.as_ref().map(|argument| replayed.argument(argument).map_err(sui_error)).transpose()?;
+        let wh_fee_coin = match swap.swap.wh_fee_coin.as_ref() {
+            Some(argument) => WormholeFeeCoin::FromSwap(replayed.argument(argument).map_err(sui_error)?),
+            None => WormholeFeeCoin::FromWallet {
+                sui_address_balance: replayed.address_balance,
+            },
+        };
         return Ok(SuiInputCoin { txb: replayed.txb, coin, wh_fee_coin });
     }
 
     let mut txb = TransactionBuilder::new();
     let coin = build_input_coin(&mut txb, coin_type, amount, coins).map_err(sui_error)?;
-    Ok(SuiInputCoin { txb, coin, wh_fee_coin: None })
+    Ok(SuiInputCoin {
+        txb,
+        coin,
+        wh_fee_coin: WormholeFeeCoin::FromWallet { sui_address_balance },
+    })
 }
 
 pub(in crate::mayan::tx_builder) fn requires_client_swap(route: &MayanQuoteCommon, input_contract: &str) -> bool {
@@ -108,8 +132,9 @@ struct MayanState {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::mayan::model::{MayanFastMctpQuote, MayanMctpQuote};
-    use gem_sui::SUI_COIN_TYPE;
+    use crate::mayan::model::{MayanFastMctpQuote, MayanMctpQuote, SuiTransactionArgument};
+    use gem_sui::types::{Command, Input, WithdrawalReservation};
+    use primitives::asset_constants::SUI_USDC_TOKEN_ID;
 
     #[test]
     fn test_bridge_amount() {
@@ -124,5 +149,78 @@ mod tests {
         let route = MayanFastMctpQuote::mock_sui();
         let input_contract = route.fast_mctp_input_contract.clone().unwrap();
         assert_eq!(bridge_amount(&route, route.min_middle_amount.as_ref(), &input_contract).unwrap(), 1_038_528);
+    }
+
+    #[test]
+    fn test_build_sui_input_coin() {
+        let address_balance = 626_400_000_000;
+        let swap: SuiClientSwap = serde_json::from_str(include_str!("../test/sui_client_swap_sui_to_usdc.json")).unwrap();
+        let replay = SuiClientSwapReplay {
+            replay: TransactionJsonReplay::mock(&swap.tx),
+            swap: swap.clone(),
+        };
+
+        let funded = build_sui_input_coin(Some(&replay), SUI_USDC_TOKEN_ID, 1_000_000_000, &OwnedCoins::default(), address_balance).unwrap();
+        assert_eq!(funded.coin, Argument::Result(6));
+        assert_eq!(funded.wh_fee_coin, WormholeFeeCoin::FromWallet { sui_address_balance: 0 });
+
+        let coins_only = build_sui_input_coin(Some(&replay), SUI_USDC_TOKEN_ID, 1_000_000_000, &OwnedCoins::default(), 0).unwrap();
+        assert_eq!(coins_only.coin, Argument::Result(4));
+
+        let with_wh_fee = SuiClientSwapReplay {
+            replay: TransactionJsonReplay::mock(&swap.tx),
+            swap: SuiClientSwap {
+                wh_fee_coin: Some(SuiTransactionArgument::NestedResult { nested_result: [0, 0] }),
+                ..swap
+            },
+        };
+        let funded = build_sui_input_coin(Some(&with_wh_fee), SUI_USDC_TOKEN_ID, 1_000_000_000, &OwnedCoins::default(), address_balance).unwrap();
+        assert_eq!(funded.wh_fee_coin, WormholeFeeCoin::FromSwap(Argument::NestedResult(2, 0)));
+
+        let usdc_coins = OwnedCoins::new(SUI_USDC_TOKEN_ID.to_string(), vec![], 2_000_000);
+        let without_swap = build_sui_input_coin(None, SUI_USDC_TOKEN_ID, 1_000_000, &usdc_coins, address_balance).unwrap();
+        assert_eq!(without_swap.wh_fee_coin, WormholeFeeCoin::FromWallet { sui_address_balance: address_balance });
+    }
+
+    #[test]
+    fn test_wormhole_fee_coin_build_coin() {
+        let built = |fee_coin: WormholeFeeCoin, bridge_fee: u64| {
+            let txb = &mut TransactionBuilder::new();
+            let coin = fee_coin.build_coin(txb, bridge_fee).unwrap();
+            let ptb = std::mem::take(txb).build().unwrap();
+            let withdrawals = ptb
+                .inputs
+                .iter()
+                .filter_map(|input| match input {
+                    Input::FundsWithdrawal(withdrawal) => match withdrawal.reservation {
+                        WithdrawalReservation::MaxAmount(amount) => Some(amount),
+                    },
+                    _ => None,
+                })
+                .collect::<Vec<_>>();
+            let commands = ptb
+                .commands
+                .iter()
+                .map(|command| match command {
+                    Command::MoveCall(call) => format!("{}::{}", call.module, call.function),
+                    Command::MergeCoins(merge) => format!("merge into {:?}", merge.coin),
+                    Command::SplitCoins(split) => format!("split {:?}", split.coin),
+                    command => format!("{command:?}"),
+                })
+                .collect::<Vec<_>>();
+            (coin, withdrawals, commands)
+        };
+
+        assert_eq!(built(WormholeFeeCoin::FromSwap(Argument::Result(7)), 1_000_000), (Argument::Result(7), vec![], vec![]));
+        assert_eq!(built(WormholeFeeCoin::FromWallet { sui_address_balance: 0 }, 1_000_000), (Argument::NestedResult(0, 0), vec![], vec!["split Gas".to_string()]));
+        assert_eq!(
+            built(WormholeFeeCoin::FromWallet { sui_address_balance: 5_000_000 }, 1_000_000),
+            (Argument::Result(0), vec![1_000_000], vec!["coin::redeem_funds".to_string()])
+        );
+        assert_eq!(
+            built(WormholeFeeCoin::FromWallet { sui_address_balance: 400_000 }, 1_000_000),
+            (Argument::NestedResult(2, 0), vec![400_000], vec!["coin::redeem_funds".to_string(), "merge into Gas".to_string(), "split Gas".to_string()])
+        );
+        assert_eq!(built(WormholeFeeCoin::FromWallet { sui_address_balance: 5_000_000 }, 0), (Argument::Result(0), vec![], vec!["coin::zero".to_string()]));
     }
 }

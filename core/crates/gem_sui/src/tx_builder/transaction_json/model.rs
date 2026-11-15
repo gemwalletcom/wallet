@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use serde_serializers::{deserialize_option_u64_from_str_or_int, deserialize_u64_from_str_or_int};
 
+use crate::{SUI_COIN_TYPE, coin_type_matches};
+
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TransactionBuilderJson {
@@ -11,6 +13,16 @@ pub struct TransactionBuilderJson {
     pub gas_data: Option<GasData>,
     pub inputs: Vec<TransactionInput>,
     pub commands: Vec<TransactionCommand>,
+}
+
+impl TransactionBuilderJson {
+    pub fn uses_gas_coin(&self) -> bool {
+        self.commands.iter().flat_map(TransactionCommand::arguments).any(TransactionArgument::is_gas_coin)
+    }
+
+    pub fn withdraws_sui(&self) -> bool {
+        self.inputs.iter().any(TransactionInput::withdraws_sui)
+    }
 }
 
 #[derive(Clone, Debug, Default, Deserialize)]
@@ -47,6 +59,17 @@ pub enum TransactionInput {
         #[serde(rename = "UnresolvedPure")]
         pure: Value,
     },
+}
+
+impl TransactionInput {
+    pub fn withdraws_sui(&self) -> bool {
+        match self {
+            Self::FundsWithdrawal { funds_withdrawal } => match &funds_withdrawal.type_arg {
+                WithdrawalTypeArg::Balance { balance } => coin_type_matches(balance, SUI_COIN_TYPE),
+            },
+            Self::Pure { .. } | Self::Object { .. } | Self::UnresolvedObject { .. } | Self::UnresolvedPure { .. } => false,
+        }
+    }
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -176,6 +199,19 @@ pub enum TransactionCommand {
     },
 }
 
+impl TransactionCommand {
+    pub fn arguments(&self) -> Vec<&TransactionArgument> {
+        match self {
+            Self::MoveCall { move_call } => move_call.arguments.iter().collect(),
+            Self::TransferObjects { transfer_objects } => transfer_objects.objects.iter().chain([&transfer_objects.address]).collect(),
+            Self::SplitCoins { split_coins } => [&split_coins.coin].into_iter().chain(&split_coins.amounts).collect(),
+            Self::MergeCoins { merge_coins } => [&merge_coins.destination].into_iter().chain(&merge_coins.sources).collect(),
+            Self::MakeMoveVec { make_move_vec } => make_move_vec.elements.iter().collect(),
+            Self::Publish { .. } | Self::Upgrade { .. } => Vec::new(),
+        }
+    }
+}
+
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MoveCallCommand {
@@ -231,6 +267,15 @@ pub enum TransactionArgument {
         #[serde(rename = "NestedResult")]
         nested_result: [usize; 2],
     },
+}
+
+impl TransactionArgument {
+    pub fn is_gas_coin(&self) -> bool {
+        match self {
+            Self::GasCoin { .. } => true,
+            Self::Input { .. } | Self::Result { .. } | Self::NestedResult { .. } => false,
+        }
+    }
 }
 
 #[cfg(test)]

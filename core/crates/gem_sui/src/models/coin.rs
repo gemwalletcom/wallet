@@ -8,6 +8,7 @@ use serde_serializers::deserialize_bigint_from_str;
 #[cfg(feature = "rpc")]
 use super::account::Owner;
 use super::core::Coin;
+use crate::SUI_COIN_TYPE;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -49,6 +50,10 @@ impl<T> OwnedCoins<T> {
 }
 
 impl OwnedCoins<Coin> {
+    pub fn sui_address_balance(address_balance: u64) -> Self {
+        Self::new(SUI_COIN_TYPE.to_string(), Vec::new(), address_balance)
+    }
+
     pub fn coin_total(&self) -> u64 {
         self.coins.iter().map(|coin| coin.balance).fold(0, u64::saturating_add)
     }
