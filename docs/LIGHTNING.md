@@ -19,7 +19,7 @@ Spark reads are authenticated with the identity key and incoming payments are cl
 
 The recipient is a BOLT11 invoice, with or without a `lightning:` prefix: an invoice with an amount goes straight to confirm, an amountless one goes to the amount screen. Invoice decoding accepts mainnet invoices only, and the send rejects an expired invoice, an amount that differs from the invoice's, and an amountless invoice without an amount. The signer signs the sender's Spark address, invoice, amount and quoted fee as typed JSON behind a fixed Gem domain; broadcast pays only when the signature verifies against the open wallet's identity key, with the quoted fee as the maximum, and returns the Spark transfer id as the transaction hash. Status checks and the payments sync use that id, so the pending row and the synced payment are one transaction. A Lightning row times out after 16 days, the expiry Spark puts on the leaves it hands the gateway.
 
-Receive opens one screen with a QR of an any-amount invoice, copy and share; an amount typed above the QR replaces the invoice. The app polls `GemLightningService.receive_state` at the `Receive` refresh interval while the screen is visible, replaces the invoice when it expires, and closes with a Received toast once it is paid.
+Receive opens one screen with a QR of an any-amount invoice, copy and share. The QR holds the invoice in uppercase, which BOLT11 allows, so it encodes in the denser alphanumeric mode. The app polls `GemLightningService.receive_state` at the `Receive` refresh interval while the screen is visible, replaces the invoice when it expires, and closes with a Received toast once it is paid.
 
 ## Storage and recovery
 

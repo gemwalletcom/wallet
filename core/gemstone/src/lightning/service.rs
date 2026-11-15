@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use gem_spark::{LIGHTNING_SCHEME, LightningWallet, decode_invoice};
 use primitives::time::unix_timestamp;
-use primitives::{AddressFormatStyle, Asset, AssetId, Chain, WalletId};
+use primitives::{AddressFormatStyle, AssetId, Chain, WalletId};
 
 use super::model::{GemLightningReceive, GemLightningReceiveState};
 use super::runtime::run;
@@ -10,8 +10,6 @@ use super::sessions::{LightningAccounts, SESSIONS, account_key_name};
 use crate::address_formatter::format_address;
 use crate::keystore::{GemKeystore, decode_password, keystore_id_for_wallet};
 use crate::models::copy::{GemCopy, GemCopyKind};
-use crate::services::amount::model::{GemAmountField, GemAmountKeyboard, GemAmountSymbol, GemAmountSymbolPlacement, GemNumberFormat};
-use crate::services::amount::rules::value_from_input;
 use crate::services::balance::GemBalanceService;
 use crate::services::error::{GemServiceError, required_account};
 use crate::services::preferences::GemSecureStore;
@@ -75,12 +73,10 @@ impl GemLightningService {
         Ok(())
     }
 
-    pub async fn receive(&self, wallet_id: WalletId, amount: String, format: GemNumberFormat) -> Result<GemLightningReceive, GemServiceError> {
+    pub async fn receive(&self, wallet_id: WalletId) -> Result<GemLightningReceive, GemServiceError> {
         let wallet = self.wallet(wallet_id).await?;
-        let asset = Asset::from_chain(Chain::Lightning);
-        let amount_sats = value_from_input(&format.decimal_separator, &amount, asset.decimals).ok().and_then(|value| u64::try_from(value).ok()).unwrap_or_default();
-        let invoice = run(async move { wallet.create_invoice(amount_sats).await }).await?;
-        Ok(receive(invoice, asset))
+        let invoice = run(async move { wallet.create_invoice().await }).await?;
+        Ok(receive(invoice))
     }
 
     pub async fn receive_state(&self, wallet_id: WalletId, invoice: String) -> Result<GemLightningReceiveState, GemServiceError> {
@@ -128,18 +124,13 @@ impl GemLightningService {
     }
 }
 
-fn receive(invoice: String, asset: Asset) -> GemLightningReceive {
+fn receive(invoice: String) -> GemLightningReceive {
     GemLightningReceive {
-        qr: format!("{LIGHTNING_SCHEME}{invoice}"),
+        qr: format!("{LIGHTNING_SCHEME}{invoice}").to_uppercase(),
         copy: GemCopy {
             kind: GemCopyKind::Plain,
             display: format_address(&invoice, Some(Chain::Lightning), AddressFormatStyle::Short),
             value: invoice,
-        },
-        field: GemAmountField {
-            symbol: GemAmountSymbol::Asset { symbol: asset.symbol },
-            placement: GemAmountSymbolPlacement::Trailing,
-            keyboard: GemAmountKeyboard::Decimal,
         },
     }
 }

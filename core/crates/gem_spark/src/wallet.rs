@@ -78,8 +78,8 @@ impl LightningWallet {
         Ok(self.wallet.get_balance().await?)
     }
 
-    pub async fn create_invoice(&self, amount_sats: u64) -> Result<String, LightningError> {
-        Ok(self.wallet.create_lightning_invoice(amount_sats, None, None, None, false).await?.invoice)
+    pub async fn create_invoice(&self) -> Result<String, LightningError> {
+        Ok(self.wallet.create_lightning_invoice(0, None, None, None, false).await?.invoice)
     }
 
     pub async fn send_fee(&self, invoice: &LightningInvoice, amount_sats: u64) -> Result<u64, LightningError> {
@@ -229,8 +229,7 @@ mod chain_integration_tests {
         assert_eq!(wallet.payment(&TransferId::generate().to_string()).await.unwrap(), None);
         assert_eq!(wallet.payment("transfer").await, Err(LightningError::InvalidTransfer));
 
-        assert_eq!(decode_invoice(&wallet.create_invoice(1000).await.unwrap()).unwrap().amount_sats, Some(1000));
-        assert_eq!(decode_invoice(&wallet.create_invoice(0).await.unwrap()).unwrap().amount_sats, None);
+        assert_eq!(decode_invoice(&wallet.create_invoice().await.unwrap()).unwrap().amount_sats, None);
     }
 }
 
