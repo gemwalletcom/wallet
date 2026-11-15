@@ -1,14 +1,18 @@
 use std::{error::Error, io};
 
 use alloy_primitives::{Address, B256, Bytes, LogData, U256, hex};
-use alloy_sol_types::{SolCall, SolEvent, SolValue};
+use alloy_sol_types::SolEvent;
 
 use super::asset::AcrossAsset;
 use super::contracts::{
     V3SpokePoolInterface::{FundsDeposited, V3FundsDeposited, depositV3Call},
     multicall_handler,
 };
-use crate::{contracts::IERC20, u256::u256_to_biguint};
+use crate::{
+    abi::{SolCallBounded, SolValueBounded},
+    contracts::IERC20,
+    u256::u256_to_biguint,
+};
 use primitives::{AssetId, Chain, SwapProvider, TransactionSwapMetadata, TransactionSwapReferralFee, swap::EVM_REFERRAL_ADDRESS};
 use std::str::FromStr;
 
@@ -45,12 +49,12 @@ impl RelayData {
 
     fn referral_fee_amount(&self) -> Option<U256> {
         let referral = Address::from_str(EVM_REFERRAL_ADDRESS).ok()?;
-        let instructions = multicall_handler::Instructions::abi_decode(&self.message).ok()?;
+        let instructions = multicall_handler::Instructions::abi_decode_bounded(&self.message).ok()?;
         instructions.calls.into_iter().find_map(|call| {
             if call.target == referral && !call.value.is_zero() {
                 return Some(call.value);
             }
-            IERC20::transferCall::abi_decode(&call.callData).ok().filter(|transfer| transfer.to == referral).map(|transfer| transfer.value)
+            IERC20::transferCall::abi_decode_bounded(&call.callData).ok().filter(|transfer| transfer.to == referral).map(|transfer| transfer.value)
         })
     }
 }
@@ -133,7 +137,7 @@ impl Deposit {
 }
 
 pub fn parse_deposit_call(input: &[u8], origin_chain_id: u64) -> Result<Deposit, Box<dyn Error + Send + Sync>> {
-    Ok(Deposit::from_deposit_v3_call(depositV3Call::abi_decode(input)?, origin_chain_id))
+    Ok(Deposit::from_deposit_v3_call(depositV3Call::abi_decode_bounded(input)?, origin_chain_id))
 }
 
 pub fn parse_deposit<'a>(logs: impl IntoIterator<Item = (&'a [String], &'a str)>, origin_chain_id: u64) -> Result<Option<Deposit>, Box<dyn Error + Send + Sync>> {

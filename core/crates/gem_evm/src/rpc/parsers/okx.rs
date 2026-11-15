@@ -4,6 +4,7 @@ use num_bigint::BigUint;
 use std::str::FromStr;
 
 use crate::{
+    abi::SolInterfaceBounded,
     contracts::{
         IOkxDexRouter::{self, BaseRequest, IOkxDexRouterCalls},
         OkxCommission,
@@ -57,7 +58,7 @@ impl OkxParser {
     }
 
     fn base_request(input: &[u8]) -> Option<BaseRequest> {
-        match IOkxDexRouterCalls::abi_decode(input).ok()? {
+        match IOkxDexRouterCalls::abi_decode_bounded(input).ok()? {
             IOkxDexRouterCalls::smartSwapByOrderId(call) => Some(call.baseRequest),
             IOkxDexRouterCalls::smartSwapTo(call) => Some(call.baseRequest),
             IOkxDexRouterCalls::dagSwapByOrderId(call) => Some(call.baseRequest),

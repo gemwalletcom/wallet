@@ -1,6 +1,6 @@
-use crate::u256::u256_to_biguint;
+use crate::{abi::SolInterfaceBounded, u256::u256_to_biguint};
 use alloy_primitives::{Address, B256};
-use alloy_sol_types::{SolEvent, SolInterface, sol};
+use alloy_sol_types::{SolEvent, sol};
 
 use primitives::{AssetId, SwapProvider, Transaction as PrimitivesTransaction, TransactionSwapMetadata, contract_constants::MAYAN_SWIFT_CONTRACT, decode_hex};
 
@@ -83,12 +83,12 @@ pub struct MayanParser;
 
 impl TransactionParser<ParseContext<'_>, PrimitivesTransaction> for MayanParser {
     fn matches(&self, context: &ParseContext<'_>) -> bool {
-        decode_hex(&context.transaction.input).is_ok_and(|input| MayanFulfillHelperCalls::abi_decode(&input).is_ok())
+        decode_hex(&context.transaction.input).is_ok_and(|input| MayanFulfillHelperCalls::abi_decode_bounded(&input).is_ok())
     }
 
     fn parse(&self, context: &ParseContext<'_>) -> Option<PrimitivesTransaction> {
         let input = decode_hex(&context.transaction.input).ok()?;
-        let (input_token, amount, mayan_protocol, mayan_data) = match MayanFulfillHelperCalls::abi_decode(&input).ok()? {
+        let (input_token, amount, mayan_protocol, mayan_data) = match MayanFulfillHelperCalls::abi_decode_bounded(&input).ok()? {
             MayanFulfillHelperCalls::directFulfill(call) => (call.tokenIn, call.amountIn, call.mayanProtocol, call.mayanData),
             MayanFulfillHelperCalls::fulfillWithERC20(call) => (call.tokenIn, call.amountIn, call.mayanProtocol, call.mayanData),
             MayanFulfillHelperCalls::fulfillWithEth(call) => (Address::ZERO, call.amountIn, call.mayanProtocol, call.mayanData),
@@ -97,7 +97,7 @@ impl TransactionParser<ParseContext<'_>, PrimitivesTransaction> for MayanParser 
             return None;
         }
 
-        let (recipient, output_token, order_hash) = match MayanSwiftCalls::abi_decode(&mayan_data).ok()? {
+        let (recipient, output_token, order_hash) = match MayanSwiftCalls::abi_decode_bounded(&mayan_data).ok()? {
             MayanSwiftCalls::fulfillSimple(call) => (Address::from_word(call.params.destAddr), Address::from_word(call.params.tokenOut), call.orderHash),
             MayanSwiftCalls::fulfillOrder(call) => Self::decode_fulfill_order(&call.encodedVm)?,
         };
