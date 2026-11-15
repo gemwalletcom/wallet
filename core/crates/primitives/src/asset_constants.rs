@@ -42,6 +42,7 @@ pub const BASE_USDC_TOKEN_ID: &str = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913
 pub static BASE_USDC_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Base, BASE_USDC_TOKEN_ID));
 
 pub const BASE_USDT_TOKEN_ID: &str = "0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2";
+pub static BASE_USDT_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Base, BASE_USDT_TOKEN_ID));
 
 pub const ETHEREUM_USDC_TOKEN_ID: &str = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
 pub static ETHEREUM_USDC_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Ethereum, ETHEREUM_USDC_TOKEN_ID));
@@ -114,6 +115,7 @@ pub const SEIEVM_USDC_TOKEN_ID: &str = "0xe15fC38F6D8c56aF07bbCBe3BAf5708A2Bf423
 pub const ALGORAND_USDC_TOKEN_ID: &str = "31566704";
 pub const PLASMA_USDC_TOKEN_ID: &str = "0x2d661C89D812261039AF9764eceaAee884f5F67F";
 pub const SONIC_USDC_TOKEN_ID: &str = "0x29219dd400f2Bf60E5a23d13Be72B486D4038894";
+pub static SONIC_USDC_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Sonic, SONIC_USDC_TOKEN_ID));
 
 pub const ARBITRUM_USDT_TOKEN_ID: &str = "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9";
 pub static ARBITRUM_USDT_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Arbitrum, ARBITRUM_USDT_TOKEN_ID));
@@ -153,6 +155,7 @@ pub const SOLANA_USDT_TOKEN_ID: &str = "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8Ben
 pub static SOLANA_USDT_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Solana, SOLANA_USDT_TOKEN_ID));
 
 pub const SOLANA_PYUSD_TOKEN_ID: &str = "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo";
+pub static SOLANA_PYUSD_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Solana, SOLANA_PYUSD_TOKEN_ID));
 
 pub const TRON_USDT_TOKEN_ID: &str = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
 pub static TRON_USDT_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Tron, TRON_USDT_TOKEN_ID));
@@ -307,6 +310,7 @@ pub const XRP_USDC_TOKEN_ID: &str = "rGm7WCVp9gb4jZHWTEtGUr4dd74z2XuWhE";
 pub static XRP_USDC_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Xrp, XRP_USDC_TOKEN_ID));
 
 pub const XLAYER_USDC_TOKEN_ID: &str = "0xB6CEceAB302E2E4948951eE7843FC24E92933061";
+pub static XLAYER_USDC_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::XLayer, XLAYER_USDC_TOKEN_ID));
 
 pub const XLAYER_USDC_E_TOKEN_ID: &str = "0x74b7F16337b8972027F6196A17a631aC6dE26d22";
 pub static XLAYER_USDC_E_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::XLayer, XLAYER_USDC_E_TOKEN_ID));
@@ -385,23 +389,32 @@ pub const ARBITRUM_USDS_TOKEN_ID: &str = "0x6491c05A82219b8D1479057361ff1654749b
 
 pub const ETHEREUM_USDE_TOKEN_ID: &str = "0x4c9EDD5852cd905f086C759E8383e09bff1E68B3";
 pub const USDE_OFT_TOKEN_ID: &str = "0x5d3a1Ff2b6BAb83b63cd9AD0787074081a52ef34";
+pub static ETHEREUM_USDE_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Ethereum, ETHEREUM_USDE_TOKEN_ID));
+pub static SMARTCHAIN_USDE_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::SmartChain, USDE_OFT_TOKEN_ID));
+pub static ARBITRUM_USDE_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Arbitrum, USDE_OFT_TOKEN_ID));
+pub static AVALANCHE_USDE_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::AvalancheC, USDE_OFT_TOKEN_ID));
+pub static HYPEREVM_USDE_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Hyperliquid, USDE_OFT_TOKEN_ID));
 pub const ZKSYNC_USDE_TOKEN_ID: &str = "0x39Fe7a0DACcE31Bd90418e3e659fb0b5f0B3Db0d";
 pub const SOLANA_USDE_TOKEN_ID: &str = "DEkqHyPN7GMRJ5cArtQFAWefqbZb33Hyf6s5iCwjEonT";
 pub const TON_USDE_TOKEN_ID: &str = "EQAIb6KmdfdDR7CN1GBqVJuP25iCnLKCvBlJ07Evuu2dzP5f";
 pub const APTOS_USDE_TOKEN_ID: &str = "0xf37a8864fe737eb8ec2c2931047047cbaed1beed3fb0e5b7c5526dafd3b9c2e9";
 
 pub const USD1_TOKEN_ID: &str = "0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d";
+pub static ETHEREUM_USD1_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Ethereum, USD1_TOKEN_ID));
 pub const USD1_OFT_TOKEN_ID: &str = "0x111111d2bf19e43C34263401e0CAd979eD1cdb61";
 pub const SOLANA_USD1_TOKEN_ID: &str = "USD1ttGY1N17NEEHLmELoaybftRBUSErhqYiQzvEmuB";
+pub static SOLANA_USD1_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Solana, SOLANA_USD1_TOKEN_ID));
 pub const TRON_USD1_TOKEN_ID: &str = "TPFqcBAaaUMCSVRCqPaQ9QnzKhmuoLR6Rc";
 pub const APTOS_USD1_TOKEN_ID: &str = "0x05fabd1b12e39967a3c24e91b7b8f67719a6dacee74f3c8b9fb7d93e855437d2";
 
 pub const USDG_TOKEN_ID: &str = "0xe343167631d89B6Ffc58B88d6b7fB0228795491D";
+pub static ETHEREUM_USDG_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Ethereum, USDG_TOKEN_ID));
 pub const XLAYER_USDG_TOKEN_ID: &str = "0x4ae46a509F6b1D9056937BA4500cb143933D2dc8";
 pub const ARBITRUM_USDG_TOKEN_ID: &str = "0x004B506865409877C9fA29bfb1ebA929984B9bbC";
 pub const MANTLE_USDG_TOKEN_ID: &str = "0x063C1d1ef6e9099Ce3E8e9AD5C6173d12C49C086";
 
 pub const ETHEREUM_PYUSD_TOKEN_ID: &str = "0x6c3ea9036406852006290770BEdFcAbA0e23A0e8";
+pub static ETHEREUM_PYUSD_ASSET_ID: LazyLock<AssetId> = LazyLock::new(|| AssetId::from_token(Chain::Ethereum, ETHEREUM_PYUSD_TOKEN_ID));
 pub const ARBITRUM_PYUSD_TOKEN_ID: &str = "0x46850aD61C2B7d64d08c9C754F45254596696984";
 pub const INK_PYUSD_TOKEN_ID: &str = "0x142cdc44890978B506e745bB3Bd11607B7f7faEf";
 pub const POLYGON_PYUSD_TOKEN_ID: &str = "0x99aF3EeA856556646C98c8B9b2548Fe815240750";
