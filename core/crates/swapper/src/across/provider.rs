@@ -22,7 +22,7 @@ use gem_evm::{
             V3SpokePoolInterface::{self, V3RelayData},
             multicall_handler,
         },
-        deployment::{AcrossDeployment, FillCost, TokenPrice},
+        deployment::{AcrossDeployment, AssetMapping, FillCost, TokenPrice},
         fees::{self, LpFeeCalculator, RelayerFeeCalculator},
     },
     contracts::erc20::IERC20,
@@ -271,7 +271,7 @@ impl Swapper for Across {
         let output_token = eth_address::parse(output.asset_id.chain, output.asset_id.token_id.as_deref().ok_or(SwapperError::NotSupportedAsset)?)?;
 
         let mappings = AcrossDeployment::asset_mappings();
-        let mapping = |asset: &AssetId| mappings.iter().find(|x| x.set.contains(asset)).ok_or(SwapperError::NotSupportedAsset);
+        let mapping = |asset: &AssetId| AssetMapping::find(&mappings, asset).ok_or(SwapperError::NotSupportedAsset);
         let asset_mapping = mapping(&input.asset_id)?;
         let output_price = asset_mapping.price.ok_or(SwapperError::NotSupportedAsset)?;
         let asset_mainnet = asset_mapping.set.iter().find(|x| x.chain == Chain::Ethereum).ok_or(SwapperError::NotSupportedAsset)?;
@@ -475,6 +475,19 @@ mod tests {
         assert!(Across::is_supported_route(&SMARTCHAIN_USDT_ASSET_ID, &usdt_eth));
         assert!(!Across::is_supported_route(&usdc_eth, &ARBITRUM_USDC_E_ASSET_ID));
         assert!(!Across::is_supported_route(&ETHEREUM_WBTC_ASSET_ID, &ARBITRUM_WBTC_ASSET_ID));
+        assert!(!Across::is_supported_route(&ARBITRUM_ACX_ASSET_ID, &ETHEREUM_ACX_ASSET_ID));
+
+        assert!(Across::is_supported_route(&usdc_arb, &SMARTCHAIN_USDC_ASSET_ID));
+        assert!(Across::is_supported_route(&SMARTCHAIN_USDC_ASSET_ID, &WORLD_USDC_E_ASSET_ID));
+        assert!(Across::is_supported_route(&SMARTCHAIN_USDT_ASSET_ID, &ARBITRUM_USDT_ASSET_ID));
+        assert!(Across::is_supported_route(&usdt_tron, &SMARTCHAIN_USDT_ASSET_ID));
+        assert!(Across::is_supported_route(&LINEA_USDC_E_ASSET_ID, &usdg_robinhood));
+        assert!(Across::is_supported_route(&WORLD_USDC_E_ASSET_ID, &usdc_monad));
+        assert!(Across::is_supported_route(&ZKSYNC_USDC_E_ASSET_ID, &LINEA_USDC_E_ASSET_ID));
+        assert!(!Across::is_supported_route(&ZKSYNC_USDC_E_ASSET_ID, &usdc_avalanche));
+        assert!(!Across::is_supported_route(&ZKSYNC_USDT_ASSET_ID, &SMARTCHAIN_USDT_ASSET_ID));
+        assert!(!Across::is_supported_route(&usdg_robinhood, &ZKSYNC_USDC_E_ASSET_ID));
+        assert!(!Across::is_supported_route(&usdg_robinhood, &SMARTCHAIN_USDC_ASSET_ID));
     }
 
     #[tokio::test]
@@ -614,6 +627,11 @@ mod tests {
                 (SMARTCHAIN_USDC_ASSET_ID.clone(), ETHEREUM_USDC_ASSET_ID.clone(), bsc_usdc),
                 (ETHEREUM_USDT_ASSET_ID.clone(), SMARTCHAIN_USDT_ASSET_ID.clone(), usdc),
                 (SMARTCHAIN_USDT_ASSET_ID.clone(), ETHEREUM_USDT_ASSET_ID.clone(), bsc_usdc),
+                (ARBITRUM_USDC_ASSET_ID.clone(), SMARTCHAIN_USDC_ASSET_ID.clone(), usdc),
+                (SMARTCHAIN_USDC_ASSET_ID.clone(), BASE_USDC_ASSET_ID.clone(), bsc_usdc),
+                (WORLD_USDC_E_ASSET_ID.clone(), SMARTCHAIN_USDC_ASSET_ID.clone(), usdc),
+                (SMARTCHAIN_USDT_ASSET_ID.clone(), ARBITRUM_USDT_ASSET_ID.clone(), bsc_usdc),
+                (LINEA_USDC_E_ASSET_ID.clone(), ROBINHOOD_USDG_ASSET_ID.clone(), usdc),
                 (ETHEREUM_USDC_ASSET_ID.clone(), AVALANCHE_USDC_ASSET_ID.clone(), usdc),
                 (ETHEREUM_USDC_ASSET_ID.clone(), POLYGON_USDC_ASSET_ID.clone(), usdc),
                 (ARBITRUM_USDC_ASSET_ID.clone(), HYPEREVM_USDC_ASSET_ID.clone(), usdc),
@@ -632,7 +650,7 @@ mod tests {
             let across = Across::new(crate::testkit::dynode_provider(chains));
             let decimals = |asset: &AssetId| {
                 let asset_id = AcrossAsset::from_asset(asset).unwrap().asset_id;
-                AcrossDeployment::asset_mappings().into_iter().find(|x| x.set.contains(&asset_id)).unwrap().capital_cost.decimals
+                AssetMapping::find(&AcrossDeployment::asset_mappings(), &asset_id).unwrap().capital_cost.decimals
             };
 
             for (from_asset, to_asset, value) in routes {
