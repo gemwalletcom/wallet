@@ -10,7 +10,7 @@ use primitives::{
 
 use super::{
     asset::map_currency_to_asset_id,
-    chain::{RelayChain, XRP_CURRENCY},
+    chain::RelayChain,
     contracts,
     model::{RelayQuoteResponse, RelayRequest, RelayRequestAppFees},
 };
@@ -48,10 +48,7 @@ pub fn map_bitcoin_quote_data(quote_response: &RelayQuoteResponse, value: &BigUi
 }
 
 pub fn map_xrp_quote_data(quote_response: &RelayQuoteResponse, value: &BigUint) -> Result<SwapperQuoteData, SwapperError> {
-    let xrp = quote_response.get_xrp_step().ok_or(SwapperError::InvalidRoute)?;
-    if xrp.currency != XRP_CURRENCY || xrp.amount != value.to_string() {
-        return Err(SwapperError::InvalidRoute);
-    }
+    let xrp = quote_response.get_xrp_step().filter(|xrp| &xrp.amount == value).ok_or(SwapperError::InvalidRoute)?;
     Ok(SwapperQuoteData::new_transfer(xrp.to.clone(), value.clone(), Some(xrp.memo.clone())))
 }
 
