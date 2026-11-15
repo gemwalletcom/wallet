@@ -54,7 +54,9 @@ impl AcrossParser {
         if context.metadata.receipt.get_state() != TransactionState::Reverted {
             return None;
         }
-        parse_deposit_call(&decode_hex(&context.transaction.input).ok()?, origin_chain_id).ok()
+        let deposit = parse_deposit_call(&decode_hex(&context.transaction.input).ok()?, origin_chain_id).ok()?;
+        let depositor = Address::from_word(deposit.relay_data.depositor).to_checksum(None);
+        context.transaction.from.eq_ignore_ascii_case(&depositor).then_some(deposit)
     }
 }
 
@@ -83,7 +85,7 @@ mod tests {
         decode_hex,
         hex::encode_with_0x,
         swap::EVM_REFERRAL_ADDRESS,
-        testkit::json_rpc::load_json_rpc_result,
+        testkit::{json_rpc::load_json_rpc_result, signer_mock::TEST_EVM_SENDER},
     };
 
     #[test]
@@ -191,6 +193,12 @@ mod tests {
             ))
         );
         assert_eq!(ProtocolParsers::map_transaction(&Chain::Polygon, &transaction, &TransactionReceipt::mock(), DateTime::default()), None);
+
+        let other_sender = Transaction {
+            from: TEST_EVM_SENDER.to_string(),
+            ..transaction.clone()
+        };
+        assert_eq!(ProtocolParsers::map_transaction(&Chain::Polygon, &other_sender, &reverted, DateTime::default()), None);
 
         let unknown_destination = Transaction {
             input: encode_with_0x(
