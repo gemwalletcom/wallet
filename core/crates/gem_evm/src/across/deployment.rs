@@ -70,6 +70,7 @@ impl AcrossDeployment {
             Chain::Robinhood => ROBINHOOD_ACROSS_SPOKE_POOL_CONTRACT,
             Chain::Arc => ARC_ACROSS_SPOKE_POOL_CONTRACT,
             Chain::Tron => TRON_ACROSS_SPOKE_POOL_CONTRACT,
+            Chain::Tempo => TEMPO_ACROSS_SPOKE_POOL_CONTRACT,
             _ => return None,
         };
         let multicall_handler = match chain {
@@ -82,6 +83,7 @@ impl AcrossDeployment {
             Chain::Plasma => PLASMA_ACROSS_MULTICALL_HANDLER_CONTRACT,
             Chain::Robinhood => ROBINHOOD_ACROSS_MULTICALL_HANDLER_CONTRACT,
             Chain::Arc => ARC_ACROSS_MULTICALL_HANDLER_CONTRACT,
+            Chain::Tempo => TEMPO_ACROSS_MULTICALL_HANDLER_CONTRACT,
             Chain::Ethereum | Chain::Arbitrum | Chain::Base | Chain::Optimism | Chain::Polygon | Chain::World | Chain::Ink | Chain::Unichain | Chain::Tron => ETHEREUM_ACROSS_MULTICALL_HANDLER_CONTRACT,
             _ => return None,
         };
@@ -112,6 +114,7 @@ impl AcrossDeployment {
             Chain::Plasma => (chainlink(PLASMA_CHAINLINK_XPL_USD_FEED_CONTRACT), 240_000),
             Chain::Robinhood => (ETHER_PRICE, 400_000),
             Chain::Arc => (TokenPrice::Dollar, 320_000),
+            Chain::Tempo => (TokenPrice::Dollar, 580_000),
             _ => return None,
         };
         Some(FillCost { gas_token, gas })
@@ -137,6 +140,7 @@ impl AcrossDeployment {
             (Chain::Robinhood, vec![ROBINHOOD_WETH_ASSET_ID.clone(), ROBINHOOD_USDG_ASSET_ID.clone()]),
             (Chain::Arc, vec![]),
             (Chain::Tron, vec![TRON_USDT_ASSET_ID.clone()]),
+            (Chain::Tempo, vec![TEMPO_BRIDGED_USDC_ASSET_ID.clone(), TEMPO_PATHUSD_ASSET_ID.clone()]),
         ])
     }
 
@@ -249,6 +253,7 @@ impl AcrossDeployment {
             dollar(usdc_cost(6), &usdc, &[&ROBINHOOD_USDG_ASSET_ID]),
             dollar(usdc_cost(6), &[&ETHEREUM_USDC_ASSET_ID, &BASE_USDC_ASSET_ID, &LINEA_USDC_E_ASSET_ID, &WORLD_USDC_E_ASSET_ID], &[&ZKSYNC_USDC_E_ASSET_ID]),
             dollar(usdt_cost(6), &usdt, &[&ZKSYNC_USDT_ASSET_ID]),
+            dollar(usdc_cost(6), &usdc, &[&TEMPO_BRIDGED_USDC_ASSET_ID, &TEMPO_PATHUSD_ASSET_ID]),
             dollar(usdc_cost(18), &usdc, &[&SMARTCHAIN_USDC_ASSET_ID]),
             dollar(usdt_cost(18), &usdt, &[&SMARTCHAIN_USDT_ASSET_ID]),
             AssetMapping {

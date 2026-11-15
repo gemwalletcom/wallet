@@ -488,6 +488,12 @@ mod tests {
         assert!(!Across::is_supported_route(&ZKSYNC_USDT_ASSET_ID, &SMARTCHAIN_USDT_ASSET_ID));
         assert!(!Across::is_supported_route(&usdg_robinhood, &ZKSYNC_USDC_E_ASSET_ID));
         assert!(!Across::is_supported_route(&usdg_robinhood, &SMARTCHAIN_USDC_ASSET_ID));
+        assert!(Across::is_supported_route(&TEMPO_BRIDGED_USDC_ASSET_ID, &usdc_arb));
+        assert!(Across::is_supported_route(&usdc_eth, &TEMPO_PATHUSD_ASSET_ID));
+        assert!(Across::is_supported_route(&TEMPO_PATHUSD_ASSET_ID, &LINEA_USDC_E_ASSET_ID));
+        assert!(!Across::is_supported_route(&TEMPO_BRIDGED_USDC_ASSET_ID, &usdg_robinhood));
+        assert!(!Across::is_supported_route(&TEMPO_BRIDGED_USDC_ASSET_ID, &SMARTCHAIN_USDC_ASSET_ID));
+        assert!(!Across::is_supported_route(&TEMPO_USDT0_ASSET_ID, &usdt_eth));
     }
 
     #[tokio::test]
@@ -632,6 +638,10 @@ mod tests {
                 (WORLD_USDC_E_ASSET_ID.clone(), SMARTCHAIN_USDC_ASSET_ID.clone(), usdc),
                 (SMARTCHAIN_USDT_ASSET_ID.clone(), ARBITRUM_USDT_ASSET_ID.clone(), bsc_usdc),
                 (LINEA_USDC_E_ASSET_ID.clone(), ROBINHOOD_USDG_ASSET_ID.clone(), usdc),
+                (TEMPO_BRIDGED_USDC_ASSET_ID.clone(), ARBITRUM_USDC_ASSET_ID.clone(), usdc),
+                (ARBITRUM_USDC_ASSET_ID.clone(), TEMPO_PATHUSD_ASSET_ID.clone(), usdc),
+                (TEMPO_PATHUSD_ASSET_ID.clone(), BASE_USDC_ASSET_ID.clone(), usdc),
+                (ETHEREUM_USDC_ASSET_ID.clone(), TEMPO_BRIDGED_USDC_ASSET_ID.clone(), usdc),
                 (ETHEREUM_USDC_ASSET_ID.clone(), AVALANCHE_USDC_ASSET_ID.clone(), usdc),
                 (ETHEREUM_USDC_ASSET_ID.clone(), POLYGON_USDC_ASSET_ID.clone(), usdc),
                 (ARBITRUM_USDC_ASSET_ID.clone(), HYPEREVM_USDC_ASSET_ID.clone(), usdc),

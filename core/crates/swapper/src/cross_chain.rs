@@ -387,7 +387,7 @@ mod tests {
             ..Transaction::mock()
         };
         let unsupported_destination = Transaction {
-            data: Some(hex::encode_prefixed(deposit_call(4217).abi_encode())),
+            data: Some(hex::encode_prefixed(deposit_call(4326).abi_encode())),
             ..deposit.clone()
         };
         let fill = Transaction {
