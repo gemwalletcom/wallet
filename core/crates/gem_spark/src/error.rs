@@ -32,11 +32,17 @@ impl fmt::Display for LightningError {
     }
 }
 
+impl LightningError {
+    pub fn from_display(error: impl fmt::Display) -> Self {
+        Self::Wallet(error.to_string())
+    }
+}
+
 impl std::error::Error for LightningError {}
 
 #[cfg(feature = "wallet")]
 impl From<SparkWalletError> for LightningError {
     fn from(error: SparkWalletError) -> Self {
-        Self::Wallet(error.to_string())
+        Self::from_display(error)
     }
 }

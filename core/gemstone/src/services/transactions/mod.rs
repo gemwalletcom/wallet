@@ -133,7 +133,7 @@ impl GemTransactionsService {
             Err(error) => return Err(error),
         };
         let transactions = payments.iter().map(|payment| map_payment(&account.address, payment)).collect();
-        self.store.add_transactions(wallet_id, transactions).await
+        self.save_transactions(wallet_id, transactions).await
     }
 
     async fn save_api_transactions(&self, wallet_id: WalletId, transactions: Vec<Transaction>) -> Result<(), GemServiceError> {

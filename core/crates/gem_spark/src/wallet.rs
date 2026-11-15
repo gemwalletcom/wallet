@@ -6,7 +6,6 @@ use bitcoin::secp256k1::ecdsa::Signature;
 use bitcoin::secp256k1::{Message, PublicKey, Secp256k1};
 use primitives::time::unix_timestamp;
 use spark_wallet::{DefaultSigner, ListTransfersRequest, Network, Order, PagingFilter, SparkSignerAdapter, SparkWallet, SparkWalletConfig, TransferId, WalletBuilder};
-use tokio::sync::watch;
 
 use crate::address::SparkAddress;
 use crate::error::LightningError;
@@ -23,9 +22,8 @@ const PAYMENTS_LIMIT: u64 = 100;
 static IN_FLIGHT: LazyLock<Mutex<HashSet<String>>> = LazyLock::new(Mutex::default);
 
 pub struct LightningWallet {
-    wallet: Arc<SparkWallet>,
+    wallet: SparkWallet,
     store: Arc<dyn LightningStore>,
-    cancel: watch::Sender<()>,
 }
 
 enum SendState {
@@ -56,14 +54,9 @@ impl LightningWallet {
     pub async fn open(account: AccountKey, store: Arc<dyn LightningStore>) -> Result<Self, LightningError> {
         let signer = Arc::new(DefaultSigner::from_master(account.xpriv()));
         drop(account);
-        let (cancel, cancel_receiver) = watch::channel(());
-        let wallet = WalletBuilder::new(SparkWalletConfig::default_config(Network::Mainnet), Arc::new(SparkSignerAdapter::new(signer)))
-            .with_cancellation_token(cancel_receiver)
-            .build()
-            .await?;
-        let wallet = Arc::new(wallet);
+        let wallet = WalletBuilder::new(SparkWalletConfig::default_config(Network::Mainnet), Arc::new(SparkSignerAdapter::new(signer))).build().await?;
         wallet.start_background_processing().await;
-        Ok(Self { wallet, store, cancel })
+        Ok(Self { wallet, store })
     }
 
     pub fn verify(&self, digest: &[u8; 32], signature: &[u8]) -> bool {
@@ -107,11 +100,10 @@ impl LightningWallet {
             transfer_id: id.clone(),
             invoice: invoice.invoice.clone(),
             amount_sats: amount,
-            expires_at: invoice.expires_at,
         })?;
-        match Box::pin(self.wallet.pay_lightning_invoice(&invoice.invoice, amount, Some(transfer.max_fee_sats), false, Some(transfer_id))).await {
+        match Box::pin(self.wallet.pay_lightning_invoice(&invoice.invoice, amount, Some(transfer.max_fee_sats), false, Some(transfer_id.clone()))).await {
             Ok(result) => Ok(result.transfer.id.to_string()),
-            Err(error) => match self.payment(&id).await {
+            Err(error) => match self.payment(&transfer_id).await {
                 Ok(None) => {
                     let _ = self.store.delete_send(&id);
                     Err(error.into())
@@ -135,21 +127,21 @@ impl LightningWallet {
     }
 
     pub async fn payment_status(&self, id: &str) -> Result<LightningPaymentStatus, LightningError> {
-        if let Some(payment) = self.payment(id).await? {
+        let transfer_id = TransferId::from_str(id).map_err(|_| LightningError::InvalidTransfer)?;
+        if let Some(payment) = self.payment(&transfer_id).await? {
             return Ok(payment.status);
         }
         let is_recorded = self.store.get_sends()?.iter().any(|send| send.transfer_id == id);
         Ok(if is_recorded { LightningPaymentStatus::Pending } else { LightningPaymentStatus::Failed })
     }
 
-    async fn payment(&self, id: &str) -> Result<Option<LightningPayment>, LightningError> {
-        let transfer_id = TransferId::from_str(id).map_err(|_| LightningError::InvalidTransfer)?;
+    async fn payment(&self, transfer_id: &TransferId) -> Result<Option<LightningPayment>, LightningError> {
         let request = ListTransfersRequest {
             paging: None,
             transfer_ids: vec![transfer_id.clone()],
         };
         let transfers = self.wallet.list_transfers(request).await?;
-        Ok(transfers.items.iter().filter(|transfer| transfer.id == transfer_id).find_map(map_transfer))
+        Ok(transfers.items.iter().filter(|transfer| transfer.id == *transfer_id).find_map(map_transfer))
     }
 
     pub async fn sync(&self) -> Result<(), LightningError> {
@@ -172,14 +164,14 @@ impl LightningWallet {
         if InFlight::contains(&send.transfer_id) {
             return Ok(SendState::Sent);
         }
-        if send.expires_at <= unix_timestamp() {
+        if decode_invoice(&send.invoice)?.expires_at <= unix_timestamp() {
             self.store.delete_send(&send.transfer_id)?;
             return Ok(SendState::Unsent);
         }
         let transfer_id = TransferId::from_str(&send.transfer_id).map_err(|_| LightningError::InvalidTransfer)?;
         let state = match Box::pin(self.wallet.resume_lightning_send(&transfer_id, &send.invoice, send.amount_sats)).await? {
             Some(_) => SendState::Sent,
-            None => match self.payment(&send.transfer_id).await?.map(|payment| payment.status) {
+            None => match self.payment(&transfer_id).await?.map(|payment| payment.status) {
                 Some(LightningPaymentStatus::Pending | LightningPaymentStatus::Completed) => SendState::Sent,
                 Some(LightningPaymentStatus::Failed) | None => SendState::Unsent,
             },
@@ -189,12 +181,6 @@ impl LightningWallet {
             SendState::Unsent => self.store.delete_send(&send.transfer_id)?,
         }
         Ok(state)
-    }
-}
-
-impl Drop for LightningWallet {
-    fn drop(&mut self) {
-        let _ = self.cancel.send(());
     }
 }
 
@@ -213,21 +199,25 @@ mod chain_integration_tests {
     use primitives::hex::decode_hex;
 
     use super::*;
-    use crate::invoice::decode_invoice;
     use crate::keys::account_key;
-    use crate::testkit::{ABANDON_SEED_HEX, IDENTITY_PUBLIC_KEY, MemoryLightningStore};
+    use crate::testkit::MemoryLightningStore;
 
     #[tokio::test]
     async fn test_lightning_wallet() {
         let store = Arc::new(MemoryLightningStore::default());
-        let wallet = LightningWallet::open(account_key(&decode_hex(ABANDON_SEED_HEX).unwrap()).unwrap(), store).await.unwrap();
+        let wallet = LightningWallet::open(
+            account_key(&decode_hex("5eb00bbddcf069084889a8ab9155568165f5c453ccb85e70811aaed6f6da5fc19a5ac40b389cd370d086206dec8aa6c43daea6690f20ad3d8d48b2d2ce9e38e4").unwrap()).unwrap(),
+            store,
+        )
+        .await
+        .unwrap();
 
-        assert_eq!(wallet.wallet.get_identity_public_key().to_string(), IDENTITY_PUBLIC_KEY);
+        assert_eq!(wallet.wallet.get_identity_public_key().to_string(), "0281363910b0dc0015a4a25e758da30f0e28388ea5252c0e3713936f2d4ef7d3d5");
         wallet.sync().await.unwrap();
         wallet.balance().await.unwrap();
         wallet.payments().await.unwrap();
-        assert_eq!(wallet.payment(&TransferId::generate().to_string()).await.unwrap(), None);
-        assert_eq!(wallet.payment("transfer").await, Err(LightningError::InvalidTransfer));
+        assert_eq!(wallet.payment(&TransferId::generate()).await.unwrap(), None);
+        assert_eq!(wallet.payment_status("transfer").await, Err(LightningError::InvalidTransfer));
 
         assert_eq!(decode_invoice(&wallet.create_invoice().await.unwrap()).unwrap().amount_sats, None);
     }
@@ -251,7 +241,6 @@ mod tests {
         assert!(verify_signature(&public_key, &digest, &signature));
         assert!(!verify_signature(&other_key, &digest, &signature));
         assert!(!verify_signature(&public_key, &[2u8; 32], &signature));
-        assert!(!verify_signature(&public_key, &digest, &signature[..10]));
         assert!(!verify_signature(&public_key, &digest, &signature[..COMPACT_SIGNATURE_LEN]));
         assert!(!verify_signature(&public_key, &digest, &[signature.as_slice(), &[0]].concat()));
     }

@@ -8,7 +8,7 @@ use futures::lock::Mutex as AsyncMutex;
 use gem_spark::chain_signer::SignedLightningTransfer;
 use gem_spark::provider::LightningSessions;
 use gem_spark::{AccountKey, LightningError, LightningInvoice, LightningPayment, LightningPaymentStatus, LightningWallet};
-use primitives::Chain;
+use primitives::{Chain, WalletId};
 
 use super::runtime::run;
 use super::store::WalletLightningStore;
@@ -20,8 +20,8 @@ use crate::services::wallet_session::GemWalletSessionService;
 
 pub(crate) static SESSIONS: LazyLock<Arc<LightningSessionRegistry>> = LazyLock::new(|| Arc::new(LightningSessionRegistry::default()));
 
-pub(crate) fn account_key_name(keystore_id: &str) -> String {
-    format!("lightning_account_{keystore_id}")
+pub(crate) fn account_key_name(wallet_id: &WalletId) -> String {
+    format!("lightning_account_{}", keystore_id_for_wallet(wallet_id.id()))
 }
 
 pub(crate) struct LightningAccounts {
@@ -39,7 +39,7 @@ impl LightningAccounts {
             .into_iter()
             .find(|wallet| wallet.account(Chain::Lightning).is_some_and(|account| account.address == address))
             .ok_or(GemServiceError::Cancelled)?;
-        let key = self.secure.get(account_key_name(&keystore_id_for_wallet(wallet.id.id())))?.ok_or(GemServiceError::Cancelled)?;
+        let key = self.secure.get(account_key_name(&wallet.id))?.ok_or(GemServiceError::Cancelled)?;
         let account = AccountKey::decode(&key)?;
         let store = Arc::new(WalletLightningStore::new(self.preferences.clone(), wallet.id));
         Ok(run(async move { LightningWallet::open(account, store).await }).await?)
@@ -122,7 +122,7 @@ impl LightningSessions for LightningSessionRegistry {
 
     async fn send(&self, signed: SignedLightningTransfer) -> Result<String, Box<dyn Error + Send + Sync>> {
         let wallet = self.wallet(&signed.transfer.address).await?;
-        if !wallet.verify(&signed.digest(), &signed.signature) {
+        if !wallet.verify(&signed.transfer.digest(), &signed.signature) {
             return Err(LightningError::Unauthorized.into());
         }
         Ok(run(async move { wallet.send(&signed.transfer).await }).await?)

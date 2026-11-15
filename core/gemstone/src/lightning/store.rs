@@ -3,7 +3,6 @@ use std::sync::{Arc, Mutex, PoisonError};
 use gem_spark::{LightningError, LightningSend, LightningStore};
 use primitives::WalletId;
 
-use crate::services::error::GemServiceError;
 use crate::services::wallet_preferences::GemWalletPreferencesService;
 
 static UPDATES: Mutex<()> = Mutex::new(());
@@ -20,18 +19,14 @@ impl WalletLightningStore {
 
     fn update(&self, change: impl FnOnce(Vec<LightningSend>) -> Vec<LightningSend>) -> Result<(), LightningError> {
         let _update = UPDATES.lock().unwrap_or_else(PoisonError::into_inner);
-        let sends = self.preferences.get_lightning_sends(self.wallet_id.clone()).map_err(storage_error)?;
-        self.preferences.set_lightning_sends(self.wallet_id.clone(), &change(sends)).map_err(storage_error)
+        let sends = self.get_sends()?;
+        self.preferences.set_lightning_sends(self.wallet_id.clone(), &change(sends)).map_err(LightningError::from_display)
     }
-}
-
-fn storage_error(error: GemServiceError) -> LightningError {
-    LightningError::Wallet(error.to_string())
 }
 
 impl LightningStore for WalletLightningStore {
     fn get_sends(&self) -> Result<Vec<LightningSend>, LightningError> {
-        self.preferences.get_lightning_sends(self.wallet_id.clone()).map_err(storage_error)
+        self.preferences.get_lightning_sends(self.wallet_id.clone()).map_err(LightningError::from_display)
     }
 
     fn add_send(&self, send: LightningSend) -> Result<(), LightningError> {

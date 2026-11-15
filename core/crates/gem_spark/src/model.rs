@@ -42,10 +42,9 @@ pub struct LightningPayment {
 
 impl LightningPayment {
     pub fn receives(&self, invoice: &str) -> bool {
-        let received = match (self.direction, self.status) {
-            (LightningPaymentDirection::Incoming, LightningPaymentStatus::Completed) => true,
+        match (self.direction, self.status) {
+            (LightningPaymentDirection::Incoming, LightningPaymentStatus::Completed) => self.invoice.as_deref() == Some(invoice),
             (LightningPaymentDirection::Incoming, LightningPaymentStatus::Pending | LightningPaymentStatus::Failed) | (LightningPaymentDirection::Outgoing, _) => false,
-        };
-        received && self.invoice.as_deref() == Some(invoice)
+        }
     }
 }

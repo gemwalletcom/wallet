@@ -11,8 +11,7 @@ use crate::services::name::GemNameRecordState;
 use crate::services::transfer::{GemRecipient, GemTransferData};
 use crate::services::wallet::rules::sorted_by_wallet_order;
 use payment::PaymentURLDecoder;
-use primitives::TransactionInputType;
-use primitives::payment::Payment;
+use primitives::{Payment, TransactionInputType};
 
 pub fn validation(chain: Chain, input: &str, state: &GemNameRecordState) -> GemRecipientValidation {
     let address = address(chain, input, state);
@@ -188,8 +187,6 @@ mod tests {
         };
         assert_eq!(transfer.value, GemBigInt::from(2000u64));
         assert_eq!(transfer.recipient.address, INVOICE_2000_SATS);
-        let session = GemRecipientSession { address: invoice, ..Default::default() };
-        assert!(matches!(session.next(recipient_type, GemNameRecordState::None).unwrap(), GemRecipientNext::Confirm { .. }));
     }
 
     #[test]

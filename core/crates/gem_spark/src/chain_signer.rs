@@ -18,20 +18,18 @@ pub struct SignedLightningTransfer {
 
 impl SignedLightningTransfer {
     pub fn decode(value: &str) -> Result<Self, LightningError> {
-        serde_json::from_slice(value.as_bytes()).map_err(|_| LightningError::InvalidTransfer)
-    }
-
-    pub fn digest(&self) -> [u8; 32] {
-        digest(&self.transfer)
+        serde_json::from_str(value).map_err(|_| LightningError::InvalidTransfer)
     }
 }
 
-fn digest(transfer: &LightningTransfer) -> [u8; 32] {
-    sha256(&[AUTHORIZATION_DOMAIN.as_bytes(), &serde_json::to_vec(transfer).unwrap_or_default()].concat())
+impl LightningTransfer {
+    pub fn digest(&self) -> [u8; 32] {
+        sha256(&[AUTHORIZATION_DOMAIN.as_bytes(), &serde_json::to_vec(self).unwrap_or_default()].concat())
+    }
 }
 
 fn sign(transfer: LightningTransfer, private_key: &[u8]) -> Result<String, SignerError> {
-    let signature = Signer::sign_digest(SignatureScheme::Secp256k1, &digest(&transfer), private_key)?;
+    let signature = Signer::sign_digest(SignatureScheme::Secp256k1, &transfer.digest(), private_key)?;
     Ok(serde_json::to_string(&SignedLightningTransfer { transfer, signature })?)
 }
 
@@ -66,7 +64,6 @@ mod tests {
         let signed = SignedLightningTransfer::decode(&sign(transfer.clone(), &[7u8; 32]).unwrap()).unwrap();
 
         assert_eq!(signed.transfer, transfer);
-        assert_eq!(signed.digest(), digest(&transfer));
         assert_eq!(signed.signature.len(), 65);
         assert!(SignedLightningTransfer::decode("{}").is_err());
     }

@@ -76,7 +76,14 @@ impl GemLightningService {
     pub async fn receive(&self, wallet_id: WalletId) -> Result<GemLightningReceive, GemServiceError> {
         let wallet = self.wallet(wallet_id).await?;
         let invoice = run(async move { wallet.create_invoice().await }).await?;
-        Ok(receive(invoice))
+        Ok(GemLightningReceive {
+            qr: format!("{LIGHTNING_SCHEME}{invoice}").to_uppercase(),
+            copy: GemCopy {
+                kind: GemCopyKind::Plain,
+                display: format_address(&invoice, Some(Chain::Lightning), AddressFormatStyle::Short),
+                value: invoice,
+            },
+        })
     }
 
     pub async fn receive_state(&self, wallet_id: WalletId, invoice: String) -> Result<GemLightningReceiveState, GemServiceError> {
@@ -108,7 +115,7 @@ impl GemLightningService {
 
     fn store_key(&self, wallet_id: &WalletId) -> Result<(), GemServiceError> {
         let keystore_id = keystore_id_for_wallet(wallet_id.id());
-        let key = account_key_name(&keystore_id);
+        let key = account_key_name(wallet_id);
         if self.secure.get(key.clone())?.is_none() {
             let account = self.keystore.lightning_account_key(&keystore_id, decode_password(&self.password.get_password(false)?))?;
             self.secure.set(key, account.encode())?;
@@ -121,17 +128,6 @@ impl GemLightningService {
         let (balances, transactions) = futures::join!(self.balances.update(wallet_id.clone(), lightning), self.transactions.sync_lightning(wallet_id));
         balances?;
         transactions
-    }
-}
-
-fn receive(invoice: String) -> GemLightningReceive {
-    GemLightningReceive {
-        qr: format!("{LIGHTNING_SCHEME}{invoice}").to_uppercase(),
-        copy: GemCopy {
-            kind: GemCopyKind::Plain,
-            display: format_address(&invoice, Some(Chain::Lightning), AddressFormatStyle::Short),
-            value: invoice,
-        },
     }
 }
 

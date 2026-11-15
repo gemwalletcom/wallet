@@ -6,7 +6,7 @@ edition = { workspace = true }
 [features]
 default = []
 rpc = ["dep:async-trait", "dep:chain_traits", "dep:primitives", "dep:num-bigint", "dep:signer", "dep:gem_hash", "dep:serde_json", "dep:serde_serializers"]
-wallet = ["dep:bitcoin", "dep:primitives", "dep:spark-wallet", "dep:tokio"]
+wallet = ["dep:bitcoin", "dep:primitives", "dep:spark-wallet"]
 chain_integration_tests = ["wallet"]
 testkit = []
 
@@ -25,9 +25,7 @@ chrono = { workspace = true }
 async-trait = { workspace = true, optional = true }
 bitcoin = { workspace = true, optional = true }
 spark-wallet = { workspace = true, optional = true }
-tokio = { workspace = true, optional = true }
 
 [dev-dependencies]
 signer = { path = "../signer" }
-primitives = { path = "../primitives", features = ["testkit"] }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }

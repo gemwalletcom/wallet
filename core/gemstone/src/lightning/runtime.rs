@@ -17,5 +17,5 @@ static RUNTIME: LazyLock<Result<Runtime, String>> = LazyLock::new(|| {
 
 pub(crate) fn run<T: Send + 'static>(future: impl Future<Output = Result<T, LightningError>> + Send + 'static) -> impl Future<Output = Result<T, LightningError>> {
     let handle = RUNTIME.as_ref().map(|runtime| runtime.spawn(future)).map_err(|error| LightningError::Wallet(error.clone()));
-    async move { handle?.await.map_err(|error| LightningError::Wallet(error.to_string()))? }
+    async move { handle?.await.map_err(LightningError::from_display)? }
 }

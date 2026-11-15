@@ -159,7 +159,7 @@ impl GemWalletService {
             let address = wallet.account(Chain::Lightning).map(|account| account.address.as_str());
             SESSIONS
                 .close_and_remove(address, || {
-                    self.secure.remove(account_key_name(&keystore_id_for_wallet(wallet.id.id())))?;
+                    self.secure.remove(account_key_name(&wallet.id))?;
                     Ok(self.keystore.delete_wallet_secrets(wallet.id.id(), rules::legacy_keystore_id(&wallet))?)
                 })
                 .await?;

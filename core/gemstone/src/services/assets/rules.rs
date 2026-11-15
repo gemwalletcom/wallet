@@ -701,6 +701,16 @@ pub fn details_sections(input: DetailsSectionsInput) -> Vec<GemAssetDetailSectio
     let displayed_alerts = price_alerts.map(|alerts| displayed_price_alert_ids(alerts.to_vec()).len()).unwrap_or_default();
     let quoted = price_row(price, price_change_percentage_24h, currency, GemCurrencyStyle::Currency);
     let row = |row: GemListRow, action: Option<GemRowAction>| GemAssetDetailRow::Row { row, action };
+    let network = |asset: &Asset, action: GemRowAction| {
+        row(
+            GemListRow::Network {
+                title: GemListRowTitle::Network,
+                chain: asset.chain(),
+                name: asset_text(asset).network_full_name,
+            },
+            Some(action),
+        )
+    };
     let link = |title: GemListRowTitle, value: Option<String>, icon: GemListRowIcon, action: GemRowAction| GemAssetDetailRow::Row {
         row: GemListRow::Link { title, value, icon, action: action.clone() },
         action: Some(action),
@@ -733,24 +743,8 @@ pub fn details_sections(input: DetailsSectionsInput) -> Vec<GemAssetDetailSectio
                     Some(GemRowAction::Price),
                 )),
                 (has_price(price) && displayed_alerts > 0).then(|| link(GemListRowTitle::PriceAlerts, Some(displayed_alerts.to_string()), GemListRowIcon::None, GemRowAction::PriceAlerts)),
-                Some(row(
-                    GemListRow::Network {
-                        title: GemListRowTitle::Network,
-                        chain,
-                        name: asset_text(asset).network_full_name,
-                    },
-                    Some(GemRowAction::Network),
-                )),
-                related_asset.map(|related| {
-                    row(
-                        GemListRow::Network {
-                            title: GemListRowTitle::Network,
-                            chain: related.chain(),
-                            name: asset_text(&related).network_full_name,
-                        },
-                        Some(GemRowAction::Asset { asset: related }),
-                    )
-                }),
+                Some(network(asset, GemRowAction::Network)),
+                related_asset.map(|related| network(&related, GemRowAction::Asset { asset: related.clone() })),
             ]
             .into_iter()
             .flatten()
