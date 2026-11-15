@@ -80,6 +80,9 @@ where
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
         let from_chain = RelayChain::from_chain(&request.from_asset.chain()).ok_or(SwapperError::NotSupportedChain)?;
+        if from_chain == RelayChain::Xrp {
+            return Err(SwapperError::NotSupportedChain);
+        }
         let to_chain = RelayChain::from_chain(&request.to_asset.chain()).ok_or(SwapperError::NotSupportedChain)?;
 
         let from_asset_id = request.from_asset.asset_id();
@@ -138,13 +141,14 @@ where
                 solana::build_quote_data(&quote.request.wallet_address, step, self.rpc_provider.clone()).await
             }
             RelayChain::Ton => mapper::map_ton_quote_data(&response),
+            RelayChain::Xrp => Err(SwapperError::NotSupportedChain),
         }
     }
 
     async fn get_swap_result(&self, request: &SwapResultRequest) -> Result<SwapResult, SwapperError> {
         match RelayChain::from_chain(&request.chain).ok_or(SwapperError::NotSupportedChain)? {
             RelayChain::Ton => self.get_ton_swap_result(&request.transaction_hash).await,
-            RelayChain::Bitcoin | RelayChain::Evm(_) | RelayChain::Tron | RelayChain::Solana => {
+            RelayChain::Bitcoin | RelayChain::Evm(_) | RelayChain::Tron | RelayChain::Solana | RelayChain::Xrp => {
                 let response = self.client.get_request(&request.transaction_hash).await?;
                 let Some(relay_request) = response.requests.first() else {
                     return Ok(SwapResult::pending());
@@ -180,7 +184,7 @@ where
     async fn check_approval(&self, quote: &Quote, quote_response: &RelayQuoteResponse, from_asset_id: &AssetId) -> Result<Option<ApprovalData>, SwapperError> {
         let chain = RelayChain::from_chain(&from_asset_id.chain).ok_or(SwapperError::NotSupportedChain)?;
         let token = match (chain, from_asset_id.token_id.clone()) {
-            (RelayChain::Bitcoin | RelayChain::Solana | RelayChain::Ton, _) | (RelayChain::Tron, None) => return Ok(None),
+            (RelayChain::Bitcoin | RelayChain::Solana | RelayChain::Ton | RelayChain::Xrp, _) | (RelayChain::Tron, None) => return Ok(None),
             (_, Some(token)) => token,
             (RelayChain::Evm(chain), None) => match chain.native_currency() {
                 EvmNativeCurrency::Token(token) => token.to_string(),

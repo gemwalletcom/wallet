@@ -77,6 +77,7 @@ mod tests {
                 "DNLbQ4t95LLPevvLdcFzN8RHNN83ntQJLt26E8VTnE7p",
                 "TYVWGh8XkmU49Hi9PkGAZXiiJPB3J5zJZy",
                 "UQDBrIuXWeqPGbjyyNsUjqiTRTBWhlJkjoURNtVvNjYssR87",
+                "rE6xRr2GbS31KPoL9RaLgfiarJ4vqXj8Si",
             ]
         );
     }

@@ -191,6 +191,23 @@ mod tests {
         );
         assert_eq!(hex::encode(&output.hash), "9cd2e6e5b836ddce9c5f5c84feafd3850312058a568a1c2809e2da181477fee0");
 
+        let address_balance_covers = build_swap_transaction(&sell_sui, &route, &sell_sui.request.on_chain_referral_fee(), &transaction, &OwnedCoins::sui_address_balance(2_000_000_000_000)).unwrap();
+        assert_eq!(
+            describe(&address_balance_covers)[..3],
+            ["0x2::coin::redeem_funds<SUI> withdrawal".to_string(), "split Result(0) 5357500000".to_string(), format!("transfer to {SUI_REFERRAL_ADDRESS}")]
+        );
+
+        let address_balance_short = build_swap_transaction(&sell_sui, &route, &sell_sui.request.on_chain_referral_fee(), &transaction, &OwnedCoins::sui_address_balance(1_000_000_000_000)).unwrap();
+        assert_eq!(
+            describe(&address_balance_short)[..4],
+            [
+                "0x2::coin::redeem_funds<SUI> withdrawal".to_string(),
+                "merge into gas".to_string(),
+                "split gas 1071500000000".to_string(),
+                "split NestedResult(2, 0) 5357500000".to_string(),
+            ]
+        );
+
         let buy_sui = Quote::mock_with_request(&QuoteRequest {
             wallet_address: TEST_SUI_WALLET.into(),
             destination_address: TEST_SUI_WALLET.into(),

@@ -38,6 +38,12 @@ pub struct AssetMapping {
     pub set: HashSet<AssetId>,
 }
 
+impl AssetMapping {
+    pub fn find<'a>(mappings: &'a [AssetMapping], asset: &AssetId) -> Option<&'a AssetMapping> {
+        mappings.iter().find(|mapping| mapping.set.contains(asset))
+    }
+}
+
 impl AcrossDeployment {
     fn chain_id(chain: &Chain) -> Option<u32> {
         chain.network_id_value().and_then(|network_id| u32::try_from(network_id).ok())
@@ -64,6 +70,7 @@ impl AcrossDeployment {
             Chain::Robinhood => ROBINHOOD_ACROSS_SPOKE_POOL_CONTRACT,
             Chain::Arc => ARC_ACROSS_SPOKE_POOL_CONTRACT,
             Chain::Tron => TRON_ACROSS_SPOKE_POOL_CONTRACT,
+            Chain::Tempo => TEMPO_ACROSS_SPOKE_POOL_CONTRACT,
             _ => return None,
         };
         let multicall_handler = match chain {
@@ -76,6 +83,7 @@ impl AcrossDeployment {
             Chain::Plasma => PLASMA_ACROSS_MULTICALL_HANDLER_CONTRACT,
             Chain::Robinhood => ROBINHOOD_ACROSS_MULTICALL_HANDLER_CONTRACT,
             Chain::Arc => ARC_ACROSS_MULTICALL_HANDLER_CONTRACT,
+            Chain::Tempo => TEMPO_ACROSS_MULTICALL_HANDLER_CONTRACT,
             Chain::Ethereum | Chain::Arbitrum | Chain::Base | Chain::Optimism | Chain::Polygon | Chain::World | Chain::Ink | Chain::Unichain | Chain::Tron => ETHEREUM_ACROSS_MULTICALL_HANDLER_CONTRACT,
             _ => return None,
         };
@@ -106,6 +114,7 @@ impl AcrossDeployment {
             Chain::Plasma => (chainlink(PLASMA_CHAINLINK_XPL_USD_FEED_CONTRACT), 240_000),
             Chain::Robinhood => (ETHER_PRICE, 400_000),
             Chain::Arc => (TokenPrice::Dollar, 320_000),
+            Chain::Tempo => (TokenPrice::Dollar, 580_000),
             _ => return None,
         };
         Some(FillCost { gas_token, gas })
@@ -131,6 +140,7 @@ impl AcrossDeployment {
             (Chain::Robinhood, vec![ROBINHOOD_WETH_ASSET_ID.clone(), ROBINHOOD_USDG_ASSET_ID.clone()]),
             (Chain::Arc, vec![]),
             (Chain::Tron, vec![TRON_USDT_ASSET_ID.clone()]),
+            (Chain::Tempo, vec![TEMPO_BRIDGED_USDC_ASSET_ID.clone(), TEMPO_PATHUSD_ASSET_ID.clone()]),
         ])
     }
 
@@ -170,6 +180,52 @@ impl AcrossDeployment {
     }
 
     pub fn asset_mappings() -> Vec<AssetMapping> {
+        let usdc_cost = |decimals| CapitalCostConfig {
+            lower_bound: EtherConv::parse_ether("0.0001"),
+            upper_bound: BigInt::from(0),
+            cutoff: EtherConv::parse_ether("100000"),
+            decimals,
+        };
+        let usdt_cost = |decimals| CapitalCostConfig {
+            lower_bound: EtherConv::parse_ether("0.0001"),
+            upper_bound: EtherConv::parse_ether("0.0001"),
+            cutoff: EtherConv::parse_ether("1500000"),
+            decimals,
+        };
+        let dollar = |capital_cost, assets: &[&AssetId], extra: &[&AssetId]| AssetMapping {
+            capital_cost,
+            price: Some(TokenPrice::Dollar),
+            set: assets.iter().chain(extra).map(|asset| (*asset).clone()).collect(),
+        };
+        let usdc: [&AssetId; 13] = [
+            &ARBITRUM_USDC_ASSET_ID,
+            &AVALANCHE_USDC_ASSET_ID,
+            &BASE_USDC_ASSET_ID,
+            &ETHEREUM_USDC_ASSET_ID,
+            &OPTIMISM_USDC_ASSET_ID,
+            &POLYGON_USDC_ASSET_ID,
+            &UNICHAIN_USDC_ASSET_ID,
+            &HYPEREVM_USDC_ASSET_ID,
+            &MONAD_USDC_ASSET_ID,
+            &INK_USDC_ASSET_ID,
+            &ARC_USDC_ASSET_ID,
+            &LINEA_USDC_E_ASSET_ID,
+            &WORLD_USDC_E_ASSET_ID,
+        ];
+        let usdt: [&AssetId; 12] = [
+            &ARBITRUM_USDT_ASSET_ID,
+            &AVALANCHE_USDT_ASSET_ID,
+            &ETHEREUM_USDT_ASSET_ID,
+            &LINEA_USDT_ASSET_ID,
+            &OPTIMISM_USDT_ASSET_ID,
+            &POLYGON_USDT_ASSET_ID,
+            &INK_USDT0_ASSET_ID,
+            &HYPEREVM_USDT_ASSET_ID,
+            &PLASMA_USDT_ASSET_ID,
+            &MONAD_USDT_ASSET_ID,
+            &UNICHAIN_USDT0_ASSET_ID,
+            &TRON_USDT_ASSET_ID,
+        ];
         vec![
             AssetMapping {
                 capital_cost: CapitalCostConfig {
@@ -194,92 +250,12 @@ impl AcrossDeployment {
                     ROBINHOOD_WETH_ASSET_ID.clone(),
                 ]),
             },
-            AssetMapping {
-                capital_cost: CapitalCostConfig {
-                    lower_bound: EtherConv::parse_ether("0.0001"),
-                    upper_bound: BigInt::from(0),
-                    cutoff: EtherConv::parse_ether("100000"),
-                    decimals: 6,
-                },
-                price: Some(TokenPrice::Dollar),
-                set: HashSet::from_iter([
-                    ARBITRUM_USDC_ASSET_ID.clone(),
-                    AVALANCHE_USDC_ASSET_ID.clone(),
-                    BASE_USDC_ASSET_ID.clone(),
-                    ETHEREUM_USDC_ASSET_ID.clone(),
-                    OPTIMISM_USDC_ASSET_ID.clone(),
-                    POLYGON_USDC_ASSET_ID.clone(),
-                    UNICHAIN_USDC_ASSET_ID.clone(),
-                    HYPEREVM_USDC_ASSET_ID.clone(),
-                    MONAD_USDC_ASSET_ID.clone(),
-                    INK_USDC_ASSET_ID.clone(),
-                    ROBINHOOD_USDG_ASSET_ID.clone(),
-                    ARC_USDC_ASSET_ID.clone(),
-                ]),
-            },
-            AssetMapping {
-                capital_cost: CapitalCostConfig {
-                    lower_bound: EtherConv::parse_ether("0.0001"),
-                    upper_bound: BigInt::from(0),
-                    cutoff: EtherConv::parse_ether("100000"),
-                    decimals: 18,
-                },
-                price: Some(TokenPrice::Dollar),
-                set: HashSet::from_iter([ETHEREUM_USDC_ASSET_ID.clone(), SMARTCHAIN_USDC_ASSET_ID.clone()]),
-            },
-            AssetMapping {
-                capital_cost: CapitalCostConfig {
-                    lower_bound: EtherConv::parse_ether("0.0001"),
-                    upper_bound: EtherConv::parse_ether("0.0001"),
-                    cutoff: EtherConv::parse_ether("1500000"),
-                    decimals: 6,
-                },
-                price: Some(TokenPrice::Dollar),
-                set: HashSet::from_iter([
-                    ARBITRUM_USDT_ASSET_ID.clone(),
-                    AVALANCHE_USDT_ASSET_ID.clone(),
-                    ETHEREUM_USDT_ASSET_ID.clone(),
-                    LINEA_USDT_ASSET_ID.clone(),
-                    OPTIMISM_USDT_ASSET_ID.clone(),
-                    POLYGON_USDT_ASSET_ID.clone(),
-                    ZKSYNC_USDT_ASSET_ID.clone(),
-                    INK_USDT0_ASSET_ID.clone(),
-                    HYPEREVM_USDT_ASSET_ID.clone(),
-                    PLASMA_USDT_ASSET_ID.clone(),
-                    MONAD_USDT_ASSET_ID.clone(),
-                    UNICHAIN_USDT0_ASSET_ID.clone(),
-                    TRON_USDT_ASSET_ID.clone(),
-                ]),
-            },
-            AssetMapping {
-                capital_cost: CapitalCostConfig {
-                    lower_bound: EtherConv::parse_ether("0.0001"),
-                    upper_bound: EtherConv::parse_ether("0.0001"),
-                    cutoff: EtherConv::parse_ether("1500000"),
-                    decimals: 18,
-                },
-                price: Some(TokenPrice::Dollar),
-                set: HashSet::from_iter([ETHEREUM_USDT_ASSET_ID.clone(), SMARTCHAIN_USDT_ASSET_ID.clone()]),
-            },
-            AssetMapping {
-                capital_cost: CapitalCostConfig {
-                    lower_bound: EtherConv::parse_ether("0.0001"),
-                    upper_bound: BigInt::from(0),
-                    cutoff: EtherConv::parse_ether("100000"),
-                    decimals: 6,
-                },
-                price: Some(TokenPrice::Dollar),
-                set: HashSet::from_iter([
-                    ARBITRUM_USDC_E_ASSET_ID.clone(),
-                    BASE_USDC_ASSET_ID.clone(),
-                    ETHEREUM_USDC_ASSET_ID.clone(),
-                    LINEA_USDC_E_ASSET_ID.clone(),
-                    OPTIMISM_USDC_E_ASSET_ID.clone(),
-                    POLYGON_USDC_E_ASSET_ID.clone(),
-                    WORLD_USDC_E_ASSET_ID.clone(),
-                    ZKSYNC_USDC_E_ASSET_ID.clone(),
-                ]),
-            },
+            dollar(usdc_cost(6), &usdc, &[&ROBINHOOD_USDG_ASSET_ID]),
+            dollar(usdc_cost(6), &[&ETHEREUM_USDC_ASSET_ID, &BASE_USDC_ASSET_ID, &LINEA_USDC_E_ASSET_ID, &WORLD_USDC_E_ASSET_ID], &[&ZKSYNC_USDC_E_ASSET_ID]),
+            dollar(usdt_cost(6), &usdt, &[&ZKSYNC_USDT_ASSET_ID]),
+            dollar(usdc_cost(6), &usdc, &[&TEMPO_BRIDGED_USDC_ASSET_ID, &TEMPO_PATHUSD_ASSET_ID]),
+            dollar(usdc_cost(18), &usdc, &[&SMARTCHAIN_USDC_ASSET_ID]),
+            dollar(usdt_cost(18), &usdt, &[&SMARTCHAIN_USDT_ASSET_ID]),
             AssetMapping {
                 capital_cost: CapitalCostConfig {
                     lower_bound: EtherConv::parse_ether("0.0003"),
@@ -298,28 +274,19 @@ impl AcrossDeployment {
                     ZKSYNC_WBTC_ASSET_ID.clone(),
                 ]),
             },
-            AssetMapping {
-                capital_cost: CapitalCostConfig {
-                    lower_bound: EtherConv::parse_ether("0.0001"),
-                    upper_bound: EtherConv::parse_ether("0.001"),
-                    cutoff: EtherConv::parse_ether("1000000"),
-                    decimals: 18,
-                },
-                price: None,
-                set: HashSet::from_iter([ARBITRUM_ACX_ASSET_ID.clone(), ETHEREUM_ACX_ASSET_ID.clone(), OPTIMISM_ACX_ASSET_ID.clone(), POLYGON_ACX_ASSET_ID.clone()]),
-            },
         ]
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::AcrossDeployment;
+    use super::{AcrossDeployment, AssetMapping};
     use crate::across::asset::AcrossAsset;
     use primitives::{
         AssetId, Chain,
         asset_constants::{ARC_USDC_TOKEN_ID, LINEA_USDC_E_ASSET_ID, LINEA_USDC_E_TOKEN_ID, ROBINHOOD_USDG_ASSET_ID, ROBINHOOD_WETH_ASSET_ID},
         contract_constants::{ARC_ACROSS_MULTICALL_HANDLER_CONTRACT, ARC_ACROSS_SPOKE_POOL_CONTRACT, ROBINHOOD_ACROSS_MULTICALL_HANDLER_CONTRACT, ROBINHOOD_ACROSS_SPOKE_POOL_CONTRACT},
+        known_assets::{ARBITRUM_USDC, ARBITRUM_USDT, AVALANCHE_USDC, AVALANCHE_USDT, BASE_USDC, ETHEREUM_USDC, ETHEREUM_USDT, ETHEREUM_WBTC, POLYGON_USDC, SMARTCHAIN_USDC, SMARTCHAIN_USDT, TRON_USDT},
     };
 
     #[test]
@@ -339,9 +306,32 @@ mod tests {
     }
 
     #[test]
+    fn test_find() {
+        let mappings = AcrossDeployment::asset_mappings();
+        let known = [
+            &ETHEREUM_USDC,
+            &ETHEREUM_USDT,
+            &ETHEREUM_WBTC,
+            &ARBITRUM_USDC,
+            &ARBITRUM_USDT,
+            &BASE_USDC,
+            &POLYGON_USDC,
+            &AVALANCHE_USDC,
+            &AVALANCHE_USDT,
+            &SMARTCHAIN_USDC,
+            &SMARTCHAIN_USDT,
+            &TRON_USDT,
+        ];
+
+        for asset in known {
+            assert_eq!(AssetMapping::find(&mappings, &asset.id).map(|mapping| mapping.capital_cost.decimals), Some(asset.decimals), "{}", asset.id);
+        }
+    }
+
+    #[test]
     fn test_routed_assets_are_priced() {
         let mappings = AcrossDeployment::asset_mappings();
-        let mapping = |asset: &AssetId| mappings.iter().find(|mapping| mapping.set.contains(asset));
+        let mapping = |asset: &AssetId| AssetMapping::find(&mappings, asset);
         let routed_natives = Chain::all().into_iter().filter_map(|chain| AcrossAsset::from_asset(&chain.as_asset_id())).map(|asset| asset.asset_id);
 
         for asset in AcrossDeployment::supported_assets().into_values().flatten() {

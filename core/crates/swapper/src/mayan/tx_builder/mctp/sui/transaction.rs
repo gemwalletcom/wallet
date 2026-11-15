@@ -16,7 +16,7 @@ use crate::{
     Quote, SwapperError,
     mayan::tx_builder::{
         amount::optional_bps_u8,
-        sui::{SuiClientSwapReplay, SuiInputCoin, build_sui_input_coin},
+        sui::{SuiClientSwapReplay, SuiInputCoin, WormholeFeeCoin, build_sui_input_coin},
         swift::referrer_bytes,
     },
     sui_swap::package_address,
@@ -24,14 +24,19 @@ use crate::{
 use gem_sui::tx_builder::{Argument, TransactionBuilder};
 use gem_sui::types::Address;
 use gem_sui::{
-    SUI_COIN_TYPE,
-    models::{OwnedCoins, TxOutput},
+    models::TxOutput,
     sui_clock_object_input,
-    tx_builder::{build_input_coin, finish_transaction, move_call},
+    tx_builder::{finish_transaction, move_call},
 };
 
 pub(super) fn build_mctp_transaction(quote: &Quote, route: &MayanMctpQuote, prefetched: &PrefetchedSuiData, destination_address: &str, swap: Option<&SuiClientSwapReplay>, gas_budget: u64) -> Result<TxOutput, SwapperError> {
-    let SuiInputCoin { mut txb, coin: input_coin, wh_fee_coin } = build_sui_input_coin(swap, &prefetched.mctp_input_contract, route.effective_amount_in64.parse::<u64>()?, &prefetched.input_coins)?;
+    let SuiInputCoin { mut txb, coin: input_coin, wh_fee_coin } = build_sui_input_coin(
+        swap,
+        &prefetched.mctp_input_contract,
+        route.effective_amount_in64.parse::<u64>()?,
+        &prefetched.input_coins,
+        prefetched.transaction.address_balance,
+    )?;
 
     if route.has_auction == Some(true) {
         add_init_order_move_calls(&mut txb, route, quote, prefetched, input_coin, wh_fee_coin, destination_address)?;
@@ -64,11 +69,8 @@ fn deposit_for_burn_with_auth(txb: &mut TransactionBuilder, prefetched: &Prefetc
     .map_err(sui_error)
 }
 
-fn add_publish_wormhole_message(txb: &mut TransactionBuilder, prefetched: &PrefetchedSuiData, wormhole_message: Argument, bridge_fee: u64, wh_fee_coin: Option<Argument>) -> Result<(), SwapperError> {
-    let fee_coin = match wh_fee_coin {
-        Some(coin) => coin,
-        None => build_input_coin(txb, SUI_COIN_TYPE, bridge_fee, &OwnedCoins::default()).map_err(sui_error)?,
-    };
+fn add_publish_wormhole_message(txb: &mut TransactionBuilder, prefetched: &PrefetchedSuiData, wormhole_message: Argument, bridge_fee: u64, wh_fee_coin: WormholeFeeCoin) -> Result<(), SwapperError> {
+    let fee_coin = wh_fee_coin.build_coin(txb, bridge_fee)?;
     let clock = txb.object(sui_clock_object_input());
     let wormhole_state = txb.object(prefetched.objects[SUI_WORMHOLE_STATE].input(true));
     move_call(

@@ -6,16 +6,17 @@ use gem_solana::{SYSTEM_PROGRAM_ID, WSOL_TOKEN_ADDRESS};
 use primitives::{
     AssetId, Chain, ChainType,
     asset_constants::{
-        ARBITRUM_USDC_ASSET_ID, ARBITRUM_USDT_ASSET_ID, ARC_CIRBTC_ASSET_ID, ARC_EURC_ASSET_ID, AVALANCHE_USDC_ASSET_ID, AVALANCHE_USDT_ASSET_ID, BASE_USDC_ASSET_ID, CELO_USDC_ASSET_ID, CELO_USDT_ASSET_ID, ETHEREUM_USDC_ASSET_ID,
-        ETHEREUM_USDT_ASSET_ID, GNOSIS_USDC_ASSET_ID, HYPEREVM_USDC_ASSET_ID, HYPEREVM_USDT_ASSET_ID, INK_USDC_ASSET_ID, INK_USDT0_ASSET_ID, LINEA_LINEA_ASSET_ID, LINEA_USDT_ASSET_ID, MANTLE_USDC_ASSET_ID, MANTLE_USDT0_ASSET_ID,
-        MONAD_USDC_ASSET_ID, OPTIMISM_USDC_ASSET_ID, OPTIMISM_USDT_ASSET_ID, PLASMA_USDT_ASSET_ID, POLYGON_USDC_ASSET_ID, POLYGON_USDT_ASSET_ID, SMARTCHAIN_CAKE_ASSET_ID, SMARTCHAIN_USDC_ASSET_ID, SMARTCHAIN_USDT_ASSET_ID,
-        SOLANA_CBBTC_ASSET_ID, SOLANA_USDC_ASSET_ID, SOLANA_USDG_ASSET_ID, SOLANA_USDT_ASSET_ID, TEMPO_BRIDGED_USDC_ASSET_ID, TEMPO_PATHUSD_ASSET_ID, TEMPO_USDT0_ASSET_ID, TRON_USDT_ASSET_ID, TRON_USDT_TOKEN_ID, UNICHAIN_USDC_ASSET_ID,
-        WORLD_USDC_E_ASSET_ID, ZKSYNC_USDC_ASSET_ID, ZKSYNC_USDT_ASSET_ID,
+        ARBITRUM_USDC_ASSET_ID, ARBITRUM_USDE_ASSET_ID, ARBITRUM_USDT_ASSET_ID, ARC_CIRBTC_ASSET_ID, ARC_EURC_ASSET_ID, AVALANCHE_USDC_ASSET_ID, AVALANCHE_USDE_ASSET_ID, AVALANCHE_USDT_ASSET_ID, BASE_USDC_ASSET_ID, BASE_USDT_ASSET_ID,
+        CELO_USDC_ASSET_ID, CELO_USDT_ASSET_ID, ETHEREUM_PYUSD_ASSET_ID, ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDE_ASSET_ID, ETHEREUM_USDG_ASSET_ID, ETHEREUM_USDT_ASSET_ID, GNOSIS_USDC_ASSET_ID, HYPEREVM_USDC_ASSET_ID, HYPEREVM_USDE_ASSET_ID,
+        HYPEREVM_USDT_ASSET_ID, INK_USDC_ASSET_ID, INK_USDT0_ASSET_ID, LINEA_LINEA_ASSET_ID, LINEA_USDT_ASSET_ID, MANTLE_USDC_ASSET_ID, MANTLE_USDT0_ASSET_ID, MONAD_USDC_ASSET_ID, OPTIMISM_USDC_ASSET_ID, OPTIMISM_USDT_ASSET_ID,
+        PLASMA_USDT_ASSET_ID, POLYGON_USDC_ASSET_ID, POLYGON_USDC_E_ASSET_ID, POLYGON_USDT_ASSET_ID, SMARTCHAIN_CAKE_ASSET_ID, SMARTCHAIN_USDC_ASSET_ID, SMARTCHAIN_USDE_ASSET_ID, SMARTCHAIN_USDT_ASSET_ID, SOLANA_CBBTC_ASSET_ID,
+        SOLANA_PYUSD_ASSET_ID, SOLANA_USDC_ASSET_ID, SOLANA_USDG_ASSET_ID, SOLANA_USDT_ASSET_ID, SONIC_USDC_ASSET_ID, TEMPO_BRIDGED_USDC_ASSET_ID, TEMPO_PATHUSD_ASSET_ID, TEMPO_USDT0_ASSET_ID, TRON_USDT_ASSET_ID, TRON_USDT_TOKEN_ID,
+        UNICHAIN_USDC_ASSET_ID, WORLD_USDC_E_ASSET_ID, XLAYER_USDC_ASSET_ID, ZKSYNC_USDC_ASSET_ID, ZKSYNC_USDT_ASSET_ID,
     },
     contract_constants::{EVM_ZERO_ADDRESS, TON_ZERO_ADDRESS, TRON_BLACK_HOLE_ADDRESS},
 };
 
-use super::chain::{BITCOIN_CURRENCY, RelayChain};
+use super::chain::{BITCOIN_CURRENCY, RelayChain, XRP_CURRENCY};
 
 fn is_native_currency(chain: Chain, currency: &str) -> bool {
     match chain {
@@ -23,6 +24,7 @@ fn is_native_currency(chain: Chain, currency: &str) -> bool {
         Chain::Solana => currency == SYSTEM_PROGRAM_ID || currency == WSOL_TOKEN_ADDRESS,
         Chain::Tron => currency == TRON_BLACK_HOLE_ADDRESS,
         Chain::Ton => currency == TON_ZERO_ADDRESS,
+        Chain::Xrp => currency == XRP_CURRENCY,
         _ if currency == EVM_ZERO_ADDRESS => true,
         _ => false,
     }
@@ -46,24 +48,36 @@ pub fn map_currency_to_asset_id(chain: Chain, currency: &str) -> AssetId {
 pub static SUPPORTED_CHAINS: LazyLock<Vec<SwapperChainAsset>> = LazyLock::new(|| {
     vec![
         SwapperChainAsset::Assets(Chain::Bitcoin, vec![]),
-        SwapperChainAsset::Assets(Chain::Ethereum, vec![ETHEREUM_USDC_ASSET_ID.clone(), ETHEREUM_USDT_ASSET_ID.clone()]),
-        SwapperChainAsset::Assets(Chain::SmartChain, vec![SMARTCHAIN_USDC_ASSET_ID.clone(), SMARTCHAIN_USDT_ASSET_ID.clone(), SMARTCHAIN_CAKE_ASSET_ID.clone()]),
-        SwapperChainAsset::Assets(Chain::Base, vec![BASE_USDC_ASSET_ID.clone()]),
-        SwapperChainAsset::Assets(Chain::Arbitrum, vec![ARBITRUM_USDC_ASSET_ID.clone(), ARBITRUM_USDT_ASSET_ID.clone()]),
+        SwapperChainAsset::Assets(
+            Chain::Ethereum,
+            vec![
+                ETHEREUM_USDC_ASSET_ID.clone(),
+                ETHEREUM_USDT_ASSET_ID.clone(),
+                ETHEREUM_USDE_ASSET_ID.clone(),
+                ETHEREUM_PYUSD_ASSET_ID.clone(),
+                ETHEREUM_USDG_ASSET_ID.clone(),
+            ],
+        ),
+        SwapperChainAsset::Assets(
+            Chain::SmartChain,
+            vec![SMARTCHAIN_USDC_ASSET_ID.clone(), SMARTCHAIN_USDT_ASSET_ID.clone(), SMARTCHAIN_CAKE_ASSET_ID.clone(), SMARTCHAIN_USDE_ASSET_ID.clone()],
+        ),
+        SwapperChainAsset::Assets(Chain::Base, vec![BASE_USDC_ASSET_ID.clone(), BASE_USDT_ASSET_ID.clone()]),
+        SwapperChainAsset::Assets(Chain::Arbitrum, vec![ARBITRUM_USDC_ASSET_ID.clone(), ARBITRUM_USDT_ASSET_ID.clone(), ARBITRUM_USDE_ASSET_ID.clone()]),
         SwapperChainAsset::Assets(Chain::Optimism, vec![OPTIMISM_USDC_ASSET_ID.clone(), OPTIMISM_USDT_ASSET_ID.clone()]),
-        SwapperChainAsset::Assets(Chain::Polygon, vec![POLYGON_USDC_ASSET_ID.clone(), POLYGON_USDT_ASSET_ID.clone()]),
-        SwapperChainAsset::Assets(Chain::AvalancheC, vec![AVALANCHE_USDC_ASSET_ID.clone(), AVALANCHE_USDT_ASSET_ID.clone()]),
+        SwapperChainAsset::Assets(Chain::Polygon, vec![POLYGON_USDC_ASSET_ID.clone(), POLYGON_USDT_ASSET_ID.clone(), POLYGON_USDC_E_ASSET_ID.clone()]),
+        SwapperChainAsset::Assets(Chain::AvalancheC, vec![AVALANCHE_USDC_ASSET_ID.clone(), AVALANCHE_USDT_ASSET_ID.clone(), AVALANCHE_USDE_ASSET_ID.clone()]),
         SwapperChainAsset::Assets(Chain::Linea, vec![LINEA_USDT_ASSET_ID.clone(), LINEA_LINEA_ASSET_ID.clone()]),
         SwapperChainAsset::Assets(Chain::ZkSync, vec![ZKSYNC_USDT_ASSET_ID.clone(), ZKSYNC_USDC_ASSET_ID.clone()]),
-        SwapperChainAsset::Assets(Chain::Hyperliquid, vec![HYPEREVM_USDC_ASSET_ID.clone(), HYPEREVM_USDT_ASSET_ID.clone()]),
+        SwapperChainAsset::Assets(Chain::Hyperliquid, vec![HYPEREVM_USDC_ASSET_ID.clone(), HYPEREVM_USDT_ASSET_ID.clone(), HYPEREVM_USDE_ASSET_ID.clone()]),
         SwapperChainAsset::Assets(Chain::Berachain, vec![]),
         SwapperChainAsset::Assets(Chain::Manta, vec![]),
-        SwapperChainAsset::Assets(Chain::Sonic, vec![]),
+        SwapperChainAsset::Assets(Chain::Sonic, vec![SONIC_USDC_ASSET_ID.clone()]),
         SwapperChainAsset::Assets(Chain::Abstract, vec![]),
         SwapperChainAsset::Assets(Chain::Celo, vec![CELO_USDT_ASSET_ID.clone(), CELO_USDC_ASSET_ID.clone()]),
         SwapperChainAsset::Assets(Chain::Stable, vec![]),
         SwapperChainAsset::Assets(Chain::Robinhood, vec![]),
-        SwapperChainAsset::Assets(Chain::XLayer, vec![]),
+        SwapperChainAsset::Assets(Chain::XLayer, vec![XLAYER_USDC_ASSET_ID.clone()]),
         SwapperChainAsset::Assets(Chain::Gnosis, vec![GNOSIS_USDC_ASSET_ID.clone()]),
         SwapperChainAsset::Assets(Chain::Mantle, vec![MANTLE_USDC_ASSET_ID.clone(), MANTLE_USDT0_ASSET_ID.clone()]),
         SwapperChainAsset::Assets(Chain::World, vec![WORLD_USDC_E_ASSET_ID.clone()]),
@@ -74,8 +88,18 @@ pub static SUPPORTED_CHAINS: LazyLock<Vec<SwapperChainAsset>> = LazyLock::new(||
         SwapperChainAsset::Assets(Chain::Tempo, vec![TEMPO_BRIDGED_USDC_ASSET_ID.clone(), TEMPO_PATHUSD_ASSET_ID.clone(), TEMPO_USDT0_ASSET_ID.clone()]),
         SwapperChainAsset::Assets(Chain::Arc, vec![ARC_EURC_ASSET_ID.clone(), ARC_CIRBTC_ASSET_ID.clone()]),
         SwapperChainAsset::Assets(Chain::Tron, vec![TRON_USDT_ASSET_ID.clone()]),
-        SwapperChainAsset::Assets(Chain::Solana, vec![SOLANA_USDC_ASSET_ID.clone(), SOLANA_USDT_ASSET_ID.clone(), SOLANA_USDG_ASSET_ID.clone(), SOLANA_CBBTC_ASSET_ID.clone()]),
+        SwapperChainAsset::Assets(
+            Chain::Solana,
+            vec![
+                SOLANA_USDC_ASSET_ID.clone(),
+                SOLANA_USDT_ASSET_ID.clone(),
+                SOLANA_USDG_ASSET_ID.clone(),
+                SOLANA_CBBTC_ASSET_ID.clone(),
+                SOLANA_PYUSD_ASSET_ID.clone(),
+            ],
+        ),
         SwapperChainAsset::Assets(Chain::Ton, vec![]),
+        SwapperChainAsset::Assets(Chain::Xrp, vec![]),
     ]
 });
 
@@ -87,9 +111,10 @@ pub fn asset_to_currency(asset_id: &AssetId) -> Result<String, SwapperError> {
         (RelayChain::Solana, None) => SYSTEM_PROGRAM_ID,
         (RelayChain::Tron, None) => TRON_BLACK_HOLE_ADDRESS,
         (RelayChain::Ton, None) => TON_ZERO_ADDRESS,
+        (RelayChain::Xrp, None) => XRP_CURRENCY,
         (RelayChain::Evm(_) | RelayChain::Solana, Some(token_id)) => token_id,
         (RelayChain::Tron, Some(_)) if asset_id == &*TRON_USDT_ASSET_ID => TRON_USDT_TOKEN_ID,
-        (RelayChain::Bitcoin | RelayChain::Tron | RelayChain::Ton, Some(_)) => return Err(SwapperError::NotSupportedAsset),
+        (RelayChain::Bitcoin | RelayChain::Tron | RelayChain::Ton | RelayChain::Xrp, Some(_)) => return Err(SwapperError::NotSupportedAsset),
     };
     Ok(currency.to_string())
 }
@@ -114,6 +139,13 @@ mod tests {
         let token_address = ETHEREUM_USDC_TOKEN_ID;
         let result = asset_to_currency(&AssetId::from_token(Chain::Ethereum, token_address)).unwrap();
         assert_eq!(result, token_address);
+    }
+
+    #[test]
+    fn test_xrp_assets() {
+        assert_eq!(asset_to_currency(&AssetId::from_chain(Chain::Xrp)).unwrap(), "xrp");
+        assert_eq!(map_currency_to_asset_id(Chain::Xrp, "xrp"), AssetId::from_chain(Chain::Xrp));
+        assert_eq!(asset_to_currency(&AssetId::from_token(Chain::Xrp, "rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De")), Err(SwapperError::NotSupportedAsset));
     }
 
     #[test]

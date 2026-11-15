@@ -13,6 +13,7 @@ public actor StreamObserverService: Sendable {
     private let reconnection: any Reconnectable
     private var observeTask: Task<Void, Never>?
     private var isActive = false
+    private var startRequested = false
     private var failedAttempts: Int = 0
     private var connectedAt: ContinuousClock.Instant?
 
@@ -56,7 +57,12 @@ public actor StreamObserverService: Sendable {
     // MARK: - Private
 
     private func startObserving() {
-        guard isActive, observeTask == nil else { return }
+        guard isActive else { return }
+        guard observeTask == nil else {
+            startRequested = true
+            return
+        }
+        startRequested = false
         observeTask = Task { [weak self] in
             await self?.observeConnection()
         }
@@ -83,7 +89,7 @@ public actor StreamObserverService: Sendable {
         }
         connectedAt = nil
         observeTask = nil
-        if Task.isCancelled || failed {
+        if failed || startRequested {
             startObserving()
         }
     }

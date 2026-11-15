@@ -9,7 +9,7 @@ use crate::{
             address::native_address_to_bytes32,
             amount::{gas_drop_amount, min_amount_out, optional_bps_u8},
             mctp::redeem_relayer_fee,
-            sui::bridge_amount,
+            sui::{WormholeFeeCoin, bridge_amount},
             swift::{referrer_bytes, swift_to_token},
         },
         wormhole_chain::id_for_name as wormhole_chain_id,
@@ -30,7 +30,7 @@ pub(super) fn add_init_order_move_calls(
     quote: &Quote,
     prefetched: &PrefetchedSuiData,
     input_coin: Argument,
-    wh_fee_coin: Option<Argument>,
+    wh_fee_coin: WormholeFeeCoin,
     destination_address: &str,
 ) -> Result<(), SwapperError> {
     let destination_chain_id = wormhole_chain_id(&route.to_chain)?;

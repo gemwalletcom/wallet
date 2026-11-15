@@ -103,7 +103,7 @@ where
 
 fn build_fast_mctp_transaction(quote: &Quote, route: &MayanFastMctpQuote, prefetched: &PrefetchedFastMctpData, swap: Option<&SuiClientSwapReplay>, gas_budget: u64) -> Result<TxOutput, SwapperError> {
     let input_contract = fast_mctp_input_contract(route)?;
-    let SuiInputCoin { mut txb, coin: input_coin, .. } = build_sui_input_coin(swap, input_contract, route.effective_amount_in64.parse::<u64>()?, &prefetched.input_coins)?;
+    let SuiInputCoin { mut txb, coin: input_coin, .. } = build_sui_input_coin(swap, input_contract, route.effective_amount_in64.parse::<u64>()?, &prefetched.input_coins, prefetched.transaction.address_balance)?;
     let package = package_address(&prefetched.package_id)?;
 
     let burn_ticket = if route.has_auction == Some(true) {
