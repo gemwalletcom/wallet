@@ -106,6 +106,15 @@ mod tests {
     }
 
     #[test]
+    fn test_parse_across_deposit_to_unknown_destination() {
+        let transaction = load_json_rpc_result::<Transaction>(include_str!("../../../testdata/across_polygon_deposit_transaction.json"));
+        let mut receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../testdata/across_polygon_deposit_receipt.json"));
+        receipt.logs[0].topics[1] = encode_with_0x(&U256::MAX.to_be_bytes::<32>());
+
+        assert_eq!(ProtocolParsers::map_transaction(&Chain::Polygon, &transaction, &receipt, DateTime::default()), None);
+    }
+
+    #[test]
     fn test_parse_across_arc_deposit_scales_native_usdc() {
         let transaction = load_json_rpc_result::<Transaction>(include_str!("../../../testdata/across_arc_deposit_transaction.json"));
         let receipt = load_json_rpc_result::<TransactionReceipt>(include_str!("../../../testdata/across_arc_deposit_receipt.json"));

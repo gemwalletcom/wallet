@@ -73,7 +73,7 @@ impl Deposit {
 
     fn from_v3(event: V3FundsDeposited, origin_chain_id: u64) -> Self {
         Self {
-            destination_chain_id: event.destinationChainId.to::<u64>(),
+            destination_chain_id: event.destinationChainId.saturating_to::<u64>(),
             relay_data: RelayData {
                 depositor: event.depositor.into_word(),
                 recipient: event.recipient.into_word(),
@@ -93,7 +93,7 @@ impl Deposit {
 
     fn from_universal(event: FundsDeposited, origin_chain_id: u64) -> Self {
         Self {
-            destination_chain_id: event.destinationChainId.to::<u64>(),
+            destination_chain_id: event.destinationChainId.saturating_to::<u64>(),
             relay_data: RelayData {
                 depositor: event.depositor,
                 recipient: event.recipient,
