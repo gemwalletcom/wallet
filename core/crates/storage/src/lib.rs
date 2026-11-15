@@ -42,7 +42,7 @@ pub use self::repositories::{
     scan_addresses_repository::ScanAddressesRepository,
     scan_detections_repository::ScanDetectionsRepository,
     scan_websites_repository::ScanWebsitesRepository,
-    support_sessions_repository::{SupportSessionRecord, SupportSessionsRepository},
+    support_sessions_repository::SupportSessionsRepository,
     tag_repository::{AssetTagLink, PerpetualTagLink, Tag, TagRepository},
     transactions_perpetuals_repository::{TransactionPerpetualRecord, TransactionsPerpetualsRepository},
     transactions_repository::{TransactionFilter, TransactionUpdate, TransactionsRepository},

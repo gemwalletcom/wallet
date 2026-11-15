@@ -1,5 +1,4 @@
 pub mod database_mock;
-pub mod device_record_mock;
 #[cfg(test)]
 mod fiat_transaction_mock;
 #[cfg(test)]

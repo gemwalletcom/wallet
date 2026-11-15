@@ -961,7 +961,6 @@ diesel::table! {
         auth_token -> Varchar,
         updated_at -> Timestamp,
         created_at -> Timestamp,
-        blocked -> Bool,
     }
 }
 

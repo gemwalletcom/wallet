@@ -73,8 +73,6 @@ pub struct ChatwootWebhookPayload {
     pub attachments: Vec<Attachment>,
     #[serde(default)]
     pub messages: Vec<Message>,
-    pub identifier: Option<String>,
-    pub blocked: Option<bool>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -136,10 +134,7 @@ pub struct Attachment {
 
 impl ChatwootWebhookPayload {
     pub fn get_device_id(&self) -> Option<String> {
-        match self.conversation.as_ref().map(|c| &c.meta).or(self.meta.as_ref()) {
-            Some(meta) => meta.sender.identifier.clone(),
-            None => self.identifier.clone(),
-        }
+        self.conversation.as_ref().map(|c| &c.meta).or(self.meta.as_ref())?.sender.identifier.clone()
     }
 
     pub fn is_public_outgoing_message(&self) -> bool {
@@ -489,17 +484,6 @@ mod tests {
 
         assert_eq!(bound.get_device_id(), Some("test-device".to_string()));
         assert_eq!(claimed.get_device_id(), None);
-    }
-
-    #[test]
-    fn test_parse_contact_updated_payload() {
-        let payload: ChatwootWebhookPayload = serde_json::from_str(include_str!("../../testdata/chatwoot_contact_updated.json")).unwrap();
-        let unbound: ChatwootWebhookPayload = serde_json::from_str(r#"{"event": "contact_updated", "identifier": null, "custom_attributes": {"device_id": "test-device"}, "blocked": true}"#).unwrap();
-
-        assert_eq!(payload.event, "contact_updated");
-        assert_eq!(payload.get_device_id(), Some("test-device-id".to_string()));
-        assert_eq!(payload.blocked, Some(true));
-        assert_eq!(unbound.get_device_id(), None);
     }
 
     #[test]

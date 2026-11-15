@@ -149,11 +149,8 @@ impl From<Box<dyn std::error::Error + Send + Sync>> for ApiError {
             if let Some(db_error) = current_error.downcast_ref::<DatabaseError>() {
                 return db_error.clone().into();
             }
-            if let Some(request_error) = current_error.downcast_ref::<RequestError>() {
-                return match request_error {
-                    RequestError::Forbidden => ApiError::from_status(StatusCode::FORBIDDEN),
-                    RequestError::LimitReached => ApiError::from_status(StatusCode::TOO_MANY_REQUESTS),
-                };
+            if let Some(RequestError::LimitReached) = current_error.downcast_ref::<RequestError>() {
+                return ApiError::from_status(StatusCode::TOO_MANY_REQUESTS);
             }
             if current_error.downcast_ref::<JsonRpcError>().is_some_and(|rpc| rpc.code == ERROR_CLIENT_ERROR) {
                 return ApiError::unavailable(error.to_string());
@@ -219,12 +216,10 @@ mod tests {
     }
 
     #[test]
-    fn test_a_boxed_request_error_keeps_its_status() {
+    fn test_a_boxed_rate_limit_is_a_too_many_requests_answer() {
         let limited: Box<dyn std::error::Error + Send + Sync> = Box::new(RequestError::LimitReached);
-        let forbidden: Box<dyn std::error::Error + Send + Sync> = Box::new(RequestError::Forbidden);
 
         assert_eq!(ApiError::from(limited), ApiError::from_status(StatusCode::TOO_MANY_REQUESTS));
-        assert_eq!(ApiError::from(forbidden), ApiError::from_status(StatusCode::FORBIDDEN));
     }
 
     #[test]

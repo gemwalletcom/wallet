@@ -9,7 +9,7 @@ use push_notification::{GorushNotification, PushNotification, PushNotificationSu
 use streamer::{NotificationsPayload, StreamProducerQueue};
 use support::markdown_plain_text;
 
-use super::constants::{EVENT_CONTACT_UPDATED, EVENT_CONVERSATION_TYPING_OFF, EVENT_CONVERSATION_TYPING_ON, EVENT_MESSAGE_CREATED};
+use super::constants::{EVENT_CONVERSATION_TYPING_OFF, EVENT_CONVERSATION_TYPING_ON, EVENT_MESSAGE_CREATED};
 use super::model::ChatwootWebhookPayload;
 
 #[derive(Debug, Default)]
@@ -38,16 +38,8 @@ impl SupportClient {
             EVENT_MESSAGE_CREATED => self.publish_message_created(device, payload).await,
             EVENT_CONVERSATION_TYPING_ON => self.publish_typing(device, payload, SupportTypingStatus::On).await,
             EVENT_CONVERSATION_TYPING_OFF => self.publish_typing(device, payload, SupportTypingStatus::Off).await,
-            EVENT_CONTACT_UPDATED => self.update_blocked(device, payload).await,
             _ => Ok(SupportWebhookResult::default()),
         }
-    }
-
-    async fn update_blocked(&self, device: &Device, payload: &ChatwootWebhookPayload) -> Result<SupportWebhookResult, Box<dyn Error + Send + Sync>> {
-        if let Some(blocked) = payload.blocked {
-            self.repository.set_session_blocked(device.id.clone(), blocked).await?;
-        }
-        Ok(SupportWebhookResult::default())
     }
 
     async fn publish_message_created(&self, device: &Device, payload: &ChatwootWebhookPayload) -> Result<SupportWebhookResult, Box<dyn Error + Send + Sync>> {
@@ -112,26 +104,6 @@ impl SupportClient {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::testkit::{MemoryDeviceStreamCacher, MemorySupportRepository, RecordingStreamProducer};
-    use storage::{DeviceRecord, SupportSessionRecord};
-
-    #[tokio::test]
-    async fn test_publish_webhook_contact_updated() {
-        let session = SupportSessionRecord {
-            auth_token: "token".to_string(),
-            blocked: false,
-        };
-        let repository = Arc::new(MemorySupportRepository::with_session(DeviceRecord::mock(), session.clone()));
-        let client = SupportClient::new(repository.clone(), Arc::new(RecordingStreamProducer::new()), Arc::new(MemoryDeviceStreamCacher::default()));
-        let blocked: ChatwootWebhookPayload = serde_json::from_str(include_str!("../../testdata/chatwoot_contact_updated.json")).unwrap();
-        let unblocked = ChatwootWebhookPayload { blocked: Some(false), ..blocked.clone() };
-
-        client.publish_webhook(&Device::mock(), &blocked).await.unwrap();
-        assert_eq!(repository.session(DeviceRecord::mock().id), Some(SupportSessionRecord { blocked: true, ..session.clone() }));
-
-        client.publish_webhook(&Device::mock(), &unblocked).await.unwrap();
-        assert_eq!(repository.session(DeviceRecord::mock().id), Some(session));
-    }
 
     #[test]
     fn test_build_notification_message_created() {
