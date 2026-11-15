@@ -90,6 +90,10 @@ name = "wallet_connect_protocol"
 path = "fuzz_targets/wallet_connect_protocol.rs"
 
 [[bin]]
+name = "wallet_import"
+path = "fuzz_targets/wallet_import.rs"
+
+[[bin]]
 name = "zcash_transaction"
 path = "fuzz_targets/zcash_transaction.rs"
 
