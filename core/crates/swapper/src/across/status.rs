@@ -2,6 +2,7 @@ use std::{str::FromStr, sync::Arc};
 
 use alloy_primitives::{Address, B256, U256, keccak256};
 use alloy_sol_types::SolValue;
+use chrono::{DateTime, Utc};
 use gem_evm::across::{
     contracts::V3SpokePoolInterface,
     deployment::AcrossDeployment,
@@ -16,6 +17,7 @@ use crate::{
     client_factory::{create_eth_client, create_tron_client},
 };
 
+const ACROSS_FILL_STATUS_UNFILLED: u8 = 0;
 const ACROSS_FILL_STATUS_FILLED: u8 = 2;
 
 pub(super) async fn get_swap_result(rpc_provider: Arc<dyn RpcProvider>, chain: Chain, transaction_hash: &str) -> Result<SwapResult, SwapperError> {
@@ -29,15 +31,23 @@ pub(super) async fn get_swap_result(rpc_provider: Arc<dyn RpcProvider>, chain: C
         }
     };
 
-    if !is_filled(rpc_provider, &deposit).await? {
-        return Ok(SwapResult::pending());
-    }
-
-    Ok(SwapResult {
-        status: SwapStatus::Completed,
-        metadata: deposit.swap_metadata(supported_asset_for_token),
-        eta_in_seconds: None,
+    let fill_status = fill_status(rpc_provider, &deposit).await?;
+    Ok(match deposit_swap_status(fill_status, deposit.relay_data.fill_deadline, Utc::now()) {
+        SwapStatus::Completed => SwapResult {
+            status: SwapStatus::Completed,
+            metadata: deposit.swap_metadata(supported_asset_for_token),
+            eta_in_seconds: None,
+        },
+        status => SwapResult::from(status),
     })
+}
+
+fn deposit_swap_status(fill_status: u8, fill_deadline: u32, now: DateTime<Utc>) -> SwapStatus {
+    match fill_status {
+        ACROSS_FILL_STATUS_FILLED => SwapStatus::Completed,
+        ACROSS_FILL_STATUS_UNFILLED if now.timestamp() > i64::from(fill_deadline) => SwapStatus::Refunded,
+        _ => SwapStatus::Pending,
+    }
 }
 
 enum SourceDeposit {
@@ -79,19 +89,17 @@ async fn source_deposit(rpc_provider: Arc<dyn RpcProvider>, chain: Chain, transa
     Ok(SourceDeposit::from_parsed(deposit))
 }
 
-async fn is_filled(rpc_provider: Arc<dyn RpcProvider>, deposit: &Deposit) -> Result<bool, SwapperError> {
+async fn fill_status(rpc_provider: Arc<dyn RpcProvider>, deposit: &Deposit) -> Result<u8, SwapperError> {
     let destination_chain = Chain::from_chain_id(deposit.destination_chain_id).ok_or(SwapperError::NotSupportedChain)?;
     let deployment = AcrossDeployment::deployment_by_chain(&destination_chain).ok_or(SwapperError::NotSupportedChain)?;
     let relay_hash = relay_hash(&deposit.relay_data, deposit.destination_chain_id);
 
     let client = create_eth_client(rpc_provider, destination_chain)?;
     let spoke_pool = Address::from_str(deployment.spoke_pool).map_err(SwapperError::transaction_error)?;
-    let fill_status: u8 = client
+    client
         .call_contract(spoke_pool, V3SpokePoolInterface::fillStatusesCall { relayHash: relay_hash })
         .await
-        .map_err(SwapperError::transaction_error)?;
-
-    Ok(fill_status == ACROSS_FILL_STATUS_FILLED)
+        .map_err(SwapperError::transaction_error)
 }
 
 fn relay_hash(relay_data: &RelayData, destination_chain_id: u64) -> B256 {
@@ -110,4 +118,25 @@ fn relay_hash(relay_data: &RelayData, destination_chain_id: u64) -> B256 {
         relay_data.message.clone(),
     );
     keccak256((relay_data, U256::from(destination_chain_id)).abi_encode_sequence())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_an_unfilled_deposit_past_its_fill_deadline_is_refunded() {
+        let fill_deadline = 1_763_000_000;
+        let before = DateTime::from_timestamp(i64::from(fill_deadline) - 60, 0).unwrap();
+        let after = DateTime::from_timestamp(i64::from(fill_deadline) + 60, 0).unwrap();
+
+        assert_eq!(deposit_swap_status(ACROSS_FILL_STATUS_UNFILLED, fill_deadline, before), SwapStatus::Pending, "a relayer can still fill it");
+        assert_eq!(
+            deposit_swap_status(ACROSS_FILL_STATUS_UNFILLED, fill_deadline, after),
+            SwapStatus::Refunded,
+            "no relayer can fill it, so Across refunds the depositor"
+        );
+        assert_eq!(deposit_swap_status(1, fill_deadline, after), SwapStatus::Pending, "a requested slow fill still completes");
+        assert_eq!(deposit_swap_status(ACROSS_FILL_STATUS_FILLED, fill_deadline, after), SwapStatus::Completed);
+    }
 }
