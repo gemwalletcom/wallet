@@ -24,6 +24,7 @@ pub fn validate_quote_response(from_chain: RelayChain, quote_response: &RelayQuo
         RelayChain::Bitcoin => map_bitcoin_quote_data(quote_response, value).map(drop),
         RelayChain::Evm(_) | RelayChain::Tron | RelayChain::Ton => validate_targets(from_chain, quote_response),
         RelayChain::Solana => Ok(()),
+        RelayChain::Xrp => Err(SwapperError::NotSupportedChain),
     }
 }
 
