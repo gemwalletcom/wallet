@@ -181,10 +181,7 @@ pub fn swap_quote(quote: &Quote) -> SwapQuote {
         min_from_value: quote.min_from_value.clone(),
         to_address: quote.request.destination_address.clone(),
         to_value: quote.to_value.clone(),
-        provider_data: SwapProviderData {
-            provider: quote.data.provider.id,
-            protocol_name: quote.data.provider.protocol.clone(),
-        },
+        provider_data: SwapProviderData { provider: quote.data.provider.id },
         slippage_bps: quote.data.slippage_bps,
         slippage_mode: quote.request.options.slippage.mode,
         eta_in_seconds: quote.eta_in_seconds,

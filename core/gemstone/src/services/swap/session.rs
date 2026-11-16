@@ -389,11 +389,11 @@ fn side_amount_placeholder(data: Option<&AssetData>) -> String {
     data.map(|_| "0".to_string()).unwrap_or_default()
 }
 
-pub(super) fn provider_row(provider: SwapperProvider, name: String, to_value: &GemBigUint, receive_asset: &Asset, receive_price: Option<f64>, currency: &Currency, is_selected: bool) -> GemProviderRow {
+pub(super) fn provider_row(provider: SwapperProvider, to_value: &GemBigUint, receive_asset: &Asset, receive_price: Option<f64>, currency: &Currency, is_selected: bool) -> GemProviderRow {
     let value = BigNumberFormatter::f64_value(to_value, receive_asset.decimals);
     GemProviderRow {
         kind: GemProviderKind::Swap { provider },
-        name,
+        name: provider.name().to_string(),
         amount: GemFormattedNumber::amount(value, Some(receive_asset.symbol.clone()), ValueStyle::Auto),
         fiat: receive_price.map(|price| GemFormattedNumber::currency(value * price, currency.clone(), GemCurrencyStyle::Currency)),
         is_selected,
@@ -676,17 +676,7 @@ impl GemSwapSession {
         self.quotes
             .iter()
             .flat_map(|quotes| &quotes.quotes)
-            .map(|quote| {
-                provider_row(
-                    quote.data.provider.id,
-                    quote.data.provider.protocol.clone(),
-                    &quote.to_value,
-                    receive_asset,
-                    receive_price,
-                    currency,
-                    Some(quote.data.provider.id) == selected,
-                )
-            })
+            .map(|quote| provider_row(quote.data.provider.id, &quote.to_value, receive_asset, receive_price, currency, Some(quote.data.provider.id) == selected))
             .collect()
     }
 

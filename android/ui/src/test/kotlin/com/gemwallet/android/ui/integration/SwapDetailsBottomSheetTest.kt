@@ -37,7 +37,7 @@ class SwapDetailsBottomSheetTest {
 
     private val context = ApplicationProvider.getApplicationContext<Context>()
     private val details = swapQuoteDetails(
-        mockSwapQuote(providerData = mockSwapProviderData(protocolName = "Uniswap")),
+        mockSwapQuote(providerData = mockSwapProviderData(provider = SwapProvider.UNISWAP_V3)),
         mockAsset().toGem(),
         mockAsset().toGem(),
         null,

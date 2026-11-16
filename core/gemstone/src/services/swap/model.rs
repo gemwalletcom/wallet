@@ -112,7 +112,7 @@ pub fn swap_quote_details(quote: SwapQuote, from_asset: Asset, to_asset: Asset, 
 }
 
 pub fn quote_details(quote: SwapQuote, from_asset: Asset, to_asset: Asset, from_price: Option<f64>, to_price: Option<f64>, currency: &Currency) -> GemSwapDetails {
-    let provider = provider_row(quote.provider_data.provider, quote.provider_data.protocol_name.clone(), &quote.to_value, &to_asset, to_price, currency, false);
+    let provider = provider_row(quote.provider_data.provider, &quote.to_value, &to_asset, to_price, currency, false);
     let summary = swap_quote_summary(quote, from_asset, to_asset, from_price, to_price);
     GemSwapDetails {
         rows: summary.detail_rows(),
@@ -254,9 +254,7 @@ mod tests {
         let sheet_tone = |summary: &GemSwapQuoteSummary| {
             summary.detail_rows().into_iter().find_map(|row| match row {
                 GemListRow::Label {
-                    title: GemListRowTitle::PriceImpact,
-                    tone,
-                    ..
+                    title: GemListRowTitle::PriceImpact, tone, ..
                 } => Some(tone),
                 _ => None,
             })
@@ -287,13 +285,7 @@ mod tests {
     fn test_the_details_sheet_opens_with_the_rate_both_ways() {
         use crate::models::list::{GemListRow, GemListRowTitle};
 
-        let summary = swap_quote_summary(
-            SwapQuote::mock_with_provider(SwapProvider::UniswapV3),
-            Asset::from_chain(Chain::Ethereum),
-            Asset::from_chain(Chain::Solana),
-            None,
-            None,
-        );
+        let summary = swap_quote_summary(SwapQuote::mock_with_provider(SwapProvider::UniswapV3), Asset::from_chain(Chain::Ethereum), Asset::from_chain(Chain::Solana), None, None);
         let rate = summary.rate.clone().unwrap();
 
         assert_eq!(

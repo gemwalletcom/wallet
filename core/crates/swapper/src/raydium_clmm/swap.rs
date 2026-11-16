@@ -1,7 +1,6 @@
 use borsh::BorshSerialize;
 use gem_solana::{
-    AccountMeta, Instruction, Pubkey,
-    anchor::instruction_data,
+    AccountMeta, Instruction, Pubkey, anchor,
     instructions::program_ids::{memo_program, raydium_clmm_program, token_2022_program, token_program},
 };
 
@@ -58,7 +57,7 @@ pub(super) fn swap_v2_instruction(address: &Pubkey, pool: &PoolState, swap: &Poo
     .into_iter()
     .chain(swap_tick_arrays(address, pool, zero_for_one)?)
     .collect();
-    raydium_instruction(SWAP_V2, &args, accounts)
+    Ok(anchor::instruction(raydium_clmm_program(), SWAP_V2, &args, accounts))
 }
 
 pub(super) fn swap_router_base_in_instruction(first: &(Pubkey, PoolState), second: &(Pubkey, PoolState), swap: &PoolSwap, intermediate: &SwapToken) -> Result<Instruction, SwapperError> {
@@ -81,7 +80,7 @@ pub(super) fn swap_router_base_in_instruction(first: &(Pubkey, PoolState), secon
     .into_iter()
     .chain(hops.into_iter().flatten())
     .collect();
-    raydium_instruction(SWAP_ROUTER_BASE_IN, &args, accounts)
+    Ok(anchor::instruction(raydium_clmm_program(), SWAP_ROUTER_BASE_IN, &args, accounts))
 }
 
 fn router_hop_accounts(address: &Pubkey, pool: &PoolState, authority: Pubkey, input: &SwapToken, output: &SwapToken) -> Result<Vec<AccountMeta>, SwapperError> {
@@ -110,14 +109,6 @@ fn swap_tick_arrays(address: &Pubkey, pool: &PoolState, zero_for_one: bool) -> R
     Ok(bitmap_extension.into_iter().chain(TickArray::addresses(address, tick_arrays.starts())?.into_iter().map(AccountMeta::new_writable)).collect())
 }
 
-fn raydium_instruction(name: &str, args: &impl BorshSerialize, accounts: Vec<AccountMeta>) -> Result<Instruction, SwapperError> {
-    Ok(Instruction {
-        program_id: raydium_clmm_program(),
-        accounts,
-        data: instruction_data(name, args),
-    })
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -137,8 +128,11 @@ mod tests {
             amount_out_minimum: 2_800_000_000,
         };
 
-        assert_eq!(instruction_data(SWAP_V2, &swap_v2), hex::decode("2b04ed0b1ac91e62e03fee0500000000009ce4a6000000000000000000000000000000000000000001").unwrap());
-        assert_eq!(instruction_data(SWAP_ROUTER_BASE_IN, &router), hex::decode("457d73daf5baf2c4e03fee0500000000009ce4a600000000").unwrap());
+        assert_eq!(
+            anchor::instruction_data(SWAP_V2, &swap_v2),
+            hex::decode("2b04ed0b1ac91e62e03fee0500000000009ce4a6000000000000000000000000000000000000000001").unwrap()
+        );
+        assert_eq!(anchor::instruction_data(SWAP_ROUTER_BASE_IN, &router), hex::decode("457d73daf5baf2c4e03fee0500000000009ce4a600000000").unwrap());
     }
 
     #[test]
@@ -165,6 +159,7 @@ mod tests {
         let tick_arrays = TickArray::addresses(&address, pool.swap_tick_arrays(false).unwrap().starts()).unwrap();
 
         assert_eq!(instruction.program_id, raydium_clmm_program());
+        assert_eq!(instruction.data, hex::decode("2b04ed0b1ac91e6264000000000000005a000000000000000000000000000000000000000000000001").unwrap());
         assert_eq!(
             instruction.accounts,
             [
@@ -219,6 +214,8 @@ mod tests {
         let instruction = swap_router_base_in_instruction(&first_pool, &second_pool, &swap, &intermediate).unwrap();
         let hop = |(address, pool): &(Pubkey, PoolState), input: &SwapToken, output: &SwapToken| router_hop_accounts(address, pool, swap.authority, input, output).unwrap();
 
+        assert_eq!(instruction.program_id, raydium_clmm_program());
+        assert_eq!(instruction.data, hex::decode("457d73daf5baf2c464000000000000005a00000000000000").unwrap());
         assert_eq!(
             instruction.accounts,
             [

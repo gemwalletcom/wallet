@@ -25,31 +25,12 @@ public final class GemWalletConnectServiceMock: GemWalletConnectServiceProtocol,
 
     public private(set) var addedConnections: [Gemstone.WalletConnection] = []
     public private(set) var viewedConnections: [Gemstone.WalletConnection] = []
-    public private(set) var deletedSessionIds: [String] = []
     public private(set) var updatedSessions: [[Gemstone.WalletConnectionSession]] = []
-    public private(set) var processedRequests: [GemWalletConnectSessionRequest] = []
-    public private(set) var seenMessageIds: [String] = []
 
     public init() {}
 
     public func addConnection(connection: Gemstone.WalletConnection) async throws {
         addedConnections.append(connection)
-    }
-
-    public func applicationMetadata(name: String, description: String, url: String, icons: [String]) -> Gemstone.ApplicationMetadata {
-        Gemstone.ApplicationMetadata(name: name, description: description, url: url, icon: icons.first ?? "", source: .walletConnect)
-    }
-
-    public func authenticationAccounts(chainIds _: [String], wallet _: Gemstone.Wallet) -> [GemWalletConnectAuthAccount] {
-        []
-    }
-
-    public func authenticationMethods() -> [String] {
-        []
-    }
-
-    public func configSessionProperties(properties: [String: String], caip2Chains _: [String], accounts _: [Gemstone.Account]) async -> [String: String] {
-        properties
     }
 
     public func connectionDetails(connection: Gemstone.WalletConnection) -> GemConnectionDetails {
@@ -68,10 +49,6 @@ public final class GemWalletConnectServiceMock: GemWalletConnectServiceProtocol,
             ),
             docsUrl: "https://docs.gemwallet.com/guides/walletconnect/",
         )
-    }
-
-    public func deleteSession(sessionId: String) async throws {
-        deletedSessionIds.append(sessionId)
     }
 
     public func hasSessions() async throws -> Bool {
@@ -101,11 +78,6 @@ public final class GemWalletConnectServiceMock: GemWalletConnectServiceProtocol,
         )
     }
 
-    public func requestOutcome(request: GemWalletConnectSessionRequest) async -> GemWalletConnectOutcome {
-        processedRequests.append(request)
-        return .ignored
-    }
-
     public func session(topic: String, accounts _: [String], expireAt: Int64, metadata: Gemstone.ApplicationMetadata) throws -> Gemstone.WalletConnectionSession {
         Gemstone.WalletConnectionSession(
             id: topic,
@@ -118,19 +90,8 @@ public final class GemWalletConnectServiceMock: GemWalletConnectServiceProtocol,
         )
     }
 
-    public func sessionRejection(reason: GemWalletConnectRejectionReason) -> GemWalletConnectRejection {
-        GemWalletConnectRejection(reason: reason, code: 4001, message: "Rejected", deletesSession: true)
-    }
-
     public func sessionApproval(wallet _: Gemstone.Wallet) -> GemSessionApproval {
         GemSessionApproval(chains: [], accounts: [], methods: [], events: [])
-    }
-
-    public func shouldProcessProposal(proposerPublicKey: String) -> Bool {
-        let messageId = "proposal-\(proposerPublicKey)"
-        let seen = seenMessageIds.contains(messageId)
-        seenMessageIds.append(messageId)
-        return !seen
     }
 
     public func updateSessions(sessions: [Gemstone.WalletConnectionSession]) async throws {

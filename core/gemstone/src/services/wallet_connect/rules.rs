@@ -360,10 +360,6 @@ pub fn method_not_found_error() -> GemWalletConnectRpcError {
     }
 }
 
-pub fn proposal_message_id(proposer_public_key: &str) -> String {
-    format!("proposal-{proposer_public_key}")
-}
-
 pub fn request_message_id(topic: &str, request_id: &str) -> String {
     format!("request-{topic}-{request_id}")
 }

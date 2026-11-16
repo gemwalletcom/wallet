@@ -2127,11 +2127,9 @@ public extension Gemstone.SwapData {
 public extension Gemstone.SwapProviderData {
     static func mock(
         provider: Gemstone.SwapProvider = .uniswapV3,
-        protocolName: String = "",
     ) -> Gemstone.SwapProviderData {
         Gemstone.SwapProviderData(
             provider: provider,
-            protocolName: protocolName,
         )
     }
 }
@@ -2218,7 +2216,6 @@ public extension Gemstone.SwapperProviderType {
     static func mock(
         id: Gemstone.SwapProvider = .uniswapV3,
         name: String = "",
-        protocol: String = "",
         protocolId: String = "",
         mode: Gemstone.SwapperProviderMode = .onChain,
         slippageMode: Gemstone.SwapperSlippageMode = .auto,
@@ -2226,7 +2223,6 @@ public extension Gemstone.SwapperProviderType {
         Gemstone.SwapperProviderType(
             id: id,
             name: name,
-            protocol: `protocol`,
             protocolId: protocolId,
             mode: mode,
             slippageMode: slippageMode,

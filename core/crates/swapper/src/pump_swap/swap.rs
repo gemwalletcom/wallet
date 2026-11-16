@@ -1,7 +1,5 @@
 use gem_solana::{
-    AccountMeta, Instruction, Pubkey,
-    anchor::instruction_data,
-    find_program_address,
+    AccountMeta, Instruction, Pubkey, anchor, find_program_address,
     instructions::program_ids::{pump_amm_program, system_program},
 };
 use primitives::decode_hex_literal;
@@ -45,11 +43,7 @@ pub(super) fn swap_v2_instruction(address: &Pubkey, pool: &Pool, swap: &PoolSwap
         AccountMeta::new_readonly(EVENT_AUTHORITY),
         AccountMeta::new_readonly(pump_amm_program()),
     ];
-    Ok(Instruction {
-        program_id: pump_amm_program(),
-        accounts,
-        data: instruction_data(name, &SwapAmounts { minimum_out, ..swap.amounts() }),
-    })
+    Ok(anchor::instruction(pump_amm_program(), name, &SwapAmounts { minimum_out, ..swap.amounts() }, accounts))
 }
 
 fn user_volume_accumulator(user: &Pubkey) -> Result<Pubkey, SwapperError> {

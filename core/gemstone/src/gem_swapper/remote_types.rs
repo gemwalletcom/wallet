@@ -10,7 +10,6 @@ pub use swapper::{
 pub struct SwapperProviderType {
     pub id: SwapperProvider,
     pub name: String,
-    pub protocol: String,
     pub protocol_id: String,
     pub mode: SwapperProviderMode,
     pub slippage_mode: SwapperSlippageMode,

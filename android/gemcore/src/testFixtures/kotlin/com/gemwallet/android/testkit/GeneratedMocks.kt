@@ -2571,10 +2571,8 @@ fun mockSwapData(
 
 fun mockSwapProviderData(
     provider: uniffi.gemstone.SwapProvider = uniffi.gemstone.SwapProvider.UNISWAP_V3,
-    protocolName: String = "",
 ) = uniffi.gemstone.SwapProviderData(
     provider = provider,
-    protocolName = protocolName,
 )
 
 fun mockSwapQuote(
@@ -2642,14 +2640,12 @@ fun mockSwapperProviderData(
 fun mockSwapperProviderType(
     id: uniffi.gemstone.SwapProvider = uniffi.gemstone.SwapProvider.UNISWAP_V3,
     name: String = "",
-    protocol: String = "",
     protocolId: String = "",
     mode: uniffi.gemstone.SwapperProviderMode = uniffi.gemstone.SwapperProviderMode.OnChain,
     slippageMode: uniffi.gemstone.SwapperSlippageMode = uniffi.gemstone.SwapperSlippageMode.AUTO,
 ) = uniffi.gemstone.SwapperProviderType(
     id = id,
     name = name,
-    protocol = protocol,
     protocolId = protocolId,
     mode = mode,
     slippageMode = slippageMode,
