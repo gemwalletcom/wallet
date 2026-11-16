@@ -1,9 +1,11 @@
 package com.gemwallet.android.features.transfer.presents.receive
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
@@ -84,15 +86,16 @@ private fun LightningReceiveScene(title: String, closeIcon: Boolean, receive: Ge
         },
         mainAction = { MainActionButton(title = stringResource(R.string.common_copy), icon = AppIcons.ContentCopy, onClick = onCopy) },
     ) {
-        Spacer(modifier = Modifier.weight(1f))
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = paddingDefault),
             horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
         ) {
             ReceiveQrCard(content = receive.qr, caption = receive.copy.display, onCopy = onCopy, imageSize = receiveQrLargeWidth())
         }
-        Spacer(modifier = Modifier.weight(1f))
     }
 }

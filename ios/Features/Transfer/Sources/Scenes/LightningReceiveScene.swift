@@ -59,9 +59,13 @@ public struct LightningReceiveScene: View {
 
     private func receiveView(_ receive: GemLightningReceive) -> some View {
         VStack(spacing: .large) {
-            Spacer()
-            ReceiveQRCodeCard(image: model.renderedImage, text: receive.copy.display, size: ReceiveQRCodeCard.largeSize, action: model.onCopy)
-            Spacer()
+            GeometryReader { geometry in
+                ScrollView {
+                    ReceiveQRCodeCard(image: model.renderedImage, text: receive.copy.display, size: ReceiveQRCodeCard.largeSize, action: model.onCopy)
+                        .frame(maxWidth: .infinity, minHeight: geometry.size.height)
+                }
+                .scrollBounceBehavior(.basedOnSize)
+            }
             StateButton(text: model.copyTitle, image: Images.System.copy, action: model.onCopy)
                 .frame(maxWidth: .scene.button.maxWidth)
         }
