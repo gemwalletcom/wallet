@@ -35,13 +35,12 @@ import com.gemwallet.android.ui.theme.paddingMiddle
 import com.gemwallet.android.ui.theme.smallIconSize
 import com.gemwallet.android.ui.theme.space2
 import uniffi.gemstone.GemBannerContent
-import uniffi.gemstone.GemBannerDestination
 import uniffi.gemstone.GemBannerKey
 import uniffi.gemstone.GemBannerRow
 import uniffi.gemstone.GemBannerStyle
 
 @Composable
-fun Banner(banner: GemBannerRow, onSelect: (GemBannerDestination) -> Unit, onClose: (GemBannerKey) -> Unit, onBuy: () -> Unit = {}, onReceive: () -> Unit = {}) {
+fun <Destination> Banner(banner: GemBannerRow, destination: Destination?, onSelect: (Destination) -> Unit, onClose: (GemBannerKey) -> Unit, onBuy: () -> Unit = {}, onReceive: () -> Unit = {}) {
     val content = banner.content
     if (content.style == GemBannerStyle.WELCOME) {
         WelcomeBanner(content = content, onBuy = onBuy, onReceive = onReceive, onClose = { onClose(banner.key) })
@@ -49,7 +48,7 @@ fun Banner(banner: GemBannerRow, onSelect: (GemBannerDestination) -> Unit, onClo
     }
     Box(
         modifier = Modifier.listItem(ListPosition.Single).clickable {
-            content.destination?.let(onSelect)
+            destination?.let(onSelect)
         },
     ) {
         BannerText(

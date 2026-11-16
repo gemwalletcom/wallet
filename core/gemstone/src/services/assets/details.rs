@@ -178,7 +178,7 @@ impl GemAssetDetailsService {
             },
             title: rules::asset_title(&asset),
             state: rules::details_state(wallet_type, &metadata, &banner_events, price_alerts.as_deref()),
-            banner: visible_banners.into_iter().next(),
+            banner: visible_banners.into_iter().next().map(|row| self.banners.asset_banner(row)),
             sections: rules::details_sections(rules::DetailsSectionsInput {
                 wallet_type,
                 asset: &asset,

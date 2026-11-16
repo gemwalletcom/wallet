@@ -51,7 +51,8 @@ public struct WalletScene: View {
             if let banner = state.banner {
                 Section {
                     BannerView(
-                        row: banner,
+                        row: banner.row,
+                        destination: banner.destination,
                         onDestination: model.onSelectBanner(destination:),
                         onButton: model.onSelectBanner(button:),
                         onClose: model.onCloseBanner,

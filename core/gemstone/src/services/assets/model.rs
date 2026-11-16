@@ -7,7 +7,7 @@ use crate::models::custom_types::GemBigInt;
 use crate::models::list::{GemListRow, GemListSectionTitle, GemRowAction};
 use crate::models::state::GemListPhase;
 use crate::services::balance::GemAssetBalanceRow;
-use crate::services::banner::GemBannerRow;
+use crate::services::banner::GemAssetBanner;
 use crate::services::empty_state::GemEmptyState;
 use crate::services::localization::GemLocalizedText;
 use crate::services::nft::model::GemNftEntry;
@@ -849,7 +849,7 @@ pub enum GemAssetOption {
 pub struct GemAssetDetails {
     pub state: GemAssetDetailsState,
     pub header: GemValueHeader,
-    pub banner: Option<GemBannerRow>,
+    pub banner: Option<GemAssetBanner>,
     pub sections: Vec<GemAssetDetailSection>,
     pub title: String,
     pub options: Vec<GemAssetOption>,

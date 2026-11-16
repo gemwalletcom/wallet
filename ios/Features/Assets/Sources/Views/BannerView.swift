@@ -4,7 +4,6 @@ import Components
 import Foundation
 import enum Gemstone.GemBannerButton
 import struct Gemstone.GemBannerContent
-import enum Gemstone.GemBannerDestination
 import struct Gemstone.GemBannerKey
 import struct Gemstone.GemBannerRow
 import Primitives
@@ -12,19 +11,22 @@ import PrimitivesComponents
 import Style
 import SwiftUI
 
-public struct BannerView: View {
+public struct BannerView<Destination>: View {
     private let row: GemBannerRow
-    private let onDestination: (GemBannerDestination) -> Void
+    private let destination: Destination?
+    private let onDestination: (Destination) -> Void
     private let onButton: (GemBannerButton) -> Void
     private let onClose: (GemBannerKey) -> Void
 
     public init(
         row: GemBannerRow,
-        onDestination: @escaping (GemBannerDestination) -> Void,
-        onButton: @escaping (GemBannerButton) -> Void,
+        destination: Destination?,
+        onDestination: @escaping (Destination) -> Void,
+        onButton: @escaping (GemBannerButton) -> Void = { _ in },
         onClose: @escaping (GemBannerKey) -> Void,
     ) {
         self.row = row
+        self.destination = destination
         self.onDestination = onDestination
         self.onButton = onButton
         self.onClose = onClose
@@ -54,7 +56,7 @@ public struct BannerView: View {
 private extension BannerView {
     private var listView: some View {
         Button(
-            action: { content.destination.map(onDestination) },
+            action: { destination.map(onDestination) },
             label: {
                 HStack(spacing: .zero) {
                     ListItemView(model: ListItemModel(title: content.title?.text, titleExtra: content.description?.text, imageStyle: content.icon?.imageStyle))

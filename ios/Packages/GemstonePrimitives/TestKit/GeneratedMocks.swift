@@ -166,7 +166,7 @@ public extension Gemstone.GemAssetDetails {
     static func mock(
         state: Gemstone.GemAssetDetailsState = .mock(),
         header: Gemstone.GemValueHeader = .mock(),
-        banner: Gemstone.GemBannerRow? = nil,
+        banner: Gemstone.GemAssetBanner? = nil,
         sections: [Gemstone.GemAssetDetailSection] = [],
         title: String = "",
         options: [Gemstone.GemAssetOption] = [],
@@ -1612,7 +1612,7 @@ public extension Gemstone.GemWalletHomeViewState {
         header: Gemstone.GemValueHeader = .mock(),
         showCollections: Bool = false,
         showsPerpetuals: Bool = false,
-        banner: Gemstone.GemBannerRow? = nil,
+        banner: Gemstone.GemWalletBanner? = nil,
         pinnedAssetIds: [Primitives.AssetId] = [],
         assetIds: [Primitives.AssetId] = [],
     ) -> Gemstone.GemWalletHomeViewState {

@@ -3,13 +3,13 @@
 import Components
 import Foundation
 import enum Gemstone.GemBannerButton
-import enum Gemstone.GemBannerDestination
 import struct Gemstone.GemBannerKey
 import enum Gemstone.GemHeaderButtonAction
 import enum Gemstone.GemInfoTopic
 import struct Gemstone.GemNftEntry
 import struct Gemstone.GemPerpetualCollateral
 import struct Gemstone.GemToast
+import enum Gemstone.GemWalletBannerDestination
 import protocol Gemstone.GemWalletHomeServiceProtocol
 import struct Gemstone.GemWalletHomeViewState
 import struct Gemstone.GemWalletRow
@@ -173,10 +173,9 @@ public extension WalletSceneViewModel {
         isPresentingSheet.wrappedValue = .infoSheet(GemInfoTopic.watchWallet.infoSheet)
     }
 
-    internal func onSelectBanner(destination: GemBannerDestination) {
+    internal func onSelectBanner(destination: GemWalletBannerDestination) {
         switch destination {
         case let .url(url): isPresentingUrl = URL(string: url)
-        case .stake, .activateAsset, .perpetuals: break
         }
     }
 
