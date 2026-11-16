@@ -124,6 +124,37 @@ class TransactionsViewModelSyncTest {
         assertFalse(viewModel.isRefreshing.value)
     }
 
+    @Test
+    fun `timer refresh runs without the spinner`() = runBlocking {
+        val pending = CompletableDeferred<GemLoadState>()
+        coEvery { service.refresh(null) } coAnswers { pending.await() }
+        val viewModel = createViewModel()
+
+        val timer = viewModel.refreshOnTimer()
+        assertFalse(viewModel.isRefreshing.value)
+
+        pending.complete(GemLoadState.Data)
+        timer?.join()
+        coVerify(exactly = 1) { service.refresh(null) }
+    }
+
+    @Test
+    fun `timer refresh leaves a pull in flight running`() = runBlocking {
+        val pending = CompletableDeferred<GemLoadState>()
+        coEvery { service.refresh(null) } coAnswers { pending.await() }
+        val viewModel = createViewModel()
+
+        val pull = checkNotNull(viewModel.refresh())
+        viewModel.refreshOnTimer()
+        assertTrue(viewModel.isRefreshing.value)
+
+        pending.complete(GemLoadState.Data)
+        pull.join()
+        assertFalse(pull.isCancelled)
+        assertFalse(viewModel.isRefreshing.value)
+        coVerify(exactly = 1) { service.refresh(null) }
+    }
+
     private fun createViewModel() = TransactionsViewModel(
         getSession = getSession,
         getTransactions = getTransactions,

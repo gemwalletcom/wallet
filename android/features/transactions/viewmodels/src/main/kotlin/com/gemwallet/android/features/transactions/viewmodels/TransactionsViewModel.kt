@@ -117,6 +117,12 @@ class TransactionsViewModel @Inject constructor(
         return sync(current, showsSpinner = true)
     }
 
+    fun refreshOnTimer(): Job? {
+        val current = walletId.value ?: return null
+        if (refreshJob?.isActive == true) return null
+        return sync(current, showsSpinner = false)
+    }
+
     private fun sync(wallet: WalletId, showsSpinner: Boolean): Job {
         refreshJob?.cancel()
         val job = viewModelScope.launch(ioDispatcher, start = CoroutineStart.LAZY) {
