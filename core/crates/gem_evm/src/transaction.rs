@@ -1,6 +1,6 @@
 use crate::u256::u256_to_biguint;
 use alloy_primitives::{Address, U256};
-use alloy_sol_types::SolCall;
+use alloy_sol_types::{SolCall, SolInterface};
 use num_bigint::BigUint;
 use num_traits::Zero;
 use primitives::Chain;
@@ -58,6 +58,14 @@ fn decode_calldata_kind(chain: Chain, to: &str, calldata: &[u8]) -> Result<EvmTr
 pub fn decode_nft_collection_approval_operator(calldata: &[u8]) -> Option<Address> {
     let approval = IERC721::setApprovalForAllCall::abi_decode(calldata).ok()?;
     approval.approved.then_some(approval.operator)
+}
+
+pub fn decode_token_transfer_recipient(calldata: &[u8]) -> Option<Address> {
+    match IERC20::IERC20Calls::abi_decode(calldata).ok()? {
+        IERC20::IERC20Calls::transfer(transfer) => Some(transfer.to),
+        IERC20::IERC20Calls::transferFrom(transfer) => Some(transfer.to),
+        _ => None,
+    }
 }
 
 pub fn is_unlimited_approval(value: &BigUint) -> bool {

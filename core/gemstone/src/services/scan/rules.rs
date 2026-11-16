@@ -1,7 +1,8 @@
-use gem_evm::transaction::decode_nft_collection_approval_operator;
+use gem_evm::transaction::{decode_nft_collection_approval_operator, decode_token_transfer_recipient};
+use gem_tron::decode_wallet_connect_token_recipient;
 use primitives::{
     AssetId, Chain, ChainType, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, SimulationPayloadFieldKind, SimulationResult, SimulationSeverity, SimulationWarning, SimulationWarningType, TransactionInputType,
-    TransactionPreloadInput, TransactionType,
+    TransactionPreloadInput, TransactionType, TransferDataExtra,
 };
 
 fn requires_scan(input_type: &TransactionInputType) -> bool {
@@ -50,18 +51,27 @@ fn scan_target(input: &TransactionPreloadInput) -> ScanAddressTarget {
         };
     }
     if let TransactionInputType::Generic { asset, extra, .. } = &input.input_type
-        && asset.chain().chain_type() == ChainType::Ethereum
-        && let Some(operator) = extra.data.as_deref().and_then(decode_nft_collection_approval_operator)
+        && let Some(target) = contract_call_target(asset.chain(), extra)
     {
-        return ScanAddressTarget {
-            asset_id: AssetId::from_token(asset.chain(), &extra.to),
-            address: operator.to_string(),
-        };
+        return target;
     }
     ScanAddressTarget {
         asset_id: input.input_type.get_recipient_asset().id.clone(),
         address: input.destination_address.clone(),
     }
+}
+
+fn contract_call_target(chain: Chain, extra: &TransferDataExtra) -> Option<ScanAddressTarget> {
+    let data = extra.data.as_deref()?;
+    let address = match chain.chain_type() {
+        ChainType::Ethereum => decode_nft_collection_approval_operator(data).or_else(|| decode_token_transfer_recipient(data))?.to_string(),
+        ChainType::Tron => decode_wallet_connect_token_recipient(std::str::from_utf8(data).ok()?).ok().flatten()?,
+        _ => return None,
+    };
+    Some(ScanAddressTarget {
+        asset_id: AssetId::from_token(chain, &extra.to),
+        address,
+    })
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -197,32 +207,45 @@ mod tests {
     }
 
     #[test]
-    fn test_a_dapp_collection_approval_scans_the_operator_and_the_collection() {
-        let collection = "0x1111111111111111111111111111111111111111";
-        let operator = "0x2222222222222222222222222222222222222222";
-        let collection_approval = |approved: &str| TransactionPreloadInput {
-            input_type: TransactionInputType::Generic {
-                asset: Asset::mock_eth(),
-                metadata: ApplicationMetadata::mock(),
-                extra: TransferDataExtra {
-                    to: collection.to_string(),
-                    data: Some(primitives::hex::decode(format!("a22cb465{:0>64}{approved:0>64}", &operator[2..])).unwrap()),
-                    transaction_type: TransactionType::SmartContractCall,
-                    ..TransferDataExtra::mock()
-                },
-            },
-            sender_address: "sender".to_string(),
-            destination_address: collection.to_string(),
-            references: vec![],
+    fn test_contract_call_target() {
+        let token = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
+        let recipient = "0x2222222222222222222222222222222222222222";
+        let recipient_word = format!("{:0>64}", &recipient[2..]);
+        let amount_word = format!("{:0>64}", "64");
+        let recipient_target = ScanAddressTarget {
+            asset_id: AssetId::from_token(Chain::Ethereum, token),
+            address: recipient.to_string(),
         };
+        for (calldata, expected) in [
+            (format!("a9059cbb{recipient_word}{amount_word}"), Some(recipient_target.clone())),
+            (format!("23b872dd{:0>64}{recipient_word}{amount_word}", "11"), Some(recipient_target.clone())),
+            (format!("a22cb465{recipient_word}{:0>64}", "1"), Some(recipient_target)),
+            (format!("a22cb465{recipient_word}{:0>64}", "0"), None),
+            (format!("70a08231{recipient_word}"), None),
+        ] {
+            let extra = TransferDataExtra {
+                to: token.to_string(),
+                ..TransferDataExtra::mock_encoded_transaction(primitives::hex::decode(&calldata).unwrap())
+            };
+            assert_eq!(contract_call_target(Chain::Ethereum, &extra), expected, "{calldata}");
+        }
 
-        let granted = transaction_payload(&collection_approval("1")).unwrap().target;
-        assert_eq!(granted.address, operator, "the scan asks about who can move the collection, not the collection");
-        assert_eq!(granted.asset_id, AssetId::from_token(Chain::Ethereum, collection));
+        let tron_usdt = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
+        let transfer = TransferDataExtra {
+            to: tron_usdt.to_string(),
+            ..TransferDataExtra::mock_encoded_transaction(include_bytes!("../../../../crates/gem_tron/testdata/wallet_connect_trc20_transfer.json").to_vec())
+        };
+        let expected = ScanAddressTarget {
+            asset_id: AssetId::from_token(Chain::Tron, tron_usdt),
+            address: "TA7mCjHFfo68FG3wc6pDCeRGbJSPZkBfL7".to_string(),
+        };
+        assert_eq!(contract_call_target(Chain::Tron, &transfer), Some(expected));
 
-        let revoked = transaction_payload(&collection_approval("0")).unwrap().target;
-        assert_eq!(revoked.address, collection, "a revoke grants nothing, so the contract called stays the target");
-        assert_eq!(revoked.asset_id, Asset::mock_eth().id);
+        let approval = TransferDataExtra {
+            to: tron_usdt.to_string(),
+            ..TransferDataExtra::mock_encoded_transaction(include_bytes!("../../../../crates/gem_wallet_connect/testdata/tron_send_transaction.json").to_vec())
+        };
+        assert_eq!(contract_call_target(Chain::Tron, &approval), None);
     }
 
     #[test]
