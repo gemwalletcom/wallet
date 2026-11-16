@@ -24,7 +24,7 @@ pub(crate) use transaction::{build_amount_coin, build_sui_amount_coin, build_sui
 pub use transaction::{build_input_coin, decode_transaction, finish_transaction, move_call, validate_and_hash, zero_coin};
 pub use transaction_json::is_transaction_json;
 #[cfg(feature = "rpc")]
-pub use transaction_json::{ReplayedTransaction, TransactionJsonReplay, finish_transaction_json, finish_transaction_json_from_sender, prepare_transaction_json_replay, validate_wallet_connect_sender};
+pub use transaction_json::{ReplayedTransaction, TransactionJsonReplay, finish_transaction_json, prepare_transaction_json_replay, validate_wallet_connect_sender};
 pub use transfer::*;
 
 pub use crate::types::Argument;
