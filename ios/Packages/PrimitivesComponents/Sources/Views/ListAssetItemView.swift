@@ -80,11 +80,9 @@ extension ListAssetItemView {
             VStack(alignment: .trailing, spacing: .tiny) {
                 PrivacyText(value.text.text, isEnabled: isPrivacyEnabled)
                     .textStyle(TextStyle(font: .callout, color: value.tone.color, fontWeight: .semibold))
-                    .numericTransition(for: value.text.text)
                 if let extra {
                     PrivacyText(extra.text.text, isEnabled: isPrivacyEnabled)
                         .textStyle(TextStyle(font: .footnote, color: extra.tone.color))
-                        .numericTransition(for: extra.text.text)
                 }
             }
             .lineLimit(1)
