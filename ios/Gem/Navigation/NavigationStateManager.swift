@@ -18,7 +18,7 @@ final class NavigationStateManager: Sendable {
     var previousSelectedTab: TabItem = .wallet
 
     @MainActor
-    var walletTabReselected = false
+    var isPresentingWalletSearch = false
 
     @MainActor
     var pendingWalletPath: [any Hashable & Codable] = []
@@ -41,7 +41,7 @@ extension NavigationStateManager {
 
     func backToRoot(tab: TabItem) {
         if wallet.isEmpty {
-            walletTabReselected.toggle()
+            isPresentingWalletSearch = false
         }
 
         switch tab {
@@ -56,6 +56,7 @@ extension NavigationStateManager {
             backToRoot(tab: tabItem)
         }
         selectedTab = .wallet
+        isPresentingWalletSearch = false
         wallet.setPath(pendingWalletPath)
         pendingWalletPath = []
     }

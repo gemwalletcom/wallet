@@ -21,13 +21,13 @@ struct WalletNavigationView: View {
     var body: some View {
         ZStack {
             WalletScene(model: model)
-                .opacity(model.isPresentingSearch ? 0 : 1)
+                .opacity(navigationState.isPresentingWalletSearch ? 0 : 1)
 
-            if model.isPresentingSearch {
+            if navigationState.isPresentingWalletSearch {
                 WalletSearchScene(
                     model: viewModelFactory.walletSearchScene(
                         wallet: model.wallet,
-                        onDismissSearch: model.onToggleSearch,
+                        onDismissSearch: onDismissSearch,
                         onSelectAssetAction: navigationRouter.openAsset,
                         onAddToken: model.onSelectAddCustomToken,
                     ),
@@ -35,7 +35,6 @@ struct WalletNavigationView: View {
                 .transition(.opacity)
             }
         }
-        .onChange(of: navigationState.walletTabReselected, model.onWalletTabReselected)
         .bindQuery(
             model.walletQuery,
             model.assetsQuery,
@@ -48,7 +47,7 @@ struct WalletNavigationView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) {
-                if !model.isPresentingSearch {
+                if !navigationState.isPresentingWalletSearch {
                     WalletBarView(
                         row: model.walletRow,
                         action: model.onSelectWalletBar,
@@ -56,7 +55,7 @@ struct WalletNavigationView: View {
                     .liquidGlass()
                 }
             }
-            if !model.isPresentingSearch {
+            if !navigationState.isPresentingWalletSearch {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button(action: model.onSelectScanner) {
                         model.scannerImage
@@ -64,7 +63,7 @@ struct WalletNavigationView: View {
                     .accessibilityIdentifier("scan")
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: model.onToggleSearch) {
+                    Button(action: onSelectSearch) {
                         model.searchImage
                     }
                     .accessibilityIdentifier("search")
@@ -80,6 +79,14 @@ struct WalletNavigationView: View {
 // MARK: - Actions
 
 extension WalletNavigationView {
+    private func onSelectSearch() {
+        navigationState.isPresentingWalletSearch = true
+    }
+
+    private func onDismissSearch() {
+        navigationState.isPresentingWalletSearch = false
+    }
+
     private func onScan(_ code: String) {
         Task { await navigationRouter.open(code: code) }
     }
