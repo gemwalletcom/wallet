@@ -319,7 +319,12 @@ impl SystemJobs {
     }
 
     pub fn inactive_devices_observer(&self) -> InactiveDevicesObserver {
-        InactiveDevicesObserver::new(self.system_repository(), self.throttle.clone(), self.stream_producer.clone())
+        InactiveDevicesObserver::new(
+            self.system_repository(),
+            Arc::new(crate::devices::repository::PostgresRepository::new(self.database.clone())),
+            self.throttle.clone(),
+            self.stream_producer.clone(),
+        )
     }
 
     pub fn version_updater(&self) -> VersionUpdater {

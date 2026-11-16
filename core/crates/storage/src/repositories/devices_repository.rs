@@ -53,10 +53,7 @@ impl QueryFilter<crate::schema::devices::table> for DeviceFilter {
 
 pub trait DevicesRepository {
     fn add_device(&mut self, device: Device) -> Result<Device, DatabaseError>;
-    fn get_device(&mut self, device_id: &str) -> Result<Device, DatabaseError>;
     fn get_device_record(&mut self, device_id: &str) -> Result<DeviceRecord, DatabaseError>;
-    fn get_device_exist(&mut self, device_id: &str) -> Result<bool, DatabaseError>;
-    fn get_device_row_id(&mut self, device_id: &str) -> Result<i32, DatabaseError>;
     fn update_device(&mut self, device: Device) -> Result<Device, DatabaseError>;
     fn update_devices(&mut self, filters: Vec<DeviceFilter>, updates: Vec<DeviceUpdate>) -> Result<usize, DatabaseError>;
     fn delete_devices_subscriptions_after_days(&mut self, days: i64) -> Result<usize, DatabaseError>;
@@ -82,24 +79,8 @@ impl DevicesRepository for DatabaseClient {
             .as_primitive())
     }
 
-    fn get_device(&mut self, device_id: &str) -> Result<Device, DatabaseError> {
-        Ok(device_row(self, device_id).or_not_found(device_id.to_string())?.as_primitive())
-    }
-
     fn get_device_record(&mut self, device_id: &str) -> Result<DeviceRecord, DatabaseError> {
         Ok(DeviceRecord::from_row(device_row(self, device_id).or_not_found(device_id.to_string())?))
-    }
-
-    fn get_device_exist(&mut self, device_id: &str) -> Result<bool, DatabaseError> {
-        match device_row(self, device_id) {
-            Ok(_) => Ok(true),
-            Err(diesel::result::Error::NotFound) => Ok(false),
-            Err(error) => Err(error.into()),
-        }
-    }
-
-    fn get_device_row_id(&mut self, device_id: &str) -> Result<i32, DatabaseError> {
-        Ok(device_row(self, device_id).or_not_found(device_id.to_string())?.id)
     }
 
     fn update_device(&mut self, device: Device) -> Result<Device, DatabaseError> {
@@ -190,7 +171,7 @@ mod database_integration_tests {
 
                 client.delete_devices_subscriptions_after_days(120)?;
 
-                Ok::<_, DatabaseError>((client.get_device("dormant")?.subscriptions_version, client.get_device("active")?.subscriptions_version))
+                Ok::<_, DatabaseError>((client.get_device_record("dormant")?.device.subscriptions_version, client.get_device_record("active")?.device.subscriptions_version))
             })
             .await
             .unwrap();

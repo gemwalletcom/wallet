@@ -85,7 +85,7 @@ impl Repository for PostgresRepository {
     async fn get_device_transactions(&self, device_id: String) -> Result<TransactionsResponse, DatabaseError> {
         self.database
             .run(move |client| {
-                let device_row_id = client.get_device_row_id(&device_id)?;
+                let device_row_id = client.get_device_record(&device_id)?.id;
                 let subscriptions = client.get_subscriptions(device_row_id)?;
                 let addresses = subscriptions.iter().map(|(_, subscription)| subscription.address.clone()).collect::<Vec<_>>();
                 let chains = subscriptions.iter().map(|(_, subscription)| subscription.chain.as_ref().to_string()).collect::<Vec<_>>();

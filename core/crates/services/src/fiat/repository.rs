@@ -53,7 +53,7 @@ impl Repository for PostgresRepository {
     async fn get_device_fiat_transactions(&self, device_id: String) -> Result<Vec<FiatTransaction>, DatabaseError> {
         self.database
             .run(move |client| {
-                let device_row_id = client.get_device_row_id(&device_id)?;
+                let device_row_id = client.get_device_record(&device_id)?.id;
                 client.get_fiat_transactions_by_device_id(device_row_id)
             })
             .await
