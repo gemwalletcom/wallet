@@ -9,10 +9,10 @@ import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withTimeoutOrNull
 import uniffi.gemstone.GemServiceException
-import uniffi.gemstone.GemWalletConnectTransport
+import uniffi.gemstone.GemSocketTransport
 import kotlin.time.Duration.Companion.seconds
 
-class WalletConnectRelay(private val connection: WebSocketConnectable) : GemWalletConnectTransport {
+class WalletConnectRelay(private val connection: WebSocketConnectable) : GemSocketTransport {
     private val isConnected = MutableStateFlow(false)
 
     fun connect(): Flow<WebSocketEvent> = connection.connect()

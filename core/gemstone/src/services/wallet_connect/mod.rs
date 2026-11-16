@@ -32,9 +32,7 @@ use crate::services::wallet_session::GemWalletSessionService;
 use crate::wallet_connect::WalletConnect;
 use gem_wallet_connect::{WalletConnectAction, WalletConnectChainOperation, WalletConnectTransaction, WalletConnectTransactionType};
 
-pub use client::{
-    GemWalletConnectAuthMessage, GemWalletConnectAuthentication, GemWalletConnectClient, GemWalletConnectEvent, GemWalletConnectListener, GemWalletConnectProposal, GemWalletConnectRelay, GemWalletConnectTransport, wallet_connect_relay,
-};
+pub use client::{GemWalletConnectAuthMessage, GemWalletConnectAuthentication, GemWalletConnectClient, GemWalletConnectEvent, GemWalletConnectListener, GemWalletConnectProposal, GemWalletConnectRelay, wallet_connect_relay};
 pub use error::GemWalletConnectError;
 pub use model::{
     GemConnection, GemConnectionDetails, GemConnectionsView, GemSessionApproval, GemSessionProposal, GemSignerFailure, GemWalletConnectAuthAccount, GemWalletConnectFailure, GemWalletConnectMessageRequest, GemWalletConnectOutcome,

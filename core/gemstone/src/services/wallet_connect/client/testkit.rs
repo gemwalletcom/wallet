@@ -16,11 +16,12 @@ use wallet_connect_protocol::testkit::{TEST_PEER_PUBLIC_KEY, TEST_PEER_SECRET, T
 use wallet_connect_protocol::verify;
 
 use super::state::{AnsweredRequest, Outgoing, Pairing, PendingRequest, Session};
-use super::{GemWalletConnectClient, GemWalletConnectEvent, GemWalletConnectListener, GemWalletConnectProposal, GemWalletConnectTransport};
+use super::{GemWalletConnectClient, GemWalletConnectEvent, GemWalletConnectListener, GemWalletConnectProposal};
 use crate::alien::AlienProvider;
 use crate::services::error::GemServiceError;
 use crate::services::preferences::GemSecureStore;
 use crate::services::preferences::testkit::MemorySecureStore;
+use crate::services::stream::GemSocketTransport;
 use crate::services::wallet_connect::GemWalletConnectService;
 use crate::testkit::TestAlienProvider;
 
@@ -35,7 +36,7 @@ pub struct MemoryTransport {
 }
 
 #[async_trait]
-impl GemWalletConnectTransport for MemoryTransport {
+impl GemSocketTransport for MemoryTransport {
     async fn send(&self, message: String) -> Result<(), GemServiceError> {
         if self.stalled.load(Ordering::SeqCst) {
             return futures::future::pending().await;

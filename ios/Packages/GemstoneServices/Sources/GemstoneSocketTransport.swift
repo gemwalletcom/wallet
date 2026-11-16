@@ -1,10 +1,10 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import protocol Gemstone.GemPerpetualStreamConnection
+import protocol Gemstone.GemSocketTransport
 import WebSocketClient
 
-public final class PerpetualStreamConnection: GemPerpetualStreamConnection, Sendable {
+public final class GemstoneSocketTransport: GemSocketTransport, Sendable {
     private let webSocket: any WebSocketConnectable
 
     public init(webSocket: any WebSocketConnectable) {

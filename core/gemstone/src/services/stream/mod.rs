@@ -5,7 +5,7 @@ pub mod subscription;
 #[cfg(test)]
 pub(crate) mod testkit;
 
-pub use connection::GemStreamConnection;
+pub use connection::{GemSocketTransport, GemStreamConnection};
 pub use model::GemStreamEvent;
 pub use subscription::GemStreamSubscriptionService;
 
