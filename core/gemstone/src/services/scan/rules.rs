@@ -1,5 +1,6 @@
 use gem_evm::transaction::{decode_nft_collection_approval_operator, decode_token_transfer_recipient};
 use gem_tron::decode_wallet_connect_token_recipient;
+use num_bigint::BigInt;
 use primitives::{
     AssetId, Chain, ChainType, ScanAddressTarget, ScanTransaction, ScanTransactionPayload, SimulationPayloadFieldKind, SimulationResult, SimulationSeverity, SimulationWarning, SimulationWarningType, TransactionInputType,
     TransactionPreloadInput, TransactionType, TransferDataExtra,
@@ -18,7 +19,7 @@ fn requires_scan(input_type: &TransactionInputType) -> bool {
     }
 }
 
-pub fn transaction_payload(input: &TransactionPreloadInput) -> Option<ScanTransactionPayload> {
+pub fn transaction_payload(input: &TransactionPreloadInput, value: &BigInt) -> Option<ScanTransactionPayload> {
     if !requires_scan(&input.input_type) {
         return None;
     }
@@ -27,13 +28,13 @@ pub fn transaction_payload(input: &TransactionPreloadInput) -> Option<ScanTransa
             asset_id: input.input_type.get_asset().id.clone(),
             address: input.sender_address.clone(),
         },
-        target: scan_target(input),
+        target: scan_target(input, value),
         website: input.get_website(),
         transaction_type: input.input_type.transaction_type(),
     })
 }
 
-fn scan_target(input: &TransactionPreloadInput) -> ScanAddressTarget {
+fn scan_target(input: &TransactionPreloadInput, value: &BigInt) -> ScanAddressTarget {
     if let TransactionInputType::Swap { from_asset, swap_data, .. } = &input.input_type
         && !swap_data.data.to.is_empty()
     {
@@ -51,6 +52,7 @@ fn scan_target(input: &TransactionPreloadInput) -> ScanAddressTarget {
         };
     }
     if let TransactionInputType::Generic { asset, extra, .. } = &input.input_type
+        && *value == BigInt::ZERO
         && let Some(target) = contract_call_target(asset.chain(), extra)
     {
         return target;
@@ -159,22 +161,25 @@ mod tests {
             references: vec![],
         };
 
-        let target = transaction_payload(&swap).unwrap().target;
+        let target = transaction_payload(&swap, &BigInt::ZERO).unwrap().target;
         assert_eq!(target.address, "0xrouter", "the scan asks about the contract, not the address the user already owns");
         assert_eq!(target.asset_id, Asset::mock_eth().id, "the contract is on the chain the funds leave");
 
-        let without_contract = transaction_payload(&TransactionPreloadInput {
-            input_type: TransactionInputType::Swap {
-                from_asset: Asset::mock_eth(),
-                to_asset: Asset::mock_spl_token(),
-                swap_data: SwapData {
-                    data: SwapQuoteData { to: String::new(), ..SwapQuoteData::mock() },
-                    ..SwapData::mock()
+        let without_contract = transaction_payload(
+            &TransactionPreloadInput {
+                input_type: TransactionInputType::Swap {
+                    from_asset: Asset::mock_eth(),
+                    to_asset: Asset::mock_spl_token(),
+                    swap_data: SwapData {
+                        data: SwapQuoteData { to: String::new(), ..SwapQuoteData::mock() },
+                        ..SwapData::mock()
+                    },
                 },
+                destination_address: "recipient".to_string(),
+                ..swap
             },
-            destination_address: "recipient".to_string(),
-            ..swap
-        })
+            &BigInt::ZERO,
+        )
         .unwrap()
         .target;
         assert_eq!(without_contract.address, "recipient", "a swap with no contract falls back to the recipient");
@@ -201,7 +206,7 @@ mod tests {
             references: vec![],
         };
 
-        let target = transaction_payload(&approval).unwrap().target;
+        let target = transaction_payload(&approval, &BigInt::ZERO).unwrap().target;
         assert_eq!(target.address, "0xspender", "the scan asks about who can spend, not the contract called");
         assert_eq!(target.asset_id, AssetId::from_token(Chain::Ethereum, "0xtoken"));
     }
@@ -249,6 +254,43 @@ mod tests {
     }
 
     #[test]
+    fn test_a_contract_call_that_sends_coins_scans_the_contract() {
+        let contract = "0x1111111111111111111111111111111111111111";
+        let recipient = "0x2222222222222222222222222222222222222222";
+        let recipient_word = format!("{:0>64}", &recipient[2..]);
+        let amount_word = format!("{:0>64}", "64");
+        for calldata in [
+            format!("a9059cbb{recipient_word}{amount_word}"),
+            format!("23b872dd{:0>64}{recipient_word}{amount_word}", "11"),
+            format!("a22cb465{recipient_word}{:0>64}", "1"),
+        ] {
+            let call = TransactionPreloadInput {
+                input_type: TransactionInputType::Generic {
+                    asset: Asset::mock_eth(),
+                    metadata: ApplicationMetadata::mock(),
+                    extra: TransferDataExtra {
+                        to: contract.to_string(),
+                        ..TransferDataExtra::mock_encoded_transaction(primitives::hex::decode(&calldata).unwrap())
+                    },
+                },
+                sender_address: "sender".to_string(),
+                destination_address: contract.to_string(),
+                references: vec![],
+            };
+
+            assert_eq!(transaction_payload(&call, &BigInt::ZERO).unwrap().target.address, recipient, "{calldata}");
+            assert_eq!(
+                transaction_payload(&call, &BigInt::from(1)).unwrap().target,
+                ScanAddressTarget {
+                    asset_id: Asset::mock_eth().id,
+                    address: contract.to_string(),
+                },
+                "{calldata}"
+            );
+        }
+    }
+
+    #[test]
     fn test_scan_payload_covers_every_input_type() {
         let swap = TransactionPreloadInput {
             input_type: TransactionInputType::Swap {
@@ -260,7 +302,7 @@ mod tests {
             destination_address: "router".to_string(),
             references: vec![],
         };
-        let payload = transaction_payload(&swap).unwrap();
+        let payload = transaction_payload(&swap, &BigInt::ZERO).unwrap();
         assert_eq!(payload.transaction_type, TransactionType::Swap);
         assert_eq!(payload.origin.asset_id, Asset::mock_sol().id);
         assert_eq!(payload.website, None);
@@ -275,7 +317,7 @@ mod tests {
             destination_address: "contract".to_string(),
             references: vec![],
         };
-        let payload = transaction_payload(&generic).unwrap();
+        let payload = transaction_payload(&generic, &BigInt::ZERO).unwrap();
         assert_eq!(payload.transaction_type, TransferDataExtra::mock().transaction_type);
         assert_eq!(payload.website, Some(ApplicationMetadata::mock().url));
     }
