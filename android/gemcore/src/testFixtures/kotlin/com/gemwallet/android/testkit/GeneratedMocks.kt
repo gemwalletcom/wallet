@@ -1429,6 +1429,52 @@ fun mockGemCustomFeeSession(
     rate = rate,
 )
 
+fun mockGemDelegationDetails(
+    title: uniffi.gemstone.GemLocalizedText = mockGemLocalizedText(),
+    icon: uniffi.gemstone.GemAssetIcon = mockGemAssetIcon(),
+    valueHeader: uniffi.gemstone.GemValueHeader = mockGemValueHeader(),
+    header: uniffi.gemstone.GemDelegationListRow = mockGemDelegationListRow(),
+    actions: List<uniffi.gemstone.GemDelegationActionItem> = emptyList(),
+    rewards: uniffi.gemstone.GemFormattedNumber? = null,
+    rewardsFiat: uniffi.gemstone.GemFormattedNumber? = null,
+    rows: List<uniffi.gemstone.GemListRow> = emptyList(),
+    claim: uniffi.gemstone.GemTransferData? = null,
+) = uniffi.gemstone.GemDelegationDetails(
+    title = title,
+    icon = icon,
+    valueHeader = valueHeader,
+    header = header,
+    actions = actions,
+    rewards = rewards,
+    rewardsFiat = rewardsFiat,
+    rows = rows,
+    claim = claim,
+)
+
+fun mockGemDelegationListRow(
+    validator: uniffi.gemstone.GemValidatorRow = mockGemValidatorRow(),
+    status: uniffi.gemstone.GemDelegationStatus = mockGemDelegationStatus(),
+    balance: uniffi.gemstone.GemFormattedNumber = mockGemFormattedNumber(),
+    fiat: uniffi.gemstone.GemFormattedNumber? = null,
+    rewards: uniffi.gemstone.GemFormattedNumber? = null,
+    rewardsFiat: uniffi.gemstone.GemFormattedNumber? = null,
+) = uniffi.gemstone.GemDelegationListRow(
+    validator = validator,
+    status = status,
+    balance = balance,
+    fiat = fiat,
+    rewards = rewards,
+    rewardsFiat = rewardsFiat,
+)
+
+fun mockGemDelegationStatus(
+    state: uniffi.gemstone.DelegationState = uniffi.gemstone.DelegationState.ACTIVE,
+    tone: uniffi.gemstone.GemValueTone = uniffi.gemstone.GemValueTone.PLAIN,
+) = uniffi.gemstone.GemDelegationStatus(
+    state = state,
+    tone = tone,
+)
+
 fun mockGemEmptyState(
     title: uniffi.gemstone.GemEmptyStateText = uniffi.gemstone.GemEmptyStateText.NFTS_TITLE,
     description: uniffi.gemstone.GemEmptyStateText? = null,
