@@ -1,6 +1,6 @@
 pub mod rules;
 
-use primitives::{Chain, ChainAsset, WalletConnectCAIP2};
+use primitives::{Chain, ChainAsset};
 
 use crate::models::state::GemListPhase;
 use crate::services::assets::icon::{GemAssetIcon, chain_icon};
@@ -71,14 +71,6 @@ impl GemChainService {
             phase: GemListPhase::local(!chains.is_empty(), empty_state(GemEmptyStateKind::SearchResults)),
             chains,
         }
-    }
-
-    pub fn caip2_namespace(&self, chain: Chain) -> Option<String> {
-        WalletConnectCAIP2::get_namespace(chain)
-    }
-
-    pub fn caip2_references(&self, chain: Chain) -> Vec<String> {
-        WalletConnectCAIP2::get_references(chain)
     }
 }
 

@@ -1730,7 +1730,6 @@ pub struct SwapPriceImpact {
 #[uniffi::remote(Record)]
 pub struct SwapProviderData {
     pub provider: SwapProvider,
-    pub protocol_name: String,
 }
 
 #[uniffi::remote(Record)]

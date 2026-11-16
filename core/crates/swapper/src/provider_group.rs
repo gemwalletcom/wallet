@@ -108,7 +108,7 @@ mod tests {
         let quote = group.get_quote(&request).await.unwrap();
         assert_eq!(quote.to_value, BigUint::from(200u64));
         assert_eq!(
-            (quote.data.provider.id, quote.data.provider.protocol.as_str(), quote.data.provider.protocol_id.as_str()),
+            (quote.data.provider.id, quote.data.provider.name.as_str(), quote.data.provider.protocol_id.as_str()),
             (SwapperProvider::RaydiumClmm, "Raydium", "high")
         );
 

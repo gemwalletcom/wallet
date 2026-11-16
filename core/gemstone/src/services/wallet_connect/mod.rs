@@ -37,9 +37,8 @@ pub use client::{
 };
 pub use error::GemWalletConnectError;
 pub use model::{
-    GemConnection, GemConnectionDetails, GemConnectionsView, GemSessionApproval, GemSessionProposal, GemSignerFailure, GemWalletConnectAuthAccount, GemWalletConnectFailure, GemWalletConnectMessageRequest,
-    GemWalletConnectOutcome, GemWalletConnectRejection, GemWalletConnectRejectionReason, GemWalletConnectResponse, GemWalletConnectRpcError, GemWalletConnectSessionRequest, GemWalletConnectTransactionAction,
-    GemWalletConnectTransactionRequest,
+    GemConnection, GemConnectionDetails, GemConnectionsView, GemSessionApproval, GemSessionProposal, GemSignerFailure, GemWalletConnectAuthAccount, GemWalletConnectFailure, GemWalletConnectMessageRequest, GemWalletConnectOutcome,
+    GemWalletConnectRejection, GemWalletConnectRejectionReason, GemWalletConnectResponse, GemWalletConnectRpcError, GemWalletConnectSessionRequest, GemWalletConnectTransactionAction, GemWalletConnectTransactionRequest,
 };
 pub use sign_message::{GemSignMessagePreview, GemSignMessageService};
 pub use signer::GemWalletConnectSigner;
@@ -93,10 +92,6 @@ impl GemWalletConnectService {
         }
     }
 
-    pub fn should_process_proposal(&self, proposer_public_key: String) -> bool {
-        self.should_process_message(rules::proposal_message_id(&proposer_public_key))
-    }
-
     pub async fn add_connection(&self, connection: WalletConnection) -> Result<(), GemServiceError> {
         self.store.add_connection(connection).await
     }
@@ -113,25 +108,8 @@ impl GemWalletConnectService {
         Ok(())
     }
 
-    pub async fn config_session_properties(&self, properties: HashMap<String, String>, caip2_chains: Vec<String>, accounts: Vec<Account>) -> HashMap<String, String> {
-        let accounts = self.with_public_keys(accounts, &rules::parse_known_chains(&caip2_chains)).await;
-        self.wallet_connect.config_session_properties(properties, caip2_chains, accounts)
-    }
-
-    pub fn authentication_accounts(&self, chain_ids: Vec<String>, wallet: Wallet) -> Vec<GemWalletConnectAuthAccount> {
-        rules::authentication_accounts(&chain_ids, &wallet)
-    }
-
-    pub fn authentication_methods(&self) -> Vec<String> {
-        rules::authentication_methods()
-    }
-
     pub async fn has_sessions(&self) -> Result<bool, GemServiceError> {
         Ok(!self.store.get_sessions().await?.is_empty())
-    }
-
-    pub async fn delete_session(&self, session_id: String) -> Result<(), GemServiceError> {
-        self.store.delete_sessions(vec![session_id]).await
     }
 
     pub async fn prepare_session_proposal(
@@ -174,12 +152,7 @@ impl GemWalletConnectService {
         let groups: Vec<GemGroup> = rules::connection_groups(connections)
             .into_iter()
             .map(|(wallet, connections)| {
-                let items = connections
-                    .into_iter()
-                    .map(|connection| GemListItem::Connection {
-                        connection: self.gem_connection(connection),
-                    })
-                    .collect();
+                let items = connections.into_iter().map(|connection| GemListItem::Connection { connection: self.gem_connection(connection) }).collect();
                 GemGroup::named(wallet.id.id(), wallet.name, items)
             })
             .collect();
@@ -199,10 +172,6 @@ impl GemWalletConnectService {
         }
     }
 
-    pub fn application_metadata(&self, name: String, description: String, url: String, icons: Vec<String>) -> ApplicationMetadata {
-        rules::application_metadata(name, description, url, icons)
-    }
-
     pub fn session_approval(&self, wallet: Wallet) -> GemSessionApproval {
         let chains = rules::session_chains(&wallet, &rules::supported_chains());
         let accounts = wallet.accounts.into_iter().filter(|account| chains.contains(&account.chain)).collect();
@@ -220,6 +189,25 @@ impl GemWalletConnectService {
             msg: format!("invalid session expiry {expire_at}"),
         })?;
         Ok(rules::session(topic, chains, expire_at, metadata))
+    }
+}
+
+impl GemWalletConnectService {
+    pub async fn config_session_properties(&self, properties: HashMap<String, String>, caip2_chains: Vec<String>, accounts: Vec<Account>) -> HashMap<String, String> {
+        let accounts = self.with_public_keys(accounts, &rules::parse_known_chains(&caip2_chains)).await;
+        self.wallet_connect.config_session_properties(properties, caip2_chains, accounts)
+    }
+
+    pub fn authentication_accounts(&self, chain_ids: Vec<String>, wallet: Wallet) -> Vec<GemWalletConnectAuthAccount> {
+        rules::authentication_accounts(&chain_ids, &wallet)
+    }
+
+    pub fn authentication_methods(&self) -> Vec<String> {
+        rules::authentication_methods()
+    }
+
+    pub async fn delete_session(&self, session_id: String) -> Result<(), GemServiceError> {
+        self.store.delete_sessions(vec![session_id]).await
     }
 
     pub fn session_rejection(&self, reason: GemWalletConnectRejectionReason) -> GemWalletConnectRejection {
@@ -252,9 +240,7 @@ impl GemWalletConnectService {
             Err(error) => GemWalletConnectOutcome::failed(GemWalletConnectFailure::Failed { error: error.text() }),
         }
     }
-}
 
-impl GemWalletConnectService {
     pub fn should_process_message(&self, message_id: String) -> bool {
         let mut seen = self.seen_messages.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
         rules::record_seen_message(&mut seen, message_id, SEEN_MESSAGES_LIMIT)
@@ -820,17 +806,6 @@ mod tests {
             assert_eq!(prepare("").await.err(), Some(GemWalletConnectError::InvalidOrigin));
             assert_eq!(prepare("example.com").await.unwrap().verification_status, WalletConnectionVerificationStatus::Verified);
             assert_eq!(prepare("https://EXAMPLE.com/login").await.unwrap().verification_status, WalletConnectionVerificationStatus::Verified);
-        })
-    }
-
-    #[test]
-    fn test_a_redelivered_proposal_is_processed_once() {
-        block_on(async {
-            let service = GemWalletConnectService::mock(Ok("0xsignature".to_string()), Wallet::mock()).await;
-
-            assert!(service.should_process_proposal("proposer".to_string()));
-            assert!(!service.should_process_proposal("proposer".to_string()));
-            assert!(service.should_process_proposal("another".to_string()));
         })
     }
 }

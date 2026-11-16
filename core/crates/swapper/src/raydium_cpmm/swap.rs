@@ -1,4 +1,4 @@
-use gem_solana::{AccountMeta, Instruction, Pubkey, anchor::instruction_data, instructions::program_ids::raydium_cpmm_program};
+use gem_solana::{AccountMeta, Instruction, Pubkey, anchor, instructions::program_ids::raydium_cpmm_program};
 use primitives::decode_hex_literal;
 
 use super::pool::Pool;
@@ -27,11 +27,7 @@ pub(super) fn swap_base_input_instruction(address: &Pubkey, pool: &Pool, swap: &
         AccountMeta::new_readonly(swap.output.mint),
         AccountMeta::new_writable(pool.observation_key),
     ];
-    Ok(Instruction {
-        program_id: raydium_cpmm_program(),
-        accounts,
-        data: instruction_data(SWAP_BASE_INPUT, &swap.amounts()),
-    })
+    Ok(anchor::instruction(raydium_cpmm_program(), SWAP_BASE_INPUT, &swap.amounts(), accounts))
 }
 
 #[cfg(test)]

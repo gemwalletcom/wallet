@@ -36,6 +36,7 @@ mod tests {
     use primitives::{Wallet, WalletConnectionVerificationStatus};
 
     use super::*;
+    use crate::services::wallet_connect::rules;
     use crate::services::wallet_connect::testkit::TestWalletConnectSigner;
     use crate::testkit::TestAlienProvider;
 
@@ -73,7 +74,7 @@ mod tests {
         let body = format!(r#"{{"gas_used":1021,"exit_code":0,"stack":[{{"type":"num","value":"0x{chain_public_key}"}}]}}"#);
         let provider = Arc::new(TestAlienProvider::with_json_by_path(200, &[("runGetMethod", body.as_str())]));
         let service = GemWalletConnectService::mock_with_signer(Arc::new(TestWalletConnectSigner::new(Ok(String::new()))), wallet.clone(), provider.clone()).await;
-        let metadata = service.application_metadata("Demo DApp".to_string(), "Demo DApp".to_string(), "https://demo.ton-connect.io".to_string(), vec![]);
+        let metadata = rules::application_metadata("Demo DApp".to_string(), "Demo DApp".to_string(), "https://demo.ton-connect.io".to_string(), vec![]);
 
         let prepared = service
             .prepare_session_proposal(

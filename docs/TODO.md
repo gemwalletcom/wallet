@@ -132,7 +132,6 @@ The target for every item below: a model that only renames or regroups a Core re
 
 Core has no runtime, so scheduling, timers and OS callbacks stay in the apps; what moves is the decision — what to do, in what order, under what condition — returned as one call or one record. And [a store returns what Core reads](ARCHITECTURE.md#4-the-store-trait-is-the-apps-only-persistence-obligation), through one trait per responsibility.
 
-- **VM561** **S** **Drop the WalletConnect exports the apps stopped calling.** Once VM559 and VM560 have both landed, `GemWalletConnectService` keeps `application_metadata`, `authentication_accounts`, `authentication_methods`, `config_session_properties`, `delete_session`, `request_outcome`, `session_rejection` and `should_process_proposal` exported, and `GemChainService` keeps `caip2_namespace` and `caip2_references`, only for the client and the old adapters. **Expected:** each loses `#[uniffi::export]` (the client keeps calling the bodies), and the `VM561` allowances in [`check-ffi-surface.py`](../scripts/check-ffi-surface.py) go.
 
 - **VM79** **S** **The root scene stops reading the wallet store.** iOS [`RootSceneViewModel`](../ios/Gem/ViewModels/RootSceneViewModel.swift) reads `stores.walletStore.getWallet` directly; the session service answers the current wallet. Blocked on a synchronous answer: `GemWalletSessionService::get_current_wallet` is async (the wallet store port is async), and the root view needs the wallet on its first render or it flashes onboarding at every launch; either the port gains a synchronous read or the root keeps a stored wallet it can seed before first render.
 
@@ -170,15 +169,11 @@ Findings from reviewing commits that nobody has accepted yet, and not all of the
 
 - **AUD497** **S** **A fiat provider's 4xx answers 200.** Since 1a047834de and fcb9b66b1c a provider 4xx becomes `ApiError::ok` ([`error.rs`](../core/apps/api/src/error.rs)), so a Transak webhook whose token refresh gets a 4xx returns 200 and Transak never retries it.
 - **AUD498** **S** **`GET /v1/config` fails when the country is unknown.** Without Cloudflare's country header, a failed IP lookup fails the whole response, not just its features ([`config_client.rs`](../core/crates/services/src/app/config_client.rs), 1c48adc169, 7891a02533), and the required `features` field breaks the cached config older apps decode.
-- **AUD499** **S** **Confirm re-sends a transaction that already went out.** Since e31e2bd7ea a failed send returns to Ready and Confirm runs the same load again ([`screen.rs`](../core/gemstone/src/services/confirm/screen.rs)). After a partial multi-transaction send (approval broadcast, swap rejected) the next tap re-signs and re-broadcasts the approval, which the node rejects, until the 60 s refresh reloads; before, a tap reloaded first. Wallet-critical.
 - **AUD501** **S** **THORChain vault addresses fail on one bad Zcash TEX address.** `get_vault_addresses` ([`swapper.rs`](../core/crates/swapper/src/swapper.rs)) fails as a whole when one TEX address doesn't parse (d1c16e81aa). Wallet-critical.
 - **BD508** **S** **Perpetual chart markers differ in colour** (477993aef7).
   - **iOS:** [`CandlestickCanvas.swift`](../ios/Packages/PrimitivesComponents/Sources/Views/CandlestickCanvas.swift) draws the ring and arrow in `Colors.white`.
   - **Android:** [`GemCandlestickChart.kt`](../android/ui/src/main/kotlin/com/gemwallet/android/ui/components/chart/GemCandlestickChart.kt) draws the ring in `colorScheme.surface`.
   - **Expected:** needs a decision (design).
-- **CLN510** **S** **Orca and Raydium each build their swap instruction.** `whirlpool_instruction` ([`orca/swap.rs`](../core/crates/swapper/src/orca/swap.rs)) and `raydium_instruction` ([`raydium_clmm/swap.rs`](../core/crates/swapper/src/raydium_clmm/swap.rs)) are the same body over a different program id (68d9dfe937, f22d437b75). Wallet-critical.
-- **CLN519** **S** **Dependabot's Swift job fails every day.** [`dependabot.yml`](../.github/dependabot.yml) points `swift` at `/ios`, which has no `Package.swift` or `Package.resolved`, so iOS packages get no update or advisory checks.
-- **CLN530** **S** **Every swap provider carries its name twice.** Since 0d094e9f9a dropped `SwapProvider::protocol_name`, `ProviderType.protocol` is always `id.name()`, the same value as `name` ([`models.rs`](../core/crates/swapper/src/models.rs)), and `SwapProviderData.protocol_name` copies it ([`rules.rs`](../core/gemstone/src/services/swap/rules.rs)); dropping both changes the swap FFI records on both apps.
 
 ## Blocked upstream
 

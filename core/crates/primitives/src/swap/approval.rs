@@ -118,7 +118,6 @@ pub struct SwapQuote {
 #[serde(rename_all = "camelCase")]
 pub struct SwapProviderData {
     pub provider: SwapProvider,
-    pub protocol_name: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, AsRefStr, EnumString)]
@@ -161,10 +160,7 @@ mod tests {
             min_from_value: Some(BigUint::from(900_000u32)),
             to_address: "to".to_string(),
             to_value: BigUint::from(2_500_000u32),
-            provider_data: SwapProviderData {
-                provider: SwapProvider::Jupiter,
-                protocol_name: "Jupiter".to_string(),
-            },
+            provider_data: SwapProviderData { provider: SwapProvider::Jupiter },
             slippage_bps: 50,
             slippage_mode: SlippageMode::Exact,
             eta_in_seconds: None,
