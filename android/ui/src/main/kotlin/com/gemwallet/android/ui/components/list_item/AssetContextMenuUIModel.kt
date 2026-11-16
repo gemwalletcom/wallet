@@ -1,11 +1,9 @@
 package com.gemwallet.android.ui.components.list_item
 
-import android.content.Context
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.runtime.Immutable
-import com.gemwallet.android.ui.components.clipboard.clipboardManager
-import com.gemwallet.android.ui.components.clipboard.setCopy
+import com.gemwallet.android.ui.components.clipboard.Clipboard
 import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.style.iconRes
 import com.wallet.core.primitives.AssetId
@@ -22,9 +20,8 @@ enum class ContextMenuGroup {
     Actions,
 }
 
-fun assetContextMenuItems(context: Context, assetId: AssetId, address: String?, isPinned: Boolean, isBalanceEnabled: Boolean, actions: AssetContextActions): List<AssetContextMenuItem> {
+fun assetContextMenuItems(clipboard: Clipboard, assetId: AssetId, address: String?, isPinned: Boolean, isBalanceEnabled: Boolean, actions: AssetContextActions): List<AssetContextMenuItem> {
     if (actions.isEmpty) return emptyList()
-    val clipboard = context.clipboardManager()
     return assetMenuRows(
         GemAssetMenuInput(
             isPinned = isPinned,
@@ -42,7 +39,7 @@ fun assetContextMenuItems(context: Context, assetId: AssetId, address: String?, 
             GemAssetMenuAction.AddToWallet -> actions.onAddToWallet?.let { { it(assetId) } }
 
             is GemAssetMenuAction.CopyAddress -> {
-                { clipboard.setCopy(context, addressCopy(assetId.chain.string, action.address)) }
+                { clipboard.copy(addressCopy(assetId.chain.string, action.address)) }
             }
         }
         onClick?.let { AssetContextMenuItem(titleRes = row.action.stringRes(), iconRes = row.icon.iconRes(), group = row.action.group(), onClick = it) }

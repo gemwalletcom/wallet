@@ -11,9 +11,9 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import com.gemwallet.android.ui.components.clipboard.rememberClipboard
 import com.wallet.core.primitives.AssetId
 
 @Immutable
@@ -28,9 +28,9 @@ data class AssetContextActions(val onTogglePin: ((AssetId) -> Unit)? = null, val
 
 @Composable
 private fun ColumnScope.AssetContextMenuItems(assetId: AssetId, address: String?, isPinned: Boolean, isBalanceEnabled: Boolean, actions: AssetContextActions, onDismiss: () -> Unit) {
-    val context = LocalContext.current
-    val items = remember(assetId, address, isPinned, isBalanceEnabled, actions) {
-        assetContextMenuItems(context, assetId, address, isPinned, isBalanceEnabled, actions)
+    val clipboard = rememberClipboard()
+    val items = remember(clipboard, assetId, address, isPinned, isBalanceEnabled, actions) {
+        assetContextMenuItems(clipboard, assetId, address, isPinned, isBalanceEnabled, actions)
     }
     items.forEachIndexed { index, item ->
         if (index > 0 && item.group != items[index - 1].group) HorizontalDivider()

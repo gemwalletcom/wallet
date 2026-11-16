@@ -4,8 +4,11 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.os.Build
+import androidx.compose.ui.hapticfeedback.HapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.gemwallet.android.ui.components.clipboard.Clipboard
 import com.gemwallet.android.ui.components.clipboard.clear
 import com.gemwallet.android.ui.components.clipboard.getPlainText
 import org.junit.Assert.assertEquals
@@ -27,5 +30,24 @@ class ClipboardTest {
         clipboard.clear()
 
         assertNull(clipboard.getPlainText())
+    }
+
+    @Test
+    fun onlyAPasteThatFindsNothingPlaysError() {
+        val haptics = mutableListOf<HapticFeedbackType>()
+        val haptic = object : HapticFeedback {
+            override fun performHapticFeedback(hapticFeedbackType: HapticFeedbackType) {
+                haptics += hapticFeedbackType
+            }
+        }
+        val gemClipboard = Clipboard(ApplicationProvider.getApplicationContext(), haptic)
+
+        gemClipboard.copy("abandon")
+        assertEquals("abandon", gemClipboard.paste())
+        assertEquals(emptyList<HapticFeedbackType>(), haptics)
+
+        gemClipboard.clear()
+        assertNull(gemClipboard.paste())
+        assertEquals(listOf(HapticFeedbackType.Reject), haptics)
     }
 }

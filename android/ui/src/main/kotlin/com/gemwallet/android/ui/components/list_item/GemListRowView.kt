@@ -23,9 +23,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import com.gemwallet.android.ui.components.clickable
-import com.gemwallet.android.ui.components.clipboard.clipboardManager
-import com.gemwallet.android.ui.components.clipboard.setCopy
-import com.gemwallet.android.ui.components.clipboard.setPlainText
+import com.gemwallet.android.ui.components.clipboard.rememberClipboard
 import com.gemwallet.android.ui.components.image.IconWithBadge
 import com.gemwallet.android.ui.components.image.ListItemImageView
 import com.gemwallet.android.ui.components.list_head.HeaderIcon
@@ -73,7 +71,7 @@ fun GemListRowView(
 ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
-    val clipboardManager = context.clipboardManager()
+    val clipboard = rememberClipboard()
     val selectAction = onSelect?.let { action ?: row.action() }
     val rowModifier = row.action()?.let { modifier.testTag(it.identifier()) } ?: modifier
 
@@ -149,7 +147,7 @@ fun GemListRowView(
             ListItemImageView(image = row.image, size = headerIconSize)
         }
 
-        is GemListRowUIModel.Address -> GemListRowMenu(items = row.menu, onClick = { clipboardManager.setCopy(context, row.copy) }) { menuModifier ->
+        is GemListRowUIModel.Address -> GemListRowMenu(items = row.menu, onClick = { clipboard.copy(row.copy) }) { menuModifier ->
             AddressRow(address = row.address, listPosition = listPosition, modifier = menuModifier)
         }
 
@@ -210,7 +208,7 @@ private fun GemListRowMenu(items: List<GemListRowMenuItem>, onClick: () -> Unit 
     }
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
-    val clipboardManager = context.clipboardManager()
+    val clipboard = rememberClipboard()
     var isExpanded by remember { mutableStateOf(false) }
 
     DropDownContextItem(
@@ -232,7 +230,7 @@ private fun GemListRowMenu(items: List<GemListRowMenuItem>, onClick: () -> Unit 
                     onClick = {
                         isExpanded = false
                         when (item) {
-                            is GemListRowMenuItem.Copy -> clipboardManager.setPlainText(context, item.value)
+                            is GemListRowMenuItem.Copy -> clipboard.copy(item.value)
                             is GemListRowMenuItem.Open -> uriHandler.open(context, item.url)
                         }
                     },

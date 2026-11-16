@@ -28,8 +28,7 @@ import com.gemwallet.android.ui.DisableScreenShooting
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.DocsInfoButton
 import com.gemwallet.android.ui.components.buttons.CopyButton
-import com.gemwallet.android.ui.components.clipboard.clipboardManager
-import com.gemwallet.android.ui.components.clipboard.setCopy
+import com.gemwallet.android.ui.components.clipboard.rememberClipboard
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.PhraseLayout
 import com.gemwallet.android.ui.components.screen.Scene
@@ -55,7 +54,7 @@ fun SecretDataScreen(onCancel: () -> Unit, viewModel: SecretDataViewModel = hilt
     val result by viewModel.secret.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
-    val clipboardManager = LocalContext.current.clipboardManager()
+    val clipboard = rememberClipboard()
 
     val secret = result?.getOrNull()
     val screen = secretScreen(viewModel.secretKind, false)
@@ -138,7 +137,7 @@ fun SecretDataScreen(onCancel: () -> Unit, viewModel: SecretDataViewModel = hilt
                         is GemWalletSecret.PrivateKey -> privateKeyCopy(secret.key)
                         is GemWalletSecret.Words -> secretPhraseCopy(secret.words)
                     }
-                    clipboardManager.setCopy(context, copy)
+                    clipboard.copy(copy)
                 },
             )
         }

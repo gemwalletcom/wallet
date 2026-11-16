@@ -121,7 +121,7 @@ extension AddNodeScene {
     }
 
     private func onSelectPaste() {
-        guard let content = UIPasteboard.general.string else { return }
+        guard let content = Clipboard.paste() else { return }
         model.setInput(content.trim())
         focusedField = nil
     }

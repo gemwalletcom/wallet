@@ -7,16 +7,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import com.gemwallet.android.ui.components.GemTextField
-import com.gemwallet.android.ui.components.clipboard.clipboardManager
-import com.gemwallet.android.ui.components.clipboard.getPlainText
+import com.gemwallet.android.ui.components.clipboard.rememberClipboard
 import com.gemwallet.android.ui.components.keyboardFollowsFocus
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 
 @Composable
 fun MemoTextField(value: String, label: String, onValueChange: (String) -> Unit, modifier: Modifier = Modifier, error: String = "", onQrScanner: (() -> Unit)? = null) {
-    val clipboardManager = LocalContext.current.clipboardManager()
+    val clipboard = rememberClipboard()
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(paddingHalfSmall),
@@ -32,7 +30,7 @@ fun MemoTextField(value: String, label: String, onValueChange: (String) -> Unit,
             trailing = {
                 TransferTextFieldActions(
                     value = value,
-                    paste = { clipboardManager.getPlainText()?.let(onValueChange) },
+                    paste = { clipboard.paste()?.let(onValueChange) },
                     qrScanner = onQrScanner,
                     onClean = {
                         onValueChange("")

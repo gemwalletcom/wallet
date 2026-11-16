@@ -14,7 +14,6 @@ import Primitives
 import PrimitivesComponents
 import Style
 import SwiftUI
-import UIKit
 
 @Observable
 @MainActor
@@ -125,7 +124,7 @@ extension ContactAddressEditorSceneViewModel {
     }
 
     func onSelectPaste() {
-        guard let text = UIPasteboard.general.string else { return }
+        guard let text = Clipboard.paste() else { return }
         onScan(text)
     }
 

@@ -13,9 +13,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.clipboard.clipboardManager
-import com.gemwallet.android.ui.components.clipboard.setCopy
-import com.gemwallet.android.ui.components.clipboard.setPlainText
+import com.gemwallet.android.ui.components.clipboard.rememberClipboard
 import com.gemwallet.android.ui.components.image.ListItemImageView
 import com.gemwallet.android.ui.components.list_item.DropDownContextItem
 import com.gemwallet.android.ui.components.list_item.ListItemImage
@@ -35,7 +33,7 @@ fun AddressPropertyItem(row: GemAddressRow, listPosition: ListPosition = ListPos
     var isExpanded by remember { mutableStateOf(false) }
     var showsAddress by remember { mutableStateOf(false) }
     val context = LocalContext.current
-    val clipboardManager = context.clipboardManager()
+    val clipboard = rememberClipboard()
     val uriHandler = LocalUriHandler.current
     val select = onClick.takeIf { row.isSelectable }
     val image = row.avatar?.listItemImage()
@@ -76,7 +74,7 @@ fun AddressPropertyItem(row: GemAddressRow, listPosition: ListPosition = ListPos
                         trailingIcon = { Icon(AppIcons.ContentCopy, contentDescription = null) },
                         onClick = {
                             isExpanded = false
-                            clipboardManager.setCopy(context, item.copy)
+                            clipboard.copy(item.copy)
                         },
                     )
 
@@ -117,7 +115,7 @@ fun AddressPropertyItem(row: GemAddressRow, listPosition: ListPosition = ListPos
 @Composable
 fun AddressPropertyItem(title: String, displayText: String, copyValue: String, image: ListItemImage? = null, explorerLink: BlockExplorerLink? = null, listPosition: ListPosition = ListPosition.Middle, onClick: (() -> Unit)? = null) {
     var isExpanded by remember { mutableStateOf(false) }
-    val clipboardManager = LocalContext.current.clipboardManager()
+    val clipboard = rememberClipboard()
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
 
@@ -155,7 +153,7 @@ fun AddressPropertyItem(title: String, displayText: String, copyValue: String, i
                 trailingIcon = { Icon(AppIcons.ContentCopy, contentDescription = null) },
                 onClick = {
                     isExpanded = false
-                    clipboardManager.setPlainText(context, copyValue)
+                    clipboard.copy(copyValue)
                 },
             )
             if (explorerLink != null) {

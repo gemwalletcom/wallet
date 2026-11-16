@@ -11,7 +11,6 @@ import Localization
 import Primitives
 import PrimitivesComponents
 import Store
-import UIKit
 import WalletConnectorService
 
 @Observable
@@ -90,9 +89,7 @@ extension ConnectionsSceneViewModel {
     }
 
     func onPaste() async {
-        guard let content = UIPasteboard.general.string else {
-            return
-        }
+        guard let content = Clipboard.paste() else { return }
         await connectURI(uri: content)
     }
 
