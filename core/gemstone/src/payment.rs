@@ -7,14 +7,14 @@ use crate::config::chain::is_memo_supported;
 use crate::config::wallet_connect::get_wallet_connect_config;
 use crate::services::assets::{GemAssetAction, GemAssetFilter, GemAssetsService};
 use crate::services::balance::GemBalanceService;
-use crate::services::error::GemServiceError;
+use crate::services::error::{GemServiceError, required_account};
 use crate::services::transfer::model::{GemRecipient, GemTransferData};
 use crate::services::transfer::rules::TransferInput;
 use num_bigint::{BigInt, BigUint};
 use number_formatter::BigNumberFormatter;
 use payment::{PaymentError, PaymentLoad, PaymentService, PaymentTransaction, PaymentURLDecoder, PaymentUpdate, VerificationOutcome, WalletConnectPayAuth, verification_outcome};
 use primitives::{
-    Asset, AssetId, Chain, ChainAddress, ChainType, Payment, PaymentAmount, PaymentInvoice, PaymentLink, PaymentQuote, PaymentRequest, PaymentStatus, PaymentVerification, TransactionChange, TransactionInputType, TransactionState,
+    Account, Asset, AssetId, Chain, ChainAddress, ChainType, Payment, PaymentAmount, PaymentInvoice, PaymentLink, PaymentQuote, PaymentRequest, PaymentStatus, PaymentVerification, TransactionChange, TransactionInputType, TransactionState,
     TransactionType, TransactionUpdate, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, Wallet, hex,
 };
 use uuid::Uuid;
@@ -113,8 +113,8 @@ impl GemPaymentService {
         };
         Ok(match destination {
             PaymentDestination::Transfer { asset, step } => {
-                self.balance.add_missing_balances(wallet.id, vec![asset.id.clone()]).await?;
-                step.target(asset)
+                self.balance.add_missing_balances(wallet.id.clone(), vec![asset.id.clone()]).await?;
+                step.target(asset, &wallet)?
             }
             PaymentDestination::SelectAsset { payment, chains } => GemPaymentTarget::SelectAsset { payment, chains },
             PaymentDestination::Unsupported => GemPaymentTarget::Unsupported,
@@ -274,7 +274,7 @@ pub enum GemPaymentTarget {
     Confirm { transfer: GemTransferData },
     Verify { url: String, link: PaymentLink },
     Amount { asset: Asset, payment: GemPaymentRecipient },
-    Recipient { asset: Asset, payment: GemPaymentRecipient },
+    Recipient { asset: Asset, account: Account, payment: GemPaymentRecipient },
     SelectAsset { payment: GemPaymentRecipient, chains: Vec<Chain> },
     Unsupported,
 }
@@ -288,12 +288,16 @@ pub enum GemPaymentStep {
 }
 
 impl GemPaymentStep {
-    fn target(self, asset: Asset) -> GemPaymentTarget {
-        match self {
+    fn target(self, asset: Asset, wallet: &Wallet) -> Result<GemPaymentTarget, GemServiceError> {
+        Ok(match self {
             Self::Confirm { transfer } => GemPaymentTarget::Confirm { transfer },
             Self::Amount { payment } => GemPaymentTarget::Amount { asset, payment },
-            Self::Recipient { payment } => GemPaymentTarget::Recipient { asset, payment },
-        }
+            Self::Recipient { payment } => GemPaymentTarget::Recipient {
+                account: required_account(wallet, asset.id.chain)?,
+                asset,
+                payment,
+            },
+        })
     }
 }
 

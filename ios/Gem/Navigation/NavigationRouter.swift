@@ -5,7 +5,6 @@ import Foundation
 import enum Gemstone.GemAssetDestination
 import enum Gemstone.GemCodeOutcome
 import protocol Gemstone.GemDeeplinkServiceProtocol
-import enum Gemstone.GemErrorText
 import protocol Gemstone.GemNavigationServiceProtocol
 import enum Gemstone.GemNavigationTab
 import enum Gemstone.GemNavigationTarget
@@ -166,18 +165,18 @@ extension NavigationRouter {
             try openTarget(path: Self.assetPath(destination), walletId: walletId)
         case let .chart(asset):
             navigationState.openWallet(path: [Scenes.Chart(asset: asset.toPrimitives())])
-        case let .receive(asset):
-            try await presentAssetInput(type: .receive(.asset), for: asset.toPrimitives())
-        case let .fiat(asset, amount, quoteType):
+        case let .receive(asset, account):
+            presentAssetInput(type: .receive(.asset), asset: asset.toPrimitives(), account: account.toPrimitives())
+        case let .fiat(asset, account, amount, quoteType):
             let asset = asset.toPrimitives()
             let type: SelectedAssetType = switch quoteType.toPrimitives() {
             case .buy: .buy(asset, amount: amount.map(Int.init))
             case .sell: .sell(asset, amount: amount.map(Int.init))
             }
-            try await presentAssetInput(type: type, for: asset)
-        case let .swap(from, to):
+            presentAssetInput(type: type, asset: asset, account: account.toPrimitives())
+        case let .swap(from, account, to):
             let from = from.toPrimitives()
-            try await presentAssetInput(type: .swap(from.id, to?.toPrimitives().id), for: from)
+            presentAssetInput(type: .swap(from.id, to?.toPrimitives().id), asset: from, account: account.toPrimitives())
         case .perpetuals:
             navigationState.openWallet(path: [Scenes.Perpetuals()])
         case let .rewards(code):
@@ -243,11 +242,11 @@ extension NavigationRouter {
         }
         let target = try await paymentService.prepare(payment: payment, wallet: wallet)
         toastPresenter.toastMessage = nil
-        let destination = try paymentDestination(target, wallet: wallet.toPrimitives())
+        let destination = try paymentDestination(target)
         presenter.sheet.wrappedValue = .payment(destination)
     }
 
-    private func paymentDestination(_ target: GemPaymentTarget, wallet: Primitives.Wallet) throws -> PaymentDestination {
+    private func paymentDestination(_ target: GemPaymentTarget) throws -> PaymentDestination {
         switch target {
         case let .confirm(transfer):
             return .confirm(transfer)
@@ -258,15 +257,12 @@ extension NavigationRouter {
             return .verify(url, link: link)
         case let .amount(asset, payment):
             return .amount(AmountInput(type: .transfer(recipient: payment), asset: asset.toPrimitives()))
-        case let .recipient(asset, payment):
+        case let .recipient(asset, account, payment):
             let asset = asset.toPrimitives()
-            guard let account = try? wallet.account(for: asset.chain) else {
-                throw GemErrorText.noAccountForChain
-            }
             return .recipient(
                 SelectedAssetInput(
                     type: .send(.asset(asset: asset.toGem())),
-                    assetData: .with(asset: asset, account: account),
+                    assetData: .with(asset: asset, account: account.toPrimitives()),
                     recipient: payment,
                 ),
             )
@@ -338,11 +334,7 @@ extension NavigationRouter {
         navigationState.pendingWalletPath = path
     }
 
-    private func presentAssetInput(type: SelectedAssetType, for asset: Asset) async throws {
-        let wallet = try await walletSessionService.requireCurrentWallet().toPrimitives()
-        guard let account = try? wallet.account(for: asset.chain) else {
-            throw GemErrorText.noAccountForChain
-        }
+    private func presentAssetInput(type: SelectedAssetType, asset: Asset, account: Account) {
         presenter.sheet.wrappedValue = .assetInput(SelectedAssetInput(type: type, assetData: .with(asset: asset, account: account)))
     }
 
