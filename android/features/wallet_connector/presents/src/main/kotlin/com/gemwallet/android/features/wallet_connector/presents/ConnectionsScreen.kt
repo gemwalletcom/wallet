@@ -2,10 +2,7 @@ package com.gemwallet.android.features.wallet_connector.presents
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -23,6 +20,7 @@ import com.gemwallet.android.features.wallet_connector.viewmodels.ConnectionsVie
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.DocsInfoButton
 import com.gemwallet.android.ui.components.clipboard.rememberClipboard
+import com.gemwallet.android.ui.components.dialog.ErrorDialog
 import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.gemGroups
@@ -112,13 +110,8 @@ fun ConnectionsScreen(onConnection: (String) -> Unit, onCancel: () -> Unit, view
         },
     )
 
-    pairError?.let { error ->
-        AlertDialog(
-            onDismissRequest = viewModel::dismissPairError,
-            confirmButton = {
-                Button(onClick = viewModel::dismissPairError) { Text(text = stringResource(id = R.string.common_done)) }
-            },
-            text = { Text(text = error) },
-        )
-    }
+    ErrorDialog(
+        message = pairError,
+        onDismiss = viewModel::dismissPairError,
+    )
 }

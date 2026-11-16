@@ -8,12 +8,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -43,6 +40,7 @@ import com.gemwallet.android.ui.components.InfoBottomSheet
 import com.gemwallet.android.ui.components.RefreshOnTimer
 import com.gemwallet.android.ui.components.WebView
 import com.gemwallet.android.ui.components.buttons.MainActionButton
+import com.gemwallet.android.ui.components.dialog.ErrorDialog
 import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.components.list_head.TransactionListHead
 import com.gemwallet.android.ui.components.list_item.GemListRowView
@@ -349,31 +347,17 @@ fun ConfirmTransferScreen(
     }
 
     if (isVerificationFailed) {
-        AlertDialog(
-            onDismissRequest = viewModel::dismissVerificationError,
-            confirmButton = {
-                Button(viewModel::dismissVerificationError) { Text(stringResource(R.string.common_done)) }
-            },
-            text = {
-                Text(stringResource(R.string.errors_error_occurred))
-            },
+        ErrorDialog(
+            message = stringResource(R.string.errors_error_occurred),
+            onDismiss = viewModel::dismissVerificationError,
         )
     }
 
-    executeErrorText?.let { errorText ->
-        AlertDialog(
-            onDismissRequest = viewModel::dismissExecuteError,
-            confirmButton = {
-                Button(viewModel::dismissExecuteError) { Text(stringResource(R.string.common_done)) }
-            },
-            title = {
-                Text(stringResource(R.string.errors_transfer_error))
-            },
-            text = {
-                Text(errorText)
-            },
-        )
-    }
+    ErrorDialog(
+        message = executeErrorText,
+        onDismiss = viewModel::dismissExecuteError,
+        title = stringResource(R.string.errors_transfer_error),
+    )
 }
 
 @Composable

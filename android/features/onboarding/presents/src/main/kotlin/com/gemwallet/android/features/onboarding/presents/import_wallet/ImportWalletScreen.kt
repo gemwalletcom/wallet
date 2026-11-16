@@ -15,8 +15,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
@@ -52,6 +50,7 @@ import com.gemwallet.android.ui.DisableScreenShooting
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoBottomSheet
 import com.gemwallet.android.ui.components.buttons.MainActionButton
+import com.gemwallet.android.ui.components.dialog.ErrorDialog
 import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.components.list_item.listItem
 import com.gemwallet.android.ui.components.list_item.sectionHeaderItem
@@ -133,17 +132,11 @@ fun ImportWalletScreen(importType: ImportType, onImported: () -> Unit, onCancel:
             viewModel.inputState.setTextAndPlaceCursorAtEnd(code)
         },
     )
-    errorText?.let { message ->
-        AlertDialog(
-            containerColor = MaterialTheme.colorScheme.background,
-            onDismissRequest = viewModel::dismissError,
-            title = { Text(stringResource(R.string.errors_validation, "")) },
-            text = { Text(message) },
-            confirmButton = {
-                Button(viewModel::dismissError) { Text(stringResource(R.string.common_done)) }
-            },
-        )
-    }
+    ErrorDialog(
+        message = errorText,
+        onDismiss = viewModel::dismissError,
+        title = stringResource(R.string.errors_validation, ""),
+    )
     uiState.existingWalletName?.let { walletName ->
         InfoBottomSheet(
             item = GemInfoTopic.ExistingWalletImported(walletName).infoSheet {
