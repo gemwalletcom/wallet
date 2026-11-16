@@ -8,11 +8,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.gemwallet.android.features.assets.presents.select.SelectAssetScreen
 import com.gemwallet.android.features.price_alerts.viewmodels.PriceAlertsViewModel
 import com.gemwallet.android.ui.components.screen.ToastEffect
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 import com.gemwallet.android.ui.models.navigation.RouteMessage
 import com.wallet.core.primitives.AssetId
+import uniffi.gemstone.GemSelectAssetType
 
 @Composable
 fun PriceAlertsScreen(message: RouteMessage?, onMessageShown: () -> Unit, onChart: (AssetId) -> Unit, onCancel: () -> Unit, viewModel: PriceAlertsViewModel = hiltViewModel()) {
@@ -30,12 +32,14 @@ fun PriceAlertsScreen(message: RouteMessage?, onMessageShown: () -> Unit, onChar
 
     AnimatedContent(selectingAsset, label = "") { selecting ->
         when (selecting) {
-            true -> AddAssetPriceAlertsScreen(
+            true -> SelectAssetScreen(
+                selectType = GemSelectAssetType.PriceAlert,
                 onCancel = { selectingAsset = false },
                 onSelect = { assetId ->
                     viewModel.includeAsset(assetId)
                     selectingAsset = false
                 },
+                onSelectRecent = null,
             )
 
             false -> PriceAlertsScene(

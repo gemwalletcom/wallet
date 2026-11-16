@@ -8,12 +8,38 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.assets.viewmodels.select.BaseSelectAssetViewModel
 import com.gemwallet.android.features.assets.viewmodels.select.RecentsViewModel
+import com.gemwallet.android.features.assets.viewmodels.select.SelectAssetViewModel
 import com.gemwallet.android.ui.components.clipboard.rememberClipboard
 import com.gemwallet.android.ui.components.list_item.AssetItemAction
 import com.gemwallet.android.ui.components.screen.SceneTitle
 import com.gemwallet.android.ui.localization.stringRes
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.Chain
+import uniffi.gemstone.GemSelectAssetType
+
+@Composable
+fun SelectAssetScreen(
+    selectType: GemSelectAssetType,
+    onCancel: () -> Unit,
+    onSelect: (AssetId) -> Unit,
+    onSelectRecent: ((AssetId) -> Unit)? = onSelect,
+    chains: List<Chain> = emptyList(),
+    titleContent: (@Composable () -> Unit)? = null,
+    closeIcon: Boolean = false,
+    showFilter: Boolean? = null,
+    viewModel: SelectAssetViewModel = selectAssetViewModel(selectType, chains),
+) {
+    SelectAssetScreen(
+        titleContent = titleContent,
+        closeIcon = closeIcon,
+        onCancel = onCancel,
+        onSelect = onSelect,
+        onSelectRecent = onSelectRecent,
+        showFilter = showFilter,
+        viewModel = viewModel,
+    )
+}
 
 @Composable
 fun SelectAssetScreen(

@@ -2,8 +2,7 @@ package com.gemwallet.android.ui.navigation.routes
 
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import com.gemwallet.android.features.assets.presents.select.SelectReceiveScreen
-import com.gemwallet.android.features.assets.presents.select.selectAssetViewModel
+import com.gemwallet.android.features.assets.presents.select.SelectAssetScreen
 import com.gemwallet.android.features.transfer.presents.receive.ReceiveScreen
 import com.wallet.core.primitives.AssetId
 import kotlinx.serialization.Serializable
@@ -24,17 +23,18 @@ fun EntryProviderScope<NavKey>.receiveScreen(onCancel: () -> Unit, onReceive: (A
     }
 
     entry<ReceiveSelectRoute> {
-        SelectReceiveScreen(
+        SelectAssetScreen(
+            selectType = GemSelectAssetType.Receive,
             onCancel = onCancel,
             onSelect = onReceive,
         )
     }
 
     entry<ReceiveCollectionRoute> {
-        SelectReceiveScreen(
+        SelectAssetScreen(
+            selectType = GemSelectAssetType.ReceiveCollection,
             onCancel = onCancel,
             onSelect = onReceive,
-            viewModel = selectAssetViewModel(GemSelectAssetType.ReceiveCollection),
         )
     }
 }

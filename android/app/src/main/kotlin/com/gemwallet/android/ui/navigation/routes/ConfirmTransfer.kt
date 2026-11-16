@@ -4,7 +4,8 @@ import androidx.compose.runtime.remember
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.domains.confirm.unpackConfirmTransferInput
-import com.gemwallet.android.features.assets.presents.select.SelectPaymentScreen
+import com.gemwallet.android.ext.toIdentifier
+import com.gemwallet.android.features.assets.presents.select.SelectAssetScreen
 import com.gemwallet.android.features.transfer.presents.confirm.ConfirmTransferScreen
 import com.gemwallet.android.features.transfer.presents.confirm.PaymentVerificationScreen
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.GetAssetAction
@@ -18,6 +19,7 @@ import com.gemwallet.android.ui.navigation.routeArguments
 import com.wallet.core.primitives.AssetId
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
+import uniffi.gemstone.GemSelectAssetType
 import uniffi.gemstone.PaymentLink
 
 @Serializable
@@ -47,8 +49,8 @@ fun EntryProviderScope<NavKey>.confirmTransfer(navigator: WalletNavigator, finis
     }
 
     entry<PaymentSelectRoute> { key ->
-        SelectPaymentScreen(
-            assetIds = key.assetIds,
+        SelectAssetScreen(
+            selectType = GemSelectAssetType.Payment(key.assetIds.map { it.toIdentifier() }),
             onCancel = cancelAction::invoke,
             onSelect = navigator::finishPaymentSelect,
         )
