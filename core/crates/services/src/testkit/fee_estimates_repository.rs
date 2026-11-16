@@ -11,6 +11,12 @@ pub(crate) struct MemoryFeeEstimatesRepository {
     values: Mutex<Vec<(Chain, FeeEstimateChartValue)>>,
 }
 
+impl MemoryFeeEstimatesRepository {
+    pub(crate) fn values(&self) -> Vec<(Chain, FeeEstimateChartValue)> {
+        self.values.lock().unwrap().clone()
+    }
+}
+
 #[async_trait]
 impl Repository for MemoryFeeEstimatesRepository {
     async fn add_fee_estimate(&self, chain: Chain, value: FeeEstimateChartValue) -> Result<usize, DatabaseError> {
