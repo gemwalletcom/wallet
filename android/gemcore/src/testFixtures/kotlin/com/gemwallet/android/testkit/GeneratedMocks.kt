@@ -1643,6 +1643,14 @@ fun mockGemHeaderButtonAction(): uniffi.gemstone.GemHeaderButtonAction = uniffi.
 
 fun mockGemInfoTopic(): uniffi.gemstone.GemInfoTopic = uniffi.gemstone.GemInfoTopic.RegionUnavailable(country = "")
 
+fun mockGemLeverageSelection(
+    options: List<uniffi.gemstone.GemPickerOption> = emptyList(),
+    selected: uniffi.gemstone.GemPickerOption = mockGemPickerOption(),
+) = uniffi.gemstone.GemLeverageSelection(
+    options = options,
+    selected = selected,
+)
+
 fun mockGemLocalizedText(): uniffi.gemstone.GemLocalizedText = uniffi.gemstone.GemLocalizedText.WalletDefaultName(index = 0)
 
 fun mockGemNetworkFeeScreen(
@@ -1763,6 +1771,14 @@ fun mockGemPerpetualTransferData(
     price = price,
     leverage = leverage,
     marginType = marginType,
+)
+
+fun mockGemPickerOption(
+    value: UByte = 0u,
+    label: uniffi.gemstone.GemLocalizedText = mockGemLocalizedText(),
+) = uniffi.gemstone.GemPickerOption(
+    value = value,
+    label = label,
 )
 
 fun mockGemPrecision(): uniffi.gemstone.GemPrecision = uniffi.gemstone.GemPrecision.Fraction(min = 0, max = 0)

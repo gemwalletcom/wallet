@@ -2,6 +2,7 @@
 
 import Components
 import class Gemstone.GemChainService
+import struct Gemstone.GemLeverageSelection
 import struct Gemstone.GemProviderRow
 import struct Gemstone.GemWalletRow
 import struct Gemstone.GemWalletSection
@@ -69,6 +70,17 @@ public extension SelectableListViewModel where Item == Chain {
 
     private static func filter(chains: [Chain], query: String) -> [Chain] {
         GemChainService.shared.chainRows(chains: chains.map(\.rawValue), query: query).map { Chain(core: $0.chain) }
+    }
+}
+
+public extension SelectableListViewModel where Item == LeverageOption {
+    init(leverage selection: GemLeverageSelection) {
+        self.init(
+            title: Localized.Perpetual.leverage,
+            state: .data(.plain(selection.options.map(LeverageOption.init(option:)))),
+            selectedItems: [LeverageOption(option: selection.selected)],
+            selectionType: .checkmark,
+        )
     }
 }
 

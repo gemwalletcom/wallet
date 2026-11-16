@@ -190,13 +190,13 @@ pub enum AccountDataType {
     Activate,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct CancelOrderData {
     pub asset_index: i32,
     pub order_id: u64,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct TPSLOrderData {
     pub direction: PerpetualDirection,
     pub take_profit: Option<String>,
@@ -204,10 +204,11 @@ pub struct TPSLOrderData {
     pub size: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum PerpetualModifyPositionType {
     Tpsl { order: TPSLOrderData },
     Cancel { orders: Vec<CancelOrderData> },
+    Leverage { leverage: u8, margin_type: PerpetualMarginType },
 }
 
 #[derive(Debug, Clone)]

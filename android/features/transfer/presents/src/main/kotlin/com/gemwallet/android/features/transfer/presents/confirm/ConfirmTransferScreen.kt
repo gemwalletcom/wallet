@@ -394,7 +394,7 @@ private fun ConfirmDetailsRow(item: GemConfirmDetails, listPosition: ListPositio
             listPosition = listPosition,
         )
 
-        is GemConfirmDetails.PerpetualAutoclose -> GemListRowView(row = item.row, listPosition = listPosition)
+        is GemConfirmDetails.PerpetualModify -> GemListRowView(row = item.row, listPosition = listPosition)
     }
 }
 

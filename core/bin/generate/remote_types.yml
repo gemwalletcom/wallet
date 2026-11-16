@@ -305,6 +305,7 @@ mocks:
   - GemHeaderButton
   - GemHeaderButtonAction
   - GemInfoTopic
+  - GemLeverageSelection
   - GemLocalizedText
   - GemNetworkFeeScreen
   - GemNftEntry
@@ -319,6 +320,7 @@ mocks:
   - GemPaymentRecipient
   - GemPerpetualDetails
   - GemPerpetualTransferData
+  - GemPickerOption
   - GemPrecision
   - GemProviderKind
   - GemProviderRow

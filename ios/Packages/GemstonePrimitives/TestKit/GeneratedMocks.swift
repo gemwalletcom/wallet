@@ -898,6 +898,18 @@ public extension Gemstone.GemInfoTopic {
     }
 }
 
+public extension Gemstone.GemLeverageSelection {
+    static func mock(
+        options: [Gemstone.GemPickerOption] = [],
+        selected: Gemstone.GemPickerOption = .mock(),
+    ) -> Gemstone.GemLeverageSelection {
+        Gemstone.GemLeverageSelection(
+            options: options,
+            selected: selected,
+        )
+    }
+}
+
 public extension Gemstone.GemLocalizedText {
     static func mock() -> Gemstone.GemLocalizedText {
         .walletDefaultName(index: 0)
@@ -1068,6 +1080,18 @@ public extension Gemstone.GemPerpetualTransferData {
             price: price,
             leverage: leverage,
             marginType: marginType,
+        )
+    }
+}
+
+public extension Gemstone.GemPickerOption {
+    static func mock(
+        value: UInt8 = 0,
+        label: Gemstone.GemLocalizedText = .mock(),
+    ) -> Gemstone.GemPickerOption {
+        Gemstone.GemPickerOption(
+            value: value,
+            label: label,
         )
     }
 }

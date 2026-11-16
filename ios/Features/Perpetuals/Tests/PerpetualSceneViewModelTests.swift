@@ -9,6 +9,7 @@ import Localization
 @testable import Perpetuals
 import PerpetualsTestKit
 import Primitives
+import PrimitivesComponents
 import PrimitivesTestKit
 import Testing
 
@@ -105,6 +106,42 @@ struct PerpetualSceneViewModelTests {
         #expect(model.isPresentingModifyAlert == nil)
         #expect(service.positionKinds == [.increase, .reduce])
         #expect(service.positionActionPositions == [position, position])
+    }
+
+    @Test
+    func changingLeverageOffersThePositionLeveragesThenSendsThePick() {
+        let service = GemPerpetualDetailsServiceMock()
+        let position = Primitives.PerpetualPosition.mock().toGem()
+        service.detailsValue = .mock(sections: [.position(rows: [])], position: position)
+        let selection = GemLeverageSelection.mock(options: [.mock(value: 5), .mock(value: 10)], selected: .mock(value: 5))
+        service.leverageSelectionResult = .success(selection)
+        var transfers: [GemTransferData] = []
+        let model = PerpetualSceneViewModel.mock(service: service, onTransferData: { transfers.append($0) })
+
+        model.onSelectButton(.modify)
+        model.onSelectButton(.leverage)
+
+        #expect(model.isPresentingModifyAlert == nil)
+        #expect(model.isPresentingLeverage == selection)
+        #expect(service.leverageSelectionPositions == [position])
+
+        model.onFinishLeverage([LeverageOption(option: .mock(value: 10))])
+
+        #expect(model.isPresentingLeverage == nil)
+        #expect(service.leverageTransfers == [10])
+        #expect(transfers.count == 1)
+    }
+
+    @Test
+    func unavailablePerpetualsStopsLeverageChanges() {
+        let service = GemPerpetualDetailsServiceMock()
+        service.unavailableTopicValue = .regionUnavailable(country: "GB")
+        let model = PerpetualSceneViewModel.mock(service: service)
+
+        model.onSelectButton(.leverage)
+
+        #expect(model.isPresentingLeverage == nil)
+        #expect(service.leverageSelectionPositions.isEmpty)
     }
 
     @Test

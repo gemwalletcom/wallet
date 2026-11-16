@@ -16,6 +16,7 @@ import com.gemwallet.android.features.perpetuals.viewmodels.PerpetualViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoBottomSheet
 import com.gemwallet.android.ui.components.infoSheet
+import com.gemwallet.android.ui.components.perpetual.SelectLeverageDialog
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.SheetExpansion
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
@@ -54,6 +55,7 @@ fun PerpetualScreen(
     val periods by viewModel.periods.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
+    val leverageSelection by viewModel.leverageSelection.collectAsStateWithLifecycle()
     val snackbar = rememberSnackbarState(message = error, iconRes = R.drawable.ic_error, onShown = viewModel::clearError)
     var showModifyDialog by rememberSaveable { mutableStateOf(false) }
     // The autoclose sheet keeps its pages and pending order in composition, so it closes on recreation rather than reopening empty.
@@ -77,6 +79,7 @@ fun PerpetualScreen(
                 PerpetualAction.ModifyPosition -> viewModel.modifyPosition { showModifyDialog = true }
                 PerpetualAction.IncreasePosition -> viewModel.increasePosition(amountAction)
                 PerpetualAction.ReducePosition -> viewModel.reducePosition(amountAction)
+                PerpetualAction.ChangeLeverage -> viewModel.selectLeverage()
                 PerpetualAction.ClosePosition -> viewModel.closePosition(confirmAction)
                 PerpetualAction.Autoclose -> showAutoclose = true
                 is PerpetualAction.OpenPosition -> viewModel.openPosition(action.direction, amountAction)
@@ -87,6 +90,14 @@ fun PerpetualScreen(
                 is PerpetualAction.OpenAsset -> onOpenAsset(action.assetId)
             }
         },
+    )
+
+    SelectLeverageDialog(
+        isVisible = leverageSelection != null,
+        leverages = leverageSelection?.options.orEmpty(),
+        selected = leverageSelection?.selected,
+        onDismiss = viewModel::dismissLeverage,
+        onSelect = { viewModel.changeLeverage(it, confirmAction) },
     )
 
     ModalBottomSheet(

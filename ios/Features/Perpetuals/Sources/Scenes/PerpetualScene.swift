@@ -75,6 +75,13 @@ public struct PerpetualScene: View {
         .sheet(item: $model.isPresentingInfoSheet) {
             InfoSheetScene(model: $0)
         }
+        .sheet(item: $model.isPresentingLeverage) {
+            SelectableListNavigationStack(
+                model: SelectableListViewModel(leverage: $0),
+                onFinishSelection: model.onFinishLeverage,
+                listContent: { ListItemView(title: $0.displayText) },
+            )
+        }
         .alert(
             model.modifyTitle,
             presenting: $model.isPresentingModifyAlert,

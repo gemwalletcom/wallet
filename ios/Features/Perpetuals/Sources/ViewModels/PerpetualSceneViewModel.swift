@@ -3,6 +3,7 @@
 import Components
 import Foundation
 import enum Gemstone.GemInfoTopic
+import struct Gemstone.GemLeverageSelection
 import struct Gemstone.GemListWindow
 import enum Gemstone.GemPerpetualButton
 import struct Gemstone.GemPerpetualDetails
@@ -56,6 +57,7 @@ public final class PerpetualSceneViewModel {
     public var isPresentingInfoSheet: InfoSheetModel?
     public var isPresentingModifyAlert: Bool?
     public var isPresentingAutoclose: PerpetualPositionData?
+    var isPresentingLeverage: GemLeverageSelection?
 
     public init(
         wallet: Wallet,
@@ -99,7 +101,7 @@ public final class PerpetualSceneViewModel {
 
     public func onSelectButton(_ button: GemPerpetualButton) {
         switch button {
-        case .long, .short, .modify, .increase, .reduce:
+        case .long, .short, .modify, .increase, .reduce, .leverage:
             if let topic = service.unavailableTopic() {
                 isPresentingInfoSheet = InfoSheetModel(sheet: topic.infoSheet)
                 return
@@ -114,6 +116,7 @@ public final class PerpetualSceneViewModel {
         case .close: onClosePosition()
         case .increase: onIncreasePosition()
         case .reduce: onReducePosition()
+        case .leverage: onSelectLeverage()
         }
     }
 
@@ -201,6 +204,27 @@ public extension PerpetualSceneViewModel {
     func onReducePosition() {
         isPresentingModifyAlert = nil
         onPositionAction(.reduce)
+    }
+
+    func onSelectLeverage() {
+        isPresentingModifyAlert = nil
+        do {
+            isPresentingLeverage = try service.leverageSelection(perpetual: perpetual.toGem(), position: details.position)
+        } catch {
+            isPresentingInfoSheet = InfoSheetModel(error: error)
+        }
+    }
+
+    func onFinishLeverage(_ options: [LeverageOption]) {
+        isPresentingLeverage = nil
+        guard let option = options.first else { return }
+        do {
+            if let transferData = try service.leverageTransfer(perpetual: perpetual.toGem(), asset: asset.toGem(), position: details.position, leverage: option.value) {
+                onTransferData?(transferData)
+            }
+        } catch {
+            isPresentingInfoSheet = InfoSheetModel(error: error)
+        }
     }
 
     func onAutocloseComplete() {

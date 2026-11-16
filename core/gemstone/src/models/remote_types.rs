@@ -445,6 +445,7 @@ pub enum PerpetualMarginType {
 pub enum PerpetualModifyPositionType {
     Tpsl { order: TPSLOrderData },
     Cancel { orders: Vec<CancelOrderData> },
+    Leverage { leverage: u8, margin_type: PerpetualMarginType },
 }
 
 #[uniffi::remote(Enum)]

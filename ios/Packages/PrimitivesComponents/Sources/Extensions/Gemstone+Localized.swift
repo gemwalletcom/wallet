@@ -939,6 +939,7 @@ public extension GemListRowTitle {
         case .liquidationPrice: Localized.Info.Perpetual.LiquidationPrice.title
         case .margin: Localized.Perpetual.margin
         case .position: Localized.Perpetual.position
+        case .leverage: Localized.Perpetual.leverage
         case .details: Localized.Common.details
         case .slippage: Localized.Swap.slippage
         case .priceImpact: Localized.Swap.priceImpact
@@ -1347,6 +1348,7 @@ public extension GemPerpetualButton {
         case .close: Localized.Perpetual.closePosition
         case .increase: Localized.Perpetual.increasePosition
         case .reduce: Localized.Perpetual.reducePosition
+        case .leverage: Localized.Perpetual.leverage
         }
     }
 }

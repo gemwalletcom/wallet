@@ -32,10 +32,13 @@ use crate::services::localization::{GemLocalizedText, GemPositionChange, GemTrig
 use crate::services::transfer::GemTransferData;
 use num_bigint::BigUint;
 use primitives::{PerpetualClosingPosition, PerpetualConfirmData, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualReduceData, PerpetualType};
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeSet, HashMap, HashSet};
 
+use crate::config::perpetual_config::leverage_options;
 use crate::models::asset::wallet_default_assets;
+use crate::services::amount::model::GemLeverageSelection;
 use crate::services::balance::{GemBalanceUpdate, GemBalanceUpdateType};
+use crate::services::settings::rules::leverage_option;
 
 pub use gem_hypercore::provider::perpetual::candle_interval;
 
@@ -223,17 +226,32 @@ fn initial_margin(entry_price: f64, size: f64, leverage: u8) -> f64 {
     entry_price * size / f64::from(leverage)
 }
 
-pub fn autoclose_row(asset: &Asset, data: &PerpetualModifyConfirmData) -> Option<GemListRow> {
+pub fn modify_row(asset: &Asset, data: &PerpetualModifyConfirmData) -> Option<GemListRow> {
+    leverage_row(data).or_else(|| autoclose_row(asset, data))
+}
+
+fn leverage_row(data: &PerpetualModifyConfirmData) -> Option<GemListRow> {
+    data.modify_types.iter().find_map(|modify| match modify {
+        PerpetualModifyPositionType::Leverage { leverage, .. } => Some(GemListRow::Amount {
+            title: GemListRowTitle::Leverage,
+            amount: GemFormattedNumber::leverage(f64::from(*leverage)),
+            info: None,
+        }),
+        PerpetualModifyPositionType::Tpsl { .. } | PerpetualModifyPositionType::Cancel { .. } => None,
+    })
+}
+
+fn autoclose_row(asset: &Asset, data: &PerpetualModifyConfirmData) -> Option<GemListRow> {
     let orders = data.modify_types.iter().find_map(|modify| match modify {
         PerpetualModifyPositionType::Tpsl { order } => Some(order),
-        PerpetualModifyPositionType::Cancel { .. } => None,
+        PerpetualModifyPositionType::Cancel { .. } | PerpetualModifyPositionType::Leverage { .. } => None,
     });
     let canceled: HashSet<u64> = data
         .modify_types
         .iter()
         .filter_map(|modify| match modify {
             PerpetualModifyPositionType::Cancel { orders } => Some(orders),
-            PerpetualModifyPositionType::Tpsl { .. } => None,
+            PerpetualModifyPositionType::Tpsl { .. } | PerpetualModifyPositionType::Leverage { .. } => None,
         })
         .flatten()
         .map(|order| order.order_id)
@@ -557,6 +575,35 @@ pub fn close_transfer(perpetual: &Perpetual, asset: &Asset, position: Option<Per
     Ok(position_close_transfer(perpetual.provider.clone(), asset_index(perpetual)?, perpetual.price, asset.clone(), position))
 }
 
+pub fn leverage_selection(perpetual: &Perpetual, position: Option<PerpetualPosition>) -> Result<GemLeverageSelection, GemServiceError> {
+    let position = position_for(perpetual, position)?;
+    let options: BTreeSet<u8> = leverage_options(perpetual.max_leverage).into_iter().chain([position.leverage]).collect();
+    Ok(GemLeverageSelection {
+        options: options.into_iter().map(leverage_option).collect(),
+        selected: leverage_option(position.leverage),
+    })
+}
+
+pub fn leverage_transfer(perpetual: &Perpetual, asset: &Asset, position: Option<PerpetualPosition>, leverage: u8) -> Result<Option<GemTransferData>, GemServiceError> {
+    let position = position_for(perpetual, position)?;
+    if leverage == position.leverage {
+        return Ok(None);
+    }
+    if !(1..=perpetual.max_leverage).contains(&leverage) {
+        return Err(GemServiceError::InvalidInput {
+            msg: format!("leverage {leverage}x is outside 1x to {}x on {}", perpetual.max_leverage, perpetual.identifier),
+        });
+    }
+    let data = PerpetualModifyConfirmData {
+        base_asset: HYPERCORE_PERPETUAL_USDC.clone(),
+        asset_index: asset_index(perpetual)?,
+        modify_types: vec![PerpetualModifyPositionType::Leverage { leverage, margin_type: position.margin_type }],
+        take_profit_order_id: None,
+        stop_loss_order_id: None,
+    };
+    Ok(Some(GemPerpetual::new(perpetual.provider.clone()).transfer_data(asset.clone(), PerpetualType::Modify { data }, GemBigInt::ZERO, false)))
+}
+
 fn position_close_transfer(provider: PerpetualProvider, asset_index: i32, market_price: f64, asset: Asset, position: PerpetualPosition) -> GemTransferData {
     let data = close_order(
         provider.clone(),
@@ -876,7 +923,7 @@ fn perpetual_buttons(perpetual: &Perpetual, has_position: bool) -> Vec<GemPerpet
 
 fn modify_buttons(perpetual: &Perpetual) -> Vec<GemPerpetualButtonRow> {
     match perpetual.is_enabled {
-        true => button_rows(&[GemPerpetualButton::Increase, GemPerpetualButton::Reduce]),
+        true => button_rows(&[GemPerpetualButton::Increase, GemPerpetualButton::Reduce, GemPerpetualButton::Leverage]),
         false => button_rows(&[GemPerpetualButton::Reduce]),
     }
 }
@@ -889,7 +936,7 @@ fn button_tone(button: &GemPerpetualButton) -> GemValueTone {
     match button {
         GemPerpetualButton::Long => GemValueTone::Positive,
         GemPerpetualButton::Short | GemPerpetualButton::Close | GemPerpetualButton::Reduce => GemValueTone::Negative,
-        GemPerpetualButton::Modify | GemPerpetualButton::Increase => GemValueTone::Neutral,
+        GemPerpetualButton::Modify | GemPerpetualButton::Increase | GemPerpetualButton::Leverage => GemValueTone::Neutral,
     }
 }
 
@@ -967,6 +1014,7 @@ mod tests {
             GemPerpetualButton::Close,
             GemPerpetualButton::Increase,
             GemPerpetualButton::Reduce,
+            GemPerpetualButton::Leverage,
         ])
         .into_iter()
         .map(|row| (row.button, row.tone))
@@ -981,6 +1029,7 @@ mod tests {
                 (GemPerpetualButton::Close, GemValueTone::Negative),
                 (GemPerpetualButton::Increase, GemValueTone::Neutral),
                 (GemPerpetualButton::Reduce, GemValueTone::Negative),
+                (GemPerpetualButton::Leverage, GemValueTone::Neutral),
             ]
         );
     }
@@ -990,7 +1039,7 @@ mod tests {
         let perpetual = Perpetual::mock();
         let asset = Asset::mock();
         let position = PerpetualPosition::mock();
-        let modify_buttons = button_rows(&[GemPerpetualButton::Increase, GemPerpetualButton::Reduce]);
+        let modify_buttons = button_rows(&[GemPerpetualButton::Increase, GemPerpetualButton::Reduce, GemPerpetualButton::Leverage]);
 
         assert_eq!(
             details(&perpetual, &asset, vec![], vec![Asset::mock()]),
@@ -1132,6 +1181,88 @@ mod tests {
             vec![GemPerpetualMarketSection::Positions, GemPerpetualMarketSection::Markets],
             "each list the screen observed counts once"
         );
+    }
+
+    #[test]
+    fn test_leverage_selection() {
+        let market = Perpetual { max_leverage: 10, ..Perpetual::mock() };
+        let selection = |leverage: u8| leverage_selection(&market, Some(PerpetualPosition { leverage, ..PerpetualPosition::mock() })).unwrap();
+
+        assert_eq!(
+            selection(5),
+            GemLeverageSelection {
+                options: [1, 2, 3, 5, 10].map(leverage_option).to_vec(),
+                selected: leverage_option(5),
+            },
+            "every leverage up to the market maximum, the position's own checked"
+        );
+        assert_eq!(
+            selection(7),
+            GemLeverageSelection {
+                options: [1, 2, 3, 5, 7, 10].map(leverage_option).to_vec(),
+                selected: leverage_option(7),
+            },
+            "a leverage set outside the app is offered where it sorts, so the checked row is the position's own"
+        );
+        assert!(leverage_selection(&market, None).is_err(), "changing leverage needs a position");
+    }
+
+    #[test]
+    fn test_leverage_transfer() {
+        let market = Perpetual {
+            identifier: "7".to_string(),
+            ..Perpetual::mock()
+        };
+        let asset = Asset::from_chain(Chain::HyperCore);
+        let held = PerpetualPosition {
+            leverage: 5,
+            margin_type: PerpetualMarginType::Isolated,
+            ..PerpetualPosition::mock()
+        };
+        let modify = |leverage: u8| {
+            leverage_transfer(&market, &asset, Some(held.clone()), leverage).map(|transfer| {
+                transfer.map(|transfer| match transfer.input_type {
+                    TransactionInputType::Perpetual {
+                        perpetual_type: PerpetualType::Modify { data },
+                        ..
+                    } => (data.asset_index, data.base_asset.id, data.modify_types),
+                    input_type => panic!("expected a modify, got {input_type:?}"),
+                })
+            })
+        };
+
+        assert_eq!(
+            modify(10).unwrap(),
+            Some((
+                7,
+                HYPERCORE_PERPETUAL_USDC.id.clone(),
+                vec![PerpetualModifyPositionType::Leverage {
+                    leverage: 10,
+                    margin_type: PerpetualMarginType::Isolated,
+                }]
+            )),
+            "Hyperliquid refuses a margin type change on an open position, so the position keeps its own"
+        );
+        assert_eq!(modify(5).unwrap(), None, "picking the leverage the position already has sends nothing");
+        assert!(modify(0).is_err());
+        assert!(modify(21).is_err(), "nothing above the market maximum is signed");
+        assert!(leverage_transfer(&market, &asset, None, 10).is_err(), "changing leverage needs a position");
+    }
+
+    #[test]
+    fn test_modify_row() {
+        let asset = Asset::mock_perpetual();
+        let autoclose = PerpetualModifyConfirmData::mock(vec![PerpetualModifyPositionType::mock_tpsl(Some("65000"), None)], None, None);
+
+        assert_eq!(
+            modify_row(&asset, &PerpetualModifyConfirmData::mock(vec![PerpetualModifyPositionType::mock_leverage(10)], None, None)),
+            Some(GemListRow::Amount {
+                title: GemListRowTitle::Leverage,
+                amount: GemFormattedNumber::leverage(10.0),
+                info: None,
+            })
+        );
+        assert_eq!(modify_row(&asset, &autoclose), autoclose_row(&asset, &autoclose), "an auto close change reads as its trigger prices");
     }
 
     #[test]

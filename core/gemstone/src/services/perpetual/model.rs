@@ -422,6 +422,7 @@ pub enum GemPerpetualButton {
     Close,
     Increase,
     Reduce,
+    Leverage,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, uniffi::Enum)]
