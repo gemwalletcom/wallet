@@ -107,7 +107,7 @@ impl GemConfirmService {
             references: transfer.recipient.references.clone(),
         };
 
-        let scan_payload = scan_rules::transaction_payload(&preload_input);
+        let scan_payload = scan_rules::transaction_payload(&preload_input, &transfer.value);
         let scan_future = async { self.scanner.scan(scan_payload?).await };
         let (metadata, fee_rates, scan, simulation, pending_nonces) = futures::join!(
             self.gateway.get_transaction_preload(chain, preload_input),
