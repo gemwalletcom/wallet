@@ -295,7 +295,7 @@ open class BaseSelectAssetViewModel(
     }
 
     val recentTypes: List<RecentActivityType>
-        get() = flow.action?.recentActivityTypes()?.map { it.toPrimitives() } ?: RecentActivityType.entries
+        get() = flow.recentActivityTypes().map { it.toPrimitives() }
 
     fun assetFilters(): Set<GemAssetFilter> = filterView.value.filters.toSet()
 

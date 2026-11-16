@@ -71,7 +71,7 @@ class RecentsViewModelTest {
 
         assertFalse(viewModel.visible.value)
 
-        viewModel.show(filters = setOf(GemAssetFilter.HasBalance))
+        viewModel.show(filters = setOf(GemAssetFilter.HasBalance), types = RecentActivityType.entries)
         advanceUntilIdle()
         assertTrue(viewModel.visible.value)
 
@@ -85,7 +85,7 @@ class RecentsViewModelTest {
         every { recentActivityQuery(WalletId("wallet-1"), any(), any(), 0) } returns flowOf(recentItems)
         val viewModel = RecentsViewModel(getCurrentWalletId, recentActivityQuery, recentActivityService, testDispatcher)
 
-        viewModel.show()
+        viewModel.show(types = RecentActivityType.entries)
         viewModel.viewState.first { it.days.isNotEmpty() }
 
         viewModel.dismiss()
