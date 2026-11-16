@@ -1,16 +1,10 @@
-use std::sync::LazyLock;
-
-use crate::{ASSOCIATED_TOKEN_ACCOUNT_PROGRAM, Pubkey, SolanaError, find_program_address};
-
-static ASSOCIATED_TOKEN_PROGRAM: LazyLock<Pubkey> = LazyLock::new(|| Pubkey::from_base58(ASSOCIATED_TOKEN_ACCOUNT_PROGRAM).unwrap());
+use crate::{Pubkey, SolanaError, instructions::associated_token::get_associated_token_address_with_program_id};
 
 pub fn get_token_account(wallet: &str, token_mint: &str, token_program: &str) -> Result<String, SolanaError> {
-    let owner = Pubkey::from_base58(wallet)?;
-    let token_program = Pubkey::from_base58(token_program)?;
+    let wallet = Pubkey::from_base58(wallet)?;
     let mint = Pubkey::from_base58(token_mint)?;
-    let seeds = [owner.as_bytes().as_ref(), token_program.as_bytes().as_ref(), mint.as_bytes().as_ref()];
-
-    Ok(find_program_address(&ASSOCIATED_TOKEN_PROGRAM, &seeds)?.0.to_string())
+    let token_program = Pubkey::from_base58(token_program)?;
+    Ok(get_associated_token_address_with_program_id(&wallet, &mint, &token_program)?.to_base58())
 }
 
 #[cfg(test)]

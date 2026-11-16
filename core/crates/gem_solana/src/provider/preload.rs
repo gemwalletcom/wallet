@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use chain_traits::{ChainTransactionLoad, TransactionFeeOperation};
+use futures::TryFutureExt;
 use std::error::Error;
 
 use crate::constants::{DEFAULT_GAS_LIMIT, DEFAULT_SWAP_GAS_LIMIT};
@@ -55,14 +56,6 @@ impl<C: Client + Clone> ChainTransactionLoad for SolanaProvider<C> {
             }
         };
         let recipient_mint = recipient_mint(&input_type, token_program.as_ref());
-        let recipient_associated_token = match (&input_type, recipient_mint, &token_program) {
-            (TransactionInputType::Swap { .. }, _, _) => None,
-            (_, Some(mint), Some(token_program)) => {
-                let token_program = token_program.program_id().to_base58();
-                Some((get_token_account(recipient_lookup, mint, &token_program)?, token_program))
-            }
-            _ => None,
-        };
 
         let sender_token_future = async {
             match sender_mint {
@@ -71,13 +64,15 @@ impl<C: Client + Clone> ChainTransactionLoad for SolanaProvider<C> {
             }
         };
         let recipient_token_future = async {
-            match (recipient_associated_token, recipient_mint) {
-                (Some((address, token_program)), _) => {
+            match (&input_type, recipient_mint, &token_program) {
+                (TransactionInputType::Swap { .. }, Some(mint), _) | (_, Some(mint), None) => Ok(self.find_token_account(recipient_lookup, mint).await?),
+                (_, Some(mint), Some(token_program)) => {
+                    let token_program = token_program.program_id().to_base58();
+                    let address = get_token_account(recipient_lookup, mint, &token_program)?;
                     let account = self.get_account_info_base64(&address).await?.value;
                     Ok(token_account_address(address, account, &token_program))
                 }
-                (None, Some(mint)) => self.find_token_account(recipient_lookup, mint).await,
-                (None, None) => Ok(None),
+                (_, None, _) => Ok(None),
             }
         };
 
@@ -88,7 +83,12 @@ impl<C: Client + Clone> ChainTransactionLoad for SolanaProvider<C> {
             }
         };
 
-        let (block_hash, sender_token_address, recipient_token_address, destination_balance) = futures::try_join!(self.get_latest_blockhash(), sender_token_future, recipient_token_future, destination_balance_future)?;
+        let (block_hash, sender_token_address, recipient_token_address, destination_balance) = futures::try_join!(
+            self.get_latest_blockhash().err_into::<Box<dyn Error + Sync + Send>>(),
+            sender_token_future.err_into(),
+            recipient_token_future,
+            destination_balance_future.err_into()
+        )?;
 
         if let TransactionInputType::TransferNft { .. } = input_type
             && sender_mint.is_some()
