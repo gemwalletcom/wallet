@@ -48,7 +48,7 @@ internal fun WordChip(word: String, isEnable: Boolean, onClick: (String) -> Bool
     val textColor = if (isEnable) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
     Surface(
         modifier = Modifier
-            .shake(shakeController, onComplete = { wordState = WordState.Idle })
+            .shake(shakeController)
             .clip(shape)
             .clickable(enabled = wordState != WordState.Idle || isEnable) {
                 if (!isEnable) {
@@ -63,6 +63,7 @@ internal fun WordChip(word: String, isEnable: Boolean, onClick: (String) -> Bool
                             rotateY = 10f,
                             translateX = 10f,
                         ),
+                        onComplete = { wordState = WordState.Idle },
                     )
                     wordState = WordState.Error
                 }
