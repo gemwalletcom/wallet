@@ -43,6 +43,7 @@ import uniffi.gemstone.GemSelectAssetState
 import uniffi.gemstone.GemSelectAssetType
 import uniffi.gemstone.GemWalletSearchResultsInput
 import uniffi.gemstone.GemWalletSearchResultsView
+import uniffi.gemstone.GemWalletSearchState
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -94,7 +95,7 @@ class AssetsResultsViewModel @Inject constructor(
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val state: StateFlow<GemSelectAssetState> = content.select(viewModelScope, GemSelectAssetState.LOADING) { it.view.state.phase }
+    val state: StateFlow<GemWalletSearchState> = content.select(viewModelScope, emptySearchState(GemSelectAssetState.LOADING)) { it.view.state }
     val pinnedAssets: StateFlow<List<AssetInfoDataAggregate>> = content.select(viewModelScope, emptyList()) { it.assets(it.view.pinnedAssetIds) }
     val assets: StateFlow<List<AssetInfoDataAggregate>> = content.select(viewModelScope, emptyList()) { it.assets(it.view.assetIds) }
     val perpetualItems: StateFlow<List<GemPerpetualMarketItem>> = content.select(viewModelScope, emptyList()) { it.view.perpetuals }

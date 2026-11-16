@@ -4,7 +4,7 @@ pub(crate) mod testkit;
 
 use std::sync::Arc;
 
-use primitives::{Asset, AssetId, AssetType, Chain, Deeplink, FiatQuoteType, Payment, TransactionId, UrlAction, Wallet, WalletConnectLink, WalletId};
+use primitives::{Account, Asset, AssetId, AssetType, Chain, Deeplink, FiatQuoteType, Payment, TransactionId, UrlAction, Wallet, WalletConnectLink, WalletId};
 
 use crate::services::assets::{GemAssetAction, GemAssetsService};
 use crate::services::balance::GemBalanceService;
@@ -47,9 +47,9 @@ impl From<Asset> for GemAssetDestination {
 pub enum GemNavigationTarget {
     Asset { destination: GemAssetDestination, wallet_id: Option<WalletId> },
     Chart { asset: Asset },
-    Receive { asset: Asset },
-    Fiat { asset: Asset, amount: Option<i32>, quote_type: FiatQuoteType },
-    Swap { from: Asset, to: Option<Asset> },
+    Receive { asset: Asset, account: Account },
+    Fiat { asset: Asset, account: Account, amount: Option<i32>, quote_type: FiatQuoteType },
+    Swap { from: Asset, account: Account, to: Option<Asset> },
     Perpetuals,
     Rewards { code: Option<String> },
     Support,
@@ -222,8 +222,9 @@ impl GemNavigationService {
         let Some(wallet) = self.session.get_current_wallet().await? else {
             return Ok(GemNavigationTarget::None);
         };
+        let account = required_account(&wallet, asset_id.chain)?;
         Ok(match self.offered_asset(&wallet, asset_id, GemAssetAction::Receive).await? {
-            Some(asset) => GemNavigationTarget::Receive { asset },
+            Some(asset) => GemNavigationTarget::Receive { asset, account },
             None => GemNavigationTarget::None,
         })
     }
@@ -232,8 +233,9 @@ impl GemNavigationService {
         let Some(wallet) = self.session.get_current_wallet().await? else {
             return Ok(GemNavigationTarget::None);
         };
+        let account = required_account(&wallet, asset_id.chain)?;
         Ok(match self.offered_asset(&wallet, asset_id, quote_action(&quote_type)).await? {
-            Some(asset) => GemNavigationTarget::Fiat { asset, amount, quote_type },
+            Some(asset) => GemNavigationTarget::Fiat { asset, account, amount, quote_type },
             None => GemNavigationTarget::None,
         })
     }
@@ -242,6 +244,7 @@ impl GemNavigationService {
         let Some(wallet) = self.session.get_current_wallet().await? else {
             return Ok(GemNavigationTarget::None);
         };
+        let account = required_account(&wallet, from_asset_id.chain)?;
         let Some(from) = self.offered_asset(&wallet, from_asset_id, GemAssetAction::SwapPay).await? else {
             return Ok(GemNavigationTarget::None);
         };
@@ -249,13 +252,12 @@ impl GemNavigationService {
             Some(asset_id) if wallet.account(asset_id.chain).is_some() => self.offered_asset(&wallet, asset_id, GemAssetAction::SwapReceive).await?,
             _ => None,
         };
-        Ok(GemNavigationTarget::Swap { from, to })
+        Ok(GemNavigationTarget::Swap { from, account, to })
     }
 }
 
 impl GemNavigationService {
     async fn offered_asset(&self, wallet: &Wallet, asset_id: AssetId, action: GemAssetAction) -> Result<Option<Asset>, GemServiceError> {
-        required_account(wallet, asset_id.chain)?;
         let asset = self.assets.ensure_asset(asset_id.clone()).await?;
         let properties = self.assets.asset_properties(asset_id).await?;
         Ok(properties.is_some_and(|properties| action.is_offered(wallet.wallet_type, &properties)).then_some(asset))
@@ -280,7 +282,15 @@ mod tests {
         assert_eq!(GemNavigationTarget::Chart { asset: asset.clone() }.tab(), Some(GemNavigationTab::Wallet));
         assert_eq!(GemNavigationTarget::Support.tab(), Some(GemNavigationTab::Settings));
         assert_eq!(GemNavigationTarget::Rewards { code: None }.tab(), Some(GemNavigationTab::Settings));
-        assert_eq!(GemNavigationTarget::Receive { asset }.tab(), None, "a sheet keeps the tab it opens over");
+        assert_eq!(
+            GemNavigationTarget::Receive {
+                asset,
+                account: primitives::Account::mock(primitives::Chain::Ethereum, "0x")
+            }
+            .tab(),
+            None,
+            "a sheet keeps the tab it opens over"
+        );
         assert_eq!(GemNavigationTarget::None.tab(), None);
     }
     use crate::services::asset_discovery::testkit::DiscoveryTestkit;
@@ -386,7 +396,9 @@ mod tests {
             let sell = || service.open_deeplink(Deeplink::Sell { asset_id: ethereum.id.clone(), amount: None });
             let swap = || service.open_deeplink(Deeplink::Swap { asset_id: ethereum.id.clone() });
             let receive = || service.open_deeplink(Deeplink::Receive { asset_id: ethereum.id.clone() });
-            testkit.select_wallet(&Wallet::mock());
+            let wallet = Wallet::mock();
+            let account = wallet.account(Chain::Ethereum).cloned().unwrap();
+            testkit.select_wallet(&wallet);
 
             save_asset(&testkit, ethereum.clone(), false, false).await;
             assert_eq!(buy().await.unwrap(), GemNavigationTarget::None, "the asset cannot be bought");
@@ -398,6 +410,7 @@ mod tests {
                 buy().await.unwrap(),
                 GemNavigationTarget::Fiat {
                     asset: ethereum.clone(),
+                    account: account.clone(),
                     amount: None,
                     quote_type: FiatQuoteType::Buy
                 }
@@ -406,12 +419,20 @@ mod tests {
                 sell().await.unwrap(),
                 GemNavigationTarget::Fiat {
                     asset: ethereum.clone(),
+                    account: account.clone(),
                     amount: None,
                     quote_type: FiatQuoteType::Sell
                 }
             );
-            assert_eq!(swap().await.unwrap(), GemNavigationTarget::Swap { from: ethereum.clone(), to: None });
-            assert_eq!(receive().await.unwrap(), GemNavigationTarget::Receive { asset: ethereum.clone() });
+            assert_eq!(
+                swap().await.unwrap(),
+                GemNavigationTarget::Swap {
+                    from: ethereum.clone(),
+                    account: account.clone(),
+                    to: None
+                }
+            );
+            assert_eq!(receive().await.unwrap(), GemNavigationTarget::Receive { asset: ethereum.clone(), account });
 
             testkit.select_wallet(&Wallet::mock_with_type(WalletType::View, &[Chain::Ethereum]));
             assert_eq!(buy().await.unwrap(), GemNavigationTarget::None, "a watch-only wallet shows a notice instead of buttons");
@@ -429,7 +450,9 @@ mod tests {
             let ethereum = Asset::from_chain(Chain::Ethereum);
             let arbitrum = Asset::from_chain(Chain::Arbitrum);
             let bitcoin = Asset::from_chain(Chain::Bitcoin);
-            testkit.select_wallet(&Wallet::mock_with_chains(&[Chain::Ethereum, Chain::Arbitrum]));
+            let wallet = Wallet::mock_with_chains(&[Chain::Ethereum, Chain::Arbitrum]);
+            let account = wallet.account(Chain::Ethereum).cloned().unwrap();
+            testkit.select_wallet(&wallet);
             save_asset(&testkit, ethereum.clone(), false, true).await;
             save_asset(&testkit, arbitrum.clone(), false, false).await;
             save_asset(&testkit, bitcoin.clone(), false, true).await;
@@ -442,10 +465,18 @@ mod tests {
                 .await
                 .unwrap();
 
-            assert_eq!(target, GemNavigationTarget::Swap { from: ethereum.clone(), to: None }, "the asset cannot be swapped");
+            assert_eq!(
+                target,
+                GemNavigationTarget::Swap {
+                    from: ethereum.clone(),
+                    account: account.clone(),
+                    to: None
+                },
+                "the asset cannot be swapped"
+            );
             assert_eq!(
                 service.open_swap(ethereum.id.clone(), bitcoin.id).await.unwrap(),
-                GemNavigationTarget::Swap { from: ethereum, to: None },
+                GemNavigationTarget::Swap { from: ethereum, account, to: None },
                 "the wallet has no account on the network"
             );
         });

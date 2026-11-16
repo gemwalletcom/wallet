@@ -1,18 +1,15 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Components
 import Foundation
-import struct Gemstone.GemCandleChart
-import struct Gemstone.GemChartData
+import enum Gemstone.GemChartPhase
 import enum Gemstone.GemChartStyle
 import Primitives
 
 @MainActor
 public protocol ChartListViewable: AnyObject, Observable {
-    var chartState: StateViewType<GemChartData> { get }
+    var chartPhase: GemChartPhase { get }
     var selectedPeriod: ChartPeriod { get set }
     var periods: [ChartPeriod] { get }
-    var candleChart: GemCandleChart? { get }
     var chartStyle: GemChartStyle { get }
     var styleSwitch: GemChartStyle? { get }
     func load() async
@@ -22,10 +19,6 @@ public protocol ChartListViewable: AnyObject, Observable {
 }
 
 public extension ChartListViewable {
-    var candleChart: GemCandleChart? {
-        nil
-    }
-
     var chartStyle: GemChartStyle {
         .line
     }

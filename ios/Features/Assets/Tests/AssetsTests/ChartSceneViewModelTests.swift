@@ -29,7 +29,7 @@ struct ChartSceneViewModelTests {
         await load.value
 
         #expect(model.selectedPeriod == .week)
-        #expect(model.chartState.isLoading == false)
+        #expect(model.chartPhase != .loading)
     }
 
     @Test

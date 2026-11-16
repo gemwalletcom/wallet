@@ -4,6 +4,7 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.confirm.unpackTransferData
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.AmountParams
+import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockGemTransferData
@@ -68,7 +69,7 @@ class PaymentNavigationTest {
     fun `an asset Core resolved opens its recipient input`() = runTest {
         val asset = mockAsset(id = mockAssetId(chain = Chain.Solana, tokenId = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"), name = "USD Coin", symbol = "USDC", decimals = 6u, type = AssetType.SPL)
 
-        val route = navigation(GemPaymentTarget.Recipient(asset.toGem(), recipient())).routes(payment).single()
+        val route = navigation(GemPaymentTarget.Recipient(asset.toGem(), mockAccount(Chain.Solana).toGem(), recipient())).routes(payment).single()
 
         assertEquals(asset.id, (route as RecipientRoute).assetId)
     }

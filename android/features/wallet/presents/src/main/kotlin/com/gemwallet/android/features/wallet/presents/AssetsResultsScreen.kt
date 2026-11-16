@@ -65,7 +65,7 @@ fun AssetsResultsScreen(onAction: (WalletSearchAction) -> Unit, viewModel: Asset
             onRefresh = viewModel::refresh,
         ) {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
-                if (pinned.isNotEmpty()) {
+                if (state.showsPinned) {
                     item { AssetSectionHeaderItem(GemAssetSectionKind.PINNED) }
                     assetRows(
                         items = pinned,
@@ -75,14 +75,16 @@ fun AssetsResultsScreen(onAction: (WalletSearchAction) -> Unit, viewModel: Asset
                         contextActions = contextActions,
                     )
                 }
-                assetRows(
-                    items = assets,
-                    keyPrefix = GemAssetSectionKind.ASSETS.name,
-                    onSelect = onAssetClick,
-                    longPressedAsset = longPressedAsset,
-                    contextActions = contextActions,
-                )
-                if (perpetuals.isNotEmpty()) {
+                if (state.showsAssets) {
+                    assetRows(
+                        items = assets,
+                        keyPrefix = GemAssetSectionKind.ASSETS.name,
+                        onSelect = onAssetClick,
+                        longPressedAsset = longPressedAsset,
+                        contextActions = contextActions,
+                    )
+                }
+                if (state.showsPerpetuals) {
                     item { SubheaderItem(R.string.perpetuals_title) }
                     itemsPositioned(perpetuals) { position, item ->
                         PerpetualListItem(
@@ -94,7 +96,7 @@ fun AssetsResultsScreen(onAction: (WalletSearchAction) -> Unit, viewModel: Asset
                         )
                     }
                 }
-                searchState(state)
+                searchState(state.phase)
             }
         }
     }

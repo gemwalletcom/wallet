@@ -20,6 +20,7 @@ import com.gemwallet.android.features.onboarding.presents.terms.AcceptTermsRoute
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.GetAssetAction
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.model.Session
+import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockSession
@@ -184,7 +185,7 @@ class WalletNavigatorTest {
         val navigationService = mockk<GemNavigationServiceInterface> {
             coEvery { openSwap(from.toIdentifier(), to.toIdentifier()) } returnsMany listOf(
                 GemNavigationTarget.None,
-                GemNavigationTarget.Swap(mockAsset(id = from).toGem(), to = null),
+                GemNavigationTarget.Swap(mockAsset(id = from).toGem(), mockAccount(Chain.Ethereum).toGem(), to = null),
             )
         }
         val navigator = navigatorWith(WalletRootRoute, navigationService = navigationService, scope = this)

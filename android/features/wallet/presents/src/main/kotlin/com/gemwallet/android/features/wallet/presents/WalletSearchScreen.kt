@@ -65,7 +65,7 @@ fun WalletSearchScreen(onAction: (WalletSearchAction) -> Unit, viewModel: Wallet
 
             is WalletSearchAction.TogglePerpetualPin -> viewModel.onTogglePerpetualPin(action.item)
 
-            WalletSearchAction.OpenRecentsSheet -> recentsViewModel.show(filters = viewModel.assetFilters())
+            WalletSearchAction.OpenRecentsSheet -> recentsViewModel.show(filters = viewModel.assetFilters(), types = viewModel.recentTypes)
 
             is WalletSearchAction.OpenAsset -> {
                 viewModel.openRecent(action.asset)
@@ -102,7 +102,7 @@ fun WalletSearchScreen(onAction: (WalletSearchAction) -> Unit, viewModel: Wallet
         }
     }
 
-    val perpetualsContent: (LazyListScope.() -> Unit)? = if (previewPerpetuals.isNotEmpty()) {
+    val perpetualsContent: (LazyListScope.() -> Unit)? = if (state.showsPerpetuals) {
         {
             item {
                 SubheaderItem(R.string.perpetuals_title, if (hasMorePerpetuals) ({ handleAction(WalletSearchAction.OpenPerpetuals) }) else null)
@@ -121,7 +121,7 @@ fun WalletSearchScreen(onAction: (WalletSearchAction) -> Unit, viewModel: Wallet
         null
     }
 
-    val listsContent: (LazyListScope.() -> Unit)? = if (lists.isNotEmpty()) {
+    val listsContent: (LazyListScope.() -> Unit)? = if (state.showsLists) {
         {
             item {
                 SubheaderItem(R.string.common_lists)
@@ -138,7 +138,7 @@ fun WalletSearchScreen(onAction: (WalletSearchAction) -> Unit, viewModel: Wallet
         null
     }
 
-    val nftsContent: (LazyListScope.() -> Unit)? = if (previewNfts.isNotEmpty()) {
+    val nftsContent: (LazyListScope.() -> Unit)? = if (state.showsNfts) {
         {
             item {
                 SubheaderItem(R.string.nft_collections, if (hasMoreNfts) ({ handleAction(WalletSearchAction.OpenCollections) }) else null)
@@ -169,11 +169,11 @@ fun WalletSearchScreen(onAction: (WalletSearchAction) -> Unit, viewModel: Wallet
             )
         },
         query = viewModel.queryState,
-        pinned = pinned,
+        pinned = if (state.showsPinned) pinned else emptyList(),
         popular = emptyList(),
-        unpinned = previewAssets,
-        recent = recent,
-        state = state,
+        unpinned = if (state.showsAssets) previewAssets else emptyList(),
+        recent = if (state.showsRecents) recent else emptyList(),
+        state = state.phase,
         rowAction = viewModel.flow.rowAction,
         empty = searchEmptyState,
         searchable = false,
@@ -204,7 +204,7 @@ fun WalletSearchScreen(onAction: (WalletSearchAction) -> Unit, viewModel: Wallet
             onTogglePin = { handleAction(WalletSearchAction.PinAsset(it)) },
             onAddToWallet = { handleAction(WalletSearchAction.AddToWallet(it)) },
         ),
-        pinnedPerpetualRows = pinnedPerpetualRows,
+        pinnedPerpetualRows = if (state.showsPinned) pinnedPerpetualRows else emptyList(),
         perpetualsContent = perpetualsContent,
         listsContent = listsContent,
         nftsContent = nftsContent,

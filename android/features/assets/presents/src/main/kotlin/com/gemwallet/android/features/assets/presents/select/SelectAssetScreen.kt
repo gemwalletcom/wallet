@@ -39,7 +39,6 @@ fun SelectAssetScreen(
     val unpinned by viewModel.unpinned.collectAsStateWithLifecycle()
     val recent by viewModel.recent.collectAsStateWithLifecycle()
     val showsRecents by viewModel.showsRecents.collectAsStateWithLifecycle()
-    val showRecents = showsRecents && onSelectRecent != null
     val searchEmptyState by viewModel.searchEmptyState.collectAsStateWithLifecycle()
     val isChainFilterAvailable by viewModel.isChainFilterAvailable.collectAsStateWithLifecycle()
     val availableChains by viewModel.availableChains.collectAsStateWithLifecycle()
@@ -59,7 +58,7 @@ fun SelectAssetScreen(
         pinned = pinned,
         popular = popular,
         unpinned = unpinned,
-        recent = if (showRecents) recent else emptyList(),
+        recent = if (showsRecents) recent else emptyList(),
         state = uiStates,
         rowAction = viewModel.flow.rowAction,
         empty = searchEmptyState,
@@ -79,7 +78,7 @@ fun SelectAssetScreen(
                 SelectAssetAction.ShowAllAssets -> Unit
             }
         },
-        recentsSheetEnabled = showRecents,
+        recentsSheetEnabled = showsRecents,
         onItemAction = { item, action ->
             when (action) {
                 is AssetItemAction.Switch -> viewModel.onChangeVisibility(item.asset.id, action.enabled)
