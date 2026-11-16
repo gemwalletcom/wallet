@@ -63,13 +63,26 @@ mod tests {
         let consumer = NotificationsFailedConsumer::new(repository.clone());
 
         let count = consumer
-            .consume(NotificationsFailedPayload::new(vec![failure("invalid", "BadDeviceToken"), failure("throttled", "TooManyRequests")]))
+            .consume(NotificationsFailedPayload::new(vec![
+                failure("invalid", "BadDeviceToken"),
+                failure("throttled", "TooManyRequests"),
+                failure("unregistered", "Unregistered"),
+            ]))
             .await
             .unwrap();
 
-        assert_eq!(count, 1);
-        let updates = repository.device_updates();
-        assert_eq!(updates.len(), 1);
-        assert_eq!(updates[0], (vec![DeviceFilter::Ids(vec!["invalid".to_string()])], vec![DeviceUpdate::IsPushEnabled(false)]));
+        assert_eq!(count, 2);
+        assert_eq!(
+            repository.device_updates(),
+            vec![(vec![DeviceFilter::Ids(vec!["invalid".to_string(), "unregistered".to_string()])], vec![DeviceUpdate::IsPushEnabled(false)])]
+        );
+
+        let repository = Arc::new(MemoryNotificationsRepository::default());
+        let consumer = NotificationsFailedConsumer::new(repository.clone());
+
+        let count = consumer.consume(NotificationsFailedPayload::new(vec![failure("throttled", "TooManyRequests")])).await.unwrap();
+
+        assert_eq!(count, 0);
+        assert!(repository.device_updates().is_empty());
     }
 }
