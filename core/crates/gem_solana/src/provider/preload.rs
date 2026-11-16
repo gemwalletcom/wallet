@@ -8,11 +8,12 @@ use gem_client::Client;
 use primitives::{FeeRate, SolanaNftStandard, SolanaTokenProgramId, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput};
 
 use crate::{
-    METAPLEX_CORE_PROGRAM, Pubkey, SolanaTokenProgramIdExt, get_token_program_id_by_address,
-    instructions::associated_token::get_associated_token_address_with_program_id,
+    METAPLEX_CORE_PROGRAM, SolanaTokenProgramIdExt, get_token_program_id_by_address,
     metaplex::metadata::Metadata,
     metaplex_core,
+    models::AccountData,
     rpc::{SolanaClient, SolanaProvider},
+    token_account::get_token_account,
 };
 
 struct SolanaNftPreload {
@@ -54,9 +55,12 @@ impl<C: Client + Clone> ChainTransactionLoad for SolanaProvider<C> {
             }
         };
         let recipient_mint = recipient_mint(&input_type, token_program.as_ref());
-        let recipient_associated_token_address = match (&input_type, recipient_mint, &token_program) {
+        let recipient_associated_token = match (&input_type, recipient_mint, &token_program) {
             (TransactionInputType::Swap { .. }, _, _) => None,
-            (_, Some(mint), Some(token_program)) => Some(associated_token_address(recipient_lookup, mint, token_program)?),
+            (_, Some(mint), Some(token_program)) => {
+                let token_program = token_program.program_id().to_base58();
+                Some((get_token_account(recipient_lookup, mint, &token_program)?, token_program))
+            }
             _ => None,
         };
 
@@ -67,8 +71,11 @@ impl<C: Client + Clone> ChainTransactionLoad for SolanaProvider<C> {
             }
         };
         let recipient_token_future = async {
-            match (recipient_associated_token_address, recipient_mint) {
-                (Some(address), _) => Ok(self.get_account_info_base64(&address).await?.value.map(|_| address)),
+            match (recipient_associated_token, recipient_mint) {
+                (Some((address, token_program)), _) => {
+                    let account = self.get_account_info_base64(&address).await?.value;
+                    Ok(token_account_address(address, account, &token_program))
+                }
                 (None, Some(mint)) => self.find_token_account(recipient_lookup, mint).await,
                 (None, None) => Ok(None),
             }
@@ -112,10 +119,8 @@ impl<C: Client + Clone> ChainTransactionLoad for SolanaProvider<C> {
     }
 }
 
-fn associated_token_address(owner: &str, mint: &str, token_program: &SolanaTokenProgramId) -> Result<String, Box<dyn Error + Sync + Send>> {
-    let owner = Pubkey::from_base58(owner)?;
-    let mint = Pubkey::from_base58(mint)?;
-    Ok(get_associated_token_address_with_program_id(&owner, &mint, &token_program.program_id())?.to_base58())
+fn token_account_address(address: String, account: Option<AccountData>, token_program: &str) -> Option<String> {
+    account.filter(|account| account.owner == token_program).map(|_| address)
 }
 
 #[cfg(feature = "rpc")]
@@ -142,6 +147,23 @@ impl<C: Client + Clone> SolanaClient<C> {
             token_program: Some(token_program),
             standard,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{SYSTEM_PROGRAM_ID, TOKEN_PROGRAM, TOKEN_PROGRAM_2022};
+
+    #[test]
+    fn test_token_account_address_counts_only_accounts_the_token_program_owns() {
+        let account = |owner: &str| AccountData { data: vec![], owner: owner.to_string() };
+        let address = "Ffeie177PRngys3SwNH44AYdT9yExm63GAmTXHdmL1k1".to_string();
+
+        assert_eq!(token_account_address(address.clone(), Some(account(TOKEN_PROGRAM)), TOKEN_PROGRAM), Some(address.clone()));
+        assert_eq!(token_account_address(address.clone(), Some(account(SYSTEM_PROGRAM_ID)), TOKEN_PROGRAM), None);
+        assert_eq!(token_account_address(address.clone(), Some(account(TOKEN_PROGRAM_2022)), TOKEN_PROGRAM), None);
+        assert_eq!(token_account_address(address, None, TOKEN_PROGRAM), None);
     }
 }
 
