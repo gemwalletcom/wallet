@@ -1,3 +1,4 @@
+mod crc16;
 mod error;
 mod hex;
 mod percent_encoding;
@@ -13,12 +14,13 @@ mod base64;
 #[cfg(any(feature = "base32", feature = "base64"))]
 mod base_n;
 
+pub use crc16::crc16_xmodem;
 pub use error::{EncodingError, EncodingType};
 pub use hex::{decode_hex, encode_hex};
 pub use percent_encoding::{is_valid_percent_encoding, percent_decode_lossy, percent_encode};
 
 #[cfg(feature = "base32")]
-pub use crate::base32::{decode_base32, encode_base32};
+pub use crate::base32::{decode_base32, decode_strkey, encode_base32, encode_strkey};
 #[cfg(feature = "base58")]
 pub use crate::base58::{Base58Alphabet, decode_base58, decode_base58_check, decode_base58_into, encode_base58, encode_base58_check};
 #[cfg(feature = "base64")]

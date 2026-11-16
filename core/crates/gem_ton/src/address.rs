@@ -2,7 +2,7 @@ use primitives::hex;
 use std::fmt;
 use std::str::FromStr;
 
-use gem_encoding::{decode_base64_no_pad, decode_base64_url, encode_base64_url};
+use gem_encoding::{crc16_xmodem, decode_base64_no_pad, decode_base64_url, encode_base64_url};
 use primitives::{Address as AddressTrait, AddressError, OptionStringExt, SignerError};
 use serde::{Deserialize, Deserializer, de::Error as _};
 
@@ -46,14 +46,6 @@ impl UserFriendlyAddressType {
     }
 }
 
-const CRC16_XMODEM_POLYNOMIAL: u16 = 0x1021;
-
-fn crc16(slice: &[u8]) -> u16 {
-    slice.iter().fold(0, |crc, &byte| {
-        (0..8).fold(crc ^ (u16::from(byte) << 8), |crc, _| if crc & 0x8000 == 0 { crc << 1 } else { (crc << 1) ^ CRC16_XMODEM_POLYNOMIAL })
-    })
-}
-
 #[derive(Clone, Copy, Eq, PartialEq, Hash)]
 pub struct Address {
     bytes: RawBytes,
@@ -85,7 +77,7 @@ impl Address {
             return None;
         }
         let expected_crc = u16::from_be_bytes(bytes[34..36].try_into().ok()?);
-        if expected_crc != crc16(&bytes[..34]) {
+        if expected_crc != crc16_xmodem(&bytes[..34]) {
             return None;
         }
         let address_type = UserFriendlyAddressType::from_tag(bytes[0])?;
@@ -159,7 +151,7 @@ impl Address {
         buffer[0] = address_type.tag();
         buffer[1..RAW_ADDRESS_LEN + 1].copy_from_slice(&self.bytes);
 
-        let crc = crc16(&buffer[..RAW_ADDRESS_LEN + 1]);
+        let crc = crc16_xmodem(&buffer[..RAW_ADDRESS_LEN + 1]);
         buffer[34] = ((crc >> 8) & 0xFF) as u8;
         buffer[35] = (crc & 0xFF) as u8;
 
@@ -238,12 +230,6 @@ pub fn base64_to_hex_address(base64_str: &str) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_crc16() {
-        assert_eq!(crc16(b"123456789"), 0x31c3);
-        assert_eq!(crc16(&[]), 0);
-    }
 
     #[test]
     fn test_parse_address() {

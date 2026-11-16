@@ -2804,6 +2804,7 @@ version = "2.114.94"
 dependencies = [
  "bs58",
  "gem_hash",
+ "zeroize",
 ]
 
 [[package]]

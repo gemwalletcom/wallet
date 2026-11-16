@@ -1,9 +1,11 @@
-use gem_encoding::{decode_base58, encode_base58};
+use gem_encoding::{decode_base58, decode_strkey, encode_base58};
 use primitives::hex::encode_with_0x;
 use primitives::{Chain, ChainType, decode_hex};
 use zeroize::Zeroizing;
 
 use crate::{CARDANO_EXTENDED_PRIVATE_KEY_LENGTH, Ed25519KeyPair, SignatureScheme, SignerError};
+
+const STELLAR_SECRET_SEED_VERSION: u8 = 0x90;
 
 #[derive(Debug, Clone, Copy)]
 enum KeyEncoding {
@@ -67,61 +69,6 @@ fn decode_prefixed_base58(value: &str, scheme: SignatureScheme) -> Option<Vec<u8
     decode_base58_key(value.strip_prefix(scheme.as_ref())?.strip_prefix(':')?)
 }
 
-fn base32_decode_char(c: u8) -> Option<u8> {
-    match c {
-        b'A'..=b'Z' => Some(c - b'A'),
-        b'2'..=b'7' => Some(c - b'2' + 26),
-        _ => None,
-    }
-}
-
-fn base32_decode(input: &[u8]) -> Option<Vec<u8>> {
-    let mut output = Vec::with_capacity(input.len() * 5 / 8);
-    let mut buffer: u64 = 0;
-    let mut bits = 0u8;
-
-    for &c in input {
-        if c == b'=' {
-            break;
-        }
-        let val = base32_decode_char(c)?;
-        buffer = (buffer << 5) | val as u64;
-        bits += 5;
-        if bits >= 8 {
-            bits -= 8;
-            output.push((buffer >> bits) as u8);
-            buffer &= (1u64 << bits) - 1;
-        }
-    }
-    Some(output)
-}
-
-fn crc16_xmodem(data: &[u8]) -> u16 {
-    let mut crc: u16 = 0;
-    for &byte in data {
-        crc ^= (byte as u16) << 8;
-        for _ in 0..8 {
-            crc = if crc & 0x8000 != 0 { (crc << 1) ^ 0x1021 } else { crc << 1 };
-        }
-    }
-    crc
-}
-
-fn decode_stellar_strkey(value: &str) -> Option<Vec<u8>> {
-    if value.len() != 56 || !value.starts_with('S') {
-        return None;
-    }
-    let decoded = Zeroizing::new(base32_decode(value.as_bytes())?);
-    if decoded.len() != 35 || decoded[0] != 0x90 {
-        return None;
-    }
-    let expected = u16::from_le_bytes([decoded[33], decoded[34]]);
-    if crc16_xmodem(&decoded[..33]) != expected {
-        return None;
-    }
-    Some(decoded[1..33].to_vec())
-}
-
 fn validate_key(bytes: &[u8], scheme: SignatureScheme) -> Result<(), SignerError> {
     match scheme {
         SignatureScheme::Ed25519 => {
@@ -151,7 +98,7 @@ fn decode_key(value: &str, encodings: &[KeyEncoding], scheme: SignatureScheme) -
                     decode_prefixed_base58(value, *prefix_scheme).map(Zeroizing::new)
                 }
             }
-            KeyEncoding::StellarStrKey => decode_stellar_strkey(value).map(Zeroizing::new),
+            KeyEncoding::StellarStrKey => decode_strkey(value, STELLAR_SECRET_SEED_VERSION).ok(),
         };
         if let Some(bytes) = decoded
             && validate_key(&bytes, scheme).is_ok()

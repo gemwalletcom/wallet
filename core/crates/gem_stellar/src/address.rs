@@ -1,12 +1,9 @@
-use gem_encoding::{decode_base32, encode_base32};
+use gem_encoding::{decode_strkey, encode_strkey};
 use primitives::{Address, SignerError};
 use signer::Base32Address;
 use std::fmt;
 
 const ED25519_PUBLIC_KEY_VERSION: u8 = 0x30;
-const ADDRESS_LENGTH: usize = 56;
-const DECODED_LENGTH: usize = 35;
-const CRC16_XMODEM_POLY: u16 = 0x1021;
 
 #[derive(Clone)]
 pub struct StellarAddress {
@@ -15,18 +12,8 @@ pub struct StellarAddress {
 
 impl Address for StellarAddress {
     fn try_parse(address: &str) -> Option<Self> {
-        if address.len() != ADDRESS_LENGTH || !address.starts_with('G') {
-            return None;
-        }
-        let decoded = decode_base32(address.as_bytes()).ok()?;
-        if decoded.len() != DECODED_LENGTH || decoded[0] != ED25519_PUBLIC_KEY_VERSION {
-            return None;
-        }
-        let crc = u16::from_le_bytes([decoded[33], decoded[34]]);
-        if Self::crc16_xmodem(&decoded[..33]) != crc {
-            return None;
-        }
-        Base32Address::from_slice(&decoded[1..33]).ok().map(|base32| Self { base32 })
+        let payload = decode_strkey(address, ED25519_PUBLIC_KEY_VERSION).ok()?;
+        Base32Address::from_slice(&payload).ok().map(|base32| Self { base32 })
     }
 
     fn as_bytes(&self) -> &[u8] {
@@ -34,12 +21,7 @@ impl Address for StellarAddress {
     }
 
     fn encode(&self) -> String {
-        let mut raw = Vec::with_capacity(DECODED_LENGTH);
-        raw.push(ED25519_PUBLIC_KEY_VERSION);
-        raw.extend_from_slice(self.base32.payload());
-        let crc = Self::crc16_xmodem(&raw).to_le_bytes();
-        raw.extend_from_slice(&crc);
-        encode_base32(&raw)
+        encode_strkey(ED25519_PUBLIC_KEY_VERSION, self.base32.payload())
     }
 }
 
@@ -52,17 +34,6 @@ impl StellarAddress {
         Ok(Self {
             base32: Base32Address::from_slice(public_key_bytes)?,
         })
-    }
-
-    fn crc16_xmodem(data: &[u8]) -> u16 {
-        let mut crc: u16 = 0;
-        for &byte in data {
-            crc ^= (byte as u16) << 8;
-            for _ in 0..8 {
-                crc = if crc & 0x8000 != 0 { (crc << 1) ^ CRC16_XMODEM_POLY } else { crc << 1 };
-            }
-        }
-        crc
     }
 }
 

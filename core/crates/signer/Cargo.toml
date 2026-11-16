@@ -4,7 +4,7 @@ version = { workspace = true }
 edition = { workspace = true }
 
 [dependencies]
-gem_encoding = { path = "../gem_encoding", default-features = false, features = ["base58"] }
+gem_encoding = { path = "../gem_encoding", default-features = false, features = ["base32", "base58"] }
 ed25519-dalek = { workspace = true, default-features = false, features = ["zeroize"] }
 secp256k1 = { workspace = true }
 getrandom = { workspace = true }
