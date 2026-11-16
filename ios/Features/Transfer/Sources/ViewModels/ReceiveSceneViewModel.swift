@@ -107,9 +107,10 @@ public final class ReceiveSceneViewModel: Sendable {
         networks.showsSelector
     }
 
-    var networkSelectorModel: ReceiveNetworkSelectorViewModel {
-        ReceiveNetworkSelectorViewModel(
-            assetIds: networks.networks.map(\.assetId),
+    var networkSelectorModel: SelectableListViewModel<AssetId> {
+        SelectableListViewModel(
+            title: Localized.Settings.Networks.title,
+            state: .data(.plain(networks.networks.map(\.assetId))),
         )
     }
 

@@ -60,7 +60,7 @@ The same thing has the same base name on both apps; only the platform's suffix o
 | Screen view model | `XSceneViewModel` | `XViewModel` | `SwapSceneViewModel` / `SwapViewModel` |
 | Screen UI state | — (the view model) | `XUIState` | `LockUIState` |
 | User action | a view model method | `XAction` | `SwapAction` |
-| Component or row model | `XViewModel` | `XUIModel` | `ProvidersViewModel` / `ContactRowUIModel` |
+| Component or row model | `XViewModel` | `XUIModel` | `SelectableListViewModel` / `ContactRowUIModel` |
 | Flow | `XNavigationStack` | `XRoute`, `XNavGraph` | `SetPriceAlertNavigationStack` / `StakeRoute` |
 | Destination host | `XNavigationView` hosts one scene's sheets and destinations inside a stack it does not own; a view whose body is a `NavigationStack` is `XNavigationStack` | the route's composable | `StakeNavigationView` |
 | Observed read | `XQuery` | `XQuery` | `PriceAlertsQuery` |
@@ -1553,7 +1553,7 @@ On Android the Hilt module binds both the concrete class and the generated inter
 
 A service method that returns another service (`service.contactEditor()`) is the same reach-through as `model.nameService`, one level down: the caller depends on something it was not given. Every service is constructed in the composition root and injected. Returning `Arc<GemFooService>` from an exported service is migration debt, not an exception to this rule.
 
-A **shared component** — `AddressInputViewModel`, `NetworkSelectorViewModel` — takes the Core service it needs by its own protocol: `AddressInputViewModel` and `NameRecordViewModel` take `any GemNameServiceProtocol` (`GemNameServiceInterface` on Android), and the parent view model receives that `nameService` as a plain constructor dependency beside its `service` and passes it down. The screen service does not forward name methods and the client does not declare a protocol intersection (`any GemFooServiceProtocol & AddressInputResolving`) or a builder closure to reach the component's dependency — both hide a second dependency inside the first. `NetworkSelectorViewModel` needs only the dependency-free `GemChainService` and reads `GemChainService.shared` itself ([the fieldless exception](#8-services-are-injected-never-constructed-at-a-call-site)).
+A **shared component** — `AddressInputViewModel`, `SelectableListViewModel` — takes the Core service it needs by its own protocol: `AddressInputViewModel` and `NameRecordViewModel` take `any GemNameServiceProtocol` (`GemNameServiceInterface` on Android), and the parent view model receives that `nameService` as a plain constructor dependency beside its `service` and passes it down. The screen service does not forward name methods and the client does not declare a protocol intersection (`any GemFooServiceProtocol & AddressInputResolving`) or a builder closure to reach the component's dependency — both hide a second dependency inside the first. `SelectableListViewModel(networks:)` needs only the dependency-free `GemChainService` and reads `GemChainService.shared` itself ([the fieldless exception](#8-services-are-injected-never-constructed-at-a-call-site)).
 
 ### The parent vends the child model, the view never reaches in
 

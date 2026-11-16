@@ -93,9 +93,9 @@ public final class ContactAddressEditorSceneViewModel {
         GemContactAddressField.memo.title
     }
 
-    var networkSelectorModel: NetworkSelectorViewModel {
-        NetworkSelectorViewModel(
-            state: .data(.plain(chains)),
+    var networkSelectorModel: SelectableListViewModel<Chain> {
+        SelectableListViewModel(
+            networks: .data(.plain(chains)),
             selectedItems: [chain],
             selectionType: .checkmark,
             title: GemContactAddressField.network.title,

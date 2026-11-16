@@ -14,6 +14,7 @@ import struct Gemstone.GemRewardsState
 import struct Gemstone.GemRewardsViewState
 import struct Gemstone.GemRewardsWallet
 import enum Gemstone.GemServiceError
+import struct Gemstone.GemWalletRow
 import func Gemstone.rewardsSession
 import GemstonePrimitives
 import InfoSheet
@@ -82,8 +83,8 @@ public final class RewardsSceneViewModel: Sendable {
         EmptyStateViewModel(kind: .rewards)
     }
 
-    var walletSelectorModel: SelectWalletViewModel? {
-        wallet.map { SelectWalletViewModel(sections: $0.sections, selectedRow: $0.row) }
+    var walletSelectorModel: SelectableListViewModel<GemWalletRow>? {
+        wallet.map { SelectableListViewModel(sections: $0.sections, selectedRow: $0.row) }
     }
 
     var shareText: String? {

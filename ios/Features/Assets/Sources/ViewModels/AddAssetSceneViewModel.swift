@@ -67,8 +67,8 @@ public final class AddAssetSceneViewModel {
         Localized.Wallet.AddToken.title
     }
 
-    var networksModel: NetworkSelectorViewModel {
-        NetworkSelectorViewModel(state: .data(.plain(input.chains)))
+    var networksModel: SelectableListViewModel<Chain> {
+        SelectableListViewModel(networks: .data(.plain(input.chains)))
     }
 
     var networkTitle: String {

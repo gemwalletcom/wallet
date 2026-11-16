@@ -51,8 +51,9 @@ public struct NetworkFeeSceneViewModel {
         screen?.feeAsset?.feeAssetItem
     }
 
-    var feeAssetsViewModel: FeeAssetsViewModel {
-        FeeAssetsViewModel(
+    var feeAssetsViewModel: SelectableListViewModel<FeeAssetItem> {
+        SelectableListViewModel(
+            title: Localized.Assets.selectAsset,
             state: .data(.plain((screen?.feeAssets ?? []).map { $0.feeAssetItem.selected($0.asset.id == screen?.feeAsset?.asset.id) })),
         )
     }

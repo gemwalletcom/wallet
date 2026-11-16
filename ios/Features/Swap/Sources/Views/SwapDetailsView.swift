@@ -66,8 +66,8 @@ public struct SwapDetailsView: View {
         }
     }
 
-    private var providersModel: ProvidersViewModel {
-        ProvidersViewModel(state: providers.map { .plain($0) })
+    private var providersModel: SelectableListViewModel<GemProviderRow> {
+        SelectableListViewModel(providers: providers.map { .plain($0) })
     }
 
     private var providersList: some View {

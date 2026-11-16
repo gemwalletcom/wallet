@@ -8,12 +8,12 @@ import SwiftUI
 public struct NetworkSelectorScene: View {
     @Environment(\.dismiss) private var dismiss
 
-    @State private var model: NetworkSelectorViewModel
+    @State private var model: SelectableListViewModel<Chain>
 
     private let onFinishSelection: (([Chain]) -> Void)?
 
     public init(
-        model: NetworkSelectorViewModel,
+        model: SelectableListViewModel<Chain>,
         onFinishSelection: (([Chain]) -> Void)? = nil,
     ) {
         _model = State(initialValue: model)

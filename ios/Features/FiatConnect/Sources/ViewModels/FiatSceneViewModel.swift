@@ -144,8 +144,8 @@ public final class FiatSceneViewModel {
         )
     }
 
-    var fiatProviderViewModel: ProvidersViewModel {
-        ProvidersViewModel(state: quotesState(viewState).map { .plain($0) })
+    var fiatProviderViewModel: SelectableListViewModel<GemProviderRow> {
+        SelectableListViewModel(providers: quotesState(viewState).map { .plain($0) })
     }
 
     func cryptoAmountValue(_ viewState: GemFiatViewState) -> String {
