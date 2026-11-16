@@ -186,8 +186,14 @@ mod tests {
         assert!(validate_quote_response(RelayChain::Xrp, &response, &value).is_ok());
         assert_eq!(map_xrp_quote_data(&response, &BigUint::from(10_000_001u64)), Err(SwapperError::InvalidRoute));
 
-        let foreign: RelayQuoteResponse = serde_json::from_str(&quote.replace("rJBdWA9p5KwBoqSQTyMdg3UHLsJVzGVu5m", "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh")).unwrap();
+        let foreign_quote = quote.replace("rJBdWA9p5KwBoqSQTyMdg3UHLsJVzGVu5m", "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh");
+        let foreign: RelayQuoteResponse = serde_json::from_str(&foreign_quote).unwrap();
         assert_eq!(validate_quote_response(RelayChain::Xrp, &foreign, &value), Err(SwapperError::InvalidRoute));
+
+        let approve: RelayQuoteResponse = serde_json::from_str(&foreign_quote.replace(r#""id": "deposit""#, r#""id": "approve""#).replace(r#""kind": "transaction""#, r#""kind": "signature""#)).unwrap();
+        assert_eq!(validate_quote_response(RelayChain::Xrp, &approve, &value), Err(SwapperError::InvalidRoute));
+        assert_eq!(map_xrp_quote_data(&approve, &value), Err(SwapperError::InvalidRoute));
+
         let evm = RelayQuoteResponse::mock_with_steps(vec![Step::mock_transaction("deposit", "0xrouter", "0", "0x")]);
         assert_eq!(map_xrp_quote_data(&evm, &value), Err(SwapperError::InvalidRoute));
     }
