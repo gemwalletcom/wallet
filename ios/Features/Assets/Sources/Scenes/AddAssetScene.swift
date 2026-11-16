@@ -123,7 +123,7 @@ extension AddAssetScene {
     }
 
     private func onSelectPaste() {
-        guard let address = UIPasteboard.general.string else { return }
+        guard let address = Clipboard.paste() else { return }
         model.setInput(address)
         focusedField = nil
     }

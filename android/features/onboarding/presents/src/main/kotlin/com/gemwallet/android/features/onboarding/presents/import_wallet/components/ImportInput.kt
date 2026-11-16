@@ -25,7 +25,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.InterceptPlatformTextInput
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.PlatformTextInputInterceptor
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -34,9 +33,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import com.gemwallet.android.features.onboarding.viewmodels.import_wallet.ImportInputUIModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.FieldBottomAction
-import com.gemwallet.android.ui.components.clipboard.clear
-import com.gemwallet.android.ui.components.clipboard.clipboardManager
-import com.gemwallet.android.ui.components.clipboard.getPlainText
+import com.gemwallet.android.ui.components.clipboard.rememberClipboard
 import com.gemwallet.android.ui.components.fields.NameResolveIndicator
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.Spacer16
@@ -54,7 +51,7 @@ private val noPersonalizedLearning = PlatformTextInputInterceptor { request, nex
 
 @Composable
 internal fun ImportInput(state: TextFieldState, input: ImportInputUIModel, indicator: GemNameIndicator?, onScan: (() -> Unit)?) {
-    val clipboardManager = LocalContext.current.clipboardManager()
+    val clipboard = rememberClipboard()
     val interactionSource = remember { MutableInteractionSource() }
     val errorColor = MaterialTheme.colorScheme.error
     val highlight = remember(input, errorColor) { invalidWordsHighlight(input, errorColor) }
@@ -112,10 +109,10 @@ internal fun ImportInput(state: TextFieldState, input: ImportInputUIModel, indic
                 imageVector = AppIcons.ContentPaste,
                 text = stringResource(id = R.string.common_paste),
             ) {
-                val pastedText = clipboardManager.getPlainText()?.trim() ?: return@FieldBottomAction
+                val pastedText = clipboard.paste()?.trim() ?: return@FieldBottomAction
                 state.setTextAndPlaceCursorAtEnd(pastedText)
                 if (input.protectsInput) {
-                    clipboardManager.clear()
+                    clipboard.clear()
                 }
             }
             if (onScan != null) {

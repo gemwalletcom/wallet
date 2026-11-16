@@ -30,8 +30,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.animation.navigationSlideTransition
 import com.gemwallet.android.ui.components.buttons.CopyButton
 import com.gemwallet.android.ui.components.buttons.MainActionButton
-import com.gemwallet.android.ui.components.clipboard.clipboardManager
-import com.gemwallet.android.ui.components.clipboard.setCopy
+import com.gemwallet.android.ui.components.clipboard.rememberClipboard
 import com.gemwallet.android.ui.components.screen.PhraseLayout
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.localization.text
@@ -49,7 +48,7 @@ fun CreateWalletScreen(onCancel: () -> Unit, onCreated: () -> Unit) {
     DetectScreenshot(GemWalletSecretKind.PHRASE)
 
     val context = LocalContext.current
-    val clipboardManager = context.clipboardManager()
+    val clipboard = rememberClipboard()
     val viewModel: CreateWalletViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val errorText by viewModel.errorText.collectAsStateWithLifecycle()
@@ -90,7 +89,7 @@ fun CreateWalletScreen(onCancel: () -> Unit, onCreated: () -> Unit) {
 
             false -> CreateWalletScene(words = uiState.data, dataError = errorText) { action ->
                 when (action) {
-                    CreateWalletAction.Copy -> clipboardManager.setCopy(context, viewModel.phraseCopy())
+                    CreateWalletAction.Copy -> clipboard.copy(viewModel.phraseCopy())
                     CreateWalletAction.Continue -> viewModel.confirmPhrase()
                     CreateWalletAction.Cancel -> onCancel()
                 }

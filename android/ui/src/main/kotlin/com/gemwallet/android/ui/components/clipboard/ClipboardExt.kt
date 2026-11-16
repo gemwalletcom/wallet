@@ -13,9 +13,9 @@ import com.gemwallet.android.ui.R
 import uniffi.gemstone.GemCopy
 import java.util.UUID
 
-fun ClipboardManager.setPlainText(context: Context, data: String) = setClip(context, data, isSensitive = false, expirySeconds = null)
+internal fun ClipboardManager.setPlainText(context: Context, data: String) = setClip(context, data, isSensitive = false, expirySeconds = null)
 
-fun ClipboardManager.setCopy(context: Context, copy: GemCopy) = setClip(context, copy.value, isSensitive = copy.kind.isSensitive(), expirySeconds = copy.kind.clipboardExpirySeconds())
+internal fun ClipboardManager.setCopy(context: Context, copy: GemCopy) = setClip(context, copy.value, isSensitive = copy.kind.isSensitive(), expirySeconds = copy.kind.clipboardExpirySeconds())
 
 private fun ClipboardManager.setClip(context: Context, data: String, isSensitive: Boolean, expirySeconds: UInt?) {
     val label = expirySeconds?.let { UUID.randomUUID().toString() }.orEmpty()
@@ -48,9 +48,9 @@ private fun ClipboardManager.clearExpiredClip(label: String) {
     }
 }
 
-fun ClipboardManager.getPlainText(): String? = primaryClip?.getItemAt(0)?.text?.toString()?.takeIf { it.isNotEmpty() }
+internal fun ClipboardManager.getPlainText(): String? = primaryClip?.getItemAt(0)?.text?.toString()?.takeIf { it.isNotEmpty() }
 
-fun ClipboardManager.clear() {
+internal fun ClipboardManager.clear() {
     if (Build.VERSION.SDK_INT == Build.VERSION_CODES.P) {
         setPrimaryClip(ClipData.newPlainText("", ""))
     } else {
@@ -58,4 +58,4 @@ fun ClipboardManager.clear() {
     }
 }
 
-fun Context.clipboardManager(): ClipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+internal fun Context.clipboardManager(): ClipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager

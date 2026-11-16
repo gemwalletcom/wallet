@@ -612,7 +612,7 @@ pub struct GemCopy {
 }
 ```
 
-Core shortens the address (`address_copy` calls `format_address`), so the toast text is not formatted twice. Each app maps `GemCopy` once — `GemCopy.copyModel` on iOS, `ClipboardManager.setCopy` on Android — and a row that offers copying carries the model rather than the pieces.
+Core shortens the address (`address_copy` calls `format_address`), so the toast text is not formatted twice. Each app maps `GemCopy` once — `GemCopy.copyModel` on iOS, `ClipboardManager.setCopy` on Android — and a row that offers copying carries the model rather than the pieces. Every copy and Paste goes through one clipboard per app, iOS `Clipboard` and Android `rememberClipboard()`, whose Paste plays the Error [haptic](PRODUCT.md#haptics) when the clipboard is empty, so a screen never touches the system clipboard itself.
 
 ### A row that a screen only ever draws one way keeps its shape app-side
 

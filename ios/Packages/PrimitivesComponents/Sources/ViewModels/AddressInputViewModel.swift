@@ -81,7 +81,7 @@ extension AddressInputViewModel {
     }
 
     func onSelectPaste() {
-        guard let address = UIPasteboard.general.string else { return }
+        guard let address = Clipboard.paste() else { return }
         update(text: address)
     }
 

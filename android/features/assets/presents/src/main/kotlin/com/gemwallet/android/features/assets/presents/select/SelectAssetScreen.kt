@@ -3,14 +3,12 @@ package com.gemwallet.android.features.assets.presents.select
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.assets.viewmodels.select.BaseSelectAssetViewModel
 import com.gemwallet.android.features.assets.viewmodels.select.RecentsViewModel
-import com.gemwallet.android.ui.components.clipboard.clipboardManager
-import com.gemwallet.android.ui.components.clipboard.setCopy
+import com.gemwallet.android.ui.components.clipboard.rememberClipboard
 import com.gemwallet.android.ui.components.list_item.AssetItemAction
 import com.gemwallet.android.ui.components.screen.SceneTitle
 import com.gemwallet.android.ui.localization.stringRes
@@ -31,8 +29,7 @@ fun SelectAssetScreen(
     recentsViewModel: RecentsViewModel = hiltViewModel(),
 ) {
     val title = stringResource(viewModel.flow.title.stringRes())
-    val context = LocalContext.current
-    val clipboardManager = LocalContext.current.clipboardManager()
+    val clipboard = rememberClipboard()
     val uiStates by viewModel.uiState.collectAsStateWithLifecycle()
     val popular by viewModel.popular.collectAsStateWithLifecycle()
     val pinned by viewModel.pinned.collectAsStateWithLifecycle()
@@ -82,7 +79,7 @@ fun SelectAssetScreen(
         onItemAction = { item, action ->
             when (action) {
                 is AssetItemAction.Switch -> viewModel.onChangeVisibility(item.asset.id, action.enabled)
-                AssetItemAction.Copy -> clipboardManager.setCopy(context, viewModel.addressCopy(item))
+                AssetItemAction.Copy -> clipboard.copy(viewModel.addressCopy(item))
             }
         },
         actions = actions,

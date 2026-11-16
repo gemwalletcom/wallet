@@ -4,13 +4,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.gemwallet.android.features.settings.viewmodels.developer.DeveloperViewModel
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.clipboard.clipboardManager
-import com.gemwallet.android.ui.components.clipboard.setPlainText
+import com.gemwallet.android.ui.components.clipboard.rememberClipboard
 import com.gemwallet.android.ui.components.list_item.LinkItem
 import com.gemwallet.android.ui.components.list_item.property.PropertyItem
 import com.gemwallet.android.ui.components.screen.Scene
@@ -18,8 +16,7 @@ import com.gemwallet.android.ui.theme.Placeholder
 
 @Composable
 fun DeveloperScreen(onInAppNotifications: () -> Unit, onPayments: () -> Unit, onCancel: () -> Unit, viewModel: DeveloperViewModel = hiltViewModel()) {
-    val context = LocalContext.current
-    val clipboardManager = LocalContext.current.clipboardManager()
+    val clipboard = rememberClipboard()
     val deviceId by viewModel.deviceId.collectAsState()
     val notificationsAvailable = viewModel.notificationsAvailable
     Scene(
@@ -58,17 +55,17 @@ fun DeveloperScreen(onInAppNotifications: () -> Unit, onPayments: () -> Unit, on
             }
             item {
                 PropertyItem("Device Id", data = deviceId.ifEmpty { Placeholder.empty }) {
-                    clipboardManager.setPlainText(context, deviceId)
+                    clipboard.copy(deviceId)
                 }
                 if (notificationsAvailable) {
                     val pushToken by viewModel.pushToken.collectAsState()
                     PropertyItem("Push token", data = pushToken.ifEmpty { Placeholder.empty }) {
-                        clipboardManager.setPlainText(context, pushToken)
+                        clipboard.copy(pushToken)
                     }
                 }
                 val platformStore by viewModel.platformStore.collectAsState()
                 PropertyItem("Store", data = platformStore?.string ?: Placeholder.empty) {
-                    clipboardManager.setPlainText(context, platformStore?.string ?: "")
+                    clipboard.copy(platformStore?.string ?: "")
                 }
             }
         }

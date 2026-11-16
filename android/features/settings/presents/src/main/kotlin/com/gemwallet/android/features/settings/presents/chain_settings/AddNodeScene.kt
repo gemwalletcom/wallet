@@ -17,8 +17,7 @@ import com.gemwallet.android.features.qr_scanner.presents.QRScannerModal
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.GemTextField
 import com.gemwallet.android.ui.components.buttons.MainActionButton
-import com.gemwallet.android.ui.components.clipboard.clipboardManager
-import com.gemwallet.android.ui.components.clipboard.getPlainText
+import com.gemwallet.android.ui.components.clipboard.rememberClipboard
 import com.gemwallet.android.ui.components.fields.TransferTextFieldActions
 import com.gemwallet.android.ui.components.keyboardFollowsFocus
 import com.gemwallet.android.ui.components.list_item.ChainItem
@@ -109,7 +108,7 @@ internal fun AddNodeScene(chain: Chain, state: GemAddNodeViewState, url: Mutable
 
 @Composable
 private fun UrlField(value: MutableState<String> = mutableStateOf(""), error: String = "", onValueChange: () -> Unit, onQRScan: () -> Unit) {
-    val clipboardManager = LocalContext.current.clipboardManager()
+    val clipboard = rememberClipboard()
     GemTextField(
         modifier = Modifier
             .fillMaxWidth()
@@ -126,7 +125,7 @@ private fun UrlField(value: MutableState<String> = mutableStateOf(""), error: St
             TransferTextFieldActions(
                 value = value.value,
                 paste = {
-                    value.value = clipboardManager.getPlainText()?.trim() ?: return@TransferTextFieldActions
+                    value.value = clipboard.paste()?.trim() ?: return@TransferTextFieldActions
                     onValueChange()
                 },
                 onClean = {

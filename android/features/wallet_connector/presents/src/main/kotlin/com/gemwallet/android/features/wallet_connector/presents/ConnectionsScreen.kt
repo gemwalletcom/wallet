@@ -15,7 +15,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -23,8 +22,7 @@ import com.gemwallet.android.features.qr_scanner.presents.QRScannerModal
 import com.gemwallet.android.features.wallet_connector.viewmodels.ConnectionsViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.DocsInfoButton
-import com.gemwallet.android.ui.components.clipboard.clipboardManager
-import com.gemwallet.android.ui.components.clipboard.getPlainText
+import com.gemwallet.android.ui.components.clipboard.rememberClipboard
 import com.gemwallet.android.ui.components.empty.EmptyContentView
 import com.gemwallet.android.ui.components.list_item.ListItem
 import com.gemwallet.android.ui.components.list_item.gemGroups
@@ -39,7 +37,7 @@ import uniffi.gemstone.GemListPhase
 
 @Composable
 fun ConnectionsScreen(onConnection: (String) -> Unit, onCancel: () -> Unit, viewModel: ConnectionsViewModel = hiltViewModel()) {
-    val clipboardManager = LocalContext.current.clipboardManager()
+    val clipboard = rememberClipboard()
     var scannerShowed by rememberSaveable { mutableStateOf(false) }
 
     val list by viewModel.list.collectAsStateWithLifecycle()
@@ -74,7 +72,7 @@ fun ConnectionsScreen(onConnection: (String) -> Unit, onCancel: () -> Unit, view
                 ListItem(
                     model = viewModel.pasteListItem,
                     listPosition = ListPosition.First,
-                    modifier = Modifier.clickable { connect(clipboardManager.getPlainText() ?: return@clickable) },
+                    modifier = Modifier.clickable { connect(clipboard.paste() ?: return@clickable) },
                 )
             }
             item {

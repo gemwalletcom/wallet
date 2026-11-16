@@ -47,8 +47,7 @@ import com.gemwallet.android.features.transfer.viewmodels.receive.ReceiveViewMod
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.clickable
-import com.gemwallet.android.ui.components.clipboard.clipboardManager
-import com.gemwallet.android.ui.components.clipboard.setCopy
+import com.gemwallet.android.ui.components.clipboard.rememberClipboard
 import com.gemwallet.android.ui.components.list_head.CenteredListHead
 import com.gemwallet.android.ui.components.list_head.HeaderIcon
 import com.gemwallet.android.ui.components.list_item.ChainItem
@@ -123,7 +122,7 @@ fun ReceiveScreen(assetId: AssetId, closeIcon: Boolean = false, onCancel: () -> 
 @Composable
 private fun ReceiveScene(closeIcon: Boolean, assetInfo: AssetData, header: GemAssetText, warning: String, shareText: String?, copyText: GemCopy?, chainRow: GemChainRow, onSelectNetwork: (() -> Unit)?, onCancel: () -> Unit) {
     val context = LocalContext.current
-    val clipboardManager = LocalContext.current.clipboardManager()
+    val clipboard = rememberClipboard()
     val shareTitle = stringResource(R.string.common_share)
     val isCompactHeight = isCompactDimension(WindowDimension.Height)
     val imageSize = if (isCompactHeight) qrSizeCompact else qrSize
@@ -134,7 +133,7 @@ private fun ReceiveScene(closeIcon: Boolean, assetInfo: AssetData, header: GemAs
     }
 
     val onCopyClick = fun () {
-        copyText?.let { clipboardManager.setCopy(context, it) }
+        copyText?.let { clipboard.copy(it) }
     }
 
     Scene(

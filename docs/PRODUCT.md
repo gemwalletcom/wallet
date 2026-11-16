@@ -357,7 +357,6 @@ A haptic is the short vibration that confirms what the user's finger just did, o
 |---|---|---|---|
 | A value is copied | Success | none | as iOS, [TODO.md](TODO.md) BD531 |
 | An alert asks to confirm a step that cannot be undone or changes money | Warning | none | as iOS, [TODO.md](TODO.md) BD531 |
-| Any Paste finds nothing on the clipboard | Error on Import Wallet only; the other Paste buttons do nothing | nothing happens | Error on every Paste, [TODO.md](TODO.md) D534 |
 | Confirm sends, signs or fails | none | none | Success or Error, [TODO.md](TODO.md) D532 |
 | Import finds the input invalid | none | none | Error, [TODO.md](TODO.md) D533 |
 
