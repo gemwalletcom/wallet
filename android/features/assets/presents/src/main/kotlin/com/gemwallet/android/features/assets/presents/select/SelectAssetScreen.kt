@@ -3,19 +3,43 @@ package com.gemwallet.android.features.assets.presents.select
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.features.assets.viewmodels.select.BaseSelectAssetViewModel
 import com.gemwallet.android.features.assets.viewmodels.select.RecentsViewModel
-import com.gemwallet.android.ui.components.clipboard.clipboardManager
-import com.gemwallet.android.ui.components.clipboard.setCopy
+import com.gemwallet.android.features.assets.viewmodels.select.SelectAssetViewModel
+import com.gemwallet.android.ui.components.clipboard.rememberClipboard
 import com.gemwallet.android.ui.components.list_item.AssetItemAction
 import com.gemwallet.android.ui.components.screen.SceneTitle
 import com.gemwallet.android.ui.localization.stringRes
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
+import com.wallet.core.primitives.Chain
+import uniffi.gemstone.GemSelectAssetType
+
+@Composable
+fun SelectAssetScreen(
+    selectType: GemSelectAssetType,
+    onCancel: () -> Unit,
+    onSelect: (AssetId) -> Unit,
+    onSelectRecent: ((AssetId) -> Unit)? = onSelect,
+    chains: List<Chain> = emptyList(),
+    titleContent: (@Composable () -> Unit)? = null,
+    closeIcon: Boolean = false,
+    showFilter: Boolean? = null,
+    viewModel: SelectAssetViewModel = selectAssetViewModel(selectType, chains),
+) {
+    SelectAssetScreen(
+        titleContent = titleContent,
+        closeIcon = closeIcon,
+        onCancel = onCancel,
+        onSelect = onSelect,
+        onSelectRecent = onSelectRecent,
+        showFilter = showFilter,
+        viewModel = viewModel,
+    )
+}
 
 @Composable
 fun SelectAssetScreen(
@@ -31,15 +55,13 @@ fun SelectAssetScreen(
     recentsViewModel: RecentsViewModel = hiltViewModel(),
 ) {
     val title = stringResource(viewModel.flow.title.stringRes())
-    val context = LocalContext.current
-    val clipboardManager = LocalContext.current.clipboardManager()
+    val clipboard = rememberClipboard()
     val uiStates by viewModel.uiState.collectAsStateWithLifecycle()
     val popular by viewModel.popular.collectAsStateWithLifecycle()
     val pinned by viewModel.pinned.collectAsStateWithLifecycle()
     val unpinned by viewModel.unpinned.collectAsStateWithLifecycle()
     val recent by viewModel.recent.collectAsStateWithLifecycle()
     val showsRecents by viewModel.showsRecents.collectAsStateWithLifecycle()
-    val showRecents = showsRecents && onSelectRecent != null
     val searchEmptyState by viewModel.searchEmptyState.collectAsStateWithLifecycle()
     val isChainFilterAvailable by viewModel.isChainFilterAvailable.collectAsStateWithLifecycle()
     val availableChains by viewModel.availableChains.collectAsStateWithLifecycle()
@@ -59,7 +81,7 @@ fun SelectAssetScreen(
         pinned = pinned,
         popular = popular,
         unpinned = unpinned,
-        recent = if (showRecents) recent else emptyList(),
+        recent = if (showsRecents) recent else emptyList(),
         state = uiStates,
         rowAction = viewModel.flow.rowAction,
         empty = searchEmptyState,
@@ -79,11 +101,11 @@ fun SelectAssetScreen(
                 SelectAssetAction.ShowAllAssets -> Unit
             }
         },
-        recentsSheetEnabled = showRecents,
+        recentsSheetEnabled = showsRecents,
         onItemAction = { item, action ->
             when (action) {
                 is AssetItemAction.Switch -> viewModel.onChangeVisibility(item.asset.id, action.enabled)
-                AssetItemAction.Copy -> clipboardManager.setCopy(context, viewModel.addressCopy(item))
+                AssetItemAction.Copy -> clipboard.copy(viewModel.addressCopy(item))
             }
         },
         actions = actions,

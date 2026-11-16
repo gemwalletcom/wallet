@@ -1,7 +1,6 @@
 use borsh::BorshSerialize;
 use gem_solana::{
-    AccountMeta, Instruction, Pubkey,
-    anchor::instruction_data,
+    AccountMeta, Instruction, Pubkey, anchor,
     instructions::program_ids::{memo_program, orca_whirlpool_program},
 };
 use std::iter::repeat;
@@ -80,7 +79,7 @@ pub(super) fn swap_v2_instruction(address: &Pubkey, whirlpool: &Whirlpool, swap:
     .chain([AccountMeta::new_writable(Whirlpool::oracle_address(address)?)])
     .chain(supplemental.into_iter().map(AccountMeta::new_writable))
     .collect();
-    whirlpool_instruction(SWAP_V2, &args, accounts)
+    Ok(anchor::instruction(orca_whirlpool_program(), SWAP_V2, &args, accounts))
 }
 
 pub(super) fn two_hop_swap_v2_instruction(first: &(Pubkey, Whirlpool), second: &(Pubkey, Whirlpool), swap: &PoolSwap, intermediate: &SwapToken) -> Result<Instruction, SwapperError> {
@@ -125,21 +124,13 @@ pub(super) fn two_hop_swap_v2_instruction(first: &(Pubkey, Whirlpool), second: &
         AccountMeta::new_readonly(memo_program()),
     ])
     .collect();
-    whirlpool_instruction(TWO_HOP_SWAP_V2, &args, accounts)
+    Ok(anchor::instruction(orca_whirlpool_program(), TWO_HOP_SWAP_V2, &args, accounts))
 }
 
 fn swap_tick_arrays(address: &Pubkey, whirlpool: &Whirlpool, a_to_b: bool) -> Result<Vec<AccountMeta>, SwapperError> {
     let tick_arrays = TickArray::addresses(address, &whirlpool.swap_start_tick_indexes(a_to_b))?;
     let last_tick_array = *tick_arrays.last().ok_or(SwapperError::NoQuoteAvailable)?;
     Ok(tick_arrays.iter().copied().chain(repeat(last_tick_array)).take(SWAP_TICK_ARRAYS).map(AccountMeta::new_writable).collect())
-}
-
-fn whirlpool_instruction(name: &str, args: &impl BorshSerialize, accounts: Vec<AccountMeta>) -> Result<Instruction, SwapperError> {
-    Ok(Instruction {
-        program_id: orca_whirlpool_program(),
-        accounts,
-        data: instruction_data(name, args),
-    })
 }
 
 #[cfg(test)]
@@ -164,7 +155,7 @@ mod tests {
         };
 
         assert_eq!(
-            instruction_data(SWAP_V2, &args),
+            anchor::instruction_data(SWAP_V2, &args),
             hex::decode("2b04ed0b1ac91e621038120000000000abcf96000000000000000000000000000000000000000000010001010000000602").unwrap()
         );
     }
@@ -193,6 +184,7 @@ mod tests {
         let tick_arrays = TickArray::addresses(&address, &[-22_528, -16_896, -11_264, -28_160, -5_632]).unwrap();
 
         assert_eq!(instruction.program_id, orca_whirlpool_program());
+        assert_eq!(instruction.data, hex::decode("2b04ed0b1ac91e6264000000000000005a0000000000000000000000000000000000000000000000010001010000000602").unwrap());
         assert_eq!(
             instruction.accounts,
             [
@@ -232,7 +224,7 @@ mod tests {
         };
 
         assert_eq!(
-            instruction_data(TWO_HOP_SWAP_V2, &args),
+            anchor::instruction_data(TWO_HOP_SWAP_V2, &args),
             hex::decode("ba8fd11dfe02c27540420f0000000000a0bb0d0000000000010000000000000000000000000000000000000000000000000000000000000000000000").unwrap()
         );
     }
@@ -267,6 +259,11 @@ mod tests {
             addresses.iter().chain(std::iter::repeat(addresses.last().unwrap())).take(3).copied().map(AccountMeta::new_writable).collect::<Vec<_>>()
         };
 
+        assert_eq!(instruction.program_id, orca_whirlpool_program());
+        assert_eq!(
+            instruction.data,
+            hex::decode("ba8fd11dfe02c27564000000000000005a00000000000000010000000000000000000000000000000000000000000000000000000000000000000000").unwrap()
+        );
         assert_eq!(
             instruction.accounts,
             [

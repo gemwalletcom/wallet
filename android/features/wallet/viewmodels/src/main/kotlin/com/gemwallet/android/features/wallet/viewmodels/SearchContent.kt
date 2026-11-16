@@ -8,6 +8,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import uniffi.gemstone.GemSelectAssetState
+import uniffi.gemstone.GemWalletSearchState
 
 internal class SearchContent<View>(val view: View, private val rows: List<AssetInfoDataAggregate>) {
     fun assets(ids: List<String>): List<AssetInfoDataAggregate> = rows.assets(ids) { it.asset.id }
@@ -15,3 +17,14 @@ internal class SearchContent<View>(val view: View, private val rows: List<AssetI
 
 internal fun <View, T> Flow<SearchContent<View>?>.select(scope: CoroutineScope, initial: T, value: (SearchContent<View>) -> T): StateFlow<T> = map { it?.let(value) ?: initial }
     .stateIn(scope, SharingStarted.Eagerly, initial)
+
+internal fun emptySearchState(phase: GemSelectAssetState) = GemWalletSearchState(
+    phase = phase,
+    showsRecents = false,
+    showsPinned = false,
+    showsAssets = false,
+    showsPinnedPerpetuals = false,
+    showsPerpetuals = false,
+    showsLists = false,
+    showsNfts = false,
+)

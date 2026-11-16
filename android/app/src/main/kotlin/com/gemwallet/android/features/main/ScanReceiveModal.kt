@@ -13,7 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.features.assets.presents.select.SelectReceiveScreen
+import com.gemwallet.android.features.assets.presents.select.SelectAssetScreen
 import com.gemwallet.android.features.assets.presents.select.selectAssetViewModel
 import com.gemwallet.android.features.qr_scanner.presents.QRScannerScreen
 import com.gemwallet.android.features.transfer.presents.receive.ReceiveScreen
@@ -55,7 +55,8 @@ fun ScanReceiveModal(isVisible: Boolean, onDismissRequest: () -> Unit, onScan: (
                     onResult = onScan,
                 )
 
-                ScanReceiveMode.Receive -> SelectReceiveScreen(
+                ScanReceiveMode.Receive -> SelectAssetScreen(
+                    selectType = GemSelectAssetType.Receive,
                     viewModel = selectAssetViewModel,
                     onCancel = onDismissRequest,
                     onSelect = {

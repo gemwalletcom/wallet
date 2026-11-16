@@ -7,7 +7,7 @@ use crate::models::custom_types::GemBigInt;
 use crate::models::list::{GemListRow, GemListSectionTitle, GemRowAction};
 use crate::models::state::GemListPhase;
 use crate::services::balance::GemAssetBalanceRow;
-use crate::services::banner::GemBannerRow;
+use crate::services::banner::GemAssetBanner;
 use crate::services::empty_state::GemEmptyState;
 use crate::services::localization::GemLocalizedText;
 use crate::services::nft::model::GemNftEntry;
@@ -257,6 +257,13 @@ impl GemSelectAssetFlow {
         self.recents && !is_searching && has_recents
     }
 
+    pub fn recent_activity_types(&self) -> Vec<RecentActivityType> {
+        match (self.recents, self.action) {
+            (true, Some(action)) => action.recent_activity_types(),
+            _ => Vec::new(),
+        }
+    }
+
     pub fn search_step(&self, query: String) -> GemAssetSearchStep {
         let query = query.trim();
         match self.network_search && !query.is_empty() {
@@ -467,6 +474,14 @@ mod tests {
         assert_eq!(GemAssetAction::Open.recent_activity_type(&perpetual), Some(RecentActivityType::Perpetual));
         assert_eq!(GemAssetAction::Open.recent_activity_type(&asset), Some(RecentActivityType::Search));
         assert!(!GemAssetAction::SwapPay.recent_activity_types().contains(&RecentActivityType::Receive));
+    }
+
+    #[test]
+    fn test_a_flow_reads_recents_only_of_the_types_its_action_records() {
+        assert_eq!(GemSelectAssetType::SwapPay.flow().recent_activity_types(), vec![RecentActivityType::SwapSelect, RecentActivityType::Swap]);
+        assert_eq!(GemSelectAssetType::WalletSearch.flow().recent_activity_types(), GemAssetAction::Open.recent_activity_types());
+        assert!(GemSelectAssetType::Manage.flow().recent_activity_types().is_empty(), "a flow without recents reads none");
+        assert!(GemSelectAssetType::WalletSearchResults.flow().recent_activity_types().is_empty(), "an action alone does not show recents");
     }
 
     #[test]
@@ -834,7 +849,7 @@ pub enum GemAssetOption {
 pub struct GemAssetDetails {
     pub state: GemAssetDetailsState,
     pub header: GemValueHeader,
-    pub banner: Option<GemBannerRow>,
+    pub banner: Option<GemAssetBanner>,
     pub sections: Vec<GemAssetDetailSection>,
     pub title: String,
     pub options: Vec<GemAssetOption>,

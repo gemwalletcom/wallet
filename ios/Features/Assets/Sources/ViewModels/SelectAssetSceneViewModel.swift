@@ -80,7 +80,7 @@ public final class SelectAssetSceneViewModel {
         assetsQuery = ObservableQuery(AssetsQuery(walletId: wallet.id, scope: flow.requestScope, filters: filters, limit: GemConstants.assetResultsLimit), initialValue: [])
         recentModel = RecentAssetsViewModel(
             walletId: wallet.id,
-            types: flow.action?.recentActivityTypes().map { $0.toPrimitives() } ?? RecentActivityType.allCases,
+            types: flow.recentActivityTypes().map { $0.toPrimitives() },
             filters: filters,
             service: recentAssetsService,
         )
@@ -132,9 +132,9 @@ public final class SelectAssetSceneViewModel {
         ChainsFilterTypeViewModel(summary: filterView.chainsSummary)
     }
 
-    var networksModel: NetworkSelectorViewModel {
-        NetworkSelectorViewModel(
-            state: .data(.plain(walletFlow.chains.map { Chain(core: $0) })),
+    var networksModel: SelectableListViewModel<Chain> {
+        SelectableListViewModel(
+            networks: .data(.plain(walletFlow.chains.map { Chain(core: $0) })),
             selectedItems: filterView.selectedChains.map { Chain(core: $0) },
             selectionType: .multiSelection,
         )

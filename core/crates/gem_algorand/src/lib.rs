@@ -10,7 +10,7 @@ pub mod models;
 #[cfg(feature = "signer")]
 pub mod signer;
 
-pub use address::{AlgorandAddress, validate_address};
+pub use address::AlgorandAddress;
 #[cfg(feature = "rpc")]
 pub use rpc::client::AlgorandClient;
 #[cfg(feature = "signer")]

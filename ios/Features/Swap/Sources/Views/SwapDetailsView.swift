@@ -15,7 +15,6 @@ import Style
 import SwiftUI
 
 public struct SwapDetailsView: View {
-    @Environment(\.dismiss) private var dismiss
     private let details: GemSwapDetails?
     private let providers: StateViewType<[GemProviderRow]>
     private let pendingProviders: [GemProviderLoadingRow]
@@ -46,23 +45,14 @@ public struct SwapDetailsView: View {
                 if let details {
                     listView(details)
                 } else {
-                    SelectableListView(
-                        model: .constant(providersModel),
-                        onFinishSelection: onFinishProviderSelection,
-                        listContent: { ListItemView(model: $0.listItem) },
-                        trailingRows: pendingRows,
-                    )
+                    providersList
                 }
             case let .error(error): List { ListItemErrorView(errorTitle: Localized.Errors.errorOccurred, error: error) }
             case .loading: LoadingView()
             case .noData: List { ListItemErrorView(errorTitle: nil, error: AnyError(Localized.Errors.errorOccurred)) }
             }
         }
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("", systemImage: SystemImage.checkmark, action: { dismiss() })
-            }
-        }
+        .toolbarDismissItem(type: .close, placement: .topBarLeading)
         .navigationTitle(details == nil ? Localized.Buy.Providers.title : Localized.Common.details)
         .navigationBarTitleDisplayMode(.inline)
         .listSectionSpacing(.compact)
@@ -70,18 +60,23 @@ public struct SwapDetailsView: View {
         .sheet(item: $infoSheet) {
             InfoSheetScene(sheet: $0)
         }
-        .sheet(isPresented: $isPresentingProviderSelection) {
-            SelectableListNavigationStack(
-                model: .constant(providersModel),
-                onFinishSelection: onFinishProviderSelection,
-                listContent: { ListItemView(model: $0.listItem) },
-                trailingRows: pendingRows,
-            )
+        .navigationDestination(isPresented: $isPresentingProviderSelection) {
+            providersList
+                .navigationTitle(providersModel.title)
         }
     }
 
-    private var providersModel: ProvidersViewModel {
-        ProvidersViewModel(state: providers.map { .plain($0) })
+    private var providersModel: SelectableListViewModel<GemProviderRow> {
+        SelectableListViewModel(providers: providers.map { .plain($0) })
+    }
+
+    private var providersList: some View {
+        SelectableListView(
+            model: .constant(providersModel),
+            onFinishSelection: onFinishProviderSelection,
+            listContent: { ListItemView(model: $0.listItem) },
+            trailingRows: pendingRows,
+        )
     }
 
     private func pendingRows() -> some View {

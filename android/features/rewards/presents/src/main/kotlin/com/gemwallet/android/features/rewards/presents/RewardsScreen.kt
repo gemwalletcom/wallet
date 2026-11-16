@@ -3,12 +3,8 @@
 package com.gemwallet.android.features.rewards.presents
 
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -23,6 +19,7 @@ import com.gemwallet.android.features.rewards.viewmodels.RewardsViewModel
 import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoBottomSheet
+import com.gemwallet.android.ui.components.dialog.ErrorDialog
 import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.components.list_item.walletSections
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
@@ -120,15 +117,9 @@ fun RewardsScreen(onClose: () -> Unit, viewModel: RewardsViewModel = hiltViewMod
         }
     }
 
-    error?.let { message ->
-        AlertDialog(
-            containerColor = MaterialTheme.colorScheme.background,
-            onDismissRequest = viewModel::clearError,
-            title = { Text(stringResource(R.string.errors_error_occurred)) },
-            text = { Text(message) },
-            confirmButton = {
-                Button(viewModel::clearError) { Text(stringResource(R.string.common_done)) }
-            },
-        )
-    }
+    ErrorDialog(
+        message = error,
+        onDismiss = viewModel::clearError,
+        title = stringResource(R.string.errors_error_occurred),
+    )
 }

@@ -1,10 +1,10 @@
 use chrono::{DateTime, Utc};
 use gem_encoding::is_valid_percent_encoding;
-use primitives::{Chain, domain::parse_domain};
+use primitives::{Address, Chain, domain::parse_domain};
 use url::Url;
 
 use super::SiwsMessage;
-use crate::validate_address;
+use crate::SolanaAddress;
 
 const MIN_NONCE_LENGTH: usize = 8;
 const REQUEST_ID_CHARACTERS: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~!$&'()*+,;=:@%";
@@ -15,7 +15,7 @@ impl SiwsMessage {
             return Err("Unsupported chain for SIWS".to_string());
         }
 
-        if !validate_address(&self.address) {
+        if !SolanaAddress::is_valid(&self.address) {
             return Err("Invalid SIWS address".to_string());
         }
 

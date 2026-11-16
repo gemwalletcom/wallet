@@ -74,10 +74,6 @@ impl AddressTrait for AccountAddress {
     }
 }
 
-pub fn validate_address(address: &str) -> bool {
-    AccountAddress::is_valid(address)
-}
-
 impl fmt::Display for AccountAddress {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "0x{}", primitives::hex::encode(self.0))
@@ -125,7 +121,7 @@ mod tests {
     #[test]
     fn test_validate_address() {
         for input in [VALID_ADDRESS, &VALID_ADDRESS.to_uppercase().replace("0X", "0x"), &format!("0x{}", "0".repeat(64)), "0x0", "0x1", "0xa", "0xF"] {
-            assert!(validate_address(input), "{input}");
+            assert!(AccountAddress::is_valid(input), "{input}");
         }
         for input in [
             "",
@@ -143,7 +139,7 @@ mod tests {
             &format!("{VALID_ADDRESS}1"),
             &format!("{} ", &VALID_ADDRESS[..65]),
         ] {
-            assert!(!validate_address(input), "{input}");
+            assert!(!AccountAddress::is_valid(input), "{input}");
         }
     }
 

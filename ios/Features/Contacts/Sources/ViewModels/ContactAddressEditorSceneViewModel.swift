@@ -14,7 +14,6 @@ import Primitives
 import PrimitivesComponents
 import Style
 import SwiftUI
-import UIKit
 
 @Observable
 @MainActor
@@ -94,9 +93,9 @@ public final class ContactAddressEditorSceneViewModel {
         GemContactAddressField.memo.title
     }
 
-    var networkSelectorModel: NetworkSelectorViewModel {
-        NetworkSelectorViewModel(
-            state: .data(.plain(chains)),
+    var networkSelectorModel: SelectableListViewModel<Chain> {
+        SelectableListViewModel(
+            networks: .data(.plain(chains)),
             selectedItems: [chain],
             selectionType: .checkmark,
             title: GemContactAddressField.network.title,
@@ -125,7 +124,7 @@ extension ContactAddressEditorSceneViewModel {
     }
 
     func onSelectPaste() {
-        guard let text = UIPasteboard.general.string else { return }
+        guard let text = Clipboard.paste() else { return }
         onScan(text)
     }
 

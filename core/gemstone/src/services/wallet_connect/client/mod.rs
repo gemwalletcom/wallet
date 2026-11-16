@@ -38,11 +38,12 @@ use crate::config::wallet_connect::get_wallet_connect_config;
 use crate::services::clock::sleep;
 use crate::services::error::GemServiceError;
 use crate::services::preferences::GemSecureStore;
+use crate::services::stream::GemSocketTransport;
 use gem_wallet_connect::{WalletConnectResponseType, validate_domain};
 use state::{ClientState, Outgoing, Pairing, PendingRequest, Session, Topic};
 
 pub use model::{GemWalletConnectAuthMessage, GemWalletConnectAuthentication, GemWalletConnectEvent, GemWalletConnectProposal, GemWalletConnectRelay};
-pub use port::{GemWalletConnectListener, GemWalletConnectTransport};
+pub use port::GemWalletConnectListener;
 pub use relay::wallet_connect_relay;
 
 const STATE_KEY: &str = "wallet_connect_client";
@@ -59,7 +60,7 @@ pub struct GemWalletConnectClient {
     service: Arc<GemWalletConnectService>,
     store: Arc<dyn GemSecureStore>,
     provider: Arc<dyn AlienProvider>,
-    transport: Arc<dyn GemWalletConnectTransport>,
+    transport: Arc<dyn GemSocketTransport>,
     listener: Arc<dyn GemWalletConnectListener>,
     platform: Platform,
     state: Mutex<Option<ClientState>>,
@@ -108,14 +109,7 @@ impl PairingRequest {
 #[uniffi::export]
 impl GemWalletConnectClient {
     #[uniffi::constructor]
-    pub fn new(
-        service: Arc<GemWalletConnectService>,
-        store: Arc<dyn GemSecureStore>,
-        provider: Arc<dyn AlienProvider>,
-        transport: Arc<dyn GemWalletConnectTransport>,
-        listener: Arc<dyn GemWalletConnectListener>,
-        platform: Platform,
-    ) -> Self {
+    pub fn new(service: Arc<GemWalletConnectService>, store: Arc<dyn GemSecureStore>, provider: Arc<dyn AlienProvider>, transport: Arc<dyn GemSocketTransport>, listener: Arc<dyn GemWalletConnectListener>, platform: Platform) -> Self {
         Self {
             service,
             store,

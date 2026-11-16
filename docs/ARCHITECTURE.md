@@ -60,7 +60,7 @@ The same thing has the same base name on both apps; only the platform's suffix o
 | Screen view model | `XSceneViewModel` | `XViewModel` | `SwapSceneViewModel` / `SwapViewModel` |
 | Screen UI state | — (the view model) | `XUIState` | `LockUIState` |
 | User action | a view model method | `XAction` | `SwapAction` |
-| Component or row model | `XViewModel` | `XUIModel` | `ProvidersViewModel` / `ContactRowUIModel` |
+| Component or row model | `XViewModel` | `XUIModel` | `SelectableListViewModel` / `ContactRowUIModel` |
 | Flow | `XNavigationStack` | `XRoute`, `XNavGraph` | `SetPriceAlertNavigationStack` / `StakeRoute` |
 | Destination host | `XNavigationView` hosts one scene's sheets and destinations inside a stack it does not own; a view whose body is a `NavigationStack` is `XNavigationStack` | the route's composable | `StakeNavigationView` |
 | Observed read | `XQuery` | `XQuery` | `PriceAlertsQuery` |
@@ -612,7 +612,7 @@ pub struct GemCopy {
 }
 ```
 
-Core shortens the address (`address_copy` calls `format_address`), so the toast text is not formatted twice. Each app maps `GemCopy` once — `GemCopy.copyModel` on iOS, `ClipboardManager.setCopy` on Android — and a row that offers copying carries the model rather than the pieces.
+Core shortens the address (`address_copy` calls `format_address`), so the toast text is not formatted twice. Each app maps `GemCopy` once — `GemCopy.copyModel` on iOS, `ClipboardManager.setCopy` on Android — and a row that offers copying carries the model rather than the pieces. Every copy and Paste goes through one clipboard per app, iOS `Clipboard` and Android `rememberClipboard()`, whose Paste plays the Error [haptic](PRODUCT.md#haptics) when the clipboard is empty, so a screen never touches the system clipboard itself.
 
 ### A row that a screen only ever draws one way keeps its shape app-side
 
@@ -716,7 +716,7 @@ impl GemPerpetualMarketSession {
 
 **Which actions the screen or row offers.** Core returns the list of available actions as cases; the app renders each case as its own button. `GemStakeActionItem`, `GemHeaderButtonKind`, `GemAssetAction` and `GemFiatButtonAction` are this shape. An app that assembles the action list itself is deciding what the user is allowed to do, on its own, twice.
 
-**What a tap means.** The destination of a row is Core's answer — `GemSelectRowAction`, `GemDelegationDestination`, `GemAcquireAssetFlow`, `GemBannerDestination` — and performing it is the app's, with the app's own route type per [navigation values are app types](#navigation-values-are-app-types). Core says *open the validator*; the app decides that means pushing `DelegationValidator`. A destination that opens a link carries the link, so a screen never has to pair a tap answer with a separate URL field or read one beside its own per-event switch: `GemBannerContent.destination` is that shape.
+**What a tap means.** The destination of a row is Core's answer — `GemSelectRowAction`, `GemDelegationDestination`, `GemAcquireAssetFlow`, `GemAssetBannerDestination` — and performing it is the app's, with the app's own route type per [navigation values are app types](#navigation-values-are-app-types). Core says *open the validator*; the app decides that means pushing `DelegationValidator`. A destination that opens a link carries the link, so a screen never has to pair a tap answer with a separate URL field or read one beside its own per-event switch: `GemAssetBanner.destination` is that shape. A screen gets only the destinations it can open: the wallet screen's `GemWalletBannerDestination` holds no stake, activation or perpetuals case, so neither app routes a banner destination it would have to ignore.
 
 **A limit comes with its answer.** When Core hands back a limit, it also answers what the limit implies, or each app invents the comparison against a different count. `GemWalletSearchLimits` carries `assets`, `perpetuals` and `nfts` and answers `has_more_assets(count)`, `has_more_perpetuals(count)` and `has_more_nfts(count)`. A limit that only names a number is half an answer.
 
@@ -843,6 +843,7 @@ The app switches and stops. No `if isLoading` ahead of the switch, no `default:`
 Presentation and in-flight state stay in the app, and they follow the same rule as the phase: values that can never hold together are one optional enum, and independent facts stay separate fields.
 
 - **A screen's sheets are one optional type.** Each sheet is a case of `isPresentingSheet: XSheetType?` on iOS, presented with one `sheet(item:)`, or of one `rememberSaveable` enum on Android. Only `nil` closes it: a `Bool?` set to `false` is still non-nil and still reads as presented.
+- **A sheet's header button says what it does.** X on the left closes a sheet that holds nothing to save: details, and lists where tapping a row is the choice. A list opened from inside a sheet is a page of that sheet, never a second sheet, and its back arrow takes the X's place; system back on Android returns to the page before. A checkmark on the right appears only when it saves what the user typed, and stays disabled until the input is valid. Android draws all three with `DialogBar` through the `title`, `onBack` and `onConfirm` of `ModalBottomSheet`, keeping the page in a `rememberSaveable` enum; iOS uses `toolbarDismissItem(type: .close, placement: .topBarLeading)` and `navigationDestination`. `SwapDetailsBottomSheet` and `SwapDetailsView` are the pair to copy.
 - **An action in flight is one flag, owned by the action.** The action checks it before it starts and clears it on a failure the user can retry; a success that closes the screen leaves it set, so the result cannot be sent twice. Resetting the input never clears it, because the work it guards is still running. `SignMessageSceneViewModel` and `SignMessageViewModel` hold the same flag on both apps.
 - **Independent facts stay fields.** An alert for an async failure, a progress flag beside content and a run-once guard answer separate questions. Folding the alert into the sheet type would let an error close a sheet the user opened.
 
@@ -1552,7 +1553,7 @@ On Android the Hilt module binds both the concrete class and the generated inter
 
 A service method that returns another service (`service.contactEditor()`) is the same reach-through as `model.nameService`, one level down: the caller depends on something it was not given. Every service is constructed in the composition root and injected. Returning `Arc<GemFooService>` from an exported service is migration debt, not an exception to this rule.
 
-A **shared component** — `AddressInputViewModel`, `NetworkSelectorViewModel` — takes the Core service it needs by its own protocol: `AddressInputViewModel` and `NameRecordViewModel` take `any GemNameServiceProtocol` (`GemNameServiceInterface` on Android), and the parent view model receives that `nameService` as a plain constructor dependency beside its `service` and passes it down. The screen service does not forward name methods and the client does not declare a protocol intersection (`any GemFooServiceProtocol & AddressInputResolving`) or a builder closure to reach the component's dependency — both hide a second dependency inside the first. `NetworkSelectorViewModel` needs only the dependency-free `GemChainService` and reads `GemChainService.shared` itself ([the fieldless exception](#8-services-are-injected-never-constructed-at-a-call-site)).
+A **shared component** — `AddressInputViewModel`, `SelectableListViewModel` — takes the Core service it needs by its own protocol: `AddressInputViewModel` and `NameRecordViewModel` take `any GemNameServiceProtocol` (`GemNameServiceInterface` on Android), and the parent view model receives that `nameService` as a plain constructor dependency beside its `service` and passes it down. The screen service does not forward name methods and the client does not declare a protocol intersection (`any GemFooServiceProtocol & AddressInputResolving`) or a builder closure to reach the component's dependency — both hide a second dependency inside the first. `SelectableListViewModel(networks:)` needs only the dependency-free `GemChainService` and reads `GemChainService.shared` itself ([the fieldless exception](#8-services-are-injected-never-constructed-at-a-call-site)).
 
 ### The parent vends the child model, the view never reaches in
 
@@ -1984,7 +1985,7 @@ The table locates the existing owners and consumers; it is not proof that a scre
 | `GemReceiveService` | `GemReceiveSession` (the network list stays anchored to the asset the screen opened on) | `ReceiveSceneViewModel` | `ReceiveViewModel` |
 | `GemRecentActivityService` | — | `RecentsSceneViewModel`, and `RecentAssetsViewModel` vended by `SelectAssetSceneViewModel` and `PerpetualsSceneViewModel` | `RecentsViewModel` (+ `RecentActivityQuery`) |
 | `GemRecipientService` | — | `RecipientSceneViewModel` (+ `nameService`) | `RecipientViewModel` (+ `GemNameServiceInterface`) |
-| `GemRewardsService` | — | `RewardsSceneViewModel`, `CreateRewardsCodeViewModel`, `RedeemRewardsCodeViewModel` | `RewardsViewModel` |
+| `GemRewardsService` | — | `RewardsSceneViewModel`, `RewardsCodeViewModel` | `RewardsViewModel` |
 | `GemServiceStatus` | — | `ServiceStatusSceneViewModel` | `ServiceStatusViewModel` |
 | `GemSettingsService` | — | `SettingsSceneViewModel`, `PreferencesSceneViewModel`, `SecuritySceneViewModel` | `SettingsViewModel`, `PreferencesViewModel`, `SecurityViewModel` |
 | `GemSignMessageService` | — | `SignMessageSceneViewModel` | `SignMessageViewModel`, `AuthRequestViewModel` |

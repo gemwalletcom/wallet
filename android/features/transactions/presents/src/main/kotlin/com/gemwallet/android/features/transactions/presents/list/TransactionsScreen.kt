@@ -25,7 +25,7 @@ fun TransactionsScreen(onTransaction: (TransactionId) -> Unit, onBuy: (() -> Uni
     }
 
     val refreshIntervalMillis by viewModel.refreshIntervalMillis.collectAsStateWithLifecycle()
-    RefreshOnTimer(refreshIntervalMillis, viewModel::refresh)
+    RefreshOnTimer(refreshIntervalMillis, viewModel::refreshOnTimer)
 
     TransactionsScene(
         isRefreshing = isRefreshing,

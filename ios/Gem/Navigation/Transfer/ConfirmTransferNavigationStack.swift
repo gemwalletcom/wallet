@@ -5,11 +5,8 @@ import struct Gemstone.GemTransferData
 import Primitives
 import Style
 import SwiftUI
-import Transfer
 
 struct ConfirmTransferNavigationStack: View {
-    @Environment(\.viewModelFactory) private var viewModelFactory
-
     private let wallet: Wallet
     private let transferData: GemTransferData
     private let onComplete: VoidAction
@@ -26,12 +23,10 @@ struct ConfirmTransferNavigationStack: View {
 
     var body: some View {
         NavigationStack {
-            ConfirmTransferNavigationView(
-                model: viewModelFactory.confirmTransferScene(
-                    wallet: wallet,
-                    data: transferData,
-                    onComplete: onComplete,
-                ),
+            ConfirmTransferDestination(
+                wallet: wallet,
+                data: transferData,
+                onComplete: onComplete,
             )
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {

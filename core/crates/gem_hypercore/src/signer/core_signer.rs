@@ -246,6 +246,10 @@ impl HyperCoreSigner {
                     );
                     self.sign_place_order(order, timestamp_incrementer.next_val(), agent_key)
                 }
+                PerpetualModifyPositionType::Leverage { leverage, margin_type } => {
+                    let update_leverage = UpdateLeverage::from_margin_type(modify_data.asset_index as u32, margin_type, *leverage);
+                    self.sign_update_leverage(update_leverage, timestamp_incrementer.next_val(), agent_key)
+                }
             })
             .collect()
     }
@@ -598,6 +602,19 @@ mod tests {
         let expected: serde_json::Value = serde_json::from_str(include_str!("../../testdata/hl_action_usd_class_transfer.json")).unwrap();
 
         assert_eq!(serde_json::from_str::<serde_json::Value>(&signed).unwrap(), expected);
+    }
+
+    #[test]
+    fn test_leverage_modify_signature() {
+        let data = PerpetualModifyConfirmData {
+            asset_index: 7,
+            ..PerpetualModifyConfirmData::mock(vec![PerpetualModifyPositionType::mock_leverage(10)], None, None)
+        };
+
+        let signed = HyperCoreSigner.sign_modify_orders(&data, &[2u8; 32], None, &mut NumberIncrementer::new(1759100000000)).unwrap();
+        let expected: serde_json::Value = serde_json::from_str(include_str!("../../testdata/hl_action_modify_update_leverage.json")).unwrap();
+
+        assert_eq!(signed.iter().map(|signed| serde_json::from_str::<serde_json::Value>(signed).unwrap()).collect::<Vec<_>>(), vec![expected]);
     }
 
     #[test]

@@ -201,4 +201,12 @@ class AssetsQueryTest {
 
         assertEquals(listOf("ethereum", "ethereum_0xdAC17F958D2ee523a2206206994597C13D831ec7"), assets.map { it.id })
     }
+
+    @Test
+    fun coreWalletAssetsApplyTheFilters() = runBlocking(Dispatchers.IO) {
+        val usdt = AssetsQueryFilter.ChainsOrAssets(emptyList(), listOf("ethereum_0xdAC17F958D2ee523a2206206994597C13D831ec7"))
+
+        assertEquals(listOf("ethereum_0xdAC17F958D2ee523a2206206994597C13D831ec7"), database.assetsDao().getWalletAssets("wallet-1", setOf(usdt)).map { it.id })
+        assertEquals(emptyList<String>(), database.assetsDao().getWalletAssets("wallet-1", setOf(AssetsQueryFilter.Swappable)).map { it.id })
+    }
 }

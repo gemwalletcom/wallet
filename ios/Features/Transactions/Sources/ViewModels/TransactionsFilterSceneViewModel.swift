@@ -83,16 +83,17 @@ public final class TransactionsFilterSceneViewModel {
         TransactionsFilterTypeViewModel(summary: viewState.typesSummary)
     }
 
-    public var networksModel: NetworkSelectorViewModel {
-        NetworkSelectorViewModel(
-            state: .data(.plain(session.chains.map { Chain(core: $0) })),
+    public var networksModel: SelectableListViewModel<Chain> {
+        SelectableListViewModel(
+            networks: .data(.plain(session.chains.map { Chain(core: $0) })),
             selectedItems: session.selectedChains.map { Chain(core: $0) },
             selectionType: .multiSelection,
         )
     }
 
-    public var typesModel: TransactionTypesSelectorViewModel {
-        TransactionTypesSelectorViewModel(
+    public var typesModel: SelectableListViewModel<GemTransactionFilter> {
+        SelectableListViewModel(
+            title: Localized.Filter.types,
             state: .data(.plain(viewState.types)),
             selectedItems: session.selectedTypes,
             selectionType: .multiSelection,

@@ -11,5 +11,3 @@ pub mod provider;
 pub mod signer;
 
 pub mod models;
-
-pub use address::validate_address;

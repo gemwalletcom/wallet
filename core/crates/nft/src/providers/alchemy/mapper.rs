@@ -1,5 +1,5 @@
 use alchemy::nft::{Attribute, ContractMetadata, NftMetadata, OwnedNft};
-use gem_evm::ethereum_address_checksum;
+use gem_evm::{ethereum_address_checksum, ethereum_address_checksum_or_original};
 use primitives::{Chain, NFTAsset, NFTAssetId, NFTAttribute, NFTAttributeType, NFTCollection, NFTCollectionId, NFTImages, NFTResource, VerificationStatus};
 
 use crate::providers::attribute::json_attribute_value;
@@ -17,7 +17,7 @@ pub fn map_collection(metadata: ContractMetadata, collection_id: NFTCollectionId
 
     NFTCollection {
         chain: collection_id.chain,
-        contract_address: ethereum_address_checksum(&collection_id.contract_address).unwrap_or_else(|_| collection_id.contract_address.clone()),
+        contract_address: ethereum_address_checksum_or_original(&collection_id.contract_address),
         id: collection_id,
         name: metadata.name.clone().or_else(|| open_sea_metadata.and_then(|metadata| metadata.collection_name.clone())).unwrap_or_default(),
         symbol: metadata.symbol.clone(),

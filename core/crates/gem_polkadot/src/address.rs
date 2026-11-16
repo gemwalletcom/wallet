@@ -74,10 +74,6 @@ impl PolkadotAddress {
     }
 }
 
-pub fn validate_address(address: &str) -> bool {
-    PolkadotAddress::is_valid(address)
-}
-
 impl fmt::Display for PolkadotAddress {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(&self.encode())
@@ -96,14 +92,14 @@ mod tests {
     fn test_polkadot_address() {
         let parsed = PolkadotAddress::from_str(VALID_ADDRESS).unwrap();
 
-        assert!(validate_address(VALID_ADDRESS));
+        assert!(PolkadotAddress::is_valid(VALID_ADDRESS));
         assert_eq!(hex::encode(parsed.as_bytes()), PUBLIC_KEY);
         assert_eq!(parsed.to_string(), VALID_ADDRESS);
         assert_eq!(PolkadotAddress::try_parse(&parsed.encode()), Some(parsed));
 
         assert!(PolkadotAddress::from_str("invalid").is_err());
-        assert!(!validate_address(&"1".repeat(ADDRESS_MAX_STRING_LENGTH + 1)));
-        assert!(!validate_address("15e6w4u9nH4Tb9HdJco2Zua4y5DpHb1hHXBKBGkUrLMTpuXj"));
+        assert!(!PolkadotAddress::is_valid(&"1".repeat(ADDRESS_MAX_STRING_LENGTH + 1)));
+        assert!(!PolkadotAddress::is_valid("15e6w4u9nH4Tb9HdJco2Zua4y5DpHb1hHXBKBGkUrLMTpuXj"));
     }
 
     #[test]

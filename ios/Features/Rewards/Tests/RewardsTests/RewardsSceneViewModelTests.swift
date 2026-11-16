@@ -129,6 +129,20 @@ struct RewardsSceneViewModelTests {
     }
 
     @Test
+    func aCodeCreatedFromTheSheetIsSentAsANewReferral() async throws {
+        let service = GemRewardsServiceMock()
+        let model = RewardsSceneViewModel.mock(service: service, wallets: [first, second])
+        await model.refresh()
+        let sheet = try #require(model.createCodeViewModel)
+        sheet.text = "nickname"
+
+        await sheet.action()
+
+        #expect(service.createdReferrals == ["nickname"])
+        #expect(service.usedReferralCodes.isEmpty)
+    }
+
+    @Test
     func activatingAPendingReferralSendsTheStoredCode() async {
         let service = GemRewardsServiceMock()
         service.rewardsResult = .success(.mock(code: nil, usedReferralCode: "pending", status: .pending, verifyAfter: .distantPast))

@@ -2,7 +2,7 @@
 
 import Foundation
 
-public struct AssetProperties: Codable, Sendable {
+public struct AssetProperties: Codable, Equatable, Sendable {
 	public let isEnabled: Bool
 	public let isBuyable: Bool
 	public let isSellable: Bool

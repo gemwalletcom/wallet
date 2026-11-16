@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import struct Gemstone.GemChartData
 import enum Gemstone.GemChartStyle
 import Primitives
 import SwiftUI
@@ -52,14 +53,21 @@ private struct ChartListHeader<Model: ChartListViewable>: View {
     @Binding var isPinching: Bool
 
     var body: some View {
-        if let candleChart = model.candleChart {
+        switch model.chartPhase {
+        case .loading: lineChart(.loading)
+        case let .data(data): lineChart(.data(data))
+        case let .candles(candleChart):
             ChartStateView(state: .data(candleChart), selectedPeriod: $model.selectedPeriod, periods: model.periods) { chart in
                 CandlestickChartView(chart: chart, isPinching: $isPinching, onZoom: model.onZoom, onPan: model.onPan)
             }
-        } else {
-            ChartStateView(state: model.chartState, selectedPeriod: $model.selectedPeriod, periods: model.periods) { chart in
-                ChartView(chart: chart, isPinching: $isPinching, onZoom: model.onZoom, onPan: model.onPan)
-            }
+        case .noData: lineChart(.noData)
+        case let .failed(error): lineChart(.error(error))
+        }
+    }
+
+    private func lineChart(_ state: StateViewType<GemChartData>) -> some View {
+        ChartStateView(state: state, selectedPeriod: $model.selectedPeriod, periods: model.periods) { chart in
+            ChartView(chart: chart, isPinching: $isPinching, onZoom: model.onZoom, onPan: model.onPan)
         }
     }
 }

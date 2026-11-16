@@ -144,6 +144,7 @@ pub enum GemListRowTitle {
     AutoClose,
     Size,
     Position,
+    Leverage,
     Details,
     Slippage,
     PriceImpact,

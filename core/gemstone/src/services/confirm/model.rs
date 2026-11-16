@@ -526,7 +526,7 @@ pub enum GemConfirmSection {
 pub enum GemConfirmDetails {
     Swap { details: GemSwapDetails },
     Perpetual { details: GemPerpetualConfirmDetails },
-    PerpetualAutoclose { row: GemListRow },
+    PerpetualModify { row: GemListRow },
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

@@ -20,16 +20,6 @@ use crate::{
 pub async fn finish_transaction_json(client: &SuiClient, transaction_json: &str, sender: &str) -> Result<TxOutput, SuiError> {
     let transaction = parse_transaction_json(transaction_json)?;
     validate_sender(&transaction, sender)?;
-    finish_parsed(client, transaction, sender).await
-}
-
-pub async fn finish_transaction_json_from_sender(client: &SuiClient, transaction_json: &str) -> Result<TxOutput, SuiError> {
-    let transaction = parse_transaction_json(transaction_json)?;
-    let sender = transaction.sender.clone().ok_or_else(|| SuiError::invalid_input("Missing Sui transaction sender"))?;
-    finish_parsed(client, transaction, &sender).await
-}
-
-async fn finish_parsed(client: &SuiClient, transaction: TransactionBuilderJson, sender: &str) -> Result<TxOutput, SuiError> {
     validate_expiration(&transaction)?;
 
     let gas_data = transaction.gas_data.clone().unwrap_or_default();

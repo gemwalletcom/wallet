@@ -56,6 +56,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemCandleChart
 import uniffi.gemstone.GemInfoTopic
+import uniffi.gemstone.GemLeverageSelection
 import uniffi.gemstone.GemListWindow
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemPerpetualDetails
@@ -82,6 +83,9 @@ class PerpetualViewModel @Inject constructor(
 ) : ViewModel() {
 
     val infoSheet = MutableStateFlow<GemInfoTopic?>(null)
+
+    private val leverageSelectionState = MutableStateFlow<GemLeverageSelection?>(null)
+    val leverageSelection: StateFlow<GemLeverageSelection?> = leverageSelectionState.asStateFlow()
 
     private companion object {
         const val SubscriptionGraceMillis = 5_000L
@@ -269,6 +273,27 @@ class PerpetualViewModel @Inject constructor(
             .onSuccess { action -> amountAction(AmountParams.Perpetual(assetId = data.asset.id, perpetualId = data.perpetual.id, positionAction = action)) }
             .onFailure { errorState.value = it.errorText().text(context) }
     }
+
+    fun selectLeverage() {
+        service.unavailableTopic()?.let { topic ->
+            infoSheet.value = topic
+            return
+        }
+        val data = perpetual.value ?: return
+        runCatching { service.leverageSelection(data.perpetual.toGem(), details.value?.position) }
+            .onSuccess { leverageSelectionState.value = it }
+            .onFailure { errorState.value = it.errorText().text(context) }
+    }
+
+    fun changeLeverage(leverage: UByte, confirmAction: ConfirmTransactionAction) {
+        dismissLeverage()
+        val data = perpetual.value ?: return
+        runCatching { service.leverageTransfer(data.perpetual.toGem(), data.asset.toGem(), details.value?.position, leverage) }
+            .onSuccess { transfer -> transfer?.let { confirmAction(ConfirmTransferInput(it)) } }
+            .onFailure { errorState.value = it.errorText().text(context) }
+    }
+
+    fun dismissLeverage() = leverageSelectionState.update { null }
 
     fun closePosition(confirmAction: ConfirmTransactionAction) {
         val data = perpetual.value ?: return

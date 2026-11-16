@@ -12,6 +12,14 @@ public enum Clipboard {
         UIPasteboard.general.setItems([[UIPasteboard.typeAutomatic: value]], options: pasteboardOptions(expirationTime: expirationTime))
     }
 
+    public static func paste() -> String? {
+        guard let string = UIPasteboard.general.string else {
+            UINotificationFeedbackGenerator().notificationOccurred(.error)
+            return nil
+        }
+        return string
+    }
+
     public static func clear() {
         UIPasteboard.general.items = []
     }

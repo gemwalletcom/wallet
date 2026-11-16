@@ -26,6 +26,7 @@ import com.gemwallet.android.features.settings.viewmodels.lock.models.AuthState
 import com.gemwallet.android.features.settings.viewmodels.lock.models.LockUIState
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.WalletApp
+import com.gemwallet.android.ui.components.dialog.ErrorDialog
 import com.gemwallet.android.ui.components.screen.SnackbarHost
 import com.gemwallet.android.ui.components.screen.ToastEffect
 import com.gemwallet.android.ui.models.ToastMessage
@@ -102,7 +103,7 @@ internal fun MainContent(
         }
 
         ErrorDialog(
-            error = state.walletConnectError ?: unsupportedWalletConnectError ?: state.startupError,
+            message = (state.walletConnectError ?: unsupportedWalletConnectError ?: state.startupError)?.takeIf { it.isNotEmpty() },
             onDismiss = onErrorDismiss,
         )
     }

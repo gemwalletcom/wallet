@@ -1,9 +1,7 @@
 use gem_evm::transaction::decode_calldata;
 use gem_tron::decode_wallet_connect_contract;
-use gem_wallet_connect::{
-    EvmTransactionKind, SignDigestType, SignMessageValidation, WCEthereumTransactionData, WalletConnectRequestHandler, WalletConnectTransaction, WalletConnectTransactionType, validate_send_transaction, validate_sign_message,
-};
-use primitives::{Chain, SimulationSeverity, SimulationWarning, SimulationWarningType};
+use gem_wallet_connect::{EvmTransactionKind, SignDigestType, SignMessageValidation, WalletConnectRequestHandler, WalletConnectTransaction, WalletConnectTransactionType, validate_send_transaction, validate_sign_message};
+use primitives::{Chain, SimulationSeverity, SimulationWarning, SimulationWarningType, WCEthereumTransaction};
 
 pub(crate) fn parse_eip712_message(data: &str) -> Option<gem_evm::eip712::EIP712Message> {
     serde_json::from_str(data).ok().and_then(|value| gem_evm::eip712::parse_eip712_json(&value).ok())
@@ -29,7 +27,7 @@ fn tron_token_warning(transaction_type: &WalletConnectTransactionType, data: &st
     Some(SimulationWarning::new(SimulationSeverity::Warning, SimulationWarningType::ValidationError, Some(message)))
 }
 
-pub(crate) fn decode_ethereum_transaction(chain: Chain, data: &str) -> Result<(WCEthereumTransactionData, EvmTransactionKind), String> {
+pub(crate) fn decode_ethereum_transaction(chain: Chain, data: &str) -> Result<(WCEthereumTransaction, EvmTransactionKind), String> {
     let transaction = WalletConnectRequestHandler::decode_send_transaction(chain, WalletConnectTransactionType::Ethereum, data.to_string())?;
     match transaction {
         WalletConnectTransaction::Ethereum { data, kind } => Ok((data, kind)),
@@ -37,7 +35,7 @@ pub(crate) fn decode_ethereum_transaction(chain: Chain, data: &str) -> Result<(W
     }
 }
 
-pub(crate) fn decode_ethereum_calldata(transaction: &WCEthereumTransactionData) -> Result<Vec<u8>, String> {
+pub(crate) fn decode_ethereum_calldata(transaction: &WCEthereumTransaction) -> Result<Vec<u8>, String> {
     Ok(transaction.data.as_deref().map(decode_calldata).transpose()?.unwrap_or_default())
 }
 

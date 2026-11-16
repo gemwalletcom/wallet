@@ -48,6 +48,9 @@ impl<const GROUP_BYTES: usize, const GROUP_SYMBOLS: usize> Alphabet<GROUP_BYTES,
         if remainder_width % 8 >= Self::BITS {
             return Err(invalid("invalid length"));
         }
+        if value.iter().any(|symbol| self.values[usize::from(*symbol)] == INVALID) {
+            return Err(invalid("invalid symbol"));
+        }
         let mut decoded = Vec::with_capacity(value.len() / GROUP_SYMBOLS * GROUP_BYTES + remainder_width / 8);
         let (groups, remainder) = value.as_chunks::<GROUP_SYMBOLS>();
         for group in groups {

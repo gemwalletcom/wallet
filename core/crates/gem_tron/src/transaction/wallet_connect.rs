@@ -1,4 +1,6 @@
+use gem_evm::transaction::decode_token_transfer_recipient;
 use gem_hash::sha2::sha256;
+use primitives::Address as _;
 use primitives::SignerError;
 use primitives::hex;
 use serde::{Deserialize, Serialize};
@@ -6,6 +8,7 @@ use serde_json::{Map, Value};
 use serde_serializers::hex_bytes;
 
 use super::{RawDataJson, TransactionApproval, TronContract};
+use crate::address::TronAddress;
 use crate::models::TriggerSmartContractData;
 
 #[derive(Deserialize)]
@@ -72,6 +75,13 @@ pub fn decode_wallet_connect_contract(data: &str) -> Result<Option<WalletConnect
     decode_raw_data(data)?.wallet_connect_contract()
 }
 
+pub fn decode_wallet_connect_token_recipient(data: &str) -> Result<Option<String>, SignerError> {
+    let Some(TronContract::TriggerSmart { data, .. }) = decode_wallet_connect_single_contract(data)? else {
+        return Ok(None);
+    };
+    Ok(decode_token_transfer_recipient(&data).map(|recipient| TronAddress::from(recipient).encode()))
+}
+
 pub(crate) fn decode_wallet_connect_single_contract(data: &str) -> Result<Option<TronContract>, SignerError> {
     decode_raw_data(data)?.single_contract()
 }
@@ -129,6 +139,24 @@ mod tests {
         assert_eq!(signed.owner_address, "TJoSEwEqt7cT3TUwmEoUYnYs5cZR3xSukM");
         assert!(signed.data.starts_with("095ea7b3"));
         assert_eq!(decode_wallet_connect_trigger_smart_contract(&tampered.to_string()).unwrap(), Some(signed));
+    }
+
+    #[test]
+    fn test_decode_wallet_connect_token_recipient() {
+        let recipient = "019e353a35efaa8e27c2a602a791ae1b19d9c9fa";
+        let owner = "60e00625a95cbc180f290e2611c826f90eeba56f";
+        let amount = format!("{:0>64}", "64");
+        for calldata in [
+            format!("a9059cbb{recipient:0>64}{amount}"),
+            format!("a9059cbb{:0>64}{amount}", format!("41{recipient}")),
+            format!("23b872dd{owner:0>64}{recipient:0>64}{amount}"),
+        ] {
+            assert_eq!(
+                decode_wallet_connect_token_recipient(&payload_with_calldata(PAYLOAD, &calldata)).unwrap().as_deref(),
+                Some("TA7mCjHFfo68FG3wc6pDCeRGbJSPZkBfL7")
+            );
+        }
+        assert_eq!(decode_wallet_connect_token_recipient(PAYLOAD).unwrap(), None);
     }
 
     #[test]

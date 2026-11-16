@@ -1094,7 +1094,7 @@ fun mockGemAssetBalance(
 fun mockGemAssetDetails(
     state: uniffi.gemstone.GemAssetDetailsState = mockGemAssetDetailsState(),
     header: uniffi.gemstone.GemValueHeader = mockGemValueHeader(),
-    banner: uniffi.gemstone.GemBannerRow? = null,
+    banner: uniffi.gemstone.GemAssetBanner? = null,
     sections: List<uniffi.gemstone.GemAssetDetailSection> = emptyList(),
     title: String = "",
     options: List<uniffi.gemstone.GemAssetOption> = emptyList(),
@@ -1441,6 +1441,52 @@ fun mockGemCustomFeeSession(
     rate = rate,
 )
 
+fun mockGemDelegationDetails(
+    title: uniffi.gemstone.GemLocalizedText = mockGemLocalizedText(),
+    icon: uniffi.gemstone.GemAssetIcon = mockGemAssetIcon(),
+    valueHeader: uniffi.gemstone.GemValueHeader = mockGemValueHeader(),
+    header: uniffi.gemstone.GemDelegationListRow = mockGemDelegationListRow(),
+    actions: List<uniffi.gemstone.GemDelegationActionItem> = emptyList(),
+    rewards: uniffi.gemstone.GemFormattedNumber? = null,
+    rewardsFiat: uniffi.gemstone.GemFormattedNumber? = null,
+    rows: List<uniffi.gemstone.GemListRow> = emptyList(),
+    claim: uniffi.gemstone.GemTransferData? = null,
+) = uniffi.gemstone.GemDelegationDetails(
+    title = title,
+    icon = icon,
+    valueHeader = valueHeader,
+    header = header,
+    actions = actions,
+    rewards = rewards,
+    rewardsFiat = rewardsFiat,
+    rows = rows,
+    claim = claim,
+)
+
+fun mockGemDelegationListRow(
+    validator: uniffi.gemstone.GemValidatorRow = mockGemValidatorRow(),
+    status: uniffi.gemstone.GemDelegationStatus = mockGemDelegationStatus(),
+    balance: uniffi.gemstone.GemFormattedNumber = mockGemFormattedNumber(),
+    fiat: uniffi.gemstone.GemFormattedNumber? = null,
+    rewards: uniffi.gemstone.GemFormattedNumber? = null,
+    rewardsFiat: uniffi.gemstone.GemFormattedNumber? = null,
+) = uniffi.gemstone.GemDelegationListRow(
+    validator = validator,
+    status = status,
+    balance = balance,
+    fiat = fiat,
+    rewards = rewards,
+    rewardsFiat = rewardsFiat,
+)
+
+fun mockGemDelegationStatus(
+    state: uniffi.gemstone.DelegationState = uniffi.gemstone.DelegationState.ACTIVE,
+    tone: uniffi.gemstone.GemValueTone = uniffi.gemstone.GemValueTone.PLAIN,
+) = uniffi.gemstone.GemDelegationStatus(
+    state = state,
+    tone = tone,
+)
+
 fun mockGemEmptyState(
     title: uniffi.gemstone.GemEmptyStateText = uniffi.gemstone.GemEmptyStateText.NFTS_TITLE,
     description: uniffi.gemstone.GemEmptyStateText? = null,
@@ -1609,6 +1655,14 @@ fun mockGemHeaderButtonAction(): uniffi.gemstone.GemHeaderButtonAction = uniffi.
 
 fun mockGemInfoTopic(): uniffi.gemstone.GemInfoTopic = uniffi.gemstone.GemInfoTopic.RegionUnavailable(country = "")
 
+fun mockGemLeverageSelection(
+    options: List<uniffi.gemstone.GemPickerOption> = emptyList(),
+    selected: uniffi.gemstone.GemPickerOption = mockGemPickerOption(),
+) = uniffi.gemstone.GemLeverageSelection(
+    options = options,
+    selected = selected,
+)
+
 fun mockGemLightningReceive(
     qr: String = "",
     copy: uniffi.gemstone.GemCopy = mockGemCopy(),
@@ -1737,6 +1791,14 @@ fun mockGemPerpetualTransferData(
     price = price,
     leverage = leverage,
     marginType = marginType,
+)
+
+fun mockGemPickerOption(
+    value: UByte = 0u,
+    label: uniffi.gemstone.GemLocalizedText = mockGemLocalizedText(),
+) = uniffi.gemstone.GemPickerOption(
+    value = value,
+    label = label,
 )
 
 fun mockGemPrecision(): uniffi.gemstone.GemPrecision = uniffi.gemstone.GemPrecision.Fraction(min = 0, max = 0)
@@ -1996,7 +2058,7 @@ fun mockGemValidatorRow(
     placeholder: String = "",
     provider: uniffi.gemstone.YieldProvider? = null,
     apr: uniffi.gemstone.GemLocalizedText = mockGemLocalizedText(),
-    explorer: uniffi.gemstone.BlockExplorerLink? = null,
+    menu: List<uniffi.gemstone.GemRowMenuItem> = emptyList(),
 ) = uniffi.gemstone.GemValidatorRow(
     validator = validator,
     name = name,
@@ -2004,7 +2066,7 @@ fun mockGemValidatorRow(
     placeholder = placeholder,
     provider = provider,
     apr = apr,
-    explorer = explorer,
+    menu = menu,
 )
 
 fun mockGemValueHeader(
@@ -2154,7 +2216,7 @@ fun mockGemWalletHomeViewState(
     header: uniffi.gemstone.GemValueHeader = mockGemValueHeader(),
     showCollections: Boolean = false,
     showsPerpetuals: Boolean = false,
-    banner: uniffi.gemstone.GemBannerRow? = null,
+    banner: uniffi.gemstone.GemWalletBanner? = null,
     pinnedAssetIds: List<String> = emptyList(),
     assetIds: List<String> = emptyList(),
 ) = uniffi.gemstone.GemWalletHomeViewState(
@@ -2545,10 +2607,8 @@ fun mockSwapData(
 
 fun mockSwapProviderData(
     provider: uniffi.gemstone.SwapProvider = uniffi.gemstone.SwapProvider.UNISWAP_V3,
-    protocolName: String = "",
 ) = uniffi.gemstone.SwapProviderData(
     provider = provider,
-    protocolName = protocolName,
 )
 
 fun mockSwapQuote(
@@ -2616,14 +2676,12 @@ fun mockSwapperProviderData(
 fun mockSwapperProviderType(
     id: uniffi.gemstone.SwapProvider = uniffi.gemstone.SwapProvider.UNISWAP_V3,
     name: String = "",
-    protocol: String = "",
     protocolId: String = "",
     mode: uniffi.gemstone.SwapperProviderMode = uniffi.gemstone.SwapperProviderMode.OnChain,
     slippageMode: uniffi.gemstone.SwapperSlippageMode = uniffi.gemstone.SwapperSlippageMode.AUTO,
 ) = uniffi.gemstone.SwapperProviderType(
     id = id,
     name = name,
-    protocol = protocol,
     protocolId = protocolId,
     mode = mode,
     slippageMode = slippageMode,

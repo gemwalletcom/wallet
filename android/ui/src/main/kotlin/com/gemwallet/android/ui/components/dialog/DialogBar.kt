@@ -1,5 +1,6 @@
 package com.gemwallet.android.ui.components.dialog
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
@@ -16,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import com.gemwallet.android.ui.R
@@ -26,7 +28,7 @@ import com.gemwallet.android.ui.theme.paddingSmall
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DialogBar(onDismissRequest: () -> Unit, title: String? = null, dismissType: DialogBarDismissType = DialogBarDismissType.Close, actions: @Composable RowScope.() -> Unit = {}) {
+fun DialogBar(onDismissRequest: () -> Unit, title: String? = null, onBack: (() -> Unit)? = null, onConfirm: (() -> Unit)? = null, isConfirmEnabled: Boolean = true, actions: @Composable RowScope.() -> Unit = {}) {
     Box {
         CenterAlignedTopAppBar(
             title = {
@@ -40,15 +42,14 @@ fun DialogBar(onDismissRequest: () -> Unit, title: String? = null, dismissType: 
                 }
             },
             navigationIcon = {
-                if (dismissType == DialogBarDismissType.Close) {
-                    DismissButton(dismissType, onDismissRequest)
+                when (onBack) {
+                    null -> DialogBarButton(AppIcons.Close, R.string.common_close, onDismissRequest)
+                    else -> DialogBarButton(AppIcons.ArrowBack, R.string.common_back, onBack)
                 }
             },
             actions = {
                 actions()
-                if (dismissType == DialogBarDismissType.Confirm) {
-                    DismissButton(dismissType, onDismissRequest)
-                }
+                onConfirm?.let { DialogBarButton(AppIcons.Check, R.string.common_done, it, isConfirmEnabled) }
             },
             windowInsets = WindowInsets(0),
             colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
@@ -60,30 +61,15 @@ fun DialogBar(onDismissRequest: () -> Unit, title: String? = null, dismissType: 
 }
 
 @Composable
-private fun DismissButton(dismissType: DialogBarDismissType, onClick: () -> Unit) {
+private fun DialogBarButton(icon: ImageVector, @StringRes description: Int, onClick: () -> Unit, enabled: Boolean = true) {
     IconButton(
         modifier = Modifier.padding(horizontal = paddingSmall),
         onClick = onClick,
+        enabled = enabled,
         colors = IconButtonDefaults.iconButtonColors(
             containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = alpha10),
         ),
     ) {
-        Icon(
-            imageVector = when (dismissType) {
-                DialogBarDismissType.Close -> AppIcons.Close
-                DialogBarDismissType.Confirm -> AppIcons.Check
-            },
-            contentDescription = stringResource(
-                when (dismissType) {
-                    DialogBarDismissType.Close -> R.string.common_close
-                    DialogBarDismissType.Confirm -> R.string.common_done
-                },
-            ),
-        )
+        Icon(imageVector = icon, contentDescription = stringResource(description))
     }
-}
-
-enum class DialogBarDismissType {
-    Close,
-    Confirm,
 }

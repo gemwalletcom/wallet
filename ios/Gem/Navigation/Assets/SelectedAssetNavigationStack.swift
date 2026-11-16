@@ -97,13 +97,7 @@ struct SelectedAssetNavigationStack: View {
             .toolbarDismissItem(type: .close, placement: .topBarLeading)
             .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(keyedBy: ConfirmTransferInput.self) { confirm in
-                ConfirmTransferNavigationView(
-                    model: viewModelFactory.confirmTransferScene(
-                        wallet: wallet,
-                        data: confirm.data,
-                        onComplete: onComplete,
-                    ),
-                )
+                ConfirmTransferDestination(wallet: wallet, data: confirm.data, onComplete: onComplete)
             }
             .navigationDestination(keyedBy: AmountInput.self) { amount in
                 AmountNavigationView(

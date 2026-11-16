@@ -1,7 +1,6 @@
 use borsh::BorshSerialize;
 use gem_solana::{
-    AccountMeta, Instruction, Pubkey,
-    anchor::instruction_data,
+    AccountMeta, Instruction, Pubkey, anchor,
     instructions::program_ids::{memo_program, meteora_dlmm_program},
 };
 use primitives::decode_hex_literal;
@@ -56,11 +55,7 @@ pub(super) fn swap2_instruction(address: &Pubkey, pair: &Pair, swap: &PoolSwap) 
         amounts: swap.amounts(),
         remaining_accounts_slices: vec![],
     };
-    Ok(Instruction {
-        program_id: meteora_dlmm_program(),
-        accounts,
-        data: instruction_data(SWAP2, &parameters),
-    })
+    Ok(anchor::instruction(meteora_dlmm_program(), SWAP2, &parameters, accounts))
 }
 
 #[cfg(test)]

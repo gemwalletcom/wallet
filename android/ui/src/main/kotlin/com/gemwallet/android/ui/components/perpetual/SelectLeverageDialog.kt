@@ -1,4 +1,4 @@
-package com.gemwallet.android.features.transfer.presents.amount.dialogs
+package com.gemwallet.android.ui.components.perpetual
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth

@@ -19,5 +19,6 @@ fun DbPriceInfo.toDTO(): PriceData? = asset.toDTO()?.let {
         priceAlerts = priceAlerts.map { alert -> alert.toPriceAlert() },
         market = market?.toDTO(),
         links = links.map { link -> link.toAssetLink() },
+        properties = asset.toAssetProperties(),
     )
 }

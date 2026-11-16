@@ -12,11 +12,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import com.gemwallet.android.ui.components.GemTextField
-import com.gemwallet.android.ui.components.clipboard.clipboardManager
-import com.gemwallet.android.ui.components.clipboard.getPlainText
+import com.gemwallet.android.ui.components.clipboard.rememberClipboard
 import com.gemwallet.android.ui.components.keyboardFollowsFocus
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
@@ -37,7 +35,7 @@ fun ColumnScope.AddressChainField(
     onQrScanner: (() -> Unit)? = null,
     onSubmit: (() -> Unit)? = null,
 ) {
-    val clipboardManager = LocalContext.current.clipboardManager()
+    val clipboard = rememberClipboard()
 
     GemTextField(
         modifier = modifier
@@ -58,7 +56,7 @@ fun ColumnScope.AddressChainField(
                 NameResolveIndicator(indicator)
                 TransferTextFieldActions(
                     value = value,
-                    paste = { clipboardManager.getPlainText()?.let(onPaste ?: onValueChange) },
+                    paste = { clipboard.paste()?.let(onPaste ?: onValueChange) },
                     qrScanner = onQrScanner,
                     onClean = { onValueChange("") },
                 )

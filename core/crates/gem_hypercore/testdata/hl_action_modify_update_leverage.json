@@ -1,0 +1,15 @@
+{
+    "action": {
+        "asset": 7,
+        "isCross": false,
+        "leverage": 10,
+        "type": "updateLeverage"
+    },
+    "isFrontend": true,
+    "nonce": 1759100000000,
+    "signature": {
+        "r": "0x848d6b5ce9643e7668bd5acd8492f8f210b65d31532edd7c77c669b888e2d252",
+        "s": "0x6289b7b9740688d81e44057ee49ff6e67d3fd122a4745aa69f1b910e274026a4",
+        "v": 27
+    }
+}

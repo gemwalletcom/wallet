@@ -13,12 +13,12 @@ import com.gemwallet.android.testkit.mockAssetData
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockAssetLink
 import com.gemwallet.android.testkit.mockAssetMarket
+import com.gemwallet.android.testkit.mockAssetProperties
 import com.gemwallet.android.testkit.mockGemChart
 import com.gemwallet.android.testkit.mockGemChartData
 import com.gemwallet.android.testkit.mockGemGroup
 import com.gemwallet.android.testkit.mockPrice
 import com.gemwallet.android.testkit.mockPriceAlert
-import com.gemwallet.android.ui.models.StateViewType
 import com.wallet.core.primitives.AssetData
 import com.wallet.core.primitives.AssetType
 import com.wallet.core.primitives.Chain
@@ -72,7 +72,7 @@ class ChartViewModelTest {
 
     private val asset = mockAsset(id = mockAssetId(chain = Chain.Solana, tokenId = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"), name = "USD Coin", symbol = "USDC", decimals = 6u, type = AssetType.SPL)
     private val currencyFlow = MutableStateFlow(Currency.USD)
-    private val priceDataFlow = MutableStateFlow<PriceData?>(PriceData(asset = asset, priceAlerts = emptyList(), links = emptyList()))
+    private val priceDataFlow = MutableStateFlow<PriceData?>(PriceData(asset = asset, priceAlerts = emptyList(), links = emptyList(), properties = mockAssetProperties()))
     private val walletAssetsFlow = MutableStateFlow<List<AssetData>>(emptyList())
     private val viewModels = mutableListOf<ViewModel>()
 
@@ -147,10 +147,10 @@ class ChartViewModelTest {
         )
 
         val viewModel = createViewModel()
-        val state = viewModel.chartUIState.first { it.chart is StateViewType.Data }
+        val state = viewModel.chartUIState.first { it.phase is GemChartPhase.Data }
 
         assertEquals(ChartPeriod.Month, state.period)
-        assertEquals(chart.values.size, (state.chart as StateViewType.Data).data.values.size)
+        assertEquals(chart.values.size, (state.phase as GemChartPhase.Data).data.values.size)
         coVerify(exactly = 1) { chartService.load(asset.id.toIdentifier(), GemChartRequest.Rate(Currency.USD.toGem())) }
         coVerify(exactly = 1) { chartService.load(asset.id.toIdentifier(), GemChartRequest.Chart(ChartPeriod.Month.toGem(), Currency.USD.toGem())) }
     }
@@ -158,7 +158,7 @@ class ChartViewModelTest {
     @Test
     fun `selecting a period loads it without the refresh indicator and without asking for the rate again`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
-        viewModel.chartUIState.first { it.chart is StateViewType.Data }
+        viewModel.chartUIState.first { it.phase is GemChartPhase.Data }
         backgroundScope.launch { viewModel.isRefreshing.collect {} }
         backgroundScope.launch { viewModel.chartUIState.collect {} }
         testDispatcher.scheduler.advanceUntilIdle()
@@ -173,20 +173,20 @@ class ChartViewModelTest {
         testDispatcher.scheduler.advanceUntilIdle()
 
         assertEquals(ChartPeriod.Week, viewModel.chartUIState.value.period)
-        assertTrue(viewModel.chartUIState.value.chart is StateViewType.Loading)
+        assertTrue(viewModel.chartUIState.value.phase is GemChartPhase.Loading)
         assertEquals(false, viewModel.isRefreshing.value)
 
         inFlight.complete(Unit)
         testDispatcher.scheduler.advanceUntilIdle()
 
-        assertTrue(viewModel.chartUIState.value.chart is StateViewType.Data)
+        assertTrue(viewModel.chartUIState.value.phase is GemChartPhase.Data)
         coVerify(exactly = 1) { chartService.load(asset.id.toIdentifier(), GemChartRequest.Rate(Currency.USD.toGem())) }
     }
 
     @Test
     fun `a pull to refresh keeps the chart that is already drawn`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
-        viewModel.chartUIState.first { it.chart is StateViewType.Data }
+        viewModel.chartUIState.first { it.phase is GemChartPhase.Data }
         backgroundScope.launch { viewModel.isRefreshing.collect {} }
         backgroundScope.launch { viewModel.chartUIState.collect {} }
         testDispatcher.scheduler.advanceUntilIdle()
@@ -201,7 +201,7 @@ class ChartViewModelTest {
         testDispatcher.scheduler.advanceUntilIdle()
 
         assertEquals(true, viewModel.isRefreshing.value)
-        assertTrue(viewModel.chartUIState.value.chart is StateViewType.Data)
+        assertTrue(viewModel.chartUIState.value.phase is GemChartPhase.Data)
 
         inFlight.complete(Unit)
         testDispatcher.scheduler.advanceUntilIdle()
@@ -213,7 +213,7 @@ class ChartViewModelTest {
     @Test
     fun `a pinch during a refresh keeps the load that is in flight`() = runTest(testDispatcher) {
         val viewModel = createViewModel()
-        viewModel.chartUIState.first { it.chart is StateViewType.Data }
+        viewModel.chartUIState.first { it.phase is GemChartPhase.Data }
         backgroundScope.launch { viewModel.chartUIState.collect {} }
         backgroundScope.launch { viewModel.isRefreshing.collect {} }
         testDispatcher.scheduler.advanceUntilIdle()
@@ -262,7 +262,7 @@ class ChartViewModelTest {
         val alert = mockPriceAlert(assetId = asset.id)
         val market = mockAssetMarket(marketCap = 1234.0)
         val link = mockAssetLink()
-        priceDataFlow.value = PriceData(asset = asset, price = mockPrice(price = 2.5), priceAlerts = listOf(alert), market = market, links = listOf(link))
+        priceDataFlow.value = PriceData(asset = asset, price = mockPrice(price = 2.5), priceAlerts = listOf(alert), market = market, links = listOf(link), properties = mockAssetProperties())
 
         val viewModel = createViewModel()
         backgroundScope.launch { viewModel.sections.collect {} }
@@ -284,6 +284,17 @@ class ChartViewModelTest {
     }
 
     @Test
+    fun `the stored asset tells the session it has candles`() = runTest(testDispatcher) {
+        priceDataFlow.value = PriceData(asset = asset, priceAlerts = emptyList(), links = emptyList(), properties = mockAssetProperties(hasCandles = true))
+
+        val viewModel = createViewModel()
+        backgroundScope.launch { viewModel.chartUIState.collect {} }
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        verify { chartService.viewState(match { it.hasCandles }, any()) }
+    }
+
+    @Test
     fun `the chart offers the switch core allows and selecting it goes through the service`() = runTest(testDispatcher) {
         styleSwitch = GemChartStyle.CANDLES
         periods = listOf(ChartPeriod.Day.toGem())
@@ -292,7 +303,7 @@ class ChartViewModelTest {
         backgroundScope.launch { viewModel.chartUIState.collect {} }
         testDispatcher.scheduler.advanceUntilIdle()
 
-        val state = viewModel.chartUIState.first { it.chart is StateViewType.Data }
+        val state = viewModel.chartUIState.first { it.phase is GemChartPhase.Data }
         viewModel.selectStyle(GemChartStyle.CANDLES)
         testDispatcher.scheduler.advanceUntilIdle()
 
@@ -309,7 +320,6 @@ class ChartViewModelTest {
         assetId = asset.id,
         observeRefreshInterval = mockk(relaxed = true),
         ioDispatcher = testDispatcher,
-        context = mockk(relaxed = true),
     ).also(viewModels::add)
 
     private fun section(rows: List<GemListRow>) = mockGemGroup(items = rows.map { GemListItem.Row(it) })

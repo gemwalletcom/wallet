@@ -24,7 +24,7 @@ pub mod testkit;
 pub use provider::map_transaction;
 
 #[cfg(feature = "signer")]
-pub use address::{BitcoinAddress, validate_address};
+pub use address::BitcoinAddress;
 
 #[cfg(feature = "rpc")]
 pub use rpc::client::BitcoinClient;

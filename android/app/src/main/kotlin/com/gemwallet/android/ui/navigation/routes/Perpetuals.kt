@@ -2,7 +2,7 @@ package com.gemwallet.android.ui.navigation.routes
 
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import com.gemwallet.android.features.assets.presents.select.SelectDepositScreen
+import com.gemwallet.android.features.assets.presents.select.SelectAssetScreen
 import com.gemwallet.android.features.perpetuals.presents.perpetual.PerpetualScreen
 import com.gemwallet.android.features.perpetuals.presents.perpetuals.PerpetualsScreen
 import com.gemwallet.android.features.transfer.presents.confirm.ConfirmTransferScreen
@@ -16,6 +16,7 @@ import com.gemwallet.android.ui.navigation.routeArguments
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.TransactionId
 import kotlinx.serialization.Serializable
+import uniffi.gemstone.GemSelectAssetType
 
 @Serializable
 data object PerpetualsRoute : NavKey
@@ -48,7 +49,8 @@ fun EntryProviderScope<NavKey>.perpetualsScreen(
     }
 
     entry<PerpetualDepositSelectRoute> {
-        SelectDepositScreen(
+        SelectAssetScreen(
+            selectType = GemSelectAssetType.Deposit,
             onCancel = onCancel,
             onSelect = { amountAction(AmountParams.Deposit(it)) },
         )

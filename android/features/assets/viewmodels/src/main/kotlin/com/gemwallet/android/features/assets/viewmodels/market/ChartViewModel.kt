@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.assets.viewmodels.market
 
-import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,20 +8,16 @@ import com.gemwallet.android.application.assets.cases.GetWalletAssets
 import com.gemwallet.android.application.connection.cases.ObserveRefreshInterval
 import com.gemwallet.android.application.session.cases.GetCurrentCurrency
 import com.gemwallet.android.data.services.store.queries.PriceQuery
-import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ChartUIState
-import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.AssetData
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.PriceData
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -30,8 +25,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -60,7 +58,6 @@ class ChartViewModel internal constructor(
     val assetId: AssetId,
     observeRefreshInterval: ObserveRefreshInterval,
     private val ioDispatcher: CoroutineDispatcher,
-    private val context: Context,
 ) : ViewModel() {
     private val session = MutableStateFlow(chartService.newSession())
     private val storedAssetInfo: AssetData? = getWalletAssets().value.firstOrNull { it.asset.id == assetId }
@@ -68,17 +65,22 @@ class ChartViewModel internal constructor(
     val refreshIntervalMillis = observeRefreshInterval.refreshIntervalMillis(GemRefreshKind.CHART)
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0L)
 
+    private val priceData = priceQuery(assetId)
+        .shareIn(viewModelScope, SharingStarted.Eagerly, replay = 1)
+
     init {
         viewModelScope.launch {
             getCurrentCurrency.getCurrency().collect { currency -> session.update { it.onCurrency(currency.toGem()) } }
         }
+        priceData.filterNotNull()
+            .map { it.properties.hasCandles }
+            .distinctUntilChanged()
+            .onEach { hasCandles -> session.update { it.onHasCandlesChanged(hasCandles) } }
+            .launchIn(viewModelScope)
         viewModelScope.launch {
             session.map { it.request() }.distinctUntilChanged().collectLatest { request -> request?.let { load(it) } }
         }
     }
-
-    private val priceData = priceQuery(assetId)
-        .shareIn(viewModelScope, SharingStarted.Eagerly, replay = 1)
 
     val title = priceData
         .map { it?.asset?.name.orEmpty() }
@@ -101,14 +103,7 @@ class ChartViewModel internal constructor(
         ChartUIState(
             period = session.period.toPrimitives(),
             periods = (view?.periods ?: session.periods()).map { it.toPrimitives() },
-            chart = when (val phase = view?.phase) {
-                null, GemChartPhase.Loading -> StateViewType.Loading
-                is GemChartPhase.Data -> StateViewType.Data(phase.data)
-                is GemChartPhase.Candles -> StateViewType.Loading
-                GemChartPhase.NoData -> StateViewType.NoData
-                is GemChartPhase.Failed -> StateViewType.Error(phase.error.errorText().text(context))
-            },
-            candles = (view?.phase as? GemChartPhase.Candles)?.chart,
+            phase = view?.phase ?: GemChartPhase.Loading,
             styleSwitch = view?.styleSwitch,
         )
     }
@@ -160,7 +155,6 @@ class ChartViewModel internal constructor(
         savedStateHandle: SavedStateHandle,
         observeRefreshInterval: ObserveRefreshInterval,
         @IoDispatcher ioDispatcher: CoroutineDispatcher,
-        @ApplicationContext context: Context,
     ) : this(
         getCurrentCurrency = getCurrentCurrency,
         priceQuery = priceQuery,
@@ -169,6 +163,5 @@ class ChartViewModel internal constructor(
         assetId = savedStateHandle.requireAssetId(),
         observeRefreshInterval = observeRefreshInterval,
         ioDispatcher = ioDispatcher,
-        context = context,
     )
 }

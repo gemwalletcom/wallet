@@ -44,13 +44,7 @@ struct AmountNavigationStack: View {
                 )
             }
             .navigationDestination(keyedBy: ConfirmTransferInput.self) {
-                ConfirmTransferNavigationView(
-                    model: viewModelFactory.confirmTransferScene(
-                        wallet: wallet,
-                        data: $0.data,
-                        onComplete: onComplete,
-                    ),
-                )
+                ConfirmTransferDestination(wallet: wallet, data: $0.data, onComplete: onComplete)
             }
         }
     }

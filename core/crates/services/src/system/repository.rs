@@ -2,8 +2,8 @@ use std::collections::HashSet;
 
 use async_trait::async_trait;
 use chrono::NaiveDateTime;
-use primitives::{ChainAddress, Device, PlatformStore, Release};
-use storage::{Database, DatabaseError, DevicesRepository, ReleasesRepository, TransactionsRepository, WalletRecord, WalletsRepository};
+use primitives::{Device, PlatformStore, Release};
+use storage::{Database, DatabaseError, DevicesRepository, ReleasesRepository, TransactionsRepository, WalletsRepository};
 
 pub(crate) struct TransactionCleanupResult {
     pub(crate) addresses: usize,
@@ -18,7 +18,6 @@ pub(crate) trait Repository: Send + Sync {
     async fn get_update_enabled(&self, store: PlatformStore) -> Result<bool, DatabaseError>;
     async fn set_release_version(&self, store: PlatformStore, version: String) -> Result<(), DatabaseError>;
     async fn get_inactive_devices(&self, min_days: i64, max_days: i64, push_enabled: Option<bool>) -> Result<Vec<Device>, DatabaseError>;
-    async fn get_device_subscriptions(&self, device_id: String) -> Result<Vec<(WalletRecord, ChainAddress)>, DatabaseError>;
 }
 
 pub(crate) struct PostgresRepository {
@@ -77,14 +76,5 @@ impl Repository for PostgresRepository {
 
     async fn get_inactive_devices(&self, min_days: i64, max_days: i64, push_enabled: Option<bool>) -> Result<Vec<Device>, DatabaseError> {
         self.database.run(move |client| client.get_inactive_devices(min_days, max_days, push_enabled)).await
-    }
-
-    async fn get_device_subscriptions(&self, device_id: String) -> Result<Vec<(WalletRecord, ChainAddress)>, DatabaseError> {
-        self.database
-            .run(move |client| {
-                let device_row_id = client.get_device_row_id(&device_id)?;
-                client.get_subscriptions(device_row_id)
-            })
-            .await
     }
 }

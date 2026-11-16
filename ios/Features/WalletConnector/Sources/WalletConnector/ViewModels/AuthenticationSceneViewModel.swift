@@ -10,6 +10,7 @@ import struct Gemstone.GemGroup
 import enum Gemstone.GemListRow
 import enum Gemstone.GemServiceError
 import protocol Gemstone.GemSignMessageServiceProtocol
+import struct Gemstone.GemWalletRow
 import struct Gemstone.MessagePayloadPreview
 import func Gemstone.signerFailure
 import struct Gemstone.SignMessage
@@ -31,7 +32,7 @@ public final class AuthenticationSceneViewModel {
     private let connection: GemConnectionRow
     private var approval: Result<AuthenticationApproval, any Error>
 
-    var walletSelectorModel: SelectWalletViewModel {
+    var walletSelectorModel: SelectableListViewModel<GemWalletRow> {
         didSet { approval = Self.approval(request: request, wallet: selectedWallet, service: service) }
     }
 
@@ -48,7 +49,7 @@ public final class AuthenticationSceneViewModel {
         self.request = request
         self.confirmTransferDelegate = confirmTransferDelegate
         connection = applicationConnectionRow(metadata: request.proposal.metadata.toGem())
-        walletSelectorModel = SelectWalletViewModel(
+        walletSelectorModel = SelectableListViewModel(
             sections: walletSections(wallets: request.proposal.wallets.map { $0.listItem.toGem() }, currentWalletId: nil),
             selectedRow: walletRow(wallet: request.proposal.defaultWallet.toGem()),
         )

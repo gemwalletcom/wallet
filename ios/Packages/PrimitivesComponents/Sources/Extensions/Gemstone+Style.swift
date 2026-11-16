@@ -29,6 +29,7 @@ import enum Gemstone.GemLatencyStatus
 import enum Gemstone.GemListRowIcon
 import enum Gemstone.GemListSectionTitle
 import enum Gemstone.GemLoadState
+import enum Gemstone.GemLocalTokenIcon
 import enum Gemstone.GemNameIndicator
 import enum Gemstone.GemNodeSyncState
 import enum Gemstone.GemNoticeKind
@@ -146,6 +147,20 @@ extension GemNoticeKind {
         switch self {
         case .error: Colors.red
         case .warning, .info: Colors.orange
+        }
+    }
+}
+
+public extension GemLocalTokenIcon {
+    var image: Image {
+        switch self {
+        case .usdt: Images.Tokens.usdt
+        case .usdc: Images.Tokens.usdc
+        case .usds: Images.Tokens.usds
+        case .usde: Images.Tokens.usde
+        case .usd1: Images.Tokens.usd1
+        case .usdg: Images.Tokens.usdg
+        case .pyusd: Images.Tokens.pyusd
         }
     }
 }
@@ -759,7 +774,7 @@ public extension AssetImage {
     init(icon: GemAssetIcon) {
         let (imageURL, placeholder): (URL?, Image?) = switch icon.image {
         case let .local(chain): (.none, ChainImage(chain: Chain(core: chain)).image)
-        case let .localToken(token): (.none, TokenImage(token: token).image)
+        case let .localToken(token): (.none, token.image)
         case let .remote(url): (URL(string: url), .none)
         }
         self.init(

@@ -6,6 +6,7 @@ import class Gemstone.GemAddAssetService
 import class Gemstone.GemAssetDetailsService
 import class Gemstone.GemAssetSelectionService
 import class Gemstone.GemChartService
+import enum Gemstone.GemSelectAssetType
 import class Gemstone.GemWalletHomeService
 import GemstonePrimitives
 import GemstoneServices
@@ -83,7 +84,7 @@ public extension ViewModelFactory {
         WalletSearchSceneViewModel(
             wallet: wallet,
             service: assetSelectionService(),
-            recentModel: RecentAssetsViewModel(walletId: wallet.id, types: RecentActivityType.allCases, service: recentAssetsService),
+            recentModel: RecentAssetsViewModel(walletId: wallet.id, types: GemSelectAssetType.walletSearch.flow().recentActivityTypes().map { $0.toPrimitives() }, service: recentAssetsService),
             onDismissSearch: onDismissSearch,
             onSelectAssetAction: onSelectAssetAction,
             onAddToken: onAddToken,

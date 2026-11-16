@@ -117,13 +117,7 @@ private struct GetAssetNavigationStack: View {
                         .toolbarDismissItem(type: .close, placement: .topBarLeading)
                         .navigationBarTitleDisplayMode(.inline)
                         .navigationDestination(keyedBy: ConfirmTransferInput.self) { input in
-                            ConfirmTransferNavigationView(
-                                model: viewModelFactory.confirmTransferScene(
-                                    wallet: model.assetAcquisitionWallet,
-                                    data: input.data,
-                                    onComplete: { model.isPresentingSheet = nil },
-                                ),
-                            )
+                            ConfirmTransferDestination(wallet: model.assetAcquisitionWallet, data: input.data, onComplete: { model.isPresentingSheet = nil })
                         }
                 }
                 .sheetPresentation([.large])

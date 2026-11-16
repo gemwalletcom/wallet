@@ -48,8 +48,8 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.space2
 import com.wallet.core.primitives.AssetId
 import uniffi.gemstone.GemAssetSectionKind
-import uniffi.gemstone.GemBannerDestination
 import uniffi.gemstone.GemNftEntry
+import uniffi.gemstone.GemWalletBannerDestination
 import uniffi.gemstone.GemWalletHomeViewState
 
 private const val WalletHeaderItemKey = "assets_head"
@@ -124,15 +124,11 @@ internal fun WalletScene(
                 homeState?.banner?.let { banner ->
                     item(key = BannersItemKey) {
                         Banner(
-                            banner = banner,
+                            banner = banner.row,
+                            destination = banner.destination,
                             onSelect = { destination ->
                                 when (destination) {
-                                    is GemBannerDestination.Url -> uriHandler.open(context, destination.url)
-
-                                    GemBannerDestination.Stake,
-                                    GemBannerDestination.Perpetuals,
-                                    is GemBannerDestination.ActivateAsset,
-                                    -> Unit
+                                    is GemWalletBannerDestination.Url -> uriHandler.open(context, destination.url)
                                 }
                             },
                             onClose = { onAction(WalletAction.CloseBanner(it)) },

@@ -1,5 +1,6 @@
 package com.gemwallet.android.ui.components.screen
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -38,7 +39,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.unit.dp
 import com.gemwallet.android.ui.components.dialog.DialogBar
-import com.gemwallet.android.ui.components.dialog.DialogBarDismissType
 import com.gemwallet.android.ui.theme.SheetSizing
 import com.gemwallet.android.ui.theme.alpha20
 import com.gemwallet.android.ui.theme.alpha40
@@ -73,7 +73,7 @@ fun <T : Any> ModalBottomSheet(
     containerColor: Color = MaterialTheme.colorScheme.surface,
     shape: Shape = RoundedCornerShape(topStart = SheetSizing.cornerSize, topEnd = SheetSizing.cornerSize),
     title: (@Composable (T) -> String)? = null,
-    dismissType: DialogBarDismissType = DialogBarDismissType.Close,
+    onBack: (() -> Unit)? = null,
     dragHandle: (@Composable () -> Unit)? = { SheetDragHandle() },
     content: @Composable ColumnScope.(T) -> Unit,
 ) {
@@ -89,7 +89,7 @@ fun <T : Any> ModalBottomSheet(
         containerColor = containerColor,
         shape = shape,
         title = title?.invoke(presentedItem),
-        dismissType = dismissType,
+        onBack = onBack,
         dragHandle = dragHandle,
     ) {
         content(presentedItem)
@@ -106,7 +106,9 @@ fun ModalBottomSheet(
     containerColor: Color = MaterialTheme.colorScheme.surface,
     shape: Shape = RoundedCornerShape(topStart = SheetSizing.cornerSize, topEnd = SheetSizing.cornerSize),
     title: String? = null,
-    dismissType: DialogBarDismissType = DialogBarDismissType.Close,
+    onBack: (() -> Unit)? = null,
+    onConfirm: (() -> Unit)? = null,
+    isConfirmEnabled: Boolean = true,
     actions: @Composable RowScope.() -> Unit = {},
     dragHandle: (@Composable () -> Unit)? = { SheetDragHandle() },
     content: @Composable ColumnScope.() -> Unit,
@@ -154,7 +156,7 @@ fun ModalBottomSheet(
                 else -> sheetWindowInsets(WindowInsets())
             }
         },
-        content = { SheetContent(sheetState, onDismissRequest, title, dismissType, actions, content) },
+        content = { SheetContent(sheetState, onDismissRequest, title, onBack, onConfirm, isConfirmEnabled, actions, content) },
     )
 }
 
@@ -166,7 +168,16 @@ private fun sheetWindowInsets(keyboard: WindowInsets): WindowInsets = WindowInse
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ColumnScope.SheetContent(sheetState: SheetState, onDismissRequest: () -> Unit, title: String?, dismissType: DialogBarDismissType, actions: @Composable RowScope.() -> Unit, content: @Composable ColumnScope.() -> Unit) {
+private fun ColumnScope.SheetContent(
+    sheetState: SheetState,
+    onDismissRequest: () -> Unit,
+    title: String?,
+    onBack: (() -> Unit)?,
+    onConfirm: (() -> Unit)?,
+    isConfirmEnabled: Boolean,
+    actions: @Composable RowScope.() -> Unit,
+    content: @Composable ColumnScope.() -> Unit,
+) {
     val keyboard = LocalSoftwareKeyboardController.current
     val isLeaving = sheetState.currentValue != SheetValue.Hidden && sheetState.targetValue == SheetValue.Hidden
     LaunchedEffect(isLeaving) {
@@ -174,8 +185,9 @@ private fun ColumnScope.SheetContent(sheetState: SheetState, onDismissRequest: (
             keyboard?.hide()
         }
     }
+    BackHandler(enabled = onBack != null) { onBack?.invoke() }
     if (title != null) {
-        DialogBar(onDismissRequest = onDismissRequest, title = title, dismissType = dismissType, actions = actions)
+        DialogBar(onDismissRequest = onDismissRequest, title = title, onBack = onBack, onConfirm = onConfirm, isConfirmEnabled = isConfirmEnabled, actions = actions)
     }
     content()
 }

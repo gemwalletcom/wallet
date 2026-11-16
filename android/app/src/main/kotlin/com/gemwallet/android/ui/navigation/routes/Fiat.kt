@@ -2,7 +2,7 @@ package com.gemwallet.android.ui.navigation.routes
 
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import com.gemwallet.android.features.assets.presents.select.SelectBuyScreen
+import com.gemwallet.android.features.assets.presents.select.SelectAssetScreen
 import com.gemwallet.android.features.fiat_connect.presents.FiatScreen
 import com.gemwallet.android.features.fiat_connect.presents.FiatTransactionsScreen
 import com.gemwallet.android.ui.models.actions.CancelAction
@@ -13,6 +13,7 @@ import com.gemwallet.android.ui.navigation.routeArguments
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.FiatQuoteType
 import kotlinx.serialization.Serializable
+import uniffi.gemstone.GemSelectAssetType
 
 @Serializable
 data class FiatRoute(val assetId: AssetId, val amount: Int? = null, val type: FiatQuoteType = FiatQuoteType.Buy) : NavKey
@@ -40,8 +41,9 @@ fun EntryProviderScope<NavKey>.fiatScreen(cancelAction: CancelAction, onBuy: (As
     }
 
     entry<FiatSelectRoute> {
-        SelectBuyScreen(
-            cancelAction = cancelAction,
+        SelectAssetScreen(
+            selectType = GemSelectAssetType.Buy,
+            onCancel = cancelAction::invoke,
             onSelect = onBuy,
         )
     }

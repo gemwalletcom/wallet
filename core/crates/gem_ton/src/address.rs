@@ -2,7 +2,7 @@ use primitives::hex;
 use std::fmt;
 use std::str::FromStr;
 
-use gem_encoding::{decode_base64_no_pad, decode_base64_url, encode_base64_url};
+use gem_encoding::{crc16_xmodem, decode_base64_no_pad, decode_base64_url, encode_base64_url};
 use primitives::{Address as AddressTrait, AddressError, OptionStringExt, SignerError};
 use serde::{Deserialize, Deserializer, de::Error as _};
 
@@ -46,14 +46,6 @@ impl UserFriendlyAddressType {
     }
 }
 
-const CRC16_XMODEM_POLYNOMIAL: u16 = 0x1021;
-
-fn crc16(slice: &[u8]) -> u16 {
-    slice.iter().fold(0, |crc, &byte| {
-        (0..8).fold(crc ^ (u16::from(byte) << 8), |crc, _| if crc & 0x8000 == 0 { crc << 1 } else { (crc << 1) ^ CRC16_XMODEM_POLYNOMIAL })
-    })
-}
-
 #[derive(Clone, Copy, Eq, PartialEq, Hash)]
 pub struct Address {
     bytes: RawBytes,
@@ -85,7 +77,7 @@ impl Address {
             return None;
         }
         let expected_crc = u16::from_be_bytes(bytes[34..36].try_into().ok()?);
-        if expected_crc != crc16(&bytes[..34]) {
+        if expected_crc != crc16_xmodem(&bytes[..34]) {
             return None;
         }
         let address_type = UserFriendlyAddressType::from_tag(bytes[0])?;
@@ -159,7 +151,7 @@ impl Address {
         buffer[0] = address_type.tag();
         buffer[1..RAW_ADDRESS_LEN + 1].copy_from_slice(&self.bytes);
 
-        let crc = crc16(&buffer[..RAW_ADDRESS_LEN + 1]);
+        let crc = crc16_xmodem(&buffer[..RAW_ADDRESS_LEN + 1]);
         buffer[34] = ((crc >> 8) & 0xFF) as u8;
         buffer[35] = (crc & 0xFF) as u8;
 
@@ -223,10 +215,6 @@ impl AddressTrait for Address {
     }
 }
 
-pub fn validate_address(address: &str) -> bool {
-    Address::is_valid(address)
-}
-
 pub fn hex_to_base64_address(hex_str: &str) -> Option<String> {
     Address::try_parse_hex(hex_str).map(|address| address.encode())
 }
@@ -240,12 +228,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_crc16() {
-        assert_eq!(crc16(b"123456789"), 0x31c3);
-        assert_eq!(crc16(&[]), 0);
-    }
-
-    #[test]
     fn test_parse_address() {
         let hex = "0:8e874b7ad9bbebbfc48810b8939c98f50580246f19982040dbcb253c4c3daf78";
         let encoded = "EQCOh0t62bvrv8SIELiTnJj1BYAkbxmYIEDbyyU8TD2veND8";
@@ -256,7 +238,6 @@ mod tests {
         assert_eq!(<Address as AddressTrait>::from_str(encoded).unwrap(), address);
         assert_eq!(Address::try_parse(encoded), Some(address));
         assert!(Address::is_valid(encoded));
-        assert!(validate_address(encoded));
         assert_eq!(address.as_bytes().len(), RAW_ADDRESS_LEN);
         assert_eq!(address.workchain(), 0);
         assert_eq!(hex::encode(address.hash_part()), "8e874b7ad9bbebbfc48810b8939c98f50580246f19982040dbcb253c4c3daf78");
@@ -293,7 +274,6 @@ mod tests {
         assert!(Address::try_parse_hex("0:invalid_hex").is_none());
         assert!(Address::try_parse_hex("0:abcd1234").is_none());
         assert!(!Address::is_valid("invalid"));
-        assert!(!validate_address("invalid"));
         assert!(Address::try_parse("invalid").is_none());
     }
 
@@ -307,8 +287,8 @@ mod tests {
         assert_eq!(Address::parse_user_friendly("EgCOh0t62bvrv8SIELiTnJj1BYAkbxmYIEDbyyU8TD2veGSy"), None);
         assert_eq!(Address::parse_user_friendly("EQGOh0t62bvrv8SIELiTnJj1BYAkbxmYIEDbyyU8TD2veF0g"), None);
         assert_eq!(Address::parse_user_friendly("EX-Oh0t62bvrv8SIELiTnJj1BYAkbxmYIEDbyyU8TD2veOm2"), None);
-        assert!(!validate_address("kQCOh0t62bvrv8SIELiTnJj1BYAkbxmYIEDbyyU8TD2veGt2"));
-        assert!(!validate_address("0QCOh0t62bvrv8SIELiTnJj1BYAkbxmYIEDbyyU8TD2veDaz"));
+        assert!(!Address::is_valid("kQCOh0t62bvrv8SIELiTnJj1BYAkbxmYIEDbyyU8TD2veGt2"));
+        assert!(!Address::is_valid("0QCOh0t62bvrv8SIELiTnJj1BYAkbxmYIEDbyyU8TD2veDaz"));
     }
 
     #[test]
@@ -321,7 +301,7 @@ mod tests {
         assert!(Address::try_parse_hex("256:8e874b7ad9bbebbfc48810b8939c98f50580246f19982040dbcb253c4c3daf78").is_none());
         assert!(Address::try_parse_hex("-256:8e874b7ad9bbebbfc48810b8939c98f50580246f19982040dbcb253c4c3daf78").is_none());
         assert!(Address::try_parse_hex("65536:8e874b7ad9bbebbfc48810b8939c98f50580246f19982040dbcb253c4c3daf78").is_none());
-        assert!(!validate_address("256:8e874b7ad9bbebbfc48810b8939c98f50580246f19982040dbcb253c4c3daf78"));
+        assert!(!Address::is_valid("256:8e874b7ad9bbebbfc48810b8939c98f50580246f19982040dbcb253c4c3daf78"));
     }
 
     #[test]

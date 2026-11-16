@@ -778,6 +778,7 @@ fun GemPerpetualButton.stringRes(): Int = when (this) {
     GemPerpetualButton.CLOSE -> R.string.perpetual_close_position
     GemPerpetualButton.INCREASE -> R.string.perpetual_increase_position
     GemPerpetualButton.REDUCE -> R.string.perpetual_reduce_position
+    GemPerpetualButton.LEVERAGE -> R.string.perpetual_leverage
 }
 
 @StringRes
@@ -1020,6 +1021,7 @@ fun GemListRowTitle.text(context: Context): String = when (this) {
     GemListRowTitle.AUTO_CLOSE -> context.getString(R.string.perpetual_auto_close)
     GemListRowTitle.SIZE -> context.getString(R.string.perpetual_size)
     GemListRowTitle.POSITION -> context.getString(R.string.perpetual_position)
+    GemListRowTitle.LEVERAGE -> context.getString(R.string.perpetual_leverage)
     GemListRowTitle.DETAILS -> context.getString(R.string.common_details)
     GemListRowTitle.SLIPPAGE -> context.getString(R.string.swap_slippage)
     GemListRowTitle.UNREALIZED_PNL -> context.getString(R.string.perpetual_unrealized_pnl)

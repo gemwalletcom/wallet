@@ -1,4 +1,4 @@
-use gem_evm::ethereum_address_checksum;
+use gem_evm::ethereum_address_checksum_or_original;
 use serde::{Deserialize, Serialize};
 use serde_serializers::deserialize_f64_from_str;
 
@@ -43,7 +43,7 @@ pub struct DelegationBalance {
 
 impl DelegationBalance {
     pub fn validator_address(&self) -> String {
-        ethereum_address_checksum(&self.validator).unwrap_or_else(|_| self.validator.clone())
+        ethereum_address_checksum_or_original(&self.validator)
     }
 }
 
@@ -60,7 +60,7 @@ pub struct Validator {
 
 impl Validator {
     pub fn validator_address(&self) -> String {
-        ethereum_address_checksum(&self.validator).unwrap_or_else(|_| self.validator.clone())
+        ethereum_address_checksum_or_original(&self.validator)
     }
 }
 

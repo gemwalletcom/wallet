@@ -1,7 +1,6 @@
 use crate::sign_type::SignDigestType;
 pub use gem_evm::transaction::EvmTransactionKind;
 use gem_solana::VersionedTransaction;
-use num_bigint::BigUint;
 use primitives::{Chain, TransferDataOutputType, WCEthereumTransaction};
 
 #[derive(Debug, Clone, PartialEq)]
@@ -54,21 +53,6 @@ pub enum WalletConnectChainOperation {
 }
 
 #[derive(Debug, Clone)]
-pub struct WCEthereumTransactionData {
-    pub chain_id: Option<u64>,
-    pub from: String,
-    pub to: String,
-    pub value: Option<BigUint>,
-    pub gas: Option<String>,
-    pub gas_limit: Option<String>,
-    pub gas_price: Option<String>,
-    pub max_fee_per_gas: Option<String>,
-    pub max_priority_fee_per_gas: Option<String>,
-    pub nonce: Option<String>,
-    pub data: Option<String>,
-}
-
-#[derive(Debug, Clone)]
 pub struct WCSolanaTransactionData {
     pub transaction: String,
     pub decoded: VersionedTransaction,
@@ -83,7 +67,7 @@ pub struct WCSuiTransactionData {
 #[derive(Debug, Clone)]
 #[allow(clippy::large_enum_variant)]
 pub enum WalletConnectTransaction {
-    Ethereum { data: WCEthereumTransactionData, kind: EvmTransactionKind },
+    Ethereum { data: WCEthereumTransaction, kind: EvmTransactionKind },
     Solana { data: WCSolanaTransactionData, output_type: TransferDataOutputType },
     Sui { data: WCSuiTransactionData, output_type: TransferDataOutputType },
     Ton { data: String, output_type: TransferDataOutputType },
@@ -94,22 +78,4 @@ pub enum WalletConnectTransaction {
 pub enum WalletConnectResponseType {
     String { value: String },
     Object { json: String },
-}
-
-impl From<WCEthereumTransaction> for WCEthereumTransactionData {
-    fn from(tx: WCEthereumTransaction) -> Self {
-        Self {
-            chain_id: tx.chain_id,
-            from: tx.from,
-            to: tx.to,
-            value: tx.value,
-            gas: tx.gas,
-            gas_limit: tx.gas_limit,
-            gas_price: tx.gas_price,
-            max_fee_per_gas: tx.max_fee_per_gas,
-            max_priority_fee_per_gas: tx.max_priority_fee_per_gas,
-            nonce: tx.nonce,
-            data: tx.data,
-        }
-    }
 }

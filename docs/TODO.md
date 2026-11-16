@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **App models to Core records:** VM269 to VM287 (second round) area by area as grouped in section 5.
+1. **App models to Core records:** VM286 and VM287 (second round) area by area as grouped in section 5.
 
 Waiting on the owner: VM79, VM296 (review first), VM181, VM183, D175 (on hold), X171, CLN455, and everything under [Needs review](#needs-review). Waiting on a date or a release: X168, X169, X170, X163, X172, X173, X174, X176, X526.
 
@@ -32,7 +32,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | App start, foreground, wallet switch, deep links and pushes | `GemAppStartService`, `GemWalletSessionService`, `GemNavigationService`, `GemAppUpdateService`, native lifecycle hosts | VM79 |
 | Create/import wallet, terms, phrase generation and verification | `GemWalletService`, `GemVerifyPhraseSession`, `phrase_suggestions`, keystore and native auth ports | VM183 |
 | Wallet list/detail, rename, avatar, secret export | Wallet rows/details, existing export flow and NFT avatar selection | — |
-| Wallet home, header, network assets, banners | `GemWalletHomeService`, `GemBalanceService`, `GemBannerService`, shared asset rows and banner context | VM269 |
+| Wallet home, header, network assets, banners | `GemWalletHomeService`, `GemBalanceService`, `GemBannerService`, shared asset rows and banner context | — |
 | Asset search/select, add token, recents | `GemAssetSelectionService`, `GemSelectAssetFlow`, `GemAddAssetService`, recent activity | VM286 |
 | Asset details and asset actions | `GemAssetDetailsService`, shared rows, copy, info and load state | — |
 | Portfolio chart/statistics | `GemPortfolioService`, chart load rules, shared numbers and rows | — |
@@ -113,13 +113,6 @@ The target for every item below: a model that only renames or regroups a Core re
   - **Phase 4, the apps, module by module:** replace generated model imports with the UniFFI types and delete each mapper once its last caller goes. Order: store adapters and `Store`, then shared components, then features. VM286 (`SelectAssetType`) lands inside this phase.
   - **Phase 5, removal:** stop generating the Swift and Kotlin models, delete both `RemoteTypeMappers` and the mapper sections of the generator, and fold the hand-written rest of the iOS `Primitives` package into `GemstonePrimitives`.
 
-### Shared components, second round
-
-- **VM269** **S** **Banner destinations are routed per screen.**
-  - **iOS:** `WalletSceneViewModel` opens only URL banners and ignores stake, activate and perpetual destinations; `AssetSceneViewModel` handles all four; both map banner buttons to header actions.
-  - **Android:** `WalletScene` ignores the same three; `BannerItem` handles all four.
-  - **Expected:** Core emits only destinations the screen can open and each app keeps one banner routing function.
-
 ### Models and adapters
 
 - **VM286** **S** **iOS twins `GemSelectAssetType`.**
@@ -139,7 +132,6 @@ The target for every item below: a model that only renames or regroups a Core re
 
 Core has no runtime, so scheduling, timers and OS callbacks stay in the apps; what moves is the decision — what to do, in what order, under what condition — returned as one call or one record. And [a store returns what Core reads](ARCHITECTURE.md#4-the-store-trait-is-the-apps-only-persistence-obligation), through one trait per responsibility.
 
-- **VM561** **S** **Drop the WalletConnect exports the apps stopped calling.** Once VM559 and VM560 have both landed, `GemWalletConnectService` keeps `application_metadata`, `authentication_accounts`, `authentication_methods`, `config_session_properties`, `delete_session`, `request_outcome`, `session_rejection` and `should_process_proposal` exported, and `GemChainService` keeps `caip2_namespace` and `caip2_references`, only for the client and the old adapters. **Expected:** each loses `#[uniffi::export]` (the client keeps calling the bodies), and the `VM561` allowances in [`check-ffi-surface.py`](../scripts/check-ffi-surface.py) go.
 
 - **VM79** **S** **The root scene stops reading the wallet store.** iOS [`RootSceneViewModel`](../ios/Gem/ViewModels/RootSceneViewModel.swift) reads `stores.walletStore.getWallet` directly; the session service answers the current wallet. Blocked on a synchronous answer: `GemWalletSessionService::get_current_wallet` is async (the wallet store port is async), and the root view needs the wallet on its first render or it flashes onboarding at every launch; either the port gains a synchronous read or the root keeps a stored wallet it can seed before first render.
 
@@ -162,10 +154,6 @@ Differences between the apps, or between an app and the server, each with its de
   - **Expected:** as iOS, see [PRODUCT.md § Haptics](PRODUCT.md#haptics). iOS plays the warning from its one shared alert ([`View+Alert.swift`](../ios/Packages/PrimitivesComponents/Sources/Extensions/View+Alert.swift), `sensoryFeedback`), while Android builds each of these dialogs on its own `AlertDialog`; the haptic goes in one shared place on Android too, not in each screen.
 - **D532** **S** **Confirm plays Success when it sends or signs and Error when it fails**, on both apps ([`ConfirmTransferSceneViewModel.swift`](../ios/Features/Transfer/Sources/ViewModels/ConfirmTransferSceneViewModel.swift) `confirm()`, [`ConfirmTransferViewModel.kt`](../android/features/transfer/viewmodels/src/main/kotlin/com/gemwallet/android/features/transfer/viewmodels/confirm/ConfirmTransferViewModel.kt)). Send, swap, stake and perpetuals all finish there, so one change covers them. See [PRODUCT.md § Haptics](PRODUCT.md#haptics).
 - **D533** **S** **Import plays Error when the Secret Phrase, private key or address is invalid**, with the error it already shows and no shake, on both apps ([`ImportWalletSceneViewModel.swift`](../ios/Features/Onboarding/Sources/ViewModels/ImportWalletSceneViewModel.swift), [`ImportWalletViewModel.kt`](../android/features/onboarding/viewmodels/src/main/kotlin/com/gemwallet/android/features/onboarding/viewmodels/import_wallet/ImportWalletViewModel.kt)).
-- **D534** **S** **Every Paste that finds nothing plays Error.**
-  - **iOS:** only Paste on Import Wallet does ([`ImportWalletSceneViewModel.swift`](../ios/Features/Onboarding/Sources/ViewModels/ImportWalletSceneViewModel.swift)); the recipient address, contact, Add node, Add Token and WalletConnect Paste do nothing.
-  - **Android:** every Paste does nothing ([`ImportInput.kt`](../android/features/onboarding/presents/src/main/kotlin/com/gemwallet/android/features/onboarding/presents/import_wallet/components/ImportInput.kt), [`ClipboardExt.kt`](../android/ui/src/main/kotlin/com/gemwallet/android/ui/components/clipboard/ClipboardExt.kt)).
-  - **Expected:** Error on every Paste, played from one shared paste path per app, not from each screen.
 
 ## 10. Module layout and names
 
@@ -181,15 +169,11 @@ Findings from reviewing commits that nobody has accepted yet, and not all of the
 
 - **AUD497** **S** **A fiat provider's 4xx answers 200.** Since 1a047834de and fcb9b66b1c a provider 4xx becomes `ApiError::ok` ([`error.rs`](../core/apps/api/src/error.rs)), so a Transak webhook whose token refresh gets a 4xx returns 200 and Transak never retries it.
 - **AUD498** **S** **`GET /v1/config` fails when the country is unknown.** Without Cloudflare's country header, a failed IP lookup fails the whole response, not just its features ([`config_client.rs`](../core/crates/services/src/app/config_client.rs), 1c48adc169, 7891a02533), and the required `features` field breaks the cached config older apps decode.
-- **AUD499** **S** **Confirm re-sends a transaction that already went out.** Since e31e2bd7ea a failed send returns to Ready and Confirm runs the same load again ([`screen.rs`](../core/gemstone/src/services/confirm/screen.rs)). After a partial multi-transaction send (approval broadcast, swap rejected) the next tap re-signs and re-broadcasts the approval, which the node rejects, until the 60 s refresh reloads; before, a tap reloaded first. Wallet-critical.
 - **AUD501** **S** **THORChain vault addresses fail on one bad Zcash TEX address.** `get_vault_addresses` ([`swapper.rs`](../core/crates/swapper/src/swapper.rs)) fails as a whole when one TEX address doesn't parse (d1c16e81aa). Wallet-critical.
 - **BD508** **S** **Perpetual chart markers differ in colour** (477993aef7).
   - **iOS:** [`CandlestickCanvas.swift`](../ios/Packages/PrimitivesComponents/Sources/Views/CandlestickCanvas.swift) draws the ring and arrow in `Colors.white`.
   - **Android:** [`GemCandlestickChart.kt`](../android/ui/src/main/kotlin/com/gemwallet/android/ui/components/chart/GemCandlestickChart.kt) draws the ring in `colorScheme.surface`.
   - **Expected:** needs a decision (design).
-- **CLN510** **S** **Orca and Raydium each build their swap instruction.** `whirlpool_instruction` ([`orca/swap.rs`](../core/crates/swapper/src/orca/swap.rs)) and `raydium_instruction` ([`raydium_clmm/swap.rs`](../core/crates/swapper/src/raydium_clmm/swap.rs)) are the same body over a different program id (68d9dfe937, f22d437b75). Wallet-critical.
-- **CLN519** **S** **Dependabot's Swift job fails every day.** [`dependabot.yml`](../.github/dependabot.yml) points `swift` at `/ios`, which has no `Package.swift` or `Package.resolved`, so iOS packages get no update or advisory checks.
-- **CLN530** **S** **Every swap provider carries its name twice.** Since 0d094e9f9a dropped `SwapProvider::protocol_name`, `ProviderType.protocol` is always `id.name()`, the same value as `name` ([`models.rs`](../core/crates/swapper/src/models.rs)), and `SwapProviderData.protocol_name` copies it ([`rules.rs`](../core/gemstone/src/services/swap/rules.rs)); dropping both changes the swap FFI records on both apps.
 
 ## Blocked upstream
 

@@ -8,6 +8,7 @@ use super::{GemPerpetualService, rules};
 use crate::models::list::GemInfoTopic;
 use crate::models::perpetual::GemPerpetualSubscription;
 use crate::models::state::GemLoadState;
+use crate::services::amount::model::GemLeverageSelection;
 use crate::services::assets::GemAssetsService;
 use crate::services::error::GemServiceError;
 use crate::services::failures::record_result;
@@ -52,6 +53,14 @@ impl GemPerpetualDetailsService {
 
     pub fn close_transfer(&self, perpetual: Perpetual, asset: Asset, position: Option<PerpetualPosition>) -> Result<GemTransferData, GemServiceError> {
         rules::close_transfer(&perpetual, &asset, position)
+    }
+
+    pub fn leverage_selection(&self, perpetual: Perpetual, position: Option<PerpetualPosition>) -> Result<GemLeverageSelection, GemServiceError> {
+        rules::leverage_selection(&perpetual, position)
+    }
+
+    pub fn leverage_transfer(&self, perpetual: Perpetual, asset: Asset, position: Option<PerpetualPosition>, leverage: u8) -> Result<Option<GemTransferData>, GemServiceError> {
+        rules::leverage_transfer(&perpetual, &asset, position, leverage)
     }
 
     pub fn chart_period(&self) -> ChartPeriod {

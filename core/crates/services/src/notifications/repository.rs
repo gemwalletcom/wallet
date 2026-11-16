@@ -43,7 +43,7 @@ impl Repository for PostgresRepository {
     async fn get_device_notifications(&self, device_id: String, since: Option<NaiveDateTime>, limit: usize) -> Result<(Device, Vec<NotificationData>), DatabaseError> {
         self.database
             .run(move |client| {
-                let device = client.get_device(&device_id)?;
+                let device = client.get_device_record(&device_id)?.device;
                 let notifications = client.get_notifications_by_device_id(&device_id, since, limit)?;
                 Ok((device, notifications))
             })

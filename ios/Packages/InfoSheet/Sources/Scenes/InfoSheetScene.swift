@@ -67,7 +67,7 @@ public struct InfoSheetScene: View {
                         .font(.body.weight(.semibold))
                         .foregroundStyle(Colors.black)
                         .frame(maxWidth: .infinity)
-                        .frame(height: StateButtonStyle.maxHeight)
+                        .frame(minHeight: StateButtonStyle.minHeight)
                         .contentShape(Capsule())
                         .overlay {
                             Capsule().strokeBorder(Colors.gray, lineWidth: 1)

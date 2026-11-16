@@ -13,7 +13,7 @@ const QUERY_URI: &str = "uri";
 const QUERY_SESSION_TOPIC: &str = "sessionTopic";
 const QUERY_REQUEST_ID: &str = "requestId";
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct WCEthereumTransaction {
     #[serde(default, deserialize_with = "deserialize_option_u64_from_str_or_int")]

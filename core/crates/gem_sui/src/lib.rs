@@ -1,5 +1,4 @@
 pub mod address;
-pub use address::validate_address;
 pub mod coin_type;
 pub use coin_type::{coin_type_matches, full_coin_type, is_sui_coin};
 mod constants;

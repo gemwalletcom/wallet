@@ -42,7 +42,7 @@ impl Repository for PostgresRepository {
     }
 
     async fn get_device(&self, device_id: String) -> Result<Device, DatabaseError> {
-        self.database.run(move |client| client.get_device(&device_id)).await
+        self.database.run(move |client| client.get_device_record(&device_id).map(|record| record.device)).await
     }
 
     async fn update_device(&self, device: Device) -> Result<Device, DatabaseError> {
@@ -50,7 +50,7 @@ impl Repository for PostgresRepository {
     }
 
     async fn get_device_exists(&self, device_id: String) -> Result<bool, DatabaseError> {
-        self.database.run(move |client| client.get_device_exist(&device_id)).await
+        self.database.run(move |client| optional_record(client.get_device_record(&device_id)).map(|record| record.is_some())).await
     }
 
     async fn get_device_record(&self, device_id: String) -> Result<Option<DeviceRecord>, DatabaseError> {
@@ -89,7 +89,7 @@ impl Repository for PostgresRepository {
     async fn get_device_subscriptions(&self, device_id: String) -> Result<Vec<(WalletRecord, ChainAddress)>, DatabaseError> {
         self.database
             .run(move |client| {
-                let device_row_id = client.get_device_row_id(&device_id)?;
+                let device_row_id = client.get_device_record(&device_id)?.id;
                 client.get_subscriptions(device_row_id)
             })
             .await
@@ -102,7 +102,7 @@ impl Repository for PostgresRepository {
     async fn get_device_wallet_subscriptions(&self, device_id: String, wallet_id: String) -> Result<(WalletRecord, Vec<ChainAddress>), DatabaseError> {
         self.database
             .run(move |client| {
-                let device_row_id = client.get_device_row_id(&device_id)?;
+                let device_row_id = client.get_device_record(&device_id)?.id;
                 let wallet = client.get_wallet_by_device_and_identifier(device_row_id, &wallet_id)?;
                 let rows = client.get_subscriptions_by_wallet_id(device_row_id, wallet.id)?;
                 Ok((wallet, rows))

@@ -2,13 +2,12 @@
 
 import Components
 import struct Gemstone.GemAssetBalanceRow
+import enum Gemstone.GemAssetBannerDestination
 import enum Gemstone.GemAssetDetailRow
 import struct Gemstone.GemAssetDetails
 import struct Gemstone.GemAssetDetailsInput
 import protocol Gemstone.GemAssetDetailsServiceProtocol
 import enum Gemstone.GemAssetOption
-import enum Gemstone.GemBannerButton
-import enum Gemstone.GemBannerDestination
 import struct Gemstone.GemBannerKey
 import struct Gemstone.GemEmptyState
 import enum Gemstone.GemHeaderButtonAction
@@ -204,7 +203,7 @@ public extension AssetSceneViewModel {
         isPresentingAssetSheet = .info(GemInfoTopic.watchWallet.infoSheet)
     }
 
-    internal func onSelectBanner(destination: GemBannerDestination) {
+    internal func onSelectBanner(destination: GemAssetBannerDestination) {
         switch destination {
         case .stake:
             onSelectStake()
@@ -215,13 +214,6 @@ public extension AssetSceneViewModel {
             onSelectPerpetuals?()
         case let .url(url):
             onSelect(url: URL(string: url))
-        }
-    }
-
-    internal func onSelectBanner(button: GemBannerButton) {
-        switch button {
-        case .buy: onSelectBuy()
-        case .receive: onSelectReceive()
         }
     }
 

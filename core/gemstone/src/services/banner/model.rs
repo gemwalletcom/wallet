@@ -2,7 +2,7 @@ use crate::formatted_number::GemFormattedNumber;
 use crate::models::custom_types::GemBigUint;
 use crate::services::balance::GemAssetBalance;
 use crate::services::transfer::GemTransferData;
-use primitives::{Asset, AssetId, AssetMetaData, Banner, BannerEvent, BannerState, Chain, Platform, Wallet, WalletId};
+use primitives::{Asset, AssetId, AssetMetaData, Banner, BannerEvent, BannerState, Chain, Wallet, WalletId};
 
 #[derive(Debug, Clone)]
 pub struct GemBannerContext {
@@ -23,18 +23,18 @@ pub struct GemBannerRow {
 }
 
 impl GemBannerRow {
-    pub fn new(banner: Banner, platform: Platform) -> Self {
+    pub fn new(banner: Banner) -> Self {
         Self {
             key: GemBannerKey::from(&banner),
-            content: super::rules::banner_content(banner.event, banner.asset.as_ref(), banner.state, platform),
+            content: super::rules::banner_content(banner.event, banner.asset.as_ref(), banner.state),
             banner,
         }
     }
 }
 
 impl GemBannerContext {
-    pub fn visible_banners(&self, stored: Vec<Banner>, platform: Platform) -> Vec<GemBannerRow> {
-        super::rules::visible_banners(stored, self).into_iter().map(|banner| GemBannerRow::new(banner, platform)).collect()
+    pub fn visible_banners(&self, stored: Vec<Banner>) -> Vec<GemBannerRow> {
+        super::rules::visible_banners(stored, self).into_iter().map(GemBannerRow::new).collect()
     }
 
     pub fn asset(wallet: Option<Wallet>, asset: Asset, metadata: &AssetMetaData, balance: &GemAssetBalance) -> Self {
@@ -172,8 +172,13 @@ pub enum GemBannerDescription {
 }
 
 #[derive(Debug, Clone, uniffi::Enum)]
+pub enum GemWalletBannerDestination {
+    Url { url: String },
+}
+
+#[derive(Debug, Clone, uniffi::Enum)]
 #[allow(clippy::large_enum_variant)]
-pub enum GemBannerDestination {
+pub enum GemAssetBannerDestination {
     Stake,
     ActivateAsset { transfer: GemTransferData },
     Perpetuals,
@@ -181,11 +186,22 @@ pub enum GemBannerDestination {
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
+pub struct GemWalletBanner {
+    pub row: GemBannerRow,
+    pub destination: Option<GemWalletBannerDestination>,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
+pub struct GemAssetBanner {
+    pub row: GemBannerRow,
+    pub destination: Option<GemAssetBannerDestination>,
+}
+
+#[derive(Debug, Clone, uniffi::Record)]
 pub struct GemBannerContent {
     pub icon: Option<GemBannerIcon>,
     pub title: Option<GemBannerTitle>,
     pub description: Option<GemBannerDescription>,
-    pub destination: Option<GemBannerDestination>,
     pub style: GemBannerStyle,
     pub buttons: Vec<GemBannerButton>,
     pub can_close: bool,
@@ -242,7 +258,7 @@ mod tests {
             state: BannerState::Active,
         };
 
-        let row = GemBannerRow::new(banner, Platform::IOS);
+        let row = GemBannerRow::new(banner);
 
         assert_eq!(
             row.key,

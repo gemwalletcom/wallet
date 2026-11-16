@@ -1,4 +1,4 @@
-use gem_evm::address::ethereum_address_checksum;
+use gem_evm::address::ethereum_address_checksum_or_original;
 use primitives::{Asset, Chain, known_assets::*};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -61,7 +61,7 @@ impl ChainName {
     pub fn checksum_address(&self, address: &str) -> String {
         if self.is_evm_chain() {
             let address = address.trim_prefix("0X");
-            ethereum_address_checksum(address).unwrap_or_else(|_| address.to_string())
+            ethereum_address_checksum_or_original(address)
         } else {
             address.to_string()
         }

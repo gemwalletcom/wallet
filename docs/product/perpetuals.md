@@ -5,7 +5,7 @@ Go long or short on Hyperliquid markets with leverage, from a USDC balance the u
 ```mermaid
 flowchart LR
     A[Perpetuals] --> B[Market] --> C[Long or Short] --> D[Margin, leverage, auto close] --> E[Confirm] --> F[Position]
-    F --> G[Increase, reduce, close or auto close] --> E
+    F --> G[Increase, reduce, leverage, close or auto close] --> E
 ```
 
 1. The user switches Perpetuals on in Settings or from the "Trade Perpetuals on Hyperliquid" banner; the wallet screen gains a Perpetuals section and the Portfolio a Perpetuals view.
@@ -14,7 +14,7 @@ flowchart LR
 4. Long or Short takes the USDC margin, a leverage from `1x` to the market's cap, and an Auto Close prefilled from the default take profit and stop loss.
 5. Confirm shows the position ("Long 5x"), the size, the price with `2%` slippage, and the take profit and stop loss prices.
 6. After a position is opened, closed, increased, reduced or modified, a message confirms what was done ("Open Long", "Close position").
-7. A position shows its PnL with percent, Auto Close, Size, Entry Price, Liquidation price, Margin and Funding Payments; Modify increases or reduces it.
+7. A position shows its PnL with percent, Auto Close, Size, Entry Price, Liquidation price, Margin and Funding Payments; Modify increases or reduces it, or changes its leverage.
 8. Deposit moves USDC from the wallet's Arbitrum account, at least `5 USDC`, or, on a standard Hyperliquid account, from its HyperCore spot USDC; Withdraw moves the withdrawable balance back, at least `2 USDC`, plus Hyperliquid's `1 USDC` network fee.
 
 ```mermaid
@@ -57,8 +57,9 @@ Markets come from two sets on Hyperliquid:
 | The chart covers the user's trades in that market | a dot over the candle for every trade it holds, green with ▲ for a buy (Open Long, Close Short) and red with ▼ for a sell (Open Short, Close Long), stacked oldest lowest, at most the latest four per candle, and only on candles whose middle is on the plot | the user sees where and how often they traded against the price; the trades come from the wallet's own activity, so the chart, Activity and both apps agree |
 | The market has a position | the position shows, with Modify and Close in place of Long and Short | |
 | Long or Short opens | the leverage starts at the default from Settings | |
-| A position is opened | it uses the Default Margin from Settings, Isolated unless the user picks Cross; a market Hyperliquid marks isolated only, as most xyz markets are, opens isolated either way; a position that is already open keeps its margin type when it is increased, reduced or closed | isolated loses only the margin the user set, while on a unified account a cross position is backed by all the user's USDC on Hyperliquid |
+| A position is opened | it uses the Default Margin from Settings, Isolated unless the user picks Cross; a market Hyperliquid marks isolated only, as most xyz markets are, opens isolated either way; a position that is already open keeps its margin type when it is increased, reduced, closed or given a new leverage | isolated loses only the margin the user set, while on a unified account a cross position is backed by all the user's USDC on Hyperliquid |
 | The user changes the leverage | an untouched default take profit or stop loss is refreshed; an edited price is kept | |
+| The user picks Leverage under Modify | a list from `1x` to the market's cap with the position's leverage checked, also one set outside the app such as `7x`; another leverage goes to Confirm, which shows it, and the checked one only closes the list | Hyperliquid sets leverage for the whole position, so it changes on its own rather than while increasing |
 | The user reopens Auto Close before confirming | the prices already set, with their expected PnL | |
 | The user edits Auto Close on an open position | Confirm turns on as soon as the take profit or stop loss changes; what is wrong shows after tapping it | |
 | The user sets Auto Close while opening a position | Confirm turns on only when the take profit or stop loss changes and the change can be placed; clearing both, defaults included, opens the position without Auto Close | the defaults are only a suggestion, so the user can always remove them |
@@ -93,7 +94,7 @@ Toasts follow the shared [Toasts](../PRODUCT.md#toasts) section.
 | A position is increased | ✅ Increase Position | where the user lands after Confirm |
 | A position is reduced | ✅ Reduce Position | where the user lands after Confirm |
 | A position is closed | ✅ Close position | where the user lands after Confirm |
-| A position's Auto Close is set or changed | ✅ Modify Position | where the user lands after Confirm |
+| A position's Auto Close or leverage is changed | ✅ Modify Position | where the user lands after Confirm |
 | A market is pinned | 📌 Pinned: BTC | where it was pinned |
 | A market is unpinned | 📌 Unpinned: BTC | where it was unpinned |
 

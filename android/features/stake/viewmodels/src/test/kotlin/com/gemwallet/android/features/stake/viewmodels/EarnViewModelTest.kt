@@ -16,12 +16,14 @@ import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockDelegation
 import com.gemwallet.android.testkit.mockDelegationBase
 import com.gemwallet.android.testkit.mockDelegationValidator
+import com.gemwallet.android.testkit.mockGemDelegationListRow
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.testkit.mockWalletId
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
+import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.StakeProviderType
 import com.wallet.core.primitives.WalletType
 import io.mockk.every
@@ -45,7 +47,6 @@ import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemStakeDelegationItem
 import uniffi.gemstone.assetText
-import uniffi.gemstone.delegationListRows
 import java.math.BigInteger
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -64,6 +65,7 @@ class EarnViewModelTest {
     private val rateRow = GemListRow.Text(GemListRowTitle.STAKE_APR, "4.00%")
     private var destination: GemDelegationDestination = GemDelegationDestination.Details
     private val stakeService = mockk<uniffi.gemstone.GemStakeServiceInterface>(relaxed = true) {
+        every { getCurrency() } returns Currency.USD.toGem()
         every { earnView(any()) } answers {
             val input = firstArg<GemEarnInput>()
             GemEarnView(
@@ -71,8 +73,8 @@ class EarnViewModelTest {
                 rateRow = rateRow,
                 sections = emptyList(),
                 depositRow = GemListRow.Action(GemListRowTitle.DEPOSIT, null, null),
-                depositProvider = input.providers.firstOrNull().takeIf { input.walletType != uniffi.gemstone.WalletType.VIEW },
-                positions = listOf(GemStakeDelegationItem(funded.base.delegationId, funded.toGem(), delegationListRows(listOf(funded.toGem()), input.asset, null, input.currency).first(), destination)),
+                depositProvider = input.providers.firstOrNull(),
+                positions = listOf(GemStakeDelegationItem(funded.base.delegationId, funded.toGem(), mockGemDelegationListRow(), destination)),
                 positionsPhase = GemListPhase.Rows,
             )
         }
@@ -143,7 +145,7 @@ class EarnViewModelTest {
     }
 
     @Test
-    fun `depositing needs a provider and a wallet that can sign`() = runTest(testDispatcher) {
+    fun `depositing needs a provider`() = runTest(testDispatcher) {
         val withProvider = viewModel()
 
         assertEquals(AmountParams.Earn.Deposit(asset.id, provider.id), withProvider.depositParams.first { it != null })
@@ -151,10 +153,5 @@ class EarnViewModelTest {
         val withoutProvider = viewModel(providers = emptyList())
         advanceUntilIdle()
         assertNull("nothing to deposit into", withoutProvider.depositParams.value)
-
-        session.value = mockSession(wallet = mockWallet(type = WalletType.View))
-        val watching = viewModel()
-        advanceUntilIdle()
-        assertNull("a watch-only wallet cannot deposit", watching.depositParams.value)
     }
 }

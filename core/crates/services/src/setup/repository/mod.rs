@@ -142,8 +142,8 @@ impl Repository for PostgresRepository {
                     client.add_device(device)?;
                     info_with_fields!("setup_dev", step = "device added", device_id = device_id);
                 }
-                let ios_device_row_id = client.get_device_row_id(&dev_seed::ios_device_id())?;
-                let android_device_row_id = client.get_device_row_id(&dev_seed::android_device_id())?;
+                let ios_device_row_id = client.get_device_record(&dev_seed::ios_device_id())?.id;
+                let android_device_row_id = client.get_device_record(&dev_seed::android_device_id())?.id;
 
                 info_with_fields!("setup_dev", step = "add wallet");
                 let wallet = client.get_or_create_wallet(dev_seed::wallet())?;

@@ -3,7 +3,7 @@ package com.gemwallet.android.ui.navigation.routes
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import com.gemwallet.android.features.assets.presents.select.SelectSendScreen
+import com.gemwallet.android.features.assets.presents.select.SelectAssetScreen
 import com.gemwallet.android.features.assets.viewmodels.select.SendPaymentViewModel
 import com.gemwallet.android.features.transfer.presents.recipient.RecipientScreen
 import com.gemwallet.android.serializer.packRoutePayload
@@ -20,6 +20,7 @@ import com.wallet.core.primitives.NFTAsset
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import uniffi.gemstone.GemPaymentRecipient
+import uniffi.gemstone.GemSelectAssetType
 
 @Serializable
 data class RecipientRoute(val assetId: AssetId, val nft: NFTAsset? = null, val payment: @Contextual GemPaymentRecipient? = null) : NavKey
@@ -30,7 +31,8 @@ data class SendSelectRoute(val payment: @Contextual GemPaymentRecipient? = null,
 fun EntryProviderScope<NavKey>.recipient(navigator: WalletNavigator, cancelAction: CancelAction, amountAction: AmountTransactionAction, confirmAction: ConfirmTransactionAction) {
     entry<SendSelectRoute> { key ->
         val paymentViewModel: SendPaymentViewModel = hiltViewModel()
-        SelectSendScreen(
+        SelectAssetScreen(
+            selectType = GemSelectAssetType.Send,
             chains = key.chains,
             onCancel = cancelAction::invoke,
             onSelect = { assetId ->

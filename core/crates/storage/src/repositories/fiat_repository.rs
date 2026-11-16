@@ -507,7 +507,7 @@ mod database_integration_tests {
                     id: "fiat-test-device".to_string(),
                     ..Device::mock()
                 })?;
-                let device_id = client.get_device_row_id("fiat-test-device")?;
+                let device_id = client.get_device_record("fiat-test-device")?.id;
                 let wallet = client.get_or_create_wallet(NewWallet::mock("0xfiat"))?;
                 let address_id = client.add_wallet_addresses(vec!["0xfiat".to_string()])?["0xfiat"];
                 let transaction = FiatTransaction {

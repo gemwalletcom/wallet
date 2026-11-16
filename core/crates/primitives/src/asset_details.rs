@@ -81,7 +81,7 @@ pub struct AssetMarketPrice {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Model)]
-#[model(swift = "Sendable")]
+#[model(swift = "Sendable, Equatable")]
 #[serde(rename_all = "camelCase")]
 pub struct AssetProperties {
     pub is_enabled: bool,
@@ -147,7 +147,7 @@ mod tests {
 
     use super::*;
     use crate::{
-        Asset, Chain, PriceProvider,
+        Asset, Chain, ChartValuePercentage, PriceProvider,
         asset_constants::{ARC_EURC_ASSET_ID, ARC_USDC_TOKEN_ID, CELO_WETH_TOKEN_ID, HYPERCORE_SPOT_HYPE_ASSET_ID, TEMPO_PATHUSD_ASSET_ID},
     };
 
@@ -204,12 +204,39 @@ mod tests {
     #[test]
     fn test_asset_full_with_rate() {
         let association = AssetAssociation::mock();
+        let price = Price::new(100.0, 5.0, Utc::now(), PriceProvider::Coingecko);
+        let market = AssetMarket {
+            all_time_high: Some(150.0),
+            all_time_high_change_percentage: Some(-30.0),
+            all_time_low: Some(1.5),
+            all_time_low_change_percentage: Some(6000.0),
+            ..AssetMarket::mock()
+        };
         let result = AssetFull {
             associations: vec![association.clone()],
+            price: Some(price),
+            market: Some(market.clone()),
             ..AssetFull::mock()
         }
         .with_rate(2.0);
 
         assert_eq!(result.associations, vec![association]);
+        assert_eq!(result.price, Some(Price { price: 200.0, ..price }));
+        assert_eq!(
+            result.market,
+            Some(AssetMarket {
+                market_cap: Some(200.0),
+                market_cap_fdv: Some(240.0),
+                total_volume: Some(20.0),
+                all_time_high: Some(300.0),
+                all_time_low: Some(3.0),
+                all_time_high_value: Some(ChartValuePercentage { value: 2.2, ..ChartValuePercentage::mock() }),
+                all_time_low_value: Some(ChartValuePercentage {
+                    value: 1.8,
+                    ..ChartValuePercentage::mock_low()
+                }),
+                ..market
+            })
+        );
     }
 }

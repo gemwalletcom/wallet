@@ -151,10 +151,7 @@ extension ImportWalletSceneViewModel {
     }
 
     func onPaste() {
-        guard let string = UIPasteboard.general.string else {
-            UINotificationFeedbackGenerator().notificationOccurred(.error)
-            return
-        }
+        guard let string = Clipboard.paste() else { return }
         inputModel.update(text: string.trim())
 
         if shouldProtectInput {

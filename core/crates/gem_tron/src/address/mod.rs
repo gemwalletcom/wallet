@@ -110,10 +110,6 @@ impl AddressTrait for TronAddress {
     }
 }
 
-pub fn validate_address(address: &str) -> bool {
-    TronAddress::is_valid(address)
-}
-
 impl From<TronAddress> for alloy_primitives::Address {
     fn from(address: TronAddress) -> Self {
         Self::from_slice(address.account_id())
@@ -196,8 +192,8 @@ mod tests {
         let unprefixed = encode_base58_check(&payload, Base58Alphabet::Bitcoin);
         let expected = hex::decode("41357a7401a0f0c2d4a44a1881a0c622f15d986291").unwrap();
 
-        assert!(validate_address(prefixed));
-        assert!(validate_address(&unprefixed));
+        assert!(TronAddress::is_valid(prefixed));
+        assert!(TronAddress::is_valid(&unprefixed));
         assert_eq!(TronAddress::try_parse(prefixed).unwrap().as_bytes(), expected);
         assert_eq!(TronAddress::try_parse(&unprefixed).unwrap().as_bytes(), expected);
     }
@@ -231,6 +227,6 @@ mod tests {
         let address = encode_base58_check(&decoded, Base58Alphabet::Bitcoin);
 
         assert!(TronAddress::try_parse(&address).is_none());
-        assert!(!validate_address(&address));
+        assert!(!TronAddress::is_valid(&address));
     }
 }

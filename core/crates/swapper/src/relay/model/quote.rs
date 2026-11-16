@@ -82,7 +82,7 @@ impl RelayQuoteResponse {
             .iter()
             .find(|step| step.id == STEP_SWAP || step.id == STEP_DEPOSIT)
             .or_else(|| self.steps.iter().find(|step| step.kind == STEP_TRANSACTION && step.id != STEP_APPROVE))
-            .or_else(|| self.steps.iter().find(|step| step.step_data().is_some()))
+            .or_else(|| self.steps.iter().find(|step| step.id != STEP_APPROVE && step.step_data().is_some()))
             .and_then(Step::step_data)
     }
 
@@ -261,6 +261,9 @@ mod tests {
         assert_eq!(response.steps[0].id, "approve");
         assert_eq!(response.router_address(), response.get_evm_step().map(|evm| evm.to.clone()));
         assert_eq!(response.get_evm_step().unwrap().gas_limit_with_buffer().as_deref(), Some("724402"));
+
+        let approval_only = RelayQuoteResponse::mock_with_steps(vec![Step::mock_transaction("approve", "0xrouter", "0", "0x")]);
+        assert!(approval_only.step_data().is_none());
     }
 
     #[test]

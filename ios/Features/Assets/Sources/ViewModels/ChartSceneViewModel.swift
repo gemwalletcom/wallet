@@ -1,9 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Components
 import Foundation
-import struct Gemstone.GemCandleChart
-import struct Gemstone.GemChartData
 import struct Gemstone.GemChartInput
 import enum Gemstone.GemChartPhase
 import protocol Gemstone.GemChartServiceProtocol
@@ -53,13 +50,8 @@ public final class ChartSceneViewModel: ChartListViewable {
         asset.name
     }
 
-    public var chartState: StateViewType<GemChartData> {
-        view.phase.map()
-    }
-
-    public var candleChart: GemCandleChart? {
-        guard case let .candles(chart) = view.phase else { return nil }
-        return chart
+    public var chartPhase: GemChartPhase {
+        view.phase
     }
 
     public var chartStyle: GemChartStyle {
@@ -110,7 +102,7 @@ public extension ChartSceneViewModel {
     }
 
     func onChangePriceData() {
-        view = service.viewState(session: session, input: priceData.map())
+        session = session.onHasCandlesChanged(hasCandles: priceData.properties.hasCandles)
     }
 
     func onZoom(_ magnification: Double, anchor: Double) {
@@ -167,17 +159,5 @@ private extension PriceData {
             links: links.map { $0.toGem() },
             utcOffsetSeconds: Int32(TimeZone.current.secondsFromGMT()),
         )
-    }
-}
-
-private extension GemChartPhase {
-    func map() -> StateViewType<GemChartData> {
-        switch self {
-        case .loading: .loading
-        case let .data(data): .data(data)
-        case .candles: .loading
-        case .noData: .noData
-        case let .failed(error): .error(error)
-        }
     }
 }

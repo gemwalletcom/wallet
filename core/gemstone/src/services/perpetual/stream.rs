@@ -1,6 +1,5 @@
 use std::sync::Arc;
 
-use async_trait::async_trait;
 use futures::lock::Mutex;
 use gem_hypercore::{
     models::websocket::HyperliquidRequest,
@@ -13,24 +12,19 @@ use super::GemPerpetualService;
 use super::model::GemPerpetualSocketUpdate;
 use crate::models::perpetual::GemPerpetualSubscription;
 use crate::services::error::GemServiceError;
-
-#[uniffi::export(rust, foreign)]
-#[async_trait]
-pub trait GemPerpetualStreamConnection: Send + Sync {
-    async fn send(&self, message: String) -> Result<(), GemServiceError>;
-}
+use crate::services::stream::GemSocketTransport;
 
 #[derive(uniffi::Object)]
 pub struct GemPerpetualStreamService {
     perpetual: Arc<GemPerpetualService>,
-    connection: Arc<dyn GemPerpetualStreamConnection>,
+    connection: Arc<dyn GemSocketTransport>,
     subscriptions: Mutex<WebSocketSubscriptions>,
 }
 
 #[uniffi::export]
 impl GemPerpetualStreamService {
     #[uniffi::constructor]
-    pub fn new(perpetual: Arc<GemPerpetualService>, connection: Arc<dyn GemPerpetualStreamConnection>) -> Self {
+    pub fn new(perpetual: Arc<GemPerpetualService>, connection: Arc<dyn GemSocketTransport>) -> Self {
         Self {
             perpetual,
             connection,

@@ -6,18 +6,22 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.domains.swap.SwapItemType
 import com.gemwallet.android.features.swap.presents.dialogs.PriceImpactWarningDialog
-import com.gemwallet.android.features.swap.presents.dialogs.SwapQuoteDataErrorDialog
 import com.gemwallet.android.features.swap.viewmodels.SwapViewModel
 import com.gemwallet.android.ui.ObserveStartedState
+import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.InfoBottomSheet
+import com.gemwallet.android.ui.components.dialog.ErrorDialog
 import com.gemwallet.android.ui.components.infoSheet
 import com.gemwallet.android.ui.components.swap.SwapDetailsBottomSheet
 import com.gemwallet.android.ui.components.swap.SwapSlippageBottomSheet
+import com.gemwallet.android.ui.localization.text
 import com.wallet.core.primitives.AssetId
 
 @Composable
@@ -92,9 +96,10 @@ fun SwapScreen(
         onContinue = { priceImpactConfirmation?.let { confirmation -> viewModel.swap(confirmation.quote) } },
     )
 
-    SwapQuoteDataErrorDialog(
-        error = quoteDataError,
+    ErrorDialog(
+        message = quoteDataError?.text(LocalContext.current),
         onDismiss = viewModel::dismissQuoteError,
+        title = stringResource(R.string.errors_error_occurred),
     )
 
     SwapDetailsBottomSheet(

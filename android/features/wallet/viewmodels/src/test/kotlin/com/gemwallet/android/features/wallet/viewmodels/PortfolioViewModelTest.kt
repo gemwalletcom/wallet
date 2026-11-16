@@ -9,8 +9,6 @@ import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.testkit.mockPortfolioChartData
 import com.gemwallet.android.testkit.mockPortfolioData
 import com.gemwallet.android.testkit.mockSession
-import com.gemwallet.android.ui.models.StateViewType
-import com.gemwallet.android.ui.models.dataOrNull
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.ChartValuePercentage
 import com.wallet.core.primitives.PortfolioType
@@ -32,6 +30,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.ChartDateValue
+import uniffi.gemstone.GemChartPhase
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemLoadState
@@ -113,9 +112,9 @@ class PortfolioViewModelTest {
         )
 
         val viewModel = createViewModel()
-        val state = viewModel.chartUIState.first { it.chart.dataOrNull?.values?.size == 3 }
+        val state = viewModel.chartUIState.first { (it.phase as? GemChartPhase.Data)?.data?.values?.size == 3 }
 
-        assertEquals(3, state.chart.dataOrNull?.values?.size)
+        assertEquals(3, (state.phase as? GemChartPhase.Data)?.data?.values?.size)
     }
 
     @Test
@@ -144,9 +143,9 @@ class PortfolioViewModelTest {
         )
 
         val viewModel = createViewModel()
-        viewModel.chartUIState.first { it.chart.dataOrNull?.values?.size == 2 }
+        viewModel.chartUIState.first { (it.phase as? GemChartPhase.Data)?.data?.values?.size == 2 }
 
-        assertEquals(ChartPeriod.All, viewModel.chartUIState.first { it.chart != StateViewType.Loading }.period)
+        assertEquals(ChartPeriod.All, viewModel.chartUIState.first { it.phase != GemChartPhase.Loading }.period)
         coVerify(exactly = 1) {
             service.refresh(session.wallet.toGem(), match { it.portfolioType == PortfolioType.Wallet.toGem() && it.period == ChartPeriod.All.toGem() })
         }
@@ -192,7 +191,7 @@ class PortfolioViewModelTest {
         backgroundScope.launch { viewModel.chartUIState.collect {} }
 
         viewModel.setPeriod(ChartPeriod.Month)
-        val state = viewModel.chartUIState.first { it.chart.dataOrNull?.values?.size == 3 }
+        val state = viewModel.chartUIState.first { (it.phase as? GemChartPhase.Data)?.data?.values?.size == 3 }
 
         assertEquals(ChartPeriod.Month, state.period)
         coVerify { service.refresh(any(), match { it.portfolioType == PortfolioType.Wallet.toGem() && it.period == ChartPeriod.Month.toGem() }) }
@@ -248,7 +247,7 @@ class PortfolioViewModelTest {
         val viewModel = createViewModel()
         backgroundScope.launch { viewModel.chartUIState.collect {} }
 
-        val state = viewModel.chartUIState.first { it.chart.dataOrNull?.values?.size == 3 }
+        val state = viewModel.chartUIState.first { (it.phase as? GemChartPhase.Data)?.data?.values?.size == 3 }
 
         assertEquals(ChartPeriod.Day, state.period)
         coVerify { service.refresh(any(), match { it.portfolioType == PortfolioType.Wallet.toGem() && it.period == ChartPeriod.Day.toGem() }) }
@@ -281,7 +280,7 @@ class PortfolioViewModelTest {
         val viewModel = createViewModel(initialType = PortfolioType.Perpetuals)
         backgroundScope.launch { viewModel.chartUIState.collect {} }
 
-        viewModel.chartUIState.first { it.chart.dataOrNull?.values?.size == 2 }
+        viewModel.chartUIState.first { (it.phase as? GemChartPhase.Data)?.data?.values?.size == 2 }
 
         assertEquals(PortfolioType.Perpetuals, viewModel.selectedType.value)
         coVerify(exactly = 0) { service.refresh(any(), match { it.portfolioType == PortfolioType.Wallet.toGem() }) }
@@ -295,7 +294,7 @@ class PortfolioViewModelTest {
         val failed = createViewModel()
         backgroundScope.launch { failed.chartUIState.collect {} }
 
-        assertEquals(StateViewType.NoData, failed.chartUIState.first { it.chart != StateViewType.Loading }.chart)
+        assertEquals(GemChartPhase.NoData, failed.chartUIState.first { it.phase != GemChartPhase.Loading }.phase)
 
         coEvery { service.refresh(any(), any()) } answers {
             GemPortfolioResult(request = secondArg(), state = GemLoadState.Error(GemServiceException.Offline()), data = null)
@@ -303,7 +302,7 @@ class PortfolioViewModelTest {
         val offline = createViewModel()
         backgroundScope.launch { offline.chartUIState.collect {} }
 
-        assertTrue(offline.chartUIState.first { it.chart != StateViewType.Loading }.chart is StateViewType.Error)
+        assertTrue(offline.chartUIState.first { it.phase != GemChartPhase.Loading }.phase is GemChartPhase.Failed)
     }
 
     @Test
@@ -333,9 +332,9 @@ class PortfolioViewModelTest {
         val viewModel = createViewModel()
         backgroundScope.launch { viewModel.chartUIState.collect {} }
 
-        val state = viewModel.chartUIState.first { it.chart != StateViewType.Loading }
+        val state = viewModel.chartUIState.first { it.phase != GemChartPhase.Loading }
 
-        assertEquals(StateViewType.NoData, state.chart)
+        assertEquals(GemChartPhase.NoData, state.phase)
     }
 
     @Test
@@ -380,6 +379,5 @@ class PortfolioViewModelTest {
         initialType = initialType,
         observeRefreshInterval = mockk(relaxed = true),
         ioDispatcher = testDispatcher,
-        context = mockk(relaxed = true),
     ).also(viewModels::add)
 }

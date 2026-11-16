@@ -9,7 +9,7 @@ extension GemConfirmDetails {
         switch self {
         case let .swap(details): .swapDetails(details)
         case let .perpetual(details): .perpetualDetails(PerpetualDetailsViewModel(details: details))
-        case let .perpetualAutoclose(row): .perpetualModifyPosition(row)
+        case let .perpetualModify(row): .perpetualModifyPosition(row)
         }
     }
 }

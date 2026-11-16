@@ -107,6 +107,13 @@ impl PerpetualModifyPositionType {
             orders: order_ids.into_iter().map(|order_id| CancelOrderData { asset_index: 0, order_id }).collect(),
         }
     }
+
+    pub fn mock_leverage(leverage: u8) -> Self {
+        Self::Leverage {
+            leverage,
+            margin_type: PerpetualMarginType::Isolated,
+        }
+    }
 }
 
 impl PerpetualModifyConfirmData {

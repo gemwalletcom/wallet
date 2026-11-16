@@ -7,8 +7,6 @@ import Primitives
 import SwiftUI
 
 struct AutocloseNavigationStack: View {
-    @Environment(\.viewModelFactory) private var viewModelFactory
-
     @State private var navigationPath = NavigationPath()
 
     let position: PerpetualPositionData
@@ -23,13 +21,7 @@ struct AutocloseNavigationStack: View {
                 ),
             )
             .navigationDestination(keyedBy: ConfirmTransferInput.self) {
-                ConfirmTransferNavigationView(
-                    model: viewModelFactory.confirmTransferScene(
-                        wallet: wallet,
-                        data: $0.data,
-                        onComplete: onComplete,
-                    ),
-                )
+                ConfirmTransferDestination(wallet: wallet, data: $0.data, onComplete: onComplete)
             }
         }
     }

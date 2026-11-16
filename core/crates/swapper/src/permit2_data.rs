@@ -4,11 +4,9 @@ use alloy_primitives::{
     Bytes, U256,
     aliases::{U48, U160},
 };
-use serde::{Deserialize, Serialize, Serializer};
-use std::{
-    fmt::{Debug, Display},
-    str::FromStr,
-};
+use serde::{Deserialize, Serialize};
+use serde_serializers::serialize_display;
+use std::{fmt::Debug, str::FromStr};
 
 use gem_evm::{
     eip712::EIP712Domain,
@@ -21,9 +19,9 @@ use primitives::Chain;
 pub struct Permit2Detail {
     pub token: String,
     pub amount: String,
-    #[serde(serialize_with = "serialize_as_string")]
+    #[serde(serialize_with = "serialize_display")]
     pub expiration: u64,
-    #[serde(serialize_with = "serialize_as_string")]
+    #[serde(serialize_with = "serialize_display")]
     pub nonce: u64,
 }
 
@@ -31,7 +29,7 @@ pub struct Permit2Detail {
 pub struct PermitSingle {
     pub details: Permit2Detail,
     pub spender: String,
-    #[serde(rename = "sigDeadline", serialize_with = "serialize_as_string")]
+    #[serde(rename = "sigDeadline", serialize_with = "serialize_display")]
     pub sig_deadline: u64,
 }
 
@@ -76,14 +74,6 @@ pub struct Permit2Message {
     #[serde(rename = "primaryType")]
     primary_type: String,
     message: PermitSingle,
-}
-
-fn serialize_as_string<T, S>(value: &T, serializer: S) -> Result<S::Ok, S::Error>
-where
-    T: Display,
-    S: Serializer,
-{
-    serializer.serialize_str(&value.to_string())
 }
 
 pub fn permit2_data_to_eip712_json(chain: Chain, data: PermitSingle, contract: &str) -> Result<String, SwapperError> {

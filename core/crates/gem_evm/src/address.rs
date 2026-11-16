@@ -6,6 +6,10 @@ pub fn ethereum_address_checksum(address: &str) -> Result<String, AddressError> 
     Ok(EthereumAddress::parse(address)?.0.to_checksum(None))
 }
 
+pub fn ethereum_address_checksum_or_original(address: &str) -> String {
+    ethereum_address_checksum(address).unwrap_or_else(|_| address.to_string())
+}
+
 pub fn ethereum_address_from_topic(topic: &str) -> Option<String> {
     ethereum_address_checksum(topic.trim_start_matches("0x000000000000000000000000")).ok()
 }

@@ -11,14 +11,13 @@ public struct ToolbarDismissItem: ToolbarContent {
         case cancel
         case done
         case close
-        case confirm
         case custom(String)
 
         var localized: String {
             switch self {
             case .cancel: Localized.Common.cancel
             case .done: Localized.Common.done
-            case .close, .confirm: ""
+            case .close: ""
             case let .custom(title): title
             }
         }
@@ -40,8 +39,6 @@ public struct ToolbarDismissItem: ToolbarContent {
             switch type {
             case .close:
                 Button("", systemImage: SystemImage.xmark, action: { dismiss() })
-            case .confirm:
-                Button("", systemImage: SystemImage.checkmark, action: { dismiss() })
             case .cancel, .done, .custom:
                 Button(type.localized, action: { dismiss() })
                     .bold()

@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::{collections::BTreeSet, ops::Deref, str::FromStr};
 
-use gem_evm::ethereum_address_checksum;
+use gem_evm::ethereum_address_checksum_or_original;
 pub use gem_sui::tx_builder::transaction_json::TransactionArgument as SuiTransactionArgument;
 use primitives::contract_constants::EVM_ZERO_ADDRESS;
 use primitives::swap::{SlippageMode, SwapStatus};
@@ -500,17 +500,13 @@ pub struct MayanChain {
     pub mayan_contract_address: Option<String>,
 }
 
-fn checksum_address(address: &str) -> String {
-    ethereum_address_checksum(address).unwrap_or_else(|_| address.to_string())
-}
-
 impl MayanChain {
     pub fn unique_addresses(chains: Vec<MayanChain>) -> Vec<String> {
         chains
             .into_iter()
             .filter_map(|chain| chain.mayan_contract_address)
             .filter(|address| !address.is_empty() && !address.eq_ignore_ascii_case(EVM_ZERO_ADDRESS))
-            .map(|address| checksum_address(&address))
+            .map(|address| ethereum_address_checksum_or_original(&address))
             .collect::<BTreeSet<_>>()
             .into_iter()
             .collect()

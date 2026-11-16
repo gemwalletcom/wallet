@@ -1,7 +1,7 @@
 use borsh::{BorshDeserialize, BorshSerialize};
 use sha2::{Digest, Sha256};
 
-use crate::{Result, SolanaError};
+use crate::{AccountMeta, Instruction, Pubkey, Result, SolanaError};
 
 const DISCRIMINATOR_LEN: usize = 8;
 
@@ -22,6 +22,14 @@ pub fn global_discriminator(name: &str) -> [u8; 8] {
 
 pub fn instruction_data(name: &str, args: &impl BorshSerialize) -> Vec<u8> {
     [global_discriminator(name).to_vec(), borsh::to_vec(args).unwrap_or_default()].concat()
+}
+
+pub fn instruction(program_id: Pubkey, name: &str, args: &impl BorshSerialize, accounts: Vec<AccountMeta>) -> Instruction {
+    Instruction {
+        program_id,
+        accounts,
+        data: instruction_data(name, args),
+    }
 }
 
 pub trait AnchorAccount: BorshDeserialize {

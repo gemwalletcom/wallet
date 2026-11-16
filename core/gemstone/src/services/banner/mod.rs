@@ -10,7 +10,10 @@ use std::sync::Arc;
 
 use primitives::{Banner, BannerState, Platform, Wallet};
 
-pub use model::{GemBannerButton, GemBannerContent, GemBannerContext, GemBannerDescription, GemBannerDestination, GemBannerIcon, GemBannerItem, GemBannerKey, GemBannerRow, GemBannerStyle, GemBannerTitle};
+pub use model::{
+    GemAssetBanner, GemAssetBannerDestination, GemBannerButton, GemBannerContent, GemBannerContext, GemBannerDescription, GemBannerIcon, GemBannerItem, GemBannerKey, GemBannerRow, GemBannerStyle, GemBannerTitle, GemWalletBanner,
+    GemWalletBannerDestination,
+};
 pub use permissions::GemNotificationPermissions;
 pub use store::GemBannerStore;
 
@@ -45,7 +48,21 @@ impl GemBannerService {
     }
 
     pub fn visible_banners(&self, context: &GemBannerContext, stored: Vec<Banner>) -> Vec<GemBannerRow> {
-        context.visible_banners(stored, self.platform)
+        context.visible_banners(stored)
+    }
+
+    pub fn wallet_banner(&self, row: GemBannerRow) -> GemWalletBanner {
+        GemWalletBanner {
+            destination: rules::wallet_destination(row.banner.event, row.banner.asset.as_ref(), self.platform),
+            row,
+        }
+    }
+
+    pub fn asset_banner(&self, row: GemBannerRow) -> GemAssetBanner {
+        GemAssetBanner {
+            destination: rules::asset_destination(row.banner.event, row.banner.asset.as_ref(), self.platform),
+            row,
+        }
     }
 
     pub async fn setup(&self) -> Result<(), GemServiceError> {

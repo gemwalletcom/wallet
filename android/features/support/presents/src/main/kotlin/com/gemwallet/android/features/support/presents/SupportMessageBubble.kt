@@ -32,7 +32,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.buildAnnotatedString
@@ -43,8 +42,7 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.SubcomposeAsyncImage
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.clipboard.clipboardManager
-import com.gemwallet.android.ui.components.clipboard.setPlainText
+import com.gemwallet.android.ui.components.clipboard.rememberClipboard
 import com.gemwallet.android.ui.components.list_item.ChevronIcon
 import com.gemwallet.android.ui.components.list_item.DropDownContextItem
 import com.gemwallet.android.ui.components.parseMarkdownToAnnotatedString
@@ -102,8 +100,7 @@ internal fun SupportMessageBubble(row: GemSupportMessageRow, onImageClick: (Stri
             )
         }
         if (message.content.isNotBlank()) {
-            val context = LocalContext.current
-            val clipboard = LocalContext.current.clipboardManager()
+            val clipboard = rememberClipboard()
             val uriHandler = LocalUriHandler.current
             var menuExpanded by remember { mutableStateOf(false) }
             val hasText = row.content.text.isNotBlank()
@@ -118,7 +115,7 @@ internal fun SupportMessageBubble(row: GemSupportMessageRow, onImageClick: (Stri
                         text = { Text(stringResource(R.string.common_copy)) },
                         leadingIcon = { Icon(AppIcons.ContentCopy, contentDescription = null) },
                         onClick = {
-                            clipboard.setPlainText(context, message.content)
+                            clipboard.copy(message.content)
                             menuExpanded = false
                         },
                     )

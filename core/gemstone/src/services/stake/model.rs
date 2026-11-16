@@ -1,6 +1,6 @@
 use super::rules;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
-use crate::models::list::{GemInfoTopic, GemListRow};
+use crate::models::list::{GemInfoTopic, GemListRow, GemRowMenuItem};
 use crate::models::state::{GemListPhase, GemLoadState};
 use crate::services::amount::model::GemAmountType;
 use crate::services::amount::rules as amount_rules;
@@ -8,7 +8,7 @@ use crate::services::assets::icon::GemAssetIcon;
 use crate::services::assets::model::{GemAssetText, GemValueHeader};
 use crate::services::localization::GemLocalizedText;
 use crate::services::transfer::GemTransferData;
-use primitives::{Asset, AssetData, BlockExplorerLink, Currency, Delegation, DelegationBase, DelegationState, DelegationValidator, EarnType, Resource, StakeType, WalletType, YieldProvider};
+use primitives::{Asset, AssetData, Currency, Delegation, DelegationBase, DelegationState, DelegationValidator, EarnType, Resource, StakeType, WalletType, YieldProvider};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemStakeSection {
@@ -44,16 +44,6 @@ pub struct GemDelegationListRow {
     pub fiat: Option<GemFormattedNumber>,
     pub rewards: Option<GemFormattedNumber>,
     pub rewards_fiat: Option<GemFormattedNumber>,
-}
-
-#[uniffi::export]
-pub fn delegation_details(wallet_type: WalletType, delegation: Delegation, asset: Asset, price: Option<f64>, currency: Currency) -> GemDelegationDetails {
-    rules::delegation_details(wallet_type, &delegation, &asset, price, currency, Vec::new(), &[], None, chrono::Utc::now())
-}
-
-#[uniffi::export]
-pub fn delegation_list_rows(delegations: Vec<Delegation>, asset: Asset, price: Option<f64>, currency: Currency) -> Vec<GemDelegationListRow> {
-    delegations.iter().map(|delegation| rules::delegation_list_row(delegation, &asset, price, currency.clone())).collect()
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
@@ -242,5 +232,5 @@ pub struct GemValidatorRow {
     pub placeholder: String,
     pub provider: Option<YieldProvider>,
     pub apr: GemLocalizedText,
-    pub explorer: Option<BlockExplorerLink>,
+    pub menu: Vec<GemRowMenuItem>,
 }

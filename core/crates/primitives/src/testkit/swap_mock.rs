@@ -180,16 +180,10 @@ impl SwapQuoteData {
 
 impl SwapProviderData {
     pub fn mock() -> Self {
-        SwapProviderData {
-            provider: SwapProvider::UniswapV3,
-            protocol_name: "uniswap_v3".to_string(),
-        }
+        SwapProviderData { provider: SwapProvider::UniswapV3 }
     }
 
     pub fn mock_with_provider(provider: SwapProvider) -> Self {
-        SwapProviderData {
-            provider,
-            protocol_name: provider.name().to_string(),
-        }
+        SwapProviderData { provider }
     }
 }

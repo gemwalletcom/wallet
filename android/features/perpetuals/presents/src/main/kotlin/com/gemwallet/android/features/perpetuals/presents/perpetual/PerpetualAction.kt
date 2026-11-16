@@ -12,6 +12,7 @@ internal sealed interface PerpetualAction {
     data object ModifyPosition : PerpetualAction
     data object IncreasePosition : PerpetualAction
     data object ReducePosition : PerpetualAction
+    data object ChangeLeverage : PerpetualAction
     data object ClosePosition : PerpetualAction
     data object Autoclose : PerpetualAction
     data class OpenPosition(val direction: PerpetualDirection) : PerpetualAction

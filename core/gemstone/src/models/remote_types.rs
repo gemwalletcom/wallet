@@ -445,6 +445,7 @@ pub enum PerpetualMarginType {
 pub enum PerpetualModifyPositionType {
     Tpsl { order: TPSLOrderData },
     Cancel { orders: Vec<CancelOrderData> },
+    Leverage { leverage: u8, margin_type: PerpetualMarginType },
 }
 
 #[uniffi::remote(Enum)]
@@ -1730,7 +1731,6 @@ pub struct SwapPriceImpact {
 #[uniffi::remote(Record)]
 pub struct SwapProviderData {
     pub provider: SwapProvider,
-    pub protocol_name: String,
 }
 
 #[uniffi::remote(Record)]

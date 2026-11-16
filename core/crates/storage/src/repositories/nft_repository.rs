@@ -344,7 +344,7 @@ mod database_integration_tests {
                     id: "nft-test-device".to_string(),
                     ..Device::mock()
                 })?;
-                let device_id = client.get_device_row_id("nft-test-device")?;
+                let device_id = client.get_device_record("nft-test-device")?.id;
                 let wallet = client.get_or_create_wallet(NewWallet::mock(OWNER))?;
                 client.add_subscriptions(device_id, vec![(wallet.id, Chain::Ethereum, OWNER.to_string())])?;
                 client.set_nft_asset_associations(OWNER, vec![Chain::Ethereum], owned)?;

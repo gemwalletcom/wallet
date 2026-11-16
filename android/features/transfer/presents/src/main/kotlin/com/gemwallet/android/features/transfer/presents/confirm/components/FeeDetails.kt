@@ -14,9 +14,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -59,7 +56,6 @@ import com.gemwallet.android.ui.components.list_item.sectionHeaderHorizontalPadd
 import com.gemwallet.android.ui.components.list_item.sectionHeaderItem
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.components.screen.SheetExpansion
-import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.localization.errorText
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.localization.stringRes
@@ -71,7 +67,6 @@ import com.gemwallet.android.ui.theme.listItemIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingHalfSmall
 import com.gemwallet.android.ui.theme.paddingLarge
-import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.FeePriority
 import com.wallet.core.primitives.FeeUnitType
@@ -111,30 +106,28 @@ fun FeeDetails(isVisible: Boolean, screen: GemNetworkFeeScreen?, onSelectPriorit
         -> navigateToDetails
     }
     val onConfirm: (() -> Unit)? = when (page) {
-        FeeDetailsPage.Details -> onCancel
+        FeeDetailsPage.Details,
+        FeeDetailsPage.FeeAssets,
+        -> null
+
         FeeDetailsPage.CustomFee -> confirmCustomFee
-        FeeDetailsPage.FeeAssets -> null
     }
 
     ModalBottomSheet(
         isVisible = isVisible,
         onDismissRequest = onCancel,
         expansion = SheetExpansion.Full,
-        title = null,
-        dragHandle = {},
+        title = stringResource(
+            when (page) {
+                FeeDetailsPage.Details -> R.string.transfer_network_fee
+                FeeDetailsPage.CustomFee -> R.string.fee_rate_custom
+                FeeDetailsPage.FeeAssets -> R.string.assets_select_asset
+            },
+        ),
+        onBack = onBack,
+        onConfirm = onConfirm,
+        isConfirmEnabled = page != FeeDetailsPage.CustomFee || estimate?.selection != null,
     ) {
-        FeeSheetHeader(
-            title = stringResource(
-                when (page) {
-                    FeeDetailsPage.Details -> R.string.transfer_network_fee
-                    FeeDetailsPage.CustomFee -> R.string.fee_rate_custom
-                    FeeDetailsPage.FeeAssets -> R.string.assets_select_asset
-                },
-            ),
-            onBack = onBack,
-            onConfirm = onConfirm,
-            isConfirmEnabled = page != FeeDetailsPage.CustomFee || estimate?.selection != null,
-        )
         when (page) {
             FeeDetailsPage.Details -> FeeRates(
                 feeItems = screen.additionalFees.map { ListItemModel(title = stringResource(it.option.stringRes()), subtitle = it.amount.amount.text(), subtitleExtra = it.amount.fiat?.text()) },
@@ -311,39 +304,6 @@ private fun CustomFeeField(field: GemCustomFeeField, state: GemCustomFeeFieldSta
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.error,
         )
-    }
-}
-
-@Composable
-private fun FeeSheetHeader(title: String, onBack: (() -> Unit)?, onConfirm: (() -> Unit)?, isConfirmEnabled: Boolean) {
-    Box(
-        modifier = Modifier.fillMaxWidth().padding(paddingSmall),
-        contentAlignment = Alignment.Center,
-    ) {
-        onBack?.let {
-            IconButton(
-                modifier = Modifier.align(Alignment.CenterStart),
-                onClick = it,
-                colors = IconButtonDefaults.iconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = alpha10),
-                ),
-            ) {
-                Icon(imageVector = AppIcons.ArrowBack, contentDescription = stringResource(R.string.common_back))
-            }
-        }
-        Text(text = title, style = MaterialTheme.typography.titleMedium)
-        onConfirm?.let {
-            IconButton(
-                modifier = Modifier.align(Alignment.CenterEnd),
-                onClick = it,
-                enabled = isConfirmEnabled,
-                colors = IconButtonDefaults.iconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = alpha10),
-                ),
-            ) {
-                Icon(imageVector = AppIcons.Check, contentDescription = stringResource(R.string.common_done))
-            }
-        }
     }
 }
 

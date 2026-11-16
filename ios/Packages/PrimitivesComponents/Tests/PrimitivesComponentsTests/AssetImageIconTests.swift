@@ -3,6 +3,7 @@
 import Components
 import Foundation
 import struct Gemstone.GemAssetIcon
+import enum Gemstone.GemLocalTokenIcon
 import Primitives
 import PrimitivesComponents
 import Testing
@@ -25,7 +26,7 @@ struct AssetImageIconTests {
 
         #expect(AssetImage(icon: icon) == AssetImage(
             type: .text("ERC20"),
-            placeholder: TokenImage(token: .usdt).image,
+            placeholder: GemLocalTokenIcon.usdt.image,
             chainPlaceholder: ChainImage(chain: .ethereum).image,
         ))
     }

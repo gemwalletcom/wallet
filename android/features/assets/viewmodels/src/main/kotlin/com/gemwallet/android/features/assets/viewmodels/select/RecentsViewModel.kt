@@ -65,7 +65,7 @@ class RecentsViewModel @Inject constructor(
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, recentActivityService.viewState(emptyList(), emptyList(), LocalDate.now().gemDay().boundaries(), ""))
 
-    fun show(filters: Set<GemAssetFilter> = emptySet(), types: List<RecentActivityType> = RecentActivityType.entries) {
+    fun show(filters: Set<GemAssetFilter> = emptySet(), types: List<RecentActivityType>) {
         query.clearText()
         config.value = Config(filters, types)
     }
@@ -75,7 +75,7 @@ class RecentsViewModel @Inject constructor(
     }
 
     fun onClear() {
-        val types = config.value?.types ?: RecentActivityType.entries
+        val types = config.value?.types ?: return
         viewModelScope.launch(ioDispatcher) {
             runCatchingCancellable { recentActivityService.clear(types.map { it.toGem() }) }
                 .onFailure { Log.e(TAG, "clearing recents failed", it) }

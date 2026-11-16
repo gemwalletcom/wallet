@@ -1,7 +1,7 @@
 pub mod constants;
 pub use constants::*;
 pub mod address;
-pub use address::{AccountAddress, validate_address};
+pub use address::AccountAddress;
 pub mod models;
 pub use models::*;
 pub mod r#move;

@@ -120,6 +120,8 @@ private struct Keyed<Value>: Identifiable {
 }
 
 struct GemListItemView: View {
+    @State private var isPresentingUrl: URL?
+
     let item: GemListItem
     let onSelect: (GemListItem) -> Void
 
@@ -140,8 +142,10 @@ struct GemListItemView: View {
             ValidatorSelectionView(row: row, isSelected: isSelected) {
                 onSelect(item)
             }
-            .ifLet(row.explorerContext) { view, explorerContext in
-                view.explorerContext(explorerContext)
+            .if(!row.menu.isEmpty) { view in
+                view
+                    .contextMenu(row.menu.contextMenuItems { isPresentingUrl = $0 })
+                    .safariSheet(url: $isPresentingUrl)
             }
         case .connection, .priceAlert, .recipient, .transactionDetail, .node, .explorer:
             EmptyView()

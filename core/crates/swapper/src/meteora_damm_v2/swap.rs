@@ -1,4 +1,4 @@
-use gem_solana::{AccountMeta, Instruction, Pubkey, anchor::instruction_data, instructions::program_ids::meteora_damm_v2_program};
+use gem_solana::{AccountMeta, Instruction, Pubkey, anchor, instructions::program_ids::meteora_damm_v2_program};
 use primitives::decode_hex_literal;
 
 use super::pool::Pool;
@@ -30,11 +30,7 @@ pub(super) fn swap_instruction(address: &Pubkey, pool: &Pool, swap: &PoolSwap) -
         AccountMeta::new_readonly(EVENT_AUTHORITY),
         AccountMeta::new_readonly(meteora_damm_v2_program()),
     ];
-    Ok(Instruction {
-        program_id: meteora_damm_v2_program(),
-        accounts,
-        data: instruction_data(SWAP, &swap.amounts()),
-    })
+    Ok(anchor::instruction(meteora_damm_v2_program(), SWAP, &swap.amounts(), accounts))
 }
 
 #[cfg(test)]

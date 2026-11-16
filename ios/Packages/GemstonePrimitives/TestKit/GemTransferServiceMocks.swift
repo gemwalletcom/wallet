@@ -143,28 +143,22 @@ public final class GemNameServiceMock: GemNameServiceProtocol, @unchecked Sendab
 }
 
 public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Sendable {
-    private let claimable: Bool
-    private let actions: [GemDelegationActionItem]
+    private let details: GemDelegationDetails
     private let validators: [Gemstone.DelegationValidator]
     private let infoRows: [GemListRow]
-    private let freezes: Bool
     private let claimRewardsDestination: GemStakeDestination?
     private let refreshState: GemLoadState
 
     public init(
-        claimable: Bool = false,
-        actions: [GemDelegationActionItem] = [],
+        details: GemDelegationDetails = .mock(),
         validators: [Gemstone.DelegationValidator] = [],
         infoRows: [GemListRow] = [],
-        freezes: Bool = false,
         claimRewardsDestination: GemStakeDestination? = nil,
         refreshState: GemLoadState = .data,
     ) {
-        self.claimable = claimable
-        self.actions = actions
+        self.details = details
         self.validators = validators
         self.infoRows = infoRows
-        self.freezes = freezes
         self.claimRewardsDestination = claimRewardsDestination
         self.refreshState = refreshState
     }
@@ -204,33 +198,25 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         ]
         return GemStakeViewState(
             asset: Gemstone.assetText(asset: input.assetData.asset),
-            sections: [.manage, freezes ? .resources : nil, input.delegations.isEmpty ? nil : .delegations].compactMap(\.self),
+            sections: [.manage, .delegations],
             infoRows: infoRows,
             actions: actions,
             resourceRows: [],
-            delegations: zip(input.delegations, Gemstone.delegationListRows(delegations: input.delegations, asset: input.assetData.asset, price: input.assetData.price?.price, currency: input.currency)).map {
-                GemStakeDelegationItem(id: $0.base.delegationId, delegation: $0, row: $1, destination: .details)
-            },
+            delegations: input.delegations.map(delegationItem),
             delegationsPhase: loadedPhase(state: input.state, hasRows: !input.delegations.isEmpty, kind: .stake),
             docsUrl: nil,
         )
     }
 
-    func delegationRows(delegation _: Gemstone.Delegation) -> [GemListRow] {
-        []
-    }
-
-    public func delegationDetails(walletType: Gemstone.WalletType, delegation: Gemstone.Delegation, asset: Gemstone.Asset, price: Double?, currency: Gemstone.Currency, validators _: [Gemstone.DelegationValidator]) -> GemDelegationDetails {
-        var details = Gemstone.delegationDetails(walletType: walletType, delegation: delegation, asset: asset, price: price, currency: currency)
-        details.actions = actions
-        if !claimable {
-            details.claim = nil
-        }
-        return details
-    }
-
-    func delegationDestination(walletType _: Gemstone.WalletType, asset _: Gemstone.Asset, delegation _: Gemstone.Delegation) -> GemDelegationDestination {
-        .details
+    public func delegationDetails(
+        walletType _: Gemstone.WalletType,
+        delegation _: Gemstone.Delegation,
+        asset _: Gemstone.Asset,
+        price _: Double?,
+        currency _: Gemstone.Currency,
+        validators _: [Gemstone.DelegationValidator],
+    ) -> GemDelegationDetails {
+        details
     }
 
     public func getCurrency() -> Gemstone.Currency {
@@ -241,27 +227,24 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         refreshState
     }
 
-    func syncEarn(assetId _: Gemstone.AssetId) async throws {}
-
     public func refreshEarn(assetId _: Gemstone.AssetId, hasRows _: Bool) async -> GemLoadState {
         refreshState
     }
 
     public func earnView(input: GemEarnInput) -> GemEarnView {
-        let delegations = input.delegations.filter { $0.base.balance > 0 }
-        let positions = zip(delegations, Gemstone.delegationListRows(delegations: delegations, asset: input.asset, price: input.price, currency: input.currency)).map {
-            GemStakeDelegationItem(id: $0.base.delegationId, delegation: $0, row: $1, destination: .details)
-        }
-        let depositProvider = input.walletType == .view ? nil : input.providers.first
-        return GemEarnView(
+        GemEarnView(
             asset: Gemstone.assetText(asset: input.asset),
             rateRow: .text(title: .stakeApr, value: ""),
-            sections: [depositProvider.map { _ in .manage }, positions.isEmpty ? nil : .positions].compactMap(\.self),
+            sections: [.manage, .positions],
             depositRow: .action(title: .deposit, value: nil, info: nil),
-            depositProvider: depositProvider,
-            positions: positions,
-            positionsPhase: loadedPhase(state: input.state, hasRows: !positions.isEmpty, kind: .earn),
+            depositProvider: input.providers.first,
+            positions: input.delegations.map(delegationItem),
+            positionsPhase: loadedPhase(state: input.state, hasRows: !input.delegations.isEmpty, kind: .earn),
         )
+    }
+
+    private func delegationItem(_ delegation: Gemstone.Delegation) -> GemStakeDelegationItem {
+        GemStakeDelegationItem(id: delegation.base.delegationId, delegation: delegation, row: .mock(), destination: .details)
     }
 }
 

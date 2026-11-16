@@ -23,8 +23,8 @@ impl PostgresRepository {
 impl Repository for PostgresRepository {
     async fn get_device(&self, device_id: String) -> Result<Option<Device>, DatabaseError> {
         self.database
-            .run(move |client| match client.get_device(&device_id) {
-                Ok(device) => Ok(Some(device)),
+            .run(move |client| match client.get_device_record(&device_id) {
+                Ok(record) => Ok(Some(record.device)),
                 Err(error) if error.is_not_found() => Ok(None),
                 Err(error) => Err(error),
             })

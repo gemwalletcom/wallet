@@ -39,9 +39,9 @@ public struct AssetScene: View {
             if details.state.showsBanners, let banner = details.banner {
                 Section {
                     BannerView(
-                        row: banner,
+                        row: banner.row,
+                        destination: banner.destination,
                         onDestination: model.onSelectBanner(destination:),
-                        onButton: model.onSelectBanner(button:),
                         onClose: model.onCloseBanner,
                     )
                 }

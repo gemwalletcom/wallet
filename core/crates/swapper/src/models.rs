@@ -22,7 +22,6 @@ use std::fmt::Debug;
 pub struct ProviderType {
     pub id: SwapperProvider,
     pub name: String,
-    pub protocol: String,
     pub protocol_id: String,
     pub mode: SwapProviderMode,
     pub slippage_mode: SlippageMode,
@@ -33,7 +32,6 @@ impl ProviderType {
         Self {
             id,
             name: id.name().to_string(),
-            protocol: id.name().to_string(),
             protocol_id: id.id().to_string(),
             mode: id.mode(),
             slippage_mode: ProviderType::slippage_mode(id),

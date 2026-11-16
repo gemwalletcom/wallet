@@ -33,15 +33,11 @@ impl FeeEstimatesCacher for MemoryFeeEstimatesCacher {
         {
             return Ok(estimates);
         }
-        match fetch.await {
-            Ok(estimates) => {
-                self.estimates.lock().unwrap().insert(chain, estimates.clone());
-                self.fresh.lock().unwrap().insert(chain, !ttl.is_zero());
-                self.writes.lock().unwrap().push((chain, ttl));
-                Ok(estimates)
-            }
-            Err(error) => cached.ok_or(error),
-        }
+        let estimates = fetch.await?;
+        self.estimates.lock().unwrap().insert(chain, estimates.clone());
+        self.fresh.lock().unwrap().insert(chain, !ttl.is_zero());
+        self.writes.lock().unwrap().push((chain, ttl));
+        Ok(estimates)
     }
 
     async fn all_estimates(&self) -> Result<Vec<ChainFeeEstimates>, Box<dyn Error + Send + Sync>> {

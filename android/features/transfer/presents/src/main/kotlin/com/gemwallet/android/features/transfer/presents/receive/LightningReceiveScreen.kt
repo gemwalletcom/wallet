@@ -23,8 +23,7 @@ import com.gemwallet.android.model.AuthRequest
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.RefreshOnTimer
 import com.gemwallet.android.ui.components.buttons.MainActionButton
-import com.gemwallet.android.ui.components.clipboard.clipboardManager
-import com.gemwallet.android.ui.components.clipboard.setCopy
+import com.gemwallet.android.ui.components.clipboard.rememberClipboard
 import com.gemwallet.android.ui.components.screen.FatalStateScene
 import com.gemwallet.android.ui.components.screen.LoadingScene
 import com.gemwallet.android.ui.components.screen.Scene
@@ -70,9 +69,9 @@ fun LightningReceiveScreen(closeIcon: Boolean, onCancel: () -> Unit) {
 @Composable
 private fun LightningReceiveScene(title: String, closeIcon: Boolean, receive: GemLightningReceive, onCancel: () -> Unit) {
     val context = LocalContext.current
-    val clipboardManager = context.clipboardManager()
+    val clipboard = rememberClipboard()
     val shareTitle = stringResource(R.string.common_share)
-    val onCopy = { clipboardManager.setCopy(context, receive.copy) }
+    val onCopy = { clipboard.copy(receive.copy) }
 
     Scene(
         title = title,

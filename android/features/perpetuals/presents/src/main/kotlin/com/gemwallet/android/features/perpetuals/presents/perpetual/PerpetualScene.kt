@@ -67,6 +67,7 @@ internal fun PerpetualScene(
             GemPerpetualButton.CLOSE -> onAction(PerpetualAction.ClosePosition)
             GemPerpetualButton.INCREASE -> onAction(PerpetualAction.IncreasePosition)
             GemPerpetualButton.REDUCE -> onAction(PerpetualAction.ReducePosition)
+            GemPerpetualButton.LEVERAGE -> onAction(PerpetualAction.ChangeLeverage)
         }
     }
 

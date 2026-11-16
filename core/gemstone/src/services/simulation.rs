@@ -12,10 +12,10 @@ use gem_solana::rpc::{SolanaClient, SolanaProvider};
 use gem_sui::rpc::{SuiClient, SuiProvider};
 use gem_ton::rpc::client::TonClient;
 use gem_tron::rpc::{TronProvider, client::TronClient};
-use gem_wallet_connect::{EvmTransactionKind, SignDigestType, WCEthereumTransactionData, WalletConnectTransactionType};
+use gem_wallet_connect::{EvmTransactionKind, SignDigestType, WalletConnectTransactionType};
 use primitives::{
     AddressName, AssetBasic, AssetId, BlockExplorerLink, Chain, ChainAddress, EVMChain, Resource, SimulationBalanceChange, SimulationInput, SimulationPayloadField, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult,
-    SimulationSeverity, SimulationWarning, SimulationWarningType, TransactionType, VerificationStatus,
+    SimulationSeverity, SimulationWarning, SimulationWarningType, TransactionType, ValueAccess, VerificationStatus, WCEthereumTransaction,
 };
 
 use crate::duration_formatter::{GemDurationPart, countdown_parts};
@@ -75,7 +75,8 @@ impl GemSimulationService {
 
         let simulation = match &transaction_type {
             WalletConnectTransactionType::Ethereum => self.simulate_ethereum_transaction(chain, &data).await,
-            WalletConnectTransactionType::Solana { .. } | WalletConnectTransactionType::Sui { .. } => self.simulate_encoded_transaction(&transaction_type, &data).await,
+            WalletConnectTransactionType::Solana { .. } => self.simulate_encoded_transaction(Chain::Solana, &data).await,
+            WalletConnectTransactionType::Sui { .. } => self.simulate_sui_transaction(&data, signer_address).await,
             WalletConnectTransactionType::Ton { .. } => self.simulate_chain_transaction(Chain::Ton, session_input()).await,
             WalletConnectTransactionType::Tron { .. } => self.simulate_chain_transaction(Chain::Tron, session_input()).await,
         }
@@ -114,7 +115,7 @@ impl GemSimulationService {
         chain: Chain,
         calldata: &[u8],
         provider: &EthereumProvider<AlienClient>,
-        transaction: &WCEthereumTransactionData,
+        transaction: &WCEthereumTransaction,
     ) -> (Result<SimulationResult, GemstoneError>, Result<SimulationResult, GemstoneError>) {
         let calldata_task = async {
             if calldata.is_empty() {
@@ -126,20 +127,24 @@ impl GemSimulationService {
         futures::join!(calldata_task, self.simulate_ethereum_balance_changes(provider, transaction))
     }
 
-    async fn simulate_ethereum_balance_changes(&self, provider: &EthereumProvider<AlienClient>, transaction: &WCEthereumTransactionData) -> Result<SimulationResult, GemstoneError> {
+    async fn simulate_ethereum_balance_changes(&self, provider: &EthereumProvider<AlienClient>, transaction: &WCEthereumTransaction) -> Result<SimulationResult, GemstoneError> {
         let encoded_transaction = serde_json::to_string(&map_transaction_object(transaction)).map_err(|error| error.to_string())?;
 
         Ok(provider.simulate_transaction(SimulationInput::new(encoded_transaction)).await?)
     }
 
-    async fn simulate_encoded_transaction(&self, transaction_type: &WalletConnectTransactionType, data: &str) -> Result<SimulationResult, GemstoneError> {
-        let chain = match transaction_type {
-            WalletConnectTransactionType::Solana { .. } => Chain::Solana,
-            WalletConnectTransactionType::Sui { .. } => Chain::Sui,
-            _ => return Err("Chain does not use encoded transaction simulation".into()),
-        };
+    async fn simulate_encoded_transaction(&self, chain: Chain, data: &str) -> Result<SimulationResult, GemstoneError> {
         let input: SimulationInput = serde_json::from_str(data).map_err(|error| error.to_string())?;
         self.simulate_chain_transaction(chain, input).await
+    }
+
+    async fn simulate_sui_transaction(&self, data: &str, signer_address: &str) -> Result<SimulationResult, GemstoneError> {
+        let params: serde_json::Value = serde_json::from_str(data).map_err(|error| error.to_string())?;
+        let input = SimulationInput {
+            encoded_transaction: params.get_value("transaction")?.string()?.to_string(),
+            signer_address: Some(signer_address.to_string()),
+        };
+        self.simulate_chain_transaction(Chain::Sui, input).await
     }
 
     async fn simulate_chain_transaction(&self, chain: Chain, input: SimulationInput) -> Result<SimulationResult, GemstoneError> {
@@ -178,7 +183,7 @@ fn contract_call_result(calldata: SimulationResult, balances: SimulationResult) 
     .prepend_warnings(balances.warnings)
 }
 
-fn map_transaction_object(transaction: &WCEthereumTransactionData) -> TransactionObject {
+fn map_transaction_object(transaction: &WCEthereumTransaction) -> TransactionObject {
     TransactionObject {
         from: Some(transaction.from.clone()),
         to: transaction.to.clone(),
@@ -472,7 +477,7 @@ mod tests {
     use crate::models::list::suspicious_address_notice;
     use crate::services::assets::rules::default_asset_basic;
     use crate::services::node::GemNodeService;
-    use crate::testkit::{TestAlienProvider, mock_wc_ethereum_transaction_data};
+    use crate::testkit::{TestAlienProvider, mock_wc_ethereum_transaction};
     use num_bigint::BigInt;
     use primitives::{AddressType, Asset, AssetProperties, AssetScore, AssetType, SimulationPayloadFieldDisplay, SimulationWarningApproval};
 
@@ -616,19 +621,19 @@ mod tests {
 
     #[test]
     fn test_map_transaction_object_normalizes_empty_calldata_to_0x() {
-        let transaction_object = map_transaction_object(&mock_wc_ethereum_transaction_data());
+        let transaction_object = map_transaction_object(&mock_wc_ethereum_transaction());
 
         assert_eq!(serde_json::to_value(transaction_object).unwrap()["data"], "0x");
     }
 
     #[test]
     fn test_map_transaction_object_passes_gas_limit_and_omits_fee_prices() {
-        let transaction = WCEthereumTransactionData {
+        let transaction = WCEthereumTransaction {
             gas_limit: Some("0x5208".to_string()),
             gas_price: Some("0x9502f900".to_string()),
             max_fee_per_gas: Some("0x59682f10".to_string()),
             max_priority_fee_per_gas: Some("0x3b9aca00".to_string()),
-            ..mock_wc_ethereum_transaction_data()
+            ..mock_wc_ethereum_transaction()
         };
 
         let transaction_object = map_transaction_object(&transaction);
@@ -843,5 +848,29 @@ mod tests {
 
             assert!(provider.requested_paths().iter().any(|path| path.contains("emulateTonConnect")));
         });
+    }
+
+    #[test]
+    fn test_wallet_connect_sui_send_simulates_as_the_session_account() {
+        let session_account = "0x93f65b8c16c263343bbf66cf9f8eef69cb1dbc92d13f0c331b0dcaeb76b4aab6";
+        let transaction = include_str!("../../../crates/gem_sui/testdata/transaction_json_transfer.json");
+        let mut with_sender: serde_json::Value = serde_json::from_str(transaction).unwrap();
+        with_sender["sender"] = session_account.into();
+        let requests = [
+            serde_json::json!({ "transaction": transaction }),
+            serde_json::json!({ "transaction": with_sender.to_string(), "address": "0xa9bd0493f9bd1f792a4aedc1f99d54535a75a46c38fd56a8f2c6b7c8d75817a1", "account": session_account }),
+        ];
+
+        for data in requests {
+            let provider = Arc::new(TestAlienProvider::with_status(200));
+            let service = GemSimulationService::new(provider.clone(), Arc::new(GemNodeService::mock()));
+            let transaction_type = WalletConnectTransactionType::Sui {
+                output_type: primitives::TransferDataOutputType::EncodedTransaction,
+            };
+
+            futures::executor::block_on(service.simulate_send_transaction(Chain::Sui, transaction_type, data.to_string(), session_account)).unwrap();
+
+            assert!(!provider.requested_paths().is_empty(), "{data}");
+        }
     }
 }

@@ -288,6 +288,9 @@ mocks:
   - GemCopyKind
   - GemCustomFeeField
   - GemCustomFeeSession
+  - GemDelegationDetails
+  - GemDelegationListRow
+  - GemDelegationStatus
   - GemEmptyState
   - GemFeeAmount
   - GemFeeAsset
@@ -304,6 +307,7 @@ mocks:
   - GemHeaderButton
   - GemHeaderButtonAction
   - GemInfoTopic
+  - GemLeverageSelection
   - GemLightningReceive
   - GemLocalizedText
   - GemNetworkFeeScreen
@@ -319,6 +323,7 @@ mocks:
   - GemPaymentRecipient
   - GemPerpetualDetails
   - GemPerpetualTransferData
+  - GemPickerOption
   - GemPrecision
   - GemProviderKind
   - GemProviderRow

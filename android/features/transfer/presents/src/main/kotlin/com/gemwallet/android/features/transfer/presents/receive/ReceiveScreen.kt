@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -33,8 +35,7 @@ import com.gemwallet.android.features.transfer.presents.receive.components.recei
 import com.gemwallet.android.features.transfer.viewmodels.receive.ReceiveViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
-import com.gemwallet.android.ui.components.clipboard.clipboardManager
-import com.gemwallet.android.ui.components.clipboard.setCopy
+import com.gemwallet.android.ui.components.clipboard.rememberClipboard
 import com.gemwallet.android.ui.components.list_head.CenteredListHead
 import com.gemwallet.android.ui.components.list_head.HeaderIcon
 import com.gemwallet.android.ui.components.list_item.ChainItem
@@ -105,7 +106,7 @@ fun ReceiveScreen(assetId: AssetId, closeIcon: Boolean = false, onCancel: () -> 
 @Composable
 private fun ReceiveScene(closeIcon: Boolean, assetInfo: AssetData, header: GemAssetText, warning: String, shareText: String?, copyText: GemCopy?, chainRow: GemChainRow, onSelectNetwork: (() -> Unit)?, onCancel: () -> Unit) {
     val context = LocalContext.current
-    val clipboardManager = LocalContext.current.clipboardManager()
+    val clipboard = rememberClipboard()
     val shareTitle = stringResource(R.string.common_share)
     val imageSize = receiveQrWidth()
     val imagePadding = receiveQrPadding()
@@ -115,7 +116,7 @@ private fun ReceiveScene(closeIcon: Boolean, assetInfo: AssetData, header: GemAs
     }
 
     val onCopyClick = fun () {
-        copyText?.let { clipboardManager.setCopy(context, it) }
+        copyText?.let { clipboard.copy(it) }
     }
 
     Scene(
@@ -154,11 +155,13 @@ private fun ReceiveScene(closeIcon: Boolean, assetInfo: AssetData, header: GemAs
         if (assetInfo.account.address.isEmpty()) {
             return@Scene
         }
-        Spacer(modifier = Modifier.weight(1f))
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(imagePadding),
+            verticalArrangement = Arrangement.spacedBy(imagePadding, Alignment.CenterVertically),
         ) {
             CenteredListHead(
                 title = header.asset.name,
@@ -175,6 +178,5 @@ private fun ReceiveScene(closeIcon: Boolean, assetInfo: AssetData, header: GemAs
                 style = MaterialTheme.typography.bodyMedium,
             )
         }
-        Spacer(modifier = Modifier.weight(1f))
     }
 }

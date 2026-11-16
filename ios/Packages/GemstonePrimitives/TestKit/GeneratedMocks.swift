@@ -166,7 +166,7 @@ public extension Gemstone.GemAssetDetails {
     static func mock(
         state: Gemstone.GemAssetDetailsState = .mock(),
         header: Gemstone.GemValueHeader = .mock(),
-        banner: Gemstone.GemBannerRow? = nil,
+        banner: Gemstone.GemAssetBanner? = nil,
         sections: [Gemstone.GemAssetDetailSection] = [],
         title: String = "",
         options: [Gemstone.GemAssetOption] = [],
@@ -628,6 +628,64 @@ public extension Gemstone.GemCustomFeeSession {
     }
 }
 
+public extension Gemstone.GemDelegationDetails {
+    static func mock(
+        title: Gemstone.GemLocalizedText = .mock(),
+        icon: Gemstone.GemAssetIcon = .mock(),
+        valueHeader: Gemstone.GemValueHeader = .mock(),
+        header: Gemstone.GemDelegationListRow = .mock(),
+        actions: [Gemstone.GemDelegationActionItem] = [],
+        rewards: Gemstone.GemFormattedNumber? = nil,
+        rewardsFiat: Gemstone.GemFormattedNumber? = nil,
+        rows: [Gemstone.GemListRow] = [],
+        claim: Gemstone.GemTransferData? = nil,
+    ) -> Gemstone.GemDelegationDetails {
+        Gemstone.GemDelegationDetails(
+            title: title,
+            icon: icon,
+            valueHeader: valueHeader,
+            header: header,
+            actions: actions,
+            rewards: rewards,
+            rewardsFiat: rewardsFiat,
+            rows: rows,
+            claim: claim,
+        )
+    }
+}
+
+public extension Gemstone.GemDelegationListRow {
+    static func mock(
+        validator: Gemstone.GemValidatorRow = .mock(),
+        status: Gemstone.GemDelegationStatus = .mock(),
+        balance: Gemstone.GemFormattedNumber = .mock(),
+        fiat: Gemstone.GemFormattedNumber? = nil,
+        rewards: Gemstone.GemFormattedNumber? = nil,
+        rewardsFiat: Gemstone.GemFormattedNumber? = nil,
+    ) -> Gemstone.GemDelegationListRow {
+        Gemstone.GemDelegationListRow(
+            validator: validator,
+            status: status,
+            balance: balance,
+            fiat: fiat,
+            rewards: rewards,
+            rewardsFiat: rewardsFiat,
+        )
+    }
+}
+
+public extension Gemstone.GemDelegationStatus {
+    static func mock(
+        state: Gemstone.DelegationState = .active,
+        tone: Gemstone.GemValueTone = .plain,
+    ) -> Gemstone.GemDelegationStatus {
+        Gemstone.GemDelegationStatus(
+            state: state,
+            tone: tone,
+        )
+    }
+}
+
 public extension Gemstone.GemEmptyState {
     static func mock(
         title: Gemstone.GemEmptyStateText = .nftsTitle,
@@ -860,6 +918,18 @@ public extension Gemstone.GemInfoTopic {
     }
 }
 
+public extension Gemstone.GemLeverageSelection {
+    static func mock(
+        options: [Gemstone.GemPickerOption] = [],
+        selected: Gemstone.GemPickerOption = .mock(),
+    ) -> Gemstone.GemLeverageSelection {
+        Gemstone.GemLeverageSelection(
+            options: options,
+            selected: selected,
+        )
+    }
+}
+
 public extension Gemstone.GemLightningReceive {
     static func mock(
         qr: String = "",
@@ -1042,6 +1112,18 @@ public extension Gemstone.GemPerpetualTransferData {
             price: price,
             leverage: leverage,
             marginType: marginType,
+        )
+    }
+}
+
+public extension Gemstone.GemPickerOption {
+    static func mock(
+        value: UInt8 = 0,
+        label: Gemstone.GemLocalizedText = .mock(),
+    ) -> Gemstone.GemPickerOption {
+        Gemstone.GemPickerOption(
+            value: value,
+            label: label,
         )
     }
 }
@@ -1388,7 +1470,7 @@ public extension Gemstone.GemValidatorRow {
         placeholder: String = "",
         provider: Gemstone.YieldProvider? = nil,
         apr: Gemstone.GemLocalizedText = .mock(),
-        explorer: Gemstone.BlockExplorerLink? = nil,
+        menu: [Gemstone.GemRowMenuItem] = [],
     ) -> Gemstone.GemValidatorRow {
         Gemstone.GemValidatorRow(
             validator: validator,
@@ -1397,7 +1479,7 @@ public extension Gemstone.GemValidatorRow {
             placeholder: placeholder,
             provider: provider,
             apr: apr,
-            explorer: explorer,
+            menu: menu,
         )
     }
 }
@@ -1586,7 +1668,7 @@ public extension Gemstone.GemWalletHomeViewState {
         header: Gemstone.GemValueHeader = .mock(),
         showCollections: Bool = false,
         showsPerpetuals: Bool = false,
-        banner: Gemstone.GemBannerRow? = nil,
+        banner: Gemstone.GemWalletBanner? = nil,
         pinnedAssetIds: [Primitives.AssetId] = [],
         assetIds: [Primitives.AssetId] = [],
     ) -> Gemstone.GemWalletHomeViewState {
@@ -2101,11 +2183,9 @@ public extension Gemstone.SwapData {
 public extension Gemstone.SwapProviderData {
     static func mock(
         provider: Gemstone.SwapProvider = .uniswapV3,
-        protocolName: String = "",
     ) -> Gemstone.SwapProviderData {
         Gemstone.SwapProviderData(
             provider: provider,
-            protocolName: protocolName,
         )
     }
 }
@@ -2192,7 +2272,6 @@ public extension Gemstone.SwapperProviderType {
     static func mock(
         id: Gemstone.SwapProvider = .uniswapV3,
         name: String = "",
-        protocol: String = "",
         protocolId: String = "",
         mode: Gemstone.SwapperProviderMode = .onChain,
         slippageMode: Gemstone.SwapperSlippageMode = .auto,
@@ -2200,7 +2279,6 @@ public extension Gemstone.SwapperProviderType {
         Gemstone.SwapperProviderType(
             id: id,
             name: name,
-            protocol: `protocol`,
             protocolId: protocolId,
             mode: mode,
             slippageMode: slippageMode,

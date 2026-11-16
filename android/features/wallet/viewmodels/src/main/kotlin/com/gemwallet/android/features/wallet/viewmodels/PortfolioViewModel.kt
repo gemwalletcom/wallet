@@ -1,6 +1,5 @@
 package com.gemwallet.android.features.wallet.viewmodels
 
-import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -8,18 +7,14 @@ import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.connection.cases.ObserveRefreshInterval
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.ext.chainIds
-import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ChartUIState
-import com.gemwallet.android.ui.models.StateViewType
 import com.wallet.core.primitives.ChartPeriod
 import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.PortfolioType
 import com.wallet.core.primitives.Wallet
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,7 +29,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import uniffi.gemstone.GemChartData
+import uniffi.gemstone.GemChartPhase
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemPortfolioPhase
 import uniffi.gemstone.GemPortfolioServiceInterface
@@ -52,7 +47,6 @@ class PortfolioViewModel internal constructor(
     initialType: PortfolioType,
     observeRefreshInterval: ObserveRefreshInterval,
     private val ioDispatcher: CoroutineDispatcher,
-    private val context: Context,
 ) : ViewModel() {
 
     private val wallet = MutableStateFlow<Wallet?>(null)
@@ -131,13 +125,13 @@ class PortfolioViewModel internal constructor(
         session.update { it.onResult(result) }
     }
 
-    private fun GemPortfolioViewState.chartUIState(): ChartUIState = ChartUIState(period = period.toPrimitives(), periods = periods.map { it.toPrimitives() }, chart = phase.chartState())
+    private fun GemPortfolioViewState.chartUIState(): ChartUIState = ChartUIState(period = period.toPrimitives(), periods = periods.map { it.toPrimitives() }, phase = phase.chartPhase())
 
-    private fun GemPortfolioPhase.chartState(): StateViewType<GemChartData> = when (this) {
-        GemPortfolioPhase.Loading -> StateViewType.Loading
-        is GemPortfolioPhase.Data -> StateViewType.Data(chart)
-        GemPortfolioPhase.NoData -> StateViewType.NoData
-        is GemPortfolioPhase.Failed -> StateViewType.Error(error.errorText().text(context))
+    private fun GemPortfolioPhase.chartPhase(): GemChartPhase = when (this) {
+        GemPortfolioPhase.Loading -> GemChartPhase.Loading
+        is GemPortfolioPhase.Data -> GemChartPhase.Data(chart)
+        GemPortfolioPhase.NoData -> GemChartPhase.NoData
+        is GemPortfolioPhase.Failed -> GemChartPhase.Failed(error)
     }
 
     @Inject
@@ -147,13 +141,11 @@ class PortfolioViewModel internal constructor(
         savedStateHandle: SavedStateHandle,
         observeRefreshInterval: ObserveRefreshInterval,
         @IoDispatcher ioDispatcher: CoroutineDispatcher,
-        @ApplicationContext context: Context,
     ) : this(
         service = service,
         getSession = getSession,
         initialType = savedStateHandle.portfolioType(),
         observeRefreshInterval = observeRefreshInterval,
         ioDispatcher = ioDispatcher,
-        context = context,
     )
 }

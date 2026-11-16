@@ -1,5 +1,6 @@
 package com.gemwallet.android.ui.navigation.routes
 
+import androidx.compose.runtime.Composable
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.gemwallet.android.features.nft.presents.CollectibleScreen
@@ -34,7 +35,7 @@ fun EntryProviderScope<NavKey>.collectionsScreen(
     collectionIdAction: NftCollectionIdAction,
     assetIdAction: NftAssetIdAction,
 ) {
-    entry<CollectionsRoute> {
+    val collections: @Composable () -> Unit = {
         CollectionsScreen(
             cancelAction = cancelAction,
             collectionAction = collectionIdAction,
@@ -42,30 +43,22 @@ fun EntryProviderScope<NavKey>.collectionsScreen(
             onReceive = onReceive,
             onUnverified = onUnverified,
         )
+    }
+
+    entry<CollectionsRoute> {
+        collections()
     }
 
     entry<CollectionRoute>(
         metadata = { key -> routeArguments(RouteArgument.NftCollectionId to key.nftCollectionId) },
     ) {
-        CollectionsScreen(
-            cancelAction = cancelAction,
-            collectionAction = collectionIdAction,
-            assetAction = assetIdAction,
-            onReceive = onReceive,
-            onUnverified = onUnverified,
-        )
+        collections()
     }
 
     entry<UnverifiedCollectionsRoute>(
         metadata = { routeArguments(RouteArgument.Unverified to true) },
     ) {
-        CollectionsScreen(
-            cancelAction = cancelAction,
-            collectionAction = collectionIdAction,
-            assetAction = assetIdAction,
-            onReceive = onReceive,
-            onUnverified = onUnverified,
-        )
+        collections()
     }
 
     entry<CollectibleRoute>(

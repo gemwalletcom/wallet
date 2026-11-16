@@ -230,7 +230,7 @@ public struct RewardsScene: View {
                         ) {
                             Task { await model.activatePendingReferral() }
                         }
-                        .frame(height: .scene.button.height)
+                        .frame(minHeight: .scene.button.height)
                         .frame(maxWidth: .scene.button.maxWidth)
                         Spacer()
                     }

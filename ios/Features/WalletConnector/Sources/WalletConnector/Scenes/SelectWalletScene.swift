@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Components
+import struct Gemstone.GemWalletRow
 import Primitives
 import PrimitivesComponents
 import Style
@@ -9,9 +10,9 @@ import SwiftUI
 struct SelectWalletScene: View {
     @Environment(\.dismiss) private var dismiss
 
-    @Binding private var model: SelectWalletViewModel
+    @Binding private var model: SelectableListViewModel<GemWalletRow>
 
-    init(model: Binding<SelectWalletViewModel>) {
+    init(model: Binding<SelectableListViewModel<GemWalletRow>>) {
         _model = model
     }
 

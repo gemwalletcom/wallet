@@ -21,25 +21,29 @@ public struct ReceiveScene: View {
 
     private var content: some View {
         VStack(spacing: .large) {
-            VStack {
-                Spacer()
-                VStack(spacing: .medium) {
-                    AssetPreviewView(model: model.assetState.asset)
+            GeometryReader { geometry in
+                ScrollView {
+                    VStack {
+                        VStack(spacing: .medium) {
+                            AssetPreviewView(model: model.assetState.asset)
 
-                    ReceiveQRCodeCard(
-                        image: model.renderedImage,
-                        text: model.address,
-                        action: model.onCopyAddress,
-                    )
+                            ReceiveQRCodeCard(
+                                image: model.renderedImage,
+                                text: model.address,
+                                action: model.onCopyAddress,
+                            )
+                        }
+                        Text(.init(model.warningMessage))
+                            .textStyle(.subHeadline)
+                            .multilineTextAlignment(.center)
+                            .padding(.top, .small)
+                            .frame(maxWidth: ReceiveQRCodeCard.size + .extraLarge)
+                    }
+                    .frame(maxWidth: .scene.button.maxWidth)
+                    .frame(maxWidth: .infinity, minHeight: geometry.size.height)
                 }
-                Text(.init(model.warningMessage))
-                    .textStyle(.subHeadline)
-                    .multilineTextAlignment(.center)
-                    .padding(.top, .small)
-                    .frame(maxWidth: ReceiveQRCodeCard.size + .extraLarge)
-                Spacer()
+                .scrollBounceBehavior(.basedOnSize)
             }
-            .frame(maxWidth: .scene.button.maxWidth)
 
             if model.showNetworkSelector {
                 Button(action: model.onSelectNetwork) {

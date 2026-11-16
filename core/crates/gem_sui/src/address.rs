@@ -40,10 +40,6 @@ impl AddressTrait for SuiAddress {
     }
 }
 
-pub fn validate_address(address: &str) -> bool {
-    SuiAddress::is_valid(address)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -63,14 +59,14 @@ mod tests {
     fn test_validate_address() {
         let address = "0xada112cfb90b44ba889cc5d39ac2bf46281e4a91f7919c693bcd9b8323e81ed2";
 
-        assert!(validate_address(address));
-        assert!(validate_address(&address[2..]));
-        assert!(!validate_address("0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a"));
-        assert!(!validate_address(&address[..65]));
-        assert!(!validate_address(&address[2..65]));
-        assert!(!validate_address(&format!("{address}0")));
-        assert!(!validate_address("0x2"));
-        assert!(!validate_address("abc"));
-        assert!(!validate_address("invalid"));
+        assert!(SuiAddress::is_valid(address));
+        assert!(SuiAddress::is_valid(&address[2..]));
+        assert!(!SuiAddress::is_valid("0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a"));
+        assert!(!SuiAddress::is_valid(&address[..65]));
+        assert!(!SuiAddress::is_valid(&address[2..65]));
+        assert!(!SuiAddress::is_valid(&format!("{address}0")));
+        assert!(!SuiAddress::is_valid("0x2"));
+        assert!(!SuiAddress::is_valid("abc"));
+        assert!(!SuiAddress::is_valid("invalid"));
     }
 }

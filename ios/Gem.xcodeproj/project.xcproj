@@ -102,6 +102,7 @@
                 { "path": "ReceiveNavigationView.swift", "target-membership": [ "Gem/compile-sources" ] },
                 { "path": "RecipientNavigationView.swift", "target-membership": [ "Gem/compile-sources" ] },
                 { "path": "ConfirmTransferNavigationStack.swift", "target-membership": [ "Gem/compile-sources" ] },
+                { "path": "ConfirmTransferDestination.swift", "target-membership": [ "Gem/compile-sources" ] },
                 { "path": "PaymentNavigationStack.swift", "target-membership": [ "Gem/compile-sources" ] },
               ],
             }, {

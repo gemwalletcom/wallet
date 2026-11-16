@@ -6,6 +6,7 @@ import func Gemstone.applicationConnectionRow
 import func Gemstone.connectionProposal
 import struct Gemstone.GemConnectionProposal
 import struct Gemstone.GemConnectionRow
+import struct Gemstone.GemWalletRow
 import func Gemstone.walletRow
 import func Gemstone.walletSections
 import GemstonePrimitives
@@ -20,7 +21,7 @@ public struct ConnectionProposalSceneViewModel {
     private let pairingProposal: WCPairingProposal
     private let row: GemConnectionRow
 
-    var walletSelectorModel: SelectWalletViewModel
+    var walletSelectorModel: SelectableListViewModel<GemWalletRow>
 
     public init(
         confirmTransferDelegate: @escaping TransferDataCallback.ConfirmTransferDelegate,
@@ -29,7 +30,7 @@ public struct ConnectionProposalSceneViewModel {
         self.confirmTransferDelegate = confirmTransferDelegate
         self.pairingProposal = pairingProposal
         row = applicationConnectionRow(metadata: pairingProposal.proposal.metadata.toGem())
-        walletSelectorModel = SelectWalletViewModel(
+        walletSelectorModel = SelectableListViewModel(
             sections: walletSections(wallets: pairingProposal.proposal.wallets.map { $0.listItem.toGem() }, currentWalletId: nil),
             selectedRow: walletRow(wallet: pairingProposal.proposal.defaultWallet.toGem()),
         )

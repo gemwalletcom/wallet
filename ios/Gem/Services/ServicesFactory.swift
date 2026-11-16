@@ -265,7 +265,7 @@ struct ServicesFactory {
             service: walletConnectService,
             store: secureStore,
             provider: nativeProvider,
-            transport: WalletConnectTransport(webSocket: walletConnectSocket),
+            transport: GemstoneSocketTransport(webSocket: walletConnectSocket),
             listener: walletConnectListener,
             platform: .ios,
         )
@@ -320,7 +320,7 @@ struct ServicesFactory {
             perpetualService: perpetualService,
             streamService: Gemstone.GemPerpetualStreamService(
                 perpetual: perpetualService,
-                connection: PerpetualStreamConnection(webSocket: hyperliquidWebSocket),
+                connection: GemstoneSocketTransport(webSocket: hyperliquidWebSocket),
             ),
         )
 

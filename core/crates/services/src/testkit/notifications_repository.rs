@@ -42,8 +42,15 @@ impl Repository for MemoryNotificationsRepository {
     }
 
     async fn update_devices(&self, filters: Vec<DeviceFilter>, updates: Vec<DeviceUpdate>) -> Result<usize, DatabaseError> {
+        let count = filters
+            .iter()
+            .map(|filter| match filter {
+                DeviceFilter::Ids(ids) => ids.len(),
+                DeviceFilter::IsPushEnabled(_) | DeviceFilter::CreatedBetween { .. } => 0,
+            })
+            .sum();
         self.device_updates.lock().unwrap().push((filters, updates));
-        Ok(1)
+        Ok(count)
     }
 
     async fn get_scan_address(&self, chain: Chain, address: String) -> Result<ScanAddress, DatabaseError> {

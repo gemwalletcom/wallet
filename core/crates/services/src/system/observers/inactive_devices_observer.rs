@@ -1,6 +1,7 @@
 use std::error::Error;
 use std::sync::Arc;
 
+use crate::devices::repository::Repository as DeviceRepository;
 use crate::system::repository::Repository;
 use cacher::{ThrottleCacher, ThrottledTask};
 use localizer::LanguageLocalizer;
@@ -10,19 +11,25 @@ use streamer::{NotificationsPayload, StreamProducerQueue};
 
 pub struct InactiveDevicesObserver {
     repository: Arc<dyn Repository>,
+    devices: Arc<dyn DeviceRepository>,
     throttle: Arc<dyn ThrottleCacher>,
     stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
 impl InactiveDevicesObserver {
-    pub(crate) fn new(repository: Arc<dyn Repository>, throttle: Arc<dyn ThrottleCacher>, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
-        Self { repository, throttle, stream_producer }
+    pub(crate) fn new(repository: Arc<dyn Repository>, devices: Arc<dyn DeviceRepository>, throttle: Arc<dyn ThrottleCacher>, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
+        Self {
+            repository,
+            devices,
+            throttle,
+            stream_producer,
+        }
     }
 
     pub async fn observe(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let devices = self.repository.get_inactive_devices(10, 14, Some(true)).await?;
         for device in &devices {
-            let subscriptions = self.repository.get_device_subscriptions(device.id.clone()).await?;
+            let subscriptions = self.devices.get_device_subscriptions(device.id.clone()).await?;
             if subscriptions.is_empty() {
                 continue;
             }
