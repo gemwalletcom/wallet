@@ -1094,7 +1094,7 @@ fun mockGemAssetBalance(
 fun mockGemAssetDetails(
     state: uniffi.gemstone.GemAssetDetailsState = mockGemAssetDetailsState(),
     header: uniffi.gemstone.GemValueHeader = mockGemValueHeader(),
-    banner: uniffi.gemstone.GemBannerRow? = null,
+    banner: uniffi.gemstone.GemAssetBanner? = null,
     sections: List<uniffi.gemstone.GemAssetDetailSection> = emptyList(),
     title: String = "",
     options: List<uniffi.gemstone.GemAssetOption> = emptyList(),
@@ -2180,7 +2180,7 @@ fun mockGemWalletHomeViewState(
     header: uniffi.gemstone.GemValueHeader = mockGemValueHeader(),
     showCollections: Boolean = false,
     showsPerpetuals: Boolean = false,
-    banner: uniffi.gemstone.GemBannerRow? = null,
+    banner: uniffi.gemstone.GemWalletBanner? = null,
     pinnedAssetIds: List<String> = emptyList(),
     assetIds: List<String> = emptyList(),
 ) = uniffi.gemstone.GemWalletHomeViewState(

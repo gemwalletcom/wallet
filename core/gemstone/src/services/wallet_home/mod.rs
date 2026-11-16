@@ -14,7 +14,7 @@ use crate::services::assets::model::{GemRowText, GemValueHeader, GemValueHeaderS
 use crate::services::assets::rules::asset_sections;
 use crate::services::balance::GemBalanceService;
 use crate::services::balance::rules as balance_rules;
-use crate::services::banner::{GemBannerContext, GemBannerKey, GemBannerRow, GemBannerService};
+use crate::services::banner::{GemBannerContext, GemBannerKey, GemBannerService, GemWalletBanner};
 use crate::services::error::GemServiceError;
 use crate::services::nft::model::{GemNftEntry, GemNftList};
 use crate::services::nft::rules as nft_rules;
@@ -32,7 +32,7 @@ pub struct GemWalletHomeViewState {
     pub header: GemValueHeader,
     pub show_collections: bool,
     pub shows_perpetuals: bool,
-    pub banner: Option<GemBannerRow>,
+    pub banner: Option<GemWalletBanner>,
     pub pinned_asset_ids: Vec<AssetId>,
     pub asset_ids: Vec<AssetId>,
 }
@@ -93,7 +93,7 @@ impl GemWalletHomeService {
             },
             show_collections: self.preferences.show_collections(wallet_type, chains.clone()),
             shows_perpetuals: self.preferences.show_perpetuals(wallet_type, chains),
-            banner: visible_banners.into_iter().next(),
+            banner: visible_banners.into_iter().next().map(|row| self.banners.wallet_banner(row)),
             pinned_asset_ids: sections.pinned,
             asset_ids: sections.assets,
         }
