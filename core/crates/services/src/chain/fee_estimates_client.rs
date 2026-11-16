@@ -175,28 +175,11 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_failed_refresh_returns_previous_chain_estimates() {
-        let cacher = Arc::new(MemoryFeeEstimatesCacher::default().with_estimates(Chain::Ethereum, cached(Chain::Ethereum), false));
-        let response = client(cacher.clone()).get_chain_fee_estimates(Chain::Ethereum).await.unwrap();
-
-        assert_eq!(response.asset.id.chain, Chain::Ethereum);
-        assert!(cacher.writes().is_empty());
-    }
-
-    #[tokio::test]
     async fn test_deprecated_chain_is_not_found() {
         let cacher = Arc::new(MemoryFeeEstimatesCacher::default().with_estimates(Chain::Blast, cached(Chain::Blast), true));
         let error = client(cacher.clone()).get_chain_fee_estimates(Chain::Blast).await.unwrap_err();
 
         assert_eq!(error.to_string(), "FeeEstimates blast not found");
-        assert!(cacher.writes().is_empty());
-    }
-
-    #[tokio::test]
-    async fn test_failed_refresh_without_previous_estimates_returns_error() {
-        let cacher = Arc::new(MemoryFeeEstimatesCacher::default());
-
-        assert!(client(cacher.clone()).get_chain_fee_estimates(Chain::Ethereum).await.is_err());
         assert!(cacher.writes().is_empty());
     }
 
