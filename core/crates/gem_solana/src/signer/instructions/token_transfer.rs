@@ -3,7 +3,7 @@ use primitives::{Asset, SignerError, SignerInput, SolanaTokenProgramId};
 use crate::{
     Instruction, Pubkey, SolanaTokenProgramIdExt,
     instructions::{
-        associated_token::{create_associated_token_account_idempotent, get_associated_token_address_with_program_id},
+        associated_token::{create_associated_token_account_idempotent_with_address, get_associated_token_address_with_program_id},
         memo::memo,
         token::transfer_checked_with_program_id,
     },
@@ -28,7 +28,7 @@ pub(in crate::signer::instructions) fn spl_transfer_checked(input: &SignerInput,
     let recipient = Pubkey::from_base58(&input.destination_address).map_err(SignerError::from_display)?;
     let recipient_token_address = get_associated_token_address_with_program_id(&recipient, &mint, &token_program_id)?;
     if input.metadata.get_recipient_token_address()? != Some(recipient_token_address.to_base58()) {
-        instructions.push(create_associated_token_account_idempotent(&sender, &recipient, &mint, &token_program_id)?);
+        instructions.push(create_associated_token_account_idempotent_with_address(&sender, &recipient_token_address, &recipient, &mint, &token_program_id));
     }
 
     if let Some(memo_text) = input.get_memo() {

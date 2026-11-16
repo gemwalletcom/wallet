@@ -8,7 +8,8 @@ use gem_client::Client;
 use primitives::{FeeRate, SolanaNftStandard, SolanaTokenProgramId, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput};
 
 use crate::{
-    METAPLEX_CORE_PROGRAM, get_token_program_id_by_address,
+    METAPLEX_CORE_PROGRAM, Pubkey, SolanaTokenProgramIdExt, get_token_program_id_by_address,
+    instructions::associated_token::get_associated_token_address_with_program_id,
     metaplex::metadata::Metadata,
     metaplex_core,
     rpc::{SolanaClient, SolanaProvider},
@@ -53,6 +54,11 @@ impl<C: Client + Clone> ChainTransactionLoad for SolanaProvider<C> {
             }
         };
         let recipient_mint = recipient_mint(&input_type, token_program.as_ref());
+        let recipient_associated_token_address = match (&input_type, recipient_mint, &token_program) {
+            (TransactionInputType::Swap { .. }, _, _) => None,
+            (_, Some(mint), Some(token_program)) => Some(associated_token_address(recipient_lookup, mint, token_program)?),
+            _ => None,
+        };
 
         let sender_token_future = async {
             match sender_mint {
@@ -61,9 +67,10 @@ impl<C: Client + Clone> ChainTransactionLoad for SolanaProvider<C> {
             }
         };
         let recipient_token_future = async {
-            match recipient_mint {
-                Some(mint) => self.find_token_account(recipient_lookup, mint).await,
-                None => Ok(None),
+            match (recipient_associated_token_address, recipient_mint) {
+                (Some(address), _) => Ok(self.get_account_info_base64(&address).await?.value.map(|_| address)),
+                (None, Some(mint)) => self.find_token_account(recipient_lookup, mint).await,
+                (None, None) => Ok(None),
             }
         };
 
@@ -103,6 +110,12 @@ impl<C: Client + Clone> ChainTransactionLoad for SolanaProvider<C> {
         let prioritization_fees = self.get_recent_prioritization_fees().await?;
         Ok(calculate_fee_rates(&input_type, &prioritization_fees))
     }
+}
+
+fn associated_token_address(owner: &str, mint: &str, token_program: &SolanaTokenProgramId) -> Result<String, Box<dyn Error + Sync + Send>> {
+    let owner = Pubkey::from_base58(owner)?;
+    let mint = Pubkey::from_base58(mint)?;
+    Ok(get_associated_token_address_with_program_id(&owner, &mint, &token_program.program_id())?.to_base58())
 }
 
 #[cfg(feature = "rpc")]
