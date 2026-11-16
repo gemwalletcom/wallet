@@ -28,7 +28,6 @@ use super::model::{
     ConfirmState, GemAcquireAsset, GemAcquireAssetFlow, GemAcquireOption, GemApprovalValue, GemConfirmData, GemConfirmFee, GemConfirmFeeLoad, GemConfirmFeeSelection, GemConfirmInput, GemConfirmLoad, GemConfirmMetadata,
     GemConfirmSimulationState, GemFeeAsset, GemFeeRateKind, GemFeeRateRow, GemFeeRateRows, GemSubmitMessage, GemTransferAmountResult, SendInput,
 };
-use crate::config::chain::custom_fee_enabled;
 use crate::config::fiat_config::get_fiat_config;
 use crate::fee::fee_rate_text;
 use crate::fee::rate_of;
@@ -565,7 +564,7 @@ fn fee_rate_rows(chain: Chain, fee_asset: &Asset, rates: &[FeeRate], selection: 
         let value = fee_rate_text(unit_type, &display_value, unit_decimals, &fee_asset.symbol);
         GemFeeRateRow::new(GemFeeRateKind::Priority { priority: rate.priority }, fee, Some(value), is_selected)
     });
-    let custom = (custom_fee_enabled(chain) && rates.len() > 1).then(|| {
+    let custom = (unit_type != FeeUnitType::Native && rates.len() > 1).then(|| {
         GemFeeRateRow::new(
             GemFeeRateKind::Custom,
             custom_total.as_ref().map(|_| loaded_fee.fee.clone()),

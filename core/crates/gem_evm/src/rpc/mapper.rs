@@ -1,7 +1,6 @@
 use std::borrow::Cow;
 
 use super::parsers::{ProtocolParser, ProtocolParsers};
-pub(crate) use super::transaction_payload::TRANSFER_TOPIC;
 use super::transaction_payload::{Erc20ApprovalPayload, Erc20TransferPayload, NftTransferPayload, TransactionPayload};
 use crate::{
     address::ethereum_address_checksum,
@@ -199,7 +198,7 @@ mod tests {
     use super::*;
     use crate::provider::testkit::TEST_TRANSACTION_ID;
     use crate::rpc::model::{Log, Transaction, TransactionReceipt};
-    use crate::rpc::transaction_payload::INPUT_0X;
+    use crate::rpc::transaction_payload::{INPUT_0X, TRANSFER_TOPIC};
     use num_bigint::BigUint;
     use primitives::hex;
     use primitives::{

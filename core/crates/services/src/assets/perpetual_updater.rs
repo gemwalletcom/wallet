@@ -18,10 +18,6 @@ impl PerpetualUpdater {
         Self { providers, repository }
     }
 
-    pub fn chains() -> &'static [Chain] {
-        &[Chain::HyperCore]
-    }
-
     pub async fn update_chain(&self, chain: Chain) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let perpetuals_data = self.providers.get_perpetuals_data(chain).await?;
 

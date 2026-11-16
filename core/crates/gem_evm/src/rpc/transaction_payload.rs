@@ -38,6 +38,20 @@ pub(super) struct Erc20TransferPayload {
     pub(super) value: BigUint,
 }
 
+impl Erc20TransferPayload {
+    pub(super) fn from_log(log: &Log) -> Option<Self> {
+        if !TransactionPayload::has_topic(log, TRANSFER_TOPIC, 3) {
+            return None;
+        }
+        Some(Self {
+            from: ethereum_address_from_topic(log.topics.get(1)?)?,
+            to: ethereum_address_from_topic(log.topics.get(2)?)?,
+            contract_address: ethereum_address_checksum(&log.address).ok()?,
+            value: biguint_from_hex(log.data.trim_prefix("0x").get(0..64)?)?,
+        })
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(super) struct Erc20ApprovalPayload {
     pub(super) spender: String,
@@ -94,13 +108,7 @@ impl TransactionPayload {
     }
 
     fn erc20_transfer_events(transaction_receipt: &TransactionReceipt) -> impl Iterator<Item = Erc20TransferPayload> + '_ {
-        transaction_receipt.logs.iter().filter(|log| Self::has_topic(log, TRANSFER_TOPIC, 3)).filter_map(|log| {
-            let from = ethereum_address_from_topic(log.topics.get(1)?)?;
-            let to = ethereum_address_from_topic(log.topics.get(2)?)?;
-            let contract_address = ethereum_address_checksum(&log.address).ok()?;
-            let value = biguint_from_hex(&log.data)?;
-            Some(Erc20TransferPayload { from, to, contract_address, value })
-        })
+        transaction_receipt.logs.iter().filter_map(Erc20TransferPayload::from_log)
     }
 
     pub(super) fn erc20_transfers(transaction_receipt: &TransactionReceipt, transaction_from: &str, transaction_to: &str) -> Vec<Erc20TransferPayload> {

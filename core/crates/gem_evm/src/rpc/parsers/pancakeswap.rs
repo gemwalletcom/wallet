@@ -3,14 +3,13 @@ use std::collections::HashMap;
 use num_bigint::{BigInt, BigUint};
 
 use crate::{
-    address::ethereum_address_from_topic,
     ethereum_address_checksum,
-    rpc::mapper::TRANSFER_TOPIC,
+    rpc::transaction_payload::Erc20TransferPayload,
     uniswap::deployment::{UniversalRouterAbi, v3::get_pancakeswap_router_deployment_by_chain},
 };
 use primitives::{AssetId, SwapProvider, Transaction as PrimitivesTransaction, TransactionSwapMetadata, decode_hex};
 
-use super::{EVENT_WORD_SIZE, ParseContext, ParseContextExt, TransactionParser, ethereum_value_from_log_data, referral_fee_from_transfers, universal_router::decode_execute_swap};
+use super::{ParseContext, ParseContextExt, TransactionParser, referral_fee_from_transfers, universal_router::decode_execute_swap};
 
 pub struct PancakeSwapParser;
 
@@ -68,26 +67,13 @@ impl PancakeSwapParser {
     fn net_erc20_transfers(user: &str, context: &ParseContext<'_>) -> HashMap<String, BigInt> {
         let mut net_by_token: HashMap<String, BigInt> = HashMap::new();
 
-        for log in &context.metadata.receipt.logs {
-            if log.topics.len() != 3 || log.topics.first().is_none_or(|t| t != TRANSFER_TOPIC) {
-                continue;
+        for transfer in context.metadata.receipt.logs.iter().filter_map(Erc20TransferPayload::from_log) {
+            let value = BigInt::from(transfer.value);
+            if transfer.from == user {
+                *net_by_token.entry(transfer.contract_address.clone()).or_default() -= value.clone();
             }
-            let Some(token) = ethereum_address_checksum(&log.address).ok() else {
-                continue;
-            };
-            let (Some(log_from), Some(log_to)) = (log.topics.get(1).and_then(|t| ethereum_address_from_topic(t)), log.topics.get(2).and_then(|t| ethereum_address_from_topic(t))) else {
-                continue;
-            };
-            let Some(value) = ethereum_value_from_log_data(&log.data, 0, EVENT_WORD_SIZE) else {
-                continue;
-            };
-            let value = BigInt::from(value);
-
-            if log_from == user {
-                *net_by_token.entry(token.clone()).or_default() -= value.clone();
-            }
-            if log_to == user {
-                *net_by_token.entry(token).or_default() += value;
+            if transfer.to == user {
+                *net_by_token.entry(transfer.contract_address).or_default() += value;
             }
         }
 

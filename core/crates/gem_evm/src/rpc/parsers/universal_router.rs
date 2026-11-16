@@ -5,11 +5,10 @@ use alloy_sol_types::SolValue;
 
 use crate::{
     abi::SolCallBounded,
-    address::ethereum_address_from_topic,
     ethereum_address_checksum,
     rpc::{
-        mapper::TRANSFER_TOPIC,
         model::{Log, TransactionReceipt},
+        transaction_payload::Erc20TransferPayload,
     },
     u256::u256_to_biguint,
     uniswap::{
@@ -31,7 +30,7 @@ use primitives::{
     swap::{EVM_REFERRAL_ADDRESS, HUNDRED_PERCENT_IN_BPS},
 };
 
-use super::{EVENT_WORD_SIZE, ParseContext, ParseContextExt, TransactionParser, ethereum_value_from_log_data, referral_fee_from_transfers, withdraw_value_from_receipt};
+use super::{ParseContext, ParseContextExt, TransactionParser, referral_fee_from_transfers, withdraw_value_from_receipt};
 
 pub struct UniversalRouterParser;
 
@@ -301,11 +300,9 @@ fn transfer_value_from_receipt(to: &str, token: &str, receipt: &TransactionRecei
     receipt
         .logs
         .iter()
-        .filter_map(|log| {
-            (ethereum_address_checksum(&log.address).ok()? == token && log.topics.len() == 3 && log.topics.first().is_some_and(|topic| topic == TRANSFER_TOPIC) && ethereum_address_from_topic(log.topics.get(2)?)? == to)
-                .then(|| ethereum_value_from_log_data(&log.data, 0, EVENT_WORD_SIZE))
-                .flatten()
-        })
+        .filter_map(Erc20TransferPayload::from_log)
+        .filter(|transfer| transfer.contract_address == token && transfer.to == to)
+        .map(|transfer| transfer.value)
         .reduce(|total, value| total + value)
         .map(|value| value.to_string())
 }

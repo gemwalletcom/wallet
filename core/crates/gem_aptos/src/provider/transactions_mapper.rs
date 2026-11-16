@@ -167,12 +167,8 @@ fn map_swap_transaction(transaction: Transaction, events: Vec<Event>, chain: Cha
         return None;
     }
 
-    let map_asset = |coin_type: &str| {
-        if coin_type == APTOS_NATIVE_COIN { chain.as_asset_id() } else { AssetId::from_token(chain, coin_type) }
-    };
-
-    let from_asset = map_asset(&type_args[0]);
-    let to_asset = map_asset(&type_args[1]);
+    let from_asset = map_token_address_to_asset_id(chain, &type_args[0]);
+    let to_asset = map_token_address_to_asset_id(chain, &type_args[1]);
 
     let balance_diffs = vec![
         BalanceDiff {
@@ -363,6 +359,22 @@ mod tests {
         assert_eq!(metadata.to_value, BigUint::from(120590251u64));
         assert_eq!(metadata.provider.unwrap(), "panora");
         assert_eq!(metadata.referral_fee, None);
+    }
+
+    #[test]
+    fn test_map_transaction_swap_from_type_arguments() {
+        let usdc = "0xf22bede237a07e121b56d91a491eb7bcdfd1f5907926a9e58338f964a01b17fa::asset::USDC";
+        let mut transaction: Transaction = serde_json::from_str(include_str!("../../testdata/transaction_swap_panora.json")).unwrap();
+        transaction.events.as_mut().unwrap().retain(|event| !event.event_type.contains(PANORA_SWAP_SUMMARY_EVENT));
+        transaction.payload.as_mut().unwrap().type_arguments = vec![APTOS_NATIVE_COIN.to_string(), usdc.to_string()];
+
+        let metadata = map_transaction(transaction).unwrap().swap_metadata().unwrap();
+
+        assert_eq!(metadata.from_asset, Chain::Aptos.as_asset_id());
+        assert_eq!(metadata.from_value, BigUint::from(2346314u64));
+        assert_eq!(metadata.to_asset, AssetId::from_token(Chain::Aptos, usdc));
+        assert_eq!(metadata.to_value, BigUint::from(83u64));
+        assert_eq!(metadata.provider.unwrap(), "panora");
     }
 
     #[test]

@@ -3,7 +3,6 @@ use std::sync::Arc;
 
 use job_runner::{JobHandle, ShutdownReceiver};
 use primitives::Chain;
-use services::assets::PerpetualUpdater;
 use settings::service_user_agent;
 
 use crate::model::WorkerService;
@@ -24,11 +23,10 @@ pub async fn jobs(context: WorkerContext, shutdown: ShutdownReceiver) -> Result<
                 async move { updater.update_suspicious_assets().await }
             }
         })
-        .jobs(WorkerJob::UpdatePerpetuals, PerpetualUpdater::chains(), {
+        .jobs(WorkerJob::UpdatePerpetuals, Chain::perpetual_chains(), {
             let services = services.clone();
             let assets = assets.clone();
             move |chain, _| {
-                let chain = *chain;
                 let providers = Arc::new(services.chain_providers_for(chain, &service_user_agent("daemon", Some("perpetual_updater"))));
                 let assets = assets.clone();
                 move |_| {

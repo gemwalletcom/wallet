@@ -51,14 +51,6 @@ pub fn account_activation_fee_url(chain: Chain) -> Option<String> {
     }
 }
 
-#[allow(clippy::match_like_matches_macro)]
-pub fn custom_fee_enabled(chain: Chain) -> bool {
-    match chain.chain_type() {
-        ChainType::Bitcoin | ChainType::Ethereum => true,
-        _ => false,
-    }
-}
-
 pub fn minimum_custom_fee_rate(chain: Chain) -> Option<BigInt> {
     match chain.chain_type() {
         ChainType::Bitcoin => BitcoinChain::from_chain(chain).map(|chain| BigInt::from(chain.minimum_custom_fee_rate())),
