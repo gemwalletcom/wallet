@@ -91,6 +91,24 @@ private const val ASSET_INFO_SOURCE = """
 private const val ASSET_INFO_SELECT = "SELECT $ASSET_INFO_COLUMNS $ASSET_INFO_SOURCE"
 private const val ASSET_INFO = "($ASSET_INFO_SELECT) AS asset_info"
 
+private const val ASSET_INFO_TEXT_MATCH = """
+    (symbol LIKE '%' || :query || '%'
+    OR name LIKE '%' || :query || '%' COLLATE NOCASE
+    OR SUBSTR(asset_info.id, LENGTH(chain) + 2) LIKE '%' || :query || '%'
+    OR (type = 'NATIVE' AND chain LIKE '%' || :query || '%' COLLATE NOCASE))
+"""
+
+private const val ASSET_INFO_FILTERS = """
+    AND (NOT :enabled OR isEnabled = 1)
+    AND (NOT :buyable OR isBuyEnabled = 1)
+    AND (NOT :sellable OR isSellEnabled = 1)
+    AND (NOT :swappable OR isSwapEnabled = 1)
+    AND (NOT :hasBalance OR balanceTotalAmount > 0)
+    AND (NOT :hasAvailableBalance OR balanceAvailableAmount > 0)
+    AND (NOT :byChainsOrAssetIds OR chain IN (:chains) OR asset_info.id IN (:assetIds))
+    AND (NOT :byChains OR chain IN (:selectedChains))
+"""
+
 @Dao
 interface AssetsDao {
 
@@ -223,14 +241,7 @@ interface AssetsDao {
             walletId = :walletId
             AND address IS NOT NULL
             AND assetRank >= 0
-            AND (NOT :enabled OR isEnabled = 1)
-            AND (NOT :buyable OR isBuyEnabled = 1)
-            AND (NOT :sellable OR isSellEnabled = 1)
-            AND (NOT :swappable OR isSwapEnabled = 1)
-            AND (NOT :hasBalance OR balanceTotalAmount > 0)
-            AND (NOT :hasAvailableBalance OR balanceAvailableAmount > 0)
-            AND (NOT :byChainsOrAssetIds OR chain IN (:chains) OR id IN (:assetIds))
-            AND (NOT :byChains OR chain IN (:selectedChains))
+            $ASSET_INFO_FILTERS
             ORDER BY pinned DESC, visible DESC, balanceFiatTotalAmount DESC, assetRank DESC
         """,
     )
@@ -277,18 +288,8 @@ interface AssetsDao {
             chain IN (SELECT chain FROM accounts WHERE wallet_id = :walletId)
             AND (walletId = :walletId OR walletId IS NULL)
             AND assetRank >= 0
-            AND (symbol LIKE '%' || :query || '%'
-            OR name LIKE '%' || :query || '%' COLLATE NOCASE
-            OR SUBSTR(asset_info.id, LENGTH(chain) + 2) LIKE '%' || :query || '%'
-            OR (type = 'NATIVE' AND chain LIKE '%' || :query || '%' COLLATE NOCASE))
-            AND (NOT :enabled OR isEnabled = 1)
-            AND (NOT :buyable OR isBuyEnabled = 1)
-            AND (NOT :sellable OR isSellEnabled = 1)
-            AND (NOT :swappable OR isSwapEnabled = 1)
-            AND (NOT :hasBalance OR balanceTotalAmount > 0)
-            AND (NOT :hasAvailableBalance OR balanceAvailableAmount > 0)
-            AND (NOT :byChainsOrAssetIds OR chain IN (:chains) OR asset_info.id IN (:assetIds))
-            AND (NOT :byChains OR chain IN (:selectedChains))
+            AND $ASSET_INFO_TEXT_MATCH
+            $ASSET_INFO_FILTERS
             ORDER BY pinned DESC, visible DESC, balanceFiatTotalAmount DESC, assetRank DESC
             LIMIT :limit
         """,
@@ -320,14 +321,7 @@ interface AssetsDao {
             AND (walletId = :walletId OR walletId IS NULL)
             AND assetRank >= 0
             AND search.`query` = :query
-            AND (NOT :enabled OR isEnabled = 1)
-            AND (NOT :buyable OR isBuyEnabled = 1)
-            AND (NOT :sellable OR isSellEnabled = 1)
-            AND (NOT :swappable OR isSwapEnabled = 1)
-            AND (NOT :hasBalance OR balanceTotalAmount > 0)
-            AND (NOT :hasAvailableBalance OR balanceAvailableAmount > 0)
-            AND (NOT :byChainsOrAssetIds OR chain IN (:chains) OR asset_info.id IN (:assetIds))
-            AND (NOT :byChains OR chain IN (:selectedChains))
+            $ASSET_INFO_FILTERS
             ORDER BY balanceFiatTotalAmount DESC, search.priority ASC, assetRank DESC
             LIMIT :limit
         """,
@@ -379,19 +373,8 @@ interface AssetsDao {
         SELECT asset_info.*
         FROM $ASSET_INFO WHERE
             assetRank >= 0
-            AND
-            (symbol LIKE '%' || :query || '%'
-            OR name LIKE '%' || :query || '%' COLLATE NOCASE
-            OR SUBSTR(asset_info.id, LENGTH(chain) + 2) LIKE '%' || :query || '%'
-            OR (type = 'NATIVE' AND chain LIKE '%' || :query || '%' COLLATE NOCASE))
-            AND (NOT :enabled OR isEnabled = 1)
-            AND (NOT :buyable OR isBuyEnabled = 1)
-            AND (NOT :sellable OR isSellEnabled = 1)
-            AND (NOT :swappable OR isSwapEnabled = 1)
-            AND (NOT :hasBalance OR balanceTotalAmount > 0)
-            AND (NOT :hasAvailableBalance OR balanceAvailableAmount > 0)
-            AND (NOT :byChainsOrAssetIds OR chain IN (:chains) OR asset_info.id IN (:assetIds))
-            AND (NOT :byChains OR chain IN (:selectedChains))
+            AND $ASSET_INFO_TEXT_MATCH
+            $ASSET_INFO_FILTERS
             ORDER BY pinned DESC, visible DESC, balanceFiatTotalAmount DESC, assetRank DESC
             LIMIT :limit
         """,
@@ -422,14 +405,7 @@ interface AssetsDao {
             assetRank >= 0
             AND
             search.`query` = :query
-            AND (NOT :enabled OR isEnabled = 1)
-            AND (NOT :buyable OR isBuyEnabled = 1)
-            AND (NOT :sellable OR isSellEnabled = 1)
-            AND (NOT :swappable OR isSwapEnabled = 1)
-            AND (NOT :hasBalance OR balanceTotalAmount > 0)
-            AND (NOT :hasAvailableBalance OR balanceAvailableAmount > 0)
-            AND (NOT :byChainsOrAssetIds OR chain IN (:chains) OR asset_info.id IN (:assetIds))
-            AND (NOT :byChains OR chain IN (:selectedChains))
+            $ASSET_INFO_FILTERS
             ORDER BY balanceFiatTotalAmount DESC, search.priority ASC, assetRank DESC
             LIMIT :limit
         """,
