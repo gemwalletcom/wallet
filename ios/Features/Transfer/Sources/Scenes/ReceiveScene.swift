@@ -21,46 +21,50 @@ public struct ReceiveScene: View {
 
     private var content: some View {
         VStack(spacing: .large) {
-            VStack {
-                Spacer()
-                VStack(spacing: .medium) {
-                    AssetPreviewView(model: model.assetState.asset)
-
-                    Button(action: model.onCopyAddress) {
+            GeometryReader { geometry in
+                ScrollView {
+                    VStack {
                         VStack(spacing: .medium) {
-                            VStack {
-                                if let image = model.renderedImage {
-                                    qrCodeView(image: image)
-                                } else {
-                                    LoadingView()
+                            AssetPreviewView(model: model.assetState.asset)
+
+                            Button(action: model.onCopyAddress) {
+                                VStack(spacing: .medium) {
+                                    VStack {
+                                        if let image = model.renderedImage {
+                                            qrCodeView(image: image)
+                                        } else {
+                                            LoadingView()
+                                        }
+                                    }
+                                    .frame(size: model.qrSize)
+
+                                    Text(model.address.preventingHyphenation)
+                                        .multilineTextAlignment(.center)
+                                        .textStyle(TextStyle(font: .subheadline, color: Colors.secondaryText, fontWeight: .medium))
+                                        .fixedSize(horizontal: false, vertical: true)
+                                        .frame(maxWidth: model.qrSize)
+                                        .accessibilityIdentifier(model.address)
                                 }
                             }
-                            .frame(size: model.qrSize)
-
-                            Text(model.address.preventingHyphenation)
-                                .multilineTextAlignment(.center)
-                                .textStyle(TextStyle(font: .subheadline, color: Colors.secondaryText, fontWeight: .medium))
-                                .fixedSize(horizontal: false, vertical: true)
-                                .frame(maxWidth: model.qrSize)
-                                .accessibilityIdentifier(model.address)
+                            .buttonStyle(.scale)
+                            .padding(.medium)
+                            .background(
+                                RoundedRectangle(cornerRadius: .medium)
+                                    .fill(Colors.listStyleColor)
+                                    .shadow(color: Color.black.opacity(.opacity25), radius: Sizing.shadow.radius, x: .zero, y: Sizing.shadow.yOffset),
+                            )
                         }
+                        Text(.init(model.warningMessage))
+                            .textStyle(.subHeadline)
+                            .multilineTextAlignment(.center)
+                            .padding(.top, .small)
+                            .frame(maxWidth: model.qrSize + .extraLarge)
                     }
-                    .buttonStyle(.scale)
-                    .padding(.medium)
-                    .background(
-                        RoundedRectangle(cornerRadius: .medium)
-                            .fill(Colors.listStyleColor)
-                            .shadow(color: Color.black.opacity(.opacity25), radius: Sizing.shadow.radius, x: .zero, y: Sizing.shadow.yOffset),
-                    )
+                    .frame(maxWidth: .scene.button.maxWidth)
+                    .frame(maxWidth: .infinity, minHeight: geometry.size.height)
                 }
-                Text(.init(model.warningMessage))
-                    .textStyle(.subHeadline)
-                    .multilineTextAlignment(.center)
-                    .padding(.top, .small)
-                    .frame(maxWidth: model.qrSize + .extraLarge)
-                Spacer()
+                .scrollBounceBehavior(.basedOnSize)
             }
-            .frame(maxWidth: .scene.button.maxWidth)
 
             if model.showNetworkSelector {
                 Button(action: model.onSelectNetwork) {

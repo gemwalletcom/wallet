@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
@@ -172,11 +174,13 @@ private fun ReceiveScene(closeIcon: Boolean, assetInfo: AssetData, header: GemAs
         if (assetInfo.account.address.isEmpty()) {
             return@Scene
         }
-        Spacer(modifier = Modifier.weight(1f))
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(imagePadding),
+            verticalArrangement = Arrangement.spacedBy(imagePadding, Alignment.CenterVertically),
         ) {
             CenteredListHead(
                 title = header.asset.name,
@@ -236,6 +240,5 @@ private fun ReceiveScene(closeIcon: Boolean, assetInfo: AssetData, header: GemAs
                 style = MaterialTheme.typography.bodyMedium,
             )
         }
-        Spacer(modifier = Modifier.weight(1f))
     }
 }

@@ -91,7 +91,7 @@ struct ImportWalletScene: View {
                         state: model.buttonState,
                         action: onSelectActionButton,
                     )
-                    .frame(height: .scene.button.height)
+                    .frame(minHeight: .scene.button.height)
                     .frame(maxWidth: .scene.button.maxWidth)
                 }
                 .frame(maxWidth: .infinity)

@@ -3,7 +3,7 @@
 import SwiftUI
 
 public struct StateButtonStyle: ButtonStyle {
-    public static let maxHeight: CGFloat = 50
+    public static let minHeight: CGFloat = 50
     private let state: ButtonState
     private let palette: ButtonStylePalette
 
@@ -14,7 +14,7 @@ public struct StateButtonStyle: ButtonStyle {
 
     public func makeBody(configuration: Configuration) -> some View {
         content(configuration: configuration)
-            .frame(maxWidth: .infinity, maxHeight: Self.maxHeight)
+            .frame(maxWidth: .infinity, minHeight: Self.minHeight)
             .background(adoptiveShape(configuration: configuration))
     }
 
@@ -27,6 +27,7 @@ public struct StateButtonStyle: ButtonStyle {
                 .lineLimit(1)
                 .foregroundStyle(foreground(configuration: configuration))
                 .padding(.horizontal, .medium)
+                .padding(.vertical, .small)
         }
     }
 
@@ -35,12 +36,10 @@ public struct StateButtonStyle: ButtonStyle {
         if #available(iOS 26, *) {
             DefaultGlassEffectShape()
                 .fill(background(configuration: configuration))
-                .frame(maxHeight: Self.maxHeight)
                 .glassEffect(.regular.interactive(!state.isDisabled))
         } else {
             RoundedRectangle(cornerRadius: Sizing.space12)
                 .fill(background(configuration: configuration))
-                .frame(maxHeight: Self.maxHeight)
         }
     }
 

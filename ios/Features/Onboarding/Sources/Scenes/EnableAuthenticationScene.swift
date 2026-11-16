@@ -33,7 +33,7 @@ struct EnableAuthenticationScene: View {
                 Button(action: model.skip) {
                     Text(model.skipTitle)
                         .textStyle(TextStyle(font: .body.weight(.semibold), color: Colors.secondaryText))
-                        .frame(maxWidth: .infinity, minHeight: StateButtonStyle.maxHeight)
+                        .frame(maxWidth: .infinity, minHeight: StateButtonStyle.minHeight)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
