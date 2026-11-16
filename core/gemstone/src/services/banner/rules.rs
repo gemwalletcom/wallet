@@ -6,11 +6,11 @@ use crate::config::docs::DocsUrl;
 use crate::formatted_number::GemFormattedNumber;
 #[cfg(test)]
 use crate::models::custom_types::GemBigInt;
+use crate::services::perpetual::rules as perpetual_rules;
 use crate::services::transfer::rules as transfer_rules;
 use number_formatter::ValueStyle;
 
 const ACCOUNT_ACTIVATION_CHAINS: [Chain; 3] = [Chain::Xrp, Chain::Stellar, Chain::Algorand];
-const TRADE_PERPETUALS_CHAINS: [Chain; 2] = [Chain::HyperCore, Chain::Hyperliquid];
 
 fn is_visible(state: BannerState) -> bool {
     match state {
@@ -35,12 +35,9 @@ fn asset_key(chain: Chain, event: BannerEvent) -> GemBannerKey {
 }
 
 pub fn setup_keys() -> Vec<GemBannerKey> {
-    Chain::all()
-        .into_iter()
-        .filter(Chain::is_stake_supported)
-        .map(|chain| asset_key(chain, BannerEvent::Stake))
-        .chain(TRADE_PERPETUALS_CHAINS.into_iter().map(|chain| asset_key(chain, BannerEvent::TradePerpetuals)))
-        .collect()
+    let stake = Chain::all().into_iter().filter(Chain::is_stake_supported).map(|chain| asset_key(chain, BannerEvent::Stake));
+    let trade_perpetuals = Chain::all().into_iter().filter(|chain| perpetual_rules::provider(*chain).is_some()).map(|chain| asset_key(chain, BannerEvent::TradePerpetuals));
+    stake.chain(trade_perpetuals).collect()
 }
 
 pub fn wallet_setup_keys(wallet: &Wallet) -> Vec<GemBannerKey> {
