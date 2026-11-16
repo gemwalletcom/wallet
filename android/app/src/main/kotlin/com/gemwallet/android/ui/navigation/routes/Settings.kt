@@ -27,7 +27,7 @@ import com.gemwallet.android.features.settings.presents.security.SecurityScreen
 import com.gemwallet.android.features.settings.viewmodels.models.PreferencesAction
 import com.gemwallet.android.features.support.presents.SupportChatScreen
 import com.gemwallet.android.ui.models.navigation.RouteArgument
-import com.gemwallet.android.ui.models.navigation.RouteMessage
+import com.gemwallet.android.ui.navigation.WalletNavigator
 import com.gemwallet.android.ui.navigation.assetIdArgument
 import com.gemwallet.android.ui.navigation.routeArguments
 import com.gemwallet.android.ui.open
@@ -83,9 +83,7 @@ data object PreferencesRoute : NavKey
 @Serializable
 data object NotificationsRoute : NavKey
 
-fun EntryProviderScope<NavKey>.settingsScreen(onAction: (SettingsAction) -> Unit, onOpenUrl: (String) -> Boolean, routeMessage: (NavKey) -> RouteMessage?, onRouteMessageShown: (NavKey) -> Unit) {
-    val onCancel = { onAction(SettingsAction.Cancel) }
-
+fun EntryProviderScope<NavKey>.settingsScreen(navigator: WalletNavigator, onPayment: (String) -> Unit, onCancel: () -> Unit) {
     entry<CurrencyRoute> {
         CurrencyScreen(onCancel = onCancel)
     }
@@ -96,15 +94,15 @@ fun EntryProviderScope<NavKey>.settingsScreen(onAction: (SettingsAction) -> Unit
 
     entry<DeveloperRoute> {
         DeveloperScreen(
-            onInAppNotifications = { onAction(SettingsAction.InAppNotifications) },
-            onPayments = { onAction(SettingsAction.DeveloperPayments) },
+            onInAppNotifications = navigator::openInAppNotifications,
+            onPayments = navigator::openDeveloperPayments,
             onCancel = onCancel,
         )
     }
 
     entry<DeveloperPaymentsRoute> {
         DeveloperPaymentsScene(
-            onSelect = { onAction(SettingsAction.Payment(it)) },
+            onSelect = onPayment,
             onCancel = onCancel,
         )
     }
@@ -113,14 +111,14 @@ fun EntryProviderScope<NavKey>.settingsScreen(onAction: (SettingsAction) -> Unit
         val context = LocalContext.current
         val uriHandler = LocalUriHandler.current
         InAppNotificationsScreen(
-            message = routeMessage(key),
-            onMessageShown = { onRouteMessageShown(key) },
+            message = navigator.routeMessage(key),
+            onMessageShown = { navigator.clearRouteMessage(key) },
             onAction = { action ->
                 when (action) {
-                    InAppNotificationsAction.Cancel -> onAction(SettingsAction.Cancel)
+                    InAppNotificationsAction.Cancel -> onCancel()
 
                     is InAppNotificationsAction.Open -> when (val destination = action.destination) {
-                        is GemNotificationDestination.InApp -> onAction(SettingsAction.OpenNotification(destination.action))
+                        is GemNotificationDestination.InApp -> navigator.openUrlAction(destination.action)
                         is GemNotificationDestination.Web -> uriHandler.open(context, destination.url)
                     }
                 }
@@ -134,8 +132,8 @@ fun EntryProviderScope<NavKey>.settingsScreen(onAction: (SettingsAction) -> Unit
 
     entry<ChainListSettingsRoute> {
         ChainListSettingsScreen(
-            onSelectChain = { onAction(SettingsAction.ChainSettings(it)) },
-            onShowStatus = { onAction(SettingsAction.ServiceStatus) },
+            onSelectChain = navigator::openChainSettings,
+            onShowStatus = navigator::openServiceStatus,
             onCancel = onCancel,
         )
     }
@@ -152,9 +150,9 @@ fun EntryProviderScope<NavKey>.settingsScreen(onAction: (SettingsAction) -> Unit
 
     entry<PriceAlertsRoute> { key ->
         PriceAlertsScreen(
-            message = routeMessage(key),
-            onMessageShown = { onRouteMessageShown(key) },
-            onChart = { onAction(SettingsAction.Chart(it)) },
+            message = navigator.routeMessage(key),
+            onMessageShown = { navigator.clearRouteMessage(key) },
+            onChart = navigator::openChart,
             onCancel = onCancel,
         )
     }
@@ -163,9 +161,9 @@ fun EntryProviderScope<NavKey>.settingsScreen(onAction: (SettingsAction) -> Unit
         metadata = { key -> routeArguments(assetIdArgument(key.assetId)) },
     ) { key ->
         AssetPriceAlertsScreen(
-            message = routeMessage(key),
-            onMessageShown = { onRouteMessageShown(key) },
-            onSetPriceAlert = { onAction(SettingsAction.SetPriceAlert(it)) },
+            message = navigator.routeMessage(key),
+            onMessageShown = { navigator.clearRouteMessage(key) },
+            onSetPriceAlert = navigator::openSetPriceAlert,
             onCancel = onCancel,
         )
     }
@@ -175,13 +173,13 @@ fun EntryProviderScope<NavKey>.settingsScreen(onAction: (SettingsAction) -> Unit
     ) {
         SetPriceAlertScreen(
             onCancel = onCancel,
-            onComplete = { onAction(SettingsAction.SetPriceAlertComplete(it)) },
+            onComplete = navigator::popWithToast,
         )
     }
 
     entry<NotificationsRoute> {
         NotificationsScreen(
-            onPriceAlerts = { onAction(SettingsAction.PriceAlerts) },
+            onPriceAlerts = navigator::openPriceAlerts,
             onCancel = onCancel,
         )
     }
@@ -190,9 +188,9 @@ fun EntryProviderScope<NavKey>.settingsScreen(onAction: (SettingsAction) -> Unit
         PreferencesScreen(
             onAction = { action ->
                 when (action) {
-                    PreferencesAction.Currencies -> onAction(SettingsAction.Currencies)
-                    PreferencesAction.Networks -> onAction(SettingsAction.Networks)
-                    PreferencesAction.Contacts -> onAction(SettingsAction.Contacts)
+                    PreferencesAction.Currencies -> navigator.openCurrency()
+                    PreferencesAction.Networks -> navigator.openChainListSettings()
+                    PreferencesAction.Contacts -> navigator.openContacts()
                     PreferencesAction.Cancel -> onCancel()
                 }
             },
@@ -202,7 +200,7 @@ fun EntryProviderScope<NavKey>.settingsScreen(onAction: (SettingsAction) -> Unit
     entry<SupportRoute> { key ->
         val context = LocalContext.current
         val defaultUriHandler = LocalUriHandler.current
-        val currentOnOpenUrl by rememberUpdatedState(onOpenUrl)
+        val currentOnOpenUrl by rememberUpdatedState(navigator::openNotificationUrl)
         val uriHandler = remember(defaultUriHandler, context) {
             object : UriHandler {
                 override fun openUri(uri: String) {
@@ -214,8 +212,8 @@ fun EntryProviderScope<NavKey>.settingsScreen(onAction: (SettingsAction) -> Unit
         }
         CompositionLocalProvider(LocalUriHandler provides uriHandler) {
             SupportChatScreen(
-                message = routeMessage(key),
-                onMessageShown = { onRouteMessageShown(key) },
+                message = navigator.routeMessage(key),
+                onMessageShown = { navigator.clearRouteMessage(key) },
                 onCancel = onCancel,
             )
         }

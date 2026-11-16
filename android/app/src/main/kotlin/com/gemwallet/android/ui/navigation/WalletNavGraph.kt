@@ -30,7 +30,6 @@ import com.gemwallet.android.features.wallet.presents.WalletSearchAction
 import com.gemwallet.android.ui.components.animation.navigationSlideTransition
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
-import com.gemwallet.android.ui.navigation.routes.SettingsAction
 import com.gemwallet.android.ui.navigation.routes.addAssetScreen
 import com.gemwallet.android.ui.navigation.routes.addressDetailsScreen
 import com.gemwallet.android.ui.navigation.routes.amount
@@ -265,27 +264,9 @@ fun WalletNavGraph(
             )
 
             settingsScreen(
-                onAction = { action ->
-                    when (action) {
-                        SettingsAction.Currencies -> navigator.openCurrency()
-                        SettingsAction.Contacts -> navigator.openContacts()
-                        SettingsAction.Networks -> navigator.openChainListSettings()
-                        is SettingsAction.ChainSettings -> navigator.openChainSettings(action.chain)
-                        SettingsAction.ServiceStatus -> navigator.openServiceStatus()
-                        SettingsAction.PriceAlerts -> navigator.openPriceAlerts()
-                        is SettingsAction.SetPriceAlert -> navigator.openSetPriceAlert(action.assetId)
-                        is SettingsAction.SetPriceAlertComplete -> navigator.popWithToast(action.message)
-                        is SettingsAction.Chart -> navigator.openChart(action.assetId)
-                        SettingsAction.InAppNotifications -> navigator.openInAppNotifications()
-                        SettingsAction.DeveloperPayments -> navigator.openDeveloperPayments()
-                        is SettingsAction.Payment -> currentOnPayment(action.payload)
-                        is SettingsAction.OpenNotification -> navigator.openUrlAction(action.action)
-                        SettingsAction.Cancel -> onCancel()
-                    }
-                },
-                onOpenUrl = navigator::openNotificationUrl,
-                routeMessage = navigator::routeMessage,
-                onRouteMessageShown = navigator::clearRouteMessage,
+                navigator = navigator,
+                onPayment = { currentOnPayment(it) },
+                onCancel = onCancel,
             )
 
             contactsScreen(
