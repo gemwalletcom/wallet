@@ -26,6 +26,7 @@ struct ServicesFactory {
         let nodeService = GemNodeService(store: GemstoneNodeStore(store: stores.nodeStore), preferences: preferencesStore)
         let nativeProvider = NativeProvider()
         let secureStore = GemstoneSecurePreferencesStore(namespace: "gateway")
+        let encryptedStore = GemstoneEncryptedPreferencesStore(namespace: "gateway")
         let deviceKeyService = Gemstone.GemDeviceKeyService(store: secureStore)
         let deviceRegistrationClient = Self.makeDeviceApiClient(provider: nativeProvider, deviceKey: deviceKeyService)
 
@@ -67,7 +68,7 @@ struct ServicesFactory {
             provider: nativeProvider,
             nodes: nodeService,
             preferences: GemstonePreferencesStore(namespace: "gateway"),
-            securePreferences: GemstoneEncryptedPreferencesStore(namespace: "gateway"),
+            securePreferences: encryptedStore,
         )
         let nameService = Gemstone.GemNameService(api: deviceApiClient, store: gemstoneAddressStore)
         let assetsService = gatewayService.assetsService(api: apiClient, store: gemstoneAssetStore, price: priceService, preferences: preferencesService)
@@ -99,7 +100,7 @@ struct ServicesFactory {
             explorer: explorerService,
             names: nameService,
             avatar: avatarService,
-            secure: secureStore,
+            secure: encryptedStore,
         )
         let pushNotificationEnablerService = PushNotificationEnablerService(preferencesService: preferencesService, systemPrompt: storages.systemPrompt)
         let notificationPermissions = GemstoneNotificationPermissions(service: pushNotificationEnablerService)
@@ -155,7 +156,7 @@ struct ServicesFactory {
             transactionStatus: GemstoneTransactionStatusService(service: transactionStateService),
         )
         let lightningService = storages.keystore.lightningService(
-            secure: secureStore,
+            secure: encryptedStore,
             preferences: walletPreferencesService,
             balances: balanceService,
             transactions: transactionsService,
