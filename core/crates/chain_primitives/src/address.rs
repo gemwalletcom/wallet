@@ -3,7 +3,7 @@ use primitives::{Chain, ChainType};
 pub fn checksum_address(address: &str, chain: Chain) -> String {
     let address = address.trim();
     match chain.chain_type() {
-        ChainType::Ethereum | ChainType::HyperCore => gem_evm::ethereum_address_checksum(address).unwrap_or_else(|_| address.to_string()),
+        ChainType::Ethereum | ChainType::HyperCore => gem_evm::ethereum_address_checksum_or_original(address),
         _ => address.to_string(),
     }
 }

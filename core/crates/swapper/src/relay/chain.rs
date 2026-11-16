@@ -1,4 +1,4 @@
-use gem_evm::address::ethereum_address_checksum;
+use gem_evm::address::ethereum_address_checksum_or_original;
 use gem_ton::Address as TonAddress;
 use gem_tron::address::TronAddress;
 use primitives::{Chain, ChainType, chain_evm::EVMChain};
@@ -92,7 +92,7 @@ impl RelayChain {
 
     pub fn checksum_address(&self, address: &str) -> String {
         match self {
-            Self::Evm(_) => ethereum_address_checksum(address).unwrap_or_else(|_| address.to_string()),
+            Self::Evm(_) => ethereum_address_checksum_or_original(address),
             Self::Ton => TonAddress::try_parse_base64(address).map_or_else(|| address.to_string(), |ton_address| ton_address.encode_non_bounceable()),
             Self::Bitcoin | Self::Tron | Self::Solana | Self::Xrp => address.to_string(),
         }

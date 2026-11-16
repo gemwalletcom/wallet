@@ -39,6 +39,6 @@ pub mod testkit;
 
 pub const ETHEREUM_MESSAGE_PREFIX: &str = "\x19Ethereum Signed Message:\n";
 
-pub use address::{EthereumAddress, ethereum_address_checksum, validate_address};
+pub use address::{EthereumAddress, ethereum_address_checksum, ethereum_address_checksum_or_original, validate_address};
 pub use eip712::{EIP712Domain, EIP712Field, EIP712Type, EIP712TypedValue, eip712_domain_types};
 pub use primitives::contract_constants::EVM_ZERO_ADDRESS;

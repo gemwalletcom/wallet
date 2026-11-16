@@ -10,7 +10,7 @@ use super::{
 use gem_evm::{
     contracts::IERC20,
     eip712::{EIP712Field, EIP712Message, EIP712TypedValue, find_field_biguint, find_field_bool, find_field_string, find_field_struct},
-    ethereum_address_checksum,
+    ethereum_address_checksum, ethereum_address_checksum_or_original,
     permit2::IAllowanceTransfer,
     transaction::decode_nft_collection_approval_operator,
     uniswap::deployment::is_permit2_contract_by_chain,
@@ -27,7 +27,7 @@ pub fn simulate_evm_calldata(chain: Chain, calldata: &[u8], contract_address: &s
     match decode_evm_approval(chain, calldata, contract_address) {
         Some(approval) => approval.simulate(),
         None => {
-            let address = ethereum_address_checksum(contract_address).unwrap_or_else(|_| contract_address.to_string());
+            let address = ethereum_address_checksum_or_original(contract_address);
             SimulationResult::new(
                 vec![],
                 vec![SimulationPayloadField::standard(
