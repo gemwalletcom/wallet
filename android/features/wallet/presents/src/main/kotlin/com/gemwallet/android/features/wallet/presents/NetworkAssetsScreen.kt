@@ -61,12 +61,14 @@ fun NetworkAssetsScreen(onSelectAsset: (AssetId) -> Unit, onManageAssets: () -> 
         },
     ) {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
-            if (pinned.isNotEmpty()) {
+            if (sections.showsPinned) {
                 item { AssetSectionHeaderItem(GemAssetSectionKind.PINNED) }
                 networkAssetRows(pinned, "pinned", onSelect, longPressedAsset, activeActions)
             }
-            networkAssetRows(unpinned, "unpinned", onSelect, longPressedAsset, activeActions)
-            if (hidden.isNotEmpty()) {
+            if (sections.showsUnpinned) {
+                networkAssetRows(unpinned, "unpinned", onSelect, longPressedAsset, activeActions)
+            }
+            if (sections.showsHidden) {
                 item { SubheaderItem(R.string.common_hidden) }
                 networkAssetRows(hidden, "hidden", onSelect, longPressedAsset, hiddenActions)
             }

@@ -40,6 +40,7 @@ import uniffi.gemstone.GemSearchScope
 import uniffi.gemstone.GemSelectAssetState
 import uniffi.gemstone.GemSelectAssetType
 import uniffi.gemstone.GemWalletSearchInput
+import uniffi.gemstone.GemWalletSearchState
 import uniffi.gemstone.GemWalletSearchView
 import javax.inject.Inject
 
@@ -91,7 +92,7 @@ class WalletSearchViewModel @Inject constructor(
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val state: StateFlow<GemSelectAssetState> = content.select(viewModelScope, GemSelectAssetState.IDLE) { it.view.state.phase }
+    val state: StateFlow<GemWalletSearchState> = content.select(viewModelScope, emptySearchState(GemSelectAssetState.IDLE)) { it.view.state }
     val pinnedAssets: StateFlow<List<AssetInfoDataAggregate>> = content.select(viewModelScope, emptyList()) { it.assets(it.view.pinnedAssetIds) }
     val previewAssets: StateFlow<List<AssetInfoDataAggregate>> = content.select(viewModelScope, emptyList()) { it.assets(it.view.assetIds) }
     val hasMoreAssets: StateFlow<Boolean> = content.select(viewModelScope, false) { it.view.hasMoreAssets }
