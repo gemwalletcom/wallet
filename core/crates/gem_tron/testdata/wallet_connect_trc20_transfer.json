@@ -1,0 +1,22 @@
+{
+    "transaction": {
+        "raw_data": {
+            "contract": [
+                {
+                    "parameter": {
+                        "value": {
+                            "contract_address": "41a614f803b6fd780986a42c78ec9c7f77e6ded13c",
+                            "data": "a9059cbb000000000000000000000000019e353a35efaa8e27c2a602a791ae1b19d9c9fa00000000000000000000000000000000000000000000000000000000000f4240",
+                            "owner_address": "4160e00625a95cbc180f290e2611c826f90eeba56f"
+                        }
+                    },
+                    "type": "TriggerSmartContract"
+                }
+            ],
+            "expiration": 1770271569000,
+            "ref_block_bytes": "b435",
+            "ref_block_hash": "eb7b23d0ef96d04e",
+            "timestamp": 1770271511581
+        }
+    }
+}

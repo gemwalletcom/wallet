@@ -91,7 +91,7 @@ pub struct ScanTransaction {
     pub malicious_website: Option<String>,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ScanAddressTarget {
     pub asset_id: AssetId,
