@@ -7,11 +7,10 @@ use crate::services::error::GemServiceError;
 use crate::services::preferences::{GemPreferencesStore, GemSecureStore};
 use async_trait::async_trait;
 use gem_client::{CONTENT_TYPE, ContentType};
-use gem_wallet_connect::WCEthereumTransactionData;
 use num_bigint::BigUint;
 use payment::PaymentTransaction;
 use primitives::testkit::signer_mock::{TEST_EVM_RECIPIENT, TEST_EVM_SENDER};
-use primitives::{Chain, ChainAddress, PaymentInvoice, TransactionType, TransferDataOutputType};
+use primitives::{Chain, ChainAddress, PaymentInvoice, TransactionType, TransferDataOutputType, WCEthereumTransaction};
 use serde_json::Value;
 use std::collections::HashMap;
 use std::future::Future;
@@ -124,8 +123,8 @@ pub fn mock_alien_target(request_type: &str) -> AlienTarget {
     }
 }
 
-pub fn mock_wc_ethereum_transaction_data() -> WCEthereumTransactionData {
-    WCEthereumTransactionData {
+pub fn mock_wc_ethereum_transaction() -> WCEthereumTransaction {
+    WCEthereumTransaction {
         chain_id: None,
         from: TEST_EVM_SENDER.to_string(),
         to: TEST_EVM_RECIPIENT.to_string(),

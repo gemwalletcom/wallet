@@ -546,11 +546,11 @@ mod tests {
     }
 
     use super::*;
-    use gem_wallet_connect::{WCEthereumTransactionData, WCSuiTransactionData};
+    use gem_wallet_connect::WCSuiTransactionData;
     use num_bigint::BigUint;
-    use primitives::Account;
+    use primitives::{Account, WCEthereumTransaction};
 
-    use crate::testkit::mock_wc_ethereum_transaction_data;
+    use crate::testkit::mock_wc_ethereum_transaction;
 
     #[test]
     fn test_connections_group_by_wallet_in_wallet_order_and_newest_first() {
@@ -769,16 +769,16 @@ mod tests {
     fn test_validate_transaction_sender_binds_an_evm_request_to_the_session_account() {
         let account = Account::mock(Chain::Ethereum, "0xAbC");
         let matching = WalletConnectTransaction::Ethereum {
-            data: WCEthereumTransactionData {
+            data: WCEthereumTransaction {
                 from: "0xabc".to_string(),
-                ..mock_wc_ethereum_transaction_data()
+                ..mock_wc_ethereum_transaction()
             },
             kind: EvmTransactionKind::Transfer,
         };
         let other = WalletConnectTransaction::Ethereum {
-            data: WCEthereumTransactionData {
+            data: WCEthereumTransaction {
                 from: "0xother".to_string(),
-                ..mock_wc_ethereum_transaction_data()
+                ..mock_wc_ethereum_transaction()
             },
             kind: EvmTransactionKind::Transfer,
         };
@@ -939,9 +939,9 @@ mod tests {
     fn test_transfer_data_drops_an_empty_evm_gas_limit() {
         let gas_limit = |gas: &str| {
             let transaction = WalletConnectTransaction::Ethereum {
-                data: WCEthereumTransactionData {
+                data: WCEthereumTransaction {
                     gas: Some(gas.to_string()),
-                    ..mock_wc_ethereum_transaction_data()
+                    ..mock_wc_ethereum_transaction()
                 },
                 kind: EvmTransactionKind::Transfer,
             };
@@ -961,7 +961,7 @@ mod tests {
     fn test_transfer_data_maps_evm_and_encoded_transactions() {
         let metadata = application_metadata("app".into(), String::new(), "https://app.example".into(), vec![]);
         let evm = WalletConnectTransaction::Ethereum {
-            data: gem_wallet_connect::WCEthereumTransactionData {
+            data: WCEthereumTransaction {
                 chain_id: Some(1),
                 from: "0xfrom".to_string(),
                 to: "0xto".to_string(),
