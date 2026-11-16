@@ -15,7 +15,7 @@ use gem_tron::rpc::{TronProvider, client::TronClient};
 use gem_wallet_connect::{EvmTransactionKind, SignDigestType, WCEthereumTransactionData, WalletConnectTransactionType};
 use primitives::{
     AddressName, AssetBasic, AssetId, BlockExplorerLink, Chain, ChainAddress, EVMChain, Resource, SimulationBalanceChange, SimulationInput, SimulationPayloadField, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult,
-    SimulationSeverity, SimulationWarning, SimulationWarningType, TransactionType, VerificationStatus,
+    SimulationSeverity, SimulationWarning, SimulationWarningType, TransactionType, ValueAccess, VerificationStatus,
 };
 
 use crate::duration_formatter::{GemDurationPart, countdown_parts};
@@ -75,7 +75,8 @@ impl GemSimulationService {
 
         let simulation = match &transaction_type {
             WalletConnectTransactionType::Ethereum => self.simulate_ethereum_transaction(chain, &data).await,
-            WalletConnectTransactionType::Solana { .. } | WalletConnectTransactionType::Sui { .. } => self.simulate_encoded_transaction(&transaction_type, &data).await,
+            WalletConnectTransactionType::Solana { .. } => self.simulate_encoded_transaction(Chain::Solana, &data).await,
+            WalletConnectTransactionType::Sui { .. } => self.simulate_sui_transaction(&data, signer_address).await,
             WalletConnectTransactionType::Ton { .. } => self.simulate_chain_transaction(Chain::Ton, session_input()).await,
             WalletConnectTransactionType::Tron { .. } => self.simulate_chain_transaction(Chain::Tron, session_input()).await,
         }
@@ -132,14 +133,18 @@ impl GemSimulationService {
         Ok(provider.simulate_transaction(SimulationInput::new(encoded_transaction)).await?)
     }
 
-    async fn simulate_encoded_transaction(&self, transaction_type: &WalletConnectTransactionType, data: &str) -> Result<SimulationResult, GemstoneError> {
-        let chain = match transaction_type {
-            WalletConnectTransactionType::Solana { .. } => Chain::Solana,
-            WalletConnectTransactionType::Sui { .. } => Chain::Sui,
-            _ => return Err("Chain does not use encoded transaction simulation".into()),
-        };
+    async fn simulate_encoded_transaction(&self, chain: Chain, data: &str) -> Result<SimulationResult, GemstoneError> {
         let input: SimulationInput = serde_json::from_str(data).map_err(|error| error.to_string())?;
         self.simulate_chain_transaction(chain, input).await
+    }
+
+    async fn simulate_sui_transaction(&self, data: &str, signer_address: &str) -> Result<SimulationResult, GemstoneError> {
+        let params: serde_json::Value = serde_json::from_str(data).map_err(|error| error.to_string())?;
+        let input = SimulationInput {
+            encoded_transaction: params.get_value("transaction")?.string()?.to_string(),
+            signer_address: Some(signer_address.to_string()),
+        };
+        self.simulate_chain_transaction(Chain::Sui, input).await
     }
 
     async fn simulate_chain_transaction(&self, chain: Chain, input: SimulationInput) -> Result<SimulationResult, GemstoneError> {
@@ -843,5 +848,29 @@ mod tests {
 
             assert!(provider.requested_paths().iter().any(|path| path.contains("emulateTonConnect")));
         });
+    }
+
+    #[test]
+    fn test_wallet_connect_sui_send_simulates_as_the_session_account() {
+        let session_account = "0x93f65b8c16c263343bbf66cf9f8eef69cb1dbc92d13f0c331b0dcaeb76b4aab6";
+        let transaction = include_str!("../../../crates/gem_sui/testdata/transaction_json_transfer.json");
+        let mut with_sender: serde_json::Value = serde_json::from_str(transaction).unwrap();
+        with_sender["sender"] = session_account.into();
+        let requests = [
+            serde_json::json!({ "transaction": transaction }),
+            serde_json::json!({ "transaction": with_sender.to_string(), "address": "0xa9bd0493f9bd1f792a4aedc1f99d54535a75a46c38fd56a8f2c6b7c8d75817a1", "account": session_account }),
+        ];
+
+        for data in requests {
+            let provider = Arc::new(TestAlienProvider::with_status(200));
+            let service = GemSimulationService::new(provider.clone(), Arc::new(GemNodeService::mock()));
+            let transaction_type = WalletConnectTransactionType::Sui {
+                output_type: primitives::TransferDataOutputType::EncodedTransaction,
+            };
+
+            futures::executor::block_on(service.simulate_send_transaction(Chain::Sui, transaction_type, data.to_string(), session_account)).unwrap();
+
+            assert!(!provider.requested_paths().is_empty(), "{data}");
+        }
     }
 }

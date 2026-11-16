@@ -8,7 +8,7 @@ use primitives::{Asset, Chain, SimulationBalanceChange, SimulationInput, Simulat
 use crate::decode_transaction;
 use crate::provider::simulation_mapper::map_simulation_result;
 use crate::rpc::SuiProvider;
-use crate::tx_builder::{finish_transaction_json_from_sender, is_transaction_json};
+use crate::tx_builder::{finish_transaction_json, is_transaction_json};
 use crate::types::Transaction;
 use gem_encoding::encode_base64;
 
@@ -16,7 +16,8 @@ use gem_encoding::encode_base64;
 impl ChainSimulation for SuiProvider {
     async fn simulate_transaction(&self, input: SimulationInput) -> Result<SimulationResult, Box<dyn Error + Send + Sync>> {
         let encoded_transaction = if is_transaction_json(input.encoded_transaction.as_bytes()) {
-            encode_base64(&finish_transaction_json_from_sender(self, &input.encoded_transaction).await?.tx_data)
+            let signer = input.signer_address.as_deref().ok_or("Missing Sui transaction signer")?;
+            encode_base64(&finish_transaction_json(self, &input.encoded_transaction, signer).await?.tx_data)
         } else {
             input.encoded_transaction
         };
@@ -75,6 +76,21 @@ mod chain_integration_tests {
         let change = result.balance_changes.iter().find(|change| change.asset_id == AssetId::from_chain(Chain::Sui)).ok_or("missing sender SUI balance change")?;
         assert!(change.value < BigInt::ZERO);
         assert_eq!(change.symbol.as_deref(), Some("SUI"));
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_simulate_transaction_json_without_sender() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let client = create_sui_test_client();
+        let input = SimulationInput {
+            encoded_transaction: include_str!("../../testdata/transaction_json_transfer.json").to_string(),
+            signer_address: Some(TEST_ADDRESS.to_string()),
+        };
+
+        let result = client.simulate_transaction(input).await?;
+
+        let change = result.balance_changes.iter().find(|change| change.asset_id == AssetId::from_chain(Chain::Sui)).ok_or("missing signer SUI balance change")?;
+        assert!(change.value < BigInt::from(-1000));
         Ok(())
     }
 }

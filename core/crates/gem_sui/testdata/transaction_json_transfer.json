@@ -1,0 +1,44 @@
+{
+  "version": 2,
+  "inputs": [
+    {
+      "Pure": {
+        "bytes": "6AMAAAAAAAA="
+      }
+    },
+    {
+      "Pure": {
+        "bytes": "GAxUeOY5dwxEJL+81CCNjWH05SUYx2xeoe0FtBg4BFc="
+      }
+    }
+  ],
+  "commands": [
+    {
+      "SplitCoins": {
+        "coin": {
+          "GasCoin": true
+        },
+        "amounts": [
+          {
+            "Input": 0
+          }
+        ]
+      }
+    },
+    {
+      "TransferObjects": {
+        "objects": [
+          {
+            "NestedResult": [
+              0,
+              0
+            ]
+          }
+        ],
+        "address": {
+          "Input": 1
+        }
+      }
+    }
+  ]
+}
