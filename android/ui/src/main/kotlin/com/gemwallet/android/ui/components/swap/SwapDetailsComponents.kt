@@ -11,11 +11,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -30,9 +27,7 @@ import com.gemwallet.android.domains.swap.AssetRateFormatter
 import com.gemwallet.android.domains.swap.AssetRatePair
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.components.ProvidersBottomSheet
 import com.gemwallet.android.ui.components.ProvidersList
-import com.gemwallet.android.ui.components.dialog.DialogBarDismissType
 import com.gemwallet.android.ui.components.list_item.GemListRowView
 import com.gemwallet.android.ui.components.list_item.ProviderRowView
 import com.gemwallet.android.ui.components.list_item.SubheaderItem
@@ -104,21 +99,18 @@ fun SwapDetailsBottomSheet(
     onProviderSelect: ((SwapProvider) -> Unit)? = null,
 ) {
     val context = LocalContext.current
-    var isPresentingProviders by remember { mutableStateOf(false) }
-    LaunchedEffect(isVisible) {
-        if (!isVisible) isPresentingProviders = false
-    }
+    val (page, onPage) = rememberSaveable(isVisible) { mutableStateOf(SwapDetailsPage.Details) }
     val onSelect: (GemProviderKind) -> Unit = { kind ->
         if (kind is GemProviderKind.Swap) onProviderSelect?.invoke(kind.provider)
-        isPresentingProviders = false
+        onPage(SwapDetailsPage.Details)
     }
     ModalBottomSheet(
         item = (quotesState to details).takeIf { isVisible },
         onDismissRequest = onDismiss,
         modifier = modifier,
         expansion = expansion,
-        title = { stringResource(if (details == null) R.string.buy_providers_title else R.string.common_details) },
-        dismissType = DialogBarDismissType.Confirm,
+        title = { stringResource(if (details == null || page == SwapDetailsPage.Providers) R.string.buy_providers_title else R.string.common_details) },
+        onBack = { onPage(SwapDetailsPage.Details) }.takeIf { page == SwapDetailsPage.Providers },
     ) { (quotesState, details) ->
         when (quotesState) {
             GemSwapQuotesState.Loading -> Box(modifier = Modifier.fillMaxWidth()) {
@@ -138,22 +130,21 @@ fun SwapDetailsBottomSheet(
                 position = ListPosition.Single,
             )
 
-            GemSwapQuotesState.Quotes -> if (details == null) {
+            GemSwapQuotesState.Quotes -> if (details == null || page == SwapDetailsPage.Providers) {
                 ProvidersList(providers = providers, pendingProviders = pendingProviders, onSelect = onSelect)
             } else {
                 SwapDetailsList(
                     details = details,
-                    onProviders = { isPresentingProviders = true }.takeIf { isProviderSelectable && onProviderSelect != null },
+                    onProviders = { onPage(SwapDetailsPage.Providers) }.takeIf { isProviderSelectable && onProviderSelect != null },
                 )
             }
         }
     }
-    ProvidersBottomSheet(
-        providers = providers.takeIf { isVisible && isPresentingProviders },
-        pendingProviders = pendingProviders,
-        onSelect = onSelect,
-        onDismiss = { isPresentingProviders = false },
-    )
+}
+
+private enum class SwapDetailsPage {
+    Details,
+    Providers,
 }
 
 @Composable

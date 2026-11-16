@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.core.app.ApplicationProvider
@@ -92,6 +93,29 @@ class SwapDetailsBottomSheetTest {
         composeRule.onNodeWithText("Jupiter").performClick()
 
         assertEquals(SwapProvider.JUPITER, selected)
+        composeRule.onNodeWithText("Jupiter").assertDoesNotExist()
+        composeRule.onNodeWithText(context.getString(R.string.common_details)).assertIsDisplayed()
+    }
+
+    @Test
+    fun backFromProvidersReturnsToDetails() {
+        composeRule.setContent {
+            WalletTheme {
+                SwapDetailsBottomSheet(
+                    isVisible = true,
+                    details = details,
+                    onDismiss = {},
+                    providers = listOf(mockGemProviderRow(kind = GemProviderKind.Swap(SwapProvider.JUPITER), name = "Jupiter")),
+                    isProviderSelectable = true,
+                    onProviderSelect = {},
+                )
+            }
+        }
+        composeRule.onNodeWithText("Uniswap").performClick()
+        composeRule.onNodeWithText(context.getString(R.string.buy_providers_title)).assertIsDisplayed()
+
+        composeRule.onNodeWithContentDescription(context.getString(R.string.common_back)).performClick()
+
         composeRule.onNodeWithText("Jupiter").assertDoesNotExist()
         composeRule.onNodeWithText(context.getString(R.string.common_details)).assertIsDisplayed()
     }

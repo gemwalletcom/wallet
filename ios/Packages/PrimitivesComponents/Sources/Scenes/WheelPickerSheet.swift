@@ -19,16 +19,7 @@ public struct WheelPickerSheet<T: WheelPickerDisplayable>: View {
             WheelPickerView(options: options, selection: $selection)
                 .navigationBarTitleDisplayMode(.inline)
                 .navigationTitle(title)
-                .toolbar {
-                    ToolbarDismissItem(
-                        type: .close,
-                        placement: .topBarLeading,
-                    )
-                    ToolbarDismissItem(
-                        type: .confirm,
-                        placement: .topBarTrailing,
-                    )
-                }
+                .toolbarDismissItem(type: .close, placement: .topBarLeading)
         }
         .presentationDetents([.height(300)])
     }

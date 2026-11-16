@@ -73,7 +73,7 @@ struct NetworkFeeScene: View {
         .contentMargins(.top, .scene.top, for: .scrollContent)
         .navigationTitle(model.title)
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarDismissItem(type: .confirm, placement: .topBarTrailing)
+        .toolbarDismissItem(type: .close, placement: .topBarLeading)
         .navigationDestination(isPresented: $isPresentingCustomFee) {
             if let customFeeModel = model.customFeeModel() {
                 NetworkFeeCustomScene(
@@ -82,9 +82,9 @@ struct NetworkFeeScene: View {
                 )
             }
         }
-        .sheet(isPresented: $isPresentingFeeAssetSelection) {
-            SelectableListNavigationStack(
-                model: model.feeAssetsViewModel,
+        .navigationDestination(isPresented: $isPresentingFeeAssetSelection) {
+            SelectableListView(
+                model: .constant(model.feeAssetsViewModel),
                 onFinishSelection: {
                     if let item = $0.first {
                         model.selectFeeAsset(item)
@@ -93,6 +93,7 @@ struct NetworkFeeScene: View {
                 },
                 listContent: { ListItemView(model: $0.listItem) },
             )
+            .navigationTitle(model.feeAssetsViewModel.title)
         }
     }
 }
