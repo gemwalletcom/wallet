@@ -2022,7 +2022,7 @@ fun mockGemValidatorRow(
     placeholder: String = "",
     provider: uniffi.gemstone.YieldProvider? = null,
     apr: uniffi.gemstone.GemLocalizedText = mockGemLocalizedText(),
-    explorer: uniffi.gemstone.BlockExplorerLink? = null,
+    menu: List<uniffi.gemstone.GemRowMenuItem> = emptyList(),
 ) = uniffi.gemstone.GemValidatorRow(
     validator = validator,
     name = name,
@@ -2030,7 +2030,7 @@ fun mockGemValidatorRow(
     placeholder = placeholder,
     provider = provider,
     apr = apr,
-    explorer = explorer,
+    menu = menu,
 )
 
 fun mockGemValueHeader(

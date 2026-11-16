@@ -1414,7 +1414,7 @@ public extension Gemstone.GemValidatorRow {
         placeholder: String = "",
         provider: Gemstone.YieldProvider? = nil,
         apr: Gemstone.GemLocalizedText = .mock(),
-        explorer: Gemstone.BlockExplorerLink? = nil,
+        menu: [Gemstone.GemRowMenuItem] = [],
     ) -> Gemstone.GemValidatorRow {
         Gemstone.GemValidatorRow(
             validator: validator,
@@ -1423,7 +1423,7 @@ public extension Gemstone.GemValidatorRow {
             placeholder: placeholder,
             provider: provider,
             apr: apr,
-            explorer: explorer,
+            menu: menu,
         )
     }
 }

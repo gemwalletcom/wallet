@@ -8,8 +8,8 @@ use gem_crypto::random;
 use num_bigint::{BigInt, BigUint};
 use primitives::Platform;
 use primitives::{
-    AddressFormatStyle, AddressFormatter, AddressType, Asset, Chain, Currency, Delegation, DelegationBase, DelegationState, DelegationValidator, EarnType, RedelegateData, Resource, StakeChain, StakeProviderType, StakeType,
-    VerificationStatus, WalletType, YieldProvider,
+    AddressFormatStyle, AddressFormatter, AddressType, Asset, BlockExplorerLink, Chain, Currency, Delegation, DelegationBase, DelegationState, DelegationValidator, EarnType, RedelegateData, Resource, StakeChain, StakeProviderType,
+    StakeType, VerificationStatus, WalletType, YieldProvider,
 };
 use primitives::{AddressName, OptionStringExt};
 use std::str::FromStr;
@@ -23,8 +23,9 @@ use crate::config::image::GemImage;
 use crate::config::stake::EARN_OFFERED;
 use crate::duration_formatter::{GemDurationPart, countdown_parts, day_parts};
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
+use crate::models::copy::address_copy;
 use crate::models::custom_types::GemBigUint;
-use crate::models::list::{GemGroup, GemGroupList, GemInfoTopic, GemListItem, GemListRow, GemListRowTitle, GemListSectionTitle};
+use crate::models::list::{GemGroup, GemGroupList, GemInfoTopic, GemListItem, GemListRow, GemListRowTitle, GemListSectionTitle, GemRowMenuItem};
 use crate::models::state::{GemListPhase, GemLoadState};
 use crate::percentage::GemPercentageStyle;
 use crate::precision::GemCurrencyStyle;
@@ -187,7 +188,7 @@ pub fn validator_row(validator: &DelegationValidator) -> GemValidatorRow {
             value: (validator.apr > 0.0).then(|| GemFormattedNumber::percentage(validator.apr, GemPercentageStyle::Unsigned)),
         },
         validator: validator.clone(),
-        explorer: None,
+        menu: vec![],
     }
 }
 
@@ -196,6 +197,19 @@ pub fn validator_explorer_address(validator: &DelegationValidator) -> Option<Str
         StakeProviderType::Stake if !DelegationValidator::is_system_id(&validator.id) => Some(validator.id.clone()),
         StakeProviderType::Stake | StakeProviderType::Earn => None,
     }
+}
+
+pub fn validator_menu(validator: &DelegationValidator, explorer: Option<BlockExplorerLink>) -> Vec<GemRowMenuItem> {
+    explorer
+        .map(|explorer| {
+            vec![
+                GemRowMenuItem::Copy {
+                    copy: address_copy(validator.chain, validator.id.clone()),
+                },
+                GemRowMenuItem::view_on(&explorer),
+            ]
+        })
+        .unwrap_or_default()
 }
 
 fn delegation_status(delegation: &Delegation) -> GemDelegationStatus {
@@ -1043,6 +1057,25 @@ mod tests {
             }),
             None
         );
+    }
+
+    #[test]
+    fn test_validator_menu_copies_the_validator_and_views_it_on_the_explorer() {
+        let validator = DelegationValidator::mock_cosmos("cosmosvaloper1");
+        let explorer = BlockExplorerLink {
+            name: "Mintscan".to_string(),
+            link: "https://www.mintscan.io/cosmos/validators/cosmosvaloper1".to_string(),
+        };
+
+        match validator_menu(&validator, Some(explorer)).as_slice() {
+            [GemRowMenuItem::Copy { copy }, GemRowMenuItem::Open { title, url }] => {
+                assert_eq!(copy.value, "cosmosvaloper1");
+                assert_eq!(*title, GemLocalizedText::ViewOn { name: "Mintscan".to_string() });
+                assert_eq!(url, "https://www.mintscan.io/cosmos/validators/cosmosvaloper1");
+            }
+            menu => panic!("unexpected menu {menu:?}"),
+        }
+        assert!(validator_menu(&validator, None).is_empty());
     }
 
     #[test]

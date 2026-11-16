@@ -80,10 +80,13 @@ impl GemStakeService {
 
     pub fn stake_validator_options(&self, chain: Chain, input: GemStakeAmountInput, validators: Vec<DelegationValidator>) -> GemGroupList {
         let options = rules::validator_options(chain, &input, validators);
-        let with_explorer = |item: GemListItem| match item {
+        let with_menu = |item: GemListItem| match item {
             GemListItem::Validator { row, is_selected } => GemListItem::Validator {
                 row: GemValidatorRow {
-                    explorer: rules::validator_explorer_address(&row.validator).and_then(|address| self.explorer.get_validator_url(row.validator.chain, address)),
+                    menu: rules::validator_menu(
+                        &row.validator,
+                        rules::validator_explorer_address(&row.validator).and_then(|address| self.explorer.get_validator_url(row.validator.chain, address)),
+                    ),
                     ..row
                 },
                 is_selected,
@@ -95,7 +98,7 @@ impl GemStakeService {
                 .groups
                 .into_iter()
                 .map(|group| GemGroup {
-                    items: group.items.into_iter().map(with_explorer).collect(),
+                    items: group.items.into_iter().map(with_menu).collect(),
                     ..group
                 })
                 .collect(),

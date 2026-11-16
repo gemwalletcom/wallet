@@ -74,5 +74,5 @@ private fun previewRow(id: String, name: String) = GemValidatorRow(
     placeholder = name.take(1),
     provider = null,
     apr = GemLocalizedText.Apr(null),
-    explorer = null,
+    menu = emptyList(),
 )
