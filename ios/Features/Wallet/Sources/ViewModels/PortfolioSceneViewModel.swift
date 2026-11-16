@@ -1,8 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import Components
 import Foundation
-import struct Gemstone.GemChartData
+import enum Gemstone.GemChartPhase
 import enum Gemstone.GemListRow
 import protocol Gemstone.GemPortfolioServiceProtocol
 import struct Gemstone.GemPortfolioSession
@@ -57,12 +56,12 @@ public final class PortfolioSceneViewModel: ChartListViewable {
         state.periods.map { $0.toPrimitives() }
     }
 
-    public var chartState: StateViewType<GemChartData> {
+    public var chartPhase: GemChartPhase {
         switch state.phase {
         case .loading: .loading
-        case let .data(chart): .data(chart)
+        case let .data(chart): .data(data: chart)
         case .noData: .noData
-        case let .failed(error): .error(error)
+        case let .failed(error): .failed(error: error)
         }
     }
 

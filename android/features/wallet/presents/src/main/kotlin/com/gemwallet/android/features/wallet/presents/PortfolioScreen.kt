@@ -35,8 +35,8 @@ import com.gemwallet.android.ui.components.screen.PullToRefreshBox
 import com.gemwallet.android.ui.components.screen.Scene
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.localization.stringRes
-import com.gemwallet.android.ui.models.StateViewType
 import com.wallet.core.primitives.PortfolioType
+import uniffi.gemstone.GemChartPhase
 import uniffi.gemstone.PortfolioChartType
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -75,7 +75,7 @@ fun PortfolioScreen(onCancel: () -> Unit, viewModel: PortfolioViewModel = hiltVi
         ) {
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 item { PortfolioChart(viewModel) }
-                if (state.chart is StateViewType.Data || state.chart == StateViewType.NoData) {
+                if (state.phase is GemChartPhase.Data || state.phase is GemChartPhase.NoData) {
                     if (statistics.isNotEmpty()) {
                         item { SubheaderItem(R.string.common_info) }
                         itemsPositioned(statistics) { position, row -> GemListRowView(row = row, listPosition = position) }

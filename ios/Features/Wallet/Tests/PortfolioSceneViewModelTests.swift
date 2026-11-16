@@ -13,10 +13,10 @@ struct PortfolioSceneViewModelTests {
     @Test
     func testChartState() async {
         let model = PortfolioSceneViewModel.mock()
-        #expect(model.chartState.isLoading)
+        #expect(model.chartPhase == .loading)
 
         await model.load()
-        #expect(!model.chartState.isLoading)
+        #expect(model.chartPhase != .loading)
     }
 
     @Test
@@ -31,8 +31,8 @@ struct PortfolioSceneViewModelTests {
         let failed = PortfolioSceneViewModel.mock(service: failedService)
         await failed.load()
 
-        #expect(offline.chartState.isError)
-        #expect(failed.chartState.isError == false)
+        #expect(offline.chartPhase == .failed(error: .Offline))
+        #expect(failed.chartPhase == .noData)
     }
 
     @Test
