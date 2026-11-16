@@ -1,9 +1,10 @@
 use std::str::FromStr;
 
 use alloy_primitives::{Address, U256, keccak256};
-use alloy_sol_types::{SolCall, SolValue};
+use alloy_sol_types::SolValue;
 
 use crate::{
+    abi::SolCallBounded,
     address::ethereum_address_from_topic,
     ethereum_address_checksum,
     rpc::{
@@ -63,7 +64,7 @@ impl TransactionParser<ParseContext<'_>, PrimitivesTransaction> for UniversalRou
         let to = context.transaction.to.as_ref()?;
         let provider = get_provider_by_chain_contract(context.metadata.chain, to)?;
         let input_bytes = decode_hex(&context.transaction.input).ok()?;
-        let execute_call = IUniversalRouter::executeCall::abi_decode(&input_bytes).ok()?;
+        let execute_call = IUniversalRouter::executeCall::abi_decode_bounded(&input_bytes).ok()?;
         let router_abi = RouterAbi::from_chain_contract(context.metadata.chain, to);
         let metadata = decode_execute_swap_call(context.metadata.chain, router_abi, provider, &context.transaction.from, &execute_call, context.metadata.receipt)?;
 
@@ -72,7 +73,7 @@ impl TransactionParser<ParseContext<'_>, PrimitivesTransaction> for UniversalRou
 }
 
 pub(crate) fn decode_execute_swap(chain: &Chain, universal_router_abi: UniversalRouterAbi, provider: SwapProvider, from: &str, input_bytes: &[u8], receipt: &TransactionReceipt) -> Option<TransactionSwapMetadata> {
-    let execute_call = IUniversalRouter::executeCall::abi_decode(input_bytes).ok()?;
+    let execute_call = IUniversalRouter::executeCall::abi_decode_bounded(input_bytes).ok()?;
     decode_execute_swap_call(
         chain,
         RouterAbi {
@@ -327,6 +328,7 @@ mod tests {
         Address, B256, Bytes,
         aliases::{I24, U24},
     };
+    use alloy_sol_types::SolCall;
     use chrono::DateTime;
     use num_bigint::BigUint;
     use primitives::{
