@@ -76,15 +76,15 @@ public extension GemTransactionRow {
     }
 
     var titleTagTextValue: TextValue? {
-        let model = TransactionStateViewModel(state: state.toPrimitives(), tone: status.tone)
-        let title: String? = status.showsBadge ? model.title : .none
+        let title: String? = status.showsBadge ? state.toPrimitives().statusTitle : .none
+        let color = status.tone.color
         return title.map {
             TextValue(
                 text: $0,
                 style: TextStyle(
                     font: Font.system(.footnote, weight: .medium),
-                    color: model.color,
-                    background: model.background,
+                    color: color,
+                    background: color.opacity(.light),
                 ),
             )
         }
