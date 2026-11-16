@@ -19,10 +19,8 @@ import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.wallet.core.primitives.AssetId
-import com.wallet.core.primitives.Currency
 import com.wallet.core.primitives.Delegation
 import com.wallet.core.primitives.StakeProviderType
-import com.wallet.core.primitives.WalletType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -74,17 +72,17 @@ class EarnViewModel @Inject constructor(
 
     private val loadState = MutableStateFlow<GemLoadState>(GemLoadState.Loading)
 
-    val earnView = combine(providers, delegations, assetInfo, session, loadState) { providers, delegations, assetInfo, current, state ->
+    val earnView = combine(providers, delegations, assetInfo, session.filterNotNull(), loadState) { providers, delegations, assetInfo, current, state ->
         val info = assetInfo ?: return@combine null
         stakeService.earnView(
             GemEarnInput(
-                walletType = (current?.wallet?.type ?: WalletType.View).toGem(),
+                walletType = current.wallet.type.toGem(),
                 asset = info.asset.toGem(),
                 providers = providers.map { it.toGem() },
                 delegations = delegations.map { it.toGem() },
                 assetApr = info.metadata.earnApr,
                 price = info.price?.price,
-                currency = (current?.currency ?: Currency.USD).toGem(),
+                currency = stakeService.getCurrency(),
                 state = state,
             ),
         )

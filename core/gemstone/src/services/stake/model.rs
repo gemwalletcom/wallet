@@ -46,16 +46,6 @@ pub struct GemDelegationListRow {
     pub rewards_fiat: Option<GemFormattedNumber>,
 }
 
-#[uniffi::export]
-pub fn delegation_details(wallet_type: WalletType, delegation: Delegation, asset: Asset, price: Option<f64>, currency: Currency) -> GemDelegationDetails {
-    rules::delegation_details(wallet_type, &delegation, &asset, price, currency, Vec::new(), &[], None, chrono::Utc::now())
-}
-
-#[uniffi::export]
-pub fn delegation_list_rows(delegations: Vec<Delegation>, asset: Asset, price: Option<f64>, currency: Currency) -> Vec<GemDelegationListRow> {
-    delegations.iter().map(|delegation| rules::delegation_list_row(delegation, &asset, price, currency.clone())).collect()
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemDelegationAction {
     Stake,

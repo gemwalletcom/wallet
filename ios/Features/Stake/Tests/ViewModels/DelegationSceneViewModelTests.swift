@@ -2,6 +2,7 @@
 
 import Foundation
 import struct Gemstone.GemDelegationActionItem
+import struct Gemstone.GemFormattedNumber
 import GemstonePrimitivesTestKit
 import Localization
 import Primitives
@@ -16,8 +17,7 @@ struct DelegationSceneViewModelTests {
     func claimingRewardsNavigatesToConfirm() {
         var route: StakeRoute?
         let model = DelegationSceneViewModel.mock(
-            rewards: 500_000,
-            stakeService: GemStakeServiceMock(claimable: true),
+            stakeService: GemStakeServiceMock(details: .mock(claim: .mock())),
             onNavigate: { route = $0 },
         )
 
@@ -27,17 +27,6 @@ struct DelegationSceneViewModelTests {
             Issue.record("expected a confirm route, got \(String(describing: route))")
             return
         }
-    }
-
-    @Test
-    func claimingNothingIsNotATransfer() {
-        var route: StakeRoute?
-        let model = DelegationSceneViewModel.mock(rewards: 0, onNavigate: { route = $0 })
-
-        model.details.claim.map(model.onClaimRewards)
-
-        #expect(model.details.claim == nil)
-        #expect(route == nil, "there is nothing to claim, so there is no transfer to confirm")
     }
 
     @Test
@@ -62,18 +51,10 @@ struct DelegationSceneViewModelTests {
     }
 
     @Test
-    func rewardsShownWhenCoreReportsThem() {
-        let claimable = DelegationSceneViewModel.mock(rewards: 500_000, stakeService: GemStakeServiceMock(claimable: true))
-        let notClaimable = DelegationSceneViewModel.mock(rewards: 500_000, stakeService: GemStakeServiceMock(claimable: false))
-
-        #expect(claimable.details.claim != nil)
-        #expect(notClaimable.details.claim == nil)
-    }
-
-    @Test
     func rewardsRowOnlyWhenThereAreRewards() {
-        let shown = DelegationSceneViewModel.mock(rewards: 500_000)
-        let hidden = DelegationSceneViewModel.mock(rewards: 0)
+        let rewards = GemFormattedNumber.mock(value: 0.5, unit: .symbol(symbol: "ATOM"), display: .number(precision: .significant(max: 4)))
+        let shown = DelegationSceneViewModel.mock(stakeService: GemStakeServiceMock(details: .mock(rewards: rewards)))
+        let hidden = DelegationSceneViewModel.mock()
 
         #expect(shown.rewardsItem(shown.details)?.title == Localized.Stake.rewards)
         #expect(shown.rewardsItem(shown.details)?.subtitle == "0.5 ATOM")

@@ -608,6 +608,64 @@ public extension Gemstone.GemCustomFeeSession {
     }
 }
 
+public extension Gemstone.GemDelegationDetails {
+    static func mock(
+        title: Gemstone.GemLocalizedText = .mock(),
+        icon: Gemstone.GemAssetIcon = .mock(),
+        valueHeader: Gemstone.GemValueHeader = .mock(),
+        header: Gemstone.GemDelegationListRow = .mock(),
+        actions: [Gemstone.GemDelegationActionItem] = [],
+        rewards: Gemstone.GemFormattedNumber? = nil,
+        rewardsFiat: Gemstone.GemFormattedNumber? = nil,
+        rows: [Gemstone.GemListRow] = [],
+        claim: Gemstone.GemTransferData? = nil,
+    ) -> Gemstone.GemDelegationDetails {
+        Gemstone.GemDelegationDetails(
+            title: title,
+            icon: icon,
+            valueHeader: valueHeader,
+            header: header,
+            actions: actions,
+            rewards: rewards,
+            rewardsFiat: rewardsFiat,
+            rows: rows,
+            claim: claim,
+        )
+    }
+}
+
+public extension Gemstone.GemDelegationListRow {
+    static func mock(
+        validator: Gemstone.GemValidatorRow = .mock(),
+        status: Gemstone.GemDelegationStatus = .mock(),
+        balance: Gemstone.GemFormattedNumber = .mock(),
+        fiat: Gemstone.GemFormattedNumber? = nil,
+        rewards: Gemstone.GemFormattedNumber? = nil,
+        rewardsFiat: Gemstone.GemFormattedNumber? = nil,
+    ) -> Gemstone.GemDelegationListRow {
+        Gemstone.GemDelegationListRow(
+            validator: validator,
+            status: status,
+            balance: balance,
+            fiat: fiat,
+            rewards: rewards,
+            rewardsFiat: rewardsFiat,
+        )
+    }
+}
+
+public extension Gemstone.GemDelegationStatus {
+    static func mock(
+        state: Gemstone.DelegationState = .active,
+        tone: Gemstone.GemValueTone = .plain,
+    ) -> Gemstone.GemDelegationStatus {
+        Gemstone.GemDelegationStatus(
+            state: state,
+            tone: tone,
+        )
+    }
+}
+
 public extension Gemstone.GemEmptyState {
     static func mock(
         title: Gemstone.GemEmptyStateText = .nftsTitle,
