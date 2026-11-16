@@ -122,10 +122,15 @@ fn x_ticks(candles: &[ChartCandleStick], window: RangeInclusive<DateTime<Utc>>, 
     let (start, end) = window.into_inner();
     let label_range = (start + fraction_of(end - start, X_TICK_INSET_FRACTION))..=(end - interval / 2);
     let (candles_per_step, step) = tick_step(*label_range.end() - *label_range.start(), interval);
+    let previous = std::iter::once(None).chain(candles.iter().map(Some));
     let dates: Vec<DateTime<Utc>> = candles
         .iter()
-        .map(|candle| candle.date)
-        .filter(|date| label_range.contains(date) && candle_number(*date, utc_offset, interval).rem_euclid(candles_per_step) == 0)
+        .zip(previous)
+        .filter(|(candle, previous)| {
+            let number = candle_number(candle.date, utc_offset, interval);
+            label_range.contains(&candle.date) && number.rem_euclid(candles_per_step) == 0 && previous.is_none_or(|previous| candle_number(previous.date, utc_offset, interval) != number)
+        })
+        .map(|(candle, _)| candle.date)
         .collect();
     let format = tick_format(end - start, step);
     let is_multi_day = match candles {
@@ -312,6 +317,16 @@ mod tests {
             "the first label of an earlier day and a label at midnight name the day"
         );
         assert_eq!(axis(&monthly, whole, TimeDelta::zero()), vec![(at("2026-01-07T00:00:00Z"), MonthYear), (at("2026-07-07T00:00:00Z"), MonthYear)]);
+        assert_eq!(
+            axis(&ChartCandleStick::mock_series(at("2025-11-17T00:00:00Z"), TimeDelta::days(8), 46), whole, TimeDelta::zero()),
+            vec![
+                (at("2026-01-04T00:00:00Z"), MonthYear),
+                (at("2026-04-02T00:00:00Z"), MonthYear),
+                (at("2026-07-07T00:00:00Z"), MonthYear),
+                (at("2026-10-03T00:00:00Z"), MonthYear)
+            ],
+            "candles shorter than a month label only the first one of each month"
+        );
         assert!(
             [0.25, 0.26, 0.27, 0.28].into_iter().all(
                 |offset| axis(&ChartCandleStick::mock_series(at("2026-09-23T15:00:00Z"), TimeDelta::minutes(1), 40), GemChartZoom { scale: 2.0, offset }, TimeDelta::zero())
