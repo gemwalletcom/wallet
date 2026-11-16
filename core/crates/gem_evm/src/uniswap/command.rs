@@ -5,7 +5,7 @@ use super::{
     deployment::UniversalRouterAbi,
     path::TokenPair,
 };
-use crate::permit2::IAllowanceTransfer;
+use crate::{abi::SolTypeBounded, permit2::IAllowanceTransfer};
 use alloy_primitives::{Address, Bytes, U256};
 use alloy_sol_types::{SolCall, SolType, sol_data};
 
@@ -122,7 +122,7 @@ impl V3SwapExactIn {
     }
 
     pub fn abi_decode(data: &[u8]) -> Result<Self, alloy_sol_types::Error> {
-        let (recipient, amount_in, amount_out_min, path, payer_is_user) = V3SwapExactType::abi_decode_sequence(data)?;
+        let (recipient, amount_in, amount_out_min, path, payer_is_user) = V3SwapExactType::abi_decode_sequence_bounded(data)?;
         Ok(Self {
             recipient,
             amount_in,
@@ -166,7 +166,7 @@ impl V3SwapExactInV2_1 {
     }
 
     pub fn abi_decode(data: &[u8]) -> Result<Self, alloy_sol_types::Error> {
-        let (recipient, amount_in, amount_out_min, path, payer_is_user, min_hop_price_x36) = V3SwapExactV2_1Type::abi_decode_sequence(data)?;
+        let (recipient, amount_in, amount_out_min, path, payer_is_user, min_hop_price_x36) = V3SwapExactV2_1Type::abi_decode_sequence_bounded(data)?;
         Ok(Self {
             recipient,
             amount_in,
@@ -210,7 +210,7 @@ impl V2SwapExactIn {
     }
 
     pub fn abi_decode(data: &[u8]) -> Result<Self, alloy_sol_types::Error> {
-        let (recipient, amount_in, amount_out_min, path, payer_is_user) = V2SwapExactType::abi_decode_sequence(data)?;
+        let (recipient, amount_in, amount_out_min, path, payer_is_user) = V2SwapExactType::abi_decode_sequence_bounded(data)?;
         Ok(Self {
             recipient,
             amount_in,
@@ -254,7 +254,7 @@ impl V2SwapExactInV2_1 {
     }
 
     pub fn abi_decode(data: &[u8]) -> Result<Self, alloy_sol_types::Error> {
-        let (recipient, amount_in, amount_out_min, path, payer_is_user, min_hop_price_x36) = V2SwapExactV2_1Type::abi_decode_sequence(data)?;
+        let (recipient, amount_in, amount_out_min, path, payer_is_user, min_hop_price_x36) = V2SwapExactV2_1Type::abi_decode_sequence_bounded(data)?;
         Ok(Self {
             recipient,
             amount_in,
@@ -304,7 +304,7 @@ impl V2SwapExactInSolidly {
     }
 
     pub fn abi_decode(data: &[u8]) -> Result<Self, alloy_sol_types::Error> {
-        let (recipient, amount_in, amount_out_min, routes, payer_is_user) = V2SwapExactSolidlyType::abi_decode_sequence(data)?;
+        let (recipient, amount_in, amount_out_min, routes, payer_is_user) = V2SwapExactSolidlyType::abi_decode_sequence_bounded(data)?;
         Ok(Self {
             recipient,
             amount_in,
@@ -329,7 +329,7 @@ impl Sweep {
     }
 
     pub fn abi_decode(data: &[u8]) -> Result<Self, alloy_sol_types::Error> {
-        let (token, recipient, amount_min) = SweepType::abi_decode_sequence(data)?;
+        let (token, recipient, amount_min) = SweepType::abi_decode_sequence_bounded(data)?;
         Ok(Self { token, recipient, amount_min })
     }
 }
@@ -348,7 +348,7 @@ impl Transfer {
     }
 
     pub fn abi_decode(data: &[u8]) -> Result<Self, alloy_sol_types::Error> {
-        let (token, recipient, value) = TransferType::abi_decode_sequence(data)?;
+        let (token, recipient, value) = TransferType::abi_decode_sequence_bounded(data)?;
         Ok(Self { token, recipient, value })
     }
 }
@@ -367,7 +367,7 @@ impl PayPortion {
     }
 
     pub fn abi_decode(data: &[u8]) -> Result<Self, alloy_sol_types::Error> {
-        let (token, recipient, bips) = PayPortionType::abi_decode_sequence(data)?;
+        let (token, recipient, bips) = PayPortionType::abi_decode_sequence_bounded(data)?;
         Ok(Self { token, recipient, bips })
     }
 }
@@ -385,7 +385,7 @@ impl WrapEth {
     }
 
     pub fn abi_decode(data: &[u8]) -> Result<Self, alloy_sol_types::Error> {
-        let (recipient, amount_min) = WrapEthType::abi_decode_sequence(data)?;
+        let (recipient, amount_min) = WrapEthType::abi_decode_sequence_bounded(data)?;
         Ok(Self { recipient, amount_min })
     }
 }
@@ -403,7 +403,7 @@ impl UnwrapWeth {
     }
 
     pub fn abi_decode(data: &[u8]) -> Result<Self, alloy_sol_types::Error> {
-        let (recipient, amount_min) = UnwrapWethType::abi_decode_sequence(data)?;
+        let (recipient, amount_min) = UnwrapWethType::abi_decode_sequence_bounded(data)?;
         Ok(Self { recipient, amount_min })
     }
 }

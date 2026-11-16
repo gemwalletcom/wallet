@@ -14,6 +14,7 @@ bcs = "0.2.1"
 libfuzzer-sys = "0.4"
 serde_json = "1.0.151"
 tokio = { version = "1.53.1", features = ["rt-multi-thread"] }
+zeroize = "1.9.0"
 
 gemstone = { path = "../gemstone" }
 primitives = { path = "../crates/primitives" }
@@ -88,6 +89,10 @@ path = "fuzz_targets/wallet_connect_transaction.rs"
 [[bin]]
 name = "wallet_connect_protocol"
 path = "fuzz_targets/wallet_connect_protocol.rs"
+
+[[bin]]
+name = "wallet_import"
+path = "fuzz_targets/wallet_import.rs"
 
 [[bin]]
 name = "zcash_transaction"

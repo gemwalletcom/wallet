@@ -3,6 +3,7 @@
 use gem_wallet_connect::{SignDigestType, decode_sign_message};
 use gemstone::message::signer::MessageSigner;
 use libfuzzer_sys::fuzz_target;
+use zeroize::Zeroizing;
 
 fuzz_target!(|input: (u8, u8, &str)| {
     let (sign_type, chain, data) = input;
@@ -18,4 +19,5 @@ fuzz_target!(|input: (u8, u8, &str)| {
     let signer = MessageSigner::new(decode_sign_message(core_fuzz::chain(chain), sign_type, data.to_string()));
     let _ = signer.preview();
     let _ = signer.plain_preview();
+    let _ = signer.sign(Zeroizing::new(vec![1; 32]));
 });

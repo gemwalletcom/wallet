@@ -1,4 +1,5 @@
 use super::{contracts::v4::IV4Router, deployment::UniversalRouterAbi};
+use crate::abi::SolValueBounded;
 use alloy_primitives::{Address, Bytes, U256};
 use alloy_sol_types::SolValue;
 
@@ -56,7 +57,7 @@ pub fn encode_action_data(action: &V4Action) -> Vec<u8> {
 }
 
 pub fn decode_action_data(data: &[u8], universal_router_abi: UniversalRouterAbi) -> Result<Vec<V4Action>, alloy_sol_types::Error> {
-    let (action_opcodes_bytes, action_data_bytes) = <(Bytes, Vec<Bytes>) as SolValue>::abi_decode_sequence(data)?;
+    let (action_opcodes_bytes, action_data_bytes) = <(Bytes, Vec<Bytes>) as SolValueBounded>::abi_decode_sequence_bounded(data)?;
 
     let action_opcodes: Vec<u8> = action_opcodes_bytes.to_vec();
     let action_data_list: Vec<Vec<u8>> = action_data_bytes.into_iter().map(|b| b.to_vec()).collect();
@@ -72,39 +73,39 @@ pub fn decode_action_data(data: &[u8], universal_router_abi: UniversalRouterAbi)
         let action_data_slice = action_data.as_slice();
         let action = match *opcode {
             SWAP_EXACT_IN_SINGLE_ACTION => match universal_router_abi {
-                UniversalRouterAbi::V2 => V4Action::SWAP_EXACT_IN_SINGLE(<IV4Router::ExactInputSingleParams as SolValue>::abi_decode(action_data_slice)?),
-                UniversalRouterAbi::V2_1 => V4Action::SWAP_EXACT_IN_SINGLE_V2_1(<IV4Router::ExactInputSingleParamsV2_1 as SolValue>::abi_decode(action_data_slice)?),
+                UniversalRouterAbi::V2 => V4Action::SWAP_EXACT_IN_SINGLE(<IV4Router::ExactInputSingleParams as SolValueBounded>::abi_decode_bounded(action_data_slice)?),
+                UniversalRouterAbi::V2_1 => V4Action::SWAP_EXACT_IN_SINGLE_V2_1(<IV4Router::ExactInputSingleParamsV2_1 as SolValueBounded>::abi_decode_bounded(action_data_slice)?),
             },
             SWAP_EXACT_IN_ACTION => match universal_router_abi {
-                UniversalRouterAbi::V2 => V4Action::SWAP_EXACT_IN(<IV4Router::ExactInputParams as SolValue>::abi_decode(action_data_slice)?),
-                UniversalRouterAbi::V2_1 => V4Action::SWAP_EXACT_IN_V2_1(<IV4Router::ExactInputParamsV2_1 as SolValue>::abi_decode(action_data_slice)?),
+                UniversalRouterAbi::V2 => V4Action::SWAP_EXACT_IN(<IV4Router::ExactInputParams as SolValueBounded>::abi_decode_bounded(action_data_slice)?),
+                UniversalRouterAbi::V2_1 => V4Action::SWAP_EXACT_IN_V2_1(<IV4Router::ExactInputParamsV2_1 as SolValueBounded>::abi_decode_bounded(action_data_slice)?),
             },
             SWAP_EXACT_OUT_SINGLE_ACTION => match universal_router_abi {
-                UniversalRouterAbi::V2 => V4Action::SWAP_EXACT_OUT_SINGLE(<IV4Router::ExactOutputSingleParams as SolValue>::abi_decode(action_data_slice)?),
-                UniversalRouterAbi::V2_1 => V4Action::SWAP_EXACT_OUT_SINGLE_V2_1(<IV4Router::ExactOutputSingleParamsV2_1 as SolValue>::abi_decode(action_data_slice)?),
+                UniversalRouterAbi::V2 => V4Action::SWAP_EXACT_OUT_SINGLE(<IV4Router::ExactOutputSingleParams as SolValueBounded>::abi_decode_bounded(action_data_slice)?),
+                UniversalRouterAbi::V2_1 => V4Action::SWAP_EXACT_OUT_SINGLE_V2_1(<IV4Router::ExactOutputSingleParamsV2_1 as SolValueBounded>::abi_decode_bounded(action_data_slice)?),
             },
             SWAP_EXACT_OUT_ACTION => match universal_router_abi {
-                UniversalRouterAbi::V2 => V4Action::SWAP_EXACT_OUT(<IV4Router::ExactOutputParams as SolValue>::abi_decode(action_data_slice)?),
-                UniversalRouterAbi::V2_1 => V4Action::SWAP_EXACT_OUT_V2_1(<IV4Router::ExactOutputParamsV2_1 as SolValue>::abi_decode(action_data_slice)?),
+                UniversalRouterAbi::V2 => V4Action::SWAP_EXACT_OUT(<IV4Router::ExactOutputParams as SolValueBounded>::abi_decode_bounded(action_data_slice)?),
+                UniversalRouterAbi::V2_1 => V4Action::SWAP_EXACT_OUT_V2_1(<IV4Router::ExactOutputParamsV2_1 as SolValueBounded>::abi_decode_bounded(action_data_slice)?),
             },
             SETTLE_ACTION => {
-                let (currency, amount, payer_is_user) = <(Address, U256, bool) as SolValue>::abi_decode(action_data_slice)?;
+                let (currency, amount, payer_is_user) = <(Address, U256, bool) as SolValueBounded>::abi_decode_bounded(action_data_slice)?;
                 V4Action::SETTLE { currency, amount, payer_is_user }
             }
             SETTLE_ALL_ACTION => {
-                let (currency, max_amount) = <(Address, U256) as SolValue>::abi_decode(action_data_slice)?;
+                let (currency, max_amount) = <(Address, U256) as SolValueBounded>::abi_decode_bounded(action_data_slice)?;
                 V4Action::SETTLE_ALL { currency, max_amount }
             }
             TAKE_ACTION => {
-                let (currency, recipient, amount) = <(Address, Address, U256) as SolValue>::abi_decode(action_data_slice)?;
+                let (currency, recipient, amount) = <(Address, Address, U256) as SolValueBounded>::abi_decode_bounded(action_data_slice)?;
                 V4Action::TAKE { currency, recipient, amount }
             }
             TAKE_ALL_ACTION => {
-                let (currency, min_amount) = <(Address, U256) as SolValue>::abi_decode(action_data_slice)?;
+                let (currency, min_amount) = <(Address, U256) as SolValueBounded>::abi_decode_bounded(action_data_slice)?;
                 V4Action::TAKE_ALL { currency, min_amount }
             }
             TAKE_PORTION_ACTION => {
-                let (currency, recipient, bips) = <(Address, Address, U256) as SolValue>::abi_decode(action_data_slice)?;
+                let (currency, recipient, bips) = <(Address, Address, U256) as SolValueBounded>::abi_decode_bounded(action_data_slice)?;
                 V4Action::TAKE_PORTION { currency, recipient, bips }
             }
             _ => return Err(alloy_sol_types::Error::Other(format!("Unknown action opcode: {opcode}").into())),
@@ -239,5 +240,15 @@ mod tests {
         let encoded_actions = encode_actions(&[action]);
         let decoded_actions = decode_action_data(&encoded_actions, UniversalRouterAbi::V2_1).unwrap();
         assert!(matches!(decoded_actions.first(), Some(V4Action::SWAP_EXACT_IN_V2_1(_))));
+    }
+
+    #[test]
+    fn test_decode_action_data_refuses_actions_sharing_one_encoding() {
+        let word = |value: usize| U256::from(value).to_be_bytes::<32>().to_vec();
+        let mut action = (Address::ZERO, U256::from(1)).abi_encode();
+        action.resize(320, 0);
+        let data = [word(0x40), word(0x80), word(2), [vec![TAKE_ALL_ACTION; 2], vec![0; 30]].concat(), word(2), word(0x40), word(0x40), word(action.len()), action].concat();
+
+        assert_eq!(decode_action_data(&data, UniversalRouterAbi::V2), Err(alloy_sol_types::Error::MemoryLimitExceeded(data.len())));
     }
 }
