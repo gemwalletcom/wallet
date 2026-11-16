@@ -97,7 +97,11 @@ impl GemAddAssetSession {
     }
 
     pub fn on_address(&self, address: String) -> Self {
-        self.cleared(self.chain, address.trim().to_string())
+        let address = address.trim();
+        if address == self.address {
+            return self.clone();
+        }
+        self.cleared(self.chain, address.to_string())
     }
 
     pub fn on_loading(&self) -> Self {
@@ -236,6 +240,16 @@ mod session_tests {
         assert_eq!(found.view_state().button, GemButtonState::Enabled);
         assert_eq!(found.on_adding(true).view_state().button, GemButtonState::Loading);
         assert_eq!(found.on_adding(true).on_adding(false).view_state().button, GemButtonState::Enabled);
+    }
+
+    #[test]
+    fn test_the_same_address_keeps_the_lookup() {
+        let address = "0xabc".to_string();
+        let found = GemAddAssetSession::new(Some(Chain::Ethereum)).on_address(address.clone()).on_found(Chain::Ethereum, address.clone(), Asset::mock());
+        let failed = GemAddAssetSession::new(Some(Chain::Ethereum)).on_address(address.clone()).on_failed(Chain::Ethereum, address.clone());
+
+        assert_eq!(found.on_address(" 0xabc ".to_string()), found, "spaces are not part of the address");
+        assert_eq!(failed.on_address(address), failed);
     }
 
     #[test]

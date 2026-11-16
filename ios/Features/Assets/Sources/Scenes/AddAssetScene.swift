@@ -110,8 +110,7 @@ extension AddAssetScene {
 
 extension AddAssetScene {
     private func onFinishChainSelection(chains: [Chain]) {
-        model.input.chain = chains.first
-        model.input.address = nil
+        model.onSelectChain(chains.first)
     }
 
     private func onSelectImportToken() {

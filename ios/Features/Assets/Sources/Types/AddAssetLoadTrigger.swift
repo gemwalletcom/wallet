@@ -7,5 +7,4 @@ struct AddAssetLoadTrigger: DebouncableTrigger {
     let chain: Chain
     let address: String
     let isImmediate: Bool
-    let attempt: Int
 }

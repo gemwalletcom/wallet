@@ -5,5 +5,4 @@ import Components
 struct AddNodeLoadTrigger: DebouncableTrigger {
     let url: String
     let isImmediate: Bool
-    let attempt: Int
 }

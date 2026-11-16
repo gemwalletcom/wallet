@@ -25,7 +25,6 @@ final class AddNodeSceneViewModel {
     var isPresentingScanner: Bool = false
     var isPresentingAlertMessage: AlertMessage?
     var loadTrigger: AddNodeLoadTrigger?
-    private var loadAttempt = 0
 
     init(chain: Chain, service: any GemChainSettingsServiceProtocol) {
         self.chain = chain
@@ -103,10 +102,7 @@ extension AddNodeSceneViewModel {
             loadTrigger = nil
             return
         }
-        if isImmediate {
-            loadAttempt += 1
-        }
-        loadTrigger = AddNodeLoadTrigger(url: session.url, isImmediate: isImmediate, attempt: loadAttempt)
+        loadTrigger = AddNodeLoadTrigger(url: session.url, isImmediate: isImmediate)
     }
 
     func importFoundNode() async -> Bool {
