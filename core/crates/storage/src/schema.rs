@@ -360,11 +360,9 @@ diesel::table! {
 }
 
 diesel::table! {
-    fee_estimates (chain, priority, created_at) {
+    fee_estimates (chain, created_at) {
         #[max_length = 32]
         chain -> Varchar,
-        #[max_length = 16]
-        priority -> Varchar,
         gas_price -> Float8,
         priority_fee -> Float8,
         created_at -> Timestamp,

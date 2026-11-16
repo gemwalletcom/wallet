@@ -35,7 +35,6 @@ pub struct FeeEstimate {
 #[serde(rename_all = "camelCase")]
 pub struct FeeEstimateChartValue {
     pub date: DateTime<Utc>,
-    pub priority: FeePriority,
     pub gas_price: f64,
     pub priority_fee: f64,
 }

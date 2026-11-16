@@ -10,12 +10,12 @@ use primitives::nft::NFTType as PrimitiveNFTType;
 use primitives::rewards::{RedemptionStatus as PrimitiveRedemptionStatus, RewardEventType as PrimitiveRewardEventType, RewardRedemptionType as PrimitiveRewardRedemptionType, RewardStatus as PrimitiveRewardStatus};
 use primitives::scan::AddressType as PrimitiveAddressType;
 use primitives::{
-    AssetAssociationType as PrimitiveAssetAssociationType, AssetType as PrimitiveAssetType, Chain, DeviceLocale as PrimitiveDeviceLocale, FeePriority as PrimitiveFeePriority, FiatProviderName as PrimitiveFiatProviderName,
-    FiatQuoteType as PrimitiveFiatQuoteType, FiatTransactionStatus as PrimitiveFiatTransactionStatus, IpUsageType as PrimitiveIpUsageType, LinkType as PrimitiveLinkType, ListId as PrimitiveListId,
-    NotificationType as PrimitiveNotificationType, PerpetualDirection as PrimitivePerpetualDirection, PerpetualProvider as PrimitivePerpetualProvider, Platform as PrimitivePlatform, PlatformStore as PrimitivePlatformStore,
-    PriceAlertDirection as PrimitivePriceAlertDirection, PriceId as PrimitivePriceId, PriceProvider as PrimitivePriceProvider, ScanProvider as PrimitiveScanProvider, ScanType as PrimitiveScanType, SwapProvider as PrimitiveSwapProvider,
-    TagVisibility as PrimitiveTagVisibility, TransactionState as PrimitiveTransactionState, TransactionType as PrimitiveTransactionType, UsernameStatus as PrimitiveUsernameStatus, WalletSource as PrimitiveWalletSource,
-    WalletType as PrimitiveWalletType, swap::SwapStatus as PrimitiveSwapStatus,
+    AssetAssociationType as PrimitiveAssetAssociationType, AssetType as PrimitiveAssetType, Chain, DeviceLocale as PrimitiveDeviceLocale, FiatProviderName as PrimitiveFiatProviderName, FiatQuoteType as PrimitiveFiatQuoteType,
+    FiatTransactionStatus as PrimitiveFiatTransactionStatus, IpUsageType as PrimitiveIpUsageType, LinkType as PrimitiveLinkType, ListId as PrimitiveListId, NotificationType as PrimitiveNotificationType,
+    PerpetualDirection as PrimitivePerpetualDirection, PerpetualProvider as PrimitivePerpetualProvider, Platform as PrimitivePlatform, PlatformStore as PrimitivePlatformStore, PriceAlertDirection as PrimitivePriceAlertDirection,
+    PriceId as PrimitivePriceId, PriceProvider as PrimitivePriceProvider, ScanProvider as PrimitiveScanProvider, ScanType as PrimitiveScanType, SwapProvider as PrimitiveSwapProvider, TagVisibility as PrimitiveTagVisibility,
+    TransactionState as PrimitiveTransactionState, TransactionType as PrimitiveTransactionType, UsernameStatus as PrimitiveUsernameStatus, WalletSource as PrimitiveWalletSource, WalletType as PrimitiveWalletType,
+    swap::SwapStatus as PrimitiveSwapStatus,
 };
 use serde::{Deserialize, Serialize};
 use std::fmt;
@@ -228,7 +228,6 @@ macro_rules! diesel_varchar {
 }
 
 diesel_varchar!(ChainRow, Chain);
-diesel_varchar!(FeePriorityRow, PrimitiveFeePriority);
 diesel_varchar!(PriceProviderRow, PrimitivePriceProvider);
 diesel_varchar!(FiatProviderNameRow, PrimitiveFiatProviderName);
 

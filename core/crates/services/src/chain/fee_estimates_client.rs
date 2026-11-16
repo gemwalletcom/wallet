@@ -5,10 +5,10 @@ use std::sync::Arc;
 
 use cacher::{CacheError, FeeEstimatesCacher};
 use chain_providers::{TransactionFeeEstimate, TransactionFeeEstimates};
-use chrono::{DateTime, TimeDelta, Utc};
-use config_keys::{ConfigKey, ConfigParamKey};
+use chrono::{DateTime, Utc};
+use config_keys::ConfigParamKey;
 use number_formatter::{BigNumberFormatter, CryptoFiatConverter};
-use primitives::{Asset, Chain, ChainFeeEstimates, ChartPeriod, FeeEstimate, FeeEstimateChartValue, FeeEstimatesByPriority, FeeUnitType};
+use primitives::{Asset, Chain, ChainFeeEstimates, ChartPeriod, FeeEstimate, FeeEstimateChartValue, FeeEstimatesByPriority, FeePriority, FeeUnitType};
 
 use super::chain_client::ChainClient;
 use super::repository::Repository;
@@ -57,13 +57,9 @@ impl FeeEstimatesClient {
     }
 
     pub async fn update_chain_fee_estimates(&self, chain: Chain) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let now = Utc::now();
         let estimates = self.chain_client.get_transaction_fee_estimates(chain).await?;
         let asset = self.assets_client.get_asset(&estimates.fee_asset).await?;
-        let retention = TimeDelta::from_std(self.config.get_duration(ConfigKey::TransactionsFeeEstimatesRetention).await?)?;
-        let added = self.repository.add_fee_estimates(chain, map_fee_estimate_chart_values(&asset, estimates.transfer, now)?).await?;
-        self.repository.delete_fee_estimates(chain, (now - retention).naive_utc()).await?;
-        Ok(added)
+        Ok(self.repository.add_fee_estimate(chain, map_fee_estimate_chart_value(&asset, estimates.transfer, Utc::now())?).await?)
     }
 
     pub async fn get_fee_estimates(&self) -> Result<Vec<ChainFeeEstimates>, Box<dyn Error + Send + Sync>> {
@@ -87,19 +83,14 @@ fn rate_decimals(asset: &Asset) -> u32 {
     }
 }
 
-fn map_fee_estimate_chart_values(asset: &Asset, estimates: Vec<TransactionFeeEstimate>, date: DateTime<Utc>) -> Result<Vec<FeeEstimateChartValue>, Box<dyn Error + Send + Sync>> {
+fn map_fee_estimate_chart_value(asset: &Asset, estimates: Vec<TransactionFeeEstimate>, date: DateTime<Utc>) -> Result<FeeEstimateChartValue, Box<dyn Error + Send + Sync>> {
     let decimals = rate_decimals(asset);
-    estimates
-        .into_iter()
-        .map(|estimate| {
-            Ok(FeeEstimateChartValue {
-                date,
-                priority: estimate.priority,
-                gas_price: BigNumberFormatter::value_as_f64(estimate.gas_price_type.gas_price(), decimals)?,
-                priority_fee: BigNumberFormatter::value_as_f64(estimate.gas_price_type.priority_fee(), decimals)?,
-            })
-        })
-        .collect()
+    let estimate = estimates.into_iter().find(|estimate| estimate.priority == FeePriority::Normal).ok_or("missing normal fee estimate")?;
+    Ok(FeeEstimateChartValue {
+        date,
+        gas_price: BigNumberFormatter::value_as_f64(estimate.gas_price_type.gas_price(), decimals)?,
+        priority_fee: BigNumberFormatter::value_as_f64(estimate.gas_price_type.priority_fee(), decimals)?,
+    })
 }
 
 fn map_fee_estimates(asset: Asset, estimates: TransactionFeeEstimates, price_usd: f64) -> Result<ChainFeeEstimates, Box<dyn Error + Send + Sync>> {
@@ -146,7 +137,7 @@ mod tests {
     use primitives::{Asset, AssetMarket, AssetPriceInfo, Chain, ChainFeeEstimates, FeeEstimateChartValue, FeePriority, GasPriceType, Price, PriceProvider};
     use settings::Settings;
 
-    use super::{FeeEstimatesClient, map_fee_estimate_chart_values, map_fee_estimates};
+    use super::{FeeEstimatesClient, map_fee_estimate_chart_value, map_fee_estimates};
     use crate::ConfigCacher;
     use crate::assets::AssetsClient;
     use crate::chain::ChainClient;
@@ -282,22 +273,21 @@ mod tests {
     }
 
     #[test]
-    fn test_map_fee_estimate_chart_values() {
+    fn test_map_fee_estimate_chart_value() {
         let date = DateTime::from_timestamp(1_700_000_000, 0).unwrap();
-        let estimates = vec![TransactionFeeEstimate {
-            priority: FeePriority::Fast,
-            gas_price_type: GasPriceType::eip1559(51_000_000u64, 1_000_000u64),
-            fee: 1_092_000_000_000u64.into(),
-        }];
-
-        assert_eq!(
-            map_fee_estimate_chart_values(&Asset::mock(), estimates, date).unwrap(),
-            vec![FeeEstimateChartValue {
-                date,
+        let estimates = vec![
+            TransactionFeeEstimate {
                 priority: FeePriority::Fast,
-                gas_price: 0.051,
-                priority_fee: 0.001,
-            }]
-        );
+                gas_price_type: GasPriceType::eip1559(51_000_000u64, 3_000_000u64),
+                fee: 1_134_000_000_000u64.into(),
+            },
+            TransactionFeeEstimate {
+                priority: FeePriority::Normal,
+                gas_price_type: GasPriceType::eip1559(51_000_000u64, 1_000_000u64),
+                fee: 1_092_000_000_000u64.into(),
+            },
+        ];
+
+        assert_eq!(map_fee_estimate_chart_value(&Asset::mock(), estimates, date).unwrap(), FeeEstimateChartValue { date, gas_price: 0.051, priority_fee: 0.001 });
     }
 }

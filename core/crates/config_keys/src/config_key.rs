@@ -95,7 +95,6 @@ pub enum ConfigKey {
     TransactionsNotificationsBatchSize,
     TransactionsSwapMaxOutputToInputValue,
     TransactionsSwapMaxInputToOutputValue,
-    TransactionsFeeEstimatesRetention,
     SubscriptionAddressStatusCacheDuration,
 
     AlerterPriceAlertsTimer,
@@ -302,7 +301,6 @@ impl ConfigKey {
             Self::TransactionsNotificationsBatchSize => "10",
             Self::TransactionsSwapMaxOutputToInputValue => "2",
             Self::TransactionsSwapMaxInputToOutputValue => "2",
-            Self::TransactionsFeeEstimatesRetention => "31d",
             Self::SubscriptionAddressStatusCacheDuration => "15m",
             Self::AlerterPriceAlertsTimer => "60s",
             Self::AlerterPriceAlertsCooldown => "24h",
