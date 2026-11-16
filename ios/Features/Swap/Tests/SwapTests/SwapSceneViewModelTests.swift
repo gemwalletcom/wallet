@@ -198,12 +198,6 @@ struct SwapSceneViewModelTests {
         #expect(model.loadTrigger?.isImmediate == true)
 
         model.loadTrigger = nil
-        model.session = .mock(quotePhase: .failed(request: .mock(), error: .NoQuoteAvailable), input: .mock())
-        await model.onSelectActionButton()
-
-        #expect(model.loadTrigger?.isImmediate == true)
-
-        model.loadTrigger = nil
         model.session = .mock(quotePhase: .failed(request: .mock(), error: .InputAmountError(minAmount: "1000000000000000000")), input: .mock())
         await model.onSelectActionButton()
 
@@ -211,18 +205,16 @@ struct SwapSceneViewModelTests {
     }
 
     @Test
-    func retryQuoteUpdatesLoadTrigger() async {
+    func retryQuoteLoadsTheSameInputAgain() async {
         let model = SwapSceneViewModel.mock()
 
         model.session = .mock(quotePhase: .failed(request: .mock(), error: .NoQuoteAvailable), input: .mock())
         await model.onSelectActionButton()
-        let firstRetry = model.loadTrigger
-        #expect(model.viewState.isQuoteLoading)
+        #expect(model.session.quote() != nil)
 
         model.session = .mock(quotePhase: .failed(request: .mock(), error: .NoQuoteAvailable), input: .mock())
         await model.onSelectActionButton()
-
-        #expect(model.loadTrigger != firstRetry)
+        #expect(model.session.quote() != nil)
     }
 
     @Test

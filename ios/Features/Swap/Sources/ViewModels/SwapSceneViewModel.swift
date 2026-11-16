@@ -424,7 +424,7 @@ extension SwapSceneViewModel {
             if let input = session.input {
                 session = session.onRefreshRequested(request: input.request)
             }
-            setLoadTrigger(isImmediate: true)
+            await load()
         case .insufficientBalance: break
         case .useMinimumAmount: setMinimumAmount()
         case .swap:
