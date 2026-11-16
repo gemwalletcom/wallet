@@ -92,7 +92,6 @@ extension AddAssetScene {
 
             if model.isLoading {
                 ListItemLoadingView()
-                    .id(UUID())
             }
             GemGroupSections(rows: model.sections) { GemListRowView(row: $0) }
             if model.showsVerificationWarning {

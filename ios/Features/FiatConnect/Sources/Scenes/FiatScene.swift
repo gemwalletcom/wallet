@@ -83,7 +83,6 @@ extension FiatScene {
                 }
             case .loading:
                 ListItemLoadingView()
-                    .id(UUID())
             case .data:
                 if let quote = viewState.selectedQuoteRow {
                     let view = ListItemImageView(
