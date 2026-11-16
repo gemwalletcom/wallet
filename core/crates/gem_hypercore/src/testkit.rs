@@ -6,17 +6,12 @@ pub use crate::models::position::{AssetPositions, MarginSummary};
 pub use crate::models::spot::OrderbookLevel;
 use crate::models::user::{AgentSession, DelegatorHistoryDelta, DelegatorHistoryUpdate, DelegatorWithdrawalDelta};
 use crate::models::websocket::HyperliquidSubscription;
-#[cfg(test)]
 use crate::rpc::client::HyperCoreClient;
 #[cfg(test)]
 use crate::{config::HypercoreConfig, provider::preload_cache::HyperCoreCache};
-#[cfg(test)]
 use gem_client::{ClientError, testkit::MockClient};
-#[cfg(test)]
 use primitives::InMemoryPreferences;
-#[cfg(test)]
 use serde_json::Value;
-#[cfg(test)]
 use std::sync::{Arc, Mutex};
 
 impl AssetPositions {
@@ -150,7 +145,6 @@ impl HyperCoreCache {
     }
 }
 
-#[cfg(test)]
 impl HyperCoreClient<MockClient> {
     pub fn mock() -> Self {
         Self::mock_with_client(MockClient::new())

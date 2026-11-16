@@ -4789,10 +4789,13 @@ name = "prices"
 version = "2.114.94"
 dependencies = [
  "async-trait",
+ "chain_traits",
  "chrono",
  "coingecko",
  "coinmarketcap",
+ "futures",
  "gem_client",
+ "gem_hypercore",
  "gem_ton",
  "gem_tracing",
  "jupiter",

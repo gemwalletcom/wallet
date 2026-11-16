@@ -249,6 +249,7 @@ pub struct Prices {
     pub defillama: ProviderSettings,
     pub tonapi: ProviderSettings,
     pub stonfi: ProviderSettings,
+    pub hypercore: ProviderSettings,
 }
 
 #[derive(Debug, Deserialize, Clone)]

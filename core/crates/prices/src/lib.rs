@@ -18,6 +18,7 @@ pub use primitives::PriceProvider;
 pub use providers::coingecko::provider::CoinGeckoPricesProvider;
 pub use providers::coinmarketcap::provider::CoinMarketCapRatesProvider;
 pub use providers::defillama::provider::DefiLlamaProvider;
+pub use providers::hypercore::provider::HypercoreProvider;
 pub use providers::jupiter::provider::JupiterProvider;
 pub use providers::pyth::provider::PythProvider;
 pub use providers::tonapi::provider::TonApiProvider;

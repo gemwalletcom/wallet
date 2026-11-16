@@ -2,4 +2,4 @@ mod orderbook;
 mod spot_market;
 
 pub use orderbook::{OrderbookLevel, OrderbookResponse};
-pub use spot_market::{SpotMarket, SpotMeta};
+pub use spot_market::{SpotAssetContext, SpotMarket, SpotMeta, SpotMetaAndAssetContexts};

@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use primitives::{AssetId, AssetLink, AssetMarket, PriceData, PriceId, PriceProvider};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct AssetPriceMapping {
     pub asset_id: AssetId,
     pub provider_price_id: String,

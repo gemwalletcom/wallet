@@ -14,7 +14,7 @@ use crate::models::{
     portfolio::HypercorePortfolioResponse,
     position::AssetPositions,
     referral::Referral,
-    spot::{OrderbookResponse, SpotMeta},
+    spot::{OrderbookResponse, SpotMeta, SpotMetaAndAssetContexts},
     user::{AgentSession, DelegatorHistoryUpdate, LedgerUpdate, UserAbstractionMode, UserFee, UserRole},
 };
 use async_trait::async_trait;
@@ -123,6 +123,10 @@ impl<C: Client> HyperCoreClient<C> {
 
     pub async fn get_spot_meta(&self) -> Result<SpotMeta, Box<dyn Error + Send + Sync>> {
         self.info(InfoRequest::SpotMeta).await
+    }
+
+    pub async fn get_spot_meta_and_asset_contexts(&self) -> Result<SpotMetaAndAssetContexts, Box<dyn Error + Send + Sync>> {
+        self.info(InfoRequest::SpotMetaAndAssetCtxs).await
     }
 
     pub async fn get_spot_orderbook(&self, coin: &str) -> Result<OrderbookResponse, Box<dyn Error + Send + Sync>> {
