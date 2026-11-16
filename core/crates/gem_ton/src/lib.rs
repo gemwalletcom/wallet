@@ -16,5 +16,5 @@ pub mod models;
 #[cfg(any(test, feature = "testkit"))]
 pub mod testkit;
 
-pub use address::{Address, validate_address};
+pub use address::Address;
 pub use primitives::AddressError;

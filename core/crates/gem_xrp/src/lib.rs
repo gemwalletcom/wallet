@@ -8,7 +8,7 @@ pub mod models;
 #[cfg(feature = "signer")]
 pub mod signer;
 
-pub use address::{XrpAddress, validate_address};
+pub use address::XrpAddress;
 #[cfg(feature = "rpc")]
 pub mod rpc;
 #[cfg(feature = "rpc")]

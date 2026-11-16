@@ -50,10 +50,6 @@ impl XrpAddress {
     }
 }
 
-pub fn validate_address(address: &str) -> bool {
-    XrpAddress::is_valid(address)
-}
-
 impl fmt::Display for XrpAddress {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(&self.encode())
@@ -73,9 +69,9 @@ mod tests {
 
         assert_eq!(hex::encode(parsed.as_bytes()), "2decab42ca805119a9ba2ff305c9afa12f0b86a1");
         assert_eq!(parsed.to_string(), CLASSIC_ADDRESS);
-        assert!(validate_address(CLASSIC_ADDRESS));
+        assert!(XrpAddress::is_valid(CLASSIC_ADDRESS));
         assert!(XrpAddress::from_str("invalid").is_err());
-        assert!(!validate_address("rnBFvgZphmN39GWzUJeUitaP22Fr9be75J"));
+        assert!(!XrpAddress::is_valid("rnBFvgZphmN39GWzUJeUitaP22Fr9be75J"));
     }
 
     #[test]

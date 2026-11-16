@@ -13,6 +13,6 @@ pub mod signer;
 #[cfg(any(feature = "rpc", feature = "signer"))]
 mod transfer;
 
-pub use address::{PolkadotAddress, validate_address};
+pub use address::PolkadotAddress;
 #[cfg(feature = "rpc")]
 pub use rpc::client::PolkadotClient;

@@ -16,15 +16,11 @@ impl CosmosAddress {
         })
     }
 
-    fn has_chain_hrp(address: &str, chain: Chain) -> bool {
+    pub fn is_valid_for_chain(address: &str, chain: Chain) -> bool {
         let Some(cosmos_chain) = CosmosChain::from_chain(chain) else {
             return false;
         };
         Self::try_parse(address).is_some_and(|address| address.hrp == cosmos_chain.hrp())
-    }
-
-    pub fn is_valid_for_chain(address: &str, chain: Chain) -> bool {
-        Self::has_chain_hrp(address, chain)
     }
 
     pub fn convert(address: &str, hrp: &str) -> Result<String, Box<dyn Error + Send + Sync>> {
@@ -51,10 +47,6 @@ impl AddressTrait for CosmosAddress {
         let hrp = Hrp::parse(&self.hrp).expect("valid Cosmos address hrp");
         bech32::encode::<bech32::Bech32>(hrp, &self.bytes).expect("valid Cosmos address bytes")
     }
-}
-
-pub fn validate_address(address: &str, chain: Chain) -> bool {
-    CosmosAddress::is_valid_for_chain(address, chain)
 }
 
 #[cfg(test)]
@@ -84,11 +76,11 @@ mod tests {
         let address = "cosmos1h3laqcrmul79zwtw6j63ncsl0adfj07wgupylj";
         let parsed = CosmosAddress::try_parse(address).unwrap();
 
-        assert!(validate_address(address, Chain::Cosmos));
+        assert!(CosmosAddress::is_valid_for_chain(address, Chain::Cosmos));
         assert_eq!(parsed.as_bytes().len(), 20);
         assert_eq!(parsed.encode(), address);
-        assert!(!validate_address(address, Chain::Osmosis));
-        assert!(!validate_address("invalid", Chain::Cosmos));
+        assert!(!CosmosAddress::is_valid_for_chain(address, Chain::Osmosis));
+        assert!(!CosmosAddress::is_valid_for_chain("invalid", Chain::Cosmos));
     }
 
     #[test]

@@ -1,5 +1,5 @@
 use chain_primitives::checksum_address;
-use primitives::{Chain, ChainType};
+use primitives::{Address, Chain, ChainType};
 
 pub fn parse_address(address: &str, chain: Chain) -> Option<String> {
     validate_address(address, chain).then(|| checksum_address(address, chain))
@@ -9,18 +9,18 @@ pub fn validate_address(address: &str, chain: Chain) -> bool {
     let address = address.trim();
     match chain.chain_type() {
         ChainType::Ethereum | ChainType::HyperCore => gem_evm::validate_address(address),
-        ChainType::Solana => gem_solana::validate_address(address),
-        ChainType::Cosmos => gem_cosmos::validate_address(address, chain),
-        ChainType::Ton => gem_ton::validate_address(address),
-        ChainType::Tron => gem_tron::validate_address(address),
-        ChainType::Aptos => gem_aptos::validate_address(address),
-        ChainType::Sui => gem_sui::validate_address(address),
+        ChainType::Solana => gem_solana::SolanaAddress::is_valid(address),
+        ChainType::Cosmos => gem_cosmos::address::CosmosAddress::is_valid_for_chain(address, chain),
+        ChainType::Ton => gem_ton::Address::is_valid(address),
+        ChainType::Tron => gem_tron::address::TronAddress::is_valid(address),
+        ChainType::Aptos => gem_aptos::AccountAddress::is_valid(address),
+        ChainType::Sui => gem_sui::address::SuiAddress::is_valid(address),
         ChainType::Near => gem_near::is_valid_address(address),
-        ChainType::Stellar => gem_stellar::validate_address(address),
-        ChainType::Algorand => gem_algorand::validate_address(address),
-        ChainType::Xrp => gem_xrp::validate_address(address),
-        ChainType::Polkadot => gem_polkadot::validate_address(address),
-        ChainType::Bitcoin => gem_bitcoin::validate_address(address, chain),
+        ChainType::Stellar => gem_stellar::StellarAddress::is_valid(address),
+        ChainType::Algorand => gem_algorand::AlgorandAddress::is_valid(address),
+        ChainType::Xrp => gem_xrp::XrpAddress::is_valid(address),
+        ChainType::Polkadot => gem_polkadot::PolkadotAddress::is_valid(address),
+        ChainType::Bitcoin => gem_bitcoin::BitcoinAddress::is_valid_for_chain(address, chain),
         ChainType::Cardano => gem_cardano::validate_address(address),
     }
 }

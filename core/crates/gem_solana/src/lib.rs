@@ -27,7 +27,7 @@ mod testkit;
 #[cfg(feature = "signer")]
 pub mod signer;
 
-pub use address::{SolanaAddress, validate_address};
+pub use address::SolanaAddress;
 pub use builder::{InstructionBuilder, TransactionBuilder};
 pub use constants::{DEFAULT_SWAP_GAS_LIMIT, MAX_COMPUTE_UNIT_LIMIT};
 pub use error::SolanaError;

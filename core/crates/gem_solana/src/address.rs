@@ -34,10 +34,6 @@ impl AddressTrait for SolanaAddress {
     }
 }
 
-pub fn validate_address(address: &str) -> bool {
-    SolanaAddress::is_valid(address)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -47,11 +43,11 @@ mod tests {
         let string = "GvhwZwtV32kYUXUw965CUM3KGPdtBsDwPVpi92brY5R2";
         let address = SolanaAddress::try_parse(string).unwrap();
 
-        assert!(validate_address(string));
+        assert!(SolanaAddress::is_valid(string));
         assert_eq!(address.as_bytes().len(), 32);
         assert_eq!(address.encode(), string);
         assert_eq!(SolanaAddress::parse(string).unwrap().encode(), string);
         assert!(SolanaAddress::parse("invalid").is_err());
-        assert!(!validate_address("invalid"));
+        assert!(!SolanaAddress::is_valid("invalid"));
     }
 }

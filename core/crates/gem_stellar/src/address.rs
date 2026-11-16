@@ -25,10 +25,6 @@ impl Address for StellarAddress {
     }
 }
 
-pub fn validate_address(address: &str) -> bool {
-    StellarAddress::is_valid(address)
-}
-
 impl StellarAddress {
     pub fn from_public_key(public_key_bytes: &[u8]) -> Result<Self, SignerError> {
         Ok(Self {
@@ -53,12 +49,12 @@ mod tests {
     fn test_stellar_address() {
         let parsed = StellarAddress::from_str(VALID_ADDRESS).unwrap();
 
-        assert!(validate_address(VALID_ADDRESS));
+        assert!(StellarAddress::is_valid(VALID_ADDRESS));
         assert_eq!(parsed.to_string(), VALID_ADDRESS);
         assert_eq!(parsed.as_bytes().len(), 32);
 
-        assert!(!validate_address(""));
-        assert!(!validate_address("invalid"));
-        assert!(!validate_address("GAE2SZV4VLGBAPRYRFV2VY7YYLYGYIP5I7OU7BSP6DJT7GAZ35OKFDYZ"));
+        assert!(!StellarAddress::is_valid(""));
+        assert!(!StellarAddress::is_valid("invalid"));
+        assert!(!StellarAddress::is_valid("GAE2SZV4VLGBAPRYRFV2VY7YYLYGYIP5I7OU7BSP6DJT7GAZ35OKFDYZ"));
     }
 }

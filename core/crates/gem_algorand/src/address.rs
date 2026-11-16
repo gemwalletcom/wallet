@@ -34,10 +34,6 @@ impl Address for AlgorandAddress {
     }
 }
 
-pub fn validate_address(address: &str) -> bool {
-    AlgorandAddress::is_valid(address)
-}
-
 impl AlgorandAddress {
     pub fn from_public_key(public_key_bytes: &[u8]) -> Result<Self, SignerError> {
         Ok(Self {
@@ -69,12 +65,12 @@ mod tests {
     fn test_algorand_address() {
         let parsed = AlgorandAddress::from_str(VALID_ADDRESS).unwrap();
 
-        assert!(validate_address(VALID_ADDRESS));
+        assert!(AlgorandAddress::is_valid(VALID_ADDRESS));
         assert_eq!(parsed.to_string(), VALID_ADDRESS);
         assert_eq!(parsed.as_bytes().len(), 32);
 
-        assert!(!validate_address(""));
-        assert!(!validate_address("invalid"));
-        assert!(!validate_address("QKDS2YGDHDFZFAAGA4HAF3AJIKW5ZN46P66QDR3ELCXKKJUJTPJSXVHNQX"));
+        assert!(!AlgorandAddress::is_valid(""));
+        assert!(!AlgorandAddress::is_valid("invalid"));
+        assert!(!AlgorandAddress::is_valid("QKDS2YGDHDFZFAAGA4HAF3AJIKW5ZN46P66QDR3ELCXKKJUJTPJSXVHNQX"));
     }
 }

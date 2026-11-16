@@ -53,10 +53,6 @@ impl AddressTrait for BitcoinAddress {
     }
 }
 
-pub fn validate_address(address: &str, chain: Chain) -> bool {
-    BitcoinAddress::is_valid_for_chain(address, chain)
-}
-
 pub fn zcash_transparent_address(address: &str) -> Result<String, SignerError> {
     let script = script_for_address(BitcoinChain::Zcash, address)?;
     Ok(match script.public_key_hash() {
@@ -92,15 +88,15 @@ mod tests {
         let dash = BitcoinAddress::mock_with_chain(BitcoinChain::Dash);
         let zcash = BitcoinAddress::mock_with_chain(BitcoinChain::Zcash);
 
-        assert!(validate_address(&bitcoin.encode(), Chain::Bitcoin));
-        assert!(validate_address(&bitcoin_cash.encode(), Chain::BitcoinCash));
-        assert!(validate_address(bitcoin_cash.encode().strip_prefix(BITCOINCASH_PREFIX).unwrap(), Chain::BitcoinCash));
-        assert!(validate_address(&litecoin.encode(), Chain::Litecoin));
-        assert!(validate_address(&doge.encode(), Chain::Doge));
-        assert!(validate_address(&dash.encode(), Chain::Dash));
-        assert!(validate_address(&zcash.encode(), Chain::Zcash));
-        assert!(!validate_address(&bitcoin.encode(), Chain::Litecoin));
-        assert!(!validate_address("invalid", Chain::Bitcoin));
+        assert!(BitcoinAddress::is_valid_for_chain(&bitcoin.encode(), Chain::Bitcoin));
+        assert!(BitcoinAddress::is_valid_for_chain(&bitcoin_cash.encode(), Chain::BitcoinCash));
+        assert!(BitcoinAddress::is_valid_for_chain(bitcoin_cash.encode().strip_prefix(BITCOINCASH_PREFIX).unwrap(), Chain::BitcoinCash));
+        assert!(BitcoinAddress::is_valid_for_chain(&litecoin.encode(), Chain::Litecoin));
+        assert!(BitcoinAddress::is_valid_for_chain(&doge.encode(), Chain::Doge));
+        assert!(BitcoinAddress::is_valid_for_chain(&dash.encode(), Chain::Dash));
+        assert!(BitcoinAddress::is_valid_for_chain(&zcash.encode(), Chain::Zcash));
+        assert!(!BitcoinAddress::is_valid_for_chain(&bitcoin.encode(), Chain::Litecoin));
+        assert!(!BitcoinAddress::is_valid_for_chain("invalid", Chain::Bitcoin));
 
         let parsed = BitcoinAddress::try_parse_for_chain(&bitcoin.encode(), BitcoinChain::Bitcoin).unwrap();
         assert_eq!(parsed.encode(), bitcoin.encode());
