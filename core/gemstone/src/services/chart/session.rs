@@ -61,8 +61,6 @@ pub struct GemChartResult {
     pub state: GemLoadState,
     pub chart: Option<GemChart>,
     pub candles: Vec<ChartCandleStick>,
-    #[uniffi(default = None)]
-    pub has_candles: Option<bool>,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -148,12 +146,12 @@ impl GemChartSession {
         if style == self.style || (style == GemChartStyle::Candles && !self.has_candles) {
             return self.clone();
         }
-        let selected = Self {
+        Self {
             style,
             zoom: GemChartZoom::default(),
             ..self.clone()
-        };
-        if selected.shows_candles() { selected.with_candle_period() } else { selected }
+        }
+        .with_candle_period()
     }
 
     fn shows_candles(&self) -> bool {
@@ -161,7 +159,7 @@ impl GemChartSession {
     }
 
     fn with_candle_period(self) -> Self {
-        if rules::has_candle_period(self.period) {
+        if !self.shows_candles() || rules::has_candle_period(self.period) {
             return self;
         }
         Self {
@@ -215,17 +213,15 @@ impl GemChartSession {
         }
     }
 
-    fn loaded(&self, chart: GemChart, rate: Option<f64>, has_candles: Option<bool>) -> Self {
-        let loaded = Self {
+    fn loaded(&self, chart: GemChart, rate: Option<f64>) -> Self {
+        Self {
             rate: self.with_rate(rate),
-            has_candles: has_candles.unwrap_or(self.has_candles),
             chart: Some(chart),
             error: None,
             is_loading: false,
             is_refreshing: false,
             ..self.clone()
-        };
-        if loaded.shows_candles() { loaded.with_candle_period() } else { loaded }
+        }
     }
 
     fn failed(&self, error: GemServiceError, rate: Option<f64>) -> Self {
@@ -268,6 +264,10 @@ impl GemChartSession {
         }
     }
 
+    pub fn on_has_candles_changed(&self, has_candles: bool) -> Self {
+        Self { has_candles, ..self.clone() }.with_candle_period()
+    }
+
     pub fn request(&self) -> Option<GemChartRequest> {
         if self.rate == GemChartRate::Pending {
             return Some(GemChartRequest::Rate { currency: self.currency.clone() });
@@ -289,16 +289,12 @@ impl GemChartSession {
             return self.clone();
         }
         match result.request {
-            GemChartRequest::Rate { .. } => {
-                let rated = Self {
-                    rate: result.rate.map_or(GemChartRate::Unknown, |rate| GemChartRate::Known { rate }),
-                    has_candles: result.has_candles.unwrap_or(self.has_candles),
-                    ..self.clone()
-                };
-                if rated.shows_candles() { rated.with_candle_period() } else { rated }
-            }
+            GemChartRequest::Rate { .. } => Self {
+                rate: result.rate.map_or(GemChartRate::Unknown, |rate| GemChartRate::Known { rate }),
+                ..self.clone()
+            },
             GemChartRequest::Chart { .. } => match result.state.into_result(result.chart) {
-                Ok(Some(chart)) => self.loaded(chart, result.rate, result.has_candles),
+                Ok(Some(chart)) => self.loaded(chart, result.rate),
                 Ok(None) => self.clone(),
                 Err(error) => self.failed(error, result.rate),
             },
@@ -349,19 +345,18 @@ mod tests {
     use super::*;
     use primitives::ChartDateValue;
 
-    fn rate_result(currency: Currency, has_candles: Option<bool>) -> GemChartResult {
+    fn rate_result(currency: Currency) -> GemChartResult {
         GemChartResult {
             request: GemChartRequest::Rate { currency },
             rate: Some(1.0),
             state: GemLoadState::Data,
             chart: None,
             candles: vec![],
-            has_candles,
         }
     }
 
     fn rated(period: ChartPeriod, currency: Currency) -> GemChartSession {
-        GemChartSession::new(period, currency.clone()).on_result(rate_result(currency, None))
+        GemChartSession::new(period, currency.clone()).on_result(rate_result(currency))
     }
 
     fn chart_result(session: &GemChartSession, chart: GemChart) -> GemChartResult {
@@ -374,7 +369,6 @@ mod tests {
             state: GemLoadState::Data,
             chart: Some(chart),
             candles: vec![],
-            has_candles: None,
         }
     }
 
@@ -388,7 +382,6 @@ mod tests {
             state: GemLoadState::Error { error },
             chart: None,
             candles: vec![],
-            has_candles: None,
         }
     }
 
@@ -424,7 +417,6 @@ mod tests {
             state: GemLoadState::Error { error: GemServiceError::Offline },
             chart: None,
             candles: vec![],
-            has_candles: None,
         });
 
         assert_eq!(unknown.rate, GemChartRate::Unknown);
@@ -592,7 +584,6 @@ mod tests {
                 state: GemLoadState::Data,
                 chart: None,
                 candles: vec![],
-                has_candles: None,
             }),
             eur,
             "neither does the old currency's rate"
@@ -621,10 +612,7 @@ mod tests {
     }
 
     fn with_candles(session: GemChartSession) -> GemChartSession {
-        session.on_result(GemChartResult {
-            has_candles: Some(true),
-            ..chart_result(&session, GemChart::mock(two_points()))
-        })
+        loaded(session.on_has_candles_changed(true), two_points())
     }
 
     fn candles_result(session: &GemChartSession, candles: Vec<ChartCandleStick>) -> GemChartResult {
@@ -634,28 +622,21 @@ mod tests {
             state: GemLoadState::Data,
             chart: None,
             candles,
-            has_candles: None,
         }
     }
 
     #[test]
-    fn test_an_asset_stored_with_candles_offers_the_switch_before_its_chart_loads() {
-        let session = GemChartSession::new(ChartPeriod::Day, Currency::USD).on_result(rate_result(Currency::USD, Some(true)));
-
-        let refreshed = session.on_result(GemChartResult {
-            has_candles: Some(false),
-            ..chart_result(&session, GemChart::mock(two_points()))
-        });
+    fn test_an_asset_stored_with_candles_offers_the_switch_before_anything_loads() {
+        let session = GemChartSession::new(ChartPeriod::Day, Currency::USD).on_has_candles_changed(true);
 
         assert_eq!(session.style_switch(), Some(GemChartStyle::Candles));
         assert_eq!(session.phase(None, 0), GemChartPhase::Loading);
-        assert_eq!(refreshed.style_switch(), None, "the asset refreshed with the chart has the final say");
-        assert_eq!(loaded(session, two_points()).style_switch(), Some(GemChartStyle::Candles), "a chart that could not read the asset keeps the stored answer");
+        assert_eq!(session.on_has_candles_changed(false).style_switch(), None, "the asset refreshed with the chart has the final say");
     }
 
     #[test]
     fn test_a_remembered_candle_style_starts_on_a_candle_period_when_the_stored_asset_has_candles() {
-        let session = GemChartSession::new(ChartPeriod::Hour, Currency::USD).with_style(GemChartStyle::Candles).on_result(rate_result(Currency::USD, Some(true)));
+        let session = rated(ChartPeriod::Hour, Currency::USD).with_style(GemChartStyle::Candles).on_has_candles_changed(true);
 
         assert_eq!(session.period, ChartPeriod::Day);
         assert_eq!(

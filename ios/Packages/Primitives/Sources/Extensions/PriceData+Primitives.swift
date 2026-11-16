@@ -10,6 +10,24 @@ extension PriceData: Identifiable {
 
 public extension PriceData {
     static func with(asset: Asset) -> PriceData {
-        PriceData(asset: asset, price: nil, priceAlerts: [], market: nil, links: [])
+        PriceData(
+            asset: asset,
+            price: nil,
+            priceAlerts: [],
+            market: nil,
+            links: [],
+            properties: AssetProperties(
+                isEnabled: false,
+                isBuyable: false,
+                isSellable: false,
+                isSwapable: false,
+                isStakeable: false,
+                stakingApr: nil,
+                isEarnable: false,
+                earnApr: nil,
+                hasImage: false,
+                hasCandles: false,
+            ),
+        )
     }
 }

@@ -81,7 +81,7 @@ pub struct AssetMarketPrice {
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Model)]
-#[model(swift = "Sendable")]
+#[model(swift = "Sendable, Equatable")]
 #[serde(rename_all = "camelCase")]
 pub struct AssetProperties {
     pub is_enabled: bool,

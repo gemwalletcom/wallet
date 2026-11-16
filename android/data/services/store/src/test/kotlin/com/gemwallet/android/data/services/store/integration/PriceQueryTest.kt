@@ -9,6 +9,7 @@ import com.gemwallet.android.data.services.store.database.entities.DbPrice
 import com.gemwallet.android.data.services.store.database.entities.DbPriceAlert
 import com.gemwallet.android.data.services.store.database.mockGemDatabase
 import com.gemwallet.android.data.services.store.queries.PriceQuery
+import com.gemwallet.android.testkit.mockAssetProperties
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.AssetLink
@@ -42,7 +43,7 @@ class PriceQueryTest {
         query = PriceQuery(database.pricesDao())
         database.assetsDao().insert(
             listOf(
-                DbAsset(id = "ethereum", chain = Chain.Ethereum, name = "Ethereum", symbol = "ETH", decimals = 18, type = AssetType.NATIVE),
+                DbAsset(id = "ethereum", chain = Chain.Ethereum, name = "Ethereum", symbol = "ETH", decimals = 18, type = AssetType.NATIVE, hasCandles = true),
                 DbAsset(id = "bitcoin", chain = Chain.Bitcoin, name = "Bitcoin", symbol = "BTC", decimals = 8, type = AssetType.NATIVE),
             ),
         )
@@ -66,7 +67,7 @@ class PriceQueryTest {
     fun tearDown() = database.close()
 
     @Test
-    fun theAssetCarriesItsPriceMarketLinksAndAlerts() = runBlocking(Dispatchers.IO) {
+    fun theAssetCarriesItsPriceMarketLinksAlertsAndProperties() = runBlocking(Dispatchers.IO) {
         assertEquals(
             PriceData(
                 asset = Asset(id = ethereum, name = "Ethereum", symbol = "ETH", decimals = 18u, type = AssetType.NATIVE),
@@ -74,6 +75,7 @@ class PriceQueryTest {
                 priceAlerts = listOf(PriceAlert(assetId = ethereum, currency = Currency.USD, price = 2500.0)),
                 market = AssetMarket(marketCap = 1234.0),
                 links = listOf(AssetLink(name = "website", url = "https://ethereum.org")),
+                properties = mockAssetProperties(isEnabled = true, hasCandles = true),
             ),
             query(ethereum).first(),
         )

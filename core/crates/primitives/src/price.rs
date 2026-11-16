@@ -1,4 +1,4 @@
-use crate::{Asset, AssetLink, AssetMarket, PriceAlert, PriceProvider};
+use crate::{Asset, AssetLink, AssetMarket, AssetProperties, PriceAlert, PriceProvider};
 use chrono::{DateTime, Utc};
 use model_derive::Model;
 use serde::{Deserialize, Serialize};
@@ -40,4 +40,5 @@ struct PriceData {
     price_alerts: Vec<PriceAlert>,
     market: Option<AssetMarket>,
     links: Vec<AssetLink>,
+    properties: AssetProperties,
 }

@@ -154,6 +154,7 @@ extension PriceRecordInfo {
             priceAlerts: priceAlerts.or([]).map { $0.toPriceAlert() },
             market: market?.mapToMarket(),
             links: links.map { $0.toAssetLink() },
+            properties: asset.properties,
         )
     }
 }

@@ -13,6 +13,7 @@ import com.gemwallet.android.testkit.mockAssetData
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockAssetLink
 import com.gemwallet.android.testkit.mockAssetMarket
+import com.gemwallet.android.testkit.mockAssetProperties
 import com.gemwallet.android.testkit.mockGemChart
 import com.gemwallet.android.testkit.mockGemChartData
 import com.gemwallet.android.testkit.mockGemGroup
@@ -71,7 +72,7 @@ class ChartViewModelTest {
 
     private val asset = mockAsset(id = mockAssetId(chain = Chain.Solana, tokenId = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"), name = "USD Coin", symbol = "USDC", decimals = 6u, type = AssetType.SPL)
     private val currencyFlow = MutableStateFlow(Currency.USD)
-    private val priceDataFlow = MutableStateFlow<PriceData?>(PriceData(asset = asset, priceAlerts = emptyList(), links = emptyList()))
+    private val priceDataFlow = MutableStateFlow<PriceData?>(PriceData(asset = asset, priceAlerts = emptyList(), links = emptyList(), properties = mockAssetProperties()))
     private val walletAssetsFlow = MutableStateFlow<List<AssetData>>(emptyList())
     private val viewModels = mutableListOf<ViewModel>()
 
@@ -261,7 +262,7 @@ class ChartViewModelTest {
         val alert = mockPriceAlert(assetId = asset.id)
         val market = mockAssetMarket(marketCap = 1234.0)
         val link = mockAssetLink()
-        priceDataFlow.value = PriceData(asset = asset, price = mockPrice(price = 2.5), priceAlerts = listOf(alert), market = market, links = listOf(link))
+        priceDataFlow.value = PriceData(asset = asset, price = mockPrice(price = 2.5), priceAlerts = listOf(alert), market = market, links = listOf(link), properties = mockAssetProperties())
 
         val viewModel = createViewModel()
         backgroundScope.launch { viewModel.sections.collect {} }
@@ -280,6 +281,17 @@ class ChartViewModelTest {
                 ),
             )
         }
+    }
+
+    @Test
+    fun `the stored asset tells the session it has candles`() = runTest(testDispatcher) {
+        priceDataFlow.value = PriceData(asset = asset, priceAlerts = emptyList(), links = emptyList(), properties = mockAssetProperties(hasCandles = true))
+
+        val viewModel = createViewModel()
+        backgroundScope.launch { viewModel.chartUIState.collect {} }
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        verify { chartService.viewState(match { it.hasCandles }, any()) }
     }
 
     @Test

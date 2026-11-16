@@ -25,8 +25,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -62,17 +65,22 @@ class ChartViewModel internal constructor(
     val refreshIntervalMillis = observeRefreshInterval.refreshIntervalMillis(GemRefreshKind.CHART)
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0L)
 
+    private val priceData = priceQuery(assetId)
+        .shareIn(viewModelScope, SharingStarted.Eagerly, replay = 1)
+
     init {
         viewModelScope.launch {
             getCurrentCurrency.getCurrency().collect { currency -> session.update { it.onCurrency(currency.toGem()) } }
         }
+        priceData.filterNotNull()
+            .map { it.properties.hasCandles }
+            .distinctUntilChanged()
+            .onEach { hasCandles -> session.update { it.onHasCandlesChanged(hasCandles) } }
+            .launchIn(viewModelScope)
         viewModelScope.launch {
             session.map { it.request() }.distinctUntilChanged().collectLatest { request -> request?.let { load(it) } }
         }
     }
-
-    private val priceData = priceQuery(assetId)
-        .shareIn(viewModelScope, SharingStarted.Eagerly, replay = 1)
 
     val title = priceData
         .map { it?.asset?.name.orEmpty() }

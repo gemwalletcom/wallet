@@ -119,20 +119,22 @@ fun DbAsset.toDTO(): Asset? = DbAssetProjection(
 
 fun DbAsset.toAssetBasic(): AssetBasic? = AssetBasic(
     asset = toDTO() ?: return null,
-    properties = AssetProperties(
-        isEnabled = isEnabled,
-        isBuyable = isBuyEnabled,
-        isSellable = isSellEnabled,
-        isSwapable = isSwapEnabled,
-        isStakeable = isStakeEnabled,
-        stakingApr = stakingApr,
-        isEarnable = isEarnEnabled,
-        earnApr = earnApr,
-        hasImage = hasImage,
-        hasCandles = hasCandles,
-    ),
+    properties = toAssetProperties(),
     score = AssetScore(rank = rank),
     price = null,
+)
+
+fun DbAsset.toAssetProperties(): AssetProperties = AssetProperties(
+    isEnabled = isEnabled,
+    isBuyable = isBuyEnabled,
+    isSellable = isSellEnabled,
+    isSwapable = isSwapEnabled,
+    isStakeable = isStakeEnabled,
+    stakingApr = stakingApr,
+    isEarnable = isEarnEnabled,
+    earnApr = earnApr,
+    hasImage = hasImage,
+    hasCandles = hasCandles,
 )
 
 fun DbAssetProjection.toDTO(): Asset? {

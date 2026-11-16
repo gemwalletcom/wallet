@@ -20,12 +20,14 @@ public struct PriceData: Codable, Equatable, Sendable {
 	public let priceAlerts: [PriceAlert]
 	public let market: AssetMarket?
 	public let links: [AssetLink]
+	public let properties: AssetProperties
 
-	public init(asset: Asset, price: Price?, priceAlerts: [PriceAlert], market: AssetMarket?, links: [AssetLink]) {
+	public init(asset: Asset, price: Price?, priceAlerts: [PriceAlert], market: AssetMarket?, links: [AssetLink], properties: AssetProperties) {
 		self.asset = asset
 		self.price = price
 		self.priceAlerts = priceAlerts
 		self.market = market
 		self.links = links
+		self.properties = properties
 	}
 }

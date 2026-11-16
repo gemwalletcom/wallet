@@ -102,7 +102,7 @@ public extension ChartSceneViewModel {
     }
 
     func onChangePriceData() {
-        view = service.viewState(session: session, input: priceData.map())
+        session = session.onHasCandlesChanged(hasCandles: priceData.properties.hasCandles)
     }
 
     func onZoom(_ magnification: Double, anchor: Double) {

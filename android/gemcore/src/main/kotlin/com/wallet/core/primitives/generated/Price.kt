@@ -18,6 +18,7 @@ data class PriceData (
 	val price: Price? = null,
 	val priceAlerts: List<PriceAlert>,
 	val market: AssetMarket? = null,
-	val links: List<AssetLink>
+	val links: List<AssetLink>,
+	val properties: AssetProperties
 )
 
