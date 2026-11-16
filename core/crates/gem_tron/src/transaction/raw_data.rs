@@ -4,7 +4,7 @@ use serde::Deserialize;
 use serde_json::Value;
 use serde_serializers::hex_bytes;
 
-use super::{TransactionApproval, TronContract, WalletConnectContract, WalletConnectToken, protobuf};
+use super::{TransactionApproval, TronContract, WalletConnectContract, WalletConnectToken, protobuf, sends_coins};
 use crate::models::{TriggerSmartContractData, TronContractType};
 
 #[derive(Deserialize)]
@@ -63,7 +63,7 @@ impl RawDataJson {
             } => {
                 let to = contract.encode();
                 let approval = TransactionApproval::decode(contract, &data)?;
-                if approval.is_some() && (call_value.is_some_and(|value| value != 0) || call_token_value.is_some_and(|value| value != 0)) {
+                if approval.is_some() && sends_coins(call_value, call_token_value) {
                     return SignerError::invalid_input_err("Approval must not transfer native tokens");
                 }
                 Ok(Some(WalletConnectContract {
