@@ -32,13 +32,7 @@ struct SwapNavigationStack: View {
             .toolbarDismissItem(type: .close, placement: .topBarLeading)
             .navigationBarTitleDisplayMode(.inline)
             .navigationDestination(keyedBy: ConfirmTransferInput.self) { input in
-                ConfirmTransferNavigationView(
-                    model: viewModelFactory.confirmTransferScene(
-                        wallet: wallet,
-                        data: input.data,
-                        onComplete: onComplete,
-                    ),
-                )
+                ConfirmTransferDestination(wallet: wallet, data: input.data, onComplete: onComplete)
             }
         }
     }

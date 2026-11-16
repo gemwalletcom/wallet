@@ -106,13 +106,7 @@ struct SelectAssetNavigationStack: View {
                 )
             }
             .navigationDestination(keyedBy: ConfirmTransferInput.self) { confirm in
-                ConfirmTransferNavigationView(
-                    model: viewModelFactory.confirmTransferScene(
-                        wallet: model.wallet,
-                        data: confirm.data,
-                        onComplete: { dismiss() },
-                    ),
-                )
+                ConfirmTransferDestination(wallet: model.wallet, data: confirm.data, onComplete: { dismiss() })
             }
         }
         .sheet(isPresented: $model.isPresentingAddToken) {
