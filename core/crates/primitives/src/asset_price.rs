@@ -36,7 +36,7 @@ impl AssetPrice {
     }
 }
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize, Model)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, Model)]
 #[model(swift = "Sendable, Equatable")]
 #[serde(rename_all = "camelCase")]
 pub struct AssetMarket {

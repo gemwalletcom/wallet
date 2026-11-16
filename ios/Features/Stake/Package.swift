@@ -29,7 +29,6 @@ let package = Package(
         .package(name: "InfoSheet", path: "../../Packages/InfoSheet"),
         .package(name: "PrimitivesComponents", path: "../../Packages/PrimitivesComponents"),
         .package(name: "Style", path: "../../Packages/Style"),
-        .package(name: "BigInt", path: "../../Packages/BigInt"),
     ],
     targets: [
         .target(
@@ -54,7 +53,6 @@ let package = Package(
                 .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
                 "Stake",
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
-                .product(name: "BigInt", package: "BigInt"),
                 "Gemstone",
                 "Primitives",
             ],

@@ -286,6 +286,9 @@ mocks:
   - GemContactSession
   - GemCustomFeeField
   - GemCustomFeeSession
+  - GemDelegationDetails
+  - GemDelegationListRow
+  - GemDelegationStatus
   - GemEmptyState
   - GemFeeAmount
   - GemFeeAsset

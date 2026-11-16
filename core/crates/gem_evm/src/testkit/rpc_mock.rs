@@ -12,8 +12,8 @@ use crate::constants::TOKEN_TRANSFER_GAS_LIMIT;
 use crate::method;
 use crate::rpc::{
     EthereumClient,
-    mapper::TRANSFER_TOPIC,
     model::{Log, Transaction, TransactionReceipt},
+    transaction_payload::TRANSFER_TOPIC,
 };
 
 use super::TEST_TRANSACTION_ID;

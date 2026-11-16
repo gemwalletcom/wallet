@@ -14,7 +14,7 @@ pub mod mapper;
 pub mod model;
 pub mod parsers;
 mod provider;
-mod transaction_payload;
+pub(crate) mod transaction_payload;
 
 #[cfg(feature = "indexer")]
 pub use self::etherscan::EtherscanClients;
