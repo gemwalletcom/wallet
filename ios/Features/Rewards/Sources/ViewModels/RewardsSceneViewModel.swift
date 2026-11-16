@@ -135,18 +135,18 @@ public final class RewardsSceneViewModel: Sendable {
         AppUrl.rewards(.rewards)
     }
 
-    var createCodeViewModel: CreateRewardsCodeViewModel? {
+    var createCodeViewModel: RewardsCodeViewModel? {
         wallet.map { wallet in
-            CreateRewardsCodeViewModel(service: service, walletId: wallet.id) { [weak self] rewards in
+            RewardsCodeViewModel(type: .create, service: service, walletId: wallet.id) { [weak self] rewards in
                 guard let self else { return }
                 session = session.onRewards(walletId: wallet.id, rewards: rewards)
             }
         }
     }
 
-    func redeemCodeViewModel(code: String) -> RedeemRewardsCodeViewModel? {
+    func redeemCodeViewModel(code: String) -> RewardsCodeViewModel? {
         wallet.map { wallet in
-            RedeemRewardsCodeViewModel(service: service, walletId: wallet.id, code: code) { [weak self] rewards in
+            RewardsCodeViewModel(type: .redeem(code: code), service: service, walletId: wallet.id) { [weak self] rewards in
                 guard let self else { return }
                 session = session.onRewards(walletId: wallet.id, rewards: rewards)
                 showActivatedToast()

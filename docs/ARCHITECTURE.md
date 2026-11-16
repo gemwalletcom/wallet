@@ -1985,7 +1985,7 @@ The table locates the existing owners and consumers; it is not proof that a scre
 | `GemReceiveService` | `GemReceiveSession` (the network list stays anchored to the asset the screen opened on) | `ReceiveSceneViewModel` | `ReceiveViewModel` |
 | `GemRecentActivityService` | — | `RecentsSceneViewModel`, and `RecentAssetsViewModel` vended by `SelectAssetSceneViewModel` and `PerpetualsSceneViewModel` | `RecentsViewModel` (+ `RecentActivityQuery`) |
 | `GemRecipientService` | — | `RecipientSceneViewModel` (+ `nameService`) | `RecipientViewModel` (+ `GemNameServiceInterface`) |
-| `GemRewardsService` | — | `RewardsSceneViewModel`, `CreateRewardsCodeViewModel`, `RedeemRewardsCodeViewModel` | `RewardsViewModel` |
+| `GemRewardsService` | — | `RewardsSceneViewModel`, `RewardsCodeViewModel` | `RewardsViewModel` |
 | `GemServiceStatus` | — | `ServiceStatusSceneViewModel` | `ServiceStatusViewModel` |
 | `GemSettingsService` | — | `SettingsSceneViewModel`, `PreferencesSceneViewModel`, `SecuritySceneViewModel` | `SettingsViewModel`, `PreferencesViewModel`, `SecurityViewModel` |
 | `GemSignMessageService` | — | `SignMessageSceneViewModel` | `SignMessageViewModel`, `AuthRequestViewModel` |
