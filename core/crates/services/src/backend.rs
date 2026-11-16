@@ -351,7 +351,14 @@ impl Services {
     }
 
     pub fn fee_estimates(&self, assets: AssetsClient, prices: PriceClient, cacher: CacherClient, user_agent: &str) -> FeeEstimatesClient {
-        FeeEstimatesClient::new(self.chain(user_agent), assets, prices, Arc::new(cacher), self.config())
+        FeeEstimatesClient::new(
+            self.chain(user_agent),
+            assets,
+            prices,
+            Arc::new(crate::chain::repository::PostgresRepository::new(self.database())),
+            Arc::new(cacher),
+            self.config(),
+        )
     }
 
     pub fn nodes_status(&self) -> NodesStatusClient {

@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-use super::params::{ChainParam, CurrencyParam, lenient};
+use super::params::{ChainParam, ChartPeriodParam, CurrencyParam, lenient};
 
 #[derive(Deserialize)]
 pub struct CurrencyQuery {
@@ -11,6 +11,12 @@ pub struct CurrencyQuery {
 #[derive(Deserialize)]
 pub struct ChainQuery {
     pub chain: ChainParam,
+}
+
+#[derive(Deserialize)]
+pub struct ChartPeriodQuery {
+    #[serde(default, deserialize_with = "lenient")]
+    pub period: Option<ChartPeriodParam>,
 }
 
 #[derive(Deserialize)]

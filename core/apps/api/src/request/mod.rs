@@ -15,6 +15,6 @@ pub use params::{
     TransactionIdParam, WebhookKindParam, lenient,
 };
 pub use path::Path;
-pub use queries::{ChainQuery, CurrencyQuery, FromTimestampQuery};
+pub use queries::{ChainQuery, ChartPeriodQuery, CurrencyQuery, FromTimestampQuery};
 pub use query::Query;
 pub use user_agent::UserAgent;

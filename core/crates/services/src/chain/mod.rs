@@ -1,6 +1,7 @@
 mod chain_client;
 mod fee_estimates_client;
 mod nodes_status_client;
+pub(crate) mod repository;
 
 pub use chain_client::ChainClient;
 pub use fee_estimates_client::FeeEstimatesClient;

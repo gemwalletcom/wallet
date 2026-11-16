@@ -25,6 +25,7 @@ pub use self::repositories::{
     config_repository::ConfigRepository,
     devices_repository::{DeviceFilter, DeviceRecord, DeviceUpdate, DevicesRepository},
     features_repository::FeaturesRepository,
+    fee_estimates_repository::FeeEstimatesRepository,
     fiat_repository::{FiatAssetFilter, FiatRepository, FiatTransactionRecord},
     migrations_repository::MigrationsRepository,
     nft_repository::{NftCollectionFilter, NftRepository},
