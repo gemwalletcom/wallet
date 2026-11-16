@@ -66,7 +66,7 @@ struct ServicesFactory {
             provider: nativeProvider,
             nodes: nodeService,
             preferences: GemstonePreferencesStore(namespace: "gateway"),
-            securePreferences: GemstoneSealedSecureStore(namespace: "gateway"),
+            securePreferences: GemstoneEncryptedPreferencesStore(namespace: "gateway"),
         )
         let nameService = Gemstone.GemNameService(api: deviceApiClient, store: gemstoneAddressStore)
         let assetsService = gatewayService.assetsService(api: apiClient, store: gemstoneAssetStore, price: priceService, preferences: preferencesService)

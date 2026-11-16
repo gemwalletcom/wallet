@@ -6,8 +6,8 @@ import Gemstone
 import Keychain
 import Primitives
 
-public final class GemstoneSealedSecureStore: GemSecureStore, @unchecked Sendable {
-    private static let sealingKey = "sealing_key"
+public final class GemstoneEncryptedPreferencesStore: GemSecureStore, @unchecked Sendable {
+    private static let encryptionKey = "secure_store_key"
     private static let lock = NSLock()
 
     private let keychain: Keychain
@@ -28,19 +28,19 @@ public final class GemstoneSealedSecureStore: GemSecureStore, @unchecked Sendabl
         try Self.lock.withLock {
             let url = fileURL(key)
             if FileManager.default.fileExists(atPath: url.path) {
-                return try AES.GCM.open(AES.GCM.SealedBox(combined: Data(contentsOf: url)), using: sealingKey(), authenticating: Data(key.utf8)).encodeString()
+                return try AES.GCM.open(AES.GCM.SealedBox(combined: Data(contentsOf: url)), using: encryptionKey(), authenticating: Data(key.utf8)).encodeString()
             }
             guard let value = try keychain.get(namespace + key) else {
                 return nil
             }
-            try seal(value, key: key)
+            try encrypt(value, key: key)
             return value
         }
     }
 
     public func set(key: String, value: String) throws {
         try Self.lock.withLock {
-            try seal(value, key: key)
+            try encrypt(value, key: key)
         }
     }
 
@@ -54,19 +54,19 @@ public final class GemstoneSealedSecureStore: GemSecureStore, @unchecked Sendabl
         }
     }
 
-    private func seal(_ value: String, key: String) throws {
+    private func encrypt(_ value: String, key: String) throws {
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         try FileManager.default.addSkipBackupAttributeToItemAtURL(directory)
-        try AES.GCM.seal(Data(value.utf8), using: sealingKey(), authenticating: Data(key.utf8)).combined!.write(to: fileURL(key), options: .atomic)
+        try AES.GCM.seal(Data(value.utf8), using: encryptionKey(), authenticating: Data(key.utf8)).combined!.write(to: fileURL(key), options: .atomic)
         try keychain.remove(namespace + key)
     }
 
-    private func sealingKey() throws -> SymmetricKey {
-        if let key = try keychain.getData(Self.sealingKey) {
+    private func encryptionKey() throws -> SymmetricKey {
+        if let key = try keychain.getData(Self.encryptionKey) {
             return SymmetricKey(data: key)
         }
         let key = SymmetricKey(size: .bits256)
-        try keychain.set(key.withUnsafeBytes { Data($0) }, key: Self.sealingKey)
+        try keychain.set(key.withUnsafeBytes { Data($0) }, key: Self.encryptionKey)
         return key
     }
 
