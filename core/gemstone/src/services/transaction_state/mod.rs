@@ -11,7 +11,7 @@ use std::sync::{Arc, OnceLock};
 
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use primitives::{Chain, JobConfiguration, Transaction, TransactionId, TransactionState, TransactionUpdate, WalletId};
+use primitives::{Chain, Transaction, TransactionId, TransactionState, TransactionUpdate, WalletId};
 
 pub use model::{GemPendingTransaction, GemPostProcessingFailure, GemPostProcessingStep, GemTransactionStateResult, GemTransactionStateUpdate};
 pub use store::GemTransactionStateStore;
@@ -119,8 +119,7 @@ impl GemTransactionStateService {
     }
 
     async fn track_transaction(&self, wallet_id: WalletId, transaction: Transaction) {
-        let configuration = JobConfiguration::transaction_state(transaction.asset_id.chain);
-        poll(self, self.store.as_ref(), &self.tracking, configuration, wallet_id, transaction).await;
+        poll(self, self.store.as_ref(), &self.tracking, rules::poll_configuration, wallet_id, transaction).await;
     }
 
     async fn post_process(&self, wallet_id: WalletId, transaction: &Transaction, previous_state: TransactionState, state: TransactionState) -> Vec<GemPostProcessingFailure> {

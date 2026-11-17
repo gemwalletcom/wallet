@@ -2,6 +2,8 @@ use std::time::Duration;
 
 use crate::Chain;
 
+const SWAP_IN_TRANSIT_STEP_FACTOR: f32 = 1.5;
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct JobConfiguration {
     pub initial_interval_ms: u32,
@@ -20,6 +22,13 @@ impl Default for JobConfiguration {
 }
 
 impl JobConfiguration {
+    pub fn swap_in_transit() -> Self {
+        Self {
+            step_factor: SWAP_IN_TRANSIT_STEP_FACTOR,
+            ..Self::default()
+        }
+    }
+
     pub fn transaction_state(chain: Chain) -> Self {
         let config = Self::default();
         Self {
