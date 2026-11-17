@@ -15,7 +15,7 @@ public struct InfoButton: View {
         Button(action: action) {
             Images.System.info
                 .foregroundStyle(Colors.gray)
-                .frame(width: .list.image, height: .list.image)
+                .frame(minWidth: .list.image, minHeight: .list.image)
         }
         .buttonStyle(.plain)
     }
