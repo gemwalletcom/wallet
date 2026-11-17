@@ -7,8 +7,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import com.gemwallet.android.ui.R
-import com.gemwallet.android.ui.icons.AppIcons
+import com.gemwallet.android.ui.localization.stringRes
+import com.gemwallet.android.ui.style.icon
 import uniffi.gemstone.GemChartStyle
 
 @Composable
@@ -18,16 +18,8 @@ fun ChartStyleButton(style: GemChartStyle, onClick: (GemChartStyle) -> Unit) {
         modifier = Modifier.testTag("chart_style_switch"),
     ) {
         Icon(
-            imageVector = when (style) {
-                GemChartStyle.LINE -> AppIcons.ShowChart
-                GemChartStyle.CANDLES -> AppIcons.CandlestickChart
-            },
-            contentDescription = stringResource(
-                when (style) {
-                    GemChartStyle.LINE -> R.string.charts_line
-                    GemChartStyle.CANDLES -> R.string.charts_candlestick
-                },
-            ),
+            imageVector = style.icon(),
+            contentDescription = stringResource(style.stringRes()),
             tint = MaterialTheme.colorScheme.onSurface,
         )
     }

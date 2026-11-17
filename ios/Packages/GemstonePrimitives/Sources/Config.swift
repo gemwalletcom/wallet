@@ -11,7 +11,6 @@ import enum Gemstone.NodeRegion
 import class Gemstone.PriceAlertFormatter
 import enum Gemstone.PublicUrl
 import enum Gemstone.RewardsUrl
-import struct Gemstone.SwapConfig
 import typealias Gemstone.WalletConnectConfig
 import Primitives
 
@@ -33,10 +32,6 @@ public extension PriceAlertFormatter {
 
 public extension Config {
     static let shared = Config()
-
-    func swapConfig() -> SwapConfig {
-        getSwapConfig()
-    }
 }
 
 public enum NodeURL {
