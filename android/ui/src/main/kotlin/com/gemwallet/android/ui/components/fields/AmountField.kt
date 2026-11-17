@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
@@ -44,6 +45,7 @@ import androidx.compose.ui.text.style.TextAlign
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.icons.AppIcons
 import com.gemwallet.android.ui.theme.compactIconSize
+import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingSmall
 import com.gemwallet.android.ui.theme.secondaryFaded
 
@@ -129,6 +131,7 @@ fun ColumnScope.AmountField(
     }
     error.takeIf { it.isNotEmpty() }?.run {
         Row(
+            modifier = Modifier.padding(horizontal = paddingDefault),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(paddingSmall),
         ) {
@@ -146,6 +149,7 @@ fun ColumnScope.AmountField(
             Text(
                 text = error,
                 color = MaterialTheme.colorScheme.error,
+                textAlign = TextAlign.Center,
             )
         }
     }
