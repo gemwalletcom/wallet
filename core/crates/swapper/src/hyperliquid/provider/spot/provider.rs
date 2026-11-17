@@ -12,6 +12,7 @@ use num_bigint::BigUint;
 use number_formatter::{BigNumberFormatter, Decimal, NumberFormatterError};
 use primitives::{
     Chain, HOUR,
+    asset_constants::{HYPERCORE_SPOT_HYPE_ASSET_ID, HYPERCORE_SPOT_UBTC_ASSET_ID, HYPERCORE_SPOT_USDC_ASSET_ID},
     known_assets::{HYPERCORE_HYPE, HYPERCORE_SPOT_HYPE, HYPERCORE_SPOT_UBTC, HYPERCORE_SPOT_USDC},
 };
 
@@ -33,10 +34,34 @@ const UBTC_USDC_MARKET_INDEX: u32 = 142;
 
 fn shipped_market_index(base_token: &SpotToken, quote_token: &SpotToken) -> Option<u32> {
     let (base, quote) = (base_token.asset_id(Chain::HyperCore), quote_token.asset_id(Chain::HyperCore));
-    [(&HYPERCORE_SPOT_HYPE, HYPE_USDC_MARKET_INDEX), (&HYPERCORE_SPOT_UBTC, UBTC_USDC_MARKET_INDEX)]
-        .into_iter()
-        .find(|(shipped_base, _)| base == shipped_base.id && quote == HYPERCORE_SPOT_USDC.id)
-        .map(|(_, market_index)| market_index)
+    if quote != *HYPERCORE_SPOT_USDC_ASSET_ID {
+        return None;
+    }
+    if base == *HYPERCORE_SPOT_HYPE_ASSET_ID {
+        Some(HYPE_USDC_MARKET_INDEX)
+    } else if base == *HYPERCORE_SPOT_UBTC_ASSET_ID {
+        Some(UBTC_USDC_MARKET_INDEX)
+    } else {
+        None
+    }
+}
+
+fn find_direct_market<'a>(meta: &SpotMeta, from_token: &'a SpotToken, to_token: &'a SpotToken) -> Result<(u32, &'a SpotToken, SpotSide), SwapperError> {
+    if let Some(market_index) = shipped_market_index(from_token, to_token) {
+        return Ok((market_index, from_token, SpotSide::Sell));
+    }
+    if let Some(market_index) = shipped_market_index(to_token, from_token) {
+        return Ok((market_index, to_token, SpotSide::Buy));
+    }
+    for market in meta.universe.iter().filter(|m| m.tokens.len() == 2) {
+        if market.tokens[0] == from_token.index && market.tokens[1] == to_token.index {
+            return Ok((market.index, from_token, SpotSide::Sell));
+        }
+        if market.tokens[0] == to_token.index && market.tokens[1] == from_token.index {
+            return Ok((market.index, to_token, SpotSide::Buy));
+        }
+    }
+    Err(SwapperError::NotSupportedAsset)
 }
 
 fn compute_actual_from(use_max_amount: bool, amount: &str, decimals: u32) -> Result<Option<BigUint>, NumberFormatterError> {
@@ -95,24 +120,6 @@ impl HyperCoreSpot {
 
         Ok(token)
     }
-
-    fn find_direct_market<'a>(&self, meta: &SpotMeta, from_token: &'a SpotToken, to_token: &'a SpotToken) -> Result<(u32, &'a SpotToken, &'a SpotToken, SpotSide), SwapperError> {
-        if let Some(market_index) = shipped_market_index(from_token, to_token) {
-            return Ok((market_index, from_token, to_token, SpotSide::Sell));
-        }
-        if let Some(market_index) = shipped_market_index(to_token, from_token) {
-            return Ok((market_index, to_token, from_token, SpotSide::Buy));
-        }
-        for market in meta.universe.iter().filter(|m| m.tokens.len() == 2) {
-            if market.tokens[0] == from_token.index && market.tokens[1] == to_token.index {
-                return Ok((market.index, from_token, to_token, SpotSide::Sell));
-            }
-            if market.tokens[0] == to_token.index && market.tokens[1] == from_token.index {
-                return Ok((market.index, to_token, from_token, SpotSide::Buy));
-            }
-        }
-        Err(SwapperError::NotSupportedAsset)
-    }
 }
 
 #[async_trait]
@@ -140,7 +147,7 @@ impl Swapper for HyperCoreSpot {
             return Err(SwapperError::ComputeQuoteError("amount must be greater than zero".into()));
         }
 
-        let (market_index, base_token, _quote_token, side) = self.find_direct_market(&meta, from_token, to_token)?;
+        let (market_index, base_token, side) = find_direct_market(&meta, from_token, to_token)?;
         let coin = format!("@{market_index}");
         let orderbook = client.get_spot_orderbook(&coin).await.map_err(SwapperError::compute_quote_error)?;
         if orderbook.levels.len() < 2 {
@@ -256,7 +263,6 @@ mod unit_tests {
 
     #[test]
     fn test_find_direct_market() {
-        let spot = HyperCoreSpot::mock();
         let token = |asset: &primitives::Asset| {
             let (name, token_id, index) = asset.id.token_components().unwrap();
             SpotToken {
@@ -283,7 +289,7 @@ mod unit_tests {
             tokens: vec![],
             universe: vec![market([&usdc, &hype], 1), market([&hype, &usdc], 2), market([&ubtc, &usdc], 3), market([&other, &usdc], 4)],
         };
-        let find = |from: &SpotToken, to: &SpotToken| spot.find_direct_market(&meta, from, to).map(|(index, base, _, side)| (index, base.index, side.is_buy()));
+        let find = |from: &SpotToken, to: &SpotToken| find_direct_market(&meta, from, to).map(|(index, base, side)| (index, base.index, side.is_buy()));
 
         assert_eq!(find(&hype, &usdc), Ok((HYPE_USDC_MARKET_INDEX, hype.index, false)), "a shipped pair trades on its shipped market, whatever the node lists");
         assert_eq!(find(&usdc, &hype), Ok((HYPE_USDC_MARKET_INDEX, hype.index, true)));
