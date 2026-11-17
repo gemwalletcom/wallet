@@ -87,16 +87,16 @@ impl Drop for TrackedTransactions<'_> {
     }
 }
 
-pub async fn poll(updater: &dyn GemTransactionUpdater, store: &dyn GemTransactionStateStore, tracking: &Tracking, configuration: JobConfiguration, wallet_id: WalletId, transaction: Transaction) {
+pub async fn poll(updater: &dyn GemTransactionUpdater, store: &dyn GemTransactionStateStore, tracking: &Tracking, configuration: fn(&Transaction) -> JobConfiguration, wallet_id: WalletId, transaction: Transaction) {
     let Some(tracked) = tracking.start(&wallet_id, &transaction.id) else {
         return;
     };
     let mut current = transaction;
-    let mut interval = configuration.initial_interval_ms;
+    let mut interval = 0;
 
     loop {
+        interval = configuration(&current).next_interval_ms(interval);
         sleep(Duration::from_millis(u64::from(interval))).await;
-        interval = configuration.next_interval_ms(interval);
         if !tracked.is_tracking() {
             break;
         }
@@ -134,7 +134,7 @@ mod tests {
     }
 
     fn run_for(wallet: &WalletId, updater: &TestTransactionUpdater, store: &MemoryTransactionStateStore, tracking: &Tracking, transaction: Transaction) {
-        futures::executor::block_on(poll(updater, store, tracking, JobConfiguration::mock(), wallet.clone(), transaction));
+        futures::executor::block_on(poll(updater, store, tracking, |_| JobConfiguration::mock(), wallet.clone(), transaction));
     }
 
     #[test]
@@ -229,7 +229,7 @@ mod tests {
         let tracking = Tracking::default();
 
         {
-            let mut polling = Box::pin(poll(&updater, &store, &tracking, JobConfiguration::mock(), WalletId::mock(), pending.clone()));
+            let mut polling = Box::pin(poll(&updater, &store, &tracking, |_| JobConfiguration::mock(), WalletId::mock(), pending.clone()));
             let waker = futures::task::noop_waker();
             assert!(polling.as_mut().poll(&mut Context::from_waker(&waker)).is_pending());
             assert!(tracking.start(&WalletId::mock(), &pending.id).is_none(), "the poll owns the transaction while it runs");
