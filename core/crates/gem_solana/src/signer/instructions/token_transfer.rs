@@ -3,7 +3,7 @@ use primitives::{Asset, SignerError, SignerInput, SolanaTokenProgramId};
 use crate::{
     Instruction, Pubkey, SolanaTokenProgramIdExt,
     instructions::{
-        associated_token::{create_associated_token_account_idempotent, get_associated_token_address_with_program_id},
+        associated_token::{create_associated_token_account_idempotent_with_address, get_associated_token_address_with_program_id},
         memo::memo,
         token::transfer_checked_with_program_id,
     },
@@ -25,15 +25,11 @@ pub(in crate::signer::instructions) fn spl_transfer_checked(input: &SignerInput,
     let sender_token_address = Pubkey::from_base58(&sender_token_address).map_err(SignerError::from_display)?;
 
     let mut instructions = transaction::compute_budget_instructions(&input.fee)?;
-    let recipient_token_address = match input.metadata.get_recipient_token_address()? {
-        Some(recipient_token_address) => Pubkey::from_base58(&recipient_token_address).map_err(SignerError::from_display)?,
-        None => {
-            let recipient = Pubkey::from_base58(&input.destination_address).map_err(SignerError::from_display)?;
-            let recipient_token_address = get_associated_token_address_with_program_id(&recipient, &mint, &token_program_id)?;
-            instructions.push(create_associated_token_account_idempotent(&sender, &recipient, &mint, &token_program_id)?);
-            recipient_token_address
-        }
-    };
+    let recipient = Pubkey::from_base58(&input.destination_address).map_err(SignerError::from_display)?;
+    let recipient_token_address = get_associated_token_address_with_program_id(&recipient, &mint, &token_program_id)?;
+    if input.metadata.get_recipient_token_address()? != Some(recipient_token_address.to_base58()) {
+        instructions.push(create_associated_token_account_idempotent_with_address(&sender, &recipient_token_address, &recipient, &mint, &token_program_id));
+    }
 
     if let Some(memo_text) = input.get_memo() {
         instructions.push(memo(memo_text, &[]));
@@ -68,7 +64,7 @@ mod tests {
         Pubkey,
         instructions::{
             associated_token::get_associated_token_address_with_program_id,
-            program_ids::{SOLANA_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID, SOLANA_MEMO_PROGRAM_ID, SOLANA_TOKEN_2022_PROGRAM_ID, SOLANA_TOKEN_PROGRAM_ID, token_program},
+            program_ids::{SOLANA_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID, SOLANA_MEMO_PROGRAM_ID, SOLANA_TOKEN_2022_PROGRAM_ID, SOLANA_TOKEN_PROGRAM_ID, token_2022_program, token_program},
         },
     };
     use num_bigint::BigUint;
@@ -80,6 +76,11 @@ mod tests {
         data.extend_from_slice(&amount.to_le_bytes());
         data.push(decimals);
         data
+    }
+
+    fn recipient_token_address(token_program_id: &Pubkey) -> Pubkey {
+        let mint = Pubkey::from_base58(Asset::mock_spl_token().id.get_token_id().unwrap()).unwrap();
+        get_associated_token_address_with_program_id(&Pubkey::from_base58(TEST_RECIPIENT).unwrap(), &mint, token_program_id).unwrap()
     }
 
     #[test]
@@ -96,16 +97,13 @@ mod tests {
         let result = signer.sign_token_transfer(&input, &TEST_PRIVATE_KEY).unwrap();
 
         let transaction = crate::decode_transaction(&result).unwrap();
-        let mint = Pubkey::from_base58(Asset::mock_spl_token().id.get_token_id().unwrap()).unwrap();
-        let recipient = Pubkey::from_base58(TEST_RECIPIENT).unwrap();
-        let recipient_token_address = get_associated_token_address_with_program_id(&recipient, &mint, &token_program()).unwrap();
         assert_eq!(
             (0..transaction.instructions().len()).map(|index| program_id(&transaction, index)).collect::<Vec<_>>(),
             vec![SOLANA_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID, SOLANA_TOKEN_PROGRAM_ID]
         );
         assert_eq!(transaction.instructions()[0].data, vec![1]);
-        assert_eq!(account_key(&transaction, 0, 1), recipient_token_address);
-        assert_eq!(account_key(&transaction, 1, 2), recipient_token_address);
+        assert_eq!(account_key(&transaction, 0, 1), recipient_token_address(&token_program()));
+        assert_eq!(account_key(&transaction, 1, 2), recipient_token_address(&token_program()));
         assert_eq!(transaction.instructions()[1].data, transfer_checked_data(123456, 6));
 
         let spl2022_asset = Asset::new(
@@ -120,7 +118,7 @@ mod tests {
             TEST_PRIVATE_KEY_SOLANA_ADDRESS,
             TEST_RECIPIENT,
             "7",
-            TransactionLoadMetadata::mock_solana_transfer(Some(TEST_SENDER_TOKEN_ADDRESS), Some(TEST_SENDER_TOKEN_ADDRESS), Some(SolanaTokenProgramId::Token2022), &[]),
+            TransactionLoadMetadata::mock_solana_transfer(Some(TEST_SENDER_TOKEN_ADDRESS), Some(&recipient_token_address(&token_2022_program()).to_base58()), Some(SolanaTokenProgramId::Token2022), &[]),
         );
 
         let result = signer.sign_token_transfer(&input, &TEST_PRIVATE_KEY).unwrap();
@@ -151,7 +149,7 @@ mod tests {
             gas_price: GasPriceType::regular(0),
             memo: Some("token memo".to_string()),
             is_max_value: false,
-            metadata: TransactionLoadMetadata::mock_solana_transfer(Some(TEST_SENDER_TOKEN_ADDRESS), Some(TEST_SENDER_TOKEN_ADDRESS), Some(SolanaTokenProgramId::Token), &[]),
+            metadata: TransactionLoadMetadata::mock_solana_transfer(Some(TEST_SENDER_TOKEN_ADDRESS), Some(&recipient_token_address(&token_program()).to_base58()), Some(SolanaTokenProgramId::Token), &[]),
         };
         let input = SignerInput::new(input, TransactionFee::mock());
         let result = signer.sign_token_transfer(&input, &TEST_PRIVATE_KEY).unwrap();
@@ -165,9 +163,29 @@ mod tests {
     }
 
     #[test]
+    fn test_sign_token_transfer_pays_the_recipient_associated_token_account() {
+        let input = SignerInput::mock_with_input_type(
+            TransactionInputType::Transfer { asset: Asset::mock_spl_token() },
+            TEST_PRIVATE_KEY_SOLANA_ADDRESS,
+            TEST_RECIPIENT,
+            "123456",
+            TransactionLoadMetadata::mock_solana_transfer(Some(TEST_SENDER_TOKEN_ADDRESS), Some(TEST_SENDER_TOKEN_ADDRESS), Some(SolanaTokenProgramId::Token), &[]),
+        );
+
+        let transaction = crate::decode_transaction(&SolanaChainSigner.sign_token_transfer(&input, &TEST_PRIVATE_KEY).unwrap()).unwrap();
+
+        assert_eq!(
+            (0..transaction.instructions().len()).map(|index| program_id(&transaction, index)).collect::<Vec<_>>(),
+            vec![SOLANA_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID, SOLANA_TOKEN_PROGRAM_ID]
+        );
+        assert_eq!(account_key(&transaction, 0, 1), recipient_token_address(&token_program()));
+        assert_eq!(account_key(&transaction, 1, 2), recipient_token_address(&token_program()));
+    }
+
+    #[test]
     fn test_sign_payment_references() {
         let references = ["82ZJ7nbGpixjeDCmEhUcmwXYfvurzAgGdtSMuHnUgyny", "7GUcQZQwHHa9GBPhVq7v2LArSsp5VmGXV5zXnQ8Q7N3a"];
-        let metadata = TransactionLoadMetadata::mock_solana_transfer(Some(TEST_SENDER_TOKEN_ADDRESS), Some(TEST_SENDER_TOKEN_ADDRESS), Some(SolanaTokenProgramId::Token), &references);
+        let metadata = TransactionLoadMetadata::mock_solana_transfer(Some(TEST_SENDER_TOKEN_ADDRESS), Some(&recipient_token_address(&token_program()).to_base58()), Some(SolanaTokenProgramId::Token), &references);
         let input = TransactionLoadInput {
             input_type: TransactionInputType::Transfer { asset: Asset::mock_spl_token() },
             sender_address: TEST_PRIVATE_KEY_SOLANA_ADDRESS.to_string(),
