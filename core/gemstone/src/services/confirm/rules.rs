@@ -16,7 +16,7 @@ use crate::services::name::rules::names_the_user_owns;
 use crate::services::transfer::model::{GemConfirmDestination, GemConfirmRow, GemTransferData};
 use crate::services::wallet::model::wallet_row;
 use number_formatter::ValueStyle;
-use primitives::{AddressFormatStyle, AddressName, AssetType, BlockExplorerLink, FeeRate, PaymentVerification, PerpetualType, SignerInput, TransactionFee, TransactionLoadInput, TransferAmountError};
+use primitives::{AddressFormatStyle, AddressName, AssetType, BlockExplorerLink, FeeRate, PaymentVerification, PerpetualType, SignerInput, SimulationBalanceChange, TransactionFee, TransactionLoadInput, TransferAmountError};
 use primitives::{
     Asset, AssetId, Chain, ChainAsset, ChainType, EVMChain, FeePriority, FeeUnitType, GasPriceType, ScanTransaction, SimulationResult, SimulationWarningType, Transaction, TransactionType, TransferDataOutputAction, TransferDataOutputType,
     Wallet,
@@ -319,6 +319,21 @@ pub fn balance_change_amount(value: &BigInt, asset: &Asset) -> GemFormattedNumbe
         tone,
         ..sign.amount(value.magnitude(), asset, ValueStyle::Full)
     }
+}
+
+pub fn balance_change_rows(changes: &[SimulationBalanceChange], assets: &[Asset]) -> Vec<GemListRow> {
+    changes
+        .iter()
+        .filter(|change| change.value != GemBigInt::ZERO)
+        .filter_map(|change| {
+            let asset = assets.iter().find(|asset| asset.id == change.asset_id)?;
+            Some(GemListRow::AssetChange {
+                name: asset.name.clone(),
+                icon: crate::services::assets::icon::asset_icon(&asset.id),
+                amount: balance_change_amount(&change.value, asset),
+            })
+        })
+        .collect()
 }
 
 pub fn shows_fee_assets(fee_asset_ids: &[AssetId], selected: Option<&AssetId>) -> bool {
@@ -2005,6 +2020,39 @@ mod tests {
 
         let nothing = balance_change_amount(&BigInt::ZERO, &solana);
         assert_eq!((nothing.notation, nothing.tone), (GemNumberNotation::Plain, GemValueTone::Neutral), "a change of nothing is neither a gain nor a loss");
+    }
+
+    #[test]
+    fn test_balance_change_rows_drop_zero_and_unknown_assets() {
+        let ethereum = Asset::from_chain(Chain::Ethereum);
+        let usdt = Asset::mock_erc20();
+        let solana = Asset::from_chain(Chain::Solana);
+        let changes = vec![
+            SimulationBalanceChange::mock(ethereum.id.clone(), BigInt::from(-1000), 18),
+            SimulationBalanceChange::mock(usdt.id.clone(), BigInt::from(2000), 6),
+            SimulationBalanceChange::mock(solana.id.clone(), BigInt::from(0), 9),
+            SimulationBalanceChange::mock(AssetId::from_chain(Chain::Doge), BigInt::from(500), 8),
+        ];
+
+        let rows = balance_change_rows(&changes, &[ethereum.clone(), usdt.clone(), solana]);
+
+        assert_eq!(
+            rows,
+            vec![
+                GemListRow::AssetChange {
+                    name: ethereum.name.clone(),
+                    icon: crate::services::assets::icon::asset_icon(&ethereum.id),
+                    amount: balance_change_amount(&BigInt::from(-1000), &ethereum),
+                },
+                GemListRow::AssetChange {
+                    name: usdt.name.clone(),
+                    icon: crate::services::assets::icon::asset_icon(&usdt.id),
+                    amount: balance_change_amount(&BigInt::from(2000), &usdt),
+                },
+            ],
+            "keeps signed non-zero changes for known assets only"
+        );
+        assert!(balance_change_rows(&[], &[]).is_empty());
     }
 
     #[test]

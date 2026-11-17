@@ -14,7 +14,7 @@ use gem_ton::rpc::client::TonClient;
 use gem_tron::rpc::{TronProvider, client::TronClient};
 use gem_wallet_connect::{EvmTransactionKind, SignDigestType, WalletConnectTransactionType};
 use primitives::{
-    AddressName, AssetBasic, AssetId, BlockExplorerLink, Chain, ChainAddress, EVMChain, Resource, SimulationBalanceChange, SimulationInput, SimulationPayloadField, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult,
+    AddressName, AssetBasic, BlockExplorerLink, Chain, ChainAddress, EVMChain, Resource, SimulationBalanceChange, SimulationInput, SimulationPayloadField, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult,
     SimulationSeverity, SimulationWarning, SimulationWarningType, TransactionType, ValueAccess, VerificationStatus, WCEthereumTransaction,
 };
 
@@ -196,40 +196,11 @@ fn map_transaction_object(transaction: &WCEthereumTransaction) -> TransactionObj
     }
 }
 
-#[derive(Default)]
-pub struct GemSimulationFormatter {}
-
-impl GemSimulationFormatter {
-    pub fn new() -> Self {
-        Self {}
+pub(crate) fn payload_fields(payload: Vec<SimulationPayloadField>, shows_header: bool) -> Vec<SimulationPayloadField> {
+    if !shows_header {
+        return payload;
     }
-
-    pub fn payload_fields(&self, payload: Vec<SimulationPayloadField>, shows_header: bool) -> Vec<SimulationPayloadField> {
-        if !shows_header {
-            return payload;
-        }
-        payload.into_iter().filter(|field| field.kind != SimulationPayloadFieldKind::Value && field.kind != SimulationPayloadFieldKind::Token).collect()
-    }
-
-    pub fn shows_header(&self, simulation: Option<SimulationResult>, is_approval: bool) -> bool {
-        is_approval || simulation.as_ref().and_then(SimulationResult::valid_header).is_some()
-    }
-
-    pub fn balance_changes(&self, simulation: Option<SimulationResult>, known_asset_ids: Vec<AssetId>) -> Vec<GemSimulationChange> {
-        let known: HashSet<String> = known_asset_ids.into_iter().map(|asset_id| asset_id.to_string()).collect();
-        simulation
-            .map(|simulation| simulation.balance_changes)
-            .unwrap_or_default()
-            .into_iter()
-            .filter(|change| known.contains(&change.asset_id.to_string()))
-            .filter_map(|change| {
-                (change.value != GemBigInt::ZERO).then_some(GemSimulationChange {
-                    asset_id: change.asset_id,
-                    value: change.value,
-                })
-            })
-            .collect()
-    }
+    payload.into_iter().filter(|field| field.kind != SimulationPayloadFieldKind::Value && field.kind != SimulationPayloadFieldKind::Token).collect()
 }
 
 pub fn payload_rows(fields: &[SimulationPayloadField], chain: Chain, address_url: impl Fn(Chain, String) -> BlockExplorerLink) -> Vec<GemListRow> {
@@ -464,12 +435,6 @@ pub fn asset_status_rows(changes: &[SimulationBalanceChange], assets: &[AssetBas
         .collect()
 }
 
-#[derive(Clone, Debug, PartialEq)]
-pub struct GemSimulationChange {
-    pub asset_id: AssetId,
-    pub value: GemBigInt,
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -479,7 +444,7 @@ mod tests {
     use crate::services::node::GemNodeService;
     use crate::testkit::{TestAlienProvider, mock_wc_ethereum_transaction};
     use num_bigint::BigInt;
-    use primitives::{AddressType, Asset, AssetProperties, AssetScore, AssetType, SimulationPayloadFieldDisplay, SimulationWarningApproval};
+    use primitives::{AddressType, Asset, AssetId, AssetProperties, AssetScore, AssetType, SimulationPayloadFieldDisplay, SimulationWarningApproval};
 
     #[test]
     fn test_warning_rows_hide_bounded_approvals_and_keep_every_other_warning() {
@@ -596,30 +561,6 @@ mod tests {
     }
 
     #[test]
-    fn test_balance_changes_drop_zero_and_unknown_assets() {
-        let simulation = SimulationResult {
-            balance_changes: vec![
-                SimulationBalanceChange::mock(AssetId::new("ethereum").unwrap(), BigInt::from(-1000), 18),
-                SimulationBalanceChange::mock(AssetId::new("ethereum_0xdac17f958d2ee523a2206206994597c13d831ec7").unwrap(), BigInt::from(2000), 18),
-                SimulationBalanceChange::mock(AssetId::new("solana").unwrap(), BigInt::from(0), 18),
-                SimulationBalanceChange::mock(AssetId::new("doge").unwrap(), BigInt::from(500), 18),
-            ],
-            ..SimulationResult::default()
-        };
-        let known = ["ethereum", "ethereum_0xdac17f958d2ee523a2206206994597c13d831ec7", "solana"].into_iter().map(|id| AssetId::new(id).unwrap()).collect();
-
-        let formatter = GemSimulationFormatter::new();
-        let changes = formatter.balance_changes(Some(simulation), known);
-
-        assert_eq!(
-            changes.iter().map(|change| change.value.to_string()).collect::<Vec<_>>(),
-            vec!["-1000", "2000"],
-            "keeps signed non-zero changes for known assets only"
-        );
-        assert!(formatter.balance_changes(None, vec![]).is_empty());
-    }
-
-    #[test]
     fn test_map_transaction_object_normalizes_empty_calldata_to_0x() {
         let transaction_object = map_transaction_object(&mock_wc_ethereum_transaction());
 
@@ -651,10 +592,9 @@ mod tests {
             SimulationPayloadField::standard(SimulationPayloadFieldKind::Token, "", SimulationPayloadFieldType::Text, SimulationPayloadFieldDisplay::Primary),
             SimulationPayloadField::standard(SimulationPayloadFieldKind::Spender, "", SimulationPayloadFieldType::Text, SimulationPayloadFieldDisplay::Primary),
         ];
-        let formatter = GemSimulationFormatter::new();
 
-        assert_eq!(formatter.payload_fields(payload.clone(), false).len(), 3);
-        assert_eq!(formatter.payload_fields(payload, true).into_iter().map(|field| field.kind).collect::<Vec<_>>(), vec![SimulationPayloadFieldKind::Spender]);
+        assert_eq!(payload_fields(payload.clone(), false).len(), 3);
+        assert_eq!(payload_fields(payload, true).into_iter().map(|field| field.kind).collect::<Vec<_>>(), vec![SimulationPayloadFieldKind::Spender]);
     }
 
     fn link(chain: Chain, address: String) -> BlockExplorerLink {

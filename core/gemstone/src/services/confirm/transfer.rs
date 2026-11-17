@@ -9,7 +9,7 @@ use crate::models::custom_types::GemBigInt;
 use crate::models::transaction::GemSignedTransaction;
 use crate::payment::GemPaymentService;
 use crate::services::confirm::rules::{confirm_row_contents, insufficient_funds, is_broadcast, submit_message};
-use crate::services::confirm::{GemConfirmError, GemConfirmInput, GemConfirmLoad, GemConfirmRowContent, GemConfirmService, GemConfirmSimulationState, GemConfirmation, GemSubmitResult, SendInput};
+use crate::services::confirm::{GemConfirmError, GemConfirmInput, GemConfirmLoad, GemConfirmRowContent, GemConfirmService, GemConfirmSimulation, GemConfirmSimulationState, GemConfirmation, GemSubmitResult, SendInput};
 use payment::PaymentError;
 
 use crate::services::error_text::{GemErrorText, payment_error_text};
@@ -175,9 +175,8 @@ impl GemConfirmTransferService {
     pub(super) async fn simulation_state(&self, input_type: TransactionInputType, simulation: SimulationResult) -> Result<GemConfirmSimulationState, GemConfirmError> {
         let chain = input_type.transaction_asset().chain();
         let assets = self.confirm.ensure_simulation_assets(simulation.asset_ids()).await?;
-        let details = self.confirm.simulation(input_type, Some(simulation.clone()), assets.iter().map(|basic| basic.asset.clone()).collect(), |chain, address| {
-            self.address_url(chain, address)
-        });
+        let simulation_assets: Vec<_> = assets.iter().map(|basic| basic.asset.clone()).collect();
+        let details = GemConfirmSimulation::new(&input_type, &simulation, &simulation_assets, |chain, address| self.address_url(chain, address));
         let requests = details.address_requests(chain);
         let address_names = self.names.get_address_names(requests).await.unwrap_or_default();
         Ok(GemConfirmSimulationState {
