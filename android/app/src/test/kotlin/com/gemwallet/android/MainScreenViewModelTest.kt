@@ -38,8 +38,8 @@ class MainScreenViewModelTest {
         models.clear()
     }
 
-    private val first = mockWallet(id = WalletId("first"))
-    private val second = mockWallet(id = WalletId("second"))
+    private val first = mockWallet(id = WalletId("multicoin_first"))
+    private val second = mockWallet(id = WalletId("view_ethereum_0x1"))
     private val currentWalletId = MutableStateFlow(first.id)
     private val counts: TransactionsCountQuery = mockk {
         every { this@mockk(first.id, pendingActivityFilters().toPrimitives()) } returns flowOf(3)
@@ -61,6 +61,18 @@ class MainScreenViewModelTest {
         advanceUntilIdle()
 
         assertEquals(1, model.pendingTxCount.value)
+    }
+
+    @Test
+    fun `the scanner offers Receive only to a wallet with keys`() = runTest(dispatcher) {
+        val model = viewModel()
+        advanceUntilIdle()
+        assertEquals(true, model.showsScanReceiveSelector.value)
+
+        currentWalletId.value = second.id
+        advanceUntilIdle()
+
+        assertEquals(false, model.showsScanReceiveSelector.value)
     }
 
     @Test

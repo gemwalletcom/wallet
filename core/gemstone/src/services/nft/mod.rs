@@ -10,7 +10,7 @@ use crate::services::error::GemServiceError;
 use std::future::Future;
 use std::sync::Arc;
 
-use primitives::{NFTAssetData, NFTAssetId, NFTData, ReportNft, WalletId};
+use primitives::{NFTAssetData, NFTAssetId, NFTData, ReportNft, WalletId, WalletType};
 
 pub use collectible::GemCollectibleService;
 pub use model::{GemCollectibleAttribute, GemCollectibleAttributeValue, GemCollectibleDetails, GemCollectibleSection, GemNftItem, GemNftList, GemNftListScreen};
@@ -41,8 +41,8 @@ impl GemNftService {
         cached_or_loaded(self.store.as_ref(), asset_id.clone(), async move { Ok(self.api.client.get_nft_asset(asset_id).await.map_err(GemApiError::from)?) }).await
     }
 
-    pub fn list_screen(&self, data: Vec<NFTData>, list: GemNftList, state: GemLoadState) -> GemNftListScreen {
-        rules::list_screen(data, list, state)
+    pub fn list_screen(&self, data: Vec<NFTData>, list: GemNftList, state: GemLoadState, wallet_type: WalletType) -> GemNftListScreen {
+        rules::list_screen(data, list, state, &wallet_type)
     }
 }
 

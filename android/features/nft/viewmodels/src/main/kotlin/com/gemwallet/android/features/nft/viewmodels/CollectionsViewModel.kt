@@ -9,6 +9,7 @@ import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.store.queries.NFTQuery
 import com.gemwallet.android.ext.errorText
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.model.Session
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.localization.text
@@ -40,6 +41,7 @@ import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemNftList
 import uniffi.gemstone.GemNftListScreen
 import uniffi.gemstone.GemNftServiceInterface
+import uniffi.gemstone.WalletType
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -77,9 +79,9 @@ class CollectionsViewModel @Inject constructor(
         .flatMapLatest { nftQuery(it.wallet.id.id, collectionId) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
-    private val screen: StateFlow<GemNftListScreen> = combine(nftData, loadState) { data, state -> nftService.listScreen(data.map { it.toGem() }, list, state) }
+    private val screen: StateFlow<GemNftListScreen> = combine(session, nftData, loadState) { session, data, state -> nftService.listScreen(data.map { it.toGem() }, list, state, walletType(session)) }
         .flowOn(Dispatchers.Default)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, nftService.listScreen(emptyList(), list, loadState.value))
+        .stateIn(viewModelScope, SharingStarted.Eagerly, nftService.listScreen(emptyList(), list, loadState.value, walletType(session.value)))
 
     val title: StateFlow<String> = screen
         .map { it.title.string(context) }
@@ -127,4 +129,6 @@ class CollectionsViewModel @Inject constructor(
         loadState.update { result.state }
         result.toast?.let { emitToast(ToastMessage(it.errorText().text(context), R.drawable.ic_error)) }
     }
+
+    private fun walletType(session: Session?): WalletType = session?.wallet?.type?.toGem() ?: WalletType.VIEW
 }
