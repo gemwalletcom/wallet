@@ -14,14 +14,14 @@ import com.wallet.core.primitives.ChartValuePercentage
 import com.wallet.core.primitives.PortfolioType
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.coVerifyOrder
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.job
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -39,6 +39,7 @@ import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.PortfolioChartType
 import uniffi.gemstone.PortfolioData
 import uniffi.gemstone.PortfolioStatistic
+import uniffi.gemstone.portfolioSession
 import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -57,15 +58,11 @@ class PortfolioViewModelTest {
         every { this@mockk.invoke() } returns sessionFlow
     }
     private val service = mockk<uniffi.gemstone.GemPortfolioServiceInterface>()
+    private val allPeriods = portfolioSession(PortfolioType.Wallet.toGem()).viewState().periods
 
-    private fun stubPortfolio(type: PortfolioType? = null, period: ChartPeriod? = null, data: PortfolioData) {
+    private fun stubPortfolio(type: PortfolioType, period: ChartPeriod, data: PortfolioData) {
         coEvery {
-            service.refresh(
-                any(),
-                match { request ->
-                    (type == null || request.portfolioType == type.toGem()) && (period == null || request.period == period.toGem())
-                },
-            )
+            service.refresh(any(), match { request -> request.portfolioType == type.toGem() && request.period == period.toGem() })
         } answers { GemPortfolioResult(request = secondArg(), state = GemLoadState.Data, data = data) }
     }
 
@@ -88,64 +85,24 @@ class PortfolioViewModelTest {
 
     @Test
     fun `renders chart when portfolio has values`() = runTest(testDispatcher) {
-        stubPortfolio(
-            PortfolioType.Wallet,
-            ChartPeriod.All,
-            mockPortfolioData(
-                charts = listOf(
-                    mockPortfolioChartData(
-                        chartType = PortfolioChartType.VALUE,
-                        values = listOf(10f, 12f, 14f).mapIndexed { index, value ->
-                            ChartDateValue(
-                                date = TimeUnit.SECONDS.toMillis(
-                                    (
-                                        index +
-                                            1
-                                        ).toLong(),
-                                ),
-                                value = value.toDouble(),
-                            )
-                        },
-                    ),
-                ),
-            ),
-        )
+        val values = listOf(10.0, 12.0, 14.0).mapIndexed { index, value -> ChartDateValue(date = TimeUnit.SECONDS.toMillis(index + 1L), value = value) }
+        stubPortfolio(PortfolioType.Wallet, ChartPeriod.All, mockPortfolioData(charts = listOf(mockPortfolioChartData(values = values)), availablePeriods = allPeriods))
 
         val viewModel = createViewModel()
-        val state = viewModel.chartUIState.first { (it.phase as? GemChartPhase.Data)?.data?.values?.size == 3 }
+        advanceUntilIdle()
 
-        assertEquals(3, (state.phase as? GemChartPhase.Data)?.data?.values?.size)
+        assertEquals(3, (viewModel.chartUIState.value.phase as? GemChartPhase.Data)?.data?.values?.size)
     }
 
     @Test
     fun `initial request uses all period by default`() = runTest(testDispatcher) {
-        stubPortfolio(
-            PortfolioType.Wallet,
-            ChartPeriod.All,
-            mockPortfolioData(
-                charts = listOf(
-                    mockPortfolioChartData(
-                        chartType = PortfolioChartType.VALUE,
-                        values = listOf(1f, 2f).mapIndexed { index, value ->
-                            ChartDateValue(
-                                date = TimeUnit.SECONDS.toMillis(
-                                    (
-                                        index +
-                                            1
-                                        ).toLong(),
-                                ),
-                                value = value.toDouble(),
-                            )
-                        },
-                    ),
-                ),
-            ),
-        )
+        val values = listOf(1.0, 2.0).mapIndexed { index, value -> ChartDateValue(date = TimeUnit.SECONDS.toMillis(index + 1L), value = value) }
+        stubPortfolio(PortfolioType.Wallet, ChartPeriod.All, mockPortfolioData(charts = listOf(mockPortfolioChartData(values = values)), availablePeriods = allPeriods))
 
         val viewModel = createViewModel()
-        viewModel.chartUIState.first { (it.phase as? GemChartPhase.Data)?.data?.values?.size == 2 }
+        advanceUntilIdle()
 
-        assertEquals(ChartPeriod.All, viewModel.chartUIState.first { it.phase != GemChartPhase.Loading }.period)
+        assertEquals(ChartPeriod.All, viewModel.chartUIState.value.period)
         coVerify(exactly = 1) {
             service.refresh(session.wallet.toGem(), match { it.portfolioType == PortfolioType.Wallet.toGem() && it.period == ChartPeriod.All.toGem() })
         }
@@ -153,136 +110,68 @@ class PortfolioViewModelTest {
 
     @Test
     fun `selecting period updates state and refetches`() = runTest(testDispatcher) {
-        stubPortfolio(
-            data = mockPortfolioData(
-                charts = listOf(
-                    mockPortfolioChartData(
-                        chartType = PortfolioChartType.VALUE,
-                        values = listOf(1f, 2f).mapIndexed { index, value ->
-                            ChartDateValue(date = TimeUnit.SECONDS.toMillis((index + 1).toLong()), value = value.toDouble())
-                        },
-                    ),
-                ),
-            ),
-        )
-        stubPortfolio(
-            PortfolioType.Wallet,
-            ChartPeriod.Month,
-            mockPortfolioData(
-                charts = listOf(
-                    mockPortfolioChartData(
-                        chartType = PortfolioChartType.VALUE,
-                        values = listOf(1f, 2f, 3f).mapIndexed { index, value ->
-                            ChartDateValue(
-                                date = TimeUnit.SECONDS.toMillis(
-                                    (
-                                        index +
-                                            1
-                                        ).toLong(),
-                                ),
-                                value = value.toDouble(),
-                            )
-                        },
-                    ),
-                ),
-            ),
-        )
+        val allValues = listOf(1.0, 2.0).mapIndexed { index, value -> ChartDateValue(date = TimeUnit.SECONDS.toMillis(index + 1L), value = value) }
+        val monthValues = listOf(1.0, 2.0, 3.0).mapIndexed { index, value -> ChartDateValue(date = TimeUnit.SECONDS.toMillis(index + 1L), value = value) }
+        stubPortfolio(PortfolioType.Wallet, ChartPeriod.All, mockPortfolioData(charts = listOf(mockPortfolioChartData(values = allValues)), availablePeriods = allPeriods))
+        stubPortfolio(PortfolioType.Wallet, ChartPeriod.Month, mockPortfolioData(charts = listOf(mockPortfolioChartData(values = monthValues)), availablePeriods = allPeriods))
         val viewModel = createViewModel()
-        backgroundScope.launch { viewModel.chartUIState.collect {} }
+        advanceUntilIdle()
+        assertEquals(2, (viewModel.chartUIState.value.phase as? GemChartPhase.Data)?.data?.values?.size)
 
         viewModel.setPeriod(ChartPeriod.Month)
-        val state = viewModel.chartUIState.first { (it.phase as? GemChartPhase.Data)?.data?.values?.size == 3 }
+        advanceUntilIdle()
 
+        val state = viewModel.chartUIState.value
         assertEquals(ChartPeriod.Month, state.period)
-        coVerify { service.refresh(any(), match { it.portfolioType == PortfolioType.Wallet.toGem() && it.period == ChartPeriod.Month.toGem() }) }
+        assertEquals(3, (state.phase as? GemChartPhase.Data)?.data?.values?.size)
+        coVerifyOrder {
+            service.refresh(any(), match { it.period == ChartPeriod.All.toGem() })
+            service.refresh(any(), match { it.period == ChartPeriod.Month.toGem() })
+        }
+        coVerify(exactly = 2) { service.refresh(any(), any()) }
     }
 
     @Test
     fun `resets period when the selected period is unavailable`() = runTest(testDispatcher) {
-        val periods = listOf(ChartPeriod.Day, ChartPeriod.Week, ChartPeriod.Month)
+        val periods = listOf(ChartPeriod.Day, ChartPeriod.Week, ChartPeriod.Month).map { it.toGem() }
+        val values = listOf(1.0, 2.0, 3.0).mapIndexed { index, value -> ChartDateValue(date = TimeUnit.SECONDS.toMillis(index + 1L), value = value) }
         stubPortfolio(
-            period = ChartPeriod.All,
-            data = mockPortfolioData(
-                charts = listOf(
-                    mockPortfolioChartData(
-                        chartType = PortfolioChartType.VALUE,
-                        values = listOf(1f, 2f).mapIndexed { index, value ->
-                            ChartDateValue(
-                                date = TimeUnit.SECONDS.toMillis(
-                                    (
-                                        index +
-                                            1
-                                        ).toLong(),
-                                ),
-                                value = value.toDouble(),
-                            )
-                        },
-                    ),
-                ),
-                availablePeriods = periods.map { it.toGem() },
-            ),
+            PortfolioType.Perpetuals,
+            ChartPeriod.All,
+            mockPortfolioData(charts = listOf(mockPortfolioChartData(chartType = PortfolioChartType.PNL), mockPortfolioChartData(chartType = PortfolioChartType.VALUE)), availablePeriods = periods),
         )
         stubPortfolio(
-            period = ChartPeriod.Day,
-            data = mockPortfolioData(
-                charts = listOf(
-                    mockPortfolioChartData(
-                        chartType = PortfolioChartType.VALUE,
-                        values = listOf(1f, 2f, 3f).mapIndexed { index, value ->
-                            ChartDateValue(
-                                date = TimeUnit.SECONDS.toMillis(
-                                    (
-                                        index +
-                                            1
-                                        ).toLong(),
-                                ),
-                                value = value.toDouble(),
-                            )
-                        },
-                    ),
-                ),
-                availablePeriods = periods.map { it.toGem() },
-            ),
+            PortfolioType.Perpetuals,
+            ChartPeriod.Day,
+            mockPortfolioData(charts = listOf(mockPortfolioChartData(chartType = PortfolioChartType.PNL, values = values), mockPortfolioChartData(chartType = PortfolioChartType.VALUE, values = values)), availablePeriods = periods),
         )
-        val viewModel = createViewModel()
-        backgroundScope.launch { viewModel.chartUIState.collect {} }
 
-        val state = viewModel.chartUIState.first { (it.phase as? GemChartPhase.Data)?.data?.values?.size == 3 }
+        val viewModel = createViewModel(initialType = PortfolioType.Perpetuals)
+        advanceUntilIdle()
 
+        val state = viewModel.chartUIState.value
         assertEquals(ChartPeriod.Day, state.period)
-        coVerify { service.refresh(any(), match { it.portfolioType == PortfolioType.Wallet.toGem() && it.period == ChartPeriod.Day.toGem() }) }
+        assertEquals(3, (state.phase as? GemChartPhase.Data)?.data?.values?.size)
+        coVerifyOrder {
+            service.refresh(any(), match { it.portfolioType == PortfolioType.Perpetuals.toGem() && it.period == ChartPeriod.All.toGem() })
+            service.refresh(any(), match { it.portfolioType == PortfolioType.Perpetuals.toGem() && it.period == ChartPeriod.Day.toGem() })
+        }
     }
 
     @Test
     fun `starts on perpetuals when opened with perpetuals type`() = runTest(testDispatcher) {
+        val values = listOf(1.0, 2.0).mapIndexed { index, value -> ChartDateValue(date = TimeUnit.SECONDS.toMillis(index + 1L), value = value) }
         stubPortfolio(
             PortfolioType.Perpetuals,
             ChartPeriod.All,
-            mockPortfolioData(
-                charts = listOf(
-                    mockPortfolioChartData(
-                        chartType = PortfolioChartType.VALUE,
-                        values = listOf(1f, 2f).mapIndexed { index, value ->
-                            ChartDateValue(
-                                date = TimeUnit.SECONDS.toMillis(
-                                    (
-                                        index +
-                                            1
-                                        ).toLong(),
-                                ),
-                                value = value.toDouble(),
-                            )
-                        },
-                    ),
-                ),
-            ),
+            mockPortfolioData(charts = listOf(mockPortfolioChartData(chartType = PortfolioChartType.PNL, values = values), mockPortfolioChartData(chartType = PortfolioChartType.VALUE, values = values)), availablePeriods = allPeriods),
         )
-        val viewModel = createViewModel(initialType = PortfolioType.Perpetuals)
-        backgroundScope.launch { viewModel.chartUIState.collect {} }
 
-        viewModel.chartUIState.first { (it.phase as? GemChartPhase.Data)?.data?.values?.size == 2 }
+        val viewModel = createViewModel(initialType = PortfolioType.Perpetuals)
+        advanceUntilIdle()
 
         assertEquals(PortfolioType.Perpetuals, viewModel.selectedType.value)
+        assertEquals(2, (viewModel.chartUIState.value.phase as? GemChartPhase.Data)?.data?.values?.size)
         coVerify(exactly = 0) { service.refresh(any(), match { it.portfolioType == PortfolioType.Wallet.toGem() }) }
     }
 
@@ -292,82 +181,44 @@ class PortfolioViewModelTest {
             GemPortfolioResult(request = secondArg(), state = GemLoadState.Error(GemServiceException.Gateway("network down")), data = null)
         }
         val failed = createViewModel()
-        backgroundScope.launch { failed.chartUIState.collect {} }
+        advanceUntilIdle()
 
-        assertEquals(GemChartPhase.NoData, failed.chartUIState.first { it.phase != GemChartPhase.Loading }.phase)
+        assertEquals(GemChartPhase.NoData, failed.chartUIState.value.phase)
 
         coEvery { service.refresh(any(), any()) } answers {
             GemPortfolioResult(request = secondArg(), state = GemLoadState.Error(GemServiceException.Offline()), data = null)
         }
         val offline = createViewModel()
-        backgroundScope.launch { offline.chartUIState.collect {} }
+        advanceUntilIdle()
 
-        assertTrue(offline.chartUIState.first { it.phase != GemChartPhase.Loading }.phase is GemChartPhase.Failed)
+        assertTrue(offline.chartUIState.value.phase is GemChartPhase.Failed)
     }
 
     @Test
     fun `flat chart without variation is empty`() = runTest(testDispatcher) {
-        stubPortfolio(
-            PortfolioType.Wallet,
-            ChartPeriod.All,
-            mockPortfolioData(
-                charts = listOf(
-                    mockPortfolioChartData(
-                        chartType = PortfolioChartType.VALUE,
-                        values = listOf(5f, 5f, 5f).mapIndexed { index, value ->
-                            ChartDateValue(
-                                date = TimeUnit.SECONDS.toMillis(
-                                    (
-                                        index +
-                                            1
-                                        ).toLong(),
-                                ),
-                                value = value.toDouble(),
-                            )
-                        },
-                    ),
-                ),
-            ),
-        )
+        val values = listOf(5.0, 5.0, 5.0).mapIndexed { index, value -> ChartDateValue(date = TimeUnit.SECONDS.toMillis(index + 1L), value = value) }
+        stubPortfolio(PortfolioType.Wallet, ChartPeriod.All, mockPortfolioData(charts = listOf(mockPortfolioChartData(values = values)), availablePeriods = allPeriods))
+
         val viewModel = createViewModel()
-        backgroundScope.launch { viewModel.chartUIState.collect {} }
+        advanceUntilIdle()
 
-        val state = viewModel.chartUIState.first { it.phase != GemChartPhase.Loading }
-
-        assertEquals(GemChartPhase.NoData, state.phase)
+        assertEquals(GemChartPhase.NoData, viewModel.chartUIState.value.phase)
     }
 
     @Test
     fun `exposes all time statistics from portfolio`() = runTest(testDispatcher) {
+        val values = listOf(1.0, 2.0).mapIndexed { index, value -> ChartDateValue(date = TimeUnit.SECONDS.toMillis(index + 1L), value = value) }
         val allTimeHigh = ChartValuePercentage(date = 1L, value = 99f, percentage = 5f).toGem()
         stubPortfolio(
             PortfolioType.Wallet,
             ChartPeriod.All,
-            mockPortfolioData(
-                charts = listOf(
-                    mockPortfolioChartData(
-                        chartType = PortfolioChartType.VALUE,
-                        values = listOf(1f, 2f).mapIndexed { index, value ->
-                            ChartDateValue(
-                                date = TimeUnit.SECONDS.toMillis(
-                                    (
-                                        index +
-                                            1
-                                        ).toLong(),
-                                ),
-                                value = value.toDouble(),
-                            )
-                        },
-                    ),
-                ),
-                statistics = listOf(PortfolioStatistic.AllTimeHigh(allTimeHigh)),
-            ),
+            mockPortfolioData(charts = listOf(mockPortfolioChartData(values = values)), statistics = listOf(PortfolioStatistic.AllTimeHigh(allTimeHigh)), availablePeriods = allPeriods),
         )
 
         val viewModel = createViewModel()
-        val statistics = viewModel.statistics.first { it.isNotEmpty() }
+        advanceUntilIdle()
 
-        val row = statistics.single()
+        val row = viewModel.statistics.value.single()
         assertTrue(row is GemListRow.AllTime && row.title == GemListRowTitle.ALL_TIME_HIGH)
         assertEquals(5.0, (row as GemListRow.AllTime).change.value, 0.0)
         assertEquals(99.0, row.value.value, 0.0)

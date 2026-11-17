@@ -38,6 +38,7 @@ import uniffi.gemstone.GemAssetMenuIcon
 import uniffi.gemstone.GemAssetSectionKind
 import uniffi.gemstone.GemBannerButton
 import uniffi.gemstone.GemBannerIcon
+import uniffi.gemstone.GemChartStyle
 import uniffi.gemstone.GemEmptyStateImage
 import uniffi.gemstone.GemFiatTransactionBadge
 import uniffi.gemstone.GemHeaderButtonKind
@@ -205,6 +206,12 @@ fun GemKeystoreAuthentication.icon(): ImageVector? = when (this) {
 fun GemNoticeKind.icon(): ImageVector = when (this) {
     GemNoticeKind.ERROR, GemNoticeKind.WARNING -> AppIcons.Warning
     GemNoticeKind.INFO -> AppIcons.Info
+}
+
+@Composable
+fun GemChartStyle.icon(): ImageVector = when (this) {
+    GemChartStyle.LINE -> AppIcons.ShowChart
+    GemChartStyle.CANDLES -> AppIcons.CandlestickChart
 }
 
 @Composable

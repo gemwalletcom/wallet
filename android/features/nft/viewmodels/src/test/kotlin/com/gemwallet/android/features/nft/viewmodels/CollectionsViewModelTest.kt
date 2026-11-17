@@ -60,7 +60,7 @@ class CollectionsViewModelTest {
     @Test
     fun `a failed refresh over only unverified collections toasts and keeps the list`() = runTest(dispatcher) {
         val service = mockk<GemNftServiceInterface> {
-            every { listScreen(any(), any(), any()) } returns onlyUnverified
+            every { listScreen(any(), any(), any(), any()) } returns onlyUnverified
             coEvery { refresh(true) } returns GemRefreshResult(state = GemLoadState.Data, toast = GemServiceException.Gateway("offline"))
         }
         val viewModel = CollectionsViewModel(
@@ -84,7 +84,7 @@ class CollectionsViewModelTest {
 
     @Test
     fun `collections follow the session wallet and ignore updates to the same wallet`() = runTest(dispatcher) {
-        val service = mockk<GemNftServiceInterface> { every { listScreen(any(), any(), any()) } returns onlyUnverified }
+        val service = mockk<GemNftServiceInterface> { every { listScreen(any(), any(), any(), any()) } returns onlyUnverified }
         val query = mockk<NFTQuery> { every { this@mockk.invoke(any(), any()) } returns flowOf(emptyList()) }
         val sessions = MutableStateFlow<Session?>(mockSession(wallet = mockWallet(id = WalletId("wallet-a"))))
         CollectionsViewModel(

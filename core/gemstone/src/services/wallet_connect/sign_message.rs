@@ -15,7 +15,7 @@ use crate::services::error::GemServiceError;
 use crate::services::explorer::GemExplorerService;
 use crate::services::localization::GemLocalizedText;
 use crate::services::name::GemNameService;
-use crate::services::simulation::{GemSimulationFormatter, address_requests, named_payload_rows, warning_rows};
+use crate::services::simulation::{address_requests, named_payload_rows, payload_fields, warning_rows};
 use crate::services::wallet::GemKeystorePassword;
 use crate::services::wallet::model::wallet_row;
 use crate::services::wallet_connect::model::GemWalletConnectMessageRequest;
@@ -39,20 +39,13 @@ pub struct GemSignMessageService {
     explorer: Arc<GemExplorerService>,
     keystore: Arc<GemKeystore>,
     password: Arc<dyn GemKeystorePassword>,
-    simulation_formatter: GemSimulationFormatter,
 }
 
 #[uniffi::export]
 impl GemSignMessageService {
     #[uniffi::constructor]
     pub fn new(names: Arc<GemNameService>, explorer: Arc<GemExplorerService>, keystore: Arc<GemKeystore>, password: Arc<dyn GemKeystorePassword>) -> Self {
-        Self {
-            names,
-            explorer,
-            keystore,
-            password,
-            simulation_formatter: GemSimulationFormatter::new(),
-        }
+        Self { names, explorer, keystore, password }
     }
 
     pub async fn sign(&self, wallet_id: WalletId, message: SignMessage) -> Result<String, GemServiceError> {
@@ -75,9 +68,9 @@ impl GemSignMessageService {
         let has_critical_warning = simulation.has_critical_warning();
         let warnings = warning_rows(&simulation.warnings);
         let header = GemSimulationValue::from_simulation(&simulation, &assets);
-        let payload_fields = self.simulation_formatter.payload_fields(simulation.payload, header.is_some());
+        let fields = payload_fields(simulation.payload, header.is_some());
         let address_url = |chain, address| self.explorer.get_address_url(chain, address);
-        let payload = signer.payload_preview(payload_fields, address_url).ok().flatten();
+        let payload = signer.payload_preview(fields, address_url).ok().flatten();
         GemSignMessagePreview {
             title: payload.as_ref().map(|preview| preview.message_type).unwrap_or(MessageType::Text).title(),
             text: signer.plain_preview(),

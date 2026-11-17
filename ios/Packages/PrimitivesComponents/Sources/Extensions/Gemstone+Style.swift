@@ -15,6 +15,7 @@ import enum Gemstone.GemBannerButton
 import enum Gemstone.GemBannerIcon
 import enum Gemstone.GemButtonState
 import struct Gemstone.GemChainRow
+import enum Gemstone.GemChartStyle
 import enum Gemstone.GemCollectibleAction
 import enum Gemstone.GemContactAvatarImage
 import enum Gemstone.GemEmptyStateImage
@@ -372,6 +373,15 @@ public extension GemPerpetualChartLineKind {
         case .stopLoss: Colors.orange
         case .entry: Colors.gray
         case .liquidation: Colors.red
+        }
+    }
+}
+
+public extension GemChartStyle {
+    var systemImage: String {
+        switch self {
+        case .line: SystemImage.chartXyaxisLine
+        case .candles: SystemImage.chartBarXaxis
         }
     }
 }

@@ -5,17 +5,10 @@ import SwiftUI
 
 struct PulsingDotView: View {
     private let color: Color
-    private let dotSize: CGFloat
-    private let isAnimated: Bool
+    private let dotSize: CGFloat = 8
 
-    init(
-        color: Color,
-        dotSize: CGFloat = 8,
-        isAnimated: Bool = true,
-    ) {
+    init(color: Color) {
         self.color = color
-        self.dotSize = dotSize
-        self.isAnimated = isAnimated
     }
 
     var body: some View {
@@ -51,7 +44,6 @@ extension PulsingDotView {
             size: dotSize,
             maxScale: scale,
             delay: delay,
-            isAnimated: isAnimated,
         )
     }
 }
@@ -63,12 +55,11 @@ private struct PulseRingView: View {
     let size: CGFloat
     let maxScale: CGFloat
     let delay: Double
-    let isAnimated: Bool
 
     private let duration: Double = .AnimationDuration.verySlow
 
     var body: some View {
-        TimelineView(.animation(paused: !isAnimated)) { timeline in
+        TimelineView(.animation) { timeline in
             let progress = progress(at: timeline.date)
             Circle()
                 .stroke(color.opacity(.semiMedium), lineWidth: 1.5)
@@ -79,7 +70,6 @@ private struct PulseRingView: View {
     }
 
     private func progress(at date: Date) -> Double {
-        guard isAnimated else { return 0 }
         let elapsed = date.timeIntervalSinceReferenceDate + delay
         let normalized = elapsed.truncatingRemainder(dividingBy: duration) / duration
         return 1.0 - pow(1.0 - normalized, 2)

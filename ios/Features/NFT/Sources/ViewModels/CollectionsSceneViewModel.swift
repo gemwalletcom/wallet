@@ -38,7 +38,7 @@ public final class CollectionsSceneViewModel: Sendable {
     }
 
     public var screen: GemNftListScreen {
-        service.listScreen(data: query.value.map { $0.toGem() }, list: list, state: loadState)
+        service.listScreen(data: query.value.map { $0.toGem() }, list: list, state: loadState, walletType: wallet.type.toGem())
     }
 
     public var columns: [GridItem] {
