@@ -150,6 +150,11 @@ impl ChainflipAsset {
             asset: symbol.to_string(),
         })
     }
+
+    pub fn asset_id(&self) -> Option<AssetId> {
+        let chain = self.chain.parse::<ChainflipChain>().ok()?.to_chain();
+        chainflip_asset_to_asset_id(chain, &self.asset)
+    }
 }
 
 pub(crate) fn chainflip_asset_index(asset_id: &AssetId) -> Option<u8> {

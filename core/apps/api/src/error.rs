@@ -90,6 +90,7 @@ pub fn fiat_error(error: FiatServiceError, language: &str) -> ApiError {
     match error {
         FiatServiceError::Request(RequestError::LimitReached) => ApiError::ok(localizer.fiat_error_limit_reached()),
         FiatServiceError::Request(RequestError::Forbidden) => ApiError::bad_request(localizer.fiat_error_quote_unavailable()),
+        FiatServiceError::Request(RequestError::Invalid) => ApiError::bad_request(localizer.errors_generic()),
         FiatServiceError::Quote(FiatQuoteError::RegionUnavailable) => ApiError::ok(localizer.fiat_error_region_unavailable()),
         FiatServiceError::Quote(FiatQuoteError::ProviderRejected) => ApiError::ok(localizer.fiat_error_quote_unavailable()),
         FiatServiceError::Quote(FiatQuoteError::MinimumAmount(_) | FiatQuoteError::UnsupportedState(_) | FiatQuoteError::InvalidRequest(_) | FiatQuoteError::InvalidWebhook) => ApiError::bad_request(localizer.errors_generic()),
@@ -149,8 +150,10 @@ impl From<Box<dyn std::error::Error + Send + Sync>> for ApiError {
             if let Some(db_error) = current_error.downcast_ref::<DatabaseError>() {
                 return db_error.clone().into();
             }
-            if let Some(RequestError::LimitReached) = current_error.downcast_ref::<RequestError>() {
-                return ApiError::from_status(StatusCode::TOO_MANY_REQUESTS);
+            match current_error.downcast_ref::<RequestError>() {
+                Some(RequestError::LimitReached) => return ApiError::from_status(StatusCode::TOO_MANY_REQUESTS),
+                Some(RequestError::Invalid) => return ApiError::from_status(StatusCode::BAD_REQUEST),
+                Some(RequestError::Forbidden) | None => {}
             }
             if current_error.downcast_ref::<JsonRpcError>().is_some_and(|rpc| rpc.code == ERROR_CLIENT_ERROR) {
                 return ApiError::unavailable(error.to_string());
@@ -220,6 +223,13 @@ mod tests {
         let limited: Box<dyn std::error::Error + Send + Sync> = Box::new(RequestError::LimitReached);
 
         assert_eq!(ApiError::from(limited), ApiError::from_status(StatusCode::TOO_MANY_REQUESTS));
+    }
+
+    #[test]
+    fn test_a_boxed_invalid_request_is_a_bad_request_answer() {
+        let invalid: Box<dyn std::error::Error + Send + Sync> = Box::new(RequestError::Invalid);
+
+        assert_eq!(ApiError::from(invalid), ApiError::from_status(StatusCode::BAD_REQUEST));
     }
 
     #[test]

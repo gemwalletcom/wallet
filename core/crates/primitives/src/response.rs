@@ -5,6 +5,7 @@ use std::fmt;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RequestError {
     Forbidden,
+    Invalid,
     LimitReached,
 }
 
@@ -12,6 +13,7 @@ impl fmt::Display for RequestError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Forbidden => write!(f, "Forbidden"),
+            Self::Invalid => write!(f, "Invalid request"),
             Self::LimitReached => write!(f, "Rate limit reached"),
         }
     }
