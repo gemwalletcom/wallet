@@ -35,7 +35,7 @@ use target::body_headers;
 pub use types::{ClientError, Response, decode_json_byte_array, deserialize_response, encode_request_body, validate_response};
 
 #[cfg(feature = "reqwest")]
-pub use reqwest_client::ReqwestClient;
+pub use reqwest_client::{ReqwestClient, map_response_headers};
 
 #[cfg(feature = "reqwest")]
 pub use retry::{default_should_retry, retry, retry_policy};

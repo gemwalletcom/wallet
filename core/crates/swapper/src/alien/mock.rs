@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use std::collections::HashMap;
 use std::fmt::{self, Debug};
 
 use super::{AlienError, Target};
@@ -43,6 +44,7 @@ impl GenericRpcProvider for ProviderMock {
     async fn request(&self, target: Target) -> Result<RpcResponse, Self::Error> {
         Ok(RpcResponse {
             status: Some(200),
+            headers: HashMap::new(),
             data: (self.response.0)(target).into_bytes(),
         })
     }

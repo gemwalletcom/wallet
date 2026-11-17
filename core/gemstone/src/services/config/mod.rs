@@ -57,6 +57,7 @@ mod tests {
     use crate::testkit::TestAlienProvider;
     use async_trait::async_trait;
     use primitives::{ConfigVersions, Features, SwapConfig};
+    use std::collections::HashMap;
     use std::future::Future;
     use std::sync::atomic::{AtomicUsize, Ordering};
     use std::task::{Context, Poll};
@@ -99,7 +100,7 @@ mod tests {
                 swap: SwapConfig { enabled_providers: vec![] },
                 country: "GB".to_string(),
             };
-            Ok(Arc::new(AlienResponse::new(Some(200), serde_json::to_vec(&config).unwrap())))
+            Ok(Arc::new(AlienResponse::new(Some(200), HashMap::new(), serde_json::to_vec(&config).unwrap())))
         }
     }
 

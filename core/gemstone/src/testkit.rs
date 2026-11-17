@@ -54,24 +54,30 @@ impl TestAlienProvider {
 
     pub fn with_json_by_path(status: u16, bodies: &[(&str, &str)]) -> Self {
         Self {
-            by_path: bodies.iter().map(|(path, body)| ((*path).to_string(), Arc::new(AlienResponse::new(Some(status), body.as_bytes().to_vec())))).collect(),
+            by_path: bodies
+                .iter()
+                .map(|(path, body)| ((*path).to_string(), Arc::new(AlienResponse::new(Some(status), HashMap::new(), body.as_bytes().to_vec()))))
+                .collect(),
             ..Self::with_json(status, "[]")
         }
     }
 
     pub fn with_json_by_request_type(bodies: &[(&str, &str)]) -> Self {
         Self {
-            by_request_type: bodies.iter().map(|(kind, body)| ((*kind).to_string(), Arc::new(AlienResponse::new(Some(200), body.as_bytes().to_vec())))).collect(),
+            by_request_type: bodies
+                .iter()
+                .map(|(kind, body)| ((*kind).to_string(), Arc::new(AlienResponse::new(Some(200), HashMap::new(), body.as_bytes().to_vec()))))
+                .collect(),
             ..Self::with_status(404)
         }
     }
 
     pub fn with_status(status: u16) -> Self {
-        Self::new(AlienResponse::new(Some(status), Vec::new()))
+        Self::new(AlienResponse::new(Some(status), HashMap::new(), Vec::new()))
     }
 
     pub fn with_json(status: u16, body: &str) -> Self {
-        Self::new(AlienResponse::new(Some(status), body.as_bytes().to_vec()))
+        Self::new(AlienResponse::new(Some(status), HashMap::new(), body.as_bytes().to_vec()))
     }
 
     pub fn requested_paths(&self) -> Vec<String> {

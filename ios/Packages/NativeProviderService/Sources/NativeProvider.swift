@@ -20,9 +20,13 @@ extension NativeProvider: AlienProvider {
         do {
             let request = try target.asRequest()
             let (data, response) = try await session.data(for: request)
-            let statusCode = (response as? HTTPURLResponse)?.statusCode
+            let httpResponse = response as? HTTPURLResponse
 
-            return AlienResponse(status: statusCode.map(UInt16.init), data: data)
+            return AlienResponse(
+                status: httpResponse.map { UInt16($0.statusCode) },
+                headers: httpResponse?.allHeaderFields as? [String: String] ?? [:],
+                data: data,
+            )
         } catch {
             if isNetworkError(error) {
                 throw AlienError.Offline

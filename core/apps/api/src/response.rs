@@ -32,7 +32,7 @@ impl From<gem_client::Response> for JsonProxyResponse {
 
 impl IntoResponse for JsonProxyResponse {
     fn into_response(self) -> Response {
-        let gem_client::Response { status, data } = self.0;
+        let gem_client::Response { status, data, .. } = self.0;
         let Some(status) = status.and_then(|status| StatusCode::from_u16(status).ok()) else {
             return ApiError::internal("Proxy response has no status").into_response();
         };

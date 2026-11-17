@@ -6,8 +6,8 @@ edition = { workspace = true }
 [features]
 default = ["types"]
 types = []
-client = ["dep:gem_client", "dep:async-trait", "dep:primitives"]
-reqwest = ["client", "dep:reqwest", "dep:gem_encoding", "gem_client/reqwest"]
+client = ["dep:gem_client", "dep:async-trait", "dep:primitives", "dep:gem_encoding"]
+reqwest = ["client", "dep:reqwest", "gem_client/reqwest"]
 testkit = ["client", "gem_client/testkit"]
 uniffi = ["client", "dep:uniffi"]
 
