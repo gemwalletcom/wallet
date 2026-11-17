@@ -23,7 +23,7 @@ public struct ChartView: View {
     }
 
     private let chart: GemChartData
-    private let lineColor: Color
+    private let lineColor = Colors.blue
     private let dateFormatter = ChartDateFormatter()
     private let onZoom: @MainActor (Double, Double) -> Void
     private let onPan: @MainActor (Double) -> Void
@@ -32,9 +32,8 @@ public struct ChartView: View {
     @State private var selectedIndex: Int?
     @State private var valueRange: ClosedRange<Double>
 
-    init(chart: GemChartData, lineColor: Color = Colors.blue, isPinching: Binding<Bool>, onZoom: @escaping @MainActor (Double, Double) -> Void, onPan: @escaping @MainActor (Double) -> Void) {
+    init(chart: GemChartData, isPinching: Binding<Bool>, onZoom: @escaping @MainActor (Double, Double) -> Void, onPan: @escaping @MainActor (Double) -> Void) {
         self.chart = chart
-        self.lineColor = lineColor
         _isPinching = isPinching
         self.onZoom = onZoom
         self.onPan = onPan

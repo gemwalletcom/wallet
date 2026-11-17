@@ -21,6 +21,7 @@ import enum Gemstone.GemBannerDescription
 import enum Gemstone.GemBannerTitle
 import enum Gemstone.GemCandleTooltipRow
 import enum Gemstone.GemChainsFilterSummary
+import enum Gemstone.GemChartStyle
 import enum Gemstone.GemCollectibleAction
 import enum Gemstone.GemConfirmButtonKind
 import enum Gemstone.GemConfirmDestination
@@ -1373,6 +1374,15 @@ public extension GemCandleTooltipRow {
         case .close: Localized.Charts.Price.close
         case .change: Localized.Charts.Price.change
         case .volume: Localized.Perpetual.volume
+        }
+    }
+}
+
+public extension GemChartStyle {
+    var title: String {
+        switch self {
+        case .line: Localized.Charts.line
+        case .candles: Localized.Charts.candlestick
         }
     }
 }
