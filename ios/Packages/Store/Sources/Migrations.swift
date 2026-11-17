@@ -521,7 +521,7 @@ struct Migrations {
         }
 
         migrator.registerMigration("Remove sei and blast") { db in
-            try db.removeDeprecatedChains(["sei", "blast"])
+            try db.removeDeprecatedChains(["blast"])
         }
 
         try migrator.migrate(writer)

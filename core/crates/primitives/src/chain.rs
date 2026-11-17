@@ -178,7 +178,7 @@ impl Chain {
     }
 
     pub fn deprecated() -> Vec<Self> {
-        vec![Self::Sei, Self::Blast]
+        vec![Self::Blast]
     }
 
     pub fn is_deprecated(&self) -> bool {

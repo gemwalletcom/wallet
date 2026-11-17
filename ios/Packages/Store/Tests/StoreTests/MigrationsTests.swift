@@ -257,10 +257,10 @@ struct MigrationsTests {
         #expect(try rows("SELECT id FROM \(WalletRecord.databaseTableName) ORDER BY id") == ["multicoin_0x1", "privateKey_blast_0xkey"])
         #expect(
             try rows("SELECT walletId || ':' || chain FROM \(AccountRecord.databaseTableName) ORDER BY walletId, chain")
-                == ["multicoin_0x1:ethereum", "multicoin_0x1:seievm", "privateKey_blast_0xkey:blast"],
+                == ["multicoin_0x1:ethereum", "multicoin_0x1:sei", "multicoin_0x1:seievm", "privateKey_blast_0xkey:blast"],
         )
-        #expect(try rows("SELECT id FROM \(AssetRecord.databaseTableName) ORDER BY id") == ["blast", "ethereum", "seievm", "seievm_0xtoken"])
-        #expect(try rows("SELECT assetId FROM \(PriceRecord.databaseTableName) ORDER BY assetId") == ["seievm", "seievm_0xtoken"])
+        #expect(try rows("SELECT id FROM \(AssetRecord.databaseTableName) ORDER BY id") == ["blast", "ethereum", "sei", "seievm", "seievm_0xtoken"])
+        #expect(try rows("SELECT assetId FROM \(PriceRecord.databaseTableName) ORDER BY assetId") == ["sei", "seievm", "seievm_0xtoken"])
         #expect(try rows("SELECT assetId FROM \(BalanceRecord.databaseTableName)") == ["seievm_0xtoken"])
         #expect(try rows("SELECT \"table\" FROM pragma_foreign_key_check").isEmpty)
     }
