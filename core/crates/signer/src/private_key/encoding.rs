@@ -12,8 +12,8 @@ const NEAR_ED25519_PREFIX: &str = "ed25519:";
 pub(super) enum KeyEncoding {
     Hex,
     Base58,
-    PrefixedBase58,
-    PrefixedHex,
+    NearBase58,
+    AptosHex,
     StellarStrKey,
     SuiBech32,
 }
@@ -23,8 +23,8 @@ impl KeyEncoding {
         match self {
             Self::Hex => decode_hex(value).ok().map(Zeroizing::new),
             Self::Base58 => decode_base58_keypair(value),
-            Self::PrefixedBase58 => decode_base58_keypair(value.strip_prefix(NEAR_ED25519_PREFIX)?),
-            Self::PrefixedHex => aptos::decode(value),
+            Self::NearBase58 => decode_base58_keypair(value.strip_prefix(NEAR_ED25519_PREFIX)?),
+            Self::AptosHex => aptos::decode(value),
             Self::StellarStrKey => stellar::decode(value),
             Self::SuiBech32 => sui::decode(value),
         }
@@ -34,8 +34,8 @@ impl KeyEncoding {
         match self {
             Self::Hex => Ok(encode_with_0x(bytes)),
             Self::Base58 => Ok(encode_base58(bytes)),
-            Self::PrefixedBase58 => Ok(format!("{NEAR_ED25519_PREFIX}{}", encode_base58(bytes))),
-            Self::PrefixedHex => Ok(aptos::encode(bytes)),
+            Self::NearBase58 => Ok(format!("{NEAR_ED25519_PREFIX}{}", encode_base58(bytes))),
+            Self::AptosHex => Ok(aptos::encode(bytes)),
             Self::StellarStrKey => stellar::encode(bytes),
             Self::SuiBech32 => sui::encode(bytes),
         }

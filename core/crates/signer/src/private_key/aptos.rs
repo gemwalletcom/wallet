@@ -1,16 +1,16 @@
-use primitives::decode_hex;
-use primitives::hex::encode_with_0x;
+use primitives::{decode_hex, hex};
 use zeroize::Zeroizing;
 
 const ED25519_PRIVATE_KEY_PREFIX: &str = "ed25519-priv-";
+const HEX_PREFIX: &str = "0x";
 
 pub(super) fn decode(value: &str) -> Option<Zeroizing<Vec<u8>>> {
     decode_hex(value.strip_prefix(ED25519_PRIVATE_KEY_PREFIX)?).ok().map(Zeroizing::new)
 }
 
 pub(super) fn encode(private_key: &[u8]) -> String {
-    let key = Zeroizing::new(encode_with_0x(private_key));
-    format!("{ED25519_PRIVATE_KEY_PREFIX}{}", key.as_str())
+    let key = Zeroizing::new(hex::encode(private_key));
+    format!("{ED25519_PRIVATE_KEY_PREFIX}{HEX_PREFIX}{}", key.as_str())
 }
 
 #[cfg(test)]

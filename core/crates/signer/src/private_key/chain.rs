@@ -15,8 +15,8 @@ fn import_encodings_for_chain(chain: &Chain) -> &'static [KeyEncoding] {
         ChainType::Bitcoin | ChainType::Cardano => &[],
         ChainType::Solana => &[KeyEncoding::Base58, KeyEncoding::Hex],
         ChainType::Stellar => &[KeyEncoding::StellarStrKey, KeyEncoding::Hex],
-        ChainType::Near => &[KeyEncoding::PrefixedBase58],
-        ChainType::Aptos => &[KeyEncoding::PrefixedHex, KeyEncoding::Hex],
+        ChainType::Near => &[KeyEncoding::NearBase58],
+        ChainType::Aptos => &[KeyEncoding::AptosHex, KeyEncoding::Hex],
         ChainType::Sui => &[KeyEncoding::SuiBech32, KeyEncoding::Hex],
         _ => &[KeyEncoding::Hex],
     }
@@ -26,8 +26,8 @@ fn export_format_for_chain(chain: &Chain) -> (KeyLayout, KeyEncoding) {
     match chain.chain_type() {
         ChainType::Bitcoin => (KeyLayout::PrivateKey, KeyEncoding::Base58),
         ChainType::Solana => (KeyLayout::Ed25519KeyPair, KeyEncoding::Base58),
-        ChainType::Near => (KeyLayout::Ed25519KeyPair, KeyEncoding::PrefixedBase58),
-        ChainType::Aptos => (KeyLayout::PrivateKey, KeyEncoding::PrefixedHex),
+        ChainType::Near => (KeyLayout::Ed25519KeyPair, KeyEncoding::NearBase58),
+        ChainType::Aptos => (KeyLayout::PrivateKey, KeyEncoding::AptosHex),
         ChainType::Stellar => (KeyLayout::PrivateKey, KeyEncoding::StellarStrKey),
         ChainType::Sui => (KeyLayout::PrivateKey, KeyEncoding::SuiBech32),
         _ => (KeyLayout::PrivateKey, KeyEncoding::Hex),
