@@ -101,7 +101,7 @@ pub use push_notification::{GemPushNotification, GemPushNotificationService};
 pub use rewards::{GemRewardsService, GemRewardsState};
 pub use scan::GemScanService;
 pub use search::{GemSearchScope, GemSearchService, GemSearchStore};
-pub use simulation::{GemSimulationFormatter, GemSimulationService};
+pub use simulation::GemSimulationService;
 pub use stake::{GemStakeService, GemStakeStore};
 pub use stream::{GemSocketTransport, GemStreamConnection, GemStreamService, GemStreamSubscriptionService};
 pub use subscription::GemSubscriptionService;

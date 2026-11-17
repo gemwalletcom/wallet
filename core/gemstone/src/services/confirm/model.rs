@@ -1,5 +1,5 @@
 use super::error::{GemConfirmError, GemConfirmErrorSheet};
-use super::rules::approval_value_from;
+use super::rules::{ConfirmInput, approval_value_from, balance_change_rows};
 use super::swap::ConfirmSwapQuote;
 use crate::fee::GemCustomFeeSession;
 use crate::formatted_number::GemFormattedNumber;
@@ -14,13 +14,17 @@ use crate::services::balance::GemAssetBalance;
 use crate::services::error_text::GemErrorText;
 use crate::services::localization::GemLocalizedText;
 use crate::services::perpetual::model::GemPerpetualConfirmDetails;
-use crate::services::simulation::{address_requests, named_payload_rows};
+use crate::services::simulation::{address_requests, named_payload_rows, payload_fields, payload_rows};
 use crate::services::swap::model::{GemSwapDetails, GemSwapPairSelection};
 use crate::services::transfer::GemTransferData;
 use crate::services::transfer::model::GemConfirmTitle;
+use crate::services::transfer::rules::TransferInput;
 use crate::services::wallet::GemKeystoreAuthentication;
 use number_formatter::ValueStyle;
-use primitives::{Account, AddressName, Asset, AssetId, Chain, ChainAddress, FeePriority, FeeRate, FeeUnitType, GasPriceType, SimulationResult, TransactionFee, TransactionLoadMetadata, TransferAmount, Wallet};
+use primitives::{
+    Account, AddressName, Asset, AssetId, BlockExplorerLink, Chain, ChainAddress, FeePriority, FeeRate, FeeUnitType, GasPriceType, SimulationPayloadFieldDisplay, SimulationResult, TransactionFee, TransactionInputType,
+    TransactionLoadMetadata, TransferAmount, Wallet,
+};
 use primitives::{AssetPrice, Currency, PaymentVerification};
 use swapper::Quote;
 
@@ -226,6 +230,24 @@ impl GemConfirmSimulation {
             primary_fields: named_payload_rows(self.primary_fields, names),
             secondary_fields: named_payload_rows(self.secondary_fields, names),
             ..self
+        }
+    }
+
+    pub(super) fn new(input_type: &TransactionInputType, simulation: &SimulationResult, assets: &[Asset], address_url: impl Fn(Chain, String) -> BlockExplorerLink) -> Self {
+        let chain = input_type.transaction_asset().chain();
+        let header = match input_type.approval_value() {
+            Some((asset_id, value)) => assets.iter().find(|asset| asset.id == asset_id).map(|asset| GemSimulationValue::new(asset.clone(), value)),
+            None => GemSimulationValue::from_simulation(simulation, assets),
+        };
+        let (primary_fields, secondary_fields): (Vec<_>, Vec<_>) = payload_fields(simulation.payload.clone(), header.is_some())
+            .into_iter()
+            .partition(|field| field.display == SimulationPayloadFieldDisplay::Primary);
+        Self {
+            primary_fields: payload_rows(&primary_fields, chain, &address_url),
+            secondary_fields: payload_rows(&secondary_fields, chain, &address_url),
+            header,
+            balance_changes: balance_change_rows(&simulation.balance_changes, assets),
+            has_critical_warning: simulation.has_critical_warning(),
         }
     }
 }
@@ -542,6 +564,53 @@ pub struct GemConfirmViewState {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::{ApplicationMetadata, ApprovalData, SimulationHeader, SimulationPayloadField, SimulationPayloadFieldKind, SimulationPayloadFieldType, TransferDataExtra};
+
+    fn explorer_link(_: Chain, _: String) -> BlockExplorerLink {
+        BlockExplorerLink { name: String::new(), link: String::new() }
+    }
+
+    fn simulation_details(input_type: TransactionInputType, simulation: &SimulationResult, assets: &[Asset]) -> GemConfirmSimulation {
+        GemConfirmSimulation::new(&input_type, simulation, assets, explorer_link)
+    }
+
+    #[test]
+    fn test_the_value_and_token_rows_give_way_only_to_a_header_the_screen_shows() {
+        let asset = Asset::mock_erc20();
+        let field = |kind| SimulationPayloadField::standard(kind, "1", SimulationPayloadFieldType::Text, SimulationPayloadFieldDisplay::Primary);
+        let simulation = SimulationResult {
+            header: Some(SimulationHeader {
+                asset_id: asset.id.clone(),
+                value: Some(1u32.into()),
+                is_unlimited: false,
+            }),
+            ..SimulationResult::new(vec![], vec![field(SimulationPayloadFieldKind::Value), field(SimulationPayloadFieldKind::Token), field(SimulationPayloadFieldKind::Spender)])
+        };
+        let generic = TransactionInputType::Generic {
+            asset: asset.clone(),
+            metadata: ApplicationMetadata::mock(),
+            extra: TransferDataExtra::default(),
+        };
+        let approval = TransactionInputType::TokenApprove {
+            asset: asset.clone(),
+            approval_data: ApprovalData::mock(),
+        };
+        let spender_only = payload_rows(&[field(SimulationPayloadFieldKind::Spender)], asset.chain(), explorer_link);
+
+        let shown = simulation_details(generic.clone(), &simulation, std::slice::from_ref(&asset));
+        assert!(shown.header.is_some());
+        assert_eq!(shown.primary_fields, spender_only, "the header replaces the Value and Token rows");
+
+        let unresolved = simulation_details(generic, &simulation, &[]);
+        assert_eq!(unresolved.header, None);
+        assert_eq!(unresolved.primary_fields.len(), 3, "without a header the Value and Token rows stay");
+
+        let approved = simulation_details(approval.clone(), &SimulationResult { header: None, ..simulation.clone() }, std::slice::from_ref(&asset));
+        assert!(approved.header.is_some());
+        assert_eq!(approved.primary_fields, spender_only, "an approval leads with its own header");
+
+        assert_eq!(simulation_details(approval, &simulation, &[]).primary_fields.len(), 3);
+    }
 
     #[test]
     fn test_submit_result_transaction_id_is_the_requested_transaction() {
