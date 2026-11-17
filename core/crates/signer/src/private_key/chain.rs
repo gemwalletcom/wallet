@@ -1,19 +1,8 @@
-use gem_encoding::{decode_base58, decode_strkey, encode_base58};
-use primitives::hex::encode_with_0x;
-use primitives::{Chain, ChainType, decode_hex};
+use primitives::{Chain, ChainType};
 use zeroize::Zeroizing;
 
+use super::encoding::KeyEncoding;
 use crate::{CARDANO_EXTENDED_PRIVATE_KEY_LENGTH, Ed25519KeyPair, SignatureScheme, SignerError};
-
-const STELLAR_SECRET_SEED_VERSION: u8 = 0x90;
-
-#[derive(Debug, Clone, Copy)]
-enum KeyEncoding {
-    Hex,
-    Base58,
-    PrefixedBase58(SignatureScheme),
-    StellarStrKey,
-}
 
 #[derive(Debug, Clone, Copy)]
 enum KeyLayout {
@@ -26,7 +15,9 @@ fn import_encodings_for_chain(chain: &Chain) -> &'static [KeyEncoding] {
         ChainType::Bitcoin | ChainType::Cardano => &[],
         ChainType::Solana => &[KeyEncoding::Base58, KeyEncoding::Hex],
         ChainType::Stellar => &[KeyEncoding::StellarStrKey, KeyEncoding::Hex],
-        ChainType::Near => &[KeyEncoding::PrefixedBase58(SignatureScheme::Ed25519), KeyEncoding::Hex],
+        ChainType::Near => &[KeyEncoding::PrefixedBase58(SignatureScheme::Ed25519)],
+        ChainType::Aptos => &[KeyEncoding::PrefixedHex(SignatureScheme::Ed25519), KeyEncoding::Hex],
+        ChainType::Sui => &[KeyEncoding::SuiBech32, KeyEncoding::Hex],
         _ => &[KeyEncoding::Hex],
     }
 }
@@ -36,6 +27,9 @@ fn export_format_for_chain(chain: &Chain) -> (KeyLayout, KeyEncoding) {
         ChainType::Bitcoin => (KeyLayout::PrivateKey, KeyEncoding::Base58),
         ChainType::Solana => (KeyLayout::Ed25519KeyPair, KeyEncoding::Base58),
         ChainType::Near => (KeyLayout::Ed25519KeyPair, KeyEncoding::PrefixedBase58(SignatureScheme::Ed25519)),
+        ChainType::Aptos => (KeyLayout::PrivateKey, KeyEncoding::PrefixedHex(SignatureScheme::Ed25519)),
+        ChainType::Stellar => (KeyLayout::PrivateKey, KeyEncoding::StellarStrKey),
+        ChainType::Sui => (KeyLayout::PrivateKey, KeyEncoding::SuiBech32),
         _ => (KeyLayout::PrivateKey, KeyEncoding::Hex),
     }
 }
@@ -50,23 +44,6 @@ fn scheme_for_chain(chain: &Chain) -> SignatureScheme {
         ChainType::Cardano => SignatureScheme::Ed25519CardanoExtended,
         _ => SignatureScheme::Secp256k1,
     }
-}
-
-fn decode_base58_key(value: &str) -> Option<Vec<u8>> {
-    let decoded = Zeroizing::new(decode_base58(value).ok()?);
-    match decoded.len() {
-        32 => Some(decoded.to_vec()),
-        64 => {
-            let keypair = decoded.as_slice().try_into().ok()?;
-            ed25519_dalek::SigningKey::from_keypair_bytes(keypair).ok()?;
-            Some(decoded[..32].to_vec())
-        }
-        _ => None,
-    }
-}
-
-fn decode_prefixed_base58(value: &str, scheme: SignatureScheme) -> Option<Vec<u8>> {
-    decode_base58_key(value.strip_prefix(scheme.as_ref())?.strip_prefix(':')?)
 }
 
 fn validate_key(bytes: &[u8], scheme: SignatureScheme) -> Result<(), SignerError> {
@@ -86,62 +63,35 @@ fn validate_key(bytes: &[u8], scheme: SignatureScheme) -> Result<(), SignerError
     }
 }
 
-fn decode_key(value: &str, encodings: &[KeyEncoding], scheme: SignatureScheme) -> Result<Zeroizing<Vec<u8>>, SignerError> {
-    for encoding in encodings {
-        let decoded = match encoding {
-            KeyEncoding::Hex => decode_hex(value).ok().map(Zeroizing::new),
-            KeyEncoding::Base58 => decode_base58_key(value).map(Zeroizing::new),
-            KeyEncoding::PrefixedBase58(prefix_scheme) => {
-                if *prefix_scheme != scheme {
-                    None
-                } else {
-                    decode_prefixed_base58(value, *prefix_scheme).map(Zeroizing::new)
-                }
-            }
-            KeyEncoding::StellarStrKey => decode_strkey(value, STELLAR_SECRET_SEED_VERSION).ok(),
-        };
-        if let Some(bytes) = decoded
-            && validate_key(&bytes, scheme).is_ok()
-        {
-            return Ok(bytes);
-        }
-    }
-    Err(SignerError::invalid_input("Invalid private key format"))
-}
-
-fn encode_key(bytes: &[u8], encoding: KeyEncoding) -> Result<String, SignerError> {
-    match encoding {
-        KeyEncoding::Hex => Ok(encode_with_0x(bytes)),
-        KeyEncoding::Base58 => Ok(encode_base58(bytes)),
-        KeyEncoding::PrefixedBase58(scheme) => Ok(format!("{}:{}", scheme.as_ref(), encode_base58(bytes))),
-        KeyEncoding::StellarStrKey => Err(SignerError::invalid_input("Unsupported private key export encoding")),
-    }
-}
-
 pub fn decode_private_key(chain: &Chain, value: &str) -> Result<Zeroizing<Vec<u8>>, SignerError> {
-    let import_encodings = import_encodings_for_chain(chain);
     let scheme = scheme_for_chain(chain);
-    decode_key(value, import_encodings, scheme)
+    import_encodings_for_chain(chain)
+        .iter()
+        .filter_map(|encoding| encoding.decode(value))
+        .find(|private_key| validate_key(private_key, scheme).is_ok())
+        .ok_or_else(|| SignerError::invalid_input("Invalid private key format"))
 }
 
 pub fn encode_private_key(chain: &Chain, private_key: &[u8]) -> Result<String, SignerError> {
     let (layout, encoding) = export_format_for_chain(chain);
     match layout {
-        KeyLayout::PrivateKey => encode_key(private_key, encoding),
+        KeyLayout::PrivateKey => encoding.encode(private_key),
         KeyLayout::Ed25519KeyPair => {
             let keypair = Ed25519KeyPair::from_private_key(private_key)?;
             let mut bytes = Zeroizing::new(Vec::with_capacity(private_key.len() + keypair.public_key_bytes.len()));
             bytes.extend_from_slice(private_key);
             bytes.extend_from_slice(&keypair.public_key_bytes);
-            encode_key(&bytes, encoding)
+            encoding.encode(&bytes)
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use gem_encoding::{decode_base58, encode_base58};
     use primitives::hex;
+
+    use super::*;
 
     #[test]
     fn test_decode_solana_base58() {
@@ -159,25 +109,24 @@ mod tests {
     }
 
     #[test]
-    fn test_decode_stellar_strkey() {
-        let bytes = decode_private_key(&Chain::Stellar, "SA6XNHUKMW4QAKSHB2NOZ4SYP34ERYVAWSBTEDREYSJ2LEJ5LFHLTIRJ").unwrap();
-        assert_eq!(hex::encode(bytes.as_slice()), "3d769e8a65b9002a470e9aecf2587ef848e2a0b483320e24c493a5913d594eb9");
-        assert_eq!(encode_private_key(&Chain::Stellar, &bytes).unwrap(), "0x3d769e8a65b9002a470e9aecf2587ef848e2a0b483320e24c493a5913d594eb9");
-    }
-
-    #[test]
     fn test_decode_near_prefixed_base58() {
         let private_key = [7u8; 32];
         let keypair = ed25519_dalek::SigningKey::from_bytes(&private_key).to_keypair_bytes();
-        let values = [format!("ed25519:{}", encode_base58(private_key)), format!("ed25519:{}", encode_base58(keypair))];
+        let value = format!("ed25519:{}", encode_base58(keypair));
 
-        assert_eq!(encode_private_key(&Chain::Near, &private_key).unwrap(), values[1]);
+        assert_eq!(encode_private_key(&Chain::Near, &private_key).unwrap(), value);
+        assert_eq!(decode_private_key(&Chain::Near, &value).unwrap().as_slice(), private_key);
+        assert!(decode_private_key(&Chain::Solana, &value).is_err());
+        assert!(decode_private_key(&Chain::Ethereum, &value).is_err());
+    }
 
-        for value in values {
-            assert_eq!(decode_private_key(&Chain::Near, &value).unwrap().as_slice(), private_key);
-            assert!(decode_private_key(&Chain::Solana, &value).is_err());
-            assert!(decode_private_key(&Chain::Ethereum, &value).is_err());
-        }
+    #[test]
+    fn test_decode_rejects_addresses() {
+        let public_key = ed25519_dalek::SigningKey::from_bytes(&[7u8; 32]).verifying_key().to_bytes();
+
+        assert!(decode_private_key(&Chain::Solana, &encode_base58(public_key)).is_err());
+        assert!(decode_private_key(&Chain::Near, &format!("ed25519:{}", encode_base58(public_key))).is_err());
+        assert!(decode_private_key(&Chain::Near, &hex::encode(public_key)).is_err());
     }
 
     #[test]
@@ -211,7 +160,6 @@ mod tests {
         assert_eq!(&keypair[..32], seed);
         assert_eq!(&keypair[32..], ed25519_dalek::SigningKey::from_bytes(&seed).verifying_key().as_bytes());
         assert_eq!(decode_private_key(&Chain::Solana, &exported).unwrap().as_slice(), seed);
-        assert_eq!(decode_private_key(&Chain::Solana, &encode_base58(seed)).unwrap().as_slice(), seed);
     }
 
     #[test]
@@ -236,12 +184,6 @@ mod tests {
     }
 
     #[test]
-    fn test_stellar_bad_checksum() {
-        // Valid stellar key with last char changed to corrupt checksum
-        assert!(decode_private_key(&Chain::Stellar, "SA6XNHUKMW4QAKSHB2NOZ4SYP34ERYVAWSBTEDREYSJ2LEJ5LFHLTIRA").is_err());
-    }
-
-    #[test]
     fn test_supports_private_key_import() {
         assert!(supports_private_key_import(&Chain::Ethereum));
         assert!(supports_private_key_import(&Chain::Solana));
@@ -250,12 +192,5 @@ mod tests {
         assert!(!supports_private_key_import(&Chain::Bitcoin));
         assert!(!supports_private_key_import(&Chain::Litecoin));
         assert!(!supports_private_key_import(&Chain::Doge));
-    }
-
-    #[test]
-    fn test_base58_rejects_unexpected_length() {
-        // 96-byte base58 payload should not be accepted
-        let long_key = encode_base58(vec![1u8; 96]);
-        assert!(decode_base58_key(&long_key).is_none());
     }
 }

@@ -50,6 +50,8 @@ The Import screen, top to bottom:
 | The user picks Multi-Coin | it takes a Secret Phrase | |
 | The user picks a single network | it takes a Secret Phrase, a private key where the network supports one, or an address for a watch-only wallet | |
 | The user taps Paste | the copied text fills the input; a pasted Secret Phrase or private key is then cleared from the clipboard | a secret must not stay on the clipboard |
+| A private key is entered for Sui or Aptos | Sui takes `suiprivkey1…` (SIP-15) and Aptos `ed25519-priv-0x…` (AIP-80), and both still take bare hex | bare hex is what the app and older wallets exported before the standard formats |
+| A private key is entered for Solana or NEAR | Solana takes the base58 64-byte keypair or hex, NEAR `ed25519:` with the base58 64-byte keypair; a Solana address, a NEAR public key and a NEAR implicit account are refused as an invalid private key | an address read as a key makes a wallet at another address whose key is public, and anyone can take funds sent there |
 | The user taps Paste with nothing on the clipboard | the input stays as it is | there is nothing to paste over what was typed |
 | The user taps Scan | the scanner opens for the picked kind, and the scanned code fills the input | |
 | The user types a Secret Phrase | word suggestions complete the last word, and a tap replaces it | |

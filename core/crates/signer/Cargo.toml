@@ -7,6 +7,7 @@ edition = { workspace = true }
 gem_encoding = { path = "../gem_encoding", default-features = false, features = ["base32", "base58"] }
 ed25519-dalek = { workspace = true, default-features = false, features = ["zeroize"] }
 secp256k1 = { workspace = true }
+bech32 = { workspace = true }
 getrandom = { workspace = true }
 primitives = { path = "../primitives" }
 alloy-primitives = { workspace = true }

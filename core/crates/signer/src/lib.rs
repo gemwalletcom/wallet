@@ -1,7 +1,7 @@
 mod address;
-mod decode;
 mod ed25519;
 mod error;
+mod private_key;
 mod secp256k1;
 
 #[cfg(test)]
@@ -20,8 +20,8 @@ pub use crate::secp256k1::{
     uncompressed_public_key_from_private as secp256k1_uncompressed_public_key,
 };
 
-pub use decode::{decode_private_key, encode_private_key, supports_private_key_import};
 pub use primitives::SignerError;
+pub use private_key::{decode_private_key, encode_private_key, supports_private_key_import};
 
 pub const CARDANO_EXTENDED_PRIVATE_KEY_LENGTH: usize = 192;
 
