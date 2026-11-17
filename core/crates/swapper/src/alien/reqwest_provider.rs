@@ -5,7 +5,7 @@ use primitives::{Chain, node_config::get_nodes_for_chain};
 
 use async_trait::async_trait;
 use futures::TryFutureExt;
-use gem_client::reqwest_client;
+use gem_client::{map_response_headers, reqwest_client};
 use gem_jsonrpc::RpcResponse;
 use gem_jsonrpc::alien::RpcProvider;
 use gem_jsonrpc::rpc::RpcProvider as GenericRpcProvider;
@@ -84,6 +84,7 @@ impl GenericRpcProvider for NativeProvider {
 
         let response = req.send().map_err(|error| Self::Error::response_error(format!("reqwest send error: {error}"))).await?;
         let status = response.status();
+        let headers = map_response_headers(response.headers());
         let bytes = response.bytes().map_err(|error| Self::Error::response_error(format!("request error: {error}"))).await?;
         if self.debug {
             println!("<== response body size: {:?}", bytes.len());
@@ -99,6 +100,7 @@ impl GenericRpcProvider for NativeProvider {
         }
         Ok(RpcResponse {
             status: Some(status.as_u16()),
+            headers,
             data: bytes.to_vec(),
         })
     }

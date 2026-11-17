@@ -11,6 +11,7 @@ use crate::{CONTENT_TYPE, ContentType, MULTIPART_FORM_DATA};
 #[derive(Debug, Clone)]
 pub struct Response {
     pub status: Option<u16>,
+    pub headers: HashMap<String, String>,
     pub data: Vec<u8>,
 }
 
@@ -162,6 +163,7 @@ mod tests {
         assert_eq!(
             validate_response(&Response {
                 status: Some(200),
+                headers: HashMap::new(),
                 data: USERNAME_ERROR.as_bytes().to_vec()
             }),
             Err(ClientError::Response {
@@ -173,6 +175,7 @@ mod tests {
         assert_eq!(
             validate_response(&Response {
                 status: Some(400),
+                headers: HashMap::new(),
                 data: USERNAME_ERROR.as_bytes().to_vec()
             }),
             Err(ClientError::Response {
@@ -184,6 +187,7 @@ mod tests {
         assert_eq!(
             validate_response(&Response {
                 status: Some(502),
+                headers: HashMap::new(),
                 data: b"Bad Gateway".to_vec()
             }),
             Err(ClientError::Http { status: 502, body: b"Bad Gateway".to_vec() })
@@ -191,6 +195,7 @@ mod tests {
         assert_eq!(
             validate_response(&Response {
                 status: Some(200),
+                headers: HashMap::new(),
                 data: br#"{"points":1}"#.to_vec()
             }),
             Ok(())
@@ -199,10 +204,18 @@ mod tests {
 
     #[test]
     fn test_deserialize_response() {
-        assert_eq!(deserialize_response::<bool>(&Response { status: Some(200), data: b"true".to_vec() }), Ok(true));
         assert_eq!(
             deserialize_response::<bool>(&Response {
                 status: Some(200),
+                headers: HashMap::new(),
+                data: b"true".to_vec()
+            }),
+            Ok(true)
+        );
+        assert_eq!(
+            deserialize_response::<bool>(&Response {
+                status: Some(200),
+                headers: HashMap::new(),
                 data: USERNAME_ERROR.as_bytes().to_vec()
             }),
             Err(ClientError::Response {
@@ -217,7 +230,11 @@ mod tests {
     fn test_deserialize_response_rejects_http_errors() {
         for status in [400, 401, 403, 404, 429, 500, 502, 503] {
             for data in [b"true".to_vec(), b"{}".to_vec(), b"null".to_vec(), Vec::new()] {
-                let response = Response { status: Some(status), data: data.clone() };
+                let response = Response {
+                    status: Some(status),
+                    headers: HashMap::new(),
+                    data: data.clone(),
+                };
                 assert_eq!(deserialize_response::<Value>(&response), Err(ClientError::Http { status, body: data }));
             }
         }
@@ -227,6 +244,7 @@ mod tests {
     fn test_deserialize_response_preserves_http_error_body() {
         let response = Response {
             status: Some(404),
+            headers: HashMap::new(),
             data: br#"{"reason":"Not found"}"#.to_vec(),
         };
         let error = deserialize_response::<Value>(&response).unwrap_err();
@@ -243,6 +261,7 @@ mod tests {
             assert_eq!(
                 deserialize_response::<Value>(&Response {
                     status: Some(status),
+                    headers: HashMap::new(),
                     data: USERNAME_ERROR.as_bytes().to_vec()
                 }),
                 Err(ClientError::Response {
@@ -257,12 +276,26 @@ mod tests {
     #[test]
     fn test_deserialize_response_preserves_success_and_redirect_policy() {
         for status in [None, Some(200), Some(201), Some(299), Some(302), Some(399)] {
-            assert_eq!(deserialize_response::<bool>(&Response { status, data: b"true".to_vec() }), Ok(true));
+            assert_eq!(
+                deserialize_response::<bool>(&Response {
+                    status,
+                    headers: HashMap::new(),
+                    data: b"true".to_vec()
+                }),
+                Ok(true)
+            );
         }
     }
 
     #[test]
     fn test_deserialize_response_rejects_empty_json_body() {
-        assert!(matches!(deserialize_response::<Option<Value>>(&Response { status: Some(204), data: Vec::new() }), Err(ClientError::Serialization(_))));
+        assert!(matches!(
+            deserialize_response::<Option<Value>>(&Response {
+                status: Some(204),
+                headers: HashMap::new(),
+                data: Vec::new()
+            }),
+            Err(ClientError::Serialization(_))
+        ));
     }
 }

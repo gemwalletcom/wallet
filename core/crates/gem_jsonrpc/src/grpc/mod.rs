@@ -11,7 +11,10 @@ mod reqwest_transport;
 #[cfg(feature = "reqwest")]
 pub use reqwest_transport::ReqwestGrpcTransport;
 
+const STATUS_OK: &str = "0";
 const STATUS_NOT_FOUND: &str = "5";
+const HEADER_STATUS: &str = "grpc-status";
+const HEADER_MESSAGE: &str = "grpc-message";
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct GrpcStatusError {
@@ -44,6 +47,16 @@ fn unary_target(endpoint: &str, path: &str, body: Vec<u8>) -> Target {
         method: HttpMethod::Post,
         headers: Some(grpc_headers()),
         body: Some(body),
+    }
+}
+
+fn validate_grpc_status(status: Option<&str>, message: Option<&str>) -> Result<(), Box<dyn Error + Send + Sync>> {
+    match status {
+        Some(code) if code != STATUS_OK => Err(Box::new(GrpcStatusError {
+            code: code.to_string(),
+            message: gem_encoding::percent_decode_lossy(message.unwrap_or_default()),
+        })),
+        Some(_) | None => Ok(()),
     }
 }
 
@@ -86,6 +99,8 @@ impl fmt::Debug for AlienGrpcTransport {
 impl GrpcTransport for AlienGrpcTransport {
     async fn unary(&self, endpoint: &str, path: &str, body: Vec<u8>) -> Result<Vec<u8>, Box<dyn Error + Send + Sync>> {
         let response = self.provider.request(unary_target(endpoint, path, body)).await?;
+        let header = |name: &str| response.headers.get(name).map(String::as_str);
+        validate_grpc_status(header(HEADER_STATUS), header(HEADER_MESSAGE))?;
         validate_http_status(response.status)?;
         Ok(response.data)
     }
@@ -94,6 +109,22 @@ impl GrpcTransport for AlienGrpcTransport {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_validate_grpc_status() {
+        let error = validate_grpc_status(Some("3"), Some("Available%20amount%3A%200%20%3C%2014999840000")).unwrap_err();
+
+        assert_eq!(
+            error.downcast_ref::<GrpcStatusError>(),
+            Some(&GrpcStatusError {
+                code: "3".to_string(),
+                message: "Available amount: 0 < 14999840000".to_string(),
+            })
+        );
+        assert_eq!(validate_grpc_status(Some("5"), Some("trailing%2")).unwrap_err().to_string(), "gRPC error 5: trailing%2");
+        assert!(validate_grpc_status(Some("0"), None).is_ok());
+        assert!(validate_grpc_status(None, None).is_ok());
+    }
 
     #[test]
     fn test_unary_target_accepts_identity_encoding() {

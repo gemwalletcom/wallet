@@ -18,9 +18,12 @@ pub fn decode_base32(value: &[u8]) -> Result<Vec<u8>, EncodingError> {
 }
 
 pub fn encode_strkey(version: u8, payload: &[u8; STRKEY_PAYLOAD_LENGTH]) -> String {
-    let body = [&[version], payload.as_slice()].concat();
-    let checksum = crc16_xmodem(&body).to_le_bytes();
-    encode_base32(&[body.as_slice(), &checksum].concat())
+    let mut bytes = Zeroizing::new(Vec::with_capacity(STRKEY_CHECKSUM_OFFSET + 2));
+    bytes.push(version);
+    bytes.extend_from_slice(payload);
+    let checksum = crc16_xmodem(&bytes).to_le_bytes();
+    bytes.extend_from_slice(&checksum);
+    encode_base32(&bytes)
 }
 
 pub fn decode_strkey(value: &str, version: u8) -> Result<Zeroizing<Vec<u8>>, EncodingError> {

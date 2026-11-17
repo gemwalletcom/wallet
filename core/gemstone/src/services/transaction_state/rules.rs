@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use primitives::{AssetId, Chain, PaymentLink, Transaction, TransactionChange, TransactionMetadata, TransactionState, TransactionType, chain_transaction_timeout, swap_transaction_timeout};
+use primitives::{AssetId, Chain, JobConfiguration, PaymentLink, Transaction, TransactionChange, TransactionMetadata, TransactionState, TransactionType, chain_transaction_timeout, swap_transaction_timeout};
 
 use super::model::{GemPendingTransaction, GemTransactionStateUpdate, TransactionPostProcessing};
 use crate::payment::payment_record_hash;
@@ -7,6 +7,13 @@ use crate::services::collections::unique;
 
 pub fn destination_chain(transaction: &Transaction, state: TransactionState) -> Option<Chain> {
     (state == TransactionState::InTransit).then(|| transaction.swap_metadata().map(|metadata| metadata.to_asset.chain)).flatten()
+}
+
+pub fn poll_configuration(transaction: &Transaction) -> JobConfiguration {
+    match transaction.state {
+        TransactionState::InTransit => JobConfiguration::swap_in_transit(),
+        TransactionState::Pending | TransactionState::Confirmed | TransactionState::Failed | TransactionState::Reverted | TransactionState::Refunded => JobConfiguration::transaction_state(transaction.asset_id.chain),
+    }
 }
 
 pub fn has_timed_out(transaction: &Transaction, state: TransactionState, now: DateTime<Utc>) -> bool {
@@ -105,6 +112,26 @@ pub fn assets_to_enable(transactions: &[Transaction]) -> Vec<AssetId> {
 mod tests {
     use super::*;
     use primitives::{PaymentMerchant, SwapProvider, TransactionId, TransactionPaymentMetadata, TransactionSwapMetadata};
+
+    #[test]
+    fn test_poll_configuration() {
+        let pending = Transaction {
+            state: TransactionState::Pending,
+            asset_id: AssetId::from_chain(Chain::Solana),
+            ..Transaction::mock()
+        };
+        let in_transit = Transaction {
+            state: TransactionState::InTransit,
+            ..pending.clone()
+        };
+
+        assert_eq!(poll_configuration(&pending), JobConfiguration::transaction_state(Chain::Solana));
+        assert_eq!(
+            poll_configuration(&in_transit),
+            JobConfiguration::swap_in_transit(),
+            "a swap in transit asks its provider, not the source network, so it does not follow the block time"
+        );
+    }
 
     #[test]
     fn test_pending_nonces() {

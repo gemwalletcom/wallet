@@ -105,6 +105,7 @@ pub struct Message {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Meta {
     pub sender: Sender,
+    pub hmac_verified: Option<bool>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -134,7 +135,8 @@ pub struct Attachment {
 
 impl ChatwootWebhookPayload {
     pub fn get_device_id(&self) -> Option<String> {
-        self.conversation.as_ref().map(|c| &c.meta).or(self.meta.as_ref())?.sender.identifier.clone()
+        let meta = self.conversation.as_ref().map(|c| &c.meta).or(self.meta.as_ref())?;
+        if meta.hmac_verified == Some(true) { meta.sender.identifier.clone() } else { None }
     }
 
     pub fn is_public_outgoing_message(&self) -> bool {
@@ -479,10 +481,14 @@ mod tests {
 
     #[test]
     fn test_parse_device_id() {
-        let bound: ChatwootWebhookPayload = serde_json::from_str(r#"{"event": "conversation_updated", "meta": {"sender": {"identifier": "test-device"}}}"#).unwrap();
-        let claimed: ChatwootWebhookPayload = serde_json::from_str(r#"{"event": "conversation_updated", "meta": {"sender": {"identifier": null, "custom_attributes": {"device_id": "test-device"}}}}"#).unwrap();
+        let bound: ChatwootWebhookPayload = serde_json::from_str(r#"{"event": "conversation_updated", "meta": {"sender": {"identifier": "test-device"}, "hmac_verified": true}}"#).unwrap();
+        let unverified: ChatwootWebhookPayload = serde_json::from_str(r#"{"event": "conversation_updated", "meta": {"sender": {"identifier": "test-device"}, "hmac_verified": false}}"#).unwrap();
+        let unknown: ChatwootWebhookPayload = serde_json::from_str(r#"{"event": "conversation_updated", "meta": {"sender": {"identifier": "test-device"}, "hmac_verified": null}}"#).unwrap();
+        let claimed: ChatwootWebhookPayload = serde_json::from_str(r#"{"event": "conversation_updated", "meta": {"sender": {"identifier": null, "custom_attributes": {"device_id": "test-device"}}, "hmac_verified": true}}"#).unwrap();
 
         assert_eq!(bound.get_device_id(), Some("test-device".to_string()));
+        assert_eq!(unverified.get_device_id(), None);
+        assert_eq!(unknown.get_device_id(), None);
         assert_eq!(claimed.get_device_id(), None);
     }
 
