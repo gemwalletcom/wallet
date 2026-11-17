@@ -87,15 +87,22 @@ impl Drop for TrackedTransactions<'_> {
     }
 }
 
+fn next_interval_ms(schedule: JobConfiguration, next_schedule: JobConfiguration, interval: u32) -> u32 {
+    if next_schedule == schedule { next_schedule.next_interval_ms(interval) } else { next_schedule.initial_interval_ms }
+}
+
 pub async fn poll(updater: &dyn GemTransactionUpdater, store: &dyn GemTransactionStateStore, tracking: &Tracking, configuration: fn(&Transaction) -> JobConfiguration, wallet_id: WalletId, transaction: Transaction) {
     let Some(tracked) = tracking.start(&wallet_id, &transaction.id) else {
         return;
     };
     let mut current = transaction;
+    let mut schedule = configuration(&current);
     let mut interval = 0;
 
     loop {
-        interval = configuration(&current).next_interval_ms(interval);
+        let next_schedule = configuration(&current);
+        interval = next_interval_ms(schedule, next_schedule, interval);
+        schedule = next_schedule;
         sleep(Duration::from_millis(u64::from(interval))).await;
         if !tracked.is_tracking() {
             break;
@@ -122,7 +129,7 @@ pub async fn poll(updater: &dyn GemTransactionUpdater, store: &dyn GemTransactio
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::TransactionState;
+    use primitives::{Chain, TransactionState};
     use std::future::Future;
     use std::task::Context;
 
@@ -135,6 +142,17 @@ mod tests {
 
     fn run_for(wallet: &WalletId, updater: &TestTransactionUpdater, store: &MemoryTransactionStateStore, tracking: &Tracking, transaction: Transaction) {
         futures::executor::block_on(poll(updater, store, tracking, |_| JobConfiguration::mock(), wallet.clone(), transaction));
+    }
+
+    #[test]
+    fn test_next_interval_ms() {
+        let pending = JobConfiguration::transaction_state(Chain::Ethereum);
+        let in_transit = JobConfiguration::swap_in_transit();
+
+        assert_eq!(next_interval_ms(pending, pending, 0), 5_000);
+        assert_eq!(next_interval_ms(pending, pending, 40_000), 44_000);
+        assert_eq!(next_interval_ms(pending, in_transit, 40_000), 5_000, "a swap entering transit starts its own schedule, however long the source network took");
+        assert_eq!(next_interval_ms(in_transit, in_transit, 5_000), 7_500);
     }
 
     #[test]
