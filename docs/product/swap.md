@@ -220,7 +220,9 @@ A provider may only move funds into contracts the app ships for it. Before Confi
 | Relay, Chainflip, Near Intents, swaps.xyz | Bitcoin and other deposit-address swaps | Not bound: a deposit address made per swap | |
 | Mayan on Sui; Bridgers for TON tokens and XRP | | Not bound | |
 | DeDust, STON.fi | TON tokens | Not bound: the sender's own jetton wallet, which comes from the TON node | |
-| Uniswap family, Across, SunSwap, STON.fi, DeDust, Hyperion, Cetus, DeepBook, Hyperliquid, Stellar DEX, XRP Ledger DEX | All | Built on the device against shipped contracts | |
+| Hyperliquid | HYPE and UBTC against USDC | The pair's market, shipped with the app | |
+| Hyperliquid | Any other pair | Not bound: the market comes from the Hyperliquid node | |
+| Uniswap family, Across, SunSwap, STON.fi, DeDust, Hyperion, Cetus, DeepBook, Stellar DEX, XRP Ledger DEX | All | Built on the device against shipped contracts | |
 
 A known contract shows under its provider's name, such as `SunSwap Router`; the shared Uniswap Permit2 shows as `Permit2`.
 

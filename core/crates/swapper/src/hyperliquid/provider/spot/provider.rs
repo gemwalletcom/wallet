@@ -3,10 +3,7 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use gem_hypercore::{
     core::actions::agent::order::{Builder, PlaceOrder, make_market_order},
-    models::{
-        spot::{SpotMarket, SpotMeta},
-        token::SpotToken,
-    },
+    models::{spot::SpotMeta, token::SpotToken},
     perpetual_formatter::MIN_ORDER_VALUE_USD,
     provider::fee_calculator::BUILDER_FEE_RATE_SCALE,
     rpc::client::HyperCoreClient,
@@ -30,6 +27,17 @@ use super::{
     math::{SpotSide, format_decimal, format_order_size, limit_price_with_slippage, round_size_down, scale_units, spot_asset_index},
     simulator::{simulate_buy, simulate_sell},
 };
+
+const HYPE_USDC_MARKET_INDEX: u32 = 107;
+const UBTC_USDC_MARKET_INDEX: u32 = 142;
+
+fn shipped_market_index(base_token: &SpotToken, quote_token: &SpotToken) -> Option<u32> {
+    let (base, quote) = (base_token.asset_id(Chain::HyperCore), quote_token.asset_id(Chain::HyperCore));
+    [(&HYPERCORE_SPOT_HYPE, HYPE_USDC_MARKET_INDEX), (&HYPERCORE_SPOT_UBTC, UBTC_USDC_MARKET_INDEX)]
+        .into_iter()
+        .find(|(shipped_base, _)| base == shipped_base.id && quote == HYPERCORE_SPOT_USDC.id)
+        .map(|(_, market_index)| market_index)
+}
 
 fn compute_actual_from(use_max_amount: bool, amount: &str, decimals: u32) -> Result<Option<BigUint>, NumberFormatterError> {
     if !use_max_amount {
@@ -88,13 +96,19 @@ impl HyperCoreSpot {
         Ok(token)
     }
 
-    fn find_direct_market<'a>(&self, meta: &'a SpotMeta, from_token: &'a SpotToken, to_token: &'a SpotToken) -> Result<(&'a SpotMarket, &'a SpotToken, &'a SpotToken, SpotSide), SwapperError> {
+    fn find_direct_market<'a>(&self, meta: &SpotMeta, from_token: &'a SpotToken, to_token: &'a SpotToken) -> Result<(u32, &'a SpotToken, &'a SpotToken, SpotSide), SwapperError> {
+        if let Some(market_index) = shipped_market_index(from_token, to_token) {
+            return Ok((market_index, from_token, to_token, SpotSide::Sell));
+        }
+        if let Some(market_index) = shipped_market_index(to_token, from_token) {
+            return Ok((market_index, to_token, from_token, SpotSide::Buy));
+        }
         for market in meta.universe.iter().filter(|m| m.tokens.len() == 2) {
             if market.tokens[0] == from_token.index && market.tokens[1] == to_token.index {
-                return Ok((market, from_token, to_token, SpotSide::Sell));
+                return Ok((market.index, from_token, to_token, SpotSide::Sell));
             }
             if market.tokens[0] == to_token.index && market.tokens[1] == from_token.index {
-                return Ok((market, to_token, from_token, SpotSide::Buy));
+                return Ok((market.index, to_token, from_token, SpotSide::Buy));
             }
         }
         Err(SwapperError::NotSupportedAsset)
@@ -126,8 +140,8 @@ impl Swapper for HyperCoreSpot {
             return Err(SwapperError::ComputeQuoteError("amount must be greater than zero".into()));
         }
 
-        let (market, base_token, _quote_token, side) = self.find_direct_market(&meta, from_token, to_token)?;
-        let coin = format!("@{}", market.index);
+        let (market_index, base_token, _quote_token, side) = self.find_direct_market(&meta, from_token, to_token)?;
+        let coin = format!("@{market_index}");
         let orderbook = client.get_spot_orderbook(&coin).await.map_err(SwapperError::compute_quote_error)?;
         if orderbook.levels.len() < 2 {
             return Err(SwapperError::NoQuoteAvailable);
@@ -178,7 +192,7 @@ impl Swapper for HyperCoreSpot {
 
         let order_size = format_order_size(&size_rounded, base_token.sz_decimals);
 
-        let asset_index = spot_asset_index(market.index);
+        let asset_index = spot_asset_index(market_index);
 
         let from_value = actual_from_value.unwrap_or_else(|| request.value.clone());
 
@@ -211,6 +225,8 @@ impl Swapper for HyperCoreSpot {
 mod unit_tests {
     use std::sync::atomic::{AtomicUsize, Ordering};
 
+    use gem_hypercore::models::spot::SpotMarket;
+
     use crate::{
         Route,
         alien::mock::{MockFn, ProviderMock},
@@ -236,6 +252,46 @@ mod unit_tests {
         spot.get_spot_meta(&client).await.unwrap();
 
         assert_eq!(requests.load(Ordering::Relaxed), 1);
+    }
+
+    #[test]
+    fn test_find_direct_market() {
+        let spot = HyperCoreSpot::mock();
+        let token = |asset: &primitives::Asset| {
+            let (name, token_id, index) = asset.id.token_components().unwrap();
+            SpotToken {
+                name,
+                wei_decimals: 8,
+                index: index.unwrap(),
+                token_id: token_id.unwrap(),
+                sz_decimals: 2,
+            }
+        };
+        let (usdc, hype, ubtc) = (token(&HYPERCORE_SPOT_USDC), token(&HYPERCORE_SPOT_HYPE), token(&HYPERCORE_SPOT_UBTC));
+        let other = SpotToken {
+            name: "TEST".to_string(),
+            index: 1,
+            token_id: "0x00000000000000000000000000000001".to_string(),
+            ..usdc.clone()
+        };
+        let market = |tokens: [&SpotToken; 2], index: u32| SpotMarket {
+            tokens: tokens.map(|token| token.index).to_vec(),
+            name: format!("@{index}"),
+            index,
+        };
+        let meta = SpotMeta {
+            tokens: vec![],
+            universe: vec![market([&usdc, &hype], 1), market([&hype, &usdc], 2), market([&ubtc, &usdc], 3), market([&other, &usdc], 4)],
+        };
+        let find = |from: &SpotToken, to: &SpotToken| spot.find_direct_market(&meta, from, to).map(|(index, base, _, side)| (index, base.index, side.is_buy()));
+
+        assert_eq!(find(&hype, &usdc), Ok((HYPE_USDC_MARKET_INDEX, hype.index, false)), "a shipped pair trades on its shipped market, whatever the node lists");
+        assert_eq!(find(&usdc, &hype), Ok((HYPE_USDC_MARKET_INDEX, hype.index, true)));
+        assert_eq!(find(&ubtc, &usdc), Ok((UBTC_USDC_MARKET_INDEX, ubtc.index, false)));
+        assert_eq!(find(&usdc, &ubtc), Ok((UBTC_USDC_MARKET_INDEX, ubtc.index, true)));
+        assert_eq!(find(&other, &usdc), Ok((4, other.index, false)), "any other pair trades on the market the node lists");
+        assert_eq!(find(&usdc, &other), Ok((4, other.index, true)));
+        assert_eq!(find(&hype, &ubtc), Err(SwapperError::NotSupportedAsset));
     }
 
     #[tokio::test]
