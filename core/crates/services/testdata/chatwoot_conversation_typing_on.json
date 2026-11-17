@@ -13,7 +13,8 @@
           "device_id": "test-device-id"
         },
         "identifier": "test-device-id"
-      }
+      },
+      "hmac_verified": true
     }
   }
 }
