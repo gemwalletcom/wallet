@@ -97,7 +97,6 @@ fn encode_asset_transfer(input: TransferInput, token_id: Option<&str>, token_coi
     match token_id {
         None => encode_transfer(&input),
         Some(_) => {
-            let gas_coin = input.coins.coins.into_iter().next().ok_or("No gas coins available for token transfer")?;
             let tokens = token_coins.ok_or("Missing token coins set for Sui token transfer")?;
             encode_token_transfer(&TokenTransferInput {
                 sender: input.sender,
@@ -105,7 +104,7 @@ fn encode_asset_transfer(input: TransferInput, token_id: Option<&str>, token_coi
                 amount: input.amount,
                 tokens,
                 gas: input.gas,
-                gas_coin,
+                gas_coins: input.coins.coins,
             })
         }
     }

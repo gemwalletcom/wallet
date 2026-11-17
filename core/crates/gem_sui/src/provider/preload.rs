@@ -39,7 +39,7 @@ impl ChainTransactionLoad for SuiProvider {
         let (sui_coins, token_coins, objects) = self.get_coins_for_input_type(input.sender_address.as_str(), &input.input_type).await?;
 
         let estimate_bytes = map_transaction_data(input.clone(), sui_coins.clone(), token_coins.clone(), objects.clone(), ESTIMATION_GAS_BUDGET)?;
-        let fee = self.estimate_fee(&estimate_bytes, &input.gas_price).await?;
+        let fee = self.estimate_fee(&estimate_bytes, &input.gas_price, &sui_coins).await?;
 
         let message_bytes = match estimated_gas_budget(&input.input_type, &fee)? {
             Some(budget) => map_transaction_data(input, sui_coins, token_coins, objects, budget)?,
@@ -125,9 +125,13 @@ impl SuiClient {
         })
     }
 
-    async fn estimate_fee(&self, tx_data: &str, gas_price: &GasPriceType) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
+    async fn estimate_fee(&self, tx_data: &str, gas_price: &GasPriceType, gas_coins: &OwnedCoins<Coin>) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
         let tx_data_only = tx_data.split('_').next().unwrap_or(tx_data);
-        let result = self.dry_run(tx_data_only.to_string()).await?;
+        let result = if gas_coins.coins.is_empty() || gas_coins.coin_total() >= ESTIMATION_GAS_BUDGET {
+            self.dry_run(tx_data_only.to_string()).await?
+        } else {
+            self.dry_run_without_gas_coins(tx_data_only).await?
+        };
         let fee = result.effects.gas_used.calculate_gas_budget()?;
         let gas_limit = fee * GAS_BUDGET_MULTIPLIER / 100;
 
@@ -205,6 +209,8 @@ mod tests {
 #[cfg(all(test, feature = "chain_integration_tests"))]
 mod chain_integration_tests {
     use super::*;
+    use crate::encode_transfer;
+    use crate::models::{Gas, TransferInput};
     use crate::provider::testkit::*;
     use chain_traits::ChainStaking;
     use chain_traits::ChainTransactionLoad;
@@ -223,6 +229,30 @@ mod chain_integration_tests {
         assert_eq!(rates.len(), 2);
         assert_eq!(rates[0].priority, FeePriority::Normal);
         assert_eq!(rates[1].priority, FeePriority::Fast);
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_sui_dry_run_without_gas_coins_ignores_their_balance() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let client = create_sui_test_client();
+        let coins = client.get_gas_coins(TEST_ADDRESS).await?;
+        let gas = Gas {
+            budget: coins.coin_total() + 1,
+            price: client.get_gas_price().await?,
+        };
+        let transaction = encode_transfer(&TransferInput {
+            sender: TEST_ADDRESS.to_string(),
+            recipient: TEST_ADDRESS.to_string(),
+            amount: 1_000,
+            coins,
+            send_max: false,
+            gas,
+        })?
+        .base64_encoded();
+
+        assert!(client.dry_run(transaction.clone()).await.is_err());
+        assert_eq!(client.dry_run_without_gas_coins(&transaction).await?.effects.status.status, "success");
 
         Ok(())
     }

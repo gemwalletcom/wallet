@@ -69,7 +69,7 @@ pub struct TokenTransferInput {
     pub amount: u64,
     pub tokens: OwnedCoins<Coin>,
     pub gas: Gas,
-    pub gas_coin: Coin,
+    pub gas_coins: Vec<Coin>,
 }
 
 #[derive(Debug, PartialEq, Clone)]

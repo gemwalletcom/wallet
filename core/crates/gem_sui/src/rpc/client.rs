@@ -18,7 +18,7 @@ use super::proto::{
 };
 use crate::models::transaction::{SuiBroadcastTransaction, SuiTransaction};
 use crate::models::{Balance, Checkpoint, Coin, Digest, InspectResult, Object, OwnedCoins, SuiCoinMetadata, SuiObject, TransactionBlocks};
-use crate::types::{Address, Digest as SuiDigest, Transaction, TransactionKind, UserSignature};
+use crate::types::{Address, Digest as SuiDigest, GasPayment, Transaction, TransactionKind, UserSignature};
 use crate::{
     SUI_COIN_TYPE, SUI_COIN_TYPE_FULL,
     tx_builder::gas::{GasReservationContext, requires_address_balance_reservation, reserve_address_balance},
@@ -255,7 +255,19 @@ impl SuiClient {
     }
 
     pub async fn dry_run(&self, tx_data: String) -> Result<SuiTransaction, Box<dyn Error + Send + Sync>> {
-        let transaction = decode_transaction_base64(&tx_data)?;
+        self.simulate_gas(decode_transaction_base64(&tx_data)?).await
+    }
+
+    pub(crate) async fn dry_run_without_gas_coins(&self, tx_data: &str) -> Result<SuiTransaction, Box<dyn Error + Send + Sync>> {
+        let transaction: Transaction = bcs::from_bytes(&decode_base64(tx_data)?)?;
+        let gas_payment = GasPayment {
+            objects: Vec::new(),
+            ..transaction.gas_payment
+        };
+        self.simulate_gas(GrpcTransaction::from_transaction_bcs(bcs::to_bytes(&Transaction { gas_payment, ..transaction })?)).await
+    }
+
+    async fn simulate_gas(&self, transaction: GrpcTransaction) -> Result<SuiTransaction, Box<dyn Error + Send + Sync>> {
         let request = SimulateTransactionRequest::new(transaction).with(|request| {
             request.read_mask = Some(FieldMask::from_paths(["transaction.effects.gas_used", "transaction.effects.status"]));
             request.checks = Some(TransactionChecks::Enabled);
