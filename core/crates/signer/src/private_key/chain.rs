@@ -15,8 +15,8 @@ fn import_encodings_for_chain(chain: &Chain) -> &'static [KeyEncoding] {
         ChainType::Bitcoin | ChainType::Cardano => &[],
         ChainType::Solana => &[KeyEncoding::Base58, KeyEncoding::Hex],
         ChainType::Stellar => &[KeyEncoding::StellarStrKey, KeyEncoding::Hex],
-        ChainType::Near => &[KeyEncoding::PrefixedBase58(SignatureScheme::Ed25519)],
-        ChainType::Aptos => &[KeyEncoding::PrefixedHex(SignatureScheme::Ed25519), KeyEncoding::Hex],
+        ChainType::Near => &[KeyEncoding::PrefixedBase58],
+        ChainType::Aptos => &[KeyEncoding::PrefixedHex, KeyEncoding::Hex],
         ChainType::Sui => &[KeyEncoding::SuiBech32, KeyEncoding::Hex],
         _ => &[KeyEncoding::Hex],
     }
@@ -26,8 +26,8 @@ fn export_format_for_chain(chain: &Chain) -> (KeyLayout, KeyEncoding) {
     match chain.chain_type() {
         ChainType::Bitcoin => (KeyLayout::PrivateKey, KeyEncoding::Base58),
         ChainType::Solana => (KeyLayout::Ed25519KeyPair, KeyEncoding::Base58),
-        ChainType::Near => (KeyLayout::Ed25519KeyPair, KeyEncoding::PrefixedBase58(SignatureScheme::Ed25519)),
-        ChainType::Aptos => (KeyLayout::PrivateKey, KeyEncoding::PrefixedHex(SignatureScheme::Ed25519)),
+        ChainType::Near => (KeyLayout::Ed25519KeyPair, KeyEncoding::PrefixedBase58),
+        ChainType::Aptos => (KeyLayout::PrivateKey, KeyEncoding::PrefixedHex),
         ChainType::Stellar => (KeyLayout::PrivateKey, KeyEncoding::StellarStrKey),
         ChainType::Sui => (KeyLayout::PrivateKey, KeyEncoding::SuiBech32),
         _ => (KeyLayout::PrivateKey, KeyEncoding::Hex),
@@ -93,94 +93,59 @@ mod tests {
 
     use super::*;
 
+    const SEED: [u8; 32] = [7u8; 32];
+
     #[test]
-    fn test_decode_solana_base58() {
-        let bytes = decode_private_key(&Chain::Solana, "4ha2npeRkDXipjgGJ3L5LhZ9TK9dRjP2yktydkFBhAzXj3N8ytpYyTS24kxcYGEefy4WKWRcog2zSPvpPZoGmxCC").unwrap();
-        assert_eq!(bytes.len(), 32);
-        assert_eq!(encode_private_key(&Chain::Solana, &bytes).unwrap(), "4ha2npeRkDXipjgGJ3L5LhZ9TK9dRjP2yktydkFBhAzXj3N8ytpYyTS24kxcYGEefy4WKWRcog2zSPvpPZoGmxCC");
+    fn test_solana_private_key() {
+        let value = "4ha2npeRkDXipjgGJ3L5LhZ9TK9dRjP2yktydkFBhAzXj3N8ytpYyTS24kxcYGEefy4WKWRcog2zSPvpPZoGmxCC";
+        let private_key = decode_private_key(&Chain::Solana, value).unwrap();
+
+        assert_eq!(private_key.len(), 32);
+        assert_eq!(encode_private_key(&Chain::Solana, &private_key).unwrap(), value);
+
+        let exported = encode_private_key(&Chain::Solana, &SEED).unwrap();
+        let keypair = decode_base58(&exported).unwrap();
+
+        assert_eq!(keypair, ed25519_dalek::SigningKey::from_bytes(&SEED).to_keypair_bytes());
+        assert_eq!(decode_private_key(&Chain::Solana, &exported).unwrap().as_slice(), SEED);
+        assert_eq!(decode_private_key(&Chain::Solana, &hex::encode(SEED)).unwrap().as_slice(), SEED);
     }
 
     #[test]
-    fn test_decode_ethereum_hex() {
+    fn test_ethereum_private_key() {
         let value = "0x30df0ffc2b43717f4653c2a1e827e9dfb3d9364e019cc60092496cd4997d5d6e";
-        let bytes = decode_private_key(&Chain::Ethereum, value).unwrap();
-        assert_eq!(bytes.len(), 32);
-        assert_eq!(encode_private_key(&Chain::Ethereum, &bytes).unwrap(), value);
+        let private_key = decode_private_key(&Chain::Ethereum, value).unwrap();
+
+        assert_eq!(private_key.len(), 32);
+        assert_eq!(encode_private_key(&Chain::Ethereum, &private_key).unwrap(), value);
+        assert_eq!(encode_private_key(&Chain::Bitcoin, &private_key).unwrap(), "4Hmr8TxnwVB7m6fzfPRcASMn2hLRgzUz3gDGwF4ZnpVK");
+        assert_eq!(encode_private_key(&Chain::Ethereum, &[1u8; 16]).unwrap(), "0x01010101010101010101010101010101");
+        assert!(decode_private_key(&Chain::Ethereum, "not_valid").is_err());
     }
 
     #[test]
-    fn test_decode_near_prefixed_base58() {
-        let private_key = [7u8; 32];
-        let keypair = ed25519_dalek::SigningKey::from_bytes(&private_key).to_keypair_bytes();
+    fn test_near_private_key() {
+        let keypair = ed25519_dalek::SigningKey::from_bytes(&SEED).to_keypair_bytes();
         let value = format!("ed25519:{}", encode_base58(keypair));
+        let mismatched_keypair = [&keypair[..63], &[keypair[63] ^ 1]].concat();
 
-        assert_eq!(encode_private_key(&Chain::Near, &private_key).unwrap(), value);
-        assert_eq!(decode_private_key(&Chain::Near, &value).unwrap().as_slice(), private_key);
+        assert_eq!(encode_private_key(&Chain::Near, &SEED).unwrap(), value);
+        assert_eq!(decode_private_key(&Chain::Near, &value).unwrap().as_slice(), SEED);
         assert!(decode_private_key(&Chain::Solana, &value).is_err());
         assert!(decode_private_key(&Chain::Ethereum, &value).is_err());
+        assert!(decode_private_key(&Chain::Near, "ed25519:").is_err());
+        assert!(decode_private_key(&Chain::Near, &format!("secp256k1:{}", encode_base58(keypair))).is_err());
+        assert!(decode_private_key(&Chain::Near, &format!("ed25519:{}", encode_base58(mismatched_keypair))).is_err());
+        assert!(decode_private_key(&Chain::Near, &format!("ed25519:{}", encode_base58([1u8; 96]))).is_err());
     }
 
     #[test]
-    fn test_decode_rejects_addresses() {
-        let public_key = ed25519_dalek::SigningKey::from_bytes(&[7u8; 32]).verifying_key().to_bytes();
+    fn test_decode_private_key_rejects_addresses() {
+        let public_key = ed25519_dalek::SigningKey::from_bytes(&SEED).verifying_key().to_bytes();
 
         assert!(decode_private_key(&Chain::Solana, &encode_base58(public_key)).is_err());
         assert!(decode_private_key(&Chain::Near, &format!("ed25519:{}", encode_base58(public_key))).is_err());
         assert!(decode_private_key(&Chain::Near, &hex::encode(public_key)).is_err());
-    }
-
-    #[test]
-    fn test_decode_invalid() {
-        let mut mismatched_keypair = ed25519_dalek::SigningKey::from_bytes(&[7u8; 32]).to_keypair_bytes();
-        mismatched_keypair[63] ^= 1;
-
-        assert!(decode_private_key(&Chain::Ethereum, "not_valid").is_err());
-        assert!(decode_private_key(&Chain::Stellar, "GA6XNHUKMW4QAKSHB2NOZ4SYP34ERYVAWSBTEDREYSJ2LEJ5LFHLTIRJ").is_err());
-        assert!(decode_private_key(&Chain::Near, "ed25519:").is_err());
-        assert!(decode_private_key(&Chain::Near, "secp256k1:11111111111111111111111111111111").is_err());
-        assert!(decode_private_key(&Chain::Near, "ed25519:1111111111111111111111111111111").is_err());
-        assert!(decode_private_key(&Chain::Near, &format!("ed25519:{}", encode_base58(mismatched_keypair))).is_err());
-    }
-
-    #[test]
-    fn test_encode_solana_base58() {
-        let bytes = decode_private_key(&Chain::Solana, "4ha2npeRkDXipjgGJ3L5LhZ9TK9dRjP2yktydkFBhAzXj3N8ytpYyTS24kxcYGEefy4WKWRcog2zSPvpPZoGmxCC").unwrap();
-        let encoded = encode_private_key(&Chain::Solana, &bytes).unwrap();
-
-        assert_eq!(encoded, "4ha2npeRkDXipjgGJ3L5LhZ9TK9dRjP2yktydkFBhAzXj3N8ytpYyTS24kxcYGEefy4WKWRcog2zSPvpPZoGmxCC");
-    }
-
-    #[test]
-    fn test_encode_solana_seed_round_trip() {
-        let seed = [7u8; 32];
-        let exported = encode_private_key(&Chain::Solana, &seed).unwrap();
-        let keypair = decode_base58(&exported).unwrap();
-
-        assert_eq!(keypair.len(), 64);
-        assert_eq!(&keypair[..32], seed);
-        assert_eq!(&keypair[32..], ed25519_dalek::SigningKey::from_bytes(&seed).verifying_key().as_bytes());
-        assert_eq!(decode_private_key(&Chain::Solana, &exported).unwrap().as_slice(), seed);
-    }
-
-    #[test]
-    fn test_encode_ethereum_hex() {
-        let bytes = decode_private_key(&Chain::Ethereum, "0x30df0ffc2b43717f4653c2a1e827e9dfb3d9364e019cc60092496cd4997d5d6e").unwrap();
-        let encoded = encode_private_key(&Chain::Ethereum, &bytes).unwrap();
-
-        assert_eq!(encoded, "0x30df0ffc2b43717f4653c2a1e827e9dfb3d9364e019cc60092496cd4997d5d6e");
-    }
-
-    #[test]
-    fn test_encode_bitcoin_base58() {
-        let bytes = decode_private_key(&Chain::Ethereum, "0x30df0ffc2b43717f4653c2a1e827e9dfb3d9364e019cc60092496cd4997d5d6e").unwrap();
-        let encoded = encode_private_key(&Chain::Bitcoin, &bytes).unwrap();
-
-        assert_eq!(encoded, "4Hmr8TxnwVB7m6fzfPRcASMn2hLRgzUz3gDGwF4ZnpVK");
-    }
-
-    #[test]
-    fn test_encode_hex_preserves_bytes() {
-        assert_eq!(encode_private_key(&Chain::Ethereum, &[1u8; 16]).unwrap(), "0x01010101010101010101010101010101");
     }
 
     #[test]

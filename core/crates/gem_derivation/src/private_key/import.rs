@@ -107,25 +107,17 @@ mod tests {
     }
 
     #[test]
-    fn test_import_sui_and_aptos_standard_private_keys() {
-        assert_eq!(
-            import_account_from_private_key("suiprivkey1qzwant3kaegmjy4qxex93s0jzvemekkjmyv3r2sjwgnv2y479pgsywhveae", Chain::Sui).unwrap().account.address,
-            "0x90f3e6d73b5730f16974f4df1d3441394ebae62186baf83608599f226455afa7"
-        );
-        assert_eq!(
-            import_account_from_private_key("ed25519-priv-0x0000000000000000000000000000000000000000000000000000000000000022", Chain::Aptos)
-                .unwrap()
-                .account
-                .address,
-            "0x0dc4a9af7d0b8e5811bf326bf49c44f8685d4ee5b4fd3606e06987c5056f61bb"
-        );
-        assert_eq!(
-            import_account_from_private_key("0x9dd9ae36ee51b912a0364c58c1f21333bcdad2d91911aa127226c512be285102", Chain::Sui).unwrap().account.address,
-            "0x90f3e6d73b5730f16974f4df1d3441394ebae62186baf83608599f226455afa7"
-        );
-        assert_eq!(
-            import_account_from_private_key("0x0000000000000000000000000000000000000000000000000000000000000022", Chain::Aptos).unwrap().account.address,
-            "0x0dc4a9af7d0b8e5811bf326bf49c44f8685d4ee5b4fd3606e06987c5056f61bb"
-        );
+    fn test_import_sui_and_aptos_private_keys() {
+        let sui_address = "0x90f3e6d73b5730f16974f4df1d3441394ebae62186baf83608599f226455afa7";
+        let aptos_address = "0x0dc4a9af7d0b8e5811bf326bf49c44f8685d4ee5b4fd3606e06987c5056f61bb";
+        let values = [
+            ("suiprivkey1qzwant3kaegmjy4qxex93s0jzvemekkjmyv3r2sjwgnv2y479pgsywhveae", Chain::Sui, sui_address),
+            ("0x9dd9ae36ee51b912a0364c58c1f21333bcdad2d91911aa127226c512be285102", Chain::Sui, sui_address),
+            ("ed25519-priv-0x0000000000000000000000000000000000000000000000000000000000000022", Chain::Aptos, aptos_address),
+            ("0x0000000000000000000000000000000000000000000000000000000000000022", Chain::Aptos, aptos_address),
+        ];
+        for (value, chain, address) in values {
+            assert_eq!(import_account_from_private_key(value, chain).unwrap().account.address, address);
+        }
     }
 }
