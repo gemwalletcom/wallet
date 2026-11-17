@@ -27,7 +27,7 @@ import com.wallet.core.primitives.ScanReceiveMode
 import uniffi.gemstone.GemSelectAssetType
 
 @Composable
-fun ScanReceiveModal(isVisible: Boolean, onDismissRequest: () -> Unit, onScan: (String) -> Unit) {
+fun ScanReceiveModal(isVisible: Boolean, showsSelector: Boolean, onDismissRequest: () -> Unit, onScan: (String) -> Unit) {
     ModalBottomSheet(
         isVisible = isVisible,
         onDismissRequest = onDismissRequest,
@@ -51,7 +51,7 @@ fun ScanReceiveModal(isVisible: Boolean, onDismissRequest: () -> Unit, onScan: (
                 ScanReceiveMode.Scan -> QRScannerScreen(
                     scanType = QRScanType.Universal,
                     onCancel = onDismissRequest,
-                    titleContent = { ScanReceiveSwitcher(mode = mode, onModeChange = { mode = it }) },
+                    titleContent = { if (showsSelector) ScanReceiveSwitcher(mode = mode, onModeChange = { mode = it }) },
                     onResult = onScan,
                 )
 

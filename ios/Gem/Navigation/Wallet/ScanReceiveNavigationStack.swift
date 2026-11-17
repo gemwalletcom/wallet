@@ -30,15 +30,17 @@ struct ScanReceiveNavigationStack: View {
                     type: .close,
                     placement: .topBarLeading,
                 )
-                ToolbarItem(placement: .principal) {
-                    Picker("", selection: $model.mode) {
-                        ForEach(ScanReceiveMode.allCases, id: \.self) { mode in
-                            Text(mode.title)
-                                .tag(mode)
+                if model.showsSelector {
+                    ToolbarItem(placement: .principal) {
+                        Picker("", selection: $model.mode) {
+                            ForEach(ScanReceiveMode.allCases, id: \.self) { mode in
+                                Text(mode.title)
+                                    .tag(mode)
+                            }
                         }
+                        .pickerStyle(.segmented)
+                        .frame(width: Sizing.picker.segmentedWidth)
                     }
-                    .pickerStyle(.segmented)
-                    .frame(width: Sizing.picker.segmentedWidth)
                 }
             }
             .onChange(of: model.selectAssetModel.route, model.onChangeRoute)

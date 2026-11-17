@@ -66,12 +66,14 @@ import kotlinx.coroutines.launch
 @Composable
 fun MainScreen(navigator: WalletNavigator, currentTab: MutableState<String>, onWalletContentReady: () -> Unit = {}, viewModel: MainScreenViewModel = hiltViewModel()) {
     val pendingCount by viewModel.pendingTxCount.collectAsStateWithLifecycle()
+    val showsScanReceiveSelector by viewModel.showsScanReceiveSelector.collectAsStateWithLifecycle()
     val walletViewModel: WalletViewModel = hiltViewModel()
     val isRootRouteActive = navigator.backStack.lastOrNull() == WalletRootRoute
     var isPresentingScanner by rememberSaveable { mutableStateOf(false) }
 
     ScanReceiveModal(
         isVisible = isPresentingScanner,
+        showsSelector = showsScanReceiveSelector,
         onDismissRequest = { isPresentingScanner = false },
         onScan = { code ->
             isPresentingScanner = false

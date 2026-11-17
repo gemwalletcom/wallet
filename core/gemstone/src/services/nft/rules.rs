@@ -22,7 +22,7 @@ fn unverified_collections(data: Vec<NFTData>) -> Vec<NFTData> {
     collections(data, false)
 }
 
-pub fn list_screen(data: Vec<NFTData>, list: GemNftList, state: GemLoadState) -> GemNftListScreen {
+pub fn list_screen(data: Vec<NFTData>, list: GemNftList, state: GemLoadState, wallet_type: &WalletType) -> GemNftListScreen {
     let title = match list {
         GemNftList::Collection => match data.first().map(|item| item.collection.name.clone()) {
             Some(name) => GemLocalizedText::Text { text: name },
@@ -31,7 +31,7 @@ pub fn list_screen(data: Vec<NFTData>, list: GemNftList, state: GemLoadState) ->
         GemNftList::Unverified => GemLocalizedText::NftUnverified,
         GemNftList::Collections | GemNftList::Avatar => GemLocalizedText::NftCollections,
     };
-    let offers_receive = !matches!(list, GemNftList::Unverified);
+    let offers_receive = !matches!(list, GemNftList::Unverified) && wallet_type.can_sign();
     let unverified_row = unverified_row(data.clone(), list);
     let items = entries(list_items(data, list));
     let has_content = !items.is_empty() || unverified_row.is_some();
@@ -287,16 +287,16 @@ mod tests {
         let data = vec![NFTData::mock()];
         let name = data[0].collection.name.clone();
 
-        assert_eq!(list_screen(data.clone(), GemNftList::Collection, GemLoadState::Data).title, GemLocalizedText::Text { text: name });
+        assert_eq!(list_screen(data.clone(), GemNftList::Collection, GemLoadState::Data, &WalletType::Multicoin).title, GemLocalizedText::Text { text: name });
         assert_eq!(
-            list_screen(vec![], GemNftList::Collection, GemLoadState::Data).title,
+            list_screen(vec![], GemNftList::Collection, GemLoadState::Data, &WalletType::Multicoin).title,
             GemLocalizedText::NftCollections,
             "a collection with nothing in it still needs a title"
         );
-        assert_eq!(list_screen(data.clone(), GemNftList::Collections, GemLoadState::Data).title, GemLocalizedText::NftCollections);
-        assert_eq!(list_screen(data.clone(), GemNftList::Unverified, GemLoadState::Data).title, GemLocalizedText::NftUnverified);
+        assert_eq!(list_screen(data.clone(), GemNftList::Collections, GemLoadState::Data, &WalletType::Multicoin).title, GemLocalizedText::NftCollections);
+        assert_eq!(list_screen(data.clone(), GemNftList::Unverified, GemLoadState::Data, &WalletType::Multicoin).title, GemLocalizedText::NftUnverified);
 
-        let receives = |list| match list_screen(vec![], list, GemLoadState::Data).phase {
+        let receives = |list| match list_screen(vec![], list, GemLoadState::Data, &WalletType::Multicoin).phase {
             GemListPhase::Empty { state } => state.actions == vec![GemEmptyStateAction::Receive],
             phase => panic!("an empty list shows its empty state, not {phase:?}"),
         };
@@ -304,12 +304,20 @@ mod tests {
         assert!(receives(GemNftList::Collection));
         assert!(!receives(GemNftList::Unverified), "nothing unverified is worth asking for");
 
-        assert!(list_screen(data.clone(), GemNftList::Collections, GemLoadState::Data).syncs_on_appear);
+        assert!(list_screen(data.clone(), GemNftList::Collections, GemLoadState::Data, &WalletType::Multicoin).syncs_on_appear);
         assert!(
-            !list_screen(data.clone(), GemNftList::Collection, GemLoadState::Data).syncs_on_appear,
+            !list_screen(data.clone(), GemNftList::Collection, GemLoadState::Data, &WalletType::Multicoin).syncs_on_appear,
             "a single collection is already in what the root synced; a pull still refetches"
         );
-        assert!(!list_screen(data, GemNftList::Unverified, GemLoadState::Data).syncs_on_appear);
+        assert!(!list_screen(data, GemNftList::Unverified, GemLoadState::Data, &WalletType::Multicoin).syncs_on_appear);
+    }
+
+    #[test]
+    fn test_a_watch_wallet_is_never_offered_receive() {
+        let screen = list_screen(vec![], GemNftList::Collections, GemLoadState::Data, &WalletType::View);
+
+        assert!(!screen.offers_receive);
+        assert!(matches!(screen.phase, GemListPhase::Empty { state } if state.actions.is_empty()));
     }
 
     #[test]
@@ -644,9 +652,9 @@ mod tests {
     fn test_an_unverified_row_alone_is_content() {
         let spam = vec![NFTData::mock_with("spam", VerificationStatus::Unverified, 1)];
 
-        assert!(list_screen(spam.clone(), GemNftList::Collections, GemLoadState::Data).items.is_empty());
-        assert!(list_screen(spam, GemNftList::Collections, GemLoadState::Data).has_content);
-        assert!(!list_screen(vec![], GemNftList::Collections, GemLoadState::Data).has_content);
+        assert!(list_screen(spam.clone(), GemNftList::Collections, GemLoadState::Data, &WalletType::Multicoin).items.is_empty());
+        assert!(list_screen(spam, GemNftList::Collections, GemLoadState::Data, &WalletType::Multicoin).has_content);
+        assert!(!list_screen(vec![], GemNftList::Collections, GemLoadState::Data, &WalletType::Multicoin).has_content);
     }
 
     #[test]
@@ -656,7 +664,7 @@ mod tests {
         };
         let spam = vec![NFTData::mock_with("spam", VerificationStatus::Unverified, 1)];
 
-        assert_eq!(list_screen(spam, GemNftList::Collections, failed()).phase, GemListPhase::Rows);
-        assert!(matches!(list_screen(vec![], GemNftList::Collections, failed()).phase, GemListPhase::Error { .. }));
+        assert_eq!(list_screen(spam, GemNftList::Collections, failed(), &WalletType::Multicoin).phase, GemListPhase::Rows);
+        assert!(matches!(list_screen(vec![], GemNftList::Collections, failed(), &WalletType::Multicoin).phase, GemListPhase::Error { .. }));
     }
 }
