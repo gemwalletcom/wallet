@@ -22,7 +22,6 @@ The user's task defines scope and authorization. Shared rules apply to both agen
 - [Translation Review](.agents/skills/translation-review/SKILL.md) — Context, approved terminology, compact labels, and scheduled localization audits
 - [Maestro UI Testing](skills/testing-maestro.md) — When to use Maestro flows vs unit or native UI tests, and cross-platform authoring rules
 - [Release Process](skills/release-process.md) — Branching, versioning, commits, publication boundaries, store builds, and removing or disabling support
-- [Pull Requests](skills/pull-requests.md) — PR title and body: Why, What changed, Proof, the optional lines, and what to leave out
 - [Guidance Refresh](.agents/skills/guidance-refresh/SKILL.md) — How lessons become shared guidance, budgets, skill format, and the local sweep each teammate runs
 
 ## Platform Guides

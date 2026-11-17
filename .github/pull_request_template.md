@@ -9,4 +9,4 @@
 **Not in this PR:** the sibling left out and where it is tracked.
 **Deploy:** a setting, migration or rollout order the change needs.
 Closes #N
-Leave out what the diff and CI carry: file paths and identifiers, command lists, test counts, checklists. A body that needs two Whys is two PRs. Rule: skills/pull-requests.md -->
+Leave out what the diff and CI carry: file paths and identifiers, command lists, test counts, checklists. A body that needs two Whys is two PRs. -->
