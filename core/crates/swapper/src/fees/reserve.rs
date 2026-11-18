@@ -24,7 +24,7 @@ pub fn reserved_transaction_fees(chain: Chain) -> Option<BigUint> {
         Chain::XLayer => 5_000_000_000_000_000,
         Chain::Plasma => 5_000_000_000_000_000,
         Chain::OpBNB => 100_000_000_000_000,
-        Chain::Mantle => 50_000_000_000_000_000,
+        Chain::Mantle => 100_000_000_000_000_000,
         Chain::Linea => 300_000_000_000_000,
         Chain::Celo => 10_000_000_000_000_000,
         Chain::Sonic => 50_000_000_000_000_000,
