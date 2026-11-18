@@ -265,7 +265,10 @@ mod tests {
 
         assert_eq!(
             transactions.transaction_requests().unwrap(),
-            vec![TransactionIdRequest::new(Chain::ZkSync, "0xin".to_string(), Some(3)), TransactionIdRequest::new(Chain::ZkSync, "0xout".to_string(), Some(2)),]
+            vec![
+                TransactionIdRequest::new(Chain::ZkSync, "0xduplicate".to_string(), Some(3)),
+                TransactionIdRequest::new(Chain::ZkSync, "0xout".to_string(), Some(2)),
+            ]
         );
         assert_eq!(
             balances,

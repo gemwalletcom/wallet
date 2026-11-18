@@ -439,7 +439,6 @@ pub fn asset_status_rows(changes: &[SimulationBalanceChange], assets: &[AssetBas
 mod tests {
     use super::*;
     use crate::duration_formatter::GemDurationUnit;
-    use crate::models::list::suspicious_address_notice;
     use crate::services::assets::rules::default_asset_basic;
     use crate::services::node::GemNodeService;
     use crate::testkit::{TestAlienProvider, mock_wc_ethereum_transaction};
@@ -457,7 +456,7 @@ mod tests {
             SimulationWarning::mock(SimulationWarningType::PermitBatchApproval(None)),
             SimulationWarning::mock(SimulationWarningType::NftCollectionApproval(AssetId::from_chain(Chain::Ethereum))),
             SimulationWarning::mock(SimulationWarningType::ExternallyOwnedSpender),
-            SimulationWarning::mock(SimulationWarningType::SuspiciousSpender),
+            SimulationWarning::new(SimulationSeverity::Critical, SimulationWarningType::SuspiciousSpender, None),
             SimulationWarning::validation_error("Chain ID mismatch"),
         ]);
         let notice = |title: GemListRowTitle, message: Option<GemLocalizedText>| GemListRow::Notice {
@@ -475,7 +474,11 @@ mod tests {
                 unlimited,
                 notice(GemListRowTitle::NftCollectionApproval, None),
                 notice(GemListRowTitle::Warning, Some(GemLocalizedText::ExternallyOwnedSpenderWarning)),
-                suspicious_address_notice(GemNoticeKind::Warning),
+                GemListRow::Notice {
+                    title: GemListRowTitle::SuspiciousAddress,
+                    message: Some(GemLocalizedText::SuspiciousAddressDescription),
+                    kind: GemNoticeKind::Error,
+                },
                 GemListRow::Notice {
                     title: GemListRowTitle::Error,
                     message: Some(GemLocalizedText::Text { text: "Chain ID mismatch".to_string() }),
@@ -745,8 +748,10 @@ mod tests {
     #[test]
     fn test_wallet_connect_send_transaction_ignores_simulation_error() {
         futures::executor::block_on(async {
-            let provider = Arc::new(TestAlienProvider::with_status(200));
+            let provider = Arc::new(TestAlienProvider::offline());
             let service = GemSimulationService::new(provider.clone(), Arc::new(GemNodeService::mock()));
+            let fixture: serde_json::Value = serde_json::from_str(include_str!("../../../crates/gem_wallet_connect/testdata/solana_sign_all_transactions.json")).unwrap();
+            let data = serde_json::json!({ "transaction": fixture["transactions"][0] });
 
             let result = service
                 .simulate_send_transaction(
@@ -754,13 +759,14 @@ mod tests {
                     WalletConnectTransactionType::Solana {
                         output_type: primitives::TransferDataOutputType::EncodedTransaction,
                     },
-                    "invalid simulation input".to_string(),
+                    data.to_string(),
                     "",
                 )
-                .await;
+                .await
+                .unwrap();
 
-            assert!(result.is_ok());
-            assert!(provider.requested_paths().is_empty());
+            assert_eq!(result, SimulationResult::default());
+            assert!(!provider.requested_paths().is_empty());
         });
     }
 
