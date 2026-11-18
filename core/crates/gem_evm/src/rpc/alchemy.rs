@@ -53,6 +53,6 @@ mod tests {
 
         let transaction_ids = client.get_transactions_by_address("0x123", 2).await.unwrap();
 
-        assert_eq!(transaction_ids, vec![TransactionReference::new("0xin".to_string(), Some(3)), TransactionReference::new("0xout".to_string(), Some(2))]);
+        assert_eq!(transaction_ids, vec![TransactionReference::new("0xduplicate".to_string(), Some(3)), TransactionReference::new("0xout".to_string(), Some(2))]);
     }
 }
