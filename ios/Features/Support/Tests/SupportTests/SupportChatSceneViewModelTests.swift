@@ -46,29 +46,16 @@ struct SupportChatSceneViewModelTests {
     }
 
     @Test
-    func loadingSyncsFromTheLastAgentMessage() async {
+    func loadingSyncsFromTheCursorCorePicks() async {
         let service = GemSupportServiceMock()
+        service.syncFromTimestampValue = 200
         let model = SupportChatSceneViewModel.mock(service: service)
-        model.query.value = [
-            .mock(id: "a", sender: .user, createdAt: Date(timeIntervalSince1970: 100)),
-            .mock(id: "b", sender: .agent(.mock()), createdAt: Date(timeIntervalSince1970: 200)),
-            .mock(id: "c", sender: .user, createdAt: Date(timeIntervalSince1970: 300)),
-        ]
+        model.query.value = [.mock(id: "a"), .mock(id: "b")]
 
         await model.load()
 
+        #expect(service.syncCursorMessageIds == ["a", "b"])
         #expect(service.syncedTimestamps == [200])
-    }
-
-    @Test
-    func aChatWithNoAgentReplySyncsFromTheStart() async {
-        let service = GemSupportServiceMock()
-        let model = SupportChatSceneViewModel.mock(service: service)
-        model.query.value = [.mock(id: "a", sender: .user)]
-
-        await model.load()
-
-        #expect(service.syncedTimestamps == [0])
     }
 
     @Test
