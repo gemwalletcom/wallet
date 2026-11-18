@@ -2,7 +2,7 @@
 set -euo pipefail
 
 channel="${1:?usage: build.sh <channel>}"
-variant="$(printf '%s' "${channel:0:1}" | tr '[:lower:]' '[:upper:]')${channel:1}Release"
+variant="${channel^}Release"
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 case "$channel" in

@@ -23,7 +23,7 @@ Store variants are Gradle product flavors driven by `gradle/channels.gradle.kts`
 
 `reproducible/` is the public build recipe; [its README](../reproducible/README.md) has the commands and the layout.
 
-- `reproducible/docker.sh <channel>...` builds the checked-out commit, not the working tree, in a pinned `linux/amd64` Ubuntu container and returns unsigned files. It builds any channel: an APK for `fdroid`, `universal`, `solana` and `emerald`, the AAB for `google`.
+- `reproducible/docker.sh <channel>...` builds the checked-out commit, not the working tree, in a pinned Ubuntu container and returns unsigned files. `fdroid` builds as `linux/amd64`, because F-Droid's servers are x86-64 and an ARM64 host compiles a different `libgemstone.so`; every other channel builds as `linux/arm64`, where the build is about twice as fast. A rebuild matches only on the same machine type, so the script chooses it, never the caller. It builds any channel: an APK for `fdroid`, `universal`, `solana` and `emerald`, the AAB for `google`.
 - Nothing under `reproducible/` reads a keystore, a password or any other secret, and the container gets no host environment beyond `UPDATE_URL`. Signing and publishing belong to the release pipeline, which signs the unsigned file afterwards; do not add a release signing config to the Gradle build. Keep it that way: a build input that is not in the commit cannot be reproduced by anyone else.
 - `reproducible/compare.py` compares two APKs outside the signing block, which is the check F-Droid makes.
 
@@ -31,5 +31,5 @@ Store variants are Gradle product flavors driven by `gradle/channels.gradle.kts`
 
 - F-Droid's recipe runs `reproducible/fdroid/init.sh` and `reproducible/fdroid/build.sh` on its own build server; keep those two paths. They call `reproducible/init.sh` and `reproducible/build.sh fdroid`, which builds `:app:assembleFdroidRelease` with `-Pchannel=fdroid`.
 - F-Droid publishes the developer-signed APK attached to the GitHub release only when its own rebuild matches byte for byte, so every published version is reproducibility-verified at publish time.
-- Keep toolchain pins aligned: the NDK version in `gradle/libs.versions.toml`, the Rust version in the root `rust-toolchain.toml`, the `cargo-ndk` version in `reproducible/versions.sh`, the image digest and download checksums in `reproducible/Dockerfile`, dependency locking, and Rust build flags all feed the reproducible build. Changing one without the others breaks the byte match and blocks the F-Droid release.
+- Keep toolchain pins aligned: the NDK version in `gradle/libs.versions.toml`, the Rust version in the root `rust-toolchain.toml`, the `cargo-ndk` version in `reproducible/versions.sh`, the image digests, download checksums and SDK build tools and platform versions in `reproducible/Dockerfile`, dependency locking, and Rust build flags all feed the reproducible build. Changing one without the others breaks the byte match and blocks the F-Droid release.
 - Before a change to anything under `reproducible/` reaches a tag, build the previous tag's commit with the changed scripts and run `compare.py` against that tag's published F-Droid APK.

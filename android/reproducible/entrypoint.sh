@@ -5,9 +5,7 @@ mkdir /src
 tar -xf - -C /src
 cd /src/android
 
-for channel in "$@"; do
-    reproducible/build.sh "$channel"
-done
+reproducible/build.sh "$1"
 
 cd app/build/outputs
 find . \( -name "*.apk" -o -name "*.aab" \) -exec cp --parents {} /outputs \;
