@@ -67,8 +67,8 @@ class AssetsResultsViewModel @Inject constructor(
     context,
 ) {
 
-    private val scope: WalletSearchTag = walletSearchTagOf(savedStateHandle.get<String?>(RouteArgument.Scope.key))
-    private val searchKey: String = searchKeyOf(savedStateHandle)
+    private val scope: WalletSearchTag = savedStateHandle.scopeArgument()
+    private val query: String = savedStateHandle.queryArgument()
     val title: String = savedStateHandle.get<String?>(RouteArgument.Title.key)
         ?: context.getString(R.string.assets_title)
 
@@ -76,7 +76,7 @@ class AssetsResultsViewModel @Inject constructor(
     private val isPullRefreshing = MutableStateFlow(false)
     val refreshing: StateFlow<Boolean> = isPullRefreshing
 
-    private val perpetuals: Flow<List<PerpetualData>> = walletSearchQuery.perpetuals(searchKey, scope, assetsSearchLimit(savedStateHandle.get<String?>(RouteArgument.Query.key).orEmpty()))
+    private val perpetuals: Flow<List<PerpetualData>> = walletSearchQuery.perpetuals(scope.toGem().searchKey(query), scope, assetsSearchLimit(query))
 
     private val content: StateFlow<SearchContent<GemWalletSearchResultsView>?> = combine(getSession(), isSearching, sections, perpetuals) { session, searching, sections, perpetuals ->
         session?.wallet?.let { wallet ->
@@ -101,7 +101,7 @@ class AssetsResultsViewModel @Inject constructor(
     val perpetualItems: StateFlow<List<GemPerpetualMarketItem>> = content.select(viewModelScope, emptyList()) { it.view.perpetuals }
 
     init {
-        queryState.setTextAndPlaceCursorAtEnd(savedStateHandle.get<String?>(RouteArgument.Query.key).orEmpty())
+        queryState.setTextAndPlaceCursorAtEnd(query)
         search(pull = false)
     }
 
@@ -124,13 +124,11 @@ class AssetsResultsViewModel @Inject constructor(
     }
 }
 
-private fun searchKeyOf(savedStateHandle: SavedStateHandle): String {
-    val query = savedStateHandle.get<String?>(RouteArgument.Query.key).orEmpty()
-    val scope = walletSearchTagOf(savedStateHandle.get<String?>(RouteArgument.Scope.key))
-    return scope.toGem().searchKey(query)
-}
+private fun SavedStateHandle.scopeArgument(): WalletSearchTag = walletSearchTagOf(get<String?>(RouteArgument.Scope.key))
 
-private fun selectSearchOf(savedStateHandle: SavedStateHandle, assetsQuery: AssetsQuery, walletSearchQuery: WalletSearchQuery): SelectSearch = when (walletSearchTagOf(savedStateHandle.get<String?>(RouteArgument.Scope.key))) {
-    is WalletSearchTag.List -> ListSelectSearch(walletSearchQuery, searchKeyOf(savedStateHandle))
+private fun SavedStateHandle.queryArgument(): String = get<String?>(RouteArgument.Query.key).orEmpty()
+
+private fun selectSearchOf(savedStateHandle: SavedStateHandle, assetsQuery: AssetsQuery, walletSearchQuery: WalletSearchQuery): SelectSearch = when (val scope = savedStateHandle.scopeArgument()) {
+    is WalletSearchTag.List -> ListSelectSearch(walletSearchQuery, scope.toGem().searchKey(savedStateHandle.queryArgument()))
     WalletSearchTag.All -> BaseSelectSearch(assetsQuery)
 }

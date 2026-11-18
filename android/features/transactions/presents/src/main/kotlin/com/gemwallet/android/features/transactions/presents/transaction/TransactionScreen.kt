@@ -52,7 +52,7 @@ fun TransactionScreen(onAction: (TransactionAction.Navigation) -> Unit, viewMode
     TransactionScene(
         title = model.rows.title.string(context),
         sections = model.sections,
-        headerTarget = model.headerTarget,
+        headerAction = model.rows.headerAction,
         chain = model.rows.chain(),
         onAction = {
             when (it) {
