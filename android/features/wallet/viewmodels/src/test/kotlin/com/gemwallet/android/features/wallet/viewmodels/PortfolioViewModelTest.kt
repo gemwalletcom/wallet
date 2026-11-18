@@ -25,6 +25,7 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -192,6 +193,21 @@ class PortfolioViewModelTest {
         advanceUntilIdle()
 
         assertTrue(offline.chartUIState.value.phase is GemChartPhase.Failed)
+    }
+
+    @Test
+    fun `a refresh after a failed load asks again and stops the spinner`() = runTest(testDispatcher) {
+        coEvery { service.refresh(any(), any()) } answers {
+            GemPortfolioResult(request = secondArg(), state = GemLoadState.Error(GemServiceException.Offline()), data = null)
+        }
+        val viewModel = createViewModel()
+        advanceUntilIdle()
+
+        viewModel.refresh()
+        advanceUntilIdle()
+
+        coVerify(exactly = 2) { service.refresh(any(), any()) }
+        assertFalse(viewModel.isRefreshing.value)
     }
 
     @Test
