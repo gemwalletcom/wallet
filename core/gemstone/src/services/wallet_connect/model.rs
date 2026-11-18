@@ -118,7 +118,7 @@ pub struct GemSessionProposal {
     pub verification_status: WalletConnectionVerificationStatus,
 }
 
-#[derive(Debug, Clone, uniffi::Record)]
+#[derive(Debug, Clone)]
 pub struct GemSessionApproval {
     pub chains: Vec<Chain>,
     pub accounts: Vec<Account>,

@@ -23,15 +23,9 @@ public final class GemWalletConnectServiceMock: GemWalletConnectServiceProtocol,
     public var connectionDetailRows: [GemListRow] = []
     public var hasSessionsValue = false
 
-    public private(set) var addedConnections: [Gemstone.WalletConnection] = []
     public private(set) var viewedConnections: [Gemstone.WalletConnection] = []
-    public private(set) var updatedSessions: [[Gemstone.WalletConnectionSession]] = []
 
     public init() {}
-
-    public func addConnection(connection: Gemstone.WalletConnection) async throws {
-        addedConnections.append(connection)
-    }
 
     public func connectionDetails(connection: Gemstone.WalletConnection) -> GemConnectionDetails {
         GemConnectionDetails(
@@ -76,26 +70,6 @@ public final class GemWalletConnectServiceMock: GemWalletConnectServiceProtocol,
             proposal: Gemstone.WalletConnectionSessionProposal(defaultWallet: Primitives.Wallet.mock().toGem(), wallets: [], metadata: metadata),
             verificationStatus: validation,
         )
-    }
-
-    public func session(topic: String, accounts _: [String], expireAt: Int64, metadata: Gemstone.ApplicationMetadata) throws -> Gemstone.WalletConnectionSession {
-        Gemstone.WalletConnectionSession(
-            id: topic,
-            sessionId: topic,
-            state: .active,
-            chains: [],
-            createdAt: Date(timeIntervalSince1970: 0),
-            expireAt: Date(timeIntervalSince1970: TimeInterval(expireAt)),
-            metadata: metadata,
-        )
-    }
-
-    public func sessionApproval(wallet _: Gemstone.Wallet) -> GemSessionApproval {
-        GemSessionApproval(chains: [], accounts: [], methods: [], events: [])
-    }
-
-    public func updateSessions(sessions: [Gemstone.WalletConnectionSession]) async throws {
-        updatedSessions.append(sessions)
     }
 }
 
