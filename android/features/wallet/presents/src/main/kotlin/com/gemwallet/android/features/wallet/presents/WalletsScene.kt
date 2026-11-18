@@ -12,6 +12,7 @@ import com.gemwallet.android.features.wallet.presents.components.WalletsActions
 import com.gemwallet.android.features.wallet.presents.components.wallets
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.Scene
+import com.wallet.core.primitives.WalletId
 import uniffi.gemstone.GemWalletRow
 import uniffi.gemstone.GemWalletSection
 
@@ -26,7 +27,7 @@ internal fun WalletsScene(sections: List<GemWalletSection>, snackbar: SnackbarHo
         snackbar = snackbar,
         onClose = { onAction(WalletsAction.Cancel) },
     ) {
-        val onEdit: (GemWalletRow) -> Unit = { onAction(WalletsAction.Edit(it)) }
+        val onEdit: (GemWalletRow) -> Unit = { onAction(WalletsAction.Edit(WalletId(it.id))) }
         val onSelectWallet: (GemWalletRow) -> Unit = { onAction(WalletsAction.Select(it)) }
         val onDeleteWallet: (GemWalletRow) -> Unit = { onAction(WalletsAction.Delete(it)) }
         val onTogglePin: (GemWalletRow) -> Unit = { onAction(WalletsAction.TogglePin(it)) }

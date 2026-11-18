@@ -2,9 +2,11 @@ package com.gemwallet.android.features.assets.presents.add
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.gemwallet.android.ext.asset
@@ -21,7 +23,6 @@ import com.wallet.core.primitives.QRScanType
 fun AddAssetScreen(onFinish: () -> Unit, onCancel: () -> Unit, viewModel: AddAssetViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val showsChainPicker by viewModel.showsChainPicker.collectAsStateWithLifecycle()
-    val chains by viewModel.chains.collectAsStateWithLifecycle()
     val network by viewModel.selectedChain.collectAsStateWithLifecycle()
     val sections by viewModel.sections.collectAsStateWithLifecycle()
     val isSearching by viewModel.isSearching.collectAsStateWithLifecycle()
@@ -50,9 +51,11 @@ fun AddAssetScreen(onFinish: () -> Unit, onCancel: () -> Unit, viewModel: AddAss
         label = "phrase",
     ) { isSelectChain ->
         if (isSelectChain) {
+            val chainFilter = rememberTextFieldState()
+            val query = chainFilter.text.toString()
             SelectChain(
-                list = chains,
-                chainFilter = viewModel.chainFilter,
+                list = remember(query) { viewModel.chains(query) },
+                chainFilter = chainFilter,
                 onSelect = viewModel::setChain,
                 onCancel = viewModel::cancelSelectChain,
             )

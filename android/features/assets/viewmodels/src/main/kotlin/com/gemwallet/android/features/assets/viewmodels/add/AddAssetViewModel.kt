@@ -1,7 +1,6 @@
 package com.gemwallet.android.features.assets.viewmodels.add
 
 import android.content.Context
-import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
@@ -42,6 +41,7 @@ import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemAddAssetPhase
 import uniffi.gemstone.GemAddAssetServiceInterface
 import uniffi.gemstone.GemAddAssetSession
+import uniffi.gemstone.GemChainList
 import uniffi.gemstone.GemChainServiceInterface
 import uniffi.gemstone.GemGroup
 import javax.inject.Inject
@@ -62,8 +62,6 @@ class AddAssetViewModel @Inject constructor(
     val uiState = state.map { it.toUIState() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, AddAssetUIState())
 
-    val chainFilter = TextFieldState()
-
     private val wallet = getSession().map { it?.wallet }.filterNotNull()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -71,17 +69,13 @@ class AddAssetViewModel @Inject constructor(
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val availableChains = chainPicker.map { picker -> picker?.chains?.map { chain -> chain.requireChain() } }
+    private val availableChains = chainPicker.map { picker -> picker?.chains?.map { chain -> chain.requireChain() } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val showsChainPicker = chainPicker.map { it?.showsPicker == true }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
-    val chains = snapshotFlow { chainFilter.text }.combine(availableChains) { query, availableChains ->
-        availableChains?.let { chainService.chainList(it.map { chain -> chain.string }, query.toString()) }
-    }
-        .flowOn(ioDispatcher)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    fun chains(query: String): GemChainList? = availableChains.value?.let { chainService.chainList(it.map { chain -> chain.string }, query) }
 
     private val chain = MutableStateFlow<Chain?>(null)
     val selectedChain = chainPicker.combine(chain) { picker, chain ->
