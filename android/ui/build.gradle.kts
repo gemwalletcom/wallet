@@ -26,13 +26,8 @@ dependencies {
     api(libs.compose.material3)
     api(libs.compose.activity)
 
-    // QRCode scanner: only for none private data: recipient, memo, amount, etc
-    // QR Code
-    api(libs.zxing.core)
-
     // Images
     api(libs.coil.compose)
-    api(libs.coil.network)
 
     implementation(libs.ktx.core)
     implementation(libs.lifecycle.runtime.compose)
