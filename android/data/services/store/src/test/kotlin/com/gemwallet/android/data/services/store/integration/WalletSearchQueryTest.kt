@@ -12,6 +12,7 @@ import com.gemwallet.android.data.services.store.database.entities.DbWallet
 import com.gemwallet.android.data.services.store.database.entities.toRecord
 import com.gemwallet.android.data.services.store.database.mockGemDatabase
 import com.gemwallet.android.data.services.store.queries.WalletSearchQuery
+import com.gemwallet.android.domains.search.WalletSearchTag
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
@@ -34,7 +35,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import uniffi.gemstone.GemSearchScope
 
 @RunWith(AndroidJUnit4::class)
 class WalletSearchQueryTest {
@@ -126,22 +126,22 @@ class WalletSearchQueryTest {
             },
         )
 
-        assertEquals(listOf(solanaPerpetual, ethereumPerpetual), query.perpetuals("tag:trending", GemSearchScope.List("trending"), 100).first())
+        assertEquals(listOf(solanaPerpetual, ethereumPerpetual), query.perpetuals("tag:trending", WalletSearchTag.List("trending"), 100).first())
     }
 
     @Test
     fun thePerpetualsOfATypedKeyFollowTheRankingOverTheTextMatch() = runBlocking(Dispatchers.IO) {
-        assertEquals(emptyList<PerpetualData>(), query.perpetuals("ethereum", GemSearchScope.All, 100).first())
+        assertEquals(emptyList<PerpetualData>(), query.perpetuals("ethereum", WalletSearchTag.All, 100).first())
 
         database.searchDao().putPerpetuals("ethereum", listOf(DbSearch(query = "ethereum", perpetualId = ethereumPerpetual.perpetual.id.toIdentifier(), priority = 0)))
 
-        assertEquals(listOf(ethereumPerpetual), query.perpetuals("ethereum", GemSearchScope.All, 100).first())
+        assertEquals(listOf(ethereumPerpetual), query.perpetuals("ethereum", WalletSearchTag.All, 100).first())
     }
 
     @Test
     fun withoutPerpetualPrioritiesTheWalletScopeFallsBackToTheMarketSearchAndAListHasNone() = runBlocking(Dispatchers.IO) {
-        assertEquals(listOf(ethereumPerpetual), query.perpetuals("ETH", GemSearchScope.All, 100).first())
-        assertEquals(emptyList<PerpetualData>(), query.perpetuals("ETH", GemSearchScope.List("trending"), 100).first())
+        assertEquals(listOf(ethereumPerpetual), query.perpetuals("ETH", WalletSearchTag.All, 100).first())
+        assertEquals(emptyList<PerpetualData>(), query.perpetuals("ETH", WalletSearchTag.List("trending"), 100).first())
     }
 
     @Test
@@ -150,7 +150,7 @@ class WalletSearchQueryTest {
         database.assetsDao().insert(idlePerpetual.asset.toRecord())
         database.perpetualDao().insert(listOf(idlePerpetual.perpetual.toRecord()))
 
-        assertEquals(listOf(bitcoinPerpetual, ethereumPerpetual, solanaPerpetual, idlePerpetual), query.perpetuals("", GemSearchScope.All, 100).first())
+        assertEquals(listOf(bitcoinPerpetual, ethereumPerpetual, solanaPerpetual, idlePerpetual), query.perpetuals("", WalletSearchTag.All, 100).first())
     }
 
     private fun perpetual(symbol: String, volume24h: Double): PerpetualData {
