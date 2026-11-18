@@ -1,4 +1,4 @@
-use bech32::hrp::Hrp;
+use bech32::{Bech32, hrp::Hrp, primitives::decode::CheckedHrpstring};
 use primitives::chain_cosmos::CosmosChain;
 use primitives::{Address as AddressTrait, Chain};
 use std::error::Error;
@@ -34,8 +34,10 @@ impl CosmosAddress {
 
 impl AddressTrait for CosmosAddress {
     fn try_parse(address: &str) -> Option<Self> {
-        let (hrp, bytes) = bech32::decode(address).ok()?;
-        let hrp = hrp.as_str().to_string();
+        let decoded = CheckedHrpstring::new::<Bech32>(address).ok()?;
+        decoded.validate_segwit_padding().ok()?;
+        let hrp = decoded.hrp().as_str().to_string();
+        let bytes = decoded.byte_iter().collect::<Vec<_>>();
         (CosmosChain::all().any(|chain| chain.hrp() == hrp) && bytes.len() == 20).then_some(Self { hrp, bytes })
     }
 
@@ -81,6 +83,8 @@ mod tests {
         assert_eq!(parsed.encode(), address);
         assert!(!CosmosAddress::is_valid_for_chain(address, Chain::Osmosis));
         assert!(!CosmosAddress::is_valid_for_chain("invalid", Chain::Cosmos));
+        assert!(!CosmosAddress::is_valid_for_chain("cosmos1h3laqcrmul79zwtw6j63ncsl0adfj07wqz4qndu", Chain::Cosmos));
+        assert!(!CosmosAddress::is_valid_for_chain("cosmos1h3laqcrmul79zwtw6j63ncsl0adfj07waq3g6s", Chain::Cosmos));
     }
 
     #[test]
