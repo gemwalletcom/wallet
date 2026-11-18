@@ -2,6 +2,7 @@
 
 import Assets
 import Foundation
+import func Gemstone.showsScanReceiveSelector
 import GemstonePrimitives
 import Primitives
 
@@ -14,6 +15,10 @@ final class ScanReceiveViewModel {
     let selectAssetModel: SelectAssetSceneViewModel
 
     let onScan: StringAction
+
+    var showsSelector: Bool {
+        showsScanReceiveSelector(walletId: selectAssetModel.wallet.id)
+    }
 
     init(selectAssetModel: SelectAssetSceneViewModel, onScan: StringAction) {
         self.selectAssetModel = selectAssetModel

@@ -10,6 +10,7 @@ mod fee_token;
 pub mod fees;
 mod provider_group;
 mod ranking;
+mod retired;
 pub use ranking::rank_quotes;
 mod swapper_trait;
 
@@ -35,7 +36,6 @@ pub mod models;
 pub mod near_intents;
 pub mod okx;
 mod orca;
-pub mod panora;
 pub mod permit2_data;
 mod pump_swap;
 mod raydium_amm;

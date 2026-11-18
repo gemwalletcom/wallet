@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use chain_traits::{ChainTransactionLoad, TransactionFeeOperation};
+use futures::TryFutureExt;
 use std::error::Error;
 
 use crate::constants::{DEFAULT_GAS_LIMIT, DEFAULT_SWAP_GAS_LIMIT};
@@ -8,10 +9,12 @@ use gem_client::Client;
 use primitives::{FeeRate, SolanaNftStandard, SolanaTokenProgramId, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput};
 
 use crate::{
-    METAPLEX_CORE_PROGRAM, get_token_program_id_by_address,
+    METAPLEX_CORE_PROGRAM, SolanaTokenProgramIdExt, get_token_program_id_by_address,
     metaplex::metadata::Metadata,
     metaplex_core,
+    models::AccountData,
     rpc::{SolanaClient, SolanaProvider},
+    token_account::get_token_account,
 };
 
 struct SolanaNftPreload {
@@ -61,9 +64,15 @@ impl<C: Client + Clone> ChainTransactionLoad for SolanaProvider<C> {
             }
         };
         let recipient_token_future = async {
-            match recipient_mint {
-                Some(mint) => self.find_token_account(recipient_lookup, mint).await,
-                None => Ok(None),
+            match (&input_type, recipient_mint, &token_program) {
+                (TransactionInputType::Swap { .. }, Some(mint), _) | (_, Some(mint), None) => Ok(self.find_token_account(recipient_lookup, mint).await?),
+                (_, Some(mint), Some(token_program)) => {
+                    let token_program = token_program.program_id().to_base58();
+                    let address = get_token_account(recipient_lookup, mint, &token_program)?;
+                    let account = self.get_account_info_base64(&address).await?.value;
+                    Ok(token_account_address(address, account, &token_program))
+                }
+                (_, None, _) => Ok(None),
             }
         };
 
@@ -74,7 +83,12 @@ impl<C: Client + Clone> ChainTransactionLoad for SolanaProvider<C> {
             }
         };
 
-        let (block_hash, sender_token_address, recipient_token_address, destination_balance) = futures::try_join!(self.get_latest_blockhash(), sender_token_future, recipient_token_future, destination_balance_future)?;
+        let (block_hash, sender_token_address, recipient_token_address, destination_balance) = futures::try_join!(
+            self.get_latest_blockhash().err_into::<Box<dyn Error + Sync + Send>>(),
+            sender_token_future.err_into(),
+            recipient_token_future,
+            destination_balance_future.err_into()
+        )?;
 
         if let TransactionInputType::TransferNft { .. } = input_type
             && sender_mint.is_some()
@@ -105,6 +119,10 @@ impl<C: Client + Clone> ChainTransactionLoad for SolanaProvider<C> {
     }
 }
 
+fn token_account_address(address: String, account: Option<AccountData>, token_program: &str) -> Option<String> {
+    account.filter(|account| account.owner == token_program).map(|_| address)
+}
+
 #[cfg(feature = "rpc")]
 impl<C: Client + Clone> SolanaClient<C> {
     async fn detect_solana_nft(&self, mint: &str) -> Result<SolanaNftPreload, Box<dyn Error + Sync + Send>> {
@@ -129,6 +147,23 @@ impl<C: Client + Clone> SolanaClient<C> {
             token_program: Some(token_program),
             standard,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{SYSTEM_PROGRAM_ID, TOKEN_PROGRAM, TOKEN_PROGRAM_2022};
+
+    #[test]
+    fn test_token_account_address_counts_only_accounts_the_token_program_owns() {
+        let account = |owner: &str| AccountData { data: vec![], owner: owner.to_string() };
+        let address = "Ffeie177PRngys3SwNH44AYdT9yExm63GAmTXHdmL1k1".to_string();
+
+        assert_eq!(token_account_address(address.clone(), Some(account(TOKEN_PROGRAM)), TOKEN_PROGRAM), Some(address.clone()));
+        assert_eq!(token_account_address(address.clone(), Some(account(SYSTEM_PROGRAM_ID)), TOKEN_PROGRAM), None);
+        assert_eq!(token_account_address(address.clone(), Some(account(TOKEN_PROGRAM_2022)), TOKEN_PROGRAM), None);
+        assert_eq!(token_account_address(address, None, TOKEN_PROGRAM), None);
     }
 }
 

@@ -40,6 +40,14 @@ impl<T> StoredValue<T> {
 }
 
 impl CacherClient {
+    pub(crate) async fn get_cached<T: DeserializeOwned>(&self, key: CacheKey<'_>) -> Result<Option<T>, Box<dyn Error + Send + Sync>> {
+        Ok(self.get::<StoredValue<T>>(key).await?.and_then(StoredValue::cached).map(|cached| cached.value))
+    }
+
+    pub(crate) async fn set_cached<T: Serialize>(&self, key: CacheKey<'_>, value: &T) -> Result<(), Box<dyn Error + Send + Sync>> {
+        self.set(key, &Cached { value, updated_at: SystemTime::now() }).await
+    }
+
     pub(crate) async fn get_many_cached<T: DeserializeOwned>(&self, keys: &[CacheKey<'_>]) -> Result<Vec<T>, Box<dyn Error + Send + Sync>> {
         Ok(self.get_many::<StoredValue<T>>(keys).await?.into_iter().filter_map(StoredValue::cached).map(|cached| cached.value).collect())
     }

@@ -1,0 +1,172 @@
+[
+  {
+    "universe": [
+      {
+        "tokens": [
+          1,
+          0
+        ],
+        "name": "PURR/USDC",
+        "index": 0,
+        "isCanonical": true
+      },
+      {
+        "tokens": [
+          150,
+          0
+        ],
+        "name": "@107",
+        "index": 107,
+        "isCanonical": false
+      },
+      {
+        "tokens": [
+          197,
+          0
+        ],
+        "name": "@142",
+        "index": 142,
+        "isCanonical": false
+      },
+      {
+        "tokens": [
+          360,
+          0
+        ],
+        "name": "@230",
+        "index": 230,
+        "isCanonical": false
+      },
+      {
+        "tokens": [
+          197,
+          360
+        ],
+        "name": "@234",
+        "index": 234,
+        "isCanonical": false
+      }
+    ],
+    "tokens": [
+      {
+        "name": "USDC",
+        "szDecimals": 8,
+        "weiDecimals": 8,
+        "index": 0,
+        "tokenId": "0x6d1e7cde53ba9467b783cb7c530ce054",
+        "isCanonical": true,
+        "evmContract": {
+          "address": "0x6b9e773128f453f5c2c60935ee2de2cbc5390a24",
+          "evm_extra_wei_decimals": -2
+        },
+        "fullName": null,
+        "deployerTradingFeeShare": "0.0"
+      },
+      {
+        "name": "PURR",
+        "szDecimals": 0,
+        "weiDecimals": 5,
+        "index": 1,
+        "tokenId": "0xc1fb593aeffbeb02f85e0308e9956a90",
+        "isCanonical": true,
+        "evmContract": {
+          "address": "0x9b498c3c8a0b8cd8ba1d9851d40d186f1872b44e",
+          "evm_extra_wei_decimals": 13
+        },
+        "fullName": null,
+        "deployerTradingFeeShare": "0.0"
+      },
+      {
+        "name": "HYPE",
+        "szDecimals": 2,
+        "weiDecimals": 8,
+        "index": 150,
+        "tokenId": "0x0d01dc56dcaaca66ad901c959b4011ec",
+        "isCanonical": false,
+        "evmContract": null,
+        "fullName": "Hyperliquid",
+        "deployerTradingFeeShare": "0.0"
+      },
+      {
+        "name": "UBTC",
+        "szDecimals": 5,
+        "weiDecimals": 10,
+        "index": 197,
+        "tokenId": "0x8f254b963e8468305d409b33aa137c67",
+        "isCanonical": false,
+        "evmContract": {
+          "address": "0x9fdbda0a5e284c32744d2f17ee5c74b284993463",
+          "evm_extra_wei_decimals": -2
+        },
+        "fullName": "Unit Bitcoin",
+        "deployerTradingFeeShare": "1.0"
+      },
+      {
+        "name": "USDH",
+        "szDecimals": 2,
+        "weiDecimals": 8,
+        "index": 360,
+        "tokenId": "0x54e00a5988577cb0b0c9ab0cb6ef7f4b",
+        "isCanonical": false,
+        "evmContract": {
+          "address": "0x111111a1a0667d36bd57c0a9f569b98057111111",
+          "evm_extra_wei_decimals": -2
+        },
+        "fullName": "USDH",
+        "deployerTradingFeeShare": "0.0"
+      }
+    ]
+  },
+  [
+    {
+      "prevDayPx": "0.088391",
+      "dayNtlVlm": "1174173.4074359997",
+      "markPx": "0.093679",
+      "midPx": "0.093666",
+      "circulatingSupply": "594628451.5664199591",
+      "coin": "PURR/USDC",
+      "totalSupply": "594628462.8729399443",
+      "dayBaseVlm": "13073478.0"
+    },
+    {
+      "prevDayPx": "68.001",
+      "dayNtlVlm": "164636108.0965500474",
+      "markPx": "69.96",
+      "midPx": "69.9605",
+      "circulatingSupply": "301609028.3121266961",
+      "coin": "@107",
+      "totalSupply": "998731653.1458699703",
+      "dayBaseVlm": "2461388.5500000003"
+    },
+    {
+      "prevDayPx": "65144.0",
+      "dayNtlVlm": "48634896.9578399584",
+      "markPx": "65342.0",
+      "midPx": "65341.5",
+      "circulatingSupply": "20999999.9967362396",
+      "coin": "@142",
+      "totalSupply": "20999999.9967362471",
+      "dayBaseVlm": "751.10204"
+    },
+    {
+      "prevDayPx": "0.99511",
+      "dayNtlVlm": "16464.8304087",
+      "markPx": "0.9969",
+      "midPx": "0.995445",
+      "circulatingSupply": "99999991602.9518280029",
+      "coin": "@230",
+      "totalSupply": "99999991602.9708557129",
+      "dayBaseVlm": "16569.94"
+    },
+    {
+      "prevDayPx": "76644.0",
+      "dayNtlVlm": "0.0",
+      "markPx": "76644.0",
+      "midPx": null,
+      "circulatingSupply": "20999999.9967362396",
+      "coin": "@234",
+      "totalSupply": "20999999.9967362471",
+      "dayBaseVlm": "0.0"
+    }
+  ]
+]

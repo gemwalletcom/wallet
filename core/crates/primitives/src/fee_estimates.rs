@@ -1,5 +1,6 @@
 use std::collections::BTreeMap;
 
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::{Asset, AssetType, FeePriority, FeeUnitType};
@@ -28,4 +29,12 @@ pub struct FeeEstimate {
     pub priority_fee: String,
     pub value: String,
     pub fiat_value: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FeeEstimateChartValue {
+    pub date: DateTime<Utc>,
+    pub gas_price: f64,
+    pub priority_fee: f64,
 }

@@ -171,6 +171,10 @@ prices:
     url: "https://api.ston.fi"
     key:
       secret: ""
+  hypercore:
+    url: "https://api.hyperliquid.xyz"
+    key:
+      secret: ""
 defi:
   jupiter:
     url: "https://api.jup.ag"

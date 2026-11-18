@@ -53,10 +53,7 @@ fn metaplex_token_metadata_transfer(input: &SignerInput, sender: Pubkey, nft_ass
         .map_err(SignerError::from_display)?
         .ok_or_else(|| SignerError::invalid_input("missing sender token address"))?;
     let sender_token_address = Pubkey::from_base58(&sender_token_address).map_err(SignerError::from_display)?;
-    let recipient_token_address = match input.metadata.get_recipient_token_address().map_err(SignerError::from_display)? {
-        Some(address) => Pubkey::from_base58(&address).map_err(SignerError::from_display)?,
-        None => get_associated_token_address_with_program_id(&recipient, &mint, &token_program)?,
-    };
+    let recipient_token_address = get_associated_token_address_with_program_id(&recipient, &mint, &token_program)?;
 
     let metadata_pda = Metadata::find_pda(mint).ok_or_else(|| SignerError::invalid_input("failed to derive metadata PDA"))?.0;
     let master_edition = Metadata::find_master_edition_pda(mint).ok_or_else(|| SignerError::invalid_input("failed to derive master edition PDA"))?.0;

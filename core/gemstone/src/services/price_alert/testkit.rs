@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use primitives::{AssetId, Chain, Currency, PriceAlert, Wallet};
+use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
 use super::session::GemPriceAlertSession;
@@ -65,7 +66,7 @@ impl GemPriceAlertStore for MemoryPriceAlertStore {
 }
 
 pub fn price_alert_service(store: Arc<dyn GemPriceAlertStore>) -> Arc<super::GemPriceAlertService> {
-    let provider = Arc::new(TestAlienProvider::new(crate::alien::AlienResponse::new(None, Vec::new())));
+    let provider = Arc::new(TestAlienProvider::new(crate::alien::AlienResponse::new(None, HashMap::new(), Vec::new())));
     Arc::new(price_alert_service_with(provider, store, Arc::new(MemoryAssetStore::default()), Arc::new(MemoryNotificationPermissions::granted())))
 }
 

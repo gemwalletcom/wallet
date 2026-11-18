@@ -531,6 +531,7 @@ pub enum PriceProvider {
     Jupiter,
     DefiLlama,
     TonApi,
+    Hypercore,
 }
 
 #[uniffi::remote(Enum)]

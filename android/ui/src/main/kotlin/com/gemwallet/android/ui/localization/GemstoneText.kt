@@ -48,6 +48,7 @@ import uniffi.gemstone.GemBannerDescription
 import uniffi.gemstone.GemBannerTitle
 import uniffi.gemstone.GemCandleTooltipRow
 import uniffi.gemstone.GemChainsFilterSummary
+import uniffi.gemstone.GemChartStyle
 import uniffi.gemstone.GemCollectibleAction
 import uniffi.gemstone.GemConfirmButtonKind
 import uniffi.gemstone.GemConfirmDestination
@@ -594,6 +595,12 @@ fun GemCandleTooltipRow.stringRes(): Int = when (this) {
     GemCandleTooltipRow.CLOSE -> R.string.charts_price_close
     GemCandleTooltipRow.CHANGE -> R.string.charts_price_change
     GemCandleTooltipRow.VOLUME -> R.string.perpetual_volume
+}
+
+@StringRes
+fun GemChartStyle.stringRes(): Int = when (this) {
+    GemChartStyle.LINE -> R.string.charts_line
+    GemChartStyle.CANDLES -> R.string.charts_candlestick
 }
 
 @StringRes

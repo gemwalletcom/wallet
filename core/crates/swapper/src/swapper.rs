@@ -1,8 +1,9 @@
 use crate::ranking::{leaves_no_dust, rank_quotes};
+use crate::retired::{RETIRED_PROVIDERS, RetiredSwapper};
 use crate::{
     AssetList, FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, SwapQuoteError, SwapQuotes, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperProviderMode, SwapperQuoteData,
     across, alien::RpcProvider, bridgers, cetus_clmm, chainflip, config::quote_preferences, cross_chain::VaultAddresses, dedust, deepbook, hyperion, hyperliquid, jupiter, mayan, meteora_damm_v2, meteora_dlmm, near_intents, okx, orca,
-    panora, provider_group::ProviderGroup, pump_swap, raydium_amm, raydium_clmm, raydium_cpmm, relay, solana_dex, squid, stellar_dex, stonfi, swaps_xyz, thorchain, uniswap, xrp_ledger,
+    provider_group::ProviderGroup, pump_swap, raydium_amm, raydium_clmm, raydium_cpmm, relay, solana_dex, squid, stellar_dex, stonfi, swaps_xyz, thorchain, uniswap, xrp_ledger,
 };
 use primitives::{AssetId, Chain, EVMChain};
 use std::{fmt::Debug, sync::Arc};
@@ -89,7 +90,6 @@ impl GemSwapper {
             dedust::Dedust::new(rpc_provider.clone()).map(Self::boxed),
             Some(Self::boxed(uniswap::sunswap::SunSwap::new(rpc_provider.clone()))),
             Some(Box::new(mayan::Mayan::new(rpc_provider.clone()))),
-            Some(Box::new(panora::Panora::default())),
             hyperion::Hyperion::new(rpc_provider.clone()).map(Self::boxed),
             Some(Self::boxed(near_intents::NearIntents::new(rpc_provider.clone()))),
             Some(Box::new(chainflip::ChainflipProvider::new(rpc_provider.clone()))),
@@ -106,6 +106,7 @@ impl GemSwapper {
         ]
         .into_iter()
         .flatten()
+        .chain(RETIRED_PROVIDERS.map(|id| Self::boxed(RetiredSwapper::new(id))))
         .collect();
 
         Self { swappers }

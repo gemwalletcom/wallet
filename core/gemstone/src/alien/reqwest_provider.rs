@@ -9,6 +9,6 @@ pub use swapper::NativeProvider;
 impl AlienProvider for NativeProvider {
     async fn request(&self, target: AlienTarget) -> Result<Arc<AlienResponse>, AlienError> {
         let response = <Self as GenericRpcProvider>::request(self, target).await?;
-        Ok(Arc::new(AlienResponse::new(response.status, response.data)))
+        Ok(Arc::new(AlienResponse::new(response.status, response.headers, response.data)))
     }
 }

@@ -5,12 +5,12 @@ use std::sync::Arc;
 
 use cacher::{CacheError, FeeEstimatesCacher};
 use chain_providers::{TransactionFeeEstimate, TransactionFeeEstimates};
-use config_keys::ConfigParamKey;
+use chrono::{DateTime, Utc};
 use number_formatter::{BigNumberFormatter, CryptoFiatConverter};
-use primitives::{Asset, Chain, ChainFeeEstimates, FeeEstimate, FeeEstimatesByPriority, FeeUnitType};
+use primitives::{Asset, Chain, ChainFeeEstimates, ChartPeriod, FeeEstimate, FeeEstimateChartValue, FeeEstimatesByPriority, FeePriority, FeeUnitType};
 
 use super::chain_client::ChainClient;
-use crate::ConfigCacher;
+use super::repository::Repository;
 use crate::assets::AssetsClient;
 use crate::prices::PriceClient;
 
@@ -18,34 +18,39 @@ pub struct FeeEstimatesClient {
     chain_client: ChainClient,
     assets_client: AssetsClient,
     price_client: PriceClient,
+    repository: Arc<dyn Repository>,
     cacher: Arc<dyn FeeEstimatesCacher>,
-    config: Arc<ConfigCacher>,
 }
 
 impl FeeEstimatesClient {
-    pub fn new(chain_client: ChainClient, assets_client: AssetsClient, price_client: PriceClient, cacher: Arc<dyn FeeEstimatesCacher>, config: Arc<ConfigCacher>) -> Self {
+    pub(crate) fn new(chain_client: ChainClient, assets_client: AssetsClient, price_client: PriceClient, repository: Arc<dyn Repository>, cacher: Arc<dyn FeeEstimatesCacher>) -> Self {
         Self {
             chain_client,
             assets_client,
             price_client,
+            repository,
             cacher,
-            config,
         }
     }
 
     pub async fn get_chain_fee_estimates(&self, chain: Chain) -> Result<ChainFeeEstimates, Box<dyn Error + Send + Sync>> {
-        if chain.is_deprecated() {
-            return Err(Box::new(CacheError::not_found("FeeEstimates", chain.as_ref())));
+        match self.cacher.get_estimates(chain).await? {
+            Some(estimates) if !chain.is_deprecated() => Ok(estimates),
+            _ => Err(Box::new(CacheError::not_found("FeeEstimates", chain.as_ref()))),
         }
-        let duration = self.config.get_param_duration(&ConfigParamKey::TransactionsFeeEstimatesCacheDuration(chain)).await?;
-        self.cacher.get_or_fetch_estimates(chain, duration, Box::pin(self.fetch_estimates(chain))).await
     }
 
-    async fn fetch_estimates(&self, chain: Chain) -> Result<ChainFeeEstimates, Box<dyn Error + Send + Sync>> {
+    pub async fn get_chain_fee_estimates_charts(&self, chain: Chain, period: ChartPeriod) -> Result<Vec<FeeEstimateChartValue>, Box<dyn Error + Send + Sync>> {
+        Ok(self.repository.get_fee_estimates(chain, period).await?)
+    }
+
+    pub async fn update_chain_fee_estimates(&self, chain: Chain) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let estimates = self.chain_client.get_transaction_fee_estimates(chain).await?;
         let asset = self.assets_client.get_asset(&estimates.fee_asset).await?;
         let price = self.price_client.get_cache_price(&estimates.fee_asset).await?;
-        map_fee_estimates(asset, estimates, price.price.price)
+        let chart_value = map_fee_estimate_chart_value(&asset, &estimates.transfer, Utc::now())?;
+        self.cacher.set_estimates(chain, &map_fee_estimates(asset, estimates, price.price.price)?).await?;
+        Ok(self.repository.add_fee_estimate(chain, chart_value).await?)
     }
 
     pub async fn get_fee_estimates(&self) -> Result<Vec<ChainFeeEstimates>, Box<dyn Error + Send + Sync>> {
@@ -62,14 +67,28 @@ impl FeeEstimatesClient {
     }
 }
 
+fn rate_decimals(asset: &Asset) -> u32 {
+    match asset.chain().fee_unit_type() {
+        FeeUnitType::Native => asset.decimals,
+        rate_unit @ (FeeUnitType::SatVb | FeeUnitType::Gwei) => rate_unit.decimals(),
+    }
+}
+
+fn map_fee_estimate_chart_value(asset: &Asset, estimates: &[TransactionFeeEstimate], date: DateTime<Utc>) -> Result<FeeEstimateChartValue, Box<dyn Error + Send + Sync>> {
+    let decimals = rate_decimals(asset);
+    let estimate = estimates.iter().find(|estimate| estimate.priority == FeePriority::Normal).ok_or("missing normal fee estimate")?;
+    Ok(FeeEstimateChartValue {
+        date,
+        gas_price: BigNumberFormatter::value_as_f64(estimate.gas_price_type.gas_price(), decimals)?,
+        priority_fee: BigNumberFormatter::value_as_f64(estimate.gas_price_type.priority_fee(), decimals)?,
+    })
+}
+
 fn map_fee_estimates(asset: Asset, estimates: TransactionFeeEstimates, price_usd: f64) -> Result<ChainFeeEstimates, Box<dyn Error + Send + Sync>> {
     let chain = asset.chain();
     let rate_unit = chain.fee_unit_type();
     let asset_decimals = asset.decimals;
-    let rate_decimals = match rate_unit {
-        FeeUnitType::Native => asset_decimals,
-        FeeUnitType::SatVb | FeeUnitType::Gwei => rate_unit.decimals(),
-    };
+    let rate_decimals = rate_decimals(&asset);
     let map_estimates = |estimates| map_estimates_by_priority(estimates, rate_decimals, asset_decimals, price_usd);
     Ok(ChainFeeEstimates {
         transfer: map_estimates(estimates.transfer)?,
@@ -101,26 +120,23 @@ fn map_estimates_by_priority(estimates: Vec<TransactionFeeEstimate>, rate_decima
 
 #[cfg(test)]
 mod tests {
-    use std::{path::PathBuf, sync::Arc, time::Duration};
+    use std::{path::PathBuf, sync::Arc};
 
     use chain_providers::{ChainProviders, TransactionFeeEstimate, TransactionFeeEstimates};
     use chrono::DateTime;
-    use config_keys::ConfigParamKey;
-    use primitives::{Asset, AssetMarket, AssetPriceInfo, Chain, ChainFeeEstimates, FeePriority, GasPriceType, Price, PriceProvider};
+    use primitives::{Asset, AssetMarket, AssetPriceInfo, Chain, ChainFeeEstimates, FeeEstimateChartValue, FeePriority, GasPriceType, Price, PriceProvider};
     use settings::Settings;
 
-    use super::{FeeEstimatesClient, map_fee_estimates};
+    use super::{FeeEstimatesClient, map_fee_estimate_chart_value, map_fee_estimates};
     use crate::ConfigCacher;
     use crate::assets::AssetsClient;
     use crate::chain::ChainClient;
     use crate::prices::PriceClient;
-    use crate::testkit::{MemoryAssetRepository, MemoryConfigRepository, MemoryFeeEstimatesCacher, MemoryPriceCacher, MemoryPricesRepository};
+    use crate::testkit::{MemoryAssetRepository, MemoryConfigRepository, MemoryFeeEstimatesCacher, MemoryFeeEstimatesRepository, MemoryPriceCacher, MemoryPricesRepository};
 
-    fn client(cacher: Arc<MemoryFeeEstimatesCacher>) -> FeeEstimatesClient {
+    fn client(cacher: Arc<MemoryFeeEstimatesCacher>, repository: Arc<MemoryFeeEstimatesRepository>) -> FeeEstimatesClient {
         let settings = Settings::new_setting_path(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../Settings.yaml")).unwrap();
-        let config = Arc::new(ConfigCacher::new(Arc::new(
-            MemoryConfigRepository::new().with_value(&ConfigParamKey::TransactionsFeeEstimatesCacheDuration(Chain::Tron).key(), "2m"),
-        )));
+        let config = Arc::new(ConfigCacher::new(Arc::new(MemoryConfigRepository::new())));
         let asset = Asset::from_chain(Chain::Tron);
         let price = AssetPriceInfo {
             asset_id: asset.id.clone(),
@@ -130,9 +146,9 @@ mod tests {
         FeeEstimatesClient::new(
             ChainClient::new(ChainProviders::for_chain(Chain::Tron, &settings, "test")),
             AssetsClient::new(Arc::new(MemoryAssetRepository::new(vec![asset.as_basic_primitive()])), config.clone()),
-            PriceClient::new(Arc::new(MemoryPricesRepository::default()), config.clone(), Arc::new(MemoryPriceCacher::new(vec![price]))),
+            PriceClient::new(Arc::new(MemoryPricesRepository::default()), config, Arc::new(MemoryPriceCacher::new(vec![price]))),
+            repository,
             cacher,
-            config,
         )
     }
 
@@ -150,12 +166,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_cached_chain_returns_only_requested_chain() {
-        let cacher = Arc::new(
-            MemoryFeeEstimatesCacher::default()
-                .with_estimates(Chain::Ethereum, cached(Chain::Ethereum), true)
-                .with_estimates(Chain::Tron, cached(Chain::Tron), true),
-        );
-        let response = client(cacher.clone()).get_chain_fee_estimates(Chain::Tron).await.unwrap();
+        let cacher = Arc::new(MemoryFeeEstimatesCacher::default().with_estimates(Chain::Ethereum, cached(Chain::Ethereum)).with_estimates(Chain::Tron, cached(Chain::Tron)));
+        let response = client(cacher.clone(), Arc::default()).get_chain_fee_estimates(Chain::Tron).await.unwrap();
 
         assert_eq!(response.asset.id.chain, Chain::Tron);
         assert!(response.transfer.is_empty());
@@ -163,44 +175,44 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_expired_chain_refreshes_with_configured_duration() {
-        let cacher = Arc::new(MemoryFeeEstimatesCacher::default().with_estimates(Chain::Tron, cached(Chain::Tron), false));
-        let client = client(cacher.clone());
-        let response = client.get_chain_fee_estimates(Chain::Tron).await.unwrap();
-        client.get_chain_fee_estimates(Chain::Tron).await.unwrap();
+    async fn test_unavailable_chain_is_not_found() {
+        let cacher = Arc::new(MemoryFeeEstimatesCacher::default().with_estimates(Chain::Blast, cached(Chain::Blast)));
+        let client = client(cacher.clone(), Arc::default());
 
-        assert_eq!(response.asset.id.chain, Chain::Tron);
-        assert_eq!(response.transfer[&FeePriority::Normal].value, "1");
-        assert_eq!(cacher.writes(), vec![(Chain::Tron, Duration::from_secs(120))]);
-    }
-
-    #[tokio::test]
-    async fn test_deprecated_chain_is_not_found() {
-        let cacher = Arc::new(MemoryFeeEstimatesCacher::default().with_estimates(Chain::Blast, cached(Chain::Blast), true));
-        let error = client(cacher.clone()).get_chain_fee_estimates(Chain::Blast).await.unwrap_err();
-
-        assert_eq!(error.to_string(), "FeeEstimates blast not found");
+        assert_eq!(client.get_chain_fee_estimates(Chain::Blast).await.unwrap_err().to_string(), "FeeEstimates blast not found");
+        assert_eq!(client.get_chain_fee_estimates(Chain::Tron).await.unwrap_err().to_string(), "FeeEstimates tron not found");
         assert!(cacher.writes().is_empty());
     }
 
     #[tokio::test]
-    async fn test_aggregate_reads_cached_values_without_refreshing() {
-        let cacher = Arc::new(
-            MemoryFeeEstimatesCacher::default()
-                .with_estimates(Chain::Tron, cached(Chain::Tron), false)
-                .with_estimates(Chain::Bitcoin, cached(Chain::Bitcoin), false),
+    async fn test_update_chain_fee_estimates() {
+        let cacher = Arc::new(MemoryFeeEstimatesCacher::default());
+        let repository = Arc::new(MemoryFeeEstimatesRepository::default());
+        let client = client(cacher.clone(), repository.clone());
+
+        assert_eq!(client.update_chain_fee_estimates(Chain::Tron).await.unwrap(), 1);
+        assert_eq!(client.get_chain_fee_estimates(Chain::Tron).await.unwrap().transfer[&FeePriority::Normal].value, "1");
+        assert_eq!(cacher.writes(), vec![Chain::Tron]);
+        assert_eq!(
+            repository.values().into_iter().map(|(chain, value)| (chain, value.gas_price, value.priority_fee)).collect::<Vec<_>>(),
+            vec![(Chain::Tron, 0.000001, 0.0)]
         );
-        let response = client(cacher.clone()).get_fee_estimates().await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn test_aggregate_reads_cached_values() {
+        let cacher = Arc::new(MemoryFeeEstimatesCacher::default().with_estimates(Chain::Tron, cached(Chain::Tron)).with_estimates(Chain::Bitcoin, cached(Chain::Bitcoin)));
+        let response = client(cacher.clone(), Arc::default()).get_fee_estimates().await.unwrap();
 
         assert_eq!(response.iter().map(|estimates| estimates.asset.id.chain).collect::<Vec<_>>(), vec![Chain::Bitcoin, Chain::Tron]);
         assert!(cacher.writes().is_empty());
     }
 
     #[tokio::test]
-    async fn test_aggregate_empty_cache_does_not_refresh() {
+    async fn test_aggregate_empty_cache_is_empty() {
         let cacher = Arc::new(MemoryFeeEstimatesCacher::default());
 
-        assert!(client(cacher.clone()).get_fee_estimates().await.unwrap().is_empty());
+        assert!(client(cacher.clone(), Arc::default()).get_fee_estimates().await.unwrap().is_empty());
         assert!(cacher.writes().is_empty());
     }
 
@@ -241,5 +253,24 @@ mod tests {
         assert_eq!(response.transfer[&FeePriority::Normal].base, "0.000005");
         assert_eq!(response.transfer[&FeePriority::Normal].priority_fee, "0.00001");
         assert_eq!(response.transfer[&FeePriority::Normal].value, "0.000015");
+    }
+
+    #[test]
+    fn test_map_fee_estimate_chart_value() {
+        let date = DateTime::from_timestamp(1_700_000_000, 0).unwrap();
+        let estimates = vec![
+            TransactionFeeEstimate {
+                priority: FeePriority::Fast,
+                gas_price_type: GasPriceType::eip1559(51_000_000u64, 3_000_000u64),
+                fee: 1_134_000_000_000u64.into(),
+            },
+            TransactionFeeEstimate {
+                priority: FeePriority::Normal,
+                gas_price_type: GasPriceType::eip1559(51_000_000u64, 1_000_000u64),
+                fee: 1_092_000_000_000u64.into(),
+            },
+        ];
+
+        assert_eq!(map_fee_estimate_chart_value(&Asset::mock(), &estimates, date).unwrap(), FeeEstimateChartValue { date, gas_price: 0.051, priority_fee: 0.001 });
     }
 }

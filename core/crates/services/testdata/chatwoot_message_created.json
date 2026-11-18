@@ -70,7 +70,7 @@
       "assignee": null,
       "assignee_type": null,
       "team": null,
-      "hmac_verified": false
+      "hmac_verified": true
     },
     "status": "open",
     "custom_attributes": {},

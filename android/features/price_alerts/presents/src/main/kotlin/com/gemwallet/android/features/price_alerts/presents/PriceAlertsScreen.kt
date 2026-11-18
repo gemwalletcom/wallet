@@ -1,5 +1,6 @@
 package com.gemwallet.android.features.price_alerts.presents
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -29,6 +30,8 @@ fun PriceAlertsScreen(message: RouteMessage?, onMessageShown: () -> Unit, onChar
     val phase by viewModel.phase.collectAsStateWithLifecycle()
 
     ToastEffect(viewModel.toastEvents, snackbar)
+
+    BackHandler(selectingAsset) { selectingAsset = false }
 
     AnimatedContent(selectingAsset, label = "") { selecting ->
         when (selecting) {

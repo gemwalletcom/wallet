@@ -1,4 +1,4 @@
-use primitives::{Asset, AssetId, AssetType, Chain, Wallet};
+use primitives::{Asset, AssetId, AssetType, Chain, Wallet, WalletId};
 
 use super::model::{GemReceiveAssetState, GemReceiveNetwork, GemReceiveNetworks, GemReceiveWarning};
 use crate::config::chain::is_memo_supported;
@@ -20,6 +20,11 @@ pub fn asset_state(asset: &Asset) -> GemReceiveAssetState {
         warnings: std::iter::once(network).chain(memo).collect(),
         asset: text,
     }
+}
+
+#[uniffi::export]
+pub fn shows_scan_receive_selector(wallet_id: WalletId) -> bool {
+    wallet_id.wallet_type().can_sign()
 }
 
 pub fn networks(asset: &Asset, associations: Vec<AssetId>, wallet: &Wallet) -> GemReceiveNetworks {
@@ -69,6 +74,12 @@ mod tests {
 
     fn token(id: AssetId, asset_type: AssetType) -> Asset {
         Asset { id, asset_type, ..Asset::mock() }
+    }
+
+    #[test]
+    fn test_the_scanner_offers_receive_only_to_a_wallet_with_keys() {
+        assert!(shows_scan_receive_selector(WalletId::Multicoin("wallet".to_string())));
+        assert!(!shows_scan_receive_selector(WalletId::View(Chain::Ethereum, "0x1".to_string())));
     }
 
     #[test]

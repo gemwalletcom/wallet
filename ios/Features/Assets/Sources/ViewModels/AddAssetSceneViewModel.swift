@@ -32,7 +32,6 @@ public final class AddAssetSceneViewModel {
 
     var isPresentingScanner = false
     var loadTrigger: AddAssetLoadTrigger?
-    private var loadAttempt = 0
     var isPresentingAlertMessage: AlertMessage?
 
     public init(wallet: Wallet, service: any GemAddAssetServiceProtocol) {
@@ -124,6 +123,12 @@ public final class AddAssetSceneViewModel {
 // MARK: - Business Logic
 
 extension AddAssetSceneViewModel {
+    func onSelectChain(_ chain: Chain?) {
+        input.chain = chain
+        input.address = nil
+        session = session.onChain(chain: chain?.rawValue)
+    }
+
     func setInput(_ address: String) {
         input.address = address
         setLoadTrigger(isImmediate: true)
@@ -164,14 +169,11 @@ extension AddAssetSceneViewModel {
     }
 
     private func setLoadTrigger(isImmediate: Bool) {
-        session = session.onChain(chain: input.chain?.rawValue).onAddress(address: input.address ?? "")
+        session = session.onAddress(address: input.address ?? "")
         guard session.searchesToken(), let chain = input.chain, let address = input.address else {
             loadTrigger = nil
             return
         }
-        if isImmediate {
-            loadAttempt += 1
-        }
-        loadTrigger = AddAssetLoadTrigger(chain: chain, address: address, isImmediate: isImmediate, attempt: loadAttempt)
+        loadTrigger = AddAssetLoadTrigger(chain: chain, address: address, isImmediate: isImmediate)
     }
 }

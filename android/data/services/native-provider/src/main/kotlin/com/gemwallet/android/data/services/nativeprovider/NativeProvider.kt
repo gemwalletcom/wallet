@@ -36,7 +36,7 @@ class NativeProvider(private val httpClient: OkHttpClient = OkHttpClient()) : Al
         }
         try {
             withContext(Dispatchers.IO) {
-                call.execute().use { response -> AlienResponse(response.code.toUShort(), response.body.bytes()) }
+                call.execute().use { response -> AlienResponse(response.code.toUShort(), response.headers.toMap(), response.body.bytes()) }
             }
         } catch (error: IOException) {
             if (error.isNetworkUnavailable()) {

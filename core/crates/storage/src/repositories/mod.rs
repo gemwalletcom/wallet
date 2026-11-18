@@ -8,6 +8,7 @@ pub mod charts_repository;
 pub mod config_repository;
 pub mod devices_repository;
 pub mod features_repository;
+pub mod fee_estimates_repository;
 pub mod fiat_repository;
 pub mod migrations_repository;
 pub mod nft_repository;

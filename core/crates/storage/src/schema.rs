@@ -360,6 +360,16 @@ diesel::table! {
 }
 
 diesel::table! {
+    fee_estimates (chain, created_at) {
+        #[max_length = 32]
+        chain -> Varchar,
+        gas_price -> Float8,
+        priority_fee -> Float8,
+        created_at -> Timestamp,
+    }
+}
+
+diesel::table! {
     fiat_assets (id) {
         #[max_length = 128]
         id -> Varchar,
@@ -1133,6 +1143,7 @@ diesel::joinable!(charts_daily -> prices (price_id));
 diesel::joinable!(charts_hourly -> prices (price_id));
 diesel::joinable!(devices -> fiat_rates (currency));
 diesel::joinable!(features -> countries (alpha2));
+diesel::joinable!(fee_estimates -> chains (chain));
 diesel::joinable!(fiat_assets -> assets (asset_id));
 diesel::joinable!(fiat_assets -> fiat_providers (provider));
 diesel::joinable!(fiat_providers_countries -> countries (country));
@@ -1214,6 +1225,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     countries,
     devices,
     features,
+    fee_estimates,
     fiat_assets,
     fiat_providers,
     fiat_providers_countries,

@@ -45,7 +45,7 @@ pub fn format_token_id(chain: Chain, token_id: String) -> Option<String> {
             }
             token_id.starts_with('r').then_some(token_id)
         }
-        Chain::Algorand => token_id.parse::<i32>().ok().map(|token_id| token_id.to_string()),
+        Chain::Algorand => token_id.parse::<u64>().ok().map(|token_id| token_id.to_string()),
         Chain::Sui => {
             if token_id.len() >= 64 && token_id.starts_with("0x") && token_id.matches("::").count() == 2 && !token_id.starts_with("0x0000000000000000000000000000000000000000000000000000000000000002") {
                 Some(token_id)
@@ -116,6 +116,16 @@ mod tests {
     #[test]
     fn test_format_token_id_aptos() {
         assert_eq!(format_token_id(Chain::Aptos, APTOS_USDC_TOKEN_ID.to_string()), Some(APTOS_USDC_TOKEN_ID.to_string()));
+    }
+
+    #[test]
+    fn test_format_token_id_algorand() {
+        let chain = Chain::Algorand;
+
+        assert_eq!(format_token_id(chain, "38619275".to_string()), Some("38619275".to_string()));
+        assert_eq!(format_token_id(chain, "3203964481".to_string()), Some("3203964481".to_string()));
+        assert_eq!(format_token_id(chain, "-1".to_string()), None);
+        assert_eq!(format_token_id(chain, "ALGO".to_string()), None);
     }
 
     #[test]

@@ -13,6 +13,7 @@ impl Services {
                 defillama: prices.defillama.remote_provider_config(),
                 tonapi: prices.tonapi.remote_provider_config(),
                 stonfi: prices.stonfi.remote_provider_config(),
+                hypercore: prices.hypercore.remote_provider_config(),
             },
             providers,
         )

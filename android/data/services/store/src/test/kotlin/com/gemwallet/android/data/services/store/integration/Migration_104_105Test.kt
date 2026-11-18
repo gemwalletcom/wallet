@@ -52,15 +52,15 @@ class Migration_104_105Test {
         helper.runMigrationsAndValidate(testDb, 105, true, Migration_104_105).use { database ->
             assertEquals(listOf(listOf("multicoin"), listOf("privateKey_blast_0xkey")), database.rows("SELECT id FROM wallets ORDER BY id"))
             assertEquals(
-                listOf(listOf("multicoin", "ethereum"), listOf("multicoin", "seievm"), listOf("privateKey_blast_0xkey", "blast")),
+                listOf(listOf("multicoin", "ethereum"), listOf("multicoin", "sei"), listOf("multicoin", "seievm"), listOf("privateKey_blast_0xkey", "blast")),
                 database.rows("SELECT wallet_id, chain FROM accounts ORDER BY wallet_id, chain"),
             )
             assertEquals(
-                listOf(listOf("blast"), listOf("ethereum"), listOf("seievm"), listOf("seievm_0xtoken")),
+                listOf(listOf("blast"), listOf("ethereum"), listOf("sei"), listOf("seievm"), listOf("seievm_0xtoken")),
                 database.rows("SELECT id FROM asset ORDER BY id"),
             )
-            assertEquals(listOf(listOf("seievm"), listOf("seievm_0xtoken")), database.rows("SELECT asset_id FROM prices ORDER BY asset_id"))
-            assertEquals(listOf(listOf("seievm_0xtoken")), database.rows("SELECT assetId FROM transactions"))
+            assertEquals(listOf(listOf("sei"), listOf("seievm"), listOf("seievm_0xtoken")), database.rows("SELECT asset_id FROM prices ORDER BY asset_id"))
+            assertEquals(listOf(listOf("sei"), listOf("seievm_0xtoken")), database.rows("SELECT assetId FROM transactions ORDER BY assetId"))
             assertEquals(listOf(listOf("seievm_0xtoken")), database.rows("SELECT asset_id FROM balances"))
             assertEquals(emptyList<List<String?>>(), database.rows("PRAGMA foreign_key_check"))
         }

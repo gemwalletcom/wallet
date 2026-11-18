@@ -51,7 +51,8 @@ fn build_token_transfer_ptb(input: &TokenTransferInput) -> Result<TransactionBui
 
 pub fn encode_token_transfer(input: &TokenTransferInput) -> Result<TxOutput, Box<dyn Error + Send + Sync>> {
     let ptb = build_token_transfer_ptb(input)?;
-    finish_transaction(ptb, TransactionBuilderInput::new(input.sender.as_str(), input.gas.price, input.gas.budget, vec![input.gas_coin.to_input()])).map_err(|err| Box::new(err) as Box<dyn Error + Send + Sync>)
+    let gas_objects = input.gas_coins.iter().map(|coin| coin.object.to_input()).collect();
+    finish_transaction(ptb, TransactionBuilderInput::new(input.sender.as_str(), input.gas.price, input.gas.budget, gas_objects)).map_err(|err| Box::new(err) as Box<dyn Error + Send + Sync>)
 }
 
 #[cfg(test)]
@@ -131,7 +132,7 @@ mod tests {
                 0,
             ),
             gas: Gas { budget: 25_000_000, price: 750 },
-            gas_coin: Coin {
+            gas_coins: vec![Coin {
                 coin_type: SUI_COIN_TYPE.into(),
                 balance: 100000000,
                 object: Object {
@@ -139,7 +140,7 @@ mod tests {
                     digest: "3a2sHuj9pJg7RHub4w9EPyBtpxVfHzk52M91HErwMQ4J".parse().unwrap(),
                     version: 69035764,
                 },
-            },
+            }],
         };
 
         let output = encode_token_transfer(&input).unwrap();
@@ -160,7 +161,7 @@ mod tests {
             amount: 200_000_000,
             tokens: OwnedCoins::new(SUI_USDC_TOKEN_ID.into(), vec![], 2_605_380_809),
             gas: Gas { budget: 25_000_000, price: 750 },
-            gas_coin: Coin::mock_sui(),
+            gas_coins: vec![Coin::mock_sui()],
         };
 
         let output = encode_token_transfer(&input).unwrap();
@@ -170,6 +171,36 @@ mod tests {
         assert_eq!(withdrawals(ptb), vec![200_000_000]);
         assert_eq!(ptb.commands.len(), 2, "expected redeem_funds + transfer_objects");
         assert_eq!(hex::encode(&output.hash), "75ba0d1491c96a4d88be5ad9591a46cb89aad7f7098918075fd1e7b308bbfa6c");
+    }
+
+    #[test]
+    fn test_encode_token_transfer_pays_gas_with_every_sui_coin() {
+        let gas_coins = vec![
+            Coin::mock_sui(),
+            Coin {
+                balance: 20_000_000,
+                object: Object {
+                    object_id: "0x890f8c604c7cb5cc194dbf4953ad3dbebd81ef7526be351d3514cc3cc26c9c1d".parse().unwrap(),
+                    ..Object::mock()
+                },
+                ..Coin::mock_sui()
+            },
+        ];
+        let output = encode_token_transfer(&TokenTransferInput {
+            sender: "0x1b4cd8b734f2465614678ca0450ce9c4f2ff4835c6a7545522892a1a8fb67991".into(),
+            recipient: "0xcf3abaeecfaf42990b8481c03000000000000000000000000000000000000000".into(),
+            amount: 200_000_000,
+            tokens: OwnedCoins::new(SUI_USDC_TOKEN_ID.into(), vec![], 2_605_380_809),
+            gas: Gas { budget: 25_000_000, price: 750 },
+            gas_coins: gas_coins.clone(),
+        })
+        .unwrap();
+        let tx: Transaction = bcs::from_bytes(&output.tx_data).unwrap();
+
+        assert_eq!(
+            tx.gas_payment.objects.into_iter().map(ObjectInput::ImmutableOrOwned).collect::<Vec<_>>(),
+            gas_coins.iter().map(|coin| coin.object.to_input()).collect::<Vec<_>>()
+        );
     }
 
     #[test]
@@ -192,7 +223,7 @@ mod tests {
                 60_000_000,
             ),
             gas: Gas { budget: 25_000_000, price: 750 },
-            gas_coin: Coin::mock_sui(),
+            gas_coins: vec![Coin::mock_sui()],
         };
 
         let output = encode_token_transfer(&input).unwrap();

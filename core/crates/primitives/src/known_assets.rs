@@ -239,3 +239,11 @@ pub static STABLECOIN_ASSET_IDS: LazyLock<HashSet<AssetId>> = LazyLock::new(|| {
         .flat_map(|ids| ids.iter().cloned())
         .collect()
 });
+
+pub fn hypercore_spot_asset_id(contract: &str) -> Option<AssetId> {
+    [&HYPERCORE_SPOT_HYPE, &HYPERCORE_SPOT_USDC, &HYPERCORE_SPOT_UBTC]
+        .into_iter()
+        .map(|asset| &asset.id)
+        .find(|asset_id| asset_id.contract().as_deref() == Some(contract))
+        .cloned()
+}

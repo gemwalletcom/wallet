@@ -49,5 +49,6 @@ pub fn router() -> Router<AppState> {
         .route("/rewards/leaderboard", get(markets::get_rewards_leaderboard))
         .route("/chain/fee-estimates", get(fee::get_fee_estimates))
         .route("/chain/fee-estimates/{chain}", get(fee::get_chain_fee_estimates))
+        .route("/chain/fee-estimates/{chain}/charts", get(fee::get_chain_fee_estimates_charts))
         .merge(webhooks::router())
 }

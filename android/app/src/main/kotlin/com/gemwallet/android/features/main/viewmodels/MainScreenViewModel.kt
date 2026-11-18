@@ -12,8 +12,10 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import uniffi.gemstone.pendingActivityFilters
+import uniffi.gemstone.showsScanReceiveSelector
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -23,6 +25,10 @@ class MainScreenViewModel @Inject constructor(getCurrentWalletId: GetCurrentWall
         .flatMapLatest { walletId -> transactionsCountQuery(walletId, pendingActivityFilters().toPrimitives()) }
         .filterNotNull()
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
+
+    val showsScanReceiveSelector: StateFlow<Boolean> = getCurrentWalletId()
+        .map { showsScanReceiveSelector(it.id) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     fun onScan(code: String) = pendingNavigationCoordinator.pendScan(code)
 }

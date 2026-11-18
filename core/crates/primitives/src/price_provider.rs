@@ -17,6 +17,7 @@ pub enum PriceProvider {
     Jupiter,
     DefiLlama,
     TonApi,
+    Hypercore,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -53,7 +54,7 @@ impl PriceProvider {
     pub fn has_candles(&self) -> bool {
         match self {
             Self::Coingecko => true,
-            Self::Pyth | Self::Jupiter | Self::DefiLlama | Self::TonApi => false,
+            Self::Pyth | Self::Jupiter | Self::DefiLlama | Self::TonApi | Self::Hypercore => false,
         }
     }
 
@@ -64,6 +65,7 @@ impl PriceProvider {
             Self::Jupiter => 2,
             Self::DefiLlama => 4,
             Self::TonApi => 3,
+            Self::Hypercore => 5,
         }
     }
 }

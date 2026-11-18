@@ -2,9 +2,10 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use gem_client::{RemoteProviderConfig, ReqwestClient};
+use gem_hypercore::rpc::client::HyperCoreClient;
 use primitives::{FiatRateProvider, PriceProvider};
 
-use crate::{CoinGeckoPricesProvider, CoinMarketCapRatesProvider, DefiLlamaProvider, FiatRatesProvider, JupiterProvider, PriceAssetsProvider, PythProvider, TonApiProvider};
+use crate::{CoinGeckoPricesProvider, CoinMarketCapRatesProvider, DefiLlamaProvider, FiatRatesProvider, HypercoreProvider, JupiterProvider, PriceAssetsProvider, PythProvider, TonApiProvider};
 
 pub struct FiatRatesProviderConfig {
     pub coingecko: RemoteProviderConfig,
@@ -23,6 +24,7 @@ pub struct PriceProviderConfig {
     pub defillama: RemoteProviderConfig,
     pub tonapi: RemoteProviderConfig,
     pub stonfi: RemoteProviderConfig,
+    pub hypercore: RemoteProviderConfig,
 }
 
 pub type PriceProviders = HashMap<PriceProvider, Arc<dyn PriceAssetsProvider>>;
@@ -38,6 +40,7 @@ pub fn build_price_providers(config: &PriceProviderConfig, providers: impl IntoI
                 PriceProvider::Jupiter => Arc::new(JupiterProvider::new(config.jupiter.configure_client(client.clone()))),
                 PriceProvider::DefiLlama => Arc::new(DefiLlamaProvider::new(config.defillama.configure_client(client.clone()))),
                 PriceProvider::TonApi => Arc::new(TonApiProvider::new(config.tonapi.configure_client(client.clone()), config.stonfi.configure_client(client.clone()), &config.tonapi.key)),
+                PriceProvider::Hypercore => Arc::new(HypercoreProvider::new(HyperCoreClient::new(config.hypercore.configure_client(client.clone())))),
             };
             (provider, price_provider)
         })

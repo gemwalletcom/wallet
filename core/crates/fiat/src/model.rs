@@ -2,8 +2,9 @@ use chain_primitives::format_token_id;
 use primitives::fiat_assets::FiatAssetLimits;
 use primitives::{
     Asset, AssetId, Chain, CosmosDenom, FiatAssetSymbol, FiatProviderName, RequestError, WalletType,
-    asset_constants::{HYPERCORE_SPOT_HYPE_ASSET_ID, HYPERCORE_SPOT_UBTC_ASSET_ID, HYPERCORE_SPOT_USDC_ASSET_ID, WORLD_WETH_TOKEN_ID},
+    asset_constants::WORLD_WETH_TOKEN_ID,
     contract_constants::{EVM_ZERO_ADDRESS, SOLANA_SYSTEM_PROGRAM_ID, TON_ZERO_ADDRESS},
+    known_assets::hypercore_spot_asset_id,
 };
 use std::collections::HashMap;
 
@@ -112,14 +113,11 @@ pub fn filter_token_id(chain: Option<Chain>, token_id: Option<String>) -> Option
 }
 
 fn hypercore_token_id(address: String) -> Option<String> {
-    let contract = |asset_id: &AssetId| asset_id.token_components().and_then(|(_, contract, _)| contract);
-    if contract(&HYPERCORE_SPOT_HYPE_ASSET_ID).as_ref() == Some(&address) {
-        return None;
+    match hypercore_spot_asset_id(&address) {
+        Some(asset_id) if asset_id.is_native_mirror() => None,
+        Some(asset_id) => asset_id.token_id,
+        None => Some(address),
     }
-    [&*HYPERCORE_SPOT_USDC_ASSET_ID, &*HYPERCORE_SPOT_UBTC_ASSET_ID]
-        .into_iter()
-        .find(|asset_id| contract(asset_id).as_ref() == Some(&address))
-        .map_or(Some(address), |asset_id| asset_id.token_id.clone())
 }
 
 #[cfg(test)]

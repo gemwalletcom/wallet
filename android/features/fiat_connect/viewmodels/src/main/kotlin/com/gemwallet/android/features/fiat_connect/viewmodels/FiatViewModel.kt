@@ -32,6 +32,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -46,6 +47,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
@@ -143,7 +145,7 @@ class FiatViewModel @Inject constructor(
         .distinctUntilChanged()
         .flatMapLatest { refreshes -> if (refreshes) tickerFlow(GemConstants.fiatQuoteRefreshInterval.inWholeMilliseconds) {} else emptyFlow() }
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0L)
-    private val quoteRefresh = MutableStateFlow(0L)
+    private val refreshRequests = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
     init {
         assetInfo.filterNotNull()
@@ -159,7 +161,7 @@ class FiatViewModel @Inject constructor(
             session.map { it.quoteRequest() }.distinctUntilChanged().debounce(GemConstants.fiatQuoteDebounce),
             assetInfo.filterNotNull().map { it.asset.id }.distinctUntilChanged(),
             ticker,
-            quoteRefresh,
+            refreshRequests.onStart { emit(Unit) },
         ) { request, assetId, _, _ -> request?.let { QuoteFetch(it, assetId) } }
             .mapLatest { fetch -> fetch?.let { loadQuotes(it.request, it.assetId) } }
             .launchIn(viewModelScope)
@@ -188,12 +190,12 @@ class FiatViewModel @Inject constructor(
     }
 
     fun retry() {
-        quoteRefresh.value += 1
+        refreshRequests.tryEmit(Unit)
     }
 
     fun setRefreshEnabled(isEnabled: Boolean) {
         if (isEnabled && !refreshEnabled.value && session.value.refreshesQuotes(true)) {
-            quoteRefresh.value += 1
+            refreshRequests.tryEmit(Unit)
         }
         refreshEnabled.value = isEnabled
     }

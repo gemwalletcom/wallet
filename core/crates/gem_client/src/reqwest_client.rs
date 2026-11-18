@@ -1,7 +1,7 @@
 use std::{collections::HashMap, time::Duration};
 
 use async_trait::async_trait;
-use reqwest::header::USER_AGENT;
+use reqwest::header::{HeaderMap, USER_AGENT};
 use reqwest::{Method, RequestBuilder};
 use serde::{Serialize, de::DeserializeOwned};
 
@@ -142,8 +142,13 @@ impl ReqwestClient {
 
 async fn response_data(response: reqwest::Response) -> Result<Response, ClientError> {
     let status = response.status().as_u16();
+    let headers = map_response_headers(response.headers());
     let data = response.bytes().await.map_err(|error| ClientError::Network(format!("Failed to read response body: {}", error.without_url())))?.to_vec();
-    Ok(Response { status: Some(status), data })
+    Ok(Response { status: Some(status), headers, data })
+}
+
+pub fn map_response_headers(headers: &HeaderMap) -> HashMap<String, String> {
+    headers.iter().filter_map(|(name, value)| Some((name.to_string(), value.to_str().ok()?.to_string()))).collect()
 }
 
 #[cfg(test)]

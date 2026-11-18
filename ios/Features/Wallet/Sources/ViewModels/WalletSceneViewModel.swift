@@ -46,7 +46,6 @@ public final class WalletSceneViewModel: Sendable, AssetActions {
     public var isPresentingScanner = false
     public var isPresentingWallets: Binding<Bool>
     public var isPresentingSheet: Binding<WalletSheetType?>
-    public var isPresentingSearch = false
     public var isPresentingUrl: URL?
     public var isPresentingToastMessage: ToastMessage?
 
@@ -143,10 +142,6 @@ public extension WalletSceneViewModel {
         isPresentingSheet.wrappedValue = .selectAsset(.manage, chains: chains)
     }
 
-    func onToggleSearch() {
-        isPresentingSearch.toggle()
-    }
-
     func onSelectScanner() {
         isPresentingScanner = true
     }
@@ -198,10 +193,6 @@ public extension WalletSceneViewModel {
 
     internal func onCopyAddress(_ message: String) {
         isPresentingToastMessage = .copy(message)
-    }
-
-    func onWalletTabReselected(_: Bool, _: Bool) {
-        isPresentingSearch = false
     }
 }
 

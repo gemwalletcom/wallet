@@ -504,6 +504,11 @@
       }
     }
   },
+  "v1_chain_fee_estimates_charts": {
+    "status": 200,
+    "content_type": "application/json",
+    "body": "<volatile>"
+  },
   "v1_device": {
     "status": 200,
     "content_type": "application/json",

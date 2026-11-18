@@ -102,7 +102,6 @@ extension StakeScene {
                 .cleanListRow()
         case .none:
             ListItemLoadingView()
-                .id(UUID())
         case let .error(error):
             ListItemErrorView(errorTitle: Localized.Errors.errorOccurred, error: error)
         case .rows:

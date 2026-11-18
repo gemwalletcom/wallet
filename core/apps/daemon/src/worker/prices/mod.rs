@@ -122,7 +122,7 @@ async fn add_provider_jobs<'a>(builder: JobPlanBuilder<'a>, prices: &PriceJobs, 
                     Box::pin(async move { updater.update_markets().await })
                 }
             }),
-        PriceProvider::Pyth | PriceProvider::Jupiter | PriceProvider::DefiLlama | PriceProvider::TonApi => add_updater_job(
+        PriceProvider::Pyth | PriceProvider::Jupiter | PriceProvider::DefiLlama | PriceProvider::TonApi | PriceProvider::Hypercore => add_updater_job(
             builder,
             prices,
             kind,

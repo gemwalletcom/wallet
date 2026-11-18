@@ -28,6 +28,7 @@ pub enum InfoRequest {
         dex: Option<String>,
     },
     SpotMeta,
+    SpotMetaAndAssetCtxs,
     L2Book {
         coin: String,
     },

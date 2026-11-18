@@ -169,7 +169,7 @@ impl WalletTestkit {
         let session = Arc::new(GemWalletSessionService::mock(wallets.clone(), None));
         let app_preferences = Arc::new(GemPreferencesService::new(preferences));
         let names = Arc::new(GemNameService::new(
-            Arc::new(GemDeviceApiClient::mock(Arc::new(TestAlienProvider::new(crate::alien::AlienResponse::new(None, Vec::new()))))),
+            Arc::new(GemDeviceApiClient::mock(Arc::new(TestAlienProvider::new(crate::alien::AlienResponse::new(None, HashMap::new(), Vec::new()))))),
             addresses,
         ));
         let service = Arc::new(GemWalletService::new(

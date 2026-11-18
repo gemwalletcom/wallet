@@ -92,7 +92,6 @@ extension AddAssetScene {
 
             if model.isLoading {
                 ListItemLoadingView()
-                    .id(UUID())
             }
             GemGroupSections(rows: model.sections) { GemListRowView(row: $0) }
             if model.showsVerificationWarning {
@@ -110,8 +109,7 @@ extension AddAssetScene {
 
 extension AddAssetScene {
     private func onFinishChainSelection(chains: [Chain]) {
-        model.input.chain = chains.first
-        model.input.address = nil
+        model.onSelectChain(chains.first)
     }
 
     private func onSelectImportToken() {

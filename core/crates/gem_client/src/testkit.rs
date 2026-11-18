@@ -68,7 +68,11 @@ impl Client for MockClient {
     {
         let handler = self.get_handler.as_ref().ok_or(ClientError::Http { status: 404, body: vec![] })?;
         let data = handler(path, &headers)?;
-        deserialize_response(&Response { status: Some(200), data })
+        deserialize_response(&Response {
+            status: Some(200),
+            headers: HashMap::new(),
+            data,
+        })
     }
 
     async fn get_url<R>(&self, url: &str) -> Result<R, ClientError>
@@ -86,7 +90,11 @@ impl Client for MockClient {
         let handler = self.post_handler.as_ref().ok_or(ClientError::Http { status: 404, body: vec![] })?;
         let body_bytes = encode_request_body(&headers, body)?;
         let data = handler(path, &body_bytes, &headers)?;
-        deserialize_response(&Response { status: Some(200), data })
+        deserialize_response(&Response {
+            status: Some(200),
+            headers: HashMap::new(),
+            data,
+        })
     }
 
     async fn patch_with<T, R>(&self, path: &str, body: &T, headers: HashMap<String, String>) -> Result<R, ClientError>

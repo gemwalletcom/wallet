@@ -96,6 +96,10 @@ pub(crate) enum TronContract {
     },
 }
 
+pub(crate) fn sends_coins(call_value: Option<u64>, call_token_value: Option<u64>) -> bool {
+    [call_value, call_token_value].into_iter().flatten().any(|value| value != 0)
+}
+
 impl TronContract {
     pub(crate) fn owner(&self) -> &TronAddress {
         match self {

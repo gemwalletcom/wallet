@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use chain_primitives::format_token_id;
-use primitives::{AssetId, OptionStringExt, chain::Chain};
+use primitives::{AssetId, OptionStringExt, chain::Chain, known_assets::hypercore_spot_asset_id};
 
 const COINGECKO_CHAIN_PLATFORMS: &[(Chain, &str)] = &[
     (Chain::Ethereum, "ethereum"),
@@ -47,6 +47,8 @@ const COINGECKO_CHAIN_PLATFORMS: &[(Chain, &str)] = &[
     (Chain::Arc, "arc"),
 ];
 
+const COINGECKO_HYPERCORE_PLATFORM: &str = "hyperliquid";
+
 pub fn get_chains_for_coingecko_market_id(id: &str) -> Vec<Chain> {
     Chain::all().into_iter().filter(|chain| get_coingecko_market_id_for_chain(*chain) == Some(id)).collect()
 }
@@ -67,8 +69,9 @@ pub fn get_asset_ids_for_coin(id: &str, platforms: &HashMap<String, Option<Strin
         let token_id = format_token_id(chain, contract.clone())?;
         Some(AssetId::from(chain, Some(token_id)))
     });
+    let hypercore = platforms.get(COINGECKO_HYPERCORE_PLATFORM).and_then(|contract| contract.as_deref()).and_then(hypercore_spot_asset_id);
 
-    chains.chain(tokens).collect()
+    chains.chain(tokens).chain(hypercore).collect()
 }
 
 pub fn get_coingecko_market_id_for_chain(chain: Chain) -> Option<&'static str> {
@@ -123,6 +126,8 @@ pub fn get_coingecko_market_id_for_chain(chain: Chain) -> Option<&'static str> {
 
 #[cfg(test)]
 mod tests {
+    use primitives::asset_constants::HYPERCORE_SPOT_UBTC_ASSET_ID;
+
     use super::*;
 
     #[test]
@@ -154,5 +159,10 @@ mod tests {
             get_asset_ids_for_coin("tesla-xstock", &platforms),
             vec![AssetId::from(Chain::Robinhood, Some("0x1234567890AbcdEF1234567890aBcdef12345678".to_string()))]
         );
+        assert_eq!(
+            get_asset_ids_for_coin("unit-bitcoin", &HashMap::from([("hyperliquid".to_string(), Some("0x8f254b963e8468305d409b33aa137c67".to_string()))])),
+            vec![HYPERCORE_SPOT_UBTC_ASSET_ID.clone()]
+        );
+        assert_eq!(get_asset_ids_for_coin("unknown", &HashMap::from([("hyperliquid".to_string(), Some("0xfeb2eb8f7d9a2b0f3e2c1f41d2a4c4d3".to_string()))])), vec![]);
     }
 }

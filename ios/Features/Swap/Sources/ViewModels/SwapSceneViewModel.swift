@@ -1,6 +1,5 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import BigInt
 import Components
 import Foundation
 import class Gemstone.Config
@@ -35,7 +34,7 @@ import Style
 @MainActor
 @Observable
 public final class SwapSceneViewModel {
-    static let inputPercentSuggestions = Config.shared.swapConfig().amountPercentPresets.map {
+    static let inputPercentSuggestions = Config.shared.getSwapConfig().amountPercentPresets.map {
         PercentageSuggestion(number: formattedPercentage(value: Double($0), style: .unsignedCompact))
     }
 
@@ -424,7 +423,7 @@ extension SwapSceneViewModel {
             if let input = session.input {
                 session = session.onRefreshRequested(request: input.request)
             }
-            setLoadTrigger(isImmediate: true)
+            await load()
         case .insufficientBalance: break
         case .useMinimumAmount: setMinimumAmount()
         case .swap:

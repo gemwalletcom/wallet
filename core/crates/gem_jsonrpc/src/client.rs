@@ -101,6 +101,7 @@ impl JsonRpcClient<gem_client::ReqwestClient> {
 mod tests {
     use gem_client::{Response, deserialize_response, testkit::MockClient};
     use serde::{Deserialize, Serialize};
+    use std::collections::HashMap;
 
     use super::*;
     use crate::types::TypedJsonRpcError;
@@ -169,6 +170,7 @@ mod tests {
                 for expected in &errors {
                     let response = Response {
                         status,
+                        headers: HashMap::new(),
                         data: serde_json::to_vec(&serde_json::json!({"jsonrpc":"2.0","id":id,"error":expected})).unwrap(),
                     };
                     let error = deserialize_response::<JsonRpcResult<Value, MockRpcError>>(&response).map_err(decode_client_error).and_then(JsonRpcResult::take).unwrap_err();
@@ -184,6 +186,7 @@ mod tests {
         for status in [400, 404, 500] {
             let response = Response {
                 status: Some(status),
+                headers: HashMap::new(),
                 data: br#"[{"id":2,"error":{"code":-32000,"message":"Provider detail","cause":{"name":"X"},"data":"0x01"}},{"id":1,"result":7}]"#.to_vec(),
             };
             let error = deserialize_response::<Vec<JsonRpcResult<Value, MockRpcError>>>(&response).map_err(decode_client_error::<MockRpcError>).unwrap_err();
@@ -200,6 +203,7 @@ mod tests {
         for status in [400, 404, 500] {
             let response = Response {
                 status: Some(status),
+                headers: HashMap::new(),
                 data: br#"[{"id":1,"result":7}]"#.to_vec(),
             };
             let error = deserialize_response::<Vec<JsonRpcResult<u64>>>(&response).map_err(JsonRpcError::from).unwrap_err();
@@ -213,6 +217,7 @@ mod tests {
         for status in [400, 404, 500] {
             let response = Response {
                 status: Some(status),
+                headers: HashMap::new(),
                 data: br#"{"jsonrpc":"2.0","id":1,"result":7}"#.to_vec(),
             };
             let error = deserialize_response::<JsonRpcResult<u64>>(&response).map_err(JsonRpcError::from).and_then(JsonRpcResult::take).unwrap_err();
@@ -225,6 +230,7 @@ mod tests {
     fn test_http_error_preserves_api_message() {
         let response = Response {
             status: Some(400),
+            headers: HashMap::new(),
             data: br#"{"error":{"message":"Invalid request"}}"#.to_vec(),
         };
         let error = deserialize_response::<JsonRpcResult<Value>>(&response).map_err(JsonRpcError::from).unwrap_err();

@@ -77,8 +77,9 @@ impl SwapProvider {
             | Self::DeepbookV3
             | Self::Aero
             | Self::XrpLedger
-            | Self::Okx => SwapProviderMode::OnChain,
-            Self::Mayan | Self::Mayachain | Self::Squid | Self::SwapsXyz | Self::Bridgers => SwapProviderMode::CrossChain,
+            | Self::Okx
+            | Self::Mayachain => SwapProviderMode::OnChain,
+            Self::Mayan | Self::Squid | Self::SwapsXyz | Self::Bridgers => SwapProviderMode::CrossChain,
             Self::Chainflip => SwapProviderMode::OmniChain(vec![Chain::Tron]),
             Self::Thorchain => SwapProviderMode::OmniChain(vec![Chain::Thorchain, Chain::Tron]),
             Self::NearIntents => SwapProviderMode::OmniChain(vec![Chain::Near, Chain::Tron]),
