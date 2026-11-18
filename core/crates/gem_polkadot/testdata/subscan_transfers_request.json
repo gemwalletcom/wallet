@@ -1,6 +1,6 @@
 {
   "address": "address",
-  "asset_symbol": "DOT",
+  "asset_unique_id": "DOT",
   "direction": "all",
   "order": "desc",
   "page": 0,

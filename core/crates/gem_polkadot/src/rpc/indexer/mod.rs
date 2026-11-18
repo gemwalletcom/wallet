@@ -7,11 +7,12 @@ use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
 use primitives::Transaction;
 use serde::{Deserialize, Serialize, de};
+use serde_serializers::deserialize_biguint_from_str;
 
 use self::mapper::map_transaction;
 use crate::rpc::target::SubscanTarget;
 
-const NATIVE_ASSET_SYMBOL: &str = "DOT";
+const NATIVE_ASSET: &str = "DOT";
 const MAX_TRANSFERS_LIMIT: usize = 25;
 const POLKADOT_DECIMALS: u32 = 10;
 
@@ -26,7 +27,7 @@ where
 #[derive(Debug, Serialize)]
 struct TransfersRequest<'a> {
     address: &'a str,
-    asset_symbol: &'static str,
+    asset_unique_id: &'static str,
     direction: &'static str,
     order: &'static str,
     page: usize,
@@ -48,7 +49,7 @@ pub(super) struct SubscanTransfer {
     #[serde(deserialize_with = "deserialize_dot_amount")]
     pub amount: BigUint,
     pub block_timestamp: i64,
-    #[serde(deserialize_with = "deserialize_dot_amount")]
+    #[serde(deserialize_with = "deserialize_biguint_from_str")]
     pub fee: BigUint,
     pub from: String,
     pub hash: String,
@@ -70,7 +71,7 @@ impl<C: Client> PolkadotIndexer<C> {
         let from_timestamp = from_timestamp.map(i64::try_from).transpose()?;
         let request = TransfersRequest {
             address,
-            asset_symbol: NATIVE_ASSET_SYMBOL,
+            asset_unique_id: NATIVE_ASSET,
             direction: "all",
             order: "desc",
             page: 0,
@@ -110,9 +111,16 @@ mod tests {
 
         let transactions = PolkadotIndexer::new(client).get_transactions_by_address("address", 100, None).await.unwrap();
 
-        assert_eq!(transactions.iter().map(Transaction::hash).collect::<Vec<_>>(), vec!["asset-hub-newest", "asset-hub-older"]);
-        assert_eq!(transactions.iter().map(|transaction| transaction.value.to_string()).collect::<Vec<_>>(), vec!["2500000000", "20000000000"]);
-        assert_eq!(transactions.iter().map(|transaction| transaction.fee.to_string()).collect::<Vec<_>>(), vec!["100000000", "50000000"]);
+        assert_eq!(
+            transactions.iter().map(Transaction::hash).collect::<Vec<_>>(),
+            vec![
+                "0x5ed3e43d73162091d95cdc622924199241fc04b2d78fb493873b8d59dc6cede6",
+                "0x4207d705d9b65f7d1eadb5d5ed0318469376eb9fb0298cf526003310decf56cf",
+                "0x7377d134e6ca0f464870e0a87e5b71e7ce5b8413b835fa735f855ea0d6b03c4a"
+            ]
+        );
+        assert_eq!(transactions.iter().map(|transaction| transaction.value.to_string()).collect::<Vec<_>>(), vec!["410004743", "18477636728", "29000000000"]);
+        assert_eq!(transactions.iter().map(|transaction| transaction.fee.to_string()).collect::<Vec<_>>(), vec!["8670082", "8920082", "8958355"]);
 
         let empty_client = MockClient::new().with_post(|path, _| {
             assert_eq!(path, "/api/v2/scan/transfers");
