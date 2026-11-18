@@ -1,0 +1,55 @@
+{
+  "assets": [],
+  "perpetuals": [
+    {
+      "perpetual": {
+        "id": "hypercore_BTC",
+        "name": "BTC",
+        "provider": "hypercore",
+        "assetId": "hypercore",
+        "identifier": "0",
+        "price": 100.0,
+        "pricePercentChange24h": -0.03,
+        "openInterest": 0.0,
+        "volume24h": 0.0,
+        "funding": 0.0,
+        "maxLeverage": 20,
+        "isIsolatedOnly": true,
+        "isEnabled": true
+      },
+      "asset": {
+        "id": "hypercore",
+        "name": "HyperCore",
+        "symbol": "HYPE",
+        "decimals": 8,
+        "type": "NATIVE"
+      }
+    },
+    {
+      "perpetual": {
+        "id": "hypercore_ETH",
+        "name": "ETH",
+        "provider": "hypercore",
+        "assetId": "hypercore",
+        "identifier": "0",
+        "price": 100.0,
+        "pricePercentChange24h": 0.0,
+        "openInterest": 0.0,
+        "volume24h": 0.0,
+        "funding": 0.0,
+        "maxLeverage": 20,
+        "isIsolatedOnly": true,
+        "isEnabled": true
+      },
+      "asset": {
+        "id": "hypercore",
+        "name": "HyperCore",
+        "symbol": "HYPE",
+        "decimals": 8,
+        "type": "NATIVE"
+      }
+    }
+  ],
+  "nfts": [],
+  "lists": []
+}

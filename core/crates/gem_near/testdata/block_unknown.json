@@ -1,0 +1,13 @@
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "error": {
+    "name": "HANDLER_ERROR",
+    "cause": {
+      "info": {},
+      "name": "UNKNOWN_BLOCK"
+    },
+    "code": -32000,
+    "message": "Server error"
+  }
+}

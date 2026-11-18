@@ -18,7 +18,7 @@ Use when writing or changing any Core test, fixture, or integration test gate.
 
 ## Test Data
 
-JSON longer than about 20 lines lives in the crate's `testdata/` and loads with `include_str!`; never embed request, response, or transaction JSON with `serde_json::json!` in test files. Per-crate layout is `src/`, `tests/`, `testdata/`.
+A response body a test feeds in (Gem API, RPC, WebSocket), and any other JSON longer than about 20 lines, lives in the owning crate's `testdata/` and loads with `include_str!`, never as an inline string const; never embed request, response, or transaction JSON with `serde_json::json!` in test files. Only a body built with `format!` from test values, or a one-line stub of a field or two such as `{"balance":"1000"}`, stays at the call site. A file read in one place is `include_str!` at that call; a `const` holds it only when it is read in several places. Per-crate layout is `src/`, `tests/`, `testdata/`.
 
 ## Testkit Mocks
 

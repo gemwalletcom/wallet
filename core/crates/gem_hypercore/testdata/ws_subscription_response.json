@@ -1,0 +1,9 @@
+{
+  "channel": "subscriptionResponse",
+  "data": {
+    "method": "subscribe",
+    "subscription": {
+      "type": "allMids"
+    }
+  }
+}

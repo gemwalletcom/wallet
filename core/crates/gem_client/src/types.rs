@@ -155,7 +155,7 @@ fn http_error_status(response: &Response) -> Option<u16> {
 mod tests {
     use super::*;
 
-    const USERNAME_ERROR: &str = r#"{"error":{"message":"Username must contain only letters and digits"}}"#;
+    const USERNAME_ERROR: &str = include_str!("../testdata/response_error_message.json");
     const USERNAME_ERROR_MESSAGE: &str = "Username must contain only letters and digits";
 
     #[test]

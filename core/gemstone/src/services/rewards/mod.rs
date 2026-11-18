@@ -177,7 +177,7 @@ mod tests {
     #[test]
     fn test_a_rewards_error_answered_with_ok_status_surfaces_its_message() {
         block_on(async {
-            let username_error = r#"{"error":{"message":"Username must contain only letters and digits"}}"#;
+            let username_error = include_str!("../../../../crates/gem_client/testdata/response_error_message.json");
             let testkit = RewardsTestkit::with_provider(Arc::new(TestAlienProvider::with_json_by_path(
                 200,
                 &[("auth/nonce", TEST_NONCE), ("referrals/use", username_error), ("rewards/referrals", username_error)],

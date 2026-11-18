@@ -1,0 +1,26 @@
+[
+  {
+    "asset": {
+      "id": "ethereum",
+      "name": "Ethereum",
+      "symbol": "ETH",
+      "decimals": 18,
+      "type": "NATIVE"
+    },
+    "properties": {
+      "isEnabled": true,
+      "isBuyable": true,
+      "isSellable": true,
+      "isSwapable": true,
+      "isStakeable": false,
+      "isEarnable": false,
+      "hasImage": true,
+      "hasCandles": false,
+      "hasPrice": true
+    },
+    "score": {
+      "rank": 100,
+      "type": "high"
+    }
+  }
+]

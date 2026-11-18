@@ -163,8 +163,6 @@ mod tests {
 
     use super::*;
 
-    const COIN_INFO: &str = r#"{"id":"bitcoin","symbol":"btc","name":"Bitcoin","asset_platform_id":null,"preview_listing":false,"market_cap_rank":1,"market_cap_rank_with_rehypothecated":null,"watchlist_portfolio_users":1000,"platforms":{},"detail_platforms":{},"links":{"homepage":[],"blockchain_site":[],"chat_url":[],"subreddit_url":null,"twitter_screen_name":null,"facebook_username":null,"telegram_channel_identifier":null,"repos_url":{}},"community_data":null,"image":{"thumb":"","small":"","large":""}}"#;
-
     #[tokio::test]
     async fn test_get_mappings_for_native_asset_id() {
         let provider = CoinGeckoPricesProvider {
@@ -186,7 +184,7 @@ mod tests {
         let client = MockClient::new().with_get(move |path| {
             recorded_paths.lock().unwrap().push(path.to_string());
             match path {
-                value if value.starts_with("/api/v3/coins/bitcoin?") => Ok(COIN_INFO.as_bytes().to_vec()),
+                value if value.starts_with("/api/v3/coins/bitcoin?") => Ok(include_str!("../../../testdata/coingecko/coin_info_bitcoin.json").as_bytes().to_vec()),
                 value if value.starts_with("/api/v3/coins/removed?") => Err(ClientError::Http {
                     status: 404,
                     body: br#"{"error":"coin not found"}"#.to_vec(),

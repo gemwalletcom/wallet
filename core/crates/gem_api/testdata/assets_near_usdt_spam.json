@@ -1,0 +1,26 @@
+[
+  {
+    "asset": {
+      "id": "near_usdt.tether-token.near",
+      "name": "Tether USD",
+      "symbol": "USDt",
+      "decimals": 6,
+      "type": "TOKEN"
+    },
+    "properties": {
+      "isEnabled": false,
+      "isBuyable": false,
+      "isSellable": false,
+      "isSwapable": false,
+      "isStakeable": false,
+      "isEarnable": false,
+      "hasImage": false,
+      "hasCandles": false,
+      "hasPrice": false
+    },
+    "score": {
+      "rank": -20,
+      "type": "unknown"
+    }
+  }
+]
