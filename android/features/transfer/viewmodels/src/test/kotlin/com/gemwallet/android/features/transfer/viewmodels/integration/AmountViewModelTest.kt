@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.transfer.viewmodels.integration
 
 import android.content.Context
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.snapshots.Snapshot
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
@@ -115,12 +116,12 @@ class AmountViewModelTest {
 
     @Test
     fun `a prefilled payment amount fills the amount once`() = viewModelTest(AmountParams.Transfer(asset.id, GemPaymentRecipient(GemRecipient(address = "to"), "1.5"))) { viewModel ->
-        assertEquals("1.5", viewModel.amount)
+        assertEquals("1.5", viewModel.amount.text.toString())
 
         viewModel.setAmount("")
         assetInfoFlow.value = assetInfo(OneAtom)
         runCurrent()
-        assertEquals("", viewModel.amount)
+        assertEquals("", viewModel.amount.text.toString())
     }
 
     @Test
@@ -169,7 +170,7 @@ class AmountViewModelTest {
         viewModel.switchInputType()
         runCurrent()
         assertEquals(GemAmountInputType.FIAT, viewModel.amountInputType.value)
-        assertEquals("", viewModel.amount)
+        assertEquals("", viewModel.amount.text.toString())
 
         viewModel.switchInputType()
         runCurrent()
@@ -187,7 +188,7 @@ class AmountViewModelTest {
         runCurrent()
 
         assertEquals(GemAmountInputType.ASSET, viewModel.amountInputType.value)
-        assertEquals("2", viewModel.amount)
+        assertEquals("2", viewModel.amount.text.toString())
         viewModel.confirm()
         assertEquals(BigInteger("2000000"), sentValues.last())
         assertEquals(true, sentIsMax.last())
@@ -201,7 +202,7 @@ class AmountViewModelTest {
         viewModel.onMaxAmount()
         runCurrent()
 
-        assertEquals("2", viewModel.amount)
+        assertEquals("2", viewModel.amount.text.toString())
     }
 
     @Test
@@ -214,7 +215,7 @@ class AmountViewModelTest {
         Snapshot.sendApplyNotifications()
         testDispatcher.scheduler.advanceUntilIdle()
 
-        assertTrue("a stake max stays under the balance", viewModel.amount.toBigDecimal() < BigDecimal(2))
+        assertTrue("a stake max stays under the balance", viewModel.amount.text.toString().toBigDecimal() < BigDecimal(2))
         assertNotNull(viewModel.uiState.value.reserveForFee)
     }
 
@@ -242,13 +243,13 @@ class AmountViewModelTest {
             GemGroupList(listOf(GemGroup("Active", GemLocalizedText.SectionTitle(GemListSectionTitle.ACTIVE), GemListSectionFooter.NONE, rows.map { GemListItem.Validator(it, false) })), GemListPhase.Rows)
 
         viewModelTest(AmountParams.Stake(asset.id, GemStakeAmountInput.Rewards(delegations, validators[0].toGem()))) { viewModel ->
-            assertEquals("5", viewModel.amount)
+            assertEquals("5", viewModel.amount.text.toString())
 
             viewModel.selectValidator("v2")
             Snapshot.sendApplyNotifications()
             testDispatcher.scheduler.advanceUntilIdle()
 
-            assertEquals("2", viewModel.amount)
+            assertEquals("2", viewModel.amount.text.toString())
             assertEquals(ButtonState.Enabled, viewModel.uiState.value.buttonState)
         }
     }
@@ -271,6 +272,8 @@ class AmountViewModelTest {
             )
             try {
                 runCurrent()
+                Snapshot.sendApplyNotifications()
+                runCurrent()
                 block(viewModel)
             } finally {
                 viewModel.viewModelScope.cancel()
@@ -284,7 +287,7 @@ class AmountViewModelTest {
     }
 
     private fun AmountViewModel.setAmount(value: String) {
-        updateAmount(value)
+        amount.setTextAndPlaceCursorAtEnd(value)
         Snapshot.sendApplyNotifications()
         testDispatcher.scheduler.advanceUntilIdle()
     }

@@ -4,7 +4,6 @@ import com.wallet.core.primitives.FiatProviderName
 import uniffi.gemstone.GemFiatSuggestedAmount
 
 internal sealed interface FiatAction {
-    data class SetAmount(val amount: String) : FiatAction
     data class SelectAmount(val amount: GemFiatSuggestedAmount) : FiatAction
     data class SelectProvider(val provider: FiatProviderName) : FiatAction
     data object RetryQuote : FiatAction
