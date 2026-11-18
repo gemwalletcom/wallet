@@ -128,7 +128,8 @@ fn x_ticks(candles: &[ChartCandleStick], window: RangeInclusive<DateTime<Utc>>, 
         .zip(previous)
         .filter(|(candle, previous)| {
             let number = candle_number(candle.date, utc_offset, interval);
-            label_range.contains(&candle.date) && number.rem_euclid(candles_per_step) == 0 && previous.is_none_or(|previous| candle_number(previous.date, utc_offset, interval) != number)
+            let previous_number = previous.map_or(number - 1, |previous| candle_number(previous.date, utc_offset, interval));
+            label_range.contains(&candle.date) && previous_number.div_euclid(candles_per_step) != number.div_euclid(candles_per_step)
         })
         .map(|(candle, _)| candle.date)
         .collect();
@@ -327,6 +328,21 @@ mod tests {
             ],
             "candles shorter than a month label only the first one of each month"
         );
+        assert_eq!(
+            axis(&ChartCandleStick::mock_series(at("2013-03-28T00:00:00Z"), TimeDelta::days(84), 60), whole, TimeDelta::zero()),
+            vec![
+                (at("2017-05-18T00:00:00Z"), MonthYear),
+                (at("2020-05-14T00:00:00Z"), MonthYear),
+                (at("2023-08-03T00:00:00Z"), MonthYear),
+                (at("2026-10-22T00:00:00Z"), MonthYear)
+            ],
+            "candles longer than a month label the first one of each step, even when no candle starts in the step's first month"
+        );
+        assert_eq!(
+            axis(&ChartCandleStick::mock_series(at("2026-09-23T15:08:00Z"), TimeDelta::minutes(1), 5), whole, TimeDelta::zero()),
+            vec![(at("2026-09-23T15:10:00Z"), Time)],
+            "the first candle on screen is labelled only when it sits on the step grid"
+        );
         assert!(
             [0.25, 0.26, 0.27, 0.28].into_iter().all(
                 |offset| axis(&ChartCandleStick::mock_series(at("2026-09-23T15:00:00Z"), TimeDelta::minutes(1), 40), GemChartZoom { scale: 2.0, offset }, TimeDelta::zero())
@@ -342,6 +358,7 @@ mod tests {
             (TimeDelta::hours(12), 60),
             (TimeDelta::weeks(1), 260),
             (TimeDelta::days(30), 130),
+            (TimeDelta::days(84), 60),
         ] {
             let labels = axis(&ChartCandleStick::mock_series(at("2026-01-05T00:00:00Z"), interval, count), whole, TimeDelta::zero()).len();
             assert!((2..=X_TICK_COUNT).contains(&labels), "{count} candles of {interval} have {labels} labels");
