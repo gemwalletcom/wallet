@@ -87,7 +87,7 @@ impl GemSearchService {
     }
 
     async fn save_perpetuals(&self, perpetuals: &[PerpetualSearchData], key: &str) -> Result<(), GemServiceError> {
-        self.perpetuals.save_markets(rules::perpetual_data(perpetuals)).await?;
+        self.perpetuals.save_missing_markets(rules::perpetual_data(perpetuals)).await?;
         self.store.set_perpetuals(key.to_string(), rules::perpetual_ids(perpetuals)).await
     }
 }
@@ -96,7 +96,8 @@ impl GemSearchService {
 mod tests {
     use futures::executor::block_on;
     use primitives::asset_constants::{ETHEREUM_USDT_ASSET_ID, NEAR_USDT_ASSET_ID, NEAR_USDT_TOKEN_ID};
-    use primitives::{AssetList, Chain};
+    use primitives::perpetual::Perpetual;
+    use primitives::{AssetList, Chain, PerpetualId, PerpetualProvider};
 
     use super::testkit::SearchTestkit;
     use super::*;
@@ -174,6 +175,41 @@ mod tests {
             assert_eq!(testkit.provider.requested_paths(), vec!["/v1/assets/search?query=eth&chains=".to_string(), fallback_node(Chain::Near).url]);
             assert_eq!(*testkit.store.assets.lock().unwrap(), vec![("eth".to_string(), vec![ethereum])]);
             assert!(testkit.store.lists.lock().unwrap().is_empty());
+        })
+    }
+
+    const BTC_ETH_PERPETUALS_SEARCH_RESPONSE: &str = r#"{
+        "assets": [],
+        "perpetuals": [
+            {"perpetual": {"id": "hypercore_BTC", "name": "BTC", "provider": "hypercore", "assetId": "hypercore", "identifier": "0", "price": 100.0, "pricePercentChange24h": -0.03, "openInterest": 0.0, "volume24h": 0.0, "funding": 0.0, "maxLeverage": 20, "isIsolatedOnly": true, "isEnabled": true},
+             "asset": {"id": "hypercore", "name": "HyperCore", "symbol": "HYPE", "decimals": 8, "type": "NATIVE"}},
+            {"perpetual": {"id": "hypercore_ETH", "name": "ETH", "provider": "hypercore", "assetId": "hypercore", "identifier": "0", "price": 100.0, "pricePercentChange24h": 0.0, "openInterest": 0.0, "volume24h": 0.0, "funding": 0.0, "maxLeverage": 20, "isIsolatedOnly": true, "isEnabled": true},
+             "asset": {"id": "hypercore", "name": "HyperCore", "symbol": "HYPE", "decimals": 8, "type": "NATIVE"}}
+        ],
+        "nfts": [],
+        "lists": []
+    }"#;
+
+    #[test]
+    fn test_a_search_keeps_the_stored_market_of_a_perpetual_and_saves_a_missing_one() {
+        block_on(async {
+            let testkit = SearchTestkit::with_bodies(&[("/v1/search?", BTC_ETH_PERPETUALS_SEARCH_RESPONSE)]);
+            let btc = Perpetual {
+                price_percent_change_24h: -0.44,
+                ..Perpetual::mock()
+            };
+            let eth = Perpetual {
+                id: PerpetualId::new(PerpetualProvider::Hypercore, "ETH"),
+                name: "ETH".to_string(),
+                ..Perpetual::mock()
+            };
+            *testkit.perpetual_store.stored.lock().unwrap() = vec![btc.clone()];
+
+            assert!(testkit.service.search(testkit.wallet.clone(), "btc".to_string(), GemSearchScope::All).await.unwrap());
+
+            let written: Vec<Perpetual> = testkit.perpetual_store.perpetual_writes.lock().unwrap().iter().flatten().map(|data| data.perpetual.clone()).collect();
+            assert_eq!(written, vec![eth.clone()], "the stored BTC keeps its live 24h change; only the missing ETH is saved so it can be opened");
+            assert_eq!(*testkit.store.perpetuals.lock().unwrap(), vec![("btc".to_string(), vec![btc.id, eth.id])]);
         })
     }
 

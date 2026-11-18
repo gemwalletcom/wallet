@@ -31,7 +31,7 @@ use crate::perpetual::GemPerpetual;
 use crate::services::assets::{GemAssetAction, GemAssetsService};
 use crate::services::balance::GemBalanceService;
 use crate::services::clock::is_outdated;
-use crate::services::collections::stale;
+use crate::services::collections::{missing_by, stale};
 use crate::services::config::GemConfigService;
 use crate::services::error::GemServiceError;
 use crate::services::failures::record;
@@ -210,6 +210,11 @@ impl GemPerpetualService {
             return Ok(());
         }
         self.store.save_perpetuals(changed).await
+    }
+
+    pub async fn save_missing_markets(&self, data: Vec<PerpetualData>) -> Result<(), GemServiceError> {
+        let stored = self.store.get_perpetuals(data.iter().map(|data| data.perpetual.name.clone()).collect()).await?;
+        self.save_markets(missing_by(data, stored.into_iter().map(|perpetual| perpetual.id), |data| data.perpetual.id.clone())).await
     }
 
     pub async fn get_portfolio(&self, wallet_id: WalletId, chain: Chain, address: String) -> Result<PerpetualPortfolio, GemServiceError> {

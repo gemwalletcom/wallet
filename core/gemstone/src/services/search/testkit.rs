@@ -9,7 +9,7 @@ use crate::services::assets::GemAssetsService;
 use crate::services::assets::testkit::MemoryAssetStore;
 use crate::services::balance::testkit::MemoryBalanceStore;
 use crate::services::error::GemServiceError;
-use crate::services::perpetual::testkit::PerpetualTestkit;
+use crate::services::perpetual::testkit::{MemoryPerpetualStore, PerpetualTestkit};
 use crate::services::price::GemPriceService;
 use crate::services::price::testkit::MemoryPriceStore;
 use crate::testkit::TestAlienProvider;
@@ -44,6 +44,7 @@ pub struct SearchTestkit {
     pub asset_store: Arc<MemoryAssetStore>,
     pub prices: Arc<MemoryPriceStore>,
     pub balances: Arc<MemoryBalanceStore>,
+    pub perpetual_store: Arc<MemoryPerpetualStore>,
     pub store: Arc<MemorySearchStore>,
 }
 
@@ -75,6 +76,7 @@ impl SearchTestkit {
             asset_store: perpetuals.asset_store,
             prices,
             balances: perpetuals.balances,
+            perpetual_store: perpetuals.store,
             store,
         }
     }
