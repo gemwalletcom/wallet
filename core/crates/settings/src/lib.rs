@@ -411,18 +411,12 @@ pub struct API {
     pub bind: String,
     pub shutdown: Timeout,
     pub auth: Auth,
-    pub admin: Admin,
 }
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Auth {
     #[serde(deserialize_with = "duration::deserialize")]
     pub tolerance: Duration,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct Admin {
-    pub enabled: bool,
 }
 
 #[derive(Debug, Deserialize, Clone)]

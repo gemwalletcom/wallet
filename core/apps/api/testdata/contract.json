@@ -162,6 +162,15 @@
       }
     }
   },
+  "admin_on_public_api": {
+    "status": 404,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "404 Not Found"
+      }
+    }
+  },
   "admin_swap_quote_no_auth": {
     "status": 401,
     "content_type": "application/json",

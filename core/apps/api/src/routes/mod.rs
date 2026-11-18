@@ -21,17 +21,23 @@ use crate::state::AppState;
 const WEBHOOK_PATH_PREFIX: &str = "/v1/webhooks/";
 const WEBHOOK_SECRET_SEGMENT: usize = 5;
 
-pub fn router(state: AppState, admin_enabled: bool, request: &ServerRequest, http_metrics: &HttpMetrics) -> Router {
-    let mut router = Router::new()
-        .merge(root::router())
+pub fn router(state: AppState, request: &ServerRequest, http_metrics: &HttpMetrics) -> Router {
+    let routes = Router::new()
         .nest("/v1", public::router())
         .nest("/v1/devices", devices::v1_router(&state, request.limit))
         .nest("/v2/devices", devices::v2_router(&state, request.limit)) // legacy: remove with /v2 and /v3
         .nest("/v3/devices", devices::v3_router(&state, request.limit)); // legacy: remove with /v2 and /v3
-    if admin_enabled {
-        router = router.nest("/v1/admin", admin::router());
-    }
-    let router = router
+    serve_routes(routes, state, request, http_metrics)
+}
+
+pub fn admin_router(state: AppState, request: &ServerRequest, http_metrics: &HttpMetrics) -> Router {
+    serve_routes(Router::new().nest("/v1/admin", admin::router()), state, request, http_metrics)
+}
+
+fn serve_routes(routes: Router<AppState>, state: AppState, request: &ServerRequest, http_metrics: &HttpMetrics) -> Router {
+    let router = Router::new()
+        .merge(root::router())
+        .merge(routes)
         .fallback(not_found)
         .method_not_allowed_fallback(not_found)
         .with_state(state)

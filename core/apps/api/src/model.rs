@@ -4,5 +4,6 @@ use strum::{AsRefStr, EnumIter, EnumString};
 #[strum(serialize_all = "snake_case")]
 pub enum APIService {
     Api,
+    Admin,
     WebsocketStream,
 }
