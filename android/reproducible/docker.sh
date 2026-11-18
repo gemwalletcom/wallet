@@ -12,20 +12,23 @@ mkdir -p "$outputs"
 
 build() {
     local platform="$1"
-    local channel="$2"
     local image="gem-wallet-android-build-${platform#linux/}"
+    shift
 
     git -C "$root" archive --format=tar HEAD android/reproducible android/gradlew android/gradle/wrapper rust-toolchain.toml \
         | docker build --platform "$platform" --build-arg NDK_VERSION="$ndk_version" --file android/reproducible/Dockerfile --tag "$image" -
 
-    echo "Building $channel unsigned on $platform from $(git -C "$root" rev-parse HEAD)"
+    echo "Building $* unsigned on $platform from $(git -C "$root" rev-parse HEAD)"
     git -C "$root" -c tar.umask=0022 archive --format=tar HEAD \
-        | docker run --rm --init --interactive --platform "$platform" --volume "$outputs:/outputs" --env UPDATE_URL "$image" "$channel"
+        | docker run --rm --init --interactive --platform "$platform" --volume "$outputs:/outputs" --env UPDATE_URL "$image" "$@"
 }
 
+arm64=()
 for channel in "$@"; do
     case "$channel" in
         fdroid) build linux/amd64 "$channel" ;;
-        *) build linux/arm64 "$channel" ;;
+        *) arm64+=("$channel") ;;
     esac
 done
+
+[ "${#arm64[@]}" -eq 0 ] || build linux/arm64 "${arm64[@]}"

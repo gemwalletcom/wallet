@@ -11,7 +11,7 @@ git checkout <tag>
 android/reproducible/docker.sh fdroid
 ```
 
-`docker.sh <channel>...` builds the commit that is checked out, not the working tree. It builds the toolchain image from that commit's `Dockerfile`, then sends the commit's committed files into a container of it, which builds on its own disk, so local edits, earlier build output and the host's own toolchain never reach the result. Each channel builds in its own container. Docker keeps the image, so the toolchain is installed again only when a pin changes.
+`docker.sh <channel>...` builds the commit that is checked out, not the working tree. It builds the toolchain image from that commit's `Dockerfile`, then sends the commit's committed files into a container of it, which builds on its own disk, so local edits, earlier build output and the host's own toolchain never reach the result. The ARM64 channels of one call build in one container and share one Rust build. Docker keeps the image, so the toolchain is installed again only when a pin changes.
 
 A rebuild matches the published file only when it runs on the machine type the release was built on, so `docker.sh` picks it per channel. The files land where Gradle puts them, under `android/app/build/outputs/`:
 
@@ -41,7 +41,7 @@ F-Droid runs this check on every release: its servers rebuild the `fdroid` chann
 | --- | --- | --- |
 | `docker.sh <channel>...` | anywhere with Docker | Builds the image, then runs it on the checked-out commit |
 | `Dockerfile` | | The toolchain image for both machine types: Ubuntu by digest, the JDK, `rustup` and Android command-line tools by checksum, the NDK, the SDK build tools and platform, the Gradle distribution, and `init.sh`. Google ships the NDK and SDK tools for x86-64 Linux only, so the ARM64 image takes the x86-64 system libraries they run with from the pinned x86-64 image |
-| `entrypoint.sh` | in the container | Unpacks the commit, builds the channel and hands the file back |
+| `entrypoint.sh` | in the container | Unpacks the commit, builds each channel and hands the files back |
 | `init.sh` | on Linux | Installs the Rust toolchain the root `rust-toolchain.toml` names, and `cargo-ndk` |
 | `build.sh <channel>` | on Linux | One channel's Gradle build, unsigned, with the path remap that keeps build paths out of `libgemstone.so` |
 | `versions.sh` | sourced | The `cargo-ndk` version |
