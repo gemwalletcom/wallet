@@ -517,10 +517,13 @@ mod tests {
     #[test]
     fn test_a_payment_link_gives_the_paid_asset_a_hidden_balance_for_confirm() {
         const ACCOUNT: &str = "mvines9iiHiQTysrwkJjGf2gb9Ex9jXJX8ns3qwf2kN";
-        const RESPONSE: &str = r#"{"label":"Shop","icon":"https://shop.example/icon.png","transaction":"AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAECC4JMKqNplIXybGb/GhK1ofdVWeuEjXnQor7gi0Y2hMcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQECAAAMAgAAAAAAAAAAAAAA"}"#;
         let solana = Asset::from_chain(Chain::Solana);
         let wallet = Wallet::mock_with_accounts(vec![Account::mock(Chain::Solana, ACCOUNT)]);
-        let (service, _, balances) = service_with_provider(TestAlienProvider::with_json(200, RESPONSE), std::slice::from_ref(&solana), &[]);
+        let (service, _, balances) = service_with_provider(
+            TestAlienProvider::with_json(200, include_str!("../../crates/payment/testdata/solana_pay/transaction_request.json")),
+            std::slice::from_ref(&solana),
+            &[],
+        );
         let link = PaymentLink::SolanaPay { url: "https://shop.example/pay".to_string() };
 
         let GemPaymentTarget::Confirm { .. } = block_on(service.prepare(Payment::Link { link }, wallet.clone())).unwrap() else {

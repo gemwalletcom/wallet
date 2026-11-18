@@ -1,0 +1,17 @@
+{
+  "channel": "openOrders",
+  "data": {
+    "dex": "",
+    "user": "0xc64c",
+    "orders": [
+      {
+        "coin": "BTC",
+        "oid": 1,
+        "triggerPx": "110000.0",
+        "limitPx": "110000.0",
+        "isPositionTpsl": true,
+        "orderType": "Take Profit Market"
+      }
+    ]
+  }
+}

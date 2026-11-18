@@ -350,12 +350,7 @@ mod tests {
         })
     }
 
-    const USDT_RESPONSE: &str = r#"[{
-        "asset": {"id": "ethereum_0xdAC17F958D2ee523a2206206994597C13D831ec7", "name": "Tether", "symbol": "USDT", "decimals": 6, "type": "ERC20"},
-        "properties": {"isEnabled": true, "isBuyable": true, "isSellable": true, "isSwapable": true, "isStakeable": false, "isEarnable": true, "earnApr": 4.68, "hasImage": true, "hasCandles": false, "hasPrice": true},
-        "score": {"rank": 34, "type": "low"},
-        "price": {"price": 0.9998, "priceChangePercentage24h": -0.01, "updatedAt": "2026-09-27T22:44:30Z"}
-    }]"#;
+    const USDT_RESPONSE: &str = include_str!("../../../../crates/gem_api/testdata/assets_usdt.json");
 
     #[test]
     fn test_ensure_token_asset_keeps_the_backend_properties() {

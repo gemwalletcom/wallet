@@ -13,7 +13,7 @@ use crate::services::wallet::testkit::{PHRASE, WalletTestkit};
 use crate::services::wallet_session::GemWalletSessionService;
 use crate::testkit::TestAlienProvider;
 
-pub const TEST_NONCE: &str = r#"{"nonce":"nonce-1","timestamp":1}"#;
+pub const TEST_NONCE: &str = include_str!("../../../../crates/gem_api/testdata/auth_nonce.json");
 
 pub struct RewardsTestkit {
     pub service: GemRewardsService,

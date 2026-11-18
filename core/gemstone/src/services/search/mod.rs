@@ -103,23 +103,7 @@ mod tests {
     use super::*;
     use crate::services::node::rules::fallback_node;
 
-    const USDT_SEARCH_RESPONSE: &str = r#"{
-        "assets": [{
-            "asset": {"id": "ethereum_0xdAC17F958D2ee523a2206206994597C13D831ec7", "name": "Tether", "symbol": "USDT", "decimals": 6, "type": "ERC20"},
-            "properties": {"isEnabled": true, "isBuyable": true, "isSellable": true, "isSwapable": true, "isStakeable": false, "isEarnable": false, "hasImage": true, "hasCandles": false, "hasPrice": true},
-            "score": {"rank": 34, "type": "low"},
-            "price": {"price": 0.9998, "priceChangePercentage24h": -0.01, "updatedAt": "2026-09-27T22:44:30Z"}
-        }],
-        "perpetuals": [],
-        "nfts": [],
-        "lists": [{"id": "stablecoins", "name": "Stablecoins", "count": 12}]
-    }"#;
-
-    const ETH_SEARCH_ASSETS: &str = r#"[{
-        "asset": {"id": "ethereum", "name": "Ethereum", "symbol": "ETH", "decimals": 18, "type": "NATIVE"},
-        "properties": {"isEnabled": true, "isBuyable": true, "isSellable": true, "isSwapable": true, "isStakeable": false, "isEarnable": false, "hasImage": true, "hasCandles": false, "hasPrice": true},
-        "score": {"rank": 100, "type": "high"}
-    }]"#;
+    const USDT_SEARCH_RESPONSE: &str = include_str!("../../../../crates/gem_api/testdata/search_usdt.json");
 
     #[test]
     fn test_search_skips_an_empty_query_in_the_all_scope() {
@@ -166,7 +150,7 @@ mod tests {
     #[test]
     fn test_search_assets_returns_what_it_saved() {
         block_on(async {
-            let testkit = SearchTestkit::with_bodies(&[("/v1/assets/search?", ETH_SEARCH_ASSETS)]);
+            let testkit = SearchTestkit::with_bodies(&[("/v1/assets/search?", include_str!("../../../../crates/gem_api/testdata/search_assets_eth.json"))]);
             let ethereum = Chain::Ethereum.as_asset_id();
 
             let assets = testkit.service.search_assets(testkit.wallet.clone(), "eth".to_string()).await.unwrap();
@@ -178,22 +162,10 @@ mod tests {
         })
     }
 
-    const BTC_ETH_PERPETUALS_SEARCH_RESPONSE: &str = r#"{
-        "assets": [],
-        "perpetuals": [
-            {"perpetual": {"id": "hypercore_BTC", "name": "BTC", "provider": "hypercore", "assetId": "hypercore", "identifier": "0", "price": 100.0, "pricePercentChange24h": -0.03, "openInterest": 0.0, "volume24h": 0.0, "funding": 0.0, "maxLeverage": 20, "isIsolatedOnly": true, "isEnabled": true},
-             "asset": {"id": "hypercore", "name": "HyperCore", "symbol": "HYPE", "decimals": 8, "type": "NATIVE"}},
-            {"perpetual": {"id": "hypercore_ETH", "name": "ETH", "provider": "hypercore", "assetId": "hypercore", "identifier": "0", "price": 100.0, "pricePercentChange24h": 0.0, "openInterest": 0.0, "volume24h": 0.0, "funding": 0.0, "maxLeverage": 20, "isIsolatedOnly": true, "isEnabled": true},
-             "asset": {"id": "hypercore", "name": "HyperCore", "symbol": "HYPE", "decimals": 8, "type": "NATIVE"}}
-        ],
-        "nfts": [],
-        "lists": []
-    }"#;
-
     #[test]
     fn test_a_search_keeps_the_stored_market_of_a_perpetual_and_saves_a_missing_one() {
         block_on(async {
-            let testkit = SearchTestkit::with_bodies(&[("/v1/search?", BTC_ETH_PERPETUALS_SEARCH_RESPONSE)]);
+            let testkit = SearchTestkit::with_bodies(&[("/v1/search?", include_str!("../../../../crates/gem_api/testdata/search_btc_eth_perpetuals.json"))]);
             let btc = Perpetual {
                 price_percent_change_24h: -0.44,
                 ..Perpetual::mock()
@@ -213,15 +185,11 @@ mod tests {
         })
     }
 
-    const EMPTY_SEARCH_RESPONSE: &str = r#"{"assets": [], "perpetuals": [], "nfts": [], "lists": []}"#;
+    const EMPTY_SEARCH_RESPONSE: &str = include_str!("../../../../crates/gem_api/testdata/search_empty.json");
 
     const NEAR_USDT_METADATA: &str = include_str!("../../../../crates/gem_near/testdata/ft_metadata_usdt.json");
 
-    const NEAR_SPAM_ASSETS: &str = r#"[{
-        "asset": {"id": "near_usdt.tether-token.near", "name": "Tether USD", "symbol": "USDt", "decimals": 6, "type": "TOKEN"},
-        "properties": {"isEnabled": false, "isBuyable": false, "isSellable": false, "isSwapable": false, "isStakeable": false, "isEarnable": false, "hasImage": false, "hasCandles": false, "hasPrice": false},
-        "score": {"rank": -20, "type": "unknown"}
-    }]"#;
+    const NEAR_SPAM_ASSETS: &str = include_str!("../../../../crates/gem_api/testdata/assets_near_usdt_spam.json");
 
     #[test]
     fn test_a_contract_search_keeps_the_stored_rank_and_flags_of_a_spam_token() {

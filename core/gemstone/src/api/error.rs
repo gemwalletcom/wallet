@@ -47,7 +47,7 @@ mod tests {
     use primitives::{AssetId, Chain};
     use std::sync::Arc;
 
-    const REWARDS_DISABLED: &str = r#"{"error":{"message":"Rewards are not enabled for this user"}}"#;
+    const REWARDS_DISABLED: &str = include_str!("../../../crates/gem_api/testdata/error_rewards_disabled.json");
 
     #[test]
     fn test_an_api_error_reads_as_its_message() {

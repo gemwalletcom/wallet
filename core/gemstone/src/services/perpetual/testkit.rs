@@ -110,7 +110,7 @@ impl GemPerpetualStore for MemoryPerpetualStore {
     }
 }
 
-pub const EMPTY_CLEARINGHOUSE_STATE: &str = r#"{"assetPositions":[],"marginSummary":{"accountValue":"0","totalNtlPos":"0","totalRawUsd":"0","totalMarginUsed":"0"},"crossMarginSummary":{"accountValue":"0","totalNtlPos":"0","totalRawUsd":"0","totalMarginUsed":"0"},"crossMaintenanceMarginUsed":"0","withdrawable":"0"}"#;
+pub const EMPTY_CLEARINGHOUSE_STATE: &str = include_str!("../../../../crates/gem_hypercore/testdata/perpetual_balance_response_clearinghouse_state_zero.json");
 
 pub struct PerpetualTestkit {
     pub service: GemPerpetualService,
@@ -138,7 +138,7 @@ impl PerpetualTestkit {
             ("clearinghouseState", EMPTY_CLEARINGHOUSE_STATE),
             (
                 "spotClearinghouseState",
-                r#"{"balances":[{"coin":"USDC","token":0,"total":"12.093224","hold":"0","entryNtl":"0"}],"tokenToAvailableAfterMaintenance":[[0,"12.093224"]]}"#,
+                include_str!("../../../../crates/gem_hypercore/testdata/perpetual_balance_response_spot_clearinghouse_state_unified.json"),
             ),
         ]));
         testkit
@@ -153,7 +153,10 @@ impl PerpetualTestkit {
         let testkit = Self::with_provider(TestAlienProvider::with_json_by_request_type(&[
             ("userAbstraction", r#""default""#),
             ("clearinghouseState", EMPTY_CLEARINGHOUSE_STATE),
-            ("spotClearinghouseState", r#"{"balances":[{"coin":"USDC","token":0,"total":"3.073935","hold":"0","entryNtl":"0"}]}"#),
+            (
+                "spotClearinghouseState",
+                include_str!("../../../../crates/gem_hypercore/testdata/perpetual_balance_response_spot_clearinghouse_state_standard.json"),
+            ),
             ("spotMeta", include_str!("../../../../crates/gem_hypercore/testdata/spot_meta_spot_swap.json")),
         ]));
         testkit
