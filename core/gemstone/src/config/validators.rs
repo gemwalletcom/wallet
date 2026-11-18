@@ -12,10 +12,7 @@ pub fn get_validators() -> HashMap<String, Vec<String>> {
                 "cosmosvaloper1hjadhj9nqzpye2vkmkz4thahhd0z8dh3udhq74".to_string(),
             ],
         ),
-        (
-            Chain::Osmosis.to_string(),
-            vec!["osmovaloper1wgmdcxzp49vjgrqusgcagq6qefk4mtjv5c0k7q".to_string(), "osmovaloper1e893vrtzzp6zyzs80tqg52j2vdckzqrdjrjva5".to_string()],
-        ),
+        (Chain::Osmosis.to_string(), vec!["osmovaloper1e893vrtzzp6zyzs80tqg52j2vdckzqrdjrjva5".to_string()]),
         (Chain::Celestia.to_string(), vec!["celestiavaloper1dlsl4u42ycahzjfwc6td6upgsup9tt7cz8vqm4".to_string()]),
         (Chain::Injective.to_string(), vec!["injvaloper134dct56cq5v7uerxcy2cn4m06mqf4dxrlgpp24".to_string()]),
         (
