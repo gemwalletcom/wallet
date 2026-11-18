@@ -189,7 +189,7 @@ impl GemPortfolioSession {
             return false;
         }
         let load = self.load(self.portfolio_type);
-        self.is_refreshing || load.data.is_none() || load.period != self.period
+        self.is_refreshing || load.state == GemLoadState::Loading || load.period != self.period
     }
 
     pub fn view_state(&self) -> GemPortfolioViewState {
@@ -448,6 +448,15 @@ mod tests {
             !refreshing.on_result(failed(refreshing.request(), GemServiceError::Core { msg: "offline".to_string() })).view_state().is_refreshing,
             "a failed refresh stops the spinner too"
         );
+    }
+
+    #[test]
+    fn test_a_failed_load_waits_for_a_refresh() {
+        let session = session();
+        let failed = session.on_result(failed(session.request(), GemServiceError::Offline));
+
+        assert!(!failed.needs_load(), "a failed load is not asked again on its own");
+        assert!(failed.on_refresh().needs_load(), "a refresh asks again after a failed load");
     }
 
     #[test]
