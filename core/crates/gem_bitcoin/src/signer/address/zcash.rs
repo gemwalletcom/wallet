@@ -15,6 +15,7 @@ pub(super) fn script(address: &str) -> Result<AddressScript, SignerError> {
     if let Ok(decoded) = CheckedHrpstring::new::<Bech32m>(address)
         && decoded.hrp() == TEX_HRP
     {
+        decoded.validate_segwit_padding().map_err(SignerError::from_display)?;
         let hash = hash20(&decoded.byte_iter().collect::<Vec<_>>())?;
         return Ok(AddressScript::new(p2pkh_script(hash), LockingScript::P2pkh));
     }
@@ -56,6 +57,7 @@ mod tests {
             bech32::encode::<Bech32m>(TEX_HRP, &[0; 19]).unwrap(),
             bech32::encode::<Bech32m>(TEX_HRP, &[0; 21]).unwrap(),
             "tex1s2rt77ggv6q989lr49rkgzmh5slsksa9khdgtq".to_string(),
+            "tex1s2rt77ggv6q989lr49rkgzmh5slsksa9qsjp53u".to_string(),
             "tEX1S2RT77GGV6Q989LR49RKGZMH5SLSKSA9KHDGTE".to_string(),
         ];
         for address in addresses {
