@@ -28,7 +28,8 @@ pub struct FeeEstimate {
     pub base: String,
     pub priority_fee: String,
     pub value: String,
-    pub fiat_value: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub fiat_value: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
