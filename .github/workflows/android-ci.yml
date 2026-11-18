@@ -61,4 +61,4 @@ jobs:
           just install-ndk
 
       - name: Build app and run unit and integration tests
-        run: just test-all
+        run: just test-all -x :gemstone:buildCargoNdk

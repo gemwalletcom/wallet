@@ -100,8 +100,8 @@ test:
 test-integration:
     @./gradlew --continue testGoogleDebugUnitTest testDebugUnitTest -PintegrationTests=only
 
-test-all:
-    @./gradlew --continue assembleGoogleDebug testGoogleDebugUnitTest testDebugUnitTest
+test-all *ARGS:
+    @./gradlew --continue assembleGoogleDebug testGoogleDebugUnitTest testDebugUnitTest {{ARGS}}
 
 lint:
     @./gradlew lint -x :gemstone:lintDebug
