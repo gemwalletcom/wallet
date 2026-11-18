@@ -80,7 +80,6 @@ fun AmountScreen(onCancel: () -> Unit, onConfirm: (ConfirmTransferInput) -> Unit
                 onAction = { action ->
                     when (action) {
                         AmountAction.Next -> viewModel.onNext()
-                        is AmountAction.SetAmount -> viewModel.updateAmount(action.amount)
                         AmountAction.SwitchInputType -> viewModel.switchInputType()
                         AmountAction.SetMaxAmount -> viewModel.onMaxAmount()
                         AmountAction.Buy -> onBuy(asset.id)
@@ -94,7 +93,7 @@ fun AmountScreen(onCancel: () -> Unit, onConfirm: (ConfirmTransferInput) -> Unit
                         onSelectResource = viewModel::selectResource,
                         onSelectLeverage = viewModel::selectLeverage,
                         onOpenAutoclose = {
-                            viewModel.perpetualProvider?.onAutocloseOpened(viewModel.amount)
+                            viewModel.perpetualProvider?.onAutocloseOpened(viewModel.amount.text.toString())
                             showsAutoclose = true
                         },
                     )
@@ -107,7 +106,7 @@ fun AmountScreen(onCancel: () -> Unit, onConfirm: (ConfirmTransferInput) -> Unit
         AmountAutocloseSheet(
             isVisible = showsAutoclose,
             provider = perpetual,
-            amount = viewModel.amount,
+            amount = viewModel.amount.text.toString(),
             onDismiss = { showsAutoclose = false },
         )
     }

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -51,7 +52,7 @@ import uniffi.gemstone.assetText
 @Composable
 internal fun AmountScene(
     title: String,
-    amount: String,
+    amount: TextFieldState,
     field: GemAmountField?,
     asset: Asset,
     icon: GemAssetIcon?,
@@ -82,8 +83,8 @@ internal fun AmountScene(
             item {
                 Spacer16()
                 AmountField(
-                    modifier = Modifier.fillMaxWidth().focusRequester(focusRequester).testTag("amountInputField"),
-                    amount = amount,
+                    modifier = Modifier.focusRequester(focusRequester).testTag("amountInputField"),
+                    state = amount,
                     symbol = field?.amountSymbol() ?: AmountSymbolUIModel("", AmountSymbolPlacement.Trailing),
                     onInputTypeClick = if (canSwitchInputType) {
                         { onAction(AmountAction.SwitchInputType) }
@@ -95,7 +96,6 @@ internal fun AmountScene(
                     keyboardType = field?.keyboard?.keyboardType() ?: KeyboardType.Decimal,
                     error = error,
                     errorInfo = errorTopic?.let { { showsErrorInfo = true } },
-                    onValueChange = { onAction(AmountAction.SetAmount(it)) },
                     onNext = { onAction(AmountAction.Next) },
                 )
             }

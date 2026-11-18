@@ -1,9 +1,9 @@
 package com.gemwallet.android.features.transfer.viewmodels.amount
 
 import android.content.Context
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
+import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -132,8 +132,7 @@ class AmountViewModel @Inject constructor(
 
     private val session = MutableStateFlow(newAmountSession(numberFormat()))
 
-    var amount by mutableStateOf("")
-        private set
+    val amount = TextFieldState()
 
     val amountInputType: StateFlow<GemAmountInputType> = session.map { it.inputType }
         .stateIn(viewModelScope, SharingStarted.Eagerly, GemAmountInputType.ASSET)
@@ -228,16 +227,15 @@ class AmountViewModel @Inject constructor(
         input.filterNotNull()
             .onEach(::onInputChanged)
             .launchIn(viewModelScope)
+
+        snapshotFlow { amount.text.toString() }
+            .onEach { text -> session.update { if (it.text == text) it else it.onText(text) } }
+            .launchIn(viewModelScope)
     }
 
     private fun onInputChanged(input: GemAmountInput) {
         val current = assetInfo.value ?: return
         showSession(session.value.onInputChanged(input, current.asset.toGem()))
-    }
-
-    fun updateAmount(input: String) {
-        amount = input
-        session.update { it.onText(input) }
     }
 
     fun onMaxAmount() {
@@ -252,7 +250,9 @@ class AmountViewModel @Inject constructor(
 
     private fun showSession(next: GemAmountSession) {
         session.value = next
-        amount = next.text
+        if (amount.text.toString() != next.text) {
+            amount.setTextAndPlaceCursorAtEnd(next.text)
+        }
     }
 
     fun onNext() {
