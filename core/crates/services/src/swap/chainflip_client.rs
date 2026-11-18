@@ -2,9 +2,8 @@ use std::{error::Error, sync::Arc};
 
 use cacher::SwapVaultAddressCacher;
 use gem_jsonrpc::types::ToJsonRpcRequest;
-use primitives::SwapProvider;
+use primitives::{Chain, RequestError, SwapProvider};
 use swapper::chainflip::broker::DepositChannelRequest;
-use swapper::chainflip::chain::ChainflipChain;
 
 use super::proxy_client::SwapProxyClient;
 
@@ -20,31 +19,43 @@ impl ChainflipProxyClient {
     }
 
     pub async fn deposit_channel(&self, request: &DepositChannelRequest) -> Result<gem_client::Response, Box<dyn Error + Send + Sync>> {
-        validate_source(request)?;
+        validate_assets(request)?;
         Ok(self.client.post("", &request.to_jsonrpc_request(1)).await?)
     }
 }
 
-fn validate_source(request: &DepositChannelRequest) -> Result<(), Box<dyn Error + Send + Sync>> {
-    if request.source_asset.chain != ChainflipChain::Assethub.as_ref() {
-        return Err(format!("unsupported Chainflip deposit channel source: {}", request.source_asset.chain).into());
+fn validate_assets(request: &DepositChannelRequest) -> Result<(), RequestError> {
+    let source = request.source_asset.asset_id().ok_or(RequestError::Invalid)?;
+    let destination = request.destination_asset.asset_id().ok_or(RequestError::Invalid)?;
+    if source.chain != Chain::Polkadot || source == destination {
+        return Err(RequestError::Invalid);
     }
     Ok(())
 }
 
 #[cfg(test)]
 mod tests {
+    use swapper::chainflip::broker::ChainflipAsset;
+
     use super::*;
 
     #[test]
-    fn test_validate_source() {
+    fn test_validate_assets() {
         let request = DepositChannelRequest::mock();
-        assert!(validate_source(&request).is_ok());
+        assert_eq!(validate_assets(&request), Ok(()));
 
-        let ethereum = DepositChannelRequest {
-            source_asset: request.destination_asset.clone(),
-            ..request
-        };
-        assert!(validate_source(&ethereum).is_err());
+        for source_asset in [
+            request.destination_asset.clone(),
+            ChainflipAsset::mock("Assethub", "ETH"),
+            ChainflipAsset::mock("assethub", "DOT"),
+            ChainflipAsset::mock("Assethub ", "DOT"),
+        ] {
+            let request = DepositChannelRequest { source_asset, ..request.clone() };
+            assert_eq!(validate_assets(&request), Err(RequestError::Invalid));
+        }
+        for destination_asset in [request.source_asset.clone(), ChainflipAsset::mock("Ethereum", "DOT"), ChainflipAsset::mock("Assethub", "ETH")] {
+            let request = DepositChannelRequest { destination_asset, ..request.clone() };
+            assert_eq!(validate_assets(&request), Err(RequestError::Invalid));
+        }
     }
 }
