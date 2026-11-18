@@ -6,6 +6,7 @@ use primitives::{Chain, NameProvider};
 
 use super::client::BasenamesClient;
 use crate::model::NameQuery;
+use crate::providers::ens::ens_name;
 use crate::resolver::NameResolver;
 
 pub struct BasenamesProvider {
@@ -33,7 +34,10 @@ impl NameResolver for BasenamesProvider {
     }
 
     async fn resolve(&self, query: &NameQuery, _chain: Chain) -> Result<Option<String>, Box<dyn Error + Send + Sync>> {
-        let address = self.client.get_address(&query.domain).await?;
+        let Some(name) = ens_name(query) else {
+            return Ok(None);
+        };
+        let address = self.client.get_address(&name).await?;
         Ok((!address.is_zero()).then(|| address.to_string()))
     }
 }
