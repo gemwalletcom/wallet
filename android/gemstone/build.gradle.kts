@@ -10,9 +10,14 @@ val generatedKotlinDir = gemstoneSrc.resolve("main/java")
 val isRelease = System.getenv("BUILD_MODE") == "release"
 val cargoBuildFlag = if (isRelease) "--release" else ""
 val gemstoneHostLibrary = rootProject.extra["gemstoneHostLibrary"] as File
+
+apply(from = "$rootDir/gradle/channels.gradle.kts")
+
+@Suppress("UNCHECKED_CAST")
+val channelAbis = (extra["gemChannels"] as Map<String, Map<String, Any?>>).getValue(extra["gemChannel"] as String).getValue("abis") as List<String>
 val defaultCargoNdkAbis = when {
     System.getenv("UNIT_TESTS") == "true" -> "x86_64"
-    isRelease -> "arm64-v8a,armeabi-v7a"
+    isRelease -> channelAbis.sorted().joinToString(",")
     else -> "arm64-v8a"
 }
 val cargoNdkTargets = (System.getenv("GEMSTONE_ANDROID_ABIS") ?: defaultCargoNdkAbis)

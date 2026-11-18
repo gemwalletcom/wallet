@@ -11,7 +11,7 @@ reproducible/docker.sh universal    # universal APK; any other channel name buil
 
 Every release file is built this way, from the checked-out commit and unsigned; the release pipeline signs it afterwards. The Gradle build has no release signing config, so `:app:assemble<Channel>Release` and `:app:bundleGoogleRelease` return unsigned files wherever they run. To try a release build on a device, sign it with `apksigner` and the debug keystore.
 
-`reproducible/build.sh` sets `BUILD_MODE=release`, which makes the `:gemstone` module build the Rust library with `--release`, and passes `-PuseLegacyPackaging=true` for an APK but not for the AAB. The container starts from the commit alone, so a release file never reuses a debug Rust build.
+`reproducible/build.sh` sets `BUILD_MODE=release`, which makes the `:gemstone` module build the Rust library with `--release` for the ABIs the channel lists in `gradle/channels.gradle.kts`, and passes `-PuseLegacyPackaging=true` for an APK but not for the AAB. The container starts from the commit alone, so a release file never reuses a debug Rust build.
 
 The Android Gradle plugin, not cargo, strips the native library that ships: it runs `llvm-strip --strip-unneeded` on the packaged copy and writes the symbol table to `BUNDLE-METADATA/com.android.tools.build.debugsymbols/` in the AAB, which Play uses to symbolicate native crashes and never delivers to devices. That is why `buildCargoNdk` overrides the shared cargo profile's `strip = true` with `CARGO_PROFILE_RELEASE_STRIP=debuginfo`: cargo keeps the symbol table for the plugin to extract, the download size does not change, and iOS, which calls cargo directly, keeps the shared setting.
 
