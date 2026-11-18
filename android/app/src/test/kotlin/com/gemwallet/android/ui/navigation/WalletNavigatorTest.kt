@@ -34,9 +34,12 @@ import com.gemwallet.android.ui.navigation.routes.ConfirmTransferRoute
 import com.gemwallet.android.ui.navigation.routes.DelegationRoute
 import com.gemwallet.android.ui.navigation.routes.ExportPrivateKeyRoute
 import com.gemwallet.android.ui.navigation.routes.ExportWalletRoute
+import com.gemwallet.android.ui.navigation.routes.PaymentSelectRoute
 import com.gemwallet.android.ui.navigation.routes.PerpetualDepositSelectRoute
 import com.gemwallet.android.ui.navigation.routes.PerpetualRoute
 import com.gemwallet.android.ui.navigation.routes.PerpetualsRoute
+import com.gemwallet.android.ui.navigation.routes.PriceAlertSelectRoute
+import com.gemwallet.android.ui.navigation.routes.PriceAlertsRoute
 import com.gemwallet.android.ui.navigation.routes.PrivateKeyAccountsRoute
 import com.gemwallet.android.ui.navigation.routes.PrivateKeyWarningRoute
 import com.gemwallet.android.ui.navigation.routes.ReceiveRoute
@@ -492,6 +495,34 @@ class WalletNavigatorTest {
         navigator.clearSwapSelection(route)
 
         assertNull(navigator.swapSelection(route))
+    }
+
+    @Test
+    fun finishAssetSelect_popsSelectorAndStoresSelectionForTargetRoute() {
+        val selectedAssetId = mockAssetId(Chain.Solana)
+        val navigator = navigatorWith(WalletRootRoute, PriceAlertsRoute, PriceAlertSelectRoute)
+
+        navigator.finishAssetSelect(selectedAssetId)
+
+        assertEquals(listOf(WalletRootRoute, PriceAlertsRoute), navigator.backStack.toList())
+        assertEquals(selectedAssetId, navigator.assetSelection(PriceAlertsRoute))
+
+        navigator.clearAssetSelection(PriceAlertsRoute)
+
+        assertNull(navigator.assetSelection(PriceAlertsRoute))
+    }
+
+    @Test
+    fun finishAssetSelect_fromPaymentSelectStoresSelectionForConfirm() {
+        val confirm = ConfirmTransferRoute("confirm")
+        val selectedAssetId = mockAssetId(Chain.Ethereum)
+        val navigator = navigatorWith(WalletRootRoute, PriceAlertsRoute, confirm, PaymentSelectRoute(listOf(selectedAssetId)))
+
+        navigator.finishAssetSelect(selectedAssetId)
+
+        assertEquals(listOf(WalletRootRoute, PriceAlertsRoute, confirm), navigator.backStack.toList())
+        assertEquals(selectedAssetId, navigator.assetSelection(confirm))
+        assertNull(navigator.assetSelection(PriceAlertsRoute))
     }
 
     @Test

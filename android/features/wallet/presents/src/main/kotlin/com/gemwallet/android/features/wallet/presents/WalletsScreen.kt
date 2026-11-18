@@ -17,7 +17,6 @@ import com.gemwallet.android.features.wallet.viewmodels.WalletsViewModel
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.screen.rememberSnackbarState
 import com.gemwallet.android.ui.localization.string
-import com.wallet.core.primitives.WalletId
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemWalletDeletion
 import uniffi.gemstone.GemWalletPlaceholder
@@ -27,7 +26,7 @@ import uniffi.gemstone.GemWalletSectionKind
 import uniffi.gemstone.GemWalletSubtitle
 
 @Composable
-fun WalletsScreen(onCreateWallet: () -> Unit, onImportWallet: () -> Unit, onEditWallet: (WalletId) -> Unit, onSelectWallet: () -> Unit, onBoard: () -> Unit, onCancel: () -> Unit) {
+fun WalletsScreen(onAction: (WalletsAction.Navigation) -> Unit, onSelectWallet: () -> Unit, onBoard: () -> Unit) {
     val viewModel: WalletsViewModel = hiltViewModel()
     val sections by viewModel.sections.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
@@ -58,13 +57,10 @@ fun WalletsScreen(onCreateWallet: () -> Unit, onImportWallet: () -> Unit, onEdit
         snackbar = snackbar,
         onAction = { action ->
             when (action) {
-                WalletsAction.Create -> onCreateWallet()
-                WalletsAction.Import -> onImportWallet()
-                is WalletsAction.Edit -> onEditWallet(WalletId(action.row.id))
                 is WalletsAction.Select -> viewModel.selectWallet(action.row)
                 is WalletsAction.Delete -> deleteRowId = action.row.id
                 is WalletsAction.TogglePin -> viewModel.togglePin(action.row)
-                WalletsAction.Cancel -> onCancel()
+                is WalletsAction.Navigation -> onAction(action)
             }
         },
     )
