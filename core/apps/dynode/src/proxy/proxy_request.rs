@@ -36,7 +36,7 @@ impl ProxyRequest {
         let host = headers.get(HOST).and_then(|header| header.to_str().ok()).ok_or(StatusCode::BAD_REQUEST)?;
         let host = Self::parse_hostname(host);
         let user_agent = headers.get(USER_AGENT).and_then(|header| header.to_str().ok()).unwrap_or_default().to_string();
-        let (path, path_with_query) = Self::prepare_paths(uri);
+        let (path, path_with_query) = Self::prepare_paths(uri)?;
         Ok(Self::new(method, headers, body, path, path_with_query, host, user_agent, chain))
     }
 
@@ -105,20 +105,20 @@ impl ProxyRequest {
         providers.classify_request(self.chain, request) == ChainRequestType::Broadcast
     }
 
-    fn prepare_paths(uri: &str) -> (String, String) {
-        let path_with_query = Self::canonicalize_path(&Self::remove_chain_from_path(uri));
+    fn prepare_paths(uri: &str) -> Result<(String, String), StatusCode> {
+        let path_with_query = Self::canonicalize_path(&Self::remove_chain_from_path(uri))?;
         let path = path_without_query(&path_with_query).to_string();
-        (path, path_with_query)
+        Ok((path, path_with_query))
     }
 
-    fn canonicalize_path(path_with_query: &str) -> String {
+    fn canonicalize_path(path_with_query: &str) -> Result<String, StatusCode> {
         Url::parse("http://0.0.0.0")
             .and_then(|base| base.join(path_with_query))
             .map(|resolved| match resolved.query() {
                 Some(query) => format!("{}?{}", resolved.path(), query),
                 None => resolved.path().to_string(),
             })
-            .unwrap_or_else(|_| path_with_query.to_string())
+            .map_err(|_| StatusCode::BAD_REQUEST)
     }
 
     fn parse_hostname(host_header: &str) -> String {
@@ -210,13 +210,16 @@ mod tests {
 
     #[test]
     fn test_prepare_paths() {
-        assert_eq!(ProxyRequest::prepare_paths("/bitcoin/api/v2/address/../block/900000"), ("/api/v2/block/900000".to_string(), "/api/v2/block/900000".to_string()));
-        assert_eq!(ProxyRequest::prepare_paths("/bitcoin/api/v2/address/%2e%2e/block"), ("/api/v2/block".to_string(), "/api/v2/block".to_string()));
-        assert_eq!(ProxyRequest::prepare_paths("/ethereum/../secret"), ("/secret".to_string(), "/secret".to_string()));
+        assert_eq!(ProxyRequest::prepare_paths("/bitcoin/api/v2/address/../block/900000"), Ok(("/api/v2/block/900000".to_string(), "/api/v2/block/900000".to_string())));
+        assert_eq!(ProxyRequest::prepare_paths("/bitcoin/api/v2/address/%2e%2e/block"), Ok(("/api/v2/block".to_string(), "/api/v2/block".to_string())));
+        assert_eq!(ProxyRequest::prepare_paths("/ethereum/../secret"), Ok(("/secret".to_string(), "/secret".to_string())));
         assert_eq!(
             ProxyRequest::prepare_paths("/bitcoin/api/v2/address/bc1qtest?page=1"),
-            ("/api/v2/address/bc1qtest".to_string(), "/api/v2/address/bc1qtest?page=1".to_string())
+            Ok(("/api/v2/address/bc1qtest".to_string(), "/api/v2/address/bc1qtest?page=1".to_string()))
         );
+        for uri in ["/ethereum//x:y/../../../../admin", "/ethereum/\\x:y\\..\\..\\..\\..\\admin", "/ethereum//[/../../admin"] {
+            assert_eq!(ProxyRequest::prepare_paths(uri), Err(StatusCode::BAD_REQUEST));
+        }
     }
 
     #[test]
