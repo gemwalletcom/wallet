@@ -161,6 +161,8 @@ let package = Package(
                 .product(name: "GemstonePrimitivesTestKit", package: "GemstonePrimitives"),
                 "Gemstone",
                 "Primitives",
+                "Store",
+                .product(name: "StoreTestKit", package: "Store"),
             ],
             path: "AppService/Tests",
         ),

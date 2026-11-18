@@ -48,6 +48,7 @@ let package = Package(
                 .product(name: "PrimitivesTestKit", package: "Primitives"),
                 "Gemstone",
                 "Primitives",
+                .product(name: "BigInt", package: "BigInt"),
             ],
         ),
     ],
