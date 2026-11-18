@@ -90,22 +90,6 @@ impl GemWalletConnectService {
         }
     }
 
-    pub async fn add_connection(&self, connection: WalletConnection) -> Result<(), GemServiceError> {
-        self.store.add_connection(connection).await
-    }
-
-    pub async fn update_sessions(&self, sessions: Vec<WalletConnectionSession>) -> Result<(), GemServiceError> {
-        let local = self.store.get_sessions().await?;
-        let delete_ids = rules::sessions_to_delete(&local, &sessions);
-        if !delete_ids.is_empty() {
-            self.store.delete_sessions(delete_ids).await?;
-        }
-        for session in rules::sessions_to_update(&local, sessions) {
-            self.store.update_session(session).await?;
-        }
-        Ok(())
-    }
-
     pub async fn has_sessions(&self) -> Result<bool, GemServiceError> {
         Ok(!self.store.get_sessions().await?.is_empty())
     }
@@ -169,8 +153,26 @@ impl GemWalletConnectService {
             connection: self.gem_connection(connection),
         }
     }
+}
 
-    pub fn session_approval(&self, wallet: Wallet) -> GemSessionApproval {
+impl GemWalletConnectService {
+    pub(crate) async fn add_connection(&self, connection: WalletConnection) -> Result<(), GemServiceError> {
+        self.store.add_connection(connection).await
+    }
+
+    pub(crate) async fn update_sessions(&self, sessions: Vec<WalletConnectionSession>) -> Result<(), GemServiceError> {
+        let local = self.store.get_sessions().await?;
+        let delete_ids = rules::sessions_to_delete(&local, &sessions);
+        if !delete_ids.is_empty() {
+            self.store.delete_sessions(delete_ids).await?;
+        }
+        for session in rules::sessions_to_update(&local, sessions) {
+            self.store.update_session(session).await?;
+        }
+        Ok(())
+    }
+
+    pub(crate) fn session_approval(&self, wallet: Wallet) -> GemSessionApproval {
         let chains = rules::session_chains(&wallet, &rules::supported_chains());
         let accounts = wallet.accounts.into_iter().filter(|account| chains.contains(&account.chain)).collect();
         GemSessionApproval {
@@ -181,16 +183,14 @@ impl GemWalletConnectService {
         }
     }
 
-    pub fn session(&self, topic: String, accounts: Vec<String>, expire_at: i64, metadata: ApplicationMetadata) -> Result<WalletConnectionSession, GemServiceError> {
+    pub(crate) fn session(&self, topic: String, accounts: Vec<String>, expire_at: i64, metadata: ApplicationMetadata) -> Result<WalletConnectionSession, GemServiceError> {
         let chains = rules::account_chains(&accounts);
         let expire_at = DateTime::<Utc>::from_timestamp(expire_at, 0).ok_or_else(|| GemServiceError::InvalidInput {
             msg: format!("invalid session expiry {expire_at}"),
         })?;
         Ok(rules::session(topic, chains, expire_at, metadata))
     }
-}
 
-impl GemWalletConnectService {
     pub async fn config_session_properties(&self, properties: HashMap<String, String>, caip2_chains: Vec<String>, accounts: Vec<Account>) -> HashMap<String, String> {
         let accounts = self.with_public_keys(accounts, &rules::parse_known_chains(&caip2_chains)).await;
         self.wallet_connect.config_session_properties(properties, caip2_chains, accounts)
