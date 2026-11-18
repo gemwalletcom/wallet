@@ -73,14 +73,13 @@ fn get_referral_by_username(client: &mut DatabaseClient, username: &str) -> Resu
         .optional()
 }
 
-fn update_referral(client: &mut DatabaseClient, referral_id: i32, update: ReferralUpdate) -> Result<(), DieselError> {
+fn update_referral(client: &mut DatabaseClient, referral_id: i32, update: ReferralUpdate) -> Result<usize, DieselError> {
     use crate::schema::rewards_referrals::dsl;
     match update {
-        ReferralUpdate::VerifiedAt(timestamp) => {
-            diesel::update(dsl::rewards_referrals.find(referral_id)).set(dsl::verified_at.eq(timestamp)).execute(&mut client.connection)?;
-        }
+        ReferralUpdate::VerifiedAt(timestamp) => diesel::update(dsl::rewards_referrals.find(referral_id).filter(dsl::verified_at.is_null()))
+            .set(dsl::verified_at.eq(timestamp))
+            .execute(&mut client.connection),
     }
-    Ok(())
 }
 
 fn add_referral_attempt(client: &mut DatabaseClient, attempt: ReferralAttemptRow) -> Result<(), DieselError> {
@@ -463,7 +462,9 @@ fn complete_referral(client: &mut DatabaseClient, referred_username: &str) -> Re
         return Ok(vec![]);
     }
 
-    update_referral(client, referral.id, ReferralUpdate::VerifiedAt(now()))?;
+    if update_referral(client, referral.id, ReferralUpdate::VerifiedAt(now()))? == 0 {
+        return Ok(vec![]);
+    }
     let referrer_status = *require_rewards(client, &referral.referrer_username)?.status;
     Ok(add_referral_verified_event_rows(client, &referral.referrer_username, &referrer_status, referred_username)?
         .into_iter()
@@ -602,7 +603,9 @@ impl RewardsRepository for DatabaseClient {
     }
 
     fn update_referral_verified(&mut self, referral_id: i32, referrer_username: &str, referrer_status: &PrimitiveRewardStatus, referred_username: &str) -> Result<Vec<RewardEvent>, DatabaseError> {
-        update_referral(self, referral_id, ReferralUpdate::VerifiedAt(now()))?;
+        if update_referral(self, referral_id, ReferralUpdate::VerifiedAt(now()))? == 0 {
+            return Ok(vec![]);
+        }
         add_referral_verified_events(self, referrer_username, referrer_status, referred_username)
     }
 
