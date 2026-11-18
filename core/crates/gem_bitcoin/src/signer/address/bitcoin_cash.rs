@@ -40,6 +40,9 @@ fn cashaddr_script(address: &str) -> Option<AddressScript> {
         return None;
     }
     let bytes: Vec<u8> = values[..data_len].iter().copied().fes_to_bytes().collect();
+    if !bytes.iter().copied().bytes_to_fes().eq(values[..data_len].iter().copied()) {
+        return None;
+    }
     let (&version, hash) = bytes.split_first()?;
     let hash = hash20(hash).ok()?;
     match version {
@@ -93,6 +96,9 @@ mod tests {
         for address in [
             "bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6b",
             "bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvY22GDX6A",
+            "bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcw0c0g40rx7",
+            "bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvq5xhgekz9",
+            "bitcoincash:qpm2qsznhks23z7629mms6s4cwef74vcwvlqw6w57k6",
             "bchtest:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a",
             "BitcoinCash:qpm2qsznhks23z7629mms6s4cwef74vcwvy22gdx6a",
             "BITCOINCASH:QPM2QSZNHKS23Z7629MMS6S4CWEF74VCWVY22GDX6A",
