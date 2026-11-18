@@ -78,7 +78,9 @@ public final class GemSupportServiceMock: GemSupportServiceProtocol, @unchecked 
     public var sendError: Error?
     public var syncError: Error?
     public var imageFileError: Error?
+    public var syncFromTimestampValue: UInt64 = 0
 
+    public private(set) var syncCursorMessageIds: [String] = []
     public private(set) var syncedTimestamps: [UInt64] = []
     public private(set) var sentTexts: [String] = []
     public private(set) var retriedMessageIds: [String] = []
@@ -127,14 +129,8 @@ public final class GemSupportServiceMock: GemSupportServiceProtocol, @unchecked 
     }
 
     public func syncFromTimestamp(messages: [Gemstone.SupportMessage]) -> UInt64 {
-        messages.last {
-            if case .agent = $0.sender {
-                true
-            } else {
-                false
-            }
-        }
-        .map { UInt64(max($0.createdAt.timeIntervalSince1970, 0)) } ?? 0
+        syncCursorMessageIds.append(contentsOf: messages.map(\.id))
+        return syncFromTimestampValue
     }
 
     public func refresh(fromTimestamp: UInt64) async -> GemLoadState {
