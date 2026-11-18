@@ -11,9 +11,6 @@ import com.gemwallet.android.data.services.store.queries.AssetsQuery
 import com.gemwallet.android.data.services.store.queries.RecentActivityQuery
 import com.gemwallet.android.data.services.store.queries.WalletSearchQuery
 import com.gemwallet.android.domains.asset.aggregates.AssetInfoDataAggregate
-import com.gemwallet.android.domains.search.WalletSearchTag
-import com.gemwallet.android.domains.search.toGem
-import com.gemwallet.android.domains.search.walletSearchTagOf
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
@@ -23,6 +20,7 @@ import com.gemwallet.android.features.assets.viewmodels.select.models.ListSelect
 import com.gemwallet.android.features.assets.viewmodels.select.models.SelectSearch
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.navigation.RouteArgument
+import com.gemwallet.android.ui.models.navigation.requireSearchScope
 import com.wallet.core.primitives.PerpetualData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -39,6 +37,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import uniffi.gemstone.GemAssetSelectionServiceInterface
 import uniffi.gemstone.GemPerpetualMarketItem
+import uniffi.gemstone.GemSearchScope
 import uniffi.gemstone.GemSelectAssetState
 import uniffi.gemstone.GemSelectAssetType
 import uniffi.gemstone.GemWalletSearchResultsInput
@@ -67,8 +66,8 @@ class AssetsResultsViewModel @Inject constructor(
     context,
 ) {
 
-    private val scope: WalletSearchTag = walletSearchTagOf(savedStateHandle.get<String?>(RouteArgument.Scope.key))
-    private val searchKey: String = searchKeyOf(savedStateHandle)
+    private val scope: GemSearchScope = savedStateHandle.requireSearchScope()
+    private val query: String = savedStateHandle.queryArgument()
     val title: String = savedStateHandle.get<String?>(RouteArgument.Title.key)
         ?: context.getString(R.string.assets_title)
 
@@ -76,14 +75,14 @@ class AssetsResultsViewModel @Inject constructor(
     private val isPullRefreshing = MutableStateFlow(false)
     val refreshing: StateFlow<Boolean> = isPullRefreshing
 
-    private val perpetuals: Flow<List<PerpetualData>> = walletSearchQuery.perpetuals(searchKey, scope, assetsSearchLimit(savedStateHandle.get<String?>(RouteArgument.Query.key).orEmpty()))
+    private val perpetuals: Flow<List<PerpetualData>> = walletSearchQuery.perpetuals(scope.searchKey(query), scope, assetsSearchLimit(query))
 
     private val content: StateFlow<SearchContent<GemWalletSearchResultsView>?> = combine(getSession(), isSearching, sections, perpetuals) { session, searching, sections, perpetuals ->
         session?.wallet?.let { wallet ->
             val assets = sections.pinned + sections.unpinned
             val input = GemWalletSearchResultsInput(
                 wallet = wallet.toGem(),
-                scope = scope.toGem(),
+                scope = scope,
                 isLoading = searching,
                 assetIds = assets.map { it.asset.id.toIdentifier() },
                 pinnedAssetIds = sections.pinned.map { it.asset.id.toIdentifier() },
@@ -101,7 +100,7 @@ class AssetsResultsViewModel @Inject constructor(
     val perpetualItems: StateFlow<List<GemPerpetualMarketItem>> = content.select(viewModelScope, emptyList()) { it.view.perpetuals }
 
     init {
-        queryState.setTextAndPlaceCursorAtEnd(savedStateHandle.get<String?>(RouteArgument.Query.key).orEmpty())
+        queryState.setTextAndPlaceCursorAtEnd(query)
         search(pull = false)
     }
 
@@ -114,7 +113,7 @@ class AssetsResultsViewModel @Inject constructor(
             isSearching.value = true
             if (pull) isPullRefreshing.value = true
             try {
-                runCatchingCancellable { service.search(queryState.text.toString(), scope.toGem()) }
+                runCatchingCancellable { service.search(queryState.text.toString(), scope) }
                     .onFailure { Log.e("AssetsResults", "search failed", it) }
             } finally {
                 isSearching.value = false
@@ -124,13 +123,9 @@ class AssetsResultsViewModel @Inject constructor(
     }
 }
 
-private fun searchKeyOf(savedStateHandle: SavedStateHandle): String {
-    val query = savedStateHandle.get<String?>(RouteArgument.Query.key).orEmpty()
-    val scope = walletSearchTagOf(savedStateHandle.get<String?>(RouteArgument.Scope.key))
-    return scope.toGem().searchKey(query)
-}
+private fun SavedStateHandle.queryArgument(): String = get<String?>(RouteArgument.Query.key).orEmpty()
 
-private fun selectSearchOf(savedStateHandle: SavedStateHandle, assetsQuery: AssetsQuery, walletSearchQuery: WalletSearchQuery): SelectSearch = when (walletSearchTagOf(savedStateHandle.get<String?>(RouteArgument.Scope.key))) {
-    is WalletSearchTag.List -> ListSelectSearch(walletSearchQuery, searchKeyOf(savedStateHandle))
-    WalletSearchTag.All -> BaseSelectSearch(assetsQuery)
+private fun selectSearchOf(savedStateHandle: SavedStateHandle, assetsQuery: AssetsQuery, walletSearchQuery: WalletSearchQuery): SelectSearch = when (val scope = savedStateHandle.requireSearchScope()) {
+    is GemSearchScope.List -> ListSelectSearch(walletSearchQuery, scope.searchKey(savedStateHandle.queryArgument()))
+    GemSearchScope.All -> BaseSelectSearch(assetsQuery)
 }

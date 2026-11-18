@@ -10,6 +10,7 @@ import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.NFTAsset
 import com.wallet.core.primitives.NFTAssetId
 import uniffi.gemstone.GemPaymentRecipient
+import uniffi.gemstone.GemSearchScope
 
 fun SavedStateHandle.requireString(argument: RouteArgument): String = requireValue(argument).also { value ->
     check(value.isNotBlank()) { "Blank route argument: ${argument.key}" }
@@ -44,6 +45,11 @@ fun SavedStateHandle.optionalContactAddressDraft(): ContactAddressDraft? {
 fun SavedStateHandle.optionalPaymentRecipient(argument: RouteArgument = RouteArgument.Payment): GemPaymentRecipient? {
     val value = get<String>(argument.key) ?: return null
     return checkNotNull(unpackRoutePayload<GemPaymentRecipient>(value)) { "Invalid route argument ${argument.key}: $value" }
+}
+
+fun SavedStateHandle.requireSearchScope(argument: RouteArgument = RouteArgument.Scope): GemSearchScope {
+    val value = requireValue(argument)
+    return checkNotNull(unpackRoutePayload<GemSearchScope>(value)) { "Invalid route argument ${argument.key}: $value" }
 }
 
 private fun SavedStateHandle.requireValue(argument: RouteArgument): String = checkNotNull(get<String>(argument.key)) { "Missing route argument: ${argument.key}" }
