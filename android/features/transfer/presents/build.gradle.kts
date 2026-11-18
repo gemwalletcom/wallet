@@ -23,6 +23,7 @@ dependencies {
     implementation(project(":features:stake:presents"))
 
     implementation(libs.hilt.lifecycle.viewmodel.compose)
+    implementation(libs.zxing.core)
 
     debugImplementation(libs.androidx.ui.test.manifest)
     testImplementation(libs.junit)

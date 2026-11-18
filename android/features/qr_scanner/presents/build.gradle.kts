@@ -16,6 +16,7 @@ dependencies {
 
     implementation(libs.camera.camera2)
     implementation(libs.camera.lifecycle)
+    implementation(libs.zxing.core)
 
     implementation(libs.ktx.core)
     implementation(libs.lifecycle.runtime.compose)
