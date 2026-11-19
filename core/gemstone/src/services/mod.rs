@@ -97,7 +97,6 @@ pub use portfolio::{GemPortfolioService, GemPortfolioStore};
 pub use preferences::{GemPreferencesService, GemPreferencesStore};
 pub use price::{GemPriceService, GemPriceStore};
 pub use price_alert::{GemPriceAlertService, GemPriceAlertStore};
-pub use push_notification::{GemPushNotification, GemPushNotificationService};
 pub use rewards::{GemRewardsService, GemRewardsState};
 pub use scan::GemScanService;
 pub use search::{GemSearchScope, GemSearchService, GemSearchStore};
