@@ -298,10 +298,7 @@ impl GemFiatOperation {
         if rules::parse_amount(&format.decimal_separator, &amount) == rules::parse_amount(&format.decimal_separator, &self.amount) {
             return Self { amount, ..self.clone() };
         }
-        Self {
-            selected_provider: self.selected_provider,
-            ..Self::new(self.quote_type, amount, format)
-        }
+        Self::new(self.quote_type, amount, format)
     }
 
     fn quote_request(&self, format: &GemNumberFormat) -> Option<GemFiatQuoteRequest> {
@@ -495,7 +492,7 @@ mod tests {
     }
 
     #[test]
-    fn test_the_chosen_provider_survives_a_refresh_and_an_unknown_one_is_ignored() {
+    fn test_the_chosen_provider_survives_a_refresh_but_not_a_new_amount_and_an_unknown_one_is_ignored() {
         let session = GemFiatSession::mock(FiatQuoteType::Buy, None).on_quote_results(GemFiatQuotesResult::mock(vec![
             FiatQuote {
                 crypto_amount: 1.0,
@@ -528,6 +525,25 @@ mod tests {
                 },
             ]));
         assert_eq!(refreshed.selected_quote().map(|quote| quote.crypto_amount), Some(3.0));
+
+        let new_amount = selected.on_amount_changed("75".to_string()).on_quote_results(GemFiatQuotesResult {
+            request: GemFiatQuoteRequest {
+                quote_type: FiatQuoteType::Buy,
+                amount: 75.0,
+            },
+            ..GemFiatQuotesResult::mock(vec![
+                FiatQuote {
+                    crypto_amount: 3.0,
+                    ..FiatQuote::mock(FiatProviderName::Transak)
+                },
+                FiatQuote {
+                    crypto_amount: 1.0,
+                    ..FiatQuote::mock(FiatProviderName::MoonPay)
+                },
+            ])
+        });
+        assert_eq!(new_amount.selected_quote().map(|quote| quote.provider.id), Some(FiatProviderName::Transak));
+        assert_eq!(selected.on_amount_changed("050".to_string()).selected_quote().map(|quote| quote.provider.id), Some(FiatProviderName::MoonPay));
 
         let gone = selected
             .on_fetch_started(GemFiatQuoteRequest {
