@@ -152,7 +152,7 @@ tower = { version = "0.5.3", features = ["util"] }
 tower-http = { version = "0.6.11", features = ["timeout", "catch-panic", "set-header", "normalize-path"] }
 
 # Logging and metrics
-prometheus-client = { version = "0.25.0" }
+prometheus-client = { version = "0.26.0" }
 
 # Localization and embedded assets
 fluent-syntax = { version = "0.12.0" }
