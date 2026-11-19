@@ -19,7 +19,7 @@ pub struct SiweMessage {
     pub domain: String,
     pub address: String,
     pub uri: String,
-    pub chain_id: u64,
+    pub chain_id: String,
     pub nonce: String,
     pub version: String,
     pub issued_at: String,
@@ -38,7 +38,7 @@ impl SiweMessage {
 
         let uri = Self::find_field(&body, URI_PREFIX)?;
         let version = Self::find_field(&body, VERSION_PREFIX)?;
-        let chain_id = Self::find_field(&body, CHAIN_ID_PREFIX)?.parse().ok()?;
+        let chain_id = Self::find_field(&body, CHAIN_ID_PREFIX)?;
         let nonce = Self::find_field(&body, NONCE_PREFIX)?;
         let issued_at = Self::find_field(&body, ISSUED_AT_PREFIX)?;
 
@@ -58,8 +58,7 @@ impl SiweMessage {
             return Err("Unsupported chain for SIWE".to_string());
         }
 
-        let expected_chain_id = chain.network_id().parse::<u64>().map_err(|_| "Invalid chain".to_string())?;
-        if expected_chain_id != self.chain_id {
+        if chain.network_id() != self.chain_id {
             return Err("Chain ID mismatch".to_string());
         }
 
@@ -111,7 +110,7 @@ mod tests {
         assert_eq!(siwe.domain, "login.xyz");
         assert_eq!(siwe.address, "0x6dd7802e6D44be89a789c4Bd60bD511b68f41c7c");
         assert_eq!(siwe.uri, "https://login.xyz");
-        assert_eq!(siwe.chain_id, 1);
+        assert_eq!(siwe.chain_id, "1");
         assert_eq!(siwe.nonce, "8hK9pX32");
         assert_eq!(siwe.version, "1");
         assert_eq!(siwe.issued_at, "2024-04-01T12:00:00Z");
@@ -145,6 +144,9 @@ mod tests {
         let siwe = SiweMessage::try_parse(&message).unwrap();
         let err = siwe.validate(Chain::Polygon).unwrap_err();
         assert!(err.contains("mismatch"));
+
+        let unknown_chain = SiweMessage::try_parse(&message.replace("Chain ID: 1", "Chain ID: 99999999999999999999999")).unwrap();
+        assert_eq!(unknown_chain.validate(Chain::Ethereum), Err("Chain ID mismatch".to_string()), "a chain id no network has still reads as a sign-in");
     }
 
     #[test]

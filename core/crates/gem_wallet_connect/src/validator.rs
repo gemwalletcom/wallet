@@ -7,6 +7,7 @@ use crate::siws;
 use gem_evm::domain::host_only;
 use gem_evm::siwe::SiweMessage;
 use primitives::Chain;
+use primitives::domain::parse_domain;
 
 pub struct SignMessageValidation<'a> {
     pub chain: Chain,
@@ -49,8 +50,8 @@ fn validate_siwe(input: &SignMessageValidation) -> Result<(), String> {
 
 pub fn validate_domain(domain: &str, session_domain: &str) -> Result<(), String> {
     let session_host = host_only(session_domain).ok_or_else(|| "Invalid session origin".to_string())?;
-    let message_host = host_only(domain).ok_or_else(|| "Invalid SIWE domain".to_string())?;
-    if session_host != message_host {
+    let message_url = parse_domain(domain).ok_or_else(|| "Invalid SIWE domain".to_string())?;
+    if message_url.host_str() != Some(session_host.as_str()) {
         return Err(format!("Domain mismatch: SIWE domain {domain} does not match session origin {session_domain}"));
     }
     Ok(())
@@ -202,6 +203,28 @@ mod tests {
     }
 
     #[test]
+    fn test_validate_domain() {
+        for domain in ["example.com", "EXAMPLE.com", "example.com:8443"] {
+            assert_eq!(validate_domain(domain, "https://example.com"), Ok(()), "{domain}");
+        }
+        assert!(validate_domain("app.uniswap.org", "https://example.com").unwrap_err().contains("Domain mismatch"));
+
+        for domain in [
+            "",
+            "https://example.com",
+            "example.com/login",
+            "app.uniswap.org@example.com",
+            "app.uniswap.org wants you to sign in with your Ethereum account:\n@example.com",
+        ] {
+            assert_eq!(
+                validate_domain(domain, "https://example.com"),
+                Err("Invalid SIWE domain".to_string()),
+                "a sign-in message opens with the domain as written, so only a host with an optional port names a site: {domain}"
+            );
+        }
+    }
+
+    #[test]
     fn test_validate_eip191_siwe() {
         assert!(
             validate_sign_message(&SignMessageValidation::mock(Chain::Ethereum, &SignDigestType::Eip191, &mock_siwe_message_hex("thepoc.xyz", 137), "https://thepoc.xyz"))
@@ -217,6 +240,13 @@ mod tests {
             validate_sign_message(&SignMessageValidation::mock(Chain::Ethereum, &SignDigestType::Eip191, &mock_siwe_message("0xother.xyz", 1), "https://evil.com"))
                 .unwrap_err()
                 .contains("Domain mismatch")
+        );
+        let unknown_chain = mock_siwe_message("evil.com", 1).replace("Chain ID: 1", "Chain ID: 99999999999999999999999");
+        assert!(
+            validate_sign_message(&SignMessageValidation::mock(Chain::Ethereum, &SignDigestType::Eip191, &unknown_chain, "https://thepoc.xyz"))
+                .unwrap_err()
+                .contains("Chain ID mismatch"),
+            "a sign-in for another site is refused whatever chain id it names"
         );
         assert!(validate_sign_message(&SignMessageValidation::mock(Chain::Ethereum, &SignDigestType::Eip191, "0x48656c6c6f", "https://example.com")).is_ok());
     }
