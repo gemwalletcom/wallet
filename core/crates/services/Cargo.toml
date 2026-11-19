@@ -46,9 +46,4 @@ tokio = { workspace = true, features = ["sync"] }
 uuid = { workspace = true }
 
 [dev-dependencies]
-gem_client = { path = "../gem_client", features = ["testkit"] }
-storage = { path = "../storage", features = ["testkit"] }
 gem_solana = { path = "../gem_solana", features = ["rpc"] }
-primitives = { path = "../primitives", features = ["testkit"] }
-swapper = { path = "../swapper", features = ["testkit"] }
-support = { path = "../support", features = ["testkit"] }

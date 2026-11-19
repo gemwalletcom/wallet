@@ -21,7 +21,5 @@ chrono = { workspace = true }
 async-trait = { workspace = true }
 
 [features]
-testkit = ["primitives/testkit"]
 
 [dev-dependencies]
-primitives = { path = "../primitives", features = ["testkit"] }

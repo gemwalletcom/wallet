@@ -49,7 +49,6 @@ security = { path = "../../crates/security" }
 gem_auth = { path = "../../crates/gem_auth" }
 
 [dev-dependencies]
-primitives = { path = "../../crates/primitives", features = ["testkit"] }
 rewards = { path = "../../crates/rewards" }
 reqwest = { workspace = true }
 serde_urlencoded = { workspace = true }

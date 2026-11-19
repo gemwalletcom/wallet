@@ -8,7 +8,6 @@ license = { workspace = true }
 default = []
 reqwest_provider = ["dep:reqwest", "gem_client/reqwest"]
 swap_integration_tests = ["reqwest_provider"]
-testkit = ["primitives/testkit"]
 
 [dependencies]
 primitives = { path = "../primitives" }
@@ -54,11 +53,6 @@ sha2 = { workspace = true }
 
 [dev-dependencies]
 tokio.workspace = true
-primitives = { path = "../primitives", features = ["testkit"] }
-gem_client = { path = "../gem_client", features = ["testkit"] }
-gem_jsonrpc = { path = "../gem_jsonrpc", features = ["testkit"] }
-gem_evm = { path = "../gem_evm", features = ["testkit"] }
-gem_hypercore = { path = "../gem_hypercore", features = ["testkit", "signer"] }
-gem_sui = { path = "../gem_sui", features = ["reqwest", "testkit"] }
-gem_aptos = { path = "../gem_aptos", features = ["testkit"] }
-settings = { path = "../settings", features = ["testkit"] }
+gem_hypercore = { path = "../gem_hypercore", features = ["signer"] }
+gem_sui = { path = "../gem_sui", features = ["reqwest"] }
+settings = { path = "../settings" }

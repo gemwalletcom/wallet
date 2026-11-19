@@ -34,7 +34,7 @@ pub mod rpc;
 #[cfg(feature = "rpc")]
 pub mod provider;
 
-#[cfg(any(test, feature = "testkit"))]
+#[cfg(any(test, debug_assertions))]
 pub mod testkit;
 
 pub const ETHEREUM_MESSAGE_PREFIX: &str = "\x19Ethereum Signed Message:\n";

@@ -17,8 +17,7 @@ rpc = [
     "dep:futures",
 ]
 reqwest = ["gem_client/reqwest"]
-testkit = []
-chain_integration_tests = ["rpc", "reqwest", "primitives/testkit", "settings/testkit"]
+chain_integration_tests = ["rpc", "reqwest"]
 
 [dependencies]
 gem_encoding = { path = "../gem_encoding", default-features = false, features = ["base58"] }
@@ -41,8 +40,7 @@ number_formatter = { path = "../number_formatter", optional = true }
 futures = { workspace = true, optional = true }
 
 [dev-dependencies]
-chain_traits = { path = "../chain_traits", features = ["testkit"] }
-gem_client = { path = "../gem_client", features = ["testkit"] }
-primitives = { path = "../primitives", features = ["testkit"] }
+chain_traits = { path = "../chain_traits" }
+gem_client = { path = "../gem_client" }
 tokio = { workspace = true, features = ["rt", "macros"] }
-settings = { path = "../settings", features = ["testkit"] }
+settings = { path = "../settings" }

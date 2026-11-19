@@ -2,7 +2,7 @@ pub mod account;
 pub mod block;
 pub mod fee;
 pub mod rpc;
-#[cfg(any(test, feature = "testkit"))]
+#[cfg(any(test, debug_assertions))]
 pub mod testkit;
 pub mod transaction;
 

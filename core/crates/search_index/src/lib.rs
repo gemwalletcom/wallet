@@ -6,5 +6,5 @@ pub use meilisearch::*;
 pub use models::*;
 pub use search::{SearchProvider, SearchQuery};
 
-#[cfg(any(test, feature = "testkit"))]
+#[cfg(any(test, debug_assertions))]
 pub mod testkit;

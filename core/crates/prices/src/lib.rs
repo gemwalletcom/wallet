@@ -2,7 +2,7 @@ mod alerts;
 mod config;
 pub mod model;
 pub mod providers;
-#[cfg(any(test, feature = "testkit"))]
+#[cfg(any(test, debug_assertions))]
 pub mod testkit;
 
 use std::error::Error;

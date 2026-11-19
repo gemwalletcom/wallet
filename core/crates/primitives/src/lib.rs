@@ -387,5 +387,5 @@ pub use self::version::{Version, is_version_higher};
 pub mod value_access;
 pub use self::value_access::{JsonDecode, ValueAccess};
 
-#[cfg(any(test, feature = "testkit"))]
+#[cfg(any(test, debug_assertions))]
 pub mod testkit;

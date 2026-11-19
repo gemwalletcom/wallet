@@ -8,7 +8,6 @@ default = ["types"]
 types = []
 client = ["dep:gem_client", "dep:async-trait", "dep:primitives", "dep:gem_encoding"]
 reqwest = ["client", "dep:reqwest", "gem_client/reqwest"]
-testkit = ["client", "gem_client/testkit"]
 uniffi = ["client", "dep:uniffi"]
 
 [dependencies]
@@ -23,5 +22,5 @@ gem_encoding = { path = "../gem_encoding", default-features = false, optional = 
 uniffi = { workspace = true, optional = true }
 
 [dev-dependencies]
-gem_client = { path = "../gem_client", features = ["testkit"] }
+gem_client = { path = "../gem_client" }
 tokio = { workspace = true, features = ["macros", "rt"] }

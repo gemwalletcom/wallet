@@ -2,7 +2,7 @@ pub mod client;
 pub mod mapper;
 pub mod model;
 mod target;
-#[cfg(any(test, feature = "testkit"))]
+#[cfg(any(test, debug_assertions))]
 pub mod testkit;
 
 pub use self::client::MAX_MARKETS_PER_PAGE;

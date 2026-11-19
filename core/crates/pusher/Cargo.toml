@@ -10,4 +10,4 @@ gem_client = { path = "../gem_client", features = ["reqwest"] }
 push_notification = { path = "../push_notification" }
 
 [dev-dependencies]
-primitives = { path = "../primitives", features = ["testkit"] }
+primitives = { path = "../primitives" }

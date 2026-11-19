@@ -22,14 +22,9 @@ primitives = { path = "../primitives" }
 serde_serializers = { path = "../serde_serializers" }
 
 [dev-dependencies]
-coingecko = { path = "../coingecko", features = ["testkit"] }
-gem_client = { path = "../gem_client", features = ["testkit"] }
-gem_hypercore = { path = "../gem_hypercore", features = ["testkit"] }
-primitives = { path = "../primitives", features = ["testkit"] }
 serde_json = { workspace = true }
-settings = { path = "../settings", features = ["testkit"] }
+settings = { path = "../settings" }
 
 [features]
 default = []
-testkit = []
 price_integration_tests = []
