@@ -1,17 +1,17 @@
 use num_bigint::BigUint;
 use primitives::{AssetId, Chain, Delegation, DelegationBase, DelegationState, DelegationValidator};
 
-#[cfg(all(feature = "rpc", feature = "reqwest"))]
+#[cfg(feature = "chain_integration_tests")]
 use gem_client::ReqwestClient;
-#[cfg(all(feature = "rpc", feature = "reqwest"))]
+#[cfg(feature = "chain_integration_tests")]
 use gem_evm::rpc::EthereumClient;
-#[cfg(all(feature = "rpc", feature = "reqwest"))]
+#[cfg(feature = "chain_integration_tests")]
 use primitives::EVMChain;
-#[cfg(all(feature = "rpc", feature = "reqwest"))]
+#[cfg(feature = "chain_integration_tests")]
 use settings::testkit::get_test_settings;
 
 use crate::model::BscUndelegation;
-#[cfg(all(feature = "rpc", feature = "reqwest"))]
+#[cfg(feature = "chain_integration_tests")]
 use crate::staking::BscStakingClient;
 
 pub const TEST_SMARTCHAIN_STAKING_ADDRESS: &str = "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4";
@@ -42,7 +42,7 @@ pub fn mock_delegation(validator_id: &str, state: DelegationState, balance: u64,
     }
 }
 
-#[cfg(all(feature = "rpc", feature = "reqwest"))]
+#[cfg(feature = "chain_integration_tests")]
 pub fn create_staking_client() -> BscStakingClient<ReqwestClient> {
     let settings = get_test_settings();
     BscStakingClient::new(EthereumClient::mock_with_url(EVMChain::SmartChain, &settings.chains.smartchain.url))
