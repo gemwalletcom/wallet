@@ -232,7 +232,7 @@ pub fn about_sections(version: String, build: String, update: Option<Release>) -
     ]
 }
 
-pub fn sections(wallets_count: usize, notifications_available: bool, wallet_connect_available: bool, shows_rewards: bool, developer_enabled: bool) -> Vec<GemGroup> {
+pub fn sections(wallets_count: usize, notifications_available: bool, shows_rewards: bool, developer_enabled: bool) -> Vec<GemGroup> {
     let link = |title: GemListRowTitle, icon: GemListRowIcon, action: GemRowAction| GemListRow::Link { title, value: None, icon, action };
     [
         vec![
@@ -251,10 +251,7 @@ pub fn sections(wallets_count: usize, notifications_available: bool, wallet_conn
         .into_iter()
         .flatten()
         .collect(),
-        match wallet_connect_available {
-            true => vec![link(GemListRowTitle::WalletConnect, GemListRowIcon::WalletConnect, GemRowAction::WalletConnect)],
-            false => vec![],
-        },
+        vec![link(GemListRowTitle::WalletConnect, GemListRowIcon::WalletConnect, GemRowAction::WalletConnect)],
         [
             Some(link(GemListRowTitle::Support, GemListRowIcon::Support, GemRowAction::Support)),
             shows_rewards.then(|| link(GemListRowTitle::Rewards, GemListRowIcon::Rewards, GemRowAction::Rewards)),
@@ -467,7 +464,7 @@ mod tests {
         let titles = |sections: Vec<GemGroup>| sections.iter().map(|section| section.rows().iter().filter_map(row_title).collect::<Vec<_>>()).collect::<Vec<_>>();
 
         assert_eq!(
-            titles(sections(3, true, true, true, true)),
+            titles(sections(3, true, true, true)),
             vec![
                 vec![GemListRowTitle::Wallets, GemListRowTitle::Security],
                 vec![GemListRowTitle::Notifications, GemListRowTitle::Preferences],
@@ -477,17 +474,18 @@ mod tests {
         );
 
         assert_eq!(
-            titles(sections(1, false, false, false, false)),
+            titles(sections(1, false, false, false)),
             vec![
                 vec![GemListRowTitle::Wallets, GemListRowTitle::Security],
                 vec![GemListRowTitle::Preferences],
+                vec![GemListRowTitle::WalletConnect],
                 vec![GemListRowTitle::Support, GemListRowTitle::AboutUs],
             ],
-            "a device without notifications or WalletConnect drops those rows and their empty section"
+            "a device without notifications drops that row"
         );
 
         assert_eq!(
-            sections(3, false, false, false, false).first().and_then(|section| section.rows().first().cloned()),
+            sections(3, false, false, false).first().and_then(|section| section.rows().first().cloned()),
             Some(GemListRow::Link {
                 title: GemListRowTitle::Wallets,
                 value: Some("3".to_string()),
@@ -500,7 +498,7 @@ mod tests {
 
     #[test]
     fn test_a_row_names_what_tapping_it_does_and_a_plain_row_names_nothing() {
-        let settings = sections(1, true, true, true, true);
+        let settings = sections(1, true, true, true);
         let security = security_sections(
             GemSecurityInput {
                 authentication_enabled: true,

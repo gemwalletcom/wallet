@@ -17,14 +17,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.application.wallet_connect.ActiveWalletConnectRequest
 import com.gemwallet.android.features.settings.presents.lock.LockScene
 import com.gemwallet.android.features.settings.presents.lock.LockScreen
 import com.gemwallet.android.features.settings.presents.lock.UnlockedContent
 import com.gemwallet.android.features.settings.viewmodels.lock.models.AuthState
 import com.gemwallet.android.features.settings.viewmodels.lock.models.LockUIState
-import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.WalletApp
 import com.gemwallet.android.ui.components.dialog.ErrorDialog
 import com.gemwallet.android.ui.components.screen.SnackbarHost
@@ -44,7 +42,6 @@ internal fun MainContent(
     pendingNavigation: PendingNavigation?,
     systemAuthEnrollmentMissing: Boolean,
     activeWalletConnectRequest: ActiveWalletConnectRequest,
-    walletConnectEnabled: Boolean,
     toastEvents: Flow<ToastMessage>,
     onSystemAuthRequired: () -> Unit,
     onPendingNavigationConsumed: () -> Unit,
@@ -59,11 +56,6 @@ internal fun MainContent(
     val requiresAuthPrompt = lockState.initialAuth == AuthState.Required || lockState.authState == AuthState.Required
     val isWalletUnlocked = lockState.isUnlocked
     val unlockedPendingRoutes = if (isWalletUnlocked) pendingRoutes else emptyList()
-    val unsupportedWalletConnectError = if (state.isWalletConnectUnsupportedVisible) {
-        "${stringResource(R.string.wallet_connect_title)}: ${stringResource(R.string.errors_not_supported)} (${BuildConfig.FLAVOR})"
-    } else {
-        null
-    }
     var isWalletContentReady by remember { mutableStateOf(isWalletUnlocked) }
     val onWalletContentReady: () -> Unit = remember { { isWalletContentReady = true } }
 
@@ -81,7 +73,7 @@ internal fun MainContent(
                     pendingTab = pendingDestination?.tab,
                     onPendingNavigationConsumed = onPendingNavigationConsumed,
                     onContentReady = onWalletContentReady,
-                    activeWalletConnectRequest = activeWalletConnectRequest.takeIf { walletConnectEnabled },
+                    activeWalletConnectRequest = activeWalletConnectRequest,
                     onWalletConnectError = onWalletConnectError,
                 )
                 AppToastHost(toastEvents)
@@ -103,7 +95,7 @@ internal fun MainContent(
         }
 
         ErrorDialog(
-            message = (state.walletConnectError ?: unsupportedWalletConnectError ?: state.startupError)?.takeIf { it.isNotEmpty() },
+            message = (state.walletConnectError ?: state.startupError)?.takeIf { it.isNotEmpty() },
             onDismiss = onErrorDismiss,
         )
     }

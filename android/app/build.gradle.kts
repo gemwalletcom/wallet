@@ -92,7 +92,6 @@ android {
                     .replace("\\", "\\\\")
                     .replace("\"", "\\\"")
                 buildConfigField("String", "UPDATE_URL", "\"$resolvedUpdateUrl\"")
-                buildConfigField("boolean", "WALLET_CONNECT", (channel.getValue("walletConnect") as Boolean).toString())
             }
         }
     }

@@ -190,7 +190,6 @@ class MainActivity :
                     pendingNavigation = pendingNavigation,
                     systemAuthEnrollmentMissing = systemAuthEnrollmentMissing,
                     activeWalletConnectRequest = activeWalletConnectRequest,
-                    walletConnectEnabled = viewModel.isWalletConnectEnabled,
                     toastEvents = viewModel.toastEvents,
                     onSystemAuthRequired = systemAuthenticator::authenticate,
                     onPendingNavigationConsumed = viewModel::consumePendingNavigation,

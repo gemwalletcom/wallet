@@ -134,7 +134,6 @@ class MainViewModelStartupErrorTest {
             userConfig = userConfig,
             securityPreferences = mockk<SecurityPreferences> { every { authRequired() } returns authRequired },
             passwordProtection = protection,
-            isWalletConnectEnabledCase = mockk(relaxed = true),
             pairWalletConnect = mockk(relaxed = true),
             appStartService = mockk(relaxed = true),
             migrateV3KeystoreService = mockk(relaxed = true),
