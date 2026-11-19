@@ -27,6 +27,7 @@ gem_hash = { path = "../gem_hash" }
 signer = { path = "../signer" }
 
 [dev-dependencies]
+gem_algorand = { path = ".", features = ["rpc", "signer"] }
 chain_traits = { path = "../chain_traits" }
 gem_client = { path = "../gem_client" }
 tokio = { workspace = true, features = ["macros", "rt"] }

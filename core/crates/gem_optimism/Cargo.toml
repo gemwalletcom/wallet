@@ -19,3 +19,4 @@ alloy-sol-types = { workspace = true, optional = true }
 num-bigint = { workspace = true }
 
 [dev-dependencies]
+gem_optimism = { path = ".", features = ["rpc"] }

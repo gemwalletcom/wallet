@@ -52,6 +52,7 @@ hmac = { workspace = true }
 sha2 = { workspace = true }
 
 [dev-dependencies]
+swapper = { path = ".", features = ["reqwest_provider"] }
 tokio.workspace = true
 gem_hypercore = { path = "../gem_hypercore", features = ["signer"] }
 gem_sui = { path = "../gem_sui", features = ["reqwest"] }

@@ -24,6 +24,7 @@ gem_hash = { path = "../gem_hash", optional = true }
 num-bigint = { workspace = true, optional = true }
 
 [dev-dependencies]
+gem_zcash = { path = ".", features = ["rpc", "signer"] }
 gem_client = { path = "../gem_client" }
 serde_json = { workspace = true }
 settings = { path = "../settings" }

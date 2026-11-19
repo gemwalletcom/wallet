@@ -23,6 +23,7 @@ num-traits = { workspace = true }
 serde = { workspace = true, optional = true }
 
 [dev-dependencies]
+everstake = { path = ".", features = ["rpc"] }
 gem_evm = { path = "../gem_evm", features = ["rpc"] }
 gem_client = { path = "../gem_client" }
 settings = { path = "../settings" }

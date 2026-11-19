@@ -42,6 +42,7 @@ num-traits = { workspace = true, optional = true }
 signer = { path = "../signer", optional = true }
 
 [dev-dependencies]
+gem_solana = { path = ".", features = ["rpc", "signer"] }
 chain_traits = { path = "../chain_traits" }
 tokio = { workspace = true, features = ["macros", "rt"] }
 primitives = { path = "../primitives", default-features = false }
