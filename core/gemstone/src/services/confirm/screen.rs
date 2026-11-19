@@ -520,6 +520,7 @@ mod tests {
             load.metadata.asset_balance.available = 1_000_000u64.into();
             load.metadata.fee_asset_balance.available = 1_000_000u64.into();
             let mut data = GemConfirmData::mock(Chain::Ethereum, TransactionInputType::Transfer { asset: Asset::mock_eth() });
+            data.input.transfer.use_max_amount = true;
             data.input.transfer.value = 1_000_000u64.into();
             data.fee.fee = fee.into();
             data.fee.fee_asset = load.fee_asset.id.clone();

@@ -38,7 +38,7 @@ use crate::services::wallet_preferences::GemWalletPreferencesService;
 use num_bigint::BigInt;
 use primitives::TransactionInputType;
 use primitives::currency::Currency;
-use primitives::{Asset, AssetBasic, AssetId, Chain, EVMChain, PerpetualAccountMode, SignerError, SignerInput, SimulationResult, Transaction, TransactionFee, TransactionLoadData, TransactionLoadInput, TransactionPreloadInput, WalletId};
+use primitives::{Asset, AssetBasic, AssetId, Chain, EVMChain, PerpetualAccountMode, SignerError, SignerInput, SimulationResult, Transaction, TransactionFee, TransactionLoadData, TransactionPreloadInput, WalletId};
 
 #[derive(uniffi::Object)]
 pub struct GemConfirmService {
@@ -93,11 +93,10 @@ impl GemConfirmService {
         let asset = transfer.input_type.get_asset();
         let chain = asset.id.chain;
         let symbol = asset.symbol.clone();
-        let destination = transfer.destination_address();
         let preload_input = TransactionPreloadInput {
             input_type: transfer.input_type.clone(),
             sender_address: input.from.address.clone(),
-            destination_address: destination.clone(),
+            destination_address: transfer.destination_address(),
             references: transfer.recipient.references.clone(),
         };
 
@@ -125,19 +124,7 @@ impl GemConfirmService {
             }
         } else {
             self.gateway
-                .get_transaction_load(
-                    chain,
-                    TransactionLoadInput {
-                        input_type: transfer.input_type.clone(),
-                        sender_address: input.from.address.clone(),
-                        destination_address: destination,
-                        value: transfer.value.to_biguint().ok_or_else(|| GemConfirmError::Load { msg: "negative transfer value".to_string() })?,
-                        gas_price: selected.gas_price_type.clone(),
-                        memo: transfer.recipient.memo.clone(),
-                        is_max_value: transfer.use_max_amount,
-                        metadata,
-                    },
-                )
+                .get_transaction_load(chain, transfer.load_input(input.from.address.clone(), &transfer.value, selected.gas_price_type.clone(), metadata)?)
                 .await
                 .map_err(|error| error::load_error(&transfer.input_type, error))?
         };
