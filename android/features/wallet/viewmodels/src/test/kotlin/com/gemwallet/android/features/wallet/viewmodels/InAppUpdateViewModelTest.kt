@@ -193,7 +193,7 @@ class InAppUpdateViewModelTest {
             if (suspendDownload) kotlinx.coroutines.awaitCancellation()
         }
 
-        override fun installDownloadedUpdate(version: String) {
+        override suspend fun installDownloadedUpdate(version: String) {
             installedVersions.add(version)
         }
 
