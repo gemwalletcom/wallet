@@ -62,11 +62,12 @@ struct ServicesFactory {
         let gemstoneAddressStore = GemstoneAddressStore(store: stores.addressStore)
         let gemstoneBannerStore = GemstoneBannerStore(store: stores.bannerStore)
         let gemstoneNotificationStore = GemstoneNotificationStore(store: stores.inAppNotificationStore)
+        let gatewaySecurePreferences = GemstoneEncryptedPreferencesStore(namespace: "gateway")
         let gatewayService = GatewayService(
             provider: nativeProvider,
             nodes: nodeService,
             preferences: GemstonePreferencesStore(namespace: "gateway"),
-            securePreferences: GemstoneEncryptedPreferencesStore(namespace: "gateway"),
+            securePreferences: gatewaySecurePreferences,
         )
         let nameService = Gemstone.GemNameService(api: deviceApiClient, store: gemstoneAddressStore)
         let assetsService = gatewayService.assetsService(api: apiClient, store: gemstoneAssetStore, price: priceService, preferences: preferencesService)
@@ -98,6 +99,7 @@ struct ServicesFactory {
             explorer: explorerService,
             names: nameService,
             avatar: avatarService,
+            securePreferences: gatewaySecurePreferences,
         )
         let pushNotificationEnablerService = PushNotificationEnablerService(preferencesService: preferencesService, systemPrompt: storages.systemPrompt)
         let notificationPermissions = GemstoneNotificationPermissions(service: pushNotificationEnablerService)

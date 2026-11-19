@@ -371,6 +371,17 @@ pub fn wallet_address_names(wallet: &Wallet) -> Vec<AddressName> {
         .collect()
 }
 
+pub fn hypercore_agent_addresses(wallet: &Wallet, wallets: &[Wallet]) -> Vec<String> {
+    let is_hypercore = |account: &&Account| account.chain.chain_type() == ChainType::HyperCore;
+    let held: Vec<&String> = wallets
+        .iter()
+        .filter(|other| other.id != wallet.id && other.wallet_type != WalletType::View)
+        .flat_map(|other| other.accounts.iter().filter(is_hypercore))
+        .map(|account| &account.address)
+        .collect();
+    wallet.accounts.iter().filter(is_hypercore).map(|account| &account.address).filter(|address| !held.contains(address)).cloned().collect()
+}
+
 pub fn next_current_wallet(wallets: &[Wallet]) -> Option<WalletId> {
     wallets.iter().min_by_key(|wallet| wallet_order(&wallet.id, wallet.index)).map(|wallet| wallet.id.clone())
 }
@@ -731,6 +742,20 @@ mod tests {
 
         assert_eq!(next_current_wallet(&[view, second, first.clone()]), Some(first.id));
         assert_eq!(next_current_wallet(&[]), None);
+    }
+
+    #[test]
+    fn test_hypercore_agent_addresses_are_the_ones_no_other_signing_wallet_holds() {
+        let chains = [Chain::Ethereum, Chain::HyperCore];
+        let wallet = Wallet::mock_with_id(WalletId::Multicoin("0x1".to_string()), &chains);
+        let key_wallet = Wallet::mock_with_id(WalletId::PrivateKey(Chain::HyperCore, "0x1".to_string()), &chains);
+        let view = Wallet::mock_with_id(WalletId::View(Chain::HyperCore, "0x1".to_string()), &chains);
+        let mut other = Wallet::mock_with_id(WalletId::Multicoin("0x2".to_string()), &chains);
+        other.accounts = Account::mock_chains(&chains, "other");
+
+        assert_eq!(hypercore_agent_addresses(&wallet, &[wallet.clone(), view, other]), vec!["address"]);
+        assert_eq!(hypercore_agent_addresses(&wallet, &[wallet.clone(), key_wallet]), Vec::<String>::new());
+        assert_eq!(hypercore_agent_addresses(&Wallet::mock_with_chains(&[Chain::Ethereum]), &[]), Vec::<String>::new());
     }
 
     #[test]
