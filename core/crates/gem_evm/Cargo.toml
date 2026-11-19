@@ -9,8 +9,7 @@ rpc = ["dep:async-trait", "dep:chain_traits", "dep:futures", "dep:gem_client", "
 indexer = ["rpc", "dep:alchemy", "dep:ankr", "dep:blockscout", "dep:etherscan"]
 reqwest = ["rpc", "gem_jsonrpc/reqwest", "gem_client/reqwest"]
 signer = ["dep:signer"]
-chain_integration_tests = ["indexer", "reqwest", "primitives/testkit", "settings/testkit"]
-testkit = ["gem_client?/testkit", "gem_jsonrpc/testkit"]
+chain_integration_tests = ["indexer", "reqwest"]
 
 [dependencies]
 primitives = { path = "../primitives" }
@@ -39,13 +38,11 @@ async-trait = { workspace = true, optional = true }
 chain_traits = { path = "../chain_traits", optional = true }
 
 [dev-dependencies]
-chain_traits = { path = "../chain_traits", features = ["testkit"] }
-primitives = { path = "../primitives", features = ["testkit"] }
-gem_client = { path = "../gem_client", features = ["testkit"] }
-gem_jsonrpc = { path = "../gem_jsonrpc", features = ["testkit"] }
-ankr = { path = "../ankr", features = ["testkit"] }
-blockscout = { path = "../blockscout", features = ["testkit"] }
-etherscan = { path = "../etherscan", features = ["testkit"] }
+chain_traits = { path = "../chain_traits" }
+gem_client = { path = "../gem_client" }
+ankr = { path = "../ankr" }
+blockscout = { path = "../blockscout" }
+etherscan = { path = "../etherscan" }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
-settings = { path = "../settings", features = ["testkit"] }
+settings = { path = "../settings" }
 async-trait = { workspace = true }

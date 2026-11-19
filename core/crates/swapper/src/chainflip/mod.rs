@@ -9,7 +9,7 @@ pub mod price;
 pub mod provider;
 mod refund;
 pub mod seed;
-#[cfg(any(test, feature = "testkit"))]
+#[cfg(any(test, debug_assertions))]
 pub mod testkit;
 pub mod tx_builder;
 

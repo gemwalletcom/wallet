@@ -7,8 +7,7 @@ edition = { workspace = true }
 default = []
 reqwest = ["gem_client/reqwest"]
 signer = []
-testkit = ["gem_client/testkit"]
-chain_integration_tests = ["reqwest", "settings/testkit"]
+chain_integration_tests = ["reqwest"]
 
 [dependencies]
 async-trait = { workspace = true }
@@ -31,7 +30,6 @@ chain_traits = { path = "../chain_traits" }
 signer = { path = "../signer" }
 
 [dev-dependencies]
-gem_client = { path = "../gem_client", features = ["reqwest", "testkit"] }
+gem_client = { path = "../gem_client", features = ["reqwest"] }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
-primitives = { path = "../primitives", features = ["testkit"] }
-settings = { path = "../settings", features = ["testkit"] }
+settings = { path = "../settings" }

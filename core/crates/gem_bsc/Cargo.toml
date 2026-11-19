@@ -7,7 +7,7 @@ edition = { workspace = true }
 default = []
 rpc = ["gem_evm/rpc", "dep:async-trait", "dep:gem_client"]
 reqwest = ["rpc", "gem_evm/reqwest", "gem_client/reqwest"]
-chain_integration_tests = ["rpc", "reqwest", "primitives/testkit", "settings/testkit"]
+chain_integration_tests = ["rpc", "reqwest"]
 
 [dependencies]
 primitives = { path = "../primitives" }
@@ -21,7 +21,6 @@ alloy-sol-types = { workspace = true }
 num-bigint = { workspace = true }
 
 [dev-dependencies]
-gem_evm = { path = "../gem_evm", features = ["rpc", "testkit"] }
-primitives = { path = "../primitives", features = ["testkit"] }
-settings = { path = "../settings", features = ["testkit"] }
+gem_evm = { path = "../gem_evm", features = ["rpc"] }
+settings = { path = "../settings" }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }

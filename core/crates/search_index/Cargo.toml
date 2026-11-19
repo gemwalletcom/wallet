@@ -12,7 +12,5 @@ reqwest = { workspace = true }
 primitives = { path = "../primitives" }
 
 [features]
-testkit = []
 
 [dev-dependencies]
-primitives = { path = "../primitives", features = ["testkit"] }

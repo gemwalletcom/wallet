@@ -27,4 +27,3 @@ chain_traits = { path = "../../crates/chain_traits" }
 
 [dev-dependencies]
 num-bigint = { workspace = true }
-primitives = { path = "../../crates/primitives", features = ["testkit"] }

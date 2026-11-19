@@ -8,7 +8,7 @@ pub mod client;
 pub mod grpc;
 #[cfg(feature = "client")]
 pub use client::*;
-#[cfg(feature = "testkit")]
+#[cfg(all(any(test, debug_assertions), feature = "client"))]
 pub mod testkit;
 
 #[cfg(feature = "client")]

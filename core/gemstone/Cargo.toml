@@ -83,9 +83,3 @@ zeroize = { workspace = true }
 large_futures = "warn"
 
 [dev-dependencies]
-gem_bitcoin = { path = "../crates/gem_bitcoin", features = ["testkit"] }
-gem_evm = { path = "../crates/gem_evm", features = ["testkit"] }
-gem_wallet_connect = { path = "../crates/gem_wallet_connect", features = ["testkit"] }
-wallet_connect_protocol = { path = "../crates/wallet_connect_protocol", features = ["testkit"] }
-primitives = { path = "../crates/primitives", features = ["testkit"] }
-swapper = { path = "../crates/swapper", features = ["testkit"] }

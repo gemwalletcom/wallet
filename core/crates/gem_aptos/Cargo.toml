@@ -5,7 +5,6 @@ edition = { workspace = true }
 
 [features]
 default = []
-testkit = []
 rpc = [
     "dep:async-trait",
     "dep:chrono",
@@ -15,7 +14,7 @@ rpc = [
     "dep:futures",
 ]
 reqwest = ["gem_client/reqwest"]
-chain_integration_tests = ["rpc", "reqwest", "settings/testkit"]
+chain_integration_tests = ["rpc", "reqwest"]
 
 [dependencies]
 primitives = { path = "../primitives" }
@@ -37,8 +36,7 @@ gem_client = { path = "../gem_client", optional = true }
 futures = { workspace = true, optional = true }
 
 [dev-dependencies]
-primitives = { path = "../primitives", features = ["testkit"] }
-gem_client = { path = "../gem_client", features = ["testkit"] }
+gem_client = { path = "../gem_client" }
 tokio = { workspace = true, features = ["macros", "rt"] }
-settings = { path = "../settings", features = ["testkit"] }
+settings = { path = "../settings" }
 ed25519-dalek = { workspace = true, default-features = false }

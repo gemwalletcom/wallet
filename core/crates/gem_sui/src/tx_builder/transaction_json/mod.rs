@@ -10,7 +10,7 @@ mod finish;
 mod replay;
 #[cfg(feature = "rpc")]
 mod resolver;
-#[cfg(all(any(test, feature = "testkit"), feature = "rpc"))]
+#[cfg(all(any(test, debug_assertions), feature = "rpc"))]
 mod testkit;
 
 pub use model::*;

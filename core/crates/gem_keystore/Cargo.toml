@@ -28,7 +28,7 @@ zeroize = { workspace = true, optional = true }
 [dev-dependencies]
 gem_encoding = { path = "../gem_encoding", default-features = false }
 gem_crypto = { path = "../gem_crypto", default-features = false, features = ["random"] }
-primitives = { path = "../primitives", features = ["testkit"] }
+primitives = { path = "../primitives" }
 serde_json = { workspace = true }
 
 [[bench]]

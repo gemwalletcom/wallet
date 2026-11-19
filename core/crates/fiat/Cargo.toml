@@ -28,9 +28,7 @@ number_formatter = { path = "../number_formatter" }
 gem_client = { path = "../gem_client", features = ["reqwest"] }
 
 [dev-dependencies]
-primitives = { path = "../primitives", features = ["testkit"] }
 
 [features]
-testkit = []
 # Feature flag for integration tests
-fiat_integration_tests = ["primitives/testkit", "settings/testkit"]
+fiat_integration_tests = []

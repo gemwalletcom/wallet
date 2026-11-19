@@ -1,7 +1,7 @@
 pub mod client;
 mod model;
 mod target;
-#[cfg(any(test, feature = "testkit"))]
+#[cfg(any(test, debug_assertions))]
 pub mod testkit;
 
 pub use model::{GasOracle, Transaction};

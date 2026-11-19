@@ -14,7 +14,7 @@ mod retired;
 pub use ranking::rank_quotes;
 mod swapper_trait;
 
-#[cfg(any(test, feature = "testkit"))]
+#[cfg(any(test, debug_assertions))]
 pub mod testkit;
 
 pub mod across;

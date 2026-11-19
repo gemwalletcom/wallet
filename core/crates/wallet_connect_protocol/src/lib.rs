@@ -4,7 +4,7 @@ pub mod envelope;
 pub mod error;
 pub mod relay;
 pub mod sign;
-#[cfg(any(test, feature = "testkit"))]
+#[cfg(any(test, debug_assertions))]
 pub mod testkit;
 pub mod uri;
 pub mod verify;

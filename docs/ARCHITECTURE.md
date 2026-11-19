@@ -1737,7 +1737,7 @@ Test each domain rule at its Core owner. App tests verify mapping, wiring, navig
 
 A Core test double for a store or a port lives in the owning folder's `testkit.rs` (`#[cfg(test)] pub(crate) mod testkit;`), named after the trait it implements — `MemoryPreferencesStore`, `MemoryWalletStore`, `MemoryConnectionStore`, `TestWalletConnectSigner` — so a service test composes the doubles of every folder it depends on instead of writing one struct that implements six traits. Cross-cutting doubles (`TestAlienProvider`) live in `gemstone/src/testkit.rs`. A double that exists to probe one behavior of one test (a store that counts writes or delays a read) stays inline with that test.
 
-**A test never hand-rolls a double a testkit already ships.** A `struct` in a test module that implements `Client`, `Target` or a store trait is a stand-in nobody else uses: it drifts the moment the real trait grows a method, and it asserts the stand-in rather than the path the app takes. Take the double from the owning crate's `testkit` — enabled through that crate's `testkit` feature under `[dev-dependencies]`, never copied — and drive the real request through it:
+**A test never hand-rolls a double a testkit already ships.** A `struct` in a test module that implements `Client`, `Target` or a store trait is a stand-in nobody else uses: it drifts the moment the real trait grows a method, and it asserts the stand-in rather than the path the app takes. Take the double from the owning crate's `testkit` — compiled into every debug build, never behind a feature and never copied — and drive the real request through it:
 
 ```rust
 let client = AlgorandClient::new(MockClient::new().with_post_with_headers(|path, body, headers| {

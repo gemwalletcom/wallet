@@ -14,8 +14,7 @@ rpc = [
 ]
 reqwest = ["rpc", "gem_client/reqwest", "gem_jsonrpc/reqwest"]
 signer = ["dep:signer"]
-testkit = []
-chain_integration_tests = ["rpc", "reqwest", "primitives/testkit", "settings/testkit"]
+chain_integration_tests = ["rpc", "reqwest"]
 
 [dependencies]
 primitives = { path = "../primitives" }
@@ -41,7 +40,6 @@ chain_traits = { path = "../chain_traits", optional = true }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["macros", "rt"] }
-primitives = { path = "../primitives", features = ["testkit"] }
-gem_client = { path = "../gem_client", features = ["testkit"] }
-chain_traits = { path = "../chain_traits", features = ["testkit"] }
-settings = { path = "../settings", features = ["testkit"] }
+gem_client = { path = "../gem_client" }
+chain_traits = { path = "../chain_traits" }
+settings = { path = "../settings" }

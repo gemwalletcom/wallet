@@ -1,5 +1,5 @@
 mod identity;
-#[cfg(any(test, feature = "testkit"))]
+#[cfg(any(test, debug_assertions))]
 pub mod testkit;
 mod text;
 mod webhook;

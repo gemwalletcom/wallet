@@ -11,4 +11,3 @@ gem_client = { path = "../gem_client" }
 url = { workspace = true }
 
 [features]
-testkit = []
