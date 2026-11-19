@@ -1989,7 +1989,7 @@ The table locates the existing owners and consumers; it is not proof that a scre
 | `GemServiceStatus` | — | `ServiceStatusSceneViewModel` | `ServiceStatusViewModel` |
 | `GemSettingsService` | — | `SettingsSceneViewModel`, `PreferencesSceneViewModel`, `SecuritySceneViewModel` | `SettingsViewModel`, `PreferencesViewModel`, `SecurityViewModel` |
 | `GemSignMessageService` | — | `SignMessageSceneViewModel` | `SignMessageViewModel`, `AuthRequestViewModel` |
-| `GemStakeService` | — | `StakeSceneViewModel`, `DelegationSceneViewModel`, `EarnSceneViewModel` | `StakeViewModel`, `DelegationViewModel`, `EarnViewModel` |
+| `GemStakeService` | — | `StakeSceneViewModel`, `DelegationSceneViewModel`, `EarnSceneViewModel`, `ValidatorSelectSceneViewModel` | `StakeViewModel`, `DelegationViewModel`, `EarnViewModel`, `AmountStakeProvider` |
 | `GemSupportService` | — | `SupportChatSceneViewModel` (+ `SupportMessagesQuery`) | `SupportChatViewModel` (+ `SupportMessagesQuery`); sends go through `SupportMessagesCoordinator` behind `SendSupportMessage` |
 | `GemSwapQuoteService` | `GemSwapSession` | `SwapSceneViewModel` | `SwapViewModel` |
 | `GemTransactionDetailsService` | — | `TransactionSceneViewModel` | `TransactionViewModel` (with `WalletQuery`, `TransactionQuery`) |

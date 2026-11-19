@@ -59,6 +59,7 @@ import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemPaymentRecipient
 import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.GemStakeAmountInput
+import uniffi.gemstone.GemStakeServiceInterface
 import uniffi.gemstone.GemTransferData
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -84,6 +85,7 @@ class AmountViewModelTest {
         every { getCurrency() } returns Currency.USD.toGem()
         coEvery { transferData(any(), any(), capture(sentValues), capture(sentIsMax)) } returns confirmInput
     }
+    private val stakeService = mockk<GemStakeServiceInterface>(relaxed = true)
     private val walletId = mockWalletId()
     private val getCurrentWalletId = mockk<GetCurrentWalletId> { every { this@mockk.invoke() } returns flowOf(walletId) }
     private val assetQuery = mockk<AssetQuery> { every { this@mockk.invoke(walletId.id, any()) } returns assetInfoFlow }
@@ -225,7 +227,7 @@ class AmountViewModelTest {
             mockDelegationValidator(chain = Chain.Cosmos, id = id).let { mockGemValidatorRow(validator = it.toGem(), name = it.name, placeholder = it.name.take(1), apr = GemLocalizedText.Apr(null)) }
         }
         val options = GemGroupList(listOf(GemGroup("Active", GemLocalizedText.SectionTitle(GemListSectionTitle.ACTIVE), GemListSectionFooter.NONE, rows.map { GemListItem.Validator(it, it.validator.id == "v2") })), GemListPhase.Rows)
-        every { service.stakeValidatorOptions(any(), any(), any()) } returns options
+        every { stakeService.stakeValidatorOptions(any(), any(), any()) } returns options
 
         viewModelTest(AmountParams.Stake(asset.id, GemStakeAmountInput.Stake(rows[1].validator))) { viewModel ->
             assertEquals(options, viewModel.validatorPicker.value)
@@ -239,7 +241,7 @@ class AmountViewModelTest {
             mockDelegation(base = mockDelegationBase(rewards = BigInteger.valueOf(rewards), validatorId = validator.id), validator = validator).toGem()
         }
         val rows = validators.map { mockGemValidatorRow(validator = it.toGem(), name = it.name, placeholder = it.name.take(1), apr = GemLocalizedText.Apr(null)) }
-        every { service.stakeValidatorOptions(any(), any(), any()) } returns
+        every { stakeService.stakeValidatorOptions(any(), any(), any()) } returns
             GemGroupList(listOf(GemGroup("Active", GemLocalizedText.SectionTitle(GemListSectionTitle.ACTIVE), GemListSectionFooter.NONE, rows.map { GemListItem.Validator(it, false) })), GemListPhase.Rows)
 
         viewModelTest(AmountParams.Stake(asset.id, GemStakeAmountInput.Rewards(delegations, validators[0].toGem()))) { viewModel ->
@@ -260,6 +262,7 @@ class AmountViewModelTest {
         runTest(testDispatcher) {
             val viewModel = AmountViewModel(
                 service = service,
+                stakeService = stakeService,
                 getCurrentWalletId = getCurrentWalletId,
                 assetQuery = assetQuery,
                 delegationQuery = mockk(relaxed = true),

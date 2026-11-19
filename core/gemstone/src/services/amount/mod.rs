@@ -5,7 +5,7 @@ pub mod rules;
 
 use std::sync::Arc;
 
-use primitives::{Asset, Chain, Currency, DelegationValidator};
+use primitives::{Asset, Currency};
 
 pub use model::{
     GemAmountEarnType, GemAmountEntry, GemAmountError, GemAmountExtras, GemAmountInput, GemAmountInputType, GemAmountLeverage, GemAmountMaxEntry, GemAmountPerpetualPosition, GemAmountRequest, GemAmountStakeType, GemAmountTransfer,
@@ -19,8 +19,7 @@ use crate::services::perpetual::GemPerpetualPositionAction;
 use crate::services::perpetual::rules as perpetual_rules;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::stake::rules as stake_rules;
-use crate::models::list::GemGroupList;
-use crate::services::stake::{GemStakeAmountInput, GemStakeAmountSelection, GemStakeService};
+use crate::services::stake::{GemStakeAmountSelection, GemStakeService};
 use crate::services::transfer::rules as transfer_rules;
 use crate::services::transfer::{GemRecipient, GemTransferData};
 use crate::services::wallet_session::GemWalletSessionService;
@@ -75,10 +74,6 @@ impl GemAmountService {
                 }),
             },
         }
-    }
-
-    pub fn stake_validator_options(&self, chain: Chain, input: GemStakeAmountInput, validators: Vec<DelegationValidator>) -> GemGroupList {
-        self.stake.stake_validator_options(chain, input, validators)
     }
 
     pub async fn transfer_data(&self, asset: Asset, request: GemAmountRequest, value: GemBigInt, use_max_amount: bool) -> Result<GemTransferData, GemServiceError> {

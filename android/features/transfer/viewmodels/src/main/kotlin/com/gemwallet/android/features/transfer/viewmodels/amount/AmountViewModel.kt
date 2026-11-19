@@ -69,6 +69,7 @@ import uniffi.gemstone.GemAmountTitle
 import uniffi.gemstone.GemAmountTransfer
 import uniffi.gemstone.GemAmountType
 import uniffi.gemstone.GemGroupList
+import uniffi.gemstone.GemStakeServiceInterface
 import uniffi.gemstone.newAmountSession
 import javax.inject.Inject
 
@@ -76,6 +77,7 @@ import javax.inject.Inject
 @HiltViewModel
 class AmountViewModel @Inject constructor(
     private val service: GemAmountServiceInterface,
+    stakeService: GemStakeServiceInterface,
     getCurrentWalletId: GetCurrentWalletId,
     assetQuery: AssetQuery,
     delegationQuery: DelegationQuery,
@@ -89,7 +91,7 @@ class AmountViewModel @Inject constructor(
 
     private val params: AmountParams = savedStateHandle.requireAmountParams()
 
-    private val stakeProvider = (params as? AmountParams.Stake)?.let { AmountStakeProvider(it, validatorsQuery(it.assetId, StakeProviderType.Stake), service, viewModelScope, ioDispatcher) }
+    private val stakeProvider = (params as? AmountParams.Stake)?.let { AmountStakeProvider(it, validatorsQuery(it.assetId, StakeProviderType.Stake), stakeService, viewModelScope, ioDispatcher) }
 
     val perpetualProvider = (params as? AmountParams.Perpetual)?.let { AmountPerpetualProvider(it, service, getCurrentWalletId, assetQuery, viewModelScope) }
 
