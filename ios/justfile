@@ -5,6 +5,7 @@ SIMULATOR_OS := env("SIMULATOR_OS", "")
 SIMULATOR_DEST := "platform=iOS Simulator,name=" + SIMULATOR_NAME + if SIMULATOR_OS == "" { "" } else { ",OS=" + SIMULATOR_OS }
 MAC_CATALYST_DEST := "platform=macOS,variant=Mac Catalyst"
 XCODE_CONFIGURATION := env("CONFIGURATION", "Debug")
+PARALLEL_TESTING := env("PARALLEL_TESTING", "YES")
 GEMSTONE_IOS_PROFILE := if XCODE_CONFIGURATION == "Release" { "release" } else { "debug" }
 DERIVED_DATA := "build/DerivedData"
 SPM_CACHE := "build/SourcePackages"
@@ -147,7 +148,7 @@ _test action target="":
     @set -o pipefail && {{ XCODEBUILD }} \
     -scheme Gem \
     {{ SIMULATOR_BUILD_FLAGS }} \
-    {{ if target != "" { "-only-testing " + target + " -parallel-testing-enabled NO" } else { "-parallel-testing-enabled YES" } }} \
+    {{ if target != "" { "-only-testing " + target + " -parallel-testing-enabled NO" } else { "-parallel-testing-enabled " + PARALLEL_TESTING } }} \
     {{ action }} | xcbeautify {{ XCBEAUTIFY_ARGS }}
 
 test-without-building TARGET="": (_test "test-without-building" TARGET)
