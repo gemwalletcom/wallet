@@ -5,21 +5,21 @@ edition = { workspace = true }
 
 [features]
 default = []
-rpc = ["gem_evm/rpc", "dep:async-trait", "dep:gem_client", "dep:chrono"]
+rpc = ["dep:gem_evm", "gem_evm/rpc", "dep:async-trait", "dep:gem_client", "dep:chrono", "dep:alloy-sol-types", "dep:primitives", "dep:alloy-primitives", "dep:num-bigint", "dep:num-traits"]
 reqwest = ["rpc", "gem_evm/reqwest", "gem_client/reqwest"]
 chain_integration_tests = ["rpc", "reqwest"]
 
 [dependencies]
-primitives = { path = "../primitives" }
-gem_evm = { path = "../gem_evm" }
+primitives = { path = "../primitives", optional = true }
+gem_evm = { path = "../gem_evm", optional = true }
 
 gem_client = { path = "../gem_client", optional = true }
 async-trait = { workspace = true, optional = true }
 chrono = { workspace = true, optional = true }
-alloy-primitives = { workspace = true }
-alloy-sol-types = { workspace = true }
-num-bigint = { workspace = true }
-num-traits = { workspace = true }
+alloy-primitives = { workspace = true, optional = true }
+alloy-sol-types = { workspace = true, optional = true }
+num-bigint = { workspace = true, optional = true }
+num-traits = { workspace = true, optional = true }
 
 [dev-dependencies]
 gem_monad = { path = ".", features = ["rpc"] }

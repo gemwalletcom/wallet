@@ -6,14 +6,14 @@ edition = { workspace = true }
 [features]
 default = []
 signer = ["dep:signer", "dep:num-traits"]
-rpc = ["dep:chrono", "dep:chain_traits", "dep:gem_client", "dep:futures", "gem_jsonrpc/client"]
+rpc = ["dep:chrono", "dep:chain_traits", "dep:gem_client", "dep:futures", "gem_jsonrpc/client", "dep:async-trait"]
 reqwest = ["gem_client/reqwest", "gem_jsonrpc/reqwest"]
 chain_integration_tests = ["rpc", "reqwest"]
 
 [dependencies]
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
-async-trait = { workspace = true }
+async-trait = { workspace = true, optional = true }
 primitives = { path = "../primitives" }
 number_formatter = { path = "../number_formatter" }
 num-bigint = { workspace = true }

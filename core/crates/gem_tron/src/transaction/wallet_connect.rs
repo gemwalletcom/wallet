@@ -9,6 +9,7 @@ use serde_serializers::hex_bytes;
 
 use super::{RawDataJson, TransactionApproval, TronContract, sends_coins};
 use crate::address::TronAddress;
+#[cfg(feature = "rpc")]
 use crate::models::TriggerSmartContractData;
 
 #[derive(Deserialize)]
@@ -89,6 +90,7 @@ pub(crate) fn decode_wallet_connect_single_contract(data: &str) -> Result<Option
     decode_raw_data(data)?.single_contract()
 }
 
+#[cfg(feature = "rpc")]
 pub(crate) fn decode_wallet_connect_trigger_smart_contract(data: &str) -> Result<Option<TriggerSmartContractData>, SignerError> {
     decode_raw_data(data)?.trigger_smart_contract_data()
 }
