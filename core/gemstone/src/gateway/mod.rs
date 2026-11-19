@@ -184,7 +184,7 @@ impl GemGateway {
     }
 }
 
-#[cfg(all(test, feature = "reqwest_provider"))]
+#[cfg(test)]
 mod tests {
     use super::*;
     use crate::testkit::{EmptyPreferences, TestAlienProvider};

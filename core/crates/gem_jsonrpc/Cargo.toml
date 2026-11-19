@@ -22,5 +22,6 @@ gem_encoding = { path = "../gem_encoding", default-features = false, optional = 
 uniffi = { workspace = true, optional = true }
 
 [dev-dependencies]
+gem_jsonrpc = { path = ".", features = ["client"] }
 gem_client = { path = "../gem_client" }
 tokio = { workspace = true, features = ["macros", "rt"] }

@@ -18,6 +18,7 @@ num-traits = { workspace = true }
 strum = { workspace = true }
 
 [dev-dependencies]
+simulation = { path = ".", features = ["rpc"] }
 alloy-primitives = { workspace = true }
 gem_client = { path = "../gem_client" }
 serde_json = { workspace = true }

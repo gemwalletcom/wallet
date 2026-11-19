@@ -39,6 +39,7 @@ reqwest = ["gem_client/reqwest"]
 chain_integration_tests = ["rpc", "reqwest"]
 
 [dev-dependencies]
+gem_cosmos = { path = ".", features = ["rpc", "signer"] }
 gem_client = { path = "../gem_client" }
 tokio = { workspace = true, features = ["macros", "rt"] }
 settings = { path = "../settings" }

@@ -36,6 +36,7 @@ gem_client = { path = "../gem_client", optional = true }
 futures = { workspace = true, optional = true }
 
 [dev-dependencies]
+gem_aptos = { path = ".", features = ["rpc"] }
 gem_client = { path = "../gem_client" }
 tokio = { workspace = true, features = ["macros", "rt"] }
 settings = { path = "../settings" }

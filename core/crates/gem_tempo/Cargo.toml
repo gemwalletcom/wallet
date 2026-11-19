@@ -23,6 +23,7 @@ alloy-sol-types = { workspace = true }
 num-bigint = { workspace = true }
 
 [dev-dependencies]
+gem_tempo = { path = ".", features = ["rpc", "signer"] }
 gem_jsonrpc = { path = "../gem_jsonrpc" }
 gem_client = { path = "../gem_client" }
 settings = { path = "../settings" }

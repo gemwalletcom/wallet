@@ -21,6 +21,7 @@ alloy-sol-types = { workspace = true }
 num-bigint = { workspace = true }
 
 [dev-dependencies]
+gem_bsc = { path = ".", features = ["rpc"] }
 gem_evm = { path = "../gem_evm", features = ["rpc"] }
 settings = { path = "../settings" }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }

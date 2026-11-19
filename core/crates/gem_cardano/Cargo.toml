@@ -47,6 +47,7 @@ sha2 = { workspace = true, optional = true }
 zeroize = { workspace = true, optional = true }
 
 [dev-dependencies]
+gem_cardano = { path = ".", features = ["rpc", "signer"] }
 gem_client = { path = "../gem_client" }
 tokio = { workspace = true, features = ["macros"] }
 settings = { path = "../settings" }
