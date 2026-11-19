@@ -38,8 +38,8 @@ impl Agent {
     }
 
     pub fn remove_credentials(&self, sender_address: &str) -> Result<(), Box<dyn Error + Send + Sync>> {
-        self.preferences.remove(self.address_key(sender_address))?;
-        self.preferences.remove(self.private_key_key(sender_address))
+        self.preferences.remove(self.private_key_key(sender_address))?;
+        self.preferences.remove(self.address_key(sender_address))
     }
 
     fn create_new_credentials(&self, sender_address: &str) -> Result<(String, String), Box<dyn Error + Send + Sync>> {

@@ -394,7 +394,7 @@ impl GemWalletService {
     async fn remove_hypercore_agents(&self, wallet: &Wallet) -> Result<(), GemServiceError> {
         let agent = Agent::new(Arc::new(SecureStoreWrapper { store: self.secure_preferences.clone() }));
         for address in rules::hypercore_agent_addresses(wallet, &self.store.get_wallets().await?) {
-            agent.remove_credentials(&address).map_err(GemServiceError::core)?;
+            let _ = agent.remove_credentials(&address);
         }
         Ok(())
     }
@@ -509,17 +509,17 @@ mod tests {
     }
 
     #[test]
-    fn test_delete_wallet_keeps_the_wallet_and_its_secret_when_the_agent_key_cannot_be_removed() {
+    fn test_delete_wallet_removes_the_wallet_and_its_secret_when_the_agent_key_cannot_be_removed() {
         block_on(async {
             let context = WalletTestkit::new();
-            let wallet = context.import_chains("Blocked", PHRASE, vec![Chain::HyperCore]).await;
+            let wallet = context.import_chains("Deleted", PHRASE, vec![Chain::HyperCore]).await;
             *context.secure_store.remove_error.lock().unwrap() = Some(GemServiceError::Platform { msg: "locked".to_string() });
 
-            let error = context.service.delete_wallet(wallet.id.clone()).await.unwrap_err();
+            let outcome = context.service.delete_wallet(wallet.id.clone()).await.unwrap();
 
-            assert_eq!(error, GemServiceError::Core { msg: "locked".to_string() });
-            assert!(context.keystore_path(&wallet).exists());
-            assert_eq!(context.service.wallets().await.unwrap().len(), 1);
+            assert_eq!(outcome, GemWalletDeletion::LastWalletDeleted);
+            assert!(!context.keystore_path(&wallet).exists());
+            assert_eq!(context.service.wallets().await.unwrap().len(), 0);
         });
     }
 
