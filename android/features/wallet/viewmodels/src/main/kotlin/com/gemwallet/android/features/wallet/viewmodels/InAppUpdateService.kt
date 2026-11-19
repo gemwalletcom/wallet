@@ -7,7 +7,7 @@ interface InAppUpdateService {
 
     suspend fun download(url: String, version: String, onProgress: (Float?) -> Unit)
 
-    fun installDownloadedUpdate(version: String)
+    suspend fun installDownloadedUpdate(version: String)
 
     fun cancel()
 }
