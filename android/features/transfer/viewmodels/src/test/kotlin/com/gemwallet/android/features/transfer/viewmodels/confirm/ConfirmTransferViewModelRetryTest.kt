@@ -37,6 +37,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.GemConfirmAction
@@ -94,7 +95,7 @@ class ConfirmTransferViewModelRetryTest {
         coVerify(exactly = 1) { confirmation.load(any()) }
         assertEquals(GemConfirmPhase.FAILED, viewModel.screen.value.phase)
 
-        viewModel.load()
+        viewModel.confirm { _, _ -> fail("a failed load retries without authentication") }
         advanceUntilIdle()
 
         coVerify(exactly = 2) { confirmation.load(any()) }
@@ -115,18 +116,16 @@ class ConfirmTransferViewModelRetryTest {
         viewModel.load()
         advanceUntilIdle()
 
-        viewModel.startExecute()
-        viewModel.submit()
+        viewModel.confirm { _, onSuccess -> onSuccess() }
         advanceUntilIdle()
 
         assertNotNull(viewModel.executeErrorText.value)
         assertEquals(GemConfirmPhase.READY, viewModel.screen.value.phase)
-        assertEquals(GemConfirmAction.EXECUTE, viewModel.action())
+        assertEquals(GemConfirmAction.EXECUTE, viewModel.screen.value.action())
         coVerify(exactly = 2) { confirmation.load(any()) }
 
         viewModel.dismissExecuteError()
-        viewModel.startExecute()
-        viewModel.submit()
+        viewModel.confirm { _, onSuccess -> onSuccess() }
         advanceUntilIdle()
 
         assertNotNull(viewModel.executeErrorText.value)
@@ -140,15 +139,18 @@ class ConfirmTransferViewModelRetryTest {
         viewModel.load()
         advanceUntilIdle()
 
-        viewModel.startExecute()
-        assertEquals(GemConfirmPhase.CONFIRMING, viewModel.screen.value.phase)
-        assertFalse(viewModel.screen.value.refreshes())
-        assertNull(viewModel.action())
+        var cancelAuth: (() -> Unit)? = null
+        viewModel.confirm { onCancel, _ ->
+            assertEquals(GemConfirmPhase.CONFIRMING, viewModel.screen.value.phase)
+            assertFalse(viewModel.screen.value.refreshes())
+            assertNull(viewModel.screen.value.action())
+            cancelAuth = onCancel
+        }
 
-        viewModel.cancelExecute()
+        checkNotNull(cancelAuth).invoke()
         assertEquals(GemConfirmPhase.READY, viewModel.screen.value.phase)
         assertTrue(viewModel.screen.value.refreshes())
-        assertEquals(GemConfirmAction.EXECUTE, viewModel.action())
+        assertEquals(GemConfirmAction.EXECUTE, viewModel.screen.value.action())
         coVerify(exactly = 0) { confirmation.submit() }
     }
 
@@ -161,8 +163,7 @@ class ConfirmTransferViewModelRetryTest {
         )
         viewModel.load()
         advanceUntilIdle()
-        viewModel.startExecute()
-        viewModel.submit()
+        viewModel.confirm { _, onSuccess -> onSuccess() }
         advanceUntilIdle()
 
         assertEquals("0xhash", viewModel.sentTransactionHash.value)
