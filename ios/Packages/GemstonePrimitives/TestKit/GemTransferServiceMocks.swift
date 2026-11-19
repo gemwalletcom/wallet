@@ -33,10 +33,6 @@ public final class GemAmountServiceMock: GemAmountServiceProtocol, @unchecked Se
     public func extras(request: GemAmountRequest, asset: Gemstone.Asset) -> GemAmountExtras {
         builder.extras(request: request, asset: asset)
     }
-
-    public func stakeValidatorOptions(chain: Gemstone.Chain, input: GemStakeAmountInput, validators: [Gemstone.DelegationValidator]) -> GemGroupList {
-        builder.stakeValidatorOptions(chain: chain, input: input, validators: validators)
-    }
 }
 
 public final class GemFiatQuoteServiceMock: GemFiatQuoteServiceProtocol, @unchecked Sendable {
@@ -223,11 +219,11 @@ public final class GemStakeServiceMock: GemStakeServiceProtocol, @unchecked Send
         Primitives.Currency.usd.toGem()
     }
 
-    public func refresh(chain _: Gemstone.Chain, delegations _: [Gemstone.Delegation]) async -> GemLoadState {
+    public func refresh(chain _: Gemstone.Chain) async -> GemLoadState {
         refreshState
     }
 
-    public func refreshEarn(assetId _: Gemstone.AssetId, hasRows _: Bool) async -> GemLoadState {
+    public func refreshEarn(assetId _: Gemstone.AssetId) async -> GemLoadState {
         refreshState
     }
 

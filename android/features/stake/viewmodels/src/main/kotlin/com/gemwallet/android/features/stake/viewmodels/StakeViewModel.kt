@@ -122,7 +122,7 @@ class StakeViewModel @Inject constructor(
                 }
                 val assetInfo = assetInfo.filterNotNull().first()
                 emit(true)
-                val state = withContext(ioDispatcher) { service.refresh(assetInfo.asset.id.chain.string, delegations.value.map { it.toGem() }) }
+                val state = withContext(ioDispatcher) { service.refresh(assetInfo.asset.id.chain.string) }
                 (state as? GemLoadState.Error)?.let { Log.e(TAG, "stake delegations sync failed", it.error) }
                 loadState.value = state
                 emit(false)

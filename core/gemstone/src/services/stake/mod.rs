@@ -106,12 +106,12 @@ impl GemStakeService {
         }
     }
 
-    pub async fn refresh(&self, chain: Chain, delegations: Vec<Delegation>) -> GemLoadState {
-        GemLoadState::refreshed(self.sync(chain).await, !delegations.is_empty())
+    pub async fn refresh(&self, chain: Chain) -> GemLoadState {
+        GemLoadState::of(&self.sync(chain).await)
     }
 
-    pub async fn refresh_earn(&self, asset_id: AssetId, has_rows: bool) -> GemLoadState {
-        GemLoadState::refreshed(self.sync_earn(asset_id).await, has_rows)
+    pub async fn refresh_earn(&self, asset_id: AssetId) -> GemLoadState {
+        GemLoadState::of(&self.sync_earn(asset_id).await)
     }
 
     pub fn earn_view(&self, input: GemEarnInput) -> GemEarnView {

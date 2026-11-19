@@ -16,18 +16,18 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import uniffi.gemstone.GemAmountRequest
-import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemGroupList
 import uniffi.gemstone.GemListItem
+import uniffi.gemstone.GemStakeServiceInterface
 
-class AmountStakeProvider(val params: AmountParams.Stake, validators: Flow<List<DelegationValidator>>, private val service: GemAmountServiceInterface, scope: CoroutineScope, ioDispatcher: CoroutineDispatcher) {
+class AmountStakeProvider(val params: AmountParams.Stake, validators: Flow<List<DelegationValidator>>, private val stakeService: GemStakeServiceInterface, scope: CoroutineScope, ioDispatcher: CoroutineDispatcher) {
 
     private val chain = params.assetId.chain.string
 
     private val stakeInput = MutableStateFlow(params.input)
 
     val validatorOptions: StateFlow<GemGroupList?> =
-        combine(stakeInput, validators) { input, validators -> service.stakeValidatorOptions(chain, input, validators.map { it.toGem() }) }
+        combine(stakeInput, validators) { input, validators -> stakeService.stakeValidatorOptions(chain, input, validators.map { it.toGem() }) }
             .flowOn(ioDispatcher)
             .stateIn(scope, SharingStarted.Eagerly, null)
 
