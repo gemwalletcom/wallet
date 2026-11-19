@@ -157,10 +157,7 @@ impl GemWalletService {
     pub async fn delete_wallet(&self, wallet_id: WalletId) -> Result<GemWalletDeletion, GemServiceError> {
         let wallet = self.wallet(wallet_id.clone()).await?;
         if wallet.wallet_type != WalletType::View {
-            let agent = Agent::new(Arc::new(SecureStoreWrapper { store: self.secure_preferences.clone() }));
-            for address in rules::released_agent_addresses(&wallet, &self.store.get_wallets().await?) {
-                agent.remove_credentials(&address).map_err(GemServiceError::core)?;
-            }
+            self.remove_hypercore_agents(&wallet).await?;
             self.keystore.delete_wallet_secrets(wallet.id.id(), rules::legacy_keystore_id(&wallet))?;
         }
         self.store.delete_wallet(wallet.id.clone()).await?;
@@ -392,6 +389,14 @@ impl GemWalletService {
         let accounts = self.keystore.add_accounts(keystore_id_for_wallet(wallet.id.id()), password, missing)?;
         wallet.accounts.extend(accounts.into_iter().map(rules::account));
         self.store_wallet(wallet).await
+    }
+
+    async fn remove_hypercore_agents(&self, wallet: &Wallet) -> Result<(), GemServiceError> {
+        let agent = Agent::new(Arc::new(SecureStoreWrapper { store: self.secure_preferences.clone() }));
+        for address in rules::hypercore_agent_addresses(wallet, &self.store.get_wallets().await?) {
+            agent.remove_credentials(&address).map_err(GemServiceError::core)?;
+        }
+        Ok(())
     }
 
     async fn store_wallet(&self, wallet: &Wallet) -> Result<(), GemServiceError> {
