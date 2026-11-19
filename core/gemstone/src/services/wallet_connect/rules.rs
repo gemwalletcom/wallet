@@ -603,7 +603,7 @@ mod tests {
     fn test_session_account_requires_session_chain_and_account() {
         let connection = WalletConnection {
             session: WalletConnectionSession::mock("topic", &[Chain::Ethereum, Chain::Solana]),
-            wallet: Wallet::mock_with_chains(&[Chain::Ethereum]),
+            wallet: Wallet::mock_with_chains(&[Chain::Ethereum, Chain::Bitcoin]),
         };
 
         assert_eq!(
@@ -619,10 +619,20 @@ mod tests {
                 },
             ]
         );
-        assert_eq!(session_account(&connection, Chain::Ethereum).unwrap().chain, Chain::Ethereum);
-        assert!(session_account(&connection, Chain::Solana).is_err());
-        assert!(session_account(&connection, Chain::Bitcoin).is_err());
-        assert!(validate_session_chain(&connection.session, Chain::Solana).is_ok());
+        assert_eq!(session_account(&connection, Chain::Ethereum), Ok(Account::mock(Chain::Ethereum, "address")));
+        assert_eq!(
+            session_account(&connection, Chain::Solana),
+            Err(GemServiceError::NotFound {
+                msg: "wallet has no solana account".to_string()
+            })
+        );
+        assert_eq!(
+            session_account(&connection, Chain::Bitcoin),
+            Err(GemServiceError::InvalidInput {
+                msg: "chain bitcoin is not part of the session".to_string()
+            }),
+            "a wallet account the dapp was never given is not handed to it"
+        );
     }
 
     #[test]
@@ -662,21 +672,50 @@ mod tests {
     #[test]
     fn test_sessions_sync_rules() {
         let local = vec![
-            WalletConnectionSession::mock("active-kept", &[Chain::Ethereum]),
+            WalletConnectionSession::mock("unchanged", &[Chain::Ethereum]),
+            WalletConnectionSession::mock("reconnected", &[Chain::Ethereum]),
+            WalletConnectionSession::mock("chains", &[Chain::Ethereum]),
+            WalletConnectionSession::mock("expiry", &[Chain::Ethereum]),
+            WalletConnectionSession::mock("metadata", &[Chain::Ethereum]),
+            WalletConnectionSession {
+                state: WalletConnectionState::Started,
+                ..WalletConnectionSession::mock("state", &[Chain::Ethereum])
+            },
             WalletConnectionSession::mock("active-gone", &[Chain::Ethereum]),
             WalletConnectionSession {
                 state: WalletConnectionState::Started,
                 ..WalletConnectionSession::mock("started-gone", &[Chain::Ethereum])
             },
         ];
-        let remote = vec![WalletConnectionSession::mock("active-kept", &[Chain::Ethereum, Chain::Solana]), WalletConnectionSession::mock("unknown", &[Chain::Ethereum])];
+        let chains = WalletConnectionSession::mock("chains", &[Chain::Ethereum, Chain::Solana]);
+        let mut expiry = WalletConnectionSession::mock("expiry", &[Chain::Ethereum]);
+        expiry.expire_at += chrono::Duration::days(1);
+        let mut metadata = WalletConnectionSession::mock("metadata", &[Chain::Ethereum]);
+        metadata.metadata.name = "renamed".to_string();
+        let mut reconnected = WalletConnectionSession::mock("reconnected", &[Chain::Ethereum]);
+        reconnected.created_at += chrono::Duration::days(1);
+        let state = WalletConnectionSession::mock("state", &[Chain::Ethereum]);
+        let remote = vec![
+            WalletConnectionSession::mock("unchanged", &[Chain::Ethereum]),
+            reconnected,
+            chains.clone(),
+            expiry.clone(),
+            metadata.clone(),
+            state.clone(),
+            WalletConnectionSession::mock("unknown", &[Chain::Ethereum]),
+        ];
 
         assert_eq!(sessions_to_delete(&local, &remote), vec!["active-gone".to_string()]);
-        let updates = sessions_to_update(&local, remote);
-        assert_eq!(updates.iter().map(|session| session.id.as_str()).collect::<Vec<_>>(), vec!["active-kept"]);
-        assert_eq!(updates[0].chains, vec![Chain::Ethereum, Chain::Solana]);
-        assert!(sessions_to_delete(&local, &[]).contains(&"active-gone".to_string()));
-        assert!(!sessions_to_delete(&local, &[]).contains(&"started-gone".to_string()));
+        assert_eq!(
+            sessions_to_delete(&local, &[]),
+            vec!["unchanged", "reconnected", "chains", "expiry", "metadata", "active-gone"],
+            "a session still being set up is never deleted"
+        );
+        assert_eq!(
+            sessions_to_update(&local, remote),
+            vec![chains, expiry, metadata, state],
+            "an identical session or one that only differs in its creation time is not rewritten"
+        );
     }
 
     #[test]
@@ -747,22 +786,27 @@ mod tests {
         );
         assert_eq!(metadata.name, "app.example.com");
         assert_eq!(metadata.icon, "https://x/icon.PNG");
-        assert!(session_methods().contains(&"personal_sign".to_string()));
-        assert!(!session_methods().contains(&"eth_sendRawTransaction".to_string()));
-        assert!(session_events().contains(&"accountsChanged".to_string()));
     }
 
     #[test]
-    fn test_authentication_methods_are_the_evm_session_methods() {
-        let methods = authentication_methods();
-        assert!(methods.contains(&"personal_sign".to_string()));
-        assert!(methods.contains(&"eth_sendTransaction".to_string()));
-        assert!(
-            !methods
-                .iter()
-                .any(|method| method.starts_with("solana_") || method.starts_with("sui_") || method.starts_with("ton_") || method.starts_with("tron_"))
-        );
-        assert!(methods.iter().all(|method| session_methods().contains(method)));
+    fn test_session_methods() {
+        assert_eq!(session_methods().len(), WalletConnectionMethods::all().len(), "every method is offered to dapps");
+    }
+
+    #[test]
+    fn test_session_events() {
+        assert_eq!(session_events().len(), WalletConnectionEvents::all().len(), "every event is offered to dapps");
+    }
+
+    #[test]
+    fn test_authentication_methods() {
+        let chain_types = authentication_methods()
+            .iter()
+            .map(|method| serde_json::from_value::<WalletConnectionMethods>(serde_json::Value::String(method.clone())).unwrap().chain_type())
+            .collect::<Vec<_>>();
+        let evm_methods = WalletConnectionMethods::all().iter().filter(|method| method.chain_type() == ChainType::Ethereum).count();
+
+        assert_eq!(chain_types, vec![ChainType::Ethereum; evm_methods], "authentication asks for every EVM method and nothing else");
     }
 
     #[test]
@@ -1130,12 +1174,11 @@ mod message_tests {
     }
 
     #[test]
-    fn test_supported_chains_are_the_configured_chains_that_parse() {
-        let configured = crate::config::wallet_connect::get_wallet_connect_config().chains;
-        let chains = super::supported_chains();
-
-        assert!(!chains.is_empty());
-        assert!(chains.len() <= configured.len());
-        assert!(chains.iter().all(|chain| configured.contains(&chain.to_string())));
+    fn test_supported_chains() {
+        assert_eq!(
+            super::supported_chains().iter().map(Chain::to_string).collect::<Vec<_>>(),
+            crate::config::wallet_connect::get_wallet_connect_config().chains,
+            "every configured chain is offered to dapps, in the configured order"
+        );
     }
 }
