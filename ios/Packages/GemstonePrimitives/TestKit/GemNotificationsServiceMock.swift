@@ -5,15 +5,17 @@ import protocol Gemstone.GemNotificationsServiceProtocol
 import struct Gemstone.GemPushState
 
 public final class GemNotificationsServiceMock: GemNotificationsServiceProtocol, @unchecked Sendable {
+    public var isEnabledValue: Bool
     public var state: GemPushState
     public private(set) var requested: [Bool] = []
 
-    public init(state: GemPushState = GemPushState(isEnabled: false, result: .stored)) {
+    public init(isEnabledValue: Bool = false, state: GemPushState = GemPushState(isEnabled: false, result: .stored)) {
+        self.isEnabledValue = isEnabledValue
         self.state = state
     }
 
     public func isEnabled() -> Bool {
-        state.isEnabled
+        isEnabledValue
     }
 
     public func refresh() async -> Bool {
