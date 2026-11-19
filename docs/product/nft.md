@@ -8,9 +8,9 @@ flowchart LR
     A --> E[Unverified] --> B
 ```
 
-1. NFTs are loaded with the wallet's first discovery and on a pull; the wallet screen shows a Collections preview, and Collections lists every verified collection with its count.
+1. NFTs are loaded with the wallet's first discovery, when Collections opens, and on a pull; the wallet screen shows a Collections preview, and Collections lists every verified collection with its count.
 2. A collection shows its NFTs in a grid; an NFT shows its image, name, collection, Properties, description, links, and its contract and token ID.
-3. From an NFT the user can Send it, "Save to Photos", "Set as Avatar" for the current wallet, share it, or Report it (Spam, Malicious, Inappropriate Content, Copyright, Other).
+3. From an NFT the user can Send it, "Save to Photos", "Set as Avatar" for the current wallet, or Report it (Spam, Malicious, Inappropriate Content, Copyright, Other).
 
 ## Expected results
 
@@ -18,6 +18,7 @@ flowchart LR
 |---|---|---|
 | A collection is not verified | it is gathered under the "Unverified" row | spam never mixes with the wallet's real NFTs |
 | The user opens Receive for an NFT | it asks which network first; each network shows its own logo, never the coin it pays fees in | Arc pays fees in USDC, but the user is choosing a network, as on Import Wallet |
+| The user comes back to Collections from a collection or an NFT | it does not refresh again; a pull still does | an offline user sees one failed-refresh toast, not one per return |
 | A refresh fails | the list stays on screen, an Unverified row alone included, and a toast says so | |
 | A refresh fails and there is nothing to show | the error takes the list's place | |
 | The wallet has no NFTs | "Your NFTs will appear here. Receive your first NFT" | |
