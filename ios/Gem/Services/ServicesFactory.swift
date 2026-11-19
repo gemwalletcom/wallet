@@ -327,7 +327,6 @@ struct ServicesFactory {
             session: walletSessionService,
             config: configService,
         )
-        let pushNotificationService = Gemstone.GemPushNotificationService()
         let biometryService = BiometryAuthenticationService(
             keystorePassword: storages.keystorePassword,
             securityService: Gemstone.GemSecurityService(),
@@ -339,7 +338,6 @@ struct ServicesFactory {
             presenter: navigationPresenter,
             walletConnector: walletConnector,
             toastPresenter: toastPresenter,
-            pushNotificationService: pushNotificationService,
             deeplinkService: Gemstone.GemDeeplinkService(),
             navigationService: navigationService,
             paymentService: paymentService,
