@@ -371,6 +371,15 @@ pub fn wallet_address_names(wallet: &Wallet) -> Vec<AddressName> {
         .collect()
 }
 
+pub fn released_agent_addresses(wallet: &Wallet, wallets: &[Wallet]) -> Vec<String> {
+    let held: Vec<&str> = wallets.iter().filter(|other| other.id != wallet.id && other.wallet_type != WalletType::View).flat_map(agent_addresses).collect();
+    agent_addresses(wallet).filter(|address| !held.contains(address)).map(str::to_string).collect()
+}
+
+fn agent_addresses(wallet: &Wallet) -> impl Iterator<Item = &str> {
+    wallet.accounts.iter().filter(|account| account.chain.chain_type() == ChainType::HyperCore).map(|account| account.address.as_str())
+}
+
 pub fn next_current_wallet(wallets: &[Wallet]) -> Option<WalletId> {
     wallets.iter().min_by_key(|wallet| wallet_order(&wallet.id, wallet.index)).map(|wallet| wallet.id.clone())
 }
@@ -731,6 +740,20 @@ mod tests {
 
         assert_eq!(next_current_wallet(&[view, second, first.clone()]), Some(first.id));
         assert_eq!(next_current_wallet(&[]), None);
+    }
+
+    #[test]
+    fn test_released_agent_addresses_are_the_ones_no_other_signing_wallet_holds() {
+        let chains = [Chain::Ethereum, Chain::HyperCore];
+        let wallet = Wallet::mock_with_id(WalletId::Multicoin("0x1".to_string()), &chains);
+        let key_wallet = Wallet::mock_with_id(WalletId::PrivateKey(Chain::HyperCore, "0x1".to_string()), &chains);
+        let view = Wallet::mock_with_id(WalletId::View(Chain::HyperCore, "0x1".to_string()), &chains);
+        let mut other = Wallet::mock_with_id(WalletId::Multicoin("0x2".to_string()), &chains);
+        other.accounts = Account::mock_chains(&chains, "other");
+
+        assert_eq!(released_agent_addresses(&wallet, &[wallet.clone(), view, other]), vec!["address"]);
+        assert_eq!(released_agent_addresses(&wallet, &[wallet.clone(), key_wallet]), Vec::<String>::new());
+        assert_eq!(released_agent_addresses(&Wallet::mock_with_chains(&[Chain::Ethereum]), &[]), Vec::<String>::new());
     }
 
     #[test]

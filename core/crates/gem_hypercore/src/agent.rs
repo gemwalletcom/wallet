@@ -32,13 +32,14 @@ impl Agent {
     }
 
     pub fn regenerate_credentials(&self, sender_address: &str) -> Result<(String, String), Box<dyn Error + Send + Sync>> {
-        let address_key = self.address_key(sender_address);
-        let private_key_key = self.private_key_key(sender_address);
-
-        self.preferences.remove(address_key)?;
-        self.preferences.remove(private_key_key)?;
+        self.remove_credentials(sender_address)?;
 
         self.create_new_credentials(sender_address)
+    }
+
+    pub fn remove_credentials(&self, sender_address: &str) -> Result<(), Box<dyn Error + Send + Sync>> {
+        self.preferences.remove(self.address_key(sender_address))?;
+        self.preferences.remove(self.private_key_key(sender_address))
     }
 
     fn create_new_credentials(&self, sender_address: &str) -> Result<(String, String), Box<dyn Error + Send + Sync>> {
@@ -136,5 +137,20 @@ mod tests {
 
         assert_ne!(addr1, addr2);
         assert_ne!(key1, key2);
+    }
+
+    #[test]
+    fn test_remove_credentials() {
+        let preferences = Arc::new(InMemoryPreferences::new());
+        let agent = Agent::new(preferences.clone());
+
+        let kept = agent.get_or_create_credentials("kept_wallet").unwrap();
+        agent.get_or_create_credentials("test_wallet").unwrap();
+        agent.remove_credentials("test_wallet").unwrap();
+        agent.remove_credentials("unknown_wallet").unwrap();
+
+        assert_eq!(preferences.get("test_wallet_agent_address".to_string()).unwrap(), None);
+        assert_eq!(preferences.get("test_wallet_agent_key".to_string()).unwrap(), None);
+        assert_eq!(agent.get_or_create_credentials("kept_wallet").unwrap(), kept);
     }
 }

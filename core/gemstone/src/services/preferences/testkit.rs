@@ -33,6 +33,7 @@ impl GemPreferencesStore for MemoryPreferencesStore {
 #[derive(Default)]
 pub struct MemorySecureStore {
     pub values: Mutex<HashMap<String, String>>,
+    pub remove_error: Mutex<Option<GemServiceError>>,
 }
 
 impl GemSecureStore for MemorySecureStore {
@@ -46,6 +47,9 @@ impl GemSecureStore for MemorySecureStore {
     }
 
     fn remove(&self, key: String) -> Result<(), GemServiceError> {
+        if let Some(error) = self.remove_error.lock().unwrap().clone() {
+            return Err(error);
+        }
         self.values.lock().unwrap().remove(&key);
         Ok(())
     }

@@ -24,6 +24,7 @@ import uniffi.gemstone.GemNameService
 import uniffi.gemstone.GemPaymentService
 import uniffi.gemstone.GemPreferencesService
 import uniffi.gemstone.GemRecentActivityService
+import uniffi.gemstone.GemSecureStore
 import uniffi.gemstone.GemSignMessageService
 import uniffi.gemstone.GemSwapService
 import uniffi.gemstone.GemSwapServiceInterface
@@ -54,6 +55,7 @@ object KeystoreModule {
         explorerService: GemExplorerService,
         nameService: GemNameService,
         avatarService: GemAvatarService,
+        securePreferences: GemSecureStore,
     ): GemWalletService = GemWalletService(
         keystore,
         GemstoneKeystorePassword(passwordStore, deviceAuthentication),
@@ -65,6 +67,7 @@ object KeystoreModule {
         explorerService,
         nameService,
         avatarService,
+        securePreferences,
     )
 
     @Provides
