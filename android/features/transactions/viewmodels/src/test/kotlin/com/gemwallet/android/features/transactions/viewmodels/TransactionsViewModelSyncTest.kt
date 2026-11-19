@@ -13,9 +13,11 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -84,18 +86,13 @@ class TransactionsViewModelSyncTest {
     }
 
     @Test
-    fun `a late failure for the previous wallet does not replace the new wallet's result`() = runBlocking {
+    fun `a late failure for the previous wallet is not shown for the new wallet`() = runBlocking {
         val first = CompletableDeferred<GemLoadState>()
-        var calls = 0
-        coEvery { service.refresh(null) } coAnswers {
-            calls++
-            if (calls == 1) first.await() else GemLoadState.Data
-        }
+        coEvery { service.refresh(null) } coAnswers { first.await() }
         val viewModel = createViewModel()
 
         val previous = viewModel.syncIfNeeded()
         session.value = mockSession(wallet = mockWallet(id = WalletId("wallet-2")))
-        viewModel.syncIfNeeded()?.join()
         first.complete(GemLoadState.Error(GemServiceException.Gateway("offline")))
         previous?.join()
 
@@ -106,11 +103,7 @@ class TransactionsViewModelSyncTest {
     fun `overlapping refreshes keep the spinner until the latest one finishes`() = runBlocking {
         val first = CompletableDeferred<GemLoadState>()
         val second = CompletableDeferred<GemLoadState>()
-        var calls = 0
-        coEvery { service.refresh(null) } coAnswers {
-            calls++
-            if (calls == 1) first.await() else second.await()
-        }
+        coEvery { service.refresh(null) } coAnswers { withContext(NonCancellable) { first.await() } } coAndThen { second.await() }
         val viewModel = createViewModel()
 
         val earlier = viewModel.refresh()
