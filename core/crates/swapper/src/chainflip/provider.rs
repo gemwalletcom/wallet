@@ -5,7 +5,7 @@ use gem_client::Client;
 use gem_evm::contracts::IERC20;
 use gem_evm::u256::biguint_to_u256;
 use gem_evm::u256::u256_to_biguint;
-use gem_solana::{DEFAULT_SWAP_GAS_LIMIT, Pubkey, anchor::global_discriminator, associated_token::get_associated_token_address_with_program_id, instructions::program_ids::token_program};
+use gem_solana::{DEFAULT_SWAP_GAS_LIMIT, TOKEN_PROGRAM, anchor::global_discriminator, token_account::get_token_account};
 use gem_tron::address::TronAddress;
 use num_bigint::BigUint;
 use num_traits::ToPrimitive;
@@ -270,12 +270,6 @@ fn validate_evm_vault_swap(chain: Chain, token_id: Option<&str>, input_amount: &
     }
 }
 
-fn solana_token_account(wallet_address: &str, token_id: &str) -> Option<Pubkey> {
-    let wallet = Pubkey::from_str(wallet_address).ok()?;
-    let mint = Pubkey::from_str(token_id).ok()?;
-    get_associated_token_address_with_program_id(&wallet, &mint, &token_program()).ok()
-}
-
 fn validate_solana_source(wallet_address: &str, token_id: Option<&str>, data: &[u8], accounts: &[AccountMeta]) -> Result<(), SwapperError> {
     let instruction = if token_id.is_some() { SOLANA_TOKEN_SWAP } else { SOLANA_NATIVE_SWAP };
     if !data.starts_with(&global_discriminator(instruction)) {
@@ -285,8 +279,8 @@ fn validate_solana_source(wallet_address: &str, token_id: Option<&str>, data: &[
         return Ok(());
     };
     let source = accounts.get(SOLANA_SOURCE_TOKEN_ACCOUNT_INDEX).map(|account| account.pubkey.as_str());
-    let account = source.and_then(|source| Pubkey::from_str(source).ok());
-    if account.is_none() || account != solana_token_account(wallet_address, token_id) {
+    let token_account = get_token_account(wallet_address, token_id, TOKEN_PROGRAM).map_err(|_| source_token_mismatch(source))?;
+    if source != Some(token_account.as_str()) {
         return Err(source_token_mismatch(source));
     }
     Ok(())
