@@ -151,7 +151,7 @@ impl<C: Client> TronClient<C> {
         let memo_data_bytes = swap_contract_memo_data_bytes(input_memo, &swap_data.data)?;
         if let Some(estimated_energy) = needs_approval_energy_estimate(&swap_data.data) {
             let caller_energy = self.caller_energy(&self.get_contract(&call.contract.to_string()).await?, estimated_energy).await?;
-            return contract_fee_from_energy(fee_context.chain_parameters, fee_context.account_usage, (caller_energy, estimated_energy), memo_data_bytes);
+            return contract_fee_from_energy(fee_context.chain_parameters, fee_context.account_usage, (caller_energy, estimated_energy), call.data.len() as u64, memo_data_bytes);
         }
         self.estimate_smart_contract_fee(call.trigger_smart_contract_data(None), fee_context, memo_data_bytes).await
     }
@@ -169,13 +169,13 @@ impl<C: Client> TronClient<C> {
     async fn estimate_token_transfer_fee(&self, call: &TronTriggerSmartContract, fee_context: &FeeEstimateContext<'_>, input_memo: Option<&str>) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
         let estimated_energy = self.estimate_energy_with_data(&call.trigger_smart_contract_data(None)).await?;
         let memo_data_bytes = input_memo.map(|memo| memo.len() as u64);
-        transaction_fee_from_energy_estimate(fee_context.chain_parameters, fee_context.account_usage, estimated_energy, memo_data_bytes, FEE_LIMIT_BUFFER_PERCENT)
+        transaction_fee_from_energy_estimate(fee_context.chain_parameters, fee_context.account_usage, estimated_energy, call.data.len() as u64, memo_data_bytes, FEE_LIMIT_BUFFER_PERCENT)
     }
 
     async fn estimate_smart_contract_fee(&self, contract_data: TriggerSmartContractData, fee_context: &FeeEstimateContext<'_>, memo_data_bytes: Option<u64>) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
         let (estimated_energy, contract) = futures::try_join!(self.estimate_energy_with_data(&contract_data), self.get_contract(&contract_data.contract_address))?;
         let caller_energy = self.caller_energy(&contract, estimated_energy).await?;
-        contract_fee_from_energy(fee_context.chain_parameters, fee_context.account_usage, (caller_energy, estimated_energy), memo_data_bytes)
+        contract_fee_from_energy(fee_context.chain_parameters, fee_context.account_usage, (caller_energy, estimated_energy), contract_data.data.len() as u64 / 2, memo_data_bytes)
     }
 
     async fn caller_energy(&self, contract: &TronContractInfo, energy: u64) -> Result<u64, Box<dyn Error + Send + Sync>> {
@@ -227,10 +227,11 @@ fn transaction_fee_from_energy_estimate(
     chain_parameters: &[ChainParameter],
     account_usage: &TronAccountUsage,
     estimated_energy: u64,
+    call_data_bytes: u64,
     memo_data_bytes: Option<u64>,
     buffer_percent: u64,
 ) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
-    let data_bytes = memo_data_bytes.unwrap_or(0);
+    let data_bytes = call_data_bytes + memo_data_bytes.unwrap_or(0);
     let token_fee = calculate_token_fee_rate_with_data(chain_parameters, account_usage, estimated_energy, data_bytes, memo_data_bytes.is_some(), buffer_percent)?;
     Ok(TransactionFee::new_gas_price_type(
         GasPriceType::regular(BigInt::from(token_fee.energy_price)),
@@ -241,9 +242,15 @@ fn transaction_fee_from_energy_estimate(
     ))
 }
 
-fn contract_fee_from_energy(chain_parameters: &[ChainParameter], account_usage: &TronAccountUsage, (caller_energy, total_energy): (u64, u64), memo_data_bytes: Option<u64>) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
-    let caller_fee = transaction_fee_from_energy_estimate(chain_parameters, account_usage, caller_energy, memo_data_bytes, SMART_CONTRACT_FEE_LIMIT_BUFFER_PERCENT)?;
-    let total_fee = transaction_fee_from_energy_estimate(chain_parameters, account_usage, total_energy, memo_data_bytes, SMART_CONTRACT_FEE_LIMIT_BUFFER_PERCENT)?;
+fn contract_fee_from_energy(
+    chain_parameters: &[ChainParameter],
+    account_usage: &TronAccountUsage,
+    (caller_energy, total_energy): (u64, u64),
+    call_data_bytes: u64,
+    memo_data_bytes: Option<u64>,
+) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
+    let caller_fee = transaction_fee_from_energy_estimate(chain_parameters, account_usage, caller_energy, call_data_bytes, memo_data_bytes, SMART_CONTRACT_FEE_LIMIT_BUFFER_PERCENT)?;
+    let total_fee = transaction_fee_from_energy_estimate(chain_parameters, account_usage, total_energy, call_data_bytes, memo_data_bytes, SMART_CONTRACT_FEE_LIMIT_BUFFER_PERCENT)?;
     Ok(TransactionFee {
         gas_limit: total_fee.gas_limit,
         ..caller_fee
@@ -256,7 +263,7 @@ mod tests {
     use crate::models::TriggerSmartContractRequest;
     use crate::rpc::TronProvider;
     use chain_traits::ChainTransactionLoad;
-    use num_bigint::BigUint;
+    use num_bigint::{BigInt, BigUint};
     use primitives::asset_constants::TRON_USDT_TOKEN_ID;
     use primitives::swap::{ApprovalData, SwapQuoteData};
     use primitives::testkit::signer_mock::TEST_TRON_SENDER;
@@ -275,14 +282,16 @@ mod tests {
         };
         let native_swap = SwapQuoteData::mock_contract_call(ROUTER, "1000", SWAP_CALLDATA, None);
 
+        let mut fees = Vec::new();
         for input_type in [
             TransactionInputType::Transfer { asset: Asset::mock_tron_usdt() },
             TransactionInputType::mock_swap(Asset::mock_tron_usdt(), token_swap),
             TransactionInputType::mock_swap(Asset::from_chain(Chain::Tron), native_swap),
         ] {
-            provider.get_transaction_load(TransactionLoadInput::mock_tron(input_type, 1000)).await.unwrap();
+            fees.push(provider.get_transaction_load(TransactionLoadInput::mock_tron(input_type, 1000)).await.unwrap().fee.fee);
         }
 
+        assert_eq!(fees, [BigInt::from(8_082_200), BigInt::from(17_418_000), BigInt::from(8_693_000)]);
         assert_eq!(
             *requests.lock().unwrap(),
             [
