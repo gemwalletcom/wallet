@@ -193,6 +193,7 @@ public final class GemPerpetualDetailsServiceMock: GemPerpetualDetailsServicePro
     public private(set) var positionActionPositions: [Gemstone.PerpetualPosition?] = []
     public private(set) var closeTransferPositions: [Gemstone.PerpetualPosition?] = []
     public private(set) var leverageSelectionPositions: [Gemstone.PerpetualPosition?] = []
+    public private(set) var leverageTransferPositions: [Gemstone.PerpetualPosition?] = []
     public private(set) var leverageTransfers: [UInt8] = []
 
     public init() {}
@@ -222,7 +223,8 @@ public final class GemPerpetualDetailsServiceMock: GemPerpetualDetailsServicePro
         return try leverageSelectionResult.get()
     }
 
-    public func leverageTransfer(perpetual _: Gemstone.Perpetual, asset _: Gemstone.Asset, position _: Gemstone.PerpetualPosition?, leverage: UInt8) throws -> Gemstone.GemTransferData? {
+    public func leverageTransfer(perpetual _: Gemstone.Perpetual, asset _: Gemstone.Asset, position: Gemstone.PerpetualPosition?, leverage: UInt8) throws -> Gemstone.GemTransferData? {
+        leverageTransferPositions.append(position)
         leverageTransfers.append(leverage)
         return try leverageTransferResult.get()
     }

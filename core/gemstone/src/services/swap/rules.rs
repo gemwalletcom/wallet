@@ -339,13 +339,14 @@ mod tests {
         assert_eq!(row(1.0, SwapPriceImpactType::Positive, false).value.tone, GemValueTone::Positive);
         assert_eq!(row(-0.5, SwapPriceImpactType::Low, false).value.tone, GemValueTone::Neutral);
         assert_eq!(row(-3.0, SwapPriceImpactType::Medium, false).value.tone, GemValueTone::Warning);
-        assert_eq!(row(-9.0, SwapPriceImpactType::High, true).value.tone, GemValueTone::Negative);
+        assert_eq!(row(-9.0, SwapPriceImpactType::High, false).value.tone, GemValueTone::Negative);
 
         assert_eq!(row(-0.5, SwapPriceImpactType::Low, false).warning, None, "a small impact needs no warning");
+        assert_eq!(row(-9.0, SwapPriceImpactType::High, false).warning, None, "a high impact under the threshold needs no warning");
         assert_eq!(
-            row(-9.0, SwapPriceImpactType::High, true).warning,
+            row(-12.0, SwapPriceImpactType::High, true).warning,
             Some(GemLocalizedText::PriceImpactWarning {
-                percent: GemFormattedNumber::percentage(9.0, GemPercentageStyle::Unsigned),
+                percent: GemFormattedNumber::percentage(12.0, GemPercentageStyle::Unsigned),
                 symbol: "ETH".to_string()
             }),
             "the warning reads the loss as a plain size, not as a negative change"
@@ -644,9 +645,9 @@ mod tests {
             GemSwapPair::mock(Chain::Ethereum, Chain::Solana),
             GemSwapPair::mock(Chain::Ethereum, Chain::Solana),
             GemSwapPair::mock(Chain::Ethereum, Chain::Bitcoin),
-            GemSwapPair::mock(Chain::Bitcoin, Chain::Ethereum),
-            GemSwapPair::mock(Chain::Bitcoin, Chain::Ethereum),
-            GemSwapPair::mock(Chain::Bitcoin, Chain::Ethereum),
+            GemSwapPair::mock(Chain::Solana, Chain::Bitcoin),
+            GemSwapPair::mock(Chain::Solana, Chain::Bitcoin),
+            GemSwapPair::mock(Chain::Solana, Chain::Bitcoin),
         ];
 
         let supported = AssetList::mock_with_chains(&[Chain::Bitcoin, Chain::Solana]);
@@ -684,7 +685,7 @@ mod tests {
             GemSwapPair::mock(Chain::Bitcoin, Chain::Solana),
         ];
 
-        let supported = AssetList::mock_with_chains(&[Chain::Bitcoin, Chain::Solana]);
+        let supported = AssetList::mock_with_chains(&[Chain::Bitcoin, Chain::Ethereum, Chain::Solana]);
 
         assert_eq!(most_swapped_receive_asset(&pairs, &AssetId::from_chain(Chain::Ethereum), &supported), Some(AssetId::from_chain(Chain::Solana)));
     }

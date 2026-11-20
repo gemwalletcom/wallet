@@ -62,7 +62,7 @@ class AutocloseViewModelTest {
 
     private fun viewModel(
         position: PerpetualPositionData? = mockPerpetualPositionData(
-            perpetual = mockPerpetual(price = 100.0),
+            perpetual = mockPerpetual(identifier = "0", price = 100.0),
             position = mockPerpetualPosition(size = 10.0, sizeValue = 1000.0, leverage = 5u, entryPrice = 100.0, liquidationPrice = 50.0, marginType = PerpetualMarginType.Cross, direction = PerpetualDirection.Long, marginAmount = 200.0),
         ),
         market: PerpetualData? = mockPerpetualData(),
@@ -120,6 +120,25 @@ class AutocloseViewModelTest {
         advanceUntilIdle()
 
         assertEquals(0, transfers.size)
+        assertEquals(0, errors.size)
+    }
+
+    @Test
+    fun `confirming an entered take profit asks to confirm its transfer`() = runTest(dispatcher) {
+        val model = viewModel()
+        model.position.first { it != null }
+        val transfers = mutableListOf<ConfirmTransferInput>()
+        val errors = mutableListOf<String>()
+        backgroundScope.launch { model.confirmRequests.collect { transfers.add(it) } }
+        backgroundScope.launch { model.errors.collect { errors.add(it) } }
+        runCurrent()
+
+        model.onTakeProfitChanged("150")
+        model.viewState.first { it?.takeProfit?.estimate != null }
+        model.onConfirm()
+        advanceUntilIdle()
+
+        assertEquals(1, transfers.size)
         assertEquals(0, errors.size)
     }
 

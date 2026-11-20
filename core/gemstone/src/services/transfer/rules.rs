@@ -639,8 +639,8 @@ mod tests {
     use num_bigint::BigUint;
     use primitives::asset_balance::BalanceMetadata;
     use primitives::{
-        AssetType, Delegation, DelegationBase, DelegationValidator, NFTAsset, PaymentInvoice, PaymentMerchant, PaymentPrice, PerpetualConfirmData, PerpetualDirection, PerpetualModifyConfirmData, PerpetualReduceData, Resource, SwapProvider,
-        TransactionType, TransferDataExtra,
+        AssetType, Delegation, DelegationBase, DelegationValidator, NFTAsset, PaymentInvoice, PaymentMerchant, PaymentPrice, PerpetualConfirmData, PerpetualDirection, PerpetualModifyConfirmData, PerpetualReduceData, RedelegateData,
+        Resource, SwapProvider, TransactionType, TransferDataExtra,
         known_assets::HYPERCORE_PERPETUAL_USDC,
         swap::{SwapData, SwapQuote, SwapQuoteData},
     };
@@ -818,7 +818,7 @@ mod tests {
     }
 
     #[test]
-    fn test_stake_transfer_data_names_the_validator_and_keeps_max_for_new_stake_only() {
+    fn test_stake_transfer_data_names_the_validator_and_keeps_max_for_stake_and_freeze_only() {
         let validator = primitives::DelegationValidator::mock();
         let staked = stake_transfer_data(Asset::from_chain(Chain::Cosmos), StakeType::Stake(validator.clone()), BigInt::from(5), true);
         assert_eq!(staked.recipient.address, validator.id);
@@ -827,6 +827,19 @@ mod tests {
         let unstaked = stake_transfer_data(Asset::from_chain(Chain::Cosmos), StakeType::Unstake(primitives::Delegation::mock()), BigInt::from(5), true);
         assert!(!unstaked.use_max_amount);
         assert_eq!(unstaked.value, BigInt::from(5));
+        let to_validator = DelegationValidator::mock_cosmos("to");
+        let redelegated = stake_transfer_data(
+            Asset::from_chain(Chain::Cosmos),
+            StakeType::Redelegate(RedelegateData {
+                delegation: Delegation::mock(),
+                to_validator: to_validator.clone(),
+            }),
+            BigInt::from(5),
+            true,
+        );
+        assert_eq!(redelegated.recipient, GemRecipient::named(to_validator.id, to_validator.name), "a redelegation goes to the new validator");
+        assert!(!redelegated.use_max_amount);
+        assert!(stake_transfer_data(Asset::from_chain(Chain::Tron), StakeType::Freeze(Resource::Bandwidth), BigInt::from(5), true).use_max_amount);
     }
 
     #[test]
