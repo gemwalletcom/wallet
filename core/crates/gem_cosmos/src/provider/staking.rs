@@ -1,12 +1,14 @@
 use async_trait::async_trait;
-use chain_traits::ChainStaking;
+use chain_traits::{ChainBalances, ChainStaking};
 use futures::try_join;
+use number_formatter::BigNumberFormatter;
 use std::error::Error;
 
 use gem_client::Client;
 use primitives::{DelegationBase, DelegationValidator, chain_cosmos::CosmosChain};
 
 use crate::{
+    constants::OSMOSIS_TAKER_FEE_STAKING_REWARDS_BUFFER,
     provider::staking_mapper::{calculate_network_apy, map_staking_delegations, map_staking_validators},
     rpc::client::CosmosClient,
 };
@@ -25,8 +27,9 @@ impl<C: Client> ChainStaking for CosmosClient<C> {
                 Ok(Some(calculate_network_apy(annual_rewards, staking_pool.pool.bonded_tokens)))
             }
             CosmosChain::Osmosis => {
-                let (mint_params, epoch_provisions, staking_pool) = try_join!(self.get_osmosis_mint_params(), self.get_osmosis_epoch_provisions(), self.get_staking_pool())?;
-                let annual_rewards = epoch_provisions.epoch_provisions * mint_params.params.epochs_per_year() * mint_params.params.distribution_proportions.staking;
+                let (pool_manager_params, staking_rewards_buffer, staking_pool) = try_join!(self.get_osmosis_pool_manager_params(), self.get_balance_coin(OSMOSIS_TAKER_FEE_STAKING_REWARDS_BUFFER.to_string()), self.get_staking_pool())?;
+                let staking_rewards_buffer = BigNumberFormatter::value_as_f64(&staking_rewards_buffer.balance.available, 0)?;
+                let annual_rewards = pool_manager_params.params.taker_fee_params.annual_staking_rewards(staking_rewards_buffer);
 
                 Ok(Some(calculate_network_apy(annual_rewards, staking_pool.pool.bonded_tokens)))
             }
@@ -68,6 +71,32 @@ impl<C: Client> ChainStaking for CosmosClient<C> {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use chain_traits::ChainStaking;
+    use gem_client::testkit::MockClient;
+    use primitives::chain_cosmos::CosmosChain;
+
+    use crate::rpc::client::CosmosClient;
+
+    #[tokio::test]
+    async fn test_get_staking_apy() {
+        let client = MockClient::new().with_get(|path| {
+            let body = match path {
+                "/cosmos/staking/v1beta1/pool" => r#"{"pool":{"not_bonded_tokens":"65093274631553","bonded_tokens":"156561640535903"}}"#,
+                "/osmosis/poolmanager/v1beta1/Params" => r#"{"params":{"taker_fee_params":{"daily_staking_rewards_smoothing_factor":"28"}}}"#,
+                "/cosmos/bank/v1beta1/balances/osmo1wd8rxw3j07jcj40en6q5dhcxlsr7c8ulrn29a3" => r#"{"balances":[{"denom":"uosmo","amount":"661477421390"}]}"#,
+                _ => panic!("unexpected request {path}"),
+            };
+            Ok(body.as_bytes().to_vec())
+        });
+
+        let apy = CosmosClient::new(CosmosChain::Osmosis, client).get_staking_apy().await.unwrap();
+
+        assert_eq!(apy, Some(5.507626671626291));
+    }
+}
+
 #[cfg(all(test, feature = "chain_integration_tests"))]
 mod chain_integration_tests {
     use crate::provider::testkit::{create_celestia_test_client, create_cosmos_test_client, create_osmosis_test_client};
@@ -86,15 +115,11 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_get_osmosis_staking_apy() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_osmosis_test_client();
-        let apy = client.get_staking_apy().await?;
+        let apy = client.get_staking_apy().await?.unwrap();
 
-        assert!(apy.is_some());
-        let apy_value = apy.unwrap();
+        assert!(apy > 0.0 && apy < 100.0);
 
-        assert!(apy_value > 1.0 && apy_value < 2.0, "APY should be between 1% and 2%, got: {}", apy_value);
-        assert_ne!(apy_value, 14.0);
-
-        println!("Osmosis staking APY: {}%", apy_value);
+        println!("Osmosis staking APY: {}%", apy);
 
         Ok(())
     }
