@@ -4,7 +4,7 @@ use std::error::Error;
 use chain_traits::{TransactionFeeEstimate, TransactionFeeEstimates};
 use num_bigint::BigInt;
 
-use crate::constants::{SWAP_ENERGY_ESTIMATE, TOKEN_TRANSFER_ENERGY_ESTIMATE};
+use crate::constants::{SWAP_DATA_BYTES_ESTIMATE, SWAP_ENERGY_ESTIMATE, TOKEN_TRANSFER_DATA_BYTES, TOKEN_TRANSFER_ENERGY_ESTIMATE};
 use crate::models::ChainParameter;
 use crate::models::account::{TronAccount, TronFrozen};
 use crate::models::{TronAccountUsage, TronContractInfo};
@@ -73,8 +73,8 @@ pub fn calculate_stake_fee_rate(chain_parameters: &[ChainParameter], account_usa
 
 pub(crate) fn map_transaction_fee_estimates(chain_parameters: &[ChainParameter]) -> Result<TransactionFeeEstimates, Box<dyn Error + Send + Sync>> {
     let account_usage = TronAccountUsage::default();
-    let token_transfer = calculate_token_fee_rate_with_data(chain_parameters, &account_usage, TOKEN_TRANSFER_ENERGY_ESTIMATE, 0, false, FEE_LIMIT_BUFFER_PERCENT)?;
-    let swap = calculate_token_fee_rate_with_data(chain_parameters, &account_usage, SWAP_ENERGY_ESTIMATE, 0, false, SMART_CONTRACT_FEE_LIMIT_BUFFER_PERCENT)?;
+    let token_transfer = calculate_token_fee_rate_with_data(chain_parameters, &account_usage, TOKEN_TRANSFER_ENERGY_ESTIMATE, TOKEN_TRANSFER_DATA_BYTES, false, FEE_LIMIT_BUFFER_PERCENT)?;
+    let swap = calculate_token_fee_rate_with_data(chain_parameters, &account_usage, SWAP_ENERGY_ESTIMATE, SWAP_DATA_BYTES_ESTIMATE, false, SMART_CONTRACT_FEE_LIMIT_BUFFER_PERCENT)?;
     Ok(TransactionFeeEstimates {
         fee_asset: AssetId::from_chain(Chain::Tron),
         transfer: normal_fee_estimates(get_chain_parameter_value(chain_parameters, GET_TRANSACTION_FEE)?, calculate_transfer_fee_rate(chain_parameters, &account_usage, false, false)?),
@@ -340,8 +340,8 @@ mod tests {
             TransactionFeeEstimates {
                 fee_asset: AssetId::from_chain(Chain::Tron),
                 transfer: normal_fee_estimates(1000, 300_000),
-                token_transfer: Some(normal_fee_estimates(100, 8_014_200)),
-                swap: Some(normal_fee_estimates(100, 30_200_000)),
+                token_transfer: Some(normal_fee_estimates(100, 8_082_200)),
+                swap: Some(normal_fee_estimates(100, 31_100_000)),
             }
         );
     }
