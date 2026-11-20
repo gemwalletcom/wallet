@@ -1,4 +1,4 @@
-use super::signer_mock::{TEST_EVM_RECIPIENT, TEST_EVM_SENDER, TEST_OSMOSIS_SENDER, TEST_POLKADOT_SENDER};
+use super::signer_mock::{TEST_EVM_RECIPIENT, TEST_EVM_SENDER, TEST_OSMOSIS_SENDER, TEST_POLKADOT_SENDER, TEST_TRON_SENDER};
 use crate::{
     Asset, AssetId, AssetType, Chain, GasPriceType, SignerInput, TransactionFee, TransactionInputType, TransactionLoadInput, TransactionLoadMetadata, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, UTXO,
     asset_constants::NEAR_USDT_ASSET_ID,
@@ -46,6 +46,15 @@ impl TransactionLoadInput {
             memo: None,
             is_max_value: false,
             metadata: TransactionLoadMetadata::None,
+        }
+    }
+
+    pub fn mock_tron(input_type: TransactionInputType, value: u64) -> Self {
+        TransactionLoadInput {
+            sender_address: TEST_TRON_SENDER.to_string(),
+            destination_address: TEST_TRON_SENDER.to_string(),
+            value: BigUint::from(value),
+            ..Self::mock_with_input_type(input_type)
         }
     }
 

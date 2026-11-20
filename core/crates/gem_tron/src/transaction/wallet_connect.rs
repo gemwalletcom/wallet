@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use serde_serializers::hex_bytes;
 
-use super::{RawDataJson, TransactionApproval, TronContract, sends_coins};
+use super::{RawDataJson, TransactionApproval, TronContract, TronTriggerSmartContract, sends_coins};
 use crate::address::TronAddress;
 #[cfg(feature = "rpc")]
 use crate::models::TriggerSmartContractData;
@@ -77,7 +77,7 @@ pub fn decode_wallet_connect_contract(data: &str) -> Result<Option<WalletConnect
 }
 
 pub fn decode_wallet_connect_token_recipient(data: &str) -> Result<Option<String>, SignerError> {
-    let Some(TronContract::TriggerSmart { data, call_value, call_token_value, .. }) = decode_wallet_connect_single_contract(data)? else {
+    let Some(TronContract::TriggerSmart(TronTriggerSmartContract { data, call_value, call_token_value, .. })) = decode_wallet_connect_single_contract(data)? else {
         return Ok(None);
     };
     if sends_coins(call_value, call_token_value) {
