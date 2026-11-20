@@ -48,6 +48,7 @@ pub use relay::wallet_connect_relay;
 const STATE_KEY: &str = "wallet_connect_client";
 const SESSION_LIFETIME_SECONDS: u64 = 7 * 86_400;
 const PAIRING_LIFETIME_SECONDS: u64 = 300;
+const REQUEST_LIFETIME_SECONDS: u64 = 900;
 const APPROVAL_TTL_SECONDS: u64 = 300;
 const EXPIRY_CHECK_INTERVAL: Duration = Duration::from_secs(3);
 const VERIFY_TIMEOUT: Duration = Duration::from_secs(5);
@@ -536,7 +537,7 @@ impl GemWalletConnectClient {
             method: request.request.method,
             params: request.request.params.get().to_string(),
             chain_id: request.chain_id,
-            expiry: request.request.expiry_timestamp,
+            expiry: Some(request.request.expiry_timestamp.unwrap_or_else(|| now() + REQUEST_LIFETIME_SECONDS)),
             origin: verification.origin,
             validation: verification.status,
         };
@@ -1044,7 +1045,13 @@ mod tests {
             assert_eq!(client.read(ClientState::topics).unwrap(), vec![session_topic.clone()], "the pairing is done once the session exists");
 
             let request = TestDapp::request(200, METHOD_SESSION_REQUEST, r#"{"request":{"method":"personal_sign","params":["0x48656c6c6f","0xaddress"]},"chainId":"eip155:1"}"#);
+            let received_at = now();
             client.receive(TestDapp::frame(&session_topic, &session_key, &request)).await.unwrap();
+            let expiry = client.read(|state| state.requests[0].expiry).unwrap();
+            assert!(
+                expiry.is_some_and(|expiry| (received_at + REQUEST_LIFETIME_SECONDS..=now() + REQUEST_LIFETIME_SECONDS).contains(&expiry)),
+                "a request that names no expiry waits 15 minutes, not for as long as its session lives"
+            );
             assert_eq!(
                 dapp.listener.events.lock().unwrap()[1],
                 GemWalletConnectEvent::Request {
@@ -1056,7 +1063,7 @@ mod tests {
                         chain_id: Some("eip155:1".to_string()),
                         origin: Some("https://example.com".to_string()),
                         validation: WalletConnectionVerificationStatus::Verified,
-                        expiry: None,
+                        expiry,
                     }
                 }
             );
