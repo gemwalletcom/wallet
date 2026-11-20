@@ -8,7 +8,7 @@ use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteRequest, FiatQu
 pub const DEFAULT_PAYMENT_METHODS: [PaymentType; 3] = [PaymentType::Card, PaymentType::ApplePay, PaymentType::GooglePay];
 
 pub(crate) fn generate_quote_id() -> String {
-    uuid::Uuid::new_v4().to_string()
+    gem_uuid::v4()
 }
 
 #[async_trait]
@@ -77,12 +77,11 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::generate_quote_id;
-    use uuid::Uuid;
+    use super::*;
 
     #[test]
     fn generate_quote_id_returns_uuid() {
         let quote_id = generate_quote_id();
-        assert!(Uuid::parse_str(&quote_id).is_ok());
+        assert_eq!(gem_uuid::version(&quote_id), Some(4));
     }
 }

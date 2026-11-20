@@ -11,7 +11,6 @@ use std::future::Future;
 use std::sync::{Arc, Mutex};
 
 use primitives::{DateTime, SupportMessage, SupportMessageInput, SupportMessageStatus, SupportTyping};
-use uuid::Uuid;
 
 use crate::alien::AlienProvider;
 use crate::api::{GemApiError, GemDeviceApiClient};
@@ -67,12 +66,12 @@ impl GemSupportService {
     }
 
     pub async fn send_text(&self, content: String) -> Result<(), GemServiceError> {
-        let message = rules::pending_message(Uuid::new_v4().to_string(), content.clone(), vec![], DateTime::now());
+        let message = rules::pending_message(gem_uuid::v4(), content.clone(), vec![], DateTime::now());
         self.deliver(message, self.api.client.send_support_message(SupportMessageInput { content })).await
     }
 
     pub async fn send_image(&self, image: Vec<u8>) -> Result<(), GemServiceError> {
-        let id = Uuid::new_v4().to_string();
+        let id = gem_uuid::v4();
         let file_name = format!("image-{id}.jpg");
         let pending_image = rules::pending_image(id.clone(), file_name.clone(), image.len() as u64);
         let message = rules::pending_message(id, String::new(), vec![pending_image], DateTime::now());

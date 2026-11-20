@@ -16,7 +16,6 @@ use primitives::{
 };
 use storage::{DatabaseError, WalletAddress};
 use streamer::{FiatWebhookPayload, StreamProducerQueue};
-use uuid::Uuid;
 
 use super::error::FiatServiceError;
 use super::repository::{QuoteContext, Repository};
@@ -251,7 +250,7 @@ impl FiatClient {
     }
 
     async fn add_quotes(&self, context: &FiatDeviceContext, quotes: Vec<CachedFiatQuote>) -> Result<Vec<FiatQuote>, FiatServiceError> {
-        let scoped_quotes: Vec<_> = quotes.into_iter().map(|quote| (Uuid::new_v4().to_string(), quote)).collect();
+        let scoped_quotes: Vec<_> = quotes.into_iter().map(|quote| (gem_uuid::v4(), quote)).collect();
         self.quote_cacher.set_quotes(context.device_id, context.wallet_id, &scoped_quotes).await?;
         Ok(scoped_quotes.into_iter().map(|(quote_id, cached_quote)| FiatQuote { id: quote_id, ..cached_quote.quote }).collect())
     }

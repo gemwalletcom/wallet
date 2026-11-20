@@ -52,4 +52,4 @@ rewards = { path = "../../crates/rewards" }
 reqwest = { workspace = true }
 serde_urlencoded = { workspace = true }
 signer = { path = "../../crates/signer" }
-uuid = { workspace = true }
+gem_crypto = { path = "../../crates/gem_crypto", features = ["random"] }

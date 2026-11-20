@@ -1,8 +1,8 @@
 use std::{error::Error, sync::Arc};
 
 use cacher::AuthNonceCacher;
-use primitives::{AuthNonce, DateTime};
-use uuid::Uuid;
+use gem_crypto::random;
+use primitives::{AuthNonce, DateTime, hex};
 
 pub struct AuthClient {
     nonces: Arc<dyn AuthNonceCacher>,
@@ -15,7 +15,7 @@ impl AuthClient {
 
     pub async fn get_nonce(&self, device_id: &str) -> Result<AuthNonce, Box<dyn Error + Send + Sync>> {
         let auth_nonce = AuthNonce {
-            nonce: Uuid::new_v4().to_string(),
+            nonce: hex::encode(random::bytes::<16>()?),
             timestamp: DateTime::now().timestamp() as u32,
         };
         self.nonces.add_nonce(device_id, &auth_nonce).await?;

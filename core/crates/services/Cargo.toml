@@ -4,6 +4,8 @@ edition = { workspace = true }
 version = { workspace = true }
 
 [dependencies]
+gem_crypto = { path = "../gem_crypto", features = ["random"] }
+gem_uuid = { path = "../gem_uuid" }
 async-trait = { workspace = true }
 cacher = { path = "../cacher" }
 chain_primitives = { path = "../chain_primitives" }
@@ -42,7 +44,6 @@ strum = { workspace = true }
 support = { path = "../support" }
 swapper = { path = "../swapper", features = ["reqwest_provider"] }
 tokio = { workspace = true, features = ["sync"] }
-uuid = { workspace = true }
 
 [dev-dependencies]
 gem_solana = { path = "../gem_solana", features = ["rpc"] }

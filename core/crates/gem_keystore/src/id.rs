@@ -1,31 +1,25 @@
 use std::fmt;
 use std::str::FromStr;
 
-use uuid::{Uuid, Version};
-
 use crate::KeystoreError;
 
 /// Fixed namespace for deriving deterministic v5 keystore ids from a wallet id.
-const KEYSTORE_NAMESPACE: Uuid = Uuid::from_bytes(*b"GemKeystoreV4\0\0\0");
+const KEYSTORE_NAMESPACE: &[u8; 16] = b"GemKeystoreV4\0\0\0";
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct KeystoreId(String);
 
 impl KeystoreId {
     pub fn new() -> Self {
-        Self(Uuid::new_v4().to_string())
+        Self(gem_uuid::v4())
     }
 
     pub fn from_wallet_id(wallet_id: &str) -> Self {
-        Self(Uuid::new_v5(&KEYSTORE_NAMESPACE, wallet_id.as_bytes()).to_string())
+        Self(gem_uuid::v5(KEYSTORE_NAMESPACE, wallet_id.as_bytes()))
     }
 
     pub fn parse(value: &str) -> Result<Self, KeystoreError> {
-        let uuid = Uuid::parse_str(value).map_err(|_| KeystoreError::invalid_input("keystore id"))?;
-        if !matches!(uuid.get_version(), Some(Version::Random | Version::Sha1)) {
-            return Err(KeystoreError::invalid_input("keystore id"));
-        }
-        if uuid.to_string() != value {
+        if ![Some(4), Some(5)].contains(&gem_uuid::version(value)) {
             return Err(KeystoreError::invalid_input("keystore id"));
         }
         Ok(Self(value.to_string()))

@@ -4,7 +4,6 @@ pub mod store;
 
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
-use uuid::Uuid;
 
 use primitives::contact::ContactAddress;
 use primitives::{Contact, DateTime, Payment};
@@ -115,7 +114,7 @@ impl GemContactEditorService {
     }
 
     pub fn new_session(&self, contact: Option<Contact>, addresses: Vec<ContactAddress>) -> GemContactSession {
-        rules::new_session(contact, addresses, Uuid::new_v4().to_string())
+        rules::new_session(contact, addresses, gem_uuid::v4())
     }
 
     pub fn new_address_session(&self, contact_id: String, existing: Option<ContactAddress>) -> GemContactAddressSession {

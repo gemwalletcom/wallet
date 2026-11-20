@@ -18,7 +18,6 @@ use primitives::{
     Account, Asset, AssetId, Chain, ChainAddress, ChainType, Payment, PaymentAmount, PaymentInvoice, PaymentLink, PaymentQuote, PaymentRequest, PaymentStatus, PaymentVerification, TransactionChange, TransactionInputType, TransactionState,
     TransactionType, TransactionUpdate, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, Wallet, hex,
 };
-use uuid::Uuid;
 
 #[uniffi::remote(Enum)]
 pub enum PaymentError {
@@ -73,7 +72,7 @@ impl GemPaymentService {
     pub fn new(provider: Arc<dyn AlienProvider>, assets: Arc<GemAssetsService>, balance: Arc<GemBalanceService>) -> Self {
         let auth = WalletConnectPayAuth {
             app_id: get_wallet_connect_config().project_id,
-            client_id: Uuid::new_v4().to_string(),
+            client_id: gem_uuid::v4(),
         };
         Self {
             payments: PaymentService::new(Arc::new(AlienProviderWrapper::new(provider)), auth),

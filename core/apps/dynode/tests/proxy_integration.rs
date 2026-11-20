@@ -20,7 +20,6 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tokio::task::JoinHandle;
 use tokio::time::sleep;
-use uuid::Uuid;
 
 const RAW_BODY: &[u8] = b"\0raw-proxy-body\xff";
 
@@ -152,7 +151,7 @@ impl Harness {
         let fixture_address = format!("{}:{upstream_port}", if image.is_some() { "0.0.0.0" } else { "127.0.0.1" });
         let listener = tokio::net::TcpListener::bind(&fixture_address).await?;
         let fixture = Router::new().fallback(any(upstream_handler)).with_state(upstream.clone());
-        let directory = env::temp_dir().join(format!("dynode-integration-{}", Uuid::new_v4()));
+        let directory = env::temp_dir().join(format!("dynode-integration-{}", gem_uuid::v4()));
         fs::create_dir(&directory)?;
         let mut harness = Self {
             directory,
@@ -166,7 +165,7 @@ impl Harness {
         };
         harness.write_config(upstream_port, if image.is_some() { 3000 } else { port }, image.is_some())?;
         if let Some(image) = image {
-            let container = format!("dynode-integration-{}", Uuid::new_v4());
+            let container = format!("dynode-integration-{}", gem_uuid::v4());
             let mut command = Command::new("docker");
             command.args(["run", "--detach", "--name", &container, "-p", &format!("127.0.0.1:{port}:3000")]);
             command.args(["-v", &format!("{}:/integration:ro", harness.directory.display()), "-e", "DYNODE_CONFIG=/integration/config.yml"]);

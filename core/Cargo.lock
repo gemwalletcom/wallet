@@ -277,6 +277,7 @@ dependencies = [
  "futures",
  "gem_auth",
  "gem_client",
+ "gem_crypto",
  "gem_jsonrpc",
  "gem_tracing",
  "http",
@@ -305,7 +306,6 @@ dependencies = [
  "tokio-util",
  "tower",
  "tower-http",
- "uuid",
 ]
 
 [[package]]
@@ -2029,6 +2029,7 @@ dependencies = [
  "gem_hash",
  "gem_solana",
  "gem_tracing",
+ "gem_uuid",
  "http",
  "http-body-util",
  "http_server",
@@ -2044,7 +2045,6 @@ dependencies = [
  "tokio",
  "tower",
  "url",
- "uuid",
 ]
 
 [[package]]
@@ -2308,6 +2308,7 @@ dependencies = [
  "gem_client",
  "gem_crypto",
  "gem_encoding",
+ "gem_uuid",
  "hmac 0.13.0",
  "jsonwebtoken",
  "num-bigint 0.5.1",
@@ -2321,7 +2322,6 @@ dependencies = [
  "sha2 0.11.0",
  "tokio",
  "url",
- "uuid",
 ]
 
 [[package]]
@@ -2915,13 +2915,13 @@ dependencies = [
  "gem_crypto",
  "gem_encoding",
  "gem_keystore",
+ "gem_uuid",
  "primitives",
  "scrypt",
  "serde",
  "serde_json",
  "sha3 0.12.0",
  "strum",
- "uuid",
  "zeroize",
 ]
 
@@ -3164,6 +3164,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "gem_uuid"
+version = "2.114.100"
+dependencies = [
+ "gem_hash",
+ "gem_uuid",
+]
+
+[[package]]
 name = "gem_wallet_connect"
 version = "2.114.100"
 dependencies = [
@@ -3257,6 +3265,7 @@ dependencies = [
  "gem_tempo",
  "gem_ton",
  "gem_tron",
+ "gem_uuid",
  "gem_wallet_connect",
  "gem_xrp",
  "gem_zcash",
@@ -3275,7 +3284,6 @@ dependencies = [
  "swapper",
  "uniffi",
  "url",
- "uuid",
  "wallet_connect_protocol",
  "yielder",
  "zeroize",
@@ -5923,10 +5931,12 @@ dependencies = [
  "fiat",
  "futures",
  "gem_client",
+ "gem_crypto",
  "gem_evm",
  "gem_jsonrpc",
  "gem_solana",
  "gem_tracing",
+ "gem_uuid",
  "in_app_notifications",
  "job_runner",
  "lists",
@@ -5951,7 +5961,6 @@ dependencies = [
  "support",
  "swapper",
  "tokio",
- "uuid",
 ]
 
 [[package]]
@@ -5975,12 +5984,6 @@ dependencies = [
  "cpufeatures 0.2.17",
  "digest 0.10.7",
 ]
-
-[[package]]
-name = "sha1_smol"
-version = "1.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bbfa15b3dddfee50a0fff136974b3e1bde555604ba463834a7eb7deb6417705d"
 
 [[package]]
 name = "sha2"
@@ -7050,7 +7053,6 @@ checksum = "4a0e2d11620c50695fe12bbbfde96b3477fe606e7284c22d505c12ce51214514"
 dependencies = [
  "getrandom 0.4.3",
  "js-sys",
- "sha1_smol",
  "wasm-bindgen",
 ]
 

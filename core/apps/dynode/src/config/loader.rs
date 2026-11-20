@@ -159,7 +159,6 @@ mod tests {
     use std::time::Duration;
 
     use config::FileFormat;
-    use uuid::Uuid;
 
     use super::*;
     use crate::config::routes::{ProxyConfig, ProxyHealthConfig};
@@ -231,7 +230,7 @@ mod tests {
 
     #[test]
     fn test_load_files_preserves_region_replacement_and_environment_precedence() {
-        let directory = env::temp_dir().join(format!("dynode-config-{}", Uuid::new_v4()));
+        let directory = env::temp_dir().join(format!("dynode-config-{}", gem_uuid::v4()));
         fs::create_dir(&directory).unwrap();
         fs::write(directory.join("config.yml"), include_str!("../../config.yml")).unwrap();
         fs::write(directory.join("chains.yml"), include_str!("../../chains.yml")).unwrap();
@@ -282,7 +281,7 @@ mod tests {
 
     #[test]
     fn test_load_files_configures_only_present_families_and_ignores_removed_cache_file() {
-        let directory = env::temp_dir().join(format!("dynode-config-{}", Uuid::new_v4()));
+        let directory = env::temp_dir().join(format!("dynode-config-{}", gem_uuid::v4()));
         fs::create_dir(&directory).unwrap();
         fs::write(directory.join("config.yml"), include_str!("../../config.yml")).unwrap();
         fs::write(directory.join("cache.yml"), "invalid retired cache content: [").unwrap();
@@ -312,7 +311,7 @@ mod tests {
 
     #[test]
     fn test_route_inventory_requires_routes_map_and_group() {
-        let directory = env::temp_dir().join(format!("dynode-config-{}", Uuid::new_v4()));
+        let directory = env::temp_dir().join(format!("dynode-config-{}", gem_uuid::v4()));
         fs::create_dir(&directory).unwrap();
         fs::write(directory.join("config.yml"), include_str!("../../config.yml")).unwrap();
         for routes in [include_str!("../../routes.yml").replace("routes:", "route:"), include_str!("../../routes.yml").replace("    group: indexer\n", "")] {

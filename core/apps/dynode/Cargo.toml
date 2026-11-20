@@ -40,8 +40,8 @@ chain_providers = { path = "../../crates/chain_providers" }
 serde_serializers = { path = "../../crates/serde_serializers" }
 
 url = { workspace = true }
-uuid = { workspace = true }
 
 [dev-dependencies]
+gem_uuid = { path = "../../crates/gem_uuid" }
 tokio = { workspace = true, features = ["test-util", "net"] }
 tower = { workspace = true }

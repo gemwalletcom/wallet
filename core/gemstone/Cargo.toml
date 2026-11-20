@@ -57,6 +57,7 @@ wallet_connect_protocol = { path = "../crates/wallet_connect_protocol" }
 gem_keystore = { path = "../crates/gem_keystore", features = ["v3"] }
 gem_derivation = { path = "../crates/gem_derivation" }
 gem_crypto = { path = "../crates/gem_crypto", features = ["random"] }
+gem_uuid = { path = "../crates/gem_uuid" }
 chain_traits = { path = "../crates/chain_traits" }
 signer = { path = "../crates/signer" }
 number_formatter = { path = "../crates/number_formatter" }
@@ -67,7 +68,6 @@ gem_encoding = { path = "../crates/gem_encoding", features = ["base58"] }
 # uniffi
 uniffi.workspace = true
 
-uuid = { workspace = true }
 
 serde.workspace = true
 serde_json = { workspace = true, features = ["raw_value"] }
