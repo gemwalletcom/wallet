@@ -213,6 +213,7 @@ Some networks require a balance to keep an account open, a minimum payment to ac
 | A native coin send or payment to a new account is below its activation amount | it is refused and the required amount is shown | the recipient's account cannot be created with that amount |
 | A Solana token transfer needs a recipient token account | its creation amount is included in the Network Fee | the sender funds the new token account |
 | A Solana stake creates its stake account | its rent is included in the Network Fee and the full amount entered is staked | the network stakes only what the account holds above its rent and requires at least 1 SOL staked |
+| A Tron token send, approval, swap or dapp contract call | the Network Fee counts bandwidth for the whole transaction, its call data included | the network charges every byte unless the wallet's free or staked bandwidth covers the whole transaction, and a swap is larger than the daily free bandwidth |
 
 Account reserves are excluded from the available balance. Algorand reports its account's reserve, which can grow with its assets. A Stellar account with one trustline keeps `1.5 XLM`. Amounts a Stellar account offers for sale on the network's exchange are excluded from the available balance of XLM and of tokens until the offer fills or is cancelled; amounts it offers to buy are not. Tron account creation is included in the Network Fee using the network's current charges and the sender's bandwidth.
 
