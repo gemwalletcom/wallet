@@ -327,6 +327,7 @@ pub enum GemRowAction {
     SelectWallet,
     UnverifiedCollections,
     Explorer { url: String },
+    Asset { asset: Asset },
 }
 
 #[uniffi::export]

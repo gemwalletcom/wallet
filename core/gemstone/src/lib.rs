@@ -15,6 +15,7 @@ pub mod formatted_number;
 pub mod gateway;
 pub mod gem_swapper;
 pub mod keystore;
+pub mod lightning;
 pub mod message;
 pub mod mnemonic;
 pub mod models;

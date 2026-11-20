@@ -1,4 +1,4 @@
-use crate::{Chain, ChainType, MINUTE, WEEK};
+use crate::{Chain, ChainType, DAY, MINUTE, WEEK};
 
 const MIN_EVM_TRANSACTION_TIMEOUT: u32 = (MINUTE.as_millis() * 15) as u32;
 
@@ -7,6 +7,7 @@ pub fn chain_transaction_timeout(chain: Chain) -> u32 {
         ChainType::Bitcoin => 1_209_600_000,
         ChainType::Solana => chain.block_time() * 150,
         ChainType::Ethereum => (chain.block_time() * 120).max(MIN_EVM_TRANSACTION_TIMEOUT),
+        ChainType::Lightning => (DAY.as_millis() * 16) as u32,
         ChainType::Cosmos
         | ChainType::Ton
         | ChainType::Tron

@@ -75,6 +75,7 @@ public struct ChainImage: Sendable {
         case .stable: Images.Chains.stable
         case .tempo: Images.Chains.tempo
         case .arc: Images.Chains.arc
+        case .lightning: Images.Chains.lightning
         }
     }
 }

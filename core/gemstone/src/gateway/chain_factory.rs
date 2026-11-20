@@ -16,6 +16,7 @@ use gem_near::rpc::{NearClient, NearProvider};
 use gem_optimism::OptimismGasOracle;
 use gem_polkadot::rpc::{PolkadotClient, PolkadotProvider};
 use gem_solana::rpc::{SolanaClient, SolanaProvider};
+use gem_spark::provider::LightningProvider;
 use gem_stellar::rpc::client::StellarClient;
 use gem_sui::rpc::{SuiClient, SuiProvider};
 use gem_tempo::TempoProvider;
@@ -27,6 +28,7 @@ use primitives::{BitcoinChain, Chain, ChainType, EVMChain, chain_cosmos::CosmosC
 
 use super::{GatewayError, PreferencesWrapper, SecureStoreWrapper};
 use crate::alien::{AlienProvider, AlienProviderWrapper, new_alien_client};
+use crate::lightning::SESSIONS;
 use crate::network::JsonRpcClient;
 use crate::services::node::GemNodeService;
 use crate::services::preferences::{GemPreferencesStore, GemSecureStore};
@@ -62,6 +64,7 @@ impl ChainClientFactory {
             }
             ChainType::Bitcoin => Ok(Arc::from(ZcashProvider::new_or_else(BitcoinClient::new(alien_client, BitcoinChain::from_chain(chain).unwrap()), |client| Box::new(client)))),
             ChainType::Cardano => Ok(Arc::new(CardanoClient::new(alien_client))),
+            ChainType::Lightning => Ok(Arc::new(LightningProvider::new(SESSIONS.clone()))),
             ChainType::Stellar => Ok(Arc::new(StellarClient::new(alien_client))),
             ChainType::Sui => Ok(Arc::new(SuiProvider::new_rpc_only(SuiClient::new_with_transport(
                 url,

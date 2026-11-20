@@ -20,4 +20,5 @@ pub enum ChainType {
     Polkadot,
     Cardano,
     HyperCore,
+    Lightning,
 }

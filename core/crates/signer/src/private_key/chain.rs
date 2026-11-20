@@ -12,7 +12,7 @@ enum KeyLayout {
 
 fn import_encodings_for_chain(chain: &Chain) -> &'static [KeyEncoding] {
     match chain.chain_type() {
-        ChainType::Bitcoin | ChainType::Cardano => &[],
+        ChainType::Bitcoin | ChainType::Cardano | ChainType::Lightning => &[],
         ChainType::Solana => &[KeyEncoding::Base58, KeyEncoding::Hex],
         ChainType::Stellar => &[KeyEncoding::StellarStrKey, KeyEncoding::Hex],
         ChainType::Near => &[KeyEncoding::NearBase58],
@@ -157,5 +157,6 @@ mod tests {
         assert!(!supports_private_key_import(&Chain::Bitcoin));
         assert!(!supports_private_key_import(&Chain::Litecoin));
         assert!(!supports_private_key_import(&Chain::Doge));
+        assert!(!supports_private_key_import(&Chain::Lightning));
     }
 }

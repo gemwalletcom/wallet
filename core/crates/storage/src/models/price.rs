@@ -232,6 +232,18 @@ impl PriceRow {
         }
     }
 
+    pub(crate) fn scaled(self, scale: f64) -> Self {
+        Self {
+            price: self.price / scale,
+            all_time_high: self.all_time_high / scale,
+            all_time_low: self.all_time_low / scale,
+            circulating_supply: self.circulating_supply.map(|supply| supply * scale),
+            total_supply: self.total_supply.map(|supply| supply * scale),
+            max_supply: self.max_supply.map(|supply| supply * scale),
+            ..self
+        }
+    }
+
     pub fn as_price_asset_info(&self, asset_id: PrimitiveAssetId) -> AssetPriceInfo {
         AssetPriceInfo {
             asset_id,
@@ -315,6 +327,23 @@ mod tests {
         assert_eq!(market.circulating_supply, Some(20.0));
         assert_eq!(market.total_supply, Some(30.0));
         assert_eq!(market.max_supply, Some(40.0));
+    }
+
+    #[test]
+    fn test_scaled() {
+        let price = PriceRow {
+            market_cap: Some(1_000.0),
+            circulating_supply: Some(20.0),
+            ..PriceRow::new(PriceProvider::Pyth, "x".into(), 50.0, Some(2.0), 100.0, Some(ts(100)), 10.0, Some(ts(200)), None, None, ts(1000))
+        }
+        .scaled(10.0);
+
+        assert_eq!(price.price, 5.0);
+        assert_eq!(price.all_time_high, 10.0);
+        assert_eq!(price.all_time_low, 1.0);
+        assert_eq!(price.circulating_supply, Some(200.0));
+        assert_eq!(price.market_cap, Some(1_000.0));
+        assert_eq!(price.price_change_percentage_24h, Some(2.0));
     }
 
     #[test]

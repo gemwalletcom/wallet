@@ -14,6 +14,18 @@ pub struct ChartCandleStick {
     pub volume: f64,
 }
 
+impl ChartCandleStick {
+    pub fn with_rate(self, rate: f64) -> Self {
+        Self {
+            open: self.open * rate,
+            high: self.high * rate,
+            low: self.low * rate,
+            close: self.close * rate,
+            ..self
+        }
+    }
+}
+
 pub trait ChartCandleStickVecExt {
     fn interval(&self) -> Option<TimeDelta>;
     fn merged(&self, max_count: usize) -> Vec<ChartCandleStick>;

@@ -49,7 +49,11 @@ impl ChartClient {
             provider.get_candles(&price.provider_price_id, period).await
         };
         let candles = self.cacher.get_or_fetch_candles(&price_id, period, candles_max_age(period), Box::pin(fetch)).await?;
-        Ok(candles.merged(self.config.get_usize(ConfigKey::PriceChartsMaxCandles).await?))
+        Ok(candles
+            .merged(self.config.get_usize(ConfigKey::PriceChartsMaxCandles).await?)
+            .into_iter()
+            .map(|candle| candle.with_rate(asset_id.price_scale().recip()))
+            .collect())
     }
 
     async fn consume_candles_limit(&self, ip_address: &str) -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -68,7 +72,7 @@ impl ChartClient {
     pub async fn get_charts_prices(&self, asset_id: &AssetId, period: ChartPeriod, currency: &Currency) -> Result<Vec<ChartValue>, Box<dyn Error + Send + Sync>> {
         let primary_price_max_age = self.config.get_duration(ConfigKey::PricePrimaryMaxAge).await?;
         let ChartData { base_rate, rate, charts } = self.repository.get_chart_data(asset_id.clone(), currency.clone(), period, primary_price_max_age).await?;
-        let rate_multiplier = rate.multiplier(base_rate.rate);
+        let rate_multiplier = rate.multiplier(base_rate.rate) / asset_id.price_scale();
         Ok(charts
             .into_iter()
             .map(|(ts, price)| ChartValue {

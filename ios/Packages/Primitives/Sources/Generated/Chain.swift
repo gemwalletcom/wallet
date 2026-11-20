@@ -60,4 +60,5 @@ public enum Chain: String, Codable, CaseIterable, Equatable, Hashable, Sendable 
 	case stable
 	case tempo
 	case arc
+	case lightning
 }

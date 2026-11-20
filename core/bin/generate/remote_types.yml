@@ -285,6 +285,8 @@ mocks:
   - GemContactAddressSession
   - GemContactScannedAddress
   - GemContactSession
+  - GemCopy
+  - GemCopyKind
   - GemCustomFeeField
   - GemCustomFeeSession
   - GemDelegationDetails
@@ -307,6 +309,7 @@ mocks:
   - GemHeaderButtonAction
   - GemInfoTopic
   - GemLeverageSelection
+  - GemLightningReceive
   - GemLocalizedText
   - GemNetworkFeeScreen
   - GemNftEntry

@@ -134,7 +134,8 @@ impl AssetId {
             | ChainType::Near
             | ChainType::Algorand
             | ChainType::Polkadot
-            | ChainType::Cardano => self.token_id.clone(),
+            | ChainType::Cardano
+            | ChainType::Lightning => self.token_id.clone(),
         }
     }
 
@@ -143,6 +144,13 @@ impl AssetId {
     }
     pub fn is_token(&self) -> bool {
         self.token_id.is_some()
+    }
+
+    pub fn price_scale(&self) -> f64 {
+        match self.is_native() {
+            true => 10_f64.powi(Asset::from_chain(self.chain.price_chain()).decimals as i32 - Asset::from_chain(self.chain).decimals as i32),
+            false => 1.0,
+        }
     }
 
     pub fn is_native_mirror(&self) -> bool {
@@ -211,6 +219,13 @@ impl AssetIdVecExt for Vec<AssetId> {
 mod tests {
     use super::*;
     use crate::asset_constants::{ARC_EURC_ASSET_ID, ARC_USDC_ASSET_ID, ETHEREUM_USDT_ASSET_ID, ETHEREUM_USDT_TOKEN_ID, HYPERCORE_SPOT_HYPE_ASSET_ID, HYPERCORE_SPOT_USDC_ASSET_ID, STABLE_USDT0_ASSET_ID, STELLAR_USDC_ASSET_ID};
+
+    #[test]
+    fn test_price_scale() {
+        assert_eq!(AssetId::from_chain(Chain::Lightning).price_scale(), 100_000_000.0);
+        assert_eq!(AssetId::from_chain(Chain::Bitcoin).price_scale(), 1.0);
+        assert_eq!(AssetId::from_token(Chain::Lightning, "token").price_scale(), 1.0);
+    }
 
     #[test]
     fn test_new_asset_id_with_coin() {

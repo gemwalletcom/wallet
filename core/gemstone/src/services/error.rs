@@ -3,6 +3,7 @@ use crate::alien::AlienError;
 use crate::api::GemApiError;
 use crate::gateway::GatewayError;
 use crate::services::wallet::error::GemWalletImportError;
+use gem_spark::LightningError;
 use primitives::{Account, Chain, Wallet};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Error)]
@@ -54,6 +55,12 @@ impl From<GemApiError> for GemServiceError {
             GemApiError::Http { status, .. } | GemApiError::Response { status, .. } if status >= 500 => Self::Api { msg: String::new() },
             error => Self::Api { msg: error.to_string() },
         }
+    }
+}
+
+impl From<LightningError> for GemServiceError {
+    fn from(error: LightningError) -> Self {
+        Self::core(error)
     }
 }
 

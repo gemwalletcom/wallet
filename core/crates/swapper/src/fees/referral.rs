@@ -159,7 +159,7 @@ impl ReferralFees {
                 _ => &self.cosmos,
             },
             ChainType::Xrp => &self.xrp,
-            ChainType::Bitcoin | ChainType::Algorand | ChainType::Polkadot | ChainType::Cardano | ChainType::HyperCore => return None,
+            ChainType::Bitcoin | ChainType::Algorand | ChainType::Polkadot | ChainType::Cardano | ChainType::HyperCore | ChainType::Lightning => return None,
         };
         Some(fee)
     }
