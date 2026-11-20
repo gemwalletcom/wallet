@@ -210,19 +210,19 @@ mod tests {
         assert_eq!(name(Chain::Ethereum, UNISWAP_PERMIT2_CONTRACT).as_deref(), Some("Permit2"));
         assert_eq!(name(Chain::Gnosis, UNISWAP_PERMIT2_CONTRACT).as_deref(), Some("Permit2"), "only Oku lists it on Gnosis");
         assert_eq!(name(Chain::ZkSync, ZKSYNC_UNISWAP_PERMIT2_CONTRACT).as_deref(), Some("Permit2"));
-        assert_eq!(name(Chain::SmartChain, pancakeswap.permit2).as_deref(), Some("PancakeSwap Permit2"));
-        assert_eq!(name(Chain::SmartChain, pancakeswap.universal_router).as_deref(), Some("PancakeSwap Router"));
+        assert_eq!(name(Chain::SmartChain, pancakeswap.permit2).as_deref(), Some("Pancake Permit2"));
+        assert_eq!(name(Chain::SmartChain, pancakeswap.universal_router).as_deref(), Some("Pancake Router"));
     }
 
     #[test]
-    fn test_the_infinity_universal_router_is_named_pancakeswap_router_on_its_chains() {
+    fn test_the_infinity_universal_router_is_named_pancake_router_on_its_chains() {
         let contracts = known_contracts();
 
         assert_eq!(ethereum_address_checksum(PANCAKESWAP_INFINITY_UNIVERSAL_ROUTER_CONTRACT).unwrap(), PANCAKESWAP_INFINITY_UNIVERSAL_ROUTER_CONTRACT);
         for chain in [Chain::SmartChain, Chain::Base] {
             assert_eq!(
                 contracts.iter().find(|contract| contract.chain == chain && contract.address == PANCAKESWAP_INFINITY_UNIVERSAL_ROUTER_CONTRACT),
-                Some(&ScanAddress::contract(chain, PANCAKESWAP_INFINITY_UNIVERSAL_ROUTER_CONTRACT, "PancakeSwap Router"))
+                Some(&ScanAddress::contract(chain, PANCAKESWAP_INFINITY_UNIVERSAL_ROUTER_CONTRACT, "Pancake Router"))
             );
         }
         let outside_deployed_chains = contracts

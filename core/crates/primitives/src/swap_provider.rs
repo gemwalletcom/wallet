@@ -100,7 +100,7 @@ impl SwapProvider {
     pub fn name(&self) -> &str {
         match self {
             Self::UniswapV3 | Self::UniswapV4 => "Uniswap",
-            Self::PancakeswapV3 => "PancakeSwap",
+            Self::PancakeswapV3 => "Pancake",
             Self::Aerodrome => "Aerodrome",
             Self::Panora => "Panora",
             Self::Thorchain => "THORChain",

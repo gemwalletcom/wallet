@@ -79,12 +79,12 @@ Every provider that serves the pair is asked at once. You Receive shows the best
 
 The on-chain providers are Across, Orca, Raydium, PumpSwap, Meteora, THORChain and SunSwap: each quotes from the chain and sends the trade straight to its own contract.
 
-Uniswap, PancakeSwap, Aerodrome, Raydium and Meteora each show as one provider. Their pool types quote together, and the swap and its approval are built with the pool type that gave the most.
+Uniswap, Pancake, Aerodrome, Raydium and Meteora each show as one provider. Their pool types quote together, and the swap and its approval are built with the pool type that gave the most.
 
 | Provider | Pool types |
 |---|---|
 | Uniswap | v2 on Ethereum, Robinhood Chain, Base and Polygon, v3, v4 |
-| PancakeSwap | v2 on BNB Chain, v3 |
+| Pancake | v2 on BNB Chain, v3 |
 | Raydium | CLMM, CPMM, AMM v4 |
 | Meteora | DAMM v2, DLMM |
 | Aerodrome | Slipstream, classic volatile and stable pools |
@@ -97,7 +97,7 @@ Some providers swap whatever arrives at a deposit address, so the network fee si
 |---|---|---|
 | the provider swaps whatever arrives: Near Intents except HyperCore, Chainflip from Polkadot, THORChain and Relay from Bitcoin and other non-Ethereum networks | the full balance is quoted and the network fee comes off at signing, so nothing is left behind | a deposit can be any amount |
 | what is left after the fee is under that provider's minimum | the minimum is shown, not Insufficient Balance | the provider would reject or refund it |
-| the provider needs the exact amount: Uniswap, PancakeSwap, OKX, Jupiter, Orca, Mayan, Across, Bridgers, Stellar DEX, XRP Ledger DEX | Swap quotes the balance less a fee reserve; Confirm then sends everything but the actual network fee and shows that amount | the fee is known only on the confirmation screen |
+| the provider needs the exact amount: Uniswap, Pancake, OKX, Jupiter, Orca, Mayan, Across, Bridgers, Stellar DEX, XRP Ledger DEX | Swap quotes the balance less a fee reserve; Confirm then sends everything but the actual network fee and shows that amount | the fee is known only on the confirmation screen |
 | that provider is on Solana, TON, Tron, Sui, Aptos, Stellar or the XRP Ledger | the reserve stays in the wallet | those networks charge more than the fee shown: rent, forwarding, energy, a trust line's reserve |
 | the provider takes any amount but builds a contract call | it is treated as needing the exact amount | otherwise the fee would not fit |
 
@@ -166,7 +166,7 @@ A stablecoin is one on the official list, USDT, USDC, USDS, USDe, USD1, USDG and
 
 | When | Expected | Why |
 |---|---|---|
-| A token takes a fee when it moves | it gets no Uniswap or PancakeSwap v2 quote and no Aerodrome classic quote | those quotes assume the pool receives the full amount, so the swap would fail its slippage check |
+| A token takes a fee when it moves | it gets no Uniswap or Pancake v2 quote and no Aerodrome classic quote | those quotes assume the pool receives the full amount, so the swap would fail its slippage check |
 | A Solana trade between two tokens routes through SOL on PumpSwap, Meteora or Raydium CPMM and AMM v4 | it goes as two swaps in one transaction, and the Minimum Receive still holds | these pools cannot pass one pool's output into the next |
 | A wallet's first PumpSwap trade | about `0.0018 SOL` of rent on top of the network fee | it creates the wallet's pump.fun volume account |
 | A Solana swap runs out of compute | it fails on chain and the network fee is spent | swaps are sent without the node's own check |
