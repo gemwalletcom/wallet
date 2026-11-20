@@ -201,7 +201,7 @@ fn map_coin_info_links(coin_info: &CoinInfo) -> Vec<AssetLink> {
         results.push(AssetLink::new(&format!("https://t.me/{value}"), LinkType::Telegram));
     }
 
-    if let Some(value) = links.chat_url.iter().find(|x| x.contains("discord.com")) {
+    if let Some(value) = links.chat_url.iter().find(|x| x.contains("discord.com") || x.contains("discord.gg")) {
         results.push(AssetLink::new(value, LinkType::Discord));
     }
 
@@ -282,5 +282,19 @@ mod tests {
 
         assert_eq!(map_coin_market(unknown, mapping.clone()).as_price_data().price_change_percentage_24h, None);
         assert_eq!(map_coin_market(CoinMarket::mock_with_id("bitcoin"), mapping).as_price_data().price_change_percentage_24h, Some(1.5));
+    }
+
+    #[test]
+    fn test_map_coin_info_links_discord() {
+        let discord = |chat_url: &str| {
+            let mut coin_info: CoinInfo = serde_json::from_str(include_str!("../../../testdata/coingecko/coin_info_bitcoin.json")).unwrap();
+            coin_info.links.chat_url = vec![chat_url.to_string()];
+            map_coin_info_links(&coin_info).into_iter().find(|link| link.name == LinkType::Discord.name()).map(|link| link.url)
+        };
+
+        for url in ["https://discord.gg/FCfyBSbCU5", "https://discord.com/invite/aptosnetwork"] {
+            assert_eq!(discord(url).as_deref(), Some(url));
+        }
+        assert_eq!(discord("https://medium.com/mysten-labs"), None);
     }
 }
