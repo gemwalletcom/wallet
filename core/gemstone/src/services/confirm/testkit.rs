@@ -215,10 +215,7 @@ impl GemConfirmData {
         GemConfirmData {
             input: GemConfirmInput {
                 from: Account::mock(chain, "sender"),
-                transfer: GemTransferData {
-                    use_max_amount: true,
-                    ..GemTransferData::mock(input_type)
-                },
+                transfer: GemTransferData::mock(input_type),
             },
             fee: TransactionFee {
                 gas_price_type: GasPriceType::regular(5),
@@ -294,6 +291,13 @@ impl GemConfirmMetadata {
             asset_balance: balance.clone(),
             fee_asset_balance: balance,
             prices: vec![],
+        }
+    }
+
+    pub fn mock_with_fee(asset_id: &AssetId, available: u64, fee_asset_id: &AssetId, fee_available: u64) -> Self {
+        GemConfirmMetadata {
+            fee_asset_balance: Self::mock(fee_asset_id, fee_available).fee_asset_balance,
+            ..Self::mock(asset_id, available)
         }
     }
 }

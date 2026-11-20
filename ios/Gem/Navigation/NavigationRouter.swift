@@ -10,8 +10,6 @@ import enum Gemstone.GemNavigationTab
 import enum Gemstone.GemNavigationTarget
 import protocol Gemstone.GemPaymentServiceProtocol
 import enum Gemstone.GemPaymentTarget
-import enum Gemstone.GemPushNotification
-import protocol Gemstone.GemPushNotificationServiceProtocol
 import enum Gemstone.GemTransactionHeaderAction
 import protocol Gemstone.GemWalletSessionServiceProtocol
 import enum Gemstone.Payment
@@ -36,7 +34,6 @@ final class NavigationRouter: Sendable {
 
     private let walletConnector: any WalletConnectorServiceable
     private let toastPresenter: ToastPresenter
-    private let pushNotificationService: any GemPushNotificationServiceProtocol
     private let deeplinkService: any GemDeeplinkServiceProtocol
     private let navigationService: any GemNavigationServiceProtocol
     private let paymentService: any GemPaymentServiceProtocol
@@ -49,7 +46,6 @@ final class NavigationRouter: Sendable {
         presenter: NavigationPresenter,
         walletConnector: any WalletConnectorServiceable,
         toastPresenter: ToastPresenter,
-        pushNotificationService: any GemPushNotificationServiceProtocol,
         deeplinkService: any GemDeeplinkServiceProtocol,
         navigationService: any GemNavigationServiceProtocol,
         paymentService: any GemPaymentServiceProtocol,
@@ -61,7 +57,6 @@ final class NavigationRouter: Sendable {
         self.presenter = presenter
         self.walletConnector = walletConnector
         self.toastPresenter = toastPresenter
-        self.pushNotificationService = pushNotificationService
         self.deeplinkService = deeplinkService
         self.navigationService = navigationService
         self.paymentService = paymentService
@@ -73,17 +68,12 @@ final class NavigationRouter: Sendable {
     @MainActor
     func openNotification(userInfo: [AnyHashable: Any]) async {
         await lockModel.waitUntilUnlocked()
-        guard
-            let notificationType = userInfo["type"] as? String,
-            let notification = pushNotificationService.parse(
+        guard let notificationType = userInfo["type"] as? String else { return }
+        do {
+            try await open(target: navigationService.openNotification(
                 notificationType: notificationType,
                 data: Self.payload(userInfo["data"]),
-            )
-        else {
-            return
-        }
-        do {
-            try await open(notification: notification)
+            ))
         } catch {
             showError(error)
         }
@@ -293,15 +283,6 @@ extension NavigationRouter {
             debugLog("NavigationRouter walletConnect error: \(error)")
             walletConnectorPresenter.presentError(error.localizedDescription)
         }
-    }
-}
-
-// MARK: - PushNotification
-
-@MainActor
-extension NavigationRouter {
-    private func open(notification: GemPushNotification) async throws {
-        try await open(target: navigationService.openNotification(notification: notification))
     }
 }
 

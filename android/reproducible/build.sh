@@ -20,4 +20,4 @@ export RUSTFLAGS="${RUSTFLAGS:-} --remap-path-prefix=$HOME=FDROID_HOME --remap-p
 touch local.properties
 
 rm -rf "$HOME/.gradle/caches/transforms-"*
-"${GRADLE_COMMAND:-gradle}" --no-daemon --console plain --no-configuration-cache -Pchannel="$channel" "${gradle_arguments[@]}"
+"${GRADLE_COMMAND:-gradle}" --no-daemon --console plain -Pchannel="$channel" "${gradle_arguments[@]}"

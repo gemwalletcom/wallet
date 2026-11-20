@@ -93,6 +93,6 @@ extension EarnSceneViewModel {
 
     func load() async {
         viewState = .loading
-        viewState = await service.refreshEarn(assetId: asset.id, hasRows: earnView.positions.isNotEmpty)
+        viewState = await service.refreshEarn(assetId: asset.id)
     }
 }

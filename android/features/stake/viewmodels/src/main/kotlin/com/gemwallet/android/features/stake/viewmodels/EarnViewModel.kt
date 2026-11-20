@@ -112,7 +112,7 @@ class EarnViewModel @Inject constructor(
                 }
                 assetInfo.filterNotNull().first()
                 emit(true)
-                val state = stakeService.refreshEarn(assetId.toIdentifier(), positions.value.isNotEmpty())
+                val state = stakeService.refreshEarn(assetId.toIdentifier())
                 (state as? GemLoadState.Error)?.let { Log.e(TAG, "earn sync failed", it.error) }
                 loadState.value = state
                 emit(false)

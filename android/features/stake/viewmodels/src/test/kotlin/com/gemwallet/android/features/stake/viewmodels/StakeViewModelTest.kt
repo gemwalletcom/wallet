@@ -133,7 +133,7 @@ class StakeViewModelTest {
     @Test
     fun `a failed delegations sync stops the spinner instead of taking the screen down`() = runTest(testDispatcher, timeout = 10.seconds) {
         val offline = GemServiceException.Gateway("Network offline")
-        coEvery { stakeService.refresh(asset.id.chain.string, any()) } returns GemLoadState.Error(offline)
+        coEvery { stakeService.refresh(asset.id.chain.string) } returns GemLoadState.Error(offline)
 
         val viewModel = createViewModel()
 

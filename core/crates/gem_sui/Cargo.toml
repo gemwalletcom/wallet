@@ -11,6 +11,8 @@ rpc = [
     "dep:gem_client",
     "gem_encoding/protobuf",
     "dep:gem_jsonrpc",
+    "dep:chain_primitives",
+    "dep:futures",
 ]
 reqwest = ["rpc", "gem_client/reqwest", "gem_jsonrpc/reqwest"]
 signer = ["dep:signer"]
@@ -18,7 +20,7 @@ chain_integration_tests = ["rpc", "reqwest"]
 
 [dependencies]
 primitives = { path = "../primitives" }
-chain_primitives = { path = "../chain_primitives" }
+chain_primitives = { path = "../chain_primitives", optional = true }
 bcs = { workspace = true }
 gem_encoding = { path = "../gem_encoding", features = ["base58"] }
 gem_hash = { path = "../gem_hash" }
@@ -30,7 +32,7 @@ serde_serializers = { path = "../serde_serializers", features = ["bigint"] }
 chrono = { workspace = true }
 num-traits = { workspace = true }
 
-futures = { workspace = true }
+futures = { workspace = true, optional = true }
 signer = { path = "../signer", optional = true }
 
 # Optional dependencies for rpc feature

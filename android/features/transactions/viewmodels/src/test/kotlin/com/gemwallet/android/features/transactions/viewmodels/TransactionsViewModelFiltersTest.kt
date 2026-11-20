@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.application.transactions.cases.GetTransactions
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.transactions
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.testkit.MainDispatcherRule
@@ -57,7 +58,8 @@ class TransactionsViewModelFiltersTest {
 
     private fun viewModel(session: MutableStateFlow<Session?>, rows: List<GemTransactionRow> = emptyList()): TransactionsViewModel {
         val service: GemTransactionsServiceInterface = mockk(relaxed = true) {
-            every { filterChains(any()) } returns listOf(Chain.Bitcoin.string, Chain.Ethereum.string)
+            every { filterChains(first.toGem()) } returns listOf(Chain.Bitcoin.string, Chain.Ethereum.string)
+            every { filterChains(second.toGem()) } returns listOf(Chain.Solana.string)
         }
         val transactions: GetTransactions = mockk {
             every { getTransactions(capture(requested), capture(limits)) } returns flowOf(rows)
@@ -68,7 +70,7 @@ class TransactionsViewModelFiltersTest {
     }
 
     @Test
-    fun `switching wallets drops the filters the previous wallet had`() = runTest(dispatcher) {
+    fun `switching wallets drops the previous filters and shows the new wallet chains`() = runTest(dispatcher) {
         val session = MutableStateFlow<Session?>(mockSession(wallet = first))
         val model = viewModel(session)
         model.filter.first { it.chains.isNotEmpty() }
@@ -81,7 +83,7 @@ class TransactionsViewModelFiltersTest {
 
         val cleared = model.filter.first { it.selectedChains.isEmpty() }
         assertTrue(cleared.selectedTypes.isEmpty())
-        assertEquals(listOf(Chain.Bitcoin.string, Chain.Ethereum.string), cleared.chains)
+        assertEquals(listOf(Chain.Solana.string), cleared.chains)
     }
 
     @Test

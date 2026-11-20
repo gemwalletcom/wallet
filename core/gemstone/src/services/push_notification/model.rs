@@ -1,6 +1,6 @@
 use primitives::{AssetId, TransactionId, WalletId};
 
-#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum GemPushNotification {
     Transaction { wallet_id: WalletId, asset_id: AssetId, transaction_id: TransactionId },
     Asset { asset_id: AssetId },

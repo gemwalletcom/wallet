@@ -19,10 +19,11 @@ const QUERY_VALUE: &str = "value";
 pub fn decode(path: &str) -> Result<Payment> {
     let (path, query) = path.split_once('?').unwrap_or((path, ""));
     let (target, function) = path.split_once('/').map_or((path, None), |(target, function)| (target, Some(function)));
-    let (target, chain) = match target.split_once('@') {
-        Some((target, chain_id)) => (target, chain(chain_id).ok_or_else(|| PaymentDecoderError::InvalidFormat(format!("Unsupported chain id: {chain_id}")))?),
-        None => (target, Chain::Ethereum),
+    let (target, explicit_chain) = match target.split_once('@') {
+        Some((target, chain_id)) => (target, Some(chain(chain_id).ok_or_else(|| PaymentDecoderError::InvalidFormat(format!("Unsupported chain id: {chain_id}")))?)),
+        None => (target, None),
     };
+    let chain = explicit_chain.unwrap_or(Chain::Ethereum);
     let target = target.trim_prefix(PAY_PREFIX);
     let parameters = query::parameters(query);
     let memo = query::value(&parameters, QUERY_MEMO);
@@ -40,20 +41,25 @@ pub fn decode(path: &str) -> Result<Payment> {
         }),
         Some(function) => Err(PaymentDecoderError::InvalidFormat(format!("Unsupported function: {function}"))),
         None if target.is_empty() => Err(PaymentDecoderError::MissingField(QUERY_ADDRESS.to_string())),
-        None => Ok(Payment::Request {
-            request: PaymentRequest {
-                address: target.to_string(),
-                amount: match query::value(&parameters, QUERY_VALUE) {
-                    Some(value) => amount::exact_from_atomic(&value, chain),
-                    None => query::value(&parameters, QUERY_AMOUNT).and_then(|value| amount::exact(&value, chain)),
-                }
-                .map(|value| PaymentAmount::ExactValue { value }),
-                memo,
-                label: None,
-                references: None,
-                asset_id: Some(AssetId::from_chain(chain)),
-            },
-        }),
+        None => {
+            let value = query::value(&parameters, QUERY_VALUE);
+            let exact_amount = query::value(&parameters, QUERY_AMOUNT);
+            let is_address_only = explicit_chain.is_none() && value.is_none() && exact_amount.is_none() && target.starts_with(HEXADECIMAL_PREFIX);
+            Ok(Payment::Request {
+                request: PaymentRequest {
+                    address: target.to_string(),
+                    amount: match value {
+                        Some(value) => amount::exact_from_atomic(&value, chain),
+                        None => exact_amount.and_then(|value| amount::exact(&value, chain)),
+                    }
+                    .map(|value| PaymentAmount::ExactValue { value }),
+                    memo,
+                    label: None,
+                    references: None,
+                    asset_id: (!is_address_only).then(|| AssetId::from_chain(chain)),
+                },
+            })
+        }
     }
 }
 
@@ -74,6 +80,19 @@ mod tests {
 
     const ADDRESS: &str = "0xcB3028d6120802148f03d6c884D6AD6A210Df62A";
     const TOKEN: &str = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48";
+
+    #[test]
+    fn test_decode_address_only() {
+        let address_only = Payment::Request {
+            request: PaymentRequest {
+                address: ADDRESS.to_string(),
+                ..PaymentRequest::mock()
+            },
+        };
+
+        assert_eq!(decode(ADDRESS).unwrap(), address_only);
+        assert_eq!(decode(&format!("pay-{ADDRESS}")).unwrap(), address_only);
+    }
 
     #[test]
     fn test_decode() {

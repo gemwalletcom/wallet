@@ -5,7 +5,7 @@ edition = { workspace = true }
 
 [features]
 default = []
-signer = []
+signer = ["dep:signer"]
 rpc = [
     "dep:serde_json",
     "dep:serde_serializers",
@@ -15,6 +15,7 @@ rpc = [
     "dep:number_formatter",
     "dep:gem_crypto",
     "dep:futures",
+    "dep:signer",
 ]
 reqwest = ["gem_client/reqwest"]
 chain_integration_tests = ["rpc", "reqwest"]
@@ -27,7 +28,7 @@ serde = { workspace = true, features = ["derive"] }
 num-bigint = { workspace = true }
 chrono = { workspace = true, features = ["serde"] }
 gem_hash = { path = "../gem_hash" }
-signer = { path = "../signer" }
+signer = { path = "../signer", optional = true }
 gem_crypto = { path = "../gem_crypto", features = ["random"], optional = true }
 
 # Optional RPC dependencies

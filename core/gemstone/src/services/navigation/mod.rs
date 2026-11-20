@@ -13,6 +13,7 @@ use crate::services::error_text::GemErrorText;
 use crate::services::fiat::rules::quote_action;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::push_notification::GemPushNotification;
+use crate::services::push_notification::rules as push_notification_rules;
 use crate::services::wallet_session::GemWalletSessionService;
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -133,17 +134,10 @@ impl GemNavigationService {
         }
     }
 
-    pub async fn open_notification(&self, notification: GemPushNotification) -> Result<GemNavigationTarget, GemServiceError> {
-        match notification {
-            GemPushNotification::Asset { asset_id } => self.open_asset(asset_id).await,
-            GemPushNotification::PriceAlert { asset_id } => self.open_price_alert(asset_id).await,
-            GemPushNotification::BuyAsset { asset_id } => self.fiat(asset_id, None, FiatQuoteType::Buy).await,
-            GemPushNotification::SwapAsset { from_asset_id, to_asset_id } => self.swap(from_asset_id, Some(to_asset_id)).await,
-            GemPushNotification::FiatTransaction { wallet_id, asset_id } | GemPushNotification::Stake { wallet_id, asset_id } => self.open_wallet_asset(wallet_id, asset_id).await,
-            GemPushNotification::Transaction { wallet_id, asset_id, transaction_id } => self.open_transaction(wallet_id, asset_id, transaction_id).await,
-            GemPushNotification::Support => Ok(GemNavigationTarget::Support),
-            GemPushNotification::Rewards => Ok(GemNavigationTarget::Rewards { code: None }),
-            GemPushNotification::Test => Ok(GemNavigationTarget::None),
+    pub async fn open_notification(&self, notification_type: String, data: Option<String>) -> Result<GemNavigationTarget, GemServiceError> {
+        match push_notification_rules::notification(&notification_type, data.as_deref()) {
+            Some(notification) => self.open_push_notification(notification).await,
+            None => Ok(GemNavigationTarget::None),
         }
     }
 
@@ -161,6 +155,20 @@ impl GemNavigationService {
 }
 
 impl GemNavigationService {
+    async fn open_push_notification(&self, notification: GemPushNotification) -> Result<GemNavigationTarget, GemServiceError> {
+        match notification {
+            GemPushNotification::Asset { asset_id } => self.open_asset(asset_id).await,
+            GemPushNotification::PriceAlert { asset_id } => self.open_price_alert(asset_id).await,
+            GemPushNotification::BuyAsset { asset_id } => self.fiat(asset_id, None, FiatQuoteType::Buy).await,
+            GemPushNotification::SwapAsset { from_asset_id, to_asset_id } => self.swap(from_asset_id, Some(to_asset_id)).await,
+            GemPushNotification::FiatTransaction { wallet_id, asset_id } | GemPushNotification::Stake { wallet_id, asset_id } => self.open_wallet_asset(wallet_id, asset_id).await,
+            GemPushNotification::Transaction { wallet_id, asset_id, transaction_id } => self.open_transaction(wallet_id, asset_id, transaction_id).await,
+            GemPushNotification::Support => Ok(GemNavigationTarget::Support),
+            GemPushNotification::Rewards => Ok(GemNavigationTarget::Rewards { code: None }),
+            GemPushNotification::Test => Ok(GemNavigationTarget::None),
+        }
+    }
+
     async fn perpetuals(&self) -> Result<GemNavigationTarget, GemServiceError> {
         Ok(match self.session.get_current_wallet().await? {
             Some(wallet) if self.shows_perpetuals(&wallet) => GemNavigationTarget::Perpetuals,
@@ -299,6 +307,7 @@ mod tests {
     use crate::testkit::TestAlienProvider;
     use futures::executor::block_on;
     use primitives::{AssetBasic, AssetProperties, Chain, Transaction, Wallet, WalletType};
+    use push_notification::{PushNotificationAsset, PushNotificationTypes};
 
     #[test]
     fn test_a_transaction_push_opens_its_details_at_once_and_leaves_loading_to_the_screen() {
@@ -311,7 +320,7 @@ mod tests {
             let transaction_id = Transaction::mock().id;
 
             let target = service
-                .open_notification(GemPushNotification::Transaction {
+                .open_push_notification(GemPushNotification::Transaction {
                     wallet_id: wallet.id.clone(),
                     asset_id: asset.id.clone(),
                     transaction_id: transaction_id.clone(),
@@ -458,7 +467,7 @@ mod tests {
             save_asset(&testkit, bitcoin.clone(), false, true).await;
 
             let target = service
-                .open_notification(GemPushNotification::SwapAsset {
+                .open_push_notification(GemPushNotification::SwapAsset {
                     from_asset_id: ethereum.id.clone(),
                     to_asset_id: arbitrum.id,
                 })
@@ -521,7 +530,7 @@ mod tests {
             testkit.select_wallet(&wallet);
             save_asset(&testkit, perpetual.clone(), false, false).await;
             let open = || {
-                service.open_notification(GemPushNotification::Transaction {
+                service.open_push_notification(GemPushNotification::Transaction {
                     wallet_id: wallet.id.clone(),
                     asset_id: perpetual.id.clone(),
                     transaction_id: transaction_id.clone(),
@@ -550,7 +559,7 @@ mod tests {
             let bitcoin = Asset::from_chain(Chain::Bitcoin);
             save_asset(&testkit, ethereum.clone(), false, false).await;
             save_asset(&testkit, bitcoin.clone(), false, false).await;
-            let open = |asset: &Asset| service.open_notification(GemPushNotification::PriceAlert { asset_id: asset.id.clone() });
+            let open = |asset: &Asset| service.open_push_notification(GemPushNotification::PriceAlert { asset_id: asset.id.clone() });
 
             testkit.select_wallet(&Wallet::mock_with_type(WalletType::View, &[Chain::Ethereum]));
             assert_eq!(open(&ethereum).await.unwrap(), GemNavigationTarget::Chart { asset: ethereum.clone() }, "a watch-only wallet with the chain");
@@ -558,6 +567,23 @@ mod tests {
 
             testkit.select_wallet(&Wallet::mock_with_chains(&[Chain::Bitcoin, Chain::Ethereum]));
             assert_eq!(open(&bitcoin).await.unwrap(), GemNavigationTarget::Chart { asset: bitcoin }, "a wallet holding the chain");
+        });
+    }
+
+    #[test]
+    fn test_a_push_opens_the_screen_it_names_and_an_unreadable_one_opens_nothing() {
+        block_on(async {
+            let testkit = DiscoveryTestkit::with_status(200);
+            let service = GemNavigationService::mock(&testkit);
+            let bitcoin = Asset::from_chain(Chain::Bitcoin);
+            save_asset(&testkit, bitcoin.clone(), false, false).await;
+            testkit.select_wallet(&Wallet::mock());
+            let price_alert = PushNotificationTypes::PriceAlert.as_ref().to_string();
+            let data = serde_json::to_string(&PushNotificationAsset { asset_id: bitcoin.id.clone() }).unwrap();
+
+            assert_eq!(service.open_notification(price_alert.clone(), Some(data)).await.unwrap(), GemNavigationTarget::Chart { asset: bitcoin });
+            assert_eq!(service.open_notification(price_alert, Some("not json".to_string())).await.unwrap(), GemNavigationTarget::None);
+            assert_eq!(service.open_notification("unknownType".to_string(), None).await.unwrap(), GemNavigationTarget::None);
         });
     }
 
