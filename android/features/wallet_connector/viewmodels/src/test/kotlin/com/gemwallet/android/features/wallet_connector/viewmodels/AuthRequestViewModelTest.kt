@@ -11,8 +11,10 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockApplicationMetadata
+import com.gemwallet.android.testkit.mockGemAuthenticationPreview
 import com.gemwallet.android.testkit.mockGemWalletConnectAuthMessage
 import com.gemwallet.android.testkit.mockGemWalletConnectAuthentication
+import com.gemwallet.android.testkit.mockSignMessage
 import com.gemwallet.android.testkit.mockWallet
 import com.gemwallet.android.testkit.mockWalletConnectionSessionProposal
 import com.gemwallet.android.testkit.mockWalletId
@@ -39,17 +41,14 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import uniffi.gemstone.GemListItem
-import uniffi.gemstone.GemListRow
-import uniffi.gemstone.GemListRowTitle
 import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemSessionProposal
 import uniffi.gemstone.GemSignMessageServiceInterface
+import uniffi.gemstone.GemWalletConnectAuthMessage
 import uniffi.gemstone.GemWalletConnectEvent
 import uniffi.gemstone.GemWalletConnectException
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.SignDigestType
-import uniffi.gemstone.VerificationStatus
 import uniffi.gemstone.WalletConnectionVerificationStatus
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -83,7 +82,13 @@ class AuthRequestViewModelTest {
     }
 
     private fun signMessageService(): GemSignMessageServiceInterface = mockk {
-        every { payloadPreview(any()) } returns null
+        every { authenticationPreview(any(), any(), any(), any()) } answers {
+            val authMessage = firstArg<GemWalletConnectAuthMessage>()
+            mockGemAuthenticationPreview(
+                text = authMessage.message,
+                message = mockSignMessage(chain = authMessage.account.chain, signType = SignDigestType.SIWE, data = authMessage.message.toByteArray()),
+            )
+        }
         coEvery { sign(any(), any()) } returns "0xsignature"
     }
 
@@ -148,30 +153,24 @@ class AuthRequestViewModelTest {
         assertEquals(main, content.selectedWallet)
         assertEquals(listOf(main, secondary), content.availableWallets)
         assertEquals(listOf("Main Wallet", "Second Wallet"), content.availableWalletSections.flatMap { it.rows }.map { it.name })
-        assertEquals("0xabc", content.approval.account.address)
+        assertEquals(main, content.approval.wallet)
         assertEquals(message, content.message)
     }
 
     @Test
-    fun `the status row shows the dapp's verification level`() = runTest(dispatcher) {
-        listOf(
-            WalletConnectionVerificationStatus.VERIFIED to VerificationStatus.VERIFIED,
-            WalletConnectionVerificationStatus.UNKNOWN to VerificationStatus.UNVERIFIED,
-            WalletConnectionVerificationStatus.INVALID to VerificationStatus.SUSPICIOUS,
-            WalletConnectionVerificationStatus.MALICIOUS to VerificationStatus.SUSPICIOUS,
-        ).forEach { (status, expected) ->
-            val service = service()
-            coEvery { service.prepareAuthentication(any(), any(), any(), any(), any()) } returns GemSessionProposal(
-                proposal = mockWalletConnectionSessionProposal(defaultWallet = main, wallets = listOf(main), metadata = mockApplicationMetadata(name = "Uniswap")).toGem(),
-                verificationStatus = status,
-            )
-            val model = viewModel(service = service)
+    fun `the review is built for the dapp's verification level`() = runTest(dispatcher) {
+        val service = service()
+        coEvery { service.prepareAuthentication(any(), any(), any(), any(), any()) } returns GemSessionProposal(
+            proposal = mockWalletConnectionSessionProposal(defaultWallet = main, wallets = listOf(main), metadata = mockApplicationMetadata(name = "Uniswap")).toGem(),
+            verificationStatus = WalletConnectionVerificationStatus.MALICIOUS,
+        )
+        val signMessageService = signMessageService()
+        val model = viewModel(service = service, signMessageService = signMessageService)
 
-            model.onRequest(request) {}
+        model.onRequest(request) {}
+        model.awaitContent()
 
-            val content = model.awaitContent()
-            assertEquals(GemListItem.Row(GemListRow.Verification(GemListRowTitle.STATUS, expected, null)), content.sections.first().items.last())
-        }
+        verify { signMessageService.authenticationPreview(any(), any(), main.toGem().id, WalletConnectionVerificationStatus.MALICIOUS) }
     }
 
     @Test
@@ -189,7 +188,8 @@ class AuthRequestViewModelTest {
 
     @Test
     fun `selecting a wallet rebuilds the approval for its account`() = runTest(dispatcher) {
-        val model = viewModel()
+        val signMessageService = signMessageService()
+        val model = viewModel(signMessageService = signMessageService)
 
         model.onRequest(request) {}
         model.awaitContent()
@@ -197,7 +197,8 @@ class AuthRequestViewModelTest {
 
         val content = model.state.value as AuthRequestUIState.Content
         assertEquals(secondary, content.selectedWallet)
-        assertEquals("0xdef", content.approval.account.address)
+        assertEquals(secondary, content.approval.wallet)
+        verify { signMessageService.authenticationPreview(match { it.account.address == "0xdef" }, any(), secondary.toGem().id, any()) }
     }
 
     @Test
