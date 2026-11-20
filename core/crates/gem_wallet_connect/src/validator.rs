@@ -39,7 +39,7 @@ pub fn validate_sign_message(input: &SignMessageValidation) -> Result<(), String
 fn validate_siwe(input: &SignMessageValidation) -> Result<(), String> {
     let text = String::from_utf8(decode_message_bytes(input.data)).ok();
     let Some(message) = text.as_deref().and_then(SiweMessage::try_parse) else {
-        if *input.sign_type == SignDigestType::Siwe {
+        if *input.sign_type == SignDigestType::Siwe || text.as_deref().is_some_and(SiweMessage::is_sign_in) {
             return Err("Invalid SIWE message".to_string());
         }
         return Ok(());
@@ -248,6 +248,14 @@ mod tests {
                 .contains("Chain ID mismatch"),
             "a sign-in for another site is refused whatever chain id it names"
         );
+        for (field, blank) in [("URI: https://evil.com", "URI:  "), ("Issued At: 2026-03-06T01:56:42.927Z", "Issued At:  "), ("Nonce: gmdhs9w9yfrl2kf2\n", "")] {
+            let incomplete = mock_siwe_message("evil.com", 1).replace(field, blank);
+            assert_eq!(
+                validate_sign_message(&SignMessageValidation::mock(Chain::Ethereum, &SignDigestType::Eip191, &incomplete, "https://thepoc.xyz")),
+                Err("Invalid SIWE message".to_string()),
+                "a message that opens as a sign-in is never signed as plain text: {field}"
+            );
+        }
         assert!(validate_sign_message(&SignMessageValidation::mock(Chain::Ethereum, &SignDigestType::Eip191, "0x48656c6c6f", "https://example.com")).is_ok());
     }
 }
