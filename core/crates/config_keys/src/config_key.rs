@@ -14,6 +14,8 @@ pub enum ConfigKey {
     UsernameMinLength,
     UsernameMaxLength,
 
+    NameMaxLabelLength,
+
     RedemptionMinAccountAge,
     RedemptionCooldownAfterReferral,
     RedemptionRetryMaxRetries,
@@ -226,6 +228,7 @@ impl ConfigKey {
             Self::ReferralEligibility => "7d",
             Self::UsernameMinLength => "4",
             Self::UsernameMaxLength => "16",
+            Self::NameMaxLabelLength => "24",
             Self::RedemptionMinAccountAge => "1h",
             Self::RedemptionCooldownAfterReferral => "1m",
             Self::RedemptionRetryMaxRetries => "1",

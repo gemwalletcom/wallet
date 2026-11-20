@@ -4,6 +4,7 @@ use ::defi::DefiProviderClient;
 use ::nft::NFTProviderClient;
 use axum::extract::FromRef;
 use name_resolver::NameClient;
+use services::ConfigCacher;
 use services::access::AccessClient;
 use services::app::ConfigClient;
 use services::assets::{AssetsClient, SearchClient};
@@ -38,6 +39,7 @@ pub struct Clients {
     pub prices: Arc<PriceClient>,
     pub charts: Arc<ChartClient>,
     pub config: Arc<ConfigClient>,
+    pub config_cacher: Arc<ConfigCacher>,
     pub names: Arc<NameClient>,
     pub devices: Arc<DevicesClient>,
     pub assets: Arc<AssetsClient>,
@@ -99,6 +101,7 @@ state_clients! {
     prices: PriceClient,
     charts: ChartClient,
     config: ConfigClient,
+    config_cacher: ConfigCacher,
     names: NameClient,
     devices: DevicesClient,
     assets: AssetsClient,
