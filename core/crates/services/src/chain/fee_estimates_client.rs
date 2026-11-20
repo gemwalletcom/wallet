@@ -136,8 +136,8 @@ mod tests {
 
     fn client(cacher: Arc<MemoryFeeEstimatesCacher>, repository: Arc<MemoryFeeEstimatesRepository>) -> FeeEstimatesClient {
         let price = AssetPriceInfo {
-            asset_id: Asset::from_chain(Chain::Tron).id,
-            price: Price::new(0.3, 0.0, DateTime::from_timestamp(0, 0).unwrap(), PriceProvider::Coingecko),
+            asset_id: Asset::from_chain(Chain::Ton).id,
+            price: Price::new(2.0, 0.0, DateTime::from_timestamp(0, 0).unwrap(), PriceProvider::Coingecko),
             market: AssetMarket::default(),
         };
         client_with_prices(cacher, repository, vec![price])
@@ -146,9 +146,9 @@ mod tests {
     fn client_with_prices(cacher: Arc<MemoryFeeEstimatesCacher>, repository: Arc<MemoryFeeEstimatesRepository>, prices: Vec<AssetPriceInfo>) -> FeeEstimatesClient {
         let settings = Settings::new_setting_path(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../Settings.yaml")).unwrap();
         let config = Arc::new(ConfigCacher::new(Arc::new(MemoryConfigRepository::new())));
-        let asset = Asset::from_chain(Chain::Tron);
+        let asset = Asset::from_chain(Chain::Ton);
         FeeEstimatesClient::new(
-            ChainClient::new(ChainProviders::for_chain(Chain::Tron, &settings, "test")),
+            ChainClient::new(ChainProviders::for_chain(Chain::Ton, &settings, "test")),
             AssetsClient::new(Arc::new(MemoryAssetRepository::new(vec![asset.as_basic_primitive()])), config.clone()),
             PriceClient::new(Arc::new(MemoryPricesRepository::default()), config, Arc::new(MemoryPriceCacher::new(prices))),
             repository,
@@ -194,13 +194,13 @@ mod tests {
         let repository = Arc::new(MemoryFeeEstimatesRepository::default());
         let client = client(cacher.clone(), repository.clone());
 
-        assert_eq!(client.update_chain_fee_estimates(Chain::Tron).await.unwrap(), 1);
-        assert_eq!(client.get_chain_fee_estimates(Chain::Tron).await.unwrap().transfer[&FeePriority::Normal].value, "1");
-        assert_eq!(client.get_chain_fee_estimates(Chain::Tron).await.unwrap().transfer[&FeePriority::Normal].fiat_value, Some("0.3".to_string()));
-        assert_eq!(cacher.writes(), vec![Chain::Tron]);
+        assert_eq!(client.update_chain_fee_estimates(Chain::Ton).await.unwrap(), 1);
+        assert_eq!(client.get_chain_fee_estimates(Chain::Ton).await.unwrap().transfer[&FeePriority::Normal].value, "0.01");
+        assert_eq!(client.get_chain_fee_estimates(Chain::Ton).await.unwrap().transfer[&FeePriority::Normal].fiat_value, Some("0.02".to_string()));
+        assert_eq!(cacher.writes(), vec![Chain::Ton]);
         assert_eq!(
             repository.values().into_iter().map(|(chain, value)| (chain, value.gas_price, value.priority_fee)).collect::<Vec<_>>(),
-            vec![(Chain::Tron, 0.000001, 0.0)]
+            vec![(Chain::Ton, 0.01, 0.0)]
         );
     }
 
@@ -210,9 +210,9 @@ mod tests {
         let repository = Arc::new(MemoryFeeEstimatesRepository::default());
         let client = client_with_prices(cacher.clone(), repository.clone(), vec![]);
 
-        assert_eq!(client.update_chain_fee_estimates(Chain::Tron).await.unwrap(), 1);
-        let estimate = &client.get_chain_fee_estimates(Chain::Tron).await.unwrap().transfer[&FeePriority::Normal];
-        assert_eq!(estimate.value, "1");
+        assert_eq!(client.update_chain_fee_estimates(Chain::Ton).await.unwrap(), 1);
+        let estimate = &client.get_chain_fee_estimates(Chain::Ton).await.unwrap().transfer[&FeePriority::Normal];
+        assert_eq!(estimate.value, "0.01");
         assert_eq!(estimate.fiat_value, None);
         assert!(!serde_json::to_string(estimate).unwrap().contains("fiatValue"));
     }

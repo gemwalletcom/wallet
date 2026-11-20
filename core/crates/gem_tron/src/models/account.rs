@@ -46,7 +46,7 @@ pub struct TronAccountOwnerPermission {
     pub keys: Option<Vec<TronAccountPermissionKey>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TronAccountUsage {
     #[serde(default)]

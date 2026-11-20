@@ -7,12 +7,14 @@ pub enum TransactionFeeOperation {
     Swap,
 }
 
+#[derive(Debug, PartialEq)]
 pub struct TransactionFeeEstimate {
     pub priority: FeePriority,
     pub gas_price_type: GasPriceType,
     pub fee: BigInt,
 }
 
+#[derive(Debug, PartialEq)]
 pub struct TransactionFeeEstimates {
     pub fee_asset: AssetId,
     pub transfer: Vec<TransactionFeeEstimate>,
