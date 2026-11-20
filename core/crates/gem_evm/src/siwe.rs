@@ -19,13 +19,17 @@ pub struct SiweMessage {
     pub domain: String,
     pub address: String,
     pub uri: String,
-    pub chain_id: u64,
+    pub chain_id: String,
     pub nonce: String,
     pub version: String,
     pub issued_at: String,
 }
 
 impl SiweMessage {
+    pub fn is_sign_in(raw: &str) -> bool {
+        raw.lines().next().is_some_and(|line| line.trim().ends_with(PREAMBLE_SUFFIX))
+    }
+
     pub fn try_parse(raw: &str) -> Option<Self> {
         let lines: Vec<_> = raw.lines().collect();
 
@@ -38,7 +42,7 @@ impl SiweMessage {
 
         let uri = Self::find_field(&body, URI_PREFIX)?;
         let version = Self::find_field(&body, VERSION_PREFIX)?;
-        let chain_id = Self::find_field(&body, CHAIN_ID_PREFIX)?.parse().ok()?;
+        let chain_id = Self::find_field(&body, CHAIN_ID_PREFIX)?;
         let nonce = Self::find_field(&body, NONCE_PREFIX)?;
         let issued_at = Self::find_field(&body, ISSUED_AT_PREFIX)?;
 
@@ -58,8 +62,7 @@ impl SiweMessage {
             return Err("Unsupported chain for SIWE".to_string());
         }
 
-        let expected_chain_id = chain.network_id().parse::<u64>().map_err(|_| "Invalid chain".to_string())?;
-        if expected_chain_id != self.chain_id {
+        if chain.network_id() != self.chain_id {
             return Err("Chain ID mismatch".to_string());
         }
 
@@ -111,7 +114,7 @@ mod tests {
         assert_eq!(siwe.domain, "login.xyz");
         assert_eq!(siwe.address, "0x6dd7802e6D44be89a789c4Bd60bD511b68f41c7c");
         assert_eq!(siwe.uri, "https://login.xyz");
-        assert_eq!(siwe.chain_id, 1);
+        assert_eq!(siwe.chain_id, "1");
         assert_eq!(siwe.nonce, "8hK9pX32");
         assert_eq!(siwe.version, "1");
         assert_eq!(siwe.issued_at, "2024-04-01T12:00:00Z");
@@ -140,11 +143,31 @@ mod tests {
     }
 
     #[test]
+    fn test_is_sign_in() {
+        let message = mock_siwe_message_full();
+        for (raw, is_sign_in, parses) in [
+            (message.clone(), true, true),
+            (message.replace("URI: https://login.xyz", "URI:  "), true, false),
+            (message.replace("Issued At: 2024-04-01T12:00:00Z", "Issued At:  "), true, false),
+            (message.replace("Nonce: 8hK9pX32\n", ""), true, false),
+            (format!("Hello\n{message}"), false, false),
+            ("hello world".to_string(), false, false),
+            (String::new(), false, false),
+        ] {
+            assert_eq!(SiweMessage::is_sign_in(&raw), is_sign_in, "{raw}");
+            assert_eq!(SiweMessage::try_parse(&raw).is_some(), parses, "{raw}");
+        }
+    }
+
+    #[test]
     fn errors_on_chain_mismatch() {
         let message = mock_siwe_message_full();
         let siwe = SiweMessage::try_parse(&message).unwrap();
         let err = siwe.validate(Chain::Polygon).unwrap_err();
         assert!(err.contains("mismatch"));
+
+        let unknown_chain = SiweMessage::try_parse(&message.replace("Chain ID: 1", "Chain ID: 99999999999999999999999")).unwrap();
+        assert_eq!(unknown_chain.validate(Chain::Ethereum), Err("Chain ID mismatch".to_string()), "a chain id no network has still reads as a sign-in");
     }
 
     #[test]

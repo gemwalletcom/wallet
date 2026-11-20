@@ -802,8 +802,15 @@ mod tests {
 
             assert_eq!(prepare("app.uniswap.org").await.err(), Some(GemWalletConnectError::InvalidOrigin), "a login for another site is refused");
             assert_eq!(prepare("").await.err(), Some(GemWalletConnectError::InvalidOrigin));
+            for domain in ["https://example.com/login", "app.uniswap.org@example.com", "app.uniswap.org wants you to sign in with your Ethereum account:\n@example.com"] {
+                assert_eq!(
+                    prepare(domain).await.err(),
+                    Some(GemWalletConnectError::InvalidOrigin),
+                    "the message opens with the domain as written, so only a host names the app: {domain}"
+                );
+            }
             assert_eq!(prepare("example.com").await.unwrap().verification_status, WalletConnectionVerificationStatus::Verified);
-            assert_eq!(prepare("https://EXAMPLE.com/login").await.unwrap().verification_status, WalletConnectionVerificationStatus::Verified);
+            assert_eq!(prepare("EXAMPLE.com:8443").await.unwrap().verification_status, WalletConnectionVerificationStatus::Verified);
         })
     }
 }
