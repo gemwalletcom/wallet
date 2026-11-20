@@ -86,6 +86,7 @@ extension ListAssetItemView {
                 }
             }
             .lineLimit(1)
+            .numericTransition(for: [value.text.text, extra?.text.text])
         case .toggle:
             Toggle("", isOn: $toggleValue)
                 .labelsHidden()
