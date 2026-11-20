@@ -91,10 +91,7 @@ fn verify_client_swap(swap: &SolanaClientSwap, user: &Pubkey, destination_accoun
         && setup.iter().all(|instruction| is_setup(instruction, &wrapped_account))
         && pays_into(&swap.swap_instruction, &destination_account.to_string())
         && swap.cleanup_instruction.as_ref().is_none_or(|instruction| is_cleanup(instruction, &user.to_string()));
-    match is_expected {
-        true => Ok(()),
-        false => Err(SwapperError::InvalidRoute),
-    }
+    is_expected.then_some(()).ok_or(SwapperError::InvalidRoute)
 }
 
 fn is_compute_budget(instruction: &SolanaInstruction) -> bool {
@@ -177,7 +174,7 @@ mod tests {
 
     use gem_client::testkit::MockClient;
     use primitives::{
-        AssetId, Chain, SolanaAccountMeta,
+        AssetId, Chain,
         asset_constants::SOLANA_USDT_TOKEN_ID,
         testkit::signer_mock::{TEST_PRIVATE_KEY_SOLANA_ADDRESS, TEST_SOLANA_SENDER},
     };
@@ -187,82 +184,40 @@ mod tests {
         Swapper,
         alien::mock::ProviderMock,
         contract_check::verify_solana_programs,
-        mayan::{client::MayanClient, provider::Mayan},
+        mayan::{client::MayanClient, provider::Mayan, testkit::mock_solana_instruction},
         solana_dex::SolanaTransaction,
     };
 
     const USDT_USER: &str = "7g2rVN8fAAQdPh1mkajpvELqYa3gWvFXJsBLnKfEQfqy";
     const USDT_LEDGER_ACCOUNT: &str = "5SGghFsD6otbtctbotPveZvUWBJGDz8CGFTCUjp5dNcB";
     const SOL_LEDGER_ACCOUNT: &str = "9HrGRWMADkN3Sdh3pUpcPuRbX9cyJztokCaS9PfmcnsX";
-
-    fn pubkey(address: &str) -> Pubkey {
-        SolanaAddress::parse(address).unwrap().into()
-    }
-
-    fn usdt_swap() -> SolanaClientSwap {
-        serde_json::from_str(include_str!("../test/solana_client_swap_usdt_jupiter.json")).unwrap()
-    }
-
-    fn sol_swap() -> SolanaClientSwap {
-        serde_json::from_str(include_str!("../test/solana_client_swap_sol_jupiter.json")).unwrap()
-    }
-
-    fn primitive(instruction: Instruction) -> SolanaInstruction {
-        SolanaInstruction {
-            program_id: instruction.program_id.to_string(),
-            accounts: instruction
-                .accounts
-                .into_iter()
-                .map(|account| SolanaAccountMeta {
-                    pubkey: account.pubkey.to_string(),
-                    is_signer: account.is_signer,
-                    is_writable: account.is_writable,
-                })
-                .collect(),
-            data: gem_encoding::encode_base64(&instruction.data),
-        }
-    }
-
-    fn build(swap: SolanaClientSwap, user: &str, ledger_account: &str, from_token_contract: &str, amount: &str) -> Result<Vec<Instruction>, SwapperError> {
-        let mut instructions = Vec::new();
-        append_client_swap_instructions(&mut instructions, swap, &pubkey(user), &pubkey(user), &pubkey(ledger_account), from_token_contract, amount)?;
-        Ok(instructions)
-    }
-
-    fn build_sol(swap: SolanaClientSwap) -> Result<Vec<Instruction>, SwapperError> {
-        build(swap, TEST_SOLANA_SENDER, SOL_LEDGER_ACCOUNT, EVM_ZERO_ADDRESS, "2000000000")
-    }
+    const SOL_AMOUNT: &str = "2000000000";
 
     #[test]
     fn test_client_swap_through_jupiter_passes_the_contract_check() {
         let mayan = Mayan::with_clients(MayanClient::new(MockClient::new()), MayanClient::new(MockClient::new()), Arc::new(ProviderMock::new("{}".to_string())));
         let targets = mayan.contracts(&AssetId::from_chain(Chain::Solana)).targets;
 
-        let token = build(usdt_swap(), USDT_USER, USDT_LEDGER_ACCOUNT, SOLANA_USDT_TOKEN_ID, "1000000").unwrap();
+        let user = Pubkey::from_base58(USDT_USER).unwrap();
+        let ledger_account = Pubkey::from_base58(USDT_LEDGER_ACCOUNT).unwrap();
+        let mut token = Vec::new();
+        append_client_swap_instructions(&mut token, SolanaClientSwap::mock_usdt(), &user, &user, &ledger_account, SOLANA_USDT_TOKEN_ID, "1000000").unwrap();
         verify_solana_programs(&SolanaTransaction::new(token, vec![]).encode(USDT_USER, &[]).unwrap().data, &targets).unwrap();
 
-        assert_eq!(build_sol(sol_swap()).unwrap().len(), 8, "the reply wraps the coin itself, so no second wrap is added");
+        let user = Pubkey::from_base58(TEST_SOLANA_SENDER).unwrap();
+        let ledger_account = Pubkey::from_base58(SOL_LEDGER_ACCOUNT).unwrap();
+        let mut coin = Vec::new();
+        append_client_swap_instructions(&mut coin, SolanaClientSwap::mock_sol(), &user, &user, &ledger_account, EVM_ZERO_ADDRESS, SOL_AMOUNT).unwrap();
+        assert_eq!(coin.len(), 8, "the reply wraps the coin itself, so no second wrap is added");
     }
 
     #[test]
     fn test_client_swap_refuses_what_the_swap_does_not_need() {
-        let user = pubkey(TEST_SOLANA_SENDER);
-        let stranger = pubkey(TEST_PRIVATE_KEY_SOLANA_ADDRESS);
-        let token_account = get_associated_token_address_with_program_id(&user, &pubkey(SOLANA_USDT_TOKEN_ID), &program_ids::token_program()).unwrap();
-        let setup = |instruction: Instruction| {
-            let mut swap = sol_swap();
-            swap.setup_instructions.get_or_insert_default().push(primitive(instruction));
-            swap
-        };
-        let cleanup = |instruction: Instruction| SolanaClientSwap {
-            cleanup_instruction: Some(primitive(instruction)),
-            ..sol_swap()
-        };
-        let swap_account = |index: usize, address: &Pubkey| {
-            let mut swap = sol_swap();
-            swap.swap_instruction.accounts[index].pubkey = address.to_string();
-            swap
-        };
+        let user = Pubkey::from_base58(TEST_SOLANA_SENDER).unwrap();
+        let stranger = Pubkey::from_base58(TEST_PRIVATE_KEY_SOLANA_ADDRESS).unwrap();
+        let ledger_account = Pubkey::from_base58(SOL_LEDGER_ACCOUNT).unwrap();
+        let token_account = get_associated_token_address_with_program_id(&user, &Pubkey::from_base58(SOLANA_USDT_TOKEN_ID).unwrap(), &program_ids::token_program()).unwrap();
+        let swap = SolanaClientSwap::mock_sol();
         let set_authority = Instruction {
             program_id: program_ids::token_program(),
             accounts: vec![],
@@ -273,67 +228,105 @@ mod tests {
             accounts: vec![AccountMeta::new_signer(user)],
             data: vec![],
         };
+        let mut other_destination = swap.swap_instruction.clone();
+        other_destination.accounts[5].pubkey = stranger.to_string();
+
+        for (setup, reason) in [
+            (vec![token::transfer(&token_account, &stranger, &user, 1)], "a setup that moves another token"),
+            (vec![system::transfer(&user, &stranger, 1)], "a setup that sends coins away"),
+            (vec![set_authority], "a setup that hands a token account over"),
+            (vec![unknown_program.clone()], "a setup that runs another program"),
+            (vec![token::sync_native(&token_account); MAX_SETUP_INSTRUCTIONS + 1], "more setup steps than a swap needs"),
+        ] {
+            let swap = SolanaClientSwap {
+                setup_instructions: Some(setup.into_iter().map(mock_solana_instruction).collect()),
+                ..swap.clone()
+            };
+            assert_eq!(
+                append_client_swap_instructions(&mut Vec::new(), swap, &user, &user, &ledger_account, EVM_ZERO_ADDRESS, SOL_AMOUNT).err(),
+                Some(SwapperError::InvalidRoute),
+                "{reason}"
+            );
+        }
 
         for (swap, reason) in [
-            (setup(token::transfer(&token_account, &stranger, &user, 1)), "a setup that moves another token"),
-            (setup(system::transfer(&user, &stranger, 1)), "a setup that sends coins away"),
-            (setup(set_authority), "a setup that hands a token account over"),
-            (setup(unknown_program.clone()), "a setup that runs another program"),
             (
                 SolanaClientSwap {
-                    setup_instructions: Some(vec![primitive(token::sync_native(&token_account)); MAX_SETUP_INSTRUCTIONS + 1]),
-                    ..sol_swap()
+                    swap_instruction: other_destination,
+                    ..swap.clone()
                 },
-                "more setup steps than a swap needs",
+                "a swap that pays into another account",
             ),
-            (swap_account(5, &stranger), "a swap that pays into another account"),
             (
                 SolanaClientSwap {
-                    swap_instruction: primitive(unknown_program),
-                    ..sol_swap()
+                    swap_instruction: mock_solana_instruction(unknown_program),
+                    ..swap.clone()
                 },
                 "a swap through another program",
             ),
-            (cleanup(token::close_account(&token_account, &stranger, &user)), "a cleanup that pays a stranger"),
-            (cleanup(token::transfer(&token_account, &user, &user, 1)), "a cleanup that is not a close"),
             (
                 SolanaClientSwap {
-                    compute_budget_instructions: Some(vec![primitive(compute_budget::set_compute_unit_price(MAX_COMPUTE_UNIT_PRICE + 1))]),
-                    ..sol_swap()
+                    cleanup_instruction: Some(mock_solana_instruction(token::close_account(&token_account, &stranger, &user))),
+                    ..swap.clone()
+                },
+                "a cleanup that pays a stranger",
+            ),
+            (
+                SolanaClientSwap {
+                    cleanup_instruction: Some(mock_solana_instruction(token::transfer(&token_account, &user, &user, 1))),
+                    ..swap.clone()
+                },
+                "a cleanup that is not a close",
+            ),
+            (
+                SolanaClientSwap {
+                    compute_budget_instructions: Some(vec![mock_solana_instruction(compute_budget::set_compute_unit_price(MAX_COMPUTE_UNIT_PRICE + 1))]),
+                    ..swap.clone()
                 },
                 "a priority fee above the limit",
             ),
             (
                 SolanaClientSwap {
-                    compute_budget_instructions: Some(vec![primitive(system::transfer(&user, &stranger, 1))]),
-                    ..sol_swap()
+                    compute_budget_instructions: Some(vec![mock_solana_instruction(system::transfer(&user, &stranger, 1))]),
+                    ..swap.clone()
                 },
                 "a compute budget step that is something else",
             ),
         ] {
-            assert_eq!(build_sol(swap).err(), Some(SwapperError::InvalidRoute), "{reason}");
+            assert_eq!(
+                append_client_swap_instructions(&mut Vec::new(), swap, &user, &user, &ledger_account, EVM_ZERO_ADDRESS, SOL_AMOUNT).err(),
+                Some(SwapperError::InvalidRoute),
+                "{reason}"
+            );
         }
     }
 
     #[test]
     fn test_pays_into() {
-        let destination = pubkey(SOL_LEDGER_ACCOUNT);
-        let jupiter = pubkey(JUPITER_PROGRAM_ID);
-        let swap = |name: &str, destination_index: usize| {
-            let mut accounts = vec![AccountMeta::new_readonly(pubkey(TEST_SOLANA_SENDER)); 8];
+        let user = Pubkey::from_base58(TEST_SOLANA_SENDER).unwrap();
+        let destination = Pubkey::from_base58(SOL_LEDGER_ACCOUNT).unwrap();
+        let jupiter = Pubkey::from_base58(JUPITER_PROGRAM_ID).unwrap();
+
+        for (name, destination_index, expected) in [
+            ("route", 4, true),
+            ("route", 3, false),
+            ("route_v2", 7, true),
+            ("route_v2", 6, false),
+            ("shared_accounts_route", 6, true),
+            ("shared_accounts_route", 5, false),
+            ("shared_accounts_route_v2", 5, true),
+            ("shared_accounts_route_v2", 4, false),
+            ("exact_out_route", 4, false),
+        ] {
+            let mut accounts = vec![AccountMeta::new_readonly(user); 8];
             accounts[destination_index] = AccountMeta::new_writable(destination);
-            primitive(Instruction {
+            let instruction = mock_solana_instruction(Instruction {
                 program_id: jupiter,
                 accounts,
                 data: anchor::global_discriminator(name).to_vec(),
-            })
-        };
-
-        for (name, index) in JUPITER_DESTINATION_ACCOUNTS {
-            assert!(pays_into(&swap(name, index), SOL_LEDGER_ACCOUNT), "{name}");
-            assert!(!pays_into(&swap(name, index - 1), SOL_LEDGER_ACCOUNT), "{name}");
+            });
+            assert_eq!(pays_into(&instruction, SOL_LEDGER_ACCOUNT), expected, "{name} with the destination at account {destination_index}");
         }
-        assert!(!pays_into(&swap("exact_out_route", 4), SOL_LEDGER_ACCOUNT));
     }
 
     #[test]
