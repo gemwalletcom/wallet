@@ -268,6 +268,26 @@ public extension Gemstone.GemAssetRowStyle {
     }
 }
 
+public extension Gemstone.GemAuthenticationPreview {
+    static func mock(
+        title: Gemstone.GemLocalizedText = .mock(),
+        text: String = "",
+        primaryFields: [Gemstone.GemListRow] = [],
+        secondaryFields: [Gemstone.GemListRow] = [],
+        sections: [Gemstone.GemGroup] = [],
+        message: Gemstone.SignMessage = .mock(),
+    ) -> Gemstone.GemAuthenticationPreview {
+        Gemstone.GemAuthenticationPreview(
+            title: title,
+            text: text,
+            primaryFields: primaryFields,
+            secondaryFields: secondaryFields,
+            sections: sections,
+            message: message,
+        )
+    }
+}
+
 public extension Gemstone.GemChainRow {
     static func mock(
         chain: String = Primitives.Chain.bitcoin.rawValue,

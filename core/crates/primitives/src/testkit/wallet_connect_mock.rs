@@ -1,6 +1,6 @@
 use chrono::DateTime;
 
-use crate::{ApplicationMetadata, Chain, WalletConnectRequest, WalletConnectionSession, WalletConnectionState};
+use crate::{ApplicationMetadata, Chain, Wallet, WalletConnectRequest, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionState};
 
 impl WalletConnectRequest {
     pub fn mock(method: &str, params: &str, chain_id: Option<&str>) -> Self {
@@ -23,6 +23,16 @@ impl WalletConnectionSession {
             chains: chains.to_vec(),
             created_at: DateTime::from_timestamp(1_700_000_000, 0).unwrap(),
             expire_at: DateTime::from_timestamp(1_700_604_800, 0).unwrap(),
+            metadata: ApplicationMetadata::mock(),
+        }
+    }
+}
+
+impl WalletConnectionSessionProposal {
+    pub fn mock_with_wallets(wallets: Vec<Wallet>) -> Self {
+        Self {
+            default_wallet: Wallet::mock(),
+            wallets,
             metadata: ApplicationMetadata::mock(),
         }
     }
