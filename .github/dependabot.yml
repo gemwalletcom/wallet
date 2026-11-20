@@ -61,6 +61,10 @@ updates:
     directories:
       - "/core"
       - "/.oss-scanner"
+    groups:
+      docker:
+        patterns:
+          - "*"
     schedule:
       interval: "weekly"
     cooldown:
