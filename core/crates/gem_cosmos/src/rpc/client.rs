@@ -5,8 +5,8 @@ use crate::models::account::{Balance, Balances, Page};
 use crate::models::staking::{Delegation, Delegations, Rewards, UnbondingDelegation, UnbondingDelegations};
 use crate::models::{Account, AccountResponse, BroadcastRequest, BroadcastResponse, InjectiveAccount};
 use crate::models::{
-    AnnualProvisionsResponse, BaseFeeResponse, BlockResponse, FeemarketGasPriceResponse, InflationResponse, InjectiveBaseFeeResponse, OsmosisEpochProvisionsResponse, OsmosisMintParamsResponse, SmartQueryResponse, StakingPoolResponse,
-    SupplyResponse, TransactionResponse, TransactionsResponse, ValidatorsResponse,
+    AnnualProvisionsResponse, BaseFeeResponse, BlockResponse, FeemarketGasPriceResponse, InflationResponse, InjectiveBaseFeeResponse, OsmosisPoolManagerParamsResponse, SmartQueryResponse, StakingPoolResponse, SupplyResponse,
+    TransactionResponse, TransactionsResponse, ValidatorsResponse,
 };
 use crate::provider::state_mapper::map_transfer_fee;
 use crate::rpc::target::CosmosTarget;
@@ -95,12 +95,8 @@ impl<C: Client> CosmosClient<C> {
         Ok(self.client.get(CosmosTarget::GetSupply { denom: denom.to_string() }).await?)
     }
 
-    pub async fn get_osmosis_mint_params(&self) -> Result<OsmosisMintParamsResponse, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(CosmosTarget::GetOsmosisMintParams).await?)
-    }
-
-    pub async fn get_osmosis_epoch_provisions(&self) -> Result<OsmosisEpochProvisionsResponse, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(CosmosTarget::GetOsmosisEpochProvisions).await?)
+    pub async fn get_osmosis_pool_manager_params(&self) -> Result<OsmosisPoolManagerParamsResponse, Box<dyn Error + Send + Sync>> {
+        Ok(self.client.get(CosmosTarget::GetOsmosisPoolManagerParams).await?)
     }
 
     pub async fn get_balances(&self, address: &str) -> Result<Vec<Balance>, Box<dyn Error + Send + Sync>> {

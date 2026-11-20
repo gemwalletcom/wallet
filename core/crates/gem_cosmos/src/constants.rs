@@ -17,6 +17,8 @@ pub const EVENTS_ATTRIBUTE_AMOUNT: &str = "amount";
 pub const BOND_STATUS_BONDED: &str = "BOND_STATUS_BONDED";
 pub const BOND_STATUS_UNBONDED: &str = "BOND_STATUS_UNBONDED";
 
+pub const OSMOSIS_TAKER_FEE_STAKING_REWARDS_BUFFER: &str = "osmo1wd8rxw3j07jcj40en6q5dhcxlsr7c8ulrn29a3";
+
 pub const TRANSFER_GAS_LIMIT: u64 = 200_000;
 pub const GAS_PRICE_DECIMALS: u32 = 18;
 
