@@ -42,7 +42,7 @@ pub struct BlockHeaderData {
     pub number: i64,
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct TriggerSmartContractRequest {
     pub owner_address: String,
     pub contract_address: String,

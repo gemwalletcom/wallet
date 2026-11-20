@@ -3,7 +3,7 @@ use crate::address::TronAddress;
 #[cfg(test)]
 use crate::models::account::{TronAccount, TronAccountOwnerPermission, TronAccountPermission, TronAccountPermissionKey, TronAccountUsage, TronFrozen, TronUnfrozen, TronVote};
 #[cfg(test)]
-use crate::models::{ChainParameter, InternalTransaction, InternalTransactionCallValue, Transaction, TransactionReceipt, TransactionReceiptData, TronLog, WitnessAccount, WitnessesList};
+use crate::models::{ChainParameter, InternalTransaction, InternalTransactionCallValue, Transaction, TransactionReceipt, TransactionReceiptData, TriggerSmartContractRequest, TronLog, WitnessAccount, WitnessesList};
 #[cfg(test)]
 use crate::rpc::constants::ERC20_TRANSFER_EVENT_SIGNATURE;
 #[cfg(test)]
@@ -20,6 +20,8 @@ use gem_client::{ClientError, testkit::MockClient};
 use primitives::asset_constants::TRON_USDT_TOKEN_ID;
 #[cfg(all(test, feature = "chain_integration_tests"))]
 use settings::testkit::get_test_settings;
+#[cfg(test)]
+use std::sync::{Arc, Mutex};
 
 #[cfg(all(test, feature = "chain_integration_tests"))]
 pub const TEST_ADDRESS: &str = "TFdTEn9dJuqh351y8fyJ3eMmghFsZNwakb";
@@ -203,9 +205,48 @@ impl InternalTransaction {
 }
 
 #[cfg(test)]
+impl TriggerSmartContractRequest {
+    pub fn mock(owner_address: &str, contract_address: &str, data: &str, call_value: Option<u64>) -> Self {
+        Self {
+            owner_address: owner_address.to_string(),
+            contract_address: contract_address.to_string(),
+            data: data.to_string(),
+            fee_limit: None,
+            call_value,
+            visible: true,
+        }
+    }
+}
+
+#[cfg(test)]
 impl TronProvider<MockClient> {
     pub fn mock(get_handler: impl Fn(&str) -> Result<Vec<u8>, ClientError> + Send + Sync + 'static) -> Self {
-        let mock = MockClient::new().with_get(get_handler);
+        Self::mock_with_client(MockClient::new().with_get(get_handler))
+    }
+
+    pub fn mock_with_post(get_handler: impl Fn(&str) -> Result<Vec<u8>, ClientError> + Send + Sync + 'static, post_handler: impl Fn(&str, &[u8]) -> Result<Vec<u8>, ClientError> + Send + Sync + 'static) -> Self {
+        Self::mock_with_client(MockClient::new().with_get(get_handler).with_post(post_handler))
+    }
+
+    pub fn mock_estimates() -> (Self, Arc<Mutex<Vec<TriggerSmartContractRequest>>>) {
+        let requests = Arc::new(Mutex::new(Vec::new()));
+        let recorded = requests.clone();
+        let provider = Self::mock_with_post(
+            |_| Ok(include_bytes!("../../testdata/chain_parameters.json").to_vec()),
+            move |path, body| match path {
+                "/wallet/getnowblock" => Ok(include_bytes!("../../testdata/now_block.json").to_vec()),
+                "/wallet/getcontract" => Ok(br#"{"consume_user_resource_percent":100}"#.to_vec()),
+                "/wallet/triggerconstantcontract" => {
+                    recorded.lock().unwrap().push(serde_json::from_slice(body).unwrap());
+                    Ok(include_bytes!("../../testdata/trigger_constant_contract_with_penalty.json").to_vec())
+                }
+                _ => Ok(b"{}".to_vec()),
+            },
+        );
+        (provider, requests)
+    }
+
+    fn mock_with_client(mock: MockClient) -> Self {
         let trongrid = TronGridClient::new(mock.clone(), String::new());
         Self::new(TronClient::new(mock), Box::new(trongrid.clone()), Box::new(trongrid))
     }

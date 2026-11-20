@@ -1,8 +1,7 @@
 use alloy_sol_types::SolCall;
-use num_bigint::BigUint;
 use primitives::hex;
 use primitives::{Asset, AssetId, asset_type::AssetType, chain::Chain, decode_hex};
-use std::{error::Error, str::FromStr};
+use std::error::Error;
 
 use crate::models::{
     Block, BlockId, BlockTransactions, BlockTransactionsInfo, ChainParameter, ChainParametersResponse, NowBlockRequest, Transaction, TransactionReceiptData, TriggerConstantContractRequest, TriggerConstantContractResponse,
@@ -173,24 +172,6 @@ impl<C: Client> TronClient<C> {
     pub async fn get_tron_block(&self) -> Result<TronBlock, Box<dyn Error + Send + Sync>> {
         Ok(self.client.post(TronTarget::GetNowBlock, &NowBlockRequest {}).await?)
     }
-
-    pub async fn estimate_trc20_transfer_gas(&self, sender_address: String, contract_address: String, recipient_address: String, value: String) -> Result<u64, Box<dyn Error + Send + Sync>> {
-        let value_bigint = BigUint::from_str(&value).map_err(|error| format!("Failed to parse value as decimal: {}", error))?;
-        let value_hex = format!("{:0>64}", hex::encode(value_bigint.to_bytes_be()));
-        let parameter = format!("{}{}", recipient_address, value_hex);
-
-        let request = TriggerConstantContractRequest {
-            owner_address: sender_address,
-            contract_address,
-            function_selector: "transfer(address,uint256)".to_string(),
-            parameter,
-            fee_limit: None,
-            call_value: None,
-            visible: true,
-        };
-
-        Ok(self.trigger_constant_contract_request(&request).await?.get_energy()?)
-    }
 }
 
 #[cfg(test)]
@@ -199,42 +180,21 @@ mod tests {
     use gem_client::testkit::MockClient;
 
     #[tokio::test]
-    async fn test_estimate_trc20_transfer_gas_uses_total_energy_and_surfaces_errors() {
+    async fn test_estimate_energy_with_data() {
+        let contract_data = TriggerSmartContractData {
+            contract_address: "Tusdt".to_string(),
+            data: "a9059cbb".to_string(),
+            owner_address: "Tsender".to_string(),
+            fee_limit: None,
+            call_value: None,
+        };
+
         let mock = MockClient::new().with_post(|_, _| Ok(include_str!("../../testdata/trigger_constant_contract_with_penalty.json").as_bytes().to_vec()));
-        let client = TronClient::new(mock);
-        let energy = client.estimate_trc20_transfer_gas("Tsender".to_string(), "Tusdt".to_string(), "0".repeat(64), "1000000".to_string()).await.unwrap();
+        let energy = TronClient::new(mock).estimate_energy_with_data(&contract_data).await.unwrap();
         assert_eq!(energy, 64285);
 
         let mock = MockClient::new().with_post(|_, _| Ok(include_str!("../../testdata/trigger_constant_contract_failed.json").as_bytes().to_vec()));
-        let client = TronClient::new(mock);
-        let error = client
-            .estimate_trc20_transfer_gas("Tsender".to_string(), "Tusdt".to_string(), "0".repeat(64), "1000000".to_string())
-            .await
-            .unwrap_err()
-            .to_string();
+        let error = TronClient::new(mock).estimate_energy_with_data(&contract_data).await.unwrap_err().to_string();
         assert!(error.contains("CONTRACT_VALIDATE_ERROR"), "expected structured Tron RPC error, got: {error}");
-    }
-
-    #[test]
-    fn test_value_encoding_for_trc20_transfer() {
-        let value = "1000000".to_string();
-        let recipient_address = "0000000000000000000000003e1451cdb84d440345de6195b0384d1b77aa4eaa".to_string();
-
-        let value_bigint = BigUint::from_str(&value).unwrap();
-        let value_hex = format!("{:0>64}", hex::encode(value_bigint.to_bytes_be()));
-        let parameter = format!("{}{}", recipient_address, value_hex);
-
-        assert_eq!(value_hex, "00000000000000000000000000000000000000000000000000000000000f4240");
-        assert_eq!(parameter, "0000000000000000000000003e1451cdb84d440345de6195b0384d1b77aa4eaa00000000000000000000000000000000000000000000000000000000000f4240");
-    }
-
-    #[test]
-    fn test_large_value_encoding() {
-        let value = "16777216".to_string();
-
-        let value_bigint = BigUint::from_str(&value).unwrap();
-        let value_hex = format!("{:0>64}", hex::encode(value_bigint.to_bytes_be()));
-
-        assert_eq!(value_hex, "0000000000000000000000000000000000000000000000000000000001000000");
     }
 }

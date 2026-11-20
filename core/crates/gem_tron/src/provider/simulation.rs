@@ -74,7 +74,7 @@ impl<C: Client> TronProvider<C> {
             TronContract::WithdrawBalance { owner } => self.get_reward(&owner.encode()).await.ok().map(|reward| BigUint::from(reward.reward)),
             TronContract::WithdrawExpireUnfreeze { owner } => self.get_account(&owner.encode()).await.ok().map(|account| map_withdrawable_unfreeze(account, Utc::now())),
             TronContract::Transfer { .. }
-            | TronContract::TriggerSmart { .. }
+            | TronContract::TriggerSmart(_)
             | TronContract::VoteWitness { .. }
             | TronContract::FreezeBalanceV2 { .. }
             | TronContract::UnfreezeBalanceV2 { .. }

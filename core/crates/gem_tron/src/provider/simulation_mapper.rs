@@ -61,7 +61,7 @@ const DEFAULT_DELEGATE_LOCK_BLOCKS: u64 = 86_400;
 
 pub(crate) fn map_stake_simulation(contract: &TronContract, withdrawal: Option<BigUint>) -> Option<SimulationResult> {
     let (value, fields) = match contract {
-        TronContract::Transfer { .. } | TronContract::TriggerSmart { .. } => return None,
+        TronContract::Transfer { .. } | TronContract::TriggerSmart(_) => return None,
         TronContract::VoteWitness { votes, .. } => (
             Some(votes.iter().map(|vote| BigUint::from(vote.count)).sum::<BigUint>() * BigUint::from(10u64).pow(Asset::from_chain(Chain::Tron).decimals)),
             votes.iter().map(|vote| address_field(SimulationPayloadFieldKind::Validator, vote.address.encode())).collect(),
@@ -114,7 +114,7 @@ fn stake_transaction_type(contract: &TronContract) -> Option<TransactionType> {
         TronContract::UnfreezeBalanceV2 { .. } => Some(TransactionType::StakeUnfreeze),
         TronContract::WithdrawBalance { .. } => Some(TransactionType::StakeRewards),
         TronContract::WithdrawExpireUnfreeze { .. } => Some(TransactionType::StakeWithdraw),
-        TronContract::Transfer { .. } | TronContract::TriggerSmart { .. } | TronContract::DelegateResource { .. } | TronContract::UnDelegateResource { .. } => None,
+        TronContract::Transfer { .. } | TronContract::TriggerSmart(_) | TronContract::DelegateResource { .. } | TronContract::UnDelegateResource { .. } => None,
     }
 }
 
@@ -152,6 +152,7 @@ fn map_balance_changes(owner: &TronAddress, response: &TriggerConstantContractRe
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::transaction::TronTriggerSmartContract;
     use crate::transaction::decode_wallet_connect_single_contract;
     use primitives::ApprovalData;
 
@@ -315,14 +316,14 @@ mod tests {
         );
         assert_eq!(
             map_stake_simulation(
-                &TronContract::TriggerSmart {
+                &TronContract::TriggerSmart(TronTriggerSmartContract {
                     owner: TronAddress::mock(),
                     contract: TronAddress::mock(),
                     data: vec![],
                     call_value: None,
                     call_token_value: None,
                     token_id: None,
-                },
+                }),
                 None
             ),
             None

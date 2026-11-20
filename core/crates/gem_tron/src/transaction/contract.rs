@@ -3,7 +3,11 @@ use serde::{Deserialize, Serialize, Serializer};
 use serde_json::Value;
 use serde_serializers::hex_bytes;
 
+#[cfg(feature = "rpc")]
+use crate::models::TriggerSmartContractData;
 use crate::{address::TronAddress, models::TronContractType};
+#[cfg(feature = "rpc")]
+use primitives::{Address as _, hex};
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(rename_all = "UPPERCASE")]
@@ -45,20 +49,36 @@ pub(crate) struct TronContractVote {
 }
 
 #[derive(Debug)]
+pub(crate) struct TronTriggerSmartContract {
+    pub(crate) owner: TronAddress,
+    pub(crate) contract: TronAddress,
+    pub(crate) data: Vec<u8>,
+    pub(crate) call_value: Option<u64>,
+    pub(crate) call_token_value: Option<u64>,
+    pub(crate) token_id: Option<u64>,
+}
+
+impl TronTriggerSmartContract {
+    #[cfg(feature = "rpc")]
+    pub(crate) fn trigger_smart_contract_data(&self, fee_limit: Option<u64>) -> TriggerSmartContractData {
+        TriggerSmartContractData {
+            contract_address: self.contract.encode(),
+            data: hex::encode(&self.data),
+            owner_address: self.owner.encode(),
+            fee_limit,
+            call_value: self.call_value,
+        }
+    }
+}
+
+#[derive(Debug)]
 pub(crate) enum TronContract {
     Transfer {
         owner: TronAddress,
         to: TronAddress,
         amount: u64,
     },
-    TriggerSmart {
-        owner: TronAddress,
-        contract: TronAddress,
-        data: Vec<u8>,
-        call_value: Option<u64>,
-        call_token_value: Option<u64>,
-        token_id: Option<u64>,
-    },
+    TriggerSmart(TronTriggerSmartContract),
     VoteWitness {
         owner: TronAddress,
         votes: Vec<TronContractVote>,
@@ -103,8 +123,8 @@ pub(crate) fn sends_coins(call_value: Option<u64>, call_token_value: Option<u64>
 impl TronContract {
     pub(crate) fn owner(&self) -> &TronAddress {
         match self {
+            Self::TriggerSmart(call) => &call.owner,
             Self::Transfer { owner, .. }
-            | Self::TriggerSmart { owner, .. }
             | Self::VoteWitness { owner, .. }
             | Self::FreezeBalanceV2 { owner, .. }
             | Self::UnfreezeBalanceV2 { owner, .. }
@@ -118,7 +138,7 @@ impl TronContract {
     pub(crate) fn kind(&self) -> TronContractType {
         match self {
             Self::Transfer { .. } => TronContractType::Transfer,
-            Self::TriggerSmart { .. } => TronContractType::TriggerSmart,
+            Self::TriggerSmart(_) => TronContractType::TriggerSmart,
             Self::VoteWitness { .. } => TronContractType::VoteWitness,
             Self::FreezeBalanceV2 { .. } => TronContractType::FreezeBalanceV2,
             Self::UnfreezeBalanceV2 { .. } => TronContractType::UnfreezeBalanceV2,
@@ -147,20 +167,13 @@ impl TronContract {
                 owner_address: *owner,
                 to_address: *to,
             }),
-            Self::TriggerSmart {
-                owner,
-                contract,
-                data,
-                call_value,
-                call_token_value,
-                token_id,
-            } => TronContractValueJson::TriggerSmart(TriggerSmartContractValue {
-                contract_address: *contract,
-                data: data.clone(),
-                owner_address: *owner,
-                call_value: call_value.filter(|value| *value > 0),
-                call_token_value: call_token_value.filter(|value| *value > 0),
-                token_id: token_id.filter(|value| *value > 0),
+            Self::TriggerSmart(call) => TronContractValueJson::TriggerSmart(TriggerSmartContractValue {
+                contract_address: call.contract,
+                data: call.data.clone(),
+                owner_address: call.owner,
+                call_value: call.call_value.filter(|value| *value > 0),
+                call_token_value: call.call_token_value.filter(|value| *value > 0),
+                token_id: call.token_id.filter(|value| *value > 0),
             }),
             Self::VoteWitness { owner, votes, support } => TronContractValueJson::VoteWitness(VoteWitnessContractValue {
                 owner_address: *owner,
@@ -214,14 +227,14 @@ impl TronContract {
             }
             TronContractType::TriggerSmart => {
                 let value: TriggerSmartContractValue = serde_json::from_value(value)?;
-                Ok(Self::TriggerSmart {
+                Ok(Self::TriggerSmart(TronTriggerSmartContract {
                     owner: value.owner_address,
                     contract: value.contract_address,
                     data: value.data,
                     call_value: value.call_value.filter(|value| *value > 0),
                     call_token_value: value.call_token_value.filter(|value| *value > 0),
                     token_id: value.token_id.filter(|value| *value > 0),
-                })
+                }))
             }
             TronContractType::VoteWitness => {
                 let value: VoteWitnessContractValue = serde_json::from_value(value)?;

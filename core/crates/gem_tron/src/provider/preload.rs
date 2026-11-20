@@ -1,5 +1,3 @@
-use num_traits::ToPrimitive;
-use primitives::hex;
 use std::collections::HashMap;
 use std::error::Error;
 use std::str;
@@ -13,7 +11,7 @@ use number_formatter::BigNumberFormatter;
 use primitives::{
     Asset, AssetId, AssetSubtype, Chain, FeePriority, FeeRate, GasPriceType, OptionStringExt, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput,
     TransferDataOutputAction, TronStakeData, decode_hex,
-    swap::{ApprovalData, SwapData, SwapQuoteData, SwapQuoteDataType},
+    swap::{SwapData, SwapQuoteData, SwapQuoteDataType},
 };
 
 use crate::{
@@ -22,8 +20,7 @@ use crate::{
     models::{ChainParameter, TriggerSmartContractData, TronContractInfo, account::TronAccountUsage},
     provider::preload_mapper::{FEE_LIMIT_BUFFER_PERCENT, FeeEstimateContext, SMART_CONTRACT_FEE_LIMIT_BUFFER_PERCENT, calculate_stake_fee_rate, calculate_token_fee_rate_with_data, map_stake_data, native_transfer_fee},
     rpc::{TronClient, TronProvider},
-    transaction::decode_wallet_connect_trigger_smart_contract,
-    trc20,
+    transaction::{TronContract, TronTriggerSmartContract, decode_wallet_connect_trigger_smart_contract},
 };
 
 #[async_trait]
@@ -70,27 +67,22 @@ impl<C: Client> ChainTransactionLoad for TronProvider<C> {
             TransactionInputType::Transfer { asset } | TransactionInputType::Withdrawal { asset } | TransactionInputType::TransferNft { asset, .. } | TransactionInputType::Account { asset, .. } => match &asset.id.token_id {
                 None => native_transfer_fee(&fee_context, has_memo)?,
                 Some(token_id) => {
-                    self.estimate_token_transfer_fee(
-                        input.sender_address.clone(),
-                        input.destination_address.clone(),
-                        token_id.clone(),
-                        input.value.to_string(),
-                        &chain_parameters,
-                        &account_usage,
-                        input.get_memo().map(|memo| memo.len() as u64),
-                    )
-                    .await?
+                    let call = TronTriggerSmartContract::token_transfer(TronAddress::parse(&input.sender_address)?, token_id, &input.destination_address, &input.value)?;
+                    self.estimate_token_transfer_fee(&call, &fee_context, input.get_memo()).await?
                 }
             },
             TransactionInputType::Generic { extra, .. } | TransactionInputType::Payment { extra, .. } => match extra.output_action {
-                TransferDataOutputAction::Send => match self.estimate_fee_with_data(extra.data.as_deref(), &chain_parameters, &account_usage).await? {
+                TransferDataOutputAction::Send => match self.estimate_fee_with_data(extra.data.as_deref(), &fee_context).await? {
                     Some(fee) => fee,
                     None => native_transfer_fee(&fee_context, has_memo)?,
                 },
                 TransferDataOutputAction::Sign => native_transfer_fee(&fee_context, false)?,
             },
             TransactionInputType::Stake { .. } => TransactionFee::new_from_fee(calculate_stake_fee_rate(&chain_parameters, &account_usage)?, AssetId::from_chain(Chain::Tron)),
-            TransactionInputType::TokenApprove { approval_data: approval, .. } => self.estimate_token_approval_fee(&input.sender_address, approval, &chain_parameters, &account_usage).await?,
+            TransactionInputType::TokenApprove { approval_data: approval, .. } => {
+                let call = TronTriggerSmartContract::token_approval(TronAddress::parse(&input.sender_address)?, approval)?;
+                self.estimate_smart_contract_fee(call.trigger_smart_contract_data(None), &fee_context, None).await?
+            }
             TransactionInputType::Swap { from_asset, swap_data, .. } => self.estimate_swap_fee(&input, from_asset, swap_data, &fee_context, input.get_memo()).await?,
             _ => native_transfer_fee(&fee_context, has_memo)?,
         };
@@ -132,9 +124,12 @@ impl<C: Client> TronClient<C> {
     }
 
     async fn estimate_contract_swap_fee(&self, sender_address: &str, from_asset: &Asset, swap_data: &SwapData, fee_context: &FeeEstimateContext<'_>, input_memo: Option<&str>) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
-        let swap_fee = self.estimate_contract_swap_call_fee(sender_address, from_asset, swap_data, fee_context, input_memo);
+        let owner = TronAddress::parse(sender_address)?;
+        let swap_contract = TronContract::contract_swap(owner, from_asset, &swap_data.data)?;
+        let swap_fee = self.estimate_contract_swap_call_fee(&swap_contract, swap_data, fee_context, input_memo);
         if let Some(approval) = &swap_data.data.approval {
-            let approval_fee = self.estimate_token_approval_fee(sender_address, approval, fee_context.chain_parameters, fee_context.account_usage);
+            let approval_call = TronTriggerSmartContract::token_approval(owner, approval)?;
+            let approval_fee = self.estimate_smart_contract_fee(approval_call.trigger_smart_contract_data(None), fee_context, None);
             let (swap_fee, approval_fee) = futures::try_join!(swap_fee, approval_fee)?;
             let fee = &approval_fee.fee + &swap_fee.fee;
             let gas_limit = &approval_fee.gas_limit + &swap_fee.gas_limit;
@@ -149,96 +144,38 @@ impl<C: Client> TronClient<C> {
         swap_fee.await
     }
 
-    async fn estimate_contract_swap_call_fee(&self, sender_address: &str, from_asset: &Asset, swap_data: &SwapData, fee_context: &FeeEstimateContext<'_>, input_memo: Option<&str>) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
+    async fn estimate_contract_swap_call_fee(&self, swap_contract: &TronContract, swap_data: &SwapData, fee_context: &FeeEstimateContext<'_>, input_memo: Option<&str>) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
+        let TronContract::TriggerSmart(call) = swap_contract else {
+            return native_transfer_fee(fee_context, has_swap_quote_memo(input_memo, &swap_data.data));
+        };
+        let memo_data_bytes = swap_contract_memo_data_bytes(input_memo, &swap_data.data)?;
         if let Some(estimated_energy) = needs_approval_energy_estimate(&swap_data.data) {
-            let memo_data_bytes = swap_contract_memo_data_bytes(input_memo, &swap_data.data)?;
-            let caller_energy = self.caller_energy(&self.get_contract(&swap_data.data.to).await?, estimated_energy).await?;
+            let caller_energy = self.caller_energy(&self.get_contract(&call.contract.to_string()).await?, estimated_energy).await?;
             return contract_fee_from_energy(fee_context.chain_parameters, fee_context.account_usage, (caller_energy, estimated_energy), memo_data_bytes);
         }
-        if !swap_data.data.data.is_empty() {
-            let memo_data_bytes = swap_contract_memo_data_bytes(input_memo, &swap_data.data)?;
-            return self.estimate_contract_call_fee(sender_address, &swap_data.data, fee_context.chain_parameters, fee_context.account_usage, memo_data_bytes).await;
-        }
-        if from_asset.id.token_id.is_some() {
-            return Err("Tron token contract swap calldata is required".into());
-        }
-        native_transfer_fee(fee_context, has_swap_quote_memo(input_memo, &swap_data.data))
+        self.estimate_smart_contract_fee(call.trigger_smart_contract_data(None), fee_context, memo_data_bytes).await
     }
 
     async fn estimate_transfer_swap_fee(&self, input: &TransactionLoadInput, from_asset: &Asset, swap_data: &SwapData, fee_context: &FeeEstimateContext<'_>, input_memo: Option<&str>) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
         match &from_asset.id.token_id {
             None => native_transfer_fee(fee_context, has_swap_quote_memo(input_memo, &swap_data.data)),
             Some(token_id) => {
-                self.estimate_token_transfer_fee(
-                    input.sender_address.clone(),
-                    swap_data.data.to.clone(),
-                    token_id.clone(),
-                    input.value.to_string(),
-                    fee_context.chain_parameters,
-                    fee_context.account_usage,
-                    input_memo.map(|memo| memo.len() as u64),
-                )
-                .await
+                let call = TronTriggerSmartContract::token_transfer(TronAddress::parse(&input.sender_address)?, token_id, &swap_data.data.to, &input.value)?;
+                self.estimate_token_transfer_fee(&call, fee_context, input_memo).await
             }
         }
     }
 
-    async fn estimate_token_transfer_fee(
-        &self,
-        sender_address: String,
-        destination_address: String,
-        token_id: String,
-        value: String,
-        chain_parameters: &[ChainParameter],
-        account_usage: &TronAccountUsage,
-        memo_data_bytes: Option<u64>,
-    ) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
-        let destination_parameter = TronAddress::parse(&destination_address)?.abi_address_parameter();
-        let estimated_energy = self.estimate_trc20_transfer_gas(sender_address, token_id, destination_parameter, value).await?;
-        transaction_fee_from_energy_estimate(chain_parameters, account_usage, estimated_energy, memo_data_bytes, FEE_LIMIT_BUFFER_PERCENT)
+    async fn estimate_token_transfer_fee(&self, call: &TronTriggerSmartContract, fee_context: &FeeEstimateContext<'_>, input_memo: Option<&str>) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
+        let estimated_energy = self.estimate_energy_with_data(&call.trigger_smart_contract_data(None)).await?;
+        let memo_data_bytes = input_memo.map(|memo| memo.len() as u64);
+        transaction_fee_from_energy_estimate(fee_context.chain_parameters, fee_context.account_usage, estimated_energy, memo_data_bytes, FEE_LIMIT_BUFFER_PERCENT)
     }
 
-    async fn estimate_contract_call_fee(
-        &self,
-        sender_address: &str,
-        data: &SwapQuoteData,
-        chain_parameters: &[ChainParameter],
-        account_usage: &TronAccountUsage,
-        memo_data_bytes: Option<u64>,
-    ) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
-        let contract_data = TriggerSmartContractData {
-            contract_address: data.to.clone(),
-            data: data.data.clone(),
-            owner_address: sender_address.to_string(),
-            fee_limit: None,
-            call_value: data.value.to_u64().filter(|value| *value > 0),
-        };
-        self.estimate_smart_contract_fee(contract_data, chain_parameters, account_usage, memo_data_bytes).await
-    }
-
-    async fn estimate_token_approval_fee(&self, sender_address: &str, approval: &ApprovalData, chain_parameters: &[ChainParameter], account_usage: &TronAccountUsage) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
-        let contract_address = TronAddress::parse_hex_or_base58(&approval.token)?;
-        let spender = TronAddress::parse_hex_or_base58(&approval.spender)?;
-        let contract_data = TriggerSmartContractData {
-            contract_address: contract_address.to_string(),
-            data: hex::encode(trc20::encode_approval_max(&spender)?),
-            owner_address: sender_address.to_string(),
-            fee_limit: None,
-            call_value: None,
-        };
-        self.estimate_smart_contract_fee(contract_data, chain_parameters, account_usage, None).await
-    }
-
-    async fn estimate_smart_contract_fee(
-        &self,
-        contract_data: TriggerSmartContractData,
-        chain_parameters: &[ChainParameter],
-        account_usage: &TronAccountUsage,
-        memo_data_bytes: Option<u64>,
-    ) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
+    async fn estimate_smart_contract_fee(&self, contract_data: TriggerSmartContractData, fee_context: &FeeEstimateContext<'_>, memo_data_bytes: Option<u64>) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
         let (estimated_energy, contract) = futures::try_join!(self.estimate_energy_with_data(&contract_data), self.get_contract(&contract_data.contract_address))?;
         let caller_energy = self.caller_energy(&contract, estimated_energy).await?;
-        contract_fee_from_energy(chain_parameters, account_usage, (caller_energy, estimated_energy), memo_data_bytes)
+        contract_fee_from_energy(fee_context.chain_parameters, fee_context.account_usage, (caller_energy, estimated_energy), memo_data_bytes)
     }
 
     async fn caller_energy(&self, contract: &TronContractInfo, energy: u64) -> Result<u64, Box<dyn Error + Send + Sync>> {
@@ -248,7 +185,7 @@ impl<C: Client> TronClient<C> {
         Ok(contract.caller_energy(energy, &self.get_account_usage(&contract.origin_address).await?))
     }
 
-    async fn estimate_fee_with_data(&self, data: Option<&[u8]>, chain_parameters: &[ChainParameter], account_usage: &TronAccountUsage) -> Result<Option<TransactionFee>, Box<dyn Error + Send + Sync>> {
+    async fn estimate_fee_with_data(&self, data: Option<&[u8]>, fee_context: &FeeEstimateContext<'_>) -> Result<Option<TransactionFee>, Box<dyn Error + Send + Sync>> {
         let Some(data) = data else {
             return Ok(None);
         };
@@ -256,7 +193,7 @@ impl<C: Client> TronClient<C> {
             return Ok(None);
         };
 
-        Ok(Some(self.estimate_smart_contract_fee(contract_data, chain_parameters, account_usage, None).await?))
+        Ok(Some(self.estimate_smart_contract_fee(contract_data, fee_context, None).await?))
     }
 
     async fn get_is_new_account_for_input_type(&self, input: &TransactionLoadInput) -> Result<bool, Box<dyn Error + Send + Sync>> {
@@ -316,8 +253,56 @@ fn contract_fee_from_energy(chain_parameters: &[ChainParameter], account_usage: 
 #[cfg(test)]
 mod tests {
     use super::{has_swap_quote_memo, swap_contract_memo_data_bytes};
+    use crate::models::TriggerSmartContractRequest;
+    use crate::rpc::TronProvider;
+    use chain_traits::ChainTransactionLoad;
     use num_bigint::BigUint;
-    use primitives::swap::SwapQuoteData;
+    use primitives::asset_constants::TRON_USDT_TOKEN_ID;
+    use primitives::swap::{ApprovalData, SwapQuoteData};
+    use primitives::testkit::signer_mock::TEST_TRON_SENDER;
+    use primitives::{Asset, Chain, TransactionInputType, TransactionLoadInput};
+
+    const ROUTER: &str = "TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi";
+    const SWAP_CALLDATA: &str = "7b9392320000000000000000000000005cd0fb0ab3ce40f3051414c604b27756e69e43db";
+
+    #[tokio::test]
+    async fn test_get_transaction_load_estimates_the_signed_calls() {
+        let (provider, requests) = TronProvider::mock_estimates();
+        let approval = ApprovalData::make(TRON_USDT_TOKEN_ID, ROUTER, BigUint::ZERO, true);
+        let token_swap = SwapQuoteData {
+            approval: Some(approval),
+            ..SwapQuoteData::mock_contract_call(ROUTER, "0", SWAP_CALLDATA, None)
+        };
+        let native_swap = SwapQuoteData::mock_contract_call(ROUTER, "1000", SWAP_CALLDATA, None);
+
+        for input_type in [
+            TransactionInputType::Transfer { asset: Asset::mock_tron_usdt() },
+            TransactionInputType::mock_swap(Asset::mock_tron_usdt(), token_swap),
+            TransactionInputType::mock_swap(Asset::from_chain(Chain::Tron), native_swap),
+        ] {
+            provider.get_transaction_load(TransactionLoadInput::mock_tron(input_type, 1000)).await.unwrap();
+        }
+
+        assert_eq!(
+            *requests.lock().unwrap(),
+            [
+                TriggerSmartContractRequest::mock(
+                    TEST_TRON_SENDER,
+                    TRON_USDT_TOKEN_ID,
+                    "a9059cbb0000000000000000000000413e1451cdb84d440345de6195b0384d1b77aa4eaa00000000000000000000000000000000000000000000000000000000000003e8",
+                    None
+                ),
+                TriggerSmartContractRequest::mock(TEST_TRON_SENDER, ROUTER, SWAP_CALLDATA, None),
+                TriggerSmartContractRequest::mock(
+                    TEST_TRON_SENDER,
+                    TRON_USDT_TOKEN_ID,
+                    "095ea7b30000000000000000000000412523ae929fecd9d665f472f59b99a8ce6b179510ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+                    None
+                ),
+                TriggerSmartContractRequest::mock(TEST_TRON_SENDER, ROUTER, SWAP_CALLDATA, Some(1000)),
+            ]
+        );
+    }
 
     #[test]
     fn test_swap_memo_fee_preload_uses_quote_memo_bytes() {
