@@ -227,9 +227,11 @@ class AuthRequestViewModelTest {
         model.awaitContent()
         model.onApprove()
         dispatcher.scheduler.advanceUntilIdle()
-        model.onReject()
 
         assertNull("the sheet closes once the dapp has the approval", activeRequest.current.value)
+
+        model.onReject()
+
         verify(exactly = 1) { approve.approveAuthentication(request, any(), "0xsignature", any(), any()) }
         verify(exactly = 0) { approve.rejectAuthentication(any(), any(), any()) }
     }

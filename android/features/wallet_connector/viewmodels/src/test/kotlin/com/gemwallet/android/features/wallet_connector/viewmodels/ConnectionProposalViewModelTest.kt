@@ -164,16 +164,15 @@ class ConnectionProposalViewModelTest {
     }
 
     @Test
-    fun `an unknown wallet id leaves the selection alone`() = runTest(dispatcher) {
-        val model = viewModel()
+    fun `approving connects the wallet picked from the list`() = runTest(dispatcher) {
+        val approve: ApproveWalletConnection = mockk(relaxed = true)
+        val model = viewModel(approve = approve)
         model.selectedWallet.first { it != null }
 
-        model.onWalletSelected(com.wallet.core.primitives.WalletId("multicoin_0xnope"))
-
-        assertEquals(main, model.selectedWallet.value)
-
         model.onWalletSelected(secondary.id)
+        advanceUntilIdle()
+        model.onApprove {}
 
-        assertEquals(secondary, model.selectedWallet.first { it == secondary })
+        verify { approve.approveConnection(secondary, proposal, any(), any()) }
     }
 }

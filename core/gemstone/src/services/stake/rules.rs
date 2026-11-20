@@ -1324,6 +1324,13 @@ mod tests {
         }
     }
 
+    fn stake_confirm_transfer(destination: Option<GemStakeDestination>) -> GemTransferData {
+        match destination {
+            Some(GemStakeDestination::Confirm { transfer }) => transfer,
+            Some(GemStakeDestination::Amount { .. }) | None => panic!("expected a confirm transfer"),
+        }
+    }
+
     #[test]
     fn test_a_delegation_action_withdraws_only_an_awaiting_withdrawal_on_a_signing_wallet() {
         let asset = Asset::from_chain(Chain::Solana);
@@ -1655,6 +1662,11 @@ mod tests {
             actions(Chain::Cosmos, true, GemAssetBalance::mock(), vec![Delegation::mock_with(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Active, 5)]),
             vec![(Stake, true, false), (ClaimRewards, true, false)]
         );
+        assert_eq!(
+            actions(Chain::Sui, true, GemAssetBalance::mock(), vec![Delegation::mock_with(Chain::Sui, StakeProviderType::Stake, DelegationState::Active, 5)]),
+            vec![(Stake, true, false)],
+            "a chain whose rewards cannot be claimed offers no claim"
+        );
         let claim = stake_actions(
             WalletType::Multicoin,
             Chain::Cosmos,
@@ -1767,14 +1779,14 @@ mod tests {
         assert!(can_claim_all_rewards(Chain::Sui, 1));
         assert!(!can_claim_all_rewards(Chain::Bitcoin, 2));
 
-        let one = claim_destination(
+        let one = stake_confirm_transfer(claim_destination(
             Chain::Sui,
             vec![
                 Delegation::mock_with(Chain::Sui, StakeProviderType::Stake, DelegationState::Active, 0),
                 Delegation::mock_with(Chain::Sui, StakeProviderType::Stake, DelegationState::Active, 7),
             ],
-        );
-        assert!(matches!(one, Some(GemStakeDestination::Confirm { ref transfer }) if transfer.value == BigInt::from(7)));
+        ));
+        assert_eq!(one.value, BigInt::from(7));
         let several = claim_destination(
             Chain::Sui,
             vec![
@@ -1787,14 +1799,14 @@ mod tests {
             matches!(several, Some(GemStakeDestination::Amount { input: GemStakeAmountInput::Rewards { ref delegations, ref validator } }) if delegations.len() == 2 && *validator == delegations[0].validator),
             "claiming one of several starts from the first validator with rewards"
         );
-        let cosmos = claim_destination(
+        let cosmos = stake_confirm_transfer(claim_destination(
             Chain::Cosmos,
             vec![
                 Delegation::mock_with(Chain::Sui, StakeProviderType::Stake, DelegationState::Active, 3),
                 Delegation::mock_with(Chain::Sui, StakeProviderType::Stake, DelegationState::Active, 4),
             ],
-        );
-        assert!(matches!(cosmos, Some(GemStakeDestination::Confirm { .. })));
+        ));
+        assert_eq!(cosmos.value, BigInt::from(7), "claiming all claims the rewards of every validator");
         assert!(
             claim_destination(Chain::Cosmos, vec![Delegation::mock_with(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Active, 0)]).is_none(),
             "nothing to claim opens nothing"

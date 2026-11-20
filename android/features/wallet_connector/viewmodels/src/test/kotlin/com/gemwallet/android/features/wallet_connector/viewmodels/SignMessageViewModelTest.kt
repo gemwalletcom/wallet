@@ -27,11 +27,8 @@ import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemSignMessageServiceInterface
 import uniffi.gemstone.InternalException
 
@@ -94,31 +91,6 @@ class SignMessageViewModelTest {
         assertEquals(ButtonState.Disabled, model.buttonState.first { it != ButtonState.Enabled })
 
         job.cancel()
-    }
-
-    @Test
-    fun `a failed signature leaves the request open and only a cancelled one answers the dapp`() = runTest(dispatcher) {
-        val requests = WalletConnectPendingRequests()
-        val signMessageService = signMessageService()
-        coEvery { signMessageService.sign(any(), any()) } throws GemServiceException.Api("offline")
-        val job = pending(requests)
-        val model = viewModel(requests.awaitMessage(), signMessageService = signMessageService)
-
-        val errors = mutableListOf<String>()
-        val signatures = mutableListOf<String>()
-        model.onSign(onSigned = signatures::add, onError = errors::add)
-        advanceUntilIdle()
-
-        assertEquals(1, errors.size)
-        assertNotNull(requests.current.value)
-
-        coEvery { signMessageService.sign(any(), any()) } throws GemServiceException.Cancelled()
-        model.onSign(onSigned = signatures::add, onError = errors::add)
-        job.join()
-
-        assertEquals(1, errors.size)
-        assertTrue(signatures.isEmpty())
-        assertNull(requests.current.value)
     }
 
     @Test

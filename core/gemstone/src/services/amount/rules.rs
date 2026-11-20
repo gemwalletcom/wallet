@@ -803,7 +803,8 @@ mod tests {
         let smart_chain_minimum = Chain::SmartChain.stake_config().unwrap().min_stake_amount;
         assert!(smart_chain_minimum > 0);
         assert_eq!(minimum_value(&redelegate, &smart_chain), BigInt::from(smart_chain_minimum));
-        assert_eq!(minimum_value(&redelegate, &cosmos), BigInt::ZERO);
+        assert!(tron_config.min_stake_amount > 0);
+        assert_eq!(minimum_value(&redelegate, &tron), BigInt::ZERO, "a chain whose redelegation needs no minimum keeps none despite its stake minimum");
 
         let unstake = GemAmountType::Stake {
             stake_type: GemAmountStakeType::Unstake {
@@ -918,6 +919,12 @@ mod tests {
         assert_eq!(below_reserve.reserved_fee, None);
         assert_eq!(below_reserve.max_value, BigInt::from(reserve - 1));
         assert_eq!(below_reserve.available_value, BigInt::from(reserve - 1));
+
+        let hypercore = Asset::from_chain(Chain::HyperCore);
+        let hypercore_config = Chain::HyperCore.stake_config().unwrap();
+        assert_eq!(hypercore_config.reserved_for_fees, 0);
+        let no_reserve = GemAmountType::Stake { stake_type: GemAmountStakeType::Stake }.input(&hypercore, &GemAssetBalance::mock_with_available(hypercore_config.min_stake_amount * 10));
+        assert_eq!(no_reserve.reserved_fee, None, "a chain that reserves nothing for fees shows no reserved fee");
     }
 
     #[test]
