@@ -71,7 +71,7 @@ updates:
       default-days: 7
     ignore:
       # Server images must not build with a compiler CI doesn't test: hold rust to the rust-toolchain.toml line.
-      - dependency-name: "rust"
+      - dependency-name: "library/rust"
         update-types:
           - "version-update:semver-major"
           - "version-update:semver-minor"
