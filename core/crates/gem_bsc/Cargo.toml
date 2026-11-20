@@ -5,23 +5,23 @@ edition = { workspace = true }
 
 [features]
 default = []
-rpc = ["gem_evm/rpc", "dep:async-trait", "dep:gem_client"]
+rpc = ["gem_evm/rpc", "dep:async-trait", "dep:gem_client", "dep:gem_evm", "dep:primitives", "dep:chrono", "dep:alloy-primitives", "dep:alloy-sol-types", "dep:num-bigint"]
 reqwest = ["rpc", "gem_evm/reqwest", "gem_client/reqwest"]
-chain_integration_tests = ["rpc", "reqwest", "primitives/testkit", "settings/testkit"]
+chain_integration_tests = ["rpc", "reqwest"]
 
 [dependencies]
-primitives = { path = "../primitives" }
-gem_evm = { path = "../gem_evm" }
+primitives = { path = "../primitives", optional = true }
+gem_evm = { path = "../gem_evm", optional = true }
 
 gem_client = { path = "../gem_client", optional = true }
 async-trait = { workspace = true, optional = true }
-chrono = { workspace = true }
-alloy-primitives = { workspace = true }
-alloy-sol-types = { workspace = true }
-num-bigint = { workspace = true }
+chrono = { workspace = true, optional = true }
+alloy-primitives = { workspace = true, optional = true }
+alloy-sol-types = { workspace = true, optional = true }
+num-bigint = { workspace = true, optional = true }
 
 [dev-dependencies]
-gem_evm = { path = "../gem_evm", features = ["rpc", "testkit"] }
-primitives = { path = "../primitives", features = ["testkit"] }
-settings = { path = "../settings", features = ["testkit"] }
+gem_bsc = { path = ".", features = ["rpc"] }
+gem_evm = { path = "../gem_evm", features = ["rpc"] }
+settings = { path = "../settings" }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }

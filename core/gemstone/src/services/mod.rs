@@ -97,7 +97,6 @@ pub use portfolio::{GemPortfolioService, GemPortfolioStore};
 pub use preferences::{GemPreferencesService, GemPreferencesStore};
 pub use price::{GemPriceService, GemPriceStore};
 pub use price_alert::{GemPriceAlertService, GemPriceAlertStore};
-pub use push_notification::{GemPushNotification, GemPushNotificationService};
 pub use rewards::{GemRewardsService, GemRewardsState};
 pub use scan::GemScanService;
 pub use search::{GemSearchScope, GemSearchService, GemSearchStore};
@@ -112,7 +111,7 @@ pub use transaction_state::{GemPendingTransaction, GemTransactionStateService, G
 pub use transactions::GemTransactionsService;
 pub use wallet::{GemKeystoreAuthentication, GemKeystorePassword, GemWalletImportResult, GemWalletImportType, GemWalletService, GemWalletStore};
 pub use wallet_configuration::GemWalletConfigurationService;
-pub use wallet_connect::{GemSessionApproval, GemSessionProposal, GemWalletConnectResponse, GemWalletConnectService, GemWalletConnectSigner};
+pub use wallet_connect::{GemSessionProposal, GemWalletConnectResponse, GemWalletConnectService, GemWalletConnectSigner};
 pub use wallet_home::GemWalletHomeService;
 pub use wallet_preferences::{GemDiscoveryStep, GemWalletPreferencesService, GemWalletPreferencesStore};
 pub use wallet_session::{GemWalletSessionService, GemWalletSessionStore};

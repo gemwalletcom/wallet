@@ -1,9 +1,9 @@
 package com.gemwallet.android.features.transfer.viewmodels.amount
 
 import android.content.Context
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
+import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -69,6 +69,7 @@ import uniffi.gemstone.GemAmountTitle
 import uniffi.gemstone.GemAmountTransfer
 import uniffi.gemstone.GemAmountType
 import uniffi.gemstone.GemGroupList
+import uniffi.gemstone.GemStakeServiceInterface
 import uniffi.gemstone.newAmountSession
 import javax.inject.Inject
 
@@ -76,6 +77,7 @@ import javax.inject.Inject
 @HiltViewModel
 class AmountViewModel @Inject constructor(
     private val service: GemAmountServiceInterface,
+    stakeService: GemStakeServiceInterface,
     getCurrentWalletId: GetCurrentWalletId,
     assetQuery: AssetQuery,
     delegationQuery: DelegationQuery,
@@ -89,7 +91,7 @@ class AmountViewModel @Inject constructor(
 
     private val params: AmountParams = savedStateHandle.requireAmountParams()
 
-    private val stakeProvider = (params as? AmountParams.Stake)?.let { AmountStakeProvider(it, validatorsQuery(it.assetId, StakeProviderType.Stake), service, viewModelScope, ioDispatcher) }
+    private val stakeProvider = (params as? AmountParams.Stake)?.let { AmountStakeProvider(it, validatorsQuery(it.assetId, StakeProviderType.Stake), stakeService, viewModelScope, ioDispatcher) }
 
     val perpetualProvider = (params as? AmountParams.Perpetual)?.let { AmountPerpetualProvider(it, service, getCurrentWalletId, assetQuery, viewModelScope) }
 
@@ -132,8 +134,7 @@ class AmountViewModel @Inject constructor(
 
     private val session = MutableStateFlow(newAmountSession(numberFormat()))
 
-    var amount by mutableStateOf("")
-        private set
+    val amount = TextFieldState()
 
     val amountInputType: StateFlow<GemAmountInputType> = session.map { it.inputType }
         .stateIn(viewModelScope, SharingStarted.Eagerly, GemAmountInputType.ASSET)
@@ -228,16 +229,15 @@ class AmountViewModel @Inject constructor(
         input.filterNotNull()
             .onEach(::onInputChanged)
             .launchIn(viewModelScope)
+
+        snapshotFlow { amount.text.toString() }
+            .onEach { text -> session.update { if (it.text == text) it else it.onText(text) } }
+            .launchIn(viewModelScope)
     }
 
     private fun onInputChanged(input: GemAmountInput) {
         val current = assetInfo.value ?: return
         showSession(session.value.onInputChanged(input, current.asset.toGem()))
-    }
-
-    fun updateAmount(input: String) {
-        amount = input
-        session.update { it.onText(input) }
     }
 
     fun onMaxAmount() {
@@ -252,7 +252,9 @@ class AmountViewModel @Inject constructor(
 
     private fun showSession(next: GemAmountSession) {
         session.value = next
-        amount = next.text
+        if (amount.text.toString() != next.text) {
+            amount.setTextAndPlaceCursorAtEnd(next.text)
+        }
     }
 
     fun onNext() {

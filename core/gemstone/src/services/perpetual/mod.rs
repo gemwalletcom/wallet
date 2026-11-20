@@ -31,7 +31,7 @@ use crate::perpetual::GemPerpetual;
 use crate::services::assets::{GemAssetAction, GemAssetsService};
 use crate::services::balance::GemBalanceService;
 use crate::services::clock::is_outdated;
-use crate::services::collections::stale;
+use crate::services::collections::{missing_by, stale};
 use crate::services::config::GemConfigService;
 use crate::services::error::GemServiceError;
 use crate::services::failures::record;
@@ -212,6 +212,11 @@ impl GemPerpetualService {
         self.store.save_perpetuals(changed).await
     }
 
+    pub async fn save_missing_markets(&self, data: Vec<PerpetualData>) -> Result<(), GemServiceError> {
+        let stored = self.store.get_perpetuals(data.iter().map(|data| data.perpetual.name.clone()).collect()).await?;
+        self.save_markets(missing_by(data, stored.into_iter().map(|perpetual| perpetual.id), |data| data.perpetual.id.clone())).await
+    }
+
     pub async fn get_portfolio(&self, wallet_id: WalletId, chain: Chain, address: String) -> Result<PerpetualPortfolio, GemServiceError> {
         let mode = self.wallet_preferences.get_perpetual_account_mode(wallet_id);
         Ok(self.gateway.get_perpetual_portfolio(chain, address, mode).await?)
@@ -366,10 +371,7 @@ mod tests {
     use primitives::AssetType;
     use primitives::known_assets::{ARBITRUM_USDC, HYPERCORE_SPOT_USDC};
 
-    const ALL_MIDS: &str = r#"{"channel":"allMids","data":{"mids":{"BTC":"104633.0","ETH":"3321.1"}}}"#;
-    const OPEN_ORDERS: &str = r#"{"channel":"openOrders","data":{"dex":"","user":"0xc64c","orders":[{"coin":"BTC","oid":1,"triggerPx":"110000.0","limitPx":"110000.0","isPositionTpsl":true,"orderType":"Take Profit Market"}]}}"#;
-    const CANDLE: &str = r#"{"channel":"candle","data":{"t":1700000000000,"T":1700000059999,"s":"BTC","i":"1m","o":"1.0","c":"2.0","h":"3.0","l":"0.5","v":"10.0","n":3}}"#;
-    const SUBSCRIPTION: &str = r#"{"channel":"subscriptionResponse","data":{"method":"subscribe","subscription":{"type":"allMids"}}}"#;
+    const ALL_MIDS: &str = include_str!("../../../../crates/gem_hypercore/testdata/ws_all_mids_btc_eth.json");
 
     fn message(testkit: &PerpetualTestkit, payload: &str) -> GemPerpetualSocketUpdate {
         block_on(testkit.service.on_socket_message(testkit.wallet_id.clone(), payload.as_bytes().to_vec())).unwrap()
@@ -405,7 +407,7 @@ mod tests {
             .to_vec();
 
         message(&testkit, ALL_MIDS);
-        message(&testkit, r#"{"channel":"allMids","data":{"dex":"xyz","mids":{"xyz:NVDA":"222.165"}}}"#);
+        message(&testkit, include_str!("../../../../crates/gem_hypercore/testdata/ws_all_mids_xyz.json"));
         testkit.preferences.set_perpetual_prices_updated_at(Some(0)).unwrap();
         message(&testkit, ALL_MIDS);
 
@@ -479,7 +481,7 @@ mod tests {
     fn test_an_orders_message_diffs_against_the_positions_the_store_already_has() {
         let testkit = PerpetualTestkit::new();
 
-        assert_eq!(message(&testkit, OPEN_ORDERS), GemPerpetualSocketUpdate::Applied);
+        assert_eq!(message(&testkit, include_str!("../../../../crates/gem_hypercore/testdata/ws_open_orders_take_profit.json")), GemPerpetualSocketUpdate::Applied);
 
         assert_eq!(testkit.store.position_writes.lock().unwrap().len(), 1);
         assert!(testkit.balances.balance_writes.lock().unwrap().is_empty(), "an orders message is not a balance");
@@ -489,7 +491,7 @@ mod tests {
     fn test_a_candle_is_handed_back_without_touching_the_wallet() {
         let testkit = PerpetualTestkit::new();
 
-        let update = message(&testkit, CANDLE);
+        let update = message(&testkit, include_str!("../../../../crates/gem_hypercore/testdata/ws_candle_btc_1m.json"));
 
         assert!(matches!(update, GemPerpetualSocketUpdate::Candle { .. }));
         assert!(testkit.store.position_writes.lock().unwrap().is_empty());
@@ -501,7 +503,10 @@ mod tests {
     fn test_a_subscription_reply_and_an_unreadable_channel_are_reported_not_applied() {
         let testkit = PerpetualTestkit::new();
 
-        assert!(matches!(message(&testkit, SUBSCRIPTION), GemPerpetualSocketUpdate::SubscriptionResponse { .. }));
+        assert!(matches!(
+            message(&testkit, include_str!("../../../../crates/gem_hypercore/testdata/ws_subscription_response.json")),
+            GemPerpetualSocketUpdate::SubscriptionResponse { .. }
+        ));
         assert_eq!(message(&testkit, r#"{"channel":"somethingElse"}"#), GemPerpetualSocketUpdate::Unknown);
         assert!(testkit.store.position_writes.lock().unwrap().is_empty());
     }

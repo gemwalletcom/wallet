@@ -4,7 +4,6 @@ edition = { workspace = true }
 version = { workspace = true }
 
 [features]
-testkit = []
 
 [dependencies]
 chrono = { workspace = true }
@@ -14,4 +13,3 @@ url = { workspace = true }
 primitives = { path = "../primitives" }
 
 [dev-dependencies]
-primitives = { path = "../primitives", features = ["testkit"] }

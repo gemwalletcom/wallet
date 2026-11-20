@@ -13,7 +13,7 @@ public extension LocalKeystore {
         explorer: GemExplorerService,
         names: GemNameService,
         avatar: GemAvatarService,
-        secure: any GemSecureStore,
+        securePreferences: any GemSecureStore,
     ) -> GemWalletService {
         GemWalletService(
             keystore: gemKeystore,
@@ -26,7 +26,7 @@ public extension LocalKeystore {
             explorer: explorer,
             names: names,
             avatar: avatar,
-            secure: secure,
+            securePreferences: securePreferences,
         )
     }
 

@@ -40,8 +40,8 @@ fun EntryProviderScope<NavKey>.confirmTransfer(navigator: WalletNavigator, finis
             input = input,
             cancelAction = cancelAction,
             onGetAsset = onGetAsset,
-            paymentAsset = navigator.paymentSelection(key),
-            onPaymentAssetConsumed = { navigator.clearPaymentSelection(key) },
+            paymentAsset = navigator.assetSelection(key),
+            onPaymentAssetConsumed = { navigator.clearAssetSelection(key) },
             onSelectPaymentAsset = navigator::openPaymentSelect,
             onOpenAddress = navigator::openAddress,
             finishAction = finishAction,
@@ -52,7 +52,7 @@ fun EntryProviderScope<NavKey>.confirmTransfer(navigator: WalletNavigator, finis
         SelectAssetScreen(
             selectType = GemSelectAssetType.Payment(key.assetIds.map { it.toIdentifier() }),
             onCancel = cancelAction::invoke,
-            onSelect = navigator::finishPaymentSelect,
+            onSelect = navigator::finishAssetSelect,
         )
     }
 

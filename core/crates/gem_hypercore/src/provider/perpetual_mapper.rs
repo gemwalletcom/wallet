@@ -879,6 +879,14 @@ mod tests {
         assert_eq!(summary.account_leverage, 0.5);
         assert_eq!(summary.margin_usage, 0.2);
         assert_eq!(summary.unrealized_pnl, 0.0);
+
+        let isolated: AssetPositions = serde_json::from_str(include_str!("../../testdata/perpetual_positions_response_clearinghouse_state_isolated.json")).unwrap();
+        let with_positions = [AssetPositions::mock(), isolated];
+        let balance = with_positions.iter().map(map_perpetual_balance).sum();
+
+        let summary = map_account_summary(&with_positions, &balance);
+
+        assert_eq!(summary.unrealized_pnl, -0.05586, "the PnL of every open position on every dex adds up");
     }
 
     #[test]

@@ -155,6 +155,7 @@ pub struct WalletTestkit {
     pub wallets: Arc<MemoryWalletStore>,
     pub passwords: Arc<MemoryKeystorePassword>,
     pub keystore: Arc<GemKeystore>,
+    pub secure_store: Arc<MemorySecureStore>,
     pub directory: TempDir,
 }
 
@@ -165,6 +166,7 @@ impl WalletTestkit {
         let passwords = Arc::new(MemoryKeystorePassword::default());
         let addresses = Arc::new(MemoryAddressStore::default());
         let preferences = Arc::new(MemoryPreferencesStore::default());
+        let secure_store = Arc::new(MemorySecureStore::default());
         let keystore = GemKeystore::new(directory.path().to_string_lossy().to_string()).unwrap();
         let session = Arc::new(GemWalletSessionService::mock(wallets.clone(), None));
         let app_preferences = Arc::new(GemPreferencesService::new(preferences));
@@ -183,21 +185,26 @@ impl WalletTestkit {
             Arc::new(GemExplorerService::new(app_preferences)),
             names,
             Arc::new(GemAvatarService::mock(wallets.clone(), Arc::new(NoopFileStore))),
-            Arc::new(MemorySecureStore::default()),
+            secure_store.clone(),
         ));
         Self {
             service,
             wallets,
             passwords,
             keystore,
+            secure_store,
             directory,
         }
     }
 
     pub async fn import(&self, name: &str, words: [&str; 12]) -> Wallet {
+        self.import_chains(name, words, vec![Chain::Ethereum]).await
+    }
+
+    pub async fn import_chains(&self, name: &str, words: [&str; 12], chains: Vec<Chain>) -> Wallet {
         let import = GemWalletImportType::MulticoinPhrase {
             words: words.iter().map(ToString::to_string).collect(),
-            chains: vec![Chain::Ethereum],
+            chains,
         };
         self.service.store_import(name.to_string(), import, WalletSource::Import).await.unwrap().wallet()
     }

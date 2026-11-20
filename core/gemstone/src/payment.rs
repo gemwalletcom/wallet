@@ -13,6 +13,7 @@ use crate::services::transfer::rules::TransferInput;
 use num_bigint::{BigInt, BigUint};
 use number_formatter::BigNumberFormatter;
 use payment::{PaymentError, PaymentLoad, PaymentService, PaymentTransaction, PaymentURLDecoder, PaymentUpdate, VerificationOutcome, WalletConnectPayAuth, verification_outcome};
+use primitives::name::is_name;
 use primitives::{
     Account, Asset, AssetId, Chain, ChainAddress, ChainType, Payment, PaymentAmount, PaymentInvoice, PaymentLink, PaymentQuote, PaymentRequest, PaymentStatus, PaymentVerification, TransactionChange, TransactionInputType, TransactionState,
     TransactionType, TransactionUpdate, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType, Wallet, hex,
@@ -343,7 +344,11 @@ fn payment_destination(request: &PaymentRequest, assets: &[Asset]) -> PaymentDes
 }
 
 pub(crate) fn asset_step(request: &PaymentRequest, asset: &Asset) -> Option<GemPaymentStep> {
-    is_request_for(request, asset).then(|| payment_step(request, asset))
+    let is_for_asset = match request.asset_id {
+        Some(_) => is_request_for(request, asset) || is_address_for(request, asset),
+        None => is_name(&request.address) || validate_address(&request.address, asset.id.chain),
+    };
+    is_for_asset.then(|| payment_step(request, asset))
 }
 
 fn payment_step(request: &PaymentRequest, asset: &Asset) -> GemPaymentStep {
@@ -363,6 +368,10 @@ fn payment_step(request: &PaymentRequest, asset: &Asset) -> GemPaymentStep {
 
 fn is_request_for(request: &PaymentRequest, asset: &Asset) -> bool {
     request.asset_id.as_ref().is_none_or(|asset_id| asset_id == &asset.id)
+}
+
+fn is_address_for(request: &PaymentRequest, asset: &Asset) -> bool {
+    request.amount.is_none() && request.asset_id.as_ref().is_some_and(|asset_id| asset_id.is_native() && asset_id.chain == asset.id.chain)
 }
 
 fn recipient_request(payment: GemPaymentRecipient) -> PaymentRequest {
@@ -430,6 +439,7 @@ mod tests {
     use crate::testkit::mock_payment_transaction;
     use futures::executor::block_on;
     use gem_spark::testkit::{INVOICE_2000_SATS, INVOICE_AMOUNTLESS};
+    use primitives::asset_constants::TON_DUST_ASSET_ID;
     use primitives::{Account, Asset, AssetBasic, AssetId, AssetProperties, AssetScore, AssetType, Chain, PaymentInvoice};
     use std::sync::Arc;
 
@@ -518,10 +528,13 @@ mod tests {
     #[test]
     fn test_a_payment_link_gives_the_paid_asset_a_hidden_balance_for_confirm() {
         const ACCOUNT: &str = "mvines9iiHiQTysrwkJjGf2gb9Ex9jXJX8ns3qwf2kN";
-        const RESPONSE: &str = r#"{"label":"Shop","icon":"https://shop.example/icon.png","transaction":"AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAECC4JMKqNplIXybGb/GhK1ofdVWeuEjXnQor7gi0Y2hMcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQECAAAMAgAAAAAAAAAAAAAA"}"#;
         let solana = Asset::from_chain(Chain::Solana);
         let wallet = Wallet::mock_with_accounts(vec![Account::mock(Chain::Solana, ACCOUNT)]);
-        let (service, _, balances) = service_with_provider(TestAlienProvider::with_json(200, RESPONSE), std::slice::from_ref(&solana), &[]);
+        let (service, _, balances) = service_with_provider(
+            TestAlienProvider::with_json(200, include_str!("../../crates/payment/testdata/solana_pay/transaction_request.json")),
+            std::slice::from_ref(&solana),
+            &[],
+        );
         let link = PaymentLink::SolanaPay { url: "https://shop.example/pay".to_string() };
 
         let GemPaymentTarget::Confirm { .. } = block_on(service.prepare(Payment::Link { link }, wallet.clone())).unwrap() else {
@@ -618,6 +631,7 @@ mod tests {
     const BITCOIN_ADDRESS: &str = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4";
     const ETHEREUM_ADDRESS: &str = "0x1f9090aaE28b8a3dCeaDf281B0F12828e676c326";
     const SOLANA_ADDRESS: &str = "HA4hQMs22nCuRN7iLDBsBkboz2SnLM1WkNtzLo6xEDY5";
+    const TON_ADDRESS: &str = "UQA5olhYULHkui4mTQM0LodWG0EqUaxmK6-e3mHrCZFO2diA";
     const XRP_ADDRESS: &str = "rEb8TK3gBgk5auZkwc6sHnwrGVJH8DuaLh";
     const USDC_MINT: &str = "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v";
 
@@ -767,6 +781,50 @@ mod tests {
 
         let transfer = confirmed(asset_step(&request(ETHEREUM_ADDRESS, exact("1.5"), None), &ethereum).unwrap());
         assert_eq!(transfer.value, 1_500_000_000_000_000_000u64.into());
+
+        let ton = PaymentRequest {
+            asset_id: Some(AssetId::from_chain(Chain::Ton)),
+            ..request(TON_ADDRESS, None, Some("order 7"))
+        };
+        let ether = PaymentRequest {
+            asset_id: Some(AssetId::from_chain(Chain::Ethereum)),
+            ..request(ETHEREUM_ADDRESS, None, None)
+        };
+        let solana = PaymentRequest {
+            asset_id: Some(AssetId::from_chain(Chain::Solana)),
+            ..request(SOLANA_ADDRESS, None, None)
+        };
+        let xrp = PaymentRequest {
+            asset_id: Some(AssetId::from_chain(Chain::Xrp)),
+            ..request(XRP_ADDRESS, None, Some("12345"))
+        };
+        let payment = amount(asset_step(&ton, &Asset::mock_ton_usdt()).unwrap());
+        assert_eq!(payment.recipient.address, TON_ADDRESS);
+        assert_eq!(payment.recipient.memo.as_deref(), Some("order 7"));
+        assert_eq!(amount(asset_step(&ether, &Asset::mock_ethereum_usdc()).unwrap()).recipient.address, ETHEREUM_ADDRESS);
+        let Ok(Payment::Request { request: metamask }) = PaymentURLDecoder::decode(&format!("ethereum:{ETHEREUM_ADDRESS}")) else {
+            panic!("expected a payment request");
+        };
+        assert_eq!(amount(asset_step(&metamask, &Asset::mock_optimism_usdc()).unwrap()).recipient.address, ETHEREUM_ADDRESS);
+        assert_eq!(amount(asset_step(&metamask, &Asset::from_chain(Chain::Base)).unwrap()).amount, None);
+        assert!(asset_step(&metamask, &solana_usdc()).is_none());
+        assert_eq!(recipient(asset_step(&request("vitalik.eth", None, None), &Asset::mock_ethereum_usdc()).unwrap()).recipient.address, "vitalik.eth");
+        assert_eq!(amount(asset_step(&solana, &solana_usdc()).unwrap()).recipient.address, SOLANA_ADDRESS);
+        assert_eq!(amount(asset_step(&xrp, &Asset::mock_xrp_rlusd()).unwrap()).recipient.memo.as_deref(), Some("12345"));
+
+        let ton_amount = PaymentRequest { amount: exact("1"), ..ton.clone() };
+        let ether_amount = PaymentRequest { amount: exact("1"), ..ether.clone() };
+        let another_jetton = PaymentRequest {
+            asset_id: Some(TON_DUST_ASSET_ID.clone()),
+            ..ton
+        };
+        assert!(asset_step(&ton_amount, &Asset::mock_ton_usdt()).is_none());
+        assert!(asset_step(&ether_amount, &Asset::mock_ethereum_usdc()).is_none());
+        assert!(asset_step(&another_jetton, &Asset::mock_ton_usdt()).is_none());
+        assert!(asset_step(&solana, &Asset::mock_ton_usdt()).is_none());
+        assert!(asset_step(&ether, &Asset::mock_sol()).is_none());
+        assert!(asset_step(&ether, &Asset::mock_optimism_usdc()).is_none());
+        assert!(asset_step(&for_bitcoin, &Asset::mock_ethereum_usdc()).is_none());
     }
 
     #[test]

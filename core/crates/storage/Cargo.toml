@@ -19,8 +19,6 @@ config_keys = { path = "../config_keys" }
 primitives = { path = "../primitives" }
 
 [features]
-testkit = ["primitives/testkit"]
-database_integration_tests = ["testkit"]
+database_integration_tests = []
 
 [dev-dependencies]
-primitives = { path = "../primitives", features = ["testkit"] }

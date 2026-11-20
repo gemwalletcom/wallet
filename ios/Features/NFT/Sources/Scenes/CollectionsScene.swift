@@ -69,9 +69,9 @@ public struct CollectionsScene: View {
         .navigationTitle(screen.title.text)
         .refreshable { await model.load() }
         .toast(message: $model.isPresentingToastMessage)
-        .task {
+        .taskOnce {
             guard screen.syncsOnAppear else { return }
-            await model.load()
+            Task { await model.load() }
         }
     }
 }

@@ -9,14 +9,18 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
+import com.gemwallet.android.features.assets.presents.select.SelectAssetScreen
 import com.gemwallet.android.features.in_app_notifications.presents.InAppNotificationsAction
 import com.gemwallet.android.features.in_app_notifications.presents.InAppNotificationsScreen
 import com.gemwallet.android.features.price_alerts.presents.AssetPriceAlertsScreen
+import com.gemwallet.android.features.price_alerts.presents.PriceAlertsAction
 import com.gemwallet.android.features.price_alerts.presents.PriceAlertsScreen
 import com.gemwallet.android.features.price_alerts.presents.SetPriceAlertScreen
+import com.gemwallet.android.features.settings.presents.NotificationsAction
 import com.gemwallet.android.features.settings.presents.NotificationsScreen
 import com.gemwallet.android.features.settings.presents.PreferencesScreen
 import com.gemwallet.android.features.settings.presents.about_us.AboutUsScreen
+import com.gemwallet.android.features.settings.presents.chain_settings.ChainListSettingsAction
 import com.gemwallet.android.features.settings.presents.chain_settings.ChainListSettingsScreen
 import com.gemwallet.android.features.settings.presents.chain_settings.ChainSettingsScreen
 import com.gemwallet.android.features.settings.presents.chain_settings.ServiceStatusScreen
@@ -35,6 +39,7 @@ import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import kotlinx.serialization.Serializable
 import uniffi.gemstone.GemNotificationDestination
+import uniffi.gemstone.GemSelectAssetType
 
 const val SettingsRoute = "settings"
 
@@ -67,6 +72,9 @@ data object ServiceStatusRoute : NavKey
 
 @Serializable
 data object PriceAlertsRoute : NavKey
+
+@Serializable
+data object PriceAlertSelectRoute : NavKey
 
 @Serializable
 data class AssetPriceAlertsRoute(val assetId: AssetId) : NavKey
@@ -132,9 +140,13 @@ fun EntryProviderScope<NavKey>.settingsScreen(navigator: WalletNavigator, onPaym
 
     entry<ChainListSettingsRoute> {
         ChainListSettingsScreen(
-            onSelectChain = navigator::openChainSettings,
-            onShowStatus = navigator::openServiceStatus,
-            onCancel = onCancel,
+            onAction = { action ->
+                when (action) {
+                    is ChainListSettingsAction.Select -> navigator.openChainSettings(action.chain)
+                    ChainListSettingsAction.ShowStatus -> navigator.openServiceStatus()
+                    ChainListSettingsAction.Cancel -> onCancel()
+                }
+            },
         )
     }
 
@@ -152,8 +164,24 @@ fun EntryProviderScope<NavKey>.settingsScreen(navigator: WalletNavigator, onPaym
         PriceAlertsScreen(
             message = navigator.routeMessage(key),
             onMessageShown = { navigator.clearRouteMessage(key) },
-            onChart = navigator::openChart,
+            selectedAsset = navigator.assetSelection(key),
+            onSelectedAssetConsumed = { navigator.clearAssetSelection(key) },
+            onAction = { action ->
+                when (action) {
+                    PriceAlertsAction.Close -> onCancel()
+                    PriceAlertsAction.Add -> navigator.openPriceAlertSelect()
+                    is PriceAlertsAction.OpenChart -> navigator.openChart(action.assetId)
+                }
+            },
+        )
+    }
+
+    entry<PriceAlertSelectRoute> {
+        SelectAssetScreen(
+            selectType = GemSelectAssetType.PriceAlert,
             onCancel = onCancel,
+            onSelect = navigator::finishAssetSelect,
+            onSelectRecent = null,
         )
     }
 
@@ -179,8 +207,12 @@ fun EntryProviderScope<NavKey>.settingsScreen(navigator: WalletNavigator, onPaym
 
     entry<NotificationsRoute> {
         NotificationsScreen(
-            onPriceAlerts = navigator::openPriceAlerts,
-            onCancel = onCancel,
+            onAction = { action ->
+                when (action) {
+                    NotificationsAction.PriceAlerts -> navigator.openPriceAlerts()
+                    NotificationsAction.Cancel -> onCancel()
+                }
+            },
         )
     }
 

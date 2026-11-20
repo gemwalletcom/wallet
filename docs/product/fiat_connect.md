@@ -25,7 +25,7 @@ flowchart LR
 | The user types the amount with their keyboard's own digits (Arabic, Persian, Devanagari, …) | it reads as the same amount, so `٥٠` asks for `$50` quotes | the field accepts those digits, so rejecting them leaves the user with only the preset amounts |
 | Gem disables a provider for a country | the provider receives no new quote requests there; the screen shows a localized region-unavailable message when no provider serves the country; provider country syncs preserve the block | Gem controls availability independently of provider-reported coverage |
 | The asset row | the asset and its balance with the symbol on the left, and the `$100` and `$250` presets on the right | the balance is what the user checks before buying or selling, so the row holds nothing else |
-| More than one provider quoted | the user can pick another; the choice survives refreshes | |
+| More than one provider quoted | the user can pick another; the choice survives refreshes, and a new amount shows the best quote again | a provider picked at one amount can quote far worse at another |
 | The screen stays open | quotes refresh every `5 minutes` | |
 | Quotes refresh while the provider list is open | the list keeps the providers it opened with until it is closed | a refresh never blanks a list the user is reading |
 | The user comes back to the screen after a refresh was due | quotes are fetched again at once, unless the last request failed | a quote kept while the app was away could expire before Continue |

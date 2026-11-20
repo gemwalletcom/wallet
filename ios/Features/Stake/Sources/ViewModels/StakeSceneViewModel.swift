@@ -88,7 +88,7 @@ public final class StakeSceneViewModel {
 extension StakeSceneViewModel {
     func load() async {
         delegationsState = .loading
-        delegationsState = await service.refresh(chain: chain.chain.rawValue, delegations: viewState.delegations.map(\.delegation))
+        delegationsState = await service.refresh(chain: chain.chain.rawValue)
     }
 
     func onSelect(destination: GemStakeDestination) {

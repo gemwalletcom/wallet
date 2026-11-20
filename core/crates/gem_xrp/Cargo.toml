@@ -6,14 +6,14 @@ edition = { workspace = true }
 [features]
 default = []
 signer = ["dep:signer", "dep:num-traits"]
-rpc = ["dep:chrono", "dep:chain_traits", "dep:gem_client", "dep:futures", "gem_jsonrpc/client"]
+rpc = ["dep:chrono", "dep:chain_traits", "dep:gem_client", "dep:futures", "gem_jsonrpc/client", "dep:async-trait"]
 reqwest = ["gem_client/reqwest", "gem_jsonrpc/reqwest"]
-chain_integration_tests = ["rpc", "reqwest", "settings/testkit"]
+chain_integration_tests = ["rpc", "reqwest"]
 
 [dependencies]
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
-async-trait = { workspace = true }
+async-trait = { workspace = true, optional = true }
 primitives = { path = "../primitives" }
 number_formatter = { path = "../number_formatter" }
 num-bigint = { workspace = true }
@@ -31,8 +31,7 @@ chrono = { workspace = true, features = ["serde"], optional = true }
 serde_serializers = { path = "../serde_serializers", features = ["bigint"] }
 
 [dev-dependencies]
+gem_xrp = { path = ".", features = ["rpc", "signer"] }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
-gem_jsonrpc = { path = "../gem_jsonrpc", features = ["testkit"] }
 
-primitives = { path = "../primitives", features = ["testkit"] }
-settings = { path = "../settings", features = ["testkit"] }
+settings = { path = "../settings" }

@@ -26,6 +26,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -116,6 +117,11 @@ class RewardsViewModelTest {
     fun `choosing a wallet loads that wallet instead of keeping the previous code`() = runTest(testDispatcher) {
         wallets.value = listOf(wallet, secondWallet)
         coEvery { service.refresh(wallet.id.id) } returns mockGemRewardsResult(walletId = wallet.id.id, state = GemLoadState.Data, rewards = rewards(code = "first"))
+        val secondLoaded = CompletableDeferred<Unit>()
+        coEvery { service.refresh(secondWallet.id.id) } coAnswers {
+            secondLoaded.await()
+            mockGemRewardsResult(walletId = secondWallet.id.id, state = GemLoadState.Data, rewards = rewards(code = "second"))
+        }
         val viewModel = createViewModel()
 
         try {
@@ -128,6 +134,10 @@ class RewardsViewModelTest {
             assertEquals(secondWallet.id.id, viewModel.wallet.value?.id)
             assertNull("the first wallet's code must not follow the selection", viewModel.referralLink.value)
 
+            secondLoaded.complete(Unit)
+            runCurrent()
+            assertEquals("https://gemwallet.com/join?code=second", viewModel.referralLink.value)
+
             viewModel.setWallet(secondWallet.id.id)
             runCurrent()
 
@@ -139,11 +149,19 @@ class RewardsViewModelTest {
 
     @Test
     fun `a link code is offered once the screen loads and is cleared once handled`() = runTest(testDispatcher) {
+        val loaded = CompletableDeferred<Unit>()
+        coEvery { service.refresh(any()) } coAnswers {
+            loaded.await()
+            mockGemRewardsResult(walletId = firstArg(), state = GemLoadState.Data, rewards = rewards())
+        }
         val savedStateHandle = SavedStateHandle(mapOf(RouteArgument.Code.key to "friend"))
         val viewModel = createViewModel(savedStateHandle)
 
         try {
+            runCurrent()
             assertNull("nothing to activate before the wallet loads", viewModel.incomingCode.value)
+
+            loaded.complete(Unit)
             runCurrent()
             assertEquals(GemIncomingCode.Activate("friend"), viewModel.incomingCode.value)
 

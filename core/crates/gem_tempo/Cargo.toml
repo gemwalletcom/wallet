@@ -5,14 +5,14 @@ version = { workspace = true }
 
 [features]
 default = []
-rpc = ["gem_evm/rpc", "dep:async-trait", "dep:chain_traits", "dep:gem_client"]
+rpc = ["dep:gem_evm", "gem_evm/rpc", "dep:async-trait", "dep:chain_traits", "dep:gem_client", "dep:primitives", "dep:num-bigint"]
 reqwest = ["rpc", "gem_evm/reqwest"]
-signer = ["gem_evm/signer", "dep:signer"]
-chain_integration_tests = ["rpc", "reqwest", "primitives/testkit", "settings/testkit"]
+signer = ["dep:gem_evm", "gem_evm/signer", "dep:signer", "dep:primitives", "dep:num-bigint"]
+chain_integration_tests = ["rpc", "reqwest"]
 
 [dependencies]
-primitives = { path = "../primitives" }
-gem_evm = { path = "../gem_evm" }
+primitives = { path = "../primitives", optional = true }
+gem_evm = { path = "../gem_evm", optional = true }
 signer = { path = "../signer", optional = true }
 
 gem_client = { path = "../gem_client", optional = true }
@@ -20,13 +20,12 @@ chain_traits = { path = "../chain_traits", optional = true }
 async-trait = { workspace = true, optional = true }
 alloy-primitives = { workspace = true }
 alloy-sol-types = { workspace = true }
-num-bigint = { workspace = true }
+num-bigint = { workspace = true, optional = true }
 
 [dev-dependencies]
-primitives = { path = "../primitives", features = ["testkit"] }
-gem_evm = { path = "../gem_evm", features = ["testkit"] }
-gem_jsonrpc = { path = "../gem_jsonrpc", features = ["testkit"] }
-gem_client = { path = "../gem_client", features = ["testkit"] }
-settings = { path = "../settings", features = ["testkit"] }
+gem_tempo = { path = ".", features = ["rpc", "signer"] }
+gem_jsonrpc = { path = "../gem_jsonrpc" }
+gem_client = { path = "../gem_client" }
+settings = { path = "../settings" }
 serde_json = { workspace = true }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }

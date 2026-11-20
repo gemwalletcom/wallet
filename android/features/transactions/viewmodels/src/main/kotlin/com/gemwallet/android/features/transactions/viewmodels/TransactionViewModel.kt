@@ -10,7 +10,6 @@ import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.transactions.viewmodels.models.TransactionDetailsUIModel
-import com.gemwallet.android.features.transactions.viewmodels.models.target
 import com.gemwallet.android.ui.models.navigation.RouteArgument
 import com.gemwallet.android.ui.models.navigation.requireString
 import com.wallet.core.primitives.Chain
@@ -57,7 +56,7 @@ class TransactionViewModel @Inject constructor(
         transactionQuery(walletId, transactionId).filterNotNull(),
     ) { walletType, transaction ->
         walletType?.let { type -> service.detailRows(transaction.toGem(), type.toGem()) }
-            ?.let { rows -> TransactionDetailsUIModel(rows, transactionDetailSections(rows), rows.headerAction?.target()) }
+            ?.let { rows -> TransactionDetailsUIModel(rows, transactionDetailSections(rows)) }
     }
         .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)

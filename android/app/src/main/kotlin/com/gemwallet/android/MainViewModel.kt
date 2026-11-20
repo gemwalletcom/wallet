@@ -8,7 +8,6 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.WalletPasswordProtection
 import com.gemwallet.android.application.security.cases.SecurityPreferences
-import com.gemwallet.android.application.wallet_connect.cases.IsWalletConnectEnabled
 import com.gemwallet.android.application.wallet_connect.cases.PairWalletConnect
 import com.gemwallet.android.data.services.gemstone.config.UserConfig
 import com.gemwallet.android.ext.errorText
@@ -45,7 +44,6 @@ class MainViewModel @Inject constructor(
     private val userConfig: UserConfig,
     private val securityPreferences: SecurityPreferences,
     private val passwordProtection: WalletPasswordProtection,
-    private val isWalletConnectEnabledCase: IsWalletConnectEnabled,
     private val pairWalletConnect: PairWalletConnect,
     private val appStartService: GemAppStartServiceInterface,
     private val migrateV3KeystoreService: MigrateV3KeystoreService,
@@ -64,25 +62,13 @@ class MainViewModel @Inject constructor(
 
     val toastEvents: Flow<ToastMessage> = toastPresenter.toastEvents
 
-    val isWalletConnectEnabled: Boolean = isWalletConnectEnabledCase.isWalletConnectEnabled()
-
     val appearance = userConfig.appearance()
         .stateIn(viewModelScope, SharingStarted.Eagerly, Appearance.System)
 
     private val walletConnectHandler = object : PendingNavigationCoordinator.WalletConnectHandler {
-        override fun onLinkOpened(link: WalletConnectLink) {
-            if (isWalletConnectEnabled) {
-                pairWalletConnect.linkOpened(link)
-            }
-        }
+        override fun onLinkOpened(link: WalletConnectLink) = pairWalletConnect.linkOpened(link)
         override fun onPairing(uri: String) = addPairing(uri)
-        override fun onRequest() {
-            if (isWalletConnectEnabled) {
-                showWalletConnectPairingToast()
-            } else {
-                showWalletConnectUnsupported()
-            }
-        }
+        override fun onRequest() = showWalletConnectPairingToast()
     }
 
     private var isMaintained = false
@@ -161,7 +147,6 @@ class MainViewModel @Inject constructor(
             it.copy(
                 walletConnectError = null,
                 startupError = null,
-                isWalletConnectUnsupportedVisible = false,
             )
         }
     }
@@ -171,10 +156,6 @@ class MainViewModel @Inject constructor(
     }
 
     private fun addPairing(uri: String) {
-        if (!isWalletConnectEnabled) {
-            showWalletConnectUnsupported()
-            return
-        }
         showWalletConnectPairingToast()
         viewModelScope.launch(ioDispatcher) {
             pairWalletConnect.pair(
@@ -193,9 +174,5 @@ class MainViewModel @Inject constructor(
         toastPresenter.emitToast(ToastMessage(text, R.drawable.ic_error))
     }
 
-    private fun showWalletConnectUnsupported() {
-        _uiState.update { it.copy(isWalletConnectUnsupportedVisible = true) }
-    }
-
-    data class MainUIState(val walletConnectError: String? = null, val startupError: String? = null, val isWalletConnectUnsupportedVisible: Boolean = false)
+    data class MainUIState(val walletConnectError: String? = null, val startupError: String? = null)
 }

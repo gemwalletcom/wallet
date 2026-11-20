@@ -100,7 +100,7 @@ struct ServicesFactory {
             explorer: explorerService,
             names: nameService,
             avatar: avatarService,
-            secure: encryptedStore,
+            securePreferences: encryptedStore,
         )
         let pushNotificationEnablerService = PushNotificationEnablerService(preferencesService: preferencesService, systemPrompt: storages.systemPrompt)
         let notificationPermissions = GemstoneNotificationPermissions(service: pushNotificationEnablerService)
@@ -334,7 +334,6 @@ struct ServicesFactory {
             session: walletSessionService,
             config: configService,
         )
-        let pushNotificationService = Gemstone.GemPushNotificationService()
         let biometryService = BiometryAuthenticationService(
             keystorePassword: storages.keystorePassword,
             securityService: Gemstone.GemSecurityService(),
@@ -346,7 +345,6 @@ struct ServicesFactory {
             presenter: navigationPresenter,
             walletConnector: walletConnector,
             toastPresenter: toastPresenter,
-            pushNotificationService: pushNotificationService,
             deeplinkService: Gemstone.GemDeeplinkService(),
             navigationService: navigationService,
             paymentService: paymentService,

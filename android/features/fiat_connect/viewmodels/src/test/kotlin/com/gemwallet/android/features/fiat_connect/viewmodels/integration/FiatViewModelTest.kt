@@ -2,6 +2,8 @@ package com.gemwallet.android.features.fiat_connect.viewmodels.integration
 
 import android.content.Context
 import android.util.Log
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
+import androidx.compose.runtime.snapshots.Snapshot
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -211,7 +213,7 @@ class FiatViewModelTest {
             advanceTimeBy(DebounceSettleMs)
             runCurrent()
 
-            assertEquals("10", viewModel.amount.value)
+            assertEquals("10", viewModel.amount.text.toString())
             coVerify(exactly = 1) {
                 service.quotes(GemFiatQuoteRequest(FiatQuoteType.Buy.toGem(), 10.0), asset.id.toIdentifier())
             }
@@ -239,7 +241,7 @@ class FiatViewModelTest {
             advanceTimeBy(DebounceSettleMs)
             runCurrent()
 
-            assertEquals(MockSellAmount.toString(), viewModel.amount.value)
+            assertEquals(MockSellAmount.toString(), viewModel.amount.text.toString())
             coVerify(exactly = 0) {
                 service.quotes(GemFiatQuoteRequest(FiatQuoteType.Sell.toGem(), MockBuyAmount.toDouble()), asset.id.toIdentifier())
             }
@@ -261,7 +263,7 @@ class FiatViewModelTest {
             assertTrue(viewModel.providers.value.isNotEmpty())
             assertEquals(ButtonState.Enabled, viewModel.viewState.value.buttonState.buttonState())
 
-            viewModel.updateAmount("75")
+            viewModel.setAmount("75")
             runCurrent()
 
             assertTrue(viewModel.providers.value.isEmpty())
@@ -281,9 +283,9 @@ class FiatViewModelTest {
             advanceTimeBy(DebounceSettleMs)
             runCurrent()
 
-            viewModel.updateAmount("200")
+            viewModel.setAmount("200")
             advanceTimeBy(DebounceSettleMs / 2)
-            viewModel.updateAmount(MockBuyAmount.toString())
+            viewModel.setAmount(MockBuyAmount.toString())
             advanceTimeBy(DebounceSettleMs)
             runCurrent()
 
@@ -340,7 +342,7 @@ class FiatViewModelTest {
         val viewModel = createViewModel()
 
         try {
-            viewModel.updateAmount("")
+            viewModel.setAmount("")
             runCurrent()
 
             assertEquals("string:${R.string.input_enter_amount_to}", viewModel.viewState.value.quotesMessage(context))
@@ -536,7 +538,7 @@ class FiatViewModelTest {
             advanceTimeBy(DebounceSettleMs)
             runCurrent()
             assertEquals(FiatQuoteType.Sell, viewModel.type.value)
-            assertEquals("25", viewModel.amount.value)
+            assertEquals("25", viewModel.amount.text.toString())
 
             assetInfoFlow.value =
                 mockAssetData(
@@ -549,7 +551,7 @@ class FiatViewModelTest {
             runCurrent()
             assertFalse(viewModel.showsTypePicker.value)
             assertEquals(FiatQuoteType.Buy, viewModel.type.value)
-            assertEquals("25", viewModel.amount.value)
+            assertEquals("25", viewModel.amount.text.toString())
             coVerify(exactly = 1) {
                 service.quotes(GemFiatQuoteRequest(FiatQuoteType.Buy.toGem(), 25.0), asset.id.toIdentifier())
             }
@@ -622,7 +624,7 @@ class FiatViewModelTest {
             runCurrent()
             coVerify(exactly = 1) { service.quotes(any(), any()) }
 
-            viewModel.updateAmount("75")
+            viewModel.setAmount("75")
             advanceTimeBy(DebounceSettleMs)
             runCurrent()
             coVerify(exactly = 1) { service.quotes(GemFiatQuoteRequest(FiatQuoteType.Buy.toGem(), 75.0), any()) }
@@ -694,6 +696,11 @@ class FiatViewModelTest {
             ioDispatcher = testDispatcher,
             savedStateHandle = SavedStateHandle(arguments),
         )
+    }
+
+    private fun FiatViewModel.setAmount(value: String) {
+        amount.setTextAndPlaceCursorAtEnd(value)
+        Snapshot.sendApplyNotifications()
     }
 
     private companion object {

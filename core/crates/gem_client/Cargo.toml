@@ -6,7 +6,6 @@ edition = "2021"
 [features]
 default = []
 reqwest = ["dep:reqwest", "dep:tokio"]
-testkit = []
 
 [dependencies]
 primitives = { path = "../primitives" }
@@ -17,4 +16,5 @@ reqwest = { workspace = true, optional = true }
 tokio = { workspace = true, features = ["time"], optional = true }
 
 [dev-dependencies]
+gem_client = { path = ".", features = ["reqwest"] }
 tokio = { workspace = true, features = ["macros", "rt", "test-util"] }

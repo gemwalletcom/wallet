@@ -7,7 +7,7 @@ pub use models::*;
 pub mod r#move;
 pub mod signer;
 
-#[cfg(any(test, feature = "testkit"))]
+#[cfg(any(test, debug_assertions))]
 pub mod testkit;
 
 #[cfg(feature = "rpc")]

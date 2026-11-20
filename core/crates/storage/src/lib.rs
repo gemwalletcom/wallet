@@ -6,7 +6,7 @@ pub(crate) mod models;
 pub mod repositories;
 pub(crate) mod schema;
 pub(crate) mod sql_types;
-#[cfg(any(test, feature = "testkit"))]
+#[cfg(any(test, debug_assertions))]
 pub mod testkit;
 
 diesel::allow_columns_to_appear_in_same_group_by_clause!(schema::wallets_addresses::address, schema::transactions::chain,);

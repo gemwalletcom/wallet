@@ -10,14 +10,24 @@ import Testing
 @MainActor
 struct NotificationsSceneViewModelTests {
     @Test
-    func theToggleFollowsTheStateCoreAnswersWith() async {
-        let service = GemNotificationsServiceMock(state: GemPushState(isEnabled: false, result: .permissionDenied))
+    func theToggleTurnsOnBeforeCoreAnswers() {
+        let model = NotificationsSceneViewModel(service: GemNotificationsServiceMock())
+
+        model.onToggle(.pushNotifications, true)
+
+        #expect(model.isEnabled == true, "the switch follows the tap while the permission prompt is open")
+    }
+
+    @Test
+    func aDeclinedPermissionTurnsTheToggleBackOff() async {
+        let service = GemNotificationsServiceMock(isEnabledValue: true, state: GemPushState(isEnabled: false, result: .permissionDenied))
         let model = NotificationsSceneViewModel(service: service)
+        #expect(model.isEnabled == true)
 
         await model.enable(isEnabled: true)
 
         #expect(service.requested == [true])
-        #expect(model.isEnabled == false, "a declined permission leaves the toggle where the preference is")
+        #expect(model.isEnabled == false, "pushes cannot arrive without the permission")
         #expect(model.isPresentingAlertMessage == nil, "declining is not an error to alert about")
     }
 
@@ -25,6 +35,7 @@ struct NotificationsSceneViewModelTests {
     func aRegistrationCoreCouldNotFinishAlertsItsOwnText() async {
         let service = GemNotificationsServiceMock(state: GemPushState(isEnabled: true, result: .notRegistered(error: GemErrorText.networkOffline)))
         let model = NotificationsSceneViewModel(service: service)
+        #expect(model.isEnabled == false)
 
         await model.enable(isEnabled: true)
 
@@ -34,20 +45,17 @@ struct NotificationsSceneViewModelTests {
 
     @Test
     func theToggleStartsFromTheStoredChoice() {
-        let model = NotificationsSceneViewModel(service: GemNotificationsServiceMock(state: GemPushState(isEnabled: true, result: .stored)))
+        let model = NotificationsSceneViewModel(service: GemNotificationsServiceMock(isEnabledValue: true))
 
         #expect(model.isEnabled == true, "no off-then-on flicker while the permission is read")
     }
 
     @Test
     func returningToTheAppShowsWhatCoreReadsFromTheSystemPermission() async {
-        let service = GemNotificationsServiceMock(state: GemPushState(isEnabled: true, result: .stored))
+        let service = GemNotificationsServiceMock(isEnabledValue: true, state: GemPushState(isEnabled: false, result: .stored))
         let model = NotificationsSceneViewModel(service: service)
-
-        await model.refresh()
         #expect(model.isEnabled == true)
 
-        service.state = GemPushState(isEnabled: false, result: .stored)
         await model.refresh()
 
         #expect(model.isEnabled == false, "a permission revoked in system settings turns the toggle off")

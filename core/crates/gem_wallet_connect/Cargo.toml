@@ -4,7 +4,6 @@ edition = { workspace = true }
 version = { workspace = true }
 
 [features]
-testkit = []
 
 [dependencies]
 primitives = { path = "../primitives" }
@@ -18,6 +17,4 @@ serde_json = { workspace = true }
 url = { workspace = true }
 
 [dev-dependencies]
-primitives = { path = "../primitives", features = ["testkit"] }
-gem_evm = { path = "../gem_evm", features = ["testkit"] }
 num-bigint = { workspace = true }

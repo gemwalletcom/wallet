@@ -60,7 +60,7 @@ object KeystoreModule {
         explorerService: GemExplorerService,
         nameService: GemNameService,
         avatarService: GemAvatarService,
-        secureStore: GemSecureStore,
+        securePreferences: GemSecureStore,
     ): GemWalletService = GemWalletService(
         keystore,
         GemstoneKeystorePassword(passwordStore, deviceAuthentication),
@@ -72,7 +72,7 @@ object KeystoreModule {
         explorerService,
         nameService,
         avatarService,
-        secureStore,
+        securePreferences,
     )
 
     @Provides

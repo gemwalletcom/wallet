@@ -2,6 +2,9 @@ package com.gemwallet.android.features.fiat_connect.viewmodels
 
 import android.content.Context
 import android.util.Log
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
+import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -54,6 +57,7 @@ import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemAssetBalanceScope
 import uniffi.gemstone.GemFiatQuoteRequest
 import uniffi.gemstone.GemFiatQuoteServiceInterface
+import uniffi.gemstone.GemFiatSession
 import uniffi.gemstone.GemFiatSuggestedAmount
 import uniffi.gemstone.GemFiatViewState
 import uniffi.gemstone.GemInfoTopic
@@ -103,8 +107,7 @@ class FiatViewModel @Inject constructor(
         session.viewState(priceUsd, isUrlLoading, assetInfo?.metadata?.isSellEnabled == true)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, session.value.viewState(null, false, false))
 
-    val amount: StateFlow<String> = viewState.map { it.amount }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, viewState.value.amount)
+    val amount = TextFieldState(session.value.amountText)
 
     val assetInfoUIModel = assetInfo
         .mapNotNull { it }
@@ -150,11 +153,16 @@ class FiatViewModel @Inject constructor(
     init {
         assetInfo.filterNotNull()
             .onEach { data ->
-                session.update {
-                    it.onBalanceChanged(data.balance.available)
-                        .onSellEnabledChanged(data.metadata.isSellEnabled)
-                }
+                showSession(
+                    session.value
+                        .onBalanceChanged(data.balance.available)
+                        .onSellEnabledChanged(data.metadata.isSellEnabled),
+                )
             }
+            .launchIn(viewModelScope)
+
+        snapshotFlow { amount.text.toString() }
+            .onEach { text -> session.update { if (it.amountText == text) it else it.onAmountChanged(text) } }
             .launchIn(viewModelScope)
 
         combine(
@@ -173,12 +181,8 @@ class FiatViewModel @Inject constructor(
         session.update { it.onQuoteResults(results) }
     }
 
-    fun updateAmount(newAmount: String) {
-        session.update { it.onAmountChanged(newAmount) }
-    }
-
     fun selectAmount(suggestion: GemFiatSuggestedAmount) {
-        updateAmount(suggestion.amount.toString())
+        amount.setTextAndPlaceCursorAtEnd(suggestion.amount.toString())
     }
 
     fun setProvider(provider: FiatProviderName) {
@@ -186,7 +190,14 @@ class FiatViewModel @Inject constructor(
     }
 
     fun setType(type: FiatQuoteType) {
-        session.update { it.onTypeChanged(type.toGem()) }
+        showSession(session.value.onTypeChanged(type.toGem()))
+    }
+
+    private fun showSession(next: GemFiatSession) {
+        session.value = next
+        if (amount.text.toString() != next.amountText) {
+            amount.setTextAndPlaceCursorAtEnd(next.amountText)
+        }
     }
 
     fun retry() {
@@ -226,3 +237,9 @@ class FiatViewModel @Inject constructor(
 
     private data class QuoteFetch(val request: GemFiatQuoteRequest, val assetId: AssetId)
 }
+
+private val GemFiatSession.amountText: String
+    get() = when (quoteType.toPrimitives()) {
+        FiatQuoteType.Buy -> buy.amount
+        FiatQuoteType.Sell -> sell.amount
+    }

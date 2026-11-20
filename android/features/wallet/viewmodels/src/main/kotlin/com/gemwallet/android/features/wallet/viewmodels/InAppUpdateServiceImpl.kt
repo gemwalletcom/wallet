@@ -9,10 +9,11 @@ import android.content.pm.Signature
 import android.os.Build
 import android.os.Environment
 import androidx.core.content.FileProvider
+import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.model.BuildInfo
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
@@ -29,7 +30,12 @@ import java.security.MessageDigest
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
-class InAppUpdateServiceImpl @Inject constructor(@param:ApplicationContext private val context: Context, private val buildInfo: BuildInfo, private val appUpdateService: GemAppUpdateServiceInterface) : InAppUpdateService {
+class InAppUpdateServiceImpl @Inject constructor(
+    @param:ApplicationContext private val context: Context,
+    private val buildInfo: BuildInfo,
+    private val appUpdateService: GemAppUpdateServiceInterface,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+) : InAppUpdateService {
 
     private val appFileProvider = "${context.packageName}.provider"
     private val intentDataType = "application/vnd.android.package-archive"
@@ -44,13 +50,13 @@ class InAppUpdateServiceImpl @Inject constructor(@param:ApplicationContext priva
     override fun canRequestPackageInstalls(): Boolean = context.packageManager.canRequestPackageInstalls()
 
     override suspend fun clearDownloadedUpdate() {
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             deleteDownloadedApk()
             runCatching { File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), APK_FILE_NAME).delete() }
         }
     }
 
-    override suspend fun download(url: String, version: String, onProgress: (Float?) -> Unit): Unit = withContext(Dispatchers.IO) {
+    override suspend fun download(url: String, version: String, onProgress: (Float?) -> Unit): Unit = withContext(ioDispatcher) {
         val destinationFile = getApkFile()
         val coroutineContext = currentCoroutineContext()
         deleteDownloadedApk()
@@ -94,14 +100,15 @@ class InAppUpdateServiceImpl @Inject constructor(@param:ApplicationContext priva
         }
     }
 
-    override fun installDownloadedUpdate(version: String) {
-        val apkFile = getApkFile()
-
-        if (!apkFile.exists()) {
-            throw IllegalStateException("Downloaded update missing")
+    override suspend fun installDownloadedUpdate(version: String) {
+        val apkFile = withContext(ioDispatcher) {
+            getApkFile().also { apkFile ->
+                if (!apkFile.exists()) {
+                    throw IllegalStateException("Downloaded update missing")
+                }
+                validateDownloadedApk(apkFile, version)
+            }
         }
-
-        validateDownloadedApk(apkFile, version)
 
         val apkUri = FileProvider.getUriForFile(context, appFileProvider, apkFile)
         val intent = Intent(Intent.ACTION_VIEW).apply {

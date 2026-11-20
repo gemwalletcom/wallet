@@ -14,4 +14,3 @@ ed25519-dalek = { workspace = true, default-features = true }
 zeroize = { workspace = true }
 
 [dev-dependencies]
-primitives = { path = "../primitives", features = ["testkit"] }

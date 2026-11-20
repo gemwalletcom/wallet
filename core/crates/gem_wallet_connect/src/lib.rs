@@ -9,7 +9,7 @@ mod siws;
 pub mod validator;
 pub mod verifier;
 
-#[cfg(any(test, feature = "testkit"))]
+#[cfg(any(test, debug_assertions))]
 pub mod testkit;
 
 pub use actions::*;

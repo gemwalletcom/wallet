@@ -4,7 +4,6 @@ edition = { workspace = true }
 version = { workspace = true }
 
 [features]
-testkit = []
 
 [dependencies]
 serde = { workspace = true }
@@ -16,4 +15,3 @@ reqwest = { workspace = true }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }
-gem_client = { path = "../gem_client", features = ["testkit"] }

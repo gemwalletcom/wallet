@@ -57,8 +57,8 @@ android {
         applicationId = "com.gemwallet.android"
         minSdk = 28
         targetSdk = 37
-        versionCode = 909
-        versionName = "2.114.96"
+        versionCode = 913
+        versionName = "2.114.100"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -92,21 +92,9 @@ android {
                     .replace("\\", "\\\\")
                     .replace("\"", "\\\"")
                 buildConfigField("String", "UPDATE_URL", "\"$resolvedUpdateUrl\"")
-                buildConfigField("boolean", "WALLET_CONNECT", (channel.getValue("walletConnect") as Boolean).toString())
             }
         }
     }
-    signingConfigs {
-        create("release") {
-            keyAlias = System.getenv("ANDROID_KEYSTORE_ALIAS")
-            keyPassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
-            storeFile = file(System.getenv("ANDROID_KEYSTORE_FILENAME") ?: "release.keystore")
-            storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
-            enableV1Signing = false
-            enableV2Signing = true
-        }
-    }
-
     buildTypes {
         getByName("debug") {
             isMinifyEnabled = false
@@ -141,11 +129,6 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             isDebuggable = false
-            if (System.getenv("SKIP_SIGN") == "true") {
-                signingConfig = null
-            } else {
-                signingConfig = signingConfigs.getByName("release")
-            }
         }
 
     }
@@ -212,42 +195,33 @@ dependencies {
 
     // Features
     implementation(project(":features:transactions:presents"))
-    implementation(project(":features:transactions:viewmodels"))
     implementation(project(":features:assets:presents"))
     implementation(project(":features:assets:viewmodels"))
     implementation(project(":features:qr_scanner:presents"))
     implementation(project(":features:fiat_connect:presents"))
-    implementation(project(":features:fiat_connect:viewmodels"))
     implementation(project(":features:transfer:presents"))
     implementation(project(":features:transfer:viewmodels"))
     implementation(project(":features:swap:presents"))
-    implementation(project(":features:swap:viewmodels"))
     implementation(project(":features:onboarding:presents"))
-    implementation(project(":features:onboarding:viewmodels"))
     implementation(project(":features:stake:presents"))
-    implementation(project(":features:stake:viewmodels"))
     implementation(project(":features:settings:presents"))
     implementation(project(":features:settings:viewmodels"))
     implementation(project(":features:contacts:presents"))
-    implementation(project(":features:contacts:viewmodels"))
     implementation(project(":features:price_alerts:presents"))
-    implementation(project(":features:price_alerts:viewmodels"))
     implementation(project(":features:in_app_notifications:presents"))
-    implementation(project(":features:in_app_notifications:viewmodels"))
     implementation(project(":features:support:presents"))
-    implementation(project(":features:support:viewmodels"))
     implementation(project(":features:nft:presents"))
     implementation(project(":features:wallet_connector:presents"))
     implementation(project(":features:wallet_connector:viewmodels"))
     implementation(project(":features:wallet:presents"))
     implementation(project(":features:wallet:viewmodels"))
     implementation(project(":features:perpetuals:presents"))
-    implementation(project(":features:rewards:viewmodels"))
     implementation(project(":features:rewards:presents"))
 
     implementation(libs.ktx.core)
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.okhttp)
+    implementation(libs.coil.network)
 
     implementation(libs.tink)
 

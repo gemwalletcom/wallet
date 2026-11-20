@@ -116,6 +116,7 @@ struct Observed {
     body: Value,
 }
 
+#[derive(Clone)]
 struct Harness {
     base: String,
     http: Client,
@@ -388,6 +389,7 @@ fn public_cases() -> Vec<Case> {
         Case::new("v1_webhook_header_basic", Method::POST, "/v1/webhooks/fiat/unknown").json(json!({})).auth(Auth::Header("Basic abc".to_string())),
         Case::new("v1_webhook_header_unknown", Method::POST, "/v1/webhooks/fiat/unknown").json(json!({})).auth(Auth::Bearer("secret".to_string())),
         Case::new("unmatched_route", Method::GET, "/v1/nope"),
+        Case::new("admin_on_public_api", Method::GET, "/v1/admin/devices/unknown"),
         Case::new("unmatched_root_segment", Method::GET, "/nope"),
         Case::new("wrong_method", Method::DELETE, "/v1/config"),
         Case::new("trailing_slash", Method::GET, "/v1/config/"),
@@ -622,7 +624,11 @@ async fn test_api_contract() {
         &mut observed,
     )
     .await;
-    run(&harness, admin_cases(&harness), &mut observed).await;
+    let admin = Harness {
+        base: env::var("API_ADMIN_URL").unwrap_or_else(|_| "http://127.0.0.1:8001".to_string()),
+        ..harness.clone()
+    };
+    run(&admin, admin_cases(&harness), &mut observed).await;
     run(&harness, v3_cases(&harness), &mut observed).await;
     run(&harness, v1_cases(&harness), &mut observed).await;
     run(&harness, after_wallet, &mut observed).await;

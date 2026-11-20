@@ -21,7 +21,7 @@ pub mod transaction_parser;
 
 pub use transaction_fee::{TransactionFeeEstimate, TransactionFeeEstimates, TransactionFeeOperation};
 
-#[cfg(feature = "testkit")]
+#[cfg(any(test, debug_assertions))]
 pub mod testkit;
 
 pub enum TransactionsResult {

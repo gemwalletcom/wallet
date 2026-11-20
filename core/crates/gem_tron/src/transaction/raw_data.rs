@@ -1,11 +1,15 @@
 use gem_encoding::protobuf::MessageEncode;
-use primitives::{Address as _, SignerError, hex};
+use primitives::{Address as _, SignerError};
+#[cfg(feature = "rpc")]
+use primitives::hex;
 use serde::Deserialize;
 use serde_json::Value;
 use serde_serializers::hex_bytes;
 
 use super::{TransactionApproval, TronContract, WalletConnectContract, WalletConnectToken, protobuf, sends_coins};
-use crate::models::{TriggerSmartContractData, TronContractType};
+use crate::models::TronContractType;
+#[cfg(feature = "rpc")]
+use crate::models::TriggerSmartContractData;
 
 #[derive(Deserialize)]
 pub(crate) struct RawDataJson {
@@ -29,6 +33,7 @@ impl RawDataJson {
         TronContract::from_json_value(contract.contract_type, contract.parameter.value.clone()).map(Some)
     }
 
+    #[cfg(feature = "rpc")]
     pub(crate) fn trigger_smart_contract_data(&self) -> Result<Option<TriggerSmartContractData>, SignerError> {
         let Some(TronContract::TriggerSmart { owner, contract, data, call_value, .. }) = self.single_contract()? else {
             return Ok(None);

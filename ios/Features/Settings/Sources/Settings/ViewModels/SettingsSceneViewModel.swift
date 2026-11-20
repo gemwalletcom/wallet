@@ -38,7 +38,6 @@ public extension SettingsSceneViewModel {
         return service.sections(
             wallets: walletsQuery.value.map { $0.toGem() },
             notificationsAvailable: true,
-            walletConnectAvailable: true,
         )
     }
 }

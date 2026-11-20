@@ -87,8 +87,8 @@ mod tests {
     use super::*;
     use crate::rpc::NearIndexer;
 
-    const UNKNOWN_BLOCK: &str = r#"{"jsonrpc":"2.0","id":1,"error":{"name":"HANDLER_ERROR","cause":{"info":{},"name":"UNKNOWN_BLOCK"},"code":-32000,"message":"Server error"}}"#;
-    const FINAL_BLOCK: &str = r#"{"jsonrpc":"2.0","id":1,"result":{"header":{"hash":"hash","height":212520210}}}"#;
+    const UNKNOWN_BLOCK: &str = include_str!("../../testdata/block_unknown.json");
+    const FINAL_BLOCK: &str = include_str!("../../testdata/block_final.json");
 
     fn provider(block: &'static str) -> NearProvider<MockClient> {
         let rpc = MockClient::new().with_post(move |_, body| {

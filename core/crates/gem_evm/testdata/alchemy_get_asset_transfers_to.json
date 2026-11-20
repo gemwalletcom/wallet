@@ -2,11 +2,11 @@
     "transfers": [
         {
             "blockNum": "0x3",
-            "hash": "0xin"
+            "hash": "0xduplicate"
         },
         {
             "blockNum": "0x1",
-            "hash": "0xduplicate"
+            "hash": "0xin"
         }
     ]
 }

@@ -147,7 +147,7 @@ mod tests {
             HashMap::from([("BTC".to_string(), 84779.5), ("ETH".to_string(), 2499.55), ("kPEPE".to_string(), 0.004675)]),
             "spot (@107, PURR/USDC) and outcome (#141870) mids are not perpetuals"
         );
-        assert_eq!(prices(br#"{"channel":"allMids","data":{"dex":"xyz","mids":{"xyz:NVDA":"222.165"}}}"#), HashMap::from([("xyz:NVDA".to_string(), 222.165)]));
+        assert_eq!(prices(include_bytes!("../../testdata/ws_all_mids_xyz.json")), HashMap::from([("xyz:NVDA".to_string(), 222.165)]));
     }
 
     #[test]

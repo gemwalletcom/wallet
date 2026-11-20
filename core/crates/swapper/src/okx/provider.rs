@@ -111,8 +111,6 @@ mod tests {
     const EVM_ROUTER: &str = "0x8feab81d36e7576107d5de0758c1b839be31b4f6";
     const EVM_TOKEN_APPROVE: &str = "0x40aA958dd87FC8305b97f2BA922CDdCa374bcD7f";
 
-    const EVM_ZERO_ALLOWANCE: &str = r#"{"id":1,"jsonrpc":"2.0","result":"0x0000000000000000000000000000000000000000000000000000000000000000"}"#;
-
     #[test]
     fn test_support_assets_includes_new_okx_evm_chains() {
         assert!(support_assets().contains(&SwapperChainAsset::All(Chain::Plasma)));
@@ -227,7 +225,7 @@ mod tests {
             }
             other => panic!("unexpected path: {other}"),
         });
-        let provider = OkxProvider::mock(client, EVM_ZERO_ALLOWANCE);
+        let provider = OkxProvider::mock(client, include_str!("../../testdata/okx/evm_zero_allowance.json"));
         let mut request = mock_quote(SwapperQuoteAsset::from(ETHEREUM_USDC_ASSET_ID.clone()), SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ethereum)));
         request.wallet_address = TEST_EVM_SENDER.to_string();
 

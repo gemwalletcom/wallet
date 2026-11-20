@@ -8,12 +8,12 @@ publish = false
 default = []
 rpc = ["gem_bitcoin/rpc", "signer", "dep:async-trait", "dep:chain_traits", "dep:gem_client", "dep:num-bigint", "dep:futures"]
 reqwest = ["rpc", "gem_bitcoin/reqwest"]
-chain_integration_tests = ["rpc", "reqwest", "primitives/testkit", "settings/testkit"]
-signer = ["gem_bitcoin/signer", "dep:bitcoin", "dep:gem_hash"]
+chain_integration_tests = ["rpc", "reqwest"]
+signer = ["dep:gem_bitcoin", "gem_bitcoin/signer", "dep:bitcoin", "dep:gem_hash", "dep:primitives"]
 
 [dependencies]
-primitives = { path = "../primitives" }
-gem_bitcoin = { path = "../gem_bitcoin" }
+primitives = { path = "../primitives", optional = true }
+gem_bitcoin = { path = "../gem_bitcoin", optional = true }
 
 async-trait = { workspace = true, optional = true }
 futures = { workspace = true, optional = true }
@@ -24,9 +24,8 @@ gem_hash = { path = "../gem_hash", optional = true }
 num-bigint = { workspace = true, optional = true }
 
 [dev-dependencies]
-gem_bitcoin = { path = "../gem_bitcoin", features = ["testkit"] }
-gem_client = { path = "../gem_client", features = ["testkit"] }
-primitives = { path = "../primitives", features = ["testkit"] }
+gem_zcash = { path = ".", features = ["rpc", "signer"] }
+gem_client = { path = "../gem_client" }
 serde_json = { workspace = true }
-settings = { path = "../settings", features = ["testkit"] }
+settings = { path = "../settings" }
 tokio = { workspace = true, features = ["macros", "rt"] }

@@ -72,6 +72,8 @@ Supported codes: a plain address; Bitcoin, Litecoin, Bitcoin Cash, Dogecoin, Das
 | With a memo, for a network that does not use one | the memo is dropped | Confirm shows no memo there, so a hidden one would be signed without the user seeing it |
 | An address that is not valid for the asset | the recipient screen | |
 | A plain address that matches several networks | a pick of the asset to send, then the rows above | |
+| An Ethereum code with only an address, without a network, amount or token, as MetaMask shows it | the same as the plain address | the code names no network, so choosing Ethereum for the user could send on the wrong one |
+| On a token's recipient screen, a code with only an address on that token's network, such as Tonkeeper's `ton://transfer/<address>` | the address is filled in | a wallet's receive code names its network's coin, not the token the sender picked; a code with an amount or another token is refused |
 | A token the wallet has no balance for | Confirm, with the token's balance at zero so the shortfall and the ways to get it show; the token is not added to the wallet's list | the code chooses the token, not the wallet |
 | A WalletConnect Pay link | a review of the merchant's request; once confirmed, it pays and reports the result back to the merchant | |
 | A Solana Pay transaction request | Confirm with the merchant's name and, when the merchant sends one, its message in a Message section, like a signed message in WalletConnect; the message reads as one line of up to 280 characters | the message says what is being paid for and Solana Pay asks the wallet to show it, but it comes from the merchant, so it can't push the warnings below it off the screen or reorder its text |

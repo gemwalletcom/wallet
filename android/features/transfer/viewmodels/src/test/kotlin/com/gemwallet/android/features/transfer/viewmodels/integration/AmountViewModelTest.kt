@@ -1,6 +1,7 @@
 package com.gemwallet.android.features.transfer.viewmodels.integration
 
 import android.content.Context
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.snapshots.Snapshot
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
@@ -58,6 +59,7 @@ import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemPaymentRecipient
 import uniffi.gemstone.GemRecipient
 import uniffi.gemstone.GemStakeAmountInput
+import uniffi.gemstone.GemStakeServiceInterface
 import uniffi.gemstone.GemTransferData
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -83,6 +85,7 @@ class AmountViewModelTest {
         every { getCurrency() } returns Currency.USD.toGem()
         coEvery { transferData(any(), any(), capture(sentValues), capture(sentIsMax)) } returns confirmInput
     }
+    private val stakeService = mockk<GemStakeServiceInterface>(relaxed = true)
     private val walletId = mockWalletId()
     private val getCurrentWalletId = mockk<GetCurrentWalletId> { every { this@mockk.invoke() } returns flowOf(walletId) }
     private val assetQuery = mockk<AssetQuery> { every { this@mockk.invoke(walletId.id, any()) } returns assetInfoFlow }
@@ -115,12 +118,12 @@ class AmountViewModelTest {
 
     @Test
     fun `a prefilled payment amount fills the amount once`() = viewModelTest(AmountParams.Transfer(asset.id, GemPaymentRecipient(GemRecipient(address = "to"), "1.5"))) { viewModel ->
-        assertEquals("1.5", viewModel.amount)
+        assertEquals("1.5", viewModel.amount.text.toString())
 
         viewModel.setAmount("")
         assetInfoFlow.value = assetInfo(OneAtom)
         runCurrent()
-        assertEquals("", viewModel.amount)
+        assertEquals("", viewModel.amount.text.toString())
     }
 
     @Test
@@ -169,7 +172,7 @@ class AmountViewModelTest {
         viewModel.switchInputType()
         runCurrent()
         assertEquals(GemAmountInputType.FIAT, viewModel.amountInputType.value)
-        assertEquals("", viewModel.amount)
+        assertEquals("", viewModel.amount.text.toString())
 
         viewModel.switchInputType()
         runCurrent()
@@ -187,7 +190,7 @@ class AmountViewModelTest {
         runCurrent()
 
         assertEquals(GemAmountInputType.ASSET, viewModel.amountInputType.value)
-        assertEquals("2", viewModel.amount)
+        assertEquals("2", viewModel.amount.text.toString())
         viewModel.confirm()
         assertEquals(BigInteger("2000000"), sentValues.last())
         assertEquals(true, sentIsMax.last())
@@ -201,7 +204,7 @@ class AmountViewModelTest {
         viewModel.onMaxAmount()
         runCurrent()
 
-        assertEquals("2", viewModel.amount)
+        assertEquals("2", viewModel.amount.text.toString())
     }
 
     @Test
@@ -214,7 +217,7 @@ class AmountViewModelTest {
         Snapshot.sendApplyNotifications()
         testDispatcher.scheduler.advanceUntilIdle()
 
-        assertTrue("a stake max stays under the balance", viewModel.amount.toBigDecimal() < BigDecimal(2))
+        assertTrue("a stake max stays under the balance", viewModel.amount.text.toString().toBigDecimal() < BigDecimal(2))
         assertNotNull(viewModel.uiState.value.reserveForFee)
     }
 
@@ -224,7 +227,7 @@ class AmountViewModelTest {
             mockDelegationValidator(chain = Chain.Cosmos, id = id).let { mockGemValidatorRow(validator = it.toGem(), name = it.name, placeholder = it.name.take(1), apr = GemLocalizedText.Apr(null)) }
         }
         val options = GemGroupList(listOf(GemGroup("Active", GemLocalizedText.SectionTitle(GemListSectionTitle.ACTIVE), GemListSectionFooter.NONE, rows.map { GemListItem.Validator(it, it.validator.id == "v2") })), GemListPhase.Rows)
-        every { service.stakeValidatorOptions(any(), any(), any()) } returns options
+        every { stakeService.stakeValidatorOptions(any(), any(), any()) } returns options
 
         viewModelTest(AmountParams.Stake(asset.id, GemStakeAmountInput.Stake(rows[1].validator))) { viewModel ->
             assertEquals(options, viewModel.validatorPicker.value)
@@ -238,17 +241,17 @@ class AmountViewModelTest {
             mockDelegation(base = mockDelegationBase(rewards = BigInteger.valueOf(rewards), validatorId = validator.id), validator = validator).toGem()
         }
         val rows = validators.map { mockGemValidatorRow(validator = it.toGem(), name = it.name, placeholder = it.name.take(1), apr = GemLocalizedText.Apr(null)) }
-        every { service.stakeValidatorOptions(any(), any(), any()) } returns
+        every { stakeService.stakeValidatorOptions(any(), any(), any()) } returns
             GemGroupList(listOf(GemGroup("Active", GemLocalizedText.SectionTitle(GemListSectionTitle.ACTIVE), GemListSectionFooter.NONE, rows.map { GemListItem.Validator(it, false) })), GemListPhase.Rows)
 
         viewModelTest(AmountParams.Stake(asset.id, GemStakeAmountInput.Rewards(delegations, validators[0].toGem()))) { viewModel ->
-            assertEquals("5", viewModel.amount)
+            assertEquals("5", viewModel.amount.text.toString())
 
             viewModel.selectValidator("v2")
             Snapshot.sendApplyNotifications()
             testDispatcher.scheduler.advanceUntilIdle()
 
-            assertEquals("2", viewModel.amount)
+            assertEquals("2", viewModel.amount.text.toString())
             assertEquals(ButtonState.Enabled, viewModel.uiState.value.buttonState)
         }
     }
@@ -259,6 +262,7 @@ class AmountViewModelTest {
         runTest(testDispatcher) {
             val viewModel = AmountViewModel(
                 service = service,
+                stakeService = stakeService,
                 getCurrentWalletId = getCurrentWalletId,
                 assetQuery = assetQuery,
                 delegationQuery = mockk(relaxed = true),
@@ -270,6 +274,8 @@ class AmountViewModelTest {
                 ioDispatcher = testDispatcher,
             )
             try {
+                runCurrent()
+                Snapshot.sendApplyNotifications()
                 runCurrent()
                 block(viewModel)
             } finally {
@@ -284,7 +290,7 @@ class AmountViewModelTest {
     }
 
     private fun AmountViewModel.setAmount(value: String) {
-        updateAmount(value)
+        amount.setTextAndPlaceCursorAtEnd(value)
         Snapshot.sendApplyNotifications()
         testDispatcher.scheduler.advanceUntilIdle()
     }

@@ -562,17 +562,23 @@ mod tests {
         };
 
         let receipt = TransactionReceipt {
-            gas_used: BigUint::from(22496u32),
+            gas_used: BigUint::from(21880u32),
             effective_gas_price: BigUint::from(5_000_000_000u64),
             ..TransactionReceipt::mock()
         };
+        let contract_call_receipt = TransactionReceipt {
+            gas_used: BigUint::from(22497u32),
+            ..receipt.clone()
+        };
 
         let mapped = EthereumMapper::map_transaction(Chain::SmartChain, &transaction, &receipt, &BigUint::from(1735671600u64)).unwrap();
+        let contract_call = EthereumMapper::map_transaction(Chain::SmartChain, &transaction, &contract_call_receipt, &BigUint::from(1735671600u64)).unwrap();
 
         assert_eq!(mapped.transaction_type, TransactionType::Transfer);
         assert_eq!(mapped.asset_id, AssetId::from_chain(Chain::SmartChain));
         assert_eq!(mapped.memo, Some(memo.to_string()));
         assert_eq!(mapped.data, Some(input));
+        assert_eq!(contract_call.transaction_type, TransactionType::SmartContractCall);
     }
 
     #[test]

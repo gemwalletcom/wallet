@@ -25,7 +25,6 @@ just build-test
 just test
 just test-integration
 ./gradlew assembleGoogleDebug
-just release
 ```
 
 For release builds, read `release-and-verification.md`.

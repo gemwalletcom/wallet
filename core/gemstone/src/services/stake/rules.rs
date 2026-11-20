@@ -666,13 +666,13 @@ pub fn earn_view(input: GemEarnInput) -> GemEarnView {
 
 fn earn_rate_row(state: &GemLoadState, providers: &[DelegationValidator], asset_apr: Option<f64>) -> GemListRow {
     match (state, providers.is_empty()) {
-        (GemLoadState::Error { error }, _) => GemListRow::Error { error: error.clone() },
+        (GemLoadState::Error { error }, true) => GemListRow::Error { error: error.clone() },
         (GemLoadState::Loading, true) => GemListRow::Loading,
         (GemLoadState::NoData, _) | (GemLoadState::Data, true) => GemListRow::Text {
             title: GemListRowTitle::NoData,
             value: String::new(),
         },
-        (GemLoadState::Loading | GemLoadState::Data, false) => earn_apr_row(providers, asset_apr),
+        (GemLoadState::Loading | GemLoadState::Data | GemLoadState::Error { .. }, false) => earn_apr_row(providers, asset_apr),
     }
 }
 
@@ -1589,6 +1589,26 @@ mod tests {
     }
 
     #[test]
+    fn test_a_failed_sync_keeps_the_stored_delegations() {
+        let state = stake_view_state(
+            GemStakeInput {
+                wallet_type: WalletType::Multicoin,
+                asset_data: AssetData::mock(Asset::from_chain(Chain::Cosmos), Balance::coin_balance(0u32.into())),
+                currency: Currency::USD,
+                validators: vec![DelegationValidator::mock()],
+                delegations: vec![Delegation::mock_with(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Active, 10)],
+                state: GemLoadState::Error {
+                    error: crate::services::error::GemServiceError::Offline,
+                },
+            },
+            Platform::IOS,
+            None,
+        );
+
+        assert_eq!(state.delegations_phase, Some(GemListPhase::Rows));
+    }
+
+    #[test]
     fn test_a_stake_action_carries_the_screen_it_opens() {
         let destination = |chain, action| {
             stake_actions(WalletType::Multicoin, chain, &[DelegationValidator::mock()], &GemAssetBalance::mock(), &[], None)
@@ -2218,12 +2238,19 @@ mod tests {
             earn_apr_row(std::slice::from_ref(&provider), None),
             "stored providers show while refreshing"
         );
-        assert!(matches!(view(error, vec![provider.clone()], vec![]).rate_row, GemListRow::Error { .. }));
+        assert!(matches!(view(error.clone(), vec![], vec![]).rate_row, GemListRow::Error { .. }));
+        assert_eq!(
+            view(error.clone(), vec![provider.clone()], vec![]).rate_row,
+            earn_apr_row(std::slice::from_ref(&provider), None),
+            "stored providers keep their rate when the refresh fails"
+        );
 
         assert_eq!(view(GemLoadState::Loading, vec![], vec![]).positions_phase, None, "nothing is empty before the first load ends");
         let empty = view(GemLoadState::Data, vec![provider.clone()], vec![]);
         assert_eq!(empty.positions_phase, Some(GemListPhase::Empty { state: empty_state(GemEmptyStateKind::Earn) }));
         assert_eq!(empty.sections, vec![GemEarnSection::Manage]);
+
+        assert_eq!(view(error, vec![provider.clone()], vec![position.clone()]).positions_phase, Some(GemListPhase::Rows), "a failed refresh keeps the shown positions");
 
         let invested = view(GemLoadState::Data, vec![provider], vec![position]);
         assert_eq!(invested.positions_phase, Some(GemListPhase::Rows));

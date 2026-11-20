@@ -7,7 +7,7 @@ mod ipapi;
 mod redemption_service;
 mod referral;
 mod summary;
-#[cfg(any(test, feature = "testkit"))]
+#[cfg(any(test, debug_assertions))]
 pub mod testkit;
 mod transfer_provider;
 mod transfer_redemption_service;

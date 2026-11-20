@@ -16,7 +16,9 @@ use crate::services::name::rules::names_the_user_owns;
 use crate::services::transfer::model::{GemConfirmDestination, GemConfirmRow, GemTransferData};
 use crate::services::wallet::model::wallet_row;
 use number_formatter::ValueStyle;
-use primitives::{AddressFormatStyle, AddressName, AssetType, BlockExplorerLink, FeeRate, PaymentVerification, PerpetualType, SignerInput, SimulationBalanceChange, TransactionFee, TransactionLoadInput, TransferAmountError};
+use primitives::{
+    AddressFormatStyle, AddressName, AssetType, BlockExplorerLink, FeeRate, PaymentVerification, PerpetualType, SignerInput, SimulationBalanceChange, TransactionFee, TransactionLoadInput, TransactionLoadMetadata, TransferAmountError,
+};
 use primitives::{
     Asset, AssetId, Chain, ChainAsset, ChainType, EVMChain, FeePriority, FeeUnitType, GasPriceType, ScanTransaction, SimulationResult, SimulationWarningType, Transaction, TransactionType, TransferDataOutputAction, TransferDataOutputType,
     Wallet,
@@ -53,20 +55,26 @@ impl SendInput {
         let chain = transfer.input_type.get_asset().chain();
         let sender_address = signing_address(&self.wallet, chain, &from.address)?;
         Ok(SignerInput {
-            input: TransactionLoadInput {
-                input_type: transfer.input_type.clone(),
-                sender_address,
-                destination_address: transfer.destination_address(),
-                value: self.value.to_biguint().ok_or_else(|| GemConfirmError::Load { msg: "negative transfer value".to_string() })?,
-                gas_price: self.confirm.fee.gas_price_type.clone(),
-                memo: transfer.recipient.memo.clone(),
-                is_max_value: transfer.use_max_amount,
-                metadata: self.confirm.metadata.clone(),
-            },
+            input: transfer.load_input(sender_address, &self.value, self.confirm.fee.gas_price_type.clone(), self.confirm.metadata.clone())?,
             fee: TransactionFee {
                 fee: self.network_fee.clone(),
                 ..self.confirm.fee.clone()
             },
+        })
+    }
+}
+
+impl GemTransferData {
+    pub(super) fn load_input(&self, sender_address: String, value: &BigInt, gas_price: GasPriceType, metadata: TransactionLoadMetadata) -> Result<TransactionLoadInput, GemConfirmError> {
+        Ok(TransactionLoadInput {
+            input_type: self.input_type.clone(),
+            sender_address,
+            destination_address: self.destination_address(),
+            value: value.to_biguint().ok_or_else(|| GemConfirmError::Load { msg: "negative transfer value".to_string() })?,
+            gas_price,
+            memo: self.recipient.memo.clone(),
+            is_max_value: self.use_max_amount,
+            metadata,
         })
     }
 }
@@ -876,9 +884,14 @@ mod tests {
         assert_eq!(signer_input.input.destination_address, "recipient");
         assert_eq!(signer_input.input.value, BigUint::from(9u64));
         assert_eq!(signer_input.input.memo.as_deref(), Some("memo"));
-        assert!(signer_input.input.is_max_value);
         assert_eq!(signer_input.fee.fee, BigInt::from(1));
         assert_eq!(signer_input.fee.gas_limit, BigInt::from(21_000));
+
+        for use_max_amount in [true, false] {
+            let mut input = input.clone();
+            input.confirm.input.transfer.use_max_amount = use_max_amount;
+            assert_eq!(input.signer_input().unwrap().input.is_max_value, use_max_amount);
+        }
     }
 
     #[test]
@@ -1695,11 +1708,7 @@ mod tests {
             value: BigInt::from(1_000),
             ..GemTransferData::mock(TransactionInputType::Transfer { asset: token.clone() })
         };
-        let metadata = |token_available: u64, eth_available: u64| GemConfirmMetadata {
-            asset_balance: GemConfirmMetadata::mock(&token.id, token_available).asset_balance,
-            fee_asset_balance: GemConfirmMetadata::mock(&AssetId::from_chain(Chain::Ethereum), eth_available).fee_asset_balance,
-            prices: vec![],
-        };
+        let eth = AssetId::from_chain(Chain::Ethereum);
 
         let missing_fee = Some(GemConfirmError::InsufficientNetworkFee {
             asset: Asset::from_chain(Chain::Ethereum),
@@ -1707,17 +1716,29 @@ mod tests {
         });
 
         assert_eq!(
-            insufficient_funds(&transfer, &metadata(400, 10)),
+            insufficient_funds(&transfer, &GemConfirmMetadata::mock_with_fee(&token.id, 400, &eth, 10)),
             Some(GemConfirmError::InsufficientBalance {
                 asset: token.clone(),
                 requirement: GemBalanceRequirement::new(BigInt::from(1_000), BigInt::from(400)),
             })
         );
-        assert_eq!(insufficient_funds(&transfer, &metadata(1_000, 0)), missing_fee);
-        assert_eq!(insufficient_funds(&transfer, &metadata(400, 0)), missing_fee, "an empty fee balance still names the fee first");
-        assert_eq!(insufficient_funds(&transfer, &metadata(1_000, 10)), None, "a covered transfer keeps the load's own error");
+        assert_eq!(insufficient_funds(&transfer, &GemConfirmMetadata::mock_with_fee(&token.id, 1_000, &eth, 0)), missing_fee);
+        assert_eq!(
+            insufficient_funds(&transfer, &GemConfirmMetadata::mock_with_fee(&token.id, 400, &eth, 0)),
+            missing_fee,
+            "an empty fee balance still names the fee first"
+        );
+        assert_eq!(
+            insufficient_funds(&transfer, &GemConfirmMetadata::mock_with_fee(&token.id, 1_000, &eth, 10)),
+            None,
+            "a covered transfer keeps the load's own error"
+        );
         let max = GemTransferData { use_max_amount: true, ..transfer };
-        assert_eq!(insufficient_funds(&max, &metadata(400, 10)), None, "a max amount is capped to the balance, never short");
+        assert_eq!(
+            insufficient_funds(&max, &GemConfirmMetadata::mock_with_fee(&token.id, 400, &eth, 10)),
+            None,
+            "a max amount is capped to the balance, never short"
+        );
     }
 
     #[test]
@@ -1740,13 +1761,9 @@ mod tests {
         assert!(validate_scan(Some(&safe), None, "USDT").is_ok());
         assert!(validate_scan(Some(&memo_required), Some("deposit"), "USDT").is_ok());
 
-        match validate_scan(Some(&malicious), Some("memo"), "USDT") {
-            Err(GemConfirmError::ScanMalicious) => {}
-            result => panic!("expected a malicious verdict, got {result:?}"),
-        }
-        match validate_scan(Some(&memo_required), Some("  "), "USDT") {
-            Err(GemConfirmError::ScanMemoRequired { symbol }) => assert_eq!(symbol, "USDT"),
-            result => panic!("expected a required memo, got {result:?}"),
+        assert_eq!(validate_scan(Some(&malicious), Some("memo"), "USDT"), Err(GemConfirmError::ScanMalicious));
+        for memo in [None, Some("  ")] {
+            assert_eq!(validate_scan(Some(&memo_required), memo, "USDT"), Err(GemConfirmError::ScanMemoRequired { symbol: "USDT".to_string() }), "{memo:?}");
         }
     }
 
@@ -1816,7 +1833,6 @@ mod tests {
         let chain = Chain::Solana;
         let asset = Asset::from_chain(chain);
         let mut data = SendInput::mock(chain, TransactionInputType::Transfer { asset: asset.clone() }).confirm;
-        data.input.transfer.use_max_amount = false;
         data.input.transfer.value = BigInt::from(1_000);
         data.fee.fee = BigInt::from(1);
 
@@ -1835,6 +1851,34 @@ mod tests {
             other => panic!("expected an insufficient balance error, got {other:?}"),
         }
         assert!(matches!(data.preload_amount(&funded, &asset), GemTransferAmountResult::Amount { .. }));
+    }
+
+    #[test]
+    fn test_preload_amount_pays_the_fee_from_the_fee_coin() {
+        let token = Asset::mock_ethereum_usdc();
+        let eth = Asset::mock_eth();
+        let mut data = GemConfirmData::mock(Chain::Ethereum, TransactionInputType::Transfer { asset: token.clone() });
+        data.input.transfer.value = BigInt::from(1_000);
+        data.fee.fee = BigInt::from(500);
+
+        assert_eq!(
+            data.preload_amount(&GemConfirmMetadata::mock_with_fee(&token.id, 2_000_000, &eth.id, 10), &eth),
+            GemTransferAmountResult::Error {
+                error: GemConfirmError::InsufficientNetworkFee {
+                    asset: eth.clone(),
+                    requirement: Some(GemBalanceRequirement::new(500u64.into(), 10u64.into())),
+                },
+            }
+        );
+        assert_eq!(
+            data.preload_amount(&GemConfirmMetadata::mock_with_fee(&token.id, 10, &eth.id, 2_000_000), &eth),
+            GemTransferAmountResult::Error {
+                error: GemConfirmError::InsufficientBalance {
+                    asset: token,
+                    requirement: GemBalanceRequirement::new(1_000u64.into(), 10u64.into()),
+                },
+            }
+        );
     }
 
     #[test]
@@ -1945,6 +1989,7 @@ mod tests {
     fn test_preload_amount_hypercore_withdrawal() {
         let usdc = HYPERCORE_PERPETUAL_USDC.clone();
         let mut data = SendInput::mock(Chain::HyperCore, TransactionInputType::Withdrawal { asset: usdc.clone() }).confirm;
+        data.input.transfer.use_max_amount = true;
         data.input.transfer.value = BigInt::from(305_000_000);
         data.fee.fee = BigInt::from(1_000_000);
         let underwater = GemAssetBalance {

@@ -244,6 +244,7 @@ mod tests {
                         swap_data,
                     },
                 );
+                confirm.input.transfer.use_max_amount = true;
                 confirm.input.transfer.value = value.into();
                 confirm.fee = TransactionFee {
                     fee_asset: Asset::mock_eth().id,

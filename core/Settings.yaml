@@ -28,8 +28,6 @@ api:
   bind: "127.0.0.1:8000"
   shutdown:
     timeout: 12s
-  admin:
-    enabled: true
   auth:
     tolerance: 5m
 parser:

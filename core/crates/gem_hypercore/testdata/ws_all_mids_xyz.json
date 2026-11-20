@@ -1,0 +1,9 @@
+{
+  "channel": "allMids",
+  "data": {
+    "dex": "xyz",
+    "mids": {
+      "xyz:NVDA": "222.165"
+    }
+  }
+}

@@ -12,7 +12,7 @@ mod model;
 pub mod provider;
 #[cfg(feature = "wallet")]
 mod store;
-#[cfg(any(test, feature = "testkit"))]
+#[cfg(any(test, debug_assertions))]
 pub mod testkit;
 #[cfg(feature = "wallet")]
 mod wallet;

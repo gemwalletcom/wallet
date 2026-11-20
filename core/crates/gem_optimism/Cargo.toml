@@ -5,18 +5,18 @@ edition = { workspace = true }
 
 [features]
 default = []
-rpc = ["gem_evm/rpc", "gem_evm/signer", "dep:async-trait", "dep:futures", "dep:gem_client", "dep:alloy-sol-types"]
+rpc = ["dep:gem_evm", "gem_evm/rpc", "gem_evm/signer", "dep:async-trait", "dep:futures", "dep:gem_client", "dep:alloy-sol-types", "dep:alloy-primitives", "dep:primitives", "dep:num-bigint"]
 
 [dependencies]
-primitives = { path = "../primitives" }
-gem_evm = { path = "../gem_evm" }
+primitives = { path = "../primitives", optional = true }
+gem_evm = { path = "../gem_evm", optional = true }
 
 gem_client = { path = "../gem_client", optional = true }
 async-trait = { workspace = true, optional = true }
 futures = { workspace = true, optional = true }
-alloy-primitives = { workspace = true }
+alloy-primitives = { workspace = true, optional = true }
 alloy-sol-types = { workspace = true, optional = true }
-num-bigint = { workspace = true }
+num-bigint = { workspace = true, optional = true }
 
 [dev-dependencies]
-primitives = { path = "../primitives", features = ["testkit"] }
+gem_optimism = { path = ".", features = ["rpc"] }

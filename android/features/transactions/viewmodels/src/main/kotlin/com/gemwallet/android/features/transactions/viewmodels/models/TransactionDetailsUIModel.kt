@@ -5,4 +5,4 @@ import uniffi.gemstone.GemGroup
 import uniffi.gemstone.GemTransactionDetailRows
 
 @Immutable
-data class TransactionDetailsUIModel(val rows: GemTransactionDetailRows, val sections: List<GemGroup>, val headerTarget: TransactionHeaderTarget?)
+data class TransactionDetailsUIModel(val rows: GemTransactionDetailRows, val sections: List<GemGroup>)

@@ -14,3 +14,6 @@ protobuf = []
 bs58 = { workspace = true, optional = true }
 gem_hash = { path = "../gem_hash", optional = true }
 zeroize = { workspace = true, optional = true }
+
+[dev-dependencies]
+gem_encoding = { path = ".", features = ["base32", "base58", "base64", "protobuf"] }

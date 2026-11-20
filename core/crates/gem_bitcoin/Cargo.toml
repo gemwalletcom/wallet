@@ -6,11 +6,10 @@ publish = false
 
 [features]
 default = []
-rpc = ["dep:chain_traits", "dep:gem_client", "signer"]
+rpc = ["dep:chain_traits", "dep:gem_client", "signer", "dep:async-trait", "dep:futures", "dep:number_formatter"]
 signer = ["dep:bech32", "dep:bitcoin", "dep:gem_encoding", "dep:gem_hash"]
 reqwest = ["gem_client/reqwest"]
-testkit = ["primitives/testkit"]
-chain_integration_tests = ["rpc", "reqwest", "primitives/testkit", "settings/testkit"]
+chain_integration_tests = ["rpc", "reqwest"]
 
 [dependencies]
 num-traits = { workspace = true }
@@ -19,9 +18,9 @@ serde_json = { workspace = true }
 primitives = { path = "../primitives" }
 gem_client = { path = "../gem_client", optional = true }
 chain_traits = { path = "../chain_traits", optional = true }
-number_formatter = { path = "../number_formatter" }
-async-trait = { workspace = true }
-futures = { workspace = true }
+number_formatter = { path = "../number_formatter", optional = true }
+async-trait = { workspace = true, optional = true }
+futures = { workspace = true, optional = true }
 chrono = { workspace = true, features = ["serde"] }
 num-bigint = { workspace = true }
 serde_serializers = { path = "../serde_serializers", features = ["bigint"] }
@@ -33,8 +32,8 @@ bitcoin = { workspace = true, optional = true }
 bech32 = { workspace = true, optional = true }
 
 [dev-dependencies]
-chain_traits = { path = "../chain_traits", features = ["testkit"] }
-gem_client = { path = "../gem_client", features = ["testkit"] }
+gem_bitcoin = { path = ".", features = ["rpc", "signer"] }
+chain_traits = { path = "../chain_traits" }
+gem_client = { path = "../gem_client" }
 tokio = { workspace = true, features = ["macros", "rt"] }
-primitives = { path = "../primitives", features = ["testkit"] }
-settings = { path = "../settings", features = ["testkit"] }
+settings = { path = "../settings" }

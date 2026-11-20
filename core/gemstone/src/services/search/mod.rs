@@ -87,7 +87,7 @@ impl GemSearchService {
     }
 
     async fn save_perpetuals(&self, perpetuals: &[PerpetualSearchData], key: &str) -> Result<(), GemServiceError> {
-        self.perpetuals.save_markets(rules::perpetual_data(perpetuals)).await?;
+        self.perpetuals.save_missing_markets(rules::perpetual_data(perpetuals)).await?;
         self.store.set_perpetuals(key.to_string(), rules::perpetual_ids(perpetuals)).await
     }
 }
@@ -96,29 +96,14 @@ impl GemSearchService {
 mod tests {
     use futures::executor::block_on;
     use primitives::asset_constants::{ETHEREUM_USDT_ASSET_ID, NEAR_USDT_ASSET_ID, NEAR_USDT_TOKEN_ID};
-    use primitives::{AssetList, Chain};
+    use primitives::perpetual::Perpetual;
+    use primitives::{AssetList, Chain, PerpetualId, PerpetualProvider};
 
     use super::testkit::SearchTestkit;
     use super::*;
     use crate::services::node::rules::fallback_node;
 
-    const USDT_SEARCH_RESPONSE: &str = r#"{
-        "assets": [{
-            "asset": {"id": "ethereum_0xdAC17F958D2ee523a2206206994597C13D831ec7", "name": "Tether", "symbol": "USDT", "decimals": 6, "type": "ERC20"},
-            "properties": {"isEnabled": true, "isBuyable": true, "isSellable": true, "isSwapable": true, "isStakeable": false, "isEarnable": false, "hasImage": true, "hasCandles": false, "hasPrice": true},
-            "score": {"rank": 34, "type": "low"},
-            "price": {"price": 0.9998, "priceChangePercentage24h": -0.01, "updatedAt": "2026-09-27T22:44:30Z"}
-        }],
-        "perpetuals": [],
-        "nfts": [],
-        "lists": [{"id": "stablecoins", "name": "Stablecoins", "count": 12}]
-    }"#;
-
-    const ETH_SEARCH_ASSETS: &str = r#"[{
-        "asset": {"id": "ethereum", "name": "Ethereum", "symbol": "ETH", "decimals": 18, "type": "NATIVE"},
-        "properties": {"isEnabled": true, "isBuyable": true, "isSellable": true, "isSwapable": true, "isStakeable": false, "isEarnable": false, "hasImage": true, "hasCandles": false, "hasPrice": true},
-        "score": {"rank": 100, "type": "high"}
-    }]"#;
+    const USDT_SEARCH_RESPONSE: &str = include_str!("../../../../crates/gem_api/testdata/search_usdt.json");
 
     #[test]
     fn test_search_skips_an_empty_query_in_the_all_scope() {
@@ -165,7 +150,7 @@ mod tests {
     #[test]
     fn test_search_assets_returns_what_it_saved() {
         block_on(async {
-            let testkit = SearchTestkit::with_bodies(&[("/v1/assets/search?", ETH_SEARCH_ASSETS)]);
+            let testkit = SearchTestkit::with_bodies(&[("/v1/assets/search?", include_str!("../../../../crates/gem_api/testdata/search_assets_eth.json"))]);
             let ethereum = Chain::Ethereum.as_asset_id();
 
             let assets = testkit.service.search_assets(testkit.wallet.clone(), "eth".to_string()).await.unwrap();
@@ -177,15 +162,34 @@ mod tests {
         })
     }
 
-    const EMPTY_SEARCH_RESPONSE: &str = r#"{"assets": [], "perpetuals": [], "nfts": [], "lists": []}"#;
+    #[test]
+    fn test_a_search_keeps_the_stored_market_of_a_perpetual_and_saves_a_missing_one() {
+        block_on(async {
+            let testkit = SearchTestkit::with_bodies(&[("/v1/search?", include_str!("../../../../crates/gem_api/testdata/search_btc_eth_perpetuals.json"))]);
+            let btc = Perpetual {
+                price_percent_change_24h: -0.44,
+                ..Perpetual::mock()
+            };
+            let eth = Perpetual {
+                id: PerpetualId::new(PerpetualProvider::Hypercore, "ETH"),
+                name: "ETH".to_string(),
+                ..Perpetual::mock()
+            };
+            *testkit.perpetual_store.stored.lock().unwrap() = vec![btc.clone()];
+
+            assert!(testkit.service.search(testkit.wallet.clone(), "btc".to_string(), GemSearchScope::All).await.unwrap());
+
+            let written: Vec<Perpetual> = testkit.perpetual_store.perpetual_writes.lock().unwrap().iter().flatten().map(|data| data.perpetual.clone()).collect();
+            assert_eq!(written, vec![eth.clone()], "the stored BTC keeps its live 24h change; only the missing ETH is saved so it can be opened");
+            assert_eq!(*testkit.store.perpetuals.lock().unwrap(), vec![("btc".to_string(), vec![btc.id, eth.id])]);
+        })
+    }
+
+    const EMPTY_SEARCH_RESPONSE: &str = include_str!("../../../../crates/gem_api/testdata/search_empty.json");
 
     const NEAR_USDT_METADATA: &str = include_str!("../../../../crates/gem_near/testdata/ft_metadata_usdt.json");
 
-    const NEAR_SPAM_ASSETS: &str = r#"[{
-        "asset": {"id": "near_usdt.tether-token.near", "name": "Tether USD", "symbol": "USDt", "decimals": 6, "type": "TOKEN"},
-        "properties": {"isEnabled": false, "isBuyable": false, "isSellable": false, "isSwapable": false, "isStakeable": false, "isEarnable": false, "hasImage": false, "hasCandles": false, "hasPrice": false},
-        "score": {"rank": -20, "type": "unknown"}
-    }]"#;
+    const NEAR_SPAM_ASSETS: &str = include_str!("../../../../crates/gem_api/testdata/assets_near_usdt_spam.json");
 
     #[test]
     fn test_a_contract_search_keeps_the_stored_rank_and_flags_of_a_spam_token() {

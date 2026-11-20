@@ -12,3 +12,6 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 num-bigint = { workspace = true, optional = true }
 gem_encoding = { path = "../gem_encoding", default-features = false }
+
+[dev-dependencies]
+serde_serializers = { path = ".", features = ["bigint"] }

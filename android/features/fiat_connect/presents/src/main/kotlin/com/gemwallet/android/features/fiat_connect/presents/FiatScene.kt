@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -75,7 +76,7 @@ internal fun FiatScene(
     selectedProvider: GemFiatQuoteRow?,
     providerListItem: ListItemModel?,
     rateRow: GemListRow?,
-    fiatAmount: String,
+    amount: TextFieldState,
     suggestedAmounts: List<GemFiatSuggestedAmount>,
     snackbar: SnackbarHostState,
     titleContent: @Composable () -> Unit,
@@ -110,11 +111,10 @@ internal fun FiatScene(
         Spacer16()
         AmountField(
             modifier = Modifier.testTag("amountInputField"),
-            amount = fiatAmount,
+            state = amount,
             symbol = viewState.amountField.amountSymbol(),
             equivalent = selectedProvider?.let { it.cryptoEstimateText(it.cryptoAmount.text()) } ?: " ",
             error = viewState.amountError?.string(LocalContext.current).orEmpty(),
-            onValueChange = { onAction(FiatAction.SetAmount(it)) },
             keyboardType = viewState.amountField.keyboard.keyboardType(),
             maximumFractionDigits = 0,
             textStyle = MaterialTheme.typography.displayMedium,

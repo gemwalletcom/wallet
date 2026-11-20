@@ -5,7 +5,7 @@ edition = { workspace = true }
 
 [dependencies]
 bech32 = { workspace = true }
-gem_hash = { path = "../gem_hash" }
+gem_hash = { path = "../gem_hash", optional = true }
 gem_encoding = { path = "../gem_encoding" }
 primitives = { path = "../primitives" }
 serde = { workspace = true, features = ["derive"] }
@@ -33,13 +33,14 @@ rpc = [
     "dep:chain_traits",
     "dep:futures",
     "dep:number_formatter",
+    "dep:gem_hash",
 ]
-signer = ["dep:signer", "gem_encoding/protobuf"]
+signer = ["dep:signer", "gem_encoding/protobuf", "dep:gem_hash"]
 reqwest = ["gem_client/reqwest"]
-chain_integration_tests = ["rpc", "reqwest", "settings/testkit"]
+chain_integration_tests = ["rpc", "reqwest"]
 
 [dev-dependencies]
-gem_client = { path = "../gem_client", features = ["testkit"] }
-primitives = { path = "../primitives", features = ["testkit"] }
+gem_cosmos = { path = ".", features = ["rpc", "signer"] }
+gem_client = { path = "../gem_client" }
 tokio = { workspace = true, features = ["macros", "rt"] }
-settings = { path = "../settings", features = ["testkit"] }
+settings = { path = "../settings" }

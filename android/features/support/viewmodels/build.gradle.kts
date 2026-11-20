@@ -9,7 +9,6 @@ android {
 
 dependencies {
     implementation(project(":data:services:store"))
-    api(project(":ui-models"))
     implementation(project(":ui"))
 
     implementation(libs.hilt.android)

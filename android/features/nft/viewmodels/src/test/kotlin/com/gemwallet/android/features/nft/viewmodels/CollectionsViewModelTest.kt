@@ -12,6 +12,7 @@ import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.models.ToastMessage
 import com.wallet.core.primitives.WalletId
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -61,7 +62,7 @@ class CollectionsViewModelTest {
     fun `a failed refresh over only unverified collections toasts and keeps the list`() = runTest(dispatcher) {
         val service = mockk<GemNftServiceInterface> {
             every { listScreen(any(), any(), any(), any()) } returns onlyUnverified
-            coEvery { refresh(true) } returns GemRefreshResult(state = GemLoadState.Data, toast = GemServiceException.Gateway("offline"))
+            coEvery { refresh(any()) } returns GemRefreshResult(state = GemLoadState.Data, toast = GemServiceException.Gateway("offline"))
         }
         val viewModel = CollectionsViewModel(
             nftService = service,
@@ -77,8 +78,9 @@ class CollectionsViewModelTest {
         viewModel.refresh()
         advanceUntilIdle()
 
-        assertEquals(R.drawable.ic_error, toast.await().image)
-        assertEquals(GemListPhase.Rows, viewModel.phase.value)
+        assertEquals(R.drawable.ic_error, toast.getCompleted().image)
+        coVerify { service.refresh(true) }
+        verify { service.listScreen(any(), any(), GemLoadState.Data, any()) }
         collector.cancel()
     }
 

@@ -150,10 +150,16 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
     let (sender, shutdown) = shutdown_channel();
     spawn_signal_handler(sender);
     match service {
-        APIService::Api => {
+        APIService::Api | APIService::Admin => {
             let clients = api_clients(&settings).await?;
             let http_metrics = clients.metrics.http().clone();
-            let router = routes::router(AppState(Arc::new(clients)), settings.api.admin.enabled, &settings.server.request, &http_metrics);
+            let state = AppState(Arc::new(clients));
+            let request = &settings.server.request;
+            let router = if service == APIService::Admin {
+                routes::admin_router(state, request, &http_metrics)
+            } else {
+                routes::router(state, request, &http_metrics)
+            };
             serve(NormalizePathLayer::trim_trailing_slash().layer(router), address, config, shutdown).await
         }
         APIService::WebsocketStream => {

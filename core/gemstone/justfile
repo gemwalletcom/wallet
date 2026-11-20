@@ -12,13 +12,11 @@ test:
     cargo test --lib
 
 export ANDROID_HOME := env("ANDROID_HOME", env("HOME") / "Library/Android/sdk")
-export CARGO_NDK_VERSION := env("CARGO_NDK_VERSION", "4.1.2")
-
 install-ndk:
     #!/usr/bin/env bash
     set -eu
     SDK_MANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
-    NDK="ndk;28.1.13356709"
+    NDK="ndk;$(sed -n 's/^androidNdk = "\(.*\)"$/\1/p' ../../android/gradle/libs.versions.toml)"
 
     if [ ! -x "$SDK_MANAGER" ]; then
         command -v sdkmanager >/dev/null || brew install --cask android-commandlinetools
@@ -36,7 +34,7 @@ install-ios-targets:
 
 install-android-targets:
     rustup target add x86_64-linux-android aarch64-linux-android armv7-linux-androideabi
-    cargo install cargo-ndk@${CARGO_NDK_VERSION}
+    . ../../android/reproducible/versions.sh && cargo install "cargo-ndk@$CARGO_NDK_VERSION"
 
 export LIB_NAME := "gemstone"
 export DY_LIB_NAME := if os() == "macos" { "libgemstone.dylib" } else { "libgemstone.so" }

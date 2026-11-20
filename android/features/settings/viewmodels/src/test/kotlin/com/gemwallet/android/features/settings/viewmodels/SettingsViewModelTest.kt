@@ -126,14 +126,14 @@ class SettingsViewModelTest {
 
     @Test
     fun `the rows follow core's answer for the loaded wallets`() = runTest(testDispatcher) {
-        every { settingsService.sections(any(), any(), any()) } returns listOf(section(GemListRowTitle.WALLETS to GemRowAction.Wallets))
+        every { settingsService.sections(any(), any()) } returns listOf(section(GemListRowTitle.WALLETS to GemRowAction.Wallets))
         wallets.value = listOf(mockWalletListItem(id = WalletId("single_ethereum_0x1")))
         viewModel = createViewModel()
         advanceUntilIdle()
 
         assertEquals(listOf(SettingsAction.Wallets), viewModel.actions().first { it.isNotEmpty() })
 
-        every { settingsService.sections(any(), any(), any()) } returns listOf(section(GemListRowTitle.WALLETS to GemRowAction.Wallets, GemListRowTitle.REWARDS to GemRowAction.Rewards))
+        every { settingsService.sections(any(), any()) } returns listOf(section(GemListRowTitle.WALLETS to GemRowAction.Wallets, GemListRowTitle.REWARDS to GemRowAction.Rewards))
         wallets.value = listOf(mockWalletListItem())
         advanceUntilIdle()
 
@@ -150,7 +150,7 @@ class SettingsViewModelTest {
     )
 
     private val settingsService = mockk<GemSettingsServiceInterface>(relaxed = true).also {
-        every { it.sections(any(), any(), any()) } returns listOf(section(GemListRowTitle.WALLETS to GemRowAction.Wallets))
+        every { it.sections(any(), any()) } returns listOf(section(GemListRowTitle.WALLETS to GemRowAction.Wallets))
     }
 
     private fun createViewModel() = SettingsViewModel(
@@ -161,7 +161,6 @@ class SettingsViewModelTest {
         refreshPushEnabled = refreshPushEnabled,
         notificationsAvailable = true,
         settingsService = settingsService,
-        isWalletConnectEnabled = mockk { every { isWalletConnectEnabled() } returns true },
         ioDispatcher = testDispatcher,
         context = mockk<Context> { every { getString(any()) } answers { "string:${firstArg<Int>()}" } },
     )

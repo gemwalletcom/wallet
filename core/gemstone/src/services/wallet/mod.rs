@@ -30,9 +30,11 @@ pub(crate) mod testkit;
 
 use std::sync::Arc;
 
+use gem_hypercore::agent::Agent;
 use gem_keystore::Mnemonic;
 use primitives::{Chain, ChainAsset, NFTData, Wallet, WalletId, WalletSource, WalletType};
 
+use crate::gateway::SecureStoreWrapper;
 use crate::keystore::decode_password;
 use crate::keystore::{GemImportType, GemKeystore, GemWalletImport, keystore_id_for_wallet};
 use crate::lightning::{SESSIONS, account_key_name};
@@ -76,7 +78,7 @@ pub struct GemWalletService {
     explorer: Arc<GemExplorerService>,
     names: Arc<GemNameService>,
     avatar: Arc<GemAvatarService>,
-    secure: Arc<dyn GemSecureStore>,
+    secure_preferences: Arc<dyn GemSecureStore>,
 }
 
 #[uniffi::export]
@@ -93,7 +95,7 @@ impl GemWalletService {
         explorer: Arc<GemExplorerService>,
         names: Arc<GemNameService>,
         avatar: Arc<GemAvatarService>,
-        secure: Arc<dyn GemSecureStore>,
+        secure_preferences: Arc<dyn GemSecureStore>,
     ) -> Self {
         Self {
             keystore,
@@ -106,7 +108,7 @@ impl GemWalletService {
             explorer,
             names,
             avatar,
-            secure,
+            secure_preferences,
         }
     }
 
@@ -156,10 +158,13 @@ impl GemWalletService {
     pub async fn delete_wallet(&self, wallet_id: WalletId) -> Result<GemWalletDeletion, GemServiceError> {
         let wallet = self.wallet(wallet_id.clone()).await?;
         if wallet.wallet_type != WalletType::View {
+            self.remove_hypercore_agents(&wallet).await?;
             let address = wallet.account(Chain::Lightning).map(|account| account.address.as_str());
             SESSIONS
                 .close_and_remove(address, || {
-                    self.secure.remove(account_key_name(&wallet.id))?;
+                    if address.is_some() {
+                        self.secure_preferences.remove(account_key_name(&wallet.id))?;
+                    }
                     Ok(self.keystore.delete_wallet_secrets(wallet.id.id(), rules::legacy_keystore_id(&wallet))?)
                 })
                 .await?;
@@ -400,6 +405,14 @@ impl GemWalletService {
         self.store_wallet(wallet).await
     }
 
+    async fn remove_hypercore_agents(&self, wallet: &Wallet) -> Result<(), GemServiceError> {
+        let agent = Agent::new(Arc::new(SecureStoreWrapper { store: self.secure_preferences.clone() }));
+        for address in rules::hypercore_agent_addresses(wallet, &self.store.get_wallets().await?) {
+            let _ = agent.remove_credentials(&address);
+        }
+        Ok(())
+    }
+
     async fn store_wallet(&self, wallet: &Wallet) -> Result<(), GemServiceError> {
         self.store.add_wallet(wallet.clone()).await?;
         self.names.save_names(rules::wallet_address_names(wallet)).await
@@ -488,6 +501,39 @@ mod tests {
             assert!(!context.keystore_path(&kept).exists());
             assert_eq!(context.service.session.get_current_wallet_id().unwrap(), None);
             assert_eq!(context.service.app_preferences.get_currency(), Currency::EUR);
+        });
+    }
+
+    #[test]
+    fn test_delete_wallet_removes_its_hyperliquid_agent_key_and_keeps_another_wallets() {
+        block_on(async {
+            let context = WalletTestkit::new();
+            let kept = context.import_chains("Kept", OTHER_PHRASE, vec![Chain::HyperCore]).await;
+            let deleted = context.import_chains("Deleted", PHRASE, vec![Chain::HyperCore]).await;
+            let agent = Agent::new(Arc::new(SecureStoreWrapper { store: context.secure_store.clone() }));
+            agent.get_or_create_credentials(&kept.accounts[0].address).unwrap();
+            let kept_values = context.secure_store.values.lock().unwrap().clone();
+            agent.get_or_create_credentials(&deleted.accounts[0].address).unwrap();
+
+            context.service.delete_wallet(deleted.id.clone()).await.unwrap();
+
+            assert_eq!(*context.secure_store.values.lock().unwrap(), kept_values);
+            assert_eq!(kept_values.len(), 2);
+        });
+    }
+
+    #[test]
+    fn test_delete_wallet_removes_the_wallet_and_its_secret_when_the_agent_key_cannot_be_removed() {
+        block_on(async {
+            let context = WalletTestkit::new();
+            let wallet = context.import_chains("Deleted", PHRASE, vec![Chain::HyperCore]).await;
+            *context.secure_store.remove_error.lock().unwrap() = Some(GemServiceError::Platform { msg: "locked".to_string() });
+
+            let outcome = context.service.delete_wallet(wallet.id.clone()).await.unwrap();
+
+            assert_eq!(outcome, GemWalletDeletion::LastWalletDeleted);
+            assert!(!context.keystore_path(&wallet).exists());
+            assert_eq!(context.service.wallets().await.unwrap().len(), 0);
         });
     }
 

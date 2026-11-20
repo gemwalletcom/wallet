@@ -292,20 +292,25 @@ class ConfirmTransferViewModel @Inject constructor(
         reload.tryEmit(Unit)
     }
 
-    fun action(): GemConfirmAction? = screen.value.action()
+    fun confirm(requestAuth: (onCancel: () -> Unit, onSuccess: () -> Unit) -> Unit) {
+        when (screen.value.action()) {
+            GemConfirmAction.EXECUTE -> {
+                executeError.value = null
+                screen.update { it.onExecuteStarted() }
+                requestAuth({ screen.update { it.onExecuteCancelled() } }, ::submit)
+            }
+
+            GemConfirmAction.LOAD -> load()
+
+            null -> Unit
+        }
+    }
 
     fun dismissExecuteError() {
         executeError.value = null
     }
 
-    fun startExecute() {
-        executeError.value = null
-        screen.update { it.onExecuteStarted() }
-    }
-
-    fun cancelExecute() = screen.update { it.onExecuteCancelled() }
-
-    fun submit() = viewModelScope.launch {
+    private fun submit() = viewModelScope.launch {
         val session = confirmation.value ?: return@launch
 
         try {

@@ -387,7 +387,7 @@ public final class GemSettingsServiceMock: GemSettingsServiceProtocol, @unchecke
         pickersValue
     }
 
-    public func sections(wallets _: [Gemstone.WalletListItem], notificationsAvailable _: Bool, walletConnectAvailable _: Bool) -> [GemGroup] {
+    public func sections(wallets _: [Gemstone.WalletListItem], notificationsAvailable _: Bool) -> [GemGroup] {
         sectionsValue
     }
 

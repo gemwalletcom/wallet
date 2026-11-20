@@ -53,7 +53,7 @@ impl<C: Client + Clone> NameResolver for EnsProvider<C> {
     }
 }
 
-fn ens_name(query: &NameQuery) -> Option<String> {
+pub(crate) fn ens_name(query: &NameQuery) -> Option<String> {
     query.ascii_domain().ok().filter(|name| !name.split('.').any(|label| label.starts_with("xn--")) && dns_encode(name).is_ok())
 }
 

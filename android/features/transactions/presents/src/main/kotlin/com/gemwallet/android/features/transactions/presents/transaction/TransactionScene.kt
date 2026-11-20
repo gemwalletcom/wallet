@@ -14,7 +14,6 @@ import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.ext.toChain
 import com.gemwallet.android.features.transactions.presents.transaction.components.TransactionSwapProgressItem
-import com.gemwallet.android.features.transactions.viewmodels.models.TransactionHeaderTarget
 import com.gemwallet.android.ui.R
 import com.gemwallet.android.ui.components.buttons.MainActionButton
 import com.gemwallet.android.ui.components.list_head.TransactionListHead
@@ -31,12 +30,14 @@ import com.gemwallet.android.ui.theme.paddingSmall
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.ChainAddress
+import com.wallet.core.primitives.NFTAssetId
 import uniffi.gemstone.GemGroup
 import uniffi.gemstone.GemListItem
 import uniffi.gemstone.GemTransactionDetailRow
+import uniffi.gemstone.GemTransactionHeaderAction
 
 @Composable
-internal fun TransactionScene(title: String, sections: List<GemGroup>, headerTarget: TransactionHeaderTarget?, chain: Chain, onAction: (TransactionAction) -> Unit) {
+internal fun TransactionScene(title: String, sections: List<GemGroup>, headerAction: GemTransactionHeaderAction?, chain: Chain, onAction: (TransactionAction) -> Unit) {
     val context = LocalContext.current
     Scene(
         title = title,
@@ -76,7 +77,7 @@ internal fun TransactionScene(title: String, sections: List<GemGroup>, headerTar
 
                         is GemTransactionDetailRow.Header -> TransactionListHead(
                             header = row.header,
-                            onClick = headerTarget?.let { target -> { onAction(target.navigation()) } },
+                            onClick = headerAction?.let { action -> { onAction(action.navigation()) } },
                             onAssetClick = { onAction(TransactionAction.OpenAsset(it)) },
                         )
 
@@ -99,9 +100,9 @@ internal fun TransactionScene(title: String, sections: List<GemGroup>, headerTar
     }
 }
 
-private fun TransactionHeaderTarget.navigation(): TransactionAction.Navigation = when (this) {
-    is TransactionHeaderTarget.Asset -> TransactionAction.OpenAsset(assetId)
-    is TransactionHeaderTarget.Nft -> TransactionAction.OpenNft(assetId)
-    is TransactionHeaderTarget.Swap -> TransactionAction.OpenSwap(fromAssetId = fromAssetId, toAssetId = toAssetId)
-    is TransactionHeaderTarget.Perpetual -> TransactionAction.OpenPerpetual(assetId)
+private fun GemTransactionHeaderAction.navigation(): TransactionAction.Navigation = when (this) {
+    is GemTransactionHeaderAction.Asset -> TransactionAction.OpenAsset(AssetId(assetId))
+    is GemTransactionHeaderAction.Nft -> TransactionAction.OpenNft(NFTAssetId(assetId))
+    is GemTransactionHeaderAction.Swap -> TransactionAction.OpenSwap(fromAssetId = AssetId(fromAssetId), toAssetId = AssetId(toAssetId))
+    is GemTransactionHeaderAction.Perpetual -> TransactionAction.OpenPerpetual(AssetId(assetId))
 }

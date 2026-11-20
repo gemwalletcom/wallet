@@ -10,7 +10,7 @@ mod request;
 mod target;
 mod types;
 
-#[cfg(any(test, feature = "testkit"))]
+#[cfg(any(test, debug_assertions))]
 pub mod testkit;
 
 #[cfg(feature = "reqwest")]

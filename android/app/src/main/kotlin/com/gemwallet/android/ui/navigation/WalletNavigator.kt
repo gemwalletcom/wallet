@@ -71,6 +71,7 @@ import com.gemwallet.android.ui.navigation.routes.PerpetualRoute
 import com.gemwallet.android.ui.navigation.routes.PerpetualsRoute
 import com.gemwallet.android.ui.navigation.routes.PortfolioRoute
 import com.gemwallet.android.ui.navigation.routes.PreferencesRoute
+import com.gemwallet.android.ui.navigation.routes.PriceAlertSelectRoute
 import com.gemwallet.android.ui.navigation.routes.PriceAlertsRoute
 import com.gemwallet.android.ui.navigation.routes.PrivateKeyAccountsRoute
 import com.gemwallet.android.ui.navigation.routes.PrivateKeyWarningRoute
@@ -134,7 +135,7 @@ class WalletNavigator(
 ) {
     private val routeMessages = mutableStateMapOf<NavKey, RouteMessage>()
     private val swapSelections = mutableStateMapOf<NavKey, SwapSelection>()
-    private val paymentSelections = mutableStateMapOf<NavKey, AssetId>()
+    private val assetSelections = mutableStateMapOf<NavKey, AssetId>()
 
     private fun push(route: NavKey): Boolean {
         if (backStack.lastOrNull() == route) return true
@@ -215,15 +216,15 @@ class WalletNavigator(
 
     fun swapSelection(route: NavKey): SwapSelection? = swapSelections[route]
 
-    fun paymentSelection(route: NavKey): AssetId? = paymentSelections[route]
+    fun assetSelection(route: NavKey): AssetId? = assetSelections[route]
 
-    fun clearPaymentSelection(route: NavKey) {
-        paymentSelections.remove(route)
+    fun clearAssetSelection(route: NavKey) {
+        assetSelections.remove(route)
     }
 
-    fun openPaymentSelect(assetIds: List<AssetId>) = push(PaymentSelectRoute(assetIds))
+    fun finishAssetSelect(assetId: AssetId) = popWithResult(assetSelections, assetId)
 
-    fun finishPaymentSelect(assetId: AssetId) = popWithResult(paymentSelections, assetId)
+    fun openPaymentSelect(assetIds: List<AssetId>) = push(PaymentSelectRoute(assetIds))
 
     fun clearSwapSelection(route: NavKey) {
         swapSelections.remove(route)
@@ -313,6 +314,7 @@ class WalletNavigator(
     fun openPriceAlerts() = push(PriceAlertsRoute)
     fun openPriceAlerts(assetId: AssetId) = push(AssetPriceAlertsRoute(assetId))
     fun openSetPriceAlert(assetId: AssetId) = push(SetPriceAlertRoute(assetId))
+    fun openPriceAlertSelect() = push(PriceAlertSelectRoute)
     fun openPerpetuals() = push(PerpetualsRoute)
     fun openPerpetual(assetId: AssetId) = push(PerpetualRoute(assetId))
 
@@ -410,7 +412,7 @@ class WalletNavigator(
 
     private fun clearTransientState() {
         clearSwapSelections()
-        paymentSelections.clear()
+        assetSelections.clear()
         routeMessages.clear()
     }
 

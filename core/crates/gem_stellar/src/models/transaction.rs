@@ -125,6 +125,7 @@ impl Payment {
     }
 }
 
+#[cfg(feature = "rpc")]
 const BASE_FEE_STROOPS: u32 = 100;
 
 const ORDER_DESCENDING: &str = "desc";

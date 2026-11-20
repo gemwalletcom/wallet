@@ -1,3 +1,4 @@
+use bech32::{Bech32, primitives::decode::CheckedHrpstring};
 use primitives::SignerError;
 
 const ADDRESS_HRP: &str = "addr";
@@ -18,12 +19,13 @@ pub(crate) struct ShelleyAddress {
 
 impl ShelleyAddress {
     pub(crate) fn parse(address: &str) -> Result<Self, SignerError> {
-        let (hrp, bytes) = bech32::decode(address).map_err(|_| SignerError::invalid_input("invalid Cardano address"))?;
-        if hrp.as_str() != ADDRESS_HRP {
+        let decoded = CheckedHrpstring::new::<Bech32>(address).map_err(|_| SignerError::invalid_input("invalid Cardano address"))?;
+        if decoded.hrp().as_str() != ADDRESS_HRP {
             return SignerError::invalid_input_err("unsupported Cardano address network");
         }
+        decoded.validate_segwit_padding().map_err(|_| SignerError::invalid_input("invalid Cardano address"))?;
 
-        Self::from_bytes(bytes)
+        Self::from_bytes(decoded.byte_iter().collect())
     }
 
     pub(crate) fn as_bytes(&self) -> &[u8] {
@@ -110,6 +112,7 @@ mod tests {
     #[test]
     fn test_shelley_address_rejects_unsupported() {
         assert!(ShelleyAddress::parse("stake1uykptcz226y5r5at5rfqqm00p9n0z0yfajz3gk3j3wm8dxg2sn0r4").is_err());
+        assert!(ShelleyAddress::parse("addr1q8043m5heeaydnvtmmkyuhe6qv5havvhsf0d26q3jygsspxlyfpyk6yqkw0yhtyvtr0flekj84u64az82cufmqn65zd3efkrhr").is_err());
         assert!(ShelleyAddress::parse("addr_test1qr4p6f6mm0q9kfyyd9u30umk9cc6gk0nxu25k5rsc4fp7ls7k0qqxslcwwj4gvn4yfmdyrfgwjt3ztuz4zpy4242u0m95r0n").is_err());
     }
 }

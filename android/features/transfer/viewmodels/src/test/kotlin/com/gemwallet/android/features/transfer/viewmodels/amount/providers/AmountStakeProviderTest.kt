@@ -25,7 +25,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import uniffi.gemstone.DelegationValidator
 import uniffi.gemstone.GemAmountRequest
-import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemGroup
 import uniffi.gemstone.GemGroupList
 import uniffi.gemstone.GemListItem
@@ -34,6 +33,7 @@ import uniffi.gemstone.GemListSectionFooter
 import uniffi.gemstone.GemListSectionTitle
 import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemStakeAmountInput
+import uniffi.gemstone.GemStakeServiceInterface
 import java.math.BigInteger
 
 class AmountStakeProviderTest {
@@ -48,7 +48,7 @@ class AmountStakeProviderTest {
         )
     private val storedValidators = MutableStateFlow(listOf(validator, otherValidator))
 
-    private val service = mockk<GemAmountServiceInterface> {
+    private val stakeService = mockk<GemStakeServiceInterface> {
         every { stakeValidatorOptions(any(), any(), any()) } answers {
             GemGroupList(
                 groups = listOf(
@@ -71,7 +71,7 @@ class AmountStakeProviderTest {
     private fun makeProvider(input: GemStakeAmountInput) = AmountStakeProvider(
         params = AmountParams.Stake(asset.id, input),
         validators = storedValidators,
-        service = service,
+        stakeService = stakeService,
         scope = scope,
         ioDispatcher = Dispatchers.Unconfined,
     )

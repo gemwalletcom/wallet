@@ -8,7 +8,6 @@ import com.gemwallet.android.application.device.cases.GetPushEnabled
 import com.gemwallet.android.application.device.cases.RefreshPushEnabled
 import com.gemwallet.android.application.device.cases.SwitchPushEnabled
 import com.gemwallet.android.application.preferences.cases.ObservablePreferences
-import com.gemwallet.android.application.wallet_connect.cases.IsWalletConnectEnabled
 import com.gemwallet.android.data.services.store.queries.WalletListItemsQuery
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.model.NotificationsAvailable
@@ -42,7 +41,6 @@ class SettingsViewModel @Inject constructor(
     private val refreshPushEnabled: RefreshPushEnabled,
     val notificationsAvailable: NotificationsAvailable,
     private val settingsService: GemSettingsServiceInterface,
-    private val isWalletConnectEnabled: IsWalletConnectEnabled,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
@@ -54,7 +52,6 @@ class SettingsViewModel @Inject constructor(
         settingsService.sections(
             wallets = wallets.map { it.toGem() },
             notificationsAvailable = notificationsAvailable,
-            walletConnectAvailable = isWalletConnectEnabled.isWalletConnectEnabled(),
         )
     }
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())

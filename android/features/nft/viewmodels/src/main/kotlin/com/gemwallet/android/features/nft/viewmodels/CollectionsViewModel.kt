@@ -21,7 +21,6 @@ import com.wallet.core.primitives.WalletId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -80,7 +79,7 @@ class CollectionsViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val screen: StateFlow<GemNftListScreen> = combine(session, nftData, loadState) { session, data, state -> nftService.listScreen(data.map { it.toGem() }, list, state, walletType(session)) }
-        .flowOn(Dispatchers.Default)
+        .flowOn(ioDispatcher)
         .stateIn(viewModelScope, SharingStarted.Eagerly, nftService.listScreen(emptyList(), list, loadState.value, walletType(session.value)))
 
     val title: StateFlow<String> = screen

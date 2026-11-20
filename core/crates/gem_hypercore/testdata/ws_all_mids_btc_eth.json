@@ -1,0 +1,9 @@
+{
+  "channel": "allMids",
+  "data": {
+    "mids": {
+      "BTC": "104633.0",
+      "ETH": "3321.1"
+    }
+  }
+}

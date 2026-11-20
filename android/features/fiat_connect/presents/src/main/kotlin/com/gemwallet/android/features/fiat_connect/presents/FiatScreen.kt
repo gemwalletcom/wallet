@@ -53,7 +53,6 @@ fun FiatScreen(cancelAction: CancelAction, onFiatTransactions: () -> Unit, viewM
     val type by viewModel.type.collectAsStateWithLifecycle()
     val viewState by viewModel.viewState.collectAsStateWithLifecycle()
     val asset by viewModel.assetInfoUIModel.collectAsStateWithLifecycle()
-    val amount by viewModel.amount.collectAsStateWithLifecycle()
     val providers by viewModel.providers.collectAsStateWithLifecycle()
     val selectedProvider by viewModel.selectedProvider.collectAsStateWithLifecycle()
     val providerListItem by viewModel.providerListItem.collectAsStateWithLifecycle()
@@ -80,7 +79,7 @@ fun FiatScreen(cancelAction: CancelAction, onFiatTransactions: () -> Unit, viewM
         selectedProvider = selectedProvider,
         providerListItem = providerListItem,
         rateRow = rateRow,
-        fiatAmount = amount,
+        amount = viewModel.amount,
         suggestedAmounts = viewModel.suggestedAmounts,
         titleContent = {
             FiatTitle(
@@ -92,8 +91,6 @@ fun FiatScreen(cancelAction: CancelAction, onFiatTransactions: () -> Unit, viewM
         },
     ) { action ->
         when (action) {
-            is FiatAction.SetAmount -> viewModel.updateAmount(action.amount)
-
             is FiatAction.SelectAmount -> viewModel.selectAmount(action.amount)
 
             is FiatAction.SelectProvider -> viewModel.setProvider(action.provider)

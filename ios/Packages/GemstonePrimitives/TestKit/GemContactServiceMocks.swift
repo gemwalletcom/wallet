@@ -23,15 +23,9 @@ public final class GemWalletConnectServiceMock: GemWalletConnectServiceProtocol,
     public var connectionDetailRows: [GemListRow] = []
     public var hasSessionsValue = false
 
-    public private(set) var addedConnections: [Gemstone.WalletConnection] = []
     public private(set) var viewedConnections: [Gemstone.WalletConnection] = []
-    public private(set) var updatedSessions: [[Gemstone.WalletConnectionSession]] = []
 
     public init() {}
-
-    public func addConnection(connection: Gemstone.WalletConnection) async throws {
-        addedConnections.append(connection)
-    }
 
     public func connectionDetails(connection: Gemstone.WalletConnection) -> GemConnectionDetails {
         GemConnectionDetails(
@@ -77,26 +71,6 @@ public final class GemWalletConnectServiceMock: GemWalletConnectServiceProtocol,
             verificationStatus: validation,
         )
     }
-
-    public func session(topic: String, accounts _: [String], expireAt: Int64, metadata: Gemstone.ApplicationMetadata) throws -> Gemstone.WalletConnectionSession {
-        Gemstone.WalletConnectionSession(
-            id: topic,
-            sessionId: topic,
-            state: .active,
-            chains: [],
-            createdAt: Date(timeIntervalSince1970: 0),
-            expireAt: Date(timeIntervalSince1970: TimeInterval(expireAt)),
-            metadata: metadata,
-        )
-    }
-
-    public func sessionApproval(wallet _: Gemstone.Wallet) -> GemSessionApproval {
-        GemSessionApproval(chains: [], accounts: [], methods: [], events: [])
-    }
-
-    public func updateSessions(sessions: [Gemstone.WalletConnectionSession]) async throws {
-        updatedSessions.append(sessions)
-    }
 }
 
 public final class GemSupportServiceMock: GemSupportServiceProtocol, @unchecked Sendable {
@@ -104,7 +78,9 @@ public final class GemSupportServiceMock: GemSupportServiceProtocol, @unchecked 
     public var sendError: Error?
     public var syncError: Error?
     public var imageFileError: Error?
+    public var syncFromTimestampValue: UInt64 = 0
 
+    public private(set) var syncCursorMessageIds: [String] = []
     public private(set) var syncedTimestamps: [UInt64] = []
     public private(set) var sentTexts: [String] = []
     public private(set) var retriedMessageIds: [String] = []
@@ -153,14 +129,8 @@ public final class GemSupportServiceMock: GemSupportServiceProtocol, @unchecked 
     }
 
     public func syncFromTimestamp(messages: [Gemstone.SupportMessage]) -> UInt64 {
-        messages.last {
-            if case .agent = $0.sender {
-                true
-            } else {
-                false
-            }
-        }
-        .map { UInt64(max($0.createdAt.timeIntervalSince1970, 0)) } ?? 0
+        syncCursorMessageIds.append(contentsOf: messages.map(\.id))
+        return syncFromTimestampValue
     }
 
     public func refresh(fromTimestamp: UInt64) async -> GemLoadState {

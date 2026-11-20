@@ -1,20 +1,21 @@
 use primitives::{AssetId, Chain, Delegation, DelegationBase, DelegationState, DelegationValidator};
 
-#[cfg(all(feature = "rpc", feature = "reqwest"))]
+#[cfg(feature = "chain_integration_tests")]
 use gem_client::ReqwestClient;
-#[cfg(all(feature = "rpc", feature = "reqwest"))]
+#[cfg(feature = "chain_integration_tests")]
 use gem_evm::rpc::EthereumClient;
-#[cfg(all(feature = "rpc", feature = "reqwest"))]
+#[cfg(feature = "chain_integration_tests")]
 use primitives::EVMChain;
-#[cfg(all(feature = "rpc", feature = "reqwest"))]
+#[cfg(feature = "chain_integration_tests")]
 use settings::testkit::get_test_settings;
 
-#[cfg(all(feature = "rpc", feature = "reqwest"))]
+#[cfg(feature = "chain_integration_tests")]
 use crate::client::EverstakeClient;
 use crate::constants::EVERSTAKE_POOL_ADDRESS;
-#[cfg(all(feature = "rpc", feature = "reqwest"))]
+#[cfg(feature = "chain_integration_tests")]
 use crate::staking::EverstakeStakingClient;
 
+#[cfg(feature = "chain_integration_tests")]
 pub const TEST_ETHEREUM_STAKING_ADDRESS: &str = gem_evm::testkit::TEST_ADDRESS;
 
 pub fn mock_delegation(state: DelegationState) -> Delegation {
@@ -34,7 +35,7 @@ pub fn mock_delegation(state: DelegationState) -> Delegation {
     }
 }
 
-#[cfg(all(feature = "rpc", feature = "reqwest"))]
+#[cfg(feature = "chain_integration_tests")]
 pub fn create_everstake_staking_client() -> EverstakeStakingClient<ReqwestClient> {
     let settings = get_test_settings();
     EverstakeStakingClient::new(

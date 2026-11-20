@@ -54,11 +54,10 @@ pub struct TokenStats {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::testkit::TOKEN_SEARCH_RESULTS;
 
     #[test]
     fn test_token_search_result_status_fields() {
-        let results: Vec<TokenSearchResult> = serde_json::from_str(TOKEN_SEARCH_RESULTS).unwrap();
+        let results: Vec<TokenSearchResult> = serde_json::from_str(include_str!("../../testdata/token_search_results.json")).unwrap();
 
         assert_eq!(results[0].is_verified, Some(true));
         assert_eq!(results[1].is_verified, Some(false));

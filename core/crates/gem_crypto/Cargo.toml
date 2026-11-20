@@ -15,4 +15,5 @@ getrandom = { workspace = true, optional = true }
 zeroize = { workspace = true, optional = true }
 
 [dev-dependencies]
+gem_crypto = { path = ".", features = ["hash", "pbkdf", "random"] }
 gem_encoding = { path = "../gem_encoding", default-features = false }

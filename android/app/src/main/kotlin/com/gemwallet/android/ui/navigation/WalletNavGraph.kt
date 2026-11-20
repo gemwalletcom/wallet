@@ -27,6 +27,7 @@ import com.gemwallet.android.features.onboarding.presents.import_wallet.importWa
 import com.gemwallet.android.features.onboarding.presents.terms.acceptTermsScreen
 import com.gemwallet.android.features.transactions.presents.transaction.TransactionAction
 import com.gemwallet.android.features.wallet.presents.WalletSearchAction
+import com.gemwallet.android.features.wallet.presents.WalletsAction
 import com.gemwallet.android.ui.components.animation.navigationSlideTransition
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
@@ -211,12 +212,16 @@ fun WalletNavGraph(
             )
 
             walletsScreen(
-                onCreateWallet = navigator::openCreateWalletSecurityReminder,
-                onImportWallet = navigator::openImportWallet,
-                onEditWallet = navigator::openWalletDetail,
+                onAction = { action ->
+                    when (action) {
+                        WalletsAction.Create -> navigator.openCreateWalletSecurityReminder()
+                        WalletsAction.Import -> navigator.openImportWallet()
+                        is WalletsAction.Edit -> navigator.openWalletDetail(action.walletId)
+                        WalletsAction.Cancel -> onCancel()
+                    }
+                },
                 onSelectWallet = navigator::resetToWallet,
                 onBoard = navigator::resetToOnboarding,
-                onCancel = onCancel,
             )
 
             walletDetailScreen(

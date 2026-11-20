@@ -32,17 +32,20 @@ impl QuoteRequest {
     }
 }
 
+impl ChainflipAsset {
+    pub fn mock(chain: &str, asset: &str) -> Self {
+        Self {
+            chain: chain.to_string(),
+            asset: asset.to_string(),
+        }
+    }
+}
+
 impl DepositChannelRequest {
     pub fn mock() -> Self {
         Self {
-            source_asset: ChainflipAsset {
-                chain: "Assethub".to_string(),
-                asset: "DOT".to_string(),
-            },
-            destination_asset: ChainflipAsset {
-                chain: "Ethereum".to_string(),
-                asset: "ETH".to_string(),
-            },
+            source_asset: ChainflipAsset::mock("Assethub", "DOT"),
+            destination_asset: ChainflipAsset::mock("Ethereum", "ETH"),
             destination_address: TEST_EVM_RECIPIENT.to_string(),
             boost_fee: None,
             refund_parameters: RefundParameters {

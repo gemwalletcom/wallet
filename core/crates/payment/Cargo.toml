@@ -22,7 +22,4 @@ serde_serializers = { path = "../serde_serializers", features = ["bigint"] }
 url = { workspace = true }
 
 [dev-dependencies]
-gem_client = { path = "../gem_client", features = ["testkit"] }
-primitives = { path = "../primitives", features = ["testkit"] }
-gem_spark = { path = "../gem_spark", features = ["testkit"] }
 tokio = { workspace = true, features = ["macros", "rt"] }

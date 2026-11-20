@@ -13,7 +13,7 @@ pub mod tvm;
 pub mod address;
 pub mod constants;
 pub mod models;
-#[cfg(any(test, feature = "testkit"))]
+#[cfg(any(test, debug_assertions))]
 pub mod testkit;
 
 pub use address::Address;

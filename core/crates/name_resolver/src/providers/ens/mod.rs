@@ -11,3 +11,4 @@ mod testkit;
 pub use ccip::CcipClient;
 pub(crate) use name::namehash;
 pub use provider::EnsProvider;
+pub(crate) use provider::ens_name;

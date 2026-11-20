@@ -25,7 +25,6 @@ use crate::services::stream::GemSocketTransport;
 use crate::services::wallet_connect::GemWalletConnectService;
 use crate::testkit::TestAlienProvider;
 
-pub const TEST_VERIFIED_ORIGIN: &str = r#"{"origin":"https://example.com","isScam":false}"#;
 pub const TEST_PROPOSAL: &str = include_str!("../../../../../crates/wallet_connect_protocol/testdata/session_proposal.json");
 pub const TEST_AUTHENTICATION: &str = include_str!("../../../../../crates/wallet_connect_protocol/testdata/authenticate_request.json");
 
@@ -164,7 +163,10 @@ impl GemWalletConnectClient {
     }
 
     pub fn mock_with_service(dapp: &TestDapp, platform: Platform, service: GemWalletConnectService) -> Self {
-        let provider: Arc<dyn AlienProvider> = Arc::new(TestAlienProvider::with_json_by_path(200, &[("verify.walletconnect.org", TEST_VERIFIED_ORIGIN)]));
+        let provider: Arc<dyn AlienProvider> = Arc::new(TestAlienProvider::with_json_by_path(
+            200,
+            &[("verify.walletconnect.org", include_str!("../../../../../crates/wallet_connect_protocol/testdata/verify_attestation.json"))],
+        ));
         let store: Arc<dyn GemSecureStore> = dapp.store.clone();
         Self::new(Arc::new(service), store, provider, dapp.transport.clone(), dapp.listener.clone(), platform)
     }

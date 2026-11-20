@@ -19,6 +19,7 @@ serde_json = { workspace = true, optional = true }
 num-bigint = { workspace = true, optional = true }
 
 [dev-dependencies]
-gem_client = { path = "../gem_client", features = ["testkit"] }
-gem_jsonrpc = { path = "../gem_jsonrpc", features = ["testkit"] }
+alchemy = { path = ".", features = ["rpc"] }
+gem_client = { path = "../gem_client" }
+gem_jsonrpc = { path = "../gem_jsonrpc" }
 tokio = { workspace = true }

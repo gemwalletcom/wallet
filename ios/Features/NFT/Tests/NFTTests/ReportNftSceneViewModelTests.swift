@@ -30,8 +30,7 @@ struct ReportNftSceneViewModelTests {
 
         await model.submitReport(reason: .spam)
 
-        if case .data = model.state {
-            Issue.record("a failed report must not read as submitted")
-        }
+        #expect(model.state.isError)
+        #expect(model.isPresentingAlertMessage?.message == AnyError("no network").localizedDescription)
     }
 }

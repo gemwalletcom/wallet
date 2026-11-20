@@ -60,11 +60,10 @@ impl GemSettingsService {
         rules::security_sections(input, self.preferences.is_hide_balance_enabled())
     }
 
-    pub fn sections(&self, wallets: Vec<WalletListItem>, notifications_available: bool, wallet_connect_available: bool) -> Vec<GemGroup> {
+    pub fn sections(&self, wallets: Vec<WalletListItem>, notifications_available: bool) -> Vec<GemGroup> {
         rules::sections(
             wallets.len(),
             notifications_available,
-            wallet_connect_available,
             wallet_session::rules::shows_rewards(&wallets),
             self.preferences.is_developer_enabled(),
         )
